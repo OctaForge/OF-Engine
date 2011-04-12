@@ -1,0 +1,1 @@
+Current upstream version of /enet, /engine and /shared: Sauerbraten SVN (in sync) + improvements from Sauerbraten Enhanced

@@ -1,0 +1,1 @@
+- 19 February 2011 - tested build under FreeBSD. No modifications into source or buildsystem had to be done.

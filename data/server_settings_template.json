@@ -1,0 +1,29 @@
+{
+    "Components": {
+        "list": [
+        ]
+    }, 
+    "Logging": {
+        "level": "WARNING", 
+        "optimize_scripts": true, 
+        "scripting_tests": false
+    }, 
+    "Network": {
+        "address": "localhost", 
+        "master_server": "www.cubecreate.com:8888", 
+        "master_update_rate": 300, 
+        "port": 28787, 
+        "admin_port": 28789, 
+        "rate": 33
+    }, 
+    "Physics": {
+        "adaptive": true, 
+        "frame_time": 15
+    }, 
+    "Startup": {
+        "script": ""
+    }, 
+    "System": {
+        "benchmarking": false
+    }
+}
