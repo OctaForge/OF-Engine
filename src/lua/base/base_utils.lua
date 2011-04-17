@@ -248,36 +248,50 @@ currtime = CAPI.currtime
 getmillis = CAPI.getmillis
 
 --- Tabify a string.
+-- @param s String to tabify.
+-- @param n Number of tabs.
 -- @class function
 -- @name tabify
 tabify = CAPI.tabify
 
---- Execute a CubeCreate cfg.
+--- Execute a config file.
+-- @param cfg The config file to exec.
+-- @param msg If true, it'll print errors on console.
 -- @class function
 -- @name execcfg
 execcfg = CAPI.execcfg
 
---- Write a CubeCreate cfg.
+--- Write a config file.
+-- @param cfg The config file to write.
 -- @class function
 -- @name writecfg
 writecfg = CAPI.writecfg
 
---- Get a CubeCreate cfg.
+--- Get a configuration file item (client config or server config)
+-- @param cat Category to get item from.
+-- @param itm Item to get.
+-- @return The item as string.
 -- @class function
 -- @name getcfg
 getcfg = CAPI.getcfg
 
---- Read a file from disk.
+--- Read a file from disk. Path is validated (== can't go outside OF directory)
+-- @param file File to read.
+-- @return Contents of file as string.
 -- @class function
 -- @name readfile
 readfile = CAPI.readfile
 
---- Add a zip.
+--- Add a zip as VFS.
+-- @param name Name of the zip in data directory.
+-- @param mount Mount directory. (optional)
+-- @param strip String specifying what to strip from the beginning. (optional)
 -- @class function
 -- @name addzip
 addzip = CAPI.addzip
 
---- Remove a zip.
+--- Remove a zip from VFS.
+-- @param name Name of the zip to remove from VFS.
 -- @class function
 -- @name removezip
 removezip = CAPI.removezip
@@ -285,9 +299,11 @@ removezip = CAPI.removezip
 --- Get target position.
 -- @class function
 -- @name gettargetpos
+-- @return Target position as a vec3.
 gettargetpos = CAPI.gettargetpos
 
 --- Get target entity.
 -- @class function
 -- @name gettargetent
+-- @return Target entity.
 gettargetent = CAPI.gettargetent

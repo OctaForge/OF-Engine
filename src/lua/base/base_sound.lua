@@ -38,7 +38,7 @@ local string = require("string")
 -- @name cc.sound
 module("cc.sound")
 
---- Play sound knowing the filename.
+--- Play sound, knowing the filename.
 -- If done on the server, a message is sent to clients to play the sound.
 -- @param n Path to the sound.
 -- @param p Position as vec3, optional (defaults to 0,0,0)
@@ -60,6 +60,11 @@ function play(n, p, v, cn)
     end
 end
 
+--- Stop playing sound, knowing the filename.
+-- If done on the server, a message is sent to clients to stop the sound.
+-- @param n Path to the sound.
+-- @param v Sound volume (0 to 100, optional)
+-- @param cn Client number (optional, server only, defaults to all clients)
 function stop(n, v, cn)
     if glob.CLIENT then
         CAPI.stopsoundname(n, v)
@@ -73,19 +78,42 @@ function stop(n, v, cn)
     end
 end
 
+--- Play music.
+-- @param n Path to music.
+-- @class function
+-- @name playmusic
 playmusic = CAPI.music
 
+--- Set music handler. Starts playing immediately.
+-- @param f Function representing music handler.
 function setmusichandler(f)
     musichandler = f
     musiccallback() -- start playing now
 end
 
+--- Music callback. Called on playmusic from C++.
+-- If there is music handler set, it calls it.
 function musiccallback()
     if musichandler then
         musichandler()
     end
 end
 
+--- Register a sound. Used for hardcoded sounds. (TODO: do not hardcode sounds)
+-- @param n Path to the sound in data/sounds.
+-- @param v Volume of the sound (0 to 100, optional, defaults to 100)
+-- @class function
+-- @name register
 register = CAPI.registersound
+
+--- Reset sound slots. DEPRECATED. Entities are now using
+-- real paths instead of preregistering.
+-- @class function
+-- @name reset
 reset = CAPI.resetsound
+
+--- Preload sound into slot. DEPRECATED. Entities are now using
+-- real paths instead of preregistering.
+-- @class function
+-- @name preload
 preload = CAPI.preloadsound
