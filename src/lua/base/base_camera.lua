@@ -33,59 +33,90 @@ local CAPI = require("CAPI")
 -- @name cc.camera
 module("cc.camera")
 
----
+--- Force yaw, pitch, roll and fov of a camera.
+-- @param yaw Yaw to force.
+-- @param pitch Pitch to force.
+-- @param roll Roll to force.
+-- @param fov Field of view to force.
 -- @class function
 -- @name forcecam
 forcecam = CAPI.forcecam
----
+
+--- Force camera position.
+-- @param x X position.
+-- @param y Y position.
+-- @param z Z position.
 -- @class function
 -- @name forcepos
 forcepos = CAPI.forcepos
----
+
+--- Force camera yaw.
+-- @param yaw Yaw to force.
 -- @class function
 -- @name forceyaw
 forceyaw = CAPI.forceyaw
----
+
+--- Force camera pitch.
+-- @param pitch Pitch to force.
 -- @class function
 -- @name forcepitch
 forcepitch = CAPI.forcepitch
----
+
+--- Force camera roll.
+-- @param roll Roll to force.
 -- @class function
 -- @name forceroll
 forceroll = CAPI.forceroll
----
+
+--- Force camera fov.
+-- @param fov Field of view to force.
 -- @class function
 -- @name forcefov
 forcefov = CAPI.forcefov
----
+
+--- Reset camera (cancel all forcing)
 -- @class function
 -- @name resetcam
 resetcam = CAPI.resetcam
----
+
+--- Get a table containing position
+-- as a vec3, yaw, pitch and roll.
+-- @return A table with camera info.
 -- @class function
 -- @name getcam
 getcam = CAPI.getcam
----
+
+--- Get camera position. Possibly
+-- DEPRECATED, because getcam is
+-- sufficient enough.
+-- @return A vec3 with camera position.
 -- @class function
 -- @name getcampos
 getcampos = CAPI.getcampos
----
+
+--- Increase camera zoom.
 -- @class function
 -- @name caminc
 caminc = CAPI.caminc
----
+
+--- Decrease camera zoom.
 -- @class function
 -- @name camdec
 camdec = CAPI.camdec
----
+
+--- Toggle mouse looking.
 -- @class function
 -- @name mouselook
 mouselook = CAPI.mouselook
----
+
+--- Toggle character viewing.
 -- @class function
 -- @name characterview
 characterview = CAPI.characterview
----
+
+--- Set third person mode as default.
+-- DEPRECATED - engine variable
+-- access is sufficient enough.
 -- @class function
 -- @name setdeftpm
 setdeftpm = CAPI.setdeftpm

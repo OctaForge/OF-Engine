@@ -33,35 +33,53 @@ local CAPI = require("CAPI")
 -- @name cc.engine
 module("cc.engine")
 
----
+--- Quit the engine, showing a dialog when there are unsaved changes.
 -- @class function
 -- @name quit
 quit = CAPI.quit
----
+
+--- Quit the engine without asking for anything.
 -- @class function
 -- @name force_quit
 force_quit = CAPI.force_quit
----
+
+--- Set a screen resolution. screenres(1024, 768) is equivalent to
+-- scr_w = 1024; scr_h = 768, so DEPRECATED.
+-- @param w Screen width.
+-- @param h Screen height.
 -- @class function
 -- @name screenres
 screenres = CAPI.screenres
----
+
+--- Reload graphics subsystem of the engine. 
 -- @class function
 -- @name resetgl
 resetgl = CAPI.resetgl
----
+
+--- Check for available OpenGL extension.
+-- @param ext The extension to check for.
+-- @return 1 if extension is available, 0 otherwise. (TODO: change to booleans)
 -- @class function
 -- @name glext
 glext = CAPI.glext
----
+
+--- Get current frame rate.
+-- @return Frame rate.
 -- @class function
 -- @name getfps
 getfps = CAPI.getfps
----
+
+--- Take a screenshot.
+-- @param name Screenshot will get saved as name.png.
 -- @class function
 -- @name screenshot
 screenshot = CAPI.screenshot
----
+
+--- Record an ingame video. WARNING: videos are huge!
+-- Controlled by engine variables (moview, movieh,
+-- moviesound, moviefps, moviesync, movieaccel,
+-- movieaccelyuv, movieaccelblit)
+-- @param name Movie will get recorded into name.avi.
 -- @class function
 -- @name movie
 movie = CAPI.movie
