@@ -39,11 +39,16 @@ local lent = require("cc.logent")
 -- @name cc.msgsys
 module("cc.msgsys")
 
+-- -1 value represents all clients.
 ALL_CLIENTS = -1
 
+-- storage for ptocol names and IDs.
 pntoids = {}
 pidston = {}
 
+--- Send a message, either client->server or server->client. Data after message function are passed to it.
+-- @param a1 If this is logic entity or number, it's server->client message (number representing client number). On client, it's the message function.
+-- @param a2 On server, it's a message function, on client, data begin here.
 function send(...)
     log.log(log.DEBUG, "cc.msgsys.send")
 
@@ -74,6 +79,9 @@ function send(...)
     mt(base.unpack(args))
 end
 
+--- Generate protocol data.
+-- @param cln Client number.
+-- @param svn State variable names (table)
 function genprod(cln, svn)
     log.log(log.DEBUG, string.format("Generating protocol names for %s", cln))
     table.sort(svn) -- ensure there is the same order on both client and server
@@ -89,21 +97,35 @@ function genprod(cln, svn)
     pidston[cln] = idston
 end
 
+--- Return protocol ID to corresponding state variable name.
+-- @param cln Client number.
+-- @param svn State variable name.
+-- @return Corresponding protocol ID.
 function toproid(cln, svn)
     log.log(log.DEBUG, string.format("Retrieving protocol ID for %s / %s", cln, svn))
     return pntoids[cln][svn]
 end
 
+--- Return state variable name to corresponding protocol ID.
+-- @param cln Client number.
+-- @param svn Protocol ID.
+-- @return Corresponding state variable name.
 function fromproid(cln, proid)
     log.log(log.DEBUG, string.format("Retrieving state variable name for %s / %i", cln, proid))
     return pidston[cln][proid]
 end
 
+--- Clear protocol data for client number.
+-- @param cln Client number.
 function delci(cln)
     pntoids[cln] = nil
     pidston[cln] = nil
 end
 
+--- Show message from server on clients.
+-- @param cn Client number.
+-- @param ti Message title.
+-- @param tx Message text.
 function showcm(cn, ti, tx)
     if cn.is_a and cn:is_a(lent.logent) then
         cn = cn.cn
