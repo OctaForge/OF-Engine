@@ -145,33 +145,6 @@ cc.console.binds.addedit("KP6", [[cc.console.turn_right()]])
 cc.console.binds.addedit("KP8", [[if blendpaintmode ~= 0 then cc.blend.brush.scroll(-1) else cc.console.forward() end]])
 cc.console.binds.addedit("KP9", [[cc.blend.brush.scroll(1)]])
 
-cc.console.binds.add("MOUSE1", [[cc.console.mouse1click()]])
-cc.console.binds.add("MOUSE2", [[cc.console.mouse2click()]])
-cc.console.binds.add("MOUSE3", [[cc.console.mouse3click()]])
-
-cc.console.binds.add("H", [[cc.console.actionkey0()]]) -- by convention, a 'help' dialog should appear
-
-cc.console.binds.add("1", [[cc.console.actionkey1()]])
-cc.console.binds.add("2", [[cc.console.actionkey2()]])
-cc.console.binds.add("3", [[cc.console.actionkey3()]])
-cc.console.binds.add("4", [[cc.console.actionkey4()]])
-cc.console.binds.add("5", [[cc.console.actionkey5()]])
-cc.console.binds.add("6", [[cc.console.actionkey6()]])
-cc.console.binds.add("7", [[cc.console.actionkey7()]])
-cc.console.binds.add("8", [[cc.console.actionkey8()]])
-
-cc.console.binds.add("Y", [[cc.console.actionkey9()]])
-cc.console.binds.add("U", [[cc.console.actionkey10()]])
-cc.console.binds.add("I", [[cc.console.actionkey11()]])
-cc.console.binds.add("O", [[cc.console.actionkey12()]])
-cc.console.binds.add("P", [[cc.console.actionkey13()]])
-cc.console.binds.add("J", [[cc.console.actionkey14()]])
-cc.console.binds.add("K", [[cc.console.actionkey15()]])
-cc.console.binds.add("L", [[cc.console.actionkey16()]])
-
-cc.console.binds.add("F", [[cc.console.actionkey17()]])
--- etc.;
-
 cc.console.binds.add("M", [[cc.camera.mouselook()]])
 cc.console.binds.addedit("M", [[cc.camera.mouselook()]])
 cc.console.binds.addvaredit("0", "showmat")
@@ -180,7 +153,6 @@ cc.console.binds.add("PAGEDOWN", [[cc.console.look_up()]])
 cc.console.binds.add("PAGEDOWN", [[cc.console.look_down()]])
 
 cc.console.binds.addedit("MOUSE2", [[cc.world.editextend_intensity()]])
-cc.console.binds.addedit("F7", [[cc.console.actionkey0()]])
 cc.console.binds.addedit("P", [[cc.world.centerent()]])
 -- create entity where we're pointing
 cc.console.binds.addedit("F8", [[cc.console.save_mouse_pos(); cc.gui.prepentsgui()]])
