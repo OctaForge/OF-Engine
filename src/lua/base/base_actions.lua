@@ -88,10 +88,21 @@ ANIM_SECONDARY = 11
 
 ANIM_RAGDOLL = math.lsh(1, 27)
 
--- Default action from which every other inherits
+--- Default action class, every other action inherits from this.
+-- @class table
+-- @name action
 action = class.new()
+
+--- Return string representation of action.
+-- @return String representation of action.
 function action:__tostring() return "action" end
 
+--- action constructor.
+-- Kwargs can contain secondsleft (how many seconds left till action ends, number),
+-- anim (action animation, number - see beginning of this file),
+-- canmulqueue (can multiply queue?, boolean), canbecancelled (can action be cancelled?, boolean)
+-- and parallelto (action it's parallel to, action).
+-- @param kwargs A table of additional properties.
 function action:__init(kwargs)
     kwargs = kwargs or {}
 
@@ -100,30 +111,42 @@ function action:__init(kwargs)
     self.starttime = CAPI.currtime()
 
     self.secondsleft = self.secondsleft or kwargs.secondsleft or 0
-    self.anim = self.anim or kwargs.anim or nil
+    self.anim = self.anim == nil and (kwargs.anim == nil and false or kwargs.anim)
+    self.actor = false
 
-    self.canmulqueue = self.canmulqueue or kwargs.canmulqueue or true
-    self.canbecancelled = self.canbecancelled or kwargs.canbecancelled or true
-    self.parallelto = self.parallelto or kwargs.parallelto or nil
+    self.canmulqueue = self.canmulqueue == nil and (kwargs.canmulqueue == nil and true or false)
+    self.canbecancelled = self.canbecancelled == nil and (kwargs.canbecancelled == nil and true or false)
+    self.parallelto = self.parallelto == nil and (kwargs.parallelto == nil and false or kwargs.parallelto)
 end
 
+--- start method for action.
+-- Marks the action as begun and calls dostart,
+-- which is meant to be overriden by inherited actions.
 function action:start()
     self.begun = true
     self:dostart()
 end
 
+--- dostart method, meant to be overriden.
+-- @see action:start
 function action:dostart()
 end
 
+--- execute method, which takes care of execution, deactivation etc.
+-- doexecute gets called here, which is meant to be overriden.
+-- @param sec How many seconds to execute.
+-- @return True if the action has ended, false otherwise.
 function action:execute(sec)
-    if self.actor and self.actor.deactivated then
+    -- take care of proper finish
+    if self.actor ~= false and self.actor.deactivated then
         self:finish()
         return true
     end
 
+    -- start if not begun yet.
     if not self.begun then
         self:start()
-        if self.anim then
+        if self.anim ~= false then
             self.lastanim = self.actor.anim
             if self.actor.anim ~= self.anim then
                 self.actor.anim = self.anim
@@ -131,7 +154,9 @@ function action:execute(sec)
         end
     end
 
-    if not self.parallelto then
+    -- handle execution, and mirror finish status of parallel action
+    -- if exists.
+    if self.parallelto == false then
         log.log(log.INFO, "executing action " .. base.tostring(self))
 
         local finished = self:doexecute(sec)
@@ -144,7 +169,7 @@ function action:execute(sec)
         return finished
     else
         if self.parallelto.finished then
-            self.parallelto = nil
+            self.parallelto = false
             self:finish()
             return true
         else
@@ -153,15 +178,25 @@ function action:execute(sec)
     end
 end
 
+--- doexecute method, meant to be overriden.
+-- Always make sure your inherited action calls base doexecute
+-- at the end, though, or at least make sure it's performing
+-- needed actions (modification of secondsleft and proper return).
+-- @param sec How many seconds to execute, passed by execute.
+-- @return True if the action has ended, false otherwise.
+-- @see action:execute
 function action:doexecute(sec)
     self.secondsleft = self.secondsleft - sec
     return (self.secondsleft <= 0)
 end
 
+--- finish method, taking care of proper action shutdown.
+-- Calls dofinish at the end, which is meant to be overriden by
+-- custom actions.
 function action:finish()
     self.finished = true
 
-    if self.anim and self.lastanim then
+    if self.anim and self.lastanim ~= nil then
         if self.actor.anim ~= self.lastanim then
             self.actor.anim = self.lastanim
         end
@@ -170,56 +205,111 @@ function action:finish()
     self:dofinish()
 end
 
+--- dofinish method, meant to be overriden.
+-- @see action:finish
 function action:dofinish()
 end
 
+--- Cancel actione vent. Performs finish, but only if action
+-- can be cancelled.
 function action:cancel()
     if self.canbecancelled then
         self:finish()
     end
 end
 
--- Never ending action
+--- Never ending action. Such behavior is accomplished by
+-- always returning false on doexecute.
+-- @class table
+-- @name action_infinite
 action_infinite = class.new(action)
+
+--- Return string representation of action.
+-- @return String representation of action.
 function action_infinite:__tostring() return "action_infinite" end
+
+--- Custom doexecute. Always returns false in order to make
+-- the action never end.
+-- @param sec How many seconds to execute, passed by execute.
+-- @return Always false here.
 function action_infinite:doexecute(sec)
     return false
 end
 
--- Action with logent as target - such actions inherit this class and save some code
+--- Action with logent as target - such
+-- actions inherit this class and save some code.
+-- @class table
+-- @name action_targeted
 action_targeted = class.new(action)
+
+--- Return string representation of action.
+-- @return String representation of action.
 function action_targeted:__tostring() return "action_targeted" end
+
+--- Custom constructor. Executes the default constructor and additionally
+-- sets a target logic entity. Accepts one more constructor argument.
+-- @param target The target logic entity.
+-- @param kwargs Action parameters, see kwargs at action constructor.
+-- @see action:__init
 function action_infinite:__init(target, kwargs)
     action.__init(self, kwargs)
     -- the target - logent
     self.target = target
 end
 
--- Runs a single command with parameterers. Useful for queuing a command for next act() of entity.
+--- Runs a single command with parameterers.
+-- Useful for queuing a command for next act() of entity.
+-- @class table
+-- @name action_singlecommand
 action_singlecommand = class.new(action)
+
+--- Return string representation of action.
+-- @return String representation of action.
 function action_singlecommand:__tostring() return "action_singlecommand" end
+
+--- Custom constructor. Executes the default constructor and additionally
+-- sets a command, which is a function, and gets executed on doexecute.
+-- Accepts one more constructor argument.
+-- @param command Command to execute on doexecute, is a function.
+-- @param kwargs Action parameters, see kwargs at action constructor.
+-- @see action:__init
 function action_singlecommand:__init(command, kwargs)
     action.__init(kwargs)
     self.command = command
 end
+
+--- Custom doexecute. Always returns true, because exactly one thing is done.
+-- Custom command specified on constructor is ran here.
+-- @param sec Value is irrelevant here, since only the command gets executed.
+-- @return Always true here.
 function action_singlecommand:doexecute(sec)
     self.command()
     return true
 end
 
 
--- Action queue for single logent and their management
+--- Action queue for single logent and their management.
+-- @class table
+-- @name action_system
 action_system = class.new()
 
+--- Action system constructor. Accepts parent logent. Initializes action queue.
+-- @param parent The parent logent.
 function action_system:__init(parent)
     self.parent = parent
     self.actlist = {}
 end
 
+--- Returns true if there are no more actions to do (queue is empty)
+-- @return True if queue is empty, false otherwise.
 function action_system:isempty()
     return (#self.actlist == 0)
 end
 
+--- Manage the action queue for a number of seconds.
+-- Filters out finished actions from previous iterations and executes next action in queue for
+-- a number of seconds.
+-- @param sec Number of seconds to pass to executing action.
 function action_system:manage(sec)
     self.actlist = table.filterarray(self.actlist, function (i, v) return not v.finished end)
     if #self.actlist > 0 then
@@ -232,6 +322,7 @@ function action_system:manage(sec)
     -- do not forget to do a clear between every action
 end
 
+--- Cancel all actions in queue.
 function action_system:clear()
     -- note: they don't get removed here - just cancelled - finished actions get removed in manage function.
     for i = 1, #self.actlist do
@@ -239,6 +330,9 @@ function action_system:clear()
     end
 end
 
+--- Add an action into queue. Doesn't allow two actions of same
+-- type if queue multiplication is explicitly set to false.
+-- @param act Action to queue.
 function action_system:queue(act)
     if not action.canmulqueue then
         for i = 1, #self.actlist do

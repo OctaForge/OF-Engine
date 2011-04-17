@@ -257,8 +257,12 @@ function svar(name, ...) inst:reg(SVAR(name, ...)) end
 -- @name reset
 reset = CAPI.resetvar
 
---- Doesn't do anything for now. TODO - implement,
--- though not important to do at this moment.
+--- Create new engine variable from Lua scripting system.
+-- Useful for i.e. setting default values for GUI entries.
+-- Creates variables as "aliases" and doesn't support callbacks.
+-- @param name Name of the variable.
+-- @param type Type of the variable. see VAR_(I,F,S) at the beginning of this file.
+-- @param val Default value of the variable.
 -- @class function
 -- @name new
 new = CAPI.newvar

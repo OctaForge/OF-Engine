@@ -56,7 +56,6 @@ end
 -- @param x X value of vector.
 -- @param y Y value of vector.
 -- @param z Z value of vector.
--- @return A vector of those values.
 function vec3:__init(x, y, z)
     if base.type(x) == "table" and x.is_a and x:is_a(vec3) then
         self.x = base.tonumber(x.x)
