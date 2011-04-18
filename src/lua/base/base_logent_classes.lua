@@ -39,6 +39,11 @@ module("cc.logent.classes")
 
 _logent_classes = {}
 
+--- Register entity class. Registers a given entity class into storage
+-- and generates protocol data.
+-- @param _cl The entity class to register.
+-- @param st Sauer type of the entity. It's "fpsent" for dynamic entities and specific for static entities.
+-- @return Entity class you're registering.
 function reg(_cl, st)
     local _cln = _cl._class
 
@@ -49,8 +54,8 @@ function reg(_cl, st)
         while _base do
             local _pn = _base._class
             log.log(log.DEBUG, "finding sauertype in parent: " .. base.tostring(_pn))
-            local found, stype = get_sauertype(_pn)
-            if found then
+            local stype = get_sauertype(_pn)
+            if stype then
                 st = stype
                 break
             else
@@ -83,26 +88,34 @@ function reg(_cl, st)
     return _cl
 end
 
+--- Get entity class, knowing its name.
+-- @param _cn Entity class name.
+-- @return The entity class if found, false otherwise.
 function get_class(_cn)
     if _logent_classes[base.tostring(_cn)] then
-        return true, _logent_classes[base.tostring(_cn)][1]
+        return _logent_classes[base.tostring(_cn)][1]
     else
         log.log(log.ERROR, "invalid class: " .. base.tostring(_cn))
-        return false, nil
+        return nil
     end
 end
 
+--- Get sauer type of entity class, knowing its name.
+-- @param _cn Entity class name.
+-- @return Entity class' sauer type if found, false otherwise.
 function get_sauertype(_cn)
     if _logent_classes[base.tostring(_cn)] then
-        return true, _logent_classes[base.tostring(_cn)][2]
+        return _logent_classes[base.tostring(_cn)][2]
     else
         log.log(log.ERROR, "invalid class: " .. base.tostring(_cn))
-        return false, nil
+        return nil
     end
 end
 
+--- List entity classes.
+-- @return Table (array) of entity class names.
 function list()
-    local r = table.values(table.filter(table.keys(_logent_classes), function(k, v) local f, c = get_class(v); return f and c._sauertype and c._sauertype ~= "fpsent" end))
+    local r = table.values(table.filter(table.keys(_logent_classes), function(k, v) local c = get_class(v); return c and c._sauertype and c._sauertype ~= "fpsent" end))
     table.sort(r)
     return r
 end

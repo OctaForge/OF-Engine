@@ -71,7 +71,7 @@ namespace lua_binds
 
     // (1 = keep while focused, 2 = keep while used in gui, 3 = keep forever (i.e. until mode changes)) topmost editor, return current setting if no args
     LUA_BIND_TEXT(textmode, {
-        int arg1 = e.get<int>(2);
+        int arg1 = e.get<int>(1);
         if (arg1)
         {
             top->mode = arg1;

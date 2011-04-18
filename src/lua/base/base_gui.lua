@@ -73,21 +73,25 @@ font_char = CAPI.fontchar
 -- @class function
 -- @name new
 new = CAPI.newgui
+
 --- Clear a GUI.
 -- @param n Id of the GUI to clear.
 -- @class function
 -- @name clear
 clear = CAPI.cleargui
+
 --- Show a GUI of known name.
 -- @param n Name of the GUI to show.
 -- @class function
 -- @name show
 show = CAPI.showgui
+
 --- Show a message window.
 -- @param m Message to show.
 -- @class function
 -- @name show_message
 show_message = CAPI.showmessage
+
 --- Show input field window.
 -- You can read entered input from "input_data"
 -- engine variable.
@@ -95,10 +99,12 @@ show_message = CAPI.showmessage
 -- @class function
 -- @name show_inputdialog
 show_inputdialog = CAPI.showinputdialog
+
 --- Show plugins GUI.
 -- @class function
 -- @name show_plugins
 show_plugins = CAPI.show_plugins
+
 --- Click trigger. Plays menu click sound.
 -- @class function
 -- @name menu_key_click_trigger
@@ -111,21 +117,25 @@ menu_key_click_trigger = CAPI.menukeyclicktrig
 -- @class function
 -- @name button
 button = CAPI.guibutton
+
 --- Create a GUI label widget.
 -- @param l Label text.
 -- @param i Icon to show. (i.e. "info")
 -- @class function
 -- @name text
 text = CAPI.guitext
+
 --- Create a GUI list widget.
 -- @param c Contents of the list. (i.e. more widgets)
 -- @class function
 -- @name list
 list = CAPI.guilist
+
 --- Create a GUI separator bar widget.
 -- @class function
 -- @name bar
 bar = CAPI.guibar
+
 --- Create a GUI image widget.
 -- @param p Path to the image.
 -- @param a Action on click.
@@ -135,6 +145,7 @@ bar = CAPI.guibar
 -- @class function
 -- @name image
 image = CAPI.guiimage
+
 --- Create a GUI checkbox widget.
 -- @param n Checkbox label.
 -- @param v Engine variable to set when (un)checked (either existing or new)
@@ -144,6 +155,7 @@ image = CAPI.guiimage
 -- @class function
 -- @name checkbox
 checkbox = CAPI.guicheckbox
+
 --- Create a GUI radiobox widget.
 -- @param n Radiobox label.
 -- @param v Engine variable to set when (un)selected (either existing or new)
@@ -152,6 +164,7 @@ checkbox = CAPI.guicheckbox
 -- @class function
 -- @name radiobox
 radiobox = CAPI.guiradio
+
 --- Create a GUI slider widget.
 -- @param v Engine variable to set on change.
 -- @param l Minimal value of the slider.
@@ -160,6 +173,7 @@ radiobox = CAPI.guiradio
 -- @class function
 -- @name slider
 slider = CAPI.guislider
+
 --- Create a GUI list slider widget.
 -- @param v Engine variable to set on change.
 -- @param l List of numbers in format "1 5 15 20 X Y Z"
@@ -167,6 +181,7 @@ slider = CAPI.guislider
 -- @class function
 -- @name slider_list
 slider_list = CAPI.guilistslider
+
 --- Create a GUI name list slider widget.
 -- @param v Engine variable to set on change.
 -- @param n List of names in format "foo bar blah"
@@ -175,6 +190,7 @@ slider_list = CAPI.guilistslider
 -- @class function
 -- @name slider_name
 slider_name = CAPI.guinameslider
+
 --- Create a GUI field widget.
 -- @param v Engine variable to set on change.
 -- @param m Maximal length of field value.
@@ -183,6 +199,7 @@ slider_name = CAPI.guinameslider
 -- @class function
 -- @name field
 field = CAPI.guifield
+
 --- Create a GUI key field widget.
 -- Keyfield is a field accepting key input and showing
 -- appropriate keybinding in box (i.e. CTRL+X). Useful
@@ -193,6 +210,7 @@ field = CAPI.guifield
 -- @class function
 -- @name field_key
 field_key = CAPI.guikeyfield
+
 --- Create a GUI bit field widget. Looks like a checkbox,
 -- allows bitwise matching. Look at console settings cC
 -- menu for usage. (where confilter is being set)
@@ -203,6 +221,7 @@ field_key = CAPI.guikeyfield
 -- @class function
 -- @name field_bit
 field_bit = CAPI.guibitfield
+
 --- Create a GUI editor widget (multi-line field).
 -- For reference about value getting / setting / ...,
 -- see the textedit cC Lua API docs.
@@ -213,6 +232,7 @@ field_bit = CAPI.guibitfield
 -- @class function
 -- @name editor
 editor = CAPI.guieditor
+
 --- Create a GUI textbox widget (multi-line label).
 -- @param t Text to use.
 -- @param w Textbox width.
@@ -221,40 +241,47 @@ editor = CAPI.guieditor
 -- @class function
 -- @name textbox
 textbox = CAPI.guitextbox
+
 --- Create a GUI tab widget. Everything defined under
 -- tab definition belongs to the tab.
 -- @param l Tab label.
 -- @class function
 -- @name tab
 tab = CAPI.guitab
+
 --- Create a GUI strut widget, useful for setting minimal relative size.
 -- @param s Minimal relative size. (float value from 0.0 to 1.0)
 -- @param a By default, strut gets pushed into a list. Setting this to true disables the list.
 -- @class function
 -- @name strut
 strut = CAPI.guistrut
+
 --- Creates a GUI align widget, which is simillar to list, but allows to align things.
 -- @param a Content alignment. -1 means left, 0 centered and 1 right.
 -- @param c Contents of the align, same as in case of list.
 -- @class function
 -- @name align
 align = CAPI.guialign
+
 --- Create a GUI color widget, which basically shows a text representing hex value of a color
 -- (0xFFFFFF) entered as parameter, and colorizes the text accordingly.
 -- @param c Color to show (hex value)
 -- @class function
 -- @name color
 color = CAPI.guicolor
+
 --- Create a GUI title widget, which is basically a header text styled the same as tab labels.
 -- @param t Text to show as header.
 -- @class function
 -- @name title
 title = CAPI.guititle
+
 --- Set an action that happens on current GUI clear.
 -- @param a Action to do on current GUI clear.
 -- @class function
 -- @name on_clear
 on_clear = CAPI.guionclear
+
 --- Usual GUI gets closed when event happens in it.
 -- In order to protect your GUI from closing, you can create event source (button, ..) in
 -- stayopen. Then such behavior won't happen - useful for i.e. editor control buttons.
@@ -262,18 +289,21 @@ on_clear = CAPI.guionclear
 -- @class function
 -- @name stayopen
 stayopen = CAPI.guistayopen
+
 --- Usual GUI gets autotabbed in a smart way. In order to protect
 -- your GUI from doing that, create your widgets in noautotab.
 -- @param c Create your noautotab widgets here.
 -- @class function
 -- @name noautotab
 noautotab = CAPI.guinoautotab
+
 --- Show a progress bar.
 -- @name p Percentage as float number from 0.0 to 1.0.
 -- @name t Text to show.
 -- @class function
 -- @name renderprogress
 renderprogress = CAPI.renderprogress
+
 --- Show a HUD rectangle.
 -- @param x1 X1 position.
 -- @param x2 X2 position.
@@ -284,6 +314,7 @@ renderprogress = CAPI.renderprogress
 -- @class function
 -- @name showhudrect
 showhudrect = CAPI.showhudrect
+
 --- Show a HUD image.
 -- @param cx X center.
 -- @param cy Y center.
@@ -294,6 +325,7 @@ showhudrect = CAPI.showhudrect
 -- @class function
 -- @name showhudimage
 showhudimage = CAPI.showhudimage
+
 --- Show a HUD text.
 -- @param t Text to show.
 -- @param x X position.
@@ -303,99 +335,145 @@ showhudimage = CAPI.showhudimage
 -- @class function
 -- @name showhudtext
 showhudtext = CAPI.showhudtext
----
--- @class function
--- @name menukeyclicktrig
-menukeyclicktrig = CAPI.menukeyclicktrig
----
+
+--- Prepare entity GUI (define it).
 -- @class function
 -- @name prepentgui
 prepentgui = CAPI.prepentgui
----
+
+--- Get entity property GUI label, knowing its ID.
+-- @param id ID of the entity property.
+-- @return The label as string.
 -- @class function
 -- @name getentguilabel
 getentguilabel = CAPI.getentguilabel
----
+
+--- Get entity property GUI value, knowing its ID.
+-- @param id ID of the entity property.
+-- @return The value as string.
 -- @class function
 -- @name getentguival
 getentguival = CAPI.getentguival
----
+
+--- Set entity property GUI value.
+-- @param id ID of the entity property.
+-- @param val The value to set.
 -- @class function
 -- @name setentguival
 setentguival = CAPI.setentguival
----
+
+--- Show OctaForge plugins GUI. DEPRECATED.
 -- @class function
 -- @name show_plugins
 show_plugins = CAPI.show_plugins
----
+
+--- Load a crosshair. DEPRECATED in favor of future API.
+-- @param n Path to the crosshair.
+-- @param i Index of the crosshair.
 -- @class function
 -- @name loadcrosshair
 loadcrosshair = CAPI.loadcrosshair
----
+
+--- Toggle scoreboard.
 -- @class function
 -- @name showscores
 showscores = CAPI.showscores
----
+
+--- Return list text editors separated by commas.
+-- @return List of text editors separated by commas.
 -- @class function
 -- @name textlist
 textlist = CAPI.textlist
----
+
+--- Return the start of the buffer.
+-- @return The start of the buffer.
 -- @class function
 -- @name textshow
 textshow = CAPI.textshow
----
+
+--- Focus a specific text editor.
+-- @param n Name of the text editor.
+-- @param i Optional argument specifying editor mode.
+-- (1 - EDITORFOCUSED, 2 - EDITORUSED, 3, <=0 - EDITORFOREVER)
 -- @class function
 -- @name textfocus
 textfocus = CAPI.textfocus
----
+
+--- Return to previous editor.
 -- @class function
 -- @name textprev
 textprev = CAPI.textprev
----
+
+--- Set text editor mode. Modes:
+-- 1 = keep while focused, 2 = keep while used in gui, 3 = keep forever (i.e. until mode changes)
+-- @param i The mode.
 -- @class function
 -- @name textmode
 textmode = CAPI.textmode
----
+
+--- Save contents in the topmost editor.
+-- @param f Optional filename argument.
 -- @class function
 -- @name textsave
 textsave = CAPI.textsave
----
+
+--- Load a topmost editor.
+-- @param f Optional filename argument.
+-- @return Filename if first argument is not specified.
 -- @class function
 -- @name textload
 textload = CAPI.textload
----
+
+--- Initialize an editor.
+-- @param n Name of the text editor.
 -- @class function
 -- @name textinit
 textinit = CAPI.textinit
----
+
+--- Copy selection in topmost editor into clipboard.
 -- @class function
 -- @name textcopy
 textcopy = CAPI.textcopy
----
+
+--- Paste contents of the clipboard into topmost editor.
 -- @class function
 -- @name textpaste
 textpaste = CAPI.textpaste
----
+
+--- Manipulate with selection on topmost editor.
+-- @param i If this is integer bigger than 0, text editor gets unselected.
+-- @return If argument is not passed and selection is valid, returns
+-- 1, otherwise returns 0, if argument is passed, returns nil.
 -- @class function
 -- @name textmark
 textmark = CAPI.textmark
----
+
+--- Select everything in topmost editor.
 -- @class function
 -- @name textselectall
 textselectall = CAPI.textselectall
----
+
+--- Clear the topmost text editor.
 -- @class function
 -- @name textclear
 textclear = CAPI.textclear
----
+
+--- Return current line of topmost editor.
+-- @return Current line of topmost editor.
 -- @class function
 -- @name textcurrentline
 textcurrentline = CAPI.textcurrentline
----
+
+--- Execute contents of topmost editor.
+-- If integral argument > 0 is provided, selected
+-- part only gets executed.
+-- @param i If this is integer bigger than 0,
+-- only selected part of text gets executed.
 -- @class function
 -- @name textexec
 textexec = CAPI.textexec
----
+
+--- Prepare entities GUI. (prepare classes and show the GUI)
 function prepentsgui()
     CAPI.prepareentityclasses()
     show("entities")

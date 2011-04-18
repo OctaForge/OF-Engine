@@ -156,7 +156,7 @@ function add(cn, uid, kwargs, _new)
 
     base.assert(not get(uid)) -- cannot recreate
 
-    local f, _class = lecl.get_class(cn)
+    local _class = lecl.get_class(cn)
     local r = _class()
 
     if glob.CLIENT then
