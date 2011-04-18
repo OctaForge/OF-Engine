@@ -33,83 +33,130 @@ local CAPI = require("CAPI")
 -- @name cc.network
 module("cc.network")
 
----
+--- Connect to a server.
+-- @param ip An IP address (string)
+-- @param port A port (integer)
 -- @class function
 -- @name connect
 connect = CAPI.connect
----
+
+--- Is this client connected? TODO: return a boolean,
+-- or possibly DEPRECATED and replaced.
+-- @param N player number
+-- @return If player N is connected, return 1, otherwise 0
 -- @class function
 -- @name isconnected
 isconnected = CAPI.isconnected
----
+
+--- Get host IP.
+-- @return Host IP
 -- @class function
 -- @name connectedip
 connectedip = CAPI.connectedip
----
+
+--- Get host port.
+-- @return Host port.
 -- @class function
 -- @name connectedport
 connectedport = CAPI.connectedport
----
+
+--- Connect to a server (raw, DEPRECATED after some fixes)
+-- @param ip An IP address (string)
+-- @param port A port (integer)
+-- @param pass A server password.
 -- @class function
 -- @name connectserv
 connectserv = CAPI.connectserv
----
+
+--- LAN connection. DEPRECATED after some fixes (will use connect())
+-- @param port A port (integer)
+-- @param pass A server password.
 -- @class function
 -- @name lanconnect
 lanconnect = CAPI.lanconnect
----
+
+--- Disconnect from a server.
 -- @class function
 -- @name disconnect
 disconnect = CAPI.disconnect
----
+
+--- Add and connect local client. DEPRECATED in scripting (useful for NPCs
+-- which are done from C++ and then exported to Lua)
 -- @class function
 -- @name localconnect
 localconnect = CAPI.localconnect
----
+
+--- Disconnect local client(s). DEPRECATED in scripting, since it doesn't handle
+-- several required things.
+-- @param cleanup Doesn't have effect.
+-- @param 
 -- @class function
 -- @name localdisconnect
 localdisconnect = CAPI.localdisconnect
----
+
+--- Start listen server. DEPRECATED
+-- @param master Use master?
 -- @class function
 -- @name startlistenserver
 startlistenserver = CAPI.startlistenserver
----
+
+--- Stop listen server. DEPRECATED
 -- @class function
 -- @name stoplistenserver
 stoplistenserver = CAPI.stoplistenserver
----
+
+--- Get client number of following player.
+-- Possibly DEPRECATED in favor of better API.
+-- @return Client number of following player, or -1.
 -- @class function
 -- @name getfollow
 getfollow = CAPI.getfollow
----
+
+--- Connect to server instance on master.
+-- Possibly DEPRECATED in favor of better API.
+-- @param inst Instance. (string)
 -- @class function
 -- @name connect_to_instance
 connect_to_instance = CAPI.connect_to_instance
----
+
+--- Connect to master lobby.
+-- Possibly DEPRECATED in favor of better API.
 -- @class function
 -- @name connect_to_lobby
 connect_to_lobby = CAPI.connect_to_lobby
----
+
+--- Connect to selected server instance on master.
+-- Possibly DEPRECATED in favor of better API.
 -- @class function
 -- @name connect_to_selected_instance
 connect_to_selected_instance = CAPI.connect_to_selected_instance
----
+
+--- Show GUI of server instances on master.
+-- Possibly DEPRECATED in favor of better API.
 -- @class function
 -- @name show_instances
 show_instances = CAPI.show_instances
----
+
+--- Upload asset if connected to master, otherwise save locally.
 -- @class function
 -- @name do_upload
 do_upload = CAPI.do_upload
----
+
+--- Reupload asset, doesn't require running world and doesn't save one,
+-- useful when things crash.
 -- @class function
 -- @name repeat_upload
 repeat_upload = CAPI.repeat_upload
----
+
+--- Login to masterserver. Possibly DEPRECATED in favor of better API.
+-- @param user Username.
+-- @param pass Password.
 -- @class function
 -- @name do_login
 do_login = CAPI.do_login
----
+
+--- Start / stop local server. Possibly DEPRECATED in favor of better API.
+-- @param map Map name. If not given, running server gets stopped.
 -- @class function
 -- @name ssls
 ssls = CAPI.ssls
