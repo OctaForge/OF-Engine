@@ -36,7 +36,7 @@ with little modifications it should work everywhere.
 
    .. code-block :: bash
 
-       $ sudo apt-get install cmake build-essential libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev python-dev zlib1g-dev liblua5.1-dev
+       $ sudo apt-get install cmake build-essential libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev python-dev zlib1g-dev liblua5.1-dev libboost-python-dev
 
    If I list the dependencies (for other OSes), they are:
 
@@ -47,6 +47,7 @@ with little modifications it should work everywhere.
    4. Python dev libraries and headers
    5. Zlib dev libraries and headers
    6. Lua dev libraries and headers
+   7. Boost.python library and boost headers
 
 2. Open a terminal, build cC:
 
@@ -85,8 +86,8 @@ You need to get:
    https://sourceforge.net/projects/boost/files/boost-binaries/1.41.0/libboost_python-vc90-mt-1_41.zip/download
    https://sourceforge.net/projects/boost/files/boost-binaries/1.41.0/boost_1_41_headers.zip/download
 
-   Unpack the .lib file from boost_python archive into cubecreate/src/windows/boost_python (create dir)
-   Unpack "boost" directory from second archive into cubecreate/src/windows/boost (create dir, the path is src/windows/boost/boost/...)
+   Unpack the .lib file from boost_python archive into cubecreate/src/windows/boost (create dir) and rename the file to boost_python.lib.
+   Unpack "boost" directory from second archive into cubecreate/src/windows/boost (so the path is src/windows/boost/boost/...)
 
 Then, you have two ways to build cC. Visual Studio Express Edition is recommended and Code::Blocks support is currently incomplete.
 
