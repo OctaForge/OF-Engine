@@ -36,7 +36,7 @@ local lent = require("cc.logent")
 local msgsys = require("cc.msgsys")
 local sig = require("cc.signals")
 
---- Application manager for cC Lua interface.
+--- Application manager for cC Lua interface. DEPRECATED
 -- @class module
 -- @name cc.appman
 module("cc.appman")
