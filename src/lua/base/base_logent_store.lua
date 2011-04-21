@@ -495,7 +495,7 @@ end
 -- @param uid Unique ID of the entity.
 -- @param kproid Protocol ID of state data.
 -- @param val Value to set.
--- @param auid Unique ID of the actor.
+-- @param auid Unique ID of the actor (client that triggered the change) or -1 when it comes from server.
 function set_statedata(uid, kproid, val, auid)
     local ent = get(uid)
     if ent then

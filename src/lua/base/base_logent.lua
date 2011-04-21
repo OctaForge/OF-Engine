@@ -41,6 +41,8 @@ local lstor = require("cc.logent.store")
 local CAPI = require("CAPI")
 
 --- This module takes care of logic entities.
+-- client_logent / server_logent will become only "logent",
+-- depending on if we're on client or on server.
 -- @class module
 -- @name cc.logent
 module("cc.logent")
@@ -49,17 +51,29 @@ base.assert(glob.CLIENT or glob.SERVER)
 base.assert(not (glob.CLIENT and glob.SERVER))
 log.log(log.DEBUG, "Generating logent system with CLIENT = " .. base.tostring(glob.CLIENT))
 
+--- Root logic entity class, not meant to be used directly.
+-- @class table
+-- @name root_logent
 root_logent = class.new()
 root_logent._class = "logent"
 root_logent.should_act = true
 
+--- Base properties of animatable logic entity.
+-- @field tags Entity tags, user defined, can be used for i.e. lookups of specific entities.
+-- @field _persistent If this is true, entity gets saved on disk. True for static entities only.
+-- @class table
+-- @name root_logent.properties
 root_logent.properties = {
     { "tags", svar.state_array() },
     { "_persistent", svar.state_bool() }
 }
 
+--- Automatically substitute for class name when tostring() is called on entity.
+-- @return Class name.
 function root_logent:__tostring() return self._class end
 
+--- General setup method. Performs some initialization magic like signal
+-- methods adding, state variable values table, state variable setup etc.
 function root_logent:_general_setup()
     log.log(log.DEBUG, "root_logent:_general_setup")
 
@@ -76,44 +90,62 @@ function root_logent:_general_setup()
     self._general_setup_complete = true
 end
 
+--- General deactivation, clears action system, unregister entity in C and
+-- marks this entity deactivated.
 function root_logent:_general_deactivate()
     self:clear_actions()
     CAPI.unreglogent(self.uid)
     self.deactivated = true
 end
 
+--- Get state data locally from table.
+-- @param k Property name.
+-- @return Property value.
 function root_logent:_get_statedata(k)
     return self.state_var_vals[base.tostring(k)]
 end
 
+--- Act method ran every frame. Manages action system by default.
+-- Can be overriden, but make sure to call the original method everytime.
+-- @param sec Length of the time to simulate.
 function root_logent:act(sec)
     self.action_system:manage(sec)
 end
 
+--- Queue an action.
+-- @param act The action to queue.
 function root_logent:queue_action(act)
     self.action_system:queue(act)
 end
 
+--- Clear action queue.
 function root_logent:clear_actions()
     self.action_system:clear()
 end
 
+--- Add a tag. Tags can be later used for lookups.
+-- @param t Tag to add, a string.
 function root_logent:add_tag(t)
     if not self:has_tag(t) then
         self.tags:push(t)
     end
 end
 
+--- Delete a tag.
+-- @param t Tag to delete, string.
 function root_logent:del_tag(t)
     log.log(log.DEBUG, "root_logent:del_tag(\"" .. base.tostring(t) .. "\")")
     self.tags = table.filterarray(self.tags:as_array(), function(i, tag) return tag ~= t end)
 end
 
+--- Check whether an entity has a tag.
+-- @param t Tag to lookup, string.
 function root_logent:has_tag(t)
     log.log(log.INFO, "i can has tag " .. base.tostring(t))
     return (table.find(self.tags:as_array(), t) ~= nil)
 end
 
+--- Setup state variables of the entity. Performs registration for each.
 function root_logent:_setup_vars()
     for i = 1, #self.properties do
         local var = self.properties[i][2]
@@ -123,6 +155,15 @@ function root_logent:_setup_vars()
     end
 end
 
+--- Create state data dictionary. That gets returned as JSON. Names
+-- can be compressed as protocol IDs, so bandwidth is saved (returned
+-- JSON is sent through network later). Compression can be set
+-- with kwargs - you have to provide "compressed" element with
+-- "true" value in order to do so.
+-- @param tcn Client number to send state data to. When nil, it's sent to all clients.
+-- @param kwargs Additional parameter table.
+-- @return JSON with state data (string).
+-- @see root_logent:_update_statedata_complete
 function root_logent:create_statedatadict(tcn, kwargs)
     tcn = tcn or msgsys.ALL_CLIENTS
     kwargs = kwargs or {}
@@ -180,6 +221,9 @@ function root_logent:create_statedatadict(tcn, kwargs)
     return string.sub(r, 2, #r - 1) -- remove {}
 end
 
+--- Update state data from string created by create_statedatadict.
+-- @param sd State data JSON string.
+-- @see root_logent:create_statedatadict
 function root_logent:_update_statedata_complete(sd)
     log.log(log.DEBUG, "updating complete state data for " .. base.tostring(self.uid) .. " with " .. base.tostring(sd) .. " (" .. base.type(sd) .. ")")
 
@@ -199,8 +243,13 @@ function root_logent:_update_statedata_complete(sd)
     log.log(log.DEBUG, "update of complete state data done.")
 end
 
+--- Client version of root logic entity.
+-- @class table
+-- @name client_logent
 client_logent = class.new(root_logent)
 
+--- Entity activation.
+-- @param kwargs This in fact doesn't do anything, but it makes effect on entities inherited from this.
 function client_logent:client_activate(kwargs)
     self:_general_setup()
 
@@ -213,10 +262,15 @@ function client_logent:client_activate(kwargs)
     self.initialized = false
 end
 
+--- Entity deactivation. Calls _general_deactivate by default, though can be overriden.
 function client_logent:client_deactivate()
     self:_general_deactivate()
 end
 
+--- Set entity state data. This is clientside only function.
+-- @param k Property name.
+-- @param v Property value.
+-- @param auid Unique ID of the actor.
 function client_logent:_set_statedata(k, v, auid)
     log.log(log.DEBUG, "setting state data: " .. base.tostring(k) .. " = " .. json.encode(v) .. " for " .. base.tostring(self.uid))
     local var = self[svar._SV_PREFIX .. base.tostring(k)]
@@ -243,14 +297,23 @@ function client_logent:_set_statedata(k, v, auid)
     end
 end
 
+--- Act method which is ran every frame. Performs action system management by default.
+-- @param sec Length of the time to simulate.
 function client_logent:client_act(sec)
     log.log(log.INFO, "client_logent:client_act, " .. base.tostring(self.uid))
     self.action_system:manage(sec)
 end
 
+--- Server version of root logic entity.
+-- @class table
+-- @name server_logent
 server_logent = class.new(root_logent)
 server_logent.sent_notification_complete = false
 
+--- Initializer method. Called on creation. Performs some basic setup.
+-- This is called by add function which is in store.
+-- @param uid Unique ID of the entity.
+-- @param kwargs Additional parameters (for i.e. overriding _persistent).
 function server_logent:init(uid, kwargs)
     log.log(log.DEBUG, "server_logent:init(" .. base.tostring(uid) .. ", " .. base.tostring(kwargs) .. ")")
     base.assert(uid ~= nil)
@@ -264,6 +327,8 @@ function server_logent:init(uid, kwargs)
     self._persistent = kwargs._persistent or false
 end
 
+--- Activate function. Kwargs are used for passing state data string here.
+-- @param kwargs Additional parameters.
 function server_logent:activate(kwargs)
     log.log(log.DEBUG, "server_logent:activate(" .. base.tostring(kwargs) .. ")")
     self:_logent_setup()
@@ -284,6 +349,8 @@ function server_logent:activate(kwargs)
     log.log(log.DEBUG, "LE.activate complete.")
 end
 
+--- Send complete notification to client(s).
+-- @param cn Client number to send to. All clients if nil.
 function server_logent:send_notification_complete(cn)
     cn = cn or msgsys.ALL_CLIENTS
     local cns = cn == msgsys.ALL_CLIENTS and lstor.get_all_clientnums() or { cn }
@@ -301,6 +368,8 @@ function server_logent:send_notification_complete(cn)
     log.log(log.DEBUG, "LE.send_notification_complete done.")
 end
 
+--- Logic entity setup. Performs _general_setup and makes entity "initialized"
+-- @see root_logent:_general_setup
 function server_logent:_logent_setup()
     if not self.initialized then
         log.log(log.DEBUG, "LE setup")
@@ -315,14 +384,23 @@ function server_logent:_logent_setup()
     end
 end
 
+--- Deactivation. Calls _general_deactivate and sends message to perform
+-- entity removal to all clients.
+-- @see root_logent:_general_deactivate
 function server_logent:deactivate()
     self:_general_deactivate()
     msgsys.send(msgsys.ALL_CLIENTS, CAPI.le_removal, self.uid)
 end
 
+--- Click handler, DEPRECATED
 function server_logent:click(btn, cl)
 end
 
+--- Set entity state data. This is serverside only function.
+-- @param k Property name.
+-- @param v Property value.
+-- @param auid Unique ID of the actor (client that triggered the change) or -1 when it comes from server.
+-- @param iop Whether this is internal server operation, not sending messages and giving input in data format.
 function server_logent:_set_statedata(k, v, auid, iop)
     log.log(log.INFO, "Setting state data: " ..
                       base.tostring(k) .. " = " ..
@@ -391,16 +469,23 @@ function server_logent:_set_statedata(k, v, auid, iop)
     end
 end
 
+--- Queue state variable change. Performs simple table changes.
+-- @param k Property name.
+-- @param v Property value.
 function server_logent:_queue_sv_change(k, v)
     log.log(log.DEBUG, "Queueing SV change: " .. base.tostring(k) .. " - " .. base.tostring(v) .. " (" .. base.type(v) .. ")")
     self._queued_sv_changes[k] = v
 end
 
--- TODO: simillar for client
+--- TODO: simillar for client. Returns true if this can
+-- call C functions (== no _queued_sv_changes table)
+-- @return True if this can call C functions, false otherwise.
 function server_logent:can_call_cfuncs()
     return (not self._queued_sv_changes)
 end
 
+--- Flush queued SV changes. Called after CAPI.setupblah. See _queue_sv_change.
+-- @see _queue_sv_change
 function server_logent:_flush_queued_sv_changes()
     log.log(log.DEBUG, "flushing queued SV changes for " .. base.tostring(self.uid))
     if self:can_call_cfuncs() then return nil end

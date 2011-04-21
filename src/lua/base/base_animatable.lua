@@ -48,8 +48,7 @@ animatable_logent = class.new(lent.logent)
 animatable_logent._class = "animatable_logent"
 
 --- Base properties of animatable logic entity.
--- @field tags Entity tags, user defined, can be used for i.e. lookups of specific entities.
--- @field _persistent If this is true, entity gets saved on disk. True for static entities only.
+-- Inherits properties of root_logent plus adds its own.
 -- @field animation Entity animation.
 -- @field starttime Internal parameter. Not meant to be modified in any way.
 -- @field modelname Model name assigned to the entity.
