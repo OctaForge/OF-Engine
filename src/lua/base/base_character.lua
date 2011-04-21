@@ -45,7 +45,15 @@ local CAPI = require("CAPI")
 -- @name cc.character
 module("cc.character")
 
--- these reflect ents.h
+--- Client state table, reflects ents.h.
+-- @field ALIVE Client is alive.
+-- @field DEAD Client is dead, unused, handled differently.
+-- @field SPAWNING Client is spawning, unused.
+-- @field LAGGED Client is lagged.
+-- @field EDITING Client is editing.
+-- @field SPECTATOR Client is spectator.
+-- @class table
+-- @name CSTATE
 CSTATE = {
     ALIVE = 0,
     DEAD = 1, -- unused by us
@@ -54,6 +62,18 @@ CSTATE = {
     EDITING = 4,
     SPECTATOR = 5
 }
+
+--- Physical state table, reflects ents.h.
+-- @field FLOAT Client is floating.
+-- @field FALL Client is falling.
+-- @field SLIDE Client is sliding.
+-- @field SLOPE Client is sloping.
+-- @field FLOOR Client is on floor.
+-- @field STEP_UP Client is stepping up.
+-- @field STEP_DOWN Client is stepping down.
+-- @field BOUNCE Client is bouncing.
+-- @class table
+-- @name PSTATE
 PSTATE = {
     FLOAT = 0,
     FALL = 1, 
@@ -65,10 +85,41 @@ PSTATE = {
     BOUNCE = 7
 }
 
+--- Base character class, inherited from animatable_logent.
+-- Used as a base for player class.
+-- @class table
+-- @name character
 character = class.new(anim.animatable_logent)
 character._class = "character"
 character._sauertype = "fpsent"
 
+--- Base properties of character entity.
+-- Inherits properties of animatable_logent plus adds its own.
+-- @field _name Character name.
+-- @field facing_speed How fast can character change facing
+-- (yaw / pitch) in degrees/second, integer.
+-- @field movement_speed Character movement speed, float.
+-- @field yaw Character yaw, integer.
+-- @field pitch Character pitch, integer.
+-- @field move -1 when moving backwards, 0 when not, 1 when forward, integer.
+-- @field strafe -1 when strafing left, 1 when right, 0 when not, integer.
+-- @field position Character position, vec3 (x, y, z).
+-- @field velocity Character velocity, vec3 (x, y, z).
+-- @field falling Character falling, vec3 (x, y, z).
+-- @field radius Character bounding box radius, float.
+-- @field aboveeye Distance from position vector to eyes.
+-- @field eyeheight Distance from eyes to feet.
+-- @field blocked True if character was blocked by obstacle on last
+-- movement cycle, boolean. Floor is not an obstacle.
+-- @field canmove If false, character can't move, boolean.
+-- @field mapdefinedposdata Position protocol data specific to current map,
+-- see fpsent, integer (TODO: make unsigned)
+-- @field cs Client state, integer. (see CSTATE table)
+-- @field ps Physical state, integer. (see PSTATE table)
+-- @field inwater 1 if character is underwater, integer.
+-- @field timeinair Time in miliseconds spent in the air, integer (Should be unsigned, TODO)
+-- @class table
+-- @name character.properties
 character.properties = {
     anim.animatable_logent.properties[1], -- tags
     anim.animatable_logent.properties[2], -- _persitent
@@ -103,10 +154,12 @@ character.properties = {
     { "timeinair", svar.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true }) }
 }
 
+--- Jump handler method for character.
 function character:jump()
     CAPI.setjumping(self, true)
 end
 
+--- Initializer. See animatable_logent.
 function character:init(uid, kwargs)
     log.log(log.DEBUG, "character:init")
     anim.animatable_logent.init(self, uid, kwargs)
@@ -123,6 +176,7 @@ function character:init(uid, kwargs)
     self.canmove = true
 end
 
+--- Serverside activation. See animatable_logent.
 function character:activate(kwargs)
     log.log(log.DEBUG, "character:activate")
     self.cn = kwargs and kwargs.cn or -1
@@ -135,6 +189,7 @@ function character:activate(kwargs)
     log.log(log.DEBUG, "character:activate complete.")
 end
 
+--- Clientside activation. See serverside.
 function character:client_activate(kwargs)
     anim.animatable_logent.client_activate(self, kwargs)
     self.cn = kwargs and kwargs.cn or -1
@@ -143,16 +198,22 @@ function character:client_activate(kwargs)
     self.rendering_args_timestamp = -1
 end
 
+--- Serverside entity deactivation.
 function character:deactivate()
     CAPI.dismantlecharacter(self)
     anim.animatable_logent.deactivate(self)
 end
 
+--- Clientside entity deactivation.
 function character:client_deactivate()
     CAPI.dismantlecharacter(self)
     anim.animatable_logent.client_deactivate(self)
 end
 
+--- Serverside act method for character. Ran every frame.
+-- Can be overriden, but make sure to call this in your
+-- method in custom class on the beginning.
+-- @param sec Length of time to simulate.
 function character:act(sec)
     if self.action_system:isempty() then
         self:default_action(sec)
@@ -161,9 +222,17 @@ function character:act(sec)
     end
 end
 
+--- Called serverside by act if action queue is empty.
+-- Override as you want, by default it does nothing.
+-- @param sec Length of time to simulate.
 function character:default_action(sec)
 end
 
+--- Dynamic render method for character. Ran every frame clientside,
+-- taking care of character model rendering, with proper caching
+-- so it doesn't have to regenerate parameters every frame.
+-- @param hudpass True if we're rendering HUD right now.
+-- @param needhud True if model should be shown as HUD model (== we're in first person)
 function character:render_dynamic(hudpass, needhud)
     if not self.initialized then return nil end
     if not hudpass and needhud then return nil end
@@ -197,6 +266,7 @@ function character:render_dynamic(hudpass, needhud)
     if self.rendering_args[2] ~= "" then mdl.render(base.unpack(self.rendering_args)) end
 end
 
+--- Used in render_dynamic to get rendering flags. Enables some occlusion, dynamic shadow, etc.
 function character:get_renderingflags()
     local flags = math.bor(mdl.LIGHT, mdl.DYNSHADOW)
     if self ~= lstor.get_plyent() then
@@ -205,6 +275,9 @@ function character:get_renderingflags()
     return flags -- TODO: for non-characters, use flags = math.bor(flags, mdl.CULL_DIST)
 end
 
+--- Used in render_dynamic to decide character animation (falling, strafing, etc.) from given arguments.
+-- See assigned properties in character.properties table (cs == state, ps == pstate, vel == velocity).
+-- @see character.properties
 function character:decide_animation(state, pstate, move, strafe, vel, falling, inwater, timeinair)
     -- same naming convention as rendermodel.cpp in cube 2
     local anim = self:decide_action_animation()
@@ -240,29 +313,49 @@ function character:decide_animation(state, pstate, move, strafe, vel, falling, i
     return anim
 end
 
+--- Returns the "action" animation to show. Does not handle things like
+-- inwater, lag, etc which are handled in decide_animation.
+-- By default, simply returns self.animation, but can be overriden to handle more complex
+-- things like taking into account map-specific information in mapdefinedposdata.
 function character:decide_action_animation()
     return self.animation
 end
 
+--- Get center position of character, something like gravity center.
+-- For example AI bots would better aim at this point instead of "position"
+-- which is feet position. Override if your center is nonstandard.
+-- By default, it's 0.75 * eyeheight above feet.
+-- @return Center position which is a vec3.
 function character:get_center()
     local r = self.position:copy()
     r.z = r.z + self.eyeheight * 0.75
     return r
 end
 
-function character:get_targeting_origin(o)
-    return o
-end
-
+--- Get whether character is on floor.
+-- @return True if it is, otherwise false.
 function character:is_onfloor()
     if floor_dist(self.position, 1024) < 1 then return true end
     if self.velocity.z < -1 or self.falling.z < -1 then return false end
     return util.iscolliding(self.position, self.radius + 2, self)
 end
 
+--- Base player class, inherited from character.
+-- Default player if not overriden.
+-- @class table
+-- @name player
+-- @see character
 player = class.new(character)
 player._class = "player"
 
+--- Base properties of player entity.
+-- Inherits properties of character plus adds its own.
+-- @field _can_edit True if player can edit (== is in private edit mode),
+-- false otherwise, boolean.
+-- @field hud_modelname HUD model name, used instead of modelname when in first person.
+-- @class table
+-- @name player.properties
+-- @see character.properties
 player.properties = {
     character.properties[1], -- tags
     character.properties[2], -- _persitent
@@ -299,6 +392,8 @@ player.properties = {
     { "hud_modelname", svar.state_string() }
 }
 
+--- Overriden initializer, calls base
+-- and sets default values of added properties.
 function player:init(uid, kwargs)
     log.log(log.DEBUG, "player:init")
     character.init(self, uid, kwargs)

@@ -251,7 +251,7 @@ function action_targeted:__tostring() return "action_targeted" end
 -- @param target The target logic entity.
 -- @param kwargs Action parameters, see kwargs at action constructor.
 -- @see action:__init
-function action_infinite:__init(target, kwargs)
+function action_targeted:__init(target, kwargs)
     action.__init(self, kwargs)
     -- the target - logent
     self.target = target
