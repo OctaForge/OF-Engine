@@ -41,10 +41,21 @@ local act = require("cc.action")
 local CAPI = require("CAPI")
 
 --- This module takes care of static entities.
+-- Some of internal methods which are not meant
+-- to be overriden are not documented. They are
+-- usually documented in parent class, so
+-- if you want documentation for them, look
+-- in there.
 -- @class module
 -- @name cc.statent
 module("cc.statent")
 
+--- Base static logic entity class, not meant to be used directly.
+-- Inherited from animatable_logent. Unlike dynamic entities,
+-- static entities do not usually act (though can be forced to act
+-- by overriding should_act property).
+-- @class table
+-- @name statent
 statent = class.new(anim.animatable_logent)
 statent._class = "statent"
 
@@ -54,6 +65,16 @@ statent.use_render_dynamic_test = true
 statent._sauertype = "extent"
 statent._sauertype_index = 0
 
+--- Base properties of static entity.
+-- Inherits properties of animatable_logent plus adds its own.
+-- @field radius Bounding box radius.
+-- @field position Entity position.
+-- @field attr1 First attr.
+-- @field attr2 Second attr.
+-- @field attr3 Third attr.
+-- @field attr4 Fourth attr.
+-- @class table
+-- @name statent.properties
 statent.properties = {
     anim.animatable_logent.properties[1], -- tags
     anim.animatable_logent.properties[2], -- _persitent
@@ -71,6 +92,9 @@ statent.properties = {
     { "attr4", svar.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" }) }
 }
 
+--- Init method. Performs initial setup.
+-- @param uid Unique ID for the entity.
+-- @param kwargs Table of additional parameters (for i.e. overriding _persistent, position)
 function statent:init(uid, kwargs)
     log.log(log.DEBUG, "statent:init")
 
@@ -89,6 +113,8 @@ function statent:init(uid, kwargs)
     log.log(log.DEBUG, "statent:init complete")
 end
 
+--- Serverside entity activation.
+-- @param kwargs Table of additional parameters.
 function statent:activate(kwargs)
     kwargs = kwargs or {}
 
@@ -126,11 +152,14 @@ function statent:activate(kwargs)
     log.log(log.DEBUG, "ensuring statent values complete.")
 end
 
+--- Serverside deactivation. Removes the entity in C store and calls parent.
 function statent:deactivate()
     CAPI.dismantleextent(self)
     anim.animatable_logent.deactivate(self)
 end
 
+--- Clientside entity activation.
+-- @param kwargs Table of additional parameters.
 function statent:client_activate(kwargs)
     if not kwargs._type then -- make up some stuff until we get complete state data
         kwargs._type = self._sauertype_index
@@ -147,11 +176,14 @@ function statent:client_activate(kwargs)
     anim.animatable_logent.client_activate(self, kwargs)
 end
 
+--- Clientside deactivation. Removes the entity in C store and calls parent.
 function statent:client_deactivate()
     CAPI.dismantleextent(self)
     anim.animatable_logent.client_deactivate(self)
 end
 
+--- Send complete notification to client(s).
+-- @param cn Client number to send to. All clients if nil.
 function statent:send_notification_complete(cn)
     cn = cn or msgsys.ALL_CLIENTS
     local cns = cn == msgsys.ALL_CLIENTS and lstor.get_all_clientnums() or { cn }
@@ -173,16 +205,35 @@ function statent:send_notification_complete(cn)
     log.log(log.DEBUG, "statent:send_notification_complete done.")
 end
 
+--- Get center position of static entity, something like gravity center.
+-- Override if your center is nonstandard.
+-- By default, it's self.radius above bottom.
+-- @return Center position which is a vec3.
 function statent:get_center()
     local r = self.position:copy()
     r.z = r.z + base.tonumber(self.radius)
     return r
 end
 
+--- Light entity class.
+-- @class table
+-- @name light
 light = class.new(statent)
 light._class = "light"
 light._sauertype_index = 1
 
+--- Light entity class properties.
+-- Inherits some properties of statent plus adds its own.
+-- @field attr1 Custom attr1.
+-- @field attr2 Custom attr2.
+-- @field attr3 Custom attr3.
+-- @field attr4 Custom attr4.
+-- @field radius Alias for attr1.
+-- @field red Alias for attr2.
+-- @field green Alias for attr3.
+-- @field blue Alias for attr4.
+-- @class table
+-- @name light.properties
 light.properties = {
     statent.properties[1], -- tags
     statent.properties[2], -- _persitent
@@ -214,10 +265,19 @@ function light:init(uid, kwargs)
     self.blue = 128
 end
 
+--- Spotlight entity class.
+-- @class table
+-- @name spotlight
 spotlight = class.new(statent)
 spotlight._class = "spotlight"
 spotlight._sauertype_index = 7
 
+--- Spotlight entity class properties.
+-- Inherits some properties of statent plus adds its own.
+-- @field attr1 Custom attr1.
+-- @field radius Alias for attr1.
+-- @class table
+-- @name spotlight.properties
 spotlight.properties = {
     statent.properties[1], -- tags
     statent.properties[2], -- _persitent
@@ -237,10 +297,19 @@ function spotlight:init(uid, kwargs)
     self.radius = 90
 end
 
+--- Envmap entity class.
+-- @class table
+-- @name envmap
 envmap = class.new(statent)
 envmap._class = "envmap"
 envmap._sauertype_index = 4
 
+--- Envmap entity class properties.
+-- Inherits some properties of statent plus adds its own.
+-- @field attr1 Custom attr1.
+-- @field radius Alias for attr1.
+-- @class table
+-- @name envmap.properties
 envmap.properties = {
     statent.properties[1], -- tags
     statent.properties[2], -- _persitent
@@ -260,10 +329,24 @@ function envmap:init(uid, kwargs)
     self.radius = 128
 end
 
+--- Ambient sound entity class.
+-- @class table
+-- @name ambient_sound
 ambient_sound = class.new(statent)
 ambient_sound._class = "ambient_sound"
 ambient_sound._sauertype_index = 6
 
+--- Ambient sound entity class properties.
+-- Inherits some properties of statent plus adds its own.
+-- @field attr2 Custom attr2.
+-- @field attr3 Custom attr3.
+-- @field attr4 Custom attr4.
+-- @field soundname Path to the sound file.
+-- @field radius Alias for attr2.
+-- @field size Alias for attr3.
+-- @field volume Alias for attr4.
+-- @class table
+-- @name ambient_sound.properties
 ambient_sound.properties = {
     statent.properties[1], -- tags
     statent.properties[2], -- _persitent
@@ -294,10 +377,25 @@ function ambient_sound:init(uid, kwargs)
     self.soundname = ""
 end
 
+--- Particle effect entity class.
+-- @class table
+-- @name particle_effect
 particle_effect = class.new(statent)
 particle_effect._class = "particle_effect"
 particle_effect._sauertype_index = 5
 
+--- Particle effect entity class properties.
+-- Inherits some properties of statent plus adds its own.
+-- @field attr1 Custom attr2.
+-- @field attr2 Custom attr2.
+-- @field attr3 Custom attr3.
+-- @field attr4 Custom attr4.
+-- @field particle_type Alias for attr1.
+-- @field value1 Alias for attr2.
+-- @field value2 Alias for attr3.
+-- @field value3 Alias for attr4.
+-- @class table
+-- @name particle_effect.properties
 particle_effect.properties = {
     statent.properties[1], -- tags
     statent.properties[2], -- _persitent
@@ -329,10 +427,21 @@ function particle_effect:init(uid, kwargs)
     self.value3 = 0
 end
 
+--- Mapmodel entity class.
+-- @class table
+-- @name mapmodel
 mapmodel = class.new(statent)
 mapmodel._class = "mapmodel"
 mapmodel._sauertype_index = 2
 
+--- Mapmodel entity class properties.
+-- Inherits some properties of statent plus adds its own.
+-- @field attr1 Custom attr1.
+-- @field yaw Alias for attr1.
+-- @field collision_radius_width Collision radius width.
+-- @field collision_radius_height Collision radius height.
+-- @class table
+-- @name mapmodel.properties
 mapmodel.properties = {
     statent.properties[1], -- tags
     statent.properties[2], -- _persitent
@@ -375,12 +484,21 @@ function mapmodel:client_activate(kwargs)
     statent.client_activate(self, kwargs)
 end
 
+--- On collision handler (serverside). Can be overriden (see area_trigger)
+-- @param collider Colliding entity.
+-- @see area_trigger:on_collision
 function mapmodel:on_collision(collider)
 end
 
+--- On collision handler (clientside). Can be overriden (see area_trigger)
+-- @param collider Colliding entity.
+-- @see area_trigger:client_on_collision
 function mapmodel:client_on_collision(collider)
 end
 
+--- Overriden center getter for mapmodel.
+-- It uses collision_radius_height instead
+-- of radius if available, otherwise standard radius.
 function mapmodel:get_center()
     if self.collision_radius_height then
         local r = self.position:copy()
@@ -391,10 +509,19 @@ function mapmodel:get_center()
     end
 end
 
+--- Area trigger entity class. Inherited from mapmodel.
+-- Calls a script when an entity goes through it.
+-- @class table
+-- @name area_trigger
 area_trigger = class.new(mapmodel)
 area_trigger._class = "area_trigger"
 -- ran on collision
 
+--- Area trigger entity class properties.
+-- Inherits properties of mapmodel plus adds its own.
+-- @field script_to_run Script to run on trigger (when entity goes through it)
+-- @class table
+-- @name area_trigger.properties
 area_trigger.properties = {
     mapmodel.properties[1], -- tags
     mapmodel.properties[2], -- _persitent
@@ -424,6 +551,8 @@ function area_trigger:init(uid, kwargs)
     self.modelname = "areatrigger" -- hardcoded, appropriate model, with collisions only for triggering and perentity collision boxes.
 end
 
+--- Overriden collision handler. Area trigger works serverside.
+-- @param collider The colliding entity.
 function area_trigger:on_collision(collider)
     --- XXX potential security risk
     if base.tostring(self.script_to_run) ~= "" then
@@ -431,6 +560,10 @@ function area_trigger:on_collision(collider)
     end
 end
 
+--- Resettable area trigger entity class. Inherited from area_trigger.
+-- Calls a script when an entity goes through it. Can be re-set.
+-- @class table
+-- @name resettable_area_trigger
 resettable_area_trigger = class.new(area_trigger)
 resettable_area_trigger._class = "resettable_area_trigger"
 resettable_area_trigger.properties = area_trigger.properties
@@ -475,6 +608,7 @@ function resettable_area_trigger:client_on_collision(collider)
     end
 end
 
+--- Reset handler.
 function resettable_area_trigger:reset()
     self.ready_to_trigger = true
     if glob.SERVER then
@@ -484,22 +618,39 @@ function resettable_area_trigger:reset()
     end
 end
 
+--- Custom - overridable - on reset handler (serverside)
 function resettable_area_trigger:on_reset()
 end
 
+--- Custom - overridable - on reset handler (clientside)
 function resettable_area_trigger:client_on_reset()
 end
 
+--- Custom - overridable - on trigger handler (serverside)
+-- @param collider The colliding entity.
 function resettable_area_trigger:on_trigger(collider)
 end
 
+--- Custom - overridable - on trigger handler (clientside)
+-- @param collider The colliding entity.
 function resettable_area_trigger:client_on_trigger(collider)
 end
 
+--- World marker entity class. Serves as generic marker
+-- in the world, so can be used as player start,
+-- point to later get from scripting system etc.
+-- @class table
+-- @name world_marker
 world_marker = class.new(statent)
 world_marker._class = "world_marker"
 world_marker._sauertype_index = 3
 
+--- World marker entity class properties.
+-- Inherits some properties of statent plus adds its own.
+-- @field attr1 Custom attr1.
+-- @field yaw Alias for attr1.
+-- @class table
+-- @name world_marker.properties
 world_marker.properties = {
     statent.properties[1], -- tags
     statent.properties[2], -- _persitent
@@ -515,6 +666,8 @@ world_marker.properties = {
     { "yaw", svar.variable_alias("attr1") }
 }
 
+--- Make an entity be placed on position of this marker with its yaw.
+-- @param ent Entity to place.
 function world_marker:place_entity(ent)
     ent.position = self.position
     ent.yaw = self.yaw
