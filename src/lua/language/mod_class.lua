@@ -42,7 +42,7 @@ module("cc.class")
 --- Create a new class.
 -- <br/><br/>Usage:<br/><br/>
 -- <code>
--- A = class()<br/>
+-- A = new()<br/>
 -- function A:__init(foo) end<br/>
 -- function A:__tostring(foo) end<br/>
 -- function A:blah(bleh) end<br/>
