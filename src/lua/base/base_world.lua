@@ -33,6 +33,7 @@ local CAPI = require("CAPI")
 local gui = require("cc.gui")
 
 --- World module (map, entities, vslots etc.) for cC's Lua interface.
+-- Scheduled for rewrite / deprecation, so won't be documented for now.
 -- @class module
 -- @name cc.world
 module("cc.world")
