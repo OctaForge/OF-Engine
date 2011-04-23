@@ -53,12 +53,12 @@ def run_server(location=None, use_master=True):
     if UNIX:
         machine = platform.machine()
         system = platform.system()
-        if not os.path.exists("./bin/CC_Server_%s-%s" % (system, machine)):
+        if not os.path.exists("./bin/OF_Server_%s-%s" % (system, machine)):
             machine = platform.processor()
-            if not os.path.exists("./bin/CC_Server_%s-%s" % (system, machine)):
-                log(logging.ERROR, "Cannot find server binary (./bin/CC_Server_%s-%s)" % (system, machine))
+            if not os.path.exists("./bin/OF_Server_%s-%s" % (system, machine)):
+                log(logging.ERROR, "Cannot find server binary (./bin/OF_Server_%s-%s)" % (system, machine))
                 return
-        servbin_name = "./bin/CC_Server_%s-%s" % (system, machine)
+        servbin_name = "./bin/OF_Server_%s-%s" % (system, machine)
 
     Module.server_proc = subprocess.Popen(
         "%s %s %s %s -component:intensity.components.shutdown_if_idle -components:intensity.components.shutdown_if_empty -config:Startup:no_console:1" % (
