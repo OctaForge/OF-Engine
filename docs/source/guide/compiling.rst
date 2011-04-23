@@ -122,20 +122,20 @@ This is an easier and more straightforward version. Also, mingw build doesn't wo
 
 5. Press F7, it'll build solution. After successful build, you should get binaries into bin/ and libraries into lib/
 
-Using MinGW and Code::Blocks
+Using MinGW or MinGW/Code::Blocks
 ----------------------------
 
 **Note:** it compiles and links, but has run-time errors atm.
 **Note:** this is out of date.
 
-1. Get MinGW from `sourceforge <http://sourceforge.net/projects/mingw/files/Automated MinGW Installer/MinGW 5.1.6/MinGW-5.1.6.exe/download>`_ and install it.
-   Choose "Download and install", then "Candidate", let it install to for example C:\\mingw.
+1. Get MinGW from http://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/mingw-get-inst/ and install it
+   to i.e. C:\\MinGW. Installing core + C++ compiler is enough.
 
 2. Append this into your PATH (as you did with python)
 
    .. code-block :: bash
 
-       ;C:\mingw\bin
+       ;C:\MinGW\bin
 
 **MinGW compilation**
 

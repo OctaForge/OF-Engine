@@ -123,7 +123,7 @@ end
 --- Get a table of all clients (== all logents of currently set player class)
 -- @return Table of clients. (empty if no clients found, that means we're probably in menu)
 function get_all_clients()
-    local ret = get_all_byclass(appman.inst:get_pcclass())
+    local ret = get_all_byclass(base.type(base.player_class) == "string" and base.player_class or "player")
     log.log(log.DEBUG, "logent store: get_all_clients: got %(1)s clients" % { #ret })
     return ret
 end

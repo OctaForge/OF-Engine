@@ -563,12 +563,16 @@ namespace server
                     break;
                 }
 
-                engine.getg("cc").t_getraw("appman").t_getraw("inst");
-                engine.t_getraw("handle_textmsg").push_index(-2).push(ci->uniqueId).push(text).call(3, 1);
-                bool handleTextMessage = engine.get<bool>(-1);
-                engine.pop(4);
+                bool handle_textmsg = false;
+                engine.getg("handle_textmsg");
+                if (engine.is<void*>(-1))
+                {
+                    engine.push(ci->uniqueId).push(text).call(3, 1);
+                    handle_textmsg = engine.get<bool>(-1);
+                }
+                engine.pop(1);
 
-                if (!handleTextMessage)
+                if (!handle_textmsg)
                 {
                     QUEUE_INT(type);
                     QUEUE_STR(text);
@@ -764,7 +768,12 @@ namespace server
         }
 
         // Use the PC class, unless told otherwise
-        if (_class == "") _class = engine.exec<const char*>("return cc.appman.inst:get_pcclass()");
+        if (_class == "")
+        {
+            var::cvar *ev = var::get("player_class");
+            if (!ev) _class = "player";
+            else _class = ev->gs();
+        }
 
         Logging::log(Logging::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
 

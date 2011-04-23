@@ -20,36 +20,46 @@ namespace game
             g.background(0x808080, 5);
 
             using namespace lua;
-            engine.getg("cc").t_getraw("appman").t_getraw("inst");
-            engine.t_getraw("get_sbtext").push_index(-2).call(1, 1);
-            // we get a table here
-            LUA_TABLE_FOREACH(engine, {
-                int lineUniqueId = engine.t_get<int>(1);
-                std::string lineText(engine.t_get<const char*>(2));
-                if (lineUniqueId != -1)
-                {
-                    LogicEntityPtr entity = LogicSystem::getLogicEntity(lineUniqueId);
-                    if (entity.get())
+            engine.getg("get_scoreboard_text");
+            if (!engine.is<void*>(-1))
+            {
+                g.text("No scoreboard text defined.", 0xFFFFDD, NULL);
+                g.text("Create global function get_scoreboard_text", 0xFFFFDD, NULL);
+                g.text("in order to achieve what you need, see docs", 0xFFFFDD, NULL);
+                g.text("if something is not clear.", 0xFFFFDD, NULL);
+            }
+            else
+            {
+                engine.call(1, 1);
+                // we get a table here
+                LUA_TABLE_FOREACH(engine, {
+                    int lineUniqueId = engine.t_get<int>(1);
+                    std::string lineText(engine.t_get<const char*>(2));
+                    if (lineUniqueId != -1)
                     {
-                        fpsent *p = dynamic_cast<fpsent*>(entity->dynamicEntity);
-                        assert(p);
-
-                        if (GETIV(showpj))
+                        LogicEntityPtr entity = LogicSystem::getLogicEntity(lineUniqueId);
+                        if (entity.get())
                         {
-                            if (p->state == CS_LAGGED)
+                            fpsent *p = dynamic_cast<fpsent*>(entity->dynamicEntity);
+                            assert(p);
+
+                            if (GETIV(showpj))
+                            {
+                                if (p->state == CS_LAGGED)
+                                    lineText += "LAG";
+                                else
+                                    lineText += " pj: " + Utility::toString(p->plag);
+                            }
+                            if (!GETIV(showpj) && p->state == CS_LAGGED)
                                 lineText += "LAG";
                             else
-                                lineText += " pj: " + Utility::toString(p->plag);
+                                lineText += " p: " + Utility::toString(p->ping);
                         }
-                        if (!GETIV(showpj) && p->state == CS_LAGGED)
-                            lineText += "LAG";
-                        else
-                            lineText += " p: " + Utility::toString(p->ping);
                     }
-                }
-                g.text(lineText.c_str(), 0xFFFFDD, NULL);
-            });
-            engine.pop(4);
+                    g.text(lineText.c_str(), 0xFFFFDD, NULL);
+                });
+            }
+            engine.pop(1);
 
         g.poplist();
         g.poplist();

@@ -48,9 +48,6 @@ function set_appclass(_c)
 
     inst = _c()
 
-    -- do not run init on client
-    if glob.SERVER then inst:init() end
-
     log.log(log.DEBUG, "appman: instance is " .. base.tostring(inst))
 end
 
@@ -62,39 +59,6 @@ application = class.new()
 --- Return string representation of application.
 -- @return String representation of application.
 function application:__tostring() return "application" end
-
---- Ran on application class setting on server only.
-function application:init()
-    log.log(log.WARNING, "application:init: You should override this, and there is no need to call the ancestor. This should never run.")
-end
-
---- Get player class. When you're overriding default player class,
--- you just change return value of this in your overriden application.
-function application:get_pcclass()
-    return "player"
-end
-
---- This is called on client when disconnected.
-function application:client_on_disconnect()
-    log.log(log.WARNING, "application:client_on_disconnect: You should override this, and there is no need to call the ancestor. This should never run.")
-end
-
---- This is called on server when dynamic entity (player/character) falls off the map.
--- @param ent Entity that has fallen off the map.
-function application:on_entoffmap(ent)
-    log.log(log.WARNING, base.tostring(ent.uid) .. " has fallen off the map.")
-end
-
---- This is called on client when dynamic entity (player/character) falls off the map.
--- @param ent Entity that has fallen off the map.
-function application:client_on_entoffmap(ent)
-    log.log(log.WARNING, base.tostring(ent.uid) .. " has fallen off the map.")
-end
-
---- This is called on player login.
--- @param ply The player entity.
-function application:on_player_login(ply)
-end
 
 --- This is callback for doing player movement. It sets player's "move" property.
 -- @param move Integer value (0 or 1) specifying if player is moving or not.
@@ -176,27 +140,6 @@ function application:click(btn, down, pos, ent)
     return false
 end
 
---- Get scoreboard text. Override in your custom application (to i.e. display player list)
-function application:get_sbtext()
-    return {
-        { -1, "No scoreboard text defined" },
-        { -1, "This should be done in the application" }
-    }
-end
-
---- This returns crosshair path. Override in custom application if required.
-function application:get_crosshair()
-    return "data/textures/hud/crosshair.png"
-end
-
---- Called when a text message is sent form a client. Return value is true if message was handled, in that case,
--- server won't do anythng else, if false, then the message will be relayed using the default method. Defaults to false.
--- @param uid Unique ID of the sender
--- @param text The content of the message.
-function application:handle_textmsg(uid, text)
-    return false
-end
-
 sig.methods_add(application)
 
 --- Dummy application class, default if not overriden.
@@ -204,36 +147,6 @@ sig.methods_add(application)
 -- @name __dummy_application
 __dummy_application = class.new(application)
 function __dummy_application:__tostring() return "__dummy_application" end
-
-function __dummy_application:init()
-    log.log(log.WARNING, "(init) appman.set_appclass was not called, this is __dummy_application running.")
-    application.init(self)
-end
-
-function __dummy_application:get_pcclass()
-    log.log(log.WARNING, "(get_pcclass) appman.set_appclass was not called, this is __dummy_application running.")
-    return "player"
-end
-
-function __dummy_application:client_on_disconnect()
-    log.log(log.WARNING, "(client_on_disconnect) appman.set_appclass was not called, this is __dummy_application running.")
-    application.client_on_disconnect(self)
-end
-
-function __dummy_application:on_entoffmap(ent)
-    log.log(log.WARNING, "(on_entoffmap) appman.set_appclass was not called, this is __dummy_application running.")
-    application.on_entoffmap(self, ent)
-end
-
-function __dummy_application:client_on_entoffmap(ent)
-    log.log(log.WARNING, "(client_on_entoffmap) appman.set_appclass was not called, this is __dummy_application running.")
-    application.client_on_entoffmap(self, ent)
-end
-
-function __dummy_application:on_player_login(ply)
-    log.log(log.WARNING, "(on_player_login) appman.set_appclass was not called, this is __dummy_application running.")
-    application.on_player_login(self, ply)
-end
 
 function __dummy_application:do_click(...)
      log.log(log.WARNING, "(do_click) appman.set_appclass was not called, this is __dummy_application running.")

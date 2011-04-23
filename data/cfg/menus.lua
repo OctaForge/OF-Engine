@@ -17,9 +17,8 @@ end)
 
 -- Export entities
 
-cc.engine_variables.new("newexportfilename", cc.engine_variables.VAR_S, "entities.json")
-
 cc.gui.new("exportentities", function()
+    cc.engine_variables.new("newexportfilename", cc.engine_variables.VAR_S, "entities.json")
     cc.gui.list(function()
         cc.gui.text("filename: ")
         cc.gui.field("newexportfilename", 30, "")

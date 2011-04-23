@@ -931,20 +931,16 @@ namespace MessageSystem
                   .call(1, 0)
                   .pop(3);
             MessageSystem::send_AllActiveEntitiesSent(sender);
-            engine.getg("cc")
-                  .t_getraw("appman")
-                  .t_getraw("inst")
-                  .t_getraw("on_player_login")
-                  .push_index(-2)
-                  .getg("cc")
-                  .t_getraw("logent")
-                  .t_getraw("store")
-                  .t_getraw("get")
-                  .push(FPSServerInterface::getUniqueId(sender))
-                  .call(1, 1)
-                  .shift().pop(1).shift().pop(1).shift().pop(1)
-                  .call(2, 0)
-                  .pop(3);
+            engine.getg("on_player_login");
+            if (engine.is<void*>(-1)) engine.getg("cc")
+                      .t_getraw("logent")
+                      .t_getraw("store")
+                      .t_getraw("get")
+                      .push(FPSServerInterface::getUniqueId(sender))
+                      .call(1, 1)
+                      .shift().pop(1).shift().pop(1).shift().pop(1)
+                      .call(1, 0);
+            else engine.pop(1);
         #else // CLIENT
             // Send just enough info for the player's LE
             send_LogicEntityCompleteNotification( sender,

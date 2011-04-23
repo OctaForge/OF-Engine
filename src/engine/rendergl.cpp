@@ -2009,16 +2009,12 @@ void drawcrosshair(int w, int h)
     }
     else
     { 
-        std::string crosshairName = ""; // INTENSITY: Start script-controlled crosshairs
-        using namespace lua;
-        if (engine.hashandle())
-        {
-            engine.getg("cc").t_getraw("appman").t_getraw("inst").t_getraw("get_crosshair");
-            engine.push_index(-2).call(1, 1);
-            crosshairName = engine.get(-1, "data/textures/hud/crosshair.png");
-            engine.pop(4);
-        }
-        crosshair = textureload(crosshairName.c_str(), 3, true, false);
+        const char *crname = ""; // OF: Start script-controlled crosshairs
+        var::cvar *ev = var::get("crosshair");
+        if (!ev) crname = "data/textures/hud/crosshair.png";
+        else crname = ev->gs();
+
+        crosshair = textureload(crname, 3, true, false);
         if (crosshair == notexture) return;
         #if 0
         int index = game::selectcrosshair(r, g, b);
