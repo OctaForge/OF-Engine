@@ -50,7 +50,6 @@ set(SERVER_SOURCES
     ../engine/client
     ../intensity/world_system
     ../engine/octaedit
-    ../intensity/steering
     ../intensity/targeting
     ../intensity/network_system
     ../cubecreate/scripting_system_lua
