@@ -1,5 +1,5 @@
 #
-# CMake for CubeCreate
+# CMake for OctaForge
 # -------------------------------------
 # this builds enet udp network library.
 #
@@ -17,7 +17,7 @@ add_definitions (-DHAS_SOCKLEN_T=1)
 set(CMAKE_CXX_FLAGS $CMAKE_CXX_FLAGS "-Wno-error")
 
 # finally build the library.
-add_library(enet_${CC_BUILD_SUFFIX}
+add_library(enet_${OF_BUILD_SUFFIX}
             callbacks.c
             host.c
             list.c
@@ -28,7 +28,7 @@ add_library(enet_${CC_BUILD_SUFFIX}
             win32.c
 )
 
-install(TARGETS enet_${CC_BUILD_SUFFIX}
+install(TARGETS enet_${OF_BUILD_SUFFIX}
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
 )
