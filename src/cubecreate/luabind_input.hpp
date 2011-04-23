@@ -67,54 +67,6 @@ namespace lua_binds
     MOUSECLICK(2)
     MOUSECLICK(3)
 
-    // Other client actions - bind these to keys using cubescript (for things like a 'reload' key, 'crouch' key, etc. -
-    // specific to each game). TODO: Consider overlap with mouse buttons
-    #define ACTIONKEY(num) \
-    LUA_BIND_CLIENT(actionkey##num, { \
-        if (e.hashandle()) \
-        { \
-            engine.getg("cc").t_getraw("appman").t_getraw("inst"); \
-            e.t_getraw("action_key") \
-                .push_index(-2) \
-                .push(num) \
-                .push(addreleaseaction("CAPI."QUOT(actionkey##num)"()") != 0) \
-                .call(3, 0); \
-                e.pop(3); \
-        } \
-    })
-
-    ACTIONKEY(0);
-    ACTIONKEY(1);
-    ACTIONKEY(2);
-    ACTIONKEY(3);
-    ACTIONKEY(4);
-    ACTIONKEY(5);
-    ACTIONKEY(6);
-    ACTIONKEY(7);
-    ACTIONKEY(8);
-    ACTIONKEY(9);
-    ACTIONKEY(10);
-    ACTIONKEY(11);
-    ACTIONKEY(12);
-    ACTIONKEY(13);
-    ACTIONKEY(14);
-    ACTIONKEY(15);
-    ACTIONKEY(16);
-    ACTIONKEY(17);
-    ACTIONKEY(18);
-    ACTIONKEY(19);
-    ACTIONKEY(20);
-    ACTIONKEY(21);
-    ACTIONKEY(22);
-    ACTIONKEY(23);
-    ACTIONKEY(24);
-    ACTIONKEY(25);
-    ACTIONKEY(26);
-    ACTIONKEY(27);
-    ACTIONKEY(28);
-    ACTIONKEY(29);
-    // 30 action keys should be enough for everybody (TODO: consider speed issues)
-
     bool k_turn_left, k_turn_right, k_look_up, k_look_down;
 
     #define DIR(name, v, d, s, os) \
@@ -132,37 +84,55 @@ namespace lua_binds
     DIR(look_down, look_updown_move, -1, k_look_down, k_look_up);
     DIR(look_up,   look_updown_move, +1, k_look_up,   k_look_down);
 
-    #define SCRIPT_DIR(name, v, d, s, os) \
+    #define SCRIPT_DIR(name, v, p, d, s, os) \
     LUA_BIND_CLIENT(name, { \
         if (ClientSystem::scenarioStarted()) \
         { \
             PlayerControl::flushActions(); /* stop current actions */ \
             s = addreleaseaction("CAPI."#name"()")!=0; \
-            engine.getg("cc").t_getraw("appman").t_getraw("inst"); \
-            e.t_getraw(#v).push_index(-2).push(s ? d : (os ? -(d) : 0)).push(s).call(3, 0); \
-            e.pop(3); \
+            e.getg(#v); \
+            if (e.is<void>(-1)) e.getg("cc") \
+                 .t_getraw("logent") \
+                 .t_getraw("store") \
+                 .t_getraw("get_plyent") \
+                 .call(0, 1) \
+                 .t_set(#p, s ? d : (os ? -(d) : 0)) \
+                 .pop(5); \
+            else e.push(s ? d : (os ? -(d) : 0)).push(s).call(2, 0); \
         } \
     })
 
-    //SCRIPT_DIR(turn_left,  do_yaw, -1, k_turn_left,  k_turn_right); // New turning motion
-    //SCRIPT_DIR(turn_right, do_yaw, +1, k_turn_right, k_turn_left);  // New pitching motion
+    //SCRIPT_DIR(turn_left,  do_yaw, yawing, -1, k_turn_left,  k_turn_right); // New turning motion
+    //SCRIPT_DIR(turn_right, do_yaw, yawing, +1, k_turn_right, k_turn_left);  // New pitching motion
     // TODO: Enable these. But they do change the protocol (see Character.lua), so forces everyone and everything to upgrade
-    //SCRIPT_DIR(look_down, do_pitch, -1, k_look_down, k_look_up);
-    //SCRIPT_DIR(look_up,   do_pitch, +1, k_look_up,   k_look_down);
+    //SCRIPT_DIR(look_down, do_pitch, pitching, -1, k_look_down, k_look_up);
+    //SCRIPT_DIR(look_up,   do_pitch, pitching, +1, k_look_up,   k_look_down);
 
     // Old player movements
-    SCRIPT_DIR(backward, do_movement, -1, player->k_down,  player->k_up);
-    SCRIPT_DIR(forward,  do_movement,  1, player->k_up,    player->k_down);
-    SCRIPT_DIR(left,     do_strafe,    1, player->k_left,  player->k_right);
-    SCRIPT_DIR(right,    do_strafe,   -1, player->k_right, player->k_left);
+    SCRIPT_DIR(backward, do_movement, move, -1, player->k_down,  player->k_up);
+    SCRIPT_DIR(forward,  do_movement, move,  1, player->k_up,    player->k_down);
+    SCRIPT_DIR(left,     do_strafe, strafe,  1, player->k_left,  player->k_right);
+    SCRIPT_DIR(right,    do_strafe, strafe, -1, player->k_right, player->k_left);
 
     LUA_BIND_CLIENT(jump, {
         if (ClientSystem::scenarioStarted())
         {
             PlayerControl::flushActions(); /* stop current actions */
-            engine.getg("cc").t_getraw("appman").t_getraw("inst");
-            e.t_getraw("do_jump").push_index(-2).push(addreleaseaction("CAPI.jump()") ? true : false).call(2, 0);
-            e.pop(3);
+            bool down = (addreleaseaction("CAPI.jump()") ? true : false);
+            e.getg("do_jump");
+            if (e.is<void>(-1))
+            {
+                if (down)
+                    e.getg("cc")
+                     .t_getraw("logent")
+                     .t_getraw("store")
+                     .t_getraw("get_plyent")
+                     .call(0, 1)
+                     .t_getraw("jump")
+                     .push_index(-2)
+                     .call(1, 0).pop(4);
+            }
+            else e.push(down).call(1, 0);
         }
     })
 

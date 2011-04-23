@@ -60,47 +60,6 @@ application = class.new()
 -- @return String representation of application.
 function application:__tostring() return "application" end
 
---- This is callback for doing player movement. It sets player's "move" property.
--- @param move Integer value (0 or 1) specifying if player is moving or not.
-function application:do_movement(move, down)
-    lent.store.get_plyent().move = move
-end
-
---- This is callback for doing player strafe. It sets player's "strafe" property.
--- @param strafe Integer value (0 or 1) specifying if player is strafing or not.
-function application:do_strafe(strafe, down)
-    lent.store.get_plyent().strafe = strafe
-end
-
---- This is callback for making player jump.
--- @param down Boolean value, true if key is pressed, false if it's released.
-function application:do_jump(down)
-    if down then
-        lent.store.get_plyent():jump()
-    end
-end
-
---- This is callback for doing player yawing. It sets player's "yawing" property.
--- @param yaw Player yaw.
--- @param down Boolean value, true if key is pressed, false if it's released.
-function application:do_yaw(yaw, down)
-    lent.store.get_plyent().yawing = yaw
-end
-
---- This is callback for doing player pitching. It sets player's "pitching" property.
--- @param yaw Player pitch.
--- @param down Boolean value, true if key is pressed, false if it's released.
-function application:do_pitch(pitch, down)
-    lent.store.get_plyent().pitching = pitch
-end
-
---- This returns proper yaw/pitch table for mousemoving.
--- @param y Yaw.
--- @param p Pitch.
-function application:do_mousemove(y, p)
-    return { yaw = y, pitch = p }
-end
-
 --- "Do click" event, called when player clicks position in the world. By default,
 -- client click is called and if it returns false value (which it always returns by default),
 -- server gets contacted for that matter via message. client_click can be overriden to achieve
@@ -114,7 +73,7 @@ end
 function application:do_click(btn, down, pos, ent, x, y)
     if not self:client_click(btn, down, pos, ent, x, y) then
         local uid = ent and ent.uid or -1
-        msgsys.send(CAPI.do_click, btn, down, pos.x, pos.y, pos.z, uid)
+        msgsys.send(CAPI.do_click, btn, base.tonumber(down), pos.x, pos.y, pos.z, uid)
     end
 end
 

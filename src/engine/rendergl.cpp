@@ -810,8 +810,14 @@ void mousemove(int dx, int dy)
     using namespace lua;
     if (engine.hashandle())
     {
-        engine.getg("cc").t_getraw("appman").t_getraw("inst").t_getraw("do_mousemove");
-        engine.push_index(-2).push(dx * cursens).push(-dy * cursens * (GETIV(invmouse) ? -1 : 1)).call(3, 1);
+        engine.getg("do_mousemove");
+        if (engine.is<void>(-1)) engine.pop(1)
+                  .t_new()
+                  .t_set("yaw", dx * cursens)
+                  .t_set("pitch", -dy * cursens * (GETIV(invmouse) ? -1 : 1));
+        else engine.push(dx * cursens)
+                   .push(-dy * cursens * (GETIV(invmouse) ? -1 : 1))
+                   .call(2, 1);
 
         engine.t_getraw("yaw");
         if (!engine.is<void>(-1))
@@ -827,7 +833,7 @@ void mousemove(int dx, int dy)
                 player->pitch = camera1->pitch;
             }
         }
-        engine.pop(5);
+        engine.pop(2);
     }
 }
 
