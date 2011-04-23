@@ -11,10 +11,6 @@
 
 #ifdef CLIENT
     #include "client_system.h"
-    #include "character_render.h"
-    #ifdef INTENSITY_PLUGIN
-        #include "intensity_plugin_listener.h"
-    #endif
 #else // SERVER
     #include "server_system.h"
 #endif

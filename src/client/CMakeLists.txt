@@ -37,7 +37,6 @@ set(CLIENT_SOURCES
     ../intensity/utility
     ../intensity/client_system
     ../intensity/client_engine_additions
-    ../intensity/character_render
     ../intensity/intensity_physics
     ../intensity/intensity_physics_sauer
     ../fpsgame/fps
@@ -81,7 +80,6 @@ set(CLIENT_SOURCES
     ../intensity/engine_additions
     ../intensity/world_system
     ../intensity/targeting
-    ../intensity/steering
     ../intensity/network_system
     ../cubecreate/scripting_system_lua
     ../cubecreate/variable_system

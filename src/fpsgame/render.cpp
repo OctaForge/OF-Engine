@@ -7,7 +7,6 @@
 #include "crypto.h"
 
 #include "intensity.h"
-#include "character_render.h"
 #include "client_system.h"
 
 namespace game
@@ -23,36 +22,12 @@ namespace game
 
         startmodelbatches();
 
-#if 0
-        fpsent *exclude = isthirdperson() ? NULL : followingplayer(), *d;
-        loopv(players)
-        {
-            d = players[i];
-            if (d != player1 && d->state!=CS_SPECTATOR && d->state!=CS_SPAWNING && d!=exclude)
-                CharacterRendering::render(d); // INTENSITY
-        }
-        if(isthirdperson() && !followingplayer())
-        {
-            Logging::log(Logging::INFO, "Rendering self\r\n");
-            CharacterRendering::render(player1); // INTENSITY
-        }
-
-
-        /* TODO:
-            // INTENSITY: Class above head in edit mode
-            if (editmode)
-                particle_text(entity->abovehead(), logicEntity.get()->getClass(), 16, 1);
-        */
-#else // lua rendering system
-//        fpsent *exclude = isthirdperson() ? NULL : followingplayer(), *d; // XXX: Apply this!
-//        if(isthirdperson() && !followingplayer()) // XXX Apply this!
         lua::engine.getg("cc")
                    .t_getraw("logent")
                    .t_getraw("store")
                    .t_getraw("render_dynamic")
                    .push(isthirdperson()).call(1, 0)
                    .pop(3);
-#endif
 
 //        ExtraRendering::renderShadowingMapmodels(); // Kripken: Mapmodels with dynamic shadows, we draw them now
         entities::renderentities();
