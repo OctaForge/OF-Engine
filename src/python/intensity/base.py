@@ -88,9 +88,9 @@ def get_home_subdir():
     # Use default value if none given to us
     if HOME_SUBDIR is None:
         if UNIX:
-            HOME_SUBDIR = os.path.join( os.path.expanduser('~'), '.cubecreate_'+suffix )
+            HOME_SUBDIR = os.path.join( os.path.expanduser('~'), '.octaforge_'+suffix )
         elif WINDOWS:
-            HOME_SUBDIR = os.path.join( os.path.expanduser('~'), 'cubecreate_'+suffix )
+            HOME_SUBDIR = os.path.join( os.path.expanduser('~'), 'octaforge_'+suffix )
         else:
             print "Error: Not sure where to set the home directory for this platform,", sys.platform
             raise Exception
