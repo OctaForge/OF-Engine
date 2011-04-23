@@ -257,9 +257,9 @@ namespace game
     void moveControlledEntities()
     {
 #ifdef CLIENT
-        if ( ClientSystem::playerLogicEntity.get() )
+        if (ClientSystem::playerLogicEntity)
         {
-            engine.getref(ClientSystem::playerLogicEntity.get()->luaRef);
+            engine.getref(ClientSystem::playerLogicEntity->luaRef);
             if (engine.t_get<bool>("initialized"))
             {
                 Logging::log(Logging::INFO, "Player %d (%lu) is initialized, run moveplayer(): %f,%f,%f.\r\n",
@@ -378,8 +378,8 @@ namespace game
                     loopv(players)
                     {
                         fpsent* fpsEntity = players[i];
-                        LogicEntityPtr entity = LogicSystem::getLogicEntity(fpsEntity);
-                        if (!entity.get() || entity->isNone()) continue;
+                        CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
+                        if (!entity || entity->isNone()) continue;
 
                         if(fpsEntity->state != CS_EDITING)
                         {

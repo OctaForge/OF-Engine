@@ -719,7 +719,7 @@ struct animmodel : model
 
             if(!(anim&ANIM_REUSE)) 
             {
-                if (d && LogicSystem::getLogicEntity(d).get()) // INTENSITY
+                if (d && LogicSystem::getLogicEntity(d)) // INTENSITY
                     LogicSystem::getLogicEntity(d)->noteActualRender(); // INTENSITY
 
                 loopv(links)

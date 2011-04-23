@@ -59,26 +59,26 @@ namespace lua_binds
 
     /* Entity attributes */
 
-    LUA_BIND_LE(setanim, self.get()->setAnimation(e.get<int>(2));)
+    LUA_BIND_LE(setanim, self->setAnimation(e.get<int>(2));)
 
-    LUA_BIND_LE(getstarttime, e.push(self.get()->getStartTime());)
+    LUA_BIND_LE(getstarttime, e.push(self->getStartTime());)
 
     LUA_BIND_LE(setmodelname, {
-        Logging::log(Logging::DEBUG, "setmodelname(%s, %s)\n", self.get()->getClass().c_str(), e.get<const char*>(2));
+        Logging::log(Logging::DEBUG, "setmodelname(%s, %s)\n", self->getClass().c_str(), e.get<const char*>(2));
 
-        self.get()->setModel(e.get<const char*>(2));
+        self->setModel(e.get<const char*>(2));
     })
 
     LUA_BIND_LE(setsoundname, {
         Logging::log(Logging::DEBUG, "setsoundname(%s)\n", e.get<const char*>(2));
 
-        self.get()->setSound(e.get<const char*>(2));
+        self->setSound(e.get<const char*>(2));
     })
 
     LUA_BIND_LE(setsoundvol, {
         Logging::log(Logging::DEBUG, "setsoundvol(%i)\n", e.get<int>(2));
 
-        extentity *ext = self.get()->staticEntity;
+        extentity *ext = self->staticEntity;
         assert(ext);
 
         if (!WorldSystem::loadingWorld) removeentity(ext);
@@ -86,12 +86,12 @@ namespace lua_binds
         if (!WorldSystem::loadingWorld) addentity(ext);
 
         // finally reload sound, so everything gets applied
-        self.get()->setSound(self.get()->soundName.c_str());
+        self->setSound(self->soundName.c_str());
     })
 
     LUA_BIND_LE(setattachments, {
         e.getg("table").t_getraw("concat").push_index(2).push("|").call(2, 1);
-        self.get()->setAttachments(e.get<const char*>(-1));
+        self->setAttachments(e.get<const char*>(-1));
         e.pop(2);
     })
 
@@ -100,20 +100,20 @@ namespace lua_binds
         e.push(vp);
     })
 
-    LUA_BIND_LE(setcanmove, self.get()->setCanMove(e.get<bool>(2));)
+    LUA_BIND_LE(setcanmove, self->setCanMove(e.get<bool>(2));)
 
     /* Extents */
 
     #define EXTENT_ACCESSORS(n) \
     LUA_BIND_LE(get##n, { \
-        extentity *ext = self.get()->staticEntity; \
+        extentity *ext = self->staticEntity; \
         assert(ext); \
         \
         e.push(ext->n); \
     }) \
     \
     LUA_BIND_LE(set##n, { \
-        extentity *ext = self.get()->staticEntity; \
+        extentity *ext = self->staticEntity; \
         assert(ext); \
         \
         /* Need to remove, then add, to the world on each change, if not during load. */ \
@@ -124,7 +124,7 @@ namespace lua_binds
     \
     LUA_BIND_LE(FAST_set##n, { \
         /* Fast version - no removeentity/addentity. Use with care! */ \
-        extentity *ext = self.get()->staticEntity; \
+        extentity *ext = self->staticEntity; \
         assert(ext); \
     \
         ext->n = e.get<int>(2); \
@@ -154,14 +154,14 @@ namespace lua_binds
     // Add 'FAST' versions of accessors - no addentity/removeentity. Good to change e.g. particle parameters
 
     LUA_BIND_LE(getextent0, {
-        extentity *ext = self.get()->staticEntity;
+        extentity *ext = self->staticEntity;
         assert(ext);
-        Logging::log(Logging::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self.get()->getClass().c_str(), ext->o.x, ext->o.y, ext->o.z);
+        Logging::log(Logging::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self->getClass().c_str(), ext->o.x, ext->o.y, ext->o.z);
         e.t_new().t_set(1, ext->o.x).t_set(2, ext->o.y).t_set(3, ext->o.z);
     })
 
     LUA_BIND_LE(setextent0, {
-        extentity *ext = self.get()->staticEntity;
+        extentity *ext = self->staticEntity;
         assert(ext);
 
         removeentity(ext); /* Need to remove, then add, to the octa world on each change. */
@@ -175,13 +175,13 @@ namespace lua_binds
 
     #define DYNENT_ACCESSORS(n, t, an) \
     LUA_BIND_LE(get##n, { \
-        fpsent *d = (fpsent*)self.get()->dynamicEntity; \
+        fpsent *d = (fpsent*)self->dynamicEntity; \
         assert(d); \
         e.push((t)d->an); \
     }) \
     \
     LUA_BIND_LE(set##n, { \
-        fpsent *d = (fpsent*)self.get()->dynamicEntity; \
+        fpsent *d = (fpsent*)self->dynamicEntity; \
         assert(d); \
         d->an = e.get<t>(2); \
     })
@@ -208,13 +208,13 @@ namespace lua_binds
     // letting lua specify a feet position, and we work relative to their height - add to
     // assignments, subtract from readings
     LUA_BIND_LE(getdynent0, {
-        fpsent *d = (fpsent*)self.get()->dynamicEntity;
+        fpsent *d = (fpsent*)self->dynamicEntity;
         assert(d);
         e.t_new().t_set(1, d->o.x).t_set(2, d->o.y).t_set(3, d->o.z - d->eyeheight/* - d->aboveeye*/);
     })
 
     LUA_BIND_LE(setdynent0, {
-        fpsent *d = (fpsent*)self.get()->dynamicEntity;
+        fpsent *d = (fpsent*)self->dynamicEntity;
         assert(d);
 
         d->o.x = e.t_get<double>(1);
@@ -230,13 +230,13 @@ namespace lua_binds
     })
 
     LUA_BIND_LE(getdynentvel, {
-        fpsent *d = (fpsent*)self.get()->dynamicEntity;
+        fpsent *d = (fpsent*)self->dynamicEntity;
         assert(d);
         e.t_new().t_set(1, d->vel.x).t_set(2, d->vel.y).t_set(3, d->vel.z);
     })
 
     LUA_BIND_LE(setdynentvel, {
-        fpsent *d = (fpsent*)self.get()->dynamicEntity;
+        fpsent *d = (fpsent*)self->dynamicEntity;
         assert(d);
 
         d->vel.x = e.t_get<double>(1);
@@ -245,13 +245,13 @@ namespace lua_binds
     })
 
     LUA_BIND_LE(getdynentfalling, {
-        fpsent *d = (fpsent*)self.get()->dynamicEntity;
+        fpsent *d = (fpsent*)self->dynamicEntity;
         assert(d);
         e.t_new().t_set(1, d->falling.x).t_set(2, d->falling.y).t_set(3, d->falling.z);
     })
 
     LUA_BIND_LE(setdynentfalling, {
-        fpsent *d = (fpsent*)self.get()->dynamicEntity;
+        fpsent *d = (fpsent*)self->dynamicEntity;
         assert(d);
 
         d->falling.x = e.t_get<double>(1);

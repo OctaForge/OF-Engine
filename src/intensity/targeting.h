@@ -17,7 +17,7 @@ struct TargetingControl
     static vec targetPosition;
 
     //! Contains the latest and current information about what logic entity the mouse cursor is hovering over
-    static LogicEntityPtr targetLogicEntity;
+    static CLogicEntity *targetLogicEntity;
 #endif
 
     //! Utility that wraps around sauer's complex system for intersecting a ray (from->to) with a dynamic entity
@@ -27,7 +27,7 @@ struct TargetingControl
     static void intersectClosestMapmodel(vec &from, vec &to, float& dist, extentity*& target);
 
     //! Find the logic entity that the ray from->to intersects, and is not 'targeter' (the entity casting the ray, typically)
-    static void intersectClosest(vec &from, vec &to, physent *targeter, float& dist, LogicEntityPtr& entity);
+    static void intersectClosest(vec &from, vec &to, physent *targeter, float& dist, CLogicEntity *&entity);
 
 #ifdef CLIENT
     //! Sets or unsets the state of letting the mouse 'target' entities, i.e., mark them

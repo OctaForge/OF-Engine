@@ -44,8 +44,8 @@ void SauerPhysicsEngine::simulate(float seconds)
     loopv(game::players)
     {
         fpsent* fpsEntity = game::players[i];
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(fpsEntity);
-        if (!entity.get() || entity->isNone()) continue;
+        CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
+        if (!entity || entity->isNone()) continue;
 
         #ifdef CLIENT
             // Ragdolls
@@ -90,10 +90,8 @@ bool SauerPhysicsEngine::isColliding(vec& position, float radius, CLogicEntity *
         return false;
 }
 
-void SauerPhysicsEngine::rayCastClosest(vec &from, vec &to, float& hitDist, LogicEntityPtr& hitEntity, CLogicEntity* ignore)
+void SauerPhysicsEngine::rayCastClosest(vec &from, vec &to, float& hitDist, CLogicEntity *&hitEntity, CLogicEntity* ignore)
 {
-    static LogicEntityPtr placeholderLogicEntity(new CLogicEntity());
-
     // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
     float dynamicDist, staticDist;
     dynent* dynamicEntity;
@@ -106,7 +104,8 @@ void SauerPhysicsEngine::rayCastClosest(vec &from, vec &to, float& hitDist, Logi
     if (dynamicEntity == NULL && staticEntity == NULL)
     {
         hitDist = -1;
-        hitEntity = placeholderLogicEntity;
+        if (hitEntity) delete hitEntity;
+        hitEntity = new CLogicEntity();
     } else if (dynamicEntity != NULL && staticEntity == NULL)
     {
         hitDist = dynamicDist;

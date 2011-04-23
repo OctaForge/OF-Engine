@@ -317,9 +317,9 @@ namespace lua
     }
 
     template<>
-    LogicEntityPtr lua_Engine::get(int i)
+    CLogicEntity *lua_Engine::get(int i)
     {
-        LogicEntityPtr ret;
+        CLogicEntity *ret;
         int id = 0;
 
         push_index(i);
@@ -329,7 +329,7 @@ namespace lua
         ret = LogicSystem::getLogicEntity(id);
         Logging::log(Logging::INFO, "Lua: getting the CLE for UID %d\n", id);
 
-        if (!ret.get())
+        if (!ret)
         {
             defformatstring(err)("Cannot find CLE for entity %i", id);
             error(err);

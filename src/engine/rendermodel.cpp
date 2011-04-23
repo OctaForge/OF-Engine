@@ -666,7 +666,7 @@ void rendermodelquery(model *m, dynent *d, const vec &center, float radius)
 
 extern int oqfrags;
 
-void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, LogicEntityPtr entity, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float trans, const quat &rotation) // INTENSITY: entity, roll, rotation
+void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CLogicEntity *entity, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float trans, const quat &rotation) // INTENSITY: entity, roll, rotation
 {
     if(shadowmapping && !(flags&(MDL_SHADOW|MDL_DYNSHADOW))) return;
     model *m = loadmodel(mdl); 
@@ -748,7 +748,7 @@ void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, Lo
         else
         {
             vec center, radius;
-            if(GETIV(showboundingbox)==1) m->collisionbox(0, center, radius, entity.get()); // INTENSITY: Added entity
+            if(GETIV(showboundingbox)==1) m->collisionbox(0, center, radius, entity); // INTENSITY: Added entity
             else m->boundbox(0, center, radius);
             rotatebb(center, radius, int(yaw));
             center.add(o);
@@ -938,7 +938,7 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&mas
 
 // convenient function that covers the usual anims for players/monsters/npcs
 
-void renderclient(dynent *d, const char *mdlname, LogicEntityPtr entity, modelattach *attachments, int hold, int attack, int attackdelay, int lastaction, int lastpain, float fade, bool ragdoll)
+void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelattach *attachments, int hold, int attack, int attackdelay, int lastaction, int lastpain, float fade, bool ragdoll)
 {
     int anim = hold ? hold : ANIM_IDLE|ANIM_LOOP;
     float yaw = GETIV(testanims) && d==player ? 0 : d->yaw+90,
@@ -1007,17 +1007,17 @@ void renderclient(dynent *d, const char *mdlname, LogicEntityPtr entity, modelat
     // TODO: Other attacks as well
     // XXX Note: The basetime appears to be ignored if you do ANIM_LOOP
     if (anim&ANIM_ATTACK1 || anim&ANIM_ATTACK2)
-        basetime = entity.get()->getStartTime();
+        basetime = entity->getStartTime();
 
     rendermodel(NULL, mdlname, anim, o, entity, yaw, pitch, 0, flags, d, attachments, basetime, 0, fade); // INTENSITY: roll
 }
 
-void setbbfrommodel(dynent *d, const char *mdl, LogicEntityPtr entity) // INTENSITY: Added entity
+void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSITY: Added entity
 {
     model *m = loadmodel(mdl); 
     if(!m) return;
     vec center, radius;
-    m->collisionbox(0, center, radius, entity.get()); // INTENSITY: Added entity
+    m->collisionbox(0, center, radius, entity); // INTENSITY: Added entity
     if(d->type==ENT_INANIMATE && !m->ellipsecollide)
     {
         d->collidetype = COLLIDE_OBB;

@@ -18,7 +18,7 @@ struct ClientSystem
     static int           playerNumber;
 
     //! Convenient way to get at the player's logic entity
-    static LogicEntityPtr playerLogicEntity;
+    static CLogicEntity *playerLogicEntity;
 
     //! Whether logged in to a _remote_ server. There is no 'login' locally, just 'connecting'.
     static bool          loggedIn;
@@ -70,9 +70,6 @@ struct ClientSystem
 
     //! Marks the status as not logged in. Called on a disconnect from sauer's client.h:gamedisconnect()
     static void onDisconnect();
-
-    //! Clears the player logic entity, when it has been invalidated by loading a new logic system
-    static void clearPlayerEntity();
 
     //! Sends a just-saved map (all 3 parts: ogz, cfg, unique_ids) to server, at the end of worldio.cpp:save_world().
     //! The map is worked on in the user's dir/packages/base, as per sauer norms.

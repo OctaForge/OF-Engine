@@ -2366,8 +2366,8 @@ void lightent(extentity &e, float height)
     float ambient = 0.0f;
     if(e.type==ET_MAPMODEL)
     {
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(e); // INTENSITY
-        model *m = entity.get() ? entity->getModel() : NULL; // INTENSITY
+        CLogicEntity *entity = LogicSystem::getLogicEntity(e); // INTENSITY
+        model *m = entity ? entity->getModel() : NULL; // INTENSITY
         if(m) height = m->above()*0.75f;
     }
     else if(e.type>=ET_GAMESPECIFIC) ambient = 0.4f;

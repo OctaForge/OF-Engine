@@ -297,7 +297,7 @@ namespace lua_binds
                 ;iter++
             )
         {
-            LogicEntityPtr entity = iter->second;
+            CLogicEntity *entity = iter->second;
             if (entity->theModel == old) entity->theModel = _new;
         }
     })
@@ -305,7 +305,7 @@ namespace lua_binds
 #ifdef CLIENT
     static int oldtp = -1;
 
-    void preparerd(int& anim, LogicEntityPtr self)
+    void preparerd(int& anim, CLogicEntity *self)
     {
         if (anim&ANIM_RAGDOLL)
         {
@@ -324,7 +324,7 @@ namespace lua_binds
             if (fp->ragdoll || !GETIV(ragdoll) || !PhysicsManager::getEngine()->prepareRagdoll(self))
             {
                 anim &= ~ANIM_RAGDOLL;
-                engine.getref(self.get()->luaRef).t_getraw("set_localanim").push_index(-2).push(anim).call(2, 0);
+                engine.getref(self->luaRef).t_getraw("set_localanim").push_index(-2).push(anim).call(2, 0);
                 engine.pop(1);
             }
         }
@@ -343,9 +343,9 @@ namespace lua_binds
         }
     }
 
-    fpsent *getproxyfpsent(LogicEntityPtr self)
+    fpsent *getproxyfpsent(CLogicEntity *self)
     {
-        engine.getref(self.get()->luaRef).t_getraw("rendering_hash_hint");
+        engine.getref(self->luaRef).t_getraw("rendering_hash_hint");
         if (!engine.is<void>(-1))
         {
             static bool initialized = false;

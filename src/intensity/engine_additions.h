@@ -136,9 +136,6 @@ private:
     int lastActualRenderMillis;
 };
 
-typedef boost::shared_ptr<CLogicEntity> LogicEntityPtr;
-
-
 //! The main storage for LogicEntities and management of them. All entities appear in the central list
 //! of logic entities here, as well as other scenario-wide data.
 
@@ -146,7 +143,7 @@ typedef boost::shared_ptr<CLogicEntity> LogicEntityPtr;
 
 struct LogicSystem
 {
-    typedef std::map<int, LogicEntityPtr> LogicEntityMap;
+    typedef std::map<int, CLogicEntity*> LogicEntityMap;
 
     static LogicEntityMap logicEntities; //!< All the entities in the scenario
 
@@ -157,16 +154,13 @@ struct LogicSystem
     static void init();
 
     //! Register a logic entity in the LogicSystem system. Must be done so that entities are accessible and are managed.
-    static void          registerLogicEntity(LogicEntityPtr newEntity);
+    static void          registerLogicEntity(CLogicEntity *newEntity);
 
-    static LogicEntityPtr registerLogicEntity(physent* entity);
-    static LogicEntityPtr registerLogicEntity(extentity* entity);
+    static CLogicEntity *registerLogicEntity(physent* entity);
+    static CLogicEntity *registerLogicEntity(extentity* entity);
 
     //! Register a Logic Entity that is not based on a Sauer type, i.e., is not a physent or an extent
     static void           registerLogicEntityNonSauer(int uniqueId);
-
-    //! Unregisters a C++ GE, removes it from the set of currently running entities
-    static void          unregisterLogicEntity(LogicEntityPtr entity);
 
     //! Unregisters a C++ GE, removes it from the set of currently running entities. Needs to not overload the other,
     //! but have a different name, because we expose this in the lua embedding
@@ -177,9 +171,9 @@ struct LogicSystem
     //! may e.g. have visual effects on an NPC running on the client, and so forth
     static void          manageActions(long millis);
 
-    static LogicEntityPtr getLogicEntity(int uniqueId);
-    static LogicEntityPtr getLogicEntity(const extentity &extent);
-    static LogicEntityPtr getLogicEntity(physent* entity);
+    static CLogicEntity *getLogicEntity(int uniqueId);
+    static CLogicEntity *getLogicEntity(const extentity &extent);
+    static CLogicEntity *getLogicEntity(physent* entity);
 
     static int           getUniqueId(extentity* staticEntity);
     static int           getUniqueId(physent*    dynamicEntity);

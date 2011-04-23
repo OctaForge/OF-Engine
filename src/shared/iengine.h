@@ -1,9 +1,6 @@
 // the interface the game uses to access the engine
 
-#include "boost/shared_ptr.hpp" // INTENSITY - and next two lines
 struct CLogicEntity;
-typedef class boost::shared_ptr<CLogicEntity> LogicEntityPtr;
-
 
 extern int curtime;                     // current frame time
 extern int lastmillis;                  // last time
@@ -298,12 +295,12 @@ struct modelattach
 
 extern void startmodelbatches();
 extern void endmodelbatches();
-extern void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, LogicEntityPtr entity, float yaw = 0, float pitch = 0, float roll = 0, int cull = MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED | MDL_LIGHT, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float trans = 1, const quat &rotation=quat(0,0,0,0)); // INTENSITY: Added entity, roll, rotation
+extern void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CLogicEntity *entity, float yaw = 0, float pitch = 0, float roll = 0, int cull = MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED | MDL_LIGHT, dynent *d = NULL, modelattach *a = NULL, int basetime = 0, int basetime2 = 0, float trans = 1, const quat &rotation=quat(0,0,0,0)); // INTENSITY: Added entity, roll, rotation
 extern void abovemodel(vec &o, const char *mdl);
 extern void rendershadow(dynent *d);
-extern void renderclient(dynent *d, const char *mdlname, LogicEntityPtr entity, modelattach *attachments, int hold, int attack, int attackdelay, int lastaction, int lastpain, float fade = 1, bool ragdoll = false); // INTENSITY: Added entity
+extern void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelattach *attachments, int hold, int attack, int attackdelay, int lastaction, int lastpain, float fade = 1, bool ragdoll = false); // INTENSITY: Added entity
 extern void interpolateorientation(dynent *d, float &interpyaw, float &interppitch);
-extern void setbbfrommodel(dynent *d, const char *mdl, LogicEntityPtr entity); // INTENSITY: Added entity
+extern void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity); // INTENSITY: Added entity
 extern const char *mapmodelname(int i);
 extern model *loadmodel(const char *name, int i = -1, bool msg = false);
 extern void preloadmodel(const char *name);

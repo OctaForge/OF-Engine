@@ -681,7 +681,7 @@ namespace lua
     template<> float          lua_Engine::get(int i);
     template<> bool           lua_Engine::get(int i);
     template<> const char    *lua_Engine::get(int i);
-    template<> LogicEntityPtr lua_Engine::get(int i);
+    template<> CLogicEntity  *lua_Engine::get(int i);
     // specializations for with-default getters
     template<> double         lua_Engine::get(int i, double d);
     template<> float          lua_Engine::get(int i, float d);
@@ -821,18 +821,18 @@ void _bind_##n(lua_Engine e) \
 
 /**
  * @def LUA_BIND_LE
- * @brief Define a Lua binding with pre-created "self" variable of LogicEntityPtr type.
+ * @brief Define a Lua binding with pre-created "self" variable of CLogicEntity type.
  * @param n Name of the newly created function (it gets prefixed with _bind_).
  * @param b Body to run when the function is called from Lua.
  * 
  * The macro wraps over LUA_BIND_DEF, but creates a "self" variable representing
- * LogicEntityPtr. The LogicEntityPtr is got using a table at first argument.
+ * CLogicEntity. The CLogicEntity is got using a table at first argument.
  * This is mainly used to simplify binding of API manipulating with entities in Lua.
  */
 #define LUA_BIND_LE(n, b) \
 LUA_BIND_DEF(n, { \
-    Logging::log(Logging::INFO, "Registering Lua LogicEntityPtr function: %s\r\n", #n); \
-    LogicEntityPtr self = e.get<LogicEntityPtr>(1); \
+    Logging::log(Logging::INFO, "Registering Lua CLogicEntity function: %s\r\n", #n); \
+    CLogicEntity *self = e.get<CLogicEntity*>(1); \
     b; \
 })
 

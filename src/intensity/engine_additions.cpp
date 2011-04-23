@@ -71,9 +71,9 @@ vec CLogicEntity::getOrigin()
                 model *m = theModel;
                 if (m)
                 {
-                    LogicEntityPtr ptr = LogicSystem::getLogicEntity(getUniqueId());
-                    assert(ptr.get());
-                    m->collisionbox(0, bbcenter, bbradius, ptr.get());
+                    CLogicEntity *ptr = LogicSystem::getLogicEntity(getUniqueId());
+                    assert(ptr);
+                    m->collisionbox(0, bbcenter, bbradius, ptr);
                     rotatebb(bbcenter, bbradius, int(staticEntity->attr1));
                     bbcenter.add(staticEntity->o);
                     return bbcenter;
@@ -104,9 +104,9 @@ float CLogicEntity::getRadius()
                 model *m = theModel;
                 if (m)
                 {
-                    LogicEntityPtr ptr = LogicSystem::getLogicEntity(getUniqueId());
-                    assert(ptr.get());
-                    m->collisionbox(0, bbcenter, bbradius, ptr.get());
+                    CLogicEntity *ptr = LogicSystem::getLogicEntity(getUniqueId());
+                    assert(ptr);
+                    m->collisionbox(0, bbcenter, bbradius, ptr);
                     rotatebb(bbcenter, bbradius, int(staticEntity->attr1));
                     bbcenter.add(staticEntity->o);
                     return bbradius.x + bbradius.y;
@@ -373,11 +373,6 @@ void LogicSystem::clear()
         engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("del_all").call(0, 0).pop(3);
         assert(logicEntities.size() == 0);
 
-        // For client, remove player logic entity
-        #ifdef CLIENT
-            ClientSystem::clearPlayerEntity();
-        #endif
-
         //engine.destroy();
     }
 
@@ -392,25 +387,25 @@ void LogicSystem::init()
     PhysicsManager::createEngine();
 }
 
-void LogicSystem::registerLogicEntity(LogicEntityPtr newEntity)
+void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
 {
-    Logging::log(Logging::DEBUG, "C registerLogicEntity: %d\r\n", newEntity.get()->getUniqueId());
+    Logging::log(Logging::DEBUG, "C registerLogicEntity: %d\r\n", newEntity->getUniqueId());
     INDENT_LOG(Logging::DEBUG);
 
-    int uniqueId = newEntity.get()->getUniqueId();
+    int uniqueId = newEntity->getUniqueId();
     assert(logicEntities.find(uniqueId) == logicEntities.end());
     logicEntities.insert( LogicEntityMap::value_type( uniqueId, newEntity ) );
 
     engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("get").push(uniqueId).call(1, 1);
-    newEntity.get()->luaRef = engine.ref();
+    newEntity->luaRef = engine.ref();
     engine.pop(3);
 
-    assert(newEntity.get()->luaRef >= 0);
+    assert(newEntity->luaRef >= 0);
 
     Logging::log(Logging::DEBUG, "C registerLogicEntity completes\r\n");
 }
 
-LogicEntityPtr LogicSystem::registerLogicEntity(physent* entity)
+CLogicEntity *LogicSystem::registerLogicEntity(physent* entity)
 {
     if (getUniqueId(entity) < 0)
     {
@@ -418,16 +413,16 @@ LogicEntityPtr LogicSystem::registerLogicEntity(physent* entity)
         assert(0);
     }
 
-    LogicEntityPtr newEntity(new CLogicEntity(entity));
+    CLogicEntity *newEntity = new CLogicEntity(entity);
 
-    Logging::log(Logging::DEBUG, "adding physent %d\r\n", newEntity.get()->getUniqueId());
+    Logging::log(Logging::DEBUG, "adding physent %d\r\n", newEntity->getUniqueId());
 
     registerLogicEntity(newEntity);
 
     return newEntity;
 }
 
-LogicEntityPtr LogicSystem::registerLogicEntity(extentity* entity)
+CLogicEntity *LogicSystem::registerLogicEntity(extentity* entity)
 {
     if (getUniqueId(entity) < 0)
     {
@@ -435,7 +430,7 @@ LogicEntityPtr LogicSystem::registerLogicEntity(extentity* entity)
         assert(0);
     }
 
-    LogicEntityPtr newEntity(new CLogicEntity(entity));
+    CLogicEntity *newEntity = new CLogicEntity(entity);
 
 //    Logging::log(Logging::DEBUG, "adding entity %d : %d,%d,%d,%d\r\n", entity->type, entity->attr1, entity->attr2, entity->attr3, entity->attr4);
 
@@ -446,9 +441,9 @@ LogicEntityPtr LogicSystem::registerLogicEntity(extentity* entity)
 
 void LogicSystem::registerLogicEntityNonSauer(int uniqueId)
 {
-    LogicEntityPtr newEntity(new CLogicEntity(uniqueId));
+    CLogicEntity *newEntity = new CLogicEntity(uniqueId);
 
-    newEntity.get()->nonSauer = true; // Set as non-Sauer
+    newEntity->nonSauer = true; // Set as non-Sauer
 
     Logging::log(Logging::DEBUG, "adding non-Sauer entity %d\r\n", uniqueId);
 
@@ -457,23 +452,17 @@ void LogicSystem::registerLogicEntityNonSauer(int uniqueId)
 //    return newEntity;
 }
 
-void LogicSystem::unregisterLogicEntity(LogicEntityPtr entity)
-{
-    assert(0); // Deprecated XXX
-
-    Logging::log(Logging::DEBUG, "UNregisterLogicEntity: %d\r\n", entity.get()->getUniqueId());
-
-    int uniqueId = entity.get()->getUniqueId();
-
-    logicEntities.erase(uniqueId);
-
-    if (entity.get()->luaRef >= 0) engine.unref(entity.get()->luaRef);
-}
-
 void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 {
     Logging::log(Logging::DEBUG, "UNregisterLogicEntity by UniqueID: %d\r\n", uniqueId);
+
+    CLogicEntity *ptr = logicEntities[uniqueId];
+
     logicEntities.erase(uniqueId);
+    if (!ptr) return;
+
+    if (ptr->luaRef >= 0) engine.unref(ptr->luaRef);
+    delete ptr;
 }
 
 void LogicSystem::manageActions(long millis)
@@ -492,27 +481,26 @@ void LogicSystem::manageActions(long millis)
     Logging::log(Logging::INFO, "manageActions complete\r\n");
 }
 
-LogicEntityPtr LogicSystem::getLogicEntity(int uniqueId)
+CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
 {
     LogicEntityMap::iterator iter = logicEntities.find(uniqueId);
 
     if (iter == logicEntities.end())
     {
         Logging::log(Logging::INFO, "(C++) Trying to get a non-existant logic entity %d\r\n", uniqueId);
-        LogicEntityPtr NullEntity;
-        return NullEntity;
+        return NULL;
     }
 
     return iter->second;
 }
 
-LogicEntityPtr LogicSystem::getLogicEntity(const extentity &extent)
+CLogicEntity *LogicSystem::getLogicEntity(const extentity &extent)
 {
     return getLogicEntity(extent.uniqueId);
 }
 
 
-LogicEntityPtr LogicSystem::getLogicEntity(physent* entity)
+CLogicEntity *LogicSystem::getLogicEntity(physent* entity)
 {
     return getLogicEntity(getUniqueId(entity)); // TODO: do this directly, without the intermediary getUniqueId, for speed?
 }

@@ -399,7 +399,10 @@ namespace var
     void clear()
     {
         if (!vars) return;
-        enumerate(*vars, cvar*, v, v->r(););
+        enumerate(*vars, cvar*, v, {
+            if (v->isalias()) delete v;
+            else v->r();
+        });
     }
 
     void flush()

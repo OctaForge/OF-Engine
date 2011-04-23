@@ -67,7 +67,7 @@ struct GuiControl
     // LogicEntity editing GUI
     struct EditedEntity
     {
-        static LogicEntityPtr currEntity;
+        static CLogicEntity *currEntity;
         typedef std::map< std::string, std::pair<std::string, std::string> > StateDataMap; // key -> gui_name, value
         static StateDataMap stateData;
         static std::vector<std::string> sortedKeys;

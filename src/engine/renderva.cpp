@@ -395,17 +395,17 @@ void rendermapmodel(extentity &e)
     mapmodelinfo &mmi = getmminfo(e.attr2);
     if(&mmi) rendermodel(&e.light, mmi.name, anim, e.o, (float)((e.attr1+7)-(e.attr1+7)%15), 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
 #else
-    LogicEntityPtr entity = LogicSystem::getLogicEntity(e);
-    if (!entity.get() || entity->isNone())
+    CLogicEntity *entity = LogicSystem::getLogicEntity(e);
+    if (!entity || entity->isNone())
     {
         Logging::log(Logging::ERROR, "Trying to show a missing mapmodel\r\n");
         Logging::log(Logging::ERROR, "                                  %d\r\n", LogicSystem::getUniqueId(&e));
         assert(0);
     }
-    int anim     = entity.get()->getAnimation(); // ANIM_MAPMODEL|ANIM_LOOP
-    int basetime = entity.get()->getStartTime();
+    int anim     = entity->getAnimation(); // ANIM_MAPMODEL|ANIM_LOOP
+    int basetime = entity->getStartTime();
 
-    model* theModel = LogicSystem::getLogicEntity(e).get()->getModel();
+    model* theModel = LogicSystem::getLogicEntity(e)->getModel();
 
     // Kripken: MDL_SHADOW is necessary for getting shadows for a mapmodel. Note however the notes in fpsrender.h, that isn't enough.
     if(theModel)

@@ -93,8 +93,8 @@ namespace lua_binds
 
     LUA_BIND_CLIENT(gettargetent, {
         TargetingControl::determineMouseTarget(true);
-        LogicEntityPtr target = TargetingControl::targetLogicEntity;
-        if (target.get() && !target->isNone() && target->luaRef >= 0)
+        CLogicEntity *target = TargetingControl::targetLogicEntity;
+        if (target && !target->isNone() && target->luaRef >= 0)
              e.getref(target->luaRef);
         else e.push();
     })
@@ -108,7 +108,7 @@ namespace lua_binds
         e.push(PhysicsManager::getEngine()->isColliding(
             pos,
             e.get<double>(4),
-            e.get<int>(5) != -1 ? LogicSystem::getLogicEntity(e.get<int>(5)).get() : NULL)
+            e.get<int>(5) != -1 ? LogicSystem::getLogicEntity(e.get<int>(5)) : NULL)
         );
     })
 

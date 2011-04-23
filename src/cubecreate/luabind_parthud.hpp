@@ -91,9 +91,9 @@ namespace lua_binds
             particle_flare(p, dest, e.get<int>(7), e.get<int>(8), e.get<int>(9), e.get<double>(10), NULL, e.get<int>(11));
         else
         {
-            LogicEntityPtr owner = LogicSystem::getLogicEntity(e.get<int>(12));
-            assert(owner.get()->dynamicEntity);
-            particle_flare(p, dest, e.get<int>(7), e.get<int>(8), e.get<int>(9), e.get<double>(10), (fpsent*)(owner.get()->dynamicEntity), e.get<int>(11));
+            CLogicEntity *owner = LogicSystem::getLogicEntity(e.get<int>(12));
+            assert(owner->dynamicEntity);
+            particle_flare(p, dest, e.get<int>(7), e.get<int>(8), e.get<int>(9), e.get<double>(10), (fpsent*)(owner->dynamicEntity), e.get<int>(11));
         }
     })
 
@@ -136,7 +136,7 @@ namespace lua_binds
         vec v(e.get<double>(2), e.get<double>(3), e.get<double>(4));
         vec debrisvel(e.get<double>(6), e.get<double>(7), e.get<double>(8));
 
-        LogicEntityPtr owner = LogicSystem::getLogicEntity(e.get<int>(9));
+        CLogicEntity *owner = LogicSystem::getLogicEntity(e.get<int>(9));
         assert(owner->dynamicEntity);
         FPSClientInterface::spawnDebris(e.get<int>(1), v, e.get<int>(5), debrisvel, (dynent*)(owner->dynamicEntity));
     })

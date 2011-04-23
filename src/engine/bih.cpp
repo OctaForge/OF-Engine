@@ -270,8 +270,8 @@ static inline void yawray(vec &o, vec &ray, float angle)
 
 bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist, int mode, float &dist)
 {
-    LogicEntityPtr entity = LogicSystem::getLogicEntity(e); // INTENSITY
-    model *m = entity.get() ? entity->getModel() : NULL; // INTENSITY
+    CLogicEntity *entity = LogicSystem::getLogicEntity(e); // INTENSITY
+    model *m = entity ? entity->getModel() : NULL; // INTENSITY
     if(!m) return false;
     if(mode&RAY_SHADOW)
     {

@@ -203,7 +203,7 @@ struct fpsent : dynent, fpsstate
     bool serverControlled; // Kripken: Set to true for NPCs that this server controls. For now, that means all NPCs
 #endif
 
-    LogicEntityPtr logicEntity;
+    CLogicEntity *logicEntity;
 
     char turn_move, look_updown_move;    // Kripken: New movements
 

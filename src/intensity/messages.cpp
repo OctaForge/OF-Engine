@@ -1028,8 +1028,8 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.c_str());
         INDENT_LOG(Logging::DEBUG);
         // If a logic entity does not yet exist, create one
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(otherUniqueId);
-        if (entity.get() == NULL)
+        CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
+        if (entity == NULL)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
             engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("add")
@@ -1051,18 +1051,18 @@ namespace MessageSystem
             }
             engine.call(3, 0).pop(3);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
-            if (!entity.get())
+            if (!entity)
             {
                 Logging::log(Logging::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass.c_str());
                 return;
             }
         } else
-            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity.get() != NULL, entity->getUniqueId(),
+            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         Logging::log(Logging::DEBUG, "Updating stateData with: %s\r\n", stateData.c_str());
-        engine.getref(entity.get()->luaRef)
+        engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
             .push(stateData.c_str())
@@ -1263,8 +1263,8 @@ namespace MessageSystem
             x, y, z, attr1, attr2, attr3, attr4);
         INDENT_LOG(Logging::DEBUG);
         // If a logic entity does not yet exist, create one
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(otherUniqueId);
-        if (entity.get() == NULL)
+        CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
+        if (entity == NULL)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
             engine.getg("cc").t_getraw("logent").t_getraw("classes").t_getraw("get_sauertype").push(otherClass.c_str()).call(1, 1);
@@ -1284,14 +1284,14 @@ namespace MessageSystem
                     .t_set("attr4", attr4)
                 .call(3, 0).pop(3);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
-            assert(entity.get() != NULL);
+            assert(entity != NULL);
         } else
-            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity.get() != NULL, entity->getUniqueId(),
+            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         Logging::log(Logging::DEBUG, "Updating stateData\r\n");
-        engine.getref(entity.get()->luaRef)
+        engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
             .push(stateData.c_str())
@@ -1564,8 +1564,8 @@ namespace MessageSystem
         }
         else
         {
-            LogicEntityPtr entity = LogicSystem::getLogicEntity( player );
-            if (entity.get())
+            CLogicEntity *entity = LogicSystem::getLogicEntity( player );
+            if (entity)
             {
                 vec where = entity->getOrigin();
                 playsound(soundId, &where);
@@ -1634,10 +1634,10 @@ namespace MessageSystem
         std::string soundName = tmp_soundName;
         int entityUniqueId = getint(p);
 
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(entityUniqueId);
-        if (entity.get() != NULL)
+        CLogicEntity *entity = LogicSystem::getLogicEntity(entityUniqueId);
+        if (entity)
         {
-            extentity *e = entity.get()->staticEntity;
+            extentity *e = entity->staticEntity;
             stopmapsound(e);
             if(camera1->o.dist(e->o) < e->attr2)
             {
@@ -1972,8 +1972,8 @@ namespace MessageSystem
         int numargs = 4;
         if (uniqueId != -1)
         {
-            LogicEntityPtr entity = LogicSystem::getLogicEntity(uniqueId);
-            if (entity.get())
+            CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
+            if (entity)
             {
                 engine.getref(entity->luaRef);
                 numargs++;

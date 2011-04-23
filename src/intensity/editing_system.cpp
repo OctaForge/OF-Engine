@@ -608,9 +608,9 @@ void createHeightmapFromRaw(int resolution, double addr)
         Logging::log(Logging::ERROR, "Unable to create createHeightmapFromRaw thread: %s\n", SDL_GetError());
 }
 
-LogicEntityPtr getSelectedEntity()
+CLogicEntity *getSelectedEntity()
 {
-    if (!entities::getents().inrange(efocus)) return LogicEntityPtr();
+    if (!entities::getents().inrange(efocus)) return NULL;
     extentity& e = *(entities::getents()[efocus]);
     return LogicSystem::getLogicEntity(e);
 }
@@ -758,8 +758,8 @@ void centerent()
     offset[D[d]] *= dc*2-1;
     offset.mul(0.5);
     center.add(offset);
-    LogicEntityPtr entity = EditingSystem::getSelectedEntity();
-    if (!entity.get()) return;
+    CLogicEntity *entity = EditingSystem::getSelectedEntity();
+    if (!entity) return;
     entity->setOrigin(center);
 }
 

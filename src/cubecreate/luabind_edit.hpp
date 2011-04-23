@@ -119,8 +119,8 @@ namespace lua_binds
         e.get<int>(7)
     )
     LUA_BIND_DEF(editing_getselent, {
-        LogicEntityPtr ret = EditingSystem::getSelectedEntity();
-        if (ret.get() && !ret->isNone() && ret->luaRef >= 0) e.getref(ret.get()->luaRef);
+        CLogicEntity *ret = EditingSystem::getSelectedEntity();
+        if (ret && !ret->isNone() && ret->luaRef >= 0) e.getref(ret->luaRef);
         else e.push();
     })
     LUA_BIND_STD(renderprogress, renderprogress, e.get<float>(1), e.get<const char*>(2))
@@ -259,7 +259,7 @@ namespace lua_binds
 
     #ifdef SERVER
     LUA_BIND_LE(npcdel, {
-        fpsent *fpsEntity = (fpsent*)self.get()->dynamicEntity;
+        fpsent *fpsEntity = (fpsent*)self->dynamicEntity;
         NPC::remove(fpsEntity->clientnum);
     })
     #else

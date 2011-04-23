@@ -8,7 +8,7 @@ struct WorldSystem
     static bool loadingWorld;
     static void placeInWorld(int entityUniqueId, int locationEntityUniqueId);
 
-    static void triggerCollide(LogicEntityPtr mapmodel, physent* d, bool ellipse);
+    static void triggerCollide(CLogicEntity *mapmodel, physent* d, bool ellipse);
 
     static void setNumExpectedEntities(int num);
     static void triggerReceivedEntity();
@@ -20,6 +20,6 @@ struct WorldSystem
     static bool triggeringCollisions;
 
     //! Check for triggering collisions, i.e., to run trigger events on AreaTriggers
-    static void checkTriggeringCollisions(LogicEntityPtr entity);
+    static void checkTriggeringCollisions(CLogicEntity *entity);
 };
 

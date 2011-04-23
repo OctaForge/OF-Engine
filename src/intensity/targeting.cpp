@@ -47,12 +47,12 @@ void TargetingControl::setupOrientation()
 
 
 // When no special entity, this will function as an 'empty' entity, just so calls to ->isNone() work for our target logic entity
-LogicEntityPtr placeholderLogicEntity(new CLogicEntity());
+CLogicEntity *placeholderLogicEntity = NULL;
 
 #ifdef CLIENT
 vec           TargetingControl::worldPosition;
 vec           TargetingControl::targetPosition;
-LogicEntityPtr TargetingControl::targetLogicEntity(placeholderLogicEntity);
+CLogicEntity *TargetingControl::targetLogicEntity = NULL;
 #endif
 
 void TargetingControl::intersectClosestDynamicEntity(vec &from, vec &to, physent *targeter, float& dist, dynent*& target)
@@ -95,7 +95,7 @@ void TargetingControl::intersectClosestMapmodel(vec &from, vec &to, float& dist,
     };
 }
 
-void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, float& dist, LogicEntityPtr& entity)
+void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, float& dist, CLogicEntity *&entity)
 {
     extern int enthover;
 
@@ -106,7 +106,7 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
         dist = -7654; // TODO: Calculate
         entity = LogicSystem::getLogicEntity(*entities::getents()[enthover]);
     } else {
-        PhysicsManager::getEngine()->rayCastClosest(from, to, dist, entity, dynamic_cast<fpsent*>(targeter) ? LogicSystem::getLogicEntity(targeter).get() : NULL);
+        PhysicsManager::getEngine()->rayCastClosest(from, to, dist, entity, dynamic_cast<fpsent*>(targeter) ? LogicSystem::getLogicEntity(targeter) : NULL);
     }
 }
 
@@ -120,6 +120,9 @@ void TargetingControl::setMouseTargeting(bool on)
 
 void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 {
+    placeholderLogicEntity = new CLogicEntity();
+    targetLogicEntity = placeholderLogicEntity;
+
     TargetingControl::worldPosition = worldpos;
 
     if (Logging::shouldShow(Logging::INFO))
@@ -144,7 +147,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
                                                TargetingControl::targetLogicEntity);
 
             // If not edit mode, ignore the player itself
-            if (!editmode && TargetingControl::targetLogicEntity.get() && !TargetingControl::targetLogicEntity->isNone() &&
+            if (!editmode && TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone() &&
                 TargetingControl::targetLogicEntity->getUniqueId() == ClientSystem::uniqueId)
             {
                 // Try to see if the player was the sole cause of collision - move it away, test, then move it back
@@ -160,7 +163,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
                 ClientSystem::playerLogicEntity->dynamicEntity->o = save;
             }
 
-            SETV(has_mouse_target, int(TargetingControl::targetLogicEntity.get() && !TargetingControl::targetLogicEntity->isNone()));
+            SETV(has_mouse_target, int(TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone()));
 
             if (GETIV(has_mouse_target))
             {
@@ -178,10 +181,12 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
         }
     }
 
-//    if (!placeholderLogicEntity.get()->isNone())
-//        TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(placeholderLogicEntity.get()->getUniqueId());
+//    if (!placeholderLogicEntity->isNone())
+//        TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(placeholderLogicEntity->getUniqueId());
 //    else
 //        TargetingControl::targetLogicEntity = placeholderLogicEntity;
+
+    if (placeholderLogicEntity) delete placeholderLogicEntity;
 }
 
 #endif

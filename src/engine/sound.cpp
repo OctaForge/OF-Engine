@@ -312,7 +312,7 @@ void checkmapsounds()
         if(camera1->o.dist(e.o) < e.attr2)
         {
             // INTENSITY: use LogicEntity system to get the sound file; don't register sounds in mapscript.
-            if(!e.visible && lookupmaterial(camera1->o)!=MAT_WATER) playmapsound(LogicSystem::getLogicEntity(e).get()->getSound(), &e, e.attr4, -1);
+            if(!e.visible && lookupmaterial(camera1->o)!=MAT_WATER) playmapsound(LogicSystem::getLogicEntity(e)->getSound(), &e, e.attr4, -1);
             else if(lookupmaterial(camera1->o)==MAT_WATER) stopmapsound(&e); // SAUER ENHANCED - underwater ambient
         }
         else if(e.visible) stopmapsound(&e);

@@ -49,6 +49,6 @@ namespace EditingSystem
 
     void createHeightmapFromRaw(int resolution, double addr);
 
-    LogicEntityPtr getSelectedEntity();
+    CLogicEntity *getSelectedEntity();
 };
 

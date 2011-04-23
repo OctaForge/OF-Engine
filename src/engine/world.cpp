@@ -13,12 +13,12 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
             return false;
         case ET_MAPMODEL:
         {
-            LogicEntityPtr entity = LogicSystem::getLogicEntity(e); // INTENSITY
-            model *m = entity.get() ? entity->getModel() : NULL; // INTENSITY
+            CLogicEntity *entity = LogicSystem::getLogicEntity(e); // INTENSITY
+            model *m = entity ? entity->getModel() : NULL; // INTENSITY
             if(m)
             {
                 vec center, radius;
-                m->boundbox(0, center, radius, entity.get()); // INTENSITY: entity
+                m->boundbox(0, center, radius, entity); // INTENSITY: entity
                 rotatebb(center, radius, e.attr1);
                 o = e.o;
                 o.add(center);
@@ -60,7 +60,7 @@ void modifyoctaentity(int flags, int id, cube *c, const ivec &cor, int size, con
             switch(entities::getents()[id]->type)
             {
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(*(entities::getents()[id])).get()->getModel()) //loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
+                    if(LogicSystem::getLogicEntity(*(entities::getents()[id]))->getModel()) //loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
                     {
                         if(va)
                         {
@@ -88,7 +88,7 @@ void modifyoctaentity(int flags, int id, cube *c, const ivec &cor, int size, con
             switch(entities::getents()[id]->type)
             {
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(*(entities::getents()[id])).get()->getModel()) // loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
+                    if(LogicSystem::getLogicEntity(*(entities::getents()[id]))->getModel()) // loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
                     {
                         oe.mapmodels.removeobj(id);
                         if(va)
@@ -450,13 +450,13 @@ void entrotate(int *cw)
 void entselectionbox(const entity &e, vec &eo, vec &es) 
 {
     extentity* _e = (extentity*)&e; // INTENSITY
-    LogicEntityPtr entity = LogicSystem::getLogicEntity(*_e); // INTENSITY
+    CLogicEntity *entity = LogicSystem::getLogicEntity(*_e); // INTENSITY
 
     model *m = NULL;
     const char *mname = entities::entmodel(e);
     if(mname && (m = loadmodel(mname)))
     {   
-        m->collisionbox(0, eo, es, entity.get()); // INTENSITY: entity
+        m->collisionbox(0, eo, es, entity); // INTENSITY: entity
         if(es.x > es.y) es.y = es.x; else es.x = es.y; // square
         es.z = (es.z + eo.z + 1 + GETIV(entselradius))/2; // enclose ent radius box and model box
         eo.x += e.o.x;
@@ -465,7 +465,7 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     } 
     else if(e.type == ET_MAPMODEL && (m = entity->getModel())) // INTENSITY
     {
-        m->collisionbox(0, eo, es, entity.get()); // INTENSITY
+        m->collisionbox(0, eo, es, entity); // INTENSITY
         rotatebb(eo, es, e.attr1);
 #if 0
         if(m->collide)
@@ -786,12 +786,12 @@ bool dropentity(entity &e, int drop = -1)
     if(e.type == ET_MAPMODEL)
     {
         extentity& ext = *((extentity*)&e); // INTENSITY
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(ext); // INTENSITY
-        model *m = entity.get() ? entity->getModel() : NULL; // INTENSITY
+        CLogicEntity *entity = LogicSystem::getLogicEntity(ext); // INTENSITY
+        model *m = entity ? entity->getModel() : NULL; // INTENSITY
         if(m)
         {
             vec center;
-            m->boundbox(0, center, radius, entity.get()); // INTENSITY: entity
+            m->boundbox(0, center, radius, entity); // INTENSITY: entity
             rotatebb(center, radius, e.attr1);
             radius.x += fabs(center.x);
             radius.y += fabs(center.y);
@@ -931,7 +931,7 @@ void entpaste()
         o.mul(m).add(sel.o.tovec());
 
         // INTENSITY: Create entity using new system
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(c);
+        CLogicEntity *entity = LogicSystem::getLogicEntity(c);
         std::string _class = entity->getClass();
 
         using namespace lua;
@@ -1019,7 +1019,7 @@ void intensityentcopy() // INTENSITY
     }
 
     extentity& e = *(entities::getents()[efocus]);
-    LogicEntityPtr entity = LogicSystem::getLogicEntity(e);
+    CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     intensityCopiedClass = entity->getClass();
 
     using namespace lua;

@@ -31,7 +31,7 @@ std::string ClientSystem::blankPassword = "1111111111"; // TODO: We should ensur
                                                         // seem like a nice solution here, but CEGUI has issues with that
 
 int            ClientSystem::playerNumber       = -1;
-LogicEntityPtr ClientSystem::playerLogicEntity;
+CLogicEntity  *ClientSystem::playerLogicEntity  = NULL;
 bool           ClientSystem::loggedIn           = false;
 bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
@@ -116,12 +116,6 @@ void ClientSystem::onDisconnect()
     stopsounds();
 
     LogicSystem::clear();
-}
-
-void ClientSystem::clearPlayerEntity()
-{
-    Logging::log(Logging::DEBUG, "ClientSystem::clearPlayerEntity\r\n");
-    playerLogicEntity.reset();
 }
 
 void ClientSystem::sendSavedMap()
@@ -611,9 +605,9 @@ bool ClientSystem::isAdmin()
 {
     bool isAdmin = false;
     if (!loggedIn) return isAdmin;
-    if (!playerLogicEntity.get()) return isAdmin;
+    if (!playerLogicEntity) return isAdmin;
 
-    engine.getref(playerLogicEntity.get()->luaRef);
+    engine.getref(playerLogicEntity->luaRef);
     isAdmin = engine.t_get<bool>("_can_edit");
     engine.pop(1);
 

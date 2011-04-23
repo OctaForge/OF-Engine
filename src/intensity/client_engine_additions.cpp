@@ -296,7 +296,7 @@ void GuiControl::menuKeyClickTrigger()
 }
 
 // Editing GUI statics
-LogicEntityPtr GuiControl::EditedEntity::currEntity;
+CLogicEntity *GuiControl::EditedEntity::currEntity;
 GuiControl::EditedEntity::StateDataMap GuiControl::EditedEntity::stateData;
 std::vector<std::string> GuiControl::EditedEntity::sortedKeys;
 
@@ -323,7 +323,7 @@ void PlayerControl::handleExtraPlayerMovements(int millis)
 
     fpsent* fpsPlayer = dynamic_cast<fpsent*>(player);
 
-    engine.getref(ClientSystem::playerLogicEntity.get()->luaRef);
+    engine.getref(ClientSystem::playerLogicEntity->luaRef);
     float _facingSpeed = engine.t_get<double>("facing_speed");
 
     if (fpsPlayer->turn_move || fabs(x - 0.5) > 0.45)
@@ -356,7 +356,7 @@ bool PlayerControl::handleClick(int button, bool up)
 
 void PlayerControl::flushActions()
 {
-    engine.getref(ClientSystem::playerLogicEntity.get()->luaRef);
+    engine.getref(ClientSystem::playerLogicEntity->luaRef);
     engine.t_getraw("action_system");
     engine.t_getraw("clear").push_index(-2).call(1, 0).pop(2);
 }
@@ -381,13 +381,13 @@ void addHoverLight()
 
     vec color;
 
-    if (!TargetingControl::targetLogicEntity.get())
+    if (!TargetingControl::targetLogicEntity)
     {
         Logging::log(Logging::WARNING, "targetLogicEntity is NULL\r\n");
         return;
     }
 
-    switch (TargetingControl::targetLogicEntity.get()->getType())
+    switch (TargetingControl::targetLogicEntity->getType())
     {
         case CLogicEntity::LE_DYNAMIC: color = vec(0.25f, 1.0f, 0.25f);  break;
         case CLogicEntity::LE_STATIC:  color = vec(0.25f, 0.25f, 1.0f);  break;
@@ -398,10 +398,10 @@ void addHoverLight()
     float radius;
     bool  needDecal;
 
-    if (!TargetingControl::targetLogicEntity.get()->isNone())
+    if (!TargetingControl::targetLogicEntity->isNone())
     {    
-        location = TargetingControl::targetLogicEntity.get()->getOrigin();
-        radius   = TargetingControl::targetLogicEntity.get()->getRadius();
+        location = TargetingControl::targetLogicEntity->getOrigin();
+        radius   = TargetingControl::targetLogicEntity->getRadius();
         needDecal = true;
     } else {
         location  = TargetingControl::worldPosition;
@@ -478,7 +478,7 @@ void ExtraRendering::renderShadowingMapmodels()
     loopstdv(currShadowingMapmodels)
     {
         extentity *mapmodel = currShadowingMapmodels[i];
-        model *theModel = LogicSystem::getLogicEntity(*mapmodel).get()->getModel();
+        model *theModel = LogicSystem::getLogicEntity(*mapmodel)->getModel();
         if(!theModel) continue;
         const char *mdlname = theModel->name(); //mapmodelname(mapmodel->attr2);
 

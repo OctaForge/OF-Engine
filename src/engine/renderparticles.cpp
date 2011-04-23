@@ -1585,8 +1585,8 @@ void updateparticles()
         loopv(entgroup)
         {
             extentity &e = *ents[entgroup[i]]; // INTENSITY: Made extentity
-            if (!LogicSystem::getLogicEntity(e).get()) continue;
-            std::string _class = '@' + LogicSystem::getLogicEntity(e).get()->getClass(); // INTENSITY
+            if (!LogicSystem::getLogicEntity(e)) continue;
+            std::string _class = '@' + LogicSystem::getLogicEntity(e)->getClass(); // INTENSITY
             particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(GETFV(editpartsize)) * 2), _class.c_str(), PART_TEXT, 1, 0xFF4B19, GETFV(editpartsize)); // INTENSITY: Use class
             switch (e.type)
             {
@@ -1621,8 +1621,8 @@ void updateparticles()
         {
             extentity &e = *ents[i]; // INTENSITY: Made extentity
             if(e.type==ET_EMPTY || editid==e.uniqueId) continue;
-            if (!LogicSystem::getLogicEntity(e).get()) continue;
-            std::string _class = '@' + LogicSystem::getLogicEntity(e).get()->getClass(); // INTENSITY
+            if (!LogicSystem::getLogicEntity(e)) continue;
+            std::string _class = '@' + LogicSystem::getLogicEntity(e)->getClass(); // INTENSITY
             particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(GETFV(editpartsize)) * 2), _class.c_str(), PART_TEXT, 1, 0x1EC850, GETFV(editpartsize)); // INTENSITY: Use class
             switch (e.type)
             {

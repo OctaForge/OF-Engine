@@ -37,8 +37,8 @@ namespace game
                     std::string lineText(engine.t_get<const char*>(2));
                     if (lineUniqueId != -1)
                     {
-                        LogicEntityPtr entity = LogicSystem::getLogicEntity(lineUniqueId);
-                        if (entity.get())
+                        CLogicEntity *entity = LogicSystem::getLogicEntity(lineUniqueId);
+                        if (entity)
                         {
                             fpsent *p = dynamic_cast<fpsent*>(entity->dynamicEntity);
                             assert(p);

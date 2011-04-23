@@ -779,9 +779,9 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
         if(e.flags&extentity::F_NOCOLLIDE) continue;
         model *m = loadmodel(NULL, e.attr2);
 #else // INTENSITY: Use entity info to get the model
-        LogicEntityPtr entity = LogicSystem::getLogicEntity(e);
+        CLogicEntity *entity = LogicSystem::getLogicEntity(e);
 
-        model *m = entity.get()->getModel(); //loadmodel(NULL, e.attr2);
+        model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
         if(!m) continue;
         if ( (m->collisionsonlyfortriggering && !WorldSystem::triggeringCollisions) ||
              (!m->collisionsonlyfortriggering && WorldSystem::triggeringCollisions) )
@@ -798,7 +798,7 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
 
         if(!m || !m->collide) continue;
         vec center, radius;
-        m->collisionbox(0, center, radius, entity.get()); // INTENSITY: entity
+        m->collisionbox(0, center, radius, entity); // INTENSITY: entity
 
         float yaw = float((e.attr1+7)-(e.attr1+7)%15);
         switch(d->collidetype)
@@ -1896,7 +1896,7 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
             engine.pop(1);
             return true;
         }
-        engine.getref(LogicSystem::getLogicEntity((dynent*)pl).get()->luaRef);
+        engine.getref(LogicSystem::getLogicEntity((dynent*)pl)->luaRef);
         engine.call(1, 0);
     }
 #endif
@@ -1936,7 +1936,7 @@ void interppos(physent *pl)
 void moveplayer(physent *pl, int moveres, bool local)
 {
     // INTENSITY: Don't move an entity not fully set up yet
-    if (!pl || !LogicSystem::getLogicEntity(pl).get()) return;
+    if (!pl || !LogicSystem::getLogicEntity(pl)) return;
 
     // INTENSITY: Calculate how many physics frames, on a per-entity basis
     TargetingControl::calcPhysicsFrames(pl);

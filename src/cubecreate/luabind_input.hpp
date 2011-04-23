@@ -55,7 +55,7 @@ namespace lua_binds
         \
         engine.getg("cc").t_getraw("appman").t_getraw("inst").t_getraw("do_click"); \
         e.push_index(-2).push(num).push(down).push(pos); \
-        if (TargetingControl::targetLogicEntity.get() && !TargetingControl::targetLogicEntity->isNone()) \
+        if (TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone()) \
             e.getref(TargetingControl::targetLogicEntity->luaRef); \
         else e.push(); \
         float x; \
@@ -170,16 +170,14 @@ namespace lua_binds
 
     LUA_BIND_CLIENT(set_mouse_targeting_ent, {
         TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(e.get<int>(1));
-        e.push((int)(TargetingControl::targetLogicEntity.get() != NULL));
+        e.push((int)(TargetingControl::targetLogicEntity != NULL));
     })
 
     LUA_BIND_CLIENT(set_mouse_target_client, {
         dynent *client = FPSClientInterface::getPlayerByNumber(e.get<int>(1));
-        if (client)
-            TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(client);
-        else
-            TargetingControl::targetLogicEntity.reset();
+        if (client) TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(client);
+        else if (TargetingControl::targetLogicEntity) delete TargetingControl::targetLogicEntity;
 
-        e.push((int)(TargetingControl::targetLogicEntity.get() != NULL));
+        e.push((int)(TargetingControl::targetLogicEntity != NULL));
     })
 }

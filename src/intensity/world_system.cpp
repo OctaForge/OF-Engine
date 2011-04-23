@@ -31,27 +31,27 @@ void WorldSystem::placeInWorld(int entityUniqueId, int locationEntityUniqueId)
     Logging::log(Logging::DEBUG, "Placing entity in world\r\n");
     INDENT_LOG(Logging::DEBUG);
 
-    LogicEntityPtr entity = LogicSystem::getLogicEntity(entityUniqueId);
+    CLogicEntity *entity = LogicSystem::getLogicEntity(entityUniqueId);
 
-    assert(entity.get() != NULL);
-    assert(entity.get()->getType() == CLogicEntity::LE_DYNAMIC);
+    assert(entity != NULL);
+    assert(entity->getType() == CLogicEntity::LE_DYNAMIC);
 
-    LogicEntityPtr locationEntity = LogicSystem::getLogicEntity(locationEntityUniqueId);
+    CLogicEntity *locationEntity = LogicSystem::getLogicEntity(locationEntityUniqueId);
 
-    assert(locationEntity.get()->getType() == CLogicEntity::LE_STATIC); // Might be anything static, but probably a worldMarker
+    assert(locationEntity->getType() == CLogicEntity::LE_STATIC); // Might be anything static, but probably a worldMarker
 
-    entity.get()->dynamicEntity->o   = locationEntity.get()->staticEntity->o;
-    entity.get()->dynamicEntity->yaw = locationEntity.get()->staticEntity->attr1;
+    entity->dynamicEntity->o   = locationEntity->staticEntity->o;
+    entity->dynamicEntity->yaw = locationEntity->staticEntity->attr1;
 
-    if (!entinmap((dynent*)entity.get()->dynamicEntity, true)) // XXX This conversion to dynent might be bad.
+    if (!entinmap((dynent*)entity->dynamicEntity, true)) // XXX This conversion to dynent might be bad.
         Logging::log(Logging::ERROR, "Cannot place entity %d in world at %d\r\n",
-                                     entity.get()->getUniqueId(),
+                                     entity->getUniqueId(),
                                      locationEntityUniqueId);
 }
 
-void WorldSystem::triggerCollide(LogicEntityPtr mapmodel, physent* d, bool ellipse)
+void WorldSystem::triggerCollide(CLogicEntity *mapmodel, physent *d, bool ellipse)
 {
-    Logging::log(Logging::INFO, "triggerCollide: %lu, %lu\r\n", (unsigned long)mapmodel.get(), (unsigned long)d);
+    Logging::log(Logging::INFO, "triggerCollide: %lu, %lu\r\n", (unsigned long)mapmodel, (unsigned long)d);
 
     if (d->type != ENT_PLAYER)
     {
@@ -59,26 +59,26 @@ void WorldSystem::triggerCollide(LogicEntityPtr mapmodel, physent* d, bool ellip
         return; // No need to trigger collisions for cameras, lights, etc. TODO: ENT_AI?
     }
 
-    if (!mapmodel.get() || mapmodel.get()->isNone())
+    if (!mapmodel || mapmodel->isNone())
     {
         Logging::log(Logging::ERROR, "Invalid mapmodel to trigger collide for\r\n");
         return; // Invalid or uninialized mapmodel
     }
 
-    LogicEntityPtr colliderEntity = LogicSystem::getLogicEntity(d);
-    if (!colliderEntity.get() || colliderEntity.get()->isNone())
+    CLogicEntity *colliderEntity = LogicSystem::getLogicEntity(d);
+    if (!colliderEntity || colliderEntity->isNone())
     {
         Logging::log(Logging::INFO, "Invalid colliding entity to collide with\r\n");
         return; // Most likely a raycasting collision, or camera, etc. - not things we trigger events for
     }
 
-    engine.getref(mapmodel.get()->luaRef);
+    engine.getref(mapmodel->luaRef);
     #ifdef SERVER
     engine.t_getraw("on_collision");
     #else
     engine.t_getraw("client_on_collision");
     #endif
-    engine.push_index(-2).getref(colliderEntity.get()->luaRef).call(2, 0).pop(1);
+    engine.push_index(-2).getref(colliderEntity->luaRef).call(2, 0).pop(1);
 }
 
 int numExpectedEntities = 0;
@@ -155,7 +155,7 @@ void removeentity(extentity *entity)
 bool WorldSystem::triggeringCollisions = false;
 
 //! Check for triggering collisions, i.e., to run trigger events on AreaTriggers
-void WorldSystem::checkTriggeringCollisions(LogicEntityPtr entity)
+void WorldSystem::checkTriggeringCollisions(CLogicEntity *entity)
 {
     assert(entity->isDynamic());
 
