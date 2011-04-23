@@ -1,7 +1,7 @@
 -- these default settings get executed whenever "config.cfg" is not available
 -- do not modify anything below, instead change settings in game, or add to autoexec.cfg
 
-echo("CubeCreate defaults")
+echo("OctaForge defaults")
 
 invmouse = 0         -- 1 for flightsim mode
 sensitivity = 3      -- similar number to quake
@@ -67,6 +67,12 @@ cc.console.binds.addvar("PAUSE", "paused")
 
 cc.console.binds.add("F11", [[cc.console.toggle()]])
 cc.console.binds.add("F12", [[cc.engine.screenshot()]])
+
+-- mouse
+
+cc.console.binds.add("MOUSE1", [[cc.console.mouse1click()]])
+cc.console.binds.add("MOUSE2", [[cc.console.mouse2click()]])
+cc.console.binds.add("MOUSE3", [[cc.console.mouse3click()]])
 
 -- universal scrollwheel + modifier commands:
 

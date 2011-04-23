@@ -1,7 +1,7 @@
-CubeCreate is licensed under the MIT/X11 license:
+OctaForge is licensed under the MIT/X11 license:
 
 ==============================================================================
-Copyright (c) 2010 CubeCreate developers
+Copyright (c) 2011 OctaForge developers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ==============================================================================
 
-CubeCreate contributors are:
+OctaForge contributors are:
 
   * quaker66 - quaker66@gmail.com
-  * Q009 - q009q009@gmail.com
-  * William 'Bios Element' Chambers - bioselement@gmail.com
   * other contributors fill themselves here
 
-CubeCreate is based on Syntensity project, Syntensity contributors are:
+OctaForge is based on CubeCreate/Syntensity project, Syntensity contributors were:
 
   * Alon 'kripken' Zakai - kripken@syntensity.com
+  * quaker66 - quaker66@gmail.com
+
+CubeCreate contributors are/were:
+
+  * William 'BiosElement' Chambers - bioselement@gmail.com
   * quaker66 - quaker66@gmail.com
 
 In addition, code has been ported from SauerEnhanced. Thanks to Q009 (SauerEnhanced author).

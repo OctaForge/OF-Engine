@@ -1,15 +1,15 @@
 #
-# CMake for CubeCreate
+# CMake for OctaForge
 # --------------------------------------
 # main CMakeLists.txt for checking stuff
 #
 
-# create project for CubeCreate
+# create project for OctaForge
 cmake_minimum_required(VERSION 2.6)
-project(CubeCreate)
+project(OctaForge)
 
 # suffix for libraries and binaries in format OS-ARCH (i.e. Linux-x86_64)
-set(CC_BUILD_SUFFIX "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+set(OF_BUILD_SUFFIX "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
 # always override install prefix
 set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
@@ -48,12 +48,12 @@ else (UNIX) # this is windows. Well, not really, but mostly yes (TODO: check?)
         # default c++ flags.
         set(CMAKE_CXX_FLAGS "-g -O2 -Wall")
         # additional dependencies for windows.
-        set(CC_ADDITIONAL_DEPS ${CMAKE_SOURCE_DIR}/src/windows)
+        set(OF_ADDITIONAL_DEPS ${CMAKE_SOURCE_DIR}/src/windows)
         # we have to include headers and link libraries from the directory - only zlib is there atm
-        include_directories(${CC_ADDITIONAL_DEPS}/include)
-        link_directories(${CC_ADDITIONAL_DEPS}/lib)
+        include_directories(${OF_ADDITIONAL_DEPS}/include)
+        link_directories(${OF_ADDITIONAL_DEPS}/lib)
         # append additional deps to cmake prefix path
-        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CC_ADDITIONAL_DEPS})
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS})
 
     else (MINGW) # in that case, vc++ is most likely used
 
@@ -62,12 +62,12 @@ else (UNIX) # this is windows. Well, not really, but mostly yes (TODO: check?)
         # default C++ flags
         set(CMAKE_CXX_FLAGS "/DWIN32 /O2 /EHsc")
         # additional dependencies for windows.
-        set(CC_ADDITIONAL_DEPS ${CMAKE_SOURCE_DIR}/src/windows)
+        set(OF_ADDITIONAL_DEPS ${CMAKE_SOURCE_DIR}/src/windows)
         # we have to include headers and link libraries from the directory - only zlib is there atm
-        include_directories(${CC_ADDITIONAL_DEPS}/include)
-        link_directories(${CC_ADDITIONAL_DEPS}/lib)
+        include_directories(${OF_ADDITIONAL_DEPS}/include)
+        link_directories(${OF_ADDITIONAL_DEPS}/lib)
         # append additional deps to cmake prefix path
-        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CC_ADDITIONAL_DEPS})
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS})
         # windows SDK stuff
         file(TO_CMAKE_PATH "C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0A" PLATFORM_SDK_A)
         if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
@@ -94,12 +94,12 @@ if (MINGW OR WIN32)
     add_definitions(-DBOOST_ALL_NO_LIB)
 
     if (MINGW)
-        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CC_ADDITIONAL_DEPS}/SDL_mingw)
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS}/SDL_mingw)
     else (MINGW)
-        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CC_ADDITIONAL_DEPS}/SDL_vcpp)
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS}/SDL_vcpp)
     endif (MINGW)
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CC_ADDITIONAL_DEPS}/SDL_mixer)
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CC_ADDITIONAL_DEPS}/SDL_image)
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS}/SDL_mixer)
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS}/SDL_image)
 endif (MINGW OR WIN32)
 
 # find other packages

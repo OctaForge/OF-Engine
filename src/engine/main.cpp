@@ -1197,7 +1197,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     setupscreen(usedcolorbits, useddepthbits, usedfsaa);
 
     initlog("video: misc");
-    SDL_WM_SetCaption("CubeCreate", NULL); // INTENSITY
+    SDL_WM_SetCaption("OctaForge", NULL); // INTENSITY
     keyrepeat(false);
     SDL_ShowCursor(0);
 

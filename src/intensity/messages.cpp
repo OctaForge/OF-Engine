@@ -1963,24 +1963,46 @@ namespace MessageSystem
 
         if (!ServerSystem::isRunningMap()) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("cc").t_getraw("appman").t_getraw("inst")
-            .t_getraw("click")
-            .push_index(-2)
-            .push(button)
-            .push(down)
-            .push(vec(x, y, z));
-        int numargs = 4;
-        if (uniqueId != -1)
+        engine.getg("click");
+        if (!engine.is<void*>(-1))
         {
-            CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
-            if (entity)
+            engine.pop(1);
+            if (uniqueId != -1)
             {
-                engine.getref(entity->luaRef);
-                numargs++;
+                CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
+                if (entity)
+                {
+                    engine.getref(entity->luaRef).t_getraw("click");
+                    if (!engine.is<void*>(-1))
+                    {
+                        engine.pop(1);
+                        return;
+                    }
+                    else engine.push_index(-2).push(button).push(down).push(vec(x, y, z)).call(4, 0);
+                }
+                else return; /* No need to call a click on entity that vanished meanwhile or does not yet exist! */
             }
-            else return; // No need to do a click that was on an entity that vanished meanwhile/does not yet exist!
         }
-        engine.call(numargs, 0).pop(3);
+        else
+        {
+            engine.push(button).push(down).push(vec(x, y, z));
+            int numargs = 3;
+            if (uniqueId != -1)
+            {
+                CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
+                if (entity)
+                {
+                    engine.getref(entity->luaRef);
+                    numargs++;
+                }
+                else
+                {
+                    engine.pop(4);
+                    return;
+                }
+            }
+            engine.call(numargs, 0);
+        }
     }
 #endif
 

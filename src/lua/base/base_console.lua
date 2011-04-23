@@ -296,3 +296,18 @@ set_mouse_target_client = CAPI.set_mouse_target_client
 -- @class function
 -- @name save_mouse_pos
 save_mouse_pos = CAPI.save_mouse_pos
+
+--- Mouse button 1 click (left mouse button).
+-- @class function
+-- @name mouse1click
+mouse1click = CAPI.mouse1click
+
+--- Mouse button 2 click (right mouse button).
+-- @class function
+-- @name mouse1click
+mouse2click = CAPI.mouse2click
+
+--- Mouse button 3 click (middle mouse button).
+-- @class function
+-- @name mouse1click
+mouse3click = CAPI.mouse3click

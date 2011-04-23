@@ -11,15 +11,15 @@ arch=$(uname -m)
 archp=$(uname -p)
 
 PREFIX="./bin"
-if [ -f ${PREFIX}/CC_Client_${os}-${arch} ]; then
-    ${PREFIX}/CC_Client_${os}-${arch} $@ -r
+if [ -f ${PREFIX}/OF_Client_${os}-${arch} ]; then
+    ${PREFIX}/OF_Client_${os}-${arch} $@ -r
 else
-    if [ -f ${PREFIX}/CC_Client_${os}-${archp} ]; then
-        ${PREFIX}/CC_Client_${os}-${archp} $@ -r
+    if [ -f ${PREFIX}/OF_Client_${os}-${archp} ]; then
+        ${PREFIX}/OF_Client_${os}-${archp} $@ -r
     else
         echo "Binary for your OS (${os}) and/or architecture (${arch}) was not found."
         echo "You must compile one. If you'll compile, it would be good if you sent the binary to developers,"
-        echo "to help support of CubeCreate on various platforms."
+        echo "to help support of OctaForge on various platforms."
         read end
         exit 1
     fi

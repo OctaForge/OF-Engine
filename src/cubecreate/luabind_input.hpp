@@ -41,7 +41,6 @@ namespace lua_binds
     LUA_BIND_STD(ismouseup, e.push, getmouseup())
 
     #define QUOT(arg) #arg
-
     #define MOUSECLICK(num) \
     LUA_BIND_CLIENT(mouse##num##click, { \
         bool down = (addreleaseaction("CAPI."QUOT(mouse##num##click)"()") != 0); \
@@ -53,15 +52,46 @@ namespace lua_binds
         TargetingControl::determineMouseTarget(true); \
         vec pos = TargetingControl::targetPosition; \
         \
-        engine.getg("cc").t_getraw("appman").t_getraw("inst").t_getraw("do_click"); \
-        e.push_index(-2).push(num).push(down).push(pos); \
+        int uid = -1; \
         if (TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone()) \
-            e.getref(TargetingControl::targetLogicEntity->luaRef); \
-        else e.push(); \
-        float x; \
-        float y; \
-        g3d_cursorpos(x, y); \
-        e.push(x).push(y).call(7, 0).pop(3); \
+            uid = TargetingControl::targetLogicEntity->getUniqueId(); \
+        e.getg("client_click"); \
+        if (!e.is<void*>(-1)) \
+        { \
+            e.pop(1); \
+            if (TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone()) \
+            { \
+                e.getref(TargetingControl::targetLogicEntity->luaRef).t_getraw("client_click"); \
+                if (!engine.is<void*>(-1)) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
+                else \
+                { \
+                    e.push_index(-2).push(num).push(down).push(pos); \
+                    float x; \
+                    float y; \
+                    g3d_cursorpos(x, y); \
+                    e.push(x).push(y).call(6, 1); \
+                    bool ret = e.get<bool>(-1); \
+                    e.pop(1); \
+                    if (!ret) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
+                } \
+                return; \
+            } \
+            send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
+        } \
+        else \
+        { \
+            e.push(num).push(down).push(pos); \
+            if (TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone()) \
+                e.getref(TargetingControl::targetLogicEntity->luaRef); \
+            else e.push(); \
+            float x; \
+            float y; \
+            g3d_cursorpos(x, y); \
+            e.push(x).push(y).call(6, 1); \
+            bool ret = e.get<bool>(-1); \
+            e.pop(1); \
+            if (!ret) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
+        } \
     })
     MOUSECLICK(1)
     MOUSECLICK(2)
@@ -91,7 +121,7 @@ namespace lua_binds
             PlayerControl::flushActions(); /* stop current actions */ \
             s = addreleaseaction("CAPI."#name"()")!=0; \
             e.getg(#v); \
-            if (e.is<void>(-1)) e.getg("cc") \
+            if (!e.is<void*>(-1)) e.getg("cc") \
                  .t_getraw("logent") \
                  .t_getraw("store") \
                  .t_getraw("get_plyent") \
@@ -120,7 +150,7 @@ namespace lua_binds
             PlayerControl::flushActions(); /* stop current actions */
             bool down = (addreleaseaction("CAPI.jump()") ? true : false);
             e.getg("do_jump");
-            if (e.is<void>(-1))
+            if (!e.is<void*>(-1))
             {
                 if (down)
                     e.getg("cc")

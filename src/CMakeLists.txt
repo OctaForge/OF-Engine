@@ -1,5 +1,5 @@
 #
-# CMake for CubeCreate
+# CMake for OctaForge
 # ----------------------------------
 # just includes, links and proceeds.
 #
@@ -9,8 +9,7 @@ include_directories(shared engine fpsgame intensity cubecreate enet/include incl
 link_directories(${CMAKE_SOURCE_DIR}/src/enet)
 if (MINGW OR WIN32)
 	include_directories(windows/boost)
-	link_directories(${CMAKE_SOURCE_DIR}/src/windows/boost)
-	set(Boost_PYTHON_LIBRARY boost_python)
+	link_directories(${CMAKE_SOURCE_DIR}/src/windows/boost_python)
 endif (MINGW OR WIN32)
 
 # further proceed.

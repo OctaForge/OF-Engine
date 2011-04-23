@@ -73,7 +73,7 @@ cc.console.binds.add("ESCAPE", [[
 
 function setup_main_menu()
     cc.gui.new("main", function()
-        cc.gui.text("Welcome to CubeCreate development release. (1)")
+        cc.gui.text("Welcome to OctaForge development release. (1)")
         cc.gui.bar()
         cc.gui.show_plugins()
         cc.gui.text("Credits: Cube 2, Syntensity, Love, Lua, SDL, Python, zlib.")

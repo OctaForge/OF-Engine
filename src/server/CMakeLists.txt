@@ -1,5 +1,5 @@
 #
-# CMake for CubeCreate
+# CMake for OctaForge
 # -------------------------
 # this makes server binary.
 #
@@ -72,7 +72,7 @@ set(SERVER_SOURCES
 
 # link libs to executable
 set(SERVER_LIBRARIES
-    enet_${CC_BUILD_SUFFIX}
+    enet_${OF_BUILD_SUFFIX}
     ${LUA_LIBRARIES}
     ${PYTHON_LIBRARIES}
     ${SDL_LIBRARY}
@@ -81,7 +81,7 @@ set(SERVER_LIBRARIES
     ${SDLSOUND_LIBRARY}
     ${ZLIB_LIBRARIES}
     ${UTIL}
-    json_${CC_BUILD_SUFFIX}
+    json_${OF_BUILD_SUFFIX}
     ${Boost_PYTHON_LIBRARY}
 )
 
@@ -98,8 +98,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "BSD") # there is no BSD variable declared
 endif (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
 
 # finally build and link executable
-add_executable(CC_Server_${CC_BUILD_SUFFIX} ${SERVER_SOURCES})
-target_link_libraries(CC_Server_${CC_BUILD_SUFFIX} ${SERVER_LIBRARIES})
-install(TARGETS CC_Server_${CC_BUILD_SUFFIX}
+add_executable(OF_Server_${OF_BUILD_SUFFIX} ${SERVER_SOURCES})
+target_link_libraries(OF_Server_${OF_BUILD_SUFFIX} ${SERVER_LIBRARIES})
+install(TARGETS OF_Server_${OF_BUILD_SUFFIX}
         RUNTIME DESTINATION bin
 )

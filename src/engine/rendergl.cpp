@@ -811,7 +811,7 @@ void mousemove(int dx, int dy)
     if (engine.hashandle())
     {
         engine.getg("do_mousemove");
-        if (engine.is<void>(-1)) engine.pop(1)
+        if (!engine.is<void*>(-1)) engine.pop(1)
                   .t_new()
                   .t_set("yaw", dx * cursens)
                   .t_set("pitch", -dy * cursens * (GETIV(invmouse) ? -1 : 1));

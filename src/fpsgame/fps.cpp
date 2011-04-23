@@ -371,7 +371,7 @@ namespace game
                       .t_getraw("logent")
                       .t_getraw("store")
                       .t_getraw("manage_triggering_collisions");
-                if (!engine.is<void>(-1)) engine.call(0, 0);
+                if (engine.is<void*>(-1)) engine.call(0, 0);
                 else
                 {
                     engine.pop(1);

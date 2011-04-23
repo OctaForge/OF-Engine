@@ -1891,7 +1891,7 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
 #else
         engine.getg("on_ent_offmap");
 #endif
-        if (engine.is<void>(-1))
+        if (!engine.is<void*>(-1))
         {
             engine.pop(1);
             return true;

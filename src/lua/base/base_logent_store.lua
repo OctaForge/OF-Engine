@@ -37,7 +37,6 @@ local lecl = require("cc.logent.classes")
 local conv = require("cc.typeconv")
 local msgsys = require("cc.msgsys")
 local util = require("cc.utils")
-local appman = require("cc.appman")
 
 --- This module takes care of logic entity storage.
 -- @class module

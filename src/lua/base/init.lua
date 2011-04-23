@@ -95,9 +95,6 @@ require("base.base_actions")
 cc.logging.log(cc.logging.DEBUG, ":: Message system.")
 require("base.base_msgsys")
 
-cc.logging.log(cc.logging.DEBUG, ":: Application manager.")
-require("base.base_appman")
-
 cc.logging.log(cc.logging.DEBUG, ":: Logic entity storage.")
 require("base.base_logent_store")
 
