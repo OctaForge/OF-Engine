@@ -104,8 +104,7 @@ void SauerPhysicsEngine::rayCastClosest(vec &from, vec &to, float& hitDist, CLog
     if (dynamicEntity == NULL && staticEntity == NULL)
     {
         hitDist = -1;
-        if (hitEntity) delete hitEntity;
-        hitEntity = new CLogicEntity();
+        hitEntity = NULL;
     } else if (dynamicEntity != NULL && staticEntity == NULL)
     {
         hitDist = dynamicDist;

@@ -45,10 +45,6 @@ void TargetingControl::setupOrientation()
 }
 #endif
 
-
-// When no special entity, this will function as an 'empty' entity, just so calls to ->isNone() work for our target logic entity
-CLogicEntity *placeholderLogicEntity = NULL;
-
 #ifdef CLIENT
 vec           TargetingControl::worldPosition;
 vec           TargetingControl::targetPosition;
@@ -120,8 +116,7 @@ void TargetingControl::setMouseTargeting(bool on)
 
 void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 {
-    placeholderLogicEntity = new CLogicEntity();
-    targetLogicEntity = placeholderLogicEntity;
+    targetLogicEntity = NULL;
 
     TargetingControl::worldPosition = worldpos;
 
@@ -130,7 +125,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 
     if (!useMouseTargeting && !editmode && !forceEntityCheck)
     {
-        TargetingControl::targetLogicEntity = placeholderLogicEntity;
+        TargetingControl::targetLogicEntity = NULL;
         TargetingControl::targetPosition = TargetingControl::worldPosition;
         SETV(has_mouse_target, 0);
     } else {
@@ -180,13 +175,6 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
             lastEntityCheck = lastmillis;
         }
     }
-
-//    if (!placeholderLogicEntity->isNone())
-//        TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(placeholderLogicEntity->getUniqueId());
-//    else
-//        TargetingControl::targetLogicEntity = placeholderLogicEntity;
-
-    if (placeholderLogicEntity) delete placeholderLogicEntity;
 }
 
 #endif
