@@ -155,7 +155,7 @@ namespace var
     {
         vcb.i = NULL;
         minv.i = maxv.i = -1;
-        oldv.i = curv.i = val;
+        curv.i = val; oldv.i = 0;
         if (reglua && lua::engine.hashandle()) regliv();
     }
 
@@ -174,7 +174,7 @@ namespace var
     {
         vcb.f = NULL;
         minv.f = maxv.f = -1.0f;
-        oldv.f = curv.f = val;
+        curv.f = val; oldv.f = 0.0f;
         if (reglua && lua::engine.hashandle()) reglfv();
     }
 
@@ -193,7 +193,7 @@ namespace var
     {
         vcb.s = NULL;
         curv.s = (val ? newstring(val) : NULL);
-        oldv.s = (val ? newstring(val) : NULL);
+        oldv.s = NULL;
         if (reglua && lua::engine.hashandle()) reglsv();
     }
 
@@ -399,10 +399,7 @@ namespace var
     void clear()
     {
         if (!vars) return;
-        enumerate(*vars, cvar*, v, {
-            if (v->isalias()) delete v;
-            else v->r();
-        });
+        enumerate(*vars, cvar*, v, v->r(););
     }
 
     void flush()

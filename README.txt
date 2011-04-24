@@ -13,6 +13,9 @@ Under Windows, you need Python 2.6.X installed under
 SYSTEMROOT\Python26. If you have different version
 of Python or different install path, modify
 intensity_client.bat and intensity_server.bat accordingly
-(modify PYVER variable so it points to the right path)
+(modify PYVER variable so it points to the right path).
+
+You'll also need to install Lua under windows. Get installer
+from here: http://code.google.com/p/luaforwindows/
 
 http://octaforge.org/
