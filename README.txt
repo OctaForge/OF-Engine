@@ -1,7 +1,7 @@
 OctaForge
 ================
 
-This is OctaForge developer alpha.
+This is OctaForge developer alpha (0.1.0, 24 April 2011)
 
 For installation, read INSTALL.
 To run it, run intensity_client.sh on *nix
