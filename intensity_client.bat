@@ -29,15 +29,7 @@ if %PROCESSOR_ARCHITECTURE%==AMD64 (
 
 :run
 
-if %PROCESSOR_ARCHITECTURE%==AMD64 (
-    if %CCARCH%==x86 (
-	    FOR /F "tokens=2* delims=	 " %%A IN ('REG QUERY "HKLM\Software\Wow6432Node\Python\PythonCore\2.6\InstallPath"') DO SET PYVER=%%B
-	) else (
-	    FOR /F "tokens=2* delims=	 " %%A IN ('REG QUERY "HKLM\Software\Python\PythonCore\2.6\InstallPath"') DO SET PYVER=%%B
-	)
-) else (
-    FOR /F "tokens=2* delims=	 " %%A IN ('REG QUERY "HKLM\Software\Python\PythonCore\2.6\InstallPath"') DO SET PYVER=%%B
-)
+SET PYVER=%SYSTEMDRIVE%\Python26
 
 SET OLD_PATH=%PATH%
 SET PATH=%PYVER%;src\windows\sdl_vcpp\lib;src\windows\sdl_image\lib;src\windows\sdl_mixer\lib;%PATH%
