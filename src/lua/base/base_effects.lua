@@ -6,7 +6,7 @@
 -- @author bartbes (bart.bes@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -28,14 +28,14 @@
 --
 
 local CAPI = require("CAPI")
-local color = require("cc.color")
-local glob = require("cc.global")
-local msgsys = require("cc.msgsys")
+local color = require("of.color")
+local glob = require("of.global")
+local msgsys = require("of.msgsys")
 
---- Particle / dynlight / ... interface for cC's Lua.
+--- Particle / dynlight / ... interface for OF's Lua.
 -- @class module
--- @name cc.effect
-module("cc.effect")
+-- @name of.effect
+module("of.effect")
 
 -- in sync with iengine.h
 

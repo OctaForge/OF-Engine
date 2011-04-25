@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -30,13 +30,13 @@ local base = _G
 local string = require("string")
 local table = require("table")
 local CAPI = require("CAPI")
-local gui = require("cc.gui")
+local gui = require("of.gui")
 
---- World module (map, entities, vslots etc.) for cC's Lua interface.
+--- World module (map, entities, vslots etc.) for OF's Lua interface.
 -- Scheduled for rewrite / deprecation, so won't be documented for now.
 -- @class module
--- @name cc.world
-module("cc.world")
+-- @name of.world
+module("of.world")
 
 --- Check for collision
 -- @class function
@@ -602,7 +602,7 @@ end
 function clearents(t)
     if base.editing ~= 0 then
         entcancel()
-        entselect([[return %(1)q ~= cc.world.enttype()]] % { t })
+        entselect([[return %(1)q ~= of.world.enttype()]] % { t })
         base.echo("Deleted %(1)s %(2)s entities." % { base.tostring(enthavesel()), t })
         delent()
     end
@@ -640,13 +640,13 @@ end
 -- @p arg2 value
 function entsetattr(arg1, arg2)
     entloop([[
-        local a0 = cc.world.entgetattr(0)
-        local a1 = cc.world.entgetattr(1)
-        local a2 = cc.world.entgetattr(2)
-        local a3 = cc.world.entgetattr(3)
-        local a4 = cc.world.entgetattr(4)
+        local a0 = of.world.entgetattr(0)
+        local a1 = of.world.entgetattr(1)
+        local a2 = of.world.entgetattr(2)
+        local a3 = of.world.entgetattr(3)
+        local a4 = of.world.entgetattr(4)
         a%(1)s = a%(1)s + %(2)s
-        cc.world.entset(cc.world.enttype(), a0, a1, a2, a3, a4)
+        of.world.entset(of.world.enttype(), a0, a1, a2, a3, a4)
     ]] % { arg1, arg2 })
 end
 
@@ -695,10 +695,10 @@ function editpaste()
         pastehilite()
         reorient() -- temp - teal fix will be in octaedit
         CAPI.onrelease([[
-            cc.world.delcube()
-            cc.world.paste()
-            cc.world.entpaste()
-            if %(1)s then cc.world.cancelsel() end
+            of.world.delcube()
+            of.world.paste()
+            of.world.entpaste()
+            if %(1)s then of.world.cancelsel() end
         ]] % { base.tostring(cancelpaste) })
     else
         entreplace()
@@ -728,32 +728,32 @@ end
 function entfind(...)
     local arg = { ... }
     if #arg == 1 then
-        entselect([[return cc.world.equaltype(%(1)s)]] % { arg[1] })
+        entselect([[return of.world.equaltype(%(1)s)]] % { arg[1] })
     elseif #arg == 2 then
         entselect([[
-            return (cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
+            return (of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
             )]] % { arg[1], arg[2] })
     elseif #arg == 3 then
         entselect([[
-            return (cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
-                and cc.world.equalattr(0, %(3)s)
+            return (of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
+                and of.world.equalattr(0, %(3)s)
             )]] % { arg[1], arg[2], arg[3] })
     elseif #arg == 4 then
         entselect([[
-            return (cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
-                and cc.world.equalattr(0, %(3)s)
-                and cc.world.equalattr(0, %(4)s)
+            return (of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
+                and of.world.equalattr(0, %(3)s)
+                and of.world.equalattr(0, %(4)s)
             )]] % { arg[1], arg[2], arg[3], arg[4] })
     elseif #arg == 5 then
         entselect([[
-            return (cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
-                and cc.world.equalattr(0, %(3)s)
-                and cc.world.equalattr(0, %(4)s)
-                and cc.world.equalattr(0, %(5)s)
+            return (of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
+                and of.world.equalattr(0, %(3)s)
+                and of.world.equalattr(0, %(4)s)
+                and of.world.equalattr(0, %(5)s)
             )]] % { arg[1], arg[2], arg[3], arg[4], arg[5] })
     end
 end
@@ -761,32 +761,32 @@ end
 function entfindinsel(...)
     local arg = { ... }
     if #arg == 1 then
-        entselect([[return cc.world.insel() and cc.world.equaltype(%(1)s)]] % { arg[1] })
+        entselect([[return of.world.insel() and of.world.equaltype(%(1)s)]] % { arg[1] })
     elseif #arg == 2 then
         entselect([[
-            return (cc.world.insel() and cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
+            return (of.world.insel() and of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
             )]] % { arg[1], arg[2] })
     elseif #arg == 3 then
         entselect([[
-            return (cc.world.insel() and cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
-                and cc.world.equalattr(0, %(3)s)
+            return (of.world.insel() and of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
+                and of.world.equalattr(0, %(3)s)
             )]] % { arg[1], arg[2], arg[3] })
     elseif #arg == 4 then
         entselect([[
-            return (cc.world.insel() and cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
-                and cc.world.equalattr(0, %(3)s)
-                and cc.world.equalattr(0, %(4)s)
+            return (of.world.insel() and of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
+                and of.world.equalattr(0, %(3)s)
+                and of.world.equalattr(0, %(4)s)
             )]] % { arg[1], arg[2], arg[3], arg[4] })
     elseif #arg == 5 then
         entselect([[
-            return (cc.world.insel() and cc.world.equaltype(%(1)s)
-                and cc.world.equalattr(0, %(2)s)
-                and cc.world.equalattr(0, %(3)s)
-                and cc.world.equalattr(0, %(4)s)
-                and cc.world.equalattr(0, %(5)s)
+            return (of.world.insel() and of.world.equaltype(%(1)s)
+                and of.world.equalattr(0, %(2)s)
+                and of.world.equalattr(0, %(3)s)
+                and of.world.equalattr(0, %(4)s)
+                and of.world.equalattr(0, %(5)s)
             )]] % { arg[1], arg[2], arg[3], arg[4], arg[5] })
     end
 end
@@ -795,12 +795,12 @@ function lse()
     lse_line = ""
     lse_count = 0
     entloop([[
-        cc.world.lse_line = cc.world.lse_line .. "		"
-        cc.world.lse_count = cc.world.lse_count + 1
-        if cc.world.lse_count > 4 then
-            echo(cc.world.lse_line)
-            cc.world.lse_line = ""
-            cc.world.lse_count = 0
+        of.world.lse_line = of.world.lse_line .. "		"
+        of.world.lse_count = of.world.lse_count + 1
+        if of.world.lse_count > 4 then
+            echo(of.world.lse_line)
+            of.world.lse_line = ""
+            of.world.lse_count = 0
         end
     ]])
     if lse_count > 0 then base.echo(lse_line) end
@@ -819,7 +819,7 @@ function drag() base.dragging = 1; CAPI.onrelease([[dragging = 0]]) end
 function corners() base.selectcorners = 1; base.dragging = 1; CAPI.onrelease([[selectcorners = 0; dragging = 0]]) end
 function entadd() entaddmove(); base.entmoving = 0 end
 function editmove() base.moving = 1; CAPI.onrelease([[moving = 0]]); return base.moving end
-function entdrag() entaddmove(); CAPI.onrelease([[cc.world.finish_dragging(); entmoving = 0]]); return base.entmoving end
+function entdrag() entaddmove(); CAPI.onrelease([[of.world.finish_dragging(); entmoving = 0]]); return base.entmoving end
 function editdrag() cancelsel(); if entdrag() == 0 then drag() end end
 function selcorners()
     if base.hmapedit ~= 0 then
@@ -934,10 +934,10 @@ function editcut()
         delcube(); delent()
         CAPI.onrelease([[
             moving = 0
-            cc.world.paste()
-            cc.world.entpaste()
+            of.world.paste()
+            of.world.entpaste()
             if %(1)s == 0 then
-                cc.world.cancelsel()
+                of.world.cancelsel()
             end
         ]] % { hadselection })
     end

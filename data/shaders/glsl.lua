@@ -1,10 +1,10 @@
--- GLSL Lua shaders for CubeCreate
+-- GLSL Lua shaders for OctaForge
 
 -- safe nesting level involved
 function lazyshader(st, nm, vs, fs)
-    cc.shader.defer(st, nm,
+    of.shader.defer(st, nm,
         string.format([===================[
-            cc.shader.std(%i, "%s",
+            of.shader.std(%i, "%s",
                 [====================[
                     %s
                 ]====================],
@@ -20,7 +20,7 @@ lmcoordscale = 1.0 / 32767.0
 
 -- used for any textured polys that don't have a shader set
 
-cc.shader.std(4, "default",
+of.shader.std(4, "default",
     [[
         void main(void)
         {
@@ -38,7 +38,7 @@ cc.shader.std(4, "default",
     ]]
 )
 
-cc.shader.std(4, "rect",
+of.shader.std(4, "rect",
     [[
         void main(void)
         {
@@ -57,7 +57,7 @@ cc.shader.std(4, "rect",
     ]]
 )
 
-cc.shader.std(4, "cubemap",
+of.shader.std(4, "cubemap",
     [[
         void main(void)
         {
@@ -75,7 +75,7 @@ cc.shader.std(4, "cubemap",
     ]]
 )
 
-cc.shader.std(4, "rgbonly",
+of.shader.std(4, "rgbonly",
     [[
         void main(void)
         {
@@ -96,7 +96,7 @@ cc.shader.std(4, "rgbonly",
 
 -- same, but without texture sampling (needed by some HUD)
 
-cc.shader.std(4, "notexture",
+of.shader.std(4, "notexture",
     [[
         void main(void)
         {
@@ -114,7 +114,7 @@ cc.shader.std(4, "notexture",
 
 -- fogged variants of default shaders
 
-cc.shader.std(4, "fogged",
+of.shader.std(4, "fogged",
     [[
         #pragma CUBE2_fog
         void main(void)
@@ -133,7 +133,7 @@ cc.shader.std(4, "fogged",
     ]]
 )
 
-cc.shader.std(4, "foggednotexture",
+of.shader.std(4, "foggednotexture",
     [[
         #pragma CUBE2_fog
         void main(void)
@@ -152,12 +152,12 @@ cc.shader.std(4, "foggednotexture",
 
 -- for filling the z-buffer only (i.e. multi-pass rendering, OQ)
 
-cc.shader.std(4, "nocolor",
+of.shader.std(4, "nocolor",
     [[ void main() { gl_Position = ftransform(); } ]],
     [[ void main() {} ]]
 )
 
-cc.shader.std(4, "nocolorglsl",
+of.shader.std(4, "nocolorglsl",
     [[ void main() { gl_Position = ftransform(); } ]],
     [[ void main() {} ]]
 )
@@ -166,7 +166,7 @@ cc.shader.std(4, "nocolorglsl",
 
 function worldshader(...)
     local arg = { ... }
-    cc.shader.std(
+    of.shader.std(
         string.find(arg[1], "env") and 6 or 4,
         arg[1],
         [[
@@ -218,7 +218,7 @@ end
 
 function glareworldshader(...)
     local arg = { ... }
-    cc.shader.variant(
+    of.shader.variant(
         string.find(arg[1], "env") and 6 or 4,
         arg[1], 4,
         [[
@@ -249,7 +249,7 @@ end
 
 worldshader("stdworld", "", "")
 
-cc.shader.defer(4, "decalworld", [[
+of.shader.defer(4, "decalworld", [[
     worldshader(
         "decalworld", "",
         [=[
@@ -260,8 +260,8 @@ cc.shader.defer(4, "decalworld", [[
     )
 ]])
 
-cc.shader.defer(4, "glowworld", [[
-    cc.shader.defup("glowcolor", 1, 1, 1) -- glow color
+of.shader.defer(4, "glowworld", [[
+    of.shader.defup("glowcolor", 1, 1, 1) -- glow color
     worldshader(
         "glowworld", "", "",
         [=[
@@ -289,8 +289,8 @@ cc.shader.defer(4, "glowworld", [[
     )
 ]])
 
-cc.shader.defer(4, "pulseworld", [[
-    cc.shader.defup("pulsespeed", 1) -- pulse frequency (Hz)
+of.shader.defer(4, "pulseworld", [[
+    of.shader.defup("pulsespeed", 1) -- pulse frequency (Hz)
     worldshader(
         "pulseworld",
         "pulse = abs(fract(millis.x * pulsespeed.x)*2.0 - 1.0);",
@@ -302,10 +302,10 @@ cc.shader.defer(4, "pulseworld", [[
     )
 ]])
 
-cc.shader.defer(4, "pulseglowworld", [[
-    cc.shader.defup("glowcolor", 1, 1, 1) -- glow color
-    cc.shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
-    cc.shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
+of.shader.defer(4, "pulseglowworld", [[
+    of.shader.defup("glowcolor", 1, 1, 1) -- glow color
+    of.shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
+    of.shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
     worldshader(
         "pulseglowworld",
         "pulse = mix(glowcolor.rgb, pulseglowcolor.rgb, abs(fract(millis.x * pulseglowspeed.x)*2.0 - 1.0));",
@@ -335,17 +335,17 @@ cc.shader.defer(4, "pulseglowworld", [[
     )
 ]])
 
-cc.shader.std(4, "fogworld",
+of.shader.std(4, "fogworld",
     [[ void main() { gl_Position = ftransform(); } ]],
     [[ void main() { gl_FragColor = gl_Fog.color; } ]]
 )
 
-cc.shader.std(4, "noglareworld",
+of.shader.std(4, "noglareworld",
     [[ void main() { gl_Position = ftransform(); } ]],
     [[ void main() { gl_FragColor = vec4(0.0); } ]]
 )
 
-cc.shader.std(4, "noglareblendworld",
+of.shader.std(4, "noglareblendworld",
     [[
         void main(void)
         {
@@ -363,7 +363,7 @@ cc.shader.std(4, "noglareblendworld",
     ]]
 )
 
-cc.shader.std(4, "noglarealphaworld",
+of.shader.std(4, "noglarealphaworld",
     [[
         void main(void)
         {
@@ -381,8 +381,8 @@ cc.shader.std(4, "noglarealphaworld",
     ]]
 )
 
-cc.shader.defer(6, "envworld", [[
-    cc.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+of.shader.defer(6, "envworld", [[
+    of.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader(
         "envworld",
         [=[
@@ -398,7 +398,7 @@ cc.shader.defer(6, "envworld", [[
         "uniform vec4 camera; varying vec3 normal, camvec;", "uniform samplerCube envmap;"
     )
 
-    cc.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+    of.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader(
         "envworldfast",
         [=[
@@ -414,15 +414,15 @@ cc.shader.defer(6, "envworld", [[
         "uniform vec4 camera; varying vec3 rvec;", "uniform samplerCube envmap;"
     )
 
-    cc.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+    of.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader("envworldalt", "", "")
 
-    cc.shader.alt("envworld", "envworldfast")
-    cc.shader.fast("envworld", "envworldfast", 2)
-    cc.shader.fast("envworld", "envworldalt", 1)
+    of.shader.alt("envworld", "envworldfast")
+    of.shader.fast("envworld", "envworldfast", 2)
+    of.shader.fast("envworld", "envworldalt", 1)
 ]])
 
-cc.shader.std(4, "depthfxworld",
+of.shader.std(4, "depthfxworld",
     [[
         uniform vec4 depthscale, depthoffsets;
         void main(void)
@@ -439,7 +439,7 @@ cc.shader.std(4, "depthfxworld",
     ]]
 )
 
-cc.shader.std(4, "depthfxsplitworld",
+of.shader.std(4, "depthfxsplitworld",
     [[
         uniform vec4 depthscale, depthoffsets;
         void main(void)
@@ -496,33 +496,33 @@ function bumpvariantshader(...)
 
     if not btopt(arg[2], "i") then
         if btopt(arg[2], "G") then
-            cc.shader.defup("glowcolor", 1, 1, 1) -- glow color
-            cc.shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
-            cc.shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
+            of.shader.defup("glowcolor", 1, 1, 1) -- glow color
+            of.shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
+            of.shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
         elseif btopt(arg[2], "g") then
-            cc.shader.defup("glowcolor", 1, 1, 1) -- glow color
+            of.shader.defup("glowcolor", 1, 1, 1) -- glow color
         end
 
         if btopt(arg[2], "S") then
-            cc.shader.defup("specscale", 6, 6, 6) -- spec map multiplier
+            of.shader.defup("specscale", 6, 6, 6) -- spec map multiplier
         elseif btopt(arg[2], "s") then
-            cc.shader.defup("specscale", 1, 1, 1) -- spec multiplier
+            of.shader.defup("specscale", 1, 1, 1) -- spec multiplier
         end
 
         if btopt(arg[2], "p") or btopt(arg[2], "P") then
-            cc.shader.defup("parallaxscale", 0.06, -0.03) -- parallax scaling
+            of.shader.defup("parallaxscale", 0.06, -0.03) -- parallax scaling
         end
 
         if btopt(arg[2], "R") then
-            cc.shader.defup("envscale", 1, 1, 1) -- reflectivity map multiplier
+            of.shader.defup("envscale", 1, 1, 1) -- reflectivity map multiplier
         elseif btopt(arg[2], "r") then
-            cc.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+            of.shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
         end
     else
         stype = btopt(arg[2], "s") and stype + 8 or stype
     end
 
-    cc.shader.variant(
+    of.shader.variant(
         stype, arg[1],
         btopt(arg[2], "i") and 4 or -1,
         string.template([[
@@ -793,7 +793,7 @@ end
 
 function bumpshader(...)
     local arg = { ... }
-    cc.shader.defer(
+    of.shader.defer(
         btopt(arg[2], "e") and 7 or 5,
         arg[1],
         [[
@@ -812,139 +812,139 @@ end
 
 bumpshader("bumpworld", "")
 bumpshader("bumpspecworld", "ots")
-cc.shader.fast("bumpspecworld", "bumpworld", 2)
-cc.shader.alt("bumpspecworld", "bumpworld")
+of.shader.fast("bumpspecworld", "bumpworld", 2)
+of.shader.alt("bumpspecworld", "bumpworld")
 bumpshader("bumpspecmapworld", "otsS")
-cc.shader.fast("bumpspecmapworld", "bumpworld", 2)
-cc.shader.alt("bumpspecmapworld", "bumpworld")
+of.shader.fast("bumpspecmapworld", "bumpworld", 2)
+of.shader.alt("bumpspecmapworld", "bumpworld")
 
 bumpshader("bumpglowworld", "g")
 bumpshader("bumpspecglowworld", "otsg")
-cc.shader.alt("bumpspecglowworld", "bumpglowworld")
+of.shader.alt("bumpspecglowworld", "bumpglowworld")
 bumpshader("bumpspecmapglowworld", "otsSg")
-cc.shader.fast("bumpspecmapglowworld", "bumpglowworld", 2)
-cc.shader.alt("bumpspecmapglowworld", "bumpglowworld")
+of.shader.fast("bumpspecmapglowworld", "bumpglowworld", 2)
+of.shader.alt("bumpspecmapglowworld", "bumpglowworld")
 
 bumpshader("bumppulseglowworld", "gG")
 bumpshader("bumpspecpulseglowworld", "otsgG")
-cc.shader.alt("bumpspecpulseglowworld", "bumppulseglowworld")
+of.shader.alt("bumpspecpulseglowworld", "bumppulseglowworld")
 bumpshader("bumpspecmappulseglowworld", "otsSgG")
-cc.shader.fast("bumpspecmappulseglowworld", "bumppulseglowworld", 2)
-cc.shader.alt("bumpspecmappulseglowworld", "bumppulseglowworld")
+of.shader.fast("bumpspecmappulseglowworld", "bumppulseglowworld", 2)
+of.shader.alt("bumpspecmappulseglowworld", "bumppulseglowworld")
 
 bumpshader("bumpparallaxworld", "pot")
-cc.shader.fast("bumpparallaxworld", "bumpworld", 1)
-cc.shader.alt("bumpparallaxworld", "bumpworld")
+of.shader.fast("bumpparallaxworld", "bumpworld", 1)
+of.shader.alt("bumpparallaxworld", "bumpworld")
 bumpshader("bumpspecparallaxworld", "pots")
-cc.shader.fast("bumpspecparallaxworld", "bumpparallaxworld", 2)
-cc.shader.fast("bumpspecparallaxworld", "bumpworld", 1)
-cc.shader.alt("bumpspecparallaxworld", "bumpworld")
+of.shader.fast("bumpspecparallaxworld", "bumpparallaxworld", 2)
+of.shader.fast("bumpspecparallaxworld", "bumpworld", 1)
+of.shader.alt("bumpspecparallaxworld", "bumpworld")
 bumpshader("bumpspecmapparallaxworld", "potsS")
-cc.shader.fast("bumpspecmapparallaxworld", "bumpparallaxworld", 2)
-cc.shader.fast("bumpspecmapparallaxworld", "bumpworld", 1)
-cc.shader.alt("bumpspecmapparallaxworld", "bumpworld")
+of.shader.fast("bumpspecmapparallaxworld", "bumpparallaxworld", 2)
+of.shader.fast("bumpspecmapparallaxworld", "bumpworld", 1)
+of.shader.alt("bumpspecmapparallaxworld", "bumpworld")
 
 bumpshader("bumpparallaxglowworld", "potg")
-cc.shader.fast("bumpparallaxglowworld", "bumpglowworld", 1)
-cc.shader.alt("bumpparallaxglowworld", "bumpglowworld")
+of.shader.fast("bumpparallaxglowworld", "bumpglowworld", 1)
+of.shader.alt("bumpparallaxglowworld", "bumpglowworld")
 bumpshader("bumpspecparallaxglowworld", "potsg")
-cc.shader.fast("bumpspecparallaxglowworld", "bumpparallaxglowworld", 2)
-cc.shader.fast("bumpspecparallaxglowworld", "bumpglowworld", 1)
-cc.shader.alt("bumpspecparallaxglowworld", "bumpglowworld")
+of.shader.fast("bumpspecparallaxglowworld", "bumpparallaxglowworld", 2)
+of.shader.fast("bumpspecparallaxglowworld", "bumpglowworld", 1)
+of.shader.alt("bumpspecparallaxglowworld", "bumpglowworld")
 bumpshader("bumpspecmapparallaxglowworld", "potsSg")
-cc.shader.fast("bumpspecmapparallaxglowworld", "bumpparallaxglowworld", 2)
-cc.shader.fast("bumpspecmapparallaxglowworld", "bumpglowworld", 1)
-cc.shader.alt("bumpspecmapparallaxglowworld", "bumpglowworld")
+of.shader.fast("bumpspecmapparallaxglowworld", "bumpparallaxglowworld", 2)
+of.shader.fast("bumpspecmapparallaxglowworld", "bumpglowworld", 1)
+of.shader.alt("bumpspecmapparallaxglowworld", "bumpglowworld")
 
 bumpshader("bumpparallaxpulseglowworld", "potgG")
-cc.shader.fast("bumpparallaxpulseglowworld", "bumppulseglowworld", 1)
-cc.shader.alt("bumpparallaxpulseglowworld", "bumppulseglowworld")
+of.shader.fast("bumpparallaxpulseglowworld", "bumppulseglowworld", 1)
+of.shader.alt("bumpparallaxpulseglowworld", "bumppulseglowworld")
 bumpshader("bumpspecparallaxpulseglowworld", "potsgG")
-cc.shader.fast("bumpspecparallaxpulseglowworld", "bumpparallaxpulseglowworld", 2)
-cc.shader.fast("bumpspecparallaxpulseglowworld", "bumppulseglowworld", 1)
-cc.shader.alt("bumpspecparallaxpulseglowworld", "bumppulseglowworld")
+of.shader.fast("bumpspecparallaxpulseglowworld", "bumpparallaxpulseglowworld", 2)
+of.shader.fast("bumpspecparallaxpulseglowworld", "bumppulseglowworld", 1)
+of.shader.alt("bumpspecparallaxpulseglowworld", "bumppulseglowworld")
 bumpshader("bumpspecmapparallaxpulseglowworld", "potsSgG")
-cc.shader.fast("bumpspecmapparallaxpulseglowworld", "bumpparallaxpulseglowworld", 2)
-cc.shader.fast("bumpspecmapparallaxpulseglowworld", "bumppulseglowworld", 1)
-cc.shader.alt("bumpspecmapparallaxpulseglowworld", "bumppulseglowworld")
+of.shader.fast("bumpspecmapparallaxpulseglowworld", "bumpparallaxpulseglowworld", 2)
+of.shader.fast("bumpspecmapparallaxpulseglowworld", "bumppulseglowworld", 1)
+of.shader.alt("bumpspecmapparallaxpulseglowworld", "bumppulseglowworld")
 
 bumpshader("bumpenvworldalt", "e")
 bumpshader("bumpenvworld", "eor")
-cc.shader.alt("bumpenvworld", "bumpenvworldalt")
-cc.shader.fast("bumpenvworld", "bumpenvworldalt", 2)
+of.shader.alt("bumpenvworld", "bumpenvworldalt")
+of.shader.fast("bumpenvworld", "bumpenvworldalt", 2)
 bumpshader("bumpenvspecworld", "eotsr")
-cc.shader.alt("bumpenvspecworld", "bumpenvworldalt")
-cc.shader.fast("bumpenvspecworld", "bumpenvworldalt", 2)
+of.shader.alt("bumpenvspecworld", "bumpenvworldalt")
+of.shader.fast("bumpenvspecworld", "bumpenvworldalt", 2)
 bumpshader("bumpenvspecmapworld", "eotsSrR")
-cc.shader.alt("bumpenvspecmapworld", "bumpenvworldalt")
-cc.shader.fast("bumpenvspecmapworld", "bumpenvworldalt", 2)
+of.shader.alt("bumpenvspecmapworld", "bumpenvworldalt")
+of.shader.fast("bumpenvspecmapworld", "bumpenvworldalt", 2)
 
 bumpshader("bumpenvglowworldalt", "eg")
 bumpshader("bumpenvglowworld", "eorg")
-cc.shader.alt("bumpenvglowworld", "bumpenvglowworldalt")
-cc.shader.fast("bumpenvglowworld", "bumpenvglowworldalt", 2)
+of.shader.alt("bumpenvglowworld", "bumpenvglowworldalt")
+of.shader.fast("bumpenvglowworld", "bumpenvglowworldalt", 2)
 bumpshader("bumpenvspecglowworld", "eotsrg")
-cc.shader.alt("bumpenvspecglowworld", "bumpenvglowworldalt")
-cc.shader.fast("bumpenvspecglowworld", "bumpenvglowworldalt", 2)
+of.shader.alt("bumpenvspecglowworld", "bumpenvglowworldalt")
+of.shader.fast("bumpenvspecglowworld", "bumpenvglowworldalt", 2)
 bumpshader("bumpenvspecmapglowworld", "eotsSrRg")
-cc.shader.alt("bumpenvspecmapglowworld", "bumpenvglowworldalt")
-cc.shader.fast("bumpenvspecmapglowworld", "bumpenvglowworldalt", 2)
+of.shader.alt("bumpenvspecmapglowworld", "bumpenvglowworldalt")
+of.shader.fast("bumpenvspecmapglowworld", "bumpenvglowworldalt", 2)
 
 bumpshader("bumpenvpulseglowworldalt", "egG")
 bumpshader("bumpenvpulseglowworld", "eorgG")
-cc.shader.alt("bumpenvpulseglowworld", "bumpenvpulseglowworldalt")
-cc.shader.fast("bumpenvpulseglowworld", "bumpenvpulseglowworldalt", 2)
+of.shader.alt("bumpenvpulseglowworld", "bumpenvpulseglowworldalt")
+of.shader.fast("bumpenvpulseglowworld", "bumpenvpulseglowworldalt", 2)
 bumpshader("bumpenvspecpulseglowworld", "eotsrgG")
-cc.shader.alt("bumpenvspecpulseglowworld", "bumpenvpulseglowworldalt")
-cc.shader.fast("bumpenvspecpulseglowworld", "bumpenvpulseglowworldalt", 2)
+of.shader.alt("bumpenvspecpulseglowworld", "bumpenvpulseglowworldalt")
+of.shader.fast("bumpenvspecpulseglowworld", "bumpenvpulseglowworldalt", 2)
 bumpshader("bumpenvspecmappulseglowworld", "eotsSrRgG")
-cc.shader.alt("bumpenvspecmappulseglowworld", "bumpenvpulseglowworldalt")
-cc.shader.fast("bumpenvspecmappulseglowworld", "bumpenvpulseglowworldalt", 2)
+of.shader.alt("bumpenvspecmappulseglowworld", "bumpenvpulseglowworldalt")
+of.shader.fast("bumpenvspecmappulseglowworld", "bumpenvpulseglowworldalt", 2)
 
 bumpshader("bumpenvparallaxworldalt", "epot")
-cc.shader.alt("bumpenvparallaxworldalt", "bumpenvworldalt")
+of.shader.alt("bumpenvparallaxworldalt", "bumpenvworldalt")
 bumpshader("bumpenvparallaxworld", "epotr")
-cc.shader.alt("bumpenvparallaxworld", "bumpenvparallaxworldalt")
-cc.shader.fast("bumpenvparallaxworld", "bumpenvparallaxworldalt", 2)
-cc.shader.fast("bumpenvparallaxworld", "bumpenvworldalt", 1)
+of.shader.alt("bumpenvparallaxworld", "bumpenvparallaxworldalt")
+of.shader.fast("bumpenvparallaxworld", "bumpenvparallaxworldalt", 2)
+of.shader.fast("bumpenvparallaxworld", "bumpenvworldalt", 1)
 bumpshader("bumpenvspecparallaxworld", "epotsr")
-cc.shader.alt("bumpenvspecparallaxworld", "bumpenvparallaxworldalt")
-cc.shader.fast("bumpenvspecparallaxworld", "bumpenvparallaxworldalt", 2)
-cc.shader.fast("bumpenvspecparallaxworld", "bumpenvworldalt", 1)
+of.shader.alt("bumpenvspecparallaxworld", "bumpenvparallaxworldalt")
+of.shader.fast("bumpenvspecparallaxworld", "bumpenvparallaxworldalt", 2)
+of.shader.fast("bumpenvspecparallaxworld", "bumpenvworldalt", 1)
 bumpshader("bumpenvspecmapparallaxworld", "epotsSrR")
-cc.shader.alt("bumpenvspecmapparallaxworld", "bumpenvparallaxworldalt")
-cc.shader.fast("bumpenvspecmapparallaxworld", "bumpenvparallaxworldalt", 2)
-cc.shader.fast("bumpenvspecmapparallaxworld", "bumpenvworldalt", 1)
+of.shader.alt("bumpenvspecmapparallaxworld", "bumpenvparallaxworldalt")
+of.shader.fast("bumpenvspecmapparallaxworld", "bumpenvparallaxworldalt", 2)
+of.shader.fast("bumpenvspecmapparallaxworld", "bumpenvworldalt", 1)
 
 bumpshader("bumpenvparallaxglowworldalt", "epotg")
-cc.shader.alt("bumpenvparallaxglowworldalt", "bumpenvglowworldalt")
+of.shader.alt("bumpenvparallaxglowworldalt", "bumpenvglowworldalt")
 bumpshader("bumpenvparallaxglowworld", "epotrg")
-cc.shader.alt("bumpenvparallaxglowworld", "bumpenvparallaxglowworldalt")
-cc.shader.fast("bumpenvparallaxglowworld", "bumpenvparallaxglowworldalt", 2)
-cc.shader.fast("bumpenvparallaxglowworld", "bumpenvglowworldalt", 1)
+of.shader.alt("bumpenvparallaxglowworld", "bumpenvparallaxglowworldalt")
+of.shader.fast("bumpenvparallaxglowworld", "bumpenvparallaxglowworldalt", 2)
+of.shader.fast("bumpenvparallaxglowworld", "bumpenvglowworldalt", 1)
 bumpshader("bumpenvspecparallaxglowworld", "epotsrg")
-cc.shader.alt("bumpenvspecparallaxglowworld", "bumpenvparallaxglowworldalt")
-cc.shader.fast("bumpenvspecparallaxglowworld", "bumpenvparallaxglowworldalt", 2)
-cc.shader.fast("bumpenvspecparallaxglowworld", "bumpenvglowworldalt", 1)
+of.shader.alt("bumpenvspecparallaxglowworld", "bumpenvparallaxglowworldalt")
+of.shader.fast("bumpenvspecparallaxglowworld", "bumpenvparallaxglowworldalt", 2)
+of.shader.fast("bumpenvspecparallaxglowworld", "bumpenvglowworldalt", 1)
 bumpshader("bumpenvspecmapparallaxglowworld", "epotsSrRg")
-cc.shader.alt("bumpenvspecmapparallaxglowworld", "bumpenvparallaxglowworldalt")
-cc.shader.fast("bumpenvspecmapparallaxglowworld", "bumpenvparallaxglowworldalt", 2)
-cc.shader.fast("bumpenvspecmapparallaxglowworld", "bumpenvglowworldalt", 1)
+of.shader.alt("bumpenvspecmapparallaxglowworld", "bumpenvparallaxglowworldalt")
+of.shader.fast("bumpenvspecmapparallaxglowworld", "bumpenvparallaxglowworldalt", 2)
+of.shader.fast("bumpenvspecmapparallaxglowworld", "bumpenvglowworldalt", 1)
 
 bumpshader("bumpenvparallaxpulseglowworldalt", "epotgG")
-cc.shader.alt("bumpenvparallaxpulseglowworldalt", "bumpenvpulseglowworldalt")
+of.shader.alt("bumpenvparallaxpulseglowworldalt", "bumpenvpulseglowworldalt")
 bumpshader("bumpenvparallaxpulseglowworld", "epotrgG")
-cc.shader.alt("bumpenvparallaxpulseglowworld", "bumpenvparallaxpulseglowpulseglowworldalt")
-cc.shader.fast("bumpenvparallaxpulseglowworld", "bumpenvparallaxpulseglowpulseglowworldalt", 2)
-cc.shader.fast("bumpenvparallaxpulseglowworld", "bumpenvpulseglowworldalt", 1)
+of.shader.alt("bumpenvparallaxpulseglowworld", "bumpenvparallaxpulseglowpulseglowworldalt")
+of.shader.fast("bumpenvparallaxpulseglowworld", "bumpenvparallaxpulseglowpulseglowworldalt", 2)
+of.shader.fast("bumpenvparallaxpulseglowworld", "bumpenvpulseglowworldalt", 1)
 bumpshader("bumpenvspecparallaxpulseglowworld", "epotsrgG")
-cc.shader.alt("bumpenvspecparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt")
-cc.shader.fast("bumpenvspecparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt", 2)
-cc.shader.fast("bumpenvspecparallaxpulseglowworld", "bumpenvpulseglowworldalt", 1)
+of.shader.alt("bumpenvspecparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt")
+of.shader.fast("bumpenvspecparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt", 2)
+of.shader.fast("bumpenvspecparallaxpulseglowworld", "bumpenvpulseglowworldalt", 1)
 bumpshader("bumpenvspecmapparallaxpulseglowworld", "epotsSrRgG")
-cc.shader.alt("bumpenvspecmapparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt")
-cc.shader.fast("bumpenvspecmapparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt", 2)
-cc.shader.fast("bumpenvspecmapparallaxpulseglowworld", "bumpenvpulseglowworldalt", 1)
+of.shader.alt("bumpenvspecmapparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt")
+of.shader.fast("bumpenvspecmapparallaxpulseglowworld", "bumpenvparallaxpulseglowworldalt", 2)
+of.shader.fast("bumpenvspecmapparallaxpulseglowworld", "bumpenvpulseglowworldalt", 1)
 
 --bumpshader("steepworld", "Pot")
 
@@ -1065,8 +1065,8 @@ lazyshader(
         }
     ]]
 )
-cc.shader.fast("waterglare", "waterglarefast", 2)
-cc.shader.alt("waterglare", "waterglarefast")
+of.shader.fast("waterglare", "waterglarefast", 2)
+of.shader.alt("waterglare", "waterglarefast")
 
 lazyshader(
     4, "underwater",
@@ -1099,8 +1099,8 @@ watershader(
     "underwaterrefractfast", 0, 1,
     "gl_FragColor = texture2DProj(tex3, gl_TexCoord[0] + vec4(0.4*dudv, 0.0, 0.0));", ""
 )
-cc.shader.fast("underwaterrefract", "underwaterrefractfast", 2)
-cc.shader.alt("underwaterrefract", "underwaterrefractfast")
+of.shader.fast("underwaterrefract", "underwaterrefractfast", 2)
+of.shader.alt("underwaterrefract", "underwaterrefractfast")
 
 watershader(
     "underwaterfade", 0, 1,
@@ -1119,8 +1119,8 @@ watershader(
         gl_FragColor.a = gl_TexCoord[0].z + 4.0*texture2DProj(tex3, gl_TexCoord[0]).a;
     ]], ""
 )
-cc.shader.fast("underwaterfade", "underwaterfadefast", 2)
-cc.shader.alt("underwaterfade", "underwaterfadefast")
+of.shader.fast("underwaterfade", "underwaterfadefast", 2)
+of.shader.alt("underwaterfade", "underwaterfadefast")
 
 watershader(
     "water", 1, 0,
@@ -1142,8 +1142,8 @@ watershader(
         gl_FragColor.a = invfresnel*depth.y;
     ]]
 )
-cc.shader.fast("water", "waterfast", 1)
-cc.shader.alt("water", "waterfast")
+of.shader.fast("water", "waterfast", 1)
+of.shader.alt("water", "waterfast")
 
 watershader(
     "waterreflect", 1, 0,
@@ -1171,8 +1171,8 @@ watershader(
         gl_FragColor.a = invfresnel*depth.y;
     ]]
 )
-cc.shader.fast("waterreflect", "waterreflectfast", 2)
-cc.shader.alt("waterreflect", "waterreflectfast")
+of.shader.fast("waterreflect", "waterreflectfast", 2)
+of.shader.alt("waterreflect", "waterreflectfast")
 
 watershader(
     "waterrefract", 1, 1,
@@ -1205,8 +1205,8 @@ watershader(
         gl_FragColor = vec4(mix(reflect, refract, invfresnel), 0.0);
     ]]
 )
-cc.shader.fast("waterrefract", "waterrefractfast", 2)
-cc.shader.alt("waterrefract", "waterrefractfast")
+of.shader.fast("waterrefract", "waterrefractfast", 2)
+of.shader.alt("waterrefract", "waterrefractfast")
 
 watershader(
     "waterfade", 1, 1,
@@ -1243,8 +1243,8 @@ watershader(
         gl_FragColor.rgb = mix(reflect, refract, invfresnel);
     ]]
 )
-cc.shader.fast("waterfade", "watefadefast", 2)
-cc.shader.alt("waterfade", "waterrefract")
+of.shader.fast("waterfade", "watefadefast", 2)
+of.shader.alt("waterfade", "waterrefract")
 
 watershader(
     "waterenv", 1, 0,
@@ -1272,8 +1272,8 @@ watershader(
         gl_FragColor.a = invfresnel*depth.y; 
     ]]
 )
-cc.shader.fast("waterenv", "wateenvfast", 2)
-cc.shader.alt("waterenv", "wateenvfast")
+of.shader.fast("waterenv", "wateenvfast", 2)
+of.shader.alt("waterenv", "wateenvfast")
 
 watershader(
     "waterenvrefract", 1, 1,
@@ -1304,8 +1304,8 @@ watershader(
         gl_FragColor = vec4(mix(reflect, refract, invfresnel), 0.0);
     ]]
 )
-cc.shader.fast("waterenvrefract", "waterenvrefractfast", 2)
-cc.shader.alt("waterenvrefract", "waterenvrefractfast")
+of.shader.fast("waterenvrefract", "waterenvrefractfast", 2)
+of.shader.alt("waterenvrefract", "waterenvrefractfast")
 
 watershader(
     "waterenvfade", 1, 1,
@@ -1341,8 +1341,8 @@ watershader(
         gl_FragColor.rgb = mix(reflect, refract, invfresnel);
     ]]
 )
-cc.shader.fast("waterenvfade", "waterenvfadefast", 2)
-cc.shader.alt("waterenvfade", "waterenvrefract")
+of.shader.fast("waterenvfade", "waterenvfadefast", 2)
+of.shader.alt("waterenvfade", "waterenvrefract")
 
 function causticshader(...)
     local arg = { ... }
@@ -1376,7 +1376,7 @@ causticshader(
     "causticfast",
     "gl_FragColor = frameoffset.z*texture2D(tex0, gl_TexCoord[0].xy);"
 )
-cc.shader.fast("caustic", "causticfast", 2)
+of.shader.fast("caustic", "causticfast", 2)
 
 lazyshader(
     4, "lava",
@@ -1482,7 +1482,7 @@ lazyshader(
         }
     ]]
 )
-cc.shader.alt("waterfallenvrefract", "waterfallrefract")
+of.shader.alt("waterfallenvrefract", "waterfallrefract")
 
 lazyshader(
     4, "waterfallenv",
@@ -1573,8 +1573,8 @@ lazyshader(
         }
     ]]
 )
-cc.shader.fast("glass", "glassfast", 2)
-cc.shader.alt("glass", "glassfast")
+of.shader.fast("glass", "glassfast", 2)
+of.shader.alt("glass", "glassfast")
 
 lazyshader(
     4, "grass",
@@ -1601,7 +1601,7 @@ lazyshader(
     ]]
 )
 
-cc.shader.std(
+of.shader.std(
     4, "overbrightdecal",
     [[
         #pragma CUBE2_fog
@@ -1622,7 +1622,7 @@ cc.shader.std(
     ]]
 )
 
-cc.shader.std(
+of.shader.std(
     4, "saturatedecal",
     [[
         #pragma CUBE2_fog
@@ -1644,7 +1644,7 @@ cc.shader.std(
     ]]
 )
 
-cc.shader.std(
+of.shader.std(
     4, "skyboxglare",
     [[
         void main(void)
@@ -1669,7 +1669,7 @@ cc.shader.std(
 
 function blurshader(...)
     local arg = { ... }
-    cc.shader.std(
+    of.shader.std(
         4, arg[1],
         string.template([[
             uniform vec4 offsets;
@@ -1745,15 +1745,15 @@ for i = 1, 7 do
     blurshader("blurx" .. i, i, "x", "2D")
     blurshader("blury" .. i, i, "y", "2D")
     if i > 1 then
-        cc.shader.alt("blurx" .. i, "blurx" .. i - 1)
-        cc.shader.alt("blury" .. i, "blury" .. i - 1)
+        of.shader.alt("blurx" .. i, "blurx" .. i - 1)
+        of.shader.alt("blury" .. i, "blury" .. i - 1)
     end
     if usetexrect ~= 0 then
         blurshader("blurx" .. i .. "rect", i, "x", "2DRect")
         blurshader("blury" .. i .. "rect", i, "y", "2DRect")
         if i > 1 then
-            cc.shader.alt("blurx" .. i .. "rect", "blurx" .. i - 1 .. "rect")
-            cc.shader.alt("blury" .. i .. "rect", "blury" .. i - 1 .. "rect")
+            of.shader.alt("blurx" .. i .. "rect", "blurx" .. i - 1 .. "rect")
+            of.shader.alt("blury" .. i .. "rect", "blury" .. i - 1 .. "rect")
         end
     end
 end
@@ -1864,7 +1864,7 @@ lazyshader(
             vec3 cc = step(vec3(0.2, 0.8, 1.5), vec3(hue));
             c11 *= dot(cc, vec3(0.5, 0.5, 1.5)); 
         
-            gl_FragColor = c11 * max(cc.z, sobel);
+            gl_FragColor = c11 * max(of.z, sobel);
     }
     ]]
 )
@@ -1930,24 +1930,24 @@ blur5shader("vblur5", 0, 1)
 
 function rotoscope(...)
     local arg = { ... }
-    cc.shader.postfx.clear()
+    of.shader.postfx.clear()
     if #arg >= 1 then
-        cc.shader.postfx.add("rotoscope", 0, 0, 0, arg[1])
+        of.shader.postfx.add("rotoscope", 0, 0, 0, arg[1])
     end
     if #arg >= 2 then
         if arg[2] == 1 then
-            cc.shader.postfx.add("hblur3")
-            cc.shader.postfx.add("vblur3")
+            of.shader.postfx.add("hblur3")
+            of.shader.postfx.add("vblur3")
         elseif arg[2] == 2 then
-            cc.shader.postfx.add("hblur5")
-            cc.shader.postfx.add("vblur5")
+            of.shader.postfx.add("hblur5")
+            of.shader.postfx.add("vblur5")
         end
     end
 end
 
 -- bloom-ish
 
-cc.shader.std(
+of.shader.std(
     4, "glare",
     [[
         void main(void)
@@ -1989,12 +1989,12 @@ lazyshader(
 )
 
 function bloomshader(sn, n)
-    cc.shader.defer(
+    of.shader.defer(
         4, sn,
         [[
-            cc.shader.force("bloom_scale")
-            cc.shader.force("bloom_init")
-            cc.shader.std(
+            of.shader.force("bloom_scale")
+            of.shader.force("bloom_init")
+            of.shader.std(
                 4, %(arg1)q,
                 string.template([=[
                     void main(void)
@@ -2052,23 +2052,23 @@ bloomshader("bloom6", 6)
 
 function setupbloom(...)
     local arg = { ... }
-    cc.shader.postfx.add("bloom_init", 1, 1, "+0")
+    of.shader.postfx.add("bloom_init", 1, 1, "+0")
     for i = 1, arg[1] - 1 do
-        cc.shader.postfx.add("bloom_scale", i + 1, i + 1, "+" .. i)
+        of.shader.postfx.add("bloom_scale", i + 1, i + 1, "+" .. i)
     end
     local tbl = { 0 }
     for i = 1, arg[1] do table.insert(tbl, i) end
-    cc.shader.postfx.add("bloom" .. arg[1], 0, 0, table.concat(tbl, " "), arg[2])
+    of.shader.postfx.add("bloom" .. arg[1], 0, 0, table.concat(tbl, " "), arg[2])
 end
 
 function bloom(a)
-    cc.shader.postfx.clear()
+    of.shader.postfx.clear()
     if a and a ~= 0 then setupbloom(6, a) end
 end
 
 -- misc effect shaders
 
-cc.shader.std(
+of.shader.std(
     4, "blendbrush",
     [[
         uniform vec4 texgenS, texgenT;
@@ -2224,7 +2224,7 @@ lazyshader(
 
 function explosionshader(...)
     local arg = { ... }
-    cc.shader.std(
+    of.shader.std(
         4, arg[1],
         [[
             #pragma CUBE2_fog
@@ -2320,7 +2320,7 @@ for i = 1, usetexrect == 0 and 4 or 6 do
     )
 end
 
-cc.shader.std(
+of.shader.std(
     4, "particlenotexture",
     [[
         #pragma CUBE2_fog
@@ -2341,7 +2341,7 @@ cc.shader.std(
 
 function particleshader(...)
     local arg = { ... }
-    cc.shader.std(
+    of.shader.std(
         4, arg[1],
         [[
             #pragma CUBE2_fog
@@ -2597,7 +2597,7 @@ function shadowmapcastervertexshader(...)
     }
 end
 
-cc.shader.std(
+of.shader.std(
     4, "shadowmapcaster",
     shadowmapcastervertexshader(),
     [[
@@ -2609,11 +2609,11 @@ cc.shader.std(
 )
 
 for i = 1, 4 do
-    cc.shader.variant(4, "shadowmapcaster", 0, shadowmapcastervertexshader(skelanimdefs(), skelmatanim (i, 0, 0)), "")
-    cc.shader.variant(4, "shadowmapcaster", 1, shadowmapcastervertexshader(skelanimdefs(), skelquatanim(i, 0, 0)), "")
+    of.shader.variant(4, "shadowmapcaster", 0, shadowmapcastervertexshader(skelanimdefs(), skelmatanim (i, 0, 0)), "")
+    of.shader.variant(4, "shadowmapcaster", 1, shadowmapcastervertexshader(skelanimdefs(), skelquatanim(i, 0, 0)), "")
 end
 
-cc.shader.std(
+of.shader.std(
     4, "shadowmapreceiver",
     [[
         uniform vec4 shadowmapbias;
@@ -2656,7 +2656,7 @@ function notexturemodelvertexshader(...)
     }
 end
 
-cc.shader.std(
+of.shader.std(
     4, "notexturemodel",
     notexturemodelvertexshader(),
     [[
@@ -2668,8 +2668,8 @@ cc.shader.std(
 )
 
 for i = 1, 4 do
-    cc.shader.variant(4, "notexturemodel", 0, notexturemodelvertexshader(skelanimdefs(), skelmatanim (i, 0, 0)), "")
-    cc.shader.variant(4, "notexturemodel", 1, notexturemodelvertexshader(skelanimdefs(), skelquatanim(i, 0, 0)), "")
+    of.shader.variant(4, "notexturemodel", 0, notexturemodelvertexshader(skelanimdefs(), skelmatanim (i, 0, 0)), "")
+    of.shader.variant(4, "notexturemodel", 1, notexturemodelvertexshader(skelanimdefs(), skelquatanim(i, 0, 0)), "")
 end
 
 -- mdltype:
@@ -2915,23 +2915,23 @@ function modelanimshader(...)
         reuseanimshader = "%(1)s , %(2)s" % { arg[2], arg[2] > 0 and 1 or 0 }
         fraganimshader = arg[4] == 1 and modelfragmentshader("bB" .. arg[3]) or reuseanimshader
     end
-    cc.shader.variant(4, arg[1], arg[2], modelvertexshader("B" .. arg[3], arg[4]), fraganimshader)
-    cc.shader.variant(4, arg[1], arg[2] + 1, modelvertexshader("b" .. arg[3], arg[4]), reuseanimshader)
+    of.shader.variant(4, arg[1], arg[2], modelvertexshader("B" .. arg[3], arg[4]), fraganimshader)
+    of.shader.variant(4, arg[1], arg[2] + 1, modelvertexshader("b" .. arg[3], arg[4]), reuseanimshader)
 end
 
 function modelshader(...)
     local arg = { ... }
-    cc.shader.defer(
+    of.shader.defer(
         4, arg[1],
         [[
             local basemodeltype = %(arg2)q
-            cc.shader.std(4, %(arg1)q, modelvertexshader(basemodeltype), modelfragmentshader(basemodeltype))
+            of.shader.std(4, %(arg1)q, modelvertexshader(basemodeltype), modelfragmentshader(basemodeltype))
             for i = 1, 4 do
                 modelanimshader(%(arg1)q, 0, basemodeltype, i)
             end
             local glaremodeltype = string.gsub(basemodeltype .. "i", "e", "")
             if not string.find(glaremodeltype, "s") then glaremodeltype = string.gsub(glaremodeltype, "n", "") end
-            cc.shader.variant(4, %(arg1)q, 2, modelvertexshader(glaremodeltype), modelfragmentshader(glaremodeltype))
+            of.shader.variant(4, %(arg1)q, 2, modelvertexshader(glaremodeltype), modelfragmentshader(glaremodeltype))
             for i = 1, 4 do
                 modelanimshader(%(arg1)q, 2, glaremodeltype, i)
             end
@@ -2947,28 +2947,28 @@ end
 modelshader("nospecmodel", "")
 modelshader("masksnospecmodel", "m")
 modelshader("envmapnospecmodel", "me")
-cc.shader.alt("envmapnospecmodel", "masksnospecmodel")
+of.shader.alt("envmapnospecmodel", "masksnospecmodel")
 
 modelshader("bumpnospecmodel", "n")
 modelshader("bumpmasksnospecmodel", "nm")
 modelshader("bumpenvmapnospecmodel", "nme")
-cc.shader.alt("bumpenvmapnospecmodel", "bumpmasksnospecmodel")
+of.shader.alt("bumpenvmapnospecmodel", "bumpmasksnospecmodel")
 
 -- phong lighting model shader
 
 modelshader("stdmodel", "s")
-cc.shader.fast("stdmodel", "nospecmodel", 1)
+of.shader.fast("stdmodel", "nospecmodel", 1)
 modelshader("masksmodel", "sm")
-cc.shader.fast("masksmodel", "masksnospecmodel", 1)
+of.shader.fast("masksmodel", "masksnospecmodel", 1)
 modelshader("envmapmodel", "sme")
-cc.shader.alt("envmapmodel", "masksmodel")
-cc.shader.fast("envmapmodel", "envmapnospecmodel", 1)
+of.shader.alt("envmapmodel", "masksmodel")
+of.shader.fast("envmapmodel", "envmapnospecmodel", 1)
 
 modelshader("bumpmodel", "ns")
-cc.shader.fast("bumpmodel", "bumpnospecmodel", 1)
+of.shader.fast("bumpmodel", "bumpnospecmodel", 1)
 modelshader("bumpmasksmodel", "nsm")
-cc.shader.fast("bumpmasksmodel", "bumpmasksnospecmodel", 1)
+of.shader.fast("bumpmasksmodel", "bumpmasksnospecmodel", 1)
 modelshader("bumpenvmapmodel", "nsme")
-cc.shader.alt("bumpenvmapmodel", "bumpmasksmodel")
-cc.shader.fast("bumpenvmapmodel", "bumpenvmapnospecmodel", 1)
+of.shader.alt("bumpenvmapmodel", "bumpmasksmodel")
+of.shader.fast("bumpenvmapmodel", "bumpenvmapnospecmodel", 1)
 

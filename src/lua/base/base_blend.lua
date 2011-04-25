@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -29,10 +29,10 @@
 local CAPI = require("CAPI")
 local base = _G
 
---- Texture blending for cC's Lua interface.
+--- Texture blending for OF's Lua interface.
 -- @class module
--- @name cc.blend
-module("cc.blend")
+-- @name of.blend
+module("of.blend")
 
 --- Table holding methods relating texture blending brushes.
 -- @class table

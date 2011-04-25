@@ -38,127 +38,127 @@ fullconfilter = 0xFFFF -- display all messages in full console
 
 -- WSAD
 
-cc.console.binds.add("W", [[cc.console.forward()]])
-cc.console.binds.add("S", [[cc.console.backward()]])
-cc.console.binds.add("A", [[cc.console.left()]])
-cc.console.binds.add("D", [[cc.console.right()]])
+of.console.binds.add("W", [[of.console.forward()]])
+of.console.binds.add("S", [[of.console.backward()]])
+of.console.binds.add("A", [[of.console.left()]])
+of.console.binds.add("D", [[of.console.right()]])
 
-cc.console.binds.add("UP", [[cc.console.forward()]])
-cc.console.binds.add("DOWN", [[cc.console.backward()]])
-cc.console.binds.add("LEFT", [[cc.console.left()]])
-cc.console.binds.add("RIGHT", [[cc.console.right()]])
+of.console.binds.add("UP", [[of.console.forward()]])
+of.console.binds.add("DOWN", [[of.console.backward()]])
+of.console.binds.add("LEFT", [[of.console.left()]])
+of.console.binds.add("RIGHT", [[of.console.right()]])
 
-cc.console.binds.add("SPACE", [[cc.console.jump()]])
+of.console.binds.add("SPACE", [[of.console.jump()]])
 
-cc.console.binds.add("TAB", [[cc.gui.showscores()]])
+of.console.binds.add("TAB", [[of.gui.showscores()]])
 
-cc.console.binds.add("T", [[cc.console.saycommand()]])
---cc.console.binds.add("T", [[cc.console.sayteamcommand()]])
-cc.console.binds.add("BACKQUOTE", [[cc.console.saycommand("/")]])
-cc.console.binds.add("SLASH", [[cc.console.saycommand("/")]])
+of.console.binds.add("T", [[of.console.saycommand()]])
+--of.console.binds.add("T", [[of.console.sayteamcommand()]])
+of.console.binds.add("BACKQUOTE", [[of.console.saycommand("/")]])
+of.console.binds.add("SLASH", [[of.console.saycommand("/")]])
 
-cc.console.binds.add("E", [[cc.world.edittoggle()]])
-cc.console.binds.add("F1", [[cc.world.edittoggle()]])
+of.console.binds.add("E", [[of.world.edittoggle()]])
+of.console.binds.add("F1", [[of.world.edittoggle()]])
 
-cc.console.binds.add("KP_MINUS", [[cc.console.skip(5)]])
-cc.console.binds.add("KP_PLUS", [[cc.console.skip(-1000)]])
+of.console.binds.add("KP_MINUS", [[of.console.skip(5)]])
+of.console.binds.add("KP_PLUS", [[of.console.skip(-1000)]])
 
-cc.console.binds.addvar("PAUSE", "paused")
+of.console.binds.addvar("PAUSE", "paused")
 
-cc.console.binds.add("F11", [[cc.console.toggle()]])
-cc.console.binds.add("F12", [[cc.engine.screenshot()]])
+of.console.binds.add("F11", [[of.console.toggle()]])
+of.console.binds.add("F12", [[of.engine.screenshot()]])
 
 -- mouse
 
-cc.console.binds.add("MOUSE1", [[cc.console.mouse1click()]])
-cc.console.binds.add("MOUSE2", [[cc.console.mouse2click()]])
-cc.console.binds.add("MOUSE3", [[cc.console.mouse3click()]])
+of.console.binds.add("MOUSE1", [[of.console.mouse1click()]])
+of.console.binds.add("MOUSE2", [[of.console.mouse2click()]])
+of.console.binds.add("MOUSE3", [[of.console.mouse3click()]])
 
 -- universal scrollwheel + modifier commands:
 
-cc.console.binds.add("MOUSE4", [[universaldelta(1)]]) -- also used for editing, see below
-cc.console.binds.add("MOUSE5", [[universaldelta(-1)]])
+of.console.binds.add("MOUSE4", [[universaldelta(1)]]) -- also used for editing, see below
+of.console.binds.add("MOUSE5", [[universaldelta(-1)]])
 
 -- edit binds
 
-cc.console.binds.addedit("SPACE", [[cc.world.cancelsel()]])
-cc.console.binds.addedit("MOUSE1", [[if blendpaintmode ~= 0 then cc.blend.map.paint() else cc.world.editdrag() end]])
-cc.console.binds.addedit("MOUSE3", [[cc.world.selcorners()]])
-cc.console.binds.addedit("MOUSE2", [[if blendpaintmode ~= 0 then cc.blend.brush.rotate() else cc.world.editextend() end]])
+of.console.binds.addedit("SPACE", [[of.world.cancelsel()]])
+of.console.binds.addedit("MOUSE1", [[if blendpaintmode ~= 0 then of.blend.map.paint() else of.world.editdrag() end]])
+of.console.binds.addedit("MOUSE3", [[of.world.selcorners()]])
+of.console.binds.addedit("MOUSE2", [[if blendpaintmode ~= 0 then of.blend.brush.rotate() else of.world.editextend() end]])
 
-cc.console.binds.addedit("KP_ENTER", [[cc.world.entselect([=[cc.world.insel()]=])]])
-cc.console.binds.addedit("N", [[cc.world.selentfindall()]])
+of.console.binds.addedit("KP_ENTER", [[of.world.entselect([=[of.world.insel()]=])]])
+of.console.binds.addedit("N", [[of.world.selentfindall()]])
 
-cc.console.binds.addedit("LSHIFT", [[cc.world.editcut()]])
-cc.console.binds.addmodedit("LCTRL", "passthrough")
-cc.console.binds.addmodedit("LALT", "hmapedit")
-cc.console.binds.addedit("DELETE", [[cc.world.editdel()]])
+of.console.binds.addedit("LSHIFT", [[of.world.editcut()]])
+of.console.binds.addmodedit("LCTRL", "passthrough")
+of.console.binds.addmodedit("LALT", "hmapedit")
+of.console.binds.addedit("DELETE", [[of.world.editdel()]])
 
-cc.console.binds.addedit("X", [[cc.world.editflip()]])
-cc.console.binds.addedit("C", [[cc.world.editcopy()]])
-cc.console.binds.addedit("V", [[cc.world.editpaste()]])
-cc.console.binds.addedit("Z", [[cc.world.undo(); passthroughsel = 0]])
-cc.console.binds.addedit("U", [[cc.world.undo(); passthroughsel = 0]])
-cc.console.binds.addedit("I", [[cc.world.redo()]])
-cc.console.binds.addedit("H", [[if hmapedit ~= 0 then cc.world.editface(1, -1) else hmapedit = 1 end]])
+of.console.binds.addedit("X", [[of.world.editflip()]])
+of.console.binds.addedit("C", [[of.world.editcopy()]])
+of.console.binds.addedit("V", [[of.world.editpaste()]])
+of.console.binds.addedit("Z", [[of.world.undo(); passthroughsel = 0]])
+of.console.binds.addedit("U", [[of.world.undo(); passthroughsel = 0]])
+of.console.binds.addedit("I", [[of.world.redo()]])
+of.console.binds.addedit("H", [[if hmapedit ~= 0 then of.world.editface(1, -1) else hmapedit = 1 end]])
 
-cc.console.binds.addvaredit("5", "hidehud")
-cc.console.binds.addvaredit("6", "entselsnap")
-cc.console.binds.addvaredit("7", "outline")
-cc.console.binds.addvaredit("8", "wireframe")
-cc.console.binds.addvar("9", "thirdperson")
-cc.console.binds.addvaredit("0", "allfaces")
-cc.console.binds.addedit("K", [[cc.world.calclight()]])
-cc.console.binds.addvaredit("L", "fullbright")
-cc.console.binds.addvaredit("M", "showmat")
+of.console.binds.addvaredit("5", "hidehud")
+of.console.binds.addvaredit("6", "entselsnap")
+of.console.binds.addvaredit("7", "outline")
+of.console.binds.addvaredit("8", "wireframe")
+of.console.binds.addvar("9", "thirdperson")
+of.console.binds.addvaredit("0", "allfaces")
+of.console.binds.addedit("K", [[of.world.calclight()]])
+of.console.binds.addvaredit("L", "fullbright")
+of.console.binds.addvaredit("M", "showmat")
 
-cc.console.binds.addedit("PERIOD", [[cc.world.selentedit()]])
+of.console.binds.addedit("PERIOD", [[of.world.selentedit()]])
 
-cc.console.binds.addedit("F2", [[cc.texture.showgui()]])
-cc.console.binds.addedit("F3", [[if cc.gui.clear() ~= 1 then showquickeditgui() end]])
-cc.console.binds.addedit("F4", [[if cc.gui.clear() ~= 1 then cc.gui.show("mapmodels") end]])
-cc.console.binds.addedit("F9", [[echo("%(1)s : %(2)s" % { cc.texture.getsel(), cc.texture.getname(cc.texture.getsel()) })]])
+of.console.binds.addedit("F2", [[of.texture.showgui()]])
+of.console.binds.addedit("F3", [[if of.gui.clear() ~= 1 then showquickeditgui() end]])
+of.console.binds.addedit("F4", [[if of.gui.clear() ~= 1 then of.gui.show("mapmodels") end]])
+of.console.binds.addedit("F9", [[echo("%(1)s : %(2)s" % { of.texture.getsel(), of.texture.getname(of.texture.getsel()) })]])
 
-cc.console.binds.addedit("G", [[domodifier(1)]])
-cc.console.binds.addedit("F", [[domodifier(2)]])
-cc.console.binds.addedit("Q", [[domodifier(3)]])
-cc.console.binds.addedit("R", [[domodifier(4)]])
-cc.console.binds.addedit("Y", [[domodifier(6)]])
-cc.console.binds.addedit("B", [[domodifier(9)]])
-cc.console.binds.addedit("COMMA", [[domodifier(10); cc.console.onrelease("cc.world.entautoview()")]])
+of.console.binds.addedit("G", [[domodifier(1)]])
+of.console.binds.addedit("F", [[domodifier(2)]])
+of.console.binds.addedit("Q", [[domodifier(3)]])
+of.console.binds.addedit("R", [[domodifier(4)]])
+of.console.binds.addedit("Y", [[domodifier(6)]])
+of.console.binds.addedit("B", [[domodifier(9)]])
+of.console.binds.addedit("COMMA", [[domodifier(10); of.console.onrelease("of.world.entautoview()")]])
 
-cc.console.binds.addedit("1", [[domodifier(11)]])
-cc.console.binds.addedit("2", [[domodifier(12)]])
-cc.console.binds.addedit("3", [[domodifier(13)]])
-cc.console.binds.addedit("4", [[domodifier(14)]])
+of.console.binds.addedit("1", [[domodifier(11)]])
+of.console.binds.addedit("2", [[domodifier(12)]])
+of.console.binds.addedit("3", [[domodifier(13)]])
+of.console.binds.addedit("4", [[domodifier(14)]])
 
-cc.console.binds.addedit("5", [[domodifier(15)]]) -- vSlot: offset H
-cc.console.binds.addedit("6", [[domodifier(16)]]) -- vSlot: offset V
-cc.console.binds.addedit("7", [[domodifier(17)]]) -- vSlot: rotate
-cc.console.binds.addedit("8", [[domodifier(18)]]) -- vSlot: scale
+of.console.binds.addedit("5", [[domodifier(15)]]) -- vSlot: offset H
+of.console.binds.addedit("6", [[domodifier(16)]]) -- vSlot: offset V
+of.console.binds.addedit("7", [[domodifier(17)]]) -- vSlot: rotate
+of.console.binds.addedit("8", [[domodifier(18)]]) -- vSlot: scale
 
-cc.console.binds.addedit("LALT", [[multiplier = 10; cc.console.onrelease("multiplier = 1")]])
-cc.console.binds.addedit("RALT", [[multiplier2 = 10; cc.console.onrelease("multiplier2 = 1")]])
+of.console.binds.addedit("LALT", [[multiplier = 10; of.console.onrelease("multiplier = 1")]])
+of.console.binds.addedit("RALT", [[multiplier2 = 10; of.console.onrelease("multiplier2 = 1")]])
 
 -- blendmap painting
-cc.console.binds.addedit("KP0", [[cc.blend.setpaintmode(blendpaintmode ~= 0 and 0 or 1)]])
-cc.console.binds.addedit("KP1", [[if blendpaintmode ~= 0 then cc.blend.setpaintmode(1) else cc.console.left() end]])
-cc.console.binds.addedit("KP2", [[if blendpaintmode ~= 0 then cc.blend.setpaintmode(2) else cc.console.backward() end]])
-cc.console.binds.addedit("KP3", [[if blendpaintmode ~= 0 then cc.blend.setpaintmode(3) else cc.console.right() end]])
-cc.console.binds.addedit("KP4", [[if blendpaintmode ~= 0 then cc.blend.setpaintmode(4) else cc.console.turn_left() end]])
-cc.console.binds.addedit("KP5", [[cc.blend.setpaintmode(5)]])
-cc.console.binds.addedit("KP6", [[cc.console.turn_right()]])
-cc.console.binds.addedit("KP8", [[if blendpaintmode ~= 0 then cc.blend.brush.scroll(-1) else cc.console.forward() end]])
-cc.console.binds.addedit("KP9", [[cc.blend.brush.scroll(1)]])
+of.console.binds.addedit("KP0", [[of.blend.setpaintmode(blendpaintmode ~= 0 and 0 or 1)]])
+of.console.binds.addedit("KP1", [[if blendpaintmode ~= 0 then of.blend.setpaintmode(1) else of.console.left() end]])
+of.console.binds.addedit("KP2", [[if blendpaintmode ~= 0 then of.blend.setpaintmode(2) else of.console.backward() end]])
+of.console.binds.addedit("KP3", [[if blendpaintmode ~= 0 then of.blend.setpaintmode(3) else of.console.right() end]])
+of.console.binds.addedit("KP4", [[if blendpaintmode ~= 0 then of.blend.setpaintmode(4) else of.console.turn_left() end]])
+of.console.binds.addedit("KP5", [[of.blend.setpaintmode(5)]])
+of.console.binds.addedit("KP6", [[of.console.turn_right()]])
+of.console.binds.addedit("KP8", [[if blendpaintmode ~= 0 then of.blend.brush.scroll(-1) else of.console.forward() end]])
+of.console.binds.addedit("KP9", [[of.blend.brush.scroll(1)]])
 
-cc.console.binds.add("M", [[cc.camera.mouselook()]])
-cc.console.binds.addedit("M", [[cc.camera.mouselook()]])
-cc.console.binds.addvaredit("0", "showmat")
+of.console.binds.add("M", [[of.camera.mouselook()]])
+of.console.binds.addedit("M", [[of.camera.mouselook()]])
+of.console.binds.addvaredit("0", "showmat")
 
-cc.console.binds.add("PAGEDOWN", [[cc.console.look_up()]])
-cc.console.binds.add("PAGEDOWN", [[cc.console.look_down()]])
+of.console.binds.add("PAGEDOWN", [[of.console.look_up()]])
+of.console.binds.add("PAGEDOWN", [[of.console.look_down()]])
 
-cc.console.binds.addedit("MOUSE2", [[cc.world.editextend_intensity()]])
-cc.console.binds.addedit("P", [[cc.world.centerent()]])
+of.console.binds.addedit("MOUSE2", [[of.world.editextend_intensity()]])
+of.console.binds.addedit("P", [[of.world.centerent()]])
 -- create entity where we're pointing
-cc.console.binds.addedit("F8", [[cc.console.save_mouse_pos(); cc.gui.prepentsgui()]])
+of.console.binds.addedit("F8", [[of.console.save_mouse_pos(); of.gui.prepentsgui()]])

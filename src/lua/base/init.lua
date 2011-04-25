@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -26,19 +26,19 @@
 -- THE SOFTWARE.
 --
 
--- see cc.world metatable below
+-- see of.world metatable below
 local gravity
 
-cc.logging.log(cc.logging.DEBUG, ":: JSON.")
+of.logging.log(of.logging.DEBUG, ":: JSON.")
 require("base.base_json")
 
-cc.logging.log(cc.logging.DEBUG, ":: Signals.")
+of.logging.log(of.logging.DEBUG, ":: Signals.")
 require("base.base_signals")
 
-cc.logging.log(cc.logging.DEBUG, ":: Platform.")
+of.logging.log(of.logging.DEBUG, ":: Platform.")
 require("base.base_platform")
 
-cc.logging.log(cc.logging.DEBUG, ":: Engine variables.")
+of.logging.log(of.logging.DEBUG, ":: Engine variables.")
 require("base.base_evars")
 
 --- Metatable for global table made for transparently
@@ -51,14 +51,14 @@ require("base.base_evars")
 -- @field __newindex Called when a value is set.
 setmetatable(_G, {
     __index = function(self, n)
-        return (cc.engine_variables.inst.stor[n] and
-            cc.engine_variables.inst[n] or
+        return (of.engine_variables.inst.stor[n] and
+            of.engine_variables.inst[n] or
             rawget(self, n)
         )
     end,
     __newindex = function(self, n, v)
-        if cc.engine_variables.inst.stor[n] then
-            cc.engine_variables.inst[n] = v
+        if of.engine_variables.inst.stor[n] then
+            of.engine_variables.inst[n] = v
         else
             rawset(self, n, v)
         end
@@ -68,64 +68,64 @@ setmetatable(_G, {
 require("base.stub_logent")
 require("base.stub_logent_classes")
 
-cc.logging.log(cc.logging.DEBUG, ":: Utilities.")
+of.logging.log(of.logging.DEBUG, ":: Utilities.")
 require("base.base_utils")
 
-cc.logging.log(cc.logging.DEBUG, ":: Color conversion.")
+of.logging.log(of.logging.DEBUG, ":: Color conversion.")
 require("base.base_colors")
 
-cc.logging.log(cc.logging.DEBUG, ":: Console.")
+of.logging.log(of.logging.DEBUG, ":: Console.")
 require("base.base_console")
 
-cc.logging.log(cc.logging.DEBUG, ":: GUI.")
+of.logging.log(of.logging.DEBUG, ":: GUI.")
 require("base.base_gui")
 
-cc.logging.log(cc.logging.DEBUG, ":: Shaders.")
+of.logging.log(of.logging.DEBUG, ":: Shaders.")
 require("base.base_shaders")
 
-cc.logging.log(cc.logging.DEBUG, ":: Models.")
+of.logging.log(of.logging.DEBUG, ":: Models.")
 require("base.base_models")
 
-cc.logging.log(cc.logging.DEBUG, ":: Texture blending.")
+of.logging.log(of.logging.DEBUG, ":: Texture blending.")
 require("base.base_blend")
 
-cc.logging.log(cc.logging.DEBUG, ":: Action system.")
+of.logging.log(of.logging.DEBUG, ":: Action system.")
 require("base.base_actions")
 
-cc.logging.log(cc.logging.DEBUG, ":: Message system.")
+of.logging.log(of.logging.DEBUG, ":: Message system.")
 require("base.base_msgsys")
 
-cc.logging.log(cc.logging.DEBUG, ":: Logic entity storage.")
+of.logging.log(of.logging.DEBUG, ":: Logic entity storage.")
 require("base.base_logent_store")
 
-cc.logging.log(cc.logging.DEBUG, ":: State variables.")
+of.logging.log(of.logging.DEBUG, ":: State variables.")
 require("base.base_svars")
 
-cc.logging.log(cc.logging.DEBUG, ":: Logic entity classes.")
+of.logging.log(of.logging.DEBUG, ":: Logic entity classes.")
 require("base.base_logent_classes")
 
-cc.logging.log(cc.logging.DEBUG, ":: Logic entities.")
+of.logging.log(of.logging.DEBUG, ":: Logic entities.")
 require("base.base_logent")
 
-cc.logging.log(cc.logging.DEBUG, ":: Effects.")
+of.logging.log(of.logging.DEBUG, ":: Effects.")
 require("base.base_effects")
 
-cc.logging.log(cc.logging.DEBUG, ":: Sound.")
+of.logging.log(of.logging.DEBUG, ":: Sound.")
 require("base.base_sound")
 
-cc.logging.log(cc.logging.DEBUG, ":: Animatables.")
+of.logging.log(of.logging.DEBUG, ":: Animatables.")
 require("base.base_animatable")
 
-cc.logging.log(cc.logging.DEBUG, ":: Character.")
+of.logging.log(of.logging.DEBUG, ":: Character.")
 require("base.base_character")
 
-cc.logging.log(cc.logging.DEBUG, ":: Static entities.")
+of.logging.log(of.logging.DEBUG, ":: Static entities.")
 require("base.base_statent")
 
-cc.logging.log(cc.logging.DEBUG, ":: Textures.")
+of.logging.log(of.logging.DEBUG, ":: Textures.")
 require("base.base_textures")
 
-cc.logging.log(cc.logging.DEBUG, ":: World interface.")
+of.logging.log(of.logging.DEBUG, ":: World interface.")
 require("base.base_world")
 
 --- Metatable for world for setting gravity.
@@ -133,7 +133,7 @@ require("base.base_world")
 -- @name world_metatable
 -- @field __index Called when a value is got.
 -- @field __newindex Called when a value is set.
-setmetatable(cc.world, {
+setmetatable(of.world, {
     __index = function(self, n)
         return (n == "gravity" and gravity or rawget(self, n))
     end,
@@ -147,13 +147,13 @@ setmetatable(cc.world, {
     end
 })
 
-cc.world.gravity = 200
+of.world.gravity = 200
 
-cc.logging.log(cc.logging.DEBUG, ":: Network interface.")
+of.logging.log(of.logging.DEBUG, ":: Network interface.")
 require("base.base_network")
 
-cc.logging.log(cc.logging.DEBUG, ":: Camera.")
+of.logging.log(of.logging.DEBUG, ":: Camera.")
 require("base.base_camera")
 
-cc.logging.log(cc.logging.DEBUG, ":: Engine interface.")
+of.logging.log(of.logging.DEBUG, ":: Engine interface.")
 require("base.base_engine")

@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -30,18 +30,18 @@ local base = _G
 local table = require("table")
 local string = require("string")
 local CAPI = require("CAPI")
-local class = require("cc.class")
-local log = require("cc.logging")
-local glob = require("cc.global")
-local lstor = require("cc.logent.store")
-local conv = require("cc.typeconv")
-local json = require("cc.json")
-local vector = require("cc.vector")
+local class = require("of.class")
+local log = require("of.logging")
+local glob = require("of.global")
+local lstor = require("of.logent.store")
+local conv = require("of.typeconv")
+local json = require("of.json")
+local vector = require("of.vector")
 
---- State variable system for cC Lua interface.
+--- State variable system for OF Lua interface.
 -- @class module
--- @name cc.state_variables
-module("cc.state_variables")
+-- @name of.state_variables
+module("of.state_variables")
 
 --- Get "on modify event" prefix for state variables.
 -- @return "on modify event" prefix.

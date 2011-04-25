@@ -1,11 +1,11 @@
 ---
 -- base_models.lua, version 1<br/>
--- Model interface for cC Lua scripting system<br/>
+-- Model interface for OF Lua scripting system<br/>
 -- <br/>
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -31,11 +31,11 @@ local string = require("string")
 local math = require("math")
 local CAPI = require("CAPI")
 
---- Model control for cC's Lua interface.
+--- Model control for OF's Lua interface.
 -- TODO: make more detailed later
 -- @class module
--- @name cc.model
-module("cc.model")
+-- @name of.model
+module("of.model")
 
 -- in sync with iengine.h
 CULL_VFC = math.lsh(1, 0)

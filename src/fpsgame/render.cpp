@@ -22,7 +22,7 @@ namespace game
 
         startmodelbatches();
 
-        lua::engine.getg("cc")
+        lua::engine.getg("of")
                    .t_getraw("logent")
                    .t_getraw("store")
                    .t_getraw("render_dynamic")
@@ -54,7 +54,7 @@ namespace game
 
     void renderavatar()
     {
-        lua::engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("render_hud_models").call(0, 0).pop(3);
+        lua::engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("render_hud_models").call(0, 0).pop(3);
     }
 }
 

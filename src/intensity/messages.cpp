@@ -519,7 +519,7 @@ namespace MessageSystem
         // Add entity
         Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.c_str(), x, y, z, stateData.c_str());
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("cc").t_getraw("logent").t_getraw("classes").t_getraw("get_sauertype").push(_class.c_str()).call(1, 1);
+        engine.getg("of").t_getraw("logent").t_getraw("classes").t_getraw("get_sauertype").push(_class.c_str()).call(1, 1);
         std::string sauerType = engine.get(-1, "extent");
         engine.pop(4);
         Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType.c_str());
@@ -530,7 +530,7 @@ namespace MessageSystem
         params.append(y);
         params.append(z);
         // Create
-        engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("new").push(_class.c_str());
+        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("new").push(_class.c_str());
         engine.t_new();
         engine.push("position")
             .t_new()
@@ -627,7 +627,7 @@ namespace MessageSystem
                 if (!engine.hashandle()) \
                     return; \
                 \
-                engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).call(3, 0).pop(3);
+                engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).call(3, 0).pop(3);
         #endif
         STATE_DATA_UPDATE
     }
@@ -671,7 +671,7 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).push(actorUniqueId).call(4, 0).pop(3);
+        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).push(actorUniqueId).call(4, 0).pop(3);
         STATE_DATA_REQUEST
     }
 #endif
@@ -923,7 +923,7 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, -1, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            engine.getg("cc")
+            engine.getg("of")
                   .t_getraw("logent")
                   .t_getraw("store")
                   .t_getraw("send_entities")
@@ -932,7 +932,7 @@ namespace MessageSystem
                   .pop(3);
             MessageSystem::send_AllActiveEntitiesSent(sender);
             engine.getg("on_player_login");
-            if (engine.is<void*>(-1)) engine.getg("cc")
+            if (engine.is<void*>(-1)) engine.getg("of")
                       .t_getraw("logent")
                       .t_getraw("store")
                       .t_getraw("get")
@@ -1032,7 +1032,7 @@ namespace MessageSystem
         if (entity == NULL)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("add")
+            engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("add")
                 .push(otherClass.c_str())
                 .push(otherUniqueId)
                 .t_new();
@@ -1076,7 +1076,7 @@ namespace MessageSystem
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
-                engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("set_player_uid").push(ClientSystem::uniqueId).call(1, 0).pop(3);
+                engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("set_player_uid").push(ClientSystem::uniqueId).call(1, 0).pop(3);
             }
         #endif
         // Events post-reception
@@ -1110,7 +1110,7 @@ namespace MessageSystem
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("del").push(uniqueId).call(1, 0).pop(3);
+        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("del").push(uniqueId).call(1, 0).pop(3);
     }
 #endif
 
@@ -1172,7 +1172,7 @@ namespace MessageSystem
 
         if (!engine.hashandle())
             return;
-        engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("del").push(uniqueId).call(1, 0).pop(3);
+        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("del").push(uniqueId).call(1, 0).pop(3);
     }
 #endif
 
@@ -1267,10 +1267,10 @@ namespace MessageSystem
         if (entity == NULL)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("cc").t_getraw("logent").t_getraw("classes").t_getraw("get_sauertype").push(otherClass.c_str()).call(1, 1);
+            engine.getg("of").t_getraw("logent").t_getraw("classes").t_getraw("get_sauertype").push(otherClass.c_str()).call(1, 1);
             std::string sauerType = engine.get(-1, "extent");
             engine.pop(4);
-            engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("add")
+            engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("add")
                 .push(otherClass.c_str())
                 .push(otherUniqueId)
                 .t_new()

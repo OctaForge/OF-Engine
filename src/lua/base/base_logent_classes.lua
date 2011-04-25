@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -28,14 +28,14 @@
 
 local base = _G
 local table = require("table")
-local log = require("cc.logging")
-local svar = require("cc.state_variables")
-local msgsys = require("cc.msgsys")
+local log = require("of.logging")
+local svar = require("of.state_variables")
+local msgsys = require("of.msgsys")
 
 --- This module takes care of logic entity classes.
 -- @class module
--- @name cc.logent.classes
-module("cc.logent.classes")
+-- @name of.logent.classes
+module("of.logent.classes")
 
 _logent_classes = {}
 

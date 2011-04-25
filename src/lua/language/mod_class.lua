@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com), bartbes<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -32,12 +32,12 @@ local table = require("table")
 
 --- Class library for Lua. Allows instances, parent calling and simple inheritance.
 -- Multiple inheritance isn't and won't be supported. Code using multiple inheritance
--- won't be accepted into CubeCreate. What the class system allows are getters / setters
+-- won't be accepted into OctaForge. What the class system allows are getters / setters
 -- for virtual class members and get / set conditional function for emulating private
 -- class members, which might be useful sometimes.
 -- @class module
--- @name cc.class
-module("cc.class")
+-- @name of.class
+module("of.class")
 
 --- Create a new class.
 -- <br/><br/>Usage:<br/><br/>

@@ -120,7 +120,7 @@ namespace lua_binds
         int uid = GuiControl::EditedEntity::currEntity->getUniqueId();
 
         // we get this beforehand because of further re-use
-        e.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("get").push(uid).call(1, 1);
+        e.getg("of").t_getraw("logent").t_getraw("store").t_getraw("get").push(uid).call(1, 1);
         // we've got the entity here now (popping get out)
         e.t_getraw("create_statedatadict").push_index(-2).call(1, 1);
         // ok, state data are on stack, popping createStateDataDict out, let's ref it so we can easily get it later
@@ -133,7 +133,7 @@ namespace lua_binds
             // we have array of keys, so the original key is a value in this case
             const char *key = e.get<const char*>(-1);
 
-            e.getg("cc").t_getraw("state_variables").t_getraw("__getguin");
+            e.getg("of").t_getraw("state_variables").t_getraw("__getguin");
             e.push(uid).push(key).call(2, 1);
             const char *guiName = e.get<const char*>(-1);
             e.pop(3);
@@ -169,9 +169,9 @@ namespace lua_binds
 
         // Create the gui
         std::string command =
-            "cc.gui.new(\"entity\", function()\n"
-            "    cc.gui.text(entity_gui_title)\n"
-            "    cc.gui.bar()\n";
+            "of.gui.new(\"entity\", function()\n"
+            "    of.gui.text(entity_gui_title)\n"
+            "    of.gui.bar()\n";
 
         for (int i = 0; i < GETIV(num_entity_gui_fields); i++)
         {
@@ -186,18 +186,18 @@ namespace lua_binds
             }
 
             command +=
-                "    cc.gui.list(function()\n"
-                "        cc.gui.text(cc.gui.getentguilabel(" + sI + "))\n"
-                "        cc.engine_variables.new(\"new_entity_gui_field_" + sI + "\", cc.engine_variables.VAR_S, cc.gui.getentguival(" + sI + "))\n"
-                "        cc.gui.field(\"new_entity_gui_field_" + sI + "\", "
+                "    of.gui.list(function()\n"
+                "        of.gui.text(of.gui.getentguilabel(" + sI + "))\n"
+                "        of.engine_variables.new(\"new_entity_gui_field_" + sI + "\", of.engine_variables.VAR_S, of.gui.getentguival(" + sI + "))\n"
+                "        of.gui.field(\"new_entity_gui_field_" + sI + "\", "
                 + Utility::toString((int)value.size()+25)
-                + ", [[cc.gui.setentguival(" + sI + ", new_entity_gui_field_" + sI + ")]], 0)\n"
+                + ", [[of.gui.setentguival(" + sI + ", new_entity_gui_field_" + sI + ")]], 0)\n"
                 "    end)\n";
 
             if ((i+1) % 10 == 0)
             {
                 command +=
-                    "   cc.gui.tab(" + Utility::toString(i) + ")\n";
+                    "   of.gui.tab(" + Utility::toString(i) + ")\n";
             }
         }
 
@@ -228,7 +228,7 @@ namespace lua_binds
             GuiControl::EditedEntity::stateData[key].second = e.get<const char*>(2);
 
             int uniqueId = GuiControl::EditedEntity::currEntity->getUniqueId();
-            e.getg("cc").t_getraw("state_variables")
+            e.getg("of").t_getraw("state_variables")
                         .t_getraw("__get")
                         .push(uniqueId)
                         .push(key)
@@ -244,7 +244,7 @@ namespace lua_binds
             {
                 e.getg("string").t_getraw("gsub").push(nav).push("%[(.*)%]").push("{%1}").call(3, 2);
                 e.pop(1); nav = e.get<const char*>(-1); e.pop(2);
-                defformatstring(c)("cc.logent.store.get(%i).%s = %s", uniqueId, key, nav);
+                defformatstring(c)("of.logent.store.get(%i).%s = %s", uniqueId, key, nav);
                 e.exec(c);
             }
         }

@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -34,8 +34,8 @@ local base = _G
 -- Contains some settings shared between Lua and C++.
 -- Contains at least CLIENT and SERVER booleans and engine version.
 -- @class module
--- @name cc.global
-module("cc.global")
+-- @name of.global
+module("of.global")
 
 --- Global table.
 -- @field version Version of the engine.

@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -26,15 +26,15 @@
 -- THE SOFTWARE.
 --
 
-cc.logging.log(cc.logging.DEBUG, ":: Math extensions.")
+of.logging.log(of.logging.DEBUG, ":: Math extensions.")
 require("language.ext_math")
-cc.logging.log(cc.logging.DEBUG, ":: Table extensions.")
+of.logging.log(of.logging.DEBUG, ":: Table extensions.")
 require("language.ext_table")
-cc.logging.log(cc.logging.DEBUG, ":: String extensions.")
+of.logging.log(of.logging.DEBUG, ":: String extensions.")
 require("language.ext_string")
-cc.logging.log(cc.logging.DEBUG, ":: Class system.")
+of.logging.log(of.logging.DEBUG, ":: Class system.")
 require("language.mod_class")
-cc.logging.log(cc.logging.DEBUG, ":: Vectors.")
+of.logging.log(of.logging.DEBUG, ":: Vectors.")
 require("language.mod_vec")
-cc.logging.log(cc.logging.DEBUG, ":: Type conversion.")
+of.logging.log(of.logging.DEBUG, ":: Type conversion.")
 require("language.mod_conv")

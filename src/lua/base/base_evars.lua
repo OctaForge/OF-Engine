@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -27,8 +27,8 @@
 --
 
 local base = _G
-local logging = require("cc.logging")
-local class = require("cc.class")
+local logging = require("of.logging")
+local class = require("of.class")
 local CAPI = require("CAPI")
 
 --- The engine variables module. It contains core "variables" shared between
@@ -37,16 +37,16 @@ local CAPI = require("CAPI")
 -- is also C++ representation. Lua is there just to minimize number
 -- of stack changes - values are sync only when needed.<br/><br/>
 -- The "storage" is a class, which has an instance called "inst".
--- From that you can get a variable (cc.engine_variables.inst.foo)
--- or set (cc.engine_variables.inst.foo = 5). VAR_I, VAR_F and VAR_S
+-- From that you can get a variable (of.engine_variables.inst.foo)
+-- or set (of.engine_variables.inst.foo = 5). VAR_I, VAR_F and VAR_S
 -- are simple integers reflecting C++ enumeration. _VAR is the skeleton
 -- for variable, IVAR, FVAR and SVAR inherit it in proper way.
 -- To make things shorter, you don't have to get variables specifying
 -- full module prefix. The global table _G has a metatable set, so
 -- you can get / set variables as if they were global.
 -- @class module
--- @name cc.engine_variables
-module("cc.engine_variables")
+-- @name of.engine_variables
+module("of.engine_variables")
 
 -- Variable types
 

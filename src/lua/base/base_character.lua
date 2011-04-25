@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -29,21 +29,21 @@
 local base = _G
 local table = require("table")
 local math = require("math")
-local log = require("cc.logging")
-local svar = require("cc.state_variables")
-local class = require("cc.class")
-local anim = require("cc.animatable")
-local lstor = require("cc.logent.store")
-local lcl = require("cc.logent.classes")
-local mdl = require("cc.model")
-local act = require("cc.action")
-local util = require("cc.utils")
+local log = require("of.logging")
+local svar = require("of.state_variables")
+local class = require("of.class")
+local anim = require("of.animatable")
+local lstor = require("of.logent.store")
+local lcl = require("of.logent.classes")
+local mdl = require("of.model")
+local act = require("of.action")
+local util = require("of.utils")
 local CAPI = require("CAPI")
 
 --- This module takes care of character entity, states and player entity.
 -- @class module
--- @name cc.character
-module("cc.character")
+-- @name of.character
+module("of.character")
 
 --- Client state table, reflects ents.h.
 -- @field ALIVE Client is alive.

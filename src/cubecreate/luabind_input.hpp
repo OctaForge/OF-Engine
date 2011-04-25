@@ -121,7 +121,7 @@ namespace lua_binds
             PlayerControl::flushActions(); /* stop current actions */ \
             s = addreleaseaction("CAPI."#name"()")!=0; \
             e.getg(#v); \
-            if (!e.is<void*>(-1)) e.getg("cc") \
+            if (!e.is<void*>(-1)) e.getg("of") \
                  .t_getraw("logent") \
                  .t_getraw("store") \
                  .t_getraw("get_plyent") \
@@ -153,7 +153,7 @@ namespace lua_binds
             if (!e.is<void*>(-1))
             {
                 if (down)
-                    e.getg("cc")
+                    e.getg("of")
                      .t_getraw("logent")
                      .t_getraw("store")
                      .t_getraw("get_plyent")

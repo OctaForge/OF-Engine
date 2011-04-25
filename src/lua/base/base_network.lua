@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -28,10 +28,10 @@
 
 local CAPI = require("CAPI")
 
---- Network for cC's Lua interface.
+--- Network for OF's Lua interface.
 -- @class module
--- @name cc.network
-module("cc.network")
+-- @name of.network
+module("of.network")
 
 --- Connect to a server.
 -- @param ip An IP address (string)

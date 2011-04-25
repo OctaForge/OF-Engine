@@ -302,7 +302,7 @@ def upload_map():
 
 def export_entities(filename):
     full_path = os.path.join(get_asset_dir(), get_curr_map_prefix(), filename)
-    data = CModule.run_script_string("return cc.logent.store.save_entities()")
+    data = CModule.run_script_string("return of.logent.store.save_entities()")
 
     # Save backup, if needed
 

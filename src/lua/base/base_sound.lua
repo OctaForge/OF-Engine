@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -27,16 +27,16 @@
 --
 
 local CAPI = require("CAPI")
-local vec = require("cc.vector")
-local glob = require("cc.global")
-local msg = require("cc.msgsys")
-local log = require("cc.logging")
+local vec = require("of.vector")
+local glob = require("of.global")
+local msg = require("of.msgsys")
+local log = require("of.logging")
 local string = require("string")
 
---- Sound system for cC's Lua interface.
+--- Sound system for OF's Lua interface.
 -- @class module
--- @name cc.sound
-module("cc.sound")
+-- @name of.sound
+module("of.sound")
 
 --- Play sound, knowing the filename.
 -- If done on the server, a message is sent to clients to play the sound.

@@ -245,10 +245,10 @@ namespace game
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
             engine.exec(
-                "cc.logent.store.get(" + Utility::toString(d->uniqueId) + ").position = {" +
-                "cc.logent.store.get(" + Utility::toString(d->uniqueId) + ").position.x," +
-                "cc.logent.store.get(" + Utility::toString(d->uniqueId) + ").position.y," +
-                "cc.logent.store.get(" + Utility::toString(d->uniqueId) + ").position.z}"
+                "of.logent.store.get(" + Utility::toString(d->uniqueId) + ").position = {" +
+                "of.logent.store.get(" + Utility::toString(d->uniqueId) + ").position.x," +
+                "of.logent.store.get(" + Utility::toString(d->uniqueId) + ").position.y," +
+                "of.logent.store.get(" + Utility::toString(d->uniqueId) + ").position.z}"
             );
 #endif
         }
@@ -367,7 +367,7 @@ namespace game
 
                 // If triggering collisions can be done by the lua library code, use that
 
-                engine.getg("cc")
+                engine.getg("of")
                       .t_getraw("logent")
                       .t_getraw("store")
                       .t_getraw("manage_triggering_collisions");
@@ -401,7 +401,7 @@ namespace game
         actionsBenchmarker.start();
             if (runWorld)
             {
-                engine.getg("cc")
+                engine.getg("of")
                       .t_getraw("logent")
                       .t_getraw("store")
                       .t_getraw("start_frame")
@@ -619,7 +619,7 @@ namespace game
 
     std::string scriptname(fpsent *d)
     {
-        engine.getg("cc")
+        engine.getg("of")
               .t_getraw("logent")
               .t_getraw("store")
               .t_getraw("get")

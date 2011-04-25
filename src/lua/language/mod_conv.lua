@@ -1,11 +1,11 @@
 ---
 -- mod_conv.lua, version 1<br/>
--- Type conversions module for cC<br/>
+-- Type conversions module for OF<br/>
 -- <br/>
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -29,15 +29,15 @@
 local base = _G
 local math = require("math")
 local string = require("string")
-local vector = require("cc.vector")
+local vector = require("of.vector")
 
---- Type conversion module for CubeCreate. Contains several basic type conversion
+--- Type conversion module for OctaForge. Contains several basic type conversion
 -- methods, some of them wrapped from global. toboolean is a new method.
 -- tointeger is a new method too, tonumber and tostring are wrapped.
 -- tocalltable is new and converts function to callable table.
 -- @class module
--- @name cc.typeconv
-module("cc.typeconv")
+-- @name of.typeconv
+module("of.typeconv")
 
 --- Convert types into boolean.
 -- @param v Value to convert.

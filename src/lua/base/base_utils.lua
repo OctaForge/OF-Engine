@@ -1,11 +1,11 @@
 ---
 -- base_utils.lua, version 1<br/>
--- Various utilities for Lua CubeCreate interface<br/>
+-- Various utilities for Lua OctaForge interface<br/>
 -- <br/>
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -27,16 +27,16 @@
 --
 
 local base = _G
-local class = require("cc.class")
+local class = require("of.class")
 local math = require("math")
 local string = require("string")
 local CAPI = require("CAPI")
 
---- Utilities for CubeCreate Lua inteface.
--- Contains various additional utilities (geometry, timer) for Lua cC interface.
+--- Utilities for OctaForge Lua inteface.
+-- Contains various additional utilities (geometry, timer) for Lua OF interface.
 -- @class module
--- @name cc.utils
-module("cc.utils")
+-- @name of.utils
+module("of.utils")
 
 --- A simple timer.
 -- @class table

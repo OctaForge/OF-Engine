@@ -273,7 +273,7 @@ namespace var
 
     void cvar::regliv()
     {
-        lua::engine.getg("cc")
+        lua::engine.getg("of")
                    .t_getraw("engine_variables")
                    .t_getraw("ivar")
                    .push(name)
@@ -288,7 +288,7 @@ namespace var
 
     void cvar::reglfv()
     {
-        lua::engine.getg("cc")
+        lua::engine.getg("of")
                    .t_getraw("engine_variables")
                    .t_getraw("fvar")
                    .push(name)
@@ -303,7 +303,7 @@ namespace var
 
     void cvar::reglsv()
     {
-        lua::engine.getg("cc")
+        lua::engine.getg("of")
                    .t_getraw("engine_variables")
                    .t_getraw("svar")
                    .push(name)
@@ -324,7 +324,7 @@ namespace var
         if ((luasync || alias) && lua::engine.hashandle()) \
         { \
             defformatstring(buf)("%s_ns", name); \
-            lua::engine.getg("cc").t_getraw("engine_variables") \
+            lua::engine.getg("of").t_getraw("engine_variables") \
                        .t_getraw("inst").t_set(buf, v).pop(3); \
         }
 

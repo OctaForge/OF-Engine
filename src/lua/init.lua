@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)
 -- license: MIT/X11
 --
--- @copyright 2011 CubeCreate project
+-- @copyright 2011 OctaForge project
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -48,17 +48,17 @@ debug.sethook(trace, "c")
 -- Logging comes first.
 require("base.base_logging")
 -- Globally wrap some logging stuff because it's often used.
-log = cc.logging.log
-INFO = cc.logging.INFO
-DEBUG = cc.logging.DEBUG
-WARNING = cc.logging.WARNING
-ERROR = cc.logging.ERROR
-echo = cc.logging.echo
+log = of.logging.log
+INFO = of.logging.INFO
+DEBUG = of.logging.DEBUG
+WARNING = of.logging.WARNING
+ERROR = of.logging.ERROR
+echo = of.logging.echo
 
-cc.logging.log(cc.logging.DEBUG, "Initializing language extensions.")
+of.logging.log(of.logging.DEBUG, "Initializing language extensions.")
 require("language")
 
-cc.logging.log(cc.logging.DEBUG, "Initializing base.")
+of.logging.log(of.logging.DEBUG, "Initializing base.")
 require("base")
 
-cc.logging.log(cc.logging.DEBUG, "Core scripting initialization complete.")
+of.logging.log(of.logging.DEBUG, "Core scripting initialization complete.")

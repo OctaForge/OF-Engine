@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -30,18 +30,18 @@ local base = _G
 local table = require("table")
 local math = require("math")
 local CAPI = require("CAPI")
-local glob = require("cc.global")
-local log = require("cc.logging")
-local json = require("cc.json")
-local lecl = require("cc.logent.classes")
-local conv = require("cc.typeconv")
-local msgsys = require("cc.msgsys")
-local util = require("cc.utils")
+local glob = require("of.global")
+local log = require("of.logging")
+local json = require("of.json")
+local lecl = require("of.logent.classes")
+local conv = require("of.typeconv")
+local msgsys = require("of.msgsys")
+local util = require("of.utils")
 
 --- This module takes care of logic entity storage.
 -- @class module
--- @name cc.logent.store
-module("cc.logent.store")
+-- @name of.logent.store
+module("of.logent.store")
 
 -- caching by time delay
 function cache_by_time_delay(func, delay)
@@ -139,7 +139,7 @@ function is_player_editing(ply)
     if glob.CLIENT then
         ply = ply or get_plyent()
     end
-    return ply and ply.cs == 4 -- cc.character.CSTATE.EDITING
+    return ply and ply.cs == 4 -- of.character.CSTATE.EDITING
 end
 
 --- Get table of entities close to a position.
@@ -358,7 +358,7 @@ end
 -- @see render_dynamic
 function render_hud_models()
     local ply = get_plyent()
-    if ply.hud_modelname and ply.cs ~= 4 then -- 4 = cc.character.CSTATE.EDITING
+    if ply.hud_modelname and ply.cs ~= 4 then -- 4 = of.character.CSTATE.EDITING
         ply:render_dynamic(true, true)
     end
 end

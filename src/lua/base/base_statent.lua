@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -28,16 +28,16 @@
 
 local base = _G
 local table = require("table")
-local glob = require("cc.global")
-local log = require("cc.logging")
-local svar = require("cc.state_variables")
-local class = require("cc.class")
-local anim = require("cc.animatable")
-local lcl = require("cc.logent.classes")
-local lstor = require("cc.logent.store")
-local json = require("cc.json")
-local msgsys = require("cc.msgsys")
-local act = require("cc.action")
+local glob = require("of.global")
+local log = require("of.logging")
+local svar = require("of.state_variables")
+local class = require("of.class")
+local anim = require("of.animatable")
+local lcl = require("of.logent.classes")
+local lstor = require("of.logent.store")
+local json = require("of.json")
+local msgsys = require("of.msgsys")
+local act = require("of.action")
 local CAPI = require("CAPI")
 
 --- This module takes care of static entities.
@@ -47,8 +47,8 @@ local CAPI = require("CAPI")
 -- if you want documentation for them, look
 -- in there.
 -- @class module
--- @name cc.statent
-module("cc.statent")
+-- @name of.statent
+module("of.statent")
 
 --- Base static logic entity class, not meant to be used directly.
 -- Inherited from animatable_logent. Unlike dynamic entities,

@@ -6,7 +6,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -33,8 +33,8 @@ local table = require("table")
 --- Signal system allowing to connect callbacks to tables and disconnect or
 -- emit them at any point in code where the table is available.
 -- @class module
--- @name cc.signals
-module("cc.signals")
+-- @name of.signals
+module("of.signals")
 
 --- Table of actions to be done after doing emit,
 -- see postemitevent_add.

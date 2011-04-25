@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -30,14 +30,14 @@ local base = _G
 local CAPI = require("CAPI")
 local table = require("table")
 local string = require("string")
-local log = require("cc.logging")
-local lent = require("cc.logent")
+local log = require("of.logging")
+local lent = require("of.logent")
 
 --- Message system interface for Lua. Used for communication between client and server,
 -- takes care of name compressing and other things.
 -- @class module
--- @name cc.msgsys
-module("cc.msgsys")
+-- @name of.msgsys
+module("of.msgsys")
 
 -- -1 value represents all clients.
 ALL_CLIENTS = -1
@@ -50,7 +50,7 @@ pidston = {}
 -- @param a1 If this is logic entity or number, it's server->client message (number representing client number). On client, it's the message function.
 -- @param a2 On server, it's a message function, on client, data begin here.
 function send(...)
-    log.log(log.DEBUG, "cc.msgsys.send")
+    log.log(log.DEBUG, "of.msgsys.send")
 
     local server
     local cn

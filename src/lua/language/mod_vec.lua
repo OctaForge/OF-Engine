@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -27,16 +27,16 @@
 --
 
 local base = _G
-local class = require("cc.class")
+local class = require("of.class")
 local string = require("string")
 local math = require("math")
-local log = require("cc.logging")
+local log = require("of.logging")
 local CAPI = require("CAPI")
 
 --- Vector types for Lua. Contains vector3 and vector4 classes.
 -- @class module
--- @name cc.vector
-module("cc.vector")
+-- @name of.vector
+module("of.vector")
 
 --- Vector3 class (having x, y, z).
 -- @class table

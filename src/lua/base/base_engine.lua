@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -28,10 +28,10 @@
 
 local CAPI = require("CAPI")
 
---- Engine interface for cC's Lua.
+--- Engine interface for OF's Lua.
 -- @class module
--- @name cc.engine
-module("cc.engine")
+-- @name of.engine
+module("of.engine")
 
 --- Quit the engine, showing a dialog when there are unsaved changes.
 -- @class function

@@ -1,11 +1,11 @@
 ---
 -- base_colors.lua, version 1<br/>
--- A color conversion module for cC Lua interface.<br/>
+-- A color conversion module for OF Lua interface.<br/>
 -- <br/>
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -30,11 +30,11 @@ local base = _G
 local math = require("math")
 local string = require("string")
 
---- Color conversions for cC Lua interface (RGB->HSL, HEX->RGB etc.)
+--- Color conversions for OF Lua interface (RGB->HSL, HEX->RGB etc.)
 -- HSL/HSV functions taken from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
 -- @class module
--- @name cc.color
-module("cc.color")
+-- @name of.color
+module("of.color")
 
 ---
 -- Converts an RGB color value to HSL. Conversion formula

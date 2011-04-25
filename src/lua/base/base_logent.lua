@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -29,23 +29,23 @@
 local base = _G
 local table = require("table")
 local string = require("string")
-local glob = require("cc.global")
-local log = require("cc.logging")
-local class = require("cc.class")
-local signals = require("cc.signals")
-local act = require("cc.action")
-local json = require("cc.json")
-local svar = require("cc.state_variables")
-local msgsys = require("cc.msgsys")
-local lstor = require("cc.logent.store")
+local glob = require("of.global")
+local log = require("of.logging")
+local class = require("of.class")
+local signals = require("of.signals")
+local act = require("of.action")
+local json = require("of.json")
+local svar = require("of.state_variables")
+local msgsys = require("of.msgsys")
+local lstor = require("of.logent.store")
 local CAPI = require("CAPI")
 
 --- This module takes care of logic entities.
 -- client_logent / server_logent will become only "logent",
 -- depending on if we're on client or on server.
 -- @class module
--- @name cc.logent
-module("cc.logent")
+-- @name of.logent
+module("of.logent")
 
 base.assert(glob.CLIENT or glob.SERVER)
 base.assert(not (glob.CLIENT and glob.SERVER))

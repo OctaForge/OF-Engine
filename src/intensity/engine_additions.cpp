@@ -126,7 +126,7 @@ float CLogicEntity::getRadius()
 
 void CLogicEntity::setOrigin(vec &newOrigin)
 {
-    defformatstring(c)("cc.logent.store.get(%i).position = {%f,%f,%f}", getUniqueId(), newOrigin.x, newOrigin.y, newOrigin.z);
+    defformatstring(c)("of.logent.store.get(%i).position = {%f,%f,%f}", getUniqueId(), newOrigin.x, newOrigin.y, newOrigin.z);
     engine.exec(c);
 }
 
@@ -370,7 +370,7 @@ void LogicSystem::clear()
 
     if (engine.hashandle())
     {
-        engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("del_all").call(0, 0).pop(3);
+        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("del_all").call(0, 0).pop(3);
         assert(logicEntities.size() == 0);
 
         //engine.destroy();
@@ -396,7 +396,7 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(logicEntities.find(uniqueId) == logicEntities.end());
     logicEntities.insert( LogicEntityMap::value_type( uniqueId, newEntity ) );
 
-    engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("get").push(uniqueId).call(1, 1);
+    engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("get").push(uniqueId).call(1, 1);
     newEntity->luaRef = engine.ref();
     engine.pop(3);
 
@@ -471,7 +471,7 @@ void LogicSystem::manageActions(long millis)
     INDENT_LOG(Logging::INFO);
 
     if (engine.hashandle())
-        engine.getg("cc")
+        engine.getg("of")
               .t_getraw("logent")
               .t_getraw("store")
               .t_getraw("manage_actions")

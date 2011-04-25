@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -28,14 +28,14 @@
 
 local logging = require("logging")
 
---- Logging for CubeCreate. Logs messages using C++ logger on various loglevels.
+--- Logging for OctaForge. Logs messages using C++ logger on various loglevels.
 -- Available levels are INFO (rarely printed by default, should be used for things
 -- that are logged often), DEBUG (less rarely logged), WARNING, and ERROR (always logged)
 -- Only ERROR is logged by default, you can change logging level in config file in your
--- CubeCreate configuration directory. Log function and the levels are wrapped as globals.
+-- OctaForge configuration directory. Log function and the levels are wrapped as globals.
 -- @class module
--- @name cc.logging
-module("cc.logging")
+-- @name of.logging
+module("of.logging")
 
 --- Logs a message into C++ logging system.<br/>
 -- There are several logging levels:<br/><br/>

@@ -574,7 +574,7 @@ void setScreenScriptValues() // INTENSITY: New function
     using namespace lua;
     if (engine.hashandle())
     {
-        engine.getg("cc").t_getraw("global");
+        engine.getg("of").t_getraw("global");
         engine.t_set("aspect_ratio", float(GETIV(scr_w))/float(GETIV(scr_h)));
         engine.t_set("scr_w", GETIV(scr_w));
         engine.t_set("scr_h", GETIV(scr_h));

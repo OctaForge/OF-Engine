@@ -943,7 +943,7 @@ void entpaste()
         defformatstring(s)("__ccentcopy__TEMP.position = '[%f|%f|%f]'", o.x, o.y, o.z);
         engine.exec(s);
 
-        engine.getg("cc").t_getraw("json").t_getraw("encode");
+        engine.getg("of").t_getraw("json").t_getraw("encode");
         engine.getg("__ccentcopy__TEMP").call(1, 1);
         std::string stateData = engine.get(-1, "{}");
         engine.pop(3);
@@ -1030,7 +1030,7 @@ void intensityentcopy() // INTENSITY
 
     engine.exec("__ccentcopy__TEMP.position = nil"); // Position is determined at paste time
 
-    engine.getg("cc").t_getraw("json").t_getraw("encode");
+    engine.getg("of").t_getraw("json").t_getraw("encode");
     engine.getg("__ccentcopy__TEMP").call(1, 1);
     intensityCopiedStateData = engine.get(-1, "{}");
     engine.pop(3);

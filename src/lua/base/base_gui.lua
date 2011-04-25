@@ -1,11 +1,11 @@
 ---
 -- base_gui.lua, version 1<br/>
--- GUI control methods for cC Lua interface<br/>
+-- GUI control methods for OF Lua interface<br/>
 -- <br/>
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -29,12 +29,12 @@
 local base = _G
 local CAPI = require("CAPI")
 
---- GUI control methods for cC Lua interface.
+--- GUI control methods for OF Lua interface.
 -- Contains widget / window creation functions
 -- and various misc methods relating GUIs.
 -- @class module
--- @name cc.gui
-module("cc.gui")
+-- @name of.gui
+module("of.gui")
 
 --- Define a new GUI font.
 -- @param n Name of the font.
@@ -212,7 +212,7 @@ field = CAPI.guifield
 field_key = CAPI.guikeyfield
 
 --- Create a GUI bit field widget. Looks like a checkbox,
--- allows bitwise matching. Look at console settings cC
+-- allows bitwise matching. Look at console settings OF
 -- menu for usage. (where confilter is being set)
 -- @param l Bitfield label.
 -- @param v Engine variable to set on change.
@@ -224,7 +224,7 @@ field_bit = CAPI.guibitfield
 
 --- Create a GUI editor widget (multi-line field).
 -- For reference about value getting / setting / ...,
--- see the textedit cC Lua API docs.
+-- see the textedit OF Lua API docs.
 -- @param n Name of the editor.
 -- @param l Maximal length of contents.
 -- @param h Height of the editor in lines.

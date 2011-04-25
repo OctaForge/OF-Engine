@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -32,8 +32,8 @@ local CAPI = require("CAPI")
 --- Console Lua interface. Provides methods for bindings,
 -- console commands, input and others.
 -- @class module
--- @name cc.console
-module("cc.console")
+-- @name of.console
+module("of.console")
 
 --- Toggle the console.
 -- @class function
@@ -78,7 +78,7 @@ end
 -- @param key Key to bind
 -- @param modifier
 function binds.addmod(key, modifier)
-    CAPI.bind(key, [[%(1)s = 1; cc.console.onrelease([=[%(1)s = 0]=])]] % { modifier })
+    CAPI.bind(key, [[%(1)s = 1; of.console.onrelease([=[%(1)s = 0]=])]] % { modifier })
 end
 
 --- Bind a key to an action (spectator mode)
@@ -106,7 +106,7 @@ end
 -- @param key Key to bind
 -- @param modifier
 function binds.addmodedit(key, modifier)
-    CAPI.editbind(key, [[%(1)s = 1; cc.console.onrelease([=[%(1)s = 0]=])]] % { modifier })
+    CAPI.editbind(key, [[%(1)s = 1; of.console.onrelease([=[%(1)s = 0]=])]] % { modifier })
 end
 
 --- Get the action a key is bound to

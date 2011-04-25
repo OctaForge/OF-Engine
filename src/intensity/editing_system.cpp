@@ -67,7 +67,7 @@ void prepareentityclasses()
 {
     entityClasses.clear();
 
-    lua::engine.getg("cc").t_getraw("logent").t_getraw("classes").t_getraw("list").call(0, 1);
+    lua::engine.getg("of").t_getraw("logent").t_getraw("classes").t_getraw("list").call(0, 1);
     Logging::log(Logging::DEBUG, "prepareentityclasses: Got table of entity classes.");
     LUA_TABLE_FOREACH(lua::engine, {
         entityClasses.push_back(lua::engine.get<const char*>(-1));

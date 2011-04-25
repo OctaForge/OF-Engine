@@ -25,7 +25,7 @@ void CameraControl::incrementCameraDist(int inc_dir)
 
     SETV(cam_dist, GETIV(cam_dist) + (inc_dir * GETIV(cameraMoveDist)));
 
-    if (engine.hashandle()) engine.getg("cc").t_getraw("global").t_set("cam_dist", GETIV(cam_dist)).pop(2);
+    if (engine.hashandle()) engine.getg("of").t_getraw("global").t_set("cam_dist", GETIV(cam_dist)).pop(2);
 }
 
 int saved_cam_dist; // Saved from before characterviewing, restored right after
@@ -152,7 +152,7 @@ void CameraControl::positionCamera(physent* camera1)
     if (engine.hashandle() && lastCameraHeight != GETFV(cameraheight))
     {
         lastCameraHeight = GETFV(cameraheight);
-        engine.getg("cc").t_getraw("global").t_set("cameraheight", GETFV(cameraheight)).pop(2);
+        engine.getg("of").t_getraw("global").t_set("cameraheight", GETFV(cameraheight)).pop(2);
     }
 
     // If we just left forced camera mode, restore thirdperson state

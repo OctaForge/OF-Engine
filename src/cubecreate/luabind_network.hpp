@@ -102,9 +102,9 @@ namespace lua_binds
 
         char buf[1024];
         snprintf(buf, sizeof(buf),
-            "cc.gui.new(\"instances\", [[\n"
-            "    cc.gui.text(\"Pick an instance to enter:\")\n"
-            "    cc.gui.bar()\n");
+            "of.gui.new(\"instances\", [[\n"
+            "    of.gui.text(\"Pick an instance to enter:\")\n"
+            "    of.gui.bar()\n");
         char *command = (char*)malloc(strlen(buf) + 1);
         strcpy(command, buf);
 
@@ -118,13 +118,13 @@ namespace lua_binds
             assert( Utility::validateAlphaNumeric(instance_id) );
             assert( Utility::validateAlphaNumeric(event_name, " (),.;") ); // XXX: Allow more than alphanumeric+spaces: ()s, .s, etc.
 
-            snprintf(buf, sizeof(buf), "    cc.gui.button(\"%s\", \"cc.network.connect_to_instance(%s)\")\n", event_name, instance_id);
+            snprintf(buf, sizeof(buf), "    of.gui.button(\"%s\", \"of.network.connect_to_instance(%s)\")\n", event_name, instance_id);
             command = (char*)realloc(command, strlen(command) + strlen(buf) + 1);
             assert(command);
             strcat(command, buf);
         }
 
-        snprintf(buf, sizeof(buf), "]])\ncc.gui.show(\"instances\")\n");
+        snprintf(buf, sizeof(buf), "]])\nof.gui.show(\"instances\")\n");
         command = (char*)realloc(command, strlen(command) + strlen(buf) + 1);
         assert(command);
         strcat(command, buf);

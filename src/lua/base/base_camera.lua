@@ -5,7 +5,7 @@
 -- @author q66 (quaker66@gmail.com)<br/>
 -- license: MIT/X11<br/>
 -- <br/>
--- @copyright 2011 CubeCreate project<br/>
+-- @copyright 2011 OctaForge project<br/>
 -- <br/>
 -- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
 -- of this software and associated documentation files (the "Software"), to deal<br/>
@@ -28,10 +28,10 @@
 
 local CAPI = require("CAPI")
 
---- Camera for cC's Lua interface.
+--- Camera for OF's Lua interface.
 -- @class module
--- @name cc.camera
-module("cc.camera")
+-- @name of.camera
+module("of.camera")
 
 --- Force yaw, pitch, roll and fov of a camera.
 -- @param yaw Yaw to force.

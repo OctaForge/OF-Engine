@@ -33,16 +33,16 @@ local tostring = tostring
 
 local base = _G
 
---- The JSON module for CubeCreate. Allows to decode JSON ("decode" method),
+--- The JSON module for OctaForge. Allows to decode JSON ("decode" method),
 -- and encode ("encode" method). Simplifiers are possible using "register"
 -- method, which gets two functions as arguments, first one returns true
 -- if argument passed to it can be simplified, the second one does actual
 -- simplification.
 -- @class module
--- @name cc.json
-module("cc.json")
+-- @name of.json
+module("of.json")
 
--- CubeCreate content
+-- OctaForge content
 -- Table storing information about simplification registers.
 local jregs = {}
 
@@ -57,7 +57,7 @@ function encode(v)
     if not v then return "null" end
     local enc = v
 
-    -- CubeCreate - make use of register storage
+    -- OctaForge - make use of register storage
     for i = 1, #jregs do
         if jregs[i][1](enc) then
             enc = jregs[i][2](enc)
@@ -95,7 +95,7 @@ function encode(v)
     return "null"
 end
 
--- CubeCreate content
+-- OctaForge content
 --- register a simplifier function for encoding
 -- @param check Function that returns true if argument passed to it can be simplified
 -- @param simplifier Function to call when check returns true

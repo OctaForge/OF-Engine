@@ -140,7 +140,7 @@ bool ClientSystem::scenarioStarted()
     {
         if (engine.hashandle())
         {
-            engine.getg("cc").t_getraw("logent").t_getraw("store").t_getraw("test_scenario_started").call(0, 1);
+            engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("test_scenario_started").call(0, 1);
             _scenarioStarted = engine.get<bool>(-1);
             engine.pop(4);
         }

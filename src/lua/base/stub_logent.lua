@@ -1,2 +1,2 @@
 -- stub logent module.
-module("cc.logent")
+module("of.logent")
