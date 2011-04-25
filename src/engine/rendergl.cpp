@@ -1968,36 +1968,6 @@ void drawdamagescreen(int w, int h)
     notextureshader->set();
 }
 
-#define MAXCROSSHAIRS 4
-static Texture *crosshairs[MAXCROSSHAIRS] = { NULL, NULL, NULL, NULL };
-
-void loadcrosshair(const char *name, int i)
-{
-    if(i < 0 || i >= MAXCROSSHAIRS) return;
-    crosshairs[i] = name ? textureload(name, 3, true) : notexture;
-    if(crosshairs[i] == notexture) 
-    {
-        name = game::defaultcrosshair(i);
-        if(!name) name = "data/textures/hud/crosshair.png";
-        crosshairs[i] = textureload(name, 3, true);
-    }
-}
-
-void loadcrosshair_(const char *name, int *i)
-{
-    loadcrosshair(name, *i);
-}
-
-JSONObject writecrosshairs()
-{
-    JSONObject ch;
-    loopi(MAXCROSSHAIRS) if(crosshairs[i] && crosshairs[i]!=notexture)
-    {
-        ch[towstring(crosshairs[i]->name)] = new JSONValue((double)i);
-    }
-    return ch;
-}
-
 void drawcrosshair(int w, int h)
 {
     bool windowhit = g3d_windowhit(true, false) || !GuiControl::isMouselooking(); // INTENSITY: Mouselooking
@@ -2022,21 +1992,6 @@ void drawcrosshair(int w, int h)
 
         crosshair = textureload(crname, 3, true, false);
         if (crosshair == notexture) return;
-        #if 0
-        int index = game::selectcrosshair(r, g, b);
-        if(index < 0) return;
-        if(!crosshairfx)
-        {
-            index = 0;
-            r = g = b = 1;
-        }
-        crosshair = crosshairs[index];
-        if(!crosshair) 
-        {
-            loadcrosshair(NULL, index);
-            crosshair = crosshairs[index];
-        }
-        #endif // INTENSITY: End script-controlled crosshairs
 
         chsize = GETIV(crosshairsize)*w/900.0f;
     }

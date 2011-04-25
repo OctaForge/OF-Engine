@@ -367,13 +367,6 @@ setentguival = CAPI.setentguival
 -- @name show_plugins
 show_plugins = CAPI.show_plugins
 
---- Load a crosshair. DEPRECATED in favor of future API.
--- @param n Path to the crosshair.
--- @param i Index of the crosshair.
--- @class function
--- @name loadcrosshair
-loadcrosshair = CAPI.loadcrosshair
-
 --- Toggle scoreboard.
 -- @class function
 -- @name showscores

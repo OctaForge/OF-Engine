@@ -234,8 +234,7 @@ namespace lua
         m_rantests(false),
         m_scriptdir("src/lua/"),
         m_version("0.0"),
-        m_lasterror(NULL),
-        m_params(NULL) {}
+        m_lasterror(NULL) {}
 
     lua_Engine::lua_Engine(lua_State *l) :
         m_handle(l),
@@ -244,8 +243,7 @@ namespace lua
         m_rantests(false),
         m_scriptdir(NULL),
         m_version(NULL),
-        m_lasterror(NULL),
-        m_params(NULL) { m_retcount = gettop(); }
+        m_lasterror(NULL) { m_retcount = gettop(); }
 
     lua_Engine::~lua_Engine()
     {
@@ -471,9 +469,6 @@ namespace lua
 
         Logging::log(Logging::DEBUG, "Creating lua_Engine state handler.\n");
 
-        // initialize params on engine create
-        m_params = new LE_params;
-
         // before even opening lua, register internal variables
         var::fill();
 
@@ -502,9 +497,6 @@ namespace lua
     {
         if (!m_hashandle) return -1;
         if (m_retcount >= 0) return lua_gettop(m_handle) - m_retcount;
-
-        // free m_params on destroy
-        delete m_params;
 
         Logging::log_noformat(Logging::DEBUG, "Destroying lua_Engine class and its handler.");
         lua_close(m_handle);
@@ -838,11 +830,5 @@ namespace lua
         if (!m_hashandle) return 0;
         return lua_gettop(m_handle);
     }
-
-    const char *&lua_Engine::operator[](const char *n)
-    {
-        return (*m_params)[n];
-    }
-
 }
 // end namespace lua

@@ -43,14 +43,6 @@ quit = CAPI.quit
 -- @name force_quit
 force_quit = CAPI.force_quit
 
---- Set a screen resolution. screenres(1024, 768) is equivalent to
--- scr_w = 1024; scr_h = 768, so DEPRECATED.
--- @param w Screen width.
--- @param h Screen height.
--- @class function
--- @name screenres
-screenres = CAPI.screenres
-
 --- Reload graphics subsystem of the engine. 
 -- @class function
 -- @name resetgl

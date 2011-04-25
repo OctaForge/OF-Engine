@@ -86,14 +86,6 @@ resetcam = CAPI.resetcam
 -- @name getcam
 getcam = CAPI.getcam
 
---- Get camera position. Possibly
--- DEPRECATED, because getcam is
--- sufficient enough.
--- @return A vec3 with camera position.
--- @class function
--- @name getcampos
-getcampos = CAPI.getcampos
-
 --- Increase camera zoom.
 -- @class function
 -- @name caminc
@@ -113,10 +105,3 @@ mouselook = CAPI.mouselook
 -- @class function
 -- @name characterview
 characterview = CAPI.characterview
-
---- Set third person mode as default.
--- DEPRECATED - engine variable
--- access is sufficient enough.
--- @class function
--- @name setdeftpm
-setdeftpm = CAPI.setdeftpm

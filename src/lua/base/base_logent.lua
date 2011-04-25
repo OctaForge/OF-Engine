@@ -392,10 +392,6 @@ function server_logent:deactivate()
     msgsys.send(msgsys.ALL_CLIENTS, CAPI.le_removal, self.uid)
 end
 
---- Click handler, DEPRECATED
-function server_logent:click(btn, cl)
-end
-
 --- Set entity state data. This is serverside only function.
 -- @param k Property name.
 -- @param v Property value.

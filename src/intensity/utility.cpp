@@ -132,15 +132,6 @@ bool Utility::config_exec_json(const char *cfgfile, bool msg)
         else
         {
             root = value->AsObject();
-            if (root.find(L"crosshairs") != root.end() && root[L"crosshairs"]->IsObject())
-            {
-                JSONObject crls = root[L"crosshairs"]->AsObject();
-                for (JSONObject::const_iterator criter = crls.begin(); criter != crls.end(); ++criter)
-                {
-                    defformatstring(aliasc)("CAPI.loadcrosshair(\"%s\", %i)", fromwstring(criter->first).c_str(), (int)criter->second->AsNumber());
-                    lua::engine.exec(aliasc);
-                }
-            }
             if (root.find(L"variables") != root.end() && root[L"variables"]->IsObject())
             {
                 JSONObject vars = root[L"variables"]->AsObject();
@@ -215,7 +206,6 @@ bool Utility::config_exec_json(const char *cfgfile, bool msg)
 }
 
 JSONObject writebinds();
-JSONObject writecrosshairs();
 JSONObject writecompletions();
 
 static int sortvars(var::cvar **x, var::cvar **y)
@@ -225,16 +215,13 @@ static int sortvars(var::cvar **x, var::cvar **y)
 
 void Utility::writecfg(const char *name)
 {
-    JSONObject root, vars, aliases, complet, bnds, crossh; // clientinfo;
+    JSONObject root, vars, aliases, complet, bnds; // clientinfo;
     vector<var::cvar*> varv;
     stream *f = openfile(path(name && name[0] ? name : game::savedconfig(), true), "w");
     if(!f) return;
 
     //clientinfo = game::writeclientinfo();
     //root[L"clientinfo"] = new JSONValue(clientinfo);
-
-    crossh = writecrosshairs();
-    if (!crossh.empty()) root[L"crosshairs"] = new JSONValue(crossh);
 
     enumerate(*var::vars, var::cvar*, v, varv.add(v));
     varv.sort(sortvars);

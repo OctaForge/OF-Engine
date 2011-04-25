@@ -54,11 +54,6 @@ namespace lua_binds
             .t_set("roll", camera->roll);
     })
 
-    LUA_BIND_CLIENT(getcampos, {
-        physent *camera = CameraControl::getCamera();
-        e.push(camera->o);
-    })
-
     LUA_BIND_STD_CLIENT(caminc, CameraControl::incrementCameraDist, +1)
     LUA_BIND_STD_CLIENT(camdec, CameraControl::incrementCameraDist, -1)
     LUA_BIND_STD_CLIENT(mouselook, GuiControl::toggleMouselook)

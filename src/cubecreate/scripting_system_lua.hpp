@@ -53,8 +53,6 @@ namespace lua
     class lua_Engine;
     /// A typedef for nice code when passing binding functions.
     typedef void (*lua_Binding) (lua_Engine);
-    /// A hashtable typedef for params
-    typedef hashtable<const char*, const char*> LE_params;
 
     /**
      * @struct LE_reg
@@ -622,21 +620,7 @@ namespace lua
          * @param dbg Optional parameter telling the class if to log debug messages.
          */
         lua_Engine(lua_State *l);
-
         ~lua_Engine();
-
-        /**
-         * Overloaded operator for setting non-Lua engine parameters.
-         * Example:
-         * 
-         * @code
-         * lua_Engine e;
-         * e["foo"] = "bar";
-         * Logging::log(Logging::INFO, "%s\n", e["foo"]);
-         * @endcode
-         */
-        const char *&operator[](const char *n);
-
     private:
         /* The state handler for Lua's C API */
         lua_State *m_handle;
@@ -657,9 +641,6 @@ namespace lua
         const char *m_version;
         /* Last error message from Lua */
         const char *m_lasterror;
-
-        /* map containing non-lua engine params */
-        LE_params *m_params;
 
         /* Loads all needed Lua modules */
         void setup_libs();

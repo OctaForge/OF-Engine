@@ -34,7 +34,6 @@ void registersound(char *name, int *vol);
 void run_python(char *code);
 void force_quit();
 void quit();
-void screenres(int *w, int *h);
 void resetgl();
 void getfps_(int *raw);
 extern int conskip, miniconskip;
@@ -100,13 +99,11 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(resetsound, resetsound)
     LUA_BIND_STD_CLIENT(quit, quit)
     LUA_BIND_STD_CLIENT(force_quit, force_quit)
-    LUA_BIND_STD_CLIENT(screenres, screenres, e.get<int*>(1), e.get<int*>(2))
     LUA_BIND_STD_CLIENT(resetgl, resetgl)
     LUA_BIND_STD_CLIENT(glext, glext, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(getfps, getfps_, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(screenshot, screenshot, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(movie, movie, e.get<char*>(1))
-    LUA_BIND_STD_CLIENT(loadcrosshair, loadcrosshair_, e.get<char*>(1), e.get<int*>(2))
     LUA_BIND_CLIENT(showscores, {
         bool on = (addreleaseaction("CAPI.showscores()") != 0);
         SETV(scoreboard, on);
@@ -286,14 +283,4 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(onrelease, onrelease, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(complete, addfilecomplete, e.get<char*>(1), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(listcomplete, addlistcomplete, e.get<char*>(1), e.get<char*>(2))
-
-    LUA_BIND_CLIENT(setdeftpm, {
-        // Only allow this to be done once
-        if (!lua::engine["setdeftpm"])
-        {
-            lua::engine["setdeftpm"] = "set";
-            SETV(thirdperson, e.get<int>(1));
-        } else
-            Logging::log(Logging::WARNING, "Can only set default thirdperson mode once per map\r\n");
-    })
 }
