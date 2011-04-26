@@ -91,10 +91,8 @@ reload = CAPI.reloadmodel
 -- @param z Z coord of the model.
 -- @param yaw Model yaw.
 -- @param pitch Model pitch.
--- @param roll Model roll.
 -- @param flags Model flags (integer) using bitwise operators, see beginning of this file for flags.
 -- @param basetime Entity starttime property.
--- @param 
 -- @class function
 -- @name render
 render = CAPI.rendermodel
@@ -171,6 +169,8 @@ mdl.spec = CAPI.mdlspec
 
 --- Set model glowmap scale. -1 means glowmap is off. Default is 300.
 -- @param g Glowmap scale.
+-- @param d Glow delta.
+-- @param p Glow pulse.
 -- @class function
 -- @name mdl.glow
 mdl.glow = CAPI.mdlglow
@@ -369,6 +369,8 @@ obj = base.obj
 --- See mdlglow.
 -- @param n Mesh name.
 -- @param g Glow factor.
+-- @param d Glow delta.
+-- @param p Glow pulse.
 -- @see mdl.glow
 -- @class function
 -- @name obj.glow
@@ -453,6 +455,12 @@ md5 = base.md5
 --- Assign a tag name to bone.
 -- @param n Bone name.
 -- @param t Tag name.
+-- @param tx Optional X translation.
+-- @param ty Optional Y translation.
+-- @param tz Optional Z translation.
+-- @param rx Optional X rotation.
+-- @param ry Optional Y rotation.
+-- @param rz Optional Z rotation.
 -- @class function
 -- @name md5.tag
 
@@ -466,6 +474,24 @@ md5 = base.md5
 -- @param n Maximal pitch offset clamp.
 -- @class function
 -- @name md5.pitch
+
+--- Set pitch target.
+-- @param mn Mesh name.
+-- @param a Animation file.
+-- @param f Frame offset. (integer)
+-- @param m Minimal pitch. (float)
+-- @param n Maximal pitch. (float)
+-- @class function
+-- @name md5.pitchtarget
+
+--- Set pitch correct.
+-- @param mn Mesh name.
+-- @param t Target name.
+-- @param s Pitch scale. (float)
+-- @param m Minimal pitch. (float)
+-- @param n Maximal pitch. (float)
+-- @class function
+-- @name md5.pitchcorrect
 
 --- Set adjustment for the model.
 -- @param n Model name.
@@ -504,6 +530,8 @@ md5 = base.md5
 --- See mdlglow.
 -- @param n Mesh name.
 -- @param g Glow factor.
+-- @param d Glow delta.
+-- @param p Glow pulse.
 -- @see mdl.glow
 -- @class function
 -- @name md5.glow
@@ -651,6 +679,12 @@ iqm = base.iqm
 --- Assign a tag name to bone.
 -- @param n Bone name.
 -- @param t Tag name.
+-- @param tx Optional X translation.
+-- @param ty Optional Y translation.
+-- @param tz Optional Z translation.
+-- @param rx Optional X rotation.
+-- @param ry Optional Y rotation.
+-- @param rz Optional Z rotation.
 -- @class function
 -- @name iqm.tag
 
@@ -664,6 +698,24 @@ iqm = base.iqm
 -- @param n Maximal pitch offset clamp.
 -- @class function
 -- @name iqm.pitch
+
+--- Set pitch target.
+-- @param mn Mesh name.
+-- @param a Animation file.
+-- @param f Frame offset. (integer)
+-- @param m Minimal pitch. (float)
+-- @param n Maximal pitch. (float)
+-- @class function
+-- @name iqm.pitchtarget
+
+--- Set pitch correct.
+-- @param mn Mesh name.
+-- @param t Target name.
+-- @param s Pitch scale. (float)
+-- @param m Minimal pitch. (float)
+-- @param n Maximal pitch. (float)
+-- @class function
+-- @name iqm.pitchcorrect
 
 --- Set adjustment for the model.
 -- @param n Model name.
@@ -702,6 +754,8 @@ iqm = base.iqm
 --- See mdlglow.
 -- @param n Mesh name.
 -- @param g Glow factor.
+-- @param d Glow delta.
+-- @param p Glow pulse.
 -- @see mdl.glow
 -- @class function
 -- @name iqm.glow
@@ -849,6 +903,12 @@ smd = base.smd
 --- Assign a tag name to bone.
 -- @param n Bone name.
 -- @param t Tag name.
+-- @param tx Optional X translation.
+-- @param ty Optional Y translation.
+-- @param tz Optional Z translation.
+-- @param rx Optional X rotation.
+-- @param ry Optional Y rotation.
+-- @param rz Optional Z rotation.
 -- @class function
 -- @name smd.tag
 
@@ -862,6 +922,24 @@ smd = base.smd
 -- @param n Maximal pitch offset clamp.
 -- @class function
 -- @name smd.pitch
+
+--- Set pitch target.
+-- @param mn Mesh name.
+-- @param a Animation file.
+-- @param f Frame offset. (integer)
+-- @param m Minimal pitch. (float)
+-- @param n Maximal pitch. (float)
+-- @class function
+-- @name smd.pitchtarget
+
+--- Set pitch correct.
+-- @param mn Mesh name.
+-- @param t Target name.
+-- @param s Pitch scale. (float)
+-- @param m Minimal pitch. (float)
+-- @param n Maximal pitch. (float)
+-- @class function
+-- @name smd.pitchcorrect
 
 --- Set adjustment for the model.
 -- @param n Model name.
@@ -900,6 +978,8 @@ smd = base.smd
 --- See mdlglow.
 -- @param n Mesh name.
 -- @param g Glow factor.
+-- @param d Glow delta.
+-- @param p Glow pulse.
 -- @see mdl.glow
 -- @class function
 -- @name smd.glow

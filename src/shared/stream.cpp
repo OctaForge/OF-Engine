@@ -181,13 +181,16 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
-bool listdir(const char *dir, const char *ext, vector<char *> &files)
+bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files)
 {
     int extsize = ext ? (int)strlen(ext)+1 : 0;
-    #if defined(WIN32)
-    defformatstring(pathname)("%s\\*.%s", dir, ext ? ext : "*");
+    string dirname;
+    copystring(dirname, dir);
+    path(dirname);
+    #ifdef WIN32
+	defformatstring(pathname)(rel ? ".\\%s\\*.%s" : "%s\\*.%s", dirname, ext ? ext : "*");
     WIN32_FIND_DATA FindFileData;
-    HANDLE Find = FindFirstFile(path(pathname), &FindFileData);
+    HANDLE Find = FindFirstFile(pathname, &FindFileData);
     if(Find != INVALID_HANDLE_VALUE)
     {
         do {
@@ -197,9 +200,8 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
         return true;
     }
     #else
-    string pathname;
-    copystring(pathname, dir);
-    DIR *d = opendir(path(pathname));
+    defformatstring(pathname)(rel ? "./%s" : "%s", dirname);
+    DIR *d = opendir(pathname);
     if(d)
     {
         struct dirent *de;
@@ -223,17 +225,17 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
 int listfiles(const char *dir, const char *ext, vector<char *> &files)
 {
     int dirs = 0;
-    if(listdir(dir, ext, files)) dirs++;
+    if(listdir(dir, true, ext, files)) dirs++;
     string s;
     if(homedir[0])
     {
         formatstring(s)("%s%s", homedir, dir);
-        if(listdir(s, ext, files)) dirs++;
+        if(listdir(s, false, ext, files)) dirs++;
     }
     loopv(packagedirs)
     {
         formatstring(s)("%s%s", packagedirs[i], dir);
-        if(listdir(s, ext, files)) dirs++;
+        if(listdir(s, false, ext, files)) dirs++;
     }
 #ifndef STANDALONE
     dirs += listzipfiles(dir, ext, files);
@@ -538,9 +540,15 @@ struct gzstream : stream
 
     bool seek(long offset, int whence)
     {
-        if(writing || !reading || whence == SEEK_END) return false;
+        if(writing || !reading) return false;
 
-        if(whence == SEEK_CUR) offset += zfile.total_out;
+        if(whence == SEEK_END)
+        {
+            uchar skip[512];
+            while(read(skip, sizeof(skip)) == sizeof(skip));
+            return !offset;
+        }
+        else if(whence == SEEK_CUR) offset += zfile.total_out;
 
         if(offset >= (int)zfile.total_out) offset -= zfile.total_out;
         else if(offset < 0 || !file->seek(headersize, SEEK_SET)) return false;

@@ -283,7 +283,7 @@ struct iqm : skelmodel, skelloader<iqm>
 
         bool loadiqm(const char *filename, bool doloadmesh, bool doloadanim)
         {
-            stream *f = openfile(filename, "r");
+            stream *f = openfile(filename, "rb");
             if(!f) return false;
 
             uchar *buf = NULL;

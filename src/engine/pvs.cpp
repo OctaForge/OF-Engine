@@ -76,7 +76,7 @@ static void genpvsnodes(cube *c, int parent = 0, const ivec &co = ivec(0, 0, 0),
         pvsnode &n = origpvsnodes.add();
         n.flags = 0;
         n.children = 0;
-        if(c[i].children || isempty(c[i]) || (c[i].ext && c[i].ext->material&MAT_ALPHA)) memset(n.edges.v, 0xFF, 3);
+        if(c[i].children || isempty(c[i]) || c[i].material&MAT_ALPHA) memset(n.edges.v, 0xFF, 3);
         else loopk(3)
         {
             uint face = c[i].faces[k];
@@ -849,7 +849,7 @@ static inline bool isallclip(cube *c)
     loopi(8)
     {
         cube &h = c[i];
-        if(h.children ? !isallclip(h.children) : (!isentirelysolid(h) && (!h.ext || (h.ext->material&MATF_CLIP)!=MAT_CLIP)))
+        if(h.children ? !isallclip(h.children) : (!isentirelysolid(h) && (h.material&MATF_CLIP)!=MAT_CLIP))
             return false;
     }
     return true;
@@ -872,7 +872,7 @@ static int countviewcells(cube *c, const ivec &co, int size, int threshold)
             }
             if(isallclip(h.children)) continue;
         }
-        else if(isentirelysolid(h) || (h.ext && (h.ext->material&MATF_CLIP)==MAT_CLIP)) continue;
+        else if(isentirelysolid(h) || (h.material&MATF_CLIP)==MAT_CLIP) continue;
         count++;
     }
     return count;
@@ -897,7 +897,7 @@ static void genviewcells(viewcellnode &p, cube *c, const ivec &co, int size, int
             }
             if(isallclip(h.children)) continue;
         }
-        else if(isentirelysolid(h) || (h.ext && (h.ext->material&MATF_CLIP)==MAT_CLIP)) continue;
+        else if(isentirelysolid(h) || (h.material&MATF_CLIP)==MAT_CLIP) continue;
         if(GETIV(pvsthreads)<=1)
         {
             if(genpvs_canceled) return;

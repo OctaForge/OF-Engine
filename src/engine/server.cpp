@@ -11,13 +11,55 @@
 #include "system_manager.h"
 
 
+static FILE *logfile = NULL;
+
+void closelogfile()
+{
+    if(logfile)
+    {
+        fclose(logfile);
+        logfile = NULL;
+    }
+}
+
+void setlogfile(const char *fname)
+{
+    closelogfile();
+    if(fname && fname[0])
+    {
+        fname = findfile(fname, "w");
+        if(fname) logfile = fopen(fname, "w");
+    }
+    setvbuf(logfile ? logfile : stdout, NULL, _IOLBF, BUFSIZ);
+}
+
+void logoutfv(const char *fmt, va_list args)
+{
+    vfprintf(logfile ? logfile : stdout, fmt, args);
+    fputc('\n', logfile ? logfile : stdout);
+}
+
+void logoutf(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    logoutfv(fmt, args);
+    va_end(args);
+}
+
 #ifdef STANDALONE
-void fatal(const char *s, ...) 
+void fatal(const char *fmt, ...) 
 { 
     void cleanupserver();
     cleanupserver(); 
-    defvformatstring(msg,s,s);
-    printf("servererror: %s\n", msg); 
+    va_list args;
+    va_start(args, fmt);
+    if(logfile) logoutfv(fmt, args);
+    fprintf(stderr, "server error: ");
+    vfprintf(stderr, fmt, args);
+    fputc('\n', stderr);
+    va_end(args);
+    closelogfile();
     exit(EXIT_FAILURE); 
 }
 
@@ -26,7 +68,7 @@ void conoutfv(int type, const char *fmt, va_list args)
     string sf, sp;
     vformatstring(sf, fmt, args);
     filtertext(sp, sf);
-    puts(sp);
+    logoutf("%s", sp);
 }
 
 void conoutf(const char *fmt, ...)
@@ -421,7 +463,7 @@ ENetSocket connectmaster()
     if(masteraddress.host == ENET_HOST_ANY)
     {
 #ifdef STANDALONE
-        printf("looking up %s...\n", GETSV(mastername));
+        logoutf("looking up %s...", GETSV(mastername));
 #endif
         masteraddress.port = server::masterport();
         if(!resolverwait(GETSV(mastername), &masteraddress)) return ENET_SOCKET_NULL;
@@ -435,7 +477,7 @@ ENetSocket connectmaster()
     if(sock == ENET_SOCKET_NULL || connectwithtimeout(sock, GETSV(mastername), masteraddress) < 0) 
     {
 #ifdef STANDALONE
-        printf(sock==ENET_SOCKET_NULL ? "could not open socket\n" : "could not connect\n"); 
+        logoutf(sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect"); 
 #endif
         return ENET_SOCKET_NULL;
     }
@@ -656,7 +698,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
     if(totalmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = totalmillis;     
-        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
+        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData) logoutf("status: %d remote clients, %.1f send, %.1f rec (K/sec)", nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024);
         serverhost->totalSentData = serverhost->totalReceivedData = 0;
     }
 #endif
@@ -680,7 +722,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
                 c.peer->data = &c;
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-                printf("client connected (%s)\n", c.hostname);
+                logoutf("client connected (%s)", c.hostname);
                 int reason = server::clientconnect(c.num, c.peer->address.host);
                 if(!reason) nonlocalclients++;
                 else disconnect_client(c.num, reason);
@@ -697,7 +739,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
             {
                 client *c = (client *)event.peer->data;
                 if(!c) break;
-                printf("disconnected client (%s)\n", c->hostname);
+                logoutf("disconnected client (%s)", c->hostname);
                 server::clientdisconnect(c->num);
                 nonlocalclients--;
                 c->type = ST_EMPTY;
@@ -773,7 +815,7 @@ void rundedicatedserver()
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
     #endif
 #if 0 // INTENSITY: We do the main loop in Python
-    printf("dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
+    logoutf("dedicated server started, waiting for clients...");
     for(;;) serverslice(true, 5);
 #endif
 }
@@ -890,8 +932,9 @@ bool serveroption(char *opt)
         case 'j': SETVFN(serverport, atoi(opt+2)); return true; 
         case 'm': SETVF(mastername, opt+2); SETV(updatemaster, GETSV(mastername) ? 1 : 0); return true;
 #ifdef STANDALONE
-        case 'q': printf("Using home directory: %s\n", opt+2); sethomedir(opt+2); return true;
-        case 'k': printf("Adding package directory: %s\n", opt+2); addpackagedir(opt+2); return true;
+        case 'q': logoutf("Using home directory: %s", opt); sethomedir(opt+2); return true;
+        case 'k': logoutf("Adding package directory: %s", opt); addpackagedir(opt+2); return true;
+        case 'g': logoutf("Setting log file: %s", opt); setlogfile(opt+2); return true;
 #endif
         default: return false;
     }
@@ -917,6 +960,7 @@ int main(int argc, char* argv[])
 void server_init()//int argc, char* argv[])
 {
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
+    setlogfile(NULL);
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     atexit(enet_deinitialize);
     enet_time_set(0);

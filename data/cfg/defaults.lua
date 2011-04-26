@@ -138,7 +138,7 @@ of.console.binds.addedit("7", [[domodifier(17)]]) -- vSlot: rotate
 of.console.binds.addedit("8", [[domodifier(18)]]) -- vSlot: scale
 
 of.console.binds.addedit("LALT", [[multiplier = 10; of.console.onrelease("multiplier = 1")]])
-of.console.binds.addedit("RALT", [[multiplier2 = 10; of.console.onrelease("multiplier2 = 1")]])
+of.console.binds.addedit("RALT", [[multiplier2 = 32; of.console.onrelease("multiplier2 = 16")]])
 
 -- blendmap painting
 of.console.binds.addedit("KP0", [[of.blend.setpaintmode(blendpaintmode ~= 0 and 0 or 1)]])

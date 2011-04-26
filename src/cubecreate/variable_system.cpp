@@ -209,33 +209,33 @@ namespace var
     float       cvar::gmxf() { return maxv.f; }
     const char *cvar::gs()   { return curv.s; }
 
-    void cvar::s(int val, bool luasync, bool forcecb, bool clamp)
+    void cvar::s(int val, bool luasync, bool forcecb, bool doclamp)
     {
         if (override || overridevars)
         {
             overriden = true;
             oldv.i = curv.i;
         }
-        if (clamp && (val < minv.i || val > maxv.i) && !alias) curv.i = clamp(val, minv.i, maxv.i);
+        if (doclamp && (val < minv.i || val > maxv.i) && !alias) curv.i = clamp(val, minv.i, maxv.i);
         else curv.i = val;
         callcb(luasync, forcecb);
     }
 
-    void cvar::s(float val, bool luasync, bool forcecb, bool clamp)
+    void cvar::s(float val, bool luasync, bool forcecb, bool doclamp)
     {
         if (override || overridevars)
         {
             overriden = true;
             oldv.f = curv.f;
         }
-        if (clamp && (val < minv.f || val > maxv.f) && !alias) curv.f = clamp(val, minv.f, maxv.f);
+        if (doclamp && (val < minv.f || val > maxv.f) && !alias) curv.f = clamp(val, minv.f, maxv.f);
         else curv.f = val;
         callcb(luasync, forcecb);
     }
 
-    void cvar::s(const char *val, bool luasync, bool forcecb, bool clamp)
+    void cvar::s(const char *val, bool luasync, bool forcecb, bool doclamp)
     {
-        (void)clamp;
+        (void)doclamp;
         if (override || overridevars)
         {
             overriden = true;

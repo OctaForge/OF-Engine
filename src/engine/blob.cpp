@@ -395,7 +395,7 @@ struct blobrenderer
                 if(!vismask) continue;
                 uint overlap = checkoverlap(co, size);
                 uchar vertused = fvmasks[vismask];
-                bool solid = cu[i].ext && isclipped(cu[i].ext->material&MATF_VOLUME);
+                bool solid = isclipped(cu[i].material&MATF_VOLUME);
                 vec v[8];
                 loopj(8) if(vertused&(1<<j)) calcvert(cu[i], co.x, co.y, co.z, size, v[j], j, solid);
                 loopj(6) if(vismask&(1<<j))
@@ -406,8 +406,8 @@ struct blobrenderer
             }
             else
             {
-                bool solid = cu[i].ext && isclipped(cu[i].ext->material&MATF_VOLUME);
-                uchar vismask = 0, nmat = cu[i].ext && cu[i].ext->material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA;
+                bool solid = isclipped(cu[i].material&MATF_VOLUME);
+                uchar vismask = 0, nmat = cu[i].material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA;
                 loopj(6) if(!(avoid&(1<<j)) && (solid ? visiblematerial(cu[i], j, co.x, co.y, co.z, size)==MATSURF_VISIBLE : cu[i].texture[j]!=DEFAULT_SKY && visibleface(cu[i], j, co.x, co.y, co.z, size, MAT_AIR, nmat, MAT_ALPHA))) vismask |= 1<<j;
                 if(!vismask) continue;
                 uint overlap = checkoverlap(co, size);

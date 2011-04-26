@@ -19,35 +19,40 @@ void setshadowdir(int angle)
 void guessshadowdir()
 {
     if(GETIV(shadowmapangle)) return;
-    vec lightpos(0, 0, 0), casterpos(0, 0, 0);
-    int numlights = 0, numcasters = 0;
-    const vector<extentity *> &ents = entities::getents();
-    loopv(ents)
+    vec dir;
+    extern vec sunlightdir;
+    if(GETIV(sunlight)) dir = sunlightdir;
+    else
     {
-        extentity &e = *ents[i];
-        switch(e.type)
+        vec lightpos(0, 0, 0), casterpos(0, 0, 0);
+        int numlights = 0, numcasters = 0;
+        const vector<extentity *> &ents = entities::getents();
+        loopv(ents)
         {
-            case ET_LIGHT:
-                if(!e.attr1) { lightpos.add(e.o); numlights++; }
-                break;
+            extentity &e = *ents[i];
+            switch(e.type)
+            {
+                case ET_LIGHT:
+                    if(!e.attr1) { lightpos.add(e.o); numlights++; }
+                    break;
 
-             case ET_MAPMODEL:
-                casterpos.add(e.o);
-                numcasters++;
-                break;
+                case ET_MAPMODEL:
+                    casterpos.add(e.o);
+                    numcasters++;
+                    break;
 
-             default:
-                if(e.type<ET_GAMESPECIFIC) break;
-                casterpos.add(e.o);
-                numcasters++;
-                break;
-         }
+                default:
+                    if(e.type<ET_GAMESPECIFIC) break;
+                    casterpos.add(e.o);
+                    numcasters++;
+                    break;
+            }
+        }
+        if(!numlights || !numcasters) return;
+        lightpos.div(numlights);
+        casterpos.div(numcasters);
+        dir = vec(lightpos).sub(casterpos);
     }
-    if(!numlights || !numcasters) return;
-    lightpos.div(numlights);
-    casterpos.div(numcasters);
-    vec dir(lightpos);
-    dir.sub(casterpos);
     dir.z = 0;
     if(dir.iszero()) return;
     dir.normalize();
@@ -258,7 +263,7 @@ static void calcscissorbox()
         if(reflecting) c.z = 2*reflectz - c.z;
         vec4 &p = v[i];
         mvpmatrix.transform(c, p);
-        if(p.z >= 0)
+        if(p.z >= -p.w)
         {
             float x = p.x / p.w, y = p.y / p.w;
             sx1 = min(sx1, x);
@@ -271,12 +276,12 @@ static void calcscissorbox()
     loopi(8)
     {
         const vec4 &p = v[i];
-        if(p.z >= 0) continue;
+        if(p.z >= -p.w) continue;
         loopj(3)
         {
             const vec4 &o = v[i^(1<<j)];
-            if(o.z <= 0) continue;
-            float t = p.z/(p.z - o.z),
+            if(o.z <= -o.w) continue;
+            float t = (p.z + p.w)/(p.z + p.w - o.z - o.w),
                   w = p.w + t*(o.w - p.w),
                   x = (p.x + t*(o.x - p.x))/w,
                   y = (p.y + t*(o.y - p.y))/w;

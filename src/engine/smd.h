@@ -226,13 +226,15 @@ struct smd : skelmodel, skelloader<smd>
                     continue;
                 if(bone < 0 || bone >= skel->numbones)
                     continue;
+                rot.x = -rot.x;
+                rot.z = -rot.z;
                 float cx = cosf(rot.x/2), sx = sinf(rot.x/2),
                       cy = cosf(rot.y/2), sy = sinf(rot.y/2),
                       cz = cosf(rot.z/2), sz = sinf(rot.z/2);
                 pos.y = -pos.y;
-                dualquat dq(quat(-(sx*cy*cz - cx*sy*sz),
+                dualquat dq(quat(sx*cy*cz - cx*sy*sz,
                                  cx*sy*cz + sx*cy*sz,
-                                 -(cx*cy*sz - sx*sy*cz),
+                                 cx*cy*sz - sx*sy*cz,
                                  cx*cy*cz + sx*sy*sz),
                             pos);
                 boneinfo &b = skel->bones[bone];

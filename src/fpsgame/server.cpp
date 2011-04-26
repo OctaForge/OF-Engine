@@ -463,7 +463,7 @@ namespace server
         loopv(clients)
         {
             clientinfo &e = *clients[i];
-            if(e.clientnum != ci->clientnum && e.needclipboard >= ci->lastclipboard)
+            if(e.clientnum != ci->clientnum && e.needclipboard - ci->lastclipboard >= 0)
             {
                 if(!flushed) { flushserver(true); flushed = true; }
                 sendpacket(e.clientnum, 1, ci->clipboard);
@@ -591,7 +591,7 @@ namespace server
 
             case N_COPY:
                 ci->cleanclipboard();
-                ci->lastclipboard = totalmillis;
+                ci->lastclipboard = totalmillis ? totalmillis : 1;
                 goto genericmsg;
 
             case N_PASTE:
@@ -683,7 +683,7 @@ namespace server
     {
         clientinfo *ci = (clientinfo *)getinfo(n);
         ci->clientnum = n;
-        ci->needclipboard = totalmillis;
+        ci->needclipboard = totalmillis ? totalmillis : 1;
         ci->local = true;
 
         clients.add(ci);
@@ -839,7 +839,7 @@ if (i == 0) {
 */
         clientinfo *ci = (clientinfo *)getinfo(n);
         ci->clientnum = n;
-        ci->needclipboard = totalmillis;
+        ci->needclipboard = totalmillis ? totalmillis : 1;
         clients.add(ci);
 
 //        FPSClientInterface::newClient(n); // INTENSITY: Also connect to the server's internal client - XXX NO - do in parallel to client

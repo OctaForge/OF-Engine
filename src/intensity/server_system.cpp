@@ -65,17 +65,15 @@ void headlessGenCubeVerts(cube &c, int x, int y, int z, int size, int csi, uchar
 {
     loopi(6) if(visibleface(c, i, x, y, z, size))
     {
-        cubeext &e = ext(c);
-
         // this is necessary for physics to work, even if the face is merged
         if(touchingface(c, i)) 
         {
-            e.visible |= 1<<i; // Kripken: Indeed, without this (and the same later), physics fails, things fall through cubes...
+            c.visible |= 1<<i; // Kripken: Indeed, without this (and the same later), physics fails, things fall through cubes...
         }
     }
     else if(touchingface(c, i))
     {
-        if(visibleface(c, i, x, y, z, size, MAT_AIR, MAT_NOCLIP, MATF_CLIP)) ext(c).visible |= 1<<i;
+        if(visibleface(c, i, x, y, z, size, MAT_AIR, MAT_NOCLIP, MATF_CLIP)) c.visible |= 1<<i;
     }
 }
 
@@ -351,7 +349,7 @@ int refracting = 0;
 float reflectz;
 bool fogging = false;
 
-bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasFBO = false, hasDS = false, hasTF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasTE = false, hasMT = false, hasD3 = false, hasAF = false, hasVP2 = false, hasVP3 = false, hasPP = false, hasMDA = false, hasTE3 = false, hasTE4 = false, hasVP = false, hasFP = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasRN = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false;
+bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasFBO = false, hasDS = false, hasTF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasTE = false, hasMT = false, hasD3 = false, hasAF = false, hasVP2 = false, hasVP3 = false, hasPP = false, hasMDA = false, hasTE3 = false, hasTE4 = false, hasVP = false, hasFP = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasRN = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false, hasTEX = false;
 
 GLuint fogtex = -1;
 glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix, envmatrix;

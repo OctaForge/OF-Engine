@@ -232,6 +232,10 @@ BIH::BIH(vector<tri> *t)
         bbmax.max(tri.a).max(tri.b).max(tri.c);
     }
     
+    radius = max(max(max(fabs(bbmin.x), fabs(bbmin.y)), fabs(bbmin.z)),
+                 max(max(fabs(bbmax.x), fabs(bbmax.y)), fabs(bbmax.z)));
+    radius *= radius;
+
     vector<BIHNode> buildnodes;
     ushort *indices = new ushort[numtris];
     loopi(numtris) indices[i] = i;
@@ -255,19 +259,6 @@ BIH::BIH(vector<tri> *t)
     }
 }
 
-static inline void yawray(vec &o, vec &ray, float angle)
-{
-    angle *= RAD;
-    float c = cosf(angle), s = sinf(angle),
-          ox = o.x, oy = o.y,
-          rx = ray.x, ry = ray.y;
-    o.x = ox*c - oy*s;
-    o.y = oy*c + ox*s;
-    ray.x = rx*c - ry*s;
-    ray.y = ry*c + rx*s;
-    ray.normalize();
-}
-
 bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist, int mode, float &dist)
 {
     CLogicEntity *entity = LogicSystem::getLogicEntity(e); // INTENSITY
@@ -280,12 +271,18 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
     else if((mode&RAY_ENTS)!=RAY_ENTS && (!m->collide || e.flags&extentity::F_NOCOLLIDE)) return false;
 //    if((mode&RAY_ENTS)!=RAY_ENTS && m->collisionsonlyfortriggering) return false; // INTENSITY: Might need this
     if(!m->bih && !m->setBIH()) return false;
-    if(!maxdist) maxdist = 1e16f;
-    vec yo(o);
-    yo.sub(e.o);
-    float yaw = -(float)((e.attr1+7)-(e.attr1+7)%15);
-    vec yray(ray);
-    if(yaw != 0) yawray(yo, yray, yaw);
-    return m->bih->traverse(yo, yray, maxdist, dist, mode);
+    vec mo = vec(o).sub(e.o), mray(ray);
+    float v = mo.dot(mray), inside = m->bih->radius - mo.squaredlen();
+    if((inside < 0 && v > 0) || inside + v*v < 0) return false;
+    int yaw = e.attr1;
+    if(yaw != 0) 
+    {
+        if(yaw < 0) yaw = 360 + yaw%360;
+        else if(yaw >= 360) yaw %= 360;
+        const vec2 &rot = mmrots[yaw+7];
+        mo.rotate_around_z(rot.x, -rot.y);
+        mray.rotate_around_z(rot.x, -rot.y);
+    }
+    return m->bih->traverse(mo, mray, maxdist ? maxdist : 1e16f, dist, mode);
 }
 

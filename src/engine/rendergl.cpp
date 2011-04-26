@@ -298,7 +298,7 @@ void gl_checkextensions()
 #if defined(__APPLE__) && SDL_BYTEORDER == SDL_BIG_ENDIAN
             if(strstr(vendor, "ATI") && (osversion<0x1050)) SETV(ati_oq_bug, 1);
 #endif
-            if(GETIV(ati_oq_bug)) conoutf(CON_WARN, "WARNING: Using ATI occlusion query bug workaround. (use \"/ati_oq_bug 0\" to disable if unnecessary)");
+            //if(GETIV(ati_oq_bug)) conoutf(CON_WARN, "WARNING: Using ATI occlusion query bug workaround. (use \"/ati_oq_bug 0\" to disable if unnecessary)");
         }
     }
     if(!hasOQ)
@@ -389,7 +389,7 @@ void gl_checkextensions()
         if(osversion>=0x1050) // fixed in 1055 for some hardware.. but not all..
         {
             SETV(apple_ff_bug, 1);
-            conoutf(CON_WARN, "WARNING: Using Leopard ARB_position_invariant bug workaround. (use \"/apple_ff_bug 0\" to disable if unnecessary)");
+            //conoutf(CON_WARN, "WARNING: Using Leopard ARB_position_invariant bug workaround. (use \"/apple_ff_bug 0\" to disable if unnecessary)");
         }
 #endif
     }
@@ -434,7 +434,7 @@ void gl_checkextensions()
             //if(osversion<0x1050) ??
             if(hasVP && hasFP) SETV(apple_glsldepth_bug, 1);
 #endif
-            if(GETIV(apple_glsldepth_bug)) conoutf(CON_WARN, "WARNING: Using Apple GLSL depth bug workaround. (use \"/apple_glsldepth_bug 0\" to disable if unnecessary");
+            //if(GETIV(apple_glsldepth_bug)) conoutf(CON_WARN, "WARNING: Using Apple GLSL depth bug workaround. (use \"/apple_glsldepth_bug 0\" to disable if unnecessary");
         }
     }
     
@@ -1114,9 +1114,10 @@ static float findsurface(int fogmat, const vec &v, int &abovemat)
     do
     {
         cube &c = lookupcube(o.x, o.y, o.z, 0, co, csize);
-        if(!c.ext || (c.ext->material&MATF_VOLUME) != fogmat)
+        int mat = c.material&MATF_VOLUME;
+        if(mat != fogmat)
         {
-            abovemat = c.ext && isliquid(c.ext->material&MATF_VOLUME) ? c.ext->material&MATF_VOLUME : MAT_AIR;
+            abovemat = isliquid(mat) ? mat : MAT_AIR;
             return o.z;
         }
         o.z = co.z + csize;
@@ -1525,7 +1526,7 @@ void clipminimap(ivec &bbmin, ivec &bbmax, cube *c = worldroot, int x = 0, int y
     {
         ivec o(i, x, y, z, size);
         if(c[i].children) clipminimap(bbmin, bbmax, c[i].children, o.x, o.y, o.z, size>>1);
-        else if(!isentirelysolid(c[i]) && (!c[i].ext || (c[i].ext->material&MATF_CLIP)!=MAT_CLIP)) 
+        else if(!isentirelysolid(c[i]) && (c[i].material&MATF_CLIP)!=MAT_CLIP)
         {
             loopk(3) bbmin[k] = min(bbmin[k], o[k]);
             loopk(3) bbmax[k] = max(bbmax[k], o[k] + size);

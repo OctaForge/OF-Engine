@@ -621,7 +621,7 @@ void rotateblendbrush(int *val)
 {
     if(!canpaintblendmap()) return;
     
-    int numrots = clamp(*val, 1, 5);
+    int numrots = *val < 0 ? 3 : clamp(*val, 1, 5);
     BlendBrush *brush = brushes[curbrush];
     brush->reorient(numrots>=2 && numrots<=4, numrots<=2 || numrots==5, (numrots&5)==1);
 }

@@ -9,12 +9,7 @@ cubeext *newcubeext(cube &c)
 {
     if(c.ext) return c.ext;
     c.ext = new cubeext;
-    c.ext->material = MAT_AIR;
-    c.ext->visible = 0;
-    c.ext->merged = 0;
-    c.ext->mergeorigin = 0;
     c.ext->va = NULL;
-    c.ext->clip = NULL;
     c.ext->surfaces = NULL;
     c.ext->normals = NULL;
     c.ext->ents = NULL;
@@ -23,18 +18,18 @@ cubeext *newcubeext(cube &c)
     return c.ext;
 }
 
-cube *newcubes(uint face)
+cube *newcubes(uint face, int mat)
 {
     cube *c = new cube[8];
     loopi(8)
     {
         c->children = NULL;
         c->ext = NULL;
+        c->visible = 0;
+        c->merged = 0;
         setfaces(*c, face);
-        loopl(6)
-        {
-            c->texture[l] = DEFAULT_GEOM;
-        }
+        loopl(6) c->texture[l] = DEFAULT_GEOM;
+        c->material = mat;
         c++;
     }
     allocnodes++;
@@ -63,15 +58,15 @@ void freecubeext(cube &c)
 
 void discardchildren(cube &c, bool fixtex, int depth)
 {
+    c.visible = 0;
+    c.merged = 0;
     if(c.ext)
     {
         if(c.ext->va) destroyva(c.ext->va);
         c.ext->va = NULL;
-        c.ext->merged = 0;
         c.ext->tjoints = -1;
         freesurfaces(c);
         freenormals(c);
-        freeclipplanes(c);
         freeoctaentities(c);
         freemergeinfo(c);
         freecubeext(c);
@@ -217,7 +212,7 @@ int lookupmaterial(const vec &v)
         scale--;
         c = &c->children[octastep(o.x, o.y, o.z, scale)];
     }
-    return c->ext ? c->ext->material : MAT_AIR;
+    return c->material;
 }
 
 cube *neighbourstack[32];
@@ -324,25 +319,21 @@ bool subdividecube(cube &c, bool fullcheck, bool brighten)
     if(c.ext && c.ext->surfaces) freesurfaces(c);
     if(isempty(c) || isentirelysolid(c))
     {
-        int mat = c.ext ? c.ext->material : MAT_AIR;
-        c.children = newcubes(isempty(c) ? F_EMPTY : F_SOLID);
+        c.children = newcubes(isempty(c) ? F_EMPTY : F_SOLID, c.material);
         loopi(8)
         {
             loopl(6) c.children[i].texture[l] = c.texture[l];
-            if(mat!=MAT_AIR) ext(c.children[i]).material = mat;
             if(brighten && !isempty(c)) brightencube(c.children[i]);
         }
         return true;
     }
-    cube *ch = c.children = newcubes(F_SOLID);
+    cube *ch = c.children = newcubes(F_SOLID, c.material);
     bool perfect = true, p1, p2;
-    int mat = c.ext ? c.ext->material : MAT_AIR;
     ivec v[8];
     loopi(8)
     {
         getcubevector(c, i, v[i]);
         v[i].mul(2);
-        if(mat!=MAT_AIR) ext(ch[i]).material = mat;
     }
 
     loopj(6)
@@ -413,10 +404,10 @@ static int remipprogress = 0, remiptotal = 0;
 
 bool remip(cube &c, int x, int y, int z, int size)
 {
-    if(c.ext)
+    if(c.merged)
     {
-        c.ext->merged = 0;
-        if(c.ext->merges) freemergeinfo(c);
+        c.merged = 0;
+        if(c.ext && c.ext->merges) freemergeinfo(c);
     }
 
     cube *ch = c.children;
@@ -445,18 +436,18 @@ bool remip(cube &c, int x, int y, int z, int size)
     uchar mat = MAT_AIR;
     loopi(8)
     {
-        mat = ch[i].ext ? ch[i].ext->material : MAT_AIR;
+        mat = ch[i].material;
         if((mat&MATF_CLIP) == MAT_NOCLIP || mat&MAT_ALPHA)
         {
             if(i > 0) return false;
-            while(++i < 8) if(!ch[i].ext || ch[i].ext->material != mat) return false;
+            while(++i < 8) if(ch[i].material != mat) return false;
             break;
         }
         else if(!isentirelysolid(ch[i]))
         {
             while(++i < 8)
             {
-                uchar omat = ch[i].ext ? ch[i].ext->material : MAT_AIR;
+                int omat = ch[i].material;
                 if(isentirelysolid(ch[i]) ? (omat&MATF_CLIP) == MAT_NOCLIP || omat&MAT_ALPHA : mat != omat) return false;
             }
             break;
@@ -498,7 +489,7 @@ bool remip(cube &c, int x, int y, int z, int size)
     freeocta(nh);
     discardchildren(c);
     loopi(3) c.faces[i] = n.faces[i];
-    if(mat!=MAT_AIR) ext(c).material = mat;
+    c.material = mat;
     brightencube(c);
     return true;
 }
@@ -897,13 +888,13 @@ static inline bool occludesface(cube &c, int orient, const ivec &o, int size, co
     int dim = dimension(orient);
     if(!c.children)
     {
-         if(nmat != MAT_AIR && c.ext && (c.ext->material&matmask) == nmat)
+         if(nmat != MAT_AIR && (c.material&matmask) == nmat)
          {
             facevec nf[8];
             return clipfacevecs(vf, o[C[dim]], o[R[dim]], size, nf) < 3;
          }
          if(isentirelysolid(c)) return true;
-         if(vmat != MAT_AIR && c.ext && ((c.ext->material&matmask) == vmat || (isliquid(vmat) && isclipped(c.ext->material&MATF_VOLUME)))) return true;
+         if(vmat != MAT_AIR && ((c.material&matmask) == vmat || (isliquid(vmat) && isclipped(c.material&MATF_VOLUME)))) return true;
          if(touchingface(c, orient) && faceedges(c, orient) == F_SOLID) return true;
          facevec cf[8];
          int numc = clipfacevecs(vf, o[C[dim]], o[R[dim]], size, cf);
@@ -944,9 +935,9 @@ bool visibleface(cube &c, int orient, int x, int y, int z, int size, uchar mat, 
 
     if(nsize > size || (nsize == size && !o.children))
     {
-        if(nmat != MAT_AIR && o.ext && (o.ext->material&matmask) == nmat) return true;
+        if(nmat != MAT_AIR && (o.material&matmask) == nmat) return true;
         if(isentirelysolid(o)) return false;
-        if(mat != MAT_AIR && o.ext && ((o.ext->material&matmask) == mat || (isliquid(mat) && (o.ext->material&MATF_VOLUME) == MAT_GLASS))) return false;
+        if(mat != MAT_AIR && ((o.material&matmask) == mat || (isliquid(mat) && (o.material&MATF_VOLUME) == MAT_GLASS))) return false;
         if(isempty(o)) return true;
         if(touchingface(o, opposite(orient)) && faceedges(o, opposite(orient)) == F_SOLID) return false;
 
@@ -989,7 +980,7 @@ int visibletris(cube &c, int orient, int x, int y, int z, int size)
     cube &o = neighbourcube(c, orient, x, y, z, size, no, nsize);
     if(&o==&c) return 0;
 
-    uchar nmat = c.ext && c.ext->material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA, matmask = MAT_ALPHA;
+    uchar nmat = c.material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA, matmask = MAT_ALPHA;
 
     ivec vo(x, y, z);
     vo.mask(0xFFF);
@@ -999,7 +990,7 @@ int visibletris(cube &c, int orient, int x, int y, int z, int size)
     if(nsize > size || (nsize == size && !o.children))
     {
         if(isempty(o)) return 3;
-        if(nmat != MAT_AIR && o.ext && (o.ext->material&matmask) == nmat) return 3;
+        if(nmat != MAT_AIR && (o.material&matmask) == nmat) return 3;
         if(!notouch && (isentirelysolid(o) || (touchingface(o, opp) && faceedges(o, opp) == F_SOLID))) return 0;
 
         genfacevecs(c, orient, vo, size, false, cf);
@@ -1116,7 +1107,7 @@ void genclipplanes(cube &c, int x, int y, int z, int size, clipplanes &p)
     p.o.add(p.r);
 
     p.size = 0;
-    p.visible = c.ext ? c.ext->visible : 0;
+    p.visible = c.visible;
     loopi(6) if(usefaces[i] && !touchingface(c, i)) // generate actual clipping planes
     {
         if(flataxisface(c, i)) p.visible |= 1<<i;
@@ -1151,8 +1142,8 @@ static int mergefacev(int orient, cubeface *m, int sz, cubeface &n)
         if(m[i].v2 < n.v1) break;
         if(m[i].v2 == n.v1 && m[i].u1 == n.u1 && m[i].u2 == n.u2)
         {
-            if(m[i].c) ext(*m[i].c).merged |= 1<<orient;
-            if(n.c) ext(*n.c).merged |= 1<<orient;
+            if(m[i].c) m[i].c->merged |= 1<<orient;
+            if(n.c) n.c->merged |= 1<<orient;
             n.v1 = m[i].v1;
             memmove(&m[i], &m[i+1], (sz - (i+1)) * sizeof(cubeface));
             return 1;
@@ -1165,8 +1156,8 @@ static int mergefaceu(int orient, cubeface &m, cubeface &n)
 {
     if(m.v1 == n.v1 && m.v2 == n.v2 && m.u2 == n.u1)
     {
-        if(m.c) ext(*m.c).merged |= 1<<orient;
-        if(n.c) ext(*n.c).merged |= 1<<orient;
+        if(m.c) m.c->merged |= 1<<orient;
+        if(n.c) n.c->merged |= 1<<orient;
         n.u1 = m.u1;
         return 1;
     }
@@ -1241,7 +1232,7 @@ void mincubeface(cube &cu, int orient, const ivec &o, int size, const mergeinfo 
     uc2 = min(uc2, orig.u2);
     vc1 = max(vc1, orig.v1);
     vc2 = min(vc2, orig.v2);
-    if(!isempty(cu) && touchingface(cu, orient) && !(nmat!=MAT_AIR && cu.ext && (cu.ext->material&matmask)==nmat))
+    if(!isempty(cu) && touchingface(cu, orient) && !(nmat!=MAT_AIR && (cu.material&matmask)==nmat))
     {
         uchar r1 = cu.edges[faceedgesrcidx[orient][0]], r2 = cu.edges[faceedgesrcidx[orient][1]],
               c1 = cu.edges[faceedgesrcidx[orient][2]], c2 = cu.edges[faceedgesrcidx[orient][3]];
@@ -1280,7 +1271,7 @@ bool mincubeface(cube &cu, int orient, const ivec &co, int size, mergeinfo &orig
     mincf.u2 = orig.u1;
     mincf.v1 = orig.v2;
     mincf.v2 = orig.v1;
-    mincubeface(nc, opposite(orient), no, nsize, orig, mincf, cu.ext && cu.ext->material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA, MAT_ALPHA);
+    mincubeface(nc, opposite(orient), no, nsize, orig, mincf, cu.material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA, MAT_ALPHA);
     bool smaller = false;
     if(mincf.u1 > orig.u1) { orig.u1 = mincf.u1; smaller = true; }
     if(mincf.u2 < orig.u2) { orig.u2 = mincf.u2; smaller = true; }
@@ -1357,7 +1348,7 @@ bool gencubeface(cube &cu, int orient, const ivec &co, int size, ivec &n, int &o
 
     if(GETIV(minface) && touchingface(cu, orient) && mincubeface(cu, orient, co, size, cf))
     {
-        ext(cu).merged |= 1<<orient;
+        cu.merged |= 1<<orient;
     }
 
     return true;
@@ -1366,27 +1357,21 @@ bool gencubeface(cube &cu, int orient, const ivec &co, int size, ivec &n, int &o
 void addmergeinfo(cube &c, int orient, cubeface &cf)
 {
     if(!c.ext) newcubeext(c);
-    int index = 0;
-    loopi(orient) if(c.ext->mergeorigin&(1<<i)) index++;
-    int total = index;
-    loopi(6-orient-1) if(c.ext->mergeorigin&(1<<(i+orient+1))) total++;
-    mergeinfo *m = new mergeinfo[total+1];
-    if(index) memcpy(m, c.ext->merges, index*sizeof(mergeinfo));
-    if(total>index) memcpy(&m[index+1], &c.ext->merges[index], (total-index)*sizeof(mergeinfo));
-    if(c.ext->merges) delete[] c.ext->merges;
-    c.ext->merges = m;
-    m += index;
-    c.ext->mergeorigin |= 1<<orient;
-    m->u1 = cf.u1;
-    m->u2 = cf.u2;
-    m->v1 = cf.v1;
-    m->v2 = cf.v2;
+    if(!c.ext->merges)
+    {
+        c.ext->merges = new mergeinfo[6]; 
+        memset(c.ext->merges, 0, 6*sizeof(mergeinfo));
+    }
+    mergeinfo &m = c.ext->merges[orient];
+    m.u1 = cf.u1;
+    m.u2 = cf.u2;
+    m.v1 = cf.v1;
+    m.v2 = cf.v2;
 }
 
 void freemergeinfo(cube &c)
 {
     if(!c.ext) return;
-    c.ext->mergeorigin = 0;
     DELETEA(c.ext->merges);
 }
 
@@ -1399,13 +1384,13 @@ void genmergeinfo(cube *c = worldroot, const ivec &o = ivec(0, 0, 0), int size =
     loopi(8)
     {
         ivec co(i, o.x, o.y, o.z, size);
-        if(c[i].ext)
+        if(c[i].merged)
         {
-            if(c[i].ext->merges) freemergeinfo(c[i]);
-            c[i].ext->merged = 0;
+            c[i].merged = 0;
+            if(c[i].ext && c[i].ext->merges) freemergeinfo(c[i]);
         }
         if(c[i].children) genmergeinfo(c[i].children, co, size>>1);
-        else if(!isempty(c[i])) loopj(6) if(visibleface(c[i], j, co.x, co.y, co.z, size, MAT_AIR, c[i].ext && c[i].ext->material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA, MAT_ALPHA))
+        else if(!isempty(c[i])) loopj(6) if(visibleface(c[i], j, co.x, co.y, co.z, size, MAT_AIR, c[i].material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA, MAT_ALPHA))
         {
             cfkey k;
             cubeface cf;
@@ -1413,12 +1398,12 @@ void genmergeinfo(cube *c = worldroot, const ivec &o = ivec(0, 0, 0), int size =
             {
                 if(size >= 1<<GETIV(maxmerge) || c == worldroot)
                 {
-                    if(c[i].ext && c[i].ext->merged&(1<<j)) addmergeinfo(c[i], j, cf);
+                    if(c[i].merged&(1<<j)) addmergeinfo(c[i], j, cf);
                     continue;
                 }
                 k.orient = j;
                 k.tex = c[i].texture[j];
-                k.material = c[i].ext ? c[i].ext->material&MAT_ALPHA : 0;
+                k.material = c[i].material&MAT_ALPHA;
                 cfaces[k].faces.add(cf);
             }
         }
@@ -1427,7 +1412,7 @@ void genmergeinfo(cube *c = worldroot, const ivec &o = ivec(0, 0, 0), int size =
             ASSERT(size <= 1<<GETIV(maxmerge));
             enumeratekt(cfaces, cfkey, key, cfval, val,
                 val.faces.shrink(mergefaces(key.orient, val.faces.getbuf(), val.faces.length()));
-                loopvj(val.faces) if(val.faces[j].c->ext && val.faces[j].c->ext->merged&(1<<key.orient))
+                loopvj(val.faces) if(val.faces[j].c->merged&(1<<key.orient))
                 {
                     addmergeinfo(*val.faces[j].c, key.orient, val.faces[j]);
                 }
@@ -1498,6 +1483,12 @@ int calcmergedsize(int orient, const ivec &co, int size, const mergeinfo &m, con
 
 static void invalidatemerges(cube &c)
 {
+    if(c.merged)
+    {
+        brightencube(c);
+        c.merged = 0;
+        if(c.ext && c.ext->merges) freemergeinfo(c);
+    }
     if(c.ext)
     {
         if(c.ext->va)
@@ -1505,12 +1496,6 @@ static void invalidatemerges(cube &c)
             if(!(c.ext->va->hasmerges&(MERGE_PART | MERGE_ORIGIN))) return;
             destroyva(c.ext->va);
             c.ext->va = NULL;
-        }
-        if(c.ext->merged)
-        {
-            brightencube(c);
-            c.ext->merged = 0;
-            if(c.ext->merges) freemergeinfo(c);
         }
         if(c.ext->tjoints >= 0) c.ext->tjoints = -1;
     }

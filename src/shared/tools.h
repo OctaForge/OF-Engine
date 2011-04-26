@@ -28,6 +28,30 @@ typedef unsigned int uint;
 #define RESTRICT
 #endif
 
+/* TODO: enable those later */
+#if 0
+inline void *operator new(size_t size) 
+{ 
+    void *p = malloc(size);
+    if(!p) abort();
+    return p;
+}
+inline void *operator new[](size_t size) 
+{
+    void *p = malloc(size);
+    if(!p) abort();
+    return p;
+}
+
+inline void operator delete(void *p) { if(p) free(p); }
+inline void operator delete[](void *p) { if(p) free(p); } 
+
+inline void *operator new(size_t, void *p) { return p; }
+inline void *operator new[](size_t, void *p) { return p; }
+inline void operator delete(void *, void *) {}
+inline void operator delete[](void *, void *) {}
+#endif
+
 #ifdef swap
 #undef swap
 #endif
@@ -54,8 +78,12 @@ static inline T min(T a, T b)
 {
     return a < b ? a : b;
 }
+template<class T>
+static inline T clamp(T a, T b, T c)
+{
+    return max(b, min(a, c));
+}
 
-#define clamp(a,b,c) (max(b, min(a, c)))
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
@@ -166,7 +194,7 @@ struct databuf
 
     const T &get()
     {
-        static T overreadval;
+        static T overreadval = 0;
         if(len<maxlen) return buf[len++];
         flags |= OVERREAD;
         return overreadval;
@@ -802,16 +830,16 @@ template <class T, int SIZE> struct ringbuf
 
     const int length() const { return len; }
 
-    T &add(const T &e)
+    T &add()
     {
-        T &t = (data[index] = e);
+        T &t = data[index];
         index++;
         if(index >= SIZE) index -= SIZE;
         if(len < SIZE) len++;
         return t;
     }
 
-    T &add() { return add(T()); }
+    T &add(const T &e) { return add() = e; }
 
     T &operator[](int i)
     {
@@ -868,16 +896,6 @@ inline char *newstring(size_t l)                { return new char[l+1]; }
 inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
 inline char *newstring(const char *s)           { return newstring(s, strlen(s));          }
 inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1);       }
-
-#if defined(WIN32) && !defined(__GNUC__)
-#ifdef _DEBUG
-//#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-inline void *__cdecl operator new(size_t n, const char *fn, int l) { return ::operator new(n, 1, fn, l); }
-inline void __cdecl operator delete(void *p, const char *fn, int l) { ::operator delete(p, 1, fn, l); }
-#define new new(__FILE__,__LINE__)
-#endif 
-#endif
 
 const int islittleendian = 1;
 #ifdef SDL_BYTEORDER
@@ -965,7 +983,7 @@ extern stream *openfile(const char *filename, const char *mode);
 extern stream *opentempfile(const char *filename, const char *mode);
 extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
 extern char *loadfile(const char *fn, int *size);
-extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
+extern bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern void seedMT(uint seed);

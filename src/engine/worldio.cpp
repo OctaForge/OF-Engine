@@ -81,7 +81,7 @@ void savec(cube *c, stream *f, bool nolms)
         else
         {
             int oflags = 0;
-            if(c[i].ext && c[i].ext->merged) oflags |= 0x80;
+            if(c[i].merged) oflags |= 0x80;
             if(c[i].children) f->putchar(oflags | OCTSAV_LODCUBE);
             else if(isempty(c[i])) f->putchar(oflags | OCTSAV_EMPTY);
             else if(isentirelysolid(c[i])) f->putchar(oflags | OCTSAV_SOLID);
@@ -91,10 +91,9 @@ void savec(cube *c, stream *f, bool nolms)
                 f->write(c[i].edges, 12);
             }
             loopj(6) f->putlil<ushort>(c[i].texture[j]);
-            uchar mask = 0;
+            uchar mask = c[i].material != MAT_AIR ? 0x80 : 0;
             if(c[i].ext)
             {
-                if(c[i].ext->material != MAT_AIR) mask |= 0x80;
                 if(c[i].ext->normals && !nolms)
                 {
                     mask |= 0x40;
@@ -105,9 +104,9 @@ void savec(cube *c, stream *f, bool nolms)
             if(!c[i].ext || !c[i].ext->surfaces || nolms)
             {
                 f->putchar(mask);
+                if(c[i].material != MAT_AIR) f->putchar(c[i].material);
                 if(c[i].ext)
                 {
-                    if(c[i].ext->material != MAT_AIR) f->putchar(c[i].ext->material);
                     if(c[i].ext->normals && !nolms) loopj(6) if(mask & (1 << j))
                     {
                         loopk(sizeof(surfaceinfo)) f->putchar(0);
@@ -128,7 +127,7 @@ void savec(cube *c, stream *f, bool nolms)
                     }
                 }
                 f->putchar(mask);
-                if(c[i].ext->material != MAT_AIR) f->putchar(c[i].ext->material);
+                if(c[i].material != MAT_AIR) f->putchar(c[i].material);
                 loopj(numsurfs) if(j >= 6 || mask & (1 << j))
                 {
                     surfaceinfo tmp = c[i].ext->surfaces[j];
@@ -137,16 +136,17 @@ void savec(cube *c, stream *f, bool nolms)
                     if(j < 6 && c[i].ext->normals) f->write(&c[i].ext->normals[j], sizeof(surfacenormals));
                 }
             }
-            if(c[i].ext && c[i].ext->merged)
+            if(c[i].merged)
             {
-                f->putchar(c[i].ext->merged | (c[i].ext->mergeorigin ? 0x80 : 0));
-                if(c[i].ext->mergeorigin)
+                f->putchar(c[i].merged | (c[i].ext && c[i].ext->merges ? 0x80 : 0));
+                if(c[i].ext && c[i].ext->merges)
                 {
-                    f->putchar(c[i].ext->mergeorigin);
-                    int index = 0;
-                    loopj(6) if(c[i].ext->mergeorigin&(1<<j))
+                    int mask = 0;
+                    loopj(6) if(!c[i].ext->merges[j].empty()) mask |= 1<<j;
+                    f->putchar(mask);
+                    loopj(6) if(!c[i].ext->merges[j].empty())
                     {
-                        mergeinfo tmp = c[i].ext->merges[index++];
+                        mergeinfo tmp = c[i].ext->merges[j];
                         lilswap(&tmp.u1, 4);
                         f->write(&tmp, sizeof(mergeinfo));
                     }
@@ -190,7 +190,7 @@ void loadc(stream *f, cube &c)
                 static uchar matconv[] = { MAT_AIR, MAT_WATER, MAT_CLIP, MAT_GLASS|MAT_CLIP, MAT_NOCLIP, MAT_LAVA|MAT_DEATH, MAT_GAMECLIP, MAT_DEATH };
                 mat = size_t(mat) < sizeof(matconv)/sizeof(matconv[0]) ? matconv[mat] : MAT_AIR;
             }
-            ext(c).material = mat;
+            c.material = mat;
         }
         if(mask & 0x3F)
         {
@@ -234,18 +234,17 @@ void loadc(stream *f, cube &c)
             if(octsav&0x80)
             {
                 int merged = f->getchar();
-                ext(c).merged = merged&0x3F;
+                c.merged = merged&0x3F;
                 if(merged&0x80)
                 {
-                    c.ext->mergeorigin = f->getchar();
-                    int nummerges = 0;
-                    loopi(6) if(c.ext->mergeorigin&(1<<i)) nummerges++;
-                    if(nummerges)
+                    int mask = f->getchar();
+                    if(mask)
                     {
-                        c.ext->merges = new mergeinfo[nummerges];
-                        loopi(nummerges)
+                        ext(c).merges = new mergeinfo[6];
+                        loopi(6)
                         {
                             mergeinfo *m = &c.ext->merges[i];
+                            if(!(mask&(1<<i))) { memset(m, 0, sizeof(mergeinfo)); continue; }
                             f->read(m, sizeof(mergeinfo));
                             lilswap(&m->u1, 4);
                             if(GETIV(mapversion) <= 25)
@@ -638,6 +637,18 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         else lilswap(&hdr.numvslots, 1);
     }
 
+    renderprogress(0, "clearing world...");
+
+    freeocta(worldroot);
+    worldroot = NULL;
+
+    SETVFN(mapsize, hdr.worldsize);
+    int worldscale = 0;
+    while(1<<worldscale < hdr.worldsize) worldscale++;
+    SETVFN(mapscale, worldscale);
+
+    renderprogress(0, "loading vars...");
+
     loopi(hdr.numvars)
     {
         int type = f->getchar(), ilen = f->getlil<ushort>();
@@ -703,8 +714,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         if(samegame) game::readgamedata(extras);
     }
     
-    renderprogress(0, "clearing world...");
-
     texmru.shrink(0);
     if(hdr.version<14)
     {
@@ -717,14 +726,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         ushort nummru = f->getlil<ushort>();
         loopi(nummru) texmru.add(f->getlil<ushort>());
     }
-
-    freeocta(worldroot);
-    worldroot = NULL;
-
-    SETVFN(mapsize, hdr.worldsize);
-    int worldscale = 0;
-    while(1<<worldscale < hdr.worldsize) worldscale++;
-    SETVFN(mapscale, worldscale);
 
     renderprogress(0, "loading entities...");
 

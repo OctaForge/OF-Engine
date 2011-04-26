@@ -27,7 +27,7 @@ function delta_edit_0(a)
 end
 
 multiplier = 1
-multiplier2 = 1
+multiplier2 = 16
 
 function delta_edit_1(a) gridpower = gridpower + a end
 function delta_edit_2(a) of.world.editfacewentpush(a, 0) end

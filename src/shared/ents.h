@@ -148,7 +148,8 @@ static const char * const animnames[] =
 #define ANIM_NORENDER    (1<<26)
 #define ANIM_RAGDOLL     (1<<27)
 #define ANIM_SETSPEED    (1<<28)
-#define ANIM_GHOST       (1<<29)
+#define ANIM_NOPITCH     (1<<29)
+#define ANIM_GHOST       (1<<30)
 #define ANIM_FLAGS       (0x1FF<<22)
 
 struct animinfo // description of a character's animation

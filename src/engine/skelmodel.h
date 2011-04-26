@@ -464,7 +464,7 @@ struct skelmodel : animmodel
 
         void render(const animstate *as, skin &s, vbocacheentry &vc)
         {
-            if(!(as->anim&ANIM_NOSKIN))
+            if(!(as->cur.anim&ANIM_NOSKIN))
             {
                 if(s.multitextured())
                 {
@@ -528,7 +528,7 @@ struct skelmodel : animmodel
             glde++;
             xtravertsva += numverts;
 
-            if(GETIV(renderpath)==R_FIXEDFUNCTION && !(as->anim&ANIM_NOSKIN) && (s.scrollu || s.scrollv))
+            if(GETIV(renderpath)==R_FIXEDFUNCTION && !(as->cur.anim&ANIM_NOSKIN) && (s.scrollu || s.scrollv))
             {
                 if(s.multitextured())
                 {
@@ -549,6 +549,7 @@ struct skelmodel : animmodel
     {
         char *name;
         int bone;
+        matrix3x4 matrix;
 
         tag() : name(NULL) {}
         ~tag() { DELETEA(name); }
@@ -569,11 +570,11 @@ struct skelmodel : animmodel
     struct boneinfo
     {
         const char *name;
-        int parent, children, next, group, scheduled, interpindex, interpparent, ragdollindex;
+        int parent, children, next, group, scheduled, interpindex, interpparent, ragdollindex, correctindex;
         float pitchscale, pitchoffset, pitchmin, pitchmax;
         dualquat base, invbase;
 
-        boneinfo() : name(NULL), parent(-1), children(-1), next(-1), group(INT_MAX), scheduled(-1), interpindex(-1), interpparent(-1), ragdollindex(-1), pitchscale(0), pitchoffset(0), pitchmin(0), pitchmax(0) {}
+        boneinfo() : name(NULL), parent(-1), children(-1), next(-1), group(INT_MAX), scheduled(-1), interpindex(-1), interpparent(-1), ragdollindex(-1), correctindex(-1), pitchscale(0), pitchoffset(0), pitchmin(0), pitchmax(0) {}
         ~boneinfo()
         {
             DELETEA(name);
@@ -585,6 +586,25 @@ struct skelmodel : animmodel
         int parent, child;
 
         antipode(int parent, int child) : parent(parent), child(child) {}
+    };
+
+    struct pitchdep
+    {
+        int bone, parent;
+        dualquat pose;
+    };
+
+    struct pitchtarget
+    {
+        int bone, frame, corrects, deps;
+        float pitchmin, pitchmax, deviated;
+        dualquat pose;
+    };
+
+    struct pitchcorrect
+    {
+        int bone, target, parent;
+        float pitchmin, pitchmax, pitchscale, pitchangle, pitchtotal;
     };
 
     struct skeleton
@@ -599,6 +619,9 @@ struct skelmodel : animmodel
         vector<tag> tags;
         vector<antipode> antipodes;
         ragdollskel *ragdoll;
+        vector<pitchdep> pitchdeps;
+        vector<pitchtarget> pitchtargets;
+        vector<pitchcorrect> pitchcorrects;
 
         bool usegpuskel, usematskel;
         vector<skelcacheentry> skelcache;
@@ -658,12 +681,13 @@ struct skelmodel : animmodel
             return -1;
         }
 
-        bool addtag(const char *name, int bone)
+        bool addtag(const char *name, int bone, const matrix3x4 &matrix)
         {
             if(findtag(name) >= 0) return false;
             tag &t = tags.add();
             t.name = newstring(name);
             t.bone = bone;
+            t.matrix = matrix;
             return true;
         }
 
@@ -782,11 +806,102 @@ struct skelmodel : animmodel
             calcantipodes();
         }
 
+
+        void addpitchdep(int bone, int frame)
+        {
+            for(; bone >= 0; bone = bones[bone].parent)
+            {
+                int pos = pitchdeps.length();
+                loopvj(pitchdeps) if(bone <= pitchdeps[j].bone)
+                { 
+                    if(bone == pitchdeps[j].bone) goto nextbone;
+                    pos = j;
+                    break;
+                }
+                {
+                    pitchdep d;
+                    d.bone = bone;
+                    d.parent = -1;
+                    d.pose = framebones[frame*numbones + bone];
+                    pitchdeps.insert(pos, d);
+                }
+            nextbone:;
+            }
+        }
+
+        int findpitchdep(int bone)
+        {
+            loopv(pitchdeps) if(bone <= pitchdeps[i].bone) return bone == pitchdeps[i].bone ? i : -1;
+            return -1;
+        }
+
+        int findpitchcorrect(int bone)
+        {
+            loopv(pitchcorrects) if(bone <= pitchcorrects[i].bone) return bone == pitchcorrects[i].bone ? i : -1;
+            return -1;
+        }
+
+        void initpitchdeps()
+        {
+            pitchdeps.setsize(0);
+            if(pitchtargets.empty()) return;
+            loopv(pitchtargets)
+            {
+                pitchtarget &t = pitchtargets[i];
+                t.deps = -1;
+                addpitchdep(t.bone, t.frame);
+            }
+            loopv(pitchdeps)
+            {
+                pitchdep &d = pitchdeps[i];
+                int parent = bones[d.bone].parent;
+                if(parent >= 0) 
+                {
+                    int j = findpitchdep(parent);
+                    if(j >= 0)
+                    {
+                        d.parent = j;
+                        d.pose.mul(pitchdeps[j].pose, dualquat(d.pose));
+                    }
+                }
+            }
+            loopv(pitchtargets)
+            {
+                pitchtarget &t = pitchtargets[i];
+                int j = findpitchdep(t.bone);
+                if(j >= 0)
+                {
+                    t.deps = j;
+                    t.pose = pitchdeps[j].pose;
+                }    
+                t.corrects = -1;
+                for(int parent = t.bone; parent >= 0; parent = bones[parent].parent)
+                {
+                    t.corrects = findpitchcorrect(parent);
+                    if(t.corrects >= 0) break;
+                }
+            }
+            loopv(pitchcorrects)
+            {
+                pitchcorrect &c = pitchcorrects[i];
+                bones[c.bone].correctindex = i;
+                c.parent = -1;
+                for(int parent = c.bone;;)
+                {
+                    parent = bones[parent].parent;
+                    if(parent < 0) break;
+                    c.parent = findpitchcorrect(parent);
+                    if(c.parent >= 0) break;
+                }
+            }
+        }
+
         void optimize()
         {
             cleanup();
             if(ragdoll) ragdoll->setup();
             remapbones();
+            initpitchdeps();
         }
 
         void expandbonemask(uchar *expansion, int bone, int val)
@@ -833,6 +948,67 @@ struct skelmodel : animmodel
         int availgpubones() const { return (min(maxgpuparams() - GETIV(reservevpparams), 256) - 10) / (GETIV(matskel) ? 3 : 2); }
         bool gpuaccelerate() const { return GETIV(renderpath)!=R_FIXEDFUNCTION && numframes && GETIV(gpuskel) && numgpubones<=availgpubones(); }
 
+        float calcdeviation(const vec &axis, const vec &forward, const dualquat &pose1, const dualquat &pose2)
+        {
+            vec forward1 = pose1.transformnormal(forward).project(axis).normalize(),
+                forward2 = pose2.transformnormal(forward).project(axis).normalize(),
+                daxis = vec().cross(forward1, forward2);
+            float dx = clamp(forward1.dot(forward2), -1.0f, 1.0f), dy = clamp(daxis.magnitude(), -1.0f, 1.0f);
+            if(daxis.dot(axis) < 0) dy = -dy;
+            return atan2f(dy, dx)/RAD;
+        }
+
+        void calcpitchcorrects(float pitch, const vec &axis, const vec &forward)
+        {
+            loopv(pitchtargets)
+            {
+                pitchtarget &t = pitchtargets[i];
+                t.deviated = calcdeviation(axis, forward, t.pose, pitchdeps[t.deps].pose);
+            }
+            loopv(pitchcorrects)
+            {
+                pitchcorrect &c = pitchcorrects[i];
+                c.pitchangle = c.pitchtotal = 0;
+            }
+            loopvj(pitchtargets)
+            {
+                pitchtarget &t = pitchtargets[j];
+                float tpitch = pitch - t.deviated;
+                for(int parent = t.corrects; parent >= 0; parent = pitchcorrects[parent].parent)
+                    tpitch -= pitchcorrects[parent].pitchangle;
+                if(t.pitchmin || t.pitchmax) tpitch = clamp(tpitch, t.pitchmin, t.pitchmax);
+                loopv(pitchcorrects)
+                {
+                    pitchcorrect &c = pitchcorrects[i];
+                    if(c.target != j) continue;
+                    float total = c.parent >= 0 ? pitchcorrects[c.parent].pitchtotal : 0, 
+                          avail = tpitch - total, 
+                          used = tpitch*c.pitchscale;
+                    if(c.pitchmin || c.pitchmax)
+                    {
+                        if(used < 0) used = clamp(c.pitchmin, used, 0.0f);
+                        else used = clamp(c.pitchmax, 0.0f, used);
+                    }
+                    if(used < 0) used = clamp(avail, used, 0.0f);
+                    else used = clamp(avail, 0.0f, used);
+                    c.pitchangle = used;
+                    c.pitchtotal = used + total;
+                }
+            }
+        }
+
+        #define INTERPBONE(bone) \
+            const animstate &s = as[partmask[bone]]; \
+            const framedata &f = partframes[partmask[bone]]; \
+            dualquat d; \
+            (d = f.fr1[bone]).mul((1-s.cur.t)*s.interp); \
+            d.accumulate(f.fr2[bone], s.cur.t*s.interp); \
+            if(s.interp<1) \
+            { \
+                d.accumulate(f.pfr1[bone], (1-s.prev.t)*(1-s.interp)); \
+                d.accumulate(f.pfr2[bone], s.prev.t*(1-s.interp)); \
+            }
+
         #define INTERPBONES(outbody, rotbody) \
             sc.nextversion(); \
             struct framedata \
@@ -849,47 +1025,45 @@ struct skelmodel : animmodel
                     partframes[i].pfr2 = &framebones[as[i].prev.fr2*numbones]; \
                 } \
             } \
+            loopv(pitchdeps) \
+            { \
+                pitchdep &p = pitchdeps[i]; \
+                INTERPBONE(p.bone); \
+                d.normalize(); \
+                if(p.parent >= 0) p.pose.mul(pitchdeps[p.parent].pose, d); \
+                else p.pose = d; \
+            } \
+            calcpitchcorrects(pitch, axis, forward); \
             loopi(numbones) if(bones[i].interpindex>=0) \
             { \
-                const animstate &s = as[partmask[i]]; \
-                const framedata &f = partframes[partmask[i]]; \
-                dualquat d; \
-                (d = f.fr1[i]).mul((1-s.cur.t)*s.interp); \
-                d.accumulate(f.fr2[i], s.cur.t*s.interp); \
-                if(s.interp<1) \
-                { \
-                    d.accumulate(f.pfr1[i], (1-s.prev.t)*(1-s.interp)); \
-                    d.accumulate(f.pfr2[i], s.prev.t*(1-s.interp)); \
-                } \
+                INTERPBONE(i); \
                 const boneinfo &b = bones[i]; \
                 outbody; \
-                if(b.pitchscale) \
-                { \
-                    float angle = b.pitchscale*pitch + b.pitchoffset; \
-                    if(b.pitchmin || b.pitchmax) angle = max(b.pitchmin, min(b.pitchmax, angle)); \
-                    rotbody; \
-                } \
+                float angle; \
+                if(b.pitchscale) { angle = b.pitchscale*pitch + b.pitchoffset; if(b.pitchmin || b.pitchmax) angle = clamp(angle, b.pitchmin, b.pitchmax); } \
+                else if(b.correctindex >= 0) angle = pitchcorrects[b.correctindex].pitchangle; \
+                else continue; \
+                if(as->cur.anim&ANIM_NOPITCH || (as->interp < 1 && as->prev.anim&ANIM_NOPITCH)) \
+                    angle *= (as->cur.anim&ANIM_NOPITCH ? 0 : as->interp) + (as->interp < 1 && as->prev.anim&ANIM_NOPITCH ? 0 : 1-as->interp); \
+                rotbody; \
             }
 
-        void interpmatbones(const animstate *as, float pitch, const vec &axis, int numanimparts, const uchar *partmask, skelcacheentry &sc)
+        void interpmatbones(const animstate *as, float pitch, const vec &axis, const vec &forward, int numanimparts, const uchar *partmask, skelcacheentry &sc)
         {
             if(!sc.mdata) sc.mdata = new matrix3x4[numinterpbones];
             if(lastsdata == sc.mdata) lastsdata = NULL;
             INTERPBONES(
             {
                 matrix3x4 m(d);
-                const boneinfo &b = bones[i];
                 if(b.interpparent<0) sc.mdata[b.interpindex] = m;
                 else sc.mdata[b.interpindex].mul(sc.mdata[b.interpparent], m);
             },
             {
-                matrix3x3 rmat;
-                rmat.rotate(angle*RAD, axis);
-                sc.mdata[b.interpindex].mulorient(rmat, b.base);
+                sc.mdata[b.interpindex].mulorient(matrix3x3(angle*RAD, axis), b.base);
             });
         }
 
-        void interpbones(const animstate *as, float pitch, const vec &axis, int numanimparts, const uchar *partmask, skelcacheentry &sc)
+        void interpbones(const animstate *as, float pitch, const vec &axis, const vec &forward, int numanimparts, const uchar *partmask, skelcacheentry &sc)
         {
             if(!sc.bdata) sc.bdata = new dualquat[numinterpbones];
             if(lastsdata == sc.bdata) lastsdata = NULL;
@@ -1007,40 +1181,29 @@ struct skelmodel : animmodel
 
         void concattagtransform(part *p, int frame, int i, const matrix3x4 &m, matrix3x4 &n)
         {
-            matrix3x4 t = bones[tags[i].bone].base;
+            matrix3x4 t;
+            t.mul(bones[tags[i].bone].base, tags[i].matrix);
             t.translate(vec(p->translate).mul(p->model->scale));
             n.mul(m, t);
         }
 
-        void calctagmatrix(part *p, int bone, const matrix3x4 &m, linkedpart &l)
-        {
-            if(numframes) 
-            {
-                matrix3x4 t;
-                t.mul(m, bones[bone].base); 
-                l.matrix = t;
-            }
-            else l.matrix = m;
-            l.matrix[12] = (l.matrix[12] + p->translate.x) * p->model->scale;
-            l.matrix[13] = (l.matrix[13] + p->translate.y) * p->model->scale;
-            l.matrix[14] = (l.matrix[14] + p->translate.z) * p->model->scale;
-        }
-
-        void calctags(skelcacheentry &sc, part *p)
+        void calctags(part *p, skelcacheentry *sc = NULL)
         {
             loopv(p->links)
             {
-                int tagbone = tags[p->links[i].tag].bone, interpindex = bones[tagbone].interpindex;
-                calctagmatrix(p, tagbone, usematskel ? sc.mdata[interpindex] : sc.bdata[interpindex], p->links[i]);
-            }
-        }
-
-        void calctags(part *p)
-        {
-            loopv(p->links)
-            {
-               int tagbone = tags[p->links[i].tag].bone;
-               calctagmatrix(p, tagbone, bones[tagbone].base, p->links[i]);
+                linkedpart &l = p->links[i];
+                tag &t = tags[l.tag];
+                matrix3x4 m;
+                m.mul(bones[t.bone].base, t.matrix);
+                if(sc)
+                {
+                    int interpindex = bones[t.bone].interpindex;
+                    m.mul(usematskel ? sc->mdata[interpindex] : sc->bdata[interpindex], matrix3x4(m));
+                }
+                l.matrix = m;
+                l.matrix[12] = (l.matrix[12] + p->translate.x) * p->model->scale;
+                l.matrix[13] = (l.matrix[13] + p->translate.y) * p->model->scale;
+                l.matrix[14] = (l.matrix[14] + p->translate.z) * p->model->scale;
             }
         }
 
@@ -1059,7 +1222,7 @@ struct skelmodel : animmodel
             if(full) loopv(users) users[i]->cleanup();
         }
 
-        skelcacheentry &checkskelcache(part *p, const animstate *as, float pitch, const vec &axis, ragdolldata *rdata)
+        skelcacheentry &checkskelcache(part *p, const animstate *as, float pitch, const vec &axis, const vec &forward, ragdolldata *rdata)
         {
             if(skelcache.empty()) 
             {
@@ -1094,8 +1257,8 @@ struct skelmodel : animmodel
                     if(GETIV(matskel)) genmatragdollbones(*rdata, *sc, p);
                     else genragdollbones(*rdata, *sc, p);
                 }
-                else if(GETIV(matskel)) interpmatbones(as, pitch, axis, numanimparts, partmask, *sc);
-                else interpbones(as, pitch, axis, numanimparts, partmask, *sc);
+                else if(GETIV(matskel)) interpmatbones(as, pitch, axis, forward, numanimparts, partmask, *sc);
+                else interpbones(as, pitch, axis, forward, numanimparts, partmask, *sc);
             }
             sc->millis = lastmillis;
             return *sc;
@@ -1421,7 +1584,7 @@ struct skelmodel : animmodel
                 glVertexPointer(3, GL_FLOAT, vertsize, &vverts->pos);
                 lastvbuf = hasVBO ? (void *)(size_t)vc.vbuf : vc.vdata;
             }
-            if(as->anim&ANIM_NOSKIN)
+            if(as->cur.anim&ANIM_NOSKIN)
             {
                 if(enabletc) disabletc();
                 if(enablenormals) disablenormals();
@@ -1608,7 +1771,7 @@ struct skelmodel : animmodel
             SEARCHCACHE(MAXBLENDCACHE, blendcacheentry, blendcache, )
         }
 
-        void render(const animstate *as, float pitch, const vec &axis, dynent *d, part *p)
+        void render(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p)
         {
             bool norms = false, tangents = false;
             loopv(p->skins)
@@ -1621,7 +1784,7 @@ struct skelmodel : animmodel
 
             if(!skel->numframes)
             {
-                if(!(as->anim&ANIM_NORENDER))
+                if(!(as->cur.anim&ANIM_NORENDER))
                 {
                     if(hasVBO ? !vbocache->vbuf : !vbocache->vdata) genvbo(norms, tangents, *vbocache);
                     bindvbo(as, *vbocache);
@@ -1636,8 +1799,8 @@ struct skelmodel : animmodel
                 return;
             }
 
-            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, as->anim&ANIM_RAGDOLL || !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
-            if(!(as->anim&ANIM_NORENDER))
+            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, as->cur.anim&ANIM_RAGDOLL || !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
+            if(!(as->cur.anim&ANIM_NORENDER))
             {
                 int owner = &sc-&skel->skelcache[0];
                 vbocacheentry &vc = skel->usegpuskel ? *vbocache : checkvbocache(sc, owner);
@@ -1683,9 +1846,9 @@ struct skelmodel : animmodel
                 }
             }
 
-            skel->calctags(sc, p);
+            skel->calctags(p, &sc);
 
-            if(as->anim&ANIM_RAGDOLL && skel->ragdoll && !d->ragdoll)
+            if(as->cur.anim&ANIM_RAGDOLL && skel->ragdoll && !d->ragdoll)
             {
                 d->ragdoll = new ragdolldata(skel->ragdoll, p->model->scale);
                 if(GETIV(matskel)) skel->initmatragdoll(*d->ragdoll, sc, p);
@@ -1777,6 +1940,8 @@ struct skelmodel : animmodel
                 LINK_REUSE : 
                 LINK_TAG;
     }
+    
+    bool skeletal() const { return true; }
 };
 
 struct skeladjustment
@@ -1804,11 +1969,15 @@ template<class MDL> vector<skeladjustment> skelloader<MDL>::adjustments;
 
 template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmesh>
 {
+    typedef struct MDL::skeleton skeleton;
     typedef struct MDL::skelmeshgroup meshgroup;
     typedef struct MDL::skelpart part;
     typedef struct MDL::skin skin;
     typedef struct MDL::boneinfo boneinfo;
     typedef struct MDL::skelanimspec animspec;
+    typedef struct MDL::pitchdep pitchdep;
+    typedef struct MDL::pitchtarget pitchtarget;
+    typedef struct MDL::pitchcorrect pitchcorrect;
 
     static void loadpart(lua_Engine e)
     {
@@ -1840,7 +2009,12 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
         if(i >= 0)
         {
-            ((meshgroup *)mdl.meshes)->skel->addtag(e.get<char*>(2), i);
+            float cx = e.get<float>(6) ? cosf(e.get<float>(6)/2*RAD) : 1, sx = e.get<float>(6) ? sinf(e.get<float>(6)/2*RAD) : 0,
+                  cy = e.get<float>(7) ? cosf(e.get<float>(7)/2*RAD) : 1, sy = e.get<float>(7) ? sinf(e.get<float>(7)/2*RAD) : 0,
+                  cz = e.get<float>(8) ? cosf(e.get<float>(8)/2*RAD) : 1, sz = e.get<float>(8) ? sinf(e.get<float>(8)/2*RAD) : 0;
+            matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)),
+                        vec(e.get<float>(3), e.get<float>(4), e.get<float>(5)));
+            ((meshgroup *)mdl.meshes)->skel->addtag(e.get<char*>(2), i, m);
             return;
         }
         conoutf("could not find bone %s for tag %s", e.get<char*>(1), e.get<char*>(2));
@@ -1866,8 +2040,8 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
                 }
                 else
                 {
-                    b.pitchmin = -360*b.pitchscale;
-                    b.pitchmax = 360*b.pitchscale;
+                    b.pitchmin = -360*fabs(b.pitchscale) + b.pitchoffset;
+                    b.pitchmax = 360*fabs(b.pitchscale) + b.pitchoffset;
                 }
                 return;
             }
@@ -1884,9 +2058,63 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         }
         else
         {
-            mdl.pitchmin = -360*mdl.pitchscale;
-            mdl.pitchmax = 360*mdl.pitchscale;
+            mdl.pitchmin = -360*fabs(mdl.pitchscale) + mdl.pitchoffset;
+            mdl.pitchmax = 360*fabs(mdl.pitchscale) + mdl.pitchoffset;
         }
+    }
+
+    static void setpitchtarget(lua_Engine e)
+    {
+        if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("\frnot loading an %s", MDL::formatname()); return; }
+        part &mdl = *(part *)MDL::loading->parts.last();
+        if(!mdl.meshes) return;
+        defformatstring(filename)("%s/%s", MDL::dir, e.get<char*>(2));
+        animspec *sa = ((meshgroup *)mdl.meshes)->loadanim(path(filename));
+        if(!sa) { conoutf("\frcould not load %s anim file %s", MDL::formatname(), filename); return; }
+        skeleton *skel = ((meshgroup *)mdl.meshes)->skel;
+        int bone = skel ? skel->findbone(e.get<char*>(1)) : -1;
+        if(bone < 0)
+        {
+            conoutf("\frcould not find bone %s to pitch target", e.get<char*>(1));
+            return;
+        }
+        loopv(skel->pitchtargets) if(skel->pitchtargets[i].bone == bone) return;
+        pitchtarget &t = skel->pitchtargets.add();
+        t.bone = bone;
+        t.frame = sa->frame + clamp(e.get<int>(3), 0, sa->range-1);
+        t.pitchmin = e.get<float>(4);
+        t.pitchmax = e.get<float>(5);
+    }
+
+    static void setpitchcorrect(lua_Engine e)
+    {
+        if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("\frnot loading an %s", MDL::formatname()); return; }
+        part &mdl = *(part *)MDL::loading->parts.last();
+        if(!mdl.meshes) return;
+        skeleton *skel = ((meshgroup *)mdl.meshes)->skel;
+        int bone = skel ? skel->findbone(e.get<char*>(1)) : -1;
+        if(bone < 0)
+        {
+            conoutf("\frcould not find bone %s to pitch correct", e.get<char*>(1));
+            return;
+        }
+        if(skel->findpitchcorrect(bone) >= 0) return;
+        int targetbone = skel->findbone(e.get<char*>(2)), target = -1;
+        if(targetbone >= 0) loopv(skel->pitchtargets) if(skel->pitchtargets[i].bone == targetbone) { target = i; break; }
+        if(target < 0)
+        {
+            conoutf("\frcould not find pitch target %s to pitch correct %s", e.get<char*>(2), e.get<char*>(1));
+            return;
+        }
+        pitchcorrect c;
+        c.bone = bone;
+        c.target = target;
+        c.pitchmin = e.get<float>(4);
+        c.pitchmax = e.get<float>(5);
+        c.pitchscale = e.get<float>(3);
+        int pos = skel->pitchcorrects.length();
+        loopv(skel->pitchcorrects) if(bone <= skel->pitchcorrects[i].bone) { pos = i; break; break; }
+        skel->pitchcorrects.insert(pos, c); 
     }
 
     static void setanim(lua_Engine e)
@@ -1962,6 +2190,8 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         modelcommand(loadpart, "load");
         modelcommand(settag, "tag");
         modelcommand(setpitch, "pitch");
+        modelcommand(setpitchtarget, "pitchtarget");
+        modelcommand(setpitchcorrect, "pitchcorrect");
         if(MDL::animated())
         {
             modelcommand(setanim, "anim");

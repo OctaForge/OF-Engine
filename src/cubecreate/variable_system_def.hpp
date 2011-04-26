@@ -121,10 +121,14 @@ VARR(bumperror, 1, 3, 16);
 VARR(lightlod, 0, 0, 10);
 VARFR(ambient, 1, 0x191919, 0xFFFFFF, ambient);
 VARFR(skylight, 0, 0, 0xFFFFFF, skylight);
+VARFR(sunlight, 0, 0, 0xFFFFFF, sunlight);
+VARFR(sunlightyaw, 0, 0, 360, sunlightdir);
+VARFR(sunlightpitch, -90, 90, 90, sunlightdir);
+FVARFR(sunlightscale, 0, 1, 16, setupsunlight);
+VARR(skytexturelight, 0, 1, 1);
 VAR(lmshadows, 0, 2, 2); // global name was lmshadows_
 VAR(lmaa, 0, 3, 3); // global name was lmaa_
 VAR(lightcompress, 0, 3, 6);
-VARR(skytexturelight, 0, 1, 1);
 VARR(blurlms, 0, 0, 2);
 VARR(blurskylight, 0, 0, 2);
 VAR(edgetolerance, 1, 4, 8);
@@ -190,6 +194,7 @@ VAR(movieaccelblit, 0, 0, 1);
 VAR(movieaccelyuv, 0, 1, 1);
 VARP(movieaccel, 0, 1, 1);
 VARP(moviesync, 0, 0, 1);
+FVARP(movieminquality, 0, 0, 1);
 VARP(moview, 0, 320, 10000);
 VARP(movieh, 0, 240, 10000);
 VARP(moviefps, 1, 24, 1000);
@@ -376,6 +381,8 @@ VAR(modeltweaks, 0, 0, 1); // INTENSITY: SkyManager: tweaks for models (like amb
 FVAR(tweakmodelspec, 0.0f, 1.0f, 100.0f);
 FVAR(tweakmodelambient, 0.0f, 1.0f, 100.0f);
 FVAR(tweakmodelglow, 0.0f, 1.0f, 100.0f);
+FVAR(tweakmodelglowdelta, 0.0f, 1.0f, 100.0f);
+FVAR(tweakmodelglowpulse, 0.0f, 1.0f, 100.0f);
 FVAR(tweakmodelspecglare, 0.0f, 1.0f, 100.0f);
 FVAR(tweakmodelglowglare, 0.0f, 1.0f, 100.0f);
 FVARR(tweakmodelscale, 0.001f, 1.0f, 100.0f); // end INTENSITY
@@ -466,7 +473,8 @@ VARR(skytexture, 0, 1, 1); // globalname was useskytexture
 VAR(oqfrags, 0, 8, 64);
 VAR(oqwait, 0, 1, 1);
 VAR(oqmm, 0, 4, 8);
-VAR(outline, 0, 0, 0xFFFFFF);
+VAR(outline, 0, 0, 1);
+VARP(outlinecolour, 0, 0, 0xFFFFFF);
 VAR(dtoutline, 0, 1, 1);
 VAR(blendbrushcolor, 0, 0x0000C0, 0xFFFFFF);
 VAR(oqdist, 0, 256, 1024);

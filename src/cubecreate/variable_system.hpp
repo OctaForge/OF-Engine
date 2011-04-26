@@ -239,31 +239,31 @@ namespace var
          * @param val The value to set.
          * @param luasync Try to sync it with Lua if true.
          * @param forcecb Force running callback.
-         * @param clamp Clamp the value according to min and max values.
+         * @param doclamp Clamp the value according to min and max values.
          * 
          * Sets int value of the variable.
          */
-        void s(int val, bool luasync = true, bool forcecb = false, bool clamp = true);
+        void s(int val, bool luasync = true, bool forcecb = false, bool doclamp = true);
         /**
          * @brief Set float value of the variable.
          * @param val The value to set.
          * @param luasync Try to sync it with Lua if true.
          * @param forcecb Force running callback.
-         * @param clamp Clamp the value according to min and max values.
+         * @param doclamp Clamp the value according to min and max values.
          * 
          * Sets float value of the variable.
          */
-        void s(float val, bool luasync = true, bool forcecb = false, bool clamp = true);
+        void s(float val, bool luasync = true, bool forcecb = false, bool doclamp = true);
         /**
          * @brief Set string value of the variable.
          * @param val The value to set.
          * @param luasync Try to sync it with Lua if true.
          * @param forcecb Force running callback.
-         * @param clamp Dummy value. Does nothing.
+         * @param doclamp Dummy value. Does nothing.
          * 
          * Sets string value of the variable.
          */
-        void s(const char *val, bool luasync = true, bool forcecb = false, bool clamp = true);
+        void s(const char *val, bool luasync = true, bool forcecb = false, bool doclamp = true);
         /**
          * @brief Reset the variable.
          * 

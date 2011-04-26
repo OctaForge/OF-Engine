@@ -3,7 +3,7 @@ OctaForge
 
 This is OctaForge developer alpha (0.1.0, 24 April 2011)
 
-In sync with Cube 2 / Sauerbraten revision: 3330
+In sync with Cube 2 / Sauerbraten revision: 3575
 
 For installation, read INSTALL.
 To run it, run intensity_client.sh on *nix

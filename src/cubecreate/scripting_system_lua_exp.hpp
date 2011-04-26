@@ -234,6 +234,7 @@ const LE_reg CAPI[] = {
     LUAREG(scriptmdlbb),
     LUAREG(scriptmdlcb),
     LUAREG(mdlmesh),
+    LUAREG(findanims),
     LUAREG(convpngtodds),
     LUAREG(combineimages),
     LUAREG(texturereset),

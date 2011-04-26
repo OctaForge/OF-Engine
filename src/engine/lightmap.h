@@ -86,7 +86,7 @@ extern vector<LightMapTexture> lightmaptexs;
 
 enum { LMID_AMBIENT = 0, LMID_AMBIENT1, LMID_BRIGHT, LMID_BRIGHT1, LMID_DARK, LMID_DARK1, LMID_RESERVED };
 
-extern bvec ambientcolor, skylightcolor;
+extern bvec ambientcolor, skylightcolor, sunlightcolor;
 
 extern void clearlights();
 extern void initlights();
@@ -112,12 +112,13 @@ struct lerpbounds
     const lerpvert *max;
     float u, ustep;
     vec normal, nstep;
+    int winding;
 };
 
 extern void calcnormals();
 extern void clearnormals();
 extern void findnormal(const vec &key, const vec &surface, vec &v);
-extern void calclerpverts(const vec &origin, const vec *p, const vec *n, const vec &ustep, const vec &vstep, lerpvert *lv, int &numv);
+extern void calclerpverts(const vec2 *c, const vec *n, lerpvert *lv, int &numv);
 extern void initlerpbounds(const lerpvert *lv, int numv, lerpbounds &start, lerpbounds &end);
 extern void lerpnormal(float v, const lerpvert *lv, int numv, lerpbounds &start, lerpbounds &end, vec &normal, vec &nstep);
 

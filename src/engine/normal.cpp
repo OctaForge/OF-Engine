@@ -176,22 +176,19 @@ void clearnormals()
     normals.setsize(0);
 }
 
-void calclerpverts(const vec &origin, const vec *p, const vec *n, const vec &ustep, const vec &vstep, lerpvert *lv, int &numv)
+void calclerpverts(const vec2 *c, const vec *n, lerpvert *lv, int &numv)
 {
-    float ul = ustep.squaredlen(), vl = vstep.squaredlen();
     int i = 0;
     loopj(numv)
     {
         if(j)
         {
-            if(p[j] == p[j-1] && n[j] == n[j-1]) continue;
-            if(j == numv-1 && p[j] == p[0] && n[j] == n[0]) continue;
+            if(c[j] == c[j-1] && n[j] == n[j-1]) continue;
+            if(j == numv-1 && c[j] == c[0] && n[j] == n[0]) continue;
         }
-        vec dir(p[j]);
-        dir.sub(origin);
         lv[i].normal = n[j];
-        lv[i].u = ustep.dot(dir)/ul;
-        lv[i].v = vstep.dot(dir)/vl;
+        lv[i].u = c[j].x;
+        lv[i].v = c[j].y;
         i++;
     }
     numv = i;
@@ -238,8 +235,18 @@ void initlerpbounds(const lerpvert *lv, int numv, lerpbounds &start, lerpbounds 
     else if(first->u > second->u) { start.min = second; end.min = first; }
     else { start.min = first; end.min = second; }
 
-    start.max = (start.min == lv ? &lv[numv-1] : start.min-1);
-    end.max = (end.min == &lv[numv-1] ? lv : end.min+1);
+    if((lv[1].u - lv->u)*(lv[2].v - lv->v) > (lv[1].v - lv->v)*(lv[2].u - lv->u))
+    { 
+        start.winding = end.winding = 1;
+        start.max = (start.min == lv ? &lv[numv-1] : start.min-1);
+        end.max = (end.min == &lv[numv-1] ? lv : end.min+1);
+    }
+    else
+    {
+        start.winding = end.winding = -1;
+        start.max = (start.min == &lv[numv-1] ? lv : start.min+1);
+        end.max = (end.min == lv ? &lv[numv-1] : end.min-1);
+    }
 
     setlerpstep(0, start);
     setlerpstep(0, end);
@@ -249,7 +256,9 @@ void updatelerpbounds(float v, const lerpvert *lv, int numv, lerpbounds &start, 
 {
     if(v >= start.max->v)
     {
-        const lerpvert *next = (start.max == lv ? &lv[numv-1] : start.max-1);
+        const lerpvert *next = start.winding > 0 ?
+                (start.max == lv ? &lv[numv-1] : start.max-1) :
+                (start.max == &lv[numv-1] ? lv : start.max+1);
         if(next->v > start.max->v)
         {
             start.min = start.max;
@@ -259,7 +268,9 @@ void updatelerpbounds(float v, const lerpvert *lv, int numv, lerpbounds &start, 
     }
     if(v >= end.max->v)
     {
-        const lerpvert *next = (end.max == &lv[numv-1] ? lv : end.max+1);
+        const lerpvert *next = end.winding > 0 ?
+                (end.max == &lv[numv-1] ? lv : end.max+1) :
+                (end.max == lv ? &lv[numv-1] : end.max-1);
         if(next->v > end.max->v)
         {
             end.min = end.max;

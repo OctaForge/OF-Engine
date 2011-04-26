@@ -2121,10 +2121,10 @@ lazyshader(
         uniform sampler2DRect tex0;
         void main(void)
         {
-            vec4 sample = texture2DRect(tex0, gl_TexCoord[0].xy);
-            gl_FragColor = vec4(dot(sample, vec4(0.500, -0.419, -0.081, 0.500)),
-                                dot(sample, vec4(-0.169, -0.331, 0.500, 0.500)),
-                                dot(sample.rgb, vec3(0.299, 0.587, 0.114)),
+            vec3 sample = texture2DRect(tex0, gl_TexCoord[0].xy).rgb;
+            gl_FragColor = vec4(dot(sample, vec3(0.439216, -0.367788, -0.071427)) + 0.501961,
+                                dot(sample, vec3(-0.148224, -0.290992, 0.439216)) + 0.501961,
+                                dot(sample, vec3(0.256788, 0.504125, 0.097905)) + 0.062745,
                                 sample.a);
         }
     ]]
@@ -2151,10 +2151,10 @@ lazyshader(
             vec3 sample2 = texture2DRect(tex0, gl_TexCoord[1].xy).rgb;
             vec3 sample3 = texture2DRect(tex0, gl_TexCoord[2].xy).rgb;
             vec3 sample4 = texture2DRect(tex0, gl_TexCoord[3].xy).rgb;
-            gl_FragColor = vec4(dot(sample3, vec3(0.299, 0.587, 0.114)),
-                                dot(sample2, vec3(0.299, 0.587, 0.114)),
-                                dot(sample1, vec3(0.299, 0.587, 0.114)),
-                                dot(sample4, vec3(0.299, 0.587, 0.114)));
+            gl_FragColor = vec4(dot(sample3, vec3(0.256788, 0.504125, 0.097905)) + 0.062745,
+                                dot(sample2, vec3(0.256788, 0.504125, 0.097905)) + 0.062745,
+                                dot(sample1, vec3(0.256788, 0.504125, 0.097905)) + 0.062745,
+                                dot(sample4, vec3(0.256788, 0.504125, 0.097905)) + 0.062745);
         }
     ]]
 )
@@ -2176,14 +2176,14 @@ lazyshader(
         uniform sampler2DRect tex0;
         void main(void)
         {
-            vec4 sample1 = texture2DRect(tex0, gl_TexCoord[0].xy);
-            vec4 sample2 = texture2DRect(tex0, gl_TexCoord[1].xy);
-            vec4 sample3 = texture2DRect(tex0, gl_TexCoord[2].xy);
-            vec4 sample4 = texture2DRect(tex0, gl_TexCoord[3].xy);
-            gl_FragColor = vec4(dot(sample3, vec4(-0.169, -0.331, 0.500, 0.500)),
-                                dot(sample2, vec4(-0.169, -0.331, 0.500, 0.500)),
-                                dot(sample1, vec4(-0.169, -0.331, 0.500, 0.500)),
-                                dot(sample4, vec4(-0.169, -0.331, 0.500, 0.500)));
+            vec3 sample1 = texture2DRect(tex0, gl_TexCoord[0].xy).rgb;
+            vec3 sample2 = texture2DRect(tex0, gl_TexCoord[1].xy).rgb;
+            vec3 sample3 = texture2DRect(tex0, gl_TexCoord[2].xy).rgb;
+            vec3 sample4 = texture2DRect(tex0, gl_TexCoord[3].xy).rgb;
+            gl_FragColor = vec4(dot(sample3, vec3(-0.148224, -0.290992, 0.43921)) + 0.501961,
+                                dot(sample2, vec3(-0.148224, -0.290992, 0.43921)) + 0.501961,
+                                dot(sample1, vec3(-0.148224, -0.290992, 0.43921)) + 0.501961,
+                                dot(sample4, vec3(-0.148224, -0.290992, 0.43921)) + 0.501961);
         }
     ]]
 )
@@ -2205,14 +2205,14 @@ lazyshader(
         uniform sampler2DRect tex0;
         void main(void)
         {
-            vec4 sample1 = texture2DRect(tex0, gl_TexCoord[0].xy);
-            vec4 sample2 = texture2DRect(tex0, gl_TexCoord[1].xy);
-            vec4 sample3 = texture2DRect(tex0, gl_TexCoord[2].xy);
-            vec4 sample4 = texture2DRect(tex0, gl_TexCoord[3].xy);
-            gl_FragColor = vec4(dot(sample3, vec4(0.500, -0.419, -0.081, 0.500)),
-                                dot(sample2, vec4(0.500, -0.419, -0.081, 0.500)),
-                                dot(sample1, vec4(0.500, -0.419, -0.081, 0.500)),
-                                dot(sample4, vec4(0.500, -0.419, -0.081, 0.500)));
+            vec3 sample1 = texture2DRect(tex0, gl_TexCoord[0].xy).rgb;
+            vec3 sample2 = texture2DRect(tex0, gl_TexCoord[1].xy).rgb;
+            vec3 sample3 = texture2DRect(tex0, gl_TexCoord[2].xy).rgb;
+            vec3 sample4 = texture2DRect(tex0, gl_TexCoord[3].xy).rgb;
+            gl_FragColor = vec4(dot(sample3, vec3(0.439216, -0.367788, -0.071427)) + 0.501961,
+                                dot(sample2, vec3(0.439216, -0.367788, -0.071427)) + 0.501961,
+                                dot(sample1, vec3(0.439216, -0.367788, -0.071427)) + 0.501961,
+                                dot(sample4, vec3(0.439216, -0.367788, -0.071427)) + 0.501961);
         }
     ]]
 )
@@ -2774,7 +2774,8 @@ function modelvertexshader(...)
                             nvec = onormal; 
                             halfangle = lightdir.xyz + camdir;
                         ]==] else return [==[
-                            gl_FrontColor = vec4(gl_Color.rgb*max(dot(onormal, lightdir.xyz) + 0.5, lightscale.y), gl_Color.a);
+                            float intensity = dot(onormal, lightdir.xyz);
+                            gl_FrontColor = vec4(gl_Color.rgb*clamp(intensity*(intensity*lightscale.x + lightscale.y) + lightscale.z, 0.0, 1.0), gl_Color.a);
                         ]==] end
                     $1>
                     <$1
@@ -2832,8 +2833,8 @@ function modelfragmentshader(...)
                 $1>
             ]=] end
         $0>
-        <$0 if %(mdl_s)s or %(mdl_m)s or (%(mdl_n)s and not %(mdl_i)s) then return "uniform vec4 lightscale;" end $0>
-        <$0 if %(mdl_i)s and (%(mdl_s)s or %(mdl_m)s) then return "uniform vec4 glarescale;" end $0>
+        <$0 if (%(mdl_s)s or %(mdl_n)s) and not %(mdl_i)s then return "uniform vec4 lightscale;" end $0>
+        <$0 if %(mdl_s)s or %(mdl_m)s then return "uniform vec4 maskscale;" end $0>
         uniform sampler2D tex0;
         <$0 if %(mdl_m)s then return "uniform sampler2D tex1;" end $0>
         <$0 if %(mdl_e)s then return "uniform samplerCube tex2;" end $0>
@@ -2841,16 +2842,18 @@ function modelfragmentshader(...)
         void main(void)
         {
             vec4 light = texture2D(tex0, gl_TexCoord[0].xy);
+            light.rgb *= 2.0;
             <$0
                 if %(mdl_m)s then return [=[
                     vec3 masks = texture2D(tex1, gl_TexCoord[0].xy).rgb;
-                    vec3 glow = light.rgb * lightscale.z;
+                    vec3 glow = light.rgb * maskscale.y;
                 ]=] end
             $0>
             <$0
                 if %(mdl_n)s then return [=[
-                    vec3 normal = normalize(texture2D(tex3, gl_TexCoord[0].xy).rgb - 0.5);
+                    vec3 normal = texture2D(tex3, gl_TexCoord[0].xy).rgb - 0.5;
                     <$1 if %(mdl_e)s then return "normal = world * normal;" end $1>
+                    normal = normalize(normal);
                 ]=] end
             $0>
             <$0
@@ -2860,7 +2863,7 @@ function modelfragmentshader(...)
                             <$2 if %(mdl_e)s then return "vec3 halfangle = lightvec + camvec;" end $2>
                         ]==] else return "vec3 normal = normalize(nvec);" end
                     $1>
-                    float spec = lightscale.x * pow(clamp(dot(normalize(halfangle), normal), 0.0, 1.0), <$1=%(mdl_i)s and "256.0" or "128.0"$1>);
+                    float spec = maskscale.x * pow(clamp(dot(normalize(halfangle), normal), 0.0, 1.0), <$1=%(mdl_i)s and "256.0" or "128.0"$1>);
                     <$1 if %(mdl_m)s then return "spec *= masks.r;" end $1> // specmap in red channel
                 ]=] end
             $0>
@@ -2868,12 +2871,15 @@ function modelfragmentshader(...)
                 if %(mdl_i)s then return [=[
                     <$1
                         if %(mdl_s)s then return [==[
-                            spec *= glarescale.x;
+                            spec *= maskscale.z;
                             <$2=%(mdl_m)s and "light.rgb" or "gl_FragColor.rgb"$2> = spec * gl_Color.rgb;
                         ]==] elseif not %(mdl_m)s then return "gl_FragColor.rgb = vec3(0.0);" end
                     $1>
                 ]=] else return [=[
-                    <$1 if %(mdl_s)s or %(mdl_n)s then return "light.rgb *= max(dot(normal, lightvec) + 0.5, lightscale.y);" end $1>
+                    <$1 if %(mdl_s)s or %(mdl_n)s then return [==[
+                        float intensity = dot(normal, lightvec);
+                        light.rgb *= clamp(intensity*(intensity*lightscale.x + lightscale.y) + lightscale.z, 0.0, 1.0);
+                    ]==] end $1>
                     <$1 if %(mdl_s)s then return "light.rgb += spec;" end $1>
                     <$1 if %(mdl_m)s then return "light.rgb *= gl_Color.rgb;" else return "gl_FragColor = light * gl_Color;" end $1>
                 ]=] end
@@ -2894,7 +2900,7 @@ function modelfragmentshader(...)
                         gl_FragColor.rgb = mix(light.rgb, reflect, rmod*masks.b); // envmap mask in blue channel
                     ]=] else
                         if %(mdl_i)s then return [=[
-                            float k = min(masks.g*masks.g*glarescale.y, 1.0); // glow mask in green channel
+                            float k = min(masks.g*masks.g*maskscale.w, 1.0); // glow mask in green channel
                             gl_FragColor.rgb = <$1=%(mdl_s)s and "glow*k + light.rgb" or "glow*k"$1>;
                         ]=] else return [=[
                             gl_FragColor.rgb = mix(light.rgb, glow, masks.g); // glow mask in green channel

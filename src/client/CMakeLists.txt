@@ -14,6 +14,9 @@ if (NOT (WIN32 OR MINGW))
 	include_directories(${Boost_INCLUDE_DIRS})
 endif (NOT (WIN32 OR MINGW))
 
+# for now, keep rtti / exceptions enabled, disable them when boost is out
+#add_definitions(-fno-exceptions -fno-rtti)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux") # there is no LINUX variable declared
    add_definitions (-fsigned-char)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

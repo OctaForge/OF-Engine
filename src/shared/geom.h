@@ -6,6 +6,7 @@ struct vec
     union
     {
         struct { float x, y, z; };
+        struct { float r, g, b; };
         float v[3];
     };
 
@@ -46,6 +47,7 @@ struct vec
     vec &max(const vec &o)   { x = ::max(x, o.x); y = ::max(y, o.y); z = ::max(z, o.z); return *this; }
     vec &min(float f)        { x = ::min(x, f); y = ::min(y, f); z = ::min(z, f); return *this; }
     vec &max(float f)        { x = ::max(x, f); y = ::max(y, f); z = ::max(z, f); return *this; }
+    vec &clamp(float f, float h) { x = ::clamp(x, f, h); y = ::clamp(y, f, h); z = ::clamp(z, f, h); return *this; }
     float magnitude2() const { return sqrtf(dot2(*this)); }
     float magnitude() const  { return sqrtf(squaredlen()); }
     vec &normalize()         { div(magnitude()); return *this; }
@@ -86,9 +88,13 @@ struct vec
         return *this;
     }
 
-    vec &rotate_around_z(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*y, cosf(angle)*y+sinf(angle)*x, z); return *this; }
-    vec &rotate_around_x(float angle) { *this = vec(x, cosf(angle)*y-sinf(angle)*z, cosf(angle)*z+sinf(angle)*y); return *this; }
-    vec &rotate_around_y(float angle) { *this = vec(cosf(angle)*x-sinf(angle)*z, y, cosf(angle)*z+sinf(angle)*x); return *this; }
+    vec &rotate_around_z(float c, float s) { float rx = x, ry = y; x = c*rx-s*ry; y = c*ry+s*rx; return *this; }
+    vec &rotate_around_x(float c, float s) { float ry = y, rz = z; y = c*ry-s*rz; z = c*rz+s*ry; return *this; }
+    vec &rotate_around_y(float c, float s) { float rx = x, rz = z; x = c*rx-s*rz; z = c*rz+s*rx; return *this; }
+
+    vec &rotate_around_z(float angle) { return rotate_around_z(cosf(angle), sinf(angle)); }
+    vec &rotate_around_x(float angle) { return rotate_around_x(cosf(angle), sinf(angle)); }
+    vec &rotate_around_y(float angle) { return rotate_around_y(cosf(angle), sinf(angle)); }
 
     vec &rotate(float angle, const vec &d)
     {
@@ -227,6 +233,7 @@ struct vec2
     bool operator==(const vec2 &o) const { return x == o.x && y == o.y; }
     bool operator!=(const vec2 &o) const { return x != o.x || y != o.y; }
 
+    bool iszero() const { return x==0 && y==0; }
     float dot(const vec2 &o) const  { return x*o.x + y*o.y; }
     float squaredlen() const { return dot(*this); }
     float magnitude() const  { return sqrtf(squaredlen()); }
@@ -490,6 +497,7 @@ struct matrix3x3
 
     matrix3x3() {}
     matrix3x3(const vec &a, const vec &b, const vec &c) : a(a), b(b), c(c) {}
+    explicit matrix3x3(float angle, const vec &axis) { rotate(angle, axis); }
     explicit matrix3x3(const quat &q)
     {
         float x = q.x, y = q.y, z = q.z, w = q.w,
@@ -903,6 +911,7 @@ struct plane : vec
     }
 
     float zintersect(const vec &p) const { return -(x*p.x+y*p.y+offset)/z; }
+    float zdelta(const vec &p) const { return -(x*p.x+y*p.y)/z; }
     float zdist(const vec &p) const { return p.z-zintersect(p); }
 };
 
@@ -946,6 +955,7 @@ struct ivec
     union
     {
         struct { int x, y, z; };
+        struct { int r, g, b; };
         int v[3];
     };
 
@@ -1014,6 +1024,7 @@ struct bvec
     union
     {
         struct { uchar x, y, z; };
+        struct { uchar r, g, b; };
         uchar v[3];
     };
 
@@ -1234,28 +1245,6 @@ struct glmatrixf
         v[14] = p.offset*scale;
     }
             
-    void invertnormal(vec &dir) const
-    {
-        vec n(dir);
-        dir.x = n.x*v[0] + n.y*v[1] + n.z*v[2];
-        dir.y = n.x*v[4] + n.y*v[5] + n.z*v[6];
-        dir.z = n.x*v[8] + n.y*v[9] + n.z*v[10];
-    }
-
-    void invertvertex(vec &pos) const
-    {
-        pos.x -= v[12];
-        pos.y -= v[13];
-        pos.z -= v[14];
-        invertnormal(pos);
-    }
-
-    void invertplane(plane &p)
-    {
-        p.offset += p.x*v[12] + p.y*v[13] + p.z*v[14];
-        invertnormal(p);
-    }
-
     float transformx(const vec &p) const
     {
         return p.x*v[0] + p.y*v[4] + p.z*v[8] + v[12];
@@ -1314,6 +1303,13 @@ struct glmatrixf
     template<class T> vec perspectivetransform(const T &in) const
     {
         return vec(transformx(in), transformy(in), transformz(in)).div(transformw(in));
+    }
+
+    void transformnormal(const vec &in, vec &out) const
+    {
+        out.x = in.x*v[0] + in.y*v[4] + in.z*v[8];
+        out.y = in.x*v[1] + in.y*v[5] + in.z*v[9];
+        out.z = in.x*v[2] + in.y*v[6] + in.z*v[10];
     }
 
     void transposedtransform(const vec &in, vec &out) const

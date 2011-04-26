@@ -966,3 +966,9 @@ function glass() editmat("glass") end
 function noclip() editmat("noclip") end
 function lava() editmat("lava") end
 function alpha() editmat("alpha") end
+
+function getsundir()
+    local cam = CAPI.getcam()
+    base.sunlightyaw = cam.yaw
+    base.sunlightpitch = cam.pitch
+end

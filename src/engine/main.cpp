@@ -6,18 +6,21 @@
 #include "client_system.h" // INTENSITY
 #include "intensity_gui.h" // INTENSITY
 
+extern void cleargamma();
+
 void cleanup()
 {
     recorder::stop();
     cleanupserver();
     SDL_ShowCursor(1);
     SDL_WM_GrabInput(SDL_GRAB_OFF);
-    SDL_SetGamma(1, 1, 1);
+    cleargamma();
     freeocta(worldroot);
     var::clear();
     extern void clear_console(); clear_console();
     extern void clear_mdls();    clear_mdls();
     extern void clear_sound();   clear_sound();
+    closelogfile();
     SDL_Quit();
 }
 
@@ -56,7 +59,7 @@ void fatal(const char *s, ...)    // failure exit
     if(errors <= 2) // print up to one extra recursive error
     {
         defvformatstring(msg,s,s);
-        puts(msg);
+        logoutf("%s", msg);
 
         if(errors <= 1) // avoid recursion
         {
@@ -64,7 +67,7 @@ void fatal(const char *s, ...)    // failure exit
             {
                 SDL_ShowCursor(1);
                 SDL_WM_GrabInput(SDL_GRAB_OFF);
-                SDL_SetGamma(1, 1, 1);
+                cleargamma();
             }
             #ifdef WIN32
                 MessageBox(NULL, msg, "Cube 2: Sauerbraten fatal error", MB_OK|MB_SYSTEMMODAL);
@@ -609,12 +612,18 @@ void screenres(int *w, int *h)
 #endif
 }
 
-void resetgamma()
+int curgamma = 100;
+void restoregamma()
 {
-    float f = GETIV(gamma)/100.0f;
-    if(f==1) return;
+    if(curgamma == 100) return;
+    float f = curgamma/100.0f;
     SDL_SetGamma(1, 1, 1);
     SDL_SetGamma(f, f, f);
+}
+
+void cleargamma()
+{
+    if(curgamma != 100) SDL_SetGamma(1, 1, 1);
 }
 
 int desktopw = 0, desktoph = 0;
@@ -794,7 +803,7 @@ void resetgl()
     reloadfonts();
     inbetweenframes = true;
     renderbackground("initializing...");
-    resetgamma();
+    restoregamma();
     reloadshaders();
     reloadtextures();
     initlights();
@@ -1098,6 +1107,13 @@ static bool findarg(int argc, char **argv, const char *str)
 
 int clockrealbase = 0, clockvirtbase = 0; // INTENSITY: Removed 'static'
 void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
+int getclockmillis()
+{
+    int millis = SDL_GetTicks() - clockrealbase;
+    if(GETIV(clockfix)) millis = int(millis*(double(GETIV(clockerror))/1000000));
+    millis += clockvirtbase;
+    return max(millis, totalmillis);
+}
 
 int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it elsewhere
 {
@@ -1111,6 +1127,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     #endif
 
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
+    setlogfile(NULL);
 
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
@@ -1128,8 +1145,9 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'q': printf("Using home directory: %s\n", &argv[i][2]); sethomedir(&argv[i][2]); break;
-            case 'k': printf("Adding package directory: %s\n", &argv[i][2]); addpackagedir(&argv[i][2]); break;
+            case 'q': logoutf("Using home directory: %s\n", &argv[i][2]); sethomedir(&argv[i][2]); break;
+            case 'k': logoutf("Adding package directory: %s\n", &argv[i][2]); addpackagedir(&argv[i][2]); break;
+            case 'g': logoutf("Setting log file", &argv[i][2]); setlogfile(&argv[i][2]); break;
             case 'r': execinitcfg(argv[i][2] ? &argv[i][2] : "init.json", false); restoredinits = true; break;
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': SETV(scr_w, clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW)); if(!findarg(argc, argv, "-h")) SETV(scr_h, -1); break;
@@ -1289,10 +1307,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
         }
 
         static int frames = 0;
-        int millis = SDL_GetTicks() - clockrealbase;
-        if(GETIV(clockfix)) millis = int(millis*(double(GETIV(clockerror))/1000000));
-        millis += clockvirtbase;
-        if(millis<totalmillis) millis = totalmillis;
+        int millis = getclockmillis();
         limitfps(millis, totalmillis);
         int elapsed = millis-totalmillis;
         if(multiplayer(false)) curtime = game::ispaused() ? 0 : elapsed;

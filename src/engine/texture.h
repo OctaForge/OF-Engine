@@ -87,6 +87,10 @@ typedef void (APIENTRYP PFNGLGETACTIVEUNIFORMBLOCKIVPROC) (GLuint program, GLuin
 typedef void (APIENTRYP PFNGLUNIFORMBLOCKBINDINGPROC) (GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
 #endif
 
+#ifndef GL_INVALID_INDEX
+#define GL_INVALID_INDEX                  0xFFFFFFFFu
+#endif
+
 #ifndef GL_VERSION_3_0
 #define GL_VERSION_3_0 1
 typedef void (APIENTRYP PFNGLBINDBUFFERRANGEPROC) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);

@@ -43,7 +43,7 @@ void mdlcollide(int *collide);
 void mdlellipsecollide(int *collide);
 void mdlspec(int *percent);
 void mdlambient(int *percent);
-void mdlglow(int *percent);
+void mdlglow(int *percent, int *delta, float *pulse);
 void mdlglare(float *specglare, float *glowglare);
 void mdlenvmap(float *envmapmax, float *envmapmin, char *envmap);
 void mdlfullbright(float *fullbright);
@@ -66,92 +66,6 @@ void rdlimitdist(int *v1, int *v2, float *mindist, float *maxdist);
 void rdlimitrot(int *t1, int *t2, float *maxangle, float *qx, float *qy, float *qz, float *qw);
 void rdanimjoints(int *on);
 
-void objload(char *model, float *smooth);
-void objpitch(float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax);
-void objskin(char *meshname, char *tex, char *masks, float *envmapmax, float *envmapmin);
-void objspec(char *meshname, int *percent);
-void objambient(char *meshname, int *percent);
-void objglow(char *meshname, int *percent);
-void objglare(char *meshname, float *specglare, float *glowglare);
-void objalphatest(char *meshname, float *cutoff);
-void objalphablend(char *meshname, int *blend);
-void objcullface(char *meshname, int *cullface);
-void objenvmap(char *meshname, char *envmap);
-void objbumpmap(char *meshname, char *normalmap, char *skin);
-void objfullbright(char *meshname, float *fullbright);
-void objshader(char *meshname, char *shader);
-void objscroll(char *meshname, float *scrollu, float *scrollv);
-void objnoclip(char *meshname, int *noclip);
-
-void setmd5dir(char *name);  
-void md5load(char *meshfile, char *skelname, float *smooth);
-void md5tag(char *name, char *tagname);        
-void md5pitch(char *name, float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax);
-void md5adjust(char *name, float *yaw, float *pitch, float *roll, float *tx, float *ty, float *tz);
-void md5skin(char *meshname, char *tex, char *masks, float *envmapmax, float *envmapmin);
-void md5spec(char *meshname, int *percent);
-void md5ambient(char *meshname, int *percent);
-void md5glow(char *meshname, int *percent);
-void md5glare(char *meshname, float *specglare, float *glowglare);
-void md5alphatest(char *meshname, float *cutoff);
-void md5alphablend(char *meshname, int *blend);
-void md5cullface(char *meshname, int *cullface);
-void md5envmap(char *meshname, char *envmap);
-void md5bumpmap(char *meshname, char *normalmap, char *skin);
-void md5fullbright(char *meshname, float *fullbright);
-void md5shader(char *meshname, char *shader);
-void md5scroll(char *meshname, float *scrollu, float *scrollv);
-void md5anim(char *anim, char *animfile, float *speed, int *priority);
-void md5animpart(char *maskstr);
-void md5link(int *parent, int *child, char *tagname, float *x, float *y, float *z);
-void md5noclip(char *meshname, int *noclip);
-
-void setiqmdir(char *name);  
-void iqmload(char *meshfile, char *skelname);
-void iqmtag(char *name, char *tagname);        
-void iqmpitch(char *name, float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax);
-void iqmadjust(char *name, float *yaw, float *pitch, float *roll, float *tx, float *ty, float *tz);
-void iqmskin(char *meshname, char *tex, char *masks, float *envmapmax, float *envmapmin);
-void iqmspec(char *meshname, int *percent);
-void iqmambient(char *meshname, int *percent);
-void iqmglow(char *meshname, int *percent);
-void iqmglare(char *meshname, float *specglare, float *glowglare);
-void iqmalphatest(char *meshname, float *cutoff);
-void iqmalphablend(char *meshname, int *blend);
-void iqmcullface(char *meshname, int *cullface);
-void iqmenvmap(char *meshname, char *envmap);
-void iqmbumpmap(char *meshname, char *normalmap, char *skin);
-void iqmfullbright(char *meshname, float *fullbright);
-void iqmshader(char *meshname, char *shader);
-void iqmscroll(char *meshname, float *scrollu, float *scrollv);
-void iqmanim(char *anim, char *animfile, float *speed, int *priority);
-void iqmanimpart(char *maskstr);
-void iqmlink(int *parent, int *child, char *tagname, float *x, float *y, float *z);
-void iqmnoclip(char *meshname, int *noclip);
-
-void setsmddir(char *name);  
-void smdload(char *meshfile, char *skelname);
-void smdtag(char *name, char *tagname);        
-void smdpitch(char *name, float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax);
-void smdadjust(char *name, float *yaw, float *pitch, float *roll, float *tx, float *ty, float *tz);
-void smdskin(char *meshname, char *tex, char *masks, float *envmapmax, float *envmapmin);
-void smdspec(char *meshname, int *percent);
-void smdambient(char *meshname, int *percent);
-void smdglow(char *meshname, int *percent);
-void smdglare(char *meshname, float *specglare, float *glowglare);
-void smdalphatest(char *meshname, float *cutoff);
-void smdalphablend(char *meshname, int *blend);
-void smdcullface(char *meshname, int *cullface);
-void smdenvmap(char *meshname, char *envmap);
-void smdbumpmap(char *meshname, char *normalmap, char *skin);
-void smdfullbright(char *meshname, float *fullbright);
-void smdshader(char *meshname, char *shader);
-void smdscroll(char *meshname, float *scrollu, float *scrollv);
-void smdanim(char *anim, char *animfile, float *speed, int *priority);
-void smdanimpart(char *maskstr);
-void smdlink(int *parent, int *child, char *tagname, float *x, float *y, float *z);
-void smdnoclip(char *meshname, int *noclip);
-
 void clearmodel(char *name);
 
 namespace lua_binds
@@ -169,7 +83,7 @@ namespace lua_binds
     LUA_BIND_STD(mdlextendbb, mdlextendbb, e.get<float*>(1), e.get<float*>(2), e.get<float*>(3))
     LUA_BIND_STD(mdlscale, mdlscale, e.get<int*>(1))
     LUA_BIND_STD(mdlspec, mdlspec, e.get<int*>(1))
-    LUA_BIND_STD(mdlglow, mdlglow, e.get<int*>(1))
+    LUA_BIND_STD(mdlglow, mdlglow, e.get<int*>(1), e.get<int*>(2), e.get<float*>(3))
     LUA_BIND_STD(mdlglare, mdlglare, e.get<float*>(1), e.get<float*>(2))
     LUA_BIND_STD(mdlambient, mdlambient, e.get<int*>(1))
     LUA_BIND_STD(mdlcullface, mdlcullface, e.get<int*>(1))
@@ -296,18 +210,16 @@ namespace lua_binds
 
     LUA_BIND_LE(rendermodel, {
         PREP_RENDER_MODEL
-        quat rotation(e.get<float>(12), e.get<float>(13), e.get<float>(14), e.get<float>(15));
         rendermodel(NULL,
                     e.get<const char*>(2),
                     anim, o, self,
                     e.get<float>(7),
                     e.get<float>(8),
-                    e.get<float>(9),
-                    e.get<int>(10),
+                    e.get<int>(9),
                     fp,
                     self->attachments,
-                    e.get<int>(11),
-                    0, 1, rotation);
+                    e.get<int>(10),
+                    0, 1);
     })
 #else
     LUA_BIND_DUMMY(rendermodel)
@@ -365,5 +277,20 @@ namespace lua_binds
                 .t_set("c", bt.c)
                 .t_set();
         }
+    });
+
+    LUA_BIND_DEF(findanims, {
+        vector<int> anims;
+        findanims(e.get<char*>(1), anims);
+        vector<char> buf;
+        string num;
+        loopv(anims)
+        {
+            formatstring(num)("%d", anims[i]);
+            if(i > 0) buf.add(' ');
+            buf.put(num, strlen(num));
+        }
+        buf.add('\0');
+        e.push(buf.getbuf());
     });
 }

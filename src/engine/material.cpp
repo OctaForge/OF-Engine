@@ -160,8 +160,7 @@ int findmaterial(const char *name)
     
 int visiblematerial(cube &c, int orient, int x, int y, int z, int size, uchar matmask)
 {   
-    if(!c.ext) return MATSURF_NOT_VISIBLE;
-    uchar mat = c.ext->material&matmask;
+    uchar mat = c.material&matmask;
     switch(mat)
     {
     case MAT_AIR:
@@ -198,14 +197,14 @@ void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurfa
             if(vis != MATSURF_NOT_VISIBLE) 
             {
                 materialsurface m;
-                m.material = c.ext->material&matmask;
+                m.material = c.material&matmask;
                 m.orient = i;
                 m.flags = vis == MATSURF_EDIT_ONLY ? materialsurface::F_EDIT : 0;
                 m.o = ivec(cx, cy, cz);
                 m.csize = m.rsize = size;
                 if(dimcoord(i)) m.o[dimension(i)] += size;
                 matsurfs.add(m);
-                if(isclipped(c.ext->material&matmask))
+                if(isclipped(c.material&matmask))
                 {
                     clipmask |= 1<<i;
                     if(vis == MATSURF_VISIBLE) vismask |= 1<<i;
@@ -385,7 +384,7 @@ void setupmaterials(int start, int len)
                 while(o[dim^1] < maxc)
                 {
                     cube &c = lookupcube(o.x, o.y, o.z, 0, co, csize);
-                    if(c.ext && isliquid(c.ext->material&MATF_VOLUME)) { m.ends |= 1; break; }
+                    if(isliquid(c.material&MATF_VOLUME)) { m.ends |= 1; break; }
                     o[dim^1] += csize;
                 }
                 o[dim^1] = minc;

@@ -258,7 +258,7 @@ function character:render_dynamic(hudpass, needhud)
         local anim = self:decide_animation(state, physstate, move, strafe, vel, falling, inwater, timeinair)
         local flags = self:get_renderingflags(hudpass, needhud)
 
-        self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, 0, flags, basetime }
+        self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, flags, basetime }
         self.rendering_args_timestamp = lstor.curr_timestamp
     end
 

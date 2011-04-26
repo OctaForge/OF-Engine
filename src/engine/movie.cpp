@@ -393,20 +393,21 @@ struct aviwriter
                 boxsample(&src2[xi<<2], stride, area, w, h2, xlow, xhigh, y2low, y2high, b3, g3, r3);
                 boxsample(&src2[x2i<<2], stride, area, w2, h2, x2low, x2high, y2low, y2high, b4, g4, r4);
 
-                // 0.299*R + 0.587*G + 0.114*B
-                *ydst++ = (1225*r1 + 2404*g1 + 467*b1)>>12;
-                *ydst++ = (1225*r2 + 2404*g2 + 467*b2)>>12;
-                *ydst2++ = (1225*r3 + 2404*g3 + 467*b3)>>12;
-                *ydst2++ = (1225*r4 + 2404*g4 + 467*b4)>>12;
+
+                // Y  = 16 + 65.481*R + 128.553*G + 24.966*B
+                // Cb = 128 - 37.797*R - 74.203*G + 112.0*B
+                // Cr = 128 + 112.0*R - 93.786*G - 18.214*B
+                *ydst++ = ((16<<12) + 1052*r1 + 2065*g1 + 401*b1)>>12;
+                *ydst++ = ((16<<12) + 1052*r2 + 2065*g2 + 401*b2)>>12;
+                *ydst2++ = ((16<<12) + 1052*r3 + 2065*g3 + 401*b3)>>12;;
+                *ydst2++ = ((16<<12) + 1052*r4 + 2065*g4 + 401*b4)>>12;;
 
                 const uint b = b1 + b2 + b3 + b4,
                            g = g1 + g2 + g3 + g4,
                            r = r1 + r2 + r3 + r4;
-                // U = 0.500 + 0.500*B - 0.169*R - 0.331*G
-                // V = 0.500 + 0.500*R - 0.419*G - 0.081*B
                 // note: weights here are scaled by 1<<10, as opposed to 1<<12, since r/g/b are already *4
-                *udst++ = ((128<<12) + 512*b - 173*r - 339*g)>>12;
-                *vdst++ = ((128<<12) + 512*r - 429*g - 83*b)>>12;
+                *udst++ = ((128<<12) - 152*r - 298*g + 450*b)>>12;
+                *vdst++ = ((128<<12) + 450*r - 377*g - 73*b)>>12;
             }
 
             yplane += 2*ystride;
@@ -437,20 +438,20 @@ struct aviwriter
                            b3 = src2[0], g3 = src2[1], r3 = src2[2],
                            b4 = src2[4], g4 = src2[5], r4 = src2[6];
 
-                // 0.299*R + 0.587*G + 0.114*B
-                *ydst++ = (1225*r1 + 2404*g1 + 467*b1)>>12;
-                *ydst++ = (1225*r2 + 2404*g2 + 467*b2)>>12;
-                *ydst2++ = (1225*r3 + 2404*g3 + 467*b3)>>12;
-                *ydst2++ = (1225*r4 + 2404*g4 + 467*b4)>>12;
+                // Y  = 16 + 65.481*R + 128.553*G + 24.966*B
+                // Cb = 128 - 37.797*R - 74.203*G + 112.0*B
+                // Cr = 128 + 112.0*R - 93.786*G - 18.214*B
+                *ydst++ = ((16<<12) + 1052*r1 + 2065*g1 + 401*b1)>>12;
+                *ydst++ = ((16<<12) + 1052*r2 + 2065*g2 + 401*b2)>>12;
+                *ydst2++ = ((16<<12) + 1052*r3 + 2065*g3 + 401*b3)>>12;;
+                *ydst2++ = ((16<<12) + 1052*r4 + 2065*g4 + 401*b4)>>12;;
 
                 const uint b = b1 + b2 + b3 + b4,
                            g = g1 + g2 + g3 + g4,
                            r = r1 + r2 + r3 + r4;
-                // U = 0.500 + 0.500*B - 0.169*R - 0.331*G
-                // V = 0.500 + 0.500*R - 0.419*G - 0.081*B
                 // note: weights here are scaled by 1<<10, as opposed to 1<<12, since r/g/b are already *4
-                *udst++ = ((128<<12) + 512*b - 173*r - 339*g)>>12;
-                *vdst++ = ((128<<12) + 512*r - 429*g - 83*b)>>12;
+                *udst++ = ((128<<12) - 152*r - 298*g + 450*b)>>12;
+                *vdst++ = ((128<<12) + 450*r - 377*g - 73*b)>>12;
 
                 src += 8;
                 src2 += 8; 
@@ -600,7 +601,7 @@ namespace recorder
     static int statsindex = 0;
     static uint dps = 0; // dropped frames per sample
     
-    enum { MAXSOUNDBUFFERS = 32 }; // sounds queue up until there is a video frame, so at low fps you'll need a bigger queue
+    enum { MAXSOUNDBUFFERS = 128 }; // sounds queue up until there is a video frame, so at low fps you'll need a bigger queue
     struct soundbuffer
     {
         uchar *sound;
@@ -663,6 +664,16 @@ namespace recorder
 
     bool isrecording() { return file != NULL; }
     
+    float calcquality()
+    {
+        return 1.0f - float(dps)/float(dps+file->videofps); // strictly speaking should lock to read dps - 1.0=perfect, 0.5=half of frames are beingdropped
+    }
+
+    int gettime()
+    {
+        return inbetweenframes ? getclockmillis() : totalmillis;
+    }
+
     int videoencoder(void *data) // runs on a separate thread
     {
         for(int numvid = 0, numsound = 0;;)
@@ -703,7 +714,7 @@ namespace recorder
                 statsindex = (statsindex+1)%file->videofps;
             }
             //printf("frame %d->%d (%d dps): sound = %d bytes\n", file->videoframes, nextframenum, dps, m.soundlength);
-            if(dps > file->videofps) state = REC_TOOSLOW;
+            if(calcquality() < GETFV(movieminquality)) state = REC_TOOSLOW;
             else if(!file->writevideoframe(m.video, m.w, m.h, m.format, m.frame)) state = REC_FILERROR;
             
             m.frame = ~0U;
@@ -715,10 +726,13 @@ namespace recorder
     void soundencoder(void *udata, Uint8 *stream, int len) // callback occurs on a separate thread
     {
         SDL_LockMutex(soundlock);
-        if(soundbuffers.full()) state = REC_TOOSLOW;
+        if(soundbuffers.full()) 
+        {
+            if(GETFV(movieminquality) >= 1) state = REC_TOOSLOW;
+        }
         else if(state == REC_OK)
         {
-            uint nextframe = ((totalmillis - starttime)*file->videofps)/1000;
+            uint nextframe = (max(gettime() - starttime, 0)*file->videofps)/1000;
             soundbuffer &s = soundbuffers.add();
             s.load((uchar *)stream, len, nextframe);
         }
@@ -728,7 +742,13 @@ namespace recorder
     void start(const char *filename, int videofps, int videow, int videoh, bool sound) 
     {
         if(file) return;
-        
+       
+        useshaderbyname("moviergb");
+        useshaderbyname("movieyuv");
+        useshaderbyname("moviey");
+        useshaderbyname("movieu");
+        useshaderbyname("moviev");
+ 
         int fps, bestdiff, worstdiff;
         getfps(fps, bestdiff, worstdiff);
         if(videofps > fps) conoutf(CON_WARN, "frame rate may be too low to capture at %d fps", videofps);
@@ -745,13 +765,7 @@ namespace recorder
         }
         conoutf("movie recording to: %s %dx%d @ %dfps%s", file->filename, file->videow, file->videoh, file->videofps, (file->soundfrequency>0)?" + sound":"");
         
-        useshaderbyname("moviergb");
-        useshaderbyname("movieyuv");
-        useshaderbyname("moviey");
-        useshaderbyname("movieu");
-        useshaderbyname("moviev");
-
-        starttime = totalmillis;
+        starttime = gettime();
         loopi(file->videofps) stats[i] = 0;
         statsindex = 0;
         dps = 0;
@@ -951,7 +965,7 @@ namespace recorder
         }
         SDL_LockMutex(videolock);
         if(GETIV(moviesync) && videobuffers.full()) SDL_CondWait(shouldread, videolock);
-        uint nextframe = ((totalmillis - starttime)*file->videofps)/1000;
+        uint nextframe = (max(gettime() - starttime, 0)*file->videofps)/1000;
         if(!videobuffers.full() && (lastframe == ~0U || nextframe > lastframe))
         {
             videobuffer &m = videobuffers.adding();
@@ -991,8 +1005,7 @@ namespace recorder
         else if(totalsize >= 1e6) { totalsize /= 1e6; unit = "MB"; }
         else totalsize /= 1e3;
 
-        float quality = 1.0f - float(dps)/float(dps+file->videofps); // strictly speaking should lock to read dps - 1.0=perfect, 0.5=half of frames are beingdropped
-        draw_textf("recorded %.1f%s %d%%", w*3-10*FONTH, h*3-FONTH-FONTH*3/2, totalsize, unit, int(quality*100)); 
+        draw_textf("recorded %.1f%s %d%%", w*3-10*FONTH, h*3-FONTH-FONTH*3/2, totalsize, unit, int(calcquality()*100)); 
 
         glPopMatrix();
 

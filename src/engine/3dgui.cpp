@@ -381,10 +381,12 @@ struct gui : g3d_gui
             
             lineshader->set();
             glDisable(GL_TEXTURE_2D);
+            glDisable(GL_BLEND);
             if(editing) glColor3f(1, 0, 0);
             else glColor3ub(color>>16, (color>>8)&0xFF, color&0xFF);
             rect_(curx, cury, w, h, -1, true);
             glEnable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
             defaultshader->set();
         }
         layout(w, h);

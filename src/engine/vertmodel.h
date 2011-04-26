@@ -239,7 +239,7 @@ struct vertmodel : animmodel
 
         void render(const animstate *as, skin &s, vbocacheentry &vc)
         {
-            if(!(as->anim&ANIM_NOSKIN))
+            if(!(as->cur.anim&ANIM_NOSKIN))
             {
                 if(s.multitextured())
                 {
@@ -295,7 +295,7 @@ struct vertmodel : animmodel
             glde++;
             xtravertsva += numverts;
 
-            if(GETIV(renderpath)==R_FIXEDFUNCTION && !(as->anim&ANIM_NOSKIN) && (s.scrollu || s.scrollv))
+            if(GETIV(renderpath)==R_FIXEDFUNCTION && !(as->cur.anim&ANIM_NOSKIN) && (s.scrollu || s.scrollv))
             {
                 if(s.multitextured())
                 {
@@ -478,7 +478,7 @@ struct vertmodel : animmodel
                 glVertexPointer(3, GL_FLOAT, vertsize, &vverts->pos);
                 lastvbuf = hasVBO ? (void *)(size_t)vc.vbuf : vc.vdata;
             }
-            if(as->anim&ANIM_NOSKIN)
+            if(as->cur.anim&ANIM_NOSKIN)
             {
                 if(enabletc) disabletc();
                 if(enablenormals) disablenormals();
@@ -527,9 +527,9 @@ struct vertmodel : animmodel
             else DELETEA(vdata);
         }
 
-        void render(const animstate *as, float pitch, const vec &axis, dynent *d, part *p)
+        void render(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p)
         {
-            if(as->anim&ANIM_NORENDER)
+            if(as->cur.anim&ANIM_NORENDER)
             {
                 loopv(p->links) calctagmatrix(p, p->links[i].tag, *as, p->links[i].matrix);
                 return;
@@ -629,8 +629,8 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
         }
         else
         {
-            mdl.pitchmin = -360*mdl.pitchscale;
-            mdl.pitchmax = 360*mdl.pitchscale;
+            mdl.pitchmin = -360*fabs(mdl.pitchscale) + mdl.pitchoffset;
+            mdl.pitchmax = 360*fabs(mdl.pitchscale) + mdl.pitchoffset;
         }
     }
 

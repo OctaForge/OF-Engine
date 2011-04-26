@@ -10,7 +10,7 @@ struct dynlight
 
     void calcradius()
     {
-        if(fade + peak)
+        if(fade + peak > 0)
         {
             int remaining = expire - lastmillis;
             if(flags&DL_EXPAND)
@@ -26,7 +26,7 @@ struct dynlight
 
     void calccolor()
     {
-        if(flags&DL_FLASH || !peak) curcolor = color;
+        if(flags&DL_FLASH || peak <= 0) curcolor = color;
         else
         {
             int peaking = expire - lastmillis - fade;
@@ -35,7 +35,7 @@ struct dynlight
         }
 
         float intensity = 1.0f;
-        if(fade)
+        if(fade > 0)
         {
             int fading = expire - lastmillis;
             if(fading < fade) intensity = float(fading)/fade;
@@ -52,7 +52,7 @@ vector<dynlight *> closedynlights;
 void adddynlight(const vec &o, float radius, const vec &color, int fade, int peak, int flags, float initradius, const vec &initcolor, physent *owner)
 {
     if(GETIV(renderpath)==R_FIXEDFUNCTION ? !GETIV(ffdynlights) || GETIV(maxtmus)<3 : !GETIV(maxdynlights)) return;
-    if(o.dist(camera1->o) > GETIV(dynlightdist)) return;
+    if(o.dist(camera1->o) > GETIV(dynlightdist) || radius <= 0) return;
 
     int insert = 0, expire = fade + peak + lastmillis;
     loopvrev(dynlights) if(expire>=dynlights[i].expire) { insert = i+1; break; }
@@ -150,11 +150,11 @@ void dynlightreaching(const vec &target, vec &color, vec &dir, bool hud)
 
         vec ray(hud ? d.hud : d.o);
         ray.sub(target);
-        float mag = ray.magnitude();
-        if(mag >= d.curradius) continue;
+        float mag = ray.squaredlen();
+        if(mag >= d.curradius*d.curradius) continue;
 
         vec color = d.curcolor;
-        color.mul(1 - mag/d.curradius);
+        color.mul(1 - sqrtf(mag)/d.curradius);
         dyncolor.add(color);
         //dyndir.add(ray.mul(intensity/mag));
     }

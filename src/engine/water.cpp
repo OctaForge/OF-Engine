@@ -1110,7 +1110,7 @@ static bool calcscissorbox(Reflection &ref, int size, vec &clipmin, vec &clipmax
     {
         vec4 &p = v[i];
         mvpmatrix.transform(vec(i&1 ? bbmax.x : bbmin.x, i&2 ? bbmax.y : bbmin.y, (i&4 ? bbmax.z + WATER_AMPLITUDE : bbmin.z - WATER_AMPLITUDE) - WATER_OFFSET), p);
-        if(p.z >= 0)
+        if(p.z >= -p.w)
         {
             float x = p.x / p.w, y = p.y / p.w;
             sx1 = min(sx1, x);
@@ -1123,12 +1123,12 @@ static bool calcscissorbox(Reflection &ref, int size, vec &clipmin, vec &clipmax
     loopi(8)
     {
         const vec4 &p = v[i];
-        if(p.z >= 0) continue;    
+        if(p.z >= -p.w) continue;    
         loopj(3)
         { 
             const vec4 &o = v[i^(1<<j)];
-            if(o.z <= 0) continue;
-            float t = p.z/(p.z - o.z),
+            if(o.z <= -o.w) continue;
+            float t = (p.z + p.w)/(p.z + p.w - o.z - o.w),
                   w = p.w + t*(o.w - p.w),
                   x = (p.x + t*(o.x - p.x))/w,
                   y = (p.y + t*(o.y - p.y))/w;

@@ -77,7 +77,7 @@ VCB(cleanupglare, int, cleanupglare();)
 extern bvec grasscolor;
 VCB(grasscolour, int,
     int c = curv;
-    if(!curv)
+    if (!curv)
     {
         _EV_grasscolour->s(0xFFFFFF);
         c = 0xFFFFFF;
@@ -88,9 +88,12 @@ VCB(grasscolour, int,
 // engine/lightmap.cpp
 void setfullbrightlevel(int fullbrightlevel);
 void cleanuplightmaps();
+void setupsunlight();
+void setsunlightdir();
+
 VCB(ambient, int,
     int c = curv;
-    if(curv <= 255)
+    if (curv <= 255)
     {
         _EV_ambient->s(curv | (curv<<8) | (curv<<16));
         c = curv | (curv<<8) | (curv<<16);
@@ -99,13 +102,25 @@ VCB(ambient, int,
 )
 VCB(skylight, int,
     int c = curv;
-    if(curv <= 255)
+    if (curv <= 255)
     {
         _EV_skylight->s(curv | (curv<<8) | (curv<<16));
         c = curv | (curv<<8) | (curv<<16);
     }
     skylightcolor = bvec((c>>16)&0xFF, (c>>8)&0xFF, c&0xFF);
 )
+VCB(sunlight, int,
+    int c = curv;
+    if (curv <= 255)
+    {
+        _EV_sunlight->s(curv | (curv<<8) | (curv<<16));
+        c = curv | (curv<<8) | (curv<<16);
+    }
+    sunlightcolor = bvec((c>>16)&0xFF, (c>>8)&0xFF, c&0xFF);
+    setupsunlight();
+)
+VCB(sunlightdir, int, setsunlightdir();)
+VCB(setupsunlight, int, setupsunlight();)
 VCB(clearlightcache, int, clearlightcache();)
 VCB(fullbright, int, if (lightmaptexs.length()) initlights();)
 VCB(fullbrightlevel, int, setfullbrightlevel(curv);)
@@ -132,13 +147,13 @@ VCB(initwarningsnd, int, initwarning("sound configuration", INIT_RESET, CHANGE_S
 VCB(initwarningtexq, int, initwarning("texture quality", INIT_LOAD);)
 VCB(initwarningtexf, int, initwarning("texture filtering", INIT_LOAD);)
 VCB(fullscreen, int, setfullscreen(curv!=0);)
+
+extern int curgamma;
 VCB(gamma, int,
+    if(curv == curgamma) return;
+    curgamma = curv;
     float f = curv/100.0f;
-    if(SDL_SetGamma(f,f,f)==-1)
-    {
-        conoutf(CON_ERROR, "Could not set gamma (card/driver doesn't support it?)");
-        conoutf(CON_ERROR, "sdl: %s", SDL_GetError());
-    }
+    if(SDL_SetGamma(f,f,f)==-1) conoutf(CON_ERROR, "Could not set gamma: %s", SDL_GetError());
 )
 VCB(gamespeed, int, if(multiplayer()) _EV_gamespeed->s(100);)
 VCB(paused, int, if(multiplayer()) _EV_paused->s(0);)
@@ -438,10 +453,14 @@ DEFVAR(bumperror)
 DEFVAR(lightlod)
 DEFVAR(ambient)
 DEFVAR(skylight)
+DEFVAR(sunlight)
+DEFVAR(sunlightyaw)
+DEFVAR(sunlightpitch)
+DEFVAR(sunlightscale)
+DEFVAR(skytexturelight)
 DEFVAR(lmshadows) // global name was lmshadows_
 DEFVAR(lmaa) // global name was lmaa_
 DEFVAR(lightcompress)
-DEFVAR(skytexturelight)
 DEFVAR(blurlms)
 DEFVAR(blurskylight)
 DEFVAR(edgetolerance)
@@ -507,6 +526,7 @@ DEFVAR(movieaccelblit)
 DEFVAR(movieaccelyuv)
 DEFVAR(movieaccel)
 DEFVAR(moviesync)
+DEFVAR(movieminquality)
 DEFVAR(moview)
 DEFVAR(movieh)
 DEFVAR(moviefps)
@@ -693,6 +713,8 @@ DEFVAR(modeltweaks) // INTENSITY: SkyManager: tweaks for models (like ambience, 
 DEFVAR(tweakmodelspec)
 DEFVAR(tweakmodelambient)
 DEFVAR(tweakmodelglow)
+DEFVAR(tweakmodelglowdelta)
+DEFVAR(tweakmodelglowpulse)
 DEFVAR(tweakmodelspecglare)
 DEFVAR(tweakmodelglowglare)
 DEFVAR(tweakmodelscale) // end INTENSITY
@@ -784,6 +806,7 @@ DEFVAR(oqfrags)
 DEFVAR(oqwait)
 DEFVAR(oqmm)
 DEFVAR(outline)
+DEFVAR(outlinecolour)
 DEFVAR(dtoutline)
 DEFVAR(blendbrushcolor)
 DEFVAR(oqdist)

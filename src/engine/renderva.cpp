@@ -409,7 +409,7 @@ void rendermapmodel(extentity &e)
 
     // Kripken: MDL_SHADOW is necessary for getting shadows for a mapmodel. Note however the notes in fpsrender.h, that isn't enough.
     if(theModel)
-        rendermodel(&e.light, theModel->name(), anim, e.o, entity, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime); // INTENSITY: Added roll = 0
+        rendermodel(&e.light, theModel->name(), anim, e.o, entity, (float)((e.attr1+7)-(e.attr1+7)%15), 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
 #endif
 }
 
@@ -592,7 +592,7 @@ void renderoutline()
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glColor3ub((GETIV(outline)>>16)&0xFF, (GETIV(outline)>>8)&0xFF, GETIV(outline)&0xFF);
+    glColor3ub((GETIV(outlinecolour)>>16)&0xFF, (GETIV(outlinecolour)>>8)&0xFF, GETIV(outlinecolour)&0xFF);
 
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 
@@ -824,6 +824,11 @@ void renderdepthobstacles(const vec &bbmin, const vec &bbmax, float scale, float
 
         drawvatris(va, 3*va->tris, va->edata);
         xtravertsva += va->verts;
+        if(va->alphabacktris + va->alphafronttris > 0) 
+        {
+            drawvatris(va, 3*(va->alphabacktris + va->alphafronttris), va->edata + 3*(va->tris + va->blendtris));
+            xtravertsva += 3*(va->alphabacktris + va->alphafronttris);
+        }
 
         prev = va;
     }

@@ -23,11 +23,6 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <assert.h>
-#ifdef __GNUC__
-#include <new>
-#else
-#include <new.h>
-#endif
 #include <time.h>
 
 #ifdef WIN32

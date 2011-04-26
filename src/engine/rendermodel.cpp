@@ -97,13 +97,14 @@ void mdldepthoffset(int *offset)
     loadingmodel->depthoffset = *offset!=0;
 }
 
-void mdlglow(int *percent)
+void mdlglow(int *percent, int *delta, float *pulse)
 {
     checkmdl;
-    float glow = 3.0f;
+    float glow = 3.0f, glowdelta = *delta/100.0f, glowpulse = *pulse > 0 ? *pulse/1000.0f : 0;
     if(*percent>0) glow = *percent/100.0f;
     else if(*percent<0) glow = 0.0f;
-    loadingmodel->setglow(glow);
+    glowdelta -= glow;
+    loadingmodel->setglow(glow, glowdelta, glowpulse);
 }
 
 void mdlglare(float *specglare, float *glowglare)
@@ -191,8 +192,8 @@ void mdlname()
 }
 
 #define checkragdoll \
-    skelmodel *m = dynamic_cast<skelmodel *>(loadingmodel); \
-    if(!m) { conoutf(CON_ERROR, "not loading a skeletal model"); return; } \
+    if(!loadingmodel->skeletal()) { conoutf(CON_ERROR, "not loading a skeletal model"); return; } \
+    skelmodel *m = (skelmodel *)loadingmodel; \
     skelmodel::skelmeshgroup *meshes = (skelmodel::skelmeshgroup *)m->parts.last()->meshes; \
     if(!meshes) return; \
     skelmodel::skeleton *skel = meshes->skel; \
@@ -428,12 +429,11 @@ struct batchedmodel
 {
     vec pos, color, dir;
     int anim;
-    float yaw, pitch, roll, transparent; // INTENSITY: Added roll
+    float yaw, pitch, transparent;
     int basetime, basetime2, flags;
     dynent *d;
     int attached;
     occludequery *query;
-    quat rotation; // INTENSITY
 };  
 struct modelbatch
 {
@@ -491,12 +491,12 @@ void renderbatchedmodel(model *m, batchedmodel &b)
     if(GETIV(modeltweaks)) { // INTENSITY: SkyManager: do modeltweaks
         if (!b.d) m->setambient(GETFV(tweakmodelambient));    // t7g; This is how we adjust ambient and related for all models at once.
         else m->setambient(GETFV(tweakmodelambient) / 10.0f);
-        m->setglow(GETFV(tweakmodelglow));
+        m->setglow(GETFV(tweakmodelglow), GETFV(tweakmodelglowdelta), GETFV(tweakmodelglowpulse));
         m->setspec(GETFV(tweakmodelspec));
         m->setglare(GETFV(tweakmodelspecglare), GETFV(tweakmodelglowglare));
     }
 
-    m->render(anim, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.roll, b.d, a, b.color, b.dir, b.transparent, b.rotation); // INTENSITY: roll, rotation
+    m->render(anim, b.basetime, b.basetime2, b.pos, b.yaw, b.pitch, b.d, a, b.color, b.dir, b.transparent);
 }
 
 struct transparentmodel
@@ -665,7 +665,7 @@ void rendermodelquery(model *m, dynent *d, const vec &center, float radius)
 
 extern int oqfrags;
 
-void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CLogicEntity *entity, float yaw, float pitch, float roll, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float trans, const quat &rotation) // INTENSITY: entity, roll, rotation
+void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CLogicEntity *entity, float yaw, float pitch, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float trans)
 {
     if(shadowmapping && !(flags&(MDL_SHADOW|MDL_DYNSHADOW))) return;
     model *m = loadmodel(mdl); 
@@ -685,7 +685,7 @@ void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CL
         }
         else
         {
-            center.rotate_around_z(-yaw*RAD);
+            center.rotate_around_z(yaw*RAD);
             center.add(o);
         }
         if(flags&MDL_CULL_DIST && center.dist(camera1->o)/radius>GETIV(maxmodelradiusdistance)) return;
@@ -814,8 +814,6 @@ void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CL
         b.anim = anim;
         b.yaw = yaw;
         b.pitch = pitch;
-        b.roll = roll; // INTENSITY: roll
-        b.rotation = rotation; // INTENSITY
         b.basetime = basetime;
         b.basetime2 = basetime2;
         b.transparent = trans;
@@ -861,7 +859,7 @@ void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CL
         if(d->query) startquery(d->query);
     }
 
-    m->render(anim, basetime, basetime2, o, yaw, pitch, roll, d, a, lightcolor, lightdir, trans, rotation); // INTENSITY: roll, rotation
+    m->render(anim, basetime, basetime2, o, yaw, pitch, d, a, lightcolor, lightdir, trans);
 
     if(doOQ && d->query) endquery(d->query);
 
@@ -948,17 +946,13 @@ void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelatt
 #if 0 // INTENSITY: We handle death ourselves
     else if(d->state==CS_DEAD)
     {
-        anim = ANIM_DYING;
+        anim = ANIM_DYING|ANIM_NOPITCH;
         basetime = lastpain;
         if(ragdoll)
         {
             if(!d->ragdoll || d->ragdoll->millis < basetime) anim |= ANIM_RAGDOLL;
         }
-        else 
-        {
-            pitch *= max(1.0f - (lastmillis-basetime)/500.0f, 0.0f);
-            if(lastmillis-basetime>1000) anim = ANIM_DEAD|ANIM_LOOP;
-        }
+        else if(lastmillis-basetime>1000) anim = ANIM_DEAD|ANIM_LOOP|ANIM_NOPITCH;
     }
 #endif
     else if(d->state==CS_EDITING || d->state==CS_SPECTATOR) anim = ANIM_EDIT|ANIM_LOOP;
@@ -993,7 +987,7 @@ void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelatt
         
         if((anim&ANIM_INDEX)==ANIM_IDLE && (anim>>ANIM_SECONDARY)&ANIM_INDEX) anim >>= ANIM_SECONDARY;
     }
-    if(d->ragdoll && (!ragdoll || anim!=ANIM_DYING)) DELETEP(d->ragdoll);
+    if(d->ragdoll && (!ragdoll || (anim&ANIM_INDEX)!=ANIM_DYING)) DELETEP(d->ragdoll);
     if(!((anim>>ANIM_SECONDARY)&ANIM_INDEX)) anim |= (ANIM_IDLE|ANIM_LOOP)<<ANIM_SECONDARY;
     int flags = MDL_LIGHT;
     if(d!=player && !(anim&ANIM_RAGDOLL)) flags |= MDL_CULL_VFC | MDL_CULL_OCCLUDED | MDL_CULL_QUERY;
@@ -1008,7 +1002,7 @@ void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelatt
     if (anim&ANIM_ATTACK1 || anim&ANIM_ATTACK2)
         basetime = entity->getStartTime();
 
-    rendermodel(NULL, mdlname, anim, o, entity, yaw, pitch, 0, flags, d, attachments, basetime, 0, fade); // INTENSITY: roll
+    rendermodel(NULL, mdlname, anim, o, entity, yaw, pitch, flags, d, attachments, basetime, 0, fade);
 }
 
 void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSITY: Added entity
