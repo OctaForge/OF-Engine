@@ -361,7 +361,7 @@ static void cleanupexplosion()
     }
     else
     {
-        if(GETIV(explosion2d)) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        if(!GETIV(explosion2d)) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
 
     if(hasVBO)

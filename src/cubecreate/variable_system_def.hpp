@@ -106,7 +106,7 @@ VARR(grassanimmillis, 0, 3000, 60000);
 FVARR(grassanimscale, 0.0f, 0.03f, 1.0f);
 VARR(grassscale, 1, 2, 64);
 VARFR(grasscolour, 0, 0xFFFFFF, 0xFFFFFF, grasscolour);
-VARR(grassalpha, 0, 1, 1);
+FVARR(grassalpha, 0, 1, 1);
 
 // engine/lensflare.h
 

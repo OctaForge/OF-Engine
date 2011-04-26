@@ -596,10 +596,10 @@ template<class MDL> struct vertloader : modelloader<MDL>
 {
 };
 
-template<class MDL> struct vertcommands : modelcommands<MDL, class MDL::vertmesh>
+template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmesh>
 {
-    typedef class MDL::part part;
-    typedef class MDL::skin skin;
+    typedef struct MDL::part part;
+    typedef struct MDL::skin skin;
 
     static void loadpart(lua_Engine e)
     {

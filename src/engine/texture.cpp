@@ -254,6 +254,26 @@ void texgrey(ImageData &s)
     s.replace(d);
 }
 
+void texpremul(ImageData &s)
+{
+    switch(s.bpp)
+    {
+        case 2: 
+            writetex(s, 
+                dst[0] = uchar((uint(dst[0])*uint(dst[1]))/255);
+            ); 
+            break;
+        case 4: 
+            writetex(s,
+                uint alpha = dst[3];
+                dst[0] = uchar((uint(dst[0])*alpha)/255);
+                dst[1] = uchar((uint(dst[1])*alpha)/255);
+                dst[2] = uchar((uint(dst[2])*alpha)/255);
+            );
+            break;
+    }
+}
+
 void setuptexcompress()
 {
     if(!hasTC) return;
@@ -710,6 +730,88 @@ void texnormal(ImageData &s, int emphasis)
     s.replace(d);
 }
 
+template<int n, int bpp>
+static void blurtexture(int w, int h, uchar *dst, const uchar *src)
+{
+    static const int matrix3x3[9] =
+    {
+        0x10, 0x20, 0x10,
+        0x20, 0x40, 0x20,
+        0x10, 0x20, 0x10
+    };
+    static const int matrix5x5[25] =
+    {
+        0x05, 0x05, 0x09, 0x05, 0x05,
+        0x05, 0x0A, 0x14, 0x0A, 0x05,
+        0x09, 0x14, 0x28, 0x14, 0x09,
+        0x05, 0x0A, 0x14, 0x0A, 0x05,
+        0x05, 0x05, 0x09, 0x05, 0x05
+    };
+    const int *mat = n > 1 ? matrix5x5 : matrix3x3;
+    int mstride = 2*n + 1,
+        mstartoffset = n*(mstride + 1),
+        stride = bpp*w,
+        startoffset = n*bpp,
+        nextoffset1 = stride + mstride*bpp,
+        nextoffset2 = stride - mstride*bpp;
+    loop(y, h) loop(x, w)
+    {
+        loopk(3)
+        {
+            int val = 0;
+            const uchar *p = src - startoffset;
+            const int *m = mat + mstartoffset;
+            for(int t = y; t >= y-n; t--, p -= nextoffset1, m -= mstride)
+            {
+                if(t < 0) p += stride;
+                int a = 0;
+                if(n > 1) { a += m[-2]; if(x >= 2) { val += *p * a; a = 0; } p += bpp; }
+                a += m[-1]; if(x >= 1) { val += *p * a; a = 0; } p += bpp;
+                int c = *p; val += c * (a + m[0]); p += bpp;
+                if(x+1 < w) c = *p; val += c * m[1]; p += bpp;
+                if(n > 1) { if(x+2 < w) c = *p; val += c * m[2]; p += bpp; }
+            }
+            p = src - startoffset + stride;
+            m = mat + mstartoffset + mstride;
+            for(int t = y+1; t <= y+n; t++, p += nextoffset2, m += mstride)
+            {
+                if(t >= h) p -= stride;
+                int a = 0;
+                if(n > 1) { a += m[-2]; if(x >= 2) { val += *p * a; a = 0; } p += bpp; }
+                a += m[-1]; if(x >= 1) { val += *p * a; a = 0; } p += bpp;
+                int c = *p; val += c * (a + m[0]); p += bpp;
+                if(x+1 < w) c = *p; val += c * m[1]; p += bpp;
+                if(n > 1) { if(x+2 < w) c = *p; val += c * m[2]; p += bpp; }
+            }
+            *dst++ = val>>8;
+            src++;
+        }
+        if(bpp > 3) *dst++ = *src++;
+    }
+}
+
+void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src)
+{
+    switch((clamp(n, 1, 2)<<4) | bpp)
+    {
+        case 0x13: blurtexture<1, 3>(w, h, dst, src); break;
+        case 0x23: blurtexture<2, 3>(w, h, dst, src); break;
+        case 0x14: blurtexture<1, 4>(w, h, dst, src); break;
+        case 0x24: blurtexture<2, 4>(w, h, dst, src); break;
+    }
+}
+ 
+void texblur(ImageData &s, int n, int r)
+{
+    if(s.bpp < 3) return;
+    loopi(r)
+    {
+        ImageData d(s.w, s.h, s.bpp);
+        blurtexture(n, s.bpp, s.w, s.h, d.data, s.data);
+        s.replace(d);
+    }
+}
+
 void scaleimage(ImageData &s, int w, int h)
 {
     ImageData d(w, h, s.bpp);
@@ -873,7 +975,7 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         {
             if(GETIV(renderpath)==R_FIXEDFUNCTION) return true;
         }
-        else if(!strncmp(cmd, "ffmask", len))
+        else if(!strncmp(cmd, "ffmask", len) || !strncmp(cmd, "ffskip", len))
         {
             if(GETIV(renderpath)==R_FIXEDFUNCTION) raw = true;
         }
@@ -913,7 +1015,7 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         else if(!strncmp(cmd, "ffmask", len)) 
         {
             texffmask(d, atof(arg[0]), atof(arg[1]));
-            if(!d.data) return true;
+            if(!d.data) break;
         }
         else if(!strncmp(cmd, "normal", len)) 
         {
@@ -927,6 +1029,12 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         else if(!strncmp(cmd, "reorient", len)) texreorient(d, atoi(arg[0])>0, atoi(arg[1])>0, atoi(arg[2])>0, tex ? tex->type : TEX_DIFFUSE);
         else if(!strncmp(cmd, "mix", len)) texmix(d, *arg[0] ? atoi(arg[0]) : -1, *arg[1] ? atoi(arg[1]) : -1, *arg[2] ? atoi(arg[2]) : -1, *arg[3] ? atoi(arg[3]) : -1);
         else if(!strncmp(cmd, "grey", len)) texgrey(d);
+        else if(!strncmp(cmd, "blur", len))
+        {
+            int emphasis = atoi(arg[0]), repeat = atoi(arg[1]);
+            texblur(d, emphasis > 0 ? clamp(emphasis, 1, 2) : 1, repeat > 0 ? repeat : 1);
+        }
+        else if(!strncmp(cmd, "premul", len)) texpremul(d);
         else if(!strncmp(cmd, "compress", len) || !strncmp(cmd, "dds", len)) 
         { 
             int scale = atoi(arg[0]);
@@ -943,6 +1051,10 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
             if(w <= 0 || w > (1<<12)) w = 64;
             if(h <= 0 || h > (1<<12)) h = w;
             if(d.w > w || d.h > h) scaleimage(d, w, h);
+        }
+        else if(!strncmp(cmd, "ffskip", len))
+        {
+            if(GETIV(renderpath)==R_FIXEDFUNCTION) break;
         }
     }
 
@@ -1904,7 +2016,7 @@ Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient)
 
 struct envmap
 {
-    int radius, size;
+    int radius, size, blur;
     vec o;
     GLuint tex;
 };  
@@ -1923,7 +2035,7 @@ void clearenvmaps()
     envmaps.shrink(0);
 }
 
-GLuint genenvmap(const vec &o, int envmapsize)
+GLuint genenvmap(const vec &o, int envmapsize, int blur)
 {
     int rendersize = 1<<(envmapsize+GETIV(aaenvmap)), sizelimit = min(GETIV(hwcubetexsize), min(screen->w, screen->h));
     if(GETIV(maxtexsize)) sizelimit = min(sizelimit, GETIV(maxtexsize));
@@ -1934,7 +2046,7 @@ GLuint genenvmap(const vec &o, int envmapsize)
     glGenTextures(1, &tex);
     glViewport(0, 0, rendersize, rendersize);
     float yaw = 0, pitch = 0;
-    uchar *pixels = new uchar[3*rendersize*rendersize];
+    uchar *pixels = new uchar[3*rendersize*rendersize], *blurbuf = blur > 0 ? new uchar[3*rendersize*rendersize] : NULL;
     glPixelStorei(GL_PACK_ALIGNMENT, texalign(pixels, rendersize, 3));
     loopi(6)
     {
@@ -1957,10 +2069,16 @@ GLuint genenvmap(const vec &o, int envmapsize)
         glFrontFace((side.flipx==side.flipy)!=side.swapxy ? GL_CW : GL_CCW);
         drawcubemap(rendersize, o, yaw, pitch, side);
         glReadPixels(0, 0, rendersize, rendersize, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        if(blurbuf)
+        {
+            blurtexture(blur, 3, rendersize, rendersize, blurbuf, pixels);
+            swap(blurbuf, pixels);
+        }
         createtexture(tex, texsize, texsize, pixels, 3, 2, GL_RGB5, side.target, rendersize, rendersize);
     }
     glFrontFace(GL_CW);
     delete[] pixels;
+    if(blurbuf) delete[] blurbuf;
     glViewport(0, 0, screen->w, screen->h);
     clientkeepalive();
     forcecubemapload(tex);
@@ -1978,8 +2096,9 @@ void initenvmaps()
         const extentity &ent = *ents[i];
         if(ent.type != ET_ENVMAP) continue;
         envmap &em = envmaps.add();
-        em.radius = ent.attr1 ? max(0, min(10000, int(ent.attr1))) : GETIV(envmapradius);
-        em.size = ent.attr2 ? max(4, min(9, int(ent.attr2))) : 0;
+        em.radius = ent.attr1 ? clamp(int(ent.attr1), 0, 10000) : GETIV(envmapradius);
+        em.size = ent.attr2 ? clamp(int(ent.attr2), 4, 9) : 0;
+        em.blur = ent.attr3 ? clamp(int(ent.attr3), 1, 2) : 0; 
         em.o = ent.o;
         em.tex = 0;
     }
@@ -1993,7 +2112,7 @@ void genenvmaps()
     loopv(envmaps)
     {
         envmap &em = envmaps[i];
-        em.tex = genenvmap(em.o, em.size ? em.size : GETIV(envmapsize));
+        em.tex = genenvmap(em.o, em.size ? em.size : GETIV(envmapsize), em.blur);
         if(renderedframe) continue;
         int millis = SDL_GetTicks();
         if(millis - lastprogress >= 250)
@@ -2145,7 +2264,9 @@ enum
     DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x00008000, 
     DDSCAPS2_VOLUME            = 0x00200000,
     FOURCC_DXT1                = 0x31545844,
+    FOURCC_DXT2                = 0x32545844,
     FOURCC_DXT3                = 0x33545844,
+    FOURCC_DXT4                = 0x34545844,
     FOURCC_DXT5                = 0x35545844
 
 };
@@ -2192,7 +2313,9 @@ bool loaddds(const char *filename, ImageData &image)
         switch(d.ddpfPixelFormat.dwFourCC)
         {
             case FOURCC_DXT1: format = d.ddpfPixelFormat.dwFlags & DDPF_ALPHAPIXELS ? GL_COMPRESSED_RGBA_S3TC_DXT1_EXT : GL_COMPRESSED_RGB_S3TC_DXT1_EXT; break;
+            case FOURCC_DXT2:
             case FOURCC_DXT3: format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; break;
+            case FOURCC_DXT4:
             case FOURCC_DXT5: format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; break;
         }        
     }

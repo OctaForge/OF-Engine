@@ -410,7 +410,7 @@ bool isshadowmapcaster(const vec &o, float rad) { return false; };
 bool checkquery(occludequery *query, bool nowait) { return true; };
 bool addshadowmapcaster(const vec &o, float xyrad, float zrad) { return false; };
 void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity *t, float ambient) { };
-void dynlightreaching(const vec &target, vec &color, vec &dir) { };
+void dynlightreaching(const vec &target, vec &color, vec &dir, bool hud) { };
 Shader *lookupshaderbyname(const char *name) { return NULL; };
 Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient) { return notexture; };
 Shader *useshaderbyname(const char *name) { return NULL; };

@@ -89,6 +89,9 @@ of.world.hmap.brush_2() -- 421
 
 -- Texture blending
 
+of.blend.brush.add("Circle, 8px, soft", "data/textures/brushes/circle_8_soft.png")
+of.blend.brush.add("Circle, 8px, hard", "data/textures/brushes/circle_8_hard.png")
+of.blend.brush.add("Circle, 8px, solid", "data/textures/brushes/circle_8_solid.png")
 of.blend.brush.add("Circle, 16px, soft", "data/textures/brushes/circle_16_soft.png")
 of.blend.brush.add("Circle, 16px, hard", "data/textures/brushes/circle_16_hard.png")
 of.blend.brush.add("Circle, 16px, solid", "data/textures/brushes/circle_16_solid.png")

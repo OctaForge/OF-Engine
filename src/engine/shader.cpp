@@ -1266,17 +1266,17 @@ static void genfogshader(vector<char> &vsbuf, vector<char> &psbuf, const char *v
     const char *psend = strrchr(ps, '}');
     if(psend)
     {
-        static const int rgbalen = strlen("#pragma CUBE2_fogrgba");
-        bool rgba = pspragma && !strncmp(pspragma, "#pragma CUBE2_fogrgba", rgbalen);
         psbuf.put(ps, psend - ps);
         const char *psdef = "\n#define FOG_COLOR ";
-        const char *psfog = rgba ?
-            "\ngl_FragColor = mix((FOG_COLOR), gl_FragColor, clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0));\n" :
-            "\ngl_FragColor.rgb = mix((FOG_COLOR).rgb, gl_FragColor.rgb, clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0));\n";
+        const char *psfog = 
+            pspragma && !strncmp(pspragma+pragmalen, "rgba", 4) ? 
+                "\ngl_FragColor = mix((FOG_COLOR), gl_FragColor, clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0));\n" :
+                "\ngl_FragColor.rgb = mix((FOG_COLOR).rgb, gl_FragColor.rgb, clamp((gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale, 0.0, 1.0));\n";
         int clen = 0;
         if(pspragma)
         {
-            pspragma += rgba ? rgbalen : pragmalen;
+            pspragma += pragmalen;
+            while (isalpha(*pspragma)) pspragma++;
             while(*pspragma && !isspace(*pspragma)) pspragma++;
             pspragma += strspn(pspragma, " \t\v\f");
             clen = strcspn(pspragma, "\r\n");

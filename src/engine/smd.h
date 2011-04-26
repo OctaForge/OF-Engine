@@ -332,13 +332,7 @@ struct smd : skelmodel, skelloader<smd>
                                  -(cx*cy*sz - sx*sy*cz),
                                  cx*cy*cz + sx*sy*sz),
                             pos);
-                if(adjustments.inrange(bone))
-                {
-                    if(adjustments[bone].yaw) dq.mulorient(quat(vec(0, 0, 1), adjustments[bone].yaw*RAD));
-                    if(adjustments[bone].pitch) dq.mulorient(quat(vec(0, -1, 0), adjustments[bone].pitch*RAD));
-                    if(adjustments[bone].roll) dq.mulorient(quat(vec(-1, 0, 0), adjustments[bone].roll*RAD));
-                    if(!adjustments[bone].translate.iszero()) dq.translate(adjustments[bone].translate);
-                }
+                if(adjustments.inrange(bone)) adjustments[bone].adjust(dq);
                 dq.mul(skel->bones[bone].invbase);
                 dualquat &dst = animbones[frame*skel->numbones + bone];
                 if(skel->bones[bone].parent < 0) dst = dq;

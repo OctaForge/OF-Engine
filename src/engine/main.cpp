@@ -1110,6 +1110,8 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     #endif
     #endif
 
+    setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
+
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
 

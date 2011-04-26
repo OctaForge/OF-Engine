@@ -269,13 +269,7 @@ struct iqm : skelmodel, skelloader<iqm>
                             if(p.mask&0x100) animdata++;
                         }
                         frame[k] = dualquat(quat(orient), pos);
-                        if(adjustments.inrange(k))
-                        {
-                            if(adjustments[k].yaw) frame[k].mulorient(quat(vec(0, 0, 1), adjustments[k].yaw*RAD));
-                            if(adjustments[k].pitch) frame[k].mulorient(quat(vec(0, -1, 0), adjustments[k].pitch*RAD));
-                            if(adjustments[k].roll) frame[k].mulorient(quat(vec(-1, 0, 0), adjustments[k].roll*RAD));
-                            if(!adjustments[k].translate.iszero()) frame[k].translate(adjustments[k].translate);
-                        }
+                        if(adjustments.inrange(k)) adjustments[k].adjust(frame[k]);
                         boneinfo &b = skel->bones[k];
                         frame[k].mul(b.invbase);
                         if(b.parent >= 0) frame[k].mul(skel->bones[b.parent].base, dualquat(frame[k]));

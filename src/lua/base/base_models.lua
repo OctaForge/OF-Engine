@@ -48,6 +48,9 @@ LIGHT = math.lsh(1, 6)
 DYNLIGHT = math.lsh(1, 7)
 FULLBRIGHT = math.lsh(1, 8)
 NORENDER = math.lsh(1, 9)
+LIGHT_FAST = math.lsh(1, 10)
+HUD = math.lsh(1, 11)
+GHOST = math.lsh(1, 12)
 
 --- Reset mapmodel counter - start counting slots from N. DEPRECATED.
 -- @param n Number from which to start counting.

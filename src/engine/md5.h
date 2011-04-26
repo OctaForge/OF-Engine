@@ -362,13 +362,7 @@ struct md5 : skelmodel, skelloader<md5>
                             j.orient.restorew();
                         }
                         frame[i] = dualquat(j.orient, j.pos);
-                        if(adjustments.inrange(i))
-                        {
-                            if(adjustments[i].yaw) frame[i].mulorient(quat(vec(0, 0, 1), adjustments[i].yaw*RAD));
-                            if(adjustments[i].pitch) frame[i].mulorient(quat(vec(0, -1, 0), adjustments[i].pitch*RAD));
-                            if(adjustments[i].roll) frame[i].mulorient(quat(vec(-1, 0, 0), adjustments[i].roll*RAD));
-                            if(!adjustments[i].translate.iszero()) frame[i].translate(adjustments[i].translate);
-                        }
+                        if(adjustments.inrange(i)) adjustments[i].adjust(frame[i]);
                         frame[i].mul(skel->bones[i].invbase);
                         if(h.parent >= 0) frame[i].mul(skel->bones[h.parent].base, dualquat(frame[i]));
                         frame[i].fixantipodal(skel->framebones[i]);

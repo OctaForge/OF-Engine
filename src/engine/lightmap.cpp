@@ -509,65 +509,6 @@ static inline bool hasskylight()
     return skylightcolor[0]>ambientcolor[0] || skylightcolor[1]>ambientcolor[1] || skylightcolor[2]>ambientcolor[2];
 }
 
-static void blurlightmap(int n, int bpp, int w, int h, uchar *dst, const uchar *src)
-{
-    static const int matrix3x3[9] =
-    {
-        0x10, 0x20, 0x10,
-        0x20, 0x40, 0x20,
-        0x10, 0x20, 0x10
-    };
-    static const int matrix5x5[25] =
-    {
-        0x05, 0x05, 0x09, 0x05, 0x05,
-        0x05, 0x0A, 0x14, 0x0A, 0x05,
-        0x09, 0x14, 0x28, 0x14, 0x09,
-        0x05, 0x0A, 0x14, 0x0A, 0x05,
-        0x05, 0x05, 0x09, 0x05, 0x05
-    };
-    const int *mat = n > 1 ? matrix5x5 : matrix3x3;
-    int mstride = 2*n + 1,
-        mstartoffset = n*(mstride + 1),
-        stride = bpp*w, 
-        startoffset = n*bpp,
-        nextoffset1 = stride + mstride*bpp,
-        nextoffset2 = stride - mstride*bpp;
-    loop(y, h) loop(x, w)
-    {
-        loopk(3)
-        {
-            int val = 0; 
-            const uchar *p = src - startoffset;
-            const int *m = mat + mstartoffset;
-            for(int t = y; t >= y-n; t--, p -= nextoffset1, m -= mstride)
-            {
-                if(t < 0) p += stride;
-                int a = 0;
-                if(n > 1) { a += m[-2]; if(x >= 2) { val += *p * a; a = 0; } p += bpp; }
-                a += m[-1]; if(x >= 1) { val += *p * a; a = 0; } p += bpp;
-                int c = *p; val += c * (a + m[0]); p += bpp;
-                if(x+1 < w) c = *p; val += c * m[1]; p += bpp; 
-                if(n > 1) { if(x+2 < w) c = *p; val += c * m[2]; p += bpp; }
-            }
-            p = src - startoffset + stride;
-            m = mat + mstartoffset + mstride;
-            for(int t = y+1; t <= y+n; t++, p += nextoffset2, m += mstride) 
-            {
-                if(t >= h) p -= stride;
-                int a = 0;
-                if(n > 1) { a += m[-2]; if(x >= 2) { val += *p * a; a = 0; } p += bpp; }
-                a += m[-1]; if(x >= 1) { val += *p * a; a = 0; } p += bpp; 
-                int c = *p; val += c * (a + m[0]); p += bpp;
-                if(x+1 < w) c = *p; val += c * m[1]; p += bpp;
-                if(n > 1) { if(x+2 < w) c = *p; val += c * m[2]; p += bpp; }
-            }
-            *dst++ = val>>8;
-            src++;
-        }
-        if(bpp > 3) *dst++ = *src++;
-    }
-}
-
 static inline void generatealpha(lightmapworker *w, float tolerance, const vec &pos, uchar &alpha)
 {
     alpha = lookupblendmap(w->blendmapcache, pos);
@@ -737,7 +678,7 @@ static int finishlightmap(lightmapworker *w)
 { 
     if(hasskylight() && GETIV(blurskylight) && (w->w>1 || w->h>1)) 
     {
-        blurlightmap(GETIV(blurskylight), w->bpp, w->w, w->h, w->blur, w->ambient);
+        blurtexture(GETIV(blurskylight), w->bpp, w->w, w->h, w->blur, w->ambient);
         swap(w->blur, w->ambient);
     }
     vec *sample = w->colordata;
@@ -844,7 +785,7 @@ static int finishlightmap(lightmapworker *w)
     }
     if(GETIV(blurlms) && (w->w>1 || w->h>1)) 
     {
-        blurlightmap(GETIV(blurlms), w->bpp, w->w, w->h, w->blur, w->colorbuf);
+        blurtexture(GETIV(blurlms), w->bpp, w->w, w->h, w->blur, w->colorbuf);
         memcpy(w->colorbuf, w->blur, w->bpp*w->w*w->h);
     }
     if(mincolor[3]==255) return SURFACE_LIGHTMAP_TOP;

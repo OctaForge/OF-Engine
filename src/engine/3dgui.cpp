@@ -198,7 +198,7 @@ struct gui : g3d_gui
                 break;
             case 1:
                 if(ishorizontal()) cury -= max(ysize - l.h, 0);
-                else curx -= max(xsize - l.h, 0);
+                else curx -= max(xsize - l.w, 0);
                 break;
             }
         }

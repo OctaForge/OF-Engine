@@ -792,7 +792,7 @@ namespace game
 
     bool ispaused() { return false; };
 
-    void dynlighttrack(physent *owner, vec &o)
+    void dynlighttrack(physent *owner, vec &o, vec &hud)
     {
         return;
     }

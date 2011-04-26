@@ -105,7 +105,7 @@ namespace lua_binds
         if (slots.empty()) return;
         Slot &s = *slots.last();
         DELETEA(s.autograss);
-        s.autograss = e.get<char*>(1) ? newstring(makerelpath("data", e.get<char*>(1))) : NULL;
+        s.autograss = e.get<char*>(1) ? newstring(makerelpath("data", e.get<char*>(1), NULL, "<ffskip><premul>")) : NULL;
     })
 
     LUA_BIND_CLIENT(texscroll, {

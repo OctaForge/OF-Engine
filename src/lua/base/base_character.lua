@@ -256,7 +256,7 @@ function character:render_dynamic(hudpass, needhud)
         local falling = self.falling:copy()
         local timeinair = self.timeinair
         local anim = self:decide_animation(state, physstate, move, strafe, vel, falling, inwater, timeinair)
-        local flags = self:get_renderingflags()
+        local flags = self:get_renderingflags(hudpass, needhud)
 
         self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, 0, flags, basetime }
         self.rendering_args_timestamp = lstor.curr_timestamp
@@ -267,10 +267,15 @@ function character:render_dynamic(hudpass, needhud)
 end
 
 --- Used in render_dynamic to get rendering flags. Enables some occlusion, dynamic shadow, etc.
-function character:get_renderingflags()
+-- @param hudpass True if we're rendering HUD right now.
+-- @param needhud True if model should be shown as HUD model (== we're in first person)
+function character:get_renderingflags(hudpass, needhud)
     local flags = math.bor(mdl.LIGHT, mdl.DYNSHADOW)
     if self ~= lstor.get_plyent() then
         flags = math.bor(flags, mdl.CULL_VFC, mdl.CULL_OCCLUDED, mdl.CULL_QUERY)
+    end
+    if hudpass and needhud then
+        flags = math.bor(flags, mdl.HUD)
     end
     return flags -- TODO: for non-characters, use flags = math.bor(flags, mdl.CULL_DIST)
 end
