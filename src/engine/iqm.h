@@ -1,19 +1,5 @@
 struct iqm;
 
-iqm *loadingiqm = NULL;
-
-string iqmdir;
-
-struct iqmadjustment
-{
-    float yaw, pitch, roll;
-    vec translate;
-
-    iqmadjustment(float yaw, float pitch, float roll, const vec &translate) : yaw(yaw), pitch(pitch), roll(roll), translate(translate) {}
-};
-
-vector<iqmadjustment> iqmadjustments;
-
 struct iqmheader
 {
     char magic[16];
@@ -102,10 +88,11 @@ struct iqmvertexarray
     uint offset;
 };
 
-struct iqm : skelmodel
+struct iqm : skelmodel, skelloader<iqm>
 {
     iqm(const char *name) : skelmodel(name) {}
 
+    static const char *formatname() { return "iqm"; }
     int type() const { return MDL_IQM; }
 
     struct iqmmeshgroup : skelmeshgroup
@@ -282,12 +269,12 @@ struct iqm : skelmodel
                             if(p.mask&0x100) animdata++;
                         }
                         frame[k] = dualquat(quat(orient), pos);
-                        if(iqmadjustments.inrange(k))
+                        if(adjustments.inrange(k))
                         {
-                            if(iqmadjustments[k].yaw) frame[k].mulorient(quat(vec(0, 0, 1), iqmadjustments[k].yaw*RAD));
-                            if(iqmadjustments[k].pitch) frame[k].mulorient(quat(vec(0, -1, 0), iqmadjustments[k].pitch*RAD));
-                            if(iqmadjustments[k].roll) frame[k].mulorient(quat(vec(-1, 0, 0), iqmadjustments[k].roll*RAD));
-                            if(!iqmadjustments[k].translate.iszero()) frame[k].translate(iqmadjustments[k].translate);
+                            if(adjustments[k].yaw) frame[k].mulorient(quat(vec(0, 0, 1), adjustments[k].yaw*RAD));
+                            if(adjustments[k].pitch) frame[k].mulorient(quat(vec(0, -1, 0), adjustments[k].pitch*RAD));
+                            if(adjustments[k].roll) frame[k].mulorient(quat(vec(-1, 0, 0), adjustments[k].roll*RAD));
+                            if(!adjustments[k].translate.iszero()) frame[k].translate(adjustments[k].translate);
                         }
                         boneinfo &b = skel->bones[k];
                         frame[k].mul(b.invbase);
@@ -365,7 +352,7 @@ struct iqm : skelmodel
         mdl.model = this;
         mdl.index = 0;
         mdl.pitchscale = mdl.pitchoffset = mdl.pitchmin = mdl.pitchmax = 0;
-        iqmadjustments.setsize(0);
+        adjustments.setsize(0);
         const char *fname = loadname + strlen(loadname);
         do --fname; while(fname >= loadname && *fname!='/' && *fname!='\\');
         fname++;
@@ -380,15 +367,15 @@ struct iqm : skelmodel
     bool load()
     {
         if(loaded) return true;
-        formatstring(iqmdir)("data/models/%s", loadname);
+        formatstring(dir)("data/models/%s", loadname);
         defformatstring(cfgname)("data/models/%s/iqm.lua", loadname); // INTENSITY
 
-        loadingiqm = this;
+        loading = this;
         var::persistvars = false;
         if (lua::engine.execf(path(cfgname), false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
         {
             var::persistvars = true;
-            loadingiqm = NULL;
+            loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // iqm without configuration, try default tris and skin 
@@ -396,10 +383,10 @@ struct iqm : skelmodel
             var::persistvars = true;
             if(!loaddefaultparts()) 
             {
-                loadingiqm = NULL;
+                loading = NULL;
                 return false;
             }
-            loadingiqm = NULL;
+            loading = NULL;
         }
         scale /= 4;
         parts[0]->translate = translate;
@@ -414,262 +401,5 @@ struct iqm : skelmodel
     }
 };
 
-void setiqmdir(char *name)
-{
-    if(!loadingiqm) { conoutf("not loading an iqm"); return; }
-    formatstring(iqmdir)("data/models/%s", name);
-}
-    
-void iqmload(char *meshfile, char *skelname)
-{
-    if(!loadingiqm) { conoutf("not loading an iqm"); return; }
-    defformatstring(filename)("%s/%s", iqmdir, meshfile);
-    iqm::skelpart &mdl = *new iqm::skelpart;
-    loadingiqm->parts.add(&mdl);
-    mdl.model = loadingiqm;
-    mdl.index = loadingiqm->parts.length()-1;
-    mdl.pitchscale = mdl.pitchoffset = mdl.pitchmin = mdl.pitchmax = 0;
-    iqmadjustments.setsize(0);
-    mdl.meshes = loadingiqm->sharemeshes(path(filename), skelname[0] ? skelname : NULL);
-    if(!mdl.meshes) conoutf("could not load %s", filename); // ignore failure
-    else 
-    {
-        mdl.initanimparts();
-        mdl.initskins();
-    }
-}
-
-void iqmtag(char *name, char *tagname)
-{
-    if(!loadingiqm || loadingiqm->parts.empty()) { conoutf("not loading an iqm"); return; }
-    iqm::part &mdl = *loadingiqm->parts.last();
-    int i = mdl.meshes ? ((iqm::skelmeshgroup *)mdl.meshes)->skel->findbone(name) : -1;
-    if(i >= 0)
-    {
-        ((iqm::skelmeshgroup *)mdl.meshes)->skel->addtag(tagname, i);
-        return;
-    }
-    conoutf("could not find bone %s for tag %s", name, tagname);
-}
-        
-void iqmpitch(char *name, float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax)
-{
-    if(!loadingiqm || loadingiqm->parts.empty()) { conoutf("not loading an iqm"); return; }
-    iqm::part &mdl = *loadingiqm->parts.last();
-
-    if(name[0])
-    {
-        int i = mdl.meshes ? ((iqm::skelmeshgroup *)mdl.meshes)->skel->findbone(name) : -1;
-        if(i>=0)
-        {
-            iqm::boneinfo &b = ((iqm::skelmeshgroup *)mdl.meshes)->skel->bones[i];
-            b.pitchscale = *pitchscale;
-            b.pitchoffset = *pitchoffset;
-            if(*pitchmin || *pitchmax)
-            {
-                b.pitchmin = *pitchmin;
-                b.pitchmax = *pitchmax;
-            }
-            else
-            {
-                b.pitchmin = -360*b.pitchscale;
-                b.pitchmax = 360*b.pitchscale;
-            }
-            return;
-        }
-        conoutf("could not find bone %s to pitch", name);
-        return;
-    }
-
-    mdl.pitchscale = *pitchscale;
-    mdl.pitchoffset = *pitchoffset;
-    if(*pitchmin || *pitchmax)
-    {
-        mdl.pitchmin = *pitchmin;
-        mdl.pitchmax = *pitchmax;
-    }
-    else
-    {
-        mdl.pitchmin = -360*mdl.pitchscale;
-        mdl.pitchmax = 360*mdl.pitchscale;
-    }
-}
-
-void iqmadjust(char *name, float *yaw, float *pitch, float *roll, float *tx, float *ty, float *tz)
-{
-    if(!loadingiqm || loadingiqm->parts.empty()) { conoutf("not loading an iqm"); return; }
-    iqm::part &mdl = *loadingiqm->parts.last();
-
-    if(!name[0]) return;
-    int i = mdl.meshes ? ((iqm::skelmeshgroup *)mdl.meshes)->skel->findbone(name) : -1;
-    if(i < 0) {  conoutf("could not find bone %s to adjust", name); return; }
-    while(!iqmadjustments.inrange(i)) iqmadjustments.add(iqmadjustment(0, 0, 0, vec(0, 0, 0)));
-    iqmadjustments[i] = iqmadjustment(*yaw, *pitch, *roll, vec(*tx/4, *ty/4, *tz/4));
-}
- 
-#define loopiqmmeshes(meshname, m, body) \
-    if(!loadingiqm || loadingiqm->parts.empty()) { conoutf("not loading an iqm"); return; } \
-    iqm::part &mdl = *loadingiqm->parts.last(); \
-    if(!mdl.meshes) return; \
-    loopv(mdl.meshes->meshes) \
-    { \
-        iqm::skelmesh &m = *(iqm::skelmesh *)mdl.meshes->meshes[i]; \
-        if(!strcmp(meshname, "*") || (m.name && !strcmp(m.name, meshname))) \
-        { \
-            body; \
-        } \
-    }
-
-#define loopiqmskins(meshname, s, body) loopiqmmeshes(meshname, m, { iqm::skin &s = mdl.skins[i]; body; })
-
-void iqmskin(char *meshname, char *tex, char *masks, float *envmapmax, float *envmapmin)
-{
-    loopiqmskins(meshname, s,
-        s.tex = textureload(makerelpath(iqmdir, tex), 0, true, false);
-        if(*masks)
-        {
-            s.masks = textureload(makerelpath(iqmdir, masks, "<stub>"), 0, true, false);
-            s.envmapmax = *envmapmax;
-            s.envmapmin = *envmapmin;
-        }
-    );
-}
-
-void iqmspec(char *meshname, int *percent)
-{
-    float spec = 1.0f;
-    if(*percent>0) spec = *percent/100.0f;
-    else if(*percent<0) spec = 0.0f;
-    loopiqmskins(meshname, s, s.spec = spec);
-}
-
-void iqmambient(char *meshname, int *percent)
-{
-    float ambient = 0.3f;
-    if(*percent>0) ambient = *percent/100.0f;
-    else if(*percent<0) ambient = 0.0f;
-    loopiqmskins(meshname, s, s.ambient = ambient);
-}
-
-void iqmglow(char *meshname, int *percent)
-{
-    float glow = 3.0f;
-    if(*percent>0) glow = *percent/100.0f;
-    else if(*percent<0) glow = 0.0f;
-    loopiqmskins(meshname, s, s.glow = glow);
-}
-
-void iqmglare(char *meshname, float *specglare, float *glowglare)
-{
-    loopiqmskins(meshname, s, { s.specglare = *specglare; s.glowglare = *glowglare; });
-}
-
-void iqmalphatest(char *meshname, float *cutoff)
-{
-    loopiqmskins(meshname, s, s.alphatest = max(0.0f, min(1.0f, *cutoff)));
-}
-
-void iqmalphablend(char *meshname, int *blend)
-{
-    loopiqmskins(meshname, s, s.alphablend = *blend!=0);
-}
-
-void iqmcullface(char *meshname, int *cullface)
-{
-    loopiqmskins(meshname, s, s.cullface = *cullface!=0);
-}
-
-void iqmenvmap(char *meshname, char *envmap)
-{
-    Texture *tex = cubemapload(envmap);
-    loopiqmskins(meshname, s, s.envmap = tex);
-}
-
-void iqmbumpmap(char *meshname, char *normalmap, char *skin)
-{
-    Texture *normalmaptex = NULL, *skintex = NULL;
-    normalmaptex = textureload(makerelpath(iqmdir, normalmap, "<noff>"), 0, true, false);
-    if(skin[0]) skintex = textureload(makerelpath(iqmdir, skin, "<noff>"), 0, true, false);
-    loopiqmskins(meshname, s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
-}
-
-void iqmfullbright(char *meshname, float *fullbright)
-{
-    loopiqmskins(meshname, s, s.fullbright = *fullbright);
-}
-
-void iqmshader(char *meshname, char *shader)
-{
-    loopiqmskins(meshname, s, s.shader = lookupshaderbyname(shader));
-}
-
-void iqmscroll(char *meshname, float *scrollu, float *scrollv)
-{
-    loopiqmskins(meshname, s, { s.scrollu = *scrollu; s.scrollv = *scrollv; });
-}
-
-void iqmanim(char *anim, char *animfile, float *speed, int *priority)
-{
-    if(!loadingiqm || loadingiqm->parts.empty()) { conoutf("not loading an iqm"); return; }
-
-    vector<int> anims;
-    findanims(anim, anims);
-    if(anims.empty()) conoutf("could not find animation %s", anim);
-    else 
-    {
-        iqm::part *p = loadingiqm->parts.last();
-        if(!p->meshes) return;
-        defformatstring(filename)("%s/%s", iqmdir, animfile);
-        iqm::skelanimspec *sa = ((iqm::iqmmeshgroup *)p->meshes)->loadanim(path(filename));
-        if(!sa) conoutf("could not load iqm anim file %s", filename);
-        else loopv(anims)
-        {
-            loadingiqm->parts.last()->setanim(p->numanimparts-1, anims[i], sa->frame, sa->range, *speed, *priority);
-        }
-    }
-}
-
-void iqmanimpart(char *maskstr)
-{
-    if(!loadingiqm || loadingiqm->parts.empty()) { conoutf("not loading an iqm"); return; }
-
-    iqm::skelpart *p = (iqm::skelpart *)loadingiqm->parts.last();
-
-    vector<char *> bonestrs;
-
-    // TODO: get rid of this thing
-    maskstr += strspn(maskstr, "\n\t ");
-    while(*maskstr)
-    {
-        const char *elem = maskstr;
-        *maskstr=='"' ? (++maskstr, maskstr += strcspn(maskstr, "\"\n\0"), maskstr += *maskstr=='"') : maskstr += strcspn(maskstr, "\n\t \0");
-        bonestrs.add(*elem=='"' ? newstring(elem+1, maskstr-elem-(maskstr[-1]=='"' ? 2 : 1)) : newstring(elem, maskstr-elem));
-        maskstr += strspn(maskstr, "\n\t ");
-    }
-
-    vector<ushort> bonemask;
-    loopv(bonestrs)
-    {
-        char *bonestr = bonestrs[i];
-        int bone = p->meshes ? ((iqm::skelmeshgroup *)p->meshes)->skel->findbone(bonestr[0]=='!' ? bonestr+1 : bonestr) : -1;
-        if(bone<0) { conoutf("could not find bone %s for anim part mask [%s]", bonestr, maskstr); bonestrs.deletearrays(); return; }
-        bonemask.add(bone | (bonestr[0]=='!' ? BONEMASK_NOT : 0));
-    }
-    bonestrs.deletearrays();
-    bonemask.sort(bonemaskcmp);
-    if(bonemask.length()) bonemask.add(BONEMASK_END);
-
-    if(!p->addanimpart(bonemask.getbuf())) conoutf("too many animation parts");
-}
-
-void iqmlink(int *parent, int *child, char *tagname, float *x, float *y, float *z)
-{
-    if(!loadingiqm) { conoutf("not loading an iqm"); return; }
-    if(!loadingiqm->parts.inrange(*parent) || !loadingiqm->parts.inrange(*child)) { conoutf("no models loaded to link"); return; }
-    if(!loadingiqm->parts[*parent]->link(loadingiqm->parts[*child], tagname, vec(*x, *y, *z))) conoutf("could not link model %s", loadingiqm->loadname);
-}
-
-void iqmnoclip(char *meshname, int *noclip)
-{
-    loopiqmmeshes(meshname, m, m.noclip = *noclip!=0);
-}
+skelcommands<iqm> iqmcommands;
+LE_reg *iqmbinds = iqmcommands.getbuf();

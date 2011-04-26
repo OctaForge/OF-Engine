@@ -60,6 +60,11 @@
 
 #include "scripting_system_lua_def.hpp"
 
+extern LE_reg *objbinds;
+extern LE_reg *md5binds;
+extern LE_reg *iqmbinds;
+extern LE_reg *smdbinds;
+
 namespace lua
 {
     /* our binds */
@@ -185,6 +190,12 @@ namespace lua
 
         setup_namespace("CAPI", CAPI);
         pop(1);
+
+        setup_namespace("obj", objbinds);
+        setup_namespace("md5", md5binds);
+        setup_namespace("iqm", iqmbinds);
+        setup_namespace("smd", smdbinds);
+        pop(4);
 
         push("run_tests").push(m_runtests).setg();
         #ifdef CLIENT

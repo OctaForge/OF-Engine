@@ -356,6 +356,117 @@ struct animmodel : model
             if(glaring) s->setvariant(0, 2);
             else s->set(); 
         }
+
+        template<class V, class T> void smoothnorms(V *verts, int numverts, T *tris, int numtris, float limit, bool areaweight)
+        {
+            hashtable<vec, int> share;
+            int *next = new int[numverts];
+            memset(next, -1, numverts*sizeof(int));
+            loopi(numverts)
+            {
+                V &v = verts[i];
+                v.norm = vec(0, 0, 0);
+                int idx = share.access(v.pos, i);
+                if(idx != i) { next[i] = next[idx]; next[idx] = i; }
+            }
+            loopi(numtris)
+            {
+                T &t = tris[i];
+                V &v1 = verts[t.vert[0]], &v2 = verts[t.vert[1]], &v3 = verts[t.vert[2]];
+                vec norm;
+                norm.cross(vec(v2.pos).sub(v1.pos), vec(v3.pos).sub(v1.pos));
+                if(!areaweight) norm.normalize();
+                v1.norm.add(norm);
+                v2.norm.add(norm);
+                v3.norm.add(norm);
+            }
+            vec *norms = new vec[numverts];
+            memset(norms, 0, numverts*sizeof(vec));
+            loopi(numverts)
+            {
+                V &v = verts[i];
+                norms[i].add(v.norm);
+                if(next[i] >= 0)
+                {
+                    float vlimit = limit*v.norm.magnitude();
+                    for(int j = next[i]; j >= 0; j = next[j])
+                    {
+                        V &o = verts[j];
+                        if(v.norm.dot(o.norm) >= vlimit*o.norm.magnitude())
+                        {
+                            norms[i].add(o.norm);
+                            norms[j].add(v.norm);
+                        }
+                    }
+                }
+            }
+            loopi(numverts) verts[i].norm = norms[i].normalize();
+            delete[] next;
+            delete[] norms;
+        }
+
+        template<class V, class T> void buildnorms(V *verts, int numverts, T *tris, int numtris, bool areaweight)
+        {
+            loopi(numverts) verts[i].norm = vec(0, 0, 0);
+            loopi(numtris)
+            {
+                T &t = tris[i];
+                V &v1 = verts[t.vert[0]], &v2 = verts[t.vert[1]], &v3 = verts[t.vert[2]];
+                vec norm;
+                norm.cross(vec(v2.pos).sub(v1.pos), vec(v3.pos).sub(v1.pos));
+                if(!areaweight) norm.normalize();
+                v1.norm.add(norm);
+                v2.norm.add(norm);
+                v3.norm.add(norm);
+            }
+            loopi(numverts) verts[i].norm.normalize();
+        }
+        
+        template<class B, class V, class TC, class T> void calctangents(B *bumpverts, V *verts, TC *tcverts, int numverts, T *tris, int numtris, bool areaweight)
+        {
+            vec *tangent = new vec[2*numverts], *bitangent = tangent+numverts;
+            memset(tangent, 0, 2*numverts*sizeof(vec));
+            loopi(numtris)
+            {
+                const T &t = tris[i];
+                const vec &e0 = verts[t.vert[0]].pos;
+                vec e1 = vec(verts[t.vert[1]].pos).sub(e0), e2 = vec(verts[t.vert[2]].pos).sub(e0);
+
+                const TC &tc0 = tcverts[t.vert[0]],
+                         &tc1 = tcverts[t.vert[1]],
+                         &tc2 = tcverts[t.vert[2]];
+                float u1 = tc1.u - tc0.u, v1 = tc1.v - tc0.v,
+                      u2 = tc2.u - tc0.u, v2 = tc2.v - tc0.v,
+                      scale = u1*v2 - u2*v1;
+                if(scale!=0) scale = 1.0f / scale;
+                vec u(e1), v(e2);
+                u.mul(v2).sub(vec(e2).mul(v1)).mul(scale);
+                v.mul(u1).sub(vec(e1).mul(u2)).mul(scale);
+
+                if(!areaweight)
+                {
+                    u.normalize();
+                    v.normalize();
+                }
+
+                loopj(3)
+                {
+                    tangent[t.vert[j]].add(u);
+                    bitangent[t.vert[j]].add(v);
+                }
+            }
+            loopi(numverts)
+            {
+                const vec &n = verts[i].norm,
+                          &t = tangent[i],
+                          &bt = bitangent[i];
+                B &bv = bumpverts[i];
+                (bv.tangent = t).sub(vec(n).mul(n.dot(t))).normalize();
+                bv.bitangent = vec().cross(n, t).dot(bt) < 0 ? -1 : 1;
+            }
+            delete[] tangent;
+        }
+    
     };
 
     struct meshgroup
@@ -1007,7 +1118,7 @@ struct animmodel : model
         parts.deletecontents();
     }
 
-    char *name() { return loadname; }
+    const char *name() const { return loadname; }
 
     void cleanup()
     {
@@ -1301,4 +1412,170 @@ Texture *animmodel::lasttex = NULL, *animmodel::lastmasks = NULL, *animmodel::la
 int animmodel::envmaptmu = -1, animmodel::matrixpos = 0;
 glmatrixf animmodel::matrixstack[64];
 
+template<class MDL> struct modelloader
+{
+    static MDL *loading;
+    static string dir;
+
+    static bool animated() { return true; }
+};
+
+template<class MDL> MDL *modelloader<MDL>::loading = NULL;
+template<class MDL> string modelloader<MDL>::dir = "";
+
+template<class MDL, class MESH> struct modelcommands
+{
+    vector<LE_reg> command_stor;
+    typedef class MDL::part part;
+    typedef class MDL::skin skin;
+
+    static void setdir(lua_Engine e)
+    {
+        if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
+        formatstring(MDL::dir)("data/models/%s", e.get<char*>(1));
+    }
+
+    #define loopmeshes(meshname, m, body) \
+        if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; } \
+        part &mdl = *MDL::loading->parts.last(); \
+        if(!mdl.meshes) return; \
+        loopv(mdl.meshes->meshes) \
+        { \
+            MESH &m = *(MESH *)mdl.meshes->meshes[i]; \
+            if(!strcmp(meshname, "*") || (m.name && !strcmp(m.name, meshname))) \
+            { \
+                body; \
+            } \
+        }
+
+    #define loopskins(meshname, s, body) loopmeshes(meshname, m, { skin &s = mdl.skins[i]; body; })
+    
+    static void setskin(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s,
+            s.tex = textureload(makerelpath(MDL::dir, e.get<char*>(2)), 0, true, false);
+            if(*(e.get<char*>(3)))
+            {
+                s.masks = textureload(makerelpath(MDL::dir, e.get<char*>(3), "<stub>"), 0, true, false);
+                s.envmapmax = e.get<float>(4);
+                s.envmapmin = e.get<float>(5);
+            }
+        );
+    }
+    
+    static void setspec(lua_Engine e)
+    {
+        float spec = 1.0f;
+        if(e.get<int>(2)>0) spec = e.get<int>(2)/100.0f;
+        else if(e.get<int>(2)<0) spec = 0.0f;
+        loopskins(e.get<char*>(1), s, s.spec = spec);
+    }
+    
+    static void setambient(lua_Engine e)
+    {
+        float ambient = 0.3f;
+        if(e.get<int>(2)>0) ambient = e.get<int>(2)/100.0f;
+        else if(e.get<int>(2)<0) ambient = 0.0f;
+        loopskins(e.get<char*>(1), s, s.ambient = ambient);
+    }
+    
+    static void setglow(lua_Engine e)
+    {
+        float glow = 3.0f;
+        if(e.get<int>(2)>0) glow = e.get<int>(2)/100.0f;
+        else if(e.get<int>(2)<0) glow = 0.0f;
+        loopskins(e.get<char*>(1), s, s.glow = glow);
+    }
+    
+    static void setglare(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s, { s.specglare = e.get<float>(2); s.glowglare = e.get<float>(3); });
+    }
+    
+    static void setalphatest(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s, s.alphatest = max(0.0f, min(1.0f, e.get<float>(2))));
+    }
+    
+    static void setalphablend(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s, s.alphablend = e.get<int>(2)!=0);
+    }
+    
+    static void setcullface(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s, s.cullface = e.get<int>(2)!=0);
+    }
+    
+    static void setenvmap(lua_Engine e)
+    {
+        Texture *tex = cubemapload(e.get<char*>(2));
+        loopskins(e.get<char*>(1), s, s.envmap = tex);
+    }
+    
+    static void setbumpmap(lua_Engine e)
+    {
+        Texture *normalmaptex = NULL, *skintex = NULL;
+        normalmaptex = textureload(makerelpath(MDL::dir, e.get<char*>(2), "<noff>"), 0, true, false);
+        if(e.get<char*>(3)[0]) skintex = textureload(makerelpath(MDL::dir, e.get<char*>(3), "<noff>"), 0, true, false);
+        loopskins(e.get<char*>(1), s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
+    }
+    
+    static void setfullbright(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s, s.fullbright = e.get<float>(2));
+    }
+    
+    static void setshader(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s, s.shader = lookupshaderbyname(e.get<char*>(2)));
+    }
+    
+    static void setscroll(lua_Engine e)
+    {
+        loopskins(e.get<char*>(1), s, { s.scrollu = e.get<float>(2); s.scrollv = e.get<float>(3); });
+    }
+    
+    static void setnoclip(lua_Engine e)
+    {
+        loopmeshes(e.get<char*>(1), m, m.noclip = e.get<int>(2)!=0);
+    }
+  
+    static void setlink(lua_Engine e)
+    {
+        if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
+        if(!MDL::loading->parts.inrange(e.get<int>(1)) || !MDL::loading->parts.inrange(e.get<int>(2))) { conoutf("no models loaded to link"); return; }
+        if(!MDL::loading->parts[e.get<int>(1)]->link(MDL::loading->parts[e.get<int>(2)], e.get<char*>(3), vec(e.get<float>(4), e.get<float>(5), e.get<float>(6)))) conoutf("could not link model %s", MDL::loading->loadname);
+    }
+ 
+    void modelcommand(lua_Binding fun, const char *name)
+    {
+        command_stor.add((LE_reg){ name, fun });
+    }
+
+    LE_reg *getbuf()
+    {
+        return command_stor.getbuf();
+    }
+
+    modelcommands()
+    {
+        modelcommand(setdir, "dir");
+        modelcommand(setskin, "skin");
+        modelcommand(setspec, "spec");
+        modelcommand(setambient, "ambient");
+        modelcommand(setglow, "glow");
+        modelcommand(setglare, "glare");
+        modelcommand(setalphatest, "alphatest");
+        modelcommand(setalphablend, "alphablend");
+        modelcommand(setcullface, "cullface");
+        modelcommand(setenvmap, "envmap");
+        modelcommand(setbumpmap, "bumpmap");
+        modelcommand(setfullbright, "fullbright");
+        modelcommand(setshader, "shader");
+        modelcommand(setscroll, "scroll");
+        modelcommand(setnoclip, "noclip");
+        modelcommand(setlink, "link");
+    }
+};
 

@@ -310,13 +310,12 @@ mdl.mesh = CAPI.mdlmesh
 -- for manipulating with obj model format.
 -- @class table
 -- @name obj
-obj = {}
+obj = base.obj
 
 --- Load a model.
 -- @param mdl Model name.
 -- @class function
 -- @name obj.load
-obj.load = CAPI.objload
 
 --- Set model skin.
 -- @param n Name of the mesh.
@@ -326,7 +325,6 @@ obj.load = CAPI.objload
 -- @param i Envmap min intensity.
 -- @class function
 -- @name obj.skin
-obj.skin = CAPI.objskin
 
 --- Set model bump map.
 -- @param n Name of the mesh.
@@ -334,14 +332,12 @@ obj.skin = CAPI.objskin
 -- @param s Name of the skin.
 -- @class function
 -- @name obj.bumpmap
-obj.bumpmap = CAPI.objbumpmap
 
 --- Set model env map.
 -- @param n Name of the mesh.
 -- @param e Name of the env map.
 -- @class function
 -- @name obj.envmap
-obj.envmap = CAPI.objenvmap
 
 --- Set model specular intensity. See mdlspec.
 -- @param n Mesh name.
@@ -349,7 +345,6 @@ obj.envmap = CAPI.objenvmap
 -- @see mdl.spec
 -- @class function
 -- @name obj.spec
-obj.spec = CAPI.objspec
 
 --- Set model pitch. Controls how a model responds to its pitch.
 -- Clamping is applied like this: clamp(pitch * s + o, m, n)
@@ -360,7 +355,6 @@ obj.spec = CAPI.objspec
 -- @param n Maximal pitch offset clamp.
 -- @class function
 -- @name obj.pitch
-obj.pitch = CAPI.objpitch
 
 --- Set model ambience. See mdlambient.
 -- @param n Mesh name.
@@ -368,7 +362,6 @@ obj.pitch = CAPI.objpitch
 -- @see mdl.ambient
 -- @class function
 -- @name obj.ambient
-obj.ambient = CAPI.objambient
 
 --- See mdlglow.
 -- @param n Mesh name.
@@ -376,7 +369,6 @@ obj.ambient = CAPI.objambient
 -- @see mdl.glow
 -- @class function
 -- @name obj.glow
-obj.glow = CAPI.objglow
 
 --- See mdlglare.
 -- @param n Mesh name.
@@ -385,7 +377,6 @@ obj.glow = CAPI.objglow
 -- @see mdl.glare
 -- @class function
 -- @name obj.glare
-obj.glare = CAPI.objglare
 
 --- See mdlalphatest.
 -- @param n Mesh name.
@@ -393,7 +384,6 @@ obj.glare = CAPI.objglare
 -- @see mdl.alphatest
 -- @class function
 -- @name obj.alphatest
-obj.alphatest = CAPI.objalphatest
 
 --- See mdlalphablend.
 -- @param n Mesh name.
@@ -401,7 +391,6 @@ obj.alphatest = CAPI.objalphatest
 -- @see mdl.alphablend
 -- @class function
 -- @name obj.alphablend
-obj.alphablend = CAPI.objalphablend
 
 --- See mdlcullface.
 -- @param n Mesh name.
@@ -409,7 +398,6 @@ obj.alphablend = CAPI.objalphablend
 -- @see mdl.cullface
 -- @class function
 -- @name obj.cullface
-obj.cullface = CAPI.objcullface
 
 --- See mdlfullbright.
 -- @param n Mesh name.
@@ -417,7 +405,6 @@ obj.cullface = CAPI.objcullface
 -- @see mdl.fullbright
 -- @class function
 -- @name obj.fullbright
-obj.fullbright = CAPI.objfullbright
 
 --- See mdlshader.
 -- @param n Mesh name.
@@ -425,7 +412,6 @@ obj.fullbright = CAPI.objfullbright
 -- @see mdl.shader
 -- @class function
 -- @name obj.shader
-obj.shader = CAPI.objshader
 
 --- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
 -- @param n Mesh name.
@@ -433,26 +419,23 @@ obj.shader = CAPI.objshader
 -- @param Y Y axis scroll frequency.
 -- @class function
 -- @name obj.scroll
-obj.scroll = CAPI.objscroll
 
 --- Toggle model noclip.
 -- @param n Mesh name.
 -- @param c 1 to make model noclip, 0 otherwise.
 -- @class function
 -- @name obj.noclip
-obj.noclip = CAPI.objnoclip
 
 --- This table contains all methods meant
 -- for manipulating with md5 model format.
 -- @class table
 -- @name md5
-md5 = {}
+md5 = base.md5
 
 --- Set model directory.
 -- @param dir Directory.
 -- @class function
 -- @name md5.dir
-md5.dir = CAPI.md5dir
 
 --- Load a model. Skelname is optional name that can be assigned
 -- to the skeleton specified in the md5mesh for skeleton sharing,
@@ -463,14 +446,12 @@ md5.dir = CAPI.md5dir
 -- @param skelname Skeleton name.
 -- @class function
 -- @name md5.load
-md5.load = CAPI.md5load
 
 --- Assign a tag name to bone.
 -- @param n Bone name.
 -- @param t Tag name.
 -- @class function
 -- @name md5.tag
-md5.tag = CAPI.md5tag
 
 --- Set model pitch. Controls how a model responds to its pitch.
 -- Clamping is applied like this: clamp(pitch * s + o, m, n)
@@ -482,7 +463,6 @@ md5.tag = CAPI.md5tag
 -- @param n Maximal pitch offset clamp.
 -- @class function
 -- @name md5.pitch
-md5.pitch = CAPI.md5pitch
 
 --- Set adjustment for the model.
 -- @param n Model name.
@@ -494,7 +474,6 @@ md5.pitch = CAPI.md5pitch
 -- @param tz Z translation of model center.
 -- @class function
 -- @name md5.adjust
-md5.adjust = CAPI.md5adjust
 
 --- Set model skin.
 -- @param n Name of the mesh.
@@ -504,7 +483,6 @@ md5.adjust = CAPI.md5adjust
 -- @param i Envmap min intensity.
 -- @class function
 -- @name md5.skin
-md5.skin = CAPI.md5skin
 
 --- Set model specular intensity. See mdlspec.
 -- @param n Mesh name.
@@ -512,7 +490,6 @@ md5.skin = CAPI.md5skin
 -- @see mdl.spec
 -- @class function
 -- @name md5.spec
-md5.spec = CAPI.md5spec
 
 --- Set model ambience. See mdlambient.
 -- @param n Mesh name.
@@ -520,7 +497,6 @@ md5.spec = CAPI.md5spec
 -- @see mdl.ambient
 -- @class function
 -- @name md5.ambient
-md5.ambient = CAPI.md5ambient
 
 --- See mdlglow.
 -- @param n Mesh name.
@@ -528,7 +504,6 @@ md5.ambient = CAPI.md5ambient
 -- @see mdl.glow
 -- @class function
 -- @name md5.glow
-md5.glow = CAPI.md5glow
 
 --- See mdlglare.
 -- @param n Mesh name.
@@ -537,7 +512,6 @@ md5.glow = CAPI.md5glow
 -- @see mdl.glare
 -- @class function
 -- @name md5.glare
-md5.glare = CAPI.md5glare
 
 --- See mdlalphatest.
 -- @param n Mesh name.
@@ -545,7 +519,6 @@ md5.glare = CAPI.md5glare
 -- @see mdl.alphatest
 -- @class function
 -- @name md5.alphatest
-md5.alphatest = CAPI.md5alphatest
 
 --- See mdlalphablend.
 -- @param n Mesh name.
@@ -553,7 +526,6 @@ md5.alphatest = CAPI.md5alphatest
 -- @see mdl.alphablend
 -- @class function
 -- @name md5.alphablend
-md5.alphablend = CAPI.md5alphablend
 
 --- See mdlcullface.
 -- @param n Mesh name.
@@ -561,14 +533,12 @@ md5.alphablend = CAPI.md5alphablend
 -- @see mdl.cullface
 -- @class function
 -- @name md5.cullface
-md5.cullface = CAPI.md5cullface
 
 --- Set model env map.
 -- @param n Name of the mesh.
 -- @param e Name of the env map.
 -- @class function
 -- @name md5.envmap
-md5.envmap = CAPI.md5envmap
 
 --- Set model bump map.
 -- @param n Name of the mesh.
@@ -576,7 +546,6 @@ md5.envmap = CAPI.md5envmap
 -- @param s Name of the skin.
 -- @class function
 -- @name md5.bumpmap
-md5.bumpmap = CAPI.md5bumpmap
 
 --- See mdlfullbright.
 -- @param n Mesh name.
@@ -584,7 +553,6 @@ md5.bumpmap = CAPI.md5bumpmap
 -- @see mdl.fullbright
 -- @class function
 -- @name md5.fullbright
-md5.fullbright = CAPI.md5fullbright
 
 --- See mdlshader.
 -- @param n Mesh name.
@@ -592,7 +560,6 @@ md5.fullbright = CAPI.md5fullbright
 -- @see mdl.shader
 -- @class function
 -- @name md5.shader
-md5.shader = CAPI.md5shader
 
 --- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
 -- @param n Mesh name.
@@ -600,7 +567,6 @@ md5.shader = CAPI.md5shader
 -- @param Y Y axis scroll frequency.
 -- @class function
 -- @name md5.scroll
-md5.scroll = CAPI.md5scroll
 
 --- Start a new animation part that will include a bone specified by
 -- argument and all its sub-bones. This effectively splits animations up
@@ -617,7 +583,6 @@ md5.scroll = CAPI.md5scroll
 -- @param b The bone name.
 -- @class function
 -- @name md5.animpart
-md5.animpart = CAPI.md5animpart
 
 --- This assigns a new animation to the current animation part of last loaded model.
 -- First argument specifies the animation to define. Any of following names can be used:
@@ -638,7 +603,6 @@ md5.animpart = CAPI.md5animpart
 -- @param animpri Animation priority.
 -- @class function
 -- @name md5.anim
-md5.anim = CAPI.md5anim
 
 --- This links two models together. Every model you load has an ID. The first model you load
 -- has ID 0, the second has ID 1, and so on, those IDs are now used to identify the models
@@ -653,39 +617,39 @@ md5.anim = CAPI.md5anim
 -- @param z Z translation. (optional)
 -- @class function
 -- @name md5.link
-md5.link = CAPI.md5link
 
 --- Toggle model noclip.
 -- @param n Mesh name.
 -- @param c 1 to make model noclip, 0 otherwise.
 -- @class function
 -- @name md5.noclip
-md5.noclip = CAPI.md5noclip
 
 --- This table contains all methods meant
 -- for manipulating with iqm model format.
 -- @class table
 -- @name iqm
-iqm = {}
+iqm = base.iqm
 
 --- Set model directory.
 -- @param dir Directory.
 -- @class function
 -- @name iqm.dir
-iqm.dir = CAPI.iqmdir
 
---- Load a model.
+--- Load a model. Skelname is optional name that can be assigned
+-- to the skeleton specified in the iqmmesh for skeleton sharing,
+-- but need not be specified if you do not wish to share the skeleton.
+-- This skeleton name must be specified for both the model supplying
+-- a skeleton and ana attached model intending to use the skeleton.
 -- @param mdl Model name.
+-- @param skelname Skeleton name.
 -- @class function
 -- @name iqm.load
-iqm.load = CAPI.iqmload
 
 --- Assign a tag name to bone.
 -- @param n Bone name.
 -- @param t Tag name.
 -- @class function
 -- @name iqm.tag
-iqm.tag = CAPI.iqmtag
 
 --- Set model pitch. Controls how a model responds to its pitch.
 -- Clamping is applied like this: clamp(pitch * s + o, m, n)
@@ -697,7 +661,6 @@ iqm.tag = CAPI.iqmtag
 -- @param n Maximal pitch offset clamp.
 -- @class function
 -- @name iqm.pitch
-iqm.pitch = CAPI.iqmpitch
 
 --- Set adjustment for the model.
 -- @param n Model name.
@@ -709,7 +672,6 @@ iqm.pitch = CAPI.iqmpitch
 -- @param tz Z translation of model center.
 -- @class function
 -- @name iqm.adjust
-iqm.adjust = CAPI.iqmadjust
 
 --- Set model skin.
 -- @param n Name of the mesh.
@@ -719,7 +681,6 @@ iqm.adjust = CAPI.iqmadjust
 -- @param i Envmap min intensity.
 -- @class function
 -- @name iqm.skin
-iqm.skin = CAPI.iqmskin
 
 --- Set model specular intensity. See mdlspec.
 -- @param n Mesh name.
@@ -727,7 +688,6 @@ iqm.skin = CAPI.iqmskin
 -- @see mdl.spec
 -- @class function
 -- @name iqm.spec
-iqm.spec = CAPI.iqmspec
 
 --- Set model ambience. See mdlambient.
 -- @param n Mesh name.
@@ -735,7 +695,6 @@ iqm.spec = CAPI.iqmspec
 -- @see mdl.ambient
 -- @class function
 -- @name iqm.ambient
-iqm.ambient = CAPI.iqmambient
 
 --- See mdlglow.
 -- @param n Mesh name.
@@ -743,7 +702,6 @@ iqm.ambient = CAPI.iqmambient
 -- @see mdl.glow
 -- @class function
 -- @name iqm.glow
-iqm.glow = CAPI.iqmglow
 
 --- See mdlglare.
 -- @param n Mesh name.
@@ -752,7 +710,6 @@ iqm.glow = CAPI.iqmglow
 -- @see mdl.glare
 -- @class function
 -- @name iqm.glare
-iqm.glare = CAPI.iqmglare
 
 --- See mdlalphatest.
 -- @param n Mesh name.
@@ -760,7 +717,6 @@ iqm.glare = CAPI.iqmglare
 -- @see mdl.alphatest
 -- @class function
 -- @name iqm.alphatest
-iqm.alphatest = CAPI.iqmalphatest
 
 --- See mdlalphablend.
 -- @param n Mesh name.
@@ -768,7 +724,6 @@ iqm.alphatest = CAPI.iqmalphatest
 -- @see mdl.alphablend
 -- @class function
 -- @name iqm.alphablend
-iqm.alphablend = CAPI.iqmalphablend
 
 --- See mdlcullface.
 -- @param n Mesh name.
@@ -776,14 +731,12 @@ iqm.alphablend = CAPI.iqmalphablend
 -- @see mdl.cullface
 -- @class function
 -- @name iqm.cullface
-iqm.cullface = CAPI.iqmcullface
 
 --- Set model env map.
 -- @param n Name of the mesh.
 -- @param e Name of the env map.
 -- @class function
 -- @name iqm.envmap
-iqm.envmap = CAPI.iqmenvmap
 
 --- Set model bump map.
 -- @param n Name of the mesh.
@@ -791,7 +744,6 @@ iqm.envmap = CAPI.iqmenvmap
 -- @param s Name of the skin.
 -- @class function
 -- @name iqm.bumpmap
-iqm.bumpmap = CAPI.iqmbumpmap
 
 --- See mdlfullbright.
 -- @param n Mesh name.
@@ -799,7 +751,6 @@ iqm.bumpmap = CAPI.iqmbumpmap
 -- @see mdl.fullbright
 -- @class function
 -- @name iqm.fullbright
-iqm.fullbright = CAPI.iqmfullbright
 
 --- See mdlshader.
 -- @param n Mesh name.
@@ -807,7 +758,6 @@ iqm.fullbright = CAPI.iqmfullbright
 -- @see mdl.shader
 -- @class function
 -- @name iqm.shader
-iqm.shader = CAPI.iqmshader
 
 --- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
 -- @param n Mesh name.
@@ -815,7 +765,6 @@ iqm.shader = CAPI.iqmshader
 -- @param Y Y axis scroll frequency.
 -- @class function
 -- @name iqm.scroll
-iqm.scroll = CAPI.iqmscroll
 
 --- Start a new animation part that will include a bone specified by
 -- argument and all its sub-bones. This effectively splits animations up
@@ -832,7 +781,6 @@ iqm.scroll = CAPI.iqmscroll
 -- @param b The bone name.
 -- @class function
 -- @name iqm.animpart
-iqm.animpart = CAPI.iqmanimpart
 
 --- This assigns a new animation to the current animation part of last loaded model.
 -- First argument specifies the animation to define. Any of following names can be used:
@@ -853,7 +801,6 @@ iqm.animpart = CAPI.iqmanimpart
 -- @param animpri Animation priority.
 -- @class function
 -- @name iqm.anim
-iqm.anim = CAPI.iqmanim
 
 --- This links two models together. Every model you load has an ID. The first model you load
 -- has ID 0, the second has ID 1, and so on, those IDs are now used to identify the models
@@ -868,39 +815,39 @@ iqm.anim = CAPI.iqmanim
 -- @param z Z translation. (optional)
 -- @class function
 -- @name iqm.link
-iqm.link = CAPI.iqmlink
 
 --- Toggle model noclip.
 -- @param n Mesh name.
 -- @param c 1 to make model noclip, 0 otherwise.
 -- @class function
 -- @name iqm.noclip
-iqm.noclip = CAPI.iqmnoclip
 
 --- This table contains all methods meant
 -- for manipulating with smd model format.
 -- @class table
 -- @name smd
-smd = {}
+smd = base.smd
 
 --- Set model directory.
 -- @param dir Directory.
 -- @class function
 -- @name smd.dir
-smd.dir = CAPI.smddir
 
---- Load a model.
+--- Load a model. Skelname is optional name that can be assigned
+-- to the skeleton specified in the smdmesh for skeleton sharing,
+-- but need not be specified if you do not wish to share the skeleton.
+-- This skeleton name must be specified for both the model supplying
+-- a skeleton and ana attached model intending to use the skeleton.
 -- @param mdl Model name.
+-- @param skelname Skeleton name.
 -- @class function
 -- @name smd.load
-smd.load = CAPI.smdload
 
 --- Assign a tag name to bone.
 -- @param n Bone name.
 -- @param t Tag name.
 -- @class function
 -- @name smd.tag
-smd.tag = CAPI.smdtag
 
 --- Set model pitch. Controls how a model responds to its pitch.
 -- Clamping is applied like this: clamp(pitch * s + o, m, n)
@@ -912,7 +859,6 @@ smd.tag = CAPI.smdtag
 -- @param n Maximal pitch offset clamp.
 -- @class function
 -- @name smd.pitch
-smd.pitch = CAPI.smdpitch
 
 --- Set adjustment for the model.
 -- @param n Model name.
@@ -924,7 +870,6 @@ smd.pitch = CAPI.smdpitch
 -- @param tz Z translation of model center.
 -- @class function
 -- @name smd.adjust
-smd.adjust = CAPI.smdadjust
 
 --- Set model skin.
 -- @param n Name of the mesh.
@@ -934,7 +879,6 @@ smd.adjust = CAPI.smdadjust
 -- @param i Envmap min intensity.
 -- @class function
 -- @name smd.skin
-smd.skin = CAPI.smdskin
 
 --- Set model specular intensity. See mdlspec.
 -- @param n Mesh name.
@@ -942,7 +886,6 @@ smd.skin = CAPI.smdskin
 -- @see mdl.spec
 -- @class function
 -- @name smd.spec
-smd.spec = CAPI.smdspec
 
 --- Set model ambience. See mdlambient.
 -- @param n Mesh name.
@@ -950,7 +893,6 @@ smd.spec = CAPI.smdspec
 -- @see mdl.ambient
 -- @class function
 -- @name smd.ambient
-smd.ambient = CAPI.smdambient
 
 --- See mdlglow.
 -- @param n Mesh name.
@@ -958,7 +900,6 @@ smd.ambient = CAPI.smdambient
 -- @see mdl.glow
 -- @class function
 -- @name smd.glow
-smd.glow = CAPI.smdglow
 
 --- See mdlglare.
 -- @param n Mesh name.
@@ -967,7 +908,6 @@ smd.glow = CAPI.smdglow
 -- @see mdl.glare
 -- @class function
 -- @name smd.glare
-smd.glare = CAPI.smdglare
 
 --- See mdlalphatest.
 -- @param n Mesh name.
@@ -975,7 +915,6 @@ smd.glare = CAPI.smdglare
 -- @see mdl.alphatest
 -- @class function
 -- @name smd.alphatest
-smd.alphatest = CAPI.smdalphatest
 
 --- See mdlalphablend.
 -- @param n Mesh name.
@@ -983,7 +922,6 @@ smd.alphatest = CAPI.smdalphatest
 -- @see mdl.alphablend
 -- @class function
 -- @name smd.alphablend
-smd.alphablend = CAPI.smdalphablend
 
 --- See mdlcullface.
 -- @param n Mesh name.
@@ -991,14 +929,12 @@ smd.alphablend = CAPI.smdalphablend
 -- @see mdl.cullface
 -- @class function
 -- @name smd.cullface
-smd.cullface = CAPI.smdcullface
 
 --- Set model env map.
 -- @param n Name of the mesh.
 -- @param e Name of the env map.
 -- @class function
 -- @name smd.envmap
-smd.envmap = CAPI.smdenvmap
 
 --- Set model bump map.
 -- @param n Name of the mesh.
@@ -1006,7 +942,6 @@ smd.envmap = CAPI.smdenvmap
 -- @param s Name of the skin.
 -- @class function
 -- @name smd.bumpmap
-smd.bumpmap = CAPI.smdbumpmap
 
 --- See mdlfullbright.
 -- @param n Mesh name.
@@ -1014,7 +949,6 @@ smd.bumpmap = CAPI.smdbumpmap
 -- @see mdl.fullbright
 -- @class function
 -- @name smd.fullbright
-smd.fullbright = CAPI.smdfullbright
 
 --- See mdlshader.
 -- @param n Mesh name.
@@ -1022,7 +956,6 @@ smd.fullbright = CAPI.smdfullbright
 -- @see mdl.shader
 -- @class function
 -- @name smd.shader
-smd.shader = CAPI.smdshader
 
 --- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
 -- @param n Mesh name.
@@ -1030,7 +963,6 @@ smd.shader = CAPI.smdshader
 -- @param Y Y axis scroll frequency.
 -- @class function
 -- @name smd.scroll
-smd.scroll = CAPI.smdscroll
 
 --- Start a new animation part that will include a bone specified by
 -- argument and all its sub-bones. This effectively splits animations up
@@ -1047,7 +979,6 @@ smd.scroll = CAPI.smdscroll
 -- @param b The bone name.
 -- @class function
 -- @name smd.animpart
-smd.animpart = CAPI.smdanimpart
 
 --- This assigns a new animation to the current animation part of last loaded model.
 -- First argument specifies the animation to define. Any of following names can be used:
@@ -1068,7 +999,6 @@ smd.animpart = CAPI.smdanimpart
 -- @param animpri Animation priority.
 -- @class function
 -- @name smd.anim
-smd.anim = CAPI.smdanim
 
 --- This links two models together. Every model you load has an ID. The first model you load
 -- has ID 0, the second has ID 1, and so on, those IDs are now used to identify the models
@@ -1083,14 +1013,12 @@ smd.anim = CAPI.smdanim
 -- @param z Z translation. (optional)
 -- @class function
 -- @name smd.link
-smd.link = CAPI.smdlink
 
 --- Toggle model noclip.
 -- @param n Mesh name.
 -- @param c 1 to make model noclip, 0 otherwise.
 -- @class function
 -- @name smd.noclip
-smd.noclip = CAPI.smdnoclip
 
 --- This table contains
 -- ragdoll manipulation methods.

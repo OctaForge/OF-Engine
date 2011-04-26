@@ -1,13 +1,11 @@
 struct obj;
 
-obj *loadingobj = 0;
-
-string objdir;
-
-struct obj : vertmodel
+struct obj : vertmodel, vertloader<obj>
 {
     obj(const char *name) : vertmodel(name) {}
 
+    static const char *formatname() { return "obj"; }
+    static bool animated() { return false; }
     int type() const { return MDL_OBJ; }
 
     struct objmeshgroup : vertmeshgroup
@@ -194,21 +192,21 @@ struct obj : vertmodel
     bool load()
     { 
         if(loaded) return true;
-        formatstring(objdir)("data/models/%s", loadname);
+        formatstring(dir)("data/models/%s", loadname);
         defformatstring(cfgname)("data/models/%s/obj.lua", loadname); // INTENSITY
 
-        loadingobj = this;
+        loading = this;
         var::persistvars = false;
         if(lua::engine.execf(path(cfgname), false) && parts.length()) // INTENSITY configured obj, will call the obj* commands below
         {
             var::persistvars = true;
-            loadingobj = NULL;
+            loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // obj without configuration, try default tris and skin
         {
             var::persistvars = true;
-            loadingobj = NULL;
+            loading = NULL;
             if(!loaddefaultparts()) return false;
         }
         scale /= 4;
@@ -220,141 +218,5 @@ struct obj : vertmodel
     }
 };
 
-void objload(char *model, float *smooth)
-{
-    if(!loadingobj) { conoutf("not loading an obj"); return; }
-    defformatstring(filename)("%s/%s", objdir, model);
-    obj::part &mdl = *new obj::part;
-    loadingobj->parts.add(&mdl);
-    mdl.model = loadingobj;
-    mdl.index = loadingobj->parts.length()-1;
-    if(mdl.index) mdl.pitchscale = mdl.pitchoffset = mdl.pitchmin = mdl.pitchmax = 0;
-    mdl.meshes = loadingobj->sharemeshes(path(filename), double(*smooth > 0 ? cos(clamp(*smooth, 0.0f, 180.0f)*RAD) : 2));
-    if(!mdl.meshes) conoutf("could not load %s", filename); // ignore failure
-    else mdl.initskins();
-}
-
-void objpitch(float *pitchscale, float *pitchoffset, float *pitchmin, float *pitchmax)
-{
-    if(!loadingobj || loadingobj->parts.empty()) { conoutf("not loading an obj"); return; }
-    obj::part &mdl = *loadingobj->parts.last();
-
-    mdl.pitchscale = *pitchscale;
-    mdl.pitchoffset = *pitchoffset;
-    if(*pitchmin || *pitchmax)
-    {
-        mdl.pitchmin = *pitchmin;
-        mdl.pitchmax = *pitchmax;
-    }
-    else
-    {
-        mdl.pitchmin = -360*mdl.pitchscale;
-        mdl.pitchmax = 360*mdl.pitchscale;
-    }
-}
-
-#define loopobjmeshes(meshname, m, body) \
-    if(!loadingobj || loadingobj->parts.empty()) { conoutf("not loading an obj"); return; } \
-    obj::part &mdl = *loadingobj->parts.last(); \
-    if(!mdl.meshes) return; \
-    loopv(mdl.meshes->meshes) \
-    { \
-        obj::vertmesh &m = *(obj::vertmesh *)mdl.meshes->meshes[i]; \
-        if(!strcmp(meshname, "*") || (m.name && !strcmp(m.name, meshname))) \
-        { \
-            body; \
-        } \
-    }
-
-#define loopobjskins(meshname, s, body) loopobjmeshes(meshname, m, { obj::skin &s = mdl.skins[i]; body; })
-
-void objskin(char *meshname, char *tex, char *masks, float *envmapmax, float *envmapmin)
-{
-    loopobjskins(meshname, s,
-        s.tex = textureload(makerelpath(objdir, tex), 0, true, false);
-        if(*masks)
-        {
-            s.masks = textureload(makerelpath(objdir, masks, "<stub>"), 0, true, false);
-            s.envmapmax = *envmapmax;
-            s.envmapmin = *envmapmin;
-        }
-    );
-}
-
-void objspec(char *meshname, int *percent)
-{
-    float spec = 1.0f;
-    if(*percent>0) spec = *percent/100.0f;
-    else if(*percent<0) spec = 0.0f;
-    loopobjskins(meshname, s, s.spec = spec);
-}
-
-void objambient(char *meshname, int *percent)
-{
-    float ambient = 0.3f;
-    if(*percent>0) ambient = *percent/100.0f;
-    else if(*percent<0) ambient = 0.0f;
-    loopobjskins(meshname, s, s.ambient = ambient);
-}
-
-void objglow(char *meshname, int *percent)
-{
-    float glow = 3.0f;
-    if(*percent>0) glow = *percent/100.0f;
-    else if(*percent<0) glow = 0.0f;
-    loopobjskins(meshname, s, s.glow = glow);
-}
-
-void objglare(char *meshname, float *specglare, float *glowglare)
-{
-    loopobjskins(meshname, s, { s.specglare = *specglare; s.glowglare = *glowglare; });
-}
-
-void objalphatest(char *meshname, float *cutoff)
-{
-    loopobjskins(meshname, s, s.alphatest = max(0.0f, min(1.0f, *cutoff)));
-}
-
-void objalphablend(char *meshname, int *blend)
-{
-    loopobjskins(meshname, s, s.alphablend = *blend!=0);
-}
-
-void objcullface(char *meshname, int *cullface)
-{
-    loopobjskins(meshname, s, s.cullface = *cullface!=0);
-}
-
-void objenvmap(char *meshname, char *envmap)
-{
-    Texture *tex = cubemapload(envmap);
-    loopobjskins(meshname, s, s.envmap = tex);
-}
-
-void objbumpmap(char *meshname, char *normalmap, char *skin)
-{
-    Texture *normalmaptex = NULL, *skintex = NULL;
-    normalmaptex = textureload(makerelpath(objdir, normalmap, "<noff>"), 0, true, false);
-    if(skin[0]) skintex = textureload(makerelpath(objdir, skin, "<noff>"), 0, true, false);
-    loopobjskins(meshname, s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
-}
-
-void objfullbright(char *meshname, float *fullbright)
-{
-    loopobjskins(meshname, s, s.fullbright = *fullbright);
-}
-
-void objshader(char *meshname, char *shader)
-{
-    loopobjskins(meshname, s, s.shader = lookupshaderbyname(shader));
-}
-
-void objscroll(char *meshname, float *scrollu, float *scrollv)
-{
-    loopobjskins(meshname, s, { s.scrollu = *scrollu; s.scrollv = *scrollv; });
-}
-
-void objnoclip(char *meshname, int *noclip)
-{
-    loopobjmeshes(meshname, m, m.noclip = *noclip!=0);
-}
+vertcommands<obj> objcommands;
+LE_reg *objbinds = objcommands.getbuf();

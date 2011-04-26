@@ -428,6 +428,7 @@ ushort closestenvmap(int orient, int x, int y, int z, int size) { return 0; };
 GLuint lookupenvmap(Slot &slot) { return 0; };
 GLuint lookupenvmap(ushort emid) { return 0; };
 void loadalphamask(Texture *t) { };
+void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format) { };
 
 vector<VSlot *> vslots;
 vector<Slot *> slots;

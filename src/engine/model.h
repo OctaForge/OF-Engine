@@ -1,4 +1,4 @@
-enum { MDL_MD2 = 0, MDL_MD3, MDL_MD5, MDL_OBJ, MDL_SMD, MDL_IQM, NUMMODELTYPES };
+enum { MDL_MD5 = 0, MDL_OBJ, MDL_SMD, MDL_IQM, NUMMODELTYPES };
 
 struct model
 {
@@ -25,7 +25,7 @@ struct model
     virtual void calcbb(int frame, vec &center, vec &radius) = 0;
     virtual void render(int anim, int basetime, int basetime2, const vec &o, float yaw, float pitch, float roll, dynent *d, modelattach *a = NULL, const vec &color = vec(0, 0, 0), const vec &dir = vec(0, 0, 0), float transparent = 1, const quat &rotation=quat(0,0,0,0)) = 0; // INTENSITY: roll, rotation
     virtual bool load() = 0;
-    virtual char *name() = 0;
+    virtual const char *name() const = 0;
     virtual int type() const = 0;
     virtual BIH *setBIH() { return 0; }
     virtual void gentris(int frame, vector<BIH::tri> *tris) { } // INTENSITY: Made this 'public' by putting it here
