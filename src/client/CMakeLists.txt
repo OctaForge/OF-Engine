@@ -23,6 +23,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/json)
 # client def and executable build
 add_definitions(-DCLIENT)
 set(CLIENT_SOURCES
+    ../octaforge/of_tools
     ../engine/3dgui
     ../engine/blob
     ../engine/blend

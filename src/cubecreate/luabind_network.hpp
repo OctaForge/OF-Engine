@@ -115,8 +115,8 @@ namespace lua_binds
             const char *instance_id = boost::python::extract<const char*>(instance.attr("__getitem__")("instance_id"));
             const char *event_name = boost::python::extract<const char*>(instance.attr("__getitem__")("event_name"));
 
-            assert( Utility::validateAlphaNumeric(instance_id) );
-            assert( Utility::validateAlphaNumeric(event_name, " (),.;") ); // XXX: Allow more than alphanumeric+spaces: ()s, .s, etc.
+            assert( of_tools_validate_alphanumeric(instance_id, NULL) );
+            assert( of_tools_validate_alphanumeric(event_name, " (),.;") ); // XXX: Allow more than alphanumeric+spaces: ()s, .s, etc.
 
             snprintf(buf, sizeof(buf), "    of.gui.button(\"%s\", \"of.network.connect_to_instance(%s)\")\n", event_name, instance_id);
             command = (char*)realloc(command, strlen(command) + strlen(buf) + 1);
@@ -141,7 +141,7 @@ namespace lua_binds
 
         REFLECT_PYTHON(get_map_script_filename);
         const char *fname = boost::python::extract<const char*>(get_map_script_filename());
-        if (!engine.load(Utility::readFile(fname).c_str()))
+        if (!engine.loadf(fname))
         {
             IntensityGUI::showMessage("Compilation failed", engine.geterror_last());
             return;
@@ -182,7 +182,7 @@ namespace lua_binds
         renderprogress(0.5, "compiling scripts ..");
         REFLECT_PYTHON(get_map_script_filename);
         const char *fname = boost::python::extract<const char*>(get_map_script_filename());
-        if (!engine.load(Utility::readFile(fname).c_str()))
+        if (!engine.loadf(fname))
         {
             IntensityGUI::showMessage("Compilation failed", engine.geterror_last());
             return;

@@ -21,19 +21,9 @@ struct Utility
     //! Convert to std::string
     static std::string toString(double      val);
 
-    //! Ensures that a string contains only characters and numbers
-    static bool validateAlphaNumeric(std::string input, std::string alsoAllow="");
-
-    //! Ensures that a string does NOT contain some substring
-    static bool validateNotContaining(std::string input, std::string disallow);
-
     //! Ensures that a relative path (created by e.g. makerelpath) does not 'break out'
     //! here/../some.file is breaking out
     static bool validateRelativePath(std::string input);
-
-    //! Read the contents of a file and return them, in a cross-platform manner
-    //! Will halt on error (what we want for now, but FIXME)
-    static std::string readFile(std::string name);
 
     //! execute the json cfg file
     static bool config_exec_json(const char *cfgfile, bool msg);

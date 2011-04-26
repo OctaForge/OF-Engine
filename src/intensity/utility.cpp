@@ -49,56 +49,10 @@ TO_STRING(int)
 TO_STRING(long)
 TO_STRING(double)
 
-bool Utility::validateAlphaNumeric(std::string input, std::string alsoAllow)
-{
-    EXEC_PYTHON("import re");
-
-    REFLECT_PYTHON_ALTNAME( re.escape, re_escape);
-
-    python::object original = python::object(input);
-    for (unsigned int i = 0; i < alsoAllow.size(); i++)
-    {
-        original = original.attr("replace")(alsoAllow[i], ""); // Ignore the alsoAllow chars
-    }
-
-    python::object test = re_escape(original);
-
-    bool ret = (test == original); // After escaping all non-alphanumeric, must be no change
-
-    if (!ret)
-        Logging::log(Logging::WARNING, "Validation of %s failed (using alphanumeric + %s)\r\n", input.c_str(), alsoAllow.c_str());
-
-    return ret;
-}
-
-bool Utility::validateNotContaining(std::string input, std::string disallow)
-{
-    python::object original = python::object(input);
-    int index = python::extract<int>(original.attr("find")(disallow));
-    return index == -1; // -1 means it wasn't found, which is ok
-}
-
 bool Utility::validateRelativePath(std::string input)
 {
     REFLECT_PYTHON( validate_relative_path );
     return python::extract<bool>(validate_relative_path(input));
-}
-
-std::string Utility::readFile(std::string name)
-{
-    REFLECT_PYTHON( open );
-    try
-    {
-        python::object data = open(name, "r").attr("read")();
-        return python::extract<std::string>(data);
-    }
-    catch(boost::python::error_already_set const &)
-    {
-        printf("Error in Python execution of readFile\r\n");
-        PyErr_Print();
-        assert(0 && "Halting on Python error");
-        throw;
-    }
 }
 
 bool Utility::config_exec_json(const char *cfgfile, bool msg)

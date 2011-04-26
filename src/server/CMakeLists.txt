@@ -23,6 +23,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/json)
 # server def and executable build
 add_definitions(-DSERVER)
 set(SERVER_SOURCES
+    ../octaforge/of_tools
     ../intensity/editing_system
     ../shared/tools
     ../engine/server

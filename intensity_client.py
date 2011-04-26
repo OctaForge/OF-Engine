@@ -68,16 +68,3 @@ from intensity.utility import *
 # Client-specific imports: Auth etc.
 
 from intensity.client.auth import *
-
-# Console / main
-
-if get_config('System', 'console', '') == '1':
-    from intensity.console import *
-
-    console_thread = ConsoleThread()
-    console_thread.safe_console = SafeConsole(__main__.__dict__)
-    console_thread.setDaemon(True) # Do not stop quitting when the main thread quits
-    console_thread.start()
-
-log(logging.DEBUG, "Running main()")
-CModule.main()

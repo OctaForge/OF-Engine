@@ -514,6 +514,8 @@ int main(int argc, char **argv)
     // Start the main Python script that runs it all
     EXEC_PYTHON_FILE("../../intensity_client.py");
 
+    client_main();
+
     return 0;
 }
 

@@ -5,7 +5,7 @@
 #
 
 # internal things
-include_directories(shared engine fpsgame intensity cubecreate enet/include include)
+include_directories(shared engine fpsgame intensity cubecreate octaforge enet/include include)
 link_directories(${CMAKE_SOURCE_DIR}/src/enet)
 if (MINGW OR WIN32)
 	include_directories(windows/boost)

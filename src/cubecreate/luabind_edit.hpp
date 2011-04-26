@@ -278,9 +278,9 @@ namespace lua_binds
     })
 
     LUA_BIND_CLIENT(getentclass, {
-        std::string ret = EditingSystem::entityClasses[e.get<int>(1)];
-        assert( Utility::validateAlphaNumeric(ret, "_") ); // Prevent injections
-        e.push(ret.c_str());
+        const char *ret = (EditingSystem::entityClasses[e.get<int>(1)]).c_str();
+        assert( of_tools_validate_alphanumeric(ret, "_") ); // Prevent injections
+        e.push(ret);
     })
 
     LUA_BIND_STD(prepareentityclasses, EditingSystem::prepareentityclasses)

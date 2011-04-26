@@ -178,7 +178,7 @@ VARFP(waterfallenv, 0, 1, 1, preloadwatershaders);
 
 // engine/menus.cpp
 
-VARP(menudistance, 16, 10, 256);
+VARP(menudistance, 16, 40, 256);
 VARP(menuautoclose, 32, 120, 4096);
 VARP(applydialog, 0, 1, 1);
 VAR(mainmenu, 1, 1, 0);
@@ -187,7 +187,7 @@ VAR(mainmenu, 1, 1, 0);
 
 VAR(dbgmovie, 0, 0, 1);
 VAR(movieaccelblit, 0, 0, 1);
-VAR(movieaccelyuv, 0, 0, 1);
+VAR(movieaccelyuv, 0, 1, 1);
 VARP(movieaccel, 0, 1, 1);
 VARP(moviesync, 0, 0, 1);
 VARP(moview, 0, 320, 10000);
