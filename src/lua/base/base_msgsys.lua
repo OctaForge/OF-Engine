@@ -26,18 +26,11 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local CAPI = require("CAPI")
-local table = require("table")
-local string = require("string")
-local log = require("of.logging")
-local lent = require("of.logent")
-
 --- Message system interface for Lua. Used for communication between client and server,
 -- takes care of name compressing and other things.
 -- @class module
 -- @name of.msgsys
-module("of.msgsys")
+module("of.msgsys", package.seeall)
 
 -- -1 value represents all clients.
 ALL_CLIENTS = -1
@@ -50,17 +43,17 @@ pidston = {}
 -- @param a1 If this is logic entity or number, it's server->client message (number representing client number). On client, it's the message function.
 -- @param a2 On server, it's a message function, on client, data begin here.
 function send(...)
-    log.log(log.DEBUG, "of.msgsys.send")
+    of.logging.log(of.logging.DEBUG, "of.msgsys.send")
 
     local server
     local cn
 
     local args = { ... }
-    if base.type(args[1]) == "table" and args[1].is_a and args[1]:is_a(lent.logent) then
+    if type(args[1]) == "table" and args[1].is_a and args[1]:is_a(of.logent.logent) then
         -- server->client message, get clientnumber from entity
         server = true
         cn = args[1].cn
-    elseif base.type(args[1]) == "number" then
+    elseif type(args[1]) == "number" then
         -- server->client message, given cn
         server = true
         cn = args[1]
@@ -75,21 +68,21 @@ function send(...)
 
     if server then table.insert(args, 1, cn) end
 
-    log.log(log.DEBUG, string.format("Lua msgsys: send(): %s with { %s }", base.tostring(mt), table.concat(table.map(args, function(x) return base.tostring(x) end), ", ")))
-    mt(base.unpack(args))
+    of.logging.log(of.logging.DEBUG, string.format("Lua msgsys: send(): %s with { %s }", tostring(mt), table.concat(table.map(args, function(x) return tostring(x) end), ", ")))
+    mt(unpack(args))
 end
 
 --- Generate protocol data.
 -- @param cln Client number.
 -- @param svn State variable names (table)
 function genprod(cln, svn)
-    log.log(log.DEBUG, string.format("Generating protocol names for %s", cln))
+    of.logging.log(of.logging.DEBUG, string.format("Generating protocol names for %s", cln))
     table.sort(svn) -- ensure there is the same order on both client and server
 
     local ntoids = {}
     local idston = {}
     for i = 1, #svn do
-        ntoids[svn[i]] = base.tostring(i)
+        ntoids[svn[i]] = tostring(i)
         idston[i] = svn[i]
     end
 
@@ -102,7 +95,7 @@ end
 -- @param svn State variable name.
 -- @return Corresponding protocol ID.
 function toproid(cln, svn)
-    log.log(log.DEBUG, string.format("Retrieving protocol ID for %s / %s", cln, svn))
+    of.logging.log(of.logging.DEBUG, string.format("Retrieving protocol ID for %s / %s", cln, svn))
     return pntoids[cln][svn]
 end
 
@@ -111,7 +104,7 @@ end
 -- @param svn Protocol ID.
 -- @return Corresponding state variable name.
 function fromproid(cln, proid)
-    log.log(log.DEBUG, string.format("Retrieving state variable name for %s / %i", cln, proid))
+    of.logging.log(of.logging.DEBUG, string.format("Retrieving state variable name for %s / %i", cln, proid))
     return pidston[cln][proid]
 end
 
@@ -127,7 +120,7 @@ end
 -- @param ti Message title.
 -- @param tx Message text.
 function showcm(cn, ti, tx)
-    if cn.is_a and cn:is_a(lent.logent) then
+    if cn.is_a and cn:is_a(of.logent.logent) then
         cn = cn.cn
     end
     send(cn, CAPI.personal_servmsg, -1, ti, tx)

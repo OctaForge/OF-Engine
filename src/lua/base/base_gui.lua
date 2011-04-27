@@ -26,15 +26,12 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local CAPI = require("CAPI")
-
 --- GUI control methods for OF Lua interface.
 -- Contains widget / window creation functions
 -- and various misc methods relating GUIs.
 -- @class module
 -- @name of.gui
-module("of.gui")
+module("of.gui", package.seeall)
 
 --- Define a new GUI font.
 -- @param n Name of the font.

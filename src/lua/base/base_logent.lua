@@ -26,35 +26,21 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local table = require("table")
-local string = require("string")
-local glob = require("of.global")
-local log = require("of.logging")
-local class = require("of.class")
-local signals = require("of.signals")
-local act = require("of.action")
-local json = require("of.json")
-local svar = require("of.state_variables")
-local msgsys = require("of.msgsys")
-local lstor = require("of.logent.store")
-local CAPI = require("CAPI")
-
 --- This module takes care of logic entities.
 -- client_logent / server_logent will become only "logent",
 -- depending on if we're on client or on server.
 -- @class module
 -- @name of.logent
-module("of.logent")
+module("of.logent", package.seeall)
 
-base.assert(glob.CLIENT or glob.SERVER)
-base.assert(not (glob.CLIENT and glob.SERVER))
-log.log(log.DEBUG, "Generating logent system with CLIENT = " .. base.tostring(glob.CLIENT))
+assert(of.global.CLIENT or of.global.SERVER)
+assert(not (of.global.CLIENT and of.global.SERVER))
+of.logging.log(of.logging.DEBUG, "Generating logent system with CLIENT = " .. tostring(of.global.CLIENT))
 
 --- Root logic entity class, not meant to be used directly.
 -- @class table
 -- @name root_logent
-root_logent = class.new()
+root_logent = of.class.new()
 root_logent._class = "logent"
 root_logent.should_act = true
 
@@ -64,8 +50,8 @@ root_logent.should_act = true
 -- @class table
 -- @name root_logent.properties
 root_logent.properties = {
-    { "tags", svar.state_array() },
-    { "_persistent", svar.state_bool() }
+    { "tags", of.state_variables.state_array() },
+    { "_persistent", of.state_variables.state_bool() }
 }
 
 --- Automatically substitute for class name when tostring() is called on entity.
@@ -75,12 +61,12 @@ function root_logent:__tostring() return self._class end
 --- General setup method. Performs some initialization magic like signal
 -- methods adding, state variable values table, state variable setup etc.
 function root_logent:_general_setup()
-    log.log(log.DEBUG, "root_logent:_general_setup")
+    of.logging.log(of.logging.DEBUG, "root_logent:_general_setup")
 
     if self._general_setup_complete then return nil end
-    signals.methods_add(self)
+    of.signals.methods_add(self)
 
-    self.action_system = act.action_system(self)
+    self.action_system = of.action.action_system(self)
     self.state_var_vals = {}
     -- caching reads from script into c++ (search for -- caching)
     self.state_var_val_timestamps = {}
@@ -102,7 +88,7 @@ end
 -- @param k Property name.
 -- @return Property value.
 function root_logent:_get_statedata(k)
-    return self.state_var_vals[base.tostring(k)]
+    return self.state_var_vals[tostring(k)]
 end
 
 --- Act method ran every frame. Manages action system by default.
@@ -134,14 +120,14 @@ end
 --- Delete a tag.
 -- @param t Tag to delete, string.
 function root_logent:del_tag(t)
-    log.log(log.DEBUG, "root_logent:del_tag(\"" .. base.tostring(t) .. "\")")
+    of.logging.log(of.logging.DEBUG, "root_logent:del_tag(\"" .. tostring(t) .. "\")")
     self.tags = table.filterarray(self.tags:as_array(), function(i, tag) return tag ~= t end)
 end
 
 --- Check whether an entity has a tag.
 -- @param t Tag to lookup, string.
 function root_logent:has_tag(t)
-    log.log(log.INFO, "i can has tag " .. base.tostring(t))
+    of.logging.log(of.logging.INFO, "i can has tag " .. tostring(t))
     return (table.find(self.tags:as_array(), t) ~= nil)
 end
 
@@ -149,13 +135,13 @@ end
 function root_logent:_setup_vars()
     for i = 1, #self.properties do
         local var = self.properties[i][2]
-        if svar.is(var) then
+        if of.state_variables.is(var) then
             var:_register(self.properties[i][1], self)
         end
     end
 end
 
---- Create state data dictionary. That gets returned as JSON. Names
+--- Create state data dictionary. That gets returned as of.json. Names
 -- can be compressed as protocol IDs, so bandwidth is saved (returned
 -- JSON is sent through network later). Compression can be set
 -- with kwargs - you have to provide "compressed" element with
@@ -165,43 +151,43 @@ end
 -- @return JSON with state data (string).
 -- @see root_logent:_update_statedata_complete
 function root_logent:create_statedatadict(tcn, kwargs)
-    tcn = tcn or msgsys.ALL_CLIENTS
+    tcn = tcn or of.msgsys.ALL_CLIENTS
     kwargs = kwargs or {}
 
-    log.log(log.DEBUG, "create_statedatadict(): " .. base.tostring(self) .. base.tostring(self.uid) .. ", " .. base.tostring(tcn))
+    of.logging.log(of.logging.DEBUG, "create_statedatadict(): " .. tostring(self) .. tostring(self.uid) .. ", " .. tostring(tcn))
 
     local r = {}
     local _names = table.keys(self)
     for i = 1, #_names do
         local var = self[_names[i]]
-        if svar.is(var) and var.hashistory then
+        if of.state_variables.is(var) and var.hashistory then
             -- do not send private data
             local skip = false
             if tcn >= 0 and not var:should_send(self, tcn) then skip = true end
             if not skip then
                 local val = self[var._name]
                 if val then
-                    log.log(log.DEBUG, "create_statedatadict() adding " .. base.tostring(var._name) .. ": " .. json.encode(val))
-                    r[not kwargs.compressed and var._name or msgsys.toproid(base.tostring(self), var._name)] = var:to_data(val)
-                    log.log(log.DEBUG, "create_statedatadict() currently: " .. json.encode(r))
+                    of.logging.log(of.logging.DEBUG, "create_statedatadict() adding " .. tostring(var._name) .. ": " .. of.json.encode(val))
+                    r[not kwargs.compressed and var._name or of.msgsys.toproid(tostring(self), var._name)] = var:to_data(val)
+                    of.logging.log(of.logging.DEBUG, "create_statedatadict() currently: " .. of.json.encode(r))
                 end
             end
         end
     end
 
-    log.log(log.DEBUG, "create_statedatadict() returns: " .. json.encode(r))
+    of.logging.log(of.logging.DEBUG, "create_statedatadict() returns: " .. of.json.encode(r))
     if not kwargs.compressed then return r end
 
     -- pre-compression: keep numbers as numbers, not strings
     _names = table.keys(r)
     for i = 1, #_names do
-        if base.tonumber(r[_names[i]]) and r[_names[i]] ~= "" then
-            r[_names[i]] = base.tonumber(r[_names[i]])
+        if tonumber(r[_names[i]]) and r[_names[i]] ~= "" then
+            r[_names[i]] = tonumber(r[_names[i]])
         end
     end
 
-    r = json.encode(r)
-    log.log(log.DEBUG, "pre-compression: " .. r)
+    r = of.json.encode(r)
+    of.logging.log(of.logging.DEBUG, "pre-compression: " .. r)
 
     local _filters = {
         function(d) return string.gsub(d, "\", \"", "\",\"") end, -- "foo", "bar" --> "foo","bar"
@@ -211,12 +197,12 @@ function root_logent:create_statedatadict(tcn, kwargs)
     }
     for i = 1, #_filters do
         local n = _filters[i](r)
-        if #n < #r and json.encode(json.decode(n)) == json.encode(json.decode(r)) then
+        if #n < #r and of.json.encode(of.json.decode(n)) == of.json.encode(of.json.decode(r)) then
             r = n
         end
     end
 
-    log.log(log.DEBUG, "compressed: " .. r)
+    of.logging.log(of.logging.DEBUG, "compressed: " .. r)
 
     return string.sub(r, 2, #r - 1) -- remove {}
 end
@@ -225,28 +211,28 @@ end
 -- @param sd State data JSON string.
 -- @see root_logent:create_statedatadict
 function root_logent:_update_statedata_complete(sd)
-    log.log(log.DEBUG, "updating complete state data for " .. base.tostring(self.uid) .. " with " .. base.tostring(sd) .. " (" .. base.type(sd) .. ")")
+    of.logging.log(of.logging.DEBUG, "updating complete state data for " .. tostring(self.uid) .. " with " .. tostring(sd) .. " (" .. type(sd) .. ")")
 
     sd = string.sub(sd, 1, 1) ~= "{" and "{" .. sd .. "}" or sd
-    local nsd = json.decode(sd)
+    local nsd = of.json.decode(sd)
 
-    base.assert(base.type(nsd) == "table")
+    assert(type(nsd) == "table")
 
     self.initialized = true
-    for k, v in base.pairs(nsd) do
-        k = base.tonumber(k) and msgsys.fromproid(base.tostring(self), base.tonumber(k)) or k
-        log.log(log.DEBUG, "update of complete state data: " .. base.tostring(k) .. " = " .. base.tostring(v))
+    for k, v in pairs(nsd) do
+        k = tonumber(k) and of.msgsys.fromproid(tostring(self), tonumber(k)) or k
+        of.logging.log(of.logging.DEBUG, "update of complete state data: " .. tostring(k) .. " = " .. tostring(v))
         self:_set_statedata(k, v, nil, true) -- true - this is internal op, we are sending raw state data
-        log.log(log.DEBUG, "update of complete state data ok")
+        of.logging.log(of.logging.DEBUG, "update of complete state data ok")
     end
 
-    log.log(log.DEBUG, "update of complete state data done.")
+    of.logging.log(of.logging.DEBUG, "update of complete state data done.")
 end
 
 --- Client version of root logic entity.
 -- @class table
 -- @name client_logent
-client_logent = class.new(root_logent)
+client_logent = of.class.new(root_logent)
 
 --- Entity activation.
 -- @param kwargs This in fact doesn't do anything, but it makes effect on entities inherited from this.
@@ -254,7 +240,7 @@ function client_logent:client_activate(kwargs)
     self:_general_setup()
 
     if not self._sauertype then
-        log.log("non-sauer entity going to be set up: " .. base.tostring(self) .. ", " .. base.tostring(self._sauertype))
+        of.logging.log("non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
         CAPI.setupnonsauer(self) -- does c++ reg etc, sauer types need special reg which is done by them
     end
 
@@ -272,27 +258,27 @@ end
 -- @param v Property value.
 -- @param auid Unique ID of the actor.
 function client_logent:_set_statedata(k, v, auid)
-    log.log(log.DEBUG, "setting state data: " .. base.tostring(k) .. " = " .. json.encode(v) .. " for " .. base.tostring(self.uid))
-    local var = self[svar._SV_PREFIX .. base.tostring(k)]
+    of.logging.log(of.logging.DEBUG, "setting state data: " .. tostring(k) .. " = " .. of.json.encode(v) .. " for " .. tostring(self.uid))
+    local var = self[of.state_variables._SV_PREFIX .. tostring(k)]
 
     local customsynch_fromhere = var.customsynch and self._controlled_here
     local clientset = var.clientset
 
     if auid == -1 and not customsynch_fromhere then
-        log.log(log.DEBUG, "sending request / notification to server.")
+        of.logging.log(of.logging.DEBUG, "sending request / notification to server.")
         -- todo: supress msg sending of the same val, at least for some SVs
-        msgsys.send(var.reliable and CAPI.statedata_changerequest or CAPI.statedata_changerequest_unreliable,
+        of.msgsys.send(var.reliable and CAPI.statedata_changerequest or CAPI.statedata_changerequest_unreliable,
                     self.uid,
-                    msgsys.toproid(base.tostring(self),
-                    base.tostring(var._name)), var:to_wire(v))
+                    of.msgsys.toproid(tostring(self),
+                    tostring(var._name)), var:to_wire(v))
     end
 
     if auid ~= -1 or clientset or customsynch_fromhere then
-        log.log(log.DEBUG, "updating locally")
+        of.logging.log(of.logging.DEBUG, "updating locally")
         -- if originated from server, translated
         if auid ~= -1 then v = var:from_wire(v) end
-        base.assert(var:validate(v))
-        self:emit(svar.get_onmodify_prefix() .. base.tostring(k), v, auid ~= -1)
+        assert(var:validate(v))
+        self:emit(of.state_variables.get_onmodify_prefix() .. tostring(k), v, auid ~= -1)
         self.state_var_vals[k] = v
     end
 end
@@ -300,14 +286,14 @@ end
 --- Act method which is ran every frame. Performs action system management by default.
 -- @param sec Length of the time to simulate.
 function client_logent:client_act(sec)
-    log.log(log.INFO, "client_logent:client_act, " .. base.tostring(self.uid))
+    of.logging.log(of.logging.INFO, "client_logent:client_act, " .. tostring(self.uid))
     self.action_system:manage(sec)
 end
 
 --- Server version of root logic entity.
 -- @class table
 -- @name server_logent
-server_logent = class.new(root_logent)
+server_logent = of.class.new(root_logent)
 server_logent.sent_notification_complete = false
 
 --- Initializer method. Called on creation. Performs some basic setup.
@@ -315,9 +301,9 @@ server_logent.sent_notification_complete = false
 -- @param uid Unique ID of the entity.
 -- @param kwargs Additional parameters (for i.e. overriding _persistent).
 function server_logent:init(uid, kwargs)
-    log.log(log.DEBUG, "server_logent:init(" .. base.tostring(uid) .. ", " .. base.tostring(kwargs) .. ")")
-    base.assert(uid ~= nil)
-    base.assert(base.type(uid) == "number")
+    of.logging.log(of.logging.DEBUG, "server_logent:init(" .. tostring(uid) .. ", " .. tostring(kwargs) .. ")")
+    assert(uid ~= nil)
+    assert(type(uid) == "number")
 
     self.uid = uid
     self:_logent_setup()
@@ -330,11 +316,11 @@ end
 --- Activate function. Kwargs are used for passing state data string here.
 -- @param kwargs Additional parameters.
 function server_logent:activate(kwargs)
-    log.log(log.DEBUG, "server_logent:activate(" .. base.tostring(kwargs) .. ")")
+    of.logging.log(of.logging.DEBUG, "server_logent:activate(" .. tostring(kwargs) .. ")")
     self:_logent_setup()
 
     if not self._sauertype then
-        log.log("non-sauer entity going to be set up: " .. base.tostring(self) .. ", " .. base.tostring(self._sauertype))
+        of.logging.log("non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
         CAPI.setupnonsauer(self) -- does c++ reg etc, sauer types need special reg which is done by them
         self:_flush_queued_sv_changes()
     end
@@ -343,36 +329,36 @@ function server_logent:activate(kwargs)
         self:_update_statedata_complete(kwargs.state_data)
     end
 
-    self:send_notification_complete(msgsys.ALL_CLIENTS)
+    self:send_notification_complete(of.msgsys.ALL_CLIENTS)
     self.sent_notification_complete = true
 
-    log.log(log.DEBUG, "LE.activate complete.")
+    of.logging.log(of.logging.DEBUG, "LE.activate complete.")
 end
 
 --- Send complete notification to client(s).
 -- @param cn Client number to send to. All clients if nil.
 function server_logent:send_notification_complete(cn)
-    cn = cn or msgsys.ALL_CLIENTS
-    local cns = cn == msgsys.ALL_CLIENTS and lstor.get_all_clientnums() or { cn }
+    cn = cn or of.msgsys.ALL_CLIENTS
+    local cns = cn == of.msgsys.ALL_CLIENTS and of.logent.store.get_all_clientnums() or { cn }
 
-    log.log(log.DEBUG, "LE.send_notification_complete: " .. base.tostring(self.cn) .. ", " .. base.tostring(self.uid))
+    of.logging.log(of.logging.DEBUG, "LE.send_notification_complete: " .. tostring(self.cn) .. ", " .. tostring(self.uid))
     for i = 1, #cns do
-        msgsys.send(cns[i],
+        of.msgsys.send(cns[i],
                     CAPI.le_notification_complete,
-                    self.cn and self.cn or msgsys.ALL_CLIENTS,
+                    self.cn and self.cn or of.msgsys.ALL_CLIENTS,
                     self.uid,
-                    base.tostring(self),
+                    tostring(self),
                     self:create_statedatadict(cns[i], { compressed = true })) -- custom data per client
     end
 
-    log.log(log.DEBUG, "LE.send_notification_complete done.")
+    of.logging.log(of.logging.DEBUG, "LE.send_notification_complete done.")
 end
 
 --- Logic entity setup. Performs _general_setup and makes entity "initialized"
 -- @see root_logent:_general_setup
 function server_logent:_logent_setup()
     if not self.initialized then
-        log.log(log.DEBUG, "LE setup")
+        of.logging.log(of.logging.DEBUG, "LE setup")
 
         self:_general_setup()
 
@@ -380,7 +366,7 @@ function server_logent:_logent_setup()
         self._queued_sv_changes_complete = false
 
         self.initialized = true
-        log.log(log.DEBUG, "LE setup complete.")
+        of.logging.log(of.logging.DEBUG, "LE setup complete.")
     end
 end
 
@@ -389,7 +375,7 @@ end
 -- @see root_logent:_general_deactivate
 function server_logent:deactivate()
     self:_general_deactivate()
-    msgsys.send(msgsys.ALL_CLIENTS, CAPI.le_removal, self.uid)
+    of.msgsys.send(of.msgsys.ALL_CLIENTS, CAPI.le_removal, self.uid)
 end
 
 --- Set entity state data. This is serverside only function.
@@ -398,45 +384,45 @@ end
 -- @param auid Unique ID of the actor (client that triggered the change) or -1 when it comes from server.
 -- @param iop Whether this is internal server operation, not sending messages and giving input in data format.
 function server_logent:_set_statedata(k, v, auid, iop)
-    log.log(log.INFO, "Setting state data: " ..
-                      base.tostring(k) .. " = " ..
-                      base.tostring(v) .. " (" ..
-                      base.type(v) .. ") : " ..
-                      json.encode(v) .. ", " ..
-                      base.tostring(v))
+    of.logging.log(of.logging.INFO, "Setting state data: " ..
+                      tostring(k) .. " = " ..
+                      tostring(v) .. " (" ..
+                      type(v) .. ") : " ..
+                      of.json.encode(v) .. ", " ..
+                      tostring(v))
 
-    local _class = base.tostring(self)
-    local var = self[svar._SV_PREFIX .. base.tostring(k)]
+    local _class = tostring(self)
+    local var = self[of.state_variables._SV_PREFIX .. tostring(k)]
 
     if not var then
-        log.log(log.WARNING, "Ignoring state data setting for unknown (possibly deprecated) variable " .. base.tostring(k))
+        of.logging.log(of.logging.WARNING, "Ignoring state data setting for unknown (possibly deprecated) variable " .. tostring(k))
         return nil
     end
 
     if auid and auid ~= -1 then
         v = var:from_wire(v)
         if not var.clientwrite then
-            log.log(log.ERROR, "Client " .. base.tostring(auid) .. " tried to change " .. base.tostring(k))
+            of.logging.log(of.logging.ERROR, "Client " .. tostring(auid) .. " tried to change " .. tostring(k))
             return nil
         end
     elseif iop then v = var:from_data(v)
     end
 
-    log.log(log.INFO, "Translated value: " ..
-                      base.tostring(k) .. " = " ..
-                      base.tostring(v) .. " (" ..
-                      base.type(v) .. ") : " ..
-                      json.encode(v) .. ", " ..
-                      base.tostring(v))
+    of.logging.log(of.logging.INFO, "Translated value: " ..
+                      tostring(k) .. " = " ..
+                      tostring(v) .. " (" ..
+                      type(v) .. ") : " ..
+                      of.json.encode(v) .. ", " ..
+                      tostring(v))
 
-    self:emit(svar.get_onmodify_prefix() .. base.tostring(k), v, auid)
-    if base.cancel_sd_update then
-        base.cancel_sd_update = nil
+    self:emit(of.state_variables.get_onmodify_prefix() .. tostring(k), v, auid)
+    if cancel_sd_update then
+        cancel_sd_update = nil
         return nil
     end
 
     self.state_var_vals[k] = v
-    log.log(log.INFO, "new state data: " .. base.tostring(self.state_var_vals[k]))
+    of.logging.log(of.logging.INFO, "new state data: " .. tostring(self.state_var_vals[k]))
 
     local customsynch_fromhere = var.customsynch and self._controlled_here
     if not iop and var.clientread then
@@ -448,18 +434,18 @@ function server_logent:_set_statedata(k, v, auid, iop)
             nil,
             var.reliable and CAPI.statedata_update or CAPI.statedata_update_unreliable,
             self.uid,
-            msgsys.toproid(_class, base.tostring(k)),
+            of.msgsys.toproid(_class, tostring(k)),
             var:to_wire(v),
-            (var.clientset and auid and auid ~= -1) and lstor.get(auid).cn or msgsys.ALL_CLIENTS
+            (var.clientset and auid and auid ~= -1) and of.logent.store.get(auid).cn or of.msgsys.ALL_CLIENTS
         }
 
-        local cns = lstor.get_all_clientnums()
+        local cns = of.logent.store.get_all_clientnums()
         for i = 1, #cns do
             local skip = false
             if not var:should_send(self, cns[i]) then skip = true end
             if not skip then
                 args[1] = cns[i]
-                msgsys.send(base.unpack(args))
+                of.msgsys.send(unpack(args))
             end
         end
     end
@@ -469,7 +455,7 @@ end
 -- @param k Property name.
 -- @param v Property value.
 function server_logent:_queue_sv_change(k, v)
-    log.log(log.DEBUG, "Queueing SV change: " .. base.tostring(k) .. " - " .. base.tostring(v) .. " (" .. base.type(v) .. ")")
+    of.logging.log(of.logging.DEBUG, "Queueing SV change: " .. tostring(k) .. " - " .. tostring(v) .. " (" .. type(v) .. ")")
     self._queued_sv_changes[k] = v
 end
 
@@ -483,29 +469,29 @@ end
 --- Flush queued SV changes. Called after CAPI.setupblah. See _queue_sv_change.
 -- @see _queue_sv_change
 function server_logent:_flush_queued_sv_changes()
-    log.log(log.DEBUG, "flushing queued SV changes for " .. base.tostring(self.uid))
+    of.logging.log(of.logging.DEBUG, "flushing queued SV changes for " .. tostring(self.uid))
     if self:can_call_cfuncs() then return nil end
 
     local changes = self._queued_sv_changes
     self._queued_sv_changes = nil
-    base.assert(self:can_call_cfuncs())
+    assert(self:can_call_cfuncs())
 
     local _keys = table.keys(changes)
     for i = 1, #_keys do
         local val = changes[_keys[i]]
-        local var = self[svar._SV_PREFIX .. base.tostring(k)]
+        local var = self[of.state_variables._SV_PREFIX .. tostring(k)]
 
-        log.log(log.DEBUG, "(A) flushing queued SV change: " ..
-                base.tostring(_keys[i]) .. " - " ..
-                base.tostring(val) .. " (real: " ..
-                base.tostring(self.state_var_vals[_keys[i]]) .. ")")
+        of.logging.log(of.logging.DEBUG, "(A) flushing queued SV change: " ..
+                tostring(_keys[i]) .. " - " ..
+                tostring(val) .. " (real: " ..
+                tostring(self.state_var_vals[_keys[i]]) .. ")")
 
         self[_keys[i]] = self.state_var_vals[_keys[i]]
 
-        log.log(log.DEBUG, "(B) flushing of " .. base.tostring(_keys[i]) .. " - ok.")
+        of.logging.log(of.logging.DEBUG, "(B) flushing of " .. tostring(_keys[i]) .. " - ok.")
     end
 
     self._queued_sv_changes_complete = true
 end
 
-logent = glob.CLIENT and client_logent or (glob.SERVER and server_logent or nil)
+logent = of.global.CLIENT and client_logent or (of.global.SERVER and server_logent or nil)

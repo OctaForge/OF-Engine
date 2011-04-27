@@ -26,22 +26,16 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local class = require("of.class")
-local math = require("math")
-local string = require("string")
-local CAPI = require("CAPI")
-
 --- Utilities for OctaForge Lua inteface.
 -- Contains various additional utilities (geometry, timer) for Lua OF interface.
 -- @class module
 -- @name of.utils
-module("of.utils")
+module("of.utils", package.seeall)
 
 --- A simple timer.
 -- @class table
 -- @name repeatingtimer
-repeatingtimer = class.new()
+repeatingtimer = of.class.new()
 
 --- Return string representation of a timer.
 -- @return String representation of a timer.

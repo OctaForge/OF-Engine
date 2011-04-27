@@ -26,13 +26,10 @@
 -- THE SOFTWARE.
 --
 
-local CAPI = require("CAPI")
-local string = require("string")
-
 --- Textures for OF's Lua interface.
 -- @class module
 -- @name of.texture
-module("of.texture")
+module("of.texture", package.seeall)
 
 --- Convert PNG to DDS.
 -- @param src Source path.

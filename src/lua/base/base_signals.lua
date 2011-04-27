@@ -27,14 +27,11 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local table = require("table")
-
 --- Signal system allowing to connect callbacks to tables and disconnect or
 -- emit them at any point in code where the table is available.
 -- @class module
 -- @name of.signals
-module("of.signals")
+module("of.signals", package.seeall)
 
 --- Table of actions to be done after doing emit,
 -- see postemitevent_add.
@@ -55,8 +52,8 @@ local __postemitevstack = {}
 -- @see _emit
 function _connect(self, name, callback) 
     -- check if callback really is function
-    if base.type(callback) ~= "function" then
-        base.error("Specified callback is not a function, not connecting.")
+    if type(callback) ~= "function" then
+        error("Specified callback is not a function, not connecting.")
     end
 
     -- check if we already initiated the array
@@ -88,7 +85,7 @@ function _disconnect(self, id)
             local connection = self._signalConnections[i]
             if connection.id == id then
                 if connection.disconnected then
-                    base.error("Connection with id " .. id .. " was already disconnected before.")
+                    error("Connection with id " .. id .. " was already disconnected before.")
                 end
                 self._signalConnections[i].disconnected = true
                 table.remove(self._signalConnections, i)
@@ -96,7 +93,7 @@ function _disconnect(self, id)
             end
         end
     end
-    base.error("Connection with id " .. id .. " not found.")
+    error("Connection with id " .. id .. " not found.")
 end
 
 --- This is used to disconnect signals from table, but unlike _disconnect it disconnects all signals.
@@ -150,7 +147,7 @@ function _emit(self, name, ...)
     for i = 1, length do
         local connection = handlers[i]
         if not connection.disconnected then
-            local ret, retval = connection.callback(self, base.unpack(args))
+            local ret, retval = connection.callback(self, unpack(args))
             if ret == true then break end
         end
     end

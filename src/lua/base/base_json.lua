@@ -26,13 +26,6 @@
 -- THE SOFTWARE.
 --
 
-local math = require("math")
-local string = require("string")
-local table = require("table")
-local tostring = tostring
-
-local base = _G
-
 --- The JSON module for OctaForge. Allows to decode JSON ("decode" method),
 -- and encode ("encode" method). Simplifiers are possible using "register"
 -- method, which gets two functions as arguments, first one returns true
@@ -40,7 +33,7 @@ local base = _G
 -- simplification.
 -- @class module
 -- @name of.json
-module("of.json")
+module("of.json", package.seeall)
 
 -- OctaForge content
 -- Table storing information about simplification registers.
@@ -64,13 +57,13 @@ function encode(v)
         end
     end
 
-    local vtype = base.type(enc)
+    local vtype = type(enc)
 
     if vtype == "string" then
         -- Need to handle encoding in string
         return '"' .. strenc(enc) .. '"'
     elseif vtype == "number" or vtype == "boolean" then
-        return base.tostring(enc)
+        return tostring(enc)
     elseif vtype == "table" then
         local r = {}
         local barray, maxc = isarr(enc)
@@ -79,7 +72,7 @@ function encode(v)
                 table.insert(r, encode(enc[i]))
             end
         else -- An object, not an array
-            for i, j in base.pairs(enc) do
+            for i, j in pairs(enc) do
                 if isencodable(i) and isencodable(j) then
                     table.insert(r, '"' .. strenc(i) .. '":' .. encode(j))
                 end
@@ -128,7 +121,7 @@ end
 -- @return The string appropriately escaped.
 local qrep = {["\\"]="\\\\", ['"']='\\"',['\n']='\\n',['\t']='\\t'}
 function strenc(s)
-    return base.tostring(s):gsub('["\\\n\t]',qrep)
+    return tostring(s):gsub('["\\\n\t]',qrep)
 end
 
 --- Determines whether the given Lua type is an array or a table / dictionary.
@@ -143,8 +136,8 @@ function isarr(t)
     -- Next we count all the elements, ensuring that any non-indexed elements are not-encodable 
     -- (with the possible exception of 'n')
     local midx = 0
-    for k, v in base.pairs(t) do
-        if base.type(k) == "number" and math.floor(k) == k and 1 <= k then    -- k,v is an indexed pair
+    for k, v in pairs(t) do
+        if type(k) == "number" and math.floor(k) == k and 1 <= k then    -- k,v is an indexed pair
             if not isencodable(v) then return false end    -- All array elements must be encodable
             midx = math.max(midx,k)
         else
@@ -164,17 +157,12 @@ end
 -- @param o The object to examine.
 -- @return boolean True if the object should be JSON encoded, false if it should be ignored.
 function isencodable(o)
-    local t = base.type(o)
+    local t = type(o)
     return (t == "string" or t == "boolean" or t == "number" or t == "nil" or t == "table") or (t == "function" and o == null) 
 end
 
 -- Radical performance improvement for decode from Eike Decker!
 do
-    local type = base.type
-    local error = base.error
-    local assert = base.assert
-    local print = base.print
-    local tonumber = base.tonumber
     -- initialize some values to be used in decoding function
     
     -- initializes a table to contain a byte=>table mapping
@@ -376,7 +364,7 @@ do
                     --start = pos
                 end -- jump over escaped chars, no matter what
             until t == true
-            return (base.loadstring("return " .. js_string:sub(start-1, pos-1) ) ())
+            return (loadstring("return " .. js_string:sub(start-1, pos-1) ) ())
 
             -- We consider the situation where no escaped chars were encountered separately,
             -- and use the fastest possible return in this case.

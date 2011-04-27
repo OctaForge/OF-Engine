@@ -27,29 +27,24 @@
 --
 
 local base = _G
-local class = require("of.class")
-local string = require("string")
-local math = require("math")
-local log = require("of.logging")
-local CAPI = require("CAPI")
 
 --- Vector types for Lua. Contains vector3 and vector4 classes.
 -- @class module
 -- @name of.vector
-module("of.vector")
+module("of.vector", package.seeall)
 
 --- Vector3 class (having x, y, z).
 -- @class table
 -- @name vec3
-vec3 = class.new()
+vec3 = of.class.new()
 
 --- Return string representation of a vector.
 -- @return String representation of a vector.
 function vec3:__tostring()
     return string.format("vec3 <%s, %s, %s>",
-                         base.tostring(self.x),
-                         base.tostring(self.y),
-                         base.tostring(self.z))
+                         tostring(self.x),
+                         tostring(self.y),
+                         tostring(self.z))
 end
 
 --- vec3 constructor.
@@ -57,14 +52,14 @@ end
 -- @param y Y value of vector.
 -- @param z Z value of vector.
 function vec3:__init(x, y, z)
-    if base.type(x) == "table" and x.is_a and x:is_a(vec3) then
-        self.x = base.tonumber(x.x)
-        self.y = base.tonumber(x.y)
-        self.z = base.tonumber(x.z)
-    elseif base.type(x) == "table" and #x == 3 then
-        self.x = base.tonumber(x[1])
-        self.y = base.tonumber(x[2])
-        self.z = base.tonumber(x[3])
+    if type(x) == "table" and x.is_a and x:is_a(vec3) then
+        self.x = tonumber(x.x)
+        self.y = tonumber(x.y)
+        self.z = tonumber(x.z)
+    elseif type(x) == "table" and #x == 3 then
+        self.x = tonumber(x[1])
+        self.y = tonumber(x[2])
+        self.z = tonumber(x[3])
     else
         self.x = x or 0
         self.y = y or 0
@@ -86,7 +81,7 @@ end
 function vec3:normalize()
     local mag = self:magnitude()
     if mag ~= 0 then self:mul(1 / mag)
-    else log.log(log.ERROR, "Can't normalize vec of null length.") end
+    else of.logging.log(of.logging.ERROR, "Can't normalize vec of null length.") end
     return self
 end
 
@@ -239,16 +234,16 @@ end
 --- Vector4 class (having x, y, z, w).
 -- @class table
 -- @name vec4
-vec4 = class.new(vec3)
+vec4 = of.class.new(vec3)
 
 --- Return string representation of a vector.
 -- @return String representation of a vector.
 function vec4:__tostring()
     return string.format("vec4 <%s, %s, %s, %s>",
-                         base.tostring(self.x),
-                         base.tostring(self.y),
-                         base.tostring(self.z),
-                         base.tostring(self.w))
+                         tostring(self.x),
+                         tostring(self.y),
+                         tostring(self.z),
+                         tostring(self.w))
 end
 
 --- vec4 constructor.
@@ -258,16 +253,16 @@ end
 -- @param w W value of vector.
 -- @return A vector of those values.
 function vec4:__init(x, y, z, w)
-    if base.type(x) == "table" and x.is_a and x:is_a(vec4) then
-        self.x = base.tonumber(x.x)
-        self.y = base.tonumber(x.y)
-        self.z = base.tonumber(x.z)
-        self.w = base.tonumber(x.w)
-    elseif base.type(x) == "table" and #x == 4 then
-        self.x = base.tonumber(x[1])
-        self.y = base.tonumber(x[2])
-        self.z = base.tonumber(x[3])
-        self.z = base.tonumber(x[4])
+    if type(x) == "table" and x.is_a and x:is_a(vec4) then
+        self.x = tonumber(x.x)
+        self.y = tonumber(x.y)
+        self.z = tonumber(x.z)
+        self.w = tonumber(x.w)
+    elseif type(x) == "table" and #x == 4 then
+        self.x = tonumber(x[1])
+        self.y = tonumber(x[2])
+        self.z = tonumber(x[3])
+        self.z = tonumber(x[4])
     else
         self.x = x or 0
         self.y = y or 0

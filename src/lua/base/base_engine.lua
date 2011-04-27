@@ -26,12 +26,10 @@
 -- THE SOFTWARE.
 --
 
-local CAPI = require("CAPI")
-
 --- Engine interface for OF's Lua.
 -- @class module
 -- @name of.engine
-module("of.engine")
+module("of.engine", package.seeall)
 
 --- Quit the engine, showing a dialog when there are unsaved changes.
 -- @class function

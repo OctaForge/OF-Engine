@@ -26,10 +26,6 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local string = require("string")
-local table = require("table")
-
 --- Class library for Lua. Allows instances, parent calling and simple inheritance.
 -- Multiple inheritance isn't and won't be supported. Code using multiple inheritance
 -- won't be accepted into OctaForge. What the class system allows are getters / setters
@@ -37,7 +33,7 @@ local table = require("table")
 -- class members, which might be useful sometimes.
 -- @class module
 -- @name of.class
-module("of.class")
+module("of.class", package.seeall)
 
 --- Create a new class.
 -- <br/><br/>Usage:<br/><br/>
@@ -57,7 +53,7 @@ function new(b)
     local c = {}
 
     -- the base, empty when not inheriting
-    if b and base.type(b) == "table" then c.__base = b
+    if b and type(b) == "table" then c.__base = b
     else c.__base = {} end
 
     -- inherit tostring. todo: inherit other metamethods too.
@@ -85,7 +81,7 @@ function new(b)
                 else
                     self.__setters[n](self.__setselfs[n], v)
                 end
-            else base.rawset(self, n, v) end
+            else rawset(self, n, v) end
         end
     end
 
@@ -94,7 +90,7 @@ function new(b)
     -- call metamethod for constructor
     function mt:__call(...)
         local o = {}
-        base.setmetatable(o, c)
+        setmetatable(o, c)
         if self.__init then
             self.__init(o, ...)
         end
@@ -125,7 +121,7 @@ function new(b)
     -- returns true if table is instance of class c
     -- (returns true for class + all of its parents)
     function c:is_a(c)
-        local m = base.getmetatable(self)
+        local m = getmetatable(self)
         while m do
             if c == m then return true end
             m = m.__base
@@ -178,6 +174,6 @@ function new(b)
     end
 
     -- set the metatable and return the class
-    base.setmetatable(c, mt)
+    setmetatable(c, mt)
     return c
 end

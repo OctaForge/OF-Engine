@@ -26,25 +26,15 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local table = require("table")
-local math = require("math")
-local log = require("of.logging")
-local svar = require("of.state_variables")
-local lent = require("of.logent")
-local class = require("of.class")
-local act = require("of.action")
-local mdl = require("of.model")
-
 --- This module takes care of animatable logic entity and animation action.
 -- @class module
 -- @name of.animatable
-module("of.animatable")
+module("of.animatable", package.seeall)
 
 --- Base animatable logic entity class, not meant to be used directly.
 -- @class table
 -- @name animatable_logent
-animatable_logent = class.new(lent.logent)
+animatable_logent = of.class.new(of.logent.logent)
 animatable_logent._class = "animatable_logent"
 
 --- Base properties of animatable logic entity.
@@ -56,37 +46,37 @@ animatable_logent._class = "animatable_logent"
 -- @class table
 -- @name animatable_logent.properties
 animatable_logent.properties = {
-    lent.logent.properties[1], -- tags
-    lent.logent.properties[2], -- _persistent
-    { "animation", svar.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }) },
-    { "starttime", svar.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }) },
-    { "modelname", svar.wrapped_cstring ({ csetter = "CAPI.setmodelname" }) },
-    { "attachments", svar.wrapped_carray({ csetter = "CAPI.setattachments" }) }
+    of.logent.logent.properties[1], -- tags
+    of.logent.logent.properties[2], -- _persistent
+    { "animation", of.state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }) },
+    { "starttime", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }) },
+    { "modelname", of.state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }) },
+    { "attachments", of.state_variables.wrapped_carray({ csetter = "CAPI.setattachments" }) }
 }
 
 --- Init method for animatable logic entity. Performs initial setup.
 -- @param uid Unique ID for the entity.
 -- @param kwargs Table of additional parameters (for i.e. overriding _persistent)
 function animatable_logent:init(uid, kwargs)
-    if lent.logent.init then lent.logent.init(self, uid, kwargs) end
+    if of.logent.logent.init then of.logent.logent.init(self, uid, kwargs) end
 
     self._attachments_dict = {}
 
     self.modelname = ""
     self.attachments = {}
-    self.animation = math.bor(act.ANIM_IDLE, act.ANIM_LOOP)
+    self.animation = math.bor(of.action.ANIM_IDLE, of.action.ANIM_LOOP)
 end
 
 --- Serverside entity activation.
 -- @param kwargs Table of additional parameters.
 function animatable_logent:activate(kwargs)
-    log.log(log.DEBUG, "animatable_logent:activate")
-    lent.logent.activate(self, kwargs)
+    of.logging.log(of.logging.DEBUG, "animatable_logent:activate")
+    of.logent.logent.activate(self, kwargs)
 
-    log.log(log.DEBUG, "animatable_logent:activate (2)")
+    of.logging.log(of.logging.DEBUG, "animatable_logent:activate (2)")
     self.modelname = self.modelname
 
-    log.log(log.DEBUG, "animatable_logent:activate complete")
+    of.logging.log(of.logging.DEBUG, "animatable_logent:activate complete")
 end
 
 --- Set model attachment for entity. Connected with "attachments" property.
@@ -94,16 +84,16 @@ end
 -- @param mdlname Model name.
 function animatable_logent:set_attachment(tag, mdlname)
     if not mdlname then
-        if self._attachments_dict[base.tostring(tag)] then
-            self._attachments_dict[base.tostring(tag)] = nil
+        if self._attachments_dict[tostring(tag)] then
+            self._attachments_dict[tostring(tag)] = nil
         end
     else
-        self._attachments_dict[base.tostring(tag)] = mdlname
+        self._attachments_dict[tostring(tag)] = mdlname
     end
 
     local r = {}
-    for k, v in base.pairs(self._attachments_dict) do
-        table.insert(r, mdl.attachment(base.tostring(k), base.tostring(v)))
+    for k, v in pairs(self._attachments_dict) do
+        table.insert(r, of.model.attachment(tostring(k), tostring(v)))
     end
     self.attachments = r
 end
@@ -124,14 +114,14 @@ end
 
 --- General setup method. Called on initialization.
 function animatable_logent:_general_setup(...)
-    lent.logent._general_setup(self)
+    of.logent.logent._general_setup(self)
     self:define_getter("center", self.get_center)
 end
 
 --- Local animation action.
 -- @class table
 -- @name action_localanim
-action_localanim = class.new(act.action)
+action_localanim = of.class.new(of.action.action)
 
 --- Return string representation of action.
 -- @return String representation of action.

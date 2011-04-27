@@ -26,8 +26,6 @@
 -- THE SOFTWARE.
 --
 
-local logging = require("logging")
-
 --- Logging for OctaForge. Logs messages using C++ logger on various loglevels.
 -- Available levels are INFO (rarely printed by default, should be used for things
 -- that are logged often), DEBUG (less rarely logged), WARNING, and ERROR (always logged)
@@ -35,7 +33,7 @@ local logging = require("logging")
 -- OctaForge configuration directory. Log function and the levels are wrapped as globals.
 -- @class module
 -- @name of.logging
-module("of.logging")
+module("of.logging", package.seeall)
 
 --- Logs a message into C++ logging system.<br/>
 -- There are several logging levels:<br/><br/>

@@ -26,15 +26,11 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local math = require("math")
-local string = require("string")
-
 --- Color conversions for OF Lua interface (RGB->HSL, HEX->RGB etc.)
 -- HSL/HSV functions taken from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
 -- @class module
 -- @name of.color
-module("of.color")
+module("of.color", package.seeall)
 
 ---
 -- Converts an RGB color value to HSL. Conversion formula
@@ -201,9 +197,9 @@ hextorgb = function (hex)
     local b
 
     local hex = string.format("%X", hex)
-    r = base.tonumber(string.sub(hex, 1, 2), 16)
-    g = base.tonumber(string.sub(hex, 3, 4), 16)
-    b = base.tonumber(string.sub(hex, 5, 6), 16)
+    r = tonumber(string.sub(hex, 1, 2), 16)
+    g = tonumber(string.sub(hex, 3, 4), 16)
+    b = tonumber(string.sub(hex, 5, 6), 16)
 
     return { r = r, g = g, b = b }
 end

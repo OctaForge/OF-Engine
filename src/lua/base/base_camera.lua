@@ -26,12 +26,10 @@
 -- THE SOFTWARE.
 --
 
-local CAPI = require("CAPI")
-
 --- Camera for OF's Lua interface.
 -- @class module
 -- @name of.camera
-module("of.camera")
+module("of.camera", package.seeall)
 
 --- Force yaw, pitch, roll and fov of a camera.
 -- @param yaw Yaw to force.

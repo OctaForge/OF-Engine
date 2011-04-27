@@ -27,15 +27,10 @@
 -- THE SOFTWARE.
 --
 
-local CAPI = require("CAPI")
-local color = require("of.color")
-local glob = require("of.global")
-local msgsys = require("of.msgsys")
-
 --- Particle / dynlight / ... interface for OF's Lua.
 -- @class module
 -- @name of.effect
-module("of.effect")
+module("of.effect", package.seeall)
 
 -- in sync with iengine.h
 
@@ -148,7 +143,7 @@ PARTICLE = {
 -- @param inf Info (?!)
 function decal_add(ty, pos, dir, rd, col, inf)
     i = i or 0
-    local rgb = color.hextorgb(c or 0xFFFFFF)
+    local rgb = of.color.hextorgb(c or 0xFFFFFF)
     CAPI.adddecal(ty, pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, rd, rgb.r, rgb.g, rgb.b, inf)
 end
 
@@ -162,8 +157,8 @@ end
 -- @param ird Initial radius
 -- @param icol Initial color (0xRRGGBB)
 function dynlight_add(pos, rd, col, fd, pk, fl, ird, icol)
-    local rgbc = color.hextorgb(col)
-    local rgbic = color.hextorgb(icol or 0xFFFFFF)
+    local rgbc = of.color.hextorgb(col)
+    local rgbic = of.color.hextorgb(icol or 0xFFFFFF)
     CAPI.adddynlight(pos.x, pos.y, pos.z, rd, rgbc.r, rgbc.g, rgbc.b, fd * 1000, pk * 1000, fl, ird, rgbic.r, rgbic.g, rgbic.b)
 end
 
@@ -182,7 +177,7 @@ end
 -- @param fs Fast splash (boolean)
 -- @param gr Grow (boolean)
 function splash(ty, n, fd, pos, col, sz, rd, grav, regfd, fl, fs, gr)
-    if glob.CLIENT then
+    if of.global.CLIENT then
         col = col or 0xFFFFFF
         sz = sz or 1.0
         rd = rd or 150
@@ -191,7 +186,7 @@ function splash(ty, n, fd, pos, col, sz, rd, grav, regfd, fl, fs, gr)
         fs = fs or false
         CAPI.particle_splash(ty, n, fd * 1000, pos.x, pos.y, pos.z, col, sz, rd, grav, regfd, fl, fs, gr)
     else
-        msgsys.send(msgsys.ALL_CLIENTS, CAPI.particle_splash_toclients, ty, n, fd * 1000, pos.x, pos.y, pos.z) -- TODO: last 4 params
+        of.msgsys.send(of.msgsys.ALL_CLIENTS, CAPI.particle_splash_toclients, ty, n, fd * 1000, pos.x, pos.y, pos.z) -- TODO: last 4 params
     end
 end
 
@@ -208,7 +203,7 @@ end
 -- @param hv Hover (boolean)
 -- @param gr Grow (boolean)
 function regular_splash(ty, n, fd, pos, col, sz, rd, grav, dl, hv, gr)
-    if glob.CLIENT then
+    if of.global.CLIENT then
         col = col or 0xFFFFFF
         sz = sz or 1.0
         rd = rd or 150
@@ -216,7 +211,7 @@ function regular_splash(ty, n, fd, pos, col, sz, rd, grav, dl, hv, gr)
         hv = hv or false
         CAPI.regular_particle_splash(ty, n, fd * 1000, pos.x, pos.y, pos.z, col, sz, rd, grav, regfd, fl, fs, gr)
     else
-        msgsys.send(msgsys.ALL_CLIENTS, CAPI.particle_regularsplash_toclients, ty, n, fd * 1000, pos.x, pos.y, pos.z) -- TODO: last 5 params
+        of.msgsys.send(of.msgsys.ALL_CLIENTS, CAPI.particle_regularsplash_toclients, ty, n, fd * 1000, pos.x, pos.y, pos.z) -- TODO: last 5 params
     end
 end
 
@@ -350,7 +345,7 @@ end
 -- @param r Amount of damage
 -- @param col Color (0xRRGGBB)
 function cldamage(r, col)
-    if not glob.SERVER then
+    if not of.global.SERVER then
         CAPI.client_damage_effect(r, col)
     end
 end

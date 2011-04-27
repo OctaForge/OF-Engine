@@ -26,24 +26,10 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local table = require("table")
-local math = require("math")
-local log = require("of.logging")
-local svar = require("of.state_variables")
-local class = require("of.class")
-local anim = require("of.animatable")
-local lstor = require("of.logent.store")
-local lcl = require("of.logent.classes")
-local mdl = require("of.model")
-local act = require("of.action")
-local util = require("of.utils")
-local CAPI = require("CAPI")
-
 --- This module takes care of character entity, states and player entity.
 -- @class module
 -- @name of.character
-module("of.character")
+module("of.character", package.seeall)
 
 --- Client state table, reflects ents.h.
 -- @field ALIVE Client is alive.
@@ -86,10 +72,10 @@ PSTATE = {
 }
 
 --- Base character class, inherited from animatable_logent.
--- Used as a base for player class.
+-- Used as a base for player of.class.
 -- @class table
 -- @name character
-character = class.new(anim.animatable_logent)
+character = of.class.new(of.animatable.animatable_logent)
 character._class = "character"
 character._sauertype = "fpsent"
 
@@ -121,37 +107,37 @@ character._sauertype = "fpsent"
 -- @class table
 -- @name character.properties
 character.properties = {
-    anim.animatable_logent.properties[1], -- tags
-    anim.animatable_logent.properties[2], -- _persitent
-    anim.animatable_logent.properties[3], -- animation
-    anim.animatable_logent.properties[4], -- starttime
-    anim.animatable_logent.properties[5], -- modelname
-    anim.animatable_logent.properties[6], -- attachments
+    of.animatable.animatable_logent.properties[1], -- tags
+    of.animatable.animatable_logent.properties[2], -- _persitent
+    of.animatable.animatable_logent.properties[3], -- animation
+    of.animatable.animatable_logent.properties[4], -- starttime
+    of.animatable.animatable_logent.properties[5], -- modelname
+    of.animatable.animatable_logent.properties[6], -- attachments
 
-    { "_name", svar.state_string() },
-    { "facing_speed", svar.state_integer() },
+    { "_name", of.state_variables.state_string() },
+    { "facing_speed", of.state_variables.state_integer() },
 
-    { "movement_speed", svar.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }) },
-    { "yaw", svar.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }) },
-    { "pitch", svar.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }) },
-    { "move", svar.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }) },
-    { "strafe", svar.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }) },
+    { "movement_speed", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }) },
+    { "yaw", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }) },
+    { "pitch", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }) },
+    { "move", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }) },
+    { "strafe", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }) },
 --  intention to yaw / pitch. todo: enable
---  { "yawing", svar.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }) },
---  { "pitching", svar.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }) },
-    { "position", svar.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }) },
-    { "velocity", svar.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }) },
-    { "falling", svar.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }) },
-    { "radius", svar.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }) },
-    { "aboveeye", svar.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }) },
-    { "eyeheight", svar.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }) },
-    { "blocked", svar.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }) },
-    { "canmove", svar.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }) },
-    { "mapdefinedposdata", svar.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }) },
-    { "cs", svar.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }) },
-    { "ps", svar.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }) },
-    { "inwater", svar.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }) },
-    { "timeinair", svar.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true }) }
+--  { "yawing", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }) },
+--  { "pitching", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }) },
+    { "position", of.state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }) },
+    { "velocity", of.state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }) },
+    { "falling", of.state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }) },
+    { "radius", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }) },
+    { "aboveeye", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }) },
+    { "eyeheight", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }) },
+    { "blocked", of.state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }) },
+    { "canmove", of.state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }) },
+    { "mapdefinedposdata", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }) },
+    { "cs", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }) },
+    { "ps", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }) },
+    { "inwater", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }) },
+    { "timeinair", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true }) }
 }
 
 --- Jump handler method for character.
@@ -161,8 +147,8 @@ end
 
 --- Initializer. See animatable_logent.
 function character:init(uid, kwargs)
-    log.log(log.DEBUG, "character:init")
-    anim.animatable_logent.init(self, uid, kwargs)
+    of.logging.log(of.logging.DEBUG, "character:init")
+    of.animatable.animatable_logent.init(self, uid, kwargs)
 
     self._name = "-?-" -- set by the server later
     self.cn = kwargs and kwargs.cn or -1
@@ -178,20 +164,20 @@ end
 
 --- Serverside activation. See animatable_logent.
 function character:activate(kwargs)
-    log.log(log.DEBUG, "character:activate")
+    of.logging.log(of.logging.DEBUG, "character:activate")
     self.cn = kwargs and kwargs.cn or -1
-    base.assert(self.cn >= 0)
+    assert(self.cn >= 0)
 
     CAPI.setupcharacter(self)
-    anim.animatable_logent.activate(self, kwargs)
+    of.animatable.animatable_logent.activate(self, kwargs)
     self:_flush_queued_sv_changes()
 
-    log.log(log.DEBUG, "character:activate complete.")
+    of.logging.log(of.logging.DEBUG, "character:activate complete.")
 end
 
 --- Clientside activation. See serverside.
 function character:client_activate(kwargs)
-    anim.animatable_logent.client_activate(self, kwargs)
+    of.animatable.animatable_logent.client_activate(self, kwargs)
     self.cn = kwargs and kwargs.cn or -1
     CAPI.setupcharacter(self)
 
@@ -201,13 +187,13 @@ end
 --- Serverside entity deactivation.
 function character:deactivate()
     CAPI.dismantlecharacter(self)
-    anim.animatable_logent.deactivate(self)
+    of.animatable.animatable_logent.deactivate(self)
 end
 
 --- Clientside entity deactivation.
 function character:client_deactivate()
     CAPI.dismantlecharacter(self)
-    anim.animatable_logent.client_deactivate(self)
+    of.animatable.animatable_logent.client_deactivate(self)
 end
 
 --- Serverside act method for character. Ran every frame.
@@ -218,7 +204,7 @@ function character:act(sec)
     if self.action_system:isempty() then
         self:default_action(sec)
     else
-        anim.animatable_logent.act(self, sec)
+        of.animatable.animatable_logent.act(self, sec)
     end
 end
 
@@ -237,7 +223,7 @@ function character:render_dynamic(hudpass, needhud)
     if not self.initialized then return nil end
     if not hudpass and needhud then return nil end
 
-    if self.rendering_args_timestamp ~= lstor.curr_timestamp then
+    if self.rendering_args_timestamp ~= of.logent.store.curr_timestamp then
         local state = self.cs
         if state == CSTATE.SPECTAROR or state == CSTATE.SPAWNING then return nil end
 
@@ -259,25 +245,25 @@ function character:render_dynamic(hudpass, needhud)
         local flags = self:get_renderingflags(hudpass, needhud)
 
         self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, flags, basetime }
-        self.rendering_args_timestamp = lstor.curr_timestamp
+        self.rendering_args_timestamp = of.logent.store.curr_timestamp
     end
 
     -- render only when model is set
-    if self.rendering_args[2] ~= "" then mdl.render(base.unpack(self.rendering_args)) end
+    if self.rendering_args[2] ~= "" then of.model.render(unpack(self.rendering_args)) end
 end
 
 --- Used in render_dynamic to get rendering flags. Enables some occlusion, dynamic shadow, etc.
 -- @param hudpass True if we're rendering HUD right now.
 -- @param needhud True if model should be shown as HUD model (== we're in first person)
 function character:get_renderingflags(hudpass, needhud)
-    local flags = math.bor(mdl.LIGHT, mdl.DYNSHADOW)
-    if self ~= lstor.get_plyent() then
-        flags = math.bor(flags, mdl.CULL_VFC, mdl.CULL_OCCLUDED, mdl.CULL_QUERY)
+    local flags = math.bor(of.model.LIGHT, of.model.DYNSHADOW)
+    if self ~= of.logent.store.get_plyent() then
+        flags = math.bor(flags, of.model.CULL_VFC, of.model.CULL_OCCLUDED, of.model.CULL_QUERY)
     end
     if hudpass and needhud then
-        flags = math.bor(flags, mdl.HUD)
+        flags = math.bor(flags, of.model.HUD)
     end
-    return flags -- TODO: for non-characters, use flags = math.bor(flags, mdl.CULL_DIST)
+    return flags -- TODO: for non-characters, use flags = math.bor(flags, of.model.CULL_DIST)
 end
 
 --- Used in render_dynamic to decide character animation (falling, strafing, etc.) from given arguments.
@@ -288,31 +274,31 @@ function character:decide_animation(state, pstate, move, strafe, vel, falling, i
     local anim = self:decide_action_animation()
 
     if state == CSTATE.EDITING or state == CSTATE.SPECTATOR then
-        anim = math.bor(act.ANIM_EDIT, act.ANIM_LOOP)
+        anim = math.bor(of.action.ANIM_EDIT, of.action.ANIM_LOOP)
     elseif state == CSTATE.LAGGED then
-        anim = math.bor(act.ANIM_LAG, act.ANIM_LOOP)
+        anim = math.bor(of.action.ANIM_LAG, of.action.ANIM_LOOP)
     else
         if inwater and pstate <= PSTATE.FALL then
-            anim = math.bor(anim, math.lsh(math.bor(((move or strafe) or vel.z + falling.z > 0) and act.ANIM_SWIM or act.ANIM_SINK, act.ANIM_LOOP), act.ANIM_SECONDARY))
+            anim = math.bor(anim, math.lsh(math.bor(((move or strafe) or vel.z + falling.z > 0) and of.action.ANIM_SWIM or of.action.ANIM_SINK, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
         elseif timeinair > 250 then
-            anim = math.bor(anim, math.lsh(math.bor(act.ANIM_JUMP, act.ANIM_END), act.ANIM_SECONDARY))
+            anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_JUMP, of.action.ANIM_END), of.action.ANIM_SECONDARY))
         elseif move or strafe then
             if move > 0 then
-                anim = math.bor(anim, math.lsh(math.bor(act.ANIM_FORWARD, act.ANIM_LOOP), act.ANIM_SECONDARY))
+                anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_FORWARD, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
             elseif strafe then
-                anim = math.bor(anim, math.lsh(math.bor((strafe > 0 and ANIM_LEFT or ANIM_RIGHT), act.ANIM_LOOP), act.ANIM_SECONDARY))
+                anim = math.bor(anim, math.lsh(math.bor((strafe > 0 and ANIM_LEFT or ANIM_RIGHT), of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
             elseif move < 0 then
-                anim = math.bor(anim, math.lsh(math.bor(act.ANIM_BACKWARD, act.ANIM_LOOP), act.ANIM_SECONDARY))
+                anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_BACKWARD, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
             end
         end
 
-        if math.band(anim, act.ANIM_INDEX) == act.ANIM_TITLE and math.band(math.rsh(anim, act.ANIM_SECONDARY), act.ANIM_INDEX) then
-            anim = math.rsh(anim, act.ANIM_SECONDARY)
+        if math.band(anim, of.action.ANIM_INDEX) == of.action.ANIM_TITLE and math.band(math.rsh(anim, of.action.ANIM_SECONDARY), of.action.ANIM_INDEX) then
+            anim = math.rsh(anim, of.action.ANIM_SECONDARY)
         end
     end
 
-    if not math.band(math.rsh(anim, act.ANIM_SECONDARY), act.ANIM_INDEX) then
-        anim = math.bor(anim, math.lsh(math.bor(act.ANIM_IDLE, act.ANIM_LOOP), act.ANIM_SECONDARY))
+    if not math.band(math.rsh(anim, of.action.ANIM_SECONDARY), of.action.ANIM_INDEX) then
+        anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_IDLE, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
     end
 
     return anim
@@ -342,7 +328,7 @@ end
 function character:is_onfloor()
     if floor_dist(self.position, 1024) < 1 then return true end
     if self.velocity.z < -1 or self.falling.z < -1 then return false end
-    return util.iscolliding(self.position, self.radius + 2, self)
+    return of.utils.iscolliding(self.position, self.radius + 2, self)
 end
 
 --- Base player class, inherited from character.
@@ -350,7 +336,7 @@ end
 -- @class table
 -- @name player
 -- @see character
-player = class.new(character)
+player = of.class.new(character)
 player._class = "player"
 
 --- Base properties of player entity.
@@ -393,19 +379,19 @@ player.properties = {
     character.properties[25], -- inwater
     character.properties[26], -- timeinair
 
-    { "_can_edit", svar.state_bool() },
-    { "hud_modelname", svar.state_string() }
+    { "_can_edit", of.state_variables.state_bool() },
+    { "hud_modelname", of.state_variables.state_string() }
 }
 
 --- Overriden initializer, calls base
 -- and sets default values of added properties.
 function player:init(uid, kwargs)
-    log.log(log.DEBUG, "player:init")
+    of.logging.log(of.logging.DEBUG, "player:init")
     character.init(self, uid, kwargs)
 
     self._can_edit = false
     self.hud_modelname = ""
 end
 
-lcl.reg(character, "fpsent")
-lcl.reg(player, "fpsent")
+of.logent.classes.reg(character, "fpsent")
+of.logent.classes.reg(player, "fpsent")

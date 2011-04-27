@@ -26,11 +26,6 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local logging = require("of.logging")
-local class = require("of.class")
-local CAPI = require("CAPI")
-
 --- The engine variables module. It contains core "variables" shared between
 -- engine and scripting system, like screen resolution, graphics settings,
 -- editing variables and many others. Besides Lua representation, there
@@ -46,7 +41,7 @@ local CAPI = require("CAPI")
 -- you can get / set variables as if they were global.
 -- @class module
 -- @name of.engine_variables
-module("of.engine_variables")
+module("of.engine_variables", package.seeall)
 
 -- Variable types
 
@@ -68,14 +63,14 @@ VAR_S = 2
 -- @field stor The storage table.
 -- @field reg The register function.
 -- @field clear The clear function.
-storage = class.new()
+storage = of.class.new()
 storage.stor = {}
 
 --- Register a variable into storage.
 -- @param v Variable to register (IVAR, FVAR or SVAR)
 function storage:reg(v)
     if not v:is_a(_VAR) then
-        logging.log(logging.ERROR, "Cannot register variable because wrong class was provided.")
+        of.logging.log(of.logging.ERROR, "Cannot register variable because wrong class was provided.")
         return nil
     end
 
@@ -104,11 +99,11 @@ inst = storage()
 
 -- Variable classes
 
---- Default skeleton variable class.
+--- Default skeleton variable of.class.
 -- @class table
 -- @name _VAR
 -- @field __init The constructor.
-_VAR = class.new()
+_VAR = of.class.new()
 
 --- Constructor for default engine variable skeleton.
 -- @param name Name of the variable.
@@ -118,7 +113,7 @@ _VAR = class.new()
 -- @param ro Read only.
 -- @param alias Will create an alias.
 function _VAR:__init(name, minv, curv, maxv, ro, alias)
-    base.assert(name, "Cannot register variable: name is missing.")
+    assert(name, "Cannot register variable: name is missing.")
     self.name = name
     self.minv = minv
     self.maxv = maxv
@@ -127,16 +122,16 @@ function _VAR:__init(name, minv, curv, maxv, ro, alias)
     self.alias = alias
 end
 
---- Integer variable class.
+--- Integer variable of.class.
 -- @class table
 -- @name IVAR
 -- @field __init The constructor.
 -- @field __tostring Returns string representation.
 -- @field check_bounds Returns true if value to set is in variable bounds.
-IVAR = class.new(_VAR)
+IVAR = of.class.new(_VAR)
 
---- Returns string representation of the variable class.
--- @return A string representing the variable class.
+--- Returns string representation of the variable of.class.
+-- @return A string representing the variable of.class.
 function IVAR:__tostring() return "IVAR" end
 
 --- Constructor for integer variable.
@@ -147,9 +142,9 @@ function IVAR:__tostring() return "IVAR" end
 -- @param ro Read only.
 -- @param alias Will create an alias.
 function IVAR:__init(name, minv, curv, maxv, ro, alias)
-    base.assert(base.type(minv) == "number"
-            and base.type(curv) == "number"
-            and base.type(maxv) == "number",
+    assert(type(minv) == "number"
+            and type(curv) == "number"
+            and type(maxv) == "number",
        "Wrong value type provided to IVAR.")
 
     _VAR.__init(self, name, minv, curv, maxv, ro, alias)
@@ -160,17 +155,17 @@ end
 -- @param v Value to set.
 -- @return True if the value can be set, otherwise false.
 function IVAR:check_bounds(v)
-    if base.type(v) ~= "number" then
-        logging.log(logging.ERROR, "Wrong value type passed to variable.")
+    if type(v) ~= "number" then
+        of.logging.log(of.logging.ERROR, "Wrong value type passed to variable.")
         return false
     end
     if self.alias then return true end
     if self.ro then
-        logging.log(logging.ERROR, "Variable is read only.")
+        of.logging.log(of.logging.ERROR, "Variable is read only.")
         return false
     end
     if v < self.minv or v > self.maxv then
-        logging.log(logging.ERROR,
+        of.logging.log(of.logging.ERROR,
                     "Variable accepts only values of range "
                     .. self.minv .. " to " .. self.maxv)
         return false
@@ -178,16 +173,16 @@ function IVAR:check_bounds(v)
     return true
 end
 
---- Float variable class. Inherited from IVAR, takes its check_bounds.
+--- Float variable of.class. Inherited from IVAR, takes its check_bounds.
 -- @class table
 -- @name FVAR
 -- @field __init The constructor.
 -- @field __tostring Returns string representation.
 -- @field check_bounds Returns true if value to set is in variable bounds.
-FVAR = class.new(IVAR)
+FVAR = of.class.new(IVAR)
 
---- Returns string representation of the variable class.
--- @return A string representing the variable class.
+--- Returns string representation of the variable of.class.
+-- @return A string representing the variable of.class.
 function FVAR:__tostring() return "FVAR" end
 
 --- Constructor for float variable.
@@ -198,25 +193,25 @@ function FVAR:__tostring() return "FVAR" end
 -- @param ro Read only.
 -- @param alias Will create an alias.
 function FVAR:__init(name, minv, curv, maxv, ro, alias)
-    base.assert(base.type(minv) == "number"
-            and base.type(curv) == "number"
-            and base.type(maxv) == "number",
+    assert(type(minv) == "number"
+            and type(curv) == "number"
+            and type(maxv) == "number",
        "Wrong value type provided to FVAR.")
 
     _VAR.__init(self, name, minv, curv, maxv, ro, alias)
     self.type = VAR_F
 end
 
---- String variable class.
+--- String variable of.class.
 -- @class table
 -- @name FVAR
 -- @field __init The constructor.
 -- @field __tostring Returns string representation.
 -- @field check_bounds Returns true if value to set is in variable bounds.
-SVAR = class.new(_VAR)
+SVAR = of.class.new(_VAR)
 
---- Returns string representation of the variable class.
--- @return A string representing the variable class.
+--- Returns string representation of the variable of.class.
+-- @return A string representing the variable of.class.
 function SVAR:__tostring() return "SVAR" end
 
 --- Constructor for string variable.
@@ -225,7 +220,7 @@ function SVAR:__tostring() return "SVAR" end
 -- @param ro Read only.
 -- @param alias Will create an alias.
 function SVAR:__init(name, curv, ro, alias)
-    base.assert(base.type(curv) == "string" or not curv, "Wrong value type provided to SVAR.")
+    assert(type(curv) == "string" or not curv, "Wrong value type provided to SVAR.")
     _VAR.__init(self, name, nil, curv, nil, ro, alias)
     self.type = VAR_S
 end
@@ -234,13 +229,13 @@ end
 -- @param v Value to set.
 -- @return True if the value can be set, otherwise false.
 function SVAR:check_bounds(v)
-    if base.type(v) ~= "string" then
-        logging.log(logging.ERROR, "Wrong value type passed to variable.")
+    if type(v) ~= "string" then
+        of.logging.log(of.logging.ERROR, "Wrong value type passed to variable.")
         return false
     end
     if self.alias then return true end
     if self.read then
-        logging.log(logging.ERROR, "Variable is read only.")
+        of.logging.log(of.logging.ERROR, "Variable is read only.")
         return false
     end
     return true

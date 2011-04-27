@@ -26,16 +26,12 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local string = require("string")
-local CAPI = require("CAPI")
-
 --- Shader API for OF Lua interface.
 -- Contains basic shader definition
 -- and postfx effects control methods.
 -- @class module
 -- @name of.shader
-module("of.shader")
+module("of.shader", package.seeall)
 
 --- Standard shader.
 -- @param s Shader type.

@@ -26,18 +26,10 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local CAPI = require("CAPI")
-local math = require("math")
-local table = require("table")
-local string = require("string")
-local class = require("of.class")
-local log = require("of.logging")
-
 --- Action system (actions / queue) for OF Lua interface.
 -- @class module
 -- @name of.action
-module("of.action")
+module("of.action", package.seeall)
 
 ANIM_DEAD = 0
 ANIM_DYING = 1
@@ -91,7 +83,7 @@ ANIM_RAGDOLL = math.lsh(1, 27)
 --- Default action class, every other action inherits from this.
 -- @class table
 -- @name action
-action = class.new()
+action = of.class.new()
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -157,15 +149,15 @@ function action:execute(sec)
     -- handle execution, and mirror finish status of parallel action
     -- if exists.
     if self.parallelto == false then
-        log.log(log.INFO, "executing action " .. base.tostring(self))
+        of.logging.log(of.logging.INFO, "executing action " .. tostring(self))
 
         local finished = self:doexecute(sec)
-        base.assert(finished == true or finished == false)
+        assert(finished == true or finished == false)
         if finished then
             self:finish()
         end
 
-        log.log(log.INFO, "        ...finished: " .. finished)
+        of.logging.log(of.logging.INFO, "        ...finished: " .. finished)
         return finished
     else
         if self.parallelto.finished then
@@ -222,7 +214,7 @@ end
 -- always returning false on doexecute.
 -- @class table
 -- @name action_infinite
-action_infinite = class.new(action)
+action_infinite = of.class.new(action)
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -240,7 +232,7 @@ end
 -- actions inherit this class and save some code.
 -- @class table
 -- @name action_targeted
-action_targeted = class.new(action)
+action_targeted = of.class.new(action)
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -261,7 +253,7 @@ end
 -- Useful for queuing a command for next act() of entity.
 -- @class table
 -- @name action_singlecommand
-action_singlecommand = class.new(action)
+action_singlecommand = of.class.new(action)
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -291,7 +283,7 @@ end
 --- Action queue for single logent and their management.
 -- @class table
 -- @name action_system
-action_system = class.new()
+action_system = of.class.new()
 
 --- Action system constructor. Accepts parent logent. Initializes action queue.
 -- @param parent The parent logent.
@@ -313,7 +305,7 @@ end
 function action_system:manage(sec)
     self.actlist = table.filterarray(self.actlist, function (i, v) return not v.finished end)
     if #self.actlist > 0 then
-        log.log(log.INFO, "executing " .. base.tostring(self.actlist[1]))
+        of.logging.log(of.logging.INFO, "executing " .. tostring(self.actlist[1]))
         if self.actlist[1]:execute(sec) then -- if the action is completed, remove it immediately to not mess with it later
             table.remove(self.actlist, 1)
         end
@@ -336,8 +328,8 @@ end
 function action_system:queue(act)
     if not action.canmulqueue then
         for i = 1, #self.actlist do
-            if base.tostring(self.actlist[i]) == base.tostring(act) then
-                log.log(log.WARNING, string.format("Trying to multiply queue %s, but that isn't allowed\n", base.tostring(act)))
+            if tostring(self.actlist[i]) == tostring(act) then
+                of.logging.log(of.logging.WARNING, string.format("Trying to multiply queue %s, but that isn't allowed\n", tostring(act)))
                 return nil
             end
         end

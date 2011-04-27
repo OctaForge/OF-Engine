@@ -26,14 +26,11 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local CAPI = require("CAPI")
-
 --- Console Lua interface. Provides methods for bindings,
 -- console commands, input and others.
 -- @class module
 -- @name of.console
-module("of.console")
+module("of.console", package.seeall)
 
 --- Toggle the console.
 -- @class function
@@ -163,7 +160,7 @@ say = CAPI.say
 saycommand = CAPI.saycommand
 
 ---
-function sayteamcommand() base.echo("Team chat not yet implemented") end
+function sayteamcommand() echo("Team chat not yet implemented") end
 
 ---
 -- @class function

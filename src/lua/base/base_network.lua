@@ -26,12 +26,10 @@
 -- THE SOFTWARE.
 --
 
-local CAPI = require("CAPI")
-
 --- Network for OF's Lua interface.
 -- @class module
 -- @name of.network
-module("of.network")
+module("of.network", package.seeall)
 
 --- Connect to a server.
 -- @param ip An IP address (string)

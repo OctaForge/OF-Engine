@@ -27,15 +27,12 @@
 --
 
 local base = _G
-local string = require("string")
-local math = require("math")
-local CAPI = require("CAPI")
 
 --- Model control for OF's Lua interface.
 -- TODO: make more detailed later
 -- @class module
 -- @name of.model
-module("of.model")
+module("of.model", package.seeall)
 
 -- in sync with iengine.h
 CULL_VFC = math.lsh(1, 0)
@@ -108,8 +105,8 @@ findanims = CAPI.findanims
 -- @param t Tag of the model.
 -- @param n Name of the attachment.
 function attachment(t, n)
-    base.assert(not string.find(t, ","))
-    base.assert(not string.find(n, ","))
+    assert(not string.find(t, ","))
+    assert(not string.find(n, ","))
     return t .. "," .. n
 end
 
@@ -320,7 +317,7 @@ mdl.mesh = CAPI.mdlmesh
 -- for manipulating with obj model format.
 -- @class table
 -- @name obj
-obj = base.obj
+obj = _G["obj"]
 
 --- Load a model.
 -- @param mdl Model name.
@@ -442,7 +439,7 @@ obj = base.obj
 -- for manipulating with md5 model format.
 -- @class table
 -- @name md5
-md5 = base.md5
+md5 = _G["md5"]
 
 --- Set model directory.
 -- @param dir Directory.
@@ -666,7 +663,7 @@ md5 = base.md5
 -- for manipulating with iqm model format.
 -- @class table
 -- @name iqm
-iqm = base.iqm
+iqm = _G["iqm"]
 
 --- Set model directory.
 -- @param dir Directory.
@@ -890,7 +887,7 @@ iqm = base.iqm
 -- for manipulating with smd model format.
 -- @class table
 -- @name smd
-smd = base.smd
+smd = _G["smd"]
 
 --- Set model directory.
 -- @param dir Directory.

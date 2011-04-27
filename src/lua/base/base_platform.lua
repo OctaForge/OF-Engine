@@ -26,16 +26,12 @@
 -- THE SOFTWARE.
 --
 
-local cc_init_client = cc_init_client
-local cc_version = cc_version
-local base = _G
-
 --- Global configuration table.
 -- Contains some settings shared between Lua and C++.
 -- Contains at least CLIENT and SERVER booleans and engine version.
 -- @class module
 -- @name of.global
-module("of.global")
+module("of.global", package.seeall)
 
 --- Global table.
 -- @field version Version of the engine.

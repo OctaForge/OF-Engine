@@ -26,16 +26,10 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local table = require("table")
-local log = require("of.logging")
-local svar = require("of.state_variables")
-local msgsys = require("of.msgsys")
-
 --- This module takes care of logic entity classes.
 -- @class module
 -- @name of.logent.classes
-module("of.logent.classes")
+module("of.logent.classes", package.seeall)
 
 _logent_classes = {}
 
@@ -47,27 +41,27 @@ _logent_classes = {}
 function reg(_cl, st)
     local _cln = _cl._class
 
-    log.log(log.DEBUG, "registering LE class: " .. base.tostring(_cln))
+    of.logging.log(of.logging.DEBUG, "registering LE class: " .. tostring(_cln))
 
     if not st then
         local _base = _cl.__base
         while _base do
-            local _pn = _base._class
-            log.log(log.DEBUG, "finding sauertype in parent: " .. base.tostring(_pn))
+            local _pn = __class
+            of.logging.log(of.logging.DEBUG, "finding sauertype in parent: " .. tostring(_pn))
             local stype = get_sauertype(_pn)
             if stype then
                 st = stype
                 break
             else
-                _base = _base.__base._class and _base.__base or nil
+                _base = ____class and ___base or nil
             end
         end
     end
     st = st or ""
 
     -- store in registry
-    base.assert(not _logent_classes[base.tostring(_cln)], "must not exist already, ensure each class has a different _class.")
-    _logent_classes[base.tostring(_cln)] = { _cl, st }
+    assert(not _logent_classes[tostring(_cln)], "must not exist already, ensure each class has a different _class.")
+    _logent_classes[tostring(_cln)] = { _cl, st }
 
     -- generate protocol data
     local sv_names = {}
@@ -75,15 +69,15 @@ function reg(_cl, st)
     local inst = _cl()
     for i = 1, #inst.properties do
         local var = inst.properties[i][2]
-        log.log(log.INFO, "considering " .. base.tostring(inst.properties[i][1]) .. " -- " .. base.tostring(var))
-        if svar.is(var) then
-            log.log(log.INFO, "setting up " .. base.tostring(inst.properties[i][1]))
-            table.insert(sv_names, base.tostring(inst.properties[i][1]))
+        of.logging.log(of.logging.INFO, "considering " .. tostring(inst.properties[i][1]) .. " -- " .. tostring(var))
+        if of.state_variables.is(var) then
+            of.logging.log(of.logging.INFO, "setting up " .. tostring(inst.properties[i][1]))
+            table.insert(sv_names, tostring(inst.properties[i][1]))
         end
     end
 
-    log.log(log.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
-    msgsys.genprod(base.tostring(_cln), sv_names)
+    of.logging.log(of.logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
+    of.msgsys.genprod(tostring(_cln), sv_names)
 
     return _cl
 end
@@ -92,10 +86,10 @@ end
 -- @param _cn Entity class name.
 -- @return The entity class if found, false otherwise.
 function get_class(_cn)
-    if _logent_classes[base.tostring(_cn)] then
-        return _logent_classes[base.tostring(_cn)][1]
+    if _logent_classes[tostring(_cn)] then
+        return _logent_classes[tostring(_cn)][1]
     else
-        log.log(log.ERROR, "invalid class: " .. base.tostring(_cn))
+        of.logging.log(of.logging.ERROR, "invalid class: " .. tostring(_cn))
         return nil
     end
 end
@@ -104,10 +98,10 @@ end
 -- @param _cn Entity class name.
 -- @return Entity class' sauer type if found, false otherwise.
 function get_sauertype(_cn)
-    if _logent_classes[base.tostring(_cn)] then
-        return _logent_classes[base.tostring(_cn)][2]
+    if _logent_classes[tostring(_cn)] then
+        return _logent_classes[tostring(_cn)][2]
     else
-        log.log(log.ERROR, "invalid class: " .. base.tostring(_cn))
+        of.logging.log(of.logging.ERROR, "invalid class: " .. tostring(_cn))
         return nil
     end
 end

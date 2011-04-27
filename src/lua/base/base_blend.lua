@@ -26,13 +26,12 @@
 -- THE SOFTWARE.
 --
 
-local CAPI = require("CAPI")
-local base = _G
+local env = _G
 
 --- Texture blending for OF's Lua interface.
 -- @class module
 -- @name of.blend
-module("of.blend")
+module("of.blend", package.seeall)
 
 --- Table holding methods relating texture blending brushes.
 -- @class table
@@ -94,7 +93,7 @@ brush.rotate = CAPI.rotateblendbrush
 -- @see brush.next
 function brush.scroll(b)
     if b then brush.next(b) else brush.next() end
-    base.echo("blend brush set to: %(1)s" % { brush.getname(brush.cur()) })
+    echo("blend brush set to: %(1)s" % { brush.getname(brush.cur()) })
 end
 
 --- Table holding methods relating texture blend painting.
@@ -151,6 +150,6 @@ paintmodes = { "off", "replace", "dig", "fill", "inverted dig", "inverted fill" 
 --- Set blend paint mode.
 -- @param m Paint mode index in paintmodes table, beginning with 1. Turns blendmap painting off when not ommited.
 function setpaintmode(m)
-    base.blendpaintmode = m or 1
-    base.echo("blend paint mode set to: %(1)s" % { paintmodes[base.blendpaintmode] })
+    env.blendpaintmode = m or 1
+    echo("blend paint mode set to: %(1)s" % { paintmodes[env.blendpaintmode] })
 end

@@ -26,27 +26,22 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local math = require("math")
-local string = require("string")
-local vector = require("of.vector")
-
 --- Type conversion module for OctaForge. Contains several basic type conversion
 -- methods, some of them wrapped from global. toboolean is a new method.
 -- tointeger is a new method too, tonumber and tostring are wrapped.
 -- tocalltable is new and converts function to callable table.
 -- @class module
 -- @name of.typeconv
-module("of.typeconv")
+module("of.typeconv", package.seeall)
 
 --- Convert types into boolean.
 -- @param v Value to convert.
 -- @return A boolean value.
 function toboolean(v)
     return (
-        (base.type(v) == "number" and v ~= 0) or
-        (base.type(v) == "string" and v == "true") or
-        (base.type(v) == "boolean" and v) or
+        (type(v) == "number" and v ~= 0) or
+        (type(v) == "string" and v == "true") or
+        (type(v) == "boolean" and v) or
         false
     )
 end
@@ -55,7 +50,7 @@ end
 -- @param v Value to convert.
 -- @return A number with integral value.
 function tointeger(v)
-    return math.floor(base.tonumber(v))
+    return math.floor(tonumber(v))
 end
 
 --- Convert a floating point number to
@@ -67,7 +62,7 @@ end
 function todec2str(v)
     v = v or 0
     if math.abs(v) < 0.01 then return "0" end
-    local r = base.tostring(v)
+    local r = tostring(v)
     local p = string.find(r, "%.")
     return not p and r or string.sub(r, 1, p + 2)
 end
@@ -75,19 +70,19 @@ end
 -- Convert types into number.
 -- @param v Value to convert.
 -- @return A number value.
-tonumber = base.tonumber;
+tonumber = _G["tonumber"];
 
 -- Convert types into string.
 -- @param v Value to convert.
 -- @return A string value.
-tostring = base.tostring;
+tostring = _G["tostring"];
 
 --- Make function a callable table.
 -- @param f A function.
 -- @return Callable table.
 function tocalltable(f)
-    return (base.type(f) == "function"
-        and base.setmetatable({}, { __call = f })
+    return (type(f) == "function"
+        and setmetatable({}, { __call = f })
         or nil
     )
 end
@@ -96,15 +91,15 @@ end
 -- @param v The array to convert.
 -- @return vec3 of the numbers.
 function tovec3(v)
-    if v.is_a and v:is_a(vector.vec3) then return v end
-    return vector.vec3(v[1], v[2], v[3])
+    if v.is_a and v:is_a(of.vector.vec3) then return v end
+    return of.vector.vec3(v[1], v[2], v[3])
 end
 
 --- Convert array of four numbers to vec4.
 -- @param v The array to convert.
 -- @return vec4 of the numbers.
 function tovec4(v)
-    if v.is_a and v:is_a(vector.vec4) then return v end
-    return vector.vec4(v[1], v[2], v[3], v[4])
+    if v.is_a and v:is_a(of.vector.vec4) then return v end
+    return of.vector.vec4(v[1], v[2], v[3], v[4])
 end
 

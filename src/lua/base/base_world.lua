@@ -26,17 +26,14 @@
 -- THE SOFTWARE.
 --
 
-local base = _G
-local string = require("string")
-local table = require("table")
-local CAPI = require("CAPI")
-local gui = require("of.gui")
+local env = _G
+local CAPI = require("CAPI") -- for nested functions
 
 --- World module (map, entities, vslots etc.) for OF's Lua interface.
 -- Scheduled for rewrite / deprecation, so won't be documented for now.
 -- @class module
 -- @name of.world
-module("of.world")
+module("of.world", package.seeall)
 
 --- Check for collision
 -- @class function
@@ -539,8 +536,8 @@ hmap = {
 }
 
 function hmap.brush._handle(x, y)
-    base.brushx = x
-    base.brushy = y
+    env.brushx = x
+    env.brushy = y
 end
 
 function hmap.brush._verts(lst)
@@ -560,7 +557,7 @@ function hmap.brush.select(n)
     if hmap.brush.index < 0 then hmap.brush.index = hmap.brush.max end
     if hmap.brush.index > hmap.brush.max then hmap.brush.index = 0 end
     local brushname = hmap["brush_" .. hmap.brush.index]()
-    base.echo(brushname)
+    echo(brushname)
 end
 
 ---
@@ -600,10 +597,10 @@ end
 
 --- clear ents of given type
 function clearents(t)
-    if base.editing ~= 0 then
+    if env.editing ~= 0 then
         entcancel()
         entselect([[return %(1)q ~= of.world.enttype()]] % { t })
-        base.echo("Deleted %(1)s %(2)s entities." % { base.tostring(enthavesel()), t })
+        echo("Deleted %(1)s %(2)s entities." % { tostring(enthavesel()), t })
         delent()
     end
 end
@@ -612,26 +609,26 @@ end
 -- replace all ents that match current selection
 -- with the values given
 function replaceents(what, a1, a2, a3, a4)
-    if base.editing ~= 0 then
-        entfind(base.unpack(string.split(entget(), " ")))
+    if env.editing ~= 0 then
+        entfind(unpack(string.split(entget(), " ")))
         entset(what, a1, a2, a3, a4)
-        base.echo("Replaced %(1)s entities." % { base.tostring(enthavesel()) })
+        echo("Replaced %(1)s entities." % { tostring(enthavesel()) })
     end
 end
 
 ---
 function selentedit()
-    entset(base.unpack(string.split(entget(), " ")))
+    entset(unpack(string.split(entget(), " ")))
 end
 
 ---
 function selreplaceents()
-    replaceents(base.unpack(string.split(entget(), " ")))
+    replaceents(unpack(string.split(entget(), " ")))
 end
 
 ---
 function selentfindall()
-    entfind(base.unpack(string.split(entget(), " ")))
+    entfind(unpack(string.split(entget(), " ")))
 end
 
 ---
@@ -675,7 +672,7 @@ function entreplace()
         CAPI.save_mouse_pos() -- place new entity right here
         intensitypasteent() -- using our newent here
     end
-    entsetattr(base.unpack(entcopybuf))
+    entsetattr(unpack(entcopybuf))
 end
 
 function editcopy()
@@ -699,7 +696,7 @@ function editpaste()
             of.world.paste()
             of.world.entpaste()
             if %(1)s then of.world.cancelsel() end
-        ]] % { base.tostring(cancelpaste) })
+        ]] % { tostring(cancelpaste) })
     else
         entreplace()
         if cancelpaste then cancelsel() end
@@ -803,8 +800,8 @@ function lse()
             of.world.lse_count = 0
         end
     ]])
-    if lse_count > 0 then base.echo(lse_line) end
-    base.echo("%(1)i entities selected" % { enthavesel() })
+    if lse_count > 0 then echo(lse_line) end
+    echo("%(1)i entities selected" % { enthavesel() })
 end
 
 function clearallents()
@@ -812,17 +809,17 @@ function clearallents()
     delent()
 end
 
-function enttoggle() base.entmoving = 1; base.entmoving = 0 end
-function entaddmove() base.entmoving = 2 end
+function enttoggle() env.entmoving = 1; env.entmoving = 0 end
+function entaddmove() env.entmoving = 2 end
 
-function drag() base.dragging = 1; CAPI.onrelease([[dragging = 0]]) end
-function corners() base.selectcorners = 1; base.dragging = 1; CAPI.onrelease([[selectcorners = 0; dragging = 0]]) end
-function entadd() entaddmove(); base.entmoving = 0 end
-function editmove() base.moving = 1; CAPI.onrelease([[moving = 0]]); return base.moving end
-function entdrag() entaddmove(); CAPI.onrelease([[of.world.finish_dragging(); entmoving = 0]]); return base.entmoving end
+function drag() env.dragging = 1; CAPI.onrelease([[dragging = 0]]) end
+function corners() env.selectcorners = 1; env.dragging = 1; CAPI.onrelease([[selectcorners = 0; dragging = 0]]) end
+function entadd() entaddmove(); env.entmoving = 0 end
+function editmove() env.moving = 1; CAPI.onrelease([[moving = 0]]); return env.moving end
+function entdrag() entaddmove(); CAPI.onrelease([[of.world.finish_dragging(); entmoving = 0]]); return env.entmoving end
 function editdrag() cancelsel(); if entdrag() == 0 then drag() end end
 function selcorners()
-    if base.hmapedit ~= 0 then
+    if env.hmapedit ~= 0 then
         hmap.select()
     else
         cancelsel()
@@ -832,29 +829,29 @@ end
 function editextend() if entdrag() == 0 then selextend(); reorient(); editmove() end end
 -- Use second mouse button to show our edit entities dialog, if hovering
 function editextend_intensity()
-    if base.has_mouse_target == 0 then
+    if env.has_mouse_target == 0 then
         editextend()
     else
-        gui.prepentgui()
-        gui.show("entity")
+        of.gui.prepentgui()
+        of.gui.show("entity")
     end
 end
 
 function edit_entity(a)
     if CAPI.set_mouse_targeting_ent(a) ~= 0 then
-        gui.prepentgui()
-        gui.show("entity")
+        of.gui.prepentgui()
+        of.gui.show("entity")
     else
-        base.echo("No such entity")
+        echo("No such entity")
     end
 end
 
 function edit_client(a)
     if CAPI.set_mouse_target_client(a) ~= 0 then
-        gui.prepentgui()
-        gui.show("entity")
+        of.gui.prepentgui()
+        of.gui.show("entity")
     else
-        base.echo("No such client")
+        echo("No such client")
     end
 end
 
@@ -884,14 +881,14 @@ end
 
 function editfacewentpush(a, aa)
     if havesel() ~= 0 or enthavesel() == 0 then
-        if base.moving ~= 0 then
+        if env.moving ~= 0 then
             pushsel(a)
         else
             entcancel()
             editface(a, aa)
         end
     else
-        if base.entmoving ~= 0 then
+        if env.entmoving ~= 0 then
             entpush(a)
         else
             _G["ent_action_" .. enttype()]()
@@ -928,8 +925,8 @@ end
 
 function editcut()
     local hadselection = havesel()
-    base.moving = 1
-    if base.moving ~= 0 then
+    env.moving = 1
+    if env.moving ~= 0 then
         copy();   entcopy()
         delcube(); delent()
         CAPI.onrelease([[
@@ -944,16 +941,16 @@ function editcut()
 end
 
 function passthrough(a)
-    base.passthroughsel = a
+    env.passthroughsel = a
     if a and a ~= 0 then
-        passthroughcube_bak = base.passthroughcube
-        base.passthroughcube = 1
+        passthroughcube_bak = env.passthroughcube
+        env.passthroughcube = 1
     else
-        base.passthroughcube = passthroughcube_bak
+        env.passthroughcube = passthroughcube_bak
     end
     entcancel()
-    if base.setting_entediting and base.setting_entediting ~= 0 then
-        base.entediting = base.tonumber(not a or a == 0)
+    if env.setting_entediting and env.setting_entediting ~= 0 then
+        env.entediting = tonumber(not a or a == 0)
     end
 end
 
@@ -969,6 +966,6 @@ function alpha() editmat("alpha") end
 
 function getsundir()
     local cam = CAPI.getcam()
-    base.sunlightyaw = cam.yaw
-    base.sunlightpitch = cam.pitch
+    env.sunlightyaw = cam.yaw
+    env.sunlightpitch = cam.pitch
 end
