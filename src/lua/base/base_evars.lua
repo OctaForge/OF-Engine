@@ -45,7 +45,7 @@ module("of.engine_variables", package.seeall)
 
 -- Variable types
 
---- Variable convert. (not table)
+--- Variable types. (not table)
 -- @class table
 -- @name vartypes
 -- @field VAR_I Integer variable.

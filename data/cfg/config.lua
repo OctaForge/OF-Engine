@@ -48,4 +48,4 @@ function delta_edit_16(a) of.world.vdelta([[of.world.voffset(0, %(1)i * %(2)i)]]
 function delta_edit_17(a) of.world.vdelta([[of.world.vrotate(%(1)i)]] % { a }) end
 function delta_edit_18(a) of.world.vdelta([[of.world.vscale(%(1)i < 0 and 0.5 or 2)]] % { a }) end
 
-function delta_game_0(a) of.camera[a == 1 and "camdec" or "caminc"]() end
+function delta_game_0(a) camera[a == 1 and "zoom_out" or "zoom_in"]() end

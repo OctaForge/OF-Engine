@@ -28,8 +28,8 @@
 
 --- Camera for OF's Lua interface.
 -- @class module
--- @name of.camera
-module("of.camera", package.seeall)
+-- @name camera
+module("camera", package.seeall)
 
 --- Force yaw, pitch, roll and fov of a camera.
 -- @param yaw Yaw to force.
@@ -37,8 +37,8 @@ module("of.camera", package.seeall)
 -- @param roll Roll to force.
 -- @param fov Field of view to force.
 -- @class function
--- @name forcecam
-forcecam = CAPI.forcecam
+-- @name force
+force = CAPI.forcecam
 
 --- Force camera position.
 -- @param x X position.
@@ -74,25 +74,25 @@ forcefov = CAPI.forcefov
 
 --- Reset camera (cancel all forcing)
 -- @class function
--- @name resetcam
-resetcam = CAPI.resetcam
+-- @name reset
+reset = CAPI.resetcam
 
 --- Get a table containing position
 -- as a vec3, yaw, pitch and roll.
 -- @return A table with camera info.
 -- @class function
--- @name getcam
-getcam = CAPI.getcam
+-- @name get
+get = CAPI.getcam
 
 --- Increase camera zoom.
 -- @class function
 -- @name caminc
-caminc = CAPI.caminc
+zoom_in = CAPI.caminc
 
 --- Decrease camera zoom.
 -- @class function
 -- @name camdec
-camdec = CAPI.camdec
+zoom_out = CAPI.camdec
 
 --- Toggle mouse looking.
 -- @class function
@@ -102,4 +102,4 @@ mouselook = CAPI.mouselook
 --- Toggle character viewing.
 -- @class function
 -- @name characterview
-characterview = CAPI.characterview
+character_view = CAPI.characterview

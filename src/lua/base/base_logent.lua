@@ -66,7 +66,7 @@ function root_logent:_general_setup()
     if self._general_setup_complete then return nil end
     of.signals.methods_add(self)
 
-    self.action_system = of.action.action_system(self)
+    self.action_system = actions.action_system(self)
     self.state_var_vals = {}
     -- caching reads from script into c++ (search for -- caching)
     self.state_var_val_timestamps = {}

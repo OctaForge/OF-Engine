@@ -151,8 +151,8 @@ of.console.binds.addedit("KP6", [[of.console.turn_right()]])
 of.console.binds.addedit("KP8", [[if blendpaintmode ~= 0 then of.blend.brush.scroll(-1) else of.console.forward() end]])
 of.console.binds.addedit("KP9", [[of.blend.brush.scroll(1)]])
 
-of.console.binds.add("M", [[of.camera.mouselook()]])
-of.console.binds.addedit("M", [[of.camera.mouselook()]])
+of.console.binds.add("M", [[camera.mouselook()]])
+of.console.binds.addedit("M", [[camera.mouselook()]])
 of.console.binds.addvaredit("0", "showmat")
 
 of.console.binds.add("PAGEDOWN", [[of.console.look_up()]])

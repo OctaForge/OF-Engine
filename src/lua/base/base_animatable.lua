@@ -64,7 +64,7 @@ function animatable_logent:init(uid, kwargs)
 
     self.modelname = ""
     self.attachments = {}
-    self.animation = math.bor(of.action.ANIM_IDLE, of.action.ANIM_LOOP)
+    self.animation = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
 end
 
 --- Serverside entity activation.
@@ -121,7 +121,7 @@ end
 --- Local animation action.
 -- @class table
 -- @name action_localanim
-action_localanim = class.new(of.action.action)
+action_localanim = class.new(actions.action)
 
 --- Return string representation of action.
 -- @return String representation of action.

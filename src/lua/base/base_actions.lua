@@ -28,8 +28,8 @@
 
 --- Action system (actions / queue) for OF Lua interface.
 -- @class module
--- @name of.action
-module("of.action", package.seeall)
+-- @name actions
+module("actions", package.seeall)
 
 ANIM_DEAD = 0
 ANIM_DYING = 1

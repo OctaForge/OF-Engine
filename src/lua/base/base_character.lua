@@ -274,31 +274,31 @@ function character:decide_animation(state, pstate, move, strafe, vel, falling, i
     local anim = self:decide_action_animation()
 
     if state == CSTATE.EDITING or state == CSTATE.SPECTATOR then
-        anim = math.bor(of.action.ANIM_EDIT, of.action.ANIM_LOOP)
+        anim = math.bor(actions.ANIM_EDIT, actions.ANIM_LOOP)
     elseif state == CSTATE.LAGGED then
-        anim = math.bor(of.action.ANIM_LAG, of.action.ANIM_LOOP)
+        anim = math.bor(actions.ANIM_LAG, actions.ANIM_LOOP)
     else
         if inwater and pstate <= PSTATE.FALL then
-            anim = math.bor(anim, math.lsh(math.bor(((move or strafe) or vel.z + falling.z > 0) and of.action.ANIM_SWIM or of.action.ANIM_SINK, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
+            anim = math.bor(anim, math.lsh(math.bor(((move or strafe) or vel.z + falling.z > 0) and actions.ANIM_SWIM or actions.ANIM_SINK, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
         elseif timeinair > 250 then
-            anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_JUMP, of.action.ANIM_END), of.action.ANIM_SECONDARY))
+            anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_JUMP, actions.ANIM_END), actions.ANIM_SECONDARY))
         elseif move or strafe then
             if move > 0 then
-                anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_FORWARD, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
+                anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_FORWARD, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
             elseif strafe then
-                anim = math.bor(anim, math.lsh(math.bor((strafe > 0 and ANIM_LEFT or ANIM_RIGHT), of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
+                anim = math.bor(anim, math.lsh(math.bor((strafe > 0 and ANIM_LEFT or ANIM_RIGHT), actions.ANIM_LOOP), actions.ANIM_SECONDARY))
             elseif move < 0 then
-                anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_BACKWARD, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
+                anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_BACKWARD, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
             end
         end
 
-        if math.band(anim, of.action.ANIM_INDEX) == of.action.ANIM_TITLE and math.band(math.rsh(anim, of.action.ANIM_SECONDARY), of.action.ANIM_INDEX) then
-            anim = math.rsh(anim, of.action.ANIM_SECONDARY)
+        if math.band(anim, actions.ANIM_INDEX) == actions.ANIM_TITLE and math.band(math.rsh(anim, actions.ANIM_SECONDARY), actions.ANIM_INDEX) then
+            anim = math.rsh(anim, actions.ANIM_SECONDARY)
         end
     end
 
-    if not math.band(math.rsh(anim, of.action.ANIM_SECONDARY), of.action.ANIM_INDEX) then
-        anim = math.bor(anim, math.lsh(math.bor(of.action.ANIM_IDLE, of.action.ANIM_LOOP), of.action.ANIM_SECONDARY))
+    if not math.band(math.rsh(anim, actions.ANIM_SECONDARY), actions.ANIM_INDEX) then
+        anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
     end
 
     return anim
