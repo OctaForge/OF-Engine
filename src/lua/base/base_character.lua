@@ -72,10 +72,10 @@ PSTATE = {
 }
 
 --- Base character class, inherited from animatable_logent.
--- Used as a base for player of.class.
+-- Used as a base for player class.
 -- @class table
 -- @name character
-character = of.class.new(of.animatable.animatable_logent)
+character = class.new(of.animatable.animatable_logent)
 character._class = "character"
 character._sauertype = "fpsent"
 
@@ -336,7 +336,7 @@ end
 -- @class table
 -- @name player
 -- @see character
-player = of.class.new(character)
+player = class.new(character)
 player._class = "player"
 
 --- Base properties of player entity.

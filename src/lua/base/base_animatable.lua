@@ -34,7 +34,7 @@ module("of.animatable", package.seeall)
 --- Base animatable logic entity class, not meant to be used directly.
 -- @class table
 -- @name animatable_logent
-animatable_logent = of.class.new(of.logent.logent)
+animatable_logent = class.new(of.logent.logent)
 animatable_logent._class = "animatable_logent"
 
 --- Base properties of animatable logic entity.
@@ -121,7 +121,7 @@ end
 --- Local animation action.
 -- @class table
 -- @name action_localanim
-action_localanim = of.class.new(of.action.action)
+action_localanim = class.new(of.action.action)
 
 --- Return string representation of action.
 -- @return String representation of action.

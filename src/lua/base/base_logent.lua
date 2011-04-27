@@ -40,7 +40,7 @@ of.logging.log(of.logging.DEBUG, "Generating logent system with CLIENT = " .. to
 --- Root logic entity class, not meant to be used directly.
 -- @class table
 -- @name root_logent
-root_logent = of.class.new()
+root_logent = class.new()
 root_logent._class = "logent"
 root_logent.should_act = true
 
@@ -232,7 +232,7 @@ end
 --- Client version of root logic entity.
 -- @class table
 -- @name client_logent
-client_logent = of.class.new(root_logent)
+client_logent = class.new(root_logent)
 
 --- Entity activation.
 -- @param kwargs This in fact doesn't do anything, but it makes effect on entities inherited from this.
@@ -293,7 +293,7 @@ end
 --- Server version of root logic entity.
 -- @class table
 -- @name server_logent
-server_logent = of.class.new(root_logent)
+server_logent = class.new(root_logent)
 server_logent.sent_notification_complete = false
 
 --- Initializer method. Called on creation. Performs some basic setup.

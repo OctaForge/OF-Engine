@@ -35,7 +35,7 @@ module("of.utils", package.seeall)
 --- A simple timer.
 -- @class table
 -- @name repeatingtimer
-repeatingtimer = of.class.new()
+repeatingtimer = class.new()
 
 --- Return string representation of a timer.
 -- @return String representation of a timer.

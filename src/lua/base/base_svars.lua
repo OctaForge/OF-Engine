@@ -71,7 +71,7 @@ end
 --- Default state variable class, all other inherit from this.
 -- @class table
 -- @name state_variable
-state_variable = of.class.new()
+state_variable = class.new()
 
 --- Return string representation of state variable.
 -- @return String representation of state variable.
@@ -198,53 +198,53 @@ end
 -- from_(wire|data) convert string back to integer.
 -- @class table
 -- @name state_integer
-state_integer = of.class.new(state_variable)
+state_integer = class.new(state_variable)
 function state_integer:__tostring() return "state_integer" end
-function state_integer:to_wire(v) return of.typeconv.tostring(v) end
-function state_integer:from_wire(v) return of.typeconv.tointeger(v) end
-function state_integer:to_data(v) return of.typeconv.tostring(v) end
-function state_integer:from_data(v) return of.typeconv.tointeger(v) end
+function state_integer:to_wire(v) return convert.tostring(v) end
+function state_integer:from_wire(v) return convert.tointeger(v) end
+function state_integer:to_data(v) return convert.tostring(v) end
+function state_integer:from_data(v) return convert.tointeger(v) end
 
 --- State float. to_(wire|data) return a string with max two digits after
 -- floating point. from_(wire|data) convert string back to integer.
 -- @class table
 -- @name state_float
-state_float = of.class.new(state_variable)
+state_float = class.new(state_variable)
 function state_float:__tostring() return "state_float" end
-function state_float:to_wire(v) return of.typeconv.todec2str(v) end
-function state_float:from_wire(v) return of.typeconv.tonumber(v) end
-function state_float:to_data(v) return of.typeconv.todec2str(v) end
-function state_float:from_data(v) return of.typeconv.tonumber(v) end
+function state_float:to_wire(v) return convert.todec2str(v) end
+function state_float:from_wire(v) return convert.tonumber(v) end
+function state_float:to_data(v) return convert.todec2str(v) end
+function state_float:from_data(v) return convert.tonumber(v) end
 
 --- State boolean. to_(wire|data) return a string, from_(wire|data) convert
 -- it back to boolean.
 -- @class table
 -- @name state_bool
-state_bool = of.class.new(state_variable)
+state_bool = class.new(state_variable)
 function state_bool:__tostring() return "state_bool" end
-function state_bool:to_wire(v) return of.typeconv.tostring(v) end
-function state_bool:from_wire(v) return of.typeconv.toboolean(v) end
-function state_bool:to_data(v) return of.typeconv.tostring(v) end
-function state_bool:from_data(v) return of.typeconv.toboolean(v) end
+function state_bool:to_wire(v) return convert.tostring(v) end
+function state_bool:from_wire(v) return convert.toboolean(v) end
+function state_bool:to_data(v) return convert.tostring(v) end
+function state_bool:from_data(v) return convert.toboolean(v) end
 
 --- State string. Simple case, because purely string manipulation gets performed.
 -- Though, some tostring conversions are done to make sure. TODO: get rid of them?
 -- requires testing without conversions.
 -- @class table
 -- @name state_string
-state_string = of.class.new(state_variable)
+state_string = class.new(state_variable)
 function state_string:__tostring() return "state_string" end
-function state_string:to_wire(v) return of.typeconv.tostring(v) end
-function state_string:from_wire(v) return of.typeconv.tostring(v) end
-function state_string:to_data(v) return of.typeconv.tostring(v) end
-function state_string:from_data(v) return of.typeconv.tostring(v) end
+function state_string:to_wire(v) return convert.tostring(v) end
+function state_string:from_wire(v) return convert.tostring(v) end
+function state_string:to_data(v) return convert.tostring(v) end
+function state_string:from_data(v) return convert.tostring(v) end
 
 --- This class serves as "array surrogate" for state_array.
 -- Currently, array surrogate gets newly created whenever
 -- it's needed - TODO: cache it! And maybe TODO: make DEPRECATED.
 -- @class table
 -- @name array_surrogate
-array_surrogate = of.class.new()
+array_surrogate = class.new()
 
 --- Return string representation of array surrogate.
 -- @return String representation of array surrogate.
@@ -303,7 +303,7 @@ end
 -- State arrays also have (to|from)_(wire|data)_item methods.
 -- @class table
 -- @name state_array
-state_array = of.class.new(state_variable)
+state_array = class.new(state_variable)
 function state_array:__tostring() return "state_array" end
 state_array.separator = "|"
 state_array.surrogate_class = array_surrogate
@@ -354,7 +354,7 @@ function state_array:setter(var, val)
     self:_set_statedata(var._name, data, -1)
 end
 
-state_array.to_wire_item = of.typeconv.tostring
+state_array.to_wire_item = convert.tostring
 
 function state_array:to_wire(v)
     of.logging.log(of.logging.INFO, "to_wire of state_array: " .. of.json.encode(v))
@@ -365,7 +365,7 @@ function state_array:to_wire(v)
     return "[" .. table.concat(table.map(v, self.to_wire_item), self.separator) .. "]"
 end
 
-state_array.from_wire_item = of.typeconv.tostring
+state_array.from_wire_item = convert.tostring
 
 function state_array:from_wire(v)
     of.logging.log(of.logging.DEBUG, "from_wire of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
@@ -376,7 +376,7 @@ function state_array:from_wire(v)
     end
 end
 
-state_array.to_data_item = of.typeconv.tostring
+state_array.to_data_item = convert.tostring
 
 function state_array:to_data(v)
     of.logging.log(of.logging.DEBUG, "(1) to_data of state_array: " .. tostring(v) .. ", " .. type(v) .. ", " .. of.json.encode(v))
@@ -390,7 +390,7 @@ function state_array:to_data(v)
     return "[" .. table.concat(table.map(v, self.to_data_item), self.separator) .. "]"
 end
 
-state_array.from_data_item = of.typeconv.tostring
+state_array.from_data_item = convert.tostring
 
 function state_array:from_data(v)
     of.logging.log(of.logging.DEBUG, "from_data of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
@@ -452,27 +452,27 @@ end
 --- State array with elements of floating point number type.
 -- @class table
 -- @name state_array_float
-state_array_float = of.class.new(state_array)
+state_array_float = class.new(state_array)
 function state_array_float:__tostring() return "state_array_float" end
-state_array_float.to_wire_item = of.typeconv.todec2str
-state_array_float.from_wire_item = of.typeconv.tonumber
-state_array_float.to_data_item = of.typeconv.todec2str
-state_array_float.from_data_item = of.typeconv.tonumber
+state_array_float.to_wire_item = convert.todec2str
+state_array_float.from_wire_item = convert.tonumber
+state_array_float.to_data_item = convert.todec2str
+state_array_float.from_data_item = convert.tonumber
 
 --- State array with elements of integral type.
 -- @class table
 -- @name state_array_integer
-state_array_integer = of.class.new(state_array)
+state_array_integer = class.new(state_array)
 function state_array_integer:__tostring() return "state_array_integer" end
-state_array_integer.to_wire_item = of.typeconv.todec2str
-state_array_integer.from_wire_item = of.typeconv.tointeger
-state_array_integer.to_data_item = of.typeconv.todec2str
-state_array_integer.from_data_item = of.typeconv.tointeger
+state_array_integer.to_wire_item = convert.todec2str
+state_array_integer.from_wire_item = convert.tointeger
+state_array_integer.to_data_item = convert.todec2str
+state_array_integer.from_data_item = convert.tointeger
 
 --- Variable alias. Useful to get simpler setters.
 -- @class table
 -- @name variable_alias
-variable_alias = of.class.new(variable)
+variable_alias = class.new(variable)
 
 --- Return string representation of variable alias.
 -- @return String representation of variable alias.
@@ -506,7 +506,7 @@ function variable_alias:_register(_name, parent)
     assert(not self.altname)
 end
 
--- not actual of.class. meant just for constructing other classes.
+-- not actual class. meant just for constructing other classes.
 wrapped_cvariable = {}
 
 --- Common constructor for wrapped C variables. Wrapped C variables
@@ -605,7 +605,7 @@ end
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cinteger
-wrapped_cinteger = of.class.new(state_integer)
+wrapped_cinteger = class.new(state_integer)
 function wrapped_cinteger:__tostring() return "wrapped_cinteger" end
 wrapped_cinteger.__init    = wrapped_cvariable.__init
 wrapped_cinteger._register = wrapped_cvariable._register
@@ -615,7 +615,7 @@ wrapped_cinteger.getter    = wrapped_cvariable.getter
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cfloat
-wrapped_cfloat = of.class.new(state_float)
+wrapped_cfloat = class.new(state_float)
 function wrapped_cfloat:__tostring() return "wrapped_cfloat" end
 wrapped_cfloat.__init    = wrapped_cvariable.__init
 wrapped_cfloat._register = wrapped_cvariable._register
@@ -625,7 +625,7 @@ wrapped_cfloat.getter    = wrapped_cvariable.getter
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cbool
-wrapped_cbool = of.class.new(state_bool)
+wrapped_cbool = class.new(state_bool)
 function wrapped_cbool:__tostring() return "wrapped_cbool" end
 wrapped_cbool.__init    = wrapped_cvariable.__init
 wrapped_cbool._register = wrapped_cvariable._register
@@ -635,7 +635,7 @@ wrapped_cbool.getter    = wrapped_cvariable.getter
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cstring
-wrapped_cstring = of.class.new(state_string)
+wrapped_cstring = class.new(state_string)
 function wrapped_cstring:__tostring() return "wrapped_cstring" end
 wrapped_cstring.__init    = wrapped_cvariable.__init
 wrapped_cstring._register = wrapped_cvariable._register
@@ -645,7 +645,7 @@ wrapped_cstring.getter    = wrapped_cvariable.getter
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_carray
-wrapped_carray = of.class.new(state_array)
+wrapped_carray = class.new(state_array)
 function wrapped_carray:__tostring() return "wrapped_carray" end
 wrapped_carray.__init    = wrapped_cvariable.__init
 wrapped_carray._register = wrapped_cvariable._register
@@ -685,7 +685,7 @@ end
 -- @class table
 -- @name vec3_surrogate
 -- @see vec4_surrogate
-vec3_surrogate = of.class.new(array_surrogate)
+vec3_surrogate = class.new(array_surrogate)
 
 --- Return string representation of vec3 surrogate.
 -- @return String representation of vec3 surrogate.
@@ -699,21 +699,21 @@ function vec3_surrogate:__tostring() return "vec3_surrogate" end
 function vec3_surrogate:__init(ent, var)
     array_surrogate.__init(self, ent, var)
 
-    self.magnitude = of.vector.vec3.magnitude
-    self.normalize = of.vector.vec3.normalize
-    self.cap = of.vector.vec3.cap
-    self.subnew = of.vector.vec3.subnew
-    self.addnew = of.vector.vec3.addnew
-    self.mulnew = of.vector.vec3.mulnew
-    self.sub = of.vector.vec3.sub
-    self.add = of.vector.vec3.add
-    self.mul = of.vector.vec3.mul
-    self.copy = of.vector.vec3.copy
-    self.getarr = of.vector.vec3.getarr
-    self.fromyawpitch = of.vector.vec3.fromyawpitch
-    self.toyawpitch = of.vector.vec3.toyawpitch
-    self.iscloseto = of.vector.vec3.iscloseto
-    self.dotproduct = of.vector.vec3.dotproduct
+    self.magnitude = math.vec3.magnitude
+    self.normalize = math.vec3.normalize
+    self.cap = math.vec3.cap
+    self.subnew = math.vec3.subnew
+    self.addnew = math.vec3.addnew
+    self.mulnew = math.vec3.mulnew
+    self.sub = math.vec3.sub
+    self.add = math.vec3.add
+    self.mul = math.vec3.mul
+    self.copy = math.vec3.copy
+    self.getarr = math.vec3.getarr
+    self.fromyawpitch = math.vec3.fromyawpitch
+    self.toyawpitch = math.vec3.toyawpitch
+    self.iscloseto = math.vec3.iscloseto
+    self.dotproduct = math.vec3.dotproduct
 
     self.entity = ent
     self.variable = var
@@ -761,16 +761,16 @@ end
 -- @class table
 -- @name wrapped_cvec3
 -- @see wrapped_cvec4
-wrapped_cvec3 = of.class.new(state_array)
+wrapped_cvec3 = class.new(state_array)
 function wrapped_cvec3:__tostring() return "wrapped_cvec3" end
 
 wrapped_cvec3.surrogate_class = vec3_surrogate
 wrapped_cvec3.__init          = wrapped_cvariable.__init
 wrapped_cvec3._register       = wrapped_cvariable._register
-wrapped_cvec3.from_wire_item  = of.typeconv.tonumber
-wrapped_cvec3.to_wire_item    = of.typeconv.todec2str
-wrapped_cvec3.from_data_item  = of.typeconv.tonumber
-wrapped_cvec3.to_data_item    = of.typeconv.todec2str
+wrapped_cvec3.from_wire_item  = convert.tonumber
+wrapped_cvec3.to_wire_item    = convert.todec2str
+wrapped_cvec3.from_data_item  = convert.tonumber
+wrapped_cvec3.to_data_item    = convert.todec2str
 wrapped_cvec3.get_raw         = wrapped_carray.get_raw
 
 --- State vec3. Inherits state array, but uses
@@ -779,21 +779,21 @@ wrapped_cvec3.get_raw         = wrapped_carray.get_raw
 -- @class table
 -- @name state_vec3
 -- @see state_vec4
-state_vec3 = of.class.new(state_array)
+state_vec3 = class.new(state_array)
 function state_vec3:__tostring() return "state_vec3" end
 
 state_vec3.surrogate_class = vec3_surrogate
-state_vec3.from_wire_item  = of.typeconv.tonumber
-state_vec3.to_wire_item    = of.typeconv.todec2str
-state_vec3.from_data_item  = of.typeconv.tonumber
-state_vec3.to_data_item    = of.typeconv.todec2str
+state_vec3.from_wire_item  = convert.tonumber
+state_vec3.to_wire_item    = convert.todec2str
+state_vec3.from_data_item  = convert.tonumber
+state_vec3.to_data_item    = convert.todec2str
 
 --- This inherits from array surrogate in order to achieve
 -- vec4 behavior. Used by state_vec4 and wrapped_cvec4.
 -- @class table
 -- @name vec4_surrogate
 -- @see vec3_surrogate
-vec4_surrogate = of.class.new(array_surrogate)
+vec4_surrogate = class.new(array_surrogate)
 
 --- Return string representation of vec4 surrogate.
 -- @return String representation of vec4 surrogate.
@@ -807,23 +807,23 @@ function vec4_surrogate:__tostring() return "vec4_surrogate" end
 function vec4_surrogate:__init(ent, var)
     array_surrogate.__init(self, ent, var)
 
-    self.magnitude = of.vector.vec4.magnitude
-    self.subnew = of.vector.vec4.subnew
-    self.addnew = of.vector.vec4.addnew
-    self.mulnew = of.vector.vec4.mulnew
-    self.sub = of.vector.vec4.sub
-    self.add = of.vector.vec4.add
-    self.mul = of.vector.vec4.mul
-    self.copy = of.vector.vec4.copy
-    self.getarr = of.vector.vec4.getarr
-    self.quatfromaxiangle = of.vector.vec4.quatfromaxiangle
-    self.toyawpitchroll = of.vector.vec4.toyawpitchroll
-    self.normalize = of.vector.vec4.normalize
-    self.cap = of.vector.vec4.cap
-    self.fromyawpitch = of.vector.vec4.fromyawpitch
-    self.toyawpitch = of.vector.vec4.toyawpitch
-    self.iscloseto = of.vector.vec4.iscloseto
-    self.dotproduct = of.vector.vec4.dotproduct
+    self.magnitude = math.vec4.magnitude
+    self.subnew = math.vec4.subnew
+    self.addnew = math.vec4.addnew
+    self.mulnew = math.vec4.mulnew
+    self.sub = math.vec4.sub
+    self.add = math.vec4.add
+    self.mul = math.vec4.mul
+    self.copy = math.vec4.copy
+    self.getarr = math.vec4.getarr
+    self.quatfromaxiangle = math.vec4.quatfromaxiangle
+    self.toyawpitchroll = math.vec4.toyawpitchroll
+    self.normalize = math.vec4.normalize
+    self.cap = math.vec4.cap
+    self.fromyawpitch = math.vec4.fromyawpitch
+    self.toyawpitch = math.vec4.toyawpitch
+    self.iscloseto = math.vec4.iscloseto
+    self.dotproduct = math.vec4.dotproduct
 
     self.entity = ent
     self.variable = var
@@ -875,16 +875,16 @@ end
 -- @class table
 -- @name wrapped_cvec4
 -- @see wrapped_cvec3
-wrapped_cvec4 = of.class.new(state_array)
+wrapped_cvec4 = class.new(state_array)
 function wrapped_cvec4:__tostring() return "wrapped_cvec4" end
 
 wrapped_cvec4.surrogate_class = vec4_surrogate
 wrapped_cvec4.__init          = wrapped_cvariable.__init
 wrapped_cvec4._register       = wrapped_cvariable._register
-wrapped_cvec4.from_wire_item  = of.typeconv.tonumber
-wrapped_cvec4.to_wire_item    = of.typeconv.todec2str
-wrapped_cvec4.from_data_item  = of.typeconv.tonumber
-wrapped_cvec4.to_data_item    = of.typeconv.todec2str
+wrapped_cvec4.from_wire_item  = convert.tonumber
+wrapped_cvec4.to_wire_item    = convert.todec2str
+wrapped_cvec4.from_data_item  = convert.tonumber
+wrapped_cvec4.to_data_item    = convert.todec2str
 wrapped_cvec4.get_raw         = wrapped_carray.get_raw
 
 --- State vec4. Inherits state array, but uses
@@ -893,21 +893,21 @@ wrapped_cvec4.get_raw         = wrapped_carray.get_raw
 -- @class table
 -- @name state_vec4
 -- @see state_vec3
-state_vec4 = of.class.new(state_array)
+state_vec4 = class.new(state_array)
 function state_vec4:__tostring() return "state_vec4" end
 
 state_vec4.surrogate_class = vec4_surrogate
-state_vec4.from_wire_item  = of.typeconv.tonumber
-state_vec4.to_wire_item    = of.typeconv.todec2str
-state_vec4.from_data_item  = of.typeconv.tonumber
-state_vec4.to_data_item    = of.typeconv.todec2str
+state_vec4.from_wire_item  = convert.tonumber
+state_vec4.to_wire_item    = convert.todec2str
+state_vec4.from_data_item  = convert.tonumber
+state_vec4.to_data_item    = convert.todec2str
 
 --- State of.json. Simple state variable. On to_(wire|data)
 -- it encodes JSON table, on from_(wire|data), it decodes
 -- JSON string.
 -- @class table
 -- @name state_json
-state_json = of.class.new(state_variable)
+state_json = class.new(state_variable)
 function state_json:__tostring() return "state_json" end
 function state_json:to_wire(v) return of.json.encode(v) end
 function state_json:from_wire(v) return of.json.decode(v) end

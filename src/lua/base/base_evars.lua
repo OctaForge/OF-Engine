@@ -45,7 +45,7 @@ module("of.engine_variables", package.seeall)
 
 -- Variable types
 
---- Variable types. (not table)
+--- Variable convert. (not table)
 -- @class table
 -- @name vartypes
 -- @field VAR_I Integer variable.
@@ -63,7 +63,7 @@ VAR_S = 2
 -- @field stor The storage table.
 -- @field reg The register function.
 -- @field clear The clear function.
-storage = of.class.new()
+storage = class.new()
 storage.stor = {}
 
 --- Register a variable into storage.
@@ -99,11 +99,11 @@ inst = storage()
 
 -- Variable classes
 
---- Default skeleton variable of.class.
+--- Default skeleton variable class.
 -- @class table
 -- @name _VAR
 -- @field __init The constructor.
-_VAR = of.class.new()
+_VAR = class.new()
 
 --- Constructor for default engine variable skeleton.
 -- @param name Name of the variable.
@@ -122,16 +122,16 @@ function _VAR:__init(name, minv, curv, maxv, ro, alias)
     self.alias = alias
 end
 
---- Integer variable of.class.
+--- Integer variable class.
 -- @class table
 -- @name IVAR
 -- @field __init The constructor.
 -- @field __tostring Returns string representation.
 -- @field check_bounds Returns true if value to set is in variable bounds.
-IVAR = of.class.new(_VAR)
+IVAR = class.new(_VAR)
 
---- Returns string representation of the variable of.class.
--- @return A string representing the variable of.class.
+--- Returns string representation of the variable class.
+-- @return A string representing the variable class.
 function IVAR:__tostring() return "IVAR" end
 
 --- Constructor for integer variable.
@@ -173,16 +173,16 @@ function IVAR:check_bounds(v)
     return true
 end
 
---- Float variable of.class. Inherited from IVAR, takes its check_bounds.
+--- Float variable class. Inherited from IVAR, takes its check_bounds.
 -- @class table
 -- @name FVAR
 -- @field __init The constructor.
 -- @field __tostring Returns string representation.
 -- @field check_bounds Returns true if value to set is in variable bounds.
-FVAR = of.class.new(IVAR)
+FVAR = class.new(IVAR)
 
---- Returns string representation of the variable of.class.
--- @return A string representing the variable of.class.
+--- Returns string representation of the variable class.
+-- @return A string representing the variable class.
 function FVAR:__tostring() return "FVAR" end
 
 --- Constructor for float variable.
@@ -202,16 +202,16 @@ function FVAR:__init(name, minv, curv, maxv, ro, alias)
     self.type = VAR_F
 end
 
---- String variable of.class.
+--- String variable class.
 -- @class table
 -- @name FVAR
 -- @field __init The constructor.
 -- @field __tostring Returns string representation.
 -- @field check_bounds Returns true if value to set is in variable bounds.
-SVAR = of.class.new(_VAR)
+SVAR = class.new(_VAR)
 
---- Returns string representation of the variable of.class.
--- @return A string representing the variable of.class.
+--- Returns string representation of the variable class.
+-- @return A string representing the variable class.
 function SVAR:__tostring() return "SVAR" end
 
 --- Constructor for string variable.

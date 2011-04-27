@@ -83,7 +83,7 @@ ANIM_RAGDOLL = math.lsh(1, 27)
 --- Default action class, every other action inherits from this.
 -- @class table
 -- @name action
-action = of.class.new()
+action = class.new()
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -214,7 +214,7 @@ end
 -- always returning false on doexecute.
 -- @class table
 -- @name action_infinite
-action_infinite = of.class.new(action)
+action_infinite = class.new(action)
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -232,7 +232,7 @@ end
 -- actions inherit this class and save some code.
 -- @class table
 -- @name action_targeted
-action_targeted = of.class.new(action)
+action_targeted = class.new(action)
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -253,7 +253,7 @@ end
 -- Useful for queuing a command for next act() of entity.
 -- @class table
 -- @name action_singlecommand
-action_singlecommand = of.class.new(action)
+action_singlecommand = class.new(action)
 
 --- Return string representation of action.
 -- @return String representation of action.
@@ -283,7 +283,7 @@ end
 --- Action queue for single logent and their management.
 -- @class table
 -- @name action_system
-action_system = of.class.new()
+action_system = class.new()
 
 --- Action system constructor. Accepts parent logent. Initializes action queue.
 -- @param parent The parent logent.

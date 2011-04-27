@@ -32,8 +32,8 @@
 -- for virtual class members and get / set conditional function for emulating private
 -- class members, which might be useful sometimes.
 -- @class module
--- @name of.class
-module("of.class", package.seeall)
+-- @name class
+module("class", package.seeall)
 
 --- Create a new class.
 -- <br/><br/>Usage:<br/><br/>

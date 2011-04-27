@@ -42,7 +42,7 @@ module("of.statent", package.seeall)
 -- by overriding should_act property).
 -- @class table
 -- @name statent
-statent = of.class.new(of.animatable.animatable_logent)
+statent = class.new(of.animatable.animatable_logent)
 statent._class = "statent"
 
 statent.should_act = false
@@ -201,10 +201,10 @@ function statent:get_center()
     return r
 end
 
---- Light entity of.class.
+--- Light entity class.
 -- @class table
 -- @name light
-light = of.class.new(statent)
+light = class.new(statent)
 light._class = "light"
 light._sauertype_index = 1
 
@@ -251,10 +251,10 @@ function light:init(uid, kwargs)
     self.blue = 128
 end
 
---- Spotlight entity of.class.
+--- Spotlight entity class.
 -- @class table
 -- @name spotlight
-spotlight = of.class.new(statent)
+spotlight = class.new(statent)
 spotlight._class = "spotlight"
 spotlight._sauertype_index = 7
 
@@ -283,10 +283,10 @@ function spotlight:init(uid, kwargs)
     self.radius = 90
 end
 
---- Envmap entity of.class.
+--- Envmap entity class.
 -- @class table
 -- @name envmap
-envmap = of.class.new(statent)
+envmap = class.new(statent)
 envmap._class = "envmap"
 envmap._sauertype_index = 4
 
@@ -315,10 +315,10 @@ function envmap:init(uid, kwargs)
     self.radius = 128
 end
 
---- Ambient sound entity of.class.
+--- Ambient sound entity class.
 -- @class table
 -- @name ambient_sound
-ambient_sound = of.class.new(statent)
+ambient_sound = class.new(statent)
 ambient_sound._class = "ambient_sound"
 ambient_sound._sauertype_index = 6
 
@@ -363,10 +363,10 @@ function ambient_sound:init(uid, kwargs)
     self.soundname = ""
 end
 
---- Particle effect entity of.class.
+--- Particle effect entity class.
 -- @class table
 -- @name particle_effect
-particle_effect = of.class.new(statent)
+particle_effect = class.new(statent)
 particle_effect._class = "particle_effect"
 particle_effect._sauertype_index = 5
 
@@ -413,10 +413,10 @@ function particle_effect:init(uid, kwargs)
     self.value3 = 0
 end
 
---- Mapmodel entity of.class.
+--- Mapmodel entity class.
 -- @class table
 -- @name mapmodel
-mapmodel = of.class.new(statent)
+mapmodel = class.new(statent)
 mapmodel._class = "mapmodel"
 mapmodel._sauertype_index = 2
 
@@ -495,11 +495,11 @@ function mapmodel:get_center()
     end
 end
 
---- Area trigger entity of.class. Inherited from mapmodel.
+--- Area trigger entity class. Inherited from mapmodel.
 -- Calls a script when an entity goes through it.
 -- @class table
 -- @name area_trigger
-area_trigger = of.class.new(mapmodel)
+area_trigger = class.new(mapmodel)
 area_trigger._class = "area_trigger"
 -- ran on collision
 
@@ -546,11 +546,11 @@ function area_trigger:on_collision(collider)
     end
 end
 
---- Resettable area trigger entity of.class. Inherited from area_trigger.
+--- Resettable area trigger entity class. Inherited from area_trigger.
 -- Calls a script when an entity goes through it. Can be re-set.
 -- @class table
 -- @name resettable_area_trigger
-resettable_area_trigger = of.class.new(area_trigger)
+resettable_area_trigger = class.new(area_trigger)
 resettable_area_trigger._class = "resettable_area_trigger"
 resettable_area_trigger.properties = area_trigger.properties
 
@@ -622,12 +622,12 @@ end
 function resettable_area_trigger:client_on_trigger(collider)
 end
 
---- World marker entity of.class. Serves as generic marker
+--- World marker entity class. Serves as generic marker
 -- in the world, so can be used as player start,
 -- point to later get from scripting system etc.
 -- @class table
 -- @name world_marker
-world_marker = of.class.new(statent)
+world_marker = class.new(statent)
 world_marker._class = "world_marker"
 world_marker._sauertype_index = 3
 

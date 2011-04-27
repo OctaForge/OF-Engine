@@ -38,7 +38,7 @@ module("of.sound", package.seeall)
 -- @param v Sound volume (0 to 100, optional)
 -- @param cn Client number (optional, server only, defaults to all clients)
 function play(n, p, v, cn)
-    p = p or of.vector.vec3(0, 0, 0)
+    p = p or math.vec3(0, 0, 0)
 
     if of.global.CLIENT then
         CAPI.playsoundname(n, p.x, p.y, p.z, v)

@@ -31,8 +31,8 @@
 -- tointeger is a new method too, tonumber and tostring are wrapped.
 -- tocalltable is new and converts function to callable table.
 -- @class module
--- @name of.typeconv
-module("of.typeconv", package.seeall)
+-- @name convert
+module("convert", package.seeall)
 
 --- Convert types into boolean.
 -- @param v Value to convert.
@@ -70,11 +70,17 @@ end
 -- Convert types into number.
 -- @param v Value to convert.
 -- @return A number value.
-tonumber = _G["tonumber"];
+function tonumber(v)
+    return (type(v) == "boolean" and
+        (v and 1 or 0) or _G["tonumber"](v)
+    )
+end
 
 -- Convert types into string.
 -- @param v Value to convert.
 -- @return A string value.
+-- @class function
+-- @name tostring
 tostring = _G["tostring"];
 
 --- Make function a callable table.
@@ -91,15 +97,15 @@ end
 -- @param v The array to convert.
 -- @return vec3 of the numbers.
 function tovec3(v)
-    if v.is_a and v:is_a(of.vector.vec3) then return v end
-    return of.vector.vec3(v[1], v[2], v[3])
+    if v.is_a and v:is_a(math.vec3) then return v end
+    return math.vec3(v[1], v[2], v[3])
 end
 
 --- Convert array of four numbers to vec4.
 -- @param v The array to convert.
 -- @return vec4 of the numbers.
 function tovec4(v)
-    if v.is_a and v:is_a(of.vector.vec4) then return v end
-    return of.vector.vec4(v[1], v[2], v[3], v[4])
+    if v.is_a and v:is_a(math.vec4) then return v end
+    return math.vec4(v[1], v[2], v[3], v[4])
 end
 

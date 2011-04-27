@@ -26,15 +26,13 @@
 -- THE SOFTWARE.
 --
 
+of.logging.log(of.logging.DEBUG, ":: Class system.")
+require("language.mod_class")
 of.logging.log(of.logging.DEBUG, ":: Math extensions.")
 require("language.ext_math")
 of.logging.log(of.logging.DEBUG, ":: Table extensions.")
 require("language.ext_table")
 of.logging.log(of.logging.DEBUG, ":: String extensions.")
 require("language.ext_string")
-of.logging.log(of.logging.DEBUG, ":: Class system.")
-require("language.mod_class")
-of.logging.log(of.logging.DEBUG, ":: Vectors.")
-require("language.mod_vec")
 of.logging.log(of.logging.DEBUG, ":: Type conversion.")
 require("language.mod_conv")

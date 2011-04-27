@@ -571,8 +571,8 @@ namespace lua
     lua_Engine& lua_Engine::push(vec v)
     {
         if (!m_hashandle) return *this;
-        getg("of").t_getraw("vector").t_getraw("vec3");
-        lua_remove(m_handle, -2); lua_remove(m_handle, -2);
+        getg("math").t_getraw("vec3");
+        lua_remove(m_handle, -2);
         push(v.x);
         push(v.y);
         push(v.z);
@@ -583,8 +583,8 @@ namespace lua
     lua_Engine& lua_Engine::push(vec4 v)
     {
         if (!m_hashandle) return *this;
-        getg("of").t_getraw("vector").t_getraw("vec4");
-        lua_remove(m_handle, -2); lua_remove(m_handle, -2);
+        getg("math").t_getraw("vec4");
+        lua_remove(m_handle, -2);
         push(v.x);
         push(v.y);
         push(v.z);
