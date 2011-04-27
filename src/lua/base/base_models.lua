@@ -97,6 +97,13 @@ reload = CAPI.reloadmodel
 -- @name render
 render = CAPI.rendermodel
 
+-- Find mesh animations.
+-- @param n Mesh name.
+-- @return List of anims as string, items separated by whitespace.
+-- @class function
+-- @name findanims
+findanims = CAPI.findanims
+
 --- Create attachment string.
 -- @param t Tag of the model.
 -- @param n Name of the attachment.
