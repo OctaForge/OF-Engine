@@ -32,8 +32,8 @@
 -- if argument passed to it can be simplified, the second one does actual
 -- simplification.
 -- @class module
--- @name of.json
-module("of.json", package.seeall)
+-- @name json
+module("json", package.seeall)
 
 -- OctaForge content
 -- Table storing information about simplification registers.

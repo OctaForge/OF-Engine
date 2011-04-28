@@ -273,8 +273,7 @@ namespace var
 
     void cvar::regliv()
     {
-        lua::engine.getg("of")
-                   .t_getraw("engine_variables")
+        lua::engine.getg("engine")
                    .t_getraw("ivar")
                    .push(name)
                    .push(minv.i)
@@ -283,13 +282,12 @@ namespace var
                    .push(readonly)
                    .push(alias)
                    .call(6)
-                   .pop(2);
+                   .pop(1);
     }
 
     void cvar::reglfv()
     {
-        lua::engine.getg("of")
-                   .t_getraw("engine_variables")
+        lua::engine.getg("engine")
                    .t_getraw("fvar")
                    .push(name)
                    .push(minv.f)
@@ -298,20 +296,19 @@ namespace var
                    .push(readonly)
                    .push(alias)
                    .call(6)
-                   .pop(2);
+                   .pop(1);
     }
 
     void cvar::reglsv()
     {
-        lua::engine.getg("of")
-                   .t_getraw("engine_variables")
+        lua::engine.getg("engine")
                    .t_getraw("svar")
                    .push(name)
                    .push(curv.s)
                    .push(readonly)
                    .push(alias)
                    .call(4)
-                   .pop(2);
+                   .pop(1);
     }
 
     /*
@@ -324,8 +321,8 @@ namespace var
         if ((luasync || alias) && lua::engine.hashandle()) \
         { \
             defformatstring(buf)("%s_ns", name); \
-            lua::engine.getg("of").t_getraw("engine_variables") \
-                       .t_getraw("inst").t_set(buf, v).pop(3); \
+            lua::engine.getg("engine") \
+                       .t_getraw("vars").t_set(buf, v).pop(2); \
         }
 
         switch (type)

@@ -28,8 +28,8 @@
 
 --- This module takes care of logic entity classes.
 -- @class module
--- @name of.logent.classes
-module("of.logent.classes", package.seeall)
+-- @name entity_classes
+module("entity_classes", package.seeall)
 
 _logent_classes = {}
 
@@ -41,13 +41,13 @@ _logent_classes = {}
 function reg(_cl, st)
     local _cln = _cl._class
 
-    of.logging.log(of.logging.DEBUG, "registering LE class: " .. tostring(_cln))
+    logging.log(logging.DEBUG, "registering LE class: " .. tostring(_cln))
 
     if not st then
         local _base = _cl.__base
         while _base do
             local _pn = __class
-            of.logging.log(of.logging.DEBUG, "finding sauertype in parent: " .. tostring(_pn))
+            logging.log(logging.DEBUG, "finding sauertype in parent: " .. tostring(_pn))
             local stype = get_sauertype(_pn)
             if stype then
                 st = stype
@@ -69,15 +69,15 @@ function reg(_cl, st)
     local inst = _cl()
     for i = 1, #inst.properties do
         local var = inst.properties[i][2]
-        of.logging.log(of.logging.INFO, "considering " .. tostring(inst.properties[i][1]) .. " -- " .. tostring(var))
-        if of.state_variables.is(var) then
-            of.logging.log(of.logging.INFO, "setting up " .. tostring(inst.properties[i][1]))
+        logging.log(logging.INFO, "considering " .. tostring(inst.properties[i][1]) .. " -- " .. tostring(var))
+        if state_variables.is(var) then
+            logging.log(logging.INFO, "setting up " .. tostring(inst.properties[i][1]))
             table.insert(sv_names, tostring(inst.properties[i][1]))
         end
     end
 
-    of.logging.log(of.logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
-    of.msgsys.genprod(tostring(_cln), sv_names)
+    logging.log(logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
+    message.genprod(tostring(_cln), sv_names)
 
     return _cl
 end
@@ -89,7 +89,7 @@ function get_class(_cn)
     if _logent_classes[tostring(_cn)] then
         return _logent_classes[tostring(_cn)][1]
     else
-        of.logging.log(of.logging.ERROR, "invalid class: " .. tostring(_cn))
+        logging.log(logging.ERROR, "invalid class: " .. tostring(_cn))
         return nil
     end
 end
@@ -101,7 +101,7 @@ function get_sauertype(_cn)
     if _logent_classes[tostring(_cn)] then
         return _logent_classes[tostring(_cn)][2]
     else
-        of.logging.log(of.logging.ERROR, "invalid class: " .. tostring(_cn))
+        logging.log(logging.ERROR, "invalid class: " .. tostring(_cn))
         return nil
     end
 end

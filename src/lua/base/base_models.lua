@@ -31,8 +31,8 @@ local base = _G
 --- Model control for OF's Lua interface.
 -- TODO: make more detailed later
 -- @class module
--- @name of.model
-module("of.model", package.seeall)
+-- @name model
+module("model", package.seeall)
 
 -- in sync with iengine.h
 CULL_VFC = math.lsh(1, 0)

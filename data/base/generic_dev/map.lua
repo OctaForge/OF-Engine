@@ -1,7 +1,7 @@
 skybox = "textures/sky/remus/sky01"
 
 -- Create a custom player class
-myplayer = class.new(of.character.player)
+myplayer = class.new(character.player)
 -- Set a class for storage lookup
 myplayer._class = "myplayer"
 
@@ -27,25 +27,25 @@ function myplayer:client_act(sec)
         self.position.z = math.sin(math.rad(self.n) * 3) * 100 + 700
 
         -- Create cubes for X axis
-        of.world.editing_createcube(self.position.x, self.position.y, self.position.z, 1)
+        world.editing_createcube(self.position.x, self.position.y, self.position.z, 1)
         -- Create cubes of the graph
-        of.world.editing_createcube(self.position.x, self.position.y, 700, 1)
+        world.editing_createcube(self.position.x, self.position.y, 700, 1)
         -- Increment the counter
         self.n = self.n + 1
     end
 end
 
 -- Register our custom player entity class into storage
-of.logent.classes.reg(myplayer, "fpsent")
+entity_classes.reg(myplayer, "fpsent")
 
 -- Notify the engine that we're overriding player by creating engine variable
-of.engine_variables.new("player_class", of.engine_variables.VAR_S, "myplayer")
+engine.newvar("player_class", engine.VAR_S, "myplayer")
 
 -- This way you can disable gravity, not needed, default value is 200
--- of.world.gravity = 0
+-- world.gravity = 0
 
 -- Load the entities on server, server will send them to clients after that
-if of.global.SERVER then
-    local entities = of.utils.readfile("./entities.json")
-    of.logent.store.load_entities(entities)
+if SERVER then
+    local entities = utility.readfile("./entities.json")
+    entity_store.load_entities(entities)
 end

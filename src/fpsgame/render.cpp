@@ -22,12 +22,10 @@ namespace game
 
         startmodelbatches();
 
-        lua::engine.getg("of")
-                   .t_getraw("logent")
-                   .t_getraw("store")
+        lua::engine.getg("entity_store")
                    .t_getraw("render_dynamic")
                    .push(isthirdperson()).call(1, 0)
-                   .pop(3);
+                   .pop(1);
 
 //        ExtraRendering::renderShadowingMapmodels(); // Kripken: Mapmodels with dynamic shadows, we draw them now
         entities::renderentities();
@@ -54,7 +52,7 @@ namespace game
 
     void renderavatar()
     {
-        lua::engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("render_hud_models").call(0, 0).pop(3);
+        lua::engine.getg("entity_store").t_getraw("render_hud_models").call(0, 0).pop(1);
     }
 }
 

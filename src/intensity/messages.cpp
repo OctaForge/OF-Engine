@@ -519,9 +519,9 @@ namespace MessageSystem
         // Add entity
         Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.c_str(), x, y, z, stateData.c_str());
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("of").t_getraw("logent").t_getraw("classes").t_getraw("get_sauertype").push(_class.c_str()).call(1, 1);
+        engine.getg("entity_classes").t_getraw("get_sauertype").push(_class.c_str()).call(1, 1);
         std::string sauerType = engine.get(-1, "extent");
-        engine.pop(4);
+        engine.pop(2);
         Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType.c_str());
         python::list params;
         if (sauerType != "fpsent")
@@ -530,7 +530,7 @@ namespace MessageSystem
         params.append(y);
         params.append(z);
         // Create
-        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("new").push(_class.c_str());
+        engine.getg("entity_store").t_getraw("new").push(_class.c_str());
         engine.t_new();
         engine.push("position")
             .t_new()
@@ -540,7 +540,7 @@ namespace MessageSystem
         engine.t_set().t_set("state_data", stateData.c_str());
         engine.call(2, 1);
         int newUniqueId = engine.t_get<int>("uid");
-        engine.pop(4);
+        engine.pop(2);
         Logging::log(Logging::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
                                       newUniqueId, _class.c_str(), x, y, z);
     }
@@ -627,7 +627,7 @@ namespace MessageSystem
                 if (!engine.hashandle()) \
                     return; \
                 \
-                engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).call(3, 0).pop(3);
+                engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).call(3, 0).pop(1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -671,7 +671,7 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).push(actorUniqueId).call(4, 0).pop(3);
+        engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).push(actorUniqueId).call(4, 0).pop(1);
         STATE_DATA_REQUEST
     }
 #endif
@@ -923,22 +923,18 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, -1, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            engine.getg("of")
-                  .t_getraw("logent")
-                  .t_getraw("store")
+            engine.getg("entity_store")
                   .t_getraw("send_entities")
                   .push(sender)
                   .call(1, 0)
-                  .pop(3);
+                  .pop(1);
             MessageSystem::send_AllActiveEntitiesSent(sender);
             engine.getg("on_player_login");
-            if (engine.is<void*>(-1)) engine.getg("of")
-                      .t_getraw("logent")
-                      .t_getraw("store")
+            if (engine.is<void*>(-1)) engine.getg("entity_store")
                       .t_getraw("get")
                       .push(FPSServerInterface::getUniqueId(sender))
                       .call(1, 1)
-                      .shift().pop(1).shift().pop(1).shift().pop(1)
+                      .shift().pop(1)
                       .call(1, 0);
             else engine.pop(1);
         #else // CLIENT
@@ -1032,7 +1028,7 @@ namespace MessageSystem
         if (entity == NULL)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("add")
+            engine.getg("entity_store").t_getraw("add")
                 .push(otherClass.c_str())
                 .push(otherUniqueId)
                 .t_new();
@@ -1049,7 +1045,7 @@ namespace MessageSystem
                 #endif
                 engine.t_set("cn", otherClientNumber);
             }
-            engine.call(3, 0).pop(3);
+            engine.call(3, 0).pop(1);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
@@ -1076,7 +1072,7 @@ namespace MessageSystem
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
-                engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("set_player_uid").push(ClientSystem::uniqueId).call(1, 0).pop(3);
+                engine.getg("entity_store").t_getraw("set_player_uid").push(ClientSystem::uniqueId).call(1, 0).pop(1);
             }
         #endif
         // Events post-reception
@@ -1110,7 +1106,7 @@ namespace MessageSystem
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("del").push(uniqueId).call(1, 0).pop(3);
+        engine.getg("entity_store").t_getraw("del").push(uniqueId).call(1, 0).pop(1);
     }
 #endif
 
@@ -1172,7 +1168,7 @@ namespace MessageSystem
 
         if (!engine.hashandle())
             return;
-        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("del").push(uniqueId).call(1, 0).pop(3);
+        engine.getg("entity_store").t_getraw("del").push(uniqueId).call(1, 0).pop(1);
     }
 #endif
 
@@ -1267,10 +1263,10 @@ namespace MessageSystem
         if (entity == NULL)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("of").t_getraw("logent").t_getraw("classes").t_getraw("get_sauertype").push(otherClass.c_str()).call(1, 1);
+            engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass.c_str()).call(1, 1);
             std::string sauerType = engine.get(-1, "extent");
-            engine.pop(4);
-            engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("add")
+            engine.pop(2);
+            engine.getg("entity_store").t_getraw("add")
                 .push(otherClass.c_str())
                 .push(otherUniqueId)
                 .t_new()
@@ -1282,7 +1278,7 @@ namespace MessageSystem
                     .t_set("attr2", attr2)
                     .t_set("attr3", attr3)
                     .t_set("attr4", attr4)
-                .call(3, 0).pop(3);
+                .call(3, 0).pop(1);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else

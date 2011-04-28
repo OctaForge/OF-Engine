@@ -518,6 +518,7 @@ DEFVAR(menudistance)
 DEFVAR(menuautoclose)
 DEFVAR(applydialog)
 DEFVAR(mainmenu)
+DEFVAR(fonth)
 
 // engine/movie.cpp
 

@@ -126,7 +126,7 @@ float CLogicEntity::getRadius()
 
 void CLogicEntity::setOrigin(vec &newOrigin)
 {
-    defformatstring(c)("of.logent.store.get(%i).position = {%f,%f,%f}", getUniqueId(), newOrigin.x, newOrigin.y, newOrigin.z);
+    defformatstring(c)("entity_store.get(%i).position = {%f,%f,%f}", getUniqueId(), newOrigin.x, newOrigin.y, newOrigin.z);
     engine.exec(c);
 }
 
@@ -370,7 +370,7 @@ void LogicSystem::clear()
 
     if (engine.hashandle())
     {
-        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("del_all").call(0, 0).pop(3);
+        engine.getg("entity_store").t_getraw("del_all").call(0, 0).pop(1);
         assert(logicEntities.size() == 0);
 
         //engine.destroy();
@@ -396,9 +396,9 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(logicEntities.find(uniqueId) == logicEntities.end());
     logicEntities.insert( LogicEntityMap::value_type( uniqueId, newEntity ) );
 
-    engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("get").push(uniqueId).call(1, 1);
+    engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
     newEntity->luaRef = engine.ref();
-    engine.pop(3);
+    engine.pop(1);
 
     assert(newEntity->luaRef >= 0);
 
@@ -471,12 +471,10 @@ void LogicSystem::manageActions(long millis)
     INDENT_LOG(Logging::INFO);
 
     if (engine.hashandle())
-        engine.getg("of")
-              .t_getraw("logent")
-              .t_getraw("store")
+        engine.getg("entity_store")
               .t_getraw("manage_actions")
               .push(double(millis) / 1000.0f)
-              .push(lastmillis).call(2, 0).pop(3);
+              .push(lastmillis).call(2, 0).pop(1);
 
     Logging::log(Logging::INFO, "manageActions complete\r\n");
 }

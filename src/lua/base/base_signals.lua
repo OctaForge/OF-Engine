@@ -30,8 +30,8 @@
 --- Signal system allowing to connect callbacks to tables and disconnect or
 -- emit them at any point in code where the table is available.
 -- @class module
--- @name of.signals
-module("of.signals", package.seeall)
+-- @name signals
+module("signals", package.seeall)
 
 --- Table of actions to be done after doing emit,
 -- see postemitevent_add.

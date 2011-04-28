@@ -29,8 +29,8 @@
 --- Utilities for OctaForge Lua inteface.
 -- Contains various additional utilities (geometry, timer) for Lua OF interface.
 -- @class module
--- @name of.utils
-module("of.utils", package.seeall)
+-- @name utility
+module("utility", package.seeall)
 
 --- A simple timer.
 -- @class table

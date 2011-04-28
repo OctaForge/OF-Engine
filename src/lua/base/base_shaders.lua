@@ -30,8 +30,8 @@
 -- Contains basic shader definition
 -- and postfx effects control methods.
 -- @class module
--- @name of.shader
-module("of.shader", package.seeall)
+-- @name shader
+module("shader", package.seeall)
 
 --- Standard shader.
 -- @param s Shader type.

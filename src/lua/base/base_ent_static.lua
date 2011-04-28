@@ -33,8 +33,8 @@
 -- if you want documentation for them, look
 -- in there.
 -- @class module
--- @name of.statent
-module("of.statent", package.seeall)
+-- @name entity_static
+module("entity_static", package.seeall)
 
 --- Base static logic entity class, not meant to be used directly.
 -- Inherited from animatable_logent. Unlike dynamic entities,
@@ -42,7 +42,7 @@ module("of.statent", package.seeall)
 -- by overriding should_act property).
 -- @class table
 -- @name statent
-statent = class.new(of.animatable.animatable_logent)
+statent = class.new(entity_animated.animatable_logent)
 statent._class = "statent"
 
 statent.should_act = false
@@ -62,32 +62,32 @@ statent._sauertype_index = 0
 -- @class table
 -- @name statent.properties
 statent.properties = {
-    of.animatable.animatable_logent.properties[1], -- tags
-    of.animatable.animatable_logent.properties[2], -- _persitent
-    of.animatable.animatable_logent.properties[3], -- animation
-    of.animatable.animatable_logent.properties[4], -- starttime
-    of.animatable.animatable_logent.properties[5], -- modelname
-    of.animatable.animatable_logent.properties[6], -- attachments
+    entity_animated.animatable_logent.properties[1], -- tags
+    entity_animated.animatable_logent.properties[2], -- _persitent
+    entity_animated.animatable_logent.properties[3], -- animation
+    entity_animated.animatable_logent.properties[4], -- starttime
+    entity_animated.animatable_logent.properties[5], -- modelname
+    entity_animated.animatable_logent.properties[6], -- attachments
 
-    { "radius", of.state_variables.state_float() }, -- TODO: use sauer values for bounding box -- XXX - needed?
+    { "radius", state_variables.state_float() }, -- TODO: use sauer values for bounding box -- XXX - needed?
 
-    { "position", of.state_variables.wrapped_cvec3({ cgetter = "CAPI.getextent0", csetter = "CAPI.setextent0" }) },
-    { "attr1", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1" }) },
-    { "attr2", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2" }) },
-    { "attr3", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3" }) },
-    { "attr4", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" }) }
+    { "position", state_variables.wrapped_cvec3({ cgetter = "CAPI.getextent0", csetter = "CAPI.setextent0" }) },
+    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1" }) },
+    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2" }) },
+    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3" }) },
+    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" }) }
 }
 
 --- Init method. Performs initial setup.
 -- @param uid Unique ID for the entity.
 -- @param kwargs Table of additional parameters (for i.e. overriding _persistent, position)
 function statent:init(uid, kwargs)
-    of.logging.log(of.logging.DEBUG, "statent:init")
+    logging.log(logging.DEBUG, "statent:init")
 
     kwargs = kwargs or {}
     kwargs._persistent = true -- static entities are persistent by default
 
-    of.animatable.animatable_logent.init(self, uid, kwargs)
+    entity_animated.animatable_logent.init(self, uid, kwargs)
 
     if not kwargs and not kwargs.position then
         self.position = { 511, 512, 513 }
@@ -96,7 +96,7 @@ function statent:init(uid, kwargs)
     end
     self.radius = 0
 
-    of.logging.log(of.logging.DEBUG, "statent:init complete")
+    logging.log(logging.DEBUG, "statent:init complete")
 end
 
 --- Serverside entity activation.
@@ -104,14 +104,14 @@ end
 function statent:activate(kwargs)
     kwargs = kwargs or {}
 
-    of.logging.log(of.logging.DEBUG, tostring(self.uid) .. " statent: __activate() " .. of.json.encode(kwargs))
-    of.animatable.animatable_logent.activate(self, kwargs)
+    logging.log(logging.DEBUG, tostring(self.uid) .. " statent: __activate() " .. json.encode(kwargs))
+    entity_animated.animatable_logent.activate(self, kwargs)
 
     if not kwargs._type then
         kwargs._type = self._sauertype_index
     end
 
-    of.logging.log(of.logging.DEBUG, "statent defaults:")
+    logging.log(logging.DEBUG, "statent defaults:")
     kwargs.x = self.position.x or 512
     kwargs.y = self.position.y or 512
     kwargs.z = self.position.z or 512
@@ -120,28 +120,28 @@ function statent:activate(kwargs)
     kwargs.attr3 = self.attr3 or 0
     kwargs.attr4 = self.attr4 or 0
 
-    of.logging.log(of.logging.DEBUG, "statent: setupextent:")
+    logging.log(logging.DEBUG, "statent: setupextent:")
     CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z, kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4)
 
-    of.logging.log(of.logging.DEBUG, "statent: flush:")
+    logging.log(logging.DEBUG, "statent: flush:")
     self:_flush_queued_sv_changes()
 
     -- ensure the state data contains copies fo C++ stuff (toherwise, might be empty, and we need it for initializing on the server)
     -- XXX: needed?
-    of.logging.log(of.logging.DEBUG, "ensuring statent values - deprecate")
-    of.logging.log(of.logging.DEBUG, "position: " .. tostring(self.position.x) .. ", " .. tostring(self.position.y) .. ", " .. tostring(self.position.z))
-    of.logging.log(of.logging.DEBUG, "position class: " .. tostring(self.position))
+    logging.log(logging.DEBUG, "ensuring statent values - deprecate")
+    logging.log(logging.DEBUG, "position: " .. tostring(self.position.x) .. ", " .. tostring(self.position.y) .. ", " .. tostring(self.position.z))
+    logging.log(logging.DEBUG, "position class: " .. tostring(self.position))
     self.position = self.position -- trigger SV change
-    of.logging.log(of.logging.DEBUG, "position(2): " .. tostring(self.position.x) .. ", " .. tostring(self.position.y) .. ", " .. tostring(self.position.z))
-    of.logging.log(of.logging.DEBUG, "ensuring statent values (2)")
+    logging.log(logging.DEBUG, "position(2): " .. tostring(self.position.x) .. ", " .. tostring(self.position.y) .. ", " .. tostring(self.position.z))
+    logging.log(logging.DEBUG, "ensuring statent values (2)")
     self.attr1 = self.attr1; self.attr2 = self.attr2; self.attr3 = self.attr3; self.attr4 = self.attr4
-    of.logging.log(of.logging.DEBUG, "ensuring statent values complete.")
+    logging.log(logging.DEBUG, "ensuring statent values complete.")
 end
 
 --- Serverside deactivation. Removes the entity in C store and calls parent.
 function statent:deactivate()
     CAPI.dismantleextent(self)
-    of.animatable.animatable_logent.deactivate(self)
+    entity_animated.animatable_logent.deactivate(self)
 end
 
 --- Clientside entity activation.
@@ -159,23 +159,23 @@ function statent:client_activate(kwargs)
     end
 
     CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z, kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4)
-    of.animatable.animatable_logent.client_activate(self, kwargs)
+    entity_animated.animatable_logent.client_activate(self, kwargs)
 end
 
 --- Clientside deactivation. Removes the entity in C store and calls parent.
 function statent:client_deactivate()
     CAPI.dismantleextent(self)
-    of.animatable.animatable_logent.client_deactivate(self)
+    entity_animated.animatable_logent.client_deactivate(self)
 end
 
 --- Send complete notification to client(s).
 -- @param cn Client number to send to. All clients if nil.
 function statent:send_notification_complete(cn)
-    cn = cn or of.msgsys.ALL_CLIENTS
-    local cns = cn == of.msgsys.ALL_CLIENTS and of.logent.store.get_all_clientnums() or { cn }
-    of.logging.log(of.logging.DEBUG, "statent:send_notification_complete:")
+    cn = cn or message.ALL_CLIENTS
+    local cns = cn == message.ALL_CLIENTS and entity_store.get_all_clientnums() or { cn }
+    logging.log(logging.DEBUG, "statent:send_notification_complete:")
     for i = 1, #cns do
-        of.msgsys.send(cns[i],
+        message.send(cns[i],
                     CAPI.extent_notification_complete,
                     self.uid,
                     tostring(self),
@@ -188,7 +188,7 @@ function statent:send_notification_complete(cn)
                     tonumber(self.attr3),
                     tonumber(self.attr4))
     end
-    of.logging.log(of.logging.DEBUG, "statent:send_notification_complete done.")
+    logging.log(logging.DEBUG, "statent:send_notification_complete done.")
 end
 
 --- Get center position of static entity, something like gravity center.
@@ -230,15 +230,15 @@ light.properties = {
 
     statent.properties[8], -- position
 
-    { "attr1", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
-    { "attr2", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "red", altname = "red" }) },
-    { "attr3", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "green", altname = "green" }) },
-    { "attr4", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "blue", altname = "blue" }) },
+    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
+    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "red", altname = "red" }) },
+    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "green", altname = "green" }) },
+    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "blue", altname = "blue" }) },
 
-    { "radius", of.state_variables.variable_alias("attr1") },
-    { "red", of.state_variables.variable_alias("attr2") },
-    { "green", of.state_variables.variable_alias("attr3") },
-    { "blue", of.state_variables.variable_alias("attr4") }
+    { "radius", state_variables.variable_alias("attr1") },
+    { "red", state_variables.variable_alias("attr2") },
+    { "green", state_variables.variable_alias("attr3") },
+    { "blue", state_variables.variable_alias("attr4") }
 }
 
 function light:init(uid, kwargs)
@@ -274,8 +274,8 @@ spotlight.properties = {
 
     statent.properties[8], -- position
 
-    { "attr1", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
-    { "radius", of.state_variables.variable_alias("attr1") }
+    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
+    { "radius", state_variables.variable_alias("attr1") }
 }
 
 function spotlight:init(uid, kwargs)
@@ -306,8 +306,8 @@ envmap.properties = {
 
     statent.properties[8], -- position
 
-    { "attr1", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
-    { "radius", of.state_variables.variable_alias("attr1") }
+    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
+    { "radius", state_variables.variable_alias("attr1") }
 }
 
 function envmap:init(uid, kwargs)
@@ -343,14 +343,14 @@ ambient_sound.properties = {
 
     statent.properties[8], -- position
 
-    { "attr2", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "radius", altname = "radius" }) },
-    { "attr3", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "size", altname = "size" }) },
-    { "attr4", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setsoundvol", guiname = "volume", altname = "volume" }) },
-    { "soundname", of.state_variables.wrapped_cstring({ csetter = "CAPI.setsoundname" }) },
+    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "radius", altname = "radius" }) },
+    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "size", altname = "size" }) },
+    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setsoundvol", guiname = "volume", altname = "volume" }) },
+    { "soundname", state_variables.wrapped_cstring({ csetter = "CAPI.setsoundname" }) },
 
-    { "radius", of.state_variables.variable_alias("attr2") },
-    { "size", of.state_variables.variable_alias("attr3") },
-    { "volume", of.state_variables.variable_alias("attr4") }
+    { "radius", state_variables.variable_alias("attr2") },
+    { "size", state_variables.variable_alias("attr3") },
+    { "volume", state_variables.variable_alias("attr4") }
 }
 
 function ambient_sound:init(uid, kwargs)
@@ -393,15 +393,15 @@ particle_effect.properties = {
 
     statent.properties[8], -- position
 
-    { "attr1", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "particle_type", altname = "particle_type" }) },
-    { "attr2", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "value1", altname = "value1" }) },
-    { "attr3", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "value2", altname = "value2" }) },
-    { "attr4", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "value3", altname = "value3" }) },
+    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "particle_type", altname = "particle_type" }) },
+    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "value1", altname = "value1" }) },
+    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "value2", altname = "value2" }) },
+    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "value3", altname = "value3" }) },
 
-    { "particle_type", of.state_variables.variable_alias("attr1") },
-    { "value1", of.state_variables.variable_alias("attr2") },
-    { "value2", of.state_variables.variable_alias("attr3") },
-    { "value3", of.state_variables.variable_alias("attr4") }
+    { "particle_type", state_variables.variable_alias("attr1") },
+    { "value1", state_variables.variable_alias("attr2") },
+    { "value2", state_variables.variable_alias("attr3") },
+    { "value3", state_variables.variable_alias("attr4") }
 }
 
 function particle_effect:init(uid, kwargs)
@@ -439,22 +439,22 @@ mapmodel.properties = {
 
     statent.properties[8], -- position
 
-    { "attr1", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
-    { "yaw", of.state_variables.variable_alias("attr1") },
+    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
+    { "yaw", state_variables.variable_alias("attr1") },
 
-    { "collision_radius_width", of.state_variables.wrapped_cinteger({
+    { "collision_radius_width", state_variables.wrapped_cinteger({
         cgetter = "CAPI.getcollisionradw",
         csetter = "CAPI.setcollisionradw"
     }) },
 
-    { "collision_radius_height", of.state_variables.wrapped_cinteger({
+    { "collision_radius_height", state_variables.wrapped_cinteger({
         cgetter = "CAPI.getcollisionradh",
         csetter = "CAPI.setcollisionradh"
     }) }
 }
 
 function mapmodel:init(uid, kwargs)
-    of.logging.log(of.logging.DEBUG, "mapmodel:init")
+    logging.log(logging.DEBUG, "mapmodel:init")
     statent.init(self, uid, kwargs)
 
     self.attr2 = -1 -- sauer mapmodel index - put as -1 to use out model names as default
@@ -463,7 +463,7 @@ function mapmodel:init(uid, kwargs)
     self.collision_radius_width = 0
     self.collision_radius_height = 0
 
-    of.logging.log(of.logging.DEBUG, "mapmodel:init complete.")
+    logging.log(logging.DEBUG, "mapmodel:init complete.")
 end
 
 function mapmodel:client_activate(kwargs)
@@ -525,7 +525,7 @@ area_trigger.properties = {
     mapmodel.properties[11], -- collision_radius_width
     mapmodel.properties[12], -- collision_radius_height
 
-    { "script_to_run", of.state_variables.state_string() }
+    { "script_to_run", state_variables.state_string() }
 }
 
 function area_trigger:init(uid, kwargs)
@@ -597,7 +597,7 @@ end
 --- Reset handler.
 function resettable_area_trigger:reset()
     self.ready_to_trigger = true
-    if of.global.SERVER then
+    if SERVER then
         self:on_reset()
     else
         self:client_on_reset()
@@ -648,8 +648,8 @@ world_marker.properties = {
 
     statent.properties[8], -- position
 
-    { "attr1", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
-    { "yaw", of.state_variables.variable_alias("attr1") }
+    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
+    { "yaw", state_variables.variable_alias("attr1") }
 }
 
 --- Make an entity be placed on position of this marker with its yaw.
@@ -659,13 +659,13 @@ function world_marker:place_entity(ent)
     ent.yaw = self.yaw
 end
 
-of.logent.classes.reg(statent, "mapmodel")
-of.logent.classes.reg(light, "light")
-of.logent.classes.reg(spotlight, "spotlight")
-of.logent.classes.reg(envmap, "envmap")
-of.logent.classes.reg(ambient_sound, "sound")
-of.logent.classes.reg(particle_effect, "particles")
-of.logent.classes.reg(mapmodel, "mapmodel")
-of.logent.classes.reg(area_trigger, "mapmodel")
-of.logent.classes.reg(resettable_area_trigger, "mapmodel")
-of.logent.classes.reg(world_marker, "playerstart")
+entity_classes.reg(statent, "mapmodel")
+entity_classes.reg(light, "light")
+entity_classes.reg(spotlight, "spotlight")
+entity_classes.reg(envmap, "envmap")
+entity_classes.reg(ambient_sound, "sound")
+entity_classes.reg(particle_effect, "particles")
+entity_classes.reg(mapmodel, "mapmodel")
+entity_classes.reg(area_trigger, "mapmodel")
+entity_classes.reg(resettable_area_trigger, "mapmodel")
+entity_classes.reg(world_marker, "playerstart")

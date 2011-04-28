@@ -28,8 +28,8 @@
 
 --- Sound system for OF's Lua interface.
 -- @class module
--- @name of.sound
-module("of.sound", package.seeall)
+-- @name sound
+module("sound", package.seeall)
 
 --- Play sound, knowing the filename.
 -- If done on the server, a message is sent to clients to play the sound.
@@ -40,16 +40,16 @@ module("of.sound", package.seeall)
 function play(n, p, v, cn)
     p = p or math.vec3(0, 0, 0)
 
-    if of.global.CLIENT then
+    if CLIENT then
         CAPI.playsoundname(n, p.x, p.y, p.z, v)
     else
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names
         if #n > 2 then
-            of.logging.log(of.logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", n))
+            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", n))
         end
-        cn = cn or of.msgsys.ALL_CLIENTS
-        of.msgsys.send(cn, CAPI.sound_toclients_byname, p.x, p.y, p.z, n, -1)
+        cn = cn or message.ALL_CLIENTS
+        message.send(cn, CAPI.sound_toclients_byname, p.x, p.y, p.z, n, -1)
     end
 end
 
@@ -59,15 +59,15 @@ end
 -- @param v Sound volume (0 to 100, optional)
 -- @param cn Client number (optional, server only, defaults to all clients)
 function stop(n, v, cn)
-    if of.global.CLIENT then
+    if CLIENT then
         CAPI.stopsoundname(n, v)
     else
         -- warn when using non-compressed names
         if #n > 2 then
-            of.logging.log(of.logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", n))
+            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", n))
         end
-        cn = cn or of.msgsys.ALL_CLIENTS
-        of.msgsys.send(cn, CAPI.soundstop_toclients_byname, v, n, -1)
+        cn = cn or message.ALL_CLIENTS
+        message.send(cn, CAPI.soundstop_toclients_byname, v, n, -1)
     end
 end
 

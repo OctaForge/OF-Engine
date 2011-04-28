@@ -120,12 +120,12 @@ namespace lua_binds
         int uid = GuiControl::EditedEntity::currEntity->getUniqueId();
 
         // we get this beforehand because of further re-use
-        e.getg("of").t_getraw("logent").t_getraw("store").t_getraw("get").push(uid).call(1, 1);
+        e.getg("entity_store").t_getraw("get").push(uid).call(1, 1);
         // we've got the entity here now (popping get out)
         e.t_getraw("create_statedatadict").push_index(-2).call(1, 1);
         // ok, state data are on stack, popping createStateDataDict out, let's ref it so we can easily get it later
         int _tmpref = e.ref();
-        e.pop(4);
+        e.pop(2);
 
         e.getg("table").t_getraw("keys").getref(_tmpref).call(1, 1);
         // we've got keys on stack. let's loop the table now.
@@ -133,10 +133,10 @@ namespace lua_binds
             // we have array of keys, so the original key is a value in this case
             const char *key = e.get<const char*>(-1);
 
-            e.getg("of").t_getraw("state_variables").t_getraw("__getguin");
+            e.getg("state_variables").t_getraw("__getguin");
             e.push(uid).push(key).call(2, 1);
             const char *guiName = e.get<const char*>(-1);
-            e.pop(3);
+            e.pop(2);
 
             e.getref(_tmpref);
             const char *value = e.t_get<const char*>(key);
@@ -169,9 +169,9 @@ namespace lua_binds
 
         // Create the gui
         std::string command =
-            "of.gui.new(\"entity\", function()\n"
-            "    of.gui.text(entity_gui_title)\n"
-            "    of.gui.bar()\n";
+            "gui.new(\"entity\", function()\n"
+            "    gui.text(entity_gui_title)\n"
+            "    gui.bar()\n";
 
         for (int i = 0; i < GETIV(num_entity_gui_fields); i++)
         {
@@ -186,18 +186,18 @@ namespace lua_binds
             }
 
             command +=
-                "    of.gui.list(function()\n"
-                "        of.gui.text(of.gui.getentguilabel(" + sI + "))\n"
-                "        of.engine_variables.new(\"new_entity_gui_field_" + sI + "\", of.engine_variables.VAR_S, of.gui.getentguival(" + sI + "))\n"
-                "        of.gui.field(\"new_entity_gui_field_" + sI + "\", "
+                "    gui.list(function()\n"
+                "        gui.text(gui.getentguilabel(" + sI + "))\n"
+                "        engine.newvar(\"new_entity_gui_field_" + sI + "\", engine.VAR_S, gui.getentguival(" + sI + "))\n"
+                "        gui.field(\"new_entity_gui_field_" + sI + "\", "
                 + Utility::toString((int)value.size()+25)
-                + ", [[of.gui.setentguival(" + sI + ", new_entity_gui_field_" + sI + ")]], 0)\n"
+                + ", [[gui.setentguival(" + sI + ", new_entity_gui_field_" + sI + ")]], 0)\n"
                 "    end)\n";
 
             if ((i+1) % 10 == 0)
             {
                 command +=
-                    "   of.gui.tab(" + Utility::toString(i) + ")\n";
+                    "   gui.tab(" + Utility::toString(i) + ")\n";
             }
         }
 
@@ -228,23 +228,23 @@ namespace lua_binds
             GuiControl::EditedEntity::stateData[key].second = e.get<const char*>(2);
 
             int uniqueId = GuiControl::EditedEntity::currEntity->getUniqueId();
-            e.getg("of").t_getraw("state_variables")
-                        .t_getraw("__get")
-                        .push(uniqueId)
-                        .push(key)
-                        .call(2, 1);
+            e.getg("state_variables")
+             .t_getraw("__get")
+             .push(uniqueId)
+             .push(key)
+             .call(2, 1);
             e.t_getraw("from_data").push_index(-2).push(nv).call(2, 1);
             int _tmpref = e.ref(); e.pop(2);
             e.t_getraw("json").t_getraw("encode");
             e.getref(_tmpref).call(1, 1);
             const char *nav = e.get<const char*>(-1);
-            e.pop(3);
+            e.pop(2);
 
             if (nav)
             {
                 e.getg("string").t_getraw("gsub").push(nav).push("%[(.*)%]").push("{%1}").call(3, 2);
                 e.pop(1); nav = e.get<const char*>(-1); e.pop(2);
-                defformatstring(c)("of.logent.store.get(%i).%s = %s", uniqueId, key, nav);
+                defformatstring(c)("entity_store.get(%i).%s = %s", uniqueId, key, nav);
                 e.exec(c);
             }
         }

@@ -199,11 +199,13 @@ namespace lua
 
         push("run_tests").push(m_runtests).setg();
         #ifdef CLIENT
-        push("cc_init_client").push(true).setg();
+        push("CLIENT").push(true).setg();
+        push("SERVER").push(false).setg();
         #else
-        push("cc_init_client").push(false).setg();
+        push("CLIENT").push(false).setg();
+        push("SERVER").push(true).setg();
         #endif
-        push("cc_version").push(m_version).setg();
+        push("VERSION").push(m_version).setg();
 
         setup_module("init");
 

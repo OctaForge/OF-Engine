@@ -108,15 +108,7 @@ void WorldSystem::triggerReceivedEntity()
 void WorldSystem::runMapScript()
 {
     REFLECT_PYTHON(run_map_script);
-
     run_map_script();
-
-    // Some post-map script settings. TODO: Cleanup
-
-    #ifdef CLIENT
-        extern void setScreenScriptValues();
-        setScreenScriptValues();
-    #endif
 }
 
 

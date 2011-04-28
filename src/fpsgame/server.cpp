@@ -127,7 +127,7 @@ namespace server
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
         if (engine.hashandle() && !_ci->local && uniqueId >= 0)
-            engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("del").push(uniqueId).call(1, 0).pop(3); // Will also disconnect from FPSClient
+            engine.getg("entity_store").t_getraw("del").push(uniqueId).call(1, 0).pop(1); // Will also disconnect from FPSClient
         
 //        // Remove from internal mini FPSclient as well
 //        FPSClientInterface::clientDisconnected(_ci->clientnum); // XXX No - do in parallel to character
@@ -706,7 +706,7 @@ namespace server
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
         {
-            defformatstring(c)("of.logent.store.get(%i)._can_edit = true", ci->uniqueId);
+            defformatstring(c)("entity_store.get(%i)._can_edit = true", ci->uniqueId);
             engine.exec(c);
         }
     }
@@ -777,7 +777,7 @@ namespace server
 
         Logging::log(Logging::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
 
-        int uniqueId = engine.exec<int>("return of.logent.store.get_newuid()");
+        int uniqueId = engine.exec<int>("return entity_store.get_newuid()");
 
         // Notify of uniqueId *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
@@ -786,23 +786,23 @@ namespace server
 
         ci->uniqueId = uniqueId;
 
-        defformatstring(c)("of.logent.store.new('%s', { cn = %i }, %i, true)", _class.c_str(), cn, uniqueId);
+        defformatstring(c)("entity_store.new('%s', { cn = %i }, %i, true)", _class.c_str(), cn, uniqueId);
         engine.exec(c);
 
-        defformatstring(a)("return of.logent.store.get(%i).cn", uniqueId);
+        defformatstring(a)("return entity_store.get(%i).cn", uniqueId);
         assert(engine.exec<int>(a) == cn);
 
         // Add admin status, if relevant
         if (ci->isAdmin)
         {
-            defformatstring(d)("of.logent.store.get(%i)._can_edit = true", uniqueId);
+            defformatstring(d)("entity_store.get(%i)._can_edit = true", uniqueId);
             engine.exec(d);
         }
 
         // Add nickname
-        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("get").push(uniqueId).call(1, 1);
+        engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
         // got class here
-        engine.t_set("_name", getUsername(cn).c_str()).pop(4);
+        engine.t_set("_name", getUsername(cn).c_str()).pop(2);
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
@@ -815,9 +815,9 @@ namespace server
             FPSClientInterface::spawnPlayer(fpsEntity);
         }
 
-        engine.getg("of").t_getraw("logent").t_getraw("store").t_getraw("get").push(uniqueId).call(1, 1);
+        engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
         int ret = engine.ref();
-        engine.pop(3);
+        engine.pop(1);
 
         return ret;
 #endif

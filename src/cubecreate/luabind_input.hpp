@@ -121,13 +121,11 @@ namespace lua_binds
             PlayerControl::flushActions(); /* stop current actions */ \
             s = addreleaseaction("CAPI."#name"()")!=0; \
             e.getg(#v); \
-            if (!e.is<void*>(-1)) e.getg("of") \
-                 .t_getraw("logent") \
-                 .t_getraw("store") \
-                 .t_getraw("get_plyent") \
-                 .call(0, 1) \
-                 .t_set(#p, s ? d : (os ? -(d) : 0)) \
-                 .pop(5); \
+            if (!e.is<void*>(-1)) e.getg("entity_store") \
+                  .t_getraw("get_plyent") \
+                  .call(0, 1) \
+                  .t_set(#p, s ? d : (os ? -(d) : 0)) \
+                  .pop(3); \
             else e.push(s ? d : (os ? -(d) : 0)).push(s).call(2, 0); \
         } \
     })
@@ -153,14 +151,12 @@ namespace lua_binds
             if (!e.is<void*>(-1))
             {
                 if (down)
-                    e.getg("of")
-                     .t_getraw("logent")
-                     .t_getraw("store")
+                    e.getg("entity_store")
                      .t_getraw("get_plyent")
                      .call(0, 1)
                      .t_getraw("jump")
                      .push_index(-2)
-                     .call(1, 0).pop(4);
+                     .call(1, 0).pop(2);
             }
             else e.push(down).call(1, 0);
         }

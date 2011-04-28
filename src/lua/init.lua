@@ -48,17 +48,17 @@ debug.sethook(trace, "c")
 -- Logging comes first.
 require("base.base_logging")
 -- Globally wrap some logging stuff because it's often used.
-log = of.logging.log
-INFO = of.logging.INFO
-DEBUG = of.logging.DEBUG
-WARNING = of.logging.WARNING
-ERROR = of.logging.ERROR
-echo = of.logging.echo
+log = logging.log
+INFO = logging.INFO
+DEBUG = logging.DEBUG
+WARNING = logging.WARNING
+ERROR = logging.ERROR
+echo = logging.echo
 
-of.logging.log(of.logging.DEBUG, "Initializing language extensions.")
+logging.log(logging.DEBUG, "Initializing language extensions.")
 require("language")
 
-of.logging.log(of.logging.DEBUG, "Initializing base.")
+logging.log(logging.DEBUG, "Initializing base.")
 require("base")
 
-of.logging.log(of.logging.DEBUG, "Core scripting initialization complete.")
+logging.log(logging.DEBUG, "Core scripting initialization complete.")

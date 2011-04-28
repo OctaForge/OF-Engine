@@ -26,10 +26,10 @@
 -- THE SOFTWARE.
 --
 
---- Textures for OF's Lua interface.
+--- Texture/blending interface for OF.
 -- @class module
--- @name of.texture
-module("of.texture", package.seeall)
+-- @name texture
+module("texture", package.seeall)
 
 --- Convert PNG to DDS.
 -- @param src Source path.
@@ -169,8 +169,8 @@ gendds = CAPI.gendds
 flipnormalmapy = CAPI.flipnormalmapy
 
 --- Merge two normal maps (saving into the second one).
--- @param n1 First normal map.
--- @param n2 Second normal map.
+-- @param n1 First normal blendmap.
+-- @param n2 Second normal blendmap.
 -- @class function
 -- @name mergenormalmaps
 mergenormalmaps = CAPI.mergenormalmaps
@@ -212,3 +212,124 @@ getrep = CAPI.getreptex
 -- @class function
 -- @name getname
 getname = CAPI.gettexname
+
+--- Table holding methods relating texture blending brushes.
+-- @class table
+-- @name blendbrush
+blendbrush = {}
+
+--- Clear all blend brushes.
+-- @class function
+-- @name blendbrush.clearall
+blendbrush.clearall = CAPI.clearblendbrushes
+
+--- Delete a blend blendbrush.
+-- @param name Name of the blendbrush.
+-- @class function
+-- @name blendbrush.del
+blendbrush.del = CAPI.delblendbrush
+
+--- Add a blend blendbrush.
+-- @param name Name of the blendbrush.
+-- @param imgn Name of the image file defining the blendbrush.
+-- @class function
+-- @name blendbrush.add
+blendbrush.add = CAPI.addblendbrush
+
+--- Move to next blend blendbrush.
+-- @param dir Movement direction. 1 means next, -1 previous. Optional.
+-- @class function
+-- @name blendbrush.next
+-- @see blendbrush.scroll
+blendbrush.next = CAPI.nextblendbrush
+
+--- Select a blend blendbrush.
+-- @param name Name of the blendbrush.
+-- @class function
+-- @name blendbrush.set
+blendbrush.set = CAPI.setblendbrush
+
+--- Get blend brush name.
+-- @param num Number of the blendbrush.
+-- @return Name of the blendbrush.
+-- @class function
+-- @name blendbrush.getname
+blendbrush.getname = CAPI.getblendbrushName
+
+--- Get current blend brush number.
+-- @return Current blend brush number.
+-- @class function
+-- @name blendbrush.cur
+blendbrush.cur = CAPI.curblendbrush
+
+--- Rotate a blend blendbrush.
+-- @param n Rotation level. Number from 1 to 5.
+-- @class function
+-- @name blendbrush.rotate
+blendbrush.rotate = CAPI.rotateblendbrush
+
+--- Scroll blend blendbrush. Prints nice output while scrolling.
+-- @param b Optional direction (see blendbrush.next)
+-- @see blendbrush.next
+function blendbrush.scroll(b)
+    if b then blendbrush.next(b) else blendbrush.next() end
+    echo("blend brush set to: %(1)s" % { blendbrush.getname(blendbrush.cur()) })
+end
+
+--- Table holding methods relating texture blend painting.
+-- @class table
+-- @name blendmap
+blendmap = {}
+
+--- Toggle blendmap painting.
+-- @class function
+-- @name blendmap.paint
+blendmap.paint = CAPI.paintblendmap
+
+--- Clear blend map selection.
+-- @class function
+-- @name blendmap.clearsel
+blendmap.clearsel = CAPI.clearblendmapsel
+
+--- Invert blend map selection.
+-- @class function
+-- @name blendmap.invertsel
+blendmap.invertsel = CAPI.invertblendmapsel
+
+--- Invert blend blendmap.
+-- @class function
+-- @name blendmap.invert
+blendmap.invert = CAPI.invertblendmap
+
+--- Show blend blendmap.
+-- @class function
+-- @name blendmap.show
+blendmap.show = CAPI.showblendmap
+
+--- Optimize blend blendmap.
+-- @class function
+-- @name blendmap.optimize
+blendmap.optimize = CAPI.optimizeblendmap
+
+--- Clear blend blendmap.
+-- @class function
+-- @name blendmap.clear
+blendmap.clear = CAPI.clearblendmap
+
+--- Blend map painting modes.
+-- @field off Blendmap painting is off.
+-- @field replace Replace / clear layer.
+-- @field dig min(dest, src) - Dig where black is the dig pattern.
+-- @field fill max(dest, src) - Fill where white is the fill pattern.
+-- @field inverted_dig min(dest, invert(src)) - Dig where white is the dig pattern.
+-- @field inverted_fill max(Dest, invert(src)) - Fill where black is the fill pattern.
+-- @class table
+-- @name blendpaintmodes
+blendpaintmodes = { "off", "replace", "dig", "fill", "inverted dig", "inverted fill" }
+
+--- Set blend paint mode.
+-- @param m Paint mode index in blendpaintmodes table, beginning with 1. Turns blendmap painting off when not ommited.
+function setblendpaintmode(m)
+    env.blendpaintmode = m or 1
+    echo("blend paint mode set to: %(1)s" % { blendpaintmodes[env.blendpaintmode] })
+end

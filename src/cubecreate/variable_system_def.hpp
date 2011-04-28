@@ -186,6 +186,7 @@ VARP(menudistance, 16, 40, 256);
 VARP(menuautoclose, 32, 120, 4096);
 VARP(applydialog, 0, 1, 1);
 VAR(mainmenu, 1, 1, 0);
+VAR(fonth, 512, 0, 0);
 
 // engine/movie.cpp
 

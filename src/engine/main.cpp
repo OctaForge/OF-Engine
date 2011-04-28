@@ -572,22 +572,6 @@ void setfullscreen(bool enable)
 #endif
 }
 
-void setScreenScriptValues() // INTENSITY: New function
-{
-    using namespace lua;
-    if (engine.hashandle())
-    {
-        engine.getg("of").t_getraw("global");
-        engine.t_set("aspect_ratio", float(GETIV(scr_w))/float(GETIV(scr_h)));
-        engine.t_set("scr_w", GETIV(scr_w));
-        engine.t_set("scr_h", GETIV(scr_h));
-        engine.t_set("fonth", FONTH);
-        engine.t_set("cam_dist", GETIV(cam_dist));
-        engine.t_set("cameraheight", GETFV(cameraheight));
-        engine.pop(2);
-    }
-}
-
 void screenres(int *w, int *h)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -607,9 +591,8 @@ void screenres(int *w, int *h)
     SETV(scr_w, screen->w);
     SETV(scr_h, screen->h);
     glViewport(0, 0, GETIV(scr_w), GETIV(scr_h));
-
-    setScreenScriptValues(); // INTENSITY
 #endif
+    SETV(fonth, FONTH);
 }
 
 int curgamma = 100;

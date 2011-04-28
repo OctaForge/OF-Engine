@@ -26,20 +26,17 @@
 -- THE SOFTWARE.
 --
 
--- see of.world metatable below
+-- see world metatable below
 local gravity
 
-of.logging.log(of.logging.DEBUG, ":: JSON.")
+logging.log(logging.DEBUG, ":: JSON.")
 require("base.base_json")
 
-of.logging.log(of.logging.DEBUG, ":: Signals.")
+logging.log(logging.DEBUG, ":: Signals.")
 require("base.base_signals")
 
-of.logging.log(of.logging.DEBUG, ":: Platform.")
-require("base.base_platform")
-
-of.logging.log(of.logging.DEBUG, ":: Engine variables.")
-require("base.base_evars")
+logging.log(logging.DEBUG, ":: Engine interface.")
+require("base.base_engine")
 
 --- Metatable for global table made for transparently
 -- getting / setting engine variables. If engine variable
@@ -51,81 +48,72 @@ require("base.base_evars")
 -- @field __newindex Called when a value is set.
 setmetatable(_G, {
     __index = function(self, n)
-        return (of.engine_variables.inst.stor[n] and
-            of.engine_variables.inst[n] or
+        return (engine.vars.stor[n] and
+            engine.vars[n] or
             rawget(self, n)
         )
     end,
     __newindex = function(self, n, v)
-        if of.engine_variables.inst.stor[n] then
-            of.engine_variables.inst[n] = v
+        if engine.vars.stor[n] then
+            engine.vars[n] = v
         else
             rawset(self, n, v)
         end
     end
 })
 
-require("base.stub_logent")
-require("base.stub_logent_classes")
+logging.log(logging.DEBUG, ":: Utilities.")
+require("base.base_utility")
 
-of.logging.log(of.logging.DEBUG, ":: Utilities.")
-require("base.base_utils")
-
-of.logging.log(of.logging.DEBUG, ":: Color conversion.")
-require("base.base_colors")
-
-of.logging.log(of.logging.DEBUG, ":: Console.")
+logging.log(logging.DEBUG, ":: Console.")
 require("base.base_console")
 
-of.logging.log(of.logging.DEBUG, ":: GUI.")
+logging.log(logging.DEBUG, ":: GUI.")
 require("base.base_gui")
 
-of.logging.log(of.logging.DEBUG, ":: Shaders.")
+logging.log(logging.DEBUG, ":: Shaders.")
 require("base.base_shaders")
 
-of.logging.log(of.logging.DEBUG, ":: Models.")
+logging.log(logging.DEBUG, ":: Models.")
 require("base.base_models")
 
-of.logging.log(of.logging.DEBUG, ":: Texture blending.")
-require("base.base_blend")
-
-of.logging.log(of.logging.DEBUG, ":: Action system.")
+logging.log(logging.DEBUG, ":: Action system.")
 require("base.base_actions")
 
-of.logging.log(of.logging.DEBUG, ":: Message system.")
-require("base.base_msgsys")
+logging.log(logging.DEBUG, ":: Message system.")
+require("base.base_messages")
 
-of.logging.log(of.logging.DEBUG, ":: Logic entity storage.")
-require("base.base_logent_store")
+logging.log(logging.DEBUG, ":: Logic entity storage.")
+require("base.base_ent_store")
 
-of.logging.log(of.logging.DEBUG, ":: State variables.")
+logging.log(logging.DEBUG, ":: State variables.")
 require("base.base_svars")
 
-of.logging.log(of.logging.DEBUG, ":: Logic entity classes.")
-require("base.base_logent_classes")
+logging.log(logging.DEBUG, ":: Logic entity classes.")
+require("base.base_ent_classes")
 
-of.logging.log(of.logging.DEBUG, ":: Logic entities.")
-require("base.base_logent")
+logging.log(logging.DEBUG, ":: Logic entities.")
+require("base.base_ent")
 
-of.logging.log(of.logging.DEBUG, ":: Effects.")
+logging.log(logging.DEBUG, ":: Effects.")
 require("base.base_effects")
 
-of.logging.log(of.logging.DEBUG, ":: Sound.")
+logging.log(logging.DEBUG, ":: Sound.")
 require("base.base_sound")
 
-of.logging.log(of.logging.DEBUG, ":: Animatables.")
-require("base.base_animatable")
+logging.log(logging.DEBUG, ":: Animatables.")
+require("base.base_ent_anim")
 
-of.logging.log(of.logging.DEBUG, ":: Character.")
+logging.log(logging.DEBUG, ":: Character.")
 require("base.base_character")
 
-of.logging.log(of.logging.DEBUG, ":: Static entities.")
-require("base.base_statent")
+logging.log(logging.DEBUG, ":: Static entities.")
+require("base.base_ent_static")
 
-of.logging.log(of.logging.DEBUG, ":: Textures.")
+logging.log(logging.DEBUG, ":: Textures.")
 require("base.base_textures")
 
-of.logging.log(of.logging.DEBUG, ":: World interface.")
+logging.log(logging.DEBUG, ":: World interface.")
 require("base.base_world")
 
 --- Metatable for world for setting gravity.
@@ -133,7 +121,7 @@ require("base.base_world")
 -- @name world_metatable
 -- @field __index Called when a value is got.
 -- @field __newindex Called when a value is set.
-setmetatable(of.world, {
+setmetatable(world, {
     __index = function(self, n)
         return (n == "gravity" and gravity or rawget(self, n))
     end,
@@ -147,13 +135,10 @@ setmetatable(of.world, {
     end
 })
 
-of.world.gravity = 200
+world.gravity = 200
 
-of.logging.log(of.logging.DEBUG, ":: Network interface.")
+logging.log(logging.DEBUG, ":: Network interface.")
 require("base.base_network")
 
-of.logging.log(of.logging.DEBUG, ":: Camera.")
+logging.log(logging.DEBUG, ":: Camera.")
 require("base.base_camera")
-
-of.logging.log(of.logging.DEBUG, ":: Engine interface.")
-require("base.base_engine")

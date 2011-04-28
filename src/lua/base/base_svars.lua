@@ -28,13 +28,13 @@
 
 --- State variable system for OF Lua interface.
 -- @class module
--- @name of.state_variables
-module("of.state_variables", package.seeall)
+-- @name state_variables
+module("state_variables", package.seeall)
 
 --- Get "on modify event" prefix for state variables.
 -- @return "on modify event" prefix.
 function get_onmodify_prefix()
-    if of.global.CLIENT then
+    if CLIENT then
         return "client_on_modify_"
     else
         return "on_modify_"
@@ -55,7 +55,7 @@ _SV_PREFIX = "__SV_"
 -- @param vn State variable name.
 -- @return Actual raw state variable.
 function __get(uid, vn)
-    return of.logent.store.get(uid)[_SV_PREFIX .. vn]
+    return entity_store.get(uid)[_SV_PREFIX .. vn]
 end
 
 --- Get GUI name of state variable for entity.
@@ -63,7 +63,7 @@ end
 -- @param vn State variable name.
 -- @return State variable GUI name.
 function __getguin(uid, vn)
-    local ent = of.logent.store.get(uid)
+    local ent = entity_store.get(uid)
     local var = ent[_SV_PREFIX .. vn]
     return var.guiname and var.guiname or vn
 end
@@ -81,7 +81,7 @@ function state_variable:__tostring() return "state_variable" end
 -- Its parameters can be overriden via kwargs.
 -- @param kwargs Additional parameters.
 function state_variable:__init(kwargs)
-    of.logging.log(of.logging.INFO, "state_variable: constructor ..")
+    logging.log(logging.INFO, "state_variable: constructor ..")
 
     if not kwargs then kwargs = {} end
 
@@ -105,7 +105,7 @@ end
 -- @param parent Parent entity to register (g|s)etters for.
 -- @see __get
 function state_variable:_register(_name, parent)
-    of.logging.log(of.logging.DEBUG, "state_variable:_register("
+    logging.log(logging.DEBUG, "state_variable:_register("
          .. tostring(_name) .. ", "
          .. tostring(parent) .. ")")
     self._name = _name
@@ -116,13 +116,13 @@ function state_variable:_register(_name, parent)
     assert(self.getter)
     assert(self.setter)
 
-    of.logging.log(of.logging.DEBUG, "state_variable:_register: defining (g|s)etter for " .. tostring(_name))
+    logging.log(logging.DEBUG, "state_variable:_register: defining (g|s)etter for " .. tostring(_name))
 
     parent:define_getter(_name, self.getter, self)
     parent:define_setter(_name, self.setter, self)
 
     if self.altname then
-        of.logging.log(of.logging.DEBUG, "state_variable:_register: defining (g|s)etter for " .. tostring(self.altname))
+        logging.log(logging.DEBUG, "state_variable:_register: defining (g|s)etter for " .. tostring(self.altname))
         parent[_SV_PREFIX .. self.altname] = self
         parent:define_getter(self.altname, self.getter, self)
         parent:define_setter(self.altname, self.setter, self)
@@ -133,7 +133,7 @@ end
 -- we're on client but variable is not readable from client.
 -- @param ent Entity - currently doesn't perform checks on it - unused.
 function state_variable:read_tests(ent)
-    if not of.global.SERVER and not self.clientread then
+    if not SERVER and not self.clientread then
         assert(false)
     end
 end
@@ -144,11 +144,11 @@ end
 -- @param ent Entity to perform checks for.
 function state_variable:write_tests(ent)
     if ent.deactivated then
-        of.logging.log(of.logging.ERROR, "Trying to write a field " .. self._name .. " of " .. ent.uid .. ", " .. tostring(ent))
+        logging.log(logging.ERROR, "Trying to write a field " .. self._name .. " of " .. ent.uid .. ", " .. tostring(ent))
         assert(false)
     end
-    if not of.global.SERVER and not self.clientwrite then
-        assert(of.global.SERVER or self.clientwrite)
+    if not SERVER and not self.clientwrite then
+        assert(SERVER or self.clientwrite)
     end
     if not ent.initialized then
         assert(ent.initialized)
@@ -164,7 +164,7 @@ end
 -- @see state_variable:setter
 function state_variable:getter(var)
     var:read_tests(self)
-    of.logging.log(of.logging.INFO, "SV getter: " .. tostring(var._name))
+    logging.log(logging.INFO, "SV getter: " .. tostring(var._name))
     return self.state_var_vals[var._name]
 end
 
@@ -256,7 +256,7 @@ function array_surrogate:__tostring() return "array_surrogate" end
 -- @param ent Entity to create surrogate for.
 -- @param var State variable to create surrogate for.
 function array_surrogate:__init(ent, var)
-    of.logging.log(of.logging.INFO, "setting up array_surrogate(" .. tostring(ent) .. ", " .. tostring(var) .. "(" .. var._name .. "))")
+    logging.log(logging.INFO, "setting up array_surrogate(" .. tostring(ent) .. ", " .. tostring(var) .. "(" .. var._name .. "))")
 
     self.entity = ent
     self.variable = var
@@ -288,11 +288,11 @@ end
 --- Return raw array of values.
 -- @return Raw array of values.
 function array_surrogate:as_array()
-    of.logging.log(of.logging.DEBUG, "as_array: " .. tostring(self))
+    logging.log(logging.DEBUG, "as_array: " .. tostring(self))
 
     local r = {}
     for i = 1, self.length do
-        of.logging.log(of.logging.DEBUG, "as_array(" .. tostring(i) .. ")")
+        logging.log(logging.DEBUG, "as_array(" .. tostring(i) .. ")")
         table.insert(r, self[i])
     end
     return r
@@ -329,12 +329,12 @@ end
 -- @param var State variable to set.
 -- @param val Value to set.
 function state_array:setter(var, val)
-    of.logging.log(of.logging.DEBUG, "state_array setter: " .. of.json.encode(val))
+    logging.log(logging.DEBUG, "state_array setter: " .. json.encode(val))
     if val.x then
-        of.logging.log(of.logging.INFO, "state_array setter: " .. tostring(val.x) .. ", " .. tostring(val.y) .. ", " .. tostring(val.z))
+        logging.log(logging.INFO, "state_array setter: " .. tostring(val.x) .. ", " .. tostring(val.y) .. ", " .. tostring(val.z))
     end
     if val[1] then
-        of.logging.log(of.logging.INFO, "state_array setter: " .. tostring(val[1]) .. ", " .. tostring(val[2]) .. ", " .. tostring(val[3]))
+        logging.log(logging.INFO, "state_array setter: " .. tostring(val[1]) .. ", " .. tostring(val[2]) .. ", " .. tostring(val[3]))
     end
 
     local data
@@ -357,7 +357,7 @@ end
 state_array.to_wire_item = convert.tostring
 
 function state_array:to_wire(v)
-    of.logging.log(of.logging.INFO, "to_wire of state_array: " .. of.json.encode(v))
+    logging.log(logging.INFO, "to_wire of state_array: " .. json.encode(v))
     if v.as_array then
         -- array surrogate
         v = v:as_array()
@@ -368,7 +368,7 @@ end
 state_array.from_wire_item = convert.tostring
 
 function state_array:from_wire(v)
-    of.logging.log(of.logging.DEBUG, "from_wire of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
+    logging.log(logging.DEBUG, "from_wire of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
     if v == "[]" then
         return {}
     else
@@ -379,13 +379,13 @@ end
 state_array.to_data_item = convert.tostring
 
 function state_array:to_data(v)
-    of.logging.log(of.logging.DEBUG, "(1) to_data of state_array: " .. tostring(v) .. ", " .. type(v) .. ", " .. of.json.encode(v))
+    logging.log(logging.DEBUG, "(1) to_data of state_array: " .. tostring(v) .. ", " .. type(v) .. ", " .. json.encode(v))
     if v.as_array then
-        of.logging.log(of.logging.DEBUG, "(1.5) to_data of state_array: using as_array ..")
+        logging.log(logging.DEBUG, "(1.5) to_data of state_array: using as_array ..")
         v = v:as_array()
     end
 
-    of.logging.log(of.logging.DEBUG, "(2) to_data of state_array: " .. tostring(v) .. ", " .. type(v) .. ", " .. of.json.encode(v))
+    logging.log(logging.DEBUG, "(2) to_data of state_array: " .. tostring(v) .. ", " .. type(v) .. ", " .. json.encode(v))
 
     return "[" .. table.concat(table.map(v, self.to_data_item), self.separator) .. "]"
 end
@@ -393,7 +393,7 @@ end
 state_array.from_data_item = convert.tostring
 
 function state_array:from_data(v)
-    of.logging.log(of.logging.DEBUG, "from_data of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
+    logging.log(logging.DEBUG, "from_data of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
     if v == "[]" then
         return {}
     else
@@ -406,8 +406,8 @@ end
 -- @param ent Entity to get raw data for.
 -- @return Raw data.
 function state_array:get_raw(ent)
-    of.logging.log(of.logging.INFO, "get_raw: " .. tostring(self))
-    of.logging.log(of.logging.INFO, of.json.encode(ent.state_var_vals))
+    logging.log(logging.INFO, "get_raw: " .. tostring(self))
+    logging.log(logging.INFO, json.encode(ent.state_var_vals))
     local val = ent.state_var_vals[self._name]
     return val and val or {}
 end
@@ -417,9 +417,9 @@ end
 -- @param i Array index.
 -- @param v Item value.
 function state_array:set_item(ent, i, v)
-    of.logging.log(of.logging.INFO, "set_item: " .. tostring(i) .. " : " .. of.json.encode(v))
+    logging.log(logging.INFO, "set_item: " .. tostring(i) .. " : " .. json.encode(v))
     local arr = self:get_raw(ent)
-    of.logging.log(of.logging.INFO, "got_raw: " .. of.json.encode(arr))
+    logging.log(logging.INFO, "got_raw: " .. json.encode(arr))
     if type(v) == "string" then
         assert(not string.find(v, "%" .. self.separator))
     end
@@ -432,9 +432,9 @@ end
 -- @param i Array index.
 -- @return Item value.
 function state_array:get_item(ent, i)
-    of.logging.log(of.logging.INFO, "state_array:get_item for " .. tostring(i))
+    logging.log(logging.INFO, "state_array:get_item for " .. tostring(i))
     local arr = self:get_raw(ent)
-    of.logging.log(of.logging.INFO, "state_array:get_item " .. of.json.encode(arr) .. " ==> " .. tostring(arr[i]))
+    logging.log(logging.INFO, "state_array:get_item " .. json.encode(arr) .. " ==> " .. tostring(arr[i]))
     return arr[i] -- TODO: optimize
 end
 
@@ -491,12 +491,12 @@ end
 -- @param _name Alias name.
 -- @param parent Parent entity to perform registration for.
 function variable_alias:_register(_name, parent)
-    of.logging.log(of.logging.DEBUG, "variable_alias:_register(%(1)q, %(2)s)" % { _name, tostring(parent) })
+    logging.log(logging.DEBUG, "variable_alias:_register(%(1)q, %(2)s)" % { _name, tostring(parent) })
     self._name = _name
 
     parent:remove_getter(_name)
     parent:remove_setter(_name)
-    of.logging.log(of.logging.DEBUG, "Getting target entity for variable alias " .. _name .. ": " .. _SV_PREFIX .. self.targetname)
+    logging.log(logging.DEBUG, "Getting target entity for variable alias " .. _name .. ": " .. _SV_PREFIX .. self.targetname)
     local tg = parent[_SV_PREFIX .. self.targetname]
     parent[_SV_PREFIX .. _name] = tg -- point to the true variable
 
@@ -517,7 +517,7 @@ wrapped_cvariable = {}
 -- kwargs)
 -- @param kwargs Additional parameters.
 function wrapped_cvariable:__init(kwargs)
-    of.logging.log(of.logging.INFO, "wrapped_cvariable:__init()")
+    logging.log(logging.INFO, "wrapped_cvariable:__init()")
 
     self.cgetter_raw = kwargs.cgetter
     self.csetter_raw = kwargs.csetter
@@ -534,7 +534,7 @@ end
 function wrapped_cvariable:_register(_name, parent)
     self.__base._register(self, _name, parent)
 
-    of.logging.log(of.logging.DEBUG, "WCV register: " .. tostring(_name))
+    logging.log(logging.DEBUG, "WCV register: " .. tostring(_name))
 
     -- allow use of string names, for late binding at this stagem we copy raw walues, then eval
     self.cgetter = self.cgetter_raw
@@ -552,22 +552,22 @@ function wrapped_cvariable:_register(_name, parent)
         local prefix = get_onmodify_prefix()
         local variable = self
         parent:connect(prefix .. _name, function (self, v)
-            if of.global.CLIENT or parent:can_call_cfuncs() then
-                of.logging.log(of.logging.DEBUG, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
+            if CLIENT or parent:can_call_cfuncs() then
+                logging.log(logging.DEBUG, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
                 -- we've been set up, apply the change
                 variable.csetter(parent, v)
-                of.logging.log(of.logging.DEBUG, "csetter called successfully.")
+                logging.log(logging.DEBUG, "csetter called successfully.")
 
                 -- caching reads from script into C++ (search for -- caching)
                 parent.state_var_vals[tostring(variable._name)] = v
-                parent.state_var_val_timestamps[tostring(variable._name)] = of.global.curr_timestamp
+                parent.state_var_val_timestamps[tostring(variable._name)] = GLOBAL_CURRENT_TIMESTAMP
             else
                 -- not yet set up, queue change
                 parent:_queue_sv_change(tostring(variable._name), v)
             end
         end)
     else
-        of.logging.log(of.logging.DEBUG, "No csetter for " .. tostring(_name) .. ": not connecting to signal.")
+        logging.log(logging.DEBUG, "No csetter for " .. tostring(_name) .. ": not connecting to signal.")
     end
 end
 
@@ -577,26 +577,26 @@ end
 function wrapped_cvariable:getter(var)
     var:read_tests(self)
 
-    of.logging.log(of.logging.INFO, "WCV getter " .. tostring(var._name))
+    logging.log(logging.INFO, "WCV getter " .. tostring(var._name))
 
     -- caching
     local cached_timestamp = self.state_var_val_timestamps[tostring(var._name)]
-    if cached_timestamp == of.global.curr_timestamp then
+    if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
         return self.state_var_vals[tostring(var._name)]
     end
-    if var.cgetter and (of.global.CLIENT or self:can_call_cfuncs()) then
-        of.logging.log(of.logging.INFO, "WCV getter: call C")
+    if var.cgetter and (CLIENT or self:can_call_cfuncs()) then
+        logging.log(logging.INFO, "WCV getter: call C")
         local val = var.cgetter(self)
 
         -- caching
-        if of.global.CLIENT or self._queued_sv_changes_complete then
+        if CLIENT or self._queued_sv_changes_complete then
             self.state_var_vals[tostring(var._name)] = val
-            self.state_var_val_timestamps[tostring(var._name)] = of.global.curr_timestamp
+            self.state_var_val_timestamps[tostring(var._name)] = GLOBAL_CURRENT_TIMESTAMP
         end
 
         return val
     else
-        of.logging.log(of.logging.INFO, "WCV getter: fallback to state_data since " .. tostring(var.cgetter))
+        logging.log(logging.INFO, "WCV getter: fallback to state_data since " .. tostring(var.cgetter))
         return var.__base.getter(self, var)
     end
 end
@@ -654,28 +654,28 @@ wrapped_carray._register = wrapped_cvariable._register
 -- so it makes use of C getter (though everything is cached).
 -- @param ent Entity the wrapped C array is belonging to.
 function wrapped_carray:get_raw(ent)
-    of.logging.log(of.logging.INFO, "WCA:get_raw " .. tostring(self._name) .. " " .. tostring(self.cgetter))
+    logging.log(logging.INFO, "WCA:get_raw " .. tostring(self._name) .. " " .. tostring(self.cgetter))
 
-    if self.cgetter and (of.global.CLIENT or ent:can_call_cfuncs()) then
+    if self.cgetter and (CLIENT or ent:can_call_cfuncs()) then
         -- caching
         local cached_timestamp = ent.state_var_val_timestamps[tostring(self._name)]
-        if cached_timestamp == of.global.curr_timestamp then
+        if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
             return ent.state_var_vals[tostring(self._name)]
         end
 
-        of.logging.log(of.logging.INFO, "WCA:get_raw: call C")
+        logging.log(logging.INFO, "WCA:get_raw: call C")
         -- caching
         local val = self.cgetter(ent)
-        of.logging.log(of.logging.INFO, "WCA:get_raw:result: " .. of.json.encode(val))
-        if of.global.CLIENT or ent._queued_sv_changes_complete then
+        logging.log(logging.INFO, "WCA:get_raw:result: " .. json.encode(val))
+        if CLIENT or ent._queued_sv_changes_complete then
             ent.state_var_vals[tostring(self._name)] = val
-            ent.state_var_val_timestamps[tostring(self._name)] = of.global.curr_timestamp
+            ent.state_var_val_timestamps[tostring(self._name)] = GLOBAL_CURRENT_TIMESTAMP
         end
         return val
     else
-        of.logging.log(of.logging.INFO, "WCA:get_raw: fallback to state_data")
+        logging.log(logging.INFO, "WCA:get_raw: fallback to state_data")
         local r = ent.state_var_vals[tostring(self._name)]
-        of.logging.log(of.logging.INFO, "WCA:get_raw .. " .. of.json.encode(r))
+        logging.log(logging.INFO, "WCA:get_raw .. " .. json.encode(r))
         return r
     end
 end
@@ -902,16 +902,16 @@ state_vec4.to_wire_item    = convert.todec2str
 state_vec4.from_data_item  = convert.tonumber
 state_vec4.to_data_item    = convert.todec2str
 
---- State of.json. Simple state variable. On to_(wire|data)
+--- State json. Simple state variable. On to_(wire|data)
 -- it encodes JSON table, on from_(wire|data), it decodes
 -- JSON string.
 -- @class table
 -- @name state_json
 state_json = class.new(state_variable)
 function state_json:__tostring() return "state_json" end
-function state_json:to_wire(v) return of.json.encode(v) end
-function state_json:from_wire(v) return of.json.decode(v) end
-function state_json:to_data(v) return of.json.encode(v) end
-function state_json:from_data(v) return of.json.decode(v) end
+function state_json:to_wire(v) return json.encode(v) end
+function state_json:from_wire(v) return json.decode(v) end
+function state_json:to_data(v) return json.encode(v) end
+function state_json:from_data(v) return json.decode(v) end
 
-of.json.register(function(v) return (type(v) == "table" and v.uid ~= nil) end, function(v) return v.uid end)
+json.register(function(v) return (type(v) == "table" and v.uid ~= nil) end, function(v) return v.uid end)

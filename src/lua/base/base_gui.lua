@@ -30,8 +30,8 @@
 -- Contains widget / window creation functions
 -- and various misc methods relating GUIs.
 -- @class module
--- @name of.gui
-module("of.gui", package.seeall)
+-- @name gui
+module("gui", package.seeall)
 
 --- Define a new GUI font.
 -- @param n Name of the font.

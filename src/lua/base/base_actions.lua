@@ -149,7 +149,7 @@ function action:execute(sec)
     -- handle execution, and mirror finish status of parallel action
     -- if exists.
     if self.parallelto == false then
-        of.logging.log(of.logging.INFO, "executing action " .. tostring(self))
+        logging.log(logging.INFO, "executing action " .. tostring(self))
 
         local finished = self:doexecute(sec)
         assert(finished == true or finished == false)
@@ -157,7 +157,7 @@ function action:execute(sec)
             self:finish()
         end
 
-        of.logging.log(of.logging.INFO, "        ...finished: " .. finished)
+        logging.log(logging.INFO, "        ...finished: " .. finished)
         return finished
     else
         if self.parallelto.finished then
@@ -305,7 +305,7 @@ end
 function action_system:manage(sec)
     self.actlist = table.filterarray(self.actlist, function (i, v) return not v.finished end)
     if #self.actlist > 0 then
-        of.logging.log(of.logging.INFO, "executing " .. tostring(self.actlist[1]))
+        logging.log(logging.INFO, "executing " .. tostring(self.actlist[1]))
         if self.actlist[1]:execute(sec) then -- if the action is completed, remove it immediately to not mess with it later
             table.remove(self.actlist, 1)
         end
@@ -329,7 +329,7 @@ function action_system:queue(act)
     if not action.canmulqueue then
         for i = 1, #self.actlist do
             if tostring(self.actlist[i]) == tostring(act) then
-                of.logging.log(of.logging.WARNING, string.format("Trying to multiply queue %s, but that isn't allowed\n", tostring(act)))
+                logging.log(logging.WARNING, string.format("Trying to multiply queue %s, but that isn't allowed\n", tostring(act)))
                 return nil
             end
         end

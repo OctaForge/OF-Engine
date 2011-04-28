@@ -28,8 +28,8 @@
 
 --- Network for OF's Lua interface.
 -- @class module
--- @name of.network
-module("of.network", package.seeall)
+-- @name network
+module("network", package.seeall)
 
 --- Connect to a server.
 -- @param ip An IP address (string)

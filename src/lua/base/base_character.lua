@@ -28,8 +28,8 @@
 
 --- This module takes care of character entity, states and player entity.
 -- @class module
--- @name of.character
-module("of.character", package.seeall)
+-- @name character
+module("character", package.seeall)
 
 --- Client state table, reflects ents.h.
 -- @field ALIVE Client is alive.
@@ -75,7 +75,7 @@ PSTATE = {
 -- Used as a base for player class.
 -- @class table
 -- @name character
-character = class.new(of.animatable.animatable_logent)
+character = class.new(entity_animated.animatable_logent)
 character._class = "character"
 character._sauertype = "fpsent"
 
@@ -107,37 +107,37 @@ character._sauertype = "fpsent"
 -- @class table
 -- @name character.properties
 character.properties = {
-    of.animatable.animatable_logent.properties[1], -- tags
-    of.animatable.animatable_logent.properties[2], -- _persitent
-    of.animatable.animatable_logent.properties[3], -- animation
-    of.animatable.animatable_logent.properties[4], -- starttime
-    of.animatable.animatable_logent.properties[5], -- modelname
-    of.animatable.animatable_logent.properties[6], -- attachments
+    entity_animated.animatable_logent.properties[1], -- tags
+    entity_animated.animatable_logent.properties[2], -- _persitent
+    entity_animated.animatable_logent.properties[3], -- animation
+    entity_animated.animatable_logent.properties[4], -- starttime
+    entity_animated.animatable_logent.properties[5], -- modelname
+    entity_animated.animatable_logent.properties[6], -- attachments
 
-    { "_name", of.state_variables.state_string() },
-    { "facing_speed", of.state_variables.state_integer() },
+    { "_name", state_variables.state_string() },
+    { "facing_speed", state_variables.state_integer() },
 
-    { "movement_speed", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }) },
-    { "yaw", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }) },
-    { "pitch", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }) },
-    { "move", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }) },
-    { "strafe", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }) },
+    { "movement_speed", state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }) },
+    { "yaw", state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }) },
+    { "pitch", state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }) },
+    { "move", state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }) },
+    { "strafe", state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }) },
 --  intention to yaw / pitch. todo: enable
---  { "yawing", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }) },
---  { "pitching", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }) },
-    { "position", of.state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }) },
-    { "velocity", of.state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }) },
-    { "falling", of.state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }) },
-    { "radius", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }) },
-    { "aboveeye", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }) },
-    { "eyeheight", of.state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }) },
-    { "blocked", of.state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }) },
-    { "canmove", of.state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }) },
-    { "mapdefinedposdata", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }) },
-    { "cs", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }) },
-    { "ps", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }) },
-    { "inwater", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }) },
-    { "timeinair", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true }) }
+--  { "yawing", state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }) },
+--  { "pitching", state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }) },
+    { "position", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }) },
+    { "velocity", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }) },
+    { "falling", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }) },
+    { "radius", state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }) },
+    { "aboveeye", state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }) },
+    { "eyeheight", state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }) },
+    { "blocked", state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }) },
+    { "canmove", state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }) },
+    { "mapdefinedposdata", state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }) },
+    { "cs", state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }) },
+    { "ps", state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }) },
+    { "inwater", state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }) },
+    { "timeinair", state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true }) }
 }
 
 --- Jump handler method for character.
@@ -147,8 +147,8 @@ end
 
 --- Initializer. See animatable_logent.
 function character:init(uid, kwargs)
-    of.logging.log(of.logging.DEBUG, "character:init")
-    of.animatable.animatable_logent.init(self, uid, kwargs)
+    logging.log(logging.DEBUG, "character:init")
+    entity_animated.animatable_logent.init(self, uid, kwargs)
 
     self._name = "-?-" -- set by the server later
     self.cn = kwargs and kwargs.cn or -1
@@ -164,20 +164,20 @@ end
 
 --- Serverside activation. See animatable_logent.
 function character:activate(kwargs)
-    of.logging.log(of.logging.DEBUG, "character:activate")
+    logging.log(logging.DEBUG, "character:activate")
     self.cn = kwargs and kwargs.cn or -1
     assert(self.cn >= 0)
 
     CAPI.setupcharacter(self)
-    of.animatable.animatable_logent.activate(self, kwargs)
+    entity_animated.animatable_logent.activate(self, kwargs)
     self:_flush_queued_sv_changes()
 
-    of.logging.log(of.logging.DEBUG, "character:activate complete.")
+    logging.log(logging.DEBUG, "character:activate complete.")
 end
 
 --- Clientside activation. See serverside.
 function character:client_activate(kwargs)
-    of.animatable.animatable_logent.client_activate(self, kwargs)
+    entity_animated.animatable_logent.client_activate(self, kwargs)
     self.cn = kwargs and kwargs.cn or -1
     CAPI.setupcharacter(self)
 
@@ -187,13 +187,13 @@ end
 --- Serverside entity deactivation.
 function character:deactivate()
     CAPI.dismantlecharacter(self)
-    of.animatable.animatable_logent.deactivate(self)
+    entity_animated.animatable_logent.deactivate(self)
 end
 
 --- Clientside entity deactivation.
 function character:client_deactivate()
     CAPI.dismantlecharacter(self)
-    of.animatable.animatable_logent.client_deactivate(self)
+    entity_animated.animatable_logent.client_deactivate(self)
 end
 
 --- Serverside act method for character. Ran every frame.
@@ -204,7 +204,7 @@ function character:act(sec)
     if self.action_system:isempty() then
         self:default_action(sec)
     else
-        of.animatable.animatable_logent.act(self, sec)
+        entity_animated.animatable_logent.act(self, sec)
     end
 end
 
@@ -223,7 +223,7 @@ function character:render_dynamic(hudpass, needhud)
     if not self.initialized then return nil end
     if not hudpass and needhud then return nil end
 
-    if self.rendering_args_timestamp ~= of.logent.store.curr_timestamp then
+    if self.rendering_args_timestamp ~= entity_store.curr_timestamp then
         local state = self.cs
         if state == CSTATE.SPECTAROR or state == CSTATE.SPAWNING then return nil end
 
@@ -245,25 +245,25 @@ function character:render_dynamic(hudpass, needhud)
         local flags = self:get_renderingflags(hudpass, needhud)
 
         self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, flags, basetime }
-        self.rendering_args_timestamp = of.logent.store.curr_timestamp
+        self.rendering_args_timestamp = entity_store.curr_timestamp
     end
 
     -- render only when model is set
-    if self.rendering_args[2] ~= "" then of.model.render(unpack(self.rendering_args)) end
+    if self.rendering_args[2] ~= "" then model.render(unpack(self.rendering_args)) end
 end
 
 --- Used in render_dynamic to get rendering flags. Enables some occlusion, dynamic shadow, etc.
 -- @param hudpass True if we're rendering HUD right now.
 -- @param needhud True if model should be shown as HUD model (== we're in first person)
 function character:get_renderingflags(hudpass, needhud)
-    local flags = math.bor(of.model.LIGHT, of.model.DYNSHADOW)
-    if self ~= of.logent.store.get_plyent() then
-        flags = math.bor(flags, of.model.CULL_VFC, of.model.CULL_OCCLUDED, of.model.CULL_QUERY)
+    local flags = math.bor(model.LIGHT, model.DYNSHADOW)
+    if self ~= entity_store.get_plyent() then
+        flags = math.bor(flags, model.CULL_VFC, model.CULL_OCCLUDED, model.CULL_QUERY)
     end
     if hudpass and needhud then
-        flags = math.bor(flags, of.model.HUD)
+        flags = math.bor(flags, model.HUD)
     end
-    return flags -- TODO: for non-characters, use flags = math.bor(flags, of.model.CULL_DIST)
+    return flags -- TODO: for non-characters, use flags = math.bor(flags, model.CULL_DIST)
 end
 
 --- Used in render_dynamic to decide character animation (falling, strafing, etc.) from given arguments.
@@ -328,7 +328,7 @@ end
 function character:is_onfloor()
     if floor_dist(self.position, 1024) < 1 then return true end
     if self.velocity.z < -1 or self.falling.z < -1 then return false end
-    return of.utils.iscolliding(self.position, self.radius + 2, self)
+    return utility.iscolliding(self.position, self.radius + 2, self)
 end
 
 --- Base player class, inherited from character.
@@ -379,19 +379,19 @@ player.properties = {
     character.properties[25], -- inwater
     character.properties[26], -- timeinair
 
-    { "_can_edit", of.state_variables.state_bool() },
-    { "hud_modelname", of.state_variables.state_string() }
+    { "_can_edit", state_variables.state_bool() },
+    { "hud_modelname", state_variables.state_string() }
 }
 
 --- Overriden initializer, calls base
 -- and sets default values of added properties.
 function player:init(uid, kwargs)
-    of.logging.log(of.logging.DEBUG, "player:init")
+    logging.log(logging.DEBUG, "player:init")
     character.init(self, uid, kwargs)
 
     self._can_edit = false
     self.hud_modelname = ""
 end
 
-of.logent.classes.reg(character, "fpsent")
-of.logent.classes.reg(player, "fpsent")
+entity_classes.reg(character, "fpsent")
+entity_classes.reg(player, "fpsent")

@@ -28,13 +28,13 @@
 
 --- This module takes care of animatable logic entity and animation action.
 -- @class module
--- @name of.animatable
-module("of.animatable", package.seeall)
+-- @name entity_animated
+module("entity_animated", package.seeall)
 
 --- Base animatable logic entity class, not meant to be used directly.
 -- @class table
 -- @name animatable_logent
-animatable_logent = class.new(of.logent.logent)
+animatable_logent = class.new(entity.logent)
 animatable_logent._class = "animatable_logent"
 
 --- Base properties of animatable logic entity.
@@ -46,19 +46,19 @@ animatable_logent._class = "animatable_logent"
 -- @class table
 -- @name animatable_logent.properties
 animatable_logent.properties = {
-    of.logent.logent.properties[1], -- tags
-    of.logent.logent.properties[2], -- _persistent
-    { "animation", of.state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }) },
-    { "starttime", of.state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }) },
-    { "modelname", of.state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }) },
-    { "attachments", of.state_variables.wrapped_carray({ csetter = "CAPI.setattachments" }) }
+    entity.logent.properties[1], -- tags
+    entity.logent.properties[2], -- _persistent
+    { "animation", state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }) },
+    { "starttime", state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }) },
+    { "modelname", state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }) },
+    { "attachments", state_variables.wrapped_carray({ csetter = "CAPI.setattachments" }) }
 }
 
 --- Init method for animatable logic entity. Performs initial setup.
 -- @param uid Unique ID for the entity.
 -- @param kwargs Table of additional parameters (for i.e. overriding _persistent)
 function animatable_logent:init(uid, kwargs)
-    if of.logent.logent.init then of.logent.logent.init(self, uid, kwargs) end
+    if entity.logent.init then entity.logent.init(self, uid, kwargs) end
 
     self._attachments_dict = {}
 
@@ -70,13 +70,13 @@ end
 --- Serverside entity activation.
 -- @param kwargs Table of additional parameters.
 function animatable_logent:activate(kwargs)
-    of.logging.log(of.logging.DEBUG, "animatable_logent:activate")
-    of.logent.logent.activate(self, kwargs)
+    logging.log(logging.DEBUG, "animatable_logent:activate")
+    entity.logent.activate(self, kwargs)
 
-    of.logging.log(of.logging.DEBUG, "animatable_logent:activate (2)")
+    logging.log(logging.DEBUG, "animatable_logent:activate (2)")
     self.modelname = self.modelname
 
-    of.logging.log(of.logging.DEBUG, "animatable_logent:activate complete")
+    logging.log(logging.DEBUG, "animatable_logent:activate complete")
 end
 
 --- Set model attachment for entity. Connected with "attachments" property.
@@ -93,7 +93,7 @@ function animatable_logent:set_attachment(tag, mdlname)
 
     local r = {}
     for k, v in pairs(self._attachments_dict) do
-        table.insert(r, of.model.attachment(tostring(k), tostring(v)))
+        table.insert(r, model.attachment(tostring(k), tostring(v)))
     end
     self.attachments = r
 end
@@ -114,7 +114,7 @@ end
 
 --- General setup method. Called on initialization.
 function animatable_logent:_general_setup(...)
-    of.logent.logent._general_setup(self)
+    entity.logent._general_setup(self)
     self:define_getter("center", self.get_center)
 end
 

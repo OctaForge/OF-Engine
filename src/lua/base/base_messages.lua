@@ -29,8 +29,8 @@
 --- Message system interface for Lua. Used for communication between client and server,
 -- takes care of name compressing and other things.
 -- @class module
--- @name of.msgsys
-module("of.msgsys", package.seeall)
+-- @name message
+module("message", package.seeall)
 
 -- -1 value represents all clients.
 ALL_CLIENTS = -1
@@ -43,13 +43,13 @@ pidston = {}
 -- @param a1 If this is logic entity or number, it's server->client message (number representing client number). On client, it's the message function.
 -- @param a2 On server, it's a message function, on client, data begin here.
 function send(...)
-    of.logging.log(of.logging.DEBUG, "of.msgsys.send")
+    logging.log(logging.DEBUG, "message.send")
 
     local server
     local cn
 
     local args = { ... }
-    if type(args[1]) == "table" and args[1].is_a and args[1]:is_a(of.logent.logent) then
+    if type(args[1]) == "table" and args[1].is_a and args[1]:is_a(entity.logent) then
         -- server->client message, get clientnumber from entity
         server = true
         cn = args[1].cn
@@ -68,7 +68,7 @@ function send(...)
 
     if server then table.insert(args, 1, cn) end
 
-    of.logging.log(of.logging.DEBUG, string.format("Lua msgsys: send(): %s with { %s }", tostring(mt), table.concat(table.map(args, function(x) return tostring(x) end), ", ")))
+    logging.log(logging.DEBUG, string.format("Lua msgsys: send(): %s with { %s }", tostring(mt), table.concat(table.map(args, function(x) return tostring(x) end), ", ")))
     mt(unpack(args))
 end
 
@@ -76,7 +76,7 @@ end
 -- @param cln Client number.
 -- @param svn State variable names (table)
 function genprod(cln, svn)
-    of.logging.log(of.logging.DEBUG, string.format("Generating protocol names for %s", cln))
+    logging.log(logging.DEBUG, string.format("Generating protocol names for %s", cln))
     table.sort(svn) -- ensure there is the same order on both client and server
 
     local ntoids = {}
@@ -95,7 +95,7 @@ end
 -- @param svn State variable name.
 -- @return Corresponding protocol ID.
 function toproid(cln, svn)
-    of.logging.log(of.logging.DEBUG, string.format("Retrieving protocol ID for %s / %s", cln, svn))
+    logging.log(logging.DEBUG, string.format("Retrieving protocol ID for %s / %s", cln, svn))
     return pntoids[cln][svn]
 end
 
@@ -104,7 +104,7 @@ end
 -- @param svn Protocol ID.
 -- @return Corresponding state variable name.
 function fromproid(cln, proid)
-    of.logging.log(of.logging.DEBUG, string.format("Retrieving state variable name for %s / %i", cln, proid))
+    logging.log(logging.DEBUG, string.format("Retrieving state variable name for %s / %i", cln, proid))
     return pidston[cln][proid]
 end
 
@@ -120,7 +120,7 @@ end
 -- @param ti Message title.
 -- @param tx Message text.
 function showcm(cn, ti, tx)
-    if cn.is_a and cn:is_a(of.logent.logent) then
+    if cn.is_a and cn:is_a(entity.logent) then
         cn = cn.cn
     end
     send(cn, CAPI.personal_servmsg, -1, ti, tx)

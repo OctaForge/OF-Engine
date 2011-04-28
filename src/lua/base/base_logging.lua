@@ -32,8 +32,8 @@
 -- Only ERROR is logged by default, you can change logging level in config file in your
 -- OctaForge configuration directory. Log function and the levels are wrapped as globals.
 -- @class module
--- @name of.logging
-module("of.logging", package.seeall)
+-- @name logging
+module("logging", package.seeall)
 
 --- Logs a message into C++ logging system.<br/>
 -- There are several logging levels:<br/><br/>

@@ -28,16 +28,16 @@
 
 --- This module takes care of logic entity storage.
 -- @class module
--- @name of.logent.store
-module("of.logent.store", package.seeall)
+-- @name entity_store
+module("entity_store", package.seeall)
 
 -- caching by time delay
 function cache_by_time_delay(func, delay)
     func.last_time = ((-delay) * 2)
     return function(...)
-        if (of.global.time - func.last_time) >= delay then
+        if (GLOBAL_TIME - func.last_time) >= delay then
             func.last_cached_val = func(...)
-            func.last_time = of.global.time
+            func.last_time = GLOBAL_TIME
         end
         return func.last_cached_val
     end
@@ -52,13 +52,13 @@ local __entities_store_by_class = {}
 -- @param uid Unique ID of the logent to get.
 -- @return The logent if found, nil otherwise.
 function get(uid)
-    of.logging.log(of.logging.DEBUG, "get: entity " .. tostring(uid))
+    logging.log(logging.DEBUG, "get: entity " .. tostring(uid))
     local r = __entities_store[tonumber(uid)]
     if r then
-        of.logging.log(of.logging.DEBUG, "get: entity " .. tostring(uid) .. " found (" .. r.uid .. ")")
+        logging.log(logging.DEBUG, "get: entity " .. tostring(uid) .. " found (" .. r.uid .. ")")
         return r
     else
-        of.logging.log(of.logging.DEBUG, "get: could not find entity " .. tostring(uid))
+        logging.log(logging.DEBUG, "get: could not find entity " .. tostring(uid))
         return nil
     end
 end
@@ -83,10 +83,10 @@ function get_bytag(wtag)
     local r = get_all_bytag(wtag)
     if #r == 1 then return r[1]
     elseif #r > 1 then
-        of.logging.log(of.logging.WARNING, "Attempt to get a single entity with tag '" .. tostring(wtag) .. "', but several exist.")
+        logging.log(logging.WARNING, "Attempt to get a single entity with tag '" .. tostring(wtag) .. "', but several exist.")
         return nil
     else
-        of.logging.log(of.logging.WARNING, "Attempt to get a single entity with tag '" .. tostring(wtag) .. "', but none exist.")
+        logging.log(logging.WARNING, "Attempt to get a single entity with tag '" .. tostring(wtag) .. "', but none exist.")
         return nil
     end
 end
@@ -111,7 +111,7 @@ end
 -- @return Table of clients. (empty if no clients found, that means we're probably in menu)
 function get_all_clients()
     local ret = get_all_byclass(type(player_class) == "string" and player_class or "player")
-    of.logging.log(of.logging.DEBUG, "logent store: get_all_clients: got %(1)s clients" % { #ret })
+    logging.log(logging.DEBUG, "logent store: get_all_clients: got %(1)s clients" % { #ret })
     return ret
 end
 
@@ -124,10 +124,10 @@ end
 --- Get whether player is editing.
 -- @return True if player is editing, false otherwise.
 function is_player_editing(ply)
-    if of.global.CLIENT then
+    if CLIENT then
         ply = ply or get_plyent()
     end
-    return ply and ply.cs == 4 -- of.character.CSTATE.EDITING
+    return ply and ply.cs == 4 -- character.CSTATE.EDITING
 end
 
 --- Get table of entities close to a position.
@@ -172,15 +172,15 @@ end
 function add(cn, uid, kwargs, _new)
     uid = uid or 1337 -- debugging
 
-    of.logging.log(of.logging.DEBUG, "Adding new scripting logent of type " .. tostring(cn) .. " with uid " .. tostring(uid))
-    of.logging.log(of.logging.DEBUG, "   with arguments: " .. of.json.encode(kwargs) .. ", " .. tostring(_new))
+    logging.log(logging.DEBUG, "Adding new scripting logent of type " .. tostring(cn) .. " with uid " .. tostring(uid))
+    logging.log(logging.DEBUG, "   with arguments: " .. json.encode(kwargs) .. ", " .. tostring(_new))
 
     assert(not get(uid)) -- cannot recreate
 
-    local _class = of.logent.classes.get_class(cn)
+    local _class = entity_classes.get_class(cn)
     local r = _class()
 
-    if of.global.CLIENT then
+    if CLIENT then
         r.uid = uid
     else
         if _new then
@@ -194,7 +194,7 @@ function add(cn, uid, kwargs, _new)
     assert(get(uid) == r)
 
     -- caching
-    for k, v in pairs(of.logent.classes._logent_classes) do
+    for k, v in pairs(entity_classes._logent_classes) do
         if tostring(r) == k then
             if not __entities_store_by_class[k] then
                __entities_store_by_class[k] = {}
@@ -206,9 +206,9 @@ function add(cn, uid, kwargs, _new)
     -- done after setting the uid and placing in the global store,
     -- because c++ registration relies on both
 
-    of.logging.log(of.logging.DEBUG, "Activating ..")
+    logging.log(logging.DEBUG, "Activating ..")
 
-    if of.global.CLIENT then
+    if CLIENT then
         r:client_activate(kwargs)
     else
         r:activate(kwargs)
@@ -220,16 +220,16 @@ end
 --- Delete an entity of known uid.
 -- @param uid Unique ID of the entity which we're deleting.
 function del(uid)
-    of.logging.log(of.logging.DEBUG, "Removing scripting logent: " .. tostring(uid))
+    logging.log(logging.DEBUG, "Removing scripting logent: " .. tostring(uid))
 
     if not __entities_store[tonumber(uid)] then
-        of.logging.log(of.logging.WARNING, "Cannot remove entity " .. tostring(uid) .. " as it does not exist.")
+        logging.log(logging.WARNING, "Cannot remove entity " .. tostring(uid) .. " as it does not exist.")
         return nil
     end
 
     __entities_store[tonumber(uid)]:emit("pre_deactivate")
 
-    if of.global.CLIENT then
+    if CLIENT then
         __entities_store[tonumber(uid)]:client_deactivate()
     else
         __entities_store[tonumber(uid)]:deactivate()
@@ -237,7 +237,7 @@ function del(uid)
 
     -- caching
     local ent = __entities_store[tonumber(uid)]
-    for k, v in pairs(of.logent.classes._logent_classes) do
+    for k, v in pairs(entity_classes._logent_classes) do
         if tostring(ent) == k then
             __entities_store_by_class[k] = table.filterarray(
                 __entities_store_by_class[k],
@@ -257,17 +257,17 @@ function del_all()
 end
 
 curr_timestamp = 0
-of.global.curr_timestamp = curr_timestamp
+_G["GLOBAL_CURRENT_TIMESTAMP"] = curr_timestamp
 
 function start_frame()
     curr_timestamp = curr_timestamp + 1
-    of.global.curr_timestamp = curr_timestamp
+    _G["GLOBAL_CURRENT_TIMESTAMP"] = curr_timestamp
 end
 
-of.global.time = 0
-of.global.curr_timedelta = 1.0
-of.global.lastmillis = 0
-of.global.queued_actions = {}
+_G["GLOBAL_TIME"] = 0
+_G["GLOBAL_CURRENT_TIMEDELTA"] = 1.0
+_G["GLOBAL_LASTMILLIS"] = 0
+_G["GLOBAL_QUEUED_ACTIONS"] = {}
 
 --- Manage action queue. This is performed every frame,
 -- so its performance is important. It loops the entity
@@ -278,18 +278,18 @@ of.global.queued_actions = {}
 -- @param sec The length of seconds to simulate.
 -- @param lastmillis Number of miliseconds since last reset.
 function manage_actions(sec, lastmillis)
-    of.logging.log(of.logging.INFO, "manage_actions: queued ..")
+    logging.log(logging.INFO, "manage_actions: queued ..")
 
-    local curr_actions = table.copy(of.global.queued_actions) -- work on copy as these may add more
-    of.global.queued_actions = {}
+    local curr_actions = table.copy(GLOBAL_QUEUED_ACTIONS) -- work on copy as these may add more
+    _G["GLOBAL_QUEUED_ACTIONS"] = {}
 
     for k,v in pairs(curr_actions) do v() end
 
-    of.global.time = of.global.time + sec
-    of.global.curr_timedelta = sec
-    of.global.lastmillis = lastmillis
+    _G["GLOBAL_TIME"] = GLOBAL_TIME + sec
+    _G["GLOBAL_CURRENT_TIMEDELTA"] = sec
+    _G["GLOBAL_LASTMILLIS"] = lastmillis
 
-    of.logging.log(of.logging.INFO, "manage_actions: " .. tostring(sec))
+    logging.log(logging.INFO, "manage_actions: " .. tostring(sec))
 
     local ents = table.values(__entities_store)
     for i = 1, #ents do
@@ -298,7 +298,7 @@ function manage_actions(sec, lastmillis)
         if ent.deactivated then skip = true end
         if not ent.should_act then skip = true end
         if not skip then
-            if of.global.CLIENT then
+            if CLIENT then
                 ent:client_act(sec)
             else
                 ent:act(sec)
@@ -316,7 +316,7 @@ end
 -- @param tp True if we're in thirdperson mode, false otherwise.
 -- @see render_hud_models
 function render_dynamic(tp)
-    of.logging.log(of.logging.INFO, "render_dynamic")
+    logging.log(logging.INFO, "render_dynamic")
 
     local ply = get_plyent()
     if not ply then return nil end
@@ -346,24 +346,24 @@ end
 -- @see render_dynamic
 function render_hud_models()
     local ply = get_plyent()
-    if ply.hud_modelname and ply.cs ~= 4 then -- 4 = of.character.CSTATE.EDITING
+    if ply.hud_modelname and ply.cs ~= 4 then -- 4 = character.CSTATE.EDITING
         ply:render_dynamic(true, true)
     end
 end
 
-if of.global.CLIENT then
+if CLIENT then
 
 --- Set player uid. Clientside only function. Creates player_logent method, which is
 -- global and can be accessed by get_plyent afterwards.
 -- @param uid The unique ID of player's logic entity.
 -- @see get_plyent
 function set_player_uid(uid)
-    of.logging.log(of.logging.DEBUG, "Setting player uid to " .. tostring(uid))
+    logging.log(logging.DEBUG, "Setting player uid to " .. tostring(uid))
 
     if uid then
         player_logent = get(uid)
         player_logent._controlled_here = true
-        of.logging.log(of.logging.DEBUG, "Player _controlled_here:" .. tostring(player_logent._controlled_here))
+        logging.log(logging.DEBUG, "Player _controlled_here:" .. tostring(player_logent._controlled_here))
 
         assert(not uid or player_logent)
     end
@@ -383,8 +383,8 @@ function get_plyent() return player_logent end
 function set_statedata(uid, kproid, val)
     ent = get(uid)
     if ent then
-        local key = of.msgsys.fromproid(tostring(ent), kproid)
-        of.logging.log(of.logging.DEBUG, "set_statedata: " .. tostring(uid) .. ", " .. tostring(kproid) .. ", " .. tostring(key))
+        local key = message.fromproid(tostring(ent), kproid)
+        logging.log(logging.DEBUG, "set_statedata: " .. tostring(uid) .. ", " .. tostring(kproid) .. ", " .. tostring(key))
         ent:_set_statedata(key, val)
     end
 end
@@ -394,30 +394,30 @@ end
 -- This is clientside only function.
 -- @return True if it has, false otherwise.
 function test_scenario_started()
-    of.logging.log(of.logging.INFO, "Testing whether the scenario started ..")
+    logging.log(logging.INFO, "Testing whether the scenario started ..")
 
     if not get_plyent() then
-        of.logging.log(of.logging.INFO, ".. no, player logent not created yet.")
+        logging.log(logging.INFO, ".. no, player logent not created yet.")
         return false
     end
 
-    of.logging.log(of.logging.INFO, ".. player entity created.")
+    logging.log(logging.INFO, ".. player entity created.")
 
     ents = table.values(__entities_store)
     for i = 1, #ents do
         if not ents[i].initialized then
-            of.logging.log(of.logging.INFO, ".. no, entity " .. tostring(ents[i].uid) .. " is not initialized.")
+            logging.log(logging.INFO, ".. no, entity " .. tostring(ents[i].uid) .. " is not initialized.")
             return false
         end
     end
 
-    of.logging.log(of.logging.INFO, ".. yes, scenario is running.")
+    logging.log(logging.INFO, ".. yes, scenario is running.")
     return true
 end
 
 end
 
-if of.global.SERVER then
+if SERVER then
 
 --- Generate new unique ID. Used when adding entities. Serverside only function.
 -- @return Newly generated unique ID.
@@ -428,7 +428,7 @@ function get_newuid()
         r = math.max(r, uids[i])
     end
     r = r + 1
-    of.logging.log(of.logging.DEBUG, "Generating new uid: " .. tostring(r))
+    logging.log(logging.DEBUG, "Generating new uid: " .. tostring(r))
     return r
 end
 
@@ -440,7 +440,7 @@ end
 -- @return Depending on last argument, either new entity or its unique ID are returned.
 function new(cl, kwargs, fuid, ruid)
     fuid = fuid or get_newuid()
-    of.logging.log(of.logging.DEBUG, "New logent: " .. tostring(fuid))
+    logging.log(logging.DEBUG, "New logent: " .. tostring(fuid))
 
     local r = add(cl, fuid, kwargs, true)
 
@@ -461,7 +461,7 @@ end
 -- like players and non-sauers.
 -- @param cn Client number belonging to client we're sending to.
 function send_entities(cn)
-    of.logging.log(of.logging.DEBUG, "Sending active logents to " .. tostring(cn))
+    logging.log(logging.DEBUG, "Sending active logents to " .. tostring(cn))
 
     local numents = 0
     local ids = {}
@@ -471,7 +471,7 @@ function send_entities(cn)
     end
     table.sort(ids)
 
-    of.msgsys.send(cn, CAPI.notify_numents, numents)
+    message.send(cn, CAPI.notify_numents, numents)
     for i = 1, #ids do
         __entities_store[ids[i]]:send_notification_complete(cn)
     end
@@ -486,7 +486,7 @@ end
 function set_statedata(uid, kproid, val, auid)
     local ent = get(uid)
     if ent then
-        local key = of.msgsys.fromproid(tostring(ent), kproid)
+        local key = message.fromproid(tostring(ent), kproid)
         ent:_set_statedata(key, val, auid)
     end
 end
@@ -495,15 +495,15 @@ end
 -- Serverside only function.
 -- @param sents JSON table of entities as a string, decoded later.
 function load_entities(sents)
-    of.logging.log(of.logging.DEBUG, "Loading entities .. " .. tostring(sents) .. ", " .. type(sents))
+    logging.log(logging.DEBUG, "Loading entities .. " .. tostring(sents) .. ", " .. type(sents))
 
-    local ents = of.json.decode(sents)
+    local ents = json.decode(sents)
     for i = 1, #ents do
-        of.logging.log(of.logging.DEBUG, "load_entities: " .. of.json.encode(ents[i]))
+        logging.log(logging.DEBUG, "load_entities: " .. json.encode(ents[i]))
         local uid = ents[i][1]
         local cls = ents[i][2]
         local state_data = ents[i][3]
-        of.logging.log(of.logging.DEBUG, "load_entities: " .. tostring(uid) .. ", " .. tostring(cls) .. ", " .. of.json.encode(state_data))
+        logging.log(logging.DEBUG, "load_entities: " .. tostring(uid) .. ", " .. tostring(cls) .. ", " .. json.encode(state_data))
 
         if mapversion <= 30 and state_data.attr1 then
             if cls ~= "light" and cls ~= "flickering_light" and cls ~= "particle_effect" and cls ~= "envmap" then
@@ -511,10 +511,10 @@ function load_entities(sents)
             end
         end
 
-        add(cls, uid, { state_data = of.json.encode(state_data) })
+        add(cls, uid, { state_data = json.encode(state_data) })
     end
 
-    of.logging.log(of.logging.DEBUG, "Loading entities complete")
+    logging.log(logging.DEBUG, "Loading entities complete")
 end
 
 end
@@ -524,30 +524,30 @@ end
 -- @return Encoded JSON table (string) of the entities.
 function save_entities()
     local r = {}
-    of.logging.log(of.logging.DEBUG, "Saving entities ..:")
+    logging.log(logging.DEBUG, "Saving entities ..:")
 
     local vals = table.values(__entities_store)
     for i = 1, #vals do
         if vals[i]._persistent then
-            of.logging.log(of.logging.DEBUG, "Saving entity " .. tostring(vals[i].uid))
+            logging.log(logging.DEBUG, "Saving entity " .. tostring(vals[i].uid))
             local uid = vals[i].uid
             local cls = tostring(vals[i])
             -- TODO: store as serialized here, to save some parse/unparsing
             local state_data = vals[i]:create_statedatadict()
-            table.insert(r, of.json.encode({ uid, cls, state_data }))
+            table.insert(r, json.encode({ uid, cls, state_data }))
         end
     end
 
-    of.logging.log(of.logging.DEBUG, "Saving entities complete.")
+    logging.log(logging.DEBUG, "Saving entities complete.")
     return "[\n" .. table.concat(r, ",\n") .. "\n]\n\n"
 end
 
--- Caching per of.global.timestamp
+-- Caching per GLOBAL_CURRENT_TIMESTAMP
 function cache_by_global_timestamp(func)
     return function(...)
-        if func.last_timestamp ~= of.global.curr_timestamp then
+        if func.last_timestamp ~= GLOBAL_CURRENT_TIMESTAMP then
             func.last_cached_val = func(...)
-            func.last_timestamp = global.curr_timestamp
+            func.last_timestamp = GLOBAL_CURRENT_TIMESTAMP
         end
         return func.last_cached_val
     end
@@ -567,7 +567,7 @@ function rendering.setup_dynamic_test(ent)
     ent.render_dynamic_test = cache_by_time_delay(function()
         local plycenter = get_plyent().center
         if current.position:sub_new(plycenter):magnitude() > 256 then
-            if not of.utils.haslineofsight(plycenter, current.position) then return false end
+            if not utility.haslineofsight(plycenter, current.position) then return false end
         end
         return true
     end, 1 / 3)

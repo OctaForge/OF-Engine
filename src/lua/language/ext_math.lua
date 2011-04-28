@@ -137,7 +137,7 @@ end
 function math.vec3:normalize()
     local mag = self:magnitude()
     if mag ~= 0 then self:mul(1 / mag)
-    else of.logging.log(of.logging.ERROR, "Can't normalize vec of null length.") end
+    else logging.log(logging.ERROR, "Can't normalize vec of null length.") end
     return self
 end
 

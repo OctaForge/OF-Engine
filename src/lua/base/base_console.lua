@@ -29,8 +29,8 @@
 --- Console Lua interface. Provides methods for bindings,
 -- console commands, input and others.
 -- @class module
--- @name of.console
-module("of.console", package.seeall)
+-- @name console
+module("console", package.seeall)
 
 --- Toggle the console.
 -- @class function
@@ -75,7 +75,7 @@ end
 -- @param key Key to bind
 -- @param modifier
 function binds.addmod(key, modifier)
-    CAPI.bind(key, [[%(1)s = 1; of.console.onrelease([=[%(1)s = 0]=])]] % { modifier })
+    CAPI.bind(key, [[%(1)s = 1; console.onrelease([=[%(1)s = 0]=])]] % { modifier })
 end
 
 --- Bind a key to an action (spectator mode)
@@ -103,7 +103,7 @@ end
 -- @param key Key to bind
 -- @param modifier
 function binds.addmodedit(key, modifier)
-    CAPI.editbind(key, [[%(1)s = 1; of.console.onrelease([=[%(1)s = 0]=])]] % { modifier })
+    CAPI.editbind(key, [[%(1)s = 1; console.onrelease([=[%(1)s = 0]=])]] % { modifier })
 end
 
 --- Get the action a key is bound to

@@ -86,7 +86,7 @@ def run_server(location=None, use_master=True):
                 def do_connect():
                     assert(not Module.server_proc.connected_to)
                     Module.server_proc.connected_to = True
-                    CModule.run_script('of.network.connect("127.0.0.1", 28787)') # XXX: hard-coded
+                    CModule.run_script('network.connect("127.0.0.1", 28787)') # XXX: hard-coded
                 main_actionqueue.add_action(do_connect)
                 break
             else:
@@ -132,41 +132,41 @@ def show_gui(sender, **kwargs):
     if has_server():
         if check_server_ready():
             CModule.run_script('''
-                of.gui.text("Local server: Running")
-                of.gui.stayopen(function() of.gui.button("  stop", [=[of.network.ssls()]=]) end)
-                of.gui.button("  show output", [[of.gui.show("local_server_output")]])
-                of.gui.stayopen(function() of.gui.button("  save map", [=[of.network.do_upload()]=]) end)
-                of.gui.button("  restart map", [[of.world.restart_map()]])
-                of.gui.button("  editing commands", [[of.gui.show("editing")]])
+                gui.text("Local server: Running")
+                gui.stayopen(function() gui.button("  stop", [=[network.ssls()]=]) end)
+                gui.button("  show output", [[gui.show("local_server_output")]])
+                gui.stayopen(function() gui.button("  save map", [=[network.do_upload()]=]) end)
+                gui.button("  restart map", [[world.restart_map()]])
+                gui.button("  editing commands", [[gui.show("editing")]])
             ''')
         elif check_server_terminated():
             Module.server_proc = None
             log(logging.ERROR, "Local server terminated due to an error")
         else:
             CModule.run_script('''
-                of.gui.text("Local server: ...preparing...")
-                of.gui.stayopen(function() of.gui.button("  stop", [=[of.network.ssls()]=]) end)
+                gui.text("Local server: ...preparing...")
+                gui.stayopen(function() gui.button("  stop", [=[network.ssls()]=]) end)
             ''')
     else:
         CModule.run_script('''
-            of.gui.text("Local server: (not active)")
+            gui.text("Local server: (not active)")
             if logged_into_master == 0 then
-                of.gui.text("   << not logged into master >>")
+                gui.text("   << not logged into master >>")
             end
 
-            of.gui.list(function()
-                of.gui.text("Map location to run: base/")
-                of.gui.field("local_server_location", 30, "")
-                of.gui.text(".tar.gz")
+            gui.list(function()
+                gui.text("Map location to run: base/")
+                gui.field("local_server_location", 30, "")
+                gui.text(".tar.gz")
             end)
-            of.gui.stayopen(function()
-                of.gui.button("  start", [=[
-                    of.network.ssls(local_server_location)
+            gui.stayopen(function()
+                gui.button("  start", [=[
+                    network.ssls(local_server_location)
                 ]=])
             end)
-            of.gui.button("  show output", [[ of.gui.show("local_server_output") ]])
+            gui.button("  show output", [[ gui.show("local_server_output") ]])
         ''')
-    CModule.run_script('of.gui.bar()')
+    CModule.run_script('gui.bar()')
 
 show_components.connect(show_gui, weak=False)
 
@@ -177,16 +177,16 @@ def request_private_edit(sender, **kwargs):
 map_load_finish.connect(request_private_edit, weak=False)
 
 CModule.run_script('''
-    of.gui.new("local_server_output", function()
-        of.gui.noautotab(function()
-            of.gui.bar()
-            of.gui.editor("%(name)s", -80, 20)
-            of.gui.bar()
-            of.gui.stayopen(function()
-                of.gui.button("refresh", [[
-                    of.gui.textfocus("%(name)s")
-                    of.gui.textload("%(name)s")
-                    of.gui.show("-1")
+    gui.new("local_server_output", function()
+        gui.noautotab(function()
+            gui.bar()
+            gui.editor("%(name)s", -80, 20)
+            gui.bar()
+            gui.stayopen(function()
+                gui.button("refresh", [[
+                    gui.textfocus("%(name)s")
+                    gui.textload("%(name)s")
+                    gui.show("-1")
                 ]])
             end)
         end)

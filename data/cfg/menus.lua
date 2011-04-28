@@ -1,93 +1,93 @@
 -- HUD stuff
 
 function edithud()
-    if of.world.enthavesel() ~= 0 then
-        return "%(1)s : %(2)s selected" % { of.world.entget(), of.world.enthavesel() }
+    if world.enthavesel() ~= 0 then
+        return "%(1)s : %(2)s selected" % { world.entget(), world.enthavesel() }
     end
 end
 
 -- Entity GUI
 
-of.gui.new("entities", function()
-    for i = 1, of.world.numentityclasses() do
-        local entityclass = of.world.getentclass(i - 1)
-        of.gui.button(entityclass, "of.world.spawnent(%(1)q)" % { entityclass })
+gui.new("entities", function()
+    for i = 1, world.numentityclasses() do
+        local entityclass = world.getentclass(i - 1)
+        gui.button(entityclass, "world.spawnent(%(1)q)" % { entityclass })
     end
 end)
 
 -- Export entities
 
-of.gui.new("exportentities", function()
-    of.engine_variables.new("newexportfilename", of.engine_variables.VAR_S, "entities.json")
-    of.gui.list(function()
-        of.gui.text("filename: ")
-        of.gui.field("newexportfilename", 30, "")
+gui.new("exportentities", function()
+    engine.newvar("newexportfilename", engine_variables.VAR_S, "entities.json")
+    gui.list(function()
+        gui.text("filename: ")
+        gui.field("newexportfilename", 30, "")
     end)
-    of.gui.bar()
-    of.gui.button("export", "of.world.export_entities(newexportfilename)")
+    gui.bar()
+    gui.button("export", "world.export_entities(newexportfilename)")
 end)
 
 -- Messages
 
-of.gui.new("message", function()
-    of.gui.text(message_title)
-    of.gui.bar()
-    of.gui.text(message_content)
-    of.gui.bar()
-    of.gui.button("close", "of.gui.clear(1)")
+gui.new("message", function()
+    gui.text(message_title)
+    gui.bar()
+    gui.text(message_content)
+    gui.bar()
+    gui.button("close", "gui.clear(1)")
 end)
 
-of.gui.new("input_dialog", function()
-    of.gui.text(input_title)
-    of.gui.bar()
-    of.gui.text(input_content)
-    of.gui.bar()
-    of.engine_variables.new("new_input_data", of.engine_variables.VAR_S, input_data)
-    of.gui.field("new_input_data", 30, [=[input_data = new_input_data]=])
-    of.gui.bar()
+gui.new("input_dialog", function()
+    gui.text(input_title)
+    gui.bar()
+    gui.text(input_content)
+    gui.bar()
+    engine.newvar("new_input_data", engine_variables.VAR_S, input_data)
+    gui.field("new_input_data", 30, [=[input_data = new_input_data]=])
+    gui.bar()
     -- TODO: input callback support
-    of.gui.button("submit", [=[of.gui.input_callback()]=])
-    of.gui.button("cancel", [=[of.gui.clear(1)]=])
+    gui.button("submit", [=[gui.input_callback()]=])
+    gui.button("cancel", [=[gui.clear(1)]=])
 end)
 
-of.gui.new("can_quit", function()
-    of.gui.text("Editing changes have been made. If you quit")
-    of.gui.text("now then they will be lost. Are you sure you")
-    of.gui.text("want to quit?")
-    of.gui.bar()
-    of.gui.button("yes", [=[of.engine.force_quit()]=])
-    of.gui.button("no", [=[of.gui.clear(1)]=])
+gui.new("can_quit", function()
+    gui.text("Editing changes have been made. If you quit")
+    gui.text("now then they will be lost. Are you sure you")
+    gui.text("want to quit?")
+    gui.bar()
+    gui.button("yes", [=[engine.force_quit()]=])
+    gui.button("no", [=[gui.clear(1)]=])
 end)
 
 -- Standard menu definitions
 
-of.console.binds.add("ESCAPE", [[
-    of.gui.menu_key_click_trigger()
-    if of.gui.clear() ~= 1 then
-        of.console.save_mouse_pos() -- Useful for New Light GUI and so forth.
-        of.gui.show("main")
+console.binds.add("ESCAPE", [[
+    gui.menu_key_click_trigger()
+    if gui.clear() ~= 1 then
+        console.save_mouse_pos() -- Useful for New Light GUI and so forth.
+        gui.show("main")
     end
 ]])
 
 -- Main menu
 
 function setup_main_menu()
-    of.gui.new("main", function()
-        of.gui.text("Welcome to OctaForge development release. (1)")
-        of.gui.text("Enter generic_dev if you aren't sure of mapname.")
-        of.gui.bar()
-        of.gui.show_plugins()
-        of.gui.text("Credits: Cube 2, Syntensity, Love, Lua, SDL, Python, zlib.")
-        of.gui.text("Licensed under MIT/X11.")
-        of.gui.bar()
-        of.gui.list(function()
-            of.gui.text("mini-console: ")
-            of.gui.field("minicon_entry", 36)
-            of.gui.bar()
-            of.gui.button("exec", [==[if minicon_entry then loadstring(minicon_entry)() end]==])
+    gui.new("main", function()
+        gui.text("Welcome to OctaForge development release. (1)")
+        gui.text("Enter generic_dev if you aren't sure of mapname.")
+        gui.bar()
+        gui.show_plugins()
+        gui.text("Credits: Cube 2, Syntensity, Love, Lua, SDL, Python, zlib.")
+        gui.text("Licensed under MIT/X11.")
+        gui.bar()
+        gui.list(function()
+            gui.text("mini-console: ")
+            gui.field("minicon_entry", 36)
+            gui.bar()
+            gui.button("exec", [==[if minicon_entry then loadstring(minicon_entry)() end]==])
         end)
-        of.gui.bar()
-        of.gui.button("quit", [=[of.engine.quit()]=], "exit")
+        gui.bar()
+        gui.button("quit", [=[engine.quit()]=], "exit")
     end)
 end
 
