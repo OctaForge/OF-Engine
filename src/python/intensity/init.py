@@ -33,6 +33,5 @@ from intensity.message_system import *
 from intensity.asset import *
 from intensity.safe_actionqueue import *
 from intensity.world import *
-from intensity.master import *
 from intensity.signals import *
 

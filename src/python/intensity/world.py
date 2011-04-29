@@ -65,30 +65,6 @@ class WorldClass:
 ## Singleton with current world info
 World = WorldClass()
 
-
-# Parses a URL to an activity, finding the activity ID, and then contacting the master to
-# find the map asset id as well, for that activity
-def autodiscover_activity(activity_id):
-    if get_config('Network', 'master_server', '') == '':
-        return '', ''
-
-    if '/' in activity_id:
-        activity_id = re.search('/(\w+)/$', activity_id).group(1)
-
-    # Get the map asset ID using a request to the master
-    log(logging.DEBUG, 'Contacting master to find map asset ID for activity %s' % activity_id)
-    conn = httplib.HTTPConnection(get_master_server())
-    conn.request('GET', '/tracker/activity/view/%s/' % activity_id)
-    response = conn.getresponse()
-    assert(response.status == 200)
-    data = response.read()
-    conn.close()
-
-    map_asset_id = re.search('asset/view/(\w+)/', data).group(1)
-
-    return activity_id, map_asset_id
-
-
 ## Sets a map to be currently active, and starts a new scenario
 ## @param _map The asset id for the map (see curr_map_asset_id)
 def set_map(activity_id, map_asset_id):
@@ -96,36 +72,17 @@ def set_map(activity_id, map_asset_id):
 
     # Determine map activity and asset and get asset info
 
-    need_lookup = True
     if Global.SERVER:
         forced_location = get_config('Activity', 'force_location', '')
         if forced_location != '':
-            need_lookup = False
             activity_id = '*FORCED*'
             map_asset_id = forced_location # Contains 'base/'
     else: # CLIENT
         parts = map_asset_id.split('/')
         if parts[0] == 'base':
-            need_lookup = False
             set_config('Activity', 'force_location', map_asset_id)
 
-    # If given a URL of an activity, or don't have the map asset id, autodiscover the activity and map asset ids
-    if need_lookup and '/' in activity_id or map_asset_id == '':
-        activity_id, map_asset_id = autodiscover_activity(activity_id)
-
-    if need_lookup:
-        try:
-            asset_info = AssetManager.acquire(map_asset_id)
-        except AssetRetrievalError, e:
-            log(logging.ERROR, "Error in retrieving assets for map: %s" % str(e))
-            if Global.CLIENT:
-                CModule.show_message("Error", "Could not retrieve assets for the map: " + str(e))
-                CModule.disconnect()
-                CModule.logout()
-            return False
-    else:
-        # Working entirely locally - use config location and run from there
-        asset_info = AssetInfo('xyz', map_asset_id, '?', 'NONE', [], 'b')
+    asset_info = AssetInfo('xyz', map_asset_id, '?', 'NONE', [], 'b')
 
     log(logging.DEBUG, "final setting values: %s / %s" % (activity_id, map_asset_id))
 
@@ -160,9 +117,6 @@ def set_map(activity_id, map_asset_id):
         CModule.create_lua_entities()
 
         auth.InstanceStatus.map_loaded = True
-
-        # Update master server - we are finished preparing
-        auth.update_master({ 'finished_preparing': 1 })
 
         # Send map to all connected clients, if any
         send_curr_map(ALL_CLIENTS)
@@ -231,65 +185,6 @@ def run_map_script():
     CModule.run_script(script)
     log(logging.DEBUG, "Running map script complete..")
 
-
-## Packages an asset for uploading, and handles some backups for internal files
-## Recursively adds directories, but doesn't filter out BAK and ~ files in them, just in the root - FIXME
-def upload_asset(asset_id, backup_postfix = None, num_backups = 0, num_backups_to_keep = 0):
-    asset_info = AssetManager.get_info( asset_id )
-    full_location = AssetManager.get_full_location(asset_info)
-
-    if asset_info.is_zipfile():
-        prefix = asset_info.get_zip_location(full_location)
-
-        # Create
-
-        zip_name = prefix + ".tar.gz"
-        zipfile = tarfile.open(zip_name, 'w:gz')
-
-        filenames = os.listdir(prefix)
-        total = len(filenames)
-        counter = 0
-        for inner_filename in filenames:
-            CModule.render_progress(float(counter)/total, 'packaging archive asset...')
-            if Global.CLIENT: CModule.intercept_key(0)
-
-            counter += 1
-
-            # Don't add backup files
-            if inner_filename[-4:] != '.BAK' and inner_filename[-1] != '~':
-                zipfile.add(prefix + os.sep + inner_filename, arcname = inner_filename)
-
-            if backup_postfix is not None:
-                if inner_filename[-len(backup_postfix):] == backup_postfix:
-                    shutil.copyfile(prefix + os.sep + inner_filename, prefix + os.sep + inner_filename + "." + str(time.time()) + ".BAK");
-                    num_backups += 1
-
-        zipfile.close()
-
-        # Backups were created for the ogz and entities, do some cleaning up
-        if num_backups_to_keep > 0:
-            clean_up_backups(prefix, "BAK", num_backups * num_backups_to_keep)
-
-    # Upload
-    AssetManager.upload_asset(asset_info)
-
-def upload_map():
-    if get_config('Network', 'master_server', '') != '' and get_config('Activity', 'force_location', '') == '':
-        try:
-            upload_asset(
-                get_curr_map_asset_id(),
-                backup_postfix = '.js',
-                num_backups = 2, # We already backed up the ogz and entities beforehand
-                num_backups_to_keep = 3
-            )
-        except Exception, e:
-            CModule.show_message("Error", "Could not upload the map to the asset server: " + str(e))
-            return
-
-        # Notify server
-        MessageSystem.send(CModule.RestartMap)
-
-
 def export_entities(filename):
     full_path = os.path.join(get_asset_dir(), get_curr_map_prefix(), filename)
     data = CModule.run_script_string("return of.logent.store.save_entities()")
@@ -313,7 +208,6 @@ def export_entities(filename):
 
 from intensity.asset import *
 from intensity.message_system import *
-from intensity.master import get_master_server
 
 if Global.SERVER:
     from intensity.server.persistence import *

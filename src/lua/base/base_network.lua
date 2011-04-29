@@ -115,19 +115,6 @@ getfollow = CAPI.getfollow
 -- @name do_upload
 do_upload = CAPI.do_upload
 
---- Reupload asset, doesn't require running world and doesn't save one,
--- useful when things crash.
--- @class function
--- @name repeat_upload
-repeat_upload = CAPI.repeat_upload
-
---- Login to masterserver. Possibly DEPRECATED in favor of better API.
--- @param user Username.
--- @param pass Password.
--- @class function
--- @name do_login
-do_login = CAPI.do_login
-
 --- Start / stop local server. Possibly DEPRECATED in favor of better API.
 -- @param map Map name. If not given, running server gets stopped.
 -- @class function

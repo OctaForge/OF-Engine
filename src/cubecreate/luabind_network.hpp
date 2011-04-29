@@ -100,39 +100,5 @@ namespace lua_binds
         SETVF(last_uploaded_map_asset, aid);
     })
 
-    /* Reuploads asset - doesn't save world and doesn't require one running - useful
-     * for reuploading stuff crashing etc
-     */
-    LUA_BIND_CLIENT(repeat_upload, {
-        const char *lumasset = GETSV(last_uploaded_map_asset);
-
-        renderprogress(0.2, "getting map asset info ..");
-        REFLECT_PYTHON(AssetManager);
-        boost::python::object ainfo = AssetManager.attr("get_info")(lumasset);
-
-        REFLECT_PYTHON(set_curr_map_asset_id);
-        set_curr_map_asset_id(lumasset);
-
-        REFLECT_PYTHON(World);
-        World.attr("asset_info") = ainfo;
-
-        renderprogress(0.5, "compiling scripts ..");
-        REFLECT_PYTHON(get_map_script_filename);
-        const char *fname = boost::python::extract<const char*>(get_map_script_filename());
-        if (!engine.loadf(fname))
-        {
-            IntensityGUI::showMessage("Compilation failed", engine.geterror_last());
-            return;
-        }
-
-        renderprogress(0.7, "uploading map ..");
-        REFLECT_PYTHON(upload_map);
-        upload_map();
-
-        conoutf("Upload complete.");
-    })
-
     LUA_BIND_STD_CLIENT(restart_map, MessageSystem::send_RestartMap)
-
-    LUA_BIND_STD_CLIENT(do_login, MasterServer::do_login, e.get<char*>(1), e.get<char*>(2))
 }

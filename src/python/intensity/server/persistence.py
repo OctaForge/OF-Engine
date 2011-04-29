@@ -54,11 +54,6 @@ class Clients:
 def get_max_clients():
     return int(get_config('Clients', 'limit', 10))
 
-## Tries to log in a client.
-##
-## Right before doing the actual login test, updates the master. This may
-## give us a response that we should run a different map, if e.g. this client
-## has just repurposed us to do so
 def do_login(code, client_number, ip_addr):
     def fail(message):
         log(logging.ERROR,message)
@@ -90,71 +85,6 @@ def do_login(code, client_number, ip_addr):
         return fail("Login failure: instance is at its maximum number of clients (%d)" % get_max_clients())
 
     curr_scenario_code = World.scenario_code
-
-    # All contact to the master server is done in the side thread, here
-    def side_operations():
-        auth.update_master()
-        response = auth.check_login(code)
-        print "Response:", response
-        success = response is not False
-
-        # Results of master response are done in the main thread
-        def finish_do_login():
-            if not success:
-                log(logging.ERROR, "Login failure: %d" % (client_number))
-                show_client_message(client_number, "Login Failure", "The supplied transaction code was not verified")
-                log(logging.WARNING, "Should flush network messages, but not doing so") #CModule.force_network_flush()
-                CModule.disconnect_client(client_number, 3) # DISC_KICK... most relevant for now
-                return
-
-            if World.scenario_code != curr_scenario_code:
-                log(logging.WARNING, "Scenario code has changed since client %d began login" % client_number)
-                return fail("Server has begun a new scenario. Try connecting again") # XXX - do we want this?
-
-            user_id = response['user_id']
-
-            if filter(lambda client: client.user_id == user_id, Clients.list()) != []:
-                show_client_message(client_number, "Login Failure", "You are already logged into this server. (If you just crashed, wait a little.)")
-                CModule.force_network_flush()
-                CModule.disconnect_client(client_number, 3) # DISC_KICK... most relevant for now
-                return
-
-            username = response['username']
-            can_edit = response['can_edit'] == '1'
-
-            # Validate with plugins. String results are error messages, True values are successes
-
-            validation_errors = filter(lambda x: type(x) is str, multiple_send(validate_client, None, **{
-                'client_number': client_number,
-                'ip_addr': ip_addr,
-                'username': username,
-                'can_edit': can_edit,
-            }))
-            if len(validation_errors) > 0:
-                for error in validation_errors:
-                    log(logging.WARNING, '%s login failure: %s' % (username, error))
-                return fail(validation_errors[0]) # Show user only first error. They should fix that and try again
-
-            # Success, proceed
-
-            CModule.update_username(client_number, username)
-
-            if can_edit:
-                CModule.set_admin(client_number, True);
-                admin = True
-            else:
-                admin = False
-
-            # Also creates a scripting logic entity
-            MessageSystem.send(client_number,
-                                CModule.LoginResponse,
-                                1, 0); # success, non-local
-
-            Clients.add(client_number, ip_addr, admin, username, user_id)
-
-        main_actionqueue.add_action(finish_do_login)
-
-    side_actionqueue.add_action(side_operations)
 
 
 ## Called when a client is disconnected
