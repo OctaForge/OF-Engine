@@ -73,69 +73,6 @@ namespace lua_binds
         e.push(f ? f->clientnum : -1);
     })
 
-    LUA_BIND_CLIENT(connect_to_instance, {
-        REFLECT_PYTHON(login_to_instance);
-        login_to_instance(e.get<const char*>(1));
-    })
-
-    LUA_BIND_CLIENT(connect_to_lobby, {
-        REFLECT_PYTHON(connect_to_lobby);
-        connect_to_lobby();
-    })
-
-    LUA_BIND_CLIENT(connect_to_selected_instance, {
-        REFLECT_PYTHON(connect_to_selected_instance);
-        connect_to_selected_instance();
-    })
-
-    LUA_BIND_CLIENT(show_instances, {
-        REFLECT_PYTHON(get_possible_instances);
-        boost::python::object instances = get_possible_instances();
-        REFLECT_PYTHON(None);
-
-        if (instances == None)
-        {
-            SETVF(error_message, "Could not get the list of instances");
-            showgui("error");
-            return;
-        }
-
-        char buf[1024];
-        snprintf(buf, sizeof(buf),
-            "gui.new(\"instances\", [[\n"
-            "    gui.text(\"Pick an instance to enter:\")\n"
-            "    gui.bar()\n");
-        char *command = (char*)malloc(strlen(buf) + 1);
-        strcpy(command, buf);
-
-        int ninst = boost::python::extract<int>(instances.attr("__len__")());
-        for (int i = 0; i < ninst; i++)
-        {
-            boost::python::object instance = instances[i];
-            const char *instance_id = boost::python::extract<const char*>(instance.attr("__getitem__")("instance_id"));
-            const char *event_name = boost::python::extract<const char*>(instance.attr("__getitem__")("event_name"));
-
-            assert( of_tools_validate_alphanumeric(instance_id, NULL) );
-            assert( of_tools_validate_alphanumeric(event_name, " (),.;") ); // XXX: Allow more than alphanumeric+spaces: ()s, .s, etc.
-
-            snprintf(buf, sizeof(buf), "    gui.button(\"%s\", \"network.connect_to_instance(%s)\")\n", event_name, instance_id);
-            command = (char*)realloc(command, strlen(command) + strlen(buf) + 1);
-            assert(command);
-            strcat(command, buf);
-        }
-
-        snprintf(buf, sizeof(buf), "]])\ngui.show(\"instances\")\n");
-        command = (char*)realloc(command, strlen(command) + strlen(buf) + 1);
-        assert(command);
-        strcat(command, buf);
-
-        Logging::log(Logging::DEBUG, "Instances GUI: %s\r\n", command);
-        engine.exec(command);
-
-        command = NULL;
-        free(command);
-    })
-
     LUA_BIND_CLIENT(do_upload, {
         renderprogress(0.1, "compiling scripts ..");
 

@@ -273,16 +273,6 @@ def upload_asset(asset_id, backup_postfix = None, num_backups = 0, num_backups_t
     # Upload
     AssetManager.upload_asset(asset_info)
 
-
-## @param location e.g. textures/mypack.tar.gz. No need for 'data/'.
-def upload_asset_by_location(location):
-    try:
-        upload_asset(AssetMetadata.get_by_path('data/' +location).asset_id)
-        print "Asset %s uploaded successfully" % location
-    except Exception, e:
-        CModule.show_message("Error", "Could not upload the asset to the asset server: " + str(e))
-
-
 def upload_map():
     if get_config('Network', 'master_server', '') != '' and get_config('Activity', 'force_location', '') == '':
         try:

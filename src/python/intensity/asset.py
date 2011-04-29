@@ -39,152 +39,6 @@ def calculate_hash(filename, hasher):
         return None
 
 
-## Metadata for an asset stored locally. This class encapsulates
-## the functionality to access the metadata of an asset, using its ID.
-##
-## Usage:
-##      To get metadata for an existing asset, use get_by_path,
-##      with the path to the asset. This is what you would do if
-##      you are traversing all the assets, e.g., looking for which
-##      was most recently used
-##
-##      You can simply read the fields .asset_id, .acquire_time,
-##      .use_time of an AssetMetadata instance to get that info
-##
-##      To create a new metadata, create a new AssetMetadata,
-##      giving it the asset_id
-##
-##      Given an instance of this class, you can call update_acquire_time
-##      and update_use_time when those events occur. Then call save()
-##      to update the data on disk
-class AssetMetadata:
-    ## Gets the path to the actual metadata file, given the path to
-    ## the asset
-    ## For now, we simply use the same filename, but under /metadata instead of /data
-    @staticmethod
-    def get_metadata_path(asset_path):
-        ASSET_FRAG = 'data'
-        frags = asset_path.split( os.sep )
-        assert(list(frags).count(ASSET_FRAG) == 1) # Need just one such thing, and we replace exactly that
-        frags[frags.index(ASSET_FRAG)] = 'metadata'
-        return os.sep.join(frags)
-
-    ## Gets an asset metadata using the path of an asset. The asset metadata
-    ## must already exist, so we can read the asset_id from it
-    ## An optional fallback is available, where if there is no such asset,
-    ## we query the master server for it. Must handle the case of multiple
-    ## assets with the same location, on the master (or disallow them - but
-    ## currently they are possible).
-    @staticmethod
-    def get_by_path(asset_path, check_master=True):
-        data = AssetMetadata.load_raw( AssetMetadata.get_metadata_path(asset_path) )
-        if data is not None:
-            return AssetMetadata(data['asset_id'])
-        else:
-            if not check_master:
-                raise Exception("Cannot get metadata for asset %s as an error occured in reading" % asset_path)
-
-            # Try to scrape the master - hackish scraping
-            try:
-                log(logging.WARNING, "Trying to scrape master for asset metadata for %s" % asset_path)
-
-                import sys, traceback
-                from intensity.master import get_master_server
-                import intensity.components.thirdparty.BeautifulSoup as BeautifulSoup
-
-                html = urllib.urlopen('http://' + get_master_server() + '/tracker/assets/').read()
-                results = []
-                soup = BeautifulSoup.BeautifulSoup(html)
-                trs = soup.findAll('tr')
-                for tr in trs:
-                    if 'tracker/asset' in str(tr.contents):
-                        try:
-                            result = {
-                                'location': str(tr.contents[1].contents[0].contents[0]),
-                                'url': str(tr.contents[1].contents[0].attrs[0][1])
-                            }
-                            if 'data/' + result['location'] == asset_path:
-                                results.append(result)
-                        except Exception, e:
-                            traceback.print_exc(file=sys.stdout)
-                            pass
-                if len(results) == 0:
-                    raise Exception("Could not find that asset, even on the master")
-                elif len(results) > 1:
-                    raise Exception("Found more than 1 relevant assets: %s" % str(results))
-                asset_id = results[0]['url'].split('/')[-2]
-                AssetManager.acquire(asset_id)
-                return AssetMetadata.get_by_path(asset_path, False)
-            except Exception, e:
-                traceback.print_exc(file=sys.stdout)
-                log(logging.WARNING, "Tried to scrape master for asset metadata for %s, but failed due to: %s" % (
-                    asset_path, str(e)
-                ))
-                raise
-
-    def __init__(self, asset_id):
-        self.asset_id = asset_id
-        self.asset_info = AssetManager.get_info(asset_id) # Needed?
-        self.asset_filename = AssetManager.get_full_location(self.asset_info) # Needed?
-        self.metadata_filename = AssetMetadata.get_metadata_path(self.asset_filename)
-
-        # Defaults
-        self.acquire_time = None
-        self.use_time = None
-
-        self.load() # Try to load existing metadata
-
-    def load(self):
-        data = self.load_raw(self.metadata_filename)
-        if data is not None:
-            try:
-                assert(data.asset_id == self.asset_id)
-                self.acquire_time = data.acquire_time
-                self.use_time = data.use_time
-            except: # Errors mean we just ignore the file data
-                pass
-
-    @staticmethod
-    def load_raw(metadata_filename):
-        metadata_filename = os.path.join(get_home_subdir(), metadata_filename)
-        try:
-            pkl_file = open(metadata_filename, 'rb')
-            data = pickle.load(pkl_file)
-            pkl_file.close()
-        except IOError:
-            return None
-        except EOFError:
-            return None
-
-        if type(data) is not dict:
-            return None
-
-        return data            
-
-    ## Saves the (possibly changed) asset metadata
-    def save(self):
-        try:
-            # Ensure the directories exist
-            dirname = os.path.dirname(self.metadata_filename)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-
-            output = open(self.metadata_filename, 'wb')
-            pickle.dump({ 'asset_id': self.asset_id, 'acquire_time': self.acquire_time, 'use_time': self.use_time }, output)
-            output.close()
-        except Exception, e:
-            log(logging.ERROR, "Error in saving asset metadata: %s - %s: %s" % (self.asset_id, self.metadata_filename, str(e)))
-            assert(0) # XXX
-
-    ## Marks the acquire time to be 'now'. Not saved - call save() for that
-    def update_acquire_time(self):
-        self.acquire_time = time.time()
-
-    ## Marks the use time to be 'now'. Not saved - call save() for that
-    def update_use_time(self):
-        self.use_time = time.time()
-
-
 class AssetInfo:
     def __init__(self, asset_id, location, url, _hash, dependencies, _type):
         self.asset_id = asset_id
@@ -375,8 +229,6 @@ class AssetManagerClass:
         if not asset_info.has_content():
             return
 
-        metadata = AssetMetadata(asset_info.asset_id) # Asset has content, so prepare to work on its metadata
-
         CModule.render_progress(0, 'validating... ' + str(asset_info.location))
         if Global.CLIENT: CModule.intercept_key(0)
 
@@ -480,15 +332,6 @@ class AssetManagerClass:
             if not self.check_existing(asset_info):
                 log(logging.ERROR, "Failed to retrieve asset " + asset_info.asset_id)
                 raise AssetRetrievalError("Failed to retrieve asset")
-
-            # We get the asset, mark the asset's metadata
-            metadata.update_acquire_time()
-
-        # Mark the asset's metadata that we are attempting to use it now
-        metadata.update_use_time()
-
-        # Save the metadata info
-        metadata.save()
 
     ## Checks if we have existing data that is up to date for the asset
     def check_existing(self, asset_info):

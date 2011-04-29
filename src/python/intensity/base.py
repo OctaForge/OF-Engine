@@ -150,15 +150,6 @@ def get_asset_shortpath(path):
     return os.path.join(ret)
 
 
-## Where user scripts (not part of the core engine) reside
-PYTHON_USER_SCRIPT_DIR = os.path.join("src", "python", "user")
-
-
-## Run a user script, in the directory PYTHON_USER_SCRIPT_DIR
-def run_user_script(name):
-    execfile( os.path.join(PYTHON_USER_SCRIPT_DIR, name), __main__.__dict__, __main__.__dict__ )
-
-
 #
 # Config file stuff
 #

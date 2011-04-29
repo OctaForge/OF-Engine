@@ -1005,9 +1005,7 @@ void limitfps(int &millis, int curmillis)
         }
         if(delay > 0)
         {
-            REFLECT_PYTHON( time ); // INTENSITY: Using Python sleep instead of SDL works better with Python console
-            time.attr("sleep")(float(delay)/1000); // INTENSITY
-//            SDL_Delay(delay); // INTENSITY
+            SDL_Delay(delay);
             millis += delay;
         }
     }

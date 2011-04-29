@@ -4,8 +4,6 @@
 
 '''
 Runs a server in a side process in a convenient way, for local gameplay.
-
-Works both when logged into the master, or when not.
 '''
 
 import subprocess, time
@@ -15,7 +13,6 @@ import platform
 from intensity.base import *
 from intensity.logging import *
 from intensity.signals import shutdown, show_components
-from intensity.asset import AssetMetadata
 from intensity.world import map_load_finish
 from intensity.message_system import *
 
@@ -26,7 +23,7 @@ class Module:
 def get_output_file():
     return os.path.join(get_home_subdir(), 'out_server.txt')
 
-def run_server(location=None, use_master=True):
+def run_server(location=None):
     CModule.run_script('echo("Starting server, please wait...")')
 
     if location is not None:
@@ -34,35 +31,12 @@ def run_server(location=None, use_master=True):
 
     log(logging.DEBUG, "Location: %s" % location)
 
-    if location is not None and use_master:
-        try:
-            location = AssetMetadata.get_by_path('data/' + location).asset_id
-        except Exception, e:
-            log(logging.ERROR, "Error in getting asset info for map %s: %s" % (location, str(e)))
-#            raise
-            return
-
-    if use_master:
-        activity = '-config:Activity:force_activity_id:' if location is not None else ''
-        map_asset = ('-config:Activity:force_map_asset_id:%s' % location) if location is not None else ''
-    else:
-        activity = ''
-        map_asset = '-config:Activity:force_location:%s' % location
-
-    servbin_name = ""
-    if UNIX:
-        machine = platform.machine()
-        system = platform.system()
-        if not os.path.exists("./bin/OF_Server_%s-%s" % (system, machine)):
-            machine = platform.processor()
-            if not os.path.exists("./bin/OF_Server_%s-%s" % (system, machine)):
-                log(logging.ERROR, "Cannot find server binary (./bin/OF_Server_%s-%s)" % (system, machine))
-                return
-        servbin_name = "./bin/OF_Server_%s-%s" % (system, machine)
+    activity = ''
+    map_asset = '-config:Activity:force_location:%s' % location
 
     Module.server_proc = subprocess.Popen(
-        "%s %s %s %s -component:intensity.components.shutdown_if_idle -components:intensity.components.shutdown_if_empty -config:Startup:no_console:1" % (
-            'exec ./%s -r' % servbin_name if UNIX else 'intensity_server.bat',
+        "%s %s %s %s -component:intensity.components.shutdown_if_idle -component:intensity.components.shutdown_if_empty -config:Startup:no_console:1" % (
+            'exec ./intensity_server.sh' if UNIX else 'intensity_server.bat',
             os.path.join(sys.argv[1], 'settings_server.json') if sys.argv[1][0] != '-' else '', # Home dir, if given for client - use also in server
             activity,
             map_asset,
@@ -109,20 +83,8 @@ def check_server_terminated():
 def stop_server(sender=None, **kwargs):
     if Module.server_proc is not None:
         log(logging.WARNING, "Stopping server process: %d" % Module.server_proc.pid)
-        try:
-            if sys.version >= '2.6':
-                Module.server_proc.terminate()
-            else:
-                os.kill(Module.server_proc.pid, signal.SIGKILL) # Will fail on Windows, so must have 2.6 there!
-            Module.server_proc.wait()
-        except OSError:
-            log(logging.ERROR, "Stopping server process failed.");
-        # Or, in Python 2.6:   process.terminate()
+        CModule.run_script("network.disconnect()")
         Module.server_proc = None
-
-        def do_disconnect():
-            CModule.disconnect()
-        main_actionqueue.add_action(do_disconnect)
 
 # Note strictly necessary, as the server will shut down if idle - but why not
 # shut it down when the client shuts down.
@@ -150,9 +112,6 @@ def show_gui(sender, **kwargs):
     else:
         CModule.run_script('''
             gui.text("Local server: (not active)")
-            if logged_into_master == 0 then
-                gui.text("   << not logged into master >>")
-            end
 
             gui.list(function()
                 gui.text("Map location to run: base/")
@@ -170,10 +129,8 @@ def show_gui(sender, **kwargs):
 
 show_components.connect(show_gui, weak=False)
 
-# Always enter private edit mode if masterless
 def request_private_edit(sender, **kwargs):
-    if not CModule.run_script_int("return logged_into_master"):
-        MessageSystem.send(CModule.RequestPrivateEditMode)
+    MessageSystem.send(CModule.RequestPrivateEditMode)
 map_load_finish.connect(request_private_edit, weak=False)
 
 CModule.run_script('''

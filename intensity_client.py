@@ -60,11 +60,3 @@ load_components()
 log(logging.DEBUG, "Loading utilities")
 
 from intensity.utility import *
-
-######### Run application-specific startup script.
-########
-########run_startup_script()
-
-# Client-specific imports: Auth etc.
-
-from intensity.client.auth import *

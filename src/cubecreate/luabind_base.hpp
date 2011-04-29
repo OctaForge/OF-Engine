@@ -233,10 +233,7 @@ namespace lua_binds
             run_python((char*)"intensity.components.server_runner.stop_server()");
         else
         {
-            defformatstring(cmd)("intensity.components.server_runner.run_server('%s'%s)",
-                                 e.get<const char*>(1),
-                                 !GETIV(logged_into_master) ? ", False" : ""
-                                );
+            defformatstring(cmd)("intensity.components.server_runner.run_server('%s')", e.get<const char*>(1));
             run_python((char*)cmd);
         }
     })

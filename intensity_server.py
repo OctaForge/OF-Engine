@@ -62,10 +62,6 @@ if home_dir is None:
 
 template_filename = os.path.join( os.getcwd(), 'data', 'server_settings_template.json' )
 
-# Offer an interactive setup wizard, if relevant
-import intensity.server.wizard as wizard
-wizard.ask(config_filename, template_filename, sys.argv)
-
 print 'Config filename:', config_filename
 
 init_config(config_filename, template_filename)
@@ -87,10 +83,6 @@ if check_local_mode():
 
 print "Generating client/server specific code"
 
-print "Initializing server"
-
-execfile( os.path.join(PYTHON_SCRIPT_DIR, "server", "server_init.py") )
-
 print "Initializing CModule"
 
 CModule.init()
@@ -104,9 +96,6 @@ from intensity.utility import *
 
 run_startup_script()
 
-# Start admin listener - AFTER checking last shutdown (so out first master update will be in standby, if necessary)
-from intensity.server.admin_listener import *
-
 # Start server slicing and main loop
 
 print "Preparing timing and running first slice"
@@ -119,10 +108,6 @@ MIN_DELAY    = 0.01 # If this is too big - 0.1 is too big - then we get jerky mo
 CModule.slice()  # Do a single time slice
 
 print "Network rate:", NETWORK_RATE, "MIN_DELAY:", MIN_DELAY
-
-print "Running main server with parallel interactive console"
-
-console_thread.start()
 
 PROFILE = False
 
@@ -155,10 +140,7 @@ def main_loop():
             last_time = time.time()
 
             if not should_quit(): # If during the sleep a quit was requested, do this immediately, do not slice any more
-
-                # We do this safely, so as to never work in parallel with the interactive console; see comments in SafeConsole (ser ver_init.py)
-                with slicing_console_lock:
-                    CModule.slice()  # Do a single time slice
+                CModule.slice()  # Do a single time slice
 
             # Update master, if necessary TODO: If we add more such things, create a modular plugin system
 
