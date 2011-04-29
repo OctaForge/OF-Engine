@@ -7,7 +7,6 @@ import os, sys, shutil, time
 from intensity.base import *
 from intensity.logging import *
 from intensity.message_system import *
-from intensity.asset import *
 from intensity.signals import client_connect, client_disconnect, validate_client, multiple_send
 
 

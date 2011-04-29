@@ -8,7 +8,6 @@ log(logging.DEBUG, "Python system initializing")
 
 import os, shutil
 from intensity.message_system import *
-from intensity.asset import *
 from intensity.safe_actionqueue import *
 from intensity.world import *
 from intensity.signals import *

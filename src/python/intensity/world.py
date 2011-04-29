@@ -80,8 +80,6 @@ def set_map(activity_id, map_asset_id):
         if parts[0] == 'base':
             set_config('Activity', 'force_location', map_asset_id)
 
-    asset_info = AssetInfo('xyz', map_asset_id, '?', 'NONE', [], 'b')
-
     log(logging.DEBUG, "final setting values: %s / %s" % (activity_id, map_asset_id))
 
     map_load_start.send(None, activity_id=activity_id, map_asset_id=map_asset_id)
@@ -97,12 +95,20 @@ def set_map(activity_id, map_asset_id):
 
     set_curr_activity_id(activity_id)
     set_curr_map_asset_id(map_asset_id)
-    World.asset_info = asset_info
+    World.asset_location = map_asset_id
 
-    curr_map_prefix = asset_info.get_zip_location() + os.sep # asset_info.location
+    curr_map_prefix = map_asset_id[:-7] + os.sep # asset_info.location
     set_curr_map_prefix(curr_map_prefix)
 
-    log(logging.DEBUG, "Map locations: %s -- %s ++ %s" % (asset_info.location, curr_map_prefix, AssetManager.get_full_location(asset_info)))
+    log(logging.DEBUG, "Map locations: %s -- %s ++ %s" % (
+        World.asset_location,
+        curr_map_prefix,
+        os.path.join(
+            get_asset_dir(),
+            World.asset_location.replace('/', '\\')
+            if WINDOWS else World.asset_location
+        )
+    ))
 
     # Load the geometry and map settings in the .ogz
     if not CModule.load_world(curr_map_prefix + "map"):
@@ -130,15 +136,21 @@ def set_map(activity_id, map_asset_id):
 def restart_map():
     set_map(get_curr_activity_id(), get_curr_map_asset_id())
 
-
 ## Returns the path to a file in the map script directory, i.e., a file is given in
 ## relative position to the current map, and we return the full path
 def get_mapfile_path(relative_path):
     # Check first in the installation packages
-    install_path = os.path.sep.join( os.path.join('data', World.asset_info.get_zip_location(), relative_path).split('/') )
+    install_path = os.path.sep.join( os.path.join('data', World.asset_location[:-7], relative_path).split('/') )
     if os.path.exists(install_path):
         return install_path
-    return os.path.join(World.asset_info.get_zip_location(AssetManager.get_full_location(World.asset_info)), relative_path)
+    return os.path.join(
+        os.path.join(
+            get_asset_dir(),
+            World.asset_location.replace('/', '\\')
+            if WINDOWS else World.asset_location
+        ),
+        relative_path
+    )
 
 
 ## Reads a file for Scripting. Must be done safely. The path is under /data,
@@ -203,7 +215,6 @@ def export_entities(filename):
 
 # Prevent loops
 
-from intensity.asset import *
 from intensity.message_system import *
 
 if Global.SERVER:
