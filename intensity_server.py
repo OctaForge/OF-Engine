@@ -92,10 +92,6 @@ CModule.set_home_dir( get_home_subdir() )
 
 from intensity.utility import *
 
-# Run application-specific startup script.
-
-run_startup_script()
-
 # Start server slicing and main loop
 
 print "Preparing timing and running first slice"

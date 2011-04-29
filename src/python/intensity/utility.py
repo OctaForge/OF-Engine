@@ -7,88 +7,9 @@ Various utilities.
 """
 
 import os
-from math import atan2, pi, sqrt, asin
-import hashlib
 
 from intensity.base import *
 from intensity.logging import *
-
-
-## Lets 'print' be used from boost::python as a function. For debugging. Will not be needed in Python 3.0.
-def print_func(param):
-    print param
-
-## A simple timer that counts down time.
-class Timer:
-    def __init__(this, seconds):
-        this.seconds = seconds
-
-    def tick(this, seconds):
-        this.seconds -= seconds
-        return this.seconds <= 0
-
-
-## A timer that resets itthis: after the allotted time to be counted down is done, it starts counting again.
-class ResettingTimer:
-    """doctest unit testing:
-
-    >>> rt = ResettingTimer(10)
-    >>> import time
-
-    >>> rt.tick(4)
-    False
-
-    You should not do the following, but it shows what is happening internally:
-    >>> rt.seconds
-    6
-
-    >>> rt.tick(4)
-    False
-
-    >>> rt.tick(4)
-    True
-
-    Again, this should not be done, but shows what happened internally:
-    >>> rt.seconds
-    10
-
-    As you can see, the timer reset itthis.
-    """
-    ## @param seconds The amount of seconds to count down each time.
-    def __init__(this, seconds):
-        this.max_seconds = seconds
-        this.seconds     = seconds
-
-    ## Increment the time by a certain amount.
-    ## @param seconds The amount of seconds to increment the timer by.
-    ## @return Whether the counting down has finished. If so, the timer also resets itthis to a new count down.
-    def tick(this, seconds):
-        this.seconds -= seconds
-        if this.seconds <= 0:
-            this.seconds = this.max_seconds
-            return True
-        else:
-            return False
-
-
-## Removes old backup files from a directory, based on their modification times
-## @param path The directory to do the cleaning in
-## @param suffix The suffix that defines a backup file (other files are ignored) - without the '.' character
-## @param to_leave The number of backup files to leave - all others are removed
-def clean_up_backups(path, suffix, to_leave):
-    names = filter(lambda name: name[-(len(suffix)+1):] == '.' + suffix, os.listdir(path))
-    infos = [ (name, os.stat( os.path.join(path, name) ).st_mtime) for name in names ]
-    infos.sort(key = lambda pair: pair[1])
-    for i in range(len(infos)-to_leave):
-#        print os.path.join(path, infos[i][0])
-        os.remove( os.path.join(path, infos[i][0]) )
-
-
-if Global.CLIENT:
-    ## CEGUI interface
-    def run_lua_function(name):
-        CAPI.run_lua_function(name)
-
 
 def validate_relative_path(path):
     '''
@@ -123,41 +44,6 @@ def validate_relative_path(path):
     level -= 1 # Last segment, the file itself, doesn't count
     return level >= 0
 
-
-__shown_process_script_warning = False
-def process_script(script):
-    '''
-    Optimize a JavaScript script before we run it.
-    We comment out lines that look like log(XXX, ...);
-    if XXX would not be shown anyhow. That is, if
-    we have
-        log(DEBUG, serializeJSON(something));
-    then the expensive function call will be done
-    even if the output is not shown. So by commenting
-    it out, we prevent that.
-    '''
-    if get_config('Logging', 'optimize_scripts', '1') != '1': return script
-
-    global __shown_process_script_warning
-    if not __shown_process_script_warning:
-        log(logging.WARNING, 'Optimizing scripts by commenting out unneeded loggings')
-        __shown_process_script_warning = True
-
-    ret = []
-    for line in script.split('\n'):
-        line = line.strip()
-        for i in range(len(logging.strings)):
-            prefix = 'log(' + logging.strings[i]
-            if line[0:len(prefix)] == prefix:
-                if line[-2:] == ');':
-                    if not logging.should_show(i):
-                        line = ''
-                else:
-                    log(logging.WARNING, 'script optimization not sure about:' + line)
-                break
-        ret.append(line)
-
-    return '\n'.join(ret)
 
 def check_newer_than(principal, *others):
     '''
@@ -206,9 +92,3 @@ def prepare_texture_replace(filename, curr_textures):
 
 #    print "LOOKUP:", lookup
     return lookup
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-

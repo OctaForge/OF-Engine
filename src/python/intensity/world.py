@@ -13,8 +13,6 @@ from _dispatch import Signal
 
 from intensity.base import *
 from intensity.logging import *
-from intensity.utility import *
-
 
 # Signals
 
