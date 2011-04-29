@@ -54,9 +54,3 @@ print "Initializing scripting engine"
 CModule.create_engine()
 
 load_components()
-
-# Utilities
-
-log(logging.DEBUG, "Loading utilities")
-
-from intensity.utility import *

@@ -34,5 +34,7 @@
 #include <string.h>
 
 bool of_tools_validate_alphanumeric(const char *str, const char *allow);
+bool of_tools_validate_relpath(const char *path);
+bool of_tools_is_file_newer_than(const char *file, const char *otherfile);
 
 #endif

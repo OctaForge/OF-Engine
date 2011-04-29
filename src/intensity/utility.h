@@ -21,10 +21,6 @@ struct Utility
     //! Convert to std::string
     static std::string toString(double      val);
 
-    //! Ensures that a relative path (created by e.g. makerelpath) does not 'break out'
-    //! here/../some.file is breaking out
-    static bool validateRelativePath(std::string input);
-
     //! execute the json cfg file
     static bool config_exec_json(const char *cfgfile, bool msg);
     //! write json cfg file

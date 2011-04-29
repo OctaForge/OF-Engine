@@ -49,12 +49,6 @@ TO_STRING(int)
 TO_STRING(long)
 TO_STRING(double)
 
-bool Utility::validateRelativePath(std::string input)
-{
-    REFLECT_PYTHON( validate_relative_path );
-    return python::extract<bool>(validate_relative_path(input));
-}
-
 bool Utility::config_exec_json(const char *cfgfile, bool msg)
 {
     string s;

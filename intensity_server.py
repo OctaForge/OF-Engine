@@ -88,10 +88,6 @@ print "Initializing CModule"
 CModule.init()
 CModule.set_home_dir( get_home_subdir() )
 
-# Utilities
-
-from intensity.utility import *
-
 # Start server slicing and main loop
 
 print "Preparing timing and running first slice"

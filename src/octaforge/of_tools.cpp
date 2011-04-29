@@ -65,3 +65,33 @@ bool of_tools_validate_alphanumeric(const char *str, const char *allow)
     }
     return true;
 }
+
+bool of_tools_validate_relpath(const char *path)
+{
+    int level = -1;
+    char  *p = strdup(path);
+    char  *t = strtok(p, "/\\");
+    while (t)
+    {
+        if (!strcmp(t, "..")) level--;
+        else if (strcmp(t, ".") && strcmp(t, "")) level++;
+        if (level < 0)
+        {
+            p = NULL; free(p);
+            return false;
+        }
+        t = strtok(NULL, "/\\");
+    }
+    level--;
+    p = NULL; free(p);
+    return (level >= 0);
+}
+
+bool of_tools_is_file_newer_than(const char *file, const char *otherfile)
+{
+    struct stat buf, buf2;
+    if (stat(file,      &buf )) return false;
+    if (stat(otherfile, &buf2)) return true;
+    if (buf.st_mtime > buf2.st_mtime) return true;
+    return false;
+}

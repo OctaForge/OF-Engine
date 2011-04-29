@@ -56,8 +56,8 @@ namespace lua_binds
     LUA_BIND_CLIENT(convpngtodds, {
         const char *arg1 = e.get<const char*>(1);
         const char *arg2 = e.get<const char*>(2);
-        assert(Utility::validateRelativePath(arg1));
-        assert(Utility::validateRelativePath(arg2));
+        assert(of_tools_validate_relpath(arg1));
+        assert(of_tools_validate_relpath(arg2));
         IntensityTexture::convertPNGtoDDS(arg1, arg2);
     })
 
@@ -65,9 +65,9 @@ namespace lua_binds
         const char *arg1 = e.get<const char*>(1);
         const char *arg2 = e.get<const char*>(2);
         const char *arg3 = e.get<const char*>(3);
-        assert(Utility::validateRelativePath(arg1));
-        assert(Utility::validateRelativePath(arg2));
-        assert(Utility::validateRelativePath(arg3));
+        assert(of_tools_validate_relpath(arg1));
+        assert(of_tools_validate_relpath(arg2));
+        assert(of_tools_validate_relpath(arg3));
         IntensityTexture::combineImages(arg1, arg2, arg3);
     })
 

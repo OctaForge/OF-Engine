@@ -3,8 +3,8 @@
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
 #include <queue>
-
 #include <set>
+#include "of_tools.h"
 
 
 // 'Background' loading system for texture slots
@@ -59,7 +59,7 @@ void doBackgroundLoading(bool all)
     static string __##s; \
     copystring(__##s, s.c_str()); \
     s = path(__##s); \
-    if (!Utility::validateRelativePath(s)) { printf("Relative path not validated: %s\r\n", s.c_str()); assert(0); }; \
+    if (!of_tools_validate_relpath(s.c_str())) { printf("Relative path not validated: %s\r\n", s.c_str()); assert(0); }; \
     std::string full_##s = findfile(s.c_str(), "wb");
 
 void convertPNGtoDDS(std::string source, std::string dest)
@@ -69,10 +69,7 @@ void convertPNGtoDDS(std::string source, std::string dest)
     FIX_PATH(source);
     FIX_PATH(dest);
 
-    REFLECT_PYTHON( check_newer_than );
-    if (boost::python::extract<bool>(check_newer_than(full_dest, full_source)))
-        return;
-
+    if (of_tools_is_file_newer_than(full_dest.c_str(), full_source.c_str())) return;
     Logging::log(Logging::DEBUG, "convertPNGtoDDS: %s ==> %s\r\n", source.c_str(), dest.c_str());
 
     renderprogress(0, ("preparing dds image: " + source).c_str());

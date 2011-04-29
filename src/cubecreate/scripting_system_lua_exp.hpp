@@ -388,8 +388,6 @@ const LE_reg CAPI[] = {
     LUAREG(prepareentityclasses),
     LUAREG(numentityclasses),
     LUAREG(spawnent),
-    LUAREG(listtex),
-    LUAREG(massreplacetex),
     LUAREG(debugoctree),
     LUAREG(centerent),
     LUAREG(requestprivedit),

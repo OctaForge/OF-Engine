@@ -82,10 +82,6 @@ namespace EditingSystem
 }
 void debugoctree();
 void centerent();
-#ifdef CLIENT
-void listtex();
-void massreplacetex(char *filename);
-#endif
 
 namespace lua_binds
 {
@@ -286,8 +282,6 @@ namespace lua_binds
     LUA_BIND_STD(prepareentityclasses, EditingSystem::prepareentityclasses)
     LUA_BIND_STD(numentityclasses, e.push, (int)EditingSystem::entityClasses.size())
     LUA_BIND_STD(spawnent, EditingSystem::newEntity, e.get<const char*>(1))
-    LUA_BIND_STD_CLIENT(listtex, listtex)
-    LUA_BIND_STD_CLIENT(massreplacetex, massreplacetex, e.get<char*>(1))
     LUA_BIND_STD(debugoctree, debugoctree)
     LUA_BIND_STD(centerent, centerent)
 

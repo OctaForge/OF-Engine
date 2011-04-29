@@ -182,14 +182,6 @@ showgui = CAPI.showtexgui
 
 --- DEPRECATED: replace
 -- @class function
--- @name list
-list = CAPI.listtex
---- DEPRECATED: replace
--- @class function
--- @name massreplace
-massreplace = CAPI.massreplacetex
---- DEPRECATED: replace
--- @class function
 -- @name edit
 edit = CAPI.edittex
 --- DEPRECATED: replace
