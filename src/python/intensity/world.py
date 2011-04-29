@@ -130,7 +130,6 @@ def set_map(activity_id, map_asset_id):
 
 
 def restart_map():
-    AssetManager.clear_cache() # Make sure we will load the latest assets
     set_map(get_curr_activity_id(), get_curr_map_asset_id())
 
 

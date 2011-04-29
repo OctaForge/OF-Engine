@@ -435,9 +435,7 @@ namespace MessageSystem
         std::string scenarioCode = tmp_scenarioCode;
 
         ClientSystem::currScenarioCode = scenarioCode;
-        REFLECT_PYTHON( AssetManager );
         REFLECT_PYTHON( set_map );
-        AssetManager.attr("clear_cache")();
         set_map("", mapAssetId);
     }
 #endif

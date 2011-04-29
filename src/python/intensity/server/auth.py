@@ -20,18 +20,8 @@ class InstanceStatus:
 
     map_loaded = False
 
-
-def get_instance_id():
-    return str(get_config("Network", "instance_id", ''))
-
-def get_instance_validation():
-    return str(get_config('Network', 'instance_validation', ''))
-
-def get_instance_address():
-    return str(get_config('Network', 'address', 'localhost'))
-
 def check_local_mode():
-    InstanceStatus.local_mode = (get_instance_address() == 'localhost')
+    InstanceStatus.local_mode = (str(get_config('Network', 'address', 'localhost')) == 'localhost')
     return InstanceStatus.local_mode
 
 def update_master():
