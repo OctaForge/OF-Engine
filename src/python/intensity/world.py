@@ -89,9 +89,6 @@ def set_map(map_asset_id):
         # Send map to all connected clients, if any
         send_curr_map(ALL_CLIENTS)
 
-        # Initialize instance status for this new map
-        auth.InstanceStatus.private_edit_mode = False
-
     if Global.CLIENT:
         MessageSystem.send(CModule.RequestPrivateEditMode)
 

@@ -64,27 +64,14 @@ def do_login(code, client_number, ip_addr):
     if not World.running_map():
         return fail("Login failure: instance is not running a map")
 
-    if auth.InstanceStatus.local_mode and ip_addr == 16777343: # 16777343 == 127.0.0.1 == 1*256^3 + 127
-        CModule.update_username(client_number, 'local_editor')
-        CModule.set_admin(client_number, True);
+    CModule.update_username(client_number, 'local_editor')
+    CModule.set_admin(client_number, True);
 
-        Clients.add(client_number, ip_addr, True, 'local_editor', 'local_editor')
+    Clients.add(client_number, ip_addr, True, 'local_editor', 'local_editor')
 
-        MessageSystem.send(client_number,
-                           CModule.LoginResponse,
-                           1, 1); # success, local
-        return
-
-    if auth.InstanceStatus.local_mode:
-        return fail("Login failure: instance is in local mode, but client is not local to it")
-
-    if auth.InstanceStatus.private_edit_mode and Clients.count() >= 1:
-        return fail("Login failure: instance is in private edit mode and occupied")
-
-    if Clients.count() >= get_max_clients():
-        return fail("Login failure: instance is at its maximum number of clients (%d)" % get_max_clients())
-
-    curr_scenario_code = World.scenario_code
+    MessageSystem.send(client_number,
+                       CModule.LoginResponse,
+                       1, 1); # success, local
 
 
 ## Called when a client is disconnected
@@ -99,8 +86,6 @@ def request_private_edit(client_number):
     elif Clients.count() != 1:
         return show_client_message(client_number, "Request denied", "There are other clients on this server instance")
     else:
-        # Success
-        auth.InstanceStatus.private_edit_mode = True
         MessageSystem.send(client_number, CModule.NotifyPrivateEditMode)
 
 
@@ -115,6 +100,5 @@ def send_curr_map(client_number):
     MessageSystem.send(client_number, CModule.NotifyAboutCurrentScenario, get_curr_map_asset_id(), World.scenario_code)
 
 
-import intensity.server.auth as auth
 from intensity.world import *
 
