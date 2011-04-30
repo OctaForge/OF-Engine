@@ -9,9 +9,6 @@
 
 struct Utility
 {
-    //! SHA256-hash. We use Python for convenience to implement this
-    static std::string SHA256(std::string text);
-
     //! Convert to std::string (this one is a dummy, exists just so we can call toString on anything)
     static std::string toString(std::string val);
     //! Convert to std::string

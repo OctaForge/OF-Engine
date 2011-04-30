@@ -5,7 +5,6 @@
 import os, sys, shutil, time
 
 from intensity.base import *
-from intensity.logging import *
 from intensity.message_system import *
 from intensity.signals import client_connect, client_disconnect, validate_client, multiple_send
 
@@ -54,7 +53,6 @@ def get_max_clients():
 
 def do_login(code, client_number, ip_addr):
     def fail(message):
-        log(logging.ERROR,message)
         show_client_message(client_number, "Login failure", message)
         CModule.force_network_flush()
         CModule.disconnect_client(client_number, 3) # DISC_KICK... most relevant for now
@@ -108,10 +106,7 @@ def request_private_edit(client_number):
 ## @param client_number The identifier of the client to which to send the map, or ALL_CLIENTS (-1) for all
 def send_curr_map(client_number):
     if not World.running_map():
-        log(logging.WARNING, "Trying to notify clients about curr map, but no map")
         return
-
-    log(logging.DEBUG, "Notifying clients that we would like to send them the map: %s" % (get_curr_map_asset_id()))
 
     MessageSystem.send(client_number, CModule.NotifyAboutCurrentScenario, get_curr_map_asset_id(), World.scenario_code)
 

@@ -16,45 +16,18 @@
 
 void ServerSystem::newMap(std::string name)
 {
-    assert(0); // Do only in Python?
-
-    // TODO: Should remove the old map here, otherwise currently newmap loads the old map with same name
-
-    REFLECT_PYTHON(new_map);
-
-    new_map(name);
-
-    setMap(name); // Also set it as active - in the future
-assert(0);
-    EXEC_PYTHON("set_map('" + name + "')"); // TODO: REFLECT_PYTHON
+    assert(0);
 }
 
 void ServerSystem::setMap(std::string name)
 {
-    assert(0); // Do only in Python?
-    Logging::log(Logging::DEBUG, "Setting the map to %s\r\n", name.c_str());
-
-    FPSServerInterface::changeMap(name); // Whatever setup the fpsserver class needs
-
-    // Load the map. We need the octa and mapmodels for NPC movements and so forth
-    Logging::log(Logging::DEBUG, "Loading world geometry, mapmodels, etc.\r\n");
-    load_world(name.c_str());
-
-    // Send the map to all connected clients
-//    sendMap(-1);
     assert(0);
 }
 
 
 void ServerSystem::importClientMap(std::string prefix, int updatingClientNumber)
 {
-    REFLECT_PYTHON(import_map);
-    REFLECT_PYTHON(None);
-
-    if (import_map(prefix) != None)
-        MessageSystem::send_MapUpdated(-1, updatingClientNumber);
-    else
-        MessageSystem::send_PersonalServerMessage(updatingClientNumber, -1, "Map Error", "There was an error in uploading your update to the server. See the server console for details");
+    assert(0);
 }
 
 

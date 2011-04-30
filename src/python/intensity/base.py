@@ -2,13 +2,7 @@
 # Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 # This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-"""
-Some extremely basic things for our system. Among the first modules loaded, useful in
-loading the others in fact.
-"""
-
 import os, sys, __main__, json, shutil
-
 
 ## Base module - foundational stuff
 
@@ -21,24 +15,6 @@ BSD = sys.platform.find("bsd") != -1
 UNIX = LINUX or OSX or BSD
 
 assert(WINDOWS or UNIX)
-
-#
-# Version
-#
-
-INTENSITY_VERSION_STRING = '0.0.5'
-
-def comparable_version(version_string):
-    return tuple(map(int, version_string.split('.')))
-INTENSITY_VERSION = comparable_version(INTENSITY_VERSION_STRING)
-
-print "Intensity Engine version:", INTENSITY_VERSION_STRING
-
-#def check_version(version_string, strict=True):
-#    version = comparable_version(version_string)
-#    if version == INTENSITY_VERSION: return True
-#    return (not strict) and version > INTENSITY_VERSION
-
 
 ## Global constants
 class Global:
@@ -113,15 +89,7 @@ def get_asset_dir():
 
     # Ensure it exists.
     if not os.path.exists(ASSET_DIR):
-        # Populate with initial content. This moves some archive assets into the right place, so
-        # that they can then be unzipped as necessary
-        initial_packages = os.path.join('data', 'initial_packages')
-        if os.path.exists(initial_packages):
-            print 'Populating with initial packages'
-            shutil.copytree(initial_packages, ASSET_DIR)
-        else:
-            # No initial data, so just make the directory
-            os.makedirs(ASSET_DIR)
+        os.makedirs(ASSET_DIR)
 
     return ASSET_DIR
 
@@ -134,20 +102,6 @@ def get_map_dir():
         os.makedirs(MAP_DIR)
 
     return MAP_DIR
-
-
-## Returns the short path to an asset. If we get e.g. /home/X/intensityengine/data/base/somemap.ogz,
-## then we return base/somemap.ogz, i.e., the path under /data. This short path can then be used
-## to know where to play an asset on the client, under the client's home subdir.
-## A shortpath does not include '/data'. Thus, you can concatenate a shortpath to the asset_dir
-## returned in get_asset_dir to get a real path.
-def get_asset_shortpath(path):
-    ret = []
-    elements = path.split(os.path.sep)
-    while elements[-1] != 'data':
-        ret = [elements[-1]] + ret
-        elements = elements[:-1]
-    return os.path.join(ret)
 
 
 #
@@ -183,15 +137,6 @@ def init_config(path, template):
             arg = arg[len(MARKER):]
             section, option, value = arg.split(':')
             set_config(section, option, value)
-
-## Write out config options - safely
-def save_config():
-    global CONFIG_FILE
-    config_file = open(CONFIG_FILE, 'w')
-    config_file.write(json.dumps(configFile, sort_keys=True, indent=4))
-    config_file.flush()
-    os.fsync(config_file.fileno())
-    config_file.close()
 
 ## Get a value from our persistent config file.
 ## @param section The section (in form [Section] in the file) where to look.

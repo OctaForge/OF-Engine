@@ -1331,16 +1331,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
         else
         {
             // INTENSITY: If we have all the data we need from the server to run the game, then we can actually draw
-            if (ClientSystem::scenarioStarted())
-            {
-                static Benchmarker renderingBenchmarker;
-                renderingBenchmarker.start();
-
-                gl_drawframe(screen->w, screen->h);
-
-                renderingBenchmarker.stop();
-                SystemManager::showBenchmark("                                        Rendering", renderingBenchmarker);
-            }
+            if (ClientSystem::scenarioStarted()) gl_drawframe(screen->w, screen->h);
         }
         swapbuffers();
         renderedframe = inbetweenframes = true;

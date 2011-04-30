@@ -12,10 +12,6 @@ struct SystemManager
     //! Calls all quittings for all of our systems
     static void quit();
 
-    static bool benchmarking;
-
-    static void showBenchmark(std::string title, Benchmarker& benchmark);
-
     //! Stuff done on each frame
     static void frameTrigger(int curtime);
 };

@@ -11,10 +11,11 @@ import os, signal, sys
 import platform
 
 from intensity.base import *
-from intensity.logging import *
 from intensity.signals import shutdown, show_components
 from intensity.world import map_load_finish
 from intensity.message_system import *
+import intensity.c_module
+CModule = intensity.c_module.CModule.holder
 
 
 class Module:
@@ -28,8 +29,6 @@ def run_server(location=None):
 
     if location is not None:
         location = 'base/' + location + '.tar.gz'
-
-    log(logging.DEBUG, "Location: %s" % location)
 
     activity = ''
     map_asset = '-config:Activity:force_location:%s' % location
@@ -47,7 +46,6 @@ def run_server(location=None):
     )
     #process.communicate()
     Module.server_proc.connected_to = False
-    log(logging.WARNING, "Starting server process: %d" % Module.server_proc.pid)
 
     def prepare_to_connect():
         success = False
@@ -65,8 +63,6 @@ def run_server(location=None):
                 break
             else:
                 CModule.run_script('echo("Waiting for server to finish starting up... (%d)")' % i)
-        if not success:
-            log(logging.ERROR, "Failed to start server. See out_server.txt")
     side_actionqueue.add_action(prepare_to_connect)
 
 def has_server():
@@ -82,7 +78,6 @@ def check_server_terminated():
 
 def stop_server(sender=None, **kwargs):
     if Module.server_proc is not None:
-        log(logging.WARNING, "Stopping server process: %d" % Module.server_proc.pid)
         CModule.run_script("network.disconnect()")
         Module.server_proc = None
 
@@ -103,7 +98,6 @@ def show_gui(sender, **kwargs):
             ''')
         elif check_server_terminated():
             Module.server_proc = None
-            log(logging.ERROR, "Local server terminated due to an error")
         else:
             CModule.run_script('''
                 gui.text("Local server: ...preparing...")

@@ -66,58 +66,5 @@ class SafeActionQueue:
             self.should_quit = True
             self.action_needed.set()
 
-
-## A class that runs CModule.render_progress() every now and then. This is done in the
-## main thread (which is allowed to access the OpenGL context), and meanwhile other
-## threads can do other stuff. This class continues until it is told by the other
-## threads that it can stop
-class KeepAliver:
-    def __init__(self, message, delay=0.02, cancellable=False): # Poll 50fps by default
-        self.message = message
-        self.delay = delay
-        self.should_quit = False
-        self.cancellable = cancellable
-
-    def wait(self):
-        start_time = time.time()
-
-        # Done at this late time, because otherwise loops
-        import intensity.c_module
-        CModule = intensity.c_module.CModule.holder
-
-        while not self.should_quit:
-            CModule.render_progress( -((time.time() - start_time)%3.0)/3.0, self.message )
-            if Global.CLIENT:
-                if not self.cancellable:
-                    CModule.intercept_key(0)
-                elif CModule.intercept_key(CModule.get_escape()):
-                    thread.interrupt_main()
-                    break
-
-            time.sleep(self.delay)
-
-    def quit(self):
-        self.should_quit = True
-
-    @staticmethod
-    def do(func, message):
-        '''
-        E.g.:
-        KeepAliver.do(
-            lambda: some_func(),
-            "Decompressing JPEG2000 image..."
-        )
-        '''
-        from intensity.base import side_actionqueue
-        keep_aliver = KeepAliver(message)
-        class Result: pass
-        def side_operations():
-            Result.output = func()
-            keep_aliver.quit()
-        side_actionqueue.add_action(side_operations)
-        keep_aliver.wait()
-        return Result.output
-
-
 from intensity.base import *
 

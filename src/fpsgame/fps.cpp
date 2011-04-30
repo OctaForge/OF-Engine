@@ -349,62 +349,54 @@ namespace game
 #else
         bool runWorld = engine.hashandle();
 #endif
-        static Benchmarker physicsBenchmarker;
-
         //===================
         // Run physics
         //===================
 
-        physicsBenchmarker.start();
 
-            if (runWorld)
+        if (runWorld)
+        {
+            PhysicsManager::simulate(float(curtime)/1024.0f);
+
+            //============================================
+            // Additional physics: Collisions
+            //============================================
+
+            // If triggering collisions can be done by the lua library code, use that
+
+            engine.getg("entity_store")
+                  .t_getraw("manage_triggering_collisions");
+            if (engine.is<void*>(-1)) engine.call(0, 0);
+            else
             {
-                PhysicsManager::simulate(float(curtime)/1024.0f);
-
-                //============================================
-                // Additional physics: Collisions
-                //============================================
-
-                // If triggering collisions can be done by the lua library code, use that
-
-                engine.getg("entity_store")
-                      .t_getraw("manage_triggering_collisions");
-                if (engine.is<void*>(-1)) engine.call(0, 0);
-                else
+                engine.pop(1);
+                loopv(players)
                 {
-                    engine.pop(1);
-                    loopv(players)
-                    {
-                        fpsent* fpsEntity = players[i];
-                        CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
-                        if (!entity || entity->isNone()) continue;
+                    fpsent* fpsEntity = players[i];
+                    CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
+                    if (!entity || entity->isNone()) continue;
 
-                        if(fpsEntity->state != CS_EDITING)
-                        {
-                            WorldSystem::checkTriggeringCollisions(entity);
-                        }
+                    if(fpsEntity->state != CS_EDITING)
+                    {
+                        WorldSystem::checkTriggeringCollisions(entity);
                     }
                 }
-                engine.pop(1);
             }
-
-        physicsBenchmarker.stop();
+            engine.pop(1);
+        }
 
         //==============================================
         // Manage actions
         // Done after physics, so can override physics
         //==============================================
 
-        static Benchmarker actionsBenchmarker;
-        actionsBenchmarker.start();
-            if (runWorld)
-            {
-                engine.getg("entity_store")
-                      .t_getraw("start_frame")
-                      .call(0, 0).pop(1);
-                LogicSystem::manageActions(curtime);
-            }
-        actionsBenchmarker.stop();
+        if (runWorld)
+        {
+            engine.getg("entity_store")
+                  .t_getraw("start_frame")
+                  .call(0, 0).pop(1);
+            LogicSystem::manageActions(curtime);
+        }
 
 #ifdef CLIENT
         //================================================================
@@ -425,9 +417,6 @@ namespace game
 #else // SERVER
         c2sinfo(); // Send all the info for all the NPCs
 #endif
-
-        SystemManager::showBenchmark("Physics", physicsBenchmarker);
-        SystemManager::showBenchmark("                    Actions", actionsBenchmarker);
     }
 
     void spawnplayer(fpsent *d)   // place at random spawn. also used by monsters!

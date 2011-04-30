@@ -64,7 +64,6 @@ set(SERVER_SOURCES
     ../intensity/intensity_physics_sauer
     ../engine/octarender
     ../fpsgame/weapon
-    ../intensity/master
     ../shared/stream
     ../engine/pvs
     ../engine/blend

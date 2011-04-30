@@ -15,7 +15,6 @@
 #include "targeting.h"
 #include "intensity_gui.h"
 #include "intensity_texture.h"
-#include "master.h"
 #ifdef INTENSITY_PLUGIN
     #include "intensity_plugin_listener.h"
 #endif
@@ -496,7 +495,6 @@ int main(int argc, char **argv)
     exposeToPython("set_transaction_code", setTransactionCode);
     exposeToPython("connect", ClientSystem::connect);
     exposeToPython("disconnect", ClientSystem::doDisconnect);
-    exposeToPython("logout", MasterServer::logout);
     exposeToPython("show_message", show_message);
     exposeToPython("intercept_key", interceptkey);
     exposeToPython("get_escape", get_escape);

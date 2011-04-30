@@ -147,7 +147,7 @@ NotifyAboutCurrentScenario(server->client)
         ClientSystem::currScenarioCode = scenarioCode;
 
         REFLECT_PYTHON( set_map );
-        set_map("", mapAssetId);
+        set_map(mapAssetId);
 end
 
 // Tells the server that it should restart, e.g., if this client has updated the map, by uploading a new version

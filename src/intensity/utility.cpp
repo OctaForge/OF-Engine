@@ -8,25 +8,6 @@
 
 using namespace boost;
 
-
-//==================================
-// Utilities. Many of these will
-// simply use boost/python for now,
-// but we can replace them with
-// suitable portable specific
-// things later
-//==================================
-
-
-std::string Utility::SHA256(std::string text)
-{
-    EXEC_PYTHON("import hashlib");
-
-    REFLECT_PYTHON_ALTNAME(hashlib.sha256, hashlib_sha256);
-
-    return python::extract<std::string>( hashlib_sha256(text).attr("hexdigest")() );
-}
-
 //==============================
 // String utils
 //==============================

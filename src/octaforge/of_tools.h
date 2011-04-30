@@ -33,8 +33,19 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define OF_NEW(o) calloc(1, sizeof(o))
+#define OF_FREE(o) o = NULL; free(o)
+
 bool of_tools_validate_alphanumeric(const char *str, const char *allow);
 bool of_tools_validate_relpath(const char *path);
 bool of_tools_is_file_newer_than(const char *file, const char *otherfile);
+bool of_tools_safe_mkdir(const char *path, mode_t mode);
+bool of_tools_mkpath(const char *path, mode_t mode);
+bool of_tools_file_copy(const char *src, const char *dest);
+
+typedef struct _OF_config
+{
+    JSONObject json;
+} OF_config;
 
 #endif

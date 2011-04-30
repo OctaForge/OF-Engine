@@ -993,12 +993,12 @@ void server_runslice()
 {
     serverslice(true, 5);
 
-    // Kripken: Simulate the curtime parameter in Sauer.
-    double now = GET_PYTHON<double>("time.time()");
-    static double total_time = 0;
-    if (!total_time) // This prevents garbage on the very first call, since if total_time=0, then 1000*now overflows
-        total_time = now;
-    curtime = (long)(1000* (now - total_time) );
+    time_t now = time(NULL);
+
+    static time_t    total_time = 0;
+    if (!total_time) total_time = now;
+
+    curtime    = (long)(1000 * (now - total_time));
     total_time = now;
 
     if(lastmillis) game::updateworld();

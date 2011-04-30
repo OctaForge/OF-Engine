@@ -44,10 +44,6 @@ print "Initializing logging"
 
 CModule.init_logging()
 
-#from storm.locals import *
-
-log(logging.DEBUG, "Setting C home dir")
-
 CModule.set_home_dir( get_home_subdir() )
 
 print "Initializing scripting engine"

@@ -89,7 +89,6 @@ set(CLIENT_SOURCES
     ../cubecreate/variable_system
     ../intensity/fpsclient_interface
     ../intensity/fpsserver_interface
-    ../intensity/master
     ../intensity/intensity_gui
     ../shared/stream
     ../shared/zip

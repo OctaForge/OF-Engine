@@ -45,23 +45,6 @@ void SystemManager::quit()
     lua::engine.destroy();
 }
 
-// XXX Not used, deprecated
-bool SystemManager::benchmarking = false;
-
-void SystemManager::showBenchmark(std::string title, Benchmarker& benchmark)
-{
-    int benchmarkingSeconds = Utility::Config::getInt("System", "benchmarking", 0);
-
-    if (benchmarkingSeconds)
-    {
-        if (benchmark.totalPassed() > benchmarkingSeconds*1000)
-        {
-            printf("[[ last %d secs ]]   %s : %3.1f%% \r\n", benchmarkingSeconds, title.c_str(), benchmark.percentage());
-            benchmark.reset();
-        }
-    }
-}
-
 void SystemManager::frameTrigger(int curtime)
 {
     #ifdef CLIENT

@@ -436,7 +436,7 @@ namespace MessageSystem
 
         ClientSystem::currScenarioCode = scenarioCode;
         REFLECT_PYTHON( set_map );
-        set_map("", mapAssetId);
+        set_map(mapAssetId);
     }
 #endif
 

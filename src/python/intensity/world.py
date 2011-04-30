@@ -12,26 +12,20 @@ import uuid
 from _dispatch import Signal
 
 from intensity.base import *
-from intensity.logging import *
+
+import intensity.c_module
+CModule = intensity.c_module.CModule.holder
 
 # Signals
 
-map_load_start = Signal(providing_args=['activity_id', 'map_asset_id'])
+map_load_start = Signal(providing_args=['map_asset_id'])
 map_load_finish = Signal() # Only sent if map loads successfully
 
 
 # Globals
 
-curr_activity_id = None ##< The activity ID of the current activity
 curr_map_asset_id = None ##< The asset id of this map, whose location gives us the prefix, etc.
 curr_map_prefix = None
-
-def get_curr_activity_id():
-    return curr_activity_id
-
-def set_curr_activity_id(activity_id):
-    global curr_activity_id
-    curr_activity_id = activity_id
 
 def get_curr_map_asset_id():
     return curr_map_asset_id
@@ -65,24 +59,19 @@ World = WorldClass()
 
 ## Sets a map to be currently active, and starts a new scenario
 ## @param _map The asset id for the map (see curr_map_asset_id)
-def set_map(activity_id, map_asset_id):
-    log(logging.DEBUG, "Setting the map to %s / %s" % (activity_id, map_asset_id))
-
+def set_map(map_asset_id):
     # Determine map activity and asset and get asset info
 
     if Global.SERVER:
         forced_location = get_config('Activity', 'force_location', '')
         if forced_location != '':
-            activity_id = '*FORCED*'
             map_asset_id = forced_location # Contains 'base/'
     else: # CLIENT
         parts = map_asset_id.split('/')
         if parts[0] == 'base':
             set_config('Activity', 'force_location', map_asset_id)
 
-    log(logging.DEBUG, "final setting values: %s / %s" % (activity_id, map_asset_id))
-
-    map_load_start.send(None, activity_id=activity_id, map_asset_id=map_asset_id)
+    map_load_start.send(None, map_asset_id=map_asset_id)
 
     World.start_scenario()
 
@@ -93,31 +82,18 @@ def set_map(activity_id, map_asset_id):
 
     # Set globals
 
-    set_curr_activity_id(activity_id)
     set_curr_map_asset_id(map_asset_id)
     World.asset_location = map_asset_id
 
     curr_map_prefix = map_asset_id[:-7] + os.sep # asset_info.location
     set_curr_map_prefix(curr_map_prefix)
 
-    log(logging.DEBUG, "Map locations: %s -- %s ++ %s" % (
-        World.asset_location,
-        curr_map_prefix,
-        os.path.join(
-            get_asset_dir(),
-            World.asset_location.replace('/', '\\')
-            if WINDOWS else World.asset_location
-        )
-    ))
-
     # Load the geometry and map settings in the .ogz
     if not CModule.load_world(curr_map_prefix + "map"):
-        log(logging.ERROR, "Could not load map %s" % curr_map_prefix)
         raise Exception("set_map failure")
 
     if Global.SERVER:
         # Create script entities for connected clients
-        log(logging.DEBUG, "Creating lua entities for map")
         CModule.create_lua_entities()
 
         auth.InstanceStatus.map_loaded = True
@@ -134,7 +110,7 @@ def set_map(activity_id, map_asset_id):
 
 
 def restart_map():
-    set_map(get_curr_activity_id(), get_curr_map_asset_id())
+    set_map(get_curr_map_asset_id())
 
 ## Returns the path to a file in the map script directory, i.e., a file is given in
 ## relative position to the current map, and we return the full path
@@ -190,9 +166,7 @@ def get_map_script_filename():
 ## Runs the startup script for the current map. Called from worldio.loadworld
 def run_map_script():
     script = open( get_map_script_filename(), "r").read()
-    log(logging.DEBUG, "Running map script...")
     CModule.run_script(script)
-    log(logging.DEBUG, "Running map script complete..")
 
 def export_entities(filename):
     full_path = os.path.join(get_asset_dir(), get_curr_map_prefix(), filename)

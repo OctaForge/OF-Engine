@@ -77,9 +77,7 @@ load_components()
 
 print "Testing for local mode"
 
-from intensity.server.auth import check_local_mode
-if check_local_mode():
-    print "<<< Server is running in local mode - only a single client from this machine can connect >>>"
+print "<<< Server is running in local mode - only a single client from this machine can connect >>>"
 
 print "Generating client/server specific code"
 
@@ -154,17 +152,11 @@ def main_loop():
         pass # Just exit gracefully
 
 
-# end main loop
-
-if PROFILE:
-    prof.runcall(main_loop)
-    prof.close()
-else:
-    main_loop()
+main_loop()
 
 print "Stopping main server"
 
-execfile( os.path.join(PYTHON_SCRIPT_DIR, "quit.py") )
+shutdown.send(None)
 
 if PROFILE:
     stats = hotshot.stats.load("server_profile")

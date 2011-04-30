@@ -10,9 +10,6 @@ Messaging functionality.
 We also provide some nice wrappers around common messages
 """
 
-from logging import *
-
-
 ## Send to this client number in order to send to *all* clients. This is the Sauerbraten convention.
 ALL_CLIENTS = -1
 
@@ -47,8 +44,6 @@ class MessageSystem:
 
         message_type = args[0]
         args = args[1:]
-
-        log(logging.DEBUG, "Python MessageSystem: Sending %s with %s\n" % (str(message_type.__name__), str(args)))
 
         if server:
             message_type(client_number, *args)
