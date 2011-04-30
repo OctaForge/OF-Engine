@@ -185,19 +185,6 @@ def load_components():
         print "Loading component '%s'..." % component
         __import__(component, level=1)
 
-
-### Action queues
-
-from intensity.safe_actionqueue import *
-
-## Action queue for stuff to be done in the main thread
-main_actionqueue = SafeActionQueue()
-
-## Action queue for stuff to be done in a parallel thread
-side_actionqueue = SafeActionQueue()
-side_actionqueue.main_loop()
-
-
 #
 # Quitting system
 #

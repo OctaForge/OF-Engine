@@ -5,6 +5,7 @@
 #include "system_manager.h" // INTENSITY
 #include "client_system.h" // INTENSITY
 #include "intensity_gui.h" // INTENSITY
+#include "of_localserver.h"
 
 extern void cleargamma();
 
@@ -1102,7 +1103,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     #ifndef _DEBUG
     #ifndef __GNUC__
-//    __try { // INTENSITY: interferes with main_actionqueue stuff
+    __try {
     #endif
     #endif
     #endif
@@ -1276,17 +1277,6 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
 
     for(;;)
     {
-        try
-        {
-            REFLECT_PYTHON( main_actionqueue ); // INTENSITY
-            main_actionqueue.attr("execute_all")(); // INTENSITY
-        } catch(boost::python::error_already_set const &)
-        {
-            printf("Error in Python main actionqueue\r\n");
-            PyErr_Print();
-            assert(0 && "Halting on Python error");
-        }
-
         static int frames = 0;
         int millis = getclockmillis();
         limitfps(millis, totalmillis);
@@ -1301,6 +1291,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
             if(curtime>200) curtime = 200;
             if(GETIV(paused) || game::ispaused()) curtime = 0;
         }
+        of_localserver_try_connect(); /* Try connecting if server is ready */
 
         skymillis += curtime; // INTENSITY: SkyManager
         lastmillis += curtime;
@@ -1343,6 +1334,6 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     return EXIT_FAILURE;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
-//    } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; } // INTENSITY: interferes with main_actionqueue stuff
+    } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; }
     #endif
 }

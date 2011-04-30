@@ -1,6 +1,6 @@
 /*
- * of_tools.h, version 1
- * Various utilities for OctaForge engine (header)
+ * of_localserver.h, version 1
+ * Local server handler for OctaForge (header)
  *
  * author: q66 <quaker66@gmail.com>
  * license: MIT/X11
@@ -27,18 +27,15 @@
  *
  */
 
-#ifndef OF_TOOLS_H
-#define OF_TOOLS_H
+#ifndef OF_LOCALSERVER_H
+#define OF_LOCALSERVER_H
 
-#include <stdbool.h>
-#include <string.h>
+bool of_localserver_get_running();
+void of_localserver_try_connect();
+void of_localserver_run(const char *map);
+void of_localserver_stop();
 
-#define OF_NEW(o) calloc(1, sizeof(o))
-#define OF_FREE(o) o = NULL; free(o)
-
-bool of_tools_validate_alphanumeric(const char *str, const char *allow);
-bool of_tools_validate_relpath(const char *path);
-bool of_tools_is_file_newer_than(const char *file, const char *otherfile);
-bool of_tools_file_copy(const char *src, const char *dest);
+/* Name of server log file in home directory. */
+#define SERVER_LOGFILE "out_server.log"
 
 #endif

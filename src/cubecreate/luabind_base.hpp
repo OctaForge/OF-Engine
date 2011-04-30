@@ -57,6 +57,8 @@ void scorebshow(bool on);
 bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL);
 bool removezip(const char *name);
 
+extern string homedir;
+
 namespace lua_binds
 {
     /* Logging Lua namespace */
@@ -135,6 +137,15 @@ namespace lua_binds
                  e.get<const char*>(2)[0] ? e.get<const char*>(2) : NULL,
                  e.get<const char*>(3)[0] ? e.get<const char*>(3) : NULL)
     LUA_BIND_STD(removezip, removezip, e.get<const char*>(1))
+    LUA_BIND_DEF(gethomedir, {
+        char *hdir = strdup(homedir);
+        if (!strcmp(hdir + strlen(hdir) - 1,   "/"))
+                    hdir[  strlen(hdir) - 1] = '\0';
+
+        e.push(hdir);
+        OF_FREE(hdir);
+    })
+    LUA_BIND_STD(getserverlogfile, e.push, SERVER_LOGFILE)
     
 
     // Bit math
@@ -225,16 +236,6 @@ namespace lua_binds
                 break;
             }
             default: break;
-        }
-    })
-
-    LUA_BIND_DEF(ssls, {
-        if (e.is<void>(1))
-            run_python((char*)"intensity.components.server_runner.stop_server()");
-        else
-        {
-            defformatstring(cmd)("intensity.components.server_runner.run_server('%s')", e.get<const char*>(1));
-            run_python((char*)cmd);
         }
     })
 

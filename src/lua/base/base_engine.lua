@@ -87,6 +87,18 @@ screenshot = CAPI.screenshot
 -- @name movie
 movie = CAPI.movie
 
+-- Get OF home directory.
+-- @return OF home directory.
+-- @class function
+-- @name gethomedir
+gethomedir = CAPI.gethomedir
+
+-- Get OF server log file.
+-- @return OF server log file path.
+-- @class function
+-- @name getserverlogfile
+getserverlogfile = CAPI.getserverlogfile
+
 -- Variable types
 
 --- Variable types. (not table)

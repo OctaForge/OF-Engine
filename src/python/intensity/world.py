@@ -96,15 +96,14 @@ def set_map(map_asset_id):
         # Create script entities for connected clients
         CModule.create_lua_entities()
 
-        auth.InstanceStatus.map_loaded = True
-
         # Send map to all connected clients, if any
         send_curr_map(ALL_CLIENTS)
 
         # Initialize instance status for this new map
         auth.InstanceStatus.private_edit_mode = False
 
-    map_load_finish.send(None)
+    if Global.CLIENT:
+        MessageSystem.send(CModule.RequestPrivateEditMode)
 
     return True # TODO: Do something with this value
 

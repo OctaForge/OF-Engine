@@ -28,6 +28,7 @@
 
 local env = _G
 local CAPI = require("CAPI") -- for nested functions
+local gui  = require("gui")  -- for nested functions
 
 --- World module (map, entities, vslots etc.) for OF's Lua interface.
 -- Scheduled for rewrite / deprecation, so won't be documented for now.
@@ -522,6 +523,16 @@ restart_map = CAPI.restart_map
 -- @class function
 -- @name export_entities
 export_entities = CAPI.export_entities
+--- Run a map.
+-- @param m Map name, or nil. If nil, current map gets stopped.
+-- @class function
+-- @name map
+map = CAPI.map
+--- Get if we are running a map.
+-- @return True if yes, false otherwise.
+-- @class function
+-- @name hasmap
+hasmap = CAPI.hasmap
 ---
 -- @class table
 -- @name hmap

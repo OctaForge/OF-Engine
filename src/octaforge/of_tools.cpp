@@ -1,7 +1,6 @@
 /*
  * of_tools.c, version 1
  * Various utilities for OctaForge engine.
- * Safe mkdir and mkpath by Jonathan Leffler as part of JLSS SCSS Tools.
  *
  * author: q66 <quaker66@gmail.com>
  * license: MIT/X11
@@ -95,48 +94,6 @@ bool of_tools_is_file_newer_than(const char *file, const char *otherfile)
     if (stat(otherfile, &buf2)) return true;
     if (buf.st_mtime > buf2.st_mtime) return true;
     return false;
-}
-
-bool of_tools_safe_mkdir(const char *path, mode_t mode)
-{
-    struct stat st;
-    bool status = true;
-
-    if (stat(path, &st))
-    {
-        if (mkdir(path, mode)) status = false;
-    }
-    else if (!S_ISDIR(st.st_mode))
-    {
-        errno  = ENOTDIR;
-        status = false;
-    }
-
-    return status;
-}
-
-bool of_tools_mkpath(const char *path, mode_t mode)
-{
-    char *copypath = strdup(path);
-    char *pp = NULL, *sp = NULL;
-    bool status = true;
-
-    pp = copypath;
-    while (!status && (sp = strchr(pp, '/')))
-    {
-        if (sp != pp)
-        {
-            *sp = '\0';
-            status = of_tools_safe_mkdir(copypath, mode);
-            *sp = '/';
-        }
-        pp = sp + 1;
-    }
-
-    if (status) status = of_tools_safe_mkdir(path, mode);
-    OF_FREE(copypath);
-
-    return status;
 }
 
 bool of_tools_file_copy(const char *src, const char *dest)

@@ -14,6 +14,7 @@ Global.init_as_server()
 import intensity.c_module
 CModule = intensity.c_module.CModule.holder
 
+from intensity.signals import client_connect, client_disconnect
 
 ###
 ### Start
@@ -38,7 +39,7 @@ try:
 except IndexError:
     print "Note: No home directory specified, so using default (which is tied to this operating-system level user)"
 if home_dir is not None:
-    if home_dir[-4:] == '.json':
+    if home_dir[-5:] == '.json':
         # A home dir ending in json is HOME_DIR/JSON_NAME.json
         # This lets us use the same home dir for the client and server, with a different json for each
         config_filename = home_dir.split(os.path.sep)[-1]
@@ -111,6 +112,38 @@ MASTER_UPDATE_INTERVAL = float(get_config("Network", "master_update_rate", 300))
 
 last_master_update = 0
 
+# Exit conditions
+shutdown_if_idle  = False
+shutdown_if_empty = False
+
+IDLE_SHUTDOWN_INTERVAL = 60
+EMPTY_SHUTDOWN_COUNTER = 0
+SI_MARKER = "-idle-shutdown-interval:"
+
+for arg in sys.argv:
+    if arg == "-shutdown-if-idle":
+        shutdown_if_idle = True
+    elif arg == "-shutdown-if-empty":
+        shutdown_if_empty = True
+    elif arg[:len(SI_MARKER)] == SI_MARKER:
+        IDLE_SHUTDOWN_INTERVAL = int(arg[len(SI_MARKER):])
+
+def counter_add(sender, **kwargs):
+    global EMPTY_SHUTDOWN_COUNTER
+    EMPTY_SHUTDOWN_COUNTER += 1
+
+def counter_del(sender, **kwargs):
+    global EMPTY_SHUTDOWN_COUNTER
+    EMPTY_SHUTDOWN_COUNTER -= 1
+    if EMPTY_SHUTDOWN_COUNTER <= 0:
+        quit()
+
+if shutdown_if_empty:
+    client_connect.connect   (counter_add, weak = False)
+    client_disconnect.connect(counter_del, weak = False)
+
+last_idle_update = time.time()
+
 # Main loop
 
 def main_loop():
@@ -135,19 +168,17 @@ def main_loop():
             # Update master, if necessary TODO: If we add more such things, create a modular plugin system
 
             global last_master_update
+            global last_idle_update
 
             if time.time() - last_master_update >= MASTER_UPDATE_INTERVAL:
                 last_master_update = time.time()
+                set_map(get_config('Activity', 'force_map_asset_id', ''))
 
-                def do_update_master():
-                    auth.update_master()
+            if shutdown_if_idle and time.time() - last_idle_update >= IDLE_SHUTDOWN_INTERVAL:
+                if Clients.count() == 0:
+                    quit()
 
-                # Update master in the side thread, but with it's results - set_map, etc. - in the main queue
-                side_actionqueue.add_action(do_update_master)
-
-            # Run queued actions
-
-            main_actionqueue.execute_all()
+                last_idle_update = time.time()
     except KeyboardInterrupt:
         pass # Just exit gracefully
 

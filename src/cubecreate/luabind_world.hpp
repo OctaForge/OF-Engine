@@ -196,4 +196,13 @@ namespace lua_binds
         REFLECT_PYTHON(export_entities);
         export_entities(e.get<const char*>(1));
     })
+
+    LUA_BIND_CLIENT(map, {
+        if (e.is<void>(1))
+            of_localserver_stop();
+        else
+            of_localserver_run(e.get<const char*>(1));
+    })
+
+    LUA_BIND_STD_CLIENT(hasmap, e.push, of_localserver_get_running())
 }

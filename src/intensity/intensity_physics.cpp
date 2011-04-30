@@ -28,29 +28,8 @@ void createEngine(std::string type)
 {
     destroyEngine();
 
-    Logging::log(Logging::DEBUG, "Creating physics engine: %s\r\n", type.c_str());
-
-    if (type == "sauer")
-    {
-        Logging::log(Logging::DEBUG, "Using sauer physics engine\r\n");
-        engine = new SauerPhysicsEngine();
-    }
-    else
-    {
-        #ifdef CLIENT
-            Logging::log(Logging::ERROR, "Invalid physics engine: %s, disconnecting\r\n", type.c_str());
-            EXEC_PYTHON(
-                "def do_disconnect():\n"
-                "    CModule.disconnect()\n"
-                "main_actionqueue.add_action(do_disconnect)\n"
-            ); // We are loading a map now - must disconnect after that is complete
-            return;
-        #else // SERVER
-            Logging::log(Logging::ERROR, "Invalid physics engine: %s, quitting\r\n", type.c_str());
-            ServerSystem::fatalMessageToClients("Invalid physics engine, quitting");
-            assert(0);
-        #endif
-    }
+    Logging::log(Logging::DEBUG, "Using sauer physics engine\r\n");
+    engine = new SauerPhysicsEngine();
 
     engine->init();
 }
