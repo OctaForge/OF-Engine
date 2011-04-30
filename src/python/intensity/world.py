@@ -9,18 +9,10 @@ Manages loading maps etc.
 import os, tarfile, re, httplib
 import uuid
 
-from _dispatch import Signal
-
 from intensity.base import *
 
 import intensity.c_module
 CModule = intensity.c_module.CModule.holder
-
-# Signals
-
-map_load_start = Signal(providing_args=['map_asset_id'])
-map_load_finish = Signal() # Only sent if map loads successfully
-
 
 # Globals
 
@@ -70,8 +62,6 @@ def set_map(map_asset_id):
         parts = map_asset_id.split('/')
         if parts[0] == 'base':
             set_config('Activity', 'force_location', map_asset_id)
-
-    map_load_start.send(None, map_asset_id=map_asset_id)
 
     World.start_scenario()
 

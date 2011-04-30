@@ -14,8 +14,6 @@ Global.init_as_server()
 import intensity.c_module
 CModule = intensity.c_module.CModule.holder
 
-from intensity.signals import client_connect, client_disconnect
-
 ###
 ### Start
 ###
@@ -117,30 +115,15 @@ shutdown_if_idle  = False
 shutdown_if_empty = False
 
 IDLE_SHUTDOWN_INTERVAL = 60
-EMPTY_SHUTDOWN_COUNTER = 0
 SI_MARKER = "-idle-shutdown-interval:"
 
 for arg in sys.argv:
     if arg == "-shutdown-if-idle":
         shutdown_if_idle = True
     elif arg == "-shutdown-if-empty":
-        shutdown_if_empty = True
+        Clients.shutdown_if_empty = True
     elif arg[:len(SI_MARKER)] == SI_MARKER:
         IDLE_SHUTDOWN_INTERVAL = int(arg[len(SI_MARKER):])
-
-def counter_add(sender, **kwargs):
-    global EMPTY_SHUTDOWN_COUNTER
-    EMPTY_SHUTDOWN_COUNTER += 1
-
-def counter_del(sender, **kwargs):
-    global EMPTY_SHUTDOWN_COUNTER
-    EMPTY_SHUTDOWN_COUNTER -= 1
-    if EMPTY_SHUTDOWN_COUNTER <= 0:
-        quit()
-
-if shutdown_if_empty:
-    client_connect.connect   (counter_add, weak = False)
-    client_disconnect.connect(counter_del, weak = False)
 
 last_idle_update = time.time()
 

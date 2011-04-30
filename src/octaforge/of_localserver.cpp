@@ -120,7 +120,11 @@ void of_localserver_run(const char *map)
         hdir, map, hdir, SERVER_LOGFILE
     );
     OF_FREE(hdir);
+#ifdef WIN32
+    _popen(localserver_buf, "r");
+#else
     popen(localserver_buf, "r");
+#endif
 
     /* Inform the engine that server is started. */
     server_started = true;

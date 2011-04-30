@@ -59,6 +59,21 @@ gui.new("can_quit", function()
     gui.button("no", [=[gui.clear(1)]=])
 end)
 
+gui.new("local_server_output", function()
+    gui.noautotab(function()
+        gui.bar()
+        gui.editor(engine.gethomedir() .. "/" .. engine.getserverlogfile(), -80, 20)
+        gui.bar()
+        gui.stayopen(function()
+            gui.button("refresh", [[
+                gui.textfocus(engine.gethomedir() .. "/" .. engine.getserverlogfile())
+                gui.textload(engine.gethomedir() .. "/" .. engine.getserverlogfile())
+                gui.show("-1")
+            ]])
+        end)
+    end)
+end)
+
 -- Standard menu definitions
 
 console.binds.add("ESCAPE", [[
@@ -76,7 +91,22 @@ function setup_main_menu()
         gui.text("Welcome to OctaForge development release. (1)")
         gui.text("Enter generic_dev if you aren't sure of mapname.")
         gui.bar()
-        gui.show_plugins()
+        if world.hasmap() then
+            gui.text("Map: Running.")
+            gui.stayopen(function() gui.button("  stop", [[world.map()]]) end)
+            gui.button("  show output", [[gui.show("local_server_output")]])
+            gui.stayopen(function() gui.button("  save map", [[network.do_upload()]]) end)
+            gui.button("  restart map", [[world.restart_map()]])
+        else
+            gui.text("Map: Not runnning.")
+            gui.list(function()
+                gui.text("Run map: base/")
+                gui.field("local_server_location", 30, "")
+            end)
+            gui.stayopen(function() gui.button("  start", [[world.map(local_server_location)]]) end)
+            gui.button("  show output", [[ gui.show("local_server_output") ]])
+        end
+        gui.bar()
         gui.text("Credits: Cube 2, Syntensity, Love, Lua, SDL, Python, zlib.")
         gui.text("Licensed under MIT/X11.")
         gui.bar()

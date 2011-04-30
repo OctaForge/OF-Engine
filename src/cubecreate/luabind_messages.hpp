@@ -117,19 +117,4 @@ namespace lua_binds
         e.get<int>(10),
         e.get<int>(11));
     )
-
-    LUA_BIND_DEF(signalcomp, {
-        try
-        {
-            REFLECT_PYTHON( signal_signal_component );
-            boost::python::object data = signal_signal_component(e.get<const char*>(1), e.get<const char*>(2));
-            e.push(boost::python::extract<const char*>(data));
-        }
-        catch(boost::python::error_already_set const &)
-        {
-            printf("Error in signalling python component initialization\r\n");
-            PyErr_Print();
-            assert(0 && "Halting on Python error");
-        }
-    })
 }

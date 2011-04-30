@@ -27,13 +27,10 @@ void packetSent(int channel, int size)
     assert(channel >= 0 && channel < NUM_CHANNELS);
     bytesSentPerChannel[channel] += size;
 
-    // Caching, then sending out of a signal
+    // Caching
     cachedBytes += size;
     if (lastmillis - lastCacheFlush >= 1000) // use lastmillis for speed - this happens a lot
     {
-        REFLECT_PYTHON( signal_bandwidth_out );
-        signal_bandwidth_out(cachedBytes);
-
         lastCacheFlush = lastmillis;
         cachedBytes = 0;
     }

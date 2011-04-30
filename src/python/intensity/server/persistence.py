@@ -6,8 +6,6 @@ import os, sys, shutil, time
 
 from intensity.base import *
 from intensity.message_system import *
-from intensity.signals import client_connect, client_disconnect, validate_client, multiple_send
-
 
 ## Information about a single connected client
 class Client:
@@ -22,18 +20,24 @@ class Client:
 ## Information about all connected clients
 class Clients:
     _map = {}
+    shutdown_if_empty = False
+    shutdown_counter = 0
 
     @staticmethod
     def add(client_number, *args):
         Clients._map[client_number] = Client(client_number, *args)
-        client_connect.send(None, client_number=client_number)
+        if Clients.shutdown_if_empty:
+            Clients.shutdown_counter += 1
 
     @staticmethod
     def remove(client_number):
         # Client may not have fully logged in before being booted
         if client_number in Clients._map:
-            client_disconnect.send(None, client_number=client_number) # Send signal first, so info here can be read
             del Clients._map[client_number]
+        if Clients.shutdown_if_empty:
+            Clients.shutdown_counter -= 1
+            if Clients.shutdown_counter <= 0:
+                quit()
 
     @staticmethod
     def count():

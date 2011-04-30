@@ -97,11 +97,6 @@ show_message = CAPI.showmessage
 -- @name show_inputdialog
 show_inputdialog = CAPI.showinputdialog
 
---- Show plugins GUI.
--- @class function
--- @name show_plugins
-show_plugins = CAPI.show_plugins
-
 --- Click trigger. Plays menu click sound.
 -- @class function
 -- @name menu_key_click_trigger

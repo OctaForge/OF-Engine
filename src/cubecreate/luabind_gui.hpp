@@ -249,9 +249,4 @@ namespace lua_binds
             }
         }
     })
-
-    LUA_BIND_CLIENT(show_plugins, {
-        REFLECT_PYTHON(signal_show_components);
-        signal_show_components();
-    })
 }

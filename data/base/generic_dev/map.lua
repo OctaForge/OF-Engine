@@ -7,31 +7,44 @@ myplayer._class = "myplayer"
 
 -- Called right after initialization on client
 function myplayer:client_activate(kwargs)
-    -- Call the parent
     self.__base.client_activate(self, kwargs)
-    -- Initialize a counter
-    self.n = 1
-    -- Move the player a bit more to the open space
-    self.position.y = self.position.y + 100
+    -- Current rotation angle
+    self.angle = 1
+    -- Current circle radius
+    self.circle_rad = 1
+    -- Old angle for 360 checks
+    self.old_angle = 1
 end
 
 -- Called every frame on client after initialization
 function myplayer:client_act(sec)
-    -- Call the parent
     self.__base.client_act(self, sec)
-    -- Loop 1000 times
-    if self.n <= 1000 then
-        -- Calculate X position. Move everything a bit.
-        self.position.x = self.n + 50
-        -- Calculate Z position (vertical) - create a nice sine graph
-        self.position.z = math.sin(math.rad(self.n) * 3) * 100 + 700
+    -- Loop just until radius reaches 60, so it doesn't take too long.
+    -- Make bigger for bigger circles
+    if self.circle_rad <= 0 then
+        -- The X position. Cosine calculation
+        self.position.x = (math.cos(math.rad(self.angle)) * self.circle_rad) + 150
+        -- The Y position. Sine calculation
+        self.position.y = (math.sin(math.rad(self.angle)) * self.circle_rad) + 150
+        -- Height. Basically makes a sine curve so the player goes up and down with the right period
+        self.position.z = math.sin(math.rad(self.angle) * 10) * 2 + 650
 
-        -- Create cubes for X axis
+        -- Create cube on current position. Use minimal size
         world.editing_createcube(self.position.x, self.position.y, self.position.z, 1)
-        -- Create cubes of the graph
-        world.editing_createcube(self.position.x, self.position.y, 700, 1)
-        -- Increment the counter
-        self.n = self.n + 1
+    else
+        -- If we're over 20, just return from the function after running parent.
+        return nil
+    end
+
+    -- Increment the angle by 1
+    self.angle = self.angle + 1
+    -- If we reached another 360 on angle - check done using old_angle
+    -- - let's increase radius and make next circle
+    if (self.angle - self.old_angle) >= 360 then
+        -- Increase radius
+        self.circle_rad = self.circle_rad + 1
+        -- Update old angle
+        self.old_angle = self.angle
     end
 end
 

@@ -5,4 +5,3 @@
 import os, shutil
 from intensity.message_system import *
 from intensity.world import *
-from intensity.signals import *

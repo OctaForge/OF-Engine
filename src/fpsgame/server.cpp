@@ -553,9 +553,6 @@ namespace server
                 getstring(text, p);
                 filtertext(text, text);
 
-                REFLECT_PYTHON( signal_text_message );
-                signal_text_message(sender, text);
-
                 if (!engine.hashandle())
                 {
                     QUEUE_INT(type);
