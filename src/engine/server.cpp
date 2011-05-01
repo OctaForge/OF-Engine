@@ -949,7 +949,6 @@ bool serveroption(char *opt)
 vector<const char *> gameargs;
 
 #ifdef SERVER
-
 void server_init()//int argc, char* argv[])
 {
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);

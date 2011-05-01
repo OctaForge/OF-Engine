@@ -488,7 +488,7 @@ private:
             if (receiveLatency == -1)
             {
                 // Our initial guess is the normal latency and 0 variance
-                receiveLatency = Utility::Config::getInt("Network", "rate", 33);
+                receiveLatency = 33;
                 receiveLatencyVariance = 0;
             }
 
@@ -507,7 +507,7 @@ private:
         if (receiveLatency != -1)
             return int( receiveLatency + (standardDevs*sqrtf(receiveLatencyVariance)) );
         else
-            return Utility::Config::getInt("Network", "rate", 33);; // Meaningless
+            return 33;
     }
 
     #define DATUMINFO(name, type)                    \

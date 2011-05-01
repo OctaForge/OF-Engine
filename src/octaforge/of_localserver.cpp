@@ -42,6 +42,12 @@ extern string homedir;
 
 /* Engine-wide prototypes. */
 void trydisconnect();
+/* Nasty extern abuse */
+namespace Logging
+{
+    extern Level currLevel;
+    extern std::string levelNames[6];
+}
 
 /* Private OF localserver prototypes */
 bool is_server_ready();
@@ -111,13 +117,13 @@ void of_localserver_run(const char *map)
     /* Platform specific, so ifdef it. And open the process stream. */
     snprintf(
         localserver_buf, sizeof(localserver_buf),
-        "%s %s/settings_server.json -config:Activity:force_location:base/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >%s/%s 2>&1",
+        "%s %s -log-level:%s -set-map:base/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >%s/%s 2>&1",
 #ifdef WIN32
         "intensity_server.bat",
 #else
         "exec ./intensity_server.sh",
 #endif
-        hdir, map, hdir, SERVER_LOGFILE
+        hdir, Logging::levelNames[Logging::currLevel].c_str(), map, hdir, SERVER_LOGFILE
     );
     OF_FREE(hdir);
 #ifdef WIN32

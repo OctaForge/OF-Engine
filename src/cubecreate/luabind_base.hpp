@@ -114,7 +114,6 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(tabify, tabify, e.get<char*>(1), e.get<int*>(2))
     LUA_BIND_STD(execcfg, Utility::config_exec_json, e.get<const char*>(1), e.get<bool>(2))
     LUA_BIND_STD(writecfg, Utility::writecfg, e.get<const char*>(1))
-    LUA_BIND_STD(getcfg, e.push, Utility::Config::getString(e.get<const char*>(1), e.get<const char*>(2), "?").c_str())
     LUA_BIND_DEF(readfile, {
         try
         {

@@ -20,12 +20,15 @@ execfile( os.path.join(PYTHON_SCRIPT_DIR, "init.py") )
 
 import __main__
 
-print "Setting home dir"
 
+LOGLEVEL = "WARNING"
+PATTERN = "-log-level:"
 home_dir = None # Will use an OS-specific one
 try:
     for arg in sys.argv[1:]:
-        if arg[0] != '-':
+        if arg[:len(PATTERN)] == PATTERN:
+            LOGLEVEL = arg[len(PATTERN):]
+        elif arg[0] != '-':
             home_dir = arg
             break
 except IndexError:
@@ -33,16 +36,9 @@ except IndexError:
 if home_dir is not None:
     set_home_dir(home_dir)
 
-print "Initializing config"
-
-config_filename = os.path.join( get_home_subdir(), 'settings.json' )
-template_filename = os.path.join( os.getcwd(), 'data', 'client_settings_template.json' )
-
-init_config(config_filename, template_filename)
-
 print "Initializing logging"
 
-CModule.init_logging()
+CModule.init_logging(LOGLEVEL)
 
 CModule.set_home_dir( get_home_subdir() )
 

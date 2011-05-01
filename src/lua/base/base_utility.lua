@@ -261,14 +261,6 @@ execcfg = CAPI.execcfg
 -- @name writecfg
 writecfg = CAPI.writecfg
 
---- Get a configuration file item (client config or server config)
--- @param cat Category to get item from.
--- @param itm Item to get.
--- @return The item as string.
--- @class function
--- @name getcfg
-getcfg = CAPI.getcfg
-
 --- Read a file from disk. Path is validated (== can't go outside OF directory)
 -- @param file File to read.
 -- @return Contents of file as string.

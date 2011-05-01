@@ -23,24 +23,6 @@ struct Utility
     //! write json cfg file
     static void writecfg(const char *name = NULL);
 
-    //! Configuration file management
-    struct Config
-    {
-        //! Gets a string configuration variable, or 'defaultVal' if doesn't exist
-        static std::string getString(std::string section, std::string option, std::string defaultVal);
-        //! Gets an int configuration variable, or 'defaultVal' if doesn't exist
-        static int         getInt   (std::string section, std::string option, int         defaultVal);
-        //! Gets a float configuration variable, or 'defaultVal' if doesn't exist
-        static float       getFloat (std::string section, std::string option, float       defaultVal);
-
-        //! Sets a string configuration variable
-        static void setString(std::string section, std::string option, std::string value);
-        //! Sets an int configuration variable
-        static void setInt   (std::string section, std::string option, int         value);
-        //! Sets a float configuration variable
-        static void setFloat (std::string section, std::string option, float       value);
-    };
-
     //! System information
 
     struct SystemInfo

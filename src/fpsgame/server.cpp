@@ -863,10 +863,7 @@ namespace server
         #ifdef CLIENT
             return ClientSystem::currPort;
         #else // SERVER
-            if (pythonInitialized)
-                return Utility::Config::getInt("Network", "port", SAUERBRATEN_SERVER_PORT);
-            else
-                return 0; // If no Python yet, no worry - we will be called again when the time is right
+            return SAUERBRATEN_SERVER_PORT;
         #endif
     }
 

@@ -315,8 +315,7 @@ namespace game
 
         Logging::log(Logging::INFO, "c2sinfo: %d,%d\r\n", totalmillis, lastupdate);
 
-        int rate = Utility::Config::getInt("Network", "rate", 33);
-        if(totalmillis - lastupdate < rate && !force) return;    // don't update faster than the rate
+        if(totalmillis - lastupdate < 33 && !force) return;    // don't update faster than the rate
         lastupdate = totalmillis;
 
 #ifdef CLIENT

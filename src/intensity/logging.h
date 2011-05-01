@@ -24,8 +24,8 @@ namespace Logging
     //! Test whether a level would be shown (useful to know if we are in debug mode)
     bool shouldShow(Level level);
 
-    //! Prepare logging system. Reads currLevel from config file
-    void init();
+    //! Prepare logging system.
+    void init(const char *level = "WARNING");
 
     //! Log a message, using standard printf format
     void log(Level level, const char *fmt, ...);

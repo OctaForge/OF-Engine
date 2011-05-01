@@ -241,64 +241,6 @@ void Utility::writecfg(const char *name)
     delete f;
 }
 
-
-//==============================
-// Config file utilities
-//==============================
-
-// Caches for speed; no need to call Python every time
-typedef std::map<std::string, std::string> ConfigCacheString;
-typedef std::map<std::string, int> ConfigCacheInt;
-typedef std::map<std::string, float> ConfigCacheFloat;
-
-ConfigCacheString configCacheString;
-ConfigCacheInt configCacheInt;
-ConfigCacheFloat configCacheFloat;
-
-inline std::string getCacheKey(std::string section, std::string option)
-    { return section + "|" + option; };
-
-#define GET_CONFIG(type, Name, python_type)                                           \
-type pythonGet##Name(std::string section, std::string option, type defaultVal)        \
-{                                                                                     \
-    Logging::log(Logging::DEBUG, "Config cache fail, going to Python: %s/%s\r\n",     \
-                 section.c_str(), option.c_str());                                    \
-    REFLECT_PYTHON(get_config);                                                       \
-    REFLECT_PYTHON_ALTNAME(python_type, ptype);                                       \
-    return python::extract<type>( ptype( get_config(section, option, defaultVal) ) ); \
-} \
-\
-type Utility::Config::get##Name(std::string section, std::string option, type defaultVal)\
-{ \
-    std::string cacheKey = getCacheKey(section, option);\
-    ConfigCache##Name::iterator iter = configCache##Name.find(cacheKey);\
-    if (iter != configCache##Name.end())\
-        return iter->second;\
-    else {\
-        type value = pythonGet##Name(section, option, defaultVal); \
-        configCache##Name[cacheKey] = value; \
-        return value; \
-    } \
-}
-
-GET_CONFIG(std::string, String, str)
-GET_CONFIG(int,         Int,    int)
-GET_CONFIG(float,       Float,  float)
-
-#define SET_CONFIG(type, Name)                                                  \
-void Utility::Config::set##Name(std::string section, std::string option, type value) \
-{                                                                               \
-    REFLECT_PYTHON(set_config);                                                 \
-    set_config(section, option, value);                                         \
-    std::string cacheKey = getCacheKey(section, option); \
-    configCache##Name[cacheKey] = value; \
-}
-
-SET_CONFIG(std::string, String)
-SET_CONFIG(int,         Int)
-SET_CONFIG(float,       Float)
-
-
 //==============================
 // System Info
 //==============================

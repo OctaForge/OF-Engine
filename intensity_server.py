@@ -37,37 +37,17 @@ try:
 except IndexError:
     print "Note: No home directory specified, so using default (which is tied to this operating-system level user)"
 if home_dir is not None:
-    if home_dir[-5:] == '.json':
-        # A home dir ending in json is HOME_DIR/JSON_NAME.json
-        # This lets us use the same home dir for the client and server, with a different json for each
-        config_filename = home_dir.split(os.path.sep)[-1]
-        home_dir = os.path.sep.join(home_dir.split(os.path.sep)[:-1])
     set_home_dir(home_dir)
-    if config_filename is not None:
-        config_filename = os.path.join( get_home_subdir(), config_filename )
-
-print "Initializing config"
-
-if config_filename is None:
-    config_filename = os.path.join( get_home_subdir(), 'settings.json' )
-
-# Allow the server to run in the client home dir, to share the assets. This is done
-# by using settings_server.json instead of settings.json (which the client uses).
-# This option is enabled if you do NOT provide a home dir, i.e., if you use the
-# default. In other words, the default is to share the home dir with the client
-# (but specifying that same home dir will not work, as both will use settings.json).
-if home_dir is None:
-    config_filename = os.path.join( get_home_subdir(), 'settings_server.json' )
-
-template_filename = os.path.join( os.getcwd(), 'data', 'server_settings_template.json' )
-
-print 'Config filename:', config_filename
-
-init_config(config_filename, template_filename)
 
 print "Initializing logging"
 
-CModule.init_logging()
+LOGLEVEL = "WARNING"
+PATTERN = "-log-level:"
+for arg in sys.argv[1:]:
+    if arg[:len(PATTERN)] == PATTERN:
+        LOGLEVEL = arg[len(PATTERN):]
+
+CModule.init_logging(LOGLEVEL)
 
 print "Initializing scripting engine"
 CModule.create_engine()
@@ -87,39 +67,22 @@ CModule.set_home_dir( get_home_subdir() )
 
 print "Preparing timing and running first slice"
 
-NETWORK_RATE = float(get_config("Network", "rate", 33))/1000.0
-MIN_DELAY    = 0.01 # If this is too big - 0.1 is too big - then we get jerky motion with many NPCs. Probably
-                    # because 0.1 is a long wait between updates (10Hz instead of 30Hz)
-                    # But if this is too small - 0.0 is too small - then the interactive console is not responsive
+NETWORK_RATE = 33.0/1000.0
 
 CModule.slice()  # Do a single time slice
 
-print "Network rate:", NETWORK_RATE, "MIN_DELAY:", MIN_DELAY
-
-PROFILE = False
-
-if PROFILE:
-    import hotshot, hotshot.stats
-    prof = hotshot.Profile("server_profile")
-
-# Updates to master
-
-MASTER_UPDATE_INTERVAL = float(get_config("Network", "master_update_rate", 300))
-
-last_master_update = 0
-
 # Main loop
+
+MASTER_UPDATE_INTERVAL = 300
+last_master_update = 0
 
 def main_loop():
     try:
         last_time = time.time()
         while not should_quit():
-
             # Sleep just long enough for the network rate to be ok, with a minimum so that the interactive console is responsive.
             while time.time() - last_time < NETWORK_RATE: # For some reason Python 'stutters' in timekeeping, so need a loop, not a single oprt n.
-                delay = max( NETWORK_RATE - (time.time() - last_time) , MIN_DELAY )
-    #            print "Sleeping:", delay
-                time.sleep(delay)
+                time.sleep(NETWORK_RATE - (time.time() - last_time))
             assert(time.time() - last_time >= NETWORK_RATE - 0.0001) # 0.0001 for potential rounding errors
 
             # TODO: In the future, might just run CModule.slice() in a separate thread in order to get responsiveness for interactive console
@@ -136,7 +99,8 @@ def main_loop():
 
             if time.time() - last_master_update >= MASTER_UPDATE_INTERVAL:
                 last_master_update = time.time()
-                set_map(get_config('Activity', 'force_map_asset_id', ''))
+                set_map(None)
+
     except KeyboardInterrupt:
         pass # Just exit gracefully
 

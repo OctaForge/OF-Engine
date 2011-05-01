@@ -46,7 +46,6 @@ const LE_reg CAPI[] = {
     LUAREG(tabify),
     LUAREG(execcfg),
     LUAREG(writecfg),
-    LUAREG(getcfg),
     LUAREG(readfile),
     LUAREG(addzip),
     LUAREG(removezip),

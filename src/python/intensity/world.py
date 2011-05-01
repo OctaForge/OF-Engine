@@ -55,13 +55,10 @@ def set_map(map_asset_id):
     # Determine map activity and asset and get asset info
 
     if Global.SERVER:
-        forced_location = get_config('Activity', 'force_location', '')
-        if forced_location != '':
-            map_asset_id = forced_location # Contains 'base/'
-    else: # CLIENT
-        parts = map_asset_id.split('/')
-        if parts[0] == 'base':
-            set_config('Activity', 'force_location', map_asset_id)
+        PATTERN = "-set-map:"
+        for arg in sys.argv:
+            if arg[:len(PATTERN)] == PATTERN:
+                map_asset_id = arg[len(PATTERN):]
 
     World.start_scenario()
 

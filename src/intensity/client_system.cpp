@@ -49,12 +49,12 @@ bool _mapCompletelyReceived = false;
 
 std::string ClientSystem::getUsername()
 {
-    return Utility::Config::getString(USER_INFO_SECTION, "username", "");
+    return "DUMMY_USERNAME";
 }
 
 std::string ClientSystem::getHashedPassword()
 {
-    return Utility::Config::getString(USER_INFO_SECTION, "password", "");
+    return "DUMMY_HASH";
 }
 
 std::string ClientSystem::getVisualPassword()
@@ -82,9 +82,6 @@ void ClientSystem::login(int clientNumber)
     playerNumber = clientNumber;
 
     MessageSystem::send_LoginRequest(currTransactionCode);
-//        Utility::Config::getString(USER_INFO_SECTION, "username", "*error1*"),
-//        Utility::Config::getString(USER_INFO_SECTION, "password", "*error2*")
-//    );
 }
 
 void ClientSystem::finishLogin(bool local)
@@ -549,56 +546,6 @@ void ClientSystem::prepareForNewScenario(std::string scenarioCode)
 void ClientSystem::handleConfigSettings()
 {
     assert(0);
-#if 0
-    // Shaders
-    extern int useshaders, shaderprecision; 
-    int n = Utility::Config::getInt(VIDEO_SECTION, "shaders", 2);
-    useshaders = n ? 1 : 0;
-    shaderprecision = min(max(n - 1, 0), 3);
-
-    // Fullscreen
-    extern int fullscreen;
-    fullscreen = Utility::Config::getInt(VIDEO_SECTION, "fullscreen", 0);
-
-    extern int scr_w, scr_h;
-    scr_w = Utility::Config::getInt(VIDEO_SECTION, "screen_width", 1024);
-    scr_h = Utility::Config::getInt(VIDEO_SECTION, "screen_height", 768);
-
-    // Shadows
-    std::string shadows = Utility::Config::getString(VIDEO_SECTION, "shadows", "medium");
-    extern int dynshadow, shadowmap, shadowmapsize, blurshadowmap;
-    if (shadows == "none")
-    {
-        dynshadow = 0;
-        shadowmap = 0;
-    } else if (shadows == "low")
-    {
-        dynshadow = 60;
-        shadowmap = 1;
-        shadowmapsize = 8;
-        blurshadowmap = 1;
-    } else if (shadows == "medium")
-    {
-        dynshadow = 60;
-        shadowmap = 1;
-        shadowmapsize = 9;
-        blurshadowmap = 1;
-    } else if (shadows == "high")
-    {
-        dynshadow = 60;
-        shadowmap = 1;
-        shadowmapsize = 10;
-        blurshadowmap = 2;
-    } else if (shadows == "ultra")
-    {
-        dynshadow = 60;
-        shadowmap = 1;
-        shadowmapsize = 11;
-        blurshadowmap = 2;
-    } else {
-        printf("Invalid value for Video::shadows; valid values are among: none, low, medium, high, ultra\r\n");
-    }
-#endif
 }
 
 bool ClientSystem::isAdmin()

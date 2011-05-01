@@ -46,10 +46,9 @@ bool shouldShow(Level level)
     return level >= currLevel;
 }
 
-void init()
+void init(const char *level)
 {
-    std::string levelName = Utility::Config::getString("Logging", "level", levelNames[WARNING]);
-    currLevel = levelNameToEnum(levelName);
+    currLevel = levelNameToEnum(level);
 
     assert(currLevel >= 0 && currLevel < NUM_LEVELS);
 

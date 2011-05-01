@@ -177,8 +177,7 @@ namespace lua
 
         Logging::log(Logging::DEBUG, "Setting up lua engine embedding\n");
 
-        m_runtests = Utility::Config::getInt("Logging", "scripting_tests", 1);
-
+        m_runtests = false;
         if (m_rantests) m_runtests = false;
 
         setup_namespace("logging", LAPI);

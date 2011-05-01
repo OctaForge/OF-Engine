@@ -293,42 +293,15 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
     if(diff <= 0) fpsEntity->physsteps = 0;
     else
     {
-        // Kripken: Use an configurable frame time. In particular this lets the server use a slower rate
         int entityFrameTime;
-
-        #ifdef CLIENT
-            if (fpsEntity == player)
-            {
-                entityFrameTime = Utility::Config::getInt("Physics", "player_frame_time", PHYSFRAMETIME);
-            } else {
-                // For other clients, we pick the frame time in an visibility-dependent way
-                entityFrameTime = Utility::Config::getInt("Physics", "frame_time", PHYSFRAMETIME);
-
-                if (Utility::Config::getInt("Physics", "adaptive", 0))
-                {
-                    // Visible size in pixels (2D coordinates)
-                    int pixelChange = max(1.0f, GETIV(scr_w)*GETIV(scr_h)*(estimatePlayerPotentialVisiblityChange(fpsEntity)/100.0f));
-
-                    entityFrameTime = clamp(int(entityFrameTime*20000.0f/pixelChange),
-                                            entityFrameTime, // min of the default setting - never go lower than that
-                                            MAXFRAMETIME);
-                }
-            }
-        #else // SERVER
-
-            // Simple adaptivity to velocity changes - experimental
-//            if (dynamic_cast<fpsent*>(fpsEntity)->serverControlled) Disable this and MAXFRAMETIME for now - buggy (fall through floor)
-            {
-                float movement = calculateMovement(fpsEntity);
-                if (movement >= 0.001 || !Utility::Config::getInt("Physics", "adaptive", 0))
-                    entityFrameTime = Utility::Config::getInt("Physics", "frame_time", PHYSFRAMETIME);
-                else
-                    entityFrameTime = Utility::Config::getInt("Physics", "frame_time", PHYSFRAMETIME) * 2; // Conservative speedup
-            }
-//            } else
-//                entityFrameTime = MAXFRAMETIME; // Low physics for non-controlled entities
-        #endif
-                
+#ifdef SERVER
+        if (calculateMovement(fpsEntity) >= 0.001)
+            entityFrameTime = PHYSFRAMETIME;
+        else
+            entityFrameTime = PHYSFRAMETIME * 2; // Conservative speedup
+#else
+        entityFrameTime = PHYSFRAMETIME;
+#endif
         fpsEntity->physframetime = entityFrameTime; // WAS: clamp((entityFrameTime*gamespeed)/100, 1, entityFrameTime);
 
         fpsEntity->physsteps = (diff + fpsEntity->physframetime - 1)/fpsEntity->physframetime;

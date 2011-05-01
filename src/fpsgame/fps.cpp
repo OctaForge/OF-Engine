@@ -319,9 +319,6 @@ namespace game
                                             npc->o.x, npc->o.y, npc->o.z);
 
             //?? Dummy singleton still needs to send the messages vector. XXX - do we need this even without NPCs? XXX - works without it
-
-//            c2sinfo(npc, Utility::Config::getInt("Network", "rate", 33)); // FIXME: Variable rate, different than player,
-//                                                                          // perhaps depending on distance etc. etc.
         }
     #endif
 #endif
