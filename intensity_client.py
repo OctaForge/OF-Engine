@@ -48,5 +48,3 @@ CModule.set_home_dir( get_home_subdir() )
 
 print "Initializing scripting engine"
 CModule.create_engine()
-
-load_components()

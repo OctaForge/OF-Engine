@@ -13,6 +13,12 @@
 
 #include "shared_module_members_boost.h"
 
+namespace server
+{
+    extern bool shutdown_if_empty;
+    extern bool shutdown_if_idle;
+    extern int  shutdown_idle_interval;
+}
 
 void ServerSystem::newMap(std::string name)
 {
@@ -193,6 +199,22 @@ int main(int argc, char **argv)
     dummyTexture.alphamask = new uchar[100]; // Whatever
 
     notexture = &dummyTexture;
+
+    /* Loop argc, argv */
+    register int i;
+    for (i = 0;  i < argc; i++)
+    {
+        if (!strcmp(argv[i], "-shutdown-if-empty"))
+            server::shutdown_if_empty = true;
+        else if (!strcmp(argv[i], "-shutdown-if-idle"))
+            server::shutdown_if_idle = true;
+        else if (!strcmp(argv[i], "-shutdown-idle-interval"))
+        {
+            char *endptr = NULL;
+            int interval = strtol(argv[i + 1], &endptr, 10);
+            if (!endptr && interval) server::shutdown_idle_interval = interval;
+        }
+    }
 
     initPython(argc, argv);
 

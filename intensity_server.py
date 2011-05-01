@@ -72,8 +72,6 @@ CModule.init_logging()
 print "Initializing scripting engine"
 CModule.create_engine()
 
-load_components()
-
 print "Testing for local mode"
 
 print "<<< Server is running in local mode - only a single client from this machine can connect >>>"
@@ -110,23 +108,6 @@ MASTER_UPDATE_INTERVAL = float(get_config("Network", "master_update_rate", 300))
 
 last_master_update = 0
 
-# Exit conditions
-shutdown_if_idle  = False
-shutdown_if_empty = False
-
-IDLE_SHUTDOWN_INTERVAL = 60
-SI_MARKER = "-idle-shutdown-interval:"
-
-for arg in sys.argv:
-    if arg == "-shutdown-if-idle":
-        shutdown_if_idle = True
-    elif arg == "-shutdown-if-empty":
-        Clients.shutdown_if_empty = True
-    elif arg[:len(SI_MARKER)] == SI_MARKER:
-        IDLE_SHUTDOWN_INTERVAL = int(arg[len(SI_MARKER):])
-
-last_idle_update = time.time()
-
 # Main loop
 
 def main_loop():
@@ -156,12 +137,6 @@ def main_loop():
             if time.time() - last_master_update >= MASTER_UPDATE_INTERVAL:
                 last_master_update = time.time()
                 set_map(get_config('Activity', 'force_map_asset_id', ''))
-
-            if shutdown_if_idle and time.time() - last_idle_update >= IDLE_SHUTDOWN_INTERVAL:
-                if Clients.count() == 0:
-                    quit()
-
-                last_idle_update = time.time()
     except KeyboardInterrupt:
         pass # Just exit gracefully
 
@@ -169,12 +144,3 @@ def main_loop():
 main_loop()
 
 print "Stopping main server"
-
-shutdown.send(None)
-
-if PROFILE:
-    stats = hotshot.stats.load("server_profile")
-    stats.strip_dirs()
-    stats.sort_stats('time', 'calls')
-    stats.print_stats(20)
-

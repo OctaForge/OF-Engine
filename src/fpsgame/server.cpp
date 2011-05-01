@@ -175,7 +175,11 @@ namespace server
 
     vector<clientinfo *> connects, clients;
     vector<worldstate *> worldstates;
-    bool reliablemessages = false;
+    bool reliablemessages  = false;
+    bool shutdown_if_empty = false;
+    bool shutdown_if_idle  = false;
+    int  shutdown_idle_interval = 60;
+    int  shutdown_idle_last_update = 0;
 
     struct servmode
     {
@@ -734,12 +738,6 @@ namespace server
                 if (ci->uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) continue;
                 if (ci->local) continue; // No need for NPCs created during the map script - they already exist
 
-//                REFLECT_PYTHON( Clients );
-//                EVAL_PYTHON(bool, loggedIn, Utility::toString(i) + " in Clients._map");
-//                if (!loggedIn) continue; // Only create entities for people actually logged in, not those
-//                                         // pending login. Also, they will create their own entities when
-//                                         // the login finishes, so it would be a bug to do it here as well.
-
                 Logging::log(Logging::DEBUG, "luaEntities creation: Adding %d\r\n", i);
 
                 createluaEntity(i);
@@ -824,16 +822,6 @@ namespace server
     {
         Logging::log(Logging::DEBUG, "server::clientconnect: %d\r\n", n);
 
-/*
-// XXX This is a useful thing to test crashes on logins at odd times. See 'already have fpsEntity, and hence lua entity'
-// XXX in createluaEntity (which gets called twice, if we run this code right here)
-static int i = 0;
-if (i == 0) {
-        REFLECT_PYTHON( restart_map );
-        restart_map();
-    i++;
-}
-*/
         clientinfo *ci = (clientinfo *)getinfo(n);
         ci->clientnum = n;
         ci->needclipboard = totalmillis ? totalmillis : 1;
@@ -856,8 +844,15 @@ if (i == 0) {
         if(smode) smode->leavegame(ci, true);
         clients.removeobj(ci);
 
-        REFLECT_PYTHON( on_logout );
-        on_logout(n);
+        /*
+         * Check for 1 because there is always at least
+         * the dummy singleton client on the server!
+         */
+        if (shutdown_if_empty && clients.length() <= 1)
+        {
+            REFLECT_PYTHON(quit)
+            quit();
+        }
     }
 
     const char *servername() { return "sauerbratenserver"; }

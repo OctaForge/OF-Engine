@@ -10,6 +10,12 @@
 #include "fpsclient_interface.h"
 #include "system_manager.h"
 
+namespace server
+{
+    extern bool shutdown_if_idle;
+    extern int  shutdown_idle_interval;
+    extern int  shutdown_idle_last_update;
+}
 
 static FILE *logfile = NULL;
 
@@ -942,21 +948,8 @@ bool serveroption(char *opt)
 
 vector<const char *> gameargs;
 
-#if 0 // INTENSITY: We use a version of this, below, instead
-#ifdef STANDALONE
-int main(int argc, char* argv[])
-{   
-    if(enet_initialize()<0) fatal("Unable to initialise network module");
-    atexit(enet_deinitialize);
-    enet_time_set(0);
-    for(int i = 1; i<argc; i++) if(argv[i][0]!='-' || !serveroption(argv[i])) gameargs.add(argv[i]);
-    game::parseoptions(gameargs);
-    initserver(true, true);
-    return 0;
-}
-#endif
-#else
 #ifdef SERVER
+
 void server_init()//int argc, char* argv[])
 {
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
@@ -983,12 +976,10 @@ void server_init()//int argc, char* argv[])
 
     fpsEntity->uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
     FPSServerInterface::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
-}
-#endif // SERVER
-#endif // 0
 
-#ifdef SERVER
-// INTENSITY: Added this, the main slicing routine
+    server::shutdown_idle_last_update = lastmillis;
+}
+
 void server_runslice()
 {
     serverslice(true, 5);
@@ -1002,6 +993,18 @@ void server_runslice()
     total_time = now;
 
     if(lastmillis) game::updateworld();
+
+    if (server::shutdown_if_idle
+    && ((lastmillis - server::shutdown_idle_last_update)
+        >= (server::shutdown_idle_interval * 1000))
+    ) {
+        if (clients.length() <= 1)
+        {
+            REFLECT_PYTHON(quit)
+            quit();
+        }
+        server::shutdown_idle_last_update = lastmillis;
+    }
 }
 #endif
 

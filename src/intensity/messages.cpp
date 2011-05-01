@@ -26,6 +26,9 @@
 using namespace boost;
 using namespace lua;
 
+/* Abuse generation from template for now */
+void force_network_flush();
+
 namespace MessageSystem
 {
 
@@ -140,8 +143,19 @@ namespace MessageSystem
 
                      // identity of this user
         #ifdef SERVER
-            REFLECT_PYTHON( do_login );
-            do_login(code, sender, getclientip(sender));
+            if (!ServerSystem::isRunningMap())
+            {
+                send_PersonalServerMessage(
+                    sender, -1,
+                    "Login failure",
+                    "Login failure: instance is not running a map"
+                );
+                force_network_flush();
+                disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
+            }
+            FPSServerInterface::getUsername(sender) = "local_editor";
+            server::setAdmin(sender, true);
+            send_LoginResponse(sender, true, true);
         #else // CLIENT, during a localconnect
             ClientSystem::uniqueId = 9999; // Dummy safe uniqueId value for localconnects. Just set it here, brute force
             // Notify client of results of login
@@ -2219,8 +2233,7 @@ namespace MessageSystem
 
 
         if (!ServerSystem::isRunningMap()) return;
-        REFLECT_PYTHON( request_private_edit );
-        request_private_edit(sender);
+        send_NotifyPrivateEditMode(sender);
     }
 #endif
 

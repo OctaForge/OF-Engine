@@ -63,6 +63,9 @@ def generate_messages():
 using namespace boost;
 using namespace lua;
 
+/* Abuse generation from template for now */
+void force_network_flush();
+
 namespace MessageSystem
 {
 """)
