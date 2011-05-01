@@ -1116,18 +1116,24 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
 
     initing = INIT_RESET;
 
-    // initialize Lua early so everything is available at the beginning.
-    initlog("lua");
-    lua::engine.create();
-    if (!lua::engine.hashandle()) fatal("cannot initialize lua script engine");
-
+    char *loglevel = (char*)"WARNING";
     for(int i = 1; i<argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'q': logoutf("Using home directory: %s\n", &argv[i][2]); sethomedir(&argv[i][2]); break;
-            case 'k': logoutf("Adding package directory: %s\n", &argv[i][2]); addpackagedir(&argv[i][2]); break;
-            case 'g': logoutf("Setting log file", &argv[i][2]); setlogfile(&argv[i][2]); break;
+            case 'q': 
+            {
+                const char *dir = sethomedir(&argv[i][2]);
+                if(dir) logoutf("Using home directory: %s", dir);
+                break;
+            }
+            case 'k': 
+            {
+                const char *dir = addpackagedir(&argv[i][2]);
+                if(dir) logoutf("Adding package directory: %s", dir);
+                break;
+            }
+            case 'g': logoutf("Setting logging level", &argv[i][2]); loglevel = &argv[i][2]; break;
             case 'r': execinitcfg(argv[i][2] ? &argv[i][2] : "init.json", false); restoredinits = true; break;
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': SETV(scr_w, clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW)); if(!findarg(argc, argv, "-h")) SETV(scr_h, -1); break;
@@ -1159,6 +1165,13 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
         else gameargs.add(argv[i]);
     }
     initing = NOT_INITING;
+
+    /* Initialize logging at first, right after that lua. */
+    Logging::init(loglevel);
+
+    initlog("lua");
+    lua::engine.create();
+    if (!lua::engine.hashandle()) fatal("cannot initialize lua script engine");
 
     if(dedicated <= 1)
     {

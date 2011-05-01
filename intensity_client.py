@@ -19,28 +19,3 @@ print "Intensity Engine Client parameters:", sys.argv
 execfile( os.path.join(PYTHON_SCRIPT_DIR, "init.py") )
 
 import __main__
-
-
-LOGLEVEL = "WARNING"
-PATTERN = "-log-level:"
-home_dir = None # Will use an OS-specific one
-try:
-    for arg in sys.argv[1:]:
-        if arg[:len(PATTERN)] == PATTERN:
-            LOGLEVEL = arg[len(PATTERN):]
-        elif arg[0] != '-':
-            home_dir = arg
-            break
-except IndexError:
-    print "Note: No home directory specified, so using default (which is tied to this operating-system level user)"
-if home_dir is not None:
-    set_home_dir(home_dir)
-
-print "Initializing logging"
-
-CModule.init_logging(LOGLEVEL)
-
-CModule.set_home_dir( get_home_subdir() )
-
-print "Initializing scripting engine"
-CModule.create_engine()

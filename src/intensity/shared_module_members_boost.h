@@ -8,3 +8,4 @@ extern bool load_world_oneparam(const char *mname);
 
 extern bool logging__should_show(int level);
 
+extern const char *get_home_dir();

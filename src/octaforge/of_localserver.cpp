@@ -117,7 +117,7 @@ void of_localserver_run(const char *map)
     /* Platform specific, so ifdef it. And open the process stream. */
     snprintf(
         localserver_buf, sizeof(localserver_buf),
-        "%s %s -log-level:%s -set-map:base/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >%s/%s 2>&1",
+        "%s -q%s -g%s -set-map:base/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >%s/%s 2>&1",
 #ifdef WIN32
         "intensity_server.bat",
 #else

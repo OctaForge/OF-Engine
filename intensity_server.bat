@@ -42,7 +42,7 @@ SET PYTHONHOME=%PYVER%\lib;%PYVER%\DLLs;%PYTHONHOME%
 SET OLD_PYTHONPATH=%PYTHONPATH%
 SET PYTHONHOME=%PYVER%\lib;%PYVER%\DLLs;%PYTHONHOME%
 
-bin\OF_Server_Windows-%CCARCH%.exe %*
+bin\OF_Server_Windows-%CCARCH%.exe "-q$HOME\OctaForge" -gWARNING %*
 
 echo "To save the output, add     > out_server 2>&1"
 

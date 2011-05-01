@@ -40,7 +40,7 @@ SET PYTHONHOME=%PYVER%\lib;%PYVER%\DLLs;%PYTHONHOME%
 SET OLD_PYTHONPATH=%PYTHONPATH%
 SET PYTHONHOME=%PYVER%\lib;%PYVER%\DLLs;%PYTHONHOME%
 
-bin\OF_Client_Windows-%CCARCH%.exe %* -r > out_client 2>&1
+bin\OF_Client_Windows-%CCARCH%.exe "-q$HOME\OctaForge" -gWARNING -r %* > out_client 2>&1
 
 echo "(If a problem occurred, look in out_client)"
 

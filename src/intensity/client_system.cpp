@@ -187,7 +187,7 @@ void ClientSystem::gotoLoginScreen()
 
 // Boost access for Python
 
-extern void sethomedir(const char *dir); // shared/tools.cpp
+extern const char *sethomedir(const char *dir); // shared/tools.cpp
 
 int saved_argc = 0;
 char **saved_argv = NULL;

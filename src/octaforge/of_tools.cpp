@@ -130,3 +130,35 @@ bool of_tools_file_copy(const char *src, const char *dest)
     fclose(to);
     return true;
 }
+
+bool of_tools_createpath(const char *path)
+{
+    char  buf[4096];
+    char  *p = strdup(path);
+    char  *t = strtok(p, "/\\");   
+    while (t)
+    {
+        if (t[0] == '.')
+            t = strtok(NULL, "/\\");
+
+        if (strlen(buf) > 0)
+        {
+            snprintf (buf, sizeof(buf), "%s%c%s", buf, PATHDIV, t);
+            if (!createdir(buf))
+            {
+                OF_FREE(p);
+                return false;
+            }
+        }
+        else if (!createdir(t))
+        {
+            OF_FREE(p);
+            return false;
+        }
+        else snprintf(buf, sizeof(buf), "%s", t);
+
+        t  = strtok(NULL, "/\\");
+    }
+    OF_FREE(p);
+    return true;
+}

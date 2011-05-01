@@ -43,66 +43,6 @@ class Global:
 ## Directory where our python scripts and modules reside
 PYTHON_SCRIPT_DIR = os.path.join("src", "python", "intensity")
 
-
-HOME_SUBDIR = None
-
-def set_home_dir(home_dir):
-    print "Set home dir:", home_dir
-    global HOME_SUBDIR
-    HOME_SUBDIR = home_dir
-
-## The subdirectory under the user's home directory which we use.
-def get_home_subdir():
-    global HOME_SUBDIR
-
-    if Global.CLIENT:
-        suffix = "client"
-    else:
-        # If no home dir is given, the default for the server is to share it with the client
-        suffix = "server" if HOME_SUBDIR is not None else 'client'
-
-    # Use default value if none given to us
-    if HOME_SUBDIR is None:
-        if UNIX:
-            HOME_SUBDIR = os.path.join( os.path.expanduser('~'), '.octaforge_'+suffix )
-        elif WINDOWS:
-            HOME_SUBDIR = os.path.join( os.path.expanduser('~'), 'octaforge_'+suffix )
-        else:
-            print "Error: Not sure where to set the home directory for this platform,", sys.platform
-            raise Exception
-        print 'Home dir:', HOME_SUBDIR
-
-    # Ensure it exists.
-    if not os.path.exists(HOME_SUBDIR):
-        os.makedirs(HOME_SUBDIR)
-
-    return HOME_SUBDIR
-
-
-## The subdirectory name (single name) under home
-def get_asset_subdir():
-    return 'data'
-
-## The directory to which the client saves assets
-def get_asset_dir():
-    ASSET_DIR = os.path.join( get_home_subdir(), get_asset_subdir() )
-
-    # Ensure it exists.
-    if not os.path.exists(ASSET_DIR):
-        os.makedirs(ASSET_DIR)
-
-    return ASSET_DIR
-
-## The directory to which the client saves assets
-def get_map_dir():
-    MAP_DIR = os.path.join( get_asset_dir(), 'base' )
-
-    # Ensure it exists. Done only if we are called (the server doesn't call us)
-    if not os.path.exists(MAP_DIR):
-        os.makedirs(MAP_DIR)
-
-    return MAP_DIR
-
 _should_quit = False
 
 ## Notifies us to quit. Sauer checks should_quit, and quits if set to true

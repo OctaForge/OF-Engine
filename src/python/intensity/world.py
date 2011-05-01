@@ -58,7 +58,8 @@ def get_mapfile_path(relative_path):
         return install_path
     return os.path.join(
         os.path.join(
-            get_asset_dir(),
+            CModule.get_home_dir(),
+            "data",
             World.asset_location.replace('/', '\\')
             if WINDOWS else World.asset_location
         ),
@@ -78,7 +79,7 @@ def read_file_safely(name):
     if len(name) >= 2 and name[0:2] == './':
         path = get_mapfile_path(name[2:])
     else:
-        path = os.path.join( get_asset_dir(), name )
+        path = os.path.join(CModule.get_home_dir(), "data", name)
 
     try:
         f = open(path, 'r')
@@ -106,7 +107,7 @@ def run_map_script():
     CModule.run_script(script)
 
 def export_entities(filename):
-    full_path = os.path.join(get_asset_dir(), get_curr_map_prefix(), filename)
+    full_path = os.path.join(CModule.get_home_dir(), "data", get_curr_map_prefix(), filename)
     data = CModule.run_script_string("return of.logent.store.save_entities()")
 
     # Save backup, if needed

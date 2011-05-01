@@ -3,7 +3,9 @@
 
 ///////////////////////// file system ///////////////////////
 
-#ifndef WIN32
+#ifdef WIN32
+#include <shlobj.h>
+#else
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -137,18 +139,41 @@ size_t fixpackagedir(char *dir)
     return len;
 }
 
-void sethomedir(const char *dir)
+bool subhomedir(char *dst, int len, const char *src)
 {
-    string pdir;
-    copystring(pdir, dir);
-    if(fixpackagedir(pdir) > 0) copystring(homedir, pdir);
+    const char *sub = strstr(src, "$HOME");
+    if(sub && sub-src < len)
+    {
+#ifdef WIN32
+        char home[MAX_PATH+1];
+        home[0] = '\0';
+        if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, home) != S_OK || !home[0]) return false;
+#else
+        const char *home = getenv("HOME");
+        if(!home || !home[0]) return false;
+#endif
+        dst[sub-src] = '\0';
+        concatstring(dst, home);
+        concatstring(dst, sub+strlen("$HOME"));
+    }
+    return true;
 }
 
-void addpackagedir(const char *dir)
+const char *sethomedir(const char *dir)
 {
     string pdir;
     copystring(pdir, dir);
-    if(fixpackagedir(pdir) > 0) packagedirs.add(newstring(pdir));
+    if(!subhomedir(pdir, sizeof(pdir), dir) || !fixpackagedir(pdir)) return NULL;
+    copystring(homedir, pdir);
+    return homedir;
+}
+
+const char *addpackagedir(const char *dir)
+{
+    string pdir;
+    copystring(pdir, dir);
+    if(!subhomedir(pdir, sizeof(pdir), dir) || !fixpackagedir(pdir)) return NULL;
+    return packagedirs.add(newstring(pdir));
 }
 
 const char *findfile(const char *filename, const char *mode)
@@ -189,7 +214,7 @@ bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files)
     copystring(dirname, dir);
     path(dirname);
     #ifdef WIN32
-	defformatstring(pathname)(rel ? ".\\%s\\*.%s" : "%s\\*.%s", dirname, ext ? ext : "*");
+    defformatstring(pathname)(rel ? ".\\%s\\*.%s" : "%s\\*.%s", dirname, ext ? ext : "*");
     WIN32_FIND_DATA FindFileData;
     HANDLE Find = FindFirstFile(pathname, &FindFileData);
     if(Find != INVALID_HANDLE_VALUE)
@@ -683,4 +708,3 @@ char *loadfile(const char *fn, int *size)
     if(size!=NULL) *size = len;
     return buf;
 }
-

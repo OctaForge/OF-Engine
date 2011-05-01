@@ -102,7 +102,7 @@ void ServerSystem::generatePhysicsVisibilities()
 
 // Boost access for Python
 
-extern void sethomedir(const char *dir); // shared/tools.cpp
+extern const char *sethomedir(const char *dir); // shared/tools.cpp
 
 extern void show_server_stats();   // from server.cpp
 extern void server_init();         // from server.cpp
@@ -201,21 +201,37 @@ int main(int argc, char **argv)
 
     notexture = &dummyTexture;
 
-    /* Loop argc, argv */
-    register int i;
-    for (i = 0;  i < argc; i++)
+    setlogfile(NULL);
+
+    char *loglevel = (char*)"WARNING";
+    for(int i = 1; i < argc; i++)
     {
-        if (!strcmp(argv[i], "-shutdown-if-empty"))
-            server::shutdown_if_empty = true;
-        else if (!strcmp(argv[i], "-shutdown-if-idle"))
-            server::shutdown_if_idle = true;
-        else if (!strcmp(argv[i], "-shutdown-idle-interval"))
+        if(argv[i][0]=='-') switch(argv[i][1])
         {
-            char *endptr = NULL;
-            int interval = strtol(argv[i + 1], &endptr, 10);
-            if (!endptr && interval) server::shutdown_idle_interval = interval;
+            case 'q': 
+            {
+                const char *dir = sethomedir(&argv[i][2]);
+                if(dir) logoutf("Using home directory: %s", dir);
+                break;
+            }
+            case 'g': logoutf("Setting logging level", &argv[i][2]); loglevel = &argv[i][2]; break;
+            default:
+            {
+                if (!strcmp(argv[i], "-shutdown-if-empty"))
+                    server::shutdown_if_empty = true;
+                else if (!strcmp(argv[i], "-shutdown-if-idle"))
+                    server::shutdown_if_idle = true;
+                else if (!strcmp(argv[i], "-shutdown-idle-interval"))
+                {
+                    char *endptr = NULL;
+                    int interval = strtol(argv[i + 1], &endptr, 10);
+                    if (!endptr && interval) server::shutdown_idle_interval = interval;
+                }
+            }
         }
+        else gameargs.add(argv[i]);
     }
+    Logging::init(loglevel);
 
     initPython(argc, argv);
 

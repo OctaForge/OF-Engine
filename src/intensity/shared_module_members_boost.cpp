@@ -16,3 +16,8 @@ bool load_world_oneparam(const char *mname)
     return load_world(mname, NULL);
 }
 
+const char *get_home_dir()
+{
+    extern string homedir;
+    return homedir;
+}

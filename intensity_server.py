@@ -13,12 +13,6 @@ Global.init_as_server()
 import intensity.c_module
 CModule = intensity.c_module.CModule.holder
 
-###
-### Start
-###
-
-# Begin loading
-
 print "Intensity Engine Server parameters:", sys.argv
 
 execfile( os.path.join(PYTHON_SCRIPT_DIR, "init.py") )
@@ -27,40 +21,14 @@ print "Initializing C Server's Python connection system"
 
 import __main__
 
-print "Setting home dir"
-
-home_dir = None
-config_filename = None
-try:
-    home_dir = sys.argv[1] if sys.argv[1][0] != '-' else None
-except IndexError:
-    print "Note: No home directory specified, so using default (which is tied to this operating-system level user)"
-if home_dir is not None:
-    set_home_dir(home_dir)
-
-print "Initializing logging"
-
-LOGLEVEL = "WARNING"
-PATTERN = "-log-level:"
-for arg in sys.argv[1:]:
-    if arg[:len(PATTERN)] == PATTERN:
-        LOGLEVEL = arg[len(PATTERN):]
-
-CModule.init_logging(LOGLEVEL)
-
 print "Initializing scripting engine"
 CModule.create_engine()
 
-print "Testing for local mode"
-
 print "<<< Server is running in local mode - only a single client from this machine can connect >>>"
-
-print "Generating client/server specific code"
 
 print "Initializing CModule"
 
 CModule.init()
-CModule.set_home_dir( get_home_subdir() )
 
 map_asset = None
 PATTERN = "-set-map:"
@@ -104,7 +72,6 @@ def main_loop():
 
             if time.time() - last_master_update >= MASTER_UPDATE_INTERVAL:
                 last_master_update = time.time()
-                print map_asset
                 CModule.set_map(map_asset)
 
     except KeyboardInterrupt:

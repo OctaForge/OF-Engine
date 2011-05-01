@@ -37,6 +37,8 @@ exposeToPython("should_show", &logging__should_show);
 
 exposeToPython("render_progress", render_progress);
 
+exposeToPython("get_home_dir", get_home_dir);
+
 // Scripting
 
 exposeToPython("create_engine", wrapLuaEngineCreate);
