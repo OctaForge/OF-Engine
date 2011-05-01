@@ -10,6 +10,7 @@
 #include "server_system.h"
 #include "world_system.h"
 #include "editing_system.h"
+#include "of_world.h"
 
 #include "shared_module_members_boost.h"
 

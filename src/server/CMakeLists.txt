@@ -70,6 +70,7 @@ set(SERVER_SOURCES
     ../shared/zip
     ../intensity/shared_module_members_boost
     ../intensity/NPC
+    ../octaforge/of_world
     ${EXTRA_SOURCES}
 )
 

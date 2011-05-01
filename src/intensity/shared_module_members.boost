@@ -49,6 +49,7 @@ exposeToPython("run_script_double", wrapLuaEngineRunScriptDouble);
 // World
 
 exposeToPython("load_world", load_world_oneparam);
+exposeToPython("set_map", of_world_set_map);
 
 
 // Include messages so Python can use them

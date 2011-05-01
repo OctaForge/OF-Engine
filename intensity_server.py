@@ -5,8 +5,7 @@
 
 from __future__ import with_statement
 
-import os
-import sys
+import os, sys, time
 
 from intensity.base import *
 Global.init_as_server()
@@ -63,6 +62,12 @@ print "Initializing CModule"
 CModule.init()
 CModule.set_home_dir( get_home_subdir() )
 
+map_asset = None
+PATTERN = "-set-map:"
+for arg in sys.argv:
+    if arg[:len(PATTERN)] == PATTERN:
+        map_asset = arg[len(PATTERN):]
+
 # Start server slicing and main loop
 
 print "Preparing timing and running first slice"
@@ -99,7 +104,8 @@ def main_loop():
 
             if time.time() - last_master_update >= MASTER_UPDATE_INTERVAL:
                 last_master_update = time.time()
-                set_map(None)
+                print map_asset
+                CModule.set_map(map_asset)
 
     except KeyboardInterrupt:
         pass # Just exit gracefully

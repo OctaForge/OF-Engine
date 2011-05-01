@@ -49,52 +49,6 @@ class WorldClass:
 ## Singleton with current world info
 World = WorldClass()
 
-## Sets a map to be currently active, and starts a new scenario
-## @param _map The asset id for the map (see curr_map_asset_id)
-def set_map(map_asset_id):
-    # Determine map activity and asset and get asset info
-
-    if Global.SERVER:
-        PATTERN = "-set-map:"
-        for arg in sys.argv:
-            if arg[:len(PATTERN)] == PATTERN:
-                map_asset_id = arg[len(PATTERN):]
-
-    World.start_scenario()
-
-    # Server may take a while to load and set up the map, so tell clients
-    if Global.SERVER:
-        MessageSystem.send(ALL_CLIENTS, CModule.PrepareForNewScenario, World.scenario_code)
-        CModule.force_network_flush() # Flush message immediately to clients
-
-    # Set globals
-
-    set_curr_map_asset_id(map_asset_id)
-    World.asset_location = map_asset_id
-
-    curr_map_prefix = map_asset_id[:-7] + os.sep # asset_info.location
-    set_curr_map_prefix(curr_map_prefix)
-
-    # Load the geometry and map settings in the .ogz
-    if not CModule.load_world(curr_map_prefix + "map"):
-        raise Exception("set_map failure")
-
-    if Global.SERVER:
-        # Create script entities for connected clients
-        CModule.create_lua_entities()
-
-        # Send map to all connected clients, if any
-        send_curr_map(ALL_CLIENTS)
-
-    if Global.CLIENT:
-        MessageSystem.send(CModule.RequestPrivateEditMode)
-
-    return True # TODO: Do something with this value
-
-
-def restart_map():
-    set_map(get_curr_map_asset_id())
-
 ## Returns the path to a file in the map script directory, i.e., a file is given in
 ## relative position to the current map, and we return the full path
 def get_mapfile_path(relative_path):
@@ -173,7 +127,3 @@ def export_entities(filename):
 # Prevent loops
 
 from intensity.message_system import *
-
-if Global.SERVER:
-    from intensity.server.persistence import *
-

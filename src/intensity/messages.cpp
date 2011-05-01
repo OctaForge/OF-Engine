@@ -22,6 +22,7 @@
 #include "message_system.h"
 #include "editing_system.h"
 #include "world_system.h"
+#include "of_world.h"
 
 using namespace boost;
 using namespace lua;
@@ -382,8 +383,7 @@ namespace MessageSystem
 
 
         if (!ServerSystem::isRunningMap()) return;
-        REFLECT_PYTHON( send_curr_map );
-        send_curr_map(sender);
+        of_world_send_curr_map(sender);
     }
 #endif
 
@@ -449,8 +449,7 @@ namespace MessageSystem
         std::string scenarioCode = tmp_scenarioCode;
 
         ClientSystem::currScenarioCode = scenarioCode;
-        REFLECT_PYTHON( set_map );
-        set_map(mapAssetId);
+        of_world_set_map(mapAssetId.c_str());
     }
 #endif
 
@@ -478,8 +477,7 @@ namespace MessageSystem
             send_PersonalServerMessage(sender, -1, "Server", "You are not an administrator, and cannot restart the map");
             return;
         }
-        REFLECT_PYTHON( restart_map );
-        restart_map();
+        of_world_restart_map();
     }
 #endif
 
@@ -1942,8 +1940,7 @@ namespace MessageSystem
 
 
         if (!ServerSystem::isRunningMap()) return;
-        REFLECT_PYTHON( send_curr_map );
-        send_curr_map(sender);
+        of_world_send_curr_map(sender);
     }
 #endif
 

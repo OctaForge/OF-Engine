@@ -96,6 +96,7 @@ set(CLIENT_SOURCES
     ../intensity/shared_module_members_boost
     ../fpsgame/scoreboard
     ../octaforge/of_localserver
+    ../octaforge/of_world
     ${EXTRA_SOURCES}
 )
 
