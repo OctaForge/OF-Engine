@@ -14,12 +14,16 @@
 
 #include "shared_module_members_boost.h"
 
+#define SERVER_UPDATE_INTERVAL 300
+
 namespace server
 {
     extern bool shutdown_if_empty;
     extern bool shutdown_if_idle;
     extern int  shutdown_idle_interval;
 }
+
+bool should_quit = false;
 
 void ServerSystem::newMap(std::string name)
 {
@@ -203,7 +207,8 @@ int main(int argc, char **argv)
 
     setlogfile(NULL);
 
-    char *loglevel = (char*)"WARNING";
+    char *loglevel  = (char*)"WARNING";
+    char *map_asset = NULL;
     for(int i = 1; i < argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
@@ -215,6 +220,7 @@ int main(int argc, char **argv)
                 break;
             }
             case 'g': logoutf("Setting logging level", &argv[i][2]); loglevel = &argv[i][2]; break;
+            case 'm': logoutf("Setting map", &argv[i][2]); map_asset = &argv[i][2]; break;
             default:
             {
                 if (!strcmp(argv[i], "-shutdown-if-empty"))
@@ -233,6 +239,11 @@ int main(int argc, char **argv)
     }
     Logging::init(loglevel);
 
+    if (!map_asset)
+    {
+        Logging::log(Logging::ERROR, "No map asset to run. Shutting down.");
+        return 1;
+    }
     initPython(argc, argv);
 
     // Expose server-related functions to Python
@@ -253,7 +264,31 @@ int main(int argc, char **argv)
     // Start the main Python script that runs it all
     EXEC_PYTHON_FILE("../../intensity_server.py");
 
-    var::flush(); // CubeCreate: flush all variables after successful run
+    Logging::log(Logging::DEBUG, "Running first slice.\n");
+    server_runslice();
+
+    int last_server_update = 0;
+    int servermillis = time(0) * 1000;
+    while (!should_quit)
+    {
+        while ((time(0) * 1000) - servermillis < 33)
+            continue;
+
+        servermillis = time(0) * 1000;
+
+        if (!should_quit)
+            server_runslice();
+
+        if (time(0) - last_server_update >= SERVER_UPDATE_INTERVAL)
+        {
+            Logging::log(Logging::DEBUG, "Setting map ..\n");
+            last_server_update = time(0);
+            of_world_set_map(map_asset);
+        }
+    }
+
+    Logging::log(Logging::WARNING, "Stopping main server.");
+    var::flush();
 
     return 0;
 }

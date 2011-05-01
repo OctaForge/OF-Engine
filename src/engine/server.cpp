@@ -14,7 +14,6 @@ namespace server
 {
     extern bool shutdown_if_idle;
     extern int  shutdown_idle_interval;
-    extern int  shutdown_idle_last_update;
 }
 
 static FILE *logfile = NULL;
@@ -975,15 +974,13 @@ void server_init()//int argc, char* argv[])
 
     fpsEntity->uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
     FPSServerInterface::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
-
-    server::shutdown_idle_last_update = lastmillis;
 }
 
 void server_runslice()
 {
     serverslice(true, 5);
 
-    time_t now = time(NULL);
+    time_t now = time(0);
 
     static time_t    total_time = 0;
     if (!total_time) total_time = now;
@@ -993,16 +990,18 @@ void server_runslice()
 
     if(lastmillis) game::updateworld();
 
-    if (server::shutdown_if_idle
-    && ((lastmillis - server::shutdown_idle_last_update)
-        >= (server::shutdown_idle_interval * 1000))
-    ) {
+    static time_t shutdown_idle_last_update = 0;
+    if (!shutdown_idle_last_update)
+         shutdown_idle_last_update = time(0);
+
+    if (server::shutdown_if_idle && (time(0) - shutdown_idle_last_update) >= (server::shutdown_idle_interval))
+    {
         if (clients.length() <= 1)
         {
-            REFLECT_PYTHON(quit)
-            quit();
+            extern bool should_quit;
+            should_quit = true;
         }
-        server::shutdown_idle_last_update = lastmillis;
+        shutdown_idle_last_update = time(0);
     }
 }
 #endif

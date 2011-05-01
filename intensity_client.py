@@ -8,14 +8,11 @@
 import os
 import sys
 
-from intensity.base import *
-Global.init_as_client()
-
 import intensity.c_module
 CModule = intensity.c_module.CModule.holder
 
 print "Intensity Engine Client parameters:", sys.argv
 
-execfile( os.path.join(PYTHON_SCRIPT_DIR, "init.py") )
+from intensity.world import *
 
 import __main__

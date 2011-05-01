@@ -25,6 +25,8 @@
     #include "client_system.h"
 #endif
 
+extern bool should_quit;
+
 using namespace lua;
 
 namespace server
@@ -179,7 +181,6 @@ namespace server
     bool shutdown_if_empty = false;
     bool shutdown_if_idle  = false;
     int  shutdown_idle_interval = 60;
-    int  shutdown_idle_last_update = 0;
 
     struct servmode
     {
@@ -844,15 +845,14 @@ namespace server
         if(smode) smode->leavegame(ci, true);
         clients.removeobj(ci);
 
+#ifdef SERVER
         /*
          * Check for 1 because there is always at least
          * the dummy singleton client on the server!
          */
         if (shutdown_if_empty && clients.length() <= 1)
-        {
-            REFLECT_PYTHON(quit)
-            quit();
-        }
+            should_quit = true;
+#endif
     }
 
     const char *servername() { return "sauerbratenserver"; }

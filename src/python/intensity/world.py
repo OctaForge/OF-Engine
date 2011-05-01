@@ -9,8 +9,6 @@ Manages loading maps etc.
 import os, tarfile, re, httplib
 import uuid
 
-from intensity.base import *
-
 import intensity.c_module
 CModule = intensity.c_module.CModule.holder
 
@@ -61,7 +59,7 @@ def get_mapfile_path(relative_path):
             CModule.get_home_dir(),
             "data",
             World.asset_location.replace('/', '\\')
-            if WINDOWS else World.asset_location
+            if sys.platform.find("win32") != -1 or sys.platform.find("win64") != -1 else World.asset_location
         ),
         relative_path
     )
