@@ -191,11 +191,7 @@ namespace lua_binds
     })
 
     LUA_BIND_STD(writeobj, writeobj, e.get<char*>(1))
-
-    LUA_BIND_DEF(export_entities, {
-        REFLECT_PYTHON(export_entities);
-        export_entities(e.get<const char*>(1));
-    })
+    LUA_BIND_STD(export_entities, of_world_export_entities, e.get<const char*>(1))
 
     LUA_BIND_CLIENT(map, {
         if (e.is<void>(1))

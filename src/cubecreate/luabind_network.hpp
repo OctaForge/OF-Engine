@@ -83,8 +83,7 @@ namespace lua_binds
         save_world(game::getclientmap());
 
         renderprogress(0.4, "exporting entities ..");
-        REFLECT_PYTHON(export_entities);
-        export_entities("entities.json");
+        of_world_export_entities("entities.json");
 
         renderprogress(0.5, "uploading map ..");
         REFLECT_PYTHON(upload_map);

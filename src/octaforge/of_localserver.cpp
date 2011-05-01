@@ -61,6 +61,12 @@ int num_trials         = 0;
 bool server_ready     = false;
 bool server_started   = false;
 
+#ifdef WIN32
+#define PDIV "\\"
+#else
+#define PDIV "/"
+#endif
+
 /* Return true if local server is running, false otherwise. */
 bool of_localserver_get_running() { return server_ready; }
 
@@ -109,11 +115,6 @@ void of_localserver_run(const char *map)
     }
     conoutf("Starting server, please wait ..");
 
-    /* Make sure that home directory does NOT end with a slash */
-    char *hdir = strdup(homedir);
-    if (!strcmp(hdir + strlen(hdir) - 1,   "/"))
-                hdir[  strlen(hdir) - 1] = '\0';
-
     /* Platform specific, so ifdef it. And open the process stream. */
     snprintf(
         localserver_buf, sizeof(localserver_buf),
@@ -123,9 +124,8 @@ void of_localserver_run(const char *map)
 #else
         "exec ./intensity_server.sh",
 #endif
-        hdir, Logging::levelNames[Logging::currLevel].c_str(), map, hdir, SERVER_LOGFILE
+        homedir, Logging::levelNames[Logging::currLevel].c_str(), map, homedir, SERVER_LOGFILE
     );
-    OF_FREE(hdir);
 #ifdef WIN32
     _popen(localserver_buf, "r");
 #else
@@ -154,33 +154,22 @@ void of_localserver_stop()
 /* This checks if server is ready by reading its messages. */
 bool is_server_ready()
 {
-    /* Make sure that home directory does NOT end with a slash */
-    char *hdir = strdup(homedir);
-    if (!strcmp(hdir + strlen(hdir) - 1,   "/"))
-                hdir[  strlen(hdir) - 1] = '\0';
-
     /* Build a path for the log file */
-    snprintf(localserver_buf, sizeof(localserver_buf), "%s/%s", hdir, SERVER_LOGFILE);
+    snprintf(localserver_buf, sizeof(localserver_buf), "%s/%s", homedir, SERVER_LOGFILE);
 
     /* Read the file. If it's not readable, just return as not ready. */
     char *out = loadfile(localserver_buf, NULL);
-    if  (!out)
-    {
-        OF_FREE(hdir);
-        return false;
-    }
+    if  (!out) return false;
     else
     {
         /* If the string was found, return as ready. */
         if (strstr(out, "[[MAP LOADING]] - Success"))
         {
-            OF_FREE(hdir);
             OF_FREE(out);
             return true;
         }
         else
         {
-            OF_FREE(hdir);
             OF_FREE(out);
             return false;
         }

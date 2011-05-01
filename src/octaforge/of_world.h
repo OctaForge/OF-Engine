@@ -37,4 +37,6 @@ bool of_world_restart_map();
 void of_world_send_curr_map(int cn);
 #endif
 
+void of_world_export_entities(const char *fname);
+
 #endif

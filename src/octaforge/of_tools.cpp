@@ -30,6 +30,8 @@
 #include "cube.h"
 #include "of_tools.h"
 
+extern string homedir;
+
 bool of_tools_validate_alphanumeric(const char *str, const char *allow)
 {
     register unsigned int i, n;
@@ -161,4 +163,45 @@ bool of_tools_createpath(const char *path)
     }
     OF_FREE(p);
     return true;
+}
+
+char *of_tools_loadfile_safe(const char *fname)
+{
+    if (!fname
+      || strstr(fname, "..")
+      || strchr(fname, '~')
+      || fname[0] == '/'
+    ) return NULL;
+    /* TODO: more checks */
+
+    char buf[512], buff[512];
+    char *loaded = NULL;
+
+    if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
+    {
+        REFLECT_PYTHON(get_mapfile_path);
+        snprintf(
+            buf, sizeof(buf), "%s",
+            (const char*)boost::python::extract<const char*>(get_mapfile_path(fname + 2))
+        );
+    }
+    else snprintf(
+        buf, sizeof(buf),
+        "%s%cdata%c%s",
+        homedir, PATHDIV,
+        PATHDIV, fname
+    );
+
+    loaded = loadfile(buf, NULL);
+    if (!loaded)
+    {
+        snprintf(buff, sizeof(buff), "data%c%s", PATHDIV, fname);
+        loaded = loadfile(buff, NULL);
+    }
+    if (!loaded)
+    {
+        Logging::log(Logging::ERROR, "Could not load file %s (%s, %s)", fname, buf, buff);
+        return NULL;
+    }
+    return loaded;
 }

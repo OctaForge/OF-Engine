@@ -115,21 +115,14 @@ namespace lua_binds
     LUA_BIND_STD(execcfg, Utility::config_exec_json, e.get<const char*>(1), e.get<bool>(2))
     LUA_BIND_STD(writecfg, Utility::writecfg, e.get<const char*>(1))
     LUA_BIND_DEF(readfile, {
-        try
+        const char *text = of_tools_loadfile_safe(e.get<const char*>(1));
+        if (!text)
         {
-            REFLECT_PYTHON( read_file_safely );
-
-            boost::python::object data = read_file_safely(e.get<const char*>(1));
-            const char *text = boost::python::extract<const char*>(data);
-
-            e.push(text);
+            e.push();
+            return;
         }
-        catch(boost::python::error_already_set const &)
-        {
-            printf("Error in Python execution of embedded read_file_safely\r\n");
-            PyErr_Print();
-            assert(0 && "Halting on Python error");
-        }
+        e.push(text);
+        delete[] text;
     })
     LUA_BIND_STD(addzip, addzip,
                  e.get<const char*>(1),

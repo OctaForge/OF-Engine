@@ -45,6 +45,8 @@ namespace MessageSystem
 }
 using namespace MessageSystem;
 
+extern string homedir;
+
 bool of_world_set_map(const char *id)
 {
     REFLECT_PYTHON(World);
@@ -104,3 +106,32 @@ void of_world_send_curr_map(int cn)
     );
 }
 #endif
+
+void of_world_export_entities(const char *fname)
+{
+    REFLECT_PYTHON(get_curr_map_prefix);
+    const char *prefix = boost::python::extract<const char*>(get_curr_map_prefix());
+    char buf[512];
+    snprintf(
+        buf, sizeof(buf),
+        "%s%cdata%c%s%c%s",
+        homedir, PATHDIV, PATHDIV,
+        prefix, PATHDIV, fname
+    );
+    const char *data = lua::engine.exec<const char*>("return of.logent.store.save_entities()");
+    if (fileexists(buf, "r"))
+    {
+        char buff[strlen(buf) + 16];
+        snprintf(buff, sizeof(buff), "%s-%i.bak", buf, (int)time(0));
+        of_tools_file_copy(buf, buff);
+    }
+
+    FILE *f = fopen(buf, "w");
+    if  (!f)
+    {
+        Logging::log(Logging::ERROR, "Cannot open file %s for writing.\n", buf);
+        return;
+    }
+    fputs(data, f);
+    fclose(f);
+}
