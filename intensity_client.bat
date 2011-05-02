@@ -29,25 +29,13 @@ if %PROCESSOR_ARCHITECTURE%==AMD64 (
 
 :run
 
-SET PYVER=%SYSTEMDRIVE%\Python26
-
 SET OLD_PATH=%PATH%
-SET PATH=%PYVER%;src\windows\sdl_vcpp\lib;src\windows\sdl_image\lib;src\windows\sdl_mixer\lib;%PATH%
-
-SET OLD_PYTHONHOME=%PYTHONHOME%
-SET PYTHONHOME=%PYVER%\lib;%PYVER%\DLLs;%PYTHONHOME%
-
-SET OLD_PYTHONPATH=%PYTHONPATH%
-SET PYTHONHOME=%PYVER%\lib;%PYVER%\DLLs;%PYTHONHOME%
+SET PATH=src\windows\sdl_vcpp\lib;src\windows\sdl_image\lib;src\windows\sdl_mixer\lib;%PATH%
 
 bin\OF_Client_Windows-%CCARCH%.exe "-q$HOME\OctaForge" -gWARNING -r %* > out_client 2>&1
-
 echo "(If a problem occurred, look in out_client)"
 
 :finish
 pause
 
 SET PATH=%OLD_PATH%
-SET PYTHONHOME=%OLD_PYTHONHOME%
-SET PYTHONPATH=%OLD_PYTHONPATH%
-

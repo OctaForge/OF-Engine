@@ -85,14 +85,8 @@ endif (UNIX)
 # first, find Python. CMake should automatically decide. Fail if not found
 find_package(PythonLibs REQUIRED)
 
-# under Windows, add a few defs for boost and append new things into prefix path
+# under Windows, append new things into prefix path
 if (MINGW OR WIN32)
-    add_definitions(-DBOOST_PYTHON_STATIC_LIB)
-    add_definitions(-DBOOST_AUTO_LINK_NOMANGLE)
-    add_definitions(-DBOOST_PYTHON_SOURCE)
-    add_definitions(-DBOOST_PYTHON_NO_LIB)
-    add_definitions(-DBOOST_ALL_NO_LIB)
-
     if (MINGW)
         set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS}/SDL_mingw)
     else (MINGW)
@@ -100,6 +94,8 @@ if (MINGW OR WIN32)
     endif (MINGW)
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS}/SDL_mixer)
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${OF_ADDITIONAL_DEPS}/SDL_image)
+
+    set(EXTRA_SOURCES ../windows/wuuid/wuuid)
 endif (MINGW OR WIN32)
 
 # find other packages
@@ -110,7 +106,8 @@ find_package(SDL_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Lua51 REQUIRED)
 if (NOT (MINGW OR WIN32))
-	find_package(Boost COMPONENTS python REQUIRED)
+    find_package(PkgConfig)
+    pkg_check_modules(UUID uuid)
 endif (NOT (MINGW OR WIN32))
 
 # PROCEED TO NEXT DIR
