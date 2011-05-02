@@ -24,6 +24,7 @@
 #ifdef CLIENT
     #include "client_system.h"
 #endif
+#include "of_world.h"
 
 extern bool should_quit;
 
@@ -968,10 +969,7 @@ namespace server
     {
         clientinfo *ci = getinfo(clientNumber);
         if (!ci) return;
-
-        REFLECT_PYTHON( World );
-        std::string serverScenarioCode = boost::python::extract<std::string>( World.attr("scenario_code") );
-        ci->runningCurrentScenario = (scenarioCode == serverScenarioCode);
+        ci->runningCurrentScenario = !strcmp(of_world_scenario_code, scenarioCode.c_str());
     }
 
     bool isRunningCurrentScenario(int clientNumber)

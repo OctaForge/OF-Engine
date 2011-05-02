@@ -71,23 +71,20 @@ namespace lua_binds
     LUA_BIND_CLIENT(do_upload, {
         renderprogress(0.1, "compiling scripts ..");
 
-        REFLECT_PYTHON(get_map_script_filename);
-        const char *fname = boost::python::extract<const char*>(get_map_script_filename());
+        char *fname = of_world_get_map_script_filename();
         if (!engine.loadf(fname))
         {
             IntensityGUI::showMessage("Compilation failed", engine.geterror_last());
+            OF_FREE(fname);
             return;
         }
+        OF_FREE(fname);
 
         renderprogress(0.3, "generating map ..");
         save_world(game::getclientmap());
 
         renderprogress(0.4, "exporting entities ..");
         of_world_export_entities("entities.json");
-
-        renderprogress(0.5, "uploading map ..");
-        REFLECT_PYTHON(upload_map);
-        upload_map();
     })
 
     LUA_BIND_STD_CLIENT(restart_map, MessageSystem::send_RestartMap)

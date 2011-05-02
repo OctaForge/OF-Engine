@@ -1,2 +1,0 @@
-/v8/ contains Google V8 - SVN
-/boost/ Boost 1.41.0

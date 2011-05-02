@@ -29,6 +29,8 @@
 
 #include "cube.h"
 #include "of_tools.h"
+#include "of_world.h"
+#include <sys/stat.h>
 
 extern string homedir;
 
@@ -179,11 +181,9 @@ char *of_tools_loadfile_safe(const char *fname)
 
     if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
     {
-        REFLECT_PYTHON(get_mapfile_path);
-        snprintf(
-            buf, sizeof(buf), "%s",
-            (const char*)boost::python::extract<const char*>(get_mapfile_path(fname + 2))
-        );
+        char *path = of_world_get_mapfile_path(fname + 2);
+        snprintf(buf, sizeof(buf), "%s", path);
+        OF_FREE(path);
     }
     else snprintf(
         buf, sizeof(buf),

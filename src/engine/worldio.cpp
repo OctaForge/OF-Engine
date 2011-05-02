@@ -11,6 +11,7 @@
     #include "client_system.h"
 #endif
 #include "intensity_physics.h"
+#include "of_world.h"
 
 void backup(char *name, char *backupname)
 {
@@ -1010,7 +1011,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if (lua::engine.hashandle())
     {
         lua::engine.execf("data/cfg/default_map_settings.lua", false);
-        WorldSystem::runMapScript();
+        of_world_run_map_script();
     }
     var::overridevars = false;
    

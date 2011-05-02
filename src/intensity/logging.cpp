@@ -132,13 +132,3 @@ Indent::~Indent()
 }
 
 } // namespace Logging
-
-
-// For python
-bool logging__should_show(int level)
-{
-    assert(level >= 0 && level < NUM_LEVELS);
-
-    return Logging::shouldShow(Logging::levelEnums[level]);
-}
-

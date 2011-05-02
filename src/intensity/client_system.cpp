@@ -22,8 +22,6 @@
 #include "client_system.h"
 #include "of_world.h"
 
-#include "shared_module_members_boost.h"
-
 using namespace lua;
 
 std::string ClientSystem::blankPassword = "1111111111"; // TODO: We should ensure the users can never have this for a real password!
@@ -90,9 +88,6 @@ void ClientSystem::finishLogin(bool local)
     editingAlone = local;
     loggedIn = true;
 
-    // There is no Python LE for the player yet, we await its arrival from the server just like any other LE. When
-    // it does arrive, we will point playerLogicEntity to it. See messages.template.
- 
     Logging::log(Logging::DEBUG, "Now logged in, with unique_ID: %d\r\n", uniqueId);
 }
 
@@ -185,21 +180,9 @@ void ClientSystem::gotoLoginScreen()
 #endif
 }
 
-// Boost access for Python
-
 extern const char *sethomedir(const char *dir); // shared/tools.cpp
 
-int saved_argc = 0;
-char **saved_argv = NULL;
-
 extern int sauer_main(int argc, char **argv); // from main.cpp
-
-void client_main()
-{
-    Logging::log(Logging::DEBUG, "client_main");
-
-    sauer_main(saved_argc, saved_argv);
-}
 
 void setTransactionCode(std::string code)
 {
@@ -458,60 +441,9 @@ void upload_texture_data(std::string name, int x, int y, int w, int h, long long
     IntensityTexture::uploadTextureData(name, x, y, w, h, (void*)pixels);
 }
 
-// wrappers for boost exports
-inline void wrapLuaEngineCreate() { lua::engine.create(); }
-inline bool wrapLuaEngineExists() { return lua::engine.hashandle(); }
-inline bool wrapLuaEngineRunScript(const char *s)
-{
-    return lua::engine.exec(s);
-}
-inline const char *wrapLuaEngineRunScriptString(const char *s)
-{
-    return lua::engine.exec<const char*>(s);
-}
-inline int wrapLuaEngineRunScriptInt(const char *s)
-{
-    return lua::engine.exec<int>(s);
-}
-inline double wrapLuaEngineRunScriptDouble(const char *s)
-{
-    return lua::engine.exec<double>(s);
-}
-
-//! Main starting point - initialize Python, set up the embedding, and
-//! run the main Python script that sets everything in motion
 int main(int argc, char **argv)
 {
-    saved_argc = argc;
-    saved_argv = argv;
-
-    initPython(argc, argv);
-
-    // Expose client-related functions to Python
-
-    exposeToPython("main", client_main);
-    exposeToPython("set_transaction_code", setTransactionCode);
-    exposeToPython("connect", ClientSystem::connect);
-    exposeToPython("disconnect", ClientSystem::doDisconnect);
-    exposeToPython("show_message", show_message);
-    exposeToPython("intercept_key", interceptkey);
-    exposeToPython("get_escape", get_escape);
-
-    exposeToPython("inject_mouse_position", IntensityGUI::injectMousePosition);
-    exposeToPython("inject_mouse_click", IntensityGUI::injectMouseClick);
-    exposeToPython("inject_key_press", IntensityGUI::injectKeyPress);
-    exposeToPython("flush_input_events", checkinput);
-
-    exposeToPython("upload_texture_data", upload_texture_data);
-
-    // Shared exposed stuff stuff with the server module
-    #include "shared_module_members.boost"
-
-    // Start the main Python script that runs it all
-    EXEC_PYTHON_FILE("../../intensity_client.py");
-
-    client_main();
-
+    sauer_main(argc, argv);
     return 0;
 }
 

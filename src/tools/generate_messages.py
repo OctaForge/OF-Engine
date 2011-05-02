@@ -6,7 +6,7 @@
 Automatic C++ code generator from template file. Generates message protocol
 code in a safe, bug-free manner.
 
-Processes messages.template into messages.h, messages.cpp and messages.boost.
+Processes messages.template into messages.h and messages.cpp.
 """
 
 import os, stat
@@ -16,7 +16,6 @@ MESSAGE_TEMPLATE_FILE       = "intensity/messages.template"
 
 GENERATED_MESSAGES_H_FILE     = "intensity/messages.h"
 GENERATED_MESSAGES_CPP_FILE   = "intensity/messages.cpp"
-GENERATED_MESSAGES_BOOST_FILE = "intensity/messages_boost.cpp"
 
 COPYRIGHT_AND_LICENSE = """
 
@@ -31,16 +30,12 @@ def generate_messages():
 
     generated_h_file     = open(GENERATED_MESSAGES_H_FILE,     'w')
     generated_cpp_file   = open(GENERATED_MESSAGES_CPP_FILE,   'w')
-    generated_boost_file = open(GENERATED_MESSAGES_BOOST_FILE, 'w')
 
     generated_h_file.write(COPYRIGHT_AND_LICENSE)
     generated_h_file.write("// Automatically generated from messages.template - DO NOT MODIFY THIS FILE!\n\n")
 
     generated_cpp_file.write(COPYRIGHT_AND_LICENSE)
     generated_cpp_file.write("// Automatically generated from messages.template - DO NOT MODIFY THIS FILE!\n\n")
-
-    generated_boost_file.write(COPYRIGHT_AND_LICENSE)
-    generated_boost_file.write("// Automatically generated from messages.template - DO NOT MODIFY THIS FILE!\n\n")
 
     generated_cpp_file.write("""
 #include "cube.h"
@@ -61,7 +56,6 @@ def generate_messages():
 #include "world_system.h"
 #include "of_world.h"
 
-using namespace boost;
 using namespace lua;
 
 /* Abuse generation from template for now */
@@ -341,21 +335,6 @@ void send_%s(%s);
             #
             # Finished writing out the message
 
-            # Write out the boost::python file so Python can also use these messages
-            # TODO: Separate files for client and server, they don't need to have all of them... but a minor issue.
-            if direction == "server->client":
-                generated_boost_file.write("""
-    // %s
-    exposeToPython("%s", &MessageSystem::send_%s);
-""" % (name, name, name))
-            else: # client->server
-                generated_boost_file.write("""
-#ifdef CLIENT
-    // %s
-    exposeToPython("%s", &MessageSystem::send_%s);
-#endif
-""" % (name, name, name))
-
             # Increment the type code counter by one
             type_code += 1
 
@@ -367,10 +346,6 @@ void send_%s(%s);
             elif line == "int clientNumber":
                 print "Cannot have 'int clientNumber', this is used implicitly instead (see docs)"
             params.append(line.strip().split(' ')[0:2]) # type, name; ignore the comment
-
-    # Final touches
-
-    generated_boost_file.write("\n")
 
     # Generate code to register all messages
 
@@ -391,7 +366,6 @@ void MessageManager::registerAll()
 
 """)
 
-    generated_boost_file.close()
     generated_cpp_file.close()
     generated_h_file.close()
     template_file.close()

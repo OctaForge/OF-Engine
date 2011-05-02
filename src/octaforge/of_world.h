@@ -30,6 +30,9 @@
 #ifndef OF_WORLD_H
 #define OF_WORLD_H
 
+extern const char *of_world_curr_map_asset_id;
+extern const char *of_world_scenario_code;
+
 bool of_world_set_map(const char *id);
 bool of_world_restart_map();
 
@@ -38,5 +41,8 @@ void of_world_send_curr_map(int cn);
 #endif
 
 void of_world_export_entities(const char *fname);
+char *of_world_get_mapfile_path(const char *rpath);
+char *of_world_get_map_script_filename();
+void of_world_run_map_script();
 
 #endif

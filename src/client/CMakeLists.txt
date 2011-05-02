@@ -4,17 +4,17 @@
 # this makes client binary.
 #
 
-# include vcpp, sdl and python headers
+# include vcpp, sdl headers
 if (WIN32 AND NOT MINGW)
     include_directories(${PLATFORM_SDK_A}/Include)
     include_directories(${PLATFORM_SDK_B}/Include)
 endif (WIN32 AND NOT MINGW)
-include_directories(${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH} ${LUA_INCLUDE_DIR})
+include_directories(${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
 if (NOT (WIN32 OR MINGW))
-	include_directories(${Boost_INCLUDE_DIRS})
+    include_directories(${UUID_INCLUDE_DIRS})
 endif (NOT (WIN32 OR MINGW))
 
-# for now, keep rtti / exceptions enabled, disable them when boost is out
+# for now, keep rtti / exceptions enabled, disable them later
 #add_definitions(-fno-exceptions -fno-rtti)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux") # there is no LINUX variable declared
@@ -37,7 +37,6 @@ set(CLIENT_SOURCES
     ../intensity/logging
     ../intensity/message_system
     ../intensity/system_manager
-    ../intensity/python_wrap
     ../intensity/utility
     ../intensity/client_system
     ../intensity/client_engine_additions
@@ -93,7 +92,6 @@ set(CLIENT_SOURCES
     ../shared/stream
     ../shared/zip
     ../engine/movie
-    ../intensity/shared_module_members_boost
     ../fpsgame/scoreboard
     ../octaforge/of_localserver
     ../octaforge/of_world
@@ -104,7 +102,6 @@ set(CLIENT_SOURCES
 set(CLIENT_LIBRARIES
     enet_${OF_BUILD_SUFFIX}
     ${LUA_LIBRARIES}
-    ${PYTHON_LIBRARIES}
     ${SDL_LIBRARY}
     ${SDLMIXER_LIBRARY}
     ${SDLIMAGE_LIBRARY}
@@ -113,12 +110,15 @@ set(CLIENT_LIBRARIES
     ${ZLIB_LIBRARIES}
     ${UTIL}
     json_${OF_BUILD_SUFFIX}
-    ${Boost_PYTHON_LIBRARY}
 )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-   set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} rt)
+    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} rt)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+if (NOT WIN32)
+    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} ${UUID_LIBRARIES})
+endif (NOT WIN32)
 
 # additional libs on windows
 if (MINGW OR WIN32)

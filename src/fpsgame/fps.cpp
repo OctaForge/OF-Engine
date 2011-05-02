@@ -19,6 +19,8 @@
 #include "message_system.h"
 #include "world_system.h"
 #include "intensity_physics.h"
+#include "of_tools.h"
+#include "of_world.h"
 
 
 // Enable to let *server* do physics for players - useful for debugging. Must also be defined in client.cpp!
@@ -72,12 +74,16 @@ namespace game
 
     const char *getclientmap()
     {
-        REFLECT_PYTHON( get_curr_map_prefix );
+        static char buf[512];
 
-        static std::string ret;
-        ret = boost::python::extract<std::string>(get_curr_map_prefix());
-        ret += "map";
-        return ret.c_str();
+        char *prefix = strdup(of_world_curr_map_asset_id);
+        prefix[strlen(prefix) - 6] = '\0';
+        prefix[strlen(prefix) - 1] = PATHDIV;
+
+        snprintf(buf, sizeof(buf), "%smap", prefix);
+        OF_FREE(prefix);
+
+        return buf;
     }
 
     void resetgamestate()

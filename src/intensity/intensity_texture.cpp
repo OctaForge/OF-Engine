@@ -84,9 +84,8 @@ void combineImages(std::string primary, std::string secondary, std::string dest)
     FIX_PATH(secondary);
     FIX_PATH(dest);
 
-    REFLECT_PYTHON( check_newer_than );
-    if (boost::python::extract<bool>(check_newer_than(full_dest, full_primary, full_secondary)))
-        return;
+    if (of_tools_is_file_newer_than(full_dest.c_str(), full_primary.c_str())) return;
+    if (of_tools_is_file_newer_than(full_dest.c_str(), full_secondary.c_str())) return;
 
     Logging::log(Logging::DEBUG, "combineImages: %s + %s ==> %s\r\n", primary.c_str(), secondary.c_str(), dest.c_str());
 

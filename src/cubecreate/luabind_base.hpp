@@ -31,7 +31,6 @@
 
 void keymap(int *code, char *key);
 void registersound(char *name, int *vol);
-void run_python(char *code);
 void force_quit();
 void quit();
 void resetgl();

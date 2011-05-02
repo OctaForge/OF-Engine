@@ -16,6 +16,7 @@
 #include "client_system.h"
 
 #include <set>
+#include <algorithm>
 
 // Kripken:
 // sel.corner: The face corner the mouse pointer is closest to.
@@ -483,7 +484,7 @@ int thread__createMapFromRaw(void *unused)
 void createMapFromRaw(int resolution, double addr, int smoothing)
 {
     thread__resolution = resolution;
-    thread__data = new unsigned char[resolution*resolution*resolution]; // Make a copy, as addr points to something Python will collect now
+    thread__data = new unsigned char[resolution*resolution*resolution];
     memcpy(thread__data, (void*)(unsigned long)addr, resolution*resolution*resolution);
     thread__smoothing = smoothing;
 
@@ -599,8 +600,8 @@ int thread__createHeightmapFromRaw(void *unused)
 void createHeightmapFromRaw(int resolution, double addr)
 {
     thread__resolution = resolution;
-    assert(sizeof(float) == 4); // This is what Python sends us
-    thread__heightmapData = new float[resolution*resolution]; // Make a copy, as addr points to something Python will collect now
+    assert(sizeof(float) == 4);
+    thread__heightmapData = new float[resolution*resolution];
     memcpy(thread__heightmapData, (void*)(unsigned long)addr, resolution*resolution*4);
 
     SDL_Thread *thread = SDL_CreateThread(thread__createHeightmapFromRaw, NULL);

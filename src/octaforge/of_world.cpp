@@ -36,6 +36,12 @@
 #include "server_system.h"
 #endif
 
+#ifdef WIN32
+#include "wuuid.h"
+#else
+#include <uuid/uuid.h>
+#endif
+
 void force_network_flush();
 namespace MessageSystem
 {
@@ -47,28 +53,43 @@ using namespace MessageSystem;
 
 extern string homedir;
 
+/* Defined here */
+const char *of_world_curr_map_asset_id = NULL;
+const char *of_world_scenario_code     = NULL;
+
+const char *generate_scenario_code()
+{
+    uuid_t c;
+    static char buf[2 * sizeof(c) + 4 + 1];
+    uuid_generate(c);
+    uuid_unparse (c, buf);
+    return buf;
+}
+
 bool of_world_set_map(const char *id)
 {
-    REFLECT_PYTHON(World);
-    World.attr("start_scenario")();
+    const char *old_scenario_code = of_world_scenario_code;
+    if (old_scenario_code)
+    {
+        while (!strcmp(old_scenario_code, of_world_scenario_code))
+            of_world_scenario_code = generate_scenario_code();
+    }
+    else of_world_scenario_code = generate_scenario_code();
 
 #ifdef SERVER
-    send_PrepareForNewScenario(-1, boost::python::extract<std::string>(World.attr("scenario_code")));
+    send_PrepareForNewScenario(-1, of_world_scenario_code);
     force_network_flush();
 #endif
 
-    REFLECT_PYTHON(set_curr_map_asset_id);
-    set_curr_map_asset_id(id);
-    World.attr("asset_location") = id;
+    of_world_curr_map_asset_id = id;
 
-    REFLECT_PYTHON(set_curr_map_prefix);
     char *s = strdup(id);
     s[strlen(s) - 6] = '\0';
     s[strlen(s) - 1] = '/';
-    set_curr_map_prefix(std::string(s));
 
-    defformatstring(w)("%smap", s);
-    if (!load_world(w))
+    char buf[512];
+    snprintf(buf, sizeof(buf), "%smap", s);
+    if (!load_world(buf))
     {
         Logging::log(Logging::ERROR, "Failed to load world!\n");
         return false;
@@ -87,8 +108,7 @@ bool of_world_set_map(const char *id)
 
 bool of_world_restart_map()
 {
-    REFLECT_PYTHON(get_curr_map_asset_id);
-    return of_world_set_map(boost::python::extract<const char*>(get_curr_map_asset_id()));
+    return of_world_set_map(of_world_curr_map_asset_id);
 }
 
 #ifdef SERVER
@@ -96,21 +116,20 @@ void of_world_send_curr_map(int cn)
 {
     if (!ServerSystem::isRunningMap()) return;
 
-    REFLECT_PYTHON(World);
-    REFLECT_PYTHON(get_curr_map_asset_id);
-
     send_NotifyAboutCurrentScenario(
         cn,
-        boost::python::extract<std::string>(get_curr_map_asset_id()),
-        boost::python::extract<std::string>(World.attr("scenario_code"))
+        of_world_curr_map_asset_id,
+        of_world_scenario_code
     );
 }
 #endif
 
 void of_world_export_entities(const char *fname)
 {
-    REFLECT_PYTHON(get_curr_map_prefix);
-    const char *prefix = boost::python::extract<const char*>(get_curr_map_prefix());
+    char *prefix = strdup(of_world_curr_map_asset_id);
+    prefix[strlen(prefix) - 6] = '\0';
+    prefix[strlen(prefix) - 1] = PATHDIV;
+
     char buf[512];
     snprintf(
         buf, sizeof(buf),
@@ -118,6 +137,8 @@ void of_world_export_entities(const char *fname)
         homedir, PATHDIV, PATHDIV,
         prefix, PATHDIV, fname
     );
+    OF_FREE(prefix);
+
     const char *data = lua::engine.exec<const char*>("return of.logent.store.save_entities()");
     if (fileexists(buf, "r"))
     {
@@ -134,4 +155,33 @@ void of_world_export_entities(const char *fname)
     }
     fputs(data, f);
     fclose(f);
+}
+
+char *of_world_get_mapfile_path(const char *rpath)
+{
+    char *aloc = strdup(of_world_curr_map_asset_id);
+    aloc[strlen(aloc) - 7] = '\0';
+    
+    char buf[512];
+    snprintf(buf, sizeof(buf), "data%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
+    if (fileexists(buf, "r"))
+    {
+        OF_FREE(aloc);
+        return strdup(buf);
+    }
+    snprintf(
+        buf, sizeof(buf), "%s%c%s",
+        homedir, PATHDIV, buf
+    );
+    OF_FREE(aloc);
+    return strdup(buf);
+}
+
+char *of_world_get_map_script_filename() { return of_world_get_mapfile_path("map.lua"); }
+
+void of_world_run_map_script()
+{
+    char *name = of_world_get_map_script_filename();
+    lua::engine.execf(name);
+    OF_FREE(name);
 }

@@ -14,8 +14,6 @@
 #define DUMMY_SINGLETON_CLIENT_UNIQUE_ID -9000
 
 
-//! System management for the serverside, and the connection between the Sauer system and the Python server.
-
 struct ServerSystem
 {
     //! Start a new map - create empty files serverside, then send to client

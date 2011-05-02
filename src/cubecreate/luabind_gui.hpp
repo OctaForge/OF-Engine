@@ -158,7 +158,7 @@ namespace lua_binds
         e.pop(2).unref(_tmpref);
 
         // So order is always the same
-        sort(GuiControl::EditedEntity::sortedKeys.begin(), GuiControl::EditedEntity::sortedKeys.end());
+        std::sort(GuiControl::EditedEntity::sortedKeys.begin(), GuiControl::EditedEntity::sortedKeys.end());
 
         // Title
         e.getg("tostring").getref(GuiControl::EditedEntity::currEntity->luaRef).call(1, 1);

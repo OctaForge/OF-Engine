@@ -20,9 +20,6 @@ using namespace lua;
 extern void removeentity(extentity* entity);
 extern void addentity(extentity* entity);
 
-using namespace boost;
-
-
 //=========================
 // Logic Entities
 //=========================
@@ -133,24 +130,16 @@ void CLogicEntity::setOrigin(vec &newOrigin)
 int CLogicEntity::getAnimation()
 {
     return animation;
-//    int ret = python::extract<int>( scriptEntity.attr("animation") );
-////    printf("Animation: %ld\r\n", ret);
-//    return ret;
 }
 
 int CLogicEntity::getStartTime()
 {
     return startTime;
-//    int ret = python::extract<int>( scriptEntity.attr("start_time") );
-////    printf("Start Time: %ld\r\n", ret);
-//    return ret;
 }
 
 int CLogicEntity::getAnimationFrame()
 {
-    return 0; // Deprecated for now (can do doors in other ways anyhow)
-//    int ret = python::extract<int>( scriptEntity.attr("get_animation_frame")() );
-//    return ret;
+    return 0; /* DEPRECATED for now */
 }
 
 std::string CLogicEntity::getClass()
@@ -166,9 +155,6 @@ model* CLogicEntity::getModel()
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return NULL;
-
-//    if (!theModel)
-//        setModel(python::extract<std::string>( scriptEntity.attr("model_name") ));
 
     // Fallback to sauer mapmodel system, if not overidden (-1 or less in attr2 if so)
     if (staticEntity && staticEntity->type == ET_MAPMODEL && staticEntity->attr2 >= 0)
@@ -280,6 +266,7 @@ void CLogicEntity::setAttachments(std::string _attachments)
         PyErr_Print();
         assert(0 && "Halting on Python error");
     }
+
 }
 
 void CLogicEntity::setAnimation(int _animation)

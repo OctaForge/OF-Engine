@@ -13,9 +13,6 @@ struct WorldSystem
     static void setNumExpectedEntities(int num);
     static void triggerReceivedEntity();
 
-    //! Runs the startup script for the current map. Called from worldio.loadworld
-    static void runMapScript();
-
     //! Used inside sauer to know if we are checking area triggering
     static bool triggeringCollisions;
 

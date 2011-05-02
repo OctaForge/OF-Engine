@@ -105,13 +105,6 @@ void WorldSystem::triggerReceivedEntity()
     }
 }
 
-void WorldSystem::runMapScript()
-{
-    REFLECT_PYTHON(run_map_script);
-    run_map_script();
-}
-
-
 // Convenience tools for entities
 
 int getEntId(extentity *entity)

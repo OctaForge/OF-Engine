@@ -42,7 +42,7 @@ module("class", package.seeall)
 -- function A:__init(foo) end<br/>
 -- function A:__tostring(foo) end<br/>
 -- function A:blah(bleh) end<br/>
--- B = class(A)<br/>
+-- B = new(A)<br/>
 -- instance = A(15)<br/>
 -- binstance = B("foo")<br/>
 -- </code>

@@ -5,8 +5,7 @@
 #include "cube.h"
 
 #include <map>
-
-using namespace boost;
+#include <sstream>
 
 //==============================
 // String utils

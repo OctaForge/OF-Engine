@@ -5,7 +5,7 @@
 // Windows
 #undef ERROR
 
-//! Simple logging functionality. TODO: Interface Python with this
+//! Simple logging functionality.
 
 #define INDENT_LOG(level) Logging::Indent ind(level)
 
@@ -30,7 +30,7 @@ namespace Logging
     //! Log a message, using standard printf format
     void log(Level level, const char *fmt, ...);
 
-    //! The logging function Python will call
+    //! Noformat logging with std::string, DEPRECATED
     void log_noformat(int level, std::string);
 
     //! Handy way to indent the logging. Create an instance of this, and it will indent all further logs (if the level

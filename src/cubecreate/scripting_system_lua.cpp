@@ -59,6 +59,7 @@
 #include "of_tools.h"
 #include "of_localserver.h"
 #include "of_world.h"
+#include <algorithm>
 
 #include "scripting_system_lua_def.hpp"
 
@@ -495,8 +496,7 @@ namespace lua
 
             Logging::log(Logging::DEBUG, "Handler created properly, finalizing.\n");
 
-            //REFLECT_PYTHON( INTENSITY_VERSION_STRING );
-            //m_version = boost::python::extract<const char*>(INTENSITY_VERSION_STRING);
+            /* TODO: actual version? */
             m_version = "0.0.5";
 
             setup_libs(); bind();

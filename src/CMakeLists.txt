@@ -7,11 +7,6 @@
 # internal things
 include_directories(shared engine fpsgame intensity cubecreate octaforge enet/include include)
 link_directories(${CMAKE_SOURCE_DIR}/src/enet)
-if (MINGW OR WIN32)
-	include_directories(windows/boost)
-	link_directories(${CMAKE_SOURCE_DIR}/src/windows/boost)
-	set(Boost_PYTHON_LIBRARY boost_python)
-endif (MINGW OR WIN32)
 
 # further proceed.
 add_subdirectory(thirdparty)

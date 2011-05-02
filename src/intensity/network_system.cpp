@@ -19,7 +19,7 @@ namespace Cataloger
 
 int bytesSentPerChannel[NUM_CHANNELS];
 
-int cachedBytes = 0;    // For cache that gets flushed to a Python signal
+int cachedBytes = 0;
 int lastCacheFlush = 0; // every second or so
 
 void packetSent(int channel, int size)

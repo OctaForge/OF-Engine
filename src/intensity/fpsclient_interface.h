@@ -40,9 +40,6 @@ struct FPSClientInterface
     //! Set the position of a player in an appropriate spawn location (usually the single Playerstart
     static void           spawnPlayer(dynent* player);
 
-    //! ShootV interface - shoots projectiles
-    static void           shootV(int gun, vec &from, vec &to, dynent *d, bool local, boost::python::object onHit);
-
     #ifdef CLIENT
         //! Spawns some debris (broken flying fragments) at a location
         static void           spawnDebris(int type, vec& v, int numdebris, vec& debrisvel, dynent* owner);

@@ -24,7 +24,6 @@
 #include "world_system.h"
 #include "of_world.h"
 
-using namespace boost;
 using namespace lua;
 
 /* Abuse generation from template for now */
@@ -533,12 +532,6 @@ namespace MessageSystem
         std::string sauerType = engine.get(-1, "extent");
         engine.pop(2);
         Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType.c_str());
-        python::list params;
-        if (sauerType != "fpsent")
-            params.append(findtype((char*)sauerType.c_str()));
-        params.append(x);
-        params.append(y);
-        params.append(z);
         // Create
         engine.getg("entity_store").t_getraw("new").push(_class.c_str());
         engine.t_new();

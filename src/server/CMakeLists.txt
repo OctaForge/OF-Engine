@@ -4,17 +4,17 @@
 # this makes server binary.
 #
 
-# include vcpp, sdl and python headers
+# include vcpp, sdl headers
 if (WIN32 AND NOT MINGW)
     include_directories(${PLATFORM_SDK_A}/Include)
     include_directories(${PLATFORM_SDK_B}/Include)
 endif (WIN32 AND NOT MINGW)
-include_directories(${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH} ${LUA_INCLUDE_DIR})
+include_directories(${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
 if (NOT (WIN32 OR MINGW))
-	include_directories(${Boost_INCLUDE_DIRS})
+    include_directories(${UUID_INCLUDE_DIRS})
 endif (NOT (WIN32 OR MINGW))
 
-# for now, keep rtti / exceptions enabled, disable them when boost is out
+# for now, keep rtti / exceptions enabled, disable them later
 #add_definitions(-fno-exceptions -fno-rtti)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux") # there is no LINUX variable declared
@@ -35,7 +35,6 @@ set(SERVER_SOURCES
     ../fpsgame/server
     ../fpsgame/client
     ../fpsgame/entities
-    ../intensity/python_wrap
     ../intensity/system_manager
     ../intensity/message_system
     ../intensity/server_system
@@ -68,7 +67,6 @@ set(SERVER_SOURCES
     ../engine/pvs
     ../engine/blend
     ../shared/zip
-    ../intensity/shared_module_members_boost
     ../intensity/NPC
     ../octaforge/of_world
     ${EXTRA_SOURCES}
@@ -78,7 +76,6 @@ set(SERVER_SOURCES
 set(SERVER_LIBRARIES
     enet_${OF_BUILD_SUFFIX}
     ${LUA_LIBRARIES}
-    ${PYTHON_LIBRARIES}
     ${SDL_LIBRARY}
     ${SDLMIXER_LIBRARY}
     ${SDLIMAGE_LIBRARY}
@@ -86,8 +83,11 @@ set(SERVER_LIBRARIES
     ${ZLIB_LIBRARIES}
     ${UTIL}
     json_${OF_BUILD_SUFFIX}
-    ${Boost_PYTHON_LIBRARY}
 )
+
+if (NOT WIN32)
+    set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ${UUID_LIBRARIES})
+endif (NOT WIN32)
 
 # additional libs on windows
 if (MINGW OR WIN32)

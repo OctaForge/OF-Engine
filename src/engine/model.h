@@ -103,7 +103,7 @@ struct model
         float width = entity->collisionRadiusWidth;
         float height = entity->collisionRadiusHeight;
 
-        if (width < 0) // If never loaded, load once from Python now. This occurs once per instance.
+        if (width < 0) // If never loaded, load once from Lua now. This occurs once per instance.
                         // This is necessary because these are values cached from lua, unlike normal
                         // Sauer C++ variables that are managed in C++. Here, the *true* values are in lua
         {

@@ -12,8 +12,6 @@
 #include "editing_system.h"
 #include "of_world.h"
 
-#include "shared_module_members_boost.h"
-
 #define SERVER_UPDATE_INTERVAL 300
 
 namespace server
@@ -104,8 +102,6 @@ void ServerSystem::generatePhysicsVisibilities()
 }
 
 
-// Boost access for Python
-
 extern const char *sethomedir(const char *dir); // shared/tools.cpp
 
 extern void show_server_stats();   // from server.cpp
@@ -122,8 +118,7 @@ void ServerSystem::fatalMessageToClients(std::string message)
 
 bool ServerSystem::isRunningMap()
 {
-    REFLECT_PYTHON( World );
-    return boost::python::extract<bool>( World.attr("running_map")() );
+    return of_world_scenario_code != NULL;
 }
 
 void update_username(int clientNumber, std::string username)
@@ -163,28 +158,6 @@ void send_text_message(int clientNumber, std::string text, bool sound)
         MessageSystem::send_SoundToClientsByName(clientNumber, 0, 0, 0, "olpc/FlavioGaete/Vla_G_Major", -1);
 }
 
-// wrappers for boost exports
-inline void wrapLuaEngineCreate() { lua::engine.create(); }
-inline bool wrapLuaEngineExists() { return lua::engine.hashandle(); }
-inline bool wrapLuaEngineRunScript(const char *s)
-{
-    return lua::engine.exec(s);
-}
-inline const char *wrapLuaEngineRunScriptString(const char *s)
-{
-    return lua::engine.exec<const char*>(s);
-}
-inline int wrapLuaEngineRunScriptInt(const char *s)
-{
-    return lua::engine.exec<int>(s);
-}
-inline double wrapLuaEngineRunScriptDouble(const char *s)
-{
-    return lua::engine.exec<double>(s);
-}
-
-//! Main starting point - initialize Python, set up the embedding, and
-//! run the main Python script that sets everything in motion
 int main(int argc, char **argv)
 {
     // Pre-initializations
@@ -244,25 +217,9 @@ int main(int argc, char **argv)
         Logging::log(Logging::ERROR, "No map asset to run. Shutting down.");
         return 1;
     }
-    initPython(argc, argv);
 
-    // Expose server-related functions to Python
-    exposeToPython("init", server_init);
-    exposeToPython("show_server_stats", show_server_stats);
-    exposeToPython("slice", server_runslice);
-    exposeToPython("force_network_flush", force_network_flush);
-    exposeToPython("update_username", update_username);
-    exposeToPython("disconnect_client", disconnect_client);
-    exposeToPython("create_lua_entities", create_lua_entities);
-    exposeToPython("set_admin", set_admin);
-    exposeToPython("keep_alive", keep_alive);
-    exposeToPython("send_text_message", send_text_message);
-
-    // Shared exposed stuff stuff with the client module
-    #include "shared_module_members.boost"
-
-    // Start the main Python script that runs it all
-    EXEC_PYTHON_FILE("../../intensity_server.py");
+    lua::engine.create();
+    server_init();
 
     Logging::log(Logging::DEBUG, "Running first slice.\n");
     server_runslice();

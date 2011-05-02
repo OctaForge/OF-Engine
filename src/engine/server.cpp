@@ -645,7 +645,7 @@ const char *ip = "", *master = NULL;
 int curtime = 0, lastmillis = 0, totalmillis = 0;
 #endif
 
-// INTENSITY: Moved this code to here, + additions, so it can all be called from Python
+// INTENSITY: Moved this code to here, + additions
 void show_server_stats()
 {
     float seconds = float(totalmillis-laststatus)/1024.0f;
@@ -819,7 +819,7 @@ void rundedicatedserver()
     #ifdef WIN32
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
     #endif
-#if 0 // INTENSITY: We do the main loop in Python
+#if 0
     logoutf("dedicated server started, waiting for clients...");
     for(;;) serverslice(true, 5);
 #endif
