@@ -14,6 +14,8 @@
 #include "NPC.h"
 #include "intensity_physics.h"
 
+#include "of_tools.h"
+
 using namespace lua;
 
 // WorldSystem
@@ -207,66 +209,81 @@ void CLogicEntity::setAttachments(std::string _attachments)
     // Clean out old data
     for (int i = 0; attachments[i].tag; i++)
     {
+        attachments[i].tag = NULL;
+        attachments[i].name = NULL;
         free((void*)attachments[i].tag);
         free((void*)attachments[i].name);
     }
 
     // Generate new data
-    try
+    int num = 0, i = 0;
+    char *curr = NULL, *name = NULL, *tag = NULL;
+    char *data = strdup(_attachments.c_str());
+    char * pch = strchr(data, '|');
+
+    while (pch)
     {
-        python::object attachmentData = python::object(_attachments);
-        attachmentData = attachmentData.attr("split")("|");
+        num++;
+        pch = strchr(pch + 1, '|');
+    }
+    /* Because it'd be 1 even with no attachments. */
+    if (_attachments != "") num++;
 
-        int numAttachments = python::extract<int>( attachmentData.attr("__len__")() );;
+    assert(num <= MAX_ATTACHMENTS);
 
-        if (_attachments == "") {
-            numAttachments = 0; // Because splitting "" gives [""], i.e., one attachment of size 0
-        }
-
-        assert(numAttachments <= MAX_ATTACHMENTS);
-
-        std::string tag;
-        std::string name;
-
-        // Parse the Python attachments, which are in form [ "tag,name", "tag',name'", etc. ]
-        for (int i = 0; i < numAttachments; i++)
+    pch = strtok(data, "|");
+    while (pch)
+    {
+        curr = strdup(pch);
+        if (!strchr(curr, ','))
         {
-            python::object currAttachment = attachmentData.attr("__getitem__")(i).attr("split")(",");
-            tag = python::extract<std::string>( currAttachment.attr("__getitem__")(0) );
-            if ( python::extract<int>(currAttachment.attr("__len__")()) == 2 )
-                name = python::extract<std::string>( currAttachment.attr("__getitem__")(1) );
-            else    
-                name = ""; // No content specified for this tag
-
-            //! Tags starting with a '*' indicate this is a position marker
-            if (tag.length() >= 1 && tag[0] == '*')
-            {
-                //! Remove the '*' and add the marker address
-                tag = tag.substr(1, tag.length()-1);
-                attachments[i].pos = &attachmentPositions[i];
-                attachmentPositions[i] = vec(0,0,0); // Initialize, as if the attachment doesn't exist in the model,
-                                                     // we don't want NaNs and such causing crashes
-            } else
-                attachments[i].pos = NULL;
-
-            attachments[i].tag = strdup(tag.c_str()); // XXX leak (both the old value, and never clean up this one on removing entity
-            attachments[i].name = strdup(name.c_str()); // XXX leak
-            //attachments[i].anim = ANIM_VWEP | ANIM_LOOP; // Will become important if/when we have animated attachments
-            attachments[i].basetime = 0;
-
-            Logging::log(Logging::DEBUG, "Adding attachment: %s - %s\r\n", attachments[i].name, attachments[i].tag);
+            name = NULL;
+            tag  = curr;
+        }
+        else
+        {
+            tag  = strtok(curr, ",");
+            name = strtok(NULL, ",");
         }
 
-        attachments[numAttachments].tag  = NULL; // tag=null as well - probably not needed (order reversed with following line)
-        attachments[numAttachments].name = NULL; // Null name element at the end, for sauer to know to stop
+        /* Tags starting with a '*' indicate this is a position marker */
+        if (strlen(tag) >= 1 && tag[0] == '*')
+        {
+            tag++;
+            attachments[i].pos = &attachmentPositions[i];
+            /* Initialize, as if the attachment doesn't exist in the model,
+             * we don't want NaNs and such causing crashes
+             */
+            attachmentPositions[i] = vec(0, 0, 0);
+        }
+        else attachments[i].pos = NULL;
 
-    } catch(python::error_already_set const &)
-    {
-        printf("Error in Python execution of setAttachments\r\n");
-        PyErr_Print();
-        assert(0 && "Halting on Python error");
+        attachments[i].tag  = strdup(tag);
+        attachments[i].name = name ? strdup(name) : strdup("");
+        /* attachments[i].anim = ANIM_VWEP | ANIM_LOOP;
+         * This will become important if/when we have animated attachments
+         */
+        attachments[i].basetime = 0;
+
+        Logging::log(
+            Logging::DEBUG,
+            "Adding attachment: %s - %s\r\n",
+            attachments[i].name,
+            attachments[i].tag
+        );
+
+        OF_FREE(curr);
+
+        pch = strtok(NULL, "|");
+        i++;
     }
 
+    /* tag=null as well - probably not needed (order reversed with following line) */
+    attachments[num].tag  = NULL;
+    /* Null name element at the end, for sauer to know to stop */
+    attachments[num].name = NULL;
+
+    OF_FREE(data);
 }
 
 void CLogicEntity::setAnimation(int _animation)
@@ -447,6 +464,14 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 
     logicEntities.erase(uniqueId);
     if (!ptr) return;
+
+    for (int i = 0; ptr->attachments[i].tag; i++)
+    {
+        ptr->attachments[i].tag = NULL;
+        ptr->attachments[i].name = NULL;
+        free((void*)ptr->attachments[i].tag);
+        free((void*)ptr->attachments[i].name);
+    }
 
     if (ptr->luaRef >= 0) engine.unref(ptr->luaRef);
     delete ptr;
