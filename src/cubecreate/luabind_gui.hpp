@@ -235,7 +235,7 @@ namespace lua_binds
              .call(2, 1);
             e.t_getraw("from_data").push_index(-2).push(nv).call(2, 1);
             int _tmpref = e.ref(); e.pop(2);
-            e.t_getraw("json").t_getraw("encode");
+            e.getg("json").t_getraw("encode");
             e.getref(_tmpref).call(1, 1);
             const char *nav = e.get<const char*>(-1);
             e.pop(2);

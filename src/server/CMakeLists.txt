@@ -4,26 +4,28 @@
 # this makes server binary.
 #
 
-# include vcpp, sdl headers
-if (WIN32 AND NOT MINGW)
-    include_directories(${PLATFORM_SDK_A}/Include)
-    include_directories(${PLATFORM_SDK_B}/Include)
-endif (WIN32 AND NOT MINGW)
-include_directories(${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
-if (NOT (WIN32 OR MINGW))
+# include headers of SDL, Lua, JSON
+include_directories(
+    ${SDL_INCLUDE_DIR}
+    ${SDLMIXER_INCLUDE_DIR}
+    ${SDLIMAGE_INCLUDE_DIR}
+    ${LUA_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/json
+)
+# include uuid on non-windows
+if (NOT WIN32)
     include_directories(${UUID_INCLUDE_DIRS})
-endif (NOT (WIN32 OR MINGW))
+endif (NOT WIN32)
 
 # for now, keep rtti / exceptions enabled, disable them later
 #add_definitions(-fno-exceptions -fno-rtti)
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux") # there is no LINUX variable declared
+# there is no LINUX variable declared
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    add_definitions (-fsigned-char)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-# include JSON.
-include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/json)
-# server def and executable build
+# set server sources, configure preprocessor
 add_definitions(-DSERVER)
 set(SERVER_SOURCES
     ../octaforge/of_tools
@@ -85,25 +87,28 @@ set(SERVER_LIBRARIES
     json_${OF_BUILD_SUFFIX}
 )
 
-if (NOT WIN32)
+# additional linking/compiling
+if (WIN32)
+    # this is for sdlmain
+    add_definitions(-DNO_STDIO_REDIRECT)
+    set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ws2_32 opengl32 winmm Rpcrt4)
+else (WIN32)
     set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ${UUID_LIBRARIES})
-endif (NOT WIN32)
-
-# additional libs on windows
-if (MINGW OR WIN32)
-    set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ws2_32 opengl32 winmm)
-    if (NOT MINGW)
-        set(SERVER_LIBRARIES ${SERVER_LIBRARIES} msvcrt)
-    endif (NOT MINGW)
-endif (MINGW OR WIN32)
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "BSD") # there is no BSD variable declared
-    set(SERVER_LIBRARIES ${SERVER_LIBRARIES} execinfo)
-endif (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
+    # there is no BSD variable declared
+    if (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
+        set(SERVER_LIBRARIES ${SERVER_LIBRARIES} execinfo)
+    endif (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
+endif (WIN32)
 
 # finally build and link executable
 add_executable(OF_Server_${OF_BUILD_SUFFIX} ${SERVER_SOURCES})
 target_link_libraries(OF_Server_${OF_BUILD_SUFFIX} ${SERVER_LIBRARIES})
-install(TARGETS OF_Server_${OF_BUILD_SUFFIX}
-        RUNTIME DESTINATION bin
-)
+if (WIN32)
+    install(TARGETS OF_Server_${OF_BUILD_SUFFIX}
+            RUNTIME DESTINATION bin_win
+    )
+else (WIN32)
+    install(TARGETS OF_Server_${OF_BUILD_SUFFIX}
+            RUNTIME DESTINATION bin_unix
+    )
+endif (WIN32)

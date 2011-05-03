@@ -1101,7 +1101,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     #ifndef _DEBUG
     #ifndef __GNUC__
-    __try {
+    //__try { Currently broken thanks to syntensity stuff
     #endif
     #endif
     #endif
@@ -1345,6 +1345,6 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     return EXIT_FAILURE;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
-    } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; }
+    //} __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; } Currently broken thanks to syntensity stuff
     #endif
 }

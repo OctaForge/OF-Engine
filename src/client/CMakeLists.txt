@@ -4,26 +4,28 @@
 # this makes client binary.
 #
 
-# include vcpp, sdl headers
-if (WIN32 AND NOT MINGW)
-    include_directories(${PLATFORM_SDK_A}/Include)
-    include_directories(${PLATFORM_SDK_B}/Include)
-endif (WIN32 AND NOT MINGW)
-include_directories(${SDL_INCLUDE_DIR} ${SDLMIXER_INCLUDE_DIR} ${SDLIMAGE_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
-if (NOT (WIN32 OR MINGW))
+# include headers of SDL, Lua, JSON
+include_directories(
+    ${SDL_INCLUDE_DIR}
+    ${SDLMIXER_INCLUDE_DIR}
+    ${SDLIMAGE_INCLUDE_DIR}
+    ${LUA_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/thirdparty/json
+)
+# include uuid on non-windows
+if (NOT WIN32)
     include_directories(${UUID_INCLUDE_DIRS})
-endif (NOT (WIN32 OR MINGW))
+endif (NOT WIN32)
 
 # for now, keep rtti / exceptions enabled, disable them later
 #add_definitions(-fno-exceptions -fno-rtti)
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux") # there is no LINUX variable declared
+# there is no LINUX variable declared
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    add_definitions (-fsigned-char)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-# include JSON.
-include_directories(${CMAKE_SOURCE_DIR}/src/thirdparty/json)
-# client def and executable build
+# set client sources, configure preprocessor
 add_definitions(-DCLIENT)
 set(CLIENT_SOURCES
     ../octaforge/of_tools
@@ -112,29 +114,32 @@ set(CLIENT_LIBRARIES
     json_${OF_BUILD_SUFFIX}
 )
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} rt)
-endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-if (NOT WIN32)
+# additional linking/compiling
+if (WIN32)
+    # this is for sdlmain
+    add_definitions(-DNO_STDIO_REDIRECT)
+    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} opengl32 glu32 ws2_32 winmm Rpcrt4)
+else (WIN32)
     set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} ${UUID_LIBRARIES})
-endif (NOT WIN32)
-
-# additional libs on windows
-if (MINGW OR WIN32)
-    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} opengl32 glu32 ws2_32 winmm)
-    if (NOT MINGW)
-        set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} msvcrt user32 imagehlp)
-    endif (NOT MINGW)
-endif (MINGW OR WIN32)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "BSD") # there is no BSD variable declared
-    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} execinfo)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "BSD")
+    # under Linux, link client to rt, too
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} rt)
+    endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # there is no BSD variable declared
+    if (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
+        set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} execinfo)
+    endif (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
+endif (WIN32)
 
 # finally build and link executable
 add_executable(OF_Client_${OF_BUILD_SUFFIX} ${CLIENT_SOURCES})
 target_link_libraries(OF_Client_${OF_BUILD_SUFFIX} ${CLIENT_LIBRARIES})
-install(TARGETS OF_Client_${OF_BUILD_SUFFIX}
-        RUNTIME DESTINATION bin
-)
+if (WIN32)
+    install(TARGETS OF_Client_${OF_BUILD_SUFFIX}
+            RUNTIME DESTINATION bin_win
+    )
+else (WIN32)
+    install(TARGETS OF_Client_${OF_BUILD_SUFFIX}
+            RUNTIME DESTINATION bin_unix
+    )
+endif (WIN32)

@@ -21,7 +21,7 @@ function myplayer:client_act(sec)
     self.__base.client_act(self, sec)
     -- Loop just until radius reaches 60, so it doesn't take too long.
     -- Make bigger for bigger circles
-    if self.circle_rad <= 0 then
+    if self.circle_rad <= 60 then
         -- The X position. Cosine calculation
         self.position.x = (math.cos(math.rad(self.angle)) * self.circle_rad) + 150
         -- The Y position. Sine calculation

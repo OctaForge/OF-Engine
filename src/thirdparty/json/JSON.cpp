@@ -1,19 +1,18 @@
 /*
- * JSON.cpp
- * Copyright (C) 2010 Mike Anchor <mikea@mjpa.co.uk>
- *
- * Part of the MJPA JSON Library - http://mjpa.co.uk/blog/view/A-simple-C-JSON-library/
- *
+ * File JSON.cpp part of the SimpleJSON Library - http://mjpa.in/json
+ * 
+ * Copyright (C) 2010 Mike Anchor
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,7 +49,7 @@ JSONValue *JSON::Parse(const char *data)
 	size_t length = strlen(data) + 1;
 	wchar_t *w_data = (wchar_t*)malloc(length * sizeof(wchar_t));
 	
-	#ifdef WIN32
+	#if defined(WIN32) && !defined(__GNUC__)
 		size_t ret_value = 0;
 		if (mbstowcs_s(&ret_value, w_data, length, data, length) != 0)
 		{
@@ -110,7 +109,7 @@ JSONValue *JSON::Parse(const wchar_t *data)
  *
  * @return std::wstring Returns a JSON encoded string representation of the given value
  */
-std::wstring JSON::Stringify(JSONValue *value)
+std::wstring JSON::Stringify(const JSONValue *value)
 {
 	if (value != NULL)
 		return value->Stringify();
@@ -254,12 +253,35 @@ bool JSON::ExtractString(const wchar_t **data, std::wstring &str)
  *
  * @param wchar_t** data Pointer to a wchar_t* that contains the JSON text
  *
- * @return int Returns the int value of the number found
+ * @return double Returns the double value of the number found
  */
-int JSON::ParseInt(const wchar_t **data)
+double JSON::ParseInt(const wchar_t **data)
 {
-	int integer = 0;
+	double integer = 0;
 	while (**data != 0 && **data >= '0' && **data <= '9')
 		integer = integer * 10 + (*(*data)++ - '0');
+	
 	return integer;
+}
+
+/** 
+ * Parses some text as though it is a decimal
+ *
+ * @access protected
+ *
+ * @param wchar_t** data Pointer to a wchar_t* that contains the JSON text
+ *
+ * @return double Returns the double value of the decimal found
+ */
+double JSON::ParseDecimal(const wchar_t **data)
+{
+	double decimal = 0.0;
+  double factor = 0.1;
+	while (**data != 0 && **data >= '0' && **data <= '9')
+  {
+    int digit = (*(*data)++ - '0');
+		decimal = decimal + digit * factor;
+    factor *= 0.1;
+  }
+	return decimal;
 }

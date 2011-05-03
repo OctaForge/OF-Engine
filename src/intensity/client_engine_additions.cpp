@@ -375,12 +375,7 @@ void addHoverLight()
 
     vec color;
 
-    if (!TargetingControl::targetLogicEntity)
-    {
-        Logging::log(Logging::WARNING, "targetLogicEntity is NULL\r\n");
-        return;
-    }
-
+    if (!TargetingControl::targetLogicEntity) return;
     switch (TargetingControl::targetLogicEntity->getType())
     {
         case CLogicEntity::LE_DYNAMIC: color = vec(0.25f, 1.0f, 0.25f);  break;

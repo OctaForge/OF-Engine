@@ -1,19 +1,18 @@
 /*
- * JSONValue.cpp
- * Copyright (C) 2010 Mike Anchor <mikea@mjpa.co.uk>
- *
- * Part of the MJPA JSON Library - http://mjpa.co.uk/blog/view/A-simple-C-JSON-library/
- *
+ * File JSONValue.cpp part of the SimpleJSON Library - http://mjpa.in/json
+ * 
+ * Copyright (C) 2010 Mike Anchor
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,9 +36,6 @@
 // Macros to free an array/object
 #define FREE_ARRAY(x) { JSONArray::iterator iter; for (iter = x.begin(); iter != x.end(); iter++) { delete *iter; } }
 #define FREE_OBJECT(x) { JSONObject::iterator iter; for (iter = x.begin(); iter != x.end(); iter++) { delete (*iter).second; } }
-
-// max indent indent for writer
-static int maxindent = 0;
 
 /**
  * Parses a JSON encoded value to a JSONValue object
@@ -90,7 +86,7 @@ JSONValue *JSONValue::Parse(const wchar_t **data)
 		if (**data == L'0')
 			(*data)++;
 		else if (**data >= L'1' && **data <= L'9')
-			number = (double)JSON::ParseInt(data);
+			number = JSON::ParseInt(data);
 		else
 			return NULL;
 		
@@ -104,9 +100,10 @@ JSONValue *JSONValue::Parse(const wchar_t **data)
 				return NULL;
 			
 			// Find the decimal and sort the decimal place out
-			double decimal = (double)JSON::ParseInt(data);
-			while((int)decimal > 0) decimal /= 10.0f;
-
+			// Use ParseDecimal as ParseInt won't work with decimals less than 0.1
+			// thanks to Javier Abadia for the report & fix
+			double decimal = JSON::ParseDecimal(data);
+			
 			// Save the number
 			number += decimal;
 		}
@@ -129,9 +126,9 @@ JSONValue *JSONValue::Parse(const wchar_t **data)
 				return NULL;
 
 			// Sort the expo out
-			int expo = JSON::ParseInt(data);
-			for (int i = 0; i < expo; i++)
-				number = neg_expo ? (number / 10.0) : (number * 10);
+			double expo = JSON::ParseInt(data);
+			for (double i = 0.0; i < expo; i++)
+				number = neg_expo ? (number / 10.0) : (number * 10.0);
 		}
 
 		// Was it neg?
@@ -334,7 +331,7 @@ JSONValue::JSONValue(const wchar_t *m_char_value)
  *
  * @param std::wstring m_string_value The string to use as the value
  */
-JSONValue::JSONValue(std::wstring m_string_value)
+JSONValue::JSONValue(const std::wstring &m_string_value)
 {
 	type = JSONType_String;
 	string_value = m_string_value;
@@ -373,7 +370,7 @@ JSONValue::JSONValue(double m_number_value)
  *
  * @param JSONArray m_array_value The JSONArray to use as the value
  */
-JSONValue::JSONValue(JSONArray m_array_value)
+JSONValue::JSONValue(const JSONArray &m_array_value)
 {
 	type = JSONType_Array;
 	array_value = m_array_value;
@@ -386,7 +383,7 @@ JSONValue::JSONValue(JSONArray m_array_value)
  *
  * @param JSONObject m_object_value The JSONObject to use as the value
  */
-JSONValue::JSONValue(JSONObject m_object_value)
+JSONValue::JSONValue(const JSONObject &m_object_value)
 {
 	type = JSONType_Object;
 	object_value = m_object_value;
@@ -423,7 +420,7 @@ JSONValue::~JSONValue()
  *
  * @return bool Returns true if it is a NULL value, false otherwise
  */
-bool JSONValue::IsNull()
+bool JSONValue::IsNull() const
 {
 	return type == JSONType_Null;
 }
@@ -435,7 +432,7 @@ bool JSONValue::IsNull()
  *
  * @return bool Returns true if it is a String value, false otherwise
  */
-bool JSONValue::IsString()
+bool JSONValue::IsString() const
 {
 	return type == JSONType_String;
 }
@@ -447,7 +444,7 @@ bool JSONValue::IsString()
  *
  * @return bool Returns true if it is a Bool value, false otherwise
  */
-bool JSONValue::IsBool()
+bool JSONValue::IsBool() const
 {
 	return type == JSONType_Bool;
 }
@@ -459,7 +456,7 @@ bool JSONValue::IsBool()
  *
  * @return bool Returns true if it is a Number value, false otherwise
  */
-bool JSONValue::IsNumber()
+bool JSONValue::IsNumber() const
 {
 	return type == JSONType_Number;
 }
@@ -471,7 +468,7 @@ bool JSONValue::IsNumber()
  *
  * @return bool Returns true if it is an Array value, false otherwise
  */
-bool JSONValue::IsArray()
+bool JSONValue::IsArray() const
 {
 	return type == JSONType_Array;
 }
@@ -483,7 +480,7 @@ bool JSONValue::IsArray()
  *
  * @return bool Returns true if it is an Object value, false otherwise
  */
-bool JSONValue::IsObject()
+bool JSONValue::IsObject() const
 {
 	return type == JSONType_Object;
 }
@@ -496,7 +493,7 @@ bool JSONValue::IsObject()
  *
  * @return std::wstring Returns the string value
  */
-std::wstring JSONValue::AsString()
+const std::wstring &JSONValue::AsString() const
 {
 	return string_value;
 }
@@ -509,7 +506,7 @@ std::wstring JSONValue::AsString()
  *
  * @return bool Returns the bool value
  */
-bool JSONValue::AsBool()
+bool JSONValue::AsBool() const
 {
 	return bool_value;
 }
@@ -522,7 +519,7 @@ bool JSONValue::AsBool()
  *
  * @return double Returns the number value
  */
-double JSONValue::AsNumber()
+double JSONValue::AsNumber() const
 {
 	return number_value;
 }
@@ -535,7 +532,7 @@ double JSONValue::AsNumber()
  *
  * @return JSONArray Returns the array value
  */
-JSONArray JSONValue::AsArray()
+const JSONArray &JSONValue::AsArray() const
 {
 	return array_value;
 }
@@ -548,7 +545,7 @@ JSONArray JSONValue::AsArray()
  *
  * @return JSONObject Returns the object value
  */
-JSONObject JSONValue::AsObject()
+const JSONObject &JSONValue::AsObject() const
 {
 	return object_value;
 }
@@ -560,7 +557,7 @@ JSONObject JSONValue::AsObject()
  *
  * @return std::wstring Returns the JSON string
  */
-std::wstring JSONValue::Stringify()
+std::wstring JSONValue::Stringify() const
 {
 	std::wstring ret_string;
 	
@@ -593,54 +590,34 @@ std::wstring JSONValue::Stringify()
 		
 		case JSONType_Array:
 		{
-			ret_string = L"[ ";
-			JSONArray::iterator iter = array_value.begin();
+			ret_string = L"[";
+			JSONArray::const_iterator iter = array_value.begin();
 			while (iter != array_value.end())
 			{
 				ret_string += (*iter)->Stringify();
 				
 				// Not at the end - add a separator
 				if (++iter != array_value.end())
-					ret_string += L", ";
+					ret_string += L",";
 			}
-			ret_string += L" ]";
+			ret_string += L"]";
 			break;
 		}
 		
 		case JSONType_Object:
 		{
-			int indent = 0;
-			ret_string = L"{\n";
-			// here comes the indent getter - finally we'll get maximum indent level we can use
-			JSONObject obj = object_value;
-			JSONObject::iterator liter = obj.begin(); // we first set up iterator through object map
-			while (liter != obj.end()) // let it loop till it reaches end of object map
-			{
-				if (liter->second->IsObject()) // if we find object in the map,
-				{
-					obj = liter->second->AsObject(); // replace original obj with new object
-					liter = obj.begin(); // and reset iterator, make it use the newly found object
-					indent++; // since we found object, we must increase indent level
-				};
-				++liter; // go to next pair
-			}
-			// if newly found indent level is bigger than previous maximum indent, update the max indent
-			if (indent > maxindent) maxindent = indent;
-			JSONObject::iterator iter = object_value.begin();
+			ret_string = L"{";
+			JSONObject::const_iterator iter = object_value.begin();
 			while (iter != object_value.end())
 			{
-				// because we don't want to add smaller indent when it's deeper, we must do maxindent - indent
-				for (int i = 0; i <= (maxindent - indent); i++) ret_string += L"\t";
-				ret_string += StringifyString(iter->first);
-				ret_string += L" : ";
-				ret_string += iter->second->Stringify();
+				ret_string += StringifyString((*iter).first);
+				ret_string += L":";
+				ret_string += (*iter).second->Stringify();
 				
 				// Not at the end - add a separator
 				if (++iter != object_value.end())
-					ret_string += L",\n";
+					ret_string += L",";
 			}
-			ret_string += L"\n";
-			for (int i = 0; i < (maxindent - indent); i++) ret_string += L"\t";
 			ret_string += L"}";
 			break;
 		}
@@ -660,11 +637,11 @@ std::wstring JSONValue::Stringify()
  *
  * @return std::wstring Returns the JSON string
  */
-std::wstring JSONValue::StringifyString(std::wstring str)
+std::wstring JSONValue::StringifyString(const std::wstring &str)
 {
 	std::wstring str_out = L"\"";
 	
-	std::wstring::iterator iter = str.begin();
+	std::wstring::const_iterator iter = str.begin();
 	while (iter != str.end())
 	{
 		wchar_t chr = *iter;

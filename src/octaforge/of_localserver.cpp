@@ -61,12 +61,6 @@ int num_trials         = 0;
 bool server_ready     = false;
 bool server_started   = false;
 
-#ifdef WIN32
-#define PDIV "\\"
-#else
-#define PDIV "/"
-#endif
-
 /* Return true if local server is running, false otherwise. */
 bool of_localserver_get_running() { return server_ready; }
 
@@ -118,11 +112,11 @@ void of_localserver_run(const char *map)
     /* Platform specific, so ifdef it. And open the process stream. */
     snprintf(
         localserver_buf, sizeof(localserver_buf),
-        "%s -q%s -g%s -mbase/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >%s/%s 2>&1",
+        "%s -q%s -g%s -mbase/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
 #ifdef WIN32
-        "intensity_server.bat",
+        "run_server.bat",
 #else
-        "exec ./intensity_server.sh",
+        "exec ./run_server.sh",
 #endif
         homedir, Logging::levelNames[Logging::currLevel].c_str(), map, homedir, SERVER_LOGFILE
     );

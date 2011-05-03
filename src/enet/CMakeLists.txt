@@ -5,10 +5,6 @@
 #
 
 # includes.
-if (WIN32 AND NOT MINGW)
-    include_directories(${PLATFORM_SDK_A}/Include)
-    include_directories(${PLATFORM_SDK_B}/Include)
-endif (WIN32 AND NOT MINGW)
 include_directories(include)
 
 # a cpp flag for enet.
@@ -26,9 +22,4 @@ add_library(enet_${OF_BUILD_SUFFIX}
             protocol.c
             unix.c
             win32.c
-)
-
-install(TARGETS enet_${OF_BUILD_SUFFIX}
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
 )
