@@ -1,1 +1,2 @@
 - 24 April 2011 - 0.1 Alpha
+- 03 May 2011 - 0.1.1 Alpha 2
