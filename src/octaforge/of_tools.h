@@ -42,5 +42,7 @@ bool  of_tools_is_file_newer_than(const char *file, const char *otherfile);
 bool  of_tools_file_copy(const char *src, const char *dest);
 bool  of_tools_createpath(const char *path);
 char *of_tools_loadfile_safe(const char *fname);
+void  of_tools_writecfg(const char *name = NULL);
+bool  of_tools_execcfg(const char *cfgfile);
 
 #endif

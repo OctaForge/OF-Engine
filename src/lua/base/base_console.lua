@@ -178,21 +178,6 @@ history = CAPI.history
 -- @name onrelease
 onrelease = CAPI.onrelease
 
---- Complete a filename
--- @class function
--- @name complete
--- @param command The command to complete
--- @param dir The directory to look in
--- @param ext The extension of the file
-complete = CAPI.complete
-
---- Complete using a list
--- @class function
--- @name listcomplete
--- @param command The command to complete
--- @param list The list to look commands up in (format unknown)
-listcomplete = CAPI.listcomplete
-
 --- Map a keycode to a key
 -- @class function
 -- @name keymap

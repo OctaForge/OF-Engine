@@ -6,6 +6,7 @@
 #include "client_system.h" // INTENSITY
 #include "intensity_gui.h" // INTENSITY
 #include "of_localserver.h"
+#include "of_tools.h"
 
 extern void cleargamma();
 
@@ -41,7 +42,7 @@ void force_quit() // INTENSITY - change quit to force_quit
     abortconnect();
     disconnect();
     localdisconnect();
-    Utility::writecfg();
+    of_tools_writecfg();
     cleanup();
 
     SystemManager::quit(); // INTENSITY
@@ -106,70 +107,23 @@ bool initwarning(const char *desc, int level, int type)
 void writeinitcfg()
 {
     if(!restoredinits) return;
-    JSONObject root;
-    stream *f = openfile(path("init.json", true), "w");
+    stream *f = openfile("init.lua", "w");
     if(!f) return;
-
-    root[L"fullscreen"] = new JSONValue((double)GETIV(fullscreen));
-    root[L"scr_w"] = new JSONValue((double)GETIV(scr_w));
-    root[L"scr_h"] = new JSONValue((double)GETIV(scr_h));
-    root[L"colorbits"] = new JSONValue((double)GETIV(colorbits));
-    root[L"depthbits"] = new JSONValue((double)GETIV(depthbits));
-    root[L"stencilbits"] = new JSONValue((double)GETIV(stencilbits));
-    root[L"fsaa"] = new JSONValue((double)GETIV(fsaa));
-    root[L"vsync"] = new JSONValue((double)GETIV(vsync));
-    root[L"shaders"] = new JSONValue((double)GETIV(shaders));
-    root[L"shaderprecision"] = new JSONValue((double)GETIV(shaderprecision));
-    root[L"soundchans"] = new JSONValue((double)GETIV(soundchans));
-    root[L"soundfreq"] = new JSONValue((double)GETIV(soundfreq));
-    root[L"soundbufferlen"] = new JSONValue((double)GETIV(soundbufferlen));
-
-    JSONValue *value = new JSONValue(root);
-    f->printf("%ls", value->Stringify().c_str());
-    delete value;
+    f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
+    f->printf("fullscreen = %d\n", GETIV(fullscreen));
+    f->printf("scr_w = %d\n", GETIV(scr_w));
+    f->printf("scr_h = %d\n", GETIV(scr_h));
+    f->printf("colorbits = %d\n", GETIV(colorbits));
+    f->printf("depthbits = %d\n", GETIV(depthbits));
+    f->printf("stencilbits = %d\n", GETIV(stencilbits));
+    f->printf("fsaa = %d\n", GETIV(fsaa));
+    f->printf("vsync = %d\n", GETIV(vsync));
+    f->printf("shaders = %d\n", GETIV(shaders));
+    f->printf("shaderprecision = %d\n", GETIV(shaderprecision));
+    f->printf("soundchans = %d\n", GETIV(soundchans));
+    f->printf("soundfreq = %d\n", GETIV(soundfreq));
+    f->printf("soundbufferlen = %d\n", GETIV(soundbufferlen));
     delete f;
-}
-
-bool execinitcfg(const char *cfgfile, bool msg)
-{
-    string s;
-    copystring(s, cfgfile);
-    char *buf = loadfile(path(s), NULL);
-    if(!buf)
-    {
-        if(msg) conoutf(CON_ERROR, "could not read \"%s\"", s);
-        return false;
-    }
-    // let's parse!
-    JSONValue *value = JSON::Parse(buf);
-    // we can delete buf now. It's all safely stored in JSONValue.
-    delete[] buf;
-
-    if (value == NULL)
-    {
-        if(msg) conoutf(CON_ERROR, "could not load \"%s\"", s);
-        return false;
-    }
-    else
-    {
-        JSONObject root;
-        if (value->IsObject() == false)
-        {
-            if(msg) conoutf(CON_ERROR, "could not load JSON root object.");
-            return false;
-        }
-        else
-        {
-            root = value->AsObject();
-            for (JSONObject::const_iterator iter = root.begin(); iter != root.end(); ++iter)
-            {
-                defformatstring(cmd)("%s = %i", fromwstring(iter->first).c_str(), (int)iter->second->AsNumber());
-                lua::engine.exec(cmd);
-            }
-        }
-    }
-    delete value;
-    return true;
 }
 
 static void getbackgroundres(int &w, int &h)
@@ -1117,6 +1071,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     initing = INIT_RESET;
 
     char *loglevel = (char*)"WARNING";
+    const char *initcfg = NULL;
     for(int i = 1; i<argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
@@ -1134,7 +1089,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
                 break;
             }
             case 'g': logoutf("Setting logging level", &argv[i][2]); loglevel = &argv[i][2]; break;
-            case 'r': execinitcfg(argv[i][2] ? &argv[i][2] : "init.json", false); restoredinits = true; break;
+            case 'r': initcfg = argv[i][2] ? &argv[i][2] : "init.lua"; restoredinits = true; break;
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': SETV(scr_w, clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW)); if(!findarg(argc, argv, "-h")) SETV(scr_h, -1); break;
             case 'h': SETV(scr_h, clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH)); if(!findarg(argc, argv, "-w")) SETV(scr_w, -1); break;
@@ -1164,14 +1119,15 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
         }
         else gameargs.add(argv[i]);
     }
-    initing = NOT_INITING;
-
     /* Initialize logging at first, right after that lua. */
     Logging::init(loglevel);
 
     initlog("lua");
     lua::engine.create();
     if (!lua::engine.hashandle()) fatal("cannot initialize lua script engine");
+    if (restoredinits) of_tools_execcfg(initcfg);
+
+    initing = NOT_INITING;
 
     if(dedicated <= 1)
     {
@@ -1252,10 +1208,10 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
     var::persistvars = true;
     
     initing = INIT_LOAD;
-    if(!Utility::config_exec_json(game::savedconfig(), false)) 
+    if(!of_tools_execcfg(game::savedconfig())) 
     {
         lua::engine.execf(game::defaultconfig());
-        Utility::writecfg(game::restoreconfig());
+        of_tools_writecfg(game::restoreconfig());
     }
     lua::engine.execf("data/cfg/config.lua");
     lua::engine.execf(game::autoexec(), false);

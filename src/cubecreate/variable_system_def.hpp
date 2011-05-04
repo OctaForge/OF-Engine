@@ -503,7 +503,7 @@ VAR(updatemaster, 0, 1, 1); // globalname was allowupdatemaster
 SVARF(mastername, server::defaultmaster(), disconnectmaster);
 VAR(serveruprate, 0, 0, INT_MAX);
 SVAR(serverip, "");
-VARFP(serverport, 0, server::serverport(), 0xFFFF, serverport); // not hex var
+VARFP(serverport, -1, server::serverport(), 0xFFFF, serverport); // not hex var
 
 #ifdef CLIENT
 // engine/shader.cpp

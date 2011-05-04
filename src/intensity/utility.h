@@ -18,11 +18,6 @@ struct Utility
     //! Convert to std::string
     static std::string toString(double      val);
 
-    //! execute the json cfg file
-    static bool config_exec_json(const char *cfgfile, bool msg);
-    //! write json cfg file
-    static void writecfg(const char *name = NULL);
-
     //! System information
 
     struct SystemInfo

@@ -58,8 +58,6 @@
 
 #include <zlib.h>
 
-#include "JSON.h" // CubeCreate: let's do some JSON with new parser =)
-
 #ifdef __sun__
 #undef sun
 #undef MAXNAMELEN

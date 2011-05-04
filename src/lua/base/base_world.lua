@@ -965,8 +965,6 @@ function passthrough(a)
     end
 end
 
-CAPI.listcomplete("editmat", "air water clip glass noclip lava gameclip death alpha")
-
 function air() editmat("air") end
 function water() editmat("water") end
 function clip() editmat("clip") end

@@ -709,8 +709,8 @@ namespace game
 
     const char *gameident() { return "fps"; }
     const char *defaultmap() { return "login"; }
-    const char *savedconfig() { return "config.json"; }
-    const char *restoreconfig() { return "restore.json"; }
+    const char *savedconfig() { return "config.lua"; }
+    const char *restoreconfig() { return "restore.lua"; }
     const char *defaultconfig() { return "data/cfg/defaults.lua"; }
     const char *autoexec() { return "autoexec.lua"; }
     const char *savedservers() { return NULL; } //"servers.cfg"; }

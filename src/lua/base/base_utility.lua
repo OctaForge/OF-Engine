@@ -248,13 +248,6 @@ getmillis = CAPI.getmillis
 -- @name tabify
 tabify = CAPI.tabify
 
---- Execute a config file.
--- @param cfg The config file to exec.
--- @param msg If true, it'll print errors on console.
--- @class function
--- @name execcfg
-execcfg = CAPI.execcfg
-
 --- Write a config file.
 -- @param cfg The config file to write.
 -- @class function

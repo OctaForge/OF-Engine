@@ -4,13 +4,12 @@
 # this makes client binary.
 #
 
-# include headers of SDL, Lua, JSON
+# include headers of SDL, Lua
 include_directories(
     ${SDL_INCLUDE_DIR}
     ${SDLMIXER_INCLUDE_DIR}
     ${SDLIMAGE_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/thirdparty/json
 )
 # include uuid on non-windows
 if (NOT WIN32)
@@ -111,7 +110,6 @@ set(CLIENT_LIBRARIES
     ${OPENGL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${UTIL}
-    json_${OF_BUILD_SUFFIX}
 )
 
 # additional linking/compiling

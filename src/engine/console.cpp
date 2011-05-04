@@ -404,7 +404,6 @@ void consolekey(int code, bool isdown, int cooked)
                 int len = (int)strlen(commandbuf);
                 if(commandpos<0) break;
                 memmove(&commandbuf[commandpos], &commandbuf[commandpos+1], len - commandpos);
-                resetcomplete();
                 if(commandpos>=len-1) commandpos = -1;
                 break;
             }
@@ -414,7 +413,6 @@ void consolekey(int code, bool isdown, int cooked)
                 int len = (int)strlen(commandbuf), i = commandpos>=0 ? commandpos : len;
                 if(i<1) break;
                 memmove(&commandbuf[i-1], &commandbuf[i], len - i + 1);
-                resetcomplete();
                 if(commandpos>0) commandpos--;
                 else if(!commandpos && len<=1) commandpos = -1;
                 break;
@@ -438,20 +436,11 @@ void consolekey(int code, bool isdown, int cooked)
                 if(histpos + 1 < history.length()) history[++histpos]->restore();
                 break;
 
-            case SDLK_TAB:
-                if(!commandaction)
-                {
-                    complete(commandbuf);
-                    if(commandpos>=0 && commandpos>=(int)strlen(commandbuf)) commandpos = -1;
-                }
-                break;
-
             case SDLK_v:
                 if(SDL_GetModState()&MOD_KEYS) { pasteconsole(); return; }
                 // fall through
 
             default:
-                resetcomplete();
                 if(cooked)
                 {
                     size_t len = (int)strlen(commandbuf);
@@ -523,12 +512,10 @@ static int sortbinds(keym **x, keym **y)
     return strcmp((*x)->name, (*y)->name);
 }
 
-JSONObject writebinds()
+void writebinds(stream *f)
 {
-    static const char *cmds[3] = { "bind", "specbind", "editbind" };
+    static const char *cmds[3] = { "add", "addspec", "addedit" };
     vector<keym *> binds;
-    JSONObject bs;
-    JSONObject it;
     enumerate(keyms, keym, km, binds.add(&km));
     binds.sort(sortbinds);
     loopj(3)
@@ -536,232 +523,7 @@ JSONObject writebinds()
         loopv(binds)
         {
             keym &km = *binds[i];
-            if (*km.actions[j])
-            {
-                it[towstring(cmds[j])] = new JSONValue(towstring(km.actions[j]));
-                if (bs.find(towstring(km.name)) != bs.end() && bs[towstring(km.name)]->IsObject())
-                {
-                    JSONObject merge = bs[towstring(km.name)]->AsObject();
-                    for (JSONObject::const_iterator iter = merge.begin(); iter != merge.end(); ++iter)
-                        it[iter->first] = new JSONValue(iter->second->AsString());
-                    merge.clear();
-                }
-                bs[towstring(km.name)] = new JSONValue(it);
-                it.clear();
-            }
+            if(*km.actions[j]) f->printf("console.binds.%s(\"%s\", [[%s]])\n", cmds[j], km.name, km.actions[j]);
         }
     }
-    return bs;
 }
-
-// tab-completion of all idents and base maps
-
-enum { FILES_DIR = 0, FILES_LIST };
-
-struct fileskey
-{
-    int type;
-    const char *dir, *ext;
-
-    fileskey() {}
-    fileskey(int type, const char *dir, const char *ext) : type(type), dir(dir), ext(ext) {}
-};
-
-struct filesval
-{
-    int type;
-    char *dir, *ext;
-    vector<char *> files;
-    int millis;
-    
-    filesval(int type, const char *dir, const char *ext) : type(type), dir(newstring(dir)), ext(ext && ext[0] ? newstring(ext) : NULL), millis(-1) {}
-    ~filesval() { DELETEA(dir); DELETEA(ext); files.deletearrays(); }
-
-    static int comparefiles(char **x, char **y) { return strcmp(*x, *y); }
-
-    void update()
-    {
-        if(type!=FILES_DIR || millis >= commandmillis) return;
-        files.deletearrays();        
-        listfiles(dir, ext, files);
-        files.sort(comparefiles); 
-        loopv(files) if(i && !strcmp(files[i], files[i-1])) delete[] files.remove(i--);
-        millis = totalmillis;
-    }
-};
-
-static inline bool htcmp(const fileskey &x, const fileskey &y)
-{
-    return x.type==y.type && !strcmp(x.dir, y.dir) && (x.ext == y.ext || (x.ext && y.ext && !strcmp(x.ext, y.ext)));
-}
-
-static inline uint hthash(const fileskey &k)
-{
-    return hthash(k.dir);
-}
-
-static hashtable<fileskey, filesval *> completefiles;
-static hashtable<char *, filesval *> completions;
-
-int completesize = 0;
-string lastcomplete;
-
-void resetcomplete() { completesize = 0; }
-
-// TODO! COMPLETIONS
-void addcomplete(char *command, int type, char *dir, char *ext)
-{
-    /*if(var::overridevars)
-    {
-        conoutf(CON_ERROR, "cannot override complete %s", command);
-        return;
-    }
-    if(!dir[0])
-    {
-        filesval **hasfiles = completions.access(command);
-        if(hasfiles) *hasfiles = NULL;
-        return;
-    }
-    if(type==FILES_DIR)
-    {
-        int dirlen = (int)strlen(dir);
-        while(dirlen > 0 && (dir[dirlen-1] == '/' || dir[dirlen-1] == '\\'))
-            dir[--dirlen] = '\0';
-        if(ext)
-        {
-            if(strchr(ext, '*')) ext[0] = '\0';
-            if(!ext[0]) ext = NULL;
-        }
-    }
-    fileskey key(type, dir, ext);
-    filesval **val = completefiles.access(key);
-    if(!val)
-    {
-        filesval *f = new filesval(type, dir, ext);
-        if(type==FILES_LIST) explodelist(dir, f->files); 
-        val = &completefiles[fileskey(type, f->dir, f->ext)];
-        *val = f;
-    }
-    filesval **hasfiles = completions.access(command);
-    if(hasfiles) *hasfiles = *val;
-    else completions[newstring(command)] = *val;*/
-}
-
-void addfilecomplete(char *command, char *dir, char *ext)
-{
-    addcomplete(command, FILES_DIR, dir, ext);
-}
-
-void addlistcomplete(char *command, char *list)
-{
-    addcomplete(command, FILES_LIST, list, NULL);
-}
-
-void complete(char *s)
-{
-    /*if(*s!='/')
-    {
-        string t;
-        copystring(t, s);
-        copystring(s, "/");
-        concatstring(s, t);
-    }
-    if(!s[1]) return;
-    if(!completesize) { completesize = (int)strlen(s)-1; lastcomplete[0] = '\0'; }
-
-    filesval *f = NULL;
-    if(completesize)
-    {
-        char *end = strchr(s, ' ');
-        if(end)
-        {
-            string command;
-            copystring(command, s+1, min(size_t(end-s), sizeof(command)));
-            filesval **hasfiles = completions.access(command);
-            if(hasfiles) f = *hasfiles;
-        }
-    }
-
-    const char *nextcomplete = NULL;
-    string prefix;
-    copystring(prefix, "/");
-    if(f) // complete using filenames
-    {
-        int commandsize = strchr(s, ' ')+1-s;
-        copystring(prefix, s, min(size_t(commandsize+1), sizeof(prefix)));
-        f->update();
-        loopv(f->files)
-        {
-            if(strncmp(f->files[i], s+commandsize, completesize+1-commandsize)==0 &&
-               strcmp(f->files[i], lastcomplete) > 0 && (!nextcomplete || strcmp(f->files[i], nextcomplete) < 0))
-                nextcomplete = f->files[i];
-        }
-    }
-    else // complete using command names
-    {
-        enumerate(*idents, ident, id,
-            if(strncmp(id.name, s+1, completesize)==0 &&
-               strcmp(id.name, lastcomplete) > 0 && (!nextcomplete || strcmp(id.name, nextcomplete) < 0))
-                nextcomplete = id.name;
-        );
-    }
-    if(nextcomplete)
-    {
-        copystring(s, prefix);
-        concatstring(s, nextcomplete);
-        copystring(lastcomplete, nextcomplete);
-    }
-    else lastcomplete[0] = '\0';*/
-}
-
-static int sortcompletions(char **x, char **y)
-{
-    return strcmp(*x, *y);
-}
-
-JSONObject writecompletions()
-{
-    JSONObject cs;
-    JSONArray marr;
-    vector<char *> cmds;
-    enumeratekt(completions, char *, k, filesval *, v, { if(v) cmds.add(k); });
-    cmds.sort(sortcompletions);
-    loopv(cmds)
-    {
-        char *k = cmds[i];
-        filesval *v = completions[k];
-        if (v->type==FILES_LIST)
-        {
-            JSONArray arr;
-            std::string list(v->dir);
-            std::string el = list.substr(0, list.find(' '));
-            while (list.find(' ') != std::string::npos)
-            {
-                arr.push_back(new JSONValue(towstring(el)));
-                list = list.substr(list.find(' ') + 1, list.length());
-                el = list.substr(0, list.find(' '));
-                if (list.find(' ') == std::string::npos) arr.push_back(new JSONValue(towstring(el)));
-            }
-
-            marr.push_back(new JSONValue(towstring(k)));
-            marr.push_back(new JSONValue(arr));
-            cs[L"listcomplete"] = new JSONValue(marr);
-            arr.clear();
-            marr.clear();
-        }
-        else
-        {
-            std::string vs;
-            vs = v->dir;
-            marr.push_back(new JSONValue(towstring(k)));
-            marr.push_back(new JSONValue(towstring(vs)));
-            if (v->ext) vs = v->ext;
-            else vs = "*";
-            marr.push_back(new JSONValue(towstring(vs)));
-            cs[L"complete"] = new JSONValue(marr);
-            marr.clear();
-        }
-    }
-    return cs;
-}
-

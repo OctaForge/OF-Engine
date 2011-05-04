@@ -144,8 +144,7 @@ namespace var
         const char *aname,
         int val,
         bool reglua
-    ) : persistent(false),
-        hascb(false),
+    ) : hascb(false),
         name(aname),
         type(VAR_I),
         readonly(false),
@@ -153,6 +152,7 @@ namespace var
         overriden(false),
         alias(true)
     {
+        persistent = persistvars;
         vcb.i = NULL;
         minv.i = maxv.i = -1;
         curv.i = val; oldv.i = 0;
@@ -163,8 +163,7 @@ namespace var
         const char *aname,
         float val,
         bool reglua
-    ) : persistent(false),
-        hascb(false),
+    ) : hascb(false),
         name(aname),
         type(VAR_F),
         readonly(false),
@@ -172,6 +171,7 @@ namespace var
         overriden(false),
         alias(true)
     {
+        persistent = persistvars;
         vcb.f = NULL;
         minv.f = maxv.f = -1.0f;
         curv.f = val; oldv.f = 0.0f;
@@ -182,8 +182,7 @@ namespace var
         const char *aname,
         const char *val,
         bool reglua
-    ) : persistent(false),
-        hascb(false),
+    ) : hascb(false),
         name(aname),
         type(VAR_S),
         readonly(false),
@@ -191,6 +190,7 @@ namespace var
         overriden(false),
         alias(true)
     {
+        persistent = persistvars;
         vcb.s = NULL;
         curv.s = (val ? newstring(val) : NULL);
         oldv.s = NULL;

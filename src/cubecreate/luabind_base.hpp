@@ -42,8 +42,6 @@ void bindkey(char *key, char *action, int state, const char *cmd);
 void getbind(char *key, int type);
 void searchbinds(char *action, int type);
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL);
-void addfilecomplete(char *command, char *dir, char *ext);
-void addlistcomplete(char *command, char *list);
 void history_(int *n);
 void onrelease(char *s);
 void screenshot(char *filename);
@@ -111,8 +109,7 @@ namespace lua_binds
         scorebshow(on);
     })
     LUA_BIND_STD_CLIENT(tabify, tabify, e.get<char*>(1), e.get<int*>(2))
-    LUA_BIND_STD(execcfg, Utility::config_exec_json, e.get<const char*>(1), e.get<bool>(2))
-    LUA_BIND_STD(writecfg, Utility::writecfg, e.get<const char*>(1))
+    LUA_BIND_STD(writecfg, of_tools_writecfg, e.get<const char*>(1))
     LUA_BIND_DEF(readfile, {
         const char *text = of_tools_loadfile_safe(e.get<const char*>(1));
         if (!text)
@@ -270,6 +267,4 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(inputcommand, inputcommand, e.get<char*>(1), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(onrelease, onrelease, e.get<char*>(1))
-    LUA_BIND_STD_CLIENT(complete, addfilecomplete, e.get<char*>(1), e.get<char*>(2), e.get<char*>(3))
-    LUA_BIND_STD_CLIENT(listcomplete, addlistcomplete, e.get<char*>(1), e.get<char*>(2))
 }

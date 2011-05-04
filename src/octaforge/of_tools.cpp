@@ -32,6 +32,7 @@
 #include "of_world.h"
 #include <sys/stat.h>
 
+void writebinds(stream *f);
 extern string homedir;
 
 bool of_tools_validate_alphanumeric(const char *str, const char *allow)
@@ -204,4 +205,92 @@ char *of_tools_loadfile_safe(const char *fname)
         return NULL;
     }
     return loaded;
+}
+
+static int sortvars(var::cvar **x, var::cvar **y)
+{
+    return strcmp((*x)->gn(), (*y)->gn());
+}
+
+void of_tools_writecfg(const char *name)
+{
+    stream *f = openfile(path(name && name[0] ? name : game::savedconfig(), true), "w");
+    if(!f) return;
+
+    f->printf("-- automatically written on exit, DO NOT MODIFY\n");
+    f->printf("-- delete this file to have %s overwrite these settings\n", game::defaultconfig());
+    f->printf("-- modify settings in game, or put settings in %s to override anything\n\n", game::autoexec());
+    f->printf("-- engine variables\n");
+    vector<var::cvar*> varv;
+
+    enumerate(*var::vars, var::cvar*, v, varv.add(v));
+    varv.sort(sortvars);
+    loopv(varv)
+    {
+        var::cvar *v = varv[i];
+        if (v->ispersistent()) switch(v->gt())
+        {
+            case var::VAR_I: f->printf("%s = %d\n", v->gn(), v->gi()); break;
+            case var::VAR_F: f->printf("%s = %f\n", v->gn(), v->gf()); break;
+            case var::VAR_S:
+            {
+                f->printf("%s = \"", v->gn());
+                const char *s = v->gs();
+                for(; *s; s++) switch(*s)
+                {
+                    case '\n': f->write("^n", 2); break;
+                    case '\t': f->write("^t", 2); break;
+                    case '\f': f->write("^f", 2); break;
+                    case '"': f->write("^\"", 2); break;
+                    default: f->putchar(*s); break;
+                }
+                f->printf("\"\n");
+                break;
+            }
+        }
+    }
+    f->printf("\n");
+    f->printf("-- binds\n");
+    writebinds(f);
+    f->printf("\n");
+
+    f->printf("-- aliases\n");
+    loopv(varv)
+    {
+        var::cvar *v = varv[i];
+        if (v->isalias() && v->ispersistent() && !v->isoverriden()) switch (v->gt())
+        {
+            case var::VAR_I: f->printf("engine.newvar(\"%s\", engine_variables.VAR_I, %d)\n", v->gn(), v->gi()); break;
+            case var::VAR_F: f->printf("engine.newvar(\"%s\", engine_variables.VAR_F, %f)\n", v->gn(), v->gf()); break;
+            case var::VAR_S:
+            {
+                if (strstr(v->gn(), "new_entity_gui_field")) continue;
+                f->printf("engine.newvar(\"%s, engine_variables.VAR_S, \"", v->gn());
+                const char *s = v->gs();
+                for(; *s; s++) switch(*s)
+                {
+                    case '\n': f->write("^n", 2); break;
+                    case '\t': f->write("^t", 2); break;
+                    case '\f': f->write("^f", 2); break;
+                    case '"': f->write("^\"", 2); break;
+                    default: f->putchar(*s); break;
+                }
+                f->printf("\")\n");
+                break;
+            }
+        }
+    }
+    f->printf("\n");
+    delete f;
+}
+
+bool of_tools_execcfg(const char *cfgfile)
+{
+    string s;
+    copystring(s, cfgfile);
+    char *buf = loadfile(path(s), NULL);
+    if(!buf) return false;
+    lua::engine.exec(buf);
+    delete[] buf;
+    return true;
 }
