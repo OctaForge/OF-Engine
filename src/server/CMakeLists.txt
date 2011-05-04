@@ -100,6 +100,11 @@ endif (WIN32)
 
 # finally build and link executable
 add_executable(OF_Server_${OF_BUILD_SUFFIX} ${SERVER_SOURCES})
+
+if (WIN32)
+    set_target_properties(OF_Server_${OF_BUILD_SUFFIX} PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++")
+endif (WIN32)
+
 target_link_libraries(OF_Server_${OF_BUILD_SUFFIX} ${SERVER_LIBRARIES})
 if (WIN32)
     install(TARGETS OF_Server_${OF_BUILD_SUFFIX}
