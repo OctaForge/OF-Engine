@@ -265,7 +265,7 @@ void of_tools_writecfg(const char *name)
             case var::VAR_S:
             {
                 if (strstr(v->gn(), "new_entity_gui_field")) continue;
-                f->printf("engine.newvar(\"%s, engine_variables.VAR_S, \"", v->gn());
+                f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->gn());
                 const char *s = v->gs();
                 for(; *s; s++) switch(*s)
                 {

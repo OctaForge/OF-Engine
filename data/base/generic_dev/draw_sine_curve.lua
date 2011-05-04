@@ -38,8 +38,8 @@ end
 -- Register our custom player entity class into storage
 entity_classes.reg(myplayer, "fpsent")
 
--- Notify the engine that we're overriding player by creating engine variable
-engine.newvar("player_class", engine.VAR_S, "myplayer")
+-- Notify the engine that we're overriding player by setting engine variable
+player_class = "myplayer"
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0

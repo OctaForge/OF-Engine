@@ -631,6 +631,7 @@ VARR(mapversion, 1, MAPVERSION, 0);
 VARR(mapscale, 1, 0, 0); // globalname was worldscale
 VARR(mapsize, 1, 0, 0); // globalname was worldsize
 SVARR(maptitle, "Untitled Map by Unknown");
+SVARR(player_class, "player");
 VAR(octaentsize, 0, 128, 1024);
 VAR(entselradius, 0, 2, 10);
 VARF(entediting, 0, 0, 1, entediting);

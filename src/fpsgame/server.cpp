@@ -765,12 +765,7 @@ namespace server
         }
 
         // Use the PC class, unless told otherwise
-        if (_class == "")
-        {
-            var::cvar *ev = var::get("player_class");
-            if (!ev) _class = "player";
-            else _class = ev->gs();
-        }
+        if (_class == "") _class = GETSV(player_class);
 
         Logging::log(Logging::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
 

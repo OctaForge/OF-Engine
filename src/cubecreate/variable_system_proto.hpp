@@ -963,6 +963,7 @@ DEFVAR(mapversion)
 DEFVAR(mapscale) // globalname was worldscale
 DEFVAR(mapsize) // globalname was worldsize
 DEFVAR(maptitle)
+DEFVAR(player_class)
 DEFVAR(octaentsize)
 DEFVAR(entselradius)
 DEFVAR(entediting)
