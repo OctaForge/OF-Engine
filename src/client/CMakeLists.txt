@@ -115,7 +115,7 @@ set(CLIENT_LIBRARIES
 if (WIN32)
     # this is for sdlmain
     add_definitions(-DNO_STDIO_REDIRECT)
-    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} opengl32 glu32 ws2_32 winmm Rpcrt4)
+    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} opengl32 glu32 ws2_32 winmm rpcrt4)
 else (WIN32)
     set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} ${UUID_LIBRARIES})
     # under Linux, link client to rt, too

@@ -496,7 +496,7 @@ glmatrixf fogmatrix;
 
 #ifdef WINDOWS
 // Need to create a 'stub' DLL, like with Linux, but for now try this FIXME
-#include "gl/GL.h"
+#include "GL/gl.h"
 #else // LINUX
 // OpenGL stubs - prevent the need to load OpenGL libs
 void glGenTextures(GLsizei n, GLuint *textures) { };

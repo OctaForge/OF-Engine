@@ -88,7 +88,7 @@ set(SERVER_LIBRARIES
 if (WIN32)
     # this is for sdlmain
     add_definitions(-DNO_STDIO_REDIRECT)
-    set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ws2_32 opengl32 winmm Rpcrt4)
+    set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ws2_32 opengl32 winmm rpcrt4)
 else (WIN32)
     set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ${UUID_LIBRARIES})
     # there is no BSD variable declared
