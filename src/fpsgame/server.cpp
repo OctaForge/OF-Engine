@@ -25,6 +25,7 @@
     #include "client_system.h"
 #endif
 #include "of_world.h"
+#include "of_tools.h"
 
 extern bool should_quit;
 
@@ -62,7 +63,7 @@ namespace server
     {
         int clientnum, overflow;
 
-        std::string username; // Kripken: DV username. Is "" when not logged in
+        char       *username; // Kripken: DV username. Is "" when not logged in
         int         uniqueId; // Kripken: Unique ID in the current module of this client
         bool        isAdmin; // Kripken: Whether we are admins of this map, and can edit it
 
@@ -78,7 +79,7 @@ namespace server
         //! The current scenario being run by the client
         bool runningCurrentScenario;
 
-        clientinfo() : clipboard(NULL) { reset(); }
+        clientinfo() : clipboard(NULL) { reset(); OF_FREE(username); }
         ~clientinfo() { cleanclipboard(); }
 
         void mapchange()
@@ -99,7 +100,7 @@ namespace server
 
         void reset()
         {
-            username = ""; // Kripken
+            username = strdup("");
             uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID - 5; // Kripken: Negative, and also different from dummy singleton
             isAdmin = false; // Kripken
 
@@ -148,11 +149,13 @@ namespace server
     }
 
     // Kripken: Conveniences
-    std::string& getUsername(int clientNumber)
+    char*& getUsername(int clientNumber)
     {
         clientinfo *ci = (clientinfo *)getinfo(clientNumber);
-        static std::string DUMMY = ""; // Need the dummy, because ci may be NULL - there are empty slots in server:clients
-        return (ci ? ci->username : DUMMY);
+        /* We can do this, because when something is modifying
+         * username using getUsername, original gets freed there */
+        char *dummy = strdup("");
+        return (ci ? ci->username : dummy);
     }
 
     int& getUniqueId(int clientNumber)
@@ -794,7 +797,8 @@ namespace server
         // Add nickname
         engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
         // got class here
-        engine.t_set("_name", getUsername(cn).c_str()).pop(2);
+        char *uname = getUsername(cn);
+        engine.t_set("_name", uname ? uname : "").pop(2);
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)

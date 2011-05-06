@@ -38,7 +38,6 @@ set(CLIENT_SOURCES
     ../intensity/logging
     ../intensity/message_system
     ../intensity/system_manager
-    ../intensity/utility
     ../intensity/client_system
     ../intensity/client_engine_additions
     ../intensity/intensity_physics

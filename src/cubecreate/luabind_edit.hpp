@@ -263,7 +263,7 @@ namespace lua_binds
     #endif
 
     LUA_BIND_CLIENT(save_mouse_pos, {
-        EditingSystem::savedMousePosTime = Utility::SystemInfo::currTime();
+        EditingSystem::savedMousePosTime = of_tools_getcurrtime();
         EditingSystem::savedMousePos = TargetingControl::worldPosition;
         Logging::log(Logging::DEBUG,
                      "Saved mouse pos: %f,%f,%f (%d)\r\n",

@@ -8,7 +8,7 @@
 
 #include "network_system.h"
 #include "fpsclient_interface.h"
-
+#include "of_tools.h"
 
 namespace NetworkSystem
 {
@@ -82,29 +82,6 @@ std::string briefSummary(float seconds)
 }
 
 }
-
-
-//==================
-// Benchmarker
-//==================
-
-namespace Benchmarker
-{
-
-void showOtherClients()
-{
-    printf("Network benchmarks for other clients:\r\n");
-
-    for (int i = 0; i < FPSClientInterface::getNumPlayers(); i++)
-    {
-        fpsent* player = dynamic_cast<fpsent*>(FPSClientInterface::getPlayerByNumber(i));
-        if (!player) continue; // There are empty spots
-        printf("   Ping-lag: %4d\r\n", player->plag);
-    }
-}
-
-}
-
 
 //==================
 // PositionUpdater
@@ -480,7 +457,7 @@ private:
 
     void updateReceiveStats()
     {
-        int currTime = Utility::SystemInfo::currTime();
+        int currTime = of_tools_getcurrtime();
         if (lastReceived != -1)
         {
             int currLatency = currTime - lastReceived;
@@ -536,7 +513,7 @@ private:
     //      If send, remember this last value and time
     #define PROCESSDATUM(name, indicator)                                 \
         {                                                                 \
-            int currTime = Utility::SystemInfo::currTime();               \
+            int currTime = of_tools_getcurrtime();                        \
             if (!indicator) return;                                       \
             bool sameValue = (info.name == last##name.value);             \
             indicator = positionDatumDecider(                             \

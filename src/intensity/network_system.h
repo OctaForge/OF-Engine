@@ -21,12 +21,6 @@ namespace NetworkSystem
         std::string briefSummary(float seconds);
     }
 
-    namespace Benchmarker
-    {
-        //! Show the pingjump (the lag between position updates from other clients)
-        void showOtherClients();
-    }
-
     namespace PositionUpdater
     {
         //! A non-optimized storage structure for a position update; in convenient

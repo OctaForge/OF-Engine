@@ -23,6 +23,7 @@
 #include "editing_system.h"
 #include "world_system.h"
 #include "of_world.h"
+#include "of_tools.h"
 
 using namespace lua;
 
@@ -153,7 +154,9 @@ namespace MessageSystem
                 force_network_flush();
                 disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
             }
-            FPSServerInterface::getUsername(sender) = "local_editor";
+            char *uname = FPSServerInterface::getUsername(sender);
+            if (uname) OF_FREE(uname);
+            uname = strdup("local_editor");
             server::setAdmin(sender, true);
             send_LoginResponse(sender, true, true);
         #else // CLIENT, during a localconnect

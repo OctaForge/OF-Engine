@@ -250,12 +250,14 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            engine.exec(
-                "entity_store.get(" + Utility::toString(d->uniqueId) + ").position = {" +
-                "entity_store.get(" + Utility::toString(d->uniqueId) + ").position.x," +
-                "entity_store.get(" + Utility::toString(d->uniqueId) + ").position.y," +
-                "entity_store.get(" + Utility::toString(d->uniqueId) + ").position.z}"
+            char *cmd = of_tools_vstrcat(NULL, "sis sis sis sis",
+                "entity_store.get(", d->uniqueId, ").position = {",
+                "entity_store.get(", d->uniqueId, ").position.x,",
+                "entity_store.get(", d->uniqueId, ").position.y,",
+                "entity_store.get(", d->uniqueId, ").position.z}"
             );
+            engine.exec(cmd);
+            OF_FREE(cmd);
 #endif
         }
     }

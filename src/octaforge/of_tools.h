@@ -32,9 +32,10 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define OF_NEW(o) calloc(1, sizeof(o))
-#define OF_FREE(o) o = NULL; free(o)
+#define OF_FREE(o) free(o); o = NULL
 
 bool  of_tools_validate_alphanumeric(const char *str, const char *allow);
 bool  of_tools_validate_relpath(const char *path);
@@ -44,5 +45,7 @@ bool  of_tools_createpath(const char *path);
 char *of_tools_loadfile_safe(const char *fname);
 void  of_tools_writecfg(const char *name = NULL);
 bool  of_tools_execcfg(const char *cfgfile);
+char *of_tools_vstrcat(char *str, const char *format, ...);
+int   of_tools_getcurrtime();
 
 #endif

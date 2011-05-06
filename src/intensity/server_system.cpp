@@ -11,6 +11,7 @@
 #include "world_system.h"
 #include "editing_system.h"
 #include "of_world.h"
+#include "of_tools.h"
 
 #define SERVER_UPDATE_INTERVAL 300
 
@@ -123,7 +124,9 @@ bool ServerSystem::isRunningMap()
 
 void update_username(int clientNumber, std::string username)
 {
-    FPSServerInterface::getUsername(clientNumber) = username; // Signals that this client is logged in TODO: Nicer
+    char *uname = FPSServerInterface::getUsername(clientNumber);
+    if (uname) OF_FREE(uname);
+    uname = strdup(username.c_str()); // Signals that this client is logged in TODO: Nicer
 }
 
 void create_lua_entities()

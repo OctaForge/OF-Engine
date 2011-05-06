@@ -76,7 +76,6 @@ const LE_reg CAPI[] = {
     LUAREG(history),
     LUAREG(onrelease),
     LUAREG(unreglogent),
-    LUAREG(placeinworld),
     LUAREG(setupextent),
     LUAREG(setupcharacter),
     LUAREG(setupnonsauer),

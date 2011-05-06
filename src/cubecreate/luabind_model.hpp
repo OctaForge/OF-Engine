@@ -264,13 +264,15 @@ namespace lua_binds
         vector<BIH::tri> tris2[2];
         theModel->gentris(0, tris2);
         vector<BIH::tri>& tris = tris2[0];
+        char buf[16];
 
         e.t_new().t_set("length", tris.length());
         for (int i = 0; i < tris.length(); i++)
         {
             BIH::tri& bt = tris[i];
 
-            e.push(Utility::toString(i).c_str())
+            snprintf(buf, sizeof(buf), "%i", i);
+            e.push(buf)
                 .t_new()
                 .t_set("a", bt.a)
                 .t_set("b", bt.b)

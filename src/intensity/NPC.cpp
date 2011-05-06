@@ -9,20 +9,22 @@
 #include "fpsserver_interface.h"
 
 #include "NPC.h"
+#include "of_tools.h"
 
 namespace NPC
 {
 
 int add(std::string _class)
 {
-    int clientNumber = localconnect(); // Local connect to the server
+    int cn = localconnect(); // Local connect to the server
+    char *uname = FPSServerInterface::getUsername(cn);
+    if (uname) OF_FREE(uname);
 
-    FPSServerInterface::getUsername(clientNumber) = "Bot." + Utility::toString(clientNumber); // Also sets as valid ('logged in')
-
-    Logging::log(Logging::DEBUG, "New NPC with client number: %d\r\n", clientNumber);
+    uname = of_tools_vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
+    Logging::log(Logging::DEBUG, "New NPC with client number: %d\r\n", cn);
 
     // Create lua entity (players do this when they log in, NPCs do it here
-    return server::createluaEntity(clientNumber, _class);
+    return server::createluaEntity(cn, _class);
 }
 
 void remove(int clientNumber)

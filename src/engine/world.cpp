@@ -4,6 +4,7 @@
 
 #include "editing_system.h" // INTENSITY
 #include "message_system.h" // INTENSITY
+#include "of_tools.h"
 
 bool getentboundingbox(extentity &e, ivec &o, ivec &r)
 {
@@ -889,20 +890,14 @@ void newentity(int type, int a1, int a2, int a3, int a4, int a5)
 void newent(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
 {
     if(noentedit()) return;
-#if 0 // INTENSITY: /newent leads to sending a request to the server, in the new system
-    int type = findtype(what);
-    if(type != ET_EMPTY)
-        newentity(type, *a1, *a2, *a3, *a4, *a5);
-#else
-    std::string stateData = "{";
-    stateData += " 'attr1': '" + Utility::toString(*a1) + "', ";
-    stateData += " 'attr2': '" + Utility::toString(*a2) + "', ";
-    stateData += " 'attr3': '" + Utility::toString(*a3) + "', ";
-    stateData += " 'attr4': '" + Utility::toString(*a4) + "' ";
-    stateData += "}";
-
-    EditingSystem::newEntity(what, stateData);
-#endif
+    char *sd = of_tools_vstrcat(NULL, "sis sis sis sis",
+        "{ 'attr1': '", *a1, "', ",
+         " 'attr2': '", *a2, "', ",
+         " 'attr3': '", *a3, "', ",
+         " 'attr4': '", *a4, "' }"
+    );
+    EditingSystem::newEntity(what, sd);
+    OF_FREE(sd);
 }
 
 int entcopygrid;

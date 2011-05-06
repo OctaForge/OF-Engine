@@ -91,7 +91,7 @@ namespace lua_binds
 
     // Core binds
 
-    LUA_BIND_DEF(currtime, e.push(Utility::SystemInfo::currTime());)
+    LUA_BIND_DEF(currtime, e.push(of_tools_getcurrtime());)
     LUA_BIND_STD(getmillis, e.push, e.get<bool>(1) ? totalmillis : lastmillis)
     LUA_BIND_STD_CLIENT(keymap, keymap, e.get<int*>(1), e.get<char*>(2))
     LUA_BIND_STD_CLIENT(registersound, registersound, e.get<char*>(1), e.get<int*>(2))

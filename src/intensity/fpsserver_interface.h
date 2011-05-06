@@ -18,7 +18,7 @@ struct FPSServerInterface
     static int getNumClients();
 
     //! Gets the username of a connected client (modifiable)
-    static std::string& getUsername(int clientNumber);
+    static char*& getUsername(int clientNumber);
 
     //! Gets the uniqueId of a connected client (modifiable)
     static int&         getUniqueId(int clientNumber);

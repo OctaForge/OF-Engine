@@ -19,12 +19,12 @@ int FPSServerInterface::getNumClients()
 
 namespace server
 {
-    extern std::string& getUsername(int clientNumber);
+    extern char*& getUsername(int clientNumber);
     extern int& getUniqueId(int clientNumber);
     extern void cleanworldstate(ENetPacket *packet);
 }
 
-std::string& FPSServerInterface::getUsername(int clientNumber)
+char*& FPSServerInterface::getUsername(int clientNumber)
 {
     return server::getUsername(clientNumber);
 }

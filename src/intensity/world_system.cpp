@@ -9,6 +9,7 @@
 #include "message_system.h"
 
 #include "world_system.h"
+#include "of_tools.h"
 
 using namespace lua;
 
@@ -23,31 +24,6 @@ using namespace lua;
 
 //! Set by load_world when started, unset when finished
 bool WorldSystem::loadingWorld = false;
-
-
-void WorldSystem::placeInWorld(int entityUniqueId, int locationEntityUniqueId)
-{
-    assert(0); // Be wary of this code, in particular see the XXX below about converting physent to dynent
-    Logging::log(Logging::DEBUG, "Placing entity in world\r\n");
-    INDENT_LOG(Logging::DEBUG);
-
-    CLogicEntity *entity = LogicSystem::getLogicEntity(entityUniqueId);
-
-    assert(entity != NULL);
-    assert(entity->getType() == CLogicEntity::LE_DYNAMIC);
-
-    CLogicEntity *locationEntity = LogicSystem::getLogicEntity(locationEntityUniqueId);
-
-    assert(locationEntity->getType() == CLogicEntity::LE_STATIC); // Might be anything static, but probably a worldMarker
-
-    entity->dynamicEntity->o   = locationEntity->staticEntity->o;
-    entity->dynamicEntity->yaw = locationEntity->staticEntity->attr1;
-
-    if (!entinmap((dynent*)entity->dynamicEntity, true)) // XXX This conversion to dynent might be bad.
-        Logging::log(Logging::ERROR, "Cannot place entity %d in world at %d\r\n",
-                                     entity->getUniqueId(),
-                                     locationEntityUniqueId);
-}
 
 void WorldSystem::triggerCollide(CLogicEntity *mapmodel, physent *d, bool ellipse)
 {
@@ -98,10 +74,10 @@ void WorldSystem::triggerReceivedEntity()
     {
         float val = float(numReceivedEntities)/float(numExpectedEntities);
         val = clamp(val, 0.0f, 1.0f);
-        std::string text = "received entity ";
-        text += Utility::toString(numReceivedEntities) + "...";
+        char *text = of_tools_vstrcat(NULL, "sis", "received entity ", numReceivedEntities, "...");
         if (WorldSystem::loadingWorld) // Show message only during map loading, not when new clients log in
-            renderprogress(val, text.c_str());
+            renderprogress(val, text);
+        OF_FREE(text);
     }
 }
 

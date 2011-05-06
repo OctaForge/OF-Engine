@@ -34,6 +34,7 @@
 
 void writebinds(stream *f);
 extern string homedir;
+extern int clockrealbase;
 
 bool of_tools_validate_alphanumeric(const char *str, const char *allow)
 {
@@ -293,4 +294,64 @@ bool of_tools_execcfg(const char *cfgfile)
     lua::engine.exec(buf);
     delete[] buf;
     return true;
+}
+
+char *of_tools_vstrcat(char *str, const char *format, ...)
+{
+    if (!str) str = (char*)malloc(1);
+    if (!str) return NULL;
+    va_list args;
+    char buf[64];
+
+    va_start(args, format);
+    while (*format != '\0')
+    {
+        switch (*format)
+        {
+            case 's':
+            {
+                char *s = va_arg(args, char*);
+                if (!(str = (char*)realloc(str, strlen(str) + strlen(s) + 1)))
+                    return NULL;
+
+                strcat(str, s);
+                break;
+            }
+            case 'i':
+            case 'd':
+            {
+                snprintf(buf, sizeof(buf), "%i", va_arg(args, int));
+
+                if (!(str = (char*)realloc(str, strlen(str) + strlen(buf) + 1)))
+                    return NULL;
+
+                strcat(str, buf);
+                break;
+            }
+            case 'f':
+            {
+                snprintf(buf, sizeof(buf), "%f", va_arg(args, double));
+
+                if    (!(str = (char*)realloc(str, strlen(str) + strlen(buf) + 1)))
+                    return NULL;
+
+                strcat(str, buf);
+                break;
+            }
+            default: continue;
+        }
+        if (!str) return NULL;
+        format++;
+    }
+    va_end(args);
+    return str;
+}
+
+int of_tools_getcurrtime()
+{
+#ifdef SERVER
+    return enet_time_get();
+#else // CLIENT
+    return SDL_GetTicks() - clockrealbase;
+#endif
 }

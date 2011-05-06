@@ -11,7 +11,6 @@
     #include "variable_system.hpp"
     #include "engine_additions.h"
     #include "logging.h"
-    #include "utility.h"
     #include "scripting_system_lua.hpp"
 
     // Additional externs from sauer

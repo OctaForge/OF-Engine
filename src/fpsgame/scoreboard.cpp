@@ -4,7 +4,7 @@
 #include "game.h"
 
 #include "network_system.h"
-
+#include "of_tools.h"
 
 namespace game
 {
@@ -34,7 +34,7 @@ namespace game
                 // we get a table here
                 LUA_TABLE_FOREACH(engine, {
                     int lineUniqueId = engine.t_get<int>(1);
-                    std::string lineText(engine.t_get<const char*>(2));
+                    char *lt = strdup(engine.t_get<const char*>(2));
                     if (lineUniqueId != -1)
                     {
                         CLogicEntity *entity = LogicSystem::getLogicEntity(lineUniqueId);
@@ -46,17 +46,18 @@ namespace game
                             if (GETIV(showpj))
                             {
                                 if (p->state == CS_LAGGED)
-                                    lineText += "LAG";
+                                    lt = of_tools_vstrcat(lt, "s", "LAG");
                                 else
-                                    lineText += " pj: " + Utility::toString(p->plag);
+                                    lt = of_tools_vstrcat(lt, "si", " pj: ", p->plag);
                             }
                             if (!GETIV(showpj) && p->state == CS_LAGGED)
-                                lineText += "LAG";
+                                lt = of_tools_vstrcat(lt, "s", "LAG");
                             else
-                                lineText += " p: " + Utility::toString(p->ping);
+                                lt = of_tools_vstrcat(lt, "si", " p: ", p->ping);
                         }
                     }
-                    g.text(lineText.c_str(), 0xFFFFDD, NULL);
+                    g.text (lt, 0xFFFFDD, NULL);
+                    OF_FREE(lt);
                 });
             }
             engine.pop(1);
@@ -67,13 +68,13 @@ namespace game
         // Show network stats
         static int laststatus = 0; 
         float seconds = float(totalmillis-laststatus)/1024.0f;
-        static std::string netStats = "";
+        static const char *netStats = "";
         if (seconds >= 0.5)
         {
             laststatus = totalmillis;
-            netStats = NetworkSystem::Cataloger::briefSummary(seconds);
+            netStats = NetworkSystem::Cataloger::briefSummary(seconds).c_str();
         }
-        g.text(netStats.c_str(), 0xFFFF80, "server");
+        g.text(netStats, 0xFFFF80, "server");
     }
 
     struct scoreboardgui : g3d_callback

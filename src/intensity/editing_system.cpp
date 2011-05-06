@@ -14,6 +14,7 @@
 #include "editing_system.h"
 #include "targeting.h"
 #include "client_system.h"
+#include "of_tools.h"
 
 #include <set>
 #include <algorithm>
@@ -91,10 +92,10 @@ void newEntity(std::string _class, std::string stateData)
         vec farPosition;
 
         Logging::log(Logging::DEBUG, "Considering saved mouse pos: %f,%f,%f (%d, %d)\r\n", savedMousePos.x, savedMousePos.y, savedMousePos.z,
-                                                                           savedMousePosTime, Utility::SystemInfo::currTime());
+                                                                           savedMousePosTime, of_tools_getcurrtime());
 
         // Use saved position, if exists and saved recently
-//        if (savedMousePosTime != -1 && Utility::SystemInfo::currTime() - savedMousePosTime < 15000)
+//        if (savedMousePosTime != -1 && of_tools_getcurrtime() - savedMousePosTime < 15000)
 //        {
             farPosition = savedMousePos;
             savedMousePosTime = -1;

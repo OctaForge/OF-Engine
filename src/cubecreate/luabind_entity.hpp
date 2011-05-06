@@ -37,8 +37,6 @@ namespace lua_binds
 
     LUA_BIND_DEF(unreglogent, LogicSystem::unregisterLogicEntityByUniqueId(e.get<int>(1));)
 
-    LUA_BIND_DEF(placeinworld, WorldSystem::placeInWorld(e.get<int>(1), e.get<int>(2));)
-
     LUA_BIND_SE(setupextent, LogicSystem::setupExtent(ref,
         e.get<int>(2),
         e.get<double>(3),

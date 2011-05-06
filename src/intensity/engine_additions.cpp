@@ -297,7 +297,7 @@ void CLogicEntity::setAnimation(int _animation)
     Logging::log(Logging::DEBUG, "(2) setAnimation: %d\r\n", _animation);
 
     animation = _animation;
-    startTime = lastmillis; // Utility::SystemInfo::currTime(); XXX Do NOT want the actual time! We
+    startTime = lastmillis; // of_tools_getcurrtime(); XXX Do NOT want the actual time! We
                             // need 'lastmillis', sauer's clock, which doesn't advance *inside* frames,
                             // because otherwise the starttime may be
                             // LATER than lastmillis, while sauer's animation system does lastmillis-basetime,

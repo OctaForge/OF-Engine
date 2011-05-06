@@ -41,7 +41,6 @@ set(SERVER_SOURCES
     ../intensity/server_system
     ../intensity/logging
     ../intensity/messages
-    ../intensity/utility
     ../engine/world
     ../engine/worldio
     ../intensity/engine_additions

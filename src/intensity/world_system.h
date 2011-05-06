@@ -6,7 +6,6 @@
 struct WorldSystem
 {
     static bool loadingWorld;
-    static void placeInWorld(int entityUniqueId, int locationEntityUniqueId);
 
     static void triggerCollide(CLogicEntity *mapmodel, physent* d, bool ellipse);
 
