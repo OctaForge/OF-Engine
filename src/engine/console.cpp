@@ -187,9 +187,9 @@ void getbind(char *key, int type)
     lua::engine.push(km ? km->actions[type] : "");
 }   
 
-void bindkey(char *key, char *action, int state, const char *cmd)
+void bindkey(char *key, char *action, int state)
 {
-    if(var::overridevars) { conoutf(CON_ERROR, "cannot override %s \"%s\"", cmd, key); return; }
+    if(var::overridevars) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
     keym *km = findbind(key);
     if(!km) { conoutf(CON_ERROR, "unknown key \"%s\"", key); return; }
     char *&binding = km->actions[state];

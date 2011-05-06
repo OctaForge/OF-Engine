@@ -332,7 +332,7 @@ char *of_tools_vstrcat(char *str, const char *format, ...)
             {
                 snprintf(buf, sizeof(buf), "%f", va_arg(args, double));
 
-                if    (!(str = (char*)realloc(str, strlen(str) + strlen(buf) + 1)))
+                if (!(str = (char*)realloc(str, strlen(str) + strlen(buf) + 1)))
                     return NULL;
 
                 strcat(str, buf);

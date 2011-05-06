@@ -13,7 +13,6 @@
 #include "editing_system.h"
 #include "client_engine_additions.h"
 #include "targeting.h"
-#include "intensity_gui.h"
 #include "intensity_texture.h"
 #ifdef INTENSITY_PLUGIN
     #include "intensity_plugin_listener.h"
@@ -188,13 +187,6 @@ void setTransactionCode(std::string code)
 {
     ClientSystem::currTransactionCode = code;
 }
-
-void show_message(std::string title, std::string content)
-{
-    IntensityGUI::showMessage(title, content);
-    printf("%s : %s\r\n", title.c_str(), content.c_str());
-}
-
 
 //
 // HUD

@@ -46,7 +46,6 @@ def generate_messages():
 
 #ifdef CLIENT
     #include "targeting.h"
-    #include "intensity_gui.h"
 #endif
 
 #include "client_system.h"

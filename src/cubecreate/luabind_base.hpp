@@ -38,7 +38,7 @@ void getfps_(int *raw);
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
 extern vector<cline> conlines;
-void bindkey(char *key, char *action, int state, const char *cmd);
+void bindkey(char *key, char *action, int state);
 void getbind(char *key, int type);
 void searchbinds(char *action, int type);
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL);
@@ -233,9 +233,9 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, GETIV(fullconsole) ? GETIV(fullconfilter) : GETIV(confilter), e.get<int>(1))
     LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, GETIV(miniconfilter), e.get<int>(1))
     LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
-    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_DEFAULT, "bind")
-    LUA_BIND_STD_CLIENT(specbind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_SPECTATOR, "specbind")
-    LUA_BIND_STD_CLIENT(editbind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_EDITING, "editbind")
+    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_DEFAULT)
+    LUA_BIND_STD_CLIENT(specbind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_SPECTATOR)
+    LUA_BIND_STD_CLIENT(editbind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_EDITING)
     LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), keym::ACTION_DEFAULT)
     LUA_BIND_STD_CLIENT(getspecbind, getbind, e.get<char*>(1), keym::ACTION_SPECTATOR)
     LUA_BIND_STD_CLIENT(geteditbind, getbind, e.get<char*>(1), keym::ACTION_EDITING)

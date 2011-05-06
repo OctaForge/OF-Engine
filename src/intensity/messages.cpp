@@ -14,7 +14,6 @@
 
 #ifdef CLIENT
     #include "targeting.h"
-    #include "intensity_gui.h"
 #endif
 
 #include "client_system.h"
@@ -35,7 +34,7 @@ namespace MessageSystem
 
 // PersonalServerMessage
 
-    void send_PersonalServerMessage(int clientNumber, int originClientNumber, std::string title, std::string content)
+    void send_PersonalServerMessage(int clientNumber, std::string title, std::string content)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -74,7 +73,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riiss", 1001, originClientNumber, title.c_str(), content.c_str());
+                sendf(clientNumber, MAIN_CHANNEL, "riss", 1001, title.c_str(), content.c_str());
 
             }
         }
@@ -87,7 +86,6 @@ namespace MessageSystem
         is_npc = false;
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
 
-        int originClientNumber = getint(p);
         char tmp_title[MAXTRANS];
         getstring(tmp_title, p);
         std::string title = tmp_title;
@@ -95,7 +93,9 @@ namespace MessageSystem
         getstring(tmp_content, p);
         std::string content = tmp_content;
 
-        IntensityGUI::showMessage(title, content, originClientNumber);
+        SETVF(message_title, title.c_str());
+        SETVF(message_content, content.c_str());
+        showgui("message");
     }
 #endif
 
@@ -119,7 +119,7 @@ namespace MessageSystem
         getstring(tmp_message, p);
         std::string message = tmp_message;
 
-        send_PersonalServerMessage(-1, sender, "Message from Client", message);
+        send_PersonalServerMessage(-1, "Message from Client", message);
     }
 #endif
 
@@ -147,7 +147,7 @@ namespace MessageSystem
             if (!ServerSystem::isRunningMap())
             {
                 send_PersonalServerMessage(
-                    sender, -1,
+                    sender,
                     "Login failure",
                     "Login failure: instance is not running a map"
                 );
@@ -362,7 +362,9 @@ namespace MessageSystem
         getstring(tmp_scenarioCode, p);
         std::string scenarioCode = tmp_scenarioCode;
 
-        IntensityGUI::showMessage("Server", "Map being prepared on server, please wait");
+        SETVF(message_title, "Server");
+        SETVF(message_content, "Map being prepared on server, please wait ..");
+        showgui("message");
         ClientSystem::prepareForNewScenario(scenarioCode);
     }
 #endif
@@ -476,7 +478,7 @@ namespace MessageSystem
         if (!server::isAdmin(sender))
         {
             Logging::log(Logging::WARNING, "Non-admin tried to restart the map\r\n");
-            send_PersonalServerMessage(sender, -1, "Server", "You are not an administrator, and cannot restart the map");
+            send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot restart the map");
             return;
         }
         of_world_restart_map();
@@ -513,7 +515,7 @@ namespace MessageSystem
         if (!server::isAdmin(sender))
         {
             Logging::log(Logging::WARNING, "Non-admin tried to add an entity\r\n");
-            send_PersonalServerMessage(sender, -1, "Server", "You are not an administrator, and cannot create entities");
+            send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot create entities");
             return;
         }
         // Validate class
@@ -522,7 +524,6 @@ namespace MessageSystem
             Logging::log(Logging::WARNING, "User tried to add an invalid entity: %s\r\n", _class.c_str());
             send_PersonalServerMessage(
                 sender,
-                -1,
                 "Invalid entity class: " + _class,
                 "Reminder: Create entities using F8, not /newent. See the wiki for more."
             );
@@ -926,7 +927,7 @@ namespace MessageSystem
                 Logging::log(Logging::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
                     sender, scenarioCode.c_str()
                 );
-                send_PersonalServerMessage(sender, -1, "Invalid scenario", "An error occured in synchronizing scenarios");
+                send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
             engine.getg("entity_store")
@@ -1108,7 +1109,7 @@ namespace MessageSystem
         if (!server::isAdmin(sender))
         {
             Logging::log(Logging::WARNING, "Non-admin tried to remove an entity\r\n");
-            send_PersonalServerMessage(sender, -1, "Server", "You are not an administrator, and cannot remove entities");
+            send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot remove entities");
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
@@ -2065,12 +2066,6 @@ namespace MessageSystem
 
         updatingClientNumber = updatingClientNumber; // warning
         assert(0);
-        #if 0
-        if (updatingClientNumber != ClientSystem::playerNumber)
-            IntensityCEGUI::showMessage("Map Updated", "Another player has updated the map on the server. To receive this update, do File->Receive map from server in edit mode.");
-        else
-            IntensityCEGUI::showMessage("Map Updated", "Your update to the map was received by the server successfully.");
-        #endif
     }
 #endif
 
@@ -2285,7 +2280,7 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1038)\r\n");
 
 
-        IntensityGUI::showMessage("", "Server: You are now in private edit mode");
+        conoutf("Server: You are now in private edit mode");
         ClientSystem::editingAlone = true;
     }
 #endif

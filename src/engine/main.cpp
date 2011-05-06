@@ -4,7 +4,7 @@
 
 #include "system_manager.h" // INTENSITY
 #include "client_system.h" // INTENSITY
-#include "intensity_gui.h" // INTENSITY
+#include "editing_system.h" // INTENSITY
 #include "of_localserver.h"
 #include "of_tools.h"
 
@@ -30,8 +30,8 @@ void force_quit(); // INTENSITY
 
 void quit()                     // normal exit
 {
-    if (IntensityGUI::canQuit()) // INTENSITY
-        force_quit(); // INTENSITY
+    if (!EditingSystem::madeChanges) force_quit();
+    showgui("can_quit");
 }
 
 void force_quit() // INTENSITY - change quit to force_quit
@@ -493,10 +493,8 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
 void keyrepeat(bool on)
 {
-    IntensityGUI::setKeyRepeat(
-        on ? SDL_DEFAULT_REPEAT_DELAY : 0,
-        SDL_DEFAULT_REPEAT_INTERVAL
-    );
+    SDL_EnableKeyRepeat(on ? SDL_DEFAULT_REPEAT_DELAY : 0,
+                             SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
 static bool grabinput = false, minimized = false;

@@ -83,20 +83,6 @@ clear = CAPI.cleargui
 -- @name show
 show = CAPI.showgui
 
---- Show a message window.
--- @param m Message to show.
--- @class function
--- @name show_message
-show_message = CAPI.showmessage
-
---- Show input field window.
--- You can read entered input from "input_data"
--- engine variable.
--- @param m Message to show.
--- @class function
--- @name show_inputdialog
-show_inputdialog = CAPI.showinputdialog
-
 --- Click trigger. Plays menu click sound.
 -- @class function
 -- @name menu_key_click_trigger

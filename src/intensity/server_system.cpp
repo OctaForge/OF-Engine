@@ -113,7 +113,7 @@ extern void force_network_flush(); // from server.cpp
 
 void ServerSystem::fatalMessageToClients(std::string message)
 {
-    MessageSystem::send_PersonalServerMessage(-1, -1, "Server shutting down due to error (see log)", message);
+    MessageSystem::send_PersonalServerMessage(-1, "Server shutting down due to error (see log)", message);
     force_network_flush();
 }
 
@@ -156,7 +156,7 @@ void keep_alive()
 
 void send_text_message(int clientNumber, std::string text, bool sound)
 {
-    MessageSystem::send_PersonalServerMessage(clientNumber, -1, "", text);
+    MessageSystem::send_PersonalServerMessage(clientNumber, "", text);
     if (sound)
         MessageSystem::send_SoundToClientsByName(clientNumber, 0, 0, 0, "olpc/FlavioGaete/Vla_G_Major", -1);
 }

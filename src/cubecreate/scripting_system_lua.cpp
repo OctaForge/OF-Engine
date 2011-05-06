@@ -46,7 +46,6 @@
 #include "intensity_physics.h"
 #ifdef CLIENT
     #include "client_engine_additions.h"
-    #include "intensity_gui.h"
     #include "intensity_texture.h"
     #include "client_system.h"
     #include "targeting.h"

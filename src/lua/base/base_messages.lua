@@ -123,5 +123,5 @@ function showcm(cn, ti, tx)
     if cn.is_a and cn:is_a(entity.logent) then
         cn = cn.cn
     end
-    send(cn, CAPI.personal_servmsg, -1, ti, tx)
+    send(cn, CAPI.personal_servmsg, ti, tx)
 end

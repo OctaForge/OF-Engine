@@ -33,9 +33,8 @@ namespace lua_binds
 
     LUA_BIND_DEF(personal_servmsg, send_PersonalServerMessage(
         e.get<int>(1),
-        e.get<int>(2),
-        e.get<const char*>(3),
-        e.get<const char*>(4));
+        e.get<const char*>(2),
+        e.get<const char*>(3));
     )
     LUA_BIND_DEF(particle_splash_toclients, send_ParticleSplashToClients(
         e.get<int>(1),

@@ -74,7 +74,9 @@ namespace lua_binds
         char *fname = of_world_get_map_script_filename();
         if (!engine.loadf(fname))
         {
-            IntensityGUI::showMessage("Compilation failed", engine.geterror_last());
+            SETVF(message_title, "Compilation failed");
+            SETVF(message_content, engine.geterror_last());
+            showgui("message");
             OF_FREE(fname);
             return;
         }

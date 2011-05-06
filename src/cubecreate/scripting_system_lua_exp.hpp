@@ -289,8 +289,6 @@ const LE_reg CAPI[] = {
     LUAREG(showhudrect),
     LUAREG(showhudimage),
     LUAREG(showhudtext),
-    LUAREG(showmessage),
-    LUAREG(showinputdialog),
     LUAREG(font),
     LUAREG(fontoffset),
     LUAREG(fontchar),

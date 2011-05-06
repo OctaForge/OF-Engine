@@ -17,7 +17,7 @@ struct PersonalServerMessage : MessageType
 #endif
 };
 
-void send_PersonalServerMessage(int clientNumber, int originClientNumber, std::string title, std::string content);
+void send_PersonalServerMessage(int clientNumber, std::string title, std::string content);
 
 
 // RequestServerMessageToAll
