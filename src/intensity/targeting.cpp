@@ -6,7 +6,6 @@
 #include "engine.h"
 #include "game.h"
 
-#include "fpsclient_interface.h"
 #include "intensity_physics.h"
 
 #include "targeting.h"
@@ -55,9 +54,9 @@ void TargetingControl::intersectClosestDynamicEntity(vec &from, vec &to, physent
 {
     dynent *best = NULL;
     float bestdist = 1e16f;
-    loopi(FPSClientInterface::numDynamicEntities())
+    loopi(game::numdynents())
     {
-        dynent *o = FPSClientInterface::iterDynamicEntities(i);
+        dynent *o = game::iterdynents(i);
         if(!o || o==targeter) continue;
         if(!game::intersect(o, from, to)) continue;
         float dist = from.dist(o->o);
@@ -83,7 +82,7 @@ void TargetingControl::intersectClosestMapmodel(vec &from, vec &to, float& dist,
     dist = rayent(from, unitv, 1000.0f, RAY_CLIPMAT|RAY_ALPHAPOLY/*was: RAY_ENTS*/, 0, orient, ent); // TODO: maxdist, or 1000.0f...?
 
     if (ent != -1)
-        target = FPSClientInterface::getEntity(ent);
+        target = entities::getents()[ent];
     else
     {
         target = NULL;

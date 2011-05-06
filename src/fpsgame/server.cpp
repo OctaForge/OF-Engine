@@ -19,8 +19,6 @@
 #include "network_system.h"
 #include "message_system.h"
 
-#include "fpsclient_interface.h"
-
 #ifdef CLIENT
     #include "client_system.h"
 #endif
@@ -131,11 +129,8 @@ namespace server
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
         if (engine.hashandle() && !_ci->local && uniqueId >= 0)
-            engine.getg("entity_store").t_getraw("del").push(uniqueId).call(1, 0).pop(1); // Will also disconnect from FPSClient
+            engine.getg("entity_store").t_getraw("del").push(uniqueId).call(1, 0).pop(1);
         
-//        // Remove from internal mini FPSclient as well
-//        FPSClientInterface::clientDisconnected(_ci->clientnum); // XXX No - do in parallel to character
-
         delete (clientinfo *)ci;
     } 
 
@@ -396,7 +391,7 @@ namespace server
 #ifdef SERVER
             // Kripken: FIXME: Send position updates only to real clients, not local ones. For multiple local
             // ones, a single manual sending suffices, which is done to the singleton dummy client
-            fpsent* currClient = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(ci.clientnum) );
+            fpsent* currClient = dynamic_cast<fpsent*>( game::getclient(ci.clientnum) );
             if (!currClient) continue; // We have a server client, but no FPSClient client yet, because we have not yet
                                        // finished the player's login, only after which do we create the lua entity,
                                        // which then gets a client added to the FPSClient (and the remote client's FPSClient)
@@ -758,7 +753,7 @@ namespace server
             return -1;
         }
 
-        fpsent* fpsEntity = dynamic_cast<fpsent*>(FPSClientInterface::getPlayerByNumber(cn));
+        fpsent* fpsEntity = dynamic_cast<fpsent*>(game::getclient(cn));
         if (fpsEntity)
         {
             // Already created an entity
@@ -803,12 +798,12 @@ namespace server
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
         {
-            fpsEntity = dynamic_cast<fpsent*>(FPSClientInterface::getPlayerByNumber(cn)); // It was created since fpsEntity was def'd
+            fpsEntity = dynamic_cast<fpsent*>(game::getclient(cn)); // It was created since fpsEntity was def'd
             assert(fpsEntity);
 
             fpsEntity->serverControlled = true; // Mark this as an NPC the server should control
 
-            FPSClientInterface::spawnPlayer(fpsEntity);
+            game::spawnplayer(fpsEntity);
         }
 
         engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
@@ -827,8 +822,6 @@ namespace server
         ci->clientnum = n;
         ci->needclipboard = totalmillis ? totalmillis : 1;
         clients.add(ci);
-
-//        FPSClientInterface::newClient(n); // INTENSITY: Also connect to the server's internal client - XXX NO - do in parallel to client
 
         // Start the connection handshake process
         MessageSystem::send_InitS2C(n, n, PROTOCOL_VERSION);

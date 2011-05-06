@@ -7,13 +7,13 @@
  // INTENSITY
 #include "network_system.h"
 #include "server_system.h"
-#include "fpsclient_interface.h"
 #include "message_system.h"
 
 namespace server
 {
     extern bool shutdown_if_idle;
     extern int  shutdown_idle_interval;
+    int& getUniqueId(int clientNumber);
 }
 
 static FILE *logfile = NULL;
@@ -968,13 +968,13 @@ void server_init()//int argc, char* argv[])
     localconnect();
     assert(clients.length() == 1); // Ensure noone else connected before
 
-    fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::newClient(0) ); // Create a new fpsclient for this client
+    fpsent* fpsEntity = dynamic_cast<fpsent*>( game::newclient(0) ); // Create a new fpsclient for this client
 
     fpsEntity->serverControlled = true; // Mark this as not controlled by server, so we don't try to actually do anything with it
                                         // After all it doesn't really exist
 
     fpsEntity->uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
-    FPSServerInterface::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
+    server::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
 }
 
 void server_runslice()

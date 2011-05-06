@@ -8,9 +8,7 @@
 
 #include "message_system.h"
 #include "client_system.h"
-#include "fpsserver_interface.h"
 #include "world_system.h"
-#include "fpsclient_interface.h"
 #include "NPC.h"
 #include "intensity_physics.h"
 
@@ -630,7 +628,7 @@ void LogicSystem::setupCharacter(int ref)
     {
         Logging::log(Logging::DEBUG, "This is the player, use existing clientnumber for fpsent (should use player1?) \r\n");
 
-        fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+        fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
 
         // Wipe clean the uniqueId set for the fpsent, so we can re-use it.
         fpsEntity->uniqueId = -77;
@@ -641,7 +639,7 @@ void LogicSystem::setupCharacter(int ref)
         Logging::log(Logging::DEBUG, "This is a remote client or NPC, do a newClient for the fpsent\r\n");
 
         // This is another client, perhaps NPC. Connect this new client using newClient
-        fpsEntity =  dynamic_cast<fpsent*>( FPSClientInterface::newClient(clientNumber) );
+        fpsEntity =  dynamic_cast<fpsent*>( game::newclient(clientNumber) );
     }
 
     // Register with the C++ system.
@@ -695,11 +693,11 @@ void LogicSystem::dismantleCharacter(int ref)
         Logging::log(Logging::DEBUG, "Dismantling other client %d\r\n", clientNumber);
 
 #ifdef SERVER
-        fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+        fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
         bool isNPC = fpsEntity->serverControlled;
 #endif
 
-        FPSClientInterface::clientDisconnected(clientNumber);
+        game::clientdisconnected(clientNumber);
 
 #ifdef SERVER
         if (isNPC)

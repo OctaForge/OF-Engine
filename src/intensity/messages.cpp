@@ -10,8 +10,6 @@
 #include "engine.h"
 #include "game.h"
 
-#include "fpsclient_interface.h"
-
 #ifdef CLIENT
     #include "targeting.h"
 #endif
@@ -28,6 +26,11 @@ using namespace lua;
 
 /* Abuse generation from template for now */
 void force_network_flush();
+namespace server
+{
+    int& getUniqueId(int clientNumber);
+    char*& getUsername(int clientNumber);
+}
 
 namespace MessageSystem
 {
@@ -61,10 +64,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -154,7 +157,7 @@ namespace MessageSystem
                 force_network_flush();
                 disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
             }
-            char *uname = FPSServerInterface::getUsername(sender);
+            char *uname = server::getUsername(sender);
             if (uname) OF_FREE(uname);
             uname = strdup("local_editor");
             server::setAdmin(sender, true);
@@ -177,7 +180,7 @@ namespace MessageSystem
         INDENT_LOG(Logging::DEBUG);
 
                  // Remember this client's unique ID. Done here so always in sync with the client's belief about its uniqueId.
-        FPSServerInterface::getUniqueId(clientNumber) = uniqueId;
+        server::getUniqueId(clientNumber) = uniqueId;
 
 
         int start, finish;
@@ -198,10 +201,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -263,10 +266,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -333,10 +336,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -420,10 +423,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -583,10 +586,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (true && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -672,7 +675,7 @@ namespace MessageSystem
 
         if (!ServerSystem::isRunningMap()) return;
         #define STATE_DATA_REQUEST \
-        int actorUniqueId = FPSServerInterface::getUniqueId(sender); \
+        int actorUniqueId = server::getUniqueId(sender); \
         \
         Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.c_str()); \
         \
@@ -713,10 +716,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (true && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -807,10 +810,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -868,10 +871,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -939,7 +942,7 @@ namespace MessageSystem
             engine.getg("on_player_login");
             if (engine.is<void*>(-1)) engine.getg("entity_store")
                       .t_getraw("get")
-                      .push(FPSServerInterface::getUniqueId(sender))
+                      .push(server::getUniqueId(sender))
                       .call(1, 1)
                       .shift().pop(1)
                       .call(1, 0);
@@ -985,10 +988,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (true && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1146,10 +1149,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1209,10 +1212,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1335,10 +1338,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1372,7 +1375,12 @@ namespace MessageSystem
                 disconnect();
                 return;
             }
-            fpsent *player1 = dynamic_cast<fpsent*>( FPSClientInterface::getClientPlayer() );
+            #ifdef CLIENT
+                fpsent *player1 = game::player1;
+            #else
+                assert(0);
+                fpsent *player1 = NULL;
+            #endif
             player1->clientnum = explicitClientNumber; // we are now fully connected
                                                        // Kripken: Well, sauer would be, we still need more...
             #ifdef CLIENT
@@ -1439,10 +1447,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1494,7 +1502,7 @@ namespace MessageSystem
 
         if (!ServerSystem::isRunningMap()) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        dynent* otherEntity = FPSClientInterface::getPlayerByNumber(sender);
+        dynent* otherEntity = game::getclient(sender);
         if (otherEntity)
             send_SoundToClients(-1, soundId, sender);
     }
@@ -1530,10 +1538,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1559,7 +1567,7 @@ namespace MessageSystem
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
-        dynent* player = FPSClientInterface::getPlayerByNumber(originalClientNumber);
+        dynent* player = game::getclient(originalClientNumber);
         if (!player)
         {
             if (originalClientNumber == -1) // Do not play sounds from nonexisting clients - would be odd
@@ -1607,10 +1615,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1682,10 +1690,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1755,10 +1763,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1872,10 +1880,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (true && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -1903,7 +1911,7 @@ namespace MessageSystem
         int otherClientNumber = getint(p);
         int mode = getint(p);
 
-        dynent* d = FPSClientInterface::getPlayerByNumber(otherClientNumber);
+        dynent* d = game::getclient(otherClientNumber);
         // Code from sauer's client.h
         if (d)
         {
@@ -2037,10 +2045,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -2099,10 +2107,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -2166,10 +2174,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
@@ -2254,10 +2262,10 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there

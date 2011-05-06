@@ -85,8 +85,6 @@ set(CLIENT_SOURCES
     ../intensity/network_system
     ../cubecreate/scripting_system_lua
     ../cubecreate/variable_system
-    ../intensity/fpsclient_interface
-    ../intensity/fpsserver_interface
     ../shared/stream
     ../shared/zip
     ../engine/movie

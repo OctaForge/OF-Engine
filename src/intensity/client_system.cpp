@@ -9,7 +9,6 @@
 #include "message_system.h"
 
 #include "world_system.h"
-#include "fpsserver_interface.h"
 #include "editing_system.h"
 #include "client_engine_additions.h"
 #include "targeting.h"

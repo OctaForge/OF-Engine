@@ -5,9 +5,6 @@
 //! System utilities for the server (and not the client)
 
 
-#include "fpsserver_interface.h"
-
-
 //! We need a single 'dummy' client on the server, to which we relay position and message updates, as if it
 //! were a real client.
 

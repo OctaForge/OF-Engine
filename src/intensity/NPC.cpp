@@ -6,10 +6,13 @@
 #include "engine.h"
 #include "game.h"
 
-#include "fpsserver_interface.h"
-
 #include "NPC.h"
 #include "of_tools.h"
+
+namespace server
+{
+    char*& getUsername(int clientNumber);
+}
 
 namespace NPC
 {
@@ -17,7 +20,7 @@ namespace NPC
 int add(std::string _class)
 {
     int cn = localconnect(); // Local connect to the server
-    char *uname = FPSServerInterface::getUsername(cn);
+    char *uname = server::getUsername(cn);
     if (uname) OF_FREE(uname);
 
     uname = of_tools_vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')

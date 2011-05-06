@@ -41,7 +41,6 @@
 
 #include "world_system.h"
 #include "message_system.h"
-#include "fpsclient_interface.h"
 #ifdef CLIENT
     #include "client_system.h"
     #include "targeting.h"

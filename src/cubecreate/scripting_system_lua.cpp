@@ -42,7 +42,6 @@
 #include <cmath>
 #include "world_system.h"
 #include "message_system.h"
-#include "fpsclient_interface.h"
 #include "intensity_physics.h"
 #ifdef CLIENT
     #include "client_engine_additions.h"

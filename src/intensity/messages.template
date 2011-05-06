@@ -77,7 +77,7 @@ LoginRequest(client->server)
                 force_network_flush();
                 disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
             }
-            char *uname = FPSServerInterface::getUsername(sender);
+            char *uname = server::getUsername(sender);
             if (uname) OF_FREE(uname);
             uname = strdup("local_editor");
             server::setAdmin(sender, true);
@@ -98,7 +98,7 @@ YourUniqueId(server->client)
     int uniqueId // the unique ID for the client (in the currently-running module) // TODO: A message for 'switchmodule', w/new uniqueID
     send:
         // Remember this client's unique ID. Done here so always in sync with the client's belief about its uniqueId.
-        FPSServerInterface::getUniqueId(clientNumber) = uniqueId;
+        server::getUniqueId(clientNumber) = uniqueId;
     receive:
         Logging::log(Logging::DEBUG, "Told my unique ID: %d\r\n", uniqueId);
 
@@ -292,7 +292,7 @@ StateDataChangeRequest(client->server)
         if (!ServerSystem::isRunningMap()) return;
 
         #define STATE_DATA_REQUEST \
-        int actorUniqueId = FPSServerInterface::getUniqueId(sender); \
+        int actorUniqueId = server::getUniqueId(sender); \
         \
         Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.c_str()); \
         \
@@ -368,7 +368,7 @@ ActiveEntitiesRequest(client->server)
             engine.getg("on_player_login");
             if (engine.is<void*>(-1)) engine.getg("entity_store")
                       .t_getraw("get")
-                      .push(FPSServerInterface::getUniqueId(sender))
+                      .push(server::getUniqueId(sender))
                       .call(1, 1)
                       .shift().pop(1)
                       .call(1, 0);
@@ -596,7 +596,12 @@ InitS2C(server->client)
                 return;
             }
 
-            fpsent *player1 = dynamic_cast<fpsent*>( FPSClientInterface::getClientPlayer() );
+            #ifdef CLIENT
+                fpsent *player1 = game::player1;
+            #else
+                assert(0);
+                fpsent *player1 = NULL;
+            #endif
 
             player1->clientnum = explicitClientNumber; // we are now fully connected
                                                        // Kripken: Well, sauer would be, we still need more...
@@ -636,7 +641,7 @@ SoundToServer(client->server)
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
-        dynent* otherEntity = FPSClientInterface::getPlayerByNumber(sender);
+        dynent* otherEntity = game::getclient(sender);
         if (otherEntity)
 //            send_SoundToClients(-1, otherEntity->o.x, otherEntity->o.y, otherEntity->o.z, soundId, sender); TODO
             send_SoundToClients(-1, soundId, sender);
@@ -659,7 +664,7 @@ SoundToClients(server->client)
 //        vec pos(x,y,z);
 //        playsound(soundId, &pos);
 
-        dynent* player = FPSClientInterface::getPlayerByNumber(originalClientNumber);
+        dynent* player = game::getclient(originalClientNumber);
         if (!player)
         {
             if (originalClientNumber == -1) // Do not play sounds from nonexisting clients - would be odd
@@ -778,7 +783,7 @@ EditModeS2C(server->client,dummy)
     send:
         exclude = otherClientNumber;
     receive:
-        dynent* d = FPSClientInterface::getPlayerByNumber(otherClientNumber);
+        dynent* d = game::getclient(otherClientNumber);
 
         // Code from sauer's client.h
         if (d)

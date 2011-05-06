@@ -7,8 +7,12 @@
 #include "game.h"
 
 #include "network_system.h"
-#include "fpsclient_interface.h"
 #include "of_tools.h"
+
+namespace game
+{
+    void updatepos(fpsent *d);
+}
 
 namespace NetworkSystem
 {
@@ -203,7 +207,7 @@ void QuantizedInfo::generateFrom(ucharbuf& p)
 void QuantizedInfo::applyToEntity(fpsent *d)
 {
     if (d == NULL)
-        d = dynamic_cast<fpsent*>(FPSClientInterface::getPlayerByNumber(clientNumber));
+        d = dynamic_cast<fpsent*>(game::getclient(clientNumber));
 //        fpsent *d = cl.getclient(cn);
 
     // Only possibly discard if we get a value for the lifesequence
@@ -279,10 +283,10 @@ void QuantizedInfo::applyToEntity(fpsent *d)
             d->physstate = misc & 7;
 
         updatephysstate(d);
-        FPSClientInterface::updatePosition(d);
+        game::updatepos(d);
     }
     #ifdef CLIENT // No need to smooth for server, and certainly no need to double smooth before getting to other clients
-    if(FPSClientInterface::smoothmove() && d->smoothmillis>=0 && oldpos.dist(d->o) < FPSClientInterface::smoothdist())
+    if(GETIV(smoothmove) && d->smoothmillis>=0 && oldpos.dist(d->o) < GETIV(smoothdist))
     {
         d->newpos = d->o;
         d->newyaw = d->yaw;

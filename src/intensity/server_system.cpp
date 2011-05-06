@@ -20,6 +20,7 @@ namespace server
     extern bool shutdown_if_empty;
     extern bool shutdown_if_idle;
     extern int  shutdown_idle_interval;
+    char*& getUsername(int clientNumber);
 }
 
 bool should_quit = false;
@@ -124,7 +125,7 @@ bool ServerSystem::isRunningMap()
 
 void update_username(int clientNumber, std::string username)
 {
-    char *uname = FPSServerInterface::getUsername(clientNumber);
+    char *uname = server::getUsername(clientNumber);
     if (uname) OF_FREE(uname);
     uname = strdup(username.c_str()); // Signals that this client is logged in TODO: Nicer
 }

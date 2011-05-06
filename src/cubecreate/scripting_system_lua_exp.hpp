@@ -282,7 +282,6 @@ const LE_reg CAPI[] = {
     LUAREG(particle_trail),
     LUAREG(particle_flame),
     LUAREG(adddynlight),
-    LUAREG(spawndebris),
     LUAREG(particle_meter),
     LUAREG(particle_text),
     LUAREG(client_damage_effect),

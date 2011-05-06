@@ -132,15 +132,6 @@ namespace lua_binds
         LightControl::queueDynamicLight(o, e.get<double>(4), color, e.get<int>(8), e.get<int>(9), e.get<int>(10), e.get<double>(11), initcolor, NULL);
     })
 
-    LUA_BIND_CLIENT(spawndebris, {
-        vec v(e.get<double>(2), e.get<double>(3), e.get<double>(4));
-        vec debrisvel(e.get<double>(6), e.get<double>(7), e.get<double>(8));
-
-        CLogicEntity *owner = LogicSystem::getLogicEntity(e.get<int>(9));
-        assert(owner->dynamicEntity);
-        FPSClientInterface::spawnDebris(e.get<int>(1), v, e.get<int>(5), debrisvel, (dynent*)(owner->dynamicEntity));
-    })
-
     LUA_BIND_CLIENT(particle_meter, {
         vec s(e.get<double>(1), e.get<double>(2), e.get<double>(3));
         particle_meter(s, e.get<double>(4), e.get<int>(5), e.get<int>(6));

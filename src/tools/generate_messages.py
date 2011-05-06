@@ -42,8 +42,6 @@ def generate_messages():
 #include "engine.h"
 #include "game.h"
 
-#include "fpsclient_interface.h"
-
 #ifdef CLIENT
     #include "targeting.h"
 #endif
@@ -60,6 +58,11 @@ using namespace lua;
 
 /* Abuse generation from template for now */
 void force_network_flush();
+namespace server
+{
+    int& getUniqueId(int clientNumber);
+    char*& getUsername(int clientNumber);
+}
 
 namespace MessageSystem
 {
@@ -221,10 +224,10 @@ void send_%s(%s);
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( FPSClientInterface::getPlayerByNumber(clientNumber) );
+            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
-            testUniqueId = FPSServerInterface::getUniqueId(clientNumber);
+            testUniqueId = server::getUniqueId(clientNumber);
             if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
                  (%s && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
                  (%s && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there

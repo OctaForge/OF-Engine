@@ -170,7 +170,7 @@ namespace lua_binds
     })
 
     LUA_BIND_CLIENT(set_mouse_target_client, {
-        dynent *client = FPSClientInterface::getPlayerByNumber(e.get<int>(1));
+        dynent *client = game::getclient(e.get<int>(1));
         if (client) TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(client);
         else if (TargetingControl::targetLogicEntity) delete TargetingControl::targetLogicEntity;
 
