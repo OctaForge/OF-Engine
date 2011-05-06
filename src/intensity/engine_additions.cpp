@@ -10,7 +10,6 @@
 #include "client_system.h"
 #include "world_system.h"
 #include "NPC.h"
-#include "intensity_physics.h"
 
 #include "of_tools.h"
 
@@ -377,16 +376,12 @@ void LogicSystem::clear()
 
         //engine.destroy();
     }
-
-    PhysicsManager::destroyEngine();
 }
 
 void LogicSystem::init()
 {
     clear();
-
     engine.create();
-    PhysicsManager::createEngine();
 }
 
 void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)

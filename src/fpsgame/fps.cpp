@@ -17,7 +17,6 @@
 
 #include "message_system.h"
 #include "world_system.h"
-#include "intensity_physics.h"
 #include "of_tools.h"
 #include "of_world.h"
 
@@ -360,7 +359,31 @@ namespace game
 
         if (runWorld)
         {
-            PhysicsManager::simulate(float(curtime)/1024.0f);
+            #ifdef CLIENT
+                game::otherplayers(curtime); // Server doesn't need smooth interpolation of other players
+            #endif
+
+            game::moveControlledEntities();
+
+            loopv(game::players)
+            {
+                fpsent* fpsEntity = game::players[i];
+                CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
+                if (!entity || entity->isNone()) continue;
+
+                #ifdef CLIENT
+                    // Ragdolls
+                    int anim = entity->getAnimation();
+                    if (fpsEntity->ragdoll && !(anim&ANIM_DYING))
+                    {
+                        cleanragdoll(fpsEntity);
+                    }
+                    if (fpsEntity->ragdoll && (anim&ANIM_DYING))
+                    {
+                        moveragdoll(fpsEntity);
+                    }
+                #endif
+            }
 
             //============================================
             // Additional physics: Collisions

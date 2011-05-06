@@ -32,6 +32,7 @@ extern float GRAVITY;
 extern int entlooplevel, efocus, enthover, oldhover;
 extern bool undonext;
 extern selinfo sel;
+extern physent *hitplayer;
 void entadd(int id);
 bool noentedit();
 void printent(extentity &e, char *buf);
@@ -105,21 +106,39 @@ namespace lua_binds
         vec pos(e.get<double>(1), e.get<double>(2), e.get<double>(3));
 
         // TODO: Make faster, avoid this lookup
-        e.push(PhysicsManager::getEngine()->isColliding(
-            pos,
-            e.get<double>(4),
-            e.get<int>(5) != -1 ? LogicSystem::getLogicEntity(e.get<int>(5)) : NULL)
-        );
+        CLogicEntity *ignore = e.get<int>(5) != -1 ? LogicSystem::getLogicEntity(e.get<int>(5)) : NULL;
+        physent tester;
+        tester.reset();
+        tester.type = ENT_BOUNCE;
+        tester.o = pos;
+        tester.radius = tester.xradius = tester.yradius = e.get<double>(4);
+        tester.eyeheight = e.get<double>(4);
+        tester.aboveeye = e.get<double>(4);
+
+        if (!collide(&tester, vec(0, 0, 0)))
+        {
+            if (ignore && ignore->isDynamic() && ignore->dynamicEntity == hitplayer)
+            {
+                // Try to see if the ignore was the sole cause of collision - move it away, test, then move it back
+                vec save = ignore->dynamicEntity->o;
+                avoidcollision(ignore->dynamicEntity, vec(1,1,1), &tester, 0.1f);
+                bool ret = !collide(&tester, vec(0, 0, 0));
+                ignore->dynamicEntity->o = save;
+                e.push(ret);
+                return;
+            }
+            else
+            {
+                e.push(true);
+                return;
+            }
+        } else
+            e.push(false);
     })
 
     LUA_BIND_DEF(setgravity, {
-        if (PhysicsManager::hasEngine())
-            PhysicsManager::getEngine()->setGravity(e.get<double>(1));
-        else
-        {
-            Logging::log(Logging::DEBUG, "Setting gravity using sauer system, as no physics engine\r\n");
-            GRAVITY = e.get<double>(1);
-        }
+        Logging::log(Logging::DEBUG, "Setting gravity using sauer system, as no physics engine\r\n");
+        GRAVITY = e.get<double>(1);
     })
 
     LUA_BIND_DEF(getmat, e.push(lookupmaterial(vec(e.get<double>(1), e.get<double>(2), e.get<double>(3))));)

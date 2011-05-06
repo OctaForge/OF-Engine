@@ -6,8 +6,6 @@
 #include "engine.h"
 #include "game.h"
 
-#include "intensity_physics.h"
-
 #include "targeting.h"
 
 #ifdef CLIENT
@@ -101,7 +99,36 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
         dist = -7654; // TODO: Calculate
         entity = LogicSystem::getLogicEntity(*entities::getents()[enthover]);
     } else {
-        PhysicsManager::getEngine()->rayCastClosest(from, to, dist, entity, dynamic_cast<fpsent*>(targeter) ? LogicSystem::getLogicEntity(targeter) : NULL);
+        // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
+        CLogicEntity *ignore = dynamic_cast<fpsent*>(targeter) ? LogicSystem::getLogicEntity(targeter) : NULL;
+        float dynamicDist, staticDist;
+        dynent* dynamicEntity;
+        extentity* staticEntity;
+        TargetingControl::intersectClosestDynamicEntity(from, to, ignore ? ignore->dynamicEntity : NULL, dynamicDist,  dynamicEntity);
+        TargetingControl::intersectClosestMapmodel     (from, to,                                        staticDist, staticEntity);
+
+        dist = -1;
+
+        if (dynamicEntity == NULL && staticEntity == NULL)
+        {
+            dist = -1;
+            entity = NULL;
+        } else if (dynamicEntity != NULL && staticEntity == NULL)
+        {
+            dist = dynamicDist;
+            entity = LogicSystem::getLogicEntity(dynamicEntity);
+        } else if (dynamicEntity == NULL && staticEntity != NULL)
+        {
+            dist = staticDist;
+            entity = LogicSystem::getLogicEntity(*staticEntity);
+        } else if (staticDist < dynamicDist)
+        {
+            dist = staticDist;
+            entity = LogicSystem::getLogicEntity(*staticEntity);
+        } else {
+            dist = dynamicDist;
+            entity = LogicSystem::getLogicEntity(dynamicEntity);
+        }
     }
 }
 

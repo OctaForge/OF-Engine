@@ -39,8 +39,6 @@ set(CLIENT_SOURCES
     ../intensity/message_system
     ../intensity/client_system
     ../intensity/client_engine_additions
-    ../intensity/intensity_physics
-    ../intensity/intensity_physics_sauer
     ../fpsgame/fps
     ../fpsgame/server
     ../fpsgame/client

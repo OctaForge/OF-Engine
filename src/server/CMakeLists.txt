@@ -56,8 +56,6 @@ set(SERVER_SOURCES
     ../intensity/network_system
     ../cubecreate/scripting_system_lua
     ../cubecreate/variable_system
-    ../intensity/intensity_physics
-    ../intensity/intensity_physics_sauer
     ../engine/octarender
     ../fpsgame/weapon
     ../shared/stream

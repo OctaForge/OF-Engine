@@ -149,7 +149,7 @@ namespace lua_binds
                 }
             }
 
-            if (fp->ragdoll || !GETIV(ragdoll) || !PhysicsManager::getEngine()->prepareRagdoll(self))
+            if (fp->ragdoll || !GETIV(ragdoll))
             {
                 anim &= ~ANIM_RAGDOLL;
                 engine.getref(self->luaRef).t_getraw("set_localanim").push_index(-2).push(anim).call(2, 0);

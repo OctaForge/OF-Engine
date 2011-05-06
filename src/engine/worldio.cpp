@@ -10,7 +10,6 @@
 #ifdef CLIENT
     #include "client_system.h"
 #endif
-#include "intensity_physics.h"
 #include "of_world.h"
 
 void backup(char *name, char *backupname)

@@ -3,7 +3,6 @@
 #include "engine.h"
 
 #include "intensity_texture.h"
-#include "intensity_physics.h"
 
 struct vboinfo
 {
@@ -463,17 +462,6 @@ struct vacollect : verthash
 
             va->voffset = vbosize[VBO_VBUF];
             uchar *vdata = addvbo(va, VBO_VBUF, va->verts, VTXSIZE);
-            // INTENSITY: Set up physical verts
-            PhysicsManager::setupWorldGeometryVerts(verts); 
-            // Go over each item in vc's "hashtable<sortkey, sortval> indices;", each is a group of tris
-            enumeratekt(indices, sortkey, k, sortval, t,
-                {
-                    loopl(2)
-                        PhysicsManager::setupWorldGeometryTriGroup(t.tris[l], k.tex, k.lmid, l);
-                }
-            );
-            PhysicsManager::finishWorldGeometryVerts();
-            // INTENSITY: end
             genverts(vdata);
             va->minvert += va->voffset;
             va->maxvert += va->voffset;
@@ -1740,8 +1728,6 @@ void allchanged(bool load)
 {
     renderprogress(0, "clearing vertex arrays...");
 
-    PhysicsManager::clearWorldGeometry(); // New world geometry, from scratch // INTENSITY
-
     clearvas(worldroot);
     resetqueries();
     resetclipplanes();
@@ -1769,8 +1755,6 @@ void allchanged(bool load)
         genenvmaps();
         drawminimap();
     }
-
-    PhysicsManager::finalizeWorldGeometry(); // INTENSITY
 }
 
 void recalc()
