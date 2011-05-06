@@ -8,7 +8,7 @@
 #include "network_system.h"
 #include "server_system.h"
 #include "fpsclient_interface.h"
-#include "system_manager.h"
+#include "message_system.h"
 
 namespace server
 {
@@ -956,7 +956,8 @@ void server_init()//int argc, char* argv[])
     atexit(enet_deinitialize);
     enet_time_set(0);
 
-    SystemManager::init();
+    conoutf("Registering messages");
+    MessageSystem::MessageManager::registerAll();
 
     // Init server
     initserver(true, true);

@@ -151,37 +151,12 @@ void ClientSystem::frameTrigger(int curtime)
     }
 
     ClientSystem::cleanupHUD();
-
-    #ifdef INTENSITY_PLUGIN
-        PluginListener::frameTrigger();
-    #endif
 }
 
 void ClientSystem::gotoLoginScreen()
 {
     assert(0);
-#if 0
-    Logging::log(Logging::DEBUG, "Going to login screen\r\n");
-    INDENT_LOG(Logging::DEBUG);
-
-    LogicSystem::init(); // This is also done later, but as the mainloop assumes there is always a lua engine, we do it here as well
-
-    ClientSystem::onDisconnect(); // disconnect has several meanings...
-
-    localconnect();
-    game::gameconnect(false);
-
-//    FPSServerInterface::vote("login", 0);
-
-    game::changemap("login");
-
-    Logging::log(Logging::DEBUG, "Going to login screen complete\r\n");
-#endif
 }
-
-extern const char *sethomedir(const char *dir); // shared/tools.cpp
-
-extern int sauer_main(int argc, char **argv); // from main.cpp
 
 void setTransactionCode(std::string code)
 {
@@ -431,12 +406,6 @@ extern void checkinput();
 void upload_texture_data(std::string name, int x, int y, int w, int h, long long int pixels)
 {
     IntensityTexture::uploadTextureData(name, x, y, w, h, (void*)pixels);
-}
-
-int main(int argc, char **argv)
-{
-    sauer_main(argc, argv);
-    return 0;
 }
 
 void ClientSystem::finishLoadWorld()

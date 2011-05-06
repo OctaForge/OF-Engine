@@ -36,7 +36,6 @@ set(SERVER_SOURCES
     ../fpsgame/server
     ../fpsgame/client
     ../fpsgame/entities
-    ../intensity/system_manager
     ../intensity/message_system
     ../intensity/server_system
     ../intensity/logging

@@ -2,9 +2,9 @@
 
 #include "engine.h"
 
-#include "system_manager.h" // INTENSITY
 #include "client_system.h" // INTENSITY
 #include "editing_system.h" // INTENSITY
+#include "message_system.h"
 #include "of_localserver.h"
 #include "of_tools.h"
 
@@ -45,8 +45,8 @@ void force_quit() // INTENSITY - change quit to force_quit
     of_tools_writecfg();
     cleanup();
 
-    SystemManager::quit(); // INTENSITY
-    var::flush(); // CubeCreate
+    lua::engine.destroy();
+    var::flush();
 
     exit(EXIT_SUCCESS);
 }
@@ -1047,7 +1047,7 @@ int getclockmillis()
     return max(millis, totalmillis);
 }
 
-int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it elsewhere
+int main(int argc, char **argv)
 {
     #ifdef WIN32
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
@@ -1221,8 +1221,8 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
 
     var::persistvars = true;
 
-    initlog("Intensity Engine System Initialization");
-    SystemManager::init(); // INTENSITY
+    initlog("Registering messages\n");
+    MessageSystem::MessageManager::registerAll();
 
     if(load)
     {
@@ -1292,7 +1292,7 @@ int sauer_main(int argc, char **argv) // INTENSITY: Renamed so we can access it 
         swapbuffers();
         renderedframe = inbetweenframes = true;
 
-        SystemManager::frameTrigger(curtime); // INTENSITY
+        ClientSystem::frameTrigger(curtime); // INTENSITY
     }
     
     ASSERT(0);   

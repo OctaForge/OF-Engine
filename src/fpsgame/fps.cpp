@@ -15,7 +15,6 @@
     #include "server_system.h"
 #endif
 
-#include "system_manager.h"
 #include "message_system.h"
 #include "world_system.h"
 #include "intensity_physics.h"
