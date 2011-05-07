@@ -1,7 +1,6 @@
--- Use library version "10" - example, the library is empty for now
-library.use("10")
-
-skybox = "textures/sky/remus/sky01"
+-- Example script which draws a sine curve in the world procedurally.
+-- built on OF API v1
+-- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
 myplayer = class.new(character.player)
