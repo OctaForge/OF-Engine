@@ -43,43 +43,6 @@ struct TargetingControl
     //! actual movement since the last calculation here, and the velocity
     static float calculateMovement(physent* entity);
 
-    //! For a viewer position and a target entity, returns how visible it is, i.e., an
-    //! estimate of the size of that entity on the viewer's 'screen'. 100% means the entity
-    //! fills the screen. This value is useful e.g. to know how accurate physics need to
-    //! be - we can do less physics frames for entities that are only a few pixels large.
-    //! Note that this function returns a rough estimate, not a precise calculation.
-    //! @param cameraPosition The position of the camera, i.e., the viewer
-    //! @param fovx The field of view in the X (horizontal) direction
-    //! @param fovy The field of view in the Y (vertical) direction
-    //! @param cameraDirection Where the camera points to. A normalized vector.
-    //! @param cameraRight The right axis of the camera. A normalized vector.
-    //! @param cameraUp. The up axis of the camera. A normalized vector.
-    //! @param targetPosition The position of the target.
-    //! @param targetRadius The radius of the target (for now we use a single dimension).
-    //! @return The visibility percentage, a value between 0 and 100. This is a percentage
-    //! of the 2D screen area, i.e., it is in 2D size coordinates.
-    static float estimateVisibility(vec& cameraPosition, float fovx, float fovy,
-                                    vec& cameraDirection, vec& cameraRight, vec& cameraUp,
-                                    vec& targetPosition, float targetRadius);
-
-    //! For a viewer position and a target entity, returns how much it might
-    //! change, visibly, from the point of view of a camera's 'screen'. 100% means the entity
-    //! will potentially move an area size equal to the entire screen, in 1 second's time.
-    //! This value is useful e.g. to know how accurate physics need to
-    //! be - we can do less physics frames for entities that will only appear to move very little.
-    static float estimatePotentialVisibilityChange(vec& cameraPosition, float fovx, float fovy,
-                                                   vec& cameraDirection, vec& cameraRight, vec& cameraUp,
-                                                   vec& targetPosition, float targetRadius, vec& targetVelocity);
-
-#ifdef CLIENT
-    //! Estimates how much the player (as represented by the camera) can see a target physical entity.
-    static float estimatePlayerVisiblity(physent* target);
-
-    //! Estimates how much the player (as represented by the camera) will see a visual change in a target physical entity
-    //! in 1 second's time.
-    static float estimatePlayerPotentialVisiblityChange(physent* target);
-#endif
-
     //! Calculates how long a physics frame should be for a particular physics entity. On
     //! the client, this depends on how visible the other entity is (no need for 200fps of
     //! physics for something that is only a few pixels large), the screen resolution, etc.

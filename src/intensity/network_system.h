@@ -2,6 +2,10 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
+//! We need a single 'dummy' client on the server, to which we relay position and message updates, as if it
+//! were a real client.
+#define DUMMY_SINGLETON_CLIENT_UNIQUE_ID -9000
+
 namespace NetworkSystem
 {
     namespace Cataloger

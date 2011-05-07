@@ -13,7 +13,6 @@
 //! As per Sauer: 0 is fast positions, 1 is (reliable?) standard messages
 #define MAIN_CHANNEL 1
 
-
 //! Extensions to the Sauerbraten client-server messaging system
 
 //! Instead of hard-coding messages into fpsserver.h as in Sauerbraten, we instead have the

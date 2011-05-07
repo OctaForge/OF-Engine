@@ -15,7 +15,6 @@
 
 #include "intensity.h"
 
-#include "server_system.h"
 #include "network_system.h"
 #include "message_system.h"
 

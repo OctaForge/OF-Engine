@@ -12,7 +12,6 @@
     #include "igame.h"
 #endif
 
-#include "server_system.h"
 #include "message_system.h"
 
 

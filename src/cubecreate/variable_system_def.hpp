@@ -499,8 +499,6 @@ VARP(servpingdecay, 1000, 15000, 60000);
 VARP(maxservpings, 0, 10, 1000);
 
 // engine/server.cpp
-VAR(updatemaster, 0, 1, 1); // globalname was allowupdatemaster
-SVARF(mastername, server::defaultmaster(), disconnectmaster);
 VAR(serveruprate, 0, 0, INT_MAX);
 SVAR(serverip, "");
 VARFP(serverport, -1, server::serverport(), 0xFFFF, serverport); // not hex var
@@ -718,16 +716,6 @@ SVAR(input_title, "");
 SVAR(input_content, "");
 SVAR(input_data, "");
 #endif
-
-// intensity/master.cpp
-
-SVARP(entered_username, ""); // Persisted - uses "-" instead of "@, to get around sauer issue
-SVAR(true_username, ""); // Has "@, can be sent to server to login
-SVAR(entered_password, "");
-SVARP(hashed_password, "");
-VAR(have_master, 0, 1, 1);
-VAR(logged_into_master, 0, 0, 1);
-SVAR(error_message, "");
 
 // intensity/scripting_system_lua_def.hpp
 

@@ -401,16 +401,6 @@ spawnent = CAPI.spawnent
 
 ---
 -- @class function
--- @name debugoctree
-debugoctree = CAPI.debugoctree
-
----
--- @class function
--- @name centerent
-centerent = CAPI.centerent
-
----
--- @class function
 -- @name requestprivedit
 requestprivedit = CAPI.requestprivedit
 

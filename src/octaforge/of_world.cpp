@@ -32,9 +32,6 @@
 #include "game.h"
 
 #include "of_world.h"
-#ifdef SERVER
-#include "server_system.h"
-#endif
 
 #ifdef WIN32
 #include "wuuid.h"
@@ -114,7 +111,7 @@ bool of_world_restart_map()
 #ifdef SERVER
 void of_world_send_curr_map(int cn)
 {
-    if (!ServerSystem::isRunningMap()) return;
+    if (!of_world_scenario_code) return;
 
     send_NotifyAboutCurrentScenario(
         cn,

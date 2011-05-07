@@ -67,7 +67,7 @@ LoginRequest(client->server)
                      // identity of this user
     receive:
         #ifdef SERVER
-            if (!ServerSystem::isRunningMap())
+            if (!of_world_scenario_code)
             {
                 send_PersonalServerMessage(
                     sender,
@@ -142,7 +142,7 @@ end
 //
 RequestCurrentScenario(client->server)
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
         of_world_send_curr_map(sender);
 end
 
@@ -165,7 +165,7 @@ end
 // re-starts the map
 RestartMap(client->server)
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         if (!server::isAdmin(sender))
         {
@@ -186,7 +186,7 @@ NewEntityRequest(client->server)
     send:
         EditingSystem::madeChanges = true;
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         if (!server::isAdmin(sender))
         {
@@ -289,7 +289,7 @@ StateDataChangeRequest(client->server)
         if (editmode)
             EditingSystem::madeChanges = true;
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
@@ -322,7 +322,7 @@ UnreliableStateDataChangeRequest(client->server)
     int keyProtocolId
     std::string value
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         STATE_DATA_REQUEST
 end
@@ -347,7 +347,7 @@ ActiveEntitiesRequest(client->server)
     std::string scenarioCode // The scenario the client is running, i.e., for which it wants the entities
     receive:
         #ifdef SERVER
-            if (!ServerSystem::isRunningMap()) return;
+            if (!of_world_scenario_code) return;
 
             // Mark the client as running the current scenario, if indeed doing so
             server::setClientScenario(sender, scenarioCode);
@@ -477,7 +477,7 @@ RequestLogicEntityRemoval(client->server)
     send:
         EditingSystem::madeChanges = true;
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         if (!server::isAdmin(sender))
         {
@@ -637,7 +637,7 @@ SoundToServer(client->server)
     unreliable
     int soundId
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
@@ -740,7 +740,7 @@ end
 EditModeC2S(client->server)
     int mode
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         #if 0 // The old sauer code from fpsserver.h
             case N_EDITMODE:
@@ -803,7 +803,7 @@ end
 // Request the current map file. Like /getmap in Sauer
 RequestMap(client->server)
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
         of_world_send_curr_map(sender);
 end
 
@@ -816,7 +816,7 @@ DoClick(client->server)
     float z
     int uniqueId
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
@@ -902,7 +902,7 @@ end
 // Request to enter the server into private edit mode
 RequestPrivateEditMode(client->server)
     receive:
-        if (!ServerSystem::isRunningMap()) return;
+        if (!of_world_scenario_code) return;
         send_NotifyPrivateEditMode(sender);
 end
 

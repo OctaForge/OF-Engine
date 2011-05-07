@@ -544,20 +544,6 @@ void newgui(char *name, int fref, char *header)
     m->contents_ref = fref;
 }
 
-void guiservers()
-{
-    extern char *showservers(g3d_gui *cgui);
-    if(cgui) 
-    {
-        char *command = showservers(cgui);
-        if(command)
-        {
-            updatelater.add().schedule(command);
-            if(shouldclearmenu) clearlater = true;
-        }
-    }
-}
-
 struct change
 {
     int type;

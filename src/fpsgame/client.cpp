@@ -11,10 +11,6 @@
 #include "message_system.h"
 #include "network_system.h"
 
-#ifdef SERVER
-    #include "server_system.h"
-#endif
-
 #ifdef CLIENT
     #include "client_engine_additions.h"
     extern int enthover;

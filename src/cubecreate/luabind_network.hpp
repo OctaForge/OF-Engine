@@ -29,8 +29,6 @@
 
 /* PROTOTYPES */
 void trydisconnect();
-void startlistenserver(int usemaster);
-void stoplistenserver();
 
 namespace game
 {
@@ -59,9 +57,6 @@ namespace lua_binds
     LUA_BIND_STD(disconnect, trydisconnect)
     LUA_BIND_STD(localconnect, if(!isconnected() && !haslocalclients()) localconnect)
     LUA_BIND_STD(localdisconnect, if(haslocalclients()) localdisconnect)
-
-    LUA_BIND_STD(startlistenserver, startlistenserver, e.get<int>(1))
-    LUA_BIND_STD(stoplistenserver, stoplistenserver)
 
     LUA_BIND_DEF(getfollow, {
         fpsent *f = game::followingplayer();

@@ -77,7 +77,6 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
     {
         if(strcmp(servername, GETSV(connectname))) SETVF(connectname, servername);
         if(serverport != GETIV(connectport)) SETVF(connectport, serverport);
-        addserver(servername, serverport, serverpassword && serverpassword[0] ? serverpassword : NULL); // INTENSITY: Remove?
         conoutf("attempting to connect to %s:%d", servername, serverport);
         if(!resolverwait(servername, &address))
         {

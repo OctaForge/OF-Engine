@@ -238,8 +238,6 @@ VCB(loadcaustics, int, loadcaustics();)
 #endif
 
 // engine/server.cpp
-void disconnectmaster();
-VCB(disconnectmaster, const char*, disconnectmaster();)
 VCB(serverport, int, if(!curv) _EV_serverport->s(server::serverport());)
 
 // engine/shader.cpp
@@ -831,8 +829,6 @@ DEFVAR(servpingdecay)
 DEFVAR(maxservpings)
 
 // engine/server.cpp
-DEFVAR(updatemaster) // globalname was allowupdatemaster
-DEFVAR(mastername)
 DEFVAR(serveruprate)
 DEFVAR(serverip)
 DEFVAR(serverport) // not hex var
@@ -1050,16 +1046,6 @@ DEFVAR(input_title)
 DEFVAR(input_content)
 DEFVAR(input_data)
 #endif
-
-// intensity/master.cpp
-
-DEFVAR(entered_username) // Persisted - uses "-" instead of "@, to get around sauer issue
-DEFVAR(true_username) // Has "@, can be sent to server to login
-DEFVAR(entered_password)
-DEFVAR(hashed_password)
-DEFVAR(have_master)
-DEFVAR(logged_into_master)
-DEFVAR(error_message)
 
 // intensity/script_engine_lua_embedding.h
 

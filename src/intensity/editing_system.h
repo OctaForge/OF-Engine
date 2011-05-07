@@ -45,10 +45,6 @@ namespace EditingSystem
     //! @param direction 1 is into the cube, -1 is to the outside.
     void pushCubeCorner(int x, int y, int z, int gridsize, int face, int corner, int direction);
 
-    void createMapFromRaw(int resolution, double addr, int smoothing);
-
-    void createHeightmapFromRaw(int resolution, double addr);
-
     CLogicEntity *getSelectedEntity();
 };
 

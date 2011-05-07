@@ -11,8 +11,6 @@
 
 #ifdef CLIENT
     #include "client_system.h"
-#else // SERVER
-    #include "server_system.h"
 #endif
 
 #include "message_system.h"

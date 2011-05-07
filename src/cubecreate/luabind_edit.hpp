@@ -80,8 +80,6 @@ namespace EditingSystem
     void newEntity(std::string _class, std::string stateData);
     void prepareentityclasses();
 }
-void debugoctree();
-void centerent();
 
 namespace server
 {
@@ -295,8 +293,6 @@ namespace lua_binds
     LUA_BIND_STD(prepareentityclasses, EditingSystem::prepareentityclasses)
     LUA_BIND_STD(numentityclasses, e.push, (int)EditingSystem::entityClasses.size())
     LUA_BIND_STD(spawnent, EditingSystem::newEntity, e.get<const char*>(1))
-    LUA_BIND_STD(debugoctree, debugoctree)
-    LUA_BIND_STD(centerent, centerent)
 
     LUA_BIND_STD_CLIENT(requestprivedit, MessageSystem::send_RequestPrivateEditMode)
     LUA_BIND_STD_CLIENT(hasprivedit, e.push, ClientSystem::editingAlone)
