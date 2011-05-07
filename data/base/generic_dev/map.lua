@@ -1,3 +1,6 @@
+-- Use library version "10" - example, the library is empty for now
+library.use("10")
+
 skybox = "textures/sky/remus/sky01"
 
 -- Create a custom player class

@@ -29,6 +29,9 @@
 -- see world metatable below
 local gravity
 
+logging.log(logging.DEBUG, ":: Library system.")
+require("base.base_library")
+
 logging.log(logging.DEBUG, ":: JSON.")
 require("base.base_json")
 

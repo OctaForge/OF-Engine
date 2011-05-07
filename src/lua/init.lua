@@ -26,7 +26,7 @@
 -- THE SOFTWARE.
 --
 
-package.path = package.path .. ";./src/lua/?.lua;./src/lua/?/init.lua;./?/init.lua"
+package.path = package.path .. ";./src/lua/?.lua;./src/lua/?/init.lua;./?/init.lua;./data/library/?/init.lua"
 
 --[[
 function trace (event, line)
