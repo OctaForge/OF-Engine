@@ -9,6 +9,20 @@
 
 #include "client_engine_additions.h" // INTENSITY
 
+static void readyeditors() 
+{
+    loopv(editors) editors[i]->active = (editors[i]->mode==EDITORFOREVER);
+}
+
+static void flusheditors() 
+{
+    loopvrev(editors) if(!editors[i]->active) 
+    {
+        editor *e = editors.remove(i);
+        DELETEP(e);
+    }
+}
+
 static bool layoutpass, actionon = false;
 static int mousebuttons = 0;
 static struct gui *windowhit = NULL;

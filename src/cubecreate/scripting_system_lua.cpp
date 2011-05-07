@@ -44,7 +44,6 @@
 #include "message_system.h"
 #ifdef CLIENT
     #include "client_engine_additions.h"
-    #include "intensity_texture.h"
     #include "client_system.h"
     #include "targeting.h"
     #include "textedit.h"

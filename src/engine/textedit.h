@@ -657,20 +657,6 @@ static vector <editor*> editors;
 
 static editor *currentfocus() { return editors.length() ? editors.last() : NULL; }
 
-static void readyeditors() 
-{
-    loopv(editors) editors[i]->active = (editors[i]->mode==EDITORFOREVER);
-}
-
-static void flusheditors() 
-{
-    loopvrev(editors) if(!editors[i]->active) 
-    {
-        editor *e = editors.remove(i);
-        DELETEP(e);
-    }
-}
-
 static editor *useeditor(const char *name, int mode, bool focus, const char *initval = NULL, bool password=false) // INTENSITY: password
 {
     loopv(editors) if(strcmp(editors[i]->name, name) == 0) 

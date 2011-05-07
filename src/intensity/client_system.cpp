@@ -12,10 +12,6 @@
 #include "editing_system.h"
 #include "client_engine_additions.h"
 #include "targeting.h"
-#include "intensity_texture.h"
-#ifdef INTENSITY_PLUGIN
-    #include "intensity_plugin_listener.h"
-#endif
 
 #include "client_system.h"
 #include "of_world.h"
@@ -146,7 +142,7 @@ void ClientSystem::frameTrigger(int curtime)
         PlayerControl::handleExtraPlayerMovements(curtime);
         TargetingControl::determineMouseTarget();
         SETV(can_edit, int(isAdmin()));
-        IntensityTexture::doBackgroundLoading();
+        dobgload();
     }
 
     ClientSystem::cleanupHUD();
@@ -398,13 +394,6 @@ void ClientSystem::cleanupHUD()
 int get_escape()
 {
     return SDLK_ESCAPE;
-}
-
-extern void checkinput();
-
-void upload_texture_data(std::string name, int x, int y, int w, int h, long long int pixels)
-{
-    IntensityTexture::uploadTextureData(name, x, y, w, h, (void*)pixels);
 }
 
 void ClientSystem::finishLoadWorld()

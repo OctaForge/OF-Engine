@@ -1133,6 +1133,7 @@ bool settexture(const char *name, int clamp)
     return t != notexture;
 }
 
+vector<int> requested_slots;
 vector<VSlot *> vslots;
 vector<Slot *> slots;
 MSlot materialslots[MATF_VOLUME+1];
@@ -1755,13 +1756,44 @@ MSlot &lookupmaterialslot(int index, bool load)
     return s;
 }
 
-#if 0 // INTENSITY: Replaced
+/* OctaForge: background loading system */
 Slot &lookupslot(int index, bool load)
 {
     Slot &s = slots.inrange(index) ? *slots[index] : (slots.inrange(DEFAULT_GEOM) ? *slots[DEFAULT_GEOM] : dummyslot);
-    return s.loaded || !load ? s : loadslot(s, false);
+    if (load && !s.loaded)
+    {
+        if (slots.inrange(index))
+        {
+            if (requested_slots.find(index) == -1)
+            {
+                requested_slots.add(index);
+                loopv(s.sts) s.sts[i].t = notexture; // Until we load them, do not crash in rendering code
+            }
+        } else
+            loadslot(s, false);
+    }
+    return s;
 }
-#endif
+
+void resetbgload()
+{
+    requested_slots.setsize(0);
+}
+
+void dobgload(bool all)
+{
+    while (requested_slots.length() > 0)
+    {
+        int slot = requested_slots[0];
+        requested_slots.remove(0);
+
+        assert(slots.inrange(slot));
+        Slot &s = *slots[slot];
+        loadslot(s, false); /* for materials, would be true */
+
+        if (!all) break;
+    }
+}
 
 VSlot &lookupvslot(int index, bool load)
 {
@@ -2748,6 +2780,3 @@ void screenshot(char *filename)
     glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, image.data);
     saveimage(path(buf), format, image, true);
 }
-
-#include "intensity_texture.cpp" // INTENSITY
-

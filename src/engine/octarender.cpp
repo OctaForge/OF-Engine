@@ -2,8 +2,6 @@
 
 #include "engine.h"
 
-#include "intensity_texture.h"
-
 struct vboinfo
 {
     int uses;
@@ -1702,7 +1700,7 @@ void octarender()                               // creates va s for all leaf cub
 void precachetextures()
 {
 #ifdef CLIENT
-    IntensityTexture::resetBackgroundLoading(); // INTENSITY: see below for backgroundLoading
+    resetbgload(); /* OctaForge: see below for bgload */
 #endif
 
     vector<int> texs;
@@ -1718,7 +1716,7 @@ void precachetextures()
     }
 
 #ifdef CLIENT
-    IntensityTexture::doBackgroundLoading(true); // INTENSITY: lookuptexture just queues, now, so here we need to flush all the requests
+    dobgload(true); /* OctaForge: lookuptexture just queues, now, so here we need to flush all the requests */
 #endif
 
     loadprogress = 0;
