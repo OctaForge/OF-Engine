@@ -9,8 +9,6 @@
 #include "message_system.h"
 #include "client_system.h"
 #include "world_system.h"
-#include "NPC.h"
-
 #include "of_tools.h"
 
 using namespace lua;
@@ -696,8 +694,11 @@ void LogicSystem::dismantleCharacter(int ref)
 
 #ifdef SERVER
         if (isNPC)
-            NPC::remove(clientNumber); // The server connections of NPCs are removed when they are dismantled -
-                                       // they must be re-created manually in the new scenario, unlike players
+        {
+            /* The server connections of NPCs are removed when they are dismantled -
+             * they must be re-created manually in the new scenario, unlike players */
+            localdisconnect(true, clientNumber);
+        }
 #endif
     }
 }

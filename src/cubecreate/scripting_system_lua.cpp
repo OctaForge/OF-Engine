@@ -48,8 +48,6 @@
     #include "client_system.h"
     #include "targeting.h"
     #include "textedit.h"
-#else
-    #include "NPC.h"
 #endif
 #include "editing_system.h"
 

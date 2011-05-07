@@ -62,7 +62,6 @@ set(SERVER_SOURCES
     ../engine/pvs
     ../engine/blend
     ../shared/zip
-    ../intensity/NPC
     ../octaforge/of_world
     ${EXTRA_SOURCES}
 )

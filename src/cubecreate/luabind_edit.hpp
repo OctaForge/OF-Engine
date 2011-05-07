@@ -83,6 +83,11 @@ namespace EditingSystem
 void debugoctree();
 void centerent();
 
+namespace server
+{
+    char*& getUsername(int clientNumber);
+}
+
 namespace lua_binds
 {
     LUA_BIND_STD(editing_getworldsize, e.push, EditingSystem::getWorldSize())
@@ -248,15 +253,23 @@ namespace lua_binds
     LUA_BIND_STD(showtexgui, showtexgui, e.get<int*>(1))
 
     LUA_BIND_SERVER(npcadd, {
-        int _ref = NPC::add(e.get<const char*>(1));
+        int cn = localconnect(); // Local connect to the server
+        char *uname = server::getUsername(cn);
+        if (uname) OF_FREE(uname);
+
+        uname = of_tools_vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
+        Logging::log(Logging::DEBUG, "New NPC with client number: %d\r\n", cn);
+
+        // Create lua entity (players do this when they log in, NPCs do it here
+        int _ref = server::createluaEntity(cn, e.get<const char*>(1));
         if (_ref >= 0) e.getref(_ref);
         else e.push();
     })
 
     #ifdef SERVER
     LUA_BIND_LE(npcdel, {
-        fpsent *fpsEntity = (fpsent*)self->dynamicEntity;
-        NPC::remove(fpsEntity->clientnum);
+        fpsent *fpe = (fpsent*)self->dynamicEntity;
+        localdisconnect(true, fpe->clientnum);
     })
     #else
     LUA_BIND_DUMMY(npcdel)
