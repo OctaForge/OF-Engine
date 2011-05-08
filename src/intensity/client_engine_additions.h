@@ -109,24 +109,3 @@ namespace LightControl
 
     extern void showQueuedDynamicLights();
 };
-
-
-//! Additional rendering capabilities above Sauer's
-
-struct ExtraRendering
-{
-    //! For mapmodels that we want dynamic shadows - the same as under the characters - we do not
-    //! render them in the usual path. We still utilize PVS and octaentity selection, but we lose
-    //! hardware occlusion testing since the rendering is moved out, and it is moved out so that
-    //! these mapmodels are rendered in the shadow pass, so that they cast shadows.
-    //!
-    //! These mapmodels are queued in renderva.cpp, and rendered in fpsrender.h
-    //!
-    //! Examples of mapmodels that might cast
-    //! dynamic shadows are levels, switches, windmills, flags, etc. etc.
-    static std::vector<extentity*> currShadowingMapmodels;
-
-    //! Render the mapmodels that need to cast dynamic shadows
-    static void renderShadowingMapmodels();
-};
-

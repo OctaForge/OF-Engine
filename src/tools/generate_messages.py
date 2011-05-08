@@ -114,8 +114,9 @@ namespace MessageSystem
             param_string      = ''
             param_string_full = ''
             for param_type, param_name in params:
+                if param_type == 'char*': param_type = 'const char*'
                 param_string_full = param_string_full + param_type + " " + param_name + ", "
-                if param_type == 'std::string':
+                if param_type == 'std::string' or param_type == 'const char*':
                     param_string = param_string + 's'
                 elif param_type in [ 'bool', 'int', 'float' ]:
                     if param_type != 'int' or param_name != 'clientNumber': # int clientNumber is implicit
@@ -278,6 +279,10 @@ void send_%s(%s);
         getstring(tmp_%s, p);
         std::string %s = tmp_%s;
 """ % (param_name, param_name, param_name, param_name)
+                elif param_type == "char*":
+                    temp_receive = temp_receive + """        static char %s[MAXTRANS];
+        getstring(%s, p);
+""" % (param_name, param_name)
 
             receive = '        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type %s (%s)\\r\\n");\n\n' % (name, type_code) + temp_receive + '\n' + receive;
 

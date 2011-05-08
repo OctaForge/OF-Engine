@@ -960,7 +960,7 @@ namespace server
     {
         clientinfo *ci = getinfo(clientNumber);
         if (!ci) return;
-        ci->runningCurrentScenario = !strcmp(of_world_scenario_code, scenarioCode.c_str());
+        ci->runningCurrentScenario = !strcmp(of_world_get_scenario_code(), scenarioCode.c_str());
     }
 
     bool isRunningCurrentScenario(int clientNumber)

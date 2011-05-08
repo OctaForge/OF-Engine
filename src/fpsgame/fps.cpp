@@ -72,7 +72,7 @@ namespace game
     {
         static char buf[512];
 
-        char *prefix = strdup(of_world_curr_map_asset_id);
+        char *prefix = strdup(of_world_get_curr_map_asset_id());
         prefix[strlen(prefix) - 6] = '\0';
         prefix[strlen(prefix) - 1] = PATHDIV;
 

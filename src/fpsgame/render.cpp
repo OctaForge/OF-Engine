@@ -27,7 +27,6 @@ namespace game
                    .push(isthirdperson()).call(1, 0)
                    .pop(1);
 
-//        ExtraRendering::renderShadowingMapmodels(); // Kripken: Mapmodels with dynamic shadows, we draw them now
         entities::renderentities();
 
         endmodelbatches();

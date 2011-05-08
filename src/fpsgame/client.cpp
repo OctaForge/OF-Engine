@@ -580,16 +580,9 @@ assert(0); // Kripken: Do not let clients know other clients' pings
         }
     }
 
-    void changemap(const char *name) // request map change, server may ignore
+    void changemap(const char *name)
     {
         Logging::log(Logging::INFO, "Client: Requesting map: %s\r\n", name);
-
-        if(spectator && !player1->privilege) return;
-//        int nextmode = nextmode; // in case stopdemo clobbers nextmode
-//        addmsg(N_MAPVOTE, "rsi", name, nextmode);
-#ifdef CLIENT
-        MessageSystem::send_MapVote(name);
-#endif
     }
         
     void gotoplayer(const char *arg)

@@ -115,7 +115,7 @@ struct NotifyAboutCurrentScenario : MessageType
 #endif
 };
 
-void send_NotifyAboutCurrentScenario(int clientNumber, std::string mapAssetId, std::string scenarioCode);
+void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc);
 
 
 // RestartMap
@@ -308,39 +308,11 @@ struct InitS2C : MessageType
 void send_InitS2C(int clientNumber, int explicitClientNumber, int protocolVersion);
 
 
-// MapVote
-
-struct MapVote : MessageType
-{
-    MapVote() : MessageType(1023, "MapVote") { };
-
-#ifdef SERVER
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_MapVote(std::string name);
-
-
-// MapChange
-
-struct MapChange : MessageType
-{
-    MapChange() : MessageType(1024, "MapChange") { };
-
-#ifdef CLIENT
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_MapChange(int clientNumber, std::string name);
-
-
 // SoundToServer
 
 struct SoundToServer : MessageType
 {
-    SoundToServer() : MessageType(1025, "SoundToServer") { };
+    SoundToServer() : MessageType(1023, "SoundToServer") { };
 
 #ifdef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
@@ -354,7 +326,7 @@ void send_SoundToServer(int soundId);
 
 struct SoundToClients : MessageType
 {
-    SoundToClients() : MessageType(1026, "SoundToClients") { };
+    SoundToClients() : MessageType(1024, "SoundToClients") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -368,7 +340,7 @@ void send_SoundToClients(int clientNumber, int soundId, int originalClientNumber
 
 struct MapSoundToClients : MessageType
 {
-    MapSoundToClients() : MessageType(1027, "MapSoundToClients") { };
+    MapSoundToClients() : MessageType(1025, "MapSoundToClients") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -382,7 +354,7 @@ void send_MapSoundToClients(int clientNumber, std::string soundName, int entityU
 
 struct SoundToClientsByName : MessageType
 {
-    SoundToClientsByName() : MessageType(1028, "SoundToClientsByName") { };
+    SoundToClientsByName() : MessageType(1026, "SoundToClientsByName") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -396,7 +368,7 @@ void send_SoundToClientsByName(int clientNumber, float x, float y, float z, std:
 
 struct SoundStopToClientsByName : MessageType
 {
-    SoundStopToClientsByName() : MessageType(1029, "SoundStopToClientsByName") { };
+    SoundStopToClientsByName() : MessageType(1027, "SoundStopToClientsByName") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -410,7 +382,7 @@ void send_SoundStopToClientsByName(int clientNumber, int volume, std::string sou
 
 struct EditModeC2S : MessageType
 {
-    EditModeC2S() : MessageType(1030, "EditModeC2S") { };
+    EditModeC2S() : MessageType(1028, "EditModeC2S") { };
 
 #ifdef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
@@ -424,7 +396,7 @@ void send_EditModeC2S(int mode);
 
 struct EditModeS2C : MessageType
 {
-    EditModeS2C() : MessageType(1031, "EditModeS2C") { };
+    EditModeS2C() : MessageType(1029, "EditModeS2C") { };
 
     void receive(int receiver, int sender, ucharbuf &p);
 };
@@ -436,7 +408,7 @@ void send_EditModeS2C(int clientNumber, int otherClientNumber, int mode);
 
 struct RequestMap : MessageType
 {
-    RequestMap() : MessageType(1032, "RequestMap") { };
+    RequestMap() : MessageType(1030, "RequestMap") { };
 
 #ifdef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
@@ -450,7 +422,7 @@ void send_RequestMap();
 
 struct DoClick : MessageType
 {
-    DoClick() : MessageType(1033, "DoClick") { };
+    DoClick() : MessageType(1031, "DoClick") { };
 
 #ifdef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
@@ -464,7 +436,7 @@ void send_DoClick(int button, int down, float x, float y, float z, int uniqueId)
 
 struct MapUpdated : MessageType
 {
-    MapUpdated() : MessageType(1034, "MapUpdated") { };
+    MapUpdated() : MessageType(1032, "MapUpdated") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -478,7 +450,7 @@ void send_MapUpdated(int clientNumber, int updatingClientNumber);
 
 struct ParticleSplashToClients : MessageType
 {
-    ParticleSplashToClients() : MessageType(1035, "ParticleSplashToClients") { };
+    ParticleSplashToClients() : MessageType(1033, "ParticleSplashToClients") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -492,7 +464,7 @@ void send_ParticleSplashToClients(int clientNumber, int _type, int num, int fade
 
 struct ParticleSplashRegularToClients : MessageType
 {
-    ParticleSplashRegularToClients() : MessageType(1036, "ParticleSplashRegularToClients") { };
+    ParticleSplashRegularToClients() : MessageType(1034, "ParticleSplashRegularToClients") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -506,7 +478,7 @@ void send_ParticleSplashRegularToClients(int clientNumber, int _type, int num, i
 
 struct RequestPrivateEditMode : MessageType
 {
-    RequestPrivateEditMode() : MessageType(1037, "RequestPrivateEditMode") { };
+    RequestPrivateEditMode() : MessageType(1035, "RequestPrivateEditMode") { };
 
 #ifdef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
@@ -520,7 +492,7 @@ void send_RequestPrivateEditMode();
 
 struct NotifyPrivateEditMode : MessageType
 {
-    NotifyPrivateEditMode() : MessageType(1038, "NotifyPrivateEditMode") { };
+    NotifyPrivateEditMode() : MessageType(1036, "NotifyPrivateEditMode") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);

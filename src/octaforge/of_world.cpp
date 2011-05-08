@@ -44,15 +44,15 @@ namespace MessageSystem
 {
     void send_PrepareForNewScenario(int clientNumber, std::string scenarioCode);
     void send_RequestPrivateEditMode();
-    void send_NotifyAboutCurrentScenario(int clientNumber, std::string mapAssetId, std::string scenarioCode);
+    void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc);
 }
 using namespace MessageSystem;
 
 extern string homedir;
 
 /* Defined here */
-const char *of_world_curr_map_asset_id = NULL;
-const char *of_world_scenario_code     = NULL;
+static const char *of_world_curr_map_asset_id = NULL;
+static const char *of_world_scenario_code     = NULL;
 
 const char *generate_scenario_code()
 {
@@ -100,6 +100,7 @@ bool of_world_set_map(const char *id)
     send_RequestPrivateEditMode();
 #endif
 
+    printf("CURRENT: %s\n", of_world_curr_map_asset_id);
     return true;
 }
 
@@ -136,7 +137,7 @@ void of_world_export_entities(const char *fname)
     );
     OF_FREE(prefix);
 
-    const char *data = lua::engine.exec<const char*>("return of.logent.store.save_entities()");
+    const char *data = lua::engine.exec<const char*>("return entity_store.save_entities()");
     if (fileexists(buf, "r"))
     {
         char buff[strlen(buf) + 16];
@@ -156,6 +157,8 @@ void of_world_export_entities(const char *fname)
 
 char *of_world_get_mapfile_path(const char *rpath)
 {
+    printf("MAPFILE PATH: %s\n", of_world_curr_map_asset_id);
+    printf("SCENARIO CODE: %s\n", of_world_scenario_code);
     char *aloc = strdup(of_world_curr_map_asset_id);
     aloc[strlen(aloc) - 7] = '\0';
     
@@ -182,3 +185,6 @@ void of_world_run_map_script()
     lua::engine.execf(name);
     OF_FREE(name);
 }
+
+const char *of_world_get_curr_map_asset_id() { return of_world_curr_map_asset_id; }
+const char *of_world_get_scenario_code()     { return of_world_scenario_code;     }

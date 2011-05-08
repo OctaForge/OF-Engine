@@ -455,37 +455,3 @@ void showQueuedDynamicLights()
 }
 
 }
-
-// Additional Rendering
-
-std::vector<extentity*> ExtraRendering::currShadowingMapmodels;
-
-void ExtraRendering::renderShadowingMapmodels()
-{
-    assert(0);
-#if 0
-    loopstdv(currShadowingMapmodels)
-    {
-        extentity *mapmodel = currShadowingMapmodels[i];
-        model *theModel = LogicSystem::getLogicEntity(*mapmodel)->getModel();
-        if(!theModel) continue;
-        const char *mdlname = theModel->name(); //mapmodelname(mapmodel->attr2);
-
-        int flags = MDL_LIGHT | MDL_CULL_VFC | MDL_CULL_DIST | MDL_CULL_OCCLUDED;
-
-        if (theModel->translucent)
-            flags |= MDL_TRANSLUCENT;
-        else
-            flags |= MDL_SHADOW; // flags |= MDL_DYNSHADOW; ?
-
-        rendermodel(NULL,
-                    mdlname,
-                    ANIM_MAPMODEL | ANIM_LOOP, // FIXME: Shadowing mapmodels aren't generally per-frame calculated, but who knows,fix this
-                    mapmodel->o,
-                    LogicSystem::getLogicEntity(*mapmodel),
-                    mapmodel->attr1,
-                    0,
-                    flags);
-    }
-#endif
-}
