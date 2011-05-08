@@ -46,24 +46,24 @@
 // A direct message from server to a single client
 PersonalServerMessage(server->client)
     implicit clientNumber
-    std::string title
-    std::string content
+    char* title
+    char* content
     receive:
-        SETVF(message_title, title.c_str());
-        SETVF(message_content, content.c_str());
+        SETVF(message_title, title);
+        SETVF(message_content, content);
         showgui("message");
 end
 
 // A request for the server to send a message to all other clients
 RequestServerMessageToAll(client->server)
-    std::string message
+    char* message
     receive:
         send_PersonalServerMessage(-1, "Message from Client", message);
 end
 
 // TODO: If LoginRequest is not called soon enough, disconnect enet clients in that state
 LoginRequest(client->server)
-    std::string code // A proof code from the master server, which can be used to verify the
+    char* code // A proof code from the master server, which can be used to verify the
                      // identity of this user
     receive:
         #ifdef SERVER
@@ -131,7 +131,7 @@ end
 // rendering to a limited capacity
 PrepareForNewScenario(server->client)
     implicit clientNumber
-    std::string scenarioCode
+    char* scenarioCode
     receive:
         SETVF(message_title, "Server");
         SETVF(message_content, "Map being prepared on server, please wait ..");
@@ -178,11 +178,11 @@ end
 
 // A new Entity is asked to be created by a client
 NewEntityRequest(client->server)
-    std::string _class
+    char* _class
     float x
     float y
     float z
-    std::string stateData
+    char* stateData
     send:
         EditingSystem::madeChanges = true;
     receive:
@@ -199,10 +199,12 @@ NewEntityRequest(client->server)
 
         if (!EditingSystem::validateEntityClass(_class))
         {
-            Logging::log(Logging::WARNING, "User tried to add an invalid entity: %s\r\n", _class.c_str());
+            char buf[512];
+            snprintf(buf, sizeof(buf), "Invalid entity class: %s", _class);
+            Logging::log(Logging::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
             send_PersonalServerMessage(
                 sender,
-                "Invalid entity class: " + _class,
+                buf,
                 "Reminder: Create entities using F8, not /newent. See the wiki for more."
             );
             return;
@@ -210,32 +212,32 @@ NewEntityRequest(client->server)
 
         // Add entity
 
-        Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.c_str(), x, y, z, stateData.c_str());
+        Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
-        engine.getg("entity_classes").t_getraw("get_sauertype").push(_class.c_str()).call(1, 1);
-        std::string sauerType = engine.get(-1, "extent");
+        engine.getg("entity_classes").t_getraw("get_sauertype").push(_class).call(1, 1);
+        const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
 
-        Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType.c_str());
+        Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType);
 
         // Create
 
-        engine.getg("entity_store").t_getraw("new").push(_class.c_str());
+        engine.getg("entity_store").t_getraw("new").push(_class);
         engine.t_new();
         engine.push("position")
             .t_new()
             .t_set("x", x)
             .t_set("y", y)
             .t_set("z", z);
-        engine.t_set().t_set("state_data", stateData.c_str());
+        engine.t_set().t_set("state_data", stateData);
         engine.call(2, 1);
         int newUniqueId = engine.t_get<int>("uid");
         engine.pop(2);
 
         Logging::log(Logging::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
-                                      newUniqueId, _class.c_str(), x, y, z);
+                                      newUniqueId, _class, x, y, z);
 
 end
 
@@ -244,7 +246,7 @@ StateDataUpdate(server->client,npc)
     implicit clientNumber
     int uniqueId
     int keyProtocolId
-    std::string value
+    char* value
     int originalClientNumber
     send:
         exclude = originalClientNumber;
@@ -260,12 +262,12 @@ StateDataUpdate(server->client,npc)
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                Logging::log(Logging::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value.c_str()); \
+                Logging::log(Logging::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
                 \
                 if (!engine.hashandle()) \
                     return; \
                 \
-                engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).call(3, 0).pop(1);
+                engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).call(3, 0).pop(1);
         #endif
 
         STATE_DATA_UPDATE
@@ -277,7 +279,7 @@ end
 StateDataChangeRequest(client->server)
     int uniqueId
     int keyProtocolId
-    std::string value
+    char* value
     send:
         // This isn't a perfect way to differentiate transient state data changes from permanent ones
         // that justify saying 'changes were made', but for now it will do. Note that even checking
@@ -294,11 +296,11 @@ StateDataChangeRequest(client->server)
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.c_str()); \
+        Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).push(actorUniqueId).call(4, 0).pop(1);
+        engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).push(actorUniqueId).call(4, 0).pop(1);
 
         STATE_DATA_REQUEST
 end
@@ -308,7 +310,7 @@ UnreliableStateDataUpdate(server->client,npc)
     implicit clientNumber
     int uniqueId
     int keyProtocolId
-    std::string value
+    char* value
     int originalClientNumber
     send:
         exclude = originalClientNumber;
@@ -320,7 +322,7 @@ UnreliableStateDataChangeRequest(client->server)
     unreliable
     int uniqueId
     int keyProtocolId
-    std::string value
+    char* value
     receive:
         if (!of_world_get_scenario_code()) return;
 
@@ -344,7 +346,7 @@ end
 
 // Loading a map is complete, asking for data on all entities, both in-map and non  (NPCs, non-Sauers, etc.)
 ActiveEntitiesRequest(client->server)
-    std::string scenarioCode // The scenario the client is running, i.e., for which it wants the entities
+    char* scenarioCode // The scenario the client is running, i.e., for which it wants the entities
     receive:
         #ifdef SERVER
             if (!of_world_get_scenario_code()) return;
@@ -354,7 +356,7 @@ ActiveEntitiesRequest(client->server)
             if ( !server::isRunningCurrentScenario(sender) )
             {
                 Logging::log(Logging::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
-                    sender, scenarioCode.c_str()
+                    sender, scenarioCode
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
@@ -393,8 +395,8 @@ LogicEntityCompleteNotification(server->client,npc)
     implicit clientNumber
     int otherClientNumber
     int otherUniqueId
-    std::string otherClass
-    std::string stateData
+    char* otherClass
+    char* stateData
     receive:
         #ifdef SERVER
             return; // We do send this to the NPCs sometimes, as it is sent during their creation (before they are fully
@@ -403,7 +405,7 @@ LogicEntityCompleteNotification(server->client,npc)
         if (!engine.hashandle())
             return;
 
-        Logging::log(Logging::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.c_str());
+        Logging::log(Logging::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
         INDENT_LOG(Logging::DEBUG);
 
         // If a logic entity does not yet exist, create one
@@ -413,7 +415,7 @@ LogicEntityCompleteNotification(server->client,npc)
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
 
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass.c_str())
+                .push(otherClass)
                 .push(otherUniqueId)
                 .t_new();
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
@@ -436,7 +438,7 @@ LogicEntityCompleteNotification(server->client,npc)
 
             if (!entity)
             {
-                Logging::log(Logging::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass.c_str());
+                Logging::log(Logging::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
                 return;
             }
         } else
@@ -445,12 +447,12 @@ LogicEntityCompleteNotification(server->client,npc)
 
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        Logging::log(Logging::DEBUG, "Updating stateData with: %s\r\n", stateData.c_str());
+        Logging::log(Logging::DEBUG, "Updating stateData with: %s\r\n", stateData);
 
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
-            .push(stateData.c_str())
+            .push(stateData)
             .call(2, 0)
             .pop(1);
 
@@ -504,8 +506,8 @@ end
 ExtentCompleteNotification(server->client)
     implicit clientNumber
     int otherUniqueId
-    std::string otherClass
-    std::string stateData
+    char* otherClass
+    char* stateData
     float x
     float y
     float z
@@ -529,7 +531,7 @@ ExtentCompleteNotification(server->client)
             addentity(i);
         #endif
 
-        Logging::log(Logging::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass.c_str(),
+        Logging::log(Logging::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
             x, y, z, attr1, attr2, attr3, attr4);
 
         INDENT_LOG(Logging::DEBUG);
@@ -540,15 +542,15 @@ ExtentCompleteNotification(server->client)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
 
-            engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass.c_str()).call(1, 1);
-            std::string sauerType = engine.get(-1, "extent");
+            engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass).call(1, 1);
+            const char *sauerType = engine.get(-1, "extent");
             engine.pop(2);
 
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass.c_str())
+                .push(otherClass)
                 .push(otherUniqueId)
                 .t_new()
-                    .t_set("_type", findtype((char*)sauerType.c_str()))
+                    .t_set("_type", findtype((char*)sauerType))
                     .t_set("x", x)
                     .t_set("y", y)
                     .t_set("z", z)
@@ -571,7 +573,7 @@ ExtentCompleteNotification(server->client)
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
-            .push(stateData.c_str())
+            .push(stateData)
             .call(2, 0)
             .pop(1);
 
@@ -668,7 +670,7 @@ end
 MapSoundToClients(server->client)
     unreliable
     implicit clientNumber
-    std::string soundName
+    char* soundName
     int entityUniqueId
     receive:
         CLogicEntity *entity = LogicSystem::getLogicEntity(entityUniqueId);
@@ -678,7 +680,7 @@ MapSoundToClients(server->client)
             stopmapsound(e);
             if(camera1->o.dist(e->o) < e->attr2)
             {
-                if(!e->visible) playmapsound(soundName.c_str(), e, e->attr4, -1);
+                if(!e->visible) playmapsound(soundName, e, e->attr4, -1);
                 else if(e->visible) stopmapsound(e);
             }
         }
@@ -691,7 +693,7 @@ SoundToClientsByName(server->client)
     float x
     float y
     float z
-    std::string soundName
+    char* soundName
     int originalClientNumber
     send:
         exclude = originalClientNumber; // This is how to ensure we do not send back to the client who originally sent it
@@ -700,9 +702,9 @@ SoundToClientsByName(server->client)
 
         vec pos(x,y,z);
         if (pos.x || pos.y || pos.z)
-            playsoundname(soundName.c_str(), &pos);
+            playsoundname(soundName, &pos);
         else
-            playsoundname(soundName.c_str());
+            playsoundname(soundName);
 end
 
 // Server notifies clients of that sound stops
@@ -710,13 +712,13 @@ SoundStopToClientsByName(server->client)
     unreliable
     implicit clientNumber
     int volume
-    std::string soundName
+    char* soundName
     int originalClientNumber
     send:
         exclude = originalClientNumber; // This is how to ensure we do not send back to the client who originally sent it
     receive:
         assert(ClientSystem::playerNumber != originalClientNumber);
-        stopsoundbyid(getsoundid(soundName.c_str(), volume));
+        stopsoundbyid(getsoundid(soundName, volume));
 end
 
 // Ask server to switch edit mode status

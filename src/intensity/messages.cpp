@@ -37,7 +37,7 @@ namespace MessageSystem
 
 // PersonalServerMessage
 
-    void send_PersonalServerMessage(int clientNumber, std::string title, std::string content)
+    void send_PersonalServerMessage(int clientNumber, const char* title, const char* content)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -76,7 +76,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riss", 1001, title.c_str(), content.c_str());
+                sendf(clientNumber, MAIN_CHANNEL, "riss", 1001, title, content);
 
             }
         }
@@ -89,15 +89,13 @@ namespace MessageSystem
         is_npc = false;
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
 
-        char tmp_title[MAXTRANS];
-        getstring(tmp_title, p);
-        std::string title = tmp_title;
-        char tmp_content[MAXTRANS];
-        getstring(tmp_content, p);
-        std::string content = tmp_content;
+        static char title[MAXTRANS];
+        getstring(title, p);
+        static char content[MAXTRANS];
+        getstring(content, p);
 
-        SETVF(message_title, title.c_str());
-        SETVF(message_content, content.c_str());
+        SETVF(message_title, title);
+        SETVF(message_content, content);
         showgui("message");
     }
 #endif
@@ -105,12 +103,12 @@ namespace MessageSystem
 
 // RequestServerMessageToAll
 
-    void send_RequestServerMessageToAll(std::string message)
+    void send_RequestServerMessageToAll(const char* message)
     {
         Logging::log(Logging::DEBUG, "Sending a message of type RequestServerMessageToAll (1002)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1002, "rs", message.c_str());
+        game::addmsg(1002, "rs", message);
     }
 
 #ifdef SERVER
@@ -118,9 +116,8 @@ namespace MessageSystem
     {
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestServerMessageToAll (1002)\r\n");
 
-        char tmp_message[MAXTRANS];
-        getstring(tmp_message, p);
-        std::string message = tmp_message;
+        static char message[MAXTRANS];
+        getstring(message, p);
 
         send_PersonalServerMessage(-1, "Message from Client", message);
     }
@@ -128,12 +125,12 @@ namespace MessageSystem
 
 // LoginRequest
 
-    void send_LoginRequest(std::string code)
+    void send_LoginRequest(const char* code)
     {
         Logging::log(Logging::DEBUG, "Sending a message of type LoginRequest (1003)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1003, "rs", code.c_str());
+        game::addmsg(1003, "rs", code);
     }
 
 #ifdef SERVER
@@ -141,9 +138,8 @@ namespace MessageSystem
     {
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type LoginRequest (1003)\r\n");
 
-        char tmp_code[MAXTRANS];
-        getstring(tmp_code, p);
-        std::string code = tmp_code;
+        static char code[MAXTRANS];
+        getstring(code, p);
 
                      // identity of this user
         #ifdef SERVER
@@ -309,7 +305,7 @@ namespace MessageSystem
 
 // PrepareForNewScenario
 
-    void send_PrepareForNewScenario(int clientNumber, std::string scenarioCode)
+    void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -348,7 +344,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "ris", 1006, scenarioCode.c_str());
+                sendf(clientNumber, MAIN_CHANNEL, "ris", 1006, scenarioCode);
 
             }
         }
@@ -361,9 +357,8 @@ namespace MessageSystem
         is_npc = false;
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
 
-        char tmp_scenarioCode[MAXTRANS];
-        getstring(tmp_scenarioCode, p);
-        std::string scenarioCode = tmp_scenarioCode;
+        static char scenarioCode[MAXTRANS];
+        getstring(scenarioCode, p);
 
         SETVF(message_title, "Server");
         SETVF(message_content, "Map being prepared on server, please wait ..");
@@ -488,13 +483,13 @@ namespace MessageSystem
 
 // NewEntityRequest
 
-    void send_NewEntityRequest(std::string _class, float x, float y, float z, std::string stateData)
+    void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData)
     {        EditingSystem::madeChanges = true;
 
         Logging::log(Logging::DEBUG, "Sending a message of type NewEntityRequest (1010)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1010, "rsiiis", _class.c_str(), int(x*DMF), int(y*DMF), int(z*DMF), stateData.c_str());
+        game::addmsg(1010, "rsiiis", _class, int(x*DMF), int(y*DMF), int(z*DMF), stateData);
     }
 
 #ifdef SERVER
@@ -502,15 +497,13 @@ namespace MessageSystem
     {
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NewEntityRequest (1010)\r\n");
 
-        char tmp__class[MAXTRANS];
-        getstring(tmp__class, p);
-        std::string _class = tmp__class;
+        static char _class[MAXTRANS];
+        getstring(_class, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        char tmp_stateData[MAXTRANS];
-        getstring(tmp_stateData, p);
-        std::string stateData = tmp_stateData;
+        static char stateData[MAXTRANS];
+        getstring(stateData, p);
 
         if (!of_world_get_scenario_code()) return;
         if (!server::isAdmin(sender))
@@ -522,41 +515,43 @@ namespace MessageSystem
         // Validate class
         if (!EditingSystem::validateEntityClass(_class))
         {
-            Logging::log(Logging::WARNING, "User tried to add an invalid entity: %s\r\n", _class.c_str());
+            char buf[512];
+            snprintf(buf, sizeof(buf), "Invalid entity class: %s", _class);
+            Logging::log(Logging::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
             send_PersonalServerMessage(
                 sender,
-                "Invalid entity class: " + _class,
+                buf,
                 "Reminder: Create entities using F8, not /newent. See the wiki for more."
             );
             return;
         }
         // Add entity
-        Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.c_str(), x, y, z, stateData.c_str());
+        Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("entity_classes").t_getraw("get_sauertype").push(_class.c_str()).call(1, 1);
-        std::string sauerType = engine.get(-1, "extent");
+        engine.getg("entity_classes").t_getraw("get_sauertype").push(_class).call(1, 1);
+        const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
-        Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType.c_str());
+        Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
-        engine.getg("entity_store").t_getraw("new").push(_class.c_str());
+        engine.getg("entity_store").t_getraw("new").push(_class);
         engine.t_new();
         engine.push("position")
             .t_new()
             .t_set("x", x)
             .t_set("y", y)
             .t_set("z", z);
-        engine.t_set().t_set("state_data", stateData.c_str());
+        engine.t_set().t_set("state_data", stateData);
         engine.call(2, 1);
         int newUniqueId = engine.t_get<int>("uid");
         engine.pop(2);
         Logging::log(Logging::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
-                                      newUniqueId, _class.c_str(), x, y, z);
+                                      newUniqueId, _class, x, y, z);
     }
 #endif
 
 // StateDataUpdate
 
-    void send_StateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, std::string value, int originalClientNumber)
+    void send_StateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -596,7 +591,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riiisi", 1011, uniqueId, keyProtocolId, value.c_str(), originalClientNumber);
+                sendf(clientNumber, MAIN_CHANNEL, "riiisi", 1011, uniqueId, keyProtocolId, value, originalClientNumber);
 
             }
         }
@@ -614,9 +609,8 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        char tmp_value[MAXTRANS];
-        getstring(tmp_value, p);
-        std::string value = tmp_value;
+        static char value[MAXTRANS];
+        getstring(value, p);
         int originalClientNumber = getint(p);
 
         #ifdef SERVER
@@ -630,12 +624,12 @@ namespace MessageSystem
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                Logging::log(Logging::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value.c_str()); \
+                Logging::log(Logging::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
                 \
                 if (!engine.hashandle()) \
                     return; \
                 \
-                engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).call(3, 0).pop(1);
+                engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).call(3, 0).pop(1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -643,7 +637,7 @@ namespace MessageSystem
 
 // StateDataChangeRequest
 
-    void send_StateDataChangeRequest(int uniqueId, int keyProtocolId, std::string value)
+    void send_StateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value)
     {        // This isn't a perfect way to differentiate transient state data changes from permanent ones
         // that justify saying 'changes were made', but for now it will do. Note that even checking
         // for changes to persistent entities is not enough - transient changes on them are generally
@@ -657,7 +651,7 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "Sending a message of type StateDataChangeRequest (1012)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1012, "riis", uniqueId, keyProtocolId, value.c_str());
+        game::addmsg(1012, "riis", uniqueId, keyProtocolId, value);
     }
 
 #ifdef SERVER
@@ -667,26 +661,25 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        char tmp_value[MAXTRANS];
-        getstring(tmp_value, p);
-        std::string value = tmp_value;
+        static char value[MAXTRANS];
+        getstring(value, p);
 
         if (!of_world_get_scenario_code()) return;
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.c_str()); \
+        Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value.c_str()).push(actorUniqueId).call(4, 0).pop(1);
+        engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).push(actorUniqueId).call(4, 0).pop(1);
         STATE_DATA_REQUEST
     }
 #endif
 
 // UnreliableStateDataUpdate
 
-    void send_UnreliableStateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, std::string value, int originalClientNumber)
+    void send_UnreliableStateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -726,7 +719,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "iiisi", 1013, uniqueId, keyProtocolId, value.c_str(), originalClientNumber);
+                sendf(clientNumber, MAIN_CHANNEL, "iiisi", 1013, uniqueId, keyProtocolId, value, originalClientNumber);
 
             }
         }
@@ -744,9 +737,8 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        char tmp_value[MAXTRANS];
-        getstring(tmp_value, p);
-        std::string value = tmp_value;
+        static char value[MAXTRANS];
+        getstring(value, p);
         int originalClientNumber = getint(p);
 
         STATE_DATA_UPDATE
@@ -755,12 +747,12 @@ namespace MessageSystem
 
 // UnreliableStateDataChangeRequest
 
-    void send_UnreliableStateDataChangeRequest(int uniqueId, int keyProtocolId, std::string value)
+    void send_UnreliableStateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value)
     {
         Logging::log(Logging::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1014, "iis", uniqueId, keyProtocolId, value.c_str());
+        game::addmsg(1014, "iis", uniqueId, keyProtocolId, value);
     }
 
 #ifdef SERVER
@@ -770,9 +762,8 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        char tmp_value[MAXTRANS];
-        getstring(tmp_value, p);
-        std::string value = tmp_value;
+        static char value[MAXTRANS];
+        getstring(value, p);
 
         if (!of_world_get_scenario_code()) return;
         STATE_DATA_REQUEST
@@ -902,12 +893,12 @@ namespace MessageSystem
 
 // ActiveEntitiesRequest
 
-    void send_ActiveEntitiesRequest(std::string scenarioCode)
+    void send_ActiveEntitiesRequest(const char* scenarioCode)
     {
         Logging::log(Logging::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1017, "rs", scenarioCode.c_str());
+        game::addmsg(1017, "rs", scenarioCode);
     }
 
 #ifdef SERVER
@@ -915,9 +906,8 @@ namespace MessageSystem
     {
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ActiveEntitiesRequest (1017)\r\n");
 
-        char tmp_scenarioCode[MAXTRANS];
-        getstring(tmp_scenarioCode, p);
-        std::string scenarioCode = tmp_scenarioCode;
+        static char scenarioCode[MAXTRANS];
+        getstring(scenarioCode, p);
 
         #ifdef SERVER
             if (!of_world_get_scenario_code()) return;
@@ -926,7 +916,7 @@ namespace MessageSystem
             if ( !server::isRunningCurrentScenario(sender) )
             {
                 Logging::log(Logging::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
-                    sender, scenarioCode.c_str()
+                    sender, scenarioCode
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
@@ -959,7 +949,7 @@ namespace MessageSystem
 
 // LogicEntityCompleteNotification
 
-    void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, std::string otherClass, std::string stateData)
+    void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -998,7 +988,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riiiss", 1018, otherClientNumber, otherUniqueId, otherClass.c_str(), stateData.c_str());
+                sendf(clientNumber, MAIN_CHANNEL, "riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData);
 
             }
         }
@@ -1016,12 +1006,10 @@ namespace MessageSystem
 
         int otherClientNumber = getint(p);
         int otherUniqueId = getint(p);
-        char tmp_otherClass[MAXTRANS];
-        getstring(tmp_otherClass, p);
-        std::string otherClass = tmp_otherClass;
-        char tmp_stateData[MAXTRANS];
-        getstring(tmp_stateData, p);
-        std::string stateData = tmp_stateData;
+        static char otherClass[MAXTRANS];
+        getstring(otherClass, p);
+        static char stateData[MAXTRANS];
+        getstring(stateData, p);
 
         #ifdef SERVER
             return; // We do send this to the NPCs sometimes, as it is sent during their creation (before they are fully
@@ -1029,7 +1017,7 @@ namespace MessageSystem
         #endif
         if (!engine.hashandle())
             return;
-        Logging::log(Logging::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.c_str());
+        Logging::log(Logging::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
         INDENT_LOG(Logging::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
@@ -1037,7 +1025,7 @@ namespace MessageSystem
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass.c_str())
+                .push(otherClass)
                 .push(otherUniqueId)
                 .t_new();
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
@@ -1057,7 +1045,7 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
-                Logging::log(Logging::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass.c_str());
+                Logging::log(Logging::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
                 return;
             }
         } else
@@ -1065,11 +1053,11 @@ namespace MessageSystem
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        Logging::log(Logging::DEBUG, "Updating stateData with: %s\r\n", stateData.c_str());
+        Logging::log(Logging::DEBUG, "Updating stateData with: %s\r\n", stateData);
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
-            .push(stateData.c_str())
+            .push(stateData)
             .call(2, 0)
             .pop(1);
         #ifdef CLIENT
@@ -1183,7 +1171,7 @@ namespace MessageSystem
 
 // ExtentCompleteNotification
 
-    void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, std::string otherClass, std::string stateData, float x, float y, float z, int attr1, int attr2, int attr3, int attr4)
+    void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData, float x, float y, float z, int attr1, int attr2, int attr3, int attr4)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -1222,7 +1210,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riissiiiiiii", 1021, otherUniqueId, otherClass.c_str(), stateData.c_str(), int(x*DMF), int(y*DMF), int(z*DMF), attr1, attr2, attr3, attr4);
+                sendf(clientNumber, MAIN_CHANNEL, "riissiiiiiii", 1021, otherUniqueId, otherClass, stateData, int(x*DMF), int(y*DMF), int(z*DMF), attr1, attr2, attr3, attr4);
 
             }
         }
@@ -1236,12 +1224,10 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
 
         int otherUniqueId = getint(p);
-        char tmp_otherClass[MAXTRANS];
-        getstring(tmp_otherClass, p);
-        std::string otherClass = tmp_otherClass;
-        char tmp_stateData[MAXTRANS];
-        getstring(tmp_stateData, p);
-        std::string stateData = tmp_stateData;
+        static char otherClass[MAXTRANS];
+        getstring(otherClass, p);
+        static char stateData[MAXTRANS];
+        getstring(stateData, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
@@ -1263,7 +1249,7 @@ namespace MessageSystem
             e.attr1 = attr1; e.attr2 = attr2; e.attr3 = attr3; e.attr4 = attr4;
             addentity(i);
         #endif
-        Logging::log(Logging::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass.c_str(),
+        Logging::log(Logging::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
             x, y, z, attr1, attr2, attr3, attr4);
         INDENT_LOG(Logging::DEBUG);
         // If a logic entity does not yet exist, create one
@@ -1271,14 +1257,14 @@ namespace MessageSystem
         if (entity == NULL)
         {
             Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass.c_str()).call(1, 1);
-            std::string sauerType = engine.get(-1, "extent");
+            engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass).call(1, 1);
+            const char *sauerType = engine.get(-1, "extent");
             engine.pop(2);
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass.c_str())
+                .push(otherClass)
                 .push(otherUniqueId)
                 .t_new()
-                    .t_set("_type", findtype((char*)sauerType.c_str()))
+                    .t_set("_type", findtype((char*)sauerType))
                     .t_set("x", x)
                     .t_set("y", y)
                     .t_set("z", z)
@@ -1298,7 +1284,7 @@ namespace MessageSystem
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
-            .push(stateData.c_str())
+            .push(stateData)
             .call(2, 0)
             .pop(1);
         // Events post-reception
@@ -1498,7 +1484,7 @@ namespace MessageSystem
 
 // MapSoundToClients
 
-    void send_MapSoundToClients(int clientNumber, std::string soundName, int entityUniqueId)
+    void send_MapSoundToClients(int clientNumber, const char* soundName, int entityUniqueId)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -1537,7 +1523,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "isi", 1025, soundName.c_str(), entityUniqueId);
+                sendf(clientNumber, MAIN_CHANNEL, "isi", 1025, soundName, entityUniqueId);
 
             }
         }
@@ -1550,9 +1536,8 @@ namespace MessageSystem
         is_npc = false;
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
 
-        char tmp_soundName[MAXTRANS];
-        getstring(tmp_soundName, p);
-        std::string soundName = tmp_soundName;
+        static char soundName[MAXTRANS];
+        getstring(soundName, p);
         int entityUniqueId = getint(p);
 
         CLogicEntity *entity = LogicSystem::getLogicEntity(entityUniqueId);
@@ -1562,7 +1547,7 @@ namespace MessageSystem
             stopmapsound(e);
             if(camera1->o.dist(e->o) < e->attr2)
             {
-                if(!e->visible) playmapsound(soundName.c_str(), e, e->attr4, -1);
+                if(!e->visible) playmapsound(soundName, e, e->attr4, -1);
                 else if(e->visible) stopmapsound(e);
             }
         }
@@ -1572,7 +1557,7 @@ namespace MessageSystem
 
 // SoundToClientsByName
 
-    void send_SoundToClientsByName(int clientNumber, float x, float y, float z, std::string soundName, int originalClientNumber)
+    void send_SoundToClientsByName(int clientNumber, float x, float y, float z, const char* soundName, int originalClientNumber)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -1612,7 +1597,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "iiiisi", 1026, int(x*DMF), int(y*DMF), int(z*DMF), soundName.c_str(), originalClientNumber);
+                sendf(clientNumber, MAIN_CHANNEL, "iiiisi", 1026, int(x*DMF), int(y*DMF), int(z*DMF), soundName, originalClientNumber);
 
             }
         }
@@ -1628,24 +1613,23 @@ namespace MessageSystem
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        char tmp_soundName[MAXTRANS];
-        getstring(tmp_soundName, p);
-        std::string soundName = tmp_soundName;
+        static char soundName[MAXTRANS];
+        getstring(soundName, p);
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
         vec pos(x,y,z);
         if (pos.x || pos.y || pos.z)
-            playsoundname(soundName.c_str(), &pos);
+            playsoundname(soundName, &pos);
         else
-            playsoundname(soundName.c_str());
+            playsoundname(soundName);
     }
 #endif
 
 
 // SoundStopToClientsByName
 
-    void send_SoundStopToClientsByName(int clientNumber, int volume, std::string soundName, int originalClientNumber)
+    void send_SoundStopToClientsByName(int clientNumber, int volume, const char* soundName, int originalClientNumber)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -1685,7 +1669,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "iisi", 1027, volume, soundName.c_str(), originalClientNumber);
+                sendf(clientNumber, MAIN_CHANNEL, "iisi", 1027, volume, soundName, originalClientNumber);
 
             }
         }
@@ -1699,13 +1683,12 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
 
         int volume = getint(p);
-        char tmp_soundName[MAXTRANS];
-        getstring(tmp_soundName, p);
-        std::string soundName = tmp_soundName;
+        static char soundName[MAXTRANS];
+        getstring(soundName, p);
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
-        stopsoundbyid(getsoundid(soundName.c_str(), volume));
+        stopsoundbyid(getsoundid(soundName, volume));
     }
 #endif
 

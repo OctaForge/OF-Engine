@@ -74,7 +74,7 @@ void ClientSystem::login(int clientNumber)
 
     playerNumber = clientNumber;
 
-    MessageSystem::send_LoginRequest(currTransactionCode);
+    MessageSystem::send_LoginRequest(currTransactionCode.c_str());
 }
 
 void ClientSystem::finishLogin(bool local)

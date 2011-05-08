@@ -109,11 +109,11 @@ void newEntity(std::string _class, std::string stateData)
 
         if (stateData == "") stateData = "{}";
 
-        MessageSystem::send_NewEntityRequest(_class,
+        MessageSystem::send_NewEntityRequest(_class.c_str(),
                                              closePosition.x,
                                              closePosition.y,
                                              closePosition.z,
-                                             stateData);
+                                             stateData.c_str());
     #else // SERVER
         assert(0); // Where?
     #endif

@@ -42,7 +42,7 @@
 void force_network_flush();
 namespace MessageSystem
 {
-    void send_PrepareForNewScenario(int clientNumber, std::string scenarioCode);
+    void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode);
     void send_RequestPrivateEditMode();
     void send_NotifyAboutCurrentScenario(int clientNumber, const char* mid, const char* sc);
 }

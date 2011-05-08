@@ -116,7 +116,7 @@ namespace MessageSystem
             for param_type, param_name in params:
                 if param_type == 'char*': param_type = 'const char*'
                 param_string_full = param_string_full + param_type + " " + param_name + ", "
-                if param_type == 'std::string' or param_type == 'const char*':
+                if param_type == 'const char*':
                     param_string = param_string + 's'
                 elif param_type in [ 'bool', 'int', 'float' ]:
                     if param_type != 'int' or param_name != 'clientNumber': # int clientNumber is implicit
@@ -246,9 +246,7 @@ void send_%s(%s);
                 pre_modifier = ""
                 post_modifier = ""
 
-                if param_type == "std::string":
-                    post_modifier = ".c_str()"
-                elif param_type == "float":
+                if param_type == "float":
                     pre_modifier = "int("
                     post_modifier = "*DMF)"
                 send = send + "%s%s%s, " % (pre_modifier, param_name, post_modifier)
@@ -274,11 +272,6 @@ void send_%s(%s);
                     temp_receive = temp_receive + "        float %s = float(getint(p))/DMF;\n" % (param_name)
                 elif param_type == 'bool':
                     temp_receive = temp_receive + "        bool %s = getint(p);\n" % (param_name)
-                elif param_type == "std::string":
-                    temp_receive = temp_receive + """        char tmp_%s[MAXTRANS];
-        getstring(tmp_%s, p);
-        std::string %s = tmp_%s;
-""" % (param_name, param_name, param_name, param_name)
                 elif param_type == "char*":
                     temp_receive = temp_receive + """        static char %s[MAXTRANS];
         getstring(%s, p);

@@ -319,7 +319,7 @@ void CLogicEntity::setSound(std::string _sound)
         else if(staticEntity->visible) stopmapsound(staticEntity);
       }
 #else
-    MessageSystem::send_MapSoundToClients(-1, soundName, LogicSystem::getUniqueId(staticEntity));
+    MessageSystem::send_MapSoundToClients(-1, soundName.c_str(), LogicSystem::getUniqueId(staticEntity));
 #endif
 }
 

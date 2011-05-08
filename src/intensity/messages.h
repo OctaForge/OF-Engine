@@ -17,7 +17,7 @@ struct PersonalServerMessage : MessageType
 #endif
 };
 
-void send_PersonalServerMessage(int clientNumber, std::string title, std::string content);
+void send_PersonalServerMessage(int clientNumber, const char* title, const char* content);
 
 
 // RequestServerMessageToAll
@@ -31,7 +31,7 @@ struct RequestServerMessageToAll : MessageType
 #endif
 };
 
-void send_RequestServerMessageToAll(std::string message);
+void send_RequestServerMessageToAll(const char* message);
 
 
 // LoginRequest
@@ -45,7 +45,7 @@ struct LoginRequest : MessageType
 #endif
 };
 
-void send_LoginRequest(std::string code);
+void send_LoginRequest(const char* code);
 
 
 // YourUniqueId
@@ -87,7 +87,7 @@ struct PrepareForNewScenario : MessageType
 #endif
 };
 
-void send_PrepareForNewScenario(int clientNumber, std::string scenarioCode);
+void send_PrepareForNewScenario(int clientNumber, const char* scenarioCode);
 
 
 // RequestCurrentScenario
@@ -143,7 +143,7 @@ struct NewEntityRequest : MessageType
 #endif
 };
 
-void send_NewEntityRequest(std::string _class, float x, float y, float z, std::string stateData);
+void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData);
 
 
 // StateDataUpdate
@@ -155,7 +155,7 @@ struct StateDataUpdate : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 };
 
-void send_StateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, std::string value, int originalClientNumber);
+void send_StateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber);
 
 
 // StateDataChangeRequest
@@ -169,7 +169,7 @@ struct StateDataChangeRequest : MessageType
 #endif
 };
 
-void send_StateDataChangeRequest(int uniqueId, int keyProtocolId, std::string value);
+void send_StateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value);
 
 
 // UnreliableStateDataUpdate
@@ -181,7 +181,7 @@ struct UnreliableStateDataUpdate : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 };
 
-void send_UnreliableStateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, std::string value, int originalClientNumber);
+void send_UnreliableStateDataUpdate(int clientNumber, int uniqueId, int keyProtocolId, const char* value, int originalClientNumber);
 
 
 // UnreliableStateDataChangeRequest
@@ -195,7 +195,7 @@ struct UnreliableStateDataChangeRequest : MessageType
 #endif
 };
 
-void send_UnreliableStateDataChangeRequest(int uniqueId, int keyProtocolId, std::string value);
+void send_UnreliableStateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value);
 
 
 // NotifyNumEntities
@@ -237,7 +237,7 @@ struct ActiveEntitiesRequest : MessageType
 #endif
 };
 
-void send_ActiveEntitiesRequest(std::string scenarioCode);
+void send_ActiveEntitiesRequest(const char* scenarioCode);
 
 
 // LogicEntityCompleteNotification
@@ -249,7 +249,7 @@ struct LogicEntityCompleteNotification : MessageType
     void receive(int receiver, int sender, ucharbuf &p);
 };
 
-void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, std::string otherClass, std::string stateData);
+void send_LogicEntityCompleteNotification(int clientNumber, int otherClientNumber, int otherUniqueId, const char* otherClass, const char* stateData);
 
 
 // RequestLogicEntityRemoval
@@ -291,7 +291,7 @@ struct ExtentCompleteNotification : MessageType
 #endif
 };
 
-void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, std::string otherClass, std::string stateData, float x, float y, float z, int attr1, int attr2, int attr3, int attr4);
+void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData, float x, float y, float z, int attr1, int attr2, int attr3, int attr4);
 
 
 // InitS2C
@@ -347,7 +347,7 @@ struct MapSoundToClients : MessageType
 #endif
 };
 
-void send_MapSoundToClients(int clientNumber, std::string soundName, int entityUniqueId);
+void send_MapSoundToClients(int clientNumber, const char* soundName, int entityUniqueId);
 
 
 // SoundToClientsByName
@@ -361,7 +361,7 @@ struct SoundToClientsByName : MessageType
 #endif
 };
 
-void send_SoundToClientsByName(int clientNumber, float x, float y, float z, std::string soundName, int originalClientNumber);
+void send_SoundToClientsByName(int clientNumber, float x, float y, float z, const char* soundName, int originalClientNumber);
 
 
 // SoundStopToClientsByName
@@ -375,7 +375,7 @@ struct SoundStopToClientsByName : MessageType
 #endif
 };
 
-void send_SoundStopToClientsByName(int clientNumber, int volume, std::string soundName, int originalClientNumber);
+void send_SoundStopToClientsByName(int clientNumber, int volume, const char* soundName, int originalClientNumber);
 
 
 // EditModeC2S
