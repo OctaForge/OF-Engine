@@ -162,7 +162,7 @@ char *of_world_get_mapfile_path(const char *rpath)
     char *aloc = strdup(of_world_curr_map_asset_id);
     aloc[strlen(aloc) - 7] = '\0';
     
-    char buf[512];
+    char buf[512], buff[512];
     snprintf(buf, sizeof(buf), "data%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
     if (fileexists(buf, "r"))
     {
@@ -170,9 +170,10 @@ char *of_world_get_mapfile_path(const char *rpath)
         return strdup(buf);
     }
     snprintf(
-        buf, sizeof(buf), "%s%c%s",
+        buff, sizeof(buff), "%s%c%s",
         homedir, PATHDIV, buf
     );
+    snprintf(buf, sizeof(buf), "%s", buff);
     OF_FREE(aloc);
     return strdup(buf);
 }

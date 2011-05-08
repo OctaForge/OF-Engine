@@ -140,6 +140,7 @@ bool of_tools_file_copy(const char *src, const char *dest)
 bool of_tools_createpath(const char *path)
 {
     char  buf[4096];
+    char buff[4096];
     char  *p = strdup(path);
     char  *t = strtok(p, "/\\");   
     while (t)
@@ -149,12 +150,13 @@ bool of_tools_createpath(const char *path)
 
         if (strlen(buf) > 0)
         {
-            snprintf (buf, sizeof(buf), "%s%c%s", buf, PATHDIV, t);
-            if (!createdir(buf))
+            snprintf(buff, sizeof(buff), "%s%c%s", buf, PATHDIV, t);
+            if (!createdir(buff))
             {
                 OF_FREE(p);
                 return false;
             }
+            snprintf(buf, sizeof(buf), "%s", buff);
         }
         else if (!createdir(t))
         {
