@@ -100,7 +100,6 @@ bool of_world_set_map(const char *id)
     send_RequestPrivateEditMode();
 #endif
 
-    printf("CURRENT: %s\n", of_world_curr_map_asset_id);
     return true;
 }
 
@@ -157,8 +156,6 @@ void of_world_export_entities(const char *fname)
 
 char *of_world_get_mapfile_path(const char *rpath)
 {
-    printf("MAPFILE PATH: %s\n", of_world_curr_map_asset_id);
-    printf("SCENARIO CODE: %s\n", of_world_scenario_code);
     char *aloc = strdup(of_world_curr_map_asset_id);
     aloc[strlen(aloc) - 7] = '\0';
     

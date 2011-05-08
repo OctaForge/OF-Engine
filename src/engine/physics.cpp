@@ -1936,7 +1936,7 @@ void moveplayer(physent *pl, int moveres, bool local)
     TargetingControl::calcPhysicsFrames(pl);
 
     // INTENSITY: Per-entity frame times
-    fpsent* fpsEntity = dynamic_cast<fpsent*>(pl);
+    fpsent* fpsEntity = (fpsent*)pl;
     physsteps = fpsEntity->physsteps, physframetime = fpsEntity->physframetime, lastphysframe = fpsEntity->lastphysframe;
     // INTENSITY
 

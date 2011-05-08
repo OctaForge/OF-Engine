@@ -707,8 +707,15 @@ void server_init()//int argc, char* argv[])
     server::getUniqueId(0) = DUMMY_SINGLETON_CLIENT_UNIQUE_ID;
 }
 
+void serverkeepalive();
+
 void server_runslice()
 {
+    /* Keep connection alive?
+     * 
+    clientkeepalive();
+    serverkeepalive();*/
+
     serverslice(true, 5);
 
     time_t now = time(0);

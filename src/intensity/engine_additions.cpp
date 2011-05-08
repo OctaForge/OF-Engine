@@ -513,7 +513,7 @@ int LogicSystem::getUniqueId(extentity* staticEntity)
 
 int LogicSystem::getUniqueId(physent* dynamicEntity)
 {
-    return dynamic_cast<fpsent*>(dynamicEntity)->uniqueId;
+    return ((fpsent*)dynamicEntity)->uniqueId;
 }
 
 // TODO: Use this whereever it should be used
@@ -543,7 +543,7 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
         assert(0);
     }
 
-    dynamic_cast<fpsent*>(dynamicEntity)->uniqueId = uniqueId;
+    ((fpsent*)dynamicEntity)->uniqueId = uniqueId;
 }
 
 void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4)

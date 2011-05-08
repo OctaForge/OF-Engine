@@ -470,6 +470,57 @@ namespace lua
         return NULL;
     }
 
+    // type checker specializations
+
+    template<>
+    bool lua_Engine::is<int>(int i)
+    {
+        if (!m_hashandle) return false;
+        return lua_isnumber(m_handle, i);
+    }
+
+    template<>
+    bool lua_Engine::is<double>(int i)
+    {
+        if (!m_hashandle) return false;
+        return lua_isnumber(m_handle, i);
+    }
+
+    template<>
+    bool lua_Engine::is<float>(int i)
+    {
+        if (!m_hashandle) return false;
+        return lua_isnumber(m_handle, i);
+    }
+
+    template<>
+    bool lua_Engine::is<bool>(int i)
+    {
+        if (!m_hashandle) return false;
+        return lua_isboolean(m_handle, i);
+    }
+
+    template<>
+    bool lua_Engine::is<const char*>(int i)
+    {
+        if (!m_hashandle) return false;
+        return lua_isstring(m_handle, i);
+    }
+
+    template<>
+    bool lua_Engine::is<void**>(int i)
+    {
+        if (!m_hashandle) return false;
+        return lua_istable(m_handle, i);
+    }
+
+    template<>
+    bool lua_Engine::is<void*>(int i)
+    {
+        if (!m_hashandle) return false;
+        return lua_isfunction(m_handle, i);
+    }
+
     /*
      * Handler manipulation functions
      */

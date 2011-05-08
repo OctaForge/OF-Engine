@@ -16,13 +16,6 @@ void serverkeepalive()
         enet_host_service(serverhost, NULL, 0);
 }
 
-//! Should be called from the server when doing anything long, to keep both ENet connections alive
-void keep_alive()
-{
-    clientkeepalive(); // make sure our connection doesn't time out while loading maps etc. - client (internal headless) version
-    serverkeepalive(); // make sure our connection doesn't time out while loading maps etc. - server (main) version
-}
-
 //=====================================================================================
 // Utilities to make the server able to use Cube code that was client-only in the past
 //=====================================================================================
@@ -73,7 +66,9 @@ void playsound(int n, const vec *loc, extentity *ent) { }
 
 void renderprogress(float bar, const char *text, GLuint tex, bool background)
 {
-    keep_alive(); // Keep both client and server ENet connections alive
+    /* Keep connection alive */
+    clientkeepalive();
+    serverkeepalive();
 
     printf("|");
     for (int i = 0; i < 10; i++)

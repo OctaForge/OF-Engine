@@ -100,7 +100,7 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
         entity = LogicSystem::getLogicEntity(*entities::getents()[enthover]);
     } else {
         // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
-        CLogicEntity *ignore = dynamic_cast<fpsent*>(targeter) ? LogicSystem::getLogicEntity(targeter) : NULL;
+        CLogicEntity *ignore = (fpsent*)targeter ? LogicSystem::getLogicEntity(targeter) : NULL;
         float dynamicDist, staticDist;
         dynent* dynamicEntity;
         extentity* staticEntity;
@@ -207,7 +207,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 
 float TargetingControl::calculateMovement(physent* entity)
 {
-    fpsent* fpsEntity = dynamic_cast<fpsent*>(entity);
+    fpsent* fpsEntity = (fpsent*)entity;
     // Take into account movement both by velocity, and of movement since our last frame
     vec movement(fpsEntity->lastPhysicsPosition);
     movement.sub(fpsEntity->o);
@@ -228,7 +228,7 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
     // they now do thins differently. To debug this, revert back to sauer's method
     // of NON-per-entity physics and see what that changes.
 
-    fpsent* fpsEntity = dynamic_cast<fpsent*>(entity);
+    fpsent* fpsEntity = (fpsent*)entity;
 
     Logging::log(Logging::INFO, "physicsframe() lastmillis: %d  curtime: %d  lastphysframe: %d\r\n", lastmillis, curtime, fpsEntity->lastphysframe);
 
@@ -243,13 +243,11 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
     else
     {
         int entityFrameTime;
+
 #ifdef SERVER
-        if (calculateMovement(fpsEntity) >= 0.001)
-            entityFrameTime = PHYSFRAMETIME;
-        else
-            entityFrameTime = PHYSFRAMETIME * 2; // Conservative speedup
+        entityFrameTime = (calculateMovement(fpsEntity) >= 0.001) ? 15 : 30;
 #else
-        entityFrameTime = PHYSFRAMETIME;
+        entityFrameTime = (fpsEntity == player) ? 5 : 10;
 #endif
         fpsEntity->physframetime = entityFrameTime; // WAS: clamp((entityFrameTime*gamespeed)/100, 1, entityFrameTime);
 

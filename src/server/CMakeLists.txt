@@ -16,8 +16,7 @@ if (NOT WIN32)
     include_directories(${UUID_INCLUDE_DIRS})
 endif (NOT WIN32)
 
-# for now, keep rtti / exceptions enabled, disable them later
-#add_definitions(-fno-exceptions -fno-rtti)
+add_definitions(-fno-exceptions -fno-rtti)
 
 # there is no LINUX variable declared
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

@@ -40,7 +40,7 @@ namespace game
                         CLogicEntity *entity = LogicSystem::getLogicEntity(lineUniqueId);
                         if (entity)
                         {
-                            fpsent *p = dynamic_cast<fpsent*>(entity->dynamicEntity);
+                            fpsent *p = (fpsent*)entity->dynamicEntity;
                             assert(p);
 
                             if (GETIV(showpj))

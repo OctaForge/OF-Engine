@@ -121,20 +121,7 @@ namespace lua
         bool is(int i)
         {
             if (!m_hashandle) return false;
-            if (typeid(T) == typeid(int)
-                    || typeid(T) == typeid(double)
-                    || typeid(T) == typeid(float)
-            ) return lua_isnumber(m_handle, i);
-            else if (typeid(T) == typeid(bool))
-                return lua_isboolean(m_handle, i);
-            else if (typeid(T) == typeid(const char*))
-                return lua_isstring(m_handle, i);
-            else if (typeid(T) == typeid(void**))
-                return lua_istable(m_handle, i);
-            else if (typeid(T) == typeid(void*))
-                return lua_isfunction(m_handle, i);
-            else return lua_isnoneornil(m_handle, i);
-            return false;
+            return lua_isnoneornil(m_handle, i);
         }
 
         /**
@@ -674,6 +661,14 @@ namespace lua
     template<> double        *lua_Engine::get(int i);
     template<> float         *lua_Engine::get(int i);
     template<> char          *lua_Engine::get(int i);
+    // type checker specializations
+    template<> bool           lua_Engine::is<int        >(int i);
+    template<> bool           lua_Engine::is<double     >(int i);
+    template<> bool           lua_Engine::is<float      >(int i);
+    template<> bool           lua_Engine::is<bool       >(int i);
+    template<> bool           lua_Engine::is<const char*>(int i);
+    template<> bool           lua_Engine::is<void**     >(int i);
+    template<> bool           lua_Engine::is<void*      >(int i);
 
     /// Instance of the script engine.
     extern lua_Engine engine;

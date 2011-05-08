@@ -315,7 +315,7 @@ void PlayerControl::handleExtraPlayerMovements(int millis)
 
     // Turning
 
-    fpsent* fpsPlayer = dynamic_cast<fpsent*>(player);
+    fpsent* fpsPlayer = (fpsent*)player;
 
     engine.getref(ClientSystem::playerLogicEntity->luaRef);
     float _facingSpeed = engine.t_get<double>("facing_speed");
