@@ -72,7 +72,7 @@ require("base.base_logging")
     Logs text into console with given level.
     Displayed levels depend on OctaForge launch options.
 
-    This is wrapped from "logging" module.
+    This is wrapped from "logging" table exposed from C.
 
     Parameters:
         level - The logging level to use.
@@ -95,7 +95,7 @@ ERROR = logging.ERROR
 --[[!
     Function: echo
     Displays text into both consoles (ingame and terminal).
-    This is wrapped from "logging" module.
+    This is wrapped from "logging" table exposed from C.
 
     Parameters:
         text - The text to display.

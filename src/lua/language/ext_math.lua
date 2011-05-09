@@ -421,7 +421,7 @@ end
     Calculates yaw and pitch from vector components.
 
     Returns:
-        Table containing yaw and pitch:
+        Table containing yaw and pitch -
 
         (start code)
             { yaw = yaw_value, pitch = pitch_value }

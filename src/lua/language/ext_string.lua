@@ -57,7 +57,7 @@ getmetatable("").__mod = _str_interp
 --[[!
     Function: string.split
     Splits a string into table of tokens, based on
-    <http://lua-users.org/wiki/SplitJoin>. Usage:
+    <http://lua-users.org/wiki/SplitJoin>. Usage -
 
     (start code)
         local a = "abc|def|ghi|jkl"
@@ -84,15 +84,15 @@ end
 --[[!
     Function: string.template
     Parses a string template (string with embedded lua code),
-    inspired by luadoc parser system. Usage:
+    inspired by luadoc parser system. Usage -
 
     (start code)
-        foo = "bar"<br/>
-        bar = "blah"<br/>
-        -- this returns "bar: blah"<br/>
-        -- first, gets parsed to "bar : <$0 return bar $0>"<br/>
-        -- then, it gets parsed to "bar : blah" (value of bar)<br/>
-        assert(string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah")<br/>
+        foo = "bar"
+        bar = "blah"
+        -- this returns "bar: blah"
+        -- first, gets parsed to "bar : <$0 return bar $0>"
+        -- then, it gets parsed to "bar : blah" (value of bar)
+        assert(string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah")
     (end)
 
     Parameters:

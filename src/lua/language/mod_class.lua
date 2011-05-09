@@ -1,55 +1,78 @@
----
--- mod_class.lua, version 1<br/>
--- Class library for Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com), bartbes<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: language/mod_class.lua
 
---- Class library for Lua. Allows instances, parent calling and simple inheritance.
--- Multiple inheritance isn't and won't be supported. Code using multiple inheritance
--- won't be accepted into OctaForge. What the class system allows are getters / setters
--- for virtual class members and get / set conditional function for emulating private
--- class members, which might be useful sometimes.
--- @class module
--- @name class
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file implements a class system for Lua with simple inheritance.
+
+    Section: Class system
+]]
+
+--[[!
+    Package: class
+    A class library for Lua. Allows instances, parent calling and simple inheritance.
+
+    Multiple inheritance isn't and won't be probably supported.
+    This class system also allows getters / setters for virtual class members
+    and general getter / setter overrides.
+]]
 module("class", package.seeall)
 
---- Create a new class.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- A = new()<br/>
--- function A:__init(foo) end<br/>
--- function A:__tostring(foo) end<br/>
--- function A:blah(bleh) end<br/>
--- B = new(A)<br/>
--- instance = A(15)<br/>
--- binstance = B("foo")<br/>
--- </code>
--- @param b Base to inherit class from (optional)
--- @return The class.
+--[[!
+    Function: new
+    This function creates a new class. New class then can be given
+    methods, constructors, various metamethods etc. and instances
+    can be created. Usage -
+
+    (start code)
+        A = class.new()
+        function A:__init()
+            echo("This is constructor")
+            self.a = 5
+            self.b = 15
+        end
+        function A:print()
+            echo(self.a)
+            echo(self.b)
+        end
+        B = class.new(a)
+        function B:__init(_a)
+            self.__base.__init(self)
+            echo("Overriden constructor")
+            self.a = _a
+        end
+        a = A()
+        b = B(20)
+        -- This will print:
+        -- 5
+        -- 15
+        a:print()
+        -- This will print:
+        -- 20
+        -- 15
+        b:print()
+    (end)
+
+    Parameters:
+        b - Optional argument specifying the class to inherit from.
+
+    Returns:
+        New class from which you can create instances.
+]]
 function new(b)
-    -- what will be the class
+    --[[!
+        Class: c
+        This is/will be the base class that's returned from <new>.
+        It has several default methods and that's why it's documented.
+    ]]
     local c = {}
 
     -- the base, empty when not inheriting
@@ -132,21 +155,59 @@ function new(b)
     -- conditional for __index, returns true if it's okay (private emulation)
     function c:__indexcond(n) return n and true or false end
 
-    -- define getter (callback when virtual element gets accessed)
+    --[[!
+        Function: define_getter
+        This defines a new getter for the class. Getter is a function assigned
+        to a key. When they key is accessed, the function is called and its
+        return value is returned instead of real existing member.
+
+        Parameters:
+            k - A key to assign getter to.
+            v - The getter. It either accepts no argument or extra data.
+            o - Optional argument specifying extra data to always pass to getter.
+
+        See also:
+            <define_userget>
+            <remove_getter>
+    ]]
     function c:define_getter(k, v, o)
         self.__getters[k] = v
         self.__getselfs[k] = self -- a little hack to get right self
         if o then self.__getaddargs[k] = o end
     end
 
-    -- define setter (callback when virtual element is set)
+    --[[!
+        Function: define_setter
+        This defines a new setter for the class. Setter is a function assigned
+        to a key. When they key is set, the function is called instead and it's
+        expected from it to do the setting itself.
+
+        Parameters:
+            k - A key to assign getter to.
+            v - The setter. It either accepts only the value that's meant to be set
+            or also extra data. If extra data is present, it's passed before value.
+            o - Optional argument specifying extra data to always pass to setter.
+
+        See also:
+            <define_userset>
+            <remove_setter>
+    ]]
     function c:define_setter(k, v, o)
         self.__setters[k] = v
         self.__setselfs[k] = self -- a little hack to get right self
         if o then self.__setaddargs[k] = o end
     end
 
-    -- remove getter
+    --[[!
+        Function: remove_getter
+        This removes getter from a key so it doesn't function anymore.
+
+        Parameters:
+            k - A key to remove getter from.
+
+        See also:
+            <define_getter>
+    ]]
     function c:remove_getter(k)
         -- do not check if exists, no need
         self.__getters[k] = nil
@@ -154,20 +215,53 @@ function new(b)
         self.__getaddargs[k] = nil
     end
 
-    -- remove setter
+    --[[!
+        Function: remove_setter
+        This removes setter from a key so it doesn't function anymore.
+
+        Parameters:
+            k - A key to remove setter from.
+
+        See also:
+            <define_setter>
+    ]]
     function c:remove_setter(k)
         self.__setters[k] = nil
         self.__setselfs[k] = nil
         self.__setaddargs[k] = nil
     end
 
-    -- define userget (callback on anything)
+    --[[!
+        Function: define_userget
+        This defines an userget for the class. Userget is something like
+        "global getter" - it's called on EVERY key access. If it returns
+        something, that value is used; if not, it simply passes as if there
+        was no userget.
+
+        Parameters:
+            f - The userget function. Has the same format as getter, except that
+            you can't have extra data with it.
+
+        See also:
+            <define_getter>
+    ]]
     function c:define_userget(f)
         self.__getters["*"] = f
         self.__getselfs["*"] = self
     end
 
-    -- define userset (callback on anything)
+    --[[!
+        Function: define_userset
+        This defines an userset for the class. Userset is something like
+        "global setter" - it's called on EVERY key set.
+
+        Parameters:
+            f - The userset function. Has the same format as setter, except that
+            you can't have extra data with it.
+
+        See also:
+            <define_setter>
+    ]]
     function c:define_userset(f)
         self.__setters["*"] = f
         self.__setselfs["*"] = self
