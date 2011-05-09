@@ -1,34 +1,53 @@
----
--- init.lua, version 1
--- Loader for core Lua library.
---
--- @author q66 (quaker66@gmail.com)
--- license: MIT/X11
---
--- @copyright 2011 OctaForge project
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: init.lua
 
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file takes care of properly loading all sub-modules of core
+        OctaForge script library.
+
+        Also sets up global logging methods so scripts can easily log things
+        without having to repeat the logging module prefix.
+
+        If you want to enable script tracing, look at commented out trace()
+        function.
+
+    Section: Core library initialization
+]]
+
+--[[!
+    Variable: package.path
+    Contains paths to Lua scripts. By default adds
+
+    (start code)
+        ;./src/lua/?.lua;./src/lua/?/init.lua;./?/init.lua;./data/library/?/init.lua
+    (end)
+]]
 package.path = package.path .. ";./src/lua/?.lua;./src/lua/?/init.lua;./?/init.lua;./data/library/?/init.lua"
 
 --[[
+--[[!
+    Function: trace
+    By default commented out. Used to trace what's Lua doing.
+
+    Activated using
+
+    (start code)
+        debug.sethook(trace, "c")
+    (end)
+
+    Parameters:
+        event - The caught event.
+        line - The line on which the event was caught.
+]]
 function trace (event, line)
       local s = debug.getinfo(2, "nSl")
       print("DEBUG:")
@@ -47,12 +66,40 @@ debug.sethook(trace, "c")
 
 -- Logging comes first.
 require("base.base_logging")
--- Globally wrap some logging stuff because it's often used.
+
+--[[!
+    Function: log
+    Logs text into console with given level.
+    Displayed levels depend on OctaForge launch options.
+
+    This is wrapped from "logging" module.
+
+    Parameters:
+        level - The logging level to use.
+        text - The text to display.
+
+    Levels:
+        INFO - use for often repeating logging that usually just annoys people,
+        but might come in use sometimes.
+        DEBUG - use for usual debugging output.
+        WARNING - this level is usually displayed by default.
+        ERROR - Use for error messages, displayed always. Printed into in-engine
+        console too, unlike all others.
+]]
 log = logging.log
 INFO = logging.INFO
 DEBUG = logging.DEBUG
 WARNING = logging.WARNING
 ERROR = logging.ERROR
+
+--[[!
+    Function: echo
+    Displays text into both consoles (ingame and terminal).
+    This is wrapped from "logging" module.
+
+    Parameters:
+        text - The text to display.
+]]
 echo = logging.echo
 
 logging.log(logging.DEBUG, "Initializing language extensions.")

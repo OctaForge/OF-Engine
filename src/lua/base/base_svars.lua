@@ -816,7 +816,7 @@ function vec4_surrogate:__init(ent, var)
     self.mul = math.vec4.mul
     self.copy = math.vec4.copy
     self.getarr = math.vec4.getarr
-    self.quatfromaxiangle = math.vec4.quatfromaxiangle
+    self.quatfromaxisangle = math.vec4.quatfromaxisangle
     self.toyawpitchroll = math.vec4.toyawpitchroll
     self.normalize = math.vec4.normalize
     self.cap = math.vec4.cap
