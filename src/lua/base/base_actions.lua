@@ -1,100 +1,145 @@
----
--- base_actions.lua, version 1<br/>
--- Action system for Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: base/base_actions.lua
 
---- Action system (actions / queue) for OF Lua interface.
--- @class module
--- @name actions
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features action system for Lua.
+
+    Section: Action system
+]]
+
+--[[!
+    Package: actions
+    Action system (actions / queue) for OctaForge's Lua API.
+    You use actions when you want to conditionally perform something in a queue.
+    Example use of actions are animations.
+]]
 module("actions", package.seeall)
 
+--! Variable: ANIM_DEAD
 ANIM_DEAD = 0
+--! Variable: ANIM_DYING
 ANIM_DYING = 1
+--! Variable: ANIM_IDLE
 ANIM_IDLE = 2
+--! Variable: ANIM_FORWARD
 ANIM_FORWARD = 3
+--! Variable: ANIM_BACKWARD
 ANIM_BACKWARD = 4
+--! Variable: ANIM_LEFT
 ANIM_LEFT = 5
+--! Variable: ANIM_RIGHT
 ANIM_RIGHT = 6
+--! Variable: ANIM_HOLD1
 ANIM_HOLD1 = 7
+--! Variable: ANIM_HOLD2
 ANIM_HOLD2 = 8
+--! Variable: ANIM_HOLD3
 ANIM_HOLD3 = 9
+--! Variable: ANIM_HOLD4
 ANIM_HOLD4 = 10
+--! Variable: ANIM_HOLD5
 ANIM_HOLD5 = 11
+--! Variable: ANIM_HOLD6
 ANIM_HOLD6 = 12
+--! Variable: ANIM_HOLD7
 ANIM_HOLD7 = 13
+--! Variable: ANIM_ATTACK1
 ANIM_ATTACK1 = 14
+--! Variable: ANIM_ATTACK2
 ANIM_ATTACK2 = 15
+--! Variable: ANIM_ATTACK3
 ANIM_ATTACK3 = 16
+--! Variable: ANIM_ATTACK4
 ANIM_ATTACK4 = 17
+--! Variable: ANIM_ATTACK5
 ANIM_ATTACK5 = 18
+--! Variable: ANIM_ATTACK6
 ANIM_ATTACK6 = 19
+--! Variable: ANIM_ATTACK7
 ANIM_ATTACK7 = 20
+--! Variable: ANIM_PAIN
 ANIM_PAIN = 21
+--! Variable: ANIM_JUMP
 ANIM_JUMP = 22
+--! Variable: ANIM_SINK
 ANIM_SINK = 23
+--! Variable: ANIM_SWIM
 ANIM_SWIM = 24
+--! Variable: ANIM_EDIT
 ANIM_EDIT = 25
+--! Variable: ANIM_LAG
 ANIM_LAG = 26
+--! Variable: ANIM_TAUNT
 ANIM_TAUNT = 27
+--! Variable: ANIM_WIN
 ANIM_WIN = 28
+--! Variable: ANIM_LOSE
 ANIM_LOSE = 29
+--! Variable: ANIM_GUN_IDLE
 ANIM_GUN_IDLE = 30
+--! Variable: ANIM_GUN_SHOOT
 ANIM_GUN_SHOOT = 31
+--! Variable: ANIM_VWEP_IDLE
 ANIM_VWEP_IDLE = 32
+--! Variable: ANIM_VWEP_SHOOT
 ANIM_VWEP_SHOOT = 33
+--! Variable: ANIM_SHIELD
 ANIM_SHIELD = 34
+--! Variable: ANIM_POWERUP
 ANIM_POWERUP = 35
+--! Variable: ANIM_MAPMODEL
 ANIM_MAPMODEL = 36
+--! Variable: ANIM_TRIGGER
 ANIM_TRIGGER = 37
+--! Variable: NUMANIMS
 NUMANIMS = 38
 
+--! Variable: ANIM_INDEX
 ANIM_INDEX = 0x7F
+--! Variable: ANIM_LOOP
 ANIM_LOOP = math.lsh(1, 7)
+--! Variable: ANIM_START
 ANIM_START = math.lsh(1, 8)
+--! Variable: ANIM_END
 ANIM_END = math.lsh(1, 9)
+--! Variable: ANIM_REVERSE
 ANIM_REVERSE = math.lsh(1, 10)
+--! Variable: ANIM_SECONDARY
 ANIM_SECONDARY = 11
 
+--! Variable: ANIM_RAGDOLL
 ANIM_RAGDOLL = math.lsh(1, 27)
 
---- Default action class, every other action inherits from this.
--- @class table
--- @name action
+--[[!
+    Class: action
+    Default action class which is here for other actions to
+    inherit from. No other real use.
+]]
 action = class.new()
 
---- Return string representation of action.
--- @return String representation of action.
-function action:__tostring() return "action" end
+--[[!
+    Constructor: __init
+    This initializes the action.
 
---- action constructor.
--- Kwargs can contain secondsleft (how many seconds left till action ends, number),
--- anim (action animation, number - see beginning of this file),
--- canmulqueue (can multiply queue?, boolean), canbecancelled (can action be cancelled?, boolean)
--- and parallelto (action it's parallel to, action).
--- @param kwargs A table of additional properties.
+    Parameters:
+        kwargs - additional parameters for action initializer, table.
+
+    Kwargs:
+        secondsleft - how many seconds left till action ends.
+        anim - action animation - see Variables section.
+        canmulqueue - can multiply queue? boolean value.
+        canbecancelled - can action be cancelled? boolean.
+        parallelto - action it's parallel to.
+]]
 function action:__init(kwargs)
     kwargs = kwargs or {}
 
@@ -111,23 +156,51 @@ function action:__init(kwargs)
     self.parallelto = self.parallelto == nil and (kwargs.parallelto == nil and false or kwargs.parallelto)
 end
 
---- start method for action.
--- Marks the action as begun and calls dostart,
--- which is meant to be overriden by inherited actions.
+--[[!
+    Function: __tostring
+    Returns:
+        string representation of the action.
+]]
+function action:__tostring() return "action" end
+
+--[[!
+    Function: start
+    Action start method. This is meant to be untouched by inherited
+    actions.
+
+    See Also:
+        <dostart>
+]]
 function action:start()
     self.begun = true
     self:dostart()
 end
 
---- dostart method, meant to be overriden.
--- @see action:start
+--[[!
+    Function: dostart
+    This is meant to be inherited by actions. It's called by start
+    and is empty by default.
+
+    See Also:
+        <start>
+]]
 function action:dostart()
 end
 
---- execute method, which takes care of execution, deactivation etc.
--- doexecute gets called here, which is meant to be overriden.
--- @param sec How many seconds to execute.
--- @return True if the action has ended, false otherwise.
+--[[!
+    Function: execute
+    Action execution method. This is meant to be untouched by inherited
+    actions. It takes care of execution, deactivation ..
+
+    Parameters:
+        sec - How many seconds to execute.
+
+    Returns:
+        true if the action has ended, false otherwise.
+
+    See Also:
+        <doexecute>
+]]
 function action:execute(sec)
     -- take care of proper finish
     if self.actor ~= false and self.actor.deactivated then
@@ -170,21 +243,46 @@ function action:execute(sec)
     end
 end
 
---- doexecute method, meant to be overriden.
--- Always make sure your inherited action calls base doexecute
--- at the end, though, or at least make sure it's performing
--- needed actions (modification of secondsleft and proper return).
--- @param sec How many seconds to execute, passed by execute.
--- @return True if the action has ended, false otherwise.
--- @see action:execute
+--[[!
+    Function: doexecute
+    This is meant to be inherited by actions. It's called by execute.
+    In your overriden function, always make sure to call this at the
+    end and return its value like this:
+
+    (start code)
+        function myaction:doexecute(sec)
+            echo("HAH!")
+            return self.__base.doexecute(self, sec)
+        end
+    (end)
+
+    or at least make sure to perform required actions in your method.
+    If you're always sure of return value, you don't have to call this
+    though.
+
+    Parameters:
+        sec - How many seconds to execute. This is passed by <execute>.
+
+    Returns:
+        true if the action has ended, false otherwise.
+
+    See Also:
+        <execute>
+]]
 function action:doexecute(sec)
     self.secondsleft = self.secondsleft - sec
     return (self.secondsleft <= 0)
 end
 
---- finish method, taking care of proper action shutdown.
--- Calls dofinish at the end, which is meant to be overriden by
--- custom actions.
+--[[!
+    Function: finish
+    Finalizer function for action. Takes are of proper
+    shutdown. Calls <dofinish> at the end which you can
+    override.
+
+    See Also:
+        <dofinish>
+]]
 function action:finish()
     self.finished = true
 
@@ -197,111 +295,170 @@ function action:finish()
     self:dofinish()
 end
 
---- dofinish method, meant to be overriden.
--- @see action:finish
+--[[!
+    Function: dofinish
+
+    Override this in custom action if required.
+    Empty by default. Called by <finish>.
+
+    See Also:
+        <finish>
+]]
 function action:dofinish()
 end
 
---- Cancel actione vent. Performs finish, but only if action
--- can be cancelled.
+--[[!
+    Function: cancel
+
+    Cancel action event. Calls <finish>, but only if the action
+    can be actually cancelled (it can by default, but also doesn't
+    have to be, because you can override through kwargs).
+
+    See Also:
+        <finish>
+        <dofinish>
+]]
 function action:cancel()
     if self.canbecancelled then
         self:finish()
     end
 end
 
---- Never ending action. Such behavior is accomplished by
--- always returning false on doexecute.
--- @class table
--- @name action_infinite
+--[[!
+    Class: action_infinite
+    Infinite action accomplished by always returning false
+    on doexecute.
+]]
 action_infinite = class.new(action)
 
---- Return string representation of action.
--- @return String representation of action.
 function action_infinite:__tostring() return "action_infinite" end
 
---- Custom doexecute. Always returns false in order to make
--- the action never end.
--- @param sec How many seconds to execute, passed by execute.
--- @return Always false here.
+--[[!
+    Function: doexecute
+    Overriden doexecute to accomplish never ending behavior.
+
+    Parameters:
+        sec - Irrelevant here.
+
+    Returns:
+        always false in this case.
+]]
 function action_infinite:doexecute(sec)
     return false
 end
 
---- Action with logent as target - such
--- actions inherit this class and save some code.
--- @class table
--- @name action_targeted
+--[[!
+    Class: action_targeted
+    Action with entity as a target. Such actions inherit this
+    class and save some code.
+]]
 action_targeted = class.new(action)
 
---- Return string representation of action.
--- @return String representation of action.
 function action_targeted:__tostring() return "action_targeted" end
 
---- Custom constructor. Executes the default constructor and additionally
--- sets a target logic entity. Accepts one more constructor argument.
--- @param target The target logic entity.
--- @param kwargs Action parameters, see kwargs at action constructor.
--- @see action:__init
+--[[!
+    Constructor: __init
+    This initializes the action.
+
+    Parameters:
+        target - The entity to set as a target.
+        kwargs - additional parameters for action initializer, table.
+        See <action>'s constructor for kwargs details.
+
+    See:
+        <action>
+]]
 function action_targeted:__init(target, kwargs)
     action.__init(self, kwargs)
-    -- the target - logent
+    -- the target - entity
     self.target = target
 end
 
---- Runs a single command with parameterers.
--- Useful for queuing a command for next act() of entity.
--- @class table
--- @name action_singlecommand
+--[[!
+    Class: action_singlecommand
+    Action that runs a single command with arguments.
+    Useful for i.e. queuing a command for next act() of
+    an entity.
+]]
 action_singlecommand = class.new(action)
 
---- Return string representation of action.
--- @return String representation of action.
 function action_singlecommand:__tostring() return "action_singlecommand" end
 
---- Custom constructor. Executes the default constructor and additionally
--- sets a command, which is a function, and gets executed on doexecute.
--- Accepts one more constructor argument.
--- @param command Command to execute on doexecute, is a function.
--- @param kwargs Action parameters, see kwargs at action constructor.
--- @see action:__init
+--[[!
+    Constructor: __init
+    This initializes the action.
+
+    Parameters:
+        command - Command to execute on doexecute, it's a function.
+        It takes no arguments.
+        kwargs - additional parameters for action initializer, table.
+        See <action>'s constructor for kwargs details.
+
+    See:
+        <action>
+]]
 function action_singlecommand:__init(command, kwargs)
     action.__init(kwargs)
     self.command = command
 end
 
---- Custom doexecute. Always returns true, because exactly one thing is done.
--- Custom command specified on constructor is ran here.
--- @param sec Value is irrelevant here, since only the command gets executed.
--- @return Always true here.
+--[[!
+    Function: doexecute
+    Overriden doexecute. Always returns true, because this is performed
+    just *once*. It simply executes the command and dies.
+
+    Parameters:
+        sec - Irrelevant here.
+
+    Returns:
+        always true in this case.
+]]
 function action_singlecommand:doexecute(sec)
     self.command()
     return true
 end
 
-
---- Action queue for single logent and their management.
--- @class table
--- @name action_system
+--[[!
+    Class: action_system
+    Action system class which manages action queue. One action per <manage>
+    gets executed.
+]]
 action_system = class.new()
 
---- Action system constructor. Accepts parent logent. Initializes action queue.
--- @param parent The parent logent.
+--[[!
+    Constructor: __init
+    This initializes the action system. It basically sets the parent entity
+    this action system belongs to and initializes the queue, which is
+    just a table.
+
+    Parameters:
+        parent - the parent entity this action system belongs to.
+]]
 function action_system:__init(parent)
     self.parent = parent
     self.actlist = {}
 end
 
---- Returns true if there are no more actions to do (queue is empty)
--- @return True if queue is empty, false otherwise.
+--[[!
+    Function: isempty
+    Checks if action queue is empty.
+
+    Returns:
+        true if it's empty, false otherwise.
+]]
 function action_system:isempty()
     return (#self.actlist == 0)
 end
 
---- Manage the action queue for a number of seconds.
--- Filters out finished actions from previous iterations and executes next action in queue for
--- a number of seconds.
--- @param sec Number of seconds to pass to executing action.
+--[[!
+    Function: manage
+    Executes next queued action and removes it from the queue if it finishes.
+    Also filters out finished actions from previous iterations
+    if required.
+
+    Parameters:
+        sec - Number of seconds to pass to the executing action.
+]]
 function action_system:manage(sec)
     self.actlist = table.filterarray(self.actlist, function (i, v) return not v.finished end)
     if #self.actlist > 0 then
@@ -314,7 +471,14 @@ function action_system:manage(sec)
     -- do not forget to do a clear between every action
 end
 
---- Cancel all actions in queue.
+--[[!
+    Function: clear
+    Cancels all actions in the queue.
+    They then get cleared out from the queue on next <manage>.
+
+    See Also:
+        <manage>
+]]
 function action_system:clear()
     -- note: they don't get removed here - just cancelled - finished actions get removed in manage function.
     for i = 1, #self.actlist do
@@ -322,9 +486,15 @@ function action_system:clear()
     end
 end
 
---- Add an action into queue. Doesn't allow two actions of same
--- type if queue multiplication is explicitly set to false.
--- @param act Action to queue.
+--[[!
+    Function: queue
+    Adds an action to the queue. Doesn't allow two actions
+    of the same type if queue multiplication is explicitly
+    disabled via kwargs on constructor.
+
+    Parameters:
+        act - Action to queue.
+]]
 function action_system:queue(act)
     if not action.canmulqueue then
         for i = 1, #self.actlist do

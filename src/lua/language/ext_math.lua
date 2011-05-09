@@ -181,7 +181,7 @@ end
 --[[!
     Function: __tostring
     Returns:
-        a string representation of the vector.
+        string representation of the vector.
         The string representation contains value of the
         vector and has format
 
@@ -532,7 +532,7 @@ end
 --[[!
     Function: __tostring
     Returns:
-        a string representation of the vector.
+        string representation of the vector.
         The string representation contains value of the
         vector and has format
 
