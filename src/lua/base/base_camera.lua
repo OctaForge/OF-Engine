@@ -1,105 +1,130 @@
----
--- base_camera.lua, version 1<br/>
--- Camera interface for Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: base/base_camera.lua
 
---- Camera for OF's Lua interface.
--- @class module
--- @name camera
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features camera control system for Lua.
+
+    Section: Camera interface
+]]
+
+--[[!
+    Package: camera
+    Camera interface. Allows user to force camera or its components,
+    reset, zoom, get ...
+]]
 module("camera", package.seeall)
 
---- Force yaw, pitch, roll and fov of a camera.
--- @param yaw Yaw to force.
--- @param pitch Pitch to force.
--- @param roll Roll to force.
--- @param fov Field of view to force.
--- @class function
--- @name force
+
+--[[!
+    Function: force
+    Forces camera components to fixed values.
+
+    Parameters:
+        yaw - The yaw to force.
+        pitch - The pitch to force.
+        roll - The roll to force.
+        fov - The fov to force.
+]]
 force = CAPI.forcecam
 
---- Force camera position.
--- @param x X position.
--- @param y Y position.
--- @param z Z position.
--- @class function
--- @name forcepos
+--[[!
+    Function: forcepos
+    Forces camera position.
+
+    Parameters:
+        x - X position.
+        y - Y position.
+        z - Z position.
+]]
 forcepos = CAPI.forcepos
 
---- Force camera yaw.
--- @param yaw Yaw to force.
--- @class function
--- @name forceyaw
+--[[!
+    Function: forceyaw
+    Forces camera yaw.
+
+    Parameters:
+        yaw - The yaw to force.
+]]
 forceyaw = CAPI.forceyaw
 
---- Force camera pitch.
--- @param pitch Pitch to force.
--- @class function
--- @name forcepitch
+--[[!
+    Function: forcepitch
+    Forces camera pitch.
+
+    Parameters:
+        pitch - The pitch to force.
+]]
 forcepitch = CAPI.forcepitch
 
---- Force camera roll.
--- @param roll Roll to force.
--- @class function
--- @name forceroll
+--[[!
+    Function: forceroll
+    Forces camera roll.
+
+    Parameters:
+        roll - The roll to force.
+]]
 forceroll = CAPI.forceroll
 
---- Force camera fov.
--- @param fov Field of view to force.
--- @class function
--- @name forcefov
+--[[!
+    Function: forcefov
+    Forces camera fov.
+
+    Parameters:
+        fov - The fov to force.
+]]
 forcefov = CAPI.forcefov
 
---- Reset camera (cancel all forcing)
--- @class function
--- @name reset
+--[[!
+    Function: reset
+    Resets the camera. This cancels all forced
+    values and goes back to fully dynamic camera.
+]]
 reset = CAPI.resetcam
 
---- Get a table containing position
--- as a vec3, yaw, pitch and roll.
--- @return A table with camera info.
--- @class function
--- @name get
+--[[!
+    Function: get
+    Gets camera information.
+
+    Returns:
+        Table with camera information.
+
+    Table contents:
+        position - a vec3
+        yaw - in degrees
+        pitch - in degrees
+        roll - in degrees
+]]
 get = CAPI.getcam
 
---- Increase camera zoom.
--- @class function
--- @name caminc
+--[[!
+    Function: zoom_in
+    Zooms the camera in in thirdperson mode.
+]]
 zoom_in = CAPI.caminc
 
---- Decrease camera zoom.
--- @class function
--- @name camdec
+--[[!
+    Function: zoom_out
+    Zooms the camera out in thirdperson mode.
+]]
 zoom_out = CAPI.camdec
 
---- Toggle mouse looking.
--- @class function
--- @name mouselook
+--[[!
+    Function: mouselook
+    Toggles mouse looking.
+]]
 mouselook = CAPI.mouselook
 
---- Toggle character viewing.
--- @class function
--- @name characterview
+--[[!
+    Function: character_view
+    Toggles character viewing.
+]]
 character_view = CAPI.characterview

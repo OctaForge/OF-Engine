@@ -90,6 +90,11 @@ end
     Returns:
         A number value.
 ]]
+function tonumber(v)
+    return (type(v) == "boolean" and
+        (v and 1 or 0) or _G["tonumber"](v)
+    )
+end
 
 --[[!
     Function: tostring

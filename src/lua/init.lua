@@ -64,9 +64,6 @@ function trace (event, line)
 debug.sethook(trace, "c")
 ]]
 
--- Logging comes first.
-require("base.base_logging")
-
 --[[!
     Function: log
     Logs text into console with given level.

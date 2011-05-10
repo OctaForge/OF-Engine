@@ -1,47 +1,30 @@
----
--- base_engine.lua, version 1<br/>
--- Engine interface for Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: base/base_engine.lua
 
---- The engine module.It contains some core engine functions and
--- as well core "variables" shared between
--- engine and scripting system, like screen resolution, graphics settings,
--- editing variables and many others. Besides Lua representation, there
--- is also C++ representation. Lua is there just to minimize number
--- of stack changes - values are sync only when needed.<br/><br/>
--- The "storage" is a class, which has an instance called "vars".
--- From that you can get a variable (engine.vars.foo)
--- or set (engine.vars.foo = 5). VAR_I, VAR_F and VAR_S
--- are simple integers reflecting C++ enumeration. _VAR is the skeleton
--- for variable, IVAR, FVAR and SVAR inherit it in proper way.
--- To make things shorter, you don't have to get variables specifying
--- full module prefix. The global table _G has a metatable set, so
--- you can get / set variables as if they were global.
--- @class module
--- @name engine
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features engine interface (quitting, engine variables, homedir etc.)
+
+    Section: Engine interface
+]]
+
+--[[!
+    Package: engine
+    This module contains engine interface. Contains some core engine functions as
+    well as engine variable system shared between engine and scripting.
+
+    You can get engine varibles in scripting the same way as normal variables are
+    handled, because _G environment table is overloaded to do so. You can also
+    create new temporary variables in here.
+]]
 module("engine", package.seeall)
 
 --- Quit the engine, showing a dialog when there are unsaved changes.
