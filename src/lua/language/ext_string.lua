@@ -42,9 +42,9 @@ function _str_interp(s, t)
             s, '%%%(([a-zA-Z_0-9]*)%)([-0-9%.]*[cdeEfgGiouxXsq])',
             function(k, fmt)
                 k = tonumber(k) and tonumber(k) or k
-                return (tab[k]
+                return (t[k]
                     and
-                        string.format("%" .. fmt, tab[k])
+                        string.format("%" .. fmt, t[k])
                     or
                         "%(" .. k .. ")" .. fmt
                 )

@@ -1,14 +1,17 @@
 #include "engine.h"
 
-void boxs(int orient, vec o, const vec &s)
+void boxs(int orient, vec o, const vec &s, bool quad = false)
 {
     int   d = dimension(orient),
           dc= dimcoord(orient);
 
     float f = !GETIV(outline) ? 0 : (dc>0 ? 0.2f : -0.2f);
-    o[D[d]] += float(dc) * s[D[d]] + f,
+    o[D[d]] += float(dc) * s[D[d]] + f;
 
-    glBegin(GL_LINE_LOOP);
+    if (quad)
+        glBegin(GL_QUADS);
+    else
+        glBegin(GL_LINE_LOOP);
 
     glVertex3fv(o.v); o[R[d]] += s[R[d]];
     glVertex3fv(o.v); o[C[d]] += s[C[d]];
@@ -16,7 +19,7 @@ void boxs(int orient, vec o, const vec &s)
     glVertex3fv(o.v);
 
     glEnd();
-    xtraverts += 4;
+    if (!quad) xtraverts += 4;
 }
 
 void boxs3D(const vec &o, vec s, int g)
@@ -391,8 +394,14 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         if(GETIV(hmapedit)==1)
             glColor3ub(0, hmapsel ? 255 : 40, 0);
         else
-            glColor3ub(120,120,120);
+            glColor3ub(120, 120, 120);
         boxs(orient, lu.tovec(), vec(lusize));
+
+        if(GETIV(hmapedit)==1)
+            glColor3ub(0, 128, 0);
+        else
+            glColor3ub(96, 96, 96);
+        boxs(orient, lu.tovec(), vec(lusize), true);
     }
 
     // selections
@@ -411,6 +420,8 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         cs[C[d]]  = 0.5f*(sel.cys*gridsize);       
         cs[D[d]] *= gridsize;
         boxs(sel.orient, co, cs);
+        glColor3ub(64,64,64);
+        boxs(sel.orient, co, cs, true);
         if(GETIV(hmapedit)==1)         // 3D selection box
             glColor3ub(0,120,0);
         else 

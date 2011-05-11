@@ -474,7 +474,7 @@ VARR(skytexture, 0, 1, 1); // globalname was useskytexture
 VAR(oqfrags, 0, 8, 64);
 VAR(oqwait, 0, 1, 1);
 VAR(oqmm, 0, 4, 8);
-VAR(outline, 0, 0, 1);
+VAR(outline, 0, 1, 1);
 VARP(outlinecolour, 0, 0, 0xFFFFFF);
 VAR(dtoutline, 0, 1, 1);
 VAR(blendbrushcolor, 0, 0x0000C0, 0xFFFFFF);

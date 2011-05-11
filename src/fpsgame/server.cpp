@@ -178,7 +178,7 @@ namespace server
     bool reliablemessages  = false;
     bool shutdown_if_empty = false;
     bool shutdown_if_idle  = false;
-    int  shutdown_idle_interval = 60;
+    int  shutdown_idle_interval = 10;
 
     struct servmode
     {

@@ -33,7 +33,6 @@
 ]]
 package.path = package.path .. ";./src/lua/?.lua;./src/lua/?/init.lua;./?/init.lua;./data/library/?/init.lua"
 
---[[
 --[[!
     Function: trace
     By default commented out. Used to trace what's Lua doing.
@@ -49,20 +48,19 @@ package.path = package.path .. ";./src/lua/?.lua;./src/lua/?/init.lua;./?/init.l
         line - The line on which the event was caught.
 ]]
 function trace (event, line)
-      local s = debug.getinfo(2, "nSl")
-      print("DEBUG:")
-      print("    " .. tostring(s.name))
-      print("    " .. tostring(s.namewhat))
-      print("    " .. tostring(s.source))
-      print("    " .. tostring(s.short_src))
-      print("    " .. tostring(s.linedefined))
-      print("    " .. tostring(s.lastlinedefined))
-      print("    " .. tostring(s.what))
-      print("    " .. tostring(s.currentline))
-    end
+    local s = debug.getinfo(2, "nSl")
+    print("DEBUG:")
+    print("    " .. tostring(s.name))
+    print("    " .. tostring(s.namewhat))
+    print("    " .. tostring(s.source))
+    print("    " .. tostring(s.short_src))
+    print("    " .. tostring(s.linedefined))
+    print("    " .. tostring(s.lastlinedefined))
+    print("    " .. tostring(s.what))
+    print("    " .. tostring(s.currentline))
+end
     
-debug.sethook(trace, "c")
-]]
+--debug.sethook(trace, "c")
 
 --[[!
     Function: log

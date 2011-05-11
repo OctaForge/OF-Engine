@@ -485,7 +485,7 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     es.mul(2);
 }
 
-extern void boxs(int orient, vec o, const vec &s);
+extern void boxs(int orient, vec o, const vec &s, bool quad = false);
 extern void boxs3D(const vec &o, vec s, int g);
 extern void editmoveplane(const vec &o, const vec &ray, int d, float off, vec &handle, vec &dest, bool first);
 
