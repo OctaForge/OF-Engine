@@ -79,8 +79,8 @@ setmetatable(_G, {
             either engine variable or normal variable.
     ]]
     __index = function(self, n)
-        return (engine.vars.stor[n] and
-            engine.vars[n] or
+        return (engine.varexists(n) and
+            engine.getvar(n) or
             rawget(self, n)
         )
     end,
@@ -97,8 +97,8 @@ setmetatable(_G, {
             v - value we're setting
     ]]
     __newindex = function(self, n, v)
-        if engine.vars.stor[n] then
-            engine.vars[n] = v
+        if engine.varexists(n) then
+            engine.setvar(n, v)
         else
             rawset(self, n, v)
         end

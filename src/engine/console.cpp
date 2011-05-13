@@ -299,10 +299,9 @@ struct hline
             var::cvar *ev = var::get("commandbuf");
             if (!ev)
             {
-                ev = var::reg("commandbuf", new var::cvar("commandbuf", buf, true));
-                ev->reglsv();
+                ev = var::reg("commandbuf", new var::cvar("commandbuf", buf));
             }
-            else ev->s(buf, true, false, false);
+            else ev->s(buf, false, false);
             lua::engine.exec(action);
         }
         else if(buf[0]=='/') lua::engine.exec(buf+1);

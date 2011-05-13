@@ -141,8 +141,7 @@ namespace var
 
     cvar::cvar(
         const char *aname,
-        int val,
-        bool reglua
+        int val
     ) : hascb(false),
         name(aname),
         type(VAR_I),
@@ -155,13 +154,11 @@ namespace var
         vcb.i = NULL;
         minv.i = maxv.i = -1;
         curv.i = val; oldv.i = 0;
-        if (reglua && lua::engine.hashandle()) regliv();
     }
 
     cvar::cvar(
         const char *aname,
-        float val,
-        bool reglua
+        float val
     ) : hascb(false),
         name(aname),
         type(VAR_F),
@@ -174,13 +171,11 @@ namespace var
         vcb.f = NULL;
         minv.f = maxv.f = -1.0f;
         curv.f = val; oldv.f = 0.0f;
-        if (reglua && lua::engine.hashandle()) reglfv();
     }
 
     cvar::cvar(
         const char *aname,
-        const char *val,
-        bool reglua
+        const char *val
     ) : hascb(false),
         name(aname),
         type(VAR_S),
@@ -193,7 +188,6 @@ namespace var
         vcb.s = NULL;
         curv.s = (val ? newstring(val) : NULL);
         oldv.s = NULL;
-        if (reglua && lua::engine.hashandle()) reglsv();
     }
 
     cvar::~cvar() { if (type == VAR_S) { DELETEA(curv.s); DELETEA(oldv.s); } }
@@ -208,31 +202,47 @@ namespace var
     float       cvar::gmxf() { return maxv.f; }
     const char *cvar::gs()   { return curv.s; }
 
-    void cvar::s(int val, bool luasync, bool forcecb, bool doclamp)
+    void cvar::s(int val, bool forcecb, bool doclamp)
     {
         if (override || overridevars)
         {
             overriden = true;
             oldv.i = curv.i;
         }
-        if (doclamp && (val < minv.i || val > maxv.i) && !alias) curv.i = clamp(val, minv.i, maxv.i);
+        if (doclamp && (val < minv.i || val > maxv.i) && !alias)
+        {
+            Logging::log(
+                Logging::ERROR,
+                "Variable %s only accepts values of range %i to %i.\n",
+                name, minv.i, maxv.i
+            );
+            curv.i = clamp(val, minv.i, maxv.i);
+        }
         else curv.i = val;
-        callcb(luasync, forcecb);
+        callcb(forcecb);
     }
 
-    void cvar::s(float val, bool luasync, bool forcecb, bool doclamp)
+    void cvar::s(float val, bool forcecb, bool doclamp)
     {
         if (override || overridevars)
         {
             overriden = true;
             oldv.f = curv.f;
         }
-        if (doclamp && (val < minv.f || val > maxv.f) && !alias) curv.f = clamp(val, minv.f, maxv.f);
+        if (doclamp && (val < minv.f || val > maxv.f) && !alias)
+        {
+            Logging::log(
+                Logging::ERROR,
+                "Variable %s only accepts values of range %f to %f.\n",
+                name, minv.f, maxv.f
+            );
+            curv.f = clamp(val, minv.f, maxv.f);
+        }
         else curv.f = val;
-        callcb(luasync, forcecb);
+        callcb(forcecb);
     }
 
-    void cvar::s(const char *val, bool luasync, bool forcecb, bool doclamp)
+    void cvar::s(const char *val, bool forcecb, bool doclamp)
     {
         (void)doclamp;
         if (override || overridevars)
@@ -242,7 +252,7 @@ namespace var
             oldv.s = (curv.s ? newstring(curv.s) : NULL);
         }
         curv.s = (val ? newstring(val) : NULL);
-        callcb(luasync, forcecb);
+        callcb(forcecb);
     }
 
     void cvar::r()
@@ -261,7 +271,7 @@ namespace var
             default: break;
         }
         overriden = false;
-        callcb(true, false);
+        callcb(false);
     }
 
     bool cvar::ispersistent()  { return persistent; }
@@ -270,78 +280,27 @@ namespace var
     bool cvar::isoverriden()   { return overriden;  }
     bool cvar::isalias()       { return alias;      }
 
-    void cvar::regliv()
-    {
-        lua::engine.getg("engine")
-                   .t_getraw("ivar")
-                   .push(name)
-                   .push(minv.i)
-                   .push(curv.i)
-                   .push(maxv.i)
-                   .push(readonly)
-                   .push(alias)
-                   .call(6)
-                   .pop(1);
-    }
-
-    void cvar::reglfv()
-    {
-        lua::engine.getg("engine")
-                   .t_getraw("fvar")
-                   .push(name)
-                   .push(minv.f)
-                   .push(curv.f)
-                   .push(maxv.f)
-                   .push(readonly)
-                   .push(alias)
-                   .call(6)
-                   .pop(1);
-    }
-
-    void cvar::reglsv()
-    {
-        lua::engine.getg("engine")
-                   .t_getraw("svar")
-                   .push(name)
-                   .push(curv.s)
-                   .push(readonly)
-                   .push(alias)
-                   .call(4)
-                   .pop(1);
-    }
-
     /*
      * PRIVATES
      */
 
-    void cvar::callcb(bool luasync, bool forcecb)
+    void cvar::callcb(bool forcecb)
     {
-        #define SYNCV(v) \
-        if ((luasync || alias) && lua::engine.hashandle()) \
-        { \
-            defformatstring(buf)("%s_ns", name); \
-            lua::engine.getg("engine") \
-                       .t_getraw("vars").t_set(buf, v).pop(2); \
-        }
-
         switch (type)
         {
             case VAR_I:
             {
-                if (hascb && (!luasync || forcecb) && !alias) vcb.i(curv.i);
-                SYNCV(curv.i)
+                if (hascb && forcecb && !alias) vcb.i(curv.i);
                 break;
             }
             case VAR_F:
             {
-                if (hascb && (!luasync || forcecb) && !alias) vcb.f(curv.f);
-                SYNCV(curv.f)
+                if (hascb && forcecb && !alias) vcb.f(curv.f);
                 break;
             }
             case VAR_S:
             {
-                if (hascb && (!luasync || forcecb) && !alias) vcb.s(curv.s);
-                SYNCV(curv.s)
+                if (hascb && forcecb && !alias) vcb.s(curv.s);
                 break;
             }
             default: break;
@@ -367,31 +326,6 @@ namespace var
         #include "variable_system_def.hpp"
     }
 
-    void filllua()
-    {
-        enumerate(*vars, cvar*, v, {
-            switch (v->gt())
-            {
-                case VAR_I:
-                {
-                    v->regliv();
-                    break;
-                }
-                case VAR_F:
-                {
-                    v->reglfv();
-                    break;
-                }
-                case VAR_S:
-                {
-                    v->reglsv();
-                    break;
-                }
-                default: break;
-            }
-        });
-    }
-
     void clear()
     {
         if (!vars) return;
@@ -406,10 +340,6 @@ namespace var
             delete vars;
         }
     }
-
-    void syncfl(const char *name, int         val) { (*vars->access(name))->s(val, false); }
-    void syncfl(const char *name, float       val) { (*vars->access(name))->s(val, false); }
-    void syncfl(const char *name, const char *val) { (*vars->access(name))->s(val, false); }
 
     cvar *get(const char *name) { if (vars && vars->access(name)) return *vars->access(name); else return NULL; }
 }

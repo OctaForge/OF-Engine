@@ -67,26 +67,18 @@ public:
         type = INT;
         var = v;
         val.i = i;
-
-        // make sure they're registered in lua.
-        // no kittens are hurt when registering variable that's already registered
-        var->regliv();
     }
     void schedule(var::cvar *v, float f)
     {
         type = FLOAT;
         var = v;
         val.f = f;
-
-        var->reglfv();
     }
     void schedule(var::cvar *v, const char *s)
     {
         type = STRING;
         var = v;
         val.s = newstring(s);
-
-        var->reglsv();
     }
 
     int gi()
@@ -130,9 +122,9 @@ public:
         }
         else if (var) switch (var->gt())
         {
-            case var::VAR_I: var->s(gi(), true, true, true); break;
-            case var::VAR_F: var->s(gf(), true, true, true); break;
-            case var::VAR_S: var->s(gs(), true, true); break;
+            case var::VAR_I: var->s(gi(), true, true); break;
+            case var::VAR_F: var->s(gf(), true, true); break;
+            case var::VAR_S: var->s(gs(), true); break;
         }
     }
 };
@@ -324,7 +316,7 @@ template<class T> static void updateval(const char *var, T val, const char *onch
     var::cvar *ev = var::get(var);
     // when creating new, that means it should also get pushed into storage, and here we have to do it manually
     // registering into storage will also take care of further memory release
-    if (!ev) ev = var::reg(var, new var::cvar(var, val, true));
+    if (!ev) ev = var::reg(var, new var::cvar(var, val));
 
     updatelater.add().schedule(ev, val);
     if(onchange && onchange[0]) updatelater.add().schedule(onchange);

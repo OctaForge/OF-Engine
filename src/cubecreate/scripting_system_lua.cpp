@@ -545,8 +545,6 @@ namespace lua
             m_version = "0.0.5";
 
             setup_libs(); bind();
-            // after setting up bindings, we can fill lua variables too :)
-            var::filllua();
         }
         Logging::log(Logging::DEBUG, "Handler creation went properly.\n");
 

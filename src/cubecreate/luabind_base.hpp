@@ -171,10 +171,9 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::reg(name, new var::cvar(name, e.get<int>(3), true));
-                    ev->regliv();
+                    ev = var::reg(name, new var::cvar(name, e.get<int>(3)));
                 }
-                else ev->s(e.get<int>(3), true, false, false);
+                else ev->s(e.get<int>(3), false, false);
                 break;
             }
             case var::VAR_F:
@@ -182,10 +181,9 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::reg(name, new var::cvar(name, e.get<float>(3), true));
-                    ev->reglfv();
+                    ev = var::reg(name, new var::cvar(name, e.get<float>(3)));
                 }
-                else ev->s(e.get<float>(3), true, false, false);
+                else ev->s(e.get<float>(3), false, false);
                 break;
             }
             case var::VAR_S:
@@ -193,39 +191,49 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::reg(name, new var::cvar(name, e.get<const char*>(3), true));
-                    ev->reglsv();
+                    ev = var::reg(name, new var::cvar(name, e.get<const char*>(3)));
                 }
-                else ev->s(e.get<const char*>(3), true, false, false);
+                else ev->s(e.get<const char*>(3), false, false);
                 break;
             }
             default: break;
         }
     })
 
-    LUA_BIND_DEF(svfl, {
-        const char *name = e.get<const char*>(1);
-        int type = e.get<int>(2);
-        switch (type)
+    LUA_BIND_DEF(setvar, {
+        var::cvar *ev = var::get(e.get<const char*>(1));
+        if (!ev) return;
+        if (ev->isreadonly())
         {
-            case var::VAR_I:
-            {
-                var::syncfl(name, e.get<int>(3));
-                break;
-            }
-            case var::VAR_F:
-            {
-                var::syncfl(name, e.get<float>(3));
-                break;
-            }
-            case var::VAR_S:
-            {
-                var::syncfl(name, e.get<const char*>(3));
-                break;
-            }
+            Logging::log(Logging::ERROR, "Variable %s is read-only.\n", ev->gn());
+            return;
+        }
+        switch (ev->gt())
+        {
+            case var::VAR_I: ev->s(e.get<int>(2), true, true); break;
+            case var::VAR_F: ev->s(e.get<float>(2), true, true); break;
+            case var::VAR_S: ev->s(e.get<const char*>(2), true, true); break;
             default: break;
         }
     })
+
+    LUA_BIND_DEF(getvar, {
+        var::cvar *ev = var::get(e.get<const char*>(1));
+        if (!ev)
+        {
+            e.push();
+            return;
+        }
+        switch (ev->gt())
+        {
+            case var::VAR_I: e.push(ev->gi()); break;
+            case var::VAR_F: e.push(ev->gf()); break;
+            case var::VAR_S: e.push(ev->gs()); break;
+            default: e.push(); break;
+        }
+    })
+
+    LUA_BIND_STD(varexists, e.push, var::get(e.get<const char*>(1)) ? true : false)
 
     // Console
 

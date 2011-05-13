@@ -64,7 +64,7 @@ namespace var
          * @param minvi Minimal value of the variable.
          * @param curvi Default value of the variable.
          * @param maxvi Maximal value of the variable.
-         * @param cb Optional callback called on value change.
+         * @param cb Callback called on value change, pass NULL if not needed.
          * @param persist Makes the variable persistent.
          * @param overridable Makes the variable overridable.
          */
@@ -73,7 +73,7 @@ namespace var
             int minvi,
             int curvi,
             int maxvi,
-            void (*cb)(int) = NULL,
+            void (*cb)(int),
             bool persist = false,
             bool overridable = false
         );
@@ -84,7 +84,7 @@ namespace var
          * @param minvf Minimal value of the variable.
          * @param curvf Default value of the variable.
          * @param maxvf Maximal value of the variable.
-         * @param cb Optional callback called on value change.
+         * @param cb Callback called on value change, pass NULL if not needed.
          * @param persist Makes the variable persistent.
          * @param overridable Makes the variable overridable.
          */
@@ -93,7 +93,7 @@ namespace var
             float minvf,
             float curvf,
             float maxvf,
-            void (*cb)(float) = NULL,
+            void (*cb)(float),
             bool persist = false,
             bool overridable = false
         );
@@ -102,14 +102,14 @@ namespace var
          * Callback is a function taking one string argument.
          * @param vname Name of the variable.
          * @param curvs Default value of the variable.
-         * @param cb Optional callback called on value change.
+         * @param cb Callback called on value change, pass NULL if not needed.
          * @param persist Makes the variable persistent.
          * @param overridable Makes the variable overridable.
          */
         cvar(
             const char *vname,
             const char *curvs,
-            void (*cb)(const char*) = NULL,
+            void (*cb)(const char*),
             bool persist = false,
             bool overridable = false
         );
@@ -117,34 +117,28 @@ namespace var
          * Constructor for int alias.
          * @param aname Name of the alias.
          * @param val Value of the alias.
-         * @param reglua If true, register in lua immediately.
          */
         cvar(
             const char *aname,
-            int val,
-            bool reglua
+            int val
         );
         /**
          * Constructor for float alias.
          * @param aname Name of the alias.
          * @param val Value of the alias.
-         * @param reglua If true, register in lua immediately.
          */
         cvar(
             const char *aname,
-            float val,
-            bool reglua
+            float val
         );
         /**
          * Constructor for string alias.
          * @param aname Name of the alias.
          * @param val Value of the alias.
-         * @param reglua If true, register in lua immediately.
          */
         cvar(
             const char *aname,
-            const char *val,
-            bool reglua
+            const char *val
         );
         /**
          * Destructor for cvar. Takes care of memory freeing
@@ -237,33 +231,30 @@ namespace var
         /**
          * @brief Set int value of the variable.
          * @param val The value to set.
-         * @param luasync Try to sync it with Lua if true.
          * @param forcecb Force running callback.
          * @param doclamp Clamp the value according to min and max values.
          * 
          * Sets int value of the variable.
          */
-        void s(int val, bool luasync = true, bool forcecb = false, bool doclamp = true);
+        void s(int val, bool forcecb = false, bool doclamp = true);
         /**
          * @brief Set float value of the variable.
          * @param val The value to set.
-         * @param luasync Try to sync it with Lua if true.
          * @param forcecb Force running callback.
          * @param doclamp Clamp the value according to min and max values.
          * 
          * Sets float value of the variable.
          */
-        void s(float val, bool luasync = true, bool forcecb = false, bool doclamp = true);
+        void s(float val, bool forcecb = false, bool doclamp = true);
         /**
          * @brief Set string value of the variable.
          * @param val The value to set.
-         * @param luasync Try to sync it with Lua if true.
          * @param forcecb Force running callback.
          * @param doclamp Dummy value. Does nothing.
          * 
          * Sets string value of the variable.
          */
-        void s(const char *val, bool luasync = true, bool forcecb = false, bool doclamp = true);
+        void s(const char *val, bool forcecb = false, bool doclamp = true);
         /**
          * @brief Reset the variable.
          * 
@@ -305,34 +296,9 @@ namespace var
          * Gets if the variable is alias.
          */
         bool isalias();
-
-        /**
-         * @brief Register Lua representation of int variable.
-         * 
-         * Registers Lua representation of int variable.
-         * @see reglfv()
-         * @see reglsv()
-         */
-        void regliv();
-        /**
-         * @brief Register Lua representation of float variable.
-         * 
-         * Registers Lua representation of float variable.
-         * @see regliv()
-         * @see reglsv()
-         */
-        void reglfv();
-        /**
-         * @brief Register Lua representation of string variable.
-         * 
-         * Registers Lua representation of string variable.
-         * @see regliv()
-         * @see reglfv()
-         */
-        void reglsv();
     private:
         /* This calls the callback properly, called from s() method. */
-        void callcb(bool luasync, bool forcecb);
+        void callcb(bool forcecb);
 
         /* Variable properties */
         bool persistent, hascb;
@@ -390,12 +356,6 @@ namespace var
      */
     void fill();
     /**
-     * @brief Fill Lua with EV's.
-     * 
-     * Fills Lua with engine variable representations.
-     */
-    void filllua();
-    /**
      * @brief Reset values of all variables to defaults.
      * 
      * Resets values of all variables to their defaults.
@@ -407,36 +367,6 @@ namespace var
      * Clears the vars table.
      */
     void flush();
-    /**
-     * @brief Sync int variable from Lua.
-     * @param name Name of C++ var to set.
-     * @param val Value to set.
-     * 
-     * This gets called when value in Lua is set.
-     * C++ representation gets then set to same
-     * value as in Lua EV system.
-     */
-    void syncfl(const char *name, int val);
-    /**
-     * @brief Sync float variable from Lua.
-     * @param name Name of C++ var to set.
-     * @param val Value to set.
-     * 
-     * This gets called when value in Lua is set.
-     * C++ representation gets then set to same
-     * value as in Lua EV system.
-     */
-    void syncfl(const char *name, float val);
-    /**
-     * @brief Sync string variable from Lua.
-     * @param name Name of C++ var to set.
-     * @param val Value to set.
-     * 
-     * This gets called when value in Lua is set.
-     * C++ representation gets then set to same
-     * value as in Lua EV system.
-     */
-    void syncfl(const char *name, const char *val);
     /**
      * @brief Get a variable, knowing its name.
      * @return Pointer to variable.
@@ -451,21 +381,21 @@ namespace var
     #define DEFVAR(name) extern cvar *_EV_##name;
     #include "variable_system_proto.hpp"
 
-    #define VAR(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (int)min, (int)cur, (int)max))
+    #define VAR(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (int)min, (int)cur, (int)max, NULL))
     #define VARP(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (int)min, (int)cur, (int)max, NULL, true))
     #define VARR(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (int)min, (int)cur, (int)max, NULL, false, true))
     #define VARF(name, min, cur, max, fun) _EV_##name = reg(#name, new cvar(#name, (int)min, (int)cur, (int)max, _varcb_##fun))
     #define VARFP(name, min, cur, max, fun) _EV_##name = reg(#name, new cvar(#name, (int)min, (int)cur, (int)max, _varcb_##fun, true))
     #define VARFR(name, min, cur, max, fun) _EV_##name = reg(#name, new cvar(#name, (int)min, (int)cur, (int)max, _varcb_##fun, false, true))
 
-    #define FVAR(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (float)min, (float)cur, (float)max))
+    #define FVAR(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (float)min, (float)cur, (float)max, NULL))
     #define FVARP(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (float)min, (float)cur, (float)max, NULL, true))
     #define FVARR(name, min, cur, max) _EV_##name = reg(#name, new cvar(#name, (float)min, (float)cur, (float)max, NULL, false, true))
     #define FVARF(name, min, cur, max, fun) _EV_##name = reg(#name, new cvar(#name, (float)min, (float)cur, (float)max, _varcb_##fun))
     #define FVARFP(name, min, cur, max, fun) _EV_##name = reg(#name, new cvar(#name, (float)min, (float)cur, (float)max, _varcb_##fun, true))
     #define FVARFR(name, min, cur, max, fun) _EV_##name = reg(#name, new cvar(#name, (float)min, (float)cur, (float)max, _varcb_##fun, false, true))
 
-    #define SVAR(name, cur) _EV_##name = reg(#name, new cvar(#name, (const char*)cur))
+    #define SVAR(name, cur) _EV_##name = reg(#name, new cvar(#name, (const char*)cur, NULL))
     #define SVARP(name, cur) _EV_##name = reg(#name, new cvar(#name, (const char*)cur, NULL, true))
     #define SVARR(name, cur) _EV_##name = reg(#name, new cvar(#name, (const char*)cur, NULL, false, true))
     #define SVARF(name, cur, fun) _EV_##name = reg(#name, new cvar(#name, (const char*)cur, _varcb_##fun))
@@ -480,14 +410,14 @@ namespace var
 #define GETFV(name) var::_EV_##name->gf()
 /// Get string value of known variable.
 #define GETSV(name) var::_EV_##name->gs()
-/// Set value of a variable. Don't force callback, clamp the value and sync with Lua.
+/// Set value of a variable. Don't force callback, clamp the value.
 #define SETV(name, val) var::_EV_##name->s(val)
-/// Set value of a variable. Don't force callback, don't clamp the value and sync with Lua.
-#define SETVN(name, val) var::_EV_##name->s(val, true, false, false)
-/// Set value of a variable. Force callback, clamp the value and sync with Lua.
-#define SETVF(name, val) var::_EV_##name->s(val, true, true, true)
-/// Set value of a variable. Force callback, don't clamp the value and sync with Lua.
-#define SETVFN(name, val) var::_EV_##name->s(val, true, true, false)
+/// Set value of a variable. Don't force callback, don't clamp the value.
+#define SETVN(name, val) var::_EV_##name->s(val, false, false)
+/// Set value of a variable. Force callback, clamp the value.
+#define SETVF(name, val) var::_EV_##name->s(val, true, true)
+/// Set value of a variable. Force callback, don't clamp the value.
+#define SETVFN(name, val) var::_EV_##name->s(val, true, false)
 
 /**
  * @}

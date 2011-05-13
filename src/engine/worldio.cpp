@@ -663,7 +663,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case var::VAR_I:
             {
                 int val = f->getlil<int>();
-                if(exists && v->gmni() <= v->gmxi()) v->s(val, true, true, false);
+                if(exists && v->gmni() <= v->gmxi()) v->s(val, true, false);
                 if(GETIV(dbgvars)) conoutf(CON_DEBUG, "read var %s: %d", name, val);
                 break;
             }
@@ -671,7 +671,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case var::VAR_F:
             {
                 float val = f->getlil<float>();
-                if(exists && v->gmnf() <= v->gmxf()) v->s(val, true, true, false);
+                if(exists && v->gmnf() <= v->gmxf()) v->s(val, true, false);
                 if(GETIV(dbgvars)) conoutf(CON_DEBUG, "read fvar %s: %f", name, val);
                 break;
             }
@@ -683,7 +683,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                 f->read(val, min(slen, MAXSTRLEN-1));
                 val[min(slen, MAXSTRLEN-1)] = '\0';
                 if(slen >= MAXSTRLEN) f->seek(slen - (MAXSTRLEN-1), SEEK_CUR);
-                if(exists) v->s(val, true, true, false);
+                if(exists) v->s(val, true, false);
                 if(GETIV(dbgvars)) conoutf(CON_DEBUG, "read svar %s: %s", name, val);
                 break;
             }
