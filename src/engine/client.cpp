@@ -32,11 +32,19 @@ void setrate(int rate)
    enet_host_bandwidth_limit(clienthost, rate, rate);
 }
 
+VARF(rate, 0, 0, 25000, setrate(rate));
+
+void throttle();
+
+VARF(throttle_interval, 0, 5, 30, throttle());
+VARF(throttle_accel,    0, 2, 32, throttle());
+VARF(throttle_decel,    0, 2, 32, throttle());
+
 void throttle()
 {
     if(!curpeer) return;
     ASSERT(ENET_PEER_PACKET_THROTTLE_SCALE==32);
-    enet_peer_throttle_configure(curpeer, GETIV(throttle_interval)*1000, GETIV(throttle_accel), GETIV(throttle_decel));
+    enet_peer_throttle_configure(curpeer, throttle_interval*1000, throttle_accel, throttle_decel);
 }
 
 bool isconnected(bool attempt)
@@ -60,6 +68,9 @@ void abortconnect()
     clienthost = NULL;
 }
 
+SVAR(connectname, "");
+VAR(connectport, 0, 0, 0xFFFF);
+
 void connectserv(const char *servername, int serverport, const char *serverpassword)
 {   
     if(connpeer)
@@ -75,8 +86,8 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
 
     if(servername)
     {
-        if(strcmp(servername, GETSV(connectname))) SETVF(connectname, servername);
-        if(serverport != GETIV(connectport)) SETVF(connectport, serverport);
+        if(strcmp(servername, connectname)) SETVF(connectname, servername);
+        if(serverport != connectport) SETVF(connectport, serverport);
         conoutf("attempting to connect to %s:%d", servername, serverport);
         if(!resolverwait(servername, &address))
         {
@@ -93,7 +104,7 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
     }
 
     if(!clienthost) 
-        clienthost = enet_host_create(NULL, 2, server::numchannels(), GETIV(rate), GETIV(rate));
+        clienthost = enet_host_create(NULL, 2, server::numchannels(), rate, rate);
 
     if(clienthost)
     {
@@ -126,7 +137,7 @@ void disconnect(bool async, bool cleanup)
         discmillis = 0;
         conoutf("disconnected");
         game::gamedisconnect(cleanup);
-        SETV(mainmenu, 1);
+        mainmenu = 1;
     }
     if(!connpeer && clienthost)
     {
@@ -203,7 +214,7 @@ void gets2c()           // get updates from the server
             connpeer = NULL;
             conoutf("connected to server");
             throttle();
-            if(GETIV(rate)) setrate(GETIV(rate));
+            if(rate) setrate(rate);
             game::gameconnect(true);
             break;
          

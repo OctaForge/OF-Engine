@@ -25,6 +25,18 @@
 using namespace lua;
 namespace game
 {
+    VAR(useminimap, 0, 0, 1); // do we want the minimap? Set from JS.
+    VARP(minminimapzoom, 0, 384, 10000); // minimal and maximal scale of minimap, some sort of "zoom"
+    VARP(maxminimapzoom, 1, 1024, 10000);
+    VAR(forceminminimapzoom, -1, -1, 10000); // these are not stored in cfg or across maps and are made for map-specific forcing.
+    VAR(forcemaxminimapzoom, -1, -1, 10000);
+    FVAR(minimapradius, 0.0f, 0.3f, 10.0f); // minimap size, relative to screen height (1.0 = full height), max is 10.0f (maybe someone will find usage?)
+    FVAR(minimapxpos, -10000.0f, 0.1f, 10000.0f); // minimap x position relative from right edge of screen (1.0 = one minimap size from right edge)
+    FVAR(minimapypos, -10000.0f, 0.1f, 10000.0f); // like above, but from top edge.
+    FVAR(minimaprotation, 0.0f, 0.0f, 360.0f); // rotation of minimap
+    VAR(minimapsides, 3, 10, 1000); // number of minimap sides. No need to make it bigger than 1000, 1000 is really smooth circle at very big sizes.
+    VAR(minimaprightalign, 0, 1, 1); // do we want to align minimap right? if this is 1, then we do, if 0, then it's aligned to left.
+
     int gamemode = 0;
     string clientmap = "";
     int maptime = 0, maprealtime = 0;
@@ -131,7 +143,7 @@ namespace game
 
     fpsent *hudplayer()
     {
-        if(GETIV(thirdperson)) return player1;
+        if(thirdperson) return player1;
         fpsent *target = followingplayer();
         return target ? target : player1;
     }
@@ -164,6 +176,9 @@ namespace game
         return true;
     }
 
+    VARP(smoothmove, 0, 75, 100);
+    VARP(smoothdist, 0, 32, 64);
+
     void predictplayer(fpsent *d, bool move)
     {
         d->o = d->newpos;
@@ -174,7 +189,7 @@ namespace game
             moveplayer(d, 1, false);
             d->newpos = d->o;
         }
-        float k = 1.0f - float(lastmillis - d->smoothmillis)/GETIV(smoothmove);
+        float k = 1.0f - float(lastmillis - d->smoothmillis)/smoothmove;
         if(k>0)
         {
             d->o.add(vec(d->deltapos).mul(k));
@@ -234,7 +249,7 @@ namespace game
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
             {
 #if (SERVER_DRIVEN_PLAYERS == 0)
-                if(GETIV(smoothmove) && d->smoothmillis>0) predictplayer(d, true); // Disable to force server to always move clients
+                if(smoothmove && d->smoothmillis>0) predictplayer(d, true); // Disable to force server to always move clients
                 else moveplayer(d, 1, false);
 #else
                 moveplayer(d, 1, false);
@@ -669,12 +684,12 @@ namespace game
 
     bool needminimap() // you have to enable the minimap inside your map script.
     {
-        return (!GETIV(mainmenu) && GETIV(useminimap));
+        return (!mainmenu && useminimap);
     }
 
     bool usedminimap()
     {
-        return GETIV(useminimap);
+        return useminimap;
     }
 
     void drawicon(float tx, float ty, int x, int y)
@@ -690,7 +705,7 @@ namespace game
     void gameplayhud(int w, int h)
     {
         // Draw the minimap when needed
-        if (GETIV(useminimap)) ClientSystem::drawMinimap(w, h);
+        if (useminimap) ClientSystem::drawMinimap(w, h);
         // Draw the HUD for the game
         ClientSystem::drawHUD(w, h);
     }

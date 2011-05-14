@@ -275,7 +275,7 @@ struct vertmodel : animmodel
                 }
                 else if(enabletangents) disabletangents();
 
-                if(GETIV(renderpath)==R_FIXEDFUNCTION && (s.scrollu || s.scrollv))
+                if(renderpath==R_FIXEDFUNCTION && (s.scrollu || s.scrollv))
                 {
                     glMatrixMode(GL_TEXTURE);
                     glPushMatrix();
@@ -295,7 +295,7 @@ struct vertmodel : animmodel
             glde++;
             xtravertsva += numverts;
 
-            if(GETIV(renderpath)==R_FIXEDFUNCTION && !(as->cur.anim&ANIM_NOSKIN) && (s.scrollu || s.scrollv))
+            if(renderpath==R_FIXEDFUNCTION && !(as->cur.anim&ANIM_NOSKIN) && (s.scrollu || s.scrollv))
             {
                 if(s.multitextured())
                 {

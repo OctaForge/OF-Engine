@@ -38,7 +38,7 @@ void TargetingControl::setupOrientation()
     camdir.rotate(-RAD*camera1->pitch, camright);
 
     if(raycubepos(camera1->o, camdir, worldpos, 0, RAY_CLIPMAT|RAY_SKIPFIRST) == -1)
-        worldpos = vec(camdir).mul(2*GETIV(mapsize)).add(camera1->o); //otherwise 3dgui won't work when outside of map
+        worldpos = vec(camdir).mul(2*worldsize).add(camera1->o); //otherwise 3dgui won't work when outside of map
 }
 #endif
 
@@ -140,6 +140,8 @@ void TargetingControl::setMouseTargeting(bool on)
     useMouseTargeting = on;
 }
 
+VAR(has_mouse_target, 0, 0, 1);
+
 void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 {
     targetLogicEntity = NULL;
@@ -153,7 +155,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
     {
         TargetingControl::targetLogicEntity = NULL;
         TargetingControl::targetPosition = TargetingControl::worldPosition;
-        SETV(has_mouse_target, 0);
+        has_mouse_target = 0;
     } else {
         static long lastEntityCheck = -1; // Use this to not run an actual entity check more than 1/frame
 
@@ -184,9 +186,9 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
                 ClientSystem::playerLogicEntity->dynamicEntity->o = save;
             }
 
-            SETV(has_mouse_target, int(TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone()));
+            has_mouse_target = int(TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone());
 
-            if (GETIV(has_mouse_target))
+            if (has_mouse_target)
             {
                 vec temp(worldpos);
                 temp.sub(camera1->o);

@@ -3,21 +3,28 @@
 int lnjitterx[2][MAXLIGHTNINGSTEPS], lnjittery[2][MAXLIGHTNINGSTEPS];
 int lnjitterframe = 0, lastlnjitter = 0;
 
+VAR(lnjittermillis, 0, 100, 1000);
+VAR(lnjitterradius, 0, 4, 100);
+FVAR(lnjitterscale, 0, 0.5f, 10);
+VAR(lnscrollmillis, 1, 300, 5000);
+FVAR(lnscrollscale, 0, 0.125f, 10);
+FVAR(lnblendpower, 0, 0.25f, 1000);
+
 static void calclightningjitter(int frame)
 {
     loopi(MAXLIGHTNINGSTEPS)
     {
-        lnjitterx[lnjitterframe][i] = -GETIV(lnjitterradius) + rnd(2*GETIV(lnjitterradius) + 1);
-        lnjittery[lnjitterframe][i] = -GETIV(lnjitterradius) + rnd(2*GETIV(lnjitterradius) + 1);
+        lnjitterx[lnjitterframe][i] = -lnjitterradius + rnd(2*lnjitterradius + 1);
+        lnjittery[lnjitterframe][i] = -lnjitterradius + rnd(2*lnjitterradius + 1);
     }
 }
 
 static void setuplightning()
 {
-    if(!lastlnjitter || lastmillis-lastlnjitter > GETIV(lnjittermillis))
+    if(!lastlnjitter || lastmillis-lastlnjitter > lnjittermillis)
     {
         if(!lastlnjitter) calclightningjitter(lnjitterframe);
-        lastlnjitter = lastmillis - (lastmillis%GETIV(lnjittermillis));
+        lastlnjitter = lastmillis - (lastmillis%lnjittermillis);
         calclightningjitter(lnjitterframe ^= 1);
     }
 }
@@ -35,10 +42,10 @@ static void renderlightning(Texture *tex, const vec &o, const vec &d, float sz)
     up.normalize();
     right.cross(up, step);
     right.normalize();
-    float scroll = -float(lastmillis%GETIV(lnscrollmillis))/GETIV(lnscrollmillis), 
-          scrollscale = GETFV(lnscrollscale)*(LIGHTNINGSTEP*tex->ys)/(sz*tex->xs),
-          blend = pow(clamp(float(lastmillis - lastlnjitter)/GETIV(lnjittermillis), 0.0f, 1.0f), GETFV(lnblendpower)),
-          jitter0 = (1-blend)*GETFV(lnjitterscale)*sz/GETIV(lnjitterradius), jitter1 = blend*GETFV(lnjitterscale)*sz/GETIV(lnjitterradius); 
+    float scroll = -float(lastmillis%lnscrollmillis)/lnscrollmillis, 
+          scrollscale = lnscrollscale*(LIGHTNINGSTEP*tex->ys)/(sz*tex->xs),
+          blend = pow(clamp(float(lastmillis - lastlnjitter)/lnjittermillis, 0.0f, 1.0f), lnblendpower),
+          jitter0 = (1-blend)*lnjitterscale*sz/lnjitterradius, jitter1 = blend*lnjitterscale*sz/lnjitterradius; 
     glBegin(GL_TRIANGLE_STRIP);
     loopj(numsteps)
     {

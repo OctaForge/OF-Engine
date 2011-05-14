@@ -67,7 +67,7 @@ static bool mergepvsnodes(pvsnode &p, pvsnode *children)
     return true;
 }
 
-static void genpvsnodes(cube *c, int parent = 0, const ivec &co = ivec(0, 0, 0), int size = GETIV(mapsize)/2)
+static void genpvsnodes(cube *c, int parent = 0, const ivec &co = ivec(0, 0, 0), int size = worldsize/2)
 {
     int index = origpvsnodes.length();
     loopi(8)
@@ -286,6 +286,9 @@ static vector<viewcellrequest> viewcellrequests;
 static bool genpvs_canceled = false;
 static int numviewcells = 0;
 
+VAR(maxpvsblocker, 1, 512, 1<<16);
+VAR(pvsleafsize, 1, 64, 1024);
+
 #define MAXWATERPVS 32
 
 static struct
@@ -317,7 +320,7 @@ struct pvsworker
 
     void resetlevels()
     {
-        curlevel = GETIV(mapscale);
+        curlevel = worldscale;
         levels[curlevel] = &pvsnodes[0];
         origin = ivec(0, 0, 0);
     }
@@ -325,7 +328,7 @@ struct pvsworker
     int hasvoxel(const ivec &p, int coord, int dir, int ocoord = 0, int odir = 0, int *omin = NULL)
     {
         uint diff = (origin.x^p.x)|(origin.y^p.y)|(origin.z^p.z);
-        if(diff >= uint(GETIV(mapsize))) return 0;
+        if(diff >= uint(worldsize)) return 0;
         diff >>= curlevel;
         while(diff)
         {
@@ -392,7 +395,7 @@ struct pvsworker
         if(p.edges.x!=0xFF) p.flags |= PVS_HIDE_GEOM;
     }
 
-    void shaftcullpvs(shaft &s, pvsnode &p, const ivec &co = ivec(0, 0, 0), int size = GETIV(mapsize))
+    void shaftcullpvs(shaft &s, pvsnode &p, const ivec &co = ivec(0, 0, 0), int size = worldsize)
     {
         if(p.flags&PVS_HIDE_BB) return;
         shaftbb bb(co, size);
@@ -418,7 +421,7 @@ struct pvsworker
 
     ringbuf<shaftbb, 32> prevblockers;
 
-    void cullpvs(pvsnode &p, const ivec &co = ivec(0, 0, 0), int size = GETIV(mapsize))
+    void cullpvs(pvsnode &p, const ivec &co = ivec(0, 0, 0), int size = worldsize)
     {
         if(p.flags&(PVS_HIDE_BB | PVS_HIDE_GEOM) || genpvs_canceled) return;
         if(p.children && !(p.flags&PVS_HIDE_BB))
@@ -449,7 +452,7 @@ struct pvsworker
                 rmax[r] = geom.max[r] - 1;
                 int rcenter = (rmin[r] + rmax[r])/2;
                 resetlevels();
-                for(int minstep = -1, maxstep = 1; (minstep || maxstep) && rmax[r] - rmin[r] < GETIV(maxpvsblocker);)
+                for(int minstep = -1, maxstep = 1; (minstep || maxstep) && rmax[r] - rmin[r] < maxpvsblocker;)
                 {
                     if(minstep) minstep = hasvoxel(rmin, r, 0);
                     if(maxstep) maxstep = hasvoxel(rmax, r, 1);
@@ -466,7 +469,7 @@ struct pvsworker
                     cmax[c] = geom.max[c]-1;
                 }
                 int cminstep = -1, cmaxstep = 1;
-                for(; (cminstep || cmaxstep) && cmax[c] - cmin[c] < GETIV(maxpvsblocker);)
+                for(; (cminstep || cmaxstep) && cmax[c] - cmin[c] < maxpvsblocker;)
                 {
                     if(cminstep)
                     {
@@ -502,7 +505,7 @@ struct pvsworker
                     if(emax[r]<geom.max[r]-1) emax[r] = geom.max[r]-1;
                 }
                 int rminstep = -1, rmaxstep = 1;
-                for(; (rminstep || rmaxstep) && emax[r] - emin[r] < GETIV(maxpvsblocker);)
+                for(; (rminstep || rmaxstep) && emax[r] - emin[r] < maxpvsblocker;)
                 {
                     if(rminstep)
                     {
@@ -542,7 +545,7 @@ struct pvsworker
                 {
                     int ddir = bb.min[dim] >= viewcellbb.max[dim] ? 1 : -1,
                         dval = ddir>0 ? USHRT_MAX-1 : 0,
-                        dlimit = GETIV(maxpvsblocker),
+                        dlimit = maxpvsblocker,
                         numsides = 0;
                     loopj(4)
                     {
@@ -698,7 +701,7 @@ struct pvsworker
             bbsize[R[dim]] = m.rsize;
             bborigin[dim] -= 2;
             bbsize[dim] = 2;
-            if(!materialoccluded(pvsnodes[0], vec(0, 0, 0), GETIV(mapsize)/2, bborigin, bbsize)) return false;
+            if(!materialoccluded(pvsnodes[0], vec(0, 0, 0), worldsize/2, bborigin, bbsize)) return false;
         }
         return true;
     }
@@ -728,7 +731,7 @@ struct pvsworker
         waterbytes = 0;
         loopi(4) if(wateroccluded&(0xFF<<(i*8))) waterbytes = i+1;
 
-        compresspvs(pvsnodes[0], GETIV(mapsize), GETIV(pvsleafsize));
+        compresspvs(pvsnodes[0], worldsize, pvsleafsize);
         outbuf.setsize(0);
         serializepvs(pvsnodes[0]);
     }
@@ -801,6 +804,7 @@ struct viewcellnode
     }
 };
 
+VARP(pvsthreads, 1, 1, 16);
 static vector<pvsworker *> pvsworkers;
 
 static volatile bool check_genpvs_progress = false;
@@ -898,7 +902,7 @@ static void genviewcells(viewcellnode &p, cube *c, const ivec &co, int size, int
             if(isallclip(h.children)) continue;
         }
         else if(isentirelysolid(h) || (h.material&MATF_CLIP)==MAT_CLIP) continue;
-        if(GETIV(pvsthreads)<=1)
+        if(pvsthreads<=1)
         {
             if(genpvs_canceled) return;
             p.children[i].pvs = pvsworkers[0]->genviewcell(o, size);
@@ -922,9 +926,9 @@ static int curwaterpvs = 0, lockedwaterpvs = 0;
 static inline pvsdata *lookupviewcell(const vec &p)
 {
     uint x = uint(floor(p.x)), y = uint(floor(p.y)), z = uint(floor(p.z));
-    if(!viewcells || (x|y|z)>=uint(GETIV(mapsize))) return NULL;
+    if(!viewcells || (x|y|z)>=uint(worldsize)) return NULL;
     viewcellnode *vc = viewcells;
-    for(int scale = GETIV(mapscale)-1; scale>=0; scale--)
+    for(int scale = worldscale-1; scale>=0; scale--)
     {
         int i = octastep(x, y, z, scale);
         if(vc->leafmask&(1<<i))
@@ -936,8 +940,7 @@ static inline pvsdata *lookupviewcell(const vec &p)
     return NULL;
 }
 
-// CubeCreate: removed static
-void lockpvs_(bool lock)
+static void lockpvs_(bool lock)
 {
     if(lockedpvs) DELETEA(lockedpvs);
     if(!lock) return;
@@ -952,9 +955,14 @@ void lockpvs_(bool lock)
     conoutf("locked view cell at %.1f, %.1f, %.1f", camera1->o.x, camera1->o.y, camera1->o.z);
 }
 
+VARF(lockpvs, 0, 0, 1, lockpvs_(lockpvs!=0));
+
+VARN(pvs, usepvs, 0, 1, 1);
+VARN(waterpvs, usewaterpvs, 0, 1, 1);
+
 void setviewcell(const vec &p)
 {
-    if(!GETIV(pvs)) curpvs = NULL;
+    if(!usepvs) curpvs = NULL;
     else if(lockedpvs) 
     {
         curpvs = lockedpvs;
@@ -970,7 +978,7 @@ void setviewcell(const vec &p)
             loopi(d->len%9) curwaterpvs |= *curpvs++ << (i*8);
         }
     }
-    if(!GETIV(pvs) || !GETIV(waterpvs)) curwaterpvs = 0;
+    if(!usepvs || !usewaterpvs) curwaterpvs = 0;
 }
 
 void clearpvs()
@@ -980,7 +988,7 @@ void clearpvs()
     pvsbuf.setsize(0);
     curpvs = NULL;
     numwaterplanes = 0;
-    SETV(lockpvs, 0);
+    lockpvs = 0;
     lockpvs_(false);
 }
 
@@ -1051,7 +1059,7 @@ void testpvs(int *vcsize)
     int len;
     lockedpvs = w.testviewcell(o, size, &lockedwaterpvs, &len);
     loopi(MAXWATERPVS) lockedwaterplanes[i] = waterplanes[i].height;
-    SETV(lockpvs, 1);
+    lockpvs = 1;
     conoutf("generated test view cell of size %d at %.1f, %.1f, %.1f (%d B)", size, camera1->o.x, camera1->o.y, camera1->o.z, len);
 
     origpvsnodes.setsize(0);
@@ -1061,7 +1069,7 @@ void testpvs(int *vcsize)
 
 void genpvs(int *viewcellsize)
 {
-    if(GETIV(mapsize) > 1<<15)
+    if(worldsize > 1<<15)
     {
         conoutf(CON_ERROR, "map is too large for PVS");
         return;
@@ -1083,19 +1091,19 @@ void genpvs(int *viewcellsize)
     root.children = 0;
     genpvsnodes(worldroot);
 
-    totalviewcells = countviewcells(worldroot, ivec(0, 0, 0), GETIV(mapsize)>>1, *viewcellsize>0 ? *viewcellsize : 32);
+    totalviewcells = countviewcells(worldroot, ivec(0, 0, 0), worldsize>>1, *viewcellsize>0 ? *viewcellsize : 32);
     numviewcells = 0;
     genpvs_canceled = false;
     check_genpvs_progress = false;
     SDL_TimerID timer = NULL;
-    if(GETIV(pvsthreads)<=1) 
+    if(pvsthreads<=1) 
     {
         pvsworkers.add(new pvsworker);
         timer = SDL_AddTimer(500, genpvs_timer, NULL);
     }
     viewcells = new viewcellnode;
-    genviewcells(*viewcells, worldroot, ivec(0, 0, 0), GETIV(mapsize)>>1, *viewcellsize>0 ? *viewcellsize : 32);
-    if(GETIV(pvsthreads)<=1)
+    genviewcells(*viewcells, worldroot, ivec(0, 0, 0), worldsize>>1, *viewcellsize>0 ? *viewcellsize : 32);
+    if(pvsthreads<=1)
     {
         SDL_RemoveTimer(timer);
     }
@@ -1104,7 +1112,7 @@ void genpvs(int *viewcellsize)
         renderprogress(0, "creating threads");
         if(!pvsmutex) pvsmutex = SDL_CreateMutex();
         if(!viewcellmutex) viewcellmutex = SDL_CreateMutex();
-        loopi(GETIV(pvsthreads))
+        loopi(pvsthreads)
         {
             pvsworker *w = pvsworkers.add(new pvsworker);
             w->thread = SDL_CreateThread(pvsworker::run, w);
@@ -1165,8 +1173,8 @@ static inline bool pvsoccluded(uchar *buf, const ivec &co, int size, const ivec 
 static inline bool pvsoccluded(uchar *buf, const ivec &bborigin, const ivec &bbsize)
 {
     int diff = (bborigin.x^(bborigin.x+bbsize.x)) | (bborigin.y^(bborigin.y+bbsize.y)) | (bborigin.z^(bborigin.z+bbsize.z));
-    if(diff&~((1<<GETIV(mapscale))-1)) return false;
-    int scale = GETIV(mapscale)-1;
+    if(diff&~((1<<worldscale)-1)) return false;
+    int scale = worldscale-1;
     while(!(diff&(1<<scale)))
     {
         int i = octastep(bborigin.x, bborigin.y, bborigin.z, scale);

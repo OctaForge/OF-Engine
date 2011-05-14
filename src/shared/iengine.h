@@ -48,7 +48,7 @@ extern float raycubepos(const vec &o, const vec &ray, vec &hit, float radius = 0
 extern float rayfloor  (const vec &o, vec &floor, int mode = 0, float radius = 0);
 extern bool  raycubelos(const vec &o, const vec &dest, vec &hitpos);
 
-extern int thirdperson;
+extern int& thirdperson;
 extern bool isthirdperson();
 
 extern bool settexture(const char *name, int clamp = 0);
@@ -458,12 +458,14 @@ extern void g3d_limitscale(float scale);
 
 // octa
 
+extern int& worldsize;
+
 static inline bool insideworld(const vec &o)
 {
-    return o.x>=0 && o.x<GETIV(mapsize) && o.y>=0 && o.y<GETIV(mapsize) && o.z>=0 && o.z<GETIV(mapsize);
+    return o.x>=0 && o.x<worldsize && o.y>=0 && o.y<worldsize && o.z>=0 && o.z<worldsize;
 }
 
 static inline bool insideworld(const ivec &o)
 {
-    return uint(o.x)<uint(GETIV(mapsize)) && uint(o.y)<uint(GETIV(mapsize)) && uint(o.z)<uint(GETIV(mapsize));
+    return uint(o.x)<uint(worldsize) && uint(o.y)<uint(worldsize) && uint(o.z)<uint(worldsize);
 }

@@ -14,6 +14,8 @@
 #include "engine.h"
 #include "SDL_mixer.h"
 
+VAR(dbgmovie, 0, 0, 1);
+
 struct aviindexentry
 {
     int type, size;
@@ -122,7 +124,7 @@ struct aviwriter
                 videoframes++;
             }
         }
-        if(GETIV(dbgmovie)) conoutf(CON_DEBUG, "fileframes: sound=%d, video=%d+%d(dups)\n", soundframes, videoframes, index.length()-(soundframes+videoframes));
+        if(dbgmovie) conoutf(CON_DEBUG, "fileframes: sound=%d, video=%d+%d(dups)\n", soundframes, videoframes, index.length()-(soundframes+videoframes));
 
         f->seek(fileframesoffset, SEEK_SET);
         f->putlil(index.length()-soundframes); // videoframes including duplicates        
@@ -159,7 +161,7 @@ struct aviwriter
                 case AUDIO_S16MSB: desc = "s16b"; break;
                 default:           desc = "unkn";
             }
-            if(GETIV(dbgmovie)) conoutf(CON_DEBUG, "soundspec: %dhz %s x %d", soundfrequency, desc, soundchannels);
+            if(dbgmovie) conoutf(CON_DEBUG, "soundspec: %dhz %s x %d", soundfrequency, desc, soundchannels);
         }
     }
     
@@ -570,7 +572,7 @@ struct aviwriter
             while(vpos > snum && index[vpos-snum-1].type == 1) snum++;
             if(snum > 1)
             {
-                if(GETIV(dbgmovie)) conoutf(CON_DEBUG, "movie: interleaving sound=%d x%d video=%d x%d\n", vpos-snum, snum, vpos, vnum);
+                if(dbgmovie) conoutf(CON_DEBUG, "movie: interleaving sound=%d x%d video=%d x%d\n", vpos-snum, snum, vpos, vnum);
                 int frac = 0, pos = index.length();
                 loopi(snum)
                 {
@@ -589,6 +591,12 @@ struct aviwriter
     }
     
 };
+
+VAR(movieaccelblit, 0, 0, 1);
+VAR(movieaccelyuv, 0, 1, 1);
+VARP(movieaccel, 0, 1, 1);
+VARP(moviesync, 0, 0, 1);
+FVARP(movieminquality, 0, 0, 1);
 
 namespace recorder
 {
@@ -714,7 +722,7 @@ namespace recorder
                 statsindex = (statsindex+1)%file->videofps;
             }
             //printf("frame %d->%d (%d dps): sound = %d bytes\n", file->videoframes, nextframenum, dps, m.soundlength);
-            if(calcquality() < GETFV(movieminquality)) state = REC_TOOSLOW;
+            if(calcquality() < movieminquality) state = REC_TOOSLOW;
             else if(!file->writevideoframe(m.video, m.w, m.h, m.format, m.frame)) state = REC_FILERROR;
             
             m.frame = ~0U;
@@ -728,7 +736,7 @@ namespace recorder
         SDL_LockMutex(soundlock);
         if(soundbuffers.full()) 
         {
-            if(GETFV(movieminquality) >= 1) state = REC_TOOSLOW;
+            if(movieminquality >= 1) state = REC_TOOSLOW;
         }
         else if(state == REC_OK)
         {
@@ -843,8 +851,8 @@ namespace recorder
 
     void readbuffer(videobuffer &m, uint nextframe)
     {
-        bool accelyuv = GETIV(movieaccelyuv) && GETIV(renderpath)!=R_FIXEDFUNCTION && !(m.w%8),
-             usefbo = GETIV(movieaccel) && hasFBO && hasTR && file->videow <= (uint)screen->w && file->videoh <= (uint)screen->h && (accelyuv || file->videow < (uint)screen->w || file->videoh < (uint)screen->h);
+        bool accelyuv = movieaccelyuv && renderpath!=R_FIXEDFUNCTION && !(m.w%8),
+             usefbo = movieaccel && hasFBO && hasTR && file->videow <= (uint)screen->w && file->videoh <= (uint)screen->h && (accelyuv || file->videow < (uint)screen->w || file->videoh < (uint)screen->h);
         uint w = screen->w, h = screen->h;
         if(usefbo) { w = file->videow; h = file->videoh; }
         if(w != m.w || h != m.h) m.init(w, h, 4);
@@ -855,7 +863,7 @@ namespace recorder
         if(usefbo)
         {
             uint tw = screen->w, th = screen->h;
-            if(hasFBB && GETIV(movieaccelblit)) { tw = max(tw/2, m.w); th = max(th/2, m.h); }
+            if(hasFBB && movieaccelblit) { tw = max(tw/2, m.w); th = max(th/2, m.h); }
             if(tw != scalew || th != scaleh)
             {
                 if(!scalefb) glGenFramebuffers_(1, &scalefb);
@@ -893,7 +901,7 @@ namespace recorder
                 glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, screen->w, screen->h);
             }
 
-            if(tw > m.w || th > m.h || (!accelyuv && GETIV(renderpath) != R_FIXEDFUNCTION && tw >= m.w && th >= m.h))
+            if(tw > m.w || th > m.h || (!accelyuv && renderpath != R_FIXEDFUNCTION && tw >= m.w && th >= m.h))
             {
                 glBindFramebuffer_(GL_FRAMEBUFFER_EXT, scalefb);
                 glViewport(0, 0, tw, th);
@@ -909,7 +917,7 @@ namespace recorder
                     glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, scaletex[1], 0);
                     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, scaletex[0]);
                     uint dw = max(tw/2, m.w), dh = max(th/2, m.h);
-                    if(dw == m.w && dh == m.h && !accelyuv && GETIV(renderpath) != R_FIXEDFUNCTION) { SETSHADER(movieyuv); m.format = aviwriter::VID_YUV; }
+                    if(dw == m.w && dh == m.h && !accelyuv && renderpath != R_FIXEDFUNCTION) { SETSHADER(movieyuv); m.format = aviwriter::VID_YUV; }
                     else SETSHADER(moviergb);
                     drawquad(tw, th, 0, 0, dw, dh);
                     tw = dw;
@@ -964,7 +972,7 @@ namespace recorder
             return false;
         }
         SDL_LockMutex(videolock);
-        if(GETIV(moviesync) && videobuffers.full()) SDL_CondWait(shouldread, videolock);
+        if(moviesync && videobuffers.full()) SDL_CondWait(shouldread, videolock);
         uint nextframe = (max(gettime() - starttime, 0)*file->videofps)/1000;
         if(!videobuffers.full() && (lastframe == ~0U || nextframe > lastframe))
         {
@@ -1019,8 +1027,13 @@ namespace recorder
     }
 }
 
+VARP(moview, 0, 320, 10000);
+VARP(movieh, 0, 240, 10000);
+VARP(moviefps, 1, 24, 1000);
+VARP(moviesound, 0, 1, 1);
+
 void movie(char *name)
 {
     if(name[0] == '\0') recorder::stop();
-    else if(!recorder::isrecording()) recorder::start(name, GETIV(moviefps), GETIV(moview) ? GETIV(moview) : screen->w, GETIV(movieh) ? GETIV(movieh) : screen->h, GETIV(moviesound)!=0);
+    else if(!recorder::isrecording()) recorder::start(name, moviefps, moview ? moview : screen->w, movieh ? movieh : screen->h, moviesound!=0);
 }

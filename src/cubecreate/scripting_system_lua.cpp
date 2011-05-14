@@ -531,9 +531,6 @@ namespace lua
 
         Logging::log(Logging::DEBUG, "Creating lua_Engine state handler.\n");
 
-        // before even opening lua, register internal variables
-        var::fill();
-
         m_handle = luaL_newstate();
         if (m_handle)
         {

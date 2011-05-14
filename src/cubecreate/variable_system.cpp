@@ -27,17 +27,9 @@
  *
  */
 
-/*
- * ENGINE INCLUDES
- */
-
 #include "cube.h"
 #include "engine.h"
 #include "game.h"
-
-/*
- * CUBECREATE INCLUDES
- */
 
 #include "world_system.h"
 #include "message_system.h"
@@ -46,218 +38,184 @@
     #include "targeting.h"
 #endif
 
-// declare the variables
-#ifdef _EV_NODEF
-#undef _EV_NODEF
-#endif
-#ifdef DEFVAR
-#undef DEFVAR
-#endif
-#define DEFVAR(name) cvar *_EV_##name = NULL;
-#include "variable_system_proto.hpp"
-
 namespace var
 {
-    /*
-     * ENGINE VARIABLE
-     */
-
     cvar::cvar(
-        const char *vname,
-        int minvi,
-        int curvi,
-        int maxvi,
-        void (*cb)(int),
-        bool persist,
-        bool overridable
-    ) : persistent(persist),
-        name(vname),
+        const char *n,
+        int min,
+        int cur,
+        int max,
+        int *&stor,
+        void (*fun)(),
+        int fl
+    ) : name(n),
         type(VAR_I),
-        override(overridable),
-        overriden(false),
-        alias(false)
+        flags(fl),
+        vfun(fun)
     {
-        vcb.i = cb;
-        if (minvi > maxvi)
+        if (min > max)
         {
-            readonly = true;
-            oldv.i = curvi; minv.i = maxvi; curv.i = curvi; maxv.i = minvi;
+            flags |= VAR_READONLY;
+            minv.i = max;
+            maxv.i = min;
         }
         else
         {
-            readonly = false;
-            oldv.i = curvi; minv.i = minvi; curv.i = curvi; maxv.i = maxvi;
+            minv.i = min;
+            maxv.i = max;
         }
-        hascb = cb ? true : false;
+        oldv.i = curv.i = cur;
+        stor = &curv.i;
     }
 
     cvar::cvar(
-        const char *vname,
-        float minvf,
-        float curvf,
-        float maxvf,
-        void (*cb)(float),
-        bool persist,
-        bool overridable
-    ) : persistent(persist),
-        name(vname),
+        const char *n,
+        float min,
+        float cur,
+        float max,
+        float *&stor,
+        void (*fun)(),
+        int fl
+    ) : name(n),
         type(VAR_F),
-        override(overridable),
-        overriden(false),
-        alias(false)
+        flags(fl),
+        vfun(fun)
     {
-        vcb.f = cb;
-        if (minvf > maxvf)
+        if (min > max)
         {
-            readonly = true;
-            oldv.f = curvf; minv.f = maxvf; curv.f = curvf; maxv.f = minvf;
+            flags |= VAR_READONLY;
+            minv.f = max;
+            maxv.f = min;
         }
         else
         {
-            readonly = false;
-            oldv.f = curvf; minv.f = minvf; curv.f = curvf; maxv.f = maxvf;
+            minv.f = min;
+            maxv.f = max;
         }
-        hascb = cb ? true : false;
+        oldv.f = curv.f = cur;
+        stor = &curv.f;
     }
 
     cvar::cvar(
-        const char *vname,
-        const char *curvs,
-        void (*cb)(const char*),
-        bool persist,
-        bool overridable
-    ) : persistent(persist),
-        name(vname),
+        const char *n,
+        const char *cur,
+        char **&stor,
+        void (*fun)(),
+        int fl
+    ) : name(n),
         type(VAR_S),
-        readonly(false),
-        override(overridable),
-        overriden(false),
-        alias(false)
+        flags(fl),
+        vfun(fun)
     {
-        vcb.s = cb; hascb = cb ? true : false;
-        curv.s = (curvs ? newstring(curvs) : NULL);
-        oldv.s = (curvs ? newstring(curvs) : NULL);
+        curv.s = (cur ? newstring(cur) : NULL);
+        oldv.s = (cur ? newstring(cur) : NULL);
+        stor = &curv.s;
     }
 
     cvar::cvar(
-        const char *aname,
-        int val
-    ) : hascb(false),
-        name(aname),
-        type(VAR_I),
-        readonly(false),
-        override(false),
-        overriden(false),
-        alias(true)
+        const char *n,
+        int v
+    ) : name(n),
+        type(VAR_I)
     {
-        persistent = persistvars;
-        vcb.i = NULL;
+        flags |= VAR_ALIAS;
+        if (persistvars) flags |= VAR_PERSIST;
+
         minv.i = maxv.i = -1;
-        curv.i = val; oldv.i = 0;
+        oldv.i = curv.i = v;
     }
 
     cvar::cvar(
-        const char *aname,
-        float val
-    ) : hascb(false),
-        name(aname),
-        type(VAR_F),
-        readonly(false),
-        override(false),
-        overriden(false),
-        alias(true)
+        const char *n,
+        float v
+    ) : name(n),
+        type(VAR_F)
     {
-        persistent = persistvars;
-        vcb.f = NULL;
+        flags |= VAR_ALIAS;
+        if (persistvars) flags |= VAR_PERSIST;
+
         minv.f = maxv.f = -1.0f;
-        curv.f = val; oldv.f = 0.0f;
+        oldv.f = curv.f = v;
     }
 
     cvar::cvar(
-        const char *aname,
-        const char *val
-    ) : hascb(false),
-        name(aname),
-        type(VAR_S),
-        readonly(false),
-        override(false),
-        overriden(false),
-        alias(true)
+        const char *n,
+        const char *v
+    ) : name(n),
+        type(VAR_S)
     {
-        persistent = persistvars;
-        vcb.s = NULL;
-        curv.s = (val ? newstring(val) : NULL);
+        flags |= VAR_ALIAS;
+        if (persistvars) flags |= VAR_PERSIST;
+
+        curv.s = (v ? newstring(v) : NULL);
         oldv.s = NULL;
     }
 
-    cvar::~cvar() { if (type == VAR_S) { DELETEA(curv.s); DELETEA(oldv.s); } }
-
-    const char *cvar::gn()   { return name;   }
-    int         cvar::gt()   { return type;   }
-    int         cvar::gi()   { return curv.i; }
-    int         cvar::gmni() { return minv.i; }
-    int         cvar::gmxi() { return maxv.i; }
-    float       cvar::gf()   { return curv.f; }
-    float       cvar::gmnf() { return minv.f; }
-    float       cvar::gmxf() { return maxv.f; }
-    const char *cvar::gs()   { return curv.s; }
-
-    void cvar::s(int val, bool forcecb, bool doclamp)
+    cvar::~cvar()
     {
-        if (override || overridevars)
+        if (type == VAR_S)
         {
-            overriden = true;
+            DELETEA(curv.s);
+            DELETEA(oldv.s);
+        }
+    }
+
+    void cvar::set(int v, bool dofun, bool _clamp)
+    {
+        if ((flags&VAR_OVERRIDE) || overridevars)
+        {
+            flags |= VAR_OVERRIDEN;
             oldv.i = curv.i;
         }
-        if (doclamp && (val < minv.i || val > maxv.i) && !alias)
+
+        if (_clamp && (v < minv.i || v > maxv.i) && (flags&VAR_ALIAS) == 0)
         {
             Logging::log(
                 Logging::ERROR,
                 "Variable %s only accepts values of range %i to %i.\n",
                 name, minv.i, maxv.i
             );
-            curv.i = clamp(val, minv.i, maxv.i);
+            curv.i = clamp(v, minv.i, maxv.i);
         }
-        else curv.i = val;
-        callcb(forcecb);
+        else curv.i = v;
+        if (vfun && dofun) vfun();
     }
 
-    void cvar::s(float val, bool forcecb, bool doclamp)
+    void cvar::set(float v, bool dofun, bool _clamp)
     {
-        if (override || overridevars)
+        if ((flags&VAR_OVERRIDE) || overridevars)
         {
-            overriden = true;
+            flags |= VAR_OVERRIDEN;
             oldv.f = curv.f;
         }
-        if (doclamp && (val < minv.f || val > maxv.f) && !alias)
+        if (_clamp && (v < minv.f || v > maxv.f) && (flags&VAR_ALIAS) == 0)
         {
             Logging::log(
                 Logging::ERROR,
                 "Variable %s only accepts values of range %f to %f.\n",
                 name, minv.f, maxv.f
             );
-            curv.f = clamp(val, minv.f, maxv.f);
+            curv.f = clamp(v, minv.f, maxv.f);
         }
-        else curv.f = val;
-        callcb(forcecb);
+        else curv.f = v;
+        if (vfun && dofun) vfun();
     }
 
-    void cvar::s(const char *val, bool forcecb, bool doclamp)
+    void cvar::set(const char *v, bool dofun)
     {
-        (void)doclamp;
-        if (override || overridevars)
+        if ((flags&VAR_OVERRIDE) || overridevars)
         {
-            overriden = true;
+            flags |= VAR_OVERRIDEN;
             if (oldv.s) DELETEA(oldv.s);
             oldv.s = (curv.s ? newstring(curv.s) : NULL);
         }
-        curv.s = (val ? newstring(val) : NULL);
-        callcb(forcecb);
+        curv.s = (v ? newstring(v) : NULL);
+        if (vfun && dofun) vfun();
     }
 
-    void cvar::r()
+    void cvar::reset()
     {
-        if (!overriden) return;
+        if ((flags&VAR_OVERRIDEN) == 0) return;
         switch (type)
         {
             case VAR_I: curv.i = oldv.i; break;
@@ -270,66 +228,44 @@ namespace var
             }
             default: break;
         }
-        overriden = false;
-        callcb(false);
+        flags ^= VAR_OVERRIDEN;
     }
-
-    bool cvar::ispersistent()  { return persistent; }
-    bool cvar::isreadonly()    { return readonly;   }
-    bool cvar::isoverridable() { return override;   }
-    bool cvar::isoverriden()   { return overriden;  }
-    bool cvar::isalias()       { return alias;      }
-
-    /*
-     * PRIVATES
-     */
-
-    void cvar::callcb(bool forcecb)
-    {
-        switch (type)
-        {
-            case VAR_I:
-            {
-                if (hascb && forcecb && !alias) vcb.i(curv.i);
-                break;
-            }
-            case VAR_F:
-            {
-                if (hascb && forcecb && !alias) vcb.f(curv.f);
-                break;
-            }
-            case VAR_S:
-            {
-                if (hascb && forcecb && !alias) vcb.s(curv.s);
-                break;
-            }
-            default: break;
-        }
-    }
-
-    /*
-     * STORAGE FOR VARIABLES
-     */
 
     vartable *vars = NULL;
     bool persistvars = true, overridevars = false;
 
-    cvar *reg(const char *name, cvar *var)
+    int& regivar(const char *name, int minv, int curv, int maxv, int *stor, void (*fun)(), int flags)
+    {
+        var::cvar *nvar = new var::cvar(name, minv, curv, maxv, stor, fun, flags);
+        regvar(name, nvar);
+        return *stor;
+    }
+
+    float& regfvar(const char *name, float minv, float curv, float maxv, float *stor, void (*fun)(), int flags)
+    {
+        var::cvar *nvar = new var::cvar(name, minv, curv, maxv, stor, fun, flags);
+        regvar(name, nvar);
+        return *stor;
+    }
+
+    char *&regsvar(const char *name, const char *curv, char **stor, void (*fun)(), int flags)
+    {
+        var::cvar *nvar = new var::cvar(name, curv, stor, fun, flags);
+        regvar(name, nvar);
+        return *stor;
+    }
+
+    cvar *regvar(const char *name, var::cvar *var)
     {
         if (!vars) vars = new vartable;
         vars->access(name, var);
         return var;
     }
 
-    void fill()
-    {
-        #include "variable_system_def.hpp"
-    }
-
     void clear()
     {
         if (!vars) return;
-        enumerate(*vars, cvar*, v, v->r(););
+        enumerate(*vars, cvar*, v, v->reset(););
     }
 
     void flush()
@@ -341,6 +277,11 @@ namespace var
         }
     }
 
-    cvar *get(const char *name) { if (vars && vars->access(name)) return *vars->access(name); else return NULL; }
+    cvar *get(const char *name)
+    {
+        if (vars && vars->access(name))
+            return *vars->access(name);
+        else return NULL;
+    }
 }
 // end namespace var

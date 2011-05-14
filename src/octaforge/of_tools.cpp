@@ -212,7 +212,7 @@ char *of_tools_loadfile_safe(const char *fname)
 
 static int sortvars(var::cvar **x, var::cvar **y)
 {
-    return strcmp((*x)->gn(), (*y)->gn());
+    return strcmp((*x)->name, (*y)->name);
 }
 
 void of_tools_writecfg(const char *name)
@@ -231,14 +231,14 @@ void of_tools_writecfg(const char *name)
     loopv(varv)
     {
         var::cvar *v = varv[i];
-        if (v->ispersistent()) switch(v->gt())
+        if ((v->flags&var::VAR_PERSIST) != 0) switch(v->type)
         {
-            case var::VAR_I: f->printf("%s = %d\n", v->gn(), v->gi()); break;
-            case var::VAR_F: f->printf("%s = %f\n", v->gn(), v->gf()); break;
+            case var::VAR_I: f->printf("%s = %d\n", v->name, v->curv.i); break;
+            case var::VAR_F: f->printf("%s = %f\n", v->name, v->curv.f); break;
             case var::VAR_S:
             {
-                f->printf("%s = \"", v->gn());
-                const char *s = v->gs();
+                f->printf("%s = \"", v->name);
+                const char *s = v->curv.s;
                 for(; *s; s++) switch(*s)
                 {
                     case '\n': f->write("^n", 2); break;
@@ -261,15 +261,15 @@ void of_tools_writecfg(const char *name)
     loopv(varv)
     {
         var::cvar *v = varv[i];
-        if (v->isalias() && v->ispersistent() && !v->isoverriden()) switch (v->gt())
+        if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0 && (v->flags&var::VAR_OVERRIDEN) == 0) switch (v->type)
         {
-            case var::VAR_I: f->printf("engine.newvar(\"%s\", engine_variables.VAR_I, %d)\n", v->gn(), v->gi()); break;
-            case var::VAR_F: f->printf("engine.newvar(\"%s\", engine_variables.VAR_F, %f)\n", v->gn(), v->gf()); break;
+            case var::VAR_I: f->printf("engine.newvar(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;
+            case var::VAR_F: f->printf("engine.newvar(\"%s\", engine.VAR_F, %f)\n", v->name, v->curv.f); break;
             case var::VAR_S:
             {
-                if (strstr(v->gn(), "new_entity_gui_field")) continue;
-                f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->gn());
-                const char *s = v->gs();
+                if (strstr(v->name, "new_entity_gui_field")) continue;
+                f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
+                const char *s = v->curv.s;
                 for(; *s; s++) switch(*s)
                 {
                     case '\n': f->write("^n", 2); break;

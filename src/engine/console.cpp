@@ -11,12 +11,14 @@ string commandbuf;
 char *commandaction = NULL, *commandprompt = NULL;
 int commandpos = -1;
 
+VARFP(maxcon, 10, 200, 1000, { while(conlines.length() > maxcon) delete[] conlines.pop().line; });
+
 #define CONSTRLEN 512
 
 void conline(int type, const char *sf)        // add a line to the console buffer
 {
     cline cl;
-    cl.line = conlines.length()>GETIV(maxcon) ? conlines.pop().line : newstring("", CONSTRLEN-1);   // constrain the buffer size
+    cl.line = conlines.length()>maxcon ? conlines.pop().line : newstring("", CONSTRLEN-1);   // constrain the buffer size
     cl.type = type;
     cl.outtime = totalmillis;                       // for how long to keep line on screen
     conlines.insert(0, cl);
@@ -48,6 +50,8 @@ void conoutf(int type, const char *fmt, ...)
     va_end(args);
 }
 
+VAR(fullconsole, 0, 0, 1);
+
 int rendercommand(int x, int y, int w)
 {
     if(commandmillis < 0) return 0;
@@ -59,6 +63,16 @@ int rendercommand(int x, int y, int w)
     draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, (commandpos>=0) ? (commandpos+1+(commandprompt?strlen(commandprompt):1)) : strlen(s), w);
     return height;
 }
+
+VARP(consize, 0, 5, 100);
+VARP(miniconsize, 0, 5, 100);
+VARP(miniconwidth, 0, 40, 100);
+VARP(confade, 0, 30, 60);
+VARP(miniconfade, 0, 30, 60);
+VARP(fullconsize, 0, 75, 100);
+HVARP(confilter, 0, 0x7FFFFFF, 0x7FFFFFF);
+HVARP(fullconfilter, 0, 0x7FFFFFF, 0x7FFFFFF);
+HVARP(miniconfilter, 0, 0, 0x7FFFFFF);
 
 int conskip = 0, miniconskip = 0;
 
@@ -121,18 +135,18 @@ int drawconlines(int conskip, int confade, int conwidth, int conheight, int cono
 
 int renderconsole(int w, int h, int abovehud)                   // render buffer taking into account time & scrolling
 {
-    int conpad = GETIV(fullconsole) ? 0 : FONTH/4,
-        conoff = GETIV(fullconsole) ? FONTH : FONTH/3,
-        conheight = min(GETIV(fullconsole) ? ((h*GETIV(fullconsize)/100)/FONTH)*FONTH : FONTH*GETIV(consize), h - 2*(conpad + conoff)),
-        conwidth = w - 2*(conpad + conoff) - (GETIV(fullconsole) ? 0 : game::clipconsole(w, h));
+    int conpad = fullconsole ? 0 : FONTH/4,
+        conoff = fullconsole ? FONTH : FONTH/3,
+        conheight = min(fullconsole ? ((h*fullconsize/100)/FONTH)*FONTH : FONTH*consize, h - 2*(conpad + conoff)),
+        conwidth = w - 2*(conpad + conoff) - (fullconsole ? 0 : game::clipconsole(w, h));
     
     extern void consolebox(int x1, int y1, int x2, int y2);
-    if(GETIV(fullconsole)) consolebox(conpad, conpad, conwidth+conpad+2*conoff, conheight+conpad+2*conoff);
+    if(fullconsole) consolebox(conpad, conpad, conwidth+conpad+2*conoff, conheight+conpad+2*conoff);
     
-    int y = drawconlines(conskip, GETIV(fullconsole) ? 0 : GETIV(confade), conwidth, conheight, conpad+conoff, GETIV(fullconsole) ? GETIV(fullconfilter) : GETIV(confilter));
-    if(!GETIV(fullconsole) && (GETIV(miniconsize) && GETIV(miniconwidth)))
-        drawconlines(miniconskip, GETIV(miniconfade), (GETIV(miniconwidth)*(w - 2*(conpad + conoff)))/100, min(FONTH*GETIV(miniconsize), abovehud - y), conpad+conoff, GETIV(miniconfilter), abovehud, -1);
-    return GETIV(fullconsole) ? conheight + 2*(conpad + conoff) : y;
+    int y = drawconlines(conskip, fullconsole ? 0 : confade, conwidth, conheight, conpad+conoff, fullconsole ? fullconfilter : confilter);
+    if(!fullconsole && (miniconsize && miniconwidth))
+        drawconlines(miniconskip, miniconfade, (miniconwidth*(w - 2*(conpad + conoff)))/100, min(FONTH*miniconsize, abovehud - y), conpad+conoff, miniconfilter, abovehud, -1);
+    return fullconsole ? conheight + 2*(conpad + conoff) : y;
 }
 
 // keymap is defined externally in keymap.cfg
@@ -299,9 +313,9 @@ struct hline
             var::cvar *ev = var::get("commandbuf");
             if (!ev)
             {
-                ev = var::reg("commandbuf", new var::cvar("commandbuf", buf));
+                ev = var::regvar("commandbuf", new var::cvar("commandbuf", buf));
             }
-            else ev->s(buf, false, false);
+            else ev->set(buf, false);
             lua::engine.exec(action);
         }
         else if(buf[0]=='/') lua::engine.exec(buf+1);
@@ -310,6 +324,8 @@ struct hline
 };
 vector<hline *> history;
 int histpos = 0;
+
+VARP(maxhistory, 0, 1000, 10000);
 
 void history_(int *n)
 {
@@ -359,7 +375,7 @@ void execbind(keym &k, bool isdown)
     if(isdown)
     {
         int state = keym::ACTION_DEFAULT;
-        if(!GETIV(mainmenu))
+        if(!mainmenu)
         {
             if(editmode) state = keym::ACTION_EDITING;
             else if(player->state==CS_SPECTATOR) state = keym::ACTION_SPECTATOR;
@@ -466,10 +482,10 @@ void consolekey(int code, bool isdown, int cooked)
             {
                 if(history.empty() || history.last()->shouldsave())
                 {
-                    if(GETIV(maxhistory) && history.length() >= GETIV(maxhistory))
+                    if(maxhistory && history.length() >= maxhistory)
                     {
-                        loopi(history.length()-GETIV(maxhistory)+1) delete history[i];
-                        history.remove(0, history.length()-GETIV(maxhistory)+1);
+                        loopi(history.length()-maxhistory+1) delete history[i];
+                        history.remove(0, history.length()-maxhistory+1);
                     }
                     history.add(h = new hline)->save();
                 }

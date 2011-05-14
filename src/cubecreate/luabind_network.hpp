@@ -69,9 +69,11 @@ namespace lua_binds
         char *fname = of_world_get_map_script_filename();
         if (!engine.loadf(fname))
         {
-            SETVF(message_title, "Compilation failed");
-            SETVF(message_content, engine.geterror_last());
+            e.push("message_title").push("Compilation failed").setg();
+            e.push("message_content").push(engine.geterror_last()).setg();
             showgui("message");
+            e.push("message_title").push().setg();
+            e.push("message_content").push().setg();
             OF_FREE(fname);
             return;
         }

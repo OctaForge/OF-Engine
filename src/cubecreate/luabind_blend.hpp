@@ -72,7 +72,7 @@ namespace lua_binds
     LUA_BIND_STD(showblendmap, showblendmap)
     LUA_BIND_STD(optimizeblendmap, optimizeblendmap)
     LUA_BIND_DEF(clearblendmap, {
-        if(noedit(true) || (GETIV(nompedit) && multiplayer())) return;
+        if(noedit(true) || (nompedit && multiplayer())) return;
         resetblendmap();
         showblendmap();
     })

@@ -120,11 +120,11 @@ public:
         {
             if (val.s) lua::engine.exec(val.s);
         }
-        else if (var) switch (var->gt())
+        else if (var) switch (var->type)
         {
-            case var::VAR_I: var->s(gi(), true, true); break;
-            case var::VAR_F: var->s(gf(), true, true); break;
-            case var::VAR_S: var->s(gs(), true); break;
+            case var::VAR_I: var->set(gi(), true, true); break;
+            case var::VAR_F: var->set(gf(), true, true); break;
+            case var::VAR_S: var->set(gs(), true); break;
         }
     }
 };
@@ -134,11 +134,14 @@ static hashtable<const char *, menu> guis;
 static vector<menu *> guistack;
 static bool shouldclearmenu = true, clearlater = false;
 
+VARP(menudistance,  16, 40,  256);
+VARP(menuautoclose, 32, 120, 4096);
+
 vec menuinfrontofplayer()
 { 
     vec dir;
     vecfromyawpitch(camera1->yaw, 0, 1, 0, dir);
-    dir.mul(GETIV(menudistance)).add(camera1->o);
+    dir.mul(menudistance).add(camera1->o);
     dir.z -= player->eyeheight-1;
     return dir;
 }
@@ -195,7 +198,7 @@ void showgui(const char *name)
 int cleargui(int n)
 {
     int clear = guistack.length();
-    if(GETIV(mainmenu) && !isconnected(true) && clear > 0 && guistack[0]->name && !strcmp(guistack[0]->name, "main")) 
+    if(mainmenu && !isconnected(true) && clear > 0 && guistack[0]->name && !strcmp(guistack[0]->name, "main")) 
     {
         clear--;
         if(!clear) return 1;
@@ -316,7 +319,7 @@ template<class T> static void updateval(const char *var, T val, const char *onch
     var::cvar *ev = var::get(var);
     // when creating new, that means it should also get pushed into storage, and here we have to do it manually
     // registering into storage will also take care of further memory release
-    if (!ev) ev = var::reg(var, new var::cvar(var, val));
+    if (!ev) ev = var::regvar(var, new var::cvar(var, val));
 
     updatelater.add().schedule(ev, val);
     if(onchange && onchange[0]) updatelater.add().schedule(onchange);
@@ -328,10 +331,10 @@ static int getval(char *var)
     else
     {
         var::cvar *ev = var::get(var);
-        switch (ev->gt())
+        switch (ev->type)
         {
-            case var::VAR_I: return ev->gi(); break;
-            case var::VAR_F: return (int)ev->gf(); break;
+            case var::VAR_I: return ev->curv.i; break;
+            case var::VAR_F: return (int)ev->curv.f; break;
             case var::VAR_S: return 0; break;
         }
     }
@@ -344,10 +347,10 @@ static float getfval(char *var)
     else
     {
         var::cvar *ev = var::get(var);
-        switch (ev->gt())
+        switch (ev->type)
         {
-            case var::VAR_I: return (float)ev->gi(); break;
-            case var::VAR_F: return ev->gf(); break;
+            case var::VAR_I: return (float)ev->curv.i; break;
+            case var::VAR_F: return ev->curv.f; break;
             case var::VAR_S: return 0; break;
         }
     }
@@ -361,11 +364,11 @@ static const char *getsval(char *var)
     {
         var::cvar *ev = var::get(var);
         string ret;
-        switch (ev->gt())
+        switch (ev->type)
         {
-            case var::VAR_I: formatstring(ret)("%d", ev->gi()); break;
-            case var::VAR_F: formatstring(ret)("%f", ev->gi()); break;
-            case var::VAR_S: formatstring(ret)("%s", ev->gs()); break;
+            case var::VAR_I: formatstring(ret)("%d", ev->curv.i); break;
+            case var::VAR_F: formatstring(ret)("%f", ev->curv.i); break;
+            case var::VAR_S: formatstring(ret)("%s", ev->curv.s); break;
             default: formatstring(ret)(""); break;
         }
         return newstring(ret);
@@ -376,7 +379,7 @@ static const char *getsval(char *var)
 void guislider(char *var, int *min, int *max, char *onchange)
 {
     if(!cgui) return;
-    int oldval = getval(var), val = oldval, vmin = *max ? *min : var::get(var)->gmni(), vmax = *max ? *max : var::get(var)->gmxi();
+    int oldval = getval(var), val = oldval, vmin = *max ? *min : var::get(var)->minv.i, vmax = *max ? *max : var::get(var)->maxv.i;
     cgui->slider(val, vmin, vmax, GUI_TITLE_COLOR);
     if(val != oldval) updateval(var, val, onchange);
 }
@@ -576,11 +579,13 @@ static struct applymenu : menu
     }
 } applymenu;
 
+VARP(applydialog, 0, 1, 1);
+
 static bool processingmenu = false;
 
 void addchange(const char *desc, int type)
 {
-    if(!GETIV(applydialog)) return;
+    if(!applydialog) return;
     loopv(needsapply) if(!strcmp(needsapply[i].desc, desc)) return;
     needsapply.add(change(type, desc));
     if(needsapply.length() && guistack.find(&applymenu) < 0)
@@ -603,13 +608,13 @@ void clearchanges(int type)
 void menuprocess()
 {
     processingmenu = true;
-    int wasmain = GETIV(mainmenu), level = guistack.length();
+    int wasmain = mainmenu, level = guistack.length();
     loopv(updatelater) updatelater[i].run();
     updatelater.shrink(0);
     
-    if(wasmain > GETIV(mainmenu) || clearlater)
+    if(wasmain > mainmenu || clearlater)
     {
-        if(wasmain > GETIV(mainmenu) || level==guistack.length()) 
+        if(wasmain > mainmenu || level==guistack.length()) 
         {
             loopvrev(guistack)
             {
@@ -626,15 +631,17 @@ void menuprocess()
         }
         clearlater = false;
     }
-    if(GETIV(mainmenu) && !isconnected(true) && guistack.empty()) showgui("main");
+    if(mainmenu && !isconnected(true) && guistack.empty()) showgui("main");
     processingmenu = false;
 }
 
+VAR(mainmenu, 1, 1, 0);
+
 void clearmainmenu()
 {
-    if(GETIV(mainmenu) && (isconnected() || haslocalclients()))
+    if(mainmenu && (isconnected() || haslocalclients()))
     {
-        SETV(mainmenu, 0);
+        mainmenu = 0;
         if(!processingmenu) cleargui();
     }
 }
@@ -642,9 +649,11 @@ void clearmainmenu()
 void g3d_mainmenu()
 {
     if(!guistack.empty()) 
-    {   
-        if(!GETIV(mainmenu) && !GETIV(gui2d) && camera1->o.dist(menupos) > GETIV(menuautoclose)) cleargui();
+    {
+        extern int& usegui2d;
+        if(!mainmenu && !usegui2d && camera1->o.dist(menupos) > menuautoclose) cleargui();
         else g3d_addgui(guistack.last(), menupos, GUI_2D | GUI_FOLLOW);
     }
 }
 
+VAR(fonth, 512, 0, 0);

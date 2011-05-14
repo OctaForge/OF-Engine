@@ -58,5 +58,5 @@ enum
 struct vertexff { vec pos; bvec norm; uchar reserved; float u, v; float lmu, lmv; };
 struct vertex { vec pos; bvec norm; uchar reserved; float u, v; short lmu, lmv; bvec tangent; uchar bitangent; };
  
-#define VTXSIZE (GETIV(renderpath)==R_FIXEDFUNCTION ? sizeof(vertexff) : sizeof(vertex))
+#define VTXSIZE (renderpath==R_FIXEDFUNCTION ? sizeof(vertexff) : sizeof(vertex))
 

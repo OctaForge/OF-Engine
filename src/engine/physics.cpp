@@ -117,7 +117,7 @@ static inline bool raycubeintersect(clipplanes &p, const cube &c, const vec &v, 
 }
 
 extern void entselectionbox(const entity &e, vec &eo, vec &es);
-extern int entselradius;
+extern int& entselradius;
 float hitentdist;
 int hitent, hitorient;
 
@@ -209,8 +209,8 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
     float dist = 0, dent = mode&RAY_BB ? 1e16f : 1e14f; \
     vec v(o), invray(ray.x ? 1/ray.x : 1e16f, ray.y ? 1/ray.y : 1e16f, ray.z ? 1/ray.z : 1e16f); \
     cube *levels[20]; \
-    levels[GETIV(mapscale)] = worldroot; \
-    int lshift = GETIV(mapscale); \
+    levels[worldscale] = worldroot; \
+    int lshift = worldscale; \
     ivec lsizemask(invray.x>0 ? 1 : 0, invray.y>0 ? 1 : 0, invray.z>0 ? 1 : 0); \
 
 #define CHECKINSIDEWORLD \
@@ -220,13 +220,13 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
         loopi(3) \
         { \
             float c = v[i]; \
-            if(c<0 || c>=GETIV(mapsize)) \
+            if(c<0 || c>=worldsize) \
             { \
-                float d = ((invray[i]>0?0:GETIV(mapsize))-c)*invray[i]; \
+                float d = ((invray[i]>0?0:worldsize)-c)*invray[i]; \
                 if(d<0) return (radius>0?radius:-1); \
                 disttoworld = max(disttoworld, 0.1f + d); \
             } \
-            float e = ((invray[i]>0?GETIV(mapsize):0)-c)*invray[i]; \
+            float e = ((invray[i]>0?worldsize:0)-c)*invray[i]; \
             exitworld = min(exitworld, e); \
         } \
         if(disttoworld > exitworld) return (radius>0?radius:-1); \
@@ -268,7 +268,7 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
         y = int(v.y); \
         z = int(v.z); \
         uint diff = uint(lo.x^x)|uint(lo.y^y)|uint(lo.z^z); \
-        if(diff >= uint(GETIV(mapsize))) exitworld; \
+        if(diff >= uint(worldsize)) exitworld; \
         diff >>= lshift; \
         if(!diff) exitworld; \
         do \
@@ -600,6 +600,8 @@ void cleardynentcache()
     if(!dynentframe) dynentframe = 1;
 }
 
+VARF(dynentsize, 4, 7, 12, cleardynentcache());
+
 #define DYNENTHASH(x, y) (((((x)^(y))<<5) + (((x)^(y))>>5)) & (DYNENTCACHESIZE - 1))
 
 const vector<physent *> &checkdynentcache(int x, int y)
@@ -610,7 +612,7 @@ const vector<physent *> &checkdynentcache(int x, int y)
     dec.y = y;
     dec.frame = dynentframe;
     dec.dynents.shrink(0);
-    int numdyns = game::numdynents(), dsize = 1<<GETIV(dynentsize), dx = x<<GETIV(dynentsize), dy = y<<GETIV(dynentsize);
+    int numdyns = game::numdynents(), dsize = 1<<dynentsize, dx = x<<dynentsize, dy = y<<dynentsize;
     loopi(numdyns)
     {
         dynent *d = game::iterdynents(i);
@@ -624,8 +626,8 @@ const vector<physent *> &checkdynentcache(int x, int y)
 }
 
 #define loopdynentcache(curx, cury, o, radius) \
-    for(int curx = max(int(o.x-radius), 0)>>GETIV(dynentsize), endx = min(int(o.x+radius), GETIV(mapsize)-1)>>GETIV(dynentsize); curx <= endx; curx++) \
-    for(int cury = max(int(o.y-radius), 0)>>GETIV(dynentsize), endy = min(int(o.y+radius), GETIV(mapsize)-1)>>GETIV(dynentsize); cury <= endy; cury++)
+    for(int curx = max(int(o.x-radius), 0)>>dynentsize, endx = min(int(o.x+radius), worldsize-1)>>dynentsize; curx <= endx; curx++) \
+    for(int cury = max(int(o.y-radius), 0)>>dynentsize, endy = min(int(o.y+radius), worldsize-1)>>dynentsize; cury <= endy; cury++)
 
 void updatedynentcache(physent *d)
 {
@@ -1151,9 +1153,9 @@ static inline bool octacollide(physent *d, const vec &dir, float cutoff, const i
 static inline bool octacollide(physent *d, const vec &dir, float cutoff, const ivec &bo, const ivec &bs)
 {
     int diff = (bo.x^(bo.x+bs.x)) | (bo.y^(bo.y+bs.y)) | (bo.z^(bo.z+bs.z)),
-        scale = GETIV(mapscale)-1;
-    if(diff&~((1<<scale)-1) || uint(bo.x|bo.y|bo.z|(bo.x+bs.x)|(bo.y+bs.y)|(bo.z+bs.z)) >= uint(GETIV(mapsize)))
-       return octacollide(d, dir, cutoff, bo, bs, worldroot, ivec(0, 0, 0), GETIV(mapsize)>>1);
+        scale = worldscale-1;
+    if(diff&~((1<<scale)-1) || uint(bo.x|bo.y|bo.z|(bo.x+bs.x)|(bo.y+bs.y)|(bo.z+bs.z)) >= uint(worldsize))
+       return octacollide(d, dir, cutoff, bo, bs, worldroot, ivec(0, 0, 0), worldsize>>1);
     cube *c = &worldroot[octastep(bo.x, bo.y, bo.z, scale)];
     if(c->ext && c->ext->ents && !mmcollide(d, dir, *c->ext->ents)) return false;
     scale--;
@@ -1185,7 +1187,7 @@ bool collide(physent *d, const vec &dir, float cutoff, bool playercol)
     ivec bo(int(d->o.x-d->radius), int(d->o.y-d->radius), int(d->o.z-d->eyeheight)),
          bs(int(d->radius*2), int(d->radius*2), int(d->eyeheight+d->aboveeye));
     bs.add(2);  // guard space for rounding errors
-    if(!octacollide(d, dir, cutoff, bo, bs)) return false;//, worldroot, ivec(0, 0, 0), GETIV(mapsize)>>1)) return false; // collide with world
+    if(!octacollide(d, dir, cutoff, bo, bs)) return false;//, worldroot, ivec(0, 0, 0), worldsize>>1)) return false; // collide with world
     return !playercol || plcollide(d, dir);
 }
 
@@ -1633,17 +1635,17 @@ bool droptofloor(vec &o, float radius, float height)
     d.o = o;
     if(!insideworld(d.o)) 
     {
-        if(d.o.z < GETIV(mapsize)) return false;
-        d.o.z = GETIV(mapsize) - 1e-3f;
+        if(d.o.z < worldsize) return false;
+        d.o.z = worldsize - 1e-3f;
         if(!insideworld(d.o)) return false;
     }
     vec v(0.0001f, 0.0001f, -1);
     v.normalize();
-    if(raycube(d.o, v, GETIV(mapsize)) >= GETIV(mapsize)) return false;
+    if(raycube(d.o, v, worldsize) >= worldsize) return false;
     d.radius = d.xradius = d.yradius = radius;
     d.eyeheight = height;
     d.aboveeye = radius;
-    if(!movecamera(&d, d.vel, GETIV(mapsize), 1))
+    if(!movecamera(&d, d.vel, worldsize, 1))
     {
         o = d.o;
         return true;
@@ -1705,6 +1707,10 @@ void vectoyawpitch(const vec &v, float &yaw, float &pitch)
     pitch = asin(v.z/v.magnitude())/RAD;
 }
 
+VARP(maxroll, 0, 3, 20);
+FVAR(straferoll, 0, 0.033f, 90);
+VAR(floatspeed, 10, 100, 1000);
+
 void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curtime)
 {
     if(floating)
@@ -1753,7 +1759,7 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
     {
         if(floating)
         {
-            if(pl==player) d.mul(GETIV(floatspeed)/100.0f);
+            if(pl==player) d.mul(floatspeed/100.0f);
         }
         else if(!water && game::allowmove(pl)) d.mul((pl->move && !pl->strafe ? 1.3f : 1.0f) * (pl->physstate < PHYS_SLOPE ? 1.3f : 1.0f)); // EXPERIMENTAL
     }
@@ -1801,7 +1807,7 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     int material = lookupmaterial(vec(pl->o.x, pl->o.y, pl->o.z + (3*pl->aboveeye - pl->eyeheight)/4));
     bool water = isliquid(material&MATF_VOLUME);
     bool floating =(pl->type==ENT_PLAYER && (pl->state==CS_EDITING || pl->state==CS_SPECTATOR)) || // INTENSITY: Added second line
-                   (pl->type==ENT_CAMERA && editmode && GETIV(thirdperson) && pl == camera1);             // so editmode camera works ok in 3rdp
+                   (pl->type==ENT_CAMERA && editmode && thirdperson && pl == camera1);             // so editmode camera works ok in 3rdp
 
     float secs = curtime/1000.f;
 
@@ -1858,9 +1864,9 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
     else
     {
-        pl->roll -= pl->strafe*curtime*GETFV(straferoll);
-        if(pl->roll > GETIV(maxroll)) pl->roll = GETIV(maxroll);
-        else if(pl->roll < -GETIV(maxroll)) pl->roll = -GETIV(maxroll);
+        pl->roll -= pl->strafe*curtime*straferoll;
+        if(pl->roll > maxroll) pl->roll = maxroll;
+        else if(pl->roll < -maxroll) pl->roll = -maxroll;
     }
 
     // play sounds on water transitions
@@ -1908,19 +1914,22 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     if(diff <= 0) physsteps = 0;
     else
     {
-        physframetime = clamp((PHYSFRAMETIME*GETIV(gamespeed))/100, 1, PHYSFRAMETIME);
+        extern int& gamespeed;
+        physframetime = clamp((PHYSFRAMETIME*gamespeed)/100, 1, PHYSFRAMETIME);
         physsteps = (diff + physframetime - 1)/physframetime;
         lastphysframe += physsteps * physframetime;
     }
     cleardynentcache();
 }
 
+VAR(physinterp, 0, 1, 1);
+
 void interppos(physent *pl)
 {
     pl->o = pl->newpos;
 
     int diff = lastphysframe - lastmillis;
-    if(diff <= 0 || !GETIV(physinterp)) return;
+    if(diff <= 0 || !physinterp) return;
 
     vec deltapos(pl->deltapos);
     deltapos.mul(min(diff, physframetime)/float(physframetime));
@@ -2080,8 +2089,8 @@ bool moveplatform(physent *p, const vec &dir)
 
     static vector<platforment> ents;
     ents.setsize(0);
-    for(int x = int(max(p->o.x-p->radius-PLATFORMBORDER, 0.0f))>>GETIV(dynentsize), ex = int(min(p->o.x+p->radius+PLATFORMBORDER, GETIV(mapsize)-1.0f))>>GETIV(dynentsize); x <= ex; x++)
-    for(int y = int(max(p->o.y-p->radius-PLATFORMBORDER, 0.0f))>>GETIV(dynentsize), ey = int(min(p->o.y+p->radius+PLATFORMBORDER, GETIV(mapsize)-1.0f))>>GETIV(dynentsize); y <= ey; y++)
+    for(int x = int(max(p->o.x-p->radius-PLATFORMBORDER, 0.0f))>>dynentsize, ex = int(min(p->o.x+p->radius+PLATFORMBORDER, worldsize-1.0f))>>dynentsize; x <= ex; x++)
+    for(int y = int(max(p->o.y-p->radius-PLATFORMBORDER, 0.0f))>>dynentsize, ey = int(min(p->o.y+p->radius+PLATFORMBORDER, worldsize-1.0f))>>dynentsize; y <= ey; y++)
     {
         const vector<physent *> &dynents = checkdynentcache(x, y);
         loopv(dynents)

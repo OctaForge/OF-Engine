@@ -19,11 +19,13 @@ using namespace lua;
 
 #define MIN_CAMERA_MOVE_ITERS 8
 
+VAR(cammovedist, 5, 10, 200); // Distance camera moves per iteration
+VAR(cam_dist, 0, 50, 200); // How much higher than the player to set the camera
+
 void CameraControl::incrementCameraDist(int inc_dir)
 {
     Logging::log(Logging::DEBUG, "changing camera increment: %d\r\n", inc_dir);
-
-    SETV(cam_dist, GETIV(cam_dist) + (inc_dir * GETIV(cameraMoveDist)));
+    cam_dist += inc_dir * cammovedist;
 }
 
 int saved_cam_dist; // Saved from before characterviewing, restored right after
@@ -34,14 +36,18 @@ void CameraControl::prepareCharacterViewing()
     camera1->pitch = 0;
     camera1->yaw   = camera1->yaw;
 
-    saved_cam_dist = GETIV(cam_dist);
-    SETV(cam_dist, MIN_CAMERA_MOVE_ITERS*3);
+    saved_cam_dist = cam_dist;
+    cam_dist = MIN_CAMERA_MOVE_ITERS*3;
 }
 
 void CameraControl::stopCharacterViewing()
 {
-    SETV(cam_dist, saved_cam_dist);
+    cam_dist = saved_cam_dist;
 }
+
+FVARP(cameraheight, 0, 10, 50); // How much higher than the player to set the camera
+FVAR(smoothcamera, 0, 0.2, 100.0); // Smoothing factor for the smooth camera. 0 means no smoothing
+FVARP(cameraavoid, 0, 0.33, 1); // 1 means the camera is 100% away from the closest obstacle (and therefore on the player). 0 means it is on that obstacle. 0.5 means it is midway between them.
 
 physent forcedCamera;
 bool useForcedCamera = false;
@@ -61,9 +67,9 @@ void CameraControl::forcePosition(vec& position)
     // If we just switched to forced camera mode, save thirdperson state and go to third person
     // (We need third person so that we show the player's avatar as the camera moves. There is
     // currently no support for forcing the camera in first person mode, which would be tricky to do.)
-    if (!GETIV(thirdperson) && savedThirdperson == -1)
+    if (!thirdperson && savedThirdperson == -1)
     {
-        savedThirdperson = GETIV(thirdperson);
+        savedThirdperson = thirdperson;
         SETV(thirdperson, 1);
     }
 }
@@ -72,9 +78,9 @@ void CameraControl::forceYaw(float yaw)
 {
     useForcedYaw = true;
     forcedCamera.yaw = yaw;
-    if (!GETIV(thirdperson) && savedThirdperson == -1)
+    if (!thirdperson && savedThirdperson == -1)
     {
-        savedThirdperson = GETIV(thirdperson);
+        savedThirdperson = thirdperson;
         SETV(thirdperson, 1);
     }
 }
@@ -83,9 +89,9 @@ void CameraControl::forcePitch(float pitch)
 {
     useForcedPitch = true;
     forcedCamera.pitch = pitch;
-    if (!GETIV(thirdperson) && savedThirdperson == -1)
+    if (!thirdperson && savedThirdperson == -1)
     {
-        savedThirdperson = GETIV(thirdperson);
+        savedThirdperson = thirdperson;
         SETV(thirdperson, 1);
     }
 }
@@ -94,9 +100,9 @@ void CameraControl::forceRoll(float roll)
 {
     useForcedRoll = true;
     forcedCamera.roll = roll;
-    if (!GETIV(thirdperson) && savedThirdperson == -1)
+    if (!thirdperson && savedThirdperson == -1)
     {
-        savedThirdperson = GETIV(thirdperson);
+        savedThirdperson = thirdperson;
         SETV(thirdperson, 1);
     }
 }
@@ -104,9 +110,9 @@ void CameraControl::forceRoll(float roll)
 void CameraControl::forceFov(float fov)
 {
     forcedCameraFov = fov;
-    if (!GETIV(thirdperson) && savedThirdperson == -1)
+    if (!thirdperson && savedThirdperson == -1)
     {
-        savedThirdperson = GETIV(thirdperson);
+        savedThirdperson = thirdperson;
         SETV(thirdperson, 1);
     }
 }
@@ -147,7 +153,7 @@ void CameraControl::positionCamera(physent* camera1)
 
     // Sync camera height to scripts, if necessary
     static double lastCameraHeight = -1;
-    if (engine.hashandle() && lastCameraHeight != GETFV(cameraheight)) lastCameraHeight = GETFV(cameraheight);
+    if (engine.hashandle() && lastCameraHeight != cameraheight) lastCameraHeight = cameraheight;
 
     // If we just left forced camera mode, restore thirdperson state
     if (savedThirdperson != -1)
@@ -169,21 +175,21 @@ void CameraControl::positionCamera(physent* camera1)
     if(game::collidecamera()) 
     {
         vec cameraOrigin = camera1->o;
-        if (GETIV(thirdperson))
+        if (thirdperson)
         {
             vec up(0, 0, 1);
-            movecamera(camera1, up, GETFV(cameraheight), 1);
-            movecamera(camera1, up, clamp(GETFV(cameraheight) - camera1->o.dist(cameraOrigin), 0.0f, 1.0f), 0.1f); // Find distance to obstacle
+            movecamera(camera1, up, cameraheight, 1);
+            movecamera(camera1, up, clamp(cameraheight - camera1->o.dist(cameraOrigin), 0.0f, 1.0f), 0.1f); // Find distance to obstacle
         }
 
         vec cameraOrigin2 = camera1->o;
-        movecamera(camera1, dir, GETIV(cam_dist), 1);
-        movecamera(camera1, dir, clamp(GETIV(cam_dist) - camera1->o.dist(cameraOrigin2), 0.0f, 1.0f), 0.1f); // Find distance to obstacle
+        movecamera(camera1, dir, cam_dist, 1);
+        movecamera(camera1, dir, clamp(cam_dist - camera1->o.dist(cameraOrigin2), 0.0f, 1.0f), 0.1f); // Find distance to obstacle
 
-        if (GETFV(smoothcamera)) {
-            float intendedDist = camera1->o.dist(cameraOrigin2)*(1.0f-GETFV(cameraavoid));
+        if (smoothcamera) {
+            float intendedDist = camera1->o.dist(cameraOrigin2)*(1.0f-cameraavoid);
             static float lastDist = 5;
-            float ACTUAL_DISTANCE_FACTOR = clamp(1.0f - (curtime/1000.0f)/GETFV(smoothcamera), 0.0f, 1.0f);
+            float ACTUAL_DISTANCE_FACTOR = clamp(1.0f - (curtime/1000.0f)/smoothcamera, 0.0f, 1.0f);
             float actualDist = ACTUAL_DISTANCE_FACTOR*lastDist + (1-ACTUAL_DISTANCE_FACTOR)*intendedDist;
 
             // Start again, move to current distance
@@ -193,8 +199,8 @@ void CameraControl::positionCamera(physent* camera1)
             lastDist = actualDist;
         }
     } else {
-        camera1->o.z += GETFV(cameraheight);
-        camera1->o.add(vec(dir).mul(GETIV(cam_dist)));
+        camera1->o.z += cameraheight;
+        camera1->o.add(vec(dir).mul(cam_dist));
     }
 
     camera1->maxspeed = saved_camera_speed;
@@ -214,9 +220,9 @@ void CameraControl::positionCamera(physent* camera1)
     float pitchDelta = camera1->pitch - actualCamera.pitch;
 
     // Only interpolate if we are fairly close, otherwise this might be a new map, or we teleported, etc.
-    if (GETFV(smoothcamera) && !GuiControl::isMouselooking() && temp.magnitude() < 50*player->radius && fabs(yawDelta) < 30.0f && fabs(pitchDelta) < 30.0f)
+    if (smoothcamera && !GuiControl::isMouselooking() && temp.magnitude() < 50*player->radius && fabs(yawDelta) < 30.0f && fabs(pitchDelta) < 30.0f)
     {
-        float ACTUAL_CAMERA_FACTOR = clamp(1.0f - (curtime/1000.0f)/GETFV(smoothcamera), 0.0f, 1.0f);
+        float ACTUAL_CAMERA_FACTOR = clamp(1.0f - (curtime/1000.0f)/smoothcamera, 0.0f, 1.0f);
 
         vec temp = player->o;
         temp.sub(lastPlayerPosition);

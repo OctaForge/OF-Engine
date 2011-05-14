@@ -56,6 +56,12 @@ bool removezip(const char *name);
 
 extern string homedir;
 
+extern int& fullconsole, &fullconfilter, &confilter, &miniconfilter;
+
+#ifdef CLIENT
+VARFN(scoreboard, showscoreboard, 0, 0, 1, scorebshow(showscoreboard!=0));
+#endif
+
 namespace lua_binds
 {
     /* Logging Lua namespace */
@@ -105,7 +111,7 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(movie, movie, e.get<char*>(1))
     LUA_BIND_CLIENT(showscores, {
         bool on = (addreleaseaction("CAPI.showscores()") != 0);
-        SETV(scoreboard, on);
+        showscoreboard = on ? 1 : 0;
         scorebshow(on);
     })
     LUA_BIND_STD_CLIENT(tabify, tabify, e.get<char*>(1), e.get<int*>(2))
@@ -160,7 +166,7 @@ namespace lua_binds
 
     // Engine vars
 
-    LUA_BIND_DEF(resetvar, var::get(e.get<const char*>(1))->r();)
+    LUA_BIND_DEF(resetvar, var::get(e.get<const char*>(1))->reset();)
 
     LUA_BIND_DEF(newvar, {
         const char *name = e.get<const char*>(1);
@@ -171,9 +177,9 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::reg(name, new var::cvar(name, e.get<int>(3)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<int>(3)));
                 }
-                else ev->s(e.get<int>(3), false, false);
+                else ev->set(e.get<int>(3), false, false);
                 break;
             }
             case var::VAR_F:
@@ -181,9 +187,9 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::reg(name, new var::cvar(name, e.get<float>(3)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<float>(3)));
                 }
-                else ev->s(e.get<float>(3), false, false);
+                else ev->set(e.get<float>(3), false, false);
                 break;
             }
             case var::VAR_S:
@@ -191,9 +197,9 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::reg(name, new var::cvar(name, e.get<const char*>(3)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<const char*>(3)));
                 }
-                else ev->s(e.get<const char*>(3), false, false);
+                else ev->set(e.get<const char*>(3), false);
                 break;
             }
             default: break;
@@ -203,16 +209,16 @@ namespace lua_binds
     LUA_BIND_DEF(setvar, {
         var::cvar *ev = var::get(e.get<const char*>(1));
         if (!ev) return;
-        if (ev->isreadonly())
+        if ((ev->flags&var::VAR_READONLY) != 0)
         {
-            Logging::log(Logging::ERROR, "Variable %s is read-only.\n", ev->gn());
+            Logging::log(Logging::ERROR, "Variable %s is read-only.\n", ev->name);
             return;
         }
-        switch (ev->gt())
+        switch (ev->type)
         {
-            case var::VAR_I: ev->s(e.get<int>(2), true, true); break;
-            case var::VAR_F: ev->s(e.get<float>(2), true, true); break;
-            case var::VAR_S: ev->s(e.get<const char*>(2), true, true); break;
+            case var::VAR_I: ev->set(e.get<int>(2), true, true); break;
+            case var::VAR_F: ev->set(e.get<float>(2), true, true); break;
+            case var::VAR_S: ev->set(e.get<const char*>(2), true); break;
             default: break;
         }
     })
@@ -224,11 +230,11 @@ namespace lua_binds
             e.push();
             return;
         }
-        switch (ev->gt())
+        switch (ev->type)
         {
-            case var::VAR_I: e.push(ev->gi()); break;
-            case var::VAR_F: e.push(ev->gf()); break;
-            case var::VAR_S: e.push(ev->gs()); break;
+            case var::VAR_I: e.push(ev->curv.i); break;
+            case var::VAR_F: e.push(ev->curv.f); break;
+            case var::VAR_S: e.push(ev->curv.s); break;
             default: e.push(); break;
         }
     })
@@ -237,9 +243,9 @@ namespace lua_binds
 
     // Console
 
-    LUA_BIND_STD_CLIENT(toggleconsole, SETV, fullconsole, GETIV(fullconsole) ^ 1)
-    LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, GETIV(fullconsole) ? GETIV(fullconfilter) : GETIV(confilter), e.get<int>(1))
-    LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, GETIV(miniconfilter), e.get<int>(1))
+    LUA_BIND_STD_CLIENT(toggleconsole, SETV, fullconsole, fullconsole ^ 1)
+    LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, fullconsole ? fullconfilter : confilter, e.get<int>(1))
+    LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, miniconfilter, e.get<int>(1))
     LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
     LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_DEFAULT)
     LUA_BIND_STD_CLIENT(specbind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_SPECTATOR)

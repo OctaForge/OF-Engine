@@ -58,6 +58,9 @@ void guilist(int fref);
 void guialign(int *align, int fref);
 void newgui(char *name, int fref, char *header);
 
+SVAR(entity_gui_title, "");
+VAR(num_entity_gui_fields, 0, 0, 13);
+
 namespace lua_binds
 {
     LUA_BIND_STD_CLIENT(font, newfont, e.get<char*>(1), e.get<char*>(2), e.get<int*>(3), e.get<int*>(4), e.get<int*>(5), e.get<int*>(6), e.get<int*>(7), e.get<int*>(8))
@@ -103,7 +106,7 @@ namespace lua_binds
 
     // Sets up a GUI for editing an entity's state data. TODO: get rid of ugly ass STL shit
     LUA_BIND_CLIENT(prepentgui, {
-        SETVN(num_entity_gui_fields, 0);
+        num_entity_gui_fields = 0;
         GuiControl::EditedEntity::stateData.clear();
         GuiControl::EditedEntity::sortedKeys.clear();
 
@@ -150,7 +153,7 @@ namespace lua_binds
             );
 
             GuiControl::EditedEntity::sortedKeys.push_back(key);
-            SETVN(num_entity_gui_fields, GETIV(num_entity_gui_fields) + 1); // increment for later loop
+            num_entity_gui_fields++; // increment for later loop
         });
         e.pop(2).unref(_tmpref);
 
@@ -169,7 +172,7 @@ namespace lua_binds
             "    gui.text(entity_gui_title)\n"
             "    gui.bar()\n"
         );
-        for (int i = 0; i < GETIV(num_entity_gui_fields); i++)
+        for (int i = 0; i < num_entity_gui_fields; i++)
         {
             const char *key = GuiControl::EditedEntity::sortedKeys[i].c_str();
             const char *value = GuiControl::EditedEntity::stateData[key].second.c_str();

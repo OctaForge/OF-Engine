@@ -27,6 +27,8 @@
  *
  */
 
+VARP(blood, 0, 1, 1);
+
 namespace lua_binds
 {
     LUA_BIND_CLIENT(adddecal, {
@@ -38,7 +40,7 @@ namespace lua_binds
     })
 
     LUA_BIND_CLIENT(particle_splash, {
-        if (e.get<int>(1) == PART_BLOOD && !GETIV(blood)) return;
+        if (e.get<int>(1) == PART_BLOOD && !blood) return;
         vec p(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         particle_splash(
             e.get<int>(1),
@@ -57,7 +59,7 @@ namespace lua_binds
     })
 
     LUA_BIND_CLIENT(regular_particle_splash, {
-        if (e.get<int>(1) == PART_BLOOD && !GETIV(blood)) return;
+        if (e.get<int>(1) == PART_BLOOD && !blood) return;
         vec p(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         regular_particle_splash(
             e.get<int>(1),

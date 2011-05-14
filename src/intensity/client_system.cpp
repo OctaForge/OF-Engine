@@ -36,6 +36,16 @@ std::string ClientSystem::currScenarioCode = "";
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
 
+namespace game
+{
+    extern int& minimapradius;
+    extern int& minimaprightalign;
+    extern int& forceminminimapzoom, &forcemaxminimapzoom;
+    extern int& minimapsides;
+    extern int& minminimapzoom, &maxminimapzoom;
+    extern float& minimapxpos, &minimapypos, &minimaprotation;
+}
+
 
 #define USER_INFO_SECTION "UserInfo"
 #define VIDEO_SECTION "Video"
@@ -141,7 +151,6 @@ void ClientSystem::frameTrigger(int curtime)
     {
         PlayerControl::handleExtraPlayerMovements(curtime);
         TargetingControl::determineMouseTarget();
-        SETV(can_edit, int(isAdmin()));
         dobgload();
     }
 
@@ -340,12 +349,12 @@ void ClientSystem::drawMinimap(int w, int h)
     glScalef(h / 1000.0f, h / 1000.0f, 1); // we don't want the screen width
 
     // if we want it aligned to right, we need to move stuff through screen .. if not, we just set the x position value
-    if (GETIV(minimaprightalign))
-        x = (1000 * w) / h - GETFV(minimapradius) * 1000 - GETFV(minimapxpos) * 1000;
+    if (game::minimaprightalign)
+        x = (1000 * w) / h - game::minimapradius * 1000 - game::minimapxpos * 1000;
     else
-        x = GETFV(minimapxpos) * 1000;
+        x = game::minimapxpos * 1000;
 
-    y = GETFV(minimapypos) * 1000;
+    y = game::minimapypos * 1000;
     glColor3f(1, 1, 1);
 
     glDisable(GL_BLEND);
@@ -353,29 +362,37 @@ void ClientSystem::drawMinimap(int w, int h)
     pos = vec(game::hudplayer()->o).sub(minimapcenter).mul(minimapscale).add(0.5f); // hudplayer, because we want minimap also when following someone.
 
     vecfromyawpitch(camera1->yaw, 0, 1, 0, dir);
-    float scale = clamp(max(minimapradius.x, minimapradius.y) / 3, (GETIV(forceminminimapzoom) < 0) ? float(GETIV(minminimapzoom)) : float(GETIV(forceminminimapzoom)), (GETIV(forcemaxminimapzoom) < 0) ? float(GETIV(maxminimapzoom)) : float(GETIV(forcemaxminimapzoom)));
+    float scale = clamp(
+        max(minimapradius.x, minimapradius.y) / 3,
+        (game::forceminminimapzoom < 0) ?
+            float(game::minminimapzoom)
+          : float(game::forceminminimapzoom),
+        (game::forcemaxminimapzoom < 0) ?
+            float(game::maxminimapzoom)
+          : float(game::forcemaxminimapzoom)
+    );
 
     glBegin(GL_TRIANGLE_FAN);
 
-    loopi(GETIV(minimapsides)) // create a triangle for every side, together it makes triangle when minimapsides is 3, square when it's 4 and "circle" for any other value.
+    loopi(game::minimapsides) // create a triangle for every side, together it makes triangle when minimapsides is 3, square when it's 4 and "circle" for any other value.
     {
         // this part manages texture
-        vec tc = vec(dir).rotate_around_z((i / float(GETIV(minimapsides))) * 2 * M_PI);
+        vec tc = vec(dir).rotate_around_z((i / float(game::minimapsides)) * 2 * M_PI);
 
-        if (GETFV(minimaprotation) > 0) // rotate the minimap if we want to rotate it, if not, just skip this
-            tc.rotate_around_z(GETFV(minimaprotation) * (M_PI / 180.0f));
+        if (game::minimaprotation > 0) // rotate the minimap if we want to rotate it, if not, just skip this
+            tc.rotate_around_z(game::minimaprotation * (M_PI / 180.0f));
 
         glTexCoord2f(pos.x + (tc.x * scale * minimapscale.x),
                      pos.y + (tc.y * scale * minimapscale.y));
 
         // this part actually creates the triangle which is the texture bind to
-        vec v = vec(0, -1, 0).rotate_around_z((i / float(GETIV(minimapsides))) * 2 * M_PI);
+        vec v = vec(0, -1, 0).rotate_around_z((i / float(game::minimapsides)) * 2 * M_PI);
 
-        if (GETFV(minimaprotation) > 0)
-            v.rotate_around_z(GETFV(minimaprotation) * (M_PI / 180.0f));
+        if (game::minimaprotation > 0)
+            v.rotate_around_z(game::minimaprotation * (M_PI / 180.0f));
 
-        glVertex2f(x + 500 * GETFV(minimapradius) * (1.0f + v.x),
-                   y + 500 * GETFV(minimapradius) * (1.0f + v.y));
+        glVertex2f(x + 500 * game::minimapradius * (1.0f + v.x),
+                   y + 500 * game::minimapradius * (1.0f + v.y));
     }
 
     glEnd();

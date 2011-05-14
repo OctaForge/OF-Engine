@@ -8,6 +8,11 @@
 
 namespace game
 {
+    VARP(scoreboard2d, 0, 1, 1);
+    VARP(showpj, 0, 1, 1); // Kripken
+    VARP(showping, 0, 1, 1);
+    VARP(showspectators, 0, 1, 1);
+
     void renderscoreboard(g3d_gui &g, bool firstpass)
     {
         const char *mname = getclientmap();
@@ -43,14 +48,14 @@ namespace game
                             fpsent *p = (fpsent*)entity->dynamicEntity;
                             assert(p);
 
-                            if (GETIV(showpj))
+                            if (showpj)
                             {
                                 if (p->state == CS_LAGGED)
                                     lt = of_tools_vstrcat(lt, "s", "LAG");
                                 else
                                     lt = of_tools_vstrcat(lt, "si", " pj: ", p->plag);
                             }
-                            if (!GETIV(showpj) && p->state == CS_LAGGED)
+                            if (!showpj && p->state == CS_LAGGED)
                                 lt = of_tools_vstrcat(lt, "s", "LAG");
                             else
                                 lt = of_tools_vstrcat(lt, "si", " p: ", p->ping);
@@ -104,7 +109,7 @@ namespace game
 
         void render()
         {
-            if(showing) g3d_addgui(this, menupos, (GETIV(scoreboard2d) ? GUI_FORCE_2D : GUI_2D | GUI_FOLLOW) | GUI_BOTTOM);
+            if(showing) g3d_addgui(this, menupos, (scoreboard2d ? GUI_FORCE_2D : GUI_2D | GUI_FOLLOW) | GUI_BOTTOM);
         }
 
     } scoreboard;

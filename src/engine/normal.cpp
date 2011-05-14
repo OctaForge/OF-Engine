@@ -16,6 +16,8 @@ struct nval
 hashtable<vec, nval> normalgroups(1<<16);
 vector<normal> normals;
 
+VARR(lerpangle, 0, 44, 180);
+
 static float lerpthreshold = 0;
 
 static void addnormal(const vec &key, const vec &surface)
@@ -60,6 +62,9 @@ void findnormal(const vec &key, const vec &surface, vec &v)
     else if(!total) v = surface;
 }
 
+VARR(lerpsubdiv, 0, 2, 4);
+VARR(lerpsubdivsize, 4, 4, 128);
+
 static uint progress = 0;
 
 void show_calcnormals_progress()
@@ -100,10 +105,10 @@ void addnormals(cube &c, const ivec &o, int size)
             if(!numplanes) continue;
         }
         int subdiv = 0;
-        if(GETIV(lerpsubdiv) && size > GETIV(lerpsubdivsize)) // && faceedges(c, i) == F_SOLID)
+        if(lerpsubdiv && size > lerpsubdivsize) // && faceedges(c, i) == F_SOLID)
         {
-            subdiv = 1<<GETIV(lerpsubdiv);
-            while(size/subdiv < GETIV(lerpsubdivsize)) subdiv >>= 1; 
+            subdiv = 1<<lerpsubdiv;
+            while(size/subdiv < lerpsubdivsize) subdiv >>= 1; 
         }
         vec avg;
         if(numplanes >= 2)
@@ -164,10 +169,10 @@ void addnormals(cube &c, const ivec &o, int size)
 
 void calcnormals()
 {
-    if(!GETIV(lerpangle)) return;
-    lerpthreshold = cos(GETIV(lerpangle)*RAD) - 1e-5f; 
+    if(!lerpangle) return;
+    lerpthreshold = cos(lerpangle*RAD) - 1e-5f; 
     progress = 1;
-    loopi(8) addnormals(worldroot[i], ivec(i, 0, 0, 0, GETIV(mapsize)/2), GETIV(mapsize)/2);
+    loopi(8) addnormals(worldroot[i], ivec(i, 0, 0, 0, worldsize/2), worldsize/2);
 }
 
 void clearnormals()

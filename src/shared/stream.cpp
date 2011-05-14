@@ -376,6 +376,10 @@ struct filestream : stream
     }
 };
 
+#ifndef STANDALONE
+VAR(dbggz, 0, 0, 1);
+#endif
+
 struct gzstream : stream
 {
     enum
@@ -506,7 +510,7 @@ struct gzstream : stream
     {
         if(!reading) return;
 #ifndef STANDALONE
-        if(GETIV(dbggz))
+        if(dbggz)
         {
             uint checkcrc = 0, checksize = 0;
             loopi(4) checkcrc |= uint(readbyte()) << (i*8);

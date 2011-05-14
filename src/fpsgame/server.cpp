@@ -26,6 +26,8 @@
 
 extern bool should_quit;
 
+extern char*& player_class;
+
 using namespace lua;
 
 namespace server
@@ -762,7 +764,7 @@ namespace server
         }
 
         // Use the PC class, unless told otherwise
-        if (_class == "") _class = GETSV(player_class);
+        if (_class == "") _class = player_class;
 
         Logging::log(Logging::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
 

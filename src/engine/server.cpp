@@ -467,6 +467,10 @@ void show_server_stats()
     serverhost->totalSentData = serverhost->totalReceivedData = 0;
 }
 
+VAR(serveruprate, 0, 0, INT_MAX);
+SVAR(serverip, "");
+VARF(serverport, 0, server::serverport(), 0xFFFF, { if(!serverport) serverport = server::serverport(); });
+
 void serverslice(bool dedicated, uint timeout)   // main server update, called from main loop in sp, or from below in dedicated server
 {
     localclients = nonlocalclients = 0;
@@ -626,12 +630,12 @@ bool servererror(bool dedicated, const char *desc)
   
 bool setuplistenserver(bool dedicated)
 {
-    ENetAddress address = { ENET_HOST_ANY, GETIV(serverport) <= 0 ? enet_uint16(server::serverport()) : enet_uint16(GETIV(serverport)) };
-    if(GETSV(serverip)[0])
+    ENetAddress address = { ENET_HOST_ANY, serverport <= 0 ? enet_uint16(server::serverport()) : enet_uint16(serverport) };
+    if(serverip[0])
     {
-        if(enet_address_set_host(&address, GETSV(serverip))<0) conoutf(CON_WARN, "WARNING: server ip not resolved");
+        if(enet_address_set_host(&address, serverip)<0) conoutf(CON_WARN, "WARNING: server ip not resolved");
     }
-    serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, GETIV(serveruprate));
+    serverhost = enet_host_create(&address, min(maxclients + server::reserveclients(), MAXCLIENTS), server::numchannels(), 0, serveruprate);
     if(!serverhost)
     {
         // INTENSITY: Do *NOT* fatally quit on this error. It can lead to repeated restarts etc.
@@ -642,7 +646,7 @@ bool setuplistenserver(bool dedicated)
         return false;
     }
     loopi(maxclients) serverhost->peers[i].data = NULL;
-    address.port = server::serverinfoport(GETIV(serverport) > 0 ? GETIV(serverport) : -1);
+    address.port = server::serverinfoport(serverport > 0 ? serverport : -1);
     return true;
 }
 

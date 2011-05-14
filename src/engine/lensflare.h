@@ -28,6 +28,10 @@ struct flare
     bool sparkle;
 };
 
+VAR(flarelights, 0, 0, 1);
+VARP(flarecutoff, 0, 1000, 10000);
+VARP(flaresize, 20, 100, 500);
+
 struct flarerenderer : partrenderer
 {
     int maxflares, numflares;
@@ -72,13 +76,13 @@ struct flarerenderer : partrenderer
         if(sun) //fixed size
         {
             mod = 1.0;
-            size = flaredir.magnitude() * GETIV(flaresize) / 100.0f;
+            size = flaredir.magnitude() * flaresize / 100.0f;
         }
         else
         {
-            mod = (GETIV(flarecutoff)-vec(o).sub(center).squaredlen())/GETIV(flarecutoff);
+            mod = (flarecutoff-vec(o).sub(center).squaredlen())/flarecutoff;
             if(mod < 0.0f) return;
-            size = GETIV(flaresize) / 5.0f;
+            size = flaresize / 5.0f;
         }
         newflare(o, center, r, g, b, mod, size, sun, sparkle);
     }
@@ -88,7 +92,7 @@ struct flarerenderer : partrenderer
         numflares = 0; //regenerate flarelist each frame
         shinetime = lastmillis/10;
 
-        if(editmode || !GETIV(flarelights)) return;
+        if(editmode || !flarelights) return;
 
         const vector<extentity *> &ents = entities::getents();
         vec viewdir;
@@ -110,12 +114,12 @@ struct flarerenderer : partrenderer
             if(sun) //fixed size
             {
                 mod = 1.0;
-                size = len * GETIV(flaresize) / 100.0f;
+                size = len * flaresize / 100.0f;
             }
             else
             {
                 mod = (radius-len)/radius;
-                size = GETIV(flaresize) / 5.0f;
+                size = flaresize / 5.0f;
             }
             newflare(e.o, center, e.attr2, e.attr3, e.attr4, mod, size, sun, sun);
         }
