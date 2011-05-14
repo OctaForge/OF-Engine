@@ -232,7 +232,24 @@ namespace lua_binds
         }
         switch (ev->type)
         {
-            case var::VAR_I: e.push(ev->curv.i); break;
+            case var::VAR_I:
+            {
+                if ((ev->flags&var::VAR_HEX) != 0)
+                {
+                    char buf[32];
+                    snprintf(
+                        buf, sizeof(buf),
+                        "0x%.6X <%d, %d, %d>",
+                        ev->curv.i,
+                        (ev->curv.i>>16)&0xFF,
+                        (ev->curv.i>>8)&0xFF,
+                        ev->curv.i&0xFF
+                    );
+                    e.push(buf);
+                }
+                else e.push(ev->curv.i);
+                break;
+            }
             case var::VAR_F: e.push(ev->curv.f); break;
             case var::VAR_S: e.push(ev->curv.s); break;
             default: e.push(); break;
