@@ -10,6 +10,7 @@
 #include "client_system.h"
 #include "message_system.h"
 #include "network_system.h"
+#include "targeting.h"
 
 #ifdef CLIENT
     #include "client_engine_additions.h"
@@ -615,8 +616,32 @@ assert(0); // Kripken: Do not let clients know other clients' pings
     void adddynlights()
     {
         #ifdef CLIENT
-            LightControl::addHoverLight();
-            LightControl::showQueuedDynamicLights();
+            if (GuiControl::isMouselooking()) return;
+
+            if (!TargetingControl::targetLogicEntity
+              || TargetingControl::targetLogicEntity->isNone()) return;
+
+            vec color;
+            switch (TargetingControl::targetLogicEntity->getType())
+            {
+                case CLogicEntity::LE_DYNAMIC:
+                    color = vec(0.25f, 1.0f, 0.25f);
+                    break;
+                case CLogicEntity::LE_STATIC:
+                    color = vec(0.25f, 0.25f, 1.0f);
+                    break;
+                default:
+                    return;
+            }
+
+            vec position = TargetingControl::targetLogicEntity->getOrigin();
+            float radius = TargetingControl::targetLogicEntity->getRadius();
+
+            adddynlight(position, radius * 2, color);
+
+            vec floornorm;
+            float floordist = rayfloor(position, floornorm);
+            adddecal(DECAL_CIRCLE, position.sub(vec(0, 0, floordist)), floornorm, radius);
         #endif
     }
 

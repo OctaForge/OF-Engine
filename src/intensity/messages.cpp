@@ -127,12 +127,12 @@ namespace MessageSystem
 
 // LoginRequest
 
-    void send_LoginRequest(const char* code)
+    void send_LoginRequest()
     {
         Logging::log(Logging::DEBUG, "Sending a message of type LoginRequest (1003)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1003, "rs", code);
+        game::addmsg(1003, "r");
     }
 
 #ifdef SERVER
@@ -140,10 +140,7 @@ namespace MessageSystem
     {
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type LoginRequest (1003)\r\n");
 
-        static char code[MAXTRANS];
-        getstring(code, p);
 
-                     // identity of this user
         #ifdef SERVER
             if (!world::get_scenario_code())
             {
@@ -1913,13 +1910,13 @@ namespace MessageSystem
     }
 #endif
 
-// MapUpdated
+// ParticleSplashToClients
 
-    void send_MapUpdated(int clientNumber, int updatingClientNumber)
+    void send_ParticleSplashToClients(int clientNumber, int _type, int num, int fade, float x, float y, float z)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type MapUpdated (1032)\r\n");
+        Logging::log(Logging::DEBUG, "Sending a message of type ParticleSplashToClients (1032)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
          
@@ -1954,34 +1951,39 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "rii", 1032, updatingClientNumber);
+                sendf(clientNumber, MAIN_CHANNEL, "iiiiiii", 1032, _type, num, fade, int(x*DMF), int(y*DMF), int(z*DMF));
 
             }
         }
     }
 
 #ifdef CLIENT
-    void MapUpdated::receive(int receiver, int sender, ucharbuf &p)
+    void ParticleSplashToClients::receive(int receiver, int sender, ucharbuf &p)
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type MapUpdated (1032)\r\n");
+        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashToClients (1032)\r\n");
 
-        int updatingClientNumber = getint(p);
+        int _type = getint(p);
+        int num = getint(p);
+        int fade = getint(p);
+        float x = float(getint(p))/DMF;
+        float y = float(getint(p))/DMF;
+        float z = float(getint(p))/DMF;
 
-        updatingClientNumber = updatingClientNumber; // warning
-        assert(0);
+        vec pos(x,y,z);
+        particle_splash(_type, num, fade, pos);
     }
 #endif
 
 
-// ParticleSplashToClients
+// ParticleSplashRegularToClients
 
-    void send_ParticleSplashToClients(int clientNumber, int _type, int num, int fade, float x, float y, float z)
+    void send_ParticleSplashRegularToClients(int clientNumber, int _type, int num, int fade, float x, float y, float z)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type ParticleSplashToClients (1033)\r\n");
+        Logging::log(Logging::DEBUG, "Sending a message of type ParticleSplashRegularToClients (1033)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
          
@@ -2023,78 +2025,11 @@ namespace MessageSystem
     }
 
 #ifdef CLIENT
-    void ParticleSplashToClients::receive(int receiver, int sender, ucharbuf &p)
-    {
-        bool is_npc;
-        is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashToClients (1033)\r\n");
-
-        int _type = getint(p);
-        int num = getint(p);
-        int fade = getint(p);
-        float x = float(getint(p))/DMF;
-        float y = float(getint(p))/DMF;
-        float z = float(getint(p))/DMF;
-
-        vec pos(x,y,z);
-        particle_splash(_type, num, fade, pos);
-    }
-#endif
-
-
-// ParticleSplashRegularToClients
-
-    void send_ParticleSplashRegularToClients(int clientNumber, int _type, int num, int fade, float x, float y, float z)
-    {
-        int exclude = -1; // Set this to clientNumber to not send to
-
-        Logging::log(Logging::DEBUG, "Sending a message of type ParticleSplashRegularToClients (1034)\r\n");
-        INDENT_LOG(Logging::DEBUG);
-
-         
-
-        int start, finish;
-        if (clientNumber == -1)
-        {
-            // Send to all clients
-            start  = 0;
-            finish = getnumclients() - 1;
-        } else {
-            start  = clientNumber;
-            finish = clientNumber;
-        }
-
-#ifdef SERVER
-        int testUniqueId;
-#endif
-        for (clientNumber = start; clientNumber <= finish; clientNumber++)
-        {
-            if (clientNumber == exclude) continue;
-#ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
-            bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
-
-            testUniqueId = server::getUniqueId(clientNumber);
-            if ( (!serverControlled && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If a remote client, send even if negative (during login process)
-                 (false && testUniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) || // If need to send to dummy server, send there
-                 (false && testUniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID && serverControlled) )  // If need to send to npcs, send there
-#endif
-            {
-                #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
-                #endif
-                sendf(clientNumber, MAIN_CHANNEL, "iiiiiii", 1034, _type, num, fade, int(x*DMF), int(y*DMF), int(z*DMF));
-
-            }
-        }
-    }
-
-#ifdef CLIENT
     void ParticleSplashRegularToClients::receive(int receiver, int sender, ucharbuf &p)
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashRegularToClients (1034)\r\n");
+        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashRegularToClients (1033)\r\n");
 
         int _type = getint(p);
         int num = getint(p);
@@ -2113,16 +2048,16 @@ namespace MessageSystem
 
     void send_RequestPrivateEditMode()
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type RequestPrivateEditMode (1035)\r\n");
+        Logging::log(Logging::DEBUG, "Sending a message of type RequestPrivateEditMode (1034)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
-        game::addmsg(1035, "r");
+        game::addmsg(1034, "r");
     }
 
 #ifdef SERVER
     void RequestPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestPrivateEditMode (1035)\r\n");
+        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestPrivateEditMode (1034)\r\n");
 
 
         if (!world::get_scenario_code()) return;
@@ -2136,7 +2071,7 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type NotifyPrivateEditMode (1036)\r\n");
+        Logging::log(Logging::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)\r\n");
         INDENT_LOG(Logging::DEBUG);
 
          
@@ -2171,7 +2106,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "ri", 1036);
+                sendf(clientNumber, MAIN_CHANNEL, "ri", 1035);
 
             }
         }
@@ -2182,7 +2117,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1036)\r\n");
+        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1035)\r\n");
 
 
         conoutf("Server: You are now in private edit mode");
@@ -2226,7 +2161,6 @@ void MessageManager::registerAll()
     registerMessageType( new EditModeS2C() );
     registerMessageType( new RequestMap() );
     registerMessageType( new DoClick() );
-    registerMessageType( new MapUpdated() );
     registerMessageType( new ParticleSplashToClients() );
     registerMessageType( new ParticleSplashRegularToClients() );
     registerMessageType( new RequestPrivateEditMode() );

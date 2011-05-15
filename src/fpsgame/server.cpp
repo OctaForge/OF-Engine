@@ -854,11 +854,7 @@ namespace server
     int laninfoport() { return -1; }
     int serverport(int infoport)
     {
-        #ifdef CLIENT
-            return ClientSystem::currPort;
-        #else // SERVER
-            return SAUERBRATEN_SERVER_PORT;
-        #endif
+        return SAUERBRATEN_SERVER_PORT;
     }
 
     #include "extinfo.h"

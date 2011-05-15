@@ -18,19 +18,11 @@
 
 using namespace lua;
 
-std::string ClientSystem::blankPassword = "1111111111"; // TODO: We should ensure the users can never have this for a real password!
-                                                        // Note: Sending CEGUI characters that are invalid to enter in the field might
-                                                        // seem like a nice solution here, but CEGUI has issues with that
-
 int            ClientSystem::playerNumber       = -1;
 CLogicEntity  *ClientSystem::playerLogicEntity  = NULL;
 bool           ClientSystem::loggedIn           = false;
 bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
-std::string    ClientSystem::currMap            = "";
-std::string ClientSystem::currTransactionCode = "MISSING_TRANSACTION_CODE";
-std::string ClientSystem::currHost = "";
-int ClientSystem::currPort = -1;
 std::string ClientSystem::currScenarioCode = "";
 
 bool _scenarioStarted = false;
@@ -47,33 +39,9 @@ namespace game
 }
 
 
-#define USER_INFO_SECTION "UserInfo"
-#define VIDEO_SECTION "Video"
-
-std::string ClientSystem::getUsername()
-{
-    return "DUMMY_USERNAME";
-}
-
-std::string ClientSystem::getHashedPassword()
-{
-    return "DUMMY_HASH";
-}
-
-std::string ClientSystem::getVisualPassword()
-{
-    if (getHashedPassword() != "")
-        return blankPassword; // Visually, we show just 8 or so letters, not the entire hash of course
-    else
-        return "";
-}
-
 void ClientSystem::connect(std::string host, int port)
 {
     editingAlone = false;
-
-    currHost = host;
-    currPort = port;
 
     connectserv((char *)host.c_str(), port, "");
 }
@@ -84,7 +52,7 @@ void ClientSystem::login(int clientNumber)
 
     playerNumber = clientNumber;
 
-    MessageSystem::send_LoginRequest(currTransactionCode.c_str());
+    MessageSystem::send_LoginRequest();
 }
 
 void ClientSystem::finishLogin(bool local)
@@ -114,18 +82,6 @@ void ClientSystem::onDisconnect()
     LogicSystem::clear();
 }
 
-void ClientSystem::sendSavedMap()
-{
-    assert(0); // Deprecated
-}
-
-/*
-bool ClientSystem::mapCompletelyReceived()
-{
-    return _mapCompletelyReceived;
-}
-*/
-
 bool ClientSystem::scenarioStarted()
 {
     if (!_mapCompletelyReceived)
@@ -149,22 +105,45 @@ void ClientSystem::frameTrigger(int curtime)
 {
     if (scenarioStarted())
     {
-        PlayerControl::handleExtraPlayerMovements(curtime);
+        float delta = float(curtime)/1000.0f;
+
+        /* turn if mouse is at borders */
+        float x, y;
+        g3d_cursorpos(x, y);
+
+        /* do not scroll with mouse */
+        if (g3d_windowhit(true, false)) x = y = 0.5;
+
+        /* turning */
+        fpsent *fp = (fpsent*)player;
+        engine.getref(ClientSystem::playerLogicEntity->luaRef);
+        float fs = engine.t_get<double>("facing_speed");
+
+        if (fp->turn_move || fabs(x - 0.5) > 0.45)
+        {
+            player->yaw += fs * (
+                fp->turn_move ? fp->turn_move : (x > 0.5 ? 1 : -1)
+            ) * delta;
+        }
+
+        if (fp->look_updown_move || fabs(y - 0.5) > 0.45)
+        {
+            player->pitch += fs * (
+                fp->look_updown_move ? fp->look_updown_move : (y > 0.5 ? -1 : 1)
+            ) * delta;
+        }
+
+        engine.pop(1);
+
+        /* normalize and limit the yaw and pitch values to appropriate ranges */
+        extern void fixcamerarange();
+        fixcamerarange();
+
         TargetingControl::determineMouseTarget();
         dobgload();
     }
 
     ClientSystem::cleanupHUD();
-}
-
-void ClientSystem::gotoLoginScreen()
-{
-    assert(0);
-}
-
-void setTransactionCode(std::string code)
-{
-    ClientSystem::currTransactionCode = code;
 }
 
 //
@@ -408,11 +387,6 @@ void ClientSystem::cleanupHUD()
     queuedHUDTexts.clear();
 }
 
-int get_escape()
-{
-    return SDLK_ESCAPE;
-}
-
 void ClientSystem::finishLoadWorld()
 {
     extern bool finish_load_world();
@@ -440,11 +414,6 @@ void ClientSystem::prepareForNewScenario(std::string scenarioCode)
     LogicSystem::clear();
 
     currScenarioCode = scenarioCode;
-}
-
-void ClientSystem::handleConfigSettings()
-{
-    assert(0);
 }
 
 bool ClientSystem::isAdmin()

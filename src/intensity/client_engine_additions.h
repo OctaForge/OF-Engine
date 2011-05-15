@@ -74,38 +74,3 @@ struct GuiControl
 //        static unsigned int currStateDataIndex;
     };
 };
-
-
-//! Player input control and management
-
-struct PlayerControl
-{
-    //! Keyboard controls not in sauer: turn left/right, look up/down
-    static void handleExtraPlayerMovements(int millis);
-
-    //! Main routine to handle a keypress. If we don't handle it, main() sends it to Sauer.
-    static bool handleKeypress(SDLKey sym, int unicode, bool isdown);
-
-    //! Main routine to handle a mouse click. If we don't handle it, main() sends it to Sauer.
-    static bool handleClick(int button, bool up);
-
-    //! Erases all the actions from the player's queue. Useful when cancel was pressed to stop actions, or a new action
-    //! was decided upon, etc.
-    static void flushActions();
-
-    //! Shows the main menu (with quit etc. options)
-    static void toggleMainMenu();
-};
-
-
-//! Management of dynamic lights
-
-namespace LightControl
-{
-    // Adds an appropriately-looking light on the entity on which the mouse cursor is hovering
-    extern void addHoverLight();
-
-    extern void queueDynamicLight(const vec &o, float radius, const vec &color, int fade, int peak, int flags, float initradius, const vec &initcolor, physent *owner);
-
-    extern void showQueuedDynamicLights();
-};

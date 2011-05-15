@@ -65,8 +65,6 @@ end
 
 // TODO: If LoginRequest is not called soon enough, disconnect enet clients in that state
 LoginRequest(client->server)
-    char* code // A proof code from the master server, which can be used to verify the
-                     // identity of this user
     receive:
         #ifdef SERVER
             if (!world::get_scenario_code())
@@ -849,14 +847,6 @@ DoClick(client->server)
             }
             engine.call(numargs, 0);
         }
-end
-
-MapUpdated(server->client)
-    implicit clientNumber
-    int updatingClientNumber
-    receive:
-        updatingClientNumber = updatingClientNumber; // warning
-        assert(0);
 end
 
 // Server notifies clients of a particle effect

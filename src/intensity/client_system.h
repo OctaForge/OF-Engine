@@ -6,14 +6,6 @@
 
 struct ClientSystem
 {
-    //! A constant, essentially: the password sent to CEGUI when we have one stored for
-    //! the player along with his/her password. If we get this dummy value back from
-    //! CEGUI then the user wants to use the hashed password we have saved, and we
-    //! send that to the server. We use this dummy instead of the hash, because (1)
-    //! the hash is quite long, and (2) might contain values not valid for CEGUI's
-    //! password field.
-    static std::string   blankPassword; // Constant
-
     //! The client number of the PC. A copy of player1->clientnum, but nicer name
     static int           playerNumber;
 
@@ -31,27 +23,11 @@ struct ClientSystem
     //! LogicEntity.
     static int           uniqueId;
 
-    //! The current map being played. Set when we receive a map from the server (TODO:
-    //! also when we load a cached map)
-    static std::string   currMap;
-
-    static std::string currTransactionCode;
-
-    static std::string currHost;
-    static int currPort;
-
     //! An identifier for the current scenario the client is active in. Used to check with the
     //! server, when the server starts a new scenario, to know when we are in sync or not
     static std::string currScenarioCode;
 
     // Functions
-
-    //! Username stored in our config files, saved from last use
-    static std::string getUsername();
-    //! Hash of last password entered, saved in config file
-    static std::string getHashedPassword();
-    //! The visual password, i.e., what is sent to CEGUI. Might be blank, or blankPassword
-    static std::string getVisualPassword();
 
     //! Connects to the server, at the enet level
     static void connect(std::string host, int port);
@@ -71,25 +47,15 @@ struct ClientSystem
     //! Marks the status as not logged in. Called on a disconnect from sauer's client.h:gamedisconnect()
     static void onDisconnect();
 
-    //! Sends a just-saved map (all 3 parts: ogz, cfg, unique_ids) to server, at the end of worldio.cpp:save_world().
-    //! The map is worked on in the user's dir/packages/base, as per sauer norms.
-    static void sendSavedMap();
-
     //! Whether the scenario has actually started, i.e., we have received everything we need from the server to get going
     static bool scenarioStarted();
 
     //! Stuff done on each frame
     static void frameTrigger(int curtime);
 
-    static void gotoLoginScreen();
-
     static void finishLoadWorld();
 
     static void prepareForNewScenario(std::string scenarioCode);
-
-    //! Reads client-related settings (fullscreen, etc.) from the config file and applies them.
-    //! Done before initializing the system, so that these settings are applied.
-    static void handleConfigSettings();
 
     //! Check if this user has admin privileges, which allows entering edit mode and using the Sauer console (/slash)
     static bool isAdmin();
