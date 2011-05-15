@@ -81,7 +81,7 @@ set(CLIENT_SOURCES
     ../intensity/targeting
     ../intensity/network_system
     ../cubecreate/scripting_system_lua
-    ../cubecreate/variable_system
+    ../octaforge/of_vars
     ../shared/stream
     ../shared/zip
     ../engine/movie

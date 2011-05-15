@@ -9,8 +9,6 @@
 #include "message_system.h"
 #include "of_world.h"
 
-#define SERVER_UPDATE_INTERVAL 300
-
 namespace server
 {
     extern bool shutdown_if_empty;
@@ -813,7 +811,6 @@ int main(int argc, char **argv)
     Logging::log(Logging::DEBUG, "Running first slice.\n");
     server_runslice();
 
-    int last_server_update = 0;
     int servermillis = time(0) * 1000;
     while (!should_quit)
     {
@@ -825,11 +822,11 @@ int main(int argc, char **argv)
         if (!should_quit)
             server_runslice();
 
-        if (time(0) - last_server_update >= SERVER_UPDATE_INTERVAL)
+        if (map_asset)
         {
-            Logging::log(Logging::DEBUG, "Setting map ..\n");
-            last_server_update = time(0);
+            Logging::log(Logging::DEBUG, "Setting map to %s ..\n", map_asset);
             world::set_map(map_asset);
+            map_asset = NULL;
         }
     }
 

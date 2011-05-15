@@ -1,5 +1,5 @@
 /*
- * variable_system.hpp, version 1
+ * of_vars.h, version 1
  * Header file for engine varsystem
  *
  * author: q66 <quaker66@gmail.com>
@@ -26,6 +26,9 @@
  * THE SOFTWARE.
  *
  */
+
+#ifndef OF_VARS_H
+#define OF_VARS_H
 
 namespace var
 {
@@ -128,8 +131,7 @@ namespace var
     void clear();
     void flush();
     cvar *get(const char *name);
-}
-// end namespace var
+} /* end namespace var */
 
 #define _VAR(name, global, min, cur, max, flags)  int &global = var::regivar(#name, min, cur, max, &global, NULL, flags)
 #define VARN(name, global, min, cur, max) _VAR(name, global, min, cur, max, 0)
@@ -186,3 +188,5 @@ namespace var
 #define SETV(name, val) var::get(#name)->set(val)
 #define SETVF(name, val) var::get(#name)->set(val, true)
 #define SETVFN(name, val) var::get(#name)->set(val, true, false)
+
+#endif

@@ -1,5 +1,5 @@
 /*
- * variable_system.cpp, version 1
+ * of_vars.cpp, version 1
  * Source file for engine varsystem
  *
  * author: q66 <quaker66@gmail.com>
@@ -283,5 +283,4 @@ namespace var
             return *vars->access(name);
         else return NULL;
     }
-}
-// end namespace var
+} /* end namespace var */

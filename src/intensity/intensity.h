@@ -8,7 +8,7 @@
 
     #include <string>
 
-    #include "variable_system.hpp"
+    #include "of_vars.h"
     #include "engine_additions.h"
     #include "logging.h"
     #include "scripting_system_lua.hpp"
