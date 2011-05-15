@@ -74,43 +74,12 @@ void WorldSystem::triggerReceivedEntity()
     {
         float val = float(numReceivedEntities)/float(numExpectedEntities);
         val = clamp(val, 0.0f, 1.0f);
-        char *text = of_tools_vstrcat(NULL, "sis", "received entity ", numReceivedEntities, "...");
+        char *text = tools::vstrcat(NULL, "sis", "received entity ", numReceivedEntities, "...");
         if (WorldSystem::loadingWorld) // Show message only during map loading, not when new clients log in
             renderprogress(val, text);
-        OF_FREE(text);
+        delete[] text;
     }
 }
-
-// Convenience tools for entities
-
-int getEntId(extentity *entity)
-{
-    vector<extentity *> &ents = entities::getents();
-    int id = 0;
-    while (ents[id] != entity)
-    {
-        id++;
-        assert(id < ents.length());
-    }
-
-    return id;
-}
-
-extern void addentity(int id);
-// Kripken: Version of this with a point instead of an ent #
-void addentity(extentity* entity)
-{
-    addentity(getEntId(entity));
-}
-
-extern void removeentity(int id);
-// Kripken: Version of this with a point instead of an ent #
-void removeentity(extentity *entity)
-{
-    removeentity(getEntId(entity));
-}
-
-
 // AreaTrigger collisions
 
 bool WorldSystem::triggeringCollisions = false;

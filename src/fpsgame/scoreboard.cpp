@@ -39,7 +39,7 @@ namespace game
                 // we get a table here
                 LUA_TABLE_FOREACH(engine, {
                     int lineUniqueId = engine.t_get<int>(1);
-                    char *lt = strdup(engine.t_get<const char*>(2));
+                    char *lt = newstring(engine.t_get<const char*>(2));
                     if (lineUniqueId != -1)
                     {
                         CLogicEntity *entity = LogicSystem::getLogicEntity(lineUniqueId);
@@ -51,18 +51,18 @@ namespace game
                             if (showpj)
                             {
                                 if (p->state == CS_LAGGED)
-                                    lt = of_tools_vstrcat(lt, "s", "LAG");
+                                    lt = tools::vstrcat(lt, "s", "LAG");
                                 else
-                                    lt = of_tools_vstrcat(lt, "si", " pj: ", p->plag);
+                                    lt = tools::vstrcat(lt, "si", " pj: ", p->plag);
                             }
                             if (!showpj && p->state == CS_LAGGED)
-                                lt = of_tools_vstrcat(lt, "s", "LAG");
+                                lt = tools::vstrcat(lt, "s", "LAG");
                             else
-                                lt = of_tools_vstrcat(lt, "si", " p: ", p->ping);
+                                lt = tools::vstrcat(lt, "si", " p: ", p->ping);
                         }
                     }
                     g.text (lt, 0xFFFFDD, NULL);
-                    OF_FREE(lt);
+                    delete[] lt;
                 });
             }
             engine.pop(1);

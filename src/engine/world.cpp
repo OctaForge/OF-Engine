@@ -178,8 +178,26 @@ static bool modifyoctaent(int flags, int id)
     return true;
 }
 
+/* OctaForge: getentid */
+static int getentid(extentity *entity)
+{
+    vector<extentity *> &ents = entities::getents();
+    int id = 0;
+    while (ents[id] != entity)
+    {
+        id++;
+        assert(id < ents.length());
+    }
+
+    return id;
+}
+
 void addentity(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
 void removeentity(int id) { modifyoctaent(MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
+
+/* OctaForge: extentity* versions */
+void addentity(extentity* entity) { addentity(getentid(entity)); }
+void removeentity(extentity *entity) { removeentity(getentid(entity)); }
 
 void freeoctaentities(cube &c)
 {
@@ -926,14 +944,14 @@ void newentity(int type, int a1, int a2, int a3, int a4, int a5)
 void newent(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
 {
     if(noentedit()) return;
-    char *sd = of_tools_vstrcat(NULL, "sis sis sis sis",
+    char *sd = tools::vstrcat(NULL, "sis sis sis sis",
         "{ 'attr1': '", *a1, "', ",
          " 'attr2': '", *a2, "', ",
          " 'attr3': '", *a3, "', ",
          " 'attr4': '", *a4, "' }"
     );
     EditingSystem::newEntity(what, sd);
-    OF_FREE(sd);
+    delete[] sd;
 }
 
 int entcopygrid;

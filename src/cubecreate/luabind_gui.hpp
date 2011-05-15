@@ -162,12 +162,12 @@ namespace lua_binds
 
         // Title
         e.getg("tostring").getref(GuiControl::EditedEntity::currEntity->luaRef).call(1, 1);
-        char *title = of_tools_vstrcat(NULL, "iss", uid, ": ", e.get(-1, "unknown"));
+        char *title = tools::vstrcat(NULL, "iss", uid, ": ", e.get(-1, "unknown"));
         e.pop(1);
         SETVF(entity_gui_title, title);
-        OF_FREE(title);
+        delete[] title;
         // Create the gui
-        char *command = strdup(
+        char *command = newstring(
             "gui.new(\"entity\", function()\n"
             "    gui.text(entity_gui_title)\n"
             "    gui.bar()\n"
@@ -181,7 +181,7 @@ namespace lua_binds
                 Logging::log(Logging::WARNING, "Not showing field '%s' as it is overly large for the GUI\r\n", key);
                 continue; // Do not even try to show overly-large items
             }
-            command = of_tools_vstrcat(command, "sisisisisisisis", 
+            command = tools::vstrcat(command, "sisisisisisisis", 
                 "    gui.list(function()\n"
                 "        gui.text(gui.getentguilabel(",
                 i,
@@ -203,11 +203,11 @@ namespace lua_binds
                 "    end)\n"
             );
             if ((i+1) % 10 == 0)
-                command = of_tools_vstrcat(command, "sis", "   gui.tab(", i, ")\n");
+                command = tools::vstrcat(command, "sis", "   gui.tab(", i, ")\n");
         }
-        command = of_tools_vstrcat(command, "s", "end)\n");
-        e.exec (command);
-        OF_FREE(command);
+        command = tools::vstrcat(command, "s", "end)\n");
+        e.exec  (command);
+        delete[] command;
     })
 
     LUA_BIND_CLIENT(getentguilabel, {

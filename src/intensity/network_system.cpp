@@ -462,7 +462,7 @@ private:
 
     void updateReceiveStats()
     {
-        int currTime = of_tools_getcurrtime();
+        int currTime = tools::currtime();
         if (lastReceived != -1)
         {
             int currLatency = currTime - lastReceived;
@@ -518,7 +518,7 @@ private:
     //      If send, remember this last value and time
     #define PROCESSDATUM(name, indicator)                                 \
         {                                                                 \
-            int currTime = of_tools_getcurrtime();                        \
+            int currTime = tools::currtime();                        \
             if (!indicator) return;                                       \
             bool sameValue = (info.name == last##name.value);             \
             indicator = positionDatumDecider(                             \

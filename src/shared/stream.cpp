@@ -37,7 +37,7 @@ char *makerelpath(const char *dir, const char *file, const char *prefix, const c
         concatstring(tmp, pname);
     }
     else concatstring(tmp, file);
-    if (!of_tools_validate_relpath(tmp)) { printf("Relative path not validated: %s\r\n", tmp); assert(0); }; // INTENSITY
+    if (!tools::valrpath(tmp)) { printf("Relative path not validated: %s\r\n", tmp); assert(0); }; // INTENSITY
     return tmp;
 }
 

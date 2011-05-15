@@ -69,7 +69,7 @@ LoginRequest(client->server)
                      // identity of this user
     receive:
         #ifdef SERVER
-            if (!of_world_get_scenario_code())
+            if (!world::get_scenario_code())
             {
                 send_PersonalServerMessage(
                     sender,
@@ -80,8 +80,8 @@ LoginRequest(client->server)
                 disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
             }
             char *uname = server::getUsername(sender);
-            if (uname) OF_FREE(uname);
-            uname = strdup("local_editor");
+            if (uname) delete[] uname;
+            uname = newstring("local_editor");
             server::setAdmin(sender, true);
             send_LoginResponse(sender, true, true);
         #else // CLIENT, during a localconnect
@@ -146,8 +146,8 @@ end
 //
 RequestCurrentScenario(client->server)
     receive:
-        if (!of_world_get_scenario_code()) return;
-        of_world_send_curr_map(sender);
+        if (!world::get_scenario_code()) return;
+        world::send_curr_map(sender);
 end
 
 // Tells the client that the scenario has changed, and the client should acquire the current map, using the name
@@ -161,7 +161,7 @@ NotifyAboutCurrentScenario(server->client)
     char* sc
     receive:
         ClientSystem::currScenarioCode = sc;
-        of_world_set_map(mid);
+        world::set_map(mid);
 end
 
 // Tells the server that it should restart, e.g., if this client has updated the map, by uploading a new version
@@ -169,7 +169,7 @@ end
 // re-starts the map
 RestartMap(client->server)
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         if (!server::isAdmin(sender))
         {
@@ -177,7 +177,7 @@ RestartMap(client->server)
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot restart the map");
             return;
         }
-        of_world_restart_map();
+        world::restart_map();
 end
 
 // A new Entity is asked to be created by a client
@@ -190,7 +190,7 @@ NewEntityRequest(client->server)
     send:
         EditingSystem::madeChanges = true;
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         if (!server::isAdmin(sender))
         {
@@ -295,7 +295,7 @@ StateDataChangeRequest(client->server)
         if (editmode)
             EditingSystem::madeChanges = true;
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
@@ -328,7 +328,7 @@ UnreliableStateDataChangeRequest(client->server)
     int keyProtocolId
     char* value
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         STATE_DATA_REQUEST
 end
@@ -353,7 +353,7 @@ ActiveEntitiesRequest(client->server)
     char* scenarioCode // The scenario the client is running, i.e., for which it wants the entities
     receive:
         #ifdef SERVER
-            if (!of_world_get_scenario_code()) return;
+            if (!world::get_scenario_code()) return;
 
             // Mark the client as running the current scenario, if indeed doing so
             server::setClientScenario(sender, scenarioCode);
@@ -483,7 +483,7 @@ RequestLogicEntityRemoval(client->server)
     send:
         EditingSystem::madeChanges = true;
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         if (!server::isAdmin(sender))
         {
@@ -626,7 +626,7 @@ SoundToServer(client->server)
     unreliable
     int soundId
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
@@ -729,7 +729,7 @@ end
 EditModeC2S(client->server)
     int mode
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         #if 0 // The old sauer code from fpsserver.h
             case N_EDITMODE:
@@ -792,8 +792,8 @@ end
 // Request the current map file. Like /getmap in Sauer
 RequestMap(client->server)
     receive:
-        if (!of_world_get_scenario_code()) return;
-        of_world_send_curr_map(sender);
+        if (!world::get_scenario_code()) return;
+        world::send_curr_map(sender);
 end
 
 // Tells the server that a LogicEntity has been clicked
@@ -805,7 +805,7 @@ DoClick(client->server)
     float z
     int uniqueId
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
@@ -891,7 +891,7 @@ end
 // Request to enter the server into private edit mode
 RequestPrivateEditMode(client->server)
     receive:
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         send_NotifyPrivateEditMode(sender);
 end
 

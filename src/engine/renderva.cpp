@@ -592,7 +592,7 @@ static void disabletexgen(int dims = 2)
     if(dims>=2) glDisable(GL_TEXTURE_GEN_T);
 }
 
-VAR(outline, 0, 0, 1);
+VAR(outline, 0, 1, 1);
 HVARP(outlinecolour, 0, 0, 0xFFFFFF);
 VAR(dtoutline, 0, 1, 1);
 

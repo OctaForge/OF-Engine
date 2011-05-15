@@ -1014,7 +1014,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if (lua::engine.hashandle())
     {
         lua::engine.execf("data/cfg/default_map_settings.lua", false);
-        of_world_run_map_script();
+        world::run_mapscript();
     }
     var::overridevars = false;
    

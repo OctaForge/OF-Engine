@@ -829,7 +829,7 @@ int main(int argc, char **argv)
         {
             Logging::log(Logging::DEBUG, "Setting map ..\n");
             last_server_update = time(0);
-            of_world_set_map(map_asset);
+            world::set_map(map_asset);
         }
     }
 

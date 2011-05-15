@@ -42,7 +42,7 @@ void force_quit() // INTENSITY - change quit to force_quit
     abortconnect();
     disconnect();
     localdisconnect();
-    of_tools_writecfg();
+    tools::writecfg();
     cleanup();
 
     lua::engine.destroy();
@@ -1111,7 +1111,7 @@ int main(int argc, char **argv)
     initlog("lua");
     lua::engine.create();
     if (!lua::engine.hashandle()) fatal("cannot initialize lua script engine");
-    if (restoredinits) of_tools_execcfg(initcfg);
+    if (restoredinits) tools::execcfg(initcfg);
 
     initing = NOT_INITING;
 
@@ -1194,10 +1194,10 @@ int main(int argc, char **argv)
     var::persistvars = true;
     
     initing = INIT_LOAD;
-    if(!of_tools_execcfg(game::savedconfig())) 
+    if(!tools::execcfg(game::savedconfig())) 
     {
         lua::engine.execf(game::defaultconfig());
-        of_tools_writecfg(game::restoreconfig());
+        tools::writecfg(game::restoreconfig());
     }
     lua::engine.execf("data/cfg/config.lua");
     lua::engine.execf(game::autoexec(), false);
@@ -1244,7 +1244,7 @@ int main(int argc, char **argv)
             if(curtime>200) curtime = 200;
             if(paused || game::ispaused()) curtime = 0;
         }
-        of_localserver_try_connect(); /* Try connecting if server is ready */
+        local_server::try_connect(); /* Try connecting if server is ready */
 
         skymillis += curtime; // INTENSITY: SkyManager
         lastmillis += curtime;

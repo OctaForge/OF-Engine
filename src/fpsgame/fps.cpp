@@ -84,12 +84,12 @@ namespace game
     {
         static char buf[512];
 
-        char *prefix = strdup(of_world_get_curr_map_asset_id());
+        char *prefix = newstring(world::get_curr_mapid());
         prefix[strlen(prefix) - 6] = '\0';
         prefix[strlen(prefix) - 1] = PATHDIV;
 
         snprintf(buf, sizeof(buf), "%smap", prefix);
-        OF_FREE(prefix);
+        delete[] prefix;
 
         return buf;
     }
@@ -261,14 +261,14 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            char *cmd = of_tools_vstrcat(NULL, "sis sis sis sis",
+            char *cmd = tools::vstrcat(NULL, "sis sis sis sis",
                 "entity_store.get(", d->uniqueId, ").position = {",
                 "entity_store.get(", d->uniqueId, ").position.x,",
                 "entity_store.get(", d->uniqueId, ").position.y,",
                 "entity_store.get(", d->uniqueId, ").position.z}"
             );
             engine.exec(cmd);
-            OF_FREE(cmd);
+            delete[] cmd;
 #endif
         }
     }

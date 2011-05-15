@@ -255,9 +255,9 @@ namespace lua_binds
     LUA_BIND_SERVER(npcadd, {
         int cn = localconnect(); // Local connect to the server
         char *uname = server::getUsername(cn);
-        if (uname) OF_FREE(uname);
+        if (uname) delete[] uname;
 
-        uname = of_tools_vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
+        uname = tools::vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
         Logging::log(Logging::DEBUG, "New NPC with client number: %d\r\n", cn);
 
         // Create lua entity (players do this when they log in, NPCs do it here
@@ -276,7 +276,7 @@ namespace lua_binds
     #endif
 
     LUA_BIND_CLIENT(save_mouse_pos, {
-        EditingSystem::savedMousePosTime = of_tools_getcurrtime();
+        EditingSystem::savedMousePosTime = tools::currtime();
         EditingSystem::savedMousePos = TargetingControl::worldPosition;
         Logging::log(Logging::DEBUG,
                      "Saved mouse pos: %f,%f,%f (%d)\r\n",
@@ -288,7 +288,7 @@ namespace lua_binds
 
     LUA_BIND_CLIENT(getentclass, {
         const char *ret = (EditingSystem::entityClasses[e.get<int>(1)]).c_str();
-        assert( of_tools_validate_alphanumeric(ret, "_") ); // Prevent injections
+        assert( tools::valanumeric(ret, "_") ); // Prevent injections
         e.push(ret);
     })
 

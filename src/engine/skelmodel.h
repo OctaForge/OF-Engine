@@ -2148,7 +2148,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         part *p = (part *)MDL::loading->parts.last();
     
         vector<char *> bonestrs;
-        char *maskstr = strdup(e.get<const char*>(1));
+        char *maskstr = newstring(e.get<const char*>(1));
 
         // TODO: get rid of this thing
         maskstr += strspn(maskstr, "\n\t ");
@@ -2173,7 +2173,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(bonemask.length()) bonemask.add(BONEMASK_END);
     
         if(!p->addanimpart(bonemask.getbuf())) conoutf("too many animation parts");
-        maskstr = NULL; free(maskstr);
+        delete[] maskstr;
     }
 
     static void setadjust(lua_Engine e)

@@ -92,10 +92,10 @@ void newEntity(std::string _class, std::string stateData)
         vec farPosition;
 
         Logging::log(Logging::DEBUG, "Considering saved mouse pos: %f,%f,%f (%d, %d)\r\n", savedMousePos.x, savedMousePos.y, savedMousePos.z,
-                                                                           savedMousePosTime, of_tools_getcurrtime());
+                                                                           savedMousePosTime, tools::currtime());
 
         // Use saved position, if exists and saved recently
-//        if (savedMousePosTime != -1 && of_tools_getcurrtime() - savedMousePosTime < 15000)
+//        if (savedMousePosTime != -1 && tools::currtime() - savedMousePosTime < 15000)
 //        {
             farPosition = savedMousePos;
             savedMousePosTime = -1;

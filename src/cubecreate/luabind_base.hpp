@@ -97,7 +97,7 @@ namespace lua_binds
 
     // Core binds
 
-    LUA_BIND_DEF(currtime, e.push(of_tools_getcurrtime());)
+    LUA_BIND_DEF(currtime, e.push(tools::currtime());)
     LUA_BIND_STD(getmillis, e.push, e.get<bool>(1) ? totalmillis : lastmillis)
     LUA_BIND_STD_CLIENT(keymap, keymap, e.get<int*>(1), e.get<char*>(2))
     LUA_BIND_STD_CLIENT(registersound, registersound, e.get<char*>(1), e.get<int*>(2))
@@ -115,9 +115,9 @@ namespace lua_binds
         scorebshow(on);
     })
     LUA_BIND_STD_CLIENT(tabify, tabify, e.get<char*>(1), e.get<int*>(2))
-    LUA_BIND_STD(writecfg, of_tools_writecfg, e.get<const char*>(1))
+    LUA_BIND_STD(writecfg, tools::writecfg, e.get<const char*>(1))
     LUA_BIND_DEF(readfile, {
-        const char *text = of_tools_loadfile_safe(e.get<const char*>(1));
+        const char *text = tools::sread(e.get<const char*>(1));
         if (!text)
         {
             e.push();
@@ -132,12 +132,12 @@ namespace lua_binds
                  e.get<const char*>(3)[0] ? e.get<const char*>(3) : NULL)
     LUA_BIND_STD(removezip, removezip, e.get<const char*>(1))
     LUA_BIND_DEF(gethomedir, {
-        char *hdir = strdup(homedir);
+        char *hdir = newstring(homedir);
         if (!strcmp(hdir + strlen(hdir) - 1,   "/"))
                     hdir[  strlen(hdir) - 1] = '\0';
 
         e.push(hdir);
-        OF_FREE(hdir);
+        delete[] hdir;
     })
     LUA_BIND_STD(getserverlogfile, e.push, SERVER_LOGFILE)
     

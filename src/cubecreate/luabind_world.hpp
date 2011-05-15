@@ -210,14 +210,14 @@ namespace lua_binds
     })
 
     LUA_BIND_STD(writeobj, writeobj, e.get<char*>(1))
-    LUA_BIND_STD(export_entities, of_world_export_entities, e.get<const char*>(1))
+    LUA_BIND_STD(export_entities, world::export_ents, e.get<const char*>(1))
 
     LUA_BIND_CLIENT(map, {
         if (e.is<void>(1))
-            of_localserver_stop();
+            local_server::stop();
         else
-            of_localserver_run(e.get<const char*>(1));
+            local_server::run(e.get<const char*>(1));
     })
 
-    LUA_BIND_STD_CLIENT(hasmap, e.push, of_localserver_get_running())
+    LUA_BIND_STD_CLIENT(hasmap, e.push, local_server::is_running())
 }
