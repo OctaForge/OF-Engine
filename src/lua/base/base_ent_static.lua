@@ -1,39 +1,26 @@
----
--- base_statent.lua, version 1<br/>
--- Static entity classes for Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: base/base_ent_static.lua
 
---- This module takes care of static entities.
--- Some of internal methods which are not meant
--- to be overriden are not documented. They are
--- usually documented in parent class, so
--- if you want documentation for them, look
--- in there.
--- @class module
--- @name entity_static
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features static logic entity class.
+
+    Section: Static entity system
+]]
+
+--[[!
+    Package: entity_static
+    This module handles static entities. It contains all base static entities,
+    the raw sauer ones, which you can then use as a base for custom ones.
+]]
 module("entity_static", package.seeall)
 
 --- Base static logic entity class, not meant to be used directly.

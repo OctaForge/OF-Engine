@@ -128,6 +128,7 @@ extern PFNGLUNIFORMBUFFEREXTPROC        glUniformBuffer_;
 extern PFNGLGETUNIFORMBUFFERSIZEEXTPROC glGetUniformBufferSize_;
 extern PFNGLGETUNIFORMOFFSETEXTPROC     glGetUniformOffset_;
 
+extern int& renderpath;
 enum { R_FIXEDFUNCTION = 0, R_GLSLANG };
 
 enum { SHPARAM_LOOKUP = 0, SHPARAM_VERTEX, SHPARAM_PIXEL, SHPARAM_UNIFORM };
@@ -193,7 +194,7 @@ enum
 #define MAXSHADERDETAIL 3
 #define MAXVARIANTROWS 5
 
-extern int shaderdetail;
+extern int& shaderdetail;
 
 struct Slot;
 struct VSlot;
@@ -274,21 +275,21 @@ struct Shader
 
     void setvariant(int col, int row, Shader *fallbackshader)
     {
-        if(!this || !detailshader || GETIV(renderpath)==R_FIXEDFUNCTION) return;
+        if(!this || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, fallbackshader);
         lastshader->flushenvparams();
     }
 
     void setvariant(int col, int row)
     {
-        if(!this || !detailshader || GETIV(renderpath)==R_FIXEDFUNCTION) return;
+        if(!this || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, detailshader);
         lastshader->flushenvparams();
     }
 
     void setvariant(int col, int row, Slot &slot, VSlot &vslot, Shader *fallbackshader)
     {
-        if(!this || !detailshader || GETIV(renderpath)==R_FIXEDFUNCTION) return;
+        if(!this || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, fallbackshader);
         lastshader->flushenvparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -296,7 +297,7 @@ struct Shader
 
     void setvariant(int col, int row, Slot &slot, VSlot &vslot)
     {
-        if(!this || !detailshader || GETIV(renderpath)==R_FIXEDFUNCTION) return;
+        if(!this || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         setvariant_(col, row, detailshader);
         lastshader->flushenvparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -309,14 +310,14 @@ struct Shader
  
     void set()
     {
-        if(!this || !detailshader || GETIV(renderpath)==R_FIXEDFUNCTION) return;
+        if(!this || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         set_();
         lastshader->flushenvparams();
     }
 
     void set(Slot &slot, VSlot &vslot)
     {
-        if(!this || !detailshader || GETIV(renderpath)==R_FIXEDFUNCTION) return;
+        if(!this || !detailshader || renderpath==R_FIXEDFUNCTION) return;
         set_();
         lastshader->flushenvparams(&slot);
         lastshader->setslotparams(slot, vslot);
@@ -622,7 +623,7 @@ struct cubemapside
 extern cubemapside cubemapsides[6];
 extern Texture *notexture;
 extern Shader *defaultshader, *rectshader, *cubemapshader, *notextureshader, *nocolorshader, *foggedshader, *foggednotextureshader, *stdworldshader, *lineshader, *foggedlineshader;
-extern int reservevpparams, maxvpenvparams, maxvplocalparams, maxfpenvparams, maxfplocalparams, maxvsuniforms, maxfsuniforms;
+extern int& reservevpparams, &maxvpenvparams, &maxvplocalparams, &maxfpenvparams, &maxfplocalparams, &maxvsuniforms, &maxfsuniforms;
 
 extern Shader *lookupshaderbyname(const char *name);
 extern Shader *useshaderbyname(const char *name);
@@ -643,7 +644,7 @@ extern ShaderParam *findshaderparam(Slot &s, const char *name, int type, int ind
 extern ShaderParam *findshaderparam(VSlot &s, const char *name, int type, int index);
 extern const char *getshaderparamname(const char *name);
 
-extern int maxtmus, nolights, nowater, nomasks;
+extern int &maxtmus, &nolights, &nowater, &nomasks;
 
 extern void inittmus();
 extern void resettmu(int n);

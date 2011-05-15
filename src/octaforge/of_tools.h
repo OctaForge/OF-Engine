@@ -30,22 +30,26 @@
 #ifndef OF_TOOLS_H
 #define OF_TOOLS_H
 
-#include <stdbool.h>
-#include <string.h>
-#include <stdarg.h>
+#include <cstring>
+#include <cstdarg>
 
-#define OF_NEW(o) calloc(1, sizeof(o))
-#define OF_FREE(o) free(o); o = NULL
+namespace tools
+{
+    bool  valanumeric(const char *str, const char *allow);
+    bool  valrpath(const char *path);
 
-bool  of_tools_validate_alphanumeric(const char *str, const char *allow);
-bool  of_tools_validate_relpath(const char *path);
-bool  of_tools_is_file_newer_than(const char *file, const char *otherfile);
-bool  of_tools_file_copy(const char *src, const char *dest);
-bool  of_tools_createpath(const char *path);
-char *of_tools_loadfile_safe(const char *fname);
-void  of_tools_writecfg(const char *name = NULL);
-bool  of_tools_execcfg(const char *cfgfile);
-char *of_tools_vstrcat(char *str, const char *format, ...);
-int   of_tools_getcurrtime();
+    bool  fnewer(const char *file, const char *otherfile);
+    bool  fcopy(const char *src, const char *dest);
+
+    bool  mkpath(const char *path);
+    char *sread(const char *fname);
+
+    void  writecfg(const char *name = NULL);
+    bool  execcfg(const char *cfgfile);
+
+    char *vstrcat(char *str, const char *format, ...);
+
+    int   currtime();
+} /* end namespace tools */
 
 #endif

@@ -42,7 +42,7 @@ void force_quit() // INTENSITY - change quit to force_quit
     abortconnect();
     disconnect();
     localdisconnect();
-    of_tools_writecfg();
+    tools::writecfg();
     cleanup();
 
     lua::engine.destroy();
@@ -104,25 +104,34 @@ bool initwarning(const char *desc, int level, int type)
 #define SCR_MAXH 10000
 #define SCR_DEFAULTW 1024
 #define SCR_DEFAULTH 768
+VARF(scr_w, SCR_MINW, -1, SCR_MAXW, initwarning("screen resolution"));
+VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
+VARF(colorbits, 0, 0, 32, initwarning("color depth"));
+VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
+VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
+VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
+VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
+
 void writeinitcfg()
 {
     if(!restoredinits) return;
     stream *f = openfile("init.lua", "w");
     if(!f) return;
     f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
-    f->printf("fullscreen = %d\n", GETIV(fullscreen));
-    f->printf("scr_w = %d\n", GETIV(scr_w));
-    f->printf("scr_h = %d\n", GETIV(scr_h));
-    f->printf("colorbits = %d\n", GETIV(colorbits));
-    f->printf("depthbits = %d\n", GETIV(depthbits));
-    f->printf("stencilbits = %d\n", GETIV(stencilbits));
-    f->printf("fsaa = %d\n", GETIV(fsaa));
-    f->printf("vsync = %d\n", GETIV(vsync));
-    f->printf("shaders = %d\n", GETIV(shaders));
-    f->printf("shaderprecision = %d\n", GETIV(shaderprecision));
-    f->printf("soundchans = %d\n", GETIV(soundchans));
-    f->printf("soundfreq = %d\n", GETIV(soundfreq));
-    f->printf("soundbufferlen = %d\n", GETIV(soundbufferlen));
+    extern int& fullscreen, &useshaders, &shaderprecision, &soundchans, &soundfreq, &soundbufferlen;
+    f->printf("fullscreen = %d\n", fullscreen);
+    f->printf("scr_w = %d\n", scr_w);
+    f->printf("scr_h = %d\n", scr_h);
+    f->printf("colorbits = %d\n", colorbits);
+    f->printf("depthbits = %d\n", depthbits);
+    f->printf("stencilbits = %d\n", stencilbits);
+    f->printf("fsaa = %d\n", fsaa);
+    f->printf("vsync = %d\n", vsync);
+    f->printf("shaders = %d\n", useshaders);
+    f->printf("shaderprecision = %d\n", shaderprecision);
+    f->printf("soundchans = %d\n", soundchans);
+    f->printf("soundfreq = %d\n", soundfreq);
+    f->printf("soundbufferlen = %d\n", soundbufferlen);
     delete f;
 }
 
@@ -151,7 +160,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 {
     if(!inbetweenframes && !force) return;
 
-    if (!GETIV(mainmenu)) // INTENSITY: Keep playing sounds over main menu
+    if (!mainmenu) // INTENSITY: Keep playing sounds over main menu
     stopsounds(); // stop sounds while loading
  
     int w = screen->w, h = screen->h;
@@ -171,7 +180,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     static float backgroundu = 0, backgroundv = 0, detailu = 0, detailv = 0;
     static int numdecals = 0;
     static struct decal { float x, y, size; int side; } decals[12];
-    if((renderedframe && !GETIV(mainmenu) && lastupdate != lastmillis) || lastw != w || lasth != h)
+    if((renderedframe && !mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
     {
         lastupdate = lastmillis;
         lastw = w;
@@ -344,7 +353,8 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
     #endif
 
-    if(background || GETIV(sdl_backingstore_bug) > 0) restorebackground();
+    extern int& sdl_backingstore_bug;
+    if(background || sdl_backingstore_bug > 0) restorebackground();
 
     int w = screen->w, h = screen->h;
     getbackgroundres(w, h);
@@ -523,14 +533,16 @@ void setfullscreen(bool enable)
 #endif
 }
 
+VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
+
 void screenres(int *w, int *h)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
     if(initing >= INIT_RESET)
     {
 #endif
-        SETV(scr_w, clamp(*w, SCR_MINW, SCR_MAXW));
-        SETV(scr_h, clamp(*h, SCR_MINH, SCR_MAXH));
+        scr_w = clamp(*w, SCR_MINW, SCR_MAXW);
+        scr_h = clamp(*h, SCR_MINH, SCR_MAXH);
 #if defined(WIN32) || defined(__APPLE__)
         initwarning("screen resolution");
 #else
@@ -539,14 +551,23 @@ void screenres(int *w, int *h)
     SDL_Surface *surf = SDL_SetVideoMode(clamp(*w, SCR_MINW, SCR_MAXW), clamp(*h, SCR_MINH, SCR_MAXH), 0, SDL_OPENGL|(screen->flags&SDL_FULLSCREEN ? SDL_FULLSCREEN : SDL_RESIZABLE));
     if(!surf) return;
     screen = surf;
-    SETV(scr_w, screen->w);
-    SETV(scr_h, screen->h);
-    glViewport(0, 0, GETIV(scr_w), GETIV(scr_h));
+    scr_w = screen->w;
+    scr_h = screen->h;
+    glViewport(0, 0, scr_w, scr_h);
 #endif
-    SETV(fonth, FONTH);
+    extern int& fonth;
+    fonth = FONTH;
 }
 
-int curgamma = 100;
+static int curgamma = 100;
+VARFP(gamma, 30, 100, 300,
+{
+    if(gamma == curgamma) return;
+    curgamma = gamma;
+    float f = gamma/100.0f;
+    if(SDL_SetGamma(f,f,f)==-1) conoutf(CON_ERROR, "Could not set gamma: %s", SDL_GetError());
+});
+
 void restoregamma()
 {
     if(curgamma == 100) return;
@@ -560,6 +581,8 @@ void cleargamma()
     if(curgamma != 100) SDL_SetGamma(1, 1, 1);
 }
 
+VAR(dbgmodes, 0, 0, 1);
+
 int desktopw = 0, desktoph = 0;
 
 void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
@@ -568,20 +591,20 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     #if defined(WIN32) || defined(__APPLE__)
     flags = 0;
     #endif
-    if(GETIV(fullscreen)) flags = SDL_FULLSCREEN;
+    if(fullscreen) flags = SDL_FULLSCREEN;
     SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|flags);
     if(modes && modes!=(SDL_Rect **)-1)
     {
         int widest = -1, best = -1;
         for(int i = 0; modes[i]; i++)
         {
-            if(GETIV(dbgmodes)) conoutf(CON_DEBUG, "mode[%d]: %d x %d", i, modes[i]->w, modes[i]->h);
+            if(dbgmodes) conoutf(CON_DEBUG, "mode[%d]: %d x %d", i, modes[i]->w, modes[i]->h);
             if(widest < 0 || modes[i]->w > modes[widest]->w || (modes[i]->w == modes[widest]->w && modes[i]->h > modes[widest]->h)) 
                 widest = i; 
         }
-        if(GETIV(scr_w) < 0 || GETIV(scr_h) < 0)
+        if(scr_w < 0 || scr_h < 0)
         {
-            int w = GETIV(scr_w), h = GETIV(scr_h), ratiow = desktopw, ratioh = desktoph;
+            int w = scr_w, h = scr_h, ratiow = desktopw, ratioh = desktoph;
             if(w < 0 && h < 0) { w = SCR_DEFAULTW; h = SCR_DEFAULTH; }
             if(ratiow <= 0 || ratioh <= 0) { ratiow = modes[widest]->w; ratioh = modes[widest]->h; }
             for(int i = 0; modes[i]; i++) if(modes[i]->w*ratioh == modes[i]->h*ratiow)
@@ -592,7 +615,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
         } 
         if(best < 0)
         {
-            int w = GETIV(scr_w), h = GETIV(scr_h);
+            int w = scr_w, h = scr_h;
             if(w < 0 && h < 0) { w = SCR_DEFAULTW; h = SCR_DEFAULTH; }
             else if(w < 0) w = (h*SCR_DEFAULTW)/SCR_DEFAULTH;
             else if(h < 0) h = (w*SCR_DEFAULTH)/SCR_DEFAULTW;
@@ -604,28 +627,28 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
         }
         if(flags&SDL_FULLSCREEN)
         {
-            if(best >= 0) { SETV(scr_w, modes[best]->w); SETV(scr_h, modes[best]->h); }
-            else if(desktopw > 0 && desktoph > 0) { SETV(scr_w, desktopw); SETV(scr_h, desktoph); }
-            else if(widest >= 0) { SETV(scr_w, modes[widest]->w); SETV(scr_h, modes[widest]->h); } 
+            if(best >= 0) { scr_w = modes[best]->w; scr_h = modes[best]->h; }
+            else if(desktopw > 0 && desktoph > 0) { scr_w = desktopw; scr_h = desktoph; }
+            else if(widest >= 0) { scr_w = modes[widest]->w; scr_h = modes[widest]->h; } 
         }
         else if(best < 0)
         { 
-            SETV(scr_w, min(GETIV(scr_w) >= 0 ? GETIV(scr_w) : (GETIV(scr_h) >= 0 ? (GETIV(scr_h)*SCR_DEFAULTW)/SCR_DEFAULTH : SCR_DEFAULTW), (int)modes[widest]->w)); 
-            SETV(scr_h, min(GETIV(scr_h) >= 0 ? GETIV(scr_h) : (GETIV(scr_w) >= 0 ? (GETIV(scr_w)*SCR_DEFAULTH)/SCR_DEFAULTW : SCR_DEFAULTH), (int)modes[widest]->h));
+            scr_w = min(scr_w >= 0 ? scr_w : (scr_h >= 0 ? (scr_h*SCR_DEFAULTW)/SCR_DEFAULTH : SCR_DEFAULTW), (int)modes[widest]->w); 
+            scr_h = min(scr_h >= 0 ? scr_h : (scr_w >= 0 ? (scr_w*SCR_DEFAULTH)/SCR_DEFAULTW : SCR_DEFAULTH), (int)modes[widest]->h);
         }
-        if(GETIV(dbgmodes)) conoutf(CON_DEBUG, "selected %d x %d", GETIV(scr_w), GETIV(scr_h));
+        if(dbgmodes) conoutf(CON_DEBUG, "selected %d x %d", scr_w, scr_h);
     }
-    if(GETIV(scr_w) < 0 && GETIV(scr_h) < 0) { SETV(scr_w, SCR_DEFAULTW); SETV(scr_h, SCR_DEFAULTH); }
-    else if(GETIV(scr_w) < 0) SETV(scr_w, (GETIV(scr_h)*SCR_DEFAULTW)/SCR_DEFAULTH);
-    else if(GETIV(scr_h) < 0) SETV(scr_h, (GETIV(scr_w)*SCR_DEFAULTH)/SCR_DEFAULTW);
+    if(scr_w < 0 && scr_h < 0) { scr_w = SCR_DEFAULTW; scr_h = SCR_DEFAULTH; }
+    else if(scr_w < 0) scr_w = (scr_h*SCR_DEFAULTW)/SCR_DEFAULTH;
+    else if(scr_h < 0) scr_h = (scr_w*SCR_DEFAULTH)/SCR_DEFAULTW;
 
     bool hasbpp = true;
-    if(GETIV(colorbits))
-        hasbpp = SDL_VideoModeOK(GETIV(scr_w), GETIV(scr_h), GETIV(colorbits), SDL_OPENGL|flags)==GETIV(colorbits);
+    if(colorbits)
+        hasbpp = SDL_VideoModeOK(scr_w, scr_h, colorbits, SDL_OPENGL|flags)==colorbits;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 #if SDL_VERSION_ATLEAST(1, 2, 11)
-    if(GETIV(vsync)>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, GETIV(vsync));
+    if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
 #endif
     static int configs[] =
     {
@@ -636,8 +659,8 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     };
     int config = 0;
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
-    if(!GETIV(depthbits)) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    if(!GETIV(fsaa))
+    if(!depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    if(!fsaa)
     {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
@@ -645,39 +668,39 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
     loopi(sizeof(configs)/sizeof(configs[0]))
     {
         config = configs[i];
-        if(!GETIV(depthbits) && config&1) continue;
-        if(!GETIV(stencilbits) && config&2) continue;
-        if(GETIV(fsaa)<=0 && config&4) continue;
-        if(GETIV(depthbits)) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? GETIV(depthbits) : 16);
-        if(GETIV(stencilbits))
+        if(!depthbits && config&1) continue;
+        if(!stencilbits && config&2) continue;
+        if(fsaa<=0 && config&4) continue;
+        if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? depthbits : 16);
+        if(stencilbits)
         {
-            hasstencil = config&2 ? GETIV(stencilbits) : 0;
+            hasstencil = config&2 ? stencilbits : 0;
             SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, hasstencil);
         }
         else hasstencil = 0;
-        if(GETIV(fsaa)>0)
+        if(fsaa>0)
         {
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&4 ? 1 : 0);
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&4 ? GETIV(fsaa) : 0);
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&4 ? fsaa : 0);
         }
-        screen = SDL_SetVideoMode(GETIV(scr_w), GETIV(scr_h), hasbpp ? GETIV(colorbits) : 0, SDL_OPENGL|flags);
+        screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|flags);
         if(screen) break;
     }
     if(!screen) fatal("Unable to create OpenGL screen: %s", SDL_GetError());
     else
     {
-        if(!hasbpp) conoutf(CON_WARN, "%d bit color buffer not supported - disabling", GETIV(colorbits));
-        if(GETIV(depthbits) && (config&1)==0) conoutf(CON_WARN, "%d bit z-buffer not supported - disabling", GETIV(depthbits));
-        if(GETIV(stencilbits) && (config&2)==0) conoutf(CON_WARN, "Stencil buffer not supported - disabling");
-        if(GETIV(fsaa)>0 && (config&4)==0) conoutf(CON_WARN, "%dx anti-aliasing not supported - disabling", GETIV(fsaa));
+        if(!hasbpp) conoutf(CON_WARN, "%d bit color buffer not supported - disabling", colorbits);
+        if(depthbits && (config&1)==0) conoutf(CON_WARN, "%d bit z-buffer not supported - disabling", depthbits);
+        if(stencilbits && (config&2)==0) conoutf(CON_WARN, "Stencil buffer not supported - disabling");
+        if(fsaa>0 && (config&4)==0) conoutf(CON_WARN, "%dx anti-aliasing not supported - disabling", fsaa);
     }
 
-    SETV(scr_w, screen->w);
-    SETV(scr_h, screen->h);
+    scr_w = screen->w;
+    scr_h = screen->h;
 
-    usedcolorbits = hasbpp ? GETIV(colorbits) : 0;
-    useddepthbits = config&1 ? GETIV(depthbits) : 0;
-    usedfsaa = config&4 ? GETIV(fsaa) : 0;
+    usedcolorbits = hasbpp ? colorbits : 0;
+    useddepthbits = config&1 ? depthbits : 0;
+    usedfsaa = config&4 ? fsaa : 0;
 }
 
 void resetgl()
@@ -718,7 +741,7 @@ void resetgl()
 
     int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
     setupscreen(usedcolorbits, useddepthbits, usedfsaa);
-    gl_init(GETIV(scr_w), GETIV(scr_h), usedcolorbits, useddepthbits, usedfsaa);
+    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
 
     extern void reloadfonts();
     extern void reloadtextures();
@@ -823,28 +846,6 @@ static void checkmousemotion(int &dx, int &dy)
     }
 }
 
-// INTENSITY - getter functions so we can embed it from script
-// let them return booleans so it's more comfortable
-bool getkeydown()
-{
-    return GETIV(iskeydown);
-}
-
-bool getkeyup()
-{
-    return GETIV(iskeyup);
-}
-
-bool getmousedown()
-{
-    return GETIV(ismousedown);
-}
-
-bool getmouseup()
-{
-    return GETIV(ismouseup);
-}
-
 void checkinput()
 {
     SDL_Event event;
@@ -870,18 +871,6 @@ void checkinput()
                 #if 0 // INTENSITY start XXX security issue
                 printf("SDL_KEY: %d, %d, %d\r\n", event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode);
                 #endif // INTENSITY end
-
-                // INTENSITY - set the vars
-                if (event.type == SDL_KEYDOWN)
-                {
-                    SETV(iskeydown, 1);
-                    SETV(iskeyup, 0);
-                }
-                else
-                {
-                    SETV(iskeydown, 0);
-                    SETV(iskeyup, 1);
-                }
 
                 keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode);
                 break;
@@ -912,18 +901,6 @@ void checkinput()
                 printf("SDL_MOUSEBUTTON: %d, %d (at %f,%f)\r\n", event.button.button, event.button.state, x, y);
                 #endif // INTENSITY end
 
-                // INTENSITY - set the vars
-                if (event.type == SDL_MOUSEBUTTONDOWN)
-                {
-                    SETV(ismousedown, 1);
-                    SETV(ismouseup, 0);
-                }
-                else
-                {
-                    SETV(ismousedown, 0);
-                    SETV(ismouseup, 1);
-                }
-
                 if(lasttype==event.type && lastbut==event.button.button) break; // why?? get event twice without it
                 keypress(-event.button.button, event.button.state!=0, 0);
                 lasttype = event.type;
@@ -938,10 +915,17 @@ void swapbuffers()
     recorder::capture();
     SDL_GL_SwapBuffers();
 }
- 
+
+VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
+
+VARF(paused, 0, 0, 1, if(multiplayer()) paused = 0);
+
+VAR(mainmenufps, 0, 60, 1000);
+VARP(maxfps, 0, 200, 1000);
+
 void limitfps(int &millis, int curmillis)
 {
-    int limit = GETIV(mainmenu) && GETIV(mainmenufps) ? (GETIV(maxfps) ? min(GETIV(maxfps), GETIV(mainmenufps)) : GETIV(mainmenufps)) : GETIV(maxfps);
+    int limit = mainmenu && mainmenufps ? (maxfps ? min(maxfps, mainmenufps) : mainmenufps) : maxfps;
     if(!limit) return;
     static int fpserror = 0;
     int delay = 1000/limit - (millis-curmillis);
@@ -1039,10 +1023,13 @@ static bool findarg(int argc, char **argv, const char *str)
 
 int clockrealbase = 0, clockvirtbase = 0; // INTENSITY: Removed 'static'
 void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
+VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
+VARFP(clockfix, 0, 0, 1, clockreset());
+
 int getclockmillis()
 {
     int millis = SDL_GetTicks() - clockrealbase;
-    if(GETIV(clockfix)) millis = int(millis*(double(GETIV(clockerror))/1000000));
+    if(clockfix) millis = int(millis*(double(clockerror)/1000000));
     millis += clockvirtbase;
     return max(millis, totalmillis);
 }
@@ -1089,19 +1076,20 @@ int main(int argc, char **argv)
             case 'g': logoutf("Setting logging level", &argv[i][2]); loglevel = &argv[i][2]; break;
             case 'r': initcfg = argv[i][2] ? &argv[i][2] : "init.lua"; restoredinits = true; break;
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
-            case 'w': SETV(scr_w, clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW)); if(!findarg(argc, argv, "-h")) SETV(scr_h, -1); break;
-            case 'h': SETV(scr_h, clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH)); if(!findarg(argc, argv, "-w")) SETV(scr_w, -1); break;
-            case 'z': SETV(depthbits, atoi(&argv[i][2])); break;
-            case 'b': SETV(colorbits, atoi(&argv[i][2])); break;
-            case 'a': SETV(fsaa, atoi(&argv[i][2])); break;
-            case 'v': SETV(vsync, atoi(&argv[i][2])); break;
-            case 't': SETV(fullscreen, atoi(&argv[i][2])); break;
-            case 's': SETV(stencilbits, atoi(&argv[i][2])); break;
+            case 'w': scr_w = clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW); if(!findarg(argc, argv, "-h")) scr_h = -1; break;
+            case 'h': scr_h = clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH); if(!findarg(argc, argv, "-w")) scr_w = -1; break;
+            case 'z': depthbits = atoi(&argv[i][2]); break;
+            case 'b': colorbits = atoi(&argv[i][2]); break;
+            case 'a': fsaa = atoi(&argv[i][2]); break;
+            case 'v': vsync = atoi(&argv[i][2]); break;
+            case 't': fullscreen = atoi(&argv[i][2]); break;
+            case 's': stencilbits = atoi(&argv[i][2]); break;
             case 'f': 
             {
+                extern int& useshaders, &shaderprecision;
                 int n = atoi(&argv[i][2]);
-                SETV(shaders, n > 0 ? 1 : 0);
-                SETVN(shaderprecision, clamp(n >= 4 ? n - 4 : n - 1, 0, 2));
+                useshaders = n > 0 ? 1 : 0;
+                shaderprecision = clamp(n >= 4 ? n - 4 : n - 1, 0, 2);
                 break;
             }
             case 'l': 
@@ -1123,7 +1111,7 @@ int main(int argc, char **argv)
     initlog("lua");
     lua::engine.create();
     if (!lua::engine.hashandle()) fatal("cannot initialize lua script engine");
-    if (restoredinits) of_tools_execcfg(initcfg);
+    if (restoredinits) tools::execcfg(initcfg);
 
     initing = NOT_INITING;
 
@@ -1170,7 +1158,7 @@ int main(int argc, char **argv)
 
     initlog("gl");
     gl_checkextensions();
-    gl_init(GETIV(scr_w), GETIV(scr_h), usedcolorbits, useddepthbits, usedfsaa);
+    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
     notexture = textureload("data/textures/core/notexture.png");
     if(!notexture) fatal("could not find core textures");
 
@@ -1189,7 +1177,7 @@ int main(int argc, char **argv)
 
     initlog("world");
     camera1 = player = game::iterdynents(0);
-    emptymap(0, true, NULL, false);
+    //emptymap(0, true, NULL, false);
 
     initlog("sound");
     initsound();
@@ -1206,10 +1194,10 @@ int main(int argc, char **argv)
     var::persistvars = true;
     
     initing = INIT_LOAD;
-    if(!of_tools_execcfg(game::savedconfig())) 
+    if(!tools::execcfg(game::savedconfig())) 
     {
         lua::engine.execf(game::defaultconfig());
-        of_tools_writecfg(game::restoreconfig());
+        tools::writecfg(game::restoreconfig());
     }
     lua::engine.execf("data/cfg/config.lua");
     lua::engine.execf(game::autoexec(), false);
@@ -1250,13 +1238,13 @@ int main(int argc, char **argv)
         else
         {
             static int timeerr = 0;
-            int scaledtime = elapsed*GETIV(gamespeed) + timeerr;
+            int scaledtime = elapsed*gamespeed + timeerr;
             curtime = scaledtime/100;
             timeerr = scaledtime%100;
             if(curtime>200) curtime = 200;
-            if(GETIV(paused) || game::ispaused()) curtime = 0;
+            if(paused || game::ispaused()) curtime = 0;
         }
-        of_localserver_try_connect(); /* Try connecting if server is ready */
+        local_server::try_connect(); /* Try connecting if server is ready */
 
         skymillis += curtime; // INTENSITY: SkyManager
         lastmillis += curtime;
@@ -1283,7 +1271,7 @@ int main(int argc, char **argv)
         if(minimized) continue;
 
         inbetweenframes = false;
-        if(GETIV(mainmenu)) gl_drawmainmenu(screen->w, screen->h);
+        if(mainmenu) gl_drawmainmenu(screen->w, screen->h);
         else
         {
             // INTENSITY: If we have all the data we need from the server to run the game, then we can actually draw

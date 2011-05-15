@@ -1,43 +1,41 @@
----
--- mod_conv.lua, version 1<br/>
--- Type conversions module for OF<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: language/mod_conv.lua
 
---- Conversion module for OctaForge. Contains several basic type conversion
--- methods, some of them wrapped from global. toboolean is a new method.
--- tointeger is a new method too, tonumber and tostring are wrapped.
--- tocalltable is new and converts function to callable table.
--- This as well contains color conversion functions.
--- @class module
--- @name convert
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file implements a conversion module for OctaForge Lua API.
+        It features type conversion functions and color converion functions
+        (RGB/HSV/HSL/hex).
+
+    Section: Conversion
+]]
+
+--[[!
+    Package: convert
+    A conversion library for OctaForge Lua API. Contains several
+    basic type conversion methods, some of them globally-wrapped,
+    and some color conversion functions.
+]]
 module("convert", package.seeall)
 
---- Convert types into boolean.
--- @param v Value to convert.
--- @return A boolean value.
+--[[!
+    Function: toboolean
+    Converts number or string to boolean.
+
+    Parameters:
+        v - Number or string to convert.
+
+    Returns:
+        A boolean value.
+]]
 function toboolean(v)
     return (
         (type(v) == "number" and v ~= 0) or
@@ -47,19 +45,33 @@ function toboolean(v)
     )
 end
 
---- Convert types into integer.
--- @param v Value to convert.
--- @return A number with integral value.
+--[[!
+    Function: tointeger
+    Converts a type to integral value.
+
+    Parameters:
+        v - A value to convert.
+
+    Returns:
+        An integer value.
+]]
 function tointeger(v)
     return math.floor(tonumber(v))
 end
 
---- Convert a floating point number to
--- string representing the number with
--- max two decimal positions. Returns "0"
--- if the number is lower than 0.01.
--- @param v Value to convert.
--- @return A converted value.
+--[[!
+    Function: todec2str
+    Converts a floating point value to
+    string representing float with max
+    two decimal positions. Returns
+    0 if the number is lower than 0.01.
+
+    Parameters:
+        v - A value to convert.
+
+    Returns:
+        A converted value.
+]]
 function todec2str(v)
     v = v or 0
     if math.abs(v) < 0.01 then return "0" end
@@ -68,25 +80,47 @@ function todec2str(v)
     return not p and r or string.sub(r, 1, p + 2)
 end
 
--- Convert types into number.
--- @param v Value to convert.
--- @return A number value.
+--[[!
+    Function: tonumber
+    Converts a type to number value.
+
+    Parameters:
+        v - A value to convert.
+
+    Returns:
+        A number value.
+]]
 function tonumber(v)
     return (type(v) == "boolean" and
         (v and 1 or 0) or _G["tonumber"](v)
     )
 end
 
--- Convert types into string.
--- @param v Value to convert.
--- @return A string value.
--- @class function
--- @name tostring
+--[[!
+    Function: tostring
+    Converts a type to string value.
+
+    Parameters:
+        v - A value to convert.
+
+    Returns:
+        A string value.
+]]
 tostring = _G["tostring"];
 
---- Make function a callable table.
--- @param f A function.
--- @return Callable table.
+--[[!
+    Function: tocalltable
+    Makes function a callable table.
+
+    Parameters:
+        f - A function
+
+    Returns:
+        A callable table - table
+        that can be called in the
+        same way as function,
+        but can have members, too.
+]]
 function tocalltable(f)
     return (type(f) == "function"
         and setmetatable({}, { __call = f })
@@ -94,29 +128,58 @@ function tocalltable(f)
     )
 end
 
---- Convert array of three numbers to vec3.
--- @param v The array to convert.
--- @return vec3 of the numbers.
+--[[!
+    Function: tovec3
+    Converts array of 3 numbers to vec3.
+
+    Parameters:
+        v - Array of 3 numbers. If this is already
+        vec3, it simply gets ignored and returned back.
+
+    Returns:
+        New vec3 of those numbers.
+]]
 function tovec3(v)
     if v.is_a and v:is_a(math.vec3) then return v end
     return math.vec3(v[1], v[2], v[3])
 end
 
---- Convert array of four numbers to vec4.
--- @param v The array to convert.
--- @return vec4 of the numbers.
+--[[!
+    Function: tovec4
+    Converts array of 3 numbers to vec4.
+
+    Parameters:
+        v - Array of 4 numbers. If this is already
+        vec4, it simply gets ignored and returned back.
+
+    Returns:
+        New vec4 of those numbers.
+]]
 function tovec4(v)
     if v.is_a and v:is_a(math.vec4) then return v end
     return math.vec4(v[1], v[2], v[3], v[4])
 end
 
----
--- Converts an RGB color value to HSL. Conversion formula
--- adapted from http://en.wikipedia.org/wiki/HSL_color_space.
--- @param r
--- @param g
--- @param b
--- @return Table containing h, s, l.
+--[[!
+    Function: rgbtohsl
+    Converts RGB color value to HSL. Conversion formula
+    adapted from <http://en.wikipedia.org/wiki/HSL_color_space>.
+
+    Parameters:
+        r - Red component ranging from 0 to 255.
+        g - Green component ranging from 0 to 255.
+        b - Blue component ranging from 0 to 255.
+
+    Returns:
+        Table with color converted to HSL -
+
+        (start code)
+            { h = h_value, s = s_value, l = l_value }
+        (end)
+
+    See Also:
+        <hsltorgb>
+]]
 rgbtohsl = function (r, g, b)
     local r = r / 255
     local g = g / 255
@@ -146,13 +209,26 @@ rgbtohsl = function (r, g, b)
     return { h = h, s = s, l = l }
 end
 
----
--- Converts an HSL color value to RGB. Conversion formula
--- adapted from http://en.wikipedia.org/wiki/HSL_color_space.
--- @param h
--- @param s
--- @param l
--- @return Table containing r, g, b.
+--[[!
+    Function: hsltorgb
+    Converts HSL color value to RGB. Conversion formula
+    adapted from <http://en.wikipedia.org/wiki/HSL_color_space>.
+
+    Parameters:
+        h - Hue value.
+        s - Saturation value.
+        l - Lightness value.
+
+    Returns:
+        Table with color converted to RGB -
+
+        (start code)
+            { r = r_value, g = g_value, b = b_value }
+        (end)
+
+    See Also:
+        <rgbtohsl>
+]]
 hsltorgb = function (h, s, l)
     local r
     local g
@@ -183,13 +259,26 @@ hsltorgb = function (h, s, l)
     return { r = r * 255, g = g * 255, b = b * 255 }
 end
 
----
--- Converts an RGB color value to HSV. Conversion formula
--- adapted from http://en.wikipedia.org/wiki/HSV_color_space.
--- @param r
--- @param g
--- @param b
--- @return Table containing h, s, v.
+--[[!
+    Function: rgbtohsv
+    Converts RGB color value to HSV. Conversion formula
+    adapted from <http://en.wikipedia.org/wiki/HSV_color_space>.
+
+    Parameters:
+        r - Red component ranging from 0 to 255.
+        g - Green component ranging from 0 to 255.
+        b - Blue component ranging from 0 to 255.
+
+    Returns:
+        Table with color converted to HSV -
+
+        (start code)
+            { h = h_value, s = s_value, v = v_value }
+        (end)
+
+    See Also:
+        <hsvtorgb>
+]]
 rgbtohsv = function (r, g, b)
     local r = r / 255
     local g = g / 255
@@ -219,13 +308,26 @@ rgbtohsv = function (r, g, b)
     return { h = h, s = s, v = v }
 end
 
----
--- Converts an HSV color value to RGB. Conversion formula
--- adapted from http://en.wikipedia.org/wiki/HSV_color_space.
--- @param h
--- @param s
--- @param v
--- @return Table containing r, g, b.
+--[[!
+    Function: hsvtorgb
+    Converts HSV color value to RGB. Conversion formula
+    adapted from <http://en.wikipedia.org/wiki/HSV_color_space>.
+
+    Parameters:
+        h - Hue value.
+        s - Saturation value.
+        v - Value.
+
+    Returns:
+        Table with color converted to RGB -
+
+        (start code)
+            { r = r_value, g = g_value, b = b_value }
+        (end)
+
+    See Also:
+        <rgbtohsv>
+]]
 hsvtorgb = function (h, s, v)
     local r
     local g
@@ -266,9 +368,23 @@ hsvtorgb = function (h, s, v)
     return { r = r * 255, g = g * 255, b = b * 255 }
 end
 
---- Converts a hexadecimal value into RGB value.
--- @param hex
--- @return A table containing r, g, b elements.
+--[[!
+    Function: hextorgb
+    Converts hex color value to RGB.
+
+    Parameters:
+        hex - Hexadecimal color value.
+
+    Returns:
+        Table with color converted to RGB -
+
+        (start code)
+            { r = r_value, g = g_value, b = b_value }
+        (end)
+
+    See Also:
+        <rgbtohex>
+]]
 hextorgb = function (hex)
     local r
     local g
@@ -282,11 +398,21 @@ hextorgb = function (hex)
     return { r = r, g = g, b = b }
 end
 
---- Converts an RGB array into hexadecimal value.
--- @param r
--- @param g
--- @param b
--- @return Hex value as string.
+--[[!
+    Function: rgbtohex
+    Converts RGB color value to hex.
+
+    Parameters:
+        r - Red component ranging from 0 to 255.
+        g - Green component ranging from 0 to 255.
+        b - Blue component ranging from 0 to 255.
+
+    Returns:
+        A hex value as string.
+
+    See Also:
+        <hextorgb>
+]]
 rgbtohex = function(r, g, b)
     local rgb = math.bor(b, math.lsh(g, 8), math.lsh(r, 16))
     return string.format("0x%X", rgb)

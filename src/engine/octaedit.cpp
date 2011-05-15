@@ -1,14 +1,19 @@
 #include "engine.h"
 
-void boxs(int orient, vec o, const vec &s)
+extern int& outline;
+
+void boxs(int orient, vec o, const vec &s, bool quad = false)
 {
     int   d = dimension(orient),
           dc= dimcoord(orient);
 
-    float f = !GETIV(outline) ? 0 : (dc>0 ? 0.2f : -0.2f);
-    o[D[d]] += float(dc) * s[D[d]] + f,
+    float f = !outline ? 0 : (dc>0 ? 0.2f : -0.2f);
+    o[D[d]] += float(dc) * s[D[d]] + f;
 
-    glBegin(GL_LINE_LOOP);
+    if (quad)
+        glBegin(GL_QUADS);
+    else
+        glBegin(GL_LINE_LOOP);
 
     glVertex3fv(o.v); o[R[d]] += s[R[d]];
     glVertex3fv(o.v); o[C[d]] += s[C[d]];
@@ -16,7 +21,7 @@ void boxs(int orient, vec o, const vec &s)
     glVertex3fv(o.v);
 
     glEnd();
-    xtraverts += 4;
+    if (!quad) xtraverts += 4;
 }
 
 void boxs3D(const vec &o, vec s, int g)
@@ -34,7 +39,7 @@ void boxsgrid(int orient, vec o, vec s, int g)
           oy = o[C[d]],
           xs = s[R[d]],
           ys = s[C[d]],
-          f = !GETIV(outline) ? 0 : (dc>0 ? 0.2f : -0.2f);    
+          f = !outline ? 0 : (dc>0 ? 0.2f : -0.2f);    
 
     o[D[d]] += dc * s[D[d]]*g + f;
 
@@ -64,23 +69,48 @@ int gridsize = 8;
 ivec cor, lastcor;
 ivec cur, lastcur;
 
-extern int entediting;
+extern int& entediting;
 bool editmode = false;
 bool havesel = false;
 bool hmapsel = false;
 int horient  = 0;
 
-extern int entmoving;
+extern int& entmoving;
+
+VARF(dragging, 0, 0, 1,
+    if(!dragging || cor[0]<0) return;
+    lastcur = cur;
+    lastcor = cor;
+    sel.grid = gridsize;
+    sel.orient = orient;
+);
+
+VARF(moving, 0, 0, 1,
+    if(!moving) return;
+    vec v(cur.v); v.add(1);
+    moving = pointinsel(sel, v);
+    if(moving) havesel = false; // tell cursorupdate to create handle
+);
+
+VARF(gridpower, 0, 3, 12,
+{
+    if(dragging) return;
+    gridsize = 1<<gridpower;
+    if(gridsize>=worldsize) gridsize = worldsize/2;
+    cancelsel();
+});
+
+VAR(passthroughsel, 0, 0, 1);
+VAR(editing, 1, 0, 0);
+VAR(selectcorners, 0, 0, 1);
+VARF(hmapedit, 0, 0, 1, horient = sel.orient);
 
 void forcenextundo() { lastsel.orient = -1; }
 
 void cubecancel()
 {
     havesel = false;
-    SETV(moving, 0);
-    SETV(dragging, 0);
-    SETV(hmapedit, 0);
-    SETV(passthroughsel, 0);
+    moving = dragging = hmapedit = passthroughsel = 0;
     forcenextundo();
 }
 
@@ -109,9 +139,9 @@ void toggleedit(bool force)
     cancelsel();
     stoppaintblendmap();
     keyrepeat(editmode);
-    SETV(editing, editmode);
-    SETV(entediting, editmode);
-    if(GETIV(fullbright)) initlights();
+    editing = entediting = editmode;
+    extern int& fullbright;
+    if(fullbright) initlights();
     if(!force) game::edittoggled(editmode);
 }
 
@@ -241,16 +271,19 @@ extern bool hoveringonent(int ent, int orient);
 extern void renderentselection(const vec &o, const vec &ray, bool entmoving);
 extern float rayent(const vec &o, const vec &ray, float radius, int mode, int size, int &orient, int &ent);
 
+VAR(gridlookup, 0, 0, 1);
+VAR(passthroughcube, 0, 1, 1);
+
 void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so can edit in thirdperson
 {
     int d   = dimension(sel.orient),
         od  = dimension(orient),
         odc = dimcoord(orient);
 
-    bool hidecursor = g3d_windowhit(true, false) || GETIV(blendpaintmode), hovering = false;
+    bool hidecursor = g3d_windowhit(true, false) || blendpaintmode, hovering = false;
     hmapsel = false;
            
-    if(GETIV(moving))
+    if(moving)
     {       
         ivec e;
         static vec v, handle;
@@ -267,7 +300,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         sel.o[C[od]] = e[C[od]];
     }
     else 
-    if(GETIV(entmoving))
+    if(entmoving)
     {
         entdrag(camdir);       
     }
@@ -278,12 +311,12 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         int entorient = 0, ent = -1;
        
         wdist = rayent(camera1->o, camdir, 1e16f, 
-                       (editmode && GETIV(showmat) ? RAY_EDITMAT : 0)   // select cubes first
-                       | (!GETIV(dragging) && GETIV(entediting) ? RAY_ENTS : 0)
+                       (editmode && showmat ? RAY_EDITMAT : 0)   // select cubes first
+                       | (!dragging && entediting ? RAY_ENTS : 0)
                        | RAY_SKIPFIRST 
-                       | (GETIV(passthroughcube)==1 ? RAY_PASS : 0), gridsize, entorient, ent);
+                       | (passthroughcube==1 ? RAY_PASS : 0), gridsize, entorient, ent);
      
-        if((havesel || GETIV(dragging)) && !GETIV(passthroughsel) && !GETIV(hmapedit))     // now try selecting the selection
+        if((havesel || dragging) && !passthroughsel && !hmapedit)     // now try selecting the selection
             if(rayrectintersect(sel.o.tovec(), vec(sel.s.tovec()).mul(sel.grid), camera1->o, camdir, sdist, orient))
             {   // and choose the nearest of the two
                 if(sdist < wdist) 
@@ -306,16 +339,16 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
             vec w = vec(camdir).mul(wdist+0.05f).add(camera1->o);
             if(!insideworld(w))
             {
-                loopi(3) wdist = min(wdist, ((camdir[i] > 0 ? GETIV(mapsize) : 0) - camera1->o[i]) / camdir[i]);
+                loopi(3) wdist = min(wdist, ((camdir[i] > 0 ? worldsize : 0) - camera1->o[i]) / camdir[i]);
                 w = vec(camdir).mul(wdist-0.05f).add(camera1->o);
                 if(!insideworld(w))
                 {
                     wdist = 0;
-                    loopi(3) w[i] = clamp(camera1->o[i], 0.0f, float(GETIV(mapsize)));
+                    loopi(3) w[i] = clamp(camera1->o[i], 0.0f, float(worldsize));
                 }
             }
             cube *c = &lookupcube(int(w.x), int(w.y), int(w.z));            
-            if(GETIV(gridlookup) && !GETIV(dragging) && !GETIV(moving) && !havesel && GETIV(hmapedit)!=1) gridsize = lusize;
+            if(gridlookup && !dragging && !moving && !havesel && hmapedit!=1) gridsize = lusize;
             int mag = lusize / gridsize;
             normalizelookupcube(int(w.x), int(w.y), int(w.z));
             if(sdist == 0 || sdist > wdist) rayrectintersect(lu.tovec(), vec(gridsize), camera1->o, camdir, t=0, orient); // just getting orient     
@@ -324,14 +357,14 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
             od = dimension(orient);
             d = dimension(sel.orient);
             
-            if(GETIV(hmapedit)==1 && dimcoord(horient) == (camdir[dimension(horient)]<0))
+            if(hmapedit==1 && dimcoord(horient) == (camdir[dimension(horient)]<0))
             {
                 hmapsel = isheightmap(horient, dimension(horient), false, c);     
                 if(hmapsel)
                     od = dimension(orient = horient);
             }
 
-            if(GETIV(dragging)) 
+            if(dragging) 
             {
                 updateselection();
                 sel.cx   = min(cor[R[d]], lastcor[R[d]]);
@@ -339,7 +372,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
                 sel.cxs  = max(cor[R[d]], lastcor[R[d]]);
                 sel.cys  = max(cor[C[d]], lastcor[C[d]]);
 
-                if(!GETIV(selectcorners))
+                if(!selectcorners)
                 {
                     sel.cx &= ~1;
                     sel.cy &= ~1;
@@ -371,7 +404,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
 
             sel.corner = (cor[R[d]]-(lu[R[d]]*2)/gridsize)+(cor[C[d]]-(lu[C[d]]*2)/gridsize)*2;
             selchildcount = 0;
-            countselchild(worldroot, ivec(0, 0, 0), GETIV(mapsize)/2);
+            countselchild(worldroot, ivec(0, 0, 0), worldsize/2);
             if(mag>1 && selchildcount==1) selchildcount = -mag;
         }
     }
@@ -382,17 +415,23 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
     // cursors    
 
     lineshader->set();
-    renderentselection(camera1->o, camdir, GETIV(entmoving)!=0);
+    renderentselection(camera1->o, camdir, entmoving!=0);
 
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 
-    if(!GETIV(moving) && !hovering && !hidecursor)
+    if(!moving && !hovering && !hidecursor)
     {
-        if(GETIV(hmapedit)==1)
+        if(hmapedit==1)
             glColor3ub(0, hmapsel ? 255 : 40, 0);
         else
-            glColor3ub(120,120,120);
+            glColor3ub(120, 120, 120);
         boxs(orient, lu.tovec(), vec(lusize));
+
+        if(hmapedit==1)
+            glColor3ub(0, 128, 0);
+        else
+            glColor3ub(96, 96, 96);
+        boxs(orient, lu.tovec(), vec(lusize), true);
     }
 
     // selections
@@ -411,7 +450,9 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         cs[C[d]]  = 0.5f*(sel.cys*gridsize);       
         cs[D[d]] *= gridsize;
         boxs(sel.orient, co, cs);
-        if(GETIV(hmapedit)==1)         // 3D selection box
+        glColor3ub(64,64,64);
+        boxs(sel.orient, co, cs, true);
+        if(hmapedit==1)         // 3D selection box
             glColor3ub(0,120,0);
         else 
             glColor3ub(0,0,120);
@@ -428,8 +469,9 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
 void tryedit()
 {
 #ifdef CLIENT // CubeCreate
-    if(!editmode || GETIV(hidehud) || GETIV(mainmenu)) return;
-    if(GETIV(blendpaintmode)) trypaintblendmap();
+    extern int& hidehud;
+    if(!editmode || hidehud || mainmenu) return;
+    if(blendpaintmode) trypaintblendmap();
 #endif
 }
 
@@ -496,7 +538,7 @@ void changed(const block3 &sel, bool commit = true)
     {
         b.o[i] -= 1;
         b.s[i] += 2;
-        readychanges(b, worldroot, ivec(0, 0, 0), GETIV(mapsize)/2);
+        readychanges(b, worldroot, ivec(0, 0, 0), worldsize/2);
         b.o[i] += 1;
         b.s[i] -= 2;
     }
@@ -622,6 +664,7 @@ struct undolist
 };
 
 undolist undos, redos;
+VARP(undomegs, 0, 5, 100);                              // bounded by n megs
 int totalundos = 0;
 
 void pruneundos(int maxremain)                          // bound memory
@@ -661,12 +704,14 @@ void addundo(undoblock *u)
     u->timestamp = totalmillis;
     undos.add(u);
     totalundos += u->size;
-    pruneundos(GETIV(undomegs)<<20);
+    pruneundos(undomegs<<20);
 }
+
+VARP(nompedit, 0, 1, 1);
 
 void makeundoex(selinfo &s)
 {
-    if(GETIV(nompedit) && multiplayer(false)) return;
+    if(nompedit && multiplayer(false)) return;
     undoblock *u = newundocube(s);
     addundo(u);
 }
@@ -680,7 +725,7 @@ void makeundo()                        // stores state of selected cubes before 
 
 void swapundo(undolist &a, undolist &b, const char *s)
 {
-    if(noedit() || (GETIV(nompedit) && multiplayer())) return;
+    if(noedit() || (nompedit && multiplayer())) return;
     if(a.empty()) { conoutf(CON_WARN, "nothing more to %s", s); return; }    
     int ts = a.last->timestamp;
     selinfo l = sel;
@@ -922,6 +967,8 @@ void compacteditvslots()
 #define MAXBRUSHC   63
 #define MAXBRUSH2   32
 int brush[MAXBRUSH][MAXBRUSH];
+VAR(brushx, 0, MAXBRUSH2, MAXBRUSH);
+VAR(brushy, 0, MAXBRUSH2, MAXBRUSH);
 bool paintbrush = 0;
 int brushmaxx = 0, brushminx = MAXBRUSH;
 int brushmaxy = 0, brushminy = MAXBRUSH;
@@ -936,8 +983,8 @@ void clearbrush()
 
 void brushvert(int x, int y, int v)
 {
-    x += MAXBRUSH2 - GETIV(brushx) + 1; // +1 for automatic padding
-    y += MAXBRUSH2 - GETIV(brushy) + 1;
+    x += MAXBRUSH2 - brushx + 1; // +1 for automatic padding
+    y += MAXBRUSH2 - brushy + 1;
     if(x<0 || y<0 || x>=MAXBRUSH || y>=MAXBRUSH) return;
     brush[x][y] = clamp(v, 0, 8);
     paintbrush = paintbrush || (brush[x][y] > 0);
@@ -956,6 +1003,8 @@ inline bool ishtexture(int t)
             return false;
     return true;
 }
+
+VARP(bypassheightmapcheck, 0, 0, 1);    // temp
 
 inline bool isheightmap(int o, int d, bool empty, cube *c) 
 {
@@ -1022,7 +1071,7 @@ namespace hmap
     {        
         if((NOTHMAP & flags[x][y]) || (PAINTED & flags[x][y])) return;
         ivec t(d, x+gx, y+gy, dc ? z : hws-z);
-        t.shl(GETIV(gridpower));
+        t.shl(gridpower);
 
         // selections may damage; must makeundo before
         hundo.o = t;
@@ -1113,7 +1162,7 @@ namespace hmap
         if(biasup)
             pullhmap(0, >, <, 1, 0, -);
         else
-            pullhmap(GETIV(mapsize), <, >, 0, 8, +);     
+            pullhmap(worldsize, <, >, 0, 8, +);     
    
         cube **c  = cmap[x][y];
         int e[2][2];
@@ -1205,10 +1254,10 @@ namespace hmap
         bool paintme = paintbrush;
         int cx = (sel.corner&1 ? 0 : -1);
         int cy = (sel.corner&2 ? 0 : -1);
-        hws= (GETIV(mapsize)>>GETIV(gridpower));
-        gx = (cur[R[d]] >> GETIV(gridpower)) + cx - MAXBRUSH2;
-        gy = (cur[C[d]] >> GETIV(gridpower)) + cy - MAXBRUSH2;
-        gz = (cur[D[d]] >> GETIV(gridpower));
+        hws= (worldsize>>gridpower);
+        gx = (cur[R[d]] >> gridpower) + cx - MAXBRUSH2;
+        gy = (cur[C[d]] >> gridpower) + cy - MAXBRUSH2;
+        gz = (cur[D[d]] >> gridpower);
         fs = dc ? 4 : 0;  
         fg = dc ? gridsize : -gridsize;
         mx = max(0, -gx); // ripple range
@@ -1217,10 +1266,10 @@ namespace hmap
         ny = min(MAXBRUSH-1, hws-gy) - 1; 
         if(havesel)
         {   // selection range
-            bmx = mx = max(mx, (sel.o[R[d]]>>GETIV(gridpower))-gx);
-            bmy = my = max(my, (sel.o[C[d]]>>GETIV(gridpower))-gy);
-            bnx = nx = min(nx, (sel.s[R[d]]+(sel.o[R[d]]>>GETIV(gridpower)))-gx-1);
-            bny = ny = min(ny, (sel.s[C[d]]+(sel.o[C[d]]>>GETIV(gridpower)))-gy-1);
+            bmx = mx = max(mx, (sel.o[R[d]]>>gridpower)-gx);
+            bmy = my = max(my, (sel.o[C[d]]>>gridpower)-gy);
+            bnx = nx = min(nx, (sel.s[R[d]]+(sel.o[R[d]]>>gridpower))-gx-1);
+            bny = ny = min(ny, (sel.s[C[d]]+(sel.o[C[d]]>>gridpower))-gy-1);
         }
         if(havesel && mode<0) // -ve means smooth selection
             paintme = false;
@@ -1231,7 +1280,7 @@ namespace hmap
             bnx = min(nx, brushmaxx-1);
             bny = min(ny, brushmaxy-1);   
         }
-        nz = GETIV(mapsize)-gridsize;
+        nz = worldsize-gridsize;
         mz = 0;
         hundo.s = ivec(d,1,1,5);
         hundo.orient = sel.orient;
@@ -1253,13 +1302,13 @@ namespace hmap
         else 
             smooth();
         rippleandset();                       // pull up points to cubify, and set
-        changes.s.sub(changes.o).shr(GETIV(gridpower)).add(1);
+        changes.s.sub(changes.o).shr(gridpower).add(1);
         changed(changes);
     }
 }
 
 void edithmap(int dir, int mode) {    
-    if((GETIV(nompedit) && multiplayer()) || !hmapsel || gridsize < 8) return;    
+    if((nompedit && multiplayer()) || !hmapsel || gridsize < 8) return;    
     hmap::run(dir, mode);        
 }
 
@@ -1299,6 +1348,8 @@ static uchar getmaterial(cube &c)
     return c.material;
 }
 
+VAR(invalidcubeguard, 0, 1, 1);
+
 void mpeditface(int dir, int mode, selinfo &sel, bool local)
 {
     if(mode==1 && (sel.cx || sel.cy || sel.cxs&1 || sel.cys&1)) mode = 0;
@@ -1312,7 +1363,7 @@ void mpeditface(int dir, int mode, selinfo &sel, bool local)
     if(mode==1)
     {
         int h = sel.o[d]+dc*sel.grid;
-        if(((dir>0) == dc && h<=0) || ((dir<0) == dc && h>=GETIV(mapsize))) return;
+        if(((dir>0) == dc && h<=0) || ((dir<0) == dc && h>=worldsize)) return;
         if(dir<0) sel.o[d] += sel.grid * seldir;
     }
 
@@ -1358,7 +1409,7 @@ void mpeditface(int dir, int mode, selinfo &sel, bool local)
             }
 
             optiface(p, c);
-            if(GETIV(invalidcubeguard)==1 && !isvalidcube(c))
+            if(invalidcubeguard==1 && !isvalidcube(c))
             {
                 uint newbak = c.faces[d];
                 uchar *m = (uchar *)&bak;
@@ -1380,20 +1431,22 @@ void mpeditface(int dir, int mode, selinfo &sel, bool local)
 
 void editface(int *dir, int *mode)
 {
-    if(noedit(GETIV(moving)!=0)) return;
-    if(GETIV(hmapedit)!=1)
+    if(noedit(moving!=0)) return;
+    if(hmapedit!=1)
         mpeditface(*dir, *mode, sel, true);        
     else 
         edithmap(*dir, *mode);       
 }
 
+VAR(selectionsurf, 0, 0, 1);
+
 void pushsel(int *dir)
 {
-    if(noedit(GETIV(moving)!=0)) return;
+    if(noedit(moving!=0)) return;
     int d = dimension(orient);
     int s = dimcoord(orient) ? -*dir : *dir;
     sel.o[d] += s*sel.grid;
-    if(GETIV(selectionsurf)==1) 
+    if(selectionsurf==1) 
     {
         player->o[d] += s*sel.grid;
         player->resetinterp();
@@ -1441,13 +1494,15 @@ struct vslotmap
 };
 static vector<vslotmap> remappedvslots;
 
+VAR(usevdelta, 1, 0, 0);
+
 static VSlot *remapvslot(int index, const VSlot &ds)
 {
     loopv(remappedvslots) if(remappedvslots[i].index == index) return remappedvslots[i].vslot;
     VSlot &vs = lookupvslot(index, false);
     if(vs.index < 0 || vs.index == DEFAULT_SKY) return NULL;
     VSlot *edit = NULL;
-    if(GETIV(usevdelta))
+    if(usevdelta)
     {
         VSlot ms;
         mergevslot(ms, vs, ds);
@@ -1508,6 +1563,8 @@ void edittexcube(cube &c, int tex, int orient, bool &findrep)
     }
     if(c.children) loopi(8) edittexcube(c.children[i], tex, orient, findrep);
 }
+
+VAR(allfaces, 0, 0, 1);
 
 void mpeditvslot(VSlot &ds, int allfaces, selinfo &sel, bool local)
 {
@@ -1597,7 +1654,7 @@ void edittex(int i, bool save = true)
     {
         loopvj(texmru) if(texmru[j]==lasttex) { curtexindex = j; break; }
     }
-    mpedittex(i, GETIV(allfaces), sel, true);
+    mpedittex(i, allfaces, sel, true);
 }
 
 void edittex_(int *dir)
@@ -1831,7 +1888,15 @@ void editmat(char *name, char *filtername)
     mpeditmat(id, filter, sel, true);
 }
 
+extern int& menudistance, &menuautoclose;
+
+VARP(texguiwidth, 1, 12, 1000);
+VARP(texguiheight, 1, 8, 1000);
+VARP(texguitime, 0, 25, 1000);
+
 static int lastthumbnail = 0;
+
+VARP(texgui2d, 0, 1, 1);
 
 struct texturegui : g3d_callback 
 {
@@ -1843,19 +1908,19 @@ struct texturegui : g3d_callback
 
     void gui(g3d_gui &g, bool firstpass)
     {
-        int origtab = menutab, numtabs = max((slots.length() + GETIV(texguiwidth)*GETIV(texguiheight) - 1)/(GETIV(texguiwidth)*GETIV(texguiheight)), 1);
+        int origtab = menutab, numtabs = max((slots.length() + texguiwidth*texguiheight - 1)/(texguiwidth*texguiheight), 1);
         g.start(menustart, 0.04f, &menutab);
         loopi(numtabs)
         {   
             g.tab(!i ? "Textures" : NULL, 0xAAFFAA);
             if(i+1 != origtab) continue; //don't load textures on non-visible tabs!
-            loop(h, GETIV(texguiheight))
+            loop(h, texguiheight)
             {
                 g.pushlist();
-                loop(w, GETIV(texguiwidth)) 
+                loop(w, texguiwidth) 
                 {
                     extern VSlot dummyvslot;
-                    int ti = (i*GETIV(texguiheight)+h)*GETIV(texguiwidth)+w;
+                    int ti = (i*texguiheight+h)*texguiwidth+w;
                     if(ti<slots.length()) 
                     {
                         Slot &slot = lookupslot(ti, false);
@@ -1863,7 +1928,7 @@ struct texturegui : g3d_callback
                         if(slot.sts.empty()) continue;
                         else if(!slot.loaded && !slot.thumbnail)
                         {
-                            if(totalmillis-lastthumbnail<GETIV(texguitime)) 
+                            if(totalmillis-lastthumbnail<texguitime) 
                             {
                                 g.texture(dummyvslot, 1.0, false); //create an empty space
                                 continue; 
@@ -1890,7 +1955,7 @@ struct texturegui : g3d_callback
         if(on != menuon && (menuon = on)) 
         { 
             if(menustart <= lasttexmillis) 
-                menutab = 1+clamp(lookupvslot(lasttex, false).slot->index, 0, slots.length()-1)/(GETIV(texguiwidth)*GETIV(texguiheight));
+                menutab = 1+clamp(lookupvslot(lasttex, false).slot->index, 0, slots.length()-1)/(texguiwidth*texguiheight);
             menupos = menuinfrontofplayer(); 
             menustart = starttime(); 
         }
@@ -1900,8 +1965,9 @@ struct texturegui : g3d_callback
     {   
         if(!menuon) return;
         filltexlist();
-        if(!editmode || ((!GETIV(texgui2d) || !GETIV(gui2d)) && camera1->o.dist(menupos) > GETIV(menuautoclose))) menuon = false;
-        else g3d_addgui(this, menupos, GETIV(texgui2d) ? GUI_2D : 0);
+        extern int& usegui2d;
+        if(!editmode || ((!texgui2d || !usegui2d) && camera1->o.dist(menupos) > menuautoclose)) menuon = false;
+        else g3d_addgui(this, menupos, texgui2d ? GUI_2D : 0);
     }
 } gui;
 

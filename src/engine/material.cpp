@@ -84,7 +84,7 @@ void renderwaterfall(const materialsurface &m, Texture *tex, float scale, float 
     switch(mat)
     {
         case MAT_WATER: 
-            t /= GETIV(renderpath)!=R_FIXEDFUNCTION ? 600.0f : 300.0f; 
+            t /= renderpath!=R_FIXEDFUNCTION ? 600.0f : 300.0f; 
             d /= 1000.0f;
             break;
         case MAT_LAVA: 
@@ -99,7 +99,7 @@ void renderwaterfall(const materialsurface &m, Texture *tex, float scale, float 
         varray::defattrib(varray::ATTRIB_TEXCOORD0, 2, GL_FLOAT);
         varray::begin(GL_QUADS);
     }
-    float wave = m.ends&2 ? (GETIV(vertwater) ? WATER_AMPLITUDE*sinf(t)-WATER_OFFSET : -WATER_OFFSET) : 0;
+    float wave = m.ends&2 ? (vertwater ? WATER_AMPLITUDE*sinf(t)-WATER_OFFSET : -WATER_OFFSET) : 0;
     loopi(4)
     {
         vec v(m.o.tovec());
@@ -292,10 +292,12 @@ static int optmatcmp(const materialsurface *x, const materialsurface *y)
     return 0;
 }
 
+VARF(optmats, 0, 1, 1, allchanged());
+
 int optimizematsurfs(materialsurface *matbuf, int matsurfs)
 {
     quicksort(matbuf, matsurfs, optmatcmp);
-    if(!GETIV(optmats)) return matsurfs;
+    if(!optmats) return matsurfs;
     materialsurface *cur = matbuf, *end = matbuf+matsurfs;
     while(cur < end)
     {
@@ -307,14 +309,14 @@ int optimizematsurfs(materialsurface *matbuf, int matsurfs)
                cur->flags == start->flags && 
                cur->o[dim] == start->o[dim])
             ++cur;
-         if(!isliquid(start->material) || start->orient != O_TOP || !GETIV(vertwater))
+         if(!isliquid(start->material) || start->orient != O_TOP || !vertwater)
          {
             if(start!=matbuf) memmove(matbuf, start, (cur-start)*sizeof(materialsurface));
             matbuf += mergemats(matbuf, cur-start);
          }
          else if(cur-start>=4)
          {
-            QuadNode vmats(0, 0, GETIV(mapsize));
+            QuadNode vmats(0, 0, worldsize);
             loopi(cur-start) vmats.insert(start[i].o[C[dim]], start[i].o[R[dim]], start[i].csize);
             vmats.genmatsurfs(start->material, start->orient, start->flags, start->o[dim], matbuf);
          }
@@ -442,6 +444,8 @@ void setupmaterials(int start, int len)
     if(hasmat&(1<<MAT_GLASS)) useshaderbyname("glass");
 }
 
+VARP(showmat, 0, 1, 1);
+
 static int sortdim[3];
 static ivec sortorigin;
 
@@ -499,9 +503,9 @@ void sortmaterials(vector<materialsurface *> &vismats)
         loopi(va->matsurfs)
         {
             materialsurface &m = va->matbuf[i];
-            if(!editmode || !GETIV(showmat) || envmapping)
+            if(!editmode || !showmat || envmapping)
             {
-                if(m.material==MAT_WATER && (m.orient==O_TOP || (refracting<0 && reflectz>GETIV(mapsize)))) continue;
+                if(m.material==MAT_WATER && (m.orient==O_TOP || (refracting<0 && reflectz>worldsize))) continue;
                 if(m.flags&materialsurface::F_EDIT) continue;
                 if(glaring && m.material!=MAT_LAVA) continue;
             }
@@ -509,7 +513,7 @@ void sortmaterials(vector<materialsurface *> &vismats)
             vismats.add(&m);
         }
     }
-    vismats.sort(editmode && GETIV(showmat) && !envmapping ? editmatcmp : vismatcmp);
+    vismats.sort(editmode && showmat && !envmapping ? editmatcmp : vismatcmp);
 }
 
 void rendermatgrid(vector<materialsurface *> &vismats)
@@ -543,6 +547,8 @@ void rendermatgrid(vector<materialsurface *> &vismats)
     disablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 }
 
+VARP(glassenv, 0, 1, 1);
+
 void drawglass(int orient, int x, int y, int z, int csize, int rsize, float offset, const vec *normal = NULL)
 {
     if(varray::data.empty())
@@ -570,6 +576,8 @@ void drawglass(int orient, int x, int y, int z, int csize, int rsize, float offs
         varray::attribv<3>(reflect.v);
     }
 }
+
+VARFP(waterfallenv, 0, 1, 1, preloadwatershaders());
 
 void rendermaterials()
 {
@@ -603,7 +611,7 @@ void rendermaterials()
     float oldfogc[4];
     glGetFloatv(GL_FOG_COLOR, oldfogc);
     int lastfogtype = 1;
-    if(editmode && GETIV(showmat) && !envmapping)
+    if(editmode && showmat && !envmapping)
     {
         glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
         glEnable(GL_BLEND); blended = true;
@@ -662,7 +670,7 @@ void rendermaterials()
                             if(!blended) { glEnable(GL_BLEND); blended = true; }
                             if(depth) { glDepthMask(GL_FALSE); depth = false; }
                         }
-                        else if(GETIV(renderpath)==R_FIXEDFUNCTION || ((!GETIV(waterfallrefract) || reflecting || refracting) && (!hasCM || !GETIV(waterfallenv))))
+                        else if(renderpath==R_FIXEDFUNCTION || ((!waterfallrefract || reflecting || refracting) && (!hasCM || !waterfallenv)))
                         {
                             glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
                             glColor3ubv(wfcol);
@@ -689,9 +697,9 @@ void rendermaterials()
                                 name##shader->set(); \
                             } while(0)
 
-                            if(GETIV(waterfallrefract) && !reflecting && !refracting)
+                            if(waterfallrefract && !reflecting && !refracting)
                             {
-                                if(hasCM && GETIV(waterfallenv)) SETWATERFALLSHADER(waterfallenvrefract);    
+                                if(hasCM && waterfallenv) SETWATERFALLSHADER(waterfallenvrefract);    
                                 else SETWATERFALLSHADER(waterfallrefract);
                                 if(blended) { glDisable(GL_BLEND); blended = false; }
                                 if(!depth) { glDepthMask(GL_TRUE); depth = true; }
@@ -714,12 +722,12 @@ void rendermaterials()
                                 glBindTexture(GL_TEXTURE_2D, wslot.sts.inrange(4) ? wslot.sts[4].t->id : notexture->id);
                                 glActiveTexture_(GL_TEXTURE2_ARB);
                                 glBindTexture(GL_TEXTURE_2D, wslot.sts.inrange(5) ? wslot.sts[5].t->id : notexture->id);
-                                if(hasCM && GETIV(waterfallenv))
+                                if(hasCM && waterfallenv)
                                 {
                                     glActiveTexture_(GL_TEXTURE3_ARB);
                                     glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, lookupenvmap(wslot));
                                 }
-                                if(GETIV(waterfallrefract) && (!reflecting || !refracting))
+                                if(waterfallrefract && (!reflecting || !refracting))
                                 {
                                     extern void setupwaterfallrefract(GLenum tmu1, GLenum tmu2);
                                     setupwaterfallrefract(GL_TEXTURE4_ARB, GL_TEXTURE0_ARB);
@@ -751,11 +759,12 @@ void rendermaterials()
                     {
                         if(!depth) { glDepthMask(GL_TRUE); depth = true; }
                         if(blended) { glDisable(GL_BLEND); blended = false; }
-                        if(GETIV(renderpath)==R_FIXEDFUNCTION && !overbright) { setuptmu(0, "C * T x 2"); overbright = true; }
+                        if(renderpath==R_FIXEDFUNCTION && !overbright) { setuptmu(0, "C * T x 2"); overbright = true; }
                         float t = lastmillis/2000.0f;
                         t -= floor(t);
                         t = 1.0f - 2*fabs(t-0.5f);
-                        if(GETIV(renderpath)!=R_FIXEDFUNCTION && GETIV(glare)) t = 0.625f + 0.075f*t;
+                        extern int& glare;
+                        if(renderpath!=R_FIXEDFUNCTION && glare) t = 0.625f + 0.075f*t;
                         else t = 0.5f + 0.5f*t;
                         glColor3f(t, t, t);
                         static Shader *lavashader = NULL, *lavaglareshader = NULL;
@@ -773,9 +782,9 @@ void rendermaterials()
                     break;
 
                 case MAT_GLASS:
-                    if((m.envmap==EMID_NONE || !GETIV(glassenv) || (envmapped==m.envmap && textured==GL_TEXTURE_CUBE_MAP_ARB)) && lastmat==MAT_GLASS) break;
+                    if((m.envmap==EMID_NONE || !glassenv || (envmapped==m.envmap && textured==GL_TEXTURE_CUBE_MAP_ARB)) && lastmat==MAT_GLASS) break;
                     xtraverts += varray::end();
-                    if(m.envmap!=EMID_NONE && GETIV(glassenv))
+                    if(m.envmap!=EMID_NONE && glassenv)
                     {
                         if(textured!=GL_TEXTURE_CUBE_MAP_ARB) 
                         { 
@@ -786,7 +795,7 @@ void rendermaterials()
                         if(envmapped!=m.envmap)
                         {
                             glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, lookupenvmap(m.envmap));
-                            if(GETIV(renderpath)!=R_FIXEDFUNCTION && !usedcamera) 
+                            if(renderpath!=R_FIXEDFUNCTION && !usedcamera) 
                             {
                                 setenvparamf("camera", SHPARAM_VERTEX, 0, camera1->o.x, camera1->o.y, camera1->o.z);
                                 usedcamera = true;
@@ -799,9 +808,9 @@ void rendermaterials()
                         if(!blended) { glEnable(GL_BLEND); blended = true; }
                         if(overbright) { resettmu(0); overbright = false; }
                         if(depth) { glDepthMask(GL_FALSE); depth = false; }
-                        if(m.envmap!=EMID_NONE && GETIV(glassenv))
+                        if(m.envmap!=EMID_NONE && glassenv)
                         {
-                            if(GETIV(renderpath)==R_FIXEDFUNCTION)
+                            if(renderpath==R_FIXEDFUNCTION)
                             {
                                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                                 glColor4f(0.8f, 0.9f, 1.0f, 0.25f);
@@ -844,7 +853,7 @@ void rendermaterials()
         switch(m.material)
         {
             case MAT_WATER:
-                renderwaterfall(m, wslot.sts[1].t, wslot.scale, 0.1f, MAT_WATER, GETIV(renderpath)!=R_FIXEDFUNCTION && hasCM && GETIV(waterfallenv) ? &normals[m.orient] : NULL);
+                renderwaterfall(m, wslot.sts[1].t, wslot.scale, 0.1f, MAT_WATER, renderpath!=R_FIXEDFUNCTION && hasCM && waterfallenv ? &normals[m.orient] : NULL);
                 break;
 
             case MAT_LAVA:
@@ -855,8 +864,8 @@ void rendermaterials()
                 break;
 
             case MAT_GLASS:
-                if(m.envmap!=EMID_NONE && GETIV(glassenv))
-                    drawglass(m.orient, m.o.x, m.o.y, m.o.z, m.csize, m.rsize, 0.1f, GETIV(renderpath)!=R_FIXEDFUNCTION ? &normals[m.orient] : NULL);
+                if(m.envmap!=EMID_NONE && glassenv)
+                    drawglass(m.orient, m.o.x, m.o.y, m.o.z, m.csize, m.rsize, 0.1f, renderpath!=R_FIXEDFUNCTION ? &normals[m.orient] : NULL);
                 else drawmaterial(m.orient, m.o.x, m.o.y, m.o.z, m.csize, m.rsize, 0.1f);
                 break;
         }
@@ -868,7 +877,7 @@ void rendermaterials()
     if(blended) glDisable(GL_BLEND);
     if(overbright) resettmu(0);
     if(!lastfogtype) glFogfv(GL_FOG_COLOR, oldfogc);
-    if(editmode && GETIV(showmat) && !envmapping)
+    if(editmode && showmat && !envmapping)
     {
         foggedlineshader->set();
         rendermatgrid(vismats);

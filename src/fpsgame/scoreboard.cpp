@@ -8,6 +8,11 @@
 
 namespace game
 {
+    VARP(scoreboard2d, 0, 1, 1);
+    VARP(showpj, 0, 1, 1); // Kripken
+    VARP(showping, 0, 1, 1);
+    VARP(showspectators, 0, 1, 1);
+
     void renderscoreboard(g3d_gui &g, bool firstpass)
     {
         const char *mname = getclientmap();
@@ -34,7 +39,7 @@ namespace game
                 // we get a table here
                 LUA_TABLE_FOREACH(engine, {
                     int lineUniqueId = engine.t_get<int>(1);
-                    char *lt = strdup(engine.t_get<const char*>(2));
+                    char *lt = newstring(engine.t_get<const char*>(2));
                     if (lineUniqueId != -1)
                     {
                         CLogicEntity *entity = LogicSystem::getLogicEntity(lineUniqueId);
@@ -43,21 +48,21 @@ namespace game
                             fpsent *p = (fpsent*)entity->dynamicEntity;
                             assert(p);
 
-                            if (GETIV(showpj))
+                            if (showpj)
                             {
                                 if (p->state == CS_LAGGED)
-                                    lt = of_tools_vstrcat(lt, "s", "LAG");
+                                    lt = tools::vstrcat(lt, "s", "LAG");
                                 else
-                                    lt = of_tools_vstrcat(lt, "si", " pj: ", p->plag);
+                                    lt = tools::vstrcat(lt, "si", " pj: ", p->plag);
                             }
-                            if (!GETIV(showpj) && p->state == CS_LAGGED)
-                                lt = of_tools_vstrcat(lt, "s", "LAG");
+                            if (!showpj && p->state == CS_LAGGED)
+                                lt = tools::vstrcat(lt, "s", "LAG");
                             else
-                                lt = of_tools_vstrcat(lt, "si", " p: ", p->ping);
+                                lt = tools::vstrcat(lt, "si", " p: ", p->ping);
                         }
                     }
                     g.text (lt, 0xFFFFDD, NULL);
-                    OF_FREE(lt);
+                    delete[] lt;
                 });
             }
             engine.pop(1);
@@ -104,7 +109,7 @@ namespace game
 
         void render()
         {
-            if(showing) g3d_addgui(this, menupos, (GETIV(scoreboard2d) ? GUI_FORCE_2D : GUI_2D | GUI_FOLLOW) | GUI_BOTTOM);
+            if(showing) g3d_addgui(this, menupos, (scoreboard2d ? GUI_FORCE_2D : GUI_2D | GUI_FOLLOW) | GUI_BOTTOM);
         }
 
     } scoreboard;

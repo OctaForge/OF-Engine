@@ -51,6 +51,8 @@ int guessimageformat(const char *filename, int format = IMG_BMP);
 void saveimage(const char *filename, int format, ImageData &image, bool flip = false);
 #endif
 
+extern int& nompedit, &worldsize;
+
 namespace lua_binds
 {
     LUA_BIND_STD_CLIENT(texturereset, texturereset, 0)
@@ -71,15 +73,15 @@ namespace lua_binds
     })
 
     LUA_BIND_CLIENT(compactvslosts, {
-        if (GETIV(nompedit) && multiplayer()) return;
+        if (nompedit && multiplayer()) return;
         compactvslots();
         allchanged();
     })
 
     LUA_BIND_CLIENT(fixinsidefaces, {
-        if (noedit(true) || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit(true) || (nompedit && multiplayer())) return;
         int tex = e.get<int>(1);
-        fixinsidefaces(worldroot, ivec(0, 0, 0), GETIV(mapsize)>>1, tex && vslots.inrange(tex) ? tex : DEFAULT_GEOM);
+        fixinsidefaces(worldroot, ivec(0, 0, 0), worldsize>>1, tex && vslots.inrange(tex) ? tex : DEFAULT_GEOM);
         allchanged();
     })
 

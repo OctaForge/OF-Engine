@@ -37,19 +37,6 @@ gui.new("message", function()
     gui.button("close", "gui.clear(1)")
 end)
 
-gui.new("input_dialog", function()
-    gui.text(input_title)
-    gui.bar()
-    gui.text(input_content)
-    gui.bar()
-    engine.newvar("new_input_data", engine_variables.VAR_S, input_data)
-    gui.field("new_input_data", 30, [=[input_data = new_input_data]=])
-    gui.bar()
-    -- TODO: input callback support
-    gui.button("submit", [=[gui.input_callback()]=])
-    gui.button("cancel", [=[gui.clear(1)]=])
-end)
-
 gui.new("can_quit", function()
     gui.text("Editing changes have been made. If you quit")
     gui.text("now then they will be lost. Are you sure you")
@@ -88,7 +75,7 @@ console.binds.add("ESCAPE", [[
 
 function setup_main_menu()
     gui.new("main", function()
-        gui.text("Welcome to OctaForge development release. (1)")
+        gui.text("Welcome to OctaForge development release.")
         gui.text("Enter generic_dev if you aren't sure of mapname.")
         gui.bar()
         if world.hasmap() then

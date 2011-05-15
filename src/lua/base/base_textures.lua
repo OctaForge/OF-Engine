@@ -1,50 +1,27 @@
----
--- base_textures.lua, version 1<br/>
--- Texture interface for Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: base/base_textures.lua
 
---- Texture/blending interface for OF.
--- @class module
--- @name texture
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features texture handling interface.
+
+    Section: Texture interface
+]]
+
+--[[!
+    Package: texture
+    This module controls textures (their registration and manipulation) and
+    texture blending for i.e. heightmap.
+]]
 module("texture", package.seeall)
-
---- Convert PNG to DDS.
--- @param src Source path.
--- @param dest Destination path.
-function convpngtodds(src, dest)
-    CAPI.convpngtodds(src, dest or string.gsub(src, '.png', '.dds'))
-end
-
---- Combine three images.
--- @param first First image.
--- @param sec Second image.
--- @param thr Third image.
--- @class function
--- @name combineimages
-combineimages = CAPI.combineimages
 
 --- Reset texture slots - start counting from 0.
 -- @class function

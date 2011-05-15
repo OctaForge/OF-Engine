@@ -58,6 +58,9 @@ void guilist(int fref);
 void guialign(int *align, int fref);
 void newgui(char *name, int fref, char *header);
 
+SVAR(entity_gui_title, "");
+VAR(num_entity_gui_fields, 0, 0, 13);
+
 namespace lua_binds
 {
     LUA_BIND_STD_CLIENT(font, newfont, e.get<char*>(1), e.get<char*>(2), e.get<int*>(3), e.get<int*>(4), e.get<int*>(5), e.get<int*>(6), e.get<int*>(7), e.get<int*>(8))
@@ -103,7 +106,7 @@ namespace lua_binds
 
     // Sets up a GUI for editing an entity's state data. TODO: get rid of ugly ass STL shit
     LUA_BIND_CLIENT(prepentgui, {
-        SETVN(num_entity_gui_fields, 0);
+        num_entity_gui_fields = 0;
         GuiControl::EditedEntity::stateData.clear();
         GuiControl::EditedEntity::sortedKeys.clear();
 
@@ -150,7 +153,7 @@ namespace lua_binds
             );
 
             GuiControl::EditedEntity::sortedKeys.push_back(key);
-            SETVN(num_entity_gui_fields, GETIV(num_entity_gui_fields) + 1); // increment for later loop
+            num_entity_gui_fields++; // increment for later loop
         });
         e.pop(2).unref(_tmpref);
 
@@ -159,17 +162,17 @@ namespace lua_binds
 
         // Title
         e.getg("tostring").getref(GuiControl::EditedEntity::currEntity->luaRef).call(1, 1);
-        char *title = of_tools_vstrcat(NULL, "iss", uid, ": ", e.get(-1, "unknown"));
+        char *title = tools::vstrcat(NULL, "iss", uid, ": ", e.get(-1, "unknown"));
         e.pop(1);
         SETVF(entity_gui_title, title);
-        OF_FREE(title);
+        delete[] title;
         // Create the gui
-        char *command = strdup(
+        char *command = newstring(
             "gui.new(\"entity\", function()\n"
             "    gui.text(entity_gui_title)\n"
             "    gui.bar()\n"
         );
-        for (int i = 0; i < GETIV(num_entity_gui_fields); i++)
+        for (int i = 0; i < num_entity_gui_fields; i++)
         {
             const char *key = GuiControl::EditedEntity::sortedKeys[i].c_str();
             const char *value = GuiControl::EditedEntity::stateData[key].second.c_str();
@@ -178,7 +181,7 @@ namespace lua_binds
                 Logging::log(Logging::WARNING, "Not showing field '%s' as it is overly large for the GUI\r\n", key);
                 continue; // Do not even try to show overly-large items
             }
-            command = of_tools_vstrcat(command, "sisisisisisisis", 
+            command = tools::vstrcat(command, "sisisisisisisis", 
                 "    gui.list(function()\n"
                 "        gui.text(gui.getentguilabel(",
                 i,
@@ -200,11 +203,11 @@ namespace lua_binds
                 "    end)\n"
             );
             if ((i+1) % 10 == 0)
-                command = of_tools_vstrcat(command, "sis", "   gui.tab(", i, ")\n");
+                command = tools::vstrcat(command, "sis", "   gui.tab(", i, ")\n");
         }
-        command = of_tools_vstrcat(command, "s", "end)\n");
-        e.exec (command);
-        OF_FREE(command);
+        command = tools::vstrcat(command, "s", "end)\n");
+        e.exec  (command);
+        delete[] command;
     })
 
     LUA_BIND_CLIENT(getentguilabel, {

@@ -1,5 +1,5 @@
 /*
- * of_localserver.c, version 1
+ * of_localserver.cpp, version 1
  * Local server handler for OctaForge.
  *
  * author: q66 <quaker66@gmail.com>
@@ -27,146 +27,117 @@
  *
  */
 
-/* General includes */
 #include "cube.h"
-
-/* OF includes */
 #include "of_tools.h"
 #include "of_localserver.h"
-
-/* old Syntensity includes. */
 #include "client_system.h"
 
-/* Access the home directory. */
 extern string homedir;
 
-/* Engine-wide prototypes. */
 void trydisconnect();
-/* Nasty extern abuse */
 namespace Logging
 {
     extern Level currLevel;
     extern std::string levelNames[6];
 }
 
-/* Private OF localserver prototypes */
-bool is_server_ready();
-
-/* Private variables */
-char localserver_buf[4096];
-
-int last_connect_trial = 0;
-int num_trials         = 0;
-
-bool server_ready     = false;
-bool server_started   = false;
-
-/* Return true if local server is running, false otherwise. */
-bool of_localserver_get_running() { return server_ready; }
-
-/*
- * Try connecting. Ran in mainloop every frame, but doesn't usually
- * pass the first condition which is fast (only integral comparisons)
- */
-void of_localserver_try_connect()
+namespace local_server
 {
-    /* You mostly don't get through this, only when local server is stopped and you want to start it. */
-    if (!server_ready && server_started && num_trials <= 20 && lastmillis - last_connect_trial >= 1000)
+    /* private prototypes */
+    bool is_ready();
+
+    int last_connect_trial = 0;
+    int num_trials         = 0;
+
+    bool ready   = false;
+    bool started = false;
+
+    bool is_running()
     {
-        /*
-         * if we're ready, tell the client system to connect.
-         * Otherwise just keep trying. We try for 20 seconds, then just fail.
-         */
-        if (is_server_ready())
+        return ready;
+    }
+
+    void try_connect()
+    {
+        if (!ready && started && num_trials <= 20 && lastmillis - last_connect_trial >= 1000)
         {
-            server_ready = true;
-            ClientSystem::connect("127.0.0.1", 28787);
-            return;
+            if (is_ready())
+            {
+                ready = true;
+                ClientSystem::connect("127.0.0.1", 28787);
+            }
+            else conoutf("Waiting for server to finish starting up .. (%i)", num_trials);
+
+            if (num_trials == 20)
+                Logging::log(Logging::ERROR, "Failed to start server. See "SERVER_LOGFILE" for more information.\n");
+
+            num_trials++;
+            last_connect_trial = lastmillis;
         }
-        else conoutf("Waiting for server to finish starting up .. (%i)", num_trials);
-
-        if (num_trials == 20)
-            Logging::log(Logging::ERROR, "Failed to start server. See "SERVER_LOGFILE" for more information.\n");
-
-        /* Increment number of trials and set millis of last trial. */
-        num_trials++;
-        last_connect_trial = lastmillis;
     }
-}
 
-/*
- * Run the local server. This executes the server proccess, but does not connect.
- * It also opens all required streams and sets server_started to true.
- * Before starting new instance, it stops the old one if running, so it's safe.
- */
-void of_localserver_run(const char *map)
-{
-    /* Stop the old instance if required */
-    if (server_started)
+    void run(const char *map)
     {
-        conoutf("Stopping old server instance ..");
-        of_localserver_stop();
-    }
-    conoutf("Starting server, please wait ..");
+        char buf[512];
 
-    /* Platform specific, so ifdef it. And open the process stream. */
-    snprintf(
-        localserver_buf, sizeof(localserver_buf),
-        "%s -g%s -mbase/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
+        if (started)
+        {
+            conoutf("Stopping old server instance ..");
+            stop();
+        }
+        conoutf("Starting server, please wait ..");
+
+        snprintf(
+            buf, sizeof(buf),
+            "%s -g%s -mbase/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
 #ifdef WIN32
-        "run_server.bat",
+            "run_server.bat",
 #else
-        "exec ./run_server.sh",
+            "exec ./run_server.sh",
 #endif
-        Logging::levelNames[Logging::currLevel].c_str(), map, homedir, SERVER_LOGFILE
-    );
+            Logging::levelNames[Logging::currLevel].c_str(), map, homedir, SERVER_LOGFILE
+        );
+
 #ifdef WIN32
-    _popen(localserver_buf, "r");
+        _popen(buf, "r");
 #else
-    popen(localserver_buf, "r");
+        popen(buf, "r");
 #endif
 
-    /* Inform the engine that server is started. */
-    server_started = true;
-}
+        started = true;
+    }
 
-/*
- * Stop the local server. Besides stopping it,
- * it also closes all streams and resets variables.
- */
-void of_localserver_stop()
-{
-    /* Do not stop if not started, then attempt to disconnect. */
-    if (!server_started) return;
-    trydisconnect();
-
-    /* Reset variables. */
-    last_connect_trial = num_trials = 0;
-    server_ready = server_started   = false;
-}
-
-/* This checks if server is ready by reading its messages. */
-bool is_server_ready()
-{
-    /* Build a path for the log file */
-    snprintf(localserver_buf, sizeof(localserver_buf), "%s/%s", homedir, SERVER_LOGFILE);
-
-    /* Read the file. If it's not readable, just return as not ready. */
-    char *out = loadfile(localserver_buf, NULL);
-    if  (!out) return false;
-    else
+    void stop()
     {
-        /* If the string was found, return as ready. */
-        if (strstr(out, "[[MAP LOADING]] - Success"))
-        {
-            OF_FREE(out);
-            return true;
-        }
+        if (!started) return;
+        trydisconnect();
+
+        last_connect_trial = num_trials = 0;
+        ready = started = false;
+    }
+
+    bool is_ready()
+    {
+        char buf[256];
+        snprintf(buf, sizeof(buf), "%s%s", homedir, SERVER_LOGFILE);
+
+        char *out = NULL;
+        if (!(out = loadfile(buf, NULL)))
+            return false;
         else
         {
-            OF_FREE(out);
-            return false;
+            if (strstr(out, "[[MAP LOADING]] - Success"))
+            {
+                delete[] out;
+                return true;
+            }
+            else
+            {
+                delete[] out;
+                return false;
+            }
         }
+        return false;
     }
-    return false;
-}
+} /* end namespace local_server */
+

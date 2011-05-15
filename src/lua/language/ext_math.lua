@@ -1,71 +1,103 @@
----
--- ext_math.lua, version 1<br/>
--- Extensions for math module of Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: language/ext_math.lua
 
---- Left bitshift surrogate.
--- @param v Left side of the shift.
--- @param n Right side of the shift.
--- @return The shifted value.
--- @class function
--- @name math.lsh
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features various extensions made to Lua's math module.
+
+    Section: Math extensions
+]]
+
+--[[!
+    Function: math.lsh
+    Bit left shift function.
+
+    Parameters:
+        n1 - First integral number.
+        n2 - Second integral number.
+
+    Returns:
+        The shifted value.
+]]
 math.lsh = CAPI.lsh
 
---- Right bitshift surrogate.
--- @param v Left side of the shift.
--- @param n Right side of the shift.
--- @return The shifted value.
--- @class function
--- @name math.rsh
+--[[!
+    Function: math.rsh
+    Bit right shift function.
+
+    Parameters:
+        n1 - First integral number.
+        n2 - Second integral number.
+
+    Returns:
+        The shifted value.
+]]
 math.rsh = CAPI.rsh
 
---- Bitwise OR surrogate.
--- @param ... A variable number of arguments to perform bitwise OR on.
--- @return The result of bitwise OR between arguments.
--- @class function
--- @name math.bor
+--[[!
+    Function: math.bor
+    Bit OR function.
+
+    Parameters:
+        n1 - First integral number.
+        n2 - Second integral number.
+        n3 - ....
+        n4 - ....
+        nX - ....
+
+    Returns:
+        Bit OR result.
+]]
 math.bor = CAPI.bor
 
---- Bitwise AND surrogate.
--- @param ... A variable number of arguments to perform bitwise AND on.
--- @return The result of bitwise AND between arguments.
--- @class function
--- @name math.band
+--[[!
+    Function: math.band
+    Bit AND function.
+
+    Parameters:
+        n1 - First integral number.
+        n2 - Second integral number.
+        n3 - ....
+        n4 - ....
+        nX - ....
+
+    Returns:
+        Bit AND result.
+]]
 math.band = CAPI.band
 
---- Bitwise NOT surrogate.
--- @param v A number value to make bitwise NOT for.
--- @return The result of bitwise NOT with argument.
--- @class function
--- @name math.bnot
+--[[!
+    Function: math.bnot
+    Bit negation function.
+
+    Parameters:
+        n - An integral value.
+
+    Returns:
+        Bit negated value.
+]]
 math.bnot = CAPI.bnot
 
---- Round a floating point number to integral number.
--- @param v The floating point number to round.
--- @return A rounded integral value.
+--[[!
+    Function: math.round
+    Rounds a floating point value.
+    If floating point is above or .5, the number
+    gets rounded up, and down otherwise.
+
+    Parameters:
+        v - The number to round.
+
+    Returns:
+        A rounded (integral) value.
+]]
 function math.round(v)
     return (type(v) == "number"
         and math.floor(v + 0.5)
@@ -73,40 +105,62 @@ function math.round(v)
     )
 end
 
---- Clamp a numerical value.
--- @param v The value to clamp.
--- @param l Lowest value result can have.
--- @param h Highest value result can have.
--- @return Clamped value.
+--[[!
+    Function: math.clamp
+    Clamps a number (limits its bounds)
+
+    Parameters:
+        v - The number to clamp.
+        l - Lowest value the number can have.
+        h - Highest value the number can have.
+
+    Returns:
+        A clamped number.
+]]
 function math.clamp(v, l, h)
     return math.max(l, math.min(v, h))
 end
 
---- Calculate sign of a number.
--- @param v The number to calculate sign for.
--- @return 1 if number is bigger than 0, -1 if smaller and 0 if equals 0.
+--[[!
+    Function: math.sign
+    Gets a sign of a number. That means if input
+    is bigger than 0, sign is 1, if it's smaller
+    than 0, sign is -1. If input is 0, sign is
+    0 too.
+
+    Parameters:
+        v - The value to return sign of.
+
+    Returns:
+        A sign of the number.
+]]
 function math.sign(v)
     return (v < 0 and -1 or (v > 0 and 1 or 0))
 end
 
---- Vector3 class (having x, y, z).
--- @class table
--- @name vec3
+--[[!
+    Class: math.vec3
+    A vec3 class (with x, y, z coordinates) for OctaForge's
+    scripting system.
+]]
 math.vec3 = class.new()
 
---- Return string representation of a vector.
--- @return String representation of a vector.
-function math.vec3:__tostring()
-    return string.format("vec3 <%s, %s, %s>",
-                         tostring(self.x),
-                         tostring(self.y),
-                         tostring(self.z))
-end
+--[[!
+    Constructor: __init
+    This initializes the vector. You can supply it
+    with various arguments.
 
---- vec3 constructor.
--- @param x X value of vector.
--- @param y Y value of vector.
--- @param z Z value of vector.
+    Parameters:
+        x - X coordinate of the vector.
+        y - Y coordinate of the vector.
+        z - Z coordinate of the vector.
+
+    Alternatively:
+        v - Array of 3 numbers or another vec3.
+
+    Or simply omit arguments and let the vector
+    initialize as 0, 0, 0.
+]]
 function math.vec3:__init(x, y, z)
     if type(x) == "table" and x.is_a and x:is_a(vec3) then
         self.x = tonumber(x.x)
@@ -124,16 +178,52 @@ function math.vec3:__init(x, y, z)
     self.length = 3
 end
 
---- Magnitude (length) of vec3.
--- @return Square root of sum of powers of two of x, y and z.
+--[[!
+    Function: __tostring
+    Returns:
+        string representation of the vector.
+        The string representation contains value of the
+        vector and has format
+
+        (start code)
+            vec3 <X, Y, Z>
+        (end)
+]]
+function math.vec3:__tostring()
+    return string.format("vec3 <%s, %s, %s>",
+                         tostring(self.x),
+                         tostring(self.y),
+                         tostring(self.z))
+end
+
+--[[!
+    Function: magnitude
+    Gets a magnitude (length) of vec3.
+
+    Returns:
+        Magnitude (length, that is square root of sum of powers of two of x, y, z)
+        of the vector, that is a number value.
+
+    (start code)
+        sqrt(x^2 + y^2 + z^2)
+    (end)
+]]
 function math.vec3:magnitude()
     return math.sqrt(self.x * self.x
                    + self.y * self.y
                    + self.z * self.z)
 end
 
---- Normalize the vector (divide each component with length)
--- @return Itself.
+--[[!
+    Function: normalize
+    Normalizes a vector, that means, divides each component with its length.
+
+    Returns:
+        Itself.
+
+    See Also:
+        <magnitude>
+]]
 function math.vec3:normalize()
     local mag = self:magnitude()
     if mag ~= 0 then self:mul(1 / mag)
@@ -141,50 +231,96 @@ function math.vec3:normalize()
     return self
 end
 
---- Cap the vector (Multiply every component
--- with division of entered size and length)
--- @param s Size to cap the vector with.
--- @return Itself.
+--[[!
+    Function: cap
+    Caps a vector, that means, multiplies every component with division of
+    entered size and length.
+
+    Parameters:
+        s - Size to cap the vector with.
+
+    Returns:
+        Itself.
+
+    See Also:
+        <magnitude>
+]]
 function math.vec3:cap(s)
     local mag = self:magnitude()
     if mag > s then self:mul(size / mag) end
     return self
 end
 
---- Subtract a vector with other vector and return as new vector.
--- @param v Vector to subtract with.
--- @return New vector.
--- @see math.vec3:sub
+--[[!
+    Function: subnew
+    Subtracts a vector with another one and returns as a new vector.
+
+    Parameters:
+        v - The other vector to subtract with.
+
+    Returns:
+        A new vector as result of subtraction.
+
+    See Also:
+        <sub>
+]]
 function math.vec3:subnew(v)
     return math.vec3(self.x - v.x,
                      self.y - v.y,
                      self.z - v.z)
 end
 
---- Sum a vector with other vector and return as new vector.
--- @param v Vector to sum with.
--- @return New vector.
--- @see math.vec3:add
+--[[!
+    Function: addnew
+    Sums a vector with another one and returns as a new vector.
+
+    Parameters:
+        v - The other vector to sum with.
+
+    Returns:
+        A new vector as result of summary.
+
+    See Also:
+        <add>
+]]
 function math.vec3:addnew(v)
     return math.vec3(self.x + v.x,
                      self.y + v.y,
                      self.z + v.z)
 end
 
---- Multiply a vector with a number and return as new vector.
--- @param v Number to subtract with.
--- @return New vector.
--- @see math.vec3:mul
+--[[!
+    Function: mulnew
+    Multiplies each vector component with a number and returns as a new vector.
+
+    Parameters:
+        v - The number to multiply each component with.
+
+    Returns:
+        A new vector as result of multiplication.
+
+    See Also:
+        <mul>
+]]
 function math.vec3:mulnew(v)
     return math.vec3(self.x * v,
                      self.y * v,
                      self.z * v)
 end
 
---- Subtract current vector with other vector.
--- @param v Vector to subtract with.
--- @return Itself.
--- @see math.vec3:subnew
+--[[!
+    Function: sub
+    Subtracts a vector with another one.
+
+    Parameters:
+        v - The other vector to subtract with.
+
+    Returns:
+        Itself.
+
+    See Also:
+        <subnew>
+]]
 function math.vec3:sub(v)
     self.x = self.x - v.x
     self.y = self.y - v.y
@@ -192,10 +328,19 @@ function math.vec3:sub(v)
     return self
 end
 
---- Sum current vector with other vector.
--- @param v Vector to sum with.
--- @return Itself.
--- @see math.vec3:addnew
+--[[!
+    Function: add
+    Sums a vector with another one.
+
+    Parameters:
+        v - The other vector to sum with.
+
+    Returns:
+        Itself.
+
+    See Also:
+        <addnew>
+]]
 function math.vec3:add(v)
     self.x = self.x + v.x
     self.y = self.y + v.y
@@ -203,10 +348,19 @@ function math.vec3:add(v)
     return self
 end
 
---- Multiply current vector with a number.
--- @param v Number to multiply with.
--- @return Itself.
--- @see math.vec3:mulnew
+--[[!
+    Function: mul
+    Multiplies each component of a vector with a number.
+
+    Parameters:
+        v - The number to multiply each component with.
+
+    Returns:
+        Itself.
+
+    See Also:
+        <mulnew>
+]]
 function math.vec3:mul(v)
     self.x = self.x * v
     self.y = self.y * v
@@ -214,22 +368,39 @@ function math.vec3:mul(v)
     return self
 end
 
---- Create a new vector as copy of current one.
--- @return New vector as a copy of current one.
+--[[!
+    Function: copy
+    Copies a vector.
+
+    Returns:
+        Copy of self.
+]]
 function math.vec3:copy()
     return math.vec3(self.x, self.y, self.z)
 end
 
---- Get array of vector components.
--- @return Array of vector components.
+--[[!
+    Function: as_array
+    Gets an array of vector components.
+
+    Returns:
+        An array of vector components.
+]]
 function math.vec3:as_array()
     return { self.x, self.y, self.z }
 end
 
---- Set vector values from known yaw and pitch.
--- @param yaw Yaw to use.
--- @param pitch Pitch to use.
--- @return Itself.
+--[[!
+    Function: fromyawpitch
+    Sets components of the vector from given yaw and pitch.
+
+    Parameters:
+        yaw - Yaw to calculate x, y from.
+        pitch - Pitch to calculate x, y, z from.
+
+    Returns:
+        Itself.
+]]
 function math.vec3:fromyawpitch(yaw, pitch)
     self.x = -(math.sin(math.rad(yaw)))
     self.y =   math.cos(math.rad(yaw))
@@ -245,8 +416,17 @@ function math.vec3:fromyawpitch(yaw, pitch)
     return self
 end
 
---- Get table containing yaw and pitch from vector components.
--- @return Table containing yaw and pitch.
+--[[!
+    Function: toyawpitch
+    Calculates yaw and pitch from vector components.
+
+    Returns:
+        Table containing yaw and pitch -
+
+        (start code)
+            { yaw = yaw_value, pitch = pitch_value }
+        (end)
+]]
 function math.vec3:toyawpitch()
     local mag = self:magnitude()
     if mag < 0.001 then
@@ -258,10 +438,19 @@ function math.vec3:toyawpitch()
     }
 end
 
---- Calculate if vector is close to another vector, knowing distance.
--- @param v Other vector.
--- @param d The max distance to assume as close.
--- @return True if vectors are close to each other.
+--[[!
+    Function: iscloseto
+    Calculates if vector is close to another vector, knowing
+    their maximal distance to assume it's not close.
+
+    Parameters:
+        v - The other vector.
+        d - Maximal distance to assume the other vector is close.
+
+    Returns:
+        Boolean value, true if the distance is lower than
+        given maximal distance, false otherwise.
+]]
 function math.vec3:iscloseto(v, d)
     d = d * d
     local temp, sum
@@ -280,34 +469,46 @@ function math.vec3:iscloseto(v, d)
     return (sum <= d)
 end
 
---- Calculate dot product of two vectors.
--- @param v The other vector.
--- @return Dot product of two vectors.
+--[[!
+    Function: dotproduct
+    Calculates dot product of two vectors.
+
+    Parameters:
+        v - The other vector.
+
+    Returns:
+        Dot product of two vectors.
+]]
 function math.vec3:dotproduct(v)
     return self.x * v.x + self.y * v.y + self.z * v.z
 end
 
---- Vector4 class (having x, y, z, w).
--- @class table
--- @name vec4
+--[[!
+    Class: math.vec4
+    A vec4 class (with x, y, z, w coordinates) for OctaForge's
+    scripting system.
+
+    This vector inherits from vec3, so it has all of its methods.
+]]
 math.vec4 = class.new(math.vec3)
 
---- Return string representation of a vector.
--- @return String representation of a vector.
-function math.vec4:__tostring()
-    return string.format("vec4 <%s, %s, %s, %s>",
-                         tostring(self.x),
-                         tostring(self.y),
-                         tostring(self.z),
-                         tostring(self.w))
-end
+--[[!
+    Constructor: __init
+    This initializes the vector. You can supply it
+    with various arguments.
 
---- vec4 constructor.
--- @param x X value of vector.
--- @param y Y value of vector.
--- @param z Z value of vector.
--- @param w W value of vector.
--- @return A vector of those values.
+    Parameters:
+        x - X coordinate of the vector.
+        y - Y coordinate of the vector.
+        z - Z coordinate of the vector.
+        w - W coordinate of the vector.
+
+    Alternatively:
+        v - Array of 4 numbers or another vec4.
+
+    Or simply omit arguments and let the vector
+    initialize as 0, 0, 0, 0.
+]]
 function math.vec4:__init(x, y, z, w)
     if type(x) == "table" and x.is_a and x:is_a(vec4) then
         self.x = tonumber(x.x)
@@ -328,8 +529,37 @@ function math.vec4:__init(x, y, z, w)
     self.length = 4
 end
 
---- Magnitude (length) of vec4.
--- @return Square root of sum of powers of two of x, y, z and w.
+--[[!
+    Function: __tostring
+    Returns:
+        string representation of the vector.
+        The string representation contains value of the
+        vector and has format
+
+        (start code)
+            vec4 <X, Y, Z, W>
+        (end)
+]]
+function math.vec4:__tostring()
+    return string.format("vec4 <%s, %s, %s, %s>",
+                         tostring(self.x),
+                         tostring(self.y),
+                         tostring(self.z),
+                         tostring(self.w))
+end
+
+--[[!
+    Function: magnitude
+    Gets a magnitude (length) of vec4.
+
+    Returns:
+        Magnitude (length, that is square root of sum of powers of two of x, y, z, w)
+        of the vector, that is a number value.
+
+    (start code)
+        sqrt(x^2 + y^2 + z^2 + w^2)
+    (end)
+]]
 function math.vec4:magnitude()
     return math.sqrt(self.x * self.x
                    + self.y * self.y
@@ -337,10 +567,6 @@ function math.vec4:magnitude()
                    + self.w * self.w)
 end
 
---- Subtract a vector with other vector and return as new vector.
--- @param v Vector to subtract with.
--- @return New vector.
--- @see math.vec4:sub
 function math.vec4:subnew(v)
     return math.vec4(self.x - v.x,
                      self.y - v.y,
@@ -348,10 +574,6 @@ function math.vec4:subnew(v)
                      self.w - v.w)
 end
 
---- Sum a vector with other vector and return as new vector.
--- @param v Vector to sum with.
--- @return New vector.
--- @see math.vec4:add
 function math.vec4:addnew(v)
     return math.vec4(self.x + v.x,
                      self.y + v.y,
@@ -359,10 +581,6 @@ function math.vec4:addnew(v)
                      self.w + v.w)
 end
 
---- Multiply a vector with a number and return as new vector.
--- @param v Number to subtract with.
--- @return New vector.
--- @see math.vec4:mul
 function math.vec4:mulnew(v)
     return math.vec4(self.x * v,
                      self.y * v,
@@ -370,10 +588,6 @@ function math.vec4:mulnew(v)
                      self.w * v)
 end
 
---- Subtract current vector with other vector.
--- @param v Vector to subtract with.
--- @return Itself.
--- @see math.vec4:subnew
 function math.vec4:sub(v)
     self.x = self.x - v.x
     self.y = self.y - v.y
@@ -382,10 +596,6 @@ function math.vec4:sub(v)
     return self
 end
 
---- Sum current vector with other vector.
--- @param v Vector to sum with.
--- @return Itself.
--- @see math.vec4:addnew
 function math.vec4:add(v)
     self.x = self.x + v.x
     self.y = self.y + v.y
@@ -394,10 +604,6 @@ function math.vec4:add(v)
     return self
 end
 
---- Multiply current vector with a number.
--- @param v Number to multiply with.
--- @return Itself.
--- @see math.vec4:mulnew
 function math.vec4:mul(v)
     self.x = self.x * v
     self.y = self.y * v
@@ -406,24 +612,28 @@ function math.vec4:mul(v)
     return self
 end
 
---- Create a new vector as copy of current one.
--- @return New vector as a copy of current one.
 function math.vec4:copy()
     return math.vec4(self.x, self.y, self.z, self.w)
 end
 
---- Get array of vector components.
--- @return Array of vector components.
 function math.vec4:as_array()
     return { self.x, self.y, self.z, self.w }
 end
 
---- Set components knowing axis (which is vec3)
--- and angle (which is a number in degrees)
--- @param ax The axis (vec3)
--- @param an The angle (number in degrees)
--- @return Itself.
-function math.vec4:quatfromaxiangle(ax, an)
+--[[!
+    Function: quatfromaxisangle
+    Sets components of the vector from given axis
+    (which is vec3) and angle (which is an integral
+    number in degrees)
+
+    Parameters:
+        ax - The axis (vec3)
+        an - The angle (integral number)
+
+    Returns:
+        Itself.
+]]
+function math.vec4:quatfromaxisangle(ax, an)
     an = math.rad(an)
     self.w = math.cos(an / 2)
     local s = math.sin(an / 2)
@@ -435,9 +645,17 @@ function math.vec4:quatfromaxiangle(ax, an)
     return self
 end
 
---- Get table containing yaw, pitch and roll from vector components.
--- TODO: test and fix bugs
--- @return Table containing yaw, pitch and roll.
+--[[!
+    Function: toyawpitchroll
+    Calculates yaw, pitch and roll from vector components.
+
+    Returns:
+        Table containing yaw and pitch:
+
+        (start code)
+            { yaw = yaw_value, pitch = pitch_value, roll = roll_value }
+        (end)
+]]
 function math.vec4:toyawpitchroll()
     --local r = self:toyawpitch()
     --r.roll = 0

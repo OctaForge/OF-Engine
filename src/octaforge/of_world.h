@@ -30,19 +30,23 @@
 #ifndef OF_WORLD_H
 #define OF_WORLD_H
 
-bool of_world_set_map(const char *id);
-bool of_world_restart_map();
+namespace world
+{
+    bool set_map(const char *id);
+    bool restart_map();
 
 #ifdef SERVER
-void of_world_send_curr_map(int cn);
+    void send_curr_map(int cn);
 #endif
 
-void of_world_export_entities(const char *fname);
-char *of_world_get_mapfile_path(const char *rpath);
-char *of_world_get_map_script_filename();
-void of_world_run_map_script();
+    void export_ents(const char *fname);
+    char *get_mapfile_path(const char *rpath);
+    char *get_mapscript_filename();
+    void run_mapscript();
 
-const char *of_world_get_curr_map_asset_id();
-const char *of_world_get_scenario_code();
+    const char *get_curr_mapid();
+    const char *get_scenario_code();
+
+} /* end namespace world */
 
 #endif

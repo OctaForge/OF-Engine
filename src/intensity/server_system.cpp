@@ -8,6 +8,50 @@
 
 #include "of_tools.h"
 
+VARR(fog, 1, 2, 300000);
+VAR(thirdperson, 0, 1, 2);
+VARN(gui2d, usegui2d, 0, 1, 1);
+VAR(gamespeed, 0, 100, 100);
+VAR(paused, 0, 0, 1);
+VAR(shaderdetail, 0, 1, 3);
+VAR(mainmenu, 1, 0, 0);
+VAR(envmapradius, 0, 128, 10000);
+VAR(nolights, 1, 0, 0);
+VARN(blobs, showblobs, 0, 1, 1);
+VAR(shadowmap, 0, 0, 1);
+VAR(maxtmus, 1, 0, 0);
+VAR(reservevpparams, 1, 16, 0);
+VAR(maxvpenvparams, 1, 0, 0);
+VAR(maxvplocalparams, 1, 0, 0);
+VAR(maxfpenvparams, 1, 0, 0);
+VAR(maxfplocalparams, 1, 0, 0);
+VAR(maxvsuniforms, 1, 0, 0);
+VAR(vertwater, 0, 1, 1);
+VAR(reflectdist, 0, 2000, 10000);
+VAR(waterrefract, 0, 1, 1);
+VAR(waterreflect, 0, 1, 1);
+VAR(waterfade, 0, 1, 1);
+VAR(caustics, 0, 1, 1);
+VAR(waterfallrefract, 0, 0, 1);
+VAR(waterfog, 0, 150, 10000);
+VAR(lavafog, 0, 50, 10000);
+VAR(showmat, 0, 1, 1);
+VAR(fullbright, 0, 0, 1);
+VAR(menuautoclose, 32, 120, 4096);
+VAR(outline, 0, 0, 0xFFFFFF);
+VAR(oqfrags, 0, 8, 64);
+VAR(renderpath, 1, R_FIXEDFUNCTION, 0);
+VAR(ati_oq_bug, 0, 0, 1);
+VAR(lightprecision, 1, 32, 1024);
+VAR(lighterror, 1, 8, 16);
+VAR(bumperror, 1, 3, 16);
+VAR(lightlod, 0, 0, 10);
+VAR(ambient, 1, 0x191919, 0xFFFFFF);
+VAR(skylight, 0, 0, 0xFFFFFF);
+VAR(watercolour, 0, 0x144650, 0xFFFFFF);
+VAR(waterfallcolour, 0, 0, 0xFFFFFF);
+VAR(lavacolour, 0, 0xFF4000, 0xFFFFFF);
+
 // INTENSITY: *New* function, to parallel sauer's client version
 void serverkeepalive()
 {

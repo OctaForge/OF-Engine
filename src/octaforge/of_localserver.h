@@ -30,10 +30,13 @@
 #ifndef OF_LOCALSERVER_H
 #define OF_LOCALSERVER_H
 
-bool of_localserver_get_running();
-void of_localserver_try_connect();
-void of_localserver_run(const char *map);
-void of_localserver_stop();
+namespace local_server
+{
+    bool is_running();
+    void try_connect();
+    void run(const char *map);
+    void stop();
+} /* end namespace local_server */
 
 /* Name of server log file in home directory. */
 #define SERVER_LOGFILE "out_server.log"

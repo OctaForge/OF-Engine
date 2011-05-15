@@ -531,9 +531,6 @@ namespace lua
 
         Logging::log(Logging::DEBUG, "Creating lua_Engine state handler.\n");
 
-        // before even opening lua, register internal variables
-        var::fill();
-
         m_handle = luaL_newstate();
         if (m_handle)
         {
@@ -545,8 +542,6 @@ namespace lua
             m_version = "0.0.5";
 
             setup_libs(); bind();
-            // after setting up bindings, we can fill lua variables too :)
-            var::filllua();
         }
         Logging::log(Logging::DEBUG, "Handler creation went properly.\n");
 

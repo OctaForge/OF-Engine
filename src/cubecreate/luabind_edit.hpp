@@ -86,10 +86,12 @@ namespace server
     char*& getUsername(int clientNumber);
 }
 
+extern int& usevdelta, &gridpower, &nompedit, &allfaces;
+
 namespace lua_binds
 {
     LUA_BIND_STD(editing_getworldsize, e.push, EditingSystem::getWorldSize())
-    LUA_BIND_STD(editing_getgridsize, e.push, 1<<GETIV(gridpower))
+    LUA_BIND_STD(editing_getgridsize, e.push, 1<<gridpower)
     LUA_BIND_STD(editing_erasegeometry, EditingSystem::eraseGeometry)
     LUA_BIND_STD(editing_createcube, EditingSystem::createCube, e.get<int>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4))
     LUA_BIND_STD(editing_deletecube, EditingSystem::deleteCube, e.get<int>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4))
@@ -123,7 +125,7 @@ namespace lua_binds
         else e.push();
     })
     LUA_BIND_STD(renderprogress, renderprogress, e.get<float>(1), e.get<const char*>(2))
-    LUA_BIND_STD(getmapversion, e.push, GETIV(mapversion))
+    LUA_BIND_STD(getmapversion, e.push, mapversion)
 
     LUA_BIND_STD(edittoggle, toggleedit, false)
     LUA_BIND_STD(entcancel, entcancel)
@@ -151,73 +153,73 @@ namespace lua_binds
     LUA_BIND_STD(editface, editface, e.get<int*>(1), e.get<int*>(2))
     LUA_BIND_STD(delcube, delcube)
     LUA_BIND_DEF(vdelta, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
-        SETVN(usevdelta, GETIV(usevdelta) + 1);
+        if (noedit() || (nompedit && multiplayer())) return;
+        usevdelta++;
         e.exec(e.get<const char*>(1));
-        SETVN(usevdelta, GETIV(usevdelta) - 1);
+        usevdelta--;
     })
     LUA_BIND_DEF(vrotate, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_ROTATION;
-        ds.rotation = GETIV(usevdelta) ? e.get<int>(1) : clamp(e.get<int>(1), 0, 5);
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        ds.rotation = usevdelta ? e.get<int>(1) : clamp(e.get<int>(1), 0, 5);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(voffset, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_OFFSET;
-        ds.xoffset = GETIV(usevdelta) ? e.get<int>(1) : max(e.get<int>(1), 0);
-        ds.yoffset = GETIV(usevdelta) ? e.get<int>(2) : max(e.get<int>(2), 0);
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        ds.xoffset = usevdelta ? e.get<int>(1) : max(e.get<int>(1), 0);
+        ds.yoffset = usevdelta ? e.get<int>(2) : max(e.get<int>(2), 0);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(vscroll, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_SCROLL;
         ds.scrollS = e.get<float>(1)/1000.0f;
         ds.scrollT = e.get<float>(2)/1000.0f;
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(vscale, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         float scale = e.get<float>(1);
         VSlot ds;
         ds.changed = 1 << VSLOT_SCALE;
-        ds.scale = scale <= 0 ? 1 : (GETIV(usevdelta) ? scale : clamp(scale, 1/8.0f, 8.0f));
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        ds.scale = scale <= 0 ? 1 : (usevdelta ? scale : clamp(scale, 1/8.0f, 8.0f));
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(vlayer, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_LAYER;
         ds.layer = vslots.inrange(e.get<int>(1)) ? e.get<int>(1) : 0;
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(valpha, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_ALPHA;
         ds.alphafront = clamp(e.get<float>(1), 0.0f, 1.0f);
         ds.alphaback  = clamp(e.get<float>(2), 0.0f, 1.0f);
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(vcolor, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_COLOR;
         ds.colorscale = vec(clamp(e.get<float>(1), 0.0f, 1.0f),
                             clamp(e.get<float>(2), 0.0f, 1.0f),
                             clamp(e.get<float>(3), 0.0f, 1.0f));
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(vreset, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_DEF(vshaderparam, {
-        if (noedit() || (GETIV(nompedit) && multiplayer())) return;
+        if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_SHPARAM;
         if(e.get<const char*>(1)[0])
@@ -232,7 +234,7 @@ namespace lua_binds
             p.val[3] = e.get<float>(5);
             ds.params.add(p);
         }
-        mpeditvslot(ds, GETIV(allfaces), sel, true);
+        mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_STD(edittex, edittex_, e.get<int*>(1))
     LUA_BIND_STD(gettex, gettex)
@@ -253,9 +255,9 @@ namespace lua_binds
     LUA_BIND_SERVER(npcadd, {
         int cn = localconnect(); // Local connect to the server
         char *uname = server::getUsername(cn);
-        if (uname) OF_FREE(uname);
+        if (uname) delete[] uname;
 
-        uname = of_tools_vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
+        uname = tools::vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
         Logging::log(Logging::DEBUG, "New NPC with client number: %d\r\n", cn);
 
         // Create lua entity (players do this when they log in, NPCs do it here
@@ -274,7 +276,7 @@ namespace lua_binds
     #endif
 
     LUA_BIND_CLIENT(save_mouse_pos, {
-        EditingSystem::savedMousePosTime = of_tools_getcurrtime();
+        EditingSystem::savedMousePosTime = tools::currtime();
         EditingSystem::savedMousePos = TargetingControl::worldPosition;
         Logging::log(Logging::DEBUG,
                      "Saved mouse pos: %f,%f,%f (%d)\r\n",
@@ -286,7 +288,7 @@ namespace lua_binds
 
     LUA_BIND_CLIENT(getentclass, {
         const char *ret = (EditingSystem::entityClasses[e.get<int>(1)]).c_str();
-        assert( of_tools_validate_alphanumeric(ret, "_") ); // Prevent injections
+        assert( tools::valanumeric(ret, "_") ); // Prevent injections
         e.push(ret);
     })
 

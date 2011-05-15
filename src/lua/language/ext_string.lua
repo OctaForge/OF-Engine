@@ -1,42 +1,50 @@
----
--- ext_string.lua, version 1<br/>
--- Extensions for string module of Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: language/ext_string.lua
 
--- String interpolation: http://lua-users.org/wiki/StringInterpolation
--- modified to match _ and numbers
-function _cc_interp(s, tab)
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features various extensions made to Lua's string module.
+
+    Section: String extensions
+]]
+
+--[[!
+    Function: _str_interp
+    String interpolation function taken and modified from here
+    <http://lua-users.org/wiki/StringInterpolation>.
+    Unlike the way in the link, we also handle unnamed arguments,
+    _ and numbers.
+
+    It is activated using
+
+    (start code)
+        getmetatable("").__mod = _str_interp
+    (end)
+
+    Parameters:
+        s - The input string.
+        t - A table of arguments to substitute.
+
+    Returns:
+        Final string with all substitutions done.
+]]
+function _str_interp(s, t)
     return (
         string.gsub(
             s, '%%%(([a-zA-Z_0-9]*)%)([-0-9%.]*[cdeEfgGiouxXsq])',
             function(k, fmt)
                 k = tonumber(k) and tonumber(k) or k
-                return (tab[k]
+                return (t[k]
                     and
-                        string.format("%" .. fmt, tab[k])
+                        string.format("%" .. fmt, t[k])
                     or
                         "%(" .. k .. ")" .. fmt
                 )
@@ -44,18 +52,26 @@ function _cc_interp(s, tab)
         )
     )
 end
-getmetatable("").__mod = _cc_interp
+getmetatable("").__mod = _str_interp
 
---- Split string into table of tokens, based on http://lua-users.org/wiki/SplitJoin.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = "abc|def|ghi|jkl"<br/>
--- local b = string.split(a, '|')<br/>
--- assert(table.concat(b) == "abcdefghijkl")<br/>
--- </code>
--- @param s String to split.
--- @param d Delimiter to use.
--- @return Table of string tokens.
+--[[!
+    Function: string.split
+    Splits a string into table of tokens, based on
+    <http://lua-users.org/wiki/SplitJoin>. Usage -
+
+    (start code)
+        local a = "abc|def|ghi|jkl"
+        local b = string.split(a, '|')
+        assert(table.concat(b) == "abcdefghijkl")
+    (end)
+
+    Parameters:
+        s - The string to split.
+        d - A delimiter to use.
+
+    Returns:
+        A table of tokens.
+]]
 function string.split(s, d)
     d = d and tostring(d) or ","
     local r = {}
@@ -65,19 +81,28 @@ function string.split(s, d)
     return r
 end
 
---- Parse a string template (string with embedded lua code), inspired by luadoc parser system.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- foo = "bar"<br/>
--- bar = "blah"<br/>
--- -- this returns "bar: blah"<br/>
--- -- first, gets parsed to "bar : <$0 return bar $0>"<br/>
--- -- then, it gets parsed to "bar : blah" (value of bar)<br/>
--- assert(string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah")<br/>
--- </code>
--- @param s String input.
--- @param l Level to parse string from. Everything with higher or equal level gets parsed. Defaults to 0.
--- @return Parsed code.
+--[[!
+    Function: string.template
+    Parses a string template (string with embedded lua code),
+    inspired by luadoc parser system. Usage -
+
+    (start code)
+        foo = "bar"
+        bar = "blah"
+        -- this returns "bar: blah"
+        -- first, gets parsed to "bar : <$0 return bar $0>"
+        -- then, it gets parsed to "bar : blah" (value of bar)
+        assert(string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah")
+    (end)
+
+    Parameters:
+        s - The string to parse.
+        l - Level to parse string from.
+        Everything with higer or equal level gets parsed. Defaults to 0.
+
+    Returns:
+        Parsed string.
+]]
 function string.template(s, l)
     l = l or 0
     s = string.gsub(s, "<$" .. l .. "(.-)$" .. l .. ">", "<?lua %1 ?>")

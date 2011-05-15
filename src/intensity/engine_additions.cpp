@@ -204,16 +204,14 @@ void CLogicEntity::setAttachments(std::string _attachments)
     // Clean out old data
     for (int i = 0; attachments[i].tag; i++)
     {
-        attachments[i].tag = NULL;
-        attachments[i].name = NULL;
-        free((void*)attachments[i].tag);
-        free((void*)attachments[i].name);
+        delete[] attachments[i].tag;
+        delete[] attachments[i].name;
     }
 
     // Generate new data
     int num = 0, i = 0;
     char *curr = NULL, *name = NULL, *tag = NULL;
-    char *data = strdup(_attachments.c_str());
+    char *data = newstring(_attachments.c_str());
     char * pch = strchr(data, '|');
 
     while (pch)
@@ -229,7 +227,7 @@ void CLogicEntity::setAttachments(std::string _attachments)
     pch = strtok(data, "|");
     while (pch)
     {
-        curr = strdup(pch);
+        curr = newstring(pch);
         if (!strchr(curr, ','))
         {
             name = NULL;
@@ -253,8 +251,8 @@ void CLogicEntity::setAttachments(std::string _attachments)
         }
         else attachments[i].pos = NULL;
 
-        attachments[i].tag  = strdup(tag);
-        attachments[i].name = name ? strdup(name) : strdup("");
+        attachments[i].tag  = newstring(tag);
+        attachments[i].name = name ? newstring(name) : newstring("");
         /* attachments[i].anim = ANIM_VWEP | ANIM_LOOP;
          * This will become important if/when we have animated attachments
          */
@@ -267,7 +265,7 @@ void CLogicEntity::setAttachments(std::string _attachments)
             attachments[i].tag
         );
 
-        OF_FREE(curr);
+        delete[] curr;
 
         pch = strtok(NULL, "|");
         i++;
@@ -278,7 +276,7 @@ void CLogicEntity::setAttachments(std::string _attachments)
     /* Null name element at the end, for sauer to know to stop */
     attachments[num].name = NULL;
 
-    OF_FREE(data);
+    delete[] data;
 }
 
 void CLogicEntity::setAnimation(int _animation)
@@ -292,7 +290,7 @@ void CLogicEntity::setAnimation(int _animation)
     Logging::log(Logging::DEBUG, "(2) setAnimation: %d\r\n", _animation);
 
     animation = _animation;
-    startTime = lastmillis; // of_tools_getcurrtime(); XXX Do NOT want the actual time! We
+    startTime = lastmillis; // tools::currtime(); XXX Do NOT want the actual time! We
                             // need 'lastmillis', sauer's clock, which doesn't advance *inside* frames,
                             // because otherwise the starttime may be
                             // LATER than lastmillis, while sauer's animation system does lastmillis-basetime,
@@ -458,10 +456,8 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 
     for (int i = 0; ptr->attachments[i].tag; i++)
     {
-        ptr->attachments[i].tag = NULL;
-        ptr->attachments[i].name = NULL;
-        free((void*)ptr->attachments[i].tag);
-        free((void*)ptr->attachments[i].name);
+        delete[] ptr->attachments[i].tag;
+        delete[] ptr->attachments[i].name;
     }
 
     if (ptr->luaRef >= 0) engine.unref(ptr->luaRef);

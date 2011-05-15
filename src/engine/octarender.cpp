@@ -20,6 +20,9 @@ static inline bool htcmp(GLuint x, GLuint y)
 
 hashtable<GLuint, vboinfo> vbos;
 
+VAR(printvbo, 0, 0, 1);
+VARFN(vbosize, maxvbosize, 0, 1<<14, 1<<16, allchanged());
+
 enum
 {
     VBO_VBUF = 0,
@@ -71,7 +74,7 @@ void genvbo(int type, void *buf, int len, vtxarray **vas, int numva)
     vbi.uses = numva;
     vbi.data = data;
  
-    if(GETIV(printvbo)) conoutf(CON_DEBUG, "vbo %d: type %d, size %d, %d uses", vbo, type, len, numva);
+    if(printvbo) conoutf(CON_DEBUG, "vbo %d: type %d, size %d, %d uses", vbo, type, len, numva);
 
     loopi(numva)
     {
@@ -410,7 +413,7 @@ struct vacollect : verthash
             if(x->dim > y->dim) return 1;
             return 0;
         }
-        if(GETIV(renderpath)!=R_FIXEDFUNCTION)
+        if(renderpath!=R_FIXEDFUNCTION)
         {
             VSlot &xs = lookupvslot(x->tex, false), &ys = lookupvslot(y->tex, false);
             if(xs.slot->shader < ys.slot->shader) return -1;
@@ -436,7 +439,7 @@ struct vacollect : verthash
 
     void genverts(void *buf)
     {
-        if(GETIV(renderpath)==R_FIXEDFUNCTION)
+        if(renderpath==R_FIXEDFUNCTION)
             GENVERTSPOSNORMUV(vertexff, buf, { f->lmu = v.lmu/float(SHRT_MAX); f->lmv = v.lmv/float(SHRT_MAX); });
         else 
             GENVERTS(vertex, buf, { *f = v; f->norm.flip(); });
@@ -453,7 +456,7 @@ struct vacollect : verthash
         va->voffset = 0;
         if(va->verts)
         {
-            if(vbosize[VBO_VBUF] + verts.length() > GETIV(vbosize) || 
+            if(vbosize[VBO_VBUF] + verts.length() > maxvbosize || 
                vbosize[VBO_EBUF] + worldtris > USHRT_MAX ||
                vbosize[VBO_SKYBUF] + skytris > USHRT_MAX) 
                 flushvbo();
@@ -543,7 +546,7 @@ struct vacollect : verthash
         {
             Slot &slot = *lookupvslot(va->eslist[i].texture, false).slot;
             loopvj(slot.sts) va->texmask |= 1<<slot.sts[j].type;
-            if(slot.shader->type&SHADER_ENVMAP && (GETIV(renderpath)!=R_FIXEDFUNCTION || (slot.ffenv && hasCM && GETIV(maxtmus) >= 2))) va->texmask |= 1<<TEX_ENVMAP;
+            if(slot.shader->type&SHADER_ENVMAP && (renderpath!=R_FIXEDFUNCTION || (slot.ffenv && hasCM && maxtmus >= 2))) va->texmask |= 1<<TEX_ENVMAP;
         }
 
         if(grasstris.length())
@@ -595,6 +598,8 @@ int calcshadowmask(vec *vv)
     }
     return mask;
 }
+
+VARFP(filltjoints, 0, 1, 1, allchanged());
 
 void reduceslope(ivec &n)
 {
@@ -791,7 +796,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, ushort texture, 
     int shadowmask = texture==DEFAULT_SKY || alpha ? 0 : calcshadowmask(pos);
     LightMap *lm = NULL;
     LightMapTexture *lmtex = NULL;
-    if(!GETIV(nolights) && surface && lightmaps.inrange(surface->lmid-LMID_RESERVED))
+    if(!nolights && surface && lightmaps.inrange(surface->lmid-LMID_RESERVED))
     {
         lm = &lightmaps[surface->lmid-LMID_RESERVED];
         if((lm->type&LM_TYPE)==LM_DIFFUSE ||
@@ -817,7 +822,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, ushort texture, 
             v.lmv = short(ceil((lm->offsety + surface->y + (surface->texcoords[k*2 + 1] / 255.0f) * (surface->h - 1) + 0.5f) * SHRT_MAX/lmtex->h));
         }
         else v.lmu = v.lmv = 0;
-        if(GETIV(renderpath)!=R_FIXEDFUNCTION && normals)
+        if(renderpath!=R_FIXEDFUNCTION && normals)
         {
             v.norm = normals->normals[k];
             vec n = normals->normals[k].tovec(), t = orientation_tangent[vslot.rotation][dim];
@@ -993,7 +998,7 @@ void gencubeedges(cube &c, int x, int y, int z, int size)
     }
 }
 
-void gencubeedges(cube *c = worldroot, int x = 0, int y = 0, int z = 0, int size = GETIV(mapsize)>>1)
+void gencubeedges(cube *c = worldroot, int x = 0, int y = 0, int z = 0, int size = worldsize>>1)
 {
     progress("fixing t-joints...");
     neighbourstack[++neighbourdepth] = c;
@@ -1063,11 +1068,11 @@ int hasskyfaces(cube &c, int x, int y, int z, int size, int faces[6])
 {
     int numfaces = 0;
     if(x == 0 && !skyoccluded(c, O_LEFT)) faces[numfaces++] = O_LEFT;
-    if(x + size == GETIV(mapsize) && !skyoccluded(c, O_RIGHT)) faces[numfaces++] = O_RIGHT;
+    if(x + size == worldsize && !skyoccluded(c, O_RIGHT)) faces[numfaces++] = O_RIGHT;
     if(y == 0 && !skyoccluded(c, O_BACK)) faces[numfaces++] = O_BACK;
-    if(y + size == GETIV(mapsize) && !skyoccluded(c, O_FRONT)) faces[numfaces++] = O_FRONT;
+    if(y + size == worldsize && !skyoccluded(c, O_FRONT)) faces[numfaces++] = O_FRONT;
     if(z == 0 && !skyoccluded(c, O_BOTTOM)) faces[numfaces++] = O_BOTTOM;
-    if(z + size == GETIV(mapsize) && !skyoccluded(c, O_TOP)) faces[numfaces++] = O_TOP;
+    if(z + size == worldsize && !skyoccluded(c, O_TOP)) faces[numfaces++] = O_TOP;
     return numfaces;
 }
 
@@ -1522,6 +1527,10 @@ void setva(cube &c, int cx, int cy, int cz, int size, int csi)
     vc.clear();
 }
 
+VARF(vacubemax, 64, 512, 256*256, allchanged());
+VARF(vacubesize, 32, 128, 0x1000, allchanged());
+VARF(vacubemin, 0, 128, 256*256, allchanged());
+
 int updateva(cube *c, int cx, int cy, int cz, int size, int csi)
 {
     progress("recalculating geometry...");
@@ -1545,7 +1554,7 @@ int updateva(cube *c, int cx, int cy, int cz, int size, int csi)
             if(c[i].children) count += updateva(c[i].children, o.x, o.y, o.z, size/2, csi-1);
             else if(!isempty(c[i]) || hasskyfaces(c[i], o.x, o.y, o.z, size, faces)) count++;
             int tcount = count + (csi < int(sizeof(vamerges)/sizeof(vamerges[0])) ? vamerges[csi].length() : 0);
-            if(tcount > GETIV(vacubemax) || (tcount >= GETIV(vacubemin) && size >= GETIV(vacubesize)) || size == min(0x1000, GETIV(mapsize)/2)) 
+            if(tcount > vacubemax || (tcount >= vacubemin && size >= vacubesize) || size == min(0x1000, worldsize/2)) 
             {
                 loadprogress = clamp(recalcprogress/float(allocnodes), 0.0f, 1.0f);
                 setva(c[i], o.x, o.y, o.z, size, csi);
@@ -1674,11 +1683,11 @@ void findtjoints(int cur, const edgegroup &g)
 void octarender()                               // creates va s for all leaf cubes that don't already have them
 {
     int csi = 0;
-    while(1<<csi < GETIV(mapsize)) csi++;
+    while(1<<csi < worldsize) csi++;
 
     recalcprogress = 0;
     varoot.setsize(0);
-    updateva(worldroot, 0, 0, 0, GETIV(mapsize)/2, csi-1);
+    updateva(worldroot, 0, 0, 0, worldsize/2, csi-1);
     loadprogress = 0;
     flushvbo();
 
@@ -1733,7 +1742,7 @@ void allchanged(bool load)
     guessshadowdir();
     entitiesinoctanodes();
     tjoints.setsize(0);
-    if(GETIV(filltjoints))
+    if(filltjoints)
     {
         recalcprogress = 0;
         gencubeedges();

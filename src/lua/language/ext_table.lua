@@ -1,41 +1,38 @@
----
--- ext_table.lua, version 1<br/>
--- Extensions for table module of Lua<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: language/ext_table.lua
 
---- Remap a table (array).
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { 1, 2, 3, 4, 5 }<br/>
--- local b = table.map(a, function(i) return tostring(i) end)<br/>
--- </code>
--- Resulting table is full of strings in the snippet.
--- @param t Table to remap.
--- @param f Function taking an element as argument and returning remapped version.
--- @return Re-mapped table. Won't overwrite the original.
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file features various extensions made to Lua's table module.
+
+    Section: Table extensions
+]]
+
+--[[!
+    Function: table.map
+    Remaps a table (array). Usage -
+
+    (start code)
+        local a = { 1, 2, 3, 4, 5 }
+        local b = table.map(a, function(i) return tostring(i) end)
+        -- b is now a table of strings
+    (end)
+
+    Parameters:
+        t - The table to remap.
+        f - A function taking original element and returning remapped.
+
+    Returns:
+        A remapped table.
+]]
 function table.map(t, f)
     local r = {}
     for i = 1, #t do
@@ -44,16 +41,24 @@ function table.map(t, f)
     return r
 end
 
---- Merge two dictionaries together.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { a = 5, b = 10 }<br/>
--- local b = { c = 15, d = 20 }<br/>
--- table.mergedicts(a, b)<br/>
--- </code>
--- @param ta Table to merge the other one into.
--- @param tb Table to merge into the first one.
--- @return The first table (modified). Original table gets overwritten.
+--[[!
+    Function: table.mergedicts
+    Merges two tables (dictionaries) together. Usage -
+
+    (start code)
+        local a = { a = 5, b = 10 }
+        local b = { c = 15, d = 20 }
+        table.mergedicts(a, b)
+        -- a now has b's elements
+    (end)
+
+    Parameters:
+        ta - The table to merge elements into.
+        tb - The table to merge elements from.
+
+    Returns:
+        Merged table.
+]]
 function table.mergedicts(ta, tb)
     for a, b in pairs(tb) do
         ta[a] = b
@@ -61,16 +66,24 @@ function table.mergedicts(ta, tb)
     return ta
 end
 
---- Merge two arrays together.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { 5, 10, 15 }<br/>
--- local b = { 20, 25, 30 }<br/>
--- table.mergearrays(a, b)<br/>
--- </code>
--- @param ta Table to merge the other one into.
--- @param tb Table to merge into the first one.
--- @return The first table (modified). Original table gets overwritten.
+--[[!
+    Function: table.mergearrays
+    Merges two tables (arrays) together. Usage -
+
+    (start code)
+        local a = { 5, 10, 15 }
+        local b = { 20, 25, 30 }
+        table.mergearrays(a, b)
+        -- a now has b's elements
+    (end)
+
+    Parameters:
+        ta - The table to merge elements into.
+        tb - The table to merge elements from.
+
+    Returns:
+        Merged table.
+]]
 function table.mergearrays(ta, tb)
     for i = 1, #tb do
         table.insert(ta, tb[i])
@@ -78,16 +91,23 @@ function table.mergearrays(ta, tb)
     return ta
 end
 
---- Copy a table.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { a = 5, b = 10 }<br/>
--- local b = { 5, 10, 15 }<br/>
--- local c = table.copy(a)<br/>
--- local d = table.copy(b)<br/>
--- </code>
--- @param t Table to copy.
--- @return A copied table.
+--[[!
+    Function: table.copy
+    Copies a table. Remember, it does not take care of copying
+    in case member is a table. Usage -
+
+    (start code)
+        local a = { 5, 10, 15 }
+        local b = table.copy(a)
+        -- b is now a copy of a
+    (end)
+
+    Parameters:
+        t - The table to copy.
+
+    Returns:
+        Copied table.
+]]
 function table.copy(t)
     local r = {}
     for a, b in pairs(t) do
@@ -96,15 +116,24 @@ function table.copy(t)
     return r
 end
 
---- Filter a table.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { a = 5, b = 10 }<br/>
--- local b = table.filter(a, function (k, v) return ((v <= 5) and true or false) end)<br/>
--- </code>
--- @param t Table to filter.
--- @param f Function taking key, value and returning true if element matches condition. (false otherwise)
--- @return Filtered table.
+--[[!
+    Function: table.filter
+    Filters a table (dictionary). Usage -
+
+    (start code)
+        local a = { a = 5, b = 10 }
+        local b = table.filter(a, function (k, v) return ((v <= 5) and true or false) end)
+        -- b now contains just "a"
+    (end)
+
+    Parameters:
+        t - The table to filter.
+        f - A function taking key and value and returning true if
+        current element should be included in new table and false otherwise.
+
+    Returns:
+        A filtered table.
+]]
 function table.filter(t, f)
     local r = {}
     for a, b in pairs(t) do
@@ -115,15 +144,24 @@ function table.filter(t, f)
     return r
 end
 
---- Filter an array.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { 5, 10, 15 }<br/>
--- local b = table.filterarray(a, function (i, v) return ((i <= 2) and true or false) end)<br/>
--- </code>
--- @param t Array to filter.
--- @param f Function taking index, value and returning true if element matches condition. (false otherwise)
--- @return Filtered array.
+--[[!
+    Function: table.filterarray
+    Filters a table (array). Usage -
+
+    (start code)
+        local a = { 5, 10, 15 }
+        local b = table.filterarray(a, function (i, v) return ((i <= 2) and true or false) end)
+        -- b is empty
+    (end)
+
+    Parameters:
+        t - The table to filter.
+        f - A function taking index and value and returning true if
+        current element should be included in new table and false otherwise.
+
+    Returns:
+        A filtered table.
+]]
 function table.filterarray(t, f)
     local r = {}
     for a = 1, #t do
@@ -134,17 +172,23 @@ function table.filterarray(t, f)
     return r
 end
 
---- Find a key / index to known value in table.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { a = 5, b = 10 }<br/>
--- local b = { 5, 10, 15 }<br/>
--- local k = table.find(a, 10)<br/>
--- local i = table.find(a, 15)<br/>
--- </code>
--- @param t Table to find element in.
--- @param v Value to find index / key for.
--- @return Key or index of value in table or nil if not found.
+--[[!
+    Function: table.find
+    Finds index / key of an element belonging to a table. Usage -
+
+    (start code)
+        local a = { a = 5, b = 10, c = 15 }
+        local b = table.find(a, 15)
+        -- b is now "c"
+    (end)
+
+    Parameters:
+        t - The table to find index / key in.
+        v - The value to find index / key of.
+
+    Returns:
+        Index / key of the value in the table.
+]]
 function table.find(t, v)
     for a, b in pairs(t) do
         if v == b then
@@ -154,15 +198,22 @@ function table.find(t, v)
     return nil
 end
 
---- Get table of keys of associative table.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { a = 5, b = 10 }<br/>
--- local b = table.keys(a)<br/>
--- -- b contains "a" and "b" elements now
--- </code>
--- @param t Table to get keys from.
--- @return Table of keys.
+--[[!
+    Function: table.keys
+    Gets a table of indexes / keys of a table. Usage -
+
+    (start code)
+        local a = { a = 5, b = 10, c = 15 }
+        local b = table.keys(a)
+        -- b is now { "a", "b", "c" }
+    (end)
+
+    Parameters:
+        t - The table to get indexes / keys from.
+
+    Returns:
+        Table of indexes / keys.
+]]
 function table.keys(t)
     local r = {}
     for a, b in pairs(t) do
@@ -171,15 +222,22 @@ function table.keys(t)
     return r
 end
 
---- Get table of values of associative table.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local a = { a = 5, b = 10 }<br/>
--- local b = table.values(a)<br/>
--- -- b contains 5 and 10 elements now
--- </code>
--- @param t Table to get values from.
--- @return Table of values.
+--[[!
+    Function: table.values
+    Gets a table of values of a table. Usage -
+
+    (start code)
+        local a = { a = 5, b = 10, c = 15 }
+        local b = table.values(a)
+        -- b is now { 5, 10, 15 }
+    (end)
+
+    Parameters:
+        t - The table to get values from.
+
+    Returns:
+        Table of values.
+]]
 function table.values(t)
     local r = {}
     for a, b in pairs(t) do

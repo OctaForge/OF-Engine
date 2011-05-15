@@ -26,6 +26,8 @@
 
 extern bool should_quit;
 
+extern char*& player_class;
+
 using namespace lua;
 
 namespace server
@@ -76,7 +78,7 @@ namespace server
         //! The current scenario being run by the client
         bool runningCurrentScenario;
 
-        clientinfo() : clipboard(NULL) { reset(); OF_FREE(username); }
+        clientinfo() : clipboard(NULL) { reset(); delete[] username; }
         ~clientinfo() { cleanclipboard(); }
 
         void mapchange()
@@ -97,7 +99,7 @@ namespace server
 
         void reset()
         {
-            username = strdup("");
+            username = newstring("");
             uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID - 5; // Kripken: Negative, and also different from dummy singleton
             isAdmin = false; // Kripken
 
@@ -148,7 +150,7 @@ namespace server
         clientinfo *ci = (clientinfo *)getinfo(clientNumber);
         /* We can do this, because when something is modifying
          * username using getUsername, original gets freed there */
-        char *dummy = strdup("");
+        char *dummy = newstring("");
         return (ci ? ci->username : dummy);
     }
 
@@ -178,7 +180,7 @@ namespace server
     bool reliablemessages  = false;
     bool shutdown_if_empty = false;
     bool shutdown_if_idle  = false;
-    int  shutdown_idle_interval = 60;
+    int  shutdown_idle_interval = 10;
 
     struct servmode
     {
@@ -762,7 +764,7 @@ namespace server
         }
 
         // Use the PC class, unless told otherwise
-        if (_class == "") _class = GETSV(player_class);
+        if (_class == "") _class = player_class;
 
         Logging::log(Logging::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
 
@@ -960,7 +962,7 @@ namespace server
     {
         clientinfo *ci = getinfo(clientNumber);
         if (!ci) return;
-        ci->runningCurrentScenario = !strcmp(of_world_get_scenario_code(), scenarioCode.c_str());
+        ci->runningCurrentScenario = !strcmp(world::get_scenario_code(), scenarioCode.c_str());
     }
 
     bool isRunningCurrentScenario(int clientNumber)

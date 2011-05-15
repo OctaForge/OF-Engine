@@ -68,6 +68,8 @@ void rdanimjoints(int *on);
 
 void clearmodel(char *name);
 
+VARP(ragdoll, 0, 1, 1);
+
 namespace lua_binds
 {
     LUA_BIND_DEF(mapmodelreset, mapmodelreset(e.get<int*>(1));)
@@ -142,14 +144,14 @@ namespace lua_binds
 
             if (fp->clientnum == ClientSystem::playerNumber)
             {
-                if (oldtp == -1 && GETIV(thirdperson) == 0)
+                if (oldtp == -1 && thirdperson == 0)
                 {
-                    oldtp = GETIV(thirdperson);
+                    oldtp = thirdperson;
                     SETV(thirdperson, 1);
                 }
             }
 
-            if (fp->ragdoll || !GETIV(ragdoll))
+            if (fp->ragdoll || !ragdoll)
             {
                 anim &= ~ANIM_RAGDOLL;
                 engine.getref(self->luaRef).t_getraw("set_localanim").push_index(-2).push(anim).call(2, 0);

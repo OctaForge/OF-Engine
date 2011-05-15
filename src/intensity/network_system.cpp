@@ -12,6 +12,7 @@
 namespace game
 {
     void updatepos(fpsent *d);
+    extern int& smoothmove, &smoothdist;
 }
 
 namespace NetworkSystem
@@ -286,7 +287,7 @@ void QuantizedInfo::applyToEntity(fpsent *d)
         game::updatepos(d);
     }
     #ifdef CLIENT // No need to smooth for server, and certainly no need to double smooth before getting to other clients
-    if(GETIV(smoothmove) && d->smoothmillis>=0 && oldpos.dist(d->o) < GETIV(smoothdist))
+    if(game::smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < game::smoothdist)
     {
         d->newpos = d->o;
         d->newyaw = d->yaw;
@@ -461,7 +462,7 @@ private:
 
     void updateReceiveStats()
     {
-        int currTime = of_tools_getcurrtime();
+        int currTime = tools::currtime();
         if (lastReceived != -1)
         {
             int currLatency = currTime - lastReceived;
@@ -517,7 +518,7 @@ private:
     //      If send, remember this last value and time
     #define PROCESSDATUM(name, indicator)                                 \
         {                                                                 \
-            int currTime = of_tools_getcurrtime();                        \
+            int currTime = tools::currtime();                        \
             if (!indicator) return;                                       \
             bool sameValue = (info.name == last##name.value);             \
             indicator = positionDatumDecider(                             \

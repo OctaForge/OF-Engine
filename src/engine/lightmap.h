@@ -86,7 +86,7 @@ extern vector<LightMapTexture> lightmaptexs;
 
 enum { LMID_AMBIENT = 0, LMID_AMBIENT1, LMID_BRIGHT, LMID_BRIGHT1, LMID_DARK, LMID_DARK1, LMID_RESERVED };
 
-extern bvec ambientcolor, skylightcolor, sunlightcolor;
+extern bvec ambientcolor, skylightcolor;
 
 extern void clearlights();
 extern void initlights();

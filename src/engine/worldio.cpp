@@ -50,13 +50,15 @@ void getmapfilenames(const char *fname, const char *cname, char *pakname, char *
     cutogz(mapname);
 }
 
+VARP(savebak, 0, 2, 2);
+
 void setmapfilenames(const char *fname, const char *cname = 0)
 {
     string pakname, mapname, mcfgname;
     getmapfilenames(fname, cname, pakname, mapname, mcfgname);
 
     formatstring(ogzname)("data/%s.ogz", mapname);
-    if(GETIV(savebak)==1) formatstring(bakname)("data/%s.BAK", mapname);
+    if(savebak==1) formatstring(bakname)("data/%s.BAK", mapname);
     else formatstring(bakname)("data/%s_%d.BAK", mapname, totalmillis);
     formatstring(cfgname)("data/%s/%s.cfg", pakname, mcfgname);
     formatstring(picname)("data/%s.jpg", mapname);
@@ -177,15 +179,15 @@ void loadc(stream *f, cube &c)
         default:
             fatal("garbage in map");
     }
-    loopi(6) c.texture[i] = GETIV(mapversion)<14 ? f->getchar() : f->getlil<ushort>();
-    if(GETIV(mapversion) < 7) f->seek(3, SEEK_CUR);
+    loopi(6) c.texture[i] = mapversion<14 ? f->getchar() : f->getlil<ushort>();
+    if(mapversion < 7) f->seek(3, SEEK_CUR);
     else
     {
         uchar mask = f->getchar();
         if(mask & 0x80) 
         {
             int mat = f->getchar();
-            if(GETIV(mapversion) < 27)
+            if(mapversion < 27)
             {
                 static uchar matconv[] = { MAT_AIR, MAT_WATER, MAT_CLIP, MAT_GLASS|MAT_CLIP, MAT_NOCLIP, MAT_LAVA|MAT_DEATH, MAT_GAMECLIP, MAT_DEATH };
                 mat = size_t(mat) < sizeof(matconv)/sizeof(matconv[0]) ? matconv[mat] : MAT_AIR;
@@ -205,13 +207,13 @@ void loadc(stream *f, cube &c)
                 {
                     f->read(&surfaces[i], sizeof(surfaceinfo));
                     lilswap(&surfaces[i].x, 2);
-                    if(GETIV(mapversion) < 10) ++surfaces[i].lmid;
-                    if(GETIV(mapversion) < 18)
+                    if(mapversion < 10) ++surfaces[i].lmid;
+                    if(mapversion < 18)
                     {
                         if(surfaces[i].lmid >= LMID_AMBIENT1) ++surfaces[i].lmid;
                         if(surfaces[i].lmid >= LMID_BRIGHT1) ++surfaces[i].lmid;
                     }
-                    if(GETIV(mapversion) < 19)
+                    if(mapversion < 19)
                     {
                         if(surfaces[i].lmid >= LMID_DARK) surfaces[i].lmid += 2;
                     }
@@ -229,7 +231,7 @@ void loadc(stream *f, cube &c)
             if(lit) newsurfaces(c, surfaces, numsurfs);
             else if(bright) brightencube(c);
         }
-        if(GETIV(mapversion) >= 20)
+        if(mapversion >= 20)
         {
             if(octsav&0x80)
             {
@@ -247,7 +249,7 @@ void loadc(stream *f, cube &c)
                             if(!(mask&(1<<i))) { memset(m, 0, sizeof(mergeinfo)); continue; }
                             f->read(m, sizeof(mergeinfo));
                             lilswap(&m->u1, 4);
-                            if(GETIV(mapversion) <= 25)
+                            if(mapversion <= 25)
                             {
                                 int uorigin = m->u1 & 0xE000, vorigin = m->v1 & 0xE000;
                                 m->u1 = (m->u1 - uorigin) << 2;
@@ -271,6 +273,8 @@ cube *loadchildren(stream *f)
     // TODO: remip c from children here
     return c;
 }
+
+VAR(dbgvars, 0, 0, 1);
 
 void savevslot(stream *f, VSlot &vs, int prev)
 {
@@ -413,7 +417,7 @@ bool save_world(const char *mname, bool nolms)
 {
     if(!*mname) mname = game::getclientmap();
     setmapfilenames(*mname ? mname : "untitled");
-    if(GETIV(savebak)) backup(ogzname, bakname);
+    if(savebak) backup(ogzname, bakname);
     stream *f = opengzfile(ogzname, "wb");
     if(!f) { conoutf(CON_WARN, "could not write map to %s", ogzname); return false; }
 
@@ -430,7 +434,7 @@ bool save_world(const char *mname, bool nolms)
     memcpy(hdr.magic, "OCTA", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(hdr);
-    hdr.worldsize = GETIV(mapsize);
+    hdr.worldsize = worldsize;
     hdr.numents = 0;
 //    const vector<extentity *> &ents = entities::getents(); // INTENSITY: No ents in .ogz
 //    loopv(ents) if(ents[i]->type!=ET_EMPTY || nolms) hdr.numents++; // INTENSITY: No ents in .ogz
@@ -440,42 +444,42 @@ bool save_world(const char *mname, bool nolms)
     hdr.numvars = 0;
     hdr.numvslots = numvslots;
     enumerate(*var::vars, var::cvar*, v, {
-        if (v->isoverridable() && !v->isreadonly() && v->isoverriden()) hdr.numvars++;
+        if ((v->flags&var::VAR_OVERRIDE) != 0 && (v->flags&var::VAR_READONLY) == 0 && (v->flags&var::VAR_OVERRIDEN) != 0) hdr.numvars++;
     });
     lilswap(&hdr.version, 9);
     f->write(&hdr, sizeof(hdr));
    
     enumerate(*var::vars, var::cvar*, v,
     {
-        if(!v->isoverridable() || v->isreadonly() || !v->isoverriden()) continue;
-        f->putchar(v->gt());
-        f->putlil<ushort>(strlen(v->gn()));
-        f->write(v->gn(), strlen(v->gn()));
-        switch(v->gt())
+        if((v->flags&var::VAR_OVERRIDE) == 0 || (v->flags&var::VAR_READONLY) != 0 || (v->flags&var::VAR_OVERRIDEN) == 0) continue;
+        f->putchar(v->type);
+        f->putlil<ushort>(strlen(v->name));
+        f->write(v->name, strlen(v->name));
+        switch(v->type)
         {
             case var::VAR_I:
             {
-                if(GETIV(dbgvars)) conoutf(CON_DEBUG, "wrote var %s: %d", v->gn(), v->gi());
-                f->putlil<int>(v->gi());
+                if(dbgvars) conoutf(CON_DEBUG, "wrote var %s: %d", v->name, v->curv.i);
+                f->putlil<int>(v->curv.i);
                 break;
             }
             case var::VAR_F:
             {
-                if(GETIV(dbgvars)) conoutf(CON_DEBUG, "wrote fvar %s: %f", v->gn(), v->gf());
-                f->putlil<float>(v->gf());
+                if(dbgvars) conoutf(CON_DEBUG, "wrote fvar %s: %f", v->name, v->curv.f);
+                f->putlil<float>(v->curv.f);
                 break;
             }
             case var::VAR_S:
             {
-                if(GETIV(dbgvars)) conoutf(CON_DEBUG, "wrote svar %s: %s", v->gn(), v->gs());
-                f->putlil<ushort>(strlen(v->gs()));
-                f->write(v->gs(), strlen(v->gs()));
+                if(dbgvars) conoutf(CON_DEBUG, "wrote svar %s: %s", v->name, v->curv.s);
+                f->putlil<ushort>(strlen(v->curv.s));
+                f->write(v->curv.s, strlen(v->curv.s));
                 break;
             }
         }
     });
 
-    if(GETIV(dbgvars)) conoutf(CON_DEBUG, "wrote %d vars", hdr.numvars);
+    if(dbgvars) conoutf(CON_DEBUG, "wrote %d vars", hdr.numvars);
 
     f->putchar((int)strlen(game::gameident()));
     f->write(game::gameident(), (int)strlen(game::gameident())+1);
@@ -657,22 +661,22 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         name[min(ilen, MAXSTRLEN-1)] = '\0';
         if(ilen >= MAXSTRLEN) f->seek(ilen - (MAXSTRLEN-1), SEEK_CUR);
         var::cvar *v = var::get(name);
-        bool exists = v && v->gt() == type;
+        bool exists = v && v->type == type;
         switch(type)
         {
             case var::VAR_I:
             {
                 int val = f->getlil<int>();
-                if(exists && v->gmni() <= v->gmxi()) v->s(val, true, true, false);
-                if(GETIV(dbgvars)) conoutf(CON_DEBUG, "read var %s: %d", name, val);
+                if(exists && v->minv.i <= v->maxv.i) v->set(val, true, false);
+                if(dbgvars) conoutf(CON_DEBUG, "read var %s: %d", name, val);
                 break;
             }
  
             case var::VAR_F:
             {
                 float val = f->getlil<float>();
-                if(exists && v->gmnf() <= v->gmxf()) v->s(val, true, true, false);
-                if(GETIV(dbgvars)) conoutf(CON_DEBUG, "read fvar %s: %f", name, val);
+                if(exists && v->minv.f <= v->maxv.f) v->set(val, true, false);
+                if(dbgvars) conoutf(CON_DEBUG, "read fvar %s: %f", name, val);
                 break;
             }
     
@@ -683,13 +687,13 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                 f->read(val, min(slen, MAXSTRLEN-1));
                 val[min(slen, MAXSTRLEN-1)] = '\0';
                 if(slen >= MAXSTRLEN) f->seek(slen - (MAXSTRLEN-1), SEEK_CUR);
-                if(exists) v->s(val, true, true, false);
-                if(GETIV(dbgvars)) conoutf(CON_DEBUG, "read svar %s: %s", name, val);
+                if(exists) v->set(val, true);
+                if(dbgvars) conoutf(CON_DEBUG, "read svar %s: %s", name, val);
                 break;
             }
         }
     }
-    if(GETIV(dbgvars)) conoutf(CON_DEBUG, "read %d vars", hdr.numvars);
+    if(dbgvars) conoutf(CON_DEBUG, "read %d vars", hdr.numvars);
 
     string gametype;
     copystring(gametype, "fps");
@@ -703,14 +707,14 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(strcmp(gametype, game::gameident())!=0)
     {
         samegame = false;
-        conoutf(CON_WARN, "WARNING: loading map from %s game, ignoring entities except for lights/mapmodels)", gametype);
+        conoutf(CON_WARN, "WARNING: loading map from %s game, ignoring entities except for lights/mapmodels", gametype);
     }
     if(hdr.version>=16)
     {
         eif = f->getlil<ushort>();
         int extrasize = f->getlil<ushort>();
         vector<char> extras;
-        loopj(extrasize) extras.add(f->getchar());
+        f->read(extras.pad(extrasize), extrasize);
         if(samegame) game::readgamedata(extras);
     }
     
@@ -1010,7 +1014,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if (lua::engine.hashandle())
     {
         lua::engine.execf("data/cfg/default_map_settings.lua", false);
-        of_world_run_map_script();
+        world::run_mapscript();
     }
     var::overridevars = false;
    
@@ -1069,7 +1073,7 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     initlights();
     allchanged(true);
 
-//    if(GETSV(maptitle)[0] && strcmp(GETSV(maptitle), "Untitled Map by Unknown")) conoutf(CON_ECHO, "%s", GETSV(maptitle).c_str()); // INTENSITY
+//    if(maptitle[0] && strcmp(maptitle, "Untitled Map by Unknown")) conoutf(CON_ECHO, "%s", maptitle.c_str()); // INTENSITY
 
     startmap(cname ? cname : mname);
     
@@ -1123,9 +1127,9 @@ void writeobj(char *name)
             loopk(es.length[1])
             {
                 int n = idx[k] - va.voffset;
-                const vec &pos = GETIV(renderpath)==R_FIXEDFUNCTION ? ((const vertexff *)&vdata[n*vtxsize])->pos : ((const vertex *)&vdata[n*vtxsize])->pos;
-                vec2 tc(GETIV(renderpath)==R_FIXEDFUNCTION ? ((const vertexff *)&vdata[n*vtxsize])->u : ((const vertex *)&vdata[n*vtxsize])->u,
-                        GETIV(renderpath)==R_FIXEDFUNCTION ? ((const vertexff *)&vdata[n*vtxsize])->v : ((const vertex *)&vdata[n*vtxsize])->v);
+                const vec &pos = renderpath==R_FIXEDFUNCTION ? ((const vertexff *)&vdata[n*vtxsize])->pos : ((const vertex *)&vdata[n*vtxsize])->pos;
+                vec2 tc(renderpath==R_FIXEDFUNCTION ? ((const vertexff *)&vdata[n*vtxsize])->u : ((const vertex *)&vdata[n*vtxsize])->u,
+                        renderpath==R_FIXEDFUNCTION ? ((const vertexff *)&vdata[n*vtxsize])->v : ((const vertex *)&vdata[n*vtxsize])->v);
                 ivec &key = keys.add();
                 key.x = shareverts.access(pos, verts.length());
                 if(key.x == verts.length()) 

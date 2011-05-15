@@ -35,11 +35,6 @@ extern bool getmouseup();
 
 namespace lua_binds
 {
-    LUA_BIND_STD(iskeydown, e.push, getkeydown())
-    LUA_BIND_STD(iskeyup, e.push, getkeyup())
-    LUA_BIND_STD(ismousedown, e.push, getmousedown())
-    LUA_BIND_STD(ismouseup, e.push, getmouseup())
-
     #define QUOT(arg) #arg
     #define MOUSECLICK(num) \
     LUA_BIND_CLIENT(mouse##num##click, { \

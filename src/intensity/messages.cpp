@@ -94,9 +94,11 @@ namespace MessageSystem
         static char content[MAXTRANS];
         getstring(content, p);
 
-        SETVF(message_title, title);
-        SETVF(message_content, content);
+        engine.push("message_title").push(title).setg();
+        engine.push("message_content").push(content).setg();
         showgui("message");
+        engine.push("message_title").push().setg();
+        engine.push("message_content").push().setg();
     }
 #endif
 
@@ -143,7 +145,7 @@ namespace MessageSystem
 
                      // identity of this user
         #ifdef SERVER
-            if (!of_world_get_scenario_code())
+            if (!world::get_scenario_code())
             {
                 send_PersonalServerMessage(
                     sender,
@@ -154,8 +156,8 @@ namespace MessageSystem
                 disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
             }
             char *uname = server::getUsername(sender);
-            if (uname) OF_FREE(uname);
-            uname = strdup("local_editor");
+            if (uname) delete[] uname;
+            uname = newstring("local_editor");
             server::setAdmin(sender, true);
             send_LoginResponse(sender, true, true);
         #else // CLIENT, during a localconnect
@@ -360,9 +362,11 @@ namespace MessageSystem
         static char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
-        SETVF(message_title, "Server");
-        SETVF(message_content, "Map being prepared on server, please wait ..");
+        engine.push("message_title").push("Server").setg();
+        engine.push("message_content").push("Map being prepared on server, please wait ..").setg();
         showgui("message");
+        engine.push("message_title").push().setg();
+        engine.push("message_content").push().setg();
         ClientSystem::prepareForNewScenario(scenarioCode);
     }
 #endif
@@ -384,8 +388,8 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestCurrentScenario (1007)\r\n");
 
 
-        if (!of_world_get_scenario_code()) return;
-        of_world_send_curr_map(sender);
+        if (!world::get_scenario_code()) return;
+        world::send_curr_map(sender);
     }
 #endif
 
@@ -449,7 +453,7 @@ namespace MessageSystem
         getstring(sc, p);
 
         ClientSystem::currScenarioCode = sc;
-        of_world_set_map(mid);
+        world::set_map(mid);
     }
 #endif
 
@@ -470,14 +474,14 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RestartMap (1009)\r\n");
 
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         if (!server::isAdmin(sender))
         {
             Logging::log(Logging::WARNING, "Non-admin tried to restart the map\r\n");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot restart the map");
             return;
         }
-        of_world_restart_map();
+        world::restart_map();
     }
 #endif
 
@@ -505,7 +509,7 @@ namespace MessageSystem
         static char stateData[MAXTRANS];
         getstring(stateData, p);
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         if (!server::isAdmin(sender))
         {
             Logging::log(Logging::WARNING, "Non-admin tried to add an entity\r\n");
@@ -664,7 +668,7 @@ namespace MessageSystem
         static char value[MAXTRANS];
         getstring(value, p);
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
@@ -765,7 +769,7 @@ namespace MessageSystem
         static char value[MAXTRANS];
         getstring(value, p);
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         STATE_DATA_REQUEST
     }
 #endif
@@ -910,7 +914,7 @@ namespace MessageSystem
         getstring(scenarioCode, p);
 
         #ifdef SERVER
-            if (!of_world_get_scenario_code()) return;
+            if (!world::get_scenario_code()) return;
             // Mark the client as running the current scenario, if indeed doing so
             server::setClientScenario(sender, scenarioCode);
             if ( !server::isRunningCurrentScenario(sender) )
@@ -1094,7 +1098,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         if (!server::isAdmin(sender))
         {
             Logging::log(Logging::WARNING, "Non-admin tried to remove an entity\r\n");
@@ -1396,7 +1400,7 @@ namespace MessageSystem
 
         int soundId = getint(p);
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         dynent* otherEntity = game::getclient(sender);
         if (otherEntity)
@@ -1710,7 +1714,7 @@ namespace MessageSystem
 
         int mode = getint(p);
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         #if 0 // The old sauer code from fpsserver.h
             case N_EDITMODE:
             {
@@ -1837,8 +1841,8 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestMap (1030)\r\n");
 
 
-        if (!of_world_get_scenario_code()) return;
-        of_world_send_curr_map(sender);
+        if (!world::get_scenario_code()) return;
+        world::send_curr_map(sender);
     }
 #endif
 
@@ -1864,7 +1868,7 @@ namespace MessageSystem
         float z = float(getint(p))/DMF;
         int uniqueId = getint(p);
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         engine.getg("click");
         if (!engine.is<void*>(-1))
@@ -2121,7 +2125,7 @@ namespace MessageSystem
         Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestPrivateEditMode (1035)\r\n");
 
 
-        if (!of_world_get_scenario_code()) return;
+        if (!world::get_scenario_code()) return;
         send_NotifyPrivateEditMode(sender);
     }
 #endif

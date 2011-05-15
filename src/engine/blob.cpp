@@ -1,5 +1,14 @@
 #include "engine.h"
 
+VARNP(blobs, showblobs, 0, 1, 1);
+VARFP(blobintensity, 0, 60, 100, resetblobs());
+VARFP(blobheight, 1, 32, 128, resetblobs());
+VARFP(blobfadelow, 1, 8, 32, resetblobs());
+VARFP(blobfadehigh, 1, 8, 32, resetblobs());
+VARFP(blobmargin, 0, 1, 16, resetblobs());
+
+VAR(dbgblob, 0, 0, 1);
+
 struct blobinfo
 {
     vec o;
@@ -230,8 +239,8 @@ struct blobrenderer
         v.u = (pos.x - blobmin.x) / (blobmax.x - blobmin.x);
         v.v = (pos.y - blobmin.y) / (blobmax.y - blobmin.y);
         v.color = bvec(255, 255, 255);
-        if(pos.z < blobmin.z + GETIV(blobfadelow)) v.alpha = uchar(blobalphalow * (pos.z - blobmin.z));
-        else if(pos.z > blobmax.z - GETIV(blobfadehigh)) v.alpha = uchar(blobalphahigh * (blobmax.z - pos.z));
+        if(pos.z < blobmin.z + blobfadelow) v.alpha = uchar(blobalphalow * (pos.z - blobmin.z));
+        else if(pos.z > blobmax.z - blobfadehigh) v.alpha = uchar(blobalphahigh * (blobmax.z - pos.z));
         else v.alpha = blobalpha;
         return endvert++;
     }
@@ -302,8 +311,8 @@ struct blobrenderer
         CLIPSIDE(1<<5, clipbelow<2>, blobmax.z, { if(numv < 3) return; });
         if(dim!=2)
         {
-            CLIPSIDE(1<<6, split<2>, blobmin.z + GETIV(blobfadelow), );
-            CLIPSIDE(1<<7, split<2>, blobmax.z - GETIV(blobfadehigh), );
+            CLIPSIDE(1<<6, split<2>, blobmin.z + blobfadelow, );
+            CLIPSIDE(1<<7, split<2>, blobmax.z - blobfadehigh, );
         }
 
         addtris(v, numv);
@@ -331,8 +340,8 @@ struct blobrenderer
             CLIPSIDE(1<<3, clipbelow<1>, blobmax.y, { if(numv < 3) goto nexttri; });
             CLIPSIDE(1<<4, clipabove<2>, blobmin.z, { if(numv < 3) goto nexttri; });
             CLIPSIDE(1<<5, clipbelow<2>, blobmax.z, { if(numv < 3) goto nexttri; });
-            CLIPSIDE(1<<6, split<2>, blobmin.z + GETIV(blobfadelow), );
-            CLIPSIDE(1<<7, split<2>, blobmax.z - GETIV(blobfadehigh), );
+            CLIPSIDE(1<<6, split<2>, blobmin.z + blobfadelow, );
+            CLIPSIDE(1<<7, split<2>, blobmax.z - blobfadehigh, );
 
             addtris(v, numv);
         }
@@ -350,8 +359,8 @@ struct blobrenderer
             CLIPSIDE(1<<3, clipbelow<1>, blobmax.y, { if(numv < 3) return; });
             CLIPSIDE(1<<4, clipabove<2>, blobmin.z, { if(numv < 3) return; });
             CLIPSIDE(1<<5, clipbelow<2>, blobmax.z, { if(numv < 3) return; });
-            CLIPSIDE(1<<6, split<2>, blobmin.z + GETIV(blobfadelow), );
-            CLIPSIDE(1<<7, split<2>, blobmax.z - GETIV(blobfadehigh), );
+            CLIPSIDE(1<<6, split<2>, blobmin.z + blobfadelow, );
+            CLIPSIDE(1<<7, split<2>, blobmax.z - blobfadehigh, );
 
             addtris(v, numv);
         }
@@ -366,8 +375,8 @@ struct blobrenderer
         if(o.y + size > blobmax.y) overlap |= 1<<3;
         if(o.z < blobmin.z) overlap |= 1<<4;
         if(o.z + size > blobmax.z) overlap |= 1<<5;
-        if(o.z < blobmin.z + GETIV(blobfadelow) && o.z + size > blobmin.z + GETIV(blobfadelow)) overlap |= 1<<6;
-        if(o.z < blobmax.z - GETIV(blobfadehigh) && o.z + size > blobmax.z - GETIV(blobfadehigh)) overlap |= 1<<7;
+        if(o.z < blobmin.z + blobfadelow && o.z + size > blobmin.z + blobfadelow) overlap |= 1<<6;
+        if(o.z < blobmax.z - blobfadehigh && o.z + size > blobmax.z - blobfadehigh) overlap |= 1<<7;
         return overlap;
     }
 
@@ -430,17 +439,17 @@ struct blobrenderer
         blobmin = blobmax = o;
         blobmin.x -= radius;
         blobmin.y -= radius;
-        blobmin.z -= GETIV(blobheight) + GETIV(blobfadelow);
+        blobmin.z -= blobheight + blobfadelow;
         blobmax.x += radius;
         blobmax.y += radius;
-        blobmax.z += GETIV(blobfadehigh);
+        blobmax.z += blobfadehigh;
         (bborigin = blobmin).sub(2);
         (bbsize = blobmax).sub(blobmin).add(4);
-        float scale =  fade*GETIV(blobintensity)*255/100.0f;
-        blobalphalow = scale / GETIV(blobfadelow);
-        blobalphahigh = scale / GETIV(blobfadehigh);
+        float scale =  fade*blobintensity*255/100.0f;
+        blobalphalow = scale / blobfadelow;
+        blobalphahigh = scale / blobfadehigh;
         blobalpha = uchar(scale);
-        gentris(worldroot, ivec(0, 0, 0), GETIV(mapsize)>>1);
+        gentris(worldroot, ivec(0, 0, 0), worldsize>>1);
         return b.millis >= 0 ? &b : NULL;
     } 
 
@@ -452,7 +461,7 @@ struct blobrenderer
 
         glDepthMask(GL_FALSE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        if(!GETIV(dbgblob)) glEnable(GL_BLEND);
+        if(!dbgblob) glEnable(GL_BLEND);
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -482,8 +491,8 @@ struct blobrenderer
 
     void fadeblob(blobinfo *b, float fade)
     {
-        float minz = b->o.z - (GETIV(blobheight) + GETIV(blobfadelow)), maxz = b->o.z + GETIV(blobfadehigh),
-              scale = fade*GETIV(blobintensity)*255/100.0f, scalelow = scale / GETIV(blobfadelow), scalehigh = scale / GETIV(blobfadehigh);
+        float minz = b->o.z - (blobheight + blobfadelow), maxz = b->o.z + blobfadehigh,
+              scale = fade*blobintensity*255/100.0f, scalelow = scale / blobfadelow, scalehigh = scale / blobfadehigh;
         uchar alpha = uchar(scale); 
         b->millis = totalmillis;
         do
@@ -491,8 +500,8 @@ struct blobrenderer
             if(b->endvert - b->startvert >= 3) for(blobvert *v = &verts[b->startvert], *end = &verts[b->endvert]; v < end; v++)
             {
                 float z = v->pos.z;
-                if(z < minz + GETIV(blobfadelow)) v->alpha = uchar(scalelow * (z - minz));
-                else if(z > maxz - GETIV(blobfadehigh)) v->alpha = uchar(scalehigh * (maxz - z));
+                if(z < minz + blobfadelow) v->alpha = uchar(scalelow * (z - minz));
+                else if(z > maxz - blobfadehigh) v->alpha = uchar(scalehigh * (maxz - z));
                 else v->alpha = alpha;
             }
             int offset = b - &blobs[0] + 1;
@@ -550,6 +559,9 @@ struct blobrenderer
 int blobrenderer::lastreset = 0;
 blobrenderer *blobrenderer::lastrender = NULL;
 
+VARFP(blobstattris, 128, 4096, 1<<16, initblobs(BLOB_STATIC));
+VARFP(blobdyntris, 128, 4096, 1<<16, initblobs(BLOB_DYNAMIC));
+
 static blobrenderer blobs[] = 
 {
     blobrenderer("<grey>data/textures/particles/blob.png"),
@@ -558,8 +570,8 @@ static blobrenderer blobs[] =
 
 void initblobs(int type)
 {
-    if(type < 0 || (type==BLOB_STATIC && blobs[BLOB_STATIC].blobs)) blobs[BLOB_STATIC].init(GETIV(blobs) ? GETIV(blobstattris) : 0);
-    if(type < 0 || (type==BLOB_DYNAMIC && blobs[BLOB_DYNAMIC].blobs)) blobs[BLOB_DYNAMIC].init(GETIV(blobs) ? GETIV(blobdyntris) : 0);
+    if(type < 0 || (type==BLOB_STATIC && blobs[BLOB_STATIC].blobs)) blobs[BLOB_STATIC].init(showblobs ? blobstattris : 0);
+    if(type < 0 || (type==BLOB_DYNAMIC && blobs[BLOB_DYNAMIC].blobs)) blobs[BLOB_DYNAMIC].init(showblobs ? blobdyntris : 0);
 }
 
 void resetblobs()
@@ -569,9 +581,9 @@ void resetblobs()
 
 void renderblob(int type, const vec &o, float radius, float fade)
 {
-    if(!GETIV(blobs)) return;
-    if(refracting < 0 && o.z - GETIV(blobheight) - GETIV(blobfadelow) >= reflectz) return;
-    blobs[type].renderblob(o, radius + GETIV(blobmargin), fade);
+    if(!showblobs) return;
+    if(refracting < 0 && o.z - blobheight - blobfadelow >= reflectz) return;
+    blobs[type].renderblob(o, radius + blobmargin, fade);
 }
 
 void flushblobs()

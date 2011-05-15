@@ -406,6 +406,8 @@ namespace game
         }
     }
 
+    SVARP(chat_sound, "olpc/FlavioGaete/Vla_G_Major");
+
     void parsemessages(int cn, fpsent *d, ucharbuf &p) // cn: Sauer's sending client
     {
 //        int gamemode = gamemode; Kripken
@@ -436,8 +438,8 @@ namespace game
 #ifdef CLIENT
                 if(d->state!=CS_SPECTATOR)
                     particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
-                if (GETSV(chat_sound)[0])
-                    playsoundname(GETSV(chat_sound));
+                if (chat_sound[0])
+                    playsoundname(chat_sound);
 #endif
                 conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text);
                 break;

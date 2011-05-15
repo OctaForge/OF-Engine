@@ -1,30 +1,45 @@
----
--- init.lua, version 1<br/>
--- Loader for all base files.<br/>
--- <br/>
--- @author q66 (quaker66@gmail.com)<br/>
--- license: MIT/X11<br/>
--- <br/>
--- @copyright 2011 OctaForge project<br/>
--- <br/>
--- Permission is hereby granted, free of charge, to any person obtaining a copy<br/>
--- of this software and associated documentation files (the "Software"), to deal<br/>
--- in the Software without restriction, including without limitation the rights<br/>
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell<br/>
--- copies of the Software, and to permit persons to whom the Software is<br/>
--- furnished to do so, subject to the following conditions:<br/>
--- <br/>
--- The above copyright notice and this permission notice shall be included in<br/>
--- all copies or substantial portions of the Software.<br/>
--- <br/>
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br/>
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br/>
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br/>
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,<br/>
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN<br/>
--- THE SOFTWARE.
---
+--[[!
+    File: base/init.lua
+
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file takes care of properly loading all modules of OctaForge
+        base library.
+
+        It loads:
+        - Library system
+        - JSON parser
+        - Signals system
+        - Engine interface
+        - Utility library
+        - Console interface
+        - GUI interface
+        - Shader interface
+        - Model interface
+        - Action system
+        - Message system
+        - Entity storage
+        - State variable system
+        - Entity class system
+        - Entity system
+        - Effect system
+        - Sound system
+        - Animatable entities
+        - Character
+        - Static entities
+        - Texture interface
+        - World interface
+
+    Section: Base library initialization
+]]
 
 -- see world metatable below
 local gravity
@@ -41,24 +56,49 @@ require("base.base_signals")
 logging.log(logging.DEBUG, ":: Engine interface.")
 require("base.base_engine")
 
---- Metatable for global table made for transparently
--- getting / setting engine variables. If engine variable
--- exists, it gets it on __index, otherwise it gets standard
--- lua variable. Same applies for __newindex, just for setting.
--- @class table
--- @name _G_metatable
--- @field __index Called when a value is got.
--- @field __newindex Called when a value is set.
+
+--[[!
+    Class: _G
+    Overriden metamethods for transparentyl getting / setting
+    engine variables. If engine variable exists, it's returned,
+    otherwise normal variable is returned. Same applies for
+    setting.
+]]
 setmetatable(_G, {
+    --[[!
+        Function: __index
+        This is overriden metamethod for getting.
+        It returns engine variable if it exists,
+        normal variable otherwise.
+
+        Parameters:
+            self - the table
+            n - name of the variable we're getting
+
+        Returns:
+            either engine variable or normal variable.
+    ]]
     __index = function(self, n)
-        return (engine.vars.stor[n] and
-            engine.vars[n] or
+        return (engine.varexists(n) and
+            engine.getvar(n) or
             rawget(self, n)
         )
     end,
+
+    --[[!
+        Function: __newindex
+        This is overriden metamethod for setting.
+        It sets engine variable if it exists or normal
+        one otherwise.
+
+        Parameters:
+            self - the table
+            n - name of the variable we're setting
+            v - value we're setting
+    ]]
     __newindex = function(self, n, v)
-        if engine.vars.stor[n] then
-            engine.vars[n] = v
+        if engine.varexists(n) then
+            engine.setvar(n, v)
         else
             rawset(self, n, v)
         end
@@ -119,15 +159,38 @@ require("base.base_textures")
 logging.log(logging.DEBUG, ":: World interface.")
 require("base.base_world")
 
---- Metatable for world for setting gravity.
--- @class table
--- @name world_metatable
--- @field __index Called when a value is got.
--- @field __newindex Called when a value is set.
+--[[!
+    Class: world
+    Overriden metamethods for getting / setting gravity.
+    Gravity defaults to 200.
+]]
 setmetatable(world, {
+    --[[!
+        Function: __index
+        If we're getting gravity, return it from globals.
+        Get "world" member otherwise.
+
+        Parameters:
+            self - the table
+            n - name of the variable we're getting
+
+        Returns:
+            either gravity or "world" member.
+    ]]
     __index = function(self, n)
         return (n == "gravity" and gravity or rawget(self, n))
     end,
+
+    --[[!
+        Function: __newindex
+        If we're setting gravity, set it via CAPI.
+        Set "world" member otherwise.
+
+        Parameters:
+            self - the table
+            n - name of the variable we're setting
+            v - value we're setting
+    ]]
     __newindex = function(self, n, v)
         if n == "gravity" then
             CAPI.setgravity(v)
