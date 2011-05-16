@@ -49,3 +49,5 @@ function delta_edit_17(a) world.vdelta([[world.vrotate(%(1)i)]] % { a }) end
 function delta_edit_18(a) world.vdelta([[world.vscale(%(1)i < 0 and 0.5 or 2)]] % { a }) end
 
 function delta_game_0(a) camera[a == 1 and "zoom_out" or "zoom_in"]() end
+
+function set(k, v) _G[tostring(k)] = v end
