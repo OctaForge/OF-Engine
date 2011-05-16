@@ -234,7 +234,7 @@ namespace lua_binds
         {
             case var::VAR_I:
             {
-                if ((ev->flags&var::VAR_HEX) != 0)
+                /*if ((ev->flags&var::VAR_HEX) != 0)
                 {
                     char buf[32];
                     snprintf(
@@ -247,7 +247,8 @@ namespace lua_binds
                     );
                     e.push(buf);
                 }
-                else e.push(ev->curv.i);
+                else e.push(ev->curv.i);*/
+                e.push(ev->curv.i);
                 break;
             }
             case var::VAR_F: e.push(ev->curv.f); break;
