@@ -554,7 +554,7 @@ void force_network_flush()
 {
     if (!serverhost)
     {
-        Logging::log(Logging::ERROR, "Trying to force_flush, but no serverhost yet\r\n");
+        logger::log(logger::ERROR, "Trying to force_flush, but no serverhost yet\r\n");
         return;
     }
 
@@ -640,7 +640,7 @@ bool setuplistenserver(bool dedicated)
         // of the sort that standby mode is meant to prevent, but standby does not protect from this.
         // So, just wait to be manually restarted.
         //return servererror(dedicated, "could not create server host");
-        Logging::log(Logging::ERROR, "***!!! could not create server host (awaiting manual restart) !!!***");
+        logger::log(logger::ERROR, "***!!! could not create server host (awaiting manual restart) !!!***");
         return false;
     }
     loopi(maxclients) serverhost->peers[i].data = NULL;
@@ -797,18 +797,18 @@ int main(int argc, char **argv)
         }
         else gameargs.add(argv[i]);
     }
-    Logging::init(loglevel);
+    logger::setlevel(loglevel);
 
     if (!map_asset)
     {
-        Logging::log(Logging::ERROR, "No map asset to run. Shutting down.");
+        logger::log(logger::ERROR, "No map asset to run. Shutting down.");
         return 1;
     }
 
     lua::engine.create();
     server_init();
 
-    Logging::log(Logging::DEBUG, "Running first slice.\n");
+    logger::log(logger::DEBUG, "Running first slice.\n");
     server_runslice();
 
     int servermillis = time(0) * 1000;
@@ -824,13 +824,13 @@ int main(int argc, char **argv)
 
         if (map_asset)
         {
-            Logging::log(Logging::DEBUG, "Setting map to %s ..\n", map_asset);
+            logger::log(logger::DEBUG, "Setting map to %s ..\n", map_asset);
             world::set_map(map_asset);
             map_asset = NULL;
         }
     }
 
-    Logging::log(Logging::WARNING, "Stopping main server.");
+    logger::log(logger::WARNING, "Stopping main server.");
     var::flush();
 
     return 0;

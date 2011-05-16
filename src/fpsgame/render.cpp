@@ -16,7 +16,7 @@ namespace game
         if (!ClientSystem::loggedIn) // If not logged in remotely, do not render, because entities lack all the fields like model_name
                                      // in the future, perhaps add these, if we want local rendering
         {
-            Logging::log(Logging::INFO, "Not logged in remotely, so not rendering\r\n");
+            logger::log(logger::INFO, "Not logged in remotely, so not rendering\r\n");
             return;
         }
 

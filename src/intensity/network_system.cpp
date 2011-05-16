@@ -214,16 +214,16 @@ void QuantizedInfo::applyToEntity(fpsent *d)
     // Only possibly discard if we get a value for the lifesequence
     if(!d || (hasMisc && (getLifeSequence()!=(d->lifesequence&1))))
     {
-        Logging::log(Logging::WARNING, "Not applying position update for client %d, reasons: %lu,%d,%d (real:%d)\r\n",
+        logger::log(logger::WARNING, "Not applying position update for client %d, reasons: %lu,%d,%d (real:%d)\r\n",
                      clientNumber, (unsigned long)d, getLifeSequence(), d ? d->lifesequence&1 : -1, d ? d->lifesequence : -1);
         return;
     } else
-        Logging::log(Logging::INFO, "Applying position update for client %d\r\n", clientNumber);
+        logger::log(logger::INFO, "Applying position update for client %d\r\n", clientNumber);
 
     #ifdef SERVER
     if(d->serverControlled) // Server does not need to update positions of its own NPCs. TODO: Don't even send to here.
     {
-        Logging::log(Logging::INFO, "Not applying position update for server NPC: (uid: %d , addr %d):\r\n", d->uniqueId, d != NULL);
+        logger::log(logger::INFO, "Not applying position update for server NPC: (uid: %d , addr %d):\r\n", d->uniqueId, d != NULL);
         return;
     }
     #endif

@@ -1051,7 +1051,7 @@ int main(int argc, char **argv)
     int dedicated = 0;
     char *load = NULL, *initscript = NULL;
 
-    #define initlog(s) Logging::log_noformat(Logging::INIT, s)
+    #define initlog(s) logger::log(logger::INIT, "%s\n", s)
 
     initing = INIT_RESET;
 
@@ -1106,7 +1106,7 @@ int main(int argc, char **argv)
         else gameargs.add(argv[i]);
     }
     /* Initialize logging at first, right after that lua. */
-    Logging::init(loglevel);
+    logger::setlevel(loglevel);
 
     initlog("lua");
     lua::engine.create();
@@ -1250,7 +1250,7 @@ int main(int argc, char **argv)
         lastmillis += curtime;
         totalmillis = millis;
 
-        Logging::log(Logging::INFO, "New frame: lastmillis: %d   curtime: %d\r\n", lastmillis, curtime); // INTENSITY
+        logger::log(logger::INFO, "New frame: lastmillis: %d   curtime: %d\r\n", lastmillis, curtime); // INTENSITY
 
         checkinput();
         menuprocess();

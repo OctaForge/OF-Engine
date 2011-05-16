@@ -62,19 +62,19 @@ namespace lua_binds
     LUA_BIND_LE(getstarttime, e.push(self->getStartTime());)
 
     LUA_BIND_LE(setmodelname, {
-        Logging::log(Logging::DEBUG, "setmodelname(%s, %s)\n", self->getClass().c_str(), e.get<const char*>(2));
+        logger::log(logger::DEBUG, "setmodelname(%s, %s)\n", self->getClass().c_str(), e.get<const char*>(2));
 
         self->setModel(e.get<const char*>(2));
     })
 
     LUA_BIND_LE(setsoundname, {
-        Logging::log(Logging::DEBUG, "setsoundname(%s)\n", e.get<const char*>(2));
+        logger::log(logger::DEBUG, "setsoundname(%s)\n", e.get<const char*>(2));
 
         self->setSound(e.get<const char*>(2));
     })
 
     LUA_BIND_LE(setsoundvol, {
-        Logging::log(Logging::DEBUG, "setsoundvol(%i)\n", e.get<int>(2));
+        logger::log(logger::DEBUG, "setsoundvol(%i)\n", e.get<int>(2));
 
         extentity *ext = self->staticEntity;
         assert(ext);
@@ -137,7 +137,7 @@ namespace lua_binds
     LUA_BIND_LE(get##n, e.push(self->an);) \
     \
     LUA_BIND_LE(set##n, { \
-        Logging::log(Logging::DEBUG, "ACCESSOR: Setting %s to %f\n", #an, e.get<double>(2)); \
+        logger::log(logger::DEBUG, "ACCESSOR: Setting %s to %f\n", #an, e.get<double>(2)); \
         assert(self->staticEntity); \
         \
         /* Need to remove, then add, to the octa world on each change. */ \
@@ -154,7 +154,7 @@ namespace lua_binds
     LUA_BIND_LE(getextent0, {
         extentity *ext = self->staticEntity;
         assert(ext);
-        Logging::log(Logging::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self->getClass().c_str(), ext->o.x, ext->o.y, ext->o.z);
+        logger::log(logger::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self->getClass().c_str(), ext->o.x, ext->o.y, ext->o.z);
         e.t_new().t_set(1, ext->o.x).t_set(2, ext->o.y).t_set(3, ext->o.z);
     })
 
@@ -224,7 +224,7 @@ namespace lua_binds
 
         d->resetinterp(); // No need to interpolate to last position - just jump
 
-        Logging::log(Logging::INFO, "(%d).setdynent0(%f, %f, %f)\n", d->uniqueId, d->o.x, d->o.y, d->o.z);
+        logger::log(logger::INFO, "(%d).setdynent0(%f, %f, %f)\n", d->uniqueId, d->o.x, d->o.y, d->o.z);
     })
 
     LUA_BIND_LE(getdynentvel, {

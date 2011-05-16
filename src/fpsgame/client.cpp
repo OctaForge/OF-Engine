@@ -65,7 +65,7 @@ namespace game
 
     void gamedisconnect(bool cleanup)
     {
-        Logging::log(Logging::DEBUG, "client.h: gamedisconnect()\r\n");
+        logger::log(logger::DEBUG, "client.h: gamedisconnect()\r\n");
 //        if(remote) stopfollowing(); Kripken
         connected = false;
         player1->clientnum = -1;
@@ -73,7 +73,7 @@ namespace game
         player1->privilege = PRIV_NONE;
         spectator = false;
 //        loopv(players) clientdisconnected(i, false); Kripken: When we disconnect, we should shut down anyhow...
-        Logging::log(Logging::WARNING, "Not doing normal Sauer disconnecting of other clients\r\n");
+        logger::log(logger::WARNING, "Not doing normal Sauer disconnecting of other clients\r\n");
 
         #ifdef CLIENT
             ClientSystem::onDisconnect();
@@ -162,7 +162,7 @@ namespace game
 
     void addmsg(int type, const char *fmt, ...)
     {
-        Logging::log(Logging::INFO, "Client: ADDMSG: adding a message of type %d\r\n", type);
+        logger::log(logger::INFO, "Client: ADDMSG: adding a message of type %d\r\n", type);
 
         if(!connected) return;
         static uchar buf[MAXTRANS];
@@ -252,7 +252,7 @@ namespace game
 
     void sendposition(fpsent *d, bool reliable)
     {
-        Logging::log(Logging::INFO, "sendposition?, %d)\r\n", curtime);
+        logger::log(logger::INFO, "sendposition?, %d)\r\n", curtime);
 
 //        if(d->state==CS_ALIVE || d->state==CS_EDITING) // Kripken: We handle death differently.
 //        {
@@ -262,7 +262,7 @@ namespace game
         if (d->uniqueId != DUMMY_SINGLETON_CLIENT_UNIQUE_ID)
 #endif
         {
-            Logging::log(Logging::INFO, "sendpacketclient: Sending for client %d: %f,%f,%f\r\n",
+            logger::log(logger::INFO, "sendpacketclient: Sending for client %d: %f,%f,%f\r\n",
                                          d->clientnum, d->o.x, d->o.y, d->o.z);
 
             // send position updates separately so as to not stall out aiming
@@ -307,7 +307,7 @@ namespace game
     {
         static int lastupdate = -1000;
 
-        Logging::log(Logging::INFO, "c2sinfo: %d,%d\r\n", totalmillis, lastupdate);
+        logger::log(logger::INFO, "c2sinfo: %d,%d\r\n", totalmillis, lastupdate);
 
         if(totalmillis - lastupdate < 33 && !force) return;    // don't update faster than the rate
         lastupdate = totalmillis;
@@ -385,7 +385,7 @@ namespace game
 
     void parsepacketclient(int chan, packetbuf &p)   // processes any updates from the server
     {
-        Logging::log(Logging::INFO, "Client: Receiving packet, channel: %d\r\n", chan);
+        logger::log(logger::INFO, "Client: Receiving packet, channel: %d\r\n", chan);
 
         switch(chan)
         {   // Kripken: channel 0 is just positions, for as-fast-as-possible position updates. We do not want to change this.
@@ -419,7 +419,7 @@ namespace game
         while(p.remaining())
         {
           type = getint(p);
-          Logging::log(Logging::INFO, "Client: Parsing a message of type %d\r\n", type);
+          logger::log(logger::INFO, "Client: Parsing a message of type %d\r\n", type);
           switch(type)
           { // Kripken: Mangling sauer indentation as little as possible
 
@@ -467,7 +467,7 @@ namespace game
             {
 //                if(!d) return; Kripken: We can get edit commands from the server, which has no 'd' to speak of XXX FIXME - might be buggy
 
-                Logging::log(Logging::DEBUG, "Edit command intercepted in client.h\r\n");
+                logger::log(logger::DEBUG, "Edit command intercepted in client.h\r\n");
 
                 selinfo sel;
                 sel.o.x = getint(p); sel.o.y = getint(p); sel.o.z = getint(p);
@@ -487,7 +487,7 @@ namespace game
                         #ifdef CLIENT
                             tex = getint(p); allfaces = getint(p); mpedittex(tex, allfaces, sel, false); break;
                         #else // SERVER
-                            getint(p); getint(p); Logging::log(Logging::DEBUG, "Server ignoring texture change (a)\r\n"); break;
+                            getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (a)\r\n"); break;
                         #endif
                     case N_EDITM: mat = getint(p); filter = getint(p); mpeditmat(mat, filter, sel, false); break;
                     case N_FLIP: mpflip(sel, false); break;
@@ -498,7 +498,7 @@ namespace game
                         #ifdef CLIENT
                             tex = getint(p); newtex = getint(p); insel = getint(p); mpreplacetex(tex, newtex, insel>0, sel, false); break;
                         #else // SERVER
-                            getint(p); getint(p); Logging::log(Logging::DEBUG, "Server ignoring texture change (b)\r\n"); break;
+                            getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (b)\r\n"); break;
                         #endif
                     case N_DELCUBE: mpdelcube(sel, false); break;
                 }
@@ -550,7 +550,7 @@ assert(0); // Kripken: Do not let clients know other clients' pings
 
             default:
             {
-                Logging::log(Logging::INFO, "Client: Handling a non-typical message: %d\r\n", type);
+                logger::log(logger::INFO, "Client: Handling a non-typical message: %d\r\n", type);
 #ifdef CLIENT
                 if (!MessageSystem::MessageManager::receive(type, ClientSystem::playerNumber, cn, p))
 #else
@@ -570,7 +570,7 @@ assert(0); // Kripken: Do not let clients know other clients' pings
 
     void changemap(const char *name, int mode)        // forced map change from the server // Kripken : TODO: Deprecated, Remove
     {
-        Logging::log(Logging::INFO, "Client: Changing map: %s\r\n", name);
+        logger::log(logger::INFO, "Client: Changing map: %s\r\n", name);
 
         mode = 0;
         gamemode = mode;
@@ -585,7 +585,7 @@ assert(0); // Kripken: Do not let clients know other clients' pings
 
     void changemap(const char *name)
     {
-        Logging::log(Logging::INFO, "Client: Requesting map: %s\r\n", name);
+        logger::log(logger::INFO, "Client: Requesting map: %s\r\n", name);
     }
         
     void gotoplayer(const char *arg)
@@ -606,7 +606,7 @@ assert(0); // Kripken: Do not let clients know other clients' pings
 
     void connectattempt(const char *name, const char *password, const ENetAddress &address)
     {
-        Logging::log(Logging::DEBUG, "Connect attempt\r\n");
+        logger::log(logger::DEBUG, "Connect attempt\r\n");
     }
 
     void connectfail()
@@ -650,7 +650,7 @@ assert(0); // Kripken: Do not let clients know other clients' pings
 #ifdef CLIENT
         if(!ClientSystem::isAdmin())
         {
-            Logging::log(Logging::WARNING, "vartrigger invalid\r\n");
+            logger::log(logger::WARNING, "vartrigger invalid\r\n");
             return;
         }
 #endif

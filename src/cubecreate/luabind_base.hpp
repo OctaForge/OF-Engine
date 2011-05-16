@@ -66,7 +66,7 @@ namespace lua_binds
 {
     /* Logging Lua namespace */
 
-    LUA_BIND_DEF(log, Logging::log((Logging::Level)e.get<int>(1), "%s\n", e.get<const char*>(2));)
+    LUA_BIND_DEF(log, logger::log((logger::loglevel)e.get<int>(1), "%s\n", e.get<const char*>(2));)
 
     LUA_BIND_DEF(echo, conoutf("\f1%s", e.get<const char*>(1));)
 
@@ -211,7 +211,7 @@ namespace lua_binds
         if (!ev) return;
         if ((ev->flags&var::VAR_READONLY) != 0)
         {
-            Logging::log(Logging::ERROR, "Variable %s is read-only.\n", ev->name);
+            logger::log(logger::ERROR, "Variable %s is read-only.\n", ev->name);
             return;
         }
         switch (ev->type)

@@ -40,7 +40,7 @@ namespace lua_binds
     LUA_BIND_CLIENT(mouse##num##click, { \
         bool down = (addreleaseaction("CAPI."QUOT(mouse##num##click)"()") != 0); \
         \
-        Logging::log(Logging::INFO, "mouse click: %d (down: %d)\r\n", num, down); \
+        logger::log(logger::INFO, "mouse click: %d (down: %d)\r\n", num, down); \
         if (!(e.hashandle() && ClientSystem::scenarioStarted())) return; \
         \
         /* A click forces us to check for clicking on entities */ \

@@ -170,8 +170,8 @@ namespace var
 
         if (_clamp && (v < minv.i || v > maxv.i) && (flags&VAR_ALIAS) == 0)
         {
-            Logging::log(
-                Logging::ERROR,
+            logger::log(
+                logger::ERROR,
                 "Variable %s only accepts values of range %i to %i.\n",
                 name, minv.i, maxv.i
             );
@@ -190,8 +190,8 @@ namespace var
         }
         if (_clamp && (v < minv.f || v > maxv.f) && (flags&VAR_ALIAS) == 0)
         {
-            Logging::log(
-                Logging::ERROR,
+            logger::log(
+                logger::ERROR,
                 "Variable %s only accepts values of range %f to %f.\n",
                 name, minv.f, maxv.f
             );

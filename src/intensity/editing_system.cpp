@@ -70,12 +70,12 @@ void prepareentityclasses()
     entityClasses.clear();
 
     lua::engine.getg("entity_classes").t_getraw("list").call(0, 1);
-    Logging::log(Logging::DEBUG, "prepareentityclasses: Got table of entity classes.");
+    logger::log(logger::DEBUG, "prepareentityclasses: Got table of entity classes.");
     LUA_TABLE_FOREACH(lua::engine, {
         entityClasses.push_back(lua::engine.get<const char*>(-1));
     });
     lua::engine.pop(2);
-    Logging::log(Logging::DEBUG, "prepareentityclasses: Done.");
+    logger::log(logger::DEBUG, "prepareentityclasses: Done.");
 }
 
 bool validateEntityClass(std::string _class)
@@ -91,7 +91,7 @@ void newEntity(std::string _class, std::string stateData)
     #ifdef CLIENT
         vec farPosition;
 
-        Logging::log(Logging::DEBUG, "Considering saved mouse pos: %f,%f,%f (%d, %d)\r\n", savedMousePos.x, savedMousePos.y, savedMousePos.z,
+        logger::log(logger::DEBUG, "Considering saved mouse pos: %f,%f,%f (%d, %d)\r\n", savedMousePos.x, savedMousePos.y, savedMousePos.z,
                                                                            savedMousePosTime, tools::currtime());
 
         // Use saved position, if exists and saved recently
@@ -164,11 +164,11 @@ bool checkCubeCoords(int x, int y, int z, int gridsize)
 
 void createCube(int x, int y, int z, int gridsize)
 {
-    Logging::log(Logging::DEBUG, "createCube: %d,%d,%d  --  %d\r\n", x, y, z, gridsize);
+    logger::log(logger::DEBUG, "createCube: %d,%d,%d  --  %d\r\n", x, y, z, gridsize);
 
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        Logging::log(Logging::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d\r\n", x, y, z, gridsize);
         return;
     }
 
@@ -202,7 +202,7 @@ void deleteCube(int x, int y, int z, int gridsize)
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        Logging::log(Logging::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to createCube: %d,%d,%d : %d\r\n", x, y, z, gridsize);
         return;
     }
 
@@ -226,7 +226,7 @@ void setCubeTexture(int x, int y, int z, int gridsize, int face, int texture)
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        Logging::log(Logging::ERROR, "Bad cube coordinates to setCubeTexture: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to setCubeTexture: %d,%d,%d : %d\r\n", x, y, z, gridsize);
         return;
     }
 
@@ -252,7 +252,7 @@ void setCubeMaterial(int x, int y, int z, int gridsize, int material)
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        Logging::log(Logging::ERROR, "Bad cube coordinates to setCubeMaterial: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to setCubeMaterial: %d,%d,%d : %d\r\n", x, y, z, gridsize);
         return;
     }
 
@@ -287,7 +287,7 @@ void pushCubeCorner(int x, int y, int z, int gridsize, int face, int corner, int
 {
     if (!checkCubeCoords(x, y, z, gridsize))
     {
-        Logging::log(Logging::ERROR, "Bad cube coordinates to pushCubeCorner: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        logger::log(logger::ERROR, "Bad cube coordinates to pushCubeCorner: %d,%d,%d : %d\r\n", x, y, z, gridsize);
         return;
     }
 

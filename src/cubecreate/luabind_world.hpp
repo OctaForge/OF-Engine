@@ -137,7 +137,7 @@ namespace lua_binds
     })
 
     LUA_BIND_DEF(setgravity, {
-        Logging::log(Logging::DEBUG, "Setting gravity using sauer system, as no physics engine\r\n");
+        logger::log(logger::DEBUG, "Setting gravity using sauer system, as no physics engine\r\n");
         GRAVITY = e.get<double>(1);
     })
 

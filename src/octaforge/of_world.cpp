@@ -89,7 +89,7 @@ namespace world
         snprintf(buf, sizeof(buf), "%smap", s);
         if (!load_world(buf))
         {
-            Logging::log(Logging::ERROR, "Failed to load world!\n");
+            logger::log(logger::ERROR, "Failed to load world!\n");
             return false;
         }
         delete[] s;
@@ -148,7 +148,7 @@ namespace world
         FILE *f = fopen(buf, "w");
         if  (!f)
         {
-            Logging::log(Logging::ERROR, "Cannot open file %s for writing.\n", buf);
+            logger::log(logger::ERROR, "Cannot open file %s for writing.\n", buf);
             return;
         }
         fputs(data, f);

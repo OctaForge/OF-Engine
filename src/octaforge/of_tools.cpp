@@ -62,8 +62,8 @@ namespace tools
                         continue;
                     }
                 }
-                Logging::log(
-                    Logging::WARNING,
+                logger::log(
+                    logger::WARNING,
                     "Alphanumeric validation of string \"%s\" failed (using alphanumeric + %s)",
                     str,
                     allow ? allow : "nothing"
@@ -206,7 +206,7 @@ namespace tools
         }
         if (!loaded)
         {
-            Logging::log(Logging::ERROR, "Could not load file %s (%s, %s)", fname, buf, buff);
+            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf, buff);
             return NULL;
         }
         return loaded;

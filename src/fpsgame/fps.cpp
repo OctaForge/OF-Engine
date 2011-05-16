@@ -214,7 +214,7 @@ namespace game
                     continue; // On the server, 'other players' are only PCs
             #endif
 
-            Logging::log(Logging::INFO, "otherplayers: moving %d from %f,%f,%f\r\n", d->uniqueId, d->o.x, d->o.y, d->o.z);
+            logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f\r\n", d->uniqueId, d->o.x, d->o.y, d->o.z);
 
             if(d->state==CS_ALIVE)
             {
@@ -257,7 +257,7 @@ namespace game
             }
             else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 1, true);
 
-            Logging::log(Logging::INFO, "                                      to %f,%f,%f\r\n", d->o.x, d->o.y, d->o.z);
+            logger::log(logger::INFO, "                                      to %f,%f,%f\r\n", d->o.x, d->o.y, d->o.z);
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
@@ -281,7 +281,7 @@ namespace game
             engine.getref(ClientSystem::playerLogicEntity->luaRef);
             if (engine.t_get<bool>("initialized"))
             {
-                Logging::log(Logging::INFO, "Player %d (%lu) is initialized, run moveplayer(): %f,%f,%f.\r\n",
+                logger::log(logger::INFO, "Player %d (%lu) is initialized, run moveplayer(): %f,%f,%f.\r\n",
                     player1->uniqueId, (unsigned long)player1,
                     player1->o.x,
                     player1->o.y,
@@ -299,7 +299,7 @@ namespace game
                 moveplayer(player1, 10, true); // Disable this to stop play from moving by client command
 #endif
 
-                Logging::log(Logging::INFO, "                              moveplayer(): %f,%f,%f.\r\n",
+                logger::log(logger::INFO, "                              moveplayer(): %f,%f,%f.\r\n",
                     player1->o.x,
                     player1->o.y,
                     player1->o.z
@@ -308,12 +308,12 @@ namespace game
                 swayhudgun(curtime);
                 entities::checkitems(player1);
             } else
-                Logging::log(Logging::INFO, "Player is not yet initialized, do not run moveplayer() etc.\r\n");
+                logger::log(logger::INFO, "Player is not yet initialized, do not run moveplayer() etc.\r\n");
 
             engine.pop(1);
         }
         else
-            Logging::log(Logging::INFO, "Player does not yet exist, or scenario not started, do not run moveplayer() etc.\r\n");
+            logger::log(logger::INFO, "Player does not yet exist, or scenario not started, do not run moveplayer() etc.\r\n");
         
 #else // SERVER
     #if 1
@@ -334,7 +334,7 @@ namespace game
             // Apply physics to actually move the player
             moveplayer(npc, 10, false); // FIXME: Use Config param for resolution and local. 1, false does seem ok though
 
-            Logging::log(Logging::INFO, "updateworld, server-controlled client %d: moved to %f,%f,%f\r\n", i,
+            logger::log(logger::INFO, "updateworld, server-controlled client %d: moved to %f,%f,%f\r\n", i,
                                             npc->o.x, npc->o.y, npc->o.z);
 
             //?? Dummy singleton still needs to send the messages vector. XXX - do we need this even without NPCs? XXX - works without it
@@ -345,8 +345,8 @@ namespace game
 
     void updateworld()        // main game update loop
     {
-        Logging::log(Logging::INFO, "updateworld(?, %d)\r\n", curtime);
-        INDENT_LOG(Logging::INFO);
+        logger::log(logger::INFO, "updateworld(?, %d)\r\n", curtime);
+        INDENT_LOG(logger::INFO);
 
         // SERVER used to initialize turn_move, move, look_updown_move and strafe to 0 for NPCs here
 
@@ -496,7 +496,7 @@ namespace game
 
     fpsent *newclient(int cn)   // ensure valid entity
     {
-        Logging::log(Logging::DEBUG, "fps::newclient: %d\r\n", cn);
+        logger::log(logger::DEBUG, "fps::newclient: %d\r\n", cn);
 
         if(cn < 0 || cn > max(0xFF, MAXCLIENTS)) // + MAXBOTS))
         {
@@ -533,7 +533,7 @@ namespace game
 
     void clientdisconnected(int cn, bool notify)
     {
-        Logging::log(Logging::DEBUG, "fps::clientdisconnected: %d\r\n", cn);
+        logger::log(logger::DEBUG, "fps::clientdisconnected: %d\r\n", cn);
 
         if(!clients.inrange(cn)) return;
         if(following==cn)
@@ -674,12 +674,12 @@ namespace game
 
     void drawhudmodel(fpsent *d, int anim, float speed = 0, int base = 0)
     {
-        Logging::log(Logging::WARNING, "Rendering hudmodel is deprecated for now\r\n");
+        logger::log(logger::WARNING, "Rendering hudmodel is deprecated for now\r\n");
     }
 
     void drawhudgun()
     {
-        Logging::log(Logging::WARNING, "Rendering hudgun is deprecated for now\r\n");
+        logger::log(logger::WARNING, "Rendering hudgun is deprecated for now\r\n");
     }
 
     bool needminimap() // you have to enable the minimap inside your map script.

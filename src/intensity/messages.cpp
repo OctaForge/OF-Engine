@@ -41,8 +41,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type PersonalServerMessage (1001)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type PersonalServerMessage (1001)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -74,7 +74,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riss", 1001, title, content);
 
@@ -87,7 +87,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
 
         static char title[MAXTRANS];
         getstring(title, p);
@@ -107,8 +107,8 @@ namespace MessageSystem
 
     void send_RequestServerMessageToAll(const char* message)
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type RequestServerMessageToAll (1002)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type RequestServerMessageToAll (1002)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1002, "rs", message);
     }
@@ -116,7 +116,7 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestServerMessageToAll::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestServerMessageToAll (1002)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestServerMessageToAll (1002)\r\n");
 
         static char message[MAXTRANS];
         getstring(message, p);
@@ -129,8 +129,8 @@ namespace MessageSystem
 
     void send_LoginRequest()
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type LoginRequest (1003)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type LoginRequest (1003)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1003, "r");
     }
@@ -138,7 +138,7 @@ namespace MessageSystem
 #ifdef SERVER
     void LoginRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type LoginRequest (1003)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LoginRequest (1003)\r\n");
 
 
         #ifdef SERVER
@@ -171,8 +171,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type YourUniqueId (1004)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type YourUniqueId (1004)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  // Remember this client's unique ID. Done here so always in sync with the client's belief about its uniqueId.
         server::getUniqueId(clientNumber) = uniqueId;
@@ -206,7 +206,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "rii", 1004, uniqueId);
 
@@ -219,11 +219,11 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type YourUniqueId (1004)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type YourUniqueId (1004)\r\n");
 
         int uniqueId = getint(p);
 
-        Logging::log(Logging::DEBUG, "Told my unique ID: %d\r\n", uniqueId);
+        logger::log(logger::DEBUG, "Told my unique ID: %d\r\n", uniqueId);
         ClientSystem::uniqueId = uniqueId;
     }
 #endif
@@ -235,8 +235,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type LoginResponse (1005)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type LoginResponse (1005)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  // If logged in OK, this is the time to create a lua logic entity for the client. Also adds to internal FPSClient
         if (success)
@@ -271,7 +271,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riii", 1005, success, local);
 
@@ -284,7 +284,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type LoginResponse (1005)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LoginResponse (1005)\r\n");
 
         bool success = getint(p);
         bool local = getint(p);
@@ -308,8 +308,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type PrepareForNewScenario (1006)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type PrepareForNewScenario (1006)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -341,7 +341,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "ris", 1006, scenarioCode);
 
@@ -354,7 +354,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
 
         static char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
@@ -373,8 +373,8 @@ namespace MessageSystem
 
     void send_RequestCurrentScenario()
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type RequestCurrentScenario (1007)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type RequestCurrentScenario (1007)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1007, "r");
     }
@@ -382,7 +382,7 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestCurrentScenario (1007)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestCurrentScenario (1007)\r\n");
 
 
         if (!world::get_scenario_code()) return;
@@ -396,8 +396,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type NotifyAboutCurrentScenario (1008)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -429,7 +429,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riss", 1008, mid, sc);
 
@@ -442,7 +442,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
 
         static char mid[MAXTRANS];
         getstring(mid, p);
@@ -459,8 +459,8 @@ namespace MessageSystem
 
     void send_RestartMap()
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type RestartMap (1009)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type RestartMap (1009)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1009, "r");
     }
@@ -468,13 +468,13 @@ namespace MessageSystem
 #ifdef SERVER
     void RestartMap::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RestartMap (1009)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RestartMap (1009)\r\n");
 
 
         if (!world::get_scenario_code()) return;
         if (!server::isAdmin(sender))
         {
-            Logging::log(Logging::WARNING, "Non-admin tried to restart the map\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to restart the map\r\n");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot restart the map");
             return;
         }
@@ -487,8 +487,8 @@ namespace MessageSystem
     void send_NewEntityRequest(const char* _class, float x, float y, float z, const char* stateData)
     {        EditingSystem::madeChanges = true;
 
-        Logging::log(Logging::DEBUG, "Sending a message of type NewEntityRequest (1010)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type NewEntityRequest (1010)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1010, "rsiiis", _class, int(x*DMF), int(y*DMF), int(z*DMF), stateData);
     }
@@ -496,7 +496,7 @@ namespace MessageSystem
 #ifdef SERVER
     void NewEntityRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NewEntityRequest (1010)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NewEntityRequest (1010)\r\n");
 
         static char _class[MAXTRANS];
         getstring(_class, p);
@@ -509,7 +509,7 @@ namespace MessageSystem
         if (!world::get_scenario_code()) return;
         if (!server::isAdmin(sender))
         {
-            Logging::log(Logging::WARNING, "Non-admin tried to add an entity\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to add an entity\r\n");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot create entities");
             return;
         }
@@ -518,7 +518,7 @@ namespace MessageSystem
         {
             char buf[512];
             snprintf(buf, sizeof(buf), "Invalid entity class: %s", _class);
-            Logging::log(Logging::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
+            logger::log(logger::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
             send_PersonalServerMessage(
                 sender,
                 buf,
@@ -527,12 +527,12 @@ namespace MessageSystem
             return;
         }
         // Add entity
-        Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
+        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         engine.getg("entity_classes").t_getraw("get_sauertype").push(_class).call(1, 1);
         const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
-        Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType);
+        logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
         engine.getg("entity_store").t_getraw("new").push(_class);
         engine.t_new();
@@ -545,7 +545,7 @@ namespace MessageSystem
         engine.call(2, 1);
         int newUniqueId = engine.t_get<int>("uid");
         engine.pop(2);
-        Logging::log(Logging::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
+        logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
                                       newUniqueId, _class, x, y, z);
     }
 #endif
@@ -556,8 +556,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type StateDataUpdate (1011)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type StateDataUpdate (1011)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  exclude = originalClientNumber;
 
@@ -590,7 +590,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riiisi", 1011, uniqueId, keyProtocolId, value, originalClientNumber);
 
@@ -606,7 +606,7 @@ namespace MessageSystem
 #else // SERVER
         is_npc = true;
 #endif
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type StateDataUpdate (1011)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type StateDataUpdate (1011)\r\n");
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
@@ -625,7 +625,7 @@ namespace MessageSystem
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                Logging::log(Logging::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
+                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
                 \
                 if (!engine.hashandle()) \
                     return; \
@@ -649,8 +649,8 @@ namespace MessageSystem
         if (editmode)
             EditingSystem::madeChanges = true;
 
-        Logging::log(Logging::DEBUG, "Sending a message of type StateDataChangeRequest (1012)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1012, "riis", uniqueId, keyProtocolId, value);
     }
@@ -658,7 +658,7 @@ namespace MessageSystem
 #ifdef SERVER
     void StateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type StateDataChangeRequest (1012)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type StateDataChangeRequest (1012)\r\n");
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
@@ -669,7 +669,7 @@ namespace MessageSystem
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
+        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
@@ -684,8 +684,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataUpdate (1013)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  exclude = originalClientNumber;
 
@@ -718,7 +718,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "iiisi", 1013, uniqueId, keyProtocolId, value, originalClientNumber);
 
@@ -734,7 +734,7 @@ namespace MessageSystem
 #else // SERVER
         is_npc = true;
 #endif
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataUpdate (1013)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataUpdate (1013)\r\n");
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
@@ -750,8 +750,8 @@ namespace MessageSystem
 
     void send_UnreliableStateDataChangeRequest(int uniqueId, int keyProtocolId, const char* value)
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type UnreliableStateDataChangeRequest (1014)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1014, "iis", uniqueId, keyProtocolId, value);
     }
@@ -759,7 +759,7 @@ namespace MessageSystem
 #ifdef SERVER
     void UnreliableStateDataChangeRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataChangeRequest (1014)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataChangeRequest (1014)\r\n");
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
@@ -777,8 +777,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type NotifyNumEntities (1015)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type NotifyNumEntities (1015)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -810,7 +810,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "rii", 1015, num);
 
@@ -823,7 +823,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NotifyNumEntities (1015)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyNumEntities (1015)\r\n");
 
         int num = getint(p);
 
@@ -838,8 +838,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type AllActiveEntitiesSent (1016)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -871,7 +871,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "ri", 1016);
 
@@ -884,7 +884,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type AllActiveEntitiesSent (1016)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type AllActiveEntitiesSent (1016)\r\n");
 
 
         ClientSystem::finishLoadWorld();
@@ -896,8 +896,8 @@ namespace MessageSystem
 
     void send_ActiveEntitiesRequest(const char* scenarioCode)
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type ActiveEntitiesRequest (1017)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1017, "rs", scenarioCode);
     }
@@ -905,7 +905,7 @@ namespace MessageSystem
 #ifdef SERVER
     void ActiveEntitiesRequest::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ActiveEntitiesRequest (1017)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ActiveEntitiesRequest (1017)\r\n");
 
         static char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
@@ -916,7 +916,7 @@ namespace MessageSystem
             server::setClientScenario(sender, scenarioCode);
             if ( !server::isRunningCurrentScenario(sender) )
             {
-                Logging::log(Logging::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
+                logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
                     sender, scenarioCode
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
@@ -954,8 +954,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type LogicEntityCompleteNotification (1018)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -987,7 +987,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riiiss", 1018, otherClientNumber, otherUniqueId, otherClass, stateData);
 
@@ -1003,7 +1003,7 @@ namespace MessageSystem
 #else // SERVER
         is_npc = true;
 #endif
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type LogicEntityCompleteNotification (1018)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityCompleteNotification (1018)\r\n");
 
         int otherClientNumber = getint(p);
         int otherUniqueId = getint(p);
@@ -1018,13 +1018,13 @@ namespace MessageSystem
         #endif
         if (!engine.hashandle())
             return;
-        Logging::log(Logging::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
+        INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
+            logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
             engine.getg("entity_store").t_getraw("add")
                 .push(otherClass)
                 .push(otherUniqueId)
@@ -1035,7 +1035,7 @@ namespace MessageSystem
                     // If this is the player, validate it is the clientNumber we already have
                     if (otherUniqueId == ClientSystem::uniqueId)
                     {
-                        Logging::log(Logging::DEBUG, "This is the player's entity (%d), validating client num: %d,%d\r\n",
+                        logger::log(logger::DEBUG, "This is the player's entity (%d), validating client num: %d,%d\r\n",
                             otherUniqueId, otherClientNumber, ClientSystem::playerNumber);
                         assert(otherClientNumber == ClientSystem::playerNumber);
                     }
@@ -1046,15 +1046,15 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
-                Logging::log(Logging::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
+                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
                 return;
             }
         } else
-            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        Logging::log(Logging::DEBUG, "Updating stateData with: %s\r\n", stateData);
+        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData);
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
@@ -1065,7 +1065,7 @@ namespace MessageSystem
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
             {
-                Logging::log(Logging::DEBUG, "Linking player information, uid: %d\r\n", otherUniqueId);
+                logger::log(logger::DEBUG, "Linking player information, uid: %d\r\n", otherUniqueId);
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
@@ -1082,8 +1082,8 @@ namespace MessageSystem
     void send_RequestLogicEntityRemoval(int uniqueId)
     {        EditingSystem::madeChanges = true;
 
-        Logging::log(Logging::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type RequestLogicEntityRemoval (1019)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1019, "ri", uniqueId);
     }
@@ -1091,14 +1091,14 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestLogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestLogicEntityRemoval (1019)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestLogicEntityRemoval (1019)\r\n");
 
         int uniqueId = getint(p);
 
         if (!world::get_scenario_code()) return;
         if (!server::isAdmin(sender))
         {
-            Logging::log(Logging::WARNING, "Non-admin tried to remove an entity\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to remove an entity\r\n");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot remove entities");
             return;
         }
@@ -1113,8 +1113,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type LogicEntityRemoval (1020)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type LogicEntityRemoval (1020)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -1146,7 +1146,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "rii", 1020, uniqueId);
 
@@ -1159,7 +1159,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type LogicEntityRemoval (1020)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityRemoval (1020)\r\n");
 
         int uniqueId = getint(p);
 
@@ -1176,8 +1176,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type ExtentCompleteNotification (1021)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -1209,7 +1209,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riissiiiiiii", 1021, otherUniqueId, otherClass, stateData, int(x*DMF), int(y*DMF), int(z*DMF), attr1, attr2, attr3, attr4);
 
@@ -1222,7 +1222,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
 
         int otherUniqueId = getint(p);
         static char otherClass[MAXTRANS];
@@ -1250,14 +1250,14 @@ namespace MessageSystem
             e.attr1 = attr1; e.attr2 = attr2; e.attr3 = attr3; e.attr4 = attr4;
             addentity(i);
         #endif
-        Logging::log(Logging::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
+        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
             x, y, z, attr1, attr2, attr3, attr4);
-        INDENT_LOG(Logging::DEBUG);
+        INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
+            logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
             engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass).call(1, 1);
             const char *sauerType = engine.get(-1, "extent");
             engine.pop(2);
@@ -1277,11 +1277,11 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else
-            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        Logging::log(Logging::DEBUG, "Updating stateData\r\n");
+        logger::log(logger::DEBUG, "Updating stateData\r\n");
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
             .push_index(-2)
@@ -1300,8 +1300,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type InitS2C (1022)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type InitS2C (1022)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -1333,7 +1333,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riii", 1022, explicitClientNumber, protocolVersion);
 
@@ -1346,14 +1346,14 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type InitS2C (1022)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type InitS2C (1022)\r\n");
 
         int explicitClientNumber = getint(p);
         int protocolVersion = getint(p);
 
         if (!is_npc)
         {
-            Logging::log(Logging::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
+            logger::log(logger::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
             if(protocolVersion != PROTOCOL_VERSION)
             {
                 conoutf(CON_ERROR, "You are using a different network protocol (you: %d, server: %d)", PROTOCOL_VERSION, protocolVersion);
@@ -1373,7 +1373,7 @@ namespace MessageSystem
             #endif
         } else {
             // NPC
-            Logging::log(Logging::INFO, "client.h (npc): N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
+            logger::log(logger::INFO, "client.h (npc): N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
             assert(0); //does this ever occur?
         }
     }
@@ -1384,8 +1384,8 @@ namespace MessageSystem
 
     void send_SoundToServer(int soundId)
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type SoundToServer (1023)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type SoundToServer (1023)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1023, "i", soundId);
     }
@@ -1393,7 +1393,7 @@ namespace MessageSystem
 #ifdef SERVER
     void SoundToServer::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type SoundToServer (1023)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundToServer (1023)\r\n");
 
         int soundId = getint(p);
 
@@ -1411,8 +1411,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type SoundToClients (1024)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type SoundToClients (1024)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  exclude = originalClientNumber; // This is how to ensure we do not send back to the client who originally sent it
 
@@ -1445,7 +1445,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "iii", 1024, soundId, originalClientNumber);
 
@@ -1458,7 +1458,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type SoundToClients (1024)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundToClients (1024)\r\n");
 
         int soundId = getint(p);
         int originalClientNumber = getint(p);
@@ -1489,8 +1489,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type MapSoundToClients (1025)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type MapSoundToClients (1025)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -1522,7 +1522,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "isi", 1025, soundName, entityUniqueId);
 
@@ -1535,7 +1535,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
 
         static char soundName[MAXTRANS];
         getstring(soundName, p);
@@ -1562,8 +1562,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type SoundToClientsByName (1026)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type SoundToClientsByName (1026)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  exclude = originalClientNumber; // This is how to ensure we do not send back to the client who originally sent it
 
@@ -1596,7 +1596,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "iiiisi", 1026, int(x*DMF), int(y*DMF), int(z*DMF), soundName, originalClientNumber);
 
@@ -1609,7 +1609,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type SoundToClientsByName (1026)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundToClientsByName (1026)\r\n");
 
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
@@ -1634,8 +1634,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type SoundStopToClientsByName (1027)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type SoundStopToClientsByName (1027)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  exclude = originalClientNumber; // This is how to ensure we do not send back to the client who originally sent it
 
@@ -1668,7 +1668,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "iisi", 1027, volume, soundName, originalClientNumber);
 
@@ -1681,7 +1681,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
 
         int volume = getint(p);
         static char soundName[MAXTRANS];
@@ -1698,8 +1698,8 @@ namespace MessageSystem
 
     void send_EditModeC2S(int mode)
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type EditModeC2S (1028)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type EditModeC2S (1028)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1028, "ri", mode);
     }
@@ -1707,7 +1707,7 @@ namespace MessageSystem
 #ifdef SERVER
     void EditModeC2S::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type EditModeC2S (1028)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type EditModeC2S (1028)\r\n");
 
         int mode = getint(p);
 
@@ -1750,8 +1750,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type EditModeS2C (1029)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type EditModeS2C (1029)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
                  exclude = otherClientNumber;
 
@@ -1784,7 +1784,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "riii", 1029, otherClientNumber, mode);
 
@@ -1800,7 +1800,7 @@ namespace MessageSystem
 #else // SERVER
         is_npc = true;
 #endif
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type EditModeS2C (1029)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type EditModeS2C (1029)\r\n");
 
         int otherClientNumber = getint(p);
         int mode = getint(p);
@@ -1826,8 +1826,8 @@ namespace MessageSystem
 
     void send_RequestMap()
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type RequestMap (1030)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type RequestMap (1030)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1030, "r");
     }
@@ -1835,7 +1835,7 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestMap::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestMap (1030)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestMap (1030)\r\n");
 
 
         if (!world::get_scenario_code()) return;
@@ -1847,8 +1847,8 @@ namespace MessageSystem
 
     void send_DoClick(int button, int down, float x, float y, float z, int uniqueId)
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type DoClick (1031)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type DoClick (1031)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1031, "riiiiii", button, down, int(x*DMF), int(y*DMF), int(z*DMF), uniqueId);
     }
@@ -1856,7 +1856,7 @@ namespace MessageSystem
 #ifdef SERVER
     void DoClick::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type DoClick (1031)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type DoClick (1031)\r\n");
 
         int button = getint(p);
         int down = getint(p);
@@ -1916,8 +1916,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type ParticleSplashToClients (1032)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type ParticleSplashToClients (1032)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -1949,7 +1949,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "iiiiiii", 1032, _type, num, fade, int(x*DMF), int(y*DMF), int(z*DMF));
 
@@ -1962,7 +1962,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashToClients (1032)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashToClients (1032)\r\n");
 
         int _type = getint(p);
         int num = getint(p);
@@ -1983,8 +1983,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type ParticleSplashRegularToClients (1033)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type ParticleSplashRegularToClients (1033)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -2016,7 +2016,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "iiiiiii", 1033, _type, num, fade, int(x*DMF), int(y*DMF), int(z*DMF));
 
@@ -2029,7 +2029,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashRegularToClients (1033)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashRegularToClients (1033)\r\n");
 
         int _type = getint(p);
         int num = getint(p);
@@ -2048,8 +2048,8 @@ namespace MessageSystem
 
     void send_RequestPrivateEditMode()
     {
-        Logging::log(Logging::DEBUG, "Sending a message of type RequestPrivateEditMode (1034)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type RequestPrivateEditMode (1034)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1034, "r");
     }
@@ -2057,7 +2057,7 @@ namespace MessageSystem
 #ifdef SERVER
     void RequestPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
     {
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type RequestPrivateEditMode (1034)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestPrivateEditMode (1034)\r\n");
 
 
         if (!world::get_scenario_code()) return;
@@ -2071,8 +2071,8 @@ namespace MessageSystem
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
-        Logging::log(Logging::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)\r\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type NotifyPrivateEditMode (1035)\r\n");
+        INDENT_LOG(logger::DEBUG);
 
          
 
@@ -2104,7 +2104,7 @@ namespace MessageSystem
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "ri", 1035);
 
@@ -2117,7 +2117,7 @@ namespace MessageSystem
     {
         bool is_npc;
         is_npc = false;
-        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1035)\r\n");
+        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1035)\r\n");
 
 
         conoutf("Server: You are now in private edit mode");

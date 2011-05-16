@@ -100,7 +100,7 @@ YourUniqueId(server->client)
         // Remember this client's unique ID. Done here so always in sync with the client's belief about its uniqueId.
         server::getUniqueId(clientNumber) = uniqueId;
     receive:
-        Logging::log(Logging::DEBUG, "Told my unique ID: %d\r\n", uniqueId);
+        logger::log(logger::DEBUG, "Told my unique ID: %d\r\n", uniqueId);
 
         ClientSystem::uniqueId = uniqueId;
 end
@@ -171,7 +171,7 @@ RestartMap(client->server)
 
         if (!server::isAdmin(sender))
         {
-            Logging::log(Logging::WARNING, "Non-admin tried to restart the map\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to restart the map\r\n");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot restart the map");
             return;
         }
@@ -192,7 +192,7 @@ NewEntityRequest(client->server)
 
         if (!server::isAdmin(sender))
         {
-            Logging::log(Logging::WARNING, "Non-admin tried to add an entity\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to add an entity\r\n");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot create entities");
             return;
         }
@@ -203,7 +203,7 @@ NewEntityRequest(client->server)
         {
             char buf[512];
             snprintf(buf, sizeof(buf), "Invalid entity class: %s", _class);
-            Logging::log(Logging::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
+            logger::log(logger::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
             send_PersonalServerMessage(
                 sender,
                 buf,
@@ -214,7 +214,7 @@ NewEntityRequest(client->server)
 
         // Add entity
 
-        Logging::log(Logging::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
+        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
@@ -222,7 +222,7 @@ NewEntityRequest(client->server)
         const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
 
-        Logging::log(Logging::DEBUG, "Sauer type: %s\r\n", sauerType);
+        logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
 
         // Create
 
@@ -238,7 +238,7 @@ NewEntityRequest(client->server)
         int newUniqueId = engine.t_get<int>("uid");
         engine.pop(2);
 
-        Logging::log(Logging::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
+        logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
                                       newUniqueId, _class, x, y, z);
 
 end
@@ -264,7 +264,7 @@ StateDataUpdate(server->client,npc)
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                Logging::log(Logging::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
+                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
                 \
                 if (!engine.hashandle()) \
                     return; \
@@ -298,7 +298,7 @@ StateDataChangeRequest(client->server)
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        Logging::log(Logging::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
+        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
@@ -357,7 +357,7 @@ ActiveEntitiesRequest(client->server)
             server::setClientScenario(sender, scenarioCode);
             if ( !server::isRunningCurrentScenario(sender) )
             {
-                Logging::log(Logging::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
+                logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
                     sender, scenarioCode
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
@@ -407,14 +407,14 @@ LogicEntityCompleteNotification(server->client,npc)
         if (!engine.hashandle())
             return;
 
-        Logging::log(Logging::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
+        INDENT_LOG(logger::DEBUG);
 
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
+            logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
 
             engine.getg("entity_store").t_getraw("add")
                 .push(otherClass)
@@ -426,7 +426,7 @@ LogicEntityCompleteNotification(server->client,npc)
                     // If this is the player, validate it is the clientNumber we already have
                     if (otherUniqueId == ClientSystem::uniqueId)
                     {
-                        Logging::log(Logging::DEBUG, "This is the player's entity (%d), validating client num: %d,%d\r\n",
+                        logger::log(logger::DEBUG, "This is the player's entity (%d), validating client num: %d,%d\r\n",
                             otherUniqueId, otherClientNumber, ClientSystem::playerNumber);
 
                         assert(otherClientNumber == ClientSystem::playerNumber);
@@ -440,16 +440,16 @@ LogicEntityCompleteNotification(server->client,npc)
 
             if (!entity)
             {
-                Logging::log(Logging::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
+                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
                 return;
             }
         } else
-            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
 
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        Logging::log(Logging::DEBUG, "Updating stateData with: %s\r\n", stateData);
+        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData);
 
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
@@ -462,7 +462,7 @@ LogicEntityCompleteNotification(server->client,npc)
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
             {
-                Logging::log(Logging::DEBUG, "Linking player information, uid: %d\r\n", otherUniqueId);
+                logger::log(logger::DEBUG, "Linking player information, uid: %d\r\n", otherUniqueId);
 
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
@@ -485,7 +485,7 @@ RequestLogicEntityRemoval(client->server)
 
         if (!server::isAdmin(sender))
         {
-            Logging::log(Logging::WARNING, "Non-admin tried to remove an entity\r\n");
+            logger::log(logger::WARNING, "Non-admin tried to remove an entity\r\n");
             send_PersonalServerMessage(sender, "Server", "You are not an administrator, and cannot remove entities");
             return;
         }
@@ -533,16 +533,16 @@ ExtentCompleteNotification(server->client)
             addentity(i);
         #endif
 
-        Logging::log(Logging::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
+        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
             x, y, z, attr1, attr2, attr3, attr4);
 
-        INDENT_LOG(Logging::DEBUG);
+        INDENT_LOG(logger::DEBUG);
 
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            Logging::log(Logging::DEBUG, "Creating new active LogicEntity\r\n");
+            logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
 
             engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass).call(1, 1);
             const char *sauerType = engine.get(-1, "extent");
@@ -565,12 +565,12 @@ ExtentCompleteNotification(server->client)
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else
-            Logging::log(Logging::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
+            logger::log(logger::DEBUG, "Existing LogicEntity %d,%d,%d, no need to create\r\n", entity != NULL, entity->getUniqueId(),
                                             otherUniqueId);
 
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        Logging::log(Logging::DEBUG, "Updating stateData\r\n");
+        logger::log(logger::DEBUG, "Updating stateData\r\n");
 
         engine.getref(entity->luaRef)
             .t_getraw("_update_statedata_complete")
@@ -591,7 +591,7 @@ InitS2C(server->client)
     receive:
         if (!is_npc)
         {
-            Logging::log(Logging::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
+            logger::log(logger::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
 
             if(protocolVersion != PROTOCOL_VERSION)
             {
@@ -614,7 +614,7 @@ InitS2C(server->client)
             #endif
         } else {
             // NPC
-            Logging::log(Logging::INFO, "client.h (npc): N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
+            logger::log(logger::INFO, "client.h (npc): N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
             assert(0); //does this ever occur?
         }
 end

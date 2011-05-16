@@ -72,7 +72,7 @@ vec CLogicEntity::getOrigin()
                     bbcenter.add(staticEntity->o);
                     return bbcenter;
                 } else {
-                    Logging::log(Logging::WARNING, "Invalid mapmodel model\r\n");
+                    logger::log(logger::WARNING, "Invalid mapmodel model\r\n");
                     return staticEntity->o;
                 }
             } else
@@ -105,7 +105,7 @@ float CLogicEntity::getRadius()
                     bbcenter.add(staticEntity->o);
                     return bbradius.x + bbradius.y;
                 } else {
-                    Logging::log(Logging::WARNING, "Invalid mapmodel model, cannot find radius\r\n");
+                    logger::log(logger::WARNING, "Invalid mapmodel model, cannot find radius\r\n");
                     return 8;
                 }
 
@@ -177,7 +177,7 @@ void CLogicEntity::setModel(std::string name)
     if (name != "")
         theModel = loadmodel(name.c_str());
 
-    Logging::log(Logging::DEBUG, "CLE:setModel: %s (%lu)\r\n", name.c_str(), (unsigned long)theModel);
+    logger::log(logger::DEBUG, "CLE:setModel: %s (%lu)\r\n", name.c_str(), (unsigned long)theModel);
 
     if (staticEntity)
     {
@@ -195,7 +195,7 @@ void CLogicEntity::setModel(std::string name)
 
 void CLogicEntity::setAttachments(std::string _attachments)
 {
-    Logging::log(Logging::DEBUG, "CLogicEntity::setAttachments: %s\r\n", _attachments.c_str());
+    logger::log(logger::DEBUG, "CLogicEntity::setAttachments: %s\r\n", _attachments.c_str());
 
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
@@ -258,8 +258,8 @@ void CLogicEntity::setAttachments(std::string _attachments)
          */
         attachments[i].basetime = 0;
 
-        Logging::log(
-            Logging::DEBUG,
+        logger::log(
+            logger::DEBUG,
             "Adding attachment: %s - %s\r\n",
             attachments[i].name,
             attachments[i].tag
@@ -281,13 +281,13 @@ void CLogicEntity::setAttachments(std::string _attachments)
 
 void CLogicEntity::setAnimation(int _animation)
 {
-    Logging::log(Logging::DEBUG, "setAnimation: %d\r\n", _animation);
+    logger::log(logger::DEBUG, "setAnimation: %d\r\n", _animation);
 
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
 
-    Logging::log(Logging::DEBUG, "(2) setAnimation: %d\r\n", _animation);
+    logger::log(logger::DEBUG, "(2) setAnimation: %d\r\n", _animation);
 
     animation = _animation;
     startTime = lastmillis; // tools::currtime(); XXX Do NOT want the actual time! We
@@ -299,13 +299,13 @@ void CLogicEntity::setAnimation(int _animation)
 
 void CLogicEntity::setSound(std::string _sound)
 {
-    Logging::log(Logging::DEBUG, "setSound: %s\r\n", _sound.c_str());
+    logger::log(logger::DEBUG, "setSound: %s\r\n", _sound.c_str());
 
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
 
-    Logging::log(Logging::DEBUG, "(2) setSound: %s\r\n", _sound.c_str());
+    logger::log(logger::DEBUG, "(2) setSound: %s\r\n", _sound.c_str());
 
     soundName = _sound;
 
@@ -362,8 +362,8 @@ LogicSystem::LogicEntityMap LogicSystem::logicEntities;
 
 void LogicSystem::clear()
 {
-    Logging::log(Logging::DEBUG, "clear()ing LogicSystem\r\n");
-    INDENT_LOG(Logging::DEBUG);
+    logger::log(logger::DEBUG, "clear()ing LogicSystem\r\n");
+    INDENT_LOG(logger::DEBUG);
 
     if (engine.hashandle())
     {
@@ -382,8 +382,8 @@ void LogicSystem::init()
 
 void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
 {
-    Logging::log(Logging::DEBUG, "C registerLogicEntity: %d\r\n", newEntity->getUniqueId());
-    INDENT_LOG(Logging::DEBUG);
+    logger::log(logger::DEBUG, "C registerLogicEntity: %d\r\n", newEntity->getUniqueId());
+    INDENT_LOG(logger::DEBUG);
 
     int uniqueId = newEntity->getUniqueId();
     assert(logicEntities.find(uniqueId) == logicEntities.end());
@@ -395,20 +395,20 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
 
     assert(newEntity->luaRef >= 0);
 
-    Logging::log(Logging::DEBUG, "C registerLogicEntity completes\r\n");
+    logger::log(logger::DEBUG, "C registerLogicEntity completes\r\n");
 }
 
 CLogicEntity *LogicSystem::registerLogicEntity(physent* entity)
 {
     if (getUniqueId(entity) < 0)
     {
-        Logging::log(Logging::ERROR, "Trying to register an entity with an invalid unique Id: %d (D)\r\n", getUniqueId(entity));
+        logger::log(logger::ERROR, "Trying to register an entity with an invalid unique Id: %d (D)\r\n", getUniqueId(entity));
         assert(0);
     }
 
     CLogicEntity *newEntity = new CLogicEntity(entity);
 
-    Logging::log(Logging::DEBUG, "adding physent %d\r\n", newEntity->getUniqueId());
+    logger::log(logger::DEBUG, "adding physent %d\r\n", newEntity->getUniqueId());
 
     registerLogicEntity(newEntity);
 
@@ -419,13 +419,13 @@ CLogicEntity *LogicSystem::registerLogicEntity(extentity* entity)
 {
     if (getUniqueId(entity) < 0)
     {
-        Logging::log(Logging::ERROR, "Trying to register an entity with an invalid unique Id: %d (S)\r\n", getUniqueId(entity));
+        logger::log(logger::ERROR, "Trying to register an entity with an invalid unique Id: %d (S)\r\n", getUniqueId(entity));
         assert(0);
     }
 
     CLogicEntity *newEntity = new CLogicEntity(entity);
 
-//    Logging::log(Logging::DEBUG, "adding entity %d : %d,%d,%d,%d\r\n", entity->type, entity->attr1, entity->attr2, entity->attr3, entity->attr4);
+//    logger::log(logger::DEBUG, "adding entity %d : %d,%d,%d,%d\r\n", entity->type, entity->attr1, entity->attr2, entity->attr3, entity->attr4);
 
     registerLogicEntity(newEntity);
 
@@ -438,7 +438,7 @@ void LogicSystem::registerLogicEntityNonSauer(int uniqueId)
 
     newEntity->nonSauer = true; // Set as non-Sauer
 
-    Logging::log(Logging::DEBUG, "adding non-Sauer entity %d\r\n", uniqueId);
+    logger::log(logger::DEBUG, "adding non-Sauer entity %d\r\n", uniqueId);
 
     registerLogicEntity(newEntity);
 
@@ -447,7 +447,7 @@ void LogicSystem::registerLogicEntityNonSauer(int uniqueId)
 
 void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 {
-    Logging::log(Logging::DEBUG, "UNregisterLogicEntity by UniqueID: %d\r\n", uniqueId);
+    logger::log(logger::DEBUG, "UNregisterLogicEntity by UniqueID: %d\r\n", uniqueId);
 
     CLogicEntity *ptr = logicEntities[uniqueId];
 
@@ -466,8 +466,8 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 
 void LogicSystem::manageActions(long millis)
 {
-    Logging::log(Logging::INFO, "manageActions: %d\r\n", millis);
-    INDENT_LOG(Logging::INFO);
+    logger::log(logger::INFO, "manageActions: %d\r\n", millis);
+    INDENT_LOG(logger::INFO);
 
     if (engine.hashandle())
         engine.getg("entity_store")
@@ -475,7 +475,7 @@ void LogicSystem::manageActions(long millis)
               .push(double(millis) / 1000.0f)
               .push(lastmillis).call(2, 0).pop(1);
 
-    Logging::log(Logging::INFO, "manageActions complete\r\n");
+    logger::log(logger::INFO, "manageActions complete\r\n");
 }
 
 CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
@@ -484,7 +484,7 @@ CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
 
     if (iter == logicEntities.end())
     {
-        Logging::log(Logging::INFO, "(C++) Trying to get a non-existant logic entity %d\r\n", uniqueId);
+        logger::log(logger::INFO, "(C++) Trying to get a non-existant logic entity %d\r\n", uniqueId);
         return NULL;
     }
 
@@ -517,7 +517,7 @@ void LogicSystem::setUniqueId(extentity* staticEntity, int uniqueId)
 {
     if (getUniqueId(staticEntity) >= 0)
     {
-        Logging::log(Logging::ERROR, "Trying to set to %d a unique Id that has already been set, to %d (S)\r\n",
+        logger::log(logger::ERROR, "Trying to set to %d a unique Id that has already been set, to %d (S)\r\n",
                                      uniqueId,
                                      getUniqueId(staticEntity));
         assert(0);
@@ -529,11 +529,11 @@ void LogicSystem::setUniqueId(extentity* staticEntity, int uniqueId)
 // TODO: Use this whereever it should be used
 void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
 {
-    Logging::log(Logging::DEBUG, "Setting a unique ID: %d (of addr: %d)\r\n", uniqueId, dynamicEntity != NULL);
+    logger::log(logger::DEBUG, "Setting a unique ID: %d (of addr: %d)\r\n", uniqueId, dynamicEntity != NULL);
 
     if (getUniqueId(dynamicEntity) >= 0)
     {
-        Logging::log(Logging::ERROR, "Trying to set to %d a unique Id that has already been set, to %d (D)\r\n",
+        logger::log(logger::ERROR, "Trying to set to %d a unique Id that has already been set, to %d (D)\r\n",
                                      uniqueId,
                                      getUniqueId(dynamicEntity));
         assert(0);
@@ -548,8 +548,8 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
     int uniqueId = engine.t_get("uid", -1);
     engine.pop(1);
 
-    Logging::log(Logging::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4);
-    INDENT_LOG(Logging::DEBUG);
+    logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4);
+    INDENT_LOG(logger::DEBUG);
 
     vector<extentity *> &ents = entities::getents();
 
@@ -587,16 +587,16 @@ void LogicSystem::setupCharacter(int ref)
     engine.getref(ref);
     int uniqueId = engine.t_get("uid", -1);
 
-    Logging::log(Logging::DEBUG, "setupCharacter: %d\r\n", uniqueId);
-    INDENT_LOG(Logging::DEBUG);
+    logger::log(logger::DEBUG, "setupCharacter: %d\r\n", uniqueId);
+    INDENT_LOG(logger::DEBUG);
 
     fpsent* fpsEntity;
 
     int clientNumber = engine.t_get("cn", -1);
-    Logging::log(Logging::DEBUG, "(a) cn: %d\r\n", clientNumber);
+    logger::log(logger::DEBUG, "(a) cn: %d\r\n", clientNumber);
 
     #ifdef CLIENT
-        Logging::log(Logging::DEBUG, "client numbers: %d, %d\r\n", ClientSystem::playerNumber, clientNumber);
+        logger::log(logger::DEBUG, "client numbers: %d, %d\r\n", ClientSystem::playerNumber, clientNumber);
 
         if (uniqueId == ClientSystem::uniqueId) engine.t_set("cn", ClientSystem::playerNumber);
     #endif
@@ -604,18 +604,18 @@ void LogicSystem::setupCharacter(int ref)
     // nothing else will happen with lua table got from ref, so let's pop it out
     engine.pop(1);
 
-    Logging::log(Logging::DEBUG, "(b) cn: %d\r\n", clientNumber);
+    logger::log(logger::DEBUG, "(b) cn: %d\r\n", clientNumber);
 
     assert(clientNumber >= 0);
 
     #ifdef CLIENT
     // If this is the player. There should already have been created an fpsent for this client,
     // which we can fetch with the valid client #
-    Logging::log(Logging::DEBUG, "UIDS: in ClientSystem %d, and given to us%d\r\n", ClientSystem::uniqueId, uniqueId);
+    logger::log(logger::DEBUG, "UIDS: in ClientSystem %d, and given to us%d\r\n", ClientSystem::uniqueId, uniqueId);
 
     if (uniqueId == ClientSystem::uniqueId)
     {
-        Logging::log(Logging::DEBUG, "This is the player, use existing clientnumber for fpsent (should use player1?) \r\n");
+        logger::log(logger::DEBUG, "This is the player, use existing clientnumber for fpsent (should use player1?) \r\n");
 
         fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
 
@@ -625,7 +625,7 @@ void LogicSystem::setupCharacter(int ref)
     else
     #endif
     {
-        Logging::log(Logging::DEBUG, "This is a remote client or NPC, do a newClient for the fpsent\r\n");
+        logger::log(logger::DEBUG, "This is a remote client or NPC, do a newClient for the fpsent\r\n");
 
         // This is another client, perhaps NPC. Connect this new client using newClient
         fpsEntity =  dynamic_cast<fpsent*>( game::newclient(clientNumber) );
@@ -643,8 +643,8 @@ void LogicSystem::setupNonSauer(int ref)
     int uniqueId = engine.t_get("uid", -1);
     engine.pop(1);
 
-    Logging::log(Logging::DEBUG, "setupNonSauer: %d\r\n", uniqueId);
-    INDENT_LOG(Logging::DEBUG);
+    logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uniqueId);
+    INDENT_LOG(logger::DEBUG);
 
     LogicSystem::registerLogicEntityNonSauer(uniqueId);
 }
@@ -655,7 +655,7 @@ void LogicSystem::dismantleExtent(int ref)
     int uniqueId = engine.t_get("uid", -1);
     engine.pop(1);
 
-    Logging::log(Logging::DEBUG, "Dismantle extent: %d\r\n", uniqueId);
+    logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uniqueId);
 
     extentity* extent = getLogicEntity(uniqueId)->staticEntity;
 #ifdef CLIENT
@@ -675,11 +675,11 @@ void LogicSystem::dismantleCharacter(int ref)
     engine.pop(1);
     #ifdef CLIENT
     if (clientNumber == ClientSystem::playerNumber)
-        Logging::log(Logging::DEBUG, "Not dismantling own client\r\n", clientNumber);
+        logger::log(logger::DEBUG, "Not dismantling own client\r\n", clientNumber);
     else
     #endif
     {
-        Logging::log(Logging::DEBUG, "Dismantling other client %d\r\n", clientNumber);
+        logger::log(logger::DEBUG, "Dismantling other client %d\r\n", clientNumber);
 
 #ifdef SERVER
         fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );

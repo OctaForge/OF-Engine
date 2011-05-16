@@ -24,7 +24,7 @@ VAR(cam_dist, 0, 50, 200); // How much higher than the player to set the camera
 
 void CameraControl::incrementCameraDist(int inc_dir)
 {
-    Logging::log(Logging::DEBUG, "changing camera increment: %d\r\n", inc_dir);
+    logger::log(logger::DEBUG, "changing camera increment: %d\r\n", inc_dir);
     cam_dist += inc_dir * cammovedist;
 }
 
@@ -134,8 +134,8 @@ physent* CameraControl::getCamera()
 
 void CameraControl::positionCamera(physent* camera1)
 {
-    Logging::log(Logging::INFO, "CameraControl::positionCamera\r\n");
-    INDENT_LOG(Logging::INFO);
+    logger::log(logger::INFO, "CameraControl::positionCamera\r\n");
+    INDENT_LOG(logger::INFO);
 
     if (useForcedCamera || useForcedPosition || useForcedYaw || useForcedPitch || useForcedRoll)
     {

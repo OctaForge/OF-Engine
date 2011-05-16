@@ -113,7 +113,7 @@ namespace lua_binds
         GuiControl::EditedEntity::currEntity = TargetingControl::targetLogicEntity;
         if (GuiControl::EditedEntity::currEntity->isNone())
         {
-            Logging::log(Logging::DEBUG, "No entity to show the GUI for\r\n");
+            logger::log(logger::DEBUG, "No entity to show the GUI for\r\n");
             return;
         }
 
@@ -178,7 +178,7 @@ namespace lua_binds
             const char *value = GuiControl::EditedEntity::stateData[key].second.c_str();
             if (strlen(value) > 50)
             {
-                Logging::log(Logging::WARNING, "Not showing field '%s' as it is overly large for the GUI\r\n", key);
+                logger::log(logger::WARNING, "Not showing field '%s' as it is overly large for the GUI\r\n", key);
                 continue; // Do not even try to show overly-large items
             }
             command = tools::vstrcat(command, "sisisisisisisis", 

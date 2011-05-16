@@ -303,7 +303,7 @@ namespace server
             {
                 if(type == servtypes[i])
                 {
-                    Logging::log(Logging::ERROR, "checktype has decided to return -1 for %d\r\n", type);
+                    logger::log(logger::ERROR, "checktype has decided to return -1 for %d\r\n", type);
                     return -1;
                 }
             }
@@ -344,7 +344,7 @@ namespace server
             if(ci.position.empty()) pkt[i].posoff = -1;
             else
             {
-                Logging::log(Logging::INFO, "SERVER: prepping relayed N_POS data for sending %d, size: %d\r\n", ci.clientnum,
+                logger::log(logger::INFO, "SERVER: prepping relayed N_POS data for sending %d, size: %d\r\n", ci.clientnum,
                              ci.position.length());
 
                 pkt[i].posoff = ws.positions.length();
@@ -364,7 +364,7 @@ namespace server
             }
         }
 
-        Logging::log(Logging::INFO, "SERVER: prepping sum of relayed data for sending, size: %d,%d\r\n", ws.positions.length(), ws.messages.length());
+        logger::log(logger::INFO, "SERVER: prepping sum of relayed data for sending, size: %d,%d\r\n", ws.positions.length(), ws.messages.length());
 
         int psize = ws.positions.length(), msize = ws.messages.length();
         if(psize)
@@ -387,7 +387,7 @@ namespace server
         {
             clientinfo &ci = *clients[i];
 
-            Logging::log(Logging::INFO, "Processing update relaying for %d:%d\r\n", ci.clientnum, ci.uniqueId);
+            logger::log(logger::INFO, "Processing update relaying for %d:%d\r\n", ci.clientnum, ci.uniqueId);
 
 #ifdef SERVER
             // Kripken: FIXME: Send position updates only to real clients, not local ones. For multiple local
@@ -408,7 +408,7 @@ namespace server
                                                 pkt[i].posoff<0 ? psize : psize-ci.position.length(), 
                                                 ENET_PACKET_FLAG_NO_ALLOCATE);
 
-                    Logging::log(Logging::INFO, "Sending positions packet to %d\r\n", ci.clientnum);
+                    logger::log(logger::INFO, "Sending positions packet to %d\r\n", ci.clientnum);
 
                     sendpacket(ci.clientnum, 0, packet); // Kripken: Sending queue of position changes, in channel 0?
 
@@ -422,7 +422,7 @@ namespace server
                                                 pkt[i].msgoff<0 ? msize : msize-pkt[i].msglen, 
                                                 (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
 
-                    Logging::log(Logging::INFO, "Sending messages packet to %d\r\n", ci.clientnum);
+                    logger::log(logger::INFO, "Sending messages packet to %d\r\n", ci.clientnum);
 
                     sendpacket(ci.clientnum, 1, packet);
                     if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -478,7 +478,7 @@ namespace server
 
     void parsepacket(int sender, int chan, packetbuf &p)     // has to parse exactly each byte of the packet
     {
-        Logging::log(Logging::INFO, "Server: Parsing packet, %d-%d\r\n", sender, chan);
+        logger::log(logger::INFO, "Server: Parsing packet, %d-%d\r\n", sender, chan);
 
         if(sender<0) return;
         if(chan==2) // Kripken: Channel 2 is, just like with the client, for file transfers
@@ -490,7 +490,7 @@ namespace server
         int cn = -1, type;
         clientinfo *ci = sender>=0 ? (clientinfo *)getinfo(sender) : NULL;
 
-        if (ci == NULL) Logging::log(Logging::ERROR, "ci is null. Sender: %ld\r\n", (long) sender); // Kripken
+        if (ci == NULL) logger::log(logger::ERROR, "ci is null. Sender: %ld\r\n", (long) sender); // Kripken
 
         // Kripken: QUEUE_MSG puts the incoming message into the out queue. So after the server parses it,
         // it sends it to all *other* clients. This is in tune with the server-as-a-relay-server approach in Sauer.
@@ -511,7 +511,7 @@ namespace server
         while((curmsg = p.length()) < p.maxlen)
         {
           type = checktype(getint(p), ci);  // kripken: checks type is valid for situation
-          Logging::log(Logging::INFO, "Server: Parsing a message of type %d\r\n", type);
+          logger::log(logger::INFO, "Server: Parsing a message of type %d\r\n", type);
           switch(type)
           { // Kripken: Mangling sauer indentation as little as possible
             case N_POS: // Kripken: position update for a client
@@ -535,7 +535,7 @@ namespace server
                 //if(!ci->local) // Kripken: We relay even our local clients, PCs need to hear about NPC positions
                 // && (ci->state.state==CS_ALIVE || ci->state.state==CS_EDITING)) // Kripken: We handle death differently
                 {
-                    Logging::log(Logging::INFO, "SERVER: relaying N_POS data for client %d\r\n", cn);
+                    logger::log(logger::INFO, "SERVER: relaying N_POS data for client %d\r\n", cn);
 
                     // Modify the info depending on various server parameters
                     NetworkSystem::PositionUpdater::processServerPositionReception(info);
@@ -635,10 +635,10 @@ namespace server
 
             default: genericmsg:
             {
-                Logging::log(Logging::DEBUG, "Server: Handling a non-typical message: %d\r\n", type);
+                logger::log(logger::DEBUG, "Server: Handling a non-typical message: %d\r\n", type);
                 if (!MessageSystem::MessageManager::receive(type, -1, sender, p))
                 {
-                    Logging::log(Logging::DEBUG, "Relaying Sauer protocol message: %d\r\n", type);
+                    logger::log(logger::DEBUG, "Relaying Sauer protocol message: %d\r\n", type);
 
                     int size = msgsizelookup(type);
                     if(size<=0) { disconnect_client(sender, DISC_TAGT); return; }
@@ -648,7 +648,7 @@ namespace server
 
                     if(ci && ci->state.state!=CS_SPECTATOR) QUEUE_MSG;
 
-                    Logging::log(Logging::DEBUG, "Relaying complete\r\n");
+                    logger::log(logger::DEBUG, "Relaying complete\r\n");
                 }
                 break;
             }
@@ -700,7 +700,7 @@ namespace server
 
     void setAdmin(int clientNumber, bool isAdmin)
     {
-        Logging::log(Logging::DEBUG, "setAdmin for client %d\r\n", clientNumber);
+        logger::log(logger::DEBUG, "setAdmin for client %d\r\n", clientNumber);
 
         clientinfo *ci = (clientinfo *)getinfo(clientNumber);
         if (!ci) return; // May have been kicked just before now
@@ -739,7 +739,7 @@ namespace server
                 if (ci->uniqueId == DUMMY_SINGLETON_CLIENT_UNIQUE_ID) continue;
                 if (ci->local) continue; // No need for NPCs created during the map script - they already exist
 
-                Logging::log(Logging::DEBUG, "luaEntities creation: Adding %d\r\n", i);
+                logger::log(logger::DEBUG, "luaEntities creation: Adding %d\r\n", i);
 
                 createluaEntity(i);
             }
@@ -750,7 +750,7 @@ namespace server
         clientinfo *ci = (clientinfo *)getinfo(cn);
         if (!ci)
         {
-            Logging::log(Logging::WARNING, "Asked to create a player entity for %d, but no clientinfo (perhaps disconnected meanwhile)\r\n", cn);
+            logger::log(logger::WARNING, "Asked to create a player entity for %d, but no clientinfo (perhaps disconnected meanwhile)\r\n", cn);
             return -1;
         }
 
@@ -758,7 +758,7 @@ namespace server
         if (fpsEntity)
         {
             // Already created an entity
-            Logging::log(Logging::WARNING, "createluaEntity(%d): already have fpsEntity, and hence lua entity. Kicking.\r\n", cn);
+            logger::log(logger::WARNING, "createluaEntity(%d): already have fpsEntity, and hence lua entity. Kicking.\r\n", cn);
             disconnect_client(cn, DISC_KICK);
             return -1;
         }
@@ -766,7 +766,7 @@ namespace server
         // Use the PC class, unless told otherwise
         if (_class == "") _class = player_class;
 
-        Logging::log(Logging::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
+        logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
 
         int uniqueId = engine.exec<int>("return entity_store.get_newuid()");
 
@@ -817,7 +817,7 @@ namespace server
 
     int clientconnect(int n, uint ip)
     {
-        Logging::log(Logging::DEBUG, "server::clientconnect: %d\r\n", n);
+        logger::log(logger::DEBUG, "server::clientconnect: %d\r\n", n);
 
         clientinfo *ci = (clientinfo *)getinfo(n);
         ci->clientnum = n;
@@ -832,8 +832,8 @@ namespace server
 
     void clientdisconnect(int n) 
     { 
-        Logging::log(Logging::DEBUG, "server::clientdisconnect: %d\r\n", n);
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "server::clientdisconnect: %d\r\n", n);
+        INDENT_LOG(logger::DEBUG);
 
         clientinfo *ci = (clientinfo *)getinfo(n);
         if(smode) smode->leavegame(ci, true);

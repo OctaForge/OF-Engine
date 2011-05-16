@@ -34,7 +34,6 @@ set(CLIENT_SOURCES
     ../engine/serverbrowser
     ../intensity/editing_system
     ../intensity/messages
-    ../intensity/logging
     ../intensity/message_system
     ../intensity/client_system
     ../intensity/client_engine_additions
@@ -88,6 +87,7 @@ set(CLIENT_SOURCES
     ../fpsgame/scoreboard
     ../octaforge/of_localserver
     ../octaforge/of_world
+    ../octaforge/of_logger
     ${EXTRA_SOURCES}
 )
 
