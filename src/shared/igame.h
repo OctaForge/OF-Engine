@@ -2,26 +2,14 @@
 
 namespace entities
 {
-    extern void editent(int i, bool local);
-    extern const char *entnameinfo(entity &e);
     extern const char *entname(int i);
-    extern int extraentinfosize();
-    extern void writeent(entity &e, char *buf);
-    extern void readent(entity &e, char *buf);
     extern float dropheight(entity &e);
-    extern void rumble(const extentity &e);
-    extern void trigger(extentity &e);
-    extern void fixentity(extentity &e);
-    extern void entradius(extentity &e, bool color);
     extern bool mayattach(extentity &e);
     extern bool attachent(extentity &e, extentity &a);
-    extern bool printent(extentity &e, char *buf);
     extern extentity *newentity();
     extern void deleteentity(extentity *e);
     extern void clearents();
     extern vector<extentity *> &getents();
-    extern const char *entmodel(const entity &e);
-    extern void animatemapmodel(const extentity &e, int &anim, int &basetime);
 }
 
 namespace game

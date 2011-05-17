@@ -483,7 +483,7 @@ bool save_world(const char *mname, bool nolms)
 
     f->putchar((int)strlen(game::gameident()));
     f->write(game::gameident(), (int)strlen(game::gameident())+1);
-    f->putlil<ushort>(entities::extraentinfosize());
+    f->putlil<ushort>(0);
     vector<char> extras;
     game::writegamedata(extras);
     f->putlil<ushort>(extras.length());
@@ -491,22 +491,6 @@ bool save_world(const char *mname, bool nolms)
     
     f->putlil<ushort>(texmru.length());
     loopv(texmru) f->putlil<ushort>(texmru[i]);
-#if 0 // INTENSITY: No ents in .ogz
-    char *ebuf = new char[entities::extraentinfosize()];
-    loopv(ents)
-    {
-        if(ents[i]->type!=ET_EMPTY || nolms)
-        {
-            entity tmp = *ents[i];
-            lilswap(&tmp.o.x, 3);
-            lilswap(&tmp.attr1, 5);
-            f->write(&tmp, sizeof(entity));
-            entities::writeent(*ents[i], ebuf);
-            if(entities::extraentinfosize()) f->write(ebuf, entities::extraentinfosize());
-        }
-    }
-    delete[] ebuf;
-#endif // 0
 
     savevslots(f, numvslots);
 
@@ -734,8 +718,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     renderprogress(0, "loading entities...");
 
     vector<extentity *> &ents = entities::getents();
-    int einfosize = entities::extraentinfosize();
-    char *ebuf = einfosize > 0 ? new char[einfosize] : NULL;
     loopi(min(hdr.numents, MAXENTS))
     {
 //        extentity &e = *entities::newentity();
@@ -761,12 +743,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         if(hdr.version <= 22 && e.type >= ET_SOUND) e.type++;
         if(hdr.version <= 23 && e.type >= ET_SPOTLIGHT) e.type++;
         if(hdr.version <= 30 && (e.type == ET_MAPMODEL || e.type == ET_PLAYERSTART)) e.attr1 = (int(e.attr1)+180)%360;
-        if(samegame)
-        {
-            if(einfosize > 0) f->read(ebuf, einfosize);
-            entities::readent(e, ebuf);
-        }
-        else
+        if (!samegame)
         {
             if(eif > 0) f->seek(eif, SEEK_CUR);
             if(e.type>=ET_GAMESPECIFIC || hdr.version<=14)
@@ -949,12 +926,11 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         }
         // INTENSITY: end Print ent out
     }
-    if(ebuf) delete[] ebuf;
 
     if(hdr.numents > MAXENTS) 
     {
         conoutf(CON_WARN, "warning: map has %d entities", hdr.numents);
-        f->seek((hdr.numents-MAXENTS)*(samegame ? sizeof(entity) + einfosize : eif), SEEK_CUR);
+        f->seek((hdr.numents-MAXENTS)*(samegame ? sizeof(entity) : eif), SEEK_CUR);
     }
 
     renderprogress(0, "loading slots...");

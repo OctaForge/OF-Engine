@@ -306,7 +306,6 @@ namespace game
                 );
 
                 swayhudgun(curtime);
-                entities::checkitems(player1);
             } else
                 logger::log(logger::INFO, "Player is not yet initialized, do not run moveplayer() etc.\r\n");
 
@@ -589,7 +588,6 @@ namespace game
         spawnplayer(player1);
 #endif
 
-        entities::resetspawns();
         copystring(clientmap, name ? name : "");
 #ifdef CLIENT
         SETVFN(zoom, -1);

@@ -323,50 +323,6 @@ ENetPacket *sendf(int cn, int chan, const char *format, ...)
     return packet->referenceCount > 0 ? packet : NULL;
 }
 
-ENetPacket *sendfile(int cn, int chan, stream *file, const char *format, ...)
-{
-    assert(0); // INTENSITY: We use our own asset system to transfer files
-#if 0
-    if(cn < 0)
-    {
-#ifdef STANDALONE
-        return NULL;
-#endif
-    }
-    else if(!clients.inrange(cn)) return NULL;
-
-    int len = file->size();
-    if(len <= 0) return NULL;
-
-    packetbuf p(MAXTRANS+len, ENET_PACKET_FLAG_RELIABLE);
-    va_list args;
-    va_start(args, format);
-    while(*format) switch(*format++)
-    {
-        case 'i':
-        {
-            int n = isdigit(*format) ? *format++-'0' : 1;
-            loopi(n) putint(p, va_arg(args, int));
-            break;
-        }
-        case 's': sendstring(va_arg(args, const char *), p); break;
-        case 'l': putint(p, len); break;
-    }
-    va_end(args);
-
-    file->seek(0, SEEK_SET);
-    file->read(p.subbuf(len).buf, len);
-
-    ENetPacket *packet = p.finalize();
-    if(cn >= 0) sendpacket(cn, chan, packet, -1);
-#ifndef STANDALONE
-    else sendclientpacket(packet, chan);
-#endif
-    return packet->referenceCount > 0 ? packet : NULL;
-#endif
-    return NULL; // quaker66: deprecated function, for now make msvc compile this (must return)
-}
-
 const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };
 
 void disconnect_client(int n, int reason)

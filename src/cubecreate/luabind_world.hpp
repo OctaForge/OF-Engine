@@ -153,8 +153,7 @@ namespace lua_binds
         removeentity(n);  \
         f; \
         if(oldtype!=ent.type) detachentity(ent); \
-        if(ent.type!=ET_EMPTY) { addentity(n); if(oldtype!=ent.type) attachentity(ent); } \
-        entities::editent(n, true)); \
+        if(ent.type!=ET_EMPTY) { addentity(n); if(oldtype!=ent.type) attachentity(ent); }) \
     }
     #define addgroup(exp)   { loopv(entities::getents()) entfocus(i, if(exp) entadd(n)); }
     #define setgroup(exp)   { entcancel(); addgroup(exp); }

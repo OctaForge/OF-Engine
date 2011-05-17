@@ -313,29 +313,9 @@ struct fpsent : dynent, fpsstate
 
 
 
-// New in 2009 - INTENSITY
-
 namespace entities
 {
     extern vector<extentity *> ents;
-
-    extern const char *entmdlname(int type);
-    extern const char *itemname(int i);
-
-    extern void preloadentities();
-    extern void renderentities();
-    extern void resettriggers();
-    extern void checktriggers();
-    extern void checkitems(fpsent *d);
-    extern void checkquad(int time, fpsent *d);
-    extern void resetspawns();
-    extern void spawnitems();
-    extern void putitems(ucharbuf &p);
-    extern void setspawn(int i, bool on);
-    extern void teleport(int n, fpsent *d);
-    extern void pickupeffects(int n, fpsent *d);
-
-    extern void repammo(fpsent *d, int type, bool local = true);
 }
 
 namespace game

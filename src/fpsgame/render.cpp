@@ -27,8 +27,6 @@ namespace game
                    .push(isthirdperson()).call(1, 0)
                    .pop(1);
 
-        entities::renderentities();
-
         endmodelbatches();
     }
 

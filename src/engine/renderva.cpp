@@ -395,12 +395,6 @@ extern bool getentboundingbox(extentity &e, ivec &o, ivec &r);
 
 void rendermapmodel(extentity &e)
 {
-#if 0 // INTENSITY: Use new systems
-    int anim = ANIM_MAPMODEL|ANIM_LOOP, basetime = 0;
-    if(e.flags&extentity::F_ANIM) entities::animatemapmodel(e, anim, basetime);
-    mapmodelinfo &mmi = getmminfo(e.attr2);
-    if(&mmi) rendermodel(&e.light, mmi.name, anim, e.o, (float)((e.attr1+7)-(e.attr1+7)%15), 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
-#else
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     if (!entity || entity->isNone())
     {
@@ -416,7 +410,6 @@ void rendermapmodel(extentity &e)
     // Kripken: MDL_SHADOW is necessary for getting shadows for a mapmodel. Note however the notes in fpsrender.h, that isn't enough.
     if(theModel)
         rendermodel(&e.light, theModel->name(), anim, e.o, entity, (float)((e.attr1+7)-(e.attr1+7)%15), 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
-#endif
 }
 
 extern int& reflectdist;

@@ -515,12 +515,6 @@ namespace game
                 break;
             }
 
-            case N_EDITVAR:
-            {
-                assert(0);
-                break;
-            }
-
             case N_PONG:
 #ifdef SERVER
 assert(0);
@@ -528,14 +522,6 @@ assert(0);
                 // Kripken: Do not let clients know other clients' pings
                 player1->ping = (player1->ping*5+lastmillis-getint(p))/6;
 //                addmsg(N_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-getint(p))/6);
-                break;
-
-            case N_CLIENTPING:
-//#ifdef SERVER
-assert(0); // Kripken: Do not let clients know other clients' pings
-//#endif
-                if(!d) return;
-                d->ping = getint(p);
                 break;
 
             case N_INITCLIENT:

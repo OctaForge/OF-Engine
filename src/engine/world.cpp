@@ -272,12 +272,6 @@ char *entname(entity &e)
 {
     static string fullentname;
     copystring(fullentname, entities::entname(e.type));
-    const char *einfo = entities::entnameinfo(e);
-    if(*einfo)
-    {
-        concatstring(fullentname, ": ");
-        concatstring(fullentname, einfo);
-    }
     return fullentname;
 }
 
@@ -418,8 +412,7 @@ void attachentities()
     removeentity(n);  \
     f; \
     if(oldtype!=ent.type) detachentity(ent); \
-    if(ent.type!=ET_EMPTY) { addentity(n); if(oldtype!=ent.type) attachentity(ent); } \
-    entities::editent(n, true)); \
+    if(ent.type!=ET_EMPTY) { addentity(n); if(oldtype!=ent.type) attachentity(ent); }) \
 }
 #define addgroup(exp)   { loopv(entities::getents()) entfocus(i, if(exp) entadd(n)); }
 #define setgroup(exp)   { entcancel(); addgroup(exp); }
@@ -484,26 +477,10 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     CLogicEntity *entity = LogicSystem::getLogicEntity(*_e); // INTENSITY
 
     model *m = NULL;
-    const char *mname = entities::entmodel(e);
-    if(mname && (m = loadmodel(mname)))
-    {   
-        m->collisionbox(0, eo, es, entity); // INTENSITY: entity
-        if(es.x > es.y) es.y = es.x; else es.x = es.y; // square
-        es.z = (es.z + eo.z + 1 + entselradius)/2; // enclose ent radius box and model box
-        eo.x += e.o.x;
-        eo.y += e.o.y;
-        eo.z = e.o.z - entselradius + es.z;
-    } 
-    else if(e.type == ET_MAPMODEL && (m = entity->getModel())) // INTENSITY
+    if(e.type == ET_MAPMODEL && (m = entity->getModel())) // INTENSITY
     {
         m->collisionbox(0, eo, es, entity); // INTENSITY
         rotatebb(eo, es, e.attr1);
-#if 0
-        if(m->collide)
-            eo.z -= player->aboveeye; // wacky but true. see physics collide                    
-        else
-            es.div(2);  // cause the usual bb is too big...
-#endif
         eo.add(e.o);
     }   
     else
@@ -675,7 +652,6 @@ void renderentradius(extentity &e, bool color)
         case ET_PLAYERSTART:
         {
             if(color) glColor3f(0, 1, 1);
-            entities::entradius(e, color);
             vec dir;
             vecfromyawpitch(e.attr1, 0, 1, 0, dir);
             renderentarrow(e, dir, 4);
@@ -684,10 +660,7 @@ void renderentradius(extentity &e, bool color)
 
         default:
             if(e.type>=ET_GAMESPECIFIC) 
-            {
                 if(color) glColor3f(0, 1, 1);
-                entities::entradius(e, color);
-            }
             break;
     }
 }
@@ -808,11 +781,6 @@ void entautoview(int *dir)
 
 void delent()
 {
-#if 0 // INTENSITY - use our own deleting
-    if(noentedit()) return;
-    groupedit(ent.type = ET_EMPTY;);
-    entcancel();
-#else
     if(noentedit()) return;
 
     loopv(entgroup) entfocus(
@@ -821,7 +789,6 @@ void delent()
     );
 
     entcancel();
-#endif
 }
 
 int findtype(char *what)
@@ -923,7 +890,6 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
                     e.attr1 = (int)camera1->yaw;
                     break;
         }
-        entities::fixentity(e);
     }
     return &e;
 }
@@ -1026,10 +992,6 @@ void printent(extentity &e, char *buf)
     {
         case ET_PARTICLES:
             if(printparticles(e, buf)) return; 
-            break;
- 
-        default:
-            if(e.type >= ET_GAMESPECIFIC && entities::printent(e, buf)) return;
             break;
     }
     formatstring(buf)("%s %d %d %d %d %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
@@ -1315,7 +1277,6 @@ void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, i
         e.attr1 = attr1; e.attr2 = attr2; e.attr3 = attr3; e.attr4 = attr4; e.attr5 = attr5;
         addentity(i);
         if(oldtype!=type) attachentity(e);
-        entities::editent(i, local);
     }
 }
 
