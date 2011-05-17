@@ -123,6 +123,7 @@ namespace var
 
         minv.i = maxv.i = -1;
         oldv.i = curv.i = v;
+        vfun   = NULL;
     }
 
     cvar::cvar(
@@ -136,6 +137,7 @@ namespace var
 
         minv.f = maxv.f = -1.0f;
         oldv.f = curv.f = v;
+        vfun   = NULL;
     }
 
     cvar::cvar(
@@ -149,6 +151,7 @@ namespace var
 
         curv.s = (v ? newstring(v) : NULL);
         oldv.s = NULL;
+        vfun   = NULL;
     }
 
     cvar::~cvar()
