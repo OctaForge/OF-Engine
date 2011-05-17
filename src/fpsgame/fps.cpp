@@ -110,21 +110,6 @@ namespace game
         spawnplayer(player1);
     }
 
-    fpsent *pointatplayer()
-    {
-        assert(0);
-        return NULL;
-#if 0
-        loopv(players)
-        {
-            fpsent *o = players[i];
-            if(!o) continue;
-            if(intersect(o, player1->o, worldpos)) return o;
-        }
-        return NULL;
-#endif
-    }
-
     void stopfollowing()
     {
         if(following<0) return;
@@ -469,12 +454,6 @@ namespace game
         #endif
     }
 
-    void respawn()
-    {
-        assert(0);
-//           respawnself();
-    }
-
     // inputs
 
     void doattack(bool on)
@@ -665,11 +644,6 @@ namespace game
         return cname;
     }
 
-    void suicide(physent *d)
-    {
-        assert(0);
-    }
-
     void drawhudmodel(fpsent *d, int anim, float speed = 0, int base = 0)
     {
         logger::log(logger::WARNING, "Rendering hudmodel is deprecated for now\r\n");
@@ -752,23 +726,6 @@ namespace game
 
     // Dummies
 
-    bool serverinfostartcolumn(g3d_gui *g, int i)
-    {
-        assert(0);
-        return false;
-    }
-
-     bool serverinfoentry(g3d_gui *g, int i, const char *name, const char *desc, const char *map, int ping, const vector<int> &attr, int np)
-    {
-        assert(0);
-        return false;
-    }
-
-    void serverinfoendcolumn(g3d_gui *g, int i)
-    {
-        assert(0);
-    }
-
     const char *defaultcrosshair(int index)
     {
         return "data/textures/hud/crosshair.png";
@@ -794,8 +751,6 @@ namespace game
             #endif
         }
     }
-
-    bool serverinfoentry(g3d_gui *g, int i, const char *name, int port, const char *desc, const char *map, int ping, const vector<int> &attr, int np) { assert(0); return false; }
 
     const char *getmapinfo()
     {

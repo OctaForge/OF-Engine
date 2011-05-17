@@ -117,14 +117,6 @@ namespace game
         #endif
     }
 
-#ifdef CLIENT
-    int getclientfocus()
-    {
-        fpsent *d = pointatplayer();
-        return d ? d->clientnum : -1;
-    }
-#endif
-
     int parseplayer(const char *arg)
     {
         char *end;

@@ -254,12 +254,6 @@ namespace server
     { 
     }
 
-    int spawntime(int type)
-    {
-        assert(0);
-        return 1;
-    }
-        
     void changemap(const char *s, int mode)
     {
     }
@@ -857,28 +851,6 @@ namespace server
         return SAUERBRATEN_SERVER_PORT;
     }
 
-    #include "extinfo.h"
-
-    void serverinforeply(ucharbuf &req, ucharbuf &p)
-    {
-        if(!getint(req))
-        {
-            extserverinforeply(req, p);
-            return;
-        }
-
-        putint(p, clients.length());
-        putint(p, 5);                   // number of attrs following
-        putint(p, PROTOCOL_VERSION);    // a // generic attributes, passed back below
-        putint(p, gamemode);            // b
-        putint(p, 10); //minremain);    // c
-        putint(p, maxclients);
-        putint(p, 0);//mastermode);
-        sendstring(smapname, p);
-        sendstring(serverdesc, p);
-        sendserverinforeply(p);
-    }
-
     bool servercompatible(char *name, char *sdec, char *map, int ping, const vector<int> &attr, int np)
     {
         return attr.length() && attr[0]==PROTOCOL_VERSION;
@@ -934,14 +906,9 @@ namespace server
 
     int reserveclients() { return 3+1; }
 
-    void processmasterinput(const char *cmd, int cmdlen, const char *args) { assert(0); };
-
-    int masterport() { assert(0); return -1; };
     int numchannels() { return 3; };
 
     const char *defaultmaster() { return "nada/nullo/"; } ;
-//    const char *getdefaultmaster() { return "sauerbraten.org/masterserver/"; } 
-
 
     //// Scenario stuff
 
