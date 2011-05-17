@@ -32,6 +32,11 @@
 
 #define INDENT_LOG(level) logger::logindent ind(level)
 
+/* Windows */
+#ifdef ERROR
+#undef ERROR
+#endif
+
 namespace logger
 {
     #define LEVELNUM 6
