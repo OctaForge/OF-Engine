@@ -31,8 +31,6 @@
 #include "of_tools.h"
 #include "game.h"
 
-#include "of_world.h"
-
 #ifdef WIN32
 #include "wuuid.h"
 #else
@@ -64,6 +62,19 @@ namespace world
         return buf;
     }
 
+#ifdef SERVER
+    void send_curr_map(int cn)
+    {
+        if (!scenario_code) return;
+
+        send_NotifyAboutCurrentScenario(
+            cn,
+            curr_map_id,
+            scenario_code
+        );
+    }
+#endif
+
     bool set_map(const char *id)
     {
         const char *old_scenario_code = scenario_code;
@@ -89,7 +100,7 @@ namespace world
         snprintf(buf, sizeof(buf), "%smap", s);
         if (!load_world(buf))
         {
-            Logging::log(Logging::ERROR, "Failed to load world!\n");
+            logger::log(logger::ERROR, "Failed to load world!\n");
             return false;
         }
         delete[] s;
@@ -108,19 +119,6 @@ namespace world
     {
         return set_map(curr_map_id);
     }
-
-#ifdef SERVER
-    void send_curr_map(int cn)
-    {
-        if (!scenario_code) return;
-
-        send_NotifyAboutCurrentScenario(
-            cn,
-            curr_map_id,
-            scenario_code
-        );
-    }
-#endif
 
     void export_ents(const char *fname)
     {
@@ -148,7 +146,7 @@ namespace world
         FILE *f = fopen(buf, "w");
         if  (!f)
         {
-            Logging::log(Logging::ERROR, "Cannot open file %s for writing.\n", buf);
+            logger::log(logger::ERROR, "Cannot open file %s for writing.\n", buf);
             return;
         }
         fputs(data, f);

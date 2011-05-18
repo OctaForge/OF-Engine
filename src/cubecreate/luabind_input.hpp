@@ -40,7 +40,7 @@ namespace lua_binds
     LUA_BIND_CLIENT(mouse##num##click, { \
         bool down = (addreleaseaction("CAPI."QUOT(mouse##num##click)"()") != 0); \
         \
-        Logging::log(Logging::INFO, "mouse click: %d (down: %d)\r\n", num, down); \
+        logger::log(logger::INFO, "mouse click: %d (down: %d)\r\n", num, down); \
         if (!(e.hashandle() && ClientSystem::scenarioStarted())) return; \
         \
         /* A click forces us to check for clicking on entities */ \
@@ -98,7 +98,10 @@ namespace lua_binds
     LUA_BIND_CLIENT(name, { \
         if (ClientSystem::scenarioStarted()) \
         { \
-            PlayerControl::flushActions(); /* stop current actions */ \
+            /* stop current actions */ \
+            e.getref(ClientSystem::playerLogicEntity->luaRef); \
+            e.t_getraw("action_system"); \
+            e.t_getraw("clear").push_index(-2).call(1, 0).pop(2); \
             s = addreleaseaction("CAPI."#name"()")!=0; \
             ((fpsent*)player)->v = s ? d : (os ? -(d) : 0); \
         } \
@@ -113,7 +116,10 @@ namespace lua_binds
     LUA_BIND_CLIENT(name, { \
         if (ClientSystem::scenarioStarted()) \
         { \
-            PlayerControl::flushActions(); /* stop current actions */ \
+            /* stop current actions */ \
+            e.getref(ClientSystem::playerLogicEntity->luaRef); \
+            e.t_getraw("action_system"); \
+            e.t_getraw("clear").push_index(-2).call(1, 0).pop(2); \
             s = addreleaseaction("CAPI."#name"()")!=0; \
             e.getg(#v); \
             if (!e.is<void*>(-1)) e.getg("entity_store") \
@@ -140,7 +146,10 @@ namespace lua_binds
     LUA_BIND_CLIENT(jump, {
         if (ClientSystem::scenarioStarted())
         {
-            PlayerControl::flushActions(); /* stop current actions */
+            /* stop current actions */
+            e.getref(ClientSystem::playerLogicEntity->luaRef);
+            e.t_getraw("action_system");
+            e.t_getraw("clear").push_index(-2).call(1, 0).pop(2);
             bool down = (addreleaseaction("CAPI.jump()") ? true : false);
             e.getg("do_jump");
             if (!e.is<void*>(-1))

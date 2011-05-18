@@ -1,6 +1,6 @@
 /*
- * of_tools.h, version 1
- * Various utilities for OctaForge engine (header)
+ * of_logger.h, version 1
+ * Logging facilities for OctaForge (header)
  *
  * author: q66 <quaker66@gmail.com>
  * license: MIT/X11
@@ -27,28 +27,46 @@
  *
  */
 
-#ifndef OF_TOOLS_H
-#define OF_TOOLS_H
+#ifndef OF_LOGGER_H
+#define OF_LOGGER_H
 
-namespace tools
+#define INDENT_LOG(level) logger::logindent ind(level)
+
+/* Windows */
+#ifdef ERROR
+#undef ERROR
+#endif
+
+namespace logger
 {
-    bool  valanumeric(const char *str, const char *allow);
-    bool  valrpath(const char *path);
+    #define LEVELNUM 6
 
-    bool  fnewer(const char *file, const char *otherfile);
-    bool  fcopy(const char *src, const char *dest);
+    enum loglevel
+    {
+        INFO,
+        DEBUG,
+        WARNING,
+        ERROR,
+        INIT,
+        OFF
+    };
 
-    bool  mkpath(const char *path);
-    char *sread(const char *fname);
+    loglevel name_to_num(const char *name);
+    void setlevel       (loglevel    level);
+    void setlevel       (const char *level = "WARNING");
+    bool should_log     (loglevel    level);
+    void log            (loglevel    level, const char *fmt, ...);
 
-    void  writecfg(const char *name = NULL);
-    bool  execcfg(const char *cfgfile);
+    extern loglevel    current_level;
+    extern loglevel    numbers[LEVELNUM];
+    extern const char *names  [LEVELNUM];
 
-    bool  vstrcat(char *&str, const char *format, va_list args);
-    bool  vstrcat(char *&str, const char *format, ...);
-    char *vstrcat(const char *format, ...);
-
-    int   currtime();
-} /* end namespace tools */
+    struct logindent
+    {
+        logindent(loglevel level);
+       ~logindent();
+        bool done;
+    };
+} /* end namespace logger */
 
 #endif

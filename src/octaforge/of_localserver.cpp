@@ -35,11 +35,6 @@
 extern string homedir;
 
 void trydisconnect();
-namespace Logging
-{
-    extern Level currLevel;
-    extern std::string levelNames[6];
-}
 
 namespace local_server
 {
@@ -69,7 +64,7 @@ namespace local_server
             else conoutf("Waiting for server to finish starting up .. (%i)", num_trials);
 
             if (num_trials == 20)
-                Logging::log(Logging::ERROR, "Failed to start server. See "SERVER_LOGFILE" for more information.\n");
+                logger::log(logger::ERROR, "Failed to start server. See "SERVER_LOGFILE" for more information.\n");
 
             num_trials++;
             last_connect_trial = lastmillis;
@@ -95,7 +90,7 @@ namespace local_server
 #else
             "exec ./run_server.sh",
 #endif
-            Logging::levelNames[Logging::currLevel].c_str(), map, homedir, SERVER_LOGFILE
+            logger::names[logger::current_level], map, homedir, SERVER_LOGFILE
         );
 
 #ifdef WIN32

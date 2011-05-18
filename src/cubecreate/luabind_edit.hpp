@@ -257,8 +257,8 @@ namespace lua_binds
         char *uname = server::getUsername(cn);
         if (uname) delete[] uname;
 
-        uname = tools::vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
-        Logging::log(Logging::DEBUG, "New NPC with client number: %d\r\n", cn);
+        uname = tools::vstrcat("si", "Bot.", cn); // Also sets as valid ('logged in')
+        logger::log(logger::DEBUG, "New NPC with client number: %d\r\n", cn);
 
         // Create lua entity (players do this when they log in, NPCs do it here
         int _ref = server::createluaEntity(cn, e.get<const char*>(1));
@@ -278,7 +278,7 @@ namespace lua_binds
     LUA_BIND_CLIENT(save_mouse_pos, {
         EditingSystem::savedMousePosTime = tools::currtime();
         EditingSystem::savedMousePos = TargetingControl::worldPosition;
-        Logging::log(Logging::DEBUG,
+        logger::log(logger::DEBUG,
                      "Saved mouse pos: %f,%f,%f (%d)\r\n",
                      EditingSystem::savedMousePos.x,
                      EditingSystem::savedMousePos.y,

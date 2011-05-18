@@ -232,4 +232,3 @@ int setdynlights(vtxarray *va)
 
     return index;
 }
-

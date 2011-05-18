@@ -22,7 +22,7 @@ namespace MessageSystem
 
 void MessageType::receive(int receiver, int sender, ucharbuf &p)
 {
-    Logging::log(Logging::ERROR, "Trying to receive a message, but no handler present: %s (%d)\r\n", type_name.c_str(), type_code);
+    logger::log(logger::ERROR, "Trying to receive a message, but no handler present: %s (%d)\r\n", type_name.c_str(), type_code);
     assert(0);
 }
 
@@ -33,7 +33,7 @@ MessageManager::MessageMap MessageManager::messageTypes;
 
 void MessageManager::registerMessageType(MessageType *newMessageType)
 {
-    Logging::log(Logging::DEBUG, "MessageSystem: Registering message %s (%d)\r\n",
+    logger::log(logger::DEBUG, "MessageSystem: Registering message %s (%d)\r\n",
                                  newMessageType->type_name.c_str(),
                                  newMessageType->type_code);
 
@@ -44,19 +44,19 @@ void MessageManager::registerMessageType(MessageType *newMessageType)
 
 bool MessageManager::receive(int type, int receiver, int sender, ucharbuf &p)
 {
-    Logging::log(Logging::DEBUG, "MessageSystem: Trying to handle a message, type/sender:: %d/%d\r\n", type, sender);
-    INDENT_LOG(Logging::DEBUG);
+    logger::log(logger::DEBUG, "MessageSystem: Trying to handle a message, type/sender:: %d/%d\r\n", type, sender);
+    INDENT_LOG(logger::DEBUG);
 
     MessageMap::iterator messageType = messageTypes.find(type);
     if (messageType == messageTypes.end())
     {
-        Logging::log(Logging::DEBUG, "Message type not found in our extensions to Sauer: %d\r\n", type);
+        logger::log(logger::DEBUG, "Message type not found in our extensions to Sauer: %d\r\n", type);
         return false; // This isn't one of our messages, hopefully it's a sauer one
     }
 
     messageType->second->receive(receiver, sender, p);
 
-    Logging::log(Logging::DEBUG, "MessageSystem: message successfully handled\r\n");
+    logger::log(logger::DEBUG, "MessageSystem: message successfully handled\r\n");
 
     return true;
 }
@@ -69,14 +69,14 @@ void MessageManager::awaitFile(std::string name)
 
     awaitedFile = name;
 
-    Logging::log(Logging::DEBUG, "Awaiting file '%s'\r\n", awaitedFile.c_str());
+    logger::log(logger::DEBUG, "Awaiting file '%s'\r\n", awaitedFile.c_str());
 }
 
 std::string MessageManager::getAwaitingFile()
 {
     assert(awaitedFile != "");
 
-    Logging::log(Logging::DEBUG, "No longer awaiting file '%s'\r\n", awaitedFile.c_str());
+    logger::log(logger::DEBUG, "No longer awaiting file '%s'\r\n", awaitedFile.c_str());
 
     std::string ret = awaitedFile;
     awaitedFile = "";

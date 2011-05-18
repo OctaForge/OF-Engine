@@ -966,38 +966,14 @@ void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelatt
     vec o = d->feetpos();
     int basetime = 0;
     if(animoverride) anim = (animoverride<0 ? ANIM_ALL : animoverride)|ANIM_LOOP;
-#if 0 // INTENSITY: We handle death ourselves
-    else if(d->state==CS_DEAD)
-    {
-        anim = ANIM_DYING|ANIM_NOPITCH;
-        basetime = lastpain;
-        if(ragdoll)
-        {
-            if(!d->ragdoll || d->ragdoll->millis < basetime) anim |= ANIM_RAGDOLL;
-        }
-        else if(lastmillis-basetime>1000) anim = ANIM_DEAD|ANIM_LOOP|ANIM_NOPITCH;
-    }
-#endif
+
     else if(d->state==CS_EDITING || d->state==CS_SPECTATOR) anim = ANIM_EDIT|ANIM_LOOP;
     else if(d->state==CS_LAGGED)                            anim = ANIM_LAG|ANIM_LOOP;
     else
     {
-        #if 0 // INTENSITY: 'attack' is forced, if we are given it
-        if(lastmillis-lastpain < 300) 
-        { 
-            anim = ANIM_PAIN;
-            basetime = lastpain;
-        }
-        else if(lastpain < lastaction && (attack < 0 || (d->type != ENT_AI && lastmillis-lastaction < attackdelay)))
-        { 
-            anim = attack < 0 ? -attack : attack; 
-            basetime = lastaction; 
-        }
-        #else
 ////////////////////        if (attack != ANIM_IDLE) // INTENSITY: TODO: Reconsider this
-            anim = attack;
-            basetime = lastaction; 
-        #endif
+        anim = attack;
+        basetime = lastaction; 
 
         if(d->inwater && d->physstate<=PHYS_FALL) anim |= (((game::allowmove(d) && (d->move || d->strafe)) || d->vel.z+d->falling.z>0 ? ANIM_SWIM : ANIM_SINK)|ANIM_LOOP)<<ANIM_SECONDARY;
         else if(d->timeinair>100) anim |= (ANIM_JUMP|ANIM_END)<<ANIM_SECONDARY;

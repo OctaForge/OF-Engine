@@ -2,6 +2,7 @@
 
 #include "engine.h"
 #include "rendertarget.h"
+#include "of_entities.h"
 
 Shader *particleshader = NULL, *particlenotextureshader = NULL;
 
@@ -72,10 +73,9 @@ void clearparticleemitters()
 void addparticleemitters()
 {
     emitters.shrink(0);
-    const vector<extentity *> &ents = entities::getents();
-    loopv(ents)
+    loopv(entities::storage)
     {
-        extentity &e = *ents[i];
+        extentity &e = *entities::storage[i];
         if(e.type != ET_PARTICLES) continue;
         emitters.add(particleemitter(&e));
     }
@@ -1528,13 +1528,13 @@ bool printparticles(extentity &e, char *buf)
     switch(e.attr1)
     {
         case 0: case 4: case 7: case 8: case 9: case 10: case 11: case 12: 
-            formatstring(buf)("%s %d %d %d 0x%.3hX %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
+            formatstring(buf)("%s %d %d %d 0x%.3hX %d", entities::getname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
             return true;
         case 3:
-            formatstring(buf)("%s %d %d 0x%.3hX %d %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
+            formatstring(buf)("%s %d %d 0x%.3hX %d %d", entities::getname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
             return true;
         case 5: case 6:
-            formatstring(buf)("%s %d %d 0x%.3hX 0x%.3hX %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
+            formatstring(buf)("%s %d %d 0x%.3hX 0x%.3hX %d", entities::getname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
             return true; 
     }
     return false;
@@ -1610,12 +1610,11 @@ void updateparticles()
     }
     if(editmode) // show sparkly thingies for map entities in edit mode
     {
-        const vector<extentity *> &ents = entities::getents();
         int editid = -1;
         // note: order matters in this case as particles of the same type are drawn in the reverse order that they are added
         loopv(entgroup)
         {
-            extentity &e = *ents[entgroup[i]]; // INTENSITY: Made extentity
+            extentity &e = *entities::storage[entgroup[i]]; // INTENSITY: Made extentity
             if (!LogicSystem::getLogicEntity(e)) continue;
             std::string _class = '@' + LogicSystem::getLogicEntity(e)->getClass(); // INTENSITY
             particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), _class.c_str(), PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
@@ -1648,9 +1647,9 @@ void updateparticles()
             }
             editid = e.uniqueId;
         }
-        loopv(ents)
+        loopv(entities::storage)
         {
-            extentity &e = *ents[i]; // INTENSITY: Made extentity
+            extentity &e = *entities::storage[i]; // INTENSITY: Made extentity
             if(e.type==ET_EMPTY || editid==e.uniqueId) continue;
             if (!LogicSystem::getLogicEntity(e)) continue;
             std::string _class = '@' + LogicSystem::getLogicEntity(e)->getClass(); // INTENSITY

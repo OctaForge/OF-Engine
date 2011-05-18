@@ -27,24 +27,24 @@ bool WorldSystem::loadingWorld = false;
 
 void WorldSystem::triggerCollide(CLogicEntity *mapmodel, physent *d, bool ellipse)
 {
-    Logging::log(Logging::INFO, "triggerCollide: %lu, %lu\r\n", (unsigned long)mapmodel, (unsigned long)d);
+    logger::log(logger::INFO, "triggerCollide: %lu, %lu\r\n", (unsigned long)mapmodel, (unsigned long)d);
 
     if (d->type != ENT_PLAYER)
     {
-//        Logging::log(Logging::INFO, "Non-player causing collide, so ignore\r\n");
+//        logger::log(logger::INFO, "Non-player causing collide, so ignore\r\n");
         return; // No need to trigger collisions for cameras, lights, etc. TODO: ENT_AI?
     }
 
     if (!mapmodel || mapmodel->isNone())
     {
-        Logging::log(Logging::ERROR, "Invalid mapmodel to trigger collide for\r\n");
+        logger::log(logger::ERROR, "Invalid mapmodel to trigger collide for\r\n");
         return; // Invalid or uninialized mapmodel
     }
 
     CLogicEntity *colliderEntity = LogicSystem::getLogicEntity(d);
     if (!colliderEntity || colliderEntity->isNone())
     {
-        Logging::log(Logging::INFO, "Invalid colliding entity to collide with\r\n");
+        logger::log(logger::INFO, "Invalid colliding entity to collide with\r\n");
         return; // Most likely a raycasting collision, or camera, etc. - not things we trigger events for
     }
 
@@ -74,7 +74,7 @@ void WorldSystem::triggerReceivedEntity()
     {
         float val = float(numReceivedEntities)/float(numExpectedEntities);
         val = clamp(val, 0.0f, 1.0f);
-        char *text = tools::vstrcat(NULL, "sis", "received entity ", numReceivedEntities, "...");
+        char *text = tools::vstrcat("sis", "received entity ", numReceivedEntities, "...");
         if (WorldSystem::loadingWorld) // Show message only during map loading, not when new clients log in
             renderprogress(val, text);
         delete[] text;

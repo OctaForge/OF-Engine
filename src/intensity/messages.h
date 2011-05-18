@@ -45,7 +45,7 @@ struct LoginRequest : MessageType
 #endif
 };
 
-void send_LoginRequest(const char* code);
+void send_LoginRequest();
 
 
 // YourUniqueId
@@ -432,25 +432,11 @@ struct DoClick : MessageType
 void send_DoClick(int button, int down, float x, float y, float z, int uniqueId);
 
 
-// MapUpdated
-
-struct MapUpdated : MessageType
-{
-    MapUpdated() : MessageType(1032, "MapUpdated") { };
-
-#ifdef CLIENT
-    void receive(int receiver, int sender, ucharbuf &p);
-#endif
-};
-
-void send_MapUpdated(int clientNumber, int updatingClientNumber);
-
-
 // ParticleSplashToClients
 
 struct ParticleSplashToClients : MessageType
 {
-    ParticleSplashToClients() : MessageType(1033, "ParticleSplashToClients") { };
+    ParticleSplashToClients() : MessageType(1032, "ParticleSplashToClients") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -464,7 +450,7 @@ void send_ParticleSplashToClients(int clientNumber, int _type, int num, int fade
 
 struct ParticleSplashRegularToClients : MessageType
 {
-    ParticleSplashRegularToClients() : MessageType(1034, "ParticleSplashRegularToClients") { };
+    ParticleSplashRegularToClients() : MessageType(1033, "ParticleSplashRegularToClients") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);
@@ -478,7 +464,7 @@ void send_ParticleSplashRegularToClients(int clientNumber, int _type, int num, i
 
 struct RequestPrivateEditMode : MessageType
 {
-    RequestPrivateEditMode() : MessageType(1035, "RequestPrivateEditMode") { };
+    RequestPrivateEditMode() : MessageType(1034, "RequestPrivateEditMode") { };
 
 #ifdef SERVER
     void receive(int receiver, int sender, ucharbuf &p);
@@ -492,7 +478,7 @@ void send_RequestPrivateEditMode();
 
 struct NotifyPrivateEditMode : MessageType
 {
-    NotifyPrivateEditMode() : MessageType(1036, "NotifyPrivateEditMode") { };
+    NotifyPrivateEditMode() : MessageType(1035, "NotifyPrivateEditMode") { };
 
 #ifdef CLIENT
     void receive(int receiver, int sender, ucharbuf &p);

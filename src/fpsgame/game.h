@@ -31,46 +31,8 @@ enum                            // static entity types
     PARTICLES = ET_PARTICLES,
     MAPSOUND = ET_SOUND,
     SPOTLIGHT = ET_SPOTLIGHT,
-    I_SHELLS, I_BULLETS, I_ROCKETS, I_ROUNDS, I_GRENADES, I_CARTRIDGES,
-    I_HEALTH, I_BOOST,
-    I_GREENARMOUR, I_YELLOWARMOUR,
-    I_QUAD,
-    TELEPORT,                   // attr1 = idx
-    TELEDEST,                   // attr1 = angle, attr2 = idx
-    MONSTER,                    // attr1 = angle, attr2 = monstertype
-    CARROT,                     // attr1 = tag, attr2 = type
-    JUMPPAD,                    // attr1 = zpush, attr2 = ypush, attr3 = xpush
-    BASE,
-    RESPAWNPOINT,
-    BOX,                        // attr1 = angle, attr2 = idx, attr3 = weight
-    BARREL,                     // attr1 = angle, attr2 = idx, attr3 = weight, attr4 = health
-    PLATFORM,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
-    ELEVATOR,                   // attr1 = angle, attr2 = idx, attr3 = tag, attr4 = speed
-    FLAG,                       // attr1 = angle, attr2 = team
     MAXENTTYPES
 };
-
-enum
-{
-    TRIGGER_RESET = 0,
-    TRIGGERING,
-    TRIGGERED,
-    TRIGGER_RESETTING,
-    TRIGGER_DISAPPEARED
-};
-
-struct fpsentity : extentity
-{
-    int triggerstate, lasttrigger;
-    
-    fpsentity() : triggerstate(TRIGGER_RESET), lasttrigger(0) {} 
-};
-
-//                                           ==sniper 
-enum { GUN_FIST = 0, GUN_SG, GUN_CG, GUN_RL, GUN_RIFLE, GUN_GL, GUN_PISTOL, GUN_FIREBALL, GUN_ICEBALL, GUN_SLIMEBALL, GUN_BITE, GUN_BARREL, NUMGUNS };
-enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
-enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING };  // monster states
-
 
 // hardcoded sounds, defined in sounds.cfg
 enum
@@ -116,17 +78,6 @@ enum
 #define SAUERBRATEN_SERVER_PORT 28787
 #define SAUERBRATEN_SERVINFO_PORT 28789
 #define PROTOCOL_VERSION 1001           // bump when protocol changes
-#define DEMO_VERSION 1                  // bump when demo format changes
-#define DEMO_MAGIC "SAUERBRATEN_DEMO"
-
-struct demoheader
-{
-    char magic[16]; 
-    int version, protocol;
-};
-
-#define MAXNAMELEN 15
-#define MAXTEAMLEN 4
 
 #define SGRAYS 20
 #define SGSPREAD 4
@@ -134,50 +85,7 @@ struct demoheader
 #define RL_SELFDAMDIV 2
 #define RL_DISTSCALE 1.5f
 
-// inherited by fpsent and server clients
-struct fpsstate
-{
-    int health, maxhealth;
-    int armour, armourtype;
-    int quadmillis;
-    int gunselect, gunwait;
-    int ammo[NUMGUNS];
-
-    int uniqueId; // INTENSITY
-
-    fpsstate() : maxhealth(100),
-                 uniqueId(-821) // INTENSITY
-        {}
-
-    void respawn()
-    {
-        health = maxhealth;
-        armour = 0;
-        armourtype = A_BLUE;
-        quadmillis = 0;
-        gunselect = GUN_PISTOL;
-        gunwait = 0;
-        loopi(NUMGUNS) ammo[i] = 0;
-        ammo[GUN_FIST] = 1;
-    }
-
-    void spawnstate(int gamemode)
-    {
-    }
-
-    // just subtract damage here, can set death, etc. later in code calling this 
-    int dodamage(int damage)
-    {
-        int ad = damage*(armourtype+1)*25/100; // let armour absorb when possible
-        if(ad>armour) ad = armour;
-        armour -= ad;
-        damage -= ad;
-        health -= damage;
-        return damage;        
-    }
-};
-
-struct fpsent : dynent, fpsstate
+struct fpsent : dynent
 {   
     int weight;                         // affects the effectiveness of hitpush
     int clientnum, privilege, lastupdate, plag, ping;
@@ -223,13 +131,15 @@ struct fpsent : dynent, fpsstate
     //! would make sense for maps to consider that value the initialized value).
     unsigned int mapDefinedPositionData;
 
+    int uniqueId;
+
     fpsent() : weight(100), clientnum(-1), privilege(PRIV_NONE), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), frags(0), deaths(0), totaldamage(0), totalshots(0), edit(NULL), smoothmillis(-1), ai(NULL)
                                                                       , lastServerUpdate(0)
 #ifdef SERVER
                                                                       , serverControlled(false)
 #endif
                                                                       , physsteps(0), physframetime(5), lastphysframe(0), lastPhysicsPosition(0,0,0)
-                                                                      , mapDefinedPositionData(0)
+                                                                      , mapDefinedPositionData(0), uniqueId(-821)
                { name[0] = team[0] = info[0] = 0; respawn(); }
     ~fpsent()
     {
@@ -244,26 +154,9 @@ struct fpsent : dynent, fpsstate
         roll += roll>0 ? damroll : (roll<0 ? -damroll : (rnd(2) ? damroll : -damroll)); // give player a kick
     }
 
-    void hitpush(int damage, const vec &dir, fpsent *actor, int gun)
-    {
-        vec push(dir);
-        push.mul(80*damage/weight);
-        if(gun==GUN_RL || gun==GUN_GL) push.mul(actor==this ? 5 : (type==ENT_AI ? 3 : 2));
-        vel.add(push);
-    }
-
     void respawn()
     {
         dynent::reset();
-        fpsstate::respawn();
-        lastaction = 0;
-        lastattackgun = gunselect;
-        attacking = false;
-        lasttaunt = 0;
-        lastpickup = -1;
-        lastpickupmillis = 0;
-        lastbase = -1;
-        superdamage = 0;
     }
 
     virtual void reset()
@@ -309,34 +202,6 @@ struct fpsent : dynent, fpsstate
         return center;
     }
 };
-
-
-
-
-// New in 2009 - INTENSITY
-
-namespace entities
-{
-    extern vector<extentity *> ents;
-
-    extern const char *entmdlname(int type);
-    extern const char *itemname(int i);
-
-    extern void preloadentities();
-    extern void renderentities();
-    extern void resettriggers();
-    extern void checktriggers();
-    extern void checkitems(fpsent *d);
-    extern void checkquad(int time, fpsent *d);
-    extern void resetspawns();
-    extern void spawnitems();
-    extern void putitems(ucharbuf &p);
-    extern void setspawn(int i, bool on);
-    extern void teleport(int n, fpsent *d);
-    extern void pickupeffects(int n, fpsent *d);
-
-    extern void repammo(fpsent *d, int type, bool local = true);
-}
 
 namespace game
 {

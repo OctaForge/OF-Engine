@@ -53,6 +53,7 @@
 #include "of_tools.h"
 #include "of_localserver.h"
 #include "of_world.h"
+#include "of_entities.h"
 #include <algorithm>
 
 #include "scripting_system_lua_def.hpp"
@@ -96,26 +97,26 @@ namespace lua
 
     void lua_Engine::setup_namespace(const char *n, const LE_reg *r)
     {
-        Logging::log(Logging::DEBUG, "Setting up Lua embed namespace \"%s\"\n", n);
+        logger::log(logger::DEBUG, "Setting up Lua embed namespace \"%s\"\n", n);
 
         int size = 0;
         for (; r->n; r++) size++;
         r = r - size;
-        Logging::log(Logging::DEBUG, "Future namespace size: %i\n", size);
+        logger::log(logger::DEBUG, "Future namespace size: %i\n", size);
 
         lua_pushvalue(m_handle, LUA_REGISTRYINDEX);
         lua_pushstring(m_handle, "_LOADED");
         lua_rawget(m_handle, -2);
         lua_remove(m_handle, -2);
 
-        Logging::log(Logging::DEBUG, "Trying to get if the embed namespace is already registered.\n");
+        logger::log(logger::DEBUG, "Trying to get if the embed namespace is already registered.\n");
         lua_getfield(m_handle, -1, n);
 
         if (!lua_istable(m_handle, -1))
         {
             lua_pop(m_handle, 1);
 
-            Logging::log(Logging::DEBUG, "Namespace not found in _LOADED, trying global variable.\n");
+            logger::log(logger::DEBUG, "Namespace not found in _LOADED, trying global variable.\n");
 
             lua_pushvalue(m_handle, LUA_GLOBALSINDEX);
             lua_pushstring(m_handle, n);
@@ -138,7 +139,7 @@ namespace lua
 
             lua_remove(m_handle, -2);
 
-            Logging::log(Logging::DEBUG, "pushing the namespace into _LOADED.\n");
+            logger::log(logger::DEBUG, "pushing the namespace into _LOADED.\n");
             lua_pushvalue(m_handle, -1);
             lua_setfield(m_handle, -3, n);
         }
@@ -146,22 +147,22 @@ namespace lua
         lua_remove(m_handle, -2);
         lua_insert(m_handle, -1);
 
-        Logging::log(Logging::DEBUG, "Registering functions into namespace.\n");
+        logger::log(logger::DEBUG, "Registering functions into namespace.\n");
         for (; r->n; r++)
         {
-            Logging::log(Logging::INFO, "Registering: %s\n", r->n);
+            logger::log(logger::INFO, "Registering: %s\n", r->n);
             lua_pushlightuserdata(m_handle, (void*)r);
             lua_pushcclosure(m_handle, l_disp, 1);
             lua_setfield(m_handle, -2, r->n);
         }
         r = r - size;
 
-        Logging::log(Logging::DEBUG, "Namespace \"%s\" registration went properly, leaving on stack.\n", n);
+        logger::log(logger::DEBUG, "Namespace \"%s\" registration went properly, leaving on stack.\n", n);
     }
 
     void lua_Engine::setup_module(const char *n, bool t)
     {
-        Logging::log(Logging::DEBUG, "Setting up module: %s%s.lua\n", m_scriptdir, n);
+        logger::log(logger::DEBUG, "Setting up module: %s%s.lua\n", m_scriptdir, n);
         defformatstring(f)("%s%s.lua", m_scriptdir, n);
         defformatstring(ft)("%s%s__test.lua", m_scriptdir, n);
         execf(f); if (m_runtests && !t) execf(ft);
@@ -171,13 +172,13 @@ namespace lua
     {
         if (!m_hashandle) return *this;
 
-        Logging::log(Logging::DEBUG, "Setting up lua engine embedding\n");
+        logger::log(logger::DEBUG, "Setting up lua engine embedding\n");
 
         m_runtests = false;
         if (m_rantests) m_runtests = false;
 
         setup_namespace("logging", LAPI);
-        #define PUSHLEVEL(l) t_set(#l, Logging::l);
+        #define PUSHLEVEL(l) t_set(#l, logger::l);
         PUSHLEVEL(INFO)
         PUSHLEVEL(DEBUG)
         PUSHLEVEL(WARNING)
@@ -336,7 +337,7 @@ namespace lua
         pop(1);
 
         ret = LogicSystem::getLogicEntity(id);
-        Logging::log(Logging::INFO, "Lua: getting the CLE for UID %d\n", id);
+        logger::log(logger::INFO, "Lua: getting the CLE for UID %d\n", id);
 
         if (!ret)
         {
@@ -529,21 +530,21 @@ namespace lua
     {
         if (m_hashandle) return *this;
 
-        Logging::log(Logging::DEBUG, "Creating lua_Engine state handler.\n");
+        logger::log(logger::DEBUG, "Creating lua_Engine state handler.\n");
 
         m_handle = luaL_newstate();
         if (m_handle)
         {
             m_hashandle = true;
 
-            Logging::log(Logging::DEBUG, "Handler created properly, finalizing.\n");
+            logger::log(logger::DEBUG, "Handler created properly, finalizing.\n");
 
             /* TODO: actual version? */
             m_version = "0.0.5";
 
             setup_libs(); bind();
         }
-        Logging::log(Logging::DEBUG, "Handler creation went properly.\n");
+        logger::log(logger::DEBUG, "Handler creation went properly.\n");
 
         return *this;
     }
@@ -554,7 +555,7 @@ namespace lua
         if (!m_hashandle) return -1;
         if (m_retcount >= 0) return lua_gettop(m_handle) - m_retcount;
 
-        Logging::log_noformat(Logging::DEBUG, "Destroying lua_Engine class and its handler.");
+        logger::log(logger::DEBUG, "Destroying lua_Engine class and its handler.\n");
         lua_close(m_handle);
         m_hashandle = false;
         return -1;
@@ -679,7 +680,7 @@ namespace lua
         if (c)
         {
             m_lasterror = geterror();
-            Logging::log_noformat(Logging::ERROR, m_lasterror);
+            logger::log(logger::ERROR, "%s\n", m_lasterror);
             return *this;
         }
         return *this;
@@ -702,7 +703,7 @@ namespace lua
             if (ret) \
             { \
                 m_lasterror = geterror(); \
-                if (msg) Logging::log_noformat(Logging::ERROR, m_lasterror); \
+                if (msg) logger::log(logger::ERROR, "%s\n", m_lasterror); \
                 return false; \
             } \
         } \
@@ -721,7 +722,7 @@ namespace lua
         if (ret)
         {
             m_lasterror = geterror();
-            if (msg) Logging::log(Logging::ERROR, "%s", m_lasterror);
+            if (msg) logger::log(logger::ERROR, "%s", m_lasterror);
         }
         return !ret;
     }
@@ -734,7 +735,7 @@ namespace lua
         if (ret)
         {
             m_lasterror = geterror();
-            if (msg) Logging::log(Logging::ERROR, "%s", m_lasterror);
+            if (msg) logger::log(logger::ERROR, "%s", m_lasterror);
         }
         return !ret;
     }
@@ -778,7 +779,7 @@ namespace lua
 
         lua_pushstring(m_handle, m);
         lua_concat(m_handle, 2);
-        Logging::log(Logging::ERROR, "%s\n", lua_tostring(m_handle, -1));
+        logger::log(logger::ERROR, "%s\n", lua_tostring(m_handle, -1));
         lua_error(m_handle);
         return *this;
     }

@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "rendertarget.h"
+#include "of_entities.h"
 
 VARP(shadowmap, 0, 0, 1);
 
@@ -48,10 +49,9 @@ void guessshadowdir()
     {
         vec lightpos(0, 0, 0), casterpos(0, 0, 0);
         int numlights = 0, numcasters = 0;
-        const vector<extentity *> &ents = entities::getents();
-        loopv(ents)
+        loopv(entities::storage)
         {
-            extentity &e = *ents[i];
+            extentity &e = *entities::storage[i];
             switch(e.type)
             {
                 case ET_LIGHT:
@@ -64,9 +64,6 @@ void guessshadowdir()
                     break;
 
                 default:
-                    if(e.type<ET_GAMESPECIFIC) break;
-                    casterpos.add(e.o);
-                    numcasters++;
                     break;
             }
         }

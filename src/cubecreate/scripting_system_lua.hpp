@@ -695,7 +695,7 @@ namespace lua
  * e.getg("foo");
  * LUA_TABLE_FOREACH(e, {
  *     // get the string key and integer value and print them
- *     Logging::log("Key: %s Value: %i\n", e.get<const char*>(-2), e.get<int>(-1));
+ *     logger::log("Key: %s Value: %i\n", e.get<const char*>(-2), e.get<int>(-1));
  * });
  * e.pop(1);
  * @endcode
@@ -721,7 +721,7 @@ while (e.t_next(-2)) \
 #define LUA_BIND_DEF(n, b) \
 void _bind_##n(lua_Engine e) \
 { \
-    Logging::log(Logging::INFO, "Registering Lua function: %s\r\n", #n); \
+    logger::log(logger::INFO, "Registering Lua function: %s\r\n", #n); \
     b; \
 }
 
@@ -807,7 +807,7 @@ void _bind_##n(lua_Engine e) \
  */
 #define LUA_BIND_LE(n, b) \
 LUA_BIND_DEF(n, { \
-    Logging::log(Logging::INFO, "Registering Lua CLogicEntity function: %s\r\n", #n); \
+    logger::log(logger::INFO, "Registering Lua CLogicEntity function: %s\r\n", #n); \
     CLogicEntity *self = e.get<CLogicEntity*>(1); \
     b; \
 })
@@ -824,7 +824,7 @@ LUA_BIND_DEF(n, { \
  */
 #define LUA_BIND_SE(n, b) \
 LUA_BIND_DEF(n, { \
-    Logging::log(Logging::INFO, "Getting reference unique ID for Lua function: %s\r\n", #n); \
+    logger::log(logger::INFO, "Getting reference unique ID for Lua function: %s\r\n", #n); \
     if (!e.is<void**>(1)) \
     { \
         e.typeerror(1, "table"); \

@@ -34,10 +34,8 @@ set(SERVER_SOURCES
     ../fpsgame/fps
     ../fpsgame/server
     ../fpsgame/client
-    ../fpsgame/entities
     ../intensity/message_system
     ../intensity/server_system
-    ../intensity/logging
     ../intensity/messages
     ../engine/world
     ../engine/worldio
@@ -62,6 +60,8 @@ set(SERVER_SOURCES
     ../engine/blend
     ../shared/zip
     ../octaforge/of_world
+    ../octaforge/of_logger
+    ../octaforge/of_entities
     ${EXTRA_SOURCES}
 )
 

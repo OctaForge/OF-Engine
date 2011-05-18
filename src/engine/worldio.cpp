@@ -11,6 +11,7 @@
     #include "client_system.h"
 #endif
 #include "of_world.h"
+#include "of_entities.h"
 
 void backup(char *name, char *backupname)
 {
@@ -436,8 +437,6 @@ bool save_world(const char *mname, bool nolms)
     hdr.headersize = sizeof(hdr);
     hdr.worldsize = worldsize;
     hdr.numents = 0;
-//    const vector<extentity *> &ents = entities::getents(); // INTENSITY: No ents in .ogz
-//    loopv(ents) if(ents[i]->type!=ET_EMPTY || nolms) hdr.numents++; // INTENSITY: No ents in .ogz
     hdr.numpvs = nolms ? 0 : getnumviewcells();
     hdr.lightmaps = nolms ? 0 : lightmaps.length();
     hdr.blendmap = shouldsaveblendmap();
@@ -483,7 +482,7 @@ bool save_world(const char *mname, bool nolms)
 
     f->putchar((int)strlen(game::gameident()));
     f->write(game::gameident(), (int)strlen(game::gameident())+1);
-    f->putlil<ushort>(entities::extraentinfosize());
+    f->putlil<ushort>(0);
     vector<char> extras;
     game::writegamedata(extras);
     f->putlil<ushort>(extras.length());
@@ -491,22 +490,6 @@ bool save_world(const char *mname, bool nolms)
     
     f->putlil<ushort>(texmru.length());
     loopv(texmru) f->putlil<ushort>(texmru[i]);
-#if 0 // INTENSITY: No ents in .ogz
-    char *ebuf = new char[entities::extraentinfosize()];
-    loopv(ents)
-    {
-        if(ents[i]->type!=ET_EMPTY || nolms)
-        {
-            entity tmp = *ents[i];
-            lilswap(&tmp.o.x, 3);
-            lilswap(&tmp.attr1, 5);
-            f->write(&tmp, sizeof(entity));
-            entities::writeent(*ents[i], ebuf);
-            if(entities::extraentinfosize()) f->write(ebuf, entities::extraentinfosize());
-        }
-    }
-    delete[] ebuf;
-#endif // 0
 
     savevslots(f, numvslots);
 
@@ -575,9 +558,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     WorldSystem::loadingWorld = true; // INTENSITY
     LogicSystem::init(); // INTENSITY: Start our game data system, wipe all existing LogicEntities, and add the player
 
-#if 0 // INTENSITY
-    int loadingstart = SDL_GetTicks();
-#endif
     setmapfilenames(mname, cname);
 
     _saved_mname = mname; // INTENSITY
@@ -733,12 +713,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     renderprogress(0, "loading entities...");
 
-    vector<extentity *> &ents = entities::getents();
-    int einfosize = entities::extraentinfosize();
-    char *ebuf = einfosize > 0 ? new char[einfosize] : NULL;
     loopi(min(hdr.numents, MAXENTS))
     {
-//        extentity &e = *entities::newentity();
+//        extentity &e = *(new extentity);
 //        ents.add(&e);
         extentity e; // INTENSITY: Do *NOT* actually load entities from .ogz files - we use our own system.
                      // But, read the data from the file so we can move on (might be a sauer .ogz)
@@ -761,25 +738,15 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         if(hdr.version <= 22 && e.type >= ET_SOUND) e.type++;
         if(hdr.version <= 23 && e.type >= ET_SPOTLIGHT) e.type++;
         if(hdr.version <= 30 && (e.type == ET_MAPMODEL || e.type == ET_PLAYERSTART)) e.attr1 = (int(e.attr1)+180)%360;
-        if(samegame)
-        {
-            if(einfosize > 0) f->read(ebuf, einfosize);
-            entities::readent(e, ebuf);
-        }
-        else
+        if (!samegame)
         {
             if(eif > 0) f->seek(eif, SEEK_CUR);
-            if(e.type>=ET_GAMESPECIFIC || hdr.version<=14)
-            {
-                entities::deleteentity(ents.pop());
-                continue;
-            }
         }
         if(!insideworld(e.o))
         {
             if(e.type != ET_LIGHT && e.type != ET_SPOTLIGHT)
             {
-                conoutf(CON_WARN, "warning: ent outside of world: enttype[%s] index %d (%f, %f, %f)", entities::entname(e.type), i, e.o.x, e.o.y, e.o.z);
+                conoutf(CON_WARN, "warning: ent outside of world: enttype[%s] index %d (%f, %f, %f)", entities::getname(e.type), i, e.o.x, e.o.y, e.o.z);
             }
         }
         if(hdr.version <= 14 && e.type == ET_MAPMODEL)
@@ -810,9 +777,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case ET_MAPMODEL:
             case ET_SOUND:
             case ET_PLAYERSTART:
-            case JUMPPAD:
-            case TELEPORT:
-            case TELEDEST:
+            case 16: /* JUMPPAD */
+            case 12: /* TELEPORT */
+            case 13: /* TELEDEST */
                 writeEntity = true;
                 break;
             default:
@@ -877,7 +844,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("\"_persistent\":\"true\"");
                     break;
                 }
-                case JUMPPAD:
+                case 16:
                 {
                     printf("jumppad\", {");
                     printf("\"jumpvel\":\"[%f|%f|%f]\", ", (int)(char)e.attr3*10.0f, (int)(char)e.attr2*10.0f, e.attr1*12.5f);
@@ -898,7 +865,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("\"_persistent\":\"true\"");
                     break;
                 }
-                case TELEPORT:
+                case 12:
                 {
                     printf("teleporter\", {");
                     printf("\"target\":\"[0|0|0]\", ");
@@ -919,7 +886,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("\"_persistent\":\"true\"");
                     break;
                 }
-                case TELEDEST:
+                case 13:
                 {
                     printf("world_marker\", {");
                     printf("\"attr1\":\"%d\", ", e.attr1);
@@ -949,12 +916,11 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         }
         // INTENSITY: end Print ent out
     }
-    if(ebuf) delete[] ebuf;
 
     if(hdr.numents > MAXENTS) 
     {
         conoutf(CON_WARN, "warning: map has %d entities", hdr.numents);
-        f->seek((hdr.numents-MAXENTS)*(samegame ? sizeof(entity) + einfosize : eif), SEEK_CUR);
+        f->seek((hdr.numents-MAXENTS)*(samegame ? sizeof(entity) : eif), SEEK_CUR);
     }
 
     renderprogress(0, "loading slots...");
@@ -1004,10 +970,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 //    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures
     delete f;
 
-#if 0 // INTENSITY
-    conoutf("read map %s (%.1f seconds)", ogzname, (SDL_GetTicks()-loadingstart)/1000.0f);
-#endif
-
     clearmainmenu();
 
     var::overridevars = true;
@@ -1020,10 +982,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
    
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");
-    Logging::log(Logging::DEBUG, "Requesting active entities...\r\n");
+    logger::log(logger::DEBUG, "Requesting active entities...\r\n");
     MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode.c_str()); // Ask for the NPCs and other players, which are not part of the map proper
 #else // SERVER
-    Logging::log(Logging::DEBUG, "Finishing loading of the world...\r\n");
+    logger::log(logger::DEBUG, "Finishing loading of the world...\r\n");
     finish_load_world();
 #endif
 
@@ -1041,28 +1003,6 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     extern void fixlightmapnormals();
     if(hdr.version <= 25) fixlightmapnormals();
 
-#if 0 // INTENSITY: We use our own preloading system
-    vector<int> mapmodels;
-    loopv(ents)
-    {
-        extentity &e = *ents[i];
-        if(e.type==ET_MAPMODEL && e.attr2 >= 0)
-        {
-            if(mapmodels.find(e.attr2) < 0) mapmodels.add(e.attr2);
-        }
-    }
-
-    loopv(mapmodels)
-    {
-        loadprogress = float(i+1)/mapmodels.length();
-        int mmindex = mapmodels[i];
-        mapmodelinfo &mmi = getmminfo(mmindex);
-        if(!&mmi) conoutf(CON_WARN, "could not find map model: %d", mmindex);
-        else if(!loadmodel(NULL, mmindex, true)) conoutf(CON_WARN, "could not load model: %s", mmi.name);
-        else if(mmi.m && bih) mmi.m->preloadBIH();
-    }
-#endif // INTENSITY
-
     loadprogress = 0;
 
     game::preload();
@@ -1077,7 +1017,7 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
     startmap(cname ? cname : mname);
     
-    Logging::log(Logging::DEBUG, "load_world complete.\r\n"); // INTENSITY
+    logger::log(logger::DEBUG, "load_world complete.\r\n"); // INTENSITY
     WorldSystem::loadingWorld = false; // INTENSITY
 
     delete saved_hdr; // INTENSITY

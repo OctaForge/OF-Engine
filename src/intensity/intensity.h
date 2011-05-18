@@ -10,7 +10,7 @@
 
     #include "of_vars.h"
     #include "engine_additions.h"
-    #include "logging.h"
+    #include "of_logger.h"
     #include "scripting_system_lua.hpp"
 
     // Additional externs from sauer

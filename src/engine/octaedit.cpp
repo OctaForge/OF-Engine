@@ -132,7 +132,6 @@ void toggleedit(bool force)
     }
     else
     {
-        game::resetgamestate();
         player->editstate = player->state;
         player->state = CS_EDITING;
     }

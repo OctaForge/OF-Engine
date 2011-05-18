@@ -1,6 +1,7 @@
 // texture.cpp: texture slot management
 
 #include "engine.h"
+#include "of_entities.h"
 
 #define FUNCNAME(name) name##1
 #define DEFPIXEL uint OP(r, 0);
@@ -2183,10 +2184,9 @@ void initenvmaps()
     clearenvmaps();
     extern char *&skybox;
     skyenvmap = skybox[0] ? cubemapload(skybox, true, false, true) : NULL;
-    const vector<extentity *> &ents = entities::getents();
-    loopv(ents)
+    loopv(entities::storage)
     {
-        const extentity &ent = *ents[i];
+        const extentity &ent = *entities::storage[i];
         if(ent.type != ET_ENVMAP) continue;
         envmap &em = envmaps.add();
         em.radius = ent.attr1 ? clamp(int(ent.attr1), 0, 10000) : envmapradius;

@@ -34,14 +34,12 @@ set(CLIENT_SOURCES
     ../engine/serverbrowser
     ../intensity/editing_system
     ../intensity/messages
-    ../intensity/logging
     ../intensity/message_system
     ../intensity/client_system
     ../intensity/client_engine_additions
     ../fpsgame/fps
     ../fpsgame/server
     ../fpsgame/client
-    ../fpsgame/entities
     ../fpsgame/render
     ../fpsgame/weapon
     ../shared/tools
@@ -88,6 +86,8 @@ set(CLIENT_SOURCES
     ../fpsgame/scoreboard
     ../octaforge/of_localserver
     ../octaforge/of_world
+    ../octaforge/of_logger
+    ../octaforge/of_entities
     ${EXTRA_SOURCES}
 )
 

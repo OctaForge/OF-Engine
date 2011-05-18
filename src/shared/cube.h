@@ -60,7 +60,6 @@
 
 #ifdef __sun__
 #undef sun
-#undef MAXNAMELEN
 #ifdef queue
   #undef queue
 #endif

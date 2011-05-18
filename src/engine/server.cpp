@@ -323,50 +323,6 @@ ENetPacket *sendf(int cn, int chan, const char *format, ...)
     return packet->referenceCount > 0 ? packet : NULL;
 }
 
-ENetPacket *sendfile(int cn, int chan, stream *file, const char *format, ...)
-{
-    assert(0); // INTENSITY: We use our own asset system to transfer files
-#if 0
-    if(cn < 0)
-    {
-#ifdef STANDALONE
-        return NULL;
-#endif
-    }
-    else if(!clients.inrange(cn)) return NULL;
-
-    int len = file->size();
-    if(len <= 0) return NULL;
-
-    packetbuf p(MAXTRANS+len, ENET_PACKET_FLAG_RELIABLE);
-    va_list args;
-    va_start(args, format);
-    while(*format) switch(*format++)
-    {
-        case 'i':
-        {
-            int n = isdigit(*format) ? *format++-'0' : 1;
-            loopi(n) putint(p, va_arg(args, int));
-            break;
-        }
-        case 's': sendstring(va_arg(args, const char *), p); break;
-        case 'l': putint(p, len); break;
-    }
-    va_end(args);
-
-    file->seek(0, SEEK_SET);
-    file->read(p.subbuf(len).buf, len);
-
-    ENetPacket *packet = p.finalize();
-    if(cn >= 0) sendpacket(cn, chan, packet, -1);
-#ifndef STANDALONE
-    else sendclientpacket(packet, chan);
-#endif
-    return packet->referenceCount > 0 ? packet : NULL;
-#endif
-    return NULL; // quaker66: deprecated function, for now make msvc compile this (must return)
-}
-
 const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked/banned", "tag type", "ip is banned", "server is in private mode", "server FULL", "connection timed out", "overflow" };
 
 void disconnect_client(int n, int reason)
@@ -554,7 +510,7 @@ void force_network_flush()
 {
     if (!serverhost)
     {
-        Logging::log(Logging::ERROR, "Trying to force_flush, but no serverhost yet\r\n");
+        logger::log(logger::ERROR, "Trying to force_flush, but no serverhost yet\r\n");
         return;
     }
 
@@ -640,7 +596,7 @@ bool setuplistenserver(bool dedicated)
         // of the sort that standby mode is meant to prevent, but standby does not protect from this.
         // So, just wait to be manually restarted.
         //return servererror(dedicated, "could not create server host");
-        Logging::log(Logging::ERROR, "***!!! could not create server host (awaiting manual restart) !!!***");
+        logger::log(logger::ERROR, "***!!! could not create server host (awaiting manual restart) !!!***");
         return false;
     }
     loopi(maxclients) serverhost->peers[i].data = NULL;
@@ -797,18 +753,18 @@ int main(int argc, char **argv)
         }
         else gameargs.add(argv[i]);
     }
-    Logging::init(loglevel);
+    logger::setlevel(loglevel);
 
     if (!map_asset)
     {
-        Logging::log(Logging::ERROR, "No map asset to run. Shutting down.");
+        logger::log(logger::ERROR, "No map asset to run. Shutting down.");
         return 1;
     }
 
     lua::engine.create();
     server_init();
 
-    Logging::log(Logging::DEBUG, "Running first slice.\n");
+    logger::log(logger::DEBUG, "Running first slice.\n");
     server_runslice();
 
     int servermillis = time(0) * 1000;
@@ -824,13 +780,13 @@ int main(int argc, char **argv)
 
         if (map_asset)
         {
-            Logging::log(Logging::DEBUG, "Setting map to %s ..\n", map_asset);
+            logger::log(logger::DEBUG, "Setting map to %s ..\n", map_asset);
             world::set_map(map_asset);
             map_asset = NULL;
         }
     }
 
-    Logging::log(Logging::WARNING, "Stopping main server.");
+    logger::log(logger::WARNING, "Stopping main server.");
     var::flush();
 
     return 0;

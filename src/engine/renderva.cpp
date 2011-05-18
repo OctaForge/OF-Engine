@@ -1,6 +1,7 @@
 // renderva.cpp: handles the occlusion and rendering of vertex arrays
 
 #include "engine.h"
+#include "of_entities.h"
 
 static inline void drawtris(GLsizei numindices, const GLvoid *indices, ushort minvert, ushort maxvert)
 {
@@ -395,17 +396,11 @@ extern bool getentboundingbox(extentity &e, ivec &o, ivec &r);
 
 void rendermapmodel(extentity &e)
 {
-#if 0 // INTENSITY: Use new systems
-    int anim = ANIM_MAPMODEL|ANIM_LOOP, basetime = 0;
-    if(e.flags&extentity::F_ANIM) entities::animatemapmodel(e, anim, basetime);
-    mapmodelinfo &mmi = getmminfo(e.attr2);
-    if(&mmi) rendermodel(&e.light, mmi.name, anim, e.o, (float)((e.attr1+7)-(e.attr1+7)%15), 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
-#else
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     if (!entity || entity->isNone())
     {
-        Logging::log(Logging::ERROR, "Trying to show a missing mapmodel\r\n");
-        Logging::log(Logging::ERROR, "                                  %d\r\n", LogicSystem::getUniqueId(&e));
+        logger::log(logger::ERROR, "Trying to show a missing mapmodel\r\n");
+        logger::log(logger::ERROR, "                                  %d\r\n", LogicSystem::getUniqueId(&e));
         assert(0);
     }
     int anim     = entity->getAnimation(); // ANIM_MAPMODEL|ANIM_LOOP
@@ -416,7 +411,6 @@ void rendermapmodel(extentity &e)
     // Kripken: MDL_SHADOW is necessary for getting shadows for a mapmodel. Note however the notes in fpsrender.h, that isn't enough.
     if(theModel)
         rendermodel(&e.light, theModel->name(), anim, e.o, entity, (float)((e.attr1+7)-(e.attr1+7)%15), 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
-#endif
 }
 
 extern int& reflectdist;
@@ -425,8 +419,6 @@ vtxarray *reflectedva;
 
 void renderreflectedmapmodels()
 {
-    const vector<extentity *> &ents = entities::getents();
-
     octaentities *mms = visiblemms;
     if(reflecting)
     {
@@ -449,7 +441,7 @@ void renderreflectedmapmodels()
         if(isfoggedcube(oe->o, oe->size)) continue;
         loopv(oe->mapmodels)
         {
-           extentity &e = *ents[oe->mapmodels[i]];
+           extentity &e = *entities::storage[oe->mapmodels[i]];
            if(e.visible || e.flags&extentity::F_NOVIS) continue;
            e.visible = true;
         }
@@ -461,7 +453,7 @@ void renderreflectedmapmodels()
         {
             loopv(oe->mapmodels)
             {
-                extentity &e = *ents[oe->mapmodels[i]];
+                extentity &e = *entities::storage[oe->mapmodels[i]];
                 if(!e.visible) continue;
                 rendermapmodel(e);
                 e.visible = false;
@@ -473,11 +465,9 @@ void renderreflectedmapmodels()
 
 void rendermapmodels()
 {
-    const vector<extentity *> &ents = entities::getents();
-
     visiblemms = NULL;
     lastvisiblemms = &visiblemms;
-    findvisiblemms(ents);
+    findvisiblemms(entities::storage);
 
     static int skipoq = 0;
     bool doquery = hasOQ && oqfrags && oqmm;
@@ -488,7 +478,7 @@ void rendermapmodels()
         bool rendered = false;
         loopv(oe->mapmodels)
         {
-            extentity &e = *ents[oe->mapmodels[i]];
+            extentity &e = *entities::storage[oe->mapmodels[i]];
             if(!e.visible) continue;
             if(!rendered)
             {

@@ -66,7 +66,7 @@ namespace lua_binds
 {
     /* Logging Lua namespace */
 
-    LUA_BIND_DEF(log, Logging::log((Logging::Level)e.get<int>(1), "%s\n", e.get<const char*>(2));)
+    LUA_BIND_DEF(log, logger::log((logger::loglevel)e.get<int>(1), "%s\n", e.get<const char*>(2));)
 
     LUA_BIND_DEF(echo, conoutf("\f1%s", e.get<const char*>(1));)
 
@@ -211,7 +211,7 @@ namespace lua_binds
         if (!ev) return;
         if ((ev->flags&var::VAR_READONLY) != 0)
         {
-            Logging::log(Logging::ERROR, "Variable %s is read-only.\n", ev->name);
+            logger::log(logger::ERROR, "Variable %s is read-only.\n", ev->name);
             return;
         }
         switch (ev->type)
@@ -234,7 +234,7 @@ namespace lua_binds
         {
             case var::VAR_I:
             {
-                if ((ev->flags&var::VAR_HEX) != 0)
+                /*if ((ev->flags&var::VAR_HEX) != 0)
                 {
                     char buf[32];
                     snprintf(
@@ -247,7 +247,8 @@ namespace lua_binds
                     );
                     e.push(buf);
                 }
-                else e.push(ev->curv.i);
+                else e.push(ev->curv.i);*/
+                e.push(ev->curv.i);
                 break;
             }
             case var::VAR_F: e.push(ev->curv.f); break;

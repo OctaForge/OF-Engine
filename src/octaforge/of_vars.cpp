@@ -123,6 +123,7 @@ namespace var
 
         minv.i = maxv.i = -1;
         oldv.i = curv.i = v;
+        vfun   = NULL;
     }
 
     cvar::cvar(
@@ -136,6 +137,7 @@ namespace var
 
         minv.f = maxv.f = -1.0f;
         oldv.f = curv.f = v;
+        vfun   = NULL;
     }
 
     cvar::cvar(
@@ -149,6 +151,7 @@ namespace var
 
         curv.s = (v ? newstring(v) : NULL);
         oldv.s = NULL;
+        vfun   = NULL;
     }
 
     cvar::~cvar()
@@ -170,8 +173,8 @@ namespace var
 
         if (_clamp && (v < minv.i || v > maxv.i) && (flags&VAR_ALIAS) == 0)
         {
-            Logging::log(
-                Logging::ERROR,
+            logger::log(
+                logger::ERROR,
                 "Variable %s only accepts values of range %i to %i.\n",
                 name, minv.i, maxv.i
             );
@@ -190,8 +193,8 @@ namespace var
         }
         if (_clamp && (v < minv.f || v > maxv.f) && (flags&VAR_ALIAS) == 0)
         {
-            Logging::log(
-                Logging::ERROR,
+            logger::log(
+                logger::ERROR,
                 "Variable %s only accepts values of range %f to %f.\n",
                 name, minv.f, maxv.f
             );

@@ -183,8 +183,8 @@ void send_%s(%s);
 
             if direction == "client->server":
                 send = send + """
-        Logging::log(Logging::DEBUG, "Sending a message of type %s (%s)\\r\\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type %s (%s)\\r\\n");
+        INDENT_LOG(logger::DEBUG);
 
         game::addmsg(%s, "%s%s", """ % (name, type_code, type_code, 'r' if reliable else '', param_string)
             else:
@@ -202,8 +202,8 @@ void send_%s(%s);
                     1/0.
                 
                 send = """
-        Logging::log(Logging::DEBUG, "Sending a message of type %s (%s)\\r\\n");
-        INDENT_LOG(Logging::DEBUG);
+        logger::log(logger::DEBUG, "Sending a message of type %s (%s)\\r\\n");
+        INDENT_LOG(logger::DEBUG);
 
          %s
 
@@ -235,7 +235,7 @@ void send_%s(%s);
 #endif
             {
                 #ifdef SERVER
-                    Logging::log(Logging::DEBUG, "Sending to %%d (%%d) ((%%d))\\r\\n", clientNumber, testUniqueId, serverControlled);
+                    logger::log(logger::DEBUG, "Sending to %%d (%%d) ((%%d))\\r\\n", clientNumber, testUniqueId, serverControlled);
                 #endif
                 sendf(clientNumber, MAIN_CHANNEL, "%si%s", %s, """ % (name, type_code, send, dummy_server_string, all_npcs_string, 'r' if reliable else '', param_string, type_code)
 
@@ -277,7 +277,7 @@ void send_%s(%s);
         getstring(%s, p);
 """ % (param_name, param_name)
 
-            receive = '        Logging::log(Logging::DEBUG, "MessageSystem: Receiving a message of type %s (%s)\\r\\n");\n\n' % (name, type_code) + temp_receive + '\n' + receive;
+            receive = '        logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type %s (%s)\\r\\n");\n\n' % (name, type_code) + temp_receive + '\n' + receive;
 
             # Write out send and receive
 

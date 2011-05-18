@@ -3,6 +3,7 @@
 #include "engine.h"
 
 #include "client_engine_additions.h" // INTENSITY
+#include "of_tools.h"
 
 vector<cline> conlines;
 
@@ -308,7 +309,7 @@ struct hline
 
     void run()
     {
-        if(action)
+        if (action)
         {
             var::cvar *ev = var::get("commandbuf");
             if (!ev)
@@ -318,7 +319,65 @@ struct hline
             else ev->set(buf, false);
             lua::engine.exec(action);
         }
-        else if(buf[0]=='/') lua::engine.exec(buf+1);
+        else if (buf[0] == '/')
+        {
+            if  (buf[1] == '/')
+                lua::engine.exec(buf + 2);
+            else
+            {
+                if (strchr(buf, '='))
+                {
+                    lua::engine.exec(buf + 1);
+                    return;
+                }
+
+                char *str = newstring(buf + 1);
+                char *tok = strtok(str, " ");
+                char *cmd = tools::vstrcat("ss", tok, "(");
+
+                tok = strtok(NULL, " ");
+
+                bool first = true;
+                while (tok)
+                {
+                    if ((tok[0] == '\"' || tok[0] == '\'')
+                     && (tok[strlen(tok) - 1] != '\"' && tok[strlen(tok) - 1] != '\''))
+                    {
+                        tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
+
+                        if ((tok = strtok(NULL, " ")))
+                             tools::vstrcat(cmd, "s", " ");
+
+                        while (tok)
+                        {
+                            tools::vstrcat(cmd, "s", tok);
+
+                            if (tok[strlen(tok) - 1] == '\"' || tok[strlen(tok) - 1] == '\'')
+                                break;
+                            else
+                                tools::vstrcat(cmd, "s", " ");
+
+                            tok = strtok(NULL, " ");
+                        }
+
+                        if (!tok) break;
+                        if (!(tok = strtok(NULL, " "))) break;
+                    }
+                    else
+                    {
+                        tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
+                        tok = strtok(NULL, " ");
+                    }
+                    first = false;
+                }
+
+                tools::vstrcat(cmd, "s", ")");
+                lua::engine.exec(cmd);
+
+                delete[] cmd;
+                delete[] str;
+            }
+        }
         else game::toserver(buf);
     }
 };

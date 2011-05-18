@@ -12,6 +12,7 @@
     #include "client_system.h"
 #endif
 
+#include "of_entities.h"
 
 #ifdef CLIENT
 void TargetingControl::setupOrientation()
@@ -80,7 +81,7 @@ void TargetingControl::intersectClosestMapmodel(vec &from, vec &to, float& dist,
     dist = rayent(from, unitv, 1000.0f, RAY_CLIPMAT|RAY_ALPHAPOLY/*was: RAY_ENTS*/, 0, orient, ent); // TODO: maxdist, or 1000.0f...?
 
     if (ent != -1)
-        target = entities::getents()[ent];
+        target = entities::storage[ent];
     else
     {
         target = NULL;
@@ -94,10 +95,10 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
 
     // Check if Sauer already found us hovering on an entity
     // Note that we will be -1 if no entity, or we might be too high, if enthover is outdated
-    if (entities::getents().inrange(enthover))
+    if (entities::storage.inrange(enthover))
     {
         dist = -7654; // TODO: Calculate
-        entity = LogicSystem::getLogicEntity(*entities::getents()[enthover]);
+        entity = LogicSystem::getLogicEntity(*entities::storage[enthover]);
     } else {
         // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
         CLogicEntity *ignore = (fpsent*)targeter ? LogicSystem::getLogicEntity(targeter) : NULL;
@@ -148,7 +149,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 
     TargetingControl::worldPosition = worldpos;
 
-    if (Logging::shouldShow(Logging::INFO))
+    if (logger::should_log(logger::INFO))
         particle_splash(0, 50, 100, TargetingControl::worldPosition); // Kripken: Show some sparkles where the mouse points - for debug
 
     if (!useMouseTargeting && !editmode && !forceEntityCheck)
@@ -232,7 +233,7 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
 
     fpsent* fpsEntity = (fpsent*)entity;
 
-    Logging::log(Logging::INFO, "physicsframe() lastmillis: %d  curtime: %d  lastphysframe: %d\r\n", lastmillis, curtime, fpsEntity->lastphysframe);
+    logger::log(logger::INFO, "physicsframe() lastmillis: %d  curtime: %d  lastphysframe: %d\r\n", lastmillis, curtime, fpsEntity->lastphysframe);
 
     // If no previous physframe - this is the first time - then don't bother
     // running physics, wait for that first frame. Or else we might run
@@ -261,11 +262,11 @@ void TargetingControl::calcPhysicsFrames(physent *entity)
 
     if (fpsEntity->physsteps * fpsEntity->physframetime > 2000)
     {
-        Logging::log(Logging::WARNING, "Trying to run over 2 seconds of physics prediction at once for %d: %d/%d (%d fps) (diff: %d ; %d, %d). Aborting physics for this round.\r\n", fpsEntity->uniqueId, fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff, lastmillis, fpsEntity->lastphysframe - (fpsEntity->physsteps * fpsEntity->physframetime));
+        logger::log(logger::WARNING, "Trying to run over 2 seconds of physics prediction at once for %d: %d/%d (%d fps) (diff: %d ; %d, %d). Aborting physics for this round.\r\n", fpsEntity->uniqueId, fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff, lastmillis, fpsEntity->lastphysframe - (fpsEntity->physsteps * fpsEntity->physframetime));
         fpsEntity->physsteps = 1; // If we had a ton of physics to run - like, say, after 19 seconds of lightmap calculations -
                                   // then just give up, don't run all that physics, do just one frame. Back to normal next time, after all.
     }
 
-    Logging::log(Logging::INFO, "physicsframe() Decided on physframetime/physsteps: %d/%d (%d fps) (diff: %d)\r\n", fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff);
+    logger::log(logger::INFO, "physicsframe() Decided on physframetime/physsteps: %d/%d (%d fps) (diff: %d)\r\n", fpsEntity->physframetime, fpsEntity->physsteps, 1000/fpsEntity->physframetime, diff);
 }
 

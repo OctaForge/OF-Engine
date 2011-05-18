@@ -1,6 +1,6 @@
 /*
- * of_tools.h, version 1
- * Various utilities for OctaForge engine (header)
+ * of_entities.cpp, version 1
+ * Entity management for OctaForge engine.
  *
  * author: q66 <quaker66@gmail.com>
  * license: MIT/X11
@@ -27,28 +27,30 @@
  *
  */
 
-#ifndef OF_TOOLS_H
-#define OF_TOOLS_H
+#include "cube.h"
 
-namespace tools
+namespace entities
 {
-    bool  valanumeric(const char *str, const char *allow);
-    bool  valrpath(const char *path);
+    const char *entity_names[] = {
+        "none?", "light",
+        "mapmodel", "playerstart",
+        "envmap", "particles",
+        "sound", "spotlight"
+    };
+    vector<extentity*> storage;
 
-    bool  fnewer(const char *file, const char *otherfile);
-    bool  fcopy(const char *src, const char *dest);
+    void clear()
+    {
+        while (storage.length())
+            delete storage.pop();
+    }
 
-    bool  mkpath(const char *path);
-    char *sread(const char *fname);
+    const char *getname(int idx)
+    {
+        return (idx >= 0 && (size_t)idx
+                < (sizeof(entity_names)
+                 / sizeof(entity_names[0])
+                )) ? entity_names[idx] : "";
+    }
 
-    void  writecfg(const char *name = NULL);
-    bool  execcfg(const char *cfgfile);
-
-    bool  vstrcat(char *&str, const char *format, va_list args);
-    bool  vstrcat(char *&str, const char *format, ...);
-    char *vstrcat(const char *format, ...);
-
-    int   currtime();
 } /* end namespace tools */
-
-#endif
