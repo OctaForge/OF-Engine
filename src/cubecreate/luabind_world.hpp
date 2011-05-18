@@ -145,7 +145,7 @@ namespace lua_binds
 
     // TODO: REMOVE THESE
     #define addimplicit(f)  { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }
-    #define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &ent = *entities::getents()[n]; f; } }
+    #define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &ent = *entities::storage[n]; f; } }
     #define entedit(i, f) \
     { \
         entfocus(i, \
@@ -155,7 +155,7 @@ namespace lua_binds
         if(oldtype!=ent.type) detachentity(ent); \
         if(ent.type!=ET_EMPTY) { addentity(n); if(oldtype!=ent.type) attachentity(ent); }) \
     }
-    #define addgroup(exp)   { loopv(entities::getents()) entfocus(i, if(exp) entadd(n)); }
+    #define addgroup(exp)   { loopv(entities::storage) entfocus(i, if(exp) entadd(n)); }
     #define setgroup(exp)   { entcancel(); addgroup(exp); }
     #define groupeditloop(f){ entlooplevel++; int _ = efocus; loopv(entgroup) entedit(entgroup[i], f); efocus = _; entlooplevel--; }
     #define groupeditpure(f){ if(entlooplevel>0) { entedit(efocus, f); } else groupeditloop(f); }

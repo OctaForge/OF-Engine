@@ -181,13 +181,8 @@ void gl_checkextensions()
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
     const char *renderer = (const char *)glGetString(GL_RENDERER);
     const char *version = (const char *)glGetString(GL_VERSION);
-#if 0 // INTENSITY: Do not clutter console, just printf
-    conoutf(CON_INIT, "Renderer: %s (%s)", renderer, vendor);
-    conoutf(CON_INIT, "Driver: %s", version);
-#else
     printf("Renderer: %s (%s)\r\n", renderer, vendor);
     printf("Driver: %s\r\n", version);
-#endif
 
 #ifdef __APPLE__
     extern int mac_osversion();
@@ -714,11 +709,7 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     else renderpath = R_GLSLANG;
 
     static const char * const rpnames[4] = { "fixed-function", "GLSL shader" };
-#if 0 // INTENSITY - JUST PRINTF
-    conoutf(CON_INIT, "Rendering using the OpenGL %s path.", rpnames[renderpath]);
-#else
     printf("Rendering using the OpenGL %s path.", rpnames[renderpath]);
-#endif
 
     inittmus();
     setuptexcompress();
@@ -745,16 +736,7 @@ vec worldpos, camdir, camright, camup;
 
 void findorientation()
 {
-#if 0 // INTENSITY
-    vecfromyawpitch(camera1->yaw, camera1->pitch, 1, 0, camdir);
-    vecfromyawpitch(camera1->yaw, 0, 0, -1, camright);
-    vecfromyawpitch(camera1->yaw, camera1->pitch+90, 1, 0, camup);
-
-    if(raycubepos(camera1->o, camdir, worldpos, 0, RAY_CLIPMAT|RAY_SKIPFIRST) == -1)
-        worldpos = vec(camdir).mul(2*worldsize).add(camera1->o); //otherwise 3dgui won't work when outside of map
-#else
     TargetingControl::setupOrientation();
-#endif
 }
 
 void transplayer()
@@ -928,18 +910,7 @@ void recomputecamera()
         camera1->move = -1;
         camera1->eyeheight = camera1->aboveeye = camera1->radius = camera1->xradius = camera1->yradius = 2;
 
-#if 0 // INTENSITY: Use our own camera positioning
-        vec dir;
-        vecfromyawpitch(camera1->yaw, camera1->pitch, -1, 0, dir);
-        if(game::collidecamera()) 
-        {
-            movecamera(camera1, dir, thirdpersondistance, 1);
-            movecamera(camera1, dir, clamp(thirdpersondistance - camera1->o.dist(player->o), 0.0f, 1.0f), 0.1f);
-        }
-        else camera1->o.add(vec(dir).mul(thirdpersondistance));
-#else
         CameraControl::positionCamera(camera1);
-#endif
     }
 
     setviewcell(camera1->o);

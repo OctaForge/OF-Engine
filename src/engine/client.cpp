@@ -60,7 +60,6 @@ const ENetAddress *connectedpeer()
 void abortconnect()
 {
     if(!connpeer) return;
-    game::connectfail();
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
     if(curpeer) return;
@@ -112,8 +111,6 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
         enet_host_flush(clienthost);
         connmillis = totalmillis;
         connattempts = 0;
-
-        game::connectattempt(servername ? servername : "", serverpassword ? serverpassword : "", address);
     }
     else conoutf("\f3could not connect to server");
 }

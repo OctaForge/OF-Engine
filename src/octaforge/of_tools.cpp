@@ -28,7 +28,6 @@
  */
 
 #include "cube.h"
-#include "of_tools.h"
 #include "of_world.h"
 #include <sys/stat.h>
 

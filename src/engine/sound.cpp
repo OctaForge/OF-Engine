@@ -1,6 +1,7 @@
 // sound.cpp: basic positional sound using sdl_mixer
 
 #include "engine.h"
+#include "of_entities.h"
 
 #include "SDL_mixer.h"
 #define MAXVOL MIX_MAX_VOLUME
@@ -303,7 +304,6 @@ VARR(uwambient, 0, 0, 1);
 
 void checkmapsounds()
 {
-    const vector<extentity *> &ents = entities::getents();
     if(lookupmaterial(camera1->o)==MAT_WATER && uwambient) // SAUER ENHANCED start - underwater sound
     {
         if(waterchan==-1) waterchan = playsound(6, NULL, NULL, -1, NULL, NULL, waterchan);
@@ -313,9 +313,9 @@ void checkmapsounds()
         stopsound(6, waterchan);
         waterchan = -1;
     } // SAUER ENHANCED end
-    loopv(ents)
+    loopv(entities::storage)
     {
-        extentity &e = *ents[i];
+        extentity &e = *entities::storage[i];
         if(e.type!=ET_SOUND) continue;
         if(camera1->o.dist(e.o) < e.attr2)
         {

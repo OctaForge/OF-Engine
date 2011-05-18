@@ -12,6 +12,7 @@
     #include "client_system.h"
 #endif
 
+#include "of_entities.h"
 
 #ifdef CLIENT
 void TargetingControl::setupOrientation()
@@ -80,7 +81,7 @@ void TargetingControl::intersectClosestMapmodel(vec &from, vec &to, float& dist,
     dist = rayent(from, unitv, 1000.0f, RAY_CLIPMAT|RAY_ALPHAPOLY/*was: RAY_ENTS*/, 0, orient, ent); // TODO: maxdist, or 1000.0f...?
 
     if (ent != -1)
-        target = entities::getents()[ent];
+        target = entities::storage[ent];
     else
     {
         target = NULL;
@@ -94,10 +95,10 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
 
     // Check if Sauer already found us hovering on an entity
     // Note that we will be -1 if no entity, or we might be too high, if enthover is outdated
-    if (entities::getents().inrange(enthover))
+    if (entities::storage.inrange(enthover))
     {
         dist = -7654; // TODO: Calculate
-        entity = LogicSystem::getLogicEntity(*entities::getents()[enthover]);
+        entity = LogicSystem::getLogicEntity(*entities::storage[enthover]);
     } else {
         // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
         CLogicEntity *ignore = (fpsent*)targeter ? LogicSystem::getLogicEntity(targeter) : NULL;

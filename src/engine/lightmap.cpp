@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "of_entities.h"
 
 #define MAXLIGHTMAPTASKS 4096
 #define LIGHTMAPBUFSIZE (2*1024*1024)
@@ -922,7 +923,7 @@ VARF(lightcachesize, 4, 6, 12, clearlightcache());
 
 void clearlightcache(int e)
 {
-    if(e < 0 || !entities::getents()[e]->attr1)
+    if(e < 0 || !entities::storage[e]->attr1)
     {
         for(lightcacheentry *lce = lightcache; lce < &lightcache[LIGHTCACHESIZE]; lce++)
         {
@@ -932,7 +933,7 @@ void clearlightcache(int e)
     }
     else
     {
-        const extentity &light = *entities::getents()[e];
+        const extentity &light = *entities::storage[e];
         int radius = light.attr1;
         for(int x = int(max(light.o.x-radius, 0.0f))>>lightcachesize, ex = int(min(light.o.x+radius, worldsize-1.0f))>>lightcachesize; x <= ex; x++)
         for(int y = int(max(light.o.y-radius, 0.0f))>>lightcachesize, ey = int(min(light.o.y+radius, worldsize-1.0f))>>lightcachesize; y <= ey; y++)
@@ -954,10 +955,9 @@ const vector<int> &checklightcache(int x, int y)
 
     lce.lights.setsize(0);
     int csize = 1<<lightcachesize, cx = x<<lightcachesize, cy = y<<lightcachesize;
-    const vector<extentity *> &ents = entities::getents();
-    loopv(ents)
+    loopv(entities::storage)
     {
-        const extentity &light = *ents[i];
+        const extentity &light = *entities::storage[i];
         switch(light.type)
         {
             case ET_LIGHT:
@@ -1008,7 +1008,6 @@ static inline void addlight(lightmapworker *w, const extentity &light, int cx, i
 static bool findlights(lightmapworker *w, int cx, int cy, int cz, int size, const vec *v, const vec *n, const Slot &slot, const VSlot &vslot)
 {
     w->lights.setsize(0);
-    const vector<extentity *> &ents = entities::getents();
     static volatile bool usinglightcache = false;
     if(size <= 1<<lightcachesize && (!lightlock || !usinglightcache))
     {
@@ -1016,7 +1015,7 @@ static bool findlights(lightmapworker *w, int cx, int cy, int cz, int size, cons
         const vector<int> &lights = checklightcache(cx, cy);
         loopv(lights)
         {
-            const extentity &light = *ents[lights[i]];
+            const extentity &light = *entities::storage[lights[i]];
             switch(light.type)
             {
                 case ET_LIGHT: addlight(w, light, cx, cy, cz, size, v, n); break;
@@ -1024,9 +1023,9 @@ static bool findlights(lightmapworker *w, int cx, int cy, int cz, int size, cons
         }
         if(lightlock) { usinglightcache = false; SDL_UnlockMutex(lightlock); }
     }
-    else loopv(ents)
+    else loopv(entities::storage)
     {
-        const extentity &light = *ents[i];
+        const extentity &light = *entities::storage[i];
         switch(light.type)
         {
             case ET_LIGHT: addlight(w, light, cx, cy, cz, size, v, n); break;
@@ -2270,10 +2269,9 @@ bool brightengeom = false;
 void clearlights()
 {
     clearlightcache();
-    const vector<extentity *> &ents = entities::getents();
-    loopv(ents)
+    loopv(entities::storage)
     {
-        extentity &e = *ents[i];
+        extentity &e = *entities::storage[i];
         e.light.color = vec(1, 1, 1);
         e.light.dir = vec(0, 0, 1);
     }
@@ -2287,22 +2285,19 @@ void clearlights()
 void lightent(extentity &e, float height)
 {
     if(e.type==ET_LIGHT) return;
-    float ambient = 0.0f;
     if(e.type==ET_MAPMODEL)
     {
         CLogicEntity *entity = LogicSystem::getLogicEntity(e); // INTENSITY
-        model *m = entity ? entity->getModel() : NULL; // INTENSITY
-        if(m) height = m->above()*0.75f;
+        model *m = entity ? entity->getModel() : NULL;
+        if (m) height = m->above()*0.75f;
     }
-    else if(e.type>=ET_GAMESPECIFIC) ambient = 0.4f;
     vec target(e.o.x, e.o.y, e.o.z + height);
-    lightreaching(target, e.light.color, e.light.dir, false, &e, ambient);
+    lightreaching(target, e.light.color, e.light.dir, false, &e, 0);
 }
 
 void updateentlighting()
 {
-    const vector<extentity *> &ents = entities::getents();
-    loopv(ents) lightent(*ents[i]);
+    loopv(entities::storage) lightent(*entities::storage[i]);
 }
 
 void initlights()
@@ -2357,11 +2352,10 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
     }
 
     color = dir = vec(0, 0, 0);
-    const vector<extentity *> &ents = entities::getents();
     const vector<int> &lights = checklightcache(int(target.x), int(target.y));
     loopv(lights)
     {
-        extentity &e = *ents[lights[i]];
+        extentity &e = *entities::storage[lights[i]];
         if(e.type != ET_LIGHT)
             continue;
     
@@ -2419,13 +2413,12 @@ entity *brightestlight(const vec &target, const vec &dir)
 {
     if(sunlight && sunlightdir.dot(dir) > 0 && shadowray(target, sunlightdir, 1e16f, RAY_SHADOW | RAY_POLY | (skytexturelight ? RAY_SKIPSKY : 0)) > 1e15f)
         return &sunlightent;
-    const vector<extentity *> &ents = entities::getents();
     const vector<int> &lights = checklightcache(int(target.x), int(target.y));
     extentity *brightest = NULL;
     float bintensity = 0;
     loopv(lights)
     {
-        extentity &e = *ents[lights[i]];
+        extentity &e = *entities::storage[lights[i]];
         if(e.type != ET_LIGHT || vec(e.o).sub(target).dot(dir)<0)
             continue;
 

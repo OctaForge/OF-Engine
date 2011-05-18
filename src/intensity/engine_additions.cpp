@@ -10,6 +10,7 @@
 #include "client_system.h"
 #include "world_system.h"
 #include "of_tools.h"
+#include "of_entities.h"
 
 using namespace lua;
 
@@ -551,10 +552,8 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
     logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4);
     INDENT_LOG(logger::DEBUG);
 
-    vector<extentity *> &ents = entities::getents();
-
-    extentity &e = *(entities::newentity());
-    ents.add(&e);
+    extentity &e = *(new extentity);
+    entities::storage.add(&e);
 
     e.type  = type;
     e.o     = vec(x,y,z);
@@ -563,7 +562,7 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
     e.attr3 = attr3;
     e.attr4 = attr4;
 
-    e.inoctanode = false; // This is not set by the constructor in sauer, but by those calling ::newentity(), so we also do that here
+    e.inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
 
     // If this is a new ent for this map - i.e., we are not currently loading the map - then we must
     // do some inserting into the octaworld.
@@ -664,7 +663,7 @@ void LogicSystem::dismantleExtent(int ref)
     removeentity(extent);
     extent->type = ET_EMPTY;
 
-//    entities::deleteentity(extent); extent = NULL; // For symmetry with the newentity() this should be here, but sauer does it
+//    delete extent; extent = NULL; // For symmetry with the "new extentity" this should be here, but sauer does it
                                                      // in clearents() in the next load_world.
 }
 

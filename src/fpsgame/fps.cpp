@@ -94,14 +94,9 @@ namespace game
         return buf;
     }
 
-    void resetgamestate()
-    {
-    }
-
     fpsent *spawnstate(fpsent *d)              // reset player state not persistent accross spawns
     {
         d->respawn();
-        d->spawnstate(gamemode);
         return d;
     }
 
@@ -200,12 +195,6 @@ namespace game
             #endif
 
             logger::log(logger::INFO, "otherplayers: moving %d from %f,%f,%f\r\n", d->uniqueId, d->o.x, d->o.y, d->o.z);
-
-            if(d->state==CS_ALIVE)
-            {
-                if(lastmillis - d->lastaction >= d->gunwait) d->gunwait = 0; 
-//                if(d->quadmillis) et.checkquad(curtime, d);
-            }
 
             // TODO: Currently serverside physics for otherplayers run like clientside physics - if
             // there is *ANY* lag, run physics. But we can probably save a lot of CPU on the server

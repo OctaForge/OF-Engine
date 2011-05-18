@@ -36,9 +36,8 @@ namespace server
     {
     };
 
-    struct gamestate : fpsstate
+    struct gamestate
     {
-        vec o;
         int state, editstate;
         int lifesequence;
 
@@ -48,13 +47,6 @@ namespace server
         {
             if(state!=CS_SPECTATOR) state = editstate = CS_DEAD;
             lifesequence = 0;
-            respawn();
-        }
-
-        void respawn()
-        {
-            fpsstate::respawn();
-            o = vec(-1e10f, -1e10f, -1e10f);
         }
     };
 
@@ -211,7 +203,6 @@ namespace server
     void spawnstate(clientinfo *ci)
     {
         gamestate &gs = ci->state;
-        gs.spawnstate(gamemode);
         gs.lifesequence++;
     }
 

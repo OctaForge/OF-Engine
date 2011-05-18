@@ -1,6 +1,7 @@
 // renderva.cpp: handles the occlusion and rendering of vertex arrays
 
 #include "engine.h"
+#include "of_entities.h"
 
 static inline void drawtris(GLsizei numindices, const GLvoid *indices, ushort minvert, ushort maxvert)
 {
@@ -418,8 +419,6 @@ vtxarray *reflectedva;
 
 void renderreflectedmapmodels()
 {
-    const vector<extentity *> &ents = entities::getents();
-
     octaentities *mms = visiblemms;
     if(reflecting)
     {
@@ -442,7 +441,7 @@ void renderreflectedmapmodels()
         if(isfoggedcube(oe->o, oe->size)) continue;
         loopv(oe->mapmodels)
         {
-           extentity &e = *ents[oe->mapmodels[i]];
+           extentity &e = *entities::storage[oe->mapmodels[i]];
            if(e.visible || e.flags&extentity::F_NOVIS) continue;
            e.visible = true;
         }
@@ -454,7 +453,7 @@ void renderreflectedmapmodels()
         {
             loopv(oe->mapmodels)
             {
-                extentity &e = *ents[oe->mapmodels[i]];
+                extentity &e = *entities::storage[oe->mapmodels[i]];
                 if(!e.visible) continue;
                 rendermapmodel(e);
                 e.visible = false;
@@ -466,11 +465,9 @@ void renderreflectedmapmodels()
 
 void rendermapmodels()
 {
-    const vector<extentity *> &ents = entities::getents();
-
     visiblemms = NULL;
     lastvisiblemms = &visiblemms;
-    findvisiblemms(ents);
+    findvisiblemms(entities::storage);
 
     static int skipoq = 0;
     bool doquery = hasOQ && oqfrags && oqmm;
@@ -481,7 +478,7 @@ void rendermapmodels()
         bool rendered = false;
         loopv(oe->mapmodels)
         {
-            extentity &e = *ents[oe->mapmodels[i]];
+            extentity &e = *entities::storage[oe->mapmodels[i]];
             if(!e.visible) continue;
             if(!rendered)
             {

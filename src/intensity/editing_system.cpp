@@ -15,6 +15,7 @@
 #include "targeting.h"
 #include "client_system.h"
 #include "of_tools.h"
+#include "of_entities.h"
 
 #include <set>
 #include <algorithm>
@@ -311,8 +312,8 @@ void pushCubeCorner(int x, int y, int z, int gridsize, int face, int corner, int
 
 CLogicEntity *getSelectedEntity()
 {
-    if (!entities::getents().inrange(efocus)) return NULL;
-    extentity& e = *(entities::getents()[efocus]);
+    if (!entities::storage.inrange(efocus)) return NULL;
+    extentity& e = *(entities::storage[efocus]);
     return LogicSystem::getLogicEntity(e);
 }
 

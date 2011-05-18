@@ -232,16 +232,6 @@ namespace game
         }
     }
 
-#if 0
-    void sayteam(char *text)
-    {
-#ifdef CLIENT
-        conoutf(CON_TEAMCHAT, "%s:\f1 %s", colorname(player1), text);
-#endif
-        addmsg(N_SAYTEAM, "rs", text);
-    }
-#endif
-
     void sendposition(fpsent *d, bool reliable)
     {
         logger::log(logger::INFO, "sendposition?, %d)\r\n", curtime);
@@ -582,15 +572,6 @@ assert(0);
         }
     }
 
-    void connectattempt(const char *name, const char *password, const ENetAddress &address)
-    {
-        logger::log(logger::DEBUG, "Connect attempt\r\n");
-    }
-
-    void connectfail()
-    {
-    }
-
     void adddynlights()
     {
         #ifdef CLIENT
@@ -692,7 +673,5 @@ assert(0);
         // Note that we made changes
         EditingSystem::madeChanges = true;
     }
-
-    void forceedit(const char *name) { };
 };
 

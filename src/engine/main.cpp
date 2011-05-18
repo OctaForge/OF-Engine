@@ -190,16 +190,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         backgroundv = rndscale(1);
         detailu = rndscale(1);
         detailv = rndscale(1);
-#if 0 // INTENSITY: No decals
-        numdecals = sizeof(decals)/sizeof(decals[0]);
-        numdecals = numdecals/3 + rnd((numdecals*2)/3 + 1);
-        float maxsize = min(w, h)/16.0f;
-        loopi(numdecals)
-        {
-            decal d = { rndscale(w), rndscale(h), maxsize/2 + rndscale(maxsize/2), rnd(2) };
-            decals[i] = d;
-        }
-#endif
     }
     else if(lastupdate != lastmillis) lastupdate = lastmillis;
 
@@ -214,18 +204,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         glTexCoord2f(0,  bv); glVertex2f(0, h);
         glTexCoord2f(bu, bv); glVertex2f(w, h);
         glEnd();
-#if 0 // INTENSITY: No background detail
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_BLEND);
-        settexture("data/textures/ui/background_detail.png", 0);
-        float du = w*0.8f/512.0f + detailu, dv = h*0.8f/512.0f + detailv;
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0,  0);  glVertex2f(0, 0);
-        glTexCoord2f(du, 0);  glVertex2f(w, 0);
-        glTexCoord2f(0,  dv); glVertex2f(0, h);
-        glTexCoord2f(du, dv); glVertex2f(w, h);
-        glEnd();
-#endif
         settexture("data/textures/ui/background_decal.png", 3);
         glBegin(GL_QUADS);
         loopj(numdecals)

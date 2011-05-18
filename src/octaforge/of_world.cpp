@@ -31,8 +31,6 @@
 #include "of_tools.h"
 #include "game.h"
 
-#include "of_world.h"
-
 #ifdef WIN32
 #include "wuuid.h"
 #else
@@ -63,6 +61,19 @@ namespace world
         uuid_unparse (c, buf);
         return buf;
     }
+
+#ifdef SERVER
+    void send_curr_map(int cn)
+    {
+        if (!scenario_code) return;
+
+        send_NotifyAboutCurrentScenario(
+            cn,
+            curr_map_id,
+            scenario_code
+        );
+    }
+#endif
 
     bool set_map(const char *id)
     {
@@ -108,19 +119,6 @@ namespace world
     {
         return set_map(curr_map_id);
     }
-
-#ifdef SERVER
-    void send_curr_map(int cn)
-    {
-        if (!scenario_code) return;
-
-        send_NotifyAboutCurrentScenario(
-            cn,
-            curr_map_id,
-            scenario_code
-        );
-    }
-#endif
 
     void export_ents(const char *fname)
     {

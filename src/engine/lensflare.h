@@ -94,14 +94,13 @@ struct flarerenderer : partrenderer
 
         if(editmode || !flarelights) return;
 
-        const vector<extentity *> &ents = entities::getents();
         vec viewdir;
         vecfromyawpitch(camera1->yaw, camera1->pitch, 1, 0, viewdir);
         extern const vector<int> &checklightcache(int x, int y);
         const vector<int> &lights = checklightcache(int(camera1->o.x), int(camera1->o.y));
         loopv(lights)
         {
-            entity &e = *ents[lights[i]];
+            entity &e = *entities::storage[lights[i]];
             if(e.type != ET_LIGHT) continue;
             bool sun = (e.attr1==0);
             float radius = float(e.attr1);

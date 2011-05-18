@@ -40,7 +40,6 @@ set(CLIENT_SOURCES
     ../fpsgame/fps
     ../fpsgame/server
     ../fpsgame/client
-    ../fpsgame/entities
     ../fpsgame/render
     ../fpsgame/weapon
     ../shared/tools
@@ -88,6 +87,7 @@ set(CLIENT_SOURCES
     ../octaforge/of_localserver
     ../octaforge/of_world
     ../octaforge/of_logger
+    ../octaforge/of_entities
     ${EXTRA_SOURCES}
 )
 

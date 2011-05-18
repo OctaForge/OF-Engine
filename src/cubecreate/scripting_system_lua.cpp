@@ -53,6 +53,7 @@
 #include "of_tools.h"
 #include "of_localserver.h"
 #include "of_world.h"
+#include "of_entities.h"
 #include <algorithm>
 
 #include "scripting_system_lua_def.hpp"

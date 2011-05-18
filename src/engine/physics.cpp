@@ -12,6 +12,7 @@
 #ifdef CLIENT
     #include "client_engine_additions.h" // INTENSITY
 #endif
+#include "of_entities.h"
 
 
 const int MAXCLIPPLANES = 1024;
@@ -127,15 +128,13 @@ static float disttoent(octaentities *oc, octaentities *last, const vec &o, const
     int orient;
     float dist = 1e16f, f = 0.0f;
     if(oc == last) return dist;
-    const vector<extentity *> &ents = entities::getents();
-
     #define entintersect(mask, type, func) {\
         if((mode&(mask))==(mask)) \
         { \
             loopv(oc->type) \
                 if(!last || last->type.find(oc->type[i])<0) \
                 { \
-                    extentity &e = *ents[oc->type[i]]; \
+                    extentity &e = *entities::storage[oc->type[i]]; \
                     if(!e.inoctanode || &e==t) continue; \
                     func; \
                     if(f<dist && f>0) \
@@ -171,10 +170,9 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
     vec eo, es;
     int orient;
     float dist = 1e16f, f = 0.0f;
-    const vector<extentity *> &ents = entities::getents();
     loopv(outsideents)
     {
-        extentity &e = *ents[outsideents[i]];
+        extentity &e = *entities::storage[outsideents[i]];
         if(!e.inoctanode || &e == t) continue;
         entselectionbox(e, eo, es);
         if(!rayrectintersect(eo, es, o, ray, f, orient)) continue;
@@ -193,10 +191,9 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
 {
     float dist = 1e16f, f = 0.0f;
     if(oc == last) return dist;
-    const vector<extentity *> &ents = entities::getents();
     loopv(oc->mapmodels) if(!last || last->mapmodels.find(oc->mapmodels[i])<0)
     {
-        extentity &e = *ents[oc->mapmodels[i]];
+        extentity &e = *entities::storage[oc->mapmodels[i]];
         if(!e.inoctanode || &e==t) continue;
         if(!mmintersect(e, o, ray, radius, mode, f)) continue;
         if(f>0 && f<dist) dist = f;
@@ -770,14 +767,10 @@ static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, con
 
 bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // collide with a mapmodel
 {
-    const vector<extentity *> &ents = entities::getents();
     loopv(oc.mapmodels)
     {
-        extentity &e = *ents[oc.mapmodels[i]];
-#if 0
-        if(e.flags&extentity::F_NOCOLLIDE) continue;
-        model *m = loadmodel(NULL, e.attr2);
-#else // INTENSITY: Use entity info to get the model
+        extentity &e = *entities::storage[oc.mapmodels[i]];
+
         CLogicEntity *entity = LogicSystem::getLogicEntity(e);
 
         model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
@@ -793,7 +786,6 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
                     continue; /* This is not a 'real' collision, we just checked for trigger events, let other mapmodels */ \
                               /* also trigger XXX  FIXME: Might this same mapmodel be tested twice? */ \
                 }
-#endif
 
         if(!m || !m->collide) continue;
         vec center, radius;
@@ -1659,9 +1651,7 @@ float dropheight(entity &e)
     {
         case ET_PARTICLES:
         case ET_MAPMODEL: return 0.0f;
-        default:
-            if(e.type >= ET_GAMESPECIFIC) return entities::dropheight(e);
-            return 4.0f;
+        default: return 4.0f;
     }
 }
 
@@ -1880,9 +1870,6 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     else if(pl->inwater && !water) game::physicstrigger(pl, local, 0, 1, pl->inwater);
     pl->inwater = water ? material&MATF_VOLUME : MAT_AIR;
 
-#if 0 // INTENSITY: Use our own system of triggers/events for falling off map or into deadly materials
-    if(pl->state==CS_ALIVE && (pl->o.z < 0 || material&MAT_DEATH)) game::suicide(pl);
-#else
     if (pl->o.z < 0)
     {
         using namespace lua;
@@ -1899,7 +1886,6 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
         engine.getref(LogicSystem::getLogicEntity((dynent*)pl)->luaRef);
         engine.call(1, 0);
     }
-#endif
 
     return true;
 }

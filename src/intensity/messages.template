@@ -521,18 +521,6 @@ ExtentCompleteNotification(server->client)
         if (!engine.hashandle())
             return;
 
-        #if 0
-        Something like this:
-            extentity &e = *et->getents()[i];
-            removeentity(i);
-            int oldtype = e.type;
-            if(oldtype!=type) detachentity(e);
-            e.type = type;
-            e.o = o;
-            e.attr1 = attr1; e.attr2 = attr2; e.attr3 = attr3; e.attr4 = attr4;
-            addentity(i);
-        #endif
-
         logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
             x, y, z, attr1, attr2, attr3, attr4);
 
@@ -727,38 +715,7 @@ end
 EditModeC2S(client->server)
     int mode
     receive:
-        if (!world::get_scenario_code()) return;
-
-        #if 0 // The old sauer code from fpsserver.h
-            case N_EDITMODE:
-            {
-                int val = getint(p);
-                if(!ci->local && gamemode!=1) break;
-                if(val ? ci->state.state!=CS_ALIVE && ci->state.state!=CS_DEAD : ci->state.state!=CS_EDITING) break;
-                if(smode)
-                {
-                    if(val) smode->leavegame(ci);
-                    else smode->entergame(ci);
-                }
-                if(val)
-                {
-                    ci->state.editstate = ci->state.state;
-                    ci->state.state = CS_EDITING;
-                }
-                else ci->state.state = ci->state.editstate;
-                if(val)
-                {
-                    ci->events.setsizenodelete(0);
-                    ci->state.rockets.reset();
-                    ci->state.grenades.reset();
-                }
-                QUEUE_MSG;
-                break;
-            }
-        #endif
-
-        if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-
+        if (!world::get_scenario_code() || !server::isRunningCurrentScenario(sender) ) return;
         send_EditModeS2C(-1, sender, mode); // Relay
 end
 

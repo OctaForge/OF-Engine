@@ -34,7 +34,6 @@ set(SERVER_SOURCES
     ../fpsgame/fps
     ../fpsgame/server
     ../fpsgame/client
-    ../fpsgame/entities
     ../intensity/message_system
     ../intensity/server_system
     ../intensity/messages
@@ -62,6 +61,7 @@ set(SERVER_SOURCES
     ../shared/zip
     ../octaforge/of_world
     ../octaforge/of_logger
+    ../octaforge/of_entities
     ${EXTRA_SOURCES}
 )
 
