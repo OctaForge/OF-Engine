@@ -321,6 +321,8 @@ struct hline
         }
         else if (buf[0] == '/')
         {
+            lua::engine.exec(buf + 1);
+#if 0
             if  (buf[1] == '/')
                 lua::engine.exec(buf + 2);
             else
@@ -377,6 +379,7 @@ struct hline
                 delete[] cmd;
                 delete[] str;
             }
+#endif
         }
         else game::toserver(buf);
     }
