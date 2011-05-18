@@ -51,14 +51,14 @@ namespace game
                             if (showpj)
                             {
                                 if (p->state == CS_LAGGED)
-                                    lt = tools::vstrcat(lt, "s", "LAG");
+                                    tools::vstrcat(lt, "s", "LAG");
                                 else
-                                    lt = tools::vstrcat(lt, "si", " pj: ", p->plag);
+                                    tools::vstrcat(lt, "si", " pj: ", p->plag);
                             }
                             if (!showpj && p->state == CS_LAGGED)
-                                lt = tools::vstrcat(lt, "s", "LAG");
+                                tools::vstrcat(lt, "s", "LAG");
                             else
-                                lt = tools::vstrcat(lt, "si", " p: ", p->ping);
+                                tools::vstrcat(lt, "si", " p: ", p->ping);
                         }
                     }
                     g.text (lt, 0xFFFFDD, NULL);

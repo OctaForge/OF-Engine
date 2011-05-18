@@ -883,7 +883,7 @@ void newentity(int type, int a1, int a2, int a3, int a4, int a5)
 void newent(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
 {
     if(noentedit()) return;
-    char *sd = tools::vstrcat(NULL, "sis sis sis sis",
+    char *sd = tools::vstrcat("sis sis sis sis",
         "{ 'attr1': '", *a1, "', ",
          " 'attr2': '", *a2, "', ",
          " 'attr3': '", *a3, "', ",

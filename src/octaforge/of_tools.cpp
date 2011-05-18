@@ -299,18 +299,13 @@ namespace tools
         return true;
     }
 
-    char *vstrcat(char *str, const char *format, ...)
+    bool vstrcat(char *&str, const char *format, va_list args)
     {
-        if (!str) str = new char[1];
-        if (!str) return NULL;
-
-        va_list args;
         char buf[64];
 
         size_t oslen = 0;
         size_t aslen = 0;
 
-        va_start(args, format);
         while (*format != '\0')
         {
             oslen = strlen(str);
@@ -358,11 +353,32 @@ namespace tools
                 }
                 default: continue;
             }
-            if (!str) return NULL;
+            if (!str) return false;
             format++;
         }
+        return true;
+    }
+
+    bool vstrcat(char *&str, const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+        bool ret = vstrcat(str, format, args);
         va_end(args);
-        return str;
+        return ret;
+    }
+
+    char *vstrcat(const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        char *ret = new char[1];
+        /* ret should be NULL if it fails */
+        vstrcat(ret, format, args);
+
+        va_end(args);
+        return ret;
     }
 
     int currtime()

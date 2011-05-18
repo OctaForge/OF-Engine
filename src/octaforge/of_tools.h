@@ -30,9 +30,6 @@
 #ifndef OF_TOOLS_H
 #define OF_TOOLS_H
 
-#include <cstring>
-#include <cstdarg>
-
 namespace tools
 {
     bool  valanumeric(const char *str, const char *allow);
@@ -47,7 +44,9 @@ namespace tools
     void  writecfg(const char *name = NULL);
     bool  execcfg(const char *cfgfile);
 
-    char *vstrcat(char *str, const char *format, ...);
+    bool  vstrcat(char *&str, const char *format, va_list args);
+    bool  vstrcat(char *&str, const char *format, ...);
+    char *vstrcat(const char *format, ...);
 
     int   currtime();
 } /* end namespace tools */

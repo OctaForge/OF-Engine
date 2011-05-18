@@ -333,7 +333,7 @@ struct hline
 
                 char *str = newstring(buf + 1);
                 char *tok = strtok(str, " ");
-                char *cmd = tools::vstrcat(NULL, "ss", tok, "(");
+                char *cmd = tools::vstrcat("ss", tok, "(");
 
                 tok = strtok(NULL, " ");
 
@@ -343,19 +343,19 @@ struct hline
                     if ((tok[0] == '\"' || tok[0] == '\'')
                      && (tok[strlen(tok) - 1] != '\"' && tok[strlen(tok) - 1] != '\''))
                     {
-                        cmd = tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
+                        tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
 
                         if ((tok = strtok(NULL, " ")))
-                             cmd = tools::vstrcat(cmd, "s", " ");
+                             tools::vstrcat(cmd, "s", " ");
 
                         while (tok)
                         {
-                            cmd = tools::vstrcat(cmd, "s", tok);
+                            tools::vstrcat(cmd, "s", tok);
 
                             if (tok[strlen(tok) - 1] == '\"' || tok[strlen(tok) - 1] == '\'')
                                 break;
                             else
-                                cmd = tools::vstrcat(cmd, "s", " ");
+                                tools::vstrcat(cmd, "s", " ");
 
                             tok = strtok(NULL, " ");
                         }
@@ -365,13 +365,13 @@ struct hline
                     }
                     else
                     {
-                        cmd = tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
+                        tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
                         tok = strtok(NULL, " ");
                     }
                     first = false;
                 }
 
-                cmd = tools::vstrcat(cmd, "s", ")");
+                tools::vstrcat(cmd, "s", ")");
                 lua::engine.exec(cmd);
 
                 delete[] cmd;

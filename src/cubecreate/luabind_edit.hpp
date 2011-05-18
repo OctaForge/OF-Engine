@@ -257,7 +257,7 @@ namespace lua_binds
         char *uname = server::getUsername(cn);
         if (uname) delete[] uname;
 
-        uname = tools::vstrcat(NULL, "si", "Bot.", cn); // Also sets as valid ('logged in')
+        uname = tools::vstrcat("si", "Bot.", cn); // Also sets as valid ('logged in')
         logger::log(logger::DEBUG, "New NPC with client number: %d\r\n", cn);
 
         // Create lua entity (players do this when they log in, NPCs do it here

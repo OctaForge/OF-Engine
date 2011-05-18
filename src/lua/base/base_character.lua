@@ -362,7 +362,7 @@ end
         <render_dynamic>
 ]]
 function character:get_renderingflags(hudpass, needhud)
-    local flags = math.bor(model.LIGHT, model.DYNSHADOW)
+    local flags = math.bor(model.LIGHT, model.DYNSHADOW, model.FULLBRIGHT)
     if self ~= entity_store.get_plyent() then
         flags = math.bor(flags, model.CULL_VFC, model.CULL_OCCLUDED, model.CULL_QUERY)
     end
