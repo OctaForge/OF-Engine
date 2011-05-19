@@ -138,6 +138,23 @@ namespace tools
         return true;
     }
 
+    bool fdel(const char *file)
+    {
+#ifdef WIN32
+        return (DeleteFile(file) != 0);
+#else
+        return (remove(file) == 0);
+#endif
+    }
+
+    bool fempty(const char *file)
+    {
+        FILE *f = fopen(file, "w");
+        if (!f) return false;
+        fclose(f);
+        return true;
+    }
+
     bool mkpath(const char *path)
     {
         char  buf[4096];

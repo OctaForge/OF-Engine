@@ -113,26 +113,13 @@ namespace local_server
 
     bool is_ready()
     {
-        char buf[256];
-        snprintf(buf, sizeof(buf), "%s%s", homedir, SERVER_LOGFILE);
-
-        char *out = NULL;
-        if (!(out = loadfile(buf, NULL)))
-            return false;
-        else
+        defformatstring(path)("%s%s", homedir, SERVER_READYFILE);
+        if (fileexists(path, "r"))
         {
-            if (strstr(out, "[[MAP LOADING]] - Success"))
-            {
-                delete[] out;
-                return true;
-            }
-            else
-            {
-                delete[] out;
-                return false;
-            }
+            tools::fdel(path);
+            return true;
         }
-        return false;
+        else return false;
     }
 } /* end namespace local_server */
 

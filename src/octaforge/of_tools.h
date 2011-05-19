@@ -37,6 +37,8 @@ namespace tools
 
     bool  fnewer(const char *file, const char *otherfile);
     bool  fcopy(const char *src, const char *dest);
+    bool  fdel(const char *file);
+    bool  fempty(const char *file);
 
     bool  mkpath(const char *path);
     char *sread(const char *fname);
