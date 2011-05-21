@@ -35,8 +35,8 @@
 ]]
 function table.map(t, f)
     local r = {}
-    for i = 1, #t do
-        r[i] = f(t[i])
+    for i, v in pairs(t) do
+        r[i] = f(v)
     end
     return r
 end
@@ -85,8 +85,8 @@ end
         Merged table.
 ]]
 function table.mergearrays(ta, tb)
-    for i = 1, #tb do
-        table.insert(ta, tb[i])
+    for i, v in pairs(tb) do
+        table.insert(ta, v)
     end
     return ta
 end
@@ -164,9 +164,9 @@ end
 ]]
 function table.filterarray(t, f)
     local r = {}
-    for a = 1, #t do
-        if f(a, t[a]) then
-            table.insert(r, t[a])
+    for i, v in pairs(t) do
+        if f(i, v) then
+            table.insert(r, v)
         end
     end
     return r

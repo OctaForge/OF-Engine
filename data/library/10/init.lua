@@ -3,5 +3,7 @@
 
 logging.log(logging.DEBUG, "Initializing library version %(1)s" % { library.current })
 
--- library.include("modulename")
+logging.log(logging.DEBUG, ":: Plugin system.")
+library.include("plugins")
+
 -- library.include("submodule.modulename")
