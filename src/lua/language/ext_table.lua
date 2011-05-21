@@ -245,3 +245,31 @@ function table.values(t)
     end
     return r
 end
+
+--[[!
+    Function: table.pop
+    Pops item from end of the table or
+    from specific position and returns it. Usage -
+
+    (start code)
+        local a = { 5, 10, 15, 20, 25, 30, 35, 40 }
+        local b = table.pop(a)
+        -- b is now 40, a is { 5, 10, 15, 20, 25, 30, 35 }
+        b = table.pop(a, 3)
+        -- b is now 15, a is { 5, 10, 20, 25, 30, 35 }
+    (end)
+
+    Parameters:
+        t - The table to pop item from.
+        p - Optional argument specifying index, it's the
+        end of the table if not specified.
+
+    Returns:
+        The popped item.
+]]
+function table.pop(t, p)
+    p = p or #t
+    local ret = t[p]
+    table.remove(t, p)
+    return ret
+end

@@ -34,20 +34,6 @@ function reg(_cl, st)
 
     logging.log(logging.DEBUG, "registering LE class: " .. tostring(_cln))
 
-    if not st then
-        local _base = _cl.__base
-        while _base do
-            local _pn = __class
-            logging.log(logging.DEBUG, "finding sauertype in parent: " .. tostring(_pn))
-            local stype = get_sauertype(_pn)
-            if stype then
-                st = stype
-                break
-            else
-                _base = ____class and ___base or nil
-            end
-        end
-    end
     st = st or ""
 
     -- store in registry

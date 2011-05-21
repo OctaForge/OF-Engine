@@ -249,6 +249,8 @@ namespace tools
         loopv(varv)
         {
             var::cvar *v = varv[i];
+            /* do not write aliases here! */
+            if ((v->flags&var::VAR_ALIAS)   != 0) continue;
             if ((v->flags&var::VAR_PERSIST) != 0) switch(v->type)
             {
                 case var::VAR_I: f->printf("%s = %d\n", v->name, v->curv.i); break;
