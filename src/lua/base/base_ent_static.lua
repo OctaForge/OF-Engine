@@ -49,20 +49,13 @@ statent._sauertype_index = 0
 -- @class table
 -- @name statent.properties
 statent.properties = {
-    entity_animated.animatable_logent.properties[1], -- tags
-    entity_animated.animatable_logent.properties[2], -- _persitent
-    entity_animated.animatable_logent.properties[3], -- animation
-    entity_animated.animatable_logent.properties[4], -- starttime
-    entity_animated.animatable_logent.properties[5], -- modelname
-    entity_animated.animatable_logent.properties[6], -- attachments
+    radius = state_variables.state_float(), -- TODO: use sauer values for bounding box -- XXX - needed?
 
-    { "radius", state_variables.state_float() }, -- TODO: use sauer values for bounding box -- XXX - needed?
-
-    { "position", state_variables.wrapped_cvec3({ cgetter = "CAPI.getextent0", csetter = "CAPI.setextent0" }) },
-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1" }) },
-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2" }) },
-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3" }) },
-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" }) }
+    position = state_variables.wrapped_cvec3({ cgetter = "CAPI.getextent0", csetter = "CAPI.setextent0" }),
+    attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1" }),
+    attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2" }),
+    attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3" }),
+    attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" })
 }
 
 --- Init method. Performs initial setup.
@@ -208,24 +201,15 @@ light._sauertype_index = 1
 -- @class table
 -- @name light.properties
 light.properties = {
-    statent.properties[1], -- tags
-    statent.properties[2], -- _persitent
-    statent.properties[3], -- animation
-    statent.properties[4], -- starttime
-    statent.properties[5], -- modelname
-    statent.properties[6], -- attachments
+    attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }),
+    attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "red", altname = "red" }),
+    attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "green", altname = "green" }),
+    attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "blue", altname = "blue" }),
 
-    statent.properties[8], -- position
-
-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "red", altname = "red" }) },
-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "green", altname = "green" }) },
-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "blue", altname = "blue" }) },
-
-    { "radius", state_variables.variable_alias("attr1") },
-    { "red", state_variables.variable_alias("attr2") },
-    { "green", state_variables.variable_alias("attr3") },
-    { "blue", state_variables.variable_alias("attr4") }
+    radius = state_variables.variable_alias("attr1"),
+    red = state_variables.variable_alias("attr2"),
+    green = state_variables.variable_alias("attr3"),
+    blue = state_variables.variable_alias("attr4")
 }
 
 function light:init(uid, kwargs)
@@ -252,17 +236,8 @@ spotlight._sauertype_index = 7
 -- @class table
 -- @name spotlight.properties
 spotlight.properties = {
-    statent.properties[1], -- tags
-    statent.properties[2], -- _persitent
-    statent.properties[3], -- animation
-    statent.properties[4], -- starttime
-    statent.properties[5], -- modelname
-    statent.properties[6], -- attachments
-
-    statent.properties[8], -- position
-
-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
-    { "radius", state_variables.variable_alias("attr1") }
+    attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }),
+    radius = state_variables.variable_alias("attr1")
 }
 
 function spotlight:init(uid, kwargs)
@@ -284,17 +259,8 @@ envmap._sauertype_index = 4
 -- @class table
 -- @name envmap.properties
 envmap.properties = {
-    statent.properties[1], -- tags
-    statent.properties[2], -- _persitent
-    statent.properties[3], -- animation
-    statent.properties[4], -- starttime
-    statent.properties[5], -- modelname
-    statent.properties[6], -- attachments
-
-    statent.properties[8], -- position
-
-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
-    { "radius", state_variables.variable_alias("attr1") }
+    attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }),
+    radius = state_variables.variable_alias("attr1")
 }
 
 function envmap:init(uid, kwargs)
@@ -321,23 +287,14 @@ ambient_sound._sauertype_index = 6
 -- @class table
 -- @name ambient_sound.properties
 ambient_sound.properties = {
-    statent.properties[1], -- tags
-    statent.properties[2], -- _persitent
-    statent.properties[3], -- animation
-    statent.properties[4], -- starttime
-    statent.properties[5], -- modelname
-    statent.properties[6], -- attachments
+    attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "radius", altname = "radius" }),
+    attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "size", altname = "size" }),
+    attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setsoundvol", guiname = "volume", altname = "volume" }),
+    soundname = state_variables.wrapped_cstring({ csetter = "CAPI.setsoundname" }),
 
-    statent.properties[8], -- position
-
-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "radius", altname = "radius" }) },
-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "size", altname = "size" }) },
-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setsoundvol", guiname = "volume", altname = "volume" }) },
-    { "soundname", state_variables.wrapped_cstring({ csetter = "CAPI.setsoundname" }) },
-
-    { "radius", state_variables.variable_alias("attr2") },
-    { "size", state_variables.variable_alias("attr3") },
-    { "volume", state_variables.variable_alias("attr4") }
+    radius = state_variables.variable_alias("attr2"),
+    size = state_variables.variable_alias("attr3"),
+    volume = state_variables.variable_alias("attr4")
 }
 
 function ambient_sound:init(uid, kwargs)
@@ -370,25 +327,15 @@ particle_effect._sauertype_index = 5
 -- @class table
 -- @name particle_effect.properties
 particle_effect.properties = {
-    statent.properties[1], -- tags
-    statent.properties[2], -- _persitent
-    statent.properties[3], -- animation
-    statent.properties[4], -- starttime
-    statent.properties[5], -- modelname
-    statent.properties[6], -- attachments
-    statent.properties[7], -- radius
+    attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "particle_type", altname = "particle_type" }),
+    attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "value1", altname = "value1" }),
+    attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "value2", altname = "value2" }),
+    attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "value3", altname = "value3" }),
 
-    statent.properties[8], -- position
-
-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "particle_type", altname = "particle_type" }) },
-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "value1", altname = "value1" }) },
-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "value2", altname = "value2" }) },
-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "value3", altname = "value3" }) },
-
-    { "particle_type", state_variables.variable_alias("attr1") },
-    { "value1", state_variables.variable_alias("attr2") },
-    { "value2", state_variables.variable_alias("attr3") },
-    { "value3", state_variables.variable_alias("attr4") }
+    particle_type = state_variables.variable_alias("attr1"),
+    value1 = state_variables.variable_alias("attr2"),
+    value2 = state_variables.variable_alias("attr3"),
+    value3 = state_variables.variable_alias("attr4")
 }
 
 function particle_effect:init(uid, kwargs)
@@ -416,29 +363,19 @@ mapmodel._sauertype_index = 2
 -- @class table
 -- @name mapmodel.properties
 mapmodel.properties = {
-    statent.properties[1], -- tags
-    statent.properties[2], -- _persitent
-    statent.properties[3], -- animation
-    statent.properties[4], -- starttime
-    statent.properties[5], -- modelname
-    statent.properties[6], -- attachments
-    statent.properties[7], -- radius
+    attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }),
+    yaw = state_variables.variable_alias("attr1")
+}
 
-    statent.properties[8], -- position
-
-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
-    { "yaw", state_variables.variable_alias("attr1") },
-
-    { "collision_radius_width", state_variables.wrapped_cinteger({
+mapmodel.collision_radius_width = state_variables.wrapped_cinteger({
         cgetter = "CAPI.getcollisionradw",
         csetter = "CAPI.setcollisionradw"
-    }) },
+    })
 
-    { "collision_radius_height", state_variables.wrapped_cinteger({
+mapmodel.collision_radius_height = state_variables.wrapped_cinteger({
         cgetter = "CAPI.getcollisionradh",
         csetter = "CAPI.setcollisionradh"
-    }) }
-}
+    })
 
 function mapmodel:init(uid, kwargs)
     logging.log(logging.DEBUG, "mapmodel:init")
@@ -496,23 +433,7 @@ area_trigger._class = "area_trigger"
 -- @class table
 -- @name area_trigger.properties
 area_trigger.properties = {
-    mapmodel.properties[1], -- tags
-    mapmodel.properties[2], -- _persitent
-    mapmodel.properties[3], -- animation
-    mapmodel.properties[4], -- starttime
-    mapmodel.properties[5], -- modelname
-    mapmodel.properties[6], -- attachments
-    mapmodel.properties[7], -- radius
-
-    mapmodel.properties[8], -- position
-
-    mapmodel.properties[9], -- attr1
-    mapmodel.properties[10], -- yaw
-
-    mapmodel.properties[11], -- collision_radius_width
-    mapmodel.properties[12], -- collision_radius_height
-
-    { "script_to_run", state_variables.state_string() }
+    script_to_run = state_variables.state_string()
 }
 
 function area_trigger:init(uid, kwargs)
@@ -539,7 +460,6 @@ end
 -- @name resettable_area_trigger
 resettable_area_trigger = class.new(area_trigger)
 resettable_area_trigger._class = "resettable_area_trigger"
-resettable_area_trigger.properties = area_trigger.properties
 
 function resettable_area_trigger:activate(kwargs)
     area_trigger.activate(self, kwargs)
@@ -625,18 +545,8 @@ world_marker._sauertype_index = 3
 -- @class table
 -- @name world_marker.properties
 world_marker.properties = {
-    statent.properties[1], -- tags
-    statent.properties[2], -- _persitent
-    statent.properties[3], -- animation
-    statent.properties[4], -- starttime
-    statent.properties[5], -- modelname
-    statent.properties[6], -- attachments
-    statent.properties[7], -- radius
-
-    statent.properties[8], -- position
-
-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
-    { "yaw", state_variables.variable_alias("attr1") }
+    attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }),
+    yaw = state_variables.variable_alias("attr1")
 }
 
 --- Make an entity be placed on position of this marker with its yaw.

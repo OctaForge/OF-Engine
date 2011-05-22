@@ -41,6 +41,10 @@ function is(c)
     return type(c) == "table" and c.is_a and c:is_a(state_variable) and true or false
 end
 
+function is_alias(c)
+    return type(c) == "table" and c.is_a and c:is_a(variable_alias) and true or false
+end
+
 _SV_PREFIX = "__SV_"
 
 --- Get actual raw state variable for entity.
@@ -465,7 +469,7 @@ state_array_integer.from_data_item = convert.tointeger
 --- Variable alias. Useful to get simpler setters.
 -- @class table
 -- @name variable_alias
-variable_alias = class.new(variable)
+variable_alias = class.new(state_variable)
 
 --- Return string representation of variable alias.
 -- @return String representation of variable alias.

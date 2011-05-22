@@ -40,8 +40,8 @@ root_logent.should_act = true
 -- @class table
 -- @name root_logent.properties
 root_logent.properties = {
-    { "tags", state_variables.state_array() },
-    { "_persistent", state_variables.state_bool() }
+    tags = state_variables.state_array(),
+    _persistent = state_variables.state_bool()
 }
 
 --- Automatically substitute for class name when tostring() is called on entity.
@@ -123,11 +123,33 @@ end
 
 --- Setup state variables of the entity. Performs registration for each.
 function root_logent:_setup_vars()
-    for i = 1, #self.properties do
-        local var = self.properties[i][2]
-        if state_variables.is(var) then
-            var:_register(self.properties[i][1], self)
+    local proptable = {}
+    local base = getmetatable(self)
+    while base do
+        if base.properties then
+            for name, var in pairs(base.properties) do
+                if not proptable[name] and state_variables.is(var) then
+                    proptable[name] = var
+                end
+            end
         end
+        if base == root_logent then break end
+        base = base.__base
+    end
+    local sv_names = table.keys(proptable)
+    table.sort(sv_names, function(n1, n2)
+        if state_variables.is_alias(proptable[n1]) and not
+           state_variables.is_alias(proptable[n2]) then return false
+        end
+        if not state_variables.is_alias(proptable[n1])
+           and state_variables.is_alias(proptable[n2]) then return true
+        end
+        return (n1 < n2)
+    end)
+    for i, name in pairs(sv_names) do
+        logging.log(logging.DEBUG, "Setting up var: %(1)s %(2)s" % { name, tostring(proptable[name]) })
+        local var = proptable[name]
+        var:_register(name, self)
     end
 end
 

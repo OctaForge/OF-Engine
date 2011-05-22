@@ -76,7 +76,7 @@ console.binds.add("ESCAPE", [[
 function setup_main_menu()
     gui.new("main", function()
         gui.text("Welcome to OctaForge development release.")
-        gui.text("Enter generic_dev if you aren't sure of mapname.")
+        gui.text("Enter 'empty' if you aren't sure of mapname.")
         gui.bar()
         if world.hasmap() then
             gui.text("Map: Running.")

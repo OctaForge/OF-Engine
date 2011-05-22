@@ -1,0 +1,507 @@
+diff -Naur lua/base/base_character.lua lua-new/base/base_character.lua
+--- lua/base/base_character.lua	2011-05-22 00:58:27.000000000 +0200
++++ lua-new/base/base_character.lua	2011-05-22 00:58:05.000000000 +0200
+@@ -73,8 +73,7 @@
+     This represents the base class for character.
+     It serves as a base for "player" class.
+ 
+-    It has a "propeties" member which is a table
+-    with entity properties (handled using state variables).
++    Properties are handled using state variables.
+ 
+     Properties:
+         _name - character name.
+@@ -118,39 +117,31 @@
+     The sauertype of the entity. Fpsent is a dynamic character entity in sauer.
+ ]]
+ character._sauertype = "fpsent"
+-character.properties = {
+-    entity_animated.animatable_logent.properties[1], -- tags
+-    entity_animated.animatable_logent.properties[2], -- _persitent
+-    entity_animated.animatable_logent.properties[3], -- animation
+-    entity_animated.animatable_logent.properties[4], -- starttime
+-    entity_animated.animatable_logent.properties[5], -- modelname
+-    entity_animated.animatable_logent.properties[6], -- attachments
+-
+-    { "_name", state_variables.state_string() },
+-    { "facing_speed", state_variables.state_integer() },
+-
+-    { "movement_speed", state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }) },
+-    { "yaw", state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }) },
+-    { "pitch", state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }) },
+-    { "move", state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }) },
+-    { "strafe", state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }) },
++
++character._name = state_variables.state_string()
++character.facing_speed = state_variables.state_integer()
++
++character.movement_speed = state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" })
++character.yaw = state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true })
++character.pitch = state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true })
++character.move = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true })
++character.strafe = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true })
+ --  intention to yaw / pitch. todo: enable
+---  { "yawing", state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }) },
+---  { "pitching", state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }) },
+-    { "position", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }) },
+-    { "velocity", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }) },
+-    { "falling", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }) },
+-    { "radius", state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }) },
+-    { "aboveeye", state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }) },
+-    { "eyeheight", state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }) },
+-    { "blocked", state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }) },
+-    { "canmove", state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }) },
+-    { "mapdefinedposdata", state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }) },
+-    { "cs", state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }) },
+-    { "ps", state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }) },
+-    { "inwater", state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }) },
+-    { "timeinair", state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true }) }
+-}
++--  character.yawing = state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true })
++--  character.pitching = state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true })
++character.position = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true })
++character.velocity = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true })
++character.falling = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true })
++character.radius = state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" })
++character.aboveeye = state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" })
++character.eyeheight = state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" })
++character.blocked = state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" })
++character.canmove = state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true })
++character.mapdefinedposdata = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true })
++character.cs = state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true })
++character.ps = state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true })
++character.inwater = state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true })
++character.timeinair = state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true })
+ 
+ --[[!
+     Function: jump
+@@ -498,41 +489,8 @@
+ ]]
+ player._class = "player"
+ 
+-player.properties = {
+-    character.properties[1], -- tags
+-    character.properties[2], -- _persitent
+-    character.properties[3], -- animation
+-    character.properties[4], -- starttime
+-    character.properties[5], -- modelname
+-    character.properties[6], -- attachments
+-
+-    character.properties[7], -- _name
+-    character.properties[8], -- facing_speed
+-
+-    character.properties[9], -- movement_speed
+-    character.properties[10], -- yaw
+-    character.properties[11], -- pitch
+-    character.properties[12], -- move
+-    character.properties[13], -- strafe
+-    -- character.properties[X], -- yawing
+-    -- character.properties[X], -- pitching
+-    character.properties[14], -- position
+-    character.properties[15], -- velocity
+-    character.properties[16], -- falling
+-    character.properties[17], -- radius
+-    character.properties[18], -- aboveeye
+-    character.properties[19], -- eyeheight
+-    character.properties[20], -- blocked
+-    character.properties[21], -- canmove
+-    character.properties[22], -- mapdefinedposdata
+-    character.properties[23], -- cs
+-    character.properties[24], -- ps
+-    character.properties[25], -- inwater
+-    character.properties[26], -- timeinair
+-
+-    { "_can_edit", state_variables.state_bool() },
+-    { "hud_modelname", state_variables.state_string() }
+-}
++player._can_edit = state_variables.state_bool()
++player.hud_modelname = state_variables.state_string()
+ 
+ --[[!
+     Function: init
+diff -Naur lua/base/base_ent.lua lua-new/base/base_ent.lua
+--- lua/base/base_ent.lua	2011-05-22 00:58:49.000000000 +0200
++++ lua-new/base/base_ent.lua	2011-05-22 00:58:05.000000000 +0200
+@@ -39,10 +39,8 @@
+ -- @field _persistent If this is true, entity gets saved on disk. True for static entities only.
+ -- @class table
+ -- @name root_logent.properties
+-root_logent.properties = {
+-    { "tags", state_variables.state_array() },
+-    { "_persistent", state_variables.state_bool() }
+-}
++tags = state_variables.state_array()
++_persistent = state_variables.state_bool()
+ 
+ --- Automatically substitute for class name when tostring() is called on entity.
+ -- @return Class name.
+@@ -123,12 +121,26 @@
+ 
+ --- Setup state variables of the entity. Performs registration for each.
+ function root_logent:_setup_vars()
+-    for i = 1, #self.properties do
+-        local var = self.properties[i][2]
+-        if state_variables.is(var) then
+-            var:_register(self.properties[i][1], self)
++    -- add the base classes into seprate table to browse later
++    -- TODO: this is neither fast nor nice - fix
++    local proptables = {}
++    local base = getmetatable(self)
++    while base do
++        table.insert(proptables, 1, base)
++        if base == root_logent then break end
++        base = base.__base
++    end
++    local proptable = {}
++    for i, cl in pairs(proptables) do
++        for name, var in pairs(cl) do
++            if state_variables.is(var) then
++                proptable[name] = var
++            end
+         end
+     end
++    for name, var in pairs(proptable) do
++        var:_register(name, self)
++    end
+ end
+ 
+ --- Create state data dictionary. That gets returned as json. Names
+diff -Naur lua/base/base_ent_anim.lua lua-new/base/base_ent_anim.lua
+--- lua/base/base_ent_anim.lua	2011-05-22 00:58:22.000000000 +0200
++++ lua-new/base/base_ent_anim.lua	2011-05-22 00:58:05.000000000 +0200
+@@ -37,14 +37,10 @@
+ -- @field attachments Model attachments for the entity.
+ -- @class table
+ -- @name animatable_logent.properties
+-animatable_logent.properties = {
+-    entity.logent.properties[1], -- tags
+-    entity.logent.properties[2], -- _persistent
+-    { "animation", state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }) },
+-    { "starttime", state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }) },
+-    { "modelname", state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }) },
+-    { "attachments", state_variables.wrapped_carray({ csetter = "CAPI.setattachments" }) }
+-}
++animatable_logent.animation = state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true })
++animatable_logent.starttime = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" })
++animatable_logent.modelname = state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" })
++animatable_logent.attachments = state_variables.wrapped_carray({ csetter = "CAPI.setattachments" })
+ 
+ --- Init method for animatable logic entity. Performs initial setup.
+ -- @param uid Unique ID for the entity.
+diff -Naur lua/base/base_ent_classes.lua lua-new/base/base_ent_classes.lua
+--- lua/base/base_ent_classes.lua	2011-05-22 00:58:41.000000000 +0200
++++ lua-new/base/base_ent_classes.lua	2011-05-22 00:58:05.000000000 +0200
+@@ -57,15 +57,27 @@
+     -- generate protocol data
+     local sv_names = {}
+ 
+-    local inst = _cl()
+-    for i = 1, #inst.properties do
+-        local var = inst.properties[i][2]
+-        logging.log(logging.INFO, "considering " .. tostring(inst.properties[i][1]) .. " -- " .. tostring(var))
+-        if state_variables.is(var) then
+-            logging.log(logging.INFO, "setting up " .. tostring(inst.properties[i][1]))
+-            table.insert(sv_names, tostring(inst.properties[i][1]))
++    -- add the base classes into seprate table to browse later
++    -- TODO: this is neither fast nor nice - fix
++    local proptables = {}
++    local base = _cl
++    while base do
++        table.insert(proptables, 1, base)
++        if base == root_logent then break end
++        base = base.__base
++    end
++    local proptable = {}
++    for i, cl in pairs(proptables) do
++        for name, var in pairs(cl) do
++            if state_variables.is(var) then
++                proptable[name] = var
++            end
+         end
+     end
++    for name, var in pairs(proptable) do
++        logging.log(logging.INFO, "setting up " .. name .. " -- " .. tostring(var))
++        table.insert(sv_names, name)
++    end
+ 
+     logging.log(logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
+     message.genprod(tostring(_cln), sv_names)
+diff -Naur lua/base/base_ent_static.lua lua-new/base/base_ent_static.lua
+--- lua/base/base_ent_static.lua	2011-05-22 00:58:14.000000000 +0200
++++ lua-new/base/base_ent_static.lua	2011-05-22 00:58:05.000000000 +0200
+@@ -48,22 +48,13 @@
+ -- @field attr4 Fourth attr.
+ -- @class table
+ -- @name statent.properties
+-statent.properties = {
+-    entity_animated.animatable_logent.properties[1], -- tags
+-    entity_animated.animatable_logent.properties[2], -- _persitent
+-    entity_animated.animatable_logent.properties[3], -- animation
+-    entity_animated.animatable_logent.properties[4], -- starttime
+-    entity_animated.animatable_logent.properties[5], -- modelname
+-    entity_animated.animatable_logent.properties[6], -- attachments
+-
+-    { "radius", state_variables.state_float() }, -- TODO: use sauer values for bounding box -- XXX - needed?
+-
+-    { "position", state_variables.wrapped_cvec3({ cgetter = "CAPI.getextent0", csetter = "CAPI.setextent0" }) },
+-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1" }) },
+-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2" }) },
+-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3" }) },
+-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" }) }
+-}
++statent.radius = state_variables.state_float() -- TODO: use sauer values for bounding box -- XXX - needed?
++
++statent.position = state_variables.wrapped_cvec3({ cgetter = "CAPI.getextent0", csetter = "CAPI.setextent0" })
++statent.attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1" })
++statent.attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2" })
++statent.attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3" })
++statent.attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" })
+ 
+ --- Init method. Performs initial setup.
+ -- @param uid Unique ID for the entity.
+@@ -207,26 +198,15 @@
+ -- @field blue Alias for attr4.
+ -- @class table
+ -- @name light.properties
+-light.properties = {
+-    statent.properties[1], -- tags
+-    statent.properties[2], -- _persitent
+-    statent.properties[3], -- animation
+-    statent.properties[4], -- starttime
+-    statent.properties[5], -- modelname
+-    statent.properties[6], -- attachments
+-
+-    statent.properties[8], -- position
+-
+-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
+-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "red", altname = "red" }) },
+-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "green", altname = "green" }) },
+-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "blue", altname = "blue" }) },
+-
+-    { "radius", state_variables.variable_alias("attr1") },
+-    { "red", state_variables.variable_alias("attr2") },
+-    { "green", state_variables.variable_alias("attr3") },
+-    { "blue", state_variables.variable_alias("attr4") }
+-}
++light.attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" })
++light.attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "red", altname = "red" })
++light.attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "green", altname = "green" })
++light.attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "blue", altname = "blue" })
++
++light.radius = state_variables.variable_alias("attr1")
++light.red = state_variables.variable_alias("attr2")
++light.green = state_variables.variable_alias("attr3")
++light.blue = state_variables.variable_alias("attr4")
+ 
+ function light:init(uid, kwargs)
+     statent.init(self, uid, kwargs)
+@@ -251,19 +231,8 @@
+ -- @field radius Alias for attr1.
+ -- @class table
+ -- @name spotlight.properties
+-spotlight.properties = {
+-    statent.properties[1], -- tags
+-    statent.properties[2], -- _persitent
+-    statent.properties[3], -- animation
+-    statent.properties[4], -- starttime
+-    statent.properties[5], -- modelname
+-    statent.properties[6], -- attachments
+-
+-    statent.properties[8], -- position
+-
+-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
+-    { "radius", state_variables.variable_alias("attr1") }
+-}
++spotlight.attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" })
++spotlight.radius = state_variables.variable_alias("attr1")
+ 
+ function spotlight:init(uid, kwargs)
+     statent.init(self, uid, kwargs)
+@@ -283,19 +252,8 @@
+ -- @field radius Alias for attr1.
+ -- @class table
+ -- @name envmap.properties
+-envmap.properties = {
+-    statent.properties[1], -- tags
+-    statent.properties[2], -- _persitent
+-    statent.properties[3], -- animation
+-    statent.properties[4], -- starttime
+-    statent.properties[5], -- modelname
+-    statent.properties[6], -- attachments
+-
+-    statent.properties[8], -- position
+-
+-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" }) },
+-    { "radius", state_variables.variable_alias("attr1") }
+-}
++envmap.attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "radius", altname = "radius" })
++envmap.radius = state_variables.variable_alias("attr1")
+ 
+ function envmap:init(uid, kwargs)
+     statent.init(self, uid, kwargs)
+@@ -320,25 +278,14 @@
+ -- @field volume Alias for attr4.
+ -- @class table
+ -- @name ambient_sound.properties
+-ambient_sound.properties = {
+-    statent.properties[1], -- tags
+-    statent.properties[2], -- _persitent
+-    statent.properties[3], -- animation
+-    statent.properties[4], -- starttime
+-    statent.properties[5], -- modelname
+-    statent.properties[6], -- attachments
+-
+-    statent.properties[8], -- position
+-
+-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "radius", altname = "radius" }) },
+-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "size", altname = "size" }) },
+-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setsoundvol", guiname = "volume", altname = "volume" }) },
+-    { "soundname", state_variables.wrapped_cstring({ csetter = "CAPI.setsoundname" }) },
+-
+-    { "radius", state_variables.variable_alias("attr2") },
+-    { "size", state_variables.variable_alias("attr3") },
+-    { "volume", state_variables.variable_alias("attr4") }
+-}
++ambient_sound.attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "radius", altname = "radius" })
++ambient_sound.attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "size", altname = "size" })
++ambient_sound.attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setsoundvol", guiname = "volume", altname = "volume" })
++ambient_sound.soundname = state_variables.wrapped_cstring({ csetter = "CAPI.setsoundname" })
++
++ambient_sound.radius = state_variables.variable_alias("attr2")
++ambient_sound.size = state_variables.variable_alias("attr3")
++ambient_sound.volume = state_variables.variable_alias("attr4")
+ 
+ function ambient_sound:init(uid, kwargs)
+     statent.init(self, uid, kwargs)
+@@ -369,27 +316,15 @@
+ -- @field value3 Alias for attr4.
+ -- @class table
+ -- @name particle_effect.properties
+-particle_effect.properties = {
+-    statent.properties[1], -- tags
+-    statent.properties[2], -- _persitent
+-    statent.properties[3], -- animation
+-    statent.properties[4], -- starttime
+-    statent.properties[5], -- modelname
+-    statent.properties[6], -- attachments
+-    statent.properties[7], -- radius
+-
+-    statent.properties[8], -- position
+-
+-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "particle_type", altname = "particle_type" }) },
+-    { "attr2", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "value1", altname = "value1" }) },
+-    { "attr3", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "value2", altname = "value2" }) },
+-    { "attr4", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "value3", altname = "value3" }) },
+-
+-    { "particle_type", state_variables.variable_alias("attr1") },
+-    { "value1", state_variables.variable_alias("attr2") },
+-    { "value2", state_variables.variable_alias("attr3") },
+-    { "value3", state_variables.variable_alias("attr4") }
+-}
++particle_effect.attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "particle_type", altname = "particle_type" })
++particle_effect.attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2", guiname = "value1", altname = "value1" })
++particle_effect.attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3", guiname = "value2", altname = "value2" })
++particle_effect.attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4", guiname = "value3", altname = "value3" })
++
++particle_effect.particle_type = state_variables.variable_alias("attr1")
++particle_effect.value1 = state_variables.variable_alias("attr2")
++particle_effect.value2 = state_variables.variable_alias("attr3")
++particle_effect.value3 = state_variables.variable_alias("attr4")
+ 
+ function particle_effect:init(uid, kwargs)
+     statent.init(self, uid, kwargs)
+@@ -415,30 +350,18 @@
+ -- @field collision_radius_height Collision radius height.
+ -- @class table
+ -- @name mapmodel.properties
+-mapmodel.properties = {
+-    statent.properties[1], -- tags
+-    statent.properties[2], -- _persitent
+-    statent.properties[3], -- animation
+-    statent.properties[4], -- starttime
+-    statent.properties[5], -- modelname
+-    statent.properties[6], -- attachments
+-    statent.properties[7], -- radius
+-
+-    statent.properties[8], -- position
+-
+-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
+-    { "yaw", state_variables.variable_alias("attr1") },
++mapmodel.attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" })
++mapmodel.yaw = state_variables.variable_alias("attr1")
+ 
+-    { "collision_radius_width", state_variables.wrapped_cinteger({
++mapmodel.collision_radius_width = state_variables.wrapped_cinteger({
+         cgetter = "CAPI.getcollisionradw",
+         csetter = "CAPI.setcollisionradw"
+-    }) },
++    })
+ 
+-    { "collision_radius_height", state_variables.wrapped_cinteger({
++mapmodel.collision_radius_height = state_variables.wrapped_cinteger({
+         cgetter = "CAPI.getcollisionradh",
+         csetter = "CAPI.setcollisionradh"
+-    }) }
+-}
++    })
+ 
+ function mapmodel:init(uid, kwargs)
+     logging.log(logging.DEBUG, "mapmodel:init")
+@@ -495,25 +418,7 @@
+ -- @field script_to_run Script to run on trigger (when entity goes through it)
+ -- @class table
+ -- @name area_trigger.properties
+-area_trigger.properties = {
+-    mapmodel.properties[1], -- tags
+-    mapmodel.properties[2], -- _persitent
+-    mapmodel.properties[3], -- animation
+-    mapmodel.properties[4], -- starttime
+-    mapmodel.properties[5], -- modelname
+-    mapmodel.properties[6], -- attachments
+-    mapmodel.properties[7], -- radius
+-
+-    mapmodel.properties[8], -- position
+-
+-    mapmodel.properties[9], -- attr1
+-    mapmodel.properties[10], -- yaw
+-
+-    mapmodel.properties[11], -- collision_radius_width
+-    mapmodel.properties[12], -- collision_radius_height
+-
+-    { "script_to_run", state_variables.state_string() }
+-}
++area_trigger.script_to_run = state_variables.state_string()
+ 
+ function area_trigger:init(uid, kwargs)
+     mapmodel.init(self, uid, kwargs)
+@@ -539,7 +444,6 @@
+ -- @name resettable_area_trigger
+ resettable_area_trigger = class.new(area_trigger)
+ resettable_area_trigger._class = "resettable_area_trigger"
+-resettable_area_trigger.properties = area_trigger.properties
+ 
+ function resettable_area_trigger:activate(kwargs)
+     area_trigger.activate(self, kwargs)
+@@ -624,20 +528,8 @@
+ -- @field yaw Alias for attr1.
+ -- @class table
+ -- @name world_marker.properties
+-world_marker.properties = {
+-    statent.properties[1], -- tags
+-    statent.properties[2], -- _persitent
+-    statent.properties[3], -- animation
+-    statent.properties[4], -- starttime
+-    statent.properties[5], -- modelname
+-    statent.properties[6], -- attachments
+-    statent.properties[7], -- radius
+-
+-    statent.properties[8], -- position
+-
+-    { "attr1", state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }) },
+-    { "yaw", state_variables.variable_alias("attr1") }
+-}
++world_marker.attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" })
++world_marker.yaw = state_variables.variable_alias("attr1")
+ 
+ --- Make an entity be placed on position of this marker with its yaw.
+ -- @param ent Entity to place.

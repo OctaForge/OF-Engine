@@ -73,8 +73,7 @@ PSTATE = {
     This represents the base class for character.
     It serves as a base for "player" class.
 
-    It has a "propeties" member which is a table
-    with entity properties (handled using state variables).
+    Properties are handled using state variables.
 
     Properties:
         _name - character name.
@@ -118,38 +117,32 @@ character._class = "character"
     The sauertype of the entity. Fpsent is a dynamic character entity in sauer.
 ]]
 character._sauertype = "fpsent"
+
 character.properties = {
-    entity_animated.animatable_logent.properties[1], -- tags
-    entity_animated.animatable_logent.properties[2], -- _persitent
-    entity_animated.animatable_logent.properties[3], -- animation
-    entity_animated.animatable_logent.properties[4], -- starttime
-    entity_animated.animatable_logent.properties[5], -- modelname
-    entity_animated.animatable_logent.properties[6], -- attachments
+    _name = state_variables.state_string(),
+    facing_speed = state_variables.state_integer(),
 
-    { "_name", state_variables.state_string() },
-    { "facing_speed", state_variables.state_integer() },
-
-    { "movement_speed", state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }) },
-    { "yaw", state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }) },
-    { "pitch", state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }) },
-    { "move", state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }) },
-    { "strafe", state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }) },
+    movement_speed = state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }),
+    yaw = state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }),
+    pitch = state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }),
+    move = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }),
+    strafe = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }),
 --  intention to yaw / pitch. todo: enable
---  { "yawing", state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }) },
---  { "pitching", state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }) },
-    { "position", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }) },
-    { "velocity", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }) },
-    { "falling", state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }) },
-    { "radius", state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }) },
-    { "aboveeye", state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }) },
-    { "eyeheight", state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }) },
-    { "blocked", state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }) },
-    { "canmove", state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }) },
-    { "mapdefinedposdata", state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }) },
-    { "cs", state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }) },
-    { "ps", state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }) },
-    { "inwater", state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }) },
-    { "timeinair", state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true }) }
+--  yawing = state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }),
+--  pitching = state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }),
+    position = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }),
+    velocity = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }),
+    falling = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }),
+    radius = state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }),
+    aboveeye = state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }),
+    eyeheight = state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }),
+    blocked = state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }),
+    canmove = state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }),
+    mapdefinedposdata = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }),
+    cs = state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }),
+    ps = state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }),
+    inwater = state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }),
+    timeinair = state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true })
 }
 
 --[[!
@@ -499,39 +492,8 @@ player = class.new(character)
 player._class = "player"
 
 player.properties = {
-    character.properties[1], -- tags
-    character.properties[2], -- _persitent
-    character.properties[3], -- animation
-    character.properties[4], -- starttime
-    character.properties[5], -- modelname
-    character.properties[6], -- attachments
-
-    character.properties[7], -- _name
-    character.properties[8], -- facing_speed
-
-    character.properties[9], -- movement_speed
-    character.properties[10], -- yaw
-    character.properties[11], -- pitch
-    character.properties[12], -- move
-    character.properties[13], -- strafe
-    -- character.properties[X], -- yawing
-    -- character.properties[X], -- pitching
-    character.properties[14], -- position
-    character.properties[15], -- velocity
-    character.properties[16], -- falling
-    character.properties[17], -- radius
-    character.properties[18], -- aboveeye
-    character.properties[19], -- eyeheight
-    character.properties[20], -- blocked
-    character.properties[21], -- canmove
-    character.properties[22], -- mapdefinedposdata
-    character.properties[23], -- cs
-    character.properties[24], -- ps
-    character.properties[25], -- inwater
-    character.properties[26], -- timeinair
-
-    { "_can_edit", state_variables.state_bool() },
-    { "hud_modelname", state_variables.state_string() }
+    _can_edit = state_variables.state_bool(),
+    hud_modelname = state_variables.state_string()
 }
 
 --[[!

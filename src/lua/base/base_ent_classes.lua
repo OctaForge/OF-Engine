@@ -41,17 +41,29 @@ function reg(_cl, st)
     _logent_classes[tostring(_cln)] = { _cl, st }
 
     -- generate protocol data
-    local sv_names = {}
-
-    local inst = _cl()
-    for i = 1, #inst.properties do
-        local var = inst.properties[i][2]
-        logging.log(logging.INFO, "considering " .. tostring(inst.properties[i][1]) .. " -- " .. tostring(var))
-        if state_variables.is(var) then
-            logging.log(logging.INFO, "setting up " .. tostring(inst.properties[i][1]))
-            table.insert(sv_names, tostring(inst.properties[i][1]))
+    local proptable = {}
+    local base = _cl
+    while base do
+        if base.properties then
+            for name, var in pairs(base.properties) do
+                if not proptable[name] and state_variables.is(var) then
+                    proptable[name] = var
+                end
+            end
         end
+        if base == root_logent then break end
+        base = base.__base
     end
+    local sv_names = table.keys(proptable)
+    table.sort(sv_names, function(n1, n2)
+        if state_variables.is_alias(proptable[n1]) and not
+           state_variables.is_alias(proptable[n2]) then return false
+        end
+        if not state_variables.is_alias(proptable[n1])
+           and state_variables.is_alias(proptable[n2]) then return true
+        end
+        return (n1 < n2)
+    end)
 
     logging.log(logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
     message.genprod(tostring(_cln), sv_names)

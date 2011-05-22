@@ -38,12 +38,10 @@ animatable_logent._class = "animatable_logent"
 -- @class table
 -- @name animatable_logent.properties
 animatable_logent.properties = {
-    entity.logent.properties[1], -- tags
-    entity.logent.properties[2], -- _persistent
-    { "animation", state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }) },
-    { "starttime", state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }) },
-    { "modelname", state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }) },
-    { "attachments", state_variables.wrapped_carray({ csetter = "CAPI.setattachments" }) }
+    animation = state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }),
+    starttime = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }),
+    modelname = state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }),
+    attachments = state_variables.wrapped_carray({ csetter = "CAPI.setattachments" })
 }
 
 --- Init method for animatable logic entity. Performs initial setup.
