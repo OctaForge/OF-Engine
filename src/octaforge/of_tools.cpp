@@ -257,19 +257,25 @@ namespace tools
                 case var::VAR_F: f->printf("%s = %f\n", v->name, v->curv.f); break;
                 case var::VAR_S:
                 {
+                    size_t sz = 0;
                     char *s = NULL;
                     if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
 
                     f->printf("%s = \"", v->name);
-                    for (; *s; s++) switch(*s)
+                    for (; *s; s++)
                     {
-                        case '\n': f->write("^n", 2); break;
-                        case '\t': f->write("^t", 2); break;
-                        case '\f': f->write("^f", 2); break;
-                        case '"': f->write("^\"", 2); break;
-                        default: f->putchar(*s); break;
+                        switch(*s)
+                        {
+                            case '\n': f->write("^n", 2); break;
+                            case '\t': f->write("^t", 2); break;
+                            case '\f': f->write("^f", 2); break;
+                            case '"': f->write("^\"", 2); break;
+                            default: f->putchar(*s); break;
+                        }
+                        sz++;
                     }
                     f->printf("\"\n");
+                    s -= sz;
                     delete[] s;
                     break;
                 }
@@ -291,19 +297,25 @@ namespace tools
                 case var::VAR_S:
                 {
                     if (strstr(v->name, "new_entity_gui_field")) continue;
+                    size_t sz = 0;
                     char *s = NULL;
                     if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
 
                     f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
-                    for (; *s; s++) switch(*s)
+                    for (; *s; s++)
                     {
-                        case '\n': f->write("^n", 2); break;
-                        case '\t': f->write("^t", 2); break;
-                        case '\f': f->write("^f", 2); break;
-                        case '"': f->write("^\"", 2); break;
-                        default: f->putchar(*s); break;
+                        switch(*s)
+                        {
+                            case '\n': f->write("^n", 2); break;
+                            case '\t': f->write("^t", 2); break;
+                            case '\f': f->write("^f", 2); break;
+                            case '"': f->write("^\"", 2); break;
+                            default: f->putchar(*s); break;
+                        }
+                        sz++;
                     }
                     f->printf("\")\n");
+                    s -= sz;
                     delete[] s;
                     break;
                 }
