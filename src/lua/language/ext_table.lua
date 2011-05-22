@@ -273,3 +273,26 @@ function table.pop(t, p)
     table.remove(t, p)
     return ret
 end
+
+--[[!
+    Function: table.sum
+    Sums a table of numbers. Usage -
+
+    (start code)
+        local a = { 5, 10, 15 }
+        local b = table.sum(a)
+        -- b is now 5 + 10 + 15, that is 30
+    (end)
+
+    Parameters:
+        t - The table of numbers to sum.
+
+    Returns:
+        The sum.
+]]
+function table.sum(t)
+    local ret = 0
+    for k, v in pairs(t) do
+        ret = ret + v
+    end
+end

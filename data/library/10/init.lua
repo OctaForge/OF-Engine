@@ -5,5 +5,7 @@ logging.log(logging.DEBUG, "Initializing library version %(1)s" % { library.curr
 
 logging.log(logging.DEBUG, ":: Plugin system.")
 library.include("plugins")
+logging.log(logging.DEBUG, ":: Game manager.")
+library.include("game_manager")
 
 -- library.include("submodule.modulename")

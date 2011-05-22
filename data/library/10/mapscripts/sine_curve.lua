@@ -45,9 +45,3 @@ player_class = "myplayer"
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0
-
--- Load the entities on server, server will send them to clients after that
-if SERVER then
-    local entities = utility.readfile("./entities.json")
-    entity_store.load_entities(entities)
-end

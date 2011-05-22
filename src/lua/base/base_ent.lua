@@ -252,7 +252,7 @@ function client_logent:client_activate(kwargs)
     self:_general_setup()
 
     if not self._sauertype then
-        logging.log("non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
+        logging.log(logging.DEBUG, "non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
         CAPI.setupnonsauer(self) -- does c++ reg etc, sauer types need special reg which is done by them
     end
 
@@ -332,7 +332,7 @@ function server_logent:activate(kwargs)
     self:_logent_setup()
 
     if not self._sauertype then
-        logging.log("non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
+        logging.log(logging.DEBUG, "non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
         CAPI.setupnonsauer(self) -- does c++ reg etc, sauer types need special reg which is done by them
         self:_flush_queued_sv_changes()
     end

@@ -16,7 +16,7 @@ namespace game
     void renderscoreboard(g3d_gui &g, bool firstpass)
     {
         const char *mname = getclientmap();
-        defformatstring(modemapstr)("%s: %s", "Syntensity", mname[0] ? mname : "[new map]");
+        defformatstring(modemapstr)("%s: %s", "OctaForge:", mname[0] ? mname : "[new map]");
 
         g.text(modemapstr, 0xFFFF80, "server");
 
@@ -35,7 +35,7 @@ namespace game
             }
             else
             {
-                engine.call(1, 1);
+                engine.call(0, 1);
                 // we get a table here
                 LUA_TABLE_FOREACH(engine, {
                     int lineUniqueId = engine.t_get<int>(1);
@@ -73,13 +73,13 @@ namespace game
         // Show network stats
         static int laststatus = 0; 
         float seconds = float(totalmillis-laststatus)/1024.0f;
-        static const char *netStats = "";
+        static std::string netStats = "";
         if (seconds >= 0.5)
         {
             laststatus = totalmillis;
-            netStats = NetworkSystem::Cataloger::briefSummary(seconds).c_str();
+            netStats = NetworkSystem::Cataloger::briefSummary(seconds);
         }
-        g.text(netStats, 0xFFFF80, "server");
+        g.text(netStats.c_str(), 0xFFFF80, "server");
     }
 
     struct scoreboardgui : g3d_callback
