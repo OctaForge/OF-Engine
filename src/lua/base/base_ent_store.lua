@@ -55,6 +55,10 @@ function get(uid)
     end
 end
 
+function get_all()
+    return __entities_store
+end
+
 --- Get a table of logents from store which share the same tag.
 -- @param wtag The tag to use for searching.
 -- @return Table of logents (empty table if none found)
