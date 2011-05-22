@@ -50,7 +50,8 @@ local __MODULAR_PREFIX = "__MODULAR_"
         A new class with the items baked inside.
 ]]
 function bake(_class, plugins)
-    local cldata = {}
+    local cldata     = {}
+    local properties = {}
 
     --[[!
         Variable: slots
@@ -114,12 +115,27 @@ function bake(_class, plugins)
     for i, plugin in pairs(plugins) do
         for name, item in pairs(plugin) do
             if type(item) ~= "function" or not table.find(slots, name) then
-                cldata[name] = item
+                if type(item) == "table" and name == "properties" then
+                    if not properties then
+                        properties = item
+                    else
+                        table.mergedicts(properties, item)
+                    end
+                else
+                    cldata[name] = item
+                end
             end
         end
     end
 
     local newclass = class.new(_class)
     table.mergedicts(newclass, cldata)
+
+    if not newclass.properties then
+        newclass.properties = properties
+    else
+        table.mergedicts(newclass.properties, properties)
+    end
+
     return newclass
 end
