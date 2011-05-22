@@ -35,8 +35,8 @@
 ]]
 function table.map(t, f)
     local r = {}
-    for i = 1, #t do
-        r[i] = f(t[i])
+    for i, v in pairs(t) do
+        r[i] = f(v)
     end
     return r
 end
@@ -85,8 +85,8 @@ end
         Merged table.
 ]]
 function table.mergearrays(ta, tb)
-    for i = 1, #tb do
-        table.insert(ta, tb[i])
+    for i, v in pairs(tb) do
+        table.insert(ta, v)
     end
     return ta
 end
@@ -164,9 +164,9 @@ end
 ]]
 function table.filterarray(t, f)
     local r = {}
-    for a = 1, #t do
-        if f(a, t[a]) then
-            table.insert(r, t[a])
+    for i, v in pairs(t) do
+        if f(i, v) then
+            table.insert(r, v)
         end
     end
     return r
@@ -244,4 +244,55 @@ function table.values(t)
         table.insert(r, b)
     end
     return r
+end
+
+--[[!
+    Function: table.pop
+    Pops item from end of the table or
+    from specific position and returns it. Usage -
+
+    (start code)
+        local a = { 5, 10, 15, 20, 25, 30, 35, 40 }
+        local b = table.pop(a)
+        -- b is now 40, a is { 5, 10, 15, 20, 25, 30, 35 }
+        b = table.pop(a, 3)
+        -- b is now 15, a is { 5, 10, 20, 25, 30, 35 }
+    (end)
+
+    Parameters:
+        t - The table to pop item from.
+        p - Optional argument specifying index, it's the
+        end of the table if not specified.
+
+    Returns:
+        The popped item.
+]]
+function table.pop(t, p)
+    p = p or #t
+    local ret = t[p]
+    table.remove(t, p)
+    return ret
+end
+
+--[[!
+    Function: table.sum
+    Sums a table of numbers. Usage -
+
+    (start code)
+        local a = { 5, 10, 15 }
+        local b = table.sum(a)
+        -- b is now 5 + 10 + 15, that is 30
+    (end)
+
+    Parameters:
+        t - The table of numbers to sum.
+
+    Returns:
+        The sum.
+]]
+function table.sum(t)
+    local ret = 0
+    for k, v in pairs(t) do
+        ret = ret + v
+    end
 end

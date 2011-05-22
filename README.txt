@@ -1,7 +1,7 @@
 OctaForge
 ================
 
-This is OctaForge developer alpha 4-2 (0.1.3.1, 18 May 2011)
+This is OctaForge developer alpha 5 (0.1.4, 22 May 2011)
 
 In sync with Cube 2 / Sauerbraten revision: 3575
 
@@ -11,14 +11,19 @@ and run_client.bat on Windows.
 run_client.command wraps execution
 from Finder on Mac OS X.
 
-There is generic_dev map bundled with the engine.
-Its default map script is simple drawing application.
+There is "empty" map bundled with the engine.
+It uses drawing application example by default.
 Draw a line with LMB, stop it with RMB, change color
 with MMB.
 
-There are other example scripts for generic_dev too.
-To use them, backup data/base/generic_dev/map.lua
-and rename some of those scripts to map.lua, and
-run the map.
+There are other example scripts too.
+To use them, simply modify map.lua of "empty" map.
+
+In case of problems, delete contents of your OF home
+directory ($HOME/.octaforge_client on *nix,
+My Documents\My Games\OctaForge on Windows)
+
+If the problem persists, report it into our
+issue tracker - https://github.com/OctaForge/OF-Engine/issues
 
 http://octaforge.org/

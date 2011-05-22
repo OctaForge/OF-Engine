@@ -40,5 +40,6 @@ namespace local_server
 
 /* Name of server log file in home directory. */
 #define SERVER_LOGFILE "out_server.log"
+#define SERVER_READYFILE "SERVER_READY"
 
 #endif

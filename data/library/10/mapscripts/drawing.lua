@@ -10,42 +10,8 @@ myplayer = class.new(character.player)
 -- Set a class for storage lookup
 myplayer._class = "myplayer"
 
--- Custom properties table. Yes, it's ugly now.
 myplayer.properties = {
-    character.player.properties[1], -- tags
-    character.player.properties[2], -- _persitent
-    character.player.properties[3], -- animation
-    character.player.properties[4], -- starttime
-    character.player.properties[5], -- modelname
-    character.player.properties[6], -- attachments
-
-    character.player.properties[7], -- _name
-    character.player.properties[8], -- facing_speed
-
-    character.player.properties[9], -- movement_speed
-    character.player.properties[10], -- yaw
-    character.player.properties[11], -- pitch
-    character.player.properties[12], -- move
-    character.player.properties[13], -- strafe
-    -- character.player.properties[X], -- yawing
-    -- character.player.properties[X], -- pitching
-    character.player.properties[14], -- position
-    character.player.properties[15], -- velocity
-    character.player.properties[16], -- falling
-    character.player.properties[17], -- radius
-    character.player.properties[18], -- aboveeye
-    character.player.properties[19], -- eyeheight
-    character.player.properties[20], -- blocked
-    character.player.properties[21], -- canmove
-    character.player.properties[22], -- mapdefinedposdata
-    character.player.properties[23], -- cs
-    character.player.properties[24], -- ps
-    character.player.properties[25], -- inwater
-    character.player.properties[26], -- timeinair
-    character.player.properties[27], -- _can_edit
-    character.player.properties[28],  -- hud_modelname
-
-    { "newmark", state_variables.state_array_float({ clientset = true, hashistory = false }) }
+    newmark = state_variables.state_array_float({ clientset = true, hashistory = false })
 }
 
 -- Switches color in entity
@@ -157,9 +123,3 @@ player_class = "myplayer"
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0
-
--- Load the entities on server, server will send them to clients after that
-if SERVER then
-    local entities = utility.readfile("./entities.json")
-    entity_store.load_entities(entities)
-end

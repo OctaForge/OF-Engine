@@ -138,6 +138,23 @@ namespace tools
         return true;
     }
 
+    bool fdel(const char *file)
+    {
+#ifdef WIN32
+        return (DeleteFile(file) != 0);
+#else
+        return (remove(file) == 0);
+#endif
+    }
+
+    bool fempty(const char *file)
+    {
+        FILE *f = fopen(file, "w");
+        if (!f) return false;
+        fclose(f);
+        return true;
+    }
+
     bool mkpath(const char *path)
     {
         char  buf[4096];
@@ -232,14 +249,18 @@ namespace tools
         loopv(varv)
         {
             var::cvar *v = varv[i];
+            /* do not write aliases here! */
+            if ((v->flags&var::VAR_ALIAS)   != 0) continue;
             if ((v->flags&var::VAR_PERSIST) != 0) switch(v->type)
             {
                 case var::VAR_I: f->printf("%s = %d\n", v->name, v->curv.i); break;
                 case var::VAR_F: f->printf("%s = %f\n", v->name, v->curv.f); break;
                 case var::VAR_S:
                 {
+                    char *s = NULL;
+                    if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
+
                     f->printf("%s = \"", v->name);
-                    const char *s = v->curv.s;
                     for (; *s; s++) switch(*s)
                     {
                         case '\n': f->write("^n", 2); break;
@@ -249,6 +270,7 @@ namespace tools
                         default: f->putchar(*s); break;
                     }
                     f->printf("\"\n");
+                    delete[] s;
                     break;
                 }
             }
@@ -269,9 +291,11 @@ namespace tools
                 case var::VAR_S:
                 {
                     if (strstr(v->name, "new_entity_gui_field")) continue;
+                    char *s = NULL;
+                    if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
+
                     f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
-                    const char *s = v->curv.s;
-                    for(; *s; s++) switch(*s)
+                    for (; *s; s++) switch(*s)
                     {
                         case '\n': f->write("^n", 2); break;
                         case '\t': f->write("^t", 2); break;
@@ -280,6 +304,7 @@ namespace tools
                         default: f->putchar(*s); break;
                     }
                     f->printf("\")\n");
+                    delete[] s;
                     break;
                 }
             }

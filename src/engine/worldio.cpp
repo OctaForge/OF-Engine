@@ -12,6 +12,10 @@
 #endif
 #include "of_world.h"
 #include "of_entities.h"
+#ifdef SERVER
+#include "of_localserver.h"
+#include "of_tools.h"
+#endif
 
 void backup(char *name, char *backupname)
 {
@@ -1023,6 +1027,11 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     delete saved_hdr; // INTENSITY
 
     printf("\r\n\r\n[[MAP LOADING]] - Success.\r\n"); // INTENSITY
+#ifdef SERVER
+    extern string homedir;
+    defformatstring(path)("%s%s", homedir, SERVER_READYFILE);
+    tools::fempty(path);
+#endif
 
     return true;
 }
