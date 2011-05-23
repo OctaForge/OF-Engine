@@ -379,23 +379,7 @@ namespace game
 
             engine.getg("entity_store")
                   .t_getraw("manage_triggering_collisions");
-            if (engine.is<void*>(-1)) engine.call(0, 0);
-            else
-            {
-                engine.pop(1);
-                loopv(players)
-                {
-                    fpsent* fpsEntity = players[i];
-                    CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
-                    if (!entity || entity->isNone()) continue;
-
-                    if(fpsEntity->state != CS_EDITING)
-                    {
-                        WorldSystem::checkTriggeringCollisions(entity);
-                    }
-                }
-            }
-            engine.pop(1);
+            engine.call(0, 0);
         }
 
         //==============================================

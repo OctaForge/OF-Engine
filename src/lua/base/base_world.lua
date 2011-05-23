@@ -960,3 +960,35 @@ function getsundir()
     env.sunlightyaw = cam.yaw
     env.sunlightpitch = cam.pitch
 end
+
+function is_player_colliding_entity(player, entity)
+    if entity.collision_radius_width and entity.collision_radius_width ~= 0 then
+        -- z
+        if player.position.z >= entity.position.z + 2 * entity.collision_radius_height or
+           player.position.z + player.eyeheight + player.aboveeye <= entity.position.z then return false end
+
+        -- x
+        if player.position.x - player.radius >= entity.position.x + entity.collision_radius_width or
+           player.position.x + player.radius <= entity.position.x - entity.collision_radius_width then return false end
+
+        -- y
+        if player.position.y - player.radius >= entity.position.y + entity.collision_radius_width or
+           player.position.y + player.radius <= entity.position.y - entity.collision_radius_width then return false end
+
+        return true
+    else
+        -- z
+        if player.position.z >= entity.position.z + entity.eyeheight + entity.aboveeye or
+           player.position.z + player.eyeheight + player.aboveeye <= entity.position.z then return false end
+
+        -- x
+        if player.position.x - player.radius >= entity.position.x + entity.radius or
+           player.position.x + player.radius <= entity.position.x - entity.radius then return false end
+
+        -- y
+        if player.position.y - player.radius >= entity.position.y + entity.radius or
+           player.position.y + player.radius <= entity.position.y - entity.radius then return false end
+
+        return true
+    end
+end

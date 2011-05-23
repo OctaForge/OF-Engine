@@ -129,13 +129,8 @@ function bake(_class, plugins)
     end
 
     local newclass = class.new(_class)
+    newclass.properties = properties
     table.mergedicts(newclass, cldata)
-
-    if not newclass.properties then
-        newclass.properties = properties
-    else
-        table.mergedicts(newclass.properties, properties)
-    end
 
     return newclass
 end

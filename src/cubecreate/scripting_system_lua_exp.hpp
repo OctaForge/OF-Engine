@@ -213,7 +213,6 @@ const LE_reg CAPI[] = {
     LUAREG(mdlspin),
     LUAREG(mdlenvmap),
     LUAREG(mdlshader),
-    LUAREG(mdlcollisionsonlyfortriggering),
     LUAREG(mdltrans),
     LUAREG(mdlyaw),
     LUAREG(mdlpitch),

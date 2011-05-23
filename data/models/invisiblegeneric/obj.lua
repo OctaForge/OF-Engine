@@ -2,6 +2,6 @@
 -- This is useful if rendering is done in a dynamic manner, but we still want collisions.
 --
 -- See comments in areatrigger
-cc.model.mdl.shadow(0)
-cc.model.mdl.collide(1)
-cc.model.mdl.perentitycollisionboxes(1)
+model.mdl.shadow(0)
+model.mdl.collide(1)
+model.mdl.perentitycollisionboxes(1)

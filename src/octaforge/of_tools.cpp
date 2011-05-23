@@ -264,7 +264,7 @@ namespace tools
                     f->printf("%s = \"", v->name);
                     for (; *s; s++)
                     {
-                        switch(*s)
+                        switch (*s)
                         {
                             case '\n': f->write("^n", 2); break;
                             case '\t': f->write("^t", 2); break;
@@ -304,7 +304,7 @@ namespace tools
                     f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
                     for (; *s; s++)
                     {
-                        switch(*s)
+                        switch (*s)
                         {
                             case '\n': f->write("^n", 2); break;
                             case '\t': f->write("^t", 2); break;

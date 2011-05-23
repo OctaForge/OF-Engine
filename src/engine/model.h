@@ -11,15 +11,10 @@ struct model
     float eyeheight, collideradius, collideheight;
     int batch;
 
-    // INTENSITY: Adding this, so we can have models that check collisions, but only for triggering events,
-    // and not actual collisions. I.e., to check if someone passes through a collision box, but not prevent
-    // them from passing through.
-    bool collisionsonlyfortriggering;
-
     bool perentitycollisionboxes; // INTENSITY: Get the collision box from the entiy, not the model type
 
     model() : spinyaw(0), spinpitch(0), offsetyaw(0), offsetpitch(0), collide(true), ellipsecollide(false), shadow(true), alphadepth(true), depthoffset(false), scale(1.0f), translate(0, 0, 0), bih(0), bbcenter(0, 0, 0), bbradius(0, 0, 0), bbextend(0, 0, 0), eyeheight(0.9f), collideradius(0), collideheight(0), batch(-1)
-          , collisionsonlyfortriggering(false), perentitycollisionboxes(false)
+          , perentitycollisionboxes(false)
         {}
     virtual ~model() { DELETEP(bih); }
     virtual void calcbb(int frame, vec &center, vec &radius) = 0;

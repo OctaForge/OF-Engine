@@ -9,6 +9,7 @@ skybox = "textures/sky/remus/sky01"
 
 -- use drawing mode on empty map
 library.include("mapscripts.drawing")
+library.include("mapelements.jump_pad")
 --library.include("mapscripts.sine_curve")
 --library.include("mapscripts.sine_flower")
 

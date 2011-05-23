@@ -364,18 +364,16 @@ mapmodel._sauertype_index = 2
 -- @name mapmodel.properties
 mapmodel.properties = {
     attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1", guiname = "yaw", altname = "yaw" }),
-    yaw = state_variables.variable_alias("attr1")
-}
-
-mapmodel.collision_radius_width = state_variables.wrapped_cinteger({
+    yaw = state_variables.variable_alias("attr1"),
+    collision_radius_width = state_variables.wrapped_cfloat({
         cgetter = "CAPI.getcollisionradw",
         csetter = "CAPI.setcollisionradw"
-    })
-
-mapmodel.collision_radius_height = state_variables.wrapped_cinteger({
+    }),
+    collision_radius_height = state_variables.wrapped_cfloat({
         cgetter = "CAPI.getcollisionradh",
         csetter = "CAPI.setcollisionradh"
     })
+}
 
 function mapmodel:init(uid, kwargs)
     logging.log(logging.DEBUG, "mapmodel:init")
@@ -425,7 +423,6 @@ end
 -- @name area_trigger
 area_trigger = class.new(mapmodel)
 area_trigger._class = "area_trigger"
--- ran on collision
 
 --- Area trigger entity class properties.
 -- Inherits properties of mapmodel plus adds its own.

@@ -706,7 +706,7 @@ function vec3_surrogate:__init(ent, var)
     self.add = math.vec3.add
     self.mul = math.vec3.mul
     self.copy = math.vec3.copy
-    self.getarr = math.vec3.getarr
+    self.as_array = math.vec3.as_array
     self.fromyawpitch = math.vec3.fromyawpitch
     self.toyawpitch = math.vec3.toyawpitch
     self.iscloseto = math.vec3.iscloseto
@@ -812,7 +812,7 @@ function vec4_surrogate:__init(ent, var)
     self.add = math.vec4.add
     self.mul = math.vec4.mul
     self.copy = math.vec4.copy
-    self.getarr = math.vec4.getarr
+    self.as_array = math.vec4.as_array
     self.quatfromaxisangle = math.vec4.quatfromaxisangle
     self.toyawpitchroll = math.vec4.toyawpitchroll
     self.normalize = math.vec4.normalize

@@ -269,7 +269,6 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
         if(!m->shadow || e.flags&extentity::F_NOSHADOW) return false;
     }
     else if((mode&RAY_ENTS)!=RAY_ENTS && (!m->collide || e.flags&extentity::F_NOCOLLIDE)) return false;
-//    if((mode&RAY_ENTS)!=RAY_ENTS && m->collisionsonlyfortriggering) return false; // INTENSITY: Might need this
     if(!m->bih && !m->setBIH()) return false;
     vec mo = vec(o).sub(e.o), mray(ray);
     float v = mo.dot(mray), inside = m->bih->radius - mo.squaredlen();
