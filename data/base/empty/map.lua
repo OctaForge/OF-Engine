@@ -4,12 +4,15 @@
 -- Use library version "10"
 library.use("10")
 
+-- more modules
+library.include("mapelements.jump_pad")
+library.include("mapelements.teleporter")
+
 -- default skybox
 skybox = "textures/sky/remus/sky01"
 
 -- use drawing mode on empty map
 library.include("mapscripts.drawing")
-library.include("mapelements.jump_pad")
 --library.include("mapscripts.sine_curve")
 --library.include("mapscripts.sine_flower")
 

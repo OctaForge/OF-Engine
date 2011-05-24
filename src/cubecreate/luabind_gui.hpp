@@ -235,7 +235,7 @@ namespace lua_binds
              .push(uniqueId)
              .push(key)
              .call(2, 1);
-            e.t_getraw("from_data").push_index(-2).push(nv).call(2, 1);
+            e.t_getraw("from_wire").push_index(-2).push(nv).call(2, 1);
             int _tmpref = e.ref(); e.pop(2);
             e.getg("json").t_getraw("encode");
             e.getref(_tmpref).call(1, 1);

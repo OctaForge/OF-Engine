@@ -93,10 +93,9 @@ function new(b)
 
     -- called when new index gets created in table
     function c:__newindex(n, v)
-        if not self:__indexcond(n) then return nil end
 
-        if self.__setters["*"] then
-            self.__setters["*"](self.__setselfs["*"], n, v)
+        if self.__setters["__c"] and self.__setters["__c"](n, v) then
+            self.__setters["__u"](self.__setselfs["__u"], n, v)
         else
             if self.__setters[n] then
                 if self.__setaddargs[n] then
@@ -114,6 +113,7 @@ function new(b)
     function mt:__call(...)
         local o = {}
         setmetatable(o, c)
+
         if self.__init then
             self.__init(o, ...)
         end
@@ -122,12 +122,8 @@ function new(b)
 
     -- called when index is accessed
     function mt:__index(n)
-        if not self:__indexcond(n) then return nil end
-
-        -- allow for user methods only, no metamethods or internals
-        if string.sub(n, 1, 2) ~= "__" and self.__getters["*"] then
-            local rv = self.__getters["*"](self.__getselfs["*"], n)
-            if rv then return rv end
+        if self.__getters["__c"] and self.__getters["__c"](n) then
+            return self.__getters["__u"](self.__getselfs["__u"], n)
         end
 
         if self.__getters[n] then
@@ -152,9 +148,6 @@ function new(b)
         return false
     end
 
-    -- conditional for __index, returns true if it's okay (private emulation)
-    function c:__indexcond(n) return n and true or false end
-
     --[[!
         Function: define_getter
         This defines a new getter for the class. Getter is a function assigned
@@ -163,7 +156,7 @@ function new(b)
 
         Parameters:
             k - A key to assign getter to.
-            v - The getter. It either accepts no argument or extra data.
+            v - The getter. It either accepts "self" argument or self + extra data.
             o - Optional argument specifying extra data to always pass to getter.
 
         See also:
@@ -184,7 +177,7 @@ function new(b)
 
         Parameters:
             k - A key to assign getter to.
-            v - The setter. It either accepts only the value that's meant to be set
+            v - The setter. It either accepts only self + the value that's meant to be set
             or also extra data. If extra data is present, it's passed before value.
             o - Optional argument specifying extra data to always pass to setter.
 
@@ -239,15 +232,18 @@ function new(b)
         was no userget.
 
         Parameters:
+            c - function accepting name as argument and returning true if
+            userget should be ran on it.
             f - The userget function. Has the same format as getter, except that
             you can't have extra data with it.
 
         See also:
             <define_getter>
     ]]
-    function c:define_userget(f)
-        self.__getters["*"] = f
-        self.__getselfs["*"] = self
+    function c:define_userget(c, f)
+        self.__getters["__c"] = c
+        self.__getters["__u"] = f
+        self.__getselfs["__u"] = self
     end
 
     --[[!
@@ -256,15 +252,18 @@ function new(b)
         "global setter" - it's called on EVERY key set.
 
         Parameters:
+            c - function accepting name and value as arguments and returning true if
+            userset should be ran on them.
             f - The userset function. Has the same format as setter, except that
             you can't have extra data with it.
 
         See also:
             <define_setter>
     ]]
-    function c:define_userset(f)
-        self.__setters["*"] = f
-        self.__setselfs["*"] = self
+    function c:define_userset(c, f)
+        self.__setters["__c"] = c
+        self.__setters["__u"] = f
+        self.__setselfs["__u"] = self
     end
 
     -- set the metatable and return the class
