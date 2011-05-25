@@ -673,3 +673,30 @@ function math.vec4:toyawpitchroll()
         }
     end
 end
+
+--[[!
+    Function: math.frandom
+    Returns floating point pseudo-random number using range
+    specified from arguments.
+
+    Parameters:
+        _min - Minimal value of the returned number.
+        _max - Maximal value of the returned number.
+]]
+function math.frandom(_min, _max)
+    return math.random() * (_max - _min) + _min
+end
+
+--[[!
+    Function: math.vec3_norm
+    Returns a normalized vec3 of non-zero length with
+    x, y, z components being random floating point numbers
+    ranging from -1 to 1.
+]]
+function math.vec3_norm()
+    local ret = nil
+    while not ret or ret:magnitude() == 0 do
+        ret = math.vec3(math.frandom(-1, 1), math.frandom(-1, 1), math.frandom(-1, 1))
+    end
+    return ret:normalize()
+end
