@@ -106,7 +106,7 @@ function statent:activate(kwargs)
     logging.log(logging.DEBUG, "statent: flush:")
     self:_flush_queued_sv_changes()
 
-    -- ensure the state data contains copies fo C++ stuff (toherwise, might be empty, and we need it for initializing on the server)
+    -- ensure the state data contains copies for C++ stuff (otherwise, might be empty, and we need it for initializing on the server)
     -- XXX: needed?
     logging.log(logging.DEBUG, "ensuring statent values - deprecate")
     logging.log(logging.DEBUG, "position: " .. tostring(self.position.x) .. ", " .. tostring(self.position.y) .. ", " .. tostring(self.position.z))

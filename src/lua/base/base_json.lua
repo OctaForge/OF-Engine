@@ -60,8 +60,11 @@ function encode(v)
             end
         else -- An object, not an array
             for i, j in pairs(enc) do
-                if isencodable(i) and isencodable(j) then
-                    table.insert(r, '"' .. strenc(i) .. '":' .. encode(j))
+                -- do not even attempt otherwise
+                if not (type(i) == "string" and string.sub(i, 1, 2) == "__") then
+                    if isencodable(i) and isencodable(j) then
+                        table.insert(r, '"' .. strenc(i) .. '":' .. encode(j))
+                    end
                 end
             end
         end

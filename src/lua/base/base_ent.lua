@@ -124,7 +124,7 @@ end
 --- Setup state variables of the entity. Performs registration for each.
 function root_logent:_setup_vars()
     local proptable = {}
-    local base = getmetatable(self)
+    local base = self.class
     while base do
         if base.properties then
             for name, var in pairs(base.properties) do

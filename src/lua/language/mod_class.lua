@@ -12,6 +12,8 @@
 
     About: Purpose
         This file implements a class system for Lua with simple inheritance.
+        It is inspired by "middleclass" class system for Lua, but not directly
+        based on it.
 
     Section: Class system
 ]]
@@ -26,247 +28,137 @@
 ]]
 module("class", package.seeall)
 
---[[!
-    Function: new
-    This function creates a new class. New class then can be given
-    methods, constructors, various metamethods etc. and instances
-    can be created. Usage -
+object = {}
+object.__class_dict = {
+    __init     = function() end,
+    __tostring = function(self) return "instance: %(1)s" % { tostring(self.class.name) } end
+}
+object.__class_dict.__index = object.__class_dict
 
-    (start code)
-        A = class.new()
-        function A:__init()
-            echo("This is constructor")
-            self.a = 5
-            self.b = 15
+setmetatable(object, {
+    __index    = object.__class_dict,
+    __newindex = object.__class_dict,
+    __call     = object.__new,
+    __tostring = function() return "class: object" end
+})
+
+function object:__new(...)
+    local inst = setmetatable(setmetatable({ class = self }, self.__class_dict), {})
+
+    inst.__getters = {}
+    inst.__setters = {}
+    inst.__getter_data = {}
+    inst.__setter_data = {}
+
+    local meta = getmetatable(inst)
+
+    meta.__index = function(self, key)
+        if self.__getters["__c"] and self.__getters["__c"](key) then
+            return self.__getters["__u"](self, key)
         end
-        function A:print()
-            echo(self.a)
-            echo(self.b)
-        end
-        B = class.new(a)
-        function B:__init(_a)
-            self.__base.__init(self)
-            echo("Overriden constructor")
-            self.a = _a
-        end
-        a = A()
-        b = B(20)
-        -- This will print:
-        -- 5
-        -- 15
-        a:print()
-        -- This will print:
-        -- 20
-        -- 15
-        b:print()
-    (end)
 
-    Parameters:
-        b - Optional argument specifying the class to inherit from.
-
-    Returns:
-        New class from which you can create instances.
-]]
-function new(b)
-    --[[!
-        Class: c
-        This is/will be the base class that's returned from <new>.
-        It has several default methods and that's why it's documented.
-    ]]
-    local c = {}
-
-    -- the base, empty when not inheriting
-    if b and type(b) == "table" then c.__base = b
-    else c.__base = {} end
-
-    -- inherit tostring. todo: inherit other metamethods too.
-    if b then c.__tostring = b.__tostring end
-
-    c.__index = c
-    -- getters, setters, selfs, addargs
-    c.__getters = {}
-    c.__setters = {}
-    c.__getselfs = {}
-    c.__setselfs = {}
-    c.__getaddargs = {}
-    c.__setaddargs = {}
-
-    -- called when new index gets created in table
-    function c:__newindex(n, v)
-
-        if self.__setters["__c"] and self.__setters["__c"](n, v) then
-            self.__setters["__u"](self.__setselfs["__u"], n, v)
+        if self.__getters[key] then
+            return self.__getters[key](self, self.__getter_data[key])
         else
-            if self.__setters[n] then
-                if self.__setaddargs[n] then
-                    self.__setters[n](self.__setselfs[n], self.__setaddargs[n], v)
-                else
-                    self.__setters[n](self.__setselfs[n], v)
-                end
-            else rawset(self, n, v) end
+            return self.class.__class_dict[key] or self.class[key]
         end
     end
 
-    -- the metatable for class
-    local mt = {}
-    -- call metamethod for constructor
-    function mt:__call(...)
-        local o = {}
-        setmetatable(o, c)
-
-        if self.__init then
-            self.__init(o, ...)
-        end
-        return o
-    end
-
-    -- called when index is accessed
-    function mt:__index(n)
-        if self.__getters["__c"] and self.__getters["__c"](n) then
-            return self.__getters["__u"](self.__getselfs["__u"], n)
+    meta.__newindex = function(self, key, val)
+        if self.__setters["__c"] and self.__setters["__c"](key, val) then
+            self.__setters["__u"](self, key, val)
+            return nil
         end
 
-        if self.__getters[n] then
-            if self.__getaddargs[n] then
-                return self.__getters[n](self.__getselfs[n], self.__getaddargs[n])
+        if self.__setters[key] then
+            local data = self.__setter_data[key]
+            if data then
+                self.__setters[key](self, data, val)
             else
-                return self.__getters[n](self.__getselfs[n])
+                self.__setters[key](self, val)
             end
         else
-            return self.__base[n]
+            rawset(self, key, val)
         end
     end
 
-    -- returns true if table is instance of class c
-    -- (returns true for class + all of its parents)
-    function c:is_a(c)
-        local m = getmetatable(self)
-        while m do
-            if c == m then return true end
-            m = m.__base
-        end
-        return false
+    meta.__tostring = function(self)
+        return self.__tostring(self)
     end
 
-    --[[!
-        Function: define_getter
-        This defines a new getter for the class. Getter is a function assigned
-        to a key. When they key is accessed, the function is called and its
-        return value is returned instead of real existing member.
-
-        Parameters:
-            k - A key to assign getter to.
-            v - The getter. It either accepts "self" argument or self + extra data.
-            o - Optional argument specifying extra data to always pass to getter.
-
-        See also:
-            <define_userget>
-            <remove_getter>
-    ]]
-    function c:define_getter(k, v, o)
-        self.__getters[k] = v
-        self.__getselfs[k] = self -- a little hack to get right self
-        if o then self.__getaddargs[k] = o end
+    meta.__init = function(self, ...)
+        return self.__init(self, ...)
     end
 
-    --[[!
-        Function: define_setter
-        This defines a new setter for the class. Setter is a function assigned
-        to a key. When they key is set, the function is called instead and it's
-        expected from it to do the setting itself.
+    inst:__init(...)
+    return inst
+end
 
-        Parameters:
-            k - A key to assign getter to.
-            v - The setter. It either accepts only self + the value that's meant to be set
-            or also extra data. If extra data is present, it's passed before value.
-            o - Optional argument specifying extra data to always pass to setter.
+function object:__sub_class(name)
+    local _subcl = { name = name or "<UNNAMED>", __base = self, __class_dict = {} }
 
-        See also:
-            <define_userset>
-            <remove_setter>
-    ]]
-    function c:define_setter(k, v, o)
-        self.__setters[k] = v
-        self.__setselfs[k] = self -- a little hack to get right self
-        if o then self.__setaddargs[k] = o end
+    local _sub_dict = _subcl.__class_dict
+    local _sup_dict =   self.__class_dict
+    _sub_dict.__index = _sub_dict
+
+    setmetatable(_sub_dict, _sup_dict)
+
+    setmetatable(_subcl, {
+        __index = _sub_dict,
+        __newindex = function(_self, n, v)
+            rawset(_sub_dict, n, v)
+        end,
+        __tostring = function(self) return "class: %(1)s" % { self.name } end,
+        __call = function(self, ...) return _subcl:__new(...) end
+    })
+
+    _sub_dict["__tostring"] = _sup_dict["__tostring"]
+
+    _subcl.__init = function(_self, ...) self.__init(_self, ...) end
+
+    return _subcl
+end
+
+function object:is_a(cl)
+    local _cl = self.class
+    while _cl do
+        if cl == _cl then return true end
+        _cl = _cl.__base
     end
+    return false
+end
 
-    --[[!
-        Function: remove_getter
-        This removes getter from a key so it doesn't function anymore.
+function object:define_getter(key, func, data)
+    self.__getters[key] = func
+    self.__getter_data[key] = data
+end
 
-        Parameters:
-            k - A key to remove getter from.
+function object:define_setter(key, func, data)
+    self.__setters[key] = func
+    self.__setter_data[key] = data
+end
 
-        See also:
-            <define_getter>
-    ]]
-    function c:remove_getter(k)
-        -- do not check if exists, no need
-        self.__getters[k] = nil
-        self.__getselfs[k] = nil
-        self.__getaddargs[k] = nil
-    end
+function object:define_userget(cond, func)
+    self.__getters["__c"] = cond
+    self.__getters["__u"] = func
+end
 
-    --[[!
-        Function: remove_setter
-        This removes setter from a key so it doesn't function anymore.
+function object:define_userset(cond, func)
+    self.__setters["__c"] = cond
+    self.__setters["__u"] = func
+end
 
-        Parameters:
-            k - A key to remove setter from.
+function object:remove_getter(key)
+    self.__getters[key] = nil
+    self.__getter_data[key] = nil
+end
 
-        See also:
-            <define_setter>
-    ]]
-    function c:remove_setter(k)
-        self.__setters[k] = nil
-        self.__setselfs[k] = nil
-        self.__setaddargs[k] = nil
-    end
+function object:remove_setter(key)
+    self.__setters[key] = nil
+    self.__setter_data[key] = nil
+end
 
-    --[[!
-        Function: define_userget
-        This defines an userget for the class. Userget is something like
-        "global getter" - it's called on EVERY key access. If it returns
-        something, that value is used; if not, it simply passes as if there
-        was no userget.
-
-        Parameters:
-            c - function accepting name as argument and returning true if
-            userget should be ran on it.
-            f - The userget function. Has the same format as getter, except that
-            you can't have extra data with it.
-
-        See also:
-            <define_getter>
-    ]]
-    function c:define_userget(c, f)
-        self.__getters["__c"] = c
-        self.__getters["__u"] = f
-        self.__getselfs["__u"] = self
-    end
-
-    --[[!
-        Function: define_userset
-        This defines an userset for the class. Userset is something like
-        "global setter" - it's called on EVERY key set.
-
-        Parameters:
-            c - function accepting name and value as arguments and returning true if
-            userset should be ran on them.
-            f - The userset function. Has the same format as setter, except that
-            you can't have extra data with it.
-
-        See also:
-            <define_setter>
-    ]]
-    function c:define_userset(c, f)
-        self.__setters["__c"] = c
-        self.__setters["__u"] = f
-        self.__setselfs["__u"] = self
-    end
-
-    -- set the metatable and return the class
-    setmetatable(c, mt)
-    return c
+function new(base, name)
+    base = base or object
+    return base:__sub_class(name)
 end
