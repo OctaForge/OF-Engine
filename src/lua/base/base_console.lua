@@ -43,9 +43,7 @@ miniskip = CAPI.miniconskip
 -- @name clear
 clear = CAPI.clearconsole
 
----
--- @class table
--- @name binds
+action_keys = {}
 binds = {}
 
 --- Bind a key to an action
@@ -67,6 +65,22 @@ end
 -- @param modifier
 function binds.addmod(key, modifier)
     CAPI.bind(key, [[%(1)s = 1; console.onrelease([=[%(1)s = 0]=])]] % { modifier })
+end
+
+function binds.add_action_key(key, action)
+    if type(action) == "string" then
+        local _action = action
+        action = function() loadstring(_action)() end
+    end
+    action_keys[key] = action
+end
+
+function binds.del_action_key(key)
+    action_keys[key] = nil
+end
+
+function binds.get_action_key(key)
+    return action_keys[key]
 end
 
 --- Bind a key to an action (spectator mode)
