@@ -88,7 +88,7 @@ namespace logger
 #ifdef CLIENT
         if (level == ERROR)
         {
-            char *out = tools::vstrcat("ssss", "[[", level_s, "]] - ", buf);
+            char *out = tools::nstrcatf("ssss", "[[", level_s, "]] - ", buf);
             if   (out)
             {
                     conoutf(CON_ERROR, out);

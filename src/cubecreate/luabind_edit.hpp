@@ -81,11 +81,6 @@ namespace EditingSystem
     void prepareentityclasses();
 }
 
-namespace server
-{
-    char*& getUsername(int clientNumber);
-}
-
 extern int& usevdelta, &gridpower, &nompedit, &allfaces;
 
 namespace lua_binds
@@ -254,14 +249,12 @@ namespace lua_binds
 
     LUA_BIND_SERVER(npcadd, {
         int cn = localconnect(); // Local connect to the server
-        char *uname = server::getUsername(cn);
-        if (uname) delete[] uname;
 
-        uname = tools::vstrcat("si", "Bot.", cn); // Also sets as valid ('logged in')
+        defformatstring(buf)("Bot.%i", cn);
         logger::log(logger::DEBUG, "New NPC with client number: %d\r\n", cn);
 
         // Create lua entity (players do this when they log in, NPCs do it here
-        int _ref = server::createluaEntity(cn, e.get<const char*>(1));
+        int _ref = server::createluaEntity(cn, e.get<const char*>(1), buf);
         if (_ref >= 0) e.getref(_ref);
         else e.push();
     })

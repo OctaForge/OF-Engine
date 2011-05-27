@@ -29,7 +29,6 @@ void force_network_flush();
 namespace server
 {
     int& getUniqueId(int clientNumber);
-    char*& getUsername(int clientNumber);
 }
 
 namespace MessageSystem
@@ -152,9 +151,6 @@ namespace MessageSystem
                 force_network_flush();
                 disconnect_client(sender, 3); // DISC_KICK .. most relevant for now
             }
-            char *uname = server::getUsername(sender);
-            if (uname) delete[] uname;
-            uname = newstring("local_editor");
             server::setAdmin(sender, true);
             send_LoginResponse(sender, true, true);
         #else // CLIENT, during a localconnect

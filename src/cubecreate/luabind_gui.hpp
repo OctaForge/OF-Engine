@@ -162,7 +162,7 @@ namespace lua_binds
 
         // Title
         e.getg("tostring").getref(GuiControl::EditedEntity::currEntity->luaRef).call(1, 1);
-        char *title = tools::vstrcat("iss", uid, ": ", e.get(-1, "unknown"));
+        char *title = tools::nstrcatf("iss", uid, ": ", e.get(-1, "unknown"));
         e.pop(1);
         SETVF(entity_gui_title, title);
         delete[] title;
@@ -181,7 +181,7 @@ namespace lua_binds
                 logger::log(logger::WARNING, "Not showing field '%s' as it is overly large for the GUI\r\n", key);
                 continue; // Do not even try to show overly-large items
             }
-            tools::vstrcat(command, "sisisisisisisis", 
+            tools::strcatf(command, "sisisisisisisis", 
                 "    gui.list(function()\n"
                 "        gui.text(gui.getentguilabel(",
                 i,
@@ -203,9 +203,9 @@ namespace lua_binds
                 "    end)\n"
             );
             if ((i+1) % 10 == 0)
-                tools::vstrcat(command, "sis", "   gui.tab(", i, ")\n");
+                tools::strcatf(command, "sis", "   gui.tab(", i, ")\n");
         }
-        tools::vstrcat(command, "s", "end)\n");
+        tools::strcatf(command, "s", "end)\n");
         e.exec  (command);
         delete[] command;
     })

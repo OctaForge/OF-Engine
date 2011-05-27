@@ -61,7 +61,6 @@ void force_network_flush();
 namespace server
 {
     int& getUniqueId(int clientNumber);
-    char*& getUsername(int clientNumber);
 }
 
 namespace MessageSystem

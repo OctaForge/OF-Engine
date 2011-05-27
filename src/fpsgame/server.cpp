@@ -54,7 +54,6 @@ namespace server
     {
         int clientnum, overflow;
 
-        char       *username; // Kripken: DV username. Is "" when not logged in
         int         uniqueId; // Kripken: Unique ID in the current module of this client
         bool        isAdmin; // Kripken: Whether we are admins of this map, and can edit it
 
@@ -70,7 +69,7 @@ namespace server
         //! The current scenario being run by the client
         bool runningCurrentScenario;
 
-        clientinfo() : clipboard(NULL) { reset(); delete[] username; }
+        clientinfo() : clipboard(NULL) { reset(); }
         ~clientinfo() { cleanclipboard(); }
 
         void mapchange()
@@ -91,7 +90,6 @@ namespace server
 
         void reset()
         {
-            username = newstring("");
             uniqueId = DUMMY_SINGLETON_CLIENT_UNIQUE_ID - 5; // Kripken: Negative, and also different from dummy singleton
             isAdmin = false; // Kripken
 
@@ -134,16 +132,6 @@ namespace server
         return NULL; // TODO: If we want bots
 //        n -= MAXCLIENTS;
 //        return bots.inrange(n) ? bots[n] : NULL;
-    }
-
-    // Kripken: Conveniences
-    char*& getUsername(int clientNumber)
-    {
-        clientinfo *ci = (clientinfo *)getinfo(clientNumber);
-        /* We can do this, because when something is modifying
-         * username using getUsername, original gets freed there */
-        char *dummy = newstring("");
-        return (ci ? ci->username : dummy);
     }
 
     int& getUniqueId(int clientNumber)
@@ -708,7 +696,7 @@ namespace server
     // INTENSITY: Called when logging in, and also when the map restarts (need a new entity).
     // Creates a new lua entity, in the process of which a uniqueId is generated.
     // returns its ref, no need to store it anywhere.
-    int createluaEntity(int cn, std::string _class)
+    int createluaEntity(int cn, const char *_class, const char *uname)
     {
 #ifdef CLIENT
         assert(0);
@@ -749,9 +737,9 @@ namespace server
         }
 
         // Use the PC class, unless told otherwise
-        if (_class == "") _class = player_class;
+        if (!strcmp(_class, "")) _class = player_class;
 
-        logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class.c_str(), cn);
+        logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
 
         int uniqueId = engine.exec<int>("return entity_store.get_newuid()");
 
@@ -762,7 +750,7 @@ namespace server
 
         ci->uniqueId = uniqueId;
 
-        defformatstring(c)("entity_store.new('%s', { cn = %i }, %i, true)", _class.c_str(), cn, uniqueId);
+        defformatstring(c)("entity_store.new('%s', { cn = %i }, %i, true)", _class, cn, uniqueId);
         engine.exec(c);
 
         defformatstring(a)("return entity_store.get(%i).cn", uniqueId);
@@ -778,8 +766,7 @@ namespace server
         // Add nickname
         engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
         // got class here
-        char *uname = getUsername(cn);
-        engine.t_set("_name", uname ? uname : "").pop(2);
+        engine.t_set("_name", uname).pop(2);
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)

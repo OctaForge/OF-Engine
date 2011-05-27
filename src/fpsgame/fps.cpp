@@ -235,7 +235,7 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            char *cmd = tools::vstrcat("sis sis sis sis",
+            char *cmd = tools::nstrcatf("sis sis sis sis",
                 "entity_store.get(", d->uniqueId, ").position = {",
                 "entity_store.get(", d->uniqueId, ").position.x,",
                 "entity_store.get(", d->uniqueId, ").position.y,",

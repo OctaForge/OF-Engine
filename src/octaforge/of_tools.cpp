@@ -336,7 +336,7 @@ namespace tools
         return true;
     }
 
-    bool vstrcat(char *&str, const char *format, va_list args)
+    bool vstrcatf(char *&str, const char *format, va_list args)
     {
         char buf[64];
 
@@ -396,23 +396,23 @@ namespace tools
         return true;
     }
 
-    bool vstrcat(char *&str, const char *format, ...)
+    bool strcatf(char *&str, const char *format, ...)
     {
         va_list args;
         va_start(args, format);
-        bool ret = vstrcat(str, format, args);
+        bool ret = vstrcatf(str, format, args);
         va_end(args);
         return ret;
     }
 
-    char *vstrcat(const char *format, ...)
+    char *nstrcatf(const char *format, ...)
     {
         va_list args;
         va_start(args, format);
 
         char *ret = new char[1];
         /* ret should be NULL if it fails */
-        vstrcat(ret, format, args);
+        vstrcatf(ret, format, args);
 
         va_end(args);
         return ret;
