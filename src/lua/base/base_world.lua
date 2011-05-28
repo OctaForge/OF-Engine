@@ -16,9 +16,11 @@
     Section: Utilities
 ]]
 
-local env = _G
-local CAPI = require("CAPI") -- for nested functions
-local gui  = require("gui")  -- for nested functions
+local env    = _G
+local CAPI   = require("CAPI")
+local gui    = require("gui")
+local string = require("string")
+local table  = require("table")
 
 --[[!
     Package: world
@@ -593,7 +595,7 @@ function clearents(t)
     if env.editing ~= 0 then
         entcancel()
         entselect([[return %(1)q ~= world.enttype()]] % { t })
-        echo("Deleted %(1)s %(2)s entities." % { tostring(enthavesel()), t })
+        echo("Deleted %(1)s %(2)s entities." % { env.tostring(enthavesel()), t })
         delent()
     end
 end
@@ -603,25 +605,25 @@ end
 -- with the values given
 function replaceents(what, a1, a2, a3, a4)
     if env.editing ~= 0 then
-        entfind(unpack(string.split(entget(), " ")))
+        entfind(env.unpack(string.split(entget(), " ")))
         entset(what, a1, a2, a3, a4)
-        echo("Replaced %(1)s entities." % { tostring(enthavesel()) })
+        echo("Replaced %(1)s entities." % { env.tostring(enthavesel()) })
     end
 end
 
 ---
 function selentedit()
-    entset(unpack(string.split(entget(), " ")))
+    entset(env.unpack(string.split(entget(), " ")))
 end
 
 ---
 function selreplaceents()
-    replaceents(unpack(string.split(entget(), " ")))
+    replaceents(env.unpack(string.split(entget(), " ")))
 end
 
 ---
 function selentfindall()
-    entfind(unpack(string.split(entget(), " ")))
+    entfind(env.unpack(string.split(entget(), " ")))
 end
 
 ---
@@ -665,7 +667,7 @@ function entreplace()
         CAPI.save_mouse_pos() -- place new entity right here
         intensitypasteent() -- using our newent here
     end
-    entsetattr(unpack(entcopybuf))
+    entsetattr(env.unpack(entcopybuf))
 end
 
 function editcopy()
@@ -689,7 +691,7 @@ function editpaste()
             world.paste()
             world.entpaste()
             if %(1)s then world.cancelsel() end
-        ]] % { tostring(cancelpaste) })
+        ]] % { env.tostring(cancelpaste) })
     else
         entreplace()
         if cancelpaste then cancelsel() end
@@ -943,7 +945,7 @@ function passthrough(a)
     end
     entcancel()
     if env.setting_entediting and env.setting_entediting ~= 0 then
-        env.entediting = tonumber(not a or a == 0)
+        env.entediting = env.tonumber(not a or a == 0)
     end
 end
 

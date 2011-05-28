@@ -563,40 +563,32 @@ end
 -- @class table
 -- @name wrapped_cinteger
 wrapped_cinteger = class.new(state_integer)
+class.mixin(wrapped_cinteger, wrapped_cvariable)
 function wrapped_cinteger:__tostring() return "wrapped_cinteger" end
-wrapped_cinteger.__init    = wrapped_cvariable.__init
-wrapped_cinteger._register = wrapped_cvariable._register
-wrapped_cinteger.getter    = wrapped_cvariable.getter
 
 --- Wrapped C float. Inherits from state_float,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cfloat
 wrapped_cfloat = class.new(state_float)
+class.mixin(wrapped_cfloat, wrapped_cvariable)
 function wrapped_cfloat:__tostring() return "wrapped_cfloat" end
-wrapped_cfloat.__init    = wrapped_cvariable.__init
-wrapped_cfloat._register = wrapped_cvariable._register
-wrapped_cfloat.getter    = wrapped_cvariable.getter
 
 --- Wrapped C boolean. Inherits from state_bool,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cbool
 wrapped_cbool = class.new(state_bool)
+class.mixin(wrapped_cbool, wrapped_cvariable)
 function wrapped_cbool:__tostring() return "wrapped_cbool" end
-wrapped_cbool.__init    = wrapped_cvariable.__init
-wrapped_cbool._register = wrapped_cvariable._register
-wrapped_cbool.getter    = wrapped_cvariable.getter
 
 --- Wrapped C string. Inherits from state_string,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cstring
 wrapped_cstring = class.new(state_string)
+class.mixin(wrapped_cstring, wrapped_cvariable)
 function wrapped_cstring:__tostring() return "wrapped_cstring" end
-wrapped_cstring.__init    = wrapped_cvariable.__init
-wrapped_cstring._register = wrapped_cvariable._register
-wrapped_cstring.getter    = wrapped_cvariable.getter
 
 --- Wrapped C array. Inherits from state_array,
 -- but wraps it over C getter / setter.
@@ -643,6 +635,7 @@ end
 -- @name vec3_surrogate
 -- @see vec4_surrogate
 vec3_surrogate = class.new(array_surrogate)
+class.mixin(vec3_surrogate, math.vec3)
 
 --- Return string representation of vec3 surrogate.
 -- @return String representation of vec3 surrogate.
@@ -655,22 +648,6 @@ function vec3_surrogate:__tostring() return "vec3_surrogate" end
 -- @param var State variable to create surrogate for.
 function vec3_surrogate:__init(ent, var)
     array_surrogate.__init(self, ent, var)
-
-    self.magnitude = math.vec3.magnitude
-    self.normalize = math.vec3.normalize
-    self.cap = math.vec3.cap
-    self.subnew = math.vec3.subnew
-    self.addnew = math.vec3.addnew
-    self.mulnew = math.vec3.mulnew
-    self.sub = math.vec3.sub
-    self.add = math.vec3.add
-    self.mul = math.vec3.mul
-    self.copy = math.vec3.copy
-    self.as_array = math.vec3.as_array
-    self.fromyawpitch = math.vec3.fromyawpitch
-    self.toyawpitch = math.vec3.toyawpitch
-    self.iscloseto = math.vec3.iscloseto
-    self.dotproduct = math.vec3.dotproduct
 
     self.entity = ent
     self.variable = var
@@ -760,6 +737,7 @@ state_vec3.to_wire_item    = convert.todec2str
 -- @name vec4_surrogate
 -- @see vec3_surrogate
 vec4_surrogate = class.new(array_surrogate)
+class.mixin(vec4_surrogate, math.vec4)
 
 --- Return string representation of vec4 surrogate.
 -- @return String representation of vec4 surrogate.
@@ -772,24 +750,6 @@ function vec4_surrogate:__tostring() return "vec4_surrogate" end
 -- @param var State variable to create surrogate for.
 function vec4_surrogate:__init(ent, var)
     array_surrogate.__init(self, ent, var)
-
-    self.magnitude = math.vec4.magnitude
-    self.subnew = math.vec4.subnew
-    self.addnew = math.vec4.addnew
-    self.mulnew = math.vec4.mulnew
-    self.sub = math.vec4.sub
-    self.add = math.vec4.add
-    self.mul = math.vec4.mul
-    self.copy = math.vec4.copy
-    self.as_array = math.vec4.as_array
-    self.quatfromaxisangle = math.vec4.quatfromaxisangle
-    self.toyawpitchroll = math.vec4.toyawpitchroll
-    self.normalize = math.vec4.normalize
-    self.cap = math.vec4.cap
-    self.fromyawpitch = math.vec4.fromyawpitch
-    self.toyawpitch = math.vec4.toyawpitch
-    self.iscloseto = math.vec4.iscloseto
-    self.dotproduct = math.vec4.dotproduct
 
     self.entity = ent
     self.variable = var

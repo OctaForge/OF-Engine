@@ -29,6 +29,7 @@
 module("class", package.seeall)
 
 object = {}
+object.name = "object"
 object.__class_dict = {
     __init     = function() end,
     __tostring = function(self) return "instance: %(1)s" % { tostring(self.class.name) } end
@@ -161,4 +162,35 @@ end
 function new(base, name)
     base = base or object
     return base:__sub_class(name)
+end
+
+function mixin(class, mixin_t)
+    local mixin_skip = {
+        "define_getter", "define_setter",
+        "define_userget", "define_userset",
+        "remove_getter", "remove_setter",
+        "is_a"
+    }
+    local to_mixin = mixin_t
+
+    if mixin_t.__class_dict then
+        to_mixin = {}
+
+        while mixin_t do
+            for name, value in pairs(mixin_t.__class_dict) do
+                -- do not allow to mixin i.e. constructors
+                -- for safety reasons.
+                if string.sub(name, 1, 2) ~= "__" and
+                not table.find(mixin_skip, name) and
+                not to_mixin[name] then
+                    to_mixin[name] = value
+                end
+            end
+            mixin_t = mixin_t.__base
+        end
+    end
+
+    for name, value in pairs(to_mixin) do
+        class[name] = value
+    end
 end
