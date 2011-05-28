@@ -32,7 +32,8 @@ void WorldSystem::triggerReceivedEntity()
     {
         float val = float(numReceivedEntities)/float(numExpectedEntities);
         val = clamp(val, 0.0f, 1.0f);
-        char *text = tools::nstrcatf("sis", "received entity ", numReceivedEntities, "...");
+        char *text = new char[32];
+        snprintf(text, 32, "received entity %i...", numReceivedEntities);
         if (WorldSystem::loadingWorld) // Show message only during map loading, not when new clients log in
             renderprogress(val, text);
         delete[] text;

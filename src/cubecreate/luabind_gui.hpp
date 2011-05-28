@@ -162,16 +162,18 @@ namespace lua_binds
 
         // Title
         e.getg("tostring").getref(GuiControl::EditedEntity::currEntity->luaRef).call(1, 1);
-        char *title = tools::nstrcatf("iss", uid, ": ", e.get(-1, "unknown"));
+        char title[256];
+        snprintf(title, sizeof(title), "%i: %s", uid, e.get(-1, "unknown"));
         e.pop(1);
         SETVF(entity_gui_title, title);
-        delete[] title;
         // Create the gui
         char *command = newstring(
             "gui.new(\"entity\", function()\n"
             "    gui.text(entity_gui_title)\n"
             "    gui.bar()\n"
         );
+        char tmp_buf[2048];
+        char *n = NULL;
         for (int i = 0; i < num_entity_gui_fields; i++)
         {
             const char *key = GuiControl::EditedEntity::sortedKeys[i].c_str();
@@ -181,33 +183,39 @@ namespace lua_binds
                 logger::log(logger::WARNING, "Not showing field '%s' as it is overly large for the GUI\r\n", key);
                 continue; // Do not even try to show overly-large items
             }
-            tools::strcatf(command, "sisisisisisisis", 
+            snprintf(
+                tmp_buf, sizeof(tmp_buf),
                 "    gui.list(function()\n"
-                "        gui.text(gui.getentguilabel(",
-                i,
-                "))\n"
-                "        engine.newvar(\"new_entity_gui_field_",
-                i,
-                "\", engine.VAR_S, gui.getentguival(",
-                i,
-                "))\n"
-                "        gui.field(\"new_entity_gui_field_",
-                i,
-                "\", ",
-                (int)strlen(value)+25,
-                ", [[gui.setentguival(",
-                i,
-                ", new_entity_gui_field_",
-                i,
-                ")]], 0)\n"
-                "    end)\n"
+                "        gui.text(gui.getentguilabel(%i))\n"
+                "        engine.newvar(\"new_entity_gui_field_%i\", engine.VAR_S, gui.getentguival(%i))\n"
+                "        gui.field(\"new_entity_gui_field_%i\", %i, [[gui.setentguival(%i, new_entity_gui_field_%i)]], 0)\n"
+                "    end)\n", i, i, i, i, (int)strlen(value) + 25, i, i
             );
+            n = new char[strlen(command) + strlen(tmp_buf) + 1];
+            strcpy(n, command);
+            strcat(n, tmp_buf);
+            delete[] command;
+            command = newstring(n);
+            delete[] n;
+
             if ((i+1) % 10 == 0)
-                tools::strcatf(command, "sis", "   gui.tab(", i, ")\n");
+            {
+                snprintf(tmp_buf, sizeof(tmp_buf), "    gui.tab(%i)\n", i);
+                n = new char[strlen(command) + strlen(tmp_buf) + 1];
+                strcpy(n, command);
+                strcat(n, tmp_buf);
+                delete[] command;
+                command = newstring(n);
+                delete[] n;
+            }
         }
-        tools::strcatf(command, "s", "end)\n");
-        e.exec  (command);
+        char *cmd = new char[strlen(command) + 7];
+        strcpy(cmd, command);
+        strcat(cmd, "end)\n");
         delete[] command;
+
+        e.exec  (cmd);
+        delete[] cmd;
     })
 
     LUA_BIND_CLIENT(getentguilabel, {

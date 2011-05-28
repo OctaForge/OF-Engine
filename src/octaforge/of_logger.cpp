@@ -88,7 +88,9 @@ namespace logger
 #ifdef CLIENT
         if (level == ERROR)
         {
-            char *out = tools::nstrcatf("ssss", "[[", level_s, "]] - ", buf);
+            size_t sz = strlen(level_s) + strlen(buf) + 8;
+            char *out = new char[sz];
+            snprintf(out, sz, "[[%s]] - %s", level_s, buf);
             if   (out)
             {
                     conoutf(CON_ERROR, out);

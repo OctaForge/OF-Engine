@@ -46,10 +46,6 @@ namespace tools
     void  writecfg(const char *name = NULL);
     bool  execcfg(const char *cfgfile);
 
-    bool  vstrcatf(char *&str, const char *format, va_list args);
-    bool  strcatf(char *&str, const char *format, ...);
-    char *nstrcatf(const char *format, ...);
-
     int   currtime();
 } /* end namespace tools */
 

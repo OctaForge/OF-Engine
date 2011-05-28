@@ -333,9 +333,12 @@ struct hline
                     return;
                 }
 
+                char *n   = NULL;
                 char *str = newstring(buf + 1);
                 char *tok = strtok(str, " ");
-                char *cmd = tools::nstrcatf("ss", tok, "(");
+                char *cmd = new char[strlen(tok) + 2];
+                strcpy(cmd, tok);
+                strcat(cmd, "(");
 
                 tok = strtok(NULL, " ");
 
@@ -345,19 +348,44 @@ struct hline
                     if ((tok[0] == '\"' || tok[0] == '\'')
                      && (tok[strlen(tok) - 1] != '\"' && tok[strlen(tok) - 1] != '\''))
                     {
-                        tools::strcatf(cmd, "ss", first ? "" : ", ", tok);
+                        n = new char[strlen(cmd) + strlen(tok) + (first ? 1 : 3)];
+                        strcpy(n, cmd);
+                        if (!first) strcat(n, ", ");
+                        strcat(n, tok);
+                        delete[] cmd;
+                        cmd = newstring(n);
+                        delete[] n;
 
                         if ((tok = strtok(NULL, " ")))
-                             tools::strcatf(cmd, "s", " ");
+                        {
+                            n = new char[strlen(cmd) + 2);
+                            strcpy(n, cmd);
+                            strcat(n, " ");
+                            delete[] cmd;
+                            cmd = newstring(n);
+                            delete[] n;
+                        }
 
                         while (tok)
                         {
-                            tools::strcatf(cmd, "s", tok);
+                            n = new char[strlen(cmd) + strlen(tok) + 1];
+                            strcpy(n, cmd);
+                            strcat(n, tok);
+                            delete[] cmd;
+                            cmd = newstring(n);
+                            delete[] n;
 
                             if (tok[strlen(tok) - 1] == '\"' || tok[strlen(tok) - 1] == '\'')
                                 break;
                             else
-                                tools::strcatf(cmd, "s", " ");
+                            {
+                                n = new char[strlen(cmd) + 2);
+                                strcpy(n, cmd);
+                                strcat(n, " ");
+                                delete[] cmd;
+                                cmd = newstring(n);
+                                delete[] n;
+                            }
 
                             tok = strtok(NULL, " ");
                         }
@@ -367,17 +395,27 @@ struct hline
                     }
                     else
                     {
-                        tools::strcatf(cmd, "ss", first ? "" : ", ", tok);
+                        n = new char[strlen(cmd) + strlen(tok) + (first ? 1 : 3)];
+                        strcpy(n, cmd);
+                        if (!first) strcat(n, ", ");
+                        strcat(n, tok);
+                        delete[] cmd;
+                        cmd = newstring(n);
+                        delete[] n;
+
                         tok = strtok(NULL, " ");
                     }
                     first = false;
                 }
 
-                tools::strcatf(cmd, "s", ")");
-                lua::engine.exec(cmd);
-
+                char *command = new char[strlen(cmd) + 2];
+                strcpy(command, cmd);
+                strcat(command, ")");
                 delete[] cmd;
                 delete[] str;
+
+                lua::engine.exec(command);
+                delete[] command;
             }
 #endif
         }
