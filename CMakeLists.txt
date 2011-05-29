@@ -40,7 +40,7 @@ else (UNIX) # this is windows. Well, not really, but mostly yes (TODO: check?)
     # append cmake prefix path so it finds required libraries on Windows
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR}/src)
     # build wuuid and sdlmain into client and server on Windows
-    set(EXTRA_SOURCES ../lib/src/wuuid ../lib/src/SDL_win32_main.c)
+    set(EXTRA_SOURCES ../lib/src/wuuid ../lib/src/SDL_win32_main.cpp)
 endif (UNIX)
 
 # find other packages
