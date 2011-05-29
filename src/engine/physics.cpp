@@ -770,91 +770,36 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
     loopv(oc.mapmodels)
     {
         extentity &e = *entities::storage[oc.mapmodels[i]];
-
+        if(e.flags&extentity::F_NOCOLLIDE) continue;
         CLogicEntity *entity = LogicSystem::getLogicEntity(e);
-
         model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
-        if(!m) continue;
-        if ( (m->collisionsonlyfortriggering && !WorldSystem::triggeringCollisions) ||
-             (!m->collisionsonlyfortriggering && WorldSystem::triggeringCollisions) )
-            continue; // If mapmodel type not relevant for current physics test, ignore
-
-        #define HANDLE_TRIGGERING_COLLISIONS \
-                if (WorldSystem::triggeringCollisions) \
-                { \
-                    WorldSystem::triggerCollide(entity, d, false); \
-                    continue; /* This is not a 'real' collision, we just checked for trigger events, let other mapmodels */ \
-                              /* also trigger XXX  FIXME: Might this same mapmodel be tested twice? */ \
-                }
-
         if(!m || !m->collide) continue;
         vec center, radius;
         m->collisionbox(0, center, radius, entity); // INTENSITY: entity
-
         float yaw = float((e.attr1+7)-(e.attr1+7)%15);
         switch(d->collidetype)
         {
             case COLLIDE_ELLIPSE:
-              {
                 if(m->ellipsecollide)
                 {
-                    /*if(!mmcollide<mpr::EntCylinder, mpr::ModelEllipse>(d, !WorldSystem::triggeringCollisions ? dir : vec(0,0,0), e, center, radius, yaw)) // INTENSITY: If just for triggering events (AreaTriggers), then we want all intersections regardless of direction
-                    {
-                        HANDLE_TRIGGERING_COLLISIONS // INTENSITY: Fire trigger, and handle collisiononlyfortriggering case
-
-                        return false;
-                    }*/
-                    if(!ellipsecollide(d, !WorldSystem::triggeringCollisions ? dir : vec(0,0,0), e.o, center, yaw, radius.x, radius.y, radius.z, radius.z)) // INTENSITY: If just for triggering events (AreaTriggers), then we want all intersections regardless of direction
-                    {
-                        HANDLE_TRIGGERING_COLLISIONS // INTENSITY: Fire trigger, and handle collisiononlyfortriggering case
-
-                        return false;
-                    }
+                    //if(!mmcollide<mpr::EntCylinder, mpr::ModelEllipse>(d, dir, e, center, radius, yaw)) return false;
+                    if(!ellipsecollide(d, dir, e.o, center, yaw, radius.x, radius.y, radius.z, radius.z)) return false;
                 }
-                else if(!ellipserectcollide(d, !WorldSystem::triggeringCollisions ? dir : vec(0,0,0), e.o, center, yaw, radius.x, radius.y, radius.z, radius.z)) // INTENSITY: If just for triggering events (AreaTriggers), then we want all intersections regardless of direction
-                {
-                    HANDLE_TRIGGERING_COLLISIONS // INTENSITY: Fire trigger, and handle collisiononlyfortriggering case
-
-                    return false;
-                }
-                /*else if(!mmcollide<mpr::EntCylinder, mpr::ModelOBB>(d, !WorldSystem::triggeringCollisions ? dir : vec(0,0,0), e, center, radius, yaw)) // INTENSITY: If just for triggering events (AreaTriggers), then we want all intersections regardless of direction
-                {
-                    HANDLE_TRIGGERING_COLLISIONS // INTENSITY: Fire trigger, and handle collisiononlyfortriggering case
-
-                    return false;
-                }*/
+                //else if(!mmcollide<mpr::EntCylinder, mpr::ModelOBB>(d, dir, e, center, radius, yaw)) return false;
+                else if(!ellipserectcollide(d, dir, e.o, center, yaw, radius.x, radius.y, radius.z, radius.z)) return false;
                 break;
-              }
             case COLLIDE_OBB:
-              {
                 if(m->ellipsecollide)
                 {
-                    if(!mmcollide<mpr::EntOBB, mpr::ModelEllipse>(d, !WorldSystem::triggeringCollisions ? dir : vec(0,0,0), e, center, radius, yaw))
-                    {
-                        HANDLE_TRIGGERING_COLLISIONS // INTENSITY: Fire trigger, and handle collisiononlyfortriggering case
-
-                        return false;
-                    }
+                    if(!mmcollide<mpr::EntOBB, mpr::ModelEllipse>(d, dir, e, center, radius, yaw)) return false;
                 }
-                else if(!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, !WorldSystem::triggeringCollisions ? dir : vec(0,0,0), e, center, radius, yaw))
-                {
-                    HANDLE_TRIGGERING_COLLISIONS // INTENSITY: Fire trigger, and handle collisiononlyfortriggering case
-                    return false;
-                }
+                else if(!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, center, radius, yaw)) return false;
                 break;
-              }
             case COLLIDE_AABB:
             default:
-              {
                 rotatebb(center, radius, e.attr1);
-                if(!rectcollide(d, !WorldSystem::triggeringCollisions ? dir : vec(0,0,0), center.add(e.o), radius.x, radius.y, radius.z, radius.z)) // INTENSITY: If just for triggering events (AreaTriggers), then we want all intersections regardless of direction
-                {
-                    HANDLE_TRIGGERING_COLLISIONS // INTENSITY: Fire trigger, and handle collisiononlyfortriggering case
-
-                    return false;
-                }
+                if(!rectcollide(d, dir, center.add(e.o), radius.x, radius.y, radius.z, radius.z)) return false;
                 break;
-              }
         }
     }
     return true;

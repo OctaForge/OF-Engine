@@ -199,8 +199,6 @@ state_integer = class.new(state_variable)
 function state_integer:__tostring() return "state_integer" end
 function state_integer:to_wire(v) return convert.tostring(v) end
 function state_integer:from_wire(v) return convert.tointeger(v) end
-function state_integer:to_data(v) return convert.tostring(v) end
-function state_integer:from_data(v) return convert.tointeger(v) end
 
 --- State float. to_(wire|data) return a string with max two digits after
 -- floating point. from_(wire|data) convert string back to integer.
@@ -210,8 +208,6 @@ state_float = class.new(state_variable)
 function state_float:__tostring() return "state_float" end
 function state_float:to_wire(v) return convert.todec2str(v) end
 function state_float:from_wire(v) return convert.tonumber(v) end
-function state_float:to_data(v) return convert.todec2str(v) end
-function state_float:from_data(v) return convert.tonumber(v) end
 
 --- State boolean. to_(wire|data) return a string, from_(wire|data) convert
 -- it back to boolean.
@@ -221,8 +217,6 @@ state_bool = class.new(state_variable)
 function state_bool:__tostring() return "state_bool" end
 function state_bool:to_wire(v) return convert.tostring(v) end
 function state_bool:from_wire(v) return convert.toboolean(v) end
-function state_bool:to_data(v) return convert.tostring(v) end
-function state_bool:from_data(v) return convert.toboolean(v) end
 
 --- State string. Simple case, because purely string manipulation gets performed.
 -- Though, some tostring conversions are done to make sure. TODO: get rid of them?
@@ -233,8 +227,6 @@ state_string = class.new(state_variable)
 function state_string:__tostring() return "state_string" end
 function state_string:to_wire(v) return convert.tostring(v) end
 function state_string:from_wire(v) return convert.tostring(v) end
-function state_string:to_data(v) return convert.tostring(v) end
-function state_string:from_data(v) return convert.tostring(v) end
 
 --- This class serves as "array surrogate" for state_array.
 -- Currently, array surrogate gets newly created whenever
@@ -258,22 +250,19 @@ function array_surrogate:__init(ent, var)
     self.entity = ent
     self.variable = var
 
-    self:define_userget(function(self, n)
-        if n == "length" then
-            return (self.variable and
-                self.variable.get_length(self.variable, self.entity)
-            or 0)
+    self:define_getter(
+        "length", function(self)
+            return self.variable.get_length(self.variable, self.entity)
         end
-        if not tonumber(n) or not self.variable then return nil end
-        return self.variable.get_item(self.variable, self.entity, tonumber(n))
-    end)
-    self:define_userset(function(self, n, v)
-        if tonumber(n) and self.variable then
-            self.variable.set_item(self.variable, self.entity, tonumber(n), v)
-        else
-            rawset(self, n, v)
-        end
-    end)
+    )
+    self:define_userget(
+        function(n) return tonumber(n) and true or false end,
+        function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
+    )
+    self:define_userset(
+        function(n, v) return tonumber(n) and true or false end,
+        function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
+    )
 end
 
 --- Push into array surrogate. Appends a value on the end.
@@ -285,11 +274,11 @@ end
 --- Return raw array of values.
 -- @return Raw array of values.
 function array_surrogate:as_array()
-    logging.log(logging.DEBUG, "as_array: " .. tostring(self))
+    logging.log(logging.INFO, "as_array: " .. tostring(self))
 
     local r = {}
     for i = 1, self.length do
-        logging.log(logging.DEBUG, "as_array(" .. tostring(i) .. ")")
+        logging.log(logging.INFO, "as_array(" .. tostring(i) .. ")")
         table.insert(r, self[i])
     end
     return r
@@ -314,12 +303,11 @@ function state_array:getter(var)
     var:read_tests(self)
 
     if not var:get_raw(self) then return nil end
-    -- caching: TODO: enable later
-    -- if not self["__asurrogate_" .. var._name] then
-    --     self["__asurrogate_" .. var._name] = var.surrogate_class(self, var)
-    -- end
-    -- return self["__asurrogate_" .. var._name]
-    return var.surrogate_class(self, var)
+    -- caching
+    if not self["__asurrogate_" .. var._name] then
+           self["__asurrogate_" .. var._name] = var.surrogate_class(self, var)
+    end
+    return self["__asurrogate_" .. var._name]
 end
 
 --- Overriden setter. See state:variable:setter.
@@ -370,31 +358,6 @@ function state_array:from_wire(v)
         return {}
     else
         return table.map(string.split(string.sub(v, 2, #v - 1), self.separator), self.from_wire_item)
-    end
-end
-
-state_array.to_data_item = convert.tostring
-
-function state_array:to_data(v)
-    logging.log(logging.DEBUG, "(1) to_data of state_array: " .. tostring(v) .. ", " .. type(v) .. ", " .. json.encode(v))
-    if v.as_array then
-        logging.log(logging.DEBUG, "(1.5) to_data of state_array: using as_array ..")
-        v = v:as_array()
-    end
-
-    logging.log(logging.DEBUG, "(2) to_data of state_array: " .. tostring(v) .. ", " .. type(v) .. ", " .. json.encode(v))
-
-    return "[" .. table.concat(table.map(v, self.to_data_item), self.separator) .. "]"
-end
-
-state_array.from_data_item = convert.tostring
-
-function state_array:from_data(v)
-    logging.log(logging.DEBUG, "from_data of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
-    if v == "[]" then
-        return {}
-    else
-        return table.map(string.split(string.sub(v, 2, #v - 1), self.separator), self.from_data_item)
     end
 end
 
@@ -453,8 +416,6 @@ state_array_float = class.new(state_array)
 function state_array_float:__tostring() return "state_array_float" end
 state_array_float.to_wire_item = convert.todec2str
 state_array_float.from_wire_item = convert.tonumber
-state_array_float.to_data_item = convert.todec2str
-state_array_float.from_data_item = convert.tonumber
 
 --- State array with elements of integral type.
 -- @class table
@@ -463,8 +424,6 @@ state_array_integer = class.new(state_array)
 function state_array_integer:__tostring() return "state_array_integer" end
 state_array_integer.to_wire_item = convert.todec2str
 state_array_integer.from_wire_item = convert.tointeger
-state_array_integer.to_data_item = convert.todec2str
-state_array_integer.from_data_item = convert.tointeger
 
 --- Variable alias. Useful to get simpler setters.
 -- @class table
@@ -550,10 +509,10 @@ function wrapped_cvariable:_register(_name, parent)
         local variable = self
         parent:connect(prefix .. _name, function (self, v)
             if CLIENT or parent:can_call_cfuncs() then
-                logging.log(logging.DEBUG, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
+                logging.log(logging.INFO, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
                 -- we've been set up, apply the change
                 variable.csetter(parent, v)
-                logging.log(logging.DEBUG, "csetter called successfully.")
+                logging.log(logging.INFO, "csetter called successfully.")
 
                 -- caching reads from script into C++ (search for -- caching)
                 parent.state_var_vals[tostring(variable._name)] = v
@@ -602,41 +561,29 @@ end
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cinteger
-wrapped_cinteger = class.new(state_integer)
+wrapped_cinteger = class.new(state_integer, wrapped_cvariable)
 function wrapped_cinteger:__tostring() return "wrapped_cinteger" end
-wrapped_cinteger.__init    = wrapped_cvariable.__init
-wrapped_cinteger._register = wrapped_cvariable._register
-wrapped_cinteger.getter    = wrapped_cvariable.getter
 
 --- Wrapped C float. Inherits from state_float,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cfloat
-wrapped_cfloat = class.new(state_float)
+wrapped_cfloat = class.new(state_float, wrapped_cvariable)
 function wrapped_cfloat:__tostring() return "wrapped_cfloat" end
-wrapped_cfloat.__init    = wrapped_cvariable.__init
-wrapped_cfloat._register = wrapped_cvariable._register
-wrapped_cfloat.getter    = wrapped_cvariable.getter
 
 --- Wrapped C boolean. Inherits from state_bool,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cbool
-wrapped_cbool = class.new(state_bool)
+wrapped_cbool = class.new(state_bool, wrapped_cvariable)
 function wrapped_cbool:__tostring() return "wrapped_cbool" end
-wrapped_cbool.__init    = wrapped_cvariable.__init
-wrapped_cbool._register = wrapped_cvariable._register
-wrapped_cbool.getter    = wrapped_cvariable.getter
 
 --- Wrapped C string. Inherits from state_string,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cstring
-wrapped_cstring = class.new(state_string)
+wrapped_cstring = class.new(state_string, wrapped_cvariable)
 function wrapped_cstring:__tostring() return "wrapped_cstring" end
-wrapped_cstring.__init    = wrapped_cvariable.__init
-wrapped_cstring._register = wrapped_cvariable._register
-wrapped_cstring.getter    = wrapped_cvariable.getter
 
 --- Wrapped C array. Inherits from state_array,
 -- but wraps it over C getter / setter.
@@ -682,7 +629,7 @@ end
 -- @class table
 -- @name vec3_surrogate
 -- @see vec4_surrogate
-vec3_surrogate = class.new(array_surrogate)
+vec3_surrogate = class.new(array_surrogate, math.vec3)
 
 --- Return string representation of vec3 surrogate.
 -- @return String representation of vec3 surrogate.
@@ -696,53 +643,50 @@ function vec3_surrogate:__tostring() return "vec3_surrogate" end
 function vec3_surrogate:__init(ent, var)
     array_surrogate.__init(self, ent, var)
 
-    self.magnitude = math.vec3.magnitude
-    self.normalize = math.vec3.normalize
-    self.cap = math.vec3.cap
-    self.subnew = math.vec3.subnew
-    self.addnew = math.vec3.addnew
-    self.mulnew = math.vec3.mulnew
-    self.sub = math.vec3.sub
-    self.add = math.vec3.add
-    self.mul = math.vec3.mul
-    self.copy = math.vec3.copy
-    self.getarr = math.vec3.getarr
-    self.fromyawpitch = math.vec3.fromyawpitch
-    self.toyawpitch = math.vec3.toyawpitch
-    self.iscloseto = math.vec3.iscloseto
-    self.dotproduct = math.vec3.dotproduct
-
     self.entity = ent
     self.variable = var
 
-    self:define_userget(function(self, n)
-        if n == "length" then
-            return 3
-        elseif n == "x" then
+    self:define_getter("length", function(self) return 3 end)
+    self:define_getter(
+        "x", function(self)
             return self.variable.get_item(self.variable, self.entity, 1)
-        elseif n == "y" then
+        end
+    )
+    self:define_getter(
+        "y", function(self)
             return self.variable.get_item(self.variable, self.entity, 2)
-        elseif n == "z" then
+        end
+    )
+    self:define_getter(
+        "z", function(self)
             return self.variable.get_item(self.variable, self.entity, 3)
         end
-        if not tonumber(n) then return nil end
-        return self.variable.get_item(self.variable, self.entity, tonumber(n))
-    end)
-    self:define_userset(function(self, n, v)
-        if tonumber(n) then
-            self.variable.set_item(self.variable, self.entity, tonumber(n), v)
-        else
-            if n == "x" then
-                self.variable.set_item(self.variable, self.entity, 1, v)
-            elseif n == "y" then
-                self.variable.set_item(self.variable, self.entity, 2, v)
-            elseif n == "z" then
-                self.variable.set_item(self.variable, self.entity, 3, v)
-            else
-                rawset(self, n, v)
-            end
+    )
+
+    self:define_setter(
+        "x", function(self, v)
+            self.variable.set_item(self.variable, self.entity, 1, v)
         end
-    end)
+    )
+    self:define_setter(
+        "y", function(self, v)
+            self.variable.set_item(self.variable, self.entity, 2, v)
+        end
+    )
+    self:define_setter(
+        "z", function(self, v)
+            self.variable.set_item(self.variable, self.entity, 3, v)
+        end
+    )
+
+    self:define_userget(
+        function(n) return tonumber(n) and true or false end,
+        function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
+    )
+    self:define_userset(
+        function(n, v) return tonumber(n) and true or false end,
+        function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
+    )
 end
 
 --- Push method for vec3 throws a failed assertion,
@@ -766,8 +710,6 @@ wrapped_cvec3.__init          = wrapped_cvariable.__init
 wrapped_cvec3._register       = wrapped_cvariable._register
 wrapped_cvec3.from_wire_item  = convert.tonumber
 wrapped_cvec3.to_wire_item    = convert.todec2str
-wrapped_cvec3.from_data_item  = convert.tonumber
-wrapped_cvec3.to_data_item    = convert.todec2str
 wrapped_cvec3.get_raw         = wrapped_carray.get_raw
 
 --- State vec3. Inherits state array, but uses
@@ -782,15 +724,13 @@ function state_vec3:__tostring() return "state_vec3" end
 state_vec3.surrogate_class = vec3_surrogate
 state_vec3.from_wire_item  = convert.tonumber
 state_vec3.to_wire_item    = convert.todec2str
-state_vec3.from_data_item  = convert.tonumber
-state_vec3.to_data_item    = convert.todec2str
 
 --- This inherits from array surrogate in order to achieve
 -- vec4 behavior. Used by state_vec4 and wrapped_cvec4.
 -- @class table
 -- @name vec4_surrogate
 -- @see vec3_surrogate
-vec4_surrogate = class.new(array_surrogate)
+vec4_surrogate = class.new(array_surrogate, math.vec4)
 
 --- Return string representation of vec4 surrogate.
 -- @return String representation of vec4 surrogate.
@@ -804,59 +744,60 @@ function vec4_surrogate:__tostring() return "vec4_surrogate" end
 function vec4_surrogate:__init(ent, var)
     array_surrogate.__init(self, ent, var)
 
-    self.magnitude = math.vec4.magnitude
-    self.subnew = math.vec4.subnew
-    self.addnew = math.vec4.addnew
-    self.mulnew = math.vec4.mulnew
-    self.sub = math.vec4.sub
-    self.add = math.vec4.add
-    self.mul = math.vec4.mul
-    self.copy = math.vec4.copy
-    self.getarr = math.vec4.getarr
-    self.quatfromaxisangle = math.vec4.quatfromaxisangle
-    self.toyawpitchroll = math.vec4.toyawpitchroll
-    self.normalize = math.vec4.normalize
-    self.cap = math.vec4.cap
-    self.fromyawpitch = math.vec4.fromyawpitch
-    self.toyawpitch = math.vec4.toyawpitch
-    self.iscloseto = math.vec4.iscloseto
-    self.dotproduct = math.vec4.dotproduct
-
     self.entity = ent
     self.variable = var
 
-    self:define_userget(function(self, n)
-        if n == "length" then
-            return 4
-        elseif n == "x" then
+    self:define_getter("length", function(self) return 4 end)
+    self:define_getter(
+        "x", function(self)
             return self.variable.get_item(self.variable, self.entity, 1)
-        elseif n == "y" then
+        end
+    )
+    self:define_getter(
+        "y", function(self)
             return self.variable.get_item(self.variable, self.entity, 2)
-        elseif n == "z" then
+        end
+    )
+    self:define_getter(
+        "z", function(self)
             return self.variable.get_item(self.variable, self.entity, 3)
-        elseif n == "w" then
+        end
+    )
+    self:define_getter(
+        "w", function(self)
             return self.variable.get_item(self.variable, self.entity, 4)
         end
-        if not tonumber(n) then return nil end
-        return self.variable.get_item(self.variable, self.entity, tonumber(n))
-    end)
-    self:define_userset(function(self, n, v)
-        if tonumber(n) then
-            self.variable.set_item(self.variable, self.entity, tonumber(n), v)
-        else
-            if n == "x" then
-                self.variable.set_item(self.variable, self.entity, 1, v)
-            elseif n == "y" then
-                self.variable.set_item(self.variable, self.entity, 2, v)
-            elseif n == "z" then
-                self.variable.set_item(self.variable, self.entity, 3, v)
-            elseif n == "w" then
-                self.variable.set_item(self.variable, self.entity, 4, v)
-            else
-                rawset(self, n, v)
-            end
+    )
+
+    self:define_setter(
+        "x", function(self, v)
+            self.variable.set_item(self.variable, self.entity, 1, v)
         end
-    end)
+    )
+    self:define_setter(
+        "y", function(self, v)
+            self.variable.set_item(self.variable, self.entity, 2, v)
+        end
+    )
+    self:define_setter(
+        "z", function(self, v)
+            self.variable.set_item(self.variable, self.entity, 3, v)
+        end
+    )
+    self:define_setter(
+        "w", function(self, v)
+            self.variable.set_item(self.variable, self.entity, 4, v)
+        end
+    )
+
+    self:define_userget(
+        function(n) return tonumber(n) and true or false end,
+        function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
+    )
+    self:define_userset(
+        function(n, v) return tonumber(n) and true or false end,
+        function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
+    )
 end
 
 --- Push method for vec4 throws a failed assertion,
@@ -880,8 +821,6 @@ wrapped_cvec4.__init          = wrapped_cvariable.__init
 wrapped_cvec4._register       = wrapped_cvariable._register
 wrapped_cvec4.from_wire_item  = convert.tonumber
 wrapped_cvec4.to_wire_item    = convert.todec2str
-wrapped_cvec4.from_data_item  = convert.tonumber
-wrapped_cvec4.to_data_item    = convert.todec2str
 wrapped_cvec4.get_raw         = wrapped_carray.get_raw
 
 --- State vec4. Inherits state array, but uses
@@ -896,8 +835,6 @@ function state_vec4:__tostring() return "state_vec4" end
 state_vec4.surrogate_class = vec4_surrogate
 state_vec4.from_wire_item  = convert.tonumber
 state_vec4.to_wire_item    = convert.todec2str
-state_vec4.from_data_item  = convert.tonumber
-state_vec4.to_data_item    = convert.todec2str
 
 --- State json. Simple state variable. On to_(wire|data)
 -- it encodes JSON table, on from_(wire|data), it decodes
@@ -908,7 +845,5 @@ state_json = class.new(state_variable)
 function state_json:__tostring() return "state_json" end
 function state_json:to_wire(v) return json.encode(v) end
 function state_json:from_wire(v) return json.decode(v) end
-function state_json:to_data(v) return json.encode(v) end
-function state_json:from_data(v) return json.decode(v) end
 
 json.register(function(v) return (type(v) == "table" and v.uid ~= nil) end, function(v) return v.uid end)

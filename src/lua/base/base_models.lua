@@ -228,12 +228,6 @@ mdl.envmap = CAPI.mdlenvmap
 -- @name mdl.shader
 mdl.shader = CAPI.mdlshader
 
---- Control "collision only for triggering" property.
--- @param v 1 to enable, 0 to disable.
--- @class function
--- @name mdl.collisionsonlyfortriggering
-mdl.collisionsonlyfortriggering = CAPI.mdlcollisionsonlyfortriggering
-
 --- Translate the model's center by x, y, z where x, y, z are in model units (may use floating point).
 -- @param x X in model units.
 -- @param y Y in model units.

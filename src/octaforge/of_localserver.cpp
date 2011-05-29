@@ -47,6 +47,9 @@ namespace local_server
     bool ready   = false;
     bool started = false;
 
+    /* get this into use at some point to make this server runner better. */
+    FILE *popen_out = NULL;
+
     bool is_running()
     {
         return ready;
@@ -94,9 +97,9 @@ namespace local_server
         );
 
 #ifdef WIN32
-        _popen(buf, "r");
+        popen_out = _popen(buf, "r");
 #else
-        popen(buf, "r");
+        popen_out =  popen(buf, "r");
 #endif
 
         started = true;
@@ -105,7 +108,13 @@ namespace local_server
     void stop()
     {
         if (!started) return;
+
         trydisconnect();
+#ifdef WIN32
+        _pclose(popen_out);
+#else
+         pclose(popen_out);
+#endif
 
         last_connect_trial = num_trials = 0;
         ready = started = false;

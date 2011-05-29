@@ -235,14 +235,15 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            char *cmd = tools::vstrcat("sis sis sis sis",
-                "entity_store.get(", d->uniqueId, ").position = {",
-                "entity_store.get(", d->uniqueId, ").position.x,",
-                "entity_store.get(", d->uniqueId, ").position.y,",
-                "entity_store.get(", d->uniqueId, ").position.z}"
+            char cmd[2048];
+            snprintf(cmd, sizeof(cmd),
+                "entity_store.get(%i).position = {"
+                "entity_store.get(%i).position.x,"
+                "entity_store.get(%i).position.y,"
+                "entity_store.get(%i).position.z}",
+                d->uniqueId, d->uniqueId, d->uniqueId, d->uniqueId
             );
             engine.exec(cmd);
-            delete[] cmd;
 #endif
         }
     }
@@ -379,23 +380,7 @@ namespace game
 
             engine.getg("entity_store")
                   .t_getraw("manage_triggering_collisions");
-            if (engine.is<void*>(-1)) engine.call(0, 0);
-            else
-            {
-                engine.pop(1);
-                loopv(players)
-                {
-                    fpsent* fpsEntity = players[i];
-                    CLogicEntity *entity = LogicSystem::getLogicEntity(fpsEntity);
-                    if (!entity || entity->isNone()) continue;
-
-                    if(fpsEntity->state != CS_EDITING)
-                    {
-                        WorldSystem::checkTriggeringCollisions(entity);
-                    }
-                }
-            }
-            engine.pop(1);
+            engine.call(0, 0);
         }
 
         //==============================================

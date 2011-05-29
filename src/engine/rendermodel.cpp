@@ -1023,15 +1023,6 @@ void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSI
     d->aboveeye  = radius.z*2*(1.0f-m->eyeheight);
 }
 
-// INTENSITY: Adding this, so we can have models that check collisions, but only for triggering events,
-// and not actual collisions. I.e., to check if someone passes through a collision box, but not prevent
-// them from passing through.
-void mdlcollisionsonlyfortriggering(int *val)
-{
-    checkmdl;
-    loadingmodel->collisionsonlyfortriggering = *val;
-}
-
 // INTENSITY: States that we get the collision box size from the entity, not the model type
 void mdlperentitycollisionboxes(int *val)
 {

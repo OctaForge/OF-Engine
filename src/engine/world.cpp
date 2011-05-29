@@ -883,14 +883,15 @@ void newentity(int type, int a1, int a2, int a3, int a4, int a5)
 void newent(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
 {
     if(noentedit()) return;
-    char *sd = tools::vstrcat("sis sis sis sis",
-        "{ 'attr1': '", *a1, "', ",
-         " 'attr2': '", *a2, "', ",
-         " 'attr3': '", *a3, "', ",
-         " 'attr4': '", *a4, "' }"
+    char sd[2048];
+    snprintf(sd, sizeof(sd), 
+        "{ 'attr1': '%i', "
+         " 'attr2': '%i', "
+         " 'attr3': '%i', "
+         " 'attr4': '%i' }",
+         *a1, *a2, *a3, *a4
     );
     EditingSystem::newEntity(what, sd);
-    delete[] sd;
 }
 
 int entcopygrid;

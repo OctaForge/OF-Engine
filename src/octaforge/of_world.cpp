@@ -65,13 +65,15 @@ namespace world
 #ifdef SERVER
     void send_curr_map(int cn)
     {
+		printf("SENDING MAP 1\n");
         if (!scenario_code) return;
-
+printf("SENDING MAP 2\n");
         send_NotifyAboutCurrentScenario(
             cn,
             curr_map_id,
             scenario_code
         );
+printf("SENDING MAP 3\n");
     }
 #endif
 

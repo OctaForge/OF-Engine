@@ -15,6 +15,7 @@ namespace game
 
     void renderscoreboard(g3d_gui &g, bool firstpass)
     {
+        size_t sz = 0;
         const char *mname = getclientmap();
         defformatstring(modemapstr)("%s: %s", "OctaForge:", mname[0] ? mname : "[new map]");
 
@@ -51,14 +52,38 @@ namespace game
                             if (showpj)
                             {
                                 if (p->state == CS_LAGGED)
-                                    tools::vstrcat(lt, "s", "LAG");
+                                {
+                                    sz = strlen(lt) + 4;
+                                    char *n = new char[sz];
+                                    snprintf(n, sz, "%sLAG", lt);
+                                    delete[] lt;
+                                    lt = n;
+                                }
                                 else
-                                    tools::vstrcat(lt, "si", " pj: ", p->plag);
+                                {
+                                    sz = strlen(lt) + 12;
+                                    char *n = new char[sz];
+                                    snprintf(n, sz, "%s%i", lt, p->plag);
+                                    delete[] lt;
+                                    lt = n;
+                                }
                             }
                             if (!showpj && p->state == CS_LAGGED)
-                                tools::vstrcat(lt, "s", "LAG");
+                            {
+                                sz = strlen(lt) + 4;
+                                char *n = new char[sz];
+                                snprintf(n, sz, "%sLAG", lt);
+                                delete[] lt;
+                                lt = n;
+                            }
                             else
-                                tools::vstrcat(lt, "si", " p: ", p->ping);
+                            {
+                                sz = strlen(lt) + 12;
+                                char *n = new char[sz];
+                                snprintf(n, sz, "%s%i", lt, p->ping);
+                                delete[] lt;
+                                lt = n;
+                            }
                         }
                     }
                     g.text (lt, 0xFFFFDD, NULL);

@@ -29,6 +29,9 @@ module("camera", package.seeall)
     Forces camera components to fixed values.
 
     Parameters:
+        x - The X coord to force.
+        y - The Y coord to force.
+        z - The Z coord to force.
         yaw - The yaw to force.
         pitch - The pitch to force.
         roll - The roll to force.

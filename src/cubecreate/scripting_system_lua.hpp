@@ -63,6 +63,7 @@ namespace lua
         const char *n;
         lua_Binding f;
     };
+    bool addcommand(LE_reg l);
 
     /**
      * @class lua_Engine
@@ -723,7 +724,8 @@ void _bind_##n(lua_Engine e) \
 { \
     logger::log(logger::INFO, "Registering Lua function: %s\r\n", #n); \
     b; \
-}
+} \
+bool __dummy_##n = lua::addcommand((LE_reg){ #n, _bind_##n });
 
 /**
  * @def LUA_BIND_STD

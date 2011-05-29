@@ -162,11 +162,12 @@ end
 -- @param r We look for collisions along this ray.
 -- @return The distance along the ray to the first collision.
 function ray_collisiondist(o, r)
-    local rm = ray:magnitude()
+    local rm = r:magnitude()
     return CAPI.raypos(o.x, o.y, o.z,
                        r.x / rm,
                        r.y / rm,
-                       r.z / rm)
+                       r.z / rm,
+                       rm)
 end
 
 --- Finds the floor below some position.
@@ -278,3 +279,52 @@ gettargetpos = CAPI.gettargetpos
 -- @name gettargetent
 -- @return Target entity.
 gettargetent = CAPI.gettargetent
+
+function get_ray_collision_world(origin, direction, max_dist)
+    max_dist = max_dist or 2048
+    local dist = ray_collisiondist(origin, direction:mulnew(max_dist))
+    return origin:addnew(direction:mulnew(math.min(dist, max_dist)))
+end
+
+function get_collidable_entities()
+    return entity_store.get_all_byclass("character")
+end
+
+function get_ray_collision_entities(origin, target, ignore)
+    local entities  = get_collidable_entities()
+    local direction = target:subnew(origin)
+    local dist2     = direcion:magnitude()
+    if    dist2 == 0 then return nil end
+    dist2 = dist2 * dist2
+
+    local best = nil
+    function consider(entity, alpha, collision_position)
+        if not best or distance < best.distance then
+            best = {
+                entity = entity,
+                alpha  = alpha,
+                collision_position = collision_position
+            }
+        end
+    end
+
+    for k, entity in pairs(entities) do
+        if entity ~= ignore then
+            local entity_dir = entity.center:subnew(origin)
+            local entity_rad = entity.radius
+                           and entity.radius
+                            or math.max(
+                                entity.collision_radius_width,
+                                entity.collision_radius_height
+                            )
+            local alpha = direction:dotproduct(entity_dir) / dist2
+            local collision_position = origin:addnew(direction:mulnew(alpha))
+            local distance = entity.center:subnew(collision_position):magnitude()
+            -- XXX alpha check ignores radius
+            if alpha < 0 or alpha > 1 or distance > entity_rad then return nil end
+            consider(entity, alpha, collision_position)
+        end
+    end
+
+    return best
+end

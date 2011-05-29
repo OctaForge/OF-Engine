@@ -124,7 +124,7 @@ end
 --- Setup state variables of the entity. Performs registration for each.
 function root_logent:_setup_vars()
     local proptable = {}
-    local base = getmetatable(self)
+    local base = self.class
     while base do
         if base.properties then
             for name, var in pairs(base.properties) do
@@ -180,7 +180,7 @@ function root_logent:create_statedatadict(tcn, kwargs)
                 local val = self[var._name]
                 if val then
                     logging.log(logging.DEBUG, "create_statedatadict() adding " .. tostring(var._name) .. ": " .. json.encode(val))
-                    r[not kwargs.compressed and var._name or message.toproid(tostring(self), var._name)] = var:to_data(val)
+                    r[not kwargs.compressed and var._name or message.toproid(tostring(self), var._name)] = var:to_wire(val)
                     logging.log(logging.DEBUG, "create_statedatadict() currently: " .. json.encode(r))
                 end
             end
@@ -286,7 +286,7 @@ function client_logent:_set_statedata(k, v, auid)
     end
 
     if auid ~= -1 or clientset or customsynch_fromhere then
-        logging.log(logging.DEBUG, "updating locally")
+        logging.log(logging.INFO, "updating locally")
         -- if originated from server, translated
         if auid ~= -1 then v = var:from_wire(v) end
         assert(var:validate(v))
@@ -417,7 +417,7 @@ function server_logent:_set_statedata(k, v, auid, iop)
             logging.log(logging.ERROR, "Client " .. tostring(auid) .. " tried to change " .. tostring(k))
             return nil
         end
-    elseif iop then v = var:from_data(v)
+    elseif iop then v = var:from_wire(v)
     end
 
     logging.log(logging.INFO, "Translated value: " ..

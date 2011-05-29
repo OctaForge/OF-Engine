@@ -13,49 +13,7 @@
 
 using namespace lua;
 
-// Kripken: These are bounding boxes for positioning in the octree, as opposed to bounding boxes that
-// are actually used to check for collisions. These octree-positioning bounding boxes only determine
-// in which octants we will sit, i.e., WHEN actual collisions will be checked. If you see a bounding
-// box which looks ok but you can walk through it (or part of it) then it might simply be that the
-// bounding box is fine, but sauer doesn't know that a certain world area actually contains that
-// entity.
-///////////////////bool getentboundingbox(extentity &e, ivec &o, ivec &r)
-
-
-//! Set by load_world when started, unset when finished
 bool WorldSystem::loadingWorld = false;
-
-void WorldSystem::triggerCollide(CLogicEntity *mapmodel, physent *d, bool ellipse)
-{
-    logger::log(logger::INFO, "triggerCollide: %lu, %lu\r\n", (unsigned long)mapmodel, (unsigned long)d);
-
-    if (d->type != ENT_PLAYER)
-    {
-//        logger::log(logger::INFO, "Non-player causing collide, so ignore\r\n");
-        return; // No need to trigger collisions for cameras, lights, etc. TODO: ENT_AI?
-    }
-
-    if (!mapmodel || mapmodel->isNone())
-    {
-        logger::log(logger::ERROR, "Invalid mapmodel to trigger collide for\r\n");
-        return; // Invalid or uninialized mapmodel
-    }
-
-    CLogicEntity *colliderEntity = LogicSystem::getLogicEntity(d);
-    if (!colliderEntity || colliderEntity->isNone())
-    {
-        logger::log(logger::INFO, "Invalid colliding entity to collide with\r\n");
-        return; // Most likely a raycasting collision, or camera, etc. - not things we trigger events for
-    }
-
-    engine.getref(mapmodel->luaRef);
-    #ifdef SERVER
-    engine.t_getraw("on_collision");
-    #else
-    engine.t_getraw("client_on_collision");
-    #endif
-    engine.push_index(-2).getref(colliderEntity->luaRef).call(2, 0).pop(1);
-}
 
 int numExpectedEntities = 0;
 int numReceivedEntities = 0;
@@ -74,23 +32,10 @@ void WorldSystem::triggerReceivedEntity()
     {
         float val = float(numReceivedEntities)/float(numExpectedEntities);
         val = clamp(val, 0.0f, 1.0f);
-        char *text = tools::vstrcat("sis", "received entity ", numReceivedEntities, "...");
+        char *text = new char[32];
+        snprintf(text, 32, "received entity %i...", numReceivedEntities);
         if (WorldSystem::loadingWorld) // Show message only during map loading, not when new clients log in
             renderprogress(val, text);
         delete[] text;
     }
 }
-// AreaTrigger collisions
-
-bool WorldSystem::triggeringCollisions = false;
-
-//! Check for triggering collisions, i.e., to run trigger events on AreaTriggers
-void WorldSystem::checkTriggeringCollisions(CLogicEntity *entity)
-{
-    assert(entity->isDynamic());
-
-    WorldSystem::triggeringCollisions = true;
-    collide(entity->dynamicEntity, vec(0,0,0));
-    WorldSystem::triggeringCollisions = false;
-}
-

@@ -56,6 +56,7 @@
 #include "of_entities.h"
 #include <algorithm>
 
+vector<lua::LE_reg> CAPI;
 #include "scripting_system_lua_def.hpp"
 
 extern LE_reg *objbinds;
@@ -67,7 +68,9 @@ namespace lua
 {
     /* our binds */
     using namespace lua_binds;
-    #include "scripting_system_lua_exp.hpp"
+
+    bool addcommand(LE_reg l) { CAPI.add(l); return true; }
+
     /* externed in header */
     lua_Engine engine;
 
@@ -177,15 +180,13 @@ namespace lua
         m_runtests = false;
         if (m_rantests) m_runtests = false;
 
-        setup_namespace("logging", LAPI);
+        addcommand((LE_reg){ NULL, NULL });
+        setup_namespace("CAPI", CAPI.getbuf());
         #define PUSHLEVEL(l) t_set(#l, logger::l);
         PUSHLEVEL(INFO)
         PUSHLEVEL(DEBUG)
         PUSHLEVEL(WARNING)
         PUSHLEVEL(ERROR)
-        pop(1);
-
-        setup_namespace("CAPI", CAPI);
         pop(1);
 
         setup_namespace("obj", objbinds);

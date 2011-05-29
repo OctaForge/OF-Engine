@@ -107,7 +107,7 @@ end
 -- @return Table of clients. (empty if no clients found, that means we're probably in menu)
 function get_all_clients()
     local ret = get_all_byclass(type(player_class) == "string" and player_class or "player")
-    logging.log(logging.DEBUG, "logent store: get_all_clients: got %(1)s clients" % { #ret })
+    logging.log(logging.INFO, "logent store: get_all_clients: got %(1)s clients" % { #ret })
     return ret
 end
 
@@ -191,7 +191,7 @@ function add(cn, uid, kwargs, _new)
 
     -- caching
     for k, v in pairs(entity_classes._logent_classes) do
-        if tostring(r) == k then
+        if r:is_a(v[1]) then
             if not __entities_store_by_class[k] then
                __entities_store_by_class[k] = {}
             end
@@ -335,6 +335,23 @@ function render_dynamic(tp)
         end
     end
 end
+
+manage_triggering_collisions = cache_by_time_delay(convert.tocalltable(function()
+    local ents = get_all_byclass("area_trigger")
+    for i, player in pairs(get_all_clients()) do
+        if is_player_editing(player) then return nil end
+
+        for n, entity in pairs(ents) do
+            if world.is_player_colliding_entity(player, entity) then
+                if CLIENT then
+                    entity:client_on_collision(player)
+                else
+                    entity:on_collision(player)
+                end
+            end
+        end
+    end
+end), 1 / 10)
 
 --- Render HUD models. Called when we're in thirdperson mode.
 -- Takes care of rendering player HUD model if player is not
@@ -560,11 +577,11 @@ rendering = {}
 -- @param ent Entity to set up dynamic render test for.
 function rendering.setup_dynamic_test(ent)
     local current = ent
-    ent.render_dynamic_test = cache_by_time_delay(function()
+    ent.render_dynamic_test = cache_by_time_delay(convert.tocalltable(function()
         local plycenter = get_plyent().center
-        if current.position:sub_new(plycenter):magnitude() > 256 then
+        if current.position:subnew(plycenter):magnitude() > 256 then
             if not utility.haslineofsight(plycenter, current.position) then return false end
         end
         return true
-    end, 1 / 3)
+    end), 1 / 3)
 end

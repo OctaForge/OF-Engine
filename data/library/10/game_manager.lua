@@ -504,7 +504,8 @@ manager_plugins = {
                 end
                 if not skip then
                     local more = item:func()
-                    if item.seconds_between >= 0 and more then
+                    if item.seconds_between >= 0 and more ~= false then
+                        more = more or 0
                         -- negative more means 'add some jitter'
                         if more < 0 then more = more * -(math.random() + 0.5) end
                         item.deadline = GLOBAL_TIME + item.seconds_between + more

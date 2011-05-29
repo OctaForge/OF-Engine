@@ -306,14 +306,14 @@ function flame(ty, pos, rd, h, col, d, sc, sp, fd, gr)
     CAPI.particle_flame(ty, pos.x, pos.y, pos.z, rd, h, col, d, sc, sp, fd, gr)
 end
 
---- Create lighting
+--- Create lightning
 -- @param spos Source position (vector)
 -- @param fpos Target position (vector)
 -- @param fd Fade time in seconds
 -- @param col Color (0xRRGGBB)
 -- @param sz Particle size
-function lighting(spos, fpos, fd, col, sz)
-    flare(PARTICLE.LIGHTING, spos, fpos, fd, col, sz)
+function lightning(spos, fpos, fd, col, sz)
+    flare(PARTICLE.LIGHTNING, spos, fpos, fd, col, sz)
 end
 
 

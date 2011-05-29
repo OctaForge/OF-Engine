@@ -333,9 +333,12 @@ struct hline
                     return;
                 }
 
+                char *n   = NULL;
                 char *str = newstring(buf + 1);
                 char *tok = strtok(str, " ");
-                char *cmd = tools::vstrcat("ss", tok, "(");
+                char *cmd = new char[strlen(tok) + 2];
+                strcpy(cmd, tok);
+                strcat(cmd, "(");
 
                 tok = strtok(NULL, " ");
 
@@ -345,19 +348,44 @@ struct hline
                     if ((tok[0] == '\"' || tok[0] == '\'')
                      && (tok[strlen(tok) - 1] != '\"' && tok[strlen(tok) - 1] != '\''))
                     {
-                        tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
+                        n = new char[strlen(cmd) + strlen(tok) + (first ? 1 : 3)];
+                        strcpy(n, cmd);
+                        if (!first) strcat(n, ", ");
+                        strcat(n, tok);
+                        delete[] cmd;
+                        cmd = newstring(n);
+                        delete[] n;
 
                         if ((tok = strtok(NULL, " ")))
-                             tools::vstrcat(cmd, "s", " ");
+                        {
+                            n = new char[strlen(cmd) + 2);
+                            strcpy(n, cmd);
+                            strcat(n, " ");
+                            delete[] cmd;
+                            cmd = newstring(n);
+                            delete[] n;
+                        }
 
                         while (tok)
                         {
-                            tools::vstrcat(cmd, "s", tok);
+                            n = new char[strlen(cmd) + strlen(tok) + 1];
+                            strcpy(n, cmd);
+                            strcat(n, tok);
+                            delete[] cmd;
+                            cmd = newstring(n);
+                            delete[] n;
 
                             if (tok[strlen(tok) - 1] == '\"' || tok[strlen(tok) - 1] == '\'')
                                 break;
                             else
-                                tools::vstrcat(cmd, "s", " ");
+                            {
+                                n = new char[strlen(cmd) + 2);
+                                strcpy(n, cmd);
+                                strcat(n, " ");
+                                delete[] cmd;
+                                cmd = newstring(n);
+                                delete[] n;
+                            }
 
                             tok = strtok(NULL, " ");
                         }
@@ -367,17 +395,27 @@ struct hline
                     }
                     else
                     {
-                        tools::vstrcat(cmd, "ss", first ? "" : ", ", tok);
+                        n = new char[strlen(cmd) + strlen(tok) + (first ? 1 : 3)];
+                        strcpy(n, cmd);
+                        if (!first) strcat(n, ", ");
+                        strcat(n, tok);
+                        delete[] cmd;
+                        cmd = newstring(n);
+                        delete[] n;
+
                         tok = strtok(NULL, " ");
                     }
                     first = false;
                 }
 
-                tools::vstrcat(cmd, "s", ")");
-                lua::engine.exec(cmd);
-
+                char *command = new char[strlen(cmd) + 2];
+                strcpy(command, cmd);
+                strcat(command, ")");
                 delete[] cmd;
                 delete[] str;
+
+                lua::engine.exec(command);
+                delete[] command;
             }
 #endif
         }
@@ -441,6 +479,22 @@ void execbind(keym &k, bool isdown)
         {
             if(editmode) state = keym::ACTION_EDITING;
             else if(player->state==CS_SPECTATOR) state = keym::ACTION_SPECTATOR;
+        }
+
+        if (state == keym::ACTION_DEFAULT && !mainmenu)
+        {
+            lua::engine.getg("console").t_getraw("action_keys").t_getraw(k.name);
+            if (lua::engine.is<void*>(-1))
+            {
+                keypressed = &k;
+                lua::engine.call(0, 0);
+                keypressed = NULL;
+
+                k.pressed = isdown;
+                lua::engine.pop(2);
+                return;
+            }
+            lua::engine.pop(3);
         }
         char *&action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
         keyaction = action;

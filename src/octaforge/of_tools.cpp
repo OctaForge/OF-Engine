@@ -257,19 +257,25 @@ namespace tools
                 case var::VAR_F: f->printf("%s = %f\n", v->name, v->curv.f); break;
                 case var::VAR_S:
                 {
+                    size_t sz = 0;
                     char *s = NULL;
                     if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
 
                     f->printf("%s = \"", v->name);
-                    for (; *s; s++) switch(*s)
+                    for (; *s; s++)
                     {
-                        case '\n': f->write("^n", 2); break;
-                        case '\t': f->write("^t", 2); break;
-                        case '\f': f->write("^f", 2); break;
-                        case '"': f->write("^\"", 2); break;
-                        default: f->putchar(*s); break;
+                        switch (*s)
+                        {
+                            case '\n': f->write("^n", 2); break;
+                            case '\t': f->write("^t", 2); break;
+                            case '\f': f->write("^f", 2); break;
+                            case '"': f->write("^\"", 2); break;
+                            default: f->putchar(*s); break;
+                        }
+                        sz++;
                     }
                     f->printf("\"\n");
+                    s -= sz;
                     delete[] s;
                     break;
                 }
@@ -291,19 +297,25 @@ namespace tools
                 case var::VAR_S:
                 {
                     if (strstr(v->name, "new_entity_gui_field")) continue;
+                    size_t sz = 0;
                     char *s = NULL;
                     if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
 
                     f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
-                    for (; *s; s++) switch(*s)
+                    for (; *s; s++)
                     {
-                        case '\n': f->write("^n", 2); break;
-                        case '\t': f->write("^t", 2); break;
-                        case '\f': f->write("^f", 2); break;
-                        case '"': f->write("^\"", 2); break;
-                        default: f->putchar(*s); break;
+                        switch (*s)
+                        {
+                            case '\n': f->write("^n", 2); break;
+                            case '\t': f->write("^t", 2); break;
+                            case '\f': f->write("^f", 2); break;
+                            case '"': f->write("^\"", 2); break;
+                            default: f->putchar(*s); break;
+                        }
+                        sz++;
                     }
                     f->printf("\")\n");
+                    s -= sz;
                     delete[] s;
                     break;
                 }
@@ -322,88 +334,6 @@ namespace tools
         lua::engine.exec(buf);
         delete[] buf;
         return true;
-    }
-
-    bool vstrcat(char *&str, const char *format, va_list args)
-    {
-        char buf[64];
-
-        size_t oslen = 0;
-        size_t aslen = 0;
-
-        while (*format != '\0')
-        {
-            oslen = strlen(str);
-            switch (*format)
-            {
-                case 's':
-                {
-                    char *s = va_arg(args, char*);
-                    aslen = strlen(s);
-
-                    char *ns = new char[oslen + aslen + 1];
-                    memcpy(ns, str, oslen + 1);
-                    delete[] str;
-
-                    memcpy(ns + strlen(ns), s, aslen + 1);
-                    str = ns;
-                    break;
-                }
-                case 'i':
-                case 'd':
-                {
-                    snprintf(buf, sizeof(buf), "%i", va_arg(args, int));
-                    aslen = strlen(buf);
-
-                    char *ns = new char[oslen + aslen + 1];
-                    memcpy(ns, str, oslen + 1);
-                    delete[] str;
-    
-                    memcpy(ns + strlen(ns), buf, aslen + 1);
-                    str = ns;
-                    break;
-                }
-                case 'f':
-                {
-                    snprintf(buf, sizeof(buf), "%f", va_arg(args, double));
-                    aslen = strlen(buf);
-
-                    char *ns = new char[oslen + aslen + 1];
-                    memcpy(ns, str, oslen + 1);
-                    delete[] str;
-    
-                    memcpy(ns + strlen(ns), buf, aslen + 1);
-                    str = ns;
-                    break;
-                }
-                default: continue;
-            }
-            if (!str) return false;
-            format++;
-        }
-        return true;
-    }
-
-    bool vstrcat(char *&str, const char *format, ...)
-    {
-        va_list args;
-        va_start(args, format);
-        bool ret = vstrcat(str, format, args);
-        va_end(args);
-        return ret;
-    }
-
-    char *vstrcat(const char *format, ...)
-    {
-        va_list args;
-        va_start(args, format);
-
-        char *ret = new char[1];
-        /* ret should be NULL if it fails */
-        vstrcat(ret, format, args);
-
-        va_end(args);
-        return ret;
     }
 
     int currtime()

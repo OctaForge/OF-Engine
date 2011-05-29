@@ -4,6 +4,15 @@
 -- Use library version "10"
 library.use("10")
 
+-- more modules
+library.include("cutscenes")
+library.include("firing")
+library.include("mapelements.jump_pad")
+library.include("mapelements.teleporter")
+
+-- rain
+library.include("custom_effect")
+
 -- default skybox
 skybox = "textures/sky/remus/sky01"
 
@@ -20,6 +29,7 @@ game_manager.setup({
 get_scoreboard_text = game_manager.get_scoreboard_text
 
 if SERVER then
+    -- load entities on server - they get sent to clients
     local entities = utility.readfile("./entities.json")
     entity_store.load_entities(entities)
 end

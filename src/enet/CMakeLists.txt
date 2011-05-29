@@ -10,7 +10,8 @@ include_directories(include)
 # a cpp flag for enet.
 add_definitions (-DHAS_SOCKLEN_T=1)
 # build with -Wno-error.
-set(CMAKE_CXX_FLAGS $CMAKE_CXX_FLAGS "-Wno-error")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-error")
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wno-error")
 
 # finally build the library.
 add_library(enet_${OF_BUILD_SUFFIX}

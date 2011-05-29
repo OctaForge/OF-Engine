@@ -56,7 +56,6 @@ void mdlpitch(float *angle);
 void mdlshadow(int *shadow);
 void mdlbb(float *rad, float *h, float *eyeheight);
 void mdlextendbb(float *x, float *y, float *z);
-void mdlcollisionsonlyfortriggering(int *val);
 void mdlperentitycollisionboxes(int *val);
 void rdvert(float *x, float *y, float *z, float *radius);
 void rdeye(int *v);
@@ -94,7 +93,6 @@ namespace lua_binds
     LUA_BIND_STD(mdlspin, mdlspin, e.get<float*>(1), e.get<float*>(2))
     LUA_BIND_STD(mdlenvmap, mdlenvmap, e.get<float*>(1), e.get<float*>(2), e.get<char*>(3))
     LUA_BIND_STD(mdlshader, mdlshader, e.get<char*>(1))
-    LUA_BIND_STD(mdlcollisionsonlyfortriggering, mdlcollisionsonlyfortriggering, e.get<int*>(1))
     LUA_BIND_STD(mdltrans, mdltrans, e.get<float*>(1), e.get<float*>(2), e.get<float*>(3))
     LUA_BIND_STD(mdlyaw, mdlyaw, e.get<float*>(1))
     LUA_BIND_STD(mdlpitch, mdlpitch, e.get<float*>(1))
