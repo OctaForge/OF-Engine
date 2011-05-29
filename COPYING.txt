@@ -1,6 +1,3 @@
-OctaForge is licensed under the MIT/X11 license:
-
-==============================================================================
 Copyright (c) 2011 OctaForge developers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,12 +17,17 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-==============================================================================
 
-OctaForge contributors are:
+OctaForge is brought to you by:
 
-  * quaker66 - quaker66@gmail.com
-  * other contributors fill themselves here
+  * <Fill e-mails and more people>
+  * Daniel 'q66' Kolesa <quaker66@gmail.com>
+  * Ryan 'TheAncientGoat' Swart
+  * Steven 'CyanDynamo' Bussinger
+  * Pieter 'Spiney' Verhoeven
+  * Bart 'bartbes' van Strien
+  * Keyvan 'keyvan' Fatehi
+  * T7g
 
 OctaForge is based on CubeCreate/Syntensity project, Syntensity contributors were:
 
@@ -37,14 +39,8 @@ CubeCreate contributors are/were:
   * William 'BiosElement' Chambers - bioselement@gmail.com
   * quaker66 - quaker66@gmail.com
 
-In addition, code has been ported from SauerEnhanced. Thanks to Q009 (SauerEnhanced author).
-
-------------------------------------------------------------------------------
-
 The codebase also contains code originating from Cube 2/Sauerbraten, see
 their license under src/readme_source.txt, and other open source projects
 may be bundled under thirdparty directories, with included license info.
 
-  * In addition, code has been ported from SauerEnhanced, whose license
-    is zlib (like Sauerbraten). Such code is demarked with // SAUER ENHANCED
-    Thanks to Q009 (SauerEnhanced author).
+In addition, code has been ported from SauerEnhanced. Thanks to Q009 (SauerEnhanced author).
