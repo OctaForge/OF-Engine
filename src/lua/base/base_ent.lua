@@ -286,7 +286,7 @@ function client_logent:_set_statedata(k, v, auid)
     end
 
     if auid ~= -1 or clientset or customsynch_fromhere then
-        logging.log(logging.DEBUG, "updating locally")
+        logging.log(logging.INFO, "updating locally")
         -- if originated from server, translated
         if auid ~= -1 then v = var:from_wire(v) end
         assert(var:validate(v))

@@ -274,11 +274,11 @@ end
 --- Return raw array of values.
 -- @return Raw array of values.
 function array_surrogate:as_array()
-    logging.log(logging.DEBUG, "as_array: " .. tostring(self))
+    logging.log(logging.INFO, "as_array: " .. tostring(self))
 
     local r = {}
     for i = 1, self.length do
-        logging.log(logging.DEBUG, "as_array(" .. tostring(i) .. ")")
+        logging.log(logging.INFO, "as_array(" .. tostring(i) .. ")")
         table.insert(r, self[i])
     end
     return r
@@ -303,12 +303,11 @@ function state_array:getter(var)
     var:read_tests(self)
 
     if not var:get_raw(self) then return nil end
-    -- caching: TODO: enable later
-    -- if not self["__asurrogate_" .. var._name] then
-    --     self["__asurrogate_" .. var._name] = var.surrogate_class(self, var)
-    -- end
-    -- return self["__asurrogate_" .. var._name]
-    return var.surrogate_class(self, var)
+    -- caching
+    if not self["__asurrogate_" .. var._name] then
+           self["__asurrogate_" .. var._name] = var.surrogate_class(self, var)
+    end
+    return self["__asurrogate_" .. var._name]
 end
 
 --- Overriden setter. See state:variable:setter.
@@ -510,10 +509,10 @@ function wrapped_cvariable:_register(_name, parent)
         local variable = self
         parent:connect(prefix .. _name, function (self, v)
             if CLIENT or parent:can_call_cfuncs() then
-                logging.log(logging.DEBUG, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
+                logging.log(logging.INFO, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
                 -- we've been set up, apply the change
                 variable.csetter(parent, v)
-                logging.log(logging.DEBUG, "csetter called successfully.")
+                logging.log(logging.INFO, "csetter called successfully.")
 
                 -- caching reads from script into C++ (search for -- caching)
                 parent.state_var_vals[tostring(variable._name)] = v

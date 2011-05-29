@@ -148,12 +148,12 @@ function action:__init(kwargs)
     self.starttime = CAPI.currtime()
 
     self.secondsleft = self.secondsleft or kwargs.secondsleft or 0
-    self.anim = self.anim == nil and (kwargs.anim == nil and false or kwargs.anim)
+    self.anim = self.anim == nil and (kwargs.anim or false)
     self.actor = false
 
     self.canmulqueue = self.canmulqueue == nil and (kwargs.canmulqueue == nil and true or false)
     self.canbecancelled = self.canbecancelled == nil and (kwargs.canbecancelled == nil and true or false)
-    self.parallelto = self.parallelto == nil and (kwargs.parallelto == nil and false or kwargs.parallelto)
+    self.parallelto = self.parallelto == nil and (kwargs.parallelto or false)
 end
 
 --[[!
@@ -230,7 +230,7 @@ function action:execute(sec)
             self:finish()
         end
 
-        logging.log(logging.INFO, "        ...finished: " .. finished)
+        logging.log(logging.INFO, "        ...finished: " .. tostring(finished))
         return finished
     else
         if self.parallelto.finished then

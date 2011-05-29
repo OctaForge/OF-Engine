@@ -101,7 +101,7 @@ action_input_capture_plugin = {
     dostart = function(self)
         if self.client_click then
             self.old_client_click = _G["client_click"]
-            _G["client_click"] = self.client_click
+            _G["client_click"] = function(...) self.client_click(self, ...) end
         end
         if self.action_keys then
             self.old_action_keys = {}
@@ -112,15 +112,15 @@ action_input_capture_plugin = {
         end
         if self.do_movement then
             self.old_do_movement = _G["do_movement"]
-            _G["do_movement"] = self.do_movement
+            _G["do_movement"] = function(...) self.do_movement(self, ...) end
         end
         if self.do_mousemove then
             self.old_do_mousemove = _G["do_mousemove"]
-            _G["do_mousemove"] = self.do_mousemove
+            _G["do_mousemove"] = function(...) return self.do_mousemove(self, ...) end 
         end
         if self.do_jump then
             self.old_do_jump = _G["do_jump"]
-            _G["do_jump"] = self.do_jump
+            _G["do_jump"] = function(...) self.do_jump(self, ...) end
         end
     end,
 

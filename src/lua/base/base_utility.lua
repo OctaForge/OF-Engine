@@ -162,11 +162,12 @@ end
 -- @param r We look for collisions along this ray.
 -- @return The distance along the ray to the first collision.
 function ray_collisiondist(o, r)
-    local rm = ray:magnitude()
+    local rm = r:magnitude()
     return CAPI.raypos(o.x, o.y, o.z,
                        r.x / rm,
                        r.y / rm,
-                       r.z / rm)
+                       r.z / rm,
+                       rm)
 end
 
 --- Finds the floor below some position.

@@ -5,6 +5,7 @@
 library.use("10")
 
 -- more modules
+library.include("cutscenes")
 library.include("firing")
 library.include("mapelements.jump_pad")
 library.include("mapelements.teleporter")
