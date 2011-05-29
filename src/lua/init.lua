@@ -62,40 +62,8 @@ end
     
 --debug.sethook(trace, "c")
 
---[[!
-    Function: log
-    Logs text into console with given level.
-    Displayed levels depend on OctaForge launch options.
-
-    This is wrapped from "logging" table exposed from C.
-
-    Parameters:
-        level - The logging level to use.
-        text - The text to display.
-
-    Levels:
-        INFO - use for often repeating logging that usually just annoys people,
-        but might come in use sometimes.
-        DEBUG - use for usual debugging output.
-        WARNING - this level is usually displayed by default.
-        ERROR - Use for error messages, displayed always. Printed into in-engine
-        console too, unlike all others.
-]]
-log = logging.log
-INFO = logging.INFO
-DEBUG = logging.DEBUG
-WARNING = logging.WARNING
-ERROR = logging.ERROR
-
---[[!
-    Function: echo
-    Displays text into both consoles (ingame and terminal).
-    This is wrapped from "logging" table exposed from C.
-
-    Parameters:
-        text - The text to display.
-]]
-echo = logging.echo
+CAPI.log(CAPI.DEBUG, "Initializing logging.")
+require("logger")
 
 logging.log(logging.DEBUG, "Initializing language extensions.")
 require("language")

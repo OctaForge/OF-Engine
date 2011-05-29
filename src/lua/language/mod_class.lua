@@ -159,12 +159,7 @@ function object:remove_setter(key)
     self.__setter_data[key] = nil
 end
 
-function new(base, name)
-    base = base or object
-    return base:__sub_class(name)
-end
-
-function mixin(class, mixin_t)
+function object:mixin(mixin_t)
     local mixin_skip = {
         "define_getter", "define_setter",
         "define_userget", "define_userset",
@@ -191,6 +186,20 @@ function mixin(class, mixin_t)
     end
 
     for name, value in pairs(to_mixin) do
-        class[name] = value
+        self[name] = value
     end
+
+    return self
+end
+
+function new(base, mixin, name)  
+    base = base or object
+    local obj = nil
+    if type(mixin) == "table" then
+        obj = base:__sub_class(name)
+        obj:mixin(mixin)
+    else
+        obj = base:__sub_class(mixin)
+    end
+    return obj
 end

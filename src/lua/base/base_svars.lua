@@ -562,32 +562,28 @@ end
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cinteger
-wrapped_cinteger = class.new(state_integer)
-class.mixin(wrapped_cinteger, wrapped_cvariable)
+wrapped_cinteger = class.new(state_integer, wrapped_cvariable)
 function wrapped_cinteger:__tostring() return "wrapped_cinteger" end
 
 --- Wrapped C float. Inherits from state_float,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cfloat
-wrapped_cfloat = class.new(state_float)
-class.mixin(wrapped_cfloat, wrapped_cvariable)
+wrapped_cfloat = class.new(state_float, wrapped_cvariable)
 function wrapped_cfloat:__tostring() return "wrapped_cfloat" end
 
 --- Wrapped C boolean. Inherits from state_bool,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cbool
-wrapped_cbool = class.new(state_bool)
-class.mixin(wrapped_cbool, wrapped_cvariable)
+wrapped_cbool = class.new(state_bool, wrapped_cvariable)
 function wrapped_cbool:__tostring() return "wrapped_cbool" end
 
 --- Wrapped C string. Inherits from state_string,
 -- but wraps it over C getter / setter.
 -- @class table
 -- @name wrapped_cstring
-wrapped_cstring = class.new(state_string)
-class.mixin(wrapped_cstring, wrapped_cvariable)
+wrapped_cstring = class.new(state_string, wrapped_cvariable)
 function wrapped_cstring:__tostring() return "wrapped_cstring" end
 
 --- Wrapped C array. Inherits from state_array,
@@ -634,8 +630,7 @@ end
 -- @class table
 -- @name vec3_surrogate
 -- @see vec4_surrogate
-vec3_surrogate = class.new(array_surrogate)
-class.mixin(vec3_surrogate, math.vec3)
+vec3_surrogate = class.new(array_surrogate, math.vec3)
 
 --- Return string representation of vec3 surrogate.
 -- @return String representation of vec3 surrogate.
@@ -736,8 +731,7 @@ state_vec3.to_wire_item    = convert.todec2str
 -- @class table
 -- @name vec4_surrogate
 -- @see vec3_surrogate
-vec4_surrogate = class.new(array_surrogate)
-class.mixin(vec4_surrogate, math.vec4)
+vec4_surrogate = class.new(array_surrogate, math.vec4)
 
 --- Return string representation of vec4 surrogate.
 -- @return String representation of vec4 surrogate.

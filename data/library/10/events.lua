@@ -145,6 +145,5 @@ action_input_capture_plugin = {
     end
 }
 
-action_input_capture = class.new(actions.action)
-class.mixin(action_input_capture, action_input_capture_plugin)
+action_input_capture = class.new(actions.action, action_input_capture_plugin)
 function action_input_capture:__tostring() return "action_input_capture" end
