@@ -163,6 +163,7 @@ end
 -- @return The distance along the ray to the first collision.
 function ray_collisiondist(o, r)
     local rm = r:magnitude()
+    if    rm == 0 then return -1 end
     return CAPI.raypos(o.x, o.y, o.z,
                        r.x / rm,
                        r.y / rm,

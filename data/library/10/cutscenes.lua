@@ -2,10 +2,12 @@ module("cutscenes", package.seeall)
 
 -- shows a distance and a direction using lightning / flare
 function show_distance(tag, origin, color, seconds)
-    local entity = entity_store.get_all_bytag(tag)
-
-    if #entity == 1 then entity = entity[1]
-    else return nil end
+    if not origin["__CACHED_" .. tag] then
+        local entities = entity_store.get_all_bytag(tag)
+        if #entities == 1 then origin["__CACHED_" .. tag] = entities[1]
+        else return nil end
+    end
+    local entity = origin["__CACHED_" .. tag]
 
     effect.lightning(entity.position, origin.position, 0, color, 1.0)
 
@@ -24,7 +26,6 @@ function show_distance(tag, origin, color, seconds)
     )
 end
 
--- the class is created doubly so it's possible to call base from overrides.
 action_base = class.new(events.action_container)
 
 function action_base:__tostring() return "action_base" end
@@ -213,11 +214,14 @@ entity_classes.reg(
 
             self:before_start()
 
+            if not self.m_tag then
+                self.m_tag = self.tags:as_array()[1]
+            end
+
             local entity = self
-            local tags   = self.tags
 
             local base_action = entity_store.get_all_bytag(
-                tags:as_array()[1] .. "_base"
+                self.m_tag .. "_base"
             )
             if #base_action ~= 1 then
                 base_action  = action_base
@@ -226,7 +230,7 @@ entity_classes.reg(
             end
 
             local action = entity_store.get_all_bytag(
-                tags:as_array()[1] .. "_action"
+                self.m_tag .. "_action"
             )
             if #action ~= 1 then
                 action  = {}
@@ -252,7 +256,7 @@ entity_classes.reg(
                         self.subtitles = {}
 
                         local i = 2
-                        local start_mark = entity_store.get_all_bytag(tags:as_array()[1] .. "_sub_1")
+                        local start_mark = entity_store.get_all_bytag(entity.m_tag .. "_sub_1")
                         if   #start_mark ~= 1 then return nil end
                         if    start_mark[1].parent_id > 0 then
                             local start_time = start_mark[1].start_time
@@ -271,7 +275,7 @@ entity_classes.reg(
                             })
                         end
                         while true do
-                            local next_mark = entity_store.get_all_bytag(tags:as_array()[1] .. "_sub_" .. i)
+                            local next_mark = entity_store.get_all_bytag(entity.m_tag .. "_sub_" .. i)
                             if   #next_mark ~= 1 then break end
                             if    next_mark[1].parent_id > 0 then
                                 local start_time = next_mark[1].start_time
@@ -310,7 +314,7 @@ entity_classes.reg(
                             self.delay_before       = entity.delay_before
                             self.delay_after        = entity.delay_after
 
-                            local start_mark = entity_store.get_all_bytag(tags:as_array()[1] .. "_mrk_1")
+                            local start_mark = entity_store.get_all_bytag(entity.m_tag .. "_mrk_1")
                             if   #start_mark ~= 1 then return nil end
                             local  prev_mark = start_mark
                             table.insert(self.markers, {
@@ -321,7 +325,7 @@ entity_classes.reg(
 
                             while true do
                                 local next_mark = entity_store.get_all_bytag(
-                                    tags:as_array()[1] .. "_mrk_" .. prev_mark[1].next_marker
+                                    entity.m_tag .. "_mrk_" .. prev_mark[1].next_marker
                                 )
                                 if   #next_mark ~= 1 then break end
 
@@ -334,7 +338,7 @@ entity_classes.reg(
                                 if next_mark[1].next_marker == 1 then
                                     if entity.next_controller <= 0 then self.looped = true end
                                     next_mark = entity_store.get_all_bytag(
-                                        tags:as_array()[1] .. "_mrk_" .. prev_mark[1].next_marker
+                                        entity.m_tag .. "_mrk_" .. prev_mark[1].next_marker
                                     )
                                     table.insert(self.markers, {
                                         position = next_mark[1].position:copy(),
@@ -350,6 +354,20 @@ entity_classes.reg(
             )
 
             self:after_end()
+        end,
+
+        client_activate = function(self)
+            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+                self.m_tag = self.tags:as_array()[1]
+            end)
+            self:connect(state_variables.get_onmodify_prefix() .. "next_controller", function(self)
+                -- flush the cache
+                for k, v in pairs(self) do
+                    if string.sub(k, 1, 9) == "__CACHED_" then
+                        v = nil
+                    end
+                end
+            end)
         end,
 
         init = function(self)
@@ -393,17 +411,42 @@ entity_classes.reg(
             self.pitch       = 0
         end,
 
+        client_activate = function(self)
+            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+                self.m_tag = self.tags:as_array()[1]
+                -- flush the cache
+                for k, v in pairs(self) do
+                    if string.sub(k, 1, 9) == "__CACHED_" then
+                        v = nil
+                    end
+                end
+            end)
+            self:connect(state_variables.get_onmodify_prefix() .. "next_marker", function(self)
+                -- flush the cache
+                for k, v in pairs(self) do
+                    if string.sub(k, 1, 9) == "__CACHED_" then
+                        v = nil
+                    end
+                end
+            end)
+        end,
+
         client_act = function(self, seconds)
             if not entity_store.is_player_editing() then return nil end
 
-            local tags = self.tags
-
-            if tags:as_array()[1] and self.next_marker > 0 and tonumber(string.sub(tags:as_array()[1], 5, 5)) > 0 then
-                show_distance("ctl_" .. string.sub(tags:as_array()[1], 5, 5) .. "_mrk_" .. self.next_marker, self, 0x22BBFF, seconds)
+            if not self.m_tag then
+                self.m_tag = self.tags:as_array()[1]
+                if not self.m_tag then
+                    return nil
+                end
             end
 
-            if tags:as_array()[1] and tonumber(string.sub(tags:as_array()[1], 5, 5)) > 0 then
-                show_distance(string.sub(tags:as_array()[1], 1, 5), self, 0x22FF27, seconds)
+            if self.m_tag and self.next_marker > 0 and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
+                show_distance("ctl_" .. string.sub(self.m_tag, 5, 5) .. "_mrk_" .. self.next_marker, self, 0x22BBFF, seconds)
+            end
+
+            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
+                show_distance(string.sub(self.m_tag, 1, 5), self, 0x22FF27, seconds)
             end
 
             local direction = math.vec3():fromyawpitch(self.yaw, self.pitch)
@@ -450,17 +493,42 @@ entity_classes.reg(
             self.blue       = 255
         end,
 
+        client_activate = function(self)
+            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+                self.m_tag = self.tags:as_array()[1]
+                -- flush the cache
+                for k, v in pairs(self) do
+                    if string.sub(k, 1, 9) == "__CACHED_" then
+                        v = nil
+                    end
+                end
+            end)
+            self:connect(state_variables.get_onmodify_prefix() .. "parent_id", function(self)
+                -- flush the cache
+                for k, v in pairs(self) do
+                    if string.sub(k, 1, 9) == "__CACHED_" then
+                        v = nil
+                    end
+                end
+            end)
+        end,
+
         client_act = function(self, seconds)
             if not entity_store.is_player_editing() then return nil end
 
-            local tags = self.tags
-
-            if tags:as_array()[1] and self.parent_id > 0 and tonumber(string.sub(tags:as_array()[1], 5, 5)) > 0 then
-                show_distance("ctl_" .. string.sub(tags:as_array()[1], 5, 5) .. "_mrk_" .. self.parent_id, self, 0xFF22C3, seconds)
+            if not self.m_tag then
+                self.m_tag = self.tags:as_array()[1]
+                if not self.m_tag then
+                    return nil
+                end
             end
 
-            if tags:as_array()[1] and tonumber(string.sub(tags:as_array()[1], 5, 5)) > 0 then
-                show_distance(string.sub(tags:as_array()[1], 1, 5), self, 0xFF2222, seconds)
+            if self.m_tag and self.parent_id > 0 and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
+                show_distance("ctl_" .. string.sub(self.m_tag, 5, 5) .. "_mrk_" .. self.parent_id, self, 0xFF22C3, seconds)
+            end
+
+            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
+                show_distance(string.sub(self.m_tag, 1, 5), self, 0xFF2222, seconds)
             end
         end
     }}), "playerstart"
@@ -482,6 +550,18 @@ entity_classes.reg(
             self.subtitle_background = ""
         end,
 
+        client_activate = function(self)
+            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+                self.m_tag = self.tags:as_array()[1]
+                -- flush the cache
+                for k, v in pairs(self) do
+                    if string.sub(k, 1, 9) == "__CACHED_" then
+                        v = nil
+                    end
+                end
+            end)
+        end,
+
         client_act = function(self, seconds)
             if  self.action.background_image    ~= self.background_image then
                 self.action.background_image     = self.background_image end
@@ -490,10 +570,15 @@ entity_classes.reg(
 
             if not entity_store.is_player_editing() then return nil end
 
-            local tags = self.tags
+            if not self.m_tag then
+                self.m_tag = self.tags:as_array()[1]
+                if not self.m_tag then
+                    return nil
+                end
+            end
 
-            if tags:as_array()[1] and tonumber(string.sub(tags:as_array()[1], 5, 5)) > 0 then
-                show_distance(string.sub(tags:as_array()[1], 1, 5), self, 0xFF9A22, seconds)
+            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
+                show_distance(string.sub(self.m_tag, 1, 5), self, 0xFF9A22, seconds)
             end
         end,
 
@@ -541,13 +626,30 @@ entity_classes.reg(
         _class     = "cutscene_action",
         should_act = true,
 
+        client_activate = function(self)
+            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+                self.m_tag = self.tags:as_array()[1]
+                -- flush the cache
+                for k, v in pairs(self) do
+                    if string.sub(k, 1, 9) == "__CACHED_" then
+                        v = nil
+                    end
+                end
+            end)
+        end,
+
         client_act = function(self, seconds)
             if not entity_store.is_player_editing() then return nil end
 
-            local tags = self.tags
+            if not self.m_tag then
+                self.m_tag = self.tags:as_array()[1]
+                if not self.m_tag then
+                    return nil
+                end
+            end
 
-            if tags:as_array()[1] and tonumber(string.sub(tags:as_array()[1], 5, 5)) > 0 then
-                show_distance(string.sub(tags:as_array()[1], 1, 5), self, 0x22FFD3, seconds)
+            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
+                show_distance(string.sub(self.m_tag, 1, 5), self, 0x22FFD3, seconds)
             end
         end,
 
