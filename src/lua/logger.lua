@@ -22,8 +22,6 @@
 ]]
 module("logging", package.seeall)
 
-print("FAAAAARK")
-
 --[[!
     Function: log
     Logs text into console with given level.
