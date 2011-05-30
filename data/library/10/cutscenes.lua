@@ -440,13 +440,15 @@ entity_classes.reg(
                     return nil
                 end
             end
+            local arr = string.split(self.m_tag, "_")
+            if #arr ~= 4 then return nil end
 
-            if self.m_tag and self.next_marker > 0 and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
-                show_distance("ctl_" .. string.sub(self.m_tag, 5, 5) .. "_mrk_" .. self.next_marker, self, 0x22BBFF, seconds)
+            if self.next_marker > 0 and tonumber(arr[2]) > 0 then
+                show_distance("ctl_" .. arr[2] .. "_mrk_" .. self.next_marker, self, 0x22BBFF, seconds)
             end
 
-            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
-                show_distance(string.sub(self.m_tag, 1, 5), self, 0x22FF27, seconds)
+            if tonumber(arr[2]) > 0 then
+                show_distance("ctl_" .. arr[2], self, 0x22FF27, seconds)
             end
 
             local direction = math.vec3():fromyawpitch(self.yaw, self.pitch)
@@ -522,13 +524,15 @@ entity_classes.reg(
                     return nil
                 end
             end
+            local arr = string.split(self.m_tag, "_")
+            if #arr ~= 4 then return nil end
 
-            if self.m_tag and self.parent_id > 0 and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
-                show_distance("ctl_" .. string.sub(self.m_tag, 5, 5) .. "_mrk_" .. self.parent_id, self, 0xFF22C3, seconds)
+            if self.parent_id > 0 and tonumber(arr[2]) > 0 then
+                show_distance("ctl_" .. arr[2] .. "_mrk_" .. self.parent_id, self, 0xFF22C3, seconds)
             end
 
-            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
-                show_distance(string.sub(self.m_tag, 1, 5), self, 0xFF2222, seconds)
+            if tonumber(arr[2]) > 0 then
+                show_distance("ctl_" .. arr[2], self, 0xFF2222, seconds)
             end
         end
     }}), "playerstart"
@@ -576,9 +580,11 @@ entity_classes.reg(
                     return nil
                 end
             end
+            local arr = string.split(self.m_tag, "_")
+            if #arr ~= 3 then return nil end
 
-            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
-                show_distance(string.sub(self.m_tag, 1, 5), self, 0xFF9A22, seconds)
+            if self.m_tag and tonumber(arr[2]) > 0 then
+                show_distance("ctl_" .. arr[2], self, 0xFF9A22, seconds)
             end
         end,
 
@@ -647,9 +653,11 @@ entity_classes.reg(
                     return nil
                 end
             end
+            local arr = string.split(self.m_tag, "_")
+            if #arr ~= 3 then return nil end
 
-            if self.m_tag and tonumber(string.sub(self.m_tag, 5, 5)) > 0 then
-                show_distance(string.sub(self.m_tag, 1, 5), self, 0x22FFD3, seconds)
+            if self.m_tag and tonumber(arr[2]) > 0 then
+                show_distance("ctl_" .. arr[2], self, 0x22FFD3, seconds)
             end
         end,
 
