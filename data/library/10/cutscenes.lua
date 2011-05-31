@@ -242,6 +242,8 @@ entity_classes.reg(
                 class.new(base_action, {
                     cancel = function(self)
                         if self.canbecancelled and entity.started and not self.finished then
+                            self.action_system:clear()
+                            self.action_system:manage(0.01)
                             self:finish()
                         end
                     end,
@@ -300,10 +302,18 @@ entity_classes.reg(
                     dofinish = function(self)
                         self.__base.dofinish(self)
 
+                        -- clear up the queue from base actions just in case
+                        local queue = entity_store.get_plyent().action_system.actlist
+                        for i, v in pairs(queue) do
+                            if v:is_a(base_action) then
+                                table.remove(queue, i)
+                            end
+                        end
+
                         local next_control = entity_store.get_all_bytag("ctl_" .. entity.next_controller)
                         if   #next_control == 1 then
                               next_control[1].started = true
-                              next_control[1].cancel = entity.cancel_siblings
+                              --next_control[1].cancel = entity.cancel_siblings
                         end
                     end
                 })({
