@@ -313,7 +313,7 @@ entity_classes.reg(
                         local next_control = entity_store.get_all_bytag("ctl_" .. entity.next_controller)
                         if   #next_control == 1 then
                               next_control[1].started = true
-                              --next_control[1].cancel = entity.cancel_siblings
+                              next_control[1].cancel = entity.cancel_siblings
                         end
                     end
                 })({
