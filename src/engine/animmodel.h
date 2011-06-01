@@ -1499,7 +1499,7 @@ template<class MDL, class MESH> struct modelcommands
     {
         Texture *normalmaptex = NULL, *skintex = NULL;
         normalmaptex = textureload(makerelpath(MDL::dir, e.get<char*>(2), "<noff>"), 0, true, false);
-        if(e.get<char*>(3)[0]) skintex = textureload(makerelpath(MDL::dir, e.get<char*>(3), "<noff>"), 0, true, false);
+        if(e.get<char*>(3)) skintex = textureload(makerelpath(MDL::dir, e.get<char*>(3), "<noff>"), 0, true, false);
         loopskins(e.get<char*>(1), s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
     }
     
