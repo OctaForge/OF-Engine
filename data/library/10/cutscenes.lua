@@ -1,6 +1,6 @@
 module("cutscenes", package.seeall)
 
--- shows a distance and a direction using lightning / flare
+-- shows a distance and a direction using line / flare
 function show_distance(tag, origin, color, seconds)
     if not origin["__CACHED_" .. tag] then
         local entities = entity_store.get_all_bytag(tag)
@@ -9,21 +9,7 @@ function show_distance(tag, origin, color, seconds)
     end
     local entity = origin["__CACHED_" .. tag]
 
-    effect.lightning(entity.position, origin.position, 0, color, 1.0)
-
-    -- this piece of code will display flares going in direction of connection.
-    local direction = entity.position:subnew(origin.position)
-
-    origin.flare_pos = math.clamp((origin.flare_pos or 0) + (seconds / 4), 0, 1)
-    if origin.flare_pos == 1 then  origin.flare_pos  = 0 end
-
-    local next_pos = math.clamp(origin.flare_pos + 0.2, 0, 1)
-    effect.flare(
-        effect.PARTICLE.STREAK,
-        origin.position:addnew(direction:mulnew(origin.flare_pos)),
-        origin.position:addnew(direction:mulnew        (next_pos)),
-        0, color, 1
-    )
+    effect.flare(effect.PARTICLE.STREAK, origin.position, entity.position, 0, color, 0.2)
 end
 
 action_base = class.new(events.action_container)
@@ -466,7 +452,7 @@ entity_classes.reg(
             effect.flare(
                 effect.PARTICLE.STREAK,
                 self.position, target,
-                0, 0x22BBFF, 1
+                0, 0x22BBFF, 0.3
             )
         end
     }}), "playerstart"
