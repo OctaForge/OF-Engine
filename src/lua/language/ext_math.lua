@@ -562,6 +562,17 @@ function math.vec3:toyawpitchroll(up, yaw_hint)
     return { yaw = yaw, pitch = pitch, roll = roll }
 end
 
+--[[!
+    Function: lerp
+    Performs a lerp between two vectors.
+
+    Parameters:
+        other - The other vector.
+        alpha - Amount between 0 and 1 indicating alpha of the other vector.
+
+    Returns:
+        Result of lerp, a new vector.
+]]
 function math.vec3:lerp(other, alpha)
     alpha = math.clamp(alpha, 0, 1)
     return self:mulnew(alpha):add(other:mulnew(1 - alpha))
