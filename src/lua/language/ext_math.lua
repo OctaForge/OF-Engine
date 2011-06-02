@@ -484,6 +484,98 @@ function math.vec3:dotproduct(v)
 end
 
 --[[!
+    Function: cos_angle_with
+    Returns the cosine angle with other vector.
+
+    Parameters:
+        v - The other vector.
+]]
+function math.vec3:cos_angle_with(v)
+    return (self:dotproduct(v) / (self:magnitude() * v:magnitude()))
+end
+
+--[[!
+    Function: cross_product
+    Calculates cross product of two vectors.
+
+    Parameters:
+        v - The other vector.
+
+    Returns:
+        Cross product of two vectors (a new vector)
+]]
+function math.vec3:cross_product(v)
+    return math.vec3(
+        (self.y * v.z) - (self.z * v.y),
+        (self.z * v.x) - (self.x * v.z),
+        (self.x * v.y) - (self.y * v.x)
+    )
+end
+
+--[[!
+    Function: project_along_surface
+    Projects the vector along a surface (defined by a normal).
+
+    Parameters:
+        surf - The surface normal.
+
+    Returns:
+        Modified self.
+]]
+function math.vec3:project_along_surface(surf)
+    local normal_proj = self:dotproduct (surf)
+    return self:sub (surf:mulnew(normal_proj))
+end
+
+--[[!
+    Function: toyawpitchroll
+    Calculates yaw, pitch and roll from vector components.
+
+    Parameters:
+        up - Given this vector, uses self as forward vector to find the
+        yaw, pitch and roll.
+        yaw_hint - If the yaw isn't clear enough, we use this yaw hint vector.
+
+    Returns:
+        Table containing yaw, pitch and roll:
+
+        (start code)
+            { yaw = yaw_value, pitch = pitch_value, roll = roll_value }
+        (end)
+]]
+function math.vec3:toyawpitchroll(up, yaw_hint)
+    local left = self:cross_product(up)
+
+    local yaw
+    local pitch
+    local roll
+
+    if math.abs(self.z) < 0.975 or not yaw_hint then
+        yaw = math.deg(math.atan2(self.y,         self.x)) + 90
+    else
+        yaw = math.deg(math.atan2(yaw_hint.y, yaw_hint.x)) + 90
+    end
+
+    local pitch = math.deg(math.atan2(-(self.z), math.sqrt(up.z * up.z + left.z * left.z)))
+    local roll  = math.deg(math.atan2(up.z, left.z)) - 90
+
+    return { yaw = yaw, pitch = pitch, roll = roll }
+end
+
+function math.vec3:lerp(other, alpha)
+    alpha = math.clamp(alpha, 0, 1)
+    return self:mulnew(alpha):add(other:mulnew(1 - alpha))
+end
+
+--[[!
+    Function: is_zero
+    Returns true if all components of the vector are zero.
+]]
+function math.vec3:is_zero()
+    return (self.x == 0 and self.y == 0 and self.z == 0)
+end
+
+--[[!
     Class: math.vec4
     A vec4 class (with x, y, z, w coordinates) for OctaForge's
     scripting system.
@@ -650,7 +742,7 @@ end
     Calculates yaw, pitch and roll from vector components.
 
     Returns:
-        Table containing yaw and pitch:
+        Table containing yaw, pitch and roll:
 
         (start code)
             { yaw = yaw_value, pitch = pitch_value, roll = roll_value }
@@ -672,6 +764,14 @@ function math.vec4:toyawpitchroll()
             roll = 0
         }
     end
+end
+
+--[[!
+    Function: is_zero
+    Returns true if all components of the vector are zero.
+]]
+function math.vec4:is_zero()
+    return (self.x == 0 and self.y == 0 and self.z == 0 and self.w == 0)
 end
 
 --[[!
