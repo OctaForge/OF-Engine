@@ -427,9 +427,8 @@ function server_logent:_set_statedata(k, v, auid, iop)
                       json.encode(v) .. ", " ..
                       tostring(v))
 
-    self:emit(state_variables.get_onmodify_prefix() .. tostring(k), v, auid)
-    if cancel_sd_update then
-        cancel_sd_update = nil
+    local ret = self:emit(state_variables.get_onmodify_prefix() .. tostring(k), v, auid)
+    if ret == "cancel_state_data_update" then
         return nil
     end
 
