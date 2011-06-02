@@ -568,14 +568,14 @@ end
 
     Parameters:
         other - The other vector.
-        alpha - Amount between 0 and 1 indicating alpha of the other vector.
+        weight - If it's 1, result has x, y, z of "other", if 0,
+        of "self".
 
     Returns:
         Result of lerp, a new vector.
 ]]
-function math.vec3:lerp(other, alpha)
-    alpha = math.clamp(alpha, 0, 1)
-    return self:mulnew(alpha):add(other:mulnew(1 - alpha))
+function math.vec3:lerp(other, weight)
+    return self:addnew(weight * other:subnew(self))
 end
 
 --[[!
