@@ -9,6 +9,7 @@ library.include("cutscenes")
 library.include("firing")
 library.include("mapelements.jump_pad")
 library.include("mapelements.teleporter")
+library.include("mapelements.dynamic_lights")
 
 -- rain
 library.include("custom_effect")

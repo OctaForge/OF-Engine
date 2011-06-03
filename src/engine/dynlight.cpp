@@ -53,6 +53,18 @@ struct dynlight
 vector<dynlight> dynlights;
 vector<dynlight *> closedynlights;
 
+struct dynlight_queued
+{
+    vec o;
+    float radius;
+    vec color;
+    int fade, peak, flags;
+    float initradius;
+    vec initcolor;
+    physent *owner;
+};
+vector<dynlight_queued> dynlight_queue;
+
 void adddynlight(const vec &o, float radius, const vec &color, int fade, int peak, int flags, float initradius, const vec &initcolor, physent *owner)
 {
     if(renderpath==R_FIXEDFUNCTION ? !ffdynlights || maxtmus<3 : !maxdynlights) return;
@@ -91,6 +103,13 @@ void updatedynlights()
 {
     cleardynlights();
     game::adddynlights();
+
+    loopv(dynlight_queue)
+    {
+        dynlight_queued &d = dynlight_queue[i];
+        adddynlight(d.o, d.radius, d.color, d.fade, d.peak, d.flags, d.initradius, d.initcolor, d.owner);
+    }
+    dynlight_queue.setsize(0);
 
     loopv(dynlights)
     {
@@ -231,4 +250,19 @@ int setdynlights(vtxarray *va)
     }
 
     return index;
+}
+
+void queuedynlight(const vec &o, float radius, const vec &color, int fade, int peak, int flags, float initradius, const vec &initcolor, physent *owner)
+{
+    dynlight_queued d;
+    d.o = o;
+    d.radius = radius;
+    d.initradius = initradius;
+    d.color = color;
+    d.initcolor = initcolor;
+    d.fade = fade;
+    d.peak = peak;
+    d.flags = flags;
+    d.owner = owner;
+    dynlight_queue.add(d);
 }

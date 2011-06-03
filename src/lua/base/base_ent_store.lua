@@ -290,9 +290,21 @@ function manage_actions(sec, lastmillis)
     local ents = table.values(__entities_store)
     for i = 1, #ents do
         local ent = ents[i]
+
         local skip = false
-        if ent.deactivated then skip = true end
-        if not ent.should_act then skip = true end
+        if ent.deactivated then
+            skip = true
+        end
+        if not ent.should_act then
+            skip = true
+        end
+        if type(ent.should_act) == "table" and (
+            (CLIENT and not ent.should_act.client) or
+            (SERVER and not ent.should_act.server)
+        ) then
+            skip = true
+        end
+
         if not skip then
             if CLIENT then
                 ent:client_act(sec)
