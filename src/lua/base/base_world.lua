@@ -46,15 +46,6 @@ iscolliding = CAPI.iscolliding
 -- @param gr Gravity
 setgravity = CAPI.setgravity
 
---- Get material
--- @class function
--- @name getmat
--- @param x X coordinate
--- @param y Y coordinate
--- @param z Z coordinate
--- @return Material id
-getmat = CAPI.getmat
-
 ---
 -- @class function
 -- @name entautoview
