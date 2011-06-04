@@ -13,6 +13,7 @@ library.include("mapelements.dynamic_lights")
 library.include("mapelements.detection_areas")
 library.include("mapelements.world_areas")
 library.include("mapelements.world_notices")
+library.include("mapelements.world_sequences")
 
 -- rain
 library.include("custom_effect")
