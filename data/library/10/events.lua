@@ -107,7 +107,7 @@ action_input_capture_plugin = {
             self.old_action_keys = {}
             for key, action in pairs(self.action_keys) do
                 self.old_action_keys[key] = console.binds.get_action_key(key)
-                console.binds.add_action_key(key, action)
+                console.binds.add_action_key(key, action, self.action_key_self or self)
             end
         end
         if self.do_movement then

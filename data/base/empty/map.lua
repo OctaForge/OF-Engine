@@ -10,6 +10,8 @@ library.include("firing")
 library.include("mapelements.jump_pad")
 library.include("mapelements.teleporter")
 library.include("mapelements.dynamic_lights")
+library.include("mapelements.detection_areas")
+library.include("mapelements.world_areas")
 
 -- rain
 library.include("custom_effect")
