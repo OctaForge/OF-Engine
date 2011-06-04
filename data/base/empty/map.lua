@@ -12,6 +12,7 @@ library.include("mapelements.teleporter")
 library.include("mapelements.dynamic_lights")
 library.include("mapelements.detection_areas")
 library.include("mapelements.world_areas")
+library.include("mapelements.world_notices")
 
 -- rain
 library.include("custom_effect")
