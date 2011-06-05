@@ -128,9 +128,8 @@ function bake(_class, plugins)
         end
     end
 
-    local newclass = class.new(_class)
+    local newclass = class.new(_class, cldata)
     newclass.properties = properties
-    table.mergedicts(newclass, cldata)
 
     return newclass
 end

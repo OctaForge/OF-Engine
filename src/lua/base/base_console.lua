@@ -67,12 +67,16 @@ function binds.addmod(key, modifier)
     CAPI.bind(key, [[%(1)s = 1; console.onrelease([=[%(1)s = 0]=])]] % { modifier })
 end
 
-function binds.add_action_key(key, action)
+function binds.add_action_key(key, action, self)
     if type(action) == "string" then
         local _action = action
         action = function() loadstring(_action)() end
     end
-    action_keys[key] = action
+    if self then
+        action_keys[key] = function() action(self) end
+    else
+        action_keys[key] = action
+    end
 end
 
 function binds.del_action_key(key)

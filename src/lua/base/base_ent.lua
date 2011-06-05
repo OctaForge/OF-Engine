@@ -178,7 +178,7 @@ function root_logent:create_statedatadict(tcn, kwargs)
             if tcn >= 0 and not var:should_send(self, tcn) then skip = true end
             if not skip then
                 local val = self[var._name]
-                if val then
+                if val or val == false then
                     logging.log(logging.DEBUG, "create_statedatadict() adding " .. tostring(var._name) .. ": " .. json.encode(val))
                     r[not kwargs.compressed and var._name or message.toproid(tostring(self), var._name)] = var:to_wire(val)
                     logging.log(logging.DEBUG, "create_statedatadict() currently: " .. json.encode(r))
@@ -427,9 +427,8 @@ function server_logent:_set_statedata(k, v, auid, iop)
                       json.encode(v) .. ", " ..
                       tostring(v))
 
-    self:emit(state_variables.get_onmodify_prefix() .. tostring(k), v, auid)
-    if cancel_sd_update then
-        cancel_sd_update = nil
+    local ret = self:emit(state_variables.get_onmodify_prefix() .. tostring(k), v, auid)
+    if ret == "cancel_state_data_update" then
         return nil
     end
 

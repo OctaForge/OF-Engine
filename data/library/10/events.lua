@@ -107,7 +107,7 @@ action_input_capture_plugin = {
             self.old_action_keys = {}
             for key, action in pairs(self.action_keys) do
                 self.old_action_keys[key] = console.binds.get_action_key(key)
-                console.binds.add_action_key(key, action)
+                console.binds.add_action_key(key, action, self.action_key_self or self)
             end
         end
         if self.do_movement then
@@ -147,3 +147,69 @@ action_input_capture_plugin = {
 
 action_input_capture = class.new(actions.action, action_input_capture_plugin)
 function action_input_capture:__tostring() return "action_input_capture" end
+
+action_render_capture_plugin = {
+    dostart = function(self, ...)
+        self.__base.dostart(self, ...)
+
+        if  self.render_dynamic then
+            self.render_dynamic_old =  _G["render_dynamic"]
+             _G["render_dynamic"]   = self.render_dynamic
+        end
+        if  self.render_hud_models then
+            self.render_hud_models_old =  _G["render_hud_models"]
+             _G["render_hud_models"]   = self.render_hud_models
+        end
+    end,
+
+    dofinish = function(self, ...)
+        if  self.render_dynamic then
+             _G["render_dynamic"] = self.render_dynamic_old
+        end
+        if  self.render_hud_models then
+             _G["render_hud_models"] = self.render_hud_models_old
+        end
+
+        self.__base.dofinish(self, ...)
+    end
+}
+
+action_system_plugin = {
+    __init = function(self, owner)
+        self.action_system = actions.action_system(owner and owner or self)
+    end,
+
+    tick = function(self, seconds)
+        self.action_system:manage(seconds)
+    end
+}
+
+_action_system_parallel_manager = class.new(class.new(nil, action_system_plugin), {
+    __init = function(self, owner)
+        self.__base.__init(self, owner)
+
+        self.action = action_parallel({})
+        self.action_system:queue(self.action)
+    end
+})
+
+client_actions_parallel_plugin = {
+    client_activate = function(self)
+        self.action_system_parallel_manager = _action_system_parallel_manager(self)
+    end,
+
+    client_act = function(self, seconds)
+        self.action_system_parallel_manager.action.secondsleft = seconds + 1.0 -- never end
+        self.action_system_parallel_manager:tick(seconds)
+    end,
+
+    add_action_parallel = function(self, action)
+        self.action_system_parallel_manager.action:add_action(action)
+    end
+}
+
+actions_parallel_plugin = {
+    activate = client_actions_parallel_plugin.client_activate,
+    act = client_actions_parallel_plugin.client_act
+}
+

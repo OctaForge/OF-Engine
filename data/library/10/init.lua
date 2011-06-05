@@ -9,5 +9,8 @@ logging.log(logging.DEBUG, ":: Game manager.")
 library.include("game_manager")
 logging.log(logging.DEBUG, ":: Events.")
 library.include("events")
+logging.log(logging.DEBUG, ":: Health.")
+library.include("health")
 
--- library.include("submodule.modulename")
+-- enable underwater ambience
+uwambient = 1

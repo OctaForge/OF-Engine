@@ -236,27 +236,12 @@ namespace lua_binds
         if (strcmp(ov, nv))
         {
             GuiControl::EditedEntity::stateData[key].second = e.get<const char*>(2);
-
-            int uniqueId = GuiControl::EditedEntity::currEntity->getUniqueId();
-            e.getg("state_variables")
-             .t_getraw("__get")
-             .push(uniqueId)
-             .push(key)
-             .call(2, 1);
-            e.t_getraw("from_wire").push_index(-2).push(nv).call(2, 1);
-            int _tmpref = e.ref(); e.pop(2);
-            e.getg("json").t_getraw("encode");
-            e.getref(_tmpref).call(1, 1);
-            const char *nav = e.get<const char*>(-1);
-            e.pop(2);
-
-            if (nav)
-            {
-                e.getg("string").t_getraw("gsub").push(nav).push("%[(.*)%]").push("{%1}").call(3, 2);
-                e.pop(1); nav = e.get<const char*>(-1); e.pop(2);
-                defformatstring(c)("entity_store.get(%i).%s = %s", uniqueId, key, nav);
-                e.exec(c);
-            }
+            int uid = GuiControl::EditedEntity::currEntity->getUniqueId();
+            defformatstring(c)(
+                "entity_store.get(%i).%s = state_variables.__get(%i, \"%s\"):from_wire(\"%s\")",
+                uid, key, uid, key, nv
+            );
+            e.exec(c);
         }
     })
 }

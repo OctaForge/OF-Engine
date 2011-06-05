@@ -1994,7 +1994,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         MDL::adjustments.setsize(0);
         mdl.meshes = MDL::loading->sharemeshes(
             path(filename),
-            e.get<char*>(2)[0] ? e.get<char*>(2) : NULL,
+            e.get<char*>(2) ? e.get<char*>(2) : NULL,
             double(e.get<float>(3) > 0 ? cos(clamp(e.get<float>(3), 0.0f, 180.0f)*RAD) : 2)
         );
         if(!mdl.meshes) conoutf("could not load %s", filename);
@@ -2028,7 +2028,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
     
-        if(e.get<char*>(1)[0])
+        if(e.get<char*>(1))
         {
             int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
             if(i>=0)
@@ -2181,7 +2181,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
 
-        if(!e.get<char*>(1)[0]) return;
+        if(!e.get<char*>(1)) return;
         int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
         if(i < 0) {  conoutf("could not find bone %s to adjust", e.get<char*>(1)); return; }
         while(!MDL::adjustments.inrange(i)) MDL::adjustments.add(skeladjustment(0, 0, 0, vec(0, 0, 0)));

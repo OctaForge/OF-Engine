@@ -684,7 +684,7 @@ extern int& oqfrags;
 
 void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CLogicEntity *entity, float yaw, float pitch, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float trans)
 {
-    if(shadowmapping && !(flags&(MDL_SHADOW|MDL_DYNSHADOW))) return;
+    if(!mdl || (shadowmapping && !(flags&(MDL_SHADOW|MDL_DYNSHADOW)))) return;
     model *m = loadmodel(mdl); 
     if(!m) return;
     vec center(0), bbradius(0);

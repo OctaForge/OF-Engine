@@ -26,13 +26,13 @@ module("utility", package.seeall)
 
 --- A simple timer.
 -- @class table
--- @name repeatingtimer
-repeatingtimer = class.new()
+-- @name repeating_timer
+repeating_timer = class.new()
 
 --- Return string representation of a timer.
 -- @return String representation of a timer.
-function repeatingtimer:__tostring()
-    return string.format("repeatingtimer: %s %s %s",
+function repeating_timer:__tostring()
+    return string.format("repeating_timer: %s %s %s",
                          tostring(self.interval),
                          tostring(self.carryover),
                          tostring(self.sum))
@@ -41,7 +41,7 @@ end
 --- Constructor for simple timer.
 -- @param i Interval for timer.
 -- @param c Carry over the timer.
-function repeatingtimer:__init(i, c)
+function repeating_timer:__init(i, c)
     self.interval = i
     self.carryover = c or false
     self.sum = 0
@@ -52,7 +52,7 @@ end
 -- over interval is left for next time.
 -- @param s Specifies how long to tick.
 -- @return true if interval reached, false otherwise.
-function repeatingtimer:tick(s)
+function repeating_timer:tick(s)
     self.sum = self.sum + s
     if self.sum >= self.interval then
         if not self.carryover then
@@ -67,7 +67,7 @@ function repeatingtimer:tick(s)
 end
 
 --- Sets the timer to fire next tick, no matter how many seconds are given
-function repeatingtimer:prime()
+function repeating_timer:prime()
     self.sum = self.interval
 end
 
@@ -163,6 +163,7 @@ end
 -- @return The distance along the ray to the first collision.
 function ray_collisiondist(o, r)
     local rm = r:magnitude()
+    if    rm == 0 then return -1 end
     return CAPI.raypos(o.x, o.y, o.z,
                        r.x / rm,
                        r.y / rm,
@@ -221,7 +222,29 @@ end
 -- @param r Radius it applies for.
 -- @param i Entity to ignore. (optional)
 function iscolliding(p, r, i)
-    return CAPI.iscolliding(p.x, p.y, p.z, r, i and i.uid or -1)
+    local  ret = CAPI.iscolliding(p.x, p.y, p.z, r, i and i.uid or -1)
+    if not ret then
+        return is_colliding_entities(p, r, i)
+    end
+    return ret
+end
+
+function is_colliding_entities(position, radius, ignore)
+    local entities = get_collidable_entities()
+    for i, entity in pairs(entities) do
+        if entity ~= ignore and not entity.deactivated then
+            local entity_radius = entity.radius
+                and entity.radius
+                or math.max(
+                    entity.collision_radius_width,
+                    entity.collision_radius_height
+                )
+            if position:iscloseto(entity.position, radius + entity_radius) then
+                return true
+            end
+        end
+    end
+    return false
 end
 
 --- Get current time.
@@ -327,4 +350,129 @@ function get_ray_collision_entities(origin, target, ignore)
     end
 
     return best
+end
+
+function get_material(position)
+    return CAPI.getmat(position.x, position.y, position.z)
+end
+
+MATF_CLIP_SHIFT = 3
+
+MATERIAL = {
+    AIR = 0,
+    WATER = 1,
+    LAVA = 2,
+    GLASS = 3,
+    NOCLIP = math.lsh(1, MATF_CLIP_SHIFT),  -- collisions always treat cube as empty
+    CLIP = math.lsh(2, MATF_CLIP_SHIFT)  -- collisions always treat cube as solid
+}
+
+function get_surface_normal(reference, surface, resolution)
+    local direction = surface:subnew(reference)
+    local distance  = direction:magnitude()
+    if    distance == 0 then return nil end
+
+    resolution = resolution or (distance / 20)
+    local function random_resolutional()
+        return ((math.random() - 0.5) * 2 * resolution)
+    end
+
+    local point_direction
+    local points
+    local ret
+    local temp
+
+    for i = 1, 3 do
+        points = {}
+        for n = 1, 3 do
+            point_direction = surface:addnew(math.vec3(
+                random_resolutional(),
+                random_resolutional(),
+                random_resolutional()
+            )):sub(reference)
+            if  point_direction:magnitude() == 0 then
+                point_direction.z = point_direction.z + resolution
+            end
+
+            temp = ray_collisiondist(
+                reference,
+                point_direction:normalize():mul(
+                    distance * 3 + resolution * 3 + 3
+                )
+            )
+            table.insert(points, point_direction:normalize():mul(temp))
+        end
+
+        ret = points[2]:sub(points[1]):cross_product(points[3]:sub(points[1]))
+        if ret:magnitude() > 0 then
+            if  ret:dotproduct(reference:subnew(surface)) < 0 then
+                ret:mul(-1)
+            end
+            return ret:normalize()
+        end
+    end
+end
+
+function get_reflected_ray(ray, normal, elasticity, friction)
+    elasticity = elasticity or 1
+    friction   = friction   or 1
+
+    local bounce_direction = normal:mulnew(-(normal:dotproduct(ray)))
+    if friction == 1 then
+        return ray:add(bounce_direction:mul(1 + elasticity))
+    else
+        local  surface_direction = ray:addnew(bounce_direction)
+        return surface_direction:mul(friction):add(bounce_direction:mul(elasticity))
+    end
+end
+
+function bounce(thing, elasticity, friction, seconds)
+    local function fallback()
+        if  thing.last_safe and thing.last_safe[2] then
+            thing.position = thing.last_safe[2].position
+            thing.velocity = thing.last_safe[2].velocity
+        elseif thing.last_safe then
+            thing.position = thing.last_safe[1].position
+            thing.velocity = thing.last_safe[1].velocity
+        end
+        thing.velocity:mul(-1)
+        return true
+    end
+
+    elasticity = elasticity or 0.9
+
+    if seconds == 0 or thing.velocity:magnitude() == 0 then
+        return true
+    end
+
+    if iscolliding(thing.position, thing.radius, thing.ignore) then return fallback() end
+
+    things.last_safe = {{
+        position = thing.position:copy(),
+        velocity = thing.position:copy()
+    }, thing.last_safe and thing.last_safe[1] or nil }
+
+    local old_position = self.position:copy()
+    local movement     = thing.velocity:mulnew(seconds)
+    thing.position:add(movement)
+
+    if not iscolliding(thing.position, thing.radius, thing.ignore) then return true end
+
+    local direction = movement:copy():normalize()
+    local surface_dist = ray_collisiondist(
+        old_position, direction:mulnew(3 * movement:magnitude() + 3 * thing.radius + 1.5)
+    )
+    if surface_dist < 0 then return fallback() end
+
+    local surface = old_position:addnew(direction, surface_dist)
+    local normal = get_surface_normal(old_position, surface)
+    if not normal then return fallback() end
+
+    movement = world.get_reflected_ray(movement, normal, elasticity, friction)
+
+    thing.position = old_position:add(movement)
+    if iscolliding(self.position, self.radius, self.ignore) then return fallback() end
+    thing.velocity = movement:mul(1 / seconds)
+
+    return true
 end

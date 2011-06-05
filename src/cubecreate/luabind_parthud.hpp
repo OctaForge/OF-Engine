@@ -131,7 +131,7 @@ namespace lua_binds
         vec color(float(e.get<double>(5))/255.0, float(e.get<double>(6))/255.0, float(e.get<double>(7))/255.0);
         vec initcolor(float(e.get<double>(12))/255.0, float(e.get<double>(13))/255.0, float(e.get<double>(14))/255.0);
 
-        adddynlight(o, e.get<double>(4), color, e.get<int>(8), e.get<int>(9), e.get<int>(10), e.get<double>(11), initcolor, NULL);
+        queuedynlight(o, e.get<double>(4), color, e.get<int>(8), e.get<int>(9), e.get<int>(10), e.get<double>(11), initcolor, NULL);
     })
 
     LUA_BIND_CLIENT(particle_meter, {

@@ -2796,7 +2796,7 @@ void screenshot(char *filename)
         const char *dir = findfile(buf, "w");
         if(!fileexists(dir, "w")) createdir(dir);
     }
-    if(filename[0])
+    if(filename)
     {
         concatstring(buf, filename);
         format = guessimageformat(buf, -1);

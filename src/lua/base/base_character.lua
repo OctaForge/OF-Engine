@@ -330,7 +330,7 @@ function character:render_dynamic(hudpass, needhud)
         local flags = self:get_renderingflags(hudpass, needhud)
 
         self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, flags, basetime }
-        self.rendering_args_timestamp = entity_store.curr_timestamp
+        self.rendering_args_timestamp = GLOBAL_CURRENT_TIMESTAMP
     end
 
     -- render only when model is set
