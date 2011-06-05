@@ -16,6 +16,7 @@ library.include("mapelements.world_areas")
 library.include("mapelements.world_notices")
 library.include("mapelements.world_sequences")
 library.include("platformer")
+library.include("guns.stunball")
 
 -- rain
 library.include("custom_effect")
@@ -31,7 +32,8 @@ library.include("mapscripts.drawing")
 -- this is how you initialize game manager
 game_manager.setup({
     game_manager.manager_plugins.messages,
-    game_manager.manager_plugins.event_list
+    game_manager.manager_plugins.event_list,
+    projectiles.plugin
 })
 get_scoreboard_text = game_manager.get_scoreboard_text
 

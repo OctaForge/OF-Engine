@@ -122,7 +122,7 @@ function setup(plugins_add)
                                 smallest = name
                             end
                         end
-                        self.set_player_team(player, smallest, sync)
+                        self:set_player_team(player, smallest, sync)
                     end,
 
                     set_player_team = function(self, player, team, sync)
