@@ -257,26 +257,20 @@ namespace tools
                 case var::VAR_F: f->printf("%s = %f\n", v->name, v->curv.f); break;
                 case var::VAR_S:
                 {
-                    size_t sz = 0;
-                    char *s = NULL;
-                    if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
-
+                    if (!v->curv.s) continue;
                     f->printf("%s = \"", v->name);
-                    for (; *s; s++)
+                    for (size_t sz = 0; sz < strlen(v->curv.s); sz++)
                     {
-                        switch (*s)
+                        switch (v->curv.s[sz])
                         {
                             case '\n': f->write("^n", 2); break;
                             case '\t': f->write("^t", 2); break;
                             case '\f': f->write("^f", 2); break;
                             case '"': f->write("^\"", 2); break;
-                            default: f->putchar(*s); break;
+                            default: f->putchar(v->curv.s[sz]); break;
                         }
-                        sz++;
                     }
                     f->printf("\"\n");
-                    s -= sz;
-                    delete[] s;
                     break;
                 }
             }
@@ -290,33 +284,26 @@ namespace tools
         loopv(varv)
         {
             var::cvar *v = varv[i];
-            if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0 && (v->flags&var::VAR_OVERRIDEN) == 0) switch (v->type)
+            if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)
             {
                 case var::VAR_I: f->printf("engine.newvar(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;
                 case var::VAR_F: f->printf("engine.newvar(\"%s\", engine.VAR_F, %f)\n", v->name, v->curv.f); break;
                 case var::VAR_S:
                 {
-                    if (strstr(v->name, "new_entity_gui_field")) continue;
-                    size_t sz = 0;
-                    char *s = NULL;
-                    if (!(s = v->curv.s ? newstring(v->curv.s) : NULL)) continue;
-
+                    if (strstr(v->name, "new_entity_gui_field") || !v->curv.s) continue;
                     f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
-                    for (; *s; s++)
+                    for (size_t sz = 0; sz < strlen(v->curv.s); sz++)
                     {
-                        switch (*s)
+                        switch (v->curv.s[sz])
                         {
                             case '\n': f->write("^n", 2); break;
                             case '\t': f->write("^t", 2); break;
                             case '\f': f->write("^f", 2); break;
                             case '"': f->write("^\"", 2); break;
-                            default: f->putchar(*s); break;
+                            default: f->putchar(v->curv.s[sz]); break;
                         }
-                        sz++;
                     }
                     f->printf("\")\n");
-                    s -= sz;
-                    delete[] s;
                     break;
                 }
             }
