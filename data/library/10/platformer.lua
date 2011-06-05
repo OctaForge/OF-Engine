@@ -1,6 +1,6 @@
-module("platformer", package.seeall)
-
 library.include("mapelements.world_areas")
+
+module("platformer", package.seeall)
 
 function vec3_from_axis(axis)
     local ret = math.vec3(0, 0, 0)

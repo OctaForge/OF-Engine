@@ -26,13 +26,13 @@ module("utility", package.seeall)
 
 --- A simple timer.
 -- @class table
--- @name repeatingtimer
-repeatingtimer = class.new()
+-- @name repeating_timer
+repeating_timer = class.new()
 
 --- Return string representation of a timer.
 -- @return String representation of a timer.
-function repeatingtimer:__tostring()
-    return string.format("repeatingtimer: %s %s %s",
+function repeating_timer:__tostring()
+    return string.format("repeating_timer: %s %s %s",
                          tostring(self.interval),
                          tostring(self.carryover),
                          tostring(self.sum))
@@ -41,7 +41,7 @@ end
 --- Constructor for simple timer.
 -- @param i Interval for timer.
 -- @param c Carry over the timer.
-function repeatingtimer:__init(i, c)
+function repeating_timer:__init(i, c)
     self.interval = i
     self.carryover = c or false
     self.sum = 0
@@ -52,7 +52,7 @@ end
 -- over interval is left for next time.
 -- @param s Specifies how long to tick.
 -- @return true if interval reached, false otherwise.
-function repeatingtimer:tick(s)
+function repeating_timer:tick(s)
     self.sum = self.sum + s
     if self.sum >= self.interval then
         if not self.carryover then
@@ -67,7 +67,7 @@ function repeatingtimer:tick(s)
 end
 
 --- Sets the timer to fire next tick, no matter how many seconds are given
-function repeatingtimer:prime()
+function repeating_timer:prime()
     self.sum = self.interval
 end
 
