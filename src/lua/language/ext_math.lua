@@ -139,6 +139,37 @@ function math.sign(v)
 end
 
 --[[!
+    Function: math.lerp
+    Performs a lerp between two numbers.
+
+    Parameters:
+        first - The first number.
+        other - The other number.
+        weight - If it's 1, result equals other, if 0, first.
+
+    Returns:
+        Result of lerp between the numbers.
+]]
+function math.lerp(first, other, weight)
+    return first + weight * (other - first)
+end
+
+--[[!
+    Function: math.magnet
+    If a value is inside certain radius from another value,
+    it returns the other value, othrwise returns the
+    first value.
+
+    Parameters:
+        value - The value to check for.
+        other - From where to count the radius.
+        radius - The radius.
+]]
+function math.magnet(value, other, radius)
+    return (math.abs(value - other) <= radius) and other or value
+end
+
+--[[!
     Class: math.vec3
     A vec3 class (with x, y, z coordinates) for OctaForge's
     scripting system.
@@ -575,7 +606,7 @@ end
         Result of lerp, a new vector.
 ]]
 function math.vec3:lerp(other, weight)
-    return self:addnew(weight * other:subnew(self))
+    return self:addnew(other:subnew(self):mul(weight))
 end
 
 --[[!

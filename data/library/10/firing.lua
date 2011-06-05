@@ -94,7 +94,7 @@ plugins = {
 
         on_firing_info = function(self, info)
             -- do not shoot if just killed (even though canmove = false didn't arrive yet)
-            if not health.is_active_entity(self) then return nil end
+            if not health.is_valid_target(self) then return nil end
 
             if #info ~= 5 then return nil end
             local gun_index = info[1]
@@ -241,7 +241,7 @@ gun.handle_client_effect = nil
 
 function gun:do_shot(shooter, target_position, target_entity)
     -- do not shoot if just killed (even though canmove = false didn't arrive yet)
-    if not health.is_active_entity(shooter) then return nil end
+    if not health.is_valid_target(shooter) then return nil end
 
     if self.handle_start_logic then
         if not self:handle_start_logic(shooter, self:get_origin(shooter), target_position, target_entity) then

@@ -8,6 +8,8 @@
 -- Register our custom player entity class into storage
 entity_classes.reg(plugins.bake(
     character.player, {
+-- enable for platformer game
+--      platformer.plugin,
         health.plugin,
         {
             _class = "game_player",
@@ -120,6 +122,11 @@ function client_click(btn, down, pos, ent, x, y)
         entity_store.get_plyent():next_color()
     end
 end
+
+-- enable for platformer game
+-- do_movement  = platformer.do_movement
+-- do_strafe    = platformer.do_strafe
+-- do_mousemove = platformer.do_mousemove
 
 -- Notify the engine that we're overriding player by setting engine variable
 player_class = "game_player"

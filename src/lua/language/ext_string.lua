@@ -52,7 +52,31 @@ function _str_interp(s, t)
         )
     )
 end
-getmetatable("").__mod = _str_interp
+
+--[[!
+    Function: _str_index
+    Allows getting character of string using [] operator.
+
+    It is activated using
+
+    (start code)
+        getmetatable("").__index = _str_index
+    (end)
+
+    Parameters:
+        s - The input string.
+        i - Index of the character to get.
+
+    Returns:
+        The character
+]]
+function _str_index(s, n)
+    local i = tonumber(n)
+    return i and string.sub(s, i, i) or string[n]
+end
+
+getmetatable("").__mod   = _str_interp
+getmetatable("").__index = _str_index
 
 --[[!
     Function: string.split

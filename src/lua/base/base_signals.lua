@@ -26,8 +26,8 @@ module("signals", package.seeall)
 --- Table of actions to be done after doing emit,
 -- see postemitevent_add.
 -- @class table
--- @name __postemitevstack
-local __postemitevstack = {}
+-- @name __post_emit_event_stack
+local __post_emit_event_stack = {}
 
 --- This is used to connect signals to table.
 -- You don't call this directly. Instead, you add the method into the table using
@@ -131,7 +131,7 @@ function _emit(self, name, ...)
         table.insert(arg_array, args[i])
     end
 
-    table.insert(__postemitevstack, {})
+    table.insert(__post_emit_event_stack, {})
 
     length = #handlers
     for i = 1, length do
@@ -142,16 +142,16 @@ function _emit(self, name, ...)
         end
     end
 
-    local events = __postemitevstack[#__postemitevstack]
-    table.remove(__postemitevstack)
+    local events = __post_emit_event_stack[#__post_emit_event_stack]
+    table.remove(__post_emit_event_stack)
     length = #events
     while length > 0 do
-        table.insert(__postemitevstack, {})
+        table.insert(__post_emit_event_stack, {})
         for i = 1, #events do
             events[i](self)
         end
-        events = __postemitevstack[#__postemitevstack]
-        table.remove(__postemitevstack)
+        events = __post_emit_event_stack[#__post_emit_event_stack]
+        table.remove(__post_emit_event_stack)
         length = #events
     end
 
@@ -185,9 +185,9 @@ end
 -- mytable:emit("test")<br/>
 -- mytable:disconnect(id)<br/>
 -- </code>
-function postemitevent_add(event)
-    if not __postemitevstack[#__postemitevstack + 1] then
-        __postemitevstack[#__postemitevstack + 1] = {}
+function post_emit_event_add(event)
+    if not __post_emit_event_stack[#__post_emit_event_stack + 1] then
+        __post_emit_event_stack[#__post_emit_event_stack + 1] = {}
     end
-    table.insert(__postemitevstack[#__postemitevstack + 1], event)
+    table.insert(__post_emit_event_stack[#__post_emit_event_stack + 1], event)
 end

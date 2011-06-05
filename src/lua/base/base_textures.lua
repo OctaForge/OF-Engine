@@ -16,6 +16,8 @@
     Section: Texture interface
 ]]
 
+local env = _G
+
 --[[!
     Package: texture
     This module controls textures (their registration and manipulation) and
