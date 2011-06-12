@@ -974,7 +974,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 //    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures
     delete f;
 
-    clearmainmenu();
+    gui::clearmainmenu();
 
     var::overridevars = true;
     if (lua::engine.hashandle())

@@ -71,7 +71,7 @@ namespace lua_binds
         {
             e.push("message_title").push("Compilation failed").setg();
             e.push("message_content").push(engine.geterror_last()).setg();
-            showgui("message");
+            engine.getg("gui").t_getraw("show").push("message").call(1, 0).pop(1);
             e.push("message_title").push().setg();
             e.push("message_content").push().setg();
             delete[] fname;

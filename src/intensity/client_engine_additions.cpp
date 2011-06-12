@@ -265,14 +265,11 @@ bool GuiControl::isMouselooking()
 void GuiControl::toggleMouselook()
 {
     if (_isMouselooking)
-    {
         _isMouselooking = false;
-
-        // Restore cursor to center
-        g3d_resetcursor();
-    } else {
+    else
         _isMouselooking = true;
-    };
+
+    gui::resetcursor();
 };
 
 bool _isCharacterViewing = false;

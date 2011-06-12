@@ -95,7 +95,7 @@ namespace MessageSystem
 
         engine.push("message_title").push(title).setg();
         engine.push("message_content").push(content).setg();
-        showgui("message");
+        engine.getg("gui").t_getraw("show").push("message").call(1, 0).pop(1);
         engine.push("message_title").push().setg();
         engine.push("message_content").push().setg();
     }
@@ -357,7 +357,7 @@ namespace MessageSystem
 
         engine.push("message_title").push("Server").setg();
         engine.push("message_content").push("Map being prepared on server, please wait ..").setg();
-        showgui("message");
+        engine.getg("gui").t_getraw("show").push("message").call(1, 0).pop(1);
         engine.push("message_title").push().setg();
         engine.push("message_content").push().setg();
         ClientSystem::prepareForNewScenario(scenarioCode);

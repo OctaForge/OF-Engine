@@ -55,7 +55,6 @@ void replace(bool insel);
 void flip();
 void rotate(int *cw);
 void editmat(char *name, char *filtername);
-void showtexgui(int *n);
 void resetlightmaps(bool fullclean);
 void calclight(int *quality);
 void patchlight(int *quality);
@@ -69,6 +68,7 @@ void clearpvs();
 void testpvs(int *vcsize);
 void genpvs(int *viewcellsize);
 void pvsstats();
+void edittex(int i, bool save = true);
 
 namespace EditingSystem
 {
@@ -232,6 +232,9 @@ namespace lua_binds
         mpeditvslot(ds, allfaces, sel, true);
     })
     LUA_BIND_STD(edittex, edittex_, e.get<int*>(1))
+    LUA_BIND_DEF(settex, {
+        if(!noedit() && texmru.inrange(e.get<int>(1))) edittex(texmru[e.get<int>(1)]);
+    })
     LUA_BIND_STD(gettex, gettex)
     LUA_BIND_STD(getcurtex, getcurtex)
     LUA_BIND_STD(getseltex, getseltex)
@@ -245,8 +248,6 @@ namespace lua_binds
     LUA_BIND_STD(rotate, rotate, e.get<int*>(1))
     LUA_BIND_STD(editmat, editmat, e.get<char*>(1), e.get<char*>(2))
     // 0/noargs = toggle, 1 = on, other = off - will autoclose if too far away or exit editmode
-    LUA_BIND_STD(showtexgui, showtexgui, e.get<int*>(1))
-
     LUA_BIND_SERVER(npcadd, {
         int cn = localconnect(); // Local connect to the server
 

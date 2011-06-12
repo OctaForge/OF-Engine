@@ -109,10 +109,10 @@ void ClientSystem::frameTrigger(int curtime)
 
         /* turn if mouse is at borders */
         float x, y;
-        g3d_cursorpos(x, y);
+        gui::getcursorpos(x, y);
 
         /* do not scroll with mouse */
-        if (g3d_windowhit(true, false)) x = y = 0.5;
+        if (gui::hascursor(false)) x = y = 0.5;
 
         /* turning */
         fpsent *fp = (fpsent*)player;
@@ -228,7 +228,7 @@ void ClientSystem::addHUDText(std::string text, float x, float y, float scale, i
 
 void ClientSystem::drawHUD(int w, int h)
 {
-    if (g3d_windowhit(true, false)) return; // Showing sauer GUI - do not show HUD
+    if (gui::hascursor(false)) return; // Showing GUI - do not show HUD
 
     float wFactor = float(h)/max(w,h);
     float hFactor = float(w)/max(w,h);
@@ -319,7 +319,7 @@ void ClientSystem::drawHUD(int w, int h)
 
 void ClientSystem::drawMinimap(int w, int h)
 {
-    if (g3d_windowhit(true, false)) return; // Showing sauer GUI - do not show minimap
+    if (gui::hascursor(false)) return; // Showing GUI - do not show HUD
 
     float x, y;
     vec dir, pos;
@@ -398,7 +398,7 @@ void ClientSystem::finishLoadWorld()
 
     ClientSystem::editingAlone = false; // Assume not in this mode
 
-    SETV(mainmenu, 0); // (see prepareForMap)
+    gui::clearmainmenu(); // (see prepareForMap)
 }
 
 void ClientSystem::prepareForNewScenario(std::string scenarioCode)

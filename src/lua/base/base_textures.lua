@@ -167,6 +167,7 @@ edit = CAPI.edittex
 -- @class function
 -- @name get
 get = CAPI.gettex
+set = CAPI.settex
 --- DEPRECATED: replace
 -- @class function
 -- @name getcur
@@ -304,3 +305,6 @@ function setblendpaintmode(m)
     env.blendpaintmode = m or 1
     echo("blend paint mode set to: %(1)s" % { blendpaintmodes[env.blendpaintmode] })
 end
+
+filltexlist = CAPI.filltexlist
+getnumslots = CAPI.getnumslots

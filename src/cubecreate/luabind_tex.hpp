@@ -49,6 +49,8 @@ void reloadtex(char *name);
 void gendds(char *infile, char *outfile);
 int guessimageformat(const char *filename, int format = IMG_BMP);
 void saveimage(const char *filename, int format, ImageData &image, bool flip = false);
+
+void filltexlist();
 #endif
 
 extern int& nompedit, &worldsize;
@@ -221,4 +223,6 @@ namespace lua_binds
         saveimage(normalfile, guessimageformat(normalfile, IMG_TGA), d);
     })
 
+    LUA_BIND_STD_CLIENT(filltexlist, filltexlist)
+    LUA_BIND_STD_CLIENT(getnumslots, e.push, slots.length())
 }

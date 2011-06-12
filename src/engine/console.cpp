@@ -472,16 +472,16 @@ void execbind(keym &k, bool isdown)
             releaseactions.remove(i--);
         }
     }
-    if(isdown)
+    if (isdown)
     {
         int state = keym::ACTION_DEFAULT;
-        if(!mainmenu)
+        if (!gui::mainmenu)
         {
             if(editmode) state = keym::ACTION_EDITING;
             else if(player->state==CS_SPECTATOR) state = keym::ACTION_SPECTATOR;
         }
 
-        if (state == keym::ACTION_DEFAULT && !mainmenu)
+        if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
         {
             lua::engine.getg("console").t_getraw("action_keys").t_getraw(k.name);
             if (lua::engine.is<void*>(-1))
@@ -619,13 +619,11 @@ void consolekey(int code, bool isdown, int cooked)
     }
 }
 
-extern bool menukey(int code, bool isdown, int cooked);
-
 void keypress(int code, bool isdown, int cooked)
 {
     keym *haskey = keyms.access(code);
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
-    else if(!menukey(code, isdown, cooked)) // 3D GUI mouse button intercept   
+    else if(!gui::keypress(code, isdown, cooked)) // gui mouse button intercept
     {
         if(commandmillis >= 0) consolekey(code, isdown, cooked);
         else if(haskey) execbind(*haskey, isdown);

@@ -630,7 +630,7 @@ namespace game
 
     bool needminimap() // you have to enable the minimap inside your map script.
     {
-        return (!mainmenu && useminimap);
+        return (!gui::mainmenu && useminimap);
     }
 
     bool usedminimap()

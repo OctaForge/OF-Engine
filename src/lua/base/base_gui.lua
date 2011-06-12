@@ -52,217 +52,10 @@ font_offset = CAPI.fontoffset
 -- @name font_char
 font_char = CAPI.fontchar
 
---- Create a new GUI window.
--- @param n Name of the window.
--- @param c Widgets inside.
--- @param h Header of the window.
--- @class function
--- @name new
-new = CAPI.newgui
-
---- Clear a GUI.
--- @param n Id of the GUI to clear.
--- @class function
--- @name clear
-clear = CAPI.cleargui
-
---- Show a GUI of known name.
--- @param n Name of the GUI to show.
--- @class function
--- @name show
-show = CAPI.showgui
-
 --- Click trigger. Plays menu click sound.
 -- @class function
 -- @name menu_key_click_trigger
 menu_key_click_trigger = CAPI.menukeyclicktrig
-
---- Create a GUI button widget.
--- @param l Button label.
--- @param a Action to perform on click.
--- @param i Button icon to show. (i.e. "action")
--- @class function
--- @name button
-button = CAPI.guibutton
-
---- Create a GUI label widget.
--- @param l Label text.
--- @param i Icon to show. (i.e. "info")
--- @class function
--- @name text
-text = CAPI.guitext
-
---- Create a GUI list widget.
--- @param c Contents of the list. (i.e. more widgets)
--- @class function
--- @name list
-list = CAPI.guilist
-
---- Create a GUI separator bar widget.
--- @class function
--- @name bar
-bar = CAPI.guibar
-
---- Create a GUI image widget.
--- @param p Path to the image.
--- @param a Action on click.
--- @param s Scale of the image. (float)
--- @param o Set to true if it has overlay. (optional)
--- @param t Alternate image path. (optional)
--- @class function
--- @name image
-image = CAPI.guiimage
-
---- Create a GUI checkbox widget.
--- @param n Checkbox label.
--- @param v Engine variable to set when (un)checked (either existing or new)
--- @param t Default "on" value (float)
--- @param f Default "off" value (float)
--- @param a Action on every state change.
--- @class function
--- @name checkbox
-checkbox = CAPI.guicheckbox
-
---- Create a GUI radiobox widget.
--- @param n Radiobox label.
--- @param v Engine variable to set when (un)selected (either existing or new)
--- @param t Value that variable must have to be shown as selected (selecting will update)
--- @param a Action on state change.
--- @class function
--- @name radiobox
-radiobox = CAPI.guiradio
-
---- Create a GUI slider widget.
--- @param v Engine variable to set on change.
--- @param l Minimal value of the slider.
--- @param h Maximal value of the slider.
--- @param a Action on state change.
--- @class function
--- @name slider
-slider = CAPI.guislider
-
---- Create a GUI list slider widget.
--- @param v Engine variable to set on change.
--- @param l List of numbers in format "1 5 15 20 X Y Z"
--- @param a Action on state change.
--- @class function
--- @name slider_list
-slider_list = CAPI.guilistslider
-
---- Create a GUI name list slider widget.
--- @param v Engine variable to set on change.
--- @param n List of names in format "foo bar blah"
--- @param l List of numbers in format "1 2 3"
--- @param a Action on state change.
--- @class function
--- @name slider_name
-slider_name = CAPI.guinameslider
-
---- Create a GUI field widget.
--- @param v Engine variable to set on change.
--- @param m Maximal length of field value.
--- @param a Action on value change.
--- @param p Setting to true makes it a password field. (optional)
--- @class function
--- @name field
-field = CAPI.guifield
-
---- Create a GUI key field widget.
--- Keyfield is a field accepting key input and showing
--- appropriate keybinding in box (i.e. CTRL+X). Useful
--- when creating a keybinding UI.
--- @param v Engine variable to set on change.
--- @param m Maximal length of field value.
--- @param a Action on value change.
--- @class function
--- @name field_key
-field_key = CAPI.guikeyfield
-
---- Create a GUI bit field widget. Looks like a checkbox,
--- allows bitwise matching. Look at console settings OF
--- menu for usage. (where confilter is being set)
--- @param l Bitfield label.
--- @param v Engine variable to set on change.
--- @param m Bit mask to use.
--- @param a Action on state change.
--- @class function
--- @name field_bit
-field_bit = CAPI.guibitfield
-
---- Create a GUI editor widget (multi-line field).
--- For reference about value getting / setting / ...,
--- see the textedit OF Lua API docs.
--- @param n Name of the editor.
--- @param l Maximal length of contents.
--- @param h Height of the editor in lines.
--- @param m Editor mode, integral value, optional, default 3 (1 - EDITORFOCUSED, 2 - EDITORUSED, 3 - EDITORFOREVER)
--- @class function
--- @name editor
-editor = CAPI.guieditor
-
---- Create a GUI textbox widget (multi-line label).
--- @param t Text to use.
--- @param w Textbox width.
--- @param h Textbox height.
--- @param c Textbox color (hex, optional).
--- @class function
--- @name textbox
-textbox = CAPI.guitextbox
-
---- Create a GUI tab widget. Everything defined under
--- tab definition belongs to the tab.
--- @param l Tab label.
--- @class function
--- @name tab
-tab = CAPI.guitab
-
---- Create a GUI strut widget, useful for setting minimal relative size.
--- @param s Minimal relative size. (float value from 0.0 to 1.0)
--- @param a By default, strut gets pushed into a list. Setting this to true disables the list.
--- @class function
--- @name strut
-strut = CAPI.guistrut
-
---- Creates a GUI align widget, which is simillar to list, but allows to align things.
--- @param a Content alignment. -1 means left, 0 centered and 1 right.
--- @param c Contents of the align, same as in case of list.
--- @class function
--- @name align
-align = CAPI.guialign
-
---- Create a GUI color widget, which basically shows a text representing hex value of a color
--- (0xFFFFFF) entered as parameter, and colorizes the text accordingly.
--- @param c Color to show (hex value)
--- @class function
--- @name color
-color = CAPI.guicolor
-
---- Create a GUI title widget, which is basically a header text styled the same as tab labels.
--- @param t Text to show as header.
--- @class function
--- @name title
-title = CAPI.guititle
-
---- Set an action that happens on current GUI clear.
--- @param a Action to do on current GUI clear.
--- @class function
--- @name on_clear
-on_clear = CAPI.guionclear
-
---- Usual GUI gets closed when event happens in it.
--- In order to protect your GUI from closing, you can create event source (button, ..) in
--- stayopen. Then such behavior won't happen - useful for i.e. editor control buttons.
--- @param c Create your non-closing event sources here.
--- @class function
--- @name stayopen
-stayopen = CAPI.guistayopen
-
---- Usual GUI gets autotabbed in a smart way. In order to protect
--- your GUI from doing that, create your widgets in noautotab.
--- @param c Create your noautotab widgets here.
--- @class function
--- @name noautotab
-noautotab = CAPI.guinoautotab
 
 --- Show a progress bar.
 -- @name p Percentage as float number from 0.0 to 1.0.
@@ -438,3 +231,52 @@ function prepentsgui()
     CAPI.prepareentityclasses()
     show("entities")
 end
+
+guis = {}
+
+show = function(name)
+    guis[name]()
+end
+
+new = function(name, body, nofocus, realtime, onhide)
+    guis[name] = function()
+        CAPI.showui(name, body, onhide, nofocus, realtime)
+    end
+end
+
+hide = CAPI.hideui
+replace = CAPI.replaceui
+align = CAPI.uialign
+clamp = CAPI.uiclamp
+tag = CAPI.uitag
+list = CAPI.uilist
+table = CAPI.uitable
+space = CAPI.uispace
+fill = CAPI.uifill
+clip = CAPI.uiclip
+scroll = CAPI.uiscroll
+hscrollbar = CAPI.uihscrollbar
+vscrollbar = CAPI.uivscrollbar
+scrollbutton = CAPI.uiscrollbutton
+hslider = CAPI.uihslider
+vslider = CAPI.uivslider
+sliderbutton = CAPI.uisliderbutton
+offset = CAPI.uioffset
+button = CAPI.uibutton
+cond = CAPI.uicond
+condbutton = CAPI.uicondbutton
+toggle = CAPI.uitoggle
+image = CAPI.uiimage
+slotview = CAPI.uislotview
+altimage = CAPI.uialtimage
+color = CAPI.uicolor
+modcolor = CAPI.uimodcolor
+stretchedimage = CAPI.uistretchedimage
+croppedimage = CAPI.uicroppedimage
+borderedimage = CAPI.uiborderedimage
+colortext = CAPI.uicolortext
+label = CAPI.uilabel
+setlabel = CAPI.uisetlabel
+varlabel = CAPI.uivarlabel
+texteditor = CAPI.uitexteditor
+field = CAPI.uifield

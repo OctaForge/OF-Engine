@@ -13,136 +13,23 @@ namespace game
     VARP(showping, 0, 1, 1);
     VARP(showspectators, 0, 1, 1);
 
-    void renderscoreboard(g3d_gui &g, bool firstpass)
-    {
-        size_t sz = 0;
-        const char *mname = getclientmap();
-        defformatstring(modemapstr)("%s: %s", "OctaForge:", mname[0] ? mname : "[new map]");
-
-        g.text(modemapstr, 0xFFFF80, "server");
-
-        g.pushlist(); // vertical
-        g.pushlist(); // horizontal
-            g.background(0x808080, 5);
-
-            using namespace lua;
-            engine.getg("get_scoreboard_text");
-            if (!engine.is<void*>(-1))
-            {
-                g.text("No scoreboard text defined.", 0xFFFFDD, NULL);
-                g.text("Create global function get_scoreboard_text", 0xFFFFDD, NULL);
-                g.text("in order to achieve what you need, see docs", 0xFFFFDD, NULL);
-                g.text("if something is not clear.", 0xFFFFDD, NULL);
-            }
-            else
-            {
-                engine.call(0, 1);
-                // we get a table here
-                LUA_TABLE_FOREACH(engine, {
-                    int lineUniqueId = engine.t_get<int>(1);
-                    char *lt = newstring(engine.t_get<const char*>(2));
-                    if (lineUniqueId != -1)
-                    {
-                        CLogicEntity *entity = LogicSystem::getLogicEntity(lineUniqueId);
-                        if (entity)
-                        {
-                            fpsent *p = (fpsent*)entity->dynamicEntity;
-                            assert(p);
-
-                            if (showpj)
-                            {
-                                if (p->state == CS_LAGGED)
-                                {
-                                    sz = strlen(lt) + 4;
-                                    char *n = new char[sz];
-                                    snprintf(n, sz, "%sLAG", lt);
-                                    delete[] lt;
-                                    lt = n;
-                                }
-                                else
-                                {
-                                    sz = strlen(lt) + 12;
-                                    char *n = new char[sz];
-                                    snprintf(n, sz, "%s%i", lt, p->plag);
-                                    delete[] lt;
-                                    lt = n;
-                                }
-                            }
-                            if (!showpj && p->state == CS_LAGGED)
-                            {
-                                sz = strlen(lt) + 4;
-                                char *n = new char[sz];
-                                snprintf(n, sz, "%sLAG", lt);
-                                delete[] lt;
-                                lt = n;
-                            }
-                            else
-                            {
-                                sz = strlen(lt) + 12;
-                                char *n = new char[sz];
-                                snprintf(n, sz, "%s%i", lt, p->ping);
-                                delete[] lt;
-                                lt = n;
-                            }
-                        }
-                    }
-                    g.text (lt, 0xFFFFDD, NULL);
-                    delete[] lt;
-                });
-            }
-            engine.pop(1);
-
-        g.poplist();
-        g.poplist();
-
-        // Show network stats
-        static int laststatus = 0; 
-        float seconds = float(totalmillis-laststatus)/1024.0f;
-        static std::string netStats = "";
-        if (seconds >= 0.5)
-        {
-            laststatus = totalmillis;
-            netStats = NetworkSystem::Cataloger::briefSummary(seconds);
-        }
-        g.text(netStats.c_str(), 0xFFFF80, "server");
-    }
-
-    struct scoreboardgui : g3d_callback
+    struct scoreboardgui
     {
         bool showing;
-        vec menupos;
-        int menustart;
 
         scoreboardgui() : showing(false) {}
 
         void show(bool on)
         {
+            lua::engine.getg("gui");
             if(!showing && on)
-            {
-                menupos = menuinfrontofplayer();
-                menustart = starttime();
-            }
+                lua::engine.t_getraw("show").push("scoreboardgui").call(1, 0);
+            else
+                lua::engine.t_getraw("hide").push("scoreboardgui").call(1, 0);
+            lua::engine.pop(1);
             showing = on;
         }
-
-        void gui(g3d_gui &g, bool firstpass)
-        {
-            g.start(menustart, 0.03f, NULL, false);
-            renderscoreboard(g, firstpass);
-            g.end();
-        }
-
-        void render()
-        {
-            if(showing) g3d_addgui(this, menupos, (scoreboard2d ? GUI_FORCE_2D : GUI_2D | GUI_FOLLOW) | GUI_BOTTOM);
-        }
-
     } scoreboard;
-
-    void g3d_gamemenus()
-    {
-        scoreboard.render();
-    }
 }
 
 // CubeCreate: temporary for variable exports >.>

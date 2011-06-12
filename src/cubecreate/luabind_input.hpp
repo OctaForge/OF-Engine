@@ -63,7 +63,7 @@ namespace lua_binds
                     e.push_index(-2).push(num).push(down).push(pos); \
                     float x; \
                     float y; \
-                    g3d_cursorpos(x, y); \
+                    gui::getcursorpos(x, y); \
                     e.push(x).push(y).call(6, 1); \
                     bool ret = e.get<bool>(-1); \
                     e.pop(1); \
@@ -81,7 +81,7 @@ namespace lua_binds
             else e.push(); \
             float x; \
             float y; \
-            g3d_cursorpos(x, y); \
+            gui::getcursorpos(x, y); \
             e.push(x).push(y).call(6, 1); \
             bool ret = e.get<bool>(-1); \
             e.pop(1); \

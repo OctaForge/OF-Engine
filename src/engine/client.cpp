@@ -134,7 +134,7 @@ void disconnect(bool async, bool cleanup)
         discmillis = 0;
         conoutf("disconnected");
         game::gamedisconnect(cleanup);
-        mainmenu = 1;
+        gui::mainmenu = 1;
     }
     if(!connpeer && clienthost)
     {

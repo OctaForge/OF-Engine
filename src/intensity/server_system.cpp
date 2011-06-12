@@ -14,7 +14,6 @@ VARN(gui2d, usegui2d, 0, 1, 1);
 VAR(gamespeed, 0, 100, 100);
 VAR(paused, 0, 0, 1);
 VAR(shaderdetail, 0, 1, 3);
-VAR(mainmenu, 1, 0, 0);
 VAR(envmapradius, 0, 128, 10000);
 VAR(nolights, 1, 0, 0);
 VARN(blobs, showblobs, 0, 1, 1);
@@ -51,6 +50,13 @@ VAR(skylight, 0, 0, 0xFFFFFF);
 VAR(watercolour, 0, 0x144650, 0xFFFFFF);
 VAR(waterfallcolour, 0, 0, 0xFFFFFF);
 VAR(lavacolour, 0, 0xFF4000, 0xFFFFFF);
+
+namespace gui
+{
+    VAR(mainmenu, 1, 0, 0);
+    void clearmainmenu() {}
+    bool hascursor(bool targeting) { return false; }
+}
 
 // INTENSITY: *New* function, to parallel sauer's client version
 void serverkeepalive()
@@ -179,7 +185,6 @@ bool getkeyup() { return false; };
 bool getmousedown() { return false; };
 bool getmouseup() { return false; };
 void drawminimap() { };
-void g3d_addgui(g3d_callback *cb, vec &origin, int flags) { };
 Texture *loadthumbnail(Slot &slot) { return notexture; };
 void renderblendbrush(GLuint tex, float x, float y, float w, float h) { };
 void previewblends(const ivec &bo, const ivec &bs) { };
