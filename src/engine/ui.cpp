@@ -1888,6 +1888,7 @@ namespace gui
         void hidden()
         {
             if (onhide) lua::engine.getref(onhide).call(0, 0);
+            resetcursor();
         }
     };
 
@@ -2039,6 +2040,7 @@ namespace gui
         window *win = dynamic_cast<window *>(world_inst->findname(wname, false));
         if (!win)
         {
+            printf("A\n");
             e.push(false);
             return;
         }
@@ -2086,9 +2088,14 @@ namespace gui
         addui(new tag(e.get<const char*>(1)), e.push_index(2).ref());
     }
 
-    void _bind_uilist(lua_Engine e)
+    void _bind_uivlist(lua_Engine e)
     {
-        addui(new list(e.get<bool>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new list(false, e.get<float>(1)), e.push_index(2).ref());
+    }
+
+    void _bind_uihlist(lua_Engine e)
+    {
+        addui(new list(true, e.get<float>(1)), e.push_index(2).ref());
     }
 
     void _bind_uitable(lua_Engine e)
@@ -2425,7 +2432,19 @@ namespace gui
                 if (isdown)
                 {
                     selected = world_inst->select(cursorx*world_inst->w, cursory*world_inst->h);
-                    if (selected) selected->selected(selectx, selecty);
+                    if (selected)
+                    {
+                        /* apply changes in focused field */
+                        text_editor *focus = dynamic_cast<text_editor *>(focused);
+                        if (focus && focus->fieldmode)
+                        {
+                            focus->handle_focus(false);
+                            focus->wasfocused = false;
+                            setfocus(NULL);
+                        }
+
+                        selected->selected(selectx, selecty);
+                    }
                 }
                 else selected = NULL;
                 return true;
@@ -2446,8 +2465,10 @@ namespace gui
             lua::engine.getg("gui")
                       .t_getraw("hide")
                       .push("main")
-                      .call(1, 0)
-                      .pop(1);
+                      .call(1, 0);
+            lua::engine.t_getraw("hide").push("vtab").call(1, 0);
+            lua::engine.t_getraw("hide").push("htab").call(1, 0);
+            lua::engine.pop(1);
         }
     }
 
@@ -2471,15 +2492,21 @@ namespace gui
         if (mainmenu && !isconnected(true) && !world_inst->children.length())
             lua::engine.getg("gui").t_getraw("show").push("main").call(1, 0).pop(1);
 
-        if (editmode && !space)
+        if ((editmode && !mainmenu) && !space)
         {
-            lua::engine.getg("gui").t_getraw("show").push("space").call(1, 0).pop(1);
+            lua::engine.getg("gui").t_getraw("show").push("space").call(1, 0);
+            lua::engine.t_getraw("hide").push("vtab").call(1, 0);
+            lua::engine.t_getraw("hide").push("htab").call(1, 0);
+            lua::engine.pop(1);
             space = true;
             resetcursor();
         }
-        else if (!editmode && space)
+        else if ((!editmode || mainmenu) && space)
         {
-            lua::engine.getg("gui").t_getraw("hide").push("space").call(1, 0).pop(1);
+            lua::engine.getg("gui").t_getraw("hide").push("space").call(1, 0);
+            lua::engine.t_getraw("hide").push("vtab").call(1, 0);
+            lua::engine.t_getraw("hide").push("htab").call(1, 0);
+            lua::engine.pop(1);
             space = false;
             resetcursor();
         }
@@ -2550,7 +2577,10 @@ void addchange(const char *desc, int type)
     if (!applydialog) return;
     loopv(needsapply) if (!strcmp(needsapply[i].desc, desc)) return;
     needsapply.add(change(type, desc));
-    lua::engine.getg("gui").t_getraw("show").push("changes").call(1, 0).pop(1);
+    lua::engine.getg("gui")
+               .t_getraw("show_changes")
+               .call(0, 0)
+               .pop(1);
 }
 
 void clearchanges(int type)
@@ -2563,12 +2593,6 @@ void clearchanges(int type)
             if (!needsapply[i].type) needsapply.remove(i--);
         }
     }
-    if (needsapply.empty())
-        lua::engine.getg("gui")
-            .t_getraw("hide")
-            .push("changes")
-            .call(1, 0)
-            .pop(1);
 }
 
 void applychanges()
@@ -2599,19 +2623,12 @@ void _bind_applychanges(lua_Engine e)
     applychanges();
 }
 
-void _bind_loopchanges(lua_Engine e)
+void _bind_getchanges(lua_Engine e)
 {
-    var::cvar  *ev   = NULL;
-    const char *name = e.get<const char*>(1);
-    const char *body = e.get<const char*>(2);
-
+    e.t_new();
     loopv(needsapply)
     {
-        if (!(ev = var::get(name)))
-              ev = var::regvar(name, new var::cvar(name, needsapply[1].desc));
-        else  ev->set(needsapply[1].desc, false);
-
-        lua::engine.exec(body);
+        e.t_set(i + 1, needsapply[i].desc);
     }
 }
 

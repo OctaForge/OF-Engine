@@ -72,10 +72,6 @@ void edittex(int i, bool save = true);
 
 namespace EditingSystem
 {
-#ifdef CLIENT
-    extern int savedMousePosTime;
-    extern vec savedMousePos;
-#endif
     extern std::vector<std::string> entityClasses;
     void newEntity(std::string _class, std::string stateData);
     void prepareentityclasses();
@@ -268,17 +264,6 @@ namespace lua_binds
     #else
     LUA_BIND_DUMMY(npcdel)
     #endif
-
-    LUA_BIND_CLIENT(save_mouse_pos, {
-        EditingSystem::savedMousePosTime = tools::currtime();
-        EditingSystem::savedMousePos = TargetingControl::worldPosition;
-        logger::log(logger::DEBUG,
-                     "Saved mouse pos: %f,%f,%f (%d)\r\n",
-                     EditingSystem::savedMousePos.x,
-                     EditingSystem::savedMousePos.y,
-                     EditingSystem::savedMousePos.z,
-                     EditingSystem::savedMousePosTime);
-    })
 
     LUA_BIND_CLIENT(getentclass, {
         const char *ret = (EditingSystem::entityClasses[e.get<int>(1)]).c_str();

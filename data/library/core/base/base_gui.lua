@@ -96,37 +96,6 @@ showhudimage = CAPI.showhudimage
 -- @name showhudtext
 showhudtext = CAPI.showhudtext
 
---- Prepare entity GUI (define it).
--- @class function
--- @name prepentgui
-prepentgui = CAPI.prepentgui
-
---- Get entity property GUI label, knowing its ID.
--- @param id ID of the entity property.
--- @return The label as string.
--- @class function
--- @name getentguilabel
-getentguilabel = CAPI.getentguilabel
-
---- Get entity property GUI value, knowing its ID.
--- @param id ID of the entity property.
--- @return The value as string.
--- @class function
--- @name getentguival
-getentguival = CAPI.getentguival
-
---- Set entity property GUI value.
--- @param id ID of the entity property.
--- @param val The value to set.
--- @class function
--- @name setentguival
-setentguival = CAPI.setentguival
-
---- Show OctaForge plugins GUI. DEPRECATED.
--- @class function
--- @name show_plugins
-show_plugins = CAPI.show_plugins
-
 --- Toggle scoreboard.
 -- @class function
 -- @name showscores
@@ -226,12 +195,6 @@ textcurrentline = CAPI.textcurrentline
 -- @name textexec
 textexec = CAPI.textexec
 
---- Prepare entities GUI. (prepare classes and show the GUI)
-function prepentsgui()
-    CAPI.prepareentityclasses()
-    show("entities")
-end
-
 guis = {}
 
 show = function(name)
@@ -249,7 +212,8 @@ replace = CAPI.replaceui
 align = CAPI.uialign
 clamp = CAPI.uiclamp
 tag = CAPI.uitag
-list = CAPI.uilist
+vlist = CAPI.uivlist
+hlist = CAPI.uihlist
 table = CAPI.uitable
 space = CAPI.uispace
 fill = CAPI.uifill
@@ -278,5 +242,9 @@ colortext = CAPI.uicolortext
 label = CAPI.uilabel
 setlabel = CAPI.uisetlabel
 varlabel = CAPI.uivarlabel
-texteditor = CAPI.uitexteditor
+editor = CAPI.uitexteditor
 field = CAPI.uifield
+
+clearchanges = CAPI.clearchanges
+applychanges = CAPI.applychanges
+getchanges   = CAPI.getchanges

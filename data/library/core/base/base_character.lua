@@ -184,6 +184,9 @@ function character:init(uid, kwargs)
     self.position = { 512, 512, 550 }
     self.radius = 3.0
     self.canmove = true
+
+    self:define_getter("plag", function() return CAPI.getplag(self) end)
+    self:define_getter("ping", function() return CAPI.getping(self) end)
 end
 
 --[[!

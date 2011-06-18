@@ -78,15 +78,18 @@ namespace var
         );
         cvar(
             const char *n,
-            int v
+            int v,
+            bool temporary = false
         );
         cvar(
             const char *n,
-            float v
+            float v,
+            bool temporary = false
         );
         cvar(
             const char *n,
-            const char *v
+            const char *v,
+            bool temporary = false
         );
         ~cvar();
 

@@ -655,7 +655,6 @@ entcopybuf = {}
 
 function entreplace()
     if enthavesel() == 0 then
-        CAPI.save_mouse_pos() -- place new entity right here
         intensitypasteent() -- using our newent here
     end
     entsetattr(env.unpack(entcopybuf))
@@ -818,15 +817,13 @@ function editextend_intensity()
     if env.has_mouse_target == 0 then
         editextend()
     else
-        gui.prepentgui()
-        gui.show("entity")
+        gui.show_entity_properties_gui()
     end
 end
 
 function edit_entity(a)
     if CAPI.set_mouse_targeting_ent(a) ~= 0 then
-        gui.prepentgui()
-        gui.show("entity")
+        gui.show_entity_properties_gui()
     else
         echo("No such entity")
     end
@@ -834,8 +831,7 @@ end
 
 function edit_client(a)
     if CAPI.set_mouse_target_client(a) ~= 0 then
-        gui.prepentgui()
-        gui.show("entity")
+        gui.show_entity_properties_gui()
     else
         echo("No such client")
     end
@@ -985,3 +981,8 @@ function is_player_colliding_entity(player, entity)
         return true
     end
 end
+
+get_totalmillis = CAPI.get_totalmillis
+
+get_map_preview_filename = CAPI.get_map_preview_filename
+get_all_map_names = CAPI.get_all_map_names

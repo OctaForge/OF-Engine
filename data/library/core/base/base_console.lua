@@ -259,11 +259,6 @@ set_mouse_targeting_ent = CAPI.set_mouse_targeting_ent
 -- @return valid Is the set entity valid?
 set_mouse_target_client = CAPI.set_mouse_target_client
 
---- Save the current mouse position
--- @class function
--- @name save_mouse_pos
-save_mouse_pos = CAPI.save_mouse_pos
-
 --- Mouse button 1 click (left mouse button).
 -- @class function
 -- @name mouse1click

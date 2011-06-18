@@ -23,9 +23,9 @@ namespace game
         {
             lua::engine.getg("gui");
             if(!showing && on)
-                lua::engine.t_getraw("show").push("scoreboardgui").call(1, 0);
+                lua::engine.t_getraw("show").push("scoreboard").call(1, 0);
             else
-                lua::engine.t_getraw("hide").push("scoreboardgui").call(1, 0);
+                lua::engine.t_getraw("hide").push("scoreboard").call(1, 0);
             lua::engine.pop(1);
             showing = on;
         }

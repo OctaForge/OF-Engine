@@ -114,7 +114,6 @@ console.binds.addvaredit("M", "showmat")
 
 console.binds.addedit("PERIOD", [[world.selentedit()]])
 
-console.binds.addedit("F2", [[gui.show("texgui")]])
 console.binds.addedit("F3", [[if gui.clear() ~= 1 then showquickeditgui() end]])
 console.binds.addedit("F4", [[if gui.clear() ~= 1 then gui.show("mapmodels") end]])
 console.binds.addedit("F9", [[echo("%(1)s : %(2)s" % { texture.getsel(), texture.getname(texture.getsel()) })]])
@@ -160,5 +159,3 @@ console.binds.add("PAGEDOWN", [[console.look_down()]])
 
 console.binds.addedit("MOUSE2", [[world.editextend_intensity()]])
 console.binds.addedit("P", [[world.centerent()]])
--- create entity where we're pointing
-console.binds.addedit("F8", [[console.save_mouse_pos(); gui.prepentsgui()]])

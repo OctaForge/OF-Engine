@@ -291,8 +291,3 @@ void GuiControl::menuKeyClickTrigger()
 {
     playsound(S_MENUCLICK);
 }
-
-// Editing GUI statics
-CLogicEntity *GuiControl::EditedEntity::currEntity;
-GuiControl::EditedEntity::StateDataMap GuiControl::EditedEntity::stateData;
-std::vector<std::string> GuiControl::EditedEntity::sortedKeys;

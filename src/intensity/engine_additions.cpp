@@ -18,6 +18,8 @@ using namespace lua;
 extern void removeentity(extentity* entity);
 extern void addentity(extentity* entity);
 
+bool dropentity(entity &e, int drop = -1);
+
 //=========================
 // Logic Entities
 //=========================
@@ -564,14 +566,9 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
 
     e.inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
 
-    // If this is a new ent for this map - i.e., we are not currently loading the map - then we must
-    // do some inserting into the octaworld.
-//    if (!WorldSystem::loadingWorld) // XXX Try both ways
-    {
-        extern void addentity(extentity* entity);
-        addentity(&e);
-        attachentity(e);
-    }
+    extern void addentity(extentity* entity);
+    addentity(&e);
+    attachentity(e);
 
     LogicSystem::setUniqueId(&e, uniqueId);
     LogicSystem::registerLogicEntity(&e);

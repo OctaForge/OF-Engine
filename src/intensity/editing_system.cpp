@@ -51,17 +51,12 @@
 extern int efocus;
 extern int orient;
 
+extern bool havesel;
+extern selinfo sel;
+
 namespace EditingSystem
 {
-    // Globals
-
     bool madeChanges = false;
-
-#ifdef CLIENT
-    // Saved mouse position
-    int savedMousePosTime = -1;
-    vec savedMousePos;
-#endif
 
 
 std::vector<std::string> entityClasses;
@@ -88,32 +83,16 @@ bool validateEntityClass(std::string _class)
 
 void newEntity(std::string _class, std::string stateData)
 {
-    // TODO: Place at worldpos instead? But player->o is what sauer does, seemingly in the code
+    /* the positioning is ugly. SPANK SPANK SPANK */
     #ifdef CLIENT
-        vec farPosition;
-
-        logger::log(logger::DEBUG, "Considering saved mouse pos: %f,%f,%f (%d, %d)\r\n", savedMousePos.x, savedMousePos.y, savedMousePos.z,
-                                                                           savedMousePosTime, tools::currtime());
-
-        // Use saved position, if exists and saved recently
-//        if (savedMousePosTime != -1 && tools::currtime() - savedMousePosTime < 15000)
-//        {
-            farPosition = savedMousePos;
-            savedMousePosTime = -1;
-//        } else
-//            farPosition = TargetingControl::worldPosition;
-
-        farPosition.mul(FAR_PLACING_FACTOR);
-        vec closePosition = ClientSystem::playerLogicEntity->getOrigin();
-        closePosition.mul(1 - FAR_PLACING_FACTOR);
-        closePosition.add(farPosition);
+        if (!havesel) return;
+        vec o = sel.o.tovec();
 
         if (stateData == "") stateData = "{}";
-
         MessageSystem::send_NewEntityRequest(_class.c_str(),
-                                             closePosition.x,
-                                             closePosition.y,
-                                             closePosition.z,
+                                             o.x,
+                                             o.y,
+                                             worldpos.z,
                                              stateData.c_str());
     #else // SERVER
         assert(0); // Where?

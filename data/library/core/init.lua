@@ -28,10 +28,10 @@
     Contains paths to Lua scripts. By default adds
 
     (start code)
-        ;./src/lua/?.lua;./src/lua/?/init.lua;./?/init.lua;./data/library/?/init.lua
+        ;./data/library/core/?.lua;./data/library/core/?/init.lua;./?/init.lua;./data/library/?/init.lua
     (end)
 ]]
-package.path = package.path .. ";./src/lua/?.lua;./src/lua/?/init.lua;./?/init.lua;./data/library/?/init.lua"
+package.path = package.path .. ";./data/library/core/?.lua;./data/library/core/?/init.lua;./?/init.lua;./data/library/?/init.lua"
 
 --[[!
     Function: trace
@@ -70,5 +70,8 @@ require("language")
 
 logging.log(logging.DEBUG, "Initializing base.")
 require("base")
+
+logging.log(logging.DEBUG, "Initializing tgui.")
+require("tgui")
 
 logging.log(logging.DEBUG, "Core scripting initialization complete.")

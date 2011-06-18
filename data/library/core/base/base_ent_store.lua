@@ -567,6 +567,9 @@ function save_entities()
     return "[\n" .. table.concat(r, ",\n") .. "\n]\n\n"
 end
 
+-- get targeted entity unique ID
+get_target_entity_uid = CAPI.get_target_entity_uid
+
 -- Caching per GLOBAL_CURRENT_TIMESTAMP
 function cache_by_global_timestamp(func)
     return function(...)
@@ -597,3 +600,10 @@ function rendering.setup_dynamic_test(ent)
         return true
     end), 1 / 3)
 end
+
+-- currently edited entity
+
+edited_entity = {
+    state_data  = {},
+    sorted_keys = {}
+}

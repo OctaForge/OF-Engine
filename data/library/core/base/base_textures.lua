@@ -154,11 +154,6 @@ flipnormalmapy = CAPI.flipnormalmapy
 -- @name mergenormalmaps
 mergenormalmaps = CAPI.mergenormalmaps
 
---- Show texture slot GUI.
--- @class function
--- @name showgui
-showgui = CAPI.showtexgui
-
 --- DEPRECATED: replace
 -- @class function
 -- @name edit
