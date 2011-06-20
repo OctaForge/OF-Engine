@@ -1,16 +1,19 @@
 module("tgui", package.seeall)
 
-TAB_HORIZONTAL = 1
-TAB_VERTICAL   = 2
+BAR_HORIZONTAL = 1
+BAR_VERTICAL   = 2
 
-TAB_DEFAULT = 1
-TAB_EDIT    = 2
+BAR_NORMAL = 1
+BAR_EDIT   = 2
+BAR_ALL    = 3
 
 local space_was_shown = false
 
 local __tab_storage = {}
 local __tab_curr_v  = nil
 local __tab_curr_h  = nil
+
+local __action_storage = {}
 
 function push_tab(title, direction, mode, icon, body)
     table.insert(__tab_storage, { title, direction, mode, icon, body, false })
@@ -20,7 +23,7 @@ end
 function show_tab(id)
     local tab = __tab_storage[id]
     if    tab then
-        local tname = (tab[2] == TAB_VERTICAL) and "vtab" or "htab"
+        local tname = (tab[2] == BAR_VERTICAL) and "vtab" or "htab"
         gui.show(tname)
         gui.replace(tname, "body",  tab[5])
         gui.replace(tname, "title", function()
@@ -29,7 +32,7 @@ function show_tab(id)
         end)
         tab[6] = true
 
-        if tab[2] == TAB_VERTICAL then
+        if tab[2] == BAR_VERTICAL then
             if  __tab_curr_v then
                 __tab_curr_v[6] = false
             end
@@ -44,7 +47,7 @@ function show_tab(id)
 end
 
 function show_custom_tab(title, direction, body)
-    local tab_name = (direction == TAB_HORIZONTAL) and "htab" or "vtab"
+    local tab_name = (direction == BAR_HORIZONTAL) and "htab" or "vtab"
     gui.show   (tab_name)
     gui.replace(tab_name, "title", function()
         gui.align(0, 0)
@@ -53,6 +56,10 @@ function show_custom_tab(title, direction, body)
     gui.replace(tab_name, "body",  function()
         body()
     end)
+end
+
+function push_action(direction, mode, icon, action)
+    table.insert(__action_storage, { direction, mode, icon, action })
 end
 
 function tab_area(edit)
@@ -90,9 +97,15 @@ function tab_area(edit)
                     gui.vlist(0, function()
                         gui.align(0, -1)
                         for i, v in pairs(__tab_storage) do
-                            if v[2] == TAB_VERTICAL and ((edit and v[3] == TAB_EDIT) or (not edit and v[3] == TAB_DEFAULT)) then
+                            if v[2] == BAR_VERTICAL and ((edit and v[3] == BAR_EDIT) or (not edit and v[3] == BAR_NORMAL) or v[3] == BAR_ALL) then
                                 gui.button(
                                     function()
+                                        if  v[6] then
+                                            v[6] = false
+                                            gui.hide("vtab")
+                                            __tab_curr_v = nil
+                                            return nil
+                                        end
                                         gui.show("vtab")
                                         gui.replace("vtab", "body",  v[5])
                                         gui.replace("vtab", "title", function()
@@ -142,6 +155,39 @@ function tab_area(edit)
                                         )
                                     end
                                 )
+                            end
+                        end
+                        for i, v in pairs(__action_storage) do
+                            if v[1] == BAR_VERTICAL and ((edit and v[2] == BAR_EDIT) or (not edit and v[2] == BAR_NORMAL) or v[2] == BAR_ALL) then
+                                gui.button(v[4], function()
+                                    -- idle
+                                    gui.space(0, 0.005, function()
+                                        gui.stretchedimage(
+                                            image_path .. "icons/" .. v[3] .. ".png",
+                                            0.04, 0.04
+                                        )
+                                    end)
+
+                                    -- hover
+                                    gui.space(0, 0.005, function()
+                                        gui.stretchedimage(
+                                            image_path .. "icons/" .. v[3] .. ".png",
+                                            0.04, 0.04
+                                        )
+                                    end)
+
+                                    -- selected
+                                    gui.space(0, 0.005, function()
+                                        gui.stretchedimage(
+                                            image_path .. "icons/" .. v[3] .. ".png",
+                                            0.04, 0.04
+                                        )
+                                        gui.stretchedimage(
+                                            image_path .. "tab_icon_over.png",
+                                            0.05, 0.05
+                                        )
+                                    end)
+                                end)
                             end
                         end
                     end)
@@ -235,9 +281,15 @@ function tab_area(edit)
                     gui.hlist(0, function()
                         gui.align(-1, 0)
                         for i, v in pairs(__tab_storage) do
-                            if v[2] == TAB_HORIZONTAL and ((edit and v[3] == TAB_EDIT) or (not edit and v[3] == TAB_DEFAULT)) then
+                            if v[2] == BAR_HORIZONTAL and ((edit and v[3] == BAR_EDIT) or (not edit and v[3] == BAR_NORMAL) or v[3] == BAR_ALL) then
                                 gui.button(
                                     function()
+                                        if  v[6] then
+                                            v[6] = false
+                                            gui.hide("htab")
+                                            __tab_curr_h = nil
+                                            return nil
+                                        end
                                         gui.show("htab")
                                         gui.replace("htab", "body",  v[5])
                                         gui.replace("htab", "title", function()
@@ -287,6 +339,39 @@ function tab_area(edit)
                                         )
                                     end
                                 )
+                            end
+                        end
+                        for i, v in pairs(__action_storage) do
+                            if v[1] == BAR_HORIZONTAL and ((edit and v[2] == BAR_EDIT) or (not edit and v[2] == BAR_NORMAL) or v[2] == BAR_ALL) then
+                                gui.button(v[4], function()
+                                    -- idle
+                                    gui.space(0, 0.005, function()
+                                        gui.stretchedimage(
+                                            image_path .. "icons/" .. v[3] .. ".png",
+                                            0.04, 0.04
+                                        )
+                                    end)
+
+                                    -- hover
+                                    gui.space(0, 0.005, function()
+                                        gui.stretchedimage(
+                                            image_path .. "icons/" .. v[3] .. ".png",
+                                            0.04, 0.04
+                                        )
+                                    end)
+
+                                    -- selected
+                                    gui.space(0, 0.005, function()
+                                        gui.stretchedimage(
+                                            image_path .. "icons/" .. v[3] .. ".png",
+                                            0.04, 0.04
+                                        )
+                                        gui.stretchedimage(
+                                            image_path .. "tab_icon_over.png",
+                                            0.05, 0.05
+                                        )
+                                    end)
+                                end)
                             end
                         end
                     end)
@@ -395,11 +480,11 @@ gui.new("vtab", function()
                     end, function()
                         gui.align(1, 0)
                         -- idle state
-                        gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024)
+                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
                         -- hover state
-                        gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024, hover)
+                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
                         -- selected state
-                        gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024, selected)
+                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
                     end
                 )
             end)
@@ -431,6 +516,7 @@ gui.new("vtab", function()
 end, 1, 0, function()
     if __tab_curr_v then
         __tab_curr_v[6] = false
+        __tab_curr_v    = nil
     end
 end)
 
@@ -450,11 +536,11 @@ gui.new("htab", function()
                     end, function()
                         gui.align(1, 0)
                         -- idle state
-                        gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024)
+                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
                         -- hover state
-                        gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024, hover)
+                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
                         -- selected state
-                        gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024, selected)
+                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
                     end
                 )
             end)
@@ -491,5 +577,6 @@ gui.new("htab", function()
 end, 1, 0, function()
     if __tab_curr_h then
         __tab_curr_h[6] = false
+        __tab_curr_h    = nil
     end
 end)

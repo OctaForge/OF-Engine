@@ -9,6 +9,7 @@ require("tgui.widgets.buttons")
 require("tgui.widgets.bars")
 require("tgui.widgets.cherad")
 require("tgui.widgets.fields")
+require("tgui.elements.sliders")
 require("tgui.elements.scrollers")
 require("tgui.elements.windows")
 

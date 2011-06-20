@@ -60,9 +60,15 @@ local sb_net_stats  = ""
 ]]
 window("can_quit", "Really quit?", function()
     gui.vlist(0, function()
-        gui.label("Editing changes have been made. If you quit")
-        gui.label("now then they will be lost. Are you sure you")
-        gui.label("want to quit?")
+        gui.hlist(0, function()
+            gui.stretchedimage(image_path .. "icons/icon_question.png", 0.08, 0.08)
+            gui.space(0.005, 0)
+            gui.vlist(0, function()
+                gui.label("Editing changes have been made. If you quit")
+                gui.label("now then they will be lost. Are you sure you")
+                gui.label("want to quit?")
+            end)
+        end)
 
         gui.hlist(0, function()
             gui.align(0, 0)
@@ -104,10 +110,16 @@ end)
 ]]
 window("changes", "Settings changed", function()
     gui.vlist(0, function()
-        gui.label("The following settings have changed")
-        gui.label("and require reload:")
-        gui.space(0.01, 0.01, function()
-            gui.tag("changes", function() end)
+        gui.hlist(0, function()
+            gui.stretchedimage(image_path .. "icons/icon_warning.png", 0.08, 0.08)
+            gui.space(0.005, 0)
+            gui.vlist(0, function()
+                gui.label("The following settings have changed")
+                gui.label("and require reload:")
+                gui.space(0.01, 0.01, function()
+                    gui.tag("changes", function() end)
+                end)
+            end)
         end)
         gui.space(0.01, 0.01, function()
             gui.hlist(0, function()
@@ -265,7 +277,10 @@ function show_entity_properties_tab()
                     local name  = "__tmp_" .. key
                     gui.hlist(0, function()
                         gui.align(-1, 0)
-                        gui.label(pair[1] .. ": ")
+                        gui.fill(0.15, 0, function()
+                            gui.align(-1, 0)
+                            gui.label(pair[1] .. ": ", 1, 1, 1, 1, function() gui.align(-1, 0) end)
+                        end)
                         engine.newvar(name, engine.VAR_S, pair[2], true)
                         field(name, #pair[2] + 25, function()
                             local nv = _G[name]
@@ -282,3 +297,24 @@ function show_entity_properties_tab()
     end)
 end
 gui.show_entity_properties_gui = show_entity_properties_tab
+
+
+window("console", "Console", function()
+    gui.tag("sizer", function() end)
+end)
+
+function show_console_bg(x1, y1, x2, y2)
+    local bw = x2 - x1
+    local bh = y2 - y1
+    local aspect = bw / bh
+    local sh = bh
+    local sw = sh * aspect
+    sw = sw / bw * (scr_w / scr_h)
+    sh = sh / bh
+    print(sw, sh)
+
+    gui.show("console")
+    gui.replace("console", "sizer", function()
+        gui.fill(sw - 0.1, sh - 0.1)
+    end)
+end

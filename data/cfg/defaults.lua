@@ -114,8 +114,6 @@ console.binds.addvaredit("M", "showmat")
 
 console.binds.addedit("PERIOD", [[world.selentedit()]])
 
-console.binds.addedit("F3", [[if gui.clear() ~= 1 then showquickeditgui() end]])
-console.binds.addedit("F4", [[if gui.clear() ~= 1 then gui.show("mapmodels") end]])
 console.binds.addedit("F9", [[echo("%(1)s : %(2)s" % { texture.getsel(), texture.getname(texture.getsel()) })]])
 
 console.binds.addedit("G", [[domodifier(1)]])

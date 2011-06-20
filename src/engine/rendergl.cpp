@@ -2186,7 +2186,7 @@ void gl_drawhud(int w, int h)
                 getfps(nextfps[0], nextfps[1], nextfps[2]);
                 loopi(3) if(prevfps[i]==curfps[i]) curfps[i] = nextfps[i];
                 if(showfpsrange) draw_textf("fps %d+%d-%d", conw-7*FONTH, conh-FONTH*3/2, curfps[0], curfps[1], curfps[2]);
-                else draw_textf("fps %d", conw-5*FONTH, conh-FONTH*3/2, curfps[0]);
+                else draw_textf("fps %d", conw-5*FONTH, FONTH*3/2, curfps[0]);
                 roffset += FONTH;
             }
 
@@ -2204,7 +2204,7 @@ void gl_drawhud(int w, int h)
                     const char *src = &buf[!wallclock24 && buf[0]=='0' ? 1 : 0];
                     while(*src) *dst++ = tolower(*src++);
                     *dst++ = '\0'; 
-                    draw_text(buf, conw-5*FONTH, conh-FONTH*3/2-roffset);
+                    draw_text(buf, conw-5*FONTH, FONTH*3/2 + roffset);
                     roffset += FONTH;
                 }
             }

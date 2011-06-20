@@ -2141,7 +2141,7 @@ namespace gui
     void _bind_uihslider(lua_Engine e)
     {
         const char *var = e.get<const char*>(1);
-        var::cvar  *ev  = var::get(e.get<const char*>(1));
+        var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, e.get<int>(2)));
 
         int minv = e.get<int>(2) ? e.get<int>(2) : (ev->minv.i != -1 ? ev->minv.i : 0);
@@ -2152,7 +2152,7 @@ namespace gui
     void _bind_uivslider(lua_Engine e)
     {
         const char *var = e.get<const char*>(1);
-        var::cvar  *ev  = var::get(e.get<const char*>(1));
+        var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, e.get<int>(2)));
 
         int minv = e.get<int>(2) ? e.get<int>(2) : (ev->minv.i != -1 ? ev->minv.i : 0);
@@ -2636,19 +2636,7 @@ VAR(fonth, 512, 0, 0);
 
 void consolebox(int x1, int y1, int x2, int y2)
 {
-    glPushMatrix();
-
-    glScalef(.5, .5, 1);
-    glTranslatef(x1, y1, 0);
-    glColor4f(1, 0, 0, .8);
-    glBegin(GL_TRIANGLE_STRIP);
-
-    glVertex2i(x1, y1);
-    glVertex2i(x2, y1);
-    glVertex2i(x1, y2);
-    glVertex2i(x2, y2);
-
-    glEnd();
-
-    glPopMatrix();
+    lua::engine.getg("tgui").t_getraw("show_console_bg");
+    lua::engine.push(x1).push(y1).push(x2).push(y2).call(4, 0);
+    lua::engine.pop(1);
 }

@@ -600,10 +600,3 @@ function rendering.setup_dynamic_test(ent)
         return true
     end), 1 / 3)
 end
-
--- currently edited entity
-
-edited_entity = {
-    state_data  = {},
-    sorted_keys = {}
-}

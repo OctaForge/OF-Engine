@@ -21,11 +21,11 @@ function window(name, title, body, noclose, notitle, nofocus, realtime, onhide)
                             end, function()
                                 gui.align(1, 0)
                                 -- idle state
-                                gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024)
+                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
                                 -- hover state
-                                gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024, hover)
+                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
                                 -- selected state
-                                gui.stretchedimage(image_path .. "close_icon.png", 0.024, 0.024, selected)
+                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
                             end
                         )
                     end
