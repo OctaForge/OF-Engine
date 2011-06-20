@@ -63,14 +63,4 @@ struct GuiControl
 
     //! Key clicks
     static void menuKeyClickTrigger();
-
-    // LogicEntity editing GUI
-    struct EditedEntity
-    {
-        static CLogicEntity *currEntity;
-        typedef std::map< std::string, std::pair<std::string, std::string> > StateDataMap; // key -> gui_name, value
-        static StateDataMap stateData;
-        static std::vector<std::string> sortedKeys;
-//        static unsigned int currStateDataIndex;
-    };
 };

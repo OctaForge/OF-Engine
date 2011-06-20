@@ -177,7 +177,7 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::regvar(name, new var::cvar(name, e.get<int>(3)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<int>(3), e.get<bool>(4)));
                 }
                 else ev->set(e.get<int>(3), false, false);
                 break;
@@ -187,7 +187,7 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::regvar(name, new var::cvar(name, e.get<float>(3)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<float>(3), e.get<bool>(4)));
                 }
                 else ev->set(e.get<float>(3), false, false);
                 break;
@@ -197,7 +197,7 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::regvar(name, new var::cvar(name, e.get<const char*>(3)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<const char*>(3), e.get<bool>(4)));
                 }
                 else ev->set(e.get<const char*>(3), false);
                 break;
@@ -299,4 +299,6 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(inputcommand, inputcommand, e.get<char*>(1), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(onrelease, onrelease, e.get<char*>(1))
+
+    LUA_BIND_STD(get_totalmillis, e.push, totalmillis)
 }

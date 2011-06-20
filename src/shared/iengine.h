@@ -111,12 +111,6 @@ extern void closelogfile();
 extern void logoutfv(const char *fmt, va_list args);
 extern void logoutf(const char *fmt, ...);
 
-// menus
-extern vec menuinfrontofplayer();
-extern void newgui(char *name, char *contents, char *header = NULL);
-extern void showgui(const char *name);
-extern int cleargui(int n = 0);
-
 // octa
 extern int lookupmaterial(const vec &o);
 
@@ -377,82 +371,11 @@ extern void *genchallenge(void *pubkey, const void *seed, int seedlen, vector<ch
 extern void freechallenge(void *answer);
 extern bool checkchallenge(const char *answerstr, void *correct);
 
-// 3dgui
+// ui
 struct Texture;
 struct VSlot;
 
-enum { G3D_DOWN = 1, G3D_UP = 2, G3D_PRESSED = 4, G3D_ROLLOVER = 8, G3D_DRAGGED = 16 };
-
 enum { EDITORFOCUSED = 1, EDITORUSED, EDITORFOREVER };
-
-struct g3d_gui
-{
-    virtual ~g3d_gui() {}
-
-    virtual void start(int starttime, float basescale, int *tab = NULL, bool allowinput = true) = 0;
-    virtual void end() = 0;
-
-    virtual int text(const char *text, int color, const char *icon = NULL) = 0;
-    int textf(const char *fmt, int color, const char *icon = NULL, ...)
-    {
-        defvformatstring(str, icon, fmt);
-        return text(str, color, icon);
-    }
-    virtual int button(const char *text, int color, const char *icon = NULL) = 0;
-    int buttonf(const char *fmt, int color, const char *icon = NULL, ...)
-    {
-        defvformatstring(str, icon, fmt);
-        return button(str, color, icon);
-    }
-    virtual int title(const char *text, int color, const char *icon = NULL) = 0;
-    int titlef(const char *fmt, int color, const char *icon = NULL, ...)
-    {
-        defvformatstring(str, icon, fmt);
-        return title(str, color, icon);
-    }
-    virtual void background(int color, int parentw = 0, int parenth = 0) = 0;
-
-    virtual void pushlist(int align = -1) {}
-    virtual void poplist() {}
-
-    virtual void allowautotab(bool on) = 0;
-    virtual bool shouldtab() { return false; }
-    virtual void tab(const char *name = NULL, int color = 0) = 0;
-    virtual int image(Texture *t, float scale, bool overlaid = false) = 0;
-    virtual int texture(VSlot &vslot, float scale, bool overlaid = true) = 0;
-    virtual void slider(int &val, int vmin, int vmax, int color, char *label = NULL) = 0;
-    virtual void separator() = 0;
-    virtual void progress(float percent) = 0;
-    virtual void strut(float size) = 0;
-    virtual void space(float size) = 0;
-    virtual char *keyfield(const char *name, int color, int length, int height = 0, const char *initval = NULL, int initmode = EDITORFOCUSED) = 0;
-    virtual char *field(const char *name, int color, int length, int height = 0, const char *initval = NULL, int initmode = EDITORFOCUSED, bool password=false) = 0; // INTENSITY: Added password
-    virtual void textbox(const char *text, int width, int height, int color = 0xFFFFFF) = 0;
-    virtual void mergehits(bool on) = 0;
-};
-
-struct g3d_callback
-{
-    virtual ~g3d_callback() {}
-
-    int starttime() { return totalmillis; }
-
-    virtual void gui(g3d_gui &g, bool firstpass) = 0;
-};
-
-enum
-{
-    GUI_2D       = 1<<0,
-    GUI_FOLLOW   = 1<<1,
-    GUI_FORCE_2D = 1<<2,
-    GUI_BOTTOM   = 1<<3
-};
-
-extern void g3d_addgui(g3d_callback *cb, vec &origin, int flags = 0);
-extern bool g3d_movecursor(int dx, int dy);
-extern void g3d_cursorpos(float &x, float &y);
-extern void g3d_resetcursor();
-extern void g3d_limitscale(float scale);
 
 #include "intensity.h" // INTENSITY
 

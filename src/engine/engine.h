@@ -475,7 +475,6 @@ extern void swapbuffers();
 extern int getclockmillis();
 
 // menu
-extern void menuprocess();
 extern void addchange(const char *desc, int type);
 extern void clearchanges(int type);
 
@@ -552,15 +551,20 @@ extern double skyarea;
 extern void drawskybox(int farplane, bool limited);
 extern bool limitsky();
 
-// 3dgui
-extern void g3d_render();
-extern bool g3d_windowhit(bool on, bool act);
-
 // menus
-extern int& mainmenu;
-
-extern void clearmainmenu();
-extern void g3d_mainmenu();
+namespace gui
+{
+    extern void resetcursor();
+    extern bool movecursor(int &dx, int &dy);
+    extern bool hascursor(bool targeting = false);
+    extern void getcursorpos(float &x, float &y);
+    extern bool keypress(int code, bool isdown, int cooked);
+    extern void setup();
+    extern void update();
+    extern void render();
+    extern void clearmainmenu();
+    extern int& mainmenu;
+}
 
 // sound
 extern void clearmapsounds();

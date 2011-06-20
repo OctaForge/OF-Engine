@@ -31,7 +31,7 @@ void force_quit(); // INTENSITY
 void quit()                     // normal exit
 {
     if (!EditingSystem::madeChanges) force_quit();
-    showgui("can_quit");
+    lua::engine.getg("gui").t_getraw("show").push("can_quit").call(1, 0).pop(1);
 }
 
 void force_quit() // INTENSITY - change quit to force_quit
@@ -160,8 +160,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 {
     if(!inbetweenframes && !force) return;
 
-    if (!mainmenu) // INTENSITY: Keep playing sounds over main menu
-    stopsounds(); // stop sounds while loading
+    if (!gui::mainmenu) stopsounds(); // stop sounds while loading
  
     int w = screen->w, h = screen->h;
     getbackgroundres(w, h);
@@ -180,7 +179,8 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     static float backgroundu = 0, backgroundv = 0, detailu = 0, detailv = 0;
     static int numdecals = 0;
     static struct decal { float x, y, size; int side; } decals[12];
-    if((renderedframe && !mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
+
+    if((renderedframe && !gui::mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
     {
         lastupdate = lastmillis;
         lastw = w;
@@ -867,7 +867,8 @@ void checkinput()
                     int dx = event.motion.xrel, dy = event.motion.yrel;
                     checkmousemotion(dx, dy);
                     resetmousemotion();
-                    if(!g3d_movecursor(dx, dy)) mousemove(dx, dy);
+
+                    if(!gui::movecursor(dx, dy) && !gui::hascursor()) mousemove(dx, dy);
                 }
                 break;
 
@@ -903,7 +904,7 @@ VARP(maxfps, 0, 200, 1000);
 
 void limitfps(int &millis, int curmillis)
 {
-    int limit = mainmenu && mainmenufps ? (maxfps ? min(maxfps, mainmenufps) : mainmenufps) : maxfps;
+    int limit = gui::mainmenu && mainmenufps ? (maxfps ? min(maxfps, mainmenufps) : mainmenufps) : maxfps;
     if(!limit) return;
     static int fpserror = 0;
     int delay = 1000/limit - (millis-curmillis);
@@ -1139,6 +1140,7 @@ int main(int argc, char **argv)
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
     notexture = textureload("data/textures/core/notexture.png");
     if(!notexture) fatal("could not find core textures");
+    gui::setup();
 
     initlog("console");
     var::persistvars = false;
@@ -1231,7 +1233,7 @@ int main(int argc, char **argv)
         logger::log(logger::INFO, "New frame: lastmillis: %d   curtime: %d\r\n", lastmillis, curtime); // INTENSITY
 
         checkinput();
-        menuprocess();
+        gui::update();
         tryedit();
 
         if(lastmillis) game::updateworld();
@@ -1249,7 +1251,8 @@ int main(int argc, char **argv)
         if(minimized) continue;
 
         inbetweenframes = false;
-        if(mainmenu) gl_drawmainmenu(screen->w, screen->h);
+
+        if(gui::mainmenu) gl_drawmainmenu(screen->w, screen->h);
         else
         {
             // INTENSITY: If we have all the data we need from the server to run the game, then we can actually draw

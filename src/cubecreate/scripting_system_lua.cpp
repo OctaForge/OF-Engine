@@ -245,7 +245,7 @@ namespace lua
         m_hashandle(false),
         m_runtests(false),
         m_rantests(false),
-        m_scriptdir("src/lua/"),
+        m_scriptdir("data/library/core/"),
         m_version("0.0"),
         m_lasterror(NULL) {}
 

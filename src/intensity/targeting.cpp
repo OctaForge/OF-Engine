@@ -24,7 +24,7 @@ void TargetingControl::setupOrientation()
 
     // Account for mouse position in the world position we are aiming at
     float cx, cy;
-    g3d_cursorpos(cx, cy);
+    gui::getcursorpos(cx, cy);
 
     float factor = tanf(RAD*curfov/2.0f); // Size of edge opposite the angle of fov/2, in the triangle for (half of) viewport,
                                           // having unknown radius but known angle of fov/2 and close edge of 1.0

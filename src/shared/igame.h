@@ -42,7 +42,6 @@ namespace game
     extern void writegamedata(vector<char> &extras);
     extern void readgamedata(vector<char> &extras);
     extern int clipconsole(int w, int h);
-    extern void g3d_gamemenus();
     extern const char *defaultcrosshair(int index);
     extern int selectcrosshair(float &r, float &g, float &b);
     extern void lighteffects(dynent *d, vec &color, vec &dir);
@@ -52,9 +51,6 @@ namespace game
     extern void adddynlights();
     extern void particletrack(physent *owner, vec &o, vec &d);
     extern void dynlighttrack(physent *owner, vec &o, vec &hud);
-    extern bool serverinfostartcolumn(g3d_gui *g, int i);
-    extern void serverinfoendcolumn(g3d_gui *g, int i);
-    extern bool serverinfoentry(g3d_gui *g, int i, const char *name, int port, const char *desc, const char *map, int ping, const vector<int> &attr, int np);
     extern bool needminimap();
 } 
  

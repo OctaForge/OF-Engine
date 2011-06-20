@@ -256,4 +256,23 @@ namespace lua_binds
         d->falling.y = e.t_get<double>(2);
         d->falling.z = e.t_get<double>(3);
     })
+
+    LUA_BIND_CLIENT(get_target_entity_uid, {
+        if (TargetingControl::targetLogicEntity && !TargetingControl::targetLogicEntity->isNone())
+            e.push(TargetingControl::targetLogicEntity->getUniqueId());
+        else
+            e.push();
+    })
+
+    LUA_BIND_LE(getplag, {
+        fpsent *p = (fpsent*)self->dynamicEntity;
+        assert(p);
+        e.push(p->plag);
+    })
+
+    LUA_BIND_LE(getping, {
+        fpsent *p = (fpsent*)self->dynamicEntity;
+        assert(p);
+        e.push(p->ping);
+    })
 }

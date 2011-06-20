@@ -114,12 +114,13 @@ namespace var
 
     cvar::cvar(
         const char *n,
-        int v
+        int v,
+        bool temporary
     ) : name(n),
         type(VAR_I)
     {
         flags |= VAR_ALIAS;
-        if (persistvars) flags |= VAR_PERSIST;
+        if (persistvars && !temporary) flags |= VAR_PERSIST;
 
         minv.i = maxv.i = -1;
         oldv.i = curv.i = v;
@@ -128,12 +129,13 @@ namespace var
 
     cvar::cvar(
         const char *n,
-        float v
+        float v,
+        bool temporary
     ) : name(n),
         type(VAR_F)
     {
         flags |= VAR_ALIAS;
-        if (persistvars) flags |= VAR_PERSIST;
+        if (persistvars && !temporary) flags |= VAR_PERSIST;
 
         minv.f = maxv.f = -1.0f;
         oldv.f = curv.f = v;
@@ -142,12 +144,13 @@ namespace var
 
     cvar::cvar(
         const char *n,
-        const char *v
+        const char *v,
+        bool temporary
     ) : name(n),
         type(VAR_S)
     {
         flags |= VAR_ALIAS;
-        if (persistvars) flags |= VAR_PERSIST;
+        if (persistvars && !temporary) flags |= VAR_PERSIST;
 
         curv.s = (v ? newstring(v) : NULL);
         oldv.s = NULL;

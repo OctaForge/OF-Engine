@@ -670,3 +670,15 @@ static editor *useeditor(const char *name, int mode, bool focus, const char *ini
     if(focus) editors.add(e); else editors.insert(0, e); 
     return e;
 }
+
+static void focuseditor(editor *e)
+{
+    editors.removeobj(e);
+    editors.add(e);
+}
+
+static void removeeditor(editor *e)
+{
+    editors.removeobj(e);
+    DELETEP(e);
+}

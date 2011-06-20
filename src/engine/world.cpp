@@ -1138,7 +1138,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
-    clearmainmenu();
+    gui::clearmainmenu();
 
     if (usecfg)
     {

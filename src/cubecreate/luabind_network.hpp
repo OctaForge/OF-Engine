@@ -36,6 +36,14 @@ namespace game
     fpsent *followingplayer();
 }
 
+namespace NetworkSystem
+{
+    namespace Cataloger
+    {
+        std::string briefSummary(float seconds);
+    }
+}
+
 namespace lua_binds
 {
     LUA_BIND_STD_CLIENT(connect, ClientSystem::connect, e.get<const char*>(1), e.get<int>(2))
@@ -69,11 +77,11 @@ namespace lua_binds
         char *fname = world::get_mapscript_filename();
         if (!engine.loadf(fname))
         {
-            e.push("message_title").push("Compilation failed").setg();
-            e.push("message_content").push(engine.geterror_last()).setg();
-            showgui("message");
-            e.push("message_title").push().setg();
-            e.push("message_content").push().setg();
+            engine.getg("gui")
+                  .t_getraw("message")
+                  .push("Compilation failed")
+                  .push(engine.geterror_last())
+                  .call(2, 0).pop(1);
             delete[] fname;
             return;
         }
@@ -87,4 +95,6 @@ namespace lua_binds
     })
 
     LUA_BIND_STD_CLIENT(restart_map, MessageSystem::send_RestartMap)
+
+    LUA_BIND_STD(get_network_stats, e.push, NetworkSystem::Cataloger::briefSummary(e.get<float>(1)).c_str())
 }

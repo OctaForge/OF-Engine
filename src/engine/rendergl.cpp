@@ -1913,7 +1913,7 @@ void gl_drawframe(int w, int h)
     renderpostfx();
 
     defaultshader->set();
-    g3d_render();
+    gui::render();
 
     glDisable(GL_TEXTURE_2D);
     notextureshader->set();
@@ -1937,7 +1937,7 @@ void gl_drawmainmenu(int w, int h)
 
     defaultshader->set();
     glEnable(GL_TEXTURE_2D);
-    g3d_render();
+    gui::render();
 
     notextureshader->set();
     glDisable(GL_TEXTURE_2D);
@@ -2051,13 +2051,13 @@ VAR(hidestats, 0, 0, 1);
 VAR(hidehud, 0, 0, 1);
 
 VARP(crosshairsize, 0, 15, 50);
-VARP(cursorsize, 0, 30, 50);
+VARP(cursorsize, 0, 10, 50);
 VARP(crosshairfx, 0, 1, 1);
 
 void drawcrosshair(int w, int h)
 {
-    bool windowhit = g3d_windowhit(true, false) || !GuiControl::isMouselooking(); // INTENSITY: Mouselooking
-    if(!windowhit && (hidehud || mainmenu)) return; //(hidehud || player->state==CS_SPECTATOR || player->state==CS_DEAD)) return;
+    bool windowhit = gui::hascursor(false) || !GuiControl::isMouselooking(); // INTENSITY: Mouselooking
+    if(!windowhit && (hidehud || gui::mainmenu)) return;
 
     float r = 1, g = 1, b = 1, cx = 0.5f, cy = 0.5f, chsize;
     Texture *crosshair;
@@ -2067,7 +2067,7 @@ void drawcrosshair(int w, int h)
         if(!cursor) cursor = textureload("data/textures/ui/guicursor.png", 3, true);
         crosshair = cursor;
         chsize = cursorsize*w/900.0f;
-        g3d_cursorpos(cx, cy);
+        gui::getcursorpos(cx, cy);
     }
     else
     { 
@@ -2110,7 +2110,7 @@ FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
 void gl_drawhud(int w, int h)
 {
-    if(editmode && !hidehud && !mainmenu)
+    if(editmode && !hidehud && !gui::mainmenu)
     {
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
@@ -2155,8 +2155,8 @@ void gl_drawhud(int w, int h)
     }
 
     glEnable(GL_BLEND);
-    
-    if(!mainmenu)
+
+    if(!gui::mainmenu)
     {
         drawdamagescreen(w, h);
         drawdamagecompass(w, h);
@@ -2166,7 +2166,7 @@ void gl_drawhud(int w, int h)
     defaultshader->set();
 
     int conw = int(w/conscale), conh = int(h/conscale), abovehud = conh - FONTH, limitgui = abovehud;
-    if(!hidehud && !mainmenu)
+    if(!hidehud && !gui::mainmenu)
     {
         if(!hidestats)
         {
@@ -2186,7 +2186,7 @@ void gl_drawhud(int w, int h)
                 getfps(nextfps[0], nextfps[1], nextfps[2]);
                 loopi(3) if(prevfps[i]==curfps[i]) curfps[i] = nextfps[i];
                 if(showfpsrange) draw_textf("fps %d+%d-%d", conw-7*FONTH, conh-FONTH*3/2, curfps[0], curfps[1], curfps[2]);
-                else draw_textf("fps %d", conw-5*FONTH, conh-FONTH*3/2, curfps[0]);
+                else draw_textf("fps %d", conw-5*FONTH, FONTH*3/2, curfps[0]);
                 roffset += FONTH;
             }
 
@@ -2204,7 +2204,7 @@ void gl_drawhud(int w, int h)
                     const char *src = &buf[!wallclock24 && buf[0]=='0' ? 1 : 0];
                     while(*src) *dst++ = tolower(*src++);
                     *dst++ = '\0'; 
-                    draw_text(buf, conw-5*FONTH, conh-FONTH*3/2-roffset);
+                    draw_text(buf, conw-5*FONTH, FONTH*3/2 + roffset);
                     roffset += FONTH;
                 }
             }
@@ -2282,9 +2282,6 @@ void gl_drawhud(int w, int h)
 
         rendertexturepanel(w, h);
     }
-    
-    g3d_limitscale((2*limitgui - conh) / float(conh));
-
     glPushMatrix();
     glScalef(conscale, conscale, 1);
     abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);

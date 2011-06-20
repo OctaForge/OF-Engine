@@ -93,11 +93,11 @@ namespace MessageSystem
         static char content[MAXTRANS];
         getstring(content, p);
 
-        engine.push("message_title").push(title).setg();
-        engine.push("message_content").push(content).setg();
-        showgui("message");
-        engine.push("message_title").push().setg();
-        engine.push("message_content").push().setg();
+        engine.getg("gui")
+              .t_getraw("message")
+              .push(title)
+              .push(content)
+              .call(2, 0).pop(1);
     }
 #endif
 
@@ -355,11 +355,11 @@ namespace MessageSystem
         static char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
-        engine.push("message_title").push("Server").setg();
-        engine.push("message_content").push("Map being prepared on server, please wait ..").setg();
-        showgui("message");
-        engine.push("message_title").push().setg();
-        engine.push("message_content").push().setg();
+        engine.getg("gui")
+              .t_getraw("message")
+              .push("Server")
+              .push("Map being prepared on the server, please wait ..")
+              .call(2, 0).pop(1);
         ClientSystem::prepareForNewScenario(scenarioCode);
     }
 #endif

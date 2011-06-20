@@ -279,7 +279,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         od  = dimension(orient),
         odc = dimcoord(orient);
 
-    bool hidecursor = g3d_windowhit(true, false) || blendpaintmode, hovering = false;
+    bool hidecursor = gui::hascursor(false) || blendpaintmode, hovering = false;
     hmapsel = false;
            
     if(moving)
@@ -469,7 +469,7 @@ void tryedit()
 {
 #ifdef CLIENT // CubeCreate
     extern int& hidehud;
-    if(!editmode || hidehud || mainmenu) return;
+    if(!editmode || hidehud || gui::mainmenu) return;
     if(blendpaintmode) trypaintblendmap();
 #endif
 }
@@ -1885,100 +1885,6 @@ void editmat(char *name, char *filtername)
         if(id<0) { conoutf(CON_ERROR, "unknown material \"%s\"", name); return; }
     }
     mpeditmat(id, filter, sel, true);
-}
-
-extern int& menudistance, &menuautoclose;
-
-VARP(texguiwidth, 1, 12, 1000);
-VARP(texguiheight, 1, 8, 1000);
-VARP(texguitime, 0, 25, 1000);
-
-static int lastthumbnail = 0;
-
-VARP(texgui2d, 0, 1, 1);
-
-struct texturegui : g3d_callback 
-{
-    bool menuon;
-    vec menupos;
-    int menustart, menutab;
-   
-    texturegui() : menustart(-1) {} 
-
-    void gui(g3d_gui &g, bool firstpass)
-    {
-        int origtab = menutab, numtabs = max((slots.length() + texguiwidth*texguiheight - 1)/(texguiwidth*texguiheight), 1);
-        g.start(menustart, 0.04f, &menutab);
-        loopi(numtabs)
-        {   
-            g.tab(!i ? "Textures" : NULL, 0xAAFFAA);
-            if(i+1 != origtab) continue; //don't load textures on non-visible tabs!
-            loop(h, texguiheight)
-            {
-                g.pushlist();
-                loop(w, texguiwidth) 
-                {
-                    extern VSlot dummyvslot;
-                    int ti = (i*texguiheight+h)*texguiwidth+w;
-                    if(ti<slots.length()) 
-                    {
-                        Slot &slot = lookupslot(ti, false);
-                        VSlot &vslot = *slot.variants;
-                        if(slot.sts.empty()) continue;
-                        else if(!slot.loaded && !slot.thumbnail)
-                        {
-                            if(totalmillis-lastthumbnail<texguitime) 
-                            {
-                                g.texture(dummyvslot, 1.0, false); //create an empty space
-                                continue; 
-                            }
-                            loadthumbnail(slot); 
-                            lastthumbnail = totalmillis;
-                        }
-                        if(g.texture(vslot, 1.0f, true)&G3D_UP && (slot.loaded || slot.thumbnail!=notexture)) 
-                            edittex(vslot.index);
-                    }
-                    else
-                    {
-                        g.texture(dummyvslot, 1.0, false); //create an empty space
-                    }
-                }
-                g.poplist();
-            }
-        }
-        g.end();
-    }
-
-    void showtextures(bool on)
-    {
-        if(on != menuon && (menuon = on)) 
-        { 
-            if(menustart <= lasttexmillis) 
-                menutab = 1+clamp(lookupvslot(lasttex, false).slot->index, 0, slots.length()-1)/(texguiwidth*texguiheight);
-            menupos = menuinfrontofplayer(); 
-            menustart = starttime(); 
-        }
-    }
-
-    void show()
-    {   
-        if(!menuon) return;
-        filltexlist();
-        extern int& usegui2d;
-        if(!editmode || ((!texgui2d || !usegui2d) && camera1->o.dist(menupos) > menuautoclose)) menuon = false;
-        else g3d_addgui(this, menupos, texgui2d ? GUI_2D : 0);
-    }
-} gui;
-
-void g3d_texturemenu() 
-{ 
-    gui.show(); 
-}
-
-void showtexgui(int *n) 
-{ 
-    if(!editmode) { conoutf(CON_ERROR, "operation only allowed in edit mode"); return; }
-    gui.showtextures(*n==0 ? !gui.menuon : *n==1); 
 }
 
 void rendertexturepanel(int w, int h)

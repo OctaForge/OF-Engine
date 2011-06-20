@@ -16,21 +16,21 @@ if (NOT WIN32)
     include_directories(${UUID_INCLUDE_DIRS})
 endif (NOT WIN32)
 
-add_definitions(-fno-exceptions -fno-rtti)
-
 # there is no LINUX variable declared
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    add_definitions (-fsigned-char)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+# keep rtti enabled for dynamic_casts
+add_definitions(-fno-exceptions)
+
 # set client sources, configure preprocessor
 add_definitions(-DCLIENT)
 set(CLIENT_SOURCES
     ../octaforge/of_tools
-    ../engine/3dgui
+    ../engine/ui
     ../engine/blob
     ../engine/blend
-    ../engine/menus
     ../engine/serverbrowser
     ../intensity/editing_system
     ../intensity/messages

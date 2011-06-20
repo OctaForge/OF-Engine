@@ -265,14 +265,11 @@ bool GuiControl::isMouselooking()
 void GuiControl::toggleMouselook()
 {
     if (_isMouselooking)
-    {
         _isMouselooking = false;
-
-        // Restore cursor to center
-        g3d_resetcursor();
-    } else {
+    else
         _isMouselooking = true;
-    };
+
+    gui::resetcursor();
 };
 
 bool _isCharacterViewing = false;
@@ -294,8 +291,3 @@ void GuiControl::menuKeyClickTrigger()
 {
     playsound(S_MENUCLICK);
 }
-
-// Editing GUI statics
-CLogicEntity *GuiControl::EditedEntity::currEntity;
-GuiControl::EditedEntity::StateDataMap GuiControl::EditedEntity::stateData;
-std::vector<std::string> GuiControl::EditedEntity::sortedKeys;

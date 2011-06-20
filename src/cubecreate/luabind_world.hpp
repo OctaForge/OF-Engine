@@ -219,4 +219,61 @@ namespace lua_binds
     })
 
     LUA_BIND_STD_CLIENT(hasmap, e.push, local_server::is_running())
+
+    LUA_BIND_DEF(get_map_preview_filename, {
+        char buf [512];
+        char buff[512];
+        snprintf(buf, sizeof(buf), "data%cbase%c%s%cpreview.png", PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV);
+        if (fileexists(buf, "r"))
+        {
+            e.push(buf);
+            return;
+        }
+        snprintf(
+            buff, sizeof(buff), "%s%c%s",
+            homedir, PATHDIV, buf
+        );
+        snprintf(buf, sizeof(buf), "%s", buff);
+        if (fileexists(buf, "r"))
+        {
+            e.push(buf);
+            return;
+        }
+        e.push();
+    })
+
+    LUA_BIND_DEF(get_all_map_names, {
+        vector<char *> glob;
+        vector<char *> user;
+
+        char buf [512];
+        char buff[512];
+        snprintf(buf,  sizeof(buf),  "data%cbase", PATHDIV);
+        snprintf(buff, sizeof(buff), "%s%c%s", homedir, PATHDIV, buf);
+
+        e.t_new();
+        listdir(buf, false, NULL, glob);
+        if (glob.length() > 0)
+        {
+            loopv(glob)
+            {
+                if (strchr(glob[i], '.')) continue;
+                e.t_set(i + 1, glob[i]);
+            }
+        }
+
+        e.t_new();
+        listdir(buff, false, NULL, user);
+        if (user.length() > 0)
+        {
+            loopv(user)
+            {
+                if (strchr(user[i], '.')) continue;
+                e.t_set(i + 1, user[i]);
+            }
+        }
+
+        glob.deletecontents();
+        user.deletecontents();
+    })
 }
