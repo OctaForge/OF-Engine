@@ -142,12 +142,12 @@ int CLogicEntity::getAnimationFrame()
     return 0; /* DEPRECATED for now */
 }
 
-std::string CLogicEntity::getClass()
+const char *CLogicEntity::getClass()
 {
     engine.getg("tostring").getref(luaRef).call(1, 1);
-    std::string _class = engine.get(-1, "unknown");
+    const char *cl = engine.get(-1, "unknown");
     engine.pop(1);
-    return _class;
+    return cl;
 }
 
 model* CLogicEntity::getModel()
@@ -168,7 +168,7 @@ model* CLogicEntity::getModel()
     return theModel;
 }
 
-void CLogicEntity::setModel(std::string name)
+void CLogicEntity::setModel(const char *name)
 {
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
@@ -177,28 +177,17 @@ void CLogicEntity::setModel(std::string name)
     if (staticEntity)
         removeentity(staticEntity);
 
-    if (name != "")
-        theModel = loadmodel(name.c_str());
+    if (strcmp(name, "")) theModel = loadmodel(name);
 
-    logger::log(logger::DEBUG, "CLE:setModel: %s (%lu)\r\n", name.c_str(), (unsigned long)theModel);
+    logger::log(logger::DEBUG, "CLE:setModel: %s (%lu)\r\n", name, (unsigned long)theModel);
 
     if (staticEntity)
-    {
-//        #ifdef SERVER
-//            if (name != "" && staticEntity->type == ET_MAPMODEL)
-//            {
-//                scriptEntity->setProperty("attr2", -1); // Do not use sauer mmodel list
-//            }
-//        #endif
-
-        // Refresh the entity in sauer
         addentity(staticEntity);
-    }
 }
 
-void CLogicEntity::setAttachments(std::string _attachments)
+void CLogicEntity::setAttachments(const char *at)
 {
-    logger::log(logger::DEBUG, "CLogicEntity::setAttachments: %s\r\n", _attachments.c_str());
+    logger::log(logger::DEBUG, "CLogicEntity::setAttachments: %s\r\n", at);
 
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
@@ -214,7 +203,7 @@ void CLogicEntity::setAttachments(std::string _attachments)
     // Generate new data
     int num = 0, i = 0;
     char *curr = NULL, *name = NULL, *tag = NULL;
-    char *data = newstring(_attachments.c_str());
+    char *data = newstring(at);
     char * pch = strchr(data, '|');
 
     while (pch)
@@ -223,7 +212,7 @@ void CLogicEntity::setAttachments(std::string _attachments)
         pch = strchr(pch + 1, '|');
     }
     /* Because it'd be 1 even with no attachments. */
-    if (_attachments != "") num++;
+    if (strcmp(at, "")) num++;
 
     assert(num <= MAX_ATTACHMENTS);
 
@@ -300,27 +289,27 @@ void CLogicEntity::setAnimation(int _animation)
                             // leading to a negative number and segfaults in finding frame data
 }
 
-void CLogicEntity::setSound(std::string _sound)
+void CLogicEntity::setSound(const char *snd)
 {
-    logger::log(logger::DEBUG, "setSound: %s\r\n", _sound.c_str());
+    logger::log(logger::DEBUG, "setSound: %s\r\n", snd);
 
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
 
-    logger::log(logger::DEBUG, "(2) setSound: %s\r\n", _sound.c_str());
+    logger::log(logger::DEBUG, "(2) setSound: %s\r\n", snd);
 
-    soundName = _sound;
+    sndname = snd;
 
 #ifdef CLIENT
     stopmapsound(staticEntity);
     if(camera1->o.dist(staticEntity->o) < staticEntity->attr2)
       {
-        if(!staticEntity->visible) playmapsound(soundName.c_str(), staticEntity, staticEntity->attr4, -1);
+        if(!staticEntity->visible) playmapsound(sndname, staticEntity, staticEntity->attr4, -1);
         else if(staticEntity->visible) stopmapsound(staticEntity);
       }
 #else
-    MessageSystem::send_MapSoundToClients(-1, soundName.c_str(), LogicSystem::getUniqueId(staticEntity));
+    MessageSystem::send_MapSoundToClients(-1, snd, LogicSystem::getUniqueId(staticEntity));
 #endif
 }
 
@@ -330,10 +319,10 @@ const char *CLogicEntity::getSound()
     if ((!this) || (!staticEntity && !dynamicEntity))
         return NULL;
 
-    return soundName.c_str();
+    return sndname;
 }
 
-vec& CLogicEntity::getAttachmentPosition(std::string tag)
+vec& CLogicEntity::getAttachmentPosition(const char *tag)
 {
     // If last actual render - which actually calculated the attachment positions - was recent
     // enough, use that data
@@ -342,7 +331,7 @@ vec& CLogicEntity::getAttachmentPosition(std::string tag)
         // TODO: Use a hash table. But, if just 1-4 attachments, then fast enough for now as is
         for (int i = 0; attachments[i].tag; i++)
         {
-            if (attachments[i].tag == tag)
+            if (!strcmp(attachments[i].tag, tag))
                 return attachmentPositions[i];
         }
     }

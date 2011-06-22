@@ -907,7 +907,7 @@ void entpaste()
 
         // INTENSITY: Create entity using new system
         CLogicEntity *entity = LogicSystem::getLogicEntity(c);
-        std::string _class = entity->getClass();
+        const char *_class = entity->getClass();
 
         using namespace lua;
         engine.getref(entity->luaRef).t_getraw("create_statedatadict");
@@ -923,7 +923,7 @@ void entpaste()
         const char *sd = engine.get(-1, "{}");
         engine.pop(2);
 
-        EditingSystem::newent(_class.c_str(), sd);
+        EditingSystem::newent(_class, sd);
         // INTENSITY: end Create entity using new system
 
 // INTENSITY       extentity *e = newentity(true, o, ET_EMPTY, c.attr1, c.attr2, c.attr3, c.attr4, c.attr5);
@@ -988,7 +988,7 @@ void intensityentcopy() // INTENSITY
 
     extentity& e = *(entities::storage[efocus]);
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
-    intensityCopiedClass = entity->getClass().c_str();
+    intensityCopiedClass = entity->getClass();
 
     using namespace lua;
     engine.getref(entity->luaRef).t_getraw("create_statedatadict");

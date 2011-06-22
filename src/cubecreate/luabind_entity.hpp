@@ -62,7 +62,7 @@ namespace lua_binds
     LUA_BIND_LE(getstarttime, e.push(self->getStartTime());)
 
     LUA_BIND_LE(setmodelname, {
-        logger::log(logger::DEBUG, "setmodelname(%s, %s)\n", self->getClass().c_str(), e.get<const char*>(2));
+        logger::log(logger::DEBUG, "setmodelname(%s, %s)\n", self->getClass(), e.get<const char*>(2));
 
         self->setModel(e.get<const char*>(2));
     })
@@ -84,7 +84,7 @@ namespace lua_binds
         if (!WorldSystem::loadingWorld) addentity(ext);
 
         // finally reload sound, so everything gets applied
-        self->setSound(self->soundName.c_str());
+        self->setSound(self->sndname);
     })
 
     LUA_BIND_LE(setattachments, {
@@ -154,7 +154,7 @@ namespace lua_binds
     LUA_BIND_LE(getextent0, {
         extentity *ext = self->staticEntity;
         assert(ext);
-        logger::log(logger::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self->getClass().c_str(), ext->o.x, ext->o.y, ext->o.z);
+        logger::log(logger::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self->getClass(), ext->o.x, ext->o.y, ext->o.z);
         e.t_new().t_set(1, ext->o.x).t_set(2, ext->o.y).t_set(3, ext->o.z);
     })
 

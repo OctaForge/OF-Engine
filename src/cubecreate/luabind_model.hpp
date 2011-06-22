@@ -120,14 +120,13 @@ namespace lua_binds
 
         model* _new = loadmodel(name);
 
-        for (LogicSystem::LogicEntityMap::iterator iter = LogicSystem::logicEntities.begin()
-                ;iter != LogicSystem::logicEntities.end()
-                ;iter++
-            )
-        {
-            CLogicEntity *entity = iter->second;
-            if (entity->theModel == old) entity->theModel = _new;
-        }
+        lua::engine.getg("entity_store").t_getraw("get_all").call(0, 1);
+        LUA_TABLE_FOREACH(lua::engine, {
+                CLogicEntity *ent = lua::engine.get<CLogicEntity*>(-1);
+                if (ent->theModel == old) ent->theModel = _new;
+                e.pop(1);
+        })
+        lua::engine.pop(1);
     })
 
 #ifdef CLIENT
