@@ -8,27 +8,30 @@ function window(name, title, body, noclose, notitle, nofocus, realtime, onhide)
                 -- upper left corner
                 gui.stretchedimage(image_path .. "corner_upper_left.png", 0.01, 0.025)
                 -- upper edge
-                gui.stretchedimage(image_path .. "window_background.png", 0, 0.025, function()
+                gui.winmover(function()
                     gui.clamp(1, 1, 0, 0)
-                    gui.tag("title", function()
-                        gui.align(0, 0)
-                        gui.label(title)
+                    gui.stretchedimage(image_path .. "window_background.png", 0, 0.025, function()
+                        gui.clamp(1, 1, 0, 0)
+                        gui.tag("title", function()
+                            gui.align(0, 0)
+                            gui.label(title)
+                        end)
+                        if not noclose() then
+                            gui.button(
+                                function()
+                                    gui.hide(name)
+                                end, function()
+                                    gui.align(1, 0)
+                                    -- idle state
+                                    gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
+                                    -- hover state
+                                    gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
+                                    -- selected state
+                                    gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
+                                end
+                            )
+                        end
                     end)
-                    if not noclose() then
-                        gui.button(
-                            function()
-                                gui.hide(name)
-                            end, function()
-                                gui.align(1, 0)
-                                -- idle state
-                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
-                                -- hover state
-                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
-                                -- selected state
-                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
-                            end
-                        )
-                    end
                 end)
                 -- upper right corner
                 gui.stretchedimage(image_path .. "corner_upper_right.png", 0.01, 0.025)

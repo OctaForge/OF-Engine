@@ -9,6 +9,10 @@ using namespace lua;
 
 namespace gui
 {
+    struct world;
+
+    world *world_inst = NULL;
+
     struct object;
 
     object *selected = NULL,
@@ -156,6 +160,8 @@ namespace gui
             children.deletecontents();
         }
 
+        virtual void init() {}
+
         virtual int forks()      const { return  0; }
         virtual int choosefork() const { return -1; }
 
@@ -240,7 +246,7 @@ namespace gui
             adjustchildrento(0, 0, w, h);
         }
 
-        void adjustlayout(float px, float py, float pw, float ph)
+        virtual void adjustlayout(float px, float py, float pw, float ph)
         {
             switch (adjust&ALIGN_HMASK)
             {
@@ -1880,8 +1886,10 @@ namespace gui
         int nofocus;
         int realtime;
 
+        float customx, customy;
+
         window(const char *name, int onhide = 0, int nofocus = 0, int realtime = 0)
-         : named_object(name), onhide(onhide), nofocus(nofocus), realtime(realtime)
+         : named_object(name), onhide(onhide), nofocus(nofocus), realtime(realtime), customx(0), customy(0)
         {}
         ~window() { lua::engine.unref(onhide); }
 
@@ -1890,6 +1898,69 @@ namespace gui
             if (onhide) lua::engine.getref(onhide).call(0, 0);
             resetcursor();
         }
+
+        void adjustlayout(float px, float py, float pw, float ph)
+        {
+            object::adjustlayout(px, py, pw, ph);
+
+            if (!customx) customx = x;
+            if (!customy) customy = y;
+
+            if (customx != x) x = customx;
+            if (customy != y) y = customy;
+        }
+    };
+
+    struct window_mover : object
+    {
+        float offsetx, offsety;
+        window *win;
+
+        window_mover() : offsetx(0), offsety(0), win(NULL) {}
+
+        int forks()      const { return 1; }
+        int choosefork() const { return 0; }
+
+        void init()
+        {
+            object *par = parent;
+
+            win = dynamic_cast<window*>(par);
+            while (!win)
+            {
+                par = par->parent;
+                if (!par) return;
+
+                win = dynamic_cast<window*>(par);
+            }
+        }
+
+        object *hover(float cx, float cy)
+        {
+            return target(cx, cy) ? this : NULL;
+        }
+
+        object *select(float cx, float cy)
+        {
+            return target(cx, cy) ? this : NULL;
+        }
+
+        void hovering(float cx, float cy)
+        {
+            if (win && isselected(this))
+            {
+                win->customx += cx - offsetx;
+                win->customy += cy - offsety;
+            }
+        }
+
+        void selected(float cx, float cy)
+        {
+            offsetx = cx;
+            offsety = cy;
+        }
+
+        const char *getname() const { return "windowmover"; }
     };
 
     struct world : object
@@ -1932,8 +2003,6 @@ namespace gui
         }
     };
 
-    world *world_inst = NULL;
-
     vector<object *> build;
 
     window *buildwindow(const char *name, int contents, int onhide = 0, int nofocus = 0, int realtime = 0)
@@ -1973,6 +2042,8 @@ namespace gui
             build.pop();
         }
         else lua::engine.pop(1);
+
+        o->init();
     }
 
     /* holds labels that are around */
@@ -2081,6 +2152,11 @@ namespace gui
                 | (e.get<int>(3) ? CLAMP_BOTTOM : 0)
                 | (e.get<int>(4) ? CLAMP_TOP : 0);
         }
+    }
+
+    void _bind_uiwinmover(lua_Engine e)
+    {
+        addui(new window_mover, e.push_index(1).ref());
     }
 
     void _bind_uitag(lua_Engine e)

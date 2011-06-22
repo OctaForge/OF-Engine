@@ -211,6 +211,7 @@ hide = CAPI.hideui
 replace = CAPI.replaceui
 align = CAPI.uialign
 clamp = CAPI.uiclamp
+winmover = CAPI.uiwinmover
 tag = CAPI.uitag
 vlist = CAPI.uivlist
 hlist = CAPI.uihlist
