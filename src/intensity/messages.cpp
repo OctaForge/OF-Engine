@@ -510,18 +510,13 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        if (!EditingSystem::validateEntityClass(_class))
+        lua::engine.getg("entity_classes").t_getraw("get_class").push(_class).call(1, 1);
+        if (lua::engine.is<void>(-1))
         {
-            char buf[512];
-            snprintf(buf, sizeof(buf), "Invalid entity class: %s", _class);
-            logger::log(logger::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
-            send_PersonalServerMessage(
-                sender,
-                buf,
-                "Reminder: Create entities using F8, not /newent. See the wiki for more."
-            );
+            lua::engine.pop(2);
             return;
         }
+        lua::engine.pop(2);
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario

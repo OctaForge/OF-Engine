@@ -366,21 +366,6 @@ npcdel = CAPI.npcdel
 
 ---
 -- @class function
--- @name getentclass
-getentclass = CAPI.getentclass
-
----
--- @class function
--- @name prepareentityclasses
-prepareentityclasses = CAPI.prepareentityclasses
-
----
--- @class function
--- @name numentityclasses
-numentityclasses = CAPI.numentityclasses
-
----
--- @class function
 -- @name spawnent
 spawnent = CAPI.spawnent
 

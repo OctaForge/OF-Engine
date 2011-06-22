@@ -246,15 +246,12 @@ tgui.push_tab("Textures", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_texgui", fun
 end)
 
 tgui.push_tab("Entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_entities", function()
-    CAPI.prepareentityclasses()
-
     gui.fill(0.3, 0.7, function()
         tgui.scrollbox(0.3, 0.7, function()
             gui.vlist(0, function()
                 gui.align(-1, -1)
-                for i = 1, world.numentityclasses() do
-                    local entityclass = world.getentclass(i - 1)
-                    tgui.button_no_bg(entityclass, function() world.spawnent(entityclass) end)
+                for i, class in pairs(entity_classes.list()) do
+                    tgui.button_no_bg(class, function() world.spawnent(class) end)
                 end
             end)
         end)

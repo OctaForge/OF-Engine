@@ -72,16 +72,14 @@ void edittex(int i, bool save = true);
 
 namespace EditingSystem
 {
-    extern std::vector<std::string> entityClasses;
-    void newEntity(std::string _class, std::string stateData);
-    void prepareentityclasses();
+    void newent(const char *cl, const char *sd);
 }
 
 extern int& usevdelta, &gridpower, &nompedit, &allfaces;
 
 namespace lua_binds
 {
-    LUA_BIND_STD(editing_getworldsize, e.push, EditingSystem::getWorldSize())
+    LUA_BIND_STD(editing_getworldsize, e.push, getworldsize())
     LUA_BIND_STD(editing_getgridsize, e.push, 1<<gridpower)
     LUA_BIND_STD(editing_erasegeometry, EditingSystem::eraseGeometry)
     LUA_BIND_STD(editing_createcube, EditingSystem::createCube, e.get<int>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4))
@@ -265,15 +263,7 @@ namespace lua_binds
     LUA_BIND_DUMMY(npcdel)
     #endif
 
-    LUA_BIND_CLIENT(getentclass, {
-        const char *ret = (EditingSystem::entityClasses[e.get<int>(1)]).c_str();
-        assert( tools::valanumeric(ret, "_") ); // Prevent injections
-        e.push(ret);
-    })
-
-    LUA_BIND_STD(prepareentityclasses, EditingSystem::prepareentityclasses)
-    LUA_BIND_STD(numentityclasses, e.push, (int)EditingSystem::entityClasses.size())
-    LUA_BIND_STD(spawnent, EditingSystem::newEntity, e.get<const char*>(1))
+    LUA_BIND_STD(spawnent, EditingSystem::newent, e.get<const char*>(1), "")
 
     LUA_BIND_STD_CLIENT(requestprivedit, MessageSystem::send_RequestPrivateEditMode)
     LUA_BIND_STD_CLIENT(hasprivedit, e.push, ClientSystem::editingAlone)

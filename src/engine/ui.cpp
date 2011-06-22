@@ -2111,7 +2111,6 @@ namespace gui
         window *win = dynamic_cast<window *>(world_inst->findname(wname, false));
         if (!win)
         {
-            printf("A\n");
             e.push(false);
             return;
         }

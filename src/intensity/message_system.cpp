@@ -61,27 +61,4 @@ bool MessageManager::receive(int type, int receiver, int sender, ucharbuf &p)
     return true;
 }
 
-std::string awaitedFile = "";
-
-void MessageManager::awaitFile(std::string name)
-{
-    assert(awaitedFile == "");
-
-    awaitedFile = name;
-
-    logger::log(logger::DEBUG, "Awaiting file '%s'\r\n", awaitedFile.c_str());
 }
-
-std::string MessageManager::getAwaitingFile()
-{
-    assert(awaitedFile != "");
-
-    logger::log(logger::DEBUG, "No longer awaiting file '%s'\r\n", awaitedFile.c_str());
-
-    std::string ret = awaitedFile;
-    awaitedFile = "";
-    return ret;
-}
-
-}
-

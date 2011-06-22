@@ -65,13 +65,6 @@ struct MessageManager
     //! receiver - clientnumber of the receiver. On clients there is only the player, but on the server there might be
     //! many NPCs.
     static bool receive(int type, int receiver, int sender, ucharbuf &p);
-
-    //! Simple storage of the current file we expect in a file transfer. We have this because sauer file transfers lack
-    //! a filename
-    static void awaitFile(std::string name);
-
-    //! Get the name of the file we are awaiting; it is the name we should save as
-    static std::string getAwaitingFile();
 };
 
 // Include all the procedurally-generated message data

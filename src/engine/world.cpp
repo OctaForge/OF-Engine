@@ -880,20 +880,6 @@ void newentity(int type, int a1, int a2, int a3, int a4, int a5)
     entedit(i, ent.type = type);
 }
 
-void newent(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
-{
-    if(noentedit()) return;
-    char sd[2048];
-    snprintf(sd, sizeof(sd), 
-        "{ 'attr1': '%i', "
-         " 'attr2': '%i', "
-         " 'attr3': '%i', "
-         " 'attr4': '%i' }",
-         *a1, *a2, *a3, *a4
-    );
-    EditingSystem::newEntity(what, sd);
-}
-
 int entcopygrid;
 vector<extentity> entcopybuf; // INTENSITY: extentity, for uniqueID
 
@@ -934,10 +920,10 @@ void entpaste()
 
         engine.getg("json").t_getraw("encode");
         engine.getg("__ccentcopy__TEMP").call(1, 1);
-        std::string stateData = engine.get(-1, "{}");
+        const char *sd = engine.get(-1, "{}");
         engine.pop(2);
 
-        EditingSystem::newEntity(_class, stateData);
+        EditingSystem::newent(_class.c_str(), sd);
         // INTENSITY: end Create entity using new system
 
 // INTENSITY       extentity *e = newentity(true, o, ET_EMPTY, c.attr1, c.attr2, c.attr3, c.attr4, c.attr5);
@@ -990,9 +976,7 @@ void nearestent()
     if(closest >= 0) entadd(closest);
 }    
 
-std::string intensityCopiedClass = "", intensityCopiedStateData = ""; // INTENSITY: Save these here safely,
-                                                                      // not in a cubescript var that could be
-                                                                      // injection attacked
+const char *intensityCopiedClass = "", *intensityCopiedStateData = "";
 void intensityentcopy() // INTENSITY
 {
     if (efocus < 0)
@@ -1004,7 +988,7 @@ void intensityentcopy() // INTENSITY
 
     extentity& e = *(entities::storage[efocus]);
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
-    intensityCopiedClass = entity->getClass();
+    intensityCopiedClass = entity->getClass().c_str();
 
     using namespace lua;
     engine.getref(entity->luaRef).t_getraw("create_statedatadict");
@@ -1024,7 +1008,7 @@ void intensityentcopy() // INTENSITY
 
 void intensitypasteent() // INTENSITY
 {
-    EditingSystem::newEntity(intensityCopiedClass, intensityCopiedStateData);
+    EditingSystem::newent(intensityCopiedClass, intensityCopiedStateData);
 }
 
 int findentity(int type, int index, int attr1, int attr2)
