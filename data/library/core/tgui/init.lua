@@ -33,22 +33,6 @@ require("tgui.config")
 ]]
 
 --[[!
-    Variable: sb_laststatus
-
-    This keeps last <scoreboard> millis, used to update scoreboard
-    state every 0.5 seconds instead of every frame.
-]]
-local sb_laststatus = 0
-
---[[!
-    Variable: sb_net_stats
-
-    This holds the network stats to show. It's set from <scoreboard>
-    using C API.
-]]
-local sb_net_stats  = ""
-
---[[!
     Property: can_quit
 
     Title:
@@ -194,14 +178,6 @@ tgui.window("scoreboard", nil, function()
                 gui.label(lt)
             end
         end
-
-        local totalmillis = world.get_totalmillis()
-        local sb_seconds = (totalmillis - sb_laststatus) / 1024
-        if sb_seconds >= 0.5 then
-            sb_laststatus = totalmillis
-            sb_net_stats  = network.get_stats(sb_seconds)
-        end
-        gui.label(sb_net_stats)
     end)
 end, true, true, true, true)
 

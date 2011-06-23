@@ -8,23 +8,6 @@
 
 namespace NetworkSystem
 {
-    namespace Cataloger
-    {
-        //! Register the sending of a packet via a channel
-        void packetSent(int channel, int size);
-
-        //! Register the sending of a message by its code
-        void messageSent(int code);
-
-        //! Shows the network activity cataloged since the last show(), and
-        //! resets the counters afterwards.
-        //! @param seconds Over how many seconds the network activity has been,
-        //!                since the last show()
-        void show(float seconds);
-
-        const char *briefSummary(float seconds);
-    }
-
     namespace PositionUpdater
     {
         //! A non-optimized storage structure for a position update; in convenient

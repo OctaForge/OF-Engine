@@ -262,7 +262,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
         {
             enet_peer_send(clients[n]->peer, chan, packet);
 
-            NetworkSystem::Cataloger::packetSent(chan, packet->dataLength); // INTENSITY
+            //NetworkSystem::Cataloger::packetSent(chan, packet->dataLength); // INTENSITY
 
             break;
         }
@@ -401,25 +401,6 @@ const char *ip = "";
 #if defined(STANDALONE) || defined(SERVER) // INTENSITY: Added server
 int curtime = 0, lastmillis = 0, totalmillis = 0;
 #endif
-
-// INTENSITY: Moved this code to here, + additions
-void show_server_stats()
-{
-    float seconds = float(totalmillis-laststatus)/1024.0f;
-
-    if(seconds > 0 && (nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData))
-    {
-        printf("%d remote clients, %.1f K/sec sent, %.1f K/sec received   [over last %.1f seconds]\n", nonlocalclients, serverhost->totalSentData/seconds/1024, serverhost->totalReceivedData/seconds/1024, seconds);
-
-        NetworkSystem::Cataloger::show(seconds);
-    }
-    else
-        printf("No activity to report\r\n");
-
-    // Initialise
-    laststatus = totalmillis;
-    serverhost->totalSentData = serverhost->totalReceivedData = 0;
-}
 
 VAR(serveruprate, 0, 0, INT_MAX);
 SVAR(serverip, "");

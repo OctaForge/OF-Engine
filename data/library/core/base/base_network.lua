@@ -101,5 +101,3 @@ do_upload = CAPI.do_upload
 -- @class function
 -- @name ssls
 ssls = CAPI.ssls
-
-get_stats = CAPI.get_network_stats

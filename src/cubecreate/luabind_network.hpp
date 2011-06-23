@@ -36,14 +36,6 @@ namespace game
     fpsent *followingplayer();
 }
 
-namespace NetworkSystem
-{
-    namespace Cataloger
-    {
-        const char *briefSummary(float seconds);
-    }
-}
-
 namespace lua_binds
 {
     LUA_BIND_STD_CLIENT(connect, ClientSystem::connect, e.get<const char*>(1), e.get<int>(2))
@@ -95,6 +87,4 @@ namespace lua_binds
     })
 
     LUA_BIND_STD_CLIENT(restart_map, MessageSystem::send_RestartMap)
-
-    LUA_BIND_STD(get_network_stats, e.push, NetworkSystem::Cataloger::briefSummary(e.get<float>(1)))
 }
