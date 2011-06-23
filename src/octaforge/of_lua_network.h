@@ -1,5 +1,5 @@
 /*
- * luabind_network.hpp, version 1
+ * of_lua_network.h, version 1
  * Various server / network methods for Lua
  *
  * author: q66 <quaker66@gmail.com>

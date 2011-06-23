@@ -1,5 +1,5 @@
 /*
- * luabind_base.hpp, version 1
+ * of_lua_base.h, version 1
  * Base Lua API exports
  *
  * author: q66 <quaker66@gmail.com>

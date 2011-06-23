@@ -1,5 +1,5 @@
 /*
- * scripting_system_lua_def.hpp, version 1
+ * of_lua_definitions.h, version 1
  * Header file for Lua binding functions
  *
  * author: q66 <quaker66@gmail.com>
@@ -29,19 +29,19 @@
 
 using namespace lua;
 
-#include "luabind_base.hpp"
-#include "luabind_entity.hpp"
-#include "luabind_world.hpp"
-#include "luabind_sound.hpp"
-#include "luabind_model.hpp"
-#include "luabind_tex.hpp"
-#include "luabind_shaders.hpp"
-#include "luabind_parthud.hpp"
-#include "luabind_gui.hpp"
-#include "luabind_edit.hpp"
-#include "luabind_blend.hpp"
-#include "luabind_messages.hpp"
-#include "luabind_input.hpp"
-#include "luabind_textedit.hpp"
-#include "luabind_network.hpp"
-#include "luabind_camera.hpp"
+#include "of_lua_base.h"
+#include "of_lua_entity.h"
+#include "of_lua_world.h"
+#include "of_lua_sound.h"
+#include "of_lua_model.h"
+#include "of_lua_tex.h"
+#include "of_lua_shaders.h"
+#include "of_lua_parthud.h"
+#include "of_lua_gui.h"
+#include "of_lua_edit.h"
+#include "of_lua_blend.h"
+#include "of_lua_messages.h"
+#include "of_lua_input.h"
+#include "of_lua_textedit.h"
+#include "of_lua_network.h"
+#include "of_lua_camera.h"

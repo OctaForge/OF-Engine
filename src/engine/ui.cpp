@@ -2,7 +2,7 @@
 
 #include "engine.h"
 #include "textedit.h"
-#include "scripting_system_lua.hpp"
+#include "of_lua.h"
 #include "client_engine_additions.h"
 
 using namespace lua;

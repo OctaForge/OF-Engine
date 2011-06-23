@@ -1,5 +1,5 @@
 /*
- * luabind_tex.hpp, version 1
+ * of_lua_tex.h, version 1
  * Texture methods for Lua
  *
  * author: q66 <quaker66@gmail.com>

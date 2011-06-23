@@ -1,5 +1,5 @@
 /*
- * luabind_edit.hpp, version 1
+ * of_lua_edit.h, version 1
  * Editing API for Lua
  *
  * author: q66 <quaker66@gmail.com>

@@ -1,5 +1,5 @@
 /*
- * luabind_input.hpp, version 1
+ * of_lua_input.h, version 1
  * Keyboard / mouse input control for Lua
  *
  * author: q66 <quaker66@gmail.com>

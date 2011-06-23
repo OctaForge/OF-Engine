@@ -1,5 +1,5 @@
 /*
- * luabind_camera.hpp, version 1
+ * of_lua_camera.h, version 1
  * Camera control for Lua
  *
  * author: q66 <quaker66@gmail.com>

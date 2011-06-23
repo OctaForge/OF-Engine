@@ -78,7 +78,7 @@ set(CLIENT_SOURCES
     ../intensity/world_system
     ../intensity/targeting
     ../intensity/network_system
-    ../cubecreate/scripting_system_lua
+    ../octaforge/of_lua
     ../octaforge/of_vars
     ../shared/stream
     ../shared/zip

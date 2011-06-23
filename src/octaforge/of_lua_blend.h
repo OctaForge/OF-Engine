@@ -1,5 +1,5 @@
 /*
- * luabind_blend.hpp, version 1
+ * of_lua_blend.h, version 1
  * Texture blending methods for Lua
  *
  * author: q66 <quaker66@gmail.com>

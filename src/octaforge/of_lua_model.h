@@ -1,5 +1,5 @@
 /*
- * luabind_model.hpp, version 1
+ * of_lua_model.h, version 1
  * Model handling for Lua
  *
  * author: q66 <quaker66@gmail.com>

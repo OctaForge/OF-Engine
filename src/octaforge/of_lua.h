@@ -1,5 +1,5 @@
 /*
- * scripting_system_lua.hpp, version 1
+ * scripting_system_lua.h, version 1
  * Header file for Lua scripting system
  *
  * author: q66 <quaker66@gmail.com>
@@ -40,7 +40,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <lua.hpp>
-#include <typeinfo>
 
 /**
  * @defgroup Script_Engine_Lua_Group Scripting_Engine

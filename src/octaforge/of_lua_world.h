@@ -1,5 +1,5 @@
 /*
- * luabind_world.hpp, version 1
+ * of_lua_world.h, version 1
  * Geometry utilities and world methods
  *
  * author: q66 <quaker66@gmail.com>

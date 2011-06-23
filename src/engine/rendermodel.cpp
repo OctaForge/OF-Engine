@@ -5,7 +5,7 @@ VARP(animationinterpolationtime, 0, 150, 1000);
 
 model *loadingmodel = NULL;
 
-#include "scripting_system_lua.hpp"
+#include "of_lua.h"
 using namespace lua;
 
 #include "ragdoll.h"
