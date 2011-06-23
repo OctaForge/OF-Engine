@@ -40,7 +40,7 @@ namespace NetworkSystem
 {
     namespace Cataloger
     {
-        std::string briefSummary(float seconds);
+        const char *briefSummary(float seconds);
     }
 }
 
@@ -96,5 +96,5 @@ namespace lua_binds
 
     LUA_BIND_STD_CLIENT(restart_map, MessageSystem::send_RestartMap)
 
-    LUA_BIND_STD(get_network_stats, e.push, NetworkSystem::Cataloger::briefSummary(e.get<float>(1)).c_str())
+    LUA_BIND_STD(get_network_stats, e.push, NetworkSystem::Cataloger::briefSummary(e.get<float>(1)))
 }

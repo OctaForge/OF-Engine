@@ -2,8 +2,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-#include <map>
-
 #include "tools.h"
 
 //! All out new messages types should have higher value. This might be lower than the current '1000', and it might
@@ -35,9 +33,9 @@ namespace MessageSystem
 struct MessageType
 {
     int         type_code; //!< Each message type has a unique code, as in Sauer.
-    std::string type_name; //!< Message names are useful for debugging, but not sent over the wire
+    const char *type_name; //!< Message names are useful for debugging, but not sent over the wire
 
-    MessageType(int code, std::string name) : type_code(code), type_name(name) { assert(type_code >= INTENSITY_MSG_TYPE_MIN); };
+    MessageType(int code, const char *name) : type_code(code), type_name(name) { assert(type_code >= INTENSITY_MSG_TYPE_MIN); };
     virtual ~MessageType() { };
 
     //! Receive a message
@@ -49,7 +47,7 @@ struct MessageType
 
 struct MessageManager
 {
-    typedef std::map<int, MessageType*> MessageMap;
+    typedef hashtable<int, MessageType*> MessageMap;
 
     //! The message types in our system
     static MessageMap messageTypes;

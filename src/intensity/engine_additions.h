@@ -2,9 +2,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-#include <vector>
-#include <map>
-
 #define MAX_ATTACHMENTS 20
 
 //! An entity in the scenario, something that can act or be acted upon. Note that most of the
@@ -143,7 +140,7 @@ private:
 
 struct LogicSystem
 {
-    typedef std::map<int, CLogicEntity*> LogicEntityMap;
+    typedef hashtable<int, CLogicEntity*> LogicEntityMap;
 
     static LogicEntityMap logicEntities; //!< All the entities in the scenario
 

@@ -511,7 +511,7 @@ namespace server
                     logger::log(logger::INFO, "SERVER: relaying N_POS data for client %d\r\n", cn);
 
                     // Modify the info depending on various server parameters
-                    NetworkSystem::PositionUpdater::processServerPositionReception(info);
+                    //NetworkSystem::PositionUpdater::processServerPositionReception(info);
 
                     // Queue the info to be sent to the clients
                     int maxLength = p.length()*2 + 100; // Kripken: The server almost always DECREASES the size, but be careful
@@ -899,11 +899,11 @@ namespace server
         }
     }
 
-    void setClientScenario(int clientNumber, std::string scenarioCode)
+    void setClientScenario(int cn, const char *sc)
     {
-        clientinfo *ci = getinfo(clientNumber);
+        clientinfo *ci = getinfo(cn);
         if (!ci) return;
-        ci->runningCurrentScenario = !strcmp(world::get_scenario_code(), scenarioCode.c_str());
+        ci->runningCurrentScenario = !strcmp(world::get_scenario_code(), sc);
     }
 
     bool isRunningCurrentScenario(int clientNumber)

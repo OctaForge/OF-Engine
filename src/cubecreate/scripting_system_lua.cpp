@@ -54,7 +54,6 @@
 #include "of_localserver.h"
 #include "of_world.h"
 #include "of_entities.h"
-#include <algorithm>
 
 vector<lua::LE_reg> CAPI;
 #include "scripting_system_lua_def.hpp"

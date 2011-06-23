@@ -987,7 +987,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...\r\n");
-    MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode.c_str()); // Ask for the NPCs and other players, which are not part of the map proper
+    MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode); // Ask for the NPCs and other players, which are not part of the map proper
 #else // SERVER
     logger::log(logger::DEBUG, "Finishing loading of the world...\r\n");
     finish_load_world();
@@ -1017,7 +1017,7 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     initlights();
     allchanged(true);
 
-//    if(maptitle[0] && strcmp(maptitle, "Untitled Map by Unknown")) conoutf(CON_ECHO, "%s", maptitle.c_str()); // INTENSITY
+//    if(maptitle[0] && strcmp(maptitle, "Untitled Map by Unknown")) conoutf(CON_ECHO, "%s", maptitle); // INTENSITY
 
     startmap(cname ? cname : mname);
     

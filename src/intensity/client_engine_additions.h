@@ -2,9 +2,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-#include <vector>
-#include <map>
-
 // 'Sauer-C'-style looping
 #define loopstdv(vec) for (unsigned int i = 0; i < vec.size(); i++)
 

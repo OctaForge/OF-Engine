@@ -360,7 +360,7 @@ void LogicSystem::clear()
     if (engine.hashandle())
     {
         engine.getg("entity_store").t_getraw("del_all").call(0, 0).pop(1);
-        assert(logicEntities.size() == 0);
+        enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
         //engine.destroy();
     }
@@ -378,8 +378,8 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     INDENT_LOG(logger::DEBUG);
 
     int uniqueId = newEntity->getUniqueId();
-    assert(logicEntities.find(uniqueId) == logicEntities.end());
-    logicEntities.insert( LogicEntityMap::value_type( uniqueId, newEntity ) );
+    assert(!logicEntities.access(uniqueId));
+    logicEntities.access(uniqueId, newEntity);
 
     engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
     newEntity->luaRef = engine.ref();
@@ -441,10 +441,10 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
 {
     logger::log(logger::DEBUG, "UNregisterLogicEntity by UniqueID: %d\r\n", uniqueId);
 
-    CLogicEntity *ptr = logicEntities[uniqueId];
+    if (!logicEntities.access(uniqueId)) return;
 
-    logicEntities.erase(uniqueId);
-    if (!ptr) return;
+    CLogicEntity *ptr = logicEntities[uniqueId];
+    logicEntities.remove(uniqueId);
 
     for (int i = 0; ptr->attachments[i].tag; i++)
     {
@@ -472,15 +472,13 @@ void LogicSystem::manageActions(long millis)
 
 CLogicEntity *LogicSystem::getLogicEntity(int uniqueId)
 {
-    LogicEntityMap::iterator iter = logicEntities.find(uniqueId);
-
-    if (iter == logicEntities.end())
+    if (!logicEntities.access(uniqueId))
     {
         logger::log(logger::INFO, "(C++) Trying to get a non-existant logic entity %d\r\n", uniqueId);
         return NULL;
     }
 
-    return iter->second;
+    return logicEntities[uniqueId];
 }
 
 CLogicEntity *LogicSystem::getLogicEntity(const extentity &extent)

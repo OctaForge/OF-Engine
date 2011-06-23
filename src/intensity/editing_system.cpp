@@ -17,9 +17,6 @@
 #include "of_tools.h"
 #include "of_entities.h"
 
-#include <set>
-#include <algorithm>
-
 // Kripken:
 // sel.corner: The face corner the mouse pointer is closest to.
 //             For a face from above, 0 is to the origin, and 2 is across from 1 (so, fill one row, then fill

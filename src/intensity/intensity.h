@@ -6,8 +6,6 @@
 
     #define __INTENSITY_H__
 
-    #include <string>
-
     #include "of_vars.h"
     #include "engine_additions.h"
     #include "of_logger.h"
