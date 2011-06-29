@@ -74,7 +74,7 @@ namespace lua_binds
         loopi(MATF_VOLUME+1) materialslots[i].reset();
     })
 
-    LUA_BIND_CLIENT(compactvslosts, {
+    LUA_BIND_CLIENT(compactvslots, {
         if (nompedit && multiplayer()) return;
         compactvslots();
         allchanged();

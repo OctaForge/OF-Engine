@@ -23,14 +23,19 @@
 ]]
 module("console", package.seeall)
 
---- Toggle the console.
--- @class function
--- @name toggle
+--[[!
+    Function: toggle
+    Toggles the console viewing.
+]]
 toggle = CAPI.toggleconsole
 
----
--- @class function
--- @name skip
+--[[!
+    Function: skip
+    Allows you to browse through the console history by offsetting the output.
+
+    Parameters:
+        n - how much to skip. 1 means by 1 item back in history, -1000 resets the history.
+]]
 skip = CAPI.conskip
 
 ---
@@ -64,7 +69,7 @@ end
 -- @param key Key to bind
 -- @param modifier
 function binds.addmod(key, modifier)
-    CAPI.bind(key, [[%(1)s = 1; console.onrelease([=[%(1)s = 0]=])]] % { modifier })
+    CAPI.bind(key, [[%(1)s = 1; console.onrelease(function() %(1)s = 0 end)]] % { modifier })
 end
 
 function binds.add_action_key(key, action, self)
@@ -112,7 +117,7 @@ end
 -- @param key Key to bind
 -- @param modifier
 function binds.addmodedit(key, modifier)
-    CAPI.editbind(key, [[%(1)s = 1; console.onrelease([=[%(1)s = 0]=])]] % { modifier })
+    CAPI.editbind(key, [[%(1)s = 1; console.onrelease(function() %(1)s = 0 end)]] % { modifier })
 end
 
 --- Get the action a key is bound to

@@ -846,6 +846,13 @@ namespace lua
         return ref;
     }
 
+    int lua_Engine::ref_keep_stack()
+    {
+        int r = ref();
+        getref(r);
+        return r;
+    }
+
     lua_Engine& lua_Engine::getref(int r)
     {
         if (!m_hashandle) return *this;

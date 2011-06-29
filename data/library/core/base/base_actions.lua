@@ -375,14 +375,14 @@ function action_targeted:__init(target, kwargs)
 end
 
 --[[!
-    Class: action_singlecommand
+    Class: action_single_command
     Action that runs a single command with arguments.
     Useful for i.e. queuing a command for next act() of
     an entity.
 ]]
-action_singlecommand = class.new(action)
+action_single_command = class.new(action)
 
-function action_singlecommand:__tostring() return "action_singlecommand" end
+function action_single_command:__tostring() return "action_singlecommand" end
 
 --[[!
     Constructor: __init
@@ -397,7 +397,7 @@ function action_singlecommand:__tostring() return "action_singlecommand" end
     See:
         <action>
 ]]
-function action_singlecommand:__init(command, kwargs)
+function action_single_command:__init(command, kwargs)
     action.__init(kwargs)
     self.command = command
 end
@@ -413,7 +413,7 @@ end
     Returns:
         always true in this case.
 ]]
-function action_singlecommand:doexecute(sec)
+function action_single_command:doexecute(sec)
     self.command()
     return true
 end

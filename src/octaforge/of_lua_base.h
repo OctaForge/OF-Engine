@@ -38,17 +38,14 @@ void getfps_(int *raw);
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
 extern vector<cline> conlines;
-void bindkey(char *key, char *action, int state);
+void bindkey(char *key, int action, int state);
 void getbind(char *key, int type);
-void searchbinds(char *action, int type);
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL);
 void history_(int *n);
-void onrelease(char *s);
 void screenshot(char *filename);
 void movie(char *name);
 void glext(char *ext);
 void loadcrosshair_(const char *name, int *i);
-void tabify(const char *str, int *numtabs);
 void resetsound();
 void scorebshow(bool on);
 bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL);
@@ -114,7 +111,6 @@ namespace lua_binds
         showscoreboard = on ? 1 : 0;
         scorebshow(on);
     })
-    LUA_BIND_STD_CLIENT(tabify, tabify, e.get<char*>(1), e.get<int*>(2))
     LUA_BIND_STD(writecfg, tools::writecfg, e.get<const char*>(1))
     LUA_BIND_DEF(readfile, {
         const char *text = tools::sread(e.get<const char*>(1));
@@ -265,15 +261,12 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, fullconsole ? fullconfilter : confilter, e.get<int>(1))
     LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, miniconfilter, e.get<int>(1))
     LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
-    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_DEFAULT)
-    LUA_BIND_STD_CLIENT(specbind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_SPECTATOR)
-    LUA_BIND_STD_CLIENT(editbind, bindkey, e.get<char*>(1), e.get<char*>(2), keym::ACTION_EDITING)
+    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.ref_keep_stack(), keym::ACTION_DEFAULT)
+    LUA_BIND_STD_CLIENT(specbind, bindkey, e.get<char*>(1), e.ref_keep_stack(), keym::ACTION_SPECTATOR)
+    LUA_BIND_STD_CLIENT(editbind, bindkey, e.get<char*>(1), e.ref_keep_stack(), keym::ACTION_EDITING)
     LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), keym::ACTION_DEFAULT)
     LUA_BIND_STD_CLIENT(getspecbind, getbind, e.get<char*>(1), keym::ACTION_SPECTATOR)
     LUA_BIND_STD_CLIENT(geteditbind, getbind, e.get<char*>(1), keym::ACTION_EDITING)
-    LUA_BIND_STD_CLIENT(searchbinds, searchbinds, e.get<char*>(1), keym::ACTION_DEFAULT)
-    LUA_BIND_STD_CLIENT(searchspecbinds, searchbinds, e.get<char*>(1), keym::ACTION_SPECTATOR)
-    LUA_BIND_STD_CLIENT(searcheditbinds, searchbinds, e.get<char*>(1), keym::ACTION_EDITING)
     LUA_BIND_CLIENT(saycommand, {
         int n = e.gettop();
         switch (n)
@@ -298,7 +291,7 @@ namespace lua_binds
     })
     LUA_BIND_STD_CLIENT(inputcommand, inputcommand, e.get<char*>(1), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
-    LUA_BIND_STD_CLIENT(onrelease, onrelease, e.get<char*>(1))
+    LUA_BIND_STD_CLIENT(onrelease, addreleaseaction, e.ref_keep_stack())
 
     LUA_BIND_STD(get_totalmillis, e.push, totalmillis)
 }

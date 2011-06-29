@@ -559,6 +559,7 @@ namespace lua
          * The element on -1 gets cleared from the stack.
          */
         int ref();
+        int ref_keep_stack();
         /**
          * @brief Gets an object of provided reference number and pushes it on stack.
          * @param r The reference number to get object from.

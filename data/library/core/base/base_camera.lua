@@ -40,7 +40,7 @@ module("camera", package.seeall)
 force = CAPI.forcecam
 
 --[[!
-    Function: forcepos
+    Function: force_position
     Forces camera position.
 
     Parameters:
@@ -48,43 +48,43 @@ force = CAPI.forcecam
         y - Y position.
         z - Z position.
 ]]
-forcepos = CAPI.forcepos
+force_position = CAPI.forcepos
 
 --[[!
-    Function: forceyaw
+    Function: force_yaw
     Forces camera yaw.
 
     Parameters:
         yaw - The yaw to force.
 ]]
-forceyaw = CAPI.forceyaw
+force_yaw = CAPI.forceyaw
 
 --[[!
-    Function: forcepitch
+    Function: force_pitch
     Forces camera pitch.
 
     Parameters:
         pitch - The pitch to force.
 ]]
-forcepitch = CAPI.forcepitch
+force_pitch = CAPI.forcepitch
 
 --[[!
-    Function: forceroll
+    Function: force_roll
     Forces camera roll.
 
     Parameters:
         roll - The roll to force.
 ]]
-forceroll = CAPI.forceroll
+force_roll = CAPI.forceroll
 
 --[[!
-    Function: forcefov
+    Function: force_fov
     Forces camera fov.
 
     Parameters:
         fov - The fov to force.
 ]]
-forcefov = CAPI.forcefov
+force_fov = CAPI.forcefov
 
 --[[!
     Function: reset
