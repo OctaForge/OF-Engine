@@ -327,7 +327,7 @@ NotifyNumEntities(server->client)
     implicit clientNumber
     int num
     receive:
-        WorldSystem::setNumExpectedEntities(num);
+        world::set_num_expected_entities(num);
 end
 
 // Sent by the server right after all active entities. This signals that no further entities are going to be sent,
@@ -465,7 +465,7 @@ LogicEntityCompleteNotification(server->client,npc)
         #endif
 
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
 end
 
 RequestLogicEntityRemoval(client->server)
@@ -560,7 +560,7 @@ ExtentCompleteNotification(server->client)
             .pop(1);
 
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
 end
 
 // Client number is sent also explicitly here, so the client finds it out

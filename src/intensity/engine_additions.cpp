@@ -8,7 +8,6 @@
 
 #include "message_system.h"
 #include "client_system.h"
-#include "world_system.h"
 #include "of_tools.h"
 #include "of_entities.h"
 

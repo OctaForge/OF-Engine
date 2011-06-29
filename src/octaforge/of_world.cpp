@@ -30,6 +30,7 @@
 #include "cube.h"
 #include "of_tools.h"
 #include "game.h"
+#include "engine.h"
 
 #ifdef WIN32
 #include "wuuid.h"
@@ -50,8 +51,36 @@ extern string homedir;
 
 namespace world
 {
+    bool loading = false;
+
     static const char *curr_map_id   = NULL;
     static const char *scenario_code = NULL;
+
+    static int num_expected_entities = 0;
+    static int num_received_entities = 0;
+
+    void set_num_expected_entities(int num)
+    {
+        num_expected_entities = num;
+        num_received_entities = 0;
+    }
+
+    void trigger_received_entity()
+    {
+        num_received_entities++;
+
+        if (num_expected_entities > 0)
+        {
+            float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
+            char  buf[32];
+
+            snprintf(buf, sizeof(buf), "received entity %i ...", num_received_entities);
+            if (loading)
+            {
+                renderprogress(val, buf);
+            }
+        }
+    }
 
     const char *generate_scenario_code()
     {

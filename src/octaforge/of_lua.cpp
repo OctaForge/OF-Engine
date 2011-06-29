@@ -32,7 +32,6 @@
 #include "game.h"
 
 #include <cmath>
-#include "world_system.h"
 #include "message_system.h"
 #ifdef CLIENT
     #include "client_engine_additions.h"

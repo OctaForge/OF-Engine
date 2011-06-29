@@ -79,9 +79,9 @@ namespace lua_binds
         extentity *ext = self->staticEntity;
         assert(ext);
 
-        if (!WorldSystem::loadingWorld) removeentity(ext);
+        if (!world::loading) removeentity(ext);
         ext->attr4 = e.get<int>(2);
-        if (!WorldSystem::loadingWorld) addentity(ext);
+        if (!world::loading) addentity(ext);
 
         // finally reload sound, so everything gets applied
         self->setSound(self->sndname);
@@ -115,9 +115,9 @@ namespace lua_binds
         assert(ext); \
         \
         /* Need to remove, then add, to the world on each change, if not during load. */ \
-        if (!WorldSystem::loadingWorld) removeentity(ext); \
+        if (!world::loading) removeentity(ext); \
         ext->n = e.get<int>(2); \
-        if (!WorldSystem::loadingWorld) addentity(ext); \
+        if (!world::loading) addentity(ext); \
     }) \
     \
     LUA_BIND_LE(FAST_set##n, { \
@@ -141,9 +141,9 @@ namespace lua_binds
         assert(self->staticEntity); \
         \
         /* Need to remove, then add, to the octa world on each change. */ \
-        if (!WorldSystem::loadingWorld) removeentity(self->staticEntity); \
+        if (!world::loading) removeentity(self->staticEntity); \
         self->an = e.get<double>(2); \
-        if (!WorldSystem::loadingWorld) addentity(self->staticEntity); \
+        if (!world::loading) addentity(self->staticEntity); \
     })
 
     EXTENT_LE_ACCESSORS(collisionradw, collisionRadiusWidth)

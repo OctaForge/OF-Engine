@@ -17,7 +17,6 @@
 #include "client_system.h"
 #include "message_system.h"
 #include "editing_system.h"
-#include "world_system.h"
 #include "network_system.h"
 #include "of_world.h"
 #include "of_tools.h"
@@ -818,7 +817,7 @@ namespace MessageSystem
 
         int num = getint(p);
 
-        WorldSystem::setNumExpectedEntities(num);
+        world::set_num_expected_entities(num);
     }
 #endif
 
@@ -1064,7 +1063,7 @@ namespace MessageSystem
             }
         #endif
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
     }
 
 
@@ -1269,7 +1268,7 @@ namespace MessageSystem
             .call(2, 0)
             .pop(1);
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
     }
 #endif
 

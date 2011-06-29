@@ -14,7 +14,6 @@
 #endif
 
 #include "message_system.h"
-#include "world_system.h"
 #include "of_tools.h"
 #include "of_world.h"
 

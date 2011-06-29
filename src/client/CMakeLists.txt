@@ -75,7 +75,6 @@ set(CLIENT_SOURCES
     ../engine/sound
     ../engine/pvs
     ../intensity/engine_additions
-    ../intensity/world_system
     ../intensity/targeting
     ../intensity/network_system
     ../octaforge/of_lua

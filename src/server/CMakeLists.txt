@@ -47,7 +47,6 @@ set(SERVER_SOURCES
     ../engine/bih
     ../shared/geom
     ../engine/client
-    ../intensity/world_system
     ../engine/octaedit
     ../intensity/targeting
     ../intensity/network_system

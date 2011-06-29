@@ -5,7 +5,6 @@
 
 // INTENSITY
 #include "intensity.h"
-#include "world_system.h"
 #include "message_system.h"
 #ifdef CLIENT
     #include "client_system.h"
@@ -559,7 +558,7 @@ octaheader *saved_hdr = NULL; // INTENSITY
 
 bool load_world(const char *mname, const char *cname)        // still supports all map formats that have existed since the earliest cube betas!
 {
-    WorldSystem::loadingWorld = true; // INTENSITY
+    world::loading = true; // INTENSITY
     LogicSystem::init(); // INTENSITY: Start our game data system, wipe all existing LogicEntities, and add the player
 
     setmapfilenames(mname, cname);
@@ -1022,7 +1021,7 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     startmap(cname ? cname : mname);
     
     logger::log(logger::DEBUG, "load_world complete.\r\n"); // INTENSITY
-    WorldSystem::loadingWorld = false; // INTENSITY
+    world::loading = false; // INTENSITY
 
     delete saved_hdr; // INTENSITY
 
