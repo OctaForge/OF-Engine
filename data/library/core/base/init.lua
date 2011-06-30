@@ -108,6 +108,9 @@ setmetatable(_G, {
 logging.log(logging.DEBUG, ":: Utilities.")
 require("base.base_utility")
 
+logging.log(logging.DEBUG, ":: Input.")
+require("base.base_input")
+
 logging.log(logging.DEBUG, ":: Console.")
 require("base.base_console")
 

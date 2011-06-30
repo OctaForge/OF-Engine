@@ -38,122 +38,122 @@ fullconfilter = 0xFFFF -- display all messages in full console
 
 -- WSAD
 
-console.binds.add("W", function() console.forward() end)
-console.binds.add("S", function() console.backward() end)
-console.binds.add("A", function() console.left() end)
-console.binds.add("D", function() console.right() end)
+input.bind("W", function() input.forward() end)
+input.bind("S", function() input.backward() end)
+input.bind("A", function() input.strafe_left() end)
+input.bind("D", function() input.strafe_right() end)
 
-console.binds.add("UP", function() console.forward() end)
-console.binds.add("DOWN", function() console.backward() end)
-console.binds.add("LEFT", function() console.left() end)
-console.binds.add("RIGHT", function() console.right() end)
+input.bind("UP", function() input.look_up() end)
+input.bind("DOWN", function() input.look_down() end)
+input.bind("LEFT", function() input.turn_left() end)
+input.bind("RIGHT", function() input.turn_right() end)
 
-console.binds.add("SPACE", function() console.jump() end)
+input.bind("SPACE", function() input.jump() end)
 
-console.binds.add("TAB", function() gui.showscores() end)
+input.bind("TAB", function() gui.showscores() end)
 
-console.binds.add("T", function() console.saycommand() end)
---console.binds.add("T", function() console.sayteamcommand() end)
-console.binds.add("BACKQUOTE", function() console.saycommand("/") end)
-console.binds.add("SLASH", function() console.saycommand("/") end)
+input.bind("T", function() console.saycommand() end)
+--input.bind("T", function() console.sayteamcommand() end)
+input.bind("BACKQUOTE", function() console.saycommand("/") end)
+input.bind("SLASH", function() console.saycommand("/") end)
 
-console.binds.add("E", function() world.edittoggle() end)
-console.binds.add("F1", function() world.edittoggle() end)
+input.bind("E", function() world.edittoggle() end)
+input.bind("F1", function() world.edittoggle() end)
 
-console.binds.add("KP_MINUS", function() console.skip(5) end)
-console.binds.add("KP_PLUS", function() console.skip(-1000) end)
+input.bind("KP_MINUS", function() console.skip(5) end)
+input.bind("KP_PLUS", function() console.skip(-1000) end)
 
-console.binds.addvar("PAUSE", "paused")
+input.bind_var("PAUSE", "paused")
 
-console.binds.add("F11", function() console.toggle() end)
-console.binds.add("F12", function() engine.screenshot() end)
+input.bind("F11", function() console.toggle() end)
+input.bind("F12", function() engine.screenshot() end)
 
 -- mouse
 
-console.binds.add("MOUSE1", function() console.mouse1click() end)
-console.binds.add("MOUSE2", function() console.mouse2click() end)
-console.binds.add("MOUSE3", function() console.mouse3click() end)
+input.bind("MOUSE1", function() input.mouse1click() end)
+input.bind("MOUSE2", function() input.mouse2click() end)
+input.bind("MOUSE3", function() input.mouse3click() end)
 
 -- universal scrollwheel + modifier commands:
 
-console.binds.add("MOUSE4", function() universaldelta(1) end) -- also used for editing, see below
-console.binds.add("MOUSE5", function() universaldelta(-1) end)
+input.bind("MOUSE4", function() universaldelta(1) end) -- also used for editing, see below
+input.bind("MOUSE5", function() universaldelta(-1) end)
 
 -- edit binds
 
-console.binds.addedit("SPACE", function() world.cancelsel() end)
-console.binds.addedit("MOUSE1", function() if blendpaintmode ~= 0 then texture.blendmap.paint() else world.editdrag() end end)
-console.binds.addedit("MOUSE3", function() world.selcorners() end)
-console.binds.addedit("MOUSE2", function() if blendpaintmode ~= 0 then texture.blendbrush.rotate() else world.editextend() end end)
+input.bind_edit("SPACE", function() world.cancelsel() end)
+input.bind_edit("MOUSE1", function() if blendpaintmode ~= 0 then texture.blendmap.paint() else world.editdrag() end end)
+input.bind_edit("MOUSE3", function() world.selcorners() end)
+input.bind_edit("MOUSE2", function() if blendpaintmode ~= 0 then texture.blendbrush.rotate() else world.editextend() end end)
 
-console.binds.addedit("KP_ENTER", function() world.entselect([=[world.insel()]=]) end)
-console.binds.addedit("N", function() world.selentfindall() end)
+input.bind_edit("KP_ENTER", function() world.entselect([=[world.insel()]=]) end)
+input.bind_edit("N", function() world.selentfindall() end)
 
-console.binds.addedit("LSHIFT", function() world.editcut() end)
-console.binds.addmodedit("LCTRL", "passthrough")
-console.binds.addmodedit("LALT", "hmapedit")
-console.binds.addedit("DELETE", function() world.editdel() end)
+input.bind_edit("LSHIFT", function() world.editcut() end)
+input.bind_mod_edit("LCTRL", "passthrough")
+input.bind_mod_edit("LALT", "hmapedit")
+input.bind_edit("DELETE", function() world.editdel() end)
 
-console.binds.addedit("X", function() world.editflip() end)
-console.binds.addedit("C", function() world.editcopy() end)
-console.binds.addedit("V", function() world.editpaste() end)
-console.binds.addedit("Z", function() world.undo(); passthroughsel = 0 end)
-console.binds.addedit("U", function() world.undo(); passthroughsel = 0 end)
-console.binds.addedit("I", function() world.redo() end)
-console.binds.addedit("H", function() if hmapedit ~= 0 then world.editface(1, -1) else hmapedit = 1 end end)
+input.bind_edit("X", function() world.editflip() end)
+input.bind_edit("C", function() world.editcopy() end)
+input.bind_edit("V", function() world.editpaste() end)
+input.bind_edit("Z", function() world.undo(); passthroughsel = 0 end)
+input.bind_edit("U", function() world.undo(); passthroughsel = 0 end)
+input.bind_edit("I", function() world.redo() end)
+input.bind_edit("H", function() if hmapedit ~= 0 then world.editface(1, -1) else hmapedit = 1 end end)
 
-console.binds.addvaredit("5", "hidehud")
-console.binds.addvaredit("6", "entselsnap")
-console.binds.addvaredit("7", "outline")
-console.binds.addvaredit("8", "wireframe")
-console.binds.addvar("9", "thirdperson")
-console.binds.addvaredit("0", "allfaces")
-console.binds.addedit("K", function() world.calclight() end)
-console.binds.addvaredit("L", "fullbright")
-console.binds.addvaredit("M", "showmat")
+input.bind_var_edit("5", "hidehud")
+input.bind_var_edit("6", "entselsnap")
+input.bind_var_edit("7", "outline")
+input.bind_var_edit("8", "wireframe")
+input.bind_var("9", "thirdperson")
+input.bind_var_edit("0", "allfaces")
+input.bind_edit("K", function() world.calclight() end)
+input.bind_var_edit("L", "fullbright")
+input.bind_var_edit("M", "showmat")
 
-console.binds.addedit("PERIOD", function() world.selentedit() end)
+input.bind_edit("PERIOD", function() world.selentedit() end)
 
-console.binds.addedit("F9", function() echo("%(1)s : %(2)s" % { texture.getsel(), texture.getname(texture.getsel()) }) end)
+input.bind_edit("F9", function() echo("%(1)s : %(2)s" % { texture.getsel(), texture.getname(texture.getsel()) }) end)
 
-console.binds.addedit("G", function() domodifier(1) end)
-console.binds.addedit("F", function() domodifier(2) end)
-console.binds.addedit("Q", function() domodifier(3) end)
-console.binds.addedit("R", function() domodifier(4) end)
-console.binds.addedit("Y", function() domodifier(6) end)
-console.binds.addedit("B", function() domodifier(9) end)
-console.binds.addedit("COMMA", function() domodifier(10); console.onrelease(function() world.entautoview() end) end)
+input.bind_edit("G", function() domodifier(1) end)
+input.bind_edit("F", function() domodifier(2) end)
+input.bind_edit("Q", function() domodifier(3) end)
+input.bind_edit("R", function() domodifier(4) end)
+input.bind_edit("Y", function() domodifier(6) end)
+input.bind_edit("B", function() domodifier(9) end)
+input.bind_edit("COMMA", function() domodifier(10); input.on_release(function() world.entautoview() end) end)
 
-console.binds.addedit("1", function() domodifier(11) end)
-console.binds.addedit("2", function() domodifier(12) end)
-console.binds.addedit("3", function() domodifier(13) end)
-console.binds.addedit("4", function() domodifier(14) end)
+input.bind_edit("1", function() domodifier(11) end)
+input.bind_edit("2", function() domodifier(12) end)
+input.bind_edit("3", function() domodifier(13) end)
+input.bind_edit("4", function() domodifier(14) end)
 
-console.binds.addedit("5", function() domodifier(15) end) -- vSlot: offset H
-console.binds.addedit("6", function() domodifier(16) end) -- vSlot: offset V
-console.binds.addedit("7", function() domodifier(17) end) -- vSlot: rotate
-console.binds.addedit("8", function() domodifier(18) end) -- vSlot: scale
+input.bind_edit("5", function() domodifier(15) end) -- vSlot: offset H
+input.bind_edit("6", function() domodifier(16) end) -- vSlot: offset V
+input.bind_edit("7", function() domodifier(17) end) -- vSlot: rotate
+input.bind_edit("8", function() domodifier(18) end) -- vSlot: scale
 
-console.binds.addedit("LALT", function() multiplier = 10; console.onrelease(function() multiplier = 1 end) end)
-console.binds.addedit("RALT", function() multiplier2 = 32; console.onrelease(function() multiplier2 = 16 end) end)
+input.bind_edit("LALT", function() multiplier = 10; input.on_release(function() multiplier = 1 end) end)
+input.bind_edit("RALT", function() multiplier2 = 32; input.on_release(function() multiplier2 = 16 end) end)
 
 -- blendmap painting
-console.binds.addedit("KP0", function() texture.setblendpaintmode(blendpaintmode ~= 0 and 0 or 1) end)
-console.binds.addedit("KP1", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(1) else console.left() end end)
-console.binds.addedit("KP2", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(2) else console.backward() end end)
-console.binds.addedit("KP3", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(3) else console.right() end end)
-console.binds.addedit("KP4", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(4) else console.turn_left() end end)
-console.binds.addedit("KP5", function() texture.setblendpaintmode(5) end)
-console.binds.addedit("KP6", function() console.turn_right() end)
-console.binds.addedit("KP8", function() if blendpaintmode ~= 0 then texture.blendbrush.scroll(-1) else console.forward() end end)
-console.binds.addedit("KP9", function() texture.blendbrush.scroll(1) end)
+input.bind_edit("KP0", function() texture.setblendpaintmode(blendpaintmode ~= 0 and 0 or 1) end)
+input.bind_edit("KP1", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(1) else input.left() end end)
+input.bind_edit("KP2", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(2) else input.backward() end end)
+input.bind_edit("KP3", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(3) else input.right() end end)
+input.bind_edit("KP4", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(4) else input.turn_left() end end)
+input.bind_edit("KP5", function() texture.setblendpaintmode(5) end)
+input.bind_edit("KP6", function() input.turn_right() end)
+input.bind_edit("KP8", function() if blendpaintmode ~= 0 then texture.blendbrush.scroll(-1) else input.forward() end end)
+input.bind_edit("KP9", function() texture.blendbrush.scroll(1) end)
 
-console.binds.add("M", function() camera.mouselook() end)
-console.binds.addedit("M", function() camera.mouselook() end)
-console.binds.addvaredit("0", "showmat")
+input.bind("M", function() camera.mouselook() end)
+input.bind_edit("M", function() camera.mouselook() end)
+input.bind_var_edit("0", "showmat")
 
-console.binds.add("PAGEDOWN", function() console.look_up() end)
-console.binds.add("PAGEDOWN", function() console.look_down() end)
+input.bind("PAGEDOWN", function() input.look_up() end)
+input.bind("PAGEDOWN", function() input.look_down() end)
 
-console.binds.addedit("MOUSE2", function() world.editextend_intensity() end)
-console.binds.addedit("P", function() world.centerent() end)
+input.bind_edit("MOUSE2", function() world.editextend_intensity() end)
+input.bind_edit("P", function() world.centerent() end)

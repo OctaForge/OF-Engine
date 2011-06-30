@@ -134,13 +134,6 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
 }
 
 #ifdef CLIENT
-bool useMouseTargeting = false;
-
-void TargetingControl::setMouseTargeting(bool on)
-{
-    useMouseTargeting = on;
-}
-
 VAR(has_mouse_target, 0, 0, 1);
 
 void TargetingControl::determineMouseTarget(bool forceEntityCheck)
@@ -152,7 +145,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
     if (logger::should_log(logger::INFO))
         particle_splash(0, 50, 100, TargetingControl::worldPosition); // Kripken: Show some sparkles where the mouse points - for debug
 
-    if (!useMouseTargeting && !editmode && !forceEntityCheck)
+    if (!editmode && !forceEntityCheck)
     {
         TargetingControl::targetLogicEntity = NULL;
         TargetingControl::targetPosition = TargetingControl::worldPosition;

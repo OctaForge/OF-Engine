@@ -8,7 +8,7 @@ end
 
 -- core binds
 
-console.binds.add("ESCAPE", function()
+input.bind("ESCAPE", function()
     gui.menu_key_click_trigger()
     if not gui.hide("main") then
         gui.show("main")

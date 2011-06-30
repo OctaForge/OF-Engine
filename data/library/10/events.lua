@@ -103,11 +103,11 @@ action_input_capture_plugin = {
             self.old_client_click = _G["client_click"]
             _G["client_click"] = function(...) self.client_click(self, ...) end
         end
-        if self.action_keys then
-            self.old_action_keys = {}
-            for key, action in pairs(self.action_keys) do
-                self.old_action_keys[key] = console.binds.get_action_key(key)
-                console.binds.add_action_key(key, action, self.action_key_self or self)
+        if self.per_map_keys then
+            self.old_per_map_keys = {}
+            for key, action in pairs(self.per_map_keys) do
+                self.old_per_map_keys[key] = input.get_bind(key, input.BIND_MAP)
+                input.bind_map_specific(key, action, self.action_key_self or self)
             end
         end
         if self.do_movement then
@@ -128,9 +128,9 @@ action_input_capture_plugin = {
         if self.client_click then
             _G["client_click"] = self.old_client_click
         end
-        if self.action_keys then
-            for key, action in pairs(self.old_action_keys) do
-                console.binds.add_action_key(key, action)
+        if self.per_map_keys then
+            for key, action in pairs(self.old_per_map_keys) do
+                input.bind_map_specific(key, action)
             end
         end
         if self.do_movement then

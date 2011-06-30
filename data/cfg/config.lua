@@ -7,7 +7,7 @@ modifier = defaultmodifier
 
 function domodifier(m)
     modifier = m
-    console.onrelease(function() modifier = defaultmodifier end)
+    input.on_release(function() modifier = defaultmodifier end)
 end
 
 function universaldelta(n)

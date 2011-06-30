@@ -464,7 +464,7 @@ void execbind(keym &k, bool isdown)
 
         if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
         {
-            lua::engine.getg("console").t_getraw("action_keys").t_getraw(k.name);
+            lua::engine.getg("input").t_getraw("per_map_keys").t_getraw(k.name);
             if (lua::engine.is<void*>(-1))
             {
                 keypressed = &k;
@@ -632,7 +632,7 @@ static int sortbinds(keym **x, keym **y)
 
 void writebinds(stream *f)
 {
-    static const char *cmds[3] = { "add", "addspec", "addedit" };
+    static const char *cmds[3] = { "", "_spec", "_edit" };
     vector<keym *> binds;
     enumerate(keyms, keym, km, binds.add(&km));
     binds.sort(sortbinds);
@@ -664,7 +664,7 @@ void writebinds(stream *f)
                 lua::engine.unref(fmt_ref).unref(dmp_ref);
 
                 /* write it all */
-                f->printf("console.binds.%s(\"%s\", loadstring(", cmds[j], km.name);
+                f->printf("input.bind%s(\"%s\", loadstring(", cmds[j], km.name);
                 f->write(bc, strlen(bc));
                 f->printf("))\n");
             }

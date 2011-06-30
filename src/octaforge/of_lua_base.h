@@ -261,12 +261,8 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, fullconsole ? fullconfilter : confilter, e.get<int>(1))
     LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, miniconfilter, e.get<int>(1))
     LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
-    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.ref_keep_stack(), keym::ACTION_DEFAULT)
-    LUA_BIND_STD_CLIENT(specbind, bindkey, e.get<char*>(1), e.ref_keep_stack(), keym::ACTION_SPECTATOR)
-    LUA_BIND_STD_CLIENT(editbind, bindkey, e.get<char*>(1), e.ref_keep_stack(), keym::ACTION_EDITING)
-    LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), keym::ACTION_DEFAULT)
-    LUA_BIND_STD_CLIENT(getspecbind, getbind, e.get<char*>(1), keym::ACTION_SPECTATOR)
-    LUA_BIND_STD_CLIENT(geteditbind, getbind, e.get<char*>(1), keym::ACTION_EDITING)
+    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.ref_keep_stack(), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), e.get<int>(2))
     LUA_BIND_CLIENT(saycommand, {
         int n = e.gettop();
         switch (n)

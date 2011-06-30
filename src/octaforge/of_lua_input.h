@@ -94,24 +94,6 @@ namespace lua_binds
 
     bool k_turn_left, k_turn_right, k_look_up, k_look_down;
 
-    #define DIR(name, v, d, s, os) \
-    LUA_BIND_CLIENT(name, { \
-        if (ClientSystem::scenarioStarted()) \
-        { \
-            /* stop current actions */ \
-            e.getref(ClientSystem::playerLogicEntity->luaRef); \
-            e.t_getraw("action_system"); \
-            e.t_getraw("clear").push_index(-2).call(1, 0).pop(2); \
-            s = addreleaseaction("CAPI."#name"()")!=0; \
-            ((fpsent*)player)->v = s ? d : (os ? -(d) : 0); \
-        } \
-    })
-
-    DIR(turn_left,  turn_move, -1, k_turn_left,  k_turn_right); // New turning motion
-    DIR(turn_right, turn_move, +1, k_turn_right, k_turn_left);  // New pitching motion
-    DIR(look_down, look_updown_move, -1, k_look_down, k_look_up);
-    DIR(look_up,   look_updown_move, +1, k_look_up,   k_look_down);
-
     #define SCRIPT_DIR(name, v, p, d, s, os) \
     LUA_BIND_CLIENT(name, { \
         if (ClientSystem::scenarioStarted()) \
@@ -131,11 +113,10 @@ namespace lua_binds
         } \
     })
 
-    //SCRIPT_DIR(turn_left,  do_yaw, yawing, -1, k_turn_left,  k_turn_right); // New turning motion
-    //SCRIPT_DIR(turn_right, do_yaw, yawing, +1, k_turn_right, k_turn_left);  // New pitching motion
-    // TODO: Enable these. But they do change the protocol (see Character.lua), so forces everyone and everything to upgrade
-    //SCRIPT_DIR(look_down, do_pitch, pitching, -1, k_look_down, k_look_up);
-    //SCRIPT_DIR(look_up,   do_pitch, pitching, +1, k_look_up,   k_look_down);
+    SCRIPT_DIR(turn_left,  do_yaw, yawing, -1, k_turn_left,  k_turn_right);
+    SCRIPT_DIR(turn_right, do_yaw, yawing, +1, k_turn_right, k_turn_left);
+    SCRIPT_DIR(look_down, do_pitch, pitching, -1, k_look_down, k_look_up);
+    SCRIPT_DIR(look_up,   do_pitch, pitching, +1, k_look_up,   k_look_down);
 
     // Old player movements
     SCRIPT_DIR(backward, do_movement, move, -1, player->k_down,  player->k_up);
@@ -166,18 +147,9 @@ namespace lua_binds
         }
     })
 
-    LUA_BIND_STD_CLIENT(mouse_targeting, TargetingControl::setMouseTargeting, e.get<int>(1))
-
-    LUA_BIND_CLIENT(set_mouse_targeting_ent, {
+    LUA_BIND_CLIENT(set_targeted_entity, {
+        if (TargetingControl::targetLogicEntity) delete TargetingControl::targetLogicEntity;
         TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(e.get<int>(1));
-        e.push((int)(TargetingControl::targetLogicEntity != NULL));
-    })
-
-    LUA_BIND_CLIENT(set_mouse_target_client, {
-        dynent *client = game::getclient(e.get<int>(1));
-        if (client) TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(client);
-        else if (TargetingControl::targetLogicEntity) delete TargetingControl::targetLogicEntity;
-
-        e.push((int)(TargetingControl::targetLogicEntity != NULL));
+        e.push(TargetingControl::targetLogicEntity != NULL);
     })
 }
