@@ -196,18 +196,13 @@ NewEntityRequest(client->server)
 
         // Validate class
 
-        if (!EditingSystem::validateEntityClass(_class))
+        lua::engine.getg("entity_classes").t_getraw("get_class").push(_class).call(1, 1);
+        if (lua::engine.is<void>(-1))
         {
-            char buf[512];
-            snprintf(buf, sizeof(buf), "Invalid entity class: %s", _class);
-            logger::log(logger::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
-            send_PersonalServerMessage(
-                sender,
-                buf,
-                "Reminder: Create entities using F8, not /newent. See the wiki for more."
-            );
+            lua::engine.pop(2);
             return;
         }
+        lua::engine.pop(2);
 
         // Add entity
 
@@ -332,7 +327,7 @@ NotifyNumEntities(server->client)
     implicit clientNumber
     int num
     receive:
-        WorldSystem::setNumExpectedEntities(num);
+        world::set_num_expected_entities(num);
 end
 
 // Sent by the server right after all active entities. This signals that no further entities are going to be sent,
@@ -470,7 +465,7 @@ LogicEntityCompleteNotification(server->client,npc)
         #endif
 
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
 end
 
 RequestLogicEntityRemoval(client->server)
@@ -565,7 +560,7 @@ ExtentCompleteNotification(server->client)
             .pop(1);
 
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
 end
 
 // Client number is sent also explicitly here, so the client finds it out

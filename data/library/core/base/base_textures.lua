@@ -303,3 +303,13 @@ end
 
 filltexlist = CAPI.filltexlist
 getnumslots = CAPI.getnumslots
+
+---
+-- @class function
+-- @name replace
+replace = CAPI.replace
+
+---
+-- @class function
+-- @name replacesel
+replacesel = CAPI.replacesel

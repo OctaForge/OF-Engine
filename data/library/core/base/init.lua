@@ -108,6 +108,9 @@ setmetatable(_G, {
 logging.log(logging.DEBUG, ":: Utilities.")
 require("base.base_utility")
 
+logging.log(logging.DEBUG, ":: Input.")
+require("base.base_input")
+
 logging.log(logging.DEBUG, ":: Console.")
 require("base.base_console")
 
@@ -155,6 +158,9 @@ require("base.base_ent_static")
 
 logging.log(logging.DEBUG, ":: Textures.")
 require("base.base_textures")
+
+logging.log(logging.DEBUG, ":: VSlots.")
+require("base.base_vslots")
 
 logging.log(logging.DEBUG, ":: World interface.")
 require("base.base_world")

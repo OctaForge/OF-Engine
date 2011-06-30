@@ -75,10 +75,9 @@ set(CLIENT_SOURCES
     ../engine/sound
     ../engine/pvs
     ../intensity/engine_additions
-    ../intensity/world_system
     ../intensity/targeting
     ../intensity/network_system
-    ../cubecreate/scripting_system_lua
+    ../octaforge/of_lua
     ../octaforge/of_vars
     ../shared/stream
     ../shared/zip

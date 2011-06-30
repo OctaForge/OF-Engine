@@ -1,5 +1,5 @@
 /*
- * luabind_tex.hpp, version 1
+ * of_lua_tex.h, version 1
  * Texture methods for Lua
  *
  * author: q66 <quaker66@gmail.com>
@@ -74,7 +74,7 @@ namespace lua_binds
         loopi(MATF_VOLUME+1) materialslots[i].reset();
     })
 
-    LUA_BIND_CLIENT(compactvslosts, {
+    LUA_BIND_CLIENT(compactvslots, {
         if (nompedit && multiplayer()) return;
         compactvslots();
         allchanged();

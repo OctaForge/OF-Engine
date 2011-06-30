@@ -49,7 +49,6 @@ def generate_messages():
 #include "client_system.h"
 #include "message_system.h"
 #include "editing_system.h"
-#include "world_system.h"
 #include "network_system.h"
 #include "of_world.h"
 #include "of_tools.h"

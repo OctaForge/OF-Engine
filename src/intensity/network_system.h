@@ -8,23 +8,6 @@
 
 namespace NetworkSystem
 {
-    namespace Cataloger
-    {
-        //! Register the sending of a packet via a channel
-        void packetSent(int channel, int size);
-
-        //! Register the sending of a message by its code
-        void messageSent(int code);
-
-        //! Shows the network activity cataloged since the last show(), and
-        //! resets the counters afterwards.
-        //! @param seconds Over how many seconds the network activity has been,
-        //!                since the last show()
-        void show(float seconds);
-
-        std::string briefSummary(float seconds);
-    }
-
     namespace PositionUpdater
     {
         //! A non-optimized storage structure for a position update; in convenient
@@ -95,14 +78,5 @@ namespace NetworkSystem
             //! fields, etc., i.e., the opposite of generateFrom(buffer).
             void applyToBuffer(ucharbuf& q);
         };
-
-        //! Process a position updated which is received by the server, in preparation for
-        //! sending it out to the other clients.
-        //! The naive approach simply leaves it as-is. A more sophisticated solution
-        //! optimizes bandwidth in various ways. Our current model is as follows:
-        //!     - Clients send data at full speed, all the time
-        //!     - The server reduces the size of those updates, and their frequency,
-        //!       in order to save bandwidth
-        void processServerPositionReception(QuantizedInfo& info);
     }
 }

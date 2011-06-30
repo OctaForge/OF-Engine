@@ -1,11 +1,11 @@
 /*
- * scripting_system_lua.cpp, version 1
+ * of_lua.cpp, version 1
  * Source file for Lua scripting system
  *
  * author: q66 <quaker66@gmail.com>
  * license: MIT/X11
  *
- * Copyright (c) 2010 q66
+ * Copyright (c) 2011 q66
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,20 +27,11 @@
  *
  */
 
-/*
- * ENGINE INCLUDES
- */
-
 #include "cube.h"
 #include "engine.h"
 #include "game.h"
 
-/*
- * CUBECREATE INCLUDES
- */
-
 #include <cmath>
-#include "world_system.h"
 #include "message_system.h"
 #ifdef CLIENT
     #include "client_engine_additions.h"
@@ -54,10 +45,9 @@
 #include "of_localserver.h"
 #include "of_world.h"
 #include "of_entities.h"
-#include <algorithm>
 
 vector<lua::LE_reg> CAPI;
-#include "scripting_system_lua_def.hpp"
+#include "of_lua_definitions.h"
 
 extern LE_reg *objbinds;
 extern LE_reg *md5binds;
@@ -853,6 +843,13 @@ namespace lua
         }
         lua_rawseti(m_handle, LUA_REGISTRYINDEX, ref);
         return ref;
+    }
+
+    int lua_Engine::ref_keep_stack()
+    {
+        int r = ref();
+        getref(r);
+        return r;
     }
 
     lua_Engine& lua_Engine::getref(int r)

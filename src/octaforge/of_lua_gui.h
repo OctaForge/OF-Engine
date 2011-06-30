@@ -1,5 +1,5 @@
 /*
- * luabind_gui.hpp, version 1
+ * of_lua_gui.h, version 1
  * GUI methods for Lua
  *
  * author: q66 <quaker66@gmail.com>
@@ -39,6 +39,7 @@ namespace gui
     void _bind_replaceui(lua_Engine e);
     void _bind_uialign(lua_Engine e);
     void _bind_uiclamp(lua_Engine e);
+    void _bind_uiwinmover(lua_Engine e);
     void _bind_uitag(lua_Engine e);
     void _bind_uivlist(lua_Engine e);
     void _bind_uihlist(lua_Engine e);
@@ -93,6 +94,7 @@ namespace lua_binds
     REG(replaceui)
     REG(uialign)
     REG(uiclamp)
+    REG(uiwinmover)
     REG(uitag)
     REG(uivlist)
     REG(uihlist)

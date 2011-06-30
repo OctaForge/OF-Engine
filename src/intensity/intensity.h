@@ -6,12 +6,10 @@
 
     #define __INTENSITY_H__
 
-    #include <string>
-
     #include "of_vars.h"
     #include "engine_additions.h"
     #include "of_logger.h"
-    #include "scripting_system_lua.hpp"
+    #include "of_lua.h"
 
     // Additional externs from sauer
 

@@ -92,20 +92,6 @@ int text_width(const char *str) { //@TODO deprecate in favour of text_bounds(..)
     text_bounds(str, width, height);
     return width;
 }
-
-void tabify(const char *str, int *numtabs)
-{
-    vector<char> tabbed;
-    tabbed.put(str, strlen(str));
-    int w = text_width(str), tw = max(*numtabs, 0)*PIXELTAB;
-    while(w < tw)
-    {
-        tabbed.add('\t');
-        w = ((w+PIXELTAB)/PIXELTAB)*PIXELTAB;
-    }
-    tabbed.add('\0');
-    lua::engine.push(tabbed.getbuf());
-}
   
 void draw_textf(const char *fstr, int left, int top, ...)
 {

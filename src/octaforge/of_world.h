@@ -32,6 +32,11 @@
 
 namespace world
 {
+    extern bool loading;
+
+    void set_num_expected_entities(int num);
+    void trigger_received_entity();
+
     bool set_map(const char *id);
     bool restart_map();
 

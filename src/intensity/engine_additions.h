@@ -2,9 +2,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-#include <vector>
-#include <map>
-
 #define MAX_ATTACHMENTS 20
 
 //! An entity in the scenario, something that can act or be acted upon. Note that most of the
@@ -54,7 +51,7 @@ struct CLogicEntity
     bool canMove;
 
     //! Sound name of this entity
-    std::string soundName;
+    const char *sndname;
 
 //    int currAnimationFrame; //!< Saved from sauer's rendering system, used so we know which bounding box to use, for per-frame models
 //    int                    lastBIHFrame;       // So we know if we need a new BIH or not, when frames change BUGGY, TODO: Implement fix
@@ -103,7 +100,7 @@ struct CLogicEntity
     int getAnimationFrame();
 
     //! Gets the lua class name of a logic entity (e.g., Mapmodel, Player, Door)
-    std::string getClass();
+    const char *getClass();
 
     //! Returns the model used to render this entity
     model* getModel();
@@ -112,13 +109,13 @@ struct CLogicEntity
     const char *getSound();
 
     //! Updates the model based on lua information. Refreshes what is needed in Sauer
-    void setModel(std::string name);
+    void setModel(const char *name);
 
     //! Updates the sound based on lua information. Refreshes what is needed in Sauer
-    void setSound(std::string _sound);
+    void setSound(const char *snd);
 
     //! Updates the attachments based on lua information. Refreshes what is needed in Sauer
-    void setAttachments(std::string _attachments);
+    void setAttachments(const char *at);
 
     //! Updates the animation based on lua information. Refreshes what is needed in Sauer. In particular sets the start time.
     void setAnimation(int _animation);
@@ -126,7 +123,7 @@ struct CLogicEntity
     bool getCanMove() { return canMove; };
     void setCanMove(bool value) { canMove = value; };
 
-    vec& getAttachmentPosition(std::string tag);
+    vec& getAttachmentPosition(const char *tag);
 
     //! Called when we actually render the model. Only such actual renders will calculate
     //! attachment positions, for example. This does not occur if not facing the entity.
@@ -143,7 +140,7 @@ private:
 
 struct LogicSystem
 {
-    typedef std::map<int, CLogicEntity*> LogicEntityMap;
+    typedef hashtable<int, CLogicEntity*> LogicEntityMap;
 
     static LogicEntityMap logicEntities; //!< All the entities in the scenario
 

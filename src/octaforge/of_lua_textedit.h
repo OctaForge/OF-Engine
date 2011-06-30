@@ -1,5 +1,5 @@
 /*
- * luabind_textedit.hpp, version 1
+ * of_lua_textedit.h, version 1
  * Cube 2 text editor system embedding
  *
  * author: q66 <quaker66@gmail.com>

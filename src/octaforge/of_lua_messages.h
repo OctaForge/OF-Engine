@@ -1,5 +1,5 @@
 /*
- * luabind_messages.hpp, version 1
+ * of_lua_messages.h, version 1
  * Message system binds for Lua
  *
  * author: q66 <quaker66@gmail.com>

@@ -1,5 +1,5 @@
 /*
- * luabind_network.hpp, version 1
+ * of_lua_network.h, version 1
  * Various server / network methods for Lua
  *
  * author: q66 <quaker66@gmail.com>
@@ -34,14 +34,6 @@ namespace game
 {
     void toserver(char *text);
     fpsent *followingplayer();
-}
-
-namespace NetworkSystem
-{
-    namespace Cataloger
-    {
-        std::string briefSummary(float seconds);
-    }
 }
 
 namespace lua_binds
@@ -95,6 +87,4 @@ namespace lua_binds
     })
 
     LUA_BIND_STD_CLIENT(restart_map, MessageSystem::send_RestartMap)
-
-    LUA_BIND_STD(get_network_stats, e.push, NetworkSystem::Cataloger::briefSummary(e.get<float>(1)).c_str())
 }

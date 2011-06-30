@@ -47,11 +47,10 @@ set(SERVER_SOURCES
     ../engine/bih
     ../shared/geom
     ../engine/client
-    ../intensity/world_system
     ../engine/octaedit
     ../intensity/targeting
     ../intensity/network_system
-    ../cubecreate/scripting_system_lua
+    ../octaforge/of_lua
     ../octaforge/of_vars
     ../engine/octarender
     ../fpsgame/weapon

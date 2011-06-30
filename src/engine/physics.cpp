@@ -7,7 +7,6 @@
 #include "mpr.h"
 #include "game.h" // INTENSITY: for fpsent
 
-#include "world_system.h" // INTENSITY
 #include "targeting.h" // INTENSITY
 #ifdef CLIENT
     #include "client_engine_additions.h" // INTENSITY

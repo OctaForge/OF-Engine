@@ -1,5 +1,5 @@
 /*
- * luabind_world.hpp, version 1
+ * of_lua_world.h, version 1
  * Geometry utilities and world methods
  *
  * author: q66 <quaker66@gmail.com>
@@ -46,7 +46,6 @@ void entflip();
 void entrotate(int *cw);
 void entpush(int *dir);
 void attachent();
-void newent(char *what, int *a1, int *a2, int *a3, int *a4, int *a5);
 void delent();
 void dropent();
 void entcopy();
@@ -167,7 +166,6 @@ namespace lua_binds
     LUA_BIND_STD(entrotate, entrotate, e.get<int*>(1))
     LUA_BIND_STD(entpush, entpush, e.get<int*>(1))
     LUA_BIND_STD(attachent, attachent)
-    LUA_BIND_STD(newent, newent, e.get<char*>(1), e.get<int*>(2), e.get<int*>(3), e.get<int*>(4), e.get<int*>(5), e.get<int*>(6))
     LUA_BIND_STD(delent, delent)
     LUA_BIND_STD(dropent, dropent)
     LUA_BIND_STD(entcopy, entcopy)

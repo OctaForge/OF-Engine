@@ -30,16 +30,6 @@ local table  = require("table")
 ]]
 module("world", package.seeall)
 
---- Check for collision
--- @class function
--- @name iscolliding
--- @param x X coordinate
--- @param y Y coordinate
--- @param z Z coordinate
--- @param rd Radius
--- @param ignore Entity to be ignored for this test (entity id)
-iscolliding = CAPI.iscolliding
-
 --- Set the gravity
 -- @class function
 -- @name setgravity
@@ -70,11 +60,6 @@ entpush = CAPI.entpush
 -- @class function
 -- @name attachent
 attachent = CAPI.attachent
-
----
--- @class function
--- @name newent
-newent = CAPI.newent
 
 ---
 -- @class function
@@ -271,73 +256,8 @@ delcube = CAPI.delcube
 
 ---
 -- @class function
--- @name compactvslosts
-compactvslosts = CAPI.compactvslosts
-
----
--- @class function
 -- @name fixinsidefaces
 fixinsidefaces = CAPI.fixinsidefaces
-
----
--- @class function
--- @name vdelta
-vdelta = CAPI.vdelta
-
----
--- @class function
--- @name vrotate
-vrotate = CAPI.vrotate
-
----
--- @class function
--- @name voffset
-voffset = CAPI.voffset
-
----
--- @class function
--- @name vscroll
-vscroll = CAPI.vscroll
-
----
--- @class function
--- @name vscale
-vscale = CAPI.vscale
-
----
--- @class function
--- @name vlayer
-vlayer = CAPI.vlayer
-
----
--- @class function
--- @name valpha
-valpha = CAPI.valpha
-
----
--- @class function
--- @name vcolor
-vcolor = CAPI.vcolor
-
----
--- @class function
--- @name vreset
-vreset = CAPI.vreset
-
----
--- @class function
--- @name vshaderparam
-vshaderparam = CAPI.vshaderparam
-
----
--- @class function
--- @name replace
-replace = CAPI.replace
-
----
--- @class function
--- @name replacesel
-replacesel = CAPI.replacesel
 
 ---
 -- @class function
@@ -363,21 +283,6 @@ npcadd = CAPI.npcadd
 -- @class function
 -- @name npcdel
 npcdel = CAPI.npcdel
-
----
--- @class function
--- @name getentclass
-getentclass = CAPI.getentclass
-
----
--- @class function
--- @name prepareentityclasses
-prepareentityclasses = CAPI.prepareentityclasses
-
----
--- @class function
--- @name numentityclasses
-numentityclasses = CAPI.numentityclasses
 
 ---
 -- @class function
@@ -676,12 +581,12 @@ function editpaste()
     if table.concat(entcopybuf) == "" then
         pastehilite()
         reorient() -- temp - teal fix will be in octaedit
-        CAPI.onrelease([[
-            world.delcube()
-            world.paste()
-            world.entpaste()
-            if %(1)s then world.cancelsel() end
-        ]] % { env.tostring(cancelpaste) })
+        CAPI.onrelease(function()
+            delcube()
+            paste()
+            entpaste()
+            if cancelpaste then cancelsel() end
+        end)
     else
         entreplace()
         if cancelpaste then cancelsel() end
@@ -797,11 +702,11 @@ end
 function enttoggle() env.entmoving = 1; env.entmoving = 0 end
 function entaddmove() env.entmoving = 2 end
 
-function drag() env.dragging = 1; CAPI.onrelease([[dragging = 0]]) end
-function corners() env.selectcorners = 1; env.dragging = 1; CAPI.onrelease([[selectcorners = 0; dragging = 0]]) end
+function drag() env.dragging = 1; CAPI.onrelease(function() env.dragging = 0 end) end
+function corners() env.selectcorners = 1; env.dragging = 1; CAPI.onrelease(function() env.selectcorners = 0; env.dragging = 0 end) end
 function entadd() entaddmove(); env.entmoving = 0 end
-function editmove() env.moving = 1; CAPI.onrelease([[moving = 0]]); return env.moving end
-function entdrag() entaddmove(); CAPI.onrelease([[world.finish_dragging(); entmoving = 0]]); return env.entmoving end
+function editmove() env.moving = 1; CAPI.onrelease(function() env.moving = 0 end); return env.moving end
+function entdrag() entaddmove(); CAPI.onrelease(function() finish_dragging(); env.entmoving = 0 end); return env.entmoving end
 function editdrag() cancelsel(); if entdrag() == 0 then drag() end end
 function selcorners()
     if env.hmapedit ~= 0 then
@@ -822,18 +727,10 @@ function editextend_intensity()
 end
 
 function edit_entity(a)
-    if CAPI.set_mouse_targeting_ent(a) ~= 0 then
+    if CAPI.set_targeted_entity(a) then
         gui.show_entity_properties_gui()
     else
         echo("No such entity")
-    end
-end
-
-function edit_client(a)
-    if CAPI.set_mouse_target_client(a) ~= 0 then
-        gui.show_entity_properties_gui()
-    else
-        echo("No such client")
     end
 end
 
@@ -842,7 +739,7 @@ function editmovecorner(a)
         if editmove() == 0 then
             selcorners()
         end
-        CAPI.onrelease([[moving = 0; dragging = 0]])
+        CAPI.onrelease(function() env.moving = 0; env.dragging = 0 end)
     else
         selcorners()
     end
@@ -853,7 +750,7 @@ function editmovedrag(a)
         if editmove() == 0 then
             editdrag()
         end
-        CAPI.onrelease([[moving = 0; dragging = 0]])
+        CAPI.onrelease(function() env.moving = 0; env.dragging = 0 end)
     else
         editdrag()
     end
@@ -911,14 +808,14 @@ function editcut()
     if env.moving ~= 0 then
         copy();   entcopy()
         delcube(); delent()
-        CAPI.onrelease([[
-            moving = 0
-            world.paste()
-            world.entpaste()
-            if %(1)s == 0 then
-                world.cancelsel()
+        CAPI.onrelease(function()
+            env.moving = 0
+            paste()
+            entpaste()
+            if hadselection == 0 then
+                cancelsel()
             end
-        ]] % { hadselection })
+        end)
     end
 end
 
@@ -935,14 +832,6 @@ function passthrough(a)
         env.entediting = env.tonumber(not a or a == 0)
     end
 end
-
-function air() editmat("air") end
-function water() editmat("water") end
-function clip() editmat("clip") end
-function glass() editmat("glass") end
-function noclip() editmat("noclip") end
-function lava() editmat("lava") end
-function alpha() editmat("alpha") end
 
 function getsundir()
     local cam = CAPI.getcam()

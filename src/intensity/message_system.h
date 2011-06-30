@@ -2,8 +2,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-#include <map>
-
 #include "tools.h"
 
 //! All out new messages types should have higher value. This might be lower than the current '1000', and it might
@@ -35,9 +33,9 @@ namespace MessageSystem
 struct MessageType
 {
     int         type_code; //!< Each message type has a unique code, as in Sauer.
-    std::string type_name; //!< Message names are useful for debugging, but not sent over the wire
+    const char *type_name; //!< Message names are useful for debugging, but not sent over the wire
 
-    MessageType(int code, std::string name) : type_code(code), type_name(name) { assert(type_code >= INTENSITY_MSG_TYPE_MIN); };
+    MessageType(int code, const char *name) : type_code(code), type_name(name) { assert(type_code >= INTENSITY_MSG_TYPE_MIN); };
     virtual ~MessageType() { };
 
     //! Receive a message
@@ -49,7 +47,7 @@ struct MessageType
 
 struct MessageManager
 {
-    typedef std::map<int, MessageType*> MessageMap;
+    typedef hashtable<int, MessageType*> MessageMap;
 
     //! The message types in our system
     static MessageMap messageTypes;
@@ -65,13 +63,6 @@ struct MessageManager
     //! receiver - clientnumber of the receiver. On clients there is only the player, but on the server there might be
     //! many NPCs.
     static bool receive(int type, int receiver, int sender, ucharbuf &p);
-
-    //! Simple storage of the current file we expect in a file transfer. We have this because sauer file transfers lack
-    //! a filename
-    static void awaitFile(std::string name);
-
-    //! Get the name of the file we are awaiting; it is the name we should save as
-    static std::string getAwaitingFile();
 };
 
 // Include all the procedurally-generated message data

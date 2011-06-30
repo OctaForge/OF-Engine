@@ -14,7 +14,6 @@
 #endif
 
 #include "message_system.h"
-#include "world_system.h"
 #include "of_tools.h"
 #include "of_world.h"
 
@@ -593,25 +592,20 @@ namespace game
         return NULL;
     }
 
-    std::string scriptname(fpsent *d)
+    const char *scriptname(fpsent *d)
     {
         engine.getg("entity_store")
               .t_getraw("get")
               .push(LogicSystem::getUniqueId(d)).call(1, 1);
         // got class here
-        std::string ret(engine.t_get<const char*>("_name"));
+        const char *ret = engine.t_get<const char*>("_name");
         engine.pop(2);
         return ret;
     }
 
     char *colorname(fpsent *d, char *name, const char *prefix)
     {
-        std::string sName;
-        if(!name)
-        {
-            sName = scriptname(d);
-            name = (char*)sName.c_str();
-        }
+        if(!name) name = (char*)scriptname(d);
         const char* color = (d != player1) ? "" : "\f1";
         static string cname;
         formatstring(cname)("%s%s", color, name);

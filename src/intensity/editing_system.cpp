@@ -17,9 +17,6 @@
 #include "of_tools.h"
 #include "of_entities.h"
 
-#include <set>
-#include <algorithm>
-
 // Kripken:
 // sel.corner: The face corner the mouse pointer is closest to.
 //             For a face from above, 0 is to the origin, and 2 is across from 1 (so, fill one row, then fill
@@ -58,53 +55,25 @@ namespace EditingSystem
 {
     bool madeChanges = false;
 
+    void newent(const char *cl, const char *sd)
+    {
+        /* the positioning is ugly. SPANK SPANK SPANK */
+        #ifdef CLIENT
+            if (!havesel) return;
+            vec o = sel.o.tovec();
 
-std::vector<std::string> entityClasses;
-
-void prepareentityclasses()
-{
-    entityClasses.clear();
-
-    lua::engine.getg("entity_classes").t_getraw("list").call(0, 1);
-    logger::log(logger::DEBUG, "prepareentityclasses: Got table of entity classes.");
-    LUA_TABLE_FOREACH(lua::engine, {
-        entityClasses.push_back(lua::engine.get<const char*>(-1));
-    });
-    lua::engine.pop(2);
-    logger::log(logger::DEBUG, "prepareentityclasses: Done.");
-}
-
-bool validateEntityClass(std::string _class)
-{
-    prepareentityclasses();
-
-    return std::find(entityClasses.begin(), entityClasses.end(), _class) != entityClasses.end();
-}
-
-void newEntity(std::string _class, std::string stateData)
-{
-    /* the positioning is ugly. SPANK SPANK SPANK */
-    #ifdef CLIENT
-        if (!havesel) return;
-        vec o = sel.o.tovec();
-
-        if (stateData == "") stateData = "{}";
-        MessageSystem::send_NewEntityRequest(_class.c_str(),
-                                             o.x,
-                                             o.y,
-                                             worldpos.z,
-                                             stateData.c_str());
-    #else // SERVER
-        assert(0); // Where?
-    #endif
-}
+            if (!sd || !strcmp(sd, "")) sd = "{}";
+            MessageSystem::send_NewEntityRequest(cl,
+                                                 o.x,
+                                                 o.y,
+                                                 worldpos.z,
+                                                 sd);
+        #else // SERVER
+            assert(0); // Where?
+        #endif
+    }
 
 //----------------
-
-int getWorldSize()
-{
-    return getworldsize();
-}
 
 void eraseGeometry()
 {

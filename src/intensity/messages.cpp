@@ -17,7 +17,6 @@
 #include "client_system.h"
 #include "message_system.h"
 #include "editing_system.h"
-#include "world_system.h"
 #include "network_system.h"
 #include "of_world.h"
 #include "of_tools.h"
@@ -510,18 +509,13 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        if (!EditingSystem::validateEntityClass(_class))
+        lua::engine.getg("entity_classes").t_getraw("get_class").push(_class).call(1, 1);
+        if (lua::engine.is<void>(-1))
         {
-            char buf[512];
-            snprintf(buf, sizeof(buf), "Invalid entity class: %s", _class);
-            logger::log(logger::WARNING, "User tried to add an invalid entity: %s\r\n", _class);
-            send_PersonalServerMessage(
-                sender,
-                buf,
-                "Reminder: Create entities using F8, not /newent. See the wiki for more."
-            );
+            lua::engine.pop(2);
             return;
         }
+        lua::engine.pop(2);
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
@@ -823,7 +817,7 @@ namespace MessageSystem
 
         int num = getint(p);
 
-        WorldSystem::setNumExpectedEntities(num);
+        world::set_num_expected_entities(num);
     }
 #endif
 
@@ -1069,7 +1063,7 @@ namespace MessageSystem
             }
         #endif
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
     }
 
 
@@ -1274,7 +1268,7 @@ namespace MessageSystem
             .call(2, 0)
             .pop(1);
         // Events post-reception
-        WorldSystem::triggerReceivedEntity();
+        world::trigger_received_entity();
     }
 #endif
 

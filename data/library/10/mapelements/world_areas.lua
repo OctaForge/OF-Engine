@@ -39,7 +39,7 @@ action_input_capture = class.new(actions.action, {
     dostart = function(self)
         self.client_click = function(self, ...) return self.actor.client_click(self.actor, ...) end
 
-        self.action_keys  = self.actor.action_keys
+        self.per_map_keys  = self.actor.per_map_keys
         self.self.action_key_self = self.actor
 
         self.do_movement  = function(self, ...) return self.actor.do_movement (self.actor, ...) end

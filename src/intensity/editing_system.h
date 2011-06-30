@@ -11,23 +11,7 @@ namespace EditingSystem
     //! changes are not lost.
     extern bool madeChanges;
 
-    bool validateEntityClass(std::string _class);
-
-    //! We queue entity creation commands, as we await a uniqueID from the server. That is,
-    //! newent doesn't create them immediately, first we send a request to the server. In
-    //! response to that request, we do finalizeQueuedEntity with the uniqueId. TODO:
-    //! show some animation while user waits for server response, and prevent multiple
-    //! queuing at the same time.
-    void newEntity(std::string _class, std::string stateData="");
-
-    #ifdef CLIENT
-        struct QueuedEntity
-        {
-            static std::string _class;
-        };
-    #endif
-
-    int getWorldSize();
+    void newent(const char *cl, const char *sd);
 
     void eraseGeometry();
 

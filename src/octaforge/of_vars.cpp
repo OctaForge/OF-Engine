@@ -31,7 +31,6 @@
 #include "engine.h"
 #include "game.h"
 
-#include "world_system.h"
 #include "message_system.h"
 #ifdef CLIENT
     #include "client_system.h"

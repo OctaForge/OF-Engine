@@ -423,6 +423,7 @@ extern int renderconsole(int w, int h, int abovehud);
 extern void conoutf(const char *s, ...);
 extern void conoutf(int type, const char *s, ...);
 const char *getkeyname(int code);
+extern const char *addreleaseaction(int a);
 extern const char *addreleaseaction(const char *s);
 extern void writebinds(stream *f);
 
@@ -440,11 +441,11 @@ struct keym
     
     int code;
     char *name;
-    char *actions[NUMACTIONS];
+    int actions[NUMACTIONS];
     bool pressed;
 
-    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
-    ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
+    keym() : code(-1), name(NULL), pressed(false) { }
+    ~keym() { DELETEA(name); }
 };
 
 // main

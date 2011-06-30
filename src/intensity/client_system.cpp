@@ -8,7 +8,6 @@
 
 #include "message_system.h"
 
-#include "world_system.h"
 #include "editing_system.h"
 #include "client_engine_additions.h"
 #include "targeting.h"
@@ -23,7 +22,7 @@ CLogicEntity  *ClientSystem::playerLogicEntity  = NULL;
 bool           ClientSystem::loggedIn           = false;
 bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
-std::string ClientSystem::currScenarioCode = "";
+const char    *ClientSystem::currScenarioCode   = "";
 
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
@@ -39,11 +38,11 @@ namespace game
 }
 
 
-void ClientSystem::connect(std::string host, int port)
+void ClientSystem::connect(const char *host, int port)
 {
     editingAlone = false;
 
-    connectserv((char *)host.c_str(), port, "");
+    connectserv((char *)host, port, "");
 }
 
 void ClientSystem::login(int clientNumber)
@@ -157,7 +156,7 @@ struct queuedHUDRect
     float alpha;
 };
 
-std::vector<queuedHUDRect> queuedHUDRects;
+vector<queuedHUDRect> queuedHUDRects;
 
 void ClientSystem::addHUDRect(float x1, float y1, float x2, float y2, int color, float alpha)
 {
@@ -168,12 +167,12 @@ void ClientSystem::addHUDRect(float x1, float y1, float x2, float y2, int color,
     q.y2 = y2;
     q.color = color;
     q.alpha = alpha;
-    queuedHUDRects.push_back(q);
+    queuedHUDRects.add(q);
 }
 
 struct queuedHUDImage
 {
-    std::string tex;
+    const char *tex;
     float centerX, centerY; //!< In relative coordinates (to each axis, the center of where to draw the HUD
 //    float widthInX, heightInY; //!< In axis-relative coordinates, how big the HUD should be.
 //                               //!< E.g. widthInX 0.5 means its width is half of the X dimension
@@ -191,9 +190,9 @@ struct queuedHUDImage
     }
 };
 
-std::vector<queuedHUDImage> queuedHUDImages;
+vector<queuedHUDImage> queuedHUDImages;
 
-void ClientSystem::addHUDImage(std::string tex, float centerX, float centerY, float width, float height, int color, float alpha)
+void ClientSystem::addHUDImage(const char *tex, float centerX, float centerY, float width, float height, int color, float alpha)
 {
     queuedHUDImage q;
     q.tex = tex;
@@ -203,19 +202,19 @@ void ClientSystem::addHUDImage(std::string tex, float centerX, float centerY, fl
     q.height = height;
     q.color = color;
     q.alpha = alpha;
-    queuedHUDImages.push_back(q);
+    queuedHUDImages.add(q);
 }
 
 struct queuedHUDText
 {
-    std::string text;
+    const char *text;
     float x, y, scale;
     int color;
 };
 
-std::vector<queuedHUDText> queuedHUDTexts;
+vector<queuedHUDText> queuedHUDTexts;
 
-void ClientSystem::addHUDText(std::string text, float x, float y, float scale, int color)
+void ClientSystem::addHUDText(const char *text, float x, float y, float scale, int color)
 {
     queuedHUDText q;
     q.text = text;
@@ -223,7 +222,7 @@ void ClientSystem::addHUDText(std::string text, float x, float y, float scale, i
     q.y = y;
     q.scale = scale;
     q.color = color;
-    queuedHUDTexts.push_back(q);
+    queuedHUDTexts.add(q);
 }
 
 void ClientSystem::drawHUD(int w, int h)
@@ -238,7 +237,7 @@ void ClientSystem::drawHUD(int w, int h)
     glPushMatrix();
     glScalef(w, h, 1);
 
-    for (unsigned int i = 0; i < queuedHUDRects.size(); i++)
+    loopv(queuedHUDRects)
     {
         queuedHUDRect& q = queuedHUDRects[i];
         if (q.x2 < 0)
@@ -274,7 +273,7 @@ void ClientSystem::drawHUD(int w, int h)
     glPushMatrix();
     glScalef(w, h, 1);
 
-    for (unsigned int i = 0; i < queuedHUDImages.size(); i++)
+    loopv(queuedHUDImages)
     {
         queuedHUDImage& q = queuedHUDImages[i];
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -286,7 +285,7 @@ void ClientSystem::drawHUD(int w, int h)
         rgb.mul(1.0/256.0);
 
         glColor4f(rgb[0], rgb[1], rgb[2], q.alpha);
-        settexture(q.tex.c_str(), 3);
+        settexture(q.tex, 3);
         glBegin(GL_TRIANGLE_STRIP);
             glTexCoord2f(0.0f, 0.0f); glVertex2f(x1, y1);
             glTexCoord2f(1.0f, 0.0f); glVertex2f(x2, y1);
@@ -299,7 +298,7 @@ void ClientSystem::drawHUD(int w, int h)
 
     // Texts
 
-    for (unsigned int i = 0; i < queuedHUDTexts.size(); i++)
+    loopv(queuedHUDTexts)
     {
         queuedHUDText& q = queuedHUDTexts[i];
 
@@ -311,7 +310,7 @@ void ClientSystem::drawHUD(int w, int h)
         int g = q.color & 255;
         int r = q.color >> 8;
 
-        draw_text(q.text.c_str(), w*q.x/q.scale - text_width(q.text.c_str())/2, h*q.y/q.scale - FONTH/2, r, g, b);
+        draw_text(q.text, w*q.x/q.scale - text_width(q.text)/2, h*q.y/q.scale - FONTH/2, r, g, b);
 
         glPopMatrix();
     }
@@ -382,9 +381,9 @@ void ClientSystem::drawMinimap(int w, int h)
 
 void ClientSystem::cleanupHUD()
 {
-    queuedHUDRects.clear();
-    queuedHUDImages.clear();
-    queuedHUDTexts.clear();
+    queuedHUDRects.setsize(0);
+    queuedHUDImages.setsize(0);
+    queuedHUDTexts.setsize(0);
 }
 
 void ClientSystem::finishLoadWorld()
@@ -401,7 +400,7 @@ void ClientSystem::finishLoadWorld()
     gui::clearmainmenu(); // (see prepareForMap)
 }
 
-void ClientSystem::prepareForNewScenario(std::string scenarioCode)
+void ClientSystem::prepareForNewScenario(const char *sc)
 {
     _mapCompletelyReceived = false; // We no longer have a map. This implies scenarioStarted will return false, thus
                                     // stopping sending of position updates, as well as rendering
@@ -413,7 +412,7 @@ void ClientSystem::prepareForNewScenario(std::string scenarioCode)
     // another map with its Classes etc.
     LogicSystem::clear();
 
-    currScenarioCode = scenarioCode;
+    currScenarioCode = sc;
 }
 
 bool ClientSystem::isAdmin()

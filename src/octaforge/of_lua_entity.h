@@ -1,5 +1,5 @@
 /*
- * luabind_entity.hpp, version 1
+ * of_lua_entity.h, version 1
  * Entity Lua API exports
  *
  * author: q66 <quaker66@gmail.com>
@@ -62,7 +62,7 @@ namespace lua_binds
     LUA_BIND_LE(getstarttime, e.push(self->getStartTime());)
 
     LUA_BIND_LE(setmodelname, {
-        logger::log(logger::DEBUG, "setmodelname(%s, %s)\n", self->getClass().c_str(), e.get<const char*>(2));
+        logger::log(logger::DEBUG, "setmodelname(%s, %s)\n", self->getClass(), e.get<const char*>(2));
 
         self->setModel(e.get<const char*>(2));
     })
@@ -79,12 +79,12 @@ namespace lua_binds
         extentity *ext = self->staticEntity;
         assert(ext);
 
-        if (!WorldSystem::loadingWorld) removeentity(ext);
+        if (!world::loading) removeentity(ext);
         ext->attr4 = e.get<int>(2);
-        if (!WorldSystem::loadingWorld) addentity(ext);
+        if (!world::loading) addentity(ext);
 
         // finally reload sound, so everything gets applied
-        self->setSound(self->soundName.c_str());
+        self->setSound(self->sndname);
     })
 
     LUA_BIND_LE(setattachments, {
@@ -115,9 +115,9 @@ namespace lua_binds
         assert(ext); \
         \
         /* Need to remove, then add, to the world on each change, if not during load. */ \
-        if (!WorldSystem::loadingWorld) removeentity(ext); \
+        if (!world::loading) removeentity(ext); \
         ext->n = e.get<int>(2); \
-        if (!WorldSystem::loadingWorld) addentity(ext); \
+        if (!world::loading) addentity(ext); \
     }) \
     \
     LUA_BIND_LE(FAST_set##n, { \
@@ -141,9 +141,9 @@ namespace lua_binds
         assert(self->staticEntity); \
         \
         /* Need to remove, then add, to the octa world on each change. */ \
-        if (!WorldSystem::loadingWorld) removeentity(self->staticEntity); \
+        if (!world::loading) removeentity(self->staticEntity); \
         self->an = e.get<double>(2); \
-        if (!WorldSystem::loadingWorld) addentity(self->staticEntity); \
+        if (!world::loading) addentity(self->staticEntity); \
     })
 
     EXTENT_LE_ACCESSORS(collisionradw, collisionRadiusWidth)
@@ -154,7 +154,7 @@ namespace lua_binds
     LUA_BIND_LE(getextent0, {
         extentity *ext = self->staticEntity;
         assert(ext);
-        logger::log(logger::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self->getClass().c_str(), ext->o.x, ext->o.y, ext->o.z);
+        logger::log(logger::INFO, "getextent0(%s): x: %f, y: %f, z: %f\n", self->getClass(), ext->o.x, ext->o.y, ext->o.z);
         e.t_new().t_set(1, ext->o.x).t_set(2, ext->o.y).t_set(3, ext->o.z);
     })
 

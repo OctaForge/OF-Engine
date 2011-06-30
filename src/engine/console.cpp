@@ -164,27 +164,11 @@ void keymap(int *code, char *key)
 }
 
 keym *keypressed = NULL;
-char *keyaction = NULL;
 
 const char *getkeyname(int code)
 {
     keym *km = keyms.access(code);
     return km ? km->name : NULL;
-}
-
-void searchbinds(char *action, int type)
-{
-    vector<char> names;
-    enumerate(keyms, keym, km,
-    {
-        if(!strcmp(km.actions[type], action))
-        {
-            if(names.length()) names.add(' ');
-            names.put(km.name, strlen(km.name));
-        }
-    });
-    names.add('\0');
-    lua::engine.push(names.getbuf());
 }
 
 keym *findbind(char *key)
@@ -199,21 +183,17 @@ keym *findbind(char *key)
 void getbind(char *key, int type)
 {
     keym *km = findbind(key);
-    lua::engine.push(km ? km->actions[type] : "");
+    if (km) lua::engine.getref(km->actions[type]);
+    else lua::engine.push();
 }   
 
-void bindkey(char *key, char *action, int state)
+void bindkey(char *key, int action, int state)
 {
     if(var::overridevars) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
     keym *km = findbind(key);
     if(!km) { conoutf(CON_ERROR, "unknown key \"%s\"", key); return; }
-    char *&binding = km->actions[state];
-    if(!keypressed || keyaction!=binding) delete[] binding;
-    // trim white-space to make searchbinds more reliable
-    while(isspace(*action)) action++;
-    int len = strlen(action);
-    while(len>0 && isspace(action[len-1])) len--;
-    binding = newstring(action, len);
+    if(!keypressed) lua::engine.unref(km->actions[state]);
+    km->actions[state] = action;
 }
 
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL) // turns input to the command line on or off
@@ -441,22 +421,24 @@ void history_(int *n)
 struct releaseaction
 {
     keym *key;
-    char *action;
+    int action;
 };
 vector<releaseaction> releaseactions;
 
-const char *addreleaseaction(const char *s)
+const char *addreleaseaction(int a)
 {
     if(!keypressed) return NULL;
     releaseaction &ra = releaseactions.add();
     ra.key = keypressed;
-    ra.action = newstring(s);
+    ra.action = a;
     return keypressed->name;
 }
 
-void onrelease(char *s)
+const char *addreleaseaction(const char *s)
 {
-    addreleaseaction(s);
+    if(!keypressed) return NULL;
+    lua::engine.getg("loadstring").push(s).call(1, 1);
+    return addreleaseaction(lua::engine.ref());
 }
 
 void execbind(keym &k, bool isdown)
@@ -466,9 +448,8 @@ void execbind(keym &k, bool isdown)
         releaseaction &ra = releaseactions[i];
         if(ra.key==&k)
         {
-            // CubeCreate
-            if(!isdown) lua::engine.exec(ra.action);
-            delete[] ra.action;
+            if(!isdown) lua::engine.getref(ra.action).call(0, 0);
+            lua::engine.unref(ra.action);
             releaseactions.remove(i--);
         }
     }
@@ -483,7 +464,7 @@ void execbind(keym &k, bool isdown)
 
         if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
         {
-            lua::engine.getg("console").t_getraw("action_keys").t_getraw(k.name);
+            lua::engine.getg("input").t_getraw("per_map_keys").t_getraw(k.name);
             if (lua::engine.is<void*>(-1))
             {
                 keypressed = &k;
@@ -496,12 +477,20 @@ void execbind(keym &k, bool isdown)
             }
             lua::engine.pop(3);
         }
-        char *&action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
-        keyaction = action;
+        lua::engine.getref(k.actions[state]);
+        if (!lua::engine.is<void*>(-1))
+        {
+            lua::engine.pop(1);
+            lua::engine.getref(k.actions[keym::ACTION_DEFAULT]);
+            if (!lua::engine.is<void*>(-1))
+            {
+                lua::engine.pop(1);
+                return;
+            }
+        }
         keypressed = &k;
-        lua::engine.exec(keyaction); // CubeCreate
+        lua::engine.call(0, 0);
         keypressed = NULL;
-        if(keyaction!=action) delete[] keyaction;
     }
     k.pressed = isdown;
 }
@@ -643,7 +632,7 @@ static int sortbinds(keym **x, keym **y)
 
 void writebinds(stream *f)
 {
-    static const char *cmds[3] = { "add", "addspec", "addedit" };
+    static const char *cmds[3] = { "", "_spec", "_edit" };
     vector<keym *> binds;
     enumerate(keyms, keym, km, binds.add(&km));
     binds.sort(sortbinds);
@@ -652,7 +641,34 @@ void writebinds(stream *f)
         loopv(binds)
         {
             keym &km = *binds[i];
-            if(*km.actions[j]) f->printf("console.binds.%s(\"%s\", [[%s]])\n", cmds[j], km.name, km.actions[j]);
+            lua::engine.getref(km.actions[j]);
+            if (lua::engine.is<void*>(-1))
+            {
+                /* get string, reference format and dump and pop string out */
+                lua::engine.getg("string");
+                lua::engine.t_getraw("format");
+                int fmt_ref = lua::engine.ref();
+                lua::engine.t_getraw("dump");
+                int dmp_ref = lua::engine.ref();
+                lua::engine.pop(1);
+
+                /* get format, push %q */
+                lua::engine.getref(fmt_ref).push("%q");
+                /* get output of dump - get dump, push action, call */
+                lua::engine.getref(dmp_ref).getref(km.actions[j]).call(1, 1);
+                /* we have two arguments pushed, call, have string */
+                lua::engine.call(2, 1);
+                /* get the const char* */
+                const char *bc = lua::engine.get<const char*>(-1);
+                /* unref the temporary references */
+                lua::engine.unref(fmt_ref).unref(dmp_ref);
+
+                /* write it all */
+                f->printf("input.bind%s(\"%s\", loadstring(", cmds[j], km.name);
+                f->write(bc, strlen(bc));
+                f->printf("))\n");
+            }
+            lua::engine.pop(1);
         }
     }
 }

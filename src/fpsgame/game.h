@@ -388,7 +388,7 @@ namespace server
     //! Update the current scenario being run by the client. The server uses this to make sure the
     //! client is running the same scenario when it accepts certain world update messages from the
     //! client.
-    extern void setClientScenario(int clientNumber, std::string scenarioCode);
+    extern void setClientScenario(int cn, const char *sc);
 
     extern bool isRunningCurrentScenario(int clientNumber);
 }
