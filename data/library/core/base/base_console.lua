@@ -18,57 +18,63 @@
 
 --[[!
     Package: console
-    This module provides console interface, such as bindings, some commands,
-    input system and others.
+    This module provides console interface (toggling, history, etc.)
 ]]
 module("console", package.seeall)
 
 --[[!
     Function: toggle
-    Toggles the console viewing.
+    Toggles full console viewing. If you want to show the prompt, take
+    a look at <prompt>.
 ]]
 toggle = CAPI.toggleconsole
 
 --[[!
     Function: skip
-    Allows you to browse through the console history by offsetting the output.
+    Allows you to browse through the full console history by offsetting the output.
 
     Parameters:
-        n - how much to skip. 1 means by 1 item back in history, -1000 resets the history.
+        n - how much to skip. 1 means by 1 line back in history, -1000 resets the history.
 ]]
 skip = CAPI.conskip
 
----
--- @class function
--- @name miniskip
+--[[!
+    Function: miniskip
+    See <skip>. This applies for the small console.
+]]
 miniskip = CAPI.miniconskip
 
---- Clear the console
--- @class function
--- @name clear
+--[[!
+    Function: clear
+    Clears the console.
+]]
 clear = CAPI.clearconsole
 
---- Send text to the server (aka 'say')
--- @class function
--- @name say
--- @param ... The text
+--[[!
+    Function: say
+    Says something in in-game chat. Sends messages through server.
+
+    Parameters:
+        msg - the message to send.
+]]
 say = CAPI.say
 
---- 
--- @class function
--- @name saycommand
-saycommand = CAPI.saycommand
+--[[!
+    Function: prompt
+    Shows a command prompt. Optionally allows to specify event and prompt string.
 
----
-function sayteamcommand() echo("Team chat not yet implemented") end
+    Parameters:
+        init - initial prompt value.
+        action - action to perform when user finishes input, optional. It's string for now, FIXME.
+        prompt_prefix - what to display before input field, optional.
+]]
+prompt = CAPI.prompt
 
----
--- @class function
--- @name inputcommand
-inputcommand = CAPI.inputcommand
+--[[!
+    Function: history
+    Re-runs a command at position n.
 
---- Rerun command at position n
--- @class function
--- @name history
--- @param n Position of command to rerun (counted from end)
+    Parameters:
+        n - a command position (counted from the end - 1 is previous command)
+]]
 history = CAPI.history

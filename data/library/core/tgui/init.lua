@@ -162,13 +162,13 @@ tgui.window("scoreboard", nil, function()
                     local entity = entity_store.get(v[1])
                     if entity and entity:is_a(character.character) then
                         if showpj == 1 then
-                            if entity.cs == character.CSTATE.LAGGED then
+                            if entity.client_state == character.CLIENT_STATE.LAGGED then
                                 lt = lt .. "LAG"
                             else
                                 lt = lt .. entity.plag
                             end
                         end
-                        if showpj == 0 and entity.cs == character.CSTATE.LAGGED then
+                        if showpj == 0 and entity.client_state == character.CLIENT_STATE.LAGGED then
                             lt = lt .. "LAG"
                         else
                             lt = lt .. entity.ping

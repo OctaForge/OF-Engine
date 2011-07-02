@@ -123,7 +123,7 @@ function is_player_editing(ply)
     if CLIENT then
         ply = ply or get_plyent()
     end
-    return ply and ply.cs == 4 -- character.CSTATE.EDITING
+    return ply and ply.client_state == 4 -- character.CLIENT_STATE.EDITING
 end
 
 --- Get table of entities close to a position.
@@ -371,7 +371,7 @@ end), 1 / 10)
 -- @see render_dynamic
 function render_hud_models()
     local ply = get_plyent()
-    if ply.hud_modelname and ply.cs ~= 4 then -- 4 = character.CSTATE.EDITING
+    if ply.hud_modelname and ply.client_state ~= 4 then -- 4 = character.CLIENT_STATE.EDITING
         ply:render_dynamic(true, true)
     end
 end

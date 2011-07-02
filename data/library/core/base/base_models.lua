@@ -136,7 +136,7 @@ mdl.alphadepth = CAPI.mdlalphadepth
 -- bounding box is generated from model's geometry.
 -- @param rad Bounding box radius.
 -- @param h Bounding box height.
--- @param eyeheight Fraction of model's height to be used as eyeheight (defaults to 0.9)
+-- @param eye_height Fraction of model's height to be used as eye height (defaults to 0.9)
 -- @class function
 -- @name mdl.bb
 mdl.bb = CAPI.mdlbb

@@ -25,7 +25,7 @@ end
 function action_base:dostart()
     events.action_container.dostart(self)
 
-    self.actor.canmove = false
+    self.actor.can_move = false
 
     self.original_yaw   = self.actor.yaw
     self.original_pitch = self.actor.pitch
@@ -61,7 +61,7 @@ end
 function action_base:dofinish()
     events.action_container.dofinish(self)
 
-    self.actor.canmove = true
+    self.actor.can_move = true
 
     _G["crosshair"] = self.old_crosshair
 

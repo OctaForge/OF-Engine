@@ -19,11 +19,11 @@ function client_click(button, down, position, entity)
 
     if button == 1 then
         if down then
-            if player.canmove then
+            if player.can_move then
                 player:start_shooting(position)
             end
         else
-            -- TODO: autostop shooting when canmove changes to false (connect to signal)
+            -- TODO: autostop shooting when can_move changes to false (connect to signal)
             player:stop_shooting(position)
         end
     elseif button == 3 and down then
@@ -93,7 +93,7 @@ plugins = {
         end,
 
         on_firing_info = function(self, info)
-            -- do not shoot if just killed (even though canmove = false didn't arrive yet)
+            -- do not shoot if just killed (even though can_move = false didn't arrive yet)
             if not health.is_valid_target(self) then return nil end
 
             if #info ~= 5 then return nil end
@@ -240,7 +240,7 @@ gun.handle_start_logic   = nil
 gun.handle_client_effect = nil
 
 function gun:do_shot(shooter, target_position, target_entity)
-    -- do not shoot if just killed (even though canmove = false didn't arrive yet)
+    -- do not shoot if just killed (even though can_move = false didn't arrive yet)
     if not health.is_valid_target(shooter) then return nil end
 
     if self.handle_start_logic then
@@ -265,7 +265,7 @@ end
 function gun:do_recoil(shooter, magnitude)
     if CLIENT and shooter ~= entity_store.get_plyent() then return nil end
 
-    if shooter.canmove then
+    if shooter.can_move then
         local dir = math.vec3():fromyawpitch(
             shooter.yaw, shooter.pitch
         ):normalize(1)

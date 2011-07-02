@@ -263,29 +263,7 @@ namespace lua_binds
     LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
     LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.ref_keep_stack(), e.get<int>(2))
     LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), e.get<int>(2))
-    LUA_BIND_CLIENT(saycommand, {
-        int n = e.gettop();
-        switch (n)
-        {
-            case 0: inputcommand((char*)""); break;
-            case 1: inputcommand(e.get<char*>(1)); break;
-            default:
-            {
-                char *s = e.get<char*>(1);
-                for (int i = 2; i <= n; i++)
-                {
-                    const char *a = e.get<const char*>(i);
-                    s = (char*)realloc(s, strlen(s) + strlen(a) + 1);
-                    assert(s);
-                    strcat(s, a);
-                }
-                inputcommand(s);
-                delete s;
-                break;
-            }
-        }
-    })
-    LUA_BIND_STD_CLIENT(inputcommand, inputcommand, e.get<char*>(1), e.get<char*>(2), e.get<char*>(3))
+    LUA_BIND_STD_CLIENT(prompt, inputcommand, e.get(1, (char*)""), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(onrelease, addreleaseaction, e.ref_keep_stack())
 

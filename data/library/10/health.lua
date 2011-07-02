@@ -17,7 +17,7 @@ action_death = class.new(actions.action, {
         self.actor:emit("fragged")
         -- this won't clear us, as we cannot be cancelled
         self.actor:clear_actions()
-        self.actor.canmove = false
+        self.actor.can_move = false
     end,
 
     dofinish = function(self)
@@ -58,8 +58,8 @@ plugin = {
         elseif stage == 4 then -- server appears player and sets in motion
             if SERVER then
                 -- do this first
-                self.health    = self.max_health
-                self.canmove   = true
+                self.health     = self.max_health
+                self.can_move   = true
 
                 self.modelname = self.default_model_name or ""
                 if self.default_hud_model_name then
@@ -174,7 +174,7 @@ plugin = {
 
     visual_pain_effect = function(self, health)
         local pos = self.position:copy()
-        pos.z = pos.z + self.eyeheight - 4
+        pos.z = pos.z + self.eye_height - 4
         effect.splash(effect.PARTICLE.BLOOD, convert.tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
         effect.decal_add(effect.DECAL.BLOOD, self.position, math.vec3(0, 0, 1), 7, self.blood_color)
         if self == entity_store.get_plyent() then effect.cldamage(0, self.old_health - health) end
@@ -197,9 +197,9 @@ end
 function is_valid_target(entity)
     return (entity and not entity.deactivated
                    and entity.health > 0
-                   and entity.cs ~= character.CSTATE.EDITING
+                   and entity.client_state ~= character.CLIENT_STATE.EDITING
                    and (not entity.spawn_stage or entity.spawn_stage == 0)
-                   and entity.cs ~= character.CSTATE.LAGGED
+                   and entity.client_state ~= character.CLIENT_STATE.LAGGED
     )
 end
 

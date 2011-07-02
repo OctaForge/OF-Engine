@@ -52,10 +52,9 @@ input.bind("SPACE", function() input.jump() end)
 
 input.bind("TAB", function() gui.showscores() end)
 
-input.bind("T", function() console.saycommand() end)
---input.bind("T", function() console.sayteamcommand() end)
-input.bind("BACKQUOTE", function() console.saycommand("/") end)
-input.bind("SLASH", function() console.saycommand("/") end)
+input.bind("T", function() console.prompt() end)
+input.bind("BACKQUOTE", function() console.prompt("/") end)
+input.bind("SLASH", function() console.prompt("/") end)
 
 input.bind("E", function() world.edittoggle() end)
 input.bind("F1", function() world.edittoggle() end)

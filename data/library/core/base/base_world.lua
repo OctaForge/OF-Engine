@@ -843,7 +843,7 @@ function is_player_colliding_entity(player, entity)
     if entity.collision_radius_width and entity.collision_radius_width ~= 0 then
         -- z
         if player.position.z >= entity.position.z + 2 * entity.collision_radius_height or
-           player.position.z + player.eyeheight + player.aboveeye <= entity.position.z then return false end
+           player.position.z + player.eye_height + player.above_eye <= entity.position.z then return false end
 
         -- x
         if player.position.x - player.radius >= entity.position.x + entity.collision_radius_width or
@@ -856,8 +856,8 @@ function is_player_colliding_entity(player, entity)
         return true
     else
         -- z
-        if player.position.z >= entity.position.z + entity.eyeheight + entity.aboveeye or
-           player.position.z + player.eyeheight + player.aboveeye <= entity.position.z then return false end
+        if player.position.z >= entity.position.z + entity.eye_height + entity.above_eye or
+           player.position.z + player.eye_height + player.above_eye <= entity.position.z then return false end
 
         -- x
         if player.position.x - player.radius >= entity.position.x + entity.radius or

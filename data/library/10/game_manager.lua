@@ -334,7 +334,7 @@ manager_plugins = {
 
                 local players = self:get_players()
                 for k, player in pairs(players) do
-                    player.canmove = false
+                    player.can_move = false
                     local msg
                     local sound
                     if not tie then
@@ -372,7 +372,7 @@ manager_plugins = {
                     -- unfreeze players
                     local players = self:get_players()
                     for k, player in pairs(players) do
-                        player.canmove = true
+                        player.can_move = true
                     end
 
                     self:start_game()

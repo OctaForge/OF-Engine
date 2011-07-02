@@ -23,7 +23,7 @@
 module("character", package.seeall)
 
 --[[!
-    Struct: CSTATE
+    Struct: CLIENT_STATE
     Fields of this table represent the current "client state".
 
     Fields:
@@ -34,7 +34,7 @@ module("character", package.seeall)
         EDITING - client is editing.
         SPECTATOR - client is spectator.
 ]]
-CSTATE = {
+CLIENT_STATE = {
     ALIVE = 0,
     DEAD = 1,
     SPAWNING = 2,
@@ -44,7 +44,7 @@ CSTATE = {
 }
 
 --[[!
-    Struct: PSTATE
+    Struct: PHYSICAL_STATE
     Fields of this table represent the current "physical state" of a client.
 
     Fields:
@@ -57,7 +57,7 @@ CSTATE = {
         STEP_DOWN - client is stepping down.
         BOUNCE - client is bouncing.
 ]]
-PSTATE = {
+PHYSICAL_STATE = {
     FLOAT = 0,
     FALL = 1, 
     SLIDE = 2, 
@@ -84,21 +84,23 @@ PSTATE = {
         pitch - character pitch, integer.
         move - -1 when moving backwards, 0 when not, 1 when forward, integer.
         strafe - -1 when strafing left, 1 when right, 0 when not, integer.
+        yawing - -1 when turning left, 1 when right, 0 when not.
+        pitching - -1 when looking down, 1 when up, 0 when not.
         position - character position, vec3 (x, y, z).
         velocity - character velocity, vec3 (x, y, z).
         falling - character falling, vec3 (x, y, z).
         radius - character bounding box radius, float.
-        aboveeye - distance from position vector to eyes.
-        eyeheight - distance from eyes to feet.
+        above_eye - distance from position vector to eyes.
+        eye_height - distance from eyes to feet.
         blocked - true if character was blocked by obstacle on last
         movement cycle, boolean. Floor is not an obstacle.
-        canmove - if false, character can't move, boolean.
-        mapdefinedposdata - position protocol data specific to current map,
+        can_move - if false, character can't move, boolean.
+        map_defined_position_data - position protocol data specific to current map,
         see fpsent, integer (TODO: make unsigned)
-        cs - client state, integer. (see CSTATE table)
-        ps - physical state, integer. (see PSTATE table)
-        inwater - 1 if character is underwater, integer.
-        timeinair - time in miliseconds spent in the air, integer (Should be unsigned, TODO)
+        client_state - client state, integer. (see <CLIENT_STATE>)
+        physical_state - physical state, integer. (see <PHYSICAL_STATE>)
+        in_water - 1 if character is underwater, integer.
+        time_in_air - time in miliseconds spent in the air, integer (Should be unsigned, TODO)
 
     See Also:
         <player>
@@ -133,15 +135,15 @@ character.properties = {
     velocity = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }),
     falling = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }),
     radius = state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }),
-    aboveeye = state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }),
-    eyeheight = state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }),
+    above_eye = state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }),
+    eye_height = state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }),
     blocked = state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }),
-    canmove = state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }),
-    mapdefinedposdata = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }),
-    cs = state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }),
-    ps = state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }),
-    inwater = state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }),
-    timeinair = state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true })
+    can_move = state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }),
+    map_defined_position_data = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }),
+    client_state = state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }),
+    physical_state = state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }),
+    in_water = state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }),
+    time_in_air = state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true })
 }
 
 --[[!
@@ -176,13 +178,13 @@ function character:init(uid, kwargs)
     self._name = "-?-" -- set by the server later
     self.cn = kwargs and kwargs.cn or -1
     self.modelname = "player"
-    self.eyeheight = 14.0
-    self.aboveeye = 1.0
+    self.eye_height = 14.0
+    self.above_eye = 1.0
     self.movement_speed = 50.0
     self.facing_speed = 120
     self.position = { 512, 512, 550 }
     self.radius = 3.0
-    self.canmove = true
+    self.can_move = true
 
     self:define_getter("plag", function() return CAPI.getplag(self) end)
     self:define_getter("ping", function() return CAPI.getping(self) end)
@@ -311,8 +313,8 @@ function character:render_dynamic(hudpass, needhud)
     if not hudpass and needhud then return nil end
 
     if self.rendering_args_timestamp ~= entity_store.curr_timestamp then
-        local state = self.cs
-        if state == CSTATE.SPECTAROR or state == CSTATE.SPAWNING then return nil end
+        local state = self.client_state
+        if state == CLIENT_STATE.SPECTAROR or state == CLIENT_STATE.SPAWNING then return nil end
 
         local mdlname = (hudpass and needhud) and self.hud_modelname or self.modelname
         local yaw = self.yaw + 90
@@ -321,15 +323,15 @@ function character:render_dynamic(hudpass, needhud)
         
         if hudpass and needhud and self.hud_modeloffset then o:add(self.hud_modeloffset) end
         local basetime = self.starttime
-        local physstate = self.ps
-        local inwater = self.inwater
+        local physstate = self.physical_state
+        local in_water = self.in_water
         local move = self.move
         local strafe = self.strafe
         local vel = self.velocity:copy()
         local falling = self.falling:copy()
-        local timeinair = self.timeinair
-        local anim = self:decide_animation(state, physstate, move, strafe, vel, falling, inwater, timeinair)
-        local flags = self:get_renderingflags(hudpass, needhud)
+        local time_in_air = self.time_in_air
+        local anim = self:decide_animation(state, physstate, move, strafe, vel, falling, in_water, time_in_air)
+        local flags = self:get_rendering_flags(hudpass, needhud)
 
         self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, flags, basetime }
         self.rendering_args_timestamp = GLOBAL_CURRENT_TIMESTAMP
@@ -340,7 +342,7 @@ function character:render_dynamic(hudpass, needhud)
 end
 
 --[[!
-    Function: get_renderingflags
+    Function: get_rendering_flags
     This function is used by <render_dynamic> to get model rendering flags.
     By default, it enables some occlusion and dynamic shadow.
     It as well enables some HUD-specific flags for HUD models.
@@ -356,7 +358,7 @@ end
     See Also:
         <render_dynamic>
 ]]
-function character:get_renderingflags(hudpass, needhud)
+function character:get_rendering_flags(hudpass, needhud)
     local flags = math.bor(model.LIGHT, model.DYNSHADOW, model.FULLBRIGHT)
     if self ~= entity_store.get_plyent() then
         flags = math.bor(flags, model.CULL_VFC, model.CULL_OCCLUDED, model.CULL_QUERY)
@@ -370,17 +372,17 @@ end
 --[[!
     Function: decide_animation
     This function is used by <render_dynamic> to get current model animation.
-    This is guessed from values like strafe, move, inwater etc.
+    This is guessed from values like strafe, move, in_water etc.
 
     Parameters:
-        state - Current client state (see <CSTATE>)
-        pstate - Current physical state (see <PSTATE>)
+        state - Current client state (see <CLIENT_STATE>)
+        pstate - Current physical state (see <PHYSICAL_STATE>)
         move - Whether character is moving currently and which direction (1, 0, -1)
         strafe - Whether character is strafing currently and which direction (1, 0, -1)
         vel - Current character velocity (vec3)
         falling - Current character falling (vec3)
-        inwater - Whether character is in water (1, 0)
-        timeinair - Time character is in air.
+        in_water - Whether character is in water (1, 0)
+        time_in_air - Time character is in air.
 
     Returns:
         Resulting animation.
@@ -388,18 +390,18 @@ end
     See Also:
         <render_dynamic>
 ]]
-function character:decide_animation(state, pstate, move, strafe, vel, falling, inwater, timeinair)
+function character:decide_animation(state, pstate, move, strafe, vel, falling, in_water, time_in_air)
     -- same naming convention as rendermodel.cpp in cube 2
     local anim = self:decide_action_animation()
 
-    if state == CSTATE.EDITING or state == CSTATE.SPECTATOR then
+    if state == CLIENT_STATE.EDITING or state == CLIENT_STATE.SPECTATOR then
         anim = math.bor(actions.ANIM_EDIT, actions.ANIM_LOOP)
-    elseif state == CSTATE.LAGGED then
+    elseif state == CLIENT_STATE.LAGGED then
         anim = math.bor(actions.ANIM_LAG, actions.ANIM_LOOP)
     else
-        if inwater ~= 0 and pstate <= PSTATE.FALL then
+        if in_water ~= 0 and pstate <= PHYSICAL_STATE.FALL then
             anim = math.bor(anim, math.lsh(math.bor(((move or strafe) or vel.z + falling.z > 0) and actions.ANIM_SWIM or actions.ANIM_SINK, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
-        elseif timeinair > 250 then
+        elseif time_in_air > 250 then
             anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_JUMP, actions.ANIM_END), actions.ANIM_SECONDARY))
         elseif move ~= 0 or strafe ~= 0 then
             if move > 0 then
@@ -426,11 +428,11 @@ end
 --[[!
     Function: decide_action_animation
     Returns the "action" animation to show. Does not handle things like
-    inwater, lag, etc which are handled in decide_animation.
+    in_water, lag, etc which are handled in decide_animation.
 
     Returns:
         By default, simply returns self.animation, but can be overriden to handle more complex
-        things like taking into account map-specific information in mapdefinedposdata.
+        things like taking into account map-specific information in map_defined_position_data.
 
     See Also:
         <decide_animation>
@@ -444,14 +446,14 @@ end
     Gets center position of character, something like gravity center.
     For example AI bots would better aim at this point instead of "position"
     which is feet position. Override if your center is nonstandard.
-    By default, it's 0.75 * eyeheight above feet.
+    By default, it's 0.75 * eye_height above feet.
 
     Returns:
         Center position which is a vec3.
 ]]
 function character:get_center()
     local r = self.position:copy()
-    r.z = r.z + self.eyeheight * 0.75
+    r.z = r.z + self.eye_height * 0.75
     return r
 end
 
