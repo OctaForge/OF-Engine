@@ -210,7 +210,7 @@ NewEntityRequest(client->server)
 
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
 
-        engine.getg("entity_classes").t_getraw("get_sauertype").push(_class).call(1, 1);
+        engine.getg("entity_classes").t_getraw("get_sauer_type").push(_class).call(1, 1);
         const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
 
@@ -444,7 +444,7 @@ LogicEntityCompleteNotification(server->client,npc)
         logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData);
 
         engine.getref(entity->luaRef)
-            .t_getraw("_update_statedata_complete")
+            .t_getraw("update_complete_state_data")
             .push_index(-2)
             .push(stateData)
             .call(2, 0)
@@ -524,7 +524,7 @@ ExtentCompleteNotification(server->client)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
 
-            engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass).call(1, 1);
+            engine.getg("entity_classes").t_getraw("get_sauer_type").push(otherClass).call(1, 1);
             const char *sauerType = engine.get(-1, "extent");
             engine.pop(2);
 
@@ -553,7 +553,7 @@ ExtentCompleteNotification(server->client)
         logger::log(logger::DEBUG, "Updating stateData\r\n");
 
         engine.getref(entity->luaRef)
-            .t_getraw("_update_statedata_complete")
+            .t_getraw("update_complete_state_data")
             .push_index(-2)
             .push(stateData)
             .call(2, 0)

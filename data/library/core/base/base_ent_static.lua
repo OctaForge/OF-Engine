@@ -24,22 +24,22 @@
 module("entity_static", package.seeall)
 
 --- Base static logic entity class, not meant to be used directly.
--- Inherited from animatable_logent. Unlike dynamic entities,
+-- Inherited from <entity_animated.base>. Unlike dynamic entities,
 -- static entities do not usually act (though can be forced to act
 -- by overriding should_act property).
 -- @class table
 -- @name statent
-statent = class.new(entity_animated.animatable_logent)
+statent = class.new(entity_animated.base)
 statent._class = "statent"
 
 statent.should_act = false
 statent.use_render_dynamic_test = true
 
-statent._sauertype = "extent"
-statent._sauertype_index = 0
+statent.sauer_type = "extent"
+statent.sauer_type_index = 0
 
 --- Base properties of static entity.
--- Inherits properties of animatable_logent plus adds its own.
+-- Inherits properties of <entity_animated.base> plus adds its own.
 -- @field radius Bounding box radius.
 -- @field position Entity position.
 -- @field attr1 First attr.
@@ -60,14 +60,14 @@ statent.properties = {
 
 --- Init method. Performs initial setup.
 -- @param uid Unique ID for the entity.
--- @param kwargs Table of additional parameters (for i.e. overriding _persistent, position)
+-- @param kwargs Table of additional parameters (for i.e. overriding persistent, position)
 function statent:init(uid, kwargs)
     logging.log(logging.DEBUG, "statent:init")
 
     kwargs = kwargs or {}
-    kwargs._persistent = true -- static entities are persistent by default
+    kwargs.persistent = true -- static entities are persistent by default
 
-    entity_animated.animatable_logent.init(self, uid, kwargs)
+    entity_animated.base.init(self, uid, kwargs)
 
     if not kwargs and not kwargs.position then
         self.position = { 511, 512, 513 }
@@ -85,10 +85,10 @@ function statent:activate(kwargs)
     kwargs = kwargs or {}
 
     logging.log(logging.DEBUG, tostring(self.uid) .. " statent: __activate() " .. json.encode(kwargs))
-    entity_animated.animatable_logent.activate(self, kwargs)
+    entity_animated.base.activate(self, kwargs)
 
     if not kwargs._type then
-        kwargs._type = self._sauertype_index
+        kwargs._type = self.sauer_type_index
     end
 
     logging.log(logging.DEBUG, "statent defaults:")
@@ -104,7 +104,7 @@ function statent:activate(kwargs)
     CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z, kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4)
 
     logging.log(logging.DEBUG, "statent: flush:")
-    self:_flush_queued_sv_changes()
+    self:flush_queued_state_variable_changes()
 
     -- ensure the state data contains copies for C++ stuff (otherwise, might be empty, and we need it for initializing on the server)
     -- XXX: needed?
@@ -121,14 +121,14 @@ end
 --- Serverside deactivation. Removes the entity in C store and calls parent.
 function statent:deactivate()
     CAPI.dismantleextent(self)
-    entity_animated.animatable_logent.deactivate(self)
+    entity_animated.base.deactivate(self)
 end
 
 --- Clientside entity activation.
 -- @param kwargs Table of additional parameters.
 function statent:client_activate(kwargs)
     if not kwargs._type then -- make up some stuff until we get complete state data
-        kwargs._type = self._sauertype_index
+        kwargs._type = self.sauer_type_index
         kwargs.x = 512
         kwargs.y = 512
         kwargs.z = 512
@@ -139,27 +139,27 @@ function statent:client_activate(kwargs)
     end
 
     CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z, kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4)
-    entity_animated.animatable_logent.client_activate(self, kwargs)
+    entity_animated.base.client_activate(self, kwargs)
 end
 
 --- Clientside deactivation. Removes the entity in C store and calls parent.
 function statent:client_deactivate()
     CAPI.dismantleextent(self)
-    entity_animated.animatable_logent.client_deactivate(self)
+    entity_animated.base.client_deactivate(self)
 end
 
 --- Send complete notification to client(s).
 -- @param cn Client number to send to. All clients if nil.
-function statent:send_notification_complete(cn)
+function statent:send_complete_notification(cn)
     cn = cn or message.ALL_CLIENTS
     local cns = cn == message.ALL_CLIENTS and entity_store.get_all_clientnums() or { cn }
-    logging.log(logging.DEBUG, "statent:send_notification_complete:")
+    logging.log(logging.DEBUG, "statent:send_complete_notification:")
     for i = 1, #cns do
         message.send(cns[i],
                     CAPI.extent_notification_complete,
                     self.uid,
                     tostring(self),
-                    self:create_statedatadict(cns[i], { compressed = true }), -- custom data per client
+                    self:create_state_data_dict(cns[i], { compressed = true }), -- custom data per client
                     tonumber(self.position.x),
                     tonumber(self.position.y),
                     tonumber(self.position.z),
@@ -168,7 +168,7 @@ function statent:send_notification_complete(cn)
                     tonumber(self.attr3),
                     tonumber(self.attr4))
     end
-    logging.log(logging.DEBUG, "statent:send_notification_complete done.")
+    logging.log(logging.DEBUG, "statent:send_complete_notification done.")
 end
 
 --- Get center position of static entity, something like gravity center.
@@ -186,7 +186,7 @@ end
 -- @name light
 light = class.new(statent)
 light._class = "light"
-light._sauertype_index = 1
+light.sauer_type_index = 1
 
 --- Light entity class properties.
 -- Inherits some properties of statent plus adds its own.
@@ -227,7 +227,7 @@ end
 -- @name spotlight
 spotlight = class.new(statent)
 spotlight._class = "spotlight"
-spotlight._sauertype_index = 7
+spotlight.sauer_type_index = 7
 
 --- Spotlight entity class properties.
 -- Inherits some properties of statent plus adds its own.
@@ -250,7 +250,7 @@ end
 -- @name envmap
 envmap = class.new(statent)
 envmap._class = "envmap"
-envmap._sauertype_index = 4
+envmap.sauer_type_index = 4
 
 --- Envmap entity class properties.
 -- Inherits some properties of statent plus adds its own.
@@ -273,7 +273,7 @@ end
 -- @name ambient_sound
 ambient_sound = class.new(statent)
 ambient_sound._class = "ambient_sound"
-ambient_sound._sauertype_index = 6
+ambient_sound.sauer_type_index = 6
 
 --- Ambient sound entity class properties.
 -- Inherits some properties of statent plus adds its own.
@@ -312,7 +312,7 @@ end
 -- @name particle_effect
 particle_effect = class.new(statent)
 particle_effect._class = "particle_effect"
-particle_effect._sauertype_index = 5
+particle_effect.sauer_type_index = 5
 
 --- Particle effect entity class properties.
 -- Inherits some properties of statent plus adds its own.
@@ -352,7 +352,7 @@ end
 -- @name mapmodel
 mapmodel = class.new(statent)
 mapmodel._class = "mapmodel"
-mapmodel._sauertype_index = 2
+mapmodel.sauer_type_index = 2
 
 --- Mapmodel entity class properties.
 -- Inherits some properties of statent plus adds its own.
@@ -439,7 +439,7 @@ function area_trigger:init(uid, kwargs)
     self.script_to_run = ""
     self.collision_radius_width = 10
     self.collision_radius_height = 10
-    self.modelname = "areatrigger" -- hardcoded, appropriate model, with collisions only for triggering and perentity collision boxes.
+    self.model_name = "areatrigger" -- hardcoded, appropriate model, with collisions only for triggering and perentity collision boxes.
 end
 
 --- Overriden collision handler. Area trigger works serverside.
@@ -533,7 +533,7 @@ end
 -- @name world_marker
 world_marker = class.new(statent)
 world_marker._class = "world_marker"
-world_marker._sauertype_index = 3
+world_marker.sauer_type_index = 3
 
 --- World marker entity class properties.
 -- Inherits some properties of statent plus adds its own.

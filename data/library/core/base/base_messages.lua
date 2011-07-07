@@ -40,7 +40,7 @@ function send(...)
     local cn
 
     local args = { ... }
-    if type(args[1]) == "table" and args[1].is_a and args[1]:is_a(entity.logent) then
+    if type(args[1]) == "table" and args[1].is_a and args[1]:is_a(entity.base) then
         -- server->client message, get clientnumber from entity
         server = true
         cn = args[1].cn
@@ -111,7 +111,7 @@ end
 -- @param ti Message title.
 -- @param tx Message text.
 function showcm(cn, ti, tx)
-    if cn.is_a and cn:is_a(entity.logent) then
+    if cn.is_a and cn:is_a(entity.base) then
         cn = cn.cn
     end
     send(cn, CAPI.personal_servmsg, ti, tx)

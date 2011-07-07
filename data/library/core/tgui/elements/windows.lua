@@ -1,37 +1,44 @@
 module("tgui", package.seeall)
 
-function window(name, title, body, noclose, notitle, nofocus, realtime, onhide)
+function window(name, title, body, noclose, notitle, nofocus, onhide, alignx, aligny)
+    alignx = alignx or 0
+    aligny = aligny or 0
     noclose = noclose or function() return false end
     gui.new(name, function()
+        gui.align(alignx, aligny)
         gui.table(3, 0, function()
             if not notitle then
                 -- upper left corner
                 gui.stretchedimage(image_path .. "corner_upper_left.png", 0.01, 0.025)
                 -- upper edge
-                gui.winmover(function()
+                gui.clamp(1, 1, 0, 0)
+                gui.stretchedimage(image_path .. "window_background.png", 0, 0.025, function()
                     gui.clamp(1, 1, 0, 0)
-                    gui.stretchedimage(image_path .. "window_background.png", 0, 0.025, function()
+                    gui.winmover(function()
                         gui.clamp(1, 1, 0, 0)
-                        gui.tag("title", function()
-                            gui.align(0, 0)
-                            gui.label(title)
+                        gui.color(0, 0, 0, 0, 0, 0, function()
+                            gui.clamp(1, 1, 0, 0)
+                            gui.tag("title", function()
+                                gui.align(0, 0)
+                                gui.label(title)
+                            end)
                         end)
-                        if not noclose() then
-                            gui.button(
-                                function()
-                                    gui.hide(name)
-                                end, function()
-                                    gui.align(1, 0)
-                                    -- idle state
-                                    gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
-                                    -- hover state
-                                    gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
-                                    -- selected state
-                                    gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
-                                end
-                            )
-                        end
                     end)
+                    if not noclose() then
+                        gui.button(
+                            function()
+                                gui.hide(name)
+                            end, function()
+                                gui.align(1, 0)
+                                -- idle state
+                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
+                                -- hover state
+                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
+                                -- selected state
+                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
+                            end
+                        )
+                    end
                 end)
                 -- upper right corner
                 gui.stretchedimage(image_path .. "corner_upper_right.png", 0.01, 0.025)
@@ -39,7 +46,15 @@ function window(name, title, body, noclose, notitle, nofocus, realtime, onhide)
                 -- upper left corner
                 gui.stretchedimage(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
                 -- upper edge
-                gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
+                gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function()
+                    gui.clamp(1, 1, 0, 0)
+                    gui.winmover(function()
+                        gui.clamp(1, 1, 0, 0)
+                        gui.color(0, 0, 0, 0, 0, 0.01, function()
+                            gui.clamp(1, 1, 0, 0)
+                        end)
+                    end)
+                end)
                 -- upper right corner
                 gui.stretchedimage(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
             end
@@ -66,7 +81,7 @@ function window(name, title, body, noclose, notitle, nofocus, realtime, onhide)
             -- lower right corner
             gui.stretchedimage(image_path .. "corner_lower_right.png", 0.01, 0.01)
         end)
-    end, nofocus and 1 or 0, realtime and 1 or 0, onhide)
+    end, nofocus and 1 or 0, onhide)
 end
 
 window("message", "Unknown", function()
@@ -94,5 +109,5 @@ function space(name, body, hasfocus, onhide)
         gui.fill(scr_w / scr_h, 1, function()
             body()
         end)
-    end, hasfocus and 0 or 1, 0, onhide)
+    end, hasfocus and 0 or 1, onhide)
 end

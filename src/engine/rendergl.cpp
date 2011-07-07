@@ -658,7 +658,7 @@ void gl_checkextensions()
 void glext(char *ext)
 {
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
-    lua::engine.push(strstr(exts, ext) ? 1 : 0);
+    lua::engine.push(strstr(exts, ext) ? true : false);
 }
 
 void gl_init(int w, int h, int bpp, int depth, int fsaa)
@@ -2101,6 +2101,28 @@ VARP(wallclocksecs, 0, 0, 1);
 
 static time_t walltime = 0;
 
+void getwallclock()
+{
+    if(wallclock)
+    {
+        if(!walltime) { walltime = time(NULL); walltime -= totalmillis/1000; if(!walltime) walltime++; }
+        time_t walloffset = walltime + totalmillis/1000;
+        struct tm *localvals = localtime(&walloffset);
+        static string buf;
+        if(localvals && strftime(buf, sizeof(buf), wallclocksecs ? (wallclock24 ? "%H:%M:%S" : "%I:%M:%S%p") : (wallclock24 ? "%H:%M" : "%I:%M%p"), localvals))
+        {
+            // hack because not all platforms (windows) support %P lowercase option
+            // also strip leading 0 from 12 hour time
+            char *dst = buf;
+            const char *src = &buf[!wallclock24 && buf[0]=='0' ? 1 : 0];
+            while(*src) *dst++ = tolower(*src++);
+            *dst++ = '\0';
+
+            lua::engine.push(buf);
+        }
+    }
+}
+
 VARP(showfps, 0, 1, 1);
 VARP(showfpsrange, 0, 0, 1);
 VAR(showeditstats, 0, 0, 1);
@@ -2172,42 +2194,6 @@ void gl_drawhud(int w, int h)
         {
             glPushMatrix();
             glScalef(conscale, conscale, 1);
-
-            int roffset = 0;
-            if(showfps)
-            {
-                static int lastfps = 0, prevfps[3] = { 0, 0, 0 }, curfps[3] = { 0, 0, 0 };
-                if(totalmillis - lastfps >= statrate)
-                {
-                    memcpy(prevfps, curfps, sizeof(prevfps));
-                    lastfps = totalmillis - (totalmillis%statrate);
-                }
-                int nextfps[3];
-                getfps(nextfps[0], nextfps[1], nextfps[2]);
-                loopi(3) if(prevfps[i]==curfps[i]) curfps[i] = nextfps[i];
-                if(showfpsrange) draw_textf("fps %d+%d-%d", conw-7*FONTH, conh-FONTH*3/2, curfps[0], curfps[1], curfps[2]);
-                else draw_textf("fps %d", conw-5*FONTH, FONTH*3/2, curfps[0]);
-                roffset += FONTH;
-            }
-
-            if(wallclock)
-            {
-                if(!walltime) { walltime = time(NULL); walltime -= totalmillis/1000; if(!walltime) walltime++; }
-                time_t walloffset = walltime + totalmillis/1000;
-                struct tm *localvals = localtime(&walloffset);
-                static string buf;
-                if(localvals && strftime(buf, sizeof(buf), wallclocksecs ? (wallclock24 ? "%H:%M:%S" : "%I:%M:%S%p") : (wallclock24 ? "%H:%M" : "%I:%M%p"), localvals))
-                {
-                    // hack because not all platforms (windows) support %P lowercase option
-                    // also strip leading 0 from 12 hour time
-                    char *dst = buf;
-                    const char *src = &buf[!wallclock24 && buf[0]=='0' ? 1 : 0];
-                    while(*src) *dst++ = tolower(*src++);
-                    *dst++ = '\0'; 
-                    draw_text(buf, conw-5*FONTH, FONTH*3/2 + roffset);
-                    roffset += FONTH;
-                }
-            }
                        
             if(editmode || showeditstats)
             {
@@ -2263,8 +2249,7 @@ void gl_drawhud(int w, int h)
                     const char *gameinfo = lua::engine.get<const char*>(-1);
                     if(gameinfo)
                     {
-                        draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+text_width(gameinfo)), conh-FONTH*3/2-roffset);
-                        roffset += FONTH;
+                        draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+text_width(gameinfo)), conh-FONTH*3/2);
                     }
                     lua::engine.pop(1);
                 }

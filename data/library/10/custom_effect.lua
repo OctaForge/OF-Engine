@@ -59,8 +59,8 @@ rain = {
                     bottom.z = bottom.z - kwargs.size
                     bottom.x = bottom.x - kwargs.x_tilt
                     bottom.y = bottom.y - kwargs.y_tilt
-                    effect.flare(
-                        effect.PARTICLE.STREAK,
+                    effects.flare(
+                        effects.PARTICLE.STREAK,
                         drop.position, bottom,
                         0,
                         kwargs.drop_color,
@@ -72,8 +72,8 @@ rain = {
                         return true
                     else
                         drop.position.z = drop.final_z - 2
-                        effect.splash(
-                            effect.PARTICLE.SPARK,
+                        effects.splash(
+                            effects.PARTICLE.SPARK,
                             15, 0.1,
                             drop.position,
                             kwargs.splash_color,

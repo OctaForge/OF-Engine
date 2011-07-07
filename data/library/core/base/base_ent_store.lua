@@ -40,9 +40,9 @@ local __entities_store = {}
 -- caching
 local __entities_store_by_class = {}
 
---- Access a logent from the store, knowing its unique ID.
--- @param uid Unique ID of the logent to get.
--- @return The logent if found, nil otherwise.
+--- Access an entity from the store, knowing its unique ID.
+-- @param uid Unique ID of the entity to get.
+-- @return The entity if found, nil otherwise.
 function get(uid)
     logging.log(logging.DEBUG, "get: entity " .. tostring(uid))
     local r = __entities_store[tonumber(uid)]
@@ -59,9 +59,9 @@ function get_all()
     return __entities_store
 end
 
---- Get a table of logents from store which share the same tag.
+--- Get a table of entities from store which share the same tag.
 -- @param wtag The tag to use for searching.
--- @return Table of logents (empty table if none found)
+-- @return Table of entitites (empty table if none found)
 function get_all_bytag(wtag)
     local r = {}
     for k, v in pairs(__entities_store) do
@@ -72,9 +72,9 @@ function get_all_bytag(wtag)
     return r
 end
 
---- Get a single logent of known tag.
+--- Get a single entity of known tag.
 -- @param wtag The tag to use for searching.
--- @return Logent with known tag (and none if not found or more than one found)
+-- @return Entity with known tag (and none if not found or more than one found)
 function get_bytag(wtag)
     local r = get_all_bytag(wtag)
     if #r == 1 then return r[1]
@@ -87,9 +87,9 @@ function get_bytag(wtag)
     end
 end
 
---- Get a table of logents of the same class.
+--- Get a table of entities of the same class.
 -- @param cl Class to use for searching.
--- @return Table of logents (empty table if none found)
+-- @return Table of entities (empty table if none found)
 function get_all_byclass(cl)
     if type(cl) == "table" then
         cl = tostring(cl)
@@ -103,11 +103,11 @@ function get_all_byclass(cl)
     end
 end
 
---- Get a table of all clients (== all logents of currently set player class)
+--- Get a table of all clients (== all entities of currently set player class)
 -- @return Table of clients. (empty if no clients found, that means we're probably in menu)
 function get_all_clients()
     local ret = get_all_byclass(type(player_class) == "string" and player_class or "player")
-    logging.log(logging.INFO, "logent store: get_all_clients: got %(1)s clients" % { #ret })
+    logging.log(logging.INFO, "entity store: get_all_clients: got %(1)s clients" % { #ret })
     return ret
 end
 
@@ -168,7 +168,7 @@ end
 function add(cn, uid, kwargs, _new)
     uid = uid or 1337 -- debugging
 
-    logging.log(logging.DEBUG, "Adding new scripting logent of type " .. tostring(cn) .. " with uid " .. tostring(uid))
+    logging.log(logging.DEBUG, "Adding new scripting entity of type " .. tostring(cn) .. " with uid " .. tostring(uid))
     logging.log(logging.DEBUG, "   with arguments: " .. json.encode(kwargs) .. ", " .. tostring(_new))
 
     assert(not get(uid)) -- cannot recreate
@@ -190,7 +190,7 @@ function add(cn, uid, kwargs, _new)
     assert(get(uid) == r)
 
     -- caching
-    for k, v in pairs(entity_classes._logent_classes) do
+    for k, v in pairs(entity_classes._entity_classes) do
         if r:is_a(v[1]) then
             if not __entities_store_by_class[k] then
                __entities_store_by_class[k] = {}
@@ -216,7 +216,7 @@ end
 --- Delete an entity of known uid.
 -- @param uid Unique ID of the entity which we're deleting.
 function del(uid)
-    logging.log(logging.DEBUG, "Removing scripting logent: " .. tostring(uid))
+    logging.log(logging.DEBUG, "Removing scripting entity: " .. tostring(uid))
 
     if not __entities_store[tonumber(uid)] then
         logging.log(logging.WARNING, "Cannot remove entity " .. tostring(uid) .. " as it does not exist.")
@@ -233,7 +233,7 @@ function del(uid)
 
     -- caching
     local ent = __entities_store[tonumber(uid)]
-    for k, v in pairs(entity_classes._logent_classes) do
+    for k, v in pairs(entity_classes._entity_classes) do
         if tostring(ent) == k then
             __entities_store_by_class[k] = table.filterarray(
                 __entities_store_by_class[k],
@@ -371,14 +371,14 @@ end), 1 / 10)
 -- @see render_dynamic
 function render_hud_models()
     local ply = get_plyent()
-    if ply.hud_modelname and ply.client_state ~= 4 then -- 4 = character.CLIENT_STATE.EDITING
+    if ply.hud_model_name and ply.client_state ~= 4 then -- 4 = character.CLIENT_STATE.EDITING
         ply:render_dynamic(true, true)
     end
 end
 
 if CLIENT then
 
---- Set player uid. Clientside only function. Creates player_logent method, which is
+--- Set player uid. Clientside only function. Creates player_entity method, which is
 -- global and can be accessed by get_plyent afterwards.
 -- @param uid The unique ID of player's logic entity.
 -- @see get_plyent
@@ -386,18 +386,18 @@ function set_player_uid(uid)
     logging.log(logging.DEBUG, "Setting player uid to " .. tostring(uid))
 
     if uid then
-        player_logent = get(uid)
-        player_logent._controlled_here = true
-        logging.log(logging.DEBUG, "Player _controlled_here:" .. tostring(player_logent._controlled_here))
+        player_entity = get(uid)
+        player_entity.controlled_here = true
+        logging.log(logging.DEBUG, "Player controlled_here:" .. tostring(player_entity.controlled_here))
 
-        assert(not uid or player_logent)
+        assert(not uid or player_entity)
     end
 end
 
 --- Get player logic entity. Clientside only.
 -- @return Player logic entity.
 -- @see set_player_uid
-function get_plyent() return player_logent end
+function get_plyent() return player_entity end
 
 --- Set entity state data. Protocol ID gets translated to actual name.
 -- This performs changes only locally, so makes sense only as response
@@ -410,7 +410,7 @@ function set_statedata(uid, kproid, val)
     if ent then
         local key = message.fromproid(tostring(ent), kproid)
         logging.log(logging.DEBUG, "set_statedata: " .. tostring(uid) .. ", " .. tostring(kproid) .. ", " .. tostring(key))
-        ent:_set_statedata(key, val)
+        ent:set_state_data(key, val)
     end
 end
 
@@ -422,7 +422,7 @@ function test_scenario_started()
     logging.log(logging.INFO, "Testing whether the scenario started ..")
 
     if not get_plyent() then
-        logging.log(logging.INFO, ".. no, player logent not created yet.")
+        logging.log(logging.INFO, ".. no, player entity not created yet.")
         return false
     end
 
@@ -465,7 +465,7 @@ end
 -- @return Depending on last argument, either new entity or its unique ID are returned.
 function new(cl, kwargs, fuid, ruid)
     fuid = fuid or get_newuid()
-    logging.log(logging.DEBUG, "New logent: " .. tostring(fuid))
+    logging.log(logging.DEBUG, "New entity: " .. tostring(fuid))
 
     local r = add(cl, fuid, kwargs, true)
 
@@ -477,7 +477,7 @@ end
 -- @return The new NPC entity.
 function new_npc(cl)
     local npc = CAPI.npcadd(cl)
-    npc._controlled_here = true
+    npc.controlled_here = true
     return npc
 end
 
@@ -486,7 +486,7 @@ end
 -- like players and non-sauers.
 -- @param cn Client number belonging to client we're sending to.
 function send_entities(cn)
-    logging.log(logging.DEBUG, "Sending active logents to " .. tostring(cn))
+    logging.log(logging.DEBUG, "Sending active entities to " .. tostring(cn))
 
     local numents = 0
     local ids = {}
@@ -498,7 +498,7 @@ function send_entities(cn)
 
     message.send(cn, CAPI.notify_numents, numents)
     for i = 1, #ids do
-        __entities_store[ids[i]]:send_notification_complete(cn)
+        __entities_store[ids[i]]:send_complete_notification(cn)
     end
 end
 
@@ -512,7 +512,7 @@ function set_statedata(uid, kproid, val, auid)
     local ent = get(uid)
     if ent then
         local key = message.fromproid(tostring(ent), kproid)
-        ent:_set_statedata(key, val, auid)
+        ent:set_state_data(key, val, auid)
     end
 end
 
@@ -553,12 +553,12 @@ function save_entities()
 
     local vals = table.values(__entities_store)
     for i = 1, #vals do
-        if vals[i]._persistent then
+        if vals[i].persistent then
             logging.log(logging.DEBUG, "Saving entity " .. tostring(vals[i].uid))
             local uid = vals[i].uid
             local cls = tostring(vals[i])
             -- TODO: store as serialized here, to save some parse/unparsing
-            local state_data = vals[i]:create_statedatadict()
+            local state_data = vals[i]:create_state_data_dict()
             table.insert(r, json.encode({ uid, cls, state_data }))
         end
     end

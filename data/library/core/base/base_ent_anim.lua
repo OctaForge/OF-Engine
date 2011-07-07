@@ -25,54 +25,54 @@ module("entity_animated", package.seeall)
 
 --- Base animatable logic entity class, not meant to be used directly.
 -- @class table
--- @name animatable_logent
-animatable_logent = class.new(entity.logent)
-animatable_logent._class = "animatable_logent"
+-- @name base
+base = class.new(entity.base)
+base._class = "base"
 
 --- Base properties of animatable logic entity.
--- Inherits properties of root_logent plus adds its own.
+-- Inherits properties of <base_root> plus adds its own.
 -- @field animation Entity animation.
--- @field starttime Internal parameter. Not meant to be modified in any way.
--- @field modelname Model name assigned to the entity.
+-- @field start_time Internal parameter. Not meant to be modified in any way.
+-- @field model_name Model name assigned to the entity.
 -- @field attachments Model attachments for the entity.
 -- @class table
--- @name animatable_logent.properties
-animatable_logent.properties = {
-    animation = state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", clientset = true }),
-    starttime = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }),
-    modelname = state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }),
-    attachments = state_variables.wrapped_carray({ csetter = "CAPI.setattachments" })
+-- @name base.properties
+base.properties = {
+    animation   = state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", client_set = true }),
+    start_time  = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }),
+    model_name  = state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }),
+    attachments = state_variables.wrapped_carray  ({ csetter = "CAPI.setattachments" })
 }
 
 --- Init method for animatable logic entity. Performs initial setup.
 -- @param uid Unique ID for the entity.
--- @param kwargs Table of additional parameters (for i.e. overriding _persistent)
-function animatable_logent:init(uid, kwargs)
-    if entity.logent.init then entity.logent.init(self, uid, kwargs) end
+-- @param kwargs Table of additional parameters (for i.e. overriding persistent)
+function base:init(uid, kwargs)
+    if entity.base.init then entity.base.init(self, uid, kwargs) end
 
     self._attachments_dict = {}
 
-    self.modelname = ""
+    self.model_name = ""
     self.attachments = {}
     self.animation = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
 end
 
 --- Serverside entity activation.
 -- @param kwargs Table of additional parameters.
-function animatable_logent:activate(kwargs)
-    logging.log(logging.DEBUG, "animatable_logent:activate")
-    entity.logent.activate(self, kwargs)
+function base:activate(kwargs)
+    logging.log(logging.DEBUG, "base:activate")
+    entity.base.activate(self, kwargs)
 
-    logging.log(logging.DEBUG, "animatable_logent:activate (2)")
-    self.modelname = self.modelname
+    logging.log(logging.DEBUG, "base:activate (2)")
+    self.model_name = self.model_name
 
-    logging.log(logging.DEBUG, "animatable_logent:activate complete")
+    logging.log(logging.DEBUG, "base:activate complete")
 end
 
 --- Set model attachment for entity. Connected with "attachments" property.
 -- @param tag Model tag.
 -- @param mdlname Model name.
-function animatable_logent:set_attachment(tag, mdlname)
+function base:set_attachment(tag, mdlname)
     if not mdlname then
         if self._attachments_dict[tostring(tag)] then
             self._attachments_dict[tostring(tag)] = nil
@@ -88,23 +88,23 @@ function animatable_logent:set_attachment(tag, mdlname)
     self.attachments = r
 end
 
---- Set local animation (override value in state_var_vals).
+--- Set local animation (override value in state_variable_values).
 -- @param anim Animation number. See base_actions documentation.
-function animatable_logent:set_localanim(anim)
+function base:set_localanim(anim)
     CAPI.setanim(self, anim)
-    self.state_var_vals["animation"] = anim -- store value so reading of self.animation returns the value
+    self.state_variable_values["animation"] = anim -- store value so reading of self.animation returns the value
 end
 
---- Set local model name (override value in state_var_vals).
+--- Set local model name (override value in state_variable_values).
 -- @param mdlname Model name.
-function animatable_logent:set_localmodelname(mdlname)
+function base:set_local_model_name(mdlname)
     CAPI.setmodelname(self, mdlname)
-    self.state_var_vals["modelname"] = mdlname
+    self.state_variable_values["model_name"] = mdlname
 end
 
 --- General setup method. Called on initialization.
-function animatable_logent:_general_setup(...)
-    entity.logent._general_setup(self)
+function base:general_setup(...)
+    entity.base.general_setup(self)
     self:define_getter("center", self.get_center)
 end
 
@@ -117,9 +117,9 @@ action_localanim = class.new(actions.action)
 -- @return String representation of action.
 function action_localanim:__tostring() return "action_localanim" end
 
---- Overriden dostart method called on action start.
+--- Overriden do_start method called on action start.
 -- Sets local animation for actor.
-function action_localanim:dostart()
+function action_localanim:do_start()
     self.oldanim = self.actor.animation
     self.actor:set_localanim(self.localanim)
 end

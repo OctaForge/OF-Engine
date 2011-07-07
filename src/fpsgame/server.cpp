@@ -681,7 +681,7 @@ namespace server
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
         {
-            defformatstring(c)("entity_store.get(%i)._can_edit = true", ci->uniqueId);
+            defformatstring(c)("entity_store.get(%i).can_edit = true", ci->uniqueId);
             engine.exec(c);
         }
     }
@@ -759,7 +759,7 @@ namespace server
         // Add admin status, if relevant
         if (ci->isAdmin)
         {
-            defformatstring(d)("entity_store.get(%i)._can_edit = true", uniqueId);
+            defformatstring(d)("entity_store.get(%i).can_edit = true", uniqueId);
             engine.exec(d);
         }
 

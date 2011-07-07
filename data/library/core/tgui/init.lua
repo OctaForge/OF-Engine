@@ -74,10 +74,12 @@ end)
 ]]
 window("local_server_output", "Server log", function()
     gui.vlist(0, function()
-        gui.editor("local_server_output", -80, 20)
+        local logfile = engine.get_server_log_file()
+        gui.editor(logfile, -80, 20)
+        gui.textinit(logfile, logfile)
         button("refresh", function()
-            gui.textfocus("local_server_output")
-            gui.textload(engine.gethomedir() .. "/" .. engine.getserverlogfile())
+            gui.textfocus(logfile)
+            gui.textload(logfile)
         end)
     end)
 end)
@@ -179,7 +181,7 @@ tgui.window("scoreboard", nil, function()
             end
         end
     end)
-end, true, true, true, true)
+end, true, true, true)
 
 --[[!
     Function: show_changes
@@ -226,7 +228,7 @@ function show_entity_properties_tab()
 
     local sorted_keys    = {}
     local state_data     = {}
-    local state_data_raw = entity:create_statedatadict()
+    local state_data_raw = entity:create_state_data_dict()
 
     for key, value in pairs(state_data_raw) do
         local gui_name  = state_variables.__getguin(uid, key)
@@ -257,7 +259,7 @@ function show_entity_properties_tab()
                             gui.align(-1, 0)
                             gui.label(pair[1] .. ": ", 1, 1, 1, 1, function() gui.align(-1, 0) end)
                         end)
-                        engine.newvar(name, engine.VAR_S, pair[2], true)
+                        engine.new_var(name, engine.VAR_S, pair[2], true)
                         field(name, #pair[2] + 25, function()
                             local nv = _G[name]
                             if nv ~= pair[2] then

@@ -820,31 +820,31 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                 {
                     printf("mapmodel\", {");
                     PRINT_STD(e)
-                    printf("\"modelname\":\"@REPLACE_MODEL_PATH@\", ");
+                    printf("\"model_name\":\"@REPLACE_MODEL_PATH@\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[]\", ");
-                    printf("\"_persistent\":\"true\"");
+                    printf("\"persistent\":\"true\"");
                     break;
                 }
                 case ET_SOUND:
                 {
                     printf("ambient_sound\", {");
                     PRINT_STD(e)
-                    printf("\"modelname\":\"\", ");
+                    printf("\"model_name\":\"\", ");
                     printf("\"soundname\":\"@REPLACE_SOUND_PATH@\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[]\", ");
-                    printf("\"_persistent\":\"true\"");
+                    printf("\"persistent\":\"true\"");
                     break;
                 }
                 case ET_PLAYERSTART:
                 {
                     printf("world_marker\", {");
                     PRINT_STD(e)
-                    printf("\"modelname\":\"\", ");
+                    printf("\"model_name\":\"\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[start_@REPLACE_TEAM@]\", ");
-                    printf("\"_persistent\":\"true\"");
+                    printf("\"persistent\":\"true\"");
                     break;
                 }
                 case 16:
@@ -862,10 +862,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("\"attr3\":\"0\", ");
                     printf("\"attr4\":\"0\", ");
                     printf("\"animation\":\"130\", ");
-                    printf("\"modelname\":\"areatrigger\", ");
+                    printf("\"model_name\":\"areatrigger\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[]\", ");
-                    printf("\"_persistent\":\"true\"");
+                    printf("\"persistent\":\"true\"");
                     break;
                 }
                 case 12:
@@ -882,11 +882,11 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("\"attr3\":\"%d\", ", e.attr3);
                     printf("\"attr4\":\"%d\", ", e.attr4);
                     printf("\"animation\":\"130\", ");
-                    printf("\"modelname\":\"%s\", ", (e.attr2 < 0) ? "areatrigger" : "@REPLACE_MODEL_PATH@");
+                    printf("\"model_name\":\"%s\", ", (e.attr2 < 0) ? "areatrigger" : "@REPLACE_MODEL_PATH@");
                     printf("\"soundname\":\"0ad/alarmcreatemiltaryfoot_1.ogg\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[]\", ");
-                    printf("\"_persistent\":\"true\"");
+                    printf("\"persistent\":\"true\"");
                     break;
                 }
                 case 13:
@@ -898,19 +898,19 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("\"attr4\":\"%d\", ", e.attr4);
                     printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z);
                     printf("\"animation\":\"130\", ");
-                    printf("\"modelname\":\"\", ");
+                    printf("\"model_name\":\"\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[teledest_%i]\", ", e.attr2);
-                    printf("\"_persistent\":\"true\"");
+                    printf("\"persistent\":\"true\"");
                     break;
                 }
                 default: standardEntity:
                 {
                     PRINT_STD(e)
-                    printf("\"modelname\":\"\", ");
+                    printf("\"model_name\":\"\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[]\", ");
-                    printf("\"_persistent\":\"true\"");
+                    printf("\"persistent\":\"true\"");
                     break;
                 }
             }

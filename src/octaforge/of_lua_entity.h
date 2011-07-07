@@ -35,7 +35,7 @@ namespace lua_binds
 {
     /* Entity management */
 
-    LUA_BIND_DEF(unreglogent, LogicSystem::unregisterLogicEntityByUniqueId(e.get<int>(1));)
+    LUA_BIND_DEF(unregister_entity, LogicSystem::unregisterLogicEntityByUniqueId(e.get<int>(1));)
 
     LUA_BIND_SE(setupextent, LogicSystem::setupExtent(ref,
         e.get<int>(2),

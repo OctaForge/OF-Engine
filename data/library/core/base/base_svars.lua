@@ -84,12 +84,12 @@ function state_variable:__init(kwargs)
 
     self.clientread = kwargs.clientread or true
     self.clientwrite = kwargs.clientwrite or true
-    self.customsynch = kwargs.customsynch or false
-    self.clientset = kwargs.clientset or false
+    self.custom_synch = kwargs.custom_synch or false
+    self.client_set = kwargs.client_set or false
     self.guiname = kwargs.guiname
     self.altname = kwargs.altname
     self.reliable = kwargs.reliable or true
-    self.hashistory = kwargs.hashistory or true
+    self.has_history = kwargs.has_history or true
     self.clientpriv = kwargs.clientpriv or false
 end
 
@@ -162,7 +162,7 @@ end
 function state_variable:getter(var)
     var:read_tests(self)
     logging.log(logging.INFO, "SV getter: " .. tostring(var._name))
-    return self.state_var_vals[var._name]
+    return self.state_variable_values[var._name]
 end
 
 --- Default state variable setter. Simillar to getter, only for setting.
@@ -172,7 +172,7 @@ end
 -- @see state_variable:getter
 function state_variable:setter(var, val)
     var:write_tests(self)
-    self:_set_statedata(var._name, val, -1)
+    self:set_state_data(var._name, val, -1)
 end
 
 --- Validate value for state variable. Called when setting state data.
@@ -336,7 +336,7 @@ function state_array:setter(var, val)
         end
     end
 
-    self:_set_statedata(var._name, data, -1)
+    self:set_state_data(var._name, data, -1)
 end
 
 state_array.to_wire_item = convert.tostring
@@ -367,8 +367,8 @@ end
 -- @return Raw data.
 function state_array:get_raw(ent)
     logging.log(logging.INFO, "get_raw: " .. tostring(self))
-    logging.log(logging.INFO, json.encode(ent.state_var_vals))
-    local val = ent.state_var_vals[self._name]
+    logging.log(logging.INFO, json.encode(ent.state_variable_values))
+    local val = ent.state_variable_values[self._name]
     return val and val or {}
 end
 
@@ -384,7 +384,7 @@ function state_array:set_item(ent, i, v)
         assert(not string.find(v, "%" .. self.separator))
     end
     arr[i] = v
-    ent:_set_statedata(self._name, arr, -1)
+    ent:set_state_data(self._name, arr, -1)
 end
 
 --- Get state array item.
@@ -508,18 +508,18 @@ function wrapped_cvariable:_register(_name, parent)
         local prefix = get_onmodify_prefix()
         local variable = self
         parent:connect(prefix .. _name, function (self, v)
-            if CLIENT or parent:can_call_cfuncs() then
+            if CLIENT or parent:can_call_c_functions() then
                 logging.log(logging.INFO, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
                 -- we've been set up, apply the change
                 variable.csetter(parent, v)
                 logging.log(logging.INFO, "csetter called successfully.")
 
                 -- caching reads from script into C++ (search for -- caching)
-                parent.state_var_vals[tostring(variable._name)] = v
-                parent.state_var_val_timestamps[tostring(variable._name)] = GLOBAL_CURRENT_TIMESTAMP
+                parent.state_variable_values[tostring(variable._name)] = v
+                parent.state_variable_value_timestamps[tostring(variable._name)] = GLOBAL_CURRENT_TIMESTAMP
             else
                 -- not yet set up, queue change
-                parent:_queue_sv_change(tostring(variable._name), v)
+                parent:queue_state_variable_change(tostring(variable._name), v)
             end
         end)
     else
@@ -536,18 +536,18 @@ function wrapped_cvariable:getter(var)
     logging.log(logging.INFO, "WCV getter " .. tostring(var._name))
 
     -- caching
-    local cached_timestamp = self.state_var_val_timestamps[tostring(var._name)]
+    local cached_timestamp = self.state_variable_value_timestamps[tostring(var._name)]
     if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
-        return self.state_var_vals[tostring(var._name)]
+        return self.state_variable_values[tostring(var._name)]
     end
-    if var.cgetter and (CLIENT or self:can_call_cfuncs()) then
+    if var.cgetter and (CLIENT or self:can_call_c_functions()) then
         logging.log(logging.INFO, "WCV getter: call C")
         local val = var.cgetter(self)
 
         -- caching
         if CLIENT or self._queued_sv_changes_complete then
-            self.state_var_vals[tostring(var._name)] = val
-            self.state_var_val_timestamps[tostring(var._name)] = GLOBAL_CURRENT_TIMESTAMP
+            self.state_variable_values[tostring(var._name)] = val
+            self.state_variable_value_timestamps[tostring(var._name)] = GLOBAL_CURRENT_TIMESTAMP
         end
 
         return val
@@ -600,11 +600,11 @@ wrapped_carray._register = wrapped_cvariable._register
 function wrapped_carray:get_raw(ent)
     logging.log(logging.INFO, "WCA:get_raw " .. tostring(self._name) .. " " .. tostring(self.cgetter))
 
-    if self.cgetter and (CLIENT or ent:can_call_cfuncs()) then
+    if self.cgetter and (CLIENT or ent:can_call_c_functions()) then
         -- caching
-        local cached_timestamp = ent.state_var_val_timestamps[tostring(self._name)]
+        local cached_timestamp = ent.state_variable_value_timestamps[tostring(self._name)]
         if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
-            return ent.state_var_vals[tostring(self._name)]
+            return ent.state_variable_values[tostring(self._name)]
         end
 
         logging.log(logging.INFO, "WCA:get_raw: call C")
@@ -612,13 +612,13 @@ function wrapped_carray:get_raw(ent)
         local val = self.cgetter(ent)
         logging.log(logging.INFO, "WCA:get_raw:result: " .. json.encode(val))
         if CLIENT or ent._queued_sv_changes_complete then
-            ent.state_var_vals[tostring(self._name)] = val
-            ent.state_var_val_timestamps[tostring(self._name)] = GLOBAL_CURRENT_TIMESTAMP
+            ent.state_variable_values[tostring(self._name)] = val
+            ent.state_variable_value_timestamps[tostring(self._name)] = GLOBAL_CURRENT_TIMESTAMP
         end
         return val
     else
         logging.log(logging.INFO, "WCA:get_raw: fallback to state_data")
-        local r = ent.state_var_vals[tostring(self._name)]
+        local r = ent.state_variable_values[tostring(self._name)]
         logging.log(logging.INFO, "WCA:get_raw .. " .. json.encode(r))
         return r
     end

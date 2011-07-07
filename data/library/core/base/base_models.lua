@@ -81,7 +81,7 @@ reload = CAPI.reloadmodel
 -- @param yaw Model yaw.
 -- @param pitch Model pitch.
 -- @param flags Model flags (integer) using bitwise operators, see beginning of this file for flags.
--- @param basetime Entity starttime property.
+-- @param basetime Entity start_time property.
 -- @class function
 -- @name render
 render = CAPI.rendermodel

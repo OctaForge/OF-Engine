@@ -81,7 +81,7 @@ plugins = {
     -- network protocol for firing events
     protocol = {
         properties = {
-            firing_info = state_variables.state_array_float({ clientset = true, hashistory = false })
+            firing_info = state_variables.state_array_float({ client_set = true, has_history = false })
         },
 
         activate = function(self)
@@ -117,7 +117,7 @@ plugins = {
     -- manages a player firing a gun - delay, repeat etc.
     player = {
         properties = {
-            current_gun_index = state_variables.state_integer({ clientset = true }),
+            current_gun_index = state_variables.state_integer({ client_set = true }),
             gun_indexes = state_variables.state_array_integer(),
             gun_switch_sound = state_variables.state_string()
         },
@@ -275,21 +275,21 @@ function gun:do_recoil(shooter, magnitude)
 end
 
 action_shoot1 = class.new(entity_animated.action_localanim)
-action_shoot1.localanim      = actions.ANIM_ATTACK1
-action_shoot1.canbecancelled = false
+action_shoot1.localanim   = actions.ANIM_ATTACK1
+action_shoot1.cancellable = false
 function action_shoot1:__tostring() return "action_shoot" end
 
 -- convenience
 action_shoot = action_shoot1
 
 action_shoot2 = class.new(entity_animated.action_localanim)
-action_shoot2.localanim      = actions.ANIM_ATTACK2
-action_shoot2.canbecancelled = false
+action_shoot2.localanim   = actions.ANIM_ATTACK2
+action_shoot2.cancellable = false
 function action_shoot2:__tostring() return "action_shoot" end
 
 action_shoot3 = class.new(entity_animated.action_localanim)
-action_shoot3.localanim      = actions.ANIM_ATTACK3
-action_shoot3.canbecancelled = false
+action_shoot3.localanim   = actions.ANIM_ATTACK3
+action_shoot3.cancellable = false
 function action_shoot3:__tostring() return "action_shoot" end
 
 
@@ -298,16 +298,16 @@ action_shoot2_repeating.localanim = math.bor(
     actions.ANIM_ATTACK2,
     actions.ANIM_LOOP
 )
-action_shoot2_repeating.canbecancelled = false
+action_shoot2_repeating.cancellable = false
 function action_shoot2_repeating:__tostring() return "action_shoot" end
 
 action_out_of_ammo = class.new(actions.action)
-action_out_of_ammo.secondsleft    = 0.5
-action_out_of_ammo.canbecancelled = false
-action_out_of_ammo.canmulqueue    = false
+action_out_of_ammo.seconds_left       = 0.5
+action_out_of_ammo.cancellable        = false
+action_out_of_ammo.can_multiply_queue = false
 
 function action_out_of_ammo:__tostring() return "action_out_of_ammo" end
-function action_out_of_ammo:dostart()
+function action_out_of_ammo:do_start()
     local player = entity_store.get_plyent()
 
     local message = player.out_of_ammo_msg or "(Out of ammo)"

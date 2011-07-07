@@ -15,7 +15,7 @@ entity_classes.reg(plugins.bake(
             _class = "game_player",
 
             properties = {
-                new_mark = state_variables.state_array_float({ clientset = true, hashistory = false })
+                new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
             },
 
             -- Switches color in entity
@@ -74,8 +74,8 @@ entity_classes.reg(plugins.bake(
 
                 for i, mark in pairs(self.marks) do
                     if last and mark and mark.x >= 0 and last.x >= 0 then
-                        effect.flare(effect.PARTICLE.STREAK, last, mark, 0, mark.w, 1.0)
-                        effect.flare(effect.PARTICLE.STREAK, mark, last, 0, mark.w, 1.0)
+                        effects.flare(effects.PARTICLE.STREAK, last, mark, 0, mark.w, 1.0)
+                        effects.flare(effects.PARTICLE.STREAK, mark, last, 0, mark.w, 1.0)
                     end
                     last = mark
                 end
@@ -86,8 +86,8 @@ entity_classes.reg(plugins.bake(
 
                 -- If continuing and haven't just stopped, draw a spark at the end of last mark.
                 if conbatch and not self.stop_batch then
-                    effect.splash(
-                        effect.PARTICLE.SPARK, 10, 0.15,
+                    effects.splash(
+                        effects.PARTICLE.SPARK, 10, 0.15,
                         self.marks[#self.marks - 1],
                         self.marks[#self.marks - 1].w,
                         1.0, 25, 1

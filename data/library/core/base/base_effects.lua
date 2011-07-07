@@ -11,78 +11,78 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        This file features effects (particle system, dynamic lights etc.)
+        This file features effects (particle system, dynamic lights etc.).
+        Will get redone in the future, but not deprecated for now.
 
     Section: Effect system
 ]]
 
 --[[!
-    Package: effect
-    This module contains effect interface, such as particle system, dynamic lights ...
+    Package: effects
+    This module contains effect interface, such as particle system, dynamic lights
+    and others.
 ]]
-module("effect", package.seeall)
+module("effects", package.seeall)
 
--- in sync with iengine.h
+--[[!
+    Struct: DECAL
+    This table specifies decal types. It's in sync with iengine.h header.
 
---- Decal types
--- @class table
--- @name DECAL
--- @field SCORCH scorch
--- @field BLOOD blood
--- @field BULLET bullet
--- @field DECAL decal
--- @field CIRCLE circle
+    Fields:
+        SCORCH - scorch decal, used i.e. after explosions.
+        BLOOD - blood decal, used for blood splatters on geometry.
+        BULLET - bullet decal, used to mark a place after it's being shot by a bullet.
+]]
 DECAL = {
     SCORCH = 0,
     BLOOD = 1,
-    BULLET = 2,
-    DECAL = 3,
-    CIRCLE = 4
+    BULLET = 2
 }
 
--- in sync with iengine.h
+--[[!
+    Struct: PARTICLE
+    This table specifies particle types. It's in sync with iengine.h header.
 
---- Particle types
--- @class table
--- @name PARTICLE
--- @field BLOOD blood
--- @field WATER water
--- @field SMOKE smoke
--- @field SOFTSMOKE softsmoke
--- @field STEAM steam
--- @field FLAME flame
--- @field FIREBALL1 fireball
--- @field FIREBALL2 fireball
--- @field FIREBALL3 fireball
--- @field STREAK streak
--- @field LIGHTNING lightning
--- @field EXPLOSION explosion
--- @field EXPLOSION_NO_GLARE explosion without glare
--- @field SPARK spark
--- @field EDIT edit
--- @field MUZZLE_FLASH1 muzzle flash
--- @field MUZZLE_FLASH2 muzzle flash
--- @field MUZZLE_FLASH3 muzzle flash
--- @field MUZZLE_FLASH4A muzzle flash
--- @field MUZZLE_FLASH4B muzzle flash
--- @field MUZZLE_FLASH5 muzzle flash
--- @field TEXT text
--- @field METER meter
--- @field METER_VS meter
--- @field LENS_FLARE lens flare
--- @field FLAME1 flame
--- @field FLAME2 flame
--- @field FLAME3 flame
--- @field FLAME4 flame
--- @field SNOW snow
--- @field RAIN rain
--- @field BULLET bullet
--- @field GLOW glow
--- @field GLOW_TRACK glow
--- @field LIGHTFLARE light flare
--- @field BUBBLE bubble
--- @field EXPLODE explode
--- @field SMOKETRAIL smoke trail
+    Fields:
+        BLOOD - blood particle used for immediate blood splatters on hit.
+        WATER - water "fountain" particle.
+        SMOKE - smoke particle.
+        SOFTSMOKE - soft smoke particle.
+        STEAM - steam particle.
+        FLAME - flame particle.
+        FIREBALL1 - first variant of fireball - these are deprecated.
+        FIREBALL2 - second variant of fireball - these are deprecated.
+        FIREBALL3 - third variant of fireball - these are deprecated.
+        STREAK - streak particle.
+        LIGHTNING - lightning particle.
+        EXPLOSION - explosion particle.
+        EXPLOSION_NO_GLARE - exposion particle without glare.
+        SPARK - spark particle.
+        EDIT - edit mode particle, deprecated now (uses icons).
+        MUZZLE_FLASH1 - muzzle flash particle.
+        MUZZLE_FLASH2 - muzzle flash particle.
+        MUZZLE_FLASH3 - muzzle flash particle.
+        MUZZLE_FLASH4A - muzzle flash particle.
+        MUZZLE_FLASH4B - muzzle flash particle.
+        MUZZLE_FLASH5 - muzzle flash particle.
+        TEXT - text particle.
+        METER - meter particle.
+        METER_VS - metervs particle (allows to specify background color).
+        LENS_FLARE - lens flare particle.
+        FLAME1 - flame particle.
+        FLAME2 - flame particle.
+        FLAME3 - flame particle.
+        FLAME4 - flame particle.
+        SNOW - snow particle.
+        RAIN - rain particle.
+        BULLET - bullet particle.
+        GLOW - glow particle.
+        GLOW_TRACK - glow track particle.
+        LIGHTFLARE - light flare particle.
+        BUBBLE - bubble particle.
+        EXPLODE - explosion particle (flat).
+        SMOKETRAIL - smoke trail particle.
+]]
 PARTICLE = {
     BLOOD = 0,
     WATER = 1,
@@ -124,218 +124,340 @@ PARTICLE = {
     SMOKETRAIL = 37
 }
 
---- Add a decal
--- @param ty The decal type
--- @param pos A vector that indicates the position of the decal
--- @param dir A vector that indicates the direction the decal travels in
--- @param rd Radius
--- @param col The color (Specified as 0xRRGGBB)
--- @param inf Info (?!)
-function decal_add(ty, pos, dir, rd, col, inf)
-    i = i or 0
-    local rgb = convert.hextorgb(c or 0xFFFFFF)
-    CAPI.adddecal(ty, pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, rd, rgb.r, rgb.g, rgb.b, inf)
+--[[!
+    Struct: DYNAMIC_LIGHT
+    This table specifies dynamic light flags.
+
+    Fields:
+        SHRINK - dynamic light will be shrinking.
+        EXPAND - dynamic light will be expanding.
+        FLASH  - dynamic light will be flashing.
+]]
+DYNAMIC_LIGHT = {
+    SHRINK = math.lsh(1, 0),
+    EXPAND = math.lsh(1, 1),
+    FLASH  = math.lsh(1, 2)
+}
+
+--[[!
+    Function: decal
+    Adds a decal at specified position in the world.
+
+    Parameters:
+        decal_type - type of the decal (<DECAL>).
+        position - a vector indicating decal position.
+        direction - a vector indicating direction the decal faces.
+        radius - radius of the decal.
+        color - decal color specified as hex integer (0xRRGGBB).
+        info - decal-specific information, currently used in case of blood,
+        where number from 0 to 3 specifies which one of 4 blood variants
+        to render.
+]]
+function decal(decal_type, position, direction, radius, color, info)
+    info      = info or 0
+    local rgb = convert.hextorgb(color or 0xFFFFFF)
+
+    CAPI.adddecal(
+        decal_type,
+        position.x, position.y, position.z,
+        direction.x, direction.y, direction.z,
+        radius, rgb.r, rgb.g, rgb.b, info
+    )
 end
 
---- Add a dynlight
--- @param pos A vector that indicates the position of the dynlight
--- @param rd Radius
--- @param col Color (0xRRGGBB)
--- @param fd Fade time in seconds
--- @param pk Peak
--- @param fl Flags
--- @param ird Initial radius
--- @param icol Initial color (0xRRGGBB)
-function dynlight_add(pos, rd, col, fd, pk, fl, ird, icol)
-    local rgbc = convert.hextorgb(col)
-    local rgbic = convert.hextorgb(icol or 0xFFFFFF)
-    CAPI.adddynlight(pos.x, pos.y, pos.z, rd, rgbc.r, rgbc.g, rgbc.b, fd * 1000, pk * 1000, fl, ird, rgbic.r, rgbic.g, rgbic.b)
+--[[!
+    Function: dynamic_light
+    Adds a dynamic light at specified position in the world.
+    It is for now queued for next frame, so we get one frame lose,
+    which is mostly okay, but FIXME anyway.
+
+    Parameters:
+        position - a vector indicating dynamic light position.
+        radius - dynamic light radius as integral number.
+        color - dynamic light color specified as hex integer (0xRRGGBB).
+        fade - fade time in seconds.
+        peak - peak time in seconds.
+        flags - dynamic light flags (<DYNAMIC_LIGHT>).
+        initial_radius - dynamic light initial radius.
+        initial_color - dynamic light initial color specified as hex integer (0xRRGGBB).
+]]
+function dynamic_light(position, radius, color, fade, peak, flags, initial_radius, initial_color)
+    local rgbc  = convert.hextorgb(color)
+    local rgbic = convert.hextorgb(initial_color or 0xFFFFFF)
+
+    CAPI.adddynlight(
+        position.x, position.y, position.z,
+        radius,
+        rgbc.r, rgbc.g, rgbc.b,
+        fade * 1000, peak * 1000,
+        flags, initial_radius,
+        rgbic.r, rgbic.g, rgbic.b
+    )
 end
 
+--[[!
+    Function: splash
+    Spawns a splash emitter. If ran on server, a message gets sent to all clients.
 
---- Create a particle splash
--- @param ty Particle type
--- @param n Number of particles
--- @param fd Fade time in seconds
--- @param pos Position of the splash (vector)
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
--- @param rd Radius
--- @param grav Gravity pull on the particles
--- @param regfd Regfade (?!) (boolean)
--- @param fl Flags
--- @param fs Fast splash (boolean)
--- @param gr Grow (boolean)
-function splash(ty, n, fd, pos, col, sz, rd, grav, regfd, fl, fs, gr)
+    Parameters:
+        particle_type - particle type (<PARTICLE>).
+        num - number of particles.
+        fade - fade time in seconds.
+        position - vector specifying splash position.
+        color - splash color as hex integer (0xRRGGBB).
+        size - particle spze.
+        radius - particle radius.
+        gravity - gravity pull on the particles.
+        regular_fade - boolean value specifying whether
+        to use a regular particle fade (false usually).
+        flags - particle flags.
+        fast_splash - boolean value specifying whether
+        the splash should be fast.
+        grow - integer value specifying particle grow factor (1 to 4).
+]]
+function splash(particle_type, num, fade, position, color, size, radius, gravity, regular_fade, flags, fast_splash, grow)
     if CLIENT then
-        col = col or 0xFFFFFF
-        sz = sz or 1.0
-        rd = rd or 150
-        grav = grav or 2
-        regfd = regfd or false
-        fs = fs or false
-        CAPI.particle_splash(ty, n, fd * 1000, pos.x, pos.y, pos.z, col, sz, rd, grav, regfd, fl, fs, gr)
+        color   = color   or 0xFFFFFF
+        size    = size    or 1.0
+        radius  = radius  or 150
+        gravity = gravity or 2
+        regular_fade = regular_fade or false
+        fast_splash  = fast_splash  or false
+
+        CAPI.particle_splash(
+            particle_type, num, fade * 1000,
+            position.x, position.y, position.z,
+            color, size, radius, gravity, regular_fade,
+            flags, fast_splash, grow
+        )
     else
-        message.send(message.ALL_CLIENTS, CAPI.particle_splash_toclients, ty, n, fd * 1000, pos.x, pos.y, pos.z) -- TODO: last 4 params
+        message.send(
+            message.ALL_CLIENTS, CAPI.particle_splash_toclients,
+            particle_type, num, fade * 1000,
+            position.x, position.y, position.z
+        ) -- TODO: last 8 params
     end
 end
 
---- Create a regular particle splash
--- @param ty Particle type
--- @param n Number of particles
--- @param fd Fade time in seconds
--- @param pos Position of the splash (vector)
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
--- @param rd Radius
--- @param grav Gravity pull on the particles
--- @param dl Delay
--- @param hv Hover (boolean)
--- @param gr Grow (boolean)
-function regular_splash(ty, n, fd, pos, col, sz, rd, grav, dl, hv, gr)
+--[[!
+    Function: regular_splash
+    Spawns a regular splash emitter. If ran on server, a message gets sent to all clients.
+
+    Parameters:
+        particle_type - particle type (<PARTICLE>).
+        num - number of particles.
+        fade - fade time in seconds.
+        position - vector specifying splash position.
+        color - splash color as hex integer (0xRRGGBB).
+        size - particle size.
+        radius - particle radius.
+        gravity - gravity pull on the particles.
+        delay - particle delay.
+        hover - boolean value specifying whether
+        the particle should hover.
+        grow - integer value specifying particle grow factor (1 to 4).
+]]
+function regular_splash(particle_type, num, fade, position, color, size, radius, gravity, delay, hover, grow)
     if CLIENT then
-        col = col or 0xFFFFFF
-        sz = sz or 1.0
-        rd = rd or 150
-        grav = grav or 2
-        hv = hv or false
-        CAPI.regular_particle_splash(ty, n, fd * 1000, pos.x, pos.y, pos.z, col, sz, rd, grav, regfd, fl, fs, gr)
+        color   = color   or 0xFFFFFF
+        size    = size    or 1.0
+        radius  = radius  or 150
+        gravity = gravity or 2
+        hover   = hover   or false
+
+        CAPI.regular_particle_splash(
+            particle_type, num, fade * 1000,
+            position.x, position.y, position.z,
+            color, size, radius, gravity,
+            delay, hover, grow
+        )
     else
-        message.send(message.ALL_CLIENTS, CAPI.particle_regularsplash_toclients, ty, n, fd * 1000, pos.x, pos.y, pos.z) -- TODO: last 5 params
+        message.send(
+            message.ALL_CLIENTS, CAPI.particle_regularsplash_toclients,
+            particle_type, num, fade * 1000,
+            position.x, position.y, position.z
+        ) -- TODO: last 7 params
     end
 end
 
+--[[!
+    Function: fireball
+    Spawns a fireball. Clientside only.
 
---- Explosion splash
--- @param ty Particle type
--- @param pos Position of explosion (vector)
--- @param fade Fade time in seconds
--- @param col Color (0xRRGGBB)
--- @param sz Size of particles
--- @param grav Gravity pull on the particles
--- @param n Number of particles
-function explode_splash(ty, pos, fd, col, sz, grav, n)
-    fd = (fd ~= nil) and fd * 1000 or -1
-    col = col or 0xFFFFFF
-    sz = sz or 1.0
-    grav = grav or -20
-    n = n or 16
-    CAPI.particle_fireball(pos.x, pos.y, pos.z, fd, ty, col, sz, grav, n)
+    Parameters:
+        particle_type - particle type (<PARTICLE>).
+        position - vector specifying fireball position.
+        max_size - maximal size of the fireball.
+        fade - fade time in seconds.
+        color - fireball color as hex integer (0xRRGGBB).
+        size - fireball size.
+        gravity - gravity pull on the particles.
+        num - number of particles.
+]]
+function fireball(particle_type, position, max_size, fade, color, size, gravity, num)
+    fade  = (fade ~= nil) and fade * 1000 or -1
+    color = color or 0xFFFFFF
+    size  = size  or 4.0
+    CAPI.particle_fireball(
+        position.x, position.y, position.z,
+        max_size, particle_type, fade, color,
+        size, gravity, num
+    )
+end
+
+--[[!
+    Function: flare
+    Spawns a flare. Clientside only.
+
+    Parameters:
+        particle_type - particle type (<PARTICLE>).
+        target_position - vector specifying target flare position.
+        source_position - vector specifying source flare position.
+        fade - fade time in seconds.
+        color - flare color as hex integer (0xRRGGBB).
+        size - flare size (thickness).
+        grow - integer value specifying particle grow factor (1 to 4).
+        owner - flare owner entity.
+]]
+function flare(particle_type, target_position, source_position, fade, color, size, grow, owner)
+    fade  = fade and fade * 1000 or 0
+    color = color or 0xFFFFFF
+    size  = size  or 0.28
+    local oid = owner and owner.uid or -1
+    CAPI.particle_flare(
+        source_position.x, source_position.y, source_position.z,
+        target_position.x, target_position.y, target_position.z,
+        fade, particle_type, color, size, grow, oid
+    )
+end
+
+--[[!
+    Function: flying_flare
+    Spawns a flying flare. Clientside only.
+
+    Parameters:
+        particle_type - particle type (<PARTICLE>).
+        target_position - vector specifying target flare position.
+        source_position - vector specifying source flare position.
+        fade - fade time in seconds.
+        color - flare color as hex integer (0xRRGGBB).
+        size - flare size (thickness).
+        grow - integer value specifying particle grow factor (1 to 4).
+]]
+function flying_flare(particle_type, target_position, source_position, fade, color, size, grow)
+    fade  = fade and fade * 1000 or 0
+    CAPI.particle_flying_flare(
+        source_position.x, source_position.y, source_position.z,
+        target_position.x, target_position.y, target_position.z,
+        fade, particle_type, color, size, grow)
 end
 
 
---- Create a fireball
--- @param ty Particle type
--- @param pos Position of fireball (vector)
--- @param mx Maximum size of fireball
--- @param fd Fade time in seconds
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
-function fireball(ty, pos, mx, fd, col, sz)
-    fd = (fd ~= nil) and fd * 1000 or -1
-    col = col or 0xFFFFFF
-    sz = sz or 4.0
-    CAPI.particle_fireball(pos.x, pos.y, pos.z, mx, ty, fd, col, sz)
+--[[!
+    Function: trail
+    Spawns a particle trail. Clientside only.
+
+    Parameters:
+        particle_type - particle type (<PARTICLE>).
+        fade - fade time in seconds.
+        target_position - vector specifying target flare position.
+        source_position - vector specifying source flare position.
+        color - flare color as hex integer (0xRRGGBB).
+        size - flare size (thickness).
+        grow - integer value specifying particle grow factor (1 to 4).
+        bubbles - if true, the trail will consist of bubbles.
+]]
+function trail(particle_type, fade, target_position, source_position, color, size, grow, bubbles)
+    color   = color   or 0xFFFFFF
+    size    = size    or 1.0
+    grow    = grow    or 20
+    bubbles = bubbles or false
+    CAPI.particle_trail(
+        particle_type, fade * 1000,
+        source_position.x, source_position.y, source_position.z,
+        target_position.x, target_position.y, target_position.z,
+        color, size, grow, bubbles
+    )
 end
 
---- Create a flare
--- @param ty Particle type
--- @param fpos Target position (vector)
--- @param spos Source position (vector)
--- @param fd Fade time in seconds
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
--- @param gr Grow
--- @param own Owner (entity)
-function flare(ty, fpos, spos, fd, col, sz, gr, own)
-    fd = fd and fd * 1000 or 0
-    col = col or 0xFFFFFF
-    sz = sz or 0.28
-    local oid = own and own.uid or -1
-    CAPI.particle_flare(spos.x, spos.y, spos.z, fpos.x, fpos.y, fpos.z, fd, ty, col, sz, gr, oid)
+--[[!
+    Function: flame
+    Spawns a flame. Clientside only.
+
+    Parameters:
+        particle_type - particle type (<PARTICLE>).
+        position - vector specifying flame position.
+        radius - flame radius.
+        height - flame height.
+        color - flame color.
+        density - flame density.
+        scale - flame scale.
+        speed - falme speed.
+        fade - fade time in seconds.
+        gravity - gravity pull on the particles.
+]]
+function flame(particle_type, position, radius, height, color, density, scale, speed, fade, gravity)
+    density = density or 3
+    scale   = scale   or 2.0
+    speed   = speed   or 200.0
+    fade    = fade    and fade * 1000 or 600.0
+    gravity = gravity or -15
+    CAPI.particle_flame(
+        particle_type,
+        position.x, position.y, position.z,
+        radius, height, color, density,
+        scale, speed, fade, gravity
+    )
 end
 
---- Create a flying flare
--- @param ty Particle type
--- @param fpos Target position (vector)
--- @param spos Source position (vector)
--- @param fd Fade time in seconds
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
--- @param gr Gravity pull on the flare
-function flying_flare(ty, fpos, spos, fd, col, sz, gr)
-    fd = fd and fd * 1000 or 0
-    CAPI.particle_flying_flare(spos.x, spos.y, spos.z, fpos.x, fpos.y, fpos.z, fd, ty, col, sz, gr)
+--[[!
+    Function: lightning
+    Spawns a lightning. Clientside only.
+
+    Parameters:
+        target_position - vector specifying target lightning position.
+        source_position - vector specifying source lightning position.
+        fade - fade time in seconds.
+        color - lightning color as hex integer (0xRRGGBB).
+        size - lightning size (thickness).
+]]
+function lightning(target_position, source_position, fade, color, size)
+    flare(PARTICLE.LIGHTNING, target_position, source_position, fade, color, size)
 end
 
+--[[!
+    Function: text
+    Spawns a text. Clientside only.
 
---- Create a particle trail
--- @param ty Particle type
--- @param fd Fade time in seconds
--- @param fpos Target position (vector)
--- @param spos Source position (vector)
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
--- @param gr Gravity pull on the particles
--- @param bub Bubbles (boolean)
-function trail(ty, fd, spos, fpos, col, sz, gr, bub)
-    col = col or 0xFFFFFF
-    sz = sz or 1.0
-    gr = gr or 20
-    bub = bub or false
-    CAPI.particle_trail(ty, fd * 1000, spos.x, spos.y, spos.z, fpos.x, fpos.y, fpos.z, col, sz, gr, bub)
+    Parameters:
+        position - vector specifying text position.
+        text - the text to show.
+        fade - fade time in seconds.
+        color - text color as hex integer (0xRRGGBB).
+        size - text size.
+        gravity - gravity pull on the particles.
+]]
+function text(position, text, fade, color, size, gravity)
+    fade  = fade  or 2.0
+    color = color or 0xFFFFFF
+    size  = size  or 2.0
+    CAPI.particle_text(
+        position.x, position.y, position.z,
+        text, PARTICLE.TEXT, fade * 1000,
+        color, size, gravity
+    )
 end
 
---- Create a flame
--- @param ty Particle type
--- @param pos Position (vector)
--- @param rd Radius
--- @param h Height
--- @param col Color (0xRRGGBB)
--- @param d Density
--- @param sc Scale
--- @param sp Speed
--- @param fd Fade time in seconds
--- @param gr Gravity pull on the particles
-function flame(ty, pos, rd, h, col, d, sc, sp, fd, gr)
-    d = d or 3
-    sc = sc or 2.0
-    sp = sp or 200.0
-    fd = fd and fd * 1000 or 600.0
-    gr = gr or -15
-    CAPI.particle_flame(ty, pos.x, pos.y, pos.z, rd, h, col, d, sc, sp, fd, gr)
-end
+--[[!
+    Function: client_damage
+    Shows client damage effect.
 
---- Create lightning
--- @param spos Source position (vector)
--- @param fpos Target position (vector)
--- @param fd Fade time in seconds
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
-function lightning(spos, fpos, fd, col, sz)
-    flare(PARTICLE.LIGHTNING, spos, fpos, fd, col, sz)
-end
-
-
---- Add text
--- @param pos Position (vector)
--- @param tx Text
--- @param fd Fade time in seconds
--- @param col Color (0xRRGGBB)
--- @param sz Particle size
--- @param gr Gravity pull on the text
-function text(pos, tx, fd, col, sz, gr)
-    fd = fd or 2.0
-    col = col or 0xFFFFFF
-    sz = sz or 2.0
-    CAPI.particle_text(pos.x, pos.y, pos.z, tx, PARTICLE.TEXT, fd * 1000, col, sz, gr)
-end
-
---- Play damage effect
--- @param r Amount of damage
--- @param col Color (0xRRGGBB)
-function cldamage(r, col)
+    Parameters:
+        amount - amount of damage made.
+        color - damage color as hex integer (0xRRGGBB).
+]]
+function client_damage(amount, color)
     if not SERVER then
-        CAPI.client_damage_effect(r, col)
+        CAPI.client_damage_effect(amount, color)
     end
 end

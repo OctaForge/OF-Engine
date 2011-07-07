@@ -62,7 +62,7 @@ function push_action(direction, mode, icon, action)
     table.insert(__action_storage, { direction, mode, icon, action })
 end
 
-function tab_area(edit)
+function tab_area(edit, gui_name, info_area)
     -- vertical tab area
     gui.space(0.01, 0.01, function()
         gui.align(-1, -1)
@@ -250,192 +250,248 @@ function tab_area(edit)
     -- horizontal tab area
     gui.space(0.01, 0.01, function()
         gui.align(1, 1)
-
-        -- draw its background first
         gui.table(3, 0, function()
             -- upper left corner
             gui.stretchedimage(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
             -- upper edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.5, 0.01)
+            gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
             -- upper right corner
             gui.stretchedimage(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
             -- left edge
             gui.stretchedimage(image_path .. "window_background.png", 0.01, 0.05)
             -- center
-            gui.stretchedimage(image_path .. "window_background_alt.png", 0.5, 0.05)
+            gui.stretchedimage(image_path .. "window_background_alt.png", 0, 0.05, function()
+                gui.clamp(1, 1, 0, 0)
+                -- create a horizontal list, left part storing the scrollbox
+                gui.hlist(0, function()
+                    -- store the scrollbox in a fill so the scrollbar works properly
+                    gui.fill(0.47, 0.05, function()
+                        -- now draw the scroller
+                        gui.scroll(0.47, 0.05, function()
+                            gui.align(0, 0)
+                            gui.fill(0.47, 0.05, function()
+                                gui.hlist(0, function()
+                                    gui.align(-1, 0)
+                                    for i, v in pairs(__tab_storage) do
+                                        if v[2] == BAR_HORIZONTAL and ((edit and v[3] == BAR_EDIT) or (not edit and v[3] == BAR_NORMAL) or v[3] == BAR_ALL) then
+                                            gui.button(
+                                                function()
+                                                    if  v[6] then
+                                                        v[6] = false
+                                                        gui.hide("htab")
+                                                        __tab_curr_h = nil
+                                                        return nil
+                                                    end
+                                                    gui.show("htab")
+                                                    gui.replace("htab", "body",  v[5])
+                                                    gui.replace("htab", "title", function()
+                                                        gui.align(0, 0)
+                                                        gui.label(v[1])
+                                                    end)
+                                                    v[6] = true
+                                                    if  __tab_curr_h then
+                                                        __tab_curr_h[6] = false
+                                                    end
+                                                    __tab_curr_h = v
+                                                end, function()
+                                                    -- idle
+                                                    gui.space(0.005, 0, function()
+                                                        gui.stretchedimage(
+                                                            image_path .. "icons/" .. v[4] .. ".png",
+                                                            0.04, 0.04
+                                                        )
+                                                    end)
+
+                                                    -- hover
+                                                    gui.space(0.005, 0, function()
+                                                        gui.stretchedimage(
+                                                            image_path .. "icons/" .. v[4] .. ".png",
+                                                            0.04, 0.04
+                                                        )
+                                                    end)
+
+                                                    -- selected
+                                                    gui.space(0.005, 0, function()
+                                                        gui.stretchedimage(
+                                                            image_path .. "icons/" .. v[4] .. ".png",
+                                                            0.04, 0.04
+                                                        )
+                                                    end)
+
+                                                    -- shown over selected
+                                                    gui.cond(
+                                                        function()
+                                                            return v[6]
+                                                        end, function()
+                                                            gui.stretchedimage(
+                                                                image_path .. "tab_icon_over.png",
+                                                                0.05, 0.05
+                                                            )
+                                                        end
+                                                    )
+                                                end
+                                            )
+                                        end
+                                    end
+                                    for i, v in pairs(__action_storage) do
+                                        if v[1] == BAR_HORIZONTAL and ((edit and v[2] == BAR_EDIT) or (not edit and v[2] == BAR_NORMAL) or v[2] == BAR_ALL) then
+                                            gui.button(v[4], function()
+                                                -- idle
+                                                gui.space(0, 0.005, function()
+                                                    gui.stretchedimage(
+                                                        image_path .. "icons/" .. v[3] .. ".png",
+                                                        0.04, 0.04
+                                                    )
+                                                end)
+
+                                                -- hover
+                                                gui.space(0, 0.005, function()
+                                                    gui.stretchedimage(
+                                                        image_path .. "icons/" .. v[3] .. ".png",
+                                                        0.04, 0.04
+                                                    )
+                                                end)
+
+                                                -- selected
+                                                gui.space(0, 0.005, function()
+                                                    gui.stretchedimage(
+                                                        image_path .. "icons/" .. v[3] .. ".png",
+                                                        0.04, 0.04
+                                                    )
+                                                    gui.stretchedimage(
+                                                        image_path .. "tab_icon_over.png",
+                                                        0.05, 0.05
+                                                    )
+                                                end)
+                                            end)
+                                        end
+                                    end
+                                end)
+                            end)
+                        end)
+                        gui.hscrollbar(0.05, 0.5, function()
+                            -- both arrows idle
+                            gui.hlist(0, function()
+                                -- left arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
+                                -- horizontal bar
+                                gui.fill(0.47, 0.05)
+                                -- right arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
+                            end)
+
+                            -- left arrow hover
+                            gui.hlist(0, function()
+                                -- left arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05, hover)
+                                -- horizontal bar
+                                gui.fill(0.47, 0.05)
+                                -- right arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
+                            end)
+
+                            -- left arrow selected
+                            gui.hlist(0, function()
+                                -- left arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05, selected)
+                                -- horizontal bar
+                                gui.fill(0.47, 0.05)
+                                -- right arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
+                            end)
+
+                            -- right arrow hover
+                            gui.hlist(0, function()
+                                -- left arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
+                                -- horizontal bar
+                                gui.fill(0.47, 0.05)
+                                -- right arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05, hover)
+                            end)
+
+                            -- right arrow selected
+                            gui.hlist(0, function()
+                                -- left arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
+                                -- horizontal bar
+                                gui.fill(0.47, 0.05)
+                                -- right arrow
+                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05, selected)
+                            end)
+                        end)
+                    end)
+                    -- this part will be storing FPS information etc.
+                    gui.fill(0, 0, function()
+                        if type(info_area) == "function" then
+                            gui.tag("info_area", info_area)
+                            gui.cond(
+                                function()
+                                    gui.replace(gui_name, "info_area", info_area)
+                                end,
+                                function() end
+                            )
+                        end
+                    end)
+                end)
+            end)
             -- right edge
             gui.stretchedimage(image_path .. "window_background.png", 0.01, 0.05)
             -- lower left corner
             gui.stretchedimage(image_path .. "corner_lower_left.png", 0.01, 0.01)
             -- lower edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.5, 0.01)
+            gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
             -- lower right corner
             gui.stretchedimage(image_path .. "corner_lower_right.png", 0.01, 0.01)
         end)
-
-        -- now draw the scroller
-        gui.fill(0.52, 0.07, function()
-            gui.scroll(0.475, 0.05, function()
-                gui.align(0, 0)
-                gui.fill(0.475, 0.05, function()
-                    gui.hlist(0, function()
-                        gui.align(-1, 0)
-                        for i, v in pairs(__tab_storage) do
-                            if v[2] == BAR_HORIZONTAL and ((edit and v[3] == BAR_EDIT) or (not edit and v[3] == BAR_NORMAL) or v[3] == BAR_ALL) then
-                                gui.button(
-                                    function()
-                                        if  v[6] then
-                                            v[6] = false
-                                            gui.hide("htab")
-                                            __tab_curr_h = nil
-                                            return nil
-                                        end
-                                        gui.show("htab")
-                                        gui.replace("htab", "body",  v[5])
-                                        gui.replace("htab", "title", function()
-                                            gui.align(0, 0)
-                                            gui.label(v[1])
-                                        end)
-                                        v[6] = true
-                                        if  __tab_curr_h then
-                                            __tab_curr_h[6] = false
-                                        end
-                                        __tab_curr_h = v
-                                    end, function()
-                                        -- idle
-                                        gui.space(0.005, 0, function()
-                                            gui.stretchedimage(
-                                                image_path .. "icons/" .. v[4] .. ".png",
-                                                0.04, 0.04
-                                            )
-                                        end)
-
-                                        -- hover
-                                        gui.space(0.005, 0, function()
-                                            gui.stretchedimage(
-                                                image_path .. "icons/" .. v[4] .. ".png",
-                                                0.04, 0.04
-                                            )
-                                        end)
-
-                                        -- selected
-                                        gui.space(0.005, 0, function()
-                                            gui.stretchedimage(
-                                                image_path .. "icons/" .. v[4] .. ".png",
-                                                0.04, 0.04
-                                            )
-                                        end)
-
-                                        -- shown over selected
-                                        gui.cond(
-                                            function()
-                                                return v[6]
-                                            end, function()
-                                                gui.stretchedimage(
-                                                    image_path .. "tab_icon_over.png",
-                                                    0.05, 0.05
-                                                )
-                                            end
-                                        )
-                                    end
-                                )
-                            end
-                        end
-                        for i, v in pairs(__action_storage) do
-                            if v[1] == BAR_HORIZONTAL and ((edit and v[2] == BAR_EDIT) or (not edit and v[2] == BAR_NORMAL) or v[2] == BAR_ALL) then
-                                gui.button(v[4], function()
-                                    -- idle
-                                    gui.space(0, 0.005, function()
-                                        gui.stretchedimage(
-                                            image_path .. "icons/" .. v[3] .. ".png",
-                                            0.04, 0.04
-                                        )
-                                    end)
-
-                                    -- hover
-                                    gui.space(0, 0.005, function()
-                                        gui.stretchedimage(
-                                            image_path .. "icons/" .. v[3] .. ".png",
-                                            0.04, 0.04
-                                        )
-                                    end)
-
-                                    -- selected
-                                    gui.space(0, 0.005, function()
-                                        gui.stretchedimage(
-                                            image_path .. "icons/" .. v[3] .. ".png",
-                                            0.04, 0.04
-                                        )
-                                        gui.stretchedimage(
-                                            image_path .. "tab_icon_over.png",
-                                            0.05, 0.05
-                                        )
-                                    end)
-                                end)
-                            end
-                        end
-                    end)
-                end)
-            end)
-            gui.hscrollbar(0.05, 0.5, function()
-                -- both arrows idle
-                gui.hlist(0, function()
-                    -- left arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
-                    -- horizontal bar
-                    gui.fill(0.475, 0.05)
-                    -- right arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
-                end)
-
-                -- left arrow hover
-                gui.hlist(0, function()
-                    -- left arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05, hover)
-                    -- horizontal bar
-                    gui.fill(0.475, 0.05)
-                    -- right arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
-                end)
-
-                -- left arrow selected
-                gui.hlist(0, function()
-                    -- left arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05, selected)
-                    -- horizontal bar
-                    gui.fill(0.475, 0.05)
-                    -- right arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
-                end)
-
-                -- right arrow hover
-                gui.hlist(0, function()
-                    -- left arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
-                    -- horizontal bar
-                    gui.fill(0.475, 0.05)
-                    -- right arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05, hover)
-                end)
-
-                -- right arrow selected
-                gui.hlist(0, function()
-                    -- left arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
-                    -- horizontal bar
-                    gui.fill(0.475, 0.05)
-                    -- right arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05, selected)
-                end)
-            end)
-        end)
     end)
+end
+
+local lastfps = 0
+local prevfps = { 0, 0, 0 }
+local curfps  = { 0, 0, 0 }
+
+function show_info_area()
+    if not world.hasmap() then
+        return nil
+    end
+
+    local info_label = ""
+
+    if showfps ~= 0 then
+        local totalmillis = world.get_totalmillis()
+
+        if (totalmillis - lastfps) >= statrate then
+            prevfps = { curfps[1], curfps[2], curfps[3] }
+            lastfps = totalmillis - (totalmillis % statrate)
+        end
+
+        local nextfps = { engine.get_fps() }
+        for i = 1, 3 do
+            if prevfps[i] == curfps[i] then
+                curfps[i] = nextfps[i]
+            end
+        end
+
+        if showfpsrange ~= 0 then
+            info_label = " fps %(1)i+%(2)i-%(3)i " % { curfps[1], curfps[2], curfps[3] }
+        else
+            info_label = " fps %(1)i " % { curfps[1] }
+        end
+    end
+
+    local wall_clock_val = engine.get_wall_clock()
+    if wall_clock_val then
+        info_label = info_label .. "\n %(1)s " % { wall_clock_val }
+    end
+
+    gui.label(info_label, 0.8)
 end
 
 space("space", function()
         gui.hide("vtab")
         gui.hide("htab")
-        tab_area(true)
+        tab_area(true, "space", show_info_area)
     end, false, function()
         gui.hide("vtab")
         gui.hide("htab")
@@ -446,7 +502,7 @@ space("main", function()
         space_was_shown = gui.hide("space")
         gui.hide("vtab")
         gui.hide("htab")
-        tab_area(false)
+        tab_area(false, "main", show_info_area)
     end, true, function()
         gui.hide("vtab")
         gui.hide("htab")

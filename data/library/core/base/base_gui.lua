@@ -201,9 +201,9 @@ show = function(name)
     guis[name]()
 end
 
-new = function(name, body, nofocus, realtime, onhide)
+new = function(name, body, nofocus, onhide)
     guis[name] = function()
-        CAPI.showui(name, body, onhide, nofocus, realtime)
+        CAPI.showui(name, body, onhide, nofocus)
     end
 end
 

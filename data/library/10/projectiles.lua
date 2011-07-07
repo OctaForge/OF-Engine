@@ -122,15 +122,15 @@ projectile = class.new(nil, {
     end,
 
     render = function(self)
-        effect.fireball(
-            effect.PARTICLE.EXPLOSION_NO_GLARE,
+        effects.fireball(
+            effects.PARTICLE.EXPLOSION_NO_GLARE,
             self.position,
             self.radius,
             0.05,
             self.color,
             self.radius
         )
-        effect.dynlight_add(
+        effects.dynamic_light(
             self.position,
             self.radius * 9,
             self.color
@@ -140,14 +140,14 @@ projectile = class.new(nil, {
     on_explode = function(self)
         if CLIENT then
             local radius = self.visual_radius or self.radius
-            effect.splash(effect.PARTICLE.SMOKE, 5, 2.5, self.position, 0x222222, 12, 50, 500, nil, 1, false, 3)
-            effect.splash(effect.PARTICLE.SMOKE, 5, 0.2, self.position, 0x222222, 12, 50, 500, nil, 1, false, 4)
-            effect.splash(effect.PARTICLE.SPARK, 160, 0.03, self.position, 0xFFC864, 1.4, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.FLAME1, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.EXPLODE, 1, 0.1, self.position, 0xFFFFFF, 10, 300, 500, true, nil, nil, 4)
-            effect.fireball(effect.PARTICLE.EXPLOSION, self.position, radius, 0.1, self.color, radius / 5)
+            effects.splash(effects.PARTICLE.SMOKE, 5, 2.5, self.position, 0x222222, 12, 50, 500, nil, 1, false, 3)
+            effects.splash(effects.PARTICLE.SMOKE, 5, 0.2, self.position, 0x222222, 12, 50, 500, nil, 1, false, 4)
+            effects.splash(effects.PARTICLE.SPARK, 160, 0.03, self.position, 0xFFC864, 1.4, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.FLAME1, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.EXPLODE, 1, 0.1, self.position, 0xFFFFFF, 10, 300, 500, true, nil, nil, 4)
+            effects.fireball(effects.PARTICLE.EXPLOSION, self.position, radius, 0.1, self.color, radius / 5)
 
             if utility.get_material(self.position) == utility.MATERIAL.WATER then
                 if self.underwater_explosion_sound then
@@ -159,8 +159,8 @@ projectile = class.new(nil, {
                 end
             end
 
-            effect.decal_add   (effect.DECAL.SCORCH, self.position, self.velocity:copy():normalize():mul(-1), radius)
-            effect.dynlight_add(self.position, radius * 14, self.color, 0.2666, 0.0333, 0, radius * 9)
+            effects.decal        (effects.DECAL.SCORCH, self.position, self.velocity:copy():normalize():mul(-1), radius)
+            effects.dynamic_light(self.position, radius * 14, self.color, 0.2666, 0.0333, 0, radius * 9)
         end
 
         do_blast_wave(self.position, self.explosion_power, self.velocity, self.custom_damage_fun, self.owner)
@@ -290,7 +290,7 @@ debris = class.new(projectile, {
     end,
 
     render = function(self)
-        effect.splash(effect.PARTICLE.SMOKE, 1, 0.25, self.position, 0x000000, 1, 2, -20)
+        effects.splash(effects.PARTICLE.SMOKE, 1, 0.25, self.position, 0x000000, 1, 2, -20)
     end,
 
     render_dynamic = function(self)

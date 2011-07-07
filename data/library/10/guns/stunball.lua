@@ -35,7 +35,7 @@ gun = class.new(firing.gun, {
 
 victim_plugin = {
     properties = {
-        suffering_stun = state_variables.state_bool({ clientset = true })
+        suffering_stun = state_variables.state_bool({ client_set = true })
     },
 
     suffer_stun = function(self, stun)
@@ -54,8 +54,8 @@ victim_plugin = {
             local oz = (math.random() - 0.5) * 2
             local speed   = 150
             local density = 2
-            effect.flame(
-                effect.PARTICLE.SMOKE,
+            effects.flame(
+                effects.PARTICLE.SMOKE,
                 self:get_center():add(math.vec3(ox, oy, oz)),
                 0.5, 1.5, 0x000000, density, 2, speed, 0.6, -15
             )

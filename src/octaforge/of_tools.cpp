@@ -286,12 +286,12 @@ namespace tools
             var::cvar *v = varv[i];
             if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)
             {
-                case var::VAR_I: f->printf("engine.newvar(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;
-                case var::VAR_F: f->printf("engine.newvar(\"%s\", engine.VAR_F, %f)\n", v->name, v->curv.f); break;
+                case var::VAR_I: f->printf("engine.new_var(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;
+                case var::VAR_F: f->printf("engine.new_var(\"%s\", engine.VAR_F, %f)\n", v->name, v->curv.f); break;
                 case var::VAR_S:
                 {
                     if (strstr(v->name, "new_entity_gui_field") || !v->curv.s) continue;
-                    f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
+                    f->printf("engine.new_var(\"%s\", engine.VAR_S, \"", v->name);
                     for (size_t sz = 0; sz < strlen(v->curv.s); sz++)
                     {
                         switch (v->curv.s[sz])

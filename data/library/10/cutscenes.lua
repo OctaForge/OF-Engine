@@ -9,7 +9,7 @@ function show_distance(tag, origin, color, seconds)
     end
     local entity = origin["__CACHED_" .. tag]
 
-    effect.flare(effect.PARTICLE.STREAK, origin.position, entity.position, 0, color, 0.2)
+    effects.flare(effects.PARTICLE.STREAK, origin.position, entity.position, 0, color, 0.2)
 end
 
 action_base = class.new(events.action_container)
@@ -17,13 +17,13 @@ action_base = class.new(events.action_container)
 function action_base:__tostring() return "action_base" end
 
 function action_base:client_click()
-    if self.canbecancelled then
+    if self.cancellable then
         self:cancel()
     end
 end
 
-function action_base:dostart()
-    events.action_container.dostart(self)
+function action_base:do_start()
+    events.action_container.do_start(self)
 
     self.actor.can_move = false
 
@@ -41,25 +41,25 @@ function action_base:dostart()
     CAPI.showhudrect  = function() end
     CAPI.showhudimage = function() end
 
-    self.old_seconds_left = self.secondsleft
+    self.old_seconds_left = self.seconds_left
 
-    events.action_input_capture_plugin.dostart(self)
+    events.action_input_capture_plugin.do_start(self)
 end
 
-function action_base:doexecute(seconds)
+function action_base:do_execute(seconds)
     self.actor.yaw   = self.original_yaw
     self.actor.pitch = self.original_pitch
 
     if self.subtitles then
-        self.show_subtitles(self, self.old_seconds_left - self.secondsleft)
+        self.show_subtitles(self, self.old_seconds_left - self.seconds_left)
     end
 
-    return events.action_container.doexecute(self, seconds)
+    return events.action_container.do_execute(self, seconds)
         or entity_store.is_player_editing()
 end
 
-function action_base:dofinish()
-    events.action_container.dofinish(self)
+function action_base:do_finish()
+    events.action_container.do_finish(self)
 
     self.actor.can_move = true
 
@@ -69,7 +69,7 @@ function action_base:dofinish()
     CAPI.showhudrect  = self.old_show_hud_rect
     CAPI.showhudimage = self.old_show_hud_image
 
-    events.action_input_capture_plugin.dofinish(self)
+    events.action_input_capture_plugin.do_finish(self)
 end
 
 function action_base:show_subtitles(time_val)
@@ -98,14 +98,14 @@ action_smooth.looping            = false
 function action_smooth:__tostring  () return "action_smooth" end
 function action_smooth:init_markers() end
 
-function action_smooth:dostart()
+function action_smooth:do_start()
     self:init_markers()
 
     self.timer = (- self.seconds_per_marker) / 2 - self.delay_before
-    self.secondsleft = self.seconds_per_marker * #self.markers
+    self.seconds_left = self.seconds_per_marker * #self.markers
 end
 
-function action_smooth:doexecute(seconds)
+function action_smooth:do_execute(seconds)
     -- get around loading time delays by ignoring long frames
     self.timer = self.timer + math.min(seconds, 1 / 25)
 
@@ -115,21 +115,21 @@ function action_smooth:doexecute(seconds)
         self.yaw, self.pitch, 0
     )
 
-    actions.action.doexecute(self, seconds)
+    actions.action.do_execute(self, seconds)
 
     if self.looped then
         if (not self.looping
-            and self.secondsleft <= (- self.delay_before)
-        ) or (self.looping and self.secondsleft <= 0) then
+            and self.seconds_left <= (- self.delay_before)
+        ) or (self.looping and self.seconds_left <= 0) then
             -- reset timer etc.
             self.timer = (- self.seconds_per_marker) / 2
-            self.secondsleft = self.seconds_per_marker * #self.markers
+            self.seconds_left = self.seconds_per_marker * #self.markers
             if not self.looping then self.looping = true end
         end
     end
 
     -- we end
-    return (self.secondsleft <= ((- self.delay_after) - self.delay_before))
+    return (self.seconds_left <= ((- self.delay_after) - self.delay_before))
 end
 
 function action_smooth:smooth_fun(x)
@@ -227,17 +227,17 @@ entity_classes.reg(
             entity_store.get_plyent():queue_action(
                 class.new(base_action, {
                     cancel = function(self)
-                        if self.canbecancelled and entity.started and not self.finished then
+                        if self.cancellable and entity.started and not self.finished then
                             self.action_system:clear()
                             self.action_system:manage(0.01)
                             self:finish()
                         end
                     end,
 
-                    dostart = function(self)
-                        self.__base.dostart(self)
+                    do_start = function(self)
+                        self.__base.do_start(self)
 
-                        self.canbecancelled = entity.cancellable
+                        self.cancellable = entity.cancellable
 
                         if entity.cancel then self:cancel() end
 
@@ -285,11 +285,11 @@ entity_classes.reg(
                         end
                     end,
 
-                    dofinish = function(self)
-                        self.__base.dofinish(self)
+                    do_finish = function(self)
+                        self.__base.do_finish(self)
 
                         -- clear up the queue from base actions just in case
-                        local queue = entity_store.get_plyent().action_system.actlist
+                        local queue = entity_store.get_plyent().action_system.action_list
                         for i, v in pairs(queue) do
                             if v:is_a(base_action) then
                                 table.remove(queue, i)
@@ -449,8 +449,8 @@ entity_classes.reg(
 
             local direction = math.vec3():fromyawpitch(self.yaw, self.pitch)
             local target    = utility.get_ray_collision_world(self.position:copy(), direction, 10)
-            effect.flare(
-                effect.PARTICLE.STREAK,
+            effects.flare(
+                effects.PARTICLE.STREAK,
                 self.position, target,
                 0, 0x22BBFF, 0.3
             )
@@ -585,14 +585,14 @@ entity_classes.reg(
         end,
 
         action = class.new(action_base, {
-            dostart = function(self)
-                self.__base.dostart(self)
+            do_start = function(self)
+                self.__base.do_start(self)
 
                 self.background_image    = ""
                 self.subtitle_background = ""
             end,
 
-            doexecute = function(self, seconds)
+            do_execute = function(self, seconds)
                 if self.background_image ~= "" then
                     self.old_show_hud_image(
                         self.background_image,
@@ -601,7 +601,7 @@ entity_classes.reg(
                         math.min((scr_w / scr_h), 1)
                     )
                 end
-                return self.__base.doexecute(self, seconds)
+                return self.__base.do_execute(self, seconds)
             end,
 
             show_subtitle_background = function(self)
@@ -658,7 +658,7 @@ entity_classes.reg(
         end,
 
         action = {
-            -- extend with dostart, doexecute, dofinish, don't forget to call parent
+            -- extend with do_start, do_execute, do_finish, don't forget to call parent
         }
     }}), "playerstart"
 )

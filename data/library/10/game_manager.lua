@@ -31,7 +31,7 @@ function setup(plugins_add)
 
     entity_classes.reg(
         plugins.bake(
-            entity.logent,
+            entity.base,
             table.mergearrays(
                 {{
                     _class     = "game_manager",
@@ -222,7 +222,7 @@ end
 manager_plugins = {
     messages = {
         properties = {
-            server_message = state_variables.state_json({ hashistory = false })
+            server_message = state_variables.state_json({ has_history = false })
         },
 
         hud_messages = {},

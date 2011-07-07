@@ -422,7 +422,7 @@ bool ClientSystem::isAdmin()
     if (!playerLogicEntity) return isAdmin;
 
     engine.getref(playerLogicEntity->luaRef);
-    isAdmin = engine.t_get<bool>("_can_edit");
+    isAdmin = engine.t_get<bool>("can_edit");
     engine.pop(1);
 
     return isAdmin;

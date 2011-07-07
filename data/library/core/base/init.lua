@@ -59,7 +59,7 @@ require("base.base_engine")
 
 --[[!
     Class: _G
-    Overriden metamethods for transparentyl getting / setting
+    Overriden metamethods for transparently getting / setting
     engine variables. If engine variable exists, it's returned,
     otherwise normal variable is returned. Same applies for
     setting.
@@ -79,8 +79,8 @@ setmetatable(_G, {
             either engine variable or normal variable.
     ]]
     __index = function(self, n)
-        return (engine.varexists(n) and
-            engine.getvar(n) or
+        return (engine.var_exists(n) and
+            engine.get_var(n) or
             rawget(self, n)
         )
     end,
@@ -97,8 +97,8 @@ setmetatable(_G, {
             v - value we're setting
     ]]
     __newindex = function(self, n, v)
-        if engine.varexists(n) then
-            engine.setvar(n, v)
+        if engine.var_exists(n) then
+            engine.set_var(n, v)
         else
             rawset(self, n, v)
         end

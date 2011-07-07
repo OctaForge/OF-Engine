@@ -1,19 +1,19 @@
 module("health", package.seeall)
 
 action_pain = class.new(entity_animated.action_localanim, {
-    __tostring  = function(self) return "action_pain" end,
-    secondsleft = 0.6,
-    localanim   = actions.ANIM_PAIN,
-    canmulqueue = false
+    __tostring          = function(self) return "action_pain" end,
+    seconds_left        = 0.6,
+    localanim           = actions.ANIM_PAIN,
+    can_multiply_queue  = false
 })
 
 action_death = class.new(actions.action, {
-    __tostring     = function(self) return "action_death" end,
-    canmulqueue    = false,
-    canbecancelled = false,
-    secondsleft    = 5.5,
+    __tostring         = function(self) return "action_death" end,
+    can_multiply_queue = false,
+    cancellable        = false,
+    seconds_left       = 5.5,
 
-    dostart = function(self)
+    do_start = function(self)
         self.actor:emit("fragged")
         -- this won't clear us, as we cannot be cancelled
         self.actor:clear_actions()
@@ -26,11 +26,11 @@ action_death = class.new(actions.action, {
 })
 
 plugin = {
-    -- clientset for health means that when we shoot someone, we get
+    -- client_set for health means that when we shoot someone, we get
     -- immediate feedback - no need to wait for server response
     properties = {
-        health      = state_variables.state_integer({ clientset = true }),
-        max_health  = state_variables.state_integer({ clientset = true }),
+        health      = state_variables.state_integer({ client_set = true }),
+        max_health  = state_variables.state_integer({ client_set = true }),
         spawn_stage = state_variables.state_integer(),
         blood_color = state_variables.state_integer(),
         pain_sound  = state_variables.state_string ()
@@ -44,7 +44,7 @@ plugin = {
         elseif stage == 2 then -- server vanishes player
             if SERVER then
                 if auid == self.uid then
-                    self.modelname   = ""
+                    self.model_name  = ""
                     self.animation   = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
                     self.spawn_stage = 3
                 end
@@ -61,9 +61,9 @@ plugin = {
                 self.health     = self.max_health
                 self.can_move   = true
 
-                self.modelname = self.default_model_name or ""
+                self.model_name = self.default_model_name or ""
                 if self.default_hud_model_name then
-                    self.hud_modelname = self.default_hud_model_name
+                    self.hud_model_name = self.default_hud_model_name
                 end
 
                 self.spawn_stage = 0
@@ -160,7 +160,7 @@ plugin = {
                         self:queue_action(action_pain())
                     end
                     if self == entity_store.get_plyent() and self.old_health ~= health then
-                        effect.cldamage(diff, diff)
+                        effects.client_damage(diff, diff)
                     end
                 end
             else
@@ -175,9 +175,9 @@ plugin = {
     visual_pain_effect = function(self, health)
         local pos = self.position:copy()
         pos.z = pos.z + self.eye_height - 4
-        effect.splash(effect.PARTICLE.BLOOD, convert.tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
-        effect.decal_add(effect.DECAL.BLOOD, self.position, math.vec3(0, 0, 1), 7, self.blood_color)
-        if self == entity_store.get_plyent() then effect.cldamage(0, self.old_health - health) end
+        effects.splash(effects.PARTICLE.BLOOD, convert.tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
+        effects.decal(effects.DECAL.BLOOD, self.position, math.vec3(0, 0, 1), 7, self.blood_color)
+        if self == entity_store.get_plyent() then effects.client_damage(0, self.old_health - health) end
     end,
 
     suffer_damage = function(self, source)

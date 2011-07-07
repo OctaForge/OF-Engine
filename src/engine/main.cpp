@@ -990,6 +990,8 @@ void getfps_(int *raw)
     if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
     else getfps(fps, bestdiff, worstdiff);
     lua::engine.push(fps);
+    lua::engine.push(bestdiff);
+    lua::engine.push(worstdiff);
 }
 
 bool inbetweenframes = false, renderedframe = true;

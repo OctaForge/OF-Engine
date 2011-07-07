@@ -35,6 +35,7 @@ void force_quit();
 void quit();
 void resetgl();
 void getfps_(int *raw);
+void getwallclock();
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
 extern vector<cline> conlines;
@@ -104,6 +105,7 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(resetgl, resetgl)
     LUA_BIND_STD_CLIENT(glext, glext, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(getfps, getfps_, e.get<int*>(1))
+    LUA_BIND_STD_CLIENT(getwallclock, getwallclock)
     LUA_BIND_STD_CLIENT(screenshot, screenshot, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(movie, movie, e.get<char*>(1))
     LUA_BIND_CLIENT(showscores, {
@@ -127,14 +129,6 @@ namespace lua_binds
                  e.get<const char*>(2)[0] ? e.get<const char*>(2) : NULL,
                  e.get<const char*>(3)[0] ? e.get<const char*>(3) : NULL)
     LUA_BIND_STD(removezip, removezip, e.get<const char*>(1))
-    LUA_BIND_DEF(gethomedir, {
-        char *hdir = newstring(homedir);
-        if (!strcmp(hdir + strlen(hdir) - 1,   "/"))
-                    hdir[  strlen(hdir) - 1] = '\0';
-
-        e.push(hdir);
-        delete[] hdir;
-    })
     LUA_BIND_STD(getserverlogfile, e.push, SERVER_LOGFILE)
     
 

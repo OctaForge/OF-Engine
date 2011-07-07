@@ -22,9 +22,9 @@ end
 
 plugin = {
     properties = {
-        platform_axis        = state_variables.state_string ({ clientset = true }),
-        platform_position    = state_variables.state_integer({ clientset = true }),
-        platform_camera_axis = state_variables.state_string ({ clientset = true })
+        platform_axis        = state_variables.state_string ({ client_set = true }),
+        platform_position    = state_variables.state_integer({ client_set = true }),
+        platform_camera_axis = state_variables.state_string ({ client_set = true })
     },
 
     get_platform_direction = function(self)
