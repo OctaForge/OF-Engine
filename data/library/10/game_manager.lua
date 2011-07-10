@@ -29,7 +29,7 @@ player_plugin = {
 function setup(plugins_add)
     plugins_add = plugins_add or {}
 
-    entity_classes.reg(
+    entity_classes.register(
         plugins.bake(
             entity.base,
             table.mergearrays(
@@ -156,7 +156,7 @@ function setup(plugins_add)
 
                     place_player = function(self, player)
                         local start_tag = "start_" .. player.team
-                        local possibles = entity_store.get_all_bytag(start_tag)
+                        local possibles = entity_store.get_all_by_tag(start_tag)
                         if possibles and #possibles > 0 then
                             local start = possibles[math.floor(math.random() * #possibles)]
                             if start then
@@ -187,8 +187,8 @@ function setup(plugins_add)
 
                     client_activate = function(self)
                         self:connect(state_variables.get_onmodify_prefix() .. "team_data", function(self, value)
-                            if self.team_data and value and entity_store.get_plyent() then
-                                local player_team = entity_store.get_plyent().team
+                            if self.team_data and value and entity_store.get_player_entity() then
+                                local player_team = entity_store.get_player_entity().team
                                 if value[player_team].score > self.team_data[player_team].score and
                                    self.victory_sound ~= "" then sound.play(self.victory_sound)
                                 end
@@ -196,7 +196,7 @@ function setup(plugins_add)
                         end)
                     end,
 
-                    set_localanim = function(self) end -- just so it can fake being animated by actions
+                    set_local_animation = function(self) end -- just so it can fake being animated by actions
                 }},
                 plugins_add
             )
@@ -210,7 +210,7 @@ end
 
 function get_singleton()
     if not singleton then
-        singleton = entity_store.get_all_byclass("game_manager")[1]
+        singleton = entity_store.get_all_by_class("game_manager")[1]
     end
     return singleton
 end
@@ -258,7 +258,7 @@ manager_plugins = {
 
         client_act = function(self, seconds)
             self.hud_messages = table.filter(self.hud_messages, function(i, msg)
-                if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_plyent() then return false end
+                if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_player_entity() then return false end
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
                 size = msg.duration >= 0.5 and size or size * math.pow(msg.duration * 2, 2)

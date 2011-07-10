@@ -15,7 +15,7 @@ function register_gun(gun, comment, hud)
 end
 
 function client_click(button, down, position, entity)
-    local player = entity_store.get_plyent()
+    local player = entity_store.get_player_entity()
 
     if button == 1 then
         if down then
@@ -163,7 +163,7 @@ plugins = {
         end,
 
         client_act = function(self, seconds)
-            if self ~= entity_store.get_plyent() then return nil end
+            if self ~= entity_store.get_player_entity() then return nil end
 
             self.gun_delay = math.max(self.gun_delay - seconds, 0)
 
@@ -263,7 +263,7 @@ function gun:get_origin(shooter)
 end
 
 function gun:do_recoil(shooter, magnitude)
-    if CLIENT and shooter ~= entity_store.get_plyent() then return nil end
+    if CLIENT and shooter ~= entity_store.get_player_entity() then return nil end
 
     if shooter.can_move then
         local dir = math.vec3():fromyawpitch(
@@ -274,27 +274,27 @@ function gun:do_recoil(shooter, magnitude)
     end
 end
 
-action_shoot1 = class.new(entity_animated.action_localanim)
-action_shoot1.localanim   = actions.ANIM_ATTACK1
+action_shoot1 = class.new(entity_animated.action_local_animation)
+action_shoot1.local_animation   = actions.ANIM_ATTACK1
 action_shoot1.cancellable = false
 function action_shoot1:__tostring() return "action_shoot" end
 
 -- convenience
 action_shoot = action_shoot1
 
-action_shoot2 = class.new(entity_animated.action_localanim)
-action_shoot2.localanim   = actions.ANIM_ATTACK2
+action_shoot2 = class.new(entity_animated.action_local_animation)
+action_shoot2.local_animation   = actions.ANIM_ATTACK2
 action_shoot2.cancellable = false
 function action_shoot2:__tostring() return "action_shoot" end
 
-action_shoot3 = class.new(entity_animated.action_localanim)
-action_shoot3.localanim   = actions.ANIM_ATTACK3
+action_shoot3 = class.new(entity_animated.action_local_animation)
+action_shoot3.local_animation   = actions.ANIM_ATTACK3
 action_shoot3.cancellable = false
 function action_shoot3:__tostring() return "action_shoot" end
 
 
-action_shoot2_repeating = class.new(entity_animated.action_localanim)
-action_shoot2_repeating.localanim = math.bor(
+action_shoot2_repeating = class.new(entity_animated.action_local_animation)
+action_shoot2_repeating.local_animation = math.bor(
     actions.ANIM_ATTACK2,
     actions.ANIM_LOOP
 )
@@ -308,7 +308,7 @@ action_out_of_ammo.can_multiply_queue = false
 
 function action_out_of_ammo:__tostring() return "action_out_of_ammo" end
 function action_out_of_ammo:do_start()
-    local player = entity_store.get_plyent()
+    local player = entity_store.get_player_entity()
 
     local message = player.out_of_ammo_msg or "(Out of ammo)"
     local color   = player.out_of_ammo_msg_color or 0xAA8833

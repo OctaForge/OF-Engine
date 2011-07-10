@@ -1,6 +1,6 @@
 module("world_notices", package.seeall)
 
-world_notice = entity_classes.reg(plugins.bake(entity_static.area_trigger, {{
+world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, {{
     _class     = "world_notice",
     should_act = true,
 
@@ -30,7 +30,7 @@ world_notice = entity_classes.reg(plugins.bake(entity_static.area_trigger, {{
     end,
 
     client_on_collision = function(self, entity)
-        if entity ~= entity_store.get_plyent() then return nil end
+        if entity ~= entity_store.get_player_entity() then return nil end
 
         if not self.notice_action then
             self.notice_action = world_notice_action()
@@ -58,7 +58,7 @@ notice_action = class.new(actions.action, {
 
         if self:should_continue() then
             if self.curr_time and self.sound and self.sound ~= "" then
-                sound.play(self.notice_sound, entity_store.get_plyent().position:copy())
+                sound.play(self.notice_sound, entity_store.get_player_entity().position:copy())
             end
 
             self.current_time = self.current_time + seconds * 3

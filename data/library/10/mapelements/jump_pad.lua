@@ -35,7 +35,7 @@ plugin = {
 
     client_on_collision = function(self, collider)
         -- each player handles themselves
-        if collider ~= entity_store.get_plyent() then return nil end
+        if collider ~= entity_store.get_player_entity() then return nil end
 
         -- do not trigger many times each jump
         if self.player_delay > 0 then return nil end
@@ -74,7 +74,7 @@ plugin = {
     end
 }
 
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(
         entity_static.area_trigger,
         { plugin }

@@ -59,7 +59,7 @@ plugin = {
     end,
 
     client_act = function(self, seconds)
-        if self == entity_store.get_plyent() and not entity_store.is_player_editing(self) then
+        if self == entity_store.get_player_entity() and not entity_store.is_player_editing(self) then
             if self.spawn_stage == 0 then
                 local position = self.position:copy()
                 local velocity = self.velocity:copy()
@@ -142,7 +142,7 @@ plugin = {
 }
 
 function do_movement(move, down)
-    local player = entity_store.get_plyent()
+    local player = entity_store.get_player_entity()
     if entity_store.is_player_editing(player) then
         player.move = move
     end
@@ -156,7 +156,7 @@ function do_movement(move, down)
 end
 
 function do_strafe(strafe, down)
-    local player = entity_store.get_plyent()
+    local player = entity_store.get_player_entity()
     if entity_store.is_player_editing(player) then
         player.strafe = strafe
     end
@@ -175,13 +175,13 @@ function do_strafe(strafe, down)
 end
 
 function do_mousemove(yaw, pitch)
-    return (entity_store.is_player_editing(entity_store.get_plyent()) and
+    return (entity_store.is_player_editing(entity_store.get_player_entity()) and
         { yaw = yaw, pitch = pitch } or
         {}
     )
 end
 
-axis_switcher = entity_classes.reg(plugins.bake(entity_static.area_trigger, {
+axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger, {
     world_areas.plugin,
     {
         _class = "axis_switcher",
@@ -201,7 +201,7 @@ axis_switcher = entity_classes.reg(plugins.bake(entity_static.area_trigger, {
         end,
 
         flip_axes = function(self, up)
-            local player = entity_store.get_plyent()
+            local player = entity_store.get_player_entity()
 
             for i, axis in pairs(self.platform_axises:as_array()) do
                 if player.platform_axis[2] ~= axis[2] then

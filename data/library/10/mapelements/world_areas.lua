@@ -6,7 +6,7 @@ plugin = {
     should_act = true,
 
     client_on_collision = function(self, entity)
-        if entity ~= entity_store.get_plyent() then return nil end
+        if entity ~= entity_store.get_player_entity() then return nil end
 
         -- cannot have more than one active
         if active then return nil end
@@ -22,7 +22,7 @@ action = class.new(actions.action, {
     end,
 
     do_execute = function(self, seconds)
-        if world.is_player_colliding_entity(entity_store.get_plyent(), self.actor) then
+        if world.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
             self.actor:emit("world_area_active")
             return false
         else

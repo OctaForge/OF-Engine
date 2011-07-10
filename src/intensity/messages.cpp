@@ -620,7 +620,7 @@ namespace MessageSystem
                 if (!engine.hashandle()) \
                     return; \
                 \
-                engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).call(3, 0).pop(1);
+                engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value).call(3, 0).pop(1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -663,7 +663,7 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).push(actorUniqueId).call(4, 0).pop(1);
+        engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value).push(actorUniqueId).call(4, 0).pop(1);
         STATE_DATA_REQUEST
     }
 #endif

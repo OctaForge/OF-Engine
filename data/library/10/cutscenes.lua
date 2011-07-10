@@ -3,7 +3,7 @@ module("cutscenes", package.seeall)
 -- shows a distance and a direction using line / flare
 function show_distance(tag, origin, color, seconds)
     if not origin["__CACHED_" .. tag] then
-        local entities = entity_store.get_all_bytag(tag)
+        local entities = entity_store.get_all_by_tag(tag)
         if #entities == 1 then origin["__CACHED_" .. tag] = entities[1]
         else return nil end
     end
@@ -175,7 +175,7 @@ end
 ---------------------
 
 -- cutscene controller
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_controller",
         should_act = true,
@@ -206,7 +206,7 @@ entity_classes.reg(
 
             local entity = self
 
-            local base_action = entity_store.get_all_bytag(
+            local base_action = entity_store.get_all_by_tag(
                 self.m_tag .. "_base"
             )
             if #base_action ~= 1 then
@@ -215,7 +215,7 @@ entity_classes.reg(
                 base_action  = base_action[1].action
             end
 
-            local action = entity_store.get_all_bytag(
+            local action = entity_store.get_all_by_tag(
                 self.m_tag .. "_action"
             )
             if #action ~= 1 then
@@ -224,7 +224,7 @@ entity_classes.reg(
                 action  = action[1].action
             end
 
-            entity_store.get_plyent():queue_action(
+            entity_store.get_player_entity():queue_action(
                 class.new(base_action, {
                     cancel = function(self)
                         if self.cancellable and entity.started and not self.finished then
@@ -244,7 +244,7 @@ entity_classes.reg(
                         self.subtitles = {}
 
                         local i = 2
-                        local start_mark = entity_store.get_all_bytag(entity.m_tag .. "_sub_1")
+                        local start_mark = entity_store.get_all_by_tag(entity.m_tag .. "_sub_1")
                         if   #start_mark ~= 1 then return nil end
                         if    start_mark[1].parent_id > 0 then
                             local start_time = start_mark[1].start_time
@@ -263,7 +263,7 @@ entity_classes.reg(
                             })
                         end
                         while true do
-                            local next_mark = entity_store.get_all_bytag(entity.m_tag .. "_sub_" .. i)
+                            local next_mark = entity_store.get_all_by_tag(entity.m_tag .. "_sub_" .. i)
                             if   #next_mark ~= 1 then break end
                             if    next_mark[1].parent_id > 0 then
                                 local start_time = next_mark[1].start_time
@@ -289,14 +289,14 @@ entity_classes.reg(
                         self.__base.do_finish(self)
 
                         -- clear up the queue from base actions just in case
-                        local queue = entity_store.get_plyent().action_system.action_list
+                        local queue = entity_store.get_player_entity().action_system.action_list
                         for i, v in pairs(queue) do
                             if v:is_a(base_action) then
                                 table.remove(queue, i)
                             end
                         end
 
-                        local next_control = entity_store.get_all_bytag("ctl_" .. entity.next_controller)
+                        local next_control = entity_store.get_all_by_tag("ctl_" .. entity.next_controller)
                         if   #next_control == 1 then
                               next_control[1].started = true
                               next_control[1].cancel = entity.cancel_siblings
@@ -310,7 +310,7 @@ entity_classes.reg(
                             self.delay_before       = entity.delay_before
                             self.delay_after        = entity.delay_after
 
-                            local start_mark = entity_store.get_all_bytag(entity.m_tag .. "_mrk_1")
+                            local start_mark = entity_store.get_all_by_tag(entity.m_tag .. "_mrk_1")
                             if   #start_mark ~= 1 then return nil end
                             local  prev_mark = start_mark
                             table.insert(self.markers, {
@@ -320,7 +320,7 @@ entity_classes.reg(
                             })
 
                             while true do
-                                local next_mark = entity_store.get_all_bytag(
+                                local next_mark = entity_store.get_all_by_tag(
                                     entity.m_tag .. "_mrk_" .. prev_mark[1].next_marker
                                 )
                                 if   #next_mark ~= 1 then break end
@@ -333,7 +333,7 @@ entity_classes.reg(
                                 })
                                 if next_mark[1].next_marker == 1 then
                                     if entity.next_controller <= 0 then self.looped = true end
-                                    next_mark = entity_store.get_all_bytag(
+                                    next_mark = entity_store.get_all_by_tag(
                                         entity.m_tag .. "_mrk_" .. prev_mark[1].next_marker
                                     )
                                     table.insert(self.markers, {
@@ -392,7 +392,7 @@ entity_classes.reg(
 )
 
 -- cutscene position marker
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_marker",
         should_act = true,
@@ -459,7 +459,7 @@ entity_classes.reg(
 )
 
 -- cutscene subtitle marker
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_subtitle",
         should_act = true,
@@ -535,7 +535,7 @@ entity_classes.reg(
 )
 
 -- cutscene base action
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_base_action",
         should_act = true,
@@ -623,7 +623,7 @@ entity_classes.reg(
 )
 
 -- cutscene action marker
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_action",
         should_act = true,

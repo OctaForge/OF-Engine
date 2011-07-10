@@ -11,20 +11,20 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
     local entities
     if serverside then
         if CLIENT then
-            entities = { entity_store.get_plyent() }
+            entities = { entity_store.get_player_entity() }
         else
-            entities = entity_store.get_all_close(position, max_dist)
+            entities = entity_store.get_all_close(position, { max_distance = max_dist })
             entities = table.map   (entities, function(pair) return pair[1] end)
             entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
     else
         entities = {}
-        if owner == entity_store.get_plyent() then
-            entities = entity_store.get_all_close(position, max_dist)
+        if owner == entity_store.get_player_entity() then
+            entities = entity_store.get_all_close(position, { max_distance = max_dist })
             entities = table.map   (entities, function(pair) return pair[1] end)
             entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
-        table.insert(entities, entity_store.get_plyent())
+        table.insert(entities, entity_store.get_player_entity())
     end
 
     for i, entity in pairs(entities) do

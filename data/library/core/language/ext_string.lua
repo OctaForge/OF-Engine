@@ -41,7 +41,7 @@ function _str_interp(s, t)
         string.gsub(
             s, '%%%(([a-zA-Z_0-9]*)%)([-0-9%.]*[cdeEfgGiouxXsq])',
             function(k, fmt)
-                k = tonumber(k) and tonumber(k) or k
+                k = tonumber(k) or k
                 return (t[k]
                     and
                         string.format("%" .. fmt, t[k])

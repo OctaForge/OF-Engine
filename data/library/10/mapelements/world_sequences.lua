@@ -15,12 +15,12 @@ plugins = {
         end,
 
         client_on_collision = function(self, collider)
-            if collider ~= entity_store.get_plyent() then return nil end
+            if collider ~= entity_store.get_player_entity() then return nil end
 
             if collider.world_sequences[self.sequence_id] == (self.sequence_num - 1) then
                 self.sequence_is_mandatory_passed = true
 
-                local area_triggers = entity_store.get_all_byclass("area_trigger")
+                local area_triggers = entity_store.get_all_by_class("area_trigger")
 
                 if #table.filter(area_triggers, function(i, entity)
                     return (entity.sequence_id  == self.sequence_id  and

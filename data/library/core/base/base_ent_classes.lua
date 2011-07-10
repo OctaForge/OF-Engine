@@ -22,83 +22,137 @@
 ]]
 module("entity_classes", package.seeall)
 
-_entity_classes = {}
+--[[!
+    Variable: class_storage
+    Here, all registered entity classes are stored. It's accessible from outside.
+]]
+class_storage = {}
 
---- Register entity class. Registers a given entity class into storage
--- and generates protocol data.
--- @param _cl The entity class to register.
--- @param st Sauer type of the entity. It's "fpsent" for dynamic entities and specific for static entities.
--- @return Entity class you're registering.
-function reg(_cl, st)
-    local _cln = _cl._class
+--[[!
+    Function: register
+    Registers entity class into <class_storage> and generates proper protocol data.
 
-    logging.log(logging.DEBUG, "registering LE class: " .. tostring(_cln))
+    Available sauer types for static entities are "light", "mapmodel",
+    "playerstart", "envmap", "particles", "sound" and "spotlight".
+    If you're registering static entity, select whichever fits best your entity
+    (or look at sauer type of entity you're inheriting).
 
-    st = st or ""
+    Parameters:
+        class - the class to register.
+        sauer_type - class' sauer type, it's "fpsent" for dynamic entities and
+        for static entities, it's specific. If not specified, the registered
+        entity class won't be treated as sauer entity.
+]]
+function register(class, sauer_type)
+    -- get the class name
+    local class_name = class._class
 
-    -- store in registry
-    assert(not _entity_classes[tostring(_cln)], "must not exist already, ensure each class has a different _class.")
-    _entity_classes[tostring(_cln)] = { _cl, st }
+    logging.log(logging.DEBUG, "registering LE class: " .. class_name)
 
-    -- generate protocol data
+    -- default sauer type to empty (nonsauer entity)
+    sauer_type = sauer_type or ""
+
+    -- store in class_storage, assert non-existance
+    assert(not class_storage[class_name], "must not exist already, ensure each class has a different _class.")
+    class_storage[class_name] = { class, sauer_type }
+
+    -- generate protocol data - first create table of properties
     local proptable = {}
-    local base = _cl
+
+    -- save the class as "base"
+    local base = class
+    -- loop deeper into parents until there is no other parent
     while base do
+        -- if the class has properties, loop them
         if base.properties then
             for name, var in pairs(base.properties) do
+                -- if we have a state variable and it wasn't already
+                -- inserted by children, insert it into proptable
                 if not proptable[name] and state_variables.is(var) then
                     proptable[name] = var
                 end
             end
         end
+        -- save iteration
         if base == entity.base_root then break end
+        -- go deeper
         base = base.__base
     end
+
+    -- get a list of names from proptable
     local sv_names = table.keys(proptable)
+    -- sort them so they're sorted by name and variable aliases come last
     table.sort(sv_names, function(n1, n2)
+        -- if first is alias and second is not, leave alias last
         if state_variables.is_alias(proptable[n1]) and not
            state_variables.is_alias(proptable[n2]) then return false
         end
+        -- if first is not alias and second is, leave alias last
         if not state_variables.is_alias(proptable[n1])
            and state_variables.is_alias(proptable[n2]) then return true
         end
+        -- if both are aliases or both are state variables, sort by name
         return (n1 < n2)
     end)
 
     logging.log(logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
-    message.genprod(tostring(_cln), sv_names)
+    -- generate protocol data
+    message.genprod(tostring(class_name), sv_names)
 
-    return _cl
+    -- return the class
+    return class
 end
 
---- Get entity class, knowing its name.
--- @param _cn Entity class name.
--- @return The entity class if found, false otherwise.
-function get_class(_cn)
-    if _entity_classes[tostring(_cn)] then
-        return _entity_classes[tostring(_cn)][1]
+--[[!
+    Function: get_class
+    Returns entity class of given name (or logs
+    an error message and returns nil if it doesn't exist)
+
+    Parameters:
+        class_name - name of the class to get.
+]]
+function get_class(class_name)
+    if class_storage[class_name] then
+        return class_storage[class_name][1]
     else
-        logging.log(logging.ERROR, "invalid class: " .. tostring(_cn))
+        logging.log(logging.ERROR, "invalid class: " .. class_name)
         return nil
     end
 end
 
---- Get sauer type of entity class, knowing its name.
--- @param _cn Entity class name.
--- @return Entity class' sauer type if found, false otherwise.
-function get_sauer_type(_cn)
-    if _entity_classes[tostring(_cn)] then
-        return _entity_classes[tostring(_cn)][2]
+--[[!
+    Function: get_sauer_type
+    Returns sauer type of entity class of given name (or logs
+    an error message and returns nil if the class doesn't exist)
+
+    Parameters:
+        class_name - name of the class to get sauertype of.
+]]
+function get_sauer_type(class_name)
+    if class_storage[class_name] then
+        return class_storage[class_name][2]
     else
-        logging.log(logging.ERROR, "invalid class: " .. tostring(_cn))
+        logging.log(logging.ERROR, "invalid class: " .. class_name)
         return nil
     end
 end
 
---- List entity classes.
--- @return Table (array) of entity class names.
+--[[!
+    Function: list
+    Returns an array of entity class names
+    from <class_storage> sorted by name.
+    Dynamic entity classes get skipped.
+]]
 function list()
-    local r = table.values(table.filter(table.keys(_entity_classes), function(k, v) local c = get_class(v); return c and c.sauer_type and c.sauer_type ~= "fpsent" end))
+    local r = table.values(
+        table.filter(
+            table.keys(class_storage),
+            function(k, v)
+                local c = get_class(v)
+                return c and c.sauer_type and c.sauer_type ~= "fpsent"
+            end
+        )
+    )
     table.sort(r)
     return r
 end

@@ -51,7 +51,7 @@ function myplayer:client_act(sec)
 end
 
 -- Register our custom player entity class into storage
-entity_classes.reg(myplayer, "fpsent")
+entity_classes.register(myplayer, "fpsent")
 
 -- Notify the engine that we're overriding player by setting engine variable
 player_class = "myplayer"

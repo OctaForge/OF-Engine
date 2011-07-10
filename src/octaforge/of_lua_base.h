@@ -260,6 +260,4 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(prompt, inputcommand, e.get(1, (char*)""), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(onrelease, addreleaseaction, e.ref_keep_stack())
-
-    LUA_BIND_STD(get_totalmillis, e.push, totalmillis)
 }

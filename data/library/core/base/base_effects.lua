@@ -66,8 +66,8 @@ DECAL = {
         MUZZLE_FLASH4B - muzzle flash particle.
         MUZZLE_FLASH5 - muzzle flash particle.
         TEXT - text particle.
-        METER - meter particle.
-        METER_VS - metervs particle (allows to specify background color).
+        METER - meter particle (rgb vs black)
+        METER_VS - metervs particle (rgb vs bgr).
         LENS_FLARE - lens flare particle.
         FLAME1 - flame particle.
         FLAME2 - flame particle.

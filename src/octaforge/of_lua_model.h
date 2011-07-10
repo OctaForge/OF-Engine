@@ -151,7 +151,7 @@ namespace lua_binds
             if (fp->ragdoll || !ragdoll)
             {
                 anim &= ~ANIM_RAGDOLL;
-                engine.getref(self->luaRef).t_getraw("set_localanim").push_index(-2).push(anim).call(2, 0);
+                engine.getref(self->luaRef).t_getraw("set_local_animation").push_index(-2).push(anim).call(2, 0);
                 engine.pop(1);
             }
         }

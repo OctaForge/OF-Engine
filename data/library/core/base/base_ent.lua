@@ -49,6 +49,10 @@ base_root = class.new(nil, {
         or <base_client.client_act> every frame. True for dynamic entities,
         false for static entities by default, but can be re-enabled
         for static entities as well.
+
+        This can as well be a table, if you want the entity to i.e. act
+        on server but not client_act. Then you can specify boolean values
+        should_act.client and should_act.server.
     ]]
     should_act = true,
 
@@ -760,7 +764,7 @@ base_server = class.new(base_root, {
 
         -- and create a table of client numbers
         local cns = (cn == message.ALL_CLIENTS)
-                    and entity_store.get_all_clientnums()
+                    and entity_store.get_all_client_numbers()
                      or { cn }
 
         logging.log(logging.DEBUG, "LE.send_complete_notification: " .. tostring(self.cn) .. ", " .. self.uid)
@@ -889,8 +893,12 @@ base_server = class.new(base_root, {
         self.state_variable_values[key] = value
         logging.log(logging.INFO, "new state data: " .. tostring(self.state_variable_values[key]))
 
-        -- if we're not internal operation and the state variable can be read from client ..
-        if not internal_op and var.clientread then
+        -- if the variable has custom synch flag + we're controlled here, this will be true
+        local custom_synch_from_here = var.custom_synch and self.controlled_here
+
+        -- if we're not internal operation and the state variable can be read from client
+        -- and we're not custom synching from here ..
+        if not internal_op and var.clientread and not custom_synch_from_here then
             -- if we haven't sent complete notification yet, cancel
             if not self.sent_complete_notification then
                 return nil
@@ -910,7 +918,7 @@ base_server = class.new(base_root, {
             }
 
             -- get all client numbers (we're sending to all clients)
-            local cns = entity_store.get_all_clientnums()
+            local cns = entity_store.get_all_client_numbers()
             for i, num in pairs(cns) do
                 -- if we should send ..
                 if var:should_send(self, num) then

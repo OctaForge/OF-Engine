@@ -1,6 +1,6 @@
 module("dynamic_lights", package.seeall)
 
-dynamic_light = entity_classes.reg(plugins.bake(entity_static.world_marker, {{
+dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker, {{
     _class = "dynamic_light",
 
     should_act = { client = true },
@@ -37,7 +37,7 @@ dynamic_light = entity_classes.reg(plugins.bake(entity_static.world_marker, {{
     end
 }}), "playerstart")
 
-entity_classes.reg(plugins.bake(dynamic_light, {{
+entity_classes.register(plugins.bake(dynamic_light, {{
     _class = "flickering_dynamic_light",
 
     properties = {

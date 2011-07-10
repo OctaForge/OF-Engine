@@ -831,7 +831,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("ambient_sound\", {");
                     PRINT_STD(e)
                     printf("\"model_name\":\"\", ");
-                    printf("\"soundname\":\"@REPLACE_SOUND_PATH@\", ");
+                    printf("\"sound_name\":\"@REPLACE_SOUND_PATH@\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[]\", ");
                     printf("\"persistent\":\"true\"");
@@ -883,7 +883,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                     printf("\"attr4\":\"%d\", ", e.attr4);
                     printf("\"animation\":\"130\", ");
                     printf("\"model_name\":\"%s\", ", (e.attr2 < 0) ? "areatrigger" : "@REPLACE_MODEL_PATH@");
-                    printf("\"soundname\":\"0ad/alarmcreatemiltaryfoot_1.ogg\", ");
+                    printf("\"sound_name\":\"0ad/alarmcreatemiltaryfoot_1.ogg\", ");
                     printf("\"attachments\":\"[]\", ");
                     printf("\"tags\":\"[]\", ");
                     printf("\"persistent\":\"true\"");

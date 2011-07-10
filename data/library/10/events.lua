@@ -153,21 +153,21 @@ action_render_capture_plugin = {
         self.__base.do_start(self, ...)
 
         if  self.render_dynamic then
-            self.render_dynamic_old =  _G["render_dynamic"]
-             _G["render_dynamic"]   = self.render_dynamic
+            self.render_dynamic_old     = entity_store.render_dynamic
+            entity_store.render_dynamic = self.render_dynamic
         end
-        if  self.render_hud_models then
-            self.render_hud_models_old =  _G["render_hud_models"]
-             _G["render_hud_models"]   = self.render_hud_models
+        if  self.render_hud_model then
+            self.render_hud_model_old     = entity_store.render_hud_model
+            entity_store.render_hud_model = self.render_hud_model
         end
     end,
 
     do_finish = function(self, ...)
-        if  self.render_dynamic then
-             _G["render_dynamic"] = self.render_dynamic_old
+        if self.render_dynamic then
+            entity_store.render_dynamic = self.render_dynamic_old
         end
-        if  self.render_hud_models then
-             _G["render_hud_models"] = self.render_hud_models_old
+        if self.render_hud_model then
+            entity_store.render_hud_model = self.render_hud_model_old
         end
 
         self.__base.do_finish(self, ...)

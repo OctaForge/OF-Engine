@@ -23,110 +23,164 @@
 ]]
 module("entity_animated", package.seeall)
 
---- Base animatable logic entity class, not meant to be used directly.
--- @class table
--- @name base
-base = class.new(entity.base)
-base._class = "base"
+--[[!
+    Class: base_animated
+    This represents the base class for all animated and static entities.
 
---- Base properties of animatable logic entity.
--- Inherits properties of <base_root> plus adds its own.
--- @field animation Entity animation.
--- @field start_time Internal parameter. Not meant to be modified in any way.
--- @field model_name Model name assigned to the entity.
--- @field attachments Model attachments for the entity.
--- @class table
--- @name base.properties
-base.properties = {
-    animation   = state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", client_set = true }),
-    start_time  = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }),
-    model_name  = state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }),
-    attachments = state_variables.wrapped_carray  ({ csetter = "CAPI.setattachments" })
-}
+    Properties:
+        animation - entity animation.
+        start_time - internal property, used when i.e. rendering models.
+        model_name - path to model assigned to this entity.
+        attachments - model attachments for the entity.
+]]
+base_animated = class.new(entity.base, {
+    --! Variable: _class
+    --! See <base_root._class>
+    _class = "base_animated",
 
---- Init method for animatable logic entity. Performs initial setup.
--- @param uid Unique ID for the entity.
--- @param kwargs Table of additional parameters (for i.e. overriding persistent)
-function base:init(uid, kwargs)
-    if entity.base.init then entity.base.init(self, uid, kwargs) end
+    properties = {
+        animation   = state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", client_set = true }),
+        start_time  = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }),
+        model_name  = state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }),
+        attachments = state_variables.wrapped_carray  ({ csetter = "CAPI.setattachments" })
+    },
 
-    self._attachments_dict = {}
-
-    self.model_name = ""
-    self.attachments = {}
-    self.animation = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
-end
-
---- Serverside entity activation.
--- @param kwargs Table of additional parameters.
-function base:activate(kwargs)
-    logging.log(logging.DEBUG, "base:activate")
-    entity.base.activate(self, kwargs)
-
-    logging.log(logging.DEBUG, "base:activate (2)")
-    self.model_name = self.model_name
-
-    logging.log(logging.DEBUG, "base:activate complete")
-end
-
---- Set model attachment for entity. Connected with "attachments" property.
--- @param tag Model tag.
--- @param mdlname Model name.
-function base:set_attachment(tag, mdlname)
-    if not mdlname then
-        if self._attachments_dict[tostring(tag)] then
-            self._attachments_dict[tostring(tag)] = nil
+    --! Function: init
+    --! See <base_server.init>.
+    init = function(self, uid, kwargs)
+        -- just in case
+        if  entity.base.init then
+            entity.base.init(self, uid, kwargs)
         end
-    else
-        self._attachments_dict[tostring(tag)] = mdlname
+
+        self._attachments_dict = {}
+
+        self.model_name  = ""
+        self.attachments = {}
+        self.animation   = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
+    end,
+
+    --! Function: activate
+    --! See <base_server.activate>.
+    --!
+    --! Note: Queues model_name property for updating.
+    activate = function(self, kwargs)
+        -- call parent
+        logging.log(logging.DEBUG, "base:activate")
+        entity.base.activate(self, kwargs)
+
+        -- queue model_name for updating
+        logging.log(logging.DEBUG, "base:activate (2)")
+        self.model_name = self.model_name
+
+        logging.log(logging.DEBUG, "base:activate complete")
+    end,
+
+    --[[!
+        Function: set_attachment
+        Sets model attachment for entity. Updates internal attachments dictionary.
+        Updates "attachments" entity property.
+
+        Parameters:
+            tag - name of tag to attach model to.
+            model_name - path to the model to attach. If it's nil, the attachment
+            gets removed.
+    ]]
+    set_attachment = function(self, tag, model_name)
+        -- delete the attachment if we don't have the model
+        if not model_name then
+            if  self._attachments_dict[tag] then
+                self._attachments_dict[tag] = nil
+            end
+        else
+            self._attachments_dict[tostring(tag)] = model_name
+        end
+
+        -- convert the dictionary to array of properly formatted strings
+        local r = {}
+        for k, v in pairs(self._attachments_dict) do
+            table.insert(r, model.attachment(tostring(k), tostring(v)))
+        end
+
+        -- update the state variable
+        self.attachments = r
+    end,
+
+    --[[!
+        Function: set_local_animation
+        Sets local animation (that means, updates "animation" property locally, just in
+        value table). The animation gets updated in the engine as well.
+
+        Parameters:
+            animation - see ANIM variables in <actions>.
+    ]]
+    set_local_animation = function(self, animation)
+        CAPI.setanim(self, animation)
+        -- store value so reading of self.animation returns the value
+        self.state_variable_values["animation"] = animation
+    end,
+
+
+    --[[!
+        Function: set_local_model_name
+        Sets model_name state variable locally and updates theengine.
+
+        Parameters:
+            model_name - the model path to set.
+    ]]
+    set_local_model_name = function(self, model_name)
+        CAPI.setmodelname(self, model_name)
+        self.state_variable_values["model_name"] = model_name
+    end,
+
+    --[[!
+        Function: general_setup
+        Overriden general setup method. Calls the parent and defines
+        new "center" getter (see <get_center>).
+    ]]
+    general_setup = function(self)
+        entity.base.general_setup(self)
+        self:define_getter("center", self.get_center)
+    end,
+
+    --[[!
+        Function: get_center
+        See <character.get_center>. This method is empty here,
+        used just for the new getter done in <general_setup> work.
+    ]]
+    get_center = function(self) end
+})
+
+--[[!
+    Class: action_local_animation
+    Action that sets a local animation on start and restores the original
+    on finish. Useful for inheriting (some actions in <firing> and <health>
+    do that).
+]]
+action_local_animation = class.new(actions.action, {
+    --! Function: __tostring
+    --! See <action.__tostring>.
+    __tostring = function(self)
+        return "action_local_animation"
+    end,
+
+    --[[!
+        Function: do_start
+        See <action.do_start>. This overriden method saves actor's old animation,
+        gives actor its own animation and ends.
+    ]]
+    do_start = function(self)
+        self.old_animation = self.actor.animation
+        self.actor:set_local_animation(self.local_animation)
+    end,
+
+    --[[!
+        Function: do_finish
+        See <action.do_finish>. This just restores actor's animation from saved.
+    ]]
+    do_finish = function(self)
+        if self.actor.animation == self.local_animation then
+            self.actor:set_local_animation(self.old_animation)
+        end
     end
-
-    local r = {}
-    for k, v in pairs(self._attachments_dict) do
-        table.insert(r, model.attachment(tostring(k), tostring(v)))
-    end
-    self.attachments = r
-end
-
---- Set local animation (override value in state_variable_values).
--- @param anim Animation number. See base_actions documentation.
-function base:set_localanim(anim)
-    CAPI.setanim(self, anim)
-    self.state_variable_values["animation"] = anim -- store value so reading of self.animation returns the value
-end
-
---- Set local model name (override value in state_variable_values).
--- @param mdlname Model name.
-function base:set_local_model_name(mdlname)
-    CAPI.setmodelname(self, mdlname)
-    self.state_variable_values["model_name"] = mdlname
-end
-
---- General setup method. Called on initialization.
-function base:general_setup(...)
-    entity.base.general_setup(self)
-    self:define_getter("center", self.get_center)
-end
-
---- Local animation action.
--- @class table
--- @name action_localanim
-action_localanim = class.new(actions.action)
-
---- Return string representation of action.
--- @return String representation of action.
-function action_localanim:__tostring() return "action_localanim" end
-
---- Overriden do_start method called on action start.
--- Sets local animation for actor.
-function action_localanim:do_start()
-    self.oldanim = self.actor.animation
-    self.actor:set_localanim(self.localanim)
-end
-
---- Finalizer method taking care of setting original pre-start animation.
-function action_localanim:dofinish()
-    if self.actor.animation == self.localanim then
-        self.actor:set_localanim(self.oldanim)
-    end
-end
+})

@@ -1,9 +1,9 @@
 module("health", package.seeall)
 
-action_pain = class.new(entity_animated.action_localanim, {
+action_pain = class.new(entity_animated.action_local_animation, {
     __tostring          = function(self) return "action_pain" end,
     seconds_left        = 0.6,
-    localanim           = actions.ANIM_PAIN,
+    local_animation     = actions.ANIM_PAIN,
     can_multiply_queue  = false
 })
 
@@ -51,7 +51,7 @@ plugin = {
                 return true, "cancel_state_data_update"
             end
         elseif stage == 3 then -- client repositions etc.
-            if CLIENT and self == entity_store.get_plyent() then
+            if CLIENT and self == entity_store.get_player_entity() then
                 self:emit("client_respawn")
                 self.spawn_stage = 4
             end
@@ -106,7 +106,7 @@ plugin = {
 
         -- clean up if not dead
         if self.health > 0 and (ret == actions.ANIM_DYING or ret == math.bor(actions.ANIM_DYING, actions.ANIM_RAGDOLL)) then
-            self:set_localanim(math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP))
+            self:set_local_animation(math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP))
             ret = self.animation
         end
 
@@ -114,7 +114,7 @@ plugin = {
     end,
 
     client_act = function(self)
-        if self ~= entity_store.get_plyent() then return nil end
+        if self ~= entity_store.get_player_entity() then return nil end
 
         if not GLOBAL_GAME_HUD then
             local health = self.health
@@ -159,7 +159,7 @@ plugin = {
                     if not server_origin or health > 0 then
                         self:queue_action(action_pain())
                     end
-                    if self == entity_store.get_plyent() and self.old_health ~= health then
+                    if self == entity_store.get_player_entity() and self.old_health ~= health then
                         effects.client_damage(diff, diff)
                     end
                 end
@@ -177,7 +177,7 @@ plugin = {
         pos.z = pos.z + self.eye_height - 4
         effects.splash(effects.PARTICLE.BLOOD, convert.tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
         effects.decal(effects.DECAL.BLOOD, self.position, math.vec3(0, 0, 1), 7, self.blood_color)
-        if self == entity_store.get_plyent() then effects.client_damage(0, self.old_health - health) end
+        if self == entity_store.get_player_entity() then effects.client_damage(0, self.old_health - health) end
     end,
 
     suffer_damage = function(self, source)
@@ -189,7 +189,7 @@ plugin = {
 }
 
 function die_if_off_map(entity)
-    if  entity == entity_store.get_plyent() and is_valid_target(entity) then
+    if  entity == entity_store.get_player_entity() and is_valid_target(entity) then
         entity.health = 0 -- kill instantly
     end
 end
@@ -205,7 +205,7 @@ end
 
 deadly_area_trigger_plugin = {
     client_on_collision = function(self, entity)
-        if entity ~= entity_store.get_plyent() then return nil end
+        if entity ~= entity_store.get_player_entity() then return nil end
 
         if is_valid_target(entity) then
             entity.health = 0
@@ -213,7 +213,7 @@ deadly_area_trigger_plugin = {
     end
 }
 
-deadly_area = entity_classes.reg(
+deadly_area = entity_classes.register(
     plugins.bake(
         entity_static.area_trigger,
         { deadly_area_trigger_plugin, { _class = "deadly_area" } }

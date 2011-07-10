@@ -105,7 +105,7 @@ PHYSICAL_STATE = {
     See Also:
         <player>
 ]]
-character = class.new(entity_animated.base, {
+character = class.new(entity_animated.base_animated, {
     --[[!
         Variable: _class
         The entity class for character. Its value is usually
@@ -243,12 +243,12 @@ character = class.new(entity_animated.base, {
             cn - Client number. Passed automatically.
 
         See Also:
-            <entity_animated.base.init>
+            <base_animated.init>
             <activate>
     ]]
     init = function(self, uid, kwargs)
         logging.log(logging.DEBUG, "character:init")
-        entity_animated.base.init(self, uid, kwargs)
+        entity_animated.base_animated.init(self, uid, kwargs)
 
         -- initial properties set by server, _name is set even later
         self._name          = "-?-"
@@ -280,7 +280,7 @@ character = class.new(entity_animated.base, {
             cn - Client number. Passed automatically.
 
         See Also:
-            <entity_animated.base.activate>
+            <base_animated.activate>
             <client_activate>
             <init>
     ]]
@@ -296,7 +296,7 @@ character = class.new(entity_animated.base, {
         CAPI.setupcharacter(self)
 
         -- we activate parent and flush variable changes
-        entity_animated.base.activate(self, kwargs)
+        entity_animated.base_animated.activate(self, kwargs)
         self:flush_queued_state_variable_changes()
 
         logging.log(logging.DEBUG, "character:activate complete.")
@@ -319,7 +319,7 @@ character = class.new(entity_animated.base, {
             <activate>
     ]]
     client_activate = function(self, kwargs)
-        entity_animated.base.client_activate(self, kwargs)
+        entity_animated.base_animated.client_activate(self, kwargs)
 
         -- we assert the client number on client as well
         self.cn = kwargs and kwargs.cn or -1
@@ -337,7 +337,7 @@ character = class.new(entity_animated.base, {
     deactivate = function(self)
         -- we dismantle character and call parent deactivation
         CAPI.dismantlecharacter(self)
-        entity_animated.base.deactivate(self)
+        entity_animated.base_animated.deactivate(self)
     end,
 
     --[[!
@@ -349,7 +349,7 @@ character = class.new(entity_animated.base, {
         -- we dismantle client-side character
         -- and call parent deactivation
         CAPI.dismantlecharacter(self)
-        entity_animated.base.client_deactivate(self)
+        entity_animated.base_animated.client_deactivate(self)
     end,
 
     --[[!
@@ -369,7 +369,7 @@ character = class.new(entity_animated.base, {
             self:default_action(seconds)
         else
             -- otherwise we act on parent
-            entity_animated.base.act(self, seconds)
+            entity_animated.base_animated.act(self, seconds)
         end
     end,
 
@@ -409,7 +409,7 @@ character = class.new(entity_animated.base, {
         if not hudpass and needhud then return nil end
 
         -- re-generate the parameters if timestamp changed - efficiency
-        if self.rendering_args_timestamp ~= entity_store.curr_timestamp then
+        if self.rendering_args_timestamp ~= GLOBAL_CURRENT_TIMESTAMP then
             -- this is current client state, used when deciding animation
             local state = self.client_state
 
@@ -492,7 +492,7 @@ character = class.new(entity_animated.base, {
         local flags = math.bor(model.LIGHT, model.DYNSHADOW, model.FULLBRIGHT)
 
         -- for non-player, we add some culling flags
-        if self ~= entity_store.get_plyent() then
+        if self ~= entity_store.get_player_entity() then
             flags = math.bor(flags, model.CULL_VFC, model.CULL_OCCLUDED, model.CULL_QUERY)
         end
 
@@ -629,7 +629,7 @@ character = class.new(entity_animated.base, {
     end,
 
     --[[!
-        Function: decide_action_animation
+        Function: get_center
         Gets center position of character, something like gravity center.
         For example AI bots would better aim at this point instead of "position"
         which is feet position. Override if your center is nonstandard.
@@ -715,5 +715,5 @@ player = class.new(character, {
     end
 })
 
-entity_classes.reg(character, "fpsent")
-entity_classes.reg(player, "fpsent")
+entity_classes.register(character, "fpsent")
+entity_classes.register(player, "fpsent")

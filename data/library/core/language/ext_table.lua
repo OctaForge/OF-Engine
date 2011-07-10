@@ -217,7 +217,7 @@ end
 function table.keys(t)
     local r = {}
     for a, b in pairs(t) do
-        table.insert(r, tostring(a))
+        table.insert(r, a)
     end
     return r
 end

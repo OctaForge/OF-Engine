@@ -741,7 +741,7 @@ namespace server
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
 
-        int uniqueId = engine.exec<int>("return entity_store.get_newuid()");
+        int uniqueId = engine.exec<int>("return entity_store.generate_uid()");
 
         // Notify of uniqueId *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly

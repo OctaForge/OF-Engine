@@ -871,7 +871,5 @@ function is_player_colliding_entity(player, entity)
     end
 end
 
-get_totalmillis = CAPI.get_totalmillis
-
 get_map_preview_filename = CAPI.get_map_preview_filename
 get_all_map_names = CAPI.get_all_map_names

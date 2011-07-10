@@ -459,7 +459,7 @@ function show_info_area()
     local info_label = ""
 
     if showfps ~= 0 then
-        local totalmillis = world.get_totalmillis()
+        local totalmillis = GLOBAL_TIME * 1000
 
         if (totalmillis - lastfps) >= statrate then
             prevfps = { curfps[1], curfps[2], curfps[3] }

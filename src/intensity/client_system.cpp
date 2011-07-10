@@ -91,7 +91,7 @@ bool ClientSystem::scenarioStarted()
     {
         if (engine.hashandle())
         {
-            engine.getg("entity_store").t_getraw("test_scenario_started").call(0, 1);
+            engine.getg("entity_store").t_getraw("has_scenario_started").call(0, 1);
             _scenarioStarted = engine.get<bool>(-1);
             engine.pop(2);
         }

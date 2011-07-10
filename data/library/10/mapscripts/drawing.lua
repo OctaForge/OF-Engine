@@ -6,7 +6,7 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Register our custom player entity class into storage
-entity_classes.reg(plugins.bake(
+entity_classes.register(plugins.bake(
     character.player, {
 -- enable for platformer game
 --      platformer.plugin,
@@ -114,12 +114,12 @@ entity_classes.reg(plugins.bake(
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
 function client_click(btn, down, pos, ent, x, y)
     if btn == 1 then
-        entity_store.get_plyent().pressing   = down
-        entity_store.get_plyent().stop_batch = false
+        entity_store.get_player_entity().pressing   = down
+        entity_store.get_player_entity().stop_batch = false
     elseif btn == 2 and down then
-        entity_store.get_plyent():reset_mark()
+        entity_store.get_player_entity():reset_mark()
     elseif btn == 3 and down then
-        entity_store.get_plyent():next_color()
+        entity_store.get_player_entity():next_color()
     end
 end
 
