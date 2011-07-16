@@ -50,7 +50,7 @@ input.bind("RIGHT", function() input.turn_right() end)
 
 input.bind("SPACE", function() input.jump() end)
 
-input.bind("TAB", function() gui.showscores() end)
+input.bind("TAB", function() gui.show_scores() end)
 
 input.bind("T", function() console.prompt() end)
 input.bind("BACKQUOTE", function() console.prompt("/") end)

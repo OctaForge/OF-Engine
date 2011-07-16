@@ -186,23 +186,23 @@ plugins = {
                         end
 
                         if not GLOBAL_GAME_HUD then
-                            gui.showhudimage(gun.hud, 0.80, 0.88, 0.05, 0.05)
+                            gui.hud_image(gun.hud, 0.80, 0.88, 0.05, 0.05)
                         else
                             local params = GLOBAL_GAME_HUD:get_firing_params(gun)
-                            gui.showhudimage(
+                            gui.hud_image(
                                 params.gun.icon,
                                 params.gun.x, params.gun.y,
                                 params.gun.w, params.gun.h
                             )
                             if params.ammo1 then
-                                gui.showhudimage(
+                                gui.hud_image(
                                     params.ammo1.icon,
                                     params.ammo1.x, params.ammo1.y,
                                     params.ammo1.w, params.ammo1.h
                                 )
                             end
                             if params.ammo2 then
-                                gui.showhudimage(
+                                gui.hud_image(
                                     params.ammo2.icon,
                                     params.ammo2.x, params.ammo2.y,
                                     params.ammo2.w, params.ammo2.h

@@ -2406,7 +2406,7 @@ namespace gui
 
     void _bind_uitexteditor(lua_Engine e)
     {
-        int keep = e.get<int>(6);
+        int keep = e.get<bool>(6);
         const char *filter = e.get<const char*>(7);
         addui(
             new text_editor(

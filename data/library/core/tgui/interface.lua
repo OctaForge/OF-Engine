@@ -70,23 +70,23 @@ function tab_area(edit, gui_name, info_area)
         -- draw its background first
         gui.table(3, 0, function()
             -- upper left corner
-            gui.stretchedimage(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
             -- upper edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.05, 0.01)
+            gui.stretched_image(image_path .. "window_background.png", 0.05, 0.01)
             -- upper right corner
-            gui.stretchedimage(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
             -- left edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0.5)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0.5)
             -- center
-            gui.stretchedimage(image_path .. "window_background_alt.png", 0.05, 0.5)
+            gui.stretched_image(image_path .. "window_background_alt.png", 0.05, 0.5)
             -- right edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0.5)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0.5)
             -- lower left corner
-            gui.stretchedimage(image_path .. "corner_lower_left.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_left.png", 0.01, 0.01)
             -- lower edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.05, 0.01)
+            gui.stretched_image(image_path .. "window_background.png", 0.05, 0.01)
             -- lower right corner
-            gui.stretchedimage(image_path .. "corner_lower_right.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_right.png", 0.01, 0.01)
         end)
 
         -- now draw the scroller
@@ -120,7 +120,7 @@ function tab_area(edit, gui_name, info_area)
                                     end, function()
                                         -- idle
                                         gui.space(0, 0.005, function()
-                                            gui.stretchedimage(
+                                            gui.stretched_image(
                                                 image_path .. "icons/" .. v[4] .. ".png",
                                                 0.04, 0.04
                                             )
@@ -128,7 +128,7 @@ function tab_area(edit, gui_name, info_area)
 
                                         -- hover
                                         gui.space(0, 0.005, function()
-                                            gui.stretchedimage(
+                                            gui.stretched_image(
                                                 image_path .. "icons/" .. v[4] .. ".png",
                                                 0.04, 0.04
                                             )
@@ -136,7 +136,7 @@ function tab_area(edit, gui_name, info_area)
 
                                         -- selected
                                         gui.space(0, 0.005, function()
-                                            gui.stretchedimage(
+                                            gui.stretched_image(
                                                 image_path .. "icons/" .. v[4] .. ".png",
                                                 0.04, 0.04
                                             )
@@ -147,7 +147,7 @@ function tab_area(edit, gui_name, info_area)
                                             function()
                                                 return v[6]
                                             end, function()
-                                                gui.stretchedimage(
+                                                gui.stretched_image(
                                                     image_path .. "tab_icon_over.png",
                                                     0.05, 0.05
                                                 )
@@ -162,7 +162,7 @@ function tab_area(edit, gui_name, info_area)
                                 gui.button(v[4], function()
                                     -- idle
                                     gui.space(0, 0.005, function()
-                                        gui.stretchedimage(
+                                        gui.stretched_image(
                                             image_path .. "icons/" .. v[3] .. ".png",
                                             0.04, 0.04
                                         )
@@ -170,7 +170,7 @@ function tab_area(edit, gui_name, info_area)
 
                                     -- hover
                                     gui.space(0, 0.005, function()
-                                        gui.stretchedimage(
+                                        gui.stretched_image(
                                             image_path .. "icons/" .. v[3] .. ".png",
                                             0.04, 0.04
                                         )
@@ -178,11 +178,11 @@ function tab_area(edit, gui_name, info_area)
 
                                     -- selected
                                     gui.space(0, 0.005, function()
-                                        gui.stretchedimage(
+                                        gui.stretched_image(
                                             image_path .. "icons/" .. v[3] .. ".png",
                                             0.04, 0.04
                                         )
-                                        gui.stretchedimage(
+                                        gui.stretched_image(
                                             image_path .. "tab_icon_over.png",
                                             0.05, 0.05
                                         )
@@ -197,51 +197,51 @@ function tab_area(edit, gui_name, info_area)
                 -- both arrows idle
                 gui.vlist(0, function()
                     -- up arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_up.png", 0.05, 0.015)
+                    gui.stretched_image(image_path .. "button_scrollblock_up.png", 0.05, 0.015)
                     -- vertical bar
                     gui.fill(0.05, 0.475)
                     -- down arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_down.png", 0.05, 0.015)
+                    gui.stretched_image(image_path .. "button_scrollblock_down.png", 0.05, 0.015)
                 end)
 
                 -- up arrow hover
                 gui.vlist(0, function()
                     -- up arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_up.png", 0.05, 0.015, hover)
+                    gui.stretched_image(image_path .. "button_scrollblock_up.png", 0.05, 0.015, hover)
                     -- vertical bar
                     gui.fill(0.05, 0.475)
                     -- down arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_down.png", 0.05, 0.015)
+                    gui.stretched_image(image_path .. "button_scrollblock_down.png", 0.05, 0.015)
                 end)
 
                 -- up arrow selected
                 gui.vlist(0, function()
                     -- up arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_up.png", 0.05, 0.015, selected)
+                    gui.stretched_image(image_path .. "button_scrollblock_up.png", 0.05, 0.015, selected)
                     -- vertical bar
                     gui.fill(0.05, 0.475)
                     -- down arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_down.png", 0.05, 0.015)
+                    gui.stretched_image(image_path .. "button_scrollblock_down.png", 0.05, 0.015)
                 end)
 
                 -- down arrow hover
                 gui.vlist(0, function()
                     -- up arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_up.png", 0.05, 0.015)
+                    gui.stretched_image(image_path .. "button_scrollblock_up.png", 0.05, 0.015)
                     -- vertical bar
                     gui.fill(0.05, 0.475)
                     -- down arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_down.png", 0.05, 0.015, hover)
+                    gui.stretched_image(image_path .. "button_scrollblock_down.png", 0.05, 0.015, hover)
                 end)
 
                 -- down arrow selected
                 gui.vlist(0, function()
                     -- up arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_up.png", 0.05, 0.015)
+                    gui.stretched_image(image_path .. "button_scrollblock_up.png", 0.05, 0.015)
                     -- vertical bar
                     gui.fill(0.05, 0.475)
                     -- down arrow
-                    gui.stretchedimage(image_path .. "button_scrollblock_down.png", 0.05, 0.015, selected)
+                    gui.stretched_image(image_path .. "button_scrollblock_down.png", 0.05, 0.015, selected)
                 end)
             end)
         end)
@@ -252,15 +252,15 @@ function tab_area(edit, gui_name, info_area)
         gui.align(1, 1)
         gui.table(3, 0, function()
             -- upper left corner
-            gui.stretchedimage(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
             -- upper edge
-            gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
+            gui.stretched_image(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
             -- upper right corner
-            gui.stretchedimage(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
             -- left edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0.05)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0.05)
             -- center
-            gui.stretchedimage(image_path .. "window_background_alt.png", 0, 0.05, function()
+            gui.stretched_image(image_path .. "window_background_alt.png", 0, 0.05, function()
                 gui.clamp(1, 1, 0, 0)
                 -- create a horizontal list, left part storing the scrollbox
                 gui.hlist(0, function()
@@ -296,7 +296,7 @@ function tab_area(edit, gui_name, info_area)
                                                 end, function()
                                                     -- idle
                                                     gui.space(0.005, 0, function()
-                                                        gui.stretchedimage(
+                                                        gui.stretched_image(
                                                             image_path .. "icons/" .. v[4] .. ".png",
                                                             0.04, 0.04
                                                         )
@@ -304,7 +304,7 @@ function tab_area(edit, gui_name, info_area)
 
                                                     -- hover
                                                     gui.space(0.005, 0, function()
-                                                        gui.stretchedimage(
+                                                        gui.stretched_image(
                                                             image_path .. "icons/" .. v[4] .. ".png",
                                                             0.04, 0.04
                                                         )
@@ -312,7 +312,7 @@ function tab_area(edit, gui_name, info_area)
 
                                                     -- selected
                                                     gui.space(0.005, 0, function()
-                                                        gui.stretchedimage(
+                                                        gui.stretched_image(
                                                             image_path .. "icons/" .. v[4] .. ".png",
                                                             0.04, 0.04
                                                         )
@@ -323,7 +323,7 @@ function tab_area(edit, gui_name, info_area)
                                                         function()
                                                             return v[6]
                                                         end, function()
-                                                            gui.stretchedimage(
+                                                            gui.stretched_image(
                                                                 image_path .. "tab_icon_over.png",
                                                                 0.05, 0.05
                                                             )
@@ -338,7 +338,7 @@ function tab_area(edit, gui_name, info_area)
                                             gui.button(v[4], function()
                                                 -- idle
                                                 gui.space(0, 0.005, function()
-                                                    gui.stretchedimage(
+                                                    gui.stretched_image(
                                                         image_path .. "icons/" .. v[3] .. ".png",
                                                         0.04, 0.04
                                                     )
@@ -346,7 +346,7 @@ function tab_area(edit, gui_name, info_area)
 
                                                 -- hover
                                                 gui.space(0, 0.005, function()
-                                                    gui.stretchedimage(
+                                                    gui.stretched_image(
                                                         image_path .. "icons/" .. v[3] .. ".png",
                                                         0.04, 0.04
                                                     )
@@ -354,11 +354,11 @@ function tab_area(edit, gui_name, info_area)
 
                                                 -- selected
                                                 gui.space(0, 0.005, function()
-                                                    gui.stretchedimage(
+                                                    gui.stretched_image(
                                                         image_path .. "icons/" .. v[3] .. ".png",
                                                         0.04, 0.04
                                                     )
-                                                    gui.stretchedimage(
+                                                    gui.stretched_image(
                                                         image_path .. "tab_icon_over.png",
                                                         0.05, 0.05
                                                     )
@@ -373,51 +373,51 @@ function tab_area(edit, gui_name, info_area)
                             -- both arrows idle
                             gui.hlist(0, function()
                                 -- left arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
+                                gui.stretched_image(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
                                 -- horizontal bar
                                 gui.fill(0.47, 0.05)
                                 -- right arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
+                                gui.stretched_image(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
                             end)
 
                             -- left arrow hover
                             gui.hlist(0, function()
                                 -- left arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05, hover)
+                                gui.stretched_image(image_path .. "button_scrollblock_left.png", 0.015, 0.05, hover)
                                 -- horizontal bar
                                 gui.fill(0.47, 0.05)
                                 -- right arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
+                                gui.stretched_image(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
                             end)
 
                             -- left arrow selected
                             gui.hlist(0, function()
                                 -- left arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05, selected)
+                                gui.stretched_image(image_path .. "button_scrollblock_left.png", 0.015, 0.05, selected)
                                 -- horizontal bar
                                 gui.fill(0.47, 0.05)
                                 -- right arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
+                                gui.stretched_image(image_path .. "button_scrollblock_right.png", 0.015, 0.05)
                             end)
 
                             -- right arrow hover
                             gui.hlist(0, function()
                                 -- left arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
+                                gui.stretched_image(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
                                 -- horizontal bar
                                 gui.fill(0.47, 0.05)
                                 -- right arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05, hover)
+                                gui.stretched_image(image_path .. "button_scrollblock_right.png", 0.015, 0.05, hover)
                             end)
 
                             -- right arrow selected
                             gui.hlist(0, function()
                                 -- left arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
+                                gui.stretched_image(image_path .. "button_scrollblock_left.png", 0.015, 0.05)
                                 -- horizontal bar
                                 gui.fill(0.47, 0.05)
                                 -- right arrow
-                                gui.stretchedimage(image_path .. "button_scrollblock_right.png", 0.015, 0.05, selected)
+                                gui.stretched_image(image_path .. "button_scrollblock_right.png", 0.015, 0.05, selected)
                             end)
                         end)
                     end)
@@ -436,13 +436,13 @@ function tab_area(edit, gui_name, info_area)
                 end)
             end)
             -- right edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0.05)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0.05)
             -- lower left corner
-            gui.stretchedimage(image_path .. "corner_lower_left.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_left.png", 0.01, 0.01)
             -- lower edge
-            gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
+            gui.stretched_image(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
             -- lower right corner
-            gui.stretchedimage(image_path .. "corner_lower_right.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_right.png", 0.01, 0.01)
         end)
     end)
 end
@@ -525,9 +525,9 @@ gui.new("vtab", function()
 
         gui.table(3, 0, function()
             -- upper left corner
-            gui.stretchedimage(image_path .. "corner_upper_left.png", 0.01, 0.025)
+            gui.stretched_image(image_path .. "corner_upper_left.png", 0.01, 0.025)
             -- upper edge
-            gui.stretchedimage(image_path .. "window_background.png", 0, 0.025, function()
+            gui.stretched_image(image_path .. "window_background.png", 0, 0.025, function()
                 gui.clamp(1, 1, 0, 0)
                 gui.tag("title", function() end)
                 gui.button(
@@ -536,22 +536,22 @@ gui.new("vtab", function()
                     end, function()
                         gui.align(1, 0)
                         -- idle state
-                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
+                        gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024)
                         -- hover state
-                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
+                        gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
                         -- selected state
-                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
+                        gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
                     end
                 )
             end)
             -- upper right corner
-            gui.stretchedimage(image_path .. "corner_upper_right.png", 0.01, 0.025)
+            gui.stretched_image(image_path .. "corner_upper_right.png", 0.01, 0.025)
 
             -- left edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
 
             -- body
-            gui.stretchedimage(image_path .. "window_background_alt.png", 0, 0, function()
+            gui.stretched_image(image_path .. "window_background_alt.png", 0, 0, function()
                 gui.clamp(1, 1, 1, 1)
                 gui.space(0.01, 0.01, function()
                     gui.tag("body", function() end)
@@ -559,14 +559,14 @@ gui.new("vtab", function()
             end)
 
             -- right edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
 
             -- lower left corner
-            gui.stretchedimage(image_path .. "corner_lower_left.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_left.png", 0.01, 0.01)
             -- lower edge
-            gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
+            gui.stretched_image(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
             -- lower right corner
-            gui.stretchedimage(image_path .. "corner_lower_right.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_right.png", 0.01, 0.01)
         end)
     end)
 end, 1, 0, function()
@@ -581,9 +581,9 @@ gui.new("htab", function()
     gui.table(2, 0, function()
         gui.table(3, 0, function()
             -- upper left corner
-            gui.stretchedimage(image_path .. "corner_upper_left.png", 0.01, 0.025)
+            gui.stretched_image(image_path .. "corner_upper_left.png", 0.01, 0.025)
             -- upper edge
-            gui.stretchedimage(image_path .. "window_background.png", 0, 0.025, function()
+            gui.stretched_image(image_path .. "window_background.png", 0, 0.025, function()
                 gui.clamp(1, 1, 0, 0)
                 gui.tag("title", function() end)
                 gui.button(
@@ -592,22 +592,22 @@ gui.new("htab", function()
                     end, function()
                         gui.align(1, 0)
                         -- idle state
-                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
+                        gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024)
                         -- hover state
-                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
+                        gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
                         -- selected state
-                        gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
+                        gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
                     end
                 )
             end)
             -- upper right corner
-            gui.stretchedimage(image_path .. "corner_upper_right.png", 0.01, 0.025)
+            gui.stretched_image(image_path .. "corner_upper_right.png", 0.01, 0.025)
 
             -- left edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
 
             -- body
-            gui.stretchedimage(image_path .. "window_background_alt.png", 0, 0, function()
+            gui.stretched_image(image_path .. "window_background_alt.png", 0, 0, function()
                 gui.clamp(1, 1, 1, 1)
                 gui.space(0.01, 0.01, function()
                     gui.tag("body", function() end)
@@ -615,14 +615,14 @@ gui.new("htab", function()
             end)
 
             -- right edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
 
             -- lower left corner
-            gui.stretchedimage(image_path .. "corner_lower_left.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_left.png", 0.01, 0.01)
             -- lower edge
-            gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
+            gui.stretched_image(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
             -- lower right corner
-            gui.stretchedimage(image_path .. "corner_lower_right.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_right.png", 0.01, 0.01)
         end)
         gui.fill(0.01, 0)
 

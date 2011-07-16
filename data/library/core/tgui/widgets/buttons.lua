@@ -6,15 +6,15 @@ function button(label, action)
         gui.fill(0.2, 0.025, function()
             gui.clamp(1, 1, 0, 0)
             gui.hlist(0, function()
-                gui.stretchedimage(image_path .. "button_left_idle.png", 0.01, 0.03)
-                gui.stretchedimage(
+                gui.stretched_image(image_path .. "button_left_idle.png", 0.01, 0.03)
+                gui.stretched_image(
                     image_path .. "button_middle_idle.png",
                     0.15, 0.03,
                     function()
                         gui.clamp(1, 1, 0, 0)
                     end
                 )
-                gui.stretchedimage(image_path .. "button_right_idle.png", 0.01, 0.03)
+                gui.stretched_image(image_path .. "button_right_idle.png", 0.01, 0.03)
             end)
             gui.label(label)
         end)
@@ -23,8 +23,8 @@ function button(label, action)
         gui.fill(0.2, 0.025, function()
             gui.clamp(1, 1, 0, 0)
             gui.hlist(0, function()
-                gui.stretchedimage(image_path .. "button_left_idle.png", 0.01, 0.03, hover)
-                gui.stretchedimage(
+                gui.stretched_image(image_path .. "button_left_idle.png", 0.01, 0.03, hover)
+                gui.stretched_image(
                     image_path .. "button_middle_idle.png",
                     0.15, 0.03,
                     function()
@@ -32,7 +32,7 @@ function button(label, action)
                         hover()
                     end
                 )
-                gui.stretchedimage(image_path .. "button_right_idle.png", 0.01, 0.03, hover)
+                gui.stretched_image(image_path .. "button_right_idle.png", 0.01, 0.03, hover)
             end)
             gui.label(label)
         end)
@@ -41,8 +41,8 @@ function button(label, action)
         gui.fill(0.2, 0.025, function()
             gui.clamp(1, 1, 0, 0)
             gui.hlist(0, function()
-                gui.stretchedimage(image_path .. "button_left_idle.png", 0.01, 0.03, selected)
-                gui.stretchedimage(
+                gui.stretched_image(image_path .. "button_left_idle.png", 0.01, 0.03, selected)
+                gui.stretched_image(
                     image_path .. "button_middle_idle.png",
                     0.15, 0.03,
                     function()
@@ -50,7 +50,7 @@ function button(label, action)
                         selected()
                     end
                 )
-                gui.stretchedimage(image_path .. "button_right_idle.png", 0.01, 0.03, selected)
+                gui.stretched_image(image_path .. "button_right_idle.png", 0.01, 0.03, selected)
             end)
             gui.label(label)
         end)

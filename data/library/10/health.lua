@@ -127,14 +127,14 @@ plugin = {
                 else
                     color = 0xFF4431
                 end
-                gui.showhudtext(tostring(health), 0.94, 0.88, 0.5, color)
+                gui.hud_label(tostring(health), 0.94, 0.88, 0.5, color)
             end
         else
             local raw    = math.floor((34 * self.health) / self.max_health)
             local whole  = math.floor(raw  / 2)
             local half   = raw > whole * 2
             local params = GLOBAL_GAME_HUD:get_health_params()
-            gui.showhudimage(
+            gui.hud_image(
                 string.gsub(
                     params.icon,
                     "%VARIANT%",

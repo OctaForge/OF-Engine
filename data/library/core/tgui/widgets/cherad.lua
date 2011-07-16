@@ -16,13 +16,13 @@ function checkbox(var, label)
             0,
             function()
                 -- idle state false
-                gui.stretchedimage(image_path .. "check_base.png", 0.020, 0.020)
+                gui.stretched_image(image_path .. "check_base.png", 0.020, 0.020)
                 -- hovering state false
-                gui.stretchedimage(image_path .. "check_base.png", 0.020, 0.020, hover)
+                gui.stretched_image(image_path .. "check_base.png", 0.020, 0.020, hover)
                 -- idle state true
-                gui.stretchedimage(image_path .. "check_checked.png", 0.020, 0.020)
+                gui.stretched_image(image_path .. "check_checked.png", 0.020, 0.020)
                 -- hovering state true
-                gui.stretchedimage(image_path .. "check_checked.png", 0.020, 0.020, hover)
+                gui.stretched_image(image_path .. "check_checked.png", 0.020, 0.020, hover)
             end
         )
         gui.offset(0.02, 0, function()
@@ -33,13 +33,13 @@ end
 
 local function radio_base()
     -- idle state false
-    gui.stretchedimage(image_path .. "radio_base.png", 0.020, 0.020)
+    gui.stretched_image(image_path .. "radio_base.png", 0.020, 0.020)
     -- hovering state false
-    gui.stretchedimage(image_path .. "radio_base.png", 0.020, 0.020, hover)
+    gui.stretched_image(image_path .. "radio_base.png", 0.020, 0.020, hover)
     -- idle state true
-    gui.stretchedimage(image_path .. "radio_checked.png", 0.020, 0.020)
+    gui.stretched_image(image_path .. "radio_checked.png", 0.020, 0.020)
     -- hovering state true
-    gui.stretchedimage(image_path .. "radio_checked.png", 0.020, 0.020, hover)
+    gui.stretched_image(image_path .. "radio_checked.png", 0.020, 0.020, hover)
 end
 
 function radiobox(var, value, label)

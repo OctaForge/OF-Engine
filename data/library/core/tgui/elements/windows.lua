@@ -9,12 +9,12 @@ function window(name, title, body, noclose, notitle, nofocus, onhide, alignx, al
         gui.table(3, 0, function()
             if not notitle then
                 -- upper left corner
-                gui.stretchedimage(image_path .. "corner_upper_left.png", 0.01, 0.025)
+                gui.stretched_image(image_path .. "corner_upper_left.png", 0.01, 0.025)
                 -- upper edge
                 gui.clamp(1, 1, 0, 0)
-                gui.stretchedimage(image_path .. "window_background.png", 0, 0.025, function()
+                gui.stretched_image(image_path .. "window_background.png", 0, 0.025, function()
                     gui.clamp(1, 1, 0, 0)
-                    gui.winmover(function()
+                    gui.window_mover(function()
                         gui.clamp(1, 1, 0, 0)
                         gui.color(0, 0, 0, 0, 0, 0, function()
                             gui.clamp(1, 1, 0, 0)
@@ -31,24 +31,24 @@ function window(name, title, body, noclose, notitle, nofocus, onhide, alignx, al
                             end, function()
                                 gui.align(1, 0)
                                 -- idle state
-                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024)
+                                gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024)
                                 -- hover state
-                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
+                                gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024, hover)
                                 -- selected state
-                                gui.stretchedimage(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
+                                gui.stretched_image(image_path .. "icons/icon_close.png", 0.024, 0.024, selected)
                             end
                         )
                     end
                 end)
                 -- upper right corner
-                gui.stretchedimage(image_path .. "corner_upper_right.png", 0.01, 0.025)
+                gui.stretched_image(image_path .. "corner_upper_right.png", 0.01, 0.025)
             else
                 -- upper left corner
-                gui.stretchedimage(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
+                gui.stretched_image(image_path .. "corner_upper_left_small.png", 0.01, 0.01)
                 -- upper edge
-                gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function()
+                gui.stretched_image(image_path .. "window_background.png", 0, 0.01, function()
                     gui.clamp(1, 1, 0, 0)
-                    gui.winmover(function()
+                    gui.window_mover(function()
                         gui.clamp(1, 1, 0, 0)
                         gui.color(0, 0, 0, 0, 0, 0.01, function()
                             gui.clamp(1, 1, 0, 0)
@@ -56,14 +56,14 @@ function window(name, title, body, noclose, notitle, nofocus, onhide, alignx, al
                     end)
                 end)
                 -- upper right corner
-                gui.stretchedimage(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
+                gui.stretched_image(image_path .. "corner_upper_right_small.png", 0.01, 0.01)
             end
 
             -- left edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
 
             -- body
-            gui.stretchedimage(image_path .. "window_background_alt.png", 0, 0, function()
+            gui.stretched_image(image_path .. "window_background_alt.png", 0, 0, function()
                 gui.clamp(1, 1, 1, 1)
                 gui.space(0.01, 0.01, function()
                     gui.align(0, 0)
@@ -72,14 +72,14 @@ function window(name, title, body, noclose, notitle, nofocus, onhide, alignx, al
             end)
 
             -- right edge
-            gui.stretchedimage(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
+            gui.stretched_image(image_path .. "window_background.png", 0.01, 0, function() gui.clamp(0, 0, 1, 1) end)
 
             -- lower left corner
-            gui.stretchedimage(image_path .. "corner_lower_left.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_left.png", 0.01, 0.01)
             -- lower edge
-            gui.stretchedimage(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
+            gui.stretched_image(image_path .. "window_background.png", 0, 0.01, function() gui.clamp(1, 1, 0, 0) end)
             -- lower right corner
-            gui.stretchedimage(image_path .. "corner_lower_right.png", 0.01, 0.01)
+            gui.stretched_image(image_path .. "corner_lower_right.png", 0.01, 0.01)
         end)
     end, nofocus and 1 or 0, onhide)
 end

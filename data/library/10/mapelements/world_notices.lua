@@ -73,7 +73,7 @@ notice_action = class.new(actions.action, {
         end
 
         if self.current_time ~= 0 and self.text then
-            gui.showhudtext(self.text, self.x, self.y, current_size, self.color)
+            gui.hud_label(self.text, self.x, self.y, current_size, self.color)
         end
 
         return (self.current_time == 0)

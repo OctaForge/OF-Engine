@@ -12,7 +12,7 @@
 
     About: Purpose
         This file features effects (particle system, dynamic lights etc.).
-        Will get redone in the future, but not deprecated for now.
+        DEPRECATED for OF API v2 (Stays in v1).
 
     Section: Effect system
 ]]
