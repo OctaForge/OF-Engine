@@ -231,7 +231,7 @@ function show_entity_properties_tab()
     local state_data_raw = entity:create_state_data_dict()
 
     for key, value in pairs(state_data_raw) do
-        local gui_name  = state_variables.__getguin(uid, key)
+        local gui_name  = state_variables.__get_gui_name(uid, key)
         state_data[key] = { gui_name, value }
 
         table.insert(sorted_keys, key)

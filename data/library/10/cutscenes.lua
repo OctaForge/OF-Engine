@@ -353,10 +353,10 @@ entity_classes.register(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
             end)
-            self:connect(state_variables.get_onmodify_prefix() .. "next_controller", function(self)
+            self:connect(state_variables.get_on_modify_name("next_controller"), function(self)
                 -- flush the cache
                 for k, v in pairs(self) do
                     if string.sub(k, 1, 9) == "__CACHED_" then
@@ -408,7 +408,7 @@ entity_classes.register(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do
@@ -417,7 +417,7 @@ entity_classes.register(
                     end
                 end
             end)
-            self:connect(state_variables.get_onmodify_prefix() .. "next_marker", function(self)
+            self:connect(state_variables.get_on_modify_name("next_marker"), function(self)
                 -- flush the cache
                 for k, v in pairs(self) do
                     if string.sub(k, 1, 9) == "__CACHED_" then
@@ -492,7 +492,7 @@ entity_classes.register(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do
@@ -501,7 +501,7 @@ entity_classes.register(
                     end
                 end
             end)
-            self:connect(state_variables.get_onmodify_prefix() .. "parent_id", function(self)
+            self:connect(state_variables.get_on_modify_name("parent_id"), function(self)
                 -- flush the cache
                 for k, v in pairs(self) do
                     if string.sub(k, 1, 9) == "__CACHED_" then
@@ -551,7 +551,7 @@ entity_classes.register(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do
@@ -629,7 +629,7 @@ entity_classes.register(
         should_act = true,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do

@@ -84,13 +84,13 @@ plugin = {
     end,
 
     activate = function(self)
-        self:connect(state_variables.get_onmodify_prefix() .. "health",      self.on_health)
-        self:connect(state_variables.get_onmodify_prefix() .. "spawn_stage", self.on_spawn_stage)
+        self:connect(state_variables.get_on_modify_name("health"),      self.on_health)
+        self:connect(state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
     end,
 
     client_activate = function(self)
-        self:connect(state_variables.get_onmodify_prefix() .. "health",      self.on_health)
-        self:connect(state_variables.get_onmodify_prefix() .. "spawn_stage", self.on_spawn_stage)
+        self:connect(state_variables.get_on_modify_name("health"),      self.on_health)
+        self:connect(state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
     end,
 
     decide_animation = function(self, ...)

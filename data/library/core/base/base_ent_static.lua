@@ -86,11 +86,11 @@ base_static = class.new(entity_animated.base_animated, {
         -- TODO: use sauer values for bounding box -- XXX - needed?
         radius = state_variables.state_float(),
 
-        position = state_variables.wrapped_cvec3({ cgetter = "CAPI.getextent0", csetter = "CAPI.setextent0" }),
-        attr1 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr1", csetter = "CAPI.setattr1" }),
-        attr2 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr2", csetter = "CAPI.setattr2" }),
-        attr3 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr3", csetter = "CAPI.setattr3" }),
-        attr4 = state_variables.wrapped_cinteger({ cgetter = "CAPI.getattr4", csetter = "CAPI.setattr4" })
+        position = state_variables.wrapped_c_vec3({ c_getter = "CAPI.getextent0", c_setter = "CAPI.setextent0" }),
+        attr1 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr1", c_setter = "CAPI.setattr1" }),
+        attr2 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr2", c_setter = "CAPI.setattr2" }),
+        attr3 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr3", c_setter = "CAPI.setattr3" }),
+        attr4 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr4", c_setter = "CAPI.setattr4" })
     },
 
     --[[!
@@ -313,29 +313,29 @@ light = class.new(base_static, {
     sauer_type_index = 1,
 
     properties = {
-        attr1 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr1",
-            csetter = "CAPI.setattr1",
-            guiname = "radius",
-            altname = "radius"
+        attr1 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr1",
+            c_setter = "CAPI.setattr1",
+            gui_name = "radius",
+            alt_name = "radius"
         }),
-        attr2 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr2",
-            csetter = "CAPI.setattr2",
-            guiname = "red",
-            altname = "red"
+        attr2 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr2",
+            c_setter = "CAPI.setattr2",
+            gui_name = "red",
+            alt_name = "red"
         }),
-        attr3 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr3",
-            csetter = "CAPI.setattr3",
-            guiname = "green",
-            altname = "green"
+        attr3 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr3",
+            c_setter = "CAPI.setattr3",
+            gui_name = "green",
+            alt_name = "green"
         }),
-        attr4 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr4",
-            csetter = "CAPI.setattr4",
-            guiname = "blue",
-            altname = "blue"
+        attr4 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr4",
+            c_setter = "CAPI.setattr4",
+            gui_name = "blue",
+            alt_name = "blue"
         }),
 
         radius = state_variables.variable_alias("attr1"),
@@ -373,11 +373,11 @@ spotlight = class.new(base_static, {
     sauer_type_index = 7,
 
     properties = {
-        attr1 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr1",
-            csetter = "CAPI.setattr1",
-            guiname = "radius",
-            altname = "radius"
+        attr1 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr1",
+            c_setter = "CAPI.setattr1",
+            gui_name = "radius",
+            alt_name = "radius"
         }),
         radius = state_variables.variable_alias("attr1")
     },
@@ -409,11 +409,11 @@ envmap = class.new(base_static, {
     sauer_type_index = 4,
 
     properties = {
-        attr1 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr1",
-            csetter = "CAPI.setattr1",
-            guiname = "radius",
-            altname = "radius"
+        attr1 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr1",
+            c_setter = "CAPI.setattr1",
+            gui_name = "radius",
+            alt_name = "radius"
         }),
         radius = state_variables.variable_alias("attr1")
     },
@@ -448,26 +448,26 @@ ambient_sound = class.new(base_static, {
     sauer_type_index = 6,
 
     properties = {
-        attr2 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr2",
-            csetter = "CAPI.setattr2",
-            guiname = "radius",
-            altname = "radius"
+        attr2 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr2",
+            c_setter = "CAPI.setattr2",
+            gui_name = "radius",
+            alt_name = "radius"
         }),
-        attr3 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr3",
-            csetter = "CAPI.setattr3",
-            guiname = "size",
-            altname = "size"
+        attr3 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr3",
+            c_setter = "CAPI.setattr3",
+            gui_name = "size",
+            alt_name = "size"
         }),
-        attr4 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr4",
-            csetter = "CAPI.setsoundvol",
-            guiname = "volume",
-            altname = "volume"
+        attr4 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr4",
+            c_setter = "CAPI.setsoundvol",
+            gui_name = "volume",
+            alt_name = "volume"
         }),
-        sound_name = state_variables.wrapped_cstring({
-            csetter = "CAPI.setsoundname"
+        sound_name = state_variables.wrapped_c_string({
+            c_setter = "CAPI.setsoundname"
         }),
 
         radius = state_variables.variable_alias("attr2"),
@@ -591,29 +591,29 @@ particle_effect = class.new(base_static, {
     sauer_type_index = 5,
 
     properties = {
-        attr1 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr1",
-            csetter = "CAPI.setattr1",
-            guiname = "particle_type",
-            altname = "particle_type"
+        attr1 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr1",
+            c_setter = "CAPI.setattr1",
+            gui_name = "particle_type",
+            alt_name = "particle_type"
         }),
-        attr2 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr2",
-            csetter = "CAPI.setattr2",
-            guiname = "value1",
-            altname = "value1"
+        attr2 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr2",
+            c_setter = "CAPI.setattr2",
+            gui_name = "value1",
+            alt_name = "value1"
         }),
-        attr3 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr3",
-            csetter = "CAPI.setattr3",
-            guiname = "value2",
-            altname = "value2"
+        attr3 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr3",
+            c_setter = "CAPI.setattr3",
+            gui_name = "value2",
+            alt_name = "value2"
         }),
-        attr4 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr4",
-            csetter = "CAPI.setattr4",
-            guiname = "value3",
-            altname = "value3"
+        attr4 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr4",
+            c_setter = "CAPI.setattr4",
+            gui_name = "value3",
+            alt_name = "value3"
         }),
 
         particle_type = state_variables.variable_alias("attr1"),
@@ -655,21 +655,21 @@ mapmodel = class.new(base_static, {
     sauer_type_index = 2,
 
     properties = {
-        attr1 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr1",
-            csetter = "CAPI.setattr1",
-            guiname = "yaw",
-            altname = "yaw"
+        attr1 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr1",
+            c_setter = "CAPI.setattr1",
+            gui_name = "yaw",
+            alt_name = "yaw"
         }),
         yaw = state_variables.variable_alias("attr1"),
 
-        collision_radius_width = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.getcollisionradw",
-            csetter = "CAPI.setcollisionradw"
+        collision_radius_width = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getcollisionradw",
+            c_setter = "CAPI.setcollisionradw"
         }),
-        collision_radius_height = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.getcollisionradh",
-            csetter = "CAPI.setcollisionradh"
+        collision_radius_height = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getcollisionradh",
+            c_setter = "CAPI.setcollisionradh"
         })
     },
 
@@ -953,11 +953,11 @@ world_marker = class.new(base_static, {
     sauer_type_index = 3,
 
     properties = {
-        attr1 = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getattr1",
-            csetter = "CAPI.setattr1",
-            guiname = "yaw",
-            altname = "yaw"
+        attr1 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr1",
+            c_setter = "CAPI.setattr1",
+            gui_name = "yaw",
+            alt_name = "yaw"
         }),
         yaw = state_variables.variable_alias("attr1")
     },

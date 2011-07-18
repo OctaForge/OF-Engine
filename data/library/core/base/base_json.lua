@@ -2,7 +2,7 @@
     File: base/base_json.lua
 
     About: Author
-        Craig Mason-Jones, reformatted / modified by q66 <quaker66@gmail.com>
+        Craig Mason-Jones, reformatted / modified by q66 <quaker66@gmail.com>.
 
     About: Copyright
         Copyright (c) 2010 Craig Mason-Jones
@@ -11,7 +11,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        This file features JSON parser / writer.
+        This file features a JSON parser / writer.
 
     Section: JSON system
 ]]
@@ -22,16 +22,31 @@
 ]]
 module("json", package.seeall)
 
--- OctaForge content
--- Table storing information about simplification registers.
+--[[!
+    Variable: jregs
+    OctaForge content. Stores JSON simplifiers. It's basically an array of
+    tables. The tables are arrays as well, with two elements, first one
+    being function that accepts a value and returns true if the value
+    should be simplified and second one being function that accepts
+    a value and returns a simplified one.
+
+    Useful if you want to save something big, but you don't need to
+    encode it all raw. For example, instead of full entities, simplify
+    them to their unique IDs.
+    
+]]
 local jregs = {}
 
 -- private functions
 local isencodable
 
---- Encodes an arbitrary Lua object / variable.
--- @param v The Lua object / variable to be JSON encoded.
--- @return String containing the JSON encoding in internal Lua string format (i.e. not unicode)
+--[[!
+    Function: encode
+    Encodes a Lua object / variable and returns it as JSON string.
+
+    Parameters:
+        v - the value to encode.
+]]
 function encode(v)
     -- Handle nil values
     if not v then return "null" end
@@ -78,50 +93,80 @@ function encode(v)
     return "null"
 end
 
--- OctaForge content
---- register a simplifier function for encoding
--- @param check Function that returns true if argument passed to it can be simplified
--- @param simplifier Function to call when check returns true
+--[[!
+    Function: register
+    OctaForge content. Registers a simplifier, see <jregs>.
+
+    Parameters:
+        check - checker function, see <jregs>.
+        simplifier - simplifier function, see <jregs>.
+]]
 function register(check, simplifier)
     table.insert(jregs, { check, simplifier })
 end
 
---- Decodes a JSON string and returns the decoded value as a Lua data structure / value.
--- @param s The string to scan.
--- @return Lua objectthat was scanned, as a Lua table / string / number / boolean or nil.
+--[[!
+    Function: decode
+    Decodes a JSON string and returns the value as Lua type,
+    mostly a table.
+
+    Parameters:
+        s - the string to decode.
+]]
 function decode(s)
     -- Function is re-defined below after token and other items are created.
     -- Just defined here for code neatness.
     return null
 end
 
---- The null function allows one to specify a null value in an associative array (which is otherwise
--- discarded if you set the value with "nil" in Lua. Simply set t = { first=JSON.null }
+--[[!
+    Function: null
+    The null function allows one to specify a null value in an associative array
+    (which is otherwise discarded if you set the value with "nil" in Lua).
+
+    Simply set:
+        (start code)
+            t = { first = JSON.null }
+        (end)
+]]
 function null()
     return null -- so JSON.null() will also return null ;-)
 end
 
------------------------------------------------------------------------------
--- Internal, PRIVATE functions.
------------------------------------------------------------------------------
+--[[!
+    Section: Internal functions
+    Private functions that are not mostly meant to be used externally.
+]]
 
---- Encodes a string to be JSON-compatible.
--- This just involves back-quoting inverted commas, back-quotes and newlines, I think ;-)
--- @param s The string to return as a JSON encoded (i.e. backquoted string)
--- @return The string appropriately escaped.
 local qrep = {["\\"]="\\\\", ['"']='\\"',['\n']='\\n',['\t']='\\t'}
+
+--[[!
+    Function: strenc
+    Encodes a string to be JSON-compatible.
+    This just involves back-quoting inverted commas, back-quotes and newlines.
+    Returns the appropriately escaped string.
+
+    Parameters:
+        s - the string to escape.
+]]
 function strenc(s)
     return tostring(s):gsub('["\\\n\t]',qrep)
 end
 
---- Determines whether the given Lua type is an array or a table / dictionary.
--- We consider any table an array if it has indexes 1..n for its n items, and no
--- other data in the table.
--- I think this method is currently a little 'flaky', but can't think of a good way around it yet...
--- @param t The table to evaluate as an array
--- @return boolean, number True if the table can be represented as an array, false otherwise. If true,
--- the second returned value is the maximum
--- number of indexed elements in the array. 
+--[[!
+    Function: isarr
+    Determines whether the given Lua type is an array or a table / dictionary.
+    We consider any table an array if it has indexes 1..n for its n items, and no
+    other data in the table.
+    I think this method is currently a little 'flaky', but can't think of a good way around it yet...
+
+    Parameters:
+        t - the table to evaluate as an array.
+
+    Returns:
+        true if the table can be represented as array, false otherwise. If true, the second
+        returned value is the maximum number of indexed elements in the array.
+]]
 function isarr(t)
     -- Next we count all the elements, ensuring that any non-indexed elements are not-encodable 
     -- (with the possible exception of 'n')
@@ -141,11 +186,18 @@ function isarr(t)
     return true, midx
 end
 
---- Determines whether the given Lua object / table / variable can be JSON encoded. The only
--- types that are JSON encodable are: string, boolean, number, nil, table and JSON.null.
--- In this implementation, all other types are ignored.
--- @param o The object to examine.
--- @return boolean True if the object should be JSON encoded, false if it should be ignored.
+--[[!
+    Function: isencodable
+    Determines whether the given Lua object / table / variable can be JSON encoded. The only
+    types that are JSON encodable are: string, boolean, number, nil, table and <json.null>.
+    In this implementation, all other types are ignored.
+
+    Parameters:
+        o - the object to examine.
+
+    Returns:
+        true if the object should be JSON encoded, false if it should be ignored.
+]]
 function isencodable(o)
     local t = type(o)
     return (t == "string" or t == "boolean" or t == "number" or t == "nil" or t == "table") or (t == "function" and o == null) 

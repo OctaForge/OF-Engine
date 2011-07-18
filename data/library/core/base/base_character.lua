@@ -125,98 +125,98 @@ character = class.new(entity_animated.base_animated, {
         facing_speed = state_variables.state_integer(),
 
         -- wrapped C properties
-        movement_speed = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.getmaxspeed",
-            csetter = "CAPI.setmaxspeed"
+        movement_speed = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getmaxspeed",
+            c_setter = "CAPI.setmaxspeed"
         }),
-        yaw = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.getyaw",
-            csetter = "CAPI.setyaw",
+        yaw = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getyaw",
+            c_setter = "CAPI.setyaw",
             custom_synch = true
         }),
-        pitch = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.getpitch",
-            csetter = "CAPI.setpitch",
+        pitch = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getpitch",
+            c_setter = "CAPI.setpitch",
             custom_synch = true
         }),
-        move = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getmove",
-            csetter = "CAPI.setmove",
+        move = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getmove",
+            c_setter = "CAPI.setmove",
             custom_synch = true
         }),
-        strafe = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getstrafe",
-            csetter = "CAPI.setstrafe",
+        strafe = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getstrafe",
+            c_setter = "CAPI.setstrafe",
             custom_synch = true
         }),
-        yawing = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getyawing",
-            csetter = "CAPI.setyawing",
+        yawing = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getyawing",
+            c_setter = "CAPI.setyawing",
             custom_synch = true
         }),
-        pitching = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getpitching",
-            csetter = "CAPI.setpitching",
+        pitching = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getpitching",
+            c_setter = "CAPI.setpitching",
             custom_synch = true
         }),
-        position = state_variables.wrapped_cvec3({
-            cgetter = "CAPI.getdynent0",
-            csetter = "CAPI.setdynent0",
+        position = state_variables.wrapped_c_vec3({
+            c_getter = "CAPI.getdynent0",
+            c_setter = "CAPI.setdynent0",
             custom_synch = true
         }),
-        velocity = state_variables.wrapped_cvec3({
-            cgetter = "CAPI.getdynentvel",
-            csetter = "CAPI.setdynentvel",
+        velocity = state_variables.wrapped_c_vec3({
+            c_getter = "CAPI.getdynentvel",
+            c_setter = "CAPI.setdynentvel",
             custom_synch = true
         }),
-        falling = state_variables.wrapped_cvec3({
-            cgetter = "CAPI.getdynentfalling",
-            csetter = "CAPI.setdynentfalling",
+        falling = state_variables.wrapped_c_vec3({
+            c_getter = "CAPI.getdynentfalling",
+            c_setter = "CAPI.setdynentfalling",
             custom_synch = true
         }),
-        radius = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.getradius",
-            csetter = "CAPI.setradius"
+        radius = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getradius",
+            c_setter = "CAPI.setradius"
         }),
-        above_eye = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.getaboveeye",
-            csetter = "CAPI.setaboveeye"
+        above_eye = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getaboveeye",
+            c_setter = "CAPI.setaboveeye"
         }),
-        eye_height = state_variables.wrapped_cfloat({
-            cgetter = "CAPI.geteyeheight",
-            csetter = "CAPI.seteyeheight"
+        eye_height = state_variables.wrapped_c_float({
+            c_getter = "CAPI.geteyeheight",
+            c_setter = "CAPI.seteyeheight"
         }),
-        blocked = state_variables.wrapped_cbool({
-            cgetter = "CAPI.getblocked",
-            csetter = "CAPI.setblocked"
+        blocked = state_variables.wrapped_c_bool({
+            c_getter = "CAPI.getblocked",
+            c_setter = "CAPI.setblocked"
         }),
-        can_move = state_variables.wrapped_cbool({
-            csetter = "CAPI.setcanmove",
+        can_move = state_variables.wrapped_c_bool({
+            c_setter = "CAPI.setcanmove",
             client_set = true
         }),
-        map_defined_position_data = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getmapdefinedposdata",
-            csetter = "CAPI.setmapdefinedposdata",
+        map_defined_position_data = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getmapdefinedposdata",
+            c_setter = "CAPI.setmapdefinedposdata",
             custom_synch = true
         }),
-        client_state = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getclientstate",
-            csetter = "CAPI.setclientstate",
+        client_state = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getclientstate",
+            c_setter = "CAPI.setclientstate",
             custom_synch = true
         }),
-        physical_state = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getphysstate",
-            csetter = "CAPI.setphysstate",
+        physical_state = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getphysstate",
+            c_setter = "CAPI.setphysstate",
             custom_synch = true
         }),
-        in_water = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.getinwater",
-            csetter = "CAPI.setinwater",
+        in_water = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getinwater",
+            c_setter = "CAPI.setinwater",
             custom_synch = true
         }),
-        time_in_air = state_variables.wrapped_cinteger({
-            cgetter = "CAPI.gettimeinair",
-            csetter = "CAPI.settimeinair",
+        time_in_air = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.gettimeinair",
+            c_setter = "CAPI.settimeinair",
             custom_synch = true
         })
     },

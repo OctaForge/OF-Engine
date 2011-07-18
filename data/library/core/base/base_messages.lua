@@ -23,25 +23,56 @@
 ]]
 module("message", package.seeall)
 
--- -1 value represents all clients.
+--[[!
+    Variable: ALL_CLIENTS
+    This is useful if you want to send something to all clients, not just specific one.
+    It has a value of -1, but you should use this alias instead of -1 directly.
+]]
 ALL_CLIENTS = -1
 
--- storage for ptocol names and IDs.
-pntoids = {}
-pidston = {}
+--[[!
+    Variable: protocol_names_to_ids
+    This is an associative table of associative tables. Keys of this table
+    are entity class names. Values are associative tables which have keys
+    as state variable names and values as protocol IDs.
+]]
+protocol_names_to_ids = {}
 
---- Send a message, either client->server or server->client. Data after message function are passed to it.
--- @param a1 If this is logic entity or number, it's server->client message (number representing client number). On client, it's the message function.
--- @param a2 On server, it's a message function, on client, data begin here.
+--[[!
+    Variable: protocol_ids_to_names
+    Same as <protocol_names_to_ids>, but reverse. Used for converting from
+    IDs back to names.
+]]
+protocol_ids_to_names = {}
+
+--[[!
+    Function: send
+    Sends a message either from client to server or from server to client.
+    Data passed after function argument are given to the function.
+    On server, first data argument is always client number.
+
+    Parameters:
+        en - either entity instance or client number. If it is an entity,
+        it's server->client message and we get the client number from the entity
+        and if it's a client number directly, it's server->client as well,
+        just easier (without need to get the client number).
+        On client, this is message function.
+        mf - on server, this is message function. On client, this is first data
+        argument or nil.
+]]
 function send(...)
     logging.log(logging.DEBUG, "message.send")
 
+    -- pre-declare locals
     local server
     local cn
 
+    -- get args into a table
     local args = { ... }
+
+    -- checking
     if type(args[1]) == "table" and args[1].is_a and args[1]:is_a(entity.base) then
-        -- server->client message, get clientnumber from entity
+        -- server->client message, get client number from the entity
         server = true
         cn = args[1].cn
     elseif type(args[1]) == "number" then
@@ -52,67 +83,152 @@ function send(...)
         server = false
     end
 
-    if server then table.remove(args, 1) end
+    -- get rid of first arg on server
+    if server then
+        table.remove(args, 1)
+    end
 
-    local mt = args[1]
+    -- get the message function
+    local mf = args[1]
+
+    -- and get rid of it in args
     table.remove(args, 1)
 
-    if server then table.insert(args, 1, cn) end
-
-    logging.log(logging.DEBUG, string.format("Lua msgsys: send(): %s with { %s }", tostring(mt), table.concat(table.map(args, function(x) return tostring(x) end), ", ")))
-    mt(unpack(args))
-end
-
---- Generate protocol data.
--- @param cln Client number.
--- @param svn State variable names (table)
-function genprod(cln, svn)
-    logging.log(logging.DEBUG, string.format("Generating protocol names for %s", cln))
-    table.sort(svn) -- ensure there is the same order on both client and server
-
-    local ntoids = {}
-    local idston = {}
-    for i = 1, #svn do
-        ntoids[svn[i]] = tostring(i)
-        idston[i] = svn[i]
+    -- on server, supply client number as first data arg
+    if server then
+        table.insert(args, 1, cn)
     end
 
-    pntoids[cln] = ntoids
-    pidston[cln] = idston
+    logging.log(
+        logging.DEBUG,
+        string.format(
+            "Lua msgsys: send(): %s with { %s }",
+            tostring(mf), table.concat(
+                table.map(
+                    args,
+                    function(arg)
+                        return tostring(arg)
+                    end
+                ),
+                ", "
+            )
+        )
+    )
+
+    -- call it
+    mf(unpack(args))
 end
 
---- Return protocol ID to corresponding state variable name.
--- @param cln Client number.
--- @param svn State variable name.
--- @return Corresponding protocol ID.
-function toproid(cln, svn)
-    logging.log(logging.DEBUG, string.format("Retrieving protocol ID for %s / %s", cln, svn))
-    return pntoids[cln][svn]
-end
+--[[!
+    Function: generate_protocol_data
+    Generates protocol data for a class. That means, generates
+    a table of protocol IDs to protocol names and reverse.
+    That is then used for network transfers to save bandwidth
+    (no need to send full names).
 
---- Return state variable name to corresponding protocol ID.
--- @param cln Client number.
--- @param svn Protocol ID.
--- @return Corresponding state variable name.
-function fromproid(cln, proid)
-    logging.log(logging.DEBUG, string.format("Retrieving state variable name for %s / %i", cln, proid))
-    return pidston[cln][proid]
-end
+    Parameters:
+        class_name - name of the entity class to generate data for.
+        sv_names - state variable names corresponding to
+        the class (an array).
+]]
+function generate_protocol_data(class_name, sv_names)
+    logging.log(
+        logging.DEBUG,
+        string.format(
+            "Generating protocol names for %s",
+            class_name
+        )
+    )
 
---- Clear protocol data for client number.
--- @param cln Client number.
-function delci(cln)
-    pntoids[cln] = nil
-    pidston[cln] = nil
-end
+    -- ensure that the order is always the same,
+    -- on both client and server.
+    table.sort(sv_names)
 
---- Show message from server on clients.
--- @param cn Client number.
--- @param ti Message title.
--- @param tx Message text.
-function showcm(cn, ti, tx)
-    if cn.is_a and cn:is_a(entity.base) then
-        cn = cn.cn
+    -- will get inserted
+    local names_to_ids = {}
+    local ids_to_names = {}
+
+    -- loop the names
+    for id, name in pairs(sv_names) do
+        names_to_ids[name] = tostring(id)
+        ids_to_names[id]   = name
     end
-    send(cn, CAPI.personal_servmsg, ti, tx)
+
+    -- save those globals locally
+    protocol_names_to_ids[class_name] = names_to_ids
+    protocol_ids_to_names[class_name] = ids_to_names
+end
+
+--[[!
+    Function: to_protocol_id
+    Returns protocol ID of given state variable name.
+
+    Parameters:
+        class_name - name of the entity class.
+        sv_name - name of the state variable.
+]]
+function to_protocol_id(class_name, sv_name)
+    logging.log(
+        logging.DEBUG,
+        string.format(
+            "Retrieving protocol ID for %s / %s",
+            class_name, sv_name
+        )
+    )
+    return protocol_names_to_ids[class_name][sv_name]
+end
+
+--[[!
+    Function: to_protocol_name
+    Returns protocol state variable of given protocol ID.
+
+    Parameters:
+        class_name - name of the entity class.
+        protocol_id - the protocol ID.
+]]
+function to_protocol_name(class_name, protocol_id)
+    logging.log(
+        logging.DEBUG,
+        string.format(
+            "Retrieving state variable name for %s / %i",
+            class_name, protocol_id
+        )
+    )
+    return protocol_ids_to_names[class_name][protocol_id]
+end
+
+--[[!
+    Function: clear_protocol_data
+    Clears protocol data for a given entity class.
+
+    Parameters:
+        class_name - name of the entity class.
+]]
+function clear_protocol_data(class_name)
+    protocol_names_to_ids[class_name] = nil
+    protocol_ids_to_names[class_name] = nil
+end
+
+--[[!
+    Function: show_client_message
+    Shows a message coming from the server on given client.
+
+    Parameters:
+        client_number - either direct client number (can
+        as well be <ALL_CLIENTS>) or an entity it's possible
+        to get client number from.
+        message_title - title of the message.
+        message_text - contents of the message.
+]]
+function show_client_message(client_number, message_title, message_text)
+    -- convert if required
+    if type(client_number) == "table" and client_number.cn then
+        client_number = client_number.cn
+    end
+
+    send(
+        client_number,
+        CAPI.personal_servmsg,
+        message_title, message_text
+    )
 end

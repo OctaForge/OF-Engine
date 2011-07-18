@@ -64,7 +64,7 @@ entity_classes.register(plugins.bake(
                 self.color    = self.colors[1]
 
                 -- When new_mark state variable is modified, let's call on_new_mark.
-                self:connect(state_variables.get_onmodify_prefix() .. "new_mark", self.on_new_mark)
+                self:connect(state_variables.get_on_modify_name("new_mark"), self.on_new_mark)
             end,
 
             -- Called every frame on client after initialization

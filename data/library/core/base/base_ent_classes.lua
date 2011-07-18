@@ -68,7 +68,7 @@ function register(class, sauer_type)
             for name, var in pairs(base.properties) do
                 -- if we have a state variable and it wasn't already
                 -- inserted by children, insert it into proptable
-                if not proptable[name] and state_variables.is(var) then
+                if not proptable[name] and state_variables.is_state_variable(var) then
                     proptable[name] = var
                 end
             end
@@ -84,12 +84,12 @@ function register(class, sauer_type)
     -- sort them so they're sorted by name and variable aliases come last
     table.sort(sv_names, function(n1, n2)
         -- if first is alias and second is not, leave alias last
-        if state_variables.is_alias(proptable[n1]) and not
-           state_variables.is_alias(proptable[n2]) then return false
+        if state_variables.is_state_variable_alias(proptable[n1]) and not
+           state_variables.is_state_variable_alias(proptable[n2]) then return false
         end
         -- if first is not alias and second is, leave alias last
-        if not state_variables.is_alias(proptable[n1])
-           and state_variables.is_alias(proptable[n2]) then return true
+        if not state_variables.is_state_variable_alias(proptable[n1])
+           and state_variables.is_state_variable_alias(proptable[n2]) then return true
         end
         -- if both are aliases or both are state variables, sort by name
         return (n1 < n2)
@@ -97,7 +97,7 @@ function register(class, sauer_type)
 
     logging.log(logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
     -- generate protocol data
-    message.genprod(tostring(class_name), sv_names)
+    message.generate_protocol_data(tostring(class_name), sv_names)
 
     -- return the class
     return class

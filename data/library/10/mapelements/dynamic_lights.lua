@@ -5,10 +5,10 @@ dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker,
 
     should_act = { client = true },
     properties = {
-        attr1 = state_variables.state_integer({ guiname = "radius", altname = "radius" }),
-        attr2 = state_variables.state_integer({ guiname = "red",    altname = "red"    }),
-        attr3 = state_variables.state_integer({ guiname = "green",  altname = "green"  }),
-        attr4 = state_variables.state_integer({ guiname = "blue",   altname = "blue"   }),
+        attr1 = state_variables.state_integer({ gui_name = "radius", alt_name = "radius" }),
+        attr2 = state_variables.state_integer({ gui_name = "red",    alt_name = "red"    }),
+        attr3 = state_variables.state_integer({ gui_name = "green",  alt_name = "green"  }),
+        attr4 = state_variables.state_integer({ gui_name = "blue",   alt_name = "blue"   }),
 
         radius = state_variables.variable_alias("attr1"),
         red    = state_variables.variable_alias("attr2"),

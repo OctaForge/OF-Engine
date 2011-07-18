@@ -186,7 +186,7 @@ function setup(plugins_add)
                     end,
 
                     client_activate = function(self)
-                        self:connect(state_variables.get_onmodify_prefix() .. "team_data", function(self, value)
+                        self:connect(state_variables.get_on_modify_name("team_data"), function(self, value)
                             if self.team_data and value and entity_store.get_player_entity() then
                                 local player_team = entity_store.get_player_entity().team
                                 if value[player_team].score > self.team_data[player_team].score and
@@ -250,7 +250,7 @@ manager_plugins = {
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "server_message", function(self, kwargs)
+            self:connect(state_variables.get_on_modify_name("server_message"), function(self, kwargs)
                 self:add_hud_message(kwargs)
             end)
             self.rendering_hash_hint = 0 -- used for rendering entities without fpsents
@@ -340,20 +340,20 @@ manager_plugins = {
                     if not tie then
                         if self.steams[player.team].score == max_score then
                             player.animation = math.bor(actions.ANIM_WIN, actions.ANIM_LOOP)
-                            message.showcm(player, self.finish_title, self.win_message)
+                            message.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
                                 sound.play(self.win_sound, math.vec3(0, 0, 0), player.cn)
                             end
                         else
                             player.animation = math.bor(actions.ANIM_LOSE, actions.ANIM_LOOP)
-                            message.showcm(player, self.finish_title, self.lose_message)
+                            message.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
                                 sound.play(self.lose_sound, math.vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
                         player.animation = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
-                        message.showcm(player, self.finish_title, self.tie_message)
+                        message.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
                             sound.play(self.tie_sound, math.vec3(0, 0, 0), player.cn)
                         end

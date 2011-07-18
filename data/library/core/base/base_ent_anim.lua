@@ -39,10 +39,10 @@ base_animated = class.new(entity.base, {
     _class = "base_animated",
 
     properties = {
-        animation   = state_variables.wrapped_cinteger({ csetter = "CAPI.setanim", client_set = true }),
-        start_time  = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstarttime" }),
-        model_name  = state_variables.wrapped_cstring ({ csetter = "CAPI.setmodelname" }),
-        attachments = state_variables.wrapped_carray  ({ csetter = "CAPI.setattachments" })
+        animation   = state_variables.wrapped_c_integer({ c_setter = "CAPI.setanim", client_set = true }),
+        start_time  = state_variables.wrapped_c_integer({ c_getter = "CAPI.getstarttime" }),
+        model_name  = state_variables.wrapped_c_string ({ c_setter = "CAPI.setmodelname" }),
+        attachments = state_variables.wrapped_c_array  ({ c_setter = "CAPI.setattachments" })
     },
 
     --! Function: init

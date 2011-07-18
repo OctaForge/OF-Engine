@@ -270,7 +270,7 @@ base_root = class.new(nil, {
                 for name, var in pairs(base.properties) do
                     -- but do not insert if child class already inserted
                     -- state variable of the same name before
-                    if not p_table[name] and state_variables.is(var) then
+                    if not p_table[name] and state_variables.is_state_variable(var) then
                            p_table[name] = var
                     end
                 end
@@ -292,13 +292,13 @@ base_root = class.new(nil, {
         table.sort(sv_names, function(n1, n2)
             -- if first one is alias and second not, leave the alias
             -- for the end
-            if state_variables.is_alias(p_table[n1]) and not
-               state_variables.is_alias(p_table[n2]) then return false
+            if state_variables.is_state_variable_alias(p_table[n1]) and not
+               state_variables.is_state_variable_alias(p_table[n2]) then return false
             end
             -- if first one is not alias and second is, leave the alias
             -- for the end
-            if not state_variables.is_alias(p_table[n1])
-               and state_variables.is_alias(p_table[n2]) then return true
+            if not state_variables.is_state_variable_alias(p_table[n1])
+               and state_variables.is_state_variable_alias(p_table[n2]) then return true
             end
 
             -- if both are aliases or both aren't, just sort by name
@@ -313,7 +313,7 @@ base_root = class.new(nil, {
             local var = p_table[name]
 
             -- register the variable
-            var:_register(name, self)
+            var:register(name, self)
         end
     end,
 
@@ -364,7 +364,7 @@ base_root = class.new(nil, {
             local var = self[name]
 
             -- if it's state variable and keeps history, include it
-            if state_variables.is(var) and var.has_history then
+            if state_variables.is_state_variable(var) and var.has_history then
                 -- do not send private data
                 local skip = false
 
@@ -392,7 +392,7 @@ base_root = class.new(nil, {
                         -- get the name - if we're compressing, convert it to protocol ID
                         local key = (not kwargs.compressed)
                                  and var._name
-                                  or message.toproid(tostring(self), var._name)
+                                  or message.to_protocol_id(tostring(self), var._name)
 
                         -- insert as converted to wire (== as string)
                         r[key] = var:to_wire(val)
@@ -490,7 +490,7 @@ base_root = class.new(nil, {
             -- if the name is protocol ID (can be converted to number),
             -- convert it back to name
             k = tonumber(k)
-                and message.fromproid(tostring(self), tonumber(k))
+                and message.to_protocol_name(tostring(self), tonumber(k))
                 or k
 
             logging.log(
@@ -567,7 +567,8 @@ base_client = class.new(base_root, {
         the change or the state variable is has <client_set> property set to
         true, in that case, a signal gets emitted (see <signals>).
 
-        The signal is named <get_on_modify_prefix> .. "state_variable_name"
+        You can get the signal name by calling <state_variables.get_on_modify_name>
+        with state variable name set as argument and getting its return value
         and you can connect handler to the entity that gets called everytime
         the value gets changed (locally).
 
@@ -616,7 +617,7 @@ base_client = class.new(base_root, {
                     and CAPI.statedata_changerequest
                      or CAPI.statedata_changerequest_unreliable,
                 self.uid,
-                message.toproid(tostring(self), var._name),
+                message.to_protocol_id(tostring(self), var._name),
                 var:to_wire(value)
             )
         end
@@ -634,7 +635,7 @@ base_client = class.new(base_root, {
             assert(var:validate(value))
 
             -- emit the change handler
-            self:emit(state_variables.get_onmodify_prefix() .. key, value, actor_uid ~= -1)
+            self:emit(state_variables.get_on_modify_name(key), value, actor_uid ~= -1)
             -- and locally set the value
             self.state_variable_values[key] = value
         end
@@ -823,9 +824,10 @@ base_server = class.new(base_root, {
         Serverside state data setter. Depending on settings, it takes multiple
         other actions, like converting from wire format. Signal gets emitted.
 
-        The signal is named <get_on_modify_prefix> .. "state_variable_name"
+        You can get the signal name by calling <state_variablesget_on_modify_name>
+        with state variable name set as argument and getting its return value
         and you can connect handler to the entity that gets called everytime
-        the value gets changed.
+        the value gets changed (locally).
 
         The handler for the signal accepts new value as the argument (besides 'self',
         of course), so you can easily take appropriate actions, and it also takes
@@ -867,7 +869,7 @@ base_server = class.new(base_root, {
             value = var:from_wire(value)
             -- if the state variable is not changeable on client (through server message),
             -- return - see client_write in state variables documentation
-            if not var.clientwrite then
+            if not var.client_write then
                 logging.log(logging.ERROR, "Client " .. tostring(actor_uid) .. " tried to change " .. tostring(key))
                 return nil
             end
@@ -883,7 +885,7 @@ base_server = class.new(base_root, {
                           tostring(value))
 
         -- emit the change
-        local ret = self:emit(state_variables.get_onmodify_prefix() .. key, value, actor_uid)
+        local ret = self:emit(state_variables.get_on_modify_name(key), value, actor_uid)
         -- if the handler returns this string, cancel the update (useful in i.e. health system)
         if ret == "cancel_state_data_update" then
             return nil
@@ -898,7 +900,7 @@ base_server = class.new(base_root, {
 
         -- if we're not internal operation and the state variable can be read from client
         -- and we're not custom synching from here ..
-        if not internal_op and var.clientread and not custom_synch_from_here then
+        if not internal_op and var.client_read and not custom_synch_from_here then
             -- if we haven't sent complete notification yet, cancel
             if not self.sent_complete_notification then
                 return nil
@@ -910,7 +912,7 @@ base_server = class.new(base_root, {
                 nil,
                 var.reliable and CAPI.statedata_update or CAPI.statedata_update_unreliable,
                 self.uid,
-                message.toproid(_class, key),
+                message.to_protocol_id(_class, key),
                 var:to_wire(value),
                 (var.client_set and actor_uid and actor_uid ~= -1)
                     and entity_store.get(actor_uid).cn

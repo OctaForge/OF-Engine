@@ -734,7 +734,7 @@ if CLIENT then
     function set_state_data(uid, key_protocol_id, value)
         local entity = get(uid)
         if entity then
-            local key = message.fromproid(tostring(entity), key_protocol_id)
+            local key = message.to_protocol_name(tostring(entity), key_protocol_id)
             logging.log(logging.DEBUG, "set_state_data: " .. uid .. ", " .. key_protocol_id .. ", " .. key)
             entity:set_state_data(key, value)
         end
@@ -900,7 +900,7 @@ else
     function set_state_data(uid, key_protocol_id, value, actor_uid)
         local entity = get(uid)
         if entity then
-            local key = message.fromproid(tostring(entity), key_protocol_id)
+            local key = message.to_protocol_name(tostring(entity), key_protocol_id)
             entity:set_state_data(key, value, actor_uid)
         end
     end

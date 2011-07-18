@@ -85,11 +85,11 @@ plugins = {
         },
 
         activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "firing_info", self.on_firing_info)
+            self:connect(state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "firing_info", self.on_firing_info)
+            self:connect(state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         on_firing_info = function(self, info)
@@ -138,7 +138,7 @@ plugins = {
 
         activate = function(self)
             self:connect(
-                state_variables.get_onmodify_prefix() .. "gun_indexes",
+                state_variables.get_on_modify_name("gun_indexes"),
                 function(self, indexes)
                     if #indexes > 0 then
                         self.current_gun_index = indexes[1] -- sets initial value
@@ -153,7 +153,7 @@ plugins = {
             self.now_firing = false
 
             self:connect(
-                state_variables.get_onmodify_prefix() .. "current_gun_index",
+                state_variables.get_on_modify_name("current_gun_index"),
                 function(self)
                     if self.gun_switch_sound ~= "" then
                         sound.play(self.gun_switch_sound, self.position:copy())
