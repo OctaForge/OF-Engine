@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features library management system.
-
-    Section: Library management
 ]]
 
 --[[!

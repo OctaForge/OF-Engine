@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features state variable system.
-
-    Section: State variables
 ]]
 
 --[[!
@@ -101,8 +99,26 @@ function __get_gui_name(uid, sv_name)
 end
 
 --[[!
-    Callback: simplifier
-    foo
+    Event: simplifier
+    Registers a JSON simplifier for entity instances.
+    See <json.register>. When JSON finds it should
+    encode something that is an entity instance,
+    instead of encoding it in a raw way, it substitutes
+    it with entity's unique ID. We don't mostly need more,
+    and this can save bandwidth very much.
+
+    Code:
+        (start code)
+            json.register(
+                function(value)
+                    return (type(value) == "table"
+                             and value.uid ~= nil)
+                end,
+                function(value)
+                    return value.uid
+                end
+            )
+        (end
 ]]
 json.register(
     function(value)
@@ -123,11 +139,13 @@ json.register(
 state_variable = class.new(nil, {
     --[[!
         Function: __tostring
-        Returns a string representation of this state variable.
-        Each child SV class overrides this with its own naming.
+        Returns a string representation of this state variable,
+        that is the name set as third argument to <class.new>.
+        Each class overrides this name, so there is no need
+        for overriding __tostring further.
     ]]
     __tostring = function(self)
-        return "state_variable"
+        return self.name
     end,
 
     --[[!
@@ -212,10 +230,6 @@ state_variable = class.new(nil, {
 
         -- raw accessor.
         parent[_SV_PREFIX .. _name] = self
-
-        -- remove old getter / setter.
-        parent:remove_getter(_name)
-        parent:remove_setter(_name)
 
         -- some assertions.
         assert(self.getter)
@@ -330,7 +344,7 @@ state_variable = class.new(nil, {
             variable - the state variable instance.
             value - the value we're setting.
     ]]
-    setter = function(self, variable, value)
+    setter = function(self, value, variable)
         -- write tests
         variable:write_tests(self)
 
@@ -395,21 +409,17 @@ state_variable = class.new(nil, {
     from_wire = function(self, value)
         return convert.tostring(value)
     end
-})
+}, "state_variable")
 
 --[[!
     Class: state_integer
-    State integer variable class. Overrides <state_variable.__tostring>,
-    <state_variable.to_wire>, <state_variable.from_wire>.
+    State integer variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
     to_wire performs raw conversion to a string.
     from_wire performs raw conversion to an integer.
 ]]
 state_integer = class.new(state_variable, {
-    __tostring = function(self)
-        return "state_integer"
-    end,
-
     to_wire = function(self, value)
         return convert.tostring(value)
     end,
@@ -417,22 +427,18 @@ state_integer = class.new(state_variable, {
     from_wire = function(self, value)
         return convert.tointeger(value)
     end
-})
+}, "state_integer")
 
 --[[!
     Class: state_float
-    State float variable class. Overrides <state_variable.__tostring>,
-    <state_variable.to_wire>, <state_variable.from_wire>.
+    State float variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
     to_wire performs conversion to a string, which keeps just maximum
     of two digits after floating point (see <convert.todec2str>).
     from_wire performs raw conversion to a number.
 ]]
 state_float = class.new(state_variable, {
-    __tostring = function(self)
-        return "state_float"
-    end,
-
     to_wire = function(self, value)
         return convert.todec2str(value)
     end,
@@ -440,21 +446,17 @@ state_float = class.new(state_variable, {
     from_wire = function(self, value)
         return convert.tonumber(value)
     end
-})
+}, "state_float")
 
 --[[!
     Class: state_bool
-    State boolean variable class. Overrides <state_variable.__tostring>,
-    <state_variable.to_wire>, <state_variable.from_wire>.
+    State boolean variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
     to_wire performs raw conversion to a string.
     from_wire performs conversion to a boolean (<convert.toboolean>).
 ]]
 state_bool = class.new(state_variable, {
-    __tostring = function(self)
-        return "state_bool"
-    end,
-
     to_wire = function(self, value)
         return convert.tostring(value)
     end,
@@ -462,21 +464,17 @@ state_bool = class.new(state_variable, {
     from_wire = function(self, value)
         return convert.toboolean(value)
     end
-})
+}, "state_bool")
 
 --[[!
     Class: state_json
-    State JSON variable class. Overrides <state_variable.__tostring>,
-    <state_variable.to_wire>, <state_variable.from_wire>.
+    State JSON variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
     to_wire performs JSON encoding of an object, returning a string.
     from_wire decodes the string back to original object.
 ]]
 state_json = class.new(state_variable, {
-    __tostring = function(self)
-        return "state_json"
-    end,
-
     to_wire = function(self, value)
         return json.encode(value)
     end,
@@ -484,18 +482,16 @@ state_json = class.new(state_variable, {
     from_wire = function(self, value)
         return json.decode(value)
     end
-})
+}, "state_json")
 
 --[[!
     Class: state_string
-    State string variable class. Overrides <state_variable.__tostring>,
-    no others are required, because <state_variable.to_wire> and
-    <state_variable.from_wire> already work with strings. This is
-    basically a nice alias for <state_variable>.
+    State string variable class. Doesn't override, because
+    <state_variable.to_wire> and <state_variable.from_wire>
+    already work with strings. This is basically a nice alias
+    for <state_variable>.
 ]]
-state_string = class.new(state_variable, {
-    __tostring = function(self) return "state_string" end
-})
+state_string = class.new(state_variable, "state_string")
 
 --[[!
     Class: array_surrogate
@@ -507,7 +503,7 @@ state_string = class.new(state_variable, {
     Getting and setting values is accomplished via class getters
     and setters (see <class.define_getter> and <class.define_setter>).
     In surrogate's case, it uses global getter and setter, see
-    <class.define_userget> and <class.define_userset>.
+    <class.define_global_getter> and <class.define_global_setter>.
 
     There is one difference in behavior compared to standard array
     and that is length getting; with array surrogate, you can't
@@ -520,11 +516,11 @@ state_string = class.new(state_variable, {
 array_surrogate = class.new(nil, {
     --[[!
         Function: __tostring
-        Returns string representation of the surrogate,
-        "array_surrogate" for now.
+        Returns string representation of the surrogate, that is
+        name set as third argument to <class.new>.
     ]]
     __tostring = function(self)
-        return "array_surrogate"
+        return self.name
     end,
 
     --[[!
@@ -560,7 +556,7 @@ array_surrogate = class.new(nil, {
                 return self.variable.get_length(self.variable, self.entity)
             end
         )
-        self:define_userget(
+        self:define_global_getter(
             -- condition - use userget only for numerical access
             function(n) return tonumber(n) and true or false end,
             -- return the item
@@ -570,7 +566,7 @@ array_surrogate = class.new(nil, {
                 )
             end
         )
-        self:define_userset(
+        self:define_global_setter(
             -- again, only numerical access
             function(n, v) return tonumber(n) and true or false end,
             -- set the item
@@ -608,7 +604,7 @@ array_surrogate = class.new(nil, {
         end
         return r
     end
-})
+}, "array_surrogate")
 
 --[[!
     Class: state_array
@@ -621,12 +617,6 @@ array_surrogate = class.new(nil, {
     and SV assigned and thus can change internal values.
 ]]
 state_array = class.new(state_variable, {
-    --! Function: __tostring
-    --! See <state_variable.__tostring>.
-    __tostring = function(self)
-        return "state_array"
-    end,
-
     --[[!
         Variable: separator
         This is the separator that is used in wire format (string)
@@ -682,7 +672,7 @@ state_array = class.new(state_variable, {
         You can besides raw array also provide array
         surrogate as value. That is sometimes handy.
     ]]
-    setter = function(self, variable, value)
+    setter = function(self, value, variable)
         logging.log(logging.DEBUG, "state_array setter: " .. json.encode(value))
 
         -- we can also detect vectors :)
@@ -881,39 +871,31 @@ state_array = class.new(state_variable, {
         end
         return #arr
     end
-})
+}, "state_array")
 
 --[[!
     Class: state_array_float
     Version of <state_array> that works with floating
     point numbers. The 2-digit rule applies in the same
-    way as for <state_float>. Overrides <state_array.__tostring>,
-    <state_array.to_wire_item> and <state_array.from_wire_item>.
+    way as for <state_float>. Overrides <state_array.to_wire_item>
+    and <state_array.from_wire_item>.
 ]]
 state_array_float = class.new(state_array, {
-    __tostring = function(self)
-        return "state_array_float"
-    end,
-
     to_wire_item = convert.todec2str,
     from_wire_item = convert.tonumber
-})
+}, "state_array_float")
 
 --[[!
     Class: state_array_integer
     Version of <state_array> that works with integer numbers.
-    Overrides <state_array.__tostring>, <state_array.to_wire_item>
-    and <state_array.from_wire_item>.
+    Overrides <state_array.to_wire_item> and
+    <state_array.from_wire_item>.
 ]]
 state_array_integer = class.new(state_array, {
-    __tostring = function(self)
-        return "state_array_integer"
-    end,
-
     to_wire_item = convert.tostring,
     from_wire_item = convert.tointeger
 
-})
+}, "state_array_integer")
 
 --[[!
     Class: variable_alias
@@ -925,10 +907,6 @@ state_array_integer = class.new(state_array, {
     Cube 2 entity properties (attrN) to a nicer name.
 ]]
 variable_alias = class.new(state_variable, {
-    __tostring = function(self)
-        return "variable_alias"
-    end,
-
     --[[!
         Constructor: __init
         Overriden constructor for alias. Variable aliases don't
@@ -956,9 +934,6 @@ variable_alias = class.new(state_variable, {
         -- set _name
         self._name = _name
 
-        -- clear old getter / setter if needed
-        parent:remove_getter(_name)
-        parent:remove_setter(_name)
         logging.log(logging.DEBUG, "Getting target entity for variable alias " .. _name .. ": " .. _SV_PREFIX .. self.target_name)
 
         -- point to the true variable
@@ -969,7 +944,7 @@ variable_alias = class.new(state_variable, {
         parent:define_getter(_name, tg.getter, tg)
         parent:define_setter(_name, tg.setter, tg)
     end
-})
+}, "variable_alias")
 
 --[[!
     Class: wrapped_c_variable
@@ -1133,59 +1108,47 @@ wrapped_c_variable = {
 --[[!
     Class: wrapped_c_integer
     Wrapped C version of <state_integer>. Takes <state_integer>
-    and mixes in <wrapped_c_variable>. Overrides __tostring as usual.
+    and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_integer = class.new(state_integer, wrapped_c_variable):mixin({
-    __tostring = function(self)
-        return "wrapped_c_integer"
-    end
-})
+wrapped_c_integer = class.new(
+    state_integer, wrapped_c_variable, "wrapped_c_integer"
+)
 
 --[[!
     Class: wrapped_c_float
     Wrapped C version of <state_float>. Takes <state_float>
-    and mixes in <wrapped_c_variable>. Overrides __tostring as usual.
+    and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_float = class.new(state_float, wrapped_c_variable):mixin({
-    __tostring = function(self)
-        return "wrapped_c_float"
-    end
-})
+wrapped_c_float = class.new(
+    state_float, wrapped_c_variable, "wrapped_c_float"
+)
 
 --[[!
     Class: wrapped_c_bool
     Wrapped C version of <state_bool>. Takes <state_bool>
-    and mixes in <wrapped_c_variable>. Overrides __tostring as usual.
+    and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_bool = class.new(state_bool, wrapped_c_variable):mixin({
-    __tostring = function(self)
-        return "wrapped_c_bool"
-    end
-})
+wrapped_c_bool = class.new(
+    state_bool, wrapped_c_variable, "wrapped_c_bool"
+)
 
 --[[!
     Class: wrapped_c_string
     Wrapped C version of <state_string>. Takes <state_string>
-    and mixes in <wrapped_c_variable>. Overrides __tostring as usual.
+    and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_string = class.new(state_string, wrapped_c_variable):mixin({
-    __tostring = function(self)
-        return "wrapped_c_string"
-    end
-})
+wrapped_c_string = class.new(
+    state_string, wrapped_c_variable, "wrapped_c_string"
+)
 
 --[[!
     Class: wrapped_c_array
     Wrapped C version of <state_array>. Takes <state_array>
     and mixes in part of <wrapped_c_variable>. Doesn't use
-    <wrapped_c_variable.getter>. Overrides __tostring and
-    <state_array.get_raw> so it makes use of C getters.
+    <wrapped_c_variable.getter>. Overrides <state_array.get_raw>
+    so it makes use of C getters.
 ]]
-wrapped_c_array = class.new(state_array):mixin({
-    __tostring = function(self)
-        return "wrapped_c_array"
-    end,
-
+wrapped_c_array = class.new(state_array, "wrapped_c_array"):mixin({
     __init   = wrapped_c_variable.__init,
     register = wrapped_c_variable.register,
 
@@ -1242,14 +1205,12 @@ wrapped_c_array = class.new(state_array):mixin({
     Inherited from <array_surrogate>. It's basically array surrogate
     modified to fit better with <math.vec3>. It takes <array_surrogate>,
     mixes in <math.vec3> so it has all vector operation methods and
-    overrides <array_surrogate.__tostring>, <array_surrogate.__init>
-    and <array_surrogate.push> with its own methods.
+    overrides <array_surrogate.__init> and <array_surrogate.push>
+    with its own methods.
 ]]
-vec3_surrogate = class.new(array_surrogate, math.vec3):mixin({
-    __tostring = function(self)
-        return "vec3_surrogate"
-    end,
-
+vec3_surrogate = class.new(
+    array_surrogate, math.vec3, "vec3_surrogate"
+):mixin({
     --[[!
         Constructor: __init
         Overriden <array_surrogate.__init>. Doesn't call the parent,
@@ -1300,11 +1261,11 @@ vec3_surrogate = class.new(array_surrogate, math.vec3):mixin({
         )
 
         -- allow classic numerical access
-        self:define_userget(
+        self:define_global_getter(
             function(n) return tonumber(n) and true or false end,
             function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
         )
-        self:define_userset(
+        self:define_global_setter(
             function(n, v) return tonumber(n) and true or false end,
             function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
         )
@@ -1326,48 +1287,35 @@ vec3_surrogate = class.new(array_surrogate, math.vec3):mixin({
     surrogate class, <vec3_surrogate> which provides the part with
     which you manipulate (and contains all vector manipulation methods).
     See <state_array.surrogate_class>.
-
-    Besides custom surrogate class, it overrides __tostring same as
-    every other SV does.
 ]]
 state_vec3 = class.new(state_array_float, {
-    __tostring = function(self)
-        return "state_vec3"
-    end,
-
     surrogate_class = vec3_surrogate
-})
+}, "state_vec3")
 
 --[[!
     Class: wrapped_c_vec3
     Wrapped C version of <state_vec3>. Takes <state_vec3>
     and mixes in part of <wrapped_c_variable>. Doesn't use
-    <wrapped_c_variable.getter>. Overrides __tostring and
-    uses <wrapped_c_array.get_raw> for C interfacing.
+    <wrapped_c_variable.getter>. Uses <wrapped_c_array.get_raw>
+    for C interfacing.
 ]]
 wrapped_c_vec3 = class.new(state_vec3, {
-    __tostring = function(self)
-        return "wrapped_c_vec3"
-    end,
-
     __init   = wrapped_c_variable.__init,
     register = wrapped_c_variable.register,
     get_raw  = wrapped_c_array.get_raw
-})
+}, "wrapped_c_vec3")
 
 --[[!
     Class: vec4_surrogate
     Inherited from <array_surrogate>. It's basically array surrogate
     modified to fit better with <math.vec4>. It takes <array_surrogate>,
     mixes in <math.vec4> so it has all vector operation methods and
-    overrides <array_surrogate.__tostring>, <array_surrogate.__init>
-    and <array_surrogate.push> with its own methods.
+    overrides <array_surrogate.__init> and <array_surrogate.push>
+    with its own methods.
 ]]
-vec4_surrogate = class.new(array_surrogate, math.vec4):mixin({
-    __tostring = function(self)
-        return "vec4_surrogate"
-    end,
-
+vec4_surrogate = class.new(
+    array_surrogate, math.vec4, "vec4_surrogate"
+):mixin({
     --[[!
         Constructor: __init
         Overriden <array_surrogate.__init>. Doesn't call the parent,
@@ -1428,11 +1376,11 @@ vec4_surrogate = class.new(array_surrogate, math.vec4):mixin({
         )
 
         -- allow classic numerical access
-        self:define_userget(
+        self:define_global_getter(
             function(n) return tonumber(n) and true or false end,
             function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
         )
-        self:define_userset(
+        self:define_global_setter(
             function(n, v) return tonumber(n) and true or false end,
             function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
         )
@@ -1454,31 +1402,20 @@ vec4_surrogate = class.new(array_surrogate, math.vec4):mixin({
     surrogate class, <vec4_surrogate> which provides the part with
     which you manipulate (and contains all vector manipulation methods).
     See <state_array.surrogate_class>.
-
-    Besides custom surrogate class, it overrides __tostring same as
-    every other SV does.
 ]]
 state_vec4 = class.new(state_array_float, {
-    __tostring = function(self)
-        return "state_vec4"
-    end,
-
     surrogate_class = vec4_surrogate
-})
+}, "state_vec4")
 
 --[[!
     Class: wrapped_c_vec4
     Wrapped C version of <state_vec4>. Takes <state_vec4>
     and mixes in part of <wrapped_c_variable>. Doesn't use
-    <wrapped_c_variable.getter>. Overrides __tostring and
-    uses <wrapped_c_array.get_raw> for C interfacing.
+    <wrapped_c_variable.getter>. Uses <wrapped_c_array.get_raw>
+    for C interfacing.
 ]]
 wrapped_c_vec4 = class.new(state_vec4, {
-    __tostring = function(self)
-        return "wrapped_c_vec4"
-    end,
-
     __init   = wrapped_c_variable.__init,
     register = wrapped_c_variable.register,
     get_raw  = wrapped_c_array.get_raw
-})
+}, "wrapped_c_vec4")

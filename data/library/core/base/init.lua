@@ -37,8 +37,6 @@
         - Static entities
         - Texture interface
         - World interface
-
-    Section: Base library initialization
 ]]
 
 -- see world metatable below

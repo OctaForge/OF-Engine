@@ -20,8 +20,6 @@
         - Table extensions (merging, copying, filtering ..)
         - String extensions (splitting, template parsing)
         - Conversion system (colors - HSV/HSL/RGB/hex, types)
-
-    Section: Language extensions initialization
 ]]
 
 logging.log(logging.DEBUG, ":: Class system.")

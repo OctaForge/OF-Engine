@@ -13,8 +13,6 @@
     About: Purpose
         This file features effects (particle system, dynamic lights etc.).
         DEPRECATED for OF API v2 (Stays in v1).
-
-    Section: Effect system
 ]]
 
 --[[!
@@ -155,7 +153,7 @@ DYNAMIC_LIGHT = {
 ]]
 function decal(decal_type, position, direction, radius, color, info)
     info      = info or 0
-    local rgb = convert.hextorgb(color or 0xFFFFFF)
+    local rgb = convert.hex_to_rgb(color or 0xFFFFFF)
 
     CAPI.adddecal(
         decal_type,
@@ -182,8 +180,8 @@ end
         initial_color - dynamic light initial color specified as hex integer (0xRRGGBB).
 ]]
 function dynamic_light(position, radius, color, fade, peak, flags, initial_radius, initial_color)
-    local rgbc  = convert.hextorgb(color)
-    local rgbic = convert.hextorgb(initial_color or 0xFFFFFF)
+    local rgbc  = convert.hex_to_rgb(color)
+    local rgbic = convert.hex_to_rgb(initial_color or 0xFFFFFF)
 
     CAPI.adddynlight(
         position.x, position.y, position.z,

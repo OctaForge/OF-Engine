@@ -14,8 +14,6 @@
         This file implements a conversion module for OctaForge Lua API.
         It features type conversion functions and color converion functions
         (RGB/HSV/HSL/hex).
-
-    Section: Conversion
 ]]
 
 --[[!
@@ -161,7 +159,7 @@ function tovec4(v)
 end
 
 --[[!
-    Function: rgbtohsl
+    Function: rgb_to_hsl
     Converts RGB color value to HSL. Conversion formula
     adapted from <http://en.wikipedia.org/wiki/HSL_color_space>.
 
@@ -178,9 +176,9 @@ end
         (end)
 
     See Also:
-        <hsltorgb>
+        <hsl_to_rgb>
 ]]
-rgbtohsl = function (r, g, b)
+rgb_to_hsl = function (r, g, b)
     local r = r / 255
     local g = g / 255
     local b = b / 255
@@ -210,7 +208,7 @@ rgbtohsl = function (r, g, b)
 end
 
 --[[!
-    Function: hsltorgb
+    Function: hsl_to_rgb
     Converts HSL color value to RGB. Conversion formula
     adapted from <http://en.wikipedia.org/wiki/HSL_color_space>.
 
@@ -227,9 +225,9 @@ end
         (end)
 
     See Also:
-        <rgbtohsl>
+        <rgb_to_hsl>
 ]]
-hsltorgb = function (h, s, l)
+hsl_to_rgb = function (h, s, l)
     local r
     local g
     local b
@@ -260,7 +258,7 @@ hsltorgb = function (h, s, l)
 end
 
 --[[!
-    Function: rgbtohsv
+    Function: rgb_to_hsv
     Converts RGB color value to HSV. Conversion formula
     adapted from <http://en.wikipedia.org/wiki/HSV_color_space>.
 
@@ -277,9 +275,9 @@ end
         (end)
 
     See Also:
-        <hsvtorgb>
+        <hsv_to_rgb>
 ]]
-rgbtohsv = function (r, g, b)
+rgb_to_hsv = function (r, g, b)
     local r = r / 255
     local g = g / 255
     local b = b / 255
@@ -309,7 +307,7 @@ rgbtohsv = function (r, g, b)
 end
 
 --[[!
-    Function: hsvtorgb
+    Function: hsv_to_rgb
     Converts HSV color value to RGB. Conversion formula
     adapted from <http://en.wikipedia.org/wiki/HSV_color_space>.
 
@@ -326,9 +324,9 @@ end
         (end)
 
     See Also:
-        <rgbtohsv>
+        <rgb_to_hsv>
 ]]
-hsvtorgb = function (h, s, v)
+hsv_to_rgb = function (h, s, v)
     local r
     local g
     local b
@@ -369,7 +367,7 @@ hsvtorgb = function (h, s, v)
 end
 
 --[[!
-    Function: hextorgb
+    Function: hex_to_rgb
     Converts hex color value to RGB.
 
     Parameters:
@@ -383,9 +381,9 @@ end
         (end)
 
     See Also:
-        <rgbtohex>
+        <rgb_to_hex>
 ]]
-hextorgb = function (hex)
+hex_to_rgb = function (hex)
     local r
     local g
     local b
@@ -399,7 +397,7 @@ hextorgb = function (hex)
 end
 
 --[[!
-    Function: rgbtohex
+    Function: rgb_to_hex
     Converts RGB color value to hex.
 
     Parameters:
@@ -411,9 +409,9 @@ end
         A hex value as string.
 
     See Also:
-        <hextorgb>
+        <hex_to_rgb>
 ]]
-rgbtohex = function(r, g, b)
+rgb_to_hex = function(r, g, b)
     local rgb = math.bor(b, math.lsh(g, 8), math.lsh(r, 16))
     return string.format("0x%X", rgb)
 end

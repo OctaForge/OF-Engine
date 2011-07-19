@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features action system for Lua.
-
-    Section: Action system
 ]]
 
 --[[!
@@ -178,11 +176,12 @@ action = class.new(nil, {
 
     --[[!
         Function: __tostring
-        Returns:
-            string representation of the action.
+        Returns string representation of the action. It basically
+        returns action's name, which is set as third argument
+        to <class.new>.
     ]]
     __tostring = function(self)
-        return "action"
+        return self.name
     end,
 
     --[[!
@@ -366,7 +365,7 @@ action = class.new(nil, {
             self:finish()
         end
     end
-})
+}, "action")
 
 --[[!
     Class: action_infinite
@@ -374,10 +373,6 @@ action = class.new(nil, {
     on do_execute.
 ]]
 action_infinite = class.new(action, {
-    __tostring = function(self)
-        return "action_infinite"
-    end,
-
     --[[!
         Function: do_execute
         Overriden do_execute to accomplish never ending behavior.
@@ -391,7 +386,7 @@ action_infinite = class.new(action, {
     do_execute = function(self, seconds)
         return false
     end
-})
+}, "action_infinite")
 
 --[[!
     Class: action_targeted
@@ -399,10 +394,6 @@ action_infinite = class.new(action, {
     class and save some code.
 ]]
 action_targeted = class.new(action, {
-    __tostring = function()
-        return "action_targeted"
-    end,
-
     --[[!
         Constructor: __init
         This initializes the action.
@@ -421,7 +412,7 @@ action_targeted = class.new(action, {
         -- the target - entity
         self.target = target
     end
-})
+}, "action_targeted")
 
 --[[!
     Class: action_single_command
@@ -430,10 +421,6 @@ action_targeted = class.new(action, {
     an entity.
 ]]
 action_single_command = class.new(action, {
-    __tostring = function(self)
-        return "action_singlecommand"
-    end,
-
     --[[!
         Constructor: __init
         This initializes the action.
@@ -468,7 +455,7 @@ action_single_command = class.new(action, {
         self:command()
         return true
     end
-})
+}, "action_single_command")
 
 --[[!
     Class: action_system
@@ -515,7 +502,7 @@ action_system = class.new(nil, {
     ]]
     manage = function(self, seconds)
         -- filter out finished actions beforehand
-        self.action_list = table.filterarray(
+        self.action_list = table.filter_array(
             self.action_list,
             function (i, v)
                 return not v.finished

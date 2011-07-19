@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features texture handling interface.
-
-    Section: Texture interface
 ]]
 
 local env = _G

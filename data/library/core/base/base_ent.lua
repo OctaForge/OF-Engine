@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features entity system.
-
-    Section: Entity system
 ]]
 
 --[[!
@@ -212,7 +210,7 @@ base_root = class.new(nil, {
         end
 
         -- let's filter the state variable
-        self.tags = table.filterarray(
+        self.tags = table.filter_array(
             -- convert <array_surrogate> to raw array
             self.tags:as_array(),
             -- compare the tags

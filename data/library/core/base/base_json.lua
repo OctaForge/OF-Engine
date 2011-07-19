@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features a JSON parser / writer.
-
-    Section: JSON system
 ]]
 
 --[[!

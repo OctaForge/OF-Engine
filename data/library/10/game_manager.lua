@@ -32,7 +32,7 @@ function setup(plugins_add)
     entity_classes.register(
         plugins.bake(
             entity.base,
-            table.mergearrays(
+            table.merge_arrays(
                 {{
                     _class     = "game_manager",
                     properties = {
@@ -53,7 +53,7 @@ function setup(plugins_add)
                     get_players = function(self)
                         local players = {}
                         for i, team in pairs(table.values(self.teams)) do
-                            table.mergearrays(players, team.player_list)
+                            table.merge_arrays(players, team.player_list)
                         end
                         return players
                     end,
@@ -257,7 +257,7 @@ manager_plugins = {
         end,
 
         client_act = function(self, seconds)
-            self.hud_messages = table.filter(self.hud_messages, function(i, msg)
+            self.hud_messages = table.filter_dict(self.hud_messages, function(i, msg)
                 if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_player_entity() then return false end
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
@@ -390,7 +390,7 @@ manager_plugins = {
 
         act = function(self, seconds)
             if self.balancer_timer:tick(seconds) then
-                local relevant_teams = table.filter(self.teams, function(i, team)
+                local relevant_teams = table.filter_dict(self.teams, function(i, team)
                     return (not team.kwargs.ignore_for_balancing)
                 end)
 
@@ -403,7 +403,7 @@ manager_plugins = {
                 )
                 local expected_players = total_players / num_teams
 
-                local needs_reduce = table.filter(
+                local needs_reduce = table.filter_dict(
                     relevant_teams,
                     function(k, team_data)
                         return (#team_data.player_list > expected_players + 1)

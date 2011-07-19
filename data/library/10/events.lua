@@ -2,9 +2,7 @@ module("events", package.seeall)
 
 -- action that can queue more actions on itself, which run on its actor,
 -- finishes when both this action an all subactions are done.
-action_container = class.new(actions.action)
-
-function action_container:__tostring() return "action_container" end
+action_container = class.new(actions.action, nil, "action_container")
 
 function action_container:__init(other_actions, kwargs)
     actions.action.__init(self, kwargs)
@@ -38,10 +36,8 @@ function action_container:cancel()
 end
 
 -- like action_container, but runs actions in parallel - finishes when all are done
-action_parallel = class.new(actions.action)
+action_parallel = class.new(actions.action, nil, "action_parallel")
 action_parallel.cancellable = false
-
-function action_parallel:__tostring() return "action_parallel" end
 
 function action_parallel:__init(other_actions, kwargs)
     actions.action.__init(self, kwargs)
@@ -56,7 +52,7 @@ function action_parallel:do_start()
 end
 
 function action_parallel:do_execute(seconds)
-    self.action_systems = table.filter(
+    self.action_systems = table.filter_dict(
         self.action_systems,
         function(i, action_system)
             action_system:manage(seconds)
@@ -79,9 +75,7 @@ function action_parallel:add_action(other_action)
     table.insert(self.action_systems, action_system)
 end
 
-action_delayed = class.new(actions.action)
-
-function action_delayed:__tostring() return "action_delayed" end
+action_delayed = class.new(actions.action, nil, "action_delayed")
 
 function action_delayed:__init(command, kwargs)
     actions.action.__init(self, kwargs)
@@ -145,8 +139,11 @@ action_input_capture_plugin = {
     end
 }
 
-action_input_capture = class.new(actions.action, action_input_capture_plugin)
-function action_input_capture:__tostring() return "action_input_capture" end
+action_input_capture = class.new(
+    actions.action,
+    action_input_capture_plugin,
+    "action_input_capture"
+)
 
 action_render_capture_plugin = {
     do_start = function(self, ...)

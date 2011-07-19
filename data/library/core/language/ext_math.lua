@@ -283,7 +283,7 @@ function math.vec3:cap(s)
 end
 
 --[[!
-    Function: subnew
+    Function: sub_new
     Subtracts a vector with another one and returns as a new vector.
 
     Parameters:
@@ -295,14 +295,14 @@ end
     See Also:
         <sub>
 ]]
-function math.vec3:subnew(v)
+function math.vec3:sub_new(v)
     return math.vec3(self.x - v.x,
                      self.y - v.y,
                      self.z - v.z)
 end
 
 --[[!
-    Function: addnew
+    Function: add_new
     Sums a vector with another one and returns as a new vector.
 
     Parameters:
@@ -314,14 +314,14 @@ end
     See Also:
         <add>
 ]]
-function math.vec3:addnew(v)
+function math.vec3:add_new(v)
     return math.vec3(self.x + v.x,
                      self.y + v.y,
                      self.z + v.z)
 end
 
 --[[!
-    Function: mulnew
+    Function: mul_new
     Multiplies each vector component with a number and returns as a new vector.
 
     Parameters:
@@ -333,7 +333,7 @@ end
     See Also:
         <mul>
 ]]
-function math.vec3:mulnew(v)
+function math.vec3:mul_new(v)
     return math.vec3(self.x * v,
                      self.y * v,
                      self.z * v)
@@ -350,7 +350,7 @@ end
         Itself.
 
     See Also:
-        <subnew>
+        <sub_new>
 ]]
 function math.vec3:sub(v)
     self.x = self.x - v.x
@@ -370,7 +370,7 @@ end
         Itself.
 
     See Also:
-        <addnew>
+        <add_new>
 ]]
 function math.vec3:add(v)
     self.x = self.x + v.x
@@ -390,7 +390,7 @@ end
         Itself.
 
     See Also:
-        <mulnew>
+        <mul_new>
 ]]
 function math.vec3:mul(v)
     self.x = self.x * v
@@ -422,7 +422,7 @@ function math.vec3:as_array()
 end
 
 --[[!
-    Function: fromyawpitch
+    Function: from_yaw_pitch
     Sets components of the vector from given yaw and pitch.
 
     Parameters:
@@ -432,7 +432,7 @@ end
     Returns:
         Itself.
 ]]
-function math.vec3:fromyawpitch(yaw, pitch)
+function math.vec3:from_yaw_pitch(yaw, pitch)
     self.x = -(math.sin(math.rad(yaw)))
     self.y =   math.cos(math.rad(yaw))
 
@@ -448,7 +448,7 @@ function math.vec3:fromyawpitch(yaw, pitch)
 end
 
 --[[!
-    Function: toyawpitch
+    Function: to_yaw_pitch
     Calculates yaw and pitch from vector components.
 
     Returns:
@@ -458,7 +458,7 @@ end
             { yaw = yaw_value, pitch = pitch_value }
         (end)
 ]]
-function math.vec3:toyawpitch()
+function math.vec3:to_yaw_pitch()
     local mag = self:magnitude()
     if mag < 0.001 then
         return { yaw = 0, pitch = 0 }
@@ -470,7 +470,7 @@ function math.vec3:toyawpitch()
 end
 
 --[[!
-    Function: iscloseto
+    Function: is_close_to
     Calculates if vector is close to another vector, knowing
     their maximal distance to assume it's not close.
 
@@ -482,7 +482,7 @@ end
         Boolean value, true if the distance is lower than
         given maximal distance, false otherwise.
 ]]
-function math.vec3:iscloseto(v, d)
+function math.vec3:is_close_to(v, d)
     d = d * d
     local temp, sum
 
@@ -501,7 +501,7 @@ function math.vec3:iscloseto(v, d)
 end
 
 --[[!
-    Function: dotproduct
+    Function: dot_product
     Calculates dot product of two vectors.
 
     Parameters:
@@ -510,7 +510,7 @@ end
     Returns:
         Dot product of two vectors.
 ]]
-function math.vec3:dotproduct(v)
+function math.vec3:dot_product(v)
     return self.x * v.x + self.y * v.y + self.z * v.z
 end
 
@@ -522,7 +522,7 @@ end
         v - The other vector.
 ]]
 function math.vec3:cos_angle_with(v)
-    return (self:dotproduct(v) / (self:magnitude() * v:magnitude()))
+    return (self:dot_product(v) / (self:magnitude() * v:magnitude()))
 end
 
 --[[!
@@ -554,12 +554,12 @@ end
         Modified self.
 ]]
 function math.vec3:project_along_surface(surf)
-    local normal_proj = self:dotproduct (surf)
-    return self:sub (surf:mulnew(normal_proj))
+    local normal_proj = self:dot_product (surf)
+    return self:sub (surf:mul_new(normal_proj))
 end
 
 --[[!
-    Function: toyawpitchroll
+    Function: to_yaw_pitch_roll
     Calculates yaw, pitch and roll from vector components.
 
     Parameters:
@@ -574,7 +574,7 @@ end
             { yaw = yaw_value, pitch = pitch_value, roll = roll_value }
         (end)
 ]]
-function math.vec3:toyawpitchroll(up, yaw_hint)
+function math.vec3:to_yaw_pitch_roll(up, yaw_hint)
     local left = self:cross_product(up)
 
     local yaw
@@ -606,7 +606,7 @@ end
         Result of lerp, a new vector.
 ]]
 function math.vec3:lerp(other, weight)
-    return self:addnew(other:subnew(self):mul(weight))
+    return self:add_new(other:sub_new(self):mul(weight))
 end
 
 --[[!
@@ -701,21 +701,21 @@ function math.vec4:magnitude()
                    + self.w * self.w)
 end
 
-function math.vec4:subnew(v)
+function math.vec4:sub_new(v)
     return math.vec4(self.x - v.x,
                      self.y - v.y,
                      self.z - v.z,
                      self.w - v.w)
 end
 
-function math.vec4:addnew(v)
+function math.vec4:add_new(v)
     return math.vec4(self.x + v.x,
                      self.y + v.y,
                      self.z + v.z,
                      self.w + v.w)
 end
 
-function math.vec4:mulnew(v)
+function math.vec4:mul_new(v)
     return math.vec4(self.x * v,
                      self.y * v,
                      self.z * v,
@@ -755,10 +755,10 @@ function math.vec4:as_array()
 end
 
 --[[!
-    Function: quatfromaxisangle
+    Function: quat_from_axis_angle
     Sets components of the vector from given axis
     (which is vec3) and angle (which is an integral
-    number in degrees)
+    number in degrees).
 
     Parameters:
         ax - The axis (vec3)
@@ -767,7 +767,7 @@ end
     Returns:
         Itself.
 ]]
-function math.vec4:quatfromaxisangle(ax, an)
+function math.vec4:quat_from_axis_angle(ax, an)
     an = math.rad(an)
     self.w = math.cos(an / 2)
     local s = math.sin(an / 2)
@@ -780,7 +780,7 @@ function math.vec4:quatfromaxisangle(ax, an)
 end
 
 --[[!
-    Function: toyawpitchroll
+    Function: to_yaw_pitch_roll
     Calculates yaw, pitch and roll from vector components.
 
     Returns:
@@ -790,13 +790,13 @@ end
             { yaw = yaw_value, pitch = pitch_value, roll = roll_value }
         (end)
 ]]
-function math.vec4:toyawpitchroll()
-    --local r = self:toyawpitch()
+function math.vec4:to_yaw_pitch_roll()
+    --local r = self:to_yaw_pitch()
     --r.roll = 0
     --return r
 
     if math.abs(self.z) < 0.99 then
-        local r = self:toyawpitch()
+        local r = self:to_yaw_pitch()
         r.roll = math.deg(self.w)
         return r
     else
@@ -830,12 +830,12 @@ function math.frandom(_min, _max)
 end
 
 --[[!
-    Function: math.vec3_norm
+    Function: math.vec3_normalized
     Returns a normalized vec3 of non-zero length with
     x, y, z components being random floating point numbers
     ranging from -1 to 1.
 ]]
-function math.vec3_norm()
+function math.vec3_normalized()
     local ret = nil
     while not ret or ret:magnitude() == 0 do
         ret = math.vec3(math.frandom(-1, 1), math.frandom(-1, 1), math.frandom(-1, 1))

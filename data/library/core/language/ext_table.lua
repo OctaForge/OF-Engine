@@ -42,13 +42,13 @@ function table.map(t, f)
 end
 
 --[[!
-    Function: table.mergedicts
+    Function: table.merge_dicts
     Merges two tables (dictionaries) together. Usage -
 
     (start code)
         local a = { a = 5, b = 10 }
         local b = { c = 15, d = 20 }
-        table.mergedicts(a, b)
+        table.merge_dicts(a, b)
         -- a now has b's elements
     (end)
 
@@ -59,7 +59,7 @@ end
     Returns:
         Merged table.
 ]]
-function table.mergedicts(ta, tb)
+function table.merge_dicts(ta, tb)
     for a, b in pairs(tb) do
         ta[a] = b
     end
@@ -67,13 +67,13 @@ function table.mergedicts(ta, tb)
 end
 
 --[[!
-    Function: table.mergearrays
+    Function: table.merge_arrays
     Merges two tables (arrays) together. Usage -
 
     (start code)
         local a = { 5, 10, 15 }
         local b = { 20, 25, 30 }
-        table.mergearrays(a, b)
+        table.merge_arrays(a, b)
         -- a now has b's elements
     (end)
 
@@ -84,7 +84,7 @@ end
     Returns:
         Merged table.
 ]]
-function table.mergearrays(ta, tb)
+function table.merge_arrays(ta, tb)
     for i, v in pairs(tb) do
         table.insert(ta, v)
     end
@@ -117,12 +117,12 @@ function table.copy(t)
 end
 
 --[[!
-    Function: table.filter
+    Function: table.filter_dict
     Filters a table (dictionary). Usage -
 
     (start code)
         local a = { a = 5, b = 10 }
-        local b = table.filter(a, function (k, v) return ((v <= 5) and true or false) end)
+        local b = table.filter_dict(a, function (k, v) return ((v <= 5) and true or false) end)
         -- b now contains just "a"
     (end)
 
@@ -134,7 +134,7 @@ end
     Returns:
         A filtered table.
 ]]
-function table.filter(t, f)
+function table.filter_dict(t, f)
     local r = {}
     for a, b in pairs(t) do
         if f(a, b) then
@@ -145,12 +145,12 @@ function table.filter(t, f)
 end
 
 --[[!
-    Function: table.filterarray
+    Function: table.filter_array
     Filters a table (array). Usage -
 
     (start code)
         local a = { 5, 10, 15 }
-        local b = table.filterarray(a, function (i, v) return ((i <= 2) and true or false) end)
+        local b = table.filter_array(a, function (i, v) return ((i <= 2) and true or false) end)
         -- b is empty
     (end)
 
@@ -162,7 +162,7 @@ end
     Returns:
         A filtered table.
 ]]
-function table.filterarray(t, f)
+function table.filter_array(t, f)
     local r = {}
     for i, v in pairs(t) do
         if f(i, v) then

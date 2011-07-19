@@ -12,8 +12,6 @@
 
     About: Purpose
         This file contains logger interface for Lua.
-
-    Section: Logging
 ]]
 
 --[[!

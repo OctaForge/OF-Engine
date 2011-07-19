@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features signal system.
-
-    Section: Signal handling
 ]]
 
 --[[!
@@ -184,7 +182,7 @@ function _emit(self, name, ...)
     local args = { ... }
 
     -- contains handlers, we manipulate with copy just in case
-    local handlers = table.filterarray(
+    local handlers = table.filter_array(
         self._signal_connections,
         function(i, connection)
             if connection.name == name then

@@ -89,7 +89,7 @@ plugin = {
 
             local platform_axis = vec3_from_axis(self.platform_axis)
             self.platform_yaw   = utility.angle_normalize(
-                platform_axis:mul(self:get_platform_direction()):toyawpitch().yaw,
+                platform_axis:mul(self:get_platform_direction()):to_yaw_pitch().yaw,
                 self.yaw
             ) + 90
             self.yaw = math.magnet(
@@ -129,8 +129,8 @@ plugin = {
             end
             self.last_camera_smooth_position = camera_position:copy()
         
-            local direction = self.center:subnew(camera_position)
-            orientation = direction:toyawpitch()
+            local direction = self.center:sub_new(camera_position)
+            orientation = direction:to_yaw_pitch()
             camera_position.z = camera_position.z + (self.radius * self.platform_camera_distance * 0.02)
             camera.force(
                 camera_position.x, camera_position.y, camera_position.z,

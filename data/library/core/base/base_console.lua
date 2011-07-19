@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features console interface.
-
-    Section: Console system
 ]]
 
 --[[!

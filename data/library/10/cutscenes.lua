@@ -12,9 +12,7 @@ function show_distance(tag, origin, color, seconds)
     effects.flare(effects.PARTICLE.STREAK, origin.position, entity.position, 0, color, 0.2)
 end
 
-action_base = class.new(events.action_container)
-
-function action_base:__tostring() return "action_base" end
+action_base = class.new(events.action_container, nil, "action_base")
 
 function action_base:client_click()
     if self.cancellable then
@@ -88,14 +86,13 @@ function action_base:show_subtitles(time_val)
     end
 end
 
-action_smooth = class.new(actions.action)
+action_smooth = class.new(actions.action, nil, "action_smooth")
 action_smooth.seconds_per_marker = 4
 action_smooth.delay_before       = 0
 action_smooth.delay_after        = 0
 action_smooth.looped             = false
 action_smooth.looping            = false
 
-function action_smooth:__tostring  () return "action_smooth" end
 function action_smooth:init_markers() end
 
 function action_smooth:do_start()
@@ -157,9 +154,9 @@ function action_smooth:set_markers()
     local curr_marker = self.markers[math.clamp(current_index + 1,     1, #self.markers)]
     local next_marker = self.markers[math.clamp(current_index + 2, 1, #self.markers)]
 
-    self.position = last_marker.position:mulnew(alpha):add(
-          curr_marker.position:mulnew(1 - alpha - beta)
-    ):add(next_marker.position:mulnew(beta))
+    self.position = last_marker.position:mul_new(alpha):add(
+          curr_marker.position:mul_new(1 - alpha - beta)
+    ):add(next_marker.position:mul_new(beta))
 
     self.yaw   = utility.angle_normalize(last_marker.yaw, curr_marker.yaw) * alpha
                + utility.angle_normalize(next_marker.yaw, curr_marker.yaw) * beta
@@ -447,7 +444,7 @@ entity_classes.register(
                 show_distance("ctl_" .. arr[2], self, 0x22FF27, seconds)
             end
 
-            local direction = math.vec3():fromyawpitch(self.yaw, self.pitch)
+            local direction = math.vec3():from_yaw_pitch(self.yaw, self.pitch)
             local target    = utility.get_ray_collision_world(self.position:copy(), direction, 10)
             effects.flare(
                 effects.PARTICLE.STREAK,

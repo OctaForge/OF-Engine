@@ -14,15 +14,15 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
             entities = { entity_store.get_player_entity() }
         else
             entities = entity_store.get_all_close(position, { max_distance = max_dist })
-            entities = table.map   (entities, function(pair) return pair[1] end)
-            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
+            entities = table.map        (entities, function(pair) return pair[1] end)
+            entities = table.filter_dict(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
     else
         entities = {}
         if owner == entity_store.get_player_entity() then
             entities = entity_store.get_all_close(position, { max_distance = max_dist })
-            entities = table.map   (entities, function(pair) return pair[1] end)
-            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
+            entities = table.map        (entities, function(pair) return pair[1] end)
+            entities = table.filter_dict(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
         table.insert(entities, entity_store.get_player_entity())
     end
@@ -37,7 +37,7 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
         if not custom_damage_fun then
             if entity.velocity then
                 entity.velocity:add(
-                    entity.position:subnew(
+                    entity.position:sub_new(
                         position
                     ):add(
                         velocity:copy():normalize():mul(4)
@@ -101,12 +101,12 @@ projectile = class.new(nil, {
             if  self.bounce_fun then
                 self:bounce_fun(self.physics_frame_size)
             else
-                self.position:add(self.velocity:mulnew(self.physics_frame_size))
+                self.position:add(self.velocity:mul_new(self.physics_frame_size))
             end
 
             if self.collide_fun(self.position, self.radius, self.owner) then
                 local NUM_STEPS = 5
-                local step      = self.velocity:mulnew(self.physics_frame_size / NUM_STEPS)
+                local step      = self.velocity:mul_new(self.physics_frame_size / NUM_STEPS)
                 for i = 1, NUM_STEPS do
                     last_position:add(step)
                     if i == NUM_STEPS or self.collide_fun(last_position, self.radius, self.owner) then
@@ -178,7 +178,7 @@ manager = class.new(nil, {
     end,
 
     tick = function(self, seconds)
-        self.projectiles = table.filter(self.projectiles, function(i, projectile)
+        self.projectiles = table.filter_dict(self.projectiles, function(i, projectile)
             local persist = projectile:tick(seconds)
             if not persist then
                 projectile:destroy()
@@ -251,7 +251,7 @@ gun = class.new(firing.gun, {
         projectile_handler.projectile_manager:add(
             projectile_class(
                 origin_position,
-                target_position:subnew(origin_position):normalize(),
+                target_position:sub_new(origin_position):normalize(),
                 shooter,
                 target_entity
             )

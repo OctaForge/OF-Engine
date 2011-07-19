@@ -12,8 +12,6 @@
 
     About: Purpose
         This file provides a nice interface with Cube 2's vslot system.
-
-    Section: VSlots
 ]]
 
 --[[!

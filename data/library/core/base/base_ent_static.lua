@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features static logic entity class.
-
-    Section: Static entity system
 ]]
 
 --[[!

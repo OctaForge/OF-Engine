@@ -26,7 +26,7 @@ gun = class.new(firing.gun, {
         shooter.projectile_manager:add(
             projectile(
                 origin_position,
-                target_position:subnew(origin_position):normalize(),
+                target_position:sub_new(origin_position):normalize(),
                 shooter
             )
         )

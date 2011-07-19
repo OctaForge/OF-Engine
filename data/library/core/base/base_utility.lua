@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features utility library.
-
-    Section: Utilities
 ]]
 
 --[[!
@@ -240,7 +238,7 @@ function floor_highestdist(o, d, r)
     local tb = { -r / 2, 0, r / 2 }
     for x = 1, #tbl do
         for y = 1, #tbl do
-            rt = math.min(rt, floor_dist(o:addnew(vec3(tb[x], tb[y], 0)), d))
+            rt = math.min(rt, floor_dist(o:add_new(vec3(tb[x], tb[y], 0)), d))
         end
     end
 
@@ -258,7 +256,7 @@ function floor_lowestdist(o, d, r)
     local tb = { -r / 2, 0, r / 2 }
     for x = 1, #tbl do
         for y = 1, #tbl do
-            rt = math.max(rt, floor_dist(o:addnew(vec3(tb[x], tb[y], 0)), d))
+            rt = math.max(rt, floor_dist(o:add_new(vec3(tb[x], tb[y], 0)), d))
         end
     end
 
@@ -287,7 +285,7 @@ function is_colliding_entities(position, radius, ignore)
                     entity.collision_radius_width,
                     entity.collision_radius_height
                 )
-            if position:iscloseto(entity.position, radius + entity_radius) then
+            if position:is_close_to(entity.position, radius + entity_radius) then
                 return true
             end
         end
@@ -353,8 +351,8 @@ gettargetent = cache_by_global_timestamp(convert.tocalltable(CAPI.gettargetent))
 
 function get_ray_collision_world(origin, direction, max_dist)
     max_dist = max_dist or 2048
-    local dist = ray_collisiondist(origin, direction:mulnew(max_dist))
-    return origin:addnew(direction:mulnew(math.min(dist, max_dist)))
+    local dist = ray_collisiondist(origin, direction:mul_new(max_dist))
+    return origin:add_new(direction:mul_new(math.min(dist, max_dist)))
 end
 
 function get_collidable_entities()
@@ -363,7 +361,7 @@ end
 
 function get_ray_collision_entities(origin, target, ignore)
     local entities  = get_collidable_entities()
-    local direction = target:subnew(origin)
+    local direction = target:sub_new(origin)
     local dist2     = direcion:magnitude()
     if    dist2 == 0 then return nil end
     dist2 = dist2 * dist2
@@ -381,16 +379,16 @@ function get_ray_collision_entities(origin, target, ignore)
 
     for k, entity in pairs(entities) do
         if entity ~= ignore then
-            local entity_dir = entity.center:subnew(origin)
+            local entity_dir = entity.center:sub_new(origin)
             local entity_rad = entity.radius
                            and entity.radius
                             or math.max(
                                 entity.collision_radius_width,
                                 entity.collision_radius_height
                             )
-            local alpha = direction:dotproduct(entity_dir) / dist2
-            local collision_position = origin:addnew(direction:mulnew(alpha))
-            local distance = entity.center:subnew(collision_position):magnitude()
+            local alpha = direction:dot_product(entity_dir) / dist2
+            local collision_position = origin:add_new(direction:mul_new(alpha))
+            local distance = entity.center:sub_new(collision_position):magnitude()
             -- XXX alpha check ignores radius
             if alpha < 0 or alpha > 1 or distance > entity_rad then return nil end
             consider(entity, alpha, collision_position)
@@ -416,7 +414,7 @@ MATERIAL = {
 }
 
 function get_surface_normal(reference, surface, resolution)
-    local direction = surface:subnew(reference)
+    local direction = surface:sub_new(reference)
     local distance  = direction:magnitude()
     if    distance == 0 then return nil end
 
@@ -433,7 +431,7 @@ function get_surface_normal(reference, surface, resolution)
     for i = 1, 3 do
         points = {}
         for n = 1, 3 do
-            point_direction = surface:addnew(math.vec3(
+            point_direction = surface:add_new(math.vec3(
                 random_resolutional(),
                 random_resolutional(),
                 random_resolutional()
@@ -453,7 +451,7 @@ function get_surface_normal(reference, surface, resolution)
 
         ret = points[2]:sub(points[1]):cross_product(points[3]:sub(points[1]))
         if ret:magnitude() > 0 then
-            if  ret:dotproduct(reference:subnew(surface)) < 0 then
+            if  ret:dot_product(reference:sub_new(surface)) < 0 then
                 ret:mul(-1)
             end
             return ret:normalize()
@@ -465,11 +463,11 @@ function get_reflected_ray(ray, normal, elasticity, friction)
     elasticity = elasticity or 1
     friction   = friction   or 1
 
-    local bounce_direction = normal:mulnew(-(normal:dotproduct(ray)))
+    local bounce_direction = normal:mul_new(-(normal:dot_product(ray)))
     if friction == 1 then
         return ray:add(bounce_direction:mul(1 + elasticity))
     else
-        local  surface_direction = ray:addnew(bounce_direction)
+        local  surface_direction = ray:add_new(bounce_direction)
         return surface_direction:mul(friction):add(bounce_direction:mul(elasticity))
     end
 end
@@ -501,18 +499,18 @@ function bounce(thing, elasticity, friction, seconds)
     }, thing.last_safe and thing.last_safe[1] or nil }
 
     local old_position = self.position:copy()
-    local movement     = thing.velocity:mulnew(seconds)
+    local movement     = thing.velocity:mul_new(seconds)
     thing.position:add(movement)
 
     if not iscolliding(thing.position, thing.radius, thing.ignore) then return true end
 
     local direction = movement:copy():normalize()
     local surface_dist = ray_collisiondist(
-        old_position, direction:mulnew(3 * movement:magnitude() + 3 * thing.radius + 1.5)
+        old_position, direction:mul_new(3 * movement:magnitude() + 3 * thing.radius + 1.5)
     )
     if surface_dist < 0 then return fallback() end
 
-    local surface = old_position:addnew(direction, surface_dist)
+    local surface = old_position:add_new(direction, surface_dist)
     local normal = get_surface_normal(old_position, surface)
     if not normal then return fallback() end
 

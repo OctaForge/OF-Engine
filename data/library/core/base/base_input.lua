@@ -12,8 +12,6 @@
 
     About: Purpose
         This file provides interface to common input functions, like keybindings.
-
-    Section: Input
 ]]
 
 --[[!

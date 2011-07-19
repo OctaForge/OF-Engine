@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features GUI system.
-
-    Section: GUI system
 ]]
 
 --[[!

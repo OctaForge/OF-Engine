@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features model interface.
-
-    Section: Model interface
 ]]
 
 local base = _G

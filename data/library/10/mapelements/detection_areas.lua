@@ -25,7 +25,7 @@ function check(position, tag)
     end
 
     for i, entity in pairs(entities) do
-        if entity.detection_rea and entity:check(position) then
+        if entity.detection_area and entity:check(position) then
             return true
         end
     end

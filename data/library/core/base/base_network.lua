@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features networking interface.
-
-    Section: Networking
 ]]
 
 --[[!

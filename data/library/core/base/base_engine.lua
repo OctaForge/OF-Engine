@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features engine interface (quitting, engine variables, homedir etc.)
-
-    Section: Engine interface
 ]]
 
 --[[!

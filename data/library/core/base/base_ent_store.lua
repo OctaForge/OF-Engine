@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features entity storage system.
-
-    Section: Entity storage system
 ]]
 
 --[[!
@@ -225,7 +223,7 @@ function get_all_close(origin, kwargs)
         end
 
         -- check distances
-        if not skip and (origin:subnew(fun(entity)):magnitude() <= max_distance) then
+        if not skip and (origin:sub_new(fun(entity)):magnitude() <= max_distance) then
             table.insert(ret, { entity, distance })
         end
     end
@@ -349,7 +347,7 @@ function del(uid)
     local ent = __entities_store[uid]
     for k, v in pairs(entity_classes.class_storage) do
         if ent:is_a(v[1]) then
-            __entities_store_by_class[k] = table.filterarray(
+            __entities_store_by_class[k] = table.filter_array(
                 __entities_store_by_class[k],
                 function(a, b) return (b ~= ent) end
             )
@@ -668,7 +666,7 @@ function setup_dynamic_rendering_test(entity)
             local player_center = get_player_entity().center
 
             -- check the distance - skip rendering only if it's distant
-            if entity.position:subnew(player_center):magnitude() > 256 then
+            if entity.position:sub_new(player_center):magnitude() > 256 then
                 -- check for line of sight
                 if not utility.haslineofsight(player_center, entity.position) then
                     -- do not render

@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features entity class system.
-
-    Section: Entity class system
 ]]
 
 --[[!
@@ -145,7 +143,7 @@ end
 ]]
 function list()
     local r = table.values(
-        table.filter(
+        table.filter_dict(
             table.keys(class_storage),
             function(k, v)
                 local c = get_class(v)

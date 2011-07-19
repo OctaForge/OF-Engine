@@ -12,8 +12,6 @@
 
     About: Warning
         This is scheduled for removal and replacement with nicer interface.
-
-    Section: Utilities
 ]]
 
 local env    = _G

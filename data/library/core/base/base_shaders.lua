@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features shader control functions.
-
-    Section: Shaders
 ]]
 
 --[[!

@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features camera control system for Lua.
-
-    Section: Camera interface
 ]]
 
 --[[!

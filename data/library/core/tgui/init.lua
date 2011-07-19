@@ -13,8 +13,6 @@
     About: Purpose
         This file takes care of loading all tgui elements and several pre-defined
         windows.
-
-    Section: tgui initialization
 ]]
 
 --[[!

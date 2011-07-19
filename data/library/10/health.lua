@@ -1,14 +1,12 @@
 module("health", package.seeall)
 
 action_pain = class.new(entity_animated.action_local_animation, {
-    __tostring          = function(self) return "action_pain" end,
-    seconds_left        = 0.6,
-    local_animation     = actions.ANIM_PAIN,
-    can_multiply_queue  = false
-})
+    seconds_left       = 0.6,
+    local_animation    = actions.ANIM_PAIN,
+    can_multiply_queue = false
+}, "action_pain")
 
 action_death = class.new(actions.action, {
-    __tostring         = function(self) return "action_death" end,
     can_multiply_queue = false,
     cancellable        = false,
     seconds_left       = 5.5,
@@ -23,7 +21,7 @@ action_death = class.new(actions.action, {
     dofinish = function(self)
         self.actor:respawn()
     end
-})
+}, "action_death")
 
 plugin = {
     -- client_set for health means that when we shoot someone, we get

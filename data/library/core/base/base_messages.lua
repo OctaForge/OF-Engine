@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features message system.
-
-    Section: Message system
 ]]
 
 --[[!

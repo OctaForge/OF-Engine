@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features sound system.
-
-    Section: Sound system
 ]]
 
 --[[!

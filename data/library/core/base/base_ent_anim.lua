@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features animatable logic entity class.
-
-    Section: Animatable entity system
 ]]
 
 --[[!
@@ -155,15 +153,9 @@ base_animated = class.new(entity.base, {
     Class: action_local_animation
     Action that sets a local animation on start and restores the original
     on finish. Useful for inheriting (some actions in <firing> and <health>
-    do that).
+    do that). Inherits from <action>.
 ]]
 action_local_animation = class.new(actions.action, {
-    --! Function: __tostring
-    --! See <action.__tostring>.
-    __tostring = function(self)
-        return "action_local_animation"
-    end,
-
     --[[!
         Function: do_start
         See <action.do_start>. This overriden method saves actor's old animation,
@@ -183,4 +175,4 @@ action_local_animation = class.new(actions.action, {
             self.actor:set_local_animation(self.old_animation)
         end
     end
-})
+}, "action_local_animation")
