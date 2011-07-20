@@ -39,8 +39,9 @@ void getwallclock();
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
 extern vector<cline> conlines;
-void bindkey(char *key, int action, int state);
+void bindkey(char *key, char *action, int state);
 void getbind(char *key, int type);
+void searchbinds(char *action, int type);
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL);
 void history_(int *n);
 void screenshot(char *filename);
@@ -255,8 +256,9 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, fullconsole ? fullconfilter : confilter, e.get<int>(1))
     LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, miniconfilter, e.get<int>(1))
     LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
-    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.ref_keep_stack(), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.get<char*>(3), e.get<int>(2))
     LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(searchbinds, searchbinds, e.get<char*>(1), e.get<int>(2))
     LUA_BIND_STD_CLIENT(prompt, inputcommand, e.get(1, (char*)""), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(onrelease, addreleaseaction, e.ref_keep_stack())

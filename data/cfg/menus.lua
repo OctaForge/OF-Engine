@@ -8,12 +8,12 @@ end
 
 -- core binds
 
-input.bind("ESCAPE", function()
+input.bind("ESCAPE", [[
     gui.menu_key_click_trigger()
     if not gui.hide("main") then
         gui.show("main")
     end
-end)
+]])
 
 -- non-edit tabs
 

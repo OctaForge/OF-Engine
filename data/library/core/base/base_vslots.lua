@@ -16,9 +16,9 @@
 
 --[[!
     Package: vslot
-    VSlots are "virtual slots". In Cube 2, you have texture - normal - slots
+    VSlots are "virtual slots". In Cube 2, you have texture (normal) slots
     and virtual slots, which are, unlike texture slots, saved in map and refer
-    to area - not a single texture. That allows you to set properties like coloring
+    to area, not a single texture. That allows you to set properties like coloring
     or alpha to selected area, not only texture.
 ]]
 module("vslot", package.seeall)

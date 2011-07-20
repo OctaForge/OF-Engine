@@ -197,12 +197,12 @@ void startmusic(char *name, char *cmd)
             if(cmd[0]) musicdonecmd = newstring(cmd);
             Mix_PlayMusic(music, cmd[0] ? 0 : -1);
             Mix_VolumeMusic((musicvol*MAXVOL)/255);
-            lua::engine.push(1);
+            lua::engine.push(true);
         }
         else
         {
             conoutf(CON_ERROR, "could not play music: %s", file);
-            lua::engine.push(0); 
+            lua::engine.push(false);
         }
     }
 }

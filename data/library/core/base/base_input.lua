@@ -120,8 +120,8 @@ per_map_keys = {}
 
     Parameters:
         key - a string specifying the key to bind. See keymap.cfg.
-        action - a function taking no arguments that is executed
-        when the bind gets activated.
+        action - a string with Lua code executed when the bind
+        gets activated.
 ]]
 function bind(key, action)
     CAPI.bind(key, BIND_DEFAULT, action)
@@ -138,10 +138,10 @@ end
         var - a variable to toggle.
 ]]
 function bind_var(key, var)
-    bind(key, function()
-        _G[var] = (_G[var] == 1) and 0 or 1
-        echo(_G[var] .. (_G[var] == 1) and "ON" or "OFF")
-    end)
+    bind(key, [[
+        _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
+        echo(_G[%(1)q] .. (_G[%(1)q] == 1) and "ON" or "OFF")
+    ]] % { var })
 end
 
 --[[!
@@ -154,12 +154,12 @@ end
         modifier - a global variable storing modifier state.
 ]]
 function bind_mod(key, modifier)
-    bind(key, function()
-        _G[modifier] = 1
+    bind(key, [[
+        _G[%(1)q] = 1
         on_release(function()
-            _G[modifier] = 0
+            _G[%(1)q] = 0
         end)
-    end)
+    ]] % { modifier })
 end
 
 --[[!
@@ -170,8 +170,8 @@ end
 
     Parameters:
         key - see <bind>.
-        action - see <bind>. Unlike <bind>, it can take an argument
-        if data is provided.
+        action - see <bind>. Unlike <bind>, it is a function and
+        can take argument when data is provided.
         data - a variable that is optionally passed to action.
 ]]
 function bind_map_specific(key, action, data)
@@ -220,10 +220,10 @@ end
     See <bind_var>. It's the same, but it's for edit mode.
 ]]
 function bind_var_edit(key, var)
-    bind_edit(key, function()
-        _G[var] = (_G[var] == 1) and 0 or 1
-        echo(_G[var] .. (_G[var] == 1) and "ON" or "OFF")
-    end)
+    bind_edit(key, [[
+        _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
+        echo(_G[%(1)q] .. (_G[%(1)q] == 1) and "ON" or "OFF")
+    ]] % { var })
 end
 
 --[[!
@@ -231,12 +231,12 @@ end
     See <bind_var>. It's the same, but it's for edit mode.
 ]]
 function bind_mod_edit(key, modifier)
-    bind_edit(key, function()
-        _G[modifier] = 1
+    bind_edit(key, [[
+        _G[%(1)q] = 1
         on_release(function()
-            _G[modifier] = 0
+            _G[%(1)q] = 0
         end)
-    end)
+    ]] % { modifier })
 end
 
 --[[!
@@ -258,6 +258,18 @@ function get_bind(key, bind_type)
         return CAPI.getbind(key, bind_type)
     end
 end
+
+--[[!
+    Function: search_binds
+    Get an array of keybindings that fit given action and bind
+    type. The array then consists of names of they keys.
+
+    Parameters:
+        action - the action to get keys for.
+        bind_type - see <BIND_DEFAULT>, <BIND_SPEC>,
+        <BIND_EDIT> and <BIND_MAP>.
+]]
+search_binds = CAPI.searchbinds
 
 --[[!
     Function: on_release

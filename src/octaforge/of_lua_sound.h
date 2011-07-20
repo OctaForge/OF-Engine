@@ -43,7 +43,7 @@ namespace lua_binds
 
     LUA_BIND_STD_CLIENT(stopsoundname, stopsoundbyid, getsoundid(e.get<const char*>(1), e.get<int>(2)))
 
-    LUA_BIND_STD_CLIENT(music, startmusic, e.get<char*>(1), (char*)"sound.musiccallback()")
+    LUA_BIND_STD_CLIENT(music, startmusic, e.get<char*>(1), (char*)"sound.music_callback()")
 
     LUA_BIND_CLIENT(preloadsound, {
         defformatstring(str)("preloading sound '%s'...", e.get<const char*>(1));

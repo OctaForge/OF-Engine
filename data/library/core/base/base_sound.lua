@@ -20,82 +20,138 @@
 ]]
 module("sound", package.seeall)
 
---- Play sound, knowing the filename.
--- If done on the server, a message is sent to clients to play the sound.
--- @param n Path to the sound.
--- @param p Position as vec3, optional (defaults to 0,0,0)
--- @param v Sound volume (0 to 100, optional)
--- @param cn Client number (optional, server only, defaults to all clients)
-function play(n, p, v, cn)
-    p = p or math.vec3(0, 0, 0)
+--[[!
+    Function: play
+    Plays a sound. If performed on the server, a message gets sent to
+    client(s) to play the sound.
+
+    Parameters:
+        name - path to the sound (starting with data/sounds as current
+        working directory). Can be a protocol ID (see <message>).
+        position - sound position, optional, <math.vec3>.
+        Defaults to <0, 0, 0>.
+        volume - sound volume, optional, defaults to 100 (max volume).
+        Ignored on server (TODO!).
+        cn - server only argument, specifies client number to which
+        to send a message to play the sound, defaults to
+        <message.ALL_CLIENTS>.
+]]
+function play(name, position, volume, cn)
+    -- defaults, we don't default volume since 0 is represented as
+    -- 100 by the C API in this case
+    position = position or math.vec3(0, 0, 0)
 
     if CLIENT then
-        CAPI.playsoundname(n, p.x, p.y, p.z, v)
+        -- clientside behavior
+        CAPI.playsoundname(
+            name,
+            position.x, position.y, position.z,
+            volume
+        )
     else
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names
-        if #n > 2 then
-            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", n))
+        if #name > 2 then
+            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", name))
         end
+
         cn = cn or message.ALL_CLIENTS
-        message.send(cn, CAPI.sound_toclients_byname, p.x, p.y, p.z, n, -1)
+        message.send(
+            cn, CAPI.sound_toclients_byname,
+            position.x, position.y, position.z,
+            name, -1
+        )
     end
 end
 
---- Stop playing sound, knowing the filename.
--- If done on the server, a message is sent to clients to stop the sound.
--- @param n Path to the sound.
--- @param v Sound volume (0 to 100, optional)
--- @param cn Client number (optional, server only, defaults to all clients)
-function stop(n, v, cn)
+--[[!
+    Function: play
+    Stops a sound. If performed on the server, a message gets sent to
+    client(s) to stop the sound.
+
+    Parameters:
+        name - path to the sound (starting with data/sounds as current
+        working directory). Can be a protocol ID (see <message>).
+        volume - sound volume, optional, defaults to 100 (max volume).
+        cn - server only argument, specifies client number to which
+        to send a message to play the sound, defaults to
+        <message.ALL_CLIENTS>.
+]]
+function stop(name, volume, cn)
     if CLIENT then
-        CAPI.stopsoundname(n, v)
+        CAPI.stopsoundname(name, volume)
     else
         -- warn when using non-compressed names
-        if #n > 2 then
-            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", n))
+        if #name > 2 then
+            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", name))
         end
         cn = cn or message.ALL_CLIENTS
-        message.send(cn, CAPI.soundstop_toclients_byname, v, n, -1)
+        message.send(cn, CAPI.soundstop_toclients_byname, volume, name, -1)
     end
 end
 
---- Play music.
--- @param n Path to music.
--- @class function
--- @name playmusic
-playmusic = CAPI.music
+--[[!
+    Function: play_music
+    Plays music. Filename rules apply in the same way as for <play>.
+    When the music ends, <music_callback> is called. See
+    <set_music_handler>.
 
---- Set music handler. Starts playing immediately.
--- @param f Function representing music handler.
-function setmusichandler(f)
-    musichandler = f
-    musiccallback() -- start playing now
+    Parameters:
+        name - path to the music, see <play>.
+]]
+play_music = CAPI.music
+
+--[[!
+    Function: set_music_post_handler
+    Sets music post handler function. It's a function that takes
+    no arguments and is called after music played by <play_music>
+    ends. It can for example trigger playing of next music file.
+    It's executed from C++ via <music_callback>.
+
+    Parameters:
+        fun - the handler function.
+]]
+function set_music_post_handler(fun)
+    music_post_handler = fun
 end
 
---- Music callback. Called on playmusic from C++.
--- If there is music handler set, it calls it.
-function musiccallback()
-    if musichandler then
-        musichandler()
+--[[!
+    Function: music_callback
+    This function gets called from C++ and it executes the handler
+    set by <set_music_post_handler> if there is any. It gets called
+    after music played by <play_music> ends.
+]]
+function music_callback()
+    if  music_post_handler then
+        music_post_handler()
     end
 end
 
---- Register a sound. Used for hardcoded sounds. (TODO: do not hardcode sounds)
--- @param n Path to the sound in data/sounds.
--- @param v Volume of the sound (0 to 100, optional, defaults to 100)
--- @class function
--- @name register
+--[[!
+    Function: register
+    Registers a sound slot. Used for core hardcoded sounds (TODO:
+    get rid of any hardcoded sounds).
+
+    Parameters:
+        name - see <play>.
+        volume - see <play>.
+]]
 register = CAPI.registersound
 
---- Reset sound slots. DEPRECATED. Entities are now using
--- real paths instead of preregistering.
--- @class function
--- @name reset
+--[[!
+    Function: reset
+    Resets the sound system, including music, slots and others.
+]]
 reset = CAPI.resetsound
 
---- Preload sound into slot. DEPRECATED. Entities are now using
--- real paths instead of preregistering.
--- @class function
--- @name preload
+--[[!
+    Function: preload
+    Preloads a sound about which we know it'll be used, so it
+    doesn't have to be loaded later during gameplay.
+
+    This leads to better performance, as we can preload certain
+    sounds on initialization.
+
+    For arguments, see <register>.
+]]
 preload = CAPI.preloadsound

@@ -441,11 +441,11 @@ struct keym
     
     int code;
     char *name;
-    int actions[NUMACTIONS];
+    char *actions[NUMACTIONS];
     bool pressed;
 
-    keym() : code(-1), name(NULL), pressed(false) { }
-    ~keym() { DELETEA(name); }
+    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
+    ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
 };
 
 // main
