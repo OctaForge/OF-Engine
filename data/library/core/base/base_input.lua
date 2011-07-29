@@ -140,7 +140,7 @@ end
 function bind_var(key, var)
     bind(key, [[
         _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
-        echo(_G[%(1)q] .. (_G[%(1)q] == 1) and "ON" or "OFF")
+        echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
     ]] % { var })
 end
 
@@ -222,7 +222,7 @@ end
 function bind_var_edit(key, var)
     bind_edit(key, [[
         _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
-        echo(_G[%(1)q] .. (_G[%(1)q] == 1) and "ON" or "OFF")
+        echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
     ]] % { var })
 end
 

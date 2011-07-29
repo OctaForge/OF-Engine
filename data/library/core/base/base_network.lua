@@ -93,9 +93,3 @@ getfollow = CAPI.getfollow
 -- @class function
 -- @name do_upload
 do_upload = CAPI.do_upload
-
---- Start / stop local server. Possibly DEPRECATED in favor of better API.
--- @param map Map name. If not given, running server gets stopped.
--- @class function
--- @name ssls
-ssls = CAPI.ssls

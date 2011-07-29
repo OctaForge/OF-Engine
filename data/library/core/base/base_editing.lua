@@ -236,7 +236,7 @@ end
 
 function select_corners()
     if _G["hmapedit"] ~= 0 then
-        paint_height_map()
+        select_height_map()
     else
         cancel_selection()
         if drag_entity() == 0 then
@@ -256,14 +256,21 @@ local max_height_brushes = -1
 local brushes = {}
 
 local function height_brush_handle(x, y)
-    brushx = x
-    brushy = y
+    _G["brushx"] = x
+    _G["brushy"] = y
 end
 
 local function height_brush_verts(list)
     for y, brush_vert in pairs(list)  do
+        -- this is 1 point brush
+        if type(brush_vert) ~= "table" then
+            CAPI.brushvert(0, 0, 1)
+            break
+        end
+
+        -- any other brush - array of arrays
         for x, v in pairs(brush_vert) do
-            CAPI.brushvert(x, y, v)
+            CAPI.brushvert(x - 1, y - 1, v)
         end
     end
 end
@@ -291,7 +298,7 @@ function new_height_brush(name, x, y, verts)
     brushes["brush_" ..  max_height_brushes] = function()
         CAPI.clearbrush()
 
-        if x and y and verts then
+        if x then
             height_brush_handle(x, y)
             height_brush_verts (verts)
         end
@@ -301,7 +308,7 @@ function new_height_brush(name, x, y, verts)
 end
 
 cancel_height_map = CAPI.hmapcancel
-paint_height_map  = CAPI.hmapselect
+select_height_map  = CAPI.hmapselect
 
 procedural = {
     erase_geometry = CAPI.editing_erasegeometry,

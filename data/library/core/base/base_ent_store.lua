@@ -619,7 +619,7 @@ function save_entities()
     for uid, entity in pairs(__entities_store) do
         -- save only persistent entities
         if entity.persistent then
-            logging.log(logging.DEBUG, "Saving entity " .. tostring(vals[i].uid))
+            logging.log(logging.DEBUG, "Saving entity " .. entity.uid)
 
             local class_name = tostring(entity)
 
