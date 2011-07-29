@@ -1,3 +1,24 @@
+--[[!
+    File: tgui/interface.lua
+
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        Tabbed interface system for TGUI.
+]]
+
+--[[!
+    Package: tgui
+    Tabbed Graphical User Interface. Default UI system for OctaForge, taking
+    tabbed approach of controlling.
+]]
 module("tgui", package.seeall)
 
 BAR_HORIZONTAL = 1
@@ -452,7 +473,7 @@ local prevfps = { 0, 0, 0 }
 local curfps  = { 0, 0, 0 }
 
 function show_info_area()
-    if not world.hasmap() then
+    if not world.has_map() then
         return nil
     end
 

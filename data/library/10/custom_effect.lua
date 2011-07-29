@@ -19,7 +19,7 @@ rain = {
 
         self.drops = {}
 
-        local wsize = world.editing_getworldsize()
+        local wsize = world.get_size()
 
         self.add_drop_event = game_manager.get_singleton().event_manager:add({
             seconds_before  = 0,

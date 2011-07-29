@@ -355,7 +355,7 @@ end
         name - name of the window (also key in <guis>).
         body - function specifying what to display inside the window.
         nofocus - boolean value specifying whether the window can
-        take focus. False by default - windows can take focus.
+        take focus. False by default, windows can take focus.
         True value is useful when you're doing things like scoreboard.
         Nofocus windows are still controllable outside mouselook mode.
         This behavior is used later in <tgui>.

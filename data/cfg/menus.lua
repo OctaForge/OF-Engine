@@ -1,8 +1,11 @@
 -- HUD stuff
 
 function edithud()
-    if world.enthavesel() ~= 0 then
-        return "%(1)s : %(2)s selected" % { world.entget(), world.enthavesel() }
+    if edit.has_selected_entity() ~= 0 then
+        return "%(1)s : %(2)s selected" % {
+            edit.get_entity(),
+            edit.has_selected_entity()
+        }
     end
 end
 
@@ -30,7 +33,7 @@ local main_id = tgui.push_tab("Main", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_
         gui.space(0.01, 0.01, function()
             gui.cond(
                 function()
-                    return world.hasmap()
+                    return world.has_map()
                 end, function()
                     gui.vlist(0, function()
                         gui.label("Map: Running.", 1.2, 0.8, 0, 0)
@@ -251,7 +254,7 @@ tgui.push_tab("Entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_entities", f
             gui.vlist(0, function()
                 gui.align(-1, -1)
                 for i, class in pairs(entity_classes.list()) do
-                    tgui.button_no_bg(class, function() world.spawnent(class) end)
+                    tgui.button_no_bg(class, function() edit.new_entity(class) end)
                 end
             end)
         end)

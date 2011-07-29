@@ -514,11 +514,43 @@ function bounce(thing, elasticity, friction, seconds)
     local normal = get_surface_normal(old_position, surface)
     if not normal then return fallback() end
 
-    movement = world.get_reflected_ray(movement, normal, elasticity, friction)
+    movement = get_reflected_ray(movement, normal, elasticity, friction)
 
     thing.position = old_position:add(movement)
     if iscolliding(self.position, self.radius, self.ignore) then return fallback() end
     thing.velocity = movement:mul(1 / seconds)
 
     return true
+end
+
+function is_player_colliding_entity(player, entity)
+    if entity.collision_radius_width and entity.collision_radius_width ~= 0 then
+        -- z
+        if player.position.z >= entity.position.z + 2 * entity.collision_radius_height or
+           player.position.z + player.eye_height + player.above_eye <= entity.position.z then return false end
+
+        -- x
+        if player.position.x - player.radius >= entity.position.x + entity.collision_radius_width or
+           player.position.x + player.radius <= entity.position.x - entity.collision_radius_width then return false end
+
+        -- y
+        if player.position.y - player.radius >= entity.position.y + entity.collision_radius_width or
+           player.position.y + player.radius <= entity.position.y - entity.collision_radius_width then return false end
+
+        return true
+    else
+        -- z
+        if player.position.z >= entity.position.z + entity.eye_height + entity.above_eye or
+           player.position.z + player.eye_height + player.above_eye <= entity.position.z then return false end
+
+        -- x
+        if player.position.x - player.radius >= entity.position.x + entity.radius or
+           player.position.x + player.radius <= entity.position.x - entity.radius then return false end
+
+        -- y
+        if player.position.y - player.radius >= entity.position.y + entity.radius or
+           player.position.y + player.radius <= entity.position.y - entity.radius then return false end
+
+        return true
+    end
 end

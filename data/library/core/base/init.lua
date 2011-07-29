@@ -160,6 +160,9 @@ require("base.base_textures")
 logging.log(logging.DEBUG, ":: VSlots.")
 require("base.base_vslots")
 
+logging.log(logging.DEBUG, ":: Editing.")
+require("base.base_editing")
+
 logging.log(logging.DEBUG, ":: World interface.")
 require("base.base_world")
 

@@ -1,32 +1,32 @@
 -- Heightmap brushes
 
-world.hmap.brush.new("Circle 1-0 Brush", 0, 0, { 1 })
-world.hmap.brush.new("Circle 2-1 Brush", 2, 2, {
+edit.new_height_brush("Circle 1-0 Brush", 0, 0, { 1 })
+edit.new_height_brush("Circle 2-1 Brush", 2, 2, {
     {},
     { 0,0,1 },
     { 0,1,2,1 },
     { 0,0,1 }
 })
-world.hmap.brush.new("Circle 4-2-1 Brush", 2, 2, {
+edit.new_height_brush("Circle 4-2-1 Brush", 2, 2, {
     { 0,0,1 },
     { 0,1,2,1 },
     { 1,2,4,2,1 },
     { 0,1,2,1 },
     { 0,0,1 }
 })
-world.hmap.brush.new("Square 3x3 brush", 1, 1, {
+edit.new_height_brush("Square 3x3 brush", 1, 1, {
     { 1,1,1 },
     { 1,1,1 },
     { 1,1,1 }
 })
-world.hmap.brush.new("Square 5x5 brush", 2, 2, {
+edit.new_height_brush("Square 5x5 brush", 2, 2, {
     { 1,1,1,1,1 },
     { 1,1,1,1,1 },
     { 1,1,1,1,1 },
     { 1,1,1,1,1 },
     { 1,1,1,1,1 }
 })
-world.hmap.brush.new("Square 7x7 brush", 3, 3, {
+edit.new_height_brush("Square 7x7 brush", 3, 3, {
     { 1,1,1,1,1,1,1 },
     { 1,1,1,1,1,1,1 },
     { 1,1,1,1,1,1,1 },
@@ -36,19 +36,19 @@ world.hmap.brush.new("Square 7x7 brush", 3, 3, {
     { 1,1,1,1,1,1,1 }
 })
 
-world.hmap.brush.new("Smooth 3x3 brush", 1, 1, {
+edit.new_height_brush("Smooth 3x3 brush", 1, 1, {
     { 0,0,0 },
     { 0 },
     { 0 }
 })
-world.hmap.brush.new("Smooth 5x5 brush", 2, 2, {
+edit.new_height_brush("Smooth 5x5 brush", 2, 2, {
     { 0,0,0,0,0 },
     { 0 },
     { 0 },
     { 0 },
     { 0 }
 })
-world.hmap.brush.new("Smooth 7x7 brush", 3, 3, {
+edit.new_height_brush("Smooth 7x7 brush", 3, 3, {
     { 0,0,0,0,0,0,0 },
     { 0 },
     { 0 },
@@ -58,7 +58,7 @@ world.hmap.brush.new("Smooth 7x7 brush", 3, 3, {
     { 0 }
 })
 
-world.hmap.brush.new("Noise 25x25 Brush", 12, 12, {
+edit.new_height_brush("Noise 25x25 Brush", 12, 12, {
     { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 },
     {},
     { 0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,1 },
@@ -85,7 +85,7 @@ world.hmap.brush.new("Noise 25x25 Brush", 12, 12, {
     { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }
 })
 
-world.hmap.brush_2() -- 421
+edit.select_height_brush(3, true) -- 421
 
 -- Texture blending
 

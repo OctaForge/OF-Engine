@@ -575,7 +575,7 @@ manage_triggering_collisions = utility.cache_by_time_delay(convert.tocalltable(f
             -- loop the triggers
             for n, entity in pairs(ents) do
                 -- if player is colliding the trigger ..
-                if world.is_player_colliding_entity(player, entity) then
+                if utility.is_player_colliding_entity(player, entity) then
                     -- call needed methods
                     if CLIENT then
                         entity:client_on_collision(player)
@@ -644,6 +644,13 @@ end
     nothing is targeted.
 ]]
 get_target_entity_uid = CAPI.get_target_entity_uid
+
+--[[!
+    Function: get_selected_entity
+    Returns currently selected entity, or nil of nothing
+    is selected.
+]]
+get_selected_entity = CAPI.editing_getselent
 
 --[[!
     Function: setup_dynamic_rendering_test
