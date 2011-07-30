@@ -14,8 +14,6 @@
         This file features texture handling interface.
 ]]
 
-local env = _G
-
 --[[!
     Package: texture
     This module controls textures (their registration and manipulation) and
@@ -59,16 +57,11 @@ reset = CAPI.texturereset
 -- @name add
 add = CAPI.texture
 
---- Reset material slots. TODO: move elsewhere.
--- @class function
--- @name resetmat
-resetmat = CAPI.materialreset
-
 --- Assign grass texture to last texture slot.
 -- @param name Path to the grass texture.
 -- @class function
 -- @name autograss
-autograss = CAPI.autograss
+auto_grass = CAPI.autograss
 
 --- Scroll a texture at X and Y Hz along the X and Y axes of the texture.
 -- @param X X axis scroll frequency.
@@ -138,19 +131,19 @@ reload = CAPI.reloadtex
 -- @param outfile Output file.
 -- @class function
 -- @name gendds
-gendds = CAPI.gendds
+generate_dds = CAPI.gendds
 
 ---
 -- @class function
 -- @name flipnormalmapy
-flipnormalmapy = CAPI.flipnormalmapy
+flip_normalmap_y = CAPI.flipnormalmapy
 
 --- Merge two normal maps (saving into the second one).
 -- @param n1 First normal blendmap.
 -- @param n2 Second normal blendmap.
 -- @class function
 -- @name mergenormalmaps
-mergenormalmaps = CAPI.mergenormalmaps
+merge_normalmaps = CAPI.mergenormalmaps
 
 --- DEPRECATED: replace
 -- @class function
@@ -164,11 +157,11 @@ set = CAPI.settex
 --- DEPRECATED: replace
 -- @class function
 -- @name getcur
-getcur = CAPI.getcurtex
+get_current = CAPI.getcurtex
 --- DEPRECATED: replace
 -- @class function
 -- @name getsel
-getsel = CAPI.getseltex
+get_selected = CAPI.getseltex
 --- DEPRECATED: replace
 -- @class function
 -- @name getrep
@@ -295,8 +288,8 @@ blendpaintmodes = { "off", "replace", "dig", "fill", "inverted dig", "inverted f
 --- Set blend paint mode.
 -- @param m Paint mode index in blendpaintmodes table, beginning with 1. Turns blendmap painting off when not ommited.
 function setblendpaintmode(m)
-    env.blendpaintmode = m or 1
-    echo("blend paint mode set to: %(1)s" % { blendpaintmodes[env.blendpaintmode] })
+    _G["blendpaintmode"] = m or 1
+    echo("blend paint mode set to: %(1)s" % { blendpaintmodes[_G["blendpaintmode"]] })
 end
 
 filltexlist = CAPI.filltexlist

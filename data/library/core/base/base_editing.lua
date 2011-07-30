@@ -82,6 +82,7 @@ edit_face = CAPI.editface
 fix_inside_faces = CAPI.fixinsidefaces
 
 set_material = CAPI.editmat
+material_reset = CAPI.materialreset
 
 function push(direction, mode)
     -- mode when no entity is selected or geometry is selected

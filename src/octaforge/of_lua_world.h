@@ -228,8 +228,8 @@ namespace lua_binds
             return;
         }
         snprintf(
-            buff, sizeof(buff), "%s%c%s",
-            homedir, PATHDIV, buf
+            buff, sizeof(buff), "%s%s",
+            homedir, buf
         );
         snprintf(buf, sizeof(buf), "%s", buff);
         if (fileexists(buf, "r"))
@@ -247,7 +247,7 @@ namespace lua_binds
         char buf [512];
         char buff[512];
         snprintf(buf,  sizeof(buf),  "data%cbase", PATHDIV);
-        snprintf(buff, sizeof(buff), "%s%c%s", homedir, PATHDIV, buf);
+        snprintf(buff, sizeof(buff), "%s%s", homedir, buf);
 
         e.t_new();
         listdir(buf, false, NULL, glob);

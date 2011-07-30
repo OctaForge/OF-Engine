@@ -33,7 +33,9 @@ current = nil
     Function: use
     This sets a currently used library. Meant to be used from
     map scripts to set which library will be in use.
-    It executes library's initializer and appends <package.path>.
+    It executes library's initializer and appends the search path
+    for both home directory and root directory in a safe way
+    (through internal C API).
 
     Parameters:
         version - The library version string. It's the name
@@ -48,20 +50,21 @@ current = nil
         <include>
 ]]
 function use(version)
-    current = version
-
-    local str = ";./data/library/%(1)s/?.lua" % { version }
-    if not string.find(package.path, str) then
-        package.path = package.path .. str
+    if not CAPI.setup_library(version) then
+        current = nil
+        return nil
     end
 
+    current = version
     return require(version)
 end
 
 --[[!
     Function: include
     Includes a module, either from currently activated library,
-    from core library or anywhere from <package.path>.
+    from core library or anywhere from 'data' (for example,
+    library.include("textures.foo") executes initializer script
+    with path 'data/textures/foo/init.lua').
 
     Parameters:
         name - Name of the module to include. Dot specifies

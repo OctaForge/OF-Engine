@@ -131,7 +131,7 @@ namespace lua_binds
                  e.get<const char*>(3)[0] ? e.get<const char*>(3) : NULL)
     LUA_BIND_STD(removezip, removezip, e.get<const char*>(1))
     LUA_BIND_STD(getserverlogfile, e.push, SERVER_LOGFILE)
-    
+    LUA_BIND_STD(setup_library, e.push, e.setup_library(e.get<const char*>(-1)));
 
     // Bit math
 

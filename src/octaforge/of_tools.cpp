@@ -209,9 +209,8 @@ namespace tools
         }
         else snprintf(
             buf, sizeof(buf),
-            "%s%cdata%c%s",
-            homedir, PATHDIV,
-            PATHDIV, fname
+            "%sdata%c%s",
+            homedir, PATHDIV, fname
         );
 
         loaded = loadfile(buf, NULL);

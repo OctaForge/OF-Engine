@@ -596,6 +596,16 @@ namespace lua
          * with this are actually done automatically by engine class.
          */
         int gettop();
+        /**
+         * @brief Sets up package.path for a library of specified version
+         * @param version Version of the library to set up.
+         * @return True on success, false on fail.
+         * 
+         * Sets up package.path for a specified library version.
+         * The version string must be convertible to a number and
+         * must not contain any extra characters (for safety).
+         */
+        bool setup_library(const char *version);
 
         /**
          * Constructor for lua_Engine.

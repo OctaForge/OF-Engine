@@ -24,16 +24,6 @@
 ]]
 
 --[[!
-    Variable: package.path
-    Contains paths to Lua scripts. By default adds
-
-    (start code)
-        ;./data/library/core/?.lua;./data/library/core/?/init.lua;./?/init.lua;./data/library/?/init.lua
-    (end)
-]]
-package.path = package.path .. ";./data/library/core/?.lua;./data/library/core/?/init.lua;./?/init.lua;./data/library/?/init.lua"
-
---[[!
     Function: trace
     By default commented out. Used to trace what's Lua doing.
 
