@@ -171,8 +171,15 @@ namespace lua_binds
     LUA_BIND_STD(entcopy, entcopy)
     LUA_BIND_STD(entpaste, entpaste)
     LUA_BIND_STD(enthavesel, addimplicit, e.push(entgroup.length()))
-    LUA_BIND_DEF(entselect, if (!noentedit()) addgroup(ent.type != ET_EMPTY && entgroup.find(n)<0 && e.exec<bool>(e.get<const char*>(1)) == true);)
-    LUA_BIND_DEF(entloop, if(!noentedit()) addimplicit(groupeditloop(((void)ent, e.exec(e.get<const char*>(1)))));)
+    LUA_BIND_DEF(entselect, {
+            if (!noentedit())
+            {
+                e.push_index(1).call(0, 1);
+                addgroup(ent.type != ET_EMPTY && entgroup.find(n)<0 && e.get<bool>(-1) == true);
+                e.pop(1);
+            }
+    })
+    LUA_BIND_DEF(entloop, if(!noentedit()) addimplicit(groupeditloop(((void)ent, e.push_index(1), e.call(0, 0))));)
     LUA_BIND_DEF(insel, entfocus(efocus, e.push(pointinsel(sel, ent.o) ? true : false));)
     LUA_BIND_DEF(entget, entfocus(efocus, string s; printent(ent, s); e.push(s));)
     LUA_BIND_STD(entindex, e.push, efocus)

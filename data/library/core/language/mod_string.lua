@@ -1,5 +1,5 @@
 --[[!
-    File: language/ext_string.lua
+    File: language/mod_string.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -12,9 +12,14 @@
 
     About: Purpose
         This file features various extensions made to Lua's string module.
-
-    Section: String extensions
 ]]
+
+--[[!
+    Package: string
+    Provides various extensions to default string module,
+    including splitting, template parsing and extended parameters. 
+]]
+module("string", package.seeall)
 
 --[[!
     Function: _str_interp
@@ -79,7 +84,7 @@ getmetatable("").__mod   = _str_interp
 getmetatable("").__index = _str_index
 
 --[[!
-    Function: string.split
+    Function: split
     Splits a string into table of tokens, based on
     <http://lua-users.org/wiki/SplitJoin>. Usage -
 
@@ -96,7 +101,7 @@ getmetatable("").__index = _str_index
     Returns:
         A table of tokens.
 ]]
-function string.split(s, d)
+function split(s, d)
     d = d and tostring(d) or ","
     local r = {}
     string.gsub(tostring(s),
@@ -106,7 +111,7 @@ function string.split(s, d)
 end
 
 --[[!
-    Function: string.template
+    Function: template
     Parses a string template (string with embedded lua code),
     inspired by luadoc parser system. Usage -
 
@@ -127,7 +132,7 @@ end
     Returns:
         Parsed string.
 ]]
-function string.template(s, l)
+function template(s, l)
     l = l or 0
     s = string.gsub(s, "<$" .. l .. "(.-)$" .. l .. ">", "<?lua %1 ?>")
 
@@ -151,8 +156,8 @@ function string.template(s, l)
             if ret ~= "nil" then table.insert(r, ret) end
         else
             -- make sure there is no more embedded code by looping it.
-            local p = string.template(cd, l + 1)
-            while p ~= cd do cd = p; p = string.template(p, l + 1) end
+            local p = template(cd, l + 1)
+            while p ~= cd do cd = p; p = template(p, l + 1) end
 
             -- done, insert.
             local rs = loadstring(cd)()

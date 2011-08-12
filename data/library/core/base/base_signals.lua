@@ -30,7 +30,7 @@ module("signals", package.seeall)
 local __post_emit_event_stack = {}
 
 --[[!
-    Funciton: _connect
+    Function: _connect
     This is used to connect a signal to a table. You never call this function directly.
     Instead, you use <methods_add> to add required signal handlers to the table and then
     use this function as table method, without the underscore.
@@ -84,7 +84,7 @@ function _connect(self, name, callback)
 end
 
 --[[!
-    Funciton: _disconnect
+    Function: _disconnect
     This is used to disconnect a signal from a table. You never call this function directly.
     Instead, you use <methods_add> to add required signal handlers to the table and then
     use this function as table method, without the underscore.

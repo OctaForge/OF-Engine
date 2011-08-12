@@ -1,10 +1,10 @@
 -- HUD stuff
 
 function edithud()
-    if edit.has_selected_entity() ~= 0 then
+    if edit.num_selected_entities() ~= 0 then
         return "%(1)s : %(2)s selected" % {
             edit.get_entity(),
-            edit.has_selected_entity()
+            edit.num_selected_entities()
         }
     end
 end

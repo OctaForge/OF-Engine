@@ -1,5 +1,5 @@
 --[[!
-    File: language/ext_math.lua
+    File: language/mod_math.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -12,12 +12,17 @@
 
     About: Purpose
         This file features various extensions made to Lua's math module.
-
-    Section: Math extensions
 ]]
 
 --[[!
-    Function: math.lsh
+    Package: math
+    Provides various extensions to default math module,
+    including vector math and bit operations. 
+]]
+module("math", package.seeall)
+
+--[[!
+    Function: lsh
     Bit left shift function.
 
     Parameters:
@@ -27,10 +32,10 @@
     Returns:
         The shifted value.
 ]]
-math.lsh = CAPI.lsh
+lsh = CAPI.lsh
 
 --[[!
-    Function: math.rsh
+    Function: rsh
     Bit right shift function.
 
     Parameters:
@@ -40,10 +45,10 @@ math.lsh = CAPI.lsh
     Returns:
         The shifted value.
 ]]
-math.rsh = CAPI.rsh
+rsh = CAPI.rsh
 
 --[[!
-    Function: math.bor
+    Function: bor
     Bit OR function.
 
     Parameters:
@@ -56,10 +61,10 @@ math.rsh = CAPI.rsh
     Returns:
         Bit OR result.
 ]]
-math.bor = CAPI.bor
+bor = CAPI.bor
 
 --[[!
-    Function: math.band
+    Function: band
     Bit AND function.
 
     Parameters:
@@ -72,10 +77,10 @@ math.bor = CAPI.bor
     Returns:
         Bit AND result.
 ]]
-math.band = CAPI.band
+band = CAPI.band
 
 --[[!
-    Function: math.bnot
+    Function: bnot
     Bit negation function.
 
     Parameters:
@@ -84,10 +89,10 @@ math.band = CAPI.band
     Returns:
         Bit negated value.
 ]]
-math.bnot = CAPI.bnot
+bnot = CAPI.bnot
 
 --[[!
-    Function: math.round
+    Function: round
     Rounds a floating point value.
     If floating point is above or .5, the number
     gets rounded up, and down otherwise.
@@ -98,7 +103,7 @@ math.bnot = CAPI.bnot
     Returns:
         A rounded (integral) value.
 ]]
-function math.round(v)
+function round(v)
     return (type(v) == "number"
         and math.floor(v + 0.5)
         or nil
@@ -106,7 +111,7 @@ function math.round(v)
 end
 
 --[[!
-    Function: math.clamp
+    Function: clamp
     Clamps a number (limits its bounds)
 
     Parameters:
@@ -117,12 +122,12 @@ end
     Returns:
         A clamped number.
 ]]
-function math.clamp(v, l, h)
+function clamp(v, l, h)
     return math.max(l, math.min(v, h))
 end
 
 --[[!
-    Function: math.sign
+    Function: sign
     Gets a sign of a number. That means if input
     is bigger than 0, sign is 1, if it's smaller
     than 0, sign is -1. If input is 0, sign is
@@ -134,12 +139,12 @@ end
     Returns:
         A sign of the number.
 ]]
-function math.sign(v)
+function sign(v)
     return (v < 0 and -1 or (v > 0 and 1 or 0))
 end
 
 --[[!
-    Function: math.lerp
+    Function: lerp
     Performs a lerp between two numbers.
 
     Parameters:
@@ -150,12 +155,12 @@ end
     Returns:
         Result of lerp between the numbers.
 ]]
-function math.lerp(first, other, weight)
+function lerp(first, other, weight)
     return first + weight * (other - first)
 end
 
 --[[!
-    Function: math.magnet
+    Function: magnet
     If a value is inside certain radius from another value,
     it returns the other value, othrwise returns the
     first value.
@@ -165,16 +170,16 @@ end
         other - From where to count the radius.
         radius - The radius.
 ]]
-function math.magnet(value, other, radius)
+function magnet(value, other, radius)
     return (math.abs(value - other) <= radius) and other or value
 end
 
 --[[!
-    Class: math.vec3
+    Class: vec3
     A vec3 class (with x, y, z coordinates) for OctaForge's
     scripting system.
 ]]
-math.vec3 = class.new()
+vec3 = class.new()
 
 --[[!
     Constructor: __init
@@ -192,7 +197,7 @@ math.vec3 = class.new()
     Or simply omit arguments and let the vector
     initialize as 0, 0, 0.
 ]]
-function math.vec3:__init(x, y, z)
+function vec3:__init(x, y, z)
     if type(x) == "table" and x.is_a and x:is_a(vec3) then
         self.x = tonumber(x.x)
         self.y = tonumber(x.y)
@@ -220,7 +225,7 @@ end
             vec3 <X, Y, Z>
         (end)
 ]]
-function math.vec3:__tostring()
+function vec3:__tostring()
     return string.format("vec3 <%s, %s, %s>",
                          tostring(self.x),
                          tostring(self.y),
@@ -239,7 +244,7 @@ end
         sqrt(x^2 + y^2 + z^2)
     (end)
 ]]
-function math.vec3:magnitude()
+function vec3:magnitude()
     return math.sqrt(self.x * self.x
                    + self.y * self.y
                    + self.z * self.z)
@@ -255,7 +260,7 @@ end
     See Also:
         <magnitude>
 ]]
-function math.vec3:normalize()
+function vec3:normalize()
     local mag = self:magnitude()
     if mag ~= 0 then self:mul(1 / mag)
     else logging.log(logging.ERROR, "Can't normalize vec of null length.") end
@@ -276,7 +281,7 @@ end
     See Also:
         <magnitude>
 ]]
-function math.vec3:cap(s)
+function vec3:cap(s)
     local mag = self:magnitude()
     if mag > s then self:mul(size / mag) end
     return self
@@ -295,10 +300,10 @@ end
     See Also:
         <sub>
 ]]
-function math.vec3:sub_new(v)
-    return math.vec3(self.x - v.x,
-                     self.y - v.y,
-                     self.z - v.z)
+function vec3:sub_new(v)
+    return vec3(self.x - v.x,
+                self.y - v.y,
+                self.z - v.z)
 end
 
 --[[!
@@ -314,10 +319,10 @@ end
     See Also:
         <add>
 ]]
-function math.vec3:add_new(v)
-    return math.vec3(self.x + v.x,
-                     self.y + v.y,
-                     self.z + v.z)
+function vec3:add_new(v)
+    return vec3(self.x + v.x,
+                self.y + v.y,
+                self.z + v.z)
 end
 
 --[[!
@@ -333,10 +338,10 @@ end
     See Also:
         <mul>
 ]]
-function math.vec3:mul_new(v)
-    return math.vec3(self.x * v,
-                     self.y * v,
-                     self.z * v)
+function vec3:mul_new(v)
+    return vec3(self.x * v,
+                self.y * v,
+                self.z * v)
 end
 
 --[[!
@@ -352,7 +357,7 @@ end
     See Also:
         <sub_new>
 ]]
-function math.vec3:sub(v)
+function vec3:sub(v)
     self.x = self.x - v.x
     self.y = self.y - v.y
     self.z = self.z - v.z
@@ -372,7 +377,7 @@ end
     See Also:
         <add_new>
 ]]
-function math.vec3:add(v)
+function vec3:add(v)
     self.x = self.x + v.x
     self.y = self.y + v.y
     self.z = self.z + v.z
@@ -392,7 +397,7 @@ end
     See Also:
         <mul_new>
 ]]
-function math.vec3:mul(v)
+function vec3:mul(v)
     self.x = self.x * v
     self.y = self.y * v
     self.z = self.z * v
@@ -406,8 +411,8 @@ end
     Returns:
         Copy of self.
 ]]
-function math.vec3:copy()
-    return math.vec3(self.x, self.y, self.z)
+function vec3:copy()
+    return vec3(self.x, self.y, self.z)
 end
 
 --[[!
@@ -417,7 +422,7 @@ end
     Returns:
         An array of vector components.
 ]]
-function math.vec3:as_array()
+function vec3:as_array()
     return { self.x, self.y, self.z }
 end
 
@@ -432,7 +437,7 @@ end
     Returns:
         Itself.
 ]]
-function math.vec3:from_yaw_pitch(yaw, pitch)
+function vec3:from_yaw_pitch(yaw, pitch)
     self.x = -(math.sin(math.rad(yaw)))
     self.y =   math.cos(math.rad(yaw))
 
@@ -458,7 +463,7 @@ end
             { yaw = yaw_value, pitch = pitch_value }
         (end)
 ]]
-function math.vec3:to_yaw_pitch()
+function vec3:to_yaw_pitch()
     local mag = self:magnitude()
     if mag < 0.001 then
         return { yaw = 0, pitch = 0 }
@@ -482,7 +487,7 @@ end
         Boolean value, true if the distance is lower than
         given maximal distance, false otherwise.
 ]]
-function math.vec3:is_close_to(v, d)
+function vec3:is_close_to(v, d)
     d = d * d
     local temp, sum
 
@@ -510,7 +515,7 @@ end
     Returns:
         Dot product of two vectors.
 ]]
-function math.vec3:dot_product(v)
+function vec3:dot_product(v)
     return self.x * v.x + self.y * v.y + self.z * v.z
 end
 
@@ -521,7 +526,7 @@ end
     Parameters:
         v - The other vector.
 ]]
-function math.vec3:cos_angle_with(v)
+function vec3:cos_angle_with(v)
     return (self:dot_product(v) / (self:magnitude() * v:magnitude()))
 end
 
@@ -535,8 +540,8 @@ end
     Returns:
         Cross product of two vectors (a new vector)
 ]]
-function math.vec3:cross_product(v)
-    return math.vec3(
+function vec3:cross_product(v)
+    return vec3(
         (self.y * v.z) - (self.z * v.y),
         (self.z * v.x) - (self.x * v.z),
         (self.x * v.y) - (self.y * v.x)
@@ -553,7 +558,7 @@ end
     Returns:
         Modified self.
 ]]
-function math.vec3:project_along_surface(surf)
+function vec3:project_along_surface(surf)
     local normal_proj = self:dot_product (surf)
     return self:sub (surf:mul_new(normal_proj))
 end
@@ -574,7 +579,7 @@ end
             { yaw = yaw_value, pitch = pitch_value, roll = roll_value }
         (end)
 ]]
-function math.vec3:to_yaw_pitch_roll(up, yaw_hint)
+function vec3:to_yaw_pitch_roll(up, yaw_hint)
     local left = self:cross_product(up)
 
     local yaw
@@ -605,7 +610,7 @@ end
     Returns:
         Result of lerp, a new vector.
 ]]
-function math.vec3:lerp(other, weight)
+function vec3:lerp(other, weight)
     return self:add_new(other:sub_new(self):mul(weight))
 end
 
@@ -613,18 +618,18 @@ end
     Function: is_zero
     Returns true if all components of the vector are zero.
 ]]
-function math.vec3:is_zero()
+function vec3:is_zero()
     return (self.x == 0 and self.y == 0 and self.z == 0)
 end
 
 --[[!
-    Class: math.vec4
+    Class: vec4
     A vec4 class (with x, y, z, w coordinates) for OctaForge's
     scripting system.
 
     This vector inherits from vec3, so it has all of its methods.
 ]]
-math.vec4 = class.new(math.vec3)
+vec4 = class.new(vec3)
 
 --[[!
     Constructor: __init
@@ -643,7 +648,7 @@ math.vec4 = class.new(math.vec3)
     Or simply omit arguments and let the vector
     initialize as 0, 0, 0, 0.
 ]]
-function math.vec4:__init(x, y, z, w)
+function vec4:__init(x, y, z, w)
     if type(x) == "table" and x.is_a and x:is_a(vec4) then
         self.x = tonumber(x.x)
         self.y = tonumber(x.y)
@@ -674,7 +679,7 @@ end
             vec4 <X, Y, Z, W>
         (end)
 ]]
-function math.vec4:__tostring()
+function vec4:__tostring()
     return string.format("vec4 <%s, %s, %s, %s>",
                          tostring(self.x),
                          tostring(self.y),
@@ -694,35 +699,35 @@ end
         sqrt(x^2 + y^2 + z^2 + w^2)
     (end)
 ]]
-function math.vec4:magnitude()
+function vec4:magnitude()
     return math.sqrt(self.x * self.x
                    + self.y * self.y
                    + self.z * self.z
                    + self.w * self.w)
 end
 
-function math.vec4:sub_new(v)
-    return math.vec4(self.x - v.x,
-                     self.y - v.y,
-                     self.z - v.z,
-                     self.w - v.w)
+function vec4:sub_new(v)
+    return vec4(self.x - v.x,
+                self.y - v.y,
+                self.z - v.z,
+                self.w - v.w)
 end
 
-function math.vec4:add_new(v)
-    return math.vec4(self.x + v.x,
-                     self.y + v.y,
-                     self.z + v.z,
-                     self.w + v.w)
+function vec4:add_new(v)
+    return vec4(self.x + v.x,
+                self.y + v.y,
+                self.z + v.z,
+                self.w + v.w)
 end
 
-function math.vec4:mul_new(v)
-    return math.vec4(self.x * v,
-                     self.y * v,
-                     self.z * v,
-                     self.w * v)
+function vec4:mul_new(v)
+    return vec4(self.x * v,
+                self.y * v,
+                self.z * v,
+                self.w * v)
 end
 
-function math.vec4:sub(v)
+function vec4:sub(v)
     self.x = self.x - v.x
     self.y = self.y - v.y
     self.z = self.z - v.z
@@ -730,7 +735,7 @@ function math.vec4:sub(v)
     return self
 end
 
-function math.vec4:add(v)
+function vec4:add(v)
     self.x = self.x + v.x
     self.y = self.y + v.y
     self.z = self.z + v.z
@@ -738,7 +743,7 @@ function math.vec4:add(v)
     return self
 end
 
-function math.vec4:mul(v)
+function vec4:mul(v)
     self.x = self.x * v
     self.y = self.y * v
     self.z = self.z * v
@@ -746,11 +751,11 @@ function math.vec4:mul(v)
     return self
 end
 
-function math.vec4:copy()
-    return math.vec4(self.x, self.y, self.z, self.w)
+function vec4:copy()
+    return vec4(self.x, self.y, self.z, self.w)
 end
 
-function math.vec4:as_array()
+function vec4:as_array()
     return { self.x, self.y, self.z, self.w }
 end
 
@@ -767,7 +772,7 @@ end
     Returns:
         Itself.
 ]]
-function math.vec4:quat_from_axis_angle(ax, an)
+function vec4:quat_from_axis_angle(ax, an)
     an = math.rad(an)
     self.w = math.cos(an / 2)
     local s = math.sin(an / 2)
@@ -790,7 +795,7 @@ end
             { yaw = yaw_value, pitch = pitch_value, roll = roll_value }
         (end)
 ]]
-function math.vec4:to_yaw_pitch_roll()
+function vec4:to_yaw_pitch_roll()
     --local r = self:to_yaw_pitch()
     --r.roll = 0
     --return r
@@ -812,12 +817,12 @@ end
     Function: is_zero
     Returns true if all components of the vector are zero.
 ]]
-function math.vec4:is_zero()
+function vec4:is_zero()
     return (self.x == 0 and self.y == 0 and self.z == 0 and self.w == 0)
 end
 
 --[[!
-    Function: math.frandom
+    Function: frandom
     Returns floating point pseudo-random number using range
     specified from arguments.
 
@@ -825,20 +830,20 @@ end
         _min - Minimal value of the returned number.
         _max - Maximal value of the returned number.
 ]]
-function math.frandom(_min, _max)
+function frandom(_min, _max)
     return math.random() * (_max - _min) + _min
 end
 
 --[[!
-    Function: math.vec3_normalized
+    Function: vec3_normalized
     Returns a normalized vec3 of non-zero length with
     x, y, z components being random floating point numbers
     ranging from -1 to 1.
 ]]
-function math.vec3_normalized()
+function vec3_normalized()
     local ret = nil
     while not ret or ret:magnitude() == 0 do
-        ret = math.vec3(math.frandom(-1, 1), math.frandom(-1, 1), math.frandom(-1, 1))
+        ret = vec3(frandom(-1, 1), frandom(-1, 1), frandom(-1, 1))
     end
     return ret:normalize()
 end
