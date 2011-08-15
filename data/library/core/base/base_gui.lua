@@ -16,7 +16,8 @@
 
 --[[!
     Package: gui
-    This module handles functions for creating menus, widgets, editors, fonts etc.
+    This module handles functions for creating menus,
+    widgets, editors, fonts etc.
 ]]
 module("gui", package.seeall)
 

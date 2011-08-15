@@ -11,17 +11,19 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        This file features engine interface (quitting, engine variables, homedir etc.)
+        This file features engine interface
+        (quitting, engine variables, homedir etc.)
 ]]
 
 --[[!
     Package: engine
-    This module contains engine interface. Contains some core engine functions as
-    well as engine variable system shared between engine and scripting.
+    This module contains engine interface. Contains some core engine
+    functions as well as engine variable system shared between engine
+    and scripting.
 
-    You can get engine varibles in scripting the same way as normal variables are
-    handled, because _G environment table is overloaded to do so. You can also
-    create new temporary variables in here.
+    You can get engine varibles in scripting the same way as normal
+    variables are handled, because _G environment table is overloaded
+    to do so. You can also create new temporary variables in here.
 ]]
 module("engine", package.seeall)
 

@@ -16,8 +16,8 @@
 
 --[[!
     Package: library
-    This module controls libraries of scripts. It allows to use a specific library
-    in a script and include submodules among specific library.
+    This module controls libraries of scripts. It allows to use a
+    specific library in a script and include submodules among specific library.
 ]]
 module("library", package.seeall)
 

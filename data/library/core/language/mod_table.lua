@@ -127,7 +127,9 @@ end
 
     (start code)
         local a = { a = 5, b = 10 }
-        local b = table.filter_dict(a, function (k, v) return ((v <= 5) and true or false) end)
+        local b = table.filter_dict(a, function (k, v)
+            return ((v <= 5) and true or false)
+        end)
         -- b now contains just "a"
     (end)
 
@@ -155,7 +157,9 @@ end
 
     (start code)
         local a = { 5, 10, 15 }
-        local b = table.filter_array(a, function (i, v) return ((i <= 2) and true or false) end)
+        local b = table.filter_array(a, function (i, v)
+            return ((i <= 2) and true or false)
+        end)
         -- b is empty
     (end)
 

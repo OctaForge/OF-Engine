@@ -16,8 +16,9 @@
 
 --[[!
     Package: entity_store
-    This module handles entity storage for instances, as well as various functions
-    for controlling their properties and getting/creating.
+    This module handles entity storage for instances,
+    as well as various functions for controlling their
+    properties and getting/creating.
 ]]
 module("entity_store", package.seeall)
 
@@ -48,14 +49,19 @@ local __entities_store_by_class = {}
         uid - the unique ID of the entity.
 ]]
 function get(uid)
-    logging.log(logging.DEBUG, "get: entity " .. tostring(uid))
+    logging.log(logging.DEBUG, "get: entity " .. uid)
 
-    local r = __entities_store[tonumber(uid)]
+    local r = __entities_store[uid]
     if    r then
-        logging.log(logging.DEBUG, "get: entity " .. tostring(uid) .. " found (" .. r.uid .. ")")
+        logging.log(
+            logging.DEBUG,
+            "get: entity " .. uid .. " found (" .. r.uid .. ")"
+        )
         return r
     else
-        logging.log(logging.DEBUG, "get: could not find entity " .. tostring(uid))
+        logging.log(
+            logging.DEBUG, "get: could not find entity " .. uid
+        )
         return nil
     end
 end
@@ -101,10 +107,20 @@ function get_by_tag(tag)
     if   #r == 1 then
         return r[1]
     elseif  #r > 1 then
-        logging.log(logging.WARNING, "Attempt to get a single entity with tag '" .. tostring(wtag) .. "', but several exist.")
+        logging.log(
+            logging.WARNING,
+            "Attempt to get a single entity with tag '"
+                .. tostring(wtag)
+                .. "', but several exist."
+        )
         return nil
     else
-        logging.log(logging.WARNING, "Attempt to get a single entity with tag '" .. tostring(wtag) .. "', but none exist.")
+        logging.log(
+            logging.WARNING,
+            "Attempt to get a single entity with tag '"
+                .. tostring(wtag)
+                .. "', but none exist."
+        )
         return nil
     end
 end
@@ -151,8 +167,8 @@ end
 
 --[[!
     Function: get_all_client_numbers
-    Gets an array of all client numbers. It basically returns a re-mapped output of
-    <get_all_clients> (see <table.map>).
+    Gets an array of all client numbers. It basically returns
+    a re-mapped output of <get_all_clients> (see <table.map>).
 ]]
 function get_all_client_numbers()
     return table.map(get_all_clients(), function(c) return c.cn end)
@@ -172,7 +188,8 @@ function is_player_editing(player)
     if CLIENT then
         player = player or get_player_entity()
     end
-    return player and player.client_state == 4 -- character.CLIENT_STATE.EDITING
+    -- character.CLIENT_STATE.EDITING
+    return player and player.client_state == 4
 end
 
 --[[!
@@ -223,7 +240,9 @@ function get_all_close(origin, kwargs)
         end
 
         -- check distances
-        if not skip and (origin:sub_new(fun(entity)):magnitude() <= max_distance) then
+        if not skip and (
+            origin:sub_new(fun(entity)):magnitude() <= max_distance
+        ) then
             table.insert(ret, { entity, distance })
         end
     end
@@ -244,11 +263,14 @@ end
     unique ID at this point.
 
     Parameters:
-        class_name - name of entity class this entity instance will be spawned from.
+        class_name - name of entity class this entity instance
+        will be spawned from.
         uid - unique ID of the new entity.
-        kwargs - additional parameters, here just passed to activators and to init function on server.
-        _new - if this is true, init function will be called on the spawned instance, because it marks
-        it's newly created entity. There are cases when we don't want this though, like when loading
+        kwargs - additional parameters, here just passed to activators
+        and to init function on server.
+        _new - if this is true, init function will be called on the
+        spawned instance, because it marks it's newly created entity.
+        There are cases when we don't want this though, like when loading
         saved entities from file. This applies for server only.
 
     Returns:
@@ -263,8 +285,20 @@ function add(class_name, uid, kwargs, _new)
     -- debugging, we're leet
     uid = uid or 1337
 
-    logging.log(logging.DEBUG, "Adding new scripting entity of type " .. class_name .. " with uid " .. uid)
-    logging.log(logging.DEBUG, "   with arguments: " .. json.encode(kwargs) .. ", " .. tostring(_new))
+    logging.log(
+        logging.DEBUG,
+        "Adding new scripting entity of type "
+            .. class_name
+            .. " with uid "
+            .. uid
+    )
+    logging.log(
+        logging.DEBUG,
+        "   with arguments: "
+            .. json.encode(kwargs)
+            .. ", "
+            .. tostring(_new)
+    )
 
     -- cannot recreate an entity
     assert(not get(uid))
@@ -316,20 +350,23 @@ end
 
 --[[!
     Function: del
-    Deletes an entity of given unique ID. First, it emits pre_deactivate signal
-    for the entity, then it calls some deactivators (see <base_server.deactivate>,
-    <base_client.client_deactivate>). Then it gets cleared from by_class cache
-    and removed from storage.
+    Deletes an entity of given unique ID. First, it emits pre_deactivate
+    signal for the entity, then it calls some deactivators
+    (see <base_server.deactivate>, <base_client.client_deactivate>).
+    Then it gets cleared from by_class cache and removed from storage.
 
     Parameters:
         uid - known unique ID of the entity.
 ]]
 function del(uid)
-    logging.log(logging.DEBUG, "Removing scripting entity: " .. tostring(uid))
+    logging.log(logging.DEBUG, "Removing scripting entity: " .. uid)
 
     -- check for existence
     if not __entities_store[uid] then
-        logging.log(logging.WARNING, "Cannot remove entity " .. tostring(uid) .. " as it does not exist.")
+        logging.log(
+            logging.WARNING,
+            "Cannot remove entity " .. uid .. " as it does not exist."
+        )
         return nil
     end
 
@@ -553,40 +590,47 @@ end
 --[[!
     Function: manage_triggering_collisions
     This function manages area trigger collisions. It's cached by time delay
-    (see <utility.cache_by_time_delay>) with delay set to 0.1 seconds, so the performance
-    is sufficient.
+    (see <utility.cache_by_time_delay>) with delay set to 0.1 seconds,
+    so the performance is sufficient.
 ]]
-manage_triggering_collisions = utility.cache_by_time_delay(convert.tocalltable(function()
-    -- get all area triggers and entities inherited from area triggers
-    local ents = get_all_by_class("area_trigger")
+manage_triggering_collisions = utility.cache_by_time_delay(
+    convert.tocalltable(
+        function()
+            -- get all area triggers and entities inherited from area triggers
+            local ents = get_all_by_class("area_trigger")
 
-    -- loop all clients
-    for i, player in pairs(get_all_clients()) do
-        -- skipping?
-        local skip = false
+            -- loop all clients
+            for i, player in pairs(get_all_clients()) do
+                -- skipping?
+                local skip = false
 
-        -- skip players that are editing - they're not colliding
-        if is_player_editing(player) then
-            skip = true
-        end
+                -- skip players that are editing - they're not colliding
+                if is_player_editing(player) then
+                    skip = true
+                end
 
-        -- if not skipping ..
-        if not skip then
-            -- loop the triggers
-            for n, entity in pairs(ents) do
-                -- if player is colliding the trigger ..
-                if utility.is_player_colliding_entity(player, entity) then
-                    -- call needed methods
-                    if CLIENT then
-                        entity:client_on_collision(player)
-                    else
-                        entity:on_collision(player)
+                -- if not skipping ..
+                if not skip then
+                    -- loop the triggers
+                    for n, entity in pairs(ents) do
+                        -- if player is colliding the trigger ..
+                        if utility.is_player_colliding_entity(
+                            player, entity
+                        ) then
+                            -- call needed methods
+                            if CLIENT then
+                                entity:client_on_collision(player)
+                            else
+                                entity:on_collision(player)
+                            end
+                        end
                     end
                 end
             end
         end
-    end
-end), 1 / 10)
+    ),
+    0.1
+)
 
 --[[!
     Function: render_hud_model
@@ -675,7 +719,9 @@ function setup_dynamic_rendering_test(entity)
             -- check the distance - skip rendering only if it's distant
             if entity.position:sub_new(player_center):magnitude() > 256 then
                 -- check for line of sight
-                if not utility.haslineofsight(player_center, entity.position) then
+                if not utility.haslineofsight(
+                    player_center, entity.position
+                ) then
                     -- do not render
                     return false
                 end
@@ -696,10 +742,12 @@ if CLIENT then
 
     --[[!
         Function: set_player_uid
-        Creates player_entity variable, which basically points at entity of given unique ID.
-        It also sets controlled_here member of player entity to true, so all player's state
-        variables with custom_synch set to true which are set on client will be updated locally
-        without sending message even when actor_uid is -1, see <base_client.set_state_data>. 
+        Creates player_entity variable, which basically points at entity
+        of given unique ID. It also sets controlled_here member of player
+        entity to true, so all player's state variables with custom_synch
+        set to true which are set on client will be updated locally without
+        sending message even when actor_uid is -1, see
+        <base_client.set_state_data>. 
     ]]
     function set_player_uid(uid)
         logging.log(logging.DEBUG, "Setting player uid to " .. tostring(uid))
@@ -708,7 +756,11 @@ if CLIENT then
             player_entity = get(uid)
             player_entity.controlled_here = true
 
-            logging.log(logging.DEBUG, "Player controlled_here:" .. tostring(player_entity.controlled_here))
+            logging.log(
+                logging.DEBUG,
+                "Player controlled_here:"
+                    .. tostring(player_entity.controlled_here)
+            )
 
             -- assert it - must be valid
             assert(player_entity)
@@ -739,8 +791,18 @@ if CLIENT then
     function set_state_data(uid, key_protocol_id, value)
         local entity = get(uid)
         if entity then
-            local key = message.to_protocol_name(tostring(entity), key_protocol_id)
-            logging.log(logging.DEBUG, "set_state_data: " .. uid .. ", " .. key_protocol_id .. ", " .. key)
+            local key = message.to_protocol_name(
+                tostring(entity), key_protocol_id
+            )
+            logging.log(
+                logging.DEBUG,
+                "set_state_data: "
+                    .. uid
+                    .. ", "
+                    .. key_protocol_id
+                    .. ", "
+                    .. key
+            )
             entity:set_state_data(key, value)
         end
     end
@@ -765,7 +827,10 @@ if CLIENT then
         -- not ready if anything is uninitialized
         for uid, entity in pairs(__entities_store) do
             if not entity.initialized then
-                logging.log(logging.INFO, ".. no, entity " .. entity.uid .. " is not initialized.")
+                logging.log(
+                    logging.INFO,
+                    ".. no, entity " .. entity.uid .. " is not initialized."
+                )
                 return false
             end
         end
@@ -782,10 +847,11 @@ else
 
     --[[!
         Function: generate_uid
-        Generates a new unique ID for entity. Basically takes highest unique ID in the storage
-        and returns higher one. Unique ID is a simple number used for entity lookups and storage.
-        It's also used when saving. Player (unless you added new entities while editing) has
-        always highest unique ID.
+        Generates a new unique ID for entity. Basically takes highest
+        unique ID in the storage and returns a higher one.
+        Unique ID is a simple number used for entity lookups and storage.
+        It's also used when saving. Player (unless you added new entities
+        while editing) has always the highest unique ID.
     ]]
     function generate_uid()
         -- what we'll return
@@ -799,7 +865,7 @@ else
         -- r is at highest unique ID available. Increment it.
         r = r + 1
 
-        logging.log(logging.DEBUG, "Generating new uid: " .. tostring(r))
+        logging.log(logging.DEBUG, "Generating new uid: " .. r)
 
         -- we're done, return
         return r
@@ -807,17 +873,21 @@ else
 
     --[[!
         Function: new
-        Creates a new serverside entity. The entity is then sent to every client available.
-        The function generates an unique ID, unless the unique ID is forced to value
-        via arguments, then calls <entity_store.add> with proper arguments (the entity is new).
+        Creates a new serverside entity. The entity is then sent to
+        every client available. The function generates an unique ID
+        unless the unique ID is forced to value via arguments,
+        then calls <entity_store.add> with proper arguments (the entity is new).
 
-        It can either return the entity (default) or its unique ID (if overriden from arguments).
+        It can either return the entity (default) or its unique ID
+        (if overriden from arguments).
 
         Parameters:
             class - the entity class to create instance of.
             kwargs - additional parameter table, passed to <entity_store.add>.
-            force_uid - forced unique ID, optional. If not forced, it gets generated.
-            return_uid - boolean value, optional. If true, entity's unique ID is returned
+            force_uid - forced unique ID, optional.
+            If not forced, it gets generated.
+            return_uid - boolean value, optional.
+            If true, entity's unique ID is returned
             instead of actual entity instance.
     ]]
     function new(class, kwargs, force_uid, return_uid)
@@ -836,9 +906,9 @@ else
     --[[!
         Function: new_npc
         Creates a new NPC (client). The changes get reflected to every client.
-        The NPC is set as controlled_here, which on server means state variables
-        with custom synching will not notify clients with message when updated
-        serverside.
+        The NPC is set as controlled_here, which on server means state
+        variables with custom synching will not notify clients with message
+        when updated serverside.
 
         Parameters:
             class - entity class the NPC should be of, usually <character>,
@@ -870,7 +940,9 @@ else
             cn - client number of the receiver.
     ]]
     function send_entities(cn)
-        logging.log(logging.DEBUG, "Sending active entities to " .. tostring(cn))
+        logging.log(
+            logging.DEBUG, "Sending active entities to " .. cn
+        )
 
         -- get table of unique IDs
         local uids = table.keys(__entities_store)
@@ -899,13 +971,15 @@ else
             key_protocol_id - protocol ID of state variable we're setting.
             It gets converted to real name inside this function.
             value - the value we're setting.
-            actor_uid - unique ID of the actor (client that triggered the change)
-            or -1 when it comes from the server.
+            actor_uid - unique ID of the actor (client that triggered
+            the change) or -1 when it comes from the server.
     ]]
     function set_state_data(uid, key_protocol_id, value, actor_uid)
         local entity = get(uid)
         if entity then
-            local key = message.to_protocol_name(tostring(entity), key_protocol_id)
+            local key = message.to_protocol_name(
+                tostring(entity), key_protocol_id
+            )
             entity:set_state_data(key, value, actor_uid)
         end
     end
@@ -915,24 +989,32 @@ else
         Loads entities into server storage from previously saved JSON string.
         The string gets decoded, entities get looped, state data are set.
 
-        Performs some backwards compatibility adjustments for old sauer map formats.
-        Entities created this way are then passed to all clients.
+        Performs some backwards compatibility adjustments for old sauer
+        map formats. Entities created this way are then passed to all clients.
 
         State data get passed via kwargs to <entity_store.add>.
 
         Parameters:
-            entities_json - JSON string which is later decoded into proper table
-            of entity data.
+            entities_json - JSON string which is later decoded into
+            proper table of entity data.
     ]]
     function load_entities(entities_json)
-        logging.log(logging.DEBUG, "Loading entities .. " .. tostring(entities_json) .. ", " .. type(entities_json))
+        logging.log(
+            logging.DEBUG,
+            "Loading entities .. "
+                .. entities_json
+                .. ", "
+                .. type(entities_json)
+        )
 
         -- decode it
         local entities = json.decode(entities_json)
 
         -- loop the table
         for i, entity in pairs(entities) do
-            logging.log(logging.DEBUG, "load_entities: " .. json.encode(entity))
+            logging.log(
+                logging.DEBUG, "load_entities: " .. json.encode(entity)
+            )
 
             -- entity unique ID
             local uid        = entity[1]
@@ -951,7 +1033,8 @@ else
                     .. json.encode(state_data)
                 )
 
-            -- backwards comptaibility, rotate by 180 degrees for yawed entities
+            -- backwards comptaibility, rotate by 180 degrees
+            -- for yawed entities
             if mapversion <= 30 and state_data.attr1 then
                 -- skip certain entities which have different attr1 than yaw
                 if  class_name ~= "light"

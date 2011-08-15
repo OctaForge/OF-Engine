@@ -16,19 +16,22 @@
 
 --[[!
     Package: entity_classes
-    This module handles entity class system such as registration, getting, listing ...
+    This module handles entity class system such
+    as registration, getting, listing ...
 ]]
 module("entity_classes", package.seeall)
 
 --[[!
     Variable: class_storage
-    Here, all registered entity classes are stored. It's accessible from outside.
+    Here, all registered entity classes are stored.
+    It's accessible from outside.
 ]]
 class_storage = {}
 
 --[[!
     Function: register
-    Registers entity class into <class_storage> and generates proper protocol data.
+    Registers entity class into <class_storage>
+    and generates proper protocol data.
 
     Available sauer types for static entities are "light", "mapmodel",
     "playerstart", "envmap", "particles", "sound" and "spotlight".
@@ -51,7 +54,10 @@ function register(class, sauer_type)
     sauer_type = sauer_type or ""
 
     -- store in class_storage, assert non-existance
-    assert(not class_storage[class_name], "must not exist already, ensure each class has a different _class.")
+    assert(
+        not class_storage[class_name],
+        "must not exist already, ensure each class has a different _class."
+    )
     class_storage[class_name] = { class, sauer_type }
 
     -- generate protocol data - first create table of properties
@@ -66,7 +72,8 @@ function register(class, sauer_type)
             for name, var in pairs(base.properties) do
                 -- if we have a state variable and it wasn't already
                 -- inserted by children, insert it into proptable
-                if not proptable[name] and state_variables.is_state_variable(var) then
+                if not proptable[name]
+                   and state_variables.is_state_variable(var) then
                     proptable[name] = var
                 end
             end
@@ -83,17 +90,24 @@ function register(class, sauer_type)
     table.sort(sv_names, function(n1, n2)
         -- if first is alias and second is not, leave alias last
         if state_variables.is_state_variable_alias(proptable[n1]) and not
-           state_variables.is_state_variable_alias(proptable[n2]) then return false
+           state_variables.is_state_variable_alias(proptable[n2]) then
+           return false
         end
         -- if first is not alias and second is, leave alias last
         if not state_variables.is_state_variable_alias(proptable[n1])
-           and state_variables.is_state_variable_alias(proptable[n2]) then return true
+           and state_variables.is_state_variable_alias(proptable[n2]) then
+           return true
         end
         -- if both are aliases or both are state variables, sort by name
         return (n1 < n2)
     end)
 
-    logging.log(logging.DEBUG, "generating protocol data for { " .. table.concat(sv_names, ", ") .. " }")
+    logging.log(
+        logging.DEBUG,
+        "generating protocol data for { "
+            .. table.concat(sv_names, ", ")
+            .. " }"
+    )
     -- generate protocol data
     message.generate_protocol_data(tostring(class_name), sv_names)
 

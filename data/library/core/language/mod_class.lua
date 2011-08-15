@@ -18,7 +18,8 @@
 
 --[[!
     Package: class
-    A class library for Lua. Allows instances, parent calling and simple inheritance.
+    A class library for Lua. Allows instances, parent calling
+    and simple inheritance.
 
     Multiple inheritance isn't and won't be probably supported.
     This class system also allows getters / setters for virtual class members
@@ -112,7 +113,9 @@ object.name = "object"
 ]]
 object.__class_dict = {
     __init     = function() end,
-    __tostring = function(self) return "instance: %(1)s" % { tostring(self.class.name) } end
+    __tostring = function(self) return "instance: %(1)s" % {
+        tostring(self.class.name) }
+    end
 }
 object.__class_dict.__index = object.__class_dict
 
@@ -225,7 +228,9 @@ end
         name - name of the new class.
 ]]
 function object:__sub_class(name)
-    local _subcl = { name = name or "<UNNAMED>", __base = self, __class_dict = {} }
+    local _subcl = {
+        name = name or "<UNNAMED>", __base = self, __class_dict = {}
+    }
 
     local _sub_dict = _subcl.__class_dict
     local _sup_dict =   self.__class_dict

@@ -466,13 +466,6 @@ function rotate(n)
     rotate_entities(n)
 end
 
--- copy and paste
-
--- 3 types of copying and pasting
--- 1. select only cubes      -> paste only cubes
--- 2. select cubes and ents  -> paste cubes and ents. same relative positions
--- 3. select only ents       -> paste last selected ent. if ents are selected, replace attrs as paste
-
 --[[!
     Variable: entity_copy_buffer
     Local and internal variable, storing entity attrs
@@ -926,12 +919,14 @@ procedural = {
         If we're standing at center of the map, with increasing
         X coordinate when strafing right and increasing Y coordinate
         when going forward, the faces go like this:
-                0 - right side of the cube
-                1 - left side of the cube
-                2 - back side of the cube
-                3 - front side of the cube
-                4 - bottom side of the cube
-                5 - top side of the cube
+
+        Faces:
+            0 - right side of the cube
+            1 - left side of the cube
+            2 - back side of the cube
+            3 - front side of the cube
+            4 - bottom side of the cube
+            5 - top side of the cube
     ]]
     set_cube_texture = CAPI.editing_setcubetex,
 

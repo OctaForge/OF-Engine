@@ -29,10 +29,12 @@ toggle = CAPI.toggleconsole
 
 --[[!
     Function: skip
-    Allows you to browse through the full console history by offsetting the output.
+    Allows you to browse through the full console
+    history by offsetting the output.
 
     Parameters:
-        n - how much to skip. 1 means by 1 line back in history, -1000 resets the history.
+        n - how much to skip. 1 means by 1 line
+        back in the history, -1000 resets the history.
 ]]
 skip = CAPI.conskip
 
@@ -59,11 +61,12 @@ say = CAPI.say
 
 --[[!
     Function: prompt
-    Shows a command prompt. Optionally allows to specify event and prompt string.
+    Shows a command prompt. Optionally allows
+    to specify event and prompt string.
 
     Parameters:
         init - initial prompt value.
-        action - action to perform when user finishes input, optional. It's string for now, FIXME.
+        action - action (string) to perform when user finishes input, optional.
         prompt_prefix - what to display before input field, optional.
 ]]
 prompt = CAPI.prompt

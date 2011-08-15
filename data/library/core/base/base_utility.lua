@@ -156,7 +156,10 @@ end
 -- @param r Whether to calculate the yaw away from target (defaults to false)
 -- @return The calculated yaw.
 function yawto(o, t, r)
-    return (r and yawto(t, o) or math.deg(-(math.atan2(t.x - o.x, t.y - o.y))))
+    return (r
+        and yawto(t, o)
+        or math.deg(-(math.atan2(t.x - o.x, t.y - o.y)))
+    )
 end
 
 --- Calculate the pitch from origin to target on 2D data (y, z).
@@ -165,7 +168,14 @@ end
 -- @param r Whether to calculate the pitch away from target (defaults to false)
 -- @return The calculated pitch.
 function pitchto(o, t, r)
-    return (r and pitchto(t, o) or (360.0 * (math.asin((t.z - o.z) / distance(o, t))) / (2.0 * math.pi)))
+    return (r
+        and pitchto(t, o)
+        or (
+            360.0 * (
+                math.asin((t.z - o.z) / distance(o, t))
+            ) / (2.0 * math.pi)
+        )
+    )
 end
 
 --- Check if the yaw between two points is within acceptable error range.
@@ -285,7 +295,9 @@ function is_colliding_entities(position, radius, ignore)
                     entity.collision_radius_width,
                     entity.collision_radius_height
                 )
-            if position:is_close_to(entity.position, radius + entity_radius) then
+            if position:is_close_to(
+                entity.position, radius + entity_radius
+            ) then
                 return true
             end
         end
@@ -341,13 +353,17 @@ removezip = CAPI.removezip
 -- @class function
 -- @name gettargetpos
 -- @return Target position as a vec3.
-gettargetpos = cache_by_global_timestamp(convert.tocalltable(CAPI.gettargetpos))
+gettargetpos = cache_by_global_timestamp(
+    convert.tocalltable(CAPI.gettargetpos)
+)
 
 --- Get target entity.
 -- @class function
 -- @name gettargetent
 -- @return Target entity.
-gettargetent = cache_by_global_timestamp(convert.tocalltable(CAPI.gettargetent))
+gettargetent = cache_by_global_timestamp(
+    convert.tocalltable(CAPI.gettargetent)
+)
 
 function get_ray_collision_world(origin, direction, max_dist)
     max_dist = max_dist or 2048
@@ -387,10 +403,14 @@ function get_ray_collision_entities(origin, target, ignore)
                                 entity.collision_radius_height
                             )
             local alpha = direction:dot_product(entity_dir) / dist2
-            local collision_position = origin:add_new(direction:mul_new(alpha))
-            local distance = entity.center:sub_new(collision_position):magnitude()
+            local collision_position
+                = origin:add_new(direction:mul_new(alpha))
+            local distance
+                = entity.center:sub_new(collision_position):magnitude()
             -- XXX alpha check ignores radius
-            if alpha < 0 or alpha > 1 or distance > entity_rad then return nil end
+            if alpha < 0 or alpha > 1 or distance > entity_rad then
+                return nil
+            end
             consider(entity, alpha, collision_position)
         end
     end
@@ -409,8 +429,10 @@ MATERIAL = {
     WATER = 1,
     LAVA = 2,
     GLASS = 3,
-    NOCLIP = math.lsh(1, MATF_CLIP_SHIFT),  -- collisions always treat cube as empty
-    CLIP = math.lsh(2, MATF_CLIP_SHIFT)  -- collisions always treat cube as solid
+    -- collisions always treat cube as empty
+    NOCLIP = math.lsh(1, MATF_CLIP_SHIFT),
+    -- collisions always treat cube as solid
+    CLIP = math.lsh(2, MATF_CLIP_SHIFT)
 }
 
 function get_surface_normal(reference, surface, resolution)
@@ -468,7 +490,9 @@ function get_reflected_ray(ray, normal, elasticity, friction)
         return ray:add(bounce_direction:mul(1 + elasticity))
     else
         local  surface_direction = ray:add_new(bounce_direction)
-        return surface_direction:mul(friction):add(bounce_direction:mul(elasticity))
+        return surface_direction:mul(friction):add(
+            bounce_direction:mul(elasticity)
+        )
     end
 end
 
@@ -491,7 +515,9 @@ function bounce(thing, elasticity, friction, seconds)
         return true
     end
 
-    if iscolliding(thing.position, thing.radius, thing.ignore) then return fallback() end
+    if iscolliding(thing.position, thing.radius, thing.ignore) then
+        return fallback()
+    end
 
     things.last_safe = {{
         position = thing.position:copy(),
@@ -502,11 +528,15 @@ function bounce(thing, elasticity, friction, seconds)
     local movement     = thing.velocity:mul_new(seconds)
     thing.position:add(movement)
 
-    if not iscolliding(thing.position, thing.radius, thing.ignore) then return true end
+    if not iscolliding(thing.position, thing.radius, thing.ignore) then
+        return true
+    end
 
     local direction = movement:copy():normalize()
     local surface_dist = ray_collisiondist(
-        old_position, direction:mul_new(3 * movement:magnitude() + 3 * thing.radius + 1.5)
+        old_position, direction:mul_new(
+            3 * movement:magnitude() + 3 * thing.radius + 1.5
+        )
     )
     if surface_dist < 0 then return fallback() end
 
@@ -517,39 +547,66 @@ function bounce(thing, elasticity, friction, seconds)
     movement = get_reflected_ray(movement, normal, elasticity, friction)
 
     thing.position = old_position:add(movement)
-    if iscolliding(self.position, self.radius, self.ignore) then return fallback() end
+    if iscolliding(self.position, self.radius, self.ignore) then
+        return fallback()
+    end
     thing.velocity = movement:mul(1 / seconds)
 
     return true
 end
 
 function is_player_colliding_entity(player, entity)
-    if entity.collision_radius_width and entity.collision_radius_width ~= 0 then
+    if  entity.collision_radius_width
+    and entity.collision_radius_width ~= 0 then
         -- z
-        if player.position.z >= entity.position.z + 2 * entity.collision_radius_height or
-           player.position.z + player.eye_height + player.above_eye <= entity.position.z then return false end
+        if player.position.z
+        >= entity.position.z + 2 * entity.collision_radius_height or
+           player.position.z + player.eye_height + player.above_eye
+        <= entity.position.z then
+            return false
+        end
 
         -- x
-        if player.position.x - player.radius >= entity.position.x + entity.collision_radius_width or
-           player.position.x + player.radius <= entity.position.x - entity.collision_radius_width then return false end
+        if player.position.x - player.radius
+        >= entity.position.x + entity.collision_radius_width or
+           player.position.x + player.radius
+        <= entity.position.x - entity.collision_radius_width then
+            return false
+        end
 
         -- y
-        if player.position.y - player.radius >= entity.position.y + entity.collision_radius_width or
-           player.position.y + player.radius <= entity.position.y - entity.collision_radius_width then return false end
+        if player.position.y - player.radius
+        >= entity.position.y + entity.collision_radius_width or
+           player.position.y + player.radius
+        <= entity.position.y - entity.collision_radius_width then
+            return false
+        end
 
         return true
     else
         -- z
-        if player.position.z >= entity.position.z + entity.eye_height + entity.above_eye or
-           player.position.z + player.eye_height + player.above_eye <= entity.position.z then return false end
+        if player.position.z
+        >= entity.position.z + entity.eye_height + entity.above_eye or
+           player.position.z + player.eye_height + player.above_eye
+        <= entity.position.z then
+            return false
+        end
 
         -- x
-        if player.position.x - player.radius >= entity.position.x + entity.radius or
-           player.position.x + player.radius <= entity.position.x - entity.radius then return false end
+        if player.position.x - player.radius
+        >= entity.position.x + entity.radius or
+           player.position.x + player.radius
+        <= entity.position.x - entity.radius then
+            return false
+        end
 
         -- y
-        if player.position.y - player.radius >= entity.position.y + entity.radius or
-           player.position.y + player.radius <= entity.position.y - entity.radius then return false end
+        if player.position.y - player.radius
+        >= entity.position.y + entity.radius or
+           player.position.y + player.radius
+        <= entity.position.y - entity.radius then
+            return false
+        end
 
         return true
     end

@@ -36,8 +36,8 @@ module("logging", package.seeall)
         but might come in use sometimes.
         DEBUG - use for usual debugging output.
         WARNING - this level is usually displayed by default.
-        ERROR - Use for error messages, displayed always. Printed into in-engine
-        console too, unlike all others.
+        ERROR - Use for error messages, displayed always.
+        Printed into in-engine console too, unlike all others.
 ]]
 log = CAPI.log
 INFO = CAPI.INFO

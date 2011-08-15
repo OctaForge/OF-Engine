@@ -93,12 +93,13 @@ PHYSICAL_STATE = {
         blocked - true if character was blocked by obstacle on last
         movement cycle, boolean. Floor is not an obstacle.
         can_move - if false, character can't move, boolean.
-        map_defined_position_data - position protocol data specific to current map,
-        see fpsent, integer (TODO: make unsigned)
+        map_defined_position_data - position protocol data
+        specific to current map, see fpsent, integer (TODO: make unsigned)
         client_state - client state, integer. (see <CLIENT_STATE>)
         physical_state - physical state, integer. (see <PHYSICAL_STATE>)
         in_water - 1 if character is underwater, integer.
-        time_in_air - time in miliseconds spent in the air, integer (Should be unsigned, TODO)
+        time_in_air - time in miliseconds spent in the air, integer
+        (Should be unsigned, TODO)
 
     See Also:
         <player>
@@ -113,7 +114,8 @@ character = class.new(entity_animated.base_animated, {
 
     --[[!
         Variable: sauer_type
-        The sauer type of the entity, fpsent is a dynamic character entity in sauer.
+        The sauer type of the entity, fpsent
+        is a dynamic character entity in sauer.
     ]]
     sauer_type = "fpsent",
 
@@ -411,15 +413,21 @@ character = class.new(entity_animated.base_animated, {
             -- this is current client state, used when deciding animation
             local state = self.client_state
 
-            -- if we're spectator or not spawned yet, then we don't render and return
-            if state == CLIENT_STATE.SPECTAROR or state == CLIENT_STATE.SPAWNING then
+            -- if we're spectator or not spawned yet,
+            -- then we don't render and return
+            if state == CLIENT_STATE.SPECTAROR
+            or state == CLIENT_STATE.SPAWNING then
                 return nil
             end
 
-            -- select model name according to if we want to firstperson model or thirdperson model
-            local mdlname = (hudpass and needhud) and self.hud_model_name or self.model_name
+            -- select model name according to if we
+            -- want to firstperson model or thirdperson model
+            local mdlname = (hudpass and needhud)
+                and self.hud_model_name
+                or self.model_name
 
-            -- player yaw, rotated by 90° to remain compatible with sauer characters
+            -- player yaw, rotated by 90° to remain
+            -- compatible with sauer characters
             local yaw = self.yaw + 90
 
             -- player pitch
@@ -454,18 +462,28 @@ character = class.new(entity_animated.base_animated, {
             local time_in_air = self.time_in_air
 
             -- finally decide the animation
-            local anim = self:decide_animation(state, physstate, move, strafe, vel, falling, in_water, time_in_air)
+            local anim = self:decide_animation(
+                state, physstate, move, strafe,
+                vel, falling, in_water, time_in_air
+            )
 
             -- and rendering flags (dynamic shadow, culling etc.)
             local flags = self:get_rendering_flags(hudpass, needhud)
 
-            -- create a table of rendering arguments and save a timestamp for caching
-            self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, flags, basetime }
+            -- create a table of rendering arguments
+            -- and save a timestamp for caching
+            self.rendering_args = {
+                self, mdlname, anim,
+                o.x, o.y, o.z,
+                yaw, pitch, flags, basetime
+            }
             self.rendering_args_timestamp = GLOBAL_CURRENT_TIMESTAMP
         end
 
         -- render only when model is set using the rendering arguments table
-        if self.rendering_args[2] ~= "" then model.render(unpack(self.rendering_args)) end
+        if self.rendering_args[2] ~= "" then
+            model.render(unpack(self.rendering_args))
+        end
     end,
 
     --[[!
@@ -491,7 +509,12 @@ character = class.new(entity_animated.base_animated, {
 
         -- for non-player, we add some culling flags
         if self ~= entity_store.get_player_entity() then
-            flags = math.bor(flags, model.CULL_VFC, model.CULL_OCCLUDED, model.CULL_QUERY)
+            flags = math.bor(
+                flags,
+                model.CULL_VFC,
+                model.CULL_OCCLUDED,
+                model.CULL_QUERY
+            )
         end
 
         -- for hud models, we set hud flag
@@ -505,14 +528,17 @@ character = class.new(entity_animated.base_animated, {
 
     --[[!
         Function: decide_animation
-        This function is used by <render_dynamic> to get current model animation.
-        This is guessed from values like strafe, move, in_water etc.
+        This function is used by <render_dynamic>
+        to get current model animation. This is guessed
+        from values like strafe, move, in_water etc.
 
         Parameters:
             state - Current client state (see <CLIENT_STATE>)
             pstate - Current physical state (see <PHYSICAL_STATE>)
-            move - Whether character is moving currently and which direction (1, 0, -1)
-            strafe - Whether character is strafing currently and which direction (1, 0, -1)
+            move - Whether character is moving currently
+            and which direction (1, 0, -1)
+            strafe - Whether character is strafing currently
+            and which direction (1, 0, -1)
             vel - Current character velocity (vec3)
             falling - Current character falling (vec3)
             in_water - Whether character is in water (1, 0)
@@ -524,11 +550,17 @@ character = class.new(entity_animated.base_animated, {
         See Also:
             <render_dynamic>
     ]]
-    decide_animation = function(self, state, pstate, move, strafe, vel, falling, in_water, time_in_air)
-        -- decide action animation - by default just returns self.animation, but can be overriden
+    decide_animation = function(
+        self, state, pstate,
+        move, strafe, vel,
+        falling, in_water, time_in_air
+    )
+        -- decide action animation - by default
+        -- just returns self.animation, but can be overriden
         local anim = self:decide_action_animation()
 
-        if state == CLIENT_STATE.EDITING or state == CLIENT_STATE.SPECTATOR then
+        if state == CLIENT_STATE.EDITING
+        or state == CLIENT_STATE.SPECTATOR then
             -- in editing and spec mode, use edit animation and loop it
             anim = math.bor(actions.ANIM_EDIT, actions.ANIM_LOOP)
         elseif state == CLIENT_STATE.LAGGED then
@@ -537,7 +569,8 @@ character = class.new(entity_animated.base_animated, {
         else
             -- more complex deciding
             if in_water ~= 0 and pstate <= PHYSICAL_STATE.FALL then
-                -- in water, decide either swimming or sinking secondary animation
+                -- in water, decide either swimming
+                -- or sinking secondary animation
                 anim = math.bor(
                     anim,
                     math.lsh(
@@ -551,7 +584,8 @@ character = class.new(entity_animated.base_animated, {
                     )
                 )
             elseif time_in_air > 250 then
-                -- jumping secondary animation gets decided, if we're in air for more than 250 miliseconds
+                -- jumping secondary animation gets decided,
+                -- if we're in air for more than 250 miliseconds
                 anim = math.bor(
                     anim,
                     math.lsh(
@@ -565,7 +599,8 @@ character = class.new(entity_animated.base_animated, {
             elseif move ~= 0 or strafe ~= 0 then
                 -- if we're moving or strafing, decide appropriate animations
                 if move > 0 then
-                    -- if we're moving forward, loop secondary forward animation
+                    -- if we're moving forward, loop
+                    -- secondary forward animation
                     anim = math.bor(
                         anim,
                         math.lsh(
@@ -574,7 +609,8 @@ character = class.new(entity_animated.base_animated, {
                         )
                     )
                 elseif strafe ~= 0 then
-                    -- if we're strafing any direction, but not moving forward, loop secondary strafe animation
+                    -- if we're strafing any direction, but not
+                    -- moving forward, loop secondary strafe animation
                     anim = math.bor(
                         anim,
                         math.lsh(
@@ -586,7 +622,8 @@ character = class.new(entity_animated.base_animated, {
                         )
                     )
                 elseif move < 0 then
-                    -- if we're moving backwards with no strafe, loop secondary backward animation
+                    -- if we're moving backwards with no strafe,
+                    -- loop secondary backward animation
                     anim = math.bor(
                         anim,
                         math.lsh(
@@ -598,13 +635,25 @@ character = class.new(entity_animated.base_animated, {
             end
 
             if  math.band(anim, actions.ANIM_INDEX) == actions.ANIM_IDLE
-            and math.band(math.rsh(anim, actions.ANIM_SECONDARY), actions.ANIM_INDEX) ~= 0 then
+            and math.band(
+                math.rsh(anim, actions.ANIM_SECONDARY),
+                actions.ANIM_INDEX
+            ) ~= 0 then
                 anim = math.rsh(anim, actions.ANIM_SECONDARY)
             end
         end
 
-        if math.band(math.rsh(anim, actions.ANIM_SECONDARY), actions.ANIM_INDEX) == 0 then
-            anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
+        if math.band(
+            math.rsh(anim, actions.ANIM_SECONDARY),
+            actions.ANIM_INDEX
+        ) == 0 then
+            anim = math.bor(
+                anim,
+                math.lsh(
+                    math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
+                    actions.ANIM_SECONDARY
+                )
+            )
         end
 
         return anim
@@ -616,8 +665,10 @@ character = class.new(entity_animated.base_animated, {
         in_water, lag, etc which are handled in decide_animation.
 
         Returns:
-            By default, simply returns self.animation, but can be overriden to handle more complex
-            things like taking into account map-specific information in map_defined_position_data.
+            By default, simply returns self.animation,
+            but can be overriden to handle more complex
+            things like taking into account map-specific
+            information in map_defined_position_data.
 
         See Also:
             <decide_animation>
@@ -629,9 +680,9 @@ character = class.new(entity_animated.base_animated, {
     --[[!
         Function: get_center
         Gets center position of character, something like gravity center.
-        For example AI bots would better aim at this point instead of "position"
-        which is feet position. Override if your center is nonstandard.
-        By default, it's 0.75 * eye_height above feet.
+        For example AI bots would better aim at this point instead of
+        "position" which is feet position. Override if your center is
+        nonstandard. By default, it's 0.75 * eye_height above feet.
 
         Returns:
             Center position which is a vec3.

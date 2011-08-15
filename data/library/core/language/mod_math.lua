@@ -237,7 +237,8 @@ end
     Gets a magnitude (length) of vec3.
 
     Returns:
-        Magnitude (length, that is square root of sum of powers of two of x, y, z)
+        Magnitude (length, that is square root
+        of sum of powers of two of x, y, z)
         of the vector, that is a number value.
 
     (start code)
@@ -592,7 +593,9 @@ function vec3:to_yaw_pitch_roll(up, yaw_hint)
         yaw = math.deg(math.atan2(yaw_hint.y, yaw_hint.x)) + 90
     end
 
-    local pitch = math.deg(math.atan2(-(self.z), math.sqrt(up.z * up.z + left.z * left.z)))
+    local pitch = math.deg(
+        math.atan2(-(self.z), ath.sqrt(up.z * up.z + left.z * left.z))
+    )
     local roll  = math.deg(math.atan2(up.z, left.z)) - 90
 
     return { yaw = yaw, pitch = pitch, roll = roll }
@@ -692,8 +695,9 @@ end
     Gets a magnitude (length) of vec4.
 
     Returns:
-        Magnitude (length, that is square root of sum of powers of two of x, y, z, w)
-        of the vector, that is a number value.
+        Magnitude (length, that is square root of
+        sum of powers of two of x, y, z, w) of the
+        vector, that is a number value.
 
     (start code)
         sqrt(x^2 + y^2 + z^2 + w^2)

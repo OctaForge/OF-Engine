@@ -17,7 +17,8 @@
 
 --[[!
     Package: effects
-    This module contains effect interface, such as particle system, dynamic lights
+    This module contains effect interface,
+    such as particle system, dynamic lights
     and others.
 ]]
 module("effects", package.seeall)
@@ -29,7 +30,8 @@ module("effects", package.seeall)
     Fields:
         SCORCH - scorch decal, used i.e. after explosions.
         BLOOD - blood decal, used for blood splatters on geometry.
-        BULLET - bullet decal, used to mark a place after it's being shot by a bullet.
+        BULLET - bullet decal, used to mark a
+        place after it's being shot by a bullet.
 ]]
 DECAL = {
     SCORCH = 0,
@@ -177,9 +179,13 @@ end
         peak - peak time in seconds.
         flags - dynamic light flags (<DYNAMIC_LIGHT>).
         initial_radius - dynamic light initial radius.
-        initial_color - dynamic light initial color specified as hex integer (0xRRGGBB).
+        initial_color - dynamic light initial color
+        specified as hex integer (0xRRGGBB).
 ]]
-function dynamic_light(position, radius, color, fade, peak, flags, initial_radius, initial_color)
+function dynamic_light(
+    position, radius, color, fade,
+    peak, flags, initial_radius, initial_color
+)
     local rgbc  = convert.hex_to_rgb(color)
     local rgbic = convert.hex_to_rgb(initial_color or 0xFFFFFF)
 
@@ -195,7 +201,8 @@ end
 
 --[[!
     Function: splash
-    Spawns a splash emitter. If ran on server, a message gets sent to all clients.
+    Spawns a splash emitter. If ran on server,
+    a message gets sent to all clients.
 
     Parameters:
         particle_type - particle type (<PARTICLE>).
@@ -213,7 +220,11 @@ end
         the splash should be fast.
         grow - integer value specifying particle grow factor (1 to 4).
 ]]
-function splash(particle_type, num, fade, position, color, size, radius, gravity, regular_fade, flags, fast_splash, grow)
+function splash(
+    particle_type, num, fade, position,
+    color, size, radius, gravity,
+    regular_fade, flags, fast_splash, grow
+)
     if CLIENT then
         color   = color   or 0xFFFFFF
         size    = size    or 1.0
@@ -239,7 +250,8 @@ end
 
 --[[!
     Function: regular_splash
-    Spawns a regular splash emitter. If ran on server, a message gets sent to all clients.
+    Spawns a regular splash emitter. If ran on server,
+    a message gets sent to all clients.
 
     Parameters:
         particle_type - particle type (<PARTICLE>).
@@ -255,7 +267,10 @@ end
         the particle should hover.
         grow - integer value specifying particle grow factor (1 to 4).
 ]]
-function regular_splash(particle_type, num, fade, position, color, size, radius, gravity, delay, hover, grow)
+function regular_splash(
+    particle_type, num, fade, position,
+    color, size, radius, gravity, delay, hover, grow
+)
     if CLIENT then
         color   = color   or 0xFFFFFF
         size    = size    or 1.0
@@ -292,7 +307,10 @@ end
         gravity - gravity pull on the particles.
         num - number of particles.
 ]]
-function fireball(particle_type, position, max_size, fade, color, size, gravity, num)
+function fireball(
+    particle_type, position, max_size,
+    fade, color, size, gravity, num
+)
     fade  = (fade ~= nil) and fade * 1000 or -1
     color = color or 0xFFFFFF
     size  = size  or 4.0
@@ -317,7 +335,10 @@ end
         grow - integer value specifying particle grow factor (1 to 4).
         owner - flare owner entity.
 ]]
-function flare(particle_type, target_position, source_position, fade, color, size, grow, owner)
+function flare(
+    particle_type, target_position, source_position,
+    fade, color, size, grow, owner
+)
     fade  = fade and fade * 1000 or 0
     color = color or 0xFFFFFF
     size  = size  or 0.28
@@ -342,7 +363,10 @@ end
         size - flare size (thickness).
         grow - integer value specifying particle grow factor (1 to 4).
 ]]
-function flying_flare(particle_type, target_position, source_position, fade, color, size, grow)
+function flying_flare(
+    particle_type, target_position,
+    source_position, fade, color, size, grow
+)
     fade  = fade and fade * 1000 or 0
     CAPI.particle_flying_flare(
         source_position.x, source_position.y, source_position.z,
@@ -365,7 +389,10 @@ end
         grow - integer value specifying particle grow factor (1 to 4).
         bubbles - if true, the trail will consist of bubbles.
 ]]
-function trail(particle_type, fade, target_position, source_position, color, size, grow, bubbles)
+function trail(
+    particle_type, fade, target_position,
+    source_position, color, size, grow, bubbles
+)
     color   = color   or 0xFFFFFF
     size    = size    or 1.0
     grow    = grow    or 20
@@ -394,7 +421,10 @@ end
         fade - fade time in seconds.
         gravity - gravity pull on the particles.
 ]]
-function flame(particle_type, position, radius, height, color, density, scale, speed, fade, gravity)
+function flame(
+    particle_type, position, radius, height,
+    color, density, scale, speed, fade, gravity
+)
     density = density or 3
     scale   = scale   or 2.0
     speed   = speed   or 200.0
@@ -420,7 +450,11 @@ end
         size - lightning size (thickness).
 ]]
 function lightning(target_position, source_position, fade, color, size)
-    flare(PARTICLE.LIGHTNING, target_position, source_position, fade, color, size)
+    flare(
+        PARTICLE.LIGHTNING,
+        target_position, source_position,
+        fade, color, size
+    )
 end
 
 --[[!

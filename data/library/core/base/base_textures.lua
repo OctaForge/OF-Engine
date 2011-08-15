@@ -231,7 +231,9 @@ blendbrush.rotate = CAPI.rotateblendbrush
 -- @see blendbrush.next
 function blendbrush.scroll(b)
     if b then blendbrush.next(b) else blendbrush.next() end
-    echo("blend brush set to: %(1)s" % { blendbrush.getname(blendbrush.cur()) })
+    echo("blend brush set to: %(1)s" % {
+        blendbrush.getname(blendbrush.cur())
+    })
 end
 
 --- Table holding methods relating texture blend painting.
@@ -283,13 +285,17 @@ blendmap.clear = CAPI.clearblendmap
 -- @field inverted_fill max(Dest, invert(src)) - Fill where black is the fill pattern.
 -- @class table
 -- @name blendpaintmodes
-blendpaintmodes = { "off", "replace", "dig", "fill", "inverted dig", "inverted fill" }
+blendpaintmodes = {
+    "off", "replace", "dig", "fill", "inverted dig", "inverted fill"
+}
 
 --- Set blend paint mode.
 -- @param m Paint mode index in blendpaintmodes table, beginning with 1. Turns blendmap painting off when not ommited.
 function setblendpaintmode(m)
     _G["blendpaintmode"] = m or 1
-    echo("blend paint mode set to: %(1)s" % { blendpaintmodes[_G["blendpaintmode"]] })
+    echo("blend paint mode set to: %(1)s" % {
+        blendpaintmodes[_G["blendpaintmode"]] 
+    })
 end
 
 filltexlist = CAPI.filltexlist

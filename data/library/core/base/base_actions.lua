@@ -17,8 +17,8 @@
 --[[!
     Package: actions
     Action system (actions / queue) for OctaForge's Lua API.
-    You use actions when you want to conditionally perform something in a queue.
-    Example use of actions are animations.
+    You use actions when you want to conditionally perform
+    something in a queue. Example use of actions are animations.
 ]]
 module("actions", package.seeall)
 
@@ -133,7 +133,8 @@ action = class.new(nil, {
         Kwargs:
             seconds_left - how many seconds left till action ends.
             anim - action animation - see Variables section.
-            can_multiply_queue - can multiply queue? boolean value, defaults to true.
+            can_multiply_queue - can multiply queue? boolean value,
+            defaults to true.
             cancellable - can action be cancelled? boolean, defaults to true.
             parallel_to - action it's parallel to.
     ]]
@@ -262,7 +263,11 @@ action = class.new(nil, {
                 self:finish()
             end
 
-            logging.log(logging.INFO, "        ...finished: " .. tostring(finished))
+            logging.log(
+                logging.INFO,
+                "        ...finished: "
+                    .. tostring(finished)
+            )
             return finished
         else
             -- this happens if we're parallel to action -
@@ -493,8 +498,9 @@ action_system = class.new(nil, {
 
     --[[!
         Function: manage
-        Executes next queued action and removes it from the queue if it finishes.
-        Also filters out finished actions from previous iterations
+        Executes next queued action and removes it
+        from the queue if it finishes. Also filters
+        out finished actions from previous iterations
         if required.
 
         Parameters:
@@ -511,16 +517,22 @@ action_system = class.new(nil, {
 
         -- if we've still got something queued, proceed
         if #self.action_list > 0 then
-            logging.log(logging.INFO, "executing " .. tostring(self.action_list[1]))
+            logging.log(
+                logging.INFO,
+                "executing " .. tostring(self.action_list[1])
+            )
 
-            -- if the action is completed, remove it immediately to not mess with it later
+            -- if the action is completed, remove it
+            -- immediately to not mess with it later
             if self.action_list[1]:execute(seconds) then
                 table.remove(self.action_list, 1)
             end
         end
 
-        -- TODO: move remaining seconds to next action. it's unlikely to do problems as currently, but eventually FIXME
-        -- do not forget to do a clear between every action
+        -- TODO: move remaining seconds to next action.
+        -- It's unlikely to do problems as currently,
+        -- but eventually FIXME.
+        -- Do not forget to do a clear between every action.
     end,
 
     --[[!
@@ -532,7 +544,8 @@ action_system = class.new(nil, {
             <manage>
     ]]
     clear = function(self)
-        -- note: they don't get removed here - just cancelled - finished actions get removed in manage function.
+        -- note: they don't get removed here - just cancelled -
+        -- finished actions get removed in manage function.
         for i = 1, #self.action_list do
             self.action_list[i]:cancel()
         end
@@ -552,12 +565,13 @@ action_system = class.new(nil, {
         -- isn't already present in the system, return if it is
         if not action.can_multiply_queue then
             for i = 1, #self.action_list do
-                -- check via tostring, we don't want to assume inherited actions
+                -- check via tostring, we don't want
+                -- to assume inherited actions
                 if tostring(self.action_list[i]) == tostring(action) then
                     logging.log(
                         logging.WARNING,
                         string.format(
-                            "Trying to multiply queue %s, but that isn't allowed\n",
+                            "Trying to multiply queue %s, that isn't allowed.",
                             tostring(action)
                         )
                     )

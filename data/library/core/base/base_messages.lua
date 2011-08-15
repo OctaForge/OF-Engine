@@ -16,15 +16,17 @@
 
 --[[!
     Package: message
-    This module controls message system. It allows to send message to server or to specific
-    client from both server and client, as well as protocol ID handling for name compression.
+    This module controls message system. It allows to send message to server
+    or to specific client from both server and client, as well as protocol
+    ID handling for name compression.
 ]]
 module("message", package.seeall)
 
 --[[!
     Variable: ALL_CLIENTS
-    This is useful if you want to send something to all clients, not just specific one.
-    It has a value of -1, but you should use this alias instead of -1 directly.
+    This is useful if you want to send something to all clients, not
+    just specific one. It has a value of -1, but you should use this
+    alias instead of -1 directly.
 ]]
 ALL_CLIENTS = -1
 
@@ -51,12 +53,12 @@ protocol_ids_to_names = {}
 
     Parameters:
         en - either entity instance or client number. If it is an entity,
-        it's server->client message and we get the client number from the entity
-        and if it's a client number directly, it's server->client as well,
-        just easier (without need to get the client number).
+        it's server->client message and we get the client number from the
+        entity and if it's a client number directly, it's server->client
+        as well, just easier (without need to get the client number).
         On client, this is message function.
-        mf - on server, this is message function. On client, this is first data
-        argument or nil.
+        mf - on server, this is message function. On client,
+        this is first data argument or nil.
 ]]
 function send(...)
     logging.log(logging.DEBUG, "message.send")
@@ -69,7 +71,9 @@ function send(...)
     local args = { ... }
 
     -- checking
-    if type(args[1]) == "table" and args[1].is_a and args[1]:is_a(entity.base) then
+    if  type(args[1]) == "table"
+    and args[1].is_a
+    and args[1]:is_a(entity.base) then
         -- server->client message, get client number from the entity
         server = true
         cn = args[1].cn

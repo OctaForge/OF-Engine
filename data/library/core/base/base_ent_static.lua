@@ -82,24 +82,40 @@ base_static = class.new(entity_animated.base_animated, {
 
     properties = {
         -- TODO: use sauer values for bounding box -- XXX - needed?
-        radius = state_variables.state_float(),
+        radius       = state_variables.state_float(),
 
-        position = state_variables.wrapped_c_vec3({ c_getter = "CAPI.getextent0", c_setter = "CAPI.setextent0" }),
-        attr1 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr1", c_setter = "CAPI.setattr1" }),
-        attr2 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr2", c_setter = "CAPI.setattr2" }),
-        attr3 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr3", c_setter = "CAPI.setattr3" }),
-        attr4 = state_variables.wrapped_c_integer({ c_getter = "CAPI.getattr4", c_setter = "CAPI.setattr4" })
+        position     = state_variables.wrapped_c_vec3({
+            c_getter = "CAPI.getextent0",
+            c_setter = "CAPI.setextent0"
+        }),
+        attr1        = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr1",
+            c_setter = "CAPI.setattr1"
+        }),
+        attr2        = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr2",
+            c_setter = "CAPI.setattr2"
+        }),
+        attr3        = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr3",
+            c_setter = "CAPI.setattr3"
+        }),
+        attr4        = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr4",
+            c_setter = "CAPI.setattr4"
+        })
     },
 
     --[[!
         Function: init
         See <base_server.init>.
 
-        Note: Makes entities persistent in any case, defaults position to { 511, 512, 513 }
-        or to position specified by kwargs. Defaults BB radius to 0.
+        Note: Makes entities persistent in any case,
+        defaults position to { 511, 512, 513 } or to
+        position specified by kwargs. Defaults BB radius to 0.
 
-        Inherited entities will mostly override this function and initialize their state
-        variable defaults here.
+        Inherited entities will mostly override this
+        function and initialize their state variable defaults here.
     ]]
     init = function(self, uid, kwargs)
         logging.log(logging.DEBUG, "base:init")
@@ -113,7 +129,11 @@ base_static = class.new(entity_animated.base_animated, {
         if not kwargs and not kwargs.position then
             self.position = { 511, 512, 513 }
         else
-            self.position = { tonumber(kwargs.position.x), tonumber(kwargs.position.y), tonumber(kwargs.position.z) }
+            self.position = {
+                tonumber(kwargs.position.x),
+                tonumber(kwargs.position.y),
+                tonumber(kwargs.position.z)
+            }
         end
         self.radius = 0
 
@@ -124,15 +144,19 @@ base_static = class.new(entity_animated.base_animated, {
         Function: activate
         See <base_server.activate>.
 
-        Note: Inserts position into kwargs (kwargs.x, kwargs.y, kwargs.z). Also inserts
-        attr1, attr2, attr3, attr4 into kwargs and then sets up the entity in sauer using
-        values in kwargs. Also triggers SV change for position property and attr* properties
-        after flushing queued changes.
+        Note: Inserts position into kwargs (kwargs.x, kwargs.y, kwargs.z).
+        Also inserts attr1, attr2, attr3, attr4 into kwargs and then sets up
+        the entity in sauer using values in kwargs. Also triggers SV change
+        for position property and attr* properties after flushing queued
+        changes.
     ]]
     activate = function(self, kwargs)
         kwargs = kwargs or {}
 
-        logging.log(logging.DEBUG, tostring(self.uid) .. " base: __activate() " .. json.encode(kwargs))
+        logging.log(
+            logging.DEBUG,
+            self.uid .. " base: __activate() " .. json.encode(kwargs)
+        )
 
         -- call parent
         entity_animated.base_animated.activate(self, kwargs)
@@ -154,13 +178,19 @@ base_static = class.new(entity_animated.base_animated, {
 
         logging.log(logging.DEBUG, "base: setupextent:")
         -- set up static entity in sauer subsystem
-        CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z, kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4)
+        CAPI.setupextent(
+            self, kwargs._type,
+            kwargs.x, kwargs.y, kwargs.z,
+            kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4
+        )
 
         logging.log(logging.DEBUG, "base: flush:")
         -- flush queue
         self:flush_queued_state_variable_changes()
 
-        -- ensure the state data contains copies for C++ stuff (otherwise, might be empty, and we need it for initializing on the server)
+        -- ensure the state data contains copies for C++ stuff
+        -- (otherwise, might be empty, and we need it for
+        -- initializing on the server)
         logging.log(logging.DEBUG, "ensuring base values - deprecate")
         logging.log(
             logging.DEBUG,
@@ -171,7 +201,9 @@ base_static = class.new(entity_animated.base_animated, {
                 .. ", "
                 .. tostring(self.position.z)
         )
-        logging.log(logging.DEBUG, "position class: " .. tostring(self.position))
+        logging.log(
+            logging.DEBUG, "position class: " .. tostring(self.position)
+        )
 
         -- trigger SV change
         self.position = self.position
@@ -195,7 +227,8 @@ base_static = class.new(entity_animated.base_animated, {
     end,
 
     --! Function: deactivate
-    --! See <base_server.deactivate>. Also dismantles static entity in sauer beforehand.
+    --! See <base_server.deactivate>. Also dismantles
+    --! static entity in sauer beforehand.
     deactivate = function(self)
         CAPI.dismantleextent(self)
         entity_animated.base_animated.deactivate(self)
@@ -205,7 +238,8 @@ base_static = class.new(entity_animated.base_animated, {
         Function: client_activate
         See <base_client.client_activate>.
 
-        Note: Inserts some temporary data into kwargs until it receives full state data.
+        Note: Inserts some temporary data into kwargs
+        until it receives full state data.
     ]]
     client_activate = function(self, kwargs)
         -- make up some stuff until we get complete state data
@@ -231,7 +265,8 @@ base_static = class.new(entity_animated.base_animated, {
     end,
 
     --! Function: client_deactivate
-    --! See <base_client.client_deactivate>. Also dismantles static entity in sauer beforehand.
+    --! See <base_client.client_deactivate>.
+    --! Also dismantles static entity in sauer beforehand.
     client_deactivate = function(self)
         CAPI.dismantleextent(self)
         entity_animated.base_animated.client_deactivate(self)
@@ -263,7 +298,9 @@ base_static = class.new(entity_animated.base_animated, {
                         self.uid,
                         tostring(self),
                         -- custom data per client
-                        self:create_state_data_dict(cns[i], { compressed = true }),
+                        self:create_state_data_dict(
+                            cns[i], { compressed = true }
+                        ),
                         tonumber(self.position.x),
                         tonumber(self.position.y),
                         tonumber(self.position.z),
@@ -359,7 +396,8 @@ light = class.new(base_static, {
     Class: spotlight
     Spotlight static entity. It's attached to nearest <light> entity.
     It has just one own property, and that is attr1 (alias "radius").
-    Radius is in degrees, 0 to 90, where 90 is full hemisphere and 0 simply a line.
+    Radius is in degrees, 0 to 90, where 90 is full hemisphere
+    and 0 simply a line.
 ]]
 spotlight = class.new(base_static, {
     --! Variable: _class
@@ -677,7 +715,8 @@ mapmodel = class.new(base_static, {
         logging.log(logging.DEBUG, "mapmodel:init")
         base_static.init(self, uid, kwargs)
 
-        self.attr2 = -1 -- sauer mapmodel index - put as -1 to use out model names as default
+        -- sauer mapmodel index - put as -1 to use out model names as default
+        self.attr2 = -1
         self.yaw = 0
 
         self.collision_radius_width = 0
@@ -767,7 +806,8 @@ area_trigger = class.new(mapmodel, {
 
     --[[!
         Function: on_collision
-        Overriden <mapmodel.on_collision>. Runs self.server_function when needed.
+        Overriden <mapmodel.on_collision>.
+        Runs self.server_function when needed.
     ]]
     on_collision = function(self, collider)
         --- XXX potential security risk
@@ -778,7 +818,8 @@ area_trigger = class.new(mapmodel, {
 
     --[[!
         Function: client_on_collision
-        Overriden <mapmodel.client_on_collision>. Runs self.client_function when needed.
+        Overriden <mapmodel.client_on_collision>.
+        Runs self.client_function when needed.
     ]]
     client_on_collision = function(self, collider)
         --- XXX potential security risk

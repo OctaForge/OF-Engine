@@ -39,7 +39,7 @@ local main_id = tgui.push_tab("Main", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_
                         gui.label("Map: Running.", 1.2, 0.8, 0, 0)
                         tgui.button("  stop", function() world.map() end)
                         tgui.button("  show output", function() gui.show("local_server_output") end)
-                        tgui.button("  save map", function() network.do_upload() end)
+                        tgui.button("  save map", function() world.save_map() end)
                         tgui.button("  restart map", function() world.restart_map() end)
                     end)
                     gui.vlist(0, function()

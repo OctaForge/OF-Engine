@@ -16,8 +16,8 @@
 
 --[[!
     Package: signals
-    This module controls signal handling. If you set up a table with signal handlers,
-    you can connect event to it and emit it anytime later.
+    This module controls signal handling. If you set up a table with signal
+    handlers, you can connect event to it and emit it anytime later.
 ]]
 module("signals", package.seeall)
 
@@ -31,22 +31,24 @@ local __post_emit_event_stack = {}
 
 --[[!
     Function: _connect
-    This is used to connect a signal to a table. You never call this function directly.
-    Instead, you use <methods_add> to add required signal handlers to the table and then
-    use this function as table method, without the underscore.
+    This is used to connect a signal to a table. You never call this function
+    directly. Instead, you use <methods_add> to add required signal handlers
+    to the table and then use this function as table method, without
+    the underscore.
 
-    If you connect a signal function to a name, you can later <_emit> it and even
-    pass some arguments to it (besides "self" which is passed automatically and it
-    represents the table it was connected to).
+    If you connect a signal function to a name, you can later <_emit>
+    it and even pass some arguments to it (besides "self" which is passed
+    automatically and it represents the table it was connected to).
 
     Parameters:
-        self - the table you'll be calling connect for. Usually hidden by using :.
+        self - the table you'll be calling connect for.
+        Usually hidden by using :.
         name - the signal name to connect.
-        callback - the callback function, accepts "self" argument + custom. The handler
-        function can return two values, first one being boolean value, which when it's
-        true, it makes the emit stop at that callback even when multiple callbacks are
-        connected to the same signal, and second one being any return value you want
-        to return from <_emit>.
+        callback - the callback function, accepts "self" argument + custom.
+        The handler function can return two values, first one being boolean
+        value, which when it's true, it makes the emit stop at that callback
+        even when multiple callbacks are connected to the same signal,
+        and second one being any return value you want to return from <_emit>.
 
     Returns:
         Unique ID for the signal.
@@ -60,7 +62,10 @@ local __post_emit_event_stack = {}
 function _connect(self, name, callback) 
     -- check if callback really is function
     if type(callback) ~= "function" then
-        logging.log(logging.ERROR, "Specified callback is not a function, not connecting.")
+        logging.log(
+            logging.ERROR,
+            "Specified callback is not a function, not connecting."
+        )
         return nil
     end
 
@@ -85,15 +90,17 @@ end
 
 --[[!
     Function: _disconnect
-    This is used to disconnect a signal from a table. You never call this function directly.
-    Instead, you use <methods_add> to add required signal handlers to the table and then
-    use this function as table method, without the underscore.
+    This is used to disconnect a signal from a table.
+    You never call this function directly. Instead, you use
+    <methods_add> to add required signal handlers to the table
+    and then use this function as table method, without the underscore.
 
-    If you disconnect a signal, you won't be able to emit it anymore. To disconnect it,
-    you need to know the ID.
+    If you disconnect a signal, you won't be able to emit it anymore.
+    To disconnect it, you need to know the ID.
 
     Parameters:
-        self - the table you'll be calling connect for. Usually hidden by using :.
+        self - the table you'll be calling connect for.
+        Usually hidden by using :.
         id - the ID to disconnect.
 
     See Also:
@@ -159,9 +166,11 @@ end
     this run, since we're manipulating with separate table.
 
     Parameters:
-        self - the table you'll be calling connect for. Usually hidden by using :.
+        self - the table you'll be calling connect for.
+        Usually hidden by using :.
         name - name of the signal.
-        ... - additional arguments for emitting handler function, besides "self".
+        ... - additional arguments for emitting handler
+        function, besides "self".
 
     Returns:
         Return value of last callback that was executed.
@@ -290,7 +299,8 @@ end
                     end)
                 end
             )
-            t:emit("foo") -- prints "first iteration" and then "second iteration"
+            -- prints "first iteration" and then "second iteration"
+            t:emit("foo")
             t:disconnect(id) -- clear it up
         (end)
 ]]

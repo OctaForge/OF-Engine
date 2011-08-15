@@ -121,7 +121,9 @@ end
         -- this returns "bar: blah"
         -- first, gets parsed to "bar : <$0 return bar $0>"
         -- then, it gets parsed to "bar : blah" (value of bar)
-        assert(string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah")
+        assert(
+            string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah"
+        )
     (end)
 
     Parameters:
@@ -143,11 +145,13 @@ function template(s, l)
         -- ip - where the match begins, fp - where the match ends (numbers)
         -- dm - not used, ex - "=" or "", in case of "=", match is expression
         -- cd - the code / expression to run
-        local ip, fp, dm, ex, cd = string.find(s, "<%?(%w*)[ \t]*(=?)(.-)%?>", sp)
+        local ip, fp, dm, ex, cd
+            = string.find(s, "<%?(%w*)[ \t]*(=?)(.-)%?>", sp)
         -- no match? stop the loop
         if not ip then break end
 
-        -- insert everything from start position to match beginning into return table
+        -- insert everything from start position to
+        -- match beginning into return table
         table.insert(r, string.sub(s, sp, ip - 1))
         -- expression? insert a return value of "return EXPRESSION"
         -- command? insert a return value of the code.
@@ -163,7 +167,8 @@ function template(s, l)
             local rs = loadstring(cd)()
             if rs then table.insert(r, tostring(rs)) end
         end
-        -- set start position for next iteration as position of first character after last match.
+        -- set start position for next iteration as position
+        -- of first character after last match.
         sp = fp + 1
     end
 

@@ -268,7 +268,8 @@ base_root = class.new(nil, {
                 for name, var in pairs(base.properties) do
                     -- but do not insert if child class already inserted
                     -- state variable of the same name before
-                    if not p_table[name] and state_variables.is_state_variable(var) then
+                    if not p_table[name]
+                       and state_variables.is_state_variable(var) then
                            p_table[name] = var
                     end
                 end
@@ -291,12 +292,14 @@ base_root = class.new(nil, {
             -- if first one is alias and second not, leave the alias
             -- for the end
             if state_variables.is_state_variable_alias(p_table[n1]) and not
-               state_variables.is_state_variable_alias(p_table[n2]) then return false
+               state_variables.is_state_variable_alias(p_table[n2]) then
+               return false
             end
             -- if first one is not alias and second is, leave the alias
             -- for the end
             if not state_variables.is_state_variable_alias(p_table[n1])
-               and state_variables.is_state_variable_alias(p_table[n2]) then return true
+               and state_variables.is_state_variable_alias(p_table[n2]) then
+               return true
             end
 
             -- if both are aliases or both aren't, just sort by name
@@ -305,7 +308,12 @@ base_root = class.new(nil, {
 
         -- loop the sorted names now
         for i, name in pairs(sv_names) do
-            logging.log(logging.DEBUG, "Setting up var: %(1)s %(2)s" % { name, tostring(p_table[name]) })
+            logging.log(
+                logging.DEBUG,
+                "Setting up var: %(1)s %(2)s" % {
+                    name, tostring(p_table[name])
+                }
+            )
 
             -- get variable from p_table
             local var = p_table[name]
@@ -317,22 +325,24 @@ base_root = class.new(nil, {
 
     --[[!
         Function: create_state_data_dict
-        Creates a state data JSON dictionary from properties (state variables) we have.
-        Several compression methods can get applied (remove redundant whitespaces,
-        convert names to protocol IDs), so the final dictionary is smaller for network
-        transfer. Can be overriden (when we're just doing this locally).
+        Creates a state data JSON dictionary from properties
+        (state variables) we have. Several compression methods
+        can get applied (remove redundant whitespaces, convert
+        names to protocol IDs), so the final dictionary is smaller
+        for network transfer. Can be overriden (when we're just doing
+        this locally).
 
-        Note that if we're NOT compressing, it'll return RAW TABLE. No JSON encoding
-        involved, you'll have to do that yourself if needed.
+        Note that if we're NOT compressing, it'll return RAW TABLE.
+        No JSON encoding involved, you'll have to do that yourself if needed.
 
         Parameters:
-            target_cn - target client number for state variable. Determines if state
-            variable will get included in the dictionary. If it's nil, it'll get done
-            for all clients.
-            kwargs - additional parameters. Here it makes use of one of them, and that
-            it "compressed", if that is true, compression methods (like replacing
-            names with protocol IDs) will get applied to compress the dict for network
-            transfer.
+            target_cn - target client number for state variable.
+            Determines if state variable will get included in the dictionary.
+            If it's nil, it'll get done for all clients.
+            kwargs - additional parameters. Here it makes use of one of them,
+            and that is "compressed", if that is true, compression methods
+            (like replacing names with protocol IDs) will get applied to
+            compress the dict for network transfer.
 
         Returns:
             The generated JSON string.
@@ -387,21 +397,31 @@ base_root = class.new(nil, {
                                 .. json.encode(val)
                         )
 
-                        -- get the name - if we're compressing, convert it to protocol ID
+                        -- get the name - if we're compressing,
+                        -- convert it to protocol ID
                         local key = (not kwargs.compressed)
                                  and var._name
-                                  or message.to_protocol_id(tostring(self), var._name)
+                                  or message.to_protocol_id(
+                                    tostring(self), var._name
+                                  )
 
                         -- insert as converted to wire (== as string)
                         r[key] = var:to_wire(val)
 
-                        logging.log(logging.DEBUG, "create_state_data_dict() currently: " .. json.encode(r))
+                        logging.log(
+                            logging.DEBUG,
+                            "create_state_data_dict() currently: "
+                                .. json.encode(r)
+                        )
                     end
                 end
             end
         end
 
-        logging.log(logging.DEBUG, "create_state_data_dict() returns: " .. json.encode(r))
+        logging.log(
+            logging.DEBUG,
+            "create_state_data_dict() returns: " .. json.encode(r)
+        )
 
         -- if we're not compressing, fine, return - raw table
         if not kwargs.compressed then
@@ -441,7 +461,9 @@ base_root = class.new(nil, {
         for i, filter in pairs(_filters) do
             local n = filter(r)
 
-            if #n < #r and json.encode(json.decode(n)) == json.encode(json.decode(r)) then
+            if #n < #r
+            and json.encode(json.decode(n))
+             == json.encode(json.decode(r)) then
                 r = n
             end
         end
@@ -565,23 +587,24 @@ base_client = class.new(base_root, {
         the change or the state variable is has <client_set> property set to
         true, in that case, a signal gets emitted (see <signals>).
 
-        You can get the signal name by calling <state_variables.get_on_modify_name>
-        with state variable name set as argument and getting its return value
-        and you can connect handler to the entity that gets called everytime
-        the value gets changed (locally).
+        Call <state_variables.get_on_modify_name> to get the signal name
+        with state variable name set as argument. You can connect handler
+        to the entity that gets called everytime the value gets changed
+        (locally).
 
-        The handler for the signal accepts new value as the argument (besides 'self',
-        of course), so you can easily take appropriate actions, and it also takes
-        second boolean argument having true value when the value was modified for
-        specific client.
+        The handler for the signal accepts new value as the argument
+        (besides 'self', of course), so you can easily take appropriate
+        actions, and it also takes second boolean argument having true
+        value when the value was modified for specific client.
 
         Parameters:
             key - name of state variable we're setting.
             value - the value we're setting.
-            actor_uid - unique ID of actor we're setting the value for. If this is -1,
-            it means "all clients" (see <ALL_CLIENTS>), so we'll send an update to
-            the server. If it's anything else (including nil), it means we're setting
-            to an explicit client and that means we'll emit the signal and convert value
+            actor_uid - unique ID of actor we're setting the value for.
+            If this is -1, it means "all clients" (see <ALL_CLIENTS>),
+            so we'll send an update to the server. If it's anything else
+            (including nil), it means we're setting to an explicit client
+            and that means we'll emit the signal and convert value
             argument from wire format (== from string).
     ]]
     set_state_data = function(self, key, value, actor_uid)
@@ -598,16 +621,22 @@ base_client = class.new(base_root, {
         -- get raw state variable (omit calling getter)
         local var = self[state_variables._SV_PREFIX .. key]
 
-        -- if the variable has custom synch flag + we're controlled here, this will be true
-        local custom_synch_from_here = var.custom_synch and self.controlled_here
+        -- if the variable has custom synch flag + we're
+        -- controlled here, this will be true
+        local custom_synch_from_here
+            = var.custom_synch and self.controlled_here
 
-        -- state variable having client_set flag means it's always set clientside (saves bandwidth)
+        -- state variable having client_set flag means
+        -- it's always set clientside (saves bandwidth)
         local client_set = var.client_set
 
-        -- if we're sending to all clients and not custom synching from here, let's send a message
-        -- to server without emitting signal or settign anything
+        -- if we're sending to all clients and not custom synching
+        -- from here, let's send a message to server without emitting
+        -- a signal or setting anything
         if actor_uid == -1 and not custom_synch_from_here then
-            logging.log(logging.DEBUG, "sending request / notification to server.")
+            logging.log(
+                logging.DEBUG, "sending request / notification to server."
+            )
 
             -- TODO: supress msg sending of the same val, at least for some SVs
             message.send(
@@ -620,8 +649,9 @@ base_client = class.new(base_root, {
             )
         end
 
-        -- if we're sending to specific client OR the state variable has client_set flag OR we're
-        -- custom synching from here, update the value locally
+        -- if we're sending to specific client OR the state variable
+        -- has client_set flag OR we're custom synching from here,
+        -- update the value locally
         if actor_uid ~= -1 or client_set or custom_synch_from_here then
             logging.log(logging.INFO, "updating locally")
 
@@ -629,11 +659,15 @@ base_client = class.new(base_root, {
             if actor_uid ~= -1 then
                 value = var:from_wire(value)
             end
-            -- assert validation (TODO: omit assertions so the engine does not quit on failed changes)
+            -- assert validation (TODO: omit assertions so the engine
+            -- does not quit on failed changes)
             assert(var:validate(value))
 
             -- emit the change handler
-            self:emit(state_variables.get_on_modify_name(key), value, actor_uid ~= -1)
+            self:emit(
+                state_variables.get_on_modify_name(key),
+                value, actor_uid ~= -1
+            )
             -- and locally set the value
             self.state_variable_values[key] = value
         end
@@ -644,7 +678,10 @@ base_client = class.new(base_root, {
         Clientside version of <base_root.act>.
     ]]
     client_act = function(self, seconds)
-        logging.log(logging.INFO, "base_client:client_act, " .. tostring(self.uid))
+        logging.log(
+            logging.INFO,
+            "base_client:client_act, " .. self.uid
+        )
 
         self.action_system:manage(seconds)
     end
@@ -660,30 +697,37 @@ base_server = class.new(base_root, {
         Variable: sent_complete_notification
         This is set to true after <send_complete_notification>.
         It is used in <set_state_data> to determine if to set state
-        data, because it can't be set when complete notification isn't sent yet.
+        data, because it can't be set when complete notification
+        isn't sent yet.
     ]]
     sent_complete_notification = false,
 
     --[[!
         Function: init
-        This gets called even before <activate>. In custom entities, it is used
-        to default values of state variables (unless they're client_set, of course).
+        This gets called even before <activate>. In custom entities,
+        it is used to default values of state variables
+        (unless they're client_set, of course).
 
-        Here, it sets the serverside unique ID and initializes state variables "tags"
-        and "persistent" (see <base_root>).
+        Here, it sets the serverside unique ID and initializes state
+        variables "tags" and "persistent" (see <base_root>).
 
         This function also calls <entity_setup>.
 
         Parameters:
             uid - unique ID the entity will have.
-            kwargs - table of additional parameters. This method can use one of them,
-            "persistent", a boolean value specifying whether the entity will be persistent
-            (sets persistent property, see <base_root>).
+            kwargs - table of additional parameters. This method can
+            use one of them, "persistent", a boolean value specifying
+            whether the entity will be persistent (sets persistent
+            property, see <base_root>).
     ]]
     init = function(self, uid, kwargs)
         logging.log(
             logging.DEBUG,
-            "base_server:init(" .. tostring(uid) .. ", " .. tostring(kwargs) .. ")"
+            "base_server:init("
+                .. uid
+                .. ", "
+                .. tostring(kwargs)
+                .. ")"
         )
 
         -- assertions. TODO: get rid of them to prevent engine quitting
@@ -702,19 +746,21 @@ base_server = class.new(base_root, {
 
     --[[!
         Function: activate
-        Serverside activation method. Called after <init>. Serverside equivalent of
-        <base_client.client_activate>.
+        Serverside activation method. Called after <init>.
+        Serverside equivalent of <base_client.client_activate>.
 
-        Calls <entity_setup> just in case (the call does nothing if it was already
-        done from <init>).
+        Calls <entity_setup> just in case (the call does nothing
+        if it was already done from <init>).
 
         Parameters:
-            kwargs - table of additional parameters. This function can use one of them,
-            "state_data", which is a JSON string containing state data to initialize
-            the entity with.
+            kwargs - table of additional parameters. This function can
+            use one of them, "state_data", which is a JSON string
+            containing state data to initialize the entity with.
     ]]
     activate = function(self, kwargs)
-        logging.log(logging.DEBUG, "base_server:activate(" .. tostring(kwargs) .. ")")
+        logging.log(
+            logging.DEBUG, "base_server:activate(" .. tostring(kwargs) .. ")"
+        )
 
         -- set up the entity just in case
         self:entity_setup()
@@ -736,7 +782,8 @@ base_server = class.new(base_root, {
             self:flush_queued_state_variable_changes()
         end
 
-        -- if we have state_data provided by kwargs, update the entity from them
+        -- if we have state_data provided by kwargs,
+        -- update the entity from them
         if kwargs and kwargs.state_data then
             self:update_complete_state_data(kwargs.state_data)
         end
@@ -754,8 +801,9 @@ base_server = class.new(base_root, {
 
         Parameters:
             cn - client number to send the message to.
-            If set to -1, a message gets sent to all clients (see <ALL_CLIENTS>).
-            If it's nil, it defaults to <ALL_CLIENTS> as well.
+            If set to -1, a message gets sent to all
+            clients (see <ALL_CLIENTS>). If it's nil,
+            it defaults to <ALL_CLIENTS> as well.
     ]]
     send_complete_notification = function(self, cn)
         -- default the client number
@@ -766,7 +814,13 @@ base_server = class.new(base_root, {
                     and entity_store.get_all_client_numbers()
                      or { cn }
 
-        logging.log(logging.DEBUG, "LE.send_complete_notification: " .. tostring(self.cn) .. ", " .. self.uid)
+        logging.log(
+            logging.DEBUG,
+            "LE.send_complete_notification: "
+            .. tostring(self.cn)
+            .. ", "
+            .. self.uid
+        )
 
         -- loop the numbers and send a message for each of them
         for i, num in pairs(cns) do
@@ -776,7 +830,10 @@ base_server = class.new(base_root, {
                         self.uid,
                         tostring(self),
                         -- custom data per client
-                        self:create_state_data_dict(num, { compressed = true }))
+                        self:create_state_data_dict(
+                            num, { compressed = true }
+                        )
+            )
         end
 
         logging.log(logging.DEBUG, "LE.send_complete_notification done.")
@@ -784,9 +841,10 @@ base_server = class.new(base_root, {
 
     --[[!
         Function: entity_setup
-        Performs entity setup. First, does <base_root.general_setup> and then creates
-        a table of queued state variable changes. Finally, sets the entity
-        as initialized. Does nothing when already initialied.
+        Performs entity setup. First, does <base_root.general_setup>
+        and then creates a table of queued state variable changes.
+        Finally, sets the entity as initialized. Does nothing
+        when already initialied.
     ]]
     entity_setup = function(self)
         -- perform only if not initialized yet
@@ -822,24 +880,25 @@ base_server = class.new(base_root, {
         Serverside state data setter. Depending on settings, it takes multiple
         other actions, like converting from wire format. Signal gets emitted.
 
-        You can get the signal name by calling <state_variablesget_on_modify_name>
-        with state variable name set as argument and getting its return value
-        and you can connect handler to the entity that gets called everytime
-        the value gets changed (locally).
+        Call <state_variables.get_on_modify_name> to get the signal name
+        with state variable name set as argument. You can connect handler
+        to the entity that gets called everytime the value gets changed
+        (locally).
 
-        The handler for the signal accepts new value as the argument (besides 'self',
-        of course), so you can easily take appropriate actions, and it also takes
-        second boolean argument having true value when the value was modified for
-        specific client.
+        The handler for the signal accepts new value as the argument
+        (besides 'self', of course), so you can easily take appropriate
+        actions, and it also takes second boolean argument having true
+        value when the value was modified for specific client.
 
         Parameters:
             key - name of state variable we're setting.
             value - the value we're setting.
-            actor_uid - unique ID of actor we're setting the value for. If this is -1,
-            it means "all clients" (see <ALL_CLIENTS>), so we'll send an update to
-            the server.
-            internal_op - this boolean value specifies whether it's internal server operation.
-            if it is, given value gets converted from wire format.
+            actor_uid - unique ID of actor we're setting the value for.
+            If this is -1, it means "all clients" (see <ALL_CLIENTS>),
+            so we'll send an update to the server.
+            internal_op - this boolean value specifies whether
+            it's internal server operation. If it is, given value
+            gets converted from wire format.
     ]]
     set_state_data = function(self, key, value, actor_uid, internal_op)
         logging.log(logging.INFO, "Setting state data: " ..
@@ -857,7 +916,11 @@ base_server = class.new(base_root, {
 
         -- if we don't have the variable, log it and return (ignore)
         if not var then
-            logging.log(logging.WARNING, "Ignoring state data setting for unknown (possibly deprecated) variable " .. tostring(key))
+            logging.log(
+                logging.WARNING,
+                "Ignoring SD setting for unknown (deprecated?) variable "
+                    .. tostring(key)
+            )
             return nil
         end
 
@@ -865,13 +928,22 @@ base_server = class.new(base_root, {
         if actor_uid and actor_uid ~= -1 then
             -- convert from wire format
             value = var:from_wire(value)
-            -- if the state variable is not changeable on client (through server message),
-            -- return - see client_write in state variables documentation
+            -- if the state variable is not changeable on client
+            -- (through server message), return - see client_write
+            -- in state variables documentation
             if not var.client_write then
-                logging.log(logging.ERROR, "Client " .. tostring(actor_uid) .. " tried to change " .. tostring(key))
+                logging.log(
+                    logging.ERROR,
+                    "Client "
+                        .. tostring(actor_uid)
+                        .. " tried to change "
+                        .. tostring(key)
+                )
                 return nil
             end
-        elseif internal_op then -- internal server operation - convert from wire format in any case
+        elseif internal_op then
+            -- internal server operation,
+            -- convert from wire format in any case
             value = var:from_wire(value)
         end
 
@@ -883,22 +955,33 @@ base_server = class.new(base_root, {
                           tostring(value))
 
         -- emit the change
-        local ret = self:emit(state_variables.get_on_modify_name(key), value, actor_uid)
-        -- if the handler returns this string, cancel the update (useful in i.e. health system)
+        local ret = self:emit(
+            state_variables.get_on_modify_name(key),
+            value, actor_uid
+        )
+        -- if the handler returns this string,
+        -- cancel the update (useful in i.e. health system)
         if ret == "cancel_state_data_update" then
             return nil
         end
 
         -- locally save the value
         self.state_variable_values[key] = value
-        logging.log(logging.INFO, "new state data: " .. tostring(self.state_variable_values[key]))
+        logging.log(
+            logging.INFO,
+            "new state data: " .. tostring(self.state_variable_values[key])
+        )
 
-        -- if the variable has custom synch flag + we're controlled here, this will be true
-        local custom_synch_from_here = var.custom_synch and self.controlled_here
+        -- if the variable has custom synch flag + we're
+        -- controlled here, this will be true
+        local custom_synch_from_here
+            = var.custom_synch and self.controlled_here
 
-        -- if we're not internal operation and the state variable can be read from client
-        -- and we're not custom synching from here ..
-        if not internal_op and var.client_read and not custom_synch_from_here then
+        -- if we're not internal operation and the state variable
+        -- can be read from client and we're not custom synching from here ..
+        if not internal_op
+           and var.client_read
+           and not custom_synch_from_here then
             -- if we haven't sent complete notification yet, cancel
             if not self.sent_complete_notification then
                 return nil
@@ -908,13 +991,15 @@ base_server = class.new(base_root, {
             local args = {
                 -- this first arg will be client number
                 nil,
-                var.reliable and CAPI.statedata_update or CAPI.statedata_update_unreliable,
+                var.reliable
+                    and CAPI.statedata_update
+                    or  CAPI.statedata_update_unreliable,
                 self.uid,
                 message.to_protocol_id(_class, key),
                 var:to_wire(value),
                 (var.client_set and actor_uid and actor_uid ~= -1)
                     and entity_store.get(actor_uid).cn
-                     or message.ALL_CLIENTS
+                    or  message.ALL_CLIENTS
             }
 
             -- get all client numbers (we're sending to all clients)
@@ -965,11 +1050,14 @@ base_server = class.new(base_root, {
 
     --[[!
         Function: flush_queued_state_variable_changes
-        Flushes the internal table for queued SV changes (applies changes from them and
-        sets the table to nil).
+        Flushes the internal table for queued SV changes
+        (applies changes from them and sets the table to nil).
     ]]
     flush_queued_state_variable_changes = function(self)
-        logging.log(logging.DEBUG, "flushing queued SV changes for " .. tostring(self.uid))
+        logging.log(
+            logging.DEBUG,
+            "flushing queued SV changes for " .. self.uid
+        )
         if self:can_call_c_functions() then return nil end
 
         local changes = self._queued_sv_changes
@@ -987,7 +1075,10 @@ base_server = class.new(base_root, {
 
             self[_keys[i]] = self.state_variable_values[_keys[i]]
 
-            logging.log(logging.DEBUG, "(B) flushing of " .. tostring(_keys[i]) .. " - ok.")
+            logging.log(
+                logging.DEBUG,
+                "(B) flushing of " .. tostring(_keys[i]) .. " - ok."
+            )
         end
 
         self._queued_sv_changes_complete = true

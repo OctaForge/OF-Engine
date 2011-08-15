@@ -210,8 +210,5 @@ setmetatable(world, {
 
 world.gravity = 200
 
-logging.log(logging.DEBUG, ":: Network interface.")
-require("base.base_network")
-
 logging.log(logging.DEBUG, ":: Camera.")
 require("base.base_camera")

@@ -37,10 +37,19 @@ base_animated = class.new(entity.base, {
     _class = "base_animated",
 
     properties = {
-        animation   = state_variables.wrapped_c_integer({ c_setter = "CAPI.setanim", client_set = true }),
-        start_time  = state_variables.wrapped_c_integer({ c_getter = "CAPI.getstarttime" }),
-        model_name  = state_variables.wrapped_c_string ({ c_setter = "CAPI.setmodelname" }),
-        attachments = state_variables.wrapped_c_array  ({ c_setter = "CAPI.setattachments" })
+        animation      = state_variables.wrapped_c_integer({
+            c_setter   = "CAPI.setanim",
+            client_set = true
+        }),
+        start_time     = state_variables.wrapped_c_integer({
+            c_getter   = "CAPI.getstarttime"
+        }),
+        model_name     = state_variables.wrapped_c_string({
+            c_setter   = "CAPI.setmodelname"
+        }),
+        attachments    = state_variables.wrapped_c_array({
+            c_setter   = "CAPI.setattachments"
+        })
     },
 
     --! Function: init
@@ -76,13 +85,14 @@ base_animated = class.new(entity.base, {
 
     --[[!
         Function: set_attachment
-        Sets model attachment for entity. Updates internal attachments dictionary.
+        Sets model attachment for entity.
+        Updates internal attachments dictionary.
         Updates "attachments" entity property.
 
         Parameters:
             tag - name of tag to attach model to.
-            model_name - path to the model to attach. If it's nil, the attachment
-            gets removed.
+            model_name - path to the model to attach.
+            If it's nil, the attachment gets removed.
     ]]
     set_attachment = function(self, tag, model_name)
         -- delete the attachment if we don't have the model
@@ -106,8 +116,9 @@ base_animated = class.new(entity.base, {
 
     --[[!
         Function: set_local_animation
-        Sets local animation (that means, updates "animation" property locally, just in
-        value table). The animation gets updated in the engine as well.
+        Sets local animation (that means, updates "animation"
+        property locally, just in value table). The animation
+        gets updated in the engine as well.
 
         Parameters:
             animation - see ANIM variables in <actions>.
@@ -158,8 +169,8 @@ base_animated = class.new(entity.base, {
 action_local_animation = class.new(actions.action, {
     --[[!
         Function: do_start
-        See <action.do_start>. This overriden method saves actor's old animation,
-        gives actor its own animation and ends.
+        See <action.do_start>. This overriden method saves
+        actor's old animation, gives actor its own animation and ends.
     ]]
     do_start = function(self)
         self.old_animation = self.actor.animation

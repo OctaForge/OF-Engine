@@ -18,26 +18,27 @@
     Package: vslot
     VSlots are "virtual slots". In Cube 2, you have texture (normal) slots
     and virtual slots, which are, unlike texture slots, saved in map and refer
-    to area, not a single texture. That allows you to set properties like coloring
-    or alpha to selected area, not only texture.
+    to area, not a single texture. That allows you to set properties like
+    coloring or alpha to selected area, not only texture.
 ]]
 module("vslot", package.seeall)
 
 --[[!
     Function: delta
-    Executes vslot commands in its body that way they only add to current value.
-    For example,
+    Executes vslot commands in its body that way
+    they only add to current value. For example,
 
     (start code)
         vslots.delta("vslots.rotate(1)")
     (end)
 
-    will add 1 to current rotation, instead of setting it to 1. It affects <rotate>
-    (adds), <offset> (adds), <scale> (multiplies), <shader_param> (overrides) and
-    <color> (multiplies).
+    will add 1 to current rotation, instead of setting it to 1.
+    It affects <rotate> (adds), <offset> (adds), <scale> (multiplies),
+    <shader_param> (overrides) and <color> (multiplies).
 
     Parameters:
-        body - a string containing Lua code to execute. TODO: make it a function.
+        body - a string containing Lua code to execute.
+        TODO: make it a function.
 ]]
 delta = CAPI.vdelta
 
@@ -79,7 +80,8 @@ scale = CAPI.vscale
 
 --[[!
     Function: layer
-    Creates virtual layer for texture blending for selection. See <texture.layer>.
+    Creates virtual layer for texture blending for selection.
+    See <texture.layer>.
 
     Parameters:
         see <texture.layer>.
@@ -112,7 +114,8 @@ reset = CAPI.vreset
 
 --[[!
     Function: shader_param
-    Sets texture shader parameter for current selection. See <texture.shader_param>.
+    Sets texture shader parameter for current selection.
+    See <texture.shader_param>.
 
     Parameters:
         see <texture.shader_param>.
@@ -121,7 +124,7 @@ shader_param = CAPI.vshaderparam
 
 --[[!
     Function: compact_vslots
-    Compacts vslots, you should never need it, because they are automatically compacted
-    when they reach value of <autocompactvslots>.
+    Compacts vslots, you should never need it, because they are
+    automatically compacted when they reach value of <autocompactvslots>.
 ]]
 compact_vslots = CAPI.compactvslosts

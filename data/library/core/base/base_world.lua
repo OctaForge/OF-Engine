@@ -20,7 +20,17 @@
 ]]
 module("world", package.seeall)
 
+--[[!
+    Function: request_private_edit_mode
+    Requests private edit mode on the server. Useful when playing
+    in multiplayer. On local server, player always has this.
+]]
 request_private_edit_mode = CAPI.requestprivedit
+
+--[[!
+    Function: has_private_edit_mode
+    Returns true if player is in private edit mode, false otherwise.
+]]
 has_private_edit_mode = CAPI.hasprivedit
 
 print_cube = CAPI.printcube
@@ -54,6 +64,7 @@ remip  = CAPI.remip
 has_map = CAPI.hasmap
 map = CAPI.map
 restart_map = CAPI.restart_map
+save_map = CAPI.do_upload
 export_entities = CAPI.export_entities
 
 write_obj = CAPI.writeobj

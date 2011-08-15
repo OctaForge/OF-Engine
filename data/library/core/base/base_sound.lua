@@ -52,7 +52,15 @@ function play(name, position, volume, cn)
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names
         if #name > 2 then
-            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", name))
+            logging.log(
+                logging.WARNING,
+                string.format(
+                    "Sending a sound '%s' to clients using"
+                    .. " full string name. This should be done rarely,"
+                    .. " for bandwidth reasons.",
+                    name
+                )
+            )
         end
 
         cn = cn or message.ALL_CLIENTS
@@ -83,7 +91,15 @@ function stop(name, volume, cn)
     else
         -- warn when using non-compressed names
         if #name > 2 then
-            logging.log(logging.WARNING, string.format("Sending a sound '%s' to clients using full string name. This should be done rarely, for bandwidth reasons.", name))
+            logging.log(
+                logging.WARNING,
+                string.format(
+                    "Sending a sound '%s' to clients using"
+                    .. " full string name. This should be done rarely,"
+                    .. " for bandwidth reasons.",
+                    name
+                )
+            )
         end
         cn = cn or message.ALL_CLIENTS
         message.send(cn, CAPI.soundstop_toclients_byname, volume, name, -1)
