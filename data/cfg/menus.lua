@@ -60,7 +60,7 @@ local main_id = tgui.push_tab("Main", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_
                                         function()
                                             world.map(map)
                                         end, function()
-                                            local preview = world.get_map_preview_filename(map)
+                                            local preview = world.get_map_preview_name(map)
                                                or tgui.image_path .. "icons/icon_no_preview.png"
 
                                             gui.stretched_image(preview, 0.1, 0.1, function()
@@ -102,7 +102,7 @@ local main_id = tgui.push_tab("Main", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_
                                         function()
                                             world.map(map)
                                         end, function()
-                                            local preview = world.get_map_preview_filename(map)
+                                            local preview = world.get_map_preview_name(map)
                                                or tgui.image_path .. "icons/icon_no_preview.png"
 
                                             gui.stretched_image(preview, 0.1, 0.1, function()

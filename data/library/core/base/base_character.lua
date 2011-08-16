@@ -86,7 +86,7 @@ PHYSICAL_STATE = {
         pitching - -1 when looking down, 1 when up, 0 when not.
         position - character position, vec3 (x, y, z).
         velocity - character velocity, vec3 (x, y, z).
-        falling - character falling, vec3 (x, y, z).
+        falling - character gravity falling, vec3 (x, y, z).
         radius - character bounding box radius, float.
         above_eye - distance from position vector to eyes.
         eye_height - distance from eyes to feet.

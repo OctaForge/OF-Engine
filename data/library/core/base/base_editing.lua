@@ -130,7 +130,7 @@ has_selection    = CAPI.havesel
 reorient         = CAPI.reorient
 
 --[[!
-    Function: insel
+    Function: in_selection
     Returns true if there is a selected entity in cube
     selection. Also used by for example <select_entities>
     to select all entities in explicit cube selection.
@@ -420,6 +420,36 @@ set_material = CAPI.editmat
     <texture.add> commands. See <cfg/default_map_settings.lua>.
 ]]
 material_reset = CAPI.materialreset
+
+--[[!
+    Function: print_cube
+    Prints out information about cube player is currently
+    pointing at into the console in format
+
+    (start code)
+        = CUBE_POINTER = (X_POS, Y_POS, Z_POS) @ CUBE_SIZE
+         x AABBCCDD
+         y AABBCCDD
+         z AABBCCDD
+    (end)
+
+    where AA, BB, CC, DD are numbers from 00 to 80 and represent
+    how much of face corners on given axis is filled with geometry.
+
+    Example:
+        (start code)
+            = 0x123456780 = (512, 512, 512) @ 32
+             x 80808080
+             y 80808080
+             z 80706050
+        (end)
+
+        represents cube with gridpower 5, in the middle of the map,
+        with all faces full except the top face, which has top-left
+        corner unchanged, top-right pushed by 1 step, bottom-left
+        by 2 steps and bottom-right by 3 steps.
+]]
+print_cube = CAPI.printcube
 
 --[[!
     Function: push
@@ -896,10 +926,7 @@ procedural = {
             x - the x position of the cube.
             y - the y position of the cube.
             z - the z position of the cube.
-            gridsize - the cube grid size. It's always 1 << <gridpower>,
-            where <gridpower> is what you change with G+scroll and it
-            has values from 0 to 12. Default-sized cubes use
-            <gridpower> 3 (that is, gridsize 24).
+            gridsize - see <world.get_grid_size>.
     ]]
     create_cube = CAPI.editing_createcube,
 
