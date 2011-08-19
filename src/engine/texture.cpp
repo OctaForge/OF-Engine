@@ -3,93 +3,90 @@
 #include "engine.h"
 #include "of_entities.h"
 
-struct scale
+template<int S>
+static void halvetex(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
 {
-    template<int S>
-    static void halvetex(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
+    for (uchar *yend = &src[sh*stride]; src < yend;)
     {
-        for (uchar *yend = &src[sh*stride]; src < yend;)
-        {
-            for (uchar *xend = &src[stride]; src < xend; src += 2*S, dst += S) {
-                loopi(S) dst[i] = (uint(src[i]) + uint(src[i+S]) + uint(src[stride+i]) + uint(src[stride+i+S]))>>2;
-            }
-            src += stride;
+        for (uchar *xend = &src[stride]; src < xend; src += 2*S, dst += S) {
+            loopi(S) dst[i] = (uint(src[i]) + uint(src[i+S]) + uint(src[stride+i]) + uint(src[stride+i+S]))>>2;
         }
+        src += stride;
     }
+}
 
-    template<int S>
-    static void shifttex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
+template<int S>
+static void shifttex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
+{
+    uint wfrac = sw/dw, hfrac = sh/dh, wshift = 0, hshift = 0;
+    while(dw<<wshift < sw) wshift++;
+    while(dh<<hshift < sh) hshift++;
+    uint tshift = wshift + hshift;
+    for(uchar *yend = &src[sh*stride]; src < yend;)
     {
-        uint wfrac = sw/dw, hfrac = sh/dh, wshift = 0, hshift = 0;
-        while(dw<<wshift < sw) wshift++;
-        while(dh<<hshift < sh) hshift++;
-        uint tshift = wshift + hshift;
-        for(uchar *yend = &src[sh*stride]; src < yend;)
+        for(uchar *xend = &src[stride];    src < xend; src += wfrac*S, dst += S)
         {
-            for(uchar *xend = &src[stride];    src < xend; src += wfrac*S, dst += S)
+            uint r[S] = {0};
+            for(uchar *ycur=src, *xend=&ycur[wfrac*S], *yend=&src[hfrac*stride]; ycur<yend; ycur+=stride, xend+=stride)
             {
-                uint r[S] = {0};
-                for(uchar *ycur=src, *xend=&ycur[wfrac*S], *yend=&src[hfrac*stride]; ycur<yend; ycur+=stride, xend+=stride)
-                {
-                    for(uchar *xcur = ycur; xcur < xend; xcur += S) {
-                        loopi(S) r[i] += xcur[i];
-                    }
-                }
-                loopi(S) dst[i] = (r[i]) >> tshift;
-            }
-            src += (hfrac-1)*stride; 
-        }
-    }
-
-    template<int S>
-    static void scaletex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
-    {
-        uint wfrac = (sw<<12)/dw, hfrac = (sh<<12)/dh, darea = dw*dh, sarea = sw*sh;
-        int over, under;
-        for(over = 0; (darea>>over) > sarea; over++);
-        for(under = 0; (darea<<under) < sarea; under++);
-        uint cscale = clamp(under, over - 12, 12),
-             ascale = clamp(12 + under - over, 0, 24),
-             dscale = ascale + 12 - cscale,
-             area = ((unsigned long long int)darea<<ascale)/sarea;
-        dw *= wfrac;
-        dh *= hfrac;
-        for(uint y = 0; y < dh; y += hfrac)
-        {
-            const uint yn = y + hfrac - 1, yi = y>>12, h = (yn>>12) - yi, ylow = ((yn|(-int(h)>>24))&0xFFFU) + 1 - (y&0xFFFU), yhigh = (yn&0xFFFU) + 1;
-            const uchar *ysrc = &src[yi*stride]; 
-            for(uint x = 0; x < dw; x += wfrac, dst += S)
-            {
-                const uint xn = x + wfrac - 1, xi = x>>12, w = (xn>>12) - xi, xlow = ((w+0xFFFU)&0x1000U) - (x&0xFFFU), xhigh = (xn&0xFFFU) + 1;
-                const uchar *xsrc = &ysrc[xi*S], *xend = &xsrc[w*S];
-                uint r[S] = {0};
-                for(const uchar *xcur = &xsrc[S]; xcur < xend; xcur += S) {
+                for(uchar *xcur = ycur; xcur < xend; xcur += S) {
                     loopi(S) r[i] += xcur[i];
                 }
-                loopi(S) r[i] = (ylow*(r[i] + ((xsrc[i]*xlow + xend[i]*xhigh)>>12)))>>cscale;
-                if(h)
+            }
+            loopi(S) dst[i] = (r[i]) >> tshift;
+        }
+        src += (hfrac-1)*stride; 
+    }
+}
+
+template<int S>
+static void scaletex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
+{
+    uint wfrac = (sw<<12)/dw, hfrac = (sh<<12)/dh, darea = dw*dh, sarea = sw*sh;
+    int over, under;
+    for(over = 0; (darea>>over) > sarea; over++);
+    for(under = 0; (darea<<under) < sarea; under++);
+    uint cscale = clamp(under, over - 12, 12),
+         ascale = clamp(12 + under - over, 0, 24),
+         dscale = ascale + 12 - cscale,
+         area = ((unsigned long long int)darea<<ascale)/sarea;
+    dw *= wfrac;
+    dh *= hfrac;
+    for(uint y = 0; y < dh; y += hfrac)
+    {
+        const uint yn = y + hfrac - 1, yi = y>>12, h = (yn>>12) - yi, ylow = ((yn|(-int(h)>>24))&0xFFFU) + 1 - (y&0xFFFU), yhigh = (yn&0xFFFU) + 1;
+        const uchar *ysrc = &src[yi*stride]; 
+        for(uint x = 0; x < dw; x += wfrac, dst += S)
+        {
+            const uint xn = x + wfrac - 1, xi = x>>12, w = (xn>>12) - xi, xlow = ((w+0xFFFU)&0x1000U) - (x&0xFFFU), xhigh = (xn&0xFFFU) + 1;
+            const uchar *xsrc = &ysrc[xi*S], *xend = &xsrc[w*S];
+            uint r[S] = {0};
+            for(const uchar *xcur = &xsrc[S]; xcur < xend; xcur += S) {
+                loopi(S) r[i] += xcur[i];
+            }
+            loopi(S) r[i] = (ylow*(r[i] + ((xsrc[i]*xlow + xend[i]*xhigh)>>12)))>>cscale;
+            if(h)
+            {
+                xsrc += stride;
+                xend += stride;
+                for(uint hcur = h; --hcur; xsrc += stride, xend += stride)
                 {
-                    xsrc += stride;
-                    xend += stride;
-                    for(uint hcur = h; --hcur; xsrc += stride, xend += stride)
-                    {
-                        uint p[S] = {0};
-                        for(const uchar *xcur = &xsrc[S]; xcur < xend; xcur += S) {
-                            loopi(S) p[i] += xcur[i];
-                        }
-                        loopi(S) r[i] += ((p[i]<<12) + xsrc[i]*xlow + xend[i]*xhigh)>>cscale;
-                    }
                     uint p[S] = {0};
                     for(const uchar *xcur = &xsrc[S]; xcur < xend; xcur += S) {
                         loopi(S) p[i] += xcur[i];
                     }
-                    loopi(S) r[i] += (yhigh*(p[i] + ((xsrc[i]*xlow + xend[i]*xhigh)>>12)))>>cscale;
+                    loopi(S) r[i] += ((p[i]<<12) + xsrc[i]*xlow + xend[i]*xhigh)>>cscale;
                 }
-                loopi(S) dst[i] = (r[i] * area)>>dscale;
+                uint p[S] = {0};
+                for(const uchar *xcur = &xsrc[S]; xcur < xend; xcur += S) {
+                    loopi(S) p[i] += xcur[i];
+                }
+                loopi(S) r[i] += (yhigh*(p[i] + ((xsrc[i]*xlow + xend[i]*xhigh)>>12)))>>cscale;
             }
+            loopi(S) dst[i] = (r[i] * area)>>dscale;
         }
     }
-};
+}
 
 static void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uint pitch, uchar *dst, uint dw, uint dh)
 {
@@ -97,30 +94,30 @@ static void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uint pitch, uch
     {
         switch(bpp)
         {
-            case 1: scale::halvetex<1>(src, sw, sh, pitch, dst); return;
-            case 2: scale::halvetex<2>(src, sw, sh, pitch, dst); return;
-            case 3: scale::halvetex<3>(src, sw, sh, pitch, dst); return;
-            case 4: scale::halvetex<4>(src, sw, sh, pitch, dst); return;
+            case 1: halvetex<1>(src, sw, sh, pitch, dst); return;
+            case 2: halvetex<2>(src, sw, sh, pitch, dst); return;
+            case 3: halvetex<3>(src, sw, sh, pitch, dst); return;
+            case 4: halvetex<4>(src, sw, sh, pitch, dst); return;
         }
     }
     else if(sw < dw || sh < dh || sw&(sw-1) || sh&(sh-1))
     {
         switch(bpp)
         {
-            case 1: scale::scaletex<1>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 2: scale::scaletex<2>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 3: scale::scaletex<3>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 4: scale::scaletex<4>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 1: scaletex<1>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 2: scaletex<2>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 3: scaletex<3>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 4: scaletex<4>(src, sw, sh, pitch, dst, dw, dh); return;
         }
     }
     else
     {
         switch(bpp)
         {
-            case 1: scale::shifttex<1>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 2: scale::shifttex<2>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 3: scale::shifttex<3>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 4: scale::shifttex<4>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 1: shifttex<1>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 2: shifttex<2>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 3: shifttex<3>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 4: shifttex<4>(src, sw, sh, pitch, dst, dw, dh); return;
         }
     }
 }
