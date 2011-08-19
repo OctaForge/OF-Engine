@@ -41,14 +41,8 @@ has_private_edit_mode = CAPI.hasprivedit
     (but not into the console). The format is like this:
 
     (start code)
-        PHYS(pl): PHYSSTATE, air TIMEINAIR,
-        floor: (X, Y, Z),
-        vel: (X, Y, Z),
-        g: (X, Y, Z)
-        PHYS(cam): PHYSSTATE, air TIMEINAIR,
-        floor: (X, Y, Z),
-        vel: (X, Y, Z),
-        g: (X, Y, Z)
+        PHYS(pl): PHYSSTATE, air TIMEINAIR, floor: (X, Y, Z), vel: (X, Y, Z), g: (X, Y, Z)
+        PHYS(cam): PHYSSTATE, air TIMEINAIR, floor: (X, Y, Z), vel: (X, Y, Z), g: (X, Y, Z)
     (end)
 
     where pl is player, cam is camera, PHYSSTATE is the current physical

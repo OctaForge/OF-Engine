@@ -2,18 +2,9 @@
 
 -- safe nesting level involved
 function lazyshader(st, nm, vs, fs)
-    shader.defer(st, nm,
-        string.format([===================[
-            shader.std(%i, "%s",
-                [====================[
-                    %s
-                ]====================],
-                [====================[
-                    %s
-                ]====================]
-            )
-        ]===================], st, nm, vs, fs)
-    )
+    shader.defer(st, nm, function()
+            shader.std(st, nm, vs, fs)
+    end)
 end
 
 lmcoordscale = 1.0 / 32767.0
@@ -112,6 +103,22 @@ shader.std(4, "notexture",
     ]]
 )
 
+shader.std(4, "notextureglsl",
+    [[
+        void main(void)
+        {
+            gl_Position = ftransform();
+            gl_FrontColor = gl_Color;
+        }
+    ]],
+    [[
+        void main(void)
+        {
+            gl_FragColor = gl_Color;
+        }
+    ]]
+)
+
 -- fogged variants of default shaders
 
 shader.std(4, "fogged",
@@ -134,6 +141,23 @@ shader.std(4, "fogged",
 )
 
 shader.std(4, "foggednotexture",
+    [[
+        #pragma CUBE2_fog
+        void main(void)
+        {
+            gl_Position = ftransform();
+            gl_FrontColor = gl_Color;
+        }
+    ]],
+    [[
+        void main(void)
+        {
+            gl_FragColor = gl_Color;
+        }
+    ]]
+)
+
+shader.std(4, "foggednotextureglsl",
     [[
         #pragma CUBE2_fog
         void main(void)
@@ -249,7 +273,7 @@ end
 
 worldshader("stdworld", "", "")
 
-shader.defer(4, "decalworld", [[
+shader.defer(4, "decalworld", function()
     worldshader(
         "decalworld", "",
         [=[
@@ -258,10 +282,10 @@ shader.defer(4, "decalworld", [[
         ]=],
         "", "", "uniform sampler2D decal;"
     )
-]])
+end)
 
-shader.defer(4, "glowworld", [[
-    shader.defup("glowcolor", 1, 1, 1) -- glow color
+shader.defer(4, "glowworld", function()
+    shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
     worldshader(
         "glowworld", "", "",
         [=[
@@ -287,10 +311,10 @@ shader.defer(4, "glowworld", [[
             #pragma CUBE2_variant uniform sampler2D lightmap;
         ]=]
     )
-]])
+end)
 
-shader.defer(4, "pulseworld", [[
-    shader.defup("pulsespeed", 1) -- pulse frequency (Hz)
+shader.defer(4, "pulseworld", function()
+    shader.define_uniform_param("pulsespeed", 1) -- pulse frequency (Hz)
     worldshader(
         "pulseworld",
         "pulse = abs(fract(millis.x * pulsespeed.x)*2.0 - 1.0);",
@@ -300,12 +324,12 @@ shader.defer(4, "pulseworld", [[
         ]=],
         "", "uniform vec4 millis; varying float pulse;", "uniform sampler2D decal;"
     )
-]])
+end)
 
-shader.defer(4, "pulseglowworld", [[
-    shader.defup("glowcolor", 1, 1, 1) -- glow color
-    shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
-    shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
+shader.defer(4, "pulseglowworld", function()
+    shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
+    shader.define_uniform_param("pulseglowspeed", 1) -- pulse frequency (Hz)
+    shader.define_uniform_param("pulseglowcolor", 0, 0, 0) -- pulse glow color
     worldshader(
         "pulseglowworld",
         "pulse = mix(glowcolor.rgb, pulseglowcolor.rgb, abs(fract(millis.x * pulseglowspeed.x)*2.0 - 1.0));",
@@ -333,7 +357,7 @@ shader.defer(4, "pulseglowworld", [[
             #pragma CUBE2_variant uniform sampler2D lightmap;
         ]=]
     )
-]])
+end)
 
 shader.std(4, "fogworld",
     [[ void main() { gl_Position = ftransform(); } ]],
@@ -381,8 +405,8 @@ shader.std(4, "noglarealphaworld",
     ]]
 )
 
-shader.defer(6, "envworld", [[
-    shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+shader.defer(6, "envworld", function()
+    shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader(
         "envworld",
         [=[
@@ -398,7 +422,7 @@ shader.defer(6, "envworld", [[
         "uniform vec4 camera; varying vec3 normal, camvec;", "uniform samplerCube envmap;"
     )
 
-    shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+    shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader(
         "envworldfast",
         [=[
@@ -414,13 +438,13 @@ shader.defer(6, "envworld", [[
         "uniform vec4 camera; varying vec3 rvec;", "uniform samplerCube envmap;"
     )
 
-    shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+    shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader("envworldalt", "", "")
 
     shader.alt("envworld", "envworldfast")
     shader.fast("envworld", "envworldfast", 2)
     shader.fast("envworld", "envworldalt", 1)
-]])
+end)
 
 shader.std(4, "depthfxworld",
     [[
@@ -496,27 +520,27 @@ function bumpvariantshader(...)
 
     if not btopt(arg[2], "i") then
         if btopt(arg[2], "G") then
-            shader.defup("glowcolor", 1, 1, 1) -- glow color
-            shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
-            shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
+            shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
+            shader.define_uniform_param("pulseglowspeed", 1) -- pulse frequency (Hz)
+            shader.define_uniform_param("pulseglowcolor", 0, 0, 0) -- pulse glow color
         elseif btopt(arg[2], "g") then
-            shader.defup("glowcolor", 1, 1, 1) -- glow color
+            shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
         end
 
         if btopt(arg[2], "S") then
-            shader.defup("specscale", 6, 6, 6) -- spec map multiplier
+            shader.define_uniform_param("specscale", 6, 6, 6) -- spec map multiplier
         elseif btopt(arg[2], "s") then
-            shader.defup("specscale", 1, 1, 1) -- spec multiplier
+            shader.define_uniform_param("specscale", 1, 1, 1) -- spec multiplier
         end
 
         if btopt(arg[2], "p") or btopt(arg[2], "P") then
-            shader.defup("parallaxscale", 0.06, -0.03) -- parallax scaling
+            shader.define_uniform_param("parallaxscale", 0.06, -0.03) -- parallax scaling
         end
 
         if btopt(arg[2], "R") then
-            shader.defup("envscale", 1, 1, 1) -- reflectivity map multiplier
+            shader.define_uniform_param("envscale", 1, 1, 1) -- reflectivity map multiplier
         elseif btopt(arg[2], "r") then
-            shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+            shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
         end
     else
         stype = btopt(arg[2], "s") and stype + 8 or stype
@@ -796,17 +820,12 @@ function bumpshader(...)
     shader.defer(
         btopt(arg[2], "e") and 7 or 5,
         arg[1],
-        [[
-            bumpvariantshader(%(arg1)q, %(arg2)q)
-            if %(bt_g)s or %(bt_s)s then
-                bumpvariantshader(%(arg1)q, string.gsub(%(arg2)q .. "i", "r", ""))
+        function()
+            bumpvariantshader(arg[1], arg[2])
+            if btopt(arg[2], "g") or btopt(arg[2], "s") then
+                bumpvariantshader(arg[1], string.gsub(arg[2] .. "i", "r", ""))
             end
-        ]] % {
-            arg1 = arg[1],
-            arg2 = arg[2],
-            bt_g = tostring(btopt(arg[2], "g")),
-            bt_s = tostring(btopt(arg[2], "s"))
-        }
+        end
     )
 end
 
@@ -1930,17 +1949,17 @@ blur5shader("vblur5", 0, 1)
 
 function rotoscope(...)
     local arg = { ... }
-    shader.postfx.clear()
+    shader.postfx_clear()
     if #arg >= 1 then
-        shader.postfx.add("rotoscope", 0, 0, 0, arg[1])
+        shader.postfx_add("rotoscope", 0, 0, 0, arg[1])
     end
     if #arg >= 2 then
         if arg[2] == 1 then
-            shader.postfx.add("hblur3")
-            shader.postfx.add("vblur3")
+            shader.postfx_add("hblur3")
+            shader.postfx_add("vblur3")
         elseif arg[2] == 2 then
-            shader.postfx.add("hblur5")
-            shader.postfx.add("vblur5")
+            shader.postfx_add("hblur5")
+            shader.postfx_add("vblur5")
         end
     end
 end
@@ -1991,11 +2010,11 @@ lazyshader(
 function bloomshader(sn, n)
     shader.defer(
         4, sn,
-        [[
+        function()
             shader.force("bloom_scale")
             shader.force("bloom_init")
             shader.std(
-                4, %(arg1)q,
+                4, sn,
                 string.template([=[
                     void main(void)
                     {
@@ -2013,7 +2032,7 @@ function bloomshader(sn, n)
                             return sum
                         $0>
                     }
-                ]=]),
+                ]=] % { arg2 = n }),
                 string.template([=[
                     #extension GL_ARB_texture_rectangle : enable
                     uniform vec4 params;
@@ -2034,12 +2053,9 @@ function bloomshader(sn, n)
                         $0>
                         gl_FragColor = bloom*params.x + sample;
                     }
-                ]=])
+                ]=] % { arg2 = n })
             )
-        ]] % {
-            arg1 = sn,
-            arg2 = n
-        }
+        end
     )
 end
 
@@ -2052,17 +2068,17 @@ bloomshader("bloom6", 6)
 
 function setupbloom(...)
     local arg = { ... }
-    shader.postfx.add("bloom_init", 1, 1, "+0")
+    shader.postfx_add("bloom_init", 1, 1, "+0")
     for i = 1, arg[1] - 1 do
-        shader.postfx.add("bloom_scale", i + 1, i + 1, "+" .. i)
+        shader.postfx_add("bloom_scale", i + 1, i + 1, "+" .. i)
     end
     local tbl = { 0 }
     for i = 1, arg[1] do table.insert(tbl, i) end
-    shader.postfx.add("bloom" .. arg[1], 0, 0, table.concat(tbl, " "), arg[2])
+    shader.postfx_add("bloom" .. arg[1], 0, 0, table.concat(tbl, " "), arg[2])
 end
 
 function bloom(a)
-    shader.postfx.clear()
+    shader.postfx_clear()
     if a and a ~= 0 then setupbloom(6, a) end
 end
 
@@ -2518,7 +2534,7 @@ function skelmatanim(...)
             mx += animdata[index] * vweights.w;
             my += animdata[index+1] * vweights.w;
             mz += animdata[index+2] * vweights.w;
-        ]],
+        ]] or "",
         arg[2] and arg[2] ~= 0 and [[
             vec3 onormal = vec3(dot(mx.xyz, gl_Normal), dot(my.xyz, gl_Normal), dot(mz.xyz, gl_Normal));
         ]] or "",
@@ -2746,7 +2762,6 @@ function modelvertexshader(...)
             <$0 if %(mdl_n)s or %(mdl_s)s or %(mdl_i)s then return "gl_FrontColor = gl_Color;" end $0>
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy + texscroll.yz;
             <$0 if %(mdl_e)s or %(mdl_s)s then return "vec3 camdir = normalize(camera.xyz - opos.xyz);" end $0>
-
             <$0
                 if %(mdl_n)s then return [=[
                     <$1
@@ -2773,10 +2788,10 @@ function modelvertexshader(...)
                         if %(mdl_s)s then return [==[
                             nvec = onormal; 
                             halfangle = lightdir.xyz + camdir;
-                        ]==] else return [==[
+                        ]==] elseif not %(mdl_i)s then return [==[
                             float intensity = dot(onormal, lightdir.xyz);
                             gl_FrontColor = vec4(gl_Color.rgb*clamp(intensity*(intensity*lightscale.x + lightscale.y) + lightscale.z, 0.0, 1.0), gl_Color.a);
-                        ]==] end
+                        ]==] else return "" end
                     $1>
                     <$1
                         if %(mdl_e)s then return [==[
@@ -2915,11 +2930,11 @@ end
 
 function modelanimshader(...)
     local arg = { ... }
-    local fraganimshader = arg[2] > 0 and arg[2] or 0
+    local fraganimshader = arg[2] > 0 and tostring(arg[2]) or ""
     local reuseanimshader = fraganimshader
     if ati_ubo_bug ~= 0 then
-        reuseanimshader = "%(1)s , %(2)s" % { arg[2], arg[2] > 0 and 1 or 0 }
-        fraganimshader = arg[4] == 1 and modelfragmentshader("bB" .. arg[3]) or reuseanimshader
+        reuseanimshader = "%(1)i , %(2)i" % { arg[2], arg[2] > 0 and 1 or 0 }
+        fraganimshader = (arg[4] == 1) and modelfragmentshader("bB" .. arg[3]) or reuseanimshader
     end
     shader.variant(4, arg[1], arg[2], modelvertexshader("B" .. arg[3], arg[4]), fraganimshader)
     shader.variant(4, arg[1], arg[2] + 1, modelvertexshader("b" .. arg[3], arg[4]), reuseanimshader)
@@ -2929,22 +2944,19 @@ function modelshader(...)
     local arg = { ... }
     shader.defer(
         4, arg[1],
-        [[
-            local basemodeltype = %(arg2)q
-            shader.std(4, %(arg1)q, modelvertexshader(basemodeltype), modelfragmentshader(basemodeltype))
+        function()
+            local basemodeltype = arg[2]
+            shader.std(4, arg[1], modelvertexshader(basemodeltype), modelfragmentshader(basemodeltype))
             for i = 1, 4 do
-                modelanimshader(%(arg1)q, 0, basemodeltype, i)
+                modelanimshader(arg[1], 0, basemodeltype, i)
             end
             local glaremodeltype = string.gsub(basemodeltype .. "i", "e", "")
             if not string.find(glaremodeltype, "s") then glaremodeltype = string.gsub(glaremodeltype, "n", "") end
-            shader.variant(4, %(arg1)q, 2, modelvertexshader(glaremodeltype), modelfragmentshader(glaremodeltype))
+            shader.variant(4, arg[1], 2, modelvertexshader(glaremodeltype), modelfragmentshader(glaremodeltype))
             for i = 1, 4 do
-                modelanimshader(%(arg1)q, 2, glaremodeltype, i)
+                modelanimshader(arg[1], 2, glaremodeltype, i)
             end
-        ]] % {
-            arg1 = arg[1] or "",
-            arg2 = arg[2] or ""
-        }
+        end
     )
 end
 

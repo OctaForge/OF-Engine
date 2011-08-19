@@ -672,7 +672,7 @@ function save_entities()
             local state_data = entity:create_state_data_dict()
 
             -- insert encoded entity as JSON string
-            table.insert(r, json.encode({ uid, cls, state_data }))
+            table.insert(r, json.encode({ uid, class_name, state_data }))
         end
     end
 

@@ -118,7 +118,7 @@ void writeinitcfg()
     stream *f = openfile("init.lua", "w");
     if(!f) return;
     f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
-    extern int& fullscreen, &useshaders, &shaderprecision, &soundchans, &soundfreq, &soundbufferlen;
+    extern int& fullscreen, &useshaders, &shaderprecision, &forceglsl, &soundchans, &soundfreq, &soundbufferlen;
     f->printf("fullscreen = %d\n", fullscreen);
     f->printf("scr_w = %d\n", scr_w);
     f->printf("scr_h = %d\n", scr_h);
@@ -129,6 +129,7 @@ void writeinitcfg()
     f->printf("vsync = %d\n", vsync);
     f->printf("shaders = %d\n", useshaders);
     f->printf("shaderprecision = %d\n", shaderprecision);
+    f->printf("forceglsl = %d\n", forceglsl);
     f->printf("soundchans = %d\n", soundchans);
     f->printf("soundfreq = %d\n", soundfreq);
     f->printf("soundbufferlen = %d\n", soundbufferlen);
@@ -1067,10 +1068,11 @@ int main(int argc, char **argv)
             case 's': stencilbits = atoi(&argv[i][2]); break;
             case 'f': 
             {
-                extern int& useshaders, &shaderprecision;
+                extern int& useshaders, &shaderprecision, &forceglsl;
                 int n = atoi(&argv[i][2]);
                 useshaders = n > 0 ? 1 : 0;
                 shaderprecision = clamp(n >= 4 ? n - 4 : n - 1, 0, 2);
+                forceglsl = n >= 4 ? 1 : 0; 
                 break;
             }
             case 'l': 
