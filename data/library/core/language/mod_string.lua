@@ -130,13 +130,20 @@ end
         s - The string to parse.
         l - Level to parse string from.
         Everything with higer or equal level gets parsed. Defaults to 0.
+        e - optional associative table of items that should be visible
+        to the embedded lua code as part of environment.
 
     Returns:
         Parsed string.
 ]]
-function template(s, l)
+function template(s, l, e)
     l = l or 0
     s = string.gsub(s, "<$" .. l .. "(.-)$" .. l .. ">", "<?lua %1 ?>")
+
+    e = e or _G
+    e = (not e._VERSION) and
+        setmetatable(table.merge_dicts(e, table.copy(_G)), getmetatable(_G))
+    or e
 
     -- r - table to concaterate as retval; sp - start position
     local r = {}; local sp = 1
@@ -156,15 +163,15 @@ function template(s, l)
         -- expression? insert a return value of "return EXPRESSION"
         -- command? insert a return value of the code.
         if ex == "=" then
-            local ret = tostring(loadstring("return " .. cd)())
+            local ret = tostring(setfenv(loadstring("return " .. cd), e)())
             if ret ~= "nil" then table.insert(r, ret) end
         else
             -- make sure there is no more embedded code by looping it.
-            local p = template(cd, l + 1)
+            local p = template(cd, l + 1, e)
             while p ~= cd do cd = p; p = template(p, l + 1) end
 
             -- done, insert.
-            local rs = loadstring(cd)()
+            local rs = setfenv(loadstring(cd), e)()
             if rs then table.insert(r, tostring(rs)) end
         end
         -- set start position for next iteration as position

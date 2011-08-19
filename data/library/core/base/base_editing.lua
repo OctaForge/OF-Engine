@@ -279,6 +279,10 @@ flip_entities = CAPI.entflip
     in the world. Bots are considered actual clients.
     You can further define AI for bots.
 
+    Note that this is server only command, so run it
+    inside "if SERVER" block in your map script or in
+    some other serverside function.
+
     Parameters:
         class - the entity class the NPC should be.
         Usual "player" works, but you'll mostly want
@@ -296,6 +300,8 @@ add_npc = CAPI.npcadd
     Function: delete_npc
     Deletes a given NPC. See <add_npc>. Accepts
     return value of <add_npc> as an argument.
+
+    Again, this is a server command.
 ]]
 delete_npc = CAPI.npcdel
 
