@@ -90,7 +90,7 @@ struct physent                                  // base entity type, can be affe
         deltapos = vec(0, 0, 0);
     }
 
-    virtual void reset() // INTENSITY: Made virtual
+    void reset()
     {
         inwater = 0;
         timeinair = 0;
@@ -193,7 +193,7 @@ struct dynent : physent                         // animated characters, or chara
         reset(); 
     }
 
-    virtual ~dynent() // INTENSITY: added this virtual so that this is polymorphic, and dynamic_cast of fpsent is valid
+    ~dynent()
     {
 #ifndef STANDALONE
         extern void cleanragdoll(dynent *d);
@@ -201,13 +201,13 @@ struct dynent : physent                         // animated characters, or chara
 #endif
     }
                
-    virtual void stopmoving() // INTENSITY: Made virtual
+    void stopmoving()
     {
         k_left = k_right = k_up = k_down = jumping = false;
         move = strafe = 0;
     }
         
-    virtual void reset() // INTENSITY: Made virtual
+    void reset()
     {
         physent::reset();
         stopmoving();

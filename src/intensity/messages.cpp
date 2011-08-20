@@ -62,7 +62,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -191,7 +191,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -256,7 +256,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -326,7 +326,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -414,7 +414,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -570,7 +570,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -698,7 +698,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -790,7 +790,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -851,7 +851,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -967,7 +967,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1126,7 +1126,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1189,7 +1189,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1302,7 +1302,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1414,7 +1414,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1491,7 +1491,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1565,7 +1565,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1637,7 +1637,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1725,7 +1725,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1890,7 +1890,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1957,7 +1957,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -2045,7 +2045,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);

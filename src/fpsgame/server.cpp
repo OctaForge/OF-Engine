@@ -365,7 +365,7 @@ namespace server
 #ifdef SERVER
             // Kripken: FIXME: Send position updates only to real clients, not local ones. For multiple local
             // ones, a single manual sending suffices, which is done to the singleton dummy client
-            fpsent* currClient = dynamic_cast<fpsent*>( game::getclient(ci.clientnum) );
+            fpsent* currClient = game::getclient(ci.clientnum);
             if (!currClient) continue; // We have a server client, but no FPSClient client yet, because we have not yet
                                        // finished the player's login, only after which do we create the lua entity,
                                        // which then gets a client added to the FPSClient (and the remote client's FPSClient)
@@ -727,7 +727,7 @@ namespace server
             return -1;
         }
 
-        fpsent* fpsEntity = dynamic_cast<fpsent*>(game::getclient(cn));
+        fpsent* fpsEntity = game::getclient(cn);
         if (fpsEntity)
         {
             // Already created an entity
@@ -771,7 +771,7 @@ namespace server
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
         {
-            fpsEntity = dynamic_cast<fpsent*>(game::getclient(cn)); // It was created since fpsEntity was def'd
+            fpsEntity = game::getclient(cn); // It was created since fpsEntity was def'd
             assert(fpsEntity);
 
             fpsEntity->serverControlled = true; // Mark this as an NPC the server should control
