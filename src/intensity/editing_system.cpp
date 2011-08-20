@@ -53,21 +53,22 @@ extern selinfo sel;
 
 namespace EditingSystem
 {
+    vec saved_pos;
+
     bool madeChanges = false;
 
     void newent(const char *cl, const char *sd)
     {
-        /* the positioning is ugly. SPANK SPANK SPANK */
         #ifdef CLIENT
-            if (!havesel) return;
-            vec o = sel.o.tovec();
+            vec fp = saved_pos;
+
+            fp.mul(    FAR_PLACING_FACTOR);
+            vec cp = ClientSystem::playerLogicEntity->getOrigin();
+            cp.mul(1 - FAR_PLACING_FACTOR);
+            cp.add(fp);
 
             if (!sd || !strcmp(sd, "")) sd = "{}";
-            MessageSystem::send_NewEntityRequest(cl,
-                                                 o.x,
-                                                 o.y,
-                                                 worldpos.z,
-                                                 sd);
+            MessageSystem::send_NewEntityRequest(cl, cp.x, cp.y, cp.z, sd);
         #else // SERVER
             assert(0); // Where?
         #endif

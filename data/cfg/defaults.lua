@@ -91,7 +91,7 @@ input.bind_edit("MOUSE2", [[
             edit.move_selection()
         end
     else
-        gui.show_entity_properties_gui()
+        tgui.show_entity_properties_tab()
     end
 ]])
 
@@ -122,6 +122,7 @@ input.bind_edit("K", [[world.calc_light()]])
 input.bind_var_edit("L", "fullbright")
 input.bind_var_edit("M", "showmat")
 
+input.bind_edit("F8", [[tgui.show_entities_list()]])
 input.bind_edit("F9", [[echo("%(1)s : %(2)s" % { texture.getsel(), texture.getname(texture.getsel()) })]])
 
 input.bind_edit("G", [[domodifier(1)]])

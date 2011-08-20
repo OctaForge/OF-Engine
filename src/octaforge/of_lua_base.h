@@ -61,6 +61,11 @@ extern int& fullconsole, &fullconfilter, &confilter, &miniconfilter;
 VARFN(scoreboard, showscoreboard, 0, 0, 1, scorebshow(showscoreboard!=0));
 #endif
 
+namespace EditingSystem
+{
+    extern vec saved_pos;
+}
+
 namespace lua_binds
 {
     /* Logging Lua namespace */
@@ -132,6 +137,9 @@ namespace lua_binds
     LUA_BIND_STD(removezip, removezip, e.get<const char*>(1))
     LUA_BIND_STD(getserverlogfile, e.push, SERVER_LOGFILE)
     LUA_BIND_STD(setup_library, e.push, e.setup_library(e.get<const char*>(-1)));
+    LUA_BIND_CLIENT(save_mouse_position, {
+        EditingSystem::saved_pos = TargetingControl::worldPosition;
+    })
 
     // Bit math
 

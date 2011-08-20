@@ -336,8 +336,26 @@ function show_entity_properties_tab()
         end)
     end)
 end
-gui.show_entity_properties_gui = show_entity_properties_tab
 
+window("entities", "Entities", function()
+    gui.fill(0.3, 0.7, function()
+        tgui.scrollbox(0.3, 0.7, function()
+            gui.vlist(0, function()
+                gui.align(-1, -1)
+                for i, class in pairs(entity_classes.list()) do
+                    tgui.button_no_bg(class, function()
+                        edit.new_entity(class)
+                    end)
+                end
+            end)
+        end)
+    end)
+end)
+
+function show_entities_list()
+    utility.save_mouse_position()
+    gui.show("entities")
+end
 
 window("console", "Console", function()
     gui.tag("sizer", function() end)

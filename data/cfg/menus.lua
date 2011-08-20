@@ -248,19 +248,6 @@ tgui.push_tab("Textures", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_texgui", fun
     end)
 end)
 
-tgui.push_tab("Entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_entities", function()
-    gui.fill(0.3, 0.7, function()
-        tgui.scrollbox(0.3, 0.7, function()
-            gui.vlist(0, function()
-                gui.align(-1, -1)
-                for i, class in pairs(entity_classes.list()) do
-                    tgui.button_no_bg(class, function() edit.new_entity(class) end)
-                end
-            end)
-        end)
-    end)
-end)
-
 tgui.push_tab("Export entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_save", function()
     gui.vlist(0, function()
         engine.new_var("newexportfilename", engine.VAR_S, "entities.json")

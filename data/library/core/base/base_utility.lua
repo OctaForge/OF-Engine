@@ -365,6 +365,8 @@ gettargetent = cache_by_global_timestamp(
     convert.tocalltable(CAPI.gettargetent)
 )
 
+save_mouse_position = CAPI.save_mouse_position
+
 function get_ray_collision_world(origin, direction, max_dist)
     max_dist = max_dist or 2048
     local dist = ray_collisiondist(origin, direction:mul_new(max_dist))
