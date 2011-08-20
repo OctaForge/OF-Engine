@@ -20,6 +20,7 @@
         - Signals system
         - Engine interface
         - Utility library
+        - Geometry library
         - Console interface
         - GUI interface
         - Shader interface
@@ -103,8 +104,11 @@ setmetatable(_G, {
     end
 })
 
-logging.log(logging.DEBUG, ":: Utilities.")
-require("base.base_utility")
+logging.log(logging.DEBUG, ":: Geometry interface.")
+require("base.base_geometry")
+
+logging.log(logging.DEBUG, ":: Action system.")
+require("base.base_actions")
 
 logging.log(logging.DEBUG, ":: Input.")
 require("base.base_input")
@@ -120,9 +124,6 @@ require("base.base_shaders")
 
 logging.log(logging.DEBUG, ":: Models.")
 require("base.base_models")
-
-logging.log(logging.DEBUG, ":: Action system.")
-require("base.base_actions")
 
 logging.log(logging.DEBUG, ":: Message system.")
 require("base.base_messages")

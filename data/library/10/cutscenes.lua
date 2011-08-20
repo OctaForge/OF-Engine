@@ -158,12 +158,12 @@ function action_smooth:set_markers()
           curr_marker.position:mul_new(1 - alpha - beta)
     ):add(next_marker.position:mul_new(beta))
 
-    self.yaw   = utility.angle_normalize(last_marker.yaw, curr_marker.yaw) * alpha
-               + utility.angle_normalize(next_marker.yaw, curr_marker.yaw) * beta
+    self.yaw   = math.normalize_angle(last_marker.yaw, curr_marker.yaw) * alpha
+               + math.normalize_angle(next_marker.yaw, curr_marker.yaw) * beta
                + curr_marker.yaw * (1 - alpha - beta)
 
-    self.pitch = utility.angle_normalize(last_marker.pitch, curr_marker.pitch) * alpha
-               + utility.angle_normalize(next_marker.pitch, curr_marker.pitch) * beta
+    self.pitch = math.normalize_angle(last_marker.pitch, curr_marker.pitch) * alpha
+               + math.normalize_angle(next_marker.pitch, curr_marker.pitch) * beta
                + curr_marker.pitch * (1 - alpha - beta)
 end
 
@@ -445,7 +445,7 @@ entity_classes.register(
             end
 
             local direction = math.vec3():from_yaw_pitch(self.yaw, self.pitch)
-            local target    = utility.get_ray_collision_world(self.position:copy(), direction, 10)
+            local target    = geometry.get_ray_collision_world(self.position:copy(), direction, 10)
             effects.flare(
                 effects.PARTICLE.STREAK,
                 self.position, target,

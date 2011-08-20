@@ -96,7 +96,7 @@ entity_classes.register(plugins.bake(
 
                 -- If we're pressing left mouse button, let's draw new stuff
                 if self.pressing then
-                    local newpos = utility.gettargetpos()
+                    local newpos = input.get_target_position()
                     local toplyr = self.position:sub_new(newpos)
                     newpos:add(toplyr:normalize():mul(1.0)) -- bring a little out of the scenery
                     if newbatch or not self.marks[#self.marks - 1]:is_close_to(newpos, 5.0) then

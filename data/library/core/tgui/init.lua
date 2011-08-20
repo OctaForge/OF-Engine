@@ -353,7 +353,7 @@ window("entities", "Entities", function()
 end)
 
 function show_entities_list()
-    utility.save_mouse_position()
+    input.save_mouse_position()
     gui.show("entities")
 end
 

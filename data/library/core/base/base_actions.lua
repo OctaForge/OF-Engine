@@ -19,6 +19,9 @@
     Action system (actions / queue) for OctaForge's Lua API.
     You use actions when you want to conditionally perform
     something in a queue. Example use of actions are animations.
+
+    As actions are sort of timers, there are also utility functions
+    that can cache functions according to timestamps and time delays.
 ]]
 module("actions", package.seeall)
 
@@ -116,6 +119,56 @@ ANIM_SECONDARY = 11
 
 --! Variable: ANIM_RAGDOLL
 ANIM_RAGDOLL = math.lsh(1, 27)
+
+--[[!
+    Function: cache_by_time_delay
+    Caches a function (or rather, callable table - see <convert.tocalltable>!)
+    by time delay. That allows to execute a function per-frame, But it'll take
+    any real action just once upon a time. That is useful for performance
+    reasons, mainly.
+
+    Parameters:
+        fun - A callable table. See <convert.tocalltable>.
+        delay - delay between runs in seconds.
+
+    Returns:
+        A function that can be ran per-frame, but it'll execute the callable
+        table passed from arguments just once upon time (specified by delay
+        between runs).
+]]
+function cache_by_time_delay(fun, delay)
+    fun.last_time = ((-delay) * 2)
+    return function(...)
+        if (GLOBAL_TIME - fun.last_time) >= delay then
+            fun.last_cached_val = fun(...)
+            fun.last_time       = GLOBAL_TIME
+        end
+        return fun.last_cached_val
+    end
+end
+
+--[[!
+    Function: cache_by_time_global_timestamp
+    Caches a function (or rather, callable table - see <convert.tocalltable>!)
+    by timestamp change. That means the function (callable table) will get
+    executed just when <GLOBAL_CURRENT_TIMESTAMP> changes.
+
+    Parameters:
+        fun - A callable table. See <convert.tocalltable>.
+
+    Returns:
+        A function that takes action only when <GLOBAL_CURRENT_TIMESTAMP>
+        gets changed.
+]]
+function cache_by_global_timestamp(fun)
+    return function(...)
+        if fun.last_timestamp  ~= GLOBAL_CURRENT_TIMESTAMP then
+            fun.last_cached_val = fun(...)
+            fun.last_timestamp  = GLOBAL_CURRENT_TIMESTAMP
+        end
+        return fun.last_cached_val
+    end
+end
 
 --[[!
     Class: action

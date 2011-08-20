@@ -590,10 +590,10 @@ end
 --[[!
     Function: manage_triggering_collisions
     This function manages area trigger collisions. It's cached by time delay
-    (see <utility.cache_by_time_delay>) with delay set to 0.1 seconds,
+    (see <actions.cache_by_time_delay>) with delay set to 0.1 seconds,
     so the performance is sufficient.
 ]]
-manage_triggering_collisions = utility.cache_by_time_delay(
+manage_triggering_collisions = actions.cache_by_time_delay(
     convert.tocalltable(
         function()
             -- get all area triggers and entities inherited from area triggers
@@ -614,7 +614,7 @@ manage_triggering_collisions = utility.cache_by_time_delay(
                     -- loop the triggers
                     for n, entity in pairs(ents) do
                         -- if player is colliding the trigger ..
-                        if utility.is_player_colliding_entity(
+                        if geometry.is_player_colliding_entity(
                             player, entity
                         ) then
                             -- call needed methods
@@ -647,6 +647,85 @@ function render_hud_model()
         -- model gets indeed shown as HUD model.
         player:render_dynamic(true, true)
     end
+end
+
+--[[!
+    Function: load_entities
+    Loads entities into server storage from a file named 'entities.json'
+    which is stored in map directory. The file contents are read into
+    JSON string which then gets decoded, entities get looped and state
+    data are set.
+
+    Performs some backwards compatibility adjustments for old sauer
+    map formats. Entities created this way are then passed to all clients.
+
+    State data get passed via kwargs to <entity_store.add>.
+
+    The function won't do anything when run clientside.
+]]
+function load_entities()
+    -- clientside behavior is undefined, so don't run.
+    if not SERVER then
+        return nil
+    end
+
+    logging.log(logging.DEBUG, "Reading entities.json..")
+
+    -- read the entities
+    local entities_json = CAPI.readfile("./entities.json")
+
+    logging.log(
+        logging.DEBUG,
+        "Loading entities .. "
+            .. entities_json
+            .. ", "
+            .. type(entities_json)
+    )
+
+    -- decode it
+    local entities = json.decode(entities_json)
+
+    -- loop the table
+    for i, entity in pairs(entities) do
+        logging.log(
+            logging.DEBUG, "load_entities: " .. json.encode(entity)
+        )
+
+        -- entity unique ID
+        local uid        = entity[1]
+        -- entity class name
+        local class_name = entity[2]
+        -- entity state data
+        local state_data = entity[3]
+
+        logging.log(
+            logging.DEBUG,
+            "load_entities: "
+                .. uid
+                .. ", "
+                .. class_name
+                .. ", "
+                .. json.encode(state_data)
+            )
+
+        -- backwards comptaibility, rotate by 180 degrees
+        -- for yawed entities
+        if mapversion <= 30 and state_data.attr1 then
+            -- skip certain entities which have different attr1 than yaw
+            if  class_name ~= "light"
+            and class_name ~= "flickering_light"
+            and class_name ~= "particle_effect"
+            and class_name ~= "envmap" then
+                -- set the yaw - rotate by 180°
+                state_data.attr1 = (tonumber(state_data.attr1) + 180) % 360
+            end
+        end
+
+        -- add the entity, pass state data via kwargs
+        add(class_name, uid, { state_data = json.encode(state_data) })
+    end
+
+    logging.log(logging.DEBUG, "Loading entities complete")
 end
 
 --[[!
@@ -710,7 +789,7 @@ get_selected_entity = CAPI.editing_getselent
 ]]
 function setup_dynamic_rendering_test(entity)
     -- cache with delay of 1/3 second
-    entity.render_dynamic_test = utility.cache_by_time_delay(
+    entity.render_dynamic_test = actions.cache_by_time_delay(
         -- callable table
         convert.tocalltable(function()
             -- player center
@@ -719,7 +798,7 @@ function setup_dynamic_rendering_test(entity)
             -- check the distance - skip rendering only if it's distant
             if entity.position:sub_new(player_center):magnitude() > 256 then
                 -- check for line of sight
-                if not utility.haslineofsight(
+                if not math.has_line_of_sight(
                     player_center, entity.position
                 ) then
                     -- do not render
@@ -982,74 +1061,5 @@ else
             )
             entity:set_state_data(key, value, actor_uid)
         end
-    end
-
-    --[[!
-        Function: load_entities
-        Loads entities into server storage from previously saved JSON string.
-        The string gets decoded, entities get looped, state data are set.
-
-        Performs some backwards compatibility adjustments for old sauer
-        map formats. Entities created this way are then passed to all clients.
-
-        State data get passed via kwargs to <entity_store.add>.
-
-        Parameters:
-            entities_json - JSON string which is later decoded into
-            proper table of entity data.
-    ]]
-    function load_entities(entities_json)
-        logging.log(
-            logging.DEBUG,
-            "Loading entities .. "
-                .. entities_json
-                .. ", "
-                .. type(entities_json)
-        )
-
-        -- decode it
-        local entities = json.decode(entities_json)
-
-        -- loop the table
-        for i, entity in pairs(entities) do
-            logging.log(
-                logging.DEBUG, "load_entities: " .. json.encode(entity)
-            )
-
-            -- entity unique ID
-            local uid        = entity[1]
-            -- entity class name
-            local class_name = entity[2]
-            -- entity state data
-            local state_data = entity[3]
-
-            logging.log(
-                logging.DEBUG,
-                "load_entities: "
-                    .. uid
-                    .. ", "
-                    .. class_name
-                    .. ", "
-                    .. json.encode(state_data)
-                )
-
-            -- backwards comptaibility, rotate by 180 degrees
-            -- for yawed entities
-            if mapversion <= 30 and state_data.attr1 then
-                -- skip certain entities which have different attr1 than yaw
-                if  class_name ~= "light"
-                and class_name ~= "flickering_light"
-                and class_name ~= "particle_effect"
-                and class_name ~= "envmap" then
-                    -- set the yaw - rotate by 180°
-                    state_data.attr1 = (tonumber(state_data.attr1) + 180) % 360
-                end
-            end
-
-            -- add the entity, pass state data via kwargs
-            add(class_name, uid, { state_data = json.encode(state_data) })
-        end
-
-        logging.log(logging.DEBUG, "Loading entities complete")
     end
 end

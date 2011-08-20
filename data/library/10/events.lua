@@ -1,5 +1,37 @@
 module("events", package.seeall)
 
+repeating_timer = class.new()
+function repeating_timer:__tostring()
+    return string.format("repeating_timer: %s %s %s",
+                         tostring(self.interval),
+                         tostring(self.carryover),
+                         tostring(self.sum))
+end
+
+function repeating_timer:__init(i, c)
+    self.interval = i
+    self.carryover = c or false
+    self.sum = 0
+end
+
+function repeating_timer:tick(s)
+    self.sum = self.sum + s
+    if self.sum >= self.interval then
+        if not self.carryover then
+            self.sum = 0
+        else
+            self.sum = self.sum - self.interval
+        end
+        return true
+    else
+        return false
+    end
+end
+
+function repeating_timer:prime()
+    self.sum = self.interval
+end
+
 -- action that can queue more actions on itself, which run on its actor,
 -- finishes when both this action an all subactions are done.
 action_container = class.new(actions.action, nil, "action_container")

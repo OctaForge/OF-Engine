@@ -44,8 +44,8 @@ function find_target(shooter, visual_origin, targeting_origin, range, scatter)
     local direction = math.vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
     if scatter then direction:add(math.vec3_normalized():mul(scatter)):normalize() end
 
-    local target = utility.get_ray_collision_world   (targeting_origin, direction, range)
-    local temp   = utility.get_ray_collision_entities(targeting_origin, target,  shooter)
+    local target = geometry.get_ray_collision_world   (targeting_origin, direction, range)
+    local temp   = geometry.get_ray_collision_entities(targeting_origin, target,  shooter)
     local target_entity = nil
 
     if temp then
@@ -54,7 +54,7 @@ function find_target(shooter, visual_origin, targeting_origin, range, scatter)
     end
 
     -- check for hitting an entity from the gun source
-    temp = utility.get_ray_collision_entities(visual_origin, target, shooter)
+    temp = geometry.get_ray_collision_entities(visual_origin, target, shooter)
     if temp then
         target = temp.collision_position
         target_entity = temp.entity
@@ -64,7 +64,7 @@ function find_target(shooter, visual_origin, targeting_origin, range, scatter)
     direction  = target:sub_new(visual_origin)
     local dist = direction:magnitude()
     if dist > 2 then
-        local target2 = utility.get_ray_collision_world(visual_origin, direction:normalize(), dist)
+        local target2 = geometry.get_ray_collision_world(visual_origin, direction:normalize(), dist)
         if target2:is_close_to(visual_origin, dist - 2) then
             target = target2
             target_entity = nil
@@ -175,7 +175,11 @@ plugins = {
                         self:queue_action(action_out_of_ammo())
                         self:stop_shooting(gun)
                     else
-                        gun:do_shot(self, utility.gettargetpos(), utility.gettargetent())
+                        gun:do_shot(
+                            self,
+                            input.get_target_position(),
+                            input.get_target_entity()
+                        )
                         if  self.gun_ammos[self.current_gun_index]
                         and self.gun_ammos[self.current_gun_index] ~= 0 then
                             self.gun_ammos[self.current_gun_index] = -1

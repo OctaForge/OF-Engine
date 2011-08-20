@@ -22,7 +22,7 @@ action = class.new(actions.action, {
     end,
 
     do_execute = function(self, seconds)
-        if utility.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
+        if geometry.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
             self.actor:emit("world_area_active")
             return false
         else

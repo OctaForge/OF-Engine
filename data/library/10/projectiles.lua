@@ -71,14 +71,14 @@ projectile = class.new(nil, {
 
         self.target_entity = target_entity
 
-        self.physics_frame_timer = utility.repeating_timer(self.physics_frame_size, true)
+        self.physics_frame_timer = events.repeating_timer(self.physics_frame_size, true)
 
         if owner then
             self.yaw = owner.yaw
             self.pitch = owner.pitch
         end
 
-        self.collide_fun = utility.iscolliding
+        self.collide_fun = geometry.is_colliding
     end,
 
     destroy = function(self) end,
@@ -149,7 +149,7 @@ projectile = class.new(nil, {
             effects.splash(effects.PARTICLE.EXPLODE, 1, 0.1, self.position, 0xFFFFFF, 10, 300, 500, true, nil, nil, 4)
             effects.fireball(effects.PARTICLE.EXPLOSION, self.position, radius, 0.1, self.color, radius / 5)
 
-            if utility.get_material(self.position) == utility.MATERIAL.WATER then
+            if edit.get_material(self.position) == edit.MATERIAL_WATER then
                 if self.underwater_explosion_sound then
                     sound.play(self.underwater_explosion_sound, self.position)
                 end
@@ -280,7 +280,7 @@ debris = class.new(projectile, {
         projectile.__init(self, position, velocity, kwargs)
 
         self.bounce_fun = function(seconds)
-            return utility.bounce(
+            return geometry.bounce(
                 self,
                 self.elasticity,
                 self.friction,

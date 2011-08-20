@@ -175,6 +175,257 @@ function magnet(value, other, radius)
 end
 
 --[[!
+    Function: frandom
+    Returns floating point pseudo-random number using range
+    specified from arguments.
+
+    Parameters:
+        _min - Minimal value of the returned number.
+        _max - Maximal value of the returned number.
+]]
+function frandom(_min, _max)
+    return math.random() * (_max - _min) + _min
+end
+
+--[[!
+    Function: vec3_normalized
+    Returns a normalized vec3 of non-zero length with
+    x, y, z components being random floating point numbers
+    ranging from -1 to 1.
+]]
+function vec3_normalized()
+    local ret = nil
+    while not ret or ret:magnitude() == 0 do
+        ret = vec3(frandom(-1, 1), frandom(-1, 1), frandom(-1, 1))
+    end
+    return ret:normalize()
+end
+
+--[[!
+    Function: distance
+    Calculates the distance between two vectors and returns it.
+    Accepts two vectors in arguments.
+]]
+function distance(a, b)
+    return math.sqrt(math.pow(a.x - b.x, 2)
+                   + math.pow(a.y - b.y, 2)
+                   + math.pow(a.z - b.z, 2))
+end
+
+--[[!
+    Function: normalize_angle
+    Normalizes the angle given by first function argument (which
+    is an integral value) to be within ~180 degrees of some value
+    and returns the new value.
+
+    Useful if we need to know whether to turn left or right in order
+    to be closer to something (we just need to check the sign, after
+    normalizing relative to that angle).
+
+    Second argument specifies the angle to which we'll relatively
+    normalize.
+
+    For example, if you have an angle of 100 degrees and
+    you set normalization angle to 300, normalized will be 460,
+    because it'll add 360 so the angle is within bounds.
+]]
+function normalize_angle(ag, rt)
+    while ag < (rt - 180.0) do
+          ag =  ag + 360.0
+    end
+    while ag > (rt + 180.0) do
+          ag =  ag - 360.0
+    end
+    return ag
+end
+
+--[[!
+    Function: get_angle_change_direction
+    Basically returns <math.sign> of subtraction between result
+    of <normalize_angle> with given arguments and the relative
+    angle value.
+]]
+function get_angle_change_direction(ag, rt)
+    ag = normalize_angle(ag,  rt)
+    return math.sign    (ag - rt)
+end
+
+--[[!
+    Function: get_floor_distance
+    Finds the floor below some position and returns the distance.
+
+    Parameters:
+        o - the position from which to start searching.
+        d - maximal distance to look to before giving up.
+
+    See Also:
+        <get_floor_highest_distance>
+        <get_floor_lowest_distance>
+]]
+function get_floor_distance(o, d)
+    return CAPI.rayfloor(o.x, o.y, o.z, d)
+end
+
+--[[!
+    Function: get_floor_highest_distance
+    Finds the highest floor below some position and returns the distance.
+    Searches within a radius, not just a point. By highest floor, we mean
+    the smallest distance from the origin to that floor.
+
+    Parameters:
+        o - the position from which to start searching.
+        d - maximal distance to look to before giving up.
+        r - radius around the origin where we're looking.
+
+    See Also:
+        <get_floor_distance>
+        <get_floor_lowest_distance>
+]]
+function get_floor_highest_distance(o, d, r)
+    local rt = floor_dist(o, d)
+    local tb = { -r / 2, 0, r / 2 }
+    for x = 1, #tbl do
+        for y = 1, #tbl do
+            rt = math.min(
+                rt, floor_dist(o:add_new(vec3(tb[x], tb[y], 0)), d)
+            )
+        end
+    end
+
+    return rt
+end
+
+--[[!
+    Function: get_floor_lowest_distance
+    Finds the lowest floor below some position and returns the distance.
+    Searches within a radius, not just a point. By lowest floor, we mean
+    the biggest distance from the origin to that floor.
+
+    Parameters:
+        o - the position from which to start searching.
+        d - maximal distance to look to before giving up.
+        r - radius around the origin where we're looking.
+
+    See Also:
+        <get_floor_distance>
+        <get_floor_highest_distance>
+]]
+function get_floor_lowest_distance(o, d, r)
+    local rt = floor_dist(o, d)
+    local tb = { -r / 2, 0, r / 2 }
+    for x = 1, #tbl do
+        for y = 1, #tbl do
+            rt = math.max(
+                rt, floor_dist(o:add_new(vec3(tb[x], tb[y], 0)), d)
+            )
+        end
+    end
+
+    return rt
+end
+
+--[[!
+    Function: has_line_of_sight
+    Checks for a line of sight between two positions given by
+    arguments (i.e. if the path is clear and there is no obstacle
+    between them). (ignores entities?).
+
+    Returns true if the path is clear, false otherwise.
+]]
+function has_line_of_sight(a, b)
+    return CAPI.raylos(a.x, a.y, a.z,
+                       b.x, b.y, b.z)
+end
+
+--[[!
+    Function: yaw_to
+    Calculates the yaw from origin to target. Works on 2D data only
+    (x, y). Optionally can be reversed (calculate AWAY from target).
+    Returns the yaw. See also <pitch_to>.
+
+    Parameters:
+        o - the origin <vec3> (position from which we start).
+        t - the target <vec3> (position towards which we calculate).
+        r - boolean value specifying whether to calculate away from
+        target (defaults to false).
+]]
+function yaw_to(o, t, r)
+    return (r
+        and yaw_to(t, o)
+        or math.deg(-(math.atan2(t.x - o.x, t.y - o.y)))
+    )
+end
+
+--[[!
+    Function: pitch_to
+    Calculates the pitch from origin to target. Works on 2D data only
+    (y, z). Optionally can be reversed (calculate AWAY from target).
+    Returns the pitch. See also <yaw_to>.
+
+    Parameters:
+        o - the origin <vec3> (position from which we start).
+        t - the target <vec3> (position towards which we calculate).
+        r - boolean value specifying whether to calculate away from
+        target (defaults to false).
+]]
+function pitch_to(o, t, r)
+    return (r
+        and pitch_to(t, o)
+        or (
+            360.0 * (
+                math.asin((t.z - o.z) / distance(o, t))
+            ) / (2.0 * math.pi)
+        )
+    )
+end
+
+--[[!
+    Function: compare_yaw
+    Checks whether the yaw between two points is within acceptable
+    error range. Returns boolean value, true if it is, false otherwise.
+    See also <yaw_to> and <compare_pitch>.
+
+    Parameters:
+        o  - the origin <vec3>.
+        t  - the target <vec3>.
+        cy - the current yaw of the origin (which
+        we ask is close to actual yaw).
+        ae - acceptable error, how close the yaws
+        must be for this function to succeed.
+        
+]]
+function compare_yaw(o, t, cy, ae)
+    return (math.abs(
+        normalize_angle(
+            yaw_to(o, t), cy
+        ) - cy
+    ) <= ae)
+end
+
+--[[!
+    Function: compare_pitch
+    Checks whether the pitch between two points is within acceptable
+    error range. Returns boolean value, true if it is, false otherwise.
+    See also <pitch_to> and <compare_yaw>.
+
+    Parameters:
+        o  - the origin <vec3>.
+        t  - the target <vec3>.
+        cy - the current pitch of the origin (which
+        we ask is close to actual pitch).
+        ae - acceptable error, how close the pitches
+        must be for this function to succeed.
+        
+]]
+function compare_pitch(o, t, cp, ae)
+    return (math.abs(
+        normalize_angle(
+            pitch_to(o, t), cp
+        ) - cp
+    ) <= ae)
+end
+
+--[[!
     Class: vec3
     A vec3 class (with x, y, z coordinates) for OctaForge's
     scripting system.
@@ -823,31 +1074,4 @@ end
 ]]
 function vec4:is_zero()
     return (self.x == 0 and self.y == 0 and self.z == 0 and self.w == 0)
-end
-
---[[!
-    Function: frandom
-    Returns floating point pseudo-random number using range
-    specified from arguments.
-
-    Parameters:
-        _min - Minimal value of the returned number.
-        _max - Maximal value of the returned number.
-]]
-function frandom(_min, _max)
-    return math.random() * (_max - _min) + _min
-end
-
---[[!
-    Function: vec3_normalized
-    Returns a normalized vec3 of non-zero length with
-    x, y, z components being random floating point numbers
-    ranging from -1 to 1.
-]]
-function vec3_normalized()
-    local ret = nil
-    while not ret or ret:magnitude() == 0 do
-        ret = vec3(frandom(-1, 1), frandom(-1, 1), frandom(-1, 1))
-    end
-    return ret:normalize()
 end

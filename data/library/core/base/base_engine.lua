@@ -106,10 +106,37 @@ movie = CAPI.movie
 
 --[[!
     Function: get_server_log_file
-    Returns:
-        Name of OctaForge server log file.
+    Returns the name of OctaForge server log file.
 ]]
 get_server_log_file = CAPI.getserverlogfile
+
+--[[!
+    Function: write_config
+    Writes an OctaForge configuration file into filename
+    given by argument. The file gets written into OctaForge
+    home directory.
+]]
+write_config = CAPI.writecfg
+
+--[[!
+    Function: add_zip
+    Adds a zip file into engine VFS. First argument specifies
+    name of the zip file in either OF home or root directory,
+    second argument specifies mount directory (optional) and
+    third one is an optional string specifying what to strip
+    from the beginning. You don't need to specify zip extension.
+    Without specified mount point, the zip will get mounted
+    directly into OF home directory, so it makes sense to
+    put "data" directory in it. See also <remove_zip>.
+]]
+add_zip = CAPI.addzip
+
+--[[!
+    Function: remove_zip
+    Removes a previously mounted zip file from the engine VFS.
+    Takes an argument specifying name of the zip. See also <add_zip>.
+]]
+remove_zip = CAPI.removezip
 
 --[[!
     Section: Engine variables

@@ -261,8 +261,6 @@ end)
 
 tgui.push_action(tgui.BAR_VERTICAL, tgui.BAR_ALL, "icon_exit", function() engine.quit() end)
 
-print(id)
-
 -- show main menu tab
 gui.show("main")
 tgui.show_tab( main_id)

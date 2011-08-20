@@ -37,8 +37,6 @@ game_manager.setup({
 })
 get_scoreboard_text = game_manager.get_scoreboard_text
 
-if SERVER then
-    -- load entities on server - they get sent to clients
-    local entities = utility.readfile("./entities.json")
-    entity_store.load_entities(entities)
-end
+-- this function will run on server only (condition inside it)
+-- it loads the entities into server storage and sends to clients
+entity_store.load_entities()

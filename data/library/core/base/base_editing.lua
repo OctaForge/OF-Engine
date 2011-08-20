@@ -78,6 +78,90 @@ ROTATE_COUNTER_CLOCKWISE = -1
 ROTATE_CLOCKWISE         =  1
 
 --[[!
+    Variable: MATERIAL_AIR
+    This represents basically "no material". Air is everywhere
+    where no material was previously set, even on places where
+    geometry is present.
+
+    See Also:
+        <MATERIAL_WATER>
+        <MATERIAL_LAVA>
+        <MATERIAL_GLASS>
+        <MATERIAL_NOCLIP>
+        <MATERIAL_CLIP>
+]]
+MATERIAL_AIR = 0
+
+--[[!
+    Variable: MATERIAL_WATER
+    This represents water material.
+
+    See Also:
+        <MATERIAL_AIR>
+        <MATERIAL_LAVA>
+        <MATERIAL_GLASS>
+        <MATERIAL_NOCLIP>
+        <MATERIAL_CLIP>
+]]
+MATERIAL_WATER = 1
+
+--[[!
+    Variable: MATERIAL_LAVA
+    This represents lava material.
+
+    See Also:
+        <MATERIAL_AIR>
+        <MATERIAL_WATER>
+        <MATERIAL_GLASS>
+        <MATERIAL_NOCLIP>
+        <MATERIAL_CLIP>
+]]
+MATERIAL_LAVA = 2
+
+--[[!
+    Variable: MATERIAL_GLASS
+    This represents glass material.
+
+    See Also:
+        <MATERIAL_AIR>
+        <MATERIAL_WATER>
+        <MATERIAL_LAVA>
+        <MATERIAL_NOCLIP>
+        <MATERIAL_CLIP>
+]]
+MATERIAL_GLASS = 3
+
+--[[!
+    Variable: MATERIAL_NOCLIP
+    This represents noclip material. Any
+    geometry cubes inside this material are
+    treated as empty by collisions.
+
+    See Also:
+        <MATERIAL_AIR>
+        <MATERIAL_WATER>
+        <MATERIAL_LAVA>
+        <MATERIAL_GLASS>
+        <MATERIAL_CLIP>
+]]
+MATERIAL_NOCLIP = math.lsh(1, 3)
+
+--[[!
+    Variable: MATERIAL_CLIP
+    This represents clip material. Anything
+    inside this material is treated as solid
+    by collisions, even empty space.
+
+    See Also:
+        <MATERIAL_AIR>
+        <MATERIAL_WATER>
+        <MATERIAL_LAVA>
+        <MATERIAL_GLASS>
+        <MATERIAL_NOCLIP>
+]]
+MATERIAL_CLIP = math.lsh(2, 3)
+
+--[[!
     Function: toggle_mode
     Toggles editing mode. Does not accept
     arguments and does not return.
@@ -456,6 +540,17 @@ material_reset = CAPI.materialreset
         by 2 steps and bottom-right by 3 steps.
 ]]
 print_cube = CAPI.printcube
+
+--[[!
+    Function: get_material
+    Returns what material is on the position given by argument.
+    Materials are represented by <MATERIAL_AIR>, <MATERIAL_WATER>,
+    <MATERIAL_LAVA>, <MATERIAL_GLASS>, <MATERIAL_NOCLIP> and
+    <MATERIAL_CLIP>.
+]]
+function get_material(position)
+    return CAPI.getmat(position.x, position.y, position.z)
+end
 
 --[[!
     Function: push

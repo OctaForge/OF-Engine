@@ -385,7 +385,7 @@ manager_plugins = {
         balanced_message = "Balanced the teams",
 
         activate = function(self)
-            self.balancer_timer = utility.repeatingtimer(1.0)
+            self.balancer_timer = events.repeating_timer(1.0)
         end,
 
         act = function(self, seconds)

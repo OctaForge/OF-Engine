@@ -709,7 +709,7 @@ character = class.new(entity_animated.base_animated, {
             return false
         end
 
-        return utility.iscolliding(self.position, self.radius + 2, self)
+        return geometry.is_colliding(self.position, self.radius + 2, self)
     end
 })
 

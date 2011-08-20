@@ -380,3 +380,27 @@ mouse2click = CAPI.mouse2click
     their own functions that'll affect mouse clicking.
 ]]
 mouse3click = CAPI.mouse3click
+
+--[[!
+    Function: get_target_position
+    Returns the position we're targeting to.
+]]
+get_target_position = actions.cache_by_global_timestamp(
+    convert.tocalltable(CAPI.gettargetpos)
+)
+
+--[[!
+    Function: get_target_entity
+    Returns the entity we're targeting to.
+]]
+get_target_entity = actions.cache_by_global_timestamp(
+    convert.tocalltable(CAPI.gettargetent)
+)
+
+--[[!
+    Function: save_mouse_position
+    Saves mouse position in internal storage. This is later
+    used when editing, i.e. when inserting entity to know
+    where to insert it.
+]]
+save_mouse_position = CAPI.save_mouse_position

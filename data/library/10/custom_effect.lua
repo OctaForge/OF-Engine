@@ -39,7 +39,7 @@ rain = {
                 end
                 for i = 1, amount do
                     local origin = math.vec3(lx + math.random() * dx, ly + math.random() * dy, wsize)
-                    local floor_dist = utility.floor_dist(origin, wsize * 2)
+                    local floor_dist = math.get_floor_distance(origin, wsize * 2)
                     if floor_dist < 0 then floor_dist = wsize end
                     table.insert(self.drops, {
                         position = origin,
