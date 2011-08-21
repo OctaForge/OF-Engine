@@ -746,19 +746,9 @@ int main(int argc, char **argv)
     server_init();
 
     logger::log(logger::DEBUG, "Running first slice.\n");
-    server_runslice();
-
-    int servermillis = time(0) * 1000;
     while (!should_quit)
     {
-        while ((time(0) * 1000) - servermillis < 33)
-            continue;
-
-        servermillis = time(0) * 1000;
-
-        if (!should_quit)
-            server_runslice();
-
+        server_runslice();
         if (map_asset)
         {
             logger::log(logger::DEBUG, "Setting map to %s ..\n", map_asset);

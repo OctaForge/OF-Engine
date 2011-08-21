@@ -469,7 +469,7 @@ void gl_checkextensions()
         }
     }
     
-    bool hasshaders = (hasVP && hasFP) || hasGLSL;
+    bool hasshaders = (hasVP && hasFP) && hasGLSL; // OF: OR -> AND
     if(hasshaders)
     {
         extern int& matskel;
@@ -699,8 +699,7 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
 #endif
 
     extern int& useshaders, &forceglsl;
-    //bool hasshaders = (hasVP && hasFP) || hasGLSL; // use shaders only when having glsl support for now as assembly shaders are not yet written
-    bool hasshaders = hasGLSL;
+    bool hasshaders = (hasVP && hasFP) && hasGLSL; // OF: OR -> AND
     if(!useshaders || (useshaders<0 && avoidshaders) || !hasMT || !hasshaders)
     {
         if(!hasMT || !hasshaders) conoutf(CON_WARN, "WARNING: No shader support! Using fixed-function fallback. (no fancy visuals for you)");

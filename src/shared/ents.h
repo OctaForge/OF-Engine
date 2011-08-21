@@ -90,7 +90,7 @@ struct physent                                  // base entity type, can be affe
         deltapos = vec(0, 0, 0);
     }
 
-    void reset()
+    virtual void reset() // OF: virtual
     {
         inwater = 0;
         timeinair = 0;
@@ -193,7 +193,7 @@ struct dynent : physent                         // animated characters, or chara
         reset(); 
     }
 
-    ~dynent()
+    virtual ~dynent() // OF: virtual
     {
 #ifndef STANDALONE
         extern void cleanragdoll(dynent *d);
@@ -201,13 +201,13 @@ struct dynent : physent                         // animated characters, or chara
 #endif
     }
                
-    void stopmoving()
+    virtual void stopmoving() // OF: virtual
     {
         k_left = k_right = k_up = k_down = jumping = false;
         move = strafe = 0;
     }
         
-    void reset()
+    virtual void reset() // OF: virtual
     {
         physent::reset();
         stopmoving();

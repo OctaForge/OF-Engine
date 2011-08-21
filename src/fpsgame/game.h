@@ -159,7 +159,7 @@ struct fpsent : dynent
         dynent::reset();
     }
 
-    void reset()
+    virtual void reset() // OF: virtual
     {
         dynent::reset();
         turn_move = look_updown_move = 0;
@@ -171,7 +171,7 @@ struct fpsent : dynent
         mapDefinedPositionData = 0;
     }
 
-    void stopmoving()
+    virtual void stopmoving() // OF: virtual
     {
         dynent::stopmoving();
         turn_move = look_updown_move = 0;
