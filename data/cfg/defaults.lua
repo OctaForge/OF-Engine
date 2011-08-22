@@ -62,7 +62,7 @@ input.bind("F1", [[edit.toggle_mode()]])
 input.bind("KP_MINUS", [[console.skip(5)]])
 input.bind("KP_PLUS", [[console.skip(-1000)]])
 
-input.bind_var("PAUSE", "paused")
+input.bind_var_toggle("PAUSE", "paused")
 
 input.bind("F11", [[console.toggle()]])
 input.bind("F12", [[engine.screenshot()]])
@@ -81,12 +81,12 @@ input.bind("MOUSE5", [[universaldelta(-1)]])
 -- edit binds
 
 input.bind_edit("SPACE", [[edit.cancel_selection()]])
-input.bind_edit("MOUSE1", [[if blendpaintmode ~= 0 then texture.blendmap.paint() else edit.drag() end]])
+input.bind_edit("MOUSE1", [[if blendpaintmode ~= 0 then texture.paint_blend_map() else edit.drag() end]])
 input.bind_edit("MOUSE3", [[edit.select_corners()]])
 input.bind_edit("MOUSE2", [[
     if has_mouse_target == 0 then
         if blendpaintmode ~= 0 then
-            texture.blendbrush.rotate()
+            texture.rotate_blend_brush()
         else
             edit.move_selection()
         end
@@ -100,8 +100,8 @@ input.bind_edit("KP_ENTER", [[edit.select_entities([=[edit.in_selection()]=])]])
 -- input.bind_edit("N", [[SELECT ALL ENTITIES OF CURRENTLY SELECTED TYPE]])
 
 input.bind_edit("LSHIFT", [[edit.cut_selection()]])
-input.bind_mod_edit("LCTRL", "passthrough")
-input.bind_mod_edit("LALT", "hmapedit")
+input.bind_modifier_edit("LCTRL", "passthrough")
+input.bind_modifier_edit("LALT", "hmapedit")
 input.bind_edit("DELETE", [[edit.delete_selection()]])
 
 input.bind_edit("X", [[edit.flip()]])
@@ -110,20 +110,23 @@ input.bind_edit("V", [[edit.paste()]])
 input.bind_edit("Z", [[edit.undo(); passthroughsel = 0]])
 input.bind_edit("U", [[edit.undo(); passthroughsel = 0]])
 input.bind_edit("I", [[edit.redo()]])
-input.bind_var_edit("H", "hmapedit")
+input.bind_var_toggle_edit("H", "hmapedit")
 
-input.bind_var_edit("5", "hidehud")
-input.bind_var_edit("6", "entselsnap")
-input.bind_var_edit("7", "outline")
-input.bind_var_edit("8", "wireframe")
-input.bind_var("9", "thirdperson")
-input.bind_var_edit("0", "allfaces")
+input.bind_var_toggle_edit("5", "hidehud")
+input.bind_var_toggle_edit("6", "entselsnap")
+input.bind_var_toggle_edit("7", "outline")
+input.bind_var_toggle_edit("8", "wireframe")
+input.bind_var_toggle("9", "thirdperson")
+input.bind_var_toggle_edit("0", "allfaces")
 input.bind_edit("K", [[world.calc_light()]])
-input.bind_var_edit("L", "fullbright")
-input.bind_var_edit("M", "showmat")
+input.bind_var_toggle_edit("L", "fullbright")
+input.bind_var_toggle_edit("M", "showmat")
 
 input.bind_edit("F8", [[tgui.show_entities_list()]])
-input.bind_edit("F9", [[echo("%(1)s : %(2)s" % { texture.getsel(), texture.getname(texture.getsel()) })]])
+input.bind_edit("F9", [[echo("%(1)s : %(2)s" % {
+    texture.get_selected_index(),
+    texture.get_slot_name(texture.get_selected_index())
+})]])
 
 input.bind_edit("G", [[domodifier(1)]])
 input.bind_edit("F", [[domodifier(2)]])
@@ -142,19 +145,19 @@ input.bind_edit("LALT", [[multiplier = 10; input.on_release(function() multiplie
 input.bind_edit("RALT", [[multiplier2 = 32; input.on_release(function() multiplier2 = 16 end)]])
 
 -- blendmap painting
-input.bind_edit("KP0", [[texture.setblendpaintmode(blendpaintmode ~= 0 and 0 or 1)]])
-input.bind_edit("KP1", [[if blendpaintmode ~= 0 then texture.setblendpaintmode(1) else input.left() end]])
-input.bind_edit("KP2", [[if blendpaintmode ~= 0 then texture.setblendpaintmode(2) else input.backward() end]])
-input.bind_edit("KP3", [[if blendpaintmode ~= 0 then texture.setblendpaintmode(3) else input.right() end]])
-input.bind_edit("KP4", [[if blendpaintmode ~= 0 then texture.setblendpaintmode(4) else input.turn_left() end]])
-input.bind_edit("KP5", [[texture.setblendpaintmode(5)]])
+input.bind_edit("KP0", [[texture.set_blend_paint_mode(blendpaintmode ~= 0 and 0 or 1)]])
+input.bind_edit("KP1", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(1) else input.left() end]])
+input.bind_edit("KP2", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(2) else input.backward() end]])
+input.bind_edit("KP3", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(3) else input.right() end]])
+input.bind_edit("KP4", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(4) else input.turn_left() end]])
+input.bind_edit("KP5", [[texture.set_blend_paint_mode(5)]])
 input.bind_edit("KP6", [[input.turn_right()]])
-input.bind_edit("KP8", [[if blendpaintmode ~= 0 then texture.blendbrush.scroll(-1) else input.forward() end]])
-input.bind_edit("KP9", [[texture.blendbrush.scroll(1)]])
+input.bind_edit("KP8", [[if blendpaintmode ~= 0 then texture.scroll_blend_brush(-1) else input.forward() end]])
+input.bind_edit("KP9", [[texture.scroll_blend_brush(1)]])
 
 input.bind("M", [[camera.mouselook()]])
 input.bind_edit("M", [[camera.mouselook()]])
-input.bind_var_edit("0", "showmat")
+input.bind_var_toggle_edit("0", "showmat")
 
 input.bind("PAGEDOWN", [[input.look_up()]])
 input.bind("PAGEDOWN", [[input.look_down()]])

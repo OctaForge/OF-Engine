@@ -29,6 +29,7 @@
 
 #include "cube.h"
 #include "of_world.h"
+#include "of_tools.h"
 #include <sys/stat.h>
 
 void writebinds(stream *f);
@@ -240,6 +241,8 @@ namespace tools
         f->printf("-- automatically written on exit, DO NOT MODIFY\n");
         f->printf("-- delete this file to have %s overwrite these settings\n", game::defaultconfig());
         f->printf("-- modify settings in game, or put settings in %s to override anything\n\n", game::autoexec());
+        f->printf("-- configuration file version\n");
+        f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");
         vector<var::cvar*> varv;
 
@@ -307,19 +310,35 @@ namespace tools
                 }
             }
         }
-        f->printf("\n");
+        f->printf("\nOF_CFG_VERSION_PASSED = true\n");
         delete f;
     }
 
-    bool execcfg(const char *cfgfile)
+    bool execcfg(const char *cfgfile, bool ignore_ret)
     {
         string s;
         copystring(s, cfgfile);
         char *buf = loadfile(path(s), NULL);
         if(!buf) return false;
         lua::engine.exec(buf);
+
+        bool ret = true;
+        if (!ignore_ret)
+        {
+            lua::engine.getg("OF_CFG_VERSION_PASSED");
+            if (!(ret = lua::engine.get<bool>(-1)))
+            {
+                conoutf(
+                    "Your OctaForge config file was too old to run with "
+                    "your current client. Initializing a default set."
+                );
+            }
+            lua::engine.pop(1);
+            lua::engine.push("OF_CFG_VERSION_PASSED").push().setg();
+        }
+
         delete[] buf;
-        return true;
+        return ret;
     }
 
     int currtime()

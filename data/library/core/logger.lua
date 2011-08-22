@@ -1,5 +1,5 @@
 --[[!
-    File: logging.lua
+    File: logger.lua
 
     About: Author
         q66 <quaker66@gmail.com>

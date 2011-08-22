@@ -30,6 +30,8 @@
 #ifndef OF_TOOLS_H
 #define OF_TOOLS_H
 
+#define OF_CFG_VERSION 1
+
 namespace tools
 {
     bool  valanumeric(const char *str, const char *allow);
@@ -44,7 +46,7 @@ namespace tools
     char *sread(const char *fname);
 
     void  writecfg(const char *name = NULL);
-    bool  execcfg(const char *cfgfile);
+    bool  execcfg(const char *cfgfile, bool ignore_ret = false);
 
     int   currtime();
 } /* end namespace tools */

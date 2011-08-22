@@ -245,7 +245,7 @@ namespace lua
         push("CLIENT").push(false).setg();
         push("SERVER").push(true).setg();
         #endif
-        push("VERSION").push(m_version).setg();
+        push("OF_CFG_VERSION").push(OF_CFG_VERSION).setg();
 
         setup_module("init");
 
@@ -288,7 +288,6 @@ namespace lua
         m_runtests(false),
         m_rantests(false),
         m_scriptdir("data/library/core/"),
-        m_version("0.0"),
         m_lasterror(NULL) {}
 
     lua_Engine::lua_Engine(lua_State *l) :
@@ -297,16 +296,15 @@ namespace lua
         m_runtests(false),
         m_rantests(false),
         m_scriptdir(NULL),
-        m_version(NULL),
         m_lasterror(NULL) { m_retcount = gettop(); }
 
     lua_Engine::~lua_Engine()
     {
         /*
-         * don't close handler when version is empty,
+         * don't close handler if no scriptdir is specified,
          * because that means this class comes from existing handler
          */
-        if (m_version) destroy();
+        if (!m_scriptdir) destroy();
     }
 
     /*
@@ -581,10 +579,6 @@ namespace lua
             m_hashandle = true;
 
             logger::log(logger::DEBUG, "Handler created properly, finalizing.\n");
-
-            /* TODO: actual version? */
-            m_version = "0.0.5";
-
             setup_libs(); bind();
         }
         logger::log(logger::DEBUG, "Handler creation went properly.\n");

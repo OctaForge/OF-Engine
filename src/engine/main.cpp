@@ -1094,7 +1094,7 @@ int main(int argc, char **argv)
     initlog("lua");
     lua::engine.create();
     if (!lua::engine.hashandle()) fatal("cannot initialize lua script engine");
-    if (restoredinits) tools::execcfg(initcfg);
+    if (restoredinits) tools::execcfg(initcfg, true);
 
     initing = NOT_INITING;
 

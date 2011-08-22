@@ -121,8 +121,8 @@ per_map_keys = {}
     Function: bind
     Binds a key outside spec / edit mode. See <bind_spec> and
     <bind_edit> for specific bindings. There are also pre-defined
-    bind functions that toggle vars / modifiers - <bind_var> and
-    <bind_mod>.
+    bind functions that toggle vars / modifiers - <bind_var_toggle>
+    and <bind_modifier>.
 
     Parameters:
         key - a string specifying the key to bind. See keymap.cfg.
@@ -134,16 +134,16 @@ function bind(key, action)
 end
 
 --[[!
-    Function: bind_var
+    Function: bind_var_toggle
     Toggles an engine variable. Simillar to <bind>. If engine variable
-    has value 0, it sets 1, otherwise 0. See also <bind_var_edit> and
-    <bind_mod_edit>.
+    has value 0, it sets 1, otherwise 0. See also <bind_var_toggle_edit>
+    and <bind_modifier>.
 
     Parameters:
         key - a string specifying the key to bind. See keymap.cfg.
         var - a variable to toggle.
 ]]
-function bind_var(key, var)
+function bind_var_toggle(key, var)
     bind(key, [[
         _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
         echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
@@ -151,15 +151,16 @@ function bind_var(key, var)
 end
 
 --[[!
-    Function: bind_mod
+    Function: bind_modifier
     Toggles a modifier variable, which is a global number variable
-    with values 1 or 0. Simillar to <bind>.
+    with values 1 or 0. Simillar to <bind>. See also <bind_modifier_edit>
+    and <bind_var_toggle>.
 
     Parameters:
         key - a string specifying the key to bind. See keymap.cfg.
         modifier - a global variable storing modifier state.
 ]]
-function bind_mod(key, modifier)
+function bind_modifier(key, modifier)
     bind(key, [[
         _G[%(1)q] = 1
         on_release(function()
@@ -211,7 +212,7 @@ function bind_spec(key, action)
 end
 
 --[[!
-    Function: bind_spec
+    Function: bind_edit
     Binds a key in edit mode.
 
     Parameters:
@@ -222,10 +223,10 @@ function bind_edit(key, action)
 end
 
 --[[!
-    Function: bind_var_edit
-    See <bind_var>. It's the same, but it's for edit mode.
+    Function: bind_var_toggle_edit
+    See <bind_var_toggle>. It's the same, but it's for edit mode.
 ]]
-function bind_var_edit(key, var)
+function bind_var_toggle_edit(key, var)
     bind_edit(key, [[
         _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
         echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
@@ -233,10 +234,10 @@ function bind_var_edit(key, var)
 end
 
 --[[!
-    Function: bind_mod_edit
-    See <bind_var>. It's the same, but it's for edit mode.
+    Function: bind_modifier_edit
+    See <bind_var_toggle>. It's the same, but it's for edit mode.
 ]]
-function bind_mod_edit(key, modifier)
+function bind_modifier_edit(key, modifier)
     bind_edit(key, [[
         _G[%(1)q] = 1
         on_release(function()

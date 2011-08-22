@@ -500,20 +500,20 @@ fix_inside_faces = CAPI.fixinsidefaces
 --[[!
     Function: set_material
     Sets a material on current selection. Argument
-    is a string containing material name (like, "water").
+    is a string containing the material name (like, "water").
 ]]
 set_material = CAPI.editmat
 
 --[[!
     Function: material_reset
-    Resets the material texture slots for subsequent
+    Resets the material texture slots for the subsequent
     <texture.add> commands. See <cfg/default_map_settings.lua>.
 ]]
 material_reset = CAPI.materialreset
 
 --[[!
     Function: print_cube
-    Prints out information about cube player is currently
+    Prints out information about the cube player is currently
     pointing at into the console in format
 
     (start code)
@@ -1060,8 +1060,8 @@ procedural = {
 
     --[[!
         Function: set_cube_material
-        First 4 arguments are the same with <create_cube>,
-        fifth argument is the material index, see <MATERIAL>.
+        First 4 arguments are the same with <create_cube>, fifth
+        argument is the material index, see <edit.get_material>.
         See also <set_cube_texture>.
     ]]
     set_cube_material = CAPI.editing_setcubemat,

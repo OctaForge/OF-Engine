@@ -635,8 +635,6 @@ namespace lua
 
         /* Directory with Lua scripts to be used by SetupModule() */
         const char *m_scriptdir;
-        /* Version to be exported to lua system */
-        const char *m_version;
         /* Last error message from Lua */
         const char *m_lasterror;
 

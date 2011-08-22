@@ -20,7 +20,7 @@ end
 
 function delta_edit_0(a)
     if blendpaintmode ~= 0 then
-        texture.blendbrush.scroll(a)
+        texture.scroll_blend_brush(a)
     else
         edit.push(a, edit.PUSH_CUBE)
     end
@@ -33,7 +33,7 @@ function delta_edit_1(a) gridpower = gridpower + a end
 function delta_edit_2(a) edit.push(a, edit.PUSH_FACE) end
 function delta_edit_3(a) edit.push(a, edit.PUSH_CORNER) end
 function delta_edit_4(a) edit.rotate(a) end
-function delta_edit_5(a) texture.edit(a) end
+function delta_edit_5(a) texture.scroll_slots(a) end
 function delta_edit_6(a) edit.select_height_brush(a) end
 function delta_edit_7(a) camera.center_on_entity(a) end
 

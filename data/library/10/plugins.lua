@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features plugin baker for OctaForge.
-
-    Section: Plugins
 ]]
 
 --[[!

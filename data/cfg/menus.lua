@@ -227,21 +227,25 @@ end)
 -- edit tabs
 
 tgui.push_tab("Textures", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_texgui", function()
-    texture.filltexlist()
+    texture.fill_slot_list()
     gui.fill(1, 0.7, function()
         tgui.scrollbox(1, 0.7, function()
             gui.table(9, 0.01, function()
                 gui.align(-1, -1)
-                for i = 1, texture.getnumslots() do
-                    gui.button(function() texture.set(i - 1) end, function()
-                        gui.slot_viewer(i - 1, 0.095, 0.095)
-                        gui.slot_viewer(i - 1, 0.095, 0.095, function()
-                            gui.mod_color(1, 0.5, 0.5, 0.095, 0.095)
-                        end)
-                        gui.slot_viewer(i - 1, 0.095, 0.095, function()
-                            gui.mod_color(0.5, 0.5, 1, 0.095, 0.095)
-                        end)
-                    end)
+                for i = 1, texture.get_slots_number() do
+                    gui.button(
+                        function()
+                            texture.set_slot(i - 1)
+                        end, function()
+                            gui.slot_viewer(i - 1, 0.095, 0.095)
+                            gui.slot_viewer(i - 1, 0.095, 0.095, function()
+                                gui.mod_color(1, 0.5, 0.5, 0.095, 0.095)
+                            end)
+                            gui.slot_viewer(i - 1, 0.095, 0.095, function()
+                                gui.mod_color(0.5, 0.5, 1, 0.095, 0.095)
+                            end)
+                        end
+                    )
                 end
             end)
         end)

@@ -29,9 +29,9 @@ function myplayer:client_act(sec)
         self.position.z = math.sin(math.rad(self.n) * 3) * 100 + 700
 
         -- Create cubes for X axis
-        world.editing_createcube(self.position.x, self.position.y, self.position.z, 1)
+        edit.procedural.create_cube(self.position.x, self.position.y, self.position.z, 1)
         -- Create cubes of the graph
-        world.editing_createcube(self.position.x, self.position.y, 700, 1)
+        edit.procedural.create_cube(self.position.x, self.position.y, 700, 1)
         -- Increment the counter
         self.n = self.n + 1
     end

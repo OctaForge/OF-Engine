@@ -837,9 +837,9 @@ image = CAPI.uiimage
     viewer is in.
 
     Parameters:
-        slot - texture slot index. There is <texture.getnumslots>
-        to get number of texture slots, indexes start from 0, so
-        final slot is always number minus 1.
+        slot - texture slot index. There is <texture.get_slots_number>
+        to get the number of the texture slots, indexes start from 0,
+        so the final slot is always number minus 1.
         hs - horizontal size (in percent, 0.0 to 1.0).
         vs - vertocal size (in percent, 0.0 to 1.0).
 ]]
