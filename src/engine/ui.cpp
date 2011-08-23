@@ -2063,7 +2063,7 @@ namespace gui
             oldwindow->hidden();
             world_inst->remove(oldwindow);
         }
-        window *window = buildwindow(name, contents, onhide, e.get<int>(4));
+        window *window = buildwindow(name, contents, onhide, e.get<bool>(4));
         world_inst->children.add(window);
         window->parent = world_inst;
 

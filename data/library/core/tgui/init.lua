@@ -11,14 +11,14 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        This file takes care of loading all tgui elements and several pre-defined
-        windows.
+        This file takes care of loading all tgui elements and several
+        pre-defined windows.
 ]]
 
 --[[!
     Package: tgui
-    Tabbed Graphical User Interface. Default UI system for OctaForge, taking
-    tabbed approach of controlling.
+    This part of tgui (Tabbed Graphical User Interface) takes care of
+    several pre-defined windows.
 ]]
 module("tgui", package.seeall)
 
@@ -139,6 +139,7 @@ end, function() return true end)
 
 --[[!
     Property: scoreboard
+
     Title:
         No title
 
@@ -156,9 +157,6 @@ end, function() return true end)
 
         It appends lag / ping info to supplied text if showpj engine
         variable is 1 or player is lagged.
-
-        It also shows network stats. Those are got from C API.
-        See <sb_laststatus> and <sb_net_stats>.
 
         Scoreboard window has realtime and nofocus flags, meaning
         it's per-frame updated.
@@ -185,13 +183,15 @@ if something is not clear.]])
                     -- append information about lags when needed
                     if entity and entity:is_a(character.character) then
                         if showpj == 1 then
-                            if entity.client_state == character.CLIENT_STATE.LAGGED then
+                            if entity.client_state ==
+                               character.CLIENT_STATE.LAGGED then
                                 lt = lt .. "LAG"
                             else
                                 lt = lt .. entity.plag
                             end
                         end
-                        if showpj == 0 and entity.client_state == character.CLIENT_STATE.LAGGED then
+                        if showpj == 0 and entity.client_state ==
+                                           character.CLIENT_STATE.LAGGED then
                             lt = lt .. "LAG"
                         else
                             lt = lt .. entity.ping
@@ -272,7 +272,7 @@ function show_entity_properties_tab()
     table.sort(sorted_keys)
 
     -- it's in horizontal tab
-    gui.show   ("htab")
+    gui.show("htab")
 
     -- tab title
     gui.replace("htab", "title", function()
@@ -337,6 +337,20 @@ function show_entity_properties_tab()
     end)
 end
 
+--[[!
+    Property: entities
+
+    Title:
+        Entities
+
+    Description:
+        This ia a window that shows a list of insertable static
+        entities. Clicking on each entity button makes it spawn
+        on previously saved position (see <input.save_mouse_position>).
+
+        Function named <show_entities_list> does that and shows
+        this window.
+]]
 window("entities", "Entities", function()
     gui.fill(0.3, 0.7, function()
         tgui.scrollbox(0.3, 0.7, function()
@@ -352,10 +366,55 @@ window("entities", "Entities", function()
     end)
 end)
 
+--[[!
+    Function: show_entities_list
+    Shows <entities>. Before that it saves mouse position
+    using <input.save_mouse_position> so the insertion
+    function knows where to put it.
+]]
 function show_entities_list()
     input.save_mouse_position()
     gui.show("entities")
 end
+
+--[[!
+    Property: message
+
+    Title:
+        Unknown
+
+    Description:
+        Pre-defined message box window. Contains two replaceable
+        tags, "title" and "message", and a close button.
+
+        Used by <show_message>.
+]]
+window("message", "Unknown", function()
+    gui.vlist(0, function()
+        gui.tag("message", function() end)
+        button("close", function() gui.hide("message") end)
+    end)
+end)
+
+--[[!
+    Function: show_message
+    Shows a <message> window. Replaces its title and
+    message using the arguments (which are strings).
+    Also callable as "gui.message" to allow easy
+    replacement of tgui without recompiling the engine.
+]]
+function show_message(title, text)
+    gui.show("message")
+    gui.replace("message", "message", function()
+        gui.align(0, 0)
+        gui.label(text)
+    end)
+    gui.replace("message", "title", function()
+        gui.align(0, 0)
+        gui.label(title)
+    end)
+end
+gui.message = show_message
 
 window("console", "Console", function()
     gui.tag("sizer", function() end)

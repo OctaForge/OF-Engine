@@ -17,7 +17,9 @@
 --[[!
     Package: gui
     This module handles functions for creating menus,
-    widgets, editors, fonts etc.
+    widgets, editors, fonts etc. Please note that all
+    sections coming after this still belong to this module,
+    they're separated just for readability.
 ]]
 module("gui", package.seeall)
 
@@ -44,7 +46,7 @@ render_progress = CAPI.renderprogress
 show_scores = CAPI.showscores
 
 --[[!
-    Section: Fonts
+    Package: gui
     Functions relating to bitmap font management in OctaForge.
     Deprecated; will be replaced with TTF font support.
 ]]
@@ -137,7 +139,7 @@ hud_image = CAPI.showhudimage
 hud_label = CAPI.showhudtext
 
 --[[!
-    Section: Text editors
+    Package: gui
     Functions relating to Cube 2 text editor system.
 
     There is sort of "stack" of editors, the topmost being current.
@@ -281,7 +283,7 @@ get_current_editor_line = CAPI.textcurrentline
 editor_execute = CAPI.textexec
 
 --[[!
-    Section: GUI Elements
+    Package: gui
     Functions providing core elements for GUI building.
     Provides root objects for i.e. windows, buttons,
     scrollers and others.
@@ -326,6 +328,12 @@ editor_execute = CAPI.textexec
                 gui.scroll_button(...)
             end)
         (end)
+
+    Please note that even when widths and heights are specified
+    in percent as values from 0.0 to 1.0, you can set it to more
+    than 1.0 as well. 1.0 means screen height, even for width
+    (1.0, 1.0 makes a square) so this is useful (i.e. width
+    set to "scr_w / scr_h" fills the screen width-wise).
 ]]
 
 --[[!

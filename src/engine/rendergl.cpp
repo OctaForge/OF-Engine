@@ -2194,7 +2194,43 @@ void gl_drawhud(int w, int h)
         {
             glPushMatrix();
             glScalef(conscale, conscale, 1);
-                       
+
+            int roffset = 0;
+            if(showfps)
+            {
+                static int lastfps = 0, prevfps[3] = { 0, 0, 0 }, curfps[3] = { 0, 0, 0 };
+                if(totalmillis - lastfps >= statrate)
+                {
+                    memcpy(prevfps, curfps, sizeof(prevfps));
+                    lastfps = totalmillis - (totalmillis%statrate);
+                }
+                int nextfps[3];
+                getfps(nextfps[0], nextfps[1], nextfps[2]);
+                loopi(3) if(prevfps[i]==curfps[i]) curfps[i] = nextfps[i];
+                if(showfpsrange) draw_textf("fps %d+%d-%d", conw-6*FONTH, FONTH, curfps[0], curfps[1], curfps[2]);
+                else draw_textf("fps %d", conw-4*FONTH, FONTH, curfps[0]);
+                roffset += FONTH;
+            }
+
+            if(wallclock)
+            {
+                if(!walltime) { walltime = time(NULL); walltime -= totalmillis/1000; if(!walltime) walltime++; }
+                time_t walloffset = walltime + totalmillis/1000;
+                struct tm *localvals = localtime(&walloffset);
+                static string buf;
+                if(localvals && strftime(buf, sizeof(buf), wallclocksecs ? (wallclock24 ? "%H:%M:%S" : "%I:%M:%S%p") : (wallclock24 ? "%H:%M" : "%I:%M%p"), localvals))
+                {
+                    // hack because not all platforms (windows) support %P lowercase option
+                    // also strip leading 0 from 12 hour time
+                    char *dst = buf;
+                    const char *src = &buf[!wallclock24 && buf[0]=='0' ? 1 : 0];
+                    while(*src) *dst++ = tolower(*src++);
+                    *dst++ = '\0'; 
+                    draw_text(buf, conw-4*FONTH, FONTH + roffset);
+                    roffset += FONTH;
+                }
+            }
+
             if(editmode || showeditstats)
             {
                 static int laststats = 0, prevstats[8] = { 0, 0, 0, 0, 0, 0, 0 }, curstats[8] = { 0, 0, 0, 0, 0, 0, 0 };
@@ -2249,7 +2285,8 @@ void gl_drawhud(int w, int h)
                     const char *gameinfo = lua::engine.get<const char*>(-1);
                     if(gameinfo)
                     {
-                        draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+text_width(gameinfo)), conh-FONTH*3/2);
+                        draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+text_width(gameinfo)), conh-FONTH*3/2-roffset);
+                        roffset += FONTH;
                     }
                     lua::engine.pop(1);
                 }
