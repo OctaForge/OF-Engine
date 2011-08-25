@@ -35,12 +35,12 @@ void clearmodel(char *name);
 
 void mdlname();
 void mdlalphatest(float *cutoff);
-void mdlalphablend(int *blend);
-void mdlalphadepth(int *depth);
-void mdldepthoffset(int *offset);
-void mdlcullface(int *cullface);
-void mdlcollide(int *collide);
-void mdlellipsecollide(int *collide);
+void mdlalphablend(bool blend);
+void mdlalphadepth(bool depth);
+void mdldepthoffset(bool offset);
+void mdlcullface(bool cullface);
+void mdlcollide(bool collide);
+void mdlellipsecollide(bool collide);
 void mdlspec(int *percent);
 void mdlambient(int *percent);
 void mdlglow(int *percent, int *delta, float *pulse);
@@ -50,20 +50,20 @@ void mdlfullbright(float *fullbright);
 void mdlshader(char *shader);
 void mdlspin(float *yaw, float *pitch);
 void mdlscale(int *percent);
-void mdltrans(float *x, float *y, float *z);
+void mdltrans(const vec& v);
 void mdlyaw(float *angle);
 void mdlpitch(float *angle);
-void mdlshadow(int *shadow);
+void mdlshadow(bool shadow);
 void mdlbb(float *rad, float *h, float *eyeheight);
-void mdlextendbb(float *x, float *y, float *z);
-void mdlperentitycollisionboxes(int *val);
-void rdvert(float *x, float *y, float *z, float *radius);
+void mdlextendbb(const vec& extend);
+void mdlperentitycollisionboxes(bool val);
+void rdvert(const vec& o, float radius);
 void rdeye(int *v);
 void rdtri(int *v1, int *v2, int *v3);
 void rdjoint(int *n, int *t, char *v1, char *v2, char *v3);
 void rdlimitdist(int *v1, int *v2, float *mindist, float *maxdist);
 void rdlimitrot(int *t1, int *t2, float *maxangle, float *qx, float *qy, float *qz, float *qw);
-void rdanimjoints(int *on);
+void rdanimjoints(bool on);
 
 void clearmodel(char *name);
 
@@ -78,40 +78,41 @@ namespace lua_binds
 
     LUA_BIND_STD(mdlname, mdlname)
     LUA_BIND_STD(mdlalphatest, mdlalphatest, e.get<float*>(1))
-    LUA_BIND_STD(mdlalphablend, mdlalphablend, e.get<int*>(1))
-    LUA_BIND_STD(mdlalphadepth, mdlalphadepth, e.get<int*>(1))
+    LUA_BIND_STD(mdlalphablend, mdlalphablend, e.get<bool>(1))
+    LUA_BIND_STD(mdlalphadepth, mdlalphadepth, e.get<bool>(1))
     LUA_BIND_STD(mdlbb, mdlbb, e.get<float*>(1), e.get<float*>(2), e.get<float*>(3))
-    LUA_BIND_STD(mdlextendbb, mdlextendbb, e.get<float*>(1), e.get<float*>(2), e.get<float*>(3))
+    LUA_BIND_STD(mdlextendbb, mdlextendbb, e.get<vec>(1))
     LUA_BIND_STD(mdlscale, mdlscale, e.get<int*>(1))
     LUA_BIND_STD(mdlspec, mdlspec, e.get<int*>(1))
     LUA_BIND_STD(mdlglow, mdlglow, e.get<int*>(1), e.get<int*>(2), e.get<float*>(3))
     LUA_BIND_STD(mdlglare, mdlglare, e.get<float*>(1), e.get<float*>(2))
     LUA_BIND_STD(mdlambient, mdlambient, e.get<int*>(1))
-    LUA_BIND_STD(mdlcullface, mdlcullface, e.get<int*>(1))
-    LUA_BIND_STD(mdldepthoffset, mdldepthoffset, e.get<int*>(1))
+    LUA_BIND_STD(mdlcullface, mdlcullface, e.get<bool>(1))
+    LUA_BIND_STD(mdldepthoffset, mdldepthoffset, e.get<bool>(1))
     LUA_BIND_STD(mdlfullbright, mdlfullbright, e.get<float*>(1))
     LUA_BIND_STD(mdlspin, mdlspin, e.get<float*>(1), e.get<float*>(2))
     LUA_BIND_STD(mdlenvmap, mdlenvmap, e.get<float*>(1), e.get<float*>(2), e.get<char*>(3))
     LUA_BIND_STD(mdlshader, mdlshader, e.get<char*>(1))
-    LUA_BIND_STD(mdltrans, mdltrans, e.get<float*>(1), e.get<float*>(2), e.get<float*>(3))
+    LUA_BIND_STD(mdltrans, mdltrans, e.get<vec>(1))
     LUA_BIND_STD(mdlyaw, mdlyaw, e.get<float*>(1))
     LUA_BIND_STD(mdlpitch, mdlpitch, e.get<float*>(1))
-    LUA_BIND_STD(mdlshadow, mdlshadow, e.get<int*>(1))
-    LUA_BIND_STD(mdlcollide, mdlcollide, e.get<int*>(1))
-    LUA_BIND_STD(mdlperentitycollisionboxes, mdlperentitycollisionboxes, e.get<int*>(1))
-    LUA_BIND_STD(mdlellipsecollide, mdlellipsecollide, e.get<int*>(1))
+    LUA_BIND_STD(mdlshadow, mdlshadow, e.get<bool>(1))
+    LUA_BIND_STD(mdlcollide, mdlcollide, e.get<bool>(1))
+    LUA_BIND_STD(mdlperentitycollisionboxes, mdlperentitycollisionboxes, e.get<bool>(1))
+    LUA_BIND_STD(mdlellipsecollide, mdlellipsecollide, e.get<bool>(1))
 
-    LUA_BIND_STD(rdvert, rdvert, e.get<float*>(1), e.get<float*>(2), e.get<float*>(3), e.get<float*>(4));
+    LUA_BIND_STD(rdvert, rdvert, e.get<vec>(1), e.get<float>(2));
     LUA_BIND_STD(rdeye, rdeye, e.get<int*>(1));
     LUA_BIND_STD(rdtri, rdtri, e.get<int*>(1), e.get<int*>(2), e.get<int*>(3));
     LUA_BIND_STD(rdjoint, rdjoint, e.get<int*>(1), e.get<int*>(2), e.get<char*>(3), e.get<char*>(4), e.get<char*>(5));
     LUA_BIND_STD(rdlimitdist, rdlimitdist, e.get<int*>(1), e.get<int*>(2), e.get<float*>(3), e.get<float*>(4));
     LUA_BIND_STD(rdlimitrot, rdlimitrot, e.get<int*>(1), e.get<int*>(2), e.get<float*>(3), e.get<float*>(4), e.get<float*>(5), e.get<float*>(6), e.get<float*>(7));
-    LUA_BIND_STD(rdanimjoints, rdanimjoints, e.get<int*>(1));
+    LUA_BIND_STD(rdanimjoints, rdanimjoints, e.get<bool>(1));
 
     LUA_BIND_STD(preloadmodel, preloadmodel, e.get<const char*>(1))
     LUA_BIND_DEF(reloadmodel, {
         const char *name = e.get<const char*>(1);
+        if (!name) return;
         model *old = loadmodel(name);
         if (!old) return;
         
@@ -196,28 +197,22 @@ namespace lua_binds
         }
     }
 
-    #define PREP_RENDER_MODEL \
-    int anim = e.get<int>(3); \
-    \
-    preparerd(anim, self); \
-    \
-    vec o(e.get<float>(4), e.get<float>(5), e.get<float>(6)); \
-    fpsent *fp = NULL; \
-    \
-    if (self->dynamicEntity) fp = (fpsent*)self->dynamicEntity; \
-    else fp = getproxyfpsent(self);
-
     LUA_BIND_LE(rendermodel, {
-        PREP_RENDER_MODEL
+        int anim = e.get<int>(3);
+
+        preparerd(anim, self);
+        fpsent *fp = NULL;
+        if (self->dynamicEntity) fp = (fpsent*)self->dynamicEntity;
+        else fp = getproxyfpsent(self);
         rendermodel(NULL,
                     e.get<const char*>(2),
-                    anim, o, self,
-                    e.get<float>(7),
-                    e.get<float>(8),
-                    e.get<int>(9),
+                    anim, e.get<vec>(4), self,
+                    e.get<float>(5),
+                    e.get<float>(6),
+                    e.get<int>(7),
                     fp,
                     self->attachments,
-                    e.get<int>(10),
+                    e.get<int>(8),
                     0, 1);
     })
 #else
@@ -283,15 +278,8 @@ namespace lua_binds
     LUA_BIND_DEF(findanims, {
         vector<int> anims;
         findanims(e.get<char*>(1), anims);
-        vector<char> buf;
-        string num;
-        loopv(anims)
-        {
-            formatstring(num)("%d", anims[i]);
-            if(i > 0) buf.add(' ');
-            buf.put(num, strlen(num));
-        }
-        buf.add('\0');
-        e.push(buf.getbuf());
+
+        e.t_new();
+        loopv(anims) e.t_set(i + 1, anims[i]);
     });
 }

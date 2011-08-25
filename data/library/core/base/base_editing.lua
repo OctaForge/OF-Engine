@@ -548,9 +548,7 @@ print_cube = CAPI.printcube
     <MATERIAL_LAVA>, <MATERIAL_GLASS>, <MATERIAL_NOCLIP> and
     <MATERIAL_CLIP>.
 ]]
-function get_material(position)
-    return CAPI.getmat(position.x, position.y, position.z)
-end
+get_material = CAPI.getmat
 
 --[[!
     Function: push

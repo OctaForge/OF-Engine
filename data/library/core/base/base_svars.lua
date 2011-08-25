@@ -1276,8 +1276,8 @@ wrapped_c_array = class.new(state_array, "wrapped_c_array"):mixin({
 --[[!
     Class: vec3_surrogate
     Inherited from <array_surrogate>. It's basically array surrogate
-    modified to fit better with <math.vec3>. It takes <array_surrogate>,
-    mixes in <math.vec3> so it has all vector operation methods and
+    modified to fit better with <vec3>. It takes <array_surrogate>,
+    mixes in <vec3> so it has all vector operation methods and
     overrides <array_surrogate.__init> and <array_surrogate.push>
     with its own methods.
 ]]

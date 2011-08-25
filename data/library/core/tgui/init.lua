@@ -359,6 +359,7 @@ window("entities", "Entities", function()
                 for i, class in pairs(entity_classes.list()) do
                     tgui.button_no_bg(class, function()
                         edit.new_entity(class)
+                        gui.hide("entities")
                     end)
                 end
             end)

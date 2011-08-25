@@ -128,8 +128,8 @@ static const char * const animnames[] =
        "pain", 
        "jump", "sink", "swim", 
        "edit", "lag", "taunt", "win", "lose", 
-       "gun idle", "gun shoot",
-       "vwep idle", "vwep shoot", "shield", "powerup", 
+       "gunidle", "gunshoot", // INTENSITY: No spaces, so can be validated as non-spaced
+       "vwepidle", "vwepshoot", "shield", "powerup", // INTENSITY: No spaces, so can be validated as non-spaced
        "mapmodel", "trigger"
 };
 

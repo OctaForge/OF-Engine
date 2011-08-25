@@ -107,10 +107,7 @@ function action_smooth:do_execute(seconds)
     self.timer = self.timer + math.min(seconds, 1 / 25)
 
     self:set_markers()
-    camera.force(
-        self.position.x, self.position.y, self.position.z,
-        self.yaw, self.pitch, 0
-    )
+    camera.force(self.position, self.yaw, self.pitch, 0)
 
     actions.action.do_execute(self, seconds)
 

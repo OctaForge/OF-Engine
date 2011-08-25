@@ -28,7 +28,7 @@ module("sound", package.seeall)
     Parameters:
         name - path to the sound (starting with data/sounds as current
         working directory). Can be a protocol ID (see <message>).
-        position - sound position, optional, <math.vec3>.
+        position - sound position, optional, <vec3>.
         Defaults to <0, 0, 0>.
         volume - sound volume, optional, defaults to 100 (max volume).
         Ignored on server (TODO!).
@@ -43,11 +43,7 @@ function play(name, position, volume, cn)
 
     if CLIENT then
         -- clientside behavior
-        CAPI.playsoundname(
-            name,
-            position.x, position.y, position.z,
-            volume
-        )
+        CAPI.playsoundname(name, position, volume)
     else
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names

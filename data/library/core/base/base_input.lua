@@ -163,7 +163,7 @@ end
 function bind_modifier(key, modifier)
     bind(key, [[
         _G[%(1)q] = 1
-        on_release(function()
+        input.on_release(function()
             _G[%(1)q] = 0
         end)
     ]] % { modifier })
@@ -240,7 +240,7 @@ end
 function bind_modifier_edit(key, modifier)
     bind_edit(key, [[
         _G[%(1)q] = 1
-        on_release(function()
+        input.on_release(function()
             _G[%(1)q] = 0
         end)
     ]] % { modifier })

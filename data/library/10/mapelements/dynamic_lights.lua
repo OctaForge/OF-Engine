@@ -25,10 +25,12 @@ dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker,
 
     dynamic_light_show = function(self, seconds)
         CAPI.adddynlight(
-            self.position.x, self.position.y, self.position.z,
-            self.radius,
-            self.red, self.green, self.blue,
-            0, 0, 0, 0, 0, 0, 0
+            self.position, self.radius,
+            math.vec3(
+                self.red / 255, self.green / 255, self.blue / 255
+            ),
+            0, 0, 0, 0,
+            math.vec3(0, 0, 0)
         )
     end,
 
@@ -62,11 +64,12 @@ entity_classes.register(plugins.bake(dynamic_light, {{
             self.delay = math.max(math.random() * self.max_delay, self.min_delay) * 2
             if math.random() < self.probability then
                 CAPI.adddynlight(
-                    self.position.x, self.position.y, self.position.z,
-                    self.radius,
-                    self.red, self.green, self.blue,
-                    self.delay * 1000, 0, math.lsh(1, 2),
-                    0, 0, 0, 0
+                    self.position, self.radius,
+                    math.vec3(
+                        self.red / 255, self.green / 255, self.blue / 255
+                    ),
+                    self.delay * 1000, 0, math.lsh(1, 2), 0,
+                    math.vec3(0, 0, 0)
                 )
             end
         end

@@ -2,7 +2,7 @@
 -- This is useful if rendering is done in a dynamic manner, but we still want collisions.
 --
 -- See comments in areatrigger
-cc.model.mdl.shadow(0)
-cc.model.mdl.collide(1)
-cc.model.mdl.perentitycollisionboxes(1)
-cc.model.mdl.ellipsecollide(1)
+model.all.shadow(false)
+model.all.collide(true)
+model.all.entity_collision_box(true)
+model.all.circular_collision(true)

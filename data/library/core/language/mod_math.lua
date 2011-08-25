@@ -262,9 +262,7 @@ end
         <get_floor_highest_distance>
         <get_floor_lowest_distance>
 ]]
-function get_floor_distance(o, d)
-    return CAPI.rayfloor(o.x, o.y, o.z, d)
-end
+get_floor_distance = CAPI.rayfloor
 
 --[[!
     Function: get_floor_highest_distance
@@ -332,10 +330,7 @@ end
 
     Returns true if the path is clear, false otherwise.
 ]]
-function has_line_of_sight(a, b)
-    return CAPI.raylos(a.x, a.y, a.z,
-                       b.x, b.y, b.z)
-end
+has_line_of_sight = CAPI.raylos
 
 --[[!
     Function: yaw_to

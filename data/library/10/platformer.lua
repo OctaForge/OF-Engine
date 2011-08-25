@@ -133,7 +133,7 @@ plugin = {
             orientation = direction:to_yaw_pitch()
             camera_position.z = camera_position.z + (self.radius * self.platform_camera_distance * 0.02)
             camera.force(
-                camera_position.x, camera_position.y, camera_position.z,
+                camera_position,
                 orientation.yaw, orientation.pitch,
                 0, self.platform_fov
             )

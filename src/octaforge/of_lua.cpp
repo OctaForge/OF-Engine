@@ -388,6 +388,40 @@ namespace lua
         return ret;
     }
 
+    template<>
+    vec lua_Engine::get(int i)
+    {
+        push_index(i);
+
+        if (!is<void**>(-1))
+        {
+            vec v;
+            pop(1);
+            return v;
+        }
+
+        vec r(t_get<float>("x"), t_get<float>("y"), t_get<float>("z"));
+        pop(1);
+        return r;
+    }
+
+    template<>
+    bvec lua_Engine::get(int i)
+    {
+        push_index(i);
+
+        if (!is<void**>(-1))
+        {
+            bvec v;
+            pop(1);
+            return v;
+        }
+
+        bvec r(t_get<int>("r"), t_get<int>("g"), t_get<int>("b"));
+        pop(1);
+        return r;
+    }
+
     // specializations for with-default getters
 
     template<>
@@ -729,27 +763,39 @@ namespace lua
         return call(-1);
     }
 
-    #define RUNMETHOD(t) \
-    bool lua_Engine::exec##t(const char *s, bool msg) \
-    { \
-        bool ret = load##t(s, msg); \
-        if (!ret) return false; \
-        else \
-        { \
-            ret = lua_pcall(m_handle, 0, LUA_MULTRET, 0); \
-            if (ret) \
-            { \
-                m_lasterror = geterror(); \
-                if (msg) logger::log(logger::ERROR, "%s\n", m_lasterror); \
-                return false; \
-            } \
-        } \
-        return true; \
+    bool lua_Engine::exec(const char *s, bool msg)
+    {
+        bool ret = load(s, msg);
+        if (!ret) return false;
+        else
+        {
+            ret = lua_pcall(m_handle, 0, LUA_MULTRET, 0);
+            if (ret)
+            {
+                m_lasterror = geterror();
+                if (msg) logger::log(logger::ERROR, "%s\n", m_lasterror);
+                return false;
+            }
+        }
+        return true;
     }
 
-    RUNMETHOD()
-    RUNMETHOD(f)
-    #undef RUNMETHOD
+    bool lua_Engine::execf(const char *s, bool msg)
+    {
+        bool ret = loadf(s, msg);
+        if (!ret) return false;
+        else
+        {
+            ret = lua_pcall(m_handle, 0, LUA_MULTRET, 0);
+            if (ret)
+            {
+                m_lasterror = geterror();
+                if (msg) logger::log(logger::ERROR, "%s\n", m_lasterror);
+                return false;
+            }
+        }
+        return true;
+    }
 
     bool lua_Engine::loadf(const char *s, bool msg)
     {

@@ -67,8 +67,7 @@ plugin = {
         model.render(
             self, self.pad_model,
             math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
-            o.x, o.y, o.z,
-            yaw and yaw or self.yaw, self.pad_pitch,
+            o, yaw and yaw or self.yaw, self.pad_pitch,
             flags, 0
         )
     end

@@ -659,6 +659,8 @@ namespace lua
     template<> bool           lua_Engine::get(int i);
     template<> const char    *lua_Engine::get(int i);
     template<> CLogicEntity  *lua_Engine::get(int i);
+    template<> vec            lua_Engine::get(int i);
+    template<> bvec           lua_Engine::get(int i);
     // specializations for with-default getters
     template<> double         lua_Engine::get(int i, double d);
     template<> float          lua_Engine::get(int i, float d);

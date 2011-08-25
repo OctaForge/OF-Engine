@@ -39,13 +39,7 @@ function get_ray_collision_distance(o, r)
     if    rm == 0 then
         return -1
     end
-    return CAPI.raypos(
-        o.x, o.y, o.z,
-        r.x / rm,
-        r.y / rm,
-        r.z / rm,
-        rm
-    )
+    return CAPI.raypos(o, math.vec3(r.x / rm, r.y / rm, r.z / rm), rm)
 end
 
 --[[!
@@ -142,7 +136,7 @@ end
     position doesn't collide with geometry.
 ]]
 function is_colliding(p, r, i)
-    local  ret = CAPI.iscolliding(p.x, p.y, p.z, r, i and i.uid or -1)
+    local  ret = CAPI.iscolliding(p, r, i and i.uid or -1)
     if not ret then
         return is_colliding_entities(p, r, i)
     end

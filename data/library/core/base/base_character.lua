@@ -473,8 +473,7 @@ character = class.new(entity_animated.base_animated, {
             -- create a table of rendering arguments
             -- and save a timestamp for caching
             self.rendering_args = {
-                self, mdlname, anim,
-                o.x, o.y, o.z,
+                self, mdlname, anim, o,
                 yaw, pitch, flags, basetime
             }
             self.rendering_args_timestamp = GLOBAL_CURRENT_TIMESTAMP

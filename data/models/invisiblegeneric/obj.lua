@@ -2,6 +2,6 @@
 -- This is useful if rendering is done in a dynamic manner, but we still want collisions.
 --
 -- See comments in areatrigger
-model.mdl.shadow(0)
-model.mdl.collide(1)
-model.mdl.perentitycollisionboxes(1)
+model.all.shadow(false)
+model.all.collide(true)
+model.all.entity_collision_box(true)

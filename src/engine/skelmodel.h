@@ -2017,11 +2017,12 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
         if(i >= 0)
         {
-            float cx = e.get<float>(6) ? cosf(e.get<float>(6)/2*RAD) : 1, sx = e.get<float>(6) ? sinf(e.get<float>(6)/2*RAD) : 0,
-                  cy = e.get<float>(7) ? cosf(e.get<float>(7)/2*RAD) : 1, sy = e.get<float>(7) ? sinf(e.get<float>(7)/2*RAD) : 0,
-                  cz = e.get<float>(8) ? cosf(e.get<float>(8)/2*RAD) : 1, sz = e.get<float>(8) ? sinf(e.get<float>(8)/2*RAD) : 0;
+            vec rot = e.get<vec>(4);
+            float cx = rot.x ? cosf(rot.x/2*RAD) : 1, sx = rot.x ? sinf(rot.x/2*RAD) : 0,
+                  cy = rot.y ? cosf(rot.y/2*RAD) : 1, sy = rot.y ? sinf(rot.y/2*RAD) : 0,
+                  cz = rot.z ? cosf(rot.z/2*RAD) : 1, sz = rot.z ? sinf(rot.z/2*RAD) : 0;
             matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)),
-                        vec(e.get<float>(3), e.get<float>(4), e.get<float>(5)));
+                        e.get<vec>(3));
             ((meshgroup *)mdl.meshes)->skel->addtag(e.get<char*>(2), i, m);
             return;
         }
@@ -2190,7 +2191,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
         if(i < 0) {  conoutf("could not find bone %s to adjust", e.get<char*>(1)); return; }
         while(!MDL::adjustments.inrange(i)) MDL::adjustments.add(skeladjustment(0, 0, 0, vec(0, 0, 0)));
-        MDL::adjustments[i] = skeladjustment(e.get<float>(2), e.get<float>(3), e.get<float>(4), vec(e.get<float>(5)/4, e.get<float>(6)/4, e.get<float>(7)/4));
+        MDL::adjustments[i] = skeladjustment(e.get<float>(2), e.get<float>(3), e.get<float>(4), e.get<vec>(5).div(4));
     }
     
     skelcommands()

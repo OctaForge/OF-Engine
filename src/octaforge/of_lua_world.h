@@ -62,27 +62,21 @@ namespace lua_binds
     /* Geometry utilities */
 
     LUA_BIND_DEF(raylos, {
-        vec a(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        vec b(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         vec target;
-
-        bool ret = raycubelos(a, b, target);
-        e.push(ret);
+        e.push(raycubelos(e.get<vec>(1), e.get<vec>(2), target));
     })
 
     LUA_BIND_DEF(raypos, {
-        vec o(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        vec ray(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         vec hitpos(0);
-
-        e.push(raycubepos(o, ray, hitpos, e.get<double>(7), RAY_CLIPMAT|RAY_POLY));
+        e.push(raycubepos(
+            e.get<vec>(1), e.get<vec>(2),
+            hitpos, e.get<double>(3), RAY_CLIPMAT|RAY_POLY
+        ));
     })
 
     LUA_BIND_DEF(rayfloor, {
-        vec o(e.get<double>(1), e.get<double>(2), e.get<double>(3));
         vec floor(0);
-
-        e.push(rayfloor(o, floor, 0, e.get<double>(4)));
+        e.push(rayfloor(e.get<vec>(1), floor, 0, e.get<double>(2)));
     })
 
     LUA_BIND_CLIENT(gettargetpos, {
@@ -102,17 +96,15 @@ namespace lua_binds
     /* World */
 
     LUA_BIND_DEF(iscolliding, {
-        vec pos(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-
         // TODO: Make faster, avoid this lookup
-        CLogicEntity *ignore = e.get<int>(5) != -1 ? LogicSystem::getLogicEntity(e.get<int>(5)) : NULL;
+        CLogicEntity *ignore = e.get<int>(3) != -1 ? LogicSystem::getLogicEntity(e.get<int>(3)) : NULL;
         physent tester;
         tester.reset();
         tester.type = ENT_BOUNCE;
-        tester.o = pos;
-        tester.radius = tester.xradius = tester.yradius = e.get<double>(4);
-        tester.eyeheight = e.get<double>(4);
-        tester.aboveeye = e.get<double>(4);
+        tester.o = e.get<vec>(1);
+        tester.radius = tester.xradius = tester.yradius = e.get<double>(2);
+        tester.eyeheight = e.get<double>(2);
+        tester.aboveeye = e.get<double>(2);
 
         if (!collide(&tester, vec(0, 0, 0)))
         {
@@ -140,7 +132,7 @@ namespace lua_binds
         GRAVITY = e.get<double>(1);
     })
 
-    LUA_BIND_DEF(getmat, e.push(lookupmaterial(vec(e.get<double>(1), e.get<double>(2), e.get<double>(3))));)
+    LUA_BIND_DEF(getmat, e.push(lookupmaterial(e.get<vec>(1)));)
 
     // TODO: REMOVE THESE
     #define addimplicit(f)  { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }

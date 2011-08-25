@@ -34,10 +34,10 @@ int preload_sound(char *name, int vol);
 namespace lua_binds
 {
     LUA_BIND_CLIENT(playsoundname, {
-        vec loc(e.get<double>(2), e.get<double>(3), e.get<double>(4));
+        vec loc = e.get<vec>(2);
 
         if (loc.x || loc.y || loc.z)
-             playsoundname(e.get<const char*>(1), &loc, e.get<int>(5));
+             playsoundname(e.get<const char*>(1), &loc, e.get<int>(3));
         else playsoundname(e.get<const char*>(1));
     })
 

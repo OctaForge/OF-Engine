@@ -24,7 +24,7 @@
 module("effects", package.seeall)
 
 --[[!
-    Struct: DECAL
+    Variable: DECAL
     This table specifies decal types. It's in sync with iengine.h header.
 
     Fields:
@@ -40,7 +40,7 @@ DECAL = {
 }
 
 --[[!
-    Struct: PARTICLE
+    Variable: PARTICLE
     This table specifies particle types. It's in sync with iengine.h header.
 
     Fields:
@@ -125,7 +125,7 @@ PARTICLE = {
 }
 
 --[[!
-    Struct: DYNAMIC_LIGHT
+    Variable: DYNAMIC_LIGHT
     This table specifies dynamic light flags.
 
     Fields:
@@ -157,12 +157,7 @@ function decal(decal_type, position, direction, radius, color, info)
     info      = info or 0
     local rgb = convert.hex_to_rgb(color or 0xFFFFFF)
 
-    CAPI.adddecal(
-        decal_type,
-        position.x, position.y, position.z,
-        direction.x, direction.y, direction.z,
-        radius, rgb.r, rgb.g, rgb.b, info
-    )
+    CAPI.adddecal(decal_type, position, direction, radius, rgb, info)
 end
 
 --[[!
@@ -190,12 +185,11 @@ function dynamic_light(
     local rgbic = convert.hex_to_rgb(initial_color or 0xFFFFFF)
 
     CAPI.adddynlight(
-        position.x, position.y, position.z,
-        radius,
-        rgbc.r, rgbc.g, rgbc.b,
+        position, radius,
+        math.vec3(rgbc.r / 255, rgbc.g / 255, rgbc.b / 255),
         fade * 1000, peak * 1000,
         flags, initial_radius,
-        rgbic.r, rgbic.g, rgbic.b
+        math.vec3(rgbic.r / 255, rgbic.g / 255, rgbic.b / 255)
     )
 end
 
@@ -234,8 +228,7 @@ function splash(
         fast_splash  = fast_splash  or false
 
         CAPI.particle_splash(
-            particle_type, num, fade * 1000,
-            position.x, position.y, position.z,
+            particle_type, num, fade * 1000, position,
             color, size, radius, gravity, regular_fade,
             flags, fast_splash, grow
         )
@@ -279,10 +272,9 @@ function regular_splash(
         hover   = hover   or false
 
         CAPI.regular_particle_splash(
-            particle_type, num, fade * 1000,
-            position.x, position.y, position.z,
-            color, size, radius, gravity,
-            delay, hover, grow
+            particle_type, num, fade * 1000, position,
+            color, size, radius, gravity, delay, hover,
+            grow
         )
     else
         message.send(
@@ -315,9 +307,8 @@ function fireball(
     color = color or 0xFFFFFF
     size  = size  or 4.0
     CAPI.particle_fireball(
-        position.x, position.y, position.z,
-        max_size, particle_type, fade, color,
-        size, gravity, num
+        position, max_size, particle_type, fade,
+        color, size, gravity, num
     )
 end
 
@@ -344,9 +335,8 @@ function flare(
     size  = size  or 0.28
     local oid = owner and owner.uid or -1
     CAPI.particle_flare(
-        source_position.x, source_position.y, source_position.z,
-        target_position.x, target_position.y, target_position.z,
-        fade, particle_type, color, size, grow, oid
+        source_position, target_position, fade,
+        particle_type, color, size, grow, oid
     )
 end
 
@@ -369,9 +359,9 @@ function flying_flare(
 )
     fade  = fade and fade * 1000 or 0
     CAPI.particle_flying_flare(
-        source_position.x, source_position.y, source_position.z,
-        target_position.x, target_position.y, target_position.z,
-        fade, particle_type, color, size, grow)
+        source_position, target_position, fade,
+        particle_type, color, size, grow
+    )
 end
 
 
@@ -398,10 +388,8 @@ function trail(
     grow    = grow    or 20
     bubbles = bubbles or false
     CAPI.particle_trail(
-        particle_type, fade * 1000,
-        source_position.x, source_position.y, source_position.z,
-        target_position.x, target_position.y, target_position.z,
-        color, size, grow, bubbles
+        particle_type, fade * 1000, source_position,
+        target_position, color, size, grow, bubbles
     )
 end
 
@@ -431,8 +419,7 @@ function flame(
     fade    = fade    and fade * 1000 or 600.0
     gravity = gravity or -15
     CAPI.particle_flame(
-        particle_type,
-        position.x, position.y, position.z,
+        particle_type, position,
         radius, height, color, density,
         scale, speed, fade, gravity
     )
@@ -474,9 +461,8 @@ function text(position, text, fade, color, size, gravity)
     color = color or 0xFFFFFF
     size  = size  or 2.0
     CAPI.particle_text(
-        position.x, position.y, position.z,
-        text, PARTICLE.TEXT, fade * 1000,
-        color, size, gravity
+        position, text, PARTICLE.TEXT,
+        fade * 1000, color, size, gravity
     )
 end
 

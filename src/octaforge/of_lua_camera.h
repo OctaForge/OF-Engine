@@ -30,13 +30,13 @@
 namespace lua_binds
 {
     LUA_BIND_CLIENT(forcecam, {
-        vec position(e.get<float>(1), e.get<float>(2), e.get<float>(3));
-        CameraControl::forceCamera(position, e.get<float>(4), e.get<float>(5), e.get<float>(6), e.get<float>(7));
+        vec pos = e.get<vec>(1);
+        CameraControl::forceCamera(pos, e.get<float>(2), e.get<float>(3), e.get<float>(4), e.get<float>(5));
     })
 
     LUA_BIND_CLIENT(forcepos, {
-        vec position(e.get<float>(1), e.get<float>(2), e.get<float>(3));
-        CameraControl::forcePosition(position);
+        vec pos = e.get<vec>(1);
+        CameraControl::forcePosition(pos);
     })
 
     LUA_BIND_STD_CLIENT(forceyaw, CameraControl::forceYaw, e.get<float>(1))
