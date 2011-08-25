@@ -26,6 +26,8 @@ if (UNIX) # All kinds of POSIX compatible OSes (Linux, BSD, Mac for now)
         set(CMAKE_OSX_ARCHITECTURES "i386")
         # some extra OS X sources
         set(EXTRA_SOURCES ../osx_dev/macutils.mm ../osx_dev/SDLMain.m)
+        # extra includes for some OS X installations
+        include_directories(${CMAKE_SOURCE_DIR}/src/include)
     else (APPLE) # these are other POSIX compatible OSes, most likely Linux, BSD
         # we require util library on bsd and linux
         set(UTIL util)
@@ -52,7 +54,7 @@ find_package(ZLIB REQUIRED)
 find_package(Lua51 REQUIRED)
 if (NOT WIN32)
     find_package(PkgConfig)
-    pkg_check_modules(UUID uuid)
+    pkg_check_modules(UUID REQUIRED uuid)
 endif (NOT WIN32)
 
 # PROCEED TO NEXT DIR

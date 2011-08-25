@@ -82,11 +82,11 @@ namespace lua_binds
     })
 
     LUA_BIND_CLIENT(particle_flare, {
-        if (e.get<int>(12) < 0)
+        if (e.get<int>(8) < 0)
             particle_flare(e.get<vec>(1), e.get<vec>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<double>(6), NULL, e.get<int>(7));
         else
         {
-            CLogicEntity *owner = LogicSystem::getLogicEntity(e.get<int>(12));
+            CLogicEntity *owner = LogicSystem::getLogicEntity(e.get<int>(8));
             assert(owner->dynamicEntity);
             particle_flare(e.get<vec>(1), e.get<vec>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<double>(6), (fpsent*)(owner->dynamicEntity), e.get<int>(7));
         }
