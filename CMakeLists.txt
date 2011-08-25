@@ -52,10 +52,10 @@ find_package(SDL_mixer REQUIRED)
 find_package(SDL_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Lua51 REQUIRED)
-if (NOT WIN32)
+if (NOT WIN32 AND NOT APPLE)
     find_package(PkgConfig)
     pkg_check_modules(UUID REQUIRED uuid)
-endif (NOT WIN32)
+endif (NOT WIN32 AND NOT APPLE)
 
 # PROCEED TO NEXT DIR
 add_subdirectory(src)

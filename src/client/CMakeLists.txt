@@ -12,9 +12,9 @@ include_directories(
     ${LUA_INCLUDE_DIR}
 )
 # include uuid on non-windows
-if (NOT WIN32)
+if (NOT WIN32 AND NOT APPLE)
     include_directories(${UUID_INCLUDE_DIRS})
-endif (NOT WIN32)
+endif (NOT WIN32 AND NOT APPLE)
 
 # there is no LINUX variable declared
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -108,7 +108,9 @@ if (WIN32)
     add_definitions(-DNO_STDIO_REDIRECT)
     set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} opengl32 glu32 ws2_32 winmm rpcrt4)
 else (WIN32)
-    set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} ${UUID_LIBRARIES})
+    if (NOT APPLE)
+        set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} ${UUID_LIBRARIES})
+    endif (NOT APPLE)
     # under Linux, link client to rt, too
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set(CLIENT_LIBRARIES ${CLIENT_LIBRARIES} rt)
