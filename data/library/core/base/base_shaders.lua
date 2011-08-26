@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features shader control functions.
-
-    Section: Shaders
 ]]
 
 --[[!
@@ -23,210 +21,342 @@
 ]]
 module("shader", package.seeall)
 
---- Standard shader.
--- @param s Shader type.
--- @param n Shader name.
--- @param v Vertex shader.
--- @param f Fragment shader.
--- @class function
--- @name std
+--[[!
+    Variable: SHADER_GLSL
+    Has value of <math.lsh> (1, 2). See <std>.
+]]
+SHADER_GLSL = math.lsh(1, 2)
+
+--[[!
+    Variable: SHADER_NORMAL
+    Has value of <math.lsh> (1, 0). See <std>.
+]]
+SHADER_NORMAL = math.lsh(1, 0)
+
+--[[!
+    Variable: SHADER_ENVMAP
+    Has value of <math.lsh> (1, 1). See <std>.
+]]
+SHADER_ENVMAP = math.lsh(1, 1)
+
+--[[!
+    Function: std
+    Sets up a standard shader with given name, type, vertex and fragment
+    shaders. Type indicates what resources the shader provides, or what backup
+    method should be used if graphics card does not support shaders. It's
+    either 0 for default ARB shader, <SHADER_GLSL> for default GLSL shader,
+    T for non-default ARB shader of math.bor(<SHADER_GLSL>, T) for non-default
+    GLSL shader.
+
+    Values of T can be:
+        SHADER_NORMAL - this indicates normalmapped shader (<SHADER_NORMAL>).
+        SHADER_ENVMAP - indicates a shader reflecting environment
+        (<SHADER_ENVMAP>).
+
+    Parameters:
+        type - shader type.
+        name - shader name.
+        vs - vertex shader (string).
+        fs - fragment shader (string).
+]]
 std = CAPI.shader
 
---- Variant shader.
--- @param s Shader type.
--- @param n Shader name.
--- @param r Shader row.
--- @param v Vertex shader.
--- @param f Fragment shader.
--- @class function
--- @name variant
+--[[!
+    Function: variant
+    Sets up a variant shader. Arguments are like for <std>, but there is
+    an additional one, a "row" which is an integral value. Type and name
+    are the same, then comes the row, then vertex shader and then fragment
+    shader.
+]]
 variant = CAPI.variantshader
 
---- Set global shader.
--- @param n Shader name.
--- @class function
--- @name set
+--[[!
+    Function: set
+    Sets a shader to be used for further defined texture slot. You usually
+    use this for i.e. bumpmapped textures. Argument is just one and it
+    represents the shader name.
+
+    The shader table is taken from Sauerbraten editing reference.
+
+    (start table)
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | Shader                       | Shader params                      | Texture slots | Description                                                                      |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | stdworld                     |                                    | c             | The default lightmapped world shader.                                            |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | decalworld                   |                                    | c, d          | Like stdworld, except alpha blends decal texture on diffuse texture.             |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    |                              | - glowcolor: Rk, Gk, Bk -          |               |                                                                                  |
+    | glowworld                    |   multiplies the glow map color by | c, g          | Like stdworld, except adds light from glow map.                                  |
+    |                              |   the factors Rk, Gk, Bk           |               |                                                                                  |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpworld                    |                                    | c, n          | Normal-mapped shader without specularity (diffuse lighting only).                |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpglowworld                | - see glowworld                    | c, n, g       | Normal-mapped shader with glow map and without specularity.                      |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    |                              | - specscale: Rk, Gk, Bk -          |               |                                                                                  |
+    | bumpspecworld                |   multiplies the glow map color by | c, n          | Normal-mapped shader with constant specularity factor.                           |
+    |                              |   the factors Rk, Gk, Bk           |               |                                                                                  |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpspecmapworld             | - see above                        | c, n, s       | Normal-mapped shader with specularity map.                                       |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpspecglowworld            | - see glowworld and bumpspecworld  | c, n, g       | Normal-mapped shader with constant specularity factor and glow map.              |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpspecmapglowworld         | - see above                        | c, n, s, g    | Normal-mapped shader with specularity map and glow map.                          |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpparallaxworld            | - parallaxscale: Scale, Bias -     | c, n, z       | Normal-mapped shader with height map and without specularity.                    |
+    |                              |   scales the heightmap offset      |               |                                                                                  |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpspecparallaxworld        | - see above plus bumpspecworld     | c, n, z       | Normal-mapped shader with constant specularity factor and height map.            |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpspecmapparallaxworld     | - see above                        | c, n, s, z    | Normal-mapped shader with specularity map and height map.                        |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpparallaxglowworld        | - see glowworld, bumpparallaxworld | c, n, z, g    | Normal-mapped shader with height and glow maps, and without specularity.         |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpspecparallaxglowworld    | - see above plus bumpspecworld     | c, n, z, g    | Normal-mapped shader with constant specularity factor and height and glow maps.  |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    | bumpspecmapparallaxglowworld | - see above                        | c, n, s, z, g | Normal-mapped shader with specularity, height and glow maps.                     |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    |                              | - envscale: Rk, Gk, Bk -           |               | Any of the above bump* shader permutations may replace "bump" with "bumpenv"     |
+    |                              |   multiplies the environment map   |               | (i.e. bumpenvspecmapworld) and will then reflect the closest envmap entity       |
+    |                              |   color by the factors Rk, Gk, Bk  |               | (see static entity documentation, or skybox if necessary). They support all      |
+    |                              |                                    |               | their usual texture slots and pixel params, in addition to the envmap multiplier |
+    | bumpenv*                     |                                    |               | pixel param. If a specmap is present in the given shader, the raw specmap value  |
+    |                              |                                    |               | will be scaled by the envmap multipliers (instead of specmap ones) to determine  |
+    |                              |                                    |               | how much of the envmap to reflect. A lightmap recalculation (if it hasn't been   |
+    |                              |                                    |               | done before, see world module docs) or recalc (again, see those docs) is also    |
+    |                              |                                    |               | needed by this shader to properly setup its engine state.                        |
+    +------------------------------+------------------------------------+---------------+----------------------------------------------------------------------------------+
+    (end)
+]]
 set = CAPI.setshader
 
---- Set shader param.
--- @param n Name of the shader param.
--- @param x X (defaults to 0)
--- @param y Y (defaults to 0)
--- @param z Z (defaults to 0)
--- @param w W (defaults to 0)
-function setp(n, x, y, z, w)
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.setshaderparam(n, x, y, z, w)
-end
+--[[!
+    Function: set_param
+    Overrides an uniform parameter for the current shader. Any following
+    texture slots will use this parameter until its value is set or reset
+    by subsequent commands. Every uniform param is a 4-component vector.
+    Components that are not specified default to 0. For param names, see
+    the table in <set>.
 
---- Set vertex param.
--- @param i Param index.
--- @param x X (defaults to 0)
--- @param y Y (defaults to 0)
--- @param z Z (defaults to 0)
--- @param w W (defaults to 0)
-function setvp(i, x, y, z, w)
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.setvertexparam(i, x, y, z, w)
-end
+    Parameters:
+        name - name of a defined parameter of the current shader.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
 
---- Set pixel param.
--- @param i Param index.
--- @param x X (defaults to 0)
--- @param y Y (defaults to 0)
--- @param z Z (defaults to 0)
--- @param w W (defaults to 0)
-function setpp(i, x, y, z, w)
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.setpixelparam(i, x, y, z, w)
-end
+    See Also:
+        <set_vertex_param>
+        <set_pixel_param>
+        <set_uniform_param>
+]]
+set_param = CAPI.setshaderparam
 
---- Set uniform param.
--- @param n Name of the uniform param.
--- @param x X (defaults to 0)
--- @param y Y (defaults to 0)
--- @param z Z (defaults to 0)
--- @param w W (defaults to 0)
-function setup(n, x, y, z, w)
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.setuniformparam(n, x, y, z, w)
-end
+--[[!
+    Function: set_vertex_param
+    Overrides a vertex parameter for the current shader. Any following
+    texture slots will use this vertex parameter until its value is
+    set or reset by subsequent commands. Every vertex param is a 4-component
+    vector. Components that are not specified default to 0.
 
---- Define vertex param.
--- @param n Name of the param.
--- @param i Index of the param.
--- @param x X (defaults to 0)
--- @param y Y (defaults to 0)
--- @param z Z (defaults to 0)
--- @param w W (defaults to 0)
-function defvp(n, i, x, y, z, w)
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.defvertexparam(n, i, x, y, z, w)
-end
+    Parameters:
+        index - index of a program environment parameter
+        (program.env[10+INDEX) to the vertex program of the
+        current shader.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
 
---- Define pixel param.
--- @param n Name of the param.
--- @param i Index of the param.
--- @param x X (defaults to 0)
--- @param y Y (defaults to 0)
--- @param z Z (defaults to 0)
--- @param w W (defaults to 0)
-function defpp(n, i, x, y, z, w)
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.defpixelparam(n, i, x, y, z, w)
-end
+    See Also:
+        <set_param>
+        <set_pixel_param>
+        <set_uniform_param>
+]]
+set_vertex_param  = CAPI.setvertexparam
 
---- Define uniform param.
--- @param n Name of the param.
--- @param x X (defaults to 0)
--- @param y Y (defaults to 0)
--- @param z Z (defaults to 0)
--- @param w W (defaults to 0)
-function defup(n, x, y, z, w)
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.defuniformparam(n, x, y, z, w)
-end
+--[[!
+    Function: set_pixel_param
+    Overrides a pixel parameter for the current shader. Any following
+    texture slots will use this pixel parameter until its value is
+    set or reset by subsequent commands. Every pixel param is a 4-component
+    vector. Components that are not specified default to 0.
 
---- Alternate shader.
--- @param o Original name.
--- @param n Alternate name.
--- @class function
--- @name alt
+    Parameters:
+        index - index of a program environment parameter
+        (program.env[10+INDEX) to the pixel program of the
+        current shader.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
+
+    See Also:
+        <set_param>
+        <set_vertex_param>
+        <set_uniform_param>
+]]
+set_pixel_param   = CAPI.setpixelparam
+
+--[[!
+    Function: set_uniform_param
+    Overrides a GLSL uniform parameter for the current shader. Any following
+    texture slots will use this parameter until its value is set or reset
+    by subsequent commands. Every uniform param is a 4-component vector.
+    Components that are not specified default to 0. For param names, see
+    the table in <set>.
+
+    Parameters:
+        name - name of the uniform variable in the current GLSL shader.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
+
+    See Also:
+        <set_param>
+        <set_pixel_param>
+        <set_vertex_param>
+]]
+set_uniform_param = CAPI.setuniformparam
+
+--[[!
+    Function: define_vertex_param
+    Defines a vertex parameter. See <set_vertex_param>.
+
+    Parameters:
+        name - vertex param name.
+        index - vertex param index.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
+]]
+define_vertex_param  = CAPI.defvertexparam
+
+--[[!
+    Function: define_pixel_param
+    Defines a pixel parameter. See <set_pixel_param>.
+
+    Parameters:
+        name - pixel param name.
+        index - pixel param index.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
+]]
+define_pixel_param   = CAPI.defpixelparam
+
+--[[!
+    Function: define_uniform_param
+    Defines an uniform shader parameter. See <set_param>.
+
+    Parameters:
+        name - uniform param name.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
+]]
+define_uniform_param = CAPI.defuniformparam
+
+--[[!
+    Function: alt
+    Defines an alternate name for a shader.
+
+    Parameters:
+        orig - original shader name.
+        alt - alternate shader name.
+]]
 alt = CAPI.altshader
 
---- Fast shader.
--- @param n Name of the "nice" shader.
--- @param f Name of the "fast" shader.
--- @param d Detail.
--- @class function
--- @name fast
+--[[!
+    Function: fast
+    Cube 2 allows system of "nice" and "fast" shaders where nice shader
+    is the one that is expensive to use and fast is a cheap, but mostly
+    worse-looking one. You can specify a detail level (<shaderdetail>
+    variable) on which fast shader is last used (i.e. with detail set to
+    2, fastshader will be used on details 1 and 2, but not 3).
+
+    Parameters:
+        nice - name of the nice shader.
+        fast - name of the fast shader.
+        detail - shader detail level to toggle between fast and nice.
+]]
 fast = CAPI.fastshader
 
---- Defer shader.
--- @param s Type of the shader.
--- @param n Name of the shader.
--- @param c Contents.
--- @class function
--- @name defer
+--[[!
+    Function: defer
+    Defers a shader into later stage. Can be disabled by setting
+    <defershaders> engine variable to 0, then such shaders will
+    be run immediately when setting up.
+
+    Parameters:
+        type - shader type, see <std>.
+        name - defer shader name.
+        contents - a function taking 0 arguments and returning 0
+        results that sets up the shader code itself.
+]]
 defer = CAPI.defershader
 
---- Force shader.
--- @param n Name of the shader.
--- @class function
--- @name force
+--[[!
+    Function: force
+    Foces usage of shader of name given by argument right now.
+]]
 force = CAPI.forceshader
 
---- Is shader defined?
--- @param n Name of the shader.
--- @return True if it is, false otherwise.
--- @class function
--- @name isdefined
-isdefined = CAPI.isshaderdefined
+--[[!
+    Function: is_defined
+    Returns true if shader of name given by argument
+    is defined, or false otherwise.
+]]
+is_defined = CAPI.isshaderdefined
 
---- Is shader native?
--- @param n Name of the shader.
--- @return True if it is, false otherwise.
--- @class function
--- @name isnative
-isnative = CAPI.isshadernative
+--[[!
+    Function: is_native
+    Returns true if shader of name given by argument
+    is native, or false otherwise.
+]]
+is_native = CAPI.isshadernative
 
---- PostFX control table.
--- @class table
--- @name postfx
-postfx = {}
+--[[!
+    Function: postfx_add
+    Loads a postprocessing shader of given name.
+    PostFX shaders can have 4 params stored in vec4
+    (uniform vec4 params). You pass components through
+    arguments.
 
---- Add a post effect.
--- @param n Name of the effect.
--- @param b Bind.
--- @param s Scale.
--- @param i Inputs.
--- @param x X
--- @param y Y
--- @param z Z
--- @param w W
-function postfx.add(n, b, s, i, x, y, z, w)
-    b = b or 0
-    s = s or 0
-    i = i or ""
-    x = x or 0
-    y = y or 0
-    z = z or 0
-    w = w or 0
-    CAPI.addpostfx(n, b, s, i, x, y, z, w)
-end
+    Parameters:
+        name   - name of the postfx.
+        bind   - postfx shader bind.
+        scale  - postfx shader scale.
+        inputs - postfx shader inputs.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
+]]
+postfx_add   = CAPI.addpostfx
 
---- Set a post effect.
--- @param n Name of the effect.
--- @param x X
--- @param y Y
--- @param z Z
--- @param w W
--- @class function
--- @name postfx.set
-postfx.set = CAPI.setpostfx
+--[[!
+    Function: postfx_set
+    Clears out all current postfx effects
+    and sets one with given name. Allows
+    passing params.
 
---- Clear all post effects.
--- @class function
--- @name postfx.clear
-postfx.clear = CAPI.clearpostfx
+    Parameters:
+        name - name of the postfx.
+        x - X component.
+        y - Y component.
+        z - Z component.
+        w - W component.
+]]
+postfx_set   = CAPI.setpostfx
+
+--[[!
+    Function: postfx_clear
+    Clears out any presently loaded postfx effects.
+]]
+postfx_clear = CAPI.clearpostfx

@@ -1,5 +1,31 @@
+--[[!
+    File: tgui/widgets/fields.lua
+
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        This file provides a field widget.
+]]
+
+--[[!
+    Package: tgui
+    This part of tgui (Tabbed Graphical User Interface) takes care of
+    a skinned field widget.
+]]
 module("tgui", package.seeall)
 
+--[[!
+    Function: field
+    See <gui.field>. The arguments etc. are exactly the same,
+    but this one is skinned.
+]]
 function field(...)
     local args = { ... }
     gui.table(3, 0, function()

@@ -137,8 +137,7 @@ void QuantizedInfo::generateFrom(ucharbuf& p)
 
 void QuantizedInfo::applyToEntity(fpsent *d)
 {
-    if (d == NULL)
-        d = dynamic_cast<fpsent*>(game::getclient(clientNumber));
+    if (!d) d = game::getclient(clientNumber);
 //        fpsent *d = cl.getclient(cn);
 
     // Only possibly discard if we get a value for the lifesequence

@@ -32,116 +32,99 @@ VARP(blood, 0, 1, 1);
 namespace lua_binds
 {
     LUA_BIND_CLIENT(adddecal, {
-        vec  center(e.get<double>(2), e.get<double>(3), e.get<double>(4));
-        vec  surface(e.get<double>(5), e.get<double>(6), e.get<double>(7));
-        bvec color(e.get<int>(9), e.get<int>(10), e.get<int>(11));
-
-        adddecal(e.get<int>(1), center, surface, e.get<double>(8), color, e.get<int>(12));
+        adddecal(
+            e.get<int>(1), e.get<vec>(2), e.get<vec>(3),
+            e.get<double>(4), e.get<bvec>(5), e.get<int>(6)
+        );
     })
 
     LUA_BIND_CLIENT(particle_splash, {
         if (e.get<int>(1) == PART_BLOOD && !blood) return;
-        vec p(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         particle_splash(
             e.get<int>(1),
             e.get<int>(2),
             e.get<int>(3),
-            p,
+            e.get<vec>(4),
+            e.get<int>(5),
+            e.get<double>(6),
             e.get<int>(7),
-            e.get<double>(8),
-            e.get<int>(9),
+            e.get<int>(8),
+            e.get<bool>(9),
             e.get<int>(10),
             e.get<bool>(11),
-            e.get<int>(12),
-            e.get<bool>(13),
-            e.get<int>(14)
+            e.get<int>(12)
         );
     })
 
     LUA_BIND_CLIENT(regular_particle_splash, {
         if (e.get<int>(1) == PART_BLOOD && !blood) return;
-        vec p(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         regular_particle_splash(
             e.get<int>(1),
             e.get<int>(2),
             e.get<int>(3),
-            p,
+            e.get<vec>(4),
+            e.get<int>(5),
+            e.get<double>(6),
             e.get<int>(7),
-            e.get<double>(8),
+            e.get<int>(8),
             e.get<int>(9),
-            e.get<int>(10),
-            e.get<int>(11),
-            e.get<bool>(12),
-            e.get<int>(13)
+            e.get<bool>(10),
+            e.get<int>(11)
         );
     })
 
     LUA_BIND_CLIENT(particle_fireball, {
-        vec dest(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        particle_fireball(dest, e.get<double>(4), e.get<int>(5), e.get<int>(6), e.get<int>(7), e.get<double>(8));
+        particle_fireball(e.get<vec>(1), e.get<double>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<double>(6));
     })
 
     LUA_BIND_CLIENT(particle_explodesplash, {
-        vec o(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        particle_explodesplash(o, e.get<int>(4), e.get<int>(5), e.get<int>(6), e.get<int>(7), e.get<int>(8), e.get<int>(9));
+        particle_explodesplash(e.get<vec>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<int>(6), e.get<int>(7));
     })
 
     LUA_BIND_CLIENT(particle_flare, {
-        vec p(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        vec dest(e.get<double>(4), e.get<double>(5), e.get<double>(6));
-        if (e.get<int>(12) < 0)
-            particle_flare(p, dest, e.get<int>(7), e.get<int>(8), e.get<int>(9), e.get<double>(10), NULL, e.get<int>(11));
+        if (e.get<int>(8) < 0)
+            particle_flare(e.get<vec>(1), e.get<vec>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<double>(6), NULL, e.get<int>(7));
         else
         {
-            CLogicEntity *owner = LogicSystem::getLogicEntity(e.get<int>(12));
+            CLogicEntity *owner = LogicSystem::getLogicEntity(e.get<int>(8));
             assert(owner->dynamicEntity);
-            particle_flare(p, dest, e.get<int>(7), e.get<int>(8), e.get<int>(9), e.get<double>(10), (fpsent*)(owner->dynamicEntity), e.get<int>(11));
+            particle_flare(e.get<vec>(1), e.get<vec>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<double>(6), (fpsent*)(owner->dynamicEntity), e.get<int>(7));
         }
     })
 
     LUA_BIND_CLIENT(particle_flying_flare, {
-        vec p(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        vec dest(e.get<double>(4), e.get<double>(5), e.get<double>(6));
-        particle_flying_flare(p, dest, e.get<int>(7), e.get<int>(8), e.get<int>(9), e.get<double>(10), e.get<int>(11));
+        particle_flying_flare(e.get<vec>(1), e.get<vec>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<double>(6), e.get<int>(7));
     })
 
     LUA_BIND_CLIENT(particle_trail, {
-        vec from(e.get<double>(3), e.get<double>(4), e.get<double>(5));
-        vec to(e.get<double>(6), e.get<double>(7), e.get<double>(8));
-        particle_trail(e.get<int>(1), e.get<int>(2), from, to, e.get<int>(9), e.get<double>(10), e.get<int>(11), e.get<bool>(12));
+        particle_trail(e.get<int>(1), e.get<int>(2), e.get<vec>(3), e.get<vec>(4), e.get<int>(5), e.get<double>(6), e.get<int>(7), e.get<bool>(8));
     })
 
     LUA_BIND_CLIENT(particle_flame, {
         regular_particle_flame(
             e.get<int>(1),
-            vec(e.get<double>(2), e.get<double>(3), e.get<double>(4)),
-            e.get<double>(5),
-            e.get<double>(6),
-            e.get<int>(7),
-            e.get<int>(8),
+            e.get<vec>(2),
+            e.get<double>(3),
+            e.get<double>(4),
+            e.get<int>(5),
+            e.get<int>(6),
+            e.get<double>(7),
+            e.get<double>(8),
             e.get<double>(9),
-            e.get<double>(10),
-            e.get<double>(11),
             e.get<int>(12)
         );
     })
 
     LUA_BIND_CLIENT(adddynlight, {
-        vec o(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        vec color(float(e.get<double>(5))/255.0, float(e.get<double>(6))/255.0, float(e.get<double>(7))/255.0);
-        vec initcolor(float(e.get<double>(12))/255.0, float(e.get<double>(13))/255.0, float(e.get<double>(14))/255.0);
-
-        queuedynlight(o, e.get<double>(4), color, e.get<int>(8), e.get<int>(9), e.get<int>(10), e.get<double>(11), initcolor, NULL);
+        queuedynlight(e.get<vec>(1), e.get<double>(2), e.get<vec>(3), e.get<int>(4), e.get<int>(5), e.get<int>(6), e.get<double>(7), e.get<vec>(8), NULL);
     })
 
     LUA_BIND_CLIENT(particle_meter, {
-        vec s(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        particle_meter(s, e.get<double>(4), e.get<int>(5), e.get<int>(6));
+        particle_meter(e.get<vec>(1), e.get<double>(2), e.get<int>(3), e.get<int>(4));
     })
 
     LUA_BIND_CLIENT(particle_text, {
-        vec s(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        particle_textcopy(s, e.get<const char*>(4), e.get<int>(5), e.get<int>(6), e.get<int>(7), e.get<double>(8), e.get<int>(9));
+        particle_textcopy(e.get<vec>(1), e.get<const char*>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<double>(6), e.get<int>(7));
     })
 
     LUA_BIND_CLIENT(client_damage_effect, {

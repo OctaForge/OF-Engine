@@ -10,868 +10,314 @@
     About: License
         This file is licensed under MIT. See COPYING.txt for more information.
 
-    About: Warning
-        This is scheduled for removal and replacement with nicer interface.
-
-    Section: Utilities
+    About: Purpose
+        This file provides various world-related functions, relating
+        i.e. map names, map loading / saving, private edit mode,
+        lightmaps or PVS.
 ]]
-
-local env    = _G
-local CAPI   = require("CAPI")
-local gui    = require("gui")
-local string = require("string")
-local table  = require("table")
 
 --[[!
     Package: world
-    This module contains various functions for world manipulation, like editing system,
-    vslots, some entity management, editing helper functions etc. This file is
-    SCHEDULED FOR REMOVAL and will be replaced with better interface.
+    This module contains various functions for world manipulation.
 ]]
 module("world", package.seeall)
 
---- Set the gravity
--- @class function
--- @name setgravity
--- @param gr Gravity
-setgravity = CAPI.setgravity
+--[[!
+    Function: request_private_edit_mode
+    Requests private edit mode on the server. Useful when playing
+    in multiplayer. On local server, player always has this.
+]]
+request_private_edit_mode = CAPI.requestprivedit
 
----
--- @class function
--- @name entautoview
-entautoview = CAPI.entautoview
+--[[!
+    Function: has_private_edit_mode
+    Returns true if player is in private edit mode, false otherwise.
+]]
+has_private_edit_mode = CAPI.hasprivedit
 
----
--- @class function
--- @name entflip
-entflip = CAPI.entflip
+--[[!
+    Function: test_physics
+    Prints out current camera and player physical state into the terminal
+    (but not into the console). The format is like this:
 
----
--- @class function
--- @name entrotate
-entrotate = CAPI.entrotate
+    (start code)
+        PHYS(pl): PHYSSTATE, air TIMEINAIR, floor: (X, Y, Z), vel: (X, Y, Z), g: (X, Y, Z)
+        PHYS(cam): PHYSSTATE, air TIMEINAIR, floor: (X, Y, Z), vel: (X, Y, Z), g: (X, Y, Z)
+    (end)
 
----
--- @class function
--- @name entpush
-entpush = CAPI.entpush
+    where pl is player, cam is camera, PHYSSTATE is the current physical
+    state (float, fall, slide, slope, floor, step up, step down, bounce),
+    TIMEINAIR is time in milliseconds spent in  the air, floor is the
+    current floor vector (usually 0, 0, 1), vel is the velocity and g is
+    the current gravity falling.
+]]
+test_physics = CAPI.phystest
 
----
--- @class function
--- @name attachent
-attachent = CAPI.attachent
+--[[!
+    Function: enlarge
+    Doubles the size of the map. See also <shrink>.
+]]
+enlarge = CAPI.mapenlarge
 
----
--- @class function
--- @name delent
-delent = CAPI.delent
+--[[!
+    Function: shrink
+    Shrinks the map into half of its original size. See also <enlarge>.
+]]
+shrink = CAPI.shrinkmap
 
----
--- @class function
--- @name dropent
-dropent = CAPI.dropent
+--[[!
+    Function: get_map_name
+    Returns the current map name.
+]]
+get_map_name = CAPI.mapname
 
----
--- @class function
--- @name entcopy
-entcopy = CAPI.entcopy
+--[[!
+    Function: get_map_script_name
+    Returns relative path to the map script
+    (data/base/MYMAP/map.lua).
+]]
+get_map_script_name = CAPI.mapcfgname
 
----
--- @class function
--- @name entpaste
-entpaste = CAPI.entpaste
----
--- @class function
--- @name enthavesel
-enthavesel = CAPI.enthavesel
+--[[!
+    Function: get_map_previw_name
+    Returns relative path to the map preview image
+    (data/base/MYMAP/preview.png).
+]]
+get_map_preview_name = CAPI.get_map_preview_filename
 
----
--- @class function
--- @name entselect
-entselect = CAPI.entselect
+--[[!
+    Function: get_all_map_names
+    Returns two arrays of strings, representing map
+    names. First array represents global maps (in
+    root directory), second array represents local
+    maps (in user's home directory).
+]]
+get_all_map_names = CAPI.get_all_map_names
 
----
--- @class function
--- @name entloop
-entloop = CAPI.entloop
+--[[!
+    Function: get_size
+    Returns the world size. Empty map by default has
+    size of 1024. You can later <enlarge> or <shrink>.
+]]
+get_size = CAPI.editing_getworldsize
 
----
--- @class function
--- @name insel
-insel = CAPI.insel
+--[[!
+    Function: get_grid_size
+    Returns current grid size. It's 1 << <gridpower>,
+    where <gridpower> is what you change with G+scroll
+    and it has values from 0 to 12. Default-sized cubes
+    use <gridpower> 3 (that is, gridsize 24). You can
+    compute grid size from <gridpower> by calling
 
----
--- @class function
--- @name entget
-entget = CAPI.entget
+    (start code)
+        math.lsh(1, gridpower)
+    (end)
+]]
+get_grid_size = CAPI.editing_getgridsize
 
----
--- @class function
--- @name entindex
-entindex = CAPI.entindex
+--[[!
+    Function: clear_lightmaps
+    Clears out all lightmaps in current level.
+]]
+clear_lightmaps = CAPI.clearlightmaps
 
----
--- @class function
--- @name entset
-entset = CAPI.entset
+--[[!
+    Function: dump_lightmaps
+    Dumps all lightmaps into a set of bmp files.
+]]
+dump_lightmaps = CAPI.dumplms
 
----
--- @class function
--- @name nearestent
-nearestent = CAPI.nearestent
----
--- @class function
--- @name intensityentcopy
-intensityentcopy = CAPI.intensityentcopy
+--[[!
+    Function: calc_light
+    Calculates all lightmaps. Takes some time depending
+    on map size and settings. Lightmaps are then saved
+    inside the map file. The function takes one argument
+    specifying qualtity level.
 
----
--- @class function
--- @name intensitypasteent
-intensitypasteent = CAPI.intensitypasteent
+    Quality levels:
+        1  - 8xAA, world and mapmodel shadows (slow).
+        0  - or also if not given, controlled by <lmshadows> and <lmaa>.
+        -1 - no AA, world shadows only (fast).
+]]
+calc_light = CAPI.calclight
 
---- Create a new map
--- Generally not used, emptymap is normally forked
--- @class function
--- @name newmap
--- @param sz Size
-newmap = CAPI.newmap
+--[[!
+    Function: patch_light
+    See <calc_light>. This doesn't do full calculation, but it
+    calculates lightmaps only for newly created cubes. This will
+    however create some quirks (like, new cubes won't cast shadows
+    on already lit surfaces) and is generally considered inefficient,
+    so before releasing map it's recommended to perform full calculation.
+    The argument given to this function has the same meaning.
+]]
+patch_light = CAPI.patchlight
 
---- Enlarge the map
--- @class function
--- @name mapenlarge
-mapenlarge = CAPI.mapenlarge
-
---- Shrink the map
--- @class function
--- @name shrinkmap
-shrinkmap = CAPI.shrinkmap
-
---- Get the name of the map
--- @class function
--- @name mapname
--- @return The map name
-mapname = CAPI.mapname
-
----
--- @class function
--- @name finish_dragging
-finish_dragging = CAPI.finish_dragging
-
---- Get the name of the map's config file
--- @class function
--- @name mapcfgname
--- @return The map's config file
-mapcfgname = CAPI.mapcfgname
-
----
--- @class function
--- @name writeobj
-writeobj = CAPI.writeobj
-
---- Get the version number of the map
--- @class function
--- @name getmapversion
--- @return The map's version number
-getmapversion = CAPI.getmapversion
-
---- Toggle edit mode
--- @class function
--- @name edittoggle
-edittoggle = CAPI.edittoggle
-
----
--- @class function
--- @name entcancel
-entcancel = CAPI.entcancel
-
----
--- @class function
--- @name cubecancel
-cubecancel = CAPI.cubecancel
-
----
--- @class function
--- @name cancelsel
-cancelsel = CAPI.cancelsel
-
----
--- @class function
--- @name reorient
-reorient = CAPI.reorient
-
----
--- @class function
--- @name selextend
-selextend = CAPI.selextend
-
----
--- @class function
--- @name havesel
-havesel = CAPI.havesel
-
----
--- @class function
--- @name clearundos
-clearundos = CAPI.clearundos
-
----
--- @class function
--- @name copy
-copy = CAPI.copy
-
----
--- @class function
--- @name pastehilite
-pastehilite = CAPI.pastehilite
-
----
--- @class function
--- @name paste
-paste = CAPI.paste
-
----
--- @class function
--- @name undo
-undo = CAPI.undo
-
----
--- @class function
--- @name redo
-redo = CAPI.redo
-
----
--- @class function
--- @name pushsel
-pushsel = CAPI.pushsel
-
----
--- @class function
--- @name editface
-editface = CAPI.editface
-
----
--- @class function
--- @name delcube
-delcube = CAPI.delcube
-
----
--- @class function
--- @name fixinsidefaces
-fixinsidefaces = CAPI.fixinsidefaces
-
----
--- @class function
--- @name flip
-flip = CAPI.flip
-
----
--- @class function
--- @name rotate
-rotate = CAPI.rotate
-
----
--- @class function
--- @name editmat
-editmat = CAPI.editmat
-
----
--- @class function
--- @name npcadd
-npcadd = CAPI.npcadd
-
----
--- @class function
--- @name npcdel
-npcdel = CAPI.npcdel
-
----
--- @class function
--- @name spawnent
-spawnent = CAPI.spawnent
-
----
--- @class function
--- @name requestprivedit
-requestprivedit = CAPI.requestprivedit
-
----
--- @class function
--- @name hasprivedit
-hasprivedit = CAPI.hasprivedit
-
----
--- @class function
--- @name resetlightmaps
-resetlightmaps = CAPI.resetlightmaps
-
----
--- @class function
--- @name calclight
-calclight = CAPI.calclight
-
----
--- @class function
--- @name patchlight
-patchlight = CAPI.patchlight
-
----
--- @class function
--- @name clearlightmaps
-clearlightmaps = CAPI.clearlightmaps
-
----
--- @class function
--- @name dumplms
-dumplms = CAPI.dumplms
-
----
--- @class function
--- @name recalc
+--[[!
+    Function: recalc
+    Recalculates scene geometry, regenerates any envmaps to reflect
+    the changed geometry and fixes all bumpenvmapped surfaces to properly
+    use closest available envmaps. Also called by <calc_light>.
+]]
 recalc = CAPI.recalc
 
----
--- @class function
--- @name printcube
-printcube = CAPI.printcube
+--[[!
+    Function: remip
+    Optimizes map geometry, so it doesn't lose quality
+    but the number of needed triangles is minimal.
+]]
+remip  = CAPI.remip
 
----
--- @class function
--- @name remip
-remip = CAPI.remip
+--[[!
+    Function: has_map
+    Returns true if a map is running, false otherwise.
+]]
+has_map = CAPI.hasmap
 
----
--- @class function
--- @name phystest
-phystest = CAPI.phystest
----
--- @class function
--- @name genpvs
-genpvs = CAPI.genpvs
----
--- @class function
--- @name testpvs
-testpvs = CAPI.testpvs
----
--- @class function
--- @name clearpvs
-clearpvs = CAPI.clearpvs
----
--- @class function
--- @name pvsstats
-pvsstats = CAPI.pvsstats
----
--- @class function
--- @name editing_getworldsize
-editing_getworldsize = CAPI.editing_getworldsize
----
--- @class function
--- @name editing_getgridsize
-editing_getgridsize = CAPI.editing_getgridsize
----
--- @class function
--- @name editing_erasegeometry
-editing_erasegeometry = CAPI.editing_erasegeometry
----
--- @class function
--- @name editing_createcube
-editing_createcube = CAPI.editing_createcube
----
--- @class function
--- @name editing_deletecube
-editing_deletecube = CAPI.editing_deletecube
----
--- @class function
--- @name editing_setcubetex
-editing_setcubetex = CAPI.editing_setcubetex
----
--- @class function
--- @name editing_setcubemat
-editing_setcubemat = CAPI.editing_setcubemat
----
--- @class function
--- @name editing_pushcubecorner
-editing_pushcubecorner = CAPI.editing_pushcubecorner
----
--- @class function
--- @name editing_getselent
-editing_getselent = CAPI.editing_getselent
----
--- @class function
--- @name restart_map
-restart_map = CAPI.restart_map
----
--- @class function
--- @name export_entities
-export_entities = CAPI.export_entities
---- Run a map.
--- @param m Map name, or nil. If nil, current map gets stopped.
--- @class function
--- @name map
+--[[!
+    Function: map
+    If a string argument is given, it runs a map of name given
+    by the argument. If nothing is given, any running map gets
+    stopped.
+]]
 map = CAPI.map
---- Get if we are running a map.
--- @return True if yes, false otherwise.
--- @class function
--- @name hasmap
-hasmap = CAPI.hasmap
----
--- @class table
--- @name hmap
--- @field brush Brush manipulation tools.
--- @field brush.index Current brush index.
--- @field brush.max Max selectable brush index.
-hmap = {
-    brush = {
-        index = -1,
-        max = -1 -- make sure to bump this up if you add more brushes
-    }
+
+--[[!
+    Function: restart_map
+    Restarts current map.
+]]
+restart_map = CAPI.restart_map
+
+--[[!
+    Function: save_map
+    Saves current map file and entities.
+]]
+save_map = CAPI.do_upload
+
+--[[!
+    Function: export_entities
+    Exports the entities (see entities.json file brought with
+    default empty map) into a file given by argument. The path
+    in the argument is relative to user's home directory.
+]]
+export_entities = CAPI.export_entities
+
+--[[!
+    Function: write_obj
+    Writes out current map as ARGUMENT.obj inside user's home
+    directory, so the engine could be potentially used as basic
+    modeller, but the obj files aren't well optimized and don't
+    store texture / lighting information.
+]]
+write_obj = CAPI.writeobj
+
+--[[!
+    Structure: pvs
+    This is part of <world>. Please note that the <pvs> engine variable
+    must be set to 1 for PVS culling to actually be enabled (the variable
+    is however by default on).
+
+    Text taken from the Sauerbraten editing reference:
+
+    Cube 2 provides a precomputed visibility culling system as described in the
+    technical paper "Conservative Volumetric Visibility with Occluder Fusion"
+    by Schaufler et al (see paper for technical details). Basically, it divides
+    the world into small cube-shaped "view cells" of empty space that the
+    player might possibly occupy, and for each of these view cells calculates
+    what other parts of the octree might be visible from it. Since this is
+    calculated ahead of time, the engine can cheaply look up at runtime whether
+    some part of the octree is possibly visible from the player's current view
+    cell. Once pre-calculated, this PVS (potential visibility set) data is
+    stored within your map and saved along with it, so that it may be reused
+    during gameplay. This data is only valid for a particular map/octree,
+    and if you change your map, you must recalculate it or otherwise expect
+    culling errors. It is recommended you do this only after you are sure you
+    are finished working on your map and ready to release it, as it can take a
+    very long time to compute this data. If you have a multi-core processor or
+    multi-processor system, it can use multiple threads to speed up the
+    pre-calculation (<pvsthreads> engine variable, essentially N
+    processors/cores will calculate N times faster).
+
+    The number of pre-calculated view cells stored with your map will show up
+    in the edit HUD stats under the "pvs:" stat. It is recommended you keep
+    this number to less than 10,000, or otherwise the amount of storage used
+    for the PVS data in your map can become excessive. For very large SP maps,
+    up to 15,000 view cells is acceptable. The number of view cells is best
+    controlled by use of the "clip" material, or by setting the view cell
+    size (default is 32, equal to a <gridpower> 5 cube). View cell sizes of 64
+    or 128 are worth trying if your map still has an excessive number of view
+    cells, but try to use the default view cell size of 32 if it stays
+    reasonable. Note that if you have a map with a lot of open space, there
+    will be a lot of view cells, and so the initial pre-calculation may take
+    a long time. You can use the "clip" material, if necessary, to mark empty
+    space the player can't go into, and the PVS calculation will skip computing
+    view cells for these areas. Filling places the player can't go with solid
+    cubes/sealing the map will similarly reduce the number of possible view
+    cells.
+
+    Visibility from a view cell, to some other part of the octree, is
+    determined by looking for large square or block-shaped surfaces and seeing
+    if they block the view from the view cell to each part of the octree. So
+    surfaces like large walls, ceilings, solid buildings, or even mountains
+    and hills, that have large solid cross-sections to them will make the best
+    occluders, and allow the PVS system to cull away large chunks of the octree
+    that are behind them, with respect to the current view cell. Avoid putting
+    holes running entirely through these structures, or this will prevent large
+    cross-section of them from being used as an occluder (since the player
+    could possibly see through them). You can use the <test> command to check
+    how well your occluders are working while building them. If your map is an
+    open arena-style map, then using the PVS system will have little to no
+    effect, since few things are blocking visibility, and it is not worth
+    using the PVS system for such maps.
+
+    Note that there is already an occlusion culling system based on hardware
+    occlusion queries, in addition to the PVS system, so the main function
+    of the PVS system is to provide occlusion culling for older 3D hardware
+    that does not support occlusion queries, and also to speed up occlusion
+    queries by reducing the amount of such queries (which can be expensive
+    themselves) even for 3D hardware that supports them. If PVS is used
+    effectively (a map with lots of good occluders), it should always provide
+    some speed-up regardless of whether or not the 3D hardware supports
+    occlusion queries. However, if you are doing open arena-style maps
+    for which there are few good occluders, then it is recommended you skip
+    using the PVS system (as it will just take up memory without providing
+    a speedup) and rely upon the hardware occlusion queries instead.
+]]
+pvs = {
+    --[[!
+        Function: generate
+        Generates PVS data for current version of the map. Optional argument
+        can specify view cell size. If unspecified, default view cell size
+        is used (that is, 32). It's recommended to always use the default
+        cell size where reasonable.
+    ]]
+    generate = CAPI.genpvs,
+
+    --[[!
+        Function: test
+        Generates PVS data for only the current view cell you're inside
+        (of size optionally given by argument, or default if not specified)
+        and locks the view cell to it as if <lockpvs> with value 1 was used.
+        This allows you to quickly test the effectiveness of occlusion in
+        your map without generating full PVS data so that you can more easily
+        otpimize your map for PVS before actual expensive pre-calculation is
+        done. Use <lockpvs> with value 0 to release the lock on the view
+        cell when you're done testing. Note that this will not overwrite any
+        existing PVS data already calculated for the map.
+    ]]
+    test     = CAPI.testpvs,
+
+    --[[!
+        Function: clear
+        Clears out any PVS data present in the map. Use this i.e. if you're
+        editing a map with PVS data already generated to avoid culling errors.
+    ]]
+    clear    = CAPI.clearpvs,
+
+    --[[!
+        Function: stats
+        Prints out some PVS status information into the console, such as
+        the number of view cells, amount of storage osed for the view cells
+        and the average amount of storage used for each individual view cell.
+    ]]
+    stats    = CAPI.pvsstats
 }
-
-function hmap.brush._handle(x, y)
-    env.brushx = x
-    env.brushy = y
-end
-
-function hmap.brush._verts(lst)
-    for y = 1, #lst do
-        local bv = lst[y]
-        for x = 1, #bv do
-            CAPI.brushvert(x, y, bv[x])
-        end
-    end
-end
-
----
--- @class function
--- @name hmap.brush.select
-function hmap.brush.select(n)
-    hmap.brush.index = n + hmap.brush.index
-    if hmap.brush.index < 0 then hmap.brush.index = hmap.brush.max end
-    if hmap.brush.index > hmap.brush.max then hmap.brush.index = 0 end
-    local brushname = hmap["brush_" .. hmap.brush.index]()
-    echo(brushname)
-end
-
----
--- @class function
--- @name hmap.brush.new
-function hmap.brush.new(nm, x, y, vrts)
-    hmap.brush.max = hmap.brush.max + 1
-    hmap["brush_" .. hmap.brush.max] = function()
-        local brushname = nm
-        CAPI.clearbrush()
-        if x and y and vrts then
-            hmap.brush._handle(x, y)
-            hmap.brush._verts(vrts)
-        end
-        return brushname
-    end
-end
-
----
--- @class function
--- @name hmap.cancel
-hmap.cancel = CAPI.hmapcancel
----
--- @class function
--- @name hmap.select
-hmap.select = CAPI.hmapselect
-
---- entity type of current selection
-function enttype()
-    return string.split(entget(), " ")[1]
-end
-
---- access the given attribute of selected ent
-function entgetattr(a)
-    return string.split(entget(), " ")[a + 2]
-end
-
---- clear ents of given type
-function clearents(t)
-    if env.editing ~= 0 then
-        entcancel()
-        entselect([[return %(1)q ~= world.enttype()]] % { t })
-        echo("Deleted %(1)s %(2)s entities." % { env.tostring(enthavesel()), t })
-        delent()
-    end
-end
-
----
--- replace all ents that match current selection
--- with the values given
-function replaceents(what, a1, a2, a3, a4)
-    if env.editing ~= 0 then
-        entfind(env.unpack(string.split(entget(), " ")))
-        entset(what, a1, a2, a3, a4)
-        echo("Replaced %(1)s entities." % { env.tostring(enthavesel()) })
-    end
-end
-
----
-function selentedit()
-    entset(env.unpack(string.split(entget(), " ")))
-end
-
----
-function selreplaceents()
-    replaceents(env.unpack(string.split(entget(), " ")))
-end
-
----
-function selentfindall()
-    entfind(env.unpack(string.split(entget(), " ")))
-end
-
----
--- modify given attribute of ent by a given amount
--- @p arg1 attribute
--- @p arg2 value
-function entsetattr(arg1, arg2)
-    entloop([[
-        local a0 = world.entgetattr(0)
-        local a1 = world.entgetattr(1)
-        local a2 = world.entgetattr(2)
-        local a3 = world.entgetattr(3)
-        local a4 = world.entgetattr(4)
-        a%(1)s = a%(1)s + %(2)s
-        world.entset(world.enttype(), a0, a1, a2, a3, a4)
-    ]] % { arg1, arg2 })
-end
-
--- entity primary actions
-function ent_action_base(a) entsetattr(0, a) end
-function ent_action_mapmodel(a) entsetattr(1, a) end
-function ent_action_spotlight(a) entsetattr(0, a * 5) end
-function ent_action_light(a) entsetattr(0, a * 5) end
-function ent_action_playerstart(a) entsetattr(0, a * 15) end
-function ent_action_envmap(a) entsetattr(0, a * 5) end
-function ent_action_particles(a) entsetattr(0, a) end
-function ent_action_sound(a) entsetattr(0, a) end
-function ent_action_cycle(a, aa, aaa) entsetattr(a > -1 and aa or aaa) end
-
--- copy and paste
-
--- 3 types of copying and pasting
--- 1. select only cubes      -> paste only cubes
--- 2. select cubes and ents  -> paste cubes and ents. same relative positions
--- 3. select only ents       -> paste last selected ent. if ents are selected, replace attrs as paste
-
-entcopybuf = {}
-
-function entreplace()
-    if enthavesel() == 0 then
-        intensitypasteent() -- using our newent here
-    end
-    entsetattr(env.unpack(entcopybuf))
-end
-
-function editcopy()
-    if havesel() ~= 0 or enthavesel() == 0 then
-        entcopybuf = {}
-        entcopy()
-        copy()
-    else
-        entcopybuf = string.split(entget(), " ")
-        intensityentcopy()
-    end
-end
-
-function editpaste()
-    local cancelpaste = not (enthavesel() or havesel())
-    if table.concat(entcopybuf) == "" then
-        pastehilite()
-        reorient() -- temp - teal fix will be in octaedit
-        CAPI.onrelease(function()
-            delcube()
-            paste()
-            entpaste()
-            if cancelpaste then cancelsel() end
-        end)
-    else
-        entreplace()
-        if cancelpaste then cancelsel() end
-    end
-end
-
--- selection
-
-function equaltype(t)
-    return (
-        t == '*' and true
-        or (enttype() == t)
-    )
-end
-
-function equalattr(n, v)
-    return (
-        v == '*' and true
-        or (entgetattr(n) == v)
-    )
-end
-
----
--- select ents with given properties
--- '*' is wildcard
-function entfind(...)
-    local arg = { ... }
-    if #arg == 1 then
-        entselect([[return world.equaltype(%(1)s)]] % { arg[1] })
-    elseif #arg == 2 then
-        entselect([[
-            return (world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-            )]] % { arg[1], arg[2] })
-    elseif #arg == 3 then
-        entselect([[
-            return (world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-                and world.equalattr(0, %(3)s)
-            )]] % { arg[1], arg[2], arg[3] })
-    elseif #arg == 4 then
-        entselect([[
-            return (world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-                and world.equalattr(0, %(3)s)
-                and world.equalattr(0, %(4)s)
-            )]] % { arg[1], arg[2], arg[3], arg[4] })
-    elseif #arg == 5 then
-        entselect([[
-            return (world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-                and world.equalattr(0, %(3)s)
-                and world.equalattr(0, %(4)s)
-                and world.equalattr(0, %(5)s)
-            )]] % { arg[1], arg[2], arg[3], arg[4], arg[5] })
-    end
-end
-
-function entfindinsel(...)
-    local arg = { ... }
-    if #arg == 1 then
-        entselect([[return world.insel() and world.equaltype(%(1)s)]] % { arg[1] })
-    elseif #arg == 2 then
-        entselect([[
-            return (world.insel() and world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-            )]] % { arg[1], arg[2] })
-    elseif #arg == 3 then
-        entselect([[
-            return (world.insel() and world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-                and world.equalattr(0, %(3)s)
-            )]] % { arg[1], arg[2], arg[3] })
-    elseif #arg == 4 then
-        entselect([[
-            return (world.insel() and world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-                and world.equalattr(0, %(3)s)
-                and world.equalattr(0, %(4)s)
-            )]] % { arg[1], arg[2], arg[3], arg[4] })
-    elseif #arg == 5 then
-        entselect([[
-            return (world.insel() and world.equaltype(%(1)s)
-                and world.equalattr(0, %(2)s)
-                and world.equalattr(0, %(3)s)
-                and world.equalattr(0, %(4)s)
-                and world.equalattr(0, %(5)s)
-            )]] % { arg[1], arg[2], arg[3], arg[4], arg[5] })
-    end
-end
-
-function lse()
-    lse_line = ""
-    lse_count = 0
-    entloop([[
-        world.lse_line = world.lse_line .. "		"
-        world.lse_count = world.lse_count + 1
-        if world.lse_count > 4 then
-            echo(world.lse_line)
-            world.lse_line = ""
-            world.lse_count = 0
-        end
-    ]])
-    if lse_count > 0 then echo(lse_line) end
-    echo("%(1)i entities selected" % { enthavesel() })
-end
-
-function clearallents()
-    entfind("*")
-    delent()
-end
-
-function enttoggle() env.entmoving = 1; env.entmoving = 0 end
-function entaddmove() env.entmoving = 2 end
-
-function drag() env.dragging = 1; CAPI.onrelease(function() env.dragging = 0 end) end
-function corners() env.selectcorners = 1; env.dragging = 1; CAPI.onrelease(function() env.selectcorners = 0; env.dragging = 0 end) end
-function entadd() entaddmove(); env.entmoving = 0 end
-function editmove() env.moving = 1; CAPI.onrelease(function() env.moving = 0 end); return env.moving end
-function entdrag() entaddmove(); CAPI.onrelease(function() finish_dragging(); env.entmoving = 0 end); return env.entmoving end
-function editdrag() cancelsel(); if entdrag() == 0 then drag() end end
-function selcorners()
-    if env.hmapedit ~= 0 then
-        hmap.select()
-    else
-        cancelsel()
-        if entdrag() == 0 then corners() end
-    end
-end
-function editextend() if entdrag() == 0 then selextend(); reorient(); editmove() end end
--- Use second mouse button to show our edit entities dialog, if hovering
-function editextend_intensity()
-    if env.has_mouse_target == 0 then
-        editextend()
-    else
-        gui.show_entity_properties_gui()
-    end
-end
-
-function edit_entity(a)
-    if CAPI.set_targeted_entity(a) then
-        gui.show_entity_properties_gui()
-    else
-        echo("No such entity")
-    end
-end
-
-function editmovecorner(a)
-    if havesel() ~= 0 then
-        if editmove() == 0 then
-            selcorners()
-        end
-        CAPI.onrelease(function() env.moving = 0; env.dragging = 0 end)
-    else
-        selcorners()
-    end
-end
-
-function editmovedrag(a)
-    if havesel() ~= 0 then
-        if editmove() == 0 then
-            editdrag()
-        end
-        CAPI.onrelease(function() env.moving = 0; env.dragging = 0 end)
-    else
-        editdrag()
-    end
-end
-
--- other editing commands
-
-function editfacewentpush(a, aa)
-    if havesel() ~= 0 or enthavesel() == 0 then
-        if env.moving ~= 0 then
-            pushsel(a)
-        else
-            entcancel()
-            editface(a, aa)
-        end
-    else
-        if env.entmoving ~= 0 then
-            entpush(a)
-        else
-            _G["ent_action_" .. enttype()]()
-        end
-    end
-end
-
-entswithdirection = { "playerstart", "mapmodel" }
-
-function entdirection(a, aa)
-    if enthavesel() ~= 0 and havesel() == 0 then
-        if table.find(entswithdirection, enttype()) then
-            if a > 0 then
-                entsetattr(0, aa)
-                if entgetattr(0) > 360 then entsetattr(0, -360) end
-            else
-                entsetattr(0, -aa)
-                if entgetattr(0) < 0 then entsetattr(0, 360) end
-            end
-        end
-        return true
-    else return false end
-end
-
-function editdel() if enthavesel() == 0 then delcube() end; delent() end
-function editflip() flip(); entflip() end
-
-function editrotate(a)
-    if not entdirection(a, 15) then
-        rotate(a)
-        entrotate(a)
-    end
-end
-
-function editcut()
-    local hadselection = havesel()
-    env.moving = 1
-    if env.moving ~= 0 then
-        copy();   entcopy()
-        delcube(); delent()
-        CAPI.onrelease(function()
-            env.moving = 0
-            paste()
-            entpaste()
-            if hadselection == 0 then
-                cancelsel()
-            end
-        end)
-    end
-end
-
-function passthrough(a)
-    env.passthroughsel = a
-    if a and a ~= 0 then
-        passthroughcube_bak = env.passthroughcube
-        env.passthroughcube = 1
-    else
-        env.passthroughcube = passthroughcube_bak
-    end
-    entcancel()
-    if env.setting_entediting and env.setting_entediting ~= 0 then
-        env.entediting = env.tonumber(not a or a == 0)
-    end
-end
-
-function getsundir()
-    local cam = CAPI.getcam()
-    env.sunlightyaw = cam.yaw
-    env.sunlightpitch = cam.pitch
-end
-
-function is_player_colliding_entity(player, entity)
-    if entity.collision_radius_width and entity.collision_radius_width ~= 0 then
-        -- z
-        if player.position.z >= entity.position.z + 2 * entity.collision_radius_height or
-           player.position.z + player.eyeheight + player.aboveeye <= entity.position.z then return false end
-
-        -- x
-        if player.position.x - player.radius >= entity.position.x + entity.collision_radius_width or
-           player.position.x + player.radius <= entity.position.x - entity.collision_radius_width then return false end
-
-        -- y
-        if player.position.y - player.radius >= entity.position.y + entity.collision_radius_width or
-           player.position.y + player.radius <= entity.position.y - entity.collision_radius_width then return false end
-
-        return true
-    else
-        -- z
-        if player.position.z >= entity.position.z + entity.eyeheight + entity.aboveeye or
-           player.position.z + player.eyeheight + player.aboveeye <= entity.position.z then return false end
-
-        -- x
-        if player.position.x - player.radius >= entity.position.x + entity.radius or
-           player.position.x + player.radius <= entity.position.x - entity.radius then return false end
-
-        -- y
-        if player.position.y - player.radius >= entity.position.y + entity.radius or
-           player.position.y + player.radius <= entity.position.y - entity.radius then return false end
-
-        return true
-    end
-end
-
-get_totalmillis = CAPI.get_totalmillis
-
-get_map_preview_filename = CAPI.get_map_preview_filename
-get_all_map_names = CAPI.get_all_map_names

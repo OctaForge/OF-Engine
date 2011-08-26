@@ -29,10 +29,10 @@ player_plugin = {
 function setup(plugins_add)
     plugins_add = plugins_add or {}
 
-    entity_classes.reg(
+    entity_classes.register(
         plugins.bake(
-            entity.logent,
-            table.mergearrays(
+            entity.base,
+            table.merge_arrays(
                 {{
                     _class     = "game_manager",
                     properties = {
@@ -53,7 +53,7 @@ function setup(plugins_add)
                     get_players = function(self)
                         local players = {}
                         for i, team in pairs(table.values(self.teams)) do
-                            table.mergearrays(players, team.player_list)
+                            table.merge_arrays(players, team.player_list)
                         end
                         return players
                     end,
@@ -156,7 +156,7 @@ function setup(plugins_add)
 
                     place_player = function(self, player)
                         local start_tag = "start_" .. player.team
-                        local possibles = entity_store.get_all_bytag(start_tag)
+                        local possibles = entity_store.get_all_by_tag(start_tag)
                         if possibles and #possibles > 0 then
                             local start = possibles[math.floor(math.random() * #possibles)]
                             if start then
@@ -186,9 +186,9 @@ function setup(plugins_add)
                     end,
 
                     client_activate = function(self)
-                        self:connect(state_variables.get_onmodify_prefix() .. "team_data", function(self, value)
-                            if self.team_data and value and entity_store.get_plyent() then
-                                local player_team = entity_store.get_plyent().team
+                        self:connect(state_variables.get_on_modify_name("team_data"), function(self, value)
+                            if self.team_data and value and entity_store.get_player_entity() then
+                                local player_team = entity_store.get_player_entity().team
                                 if value[player_team].score > self.team_data[player_team].score and
                                    self.victory_sound ~= "" then sound.play(self.victory_sound)
                                 end
@@ -196,7 +196,7 @@ function setup(plugins_add)
                         end)
                     end,
 
-                    set_localanim = function(self) end -- just so it can fake being animated by actions
+                    set_local_animation = function(self) end -- just so it can fake being animated by actions
                 }},
                 plugins_add
             )
@@ -210,7 +210,7 @@ end
 
 function get_singleton()
     if not singleton then
-        singleton = entity_store.get_all_byclass("game_manager")[1]
+        singleton = entity_store.get_all_by_class("game_manager")[1]
     end
     return singleton
 end
@@ -222,7 +222,7 @@ end
 manager_plugins = {
     messages = {
         properties = {
-            server_message = state_variables.state_json({ hashistory = false })
+            server_message = state_variables.state_json({ has_history = false })
         },
 
         hud_messages = {},
@@ -250,15 +250,15 @@ manager_plugins = {
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "server_message", function(self, kwargs)
+            self:connect(state_variables.get_on_modify_name("server_message"), function(self, kwargs)
                 self:add_hud_message(kwargs)
             end)
             self.rendering_hash_hint = 0 -- used for rendering entities without fpsents
         end,
 
         client_act = function(self, seconds)
-            self.hud_messages = table.filter(self.hud_messages, function(i, msg)
-                if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_plyent() then return false end
+            self.hud_messages = table.filter_dict(self.hud_messages, function(i, msg)
+                if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_player_entity() then return false end
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
                 size = msg.duration >= 0.5 and size or size * math.pow(msg.duration * 2, 2)
@@ -334,26 +334,26 @@ manager_plugins = {
 
                 local players = self:get_players()
                 for k, player in pairs(players) do
-                    player.canmove = false
+                    player.can_move = false
                     local msg
                     local sound
                     if not tie then
                         if self.steams[player.team].score == max_score then
                             player.animation = math.bor(actions.ANIM_WIN, actions.ANIM_LOOP)
-                            message.showcm(player, self.finish_title, self.win_message)
+                            message.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
                                 sound.play(self.win_sound, math.vec3(0, 0, 0), player.cn)
                             end
                         else
                             player.animation = math.bor(actions.ANIM_LOSE, actions.ANIM_LOOP)
-                            message.showcm(player, self.finish_title, self.lose_message)
+                            message.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
                                 sound.play(self.lose_sound, math.vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
                         player.animation = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
-                        message.showcm(player, self.finish_title, self.tie_message)
+                        message.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
                             sound.play(self.tie_sound, math.vec3(0, 0, 0), player.cn)
                         end
@@ -372,7 +372,7 @@ manager_plugins = {
                     -- unfreeze players
                     local players = self:get_players()
                     for k, player in pairs(players) do
-                        player.canmove = true
+                        player.can_move = true
                     end
 
                     self:start_game()
@@ -385,12 +385,12 @@ manager_plugins = {
         balanced_message = "Balanced the teams",
 
         activate = function(self)
-            self.balancer_timer = utility.repeatingtimer(1.0)
+            self.balancer_timer = events.repeating_timer(1.0)
         end,
 
         act = function(self, seconds)
             if self.balancer_timer:tick(seconds) then
-                local relevant_teams = table.filter(self.teams, function(i, team)
+                local relevant_teams = table.filter_dict(self.teams, function(i, team)
                     return (not team.kwargs.ignore_for_balancing)
                 end)
 
@@ -403,7 +403,7 @@ manager_plugins = {
                 )
                 local expected_players = total_players / num_teams
 
-                local needs_reduce = table.filter(
+                local needs_reduce = table.filter_dict(
                     relevant_teams,
                     function(k, team_data)
                         return (#team_data.player_list > expected_players + 1)

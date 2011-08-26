@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features entity system.
-
-    Section: Entity system
 ]]
 
 --[[!
@@ -23,486 +21,1073 @@
 ]]
 module("entity", package.seeall)
 
-assert(CLIENT or SERVER)
-assert(not (CLIENT and SERVER))
-logging.log(logging.DEBUG, "Generating logent system with CLIENT = " .. tostring(CLIENT))
-
---- Root logic entity class, not meant to be used directly.
--- @class table
--- @name root_logent
-root_logent = class.new()
-root_logent._class = "logent"
-root_logent.should_act = true
-
---- Base properties of animatable logic entity.
--- @field tags Entity tags, user defined, can be used for i.e. lookups of specific entities.
--- @field _persistent If this is true, entity gets saved on disk. True for static entities only.
--- @class table
--- @name root_logent.properties
-root_logent.properties = {
-    tags = state_variables.state_array(),
-    _persistent = state_variables.state_bool()
-}
-
---- Automatically substitute for class name when tostring() is called on entity.
--- @return Class name.
-function root_logent:__tostring() return self._class end
-
---- General setup method. Performs some initialization magic like signal
--- methods adding, state variable values table, state variable setup etc.
-function root_logent:_general_setup()
-    logging.log(logging.DEBUG, "root_logent:_general_setup")
-
-    if self._general_setup_complete then return nil end
-    signals.methods_add(self)
-
-    self.action_system = actions.action_system(self)
-    self.state_var_vals = {}
-    -- caching reads from script into c++ (search for -- caching)
-    self.state_var_val_timestamps = {}
-
-    self.deactivated = false
-    self:_setup_vars()
-    self._general_setup_complete = true
-end
-
---- General deactivation, clears action system, unregister entity in C and
--- marks this entity deactivated.
-function root_logent:_general_deactivate()
-    self:clear_actions()
-    CAPI.unreglogent(self.uid)
-    self.deactivated = true
-end
-
---- Get state data locally from table.
--- @param k Property name.
--- @return Property value.
-function root_logent:_get_statedata(k)
-    return self.state_var_vals[tostring(k)]
-end
-
---- Act method ran every frame. Manages action system by default.
--- Can be overriden, but make sure to call the original method everytime.
--- @param sec Length of the time to simulate.
-function root_logent:act(sec)
-    self.action_system:manage(sec)
-end
-
---- Queue an action.
--- @param act The action to queue.
-function root_logent:queue_action(act)
-    self.action_system:queue(act)
-end
-
---- Clear action queue.
-function root_logent:clear_actions()
-    self.action_system:clear()
-end
-
---- Add a tag. Tags can be later used for lookups.
--- @param t Tag to add, a string.
-function root_logent:add_tag(t)
-    if not self:has_tag(t) then
-        self.tags:push(t)
-    end
-end
-
---- Delete a tag.
--- @param t Tag to delete, string.
-function root_logent:del_tag(t)
-    logging.log(logging.DEBUG, "root_logent:del_tag(\"" .. tostring(t) .. "\")")
-    self.tags = table.filterarray(self.tags:as_array(), function(i, tag) return tag ~= t end)
-end
-
---- Check whether an entity has a tag.
--- @param t Tag to lookup, string.
-function root_logent:has_tag(t)
-    logging.log(logging.INFO, "i can has tag " .. tostring(t))
-    return (table.find(self.tags:as_array(), t) ~= nil)
-end
-
---- Setup state variables of the entity. Performs registration for each.
-function root_logent:_setup_vars()
-    local proptable = {}
-    local base = self.class
-    while base do
-        if base.properties then
-            for name, var in pairs(base.properties) do
-                if not proptable[name] and state_variables.is(var) then
-                    proptable[name] = var
-                end
-            end
-        end
-        if base == root_logent then break end
-        base = base.__base
-    end
-    local sv_names = table.keys(proptable)
-    table.sort(sv_names, function(n1, n2)
-        if state_variables.is_alias(proptable[n1]) and not
-           state_variables.is_alias(proptable[n2]) then return false
-        end
-        if not state_variables.is_alias(proptable[n1])
-           and state_variables.is_alias(proptable[n2]) then return true
-        end
-        return (n1 < n2)
-    end)
-    for i, name in pairs(sv_names) do
-        logging.log(logging.DEBUG, "Setting up var: %(1)s %(2)s" % { name, tostring(proptable[name]) })
-        local var = proptable[name]
-        var:_register(name, self)
-    end
-end
-
---- Create state data dictionary. That gets returned as json. Names
--- can be compressed as protocol IDs, so bandwidth is saved (returned
--- JSON is sent through network later). Compression can be set
--- with kwargs - you have to provide "compressed" element with
--- "true" value in order to do so.
--- @param tcn Client number to send state data to. When nil, it's sent to all clients.
--- @param kwargs Additional parameter table.
--- @return JSON with state data (string).
--- @see root_logent:_update_statedata_complete
-function root_logent:create_statedatadict(tcn, kwargs)
-    tcn = tcn or message.ALL_CLIENTS
-    kwargs = kwargs or {}
-
-    logging.log(logging.DEBUG, "create_statedatadict(): " .. tostring(self) .. tostring(self.uid) .. ", " .. tostring(tcn))
-
-    local r = {}
-    local _names = table.keys(self)
-    for i = 1, #_names do
-        local var = self[_names[i]]
-        if state_variables.is(var) and var.hashistory then
-            -- do not send private data
-            local skip = false
-            if tcn >= 0 and not var:should_send(self, tcn) then skip = true end
-            if not skip then
-                local val = self[var._name]
-                if val or val == false then
-                    logging.log(logging.DEBUG, "create_statedatadict() adding " .. tostring(var._name) .. ": " .. json.encode(val))
-                    r[not kwargs.compressed and var._name or message.toproid(tostring(self), var._name)] = var:to_wire(val)
-                    logging.log(logging.DEBUG, "create_statedatadict() currently: " .. json.encode(r))
-                end
-            end
-        end
-    end
-
-    logging.log(logging.DEBUG, "create_statedatadict() returns: " .. json.encode(r))
-    if not kwargs.compressed then return r end
-
-    -- pre-compression: keep numbers as numbers, not strings
-    _names = table.keys(r)
-    for i = 1, #_names do
-        if tonumber(r[_names[i]]) and r[_names[i]] ~= "" then
-            r[_names[i]] = tonumber(r[_names[i]])
-        end
-    end
-
-    r = json.encode(r)
-    logging.log(logging.DEBUG, "pre-compression: " .. r)
-
-    local _filters = {
-        function(d) return string.gsub(d, "\", \"", "\",\"") end, -- "foo", "bar" --> "foo","bar"
-        --function(d) return string.gsub(d, "\"%[%]\"", "%[%]") end, -- "[]" --> []
-        function(d) return string.gsub(d, ":\"(%d+)\.(%d+)\"", ":\"%1\".\"%2\"") end, -- :"3.14" --> :"3"."14"
-        function(d) return string.gsub(d, ", ", ",") end -- ", " --> "," (without quotes)
-    }
-    for i = 1, #_filters do
-        local n = _filters[i](r)
-        if #n < #r and json.encode(json.decode(n)) == json.encode(json.decode(r)) then
-            r = n
-        end
-    end
-
-    logging.log(logging.DEBUG, "compressed: " .. r)
-
-    return string.sub(r, 2, #r - 1) -- remove {}
-end
-
---- Update state data from string created by create_statedatadict.
--- @param sd State data JSON string.
--- @see root_logent:create_statedatadict
-function root_logent:_update_statedata_complete(sd)
-    logging.log(logging.DEBUG, "updating complete state data for " .. tostring(self.uid) .. " with " .. tostring(sd) .. " (" .. type(sd) .. ")")
-
-    sd = string.sub(sd, 1, 1) ~= "{" and "{" .. sd .. "}" or sd
-    local nsd = json.decode(sd)
-
-    assert(type(nsd) == "table")
-
-    self.initialized = true
-    for k, v in pairs(nsd) do
-        k = tonumber(k) and message.fromproid(tostring(self), tonumber(k)) or k
-        logging.log(logging.DEBUG, "update of complete state data: " .. tostring(k) .. " = " .. tostring(v))
-        self:_set_statedata(k, v, nil, true) -- true - this is internal op, we are sending raw state data
-        logging.log(logging.DEBUG, "update of complete state data ok")
-    end
-
-    logging.log(logging.DEBUG, "update of complete state data done.")
-end
-
---- Client version of root logic entity.
--- @class table
--- @name client_logent
-client_logent = class.new(root_logent)
-
---- Entity activation.
--- @param kwargs This in fact doesn't do anything, but it makes effect on entities inherited from this.
-function client_logent:client_activate(kwargs)
-    self:_general_setup()
-
-    if not self._sauertype then
-        logging.log(logging.DEBUG, "non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
-        CAPI.setupnonsauer(self) -- does c++ reg etc, sauer types need special reg which is done by them
-    end
-
-    -- set to true when we receive complete sd from server
-    self.initialized = false
-end
-
---- Entity deactivation. Calls _general_deactivate by default, though can be overriden.
-function client_logent:client_deactivate()
-    self:_general_deactivate()
-end
-
---- Set entity state data. This is clientside only function.
--- @param k Property name.
--- @param v Property value.
--- @param auid Unique ID of the actor.
-function client_logent:_set_statedata(k, v, auid)
-    logging.log(logging.DEBUG, "setting state data: " .. tostring(k) .. " = " .. json.encode(v) .. " for " .. tostring(self.uid))
-    local var = self[state_variables._SV_PREFIX .. tostring(k)]
-
-    local customsynch_fromhere = var.customsynch and self._controlled_here
-    local clientset = var.clientset
-
-    if auid == -1 and not customsynch_fromhere then
-        logging.log(logging.DEBUG, "sending request / notification to server.")
-        -- todo: supress msg sending of the same val, at least for some SVs
-        message.send(var.reliable and CAPI.statedata_changerequest or CAPI.statedata_changerequest_unreliable,
-                    self.uid,
-                    message.toproid(tostring(self),
-                    tostring(var._name)), var:to_wire(v))
-    end
-
-    if auid ~= -1 or clientset or customsynch_fromhere then
-        logging.log(logging.INFO, "updating locally")
-        -- if originated from server, translated
-        if auid ~= -1 then v = var:from_wire(v) end
-        assert(var:validate(v))
-        self:emit(state_variables.get_onmodify_prefix() .. tostring(k), v, auid ~= -1)
-        self.state_var_vals[k] = v
-    end
-end
-
---- Act method which is ran every frame. Performs action system management by default.
--- @param sec Length of the time to simulate.
-function client_logent:client_act(sec)
-    logging.log(logging.INFO, "client_logent:client_act, " .. tostring(self.uid))
-    self.action_system:manage(sec)
-end
-
---- Server version of root logic entity.
--- @class table
--- @name server_logent
-server_logent = class.new(root_logent)
-server_logent.sent_notification_complete = false
-
---- Initializer method. Called on creation. Performs some basic setup.
--- This is called by add function which is in store.
--- @param uid Unique ID of the entity.
--- @param kwargs Additional parameters (for i.e. overriding _persistent).
-function server_logent:init(uid, kwargs)
-    logging.log(logging.DEBUG, "server_logent:init(" .. tostring(uid) .. ", " .. tostring(kwargs) .. ")")
-    assert(uid ~= nil)
-    assert(type(uid) == "number")
-
-    self.uid = uid
-    self:_logent_setup()
-
-    self.tags = {}
-    kwargs = kwargs or {}
-    self._persistent = kwargs._persistent or false
-end
-
---- Activate function. Kwargs are used for passing state data string here.
--- @param kwargs Additional parameters.
-function server_logent:activate(kwargs)
-    logging.log(logging.DEBUG, "server_logent:activate(" .. tostring(kwargs) .. ")")
-    self:_logent_setup()
-
-    if not self._sauertype then
-        logging.log(logging.DEBUG, "non-sauer entity going to be set up: " .. tostring(self) .. ", " .. tostring(self._sauertype))
-        CAPI.setupnonsauer(self) -- does c++ reg etc, sauer types need special reg which is done by them
-        self:_flush_queued_sv_changes()
-    end
-
-    if kwargs and kwargs.state_data then
-        self:_update_statedata_complete(kwargs.state_data)
-    end
-
-    self:send_notification_complete(message.ALL_CLIENTS)
-    self.sent_notification_complete = true
-
-    logging.log(logging.DEBUG, "LE.activate complete.")
-end
-
---- Send complete notification to client(s).
--- @param cn Client number to send to. All clients if nil.
-function server_logent:send_notification_complete(cn)
-    cn = cn or message.ALL_CLIENTS
-    local cns = cn == message.ALL_CLIENTS and entity_store.get_all_clientnums() or { cn }
-
-    logging.log(logging.DEBUG, "LE.send_notification_complete: " .. tostring(self.cn) .. ", " .. tostring(self.uid))
-    for i = 1, #cns do
-        message.send(cns[i],
-                    CAPI.le_notification_complete,
-                    self.cn and self.cn or message.ALL_CLIENTS,
-                    self.uid,
-                    tostring(self),
-                    self:create_statedatadict(cns[i], { compressed = true })) -- custom data per client
-    end
-
-    logging.log(logging.DEBUG, "LE.send_notification_complete done.")
-end
-
---- Logic entity setup. Performs _general_setup and makes entity "initialized"
--- @see root_logent:_general_setup
-function server_logent:_logent_setup()
-    if not self.initialized then
-        logging.log(logging.DEBUG, "LE setup")
-
-        self:_general_setup()
-
-        self._queued_sv_changes = {}
-        self._queued_sv_changes_complete = false
-
-        self.initialized = true
-        logging.log(logging.DEBUG, "LE setup complete.")
-    end
-end
-
---- Deactivation. Calls _general_deactivate and sends message to perform
--- entity removal to all clients.
--- @see root_logent:_general_deactivate
-function server_logent:deactivate()
-    self:_general_deactivate()
-    message.send(message.ALL_CLIENTS, CAPI.le_removal, self.uid)
-end
-
---- Set entity state data. This is serverside only function.
--- @param k Property name.
--- @param v Property value.
--- @param auid Unique ID of the actor (client that triggered the change) or -1 when it comes from server.
--- @param iop Whether this is internal server operation, not sending messages and giving input in data format.
-function server_logent:_set_statedata(k, v, auid, iop)
-    logging.log(logging.INFO, "Setting state data: " ..
-                      tostring(k) .. " = " ..
-                      tostring(v) .. " (" ..
-                      type(v) .. ") : " ..
-                      json.encode(v) .. ", " ..
-                      tostring(v))
-
-    local _class = tostring(self)
-    local var = self[state_variables._SV_PREFIX .. tostring(k)]
-
-    if not var then
-        logging.log(logging.WARNING, "Ignoring state data setting for unknown (possibly deprecated) variable " .. tostring(k))
-        return nil
-    end
-
-    if auid and auid ~= -1 then
-        v = var:from_wire(v)
-        if not var.clientwrite then
-            logging.log(logging.ERROR, "Client " .. tostring(auid) .. " tried to change " .. tostring(k))
-            return nil
-        end
-    elseif iop then v = var:from_wire(v)
-    end
-
-    logging.log(logging.INFO, "Translated value: " ..
-                      tostring(k) .. " = " ..
-                      tostring(v) .. " (" ..
-                      type(v) .. ") : " ..
-                      json.encode(v) .. ", " ..
-                      tostring(v))
-
-    local ret = self:emit(state_variables.get_onmodify_prefix() .. tostring(k), v, auid)
-    if ret == "cancel_state_data_update" then
-        return nil
-    end
-
-    self.state_var_vals[k] = v
-    logging.log(logging.INFO, "new state data: " .. tostring(self.state_var_vals[k]))
-
-    local customsynch_fromhere = var.customsynch and self._controlled_here
-    if not iop and var.clientread then
-        if not self.sent_notification_complete then
+--[[!
+    Class: base_root
+    This represents the base class for all entities.
+    It contains basic handler methods common for both client and server.
+
+    Properties:
+        tags - each entity can have a set of tags, which can be then used
+        when finding the entity.
+        persistent - this specifies whether the entity gets saved on disk.
+        Dynamic entities are usually not saved, static usually are. Non-sauer
+        entities don't mostly get saved.
+]]
+base_root = class.new(nil, {
+    --[[!
+        Variable: _class
+        The entity class. Usually the same as the entity class name, but
+        doesn't have to be. It's used for searching and registering.
+    ]]
+    _class     = "base",
+
+    --[[!
+        Variable: should_act
+        Boolean value specifying whether the entity should run <act>
+        or <base_client.client_act> every frame. True for dynamic entities,
+        false for static entities by default, but can be re-enabled
+        for static entities as well.
+
+        This can as well be a table, if you want the entity to i.e. act
+        on server but not client_act. Then you can specify boolean values
+        should_act.client and should_act.server.
+    ]]
+    should_act = true,
+
+    --[[!
+        Variable: properties
+        Every entity has a "properties" table. It specifies state
+        variables the entity should have. The entity also inherits
+        properties of its parent and parent's parent and so forth.
+        Properties can be changed (i.e. via the entity properties GUI).
+    ]]
+    properties = {
+        tags       = state_variables.state_array(),
+        persistent = state_variables.state_bool()
+    },
+
+    --[[!
+        Function: __tostring
+        Overriden metamethod specifying what is returned when
+        tostring gets called on entity instance. By default,
+        returns <_class>.
+    ]]
+    __tostring = function(self)
+        return self._class
+    end,
+
+    --[[!
+        Function: general_setup
+        This function performs initial entity setup - creates
+        its action system, calls <variable_setup>, adds
+        signal methods.. Called by <base_server.entity_setup>
+        (serverside) and <base_client.client_activate> (clientside).
+    ]]
+    general_setup = function(self)
+        logging.log(logging.DEBUG, "base_root:general_setup")
+
+        -- do not re-run this
+        if self.general_setup_complete then
             return nil
         end
 
-        local args = {
-            nil,
-            var.reliable and CAPI.statedata_update or CAPI.statedata_update_unreliable,
-            self.uid,
-            message.toproid(_class, tostring(k)),
-            var:to_wire(v),
-            (var.clientset and auid and auid ~= -1) and entity_store.get(auid).cn or message.ALL_CLIENTS
+        -- add signal methods
+        signals.methods_add(self)
+
+        -- create action system
+        self.action_system = actions.action_system(self)
+
+        -- create state variable value storage
+        self.state_variable_values           = {}
+        -- caching for state variable changes
+        self.state_variable_value_timestamps = {}
+
+        -- we're not deactivated anymore
+        self.deactivated = false
+
+        -- set up state variables
+        self:variable_setup()
+
+        -- we're done, lock this up
+        self.general_setup_complete = true
+    end,
+
+    --[[!
+        Function: general_deactivate
+        This is called on entity deactivation. It clears up
+        the action system and unregisters entity from the engine.
+    ]]
+    general_deactivate = function(self)
+        -- clear up actions
+        self:clear_actions()
+
+        -- unregister
+        CAPI.unregister_entity(self.uid)
+
+        -- we're deactivated now
+        self.deactivated = true
+    end,
+
+    --[[!
+        Function: get_state_data
+        This method gets a state variable value from local storage.
+        No C getters will be called.
+
+        Parameters:
+            key - Entity property name.
+
+        Returns:
+            Locally stored value (without calling
+            getters on wrapped C variables)
+    ]]
+    get_state_data = function(self, key)
+        return self.state_variable_values[key]
+    end,
+
+    --[[!
+        Function: act
+        Default serverside act method. It manages the action system.
+        If you override this, you should always call it back (unless
+        you're inheriting entity class that has already overriden it,
+        then you should call its act method).
+
+        Parameters:
+            seconds - For how long to manage the action system (actions
+            in system will modify their remaining time accordingly).
+    ]]
+    act = function(self, seconds)
+        self.action_system:manage(seconds)
+    end,
+
+    --[[!
+        Function: queue_action
+        QUeues an action to the system.
+
+        Parameters:
+            action - the action instance to queue.
+    ]]
+    queue_action = function(self, action)
+        self.action_system:queue(action)
+    end,
+
+    --[[!
+        Function: clear_actions
+        Clears up entity's action system.
+    ]]
+    clear_actions = function(self)
+        self.action_system:clear()
+    end,
+
+    --[[!
+        Function: add_tag
+        Tags an entity. Basically modifies tags property (state variable).
+        Tag won't get added if entity already has one.
+
+        Parameters:
+            tag - the tag to add.
+    ]]
+    add_tag = function(self, tag)
+        -- do not add if we already have one
+        if not self:has_tag(tag) then
+             self.tags:push(tag)
+        end
+    end,
+
+    --[[!
+        Function: del_tag
+        Removes a tag. Basically converts tags state variable
+        value to raw array, filters it and sets the output back.
+
+        Parameters:
+            tag - the tag to remove.
+    ]]
+    del_tag = function(self, tag)
+        logging.log(logging.DEBUG, "base_root:del_tag(\"" .. tag .. "\")")
+
+        -- do not attempt to filter if we don't have the tag
+        if not self:has_tag(tag) then
+            return nil
+        end
+
+        -- let's filter the state variable
+        self.tags = table.filter_array(
+            -- convert <array_surrogate> to raw array
+            self.tags:as_array(),
+            -- compare the tags
+            function(i, _tag)
+                return _tag ~= tag
+            end
+        )
+    end,
+
+    --[[!
+        Function: has_tag
+        Checks if given tag is present for the entity.
+
+        Parameters:
+            tag - the tag to check.
+
+        Returns:
+            true if it has, false otherwise.
+    ]]
+    has_tag = function(self, tag)
+        logging.log(logging.INFO, "i can has tag " .. tostring(tag))
+
+        -- try to find the tag in raw array
+        return (table.find(self.tags:as_array(), tag) ~= nil)
+    end,
+
+    --[[!
+        Function: variable_setup
+        Sets up state variables for the entity. Browses <properties> of
+        current entity, inserts its state variables into a table, then
+        browses its parent and parent's parent and so forth and does
+        the insertion for every.
+
+        Note that if child entity class already contains a state variable
+        of same name as its parent, child's version is preferred.
+
+        Then a table of state variable names is got and gets sorted by name,
+        leaving state variable aliases last (so the variable they point to
+        is already set up by the time they're being set up).
+
+        Then table of names gets iterated and state variables get set up
+        from the original variable table.
+    ]]
+    variable_setup = function(self)
+        -- here state variables will be stored
+        local p_table = {}
+
+        -- we're an instance - let's get our class
+        local  base = self.class
+        -- loop until there are no parent classes left
+        while  base do
+            -- if the class has properties, let's insert state variables
+            -- from them into p_table
+            if base.properties then
+                for name, var in pairs(base.properties) do
+                    -- but do not insert if child class already inserted
+                    -- state variable of the same name before
+                    if not p_table[name]
+                       and state_variables.is_state_variable(var) then
+                           p_table[name] = var
+                    end
+                end
+            end
+
+            -- break out if we're already base_root and save an iteration
+            if base == base_root then
+                break
+            end
+
+            -- try another parent
+            base =  base.__base
+        end
+
+        -- get state variable names from p_table
+        local sv_names = table.keys(p_table)
+
+        -- sort the names
+        table.sort(sv_names, function(n1, n2)
+            -- if first one is alias and second not, leave the alias
+            -- for the end
+            if state_variables.is_state_variable_alias(p_table[n1]) and not
+               state_variables.is_state_variable_alias(p_table[n2]) then
+               return false
+            end
+            -- if first one is not alias and second is, leave the alias
+            -- for the end
+            if not state_variables.is_state_variable_alias(p_table[n1])
+               and state_variables.is_state_variable_alias(p_table[n2]) then
+               return true
+            end
+
+            -- if both are aliases or both aren't, just sort by name
+            return (n1 < n2)
+        end)
+
+        -- loop the sorted names now
+        for i, name in pairs(sv_names) do
+            logging.log(
+                logging.DEBUG,
+                "Setting up var: %(1)s %(2)s" % {
+                    name, tostring(p_table[name])
+                }
+            )
+
+            -- get variable from p_table
+            local var = p_table[name]
+
+            -- register the variable
+            var:register(name, self)
+        end
+    end,
+
+    --[[!
+        Function: create_state_data_dict
+        Creates a state data JSON dictionary from properties
+        (state variables) we have. Several compression methods
+        can get applied (remove redundant whitespaces, convert
+        names to protocol IDs), so the final dictionary is smaller
+        for network transfer. Can be overriden (when we're just doing
+        this locally).
+
+        Note that if we're NOT compressing, it'll return RAW TABLE.
+        No JSON encoding involved, you'll have to do that yourself if needed.
+
+        Parameters:
+            target_cn - target client number for state variable.
+            Determines if state variable will get included in the dictionary.
+            If it's nil, it'll get done for all clients.
+            kwargs - additional parameters. Here it makes use of one of them,
+            and that is "compressed", if that is true, compression methods
+            (like replacing names with protocol IDs) will get applied to
+            compress the dict for network transfer.
+
+        Returns:
+            The generated JSON string.
+    ]]
+    create_state_data_dict = function(self, target_cn, kwargs)
+        -- default the values
+        target_cn = target_cn or message.ALL_CLIENTS
+        kwargs    = kwargs    or {}
+
+        logging.log(
+            logging.DEBUG,
+            "create_state_data_dict(): "
+                .. tostring(self)
+                .. tostring(self.uid)
+                .. ", "
+                .. tostring(target_cn)
+        )
+
+        -- this will get returned encoded
+        local r = {}
+
+        -- get list of members of this instance
+        local _names = table.keys(self)
+        -- loop them
+        for i, name in pairs(_names) do
+            -- get the member itself
+            local var = self[name]
+
+            -- if it's state variable and keeps history, include it
+            if state_variables.is_state_variable(var) and var.has_history then
+                -- do not send private data
+                local skip = false
+
+                -- skip this iteration if we're sending to specific client and
+                -- the variable shouldn't send to it
+                if target_cn >= 0 and not var:should_send(self, target_cn) then
+                    skip = true
+                end
+
+                -- if we're not skipping ..
+                if not skip then
+                    -- get a value of the variable
+                    local val = self[var._name]
+
+                    -- if value exists or is false (important), include
+                    if val or val == false then
+                        logging.log(
+                            logging.DEBUG,
+                            "create_state_data_dict() adding "
+                                .. tostring(var._name)
+                                .. ": "
+                                .. json.encode(val)
+                        )
+
+                        -- get the name - if we're compressing,
+                        -- convert it to protocol ID
+                        local key = (not kwargs.compressed)
+                                 and var._name
+                                  or message.to_protocol_id(
+                                    tostring(self), var._name
+                                  )
+
+                        -- insert as converted to wire (== as string)
+                        r[key] = var:to_wire(val)
+
+                        logging.log(
+                            logging.DEBUG,
+                            "create_state_data_dict() currently: "
+                                .. json.encode(r)
+                        )
+                    end
+                end
+            end
+        end
+
+        logging.log(
+            logging.DEBUG,
+            "create_state_data_dict() returns: " .. json.encode(r)
+        )
+
+        -- if we're not compressing, fine, return - raw table
+        if not kwargs.compressed then
+            return r
+        end
+
+        -- pre-compression: keep numbers as numbers, not strings
+        _names = table.keys(r)
+        for i = 1, #_names do
+            if tonumber(r[_names[i]]) and r[_names[i]] ~= "" then
+                r[_names[i]] = tonumber(r[_names[i]])
+            end
+        end
+
+        -- encode it into JSON
+        r = json.encode(r)
+        logging.log(logging.DEBUG, "pre-compression: " .. r)
+
+        -- several string filters
+        local _filters = {
+            function(d)
+                return string.gsub(d, "\", \"", "\",\"")
+            end, -- "foo", "bar" --> "foo","bar"
+
+            function(d)
+                return string.gsub(d, ":\"(%d+)\.(%d+)\"", ":\"%1\".\"%2\"")
+            end, -- :"3.14" --> :"3"."14"
+
+            function(d)
+                return string.gsub(d, ", ", ",")
+            end, -- ", " --> "," (without quotes)
         }
 
-        local cns = entity_store.get_all_clientnums()
-        for i = 1, #cns do
-            local skip = false
-            if not var:should_send(self, cns[i]) then skip = true end
-            if not skip then
-                args[1] = cns[i]
-                message.send(unpack(args))
+        -- apply the filters - but the value after filtering gets checked by
+        -- de-encoding both strings and encoding them again and checking then
+        -- if they're the same.
+        for i, filter in pairs(_filters) do
+            local n = filter(r)
+
+            if #n < #r
+            and json.encode(json.decode(n))
+             == json.encode(json.decode(r)) then
+                r = n
             end
         end
+
+        logging.log(logging.DEBUG, "compressed: " .. r)
+
+        -- return with removed leading and trailing { / }
+        return string.sub(r, 2, #r - 1)
+    end,
+
+    --[[!
+        Function: update_complete_state_data
+        Updates complete state data for entity from JSON string input.
+
+        Parameters:
+            state_data - the input string.
+    ]]
+    update_complete_state_data = function(self, state_data)
+        logging.log(
+            logging.DEBUG,
+            "updating complete state data for "
+                .. tostring(self.uid)
+                .. " with "
+                .. tostring(state_data)
+                .. " ("
+                .. type(state_data)
+                .. ")"
+        )
+
+        -- if we've got input with removed { / }, append them back
+        state_data = (string.sub(state_data, 1, 1) ~= "{")
+            and "{" .. state_data .. "}"
+            or state_data
+
+        -- and decode it into raw table again
+        local raw_state_data = json.decode(state_data)
+        assert(type(raw_state_data) == "table")
+
+        -- set the entity as initialized
+        self.initialized = true
+
+        -- and loop the state data
+        for k, v in pairs(raw_state_data) do
+            -- if the name is protocol ID (can be converted to number),
+            -- convert it back to name
+            k = tonumber(k)
+                and message.to_protocol_name(tostring(self), tonumber(k))
+                or k
+
+            logging.log(
+                logging.DEBUG,
+                "update of complete state data: "
+                    .. tostring(k)
+                    .. " = "
+                    .. tostring(v)
+            )
+
+            -- perform state data setting - the true value means it's internal
+            -- operation, we're sending raw state data.
+            self:set_state_data(k, v, nil, true)
+
+            logging.log(logging.DEBUG, "update of complete state data ok")
+        end
+
+        logging.log(logging.DEBUG, "update of complete state data done.")
     end
-end
+})
 
---- Queue state variable change. Performs simple table changes.
--- @param k Property name.
--- @param v Property value.
-function server_logent:_queue_sv_change(k, v)
-    logging.log(logging.DEBUG, "Queueing SV change: " .. tostring(k) .. " - " .. tostring(v) .. " (" .. type(v) .. ")")
-    self._queued_sv_changes[k] = v
-end
+--[[!
+    Class: base_client
+    This represents clientside base class. It extends <base_root> with client
+    specific methods.
+]]
+base_client = class.new(base_root, {
+    --[[!
+        Function: client_activate
+        This is called on clientside entity activation.
+        It calls <base_root.general_setup>, possibly
+        sets up nonsauer entity, but doesn't set the entity
+        as initialized yet - that's done after receiving
+        complete state data from server
+        (see <base_root.update_complete_state_data>).
 
---- TODO: simillar for client. Returns true if this can
--- call C functions (== no _queued_sv_changes table)
--- @return True if this can call C functions, false otherwise.
-function server_logent:can_call_cfuncs()
-    return (not self._queued_sv_changes)
-end
+        Parameters:
+            kwargs - table of additional parameters, this client_activate
+            doesn't make use of any of them, they're mainly for further
+            usage in inherited client_activate methods.
+    ]]
+    client_activate = function(self, kwargs)
+        self:general_setup()
 
---- Flush queued SV changes. Called after CAPI.setupblah. See _queue_sv_change.
--- @see _queue_sv_change
-function server_logent:_flush_queued_sv_changes()
-    logging.log(logging.DEBUG, "flushing queued SV changes for " .. tostring(self.uid))
-    if self:can_call_cfuncs() then return nil end
+        if not self.sauer_type then
+            logging.log(
+                logging.DEBUG,
+                "non-sauer entity going to be set up: "
+                    .. tostring(self)
+                    .. ", "
+                    .. tostring(self.sauer_type)
+            )
+            CAPI.setupnonsauer(self)
+        end
 
-    local changes = self._queued_sv_changes
-    self._queued_sv_changes = nil
-    assert(self:can_call_cfuncs())
+        -- set to true when we receive complete state data from server
+        self.initialized = false
+    end,
 
-    local _keys = table.keys(changes)
-    for i = 1, #_keys do
-        local val = changes[_keys[i]]
-        local var = self[state_variables._SV_PREFIX .. tostring(k)]
+    --[[!
+        Function: client_deactivate
+        Client entity deactivation method.
+        Calls <base_root.general_deactivate>.
+    ]]
+    client_deactivate = function(self)
+        self:general_deactivate()
+    end,
 
-        logging.log(logging.DEBUG, "(A) flushing queued SV change: " ..
-                tostring(_keys[i]) .. " - " ..
-                tostring(val) .. " (real: " ..
-                tostring(self.state_var_vals[_keys[i]]) .. ")")
+    --[[!
+        Function: set_state_data
+        Clientside state data setter. Depending on settings, it can
+        also send an update to the server. When updating locally
+        (just clientside), that means either server has initiated
+        the change or the state variable is has <client_set> property set to
+        true, in that case, a signal gets emitted (see <signals>).
 
-        self[_keys[i]] = self.state_var_vals[_keys[i]]
+        Call <state_variables.get_on_modify_name> to get the signal name
+        with state variable name set as argument. You can connect handler
+        to the entity that gets called everytime the value gets changed
+        (locally).
 
-        logging.log(logging.DEBUG, "(B) flushing of " .. tostring(_keys[i]) .. " - ok.")
+        The handler for the signal accepts new value as the argument
+        (besides 'self', of course), so you can easily take appropriate
+        actions, and it also takes second boolean argument having true
+        value when the value was modified for specific client.
+
+        Parameters:
+            key - name of state variable we're setting.
+            value - the value we're setting.
+            actor_uid - unique ID of actor we're setting the value for.
+            If this is -1, it means "all clients" (see <ALL_CLIENTS>),
+            so we'll send an update to the server. If it's anything else
+            (including nil), it means we're setting to an explicit client
+            and that means we'll emit the signal and convert value
+            argument from wire format (== from string).
+    ]]
+    set_state_data = function(self, key, value, actor_uid)
+        logging.log(
+            logging.DEBUG,
+            "setting state data: "
+                .. key
+                .. " = "
+                .. json.encode(value)
+                .. " for "
+                .. self.uid
+        )
+
+        -- get raw state variable (omit calling getter)
+        local var = self[state_variables._SV_PREFIX .. key]
+
+        -- if the variable has custom synch flag + we're
+        -- controlled here, this will be true
+        local custom_synch_from_here
+            = var.custom_synch and self.controlled_here
+
+        -- state variable having client_set flag means
+        -- it's always set clientside (saves bandwidth)
+        local client_set = var.client_set
+
+        -- if we're sending to all clients and not custom synching
+        -- from here, let's send a message to server without emitting
+        -- a signal or setting anything
+        if actor_uid == -1 and not custom_synch_from_here then
+            logging.log(
+                logging.DEBUG, "sending request / notification to server."
+            )
+
+            -- TODO: supress msg sending of the same val, at least for some SVs
+            message.send(
+                var.reliable
+                    and CAPI.statedata_changerequest
+                     or CAPI.statedata_changerequest_unreliable,
+                self.uid,
+                message.to_protocol_id(tostring(self), var._name),
+                var:to_wire(value)
+            )
+        end
+
+        -- if we're sending to specific client OR the state variable
+        -- has client_set flag OR we're custom synching from here,
+        -- update the value locally
+        if actor_uid ~= -1 or client_set or custom_synch_from_here then
+            logging.log(logging.INFO, "updating locally")
+
+            -- if originated from server, translate the value 
+            if actor_uid ~= -1 then
+                value = var:from_wire(value)
+            end
+            -- assert validation (TODO: omit assertions so the engine
+            -- does not quit on failed changes)
+            assert(var:validate(value))
+
+            -- emit the change handler
+            self:emit(
+                state_variables.get_on_modify_name(key),
+                value, actor_uid ~= -1
+            )
+            -- and locally set the value
+            self.state_variable_values[key] = value
+        end
+    end,
+
+    --[[!
+        Function: client_act
+        Clientside version of <base_root.act>.
+    ]]
+    client_act = function(self, seconds)
+        logging.log(
+            logging.INFO,
+            "base_client:client_act, " .. self.uid
+        )
+
+        self.action_system:manage(seconds)
     end
+})
 
-    self._queued_sv_changes_complete = true
-end
+--[[!
+    Class: base_server
+    This represents serverside base class. It extends <base_root> with server
+    specific methods.
+]]
+base_server = class.new(base_root, {
+    --[[!
+        Variable: sent_complete_notification
+        This is set to true after <send_complete_notification>.
+        It is used in <set_state_data> to determine if to set state
+        data, because it can't be set when complete notification
+        isn't sent yet.
+    ]]
+    sent_complete_notification = false,
 
-logent = CLIENT and client_logent or (SERVER and server_logent or nil)
+    --[[!
+        Function: init
+        This gets called even before <activate>. In custom entities,
+        it is used to default values of state variables
+        (unless they're client_set, of course).
+
+        Here, it sets the serverside unique ID and initializes state
+        variables "tags" and "persistent" (see <base_root>).
+
+        This function also calls <entity_setup>.
+
+        Parameters:
+            uid - unique ID the entity will have.
+            kwargs - table of additional parameters. This method can
+            use one of them, "persistent", a boolean value specifying
+            whether the entity will be persistent (sets persistent
+            property, see <base_root>).
+    ]]
+    init = function(self, uid, kwargs)
+        logging.log(
+            logging.DEBUG,
+            "base_server:init("
+                .. uid
+                .. ", "
+                .. tostring(kwargs)
+                .. ")"
+        )
+
+        -- assertions. TODO: get rid of them to prevent engine quitting
+        assert(uid ~= nil)
+        assert(type(uid) == "number")
+
+        -- set the uid and call entity_setup
+        self.uid = uid
+        self:entity_setup()
+
+        -- default some stuff
+        self.tags       = {}
+        kwargs          = kwargs or {}
+        self.persistent = kwargs.persistent or false
+    end,
+
+    --[[!
+        Function: activate
+        Serverside activation method. Called after <init>.
+        Serverside equivalent of <base_client.client_activate>.
+
+        Calls <entity_setup> just in case (the call does nothing
+        if it was already done from <init>).
+
+        Parameters:
+            kwargs - table of additional parameters. This function can
+            use one of them, "state_data", which is a JSON string
+            containing state data to initialize the entity with.
+    ]]
+    activate = function(self, kwargs)
+        logging.log(
+            logging.DEBUG, "base_server:activate(" .. tostring(kwargs) .. ")"
+        )
+
+        -- set up the entity just in case
+        self:entity_setup()
+
+        -- if we're not sauer entity ..
+        if not self.sauer_type then
+            logging.log(
+                logging.DEBUG,
+                "non-sauer entity going to be set up: "
+                    .. tostring(self)
+                    .. ", "
+                    .. tostring(self.sauer_type)
+            )
+
+            -- do a special nonsauer registration in C++
+            CAPI.setupnonsauer(self)
+
+            -- and flush changes
+            self:flush_queued_state_variable_changes()
+        end
+
+        -- if we have state_data provided by kwargs,
+        -- update the entity from them
+        if kwargs and kwargs.state_data then
+            self:update_complete_state_data(kwargs.state_data)
+        end
+
+        -- send complete notification and set it as sent
+        self:send_complete_notification(message.ALL_CLIENTS)
+        self.sent_complete_notification = true
+
+        logging.log(logging.DEBUG, "LE.activate complete.")
+    end,
+
+    --[[!
+        Function: send_complete_notification
+        Sends a complete notification to client(s).
+
+        Parameters:
+            cn - client number to send the message to.
+            If set to -1, a message gets sent to all
+            clients (see <ALL_CLIENTS>). If it's nil,
+            it defaults to <ALL_CLIENTS> as well.
+    ]]
+    send_complete_notification = function(self, cn)
+        -- default the client number
+        cn = cn or message.ALL_CLIENTS
+
+        -- and create a table of client numbers
+        local cns = (cn == message.ALL_CLIENTS)
+                    and entity_store.get_all_client_numbers()
+                     or { cn }
+
+        logging.log(
+            logging.DEBUG,
+            "LE.send_complete_notification: "
+            .. tostring(self.cn)
+            .. ", "
+            .. self.uid
+        )
+
+        -- loop the numbers and send a message for each of them
+        for i, num in pairs(cns) do
+            message.send(num,
+                        CAPI.le_notification_complete,
+                        self.cn and self.cn or message.ALL_CLIENTS,
+                        self.uid,
+                        tostring(self),
+                        -- custom data per client
+                        self:create_state_data_dict(
+                            num, { compressed = true }
+                        )
+            )
+        end
+
+        logging.log(logging.DEBUG, "LE.send_complete_notification done.")
+    end,
+
+    --[[!
+        Function: entity_setup
+        Performs entity setup. First, does <base_root.general_setup>
+        and then creates a table of queued state variable changes.
+        Finally, sets the entity as initialized. Does nothing
+        when already initialied.
+    ]]
+    entity_setup = function(self)
+        -- perform only if not initialized yet
+        if not self.initialized then
+            logging.log(logging.DEBUG, "LE setup")
+
+            -- general setup
+            self:general_setup()
+
+            -- queued changes
+            self._queued_sv_changes = {}
+            self._queued_sv_changes_complete = false
+
+            -- and lock it up
+            self.initialized = true
+            logging.log(logging.DEBUG, "LE setup complete.")
+        end
+    end,
+
+    --[[!
+        Function: deactivate
+        Serverside version of <base_client.client_deactivate>.
+        Besides <base_root.general_deactivate>,
+        sends a message to all clients to remove the entity.
+    ]]
+    deactivate = function(self)
+        self:general_deactivate()
+        message.send(message.ALL_CLIENTS, CAPI.le_removal, self.uid)
+    end,
+
+    --[[!
+        Function: set_state_data
+        Serverside state data setter. Depending on settings, it takes multiple
+        other actions, like converting from wire format. Signal gets emitted.
+
+        Call <state_variables.get_on_modify_name> to get the signal name
+        with state variable name set as argument. You can connect handler
+        to the entity that gets called everytime the value gets changed
+        (locally).
+
+        The handler for the signal accepts new value as the argument
+        (besides 'self', of course), so you can easily take appropriate
+        actions, and it also takes second boolean argument having true
+        value when the value was modified for specific client.
+
+        Parameters:
+            key - name of state variable we're setting.
+            value - the value we're setting.
+            actor_uid - unique ID of actor we're setting the value for.
+            If this is -1, it means "all clients" (see <ALL_CLIENTS>),
+            so we'll send an update to the server.
+            internal_op - this boolean value specifies whether
+            it's internal server operation. If it is, given value
+            gets converted from wire format.
+    ]]
+    set_state_data = function(self, key, value, actor_uid, internal_op)
+        logging.log(logging.INFO, "Setting state data: " ..
+                          key .. " = " ..
+                          tostring(value) .. " (" ..
+                          type(value) .. ") : " ..
+                          json.encode(value) .. ", " ..
+                          tostring(value))
+
+        -- get entity class string
+        local _class = tostring(self)
+
+        -- get the raw variable (omit getters)
+        local var = self[state_variables._SV_PREFIX .. tostring(key)]
+
+        -- if we don't have the variable, log it and return (ignore)
+        if not var then
+            logging.log(
+                logging.WARNING,
+                "Ignoring SD setting for unknown (deprecated?) variable "
+                    .. tostring(key)
+            )
+            return nil
+        end
+
+        -- if we're sending to specific client ..
+        if actor_uid and actor_uid ~= -1 then
+            -- convert from wire format
+            value = var:from_wire(value)
+            -- if the state variable is not changeable on client
+            -- (through server message), return - see client_write
+            -- in state variables documentation
+            if not var.client_write then
+                logging.log(
+                    logging.ERROR,
+                    "Client "
+                        .. tostring(actor_uid)
+                        .. " tried to change "
+                        .. tostring(key)
+                )
+                return nil
+            end
+        elseif internal_op then
+            -- internal server operation,
+            -- convert from wire format in any case
+            value = var:from_wire(value)
+        end
+
+        logging.log(logging.INFO, "Translated value: " ..
+                          key .. " = " ..
+                          tostring(value) .. " (" ..
+                          type(value) .. ") : " ..
+                          json.encode(value) .. ", " ..
+                          tostring(value))
+
+        -- emit the change
+        local ret = self:emit(
+            state_variables.get_on_modify_name(key),
+            value, actor_uid
+        )
+        -- if the handler returns this string,
+        -- cancel the update (useful in i.e. health system)
+        if ret == "cancel_state_data_update" then
+            return nil
+        end
+
+        -- locally save the value
+        self.state_variable_values[key] = value
+        logging.log(
+            logging.INFO,
+            "new state data: " .. tostring(self.state_variable_values[key])
+        )
+
+        -- if the variable has custom synch flag + we're
+        -- controlled here, this will be true
+        local custom_synch_from_here
+            = var.custom_synch and self.controlled_here
+
+        -- if we're not internal operation and the state variable
+        -- can be read from client and we're not custom synching from here ..
+        if not internal_op
+           and var.client_read
+           and not custom_synch_from_here then
+            -- if we haven't sent complete notification yet, cancel
+            if not self.sent_complete_notification then
+                return nil
+            end
+
+            -- generate table of arguments
+            local args = {
+                -- this first arg will be client number
+                nil,
+                var.reliable
+                    and CAPI.statedata_update
+                    or  CAPI.statedata_update_unreliable,
+                self.uid,
+                message.to_protocol_id(_class, key),
+                var:to_wire(value),
+                (var.client_set and actor_uid and actor_uid ~= -1)
+                    and entity_store.get(actor_uid).cn
+                    or  message.ALL_CLIENTS
+            }
+
+            -- get all client numbers (we're sending to all clients)
+            local cns = entity_store.get_all_client_numbers()
+            for i, num in pairs(cns) do
+                -- if we should send ..
+                if var:should_send(self, num) then
+                    -- then send the message
+                    args[1] = num
+                    message.send(unpack(args))
+                end
+            end
+        end
+    end,
+
+    --[[!
+        Function: queue_state_variable_change
+        Queues state variable changes. Basically just inserts
+        the key/value pair into queue table.
+
+        Parameters:
+            key - state variable name.
+            value - the value to queue.
+    ]]
+    queue_state_variable_change = function(self, key, value)
+        logging.log(
+            logging.DEBUG,
+            "Queueing SV change: "
+                .. key
+                .. " - "
+                .. tostring(value)
+                .. " ("
+                .. type(value)
+                .. ")"
+        )
+        self._queued_sv_changes[key] = value
+    end,
+
+    --[[!
+        Function: can_call_c_functions
+        Returns true if the C side is alraedy set up and we can call getters
+        for wrapped variables (== internal queued state variable changes table
+        is nil - that is set by <flush_queued_state_variable_changes>).
+    ]]
+    can_call_c_functions = function(self)
+        return (not self._queued_sv_changes)
+    end,
+
+    --[[!
+        Function: flush_queued_state_variable_changes
+        Flushes the internal table for queued SV changes
+        (applies changes from them and sets the table to nil).
+    ]]
+    flush_queued_state_variable_changes = function(self)
+        logging.log(
+            logging.DEBUG,
+            "flushing queued SV changes for " .. self.uid
+        )
+        if self:can_call_c_functions() then return nil end
+
+        local changes = self._queued_sv_changes
+        self._queued_sv_changes = nil
+
+        local _keys = table.keys(changes)
+        for i = 1, #_keys do
+            local val = changes[_keys[i]]
+            local var = self[state_variables._SV_PREFIX .. tostring(k)]
+
+            logging.log(logging.DEBUG, "(A) flushing queued SV change: " ..
+                    tostring(_keys[i]) .. " - " ..
+                    tostring(val) .. " (real: " ..
+                    tostring(self.state_variable_values[_keys[i]]) .. ")")
+
+            self[_keys[i]] = self.state_variable_values[_keys[i]]
+
+            logging.log(
+                logging.DEBUG,
+                "(B) flushing of " .. tostring(_keys[i]) .. " - ok."
+            )
+        end
+
+        self._queued_sv_changes_complete = true
+    end
+})
+
+--[[!
+    Class: base
+    This is either base_client or base_server,
+    determined from if we're the server or client.
+]]
+base = CLIENT and base_client or (SERVER and base_server or nil)

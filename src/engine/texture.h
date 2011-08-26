@@ -129,7 +129,8 @@ extern PFNGLGETUNIFORMBUFFERSIZEEXTPROC glGetUniformBufferSize_;
 extern PFNGLGETUNIFORMOFFSETEXTPROC     glGetUniformOffset_;
 
 extern int& renderpath;
-enum { R_FIXEDFUNCTION = 0, R_GLSLANG };
+
+enum { R_FIXEDFUNCTION = 0, R_ASMSHADER, R_GLSLANG, R_ASMGLSLANG };
 
 enum { SHPARAM_LOOKUP = 0, SHPARAM_VERTEX, SHPARAM_PIXEL, SHPARAM_UNIFORM };
 
@@ -218,8 +219,8 @@ struct Shader
 {
     static Shader *lastshader;
 
-    char *name, *vsstr, *psstr, *defer;
-    int type;
+    char *name, *vsstr, *psstr;
+    int defer, type;
     GLuint vs, ps;
     GLhandleARB program, vsobj, psobj;
     vector<LocalShaderParamState> defaultparams;
@@ -233,7 +234,7 @@ struct Shader
     vector<UniformLoc> uniformlocs;
     vector<AttribLoc> attriblocs;
 
-    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(NULL), type(SHADER_DEFAULT), vs(0), ps(0), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL), numextparams(0), extparams(NULL), extvertparams(NULL), extpixparams(NULL)
+    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(0), type(SHADER_DEFAULT), vs(0), ps(0), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL), numextparams(0), extparams(NULL), extvertparams(NULL), extpixparams(NULL)
     {
         loopi(MAXSHADERDETAIL) fastshader[i] = this;
     }
@@ -243,10 +244,15 @@ struct Shader
         DELETEA(name);
         DELETEA(vsstr);
         DELETEA(psstr);
-        DELETEA(defer);
         DELETEA(extparams);
         DELETEA(extvertparams);
         extpixparams = NULL;
+
+        if (defer > 0)
+        {
+            lua::engine.unref(defer);
+            defer = 0;
+        }
     }
 
     void fixdetailshader(bool force = true, bool recurse = true);

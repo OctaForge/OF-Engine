@@ -159,7 +159,7 @@ namespace lua_binds
     LUA_BIND_CLIENT(texffenv, {
         if (slots.empty()) return;
         Slot &s = *slots.last();
-        s.ffenv = (e.get<int>(1) > 0);
+        s.ffenv = (e.get<bool>(1));
     })
 
     LUA_BIND_STD_CLIENT(reloadtex, reloadtex, e.get<char*>(1))

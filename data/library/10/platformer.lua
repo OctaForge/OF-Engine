@@ -22,9 +22,9 @@ end
 
 plugin = {
     properties = {
-        platform_axis        = state_variables.state_string ({ clientset = true }),
-        platform_position    = state_variables.state_integer({ clientset = true }),
-        platform_camera_axis = state_variables.state_string ({ clientset = true })
+        platform_axis        = state_variables.state_string ({ client_set = true }),
+        platform_position    = state_variables.state_integer({ client_set = true }),
+        platform_camera_axis = state_variables.state_string ({ client_set = true })
     },
 
     get_platform_direction = function(self)
@@ -59,7 +59,7 @@ plugin = {
     end,
 
     client_act = function(self, seconds)
-        if self == entity_store.get_plyent() and not entity_store.is_player_editing(self) then
+        if self == entity_store.get_player_entity() and not entity_store.is_player_editing(self) then
             if self.spawn_stage == 0 then
                 local position = self.position:copy()
                 local velocity = self.velocity:copy()
@@ -88,8 +88,8 @@ plugin = {
             end
 
             local platform_axis = vec3_from_axis(self.platform_axis)
-            self.platform_yaw   = utility.angle_normalize(
-                platform_axis:mul(self:get_platform_direction()):toyawpitch().yaw,
+            self.platform_yaw   = math.normalize_angle(
+                platform_axis:mul(self:get_platform_direction()):to_yaw_pitch().yaw,
                 self.yaw
             ) + 90
             self.yaw = math.magnet(
@@ -129,11 +129,11 @@ plugin = {
             end
             self.last_camera_smooth_position = camera_position:copy()
         
-            local direction = self.center:subnew(camera_position)
-            orientation = direction:toyawpitch()
+            local direction = self.center:sub_new(camera_position)
+            orientation = direction:to_yaw_pitch()
             camera_position.z = camera_position.z + (self.radius * self.platform_camera_distance * 0.02)
             camera.force(
-                camera_position.x, camera_position.y, camera_position.z,
+                camera_position,
                 orientation.yaw, orientation.pitch,
                 0, self.platform_fov
             )
@@ -142,7 +142,7 @@ plugin = {
 }
 
 function do_movement(move, down)
-    local player = entity_store.get_plyent()
+    local player = entity_store.get_player_entity()
     if entity_store.is_player_editing(player) then
         player.move = move
     end
@@ -156,7 +156,7 @@ function do_movement(move, down)
 end
 
 function do_strafe(strafe, down)
-    local player = entity_store.get_plyent()
+    local player = entity_store.get_player_entity()
     if entity_store.is_player_editing(player) then
         player.strafe = strafe
     end
@@ -175,13 +175,13 @@ function do_strafe(strafe, down)
 end
 
 function do_mousemove(yaw, pitch)
-    return (entity_store.is_player_editing(entity_store.get_plyent()) and
+    return (entity_store.is_player_editing(entity_store.get_player_entity()) and
         { yaw = yaw, pitch = pitch } or
         {}
     )
 end
 
-axis_switcher = entity_classes.reg(plugins.bake(entity_static.area_trigger, {
+axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger, {
     world_areas.plugin,
     {
         _class = "axis_switcher",
@@ -201,7 +201,7 @@ axis_switcher = entity_classes.reg(plugins.bake(entity_static.area_trigger, {
         end,
 
         flip_axes = function(self, up)
-            local player = entity_store.get_plyent()
+            local player = entity_store.get_player_entity()
 
             for i, axis in pairs(self.platform_axises:as_array()) do
                 if player.platform_axis[2] ~= axis[2] then

@@ -35,11 +35,13 @@ void force_quit();
 void quit();
 void resetgl();
 void getfps_(int *raw);
+void getwallclock();
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
 extern vector<cline> conlines;
-void bindkey(char *key, int action, int state);
+void bindkey(char *key, char *action, int state);
 void getbind(char *key, int type);
+void searchbinds(char *action, int type);
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL);
 void history_(int *n);
 void screenshot(char *filename);
@@ -58,6 +60,11 @@ extern int& fullconsole, &fullconfilter, &confilter, &miniconfilter;
 #ifdef CLIENT
 VARFN(scoreboard, showscoreboard, 0, 0, 1, scorebshow(showscoreboard!=0));
 #endif
+
+namespace EditingSystem
+{
+    extern vec saved_pos;
+}
 
 namespace lua_binds
 {
@@ -104,6 +111,7 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(resetgl, resetgl)
     LUA_BIND_STD_CLIENT(glext, glext, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(getfps, getfps_, e.get<int*>(1))
+    LUA_BIND_STD_CLIENT(getwallclock, getwallclock)
     LUA_BIND_STD_CLIENT(screenshot, screenshot, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(movie, movie, e.get<char*>(1))
     LUA_BIND_CLIENT(showscores, {
@@ -127,16 +135,11 @@ namespace lua_binds
                  e.get<const char*>(2)[0] ? e.get<const char*>(2) : NULL,
                  e.get<const char*>(3)[0] ? e.get<const char*>(3) : NULL)
     LUA_BIND_STD(removezip, removezip, e.get<const char*>(1))
-    LUA_BIND_DEF(gethomedir, {
-        char *hdir = newstring(homedir);
-        if (!strcmp(hdir + strlen(hdir) - 1,   "/"))
-                    hdir[  strlen(hdir) - 1] = '\0';
-
-        e.push(hdir);
-        delete[] hdir;
-    })
     LUA_BIND_STD(getserverlogfile, e.push, SERVER_LOGFILE)
-    
+    LUA_BIND_STD(setup_library, e.push, e.setup_library(e.get<const char*>(-1)));
+    LUA_BIND_CLIENT(save_mouse_position, {
+        EditingSystem::saved_pos = TargetingControl::worldPosition;
+    })
 
     // Bit math
 
@@ -261,33 +264,10 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, fullconsole ? fullconfilter : confilter, e.get<int>(1))
     LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, miniconfilter, e.get<int>(1))
     LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
-    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.ref_keep_stack(), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.get<char*>(3), e.get<int>(2))
     LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), e.get<int>(2))
-    LUA_BIND_CLIENT(saycommand, {
-        int n = e.gettop();
-        switch (n)
-        {
-            case 0: inputcommand((char*)""); break;
-            case 1: inputcommand(e.get<char*>(1)); break;
-            default:
-            {
-                char *s = e.get<char*>(1);
-                for (int i = 2; i <= n; i++)
-                {
-                    const char *a = e.get<const char*>(i);
-                    s = (char*)realloc(s, strlen(s) + strlen(a) + 1);
-                    assert(s);
-                    strcat(s, a);
-                }
-                inputcommand(s);
-                delete s;
-                break;
-            }
-        }
-    })
-    LUA_BIND_STD_CLIENT(inputcommand, inputcommand, e.get<char*>(1), e.get<char*>(2), e.get<char*>(3))
+    LUA_BIND_STD_CLIENT(searchbinds, searchbinds, e.get<char*>(1), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(prompt, inputcommand, e.get(1, (char*)""), e.get<char*>(2), e.get<char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(onrelease, addreleaseaction, e.ref_keep_stack())
-
-    LUA_BIND_STD(get_totalmillis, e.push, totalmillis)
 }

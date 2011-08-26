@@ -1,5 +1,5 @@
 --[[!
-    File: language/ext_string.lua
+    File: language/mod_string.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -12,9 +12,14 @@
 
     About: Purpose
         This file features various extensions made to Lua's string module.
-
-    Section: String extensions
 ]]
+
+--[[!
+    Package: string
+    Provides various extensions to default string module,
+    including splitting, template parsing and extended parameters. 
+]]
+module("string", package.seeall)
 
 --[[!
     Function: _str_interp
@@ -41,7 +46,7 @@ function _str_interp(s, t)
         string.gsub(
             s, '%%%(([a-zA-Z_0-9]*)%)([-0-9%.]*[cdeEfgGiouxXsq])',
             function(k, fmt)
-                k = tonumber(k) and tonumber(k) or k
+                k = tonumber(k) or k
                 return (t[k]
                     and
                         string.format("%" .. fmt, t[k])
@@ -79,7 +84,7 @@ getmetatable("").__mod   = _str_interp
 getmetatable("").__index = _str_index
 
 --[[!
-    Function: string.split
+    Function: split
     Splits a string into table of tokens, based on
     <http://lua-users.org/wiki/SplitJoin>. Usage -
 
@@ -96,7 +101,7 @@ getmetatable("").__index = _str_index
     Returns:
         A table of tokens.
 ]]
-function string.split(s, d)
+function split(s, d)
     d = d and tostring(d) or ","
     local r = {}
     string.gsub(tostring(s),
@@ -106,7 +111,7 @@ function string.split(s, d)
 end
 
 --[[!
-    Function: string.template
+    Function: template
     Parses a string template (string with embedded lua code),
     inspired by luadoc parser system. Usage -
 
@@ -116,20 +121,29 @@ end
         -- this returns "bar: blah"
         -- first, gets parsed to "bar : <$0 return bar $0>"
         -- then, it gets parsed to "bar : blah" (value of bar)
-        assert(string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah")
+        assert(
+            string.template("bar : <$0 return <$1=foo$1> $0>") == "bar : blah"
+        )
     (end)
 
     Parameters:
         s - The string to parse.
         l - Level to parse string from.
         Everything with higer or equal level gets parsed. Defaults to 0.
+        e - optional associative table of items that should be visible
+        to the embedded lua code as part of environment.
 
     Returns:
         Parsed string.
 ]]
-function string.template(s, l)
+function template(s, l, e)
     l = l or 0
     s = string.gsub(s, "<$" .. l .. "(.-)$" .. l .. ">", "<?lua %1 ?>")
+
+    e = e or _G
+    e = (not e._VERSION) and
+        setmetatable(table.merge_dicts(e, table.copy(_G)), getmetatable(_G))
+    or e
 
     -- r - table to concaterate as retval; sp - start position
     local r = {}; local sp = 1
@@ -138,27 +152,30 @@ function string.template(s, l)
         -- ip - where the match begins, fp - where the match ends (numbers)
         -- dm - not used, ex - "=" or "", in case of "=", match is expression
         -- cd - the code / expression to run
-        local ip, fp, dm, ex, cd = string.find(s, "<%?(%w*)[ \t]*(=?)(.-)%?>", sp)
+        local ip, fp, dm, ex, cd
+            = string.find(s, "<%?(%w*)[ \t]*(=?)(.-)%?>", sp)
         -- no match? stop the loop
         if not ip then break end
 
-        -- insert everything from start position to match beginning into return table
+        -- insert everything from start position to
+        -- match beginning into return table
         table.insert(r, string.sub(s, sp, ip - 1))
         -- expression? insert a return value of "return EXPRESSION"
         -- command? insert a return value of the code.
         if ex == "=" then
-            local ret = tostring(loadstring("return " .. cd)())
+            local ret = tostring(setfenv(loadstring("return " .. cd), e)())
             if ret ~= "nil" then table.insert(r, ret) end
         else
             -- make sure there is no more embedded code by looping it.
-            local p = string.template(cd, l + 1)
-            while p ~= cd do cd = p; p = string.template(p, l + 1) end
+            local p = template(cd, l + 1, e)
+            while p ~= cd do cd = p; p = template(p, l + 1) end
 
             -- done, insert.
-            local rs = loadstring(cd)()
+            local rs = setfenv(loadstring(cd), e)()
             if rs then table.insert(r, tostring(rs)) end
         end
-        -- set start position for next iteration as position of first character after last match.
+        -- set start position for next iteration as position
+        -- of first character after last match.
         sp = fp + 1
     end
 

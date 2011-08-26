@@ -1883,13 +1883,12 @@ namespace gui
     struct window : named_object
     {
         int onhide;
-        int nofocus;
-        int realtime;
+        bool nofocus;
 
         float customx, customy;
 
-        window(const char *name, int onhide = 0, int nofocus = 0, int realtime = 0)
-         : named_object(name), onhide(onhide), nofocus(nofocus), realtime(realtime), customx(0), customy(0)
+        window(const char *name, int onhide = 0, bool nofocus = false)
+         : named_object(name), onhide(onhide), nofocus(nofocus), customx(0), customy(0)
         {}
         ~window() { lua::engine.unref(onhide); }
 
@@ -1975,20 +1974,6 @@ namespace gui
             return false;
         }
 
-        void updatechildren()
-        {
-            loopchildren(o,
-            {
-                window *w = (window*)o;
-                if (w && w->realtime)
-                    lua::engine.getg("gui")
-                        .t_getraw("show")
-                        .push(w->name)
-                        .call(1, 0)
-                        .pop(1);
-            });
-        }
-
         void layout()
         {
             object::layout();
@@ -2005,9 +1990,9 @@ namespace gui
 
     vector<object *> build;
 
-    window *buildwindow(const char *name, int contents, int onhide = 0, int nofocus = 0, int realtime = 0)
+    window *buildwindow(const char *name, int contents, int onhide = 0, bool nofocus = false)
     {
-        window *win = new window(name, onhide, nofocus, realtime);
+        window *win = new window(name, onhide, nofocus);
         build.add(win);
         lua::engine.getref(contents).call(0, 0);
         lua::engine.unref (contents);
@@ -2078,7 +2063,7 @@ namespace gui
             oldwindow->hidden();
             world_inst->remove(oldwindow);
         }
-        window *window = buildwindow(name, contents, onhide, e.get<int>(4), e.get<int>(5));
+        window *window = buildwindow(name, contents, onhide, e.get<bool>(4));
         world_inst->children.add(window);
         window->parent = world_inst;
 
@@ -2421,7 +2406,7 @@ namespace gui
 
     void _bind_uitexteditor(lua_Engine e)
     {
-        int keep = e.get<int>(6);
+        int keep = e.get<bool>(6);
         const char *filter = e.get<const char*>(7);
         addui(
             new text_editor(
@@ -2586,7 +2571,6 @@ namespace gui
             resetcursor();
         }
 
-        world_inst->updatechildren();
         world_inst->layout();
 
         if (hascursor())

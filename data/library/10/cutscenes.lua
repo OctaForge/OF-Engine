@@ -3,29 +3,27 @@ module("cutscenes", package.seeall)
 -- shows a distance and a direction using line / flare
 function show_distance(tag, origin, color, seconds)
     if not origin["__CACHED_" .. tag] then
-        local entities = entity_store.get_all_bytag(tag)
+        local entities = entity_store.get_all_by_tag(tag)
         if #entities == 1 then origin["__CACHED_" .. tag] = entities[1]
         else return nil end
     end
     local entity = origin["__CACHED_" .. tag]
 
-    effect.flare(effect.PARTICLE.STREAK, origin.position, entity.position, 0, color, 0.2)
+    effects.flare(effects.PARTICLE.STREAK, origin.position, entity.position, 0, color, 0.2)
 end
 
-action_base = class.new(events.action_container)
-
-function action_base:__tostring() return "action_base" end
+action_base = class.new(events.action_container, nil, "action_base")
 
 function action_base:client_click()
-    if self.canbecancelled then
+    if self.cancellable then
         self:cancel()
     end
 end
 
-function action_base:dostart()
-    events.action_container.dostart(self)
+function action_base:do_start()
+    events.action_container.do_start(self)
 
-    self.actor.canmove = false
+    self.actor.can_move = false
 
     self.original_yaw   = self.actor.yaw
     self.original_pitch = self.actor.pitch
@@ -41,27 +39,27 @@ function action_base:dostart()
     CAPI.showhudrect  = function() end
     CAPI.showhudimage = function() end
 
-    self.old_seconds_left = self.secondsleft
+    self.old_seconds_left = self.seconds_left
 
-    events.action_input_capture_plugin.dostart(self)
+    events.action_input_capture_plugin.do_start(self)
 end
 
-function action_base:doexecute(seconds)
+function action_base:do_execute(seconds)
     self.actor.yaw   = self.original_yaw
     self.actor.pitch = self.original_pitch
 
     if self.subtitles then
-        self.show_subtitles(self, self.old_seconds_left - self.secondsleft)
+        self.show_subtitles(self, self.old_seconds_left - self.seconds_left)
     end
 
-    return events.action_container.doexecute(self, seconds)
+    return events.action_container.do_execute(self, seconds)
         or entity_store.is_player_editing()
 end
 
-function action_base:dofinish()
-    events.action_container.dofinish(self)
+function action_base:do_finish()
+    events.action_container.do_finish(self)
 
-    self.actor.canmove = true
+    self.actor.can_move = true
 
     _G["crosshair"] = self.old_crosshair
 
@@ -69,7 +67,7 @@ function action_base:dofinish()
     CAPI.showhudrect  = self.old_show_hud_rect
     CAPI.showhudimage = self.old_show_hud_image
 
-    events.action_input_capture_plugin.dofinish(self)
+    events.action_input_capture_plugin.do_finish(self)
 end
 
 function action_base:show_subtitles(time_val)
@@ -88,48 +86,44 @@ function action_base:show_subtitles(time_val)
     end
 end
 
-action_smooth = class.new(actions.action)
+action_smooth = class.new(actions.action, nil, "action_smooth")
 action_smooth.seconds_per_marker = 4
 action_smooth.delay_before       = 0
 action_smooth.delay_after        = 0
 action_smooth.looped             = false
 action_smooth.looping            = false
 
-function action_smooth:__tostring  () return "action_smooth" end
 function action_smooth:init_markers() end
 
-function action_smooth:dostart()
+function action_smooth:do_start()
     self:init_markers()
 
     self.timer = (- self.seconds_per_marker) / 2 - self.delay_before
-    self.secondsleft = self.seconds_per_marker * #self.markers
+    self.seconds_left = self.seconds_per_marker * #self.markers
 end
 
-function action_smooth:doexecute(seconds)
+function action_smooth:do_execute(seconds)
     -- get around loading time delays by ignoring long frames
     self.timer = self.timer + math.min(seconds, 1 / 25)
 
     self:set_markers()
-    camera.force(
-        self.position.x, self.position.y, self.position.z,
-        self.yaw, self.pitch, 0
-    )
+    camera.force(self.position, self.yaw, self.pitch, 0)
 
-    actions.action.doexecute(self, seconds)
+    actions.action.do_execute(self, seconds)
 
     if self.looped then
         if (not self.looping
-            and self.secondsleft <= (- self.delay_before)
-        ) or (self.looping and self.secondsleft <= 0) then
+            and self.seconds_left <= (- self.delay_before)
+        ) or (self.looping and self.seconds_left <= 0) then
             -- reset timer etc.
             self.timer = (- self.seconds_per_marker) / 2
-            self.secondsleft = self.seconds_per_marker * #self.markers
+            self.seconds_left = self.seconds_per_marker * #self.markers
             if not self.looping then self.looping = true end
         end
     end
 
     -- we end
-    return (self.secondsleft <= ((- self.delay_after) - self.delay_before))
+    return (self.seconds_left <= ((- self.delay_after) - self.delay_before))
 end
 
 function action_smooth:smooth_fun(x)
@@ -157,16 +151,16 @@ function action_smooth:set_markers()
     local curr_marker = self.markers[math.clamp(current_index + 1,     1, #self.markers)]
     local next_marker = self.markers[math.clamp(current_index + 2, 1, #self.markers)]
 
-    self.position = last_marker.position:mulnew(alpha):add(
-          curr_marker.position:mulnew(1 - alpha - beta)
-    ):add(next_marker.position:mulnew(beta))
+    self.position = last_marker.position:mul_new(alpha):add(
+          curr_marker.position:mul_new(1 - alpha - beta)
+    ):add(next_marker.position:mul_new(beta))
 
-    self.yaw   = utility.angle_normalize(last_marker.yaw, curr_marker.yaw) * alpha
-               + utility.angle_normalize(next_marker.yaw, curr_marker.yaw) * beta
+    self.yaw   = math.normalize_angle(last_marker.yaw, curr_marker.yaw) * alpha
+               + math.normalize_angle(next_marker.yaw, curr_marker.yaw) * beta
                + curr_marker.yaw * (1 - alpha - beta)
 
-    self.pitch = utility.angle_normalize(last_marker.pitch, curr_marker.pitch) * alpha
-               + utility.angle_normalize(next_marker.pitch, curr_marker.pitch) * beta
+    self.pitch = math.normalize_angle(last_marker.pitch, curr_marker.pitch) * alpha
+               + math.normalize_angle(next_marker.pitch, curr_marker.pitch) * beta
                + curr_marker.pitch * (1 - alpha - beta)
 end
 
@@ -175,7 +169,7 @@ end
 ---------------------
 
 -- cutscene controller
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_controller",
         should_act = true,
@@ -206,7 +200,7 @@ entity_classes.reg(
 
             local entity = self
 
-            local base_action = entity_store.get_all_bytag(
+            local base_action = entity_store.get_all_by_tag(
                 self.m_tag .. "_base"
             )
             if #base_action ~= 1 then
@@ -215,7 +209,7 @@ entity_classes.reg(
                 base_action  = base_action[1].action
             end
 
-            local action = entity_store.get_all_bytag(
+            local action = entity_store.get_all_by_tag(
                 self.m_tag .. "_action"
             )
             if #action ~= 1 then
@@ -224,27 +218,27 @@ entity_classes.reg(
                 action  = action[1].action
             end
 
-            entity_store.get_plyent():queue_action(
+            entity_store.get_player_entity():queue_action(
                 class.new(base_action, {
                     cancel = function(self)
-                        if self.canbecancelled and entity.started and not self.finished then
+                        if self.cancellable and entity.started and not self.finished then
                             self.action_system:clear()
                             self.action_system:manage(0.01)
                             self:finish()
                         end
                     end,
 
-                    dostart = function(self)
-                        self.__base.dostart(self)
+                    do_start = function(self)
+                        self.__base.do_start(self)
 
-                        self.canbecancelled = entity.cancellable
+                        self.cancellable = entity.cancellable
 
                         if entity.cancel then self:cancel() end
 
                         self.subtitles = {}
 
                         local i = 2
-                        local start_mark = entity_store.get_all_bytag(entity.m_tag .. "_sub_1")
+                        local start_mark = entity_store.get_all_by_tag(entity.m_tag .. "_sub_1")
                         if   #start_mark ~= 1 then return nil end
                         if    start_mark[1].parent_id > 0 then
                             local start_time = start_mark[1].start_time
@@ -263,7 +257,7 @@ entity_classes.reg(
                             })
                         end
                         while true do
-                            local next_mark = entity_store.get_all_bytag(entity.m_tag .. "_sub_" .. i)
+                            local next_mark = entity_store.get_all_by_tag(entity.m_tag .. "_sub_" .. i)
                             if   #next_mark ~= 1 then break end
                             if    next_mark[1].parent_id > 0 then
                                 local start_time = next_mark[1].start_time
@@ -285,18 +279,18 @@ entity_classes.reg(
                         end
                     end,
 
-                    dofinish = function(self)
-                        self.__base.dofinish(self)
+                    do_finish = function(self)
+                        self.__base.do_finish(self)
 
                         -- clear up the queue from base actions just in case
-                        local queue = entity_store.get_plyent().action_system.actlist
+                        local queue = entity_store.get_player_entity().action_system.action_list
                         for i, v in pairs(queue) do
                             if v:is_a(base_action) then
                                 table.remove(queue, i)
                             end
                         end
 
-                        local next_control = entity_store.get_all_bytag("ctl_" .. entity.next_controller)
+                        local next_control = entity_store.get_all_by_tag("ctl_" .. entity.next_controller)
                         if   #next_control == 1 then
                               next_control[1].started = true
                               next_control[1].cancel = entity.cancel_siblings
@@ -310,7 +304,7 @@ entity_classes.reg(
                             self.delay_before       = entity.delay_before
                             self.delay_after        = entity.delay_after
 
-                            local start_mark = entity_store.get_all_bytag(entity.m_tag .. "_mrk_1")
+                            local start_mark = entity_store.get_all_by_tag(entity.m_tag .. "_mrk_1")
                             if   #start_mark ~= 1 then return nil end
                             local  prev_mark = start_mark
                             table.insert(self.markers, {
@@ -320,7 +314,7 @@ entity_classes.reg(
                             })
 
                             while true do
-                                local next_mark = entity_store.get_all_bytag(
+                                local next_mark = entity_store.get_all_by_tag(
                                     entity.m_tag .. "_mrk_" .. prev_mark[1].next_marker
                                 )
                                 if   #next_mark ~= 1 then break end
@@ -333,7 +327,7 @@ entity_classes.reg(
                                 })
                                 if next_mark[1].next_marker == 1 then
                                     if entity.next_controller <= 0 then self.looped = true end
-                                    next_mark = entity_store.get_all_bytag(
+                                    next_mark = entity_store.get_all_by_tag(
                                         entity.m_tag .. "_mrk_" .. prev_mark[1].next_marker
                                     )
                                     table.insert(self.markers, {
@@ -353,10 +347,10 @@ entity_classes.reg(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
             end)
-            self:connect(state_variables.get_onmodify_prefix() .. "next_controller", function(self)
+            self:connect(state_variables.get_on_modify_name("next_controller"), function(self)
                 -- flush the cache
                 for k, v in pairs(self) do
                     if string.sub(k, 1, 9) == "__CACHED_" then
@@ -392,7 +386,7 @@ entity_classes.reg(
 )
 
 -- cutscene position marker
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_marker",
         should_act = true,
@@ -408,7 +402,7 @@ entity_classes.reg(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do
@@ -417,7 +411,7 @@ entity_classes.reg(
                     end
                 end
             end)
-            self:connect(state_variables.get_onmodify_prefix() .. "next_marker", function(self)
+            self:connect(state_variables.get_on_modify_name("next_marker"), function(self)
                 -- flush the cache
                 for k, v in pairs(self) do
                     if string.sub(k, 1, 9) == "__CACHED_" then
@@ -447,10 +441,10 @@ entity_classes.reg(
                 show_distance("ctl_" .. arr[2], self, 0x22FF27, seconds)
             end
 
-            local direction = math.vec3():fromyawpitch(self.yaw, self.pitch)
-            local target    = utility.get_ray_collision_world(self.position:copy(), direction, 10)
-            effect.flare(
-                effect.PARTICLE.STREAK,
+            local direction = math.vec3():from_yaw_pitch(self.yaw, self.pitch)
+            local target    = geometry.get_ray_collision_world(self.position:copy(), direction, 10)
+            effects.flare(
+                effects.PARTICLE.STREAK,
                 self.position, target,
                 0, 0x22BBFF, 0.3
             )
@@ -459,7 +453,7 @@ entity_classes.reg(
 )
 
 -- cutscene subtitle marker
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_subtitle",
         should_act = true,
@@ -492,7 +486,7 @@ entity_classes.reg(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do
@@ -501,7 +495,7 @@ entity_classes.reg(
                     end
                 end
             end)
-            self:connect(state_variables.get_onmodify_prefix() .. "parent_id", function(self)
+            self:connect(state_variables.get_on_modify_name("parent_id"), function(self)
                 -- flush the cache
                 for k, v in pairs(self) do
                     if string.sub(k, 1, 9) == "__CACHED_" then
@@ -535,7 +529,7 @@ entity_classes.reg(
 )
 
 -- cutscene base action
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_base_action",
         should_act = true,
@@ -551,7 +545,7 @@ entity_classes.reg(
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do
@@ -585,14 +579,14 @@ entity_classes.reg(
         end,
 
         action = class.new(action_base, {
-            dostart = function(self)
-                self.__base.dostart(self)
+            do_start = function(self)
+                self.__base.do_start(self)
 
                 self.background_image    = ""
                 self.subtitle_background = ""
             end,
 
-            doexecute = function(self, seconds)
+            do_execute = function(self, seconds)
                 if self.background_image ~= "" then
                     self.old_show_hud_image(
                         self.background_image,
@@ -601,7 +595,7 @@ entity_classes.reg(
                         math.min((scr_w / scr_h), 1)
                     )
                 end
-                return self.__base.doexecute(self, seconds)
+                return self.__base.do_execute(self, seconds)
             end,
 
             show_subtitle_background = function(self)
@@ -623,13 +617,13 @@ entity_classes.reg(
 )
 
 -- cutscene action marker
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
         _class     = "cutscene_action",
         should_act = true,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "tags", function(self)
+            self:connect(state_variables.get_on_modify_name("tags"), function(self)
                 self.m_tag = self.tags:as_array()[1]
                 -- flush the cache
                 for k, v in pairs(self) do
@@ -658,7 +652,7 @@ entity_classes.reg(
         end,
 
         action = {
-            -- extend with dostart, doexecute, dofinish, don't forget to call parent
+            -- extend with do_start, do_execute, do_finish, don't forget to call parent
         }
     }}), "playerstart"
 )

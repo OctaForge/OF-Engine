@@ -365,7 +365,7 @@ namespace server
 #ifdef SERVER
             // Kripken: FIXME: Send position updates only to real clients, not local ones. For multiple local
             // ones, a single manual sending suffices, which is done to the singleton dummy client
-            fpsent* currClient = dynamic_cast<fpsent*>( game::getclient(ci.clientnum) );
+            fpsent* currClient = game::getclient(ci.clientnum);
             if (!currClient) continue; // We have a server client, but no FPSClient client yet, because we have not yet
                                        // finished the player's login, only after which do we create the lua entity,
                                        // which then gets a client added to the FPSClient (and the remote client's FPSClient)
@@ -681,7 +681,7 @@ namespace server
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
         {
-            defformatstring(c)("entity_store.get(%i)._can_edit = true", ci->uniqueId);
+            defformatstring(c)("entity_store.get(%i).can_edit = true", ci->uniqueId);
             engine.exec(c);
         }
     }
@@ -727,7 +727,7 @@ namespace server
             return -1;
         }
 
-        fpsent* fpsEntity = dynamic_cast<fpsent*>(game::getclient(cn));
+        fpsent* fpsEntity = game::getclient(cn);
         if (fpsEntity)
         {
             // Already created an entity
@@ -741,7 +741,7 @@ namespace server
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
 
-        int uniqueId = engine.exec<int>("return entity_store.get_newuid()");
+        int uniqueId = engine.exec<int>("return entity_store.generate_uid()");
 
         // Notify of uniqueId *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
@@ -759,7 +759,7 @@ namespace server
         // Add admin status, if relevant
         if (ci->isAdmin)
         {
-            defformatstring(d)("entity_store.get(%i)._can_edit = true", uniqueId);
+            defformatstring(d)("entity_store.get(%i).can_edit = true", uniqueId);
             engine.exec(d);
         }
 
@@ -771,7 +771,7 @@ namespace server
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
         {
-            fpsEntity = dynamic_cast<fpsent*>(game::getclient(cn)); // It was created since fpsEntity was def'd
+            fpsEntity = game::getclient(cn); // It was created since fpsEntity was def'd
             assert(fpsEntity);
 
             fpsEntity->serverControlled = true; // Mark this as an NPC the server should control

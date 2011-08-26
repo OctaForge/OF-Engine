@@ -62,7 +62,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -191,7 +191,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -256,7 +256,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -326,7 +326,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -414,7 +414,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -519,7 +519,7 @@ namespace MessageSystem
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("entity_classes").t_getraw("get_sauertype").push(_class).call(1, 1);
+        engine.getg("entity_classes").t_getraw("get_sauer_type").push(_class).call(1, 1);
         const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
         logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
@@ -570,7 +570,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -620,7 +620,7 @@ namespace MessageSystem
                 if (!engine.hashandle()) \
                     return; \
                 \
-                engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).call(3, 0).pop(1);
+                engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value).call(3, 0).pop(1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -663,7 +663,7 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("entity_store").t_getraw("set_statedata").push(uniqueId).push(keyProtocolId).push(value).push(actorUniqueId).call(4, 0).pop(1);
+        engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value).push(actorUniqueId).call(4, 0).pop(1);
         STATE_DATA_REQUEST
     }
 #endif
@@ -698,7 +698,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -790,7 +790,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -851,7 +851,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -967,7 +967,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1046,7 +1046,7 @@ namespace MessageSystem
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData);
         engine.getref(entity->luaRef)
-            .t_getraw("_update_statedata_complete")
+            .t_getraw("update_complete_state_data")
             .push_index(-2)
             .push(stateData)
             .call(2, 0)
@@ -1126,7 +1126,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1189,7 +1189,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1237,7 +1237,7 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("entity_classes").t_getraw("get_sauertype").push(otherClass).call(1, 1);
+            engine.getg("entity_classes").t_getraw("get_sauer_type").push(otherClass).call(1, 1);
             const char *sauerType = engine.get(-1, "extent");
             engine.pop(2);
             engine.getg("entity_store").t_getraw("add")
@@ -1262,7 +1262,7 @@ namespace MessageSystem
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData\r\n");
         engine.getref(entity->luaRef)
-            .t_getraw("_update_statedata_complete")
+            .t_getraw("update_complete_state_data")
             .push_index(-2)
             .push(stateData)
             .call(2, 0)
@@ -1302,7 +1302,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1414,7 +1414,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1491,7 +1491,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1565,7 +1565,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1637,7 +1637,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1725,7 +1725,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1890,7 +1890,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -1957,7 +1957,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);
@@ -2045,7 +2045,7 @@ namespace MessageSystem
         {
             if (clientNumber == exclude) continue;
 #ifdef SERVER
-            fpsent* fpsEntity = dynamic_cast<fpsent*>( game::getclient(clientNumber) );
+            fpsent* fpsEntity = game::getclient(clientNumber);
             bool serverControlled = fpsEntity ? fpsEntity->serverControlled : false;
 
             testUniqueId = server::getUniqueId(clientNumber);

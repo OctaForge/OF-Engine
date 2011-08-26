@@ -2,7 +2,7 @@
     File: base/base_json.lua
 
     About: Author
-        Craig Mason-Jones, reformatted / modified by q66 <quaker66@gmail.com>
+        Craig Mason-Jones, reformatted / modified by q66 <quaker66@gmail.com>.
 
     About: Copyright
         Copyright (c) 2010 Craig Mason-Jones
@@ -11,27 +11,41 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        This file features JSON parser / writer.
-
-    Section: JSON system
+        This file features a JSON parser / writer.
 ]]
 
 --[[!
     Package: json
-    This is fully featured JSON parser and writer, including simplifier support.
+    This is fully featured JSON parser and writer,
+    including simplifier support.
 ]]
 module("json", package.seeall)
 
--- OctaForge content
--- Table storing information about simplification registers.
+--[[!
+    Variable: jregs
+    OctaForge content. Stores JSON simplifiers. It's basically an array of
+    tables. The tables are arrays as well, with two elements, first one
+    being function that accepts a value and returns true if the value
+    should be simplified and second one being function that accepts
+    a value and returns a simplified one.
+
+    Useful if you want to save something big, but you don't need to
+    encode it all raw. For example, instead of full entities, simplify
+    them to their unique IDs.
+    
+]]
 local jregs = {}
 
 -- private functions
 local isencodable
 
---- Encodes an arbitrary Lua object / variable.
--- @param v The Lua object / variable to be JSON encoded.
--- @return String containing the JSON encoding in internal Lua string format (i.e. not unicode)
+--[[!
+    Function: encode
+    Encodes a Lua object / variable and returns it as JSON string.
+
+    Parameters:
+        v - the value to encode.
+]]
 function encode(v)
     -- Handle nil values
     if not v then return "null" end
@@ -61,7 +75,9 @@ function encode(v)
         else -- An object, not an array
             for i, j in pairs(enc) do
                 -- do not even attempt otherwise
-                if not (type(i) == "string" and string.sub(i, 1, 2) == "__") then
+                if not (
+                    type(i) == "string" and string.sub(i, 1, 2) == "__"
+                ) then
                     if isencodable(i) and isencodable(j) then
                         table.insert(r, '"' .. strenc(i) .. '":' .. encode(j))
                     end
@@ -78,61 +94,97 @@ function encode(v)
     return "null"
 end
 
--- OctaForge content
---- register a simplifier function for encoding
--- @param check Function that returns true if argument passed to it can be simplified
--- @param simplifier Function to call when check returns true
+--[[!
+    Function: register
+    OctaForge content. Registers a simplifier, see <jregs>.
+
+    Parameters:
+        check - checker function, see <jregs>.
+        simplifier - simplifier function, see <jregs>.
+]]
 function register(check, simplifier)
     table.insert(jregs, { check, simplifier })
 end
 
---- Decodes a JSON string and returns the decoded value as a Lua data structure / value.
--- @param s The string to scan.
--- @return Lua objectthat was scanned, as a Lua table / string / number / boolean or nil.
+--[[!
+    Function: decode
+    Decodes a JSON string and returns the value as Lua type,
+    mostly a table.
+
+    Parameters:
+        s - the string to decode.
+]]
 function decode(s)
     -- Function is re-defined below after token and other items are created.
     -- Just defined here for code neatness.
     return null
 end
 
---- The null function allows one to specify a null value in an associative array (which is otherwise
--- discarded if you set the value with "nil" in Lua. Simply set t = { first=JSON.null }
+--[[!
+    Function: null
+    The null function allows one to specify a null value in an associative
+    array (which is otherwise discarded if you set the value with "nil"
+    in Lua).
+
+    Simply set:
+        (start code)
+            t = { first = JSON.null }
+        (end)
+]]
 function null()
     return null -- so JSON.null() will also return null ;-)
 end
 
------------------------------------------------------------------------------
--- Internal, PRIVATE functions.
------------------------------------------------------------------------------
+--[[!
+    Section: Internal functions
+    Private functions that are not mostly meant to be used externally.
+]]
 
---- Encodes a string to be JSON-compatible.
--- This just involves back-quoting inverted commas, back-quotes and newlines, I think ;-)
--- @param s The string to return as a JSON encoded (i.e. backquoted string)
--- @return The string appropriately escaped.
 local qrep = {["\\"]="\\\\", ['"']='\\"',['\n']='\\n',['\t']='\\t'}
+
+--[[!
+    Function: strenc
+    Encodes a string to be JSON-compatible.
+    This just involves back-quoting inverted commas, back-quotes and newlines.
+    Returns the appropriately escaped string.
+
+    Parameters:
+        s - the string to escape.
+]]
 function strenc(s)
     return tostring(s):gsub('["\\\n\t]',qrep)
 end
 
---- Determines whether the given Lua type is an array or a table / dictionary.
--- We consider any table an array if it has indexes 1..n for its n items, and no
--- other data in the table.
--- I think this method is currently a little 'flaky', but can't think of a good way around it yet...
--- @param t The table to evaluate as an array
--- @return boolean, number True if the table can be represented as an array, false otherwise. If true,
--- the second returned value is the maximum
--- number of indexed elements in the array. 
+--[[!
+    Function: isarr
+    Determines whether the given Lua type is an array or a table / dictionary.
+    We consider any table an array if it has indexes 1..n for its n items, and
+    no other data in the table.
+    I think this method is currently a little 'flaky', but can't think of a
+    good way around it yet...
+
+    Parameters:
+        t - the table to evaluate as an array.
+
+    Returns:
+        true if the table can be represented as array, false otherwise.
+        If true, the second returned value is the maximum number of indexed
+        elements in the array.
+]]
 function isarr(t)
-    -- Next we count all the elements, ensuring that any non-indexed elements are not-encodable 
-    -- (with the possible exception of 'n')
+    -- Next we count all the elements, ensuring that any non-indexed
+    -- elements are not-encodable  (with the possible exception of 'n')
     local midx = 0
     for k, v in pairs(t) do
-        if type(k) == "number" and math.floor(k) == k and 1 <= k then    -- k,v is an indexed pair
-            if not isencodable(v) then return false end    -- All array elements must be encodable
+        -- k,v is an indexed pair
+        if type(k) == "number" and math.floor(k) == k and 1 <= k then
+            -- All array elements must be encodable
+            if not isencodable(v) then return false end
             midx = math.max(midx,k)
         else
             if k == "n" then
-                if v ~= table.getn(t) then return false end    -- False if n does not hold the number of elements
+                -- False if n does not hold the number of elements
+                if v ~= table.getn(t) then return false end
             else -- Else of (k=='n')
                 if isencodable(v) then return false end
             end    -- End of (k~='n')
@@ -141,14 +193,32 @@ function isarr(t)
     return true, midx
 end
 
---- Determines whether the given Lua object / table / variable can be JSON encoded. The only
--- types that are JSON encodable are: string, boolean, number, nil, table and JSON.null.
--- In this implementation, all other types are ignored.
--- @param o The object to examine.
--- @return boolean True if the object should be JSON encoded, false if it should be ignored.
+--[[!
+    Function: isencodable
+    Determines whether the given Lua object / table / variable can be
+    JSON encoded. The only types that are JSON encodable are: string,
+    boolean, number, nil, table and <json.null>.
+    In this implementation, all other types are ignored.
+
+    Parameters:
+        o - the object to examine.
+
+    Returns:
+        true if the object should be JSON encoded,
+        false if it should be ignored.
+]]
 function isencodable(o)
     local t = type(o)
-    return (t == "string" or t == "boolean" or t == "number" or t == "nil" or t == "table") or (t == "function" and o == null) 
+    return (
+        t == "string"
+        or t == "boolean"
+        or t == "number"
+        or t == "nil"
+        or t == "table"
+    ) or (
+        t == "function"
+        and o == null
+    )
 end
 
 -- Radical performance improvement for decode from Eike Decker!
@@ -157,10 +227,11 @@ do
     
     -- initializes a table to contain a byte=>table mapping
     -- the table contains tokens (byte values) as keys and maps them on other
-    -- token tables (mostly, the boolean value 'true' is used to indicate termination
-    -- of a token sequence)
-    -- the token table's purpose is, that it allows scanning a sequence of bytes
-    -- until something interesting has been found (e.g. a token that is not expected)
+    -- token tables (mostly, the boolean value 'true' is used to indicate
+    -- termination of a token sequence)
+    -- the token table's purpose is, that it allows scanning a sequence of
+    -- bytes until something interesting has been found (e.g. a token that
+    -- is not expected)
     -- name is a descriptor for the table to be printed in error messages
     local function init_token_table (tt)
         local struct = {}
@@ -193,7 +264,8 @@ do
         c_s,
         c_slash = ("\\elrufas/"):byte(1,9)
     
-    -- token tables - tt_doublequote_string = strDoubleQuot, tt_singlequote_string = strSingleQuot
+    -- token tables - tt_doublequote_string = strDoubleQuot,
+    -- tt_singlequote_string = strSingleQuot
     local 
         tt_object_key,
         tt_object_colon,
@@ -245,8 +317,10 @@ do
         :link(tt_comment_start)            :to "/" 
         :link(tt_ignore)                         :to" \t\r\n"
         
-    -- as values, anything is possible, numbers, arrays, objects, boolean, null, strings
-    init_token_table (tt_object_value) "object ({ or [ or ' or \" or number or boolean or null expected)"
+    -- as values, anything is possible, numbers,
+    -- arrays, objects, boolean, null, strings
+    init_token_table (tt_object_value)
+    "object ({ or [ or ' or \" or number or boolean or null expected)"
         :link(tt_object_key)                 :to "{" 
         :link(tt_array_seperator)        :to "[" 
         :link(tt_singlequote_string) :to "'" 
@@ -268,7 +342,8 @@ do
         :link(c_esc)                                 :to "\\" 
         :link(true)                                    :to "'"
         
-    -- array reader that expects termination of the array or a comma that indicates the next value
+    -- array reader that expects termination of the
+    -- array or a comma that indicates the next value
     init_token_table (tt_array_value) "array (, or ] expected)"
         :link(tt_array_seperator)        :to "," 
         :link(true)                                    :to "]"
@@ -276,7 +351,8 @@ do
         :link(tt_ignore)                         :to " \t\r\n"
     
     -- a value, pretty similar to tt_object_value
-    init_token_table (tt_array_seperator) "array ({ or [ or ' or \" or number or boolean or null expected)"
+    init_token_table (tt_array_seperator)
+    "array ({ or [ or ' or \" or number or boolean or null expected)"
         :link(tt_object_key)                 :to "{" 
         :link(tt_array_seperator)        :to "[" 
         :link(tt_singlequote_string) :to "'" 
@@ -295,7 +371,8 @@ do
     init_token_table (tt_comment_start) "comment start (* expected)"
         :link(tt_comment_middle)         :to "*"
         
-    -- now everything is allowed, watch out for * though. The next char is then checked manually
+    -- now everything is allowed, watch out for * though.
+    -- The next char is then checked manually
     init_token_table (tt_comment_middle) "comment end"
         :link(tt_ignore)                         :to (allchars)
         :link(true)                                    :to "*"
@@ -304,7 +381,10 @@ do
         local pos = 1 -- position in the string
         
         -- read the next byte value
-        local function next_byte () pos = pos + 1 return js_string:byte(pos-1) end
+        local function next_byte ()
+            pos = pos + 1
+            return js_string:byte(pos-1)
+        end
         
         -- in case of error, report the location using line numbers
         local function location () 
@@ -332,13 +412,17 @@ do
                 local t = tok[b]
                 if not t then 
                     error("Unexpected character at "..location()..": "..
-                        string.char(b).." ("..b..") when reading "..tok.name.."\nContext: \n"..
-                        js_string:sub(math.max(1,pos-30),pos+30).."\n"..(" "):rep(pos+math.min(-1,30-pos)).."^")
+                        string.char(b).." ("..b..") when reading "
+                        ..tok.name.."\nContext: \n"..
+                        js_string:sub(math.max(1,pos-30),pos+30)
+                        .."\n"..(" "):rep(pos+math.min(-1,30-pos)).."^")
                 end
                 pos = pos + 1
                 if t~=tt_ignore then return t end
             end
-            error("unexpected termination of JSON while looking for "..tok.name)
+            error(
+                "unexpected termination of JSON while looking for "..tok.name
+            )
         end
         
         -- read a string, double and single quoted ones
@@ -348,15 +432,16 @@ do
             repeat
                 local t = next_token(tok)
                 if t == c_esc then 
-                    --table.insert(returnString, js_string:sub(start, pos-2))
-                    --table.insert(returnString, escapechar[ js_string:byte(pos) ])
+                --table.insert(returnString, js_string:sub(start, pos-2))
+                --table.insert(returnString, escapechar[js_string:byte(pos)])
                     pos = pos + 1
                     --start = pos
                 end -- jump over escaped chars, no matter what
             until t == true
             return (loadstring("return " .. js_string:sub(start-1, pos-1) ) ())
 
-            -- We consider the situation where no escaped chars were encountered separately,
+            -- We consider the situation where no
+            -- escaped chars were encountered separately,
             -- and use the fastest possible return in this case.
             
             --if 0 == #returnString then
@@ -378,16 +463,19 @@ do
             return tonumber(js_string:sub(start-1,pos-1))
         end
         
-        -- read_bool and read_null are both making an assumption that I have not tested:
-        -- I would expect that the string extraction is more expensive than actually 
-        -- making manual comparision of the byte values
+        -- read_bool and read_null are both making an assumption that
+        -- I have not tested: I would expect that the string extraction
+        -- is more expensive than actually  making manual comparision
+        -- of the byte values
         local function read_bool () 
             pos = pos + 3
             local a,b,c,d = js_string:byte(pos-3,pos)
             if a == c_r and b == c_u and c == c_e then return true end
             pos = pos + 1
             if a ~= c_a or b ~= c_l or c ~= c_s or d ~= c_e then 
-                error("Invalid boolean: "..js_string:sub(math.max(1,pos-5),pos+5)) 
+                error(
+                    "Invalid boolean: "..js_string:sub(math.max(1,pos-5),pos+5)
+                ) 
             end
             return false
         end
@@ -397,26 +485,37 @@ do
             pos = pos + 3
             local u,l1,l2 = js_string:byte(pos-3,pos-1)
             if u == c_u and l1 == c_l and l2 == c_l then return nil end
-            error("Invalid value (expected null):"..js_string:sub(pos-4,pos-1)..
-                " ("..js_string:byte(pos-1).."="..js_string:sub(pos-1,pos-1).." / "..c_l..")")
+            error("Invalid value (expected null):"
+                ..js_string:sub(pos-4,pos-1)..
+                " ("..js_string:byte(pos-1).."="
+                ..js_string:sub(pos-1,pos-1).." / "..c_l..")"
+            )
         end
         
-        local read_object_value,read_object_key,read_array,read_value,read_comment
+        local read_object_value,read_object_key
+        local read_array,read_value,read_comment
     
-        -- read a value depending on what token was returned, might require info what was used (in case of comments)
+        -- read a value depending on what token was returned,
+        -- might require info what was used (in case of comments)
         function read_value (t,fromt)
-            if t == tt_object_key                 then return read_object_key({}) end
-            if t == tt_array_seperator        then return read_array({}) end
+            if t == tt_object_key         then return read_object_key({}) end
+            if t == tt_array_seperator    then return read_array({}) end
             if t == tt_singlequote_string or 
-                 t == tt_doublequote_string then return read_string(t) end
-            if t == tt_numeric                        then return read_num() end
-            if t == tt_boolean                        then return read_bool() end    
-            if t == tt_null                             then return read_null() end
-            if t == tt_comment_start            then return read_value(read_comment(fromt)) end
-            error("unexpected termination - "..js_string:sub(math.max(1,pos-10),pos+10))
+               t == tt_doublequote_string then return read_string(t) end
+            if t == tt_numeric            then return read_num() end
+            if t == tt_boolean            then return read_bool() end    
+            if t == tt_null               then return read_null() end
+            if t == tt_comment_start      then
+                return read_value(read_comment(fromt))
+            end
+            error(
+                "unexpected termination - "
+                ..js_string:sub(math.max(1,pos-10),pos+10)
+            )
         end
         
-        -- read comments until something noncomment like surfaces, using the token reader which was 
+        -- read comments until something noncomment like surfaces,
+        -- using the token reader which was 
         -- used when stumbling over this comment
         function read_comment (fromt)
             while true do
@@ -438,7 +537,9 @@ do
             i = i or 1
             -- loop until ...
             while true do
-                o[i] = read_value(next_token(tt_array_seperator),tt_array_seperator)
+                o[i] = read_value(
+                    next_token(tt_array_seperator),tt_array_seperator
+                )
                 local t = next_token(tt_array_value)
                 if t == tt_comment_start then
                     t = read_comment(tt_array_value)

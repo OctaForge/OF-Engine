@@ -20,17 +20,15 @@
         - Table extensions (merging, copying, filtering ..)
         - String extensions (splitting, template parsing)
         - Conversion system (colors - HSV/HSL/RGB/hex, types)
-
-    Section: Language extensions initialization
 ]]
 
 logging.log(logging.DEBUG, ":: Class system.")
 require("language.mod_class")
 logging.log(logging.DEBUG, ":: Math extensions.")
-require("language.ext_math")
+require("language.mod_math")
 logging.log(logging.DEBUG, ":: Table extensions.")
-require("language.ext_table")
+require("language.mod_table")
 logging.log(logging.DEBUG, ":: String extensions.")
-require("language.ext_string")
+require("language.mod_string")
 logging.log(logging.DEBUG, ":: Conversion.")
 require("language.mod_conv")

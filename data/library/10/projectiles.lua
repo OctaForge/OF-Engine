@@ -11,20 +11,20 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
     local entities
     if serverside then
         if CLIENT then
-            entities = { entity_store.get_plyent() }
+            entities = { entity_store.get_player_entity() }
         else
-            entities = entity_store.get_all_close(position, max_dist)
-            entities = table.map   (entities, function(pair) return pair[1] end)
-            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
+            entities = entity_store.get_all_close(position, { max_distance = max_dist })
+            entities = table.map        (entities, function(pair) return pair[1] end)
+            entities = table.filter_dict(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
     else
         entities = {}
-        if owner == entity_store.get_plyent() then
-            entities = entity_store.get_all_close(position, max_dist)
-            entities = table.map   (entities, function(pair) return pair[1] end)
-            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
+        if owner == entity_store.get_player_entity() then
+            entities = entity_store.get_all_close(position, { max_distance = max_dist })
+            entities = table.map        (entities, function(pair) return pair[1] end)
+            entities = table.filter_dict(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
-        table.insert(entities, entity_store.get_plyent())
+        table.insert(entities, entity_store.get_player_entity())
     end
 
     for i, entity in pairs(entities) do
@@ -37,7 +37,7 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
         if not custom_damage_fun then
             if entity.velocity then
                 entity.velocity:add(
-                    entity.position:subnew(
+                    entity.position:sub_new(
                         position
                     ):add(
                         velocity:copy():normalize():mul(4)
@@ -71,14 +71,14 @@ projectile = class.new(nil, {
 
         self.target_entity = target_entity
 
-        self.physics_frame_timer = utility.repeating_timer(self.physics_frame_size, true)
+        self.physics_frame_timer = events.repeating_timer(self.physics_frame_size, true)
 
         if owner then
             self.yaw = owner.yaw
             self.pitch = owner.pitch
         end
 
-        self.collide_fun = utility.iscolliding
+        self.collide_fun = geometry.is_colliding
     end,
 
     destroy = function(self) end,
@@ -101,12 +101,12 @@ projectile = class.new(nil, {
             if  self.bounce_fun then
                 self:bounce_fun(self.physics_frame_size)
             else
-                self.position:add(self.velocity:mulnew(self.physics_frame_size))
+                self.position:add(self.velocity:mul_new(self.physics_frame_size))
             end
 
             if self.collide_fun(self.position, self.radius, self.owner) then
                 local NUM_STEPS = 5
-                local step      = self.velocity:mulnew(self.physics_frame_size / NUM_STEPS)
+                local step      = self.velocity:mul_new(self.physics_frame_size / NUM_STEPS)
                 for i = 1, NUM_STEPS do
                     last_position:add(step)
                     if i == NUM_STEPS or self.collide_fun(last_position, self.radius, self.owner) then
@@ -122,15 +122,15 @@ projectile = class.new(nil, {
     end,
 
     render = function(self)
-        effect.fireball(
-            effect.PARTICLE.EXPLOSION_NO_GLARE,
+        effects.fireball(
+            effects.PARTICLE.EXPLOSION_NO_GLARE,
             self.position,
             self.radius,
             0.05,
             self.color,
             self.radius
         )
-        effect.dynlight_add(
+        effects.dynamic_light(
             self.position,
             self.radius * 9,
             self.color
@@ -140,16 +140,16 @@ projectile = class.new(nil, {
     on_explode = function(self)
         if CLIENT then
             local radius = self.visual_radius or self.radius
-            effect.splash(effect.PARTICLE.SMOKE, 5, 2.5, self.position, 0x222222, 12, 50, 500, nil, 1, false, 3)
-            effect.splash(effect.PARTICLE.SMOKE, 5, 0.2, self.position, 0x222222, 12, 50, 500, nil, 1, false, 4)
-            effect.splash(effect.PARTICLE.SPARK, 160, 0.03, self.position, 0xFFC864, 1.4, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.FLAME1, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
-            effect.splash(effect.PARTICLE.EXPLODE, 1, 0.1, self.position, 0xFFFFFF, 10, 300, 500, true, nil, nil, 4)
-            effect.fireball(effect.PARTICLE.EXPLOSION, self.position, radius, 0.1, self.color, radius / 5)
+            effects.splash(effects.PARTICLE.SMOKE, 5, 2.5, self.position, 0x222222, 12, 50, 500, nil, 1, false, 3)
+            effects.splash(effects.PARTICLE.SMOKE, 5, 0.2, self.position, 0x222222, 12, 50, 500, nil, 1, false, 4)
+            effects.splash(effects.PARTICLE.SPARK, 160, 0.03, self.position, 0xFFC864, 1.4, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.FLAME1, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.FLAME2, 15, 0.03, self.position, 0xFFFFFF, 3.2, 300, nil, nil, nil, true)
+            effects.splash(effects.PARTICLE.EXPLODE, 1, 0.1, self.position, 0xFFFFFF, 10, 300, 500, true, nil, nil, 4)
+            effects.fireball(effects.PARTICLE.EXPLOSION, self.position, radius, 0.1, self.color, radius / 5)
 
-            if utility.get_material(self.position) == utility.MATERIAL.WATER then
+            if edit.get_material(self.position) == edit.MATERIAL_WATER then
                 if self.underwater_explosion_sound then
                     sound.play(self.underwater_explosion_sound, self.position)
                 end
@@ -159,8 +159,8 @@ projectile = class.new(nil, {
                 end
             end
 
-            effect.decal_add   (effect.DECAL.SCORCH, self.position, self.velocity:copy():normalize():mul(-1), radius)
-            effect.dynlight_add(self.position, radius * 14, self.color, 0.2666, 0.0333, 0, radius * 9)
+            effects.decal        (effects.DECAL.SCORCH, self.position, self.velocity:copy():normalize():mul(-1), radius)
+            effects.dynamic_light(self.position, radius * 14, self.color, 0.2666, 0.0333, 0, radius * 9)
         end
 
         do_blast_wave(self.position, self.explosion_power, self.velocity, self.custom_damage_fun, self.owner)
@@ -178,7 +178,7 @@ manager = class.new(nil, {
     end,
 
     tick = function(self, seconds)
-        self.projectiles = table.filter(self.projectiles, function(i, projectile)
+        self.projectiles = table.filter_dict(self.projectiles, function(i, projectile)
             local persist = projectile:tick(seconds)
             if not persist then
                 projectile:destroy()
@@ -251,7 +251,7 @@ gun = class.new(firing.gun, {
         projectile_handler.projectile_manager:add(
             projectile_class(
                 origin_position,
-                target_position:subnew(origin_position):normalize(),
+                target_position:sub_new(origin_position):normalize(),
                 shooter,
                 target_entity
             )
@@ -280,7 +280,7 @@ debris = class.new(projectile, {
         projectile.__init(self, position, velocity, kwargs)
 
         self.bounce_fun = function(seconds)
-            return utility.bounce(
+            return geometry.bounce(
                 self,
                 self.elasticity,
                 self.friction,
@@ -290,7 +290,7 @@ debris = class.new(projectile, {
     end,
 
     render = function(self)
-        effect.splash(effect.PARTICLE.SMOKE, 1, 0.25, self.position, 0x000000, 1, 2, -20)
+        effects.splash(effects.PARTICLE.SMOKE, 1, 0.25, self.position, 0x000000, 1, 2, -20)
     end,
 
     render_dynamic = function(self)
@@ -303,8 +303,7 @@ debris = class.new(projectile, {
             game_manager.get_singleton(),
             self.debris_model,
             actions.ANIM_IDLE,
-            o.x, o.y, o.z,
-            0, 0, flags, 0
+            o, 0, 0, flags, 0
         )
     end,
 

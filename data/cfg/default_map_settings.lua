@@ -2,13 +2,11 @@
 
 -- on every map load, this file will be executed, followed by mapscript.
 
-model.reset()
-
 if not skybox or skybox == "" then
     skybox = "textures/sky/remus/sky01"
 end
 
-texture.resetmat()
+edit.material_reset()
 
 texture.add("water", "textures/core/water.png") -- water
 texture.add("1", "textures/core/water.png") -- waterfall

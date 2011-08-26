@@ -6,7 +6,7 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Register our custom player entity class into storage
-entity_classes.reg(plugins.bake(
+entity_classes.register(plugins.bake(
     character.player, {
 -- enable for platformer game
 --      platformer.plugin,
@@ -15,7 +15,7 @@ entity_classes.reg(plugins.bake(
             _class = "game_player",
 
             properties = {
-                new_mark = state_variables.state_array_float({ clientset = true, hashistory = false })
+                new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
             },
 
             -- Switches color in entity
@@ -64,7 +64,7 @@ entity_classes.reg(plugins.bake(
                 self.color    = self.colors[1]
 
                 -- When new_mark state variable is modified, let's call on_new_mark.
-                self:connect(state_variables.get_onmodify_prefix() .. "new_mark", self.on_new_mark)
+                self:connect(state_variables.get_on_modify_name("new_mark"), self.on_new_mark)
             end,
 
             -- Called every frame on client after initialization
@@ -74,8 +74,8 @@ entity_classes.reg(plugins.bake(
 
                 for i, mark in pairs(self.marks) do
                     if last and mark and mark.x >= 0 and last.x >= 0 then
-                        effect.flare(effect.PARTICLE.STREAK, last, mark, 0, mark.w, 1.0)
-                        effect.flare(effect.PARTICLE.STREAK, mark, last, 0, mark.w, 1.0)
+                        effects.flare(effects.PARTICLE.STREAK, last, mark, 0, mark.w, 1.0)
+                        effects.flare(effects.PARTICLE.STREAK, mark, last, 0, mark.w, 1.0)
                     end
                     last = mark
                 end
@@ -86,8 +86,8 @@ entity_classes.reg(plugins.bake(
 
                 -- If continuing and haven't just stopped, draw a spark at the end of last mark.
                 if conbatch and not self.stop_batch then
-                    effect.splash(
-                        effect.PARTICLE.SPARK, 10, 0.15,
+                    effects.splash(
+                        effects.PARTICLE.SPARK, 10, 0.15,
                         self.marks[#self.marks - 1],
                         self.marks[#self.marks - 1].w,
                         1.0, 25, 1
@@ -96,10 +96,10 @@ entity_classes.reg(plugins.bake(
 
                 -- If we're pressing left mouse button, let's draw new stuff
                 if self.pressing then
-                    local newpos = utility.gettargetpos()
-                    local toplyr = self.position:subnew(newpos)
+                    local newpos = input.get_target_position()
+                    local toplyr = self.position:sub_new(newpos)
                     newpos:add(toplyr:normalize():mul(1.0)) -- bring a little out of the scenery
-                    if newbatch or not self.marks[#self.marks - 1]:iscloseto(newpos, 5.0) then
+                    if newbatch or not self.marks[#self.marks - 1]:is_close_to(newpos, 5.0) then
                         self.new_mark = newpos:as_array()
                     end
                 end
@@ -114,12 +114,12 @@ entity_classes.reg(plugins.bake(
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
 function client_click(btn, down, pos, ent, x, y)
     if btn == 1 then
-        entity_store.get_plyent().pressing   = down
-        entity_store.get_plyent().stop_batch = false
+        entity_store.get_player_entity().pressing   = down
+        entity_store.get_player_entity().stop_batch = false
     elseif btn == 2 and down then
-        entity_store.get_plyent():reset_mark()
+        entity_store.get_player_entity():reset_mark()
     elseif btn == 3 and down then
-        entity_store.get_plyent():next_color()
+        entity_store.get_player_entity():next_color()
     end
 end
 

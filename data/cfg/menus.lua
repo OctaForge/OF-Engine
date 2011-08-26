@@ -1,19 +1,22 @@
 -- HUD stuff
 
 function edithud()
-    if world.enthavesel() ~= 0 then
-        return "%(1)s : %(2)s selected" % { world.entget(), world.enthavesel() }
+    if edit.num_selected_entities() ~= 0 then
+        return "%(1)s : %(2)s selected" % {
+            edit.get_entity(),
+            edit.num_selected_entities()
+        }
     end
 end
 
 -- core binds
 
-input.bind("ESCAPE", function()
+input.bind("ESCAPE", [[
     gui.menu_key_click_trigger()
     if not gui.hide("main") then
         gui.show("main")
     end
-end)
+]])
 
 -- non-edit tabs
 
@@ -30,13 +33,13 @@ local main_id = tgui.push_tab("Main", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_
         gui.space(0.01, 0.01, function()
             gui.cond(
                 function()
-                    return world.hasmap()
+                    return world.has_map()
                 end, function()
                     gui.vlist(0, function()
                         gui.label("Map: Running.", 1.2, 0.8, 0, 0)
                         tgui.button("  stop", function() world.map() end)
                         tgui.button("  show output", function() gui.show("local_server_output") end)
-                        tgui.button("  save map", function() network.do_upload() end)
+                        tgui.button("  save map", function() world.save_map() end)
                         tgui.button("  restart map", function() world.restart_map() end)
                     end)
                     gui.vlist(0, function()
@@ -57,22 +60,22 @@ local main_id = tgui.push_tab("Main", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_
                                         function()
                                             world.map(map)
                                         end, function()
-                                            local preview = world.get_map_preview_filename(map)
+                                            local preview = world.get_map_preview_name(map)
                                                or tgui.image_path .. "icons/icon_no_preview.png"
 
-                                            gui.stretchedimage(preview, 0.1, 0.1, function()
+                                            gui.stretched_image(preview, 0.1, 0.1, function()
                                                 gui.space(0, 0.01, function()
                                                     gui.align(0, 1)
                                                     gui.label(map, 1, 1, 1, 1, function() gui.align(0, 1) end)
                                                 end)
                                             end)
-                                            gui.stretchedimage(preview, 0.1, 0.1, function()
+                                            gui.stretched_image(preview, 0.1, 0.1, function()
                                                 gui.space(0, 0.01, function()
                                                     gui.align(0, 1)
                                                     gui.label(map, 1, 1, 1, 1, function() gui.align(0, 1) end)
                                                 end)
                                             end)
-                                            gui.stretchedimage(preview, 0.1, 0.1, function()
+                                            gui.stretched_image(preview, 0.1, 0.1, function()
                                                 gui.space(0, 0.01, function()
                                                     gui.align(0, 1)
                                                     gui.label(map, 1, 1, 1, 1, function() gui.align(0, 1) end)
@@ -99,22 +102,22 @@ local main_id = tgui.push_tab("Main", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_
                                         function()
                                             world.map(map)
                                         end, function()
-                                            local preview = world.get_map_preview_filename(map)
+                                            local preview = world.get_map_preview_name(map)
                                                or tgui.image_path .. "icons/icon_no_preview.png"
 
-                                            gui.stretchedimage(preview, 0.1, 0.1, function()
+                                            gui.stretched_image(preview, 0.1, 0.1, function()
                                                 gui.space(0, 0.01, function()
                                                     gui.align(0, 1)
                                                     gui.label(map, 1, 1, 1, 1, function() gui.align(0, 1) end)
                                                 end)
                                             end)
-                                            gui.stretchedimage(preview, 0.1, 0.1, function()
+                                            gui.stretched_image(preview, 0.1, 0.1, function()
                                                 gui.space(0, 0.01, function()
                                                     gui.align(0, 1)
                                                     gui.label(map, 1, 1, 1, 1, function() gui.align(0, 1) end)
                                                 end)
                                             end)
-                                            gui.stretchedimage(preview, 0.1, 0.1, function()
+                                            gui.stretched_image(preview, 0.1, 0.1, function()
                                                 gui.space(0, 0.01, function()
                                                     gui.align(0, 1)
                                                     gui.label(map, 1, 1, 1, 1, function() gui.align(0, 1) end)
@@ -198,8 +201,8 @@ tgui.push_tab("Screen resolution", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_res
                 tgui.resolutionbox(800, 480)
                 tgui.resolutionbox(1280, 768)
                 gui.label("Custom")
-                engine.newvar("custom_w", engine.VAR_S, tostring(scr_w), true)
-                engine.newvar("custom_h", engine.VAR_S, tostring(scr_h), true)
+                engine.new_var("custom_w", engine.VAR_S, tostring(scr_w), true)
+                engine.new_var("custom_h", engine.VAR_S, tostring(scr_h), true)
                 gui.hlist(0, function()
                     tgui.field("custom_w", 4, function() scr_w = tonumber(custom_w) end)
                     tgui.field("custom_h", 4, function() scr_h = tonumber(custom_h) end)
@@ -224,34 +227,25 @@ end)
 -- edit tabs
 
 tgui.push_tab("Textures", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_texgui", function()
-    texture.filltexlist()
+    texture.fill_slot_list()
     gui.fill(1, 0.7, function()
         tgui.scrollbox(1, 0.7, function()
             gui.table(9, 0.01, function()
                 gui.align(-1, -1)
-                for i = 1, texture.getnumslots() do
-                    gui.button(function() texture.set(i - 1) end, function()
-                        gui.slotview(i - 1, 0.095, 0.095)
-                        gui.slotview(i - 1, 0.095, 0.095, function()
-                            gui.modcolor(1, 0.5, 0.5, 0.095, 0.095)
-                        end)
-                        gui.slotview(i - 1, 0.095, 0.095, function()
-                            gui.modcolor(0.5, 0.5, 1, 0.095, 0.095)
-                        end)
-                    end)
-                end
-            end)
-        end)
-    end)
-end)
-
-tgui.push_tab("Entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_entities", function()
-    gui.fill(0.3, 0.7, function()
-        tgui.scrollbox(0.3, 0.7, function()
-            gui.vlist(0, function()
-                gui.align(-1, -1)
-                for i, class in pairs(entity_classes.list()) do
-                    tgui.button_no_bg(class, function() world.spawnent(class) end)
+                for i = 1, texture.get_slots_number() do
+                    gui.button(
+                        function()
+                            texture.set_slot(i - 1)
+                        end, function()
+                            gui.slot_viewer(i - 1, 0.095, 0.095)
+                            gui.slot_viewer(i - 1, 0.095, 0.095, function()
+                                gui.mod_color(1, 0.5, 0.5, 0.095, 0.095)
+                            end)
+                            gui.slot_viewer(i - 1, 0.095, 0.095, function()
+                                gui.mod_color(0.5, 0.5, 1, 0.095, 0.095)
+                            end)
+                        end
+                    )
                 end
             end)
         end)
@@ -260,7 +254,7 @@ end)
 
 tgui.push_tab("Export entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_save", function()
     gui.vlist(0, function()
-        engine.newvar("newexportfilename", engine.VAR_S, "entities.json")
+        engine.new_var("newexportfilename", engine.VAR_S, "entities.json")
         gui.hlist(0, function()
             gui.label("filename: ")
             tgui.field("newexportfilename", 30)
@@ -270,8 +264,6 @@ tgui.push_tab("Export entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_save"
 end)
 
 tgui.push_action(tgui.BAR_VERTICAL, tgui.BAR_ALL, "icon_exit", function() engine.quit() end)
-
-print(id)
 
 -- show main menu tab
 gui.show("main")

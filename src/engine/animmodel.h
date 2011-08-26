@@ -1481,12 +1481,12 @@ template<class MDL, class MESH> struct modelcommands
     
     static void setalphablend(lua_Engine e)
     {
-        loopskins(e.get<char*>(1), s, s.alphablend = e.get<int>(2)!=0);
+        loopskins(e.get<char*>(1), s, s.alphablend = e.get<bool>(2));
     }
     
     static void setcullface(lua_Engine e)
     {
-        loopskins(e.get<char*>(1), s, s.cullface = e.get<int>(2)!=0);
+        loopskins(e.get<char*>(1), s, s.cullface = e.get<bool>(2));
     }
     
     static void setenvmap(lua_Engine e)
@@ -1520,14 +1520,14 @@ template<class MDL, class MESH> struct modelcommands
     
     static void setnoclip(lua_Engine e)
     {
-        loopmeshes(e.get<char*>(1), m, m.noclip = e.get<int>(2)!=0);
+        loopmeshes(e.get<char*>(1), m, m.noclip = e.get<bool>(2));
     }
   
     static void setlink(lua_Engine e)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
         if(!MDL::loading->parts.inrange(e.get<int>(1)) || !MDL::loading->parts.inrange(e.get<int>(2))) { conoutf("no models loaded to link"); return; }
-        if(!MDL::loading->parts[e.get<int>(1)]->link(MDL::loading->parts[e.get<int>(2)], e.get<char*>(3), vec(e.get<float>(4), e.get<float>(5), e.get<float>(6)))) conoutf("could not link model %s", MDL::loading->loadname);
+        if(!MDL::loading->parts[e.get<int>(1)]->link(MDL::loading->parts[e.get<int>(2)], e.get<char*>(3), e.get<vec>(4))) conoutf("could not link model %s", MDL::loading->loadname);
     }
  
     void modelcommand(lua_Binding fun, const char *name)

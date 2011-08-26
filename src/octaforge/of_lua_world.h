@@ -62,27 +62,21 @@ namespace lua_binds
     /* Geometry utilities */
 
     LUA_BIND_DEF(raylos, {
-        vec a(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        vec b(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         vec target;
-
-        bool ret = raycubelos(a, b, target);
-        e.push(ret);
+        e.push(raycubelos(e.get<vec>(1), e.get<vec>(2), target));
     })
 
     LUA_BIND_DEF(raypos, {
-        vec o(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-        vec ray(e.get<double>(4), e.get<double>(5), e.get<double>(6));
         vec hitpos(0);
-
-        e.push(raycubepos(o, ray, hitpos, e.get<double>(7), RAY_CLIPMAT|RAY_POLY));
+        e.push(raycubepos(
+            e.get<vec>(1), e.get<vec>(2),
+            hitpos, e.get<double>(3), RAY_CLIPMAT|RAY_POLY
+        ));
     })
 
     LUA_BIND_DEF(rayfloor, {
-        vec o(e.get<double>(1), e.get<double>(2), e.get<double>(3));
         vec floor(0);
-
-        e.push(rayfloor(o, floor, 0, e.get<double>(4)));
+        e.push(rayfloor(e.get<vec>(1), floor, 0, e.get<double>(2)));
     })
 
     LUA_BIND_CLIENT(gettargetpos, {
@@ -102,17 +96,15 @@ namespace lua_binds
     /* World */
 
     LUA_BIND_DEF(iscolliding, {
-        vec pos(e.get<double>(1), e.get<double>(2), e.get<double>(3));
-
         // TODO: Make faster, avoid this lookup
-        CLogicEntity *ignore = e.get<int>(5) != -1 ? LogicSystem::getLogicEntity(e.get<int>(5)) : NULL;
+        CLogicEntity *ignore = e.get<int>(3) != -1 ? LogicSystem::getLogicEntity(e.get<int>(3)) : NULL;
         physent tester;
         tester.reset();
         tester.type = ENT_BOUNCE;
-        tester.o = pos;
-        tester.radius = tester.xradius = tester.yradius = e.get<double>(4);
-        tester.eyeheight = e.get<double>(4);
-        tester.aboveeye = e.get<double>(4);
+        tester.o = e.get<vec>(1);
+        tester.radius = tester.xradius = tester.yradius = e.get<double>(2);
+        tester.eyeheight = e.get<double>(2);
+        tester.aboveeye = e.get<double>(2);
 
         if (!collide(&tester, vec(0, 0, 0)))
         {
@@ -140,7 +132,7 @@ namespace lua_binds
         GRAVITY = e.get<double>(1);
     })
 
-    LUA_BIND_DEF(getmat, e.push(lookupmaterial(vec(e.get<double>(1), e.get<double>(2), e.get<double>(3))));)
+    LUA_BIND_DEF(getmat, e.push(lookupmaterial(e.get<vec>(1)));)
 
     // TODO: REMOVE THESE
     #define addimplicit(f)  { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }
@@ -171,9 +163,16 @@ namespace lua_binds
     LUA_BIND_STD(entcopy, entcopy)
     LUA_BIND_STD(entpaste, entpaste)
     LUA_BIND_STD(enthavesel, addimplicit, e.push(entgroup.length()))
-    LUA_BIND_DEF(entselect, if (!noentedit()) addgroup(ent.type != ET_EMPTY && entgroup.find(n)<0 && e.exec<bool>(e.get<const char*>(1)) == true);)
-    LUA_BIND_DEF(entloop, if(!noentedit()) addimplicit(groupeditloop(((void)ent, e.exec(e.get<const char*>(1)))));)
-    LUA_BIND_DEF(insel, entfocus(efocus, e.push(pointinsel(sel, ent.o)));)
+    LUA_BIND_DEF(entselect, {
+            if (!noentedit())
+            {
+                e.push_index(1).call(0, 1);
+                addgroup(ent.type != ET_EMPTY && entgroup.find(n)<0 && e.get<bool>(-1) == true);
+                e.pop(1);
+            }
+    })
+    LUA_BIND_DEF(entloop, if(!noentedit()) addimplicit(groupeditloop(((void)ent, e.push_index(1), e.call(0, 0))));)
+    LUA_BIND_DEF(insel, entfocus(efocus, e.push(pointinsel(sel, ent.o) ? true : false));)
     LUA_BIND_DEF(entget, entfocus(efocus, string s; printent(ent, s); e.push(s));)
     LUA_BIND_STD(entindex, e.push, efocus)
     LUA_BIND_STD(entset, entset, e.get<char*>(1), e.get<int*>(2), e.get<int*>(3), e.get<int*>(4), e.get<int*>(5), e.get<int*>(6))
@@ -228,8 +227,8 @@ namespace lua_binds
             return;
         }
         snprintf(
-            buff, sizeof(buff), "%s%c%s",
-            homedir, PATHDIV, buf
+            buff, sizeof(buff), "%s%s",
+            homedir, buf
         );
         snprintf(buf, sizeof(buf), "%s", buff);
         if (fileexists(buf, "r"))
@@ -247,7 +246,7 @@ namespace lua_binds
         char buf [512];
         char buff[512];
         snprintf(buf,  sizeof(buf),  "data%cbase", PATHDIV);
-        snprintf(buff, sizeof(buff), "%s%c%s", homedir, PATHDIV, buf);
+        snprintf(buff, sizeof(buff), "%s%s", homedir, buf);
 
         e.t_new();
         listdir(buf, false, NULL, glob);

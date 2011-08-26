@@ -1,14 +1,14 @@
 module("dynamic_lights", package.seeall)
 
-dynamic_light = entity_classes.reg(plugins.bake(entity_static.world_marker, {{
+dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker, {{
     _class = "dynamic_light",
 
     should_act = { client = true },
     properties = {
-        attr1 = state_variables.state_integer({ guiname = "radius", altname = "radius" }),
-        attr2 = state_variables.state_integer({ guiname = "red",    altname = "red"    }),
-        attr3 = state_variables.state_integer({ guiname = "green",  altname = "green"  }),
-        attr4 = state_variables.state_integer({ guiname = "blue",   altname = "blue"   }),
+        attr1 = state_variables.state_integer({ gui_name = "radius", alt_name = "radius" }),
+        attr2 = state_variables.state_integer({ gui_name = "red",    alt_name = "red"    }),
+        attr3 = state_variables.state_integer({ gui_name = "green",  alt_name = "green"  }),
+        attr4 = state_variables.state_integer({ gui_name = "blue",   alt_name = "blue"   }),
 
         radius = state_variables.variable_alias("attr1"),
         red    = state_variables.variable_alias("attr2"),
@@ -25,10 +25,12 @@ dynamic_light = entity_classes.reg(plugins.bake(entity_static.world_marker, {{
 
     dynamic_light_show = function(self, seconds)
         CAPI.adddynlight(
-            self.position.x, self.position.y, self.position.z,
-            self.radius,
-            self.red, self.green, self.blue,
-            0, 0, 0, 0, 0, 0, 0
+            self.position, self.radius,
+            math.vec3(
+                self.red / 255, self.green / 255, self.blue / 255
+            ),
+            0, 0, 0, 0,
+            math.vec3(0, 0, 0)
         )
     end,
 
@@ -37,7 +39,7 @@ dynamic_light = entity_classes.reg(plugins.bake(entity_static.world_marker, {{
     end
 }}), "playerstart")
 
-entity_classes.reg(plugins.bake(dynamic_light, {{
+entity_classes.register(plugins.bake(dynamic_light, {{
     _class = "flickering_dynamic_light",
 
     properties = {
@@ -62,11 +64,12 @@ entity_classes.reg(plugins.bake(dynamic_light, {{
             self.delay = math.max(math.random() * self.max_delay, self.min_delay) * 2
             if math.random() < self.probability then
                 CAPI.adddynlight(
-                    self.position.x, self.position.y, self.position.z,
-                    self.radius,
-                    self.red, self.green, self.blue,
-                    self.delay * 1000, 0, math.lsh(1, 2),
-                    0, 0, 0, 0
+                    self.position, self.radius,
+                    math.vec3(
+                        self.red / 255, self.green / 255, self.blue / 255
+                    ),
+                    self.delay * 1000, 0, math.lsh(1, 2), 0,
+                    math.vec3(0, 0, 0)
                 )
             end
         end

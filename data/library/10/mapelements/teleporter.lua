@@ -15,7 +15,7 @@ plugin = {
 
     client_on_collision = function(self, collider)
         if self.destination >= 1 then
-            local destinations = entity_store.get_all_bytag("teledest_" .. self.destination)
+            local destinations = entity_store.get_all_by_tag("teledest_" .. self.destination)
             if #destinations == 0 then
                 logging.log(logging.ERROR, "No teleport destination found.")
                 return nil
@@ -33,7 +33,7 @@ plugin = {
     end,
 }
 
-entity_classes.reg(
+entity_classes.register(
     plugins.bake(
         entity_static.area_trigger,
         { plugin }

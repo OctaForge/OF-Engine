@@ -38,122 +38,126 @@ fullconfilter = 0xFFFF -- display all messages in full console
 
 -- WSAD
 
-input.bind("W", function() input.forward() end)
-input.bind("S", function() input.backward() end)
-input.bind("A", function() input.strafe_left() end)
-input.bind("D", function() input.strafe_right() end)
+input.bind("W", [[input.forward()]])
+input.bind("S", [[input.backward()]])
+input.bind("A", [[input.strafe_left()]])
+input.bind("D", [[input.strafe_right()]])
 
-input.bind("UP", function() input.look_up() end)
-input.bind("DOWN", function() input.look_down() end)
-input.bind("LEFT", function() input.turn_left() end)
-input.bind("RIGHT", function() input.turn_right() end)
+input.bind("UP", [[input.look_up()]])
+input.bind("DOWN", [[input.look_down()]])
+input.bind("LEFT", [[input.turn_left()]])
+input.bind("RIGHT", [[input.turn_right()]])
 
-input.bind("SPACE", function() input.jump() end)
+input.bind("SPACE", [[input.jump()]])
 
-input.bind("TAB", function() gui.showscores() end)
+input.bind("TAB", [[gui.show_scores()]])
 
-input.bind("T", function() console.saycommand() end)
---input.bind("T", function() console.sayteamcommand() end)
-input.bind("BACKQUOTE", function() console.saycommand("/") end)
-input.bind("SLASH", function() console.saycommand("/") end)
+input.bind("T", [[console.prompt()]])
+input.bind("BACKQUOTE", [[console.prompt("/")]])
+input.bind("SLASH", [[console.prompt("/")]])
 
-input.bind("E", function() world.edittoggle() end)
-input.bind("F1", function() world.edittoggle() end)
+input.bind("E", [[edit.toggle_mode()]])
+input.bind("F1", [[edit.toggle_mode()]])
 
-input.bind("KP_MINUS", function() console.skip(5) end)
-input.bind("KP_PLUS", function() console.skip(-1000) end)
+input.bind("KP_MINUS", [[console.skip(5)]])
+input.bind("KP_PLUS", [[console.skip(-1000)]])
 
-input.bind_var("PAUSE", "paused")
+input.bind_var_toggle("PAUSE", "paused")
 
-input.bind("F11", function() console.toggle() end)
-input.bind("F12", function() engine.screenshot() end)
+input.bind("F11", [[console.toggle()]])
+input.bind("F12", [[engine.screenshot()]])
 
 -- mouse
 
-input.bind("MOUSE1", function() input.mouse1click() end)
-input.bind("MOUSE2", function() input.mouse2click() end)
-input.bind("MOUSE3", function() input.mouse3click() end)
+input.bind("MOUSE1", [[input.mouse1click()]])
+input.bind("MOUSE2", [[input.mouse2click()]])
+input.bind("MOUSE3", [[input.mouse3click()]])
 
 -- universal scrollwheel + modifier commands:
 
-input.bind("MOUSE4", function() universaldelta(1) end) -- also used for editing, see below
-input.bind("MOUSE5", function() universaldelta(-1) end)
+input.bind("MOUSE4", [[universaldelta(1)]]) -- also used for editing, see below
+input.bind("MOUSE5", [[universaldelta(-1)]])
 
 -- edit binds
 
-input.bind_edit("SPACE", function() world.cancelsel() end)
-input.bind_edit("MOUSE1", function() if blendpaintmode ~= 0 then texture.blendmap.paint() else world.editdrag() end end)
-input.bind_edit("MOUSE3", function() world.selcorners() end)
-input.bind_edit("MOUSE2", function() if blendpaintmode ~= 0 then texture.blendbrush.rotate() else world.editextend() end end)
+input.bind_edit("SPACE", [[edit.cancel_selection()]])
+input.bind_edit("MOUSE1", [[if blendpaintmode ~= 0 then texture.paint_blend_map() else edit.drag() end]])
+input.bind_edit("MOUSE3", [[edit.select_corners()]])
+input.bind_edit("MOUSE2", [[
+    if has_mouse_target == 0 then
+        if blendpaintmode ~= 0 then
+            texture.rotate_blend_brush()
+        else
+            edit.move_selection()
+        end
+    else
+        tgui.show_entity_properties_tab()
+    end
+]])
 
-input.bind_edit("KP_ENTER", function() world.entselect([=[world.insel()]=]) end)
-input.bind_edit("N", function() world.selentfindall() end)
+input.bind_edit("KP_ENTER", [[edit.select_entities([=[edit.in_selection()]=])]])
+-- TODO: replace with proper class-based system
+-- input.bind_edit("N", [[SELECT ALL ENTITIES OF CURRENTLY SELECTED TYPE]])
 
-input.bind_edit("LSHIFT", function() world.editcut() end)
-input.bind_mod_edit("LCTRL", "passthrough")
-input.bind_mod_edit("LALT", "hmapedit")
-input.bind_edit("DELETE", function() world.editdel() end)
+input.bind_edit("LSHIFT", [[edit.cut_selection()]])
+input.bind_modifier_edit("LCTRL", "passthrough")
+input.bind_modifier_edit("LALT", "hmapedit")
+input.bind_edit("DELETE", [[edit.delete_selection()]])
 
-input.bind_edit("X", function() world.editflip() end)
-input.bind_edit("C", function() world.editcopy() end)
-input.bind_edit("V", function() world.editpaste() end)
-input.bind_edit("Z", function() world.undo(); passthroughsel = 0 end)
-input.bind_edit("U", function() world.undo(); passthroughsel = 0 end)
-input.bind_edit("I", function() world.redo() end)
-input.bind_edit("H", function() if hmapedit ~= 0 then world.editface(1, -1) else hmapedit = 1 end end)
+input.bind_edit("X", [[edit.flip()]])
+input.bind_edit("C", [[edit.copy()]])
+input.bind_edit("V", [[edit.paste()]])
+input.bind_edit("Z", [[edit.undo(); passthroughsel = 0]])
+input.bind_edit("U", [[edit.undo(); passthroughsel = 0]])
+input.bind_edit("I", [[edit.redo()]])
+input.bind_var_toggle_edit("H", "hmapedit")
 
-input.bind_var_edit("5", "hidehud")
-input.bind_var_edit("6", "entselsnap")
-input.bind_var_edit("7", "outline")
-input.bind_var_edit("8", "wireframe")
-input.bind_var("9", "thirdperson")
-input.bind_var_edit("0", "allfaces")
-input.bind_edit("K", function() world.calclight() end)
-input.bind_var_edit("L", "fullbright")
-input.bind_var_edit("M", "showmat")
+input.bind_var_toggle_edit("5", "hidehud")
+input.bind_var_toggle_edit("6", "entselsnap")
+input.bind_var_toggle_edit("7", "outline")
+input.bind_var_toggle_edit("8", "wireframe")
+input.bind_var_toggle("9", "thirdperson")
+input.bind_var_toggle_edit("0", "allfaces")
+input.bind_edit("K", [[world.calc_light()]])
+input.bind_var_toggle_edit("L", "fullbright")
+input.bind_var_toggle_edit("M", "showmat")
 
-input.bind_edit("PERIOD", function() world.selentedit() end)
+input.bind_edit("F8", [[tgui.show_entities_list()]])
+input.bind_edit("F9", [[echo("%(1)s : %(2)s" % {
+    texture.get_selected_index(),
+    texture.get_slot_name(texture.get_selected_index())
+})]])
 
-input.bind_edit("F9", function() echo("%(1)s : %(2)s" % { texture.getsel(), texture.getname(texture.getsel()) }) end)
+input.bind_edit("G", [[domodifier(1)]])
+input.bind_edit("F", [[domodifier(2)]])
+input.bind_edit("Q", [[domodifier(3)]])
+input.bind_edit("R", [[domodifier(4)]])
+input.bind_edit("Y", [[domodifier(5)]])
+input.bind_edit("B", [[domodifier(6)]])
+input.bind_edit("COMMA", [[domodifier(7); input.on_release(function() camera.center_on_entity() end)]])
 
-input.bind_edit("G", function() domodifier(1) end)
-input.bind_edit("F", function() domodifier(2) end)
-input.bind_edit("Q", function() domodifier(3) end)
-input.bind_edit("R", function() domodifier(4) end)
-input.bind_edit("Y", function() domodifier(6) end)
-input.bind_edit("B", function() domodifier(9) end)
-input.bind_edit("COMMA", function() domodifier(10); input.on_release(function() world.entautoview() end) end)
+input.bind_edit("1", [[domodifier(8)]]) -- vSlot: offset H
+input.bind_edit("2", [[domodifier(9)]]) -- vSlot: offset V
+input.bind_edit("3", [[domodifier(10)]]) -- vSlot: rotate
+input.bind_edit("4", [[domodifier(11)]]) -- vSlot: scale
 
-input.bind_edit("1", function() domodifier(11) end)
-input.bind_edit("2", function() domodifier(12) end)
-input.bind_edit("3", function() domodifier(13) end)
-input.bind_edit("4", function() domodifier(14) end)
-
-input.bind_edit("5", function() domodifier(15) end) -- vSlot: offset H
-input.bind_edit("6", function() domodifier(16) end) -- vSlot: offset V
-input.bind_edit("7", function() domodifier(17) end) -- vSlot: rotate
-input.bind_edit("8", function() domodifier(18) end) -- vSlot: scale
-
-input.bind_edit("LALT", function() multiplier = 10; input.on_release(function() multiplier = 1 end) end)
-input.bind_edit("RALT", function() multiplier2 = 32; input.on_release(function() multiplier2 = 16 end) end)
+input.bind_edit("LALT", [[multiplier = 10; input.on_release(function() multiplier = 1 end)]])
+input.bind_edit("RALT", [[multiplier2 = 32; input.on_release(function() multiplier2 = 16 end)]])
 
 -- blendmap painting
-input.bind_edit("KP0", function() texture.setblendpaintmode(blendpaintmode ~= 0 and 0 or 1) end)
-input.bind_edit("KP1", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(1) else input.left() end end)
-input.bind_edit("KP2", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(2) else input.backward() end end)
-input.bind_edit("KP3", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(3) else input.right() end end)
-input.bind_edit("KP4", function() if blendpaintmode ~= 0 then texture.setblendpaintmode(4) else input.turn_left() end end)
-input.bind_edit("KP5", function() texture.setblendpaintmode(5) end)
-input.bind_edit("KP6", function() input.turn_right() end)
-input.bind_edit("KP8", function() if blendpaintmode ~= 0 then texture.blendbrush.scroll(-1) else input.forward() end end)
-input.bind_edit("KP9", function() texture.blendbrush.scroll(1) end)
+input.bind_edit("KP0", [[texture.set_blend_paint_mode(blendpaintmode ~= 0 and 0 or 1)]])
+input.bind_edit("KP1", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(1) else input.left() end]])
+input.bind_edit("KP2", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(2) else input.backward() end]])
+input.bind_edit("KP3", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(3) else input.right() end]])
+input.bind_edit("KP4", [[if blendpaintmode ~= 0 then texture.set_blend_paint_mode(4) else input.turn_left() end]])
+input.bind_edit("KP5", [[texture.set_blend_paint_mode(5)]])
+input.bind_edit("KP6", [[input.turn_right()]])
+input.bind_edit("KP8", [[if blendpaintmode ~= 0 then texture.scroll_blend_brush(-1) else input.forward() end]])
+input.bind_edit("KP9", [[texture.scroll_blend_brush(1)]])
 
-input.bind("M", function() camera.mouselook() end)
-input.bind_edit("M", function() camera.mouselook() end)
-input.bind_var_edit("0", "showmat")
+input.bind("M", [[camera.mouselook()]])
+input.bind_edit("M", [[camera.mouselook()]])
+input.bind_var_toggle_edit("0", "showmat")
 
-input.bind("PAGEDOWN", function() input.look_up() end)
-input.bind("PAGEDOWN", function() input.look_down() end)
-
-input.bind_edit("MOUSE2", function() world.editextend_intensity() end)
-input.bind_edit("P", function() world.centerent() end)
+input.bind("PAGEDOWN", [[input.look_up()]])
+input.bind("PAGEDOWN", [[input.look_down()]])

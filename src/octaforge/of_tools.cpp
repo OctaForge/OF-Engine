@@ -29,6 +29,7 @@
 
 #include "cube.h"
 #include "of_world.h"
+#include "of_tools.h"
 #include <sys/stat.h>
 
 void writebinds(stream *f);
@@ -209,9 +210,8 @@ namespace tools
         }
         else snprintf(
             buf, sizeof(buf),
-            "%s%cdata%c%s",
-            homedir, PATHDIV,
-            PATHDIV, fname
+            "%sdata%c%s",
+            homedir, PATHDIV, fname
         );
 
         loaded = loadfile(buf, NULL);
@@ -241,6 +241,8 @@ namespace tools
         f->printf("-- automatically written on exit, DO NOT MODIFY\n");
         f->printf("-- delete this file to have %s overwrite these settings\n", game::defaultconfig());
         f->printf("-- modify settings in game, or put settings in %s to override anything\n\n", game::autoexec());
+        f->printf("-- configuration file version\n");
+        f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");
         vector<var::cvar*> varv;
 
@@ -286,12 +288,12 @@ namespace tools
             var::cvar *v = varv[i];
             if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)
             {
-                case var::VAR_I: f->printf("engine.newvar(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;
-                case var::VAR_F: f->printf("engine.newvar(\"%s\", engine.VAR_F, %f)\n", v->name, v->curv.f); break;
+                case var::VAR_I: f->printf("engine.new_var(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;
+                case var::VAR_F: f->printf("engine.new_var(\"%s\", engine.VAR_F, %f)\n", v->name, v->curv.f); break;
                 case var::VAR_S:
                 {
                     if (strstr(v->name, "new_entity_gui_field") || !v->curv.s) continue;
-                    f->printf("engine.newvar(\"%s\", engine.VAR_S, \"", v->name);
+                    f->printf("engine.new_var(\"%s\", engine.VAR_S, \"", v->name);
                     for (size_t sz = 0; sz < strlen(v->curv.s); sz++)
                     {
                         switch (v->curv.s[sz])
@@ -308,19 +310,35 @@ namespace tools
                 }
             }
         }
-        f->printf("\n");
+        f->printf("\nOF_CFG_VERSION_PASSED = true\n");
         delete f;
     }
 
-    bool execcfg(const char *cfgfile)
+    bool execcfg(const char *cfgfile, bool ignore_ret)
     {
         string s;
         copystring(s, cfgfile);
         char *buf = loadfile(path(s), NULL);
         if(!buf) return false;
         lua::engine.exec(buf);
+
+        bool ret = true;
+        if (!ignore_ret)
+        {
+            lua::engine.getg("OF_CFG_VERSION_PASSED");
+            if (!(ret = lua::engine.get<bool>(-1)))
+            {
+                conoutf(
+                    "Your OctaForge config file was too old to run with "
+                    "your current client. Initializing a default set."
+                );
+            }
+            lua::engine.pop(1);
+            lua::engine.push("OF_CFG_VERSION_PASSED").push().setg();
+        }
+
         delete[] buf;
-        return true;
+        return ret;
     }
 
     int currtime()

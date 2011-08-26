@@ -114,8 +114,6 @@ namespace lua_binds
         else e.push();
     })
     LUA_BIND_STD(renderprogress, renderprogress, e.get<float>(1), e.get<const char*>(2))
-    LUA_BIND_STD(getmapversion, e.push, mapversion)
-
     LUA_BIND_STD(edittoggle, toggleedit, false)
     LUA_BIND_STD(entcancel, entcancel)
     LUA_BIND_STD(cubecancel, cubecancel)
@@ -144,7 +142,7 @@ namespace lua_binds
     LUA_BIND_DEF(vdelta, {
         if (noedit() || (nompedit && multiplayer())) return;
         usevdelta++;
-        e.exec(e.get<const char*>(1));
+        e.push_index(1).call(0, 0);
         usevdelta--;
     })
     LUA_BIND_DEF(vrotate, {
@@ -268,7 +266,6 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(requestprivedit, MessageSystem::send_RequestPrivateEditMode)
     LUA_BIND_STD_CLIENT(hasprivedit, e.push, ClientSystem::editingAlone)
 
-    LUA_BIND_STD_CLIENT(resetlightmaps, resetlightmaps, e.get<bool>(1))
     LUA_BIND_STD_CLIENT(calclight, calclight, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(patchlight, patchlight, e.get<int*>(1))
     LUA_BIND_STD_CLIENT(clearlightmaps, clearlightmaps)

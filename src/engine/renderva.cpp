@@ -1756,7 +1756,7 @@ void renderzpass(renderstate &cur, vtxarray *va)
         xtravertsva += 3*numtris;
     }
     else xtravertsva += va->verts;
-    if(!apple_glsldepth_bug)
+    if(renderpath!=R_ASMGLSLANG || !apple_glsldepth_bug)
     {
         nocolorshader->set();
         drawvatris(va, 3*numtris, edata);

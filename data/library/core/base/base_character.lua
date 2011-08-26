@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features character and player entities.
-
-    Section: Character system
 ]]
 
 --[[!
@@ -23,7 +21,7 @@
 module("character", package.seeall)
 
 --[[!
-    Struct: CSTATE
+    Struct: CLIENT_STATE
     Fields of this table represent the current "client state".
 
     Fields:
@@ -34,7 +32,7 @@ module("character", package.seeall)
         EDITING - client is editing.
         SPECTATOR - client is spectator.
 ]]
-CSTATE = {
+CLIENT_STATE = {
     ALIVE = 0,
     DEAD = 1,
     SPAWNING = 2,
@@ -44,7 +42,7 @@ CSTATE = {
 }
 
 --[[!
-    Struct: PSTATE
+    Struct: PHYSICAL_STATE
     Fields of this table represent the current "physical state" of a client.
 
     Fields:
@@ -57,7 +55,7 @@ CSTATE = {
         STEP_DOWN - client is stepping down.
         BOUNCE - client is bouncing.
 ]]
-PSTATE = {
+PHYSICAL_STATE = {
     FLOAT = 0,
     FALL = 1, 
     SLIDE = 2, 
@@ -84,389 +82,635 @@ PSTATE = {
         pitch - character pitch, integer.
         move - -1 when moving backwards, 0 when not, 1 when forward, integer.
         strafe - -1 when strafing left, 1 when right, 0 when not, integer.
+        yawing - -1 when turning left, 1 when right, 0 when not.
+        pitching - -1 when looking down, 1 when up, 0 when not.
         position - character position, vec3 (x, y, z).
         velocity - character velocity, vec3 (x, y, z).
-        falling - character falling, vec3 (x, y, z).
+        falling - character gravity falling, vec3 (x, y, z).
         radius - character bounding box radius, float.
-        aboveeye - distance from position vector to eyes.
-        eyeheight - distance from eyes to feet.
+        above_eye - distance from position vector to eyes.
+        eye_height - distance from eyes to feet.
         blocked - true if character was blocked by obstacle on last
         movement cycle, boolean. Floor is not an obstacle.
-        canmove - if false, character can't move, boolean.
-        mapdefinedposdata - position protocol data specific to current map,
-        see fpsent, integer (TODO: make unsigned)
-        cs - client state, integer. (see CSTATE table)
-        ps - physical state, integer. (see PSTATE table)
-        inwater - 1 if character is underwater, integer.
-        timeinair - time in miliseconds spent in the air, integer (Should be unsigned, TODO)
+        can_move - if false, character can't move, boolean.
+        map_defined_position_data - position protocol data
+        specific to current map, see fpsent, integer (TODO: make unsigned)
+        client_state - client state, integer. (see <CLIENT_STATE>)
+        physical_state - physical state, integer. (see <PHYSICAL_STATE>)
+        in_water - 1 if character is underwater, integer.
+        time_in_air - time in miliseconds spent in the air, integer
+        (Should be unsigned, TODO)
 
     See Also:
         <player>
 ]]
-character = class.new(entity_animated.animatable_logent)
+character = class.new(entity_animated.base_animated, {
+    --[[!
+        Variable: _class
+        The entity class for character. Its value is usually
+        the same as class name, but doesn't have to be.
+    ]]
+    _class = "character",
 
---[[!
-    Variable: _class
-    The entity class for character. Its value is usually
-    the same as class name, but doesn't have to be.
-]]
-character._class = "character"
+    --[[!
+        Variable: sauer_type
+        The sauer type of the entity, fpsent
+        is a dynamic character entity in sauer.
+    ]]
+    sauer_type = "fpsent",
 
---[[!
-    Variable: _sauertype
-    The sauertype of the entity. Fpsent is a dynamic character entity in sauer.
-]]
-character._sauertype = "fpsent"
+    properties = {
+        -- non-wrapped properties
+        _name        = state_variables.state_string (),
+        facing_speed = state_variables.state_integer(),
 
-character.properties = {
-    _name = state_variables.state_string(),
-    facing_speed = state_variables.state_integer(),
+        -- wrapped C properties
+        movement_speed = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getmaxspeed",
+            c_setter = "CAPI.setmaxspeed"
+        }),
+        yaw = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getyaw",
+            c_setter = "CAPI.setyaw",
+            custom_synch = true
+        }),
+        pitch = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getpitch",
+            c_setter = "CAPI.setpitch",
+            custom_synch = true
+        }),
+        move = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getmove",
+            c_setter = "CAPI.setmove",
+            custom_synch = true
+        }),
+        strafe = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getstrafe",
+            c_setter = "CAPI.setstrafe",
+            custom_synch = true
+        }),
+        yawing = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getyawing",
+            c_setter = "CAPI.setyawing",
+            custom_synch = true
+        }),
+        pitching = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getpitching",
+            c_setter = "CAPI.setpitching",
+            custom_synch = true
+        }),
+        position = state_variables.wrapped_c_vec3({
+            c_getter = "CAPI.getdynent0",
+            c_setter = "CAPI.setdynent0",
+            custom_synch = true
+        }),
+        velocity = state_variables.wrapped_c_vec3({
+            c_getter = "CAPI.getdynentvel",
+            c_setter = "CAPI.setdynentvel",
+            custom_synch = true
+        }),
+        falling = state_variables.wrapped_c_vec3({
+            c_getter = "CAPI.getdynentfalling",
+            c_setter = "CAPI.setdynentfalling",
+            custom_synch = true
+        }),
+        radius = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getradius",
+            c_setter = "CAPI.setradius"
+        }),
+        above_eye = state_variables.wrapped_c_float({
+            c_getter = "CAPI.getaboveeye",
+            c_setter = "CAPI.setaboveeye"
+        }),
+        eye_height = state_variables.wrapped_c_float({
+            c_getter = "CAPI.geteyeheight",
+            c_setter = "CAPI.seteyeheight"
+        }),
+        blocked = state_variables.wrapped_c_bool({
+            c_getter = "CAPI.getblocked",
+            c_setter = "CAPI.setblocked"
+        }),
+        can_move = state_variables.wrapped_c_bool({
+            c_setter = "CAPI.setcanmove",
+            client_set = true
+        }),
+        map_defined_position_data = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getmapdefinedposdata",
+            c_setter = "CAPI.setmapdefinedposdata",
+            custom_synch = true
+        }),
+        client_state = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getclientstate",
+            c_setter = "CAPI.setclientstate",
+            custom_synch = true
+        }),
+        physical_state = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getphysstate",
+            c_setter = "CAPI.setphysstate",
+            custom_synch = true
+        }),
+        in_water = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getinwater",
+            c_setter = "CAPI.setinwater",
+            custom_synch = true
+        }),
+        time_in_air = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.gettimeinair",
+            c_setter = "CAPI.settimeinair",
+            custom_synch = true
+        })
+    },
 
-    movement_speed = state_variables.wrapped_cfloat({ cgetter = "CAPI.getmaxspeed", csetter = "CAPI.setmaxspeed" }),
-    yaw = state_variables.wrapped_cfloat({ cgetter = "CAPI.getyaw", csetter = "CAPI.setyaw", customsynch = true }),
-    pitch = state_variables.wrapped_cfloat({ cgetter = "CAPI.getpitch", csetter = "CAPI.setpitch", customsynch = true }),
-    move = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmove", csetter = "CAPI.setmove", customsynch = true }),
-    strafe = state_variables.wrapped_cinteger({ cgetter = "CAPI.getstrafe", csetter = "CAPI.setstrafe", customsynch = true }),
-    yawing = state_variables.wrapped_cinteger({ cgetter = "CAPI.getyawing", csetter = "CAPI.setyawing", customsynch = true }),
-    pitching = state_variables.wrapped_cinteger({ cgetter = "CAPI.getpitching", csetter = "CAPI.setpitching", customsynch = true }),
-    position = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynent0", csetter = "CAPI.setdynent0", customsynch = true }),
-    velocity = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentvel", csetter = "CAPI.setdynentvel", customsynch = true }),
-    falling = state_variables.wrapped_cvec3({ cgetter = "CAPI.getdynentfalling", csetter = "CAPI.setdynentfalling", customsynch = true }),
-    radius = state_variables.wrapped_cfloat({ cgetter = "CAPI.getradius", csetter = "CAPI.setradius" }),
-    aboveeye = state_variables.wrapped_cfloat({ cgetter = "CAPI.getaboveeye", csetter = "CAPI.setaboveeye" }),
-    eyeheight = state_variables.wrapped_cfloat({ cgetter = "CAPI.geteyeheight", csetter = "CAPI.seteyeheight" }),
-    blocked = state_variables.wrapped_cbool({ cgetter = "CAPI.getblocked", csetter = "CAPI.setblocked" }),
-    canmove = state_variables.wrapped_cbool({ csetter = "CAPI.setcanmove", clientset = true }),
-    mapdefinedposdata = state_variables.wrapped_cinteger({ cgetter = "CAPI.getmapdefinedposdata", csetter = "CAPI.setmapdefinedposdata", customsynch = true }),
-    cs = state_variables.wrapped_cinteger({ cgetter = "CAPI.getclientstate", csetter = "CAPI.setclientstate", customsynch = true }),
-    ps = state_variables.wrapped_cinteger({ cgetter = "CAPI.getphysstate", csetter = "CAPI.setphysstate", customsynch = true }),
-    inwater = state_variables.wrapped_cinteger({ cgetter = "CAPI.getinwater", csetter = "CAPI.setinwater", customsynch = true }),
-    timeinair = state_variables.wrapped_cinteger({ cgetter = "CAPI.gettimeinair", csetter = "CAPI.settimeinair", customsynch = true })
-}
+    --[[!
+        Function: jump
+        This is handler called when a character jumps.
+    ]]
+    jump = function(self)
+        CAPI.setjumping(self, true)
+    end,
 
---[[!
-    Function: jump
-    This is handler called when a character jumps.
-]]
-function character:jump()
-    CAPI.setjumping(self, true)
-end
+    --[[!
+        Function: init
+        This is serverside initializer. It's called right on creation, when
+        the entity is still not fully ready. Kwargs listed here are the ones
+        that are specific to this class.
 
---[[!
-    Function: init
-    This is serverside initializer. It's called right on creation, when
-    the entity is still not fully ready. Kwargs listed here are the ones
-    that are specific to this class.
+        Parameters:
+            uid - character unique ID.
+            kwargs - additional parameters.
 
-    Parameters:
-        uid - character unique ID.
-        kwargs - additional parameters.
+        Kwargs:
+            cn - Client number. Passed automatically.
 
-    Kwargs:
-        cn - Client number. Passed automatically.
+        See Also:
+            <base_animated.init>
+            <activate>
+    ]]
+    init = function(self, uid, kwargs)
+        logging.log(logging.DEBUG, "character:init")
+        entity_animated.base_animated.init(self, uid, kwargs)
 
-    See Also:
-        <animatable_logent.init>
-        <activate>
-]]
-function character:init(uid, kwargs)
-    logging.log(logging.DEBUG, "character:init")
-    entity_animated.animatable_logent.init(self, uid, kwargs)
+        -- initial properties set by server, _name is set even later
+        self._name          = "-?-"
+        self.cn             = kwargs and kwargs.cn or -1
+        self.model_name     = "player"
+        self.eye_height     = 14.0
+        self.above_eye      = 1.0
+        self.movement_speed = 50.0
+        self.facing_speed   = 120
+        self.position       = { 512, 512, 550 }
+        self.radius         = 3.0
+        self.can_move       = true
 
-    self._name = "-?-" -- set by the server later
-    self.cn = kwargs and kwargs.cn or -1
-    self.modelname = "player"
-    self.eyeheight = 14.0
-    self.aboveeye = 1.0
-    self.movement_speed = 50.0
-    self.facing_speed = 120
-    self.position = { 512, 512, 550 }
-    self.radius = 3.0
-    self.canmove = true
+        -- useful getters / setters for scoreboard
+        self:define_getter("plag", function() return CAPI.getplag(self) end)
+        self:define_getter("ping", function() return CAPI.getping(self) end)
+    end,
 
-    self:define_getter("plag", function() return CAPI.getplag(self) end)
-    self:define_getter("ping", function() return CAPI.getping(self) end)
-end
+    --[[!
+        Function: activate
+        This is serverside activator. Unlike <init>, it's called when
+        entity is almost ready. Kwargs listed here are the ones
+        that are specific to this class.
 
---[[!
-    Function: activate
-    This is serverside activator. Unlike <init>, it's called when
-    entity is almost ready. Kwargs listed here are the ones
-    that are specific to this class.
+        Parameters:
+            kwargs - additional parameters.
 
-    Parameters:
-        kwargs - additional parameters.
+        Kwargs:
+            cn - Client number. Passed automatically.
 
-    Kwargs:
-        cn - Client number. Passed automatically.
+        See Also:
+            <base_animated.activate>
+            <client_activate>
+            <init>
+    ]]
+    activate = function(self, kwargs)
+        logging.log(logging.DEBUG, "character:activate")
 
-    See Also:
-        <animatable_logent.activate>
-        <client_activate>
-        <init>
-]]
-function character:activate(kwargs)
-    logging.log(logging.DEBUG, "character:activate")
-    self.cn = kwargs and kwargs.cn or -1
-    assert(self.cn >= 0)
+        -- client number is set when character gets activated
+        -- once again, asserting valid value
+        self.cn = kwargs and kwargs.cn or -1
+        assert(self.cn >= 0)
 
-    CAPI.setupcharacter(self)
-    entity_animated.animatable_logent.activate(self, kwargs)
-    self:_flush_queued_sv_changes()
+        -- we set up character sauer-side now
+        CAPI.setupcharacter(self)
 
-    logging.log(logging.DEBUG, "character:activate complete.")
-end
+        -- we activate parent and flush variable changes
+        entity_animated.base_animated.activate(self, kwargs)
+        self:flush_queued_state_variable_changes()
 
---[[!
-    Function: client_activate
-    This is clientside activator. It's called when
-    entity is almost ready. Kwargs listed here are the ones
-    that are specific to this class.
+        logging.log(logging.DEBUG, "character:activate complete.")
+    end,
 
-    Parameters:
-        kwargs - additional parameters.
+    --[[!
+        Function: client_activate
+        This is clientside activator. It's called when
+        entity is almost ready. Kwargs listed here are the ones
+        that are specific to this class.
 
-    Kwargs:
-        cn - Client number. Passed automatically.
+        Parameters:
+            kwargs - additional parameters.
 
-    See Also:
-        <client_logent.client_activate>
-        <activate>
-]]
-function character:client_activate(kwargs)
-    entity_animated.animatable_logent.client_activate(self, kwargs)
-    self.cn = kwargs and kwargs.cn or -1
-    CAPI.setupcharacter(self)
+        Kwargs:
+            cn - Client number. Passed automatically.
 
-    self.rendering_args_timestamp = -1
-end
+        See Also:
+            <base_client.client_activate>
+            <activate>
+    ]]
+    client_activate = function(self, kwargs)
+        entity_animated.base_animated.client_activate(self, kwargs)
 
---[[!
-    Function: deactivate
-    This is serverside deactivator.
-    Ran when the entity is about to vanish.
-]]
-function character:deactivate()
-    CAPI.dismantlecharacter(self)
-    entity_animated.animatable_logent.deactivate(self)
-end
+        -- we assert the client number on client as well
+        self.cn = kwargs and kwargs.cn or -1
+        CAPI.setupcharacter(self)
 
---[[!
-    Function: client_deactivate
-    This is clientside deactivator.
-    Ran when the entity is about to vanish.
-]]
-function character:client_deactivate()
-    CAPI.dismantlecharacter(self)
-    entity_animated.animatable_logent.client_deactivate(self)
-end
+        -- and reset the timestamp
+        self.rendering_args_timestamp = -1
+    end,
 
---[[!
-    Function: act
-    This is a function ran serverside every frame.
+    --[[!
+        Function: deactivate
+        This is serverside deactivator.
+        Ran when the entity is about to vanish.
+    ]]
+    deactivate = function(self)
+        -- we dismantle character and call parent deactivation
+        CAPI.dismantlecharacter(self)
+        entity_animated.base_animated.deactivate(self)
+    end,
 
-    Parameters:
-        sec - Length of time to simulate.
+    --[[!
+        Function: client_deactivate
+        This is clientside deactivator.
+        Ran when the entity is about to vanish.
+    ]]
+    client_deactivate = function(self)
+        -- we dismantle client-side character
+        -- and call parent deactivation
+        CAPI.dismantlecharacter(self)
+        entity_animated.base_animated.client_deactivate(self)
+    end,
 
-    See Also:
-        <default_action>
-]]
-function character:act(sec)
-    if self.action_system:isempty() then
-        self:default_action(sec)
-    else
-        entity_animated.animatable_logent.act(self, sec)
-    end
-end
+    --[[!
+        Function: act
+        This is a function ran serverside every frame.
 
---[[!
-    Function: default_action
-    This is ran serverside by <act> if the action queue
-    is empty. Override however you need, it does nothing
-    by default.
+        Parameters:
+            seconds - Length of time to simulate.
 
-    Parameters:
-        sec - Length of time to simulate.
+        See Also:
+            <default_action>
+    ]]
+    act = function(self, seconds)
+        -- if we're empty, we run default_action, which
+        -- does nothing by default (but can be overriden)
+        if self.action_system:is_empty() then
+            self:default_action(seconds)
+        else
+            -- otherwise we act on parent
+            entity_animated.base_animated.act(self, seconds)
+        end
+    end,
 
-    See Also:
-        <act>
-]]
-function character:default_action(sec)
-end
+    --[[!
+        Function: default_action
+        This is ran serverside by <act> if the action queue
+        is empty. Override however you need, it does nothing
+        by default.
 
---[[!
-    Function: render_dynamic
-    Clientside function ran every frame. It takes care of
-    actually rendering the character model.
-    It does computation of parameters, but caches them
-    so it remains fast.
+        Parameters:
+            seconds - Length of time to simulate.
 
-    Parameters:
-        hudpass - true if we're rendering HUD right now.
-        needhud - true if model should be shown as HUD model
-        (== we're in first person)
-]]
-function character:render_dynamic(hudpass, needhud)
-    if not self.initialized then return nil end
-    if not hudpass and needhud then return nil end
+        See Also:
+            <act>
+    ]]
+    default_action = function(self, seconds)
+    end,
 
-    if self.rendering_args_timestamp ~= entity_store.curr_timestamp then
-        local state = self.cs
-        if state == CSTATE.SPECTAROR or state == CSTATE.SPAWNING then return nil end
+    --[[!
+        Function: render_dynamic
+        Clientside function ran every frame. It takes care of
+        actually rendering the character model.
+        It does computation of parameters, but caches them
+        so it remains fast.
+        If we're rendering a HUD model and the character has
+        member variable hud_model_offset, which is a vec3,
+        we can offset the HUD model that way.
 
-        local mdlname = (hudpass and needhud) and self.hud_modelname or self.modelname
-        local yaw = self.yaw + 90
-        local pitch = self.pitch
-        local o = self.position:copy()
-        
-        if hudpass and needhud and self.hud_modeloffset then o:add(self.hud_modeloffset) end
-        local basetime = self.starttime
-        local physstate = self.ps
-        local inwater = self.inwater
-        local move = self.move
-        local strafe = self.strafe
-        local vel = self.velocity:copy()
-        local falling = self.falling:copy()
-        local timeinair = self.timeinair
-        local anim = self:decide_animation(state, physstate, move, strafe, vel, falling, inwater, timeinair)
-        local flags = self:get_renderingflags(hudpass, needhud)
+        Parameters:
+            hudpass - true if we're rendering HUD right now.
+            needhud - true if model should be shown as HUD model
+            (== we're in first person)
+    ]]
+    render_dynamic = function(self, hudpass, needhud)
+        -- just return if we're not yet initialized or shouldn't render
+        if not self.initialized    then return nil end
+        if not hudpass and needhud then return nil end
 
-        self.rendering_args = { self, mdlname, anim, o.x, o.y, o.z, yaw, pitch, flags, basetime }
-        self.rendering_args_timestamp = GLOBAL_CURRENT_TIMESTAMP
-    end
+        -- re-generate the parameters if timestamp changed - efficiency
+        if self.rendering_args_timestamp ~= GLOBAL_CURRENT_TIMESTAMP then
+            -- this is current client state, used when deciding animation
+            local state = self.client_state
 
-    -- render only when model is set
-    if self.rendering_args[2] ~= "" then model.render(unpack(self.rendering_args)) end
-end
+            -- if we're spectator or not spawned yet,
+            -- then we don't render and return
+            if state == CLIENT_STATE.SPECTAROR
+            or state == CLIENT_STATE.SPAWNING then
+                return nil
+            end
 
---[[!
-    Function: get_renderingflags
-    This function is used by <render_dynamic> to get model rendering flags.
-    By default, it enables some occlusion and dynamic shadow.
-    It as well enables some HUD-specific flags for HUD models.
+            -- select model name according to if we
+            -- want to firstperson model or thirdperson model
+            local mdlname = (hudpass and needhud)
+                and self.hud_model_name
+                or self.model_name
 
-    Parameters:
-        hudpass - true if we're rendering HUD right now.
-        needhud - true if model should be shown as HUD model
-        (== we're in first person)
+            -- player yaw, rotated by 90° to remain
+            -- compatible with sauer characters
+            local yaw = self.yaw + 90
 
-    Returns:
-        Resulting rendering flags.
+            -- player pitch
+            local pitch = self.pitch
 
-    See Also:
-        <render_dynamic>
-]]
-function character:get_renderingflags(hudpass, needhud)
-    local flags = math.bor(model.LIGHT, model.DYNSHADOW, model.FULLBRIGHT)
-    if self ~= entity_store.get_plyent() then
-        flags = math.bor(flags, model.CULL_VFC, model.CULL_OCCLUDED, model.CULL_QUERY)
-    end
-    if hudpass and needhud then
-        flags = math.bor(flags, model.HUD)
-    end
-    return flags -- TODO: for non-characters, use flags = math.bor(flags, model.CULL_DIST)
-end
+            -- player position
+            local o = self.position:copy()
 
---[[!
-    Function: decide_animation
-    This function is used by <render_dynamic> to get current model animation.
-    This is guessed from values like strafe, move, inwater etc.
+            -- we support offseting on HUD models, not used by default
+            if hudpass and needhud and self.hud_model_offset then
+                o:add(self.hud_model_offset)
+            end
 
-    Parameters:
-        state - Current client state (see <CSTATE>)
-        pstate - Current physical state (see <PSTATE>)
-        move - Whether character is moving currently and which direction (1, 0, -1)
-        strafe - Whether character is strafing currently and which direction (1, 0, -1)
-        vel - Current character velocity (vec3)
-        falling - Current character falling (vec3)
-        inwater - Whether character is in water (1, 0)
-        timeinair - Time character is in air.
+            -- time when we start rendering
+            local basetime = self.start_time
 
-    Returns:
-        Resulting animation.
+            -- character physical state, for animation deciding
+            local physstate = self.physical_state
 
-    See Also:
-        <render_dynamic>
-]]
-function character:decide_animation(state, pstate, move, strafe, vel, falling, inwater, timeinair)
-    -- same naming convention as rendermodel.cpp in cube 2
-    local anim = self:decide_action_animation()
+            -- are we in water? for swimming animation
+            local in_water = self.in_water
 
-    if state == CSTATE.EDITING or state == CSTATE.SPECTATOR then
-        anim = math.bor(actions.ANIM_EDIT, actions.ANIM_LOOP)
-    elseif state == CSTATE.LAGGED then
-        anim = math.bor(actions.ANIM_LAG, actions.ANIM_LOOP)
-    else
-        if inwater ~= 0 and pstate <= PSTATE.FALL then
-            anim = math.bor(anim, math.lsh(math.bor(((move or strafe) or vel.z + falling.z > 0) and actions.ANIM_SWIM or actions.ANIM_SINK, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
-        elseif timeinair > 250 then
-            anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_JUMP, actions.ANIM_END), actions.ANIM_SECONDARY))
-        elseif move ~= 0 or strafe ~= 0 then
-            if move > 0 then
-                anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_FORWARD, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
-            elseif strafe ~= 0 then
-                anim = math.bor(anim, math.lsh(math.bor((strafe > 0 and ANIM_LEFT or ANIM_RIGHT), actions.ANIM_LOOP), actions.ANIM_SECONDARY))
-            elseif move < 0 then
-                anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_BACKWARD, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
+            -- save whether we're moving or strafing and which direction
+            local move   = self.move
+            local strafe = self.strafe
+
+            -- save character velocity and falling as well
+            local vel     = self.velocity:copy()
+            local falling = self.falling:copy ()
+
+            -- how long are we in air? for, again, animation deciding
+            local time_in_air = self.time_in_air
+
+            -- finally decide the animation
+            local anim = self:decide_animation(
+                state, physstate, move, strafe,
+                vel, falling, in_water, time_in_air
+            )
+
+            -- and rendering flags (dynamic shadow, culling etc.)
+            local flags = self:get_rendering_flags(hudpass, needhud)
+
+            -- create a table of rendering arguments
+            -- and save a timestamp for caching
+            self.rendering_args = {
+                self, mdlname, anim, o,
+                yaw, pitch, flags, basetime
+            }
+            self.rendering_args_timestamp = GLOBAL_CURRENT_TIMESTAMP
+        end
+
+        -- render only when model is set using the rendering arguments table
+        if self.rendering_args[2] ~= "" then
+            model.render(unpack(self.rendering_args))
+        end
+    end,
+
+    --[[!
+        Function: get_rendering_flags
+        This function is used by <render_dynamic> to get model rendering flags.
+        By default, it enables some occlusion and dynamic shadow.
+        It as well enables some HUD-specific flags for HUD models.
+
+        Parameters:
+            hudpass - true if we're rendering HUD right now.
+            needhud - true if model should be shown as HUD model
+            (== we're in first person)
+
+        Returns:
+            Resulting rendering flags.
+
+        See Also:
+            <render_dynamic>
+    ]]
+    get_rendering_flags = function(self, hudpass, needhud)
+        -- we use dynamic shadow and lighting always.
+        local flags = math.bor(model.LIGHT, model.DYNSHADOW, model.FULLBRIGHT)
+
+        -- for non-player, we add some culling flags
+        if self ~= entity_store.get_player_entity() then
+            flags = math.bor(
+                flags,
+                model.CULL_VFC,
+                model.CULL_OCCLUDED,
+                model.CULL_QUERY
+            )
+        end
+
+        -- for hud models, we set hud flag
+        if hudpass and needhud then
+            flags = math.bor(flags, model.HUD)
+        end
+
+        -- return final flags
+        return flags
+    end,
+
+    --[[!
+        Function: decide_animation
+        This function is used by <render_dynamic>
+        to get current model animation. This is guessed
+        from values like strafe, move, in_water etc.
+
+        Parameters:
+            state - Current client state (see <CLIENT_STATE>)
+            pstate - Current physical state (see <PHYSICAL_STATE>)
+            move - Whether character is moving currently
+            and which direction (1, 0, -1)
+            strafe - Whether character is strafing currently
+            and which direction (1, 0, -1)
+            vel - Current character velocity (vec3)
+            falling - Current character falling (vec3)
+            in_water - Whether character is in water (1, 0)
+            time_in_air - Time character is in air.
+
+        Returns:
+            Resulting animation.
+
+        See Also:
+            <render_dynamic>
+    ]]
+    decide_animation = function(
+        self, state, pstate,
+        move, strafe, vel,
+        falling, in_water, time_in_air
+    )
+        -- decide action animation - by default
+        -- just returns self.animation, but can be overriden
+        local anim = self:decide_action_animation()
+
+        if state == CLIENT_STATE.EDITING
+        or state == CLIENT_STATE.SPECTATOR then
+            -- in editing and spec mode, use edit animation and loop it
+            anim = math.bor(actions.ANIM_EDIT, actions.ANIM_LOOP)
+        elseif state == CLIENT_STATE.LAGGED then
+            -- in lagged state, loop lag animation
+            anim = math.bor(actions.ANIM_LAG, actions.ANIM_LOOP)
+        else
+            -- more complex deciding
+            if in_water ~= 0 and pstate <= PHYSICAL_STATE.FALL then
+                -- in water, decide either swimming
+                -- or sinking secondary animation
+                anim = math.bor(
+                    anim,
+                    math.lsh(
+                        math.bor(
+                            ((move or strafe) or vel.z + falling.z > 0)
+                                and actions.ANIM_SWIM
+                                or  actions.ANIM_SINK,
+                            actions.ANIM_LOOP
+                        ),
+                        actions.ANIM_SECONDARY
+                    )
+                )
+            elseif time_in_air > 250 then
+                -- jumping secondary animation gets decided,
+                -- if we're in air for more than 250 miliseconds
+                anim = math.bor(
+                    anim,
+                    math.lsh(
+                        math.bor(
+                            actions.ANIM_JUMP,
+                            actions.ANIM_END
+                        ),
+                        actions.ANIM_SECONDARY
+                    )
+                )
+            elseif move ~= 0 or strafe ~= 0 then
+                -- if we're moving or strafing, decide appropriate animations
+                if move > 0 then
+                    -- if we're moving forward, loop
+                    -- secondary forward animation
+                    anim = math.bor(
+                        anim,
+                        math.lsh(
+                            math.bor(actions.ANIM_FORWARD, actions.ANIM_LOOP),
+                            actions.ANIM_SECONDARY
+                        )
+                    )
+                elseif strafe ~= 0 then
+                    -- if we're strafing any direction, but not
+                    -- moving forward, loop secondary strafe animation
+                    anim = math.bor(
+                        anim,
+                        math.lsh(
+                            math.bor(
+                                (strafe > 0 and ANIM_LEFT or ANIM_RIGHT),
+                                actions.ANIM_LOOP
+                            ),
+                            actions.ANIM_SECONDARY
+                        )
+                    )
+                elseif move < 0 then
+                    -- if we're moving backwards with no strafe,
+                    -- loop secondary backward animation
+                    anim = math.bor(
+                        anim,
+                        math.lsh(
+                            math.bor(actions.ANIM_BACKWARD, actions.ANIM_LOOP),
+                            actions.ANIM_SECONDARY
+                        )
+                    )
+                end
+            end
+
+            if  math.band(anim, actions.ANIM_INDEX) == actions.ANIM_IDLE
+            and math.band(
+                math.rsh(anim, actions.ANIM_SECONDARY),
+                actions.ANIM_INDEX
+            ) ~= 0 then
+                anim = math.rsh(anim, actions.ANIM_SECONDARY)
             end
         end
 
-        if math.band(anim, actions.ANIM_INDEX) == actions.ANIM_TITLE and math.band(math.rsh(anim, actions.ANIM_SECONDARY), actions.ANIM_INDEX) then
-            anim = math.rsh(anim, actions.ANIM_SECONDARY)
+        if math.band(
+            math.rsh(anim, actions.ANIM_SECONDARY),
+            actions.ANIM_INDEX
+        ) == 0 then
+            anim = math.bor(
+                anim,
+                math.lsh(
+                    math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
+                    actions.ANIM_SECONDARY
+                )
+            )
         end
+
+        return anim
+    end,
+
+    --[[!
+        Function: decide_action_animation
+        Returns the "action" animation to show. Does not handle things like
+        in_water, lag, etc which are handled in decide_animation.
+
+        Returns:
+            By default, simply returns self.animation,
+            but can be overriden to handle more complex
+            things like taking into account map-specific
+            information in map_defined_position_data.
+
+        See Also:
+            <decide_animation>
+    ]]
+    decide_action_animation = function(self)
+        return self.animation
+    end,
+
+    --[[!
+        Function: get_center
+        Gets center position of character, something like gravity center.
+        For example AI bots would better aim at this point instead of
+        "position" which is feet position. Override if your center is
+        nonstandard. By default, it's 0.75 * eye_height above feet.
+
+        Returns:
+            Center position which is a vec3.
+    ]]
+    get_center = function(self)
+        local r = self.position:copy()
+        r.z = r.z + self.eye_height * 0.75
+        return r
+    end,
+
+    --[[!
+        Function: is_on_floor
+        Gets whether the character is on floor.
+
+        Returns:
+            true if character is on floor, false otherwise.
+    ]]
+    is_on_floor = function(self)
+        if floor_dist(self.position, 1024) < 1 then
+            return true
+        end
+
+        if self.velocity.z < -1 or self.falling.z < -1 then
+            return false
+        end
+
+        return geometry.is_colliding(self.position, self.radius + 2, self)
     end
-
-    if math.band(math.rsh(anim, actions.ANIM_SECONDARY), actions.ANIM_INDEX) == 0 then
-        anim = math.bor(anim, math.lsh(math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP), actions.ANIM_SECONDARY))
-    end
-
-    return anim
-end
-
---[[!
-    Function: decide_action_animation
-    Returns the "action" animation to show. Does not handle things like
-    inwater, lag, etc which are handled in decide_animation.
-
-    Returns:
-        By default, simply returns self.animation, but can be overriden to handle more complex
-        things like taking into account map-specific information in mapdefinedposdata.
-
-    See Also:
-        <decide_animation>
-]]
-function character:decide_action_animation()
-    return self.animation
-end
-
---[[!
-    Function: decide_action_animation
-    Gets center position of character, something like gravity center.
-    For example AI bots would better aim at this point instead of "position"
-    which is feet position. Override if your center is nonstandard.
-    By default, it's 0.75 * eyeheight above feet.
-
-    Returns:
-        Center position which is a vec3.
-]]
-function character:get_center()
-    local r = self.position:copy()
-    r.z = r.z + self.eyeheight * 0.75
-    return r
-end
-
---[[!
-    Function: is_onfloor
-    Gets whether the character is on floor.
-
-    Returns:
-        true if character is on floor, false otherwise.
-]]
-function character:is_onfloor()
-    if floor_dist(self.position, 1024) < 1 then return true end
-    if self.velocity.z < -1 or self.falling.z < -1 then return false end
-    return utility.iscolliding(self.position, self.radius + 2, self)
-end
+})
 
 --[[!
     Class: player
@@ -477,45 +721,47 @@ end
     Properties listed here are only those which are added.
 
     Properties:
-        _can_edit - true if player can edit (== is in private edit mode)
-        hud_modelname - by default empty string representing the model
+        can_edit - true if player can edit (== is in private edit mode)
+        hud_model_name - by default empty string representing the model
         name to use when in first person.
 
     See Also:
         <character>
 ]]
-player = class.new(character)
+player = class.new(character, {
+    --[[!
+        Variable: _class
+        The entity class for player. Its value is usually
+        the same as class name, but doesn't have to be.
+    ]]
+    _class = "player",
 
---[[!
-    Variable: _class
-    The entity class for player. Its value is usually
-    the same as class name, but doesn't have to be.
-]]
-player._class = "player"
+    properties = {
+        can_edit = state_variables.state_bool(),
+        hud_model_name = state_variables.state_string()
+    },
 
-player.properties = {
-    _can_edit = state_variables.state_bool(),
-    hud_modelname = state_variables.state_string()
-}
+    --[[!
+        Function: init
+        See <character.init>.
 
---[[!
-    Function: init
-    See <character.init>.
+        Parameters:
+            uid - player unique ID.
+            kwargs - additional parameters.
 
-    Parameters:
-        uid - player unique ID.
-        kwargs - additional parameters.
+        See Also:
+            <character.init>
+    ]]
+    init = function(self, uid, kwargs)
+        logging.log(logging.DEBUG, "player:init")
+        -- init on parent, then add its own properties
+        character.init(self, uid, kwargs)
 
-    See Also:
-        <character.init>
-]]
-function player:init(uid, kwargs)
-    logging.log(logging.DEBUG, "player:init")
-    character.init(self, uid, kwargs)
+        -- its own properties
+        self.can_edit       = false
+        self.hud_model_name = ""
+    end
+})
 
-    self._can_edit = false
-    self.hud_modelname = ""
-end
-
-entity_classes.reg(character, "fpsent")
-entity_classes.reg(player, "fpsent")
+entity_classes.register(character, "fpsent")
+entity_classes.register(player, "fpsent")

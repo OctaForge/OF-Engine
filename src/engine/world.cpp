@@ -910,7 +910,7 @@ void entpaste()
         const char *_class = entity->getClass();
 
         using namespace lua;
-        engine.getref(entity->luaRef).t_getraw("create_statedatadict");
+        engine.getref(entity->luaRef).t_getraw("create_state_data_dict");
         engine.push_index(-2).call(1, 1);
         engine.push("__ccentcopy__TEMP").shift();
         engine.setg().pop(1);
@@ -991,7 +991,7 @@ void intensityentcopy() // INTENSITY
     intensityCopiedClass = entity->getClass();
 
     using namespace lua;
-    engine.getref(entity->luaRef).t_getraw("create_statedatadict");
+    engine.getref(entity->luaRef).t_getraw("create_state_data_dict");
     engine.push_index(-2).call(1, 1);
     engine.push("__ccentcopy__TEMP").shift().setg();
     engine.pop(1);

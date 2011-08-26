@@ -1,17 +1,47 @@
 module("events", package.seeall)
 
+repeating_timer = class.new()
+function repeating_timer:__tostring()
+    return string.format("repeating_timer: %s %s %s",
+                         tostring(self.interval),
+                         tostring(self.carryover),
+                         tostring(self.sum))
+end
+
+function repeating_timer:__init(i, c)
+    self.interval = i
+    self.carryover = c or false
+    self.sum = 0
+end
+
+function repeating_timer:tick(s)
+    self.sum = self.sum + s
+    if self.sum >= self.interval then
+        if not self.carryover then
+            self.sum = 0
+        else
+            self.sum = self.sum - self.interval
+        end
+        return true
+    else
+        return false
+    end
+end
+
+function repeating_timer:prime()
+    self.sum = self.interval
+end
+
 -- action that can queue more actions on itself, which run on its actor,
 -- finishes when both this action an all subactions are done.
-action_container = class.new(actions.action)
-
-function action_container:__tostring() return "action_container" end
+action_container = class.new(actions.action, nil, "action_container")
 
 function action_container:__init(other_actions, kwargs)
     actions.action.__init(self, kwargs)
     self.other_actions = other_actions
 end
 
-function action_container:dostart()
+function action_container:do_start()
     self.action_system = actions.action_system(self.actor)
 
     for k, other_action in pairs(self.other_actions) do
@@ -19,15 +49,15 @@ function action_container:dostart()
     end
 end
 
-function action_container:doexecute(seconds)
+function action_container:do_execute(seconds)
     self.action_system:manage(seconds)
-    return actions.action.doexecute(self, seconds)
-       and self.action_system:isempty()
+    return actions.action.do_execute(self, seconds)
+       and self.action_system:is_empty()
 end
 
-function action_container:dofinish()
-    if not self.action_system:isempty() and self.action_system.actlist[1].begun then
-        self.action_system.actlist[1]:finish()
+function action_container:do_finish()
+    if not self.action_system:is_empty() and self.action_system.action_list[1].begun then
+        self.action_system.action_list[1]:finish()
     end
 end
 
@@ -38,10 +68,8 @@ function action_container:cancel()
 end
 
 -- like action_container, but runs actions in parallel - finishes when all are done
-action_parallel = class.new(actions.action)
-action_parallel.canbecancelled = false
-
-function action_parallel:__tostring() return "action_parallel" end
+action_parallel = class.new(actions.action, nil, "action_parallel")
+action_parallel.cancellable = false
 
 function action_parallel:__init(other_actions, kwargs)
     actions.action.__init(self, kwargs)
@@ -49,25 +77,25 @@ function action_parallel:__init(other_actions, kwargs)
     self.other_actions  = other_actions
 end
 
-function action_parallel:dostart()
+function action_parallel:do_start()
     for k, other_action in pairs(self.other_actions) do
         self:add_action(other_action)
     end
 end
 
-function action_parallel:doexecute(seconds)
-    self.action_systems = table.filter(
+function action_parallel:do_execute(seconds)
+    self.action_systems = table.filter_dict(
         self.action_systems,
         function(i, action_system)
             action_system:manage(seconds)
-            return (not action_system:isempty())
+            return (not action_system:is_empty())
         end
     )
-    return actions.action.doexecute(self, seconds)
+    return actions.action.do_execute(self, seconds)
      and (#self.action_systems == 0)
 end
 
-function action_parallel:dofinish()
+function action_parallel:do_finish()
     for k, action_system in pairs(self.action_systems) do
         action_system:clear()
     end
@@ -79,17 +107,15 @@ function action_parallel:add_action(other_action)
     table.insert(self.action_systems, action_system)
 end
 
-action_delayed = class.new(actions.action)
-
-function action_delayed:__tostring() return "action_delayed" end
+action_delayed = class.new(actions.action, nil, "action_delayed")
 
 function action_delayed:__init(command, kwargs)
     actions.action.__init(self, kwargs)
     self.command = command
 end
 
-function action_delayed:doexecute()
-    if actions.action.doexecute(self, seconds) then
+function action_delayed:do_execute()
+    if actions.action.do_execute(self, seconds) then
         self.command()
         return true
     else
@@ -98,7 +124,7 @@ function action_delayed:doexecute()
 end
 
 action_input_capture_plugin = {
-    dostart = function(self)
+    do_start = function(self)
         if self.client_click then
             self.old_client_click = _G["client_click"]
             _G["client_click"] = function(...) self.client_click(self, ...) end
@@ -124,7 +150,7 @@ action_input_capture_plugin = {
         end
     end,
 
-    dofinish = function(self)
+    do_finish = function(self)
         if self.client_click then
             _G["client_click"] = self.old_client_click
         end
@@ -145,32 +171,35 @@ action_input_capture_plugin = {
     end
 }
 
-action_input_capture = class.new(actions.action, action_input_capture_plugin)
-function action_input_capture:__tostring() return "action_input_capture" end
+action_input_capture = class.new(
+    actions.action,
+    action_input_capture_plugin,
+    "action_input_capture"
+)
 
 action_render_capture_plugin = {
-    dostart = function(self, ...)
-        self.__base.dostart(self, ...)
+    do_start = function(self, ...)
+        self.__base.do_start(self, ...)
 
         if  self.render_dynamic then
-            self.render_dynamic_old =  _G["render_dynamic"]
-             _G["render_dynamic"]   = self.render_dynamic
+            self.render_dynamic_old     = entity_store.render_dynamic
+            entity_store.render_dynamic = self.render_dynamic
         end
-        if  self.render_hud_models then
-            self.render_hud_models_old =  _G["render_hud_models"]
-             _G["render_hud_models"]   = self.render_hud_models
+        if  self.render_hud_model then
+            self.render_hud_model_old     = entity_store.render_hud_model
+            entity_store.render_hud_model = self.render_hud_model
         end
     end,
 
-    dofinish = function(self, ...)
-        if  self.render_dynamic then
-             _G["render_dynamic"] = self.render_dynamic_old
+    do_finish = function(self, ...)
+        if self.render_dynamic then
+            entity_store.render_dynamic = self.render_dynamic_old
         end
-        if  self.render_hud_models then
-             _G["render_hud_models"] = self.render_hud_models_old
+        if self.render_hud_model then
+            entity_store.render_hud_model = self.render_hud_model_old
         end
 
-        self.__base.dofinish(self, ...)
+        self.__base.do_finish(self, ...)
     end
 }
 
@@ -199,7 +228,7 @@ client_actions_parallel_plugin = {
     end,
 
     client_act = function(self, seconds)
-        self.action_system_parallel_manager.action.secondsleft = seconds + 1.0 -- never end
+        self.action_system_parallel_manager.action.seconds_left = seconds + 1.0 -- never end
         self.action_system_parallel_manager:tick(seconds)
     end,
 

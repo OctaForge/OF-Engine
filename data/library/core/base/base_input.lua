@@ -11,53 +11,57 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        This file provides interface to common input functions, like keybindings.
-
-    Section: Input
+        This file provides interface to common input functions,
+        like keybindings.
 ]]
 
 --[[!
     Package: input
     This module provides input interface, like keybindings / mousebindings.
 
-    Besides things documented in later parts, you can define a few global functions
-    that'll greatly affect input handling.
+    Besides things documented in later parts, you can define a few global
+    functions that'll greatly affect input handling.
 
     do_movement:
         Called when player should go forward or backward. Takes two arguments,
-        first one being number of value 1 when going forward and -1 when backward,
-        second one being a boolean value specifying if forward button is currently
-        pressed. By default, simply sets move property.
+        first one being number of value 1 when going forward and -1 when
+        backward, second one being a boolean value specifying if forward
+        button is currently pressed. By default, simply sets move property.
 
     do_strafe:
-        Same as do_movement, except that 1 is for right strafing and -1 for left strafing.
+        Same as do_movement, except that 1 is for right strafing
+        and -1 for left strafing.
 
     do_jump:
-        Called when player should jump, by default just sets jump property. Takes one argument
-        specifying if key is currently pressed.
+        Called when player should jump, by default just sets jump property.
+        Takes one argument specifying if key is currently pressed.
 
     do_yaw:
         Same as do_strafe, for turning motion.
 
     do_pitch:
-        Same as do_yaw for looking up/down, except that 1 means looking up, -1 down.
+        Same as do_yaw for looking up/down, except that 1 means
+        looking up, -1 down.
 
     do_mousemove:
         Allows customization of mouse effects. Takes yaw and pitch and returns
         a table (associative) with first element with key yaw meaning yaw and
         second with key pitch meaning pitch. That way, allows modification of
-        input yaw and pitch values. By default, simply returns the inputs as table.
+        input yaw and pitch values. By default, simply returns the inputs
+        as a table.
 
     client_click:
         Called when player clicks on client. Takes 6 arguments, first one being
-        mouse button number (1 left, 2 right, 3 middle), second one being boolean
-        variable with value of true when button is pressed, third being position
-        where the click occured, fourth one being entity on which it occured,
-        fifth one being X position where click occured (from 0 to 1) and sixth
-        one being Y position where click occured (again, 0 to 1).
+        mouse button number (1 left, 2 right, 3 middle), second one being
+        boolean variable with value of true when button is pressed, third being
+        the position where the click occured, fourth one being the entity on
+        which it occured, fifth one being X position where click occured
+        (from 0 to 1) and sixth one being Y position where click occured
+        (again, 0 to 1).
 
     click:
-        Same as client_click, but serverside. Doesn't take last two x, y arguments.
+        Same as client_click, but serverside.
+        Doesn't take last two x, y arguments.
 ]]
 module("input", package.seeall)
 
@@ -117,51 +121,52 @@ per_map_keys = {}
     Function: bind
     Binds a key outside spec / edit mode. See <bind_spec> and
     <bind_edit> for specific bindings. There are also pre-defined
-    bind functions that toggle vars / modifiers - <bind_var> and
-    <bind_mod>.
+    bind functions that toggle vars / modifiers - <bind_var_toggle>
+    and <bind_modifier>.
 
     Parameters:
         key - a string specifying the key to bind. See keymap.cfg.
-        action - a function taking no arguments that is executed
-        when the bind gets activated.
+        action - a string with Lua code executed when the bind
+        gets activated.
 ]]
 function bind(key, action)
     CAPI.bind(key, BIND_DEFAULT, action)
 end
 
 --[[!
-    Function: bind_var
+    Function: bind_var_toggle
     Toggles an engine variable. Simillar to <bind>. If engine variable
-    has value 0, it sets 1, otherwise 0. See also <bind_var_edit> and
-    <bind_mod_edit>.
+    has value 0, it sets 1, otherwise 0. See also <bind_var_toggle_edit>
+    and <bind_modifier>.
 
     Parameters:
         key - a string specifying the key to bind. See keymap.cfg.
         var - a variable to toggle.
 ]]
-function bind_var(key, var)
-    bind(key, function()
-        _G[var] = (_G[var] == 1) and 0 or 1
-        echo(_G[var] .. (_G[var] == 1) and "ON" or "OFF")
-    end)
+function bind_var_toggle(key, var)
+    bind(key, [[
+        _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
+        echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
+    ]] % { var })
 end
 
 --[[!
-    Function: bind_mod
+    Function: bind_modifier
     Toggles a modifier variable, which is a global number variable
-    with values 1 or 0. Simillar to <bind>.
+    with values 1 or 0. Simillar to <bind>. See also <bind_modifier_edit>
+    and <bind_var_toggle>.
 
     Parameters:
         key - a string specifying the key to bind. See keymap.cfg.
         modifier - a global variable storing modifier state.
 ]]
-function bind_mod(key, modifier)
-    bind(key, function()
-        _G[modifier] = 1
-        on_release(function()
-            _G[modifier] = 0
+function bind_modifier(key, modifier)
+    bind(key, [[
+        _G[%(1)q] = 1
+        input.on_release(function()
+            _G[%(1)q] = 0
         end)
-    end)
+    ]] % { modifier })
 end
 
 --[[!
@@ -172,8 +177,8 @@ end
 
     Parameters:
         key - see <bind>.
-        action - see <bind>. Unlike <bind>, it can take an argument
-        if data is provided.
+        action - see <bind>. Unlike <bind>, it is a function and
+        can take argument when data is provided.
         data - a variable that is optionally passed to action.
 ]]
 function bind_map_specific(key, action, data)
@@ -207,7 +212,7 @@ function bind_spec(key, action)
 end
 
 --[[!
-    Function: bind_spec
+    Function: bind_edit
     Binds a key in edit mode.
 
     Parameters:
@@ -218,27 +223,27 @@ function bind_edit(key, action)
 end
 
 --[[!
-    Function: bind_var_edit
-    See <bind_var>. It's the same, but it's for edit mode.
+    Function: bind_var_toggle_edit
+    See <bind_var_toggle>. It's the same, but it's for edit mode.
 ]]
-function bind_var_edit(key, var)
-    bind_edit(key, function()
-        _G[var] = (_G[var] == 1) and 0 or 1
-        echo(_G[var] .. (_G[var] == 1) and "ON" or "OFF")
-    end)
+function bind_var_toggle_edit(key, var)
+    bind_edit(key, [[
+        _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
+        echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
+    ]] % { var })
 end
 
 --[[!
-    Function: bind_mod_edit
-    See <bind_var>. It's the same, but it's for edit mode.
+    Function: bind_modifier_edit
+    See <bind_var_toggle>. It's the same, but it's for edit mode.
 ]]
-function bind_mod_edit(key, modifier)
-    bind_edit(key, function()
-        _G[modifier] = 1
-        on_release(function()
-            _G[modifier] = 0
+function bind_modifier_edit(key, modifier)
+    bind_edit(key, [[
+        _G[%(1)q] = 1
+        input.on_release(function()
+            _G[%(1)q] = 0
         end)
-    end)
+    ]] % { modifier })
 end
 
 --[[!
@@ -260,6 +265,18 @@ function get_bind(key, bind_type)
         return CAPI.getbind(key, bind_type)
     end
 end
+
+--[[!
+    Function: search_binds
+    Get an array of keybindings that fit given action and bind
+    type. The array then consists of names of they keys.
+
+    Parameters:
+        action - the action to get keys for.
+        bind_type - see <BIND_DEFAULT>, <BIND_SPEC>,
+        <BIND_EDIT> and <BIND_MAP>.
+]]
+search_binds = CAPI.searchbinds
 
 --[[!
     Function: on_release
@@ -364,3 +381,27 @@ mouse2click = CAPI.mouse2click
     their own functions that'll affect mouse clicking.
 ]]
 mouse3click = CAPI.mouse3click
+
+--[[!
+    Function: get_target_position
+    Returns the position we're targeting to.
+]]
+get_target_position = actions.cache_by_global_timestamp(
+    convert.tocalltable(CAPI.gettargetpos)
+)
+
+--[[!
+    Function: get_target_entity
+    Returns the entity we're targeting to.
+]]
+get_target_entity = actions.cache_by_global_timestamp(
+    convert.tocalltable(CAPI.gettargetent)
+)
+
+--[[!
+    Function: save_mouse_position
+    Saves mouse position in internal storage. This is later
+    used when editing, i.e. when inserting entity to know
+    where to insert it.
+]]
+save_mouse_position = CAPI.save_mouse_position

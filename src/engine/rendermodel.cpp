@@ -40,22 +40,22 @@ MODELTYPE(MDL_IQM, iqm);
 
 #define checkmdl if(!loadingmodel) { conoutf(CON_ERROR, "not loading a model"); return; }
 
-void mdlcullface(int *cullface)
+void mdlcullface(bool cullface)
 {
     checkmdl;
-    loadingmodel->setcullface(*cullface!=0);
+    loadingmodel->setcullface(cullface);
 }
 
-void mdlcollide(int *collide)
+void mdlcollide(bool collide)
 {
     checkmdl;
-    loadingmodel->collide = *collide!=0;
+    loadingmodel->collide = collide;
 }
 
-void mdlellipsecollide(int *collide)
+void mdlellipsecollide(bool collide)
 {
     checkmdl;
-    loadingmodel->ellipsecollide = *collide!=0;
+    loadingmodel->ellipsecollide = collide;
 }   
     
 void mdlspec(int *percent)
@@ -82,22 +82,22 @@ void mdlalphatest(float *cutoff)
     loadingmodel->setalphatest(max(0.0f, min(1.0f, *cutoff)));
 }
 
-void mdlalphablend(int *blend)
+void mdlalphablend(bool blend)
 {   
     checkmdl;
-    loadingmodel->setalphablend(*blend!=0);
+    loadingmodel->setalphablend(blend);
 }
 
-void mdlalphadepth(int *depth)
+void mdlalphadepth(bool depth)
 {
     checkmdl;
-    loadingmodel->alphadepth = *depth!=0;
+    loadingmodel->alphadepth = depth;
 }
 
-void mdldepthoffset(int *offset)
+void mdldepthoffset(bool offset)
 {
     checkmdl;
-    loadingmodel->depthoffset = *offset!=0;
+    loadingmodel->depthoffset = offset;
 }
 
 void mdlglow(int *percent, int *delta, float *pulse)
@@ -119,7 +119,7 @@ void mdlglare(float *specglare, float *glowglare)
 void mdlenvmap(float *envmapmax, float *envmapmin, char *envmap)
 {
     checkmdl;
-    loadingmodel->setenvmap(*envmapmin, *envmapmax, envmap[0] ? cubemapload(envmap) : NULL);
+    loadingmodel->setenvmap(*envmapmin, *envmapmax, envmap ? cubemapload(envmap) : NULL);
 }
 
 void mdlfullbright(float *fullbright)
@@ -130,6 +130,7 @@ void mdlfullbright(float *fullbright)
 
 void mdlshader(char *shader)
 {
+    if (!shader) return;
     checkmdl;
     loadingmodel->setshader(lookupshaderbyname(shader));
 }
@@ -150,10 +151,10 @@ void mdlscale(int *percent)
     loadingmodel->scale = scale;
 }  
 
-void mdltrans(float *x, float *y, float *z)
+void mdltrans(const vec& v)
 {
     checkmdl;
-    loadingmodel->translate = vec(*x, *y, *z);
+    loadingmodel->translate = v;
 } 
 
 void mdlyaw(float *angle)
@@ -168,10 +169,10 @@ void mdlpitch(float *angle)
     loadingmodel->offsetpitch = *angle;
 }
 
-void mdlshadow(int *shadow)
+void mdlshadow(bool shadow)
 {
     checkmdl;
-    loadingmodel->shadow = *shadow!=0;
+    loadingmodel->shadow = shadow;
 }
 
 void mdlbb(float *rad, float *h, float *eyeheight)
@@ -182,10 +183,10 @@ void mdlbb(float *rad, float *h, float *eyeheight)
     loadingmodel->eyeheight = *eyeheight; 
 }
 
-void mdlextendbb(float *x, float *y, float *z)
+void mdlextendbb(const vec& extend)
 {
     checkmdl;
-    loadingmodel->bbextend = vec(*x, *y, *z);
+    loadingmodel->bbextend = extend;
 }
 
 void mdlname()
@@ -205,12 +206,12 @@ void mdlname()
     if(ragdoll->loaded) return;
     
 
-void rdvert(float *x, float *y, float *z, float *radius)
+void rdvert(const vec& o, float radius)
 {
     checkragdoll;
     ragdollskel::vert &v = ragdoll->verts.add();
-    v.pos = vec(*x, *y, *z);
-    v.radius = *radius > 0 ? *radius : 1;
+    v.pos = o;
+    v.radius = radius > 0 ? radius : 1;
 }
 
 void rdeye(int *v)
@@ -234,9 +235,9 @@ void rdjoint(int *n, int *t, char *v1, char *v2, char *v3)
     ragdollskel::joint &j = ragdoll->joints.add();
     j.bone = *n;
     j.tri = *t;
-    j.vert[0] = v1[0] ? int(strtol(v1, NULL, 0)) : -1;
-    j.vert[1] = v2[0] ? int(strtol(v2, NULL, 0)) : -1;
-    j.vert[2] = v3[0] ? int(strtol(v3, NULL, 0)) : -1;
+    j.vert[0] = v1 ? int(strtol(v1, NULL, 0)) : -1;
+    j.vert[1] = v2 ? int(strtol(v2, NULL, 0)) : -1;
+    j.vert[2] = v3 ? int(strtol(v3, NULL, 0)) : -1;
 }
    
 void rdlimitdist(int *v1, int *v2, float *mindist, float *maxdist)
@@ -259,10 +260,10 @@ void rdlimitrot(int *t1, int *t2, float *maxangle, float *qx, float *qy, float *
     r.middle = matrix3x3(quat(*qx, *qy, *qz, *qw));
 }
 
-void rdanimjoints(int *on)
+void rdanimjoints(bool on)
 {
     checkragdoll;
-    ragdoll->animjoints = *on!=0;
+    ragdoll->animjoints = on;
 }
 
 // mapmodels
@@ -366,6 +367,7 @@ void cleanupmodels()
 
 void clearmodel(char *name)
 {
+    if (!name) return;
     model **m = mdllookup.access(name);
     if(!m) { conoutf("model %s is not loaded", name); return; }
     loopv(mapmodels) if(mapmodels[i].m==*m) mapmodels[i].m = NULL;
@@ -1024,8 +1026,8 @@ void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSI
 }
 
 // INTENSITY: States that we get the collision box size from the entity, not the model type
-void mdlperentitycollisionboxes(int *val)
+void mdlperentitycollisionboxes(bool val)
 {
     checkmdl;
-    loadingmodel->perentitycollisionboxes = *val;
+    loadingmodel->perentitycollisionboxes = val;
 }

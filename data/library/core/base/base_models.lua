@@ -11,1150 +11,1036 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        This file features model interface.
-
-    Section: Model interface
+        This file features model interface. Some bits of documentation
+        are taken from "Sauerbraten model reference".
 ]]
 
 local base = _G
 
 --[[!
     Package: model
-    This module controls models. OctaForge currently supports 3 model formats,
-    md5, smd and iqm. This as well handles some variables for culling, shadowing
-    etc., general model manipulation and ragdoll control.
+    This module controls models. OctaForge currently supports 4 model formats,
+    md5, smd, iqm and obj. This as well handles some variables for culling,
+    shadowing etc., general model manipulation and ragdoll control.
 ]]
 module("model", package.seeall)
 
--- in sync with iengine.h
+--[[!
+    Variable: CULL_VFC
+    View frustrum culling flag for <render>.
+
+    See also:
+        <CULL_DIST>
+        <CULL_OCCLUDED>
+        <CULL_QUERY>
+]]
 CULL_VFC = math.lsh(1, 0)
+
+--[[!
+    Variable: CULL_DIST
+    Distance culling flag for <render>.
+
+    See also:
+        <CULL_VFC>
+        <CULL_OCCLUDED>
+        <CULL_QUERY>
+]]
 CULL_DIST = math.lsh(1, 1)
+
+--[[!
+    Variable: CULL_OCCLUDED
+    Occlusion culling flag for <render>.
+
+    See also:
+        <CULL_VFC>
+        <CULL_DIST>
+        <CULL_QUERY>
+]]
 CULL_OCCLUDED = math.lsh(1, 2)
+
+--[[!
+    Variable: CULL_QUERY
+    Hardware occlusion queries flag for <render>.
+
+    See also:
+        <CULL_VFC>
+        <CULL_DIST>
+        <CULL_OCCLUDED>
+]]
 CULL_QUERY = math.lsh(1, 3)
+
+--[[!
+    Variable: SHADOW
+    A flag that enables shadowing of mapmodels for <render>.
+]]
 SHADOW = math.lsh(1, 4)
+
+--[[!
+    Variable: DYNSHADOW
+    A flag that gives model a dynamic shadow for <render>.
+]]
 DYNSHADOW = math.lsh(1, 5)
+
+--[[!
+    Variable: LIGHT
+    A flag for <render> that makes model lit. See also
+    <DYNLIGHT>.
+]]
 LIGHT = math.lsh(1, 6)
+
+--[[!
+    Variable: DYNLIGHT
+    See <LIGHT>, this is for dynlights (see <effects.dynamic_light>).
+]]
 DYNLIGHT = math.lsh(1, 7)
+
+--[[!
+    Variable: FULLBRIGHT
+    A flag for <render> that gives the model fullbright.
+]]
 FULLBRIGHT = math.lsh(1, 8)
-NORENDER = math.lsh(1, 9)
+
+--[[!
+    Variable: LIGHT_FAST
+    A flag for <render> that gives the model a cheap lighting.
+]]
 LIGHT_FAST = math.lsh(1, 10)
+
+--[[!
+    Variable: HUD
+    Use this <render> flag for HUD models. Affects some lighting
+    capabilities.
+]]
 HUD = math.lsh(1, 11)
+
+--[[!
+    Variable: GHOST
+    Use this <render> flag to make the model half opaque.
+]]
 GHOST = math.lsh(1, 12)
 
---- Reset mapmodel counter - start counting slots from N. DEPRECATED.
--- @param n Number from which to start counting.
--- @class function
--- @name reset
-reset = CAPI.mapmodelreset
-
---- Get number of mapmodels. DEPRECATED.
--- @return Number of mapmodels.
--- @class function
--- @name num
-num = CAPI.nummapmodels
-
---- Clear a mapmodel. DEPRECATED.
--- @param n Name of the mapmodel.
--- @class function
--- @name clear
+--[[!
+    Function: clear
+    Clears a model with a name given by the argument. Name is a
+    path relative to the data/models directory (i.e. "foo/bar"
+    means "data/models/foo/bar").
+]]
 clear = CAPI.clearmodel
 
---- Preload a mapmodel. Basically, cache it before loading the world.
--- @param n Name of the mapmodel.
--- @class function
--- @name preload
+--[[!
+    Function: preload
+    Preloads a model with a name given by the argument. Useful for
+    pre-caching models you know will be loaded. Name is a path
+    relative to the data/models directory (i.e. "foo/bar" means
+    "data/models/foo/bar").
+]]
 preload = CAPI.preloadmodel
 
---- Reload a mapmodel.
--- @param n Name of the mapmodel.
--- @class function
--- @name reload
+--[[!
+    Function: reload
+    See <clear>. The argument is the same, this basically clears
+    and loads again.
+]]
 reload = CAPI.reloadmodel
 
---- Render a model.
--- @param ent Entity which the model belongs to.
--- @param mdl Model name.
--- @param anim Model animation (integer, see base_actions.lua)
--- @param x X coord of the model.
--- @param y Y coord of the model.
--- @param z Z coord of the model.
--- @param yaw Model yaw.
--- @param pitch Model pitch.
--- @param flags Model flags (integer) using bitwise operators, see beginning of this file for flags.
--- @param basetime Entity starttime property.
--- @class function
--- @name render
+--[[!
+    Function: render
+    Renders a model.
+
+    Parameters:
+        entity - the entity the model belongs to.
+        name - name of the model we're loading. It's a path
+        relative to the data/models directory (i.e. "foo/bar" means
+        "data/models/foo/bar").
+        animation - model animation, see <actions>, the ANIM_*
+        variables.
+        position - position of the model in the world represented
+        as <vec3>.
+        yaw - model yaw.
+        pitch - model pitch.
+        flags - various model flags for i.e. occlusion and lighting,
+        see the flags above. Use <math.bor> to join them.
+        base_time - entity's start_time property.
+]]
 render = CAPI.rendermodel
 
--- Find mesh animations.
--- @param n Mesh name.
--- @return List of anims as string, items separated by whitespace.
--- @class function
--- @name findanims
-findanims = CAPI.findanims
+--[[!
+    Function: find_animations
+    Finds all animations of the model given by the argument (string,
+    in the same format as in <render>) and returns them as an array
+    of numbers (see <actions>, the ANIM_* variables).
+]]
+find_animations = CAPI.findanims
 
---- Create attachment string.
--- @param t Tag of the model.
--- @param n Name of the attachment.
+--[[!
+    Function: attachment
+    Given two strings, first one being a model tag and second one
+    being a model attachment, this function returns a full
+    attachment string that can be then used in "attachments"
+    property of entities.
+]]
 function attachment(t, n)
     assert(not string.find(t, ","))
     assert(not string.find(n, ","))
     return t .. "," .. n
 end
 
---- This table contains various generic
--- methods relating a single model.
--- @class table
--- @name mdl
-mdl = {}
-
---- Get current model slot's name. DEPRECATED.
--- @class function
--- @name mdl.name
-mdl.name = CAPI.mdlname
-
---- Set alpha testing cut-off threshold T at which alpha-channel skins will discard pixels
--- where alpha is less than T. T is a floating point value in the range of 0 to 1 (defaults to 0.9)
--- @param cutoff Cut-off threshold.
--- @class function
--- @name mdl.alphatest
-mdl.alphatest = CAPI.mdlalphatest
-
---- Control whether a model with alpha channel skin will alpha blend (defaults to 1)
--- @param blend 1 to enable, 0 to disable.
--- @class function
--- @name mdl.alphablend
-mdl.alphablend = CAPI.mdlalphablend
-
---- Control model alpha depth.
--- @param depth Model alpha depth.
--- @class function
--- @name mdl.alphadepth
-mdl.alphadepth = CAPI.mdlalphadepth
-
---- Control model bounding box. If not set,
--- bounding box is generated from model's geometry.
--- @param rad Bounding box radius.
--- @param h Bounding box height.
--- @param eyeheight Fraction of model's height to be used as eyeheight (defaults to 0.9)
--- @class function
--- @name mdl.bb
-mdl.bb = CAPI.mdlbb
-
---- Extend model bounding box.
--- @param x X coord.
--- @param y Y coord.
--- @param z Z coord.
--- @class function
--- @name mdl.extendbb
-mdl.extendbb = CAPI.mdlextendbb
-
---- Set model scale.
--- @param p Number of percent of its default
--- size (i.e. 200 will make the model two times bigger)
--- @class function
--- @name mdl.scale
-mdl.scale = CAPI.mdlscale
-
---- Set model specular intensity. When not given, default 100 gets applied.
--- 100 is good for shiny objects, -1 means specularity is off.
--- @param spec Specular intensity.
--- @class function
--- @name mdl.spec
-mdl.spec = CAPI.mdlspec
-
---- Set model glowmap scale. -1 means glowmap is off. Default is 300.
--- @param g Glowmap scale.
--- @param d Glow delta.
--- @param p Glow pulse.
--- @class function
--- @name mdl.glow
-mdl.glow = CAPI.mdlglow
-
---- Scale amount of glare generated by spec light and glare. Defaults to 1 1.
--- @param s Floating point value specifying scale of glare generated by spec light.
--- @param g Floating point value specifying scale of glare generated by glare.
--- @class function
--- @name mdl.glare
-mdl.glare = CAPI.mdlglare
-
---- Set percent of ambient light used for shading.
--- Not given or 0 sets default of 30%, -1 means no ambient.
--- @param p Percentage of ambient light used for shading.
--- @class function
--- @name mdl.ambient
-mdl.ambient = CAPI.mdlambient
-
---- Control back face culling.
--- @param n 1 means enabled, 0 disabled.
--- @class function
--- @name mdl.cullface
-mdl.cullface = CAPI.mdlcullface
-
---- Set depth offset for model.
--- @param d Depth offset (integer).
--- @class function
--- @name mdl.depthoffset
-mdl.depthoffset = CAPI.mdldepthoffset
-
---- Use a constant lighting level instead of normal lighting.
--- @param n Fullbright lighting scale, float from 0 to 1.
--- @class function
--- @name mdl.fullbright
-mdl.fullbright = CAPI.mdlfullbright
-
---- Simple spin animation that changes yaw and pitch in N degrees per second.
--- @param yaw Change of yaw in degrees per second.
--- @param pitch Change of pitch in degrees per second.
--- @class function
--- @name mdl.spin
-mdl.spin = CAPI.mdlspin
-
---- Set the envmap used for model. If not set, closest envmap entity or skybox will be used.
--- If mei is non-zero, blue channel of the masks is interpreted as chrome map.
--- mei (maximum envmap intensity) and mmei (minimum envmap intensity, defaults to 0) are
--- floats ranging from 0 to 1 and specify the range in which the envmapping intensity will vary
--- based on view angle. The intensity after scaling into this range is then multiplied by chrome map.
--- @param mei Maximum envmap intensity.
--- @param mmei Minimum envmap intensity.
--- @param path Path to the envmap texture. 
--- @class function
--- @name mdl.envmap
-mdl.envmap = CAPI.mdlenvmap
-
---- Set the shader to use for rendering the model (defaults to stdmodel).
--- @param sn Shader name.
--- @class function
--- @name mdl.shader
-mdl.shader = CAPI.mdlshader
-
---- Translate the model's center by x, y, z where x, y, z are in model units (may use floating point).
--- @param x X in model units.
--- @param y Y in model units.
--- @param z Z in model units.
--- @class function
--- @name mdl.trans
-mdl.trans = CAPI.mdltrans
-
---- Set yaw of the model.
--- @param a The yaw angle.
--- @class function
--- @name mdl.yaw
-mdl.yaw = CAPI.mdlyaw
-
---- Set pitch of the model.
--- @param p The pitch angle.
--- @class function
--- @name mdl.pitch
-mdl.pitch = CAPI.mdlpitch
-
---- Enable or disable model shadow.
--- @param v 1 to enable, 0 to disable.
--- @class function
--- @name mdl.shadow
-mdl.shadow = CAPI.mdlshadow
-
---- Enable or disable model collision.
--- @param v 1 to enable, 0 to disable.
--- @class function
--- @name mdl.collide
-mdl.collide = CAPI.mdlcollide
-
---- Control the "per entity collision boxes" property.
--- @param v 1 to enable, 0 to disable.
--- @class function
--- @name mdl.perentitycollisionboxes
-mdl.perentitycollisionboxes = CAPI.mdlperentitycollisionboxes
-
---- Enable elliptic collision for model (good for i.e. trees)
--- @param v 1 to enable, 0 to disable.
--- @class function
--- @name mdl.ellipsecollide
-mdl.ellipsecollide = CAPI.mdlellipsecollide
-
---- Set scripting bounding box.
--- @param n Model name.
--- @class function
--- @name mdl.scriptbb
-mdl.scriptbb = CAPI.scriptmdlbb
-
---- Set scripting collision box.
--- @param n Model name.
--- @class function
--- @name mdl.scriptcb
-mdl.scriptcb = CAPI.scriptmdlcb
-
---- Return a Lua table with mesh info.
--- Contains "length" element which contains tris length
--- and data of each tri. Basically looks like this:<br/>
--- table -> {<br/>
---     length -> 3<br/>
---     0 -> { a -> A, b -> B, c -> C }<br/>
---     1 -> { a -> A, b -> B, c -> C }<br/>
---     2 -> { a -> A, b -> B, c -> C }<br/>
--- }<br/>
--- @param n Model name.
--- @return The table with mesh info.
--- @class function
--- @name mdl.mesh
-mdl.mesh = CAPI.mdlmesh
-
---- This table contains all methods meant
--- for manipulating with obj model format.
--- @class table
--- @name obj
-obj = _G["obj"]
-
---- Load a model.
--- @param mdl Model name.
--- @class function
--- @name obj.load
-
---- Set model skin.
--- @param n Name of the mesh.
--- @param t Name of the texture.
--- @param m Name of masks.
--- @param x Envmap max intensity.
--- @param i Envmap min intensity.
--- @class function
--- @name obj.skin
-
---- Set model bump map.
--- @param n Name of the mesh.
--- @parma b Name of the bump map texture.
--- @param s Name of the skin.
--- @class function
--- @name obj.bumpmap
-
---- Set model env map.
--- @param n Name of the mesh.
--- @param e Name of the env map.
--- @class function
--- @name obj.envmap
-
---- Set model specular intensity. See mdlspec.
--- @param n Mesh name.
--- @param s Specular intensity.
--- @see mdl.spec
--- @class function
--- @name obj.spec
-
---- Set model pitch. Controls how a model responds to its pitch.
--- Clamping is applied like this: clamp(pitch * s + o, m, n)
--- @param b Name of the bone which the pitch anim is applied to, as well as all bones in the sub-tree below it.
--- @param s Pitch in degrees is scaled by this.
--- @param o The pitch offset.
--- @param m Minimal pitch offset clamp.
--- @param n Maximal pitch offset clamp.
--- @class function
--- @name obj.pitch
-
---- Set model ambience. See mdlambient.
--- @param n Mesh name.
--- @param a Ambience.
--- @see mdl.ambient
--- @class function
--- @name obj.ambient
-
---- See mdlglow.
--- @param n Mesh name.
--- @param g Glow factor.
--- @param d Glow delta.
--- @param p Glow pulse.
--- @see mdl.glow
--- @class function
--- @name obj.glow
-
---- See mdlglare.
--- @param n Mesh name.
--- @param s Spec glare.
--- @param g Glow glare.
--- @see mdl.glare
--- @class function
--- @name obj.glare
-
---- See mdlalphatest.
--- @param n Mesh name.
--- @param c Cutoff.
--- @see mdl.alphatest
--- @class function
--- @name obj.alphatest
-
---- See mdlalphablend.
--- @param n Mesh name.
--- @param b Alpha blend switch.
--- @see mdl.alphablend
--- @class function
--- @name obj.alphablend
-
---- See mdlcullface.
--- @param n Mesh name.
--- @param c Back face culling switch.
--- @see mdl.cullface
--- @class function
--- @name obj.cullface
-
---- See mdlfullbright.
--- @param n Mesh name.
--- @param f Fullbright factor.
--- @see mdl.fullbright
--- @class function
--- @name obj.fullbright
-
---- See mdlshader.
--- @param n Mesh name.
--- @param s Shader name.
--- @see mdl.shader
--- @class function
--- @name obj.shader
-
---- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
--- @param n Mesh name.
--- @param X X axis scroll frequency.
--- @param Y Y axis scroll frequency.
--- @class function
--- @name obj.scroll
-
---- Toggle model noclip.
--- @param n Mesh name.
--- @param c 1 to make model noclip, 0 otherwise.
--- @class function
--- @name obj.noclip
-
---- This table contains all methods meant
--- for manipulating with md5 model format.
--- @class table
--- @name md5
-md5 = _G["md5"]
-
---- Set model directory.
--- @param dir Directory.
--- @class function
--- @name md5.dir
-
---- Load a model. Skelname is optional name that can be assigned
--- to the skeleton specified in the md5mesh for skeleton sharing,
--- but need not be specified if you do not wish to share the skeleton.
--- This skeleton name must be specified for both the model supplying
--- a skeleton and ana attached model intending to use the skeleton.
--- @param mdl Model name.
--- @param skelname Skeleton name.
--- @class function
--- @name md5.load
-
---- Assign a tag name to bone.
--- @param n Bone name.
--- @param t Tag name.
--- @param tx Optional X translation.
--- @param ty Optional Y translation.
--- @param tz Optional Z translation.
--- @param rx Optional X rotation.
--- @param ry Optional Y rotation.
--- @param rz Optional Z rotation.
--- @class function
--- @name md5.tag
-
---- Set model pitch. Controls how a model responds to its pitch.
--- Clamping is applied like this: clamp(pitch * s + o, m, n)
--- @param mn Mesh name.
--- @param b Name of the bone which the pitch anim is applied to, as well as all bones in the sub-tree below it.
--- @param s Pitch in degrees is scaled by this.
--- @param o The pitch offset.
--- @param m Minimal pitch offset clamp.
--- @param n Maximal pitch offset clamp.
--- @class function
--- @name md5.pitch
-
---- Set pitch target.
--- @param mn Mesh name.
--- @param a Animation file.
--- @param f Frame offset. (integer)
--- @param m Minimal pitch. (float)
--- @param n Maximal pitch. (float)
--- @class function
--- @name md5.pitchtarget
-
---- Set pitch correct.
--- @param mn Mesh name.
--- @param t Target name.
--- @param s Pitch scale. (float)
--- @param m Minimal pitch. (float)
--- @param n Maximal pitch. (float)
--- @class function
--- @name md5.pitchcorrect
-
---- Set adjustment for the model.
--- @param n Model name.
--- @param yaw Yaw.
--- @param pitch Pitch.
--- @param roll Roll.
--- @param tx X translation of model center.
--- @param ty Y translation of model center.
--- @param tz Z translation of model center.
--- @class function
--- @name md5.adjust
-
---- Set model skin.
--- @param n Name of the mesh.
--- @param t Name of the texture.
--- @param m Name of masks.
--- @param x Envmap max intensity.
--- @param i Envmap min intensity.
--- @class function
--- @name md5.skin
-
---- Set model specular intensity. See mdlspec.
--- @param n Mesh name.
--- @param s Specular intensity.
--- @see mdl.spec
--- @class function
--- @name md5.spec
-
---- Set model ambience. See mdlambient.
--- @param n Mesh name.
--- @param a Ambience.
--- @see mdl.ambient
--- @class function
--- @name md5.ambient
-
---- See mdlglow.
--- @param n Mesh name.
--- @param g Glow factor.
--- @param d Glow delta.
--- @param p Glow pulse.
--- @see mdl.glow
--- @class function
--- @name md5.glow
-
---- See mdlglare.
--- @param n Mesh name.
--- @param s Spec glare.
--- @param g Glow glare.
--- @see mdl.glare
--- @class function
--- @name md5.glare
-
---- See mdlalphatest.
--- @param n Mesh name.
--- @param c Cutoff.
--- @see mdl.alphatest
--- @class function
--- @name md5.alphatest
-
---- See mdlalphablend.
--- @param n Mesh name.
--- @param b Alpha blend switch.
--- @see mdl.alphablend
--- @class function
--- @name md5.alphablend
-
---- See mdlcullface.
--- @param n Mesh name.
--- @param c Back face culling switch.
--- @see mdl.cullface
--- @class function
--- @name md5.cullface
-
---- Set model env map.
--- @param n Name of the mesh.
--- @param e Name of the env map.
--- @class function
--- @name md5.envmap
-
---- Set model bump map.
--- @param n Name of the mesh.
--- @parma b Name of the bump map texture.
--- @param s Name of the skin.
--- @class function
--- @name md5.bumpmap
-
---- See mdlfullbright.
--- @param n Mesh name.
--- @param f Fullbright factor.
--- @see mdl.fullbright
--- @class function
--- @name md5.fullbright
-
---- See mdlshader.
--- @param n Mesh name.
--- @param s Shader name.
--- @see mdl.shader
--- @class function
--- @name md5.shader
-
---- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
--- @param n Mesh name.
--- @param X X axis scroll frequency.
--- @param Y Y axis scroll frequency.
--- @class function
--- @name md5.scroll
-
---- Start a new animation part that will include a bone specified by
--- argument and all its sub-bones. This effectively splits animations up
--- at the bone specified by argument, such that each animation part
--- animates as it were a separate model. Note that a new animation part
--- has no animations (does not inherit any from previous animation part).
--- After a load, an implicit animation part is started that involves all bones
--- not used by other animation parts. Each model currently may only have two
--- animation parts, including the implicit animation part, so this command
--- may only be used once and only once per mesh loaded. However, you do not
--- need to specify any animation parts explicitly and acn just use default part
--- for all animations, if you do not wish the animations to be split up / blended
--- together.
--- @param b The bone name.
--- @class function
--- @name md5.animpart
-
---- This assigns a new animation to the current animation part of last loaded model.
--- First argument specifies the animation to define. Any of following names can be used:
--- dying, dead, pain, idle, forward, backward, left, right, hold 1 ... hold 7,
--- attack1 ... attack7, jump, sink, swim, edit, lag, taunt, win, lose, gun shoot,
--- gun idle, vwep shoot, vwep idle, mapmodel, trigger. Second argument specifies the
--- animation file. Third argument is optional and specifies frames per second for the
--- animation, defaulting to 10. Fourth argument is optional and specifies priority
--- for the animation, defaulting to 0. A character can have up to 2 animations
--- sumultaneously playing - a primary animation and a secondary animation.
--- If a character model defines the primary animation, it will be used, otherwise
--- secondary animation will be used if it's available. Primary animations are:
--- dying, dead, pain, hold 1 ... hold 7, attack 1 ... attack 7, edit, lag, taunt, win, lose.
--- Secondary animations are: idle, forward, backward, left, right, jump, sink, swim.
--- @param animname Animation name.
--- @param animfile Animation file.
--- @param animfps Animation frames per second.
--- @param animpri Animation priority.
--- @class function
--- @name md5.anim
-
---- This links two models together. Every model you load has an ID. The first model you load
--- has ID 0, the second has ID 1, and so on, those IDs are now used to identify the models
--- and link them together. First argument specifies ID of the parent, second the child ID.
--- Third argument specifies name of the tag that specifies at which vertex the models should
--- be linked. Rest of arguments are optional translation for this link.
--- @param p Parent ID.
--- @param c Child ID.
--- @param t Tag.
--- @param x X translation. (optional)
--- @param y Y translation. (optional)
--- @param z Z translation. (optional)
--- @class function
--- @name md5.link
-
---- Toggle model noclip.
--- @param n Mesh name.
--- @param c 1 to make model noclip, 0 otherwise.
--- @class function
--- @name md5.noclip
-
---- This table contains all methods meant
--- for manipulating with iqm model format.
--- @class table
--- @name iqm
-iqm = _G["iqm"]
-
---- Set model directory.
--- @param dir Directory.
--- @class function
--- @name iqm.dir
-
---- Load a model. Skelname is optional name that can be assigned
--- to the skeleton specified in the iqmmesh for skeleton sharing,
--- but need not be specified if you do not wish to share the skeleton.
--- This skeleton name must be specified for both the model supplying
--- a skeleton and ana attached model intending to use the skeleton.
--- @param mdl Model name.
--- @param skelname Skeleton name.
--- @class function
--- @name iqm.load
-
---- Assign a tag name to bone.
--- @param n Bone name.
--- @param t Tag name.
--- @param tx Optional X translation.
--- @param ty Optional Y translation.
--- @param tz Optional Z translation.
--- @param rx Optional X rotation.
--- @param ry Optional Y rotation.
--- @param rz Optional Z rotation.
--- @class function
--- @name iqm.tag
-
---- Set model pitch. Controls how a model responds to its pitch.
--- Clamping is applied like this: clamp(pitch * s + o, m, n)
--- @param mn Mesh name.
--- @param b Name of the bone which the pitch anim is applied to, as well as all bones in the sub-tree below it.
--- @param s Pitch in degrees is scaled by this.
--- @param o The pitch offset.
--- @param m Minimal pitch offset clamp.
--- @param n Maximal pitch offset clamp.
--- @class function
--- @name iqm.pitch
-
---- Set pitch target.
--- @param mn Mesh name.
--- @param a Animation file.
--- @param f Frame offset. (integer)
--- @param m Minimal pitch. (float)
--- @param n Maximal pitch. (float)
--- @class function
--- @name iqm.pitchtarget
-
---- Set pitch correct.
--- @param mn Mesh name.
--- @param t Target name.
--- @param s Pitch scale. (float)
--- @param m Minimal pitch. (float)
--- @param n Maximal pitch. (float)
--- @class function
--- @name iqm.pitchcorrect
-
---- Set adjustment for the model.
--- @param n Model name.
--- @param yaw Yaw.
--- @param pitch Pitch.
--- @param roll Roll.
--- @param tx X translation of model center.
--- @param ty Y translation of model center.
--- @param tz Z translation of model center.
--- @class function
--- @name iqm.adjust
-
---- Set model skin.
--- @param n Name of the mesh.
--- @param t Name of the texture.
--- @param m Name of masks.
--- @param x Envmap max intensity.
--- @param i Envmap min intensity.
--- @class function
--- @name iqm.skin
-
---- Set model specular intensity. See mdlspec.
--- @param n Mesh name.
--- @param s Specular intensity.
--- @see mdl.spec
--- @class function
--- @name iqm.spec
-
---- Set model ambience. See mdlambient.
--- @param n Mesh name.
--- @param a Ambience.
--- @see mdl.ambient
--- @class function
--- @name iqm.ambient
-
---- See mdlglow.
--- @param n Mesh name.
--- @param g Glow factor.
--- @param d Glow delta.
--- @param p Glow pulse.
--- @see mdl.glow
--- @class function
--- @name iqm.glow
-
---- See mdlglare.
--- @param n Mesh name.
--- @param s Spec glare.
--- @param g Glow glare.
--- @see mdl.glare
--- @class function
--- @name iqm.glare
-
---- See mdlalphatest.
--- @param n Mesh name.
--- @param c Cutoff.
--- @see mdl.alphatest
--- @class function
--- @name iqm.alphatest
-
---- See mdlalphablend.
--- @param n Mesh name.
--- @param b Alpha blend switch.
--- @see mdl.alphablend
--- @class function
--- @name iqm.alphablend
-
---- See mdlcullface.
--- @param n Mesh name.
--- @param c Back face culling switch.
--- @see mdl.cullface
--- @class function
--- @name iqm.cullface
-
---- Set model env map.
--- @param n Name of the mesh.
--- @param e Name of the env map.
--- @class function
--- @name iqm.envmap
-
---- Set model bump map.
--- @param n Name of the mesh.
--- @parma b Name of the bump map texture.
--- @param s Name of the skin.
--- @class function
--- @name iqm.bumpmap
-
---- See mdlfullbright.
--- @param n Mesh name.
--- @param f Fullbright factor.
--- @see mdl.fullbright
--- @class function
--- @name iqm.fullbright
-
---- See mdlshader.
--- @param n Mesh name.
--- @param s Shader name.
--- @see mdl.shader
--- @class function
--- @name iqm.shader
-
---- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
--- @param n Mesh name.
--- @param X X axis scroll frequency.
--- @param Y Y axis scroll frequency.
--- @class function
--- @name iqm.scroll
-
---- Start a new animation part that will include a bone specified by
--- argument and all its sub-bones. This effectively splits animations up
--- at the bone specified by argument, such that each animation part
--- animates as it were a separate model. Note that a new animation part
--- has no animations (does not inherit any from previous animation part).
--- After a load, an implicit animation part is started that involves all bones
--- not used by other animation parts. Each model currently may only have two
--- animation parts, including the implicit animation part, so this command
--- may only be used once and only once per mesh loaded. However, you do not
--- need to specify any animation parts explicitly and acn just use default part
--- for all animations, if you do not wish the animations to be split up / blended
--- together.
--- @param b The bone name.
--- @class function
--- @name iqm.animpart
-
---- This assigns a new animation to the current animation part of last loaded model.
--- First argument specifies the animation to define. Any of following names can be used:
--- dying, dead, pain, idle, forward, backward, left, right, hold 1 ... hold 7,
--- attack1 ... attack7, jump, sink, swim, edit, lag, taunt, win, lose, gun shoot,
--- gun idle, vwep shoot, vwep idle, mapmodel, trigger. Second argument specifies the
--- animation file. Third argument is optional and specifies frames per second for the
--- animation, defaulting to 10. Fourth argument is optional and specifies priority
--- for the animation, defaulting to 0. A character can have up to 2 animations
--- sumultaneously playing - a primary animation and a secondary animation.
--- If a character model defines the primary animation, it will be used, otherwise
--- secondary animation will be used if it's available. Primary animations are:
--- dying, dead, pain, hold 1 ... hold 7, attack 1 ... attack 7, edit, lag, taunt, win, lose.
--- Secondary animations are: idle, forward, backward, left, right, jump, sink, swim.
--- @param animname Animation name.
--- @param animfile Animation file.
--- @param animfps Animation frames per second.
--- @param animpri Animation priority.
--- @class function
--- @name iqm.anim
-
---- This links two models together. Every model you load has an ID. The first model you load
--- has ID 0, the second has ID 1, and so on, those IDs are now used to identify the models
--- and link them together. First argument specifies ID of the parent, second the child ID.
--- Third argument specifies name of the tag that specifies at which vertex the models should
--- be linked. Rest of arguments are optional translation for this link.
--- @param p Parent ID.
--- @param c Child ID.
--- @param t Tag.
--- @param x X translation. (optional)
--- @param y Y translation. (optional)
--- @param z Z translation. (optional)
--- @class function
--- @name iqm.link
-
---- Toggle model noclip.
--- @param n Mesh name.
--- @param c 1 to make model noclip, 0 otherwise.
--- @class function
--- @name iqm.noclip
-
---- This table contains all methods meant
--- for manipulating with smd model format.
--- @class table
--- @name smd
-smd = _G["smd"]
-
---- Set model directory.
--- @param dir Directory.
--- @class function
--- @name smd.dir
-
---- Load a model. Skelname is optional name that can be assigned
--- to the skeleton specified in the smdmesh for skeleton sharing,
--- but need not be specified if you do not wish to share the skeleton.
--- This skeleton name must be specified for both the model supplying
--- a skeleton and ana attached model intending to use the skeleton.
--- @param mdl Model name.
--- @param skelname Skeleton name.
--- @class function
--- @name smd.load
-
---- Assign a tag name to bone.
--- @param n Bone name.
--- @param t Tag name.
--- @param tx Optional X translation.
--- @param ty Optional Y translation.
--- @param tz Optional Z translation.
--- @param rx Optional X rotation.
--- @param ry Optional Y rotation.
--- @param rz Optional Z rotation.
--- @class function
--- @name smd.tag
-
---- Set model pitch. Controls how a model responds to its pitch.
--- Clamping is applied like this: clamp(pitch * s + o, m, n)
--- @param mn Mesh name.
--- @param b Name of the bone which the pitch anim is applied to, as well as all bones in the sub-tree below it.
--- @param s Pitch in degrees is scaled by this.
--- @param o The pitch offset.
--- @param m Minimal pitch offset clamp.
--- @param n Maximal pitch offset clamp.
--- @class function
--- @name smd.pitch
-
---- Set pitch target.
--- @param mn Mesh name.
--- @param a Animation file.
--- @param f Frame offset. (integer)
--- @param m Minimal pitch. (float)
--- @param n Maximal pitch. (float)
--- @class function
--- @name smd.pitchtarget
-
---- Set pitch correct.
--- @param mn Mesh name.
--- @param t Target name.
--- @param s Pitch scale. (float)
--- @param m Minimal pitch. (float)
--- @param n Maximal pitch. (float)
--- @class function
--- @name smd.pitchcorrect
-
---- Set adjustment for the model.
--- @param n Model name.
--- @param yaw Yaw.
--- @param pitch Pitch.
--- @param roll Roll.
--- @param tx X translation of model center.
--- @param ty Y translation of model center.
--- @param tz Z translation of model center.
--- @class function
--- @name smd.adjust
-
---- Set model skin.
--- @param n Name of the mesh.
--- @param t Name of the texture.
--- @param m Name of masks.
--- @param x Envmap max intensity.
--- @param i Envmap min intensity.
--- @class function
--- @name smd.skin
-
---- Set model specular intensity. See mdlspec.
--- @param n Mesh name.
--- @param s Specular intensity.
--- @see mdl.spec
--- @class function
--- @name smd.spec
-
---- Set model ambience. See mdlambient.
--- @param n Mesh name.
--- @param a Ambience.
--- @see mdl.ambient
--- @class function
--- @name smd.ambient
-
---- See mdlglow.
--- @param n Mesh name.
--- @param g Glow factor.
--- @param d Glow delta.
--- @param p Glow pulse.
--- @see mdl.glow
--- @class function
--- @name smd.glow
-
---- See mdlglare.
--- @param n Mesh name.
--- @param s Spec glare.
--- @param g Glow glare.
--- @see mdl.glare
--- @class function
--- @name smd.glare
-
---- See mdlalphatest.
--- @param n Mesh name.
--- @param c Cutoff.
--- @see mdl.alphatest
--- @class function
--- @name smd.alphatest
-
---- See mdlalphablend.
--- @param n Mesh name.
--- @param b Alpha blend switch.
--- @see mdl.alphablend
--- @class function
--- @name smd.alphablend
-
---- See mdlcullface.
--- @param n Mesh name.
--- @param c Back face culling switch.
--- @see mdl.cullface
--- @class function
--- @name smd.cullface
-
---- Set model env map.
--- @param n Name of the mesh.
--- @param e Name of the env map.
--- @class function
--- @name smd.envmap
-
---- Set model bump map.
--- @param n Name of the mesh.
--- @parma b Name of the bump map texture.
--- @param s Name of the skin.
--- @class function
--- @name smd.bumpmap
-
---- See mdlfullbright.
--- @param n Mesh name.
--- @param f Fullbright factor.
--- @see mdl.fullbright
--- @class function
--- @name smd.fullbright
-
---- See mdlshader.
--- @param n Mesh name.
--- @param s Shader name.
--- @see mdl.shader
--- @class function
--- @name smd.shader
-
---- Scroll a model skin at X and Y Hz along the X and Y axes of the skin.
--- @param n Mesh name.
--- @param X X axis scroll frequency.
--- @param Y Y axis scroll frequency.
--- @class function
--- @name smd.scroll
-
---- Start a new animation part that will include a bone specified by
--- argument and all its sub-bones. This effectively splits animations up
--- at the bone specified by argument, such that each animation part
--- animates as it were a separate model. Note that a new animation part
--- has no animations (does not inherit any from previous animation part).
--- After a load, an implicit animation part is started that involves all bones
--- not used by other animation parts. Each model currently may only have two
--- animation parts, including the implicit animation part, so this command
--- may only be used once and only once per mesh loaded. However, you do not
--- need to specify any animation parts explicitly and acn just use default part
--- for all animations, if you do not wish the animations to be split up / blended
--- together.
--- @param b The bone name.
--- @class function
--- @name smd.animpart
-
---- This assigns a new animation to the current animation part of last loaded model.
--- First argument specifies the animation to define. Any of following names can be used:
--- dying, dead, pain, idle, forward, backward, left, right, hold 1 ... hold 7,
--- attack1 ... attack7, jump, sink, swim, edit, lag, taunt, win, lose, gun shoot,
--- gun idle, vwep shoot, vwep idle, mapmodel, trigger. Second argument specifies the
--- animation file. Third argument is optional and specifies frames per second for the
--- animation, defaulting to 10. Fourth argument is optional and specifies priority
--- for the animation, defaulting to 0. A character can have up to 2 animations
--- sumultaneously playing - a primary animation and a secondary animation.
--- If a character model defines the primary animation, it will be used, otherwise
--- secondary animation will be used if it's available. Primary animations are:
--- dying, dead, pain, hold 1 ... hold 7, attack 1 ... attack 7, edit, lag, taunt, win, lose.
--- Secondary animations are: idle, forward, backward, left, right, jump, sink, swim.
--- @param animname Animation name.
--- @param animfile Animation file.
--- @param animfps Animation frames per second.
--- @param animpri Animation priority.
--- @class function
--- @name smd.anim
-
---- This links two models together. Every model you load has an ID. The first model you load
--- has ID 0, the second has ID 1, and so on, those IDs are now used to identify the models
--- and link them together. First argument specifies ID of the parent, second the child ID.
--- Third argument specifies name of the tag that specifies at which vertex the models should
--- be linked. Rest of arguments are optional translation for this link.
--- @param p Parent ID.
--- @param c Child ID.
--- @param t Tag.
--- @param x X translation. (optional)
--- @param y Y translation. (optional)
--- @param z Z translation. (optional)
--- @class function
--- @name smd.link
-
---- Toggle model noclip.
--- @param n Mesh name.
--- @param c 1 to make model noclip, 0 otherwise.
--- @class function
--- @name smd.noclip
-
---- This table contains
--- ragdoll manipulation methods.
--- @class table
--- @name rd
-rd = {}
-
---- Specify a ragdoll vert.
--- @param x X coord.
--- @param y Y coord.
--- @param z Z coord.
--- @param r Radius.
--- @class function
--- @name rd.name
-rd.vert = CAPI.rdvert
-
---- Specify rd eye.
--- @param v Ragdoll eye (integer)
--- @class function
--- @name rd.name
-rd.eye = CAPI.rdeye
-
---- Specify a ragdoll tri.
--- @param v1 V1
--- @param v2 V2
--- @param v3 V3
--- @class function
--- @name rd.name
-rd.tri = CAPI.rdtri
-
---- Specify a ragdoll joint.
--- @param n N
--- @param t T
--- @param v1 V1
--- @param v2 V2
--- @param v3 V3
--- @class function
--- @name rd.name
-rd.joint = CAPI.rdjoint
-
---- Set ragdoll distance limit.
--- @param v1 V1
--- @param v2 V2
--- @param mindist Minimal distance.
--- @param maxdist Maximal distance.
--- @class function
--- @name rd.name
-rd.limitdist = CAPI.rdlimitdist
-
---- Limit rotation in ragdoll.
--- @param t1 T1
--- @param t2 T2
--- @param m Maximal angle.
--- @param qx qx
--- @param qy qy
--- @param qz qz
--- @param qw qw
--- @class function
--- @name rd.name
-rd.limitrot = CAPI.rdlimitrot
-
---- Turn on/off ragdoll joint animation.
--- @param v 1 or 0.
--- @class function
--- @name rd.name
-rd.animjoints = CAPI.rdanimjoints
+--[[!
+    Function: get_bounding_box
+    Returns a Lua table in format
+
+    (start code)
+        {
+            center = center,
+            radius = radius
+        }
+    (end)
+
+    where "center" and "radius" are <vec3>'s representing
+    bounding box of a model with a name given by the argument.
+
+    If the model can't be loaded, nil gets returned.
+]]
+get_bounding_box = CAPI.scriptmdlbb
+
+--[[!
+    Function: get_collision_box
+    See <get_bounding_box>.
+]]
+get_collision_box = CAPI.scriptmdlcb
+
+--[[!
+    Function: get_model_info
+    Returns a Lua table with the information about
+    model with a name given by the argument.
+
+    The return value is a table and contains the amount
+    of triangles and information about each triangle.
+
+    Example:
+        (start code)
+            {
+                length = 3
+                0 = { a = A, b = B, c = C }
+                1 = { a = A, b = B, c = C }
+                2 = { a = A, b = B, c = C }
+            }
+        (end)
+]]
+get_model_info = CAPI.mdlmesh
+
+--[[!
+    Class: all
+    This contains various functions meant to be used in MODELFORMAT.lua
+    that affect the whole model, not just a single mesh of it.
+]]
+all = {
+    --[[!
+        Function: get_name
+        Returns the name of currently loading model.
+    ]]
+    get_name = CAPI.mdlname,
+
+    --[[!
+        Function: alpha_test
+        Controls the cut-off threshold given by the argument at which alpha
+        channel skins will discard pixels where alpha is less than the given
+        cut-off. The cut-off is a floating point value in range of 0 to 1,
+        defaulting to 0.9.
+    ]]
+    alpha_test = CAPI.mdlalphatest,
+
+    --[[!
+        Function: alpha_blend
+        Controls whether a model with an alpha-channel skin will alpha blend
+        (defaults to true).
+    ]]
+    alpha_blend = CAPI.mdlalphablend,
+
+    --[[!
+        Function: alpha_depth
+        Controls the model alpha depth (defaults to true).
+    ]]
+    alpha_depth = CAPI.mdlalphadepth,
+
+    --[[!
+        Controls the model bounding box. If not set, bounding box
+        is generated from the model's geometry.
+
+        Parameters:
+            radius - bounding box radius.
+            height - bounding box height.
+            eye_height - fraction of the model's height to be used
+            as eye height (defaults to 0.9).
+    ]]
+    bounding_box = CAPI.mdlbb,
+
+    --[[!
+        Function: extend_bounding_box
+        Accepts a <vec3> argument that is then added (<vec3.add>) to
+        the calculated bounding box vector.
+    ]]
+    extend_bounding_box = CAPI.extendbb,
+
+    --[[!
+        Function: scale
+        Scales the model's size to be ARG percent of its default size.
+    ]]
+    scale = CAPI.mdlscale,
+
+    --[[!
+        Function: specularity
+        ARG is the specular intensity (not given or 0 defaults to 100),
+        good for metal/plastics or anything shiny, use lower values
+        like 50 for wood etc., -1 means off entirely.
+    ]]
+    specularity = CAPI.mdlspec,
+
+    --[[!
+        Function: glow
+        ARG is the glowmap scale (not given or 0 defaults to 300, -1
+        means off entirely), such that the glow is ARG percent of the
+        diffuse skin color.
+    ]]
+    glow = CAPI.mdlglow,
+
+    --[[!
+        Function: glare
+        ARG1 and ARG2 are floating point values that scale the amount
+        of glare generated by specular light and glare, respectively
+        (defaults to 1 and 1).
+    ]]
+    glare = CAPI.mdlglare,
+
+    --[[!
+        Function: ambient
+        ARG is the percent of the ambient light that should be used
+        for shading. Not given or 0 defaults to 30%, -1 means no ambient.
+    ]]
+    ambient = CAPI.mdlambient,
+
+    --[[!
+        Function: cull_back_faces
+        Providing it false argument disables back face culling for the
+        model. If unspecified, it's left true.
+    ]]
+    cull_back_faces = CAPI.mdlcullface,
+
+    --[[!
+        Function: depth_offset
+        True boolean argument ARG turns on depth offset, it's left off
+        by default.
+    ]]
+    depth_offset = CAPI.mdldepthoffset,
+
+    --[[!
+        Function: fullbright
+        Argument N makes the model use constant lighting level of N
+        instead of normal lighting. N is a floating point value
+        on a scale of 0 to 1.
+    ]]
+    fullbright = CAPI.mdlfullbright,
+
+    --[[!
+        Function: spin
+        Simple spin animation that yaws the model by ARG degrees per
+        second.
+    ]]
+    spin = CAPI.mdlspin,
+
+    --[[!
+        Function: envmap
+        Sets the environment map used for the model. If unspecified, the
+        model will use the closest "envmap" entity or skybox, if none is
+        available.
+
+        Parameters:
+            max, min - if min is non-zero, then the blue channel of the
+            masks is interpreted as a chrome map. Max (maximum envmap
+            intensity) and min (minimum envmap intensity, defaults to 0)
+            are floating point values in the range of 0 to 1 and specify
+            a range in which the envmapping intensity will vary based on
+            a viewing angle (a Fresnel term that is maximal at glancing
+            angles, minimal when viewed dead-on). The intensity, after
+            scaled into this range, is then multiplied by the chrome map.
+            path - envmap path, optional, same as for <skybox>.
+    ]]
+    envmap = CAPI.mdlenvmap,
+
+    --[[!
+        Function: shader
+        Argument specifies the name of the shader to use for rendering
+        the model (defaults to "stdmodel").
+    ]]
+    shader = CAPI.mdlshader,
+
+    --[[!
+        Function: translate
+        Translates the model's center by argument, which is a <vec3>
+        with x, y, z represented in model units (may use floating point).
+    ]]
+    translate = CAPI.mdltrans,
+
+    --[[!
+        Function: yaw
+        Offsets the model's yaw by ARG degrees. See also <pitch>.
+    ]]
+    yaw = CAPI.mdlyaw,
+
+    --[[!
+        Function: pitch
+        Offsets the model's pitch by ARG degrees. See also <yaw>.
+    ]]
+    pitch = CAPI.mdlpitch,
+
+    --[[!
+        Function: shadow
+        Controls whether a <mapmodel> will cast shadows (defaults
+        to true).
+    ]]
+    shadow = CAPI.mdlshadow,
+
+    --[[!
+        Function: collide
+        Controls whether the model will collide with the environment.
+        Defaults to true.
+    ]]
+    collide = CAPI.mdlcollide,
+
+    --[[!
+        Function: circular_collision
+        Controls whether the collision box will be cylinder rather
+        than a block. Defaults to false.
+    ]]
+    circular_collision = CAPI.mdlellipsecollide,
+
+    --[[!
+        Function: entity_collision_box
+        Controls whether the model's entity will control its
+        collision box. Used by <area_trigger> (which inherits
+        from <mapmodel>). Defaults to false.
+    ]]
+    entity_collision_box = CAPI.mdlperentitycollisionboxes
+}
+
+--[[!
+    Class: md5
+    This table contains every function related somehow to MD5 (id tech 4)
+    model format. <iqm> and <smd> have equivalent functions. Please note
+    that these functions are meant to be called only from md5.lua script
+    for a model.
+
+    Text taken from Sauerbraten model reference:
+        MD5 models require a proper configuration to function; make sure your
+        exporter properly exports mesh names in the MD5 file so that these can
+        be referenced in the configuration file (the Blender exporter does not
+        export these, but a fixed Blender MD5 exporter can be gotten from the
+        Cube wiki, <http://cube.wikispaces.com/Blender+to+MD5+to+Sauerbraten>).
+
+        Make sure no more than 4 blend weights are used per vertex, any extra
+        blend weights will be dropped silently. The skeleton should use no more
+        than 256 bones, and less than 70 or so bones should be used if you wish
+        the model to be skeletally animated on the GPU. To optimize animation
+        of the model on both CPU and GPU, keep the number of blend weights per
+        vertex to a minimum. Also, similar combinations of blend weights are
+        cached while animating, especially on the CPU, such that if two or
+        more vertices use the same blend weights, blending calculations only
+        have to be done once for all the vertices - so try and minimize the
+        number of distinct combinations of blend weights if possible.
+
+        When animating skeletal models, you should model the animations as a
+        single piece for the entire body. In the configuration file, you can
+        choose a bone at which to split the model into an upper and lower part
+        (via <animation_part>), which allows, for example, the upper body
+        movement of one animation to be combined with the lower body movement
+        of another animation automatically. The bone at which you split the
+        animation up should ideally be a root bone, of which the upper body
+        and lower body are separate sub-trees. Rigging the model in this way
+        also allows for pitch animation (which also requires selecting a bone
+        to pitch at) to take place such as bending at the waist, which
+        similarly requires the upper body to be a sub-tree of the bone at
+        which the pitch animation will occur.
+
+        The included MD5 support allows for two methods of attaching models to
+        another: via tags (by assigning a tag name to a bone with <tag>), or
+        by animating multiple models against a common, named skeleton that
+        will be shared among all of them (useful for modeling clothing
+        attachments and similar items). To use a shared skeleton, you simply
+        export all the models with the same skeleton. Animations only need to
+        be specified for the base model. A name for the skeleton is specified
+        via the <load> command, for both the model exporting the skeleton and
+        the models using it. When one of the models is attached to the one
+        supplying the skeleton internally, the tag setup is instead ignored
+        and the skeleton/animations of the base model are used to animate the
+        attachment as if it were a sub-mesh of the base model itself. 
+]]
+md5 = {
+    --[[!
+        Function: set_directory
+        Sets a model search directory. The name given by the argument works
+        the same as for <model.render>.
+    ]]
+    set_directory = _G["md5"].dir,
+
+    --[[!
+        Function: load
+        Loads a model, skelname is an optional name that can be assigned
+        to the skeleton specified in the md5mesh function for skeleton
+        sharing, but isn't needed to be specified if you wish to not
+        share the skeleton. The skeleton name must be specified for both
+        the model supplying a skeleton and an attached model intending
+        to use the skeleton.
+
+        Parameters:
+            model - the model filename relative to the model directory
+            (either the one with md5.lua or specified by <set_directory>).
+            Requires the extension to be specified.
+            skelname - see above.
+    ]]
+    load = _G["md5"].load,
+
+    --[[!
+        Function: tag
+        Assugns a tag to a bone for either use with <link> or attachment
+        of other models via tags.
+
+        Paarameters:
+            bone - bone name.
+            tag - tag name.
+            tr - optional translation (vec3).
+            rot - optional rotation (vec3).
+    ]]
+    tag = _G["md5"].tag,
+
+    --[[!
+        Function: pitch
+        Sets the model pitch. Controls how a model responds to its pitch.
+        Clamping is applied like this: clamp(pitch * scale + offset, min, max).
+        By default, all models have scale 1, offset 0, min -360, max 360.
+
+        Parameters:
+            name - mesh name.
+            bone - name of the bone which the pitch animation is applied to,
+            as well as all bones in the sub-tree below it.
+            scale - pitch in degrees is scaled by this.
+            offset - pitch offset.
+            min - minimal pitch offset clamp.
+            max - maximal pitch offset clamp.
+    ]]
+    pitch = _G["md5"].pitch,
+
+    --[[!
+        Function: pitch_target
+        Sets the pitch target.
+
+        Parameters:
+            name - mesh name.
+            anim - animation file.
+            fo - frame offset (integer).
+            min - minimal pitch (float).
+            max - maximal pitch (float).
+    ]]
+    pitch_target = _G["md5"].pitchtarget,
+
+    --[[!
+        Function: pitch_correct
+        Sets the pitch correct.
+
+        Parameters:
+            name - mesh name.
+            target - target name.
+            scale - pitch scale (float).
+            min - minimal pitch (float).
+            max - maximal pitch (float).
+    ]]
+    pitch_correct = _G["md5"].pitchcorrect,
+
+    --[[!
+        Function: adjust
+        Adjusts the bone with the specified rotations,
+        in degrees, on any animations loaded after this
+        function is called.
+
+        Parameters:
+            bone - bone name.
+            yaw - mesh yaw.
+            pitch - mesh pitch.
+            roll - mesh roll.
+            tr - optional translation (<vec3>).
+    ]]
+    adjust = _G["md5"].adjust,
+
+    --[[!
+        Function: skin
+        Loads a texture and assigns it to a mesh
+        of the last loaded model (<load>).
+
+        Parameters:
+            name - mesh name.
+            texture - texture filename relative to
+            the mesh directory.
+            masks - optional, sets a texture for
+            spec (red channel) / glow (green channel)
+            maps.
+            envmax and envmin - maximum envmap intensity, a floating
+            point value in the range of 0 to 1 specifying the range in
+            which the envmapping intensity will vary based on a viewing
+            angle (a Fresnel term that is maximal at glancing angles,
+            minimal when viewed dead-on). The intensity, after scaled
+            into this range, is then multiplied by the chrome map.
+    ]]
+    skin = _G["md5"].skin,
+
+    --[[!
+        Function: specularity
+        A mesh-specific (name passed with the first argument) version
+        of <all.specularity>.
+    ]]
+    specularity = _G["md5"].spec,
+
+    --[[!
+        Function: ambient
+        A mesh-specific (name passed with the first argument) version
+        of <all.ambient>.
+    ]]
+    ambient = _G["md5"].ambient,
+
+    --[[!
+        Function: glow
+        A mesh-specific (name passed with the first argument) version
+        of <all.glow>.
+    ]]
+    glow = _G["md5"].glow,
+
+    --[[!
+        Function: glare
+        A mesh-specific (name passed with the first argument) version
+        of <all.glare>.
+    ]]
+    glare = _G["md5"].glare,
+
+    --[[!
+        Function: alpha_test
+        A mesh-specific (name passed with the first argument) version
+        of <all.alpha_test>.
+    ]]
+    alpha_test = _G["md5"].alphatest,
+
+    --[[!
+        Function: alpha_blend
+        A mesh-specific (name passed with the first argument) version
+        of <all.alpha_blend>.
+    ]]
+    alpha_blend = _G["md5"].alphablend,
+
+    --[[!
+        Function: cull_back_faces
+        A mesh-specific (name passed with the first argument) version
+        of <all.cull_back_faces>.
+    ]]
+    cull_back_faces = _G["md5"].cullface,
+
+    --[[!
+        Function: envmap
+        Sets the environment map used for the model, where first
+        argumetn specifies a pathname for the envmap (same as for
+        <skybox>). If unspecified, the mesh will use the closest
+        "envmap" entity, or skybox, if none is available (unless
+        overriden by <all.envmap>).
+    ]]
+    envmap = _G["md5"].envmap,
+
+    --[[!
+        Function: bumpmap
+        Enables bumpmapping for a given mesh in the last loaded model
+        (see <load>).
+
+        Parameters:
+            name - mesh name.
+            skin - see <skin>, this is the skin texture that will be
+            used when user's 3D card supports bumpmapping, otherwise
+            the one supplied by <skin> will be used and no bumpmapping
+            is done. These two skins may be the same. However a diffuse
+            skin for bumpmapping should generally have little to no
+            directional shading baked into it, whereas flat diffuse
+            skins (no bumpmapping) generally should, and this allows
+            you to provide a separate skin for the bumpmapping case.
+            normalmap - a normal map texture which is used to shade
+            the supplied diffuse skin texture.
+    ]]
+    bumpmap = _G["md5"].bumpmap,
+
+    --[[!
+        Function: fullbright
+        A mesh-specific (name passed with the first argument) version
+        of <all.fullbright>.
+    ]]
+    fullbright = _G["md5"].fullbright,
+
+    --[[!
+        Function: shader
+        A mesh-specific (name passed with the first argument) version
+        of <all.shader>.
+    ]]
+    shader = _G["md5"].shader,
+
+    --[[!
+        Function: scroll
+        Scrolls a model skin at X and Y Hz along the X and Y axes
+        of the skin.
+
+        Parameters:
+            name - mesh name.
+            x - x scroll frequency.
+            y - y scroll frequency.
+    ]]
+    scroll = _G["md5"].scroll,
+
+    --[[!
+        Function: animation_part
+        Starts a new animation part that will include bone given
+        by the argument and all its sub-bones. This effectively
+        splits animations up at the given bone, such that each
+        animation part animates as it was a separate model. Note
+        that a new animation part has no animations (does not
+        inherit any from the previous animation part). After a
+        <load>, an implicit animation part is started that
+        involves all bones not used by other animation parts.
+
+        Each model currently may have 2 animation parts, including
+        the implicit default part, so this function may only be
+        used once and only once per mesh loaded. However, you do
+        not need to specify any animation parts explicitly and can
+        just use the default part for all animations if you do not
+        wish the animations to be split up / blended together.
+    ]]
+    animation_part = _G["md5"].animpart,
+
+    --[[!
+        Function: animation
+        This assigns a new animation to the current animation part
+        of the last loaded mesh (<load>).
+
+        Parameters:
+            animation - name of the animation to define.
+            filename - md5 animation filename.
+            fps - optional argument specifying frames per second at
+            which to run the animation. If none is specified or is
+            0, 10 FPS is the default.
+            priority - optional argument specifying a priority for
+            the animation (defaults to 0).
+
+        Animation names:
+            - dying
+            - dead
+            - pain
+            - idle
+            - forward
+            - backward
+            - left
+            - right
+            - hold1 .. hold7
+            - attack1 .. attack7
+            - jump
+            - sink
+            - swim
+            - edit
+            - lag
+            - taunt
+            - win
+            - lose
+            - gunshoot
+            - gunidle
+            - vwepshoot
+            - vwepidle
+            - mapmodel
+            - trigger
+
+        A character model will have up to 2 animations simultaneously
+        playing, a primary animation and a secondary animation. If a
+        character model defines the primary animation, it will be used,
+        otherwise the secondary will be used if it is available.
+
+        Primary animations:
+            - dying
+            - dead
+            - pain
+            - hold1 .. hold7
+            - attack1 .. attack7
+            - edit
+            - lag
+            - taunt
+            - win
+            - lose
+
+        Secondary animations:
+            - idle
+            - forward
+            - backward
+            - left
+            - right
+            - jump
+            - sink
+            - swim
+    ]]
+    animation = _G["md5"].anim,
+
+    --[[!
+        Function: link
+        Links two meshes together. Every mesh you <load> has an ID.
+        The first mesh you load has the ID 0, the second has the ID
+        1 and so on, so these IDs are now used to identify the meshes
+        and link them together.
+
+        Parameters:
+            parent - ID of the parent model.
+            child - ID of the child model.
+            tag - name of the tag specifying at which vertex the meshes
+            should be linked.
+            tr - optional translation for the link (<vec3>).
+    ]]
+    link = _G["md5"].link,
+
+    --[[!
+        Function: noclip
+        Toggles mesh noclip.
+
+        Parameters:
+            name - mesh name.
+            noclip - boolean value, defaults to false (solid).
+    ]]
+    noclip = _G["md5"].noclip
+}
+
+--[[!
+    Class: iqm
+    The Inter-Quake Model format (<http://lee.fov120.com/iqm/>). Used
+    identically with <md5>, the only difference is the class name
+    and that you define things in iqm.lua instead of md5.lua.
+
+    See also <smd>.
+]]
+iqm = {
+    set_directory   = _G["iqm"].dir,
+    load            = _G["iqm"].load,
+    tag             = _G["iqm"].tag,
+    pitch           = _G["iqm"].pitch,
+    pitch_target    = _G["iqm"].pitchtarget,
+    pitch_correct   = _G["iqm"].pitchcorrect,
+    adjust          = _G["iqm"].adjust,
+    skin            = _G["iqm"].skin,
+    specularity     = _G["iqm"].spec,
+    ambient         = _G["iqm"].ambient,
+    glow            = _G["iqm"].glow,
+    glare           = _G["iqm"].glare,
+    alpha_test      = _G["iqm"].alphatest,
+    alpha_blend     = _G["iqm"].alphablend,
+    cull_back_faces = _G["iqm"].cullface,
+    envmap          = _G["iqm"].envmap,
+    bumpmap         = _G["iqm"].bumpmap,
+    fullbright      = _G["iqm"].fullbright,
+    shader          = _G["iqm"].shader,
+    scroll          = _G["iqm"].scroll,
+    animation_part  = _G["iqm"].animpart,
+    animation       = _G["iqm"].anim,
+    link            = _G["iqm"].link,
+    noclip          = _G["iqm"].noclip
+}
+
+--[[!
+    Class: smd
+    The Source engine SMD format. Used identically with <md5>, the only
+    difference is the class name and that you define things in smd.lua
+    instead of md5.lua.
+
+    See also <iqm>.
+]]
+smd = {
+    set_directory   = _G["smd"].dir,
+    load            = _G["smd"].load,
+    tag             = _G["smd"].tag,
+    pitch           = _G["smd"].pitch,
+    pitch_target    = _G["smd"].pitchtarget,
+    pitch_correct   = _G["smd"].pitchcorrect,
+    adjust          = _G["smd"].adjust,
+    skin            = _G["smd"].skin,
+    specularity     = _G["smd"].spec,
+    ambient         = _G["smd"].ambient,
+    glow            = _G["smd"].glow,
+    glare           = _G["smd"].glare,
+    alpha_test      = _G["smd"].alphatest,
+    alpha_blend     = _G["smd"].alphablend,
+    cull_back_faces = _G["smd"].cullface,
+    envmap          = _G["smd"].envmap,
+    bumpmap         = _G["smd"].bumpmap,
+    fullbright      = _G["smd"].fullbright,
+    shader          = _G["smd"].shader,
+    scroll          = _G["smd"].scroll,
+    animation_part  = _G["smd"].animpart,
+    animation       = _G["smd"].anim,
+    link            = _G["smd"].link,
+    noclip          = _G["smd"].noclip
+}
+
+--[[!
+    Class: obj
+    The Wavefront OBJ format. Functions are called in model's
+    obj.lua, see also <md5>, <iqm> and <smd>. The set is simillar
+    to <md5>, but as obj models don't support animation, it's
+    more limited.
+]]
+obj = {
+    --[[!
+        Function: load
+        See <md5.load>. Uses only the first argument.
+    ]]
+    load = _G["obj"].load,
+    --[[!
+        Function: skin
+        Identical with <md5.skin>.
+    ]]
+    skin = _G["obj"].skin,
+    --[[!
+        Function: bumpmap
+        Identical with <md5.bumpmap>.
+    ]]
+    bumpmap = _G["obj"].bumpmap,
+    --[[!
+        Function: envmap
+        Identical with <md5.envmap>.
+    ]]
+    envmap = _G["obj"].envmap,
+    --[[!
+        Function: specularity
+        Identical with <md5.specularity>.
+    ]]
+    specularity = _G["obj"].spec,
+    --[[!
+        Function: pitch
+        Identical with <md5.pitch>, except
+        that the first argument is omitted.
+        The function accepts just 4 arguments.
+    ]]
+    pitch = _G["obj"].pitch,
+    --[[!
+        Function: ambient
+        Identical with <md5.ambient>.
+    ]]
+    ambient = _G["obj"].ambient,
+    --[[!
+        Function: glow
+        Identical with <md5.glow>.
+    ]]
+    glow = _G["obj"].glow,
+    --[[!
+        Function: glare
+        Identical with <md5.glare>.
+    ]]
+    glare = _G["obj"].glare,
+    --[[!
+        Function: alpha_test
+        Identical with <md5.alpha_test>.
+    ]]
+    alpha_test = _G["obj"].alphatest,
+    --[[!
+        Function: alpha_blend
+        Identical with <md5.alpha_blend>.
+    ]]
+    alpha_blend = _G["obj"].alphablend,
+    --[[!
+        Function: cull_back_faces
+        Identical with <md5.cull_back_faces>.
+    ]]
+    cull_back_faces = _G["obj"].cullface,
+    --[[!
+        Function: fullbright
+        Identical with <md5.fullbright>.
+    ]]
+    fullbright = _G["obj"].fullbright,
+    --[[!
+        Function: shader
+        Identical with <md5.shader>.
+    ]]
+    shader = _G["obj"].shader,
+    --[[!
+        Function: scroll
+        Identical with <md5.scroll>.
+    ]]
+    scroll = _G["obj"].scroll,
+    --[[!
+        Function: noclip
+        Identical with <md5.noclip>.
+    ]]
+    noclip = _G["obj"].noclip
+}
+
+--[[!
+    Class: ragdoll
+    Provides functions required for defining ragdolls
+    with skeletal models (<md5>, <iqm>, <smd>).
+
+    There is a ragdoll editor for Sauerbraten, see this
+    page <http://cube.wikispaces.com/Creating+Ragdolls>
+    for more information. The ragdoll editor writes out
+    the commands in cubescript, so you'll have to further
+    process the output to get Lua code. Please note that
+    even when the page refers to "currently only <md5>
+    models", <smd> and <iqm> are also supported (not by
+    the ragdoll editor though, so you'll have to convert
+    your model to md5 for ragdoll editing).
+
+    There will soon be an OF-specific ragdoll editor
+    in our Github tools repository.
+]]
+ragdoll = {
+    --[[!
+        Function: vertex
+        Defines a ragdoll vertex. First argument is
+        a <vec3> specifying the coordinates, second
+        argument is a radius (a floating point value).
+        The radius is optional.
+    ]]
+    vertex = CAPI.rdvert,
+
+    --[[!
+        Function: eye
+        Specifies a ragdoll eye (integral value).
+    ]]
+    eye = CAPI.rdeye,
+
+    --[[!
+        Function: triangle
+        Defines a ragdoll triangle from 3 vertices specified
+        by arguments (integral values, the vertex numbers start
+        at 0, where 0 is the first defined one).
+    ]]
+    triangle = CAPI.rdtri,
+
+    --[[!
+        Function: joint
+        Defines a ragdoll joint, knowing a bone (first argument)
+        and a triangle (second argument). There are 3 more optional
+        arguments specifying vertices. All arguments are integral
+        values.
+    ]]
+    joint = CAPI.rdjoint,
+
+    --[[!
+        Function: limit_distance
+        Limits a distance between two vertices specified by
+        the first two arguments. Final two arguments are floating
+        point values specifying minimal and maximal distance.
+    ]]
+    limit_distance = CAPI.rdlimitdist,
+
+    --[[!
+        Function: limit_rotation
+        Limits a rotation between two triangles specified by
+        the first two arguments. Third argument is a floating
+        point value specifying the maximum rotation angle.
+        Last 4 arguments make a quaternion used to create
+        the 3x3 rotation matrix.
+    ]]
+    limit_rotation = CAPI.rdlimitrot,
+    animate_joints = CAPI.rdanimjoints
+}

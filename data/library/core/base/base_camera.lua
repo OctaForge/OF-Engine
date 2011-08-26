@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features camera control system for Lua.
-
-    Section: Camera interface
 ]]
 
 --[[!
@@ -131,3 +129,17 @@ mouselook = CAPI.mouselook
     Toggles character viewing.
 ]]
 character_view = CAPI.characterview
+
+--[[!
+    Functions: center_on_entity
+    Centers view on selected entity. Increment
+    through selection by N. For example, N == 1
+    means next, N == -1 means previous.
+
+    You can set distance from the entity via
+    engine variable called entautoviewdist.
+
+    Parameters:
+        N - the increment factor.
+]]
+center_on_entity = CAPI.entautoview

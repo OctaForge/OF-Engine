@@ -38,13 +38,8 @@ namespace lua_binds
 
     // return list of all editors
     LUA_BIND_CLIENT(textlist, {
-        string s = "";
-        loopv(editors)
-        {
-            if(i > 0) concatstring(s, ", ");
-            concatstring(s, editors[i]->name);
-        }
-        e.push(s);
+        e.t_new();
+        loopv(editors) e.t_set(i + 1, editors[i]->name);
     })
 
     // return the start of the buffer

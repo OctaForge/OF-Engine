@@ -1,5 +1,5 @@
 --[[!
-    File: logging.lua
+    File: logger.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -12,8 +12,6 @@
 
     About: Purpose
         This file contains logger interface for Lua.
-
-    Section: Logging
 ]]
 
 --[[!
@@ -38,8 +36,8 @@ module("logging", package.seeall)
         but might come in use sometimes.
         DEBUG - use for usual debugging output.
         WARNING - this level is usually displayed by default.
-        ERROR - Use for error messages, displayed always. Printed into in-engine
-        console too, unlike all others.
+        ERROR - Use for error messages, displayed always.
+        Printed into in-engine console too, unlike all others.
 ]]
 log = CAPI.log
 INFO = CAPI.INFO

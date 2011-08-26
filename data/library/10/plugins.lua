@@ -12,8 +12,6 @@
 
     About: Purpose
         This file features plugin baker for OctaForge.
-
-    Section: Plugins
 ]]
 
 --[[!
@@ -59,7 +57,7 @@ function bake(_class, plugins)
         contains any of these, it won't simply override, instead it
         will call all available functions of this name one by one.
         For meaning of these functions, look into their base classes -
-        <root_logent>, <client_logent>, <server_logent>.
+        <base_root>, <base_client>, <base_server>.
 
         Items:
             init
@@ -119,7 +117,7 @@ function bake(_class, plugins)
                     if not properties then
                         properties = item
                     else
-                        table.mergedicts(properties, item)
+                        table.merge_dicts(properties, item)
                     end
                 else
                     cldata[name] = item

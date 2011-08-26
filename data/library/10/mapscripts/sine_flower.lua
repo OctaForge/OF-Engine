@@ -32,7 +32,7 @@ function myplayer:client_act(sec)
         self.position.z = math.sin(math.rad(self.angle) * 10) * 2 + 650
 
         -- Create cube on current position. Use minimal size
-        world.editing_createcube(self.position.x, self.position.y, self.position.z, 1)
+        edit.procedural.create_cube(self.position.x, self.position.y, self.position.z, 1)
     else
         -- If we're over 20, just return from the function after running parent.
         return nil
@@ -51,7 +51,7 @@ function myplayer:client_act(sec)
 end
 
 -- Register our custom player entity class into storage
-entity_classes.reg(myplayer, "fpsent")
+entity_classes.register(myplayer, "fpsent")
 
 -- Notify the engine that we're overriding player by setting engine variable
 player_class = "myplayer"

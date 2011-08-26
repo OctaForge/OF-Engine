@@ -15,15 +15,15 @@ function register_gun(gun, comment, hud)
 end
 
 function client_click(button, down, position, entity)
-    local player = entity_store.get_plyent()
+    local player = entity_store.get_player_entity()
 
     if button == 1 then
         if down then
-            if player.canmove then
+            if player.can_move then
                 player:start_shooting(position)
             end
         else
-            -- TODO: autostop shooting when canmove changes to false (connect to signal)
+            -- TODO: autostop shooting when can_move changes to false (connect to signal)
             player:stop_shooting(position)
         end
     elseif button == 3 and down then
@@ -41,11 +41,11 @@ end
 
 function find_target(shooter, visual_origin, targeting_origin, range, scatter)
     -- targeting from the camera - where the player aimed the mouse
-    local direction = math.vec3():fromyawpitch(shooter.yaw, shooter.pitch)
-    if scatter then direction:add(math.vec3_norm():mul(scatter)):normalize() end
+    local direction = math.vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
+    if scatter then direction:add(math.vec3_normalized():mul(scatter)):normalize() end
 
-    local target = utility.get_ray_collision_world   (targeting_origin, direction, range)
-    local temp   = utility.get_ray_collision_entities(targeting_origin, target,  shooter)
+    local target = geometry.get_ray_collision_world   (targeting_origin, direction, range)
+    local temp   = geometry.get_ray_collision_entities(targeting_origin, target,  shooter)
     local target_entity = nil
 
     if temp then
@@ -54,18 +54,18 @@ function find_target(shooter, visual_origin, targeting_origin, range, scatter)
     end
 
     -- check for hitting an entity from the gun source
-    temp = utility.get_ray_collision_entities(visual_origin, target, shooter)
+    temp = geometry.get_ray_collision_entities(visual_origin, target, shooter)
     if temp then
         target = temp.collision_position
         target_entity = temp.entity
     end
 
     -- check for hitting the scenery from the gun source
-    direction  = target:subnew(visual_origin)
+    direction  = target:sub_new(visual_origin)
     local dist = direction:magnitude()
     if dist > 2 then
-        local target2 = utility.get_ray_collision_world(visual_origin, direction:normalize(), dist)
-        if target2:iscloseto(visual_origin, dist - 2) then
+        local target2 = geometry.get_ray_collision_world(visual_origin, direction:normalize(), dist)
+        if target2:is_close_to(visual_origin, dist - 2) then
             target = target2
             target_entity = nil
         end
@@ -81,19 +81,19 @@ plugins = {
     -- network protocol for firing events
     protocol = {
         properties = {
-            firing_info = state_variables.state_array_float({ clientset = true, hashistory = false })
+            firing_info = state_variables.state_array_float({ client_set = true, has_history = false })
         },
 
         activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "firing_info", self.on_firing_info)
+            self:connect(state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_onmodify_prefix() .. "firing_info", self.on_firing_info)
+            self:connect(state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         on_firing_info = function(self, info)
-            -- do not shoot if just killed (even though canmove = false didn't arrive yet)
+            -- do not shoot if just killed (even though can_move = false didn't arrive yet)
             if not health.is_valid_target(self) then return nil end
 
             if #info ~= 5 then return nil end
@@ -117,7 +117,7 @@ plugins = {
     -- manages a player firing a gun - delay, repeat etc.
     player = {
         properties = {
-            current_gun_index = state_variables.state_integer({ clientset = true }),
+            current_gun_index = state_variables.state_integer({ client_set = true }),
             gun_indexes = state_variables.state_array_integer(),
             gun_switch_sound = state_variables.state_string()
         },
@@ -138,7 +138,7 @@ plugins = {
 
         activate = function(self)
             self:connect(
-                state_variables.get_onmodify_prefix() .. "gun_indexes",
+                state_variables.get_on_modify_name("gun_indexes"),
                 function(self, indexes)
                     if #indexes > 0 then
                         self.current_gun_index = indexes[1] -- sets initial value
@@ -153,7 +153,7 @@ plugins = {
             self.now_firing = false
 
             self:connect(
-                state_variables.get_onmodify_prefix() .. "current_gun_index",
+                state_variables.get_on_modify_name("current_gun_index"),
                 function(self)
                     if self.gun_switch_sound ~= "" then
                         sound.play(self.gun_switch_sound, self.position:copy())
@@ -163,7 +163,7 @@ plugins = {
         end,
 
         client_act = function(self, seconds)
-            if self ~= entity_store.get_plyent() then return nil end
+            if self ~= entity_store.get_player_entity() then return nil end
 
             self.gun_delay = math.max(self.gun_delay - seconds, 0)
 
@@ -175,7 +175,11 @@ plugins = {
                         self:queue_action(action_out_of_ammo())
                         self:stop_shooting(gun)
                     else
-                        gun:do_shot(self, utility.gettargetpos(), utility.gettargetent())
+                        gun:do_shot(
+                            self,
+                            input.get_target_position(),
+                            input.get_target_entity()
+                        )
                         if  self.gun_ammos[self.current_gun_index]
                         and self.gun_ammos[self.current_gun_index] ~= 0 then
                             self.gun_ammos[self.current_gun_index] = -1
@@ -186,23 +190,23 @@ plugins = {
                         end
 
                         if not GLOBAL_GAME_HUD then
-                            gui.showhudimage(gun.hud, 0.80, 0.88, 0.05, 0.05)
+                            gui.hud_image(gun.hud, 0.80, 0.88, 0.05, 0.05)
                         else
                             local params = GLOBAL_GAME_HUD:get_firing_params(gun)
-                            gui.showhudimage(
+                            gui.hud_image(
                                 params.gun.icon,
                                 params.gun.x, params.gun.y,
                                 params.gun.w, params.gun.h
                             )
                             if params.ammo1 then
-                                gui.showhudimage(
+                                gui.hud_image(
                                     params.ammo1.icon,
                                     params.ammo1.x, params.ammo1.y,
                                     params.ammo1.w, params.ammo1.h
                                 )
                             end
                             if params.ammo2 then
-                                gui.showhudimage(
+                                gui.hud_image(
                                     params.ammo2.icon,
                                     params.ammo2.x, params.ammo2.y,
                                     params.ammo2.w, params.ammo2.h
@@ -240,7 +244,7 @@ gun.handle_start_logic   = nil
 gun.handle_client_effect = nil
 
 function gun:do_shot(shooter, target_position, target_entity)
-    -- do not shoot if just killed (even though canmove = false didn't arrive yet)
+    -- do not shoot if just killed (even though can_move = false didn't arrive yet)
     if not health.is_valid_target(shooter) then return nil end
 
     if self.handle_start_logic then
@@ -263,10 +267,10 @@ function gun:get_origin(shooter)
 end
 
 function gun:do_recoil(shooter, magnitude)
-    if CLIENT and shooter ~= entity_store.get_plyent() then return nil end
+    if CLIENT and shooter ~= entity_store.get_player_entity() then return nil end
 
-    if shooter.canmove then
-        local dir = math.vec3():fromyawpitch(
+    if shooter.can_move then
+        local dir = math.vec3():from_yaw_pitch(
             shooter.yaw, shooter.pitch
         ):normalize(1)
          :mul(-magnitude)
@@ -274,41 +278,51 @@ function gun:do_recoil(shooter, magnitude)
     end
 end
 
-action_shoot1 = class.new(entity_animated.action_localanim)
-action_shoot1.localanim      = actions.ANIM_ATTACK1
-action_shoot1.canbecancelled = false
-function action_shoot1:__tostring() return "action_shoot" end
+action_shoot1 = class.new(
+    entity_animated.action_local_animation,
+    nil, "action_shoot"
+)
+action_shoot1.local_animation   = actions.ANIM_ATTACK1
+action_shoot1.cancellable = false
 
 -- convenience
 action_shoot = action_shoot1
 
-action_shoot2 = class.new(entity_animated.action_localanim)
-action_shoot2.localanim      = actions.ANIM_ATTACK2
-action_shoot2.canbecancelled = false
-function action_shoot2:__tostring() return "action_shoot" end
+action_shoot2 = class.new(
+    entity_animated.action_local_animation,
+    nil, "action_shoot"
+)
+action_shoot2.local_animation   = actions.ANIM_ATTACK2
+action_shoot2.cancellable = false
 
-action_shoot3 = class.new(entity_animated.action_localanim)
-action_shoot3.localanim      = actions.ANIM_ATTACK3
-action_shoot3.canbecancelled = false
-function action_shoot3:__tostring() return "action_shoot" end
+action_shoot3 = class.new(
+    entity_animated.action_local_animation,
+    nil, "action_shoot"
+)
+action_shoot3.local_animation   = actions.ANIM_ATTACK3
+action_shoot3.cancellable = false
 
 
-action_shoot2_repeating = class.new(entity_animated.action_localanim)
-action_shoot2_repeating.localanim = math.bor(
+action_shoot2_repeating = class.new(
+    entity_animated.action_local_animation,
+    nil, "action_shoot"
+)
+action_shoot2_repeating.local_animation = math.bor(
     actions.ANIM_ATTACK2,
     actions.ANIM_LOOP
 )
-action_shoot2_repeating.canbecancelled = false
-function action_shoot2_repeating:__tostring() return "action_shoot" end
+action_shoot2_repeating.cancellable = false
 
-action_out_of_ammo = class.new(actions.action)
-action_out_of_ammo.secondsleft    = 0.5
-action_out_of_ammo.canbecancelled = false
-action_out_of_ammo.canmulqueue    = false
+action_out_of_ammo = class.new(
+    actions.action,
+    nil, "action_out_of_ammo"
+)
+action_out_of_ammo.seconds_left       = 0.5
+action_out_of_ammo.cancellable        = false
+action_out_of_ammo.can_multiply_queue = false
 
-function action_out_of_ammo:__tostring() return "action_out_of_ammo" end
-function action_out_of_ammo:dostart()
-    local player = entity_store.get_plyent()
+function action_out_of_ammo:do_start()
+    local player = entity_store.get_player_entity()
 
     local message = player.out_of_ammo_msg or "(Out of ammo)"
     local color   = player.out_of_ammo_msg_color or 0xAA8833

@@ -49,7 +49,7 @@ namespace game
 
     void renderavatar()
     {
-        lua::engine.getg("entity_store").t_getraw("render_hud_models").call(0, 0).pop(1);
+        lua::engine.getg("entity_store").t_getraw("render_hud_model").call(0, 0).pop(1);
     }
 }
 

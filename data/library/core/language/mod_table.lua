@@ -1,5 +1,5 @@
 --[[!
-    File: language/ext_table.lua
+    File: language/mod_table.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -12,12 +12,17 @@
 
     About: Purpose
         This file features various extensions made to Lua's table module.
-
-    Section: Table extensions
 ]]
 
 --[[!
-    Function: table.map
+    Package: table
+    Provides various extensions to default table module,
+    including mapping, filtering, merging etc.
+]]
+module("table", package.seeall)
+
+--[[!
+    Function: map
     Remaps a table (array). Usage -
 
     (start code)
@@ -33,7 +38,7 @@
     Returns:
         A remapped table.
 ]]
-function table.map(t, f)
+function map(t, f)
     local r = {}
     for i, v in pairs(t) do
         r[i] = f(v)
@@ -42,13 +47,13 @@ function table.map(t, f)
 end
 
 --[[!
-    Function: table.mergedicts
+    Function: merge_dicts
     Merges two tables (dictionaries) together. Usage -
 
     (start code)
         local a = { a = 5, b = 10 }
         local b = { c = 15, d = 20 }
-        table.mergedicts(a, b)
+        table.merge_dicts(a, b)
         -- a now has b's elements
     (end)
 
@@ -59,7 +64,7 @@ end
     Returns:
         Merged table.
 ]]
-function table.mergedicts(ta, tb)
+function merge_dicts(ta, tb)
     for a, b in pairs(tb) do
         ta[a] = b
     end
@@ -67,13 +72,13 @@ function table.mergedicts(ta, tb)
 end
 
 --[[!
-    Function: table.mergearrays
+    Function: merge_arrays
     Merges two tables (arrays) together. Usage -
 
     (start code)
         local a = { 5, 10, 15 }
         local b = { 20, 25, 30 }
-        table.mergearrays(a, b)
+        table.merge_arrays(a, b)
         -- a now has b's elements
     (end)
 
@@ -84,7 +89,7 @@ end
     Returns:
         Merged table.
 ]]
-function table.mergearrays(ta, tb)
+function merge_arrays(ta, tb)
     for i, v in pairs(tb) do
         table.insert(ta, v)
     end
@@ -92,7 +97,7 @@ function table.mergearrays(ta, tb)
 end
 
 --[[!
-    Function: table.copy
+    Function: copy
     Copies a table. Remember, it does not take care of copying
     in case member is a table. Usage -
 
@@ -108,7 +113,7 @@ end
     Returns:
         Copied table.
 ]]
-function table.copy(t)
+function copy(t)
     local r = {}
     for a, b in pairs(t) do
         r[a] = b
@@ -117,12 +122,14 @@ function table.copy(t)
 end
 
 --[[!
-    Function: table.filter
+    Function: filter_dict
     Filters a table (dictionary). Usage -
 
     (start code)
         local a = { a = 5, b = 10 }
-        local b = table.filter(a, function (k, v) return ((v <= 5) and true or false) end)
+        local b = table.filter_dict(a, function (k, v)
+            return ((v <= 5) and true or false)
+        end)
         -- b now contains just "a"
     (end)
 
@@ -134,7 +141,7 @@ end
     Returns:
         A filtered table.
 ]]
-function table.filter(t, f)
+function filter_dict(t, f)
     local r = {}
     for a, b in pairs(t) do
         if f(a, b) then
@@ -145,12 +152,14 @@ function table.filter(t, f)
 end
 
 --[[!
-    Function: table.filterarray
+    Function: filter_array
     Filters a table (array). Usage -
 
     (start code)
         local a = { 5, 10, 15 }
-        local b = table.filterarray(a, function (i, v) return ((i <= 2) and true or false) end)
+        local b = table.filter_array(a, function (i, v)
+            return ((i <= 2) and true or false)
+        end)
         -- b is empty
     (end)
 
@@ -162,7 +171,7 @@ end
     Returns:
         A filtered table.
 ]]
-function table.filterarray(t, f)
+function filter_array(t, f)
     local r = {}
     for i, v in pairs(t) do
         if f(i, v) then
@@ -173,7 +182,7 @@ function table.filterarray(t, f)
 end
 
 --[[!
-    Function: table.find
+    Function: find
     Finds index / key of an element belonging to a table. Usage -
 
     (start code)
@@ -189,7 +198,7 @@ end
     Returns:
         Index / key of the value in the table.
 ]]
-function table.find(t, v)
+function find(t, v)
     for a, b in pairs(t) do
         if v == b then
             return a
@@ -199,7 +208,7 @@ function table.find(t, v)
 end
 
 --[[!
-    Function: table.keys
+    Function: keys
     Gets a table of indexes / keys of a table. Usage -
 
     (start code)
@@ -214,16 +223,16 @@ end
     Returns:
         Table of indexes / keys.
 ]]
-function table.keys(t)
+function keys(t)
     local r = {}
     for a, b in pairs(t) do
-        table.insert(r, tostring(a))
+        table.insert(r, a)
     end
     return r
 end
 
 --[[!
-    Function: table.values
+    Function: values
     Gets a table of values of a table. Usage -
 
     (start code)
@@ -238,7 +247,7 @@ end
     Returns:
         Table of values.
 ]]
-function table.values(t)
+function values(t)
     local r = {}
     for a, b in pairs(t) do
         table.insert(r, b)
@@ -247,7 +256,7 @@ function table.values(t)
 end
 
 --[[!
-    Function: table.pop
+    Function: pop
     Pops item from end of the table or
     from specific position and returns it. Usage -
 
@@ -267,7 +276,7 @@ end
     Returns:
         The popped item.
 ]]
-function table.pop(t, p)
+function pop(t, p)
     p = p or #t
     local ret = t[p]
     table.remove(t, p)
@@ -275,7 +284,7 @@ function table.pop(t, p)
 end
 
 --[[!
-    Function: table.sum
+    Function: sum
     Sums a table of numbers. Usage -
 
     (start code)
@@ -290,7 +299,7 @@ end
     Returns:
         The sum.
 ]]
-function table.sum(t)
+function sum(t)
     local ret = 0
     for k, v in pairs(t) do
         ret = ret + v

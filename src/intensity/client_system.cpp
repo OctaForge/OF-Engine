@@ -91,7 +91,7 @@ bool ClientSystem::scenarioStarted()
     {
         if (engine.hashandle())
         {
-            engine.getg("entity_store").t_getraw("test_scenario_started").call(0, 1);
+            engine.getg("entity_store").t_getraw("has_scenario_started").call(0, 1);
             _scenarioStarted = engine.get<bool>(-1);
             engine.pop(2);
         }
@@ -422,7 +422,7 @@ bool ClientSystem::isAdmin()
     if (!playerLogicEntity) return isAdmin;
 
     engine.getref(playerLogicEntity->luaRef);
-    isAdmin = engine.t_get<bool>("_can_edit");
+    isAdmin = engine.t_get<bool>("can_edit");
     engine.pop(1);
 
     return isAdmin;

@@ -54,6 +54,8 @@ extern LE_reg *md5binds;
 extern LE_reg *iqmbinds;
 extern LE_reg *smdbinds;
 
+extern string homedir;
+
 namespace lua
 {
     /* our binds */
@@ -86,6 +88,61 @@ namespace lua
         openlib(debug)
 
         #undef openlib
+
+        /* now set up package access */
+        lua_getfield(m_handle, LUA_REGISTRYINDEX, "_LOADED");
+        t_getraw("package");
+
+        /* home directory paths */
+        lua_pushfstring(
+            m_handle, ";%sdata%c?%cinit.lua",
+            homedir, PATHDIV, PATHDIV
+        );
+        lua_pushfstring(
+            m_handle, ";%sdata%c?.lua",
+            homedir, PATHDIV
+        );
+        lua_pushfstring(
+            m_handle, ";%sdata%clibrary%c?%cinit.lua",
+            homedir, PATHDIV, PATHDIV, PATHDIV
+        );
+
+        /* root directory paths */
+        lua_pushliteral(m_handle, ";./data/library/core/?.lua");
+        lua_pushliteral(m_handle, ";./data/library/core/?/init.lua");
+        lua_pushliteral(m_handle, ";./data/?/init.lua");
+        lua_pushliteral(m_handle, ";./data/?.lua");
+        lua_pushliteral(m_handle, ";./data/library/?/init.lua");
+
+        /* concat them */
+        lua_concat(m_handle, 8);
+
+        /* we got package and string on the stack, push the name */
+        lua_pushliteral(m_handle, "path");
+
+        /* shift, set */
+        shift().t_set();
+
+        /* reference seeall for later */
+        t_getraw("seeall");
+        int _ref = ref();
+
+        /* pop the tables */
+        pop(2);
+
+        /* nil global package.path */
+        lua_pushliteral(m_handle, "package");
+
+        /* new package table, contains only 'seeall' */
+        t_new();
+        lua_pushliteral(m_handle, "seeall");
+        getref(_ref).t_set();
+
+        /* unref */
+        unref(_ref);
+
+        /* set global */
+        setg();
     }
 
     void lua_Engine::setup_namespace(const char *n, const LE_reg *r)
@@ -193,7 +250,7 @@ namespace lua
         push("CLIENT").push(false).setg();
         push("SERVER").push(true).setg();
         #endif
-        push("VERSION").push(m_version).setg();
+        push("OF_CFG_VERSION").push(OF_CFG_VERSION).setg();
 
         setup_module("init");
 
@@ -236,7 +293,6 @@ namespace lua
         m_runtests(false),
         m_rantests(false),
         m_scriptdir("data/library/core/"),
-        m_version("0.0"),
         m_lasterror(NULL) {}
 
     lua_Engine::lua_Engine(lua_State *l) :
@@ -245,16 +301,15 @@ namespace lua
         m_runtests(false),
         m_rantests(false),
         m_scriptdir(NULL),
-        m_version(NULL),
         m_lasterror(NULL) { m_retcount = gettop(); }
 
     lua_Engine::~lua_Engine()
     {
         /*
-         * don't close handler when version is empty,
+         * don't close handler if no scriptdir is specified,
          * because that means this class comes from existing handler
          */
-        if (m_version) destroy();
+        if (!m_scriptdir) destroy();
     }
 
     /*
@@ -336,6 +391,40 @@ namespace lua
             error(err);
         }
         return ret;
+    }
+
+    template<>
+    vec lua_Engine::get(int i)
+    {
+        push_index(i);
+
+        if (!is<void**>(-1))
+        {
+            vec v;
+            pop(1);
+            return v;
+        }
+
+        vec r(t_get<float>("x"), t_get<float>("y"), t_get<float>("z"));
+        pop(1);
+        return r;
+    }
+
+    template<>
+    bvec lua_Engine::get(int i)
+    {
+        push_index(i);
+
+        if (!is<void**>(-1))
+        {
+            bvec v;
+            pop(1);
+            return v;
+        }
+
+        bvec r(t_get<int>("r"), t_get<int>("g"), t_get<int>("b"));
+        pop(1);
+        return r;
     }
 
     // specializations for with-default getters
@@ -529,10 +618,6 @@ namespace lua
             m_hashandle = true;
 
             logger::log(logger::DEBUG, "Handler created properly, finalizing.\n");
-
-            /* TODO: actual version? */
-            m_version = "0.0.5";
-
             setup_libs(); bind();
         }
         logger::log(logger::DEBUG, "Handler creation went properly.\n");
@@ -683,27 +768,39 @@ namespace lua
         return call(-1);
     }
 
-    #define RUNMETHOD(t) \
-    bool lua_Engine::exec##t(const char *s, bool msg) \
-    { \
-        bool ret = load##t(s, msg); \
-        if (!ret) return false; \
-        else \
-        { \
-            ret = lua_pcall(m_handle, 0, LUA_MULTRET, 0); \
-            if (ret) \
-            { \
-                m_lasterror = geterror(); \
-                if (msg) logger::log(logger::ERROR, "%s\n", m_lasterror); \
-                return false; \
-            } \
-        } \
-        return true; \
+    bool lua_Engine::exec(const char *s, bool msg)
+    {
+        bool ret = load(s, msg);
+        if (!ret) return false;
+        else
+        {
+            ret = lua_pcall(m_handle, 0, LUA_MULTRET, 0);
+            if (ret)
+            {
+                m_lasterror = geterror();
+                if (msg) logger::log(logger::ERROR, "%s\n", m_lasterror);
+                return false;
+            }
+        }
+        return true;
     }
 
-    RUNMETHOD()
-    RUNMETHOD(f)
-    #undef RUNMETHOD
+    bool lua_Engine::execf(const char *s, bool msg)
+    {
+        bool ret = loadf(s, msg);
+        if (!ret) return false;
+        else
+        {
+            ret = lua_pcall(m_handle, 0, LUA_MULTRET, 0);
+            if (ret)
+            {
+                m_lasterror = geterror();
+                if (msg) logger::log(logger::ERROR, "%s\n", m_lasterror);
+                return false;
+            }
+        }
+        return true;
+    }
 
     bool lua_Engine::loadf(const char *s, bool msg)
     {
@@ -884,6 +981,77 @@ namespace lua
     {
         if (!m_hashandle) return 0;
         return lua_gettop(m_handle);
+    }
+
+    bool lua_Engine::setup_library(const char *version)
+    {
+        /* check the version string so we're safe */
+        getg("tonumber").push(version).call(1, 1);
+
+        /* if we get nil, version string is invalid */
+        if (is<void>(-1))
+        {
+            /* pop the nil first */
+            pop(1);
+            /* fail */
+            return false;
+        }
+        /* we don't need the value, just pop it. */
+        pop(1);
+
+        /* get the required table */
+        lua_getfield(m_handle, LUA_REGISTRYINDEX, "_LOADED");
+        t_getraw("package").t_getraw("path");
+
+        /* now check if path is not already included */
+        getg("string").t_getraw("find");
+
+        /* push a copy of package.path as arg to find */
+        push_index(-3);
+        /*
+         * and pattern for checking - path to the library in
+         * root directory - because it looks the same everywhere
+         */
+        lua_pushfstring(m_handle, ";./data/library/%s/?.lua", version);
+        /* call and get 1 result */
+        call(2, 1);
+        /*
+         * if it's not nil, it means it has found something, and
+         * in such case we just return with success
+         */
+        if (!is<void>(-1))
+        {
+            /* pop all the elements */
+            pop(5);
+            /* success */
+            return true;
+        }
+        /* on success, we pop just 2 elements */
+        pop(2);
+
+        /* home directory path */
+        lua_pushfstring(
+            m_handle, ";%sdata%clibrary%c%s%c?.lua",
+            homedir, PATHDIV, PATHDIV, version, PATHDIV
+        );
+
+        /* root directory path */
+        lua_pushfstring(m_handle, ";./data/library/%s/?.lua", version);
+
+        /* concat them, including package.path */
+        lua_concat(m_handle, 3);
+
+        /* we got package and string on the stack, push the name */
+        lua_pushliteral(m_handle, "path");
+
+        /* shift, set */
+        shift().t_set();
+
+        /* pop the tables */
+        pop(2);
+
+        /* success! */
+        return true;
     }
 }
 // end namespace lua

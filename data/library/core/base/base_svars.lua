@@ -12,838 +12,1499 @@
 
     About: Purpose
         This file features state variable system.
-
-    Section: State variables
 ]]
 
 --[[!
     Package: state_variables
-    This module controls state variables. Those are usually representing entity properties.
-    Their values can be transferred through client/server system and they handle "state"
-    (thus the name)
+    This module controls state variables. Those are usually representing
+    entity properties. Their values can be transferred through client/server
+    system and they handle "state" (thus the name).
 ]]
 module("state_variables", package.seeall)
 
---- Get "on modify event" prefix for state variables.
--- @return "on modify event" prefix.
-function get_onmodify_prefix()
+--[[!
+    Function: get_on_modify_name
+    Gets "on modify" name for state variables on either client or server.
+    Useful for connecting "on modify" signal callbacks to state variables.
+
+    Parameters:
+        name - name of the state variable.
+
+    Returns:
+        "client_on_modify_NAME" on client and "on_modify_NAME" on server.
+]]
+function get_on_modify_name(name)
     if CLIENT then
-        return "client_on_modify_"
+        return "client_on_modify_%(1)s" % { name }
     else
-        return "on_modify_"
+        return "on_modify_%(1)s" % { name }
     end
 end
 
---- Get whether something is state variable.
--- @param c Class to check.
--- @return True if it's state variable, false otherwise.
-function is(c)
-    return type(c) == "table" and c.is_a and c:is_a(state_variable) and true or false
+--[[!
+    Function: is_state_variable
+    Returns true if given argument is state variable
+    instance and false if it isn't.
+]]
+function is_state_variable(c)
+    return type(c) == "table" and c.is_a and c:is_a(state_variable)
 end
 
-function is_alias(c)
-    return type(c) == "table" and c.is_a and c:is_a(variable_alias) and true or false
+--[[!
+    Function: is_state_variable_alias
+    Returns true if given argument is state variable
+    alias instance and false if it isn't.
+]]
+function is_state_variable_alias(c)
+    return type(c) == "table" and c.is_a and c:is_a(variable_alias)
 end
 
-_SV_PREFIX = "__SV_"
+--[[!
+    Variable: _SV_PREFIX
+    This is used as prefix for raw state variable members in entity class.
+    We use this, because when we access directly state variable name in
+    the class, it calls getter and thus gets the actual value - we use this
+    when we want to get raw state variable instance for further manipulation.
+]]
+_SV_PREFIX = "_SV_"
 
---- Get actual raw state variable for entity.
--- @param uid Unique ID of the entity.
--- @param vn State variable name.
--- @return Actual raw state variable.
-function __get(uid, vn)
-    return entity_store.get(uid)[_SV_PREFIX .. vn]
+--[[!
+    Function: __get
+    Gets a raw state variable for an entity of given unique ID.
+
+    Parameters:
+        uid - unique ID of the entity.
+        sv_name - state variable name.
+]]
+function __get(uid, sv_name)
+    return entity_store.get(uid)[_SV_PREFIX .. sv_name]
 end
 
---- Get GUI name of state variable for entity.
--- @param uid Unique ID of the entity.
--- @param vn State variable name.
--- @return State variable GUI name.
-function __getguin(uid, vn)
-    local ent = entity_store.get(uid)
-    local var = ent[_SV_PREFIX .. vn]
-    return var.guiname and var.guiname or vn
+--[[!
+    Function: __get_gui_name
+    Gets a GUI name of state variable for an entity of given unique ID.
+    If the entity has no GUI name (see <state_variable.__init>), sv_name
+    gets returned.
+
+    Parameters:
+        uid - unique ID of the entity.
+        sv_name - state variable name.
+]]
+function __get_gui_name(uid, sv_name)
+    -- get raw SV
+    local var = __get(uid, sv_name)
+
+    -- conditionally return
+    return var.gui_name and var.gui_name or sv_name
 end
 
---- Default state variable class, all other inherit from this.
--- @class table
--- @name state_variable
-state_variable = class.new()
+--[[!
+    Event: simplifier
+    Registers a JSON simplifier for entity instances.
+    See <json.register>. When JSON finds it should
+    encode something that is an entity instance,
+    instead of encoding it in a raw way, it substitutes
+    it with entity's unique ID. We don't mostly need more,
+    and this can save bandwidth very much.
 
---- Return string representation of state variable.
--- @return String representation of state variable.
-function state_variable:__tostring() return "state_variable" end
-
---- Constructor for default state variable.
--- Its parameters can be overriden via kwargs.
--- @param kwargs Additional parameters.
-function state_variable:__init(kwargs)
-    logging.log(logging.INFO, "state_variable: constructor ..")
-
-    if not kwargs then kwargs = {} end
-
-    self.clientread = kwargs.clientread or true
-    self.clientwrite = kwargs.clientwrite or true
-    self.customsynch = kwargs.customsynch or false
-    self.clientset = kwargs.clientset or false
-    self.guiname = kwargs.guiname
-    self.altname = kwargs.altname
-    self.reliable = kwargs.reliable or true
-    self.hashistory = kwargs.hashistory or true
-    self.clientpriv = kwargs.clientpriv or false
-end
-
---- State variable registration method. This way (g|s)etter for
--- an entity is created instead of actual raw state variable,
--- and raw state variable is accessible only when prefixed
--- with _SV_PREFIX. There is a function called __get which
--- makes it easy for scripter.
--- @param _name State variable name.
--- @param parent Parent entity to register (g|s)etters for.
--- @see __get
-function state_variable:_register(_name, parent)
-    logging.log(logging.DEBUG, "state_variable:_register("
-         .. tostring(_name) .. ", "
-         .. tostring(parent) .. ")")
-    self._name = _name
-    parent[_SV_PREFIX .. _name] = self
-    parent:remove_getter(_name)
-    parent:remove_setter(_name)
-
-    assert(self.getter)
-    assert(self.setter)
-
-    logging.log(logging.DEBUG, "state_variable:_register: defining (g|s)etter for " .. tostring(_name))
-
-    parent:define_getter(_name, self.getter, self)
-    parent:define_setter(_name, self.setter, self)
-
-    if self.altname then
-        logging.log(logging.DEBUG, "state_variable:_register: defining (g|s)etter for " .. tostring(self.altname))
-        parent[_SV_PREFIX .. self.altname] = self
-        parent:define_getter(self.altname, self.getter, self)
-        parent:define_setter(self.altname, self.setter, self)
+    Code:
+        (start code)
+            json.register(
+                function(value)
+                    return (type(value) == "table"
+                             and value.uid ~= nil)
+                end,
+                function(value)
+                    return value.uid
+                end
+            )
+        (end
+]]
+json.register(
+    function(value)
+        return (type(value) == "table"
+                 and value.uid ~= nil)
+    end,
+    function(value)
+        return value.uid
     end
-end
+)
 
---- Read tests. Throws a failed assertion if
--- we're on client but variable is not readable from client.
--- @param ent Entity - currently doesn't perform checks on it - unused.
-function state_variable:read_tests(ent)
-    if not SERVER and not self.clientread then
-        assert(false)
-    end
-end
+--[[!
+    Class: state_variable
+    Base state variable class. Other state variable classes inherit from
+    this one, providing their own methods to convert from / to wire format
+    and others.
+]]
+state_variable = class.new(nil, {
+    --[[!
+        Function: __tostring
+        Returns a string representation of this state variable,
+        that is the name set as third argument to <class.new>.
+        Each class overrides this name, so there is no need
+        for overriding __tostring further.
+    ]]
+    __tostring = function(self)
+        return self.name
+    end,
 
---- Write tests. Throws a failed assertion if entity is either deactivated
--- or we're on client with non-client-writable variable or if entity is not
--- yet initialized.
--- @param ent Entity to perform checks for.
-function state_variable:write_tests(ent)
-    if ent.deactivated then
-        logging.log(logging.ERROR, "Trying to write a field " .. self._name .. " of " .. ent.uid .. ", " .. tostring(ent))
-        assert(false)
-    end
-    if not SERVER and not self.clientwrite then
-        assert(SERVER or self.clientwrite)
-    end
-    if not ent.initialized then
-        assert(ent.initialized)
-    end
-end
+    --[[!
+        Constructor: __init
+        Initializes the state variable. Basically defaults certain
+        members from kwargs table passed as argument.
 
---- Default state variable getter. This getter is registered for
--- entity, not state variable, so "self" here is the entity and
--- state variable is passed via argument. Read checks are performed.
--- @param var Corresponding state variable.
--- @return Value of the state variable.
--- @see state_variable:read_tests
--- @see state_variable:setter
-function state_variable:getter(var)
-    var:read_tests(self)
-    logging.log(logging.INFO, "SV getter: " .. tostring(var._name))
-    return self.state_var_vals[var._name]
-end
+        Parameters:
+            kwargs - SV arguments.
 
---- Default state variable setter. Simillar to getter, only for setting.
--- @param var Corresponding state variable.
--- @param val Value to set.
--- @see state_variable:write_tests
--- @see state_variable:getter
-function state_variable:setter(var, val)
-    var:write_tests(self)
-    self:_set_statedata(var._name, val, -1)
-end
+        Kwargs:
+            client_read - specifies whether client can read the
+            value, true by default.
+            client_write - specifies whether the value can be
+            written clientside (indirectly through server message),
+            true by default.
+            custom_synch - false by default, if true, this state
+            variable uses special method of value synchronization.
+            Useful for i.e. updates on sauer dynent properties,
+            which use their own system of syncing.
+            client_set - false by default, if true, clients can
+            set the state data directly without going through
+            server. Useful in cases where we don't need server
+            synced at first.
+            gui_name - this is the name that will be shown in
+            editing GUIs for this state variable.
+            alt_name - alternative name under which this state
+            variable will be accessible.
+            reliable - true by default. Specifies whether the messages
+            for this state variable should be reliable or unreliable.
+            Reliable messages are always sent, so you cannot set
+            a high number of them without risking crashes.
+            Unreliable messages are useful for i.e. position updates,
+            which you don't really need to send all time.
+            has_history - true by default. It basically means variable
+            will retain its state and when i.e. new client requests
+            it, it'll receive values that have been set previously,
+            even if they were set long before the client connected.
+            client_private - false by default. If true, it means this
+            state variable will be private to specific client while
+            still being accessible from the server (but not from other
+            clients).
+    ]]
+    __init = function(self, kwargs)
+        logging.log(logging.INFO, "state_variable: constructor ..")
 
---- Validate value for state variable. Called when setting state data.
--- Can be overriden in children, normally just returns true.
--- @param val Value to validate.
--- @return Always true by default.
-function state_variable:validate(val)
-    return true
-end
-
---- Check whether this variable should be synced with a client on entity.
--- @param ent Entity to perform checks for.
--- @param tcn Target client number.
--- @return True if target client number equals the one from entity, false otherwise.
-function state_variable:should_send(ent, tcn)
-    return not self.clientpriv or ent.cn == tcn
-end
-
---- State integer. Simple state variable case. to_(wire|data) simply return a string,
--- from_(wire|data) convert string back to integer.
--- @class table
--- @name state_integer
-state_integer = class.new(state_variable)
-function state_integer:__tostring() return "state_integer" end
-function state_integer:to_wire(v) return convert.tostring(v) end
-function state_integer:from_wire(v) return convert.tointeger(v) end
-
---- State float. to_(wire|data) return a string with max two digits after
--- floating point. from_(wire|data) convert string back to integer.
--- @class table
--- @name state_float
-state_float = class.new(state_variable)
-function state_float:__tostring() return "state_float" end
-function state_float:to_wire(v) return convert.todec2str(v) end
-function state_float:from_wire(v) return convert.tonumber(v) end
-
---- State boolean. to_(wire|data) return a string, from_(wire|data) convert
--- it back to boolean.
--- @class table
--- @name state_bool
-state_bool = class.new(state_variable)
-function state_bool:__tostring() return "state_bool" end
-function state_bool:to_wire(v) return convert.tostring(v) end
-function state_bool:from_wire(v) return convert.toboolean(v) end
-
---- State string. Simple case, because purely string manipulation gets performed.
--- Though, some tostring conversions are done to make sure. TODO: get rid of them?
--- requires testing without conversions.
--- @class table
--- @name state_string
-state_string = class.new(state_variable)
-function state_string:__tostring() return "state_string" end
-function state_string:to_wire(v) return convert.tostring(v) end
-function state_string:from_wire(v) return convert.tostring(v) end
-
---- This class serves as "array surrogate" for state_array.
--- Currently, array surrogate gets newly created whenever
--- it's needed - TODO: cache it! And maybe TODO: make DEPRECATED.
--- @class table
--- @name array_surrogate
-array_surrogate = class.new()
-
---- Return string representation of array surrogate.
--- @return String representation of array surrogate.
-function array_surrogate:__tostring() return "array_surrogate" end
-
---- Array surrogate constructor. Surrogate gets created for
--- specific state variable and specific entity and
--- getter / setter gets created for it.
--- @param ent Entity to create surrogate for.
--- @param var State variable to create surrogate for.
-function array_surrogate:__init(ent, var)
-    logging.log(logging.INFO, "setting up array_surrogate(" .. tostring(ent) .. ", " .. tostring(var) .. "(" .. var._name .. "))")
-
-    self.entity = ent
-    self.variable = var
-
-    self:define_getter(
-        "length", function(self)
-            return self.variable.get_length(self.variable, self.entity)
+        if not kwargs then
+            kwargs = {}
         end
-    )
-    self:define_userget(
-        function(n) return tonumber(n) and true or false end,
-        function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
-    )
-    self:define_userset(
-        function(n, v) return tonumber(n) and true or false end,
-        function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
-    )
-end
 
---- Push into array surrogate. Appends a value on the end.
--- @param v Value to push.
-function array_surrogate:push(v)
-    self[self.length + 1] = v
-end
+        self.client_read = kwargs.client_read or true
+        self.client_write = kwargs.client_write or true
+        self.custom_synch = kwargs.custom_synch or false
+        self.client_set = kwargs.client_set or false
+        self.gui_name = kwargs.gui_name
+        self.alt_name = kwargs.alt_name
+        self.reliable = kwargs.reliable or true
+        self.has_history = kwargs.has_history or true
+        self.client_private = kwargs.client_private or false
+    end,
 
---- Return raw array of values.
--- @return Raw array of values.
-function array_surrogate:as_array()
-    logging.log(logging.INFO, "as_array: " .. tostring(self))
+    --[[!
+        Function: register
+        Registers a state variable for entity. It sets up getter and
+        setter for given name and also alt_name if set in <__init>
+        via kwargs.
 
-    local r = {}
-    for i = 1, self.length do
-        logging.log(logging.INFO, "as_array(" .. tostring(i) .. ")")
-        table.insert(r, self[i])
-    end
-    return r
-end
+        Raw state variables will be accessible with prefix
+        <state_variables._SV_PREFIX>. See also <state_variables.__get>.
 
---- State array. State variable like any other, but makes
--- use of array surrogate class to perform things.
--- State arrays also have (to|from)_(wire|data)_item methods.
--- @class table
--- @name state_array
-state_array = class.new(state_variable)
-function state_array:__tostring() return "state_array" end
-state_array.separator = "|"
-state_array.surrogate_class = array_surrogate
+        Parameters:
+            _name - name of the state variable.
+            parent - entity to register the SV for.
+    ]]
+    register = function(self, _name, parent)
+        logging.log(logging.DEBUG, "state_variable:register("
+             .. tostring(_name) .. ", "
+             .. tostring(parent) .. ")")
 
---- Overriden getter. See state_variable:getter.
--- Getter returns a new surrogate in this case.
--- @param var State variable to create surrogate for.
--- @return Newly created surrogate.
--- @see state_variable:getter
-function state_array:getter(var)
-    var:read_tests(self)
+        -- set _name.
+        self._name = _name
 
-    if not var:get_raw(self) then return nil end
-    -- caching
-    if not self["__asurrogate_" .. var._name] then
-           self["__asurrogate_" .. var._name] = var.surrogate_class(self, var)
-    end
-    return self["__asurrogate_" .. var._name]
-end
+        -- raw accessor.
+        parent[_SV_PREFIX .. _name] = self
 
---- Overriden setter. See state:variable:setter.
--- @param var State variable to set.
--- @param val Value to set.
-function state_array:setter(var, val)
-    logging.log(logging.DEBUG, "state_array setter: " .. json.encode(val))
-    if val.x then
-        logging.log(logging.INFO, "state_array setter: " .. tostring(val.x) .. ", " .. tostring(val.y) .. ", " .. tostring(val.z))
-    end
-    if val[1] then
-        logging.log(logging.INFO, "state_array setter: " .. tostring(val[1]) .. ", " .. tostring(val[2]) .. ", " .. tostring(val[3]))
-    end
+        -- some assertions.
+        assert(self.getter)
+        assert(self.setter)
 
-    local data
+        logging.log(
+            logging.DEBUG,
+            "state_variable:register: defining (g|s)etter for "
+                .. _name
+        )
 
-    if val.as_array then data = val:as_array()
-    else
-        data = {}
-        local i
+        -- define new getter / setter.
+        parent:define_getter(_name, self.getter, self)
+        parent:define_setter(_name, self.setter, self)
 
-        local sz = (val.is_a and val:is_a(array_surrogate)) and val.length or #val
-
-        for i = 1, sz do
-            data[i] = val[i]
+        -- if alt_name is available, setup as well.
+        if self.alt_name then
+            logging.log(
+                logging.DEBUG,
+                "state_variable:register: defining (g|s)etter for "
+                    .. self.alt_name
+            )
+            parent[_SV_PREFIX .. self.alt_name] = self
+            parent:define_getter(self.alt_name, self.getter, self)
+            parent:define_setter(self.alt_name, self.setter, self)
         end
+    end,
+
+    --[[!
+        Function: read_tests
+        Performs read tests for state variable on client. On server,
+        we can always read, on client, we can't read if client_read
+        is false (see <__init> kwargs section).
+
+        Throws a failed assertion on failure.
+
+        Parameters:
+            entity - unused, corrently no checks are performed. It's
+            the entity the state variable belongs to.
+    ]]
+    read_tests = function(self, entity)
+        if not SERVER and not self.client_read then
+            assert(false)
+        end
+    end,
+
+    --[[!
+        Function: write_tests
+        Performs write tests for state variable. Throws a failed assertion
+        if the entity is either deactivated or not yet initialized,
+        or we've set client_write to false (see <__init> kwargs section).
+
+        Parameters:
+            entity - the entity the state variable belongs to.
+    ]]
+    write_tests = function(self, entity)
+        -- if deactivated, do extra logging and fail
+        if entity.deactivated then
+            logging.log(
+                logging.ERROR,
+                "Trying to write a field "
+                    .. self._name
+                    .. " of "
+                    .. entity.uid
+                    .. ", "
+                    .. tostring(entity)
+            )
+            assert(false)
+        end
+
+        -- check for client_write only on client
+        if not SERVER and not self.client_write then
+            assert(SERVER or self.client_write)
+        end
+
+        -- if unitialized, just fail
+        if not entity.initialized then
+            assert(ent.initialized)
+        end
+    end,
+
+    --[[!
+        Function: getter
+        Default state variable getter. Registered for entity.
+        When you try to access the state variable as entity
+        member, it calls this function on it and returns
+        the value instead of returning the member.
+
+        This is initialized in <register>.
+        Before trying to get something, performs <read_tests>.
+        See also <setter>.
+
+        Parameters:
+            self - the entity.
+            variable - the state variable instance.
+    ]]
+    getter = function(self, variable)
+        -- read tests
+        variable:read_tests(self)
+
+        logging.log(logging.INFO, "SV getter: " .. variable._name)
+
+        -- return the local value
+        return self.state_variable_values[variable._name]
+    end,
+
+    --[[!
+        Function: setter
+        Default state variable setter. Registered for entity.
+        When you try to write the state variable as entity
+        member, it calls this function on it instead of setting
+        raw member.
+
+        This is initialized in <register>.
+        Before trying to write something, performs <write_tests>.
+        See also <getter>.
+
+        Parameters:
+            self - the entity.
+            variable - the state variable instance.
+            value - the value we're setting.
+    ]]
+    setter = function(self, value, variable)
+        -- write tests
+        variable:write_tests(self)
+
+        -- set entity SD
+        self:set_state_data(variable._name, value, -1)
+    end,
+
+    --[[!
+        Function: validate
+        Validates state variable value. Called when setting state data,
+        can be overriden in child state variables, by default simply
+        lets all data pass - returns true.
+
+        Parameters:
+            value - the value to validate.
+    ]]
+    validate = function(self, value)
+        return true
+    end,
+
+    --[[!
+        Function: should_send
+        Checks whether this variable should be synced with a client on
+        the entity. It can be synced if the variable is not private
+        to certain client (see <__init> kwargs section) or if target
+        client number is client number of the entity the SV belongs to.
+
+        Parameters:
+            entity - the entity the SV belongs to.
+            target_cn - client number to check syncing with.
+
+        Returns:
+            true if we should send, false otherwise.
+    ]]
+    should_send = function(self, entity, target_cn)
+        return not self.client_private or entity.cn == target_cn
+    end,
+
+    --[[!
+        Function: to_wire
+        Returns a state variable value in wire format. Wire format
+        is a string which can be transferred via network and
+        then converted back to standard format. By default, just
+        converts to string.
+
+        Parameters:
+            value - the value to convert.
+    ]]
+    to_wire = function(self, value)
+        return convert.tostring(value)
+    end,
+
+    --[[!
+        Function: from_wire
+        Returns a state variable value in standard format. That means,
+        it takes a wire-formatted value and converts it back (see
+        <to_wire>). By default returns a string.
+
+        Parameters:
+            value - the value to convert.
+    ]]
+    from_wire = function(self, value)
+        return convert.tostring(value)
     end
+}, "state_variable")
 
-    self:_set_statedata(var._name, data, -1)
-end
+--[[!
+    Class: state_integer
+    State integer variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
-state_array.to_wire_item = convert.tostring
+    to_wire performs raw conversion to a string.
+    from_wire performs raw conversion to an integer.
+]]
+state_integer = class.new(state_variable, {
+    to_wire = function(self, value)
+        return convert.tostring(value)
+    end,
 
-function state_array:to_wire(v)
-    logging.log(logging.INFO, "to_wire of state_array: " .. json.encode(v))
-    if v.as_array then
-        -- array surrogate
-        v = v:as_array()
+    from_wire = function(self, value)
+        return convert.tointeger(value)
     end
-    return "[" .. table.concat(table.map(v, self.to_wire_item), self.separator) .. "]"
-end
+}, "state_integer")
 
-state_array.from_wire_item = convert.tostring
+--[[!
+    Class: state_float
+    State float variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
-function state_array:from_wire(v)
-    logging.log(logging.DEBUG, "from_wire of state_array: " .. tostring(self._name) .. "::" .. tostring(v))
-    if v == "[]" then
-        return {}
-    else
-        return table.map(string.split(string.sub(v, 2, #v - 1), self.separator), self.from_wire_item)
+    to_wire performs conversion to a string, which keeps just maximum
+    of two digits after floating point (see <convert.todec2str>).
+    from_wire performs raw conversion to a number.
+]]
+state_float = class.new(state_variable, {
+    to_wire = function(self, value)
+        return convert.todec2str(value)
+    end,
+
+    from_wire = function(self, value)
+        return convert.tonumber(value)
     end
-end
+}, "state_float")
 
---- Get a raw array from the data. By default, it's state data,
--- but can be further overriden in children.
--- @param ent Entity to get raw data for.
--- @return Raw data.
-function state_array:get_raw(ent)
-    logging.log(logging.INFO, "get_raw: " .. tostring(self))
-    logging.log(logging.INFO, json.encode(ent.state_var_vals))
-    local val = ent.state_var_vals[self._name]
-    return val and val or {}
-end
+--[[!
+    Class: state_bool
+    State boolean variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
---- Set state array item.
--- @param ent Entity to set item for.
--- @param i Array index.
--- @param v Item value.
-function state_array:set_item(ent, i, v)
-    logging.log(logging.INFO, "set_item: " .. tostring(i) .. " : " .. json.encode(v))
-    local arr = self:get_raw(ent)
-    logging.log(logging.INFO, "got_raw: " .. json.encode(arr))
-    if type(v) == "string" then
-        assert(not string.find(v, "%" .. self.separator))
+    to_wire performs raw conversion to a string.
+    from_wire performs conversion to a boolean (<convert.toboolean>).
+]]
+state_bool = class.new(state_variable, {
+    to_wire = function(self, value)
+        return convert.tostring(value)
+    end,
+
+    from_wire = function(self, value)
+        return convert.toboolean(value)
     end
-    arr[i] = v
-    ent:_set_statedata(self._name, arr, -1)
-end
+}, "state_bool")
 
---- Get state array item.
--- @param ent Entity to get item for.
--- @param i Array index.
--- @return Item value.
-function state_array:get_item(ent, i)
-    logging.log(logging.INFO, "state_array:get_item for " .. tostring(i))
-    local arr = self:get_raw(ent)
-    logging.log(logging.INFO, "state_array:get_item " .. json.encode(arr) .. " ==> " .. tostring(arr[i]))
-    return arr[i] -- TODO: optimize
-end
+--[[!
+    Class: state_json
+    State JSON variable class. Overrides <state_variable.to_wire>,
+    <state_variable.from_wire>.
 
---- Get state array length.
--- @param ent Entity to get length for.
--- @return State array length.
-function state_array:get_length(ent)
-    local arr = self:get_raw(ent)
-    if not arr then
-        assert(false)
+    to_wire performs JSON encoding of an object, returning a string.
+    from_wire decodes the string back to original object.
+]]
+state_json = class.new(state_variable, {
+    to_wire = function(self, value)
+        return json.encode(value)
+    end,
+
+    from_wire = function(self, value)
+        return json.decode(value)
     end
-    return #arr
-end
+}, "state_json")
 
---- State array with elements of floating point number type.
--- @class table
--- @name state_array_float
-state_array_float = class.new(state_array)
-function state_array_float:__tostring() return "state_array_float" end
-state_array_float.to_wire_item = convert.todec2str
-state_array_float.from_wire_item = convert.tonumber
+--[[!
+    Class: state_string
+    State string variable class. Doesn't override, because
+    <state_variable.to_wire> and <state_variable.from_wire>
+    already work with strings. This is basically a nice alias
+    for <state_variable>.
+]]
+state_string = class.new(state_variable, "state_string")
 
---- State array with elements of integral type.
--- @class table
--- @name state_array_integer
-state_array_integer = class.new(state_array)
-function state_array_integer:__tostring() return "state_array_integer" end
-state_array_integer.to_wire_item = convert.todec2str
-state_array_integer.from_wire_item = convert.tointeger
+--[[!
+    Class: array_surrogate
+    This represents array "surrogate". Basically, it behaves like
+    standard array, but it's in fact an object that gets / sets
+    values using entity and state variable. Array surrogate always
+    belongs to certain state variable.
 
---- Variable alias. Useful to get simpler setters.
--- @class table
--- @name variable_alias
-variable_alias = class.new(state_variable)
+    Getting and setting values is accomplished via class getters
+    and setters (see <class.define_getter> and <class.define_setter>).
+    In surrogate's case, it uses global getter and setter, see
+    <class.define_global_getter> and <class.define_global_setter>.
 
---- Return string representation of variable alias.
--- @return String representation of variable alias.
-function variable_alias:__tostring() return "variable_alias" end
+    There is one difference in behavior compared to standard array
+    and that is length getting; with array surrogate, you can't
+    use the # operator, you have to access .length object property.
 
---- Constructor for variable alias.
--- @param tn Target state variable name.
-function variable_alias:__init(tn)
-    self.targetname = tn
-end
+    You can't also use most of things from Lua "table" module.
+    There are certain specialized methods for manipulation present
+    as object methods.
+]]
+array_surrogate = class.new(nil, {
+    --[[!
+        Function: __tostring
+        Returns string representation of the surrogate, that is
+        name set as third argument to <class.new>.
+    ]]
+    __tostring = function(self)
+        return self.name
+    end,
 
---- Custom registration method for variable alias.
--- Uses getter / setter of the target and
--- _SV_PREFIXed entity element points to actual
--- state variable, not to the alias.
--- @param _name Alias name.
--- @param parent Parent entity to perform registration for.
-function variable_alias:_register(_name, parent)
-    logging.log(logging.DEBUG, "variable_alias:_register(%(1)q, %(2)s)" % { _name, tostring(parent) })
-    self._name = _name
+    --[[!
+        Constructor: __init
+        Array surrogate constructor. Assigns an entity and state
+        variable to the surrogate. Also defines a getter for
+        length and userget / userset for items.
 
-    parent:remove_getter(_name)
-    parent:remove_setter(_name)
-    logging.log(logging.DEBUG, "Getting target entity for variable alias " .. _name .. ": " .. _SV_PREFIX .. self.targetname)
-    local tg = parent[_SV_PREFIX .. self.targetname]
-    parent[_SV_PREFIX .. _name] = tg -- point to the true variable
+        Parameters:
+            entity - the entity the state variable belongs to.
+            variable - the state variable the surrogate belongs to.
+    ]]
+    __init = function(self, entity, variable)
+        logging.log(
+            logging.INFO,
+            "setting up array_surrogate("
+                .. tostring(entity)
+                .. ", "
+                .. tostring(variable)
+                .. "("
+                .. variable._name
+                .. "))"
+        )
 
-    parent:define_getter(_name, tg.getter, tg)
-    parent:define_setter(_name, tg.setter, tg)
+        -- set the members
+        self.entity = entity
+        self.variable = variable
 
-    assert(not self.altname)
-end
-
--- not actual class. meant just for constructing other classes.
-wrapped_cvariable = {}
-
---- Common constructor for wrapped C variables. Wrapped C variables
--- make use of C getters and setters instead of their own data,
--- though C getter data get cached in lua to improve performance.
--- Kwargs can contain csetter, cgetter as well as kwargs for base
--- state variables (wrapped_cinteger kwargs can contain state_integer
--- kwargs)
--- @param kwargs Additional parameters.
-function wrapped_cvariable:__init(kwargs)
-    logging.log(logging.INFO, "wrapped_cvariable:__init()")
-
-    self.cgetter_raw = kwargs.cgetter
-    self.csetter_raw = kwargs.csetter
-    kwargs.cgetter = nil
-    kwargs.csetter = nil
-
-    self.__base.__init(self, kwargs)
-end
-
---- Common register method for wrapped C variables.
--- @param _name Wrapped C variable name.
--- @param parent Parent entity.
--- @see state_variable:_register
-function wrapped_cvariable:_register(_name, parent)
-    self.__base._register(self, _name, parent)
-
-    logging.log(logging.DEBUG, "WCV register: " .. tostring(_name))
-
-    -- allow use of string names, for late binding at this stagem we copy raw walues, then eval
-    self.cgetter = self.cgetter_raw
-    self.csetter = self.csetter_raw
-
-    if type(self.cgetter) == "string" then
-        self.cgetter = loadstring("return " .. self.cgetter)()
-    end
-    if type(self.csetter) == "string" then
-        self.csetter = loadstring("return " .. self.csetter)()
-    end
-
-    if self.csetter then
-        -- subscribe to modify event, so we always call csetter
-        local prefix = get_onmodify_prefix()
-        local variable = self
-        parent:connect(prefix .. _name, function (self, v)
-            if CLIENT or parent:can_call_cfuncs() then
-                logging.log(logging.INFO, string.format("Calling csetter for %s, with %s (%s)", tostring(variable._name), tostring(v), type(v)))
-                -- we've been set up, apply the change
-                variable.csetter(parent, v)
-                logging.log(logging.INFO, "csetter called successfully.")
-
-                -- caching reads from script into C++ (search for -- caching)
-                parent.state_var_vals[tostring(variable._name)] = v
-                parent.state_var_val_timestamps[tostring(variable._name)] = GLOBAL_CURRENT_TIMESTAMP
-            else
-                -- not yet set up, queue change
-                parent:_queue_sv_change(tostring(variable._name), v)
+        -- length getter
+        self:define_getter(
+            "length", function(self)
+                -- by default, returns output of get_length on state variable
+                return self.variable.get_length(self.variable, self.entity)
             end
-        end)
-    else
-        logging.log(logging.DEBUG, "No csetter for " .. tostring(_name) .. ": not connecting to signal.")
-    end
-end
+        )
+        self:define_global_getter(
+            -- condition - use userget only for numerical access
+            function(n) return tonumber(n) and true or false end,
+            -- return the item
+            function(self, n)
+                return self.variable.get_item(
+                    self.variable, self.entity, tonumber(n)
+                )
+            end
+        )
+        self:define_global_setter(
+            -- again, only numerical access
+            function(n, v) return tonumber(n) and true or false end,
+            -- set the item
+            function(self, n, v)
+                self.variable.set_item(
+                    self.variable, self.entity, tonumber(n), v
+                )
+            end
+        )
+    end,
 
---- Common overriden getter for wrapped C variables.
--- @param var Wrapped C variable the getter is belonging to.
--- @return The value.
-function wrapped_cvariable:getter(var)
-    var:read_tests(self)
+    --[[!
+        Function: push
+        Appends an item to the array surrogate.
 
-    logging.log(logging.INFO, "WCV getter " .. tostring(var._name))
+        Parameters:
+            value - the value to push.
+    ]]
+    push = function(self, value)
+        self[self.length + 1] = value
+    end,
 
-    -- caching
-    local cached_timestamp = self.state_var_val_timestamps[tostring(var._name)]
-    if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
-        return self.state_var_vals[tostring(var._name)]
-    end
-    if var.cgetter and (CLIENT or self:can_call_cfuncs()) then
-        logging.log(logging.INFO, "WCV getter: call C")
-        local val = var.cgetter(self)
+    --[[!
+        Function: as_array
+        Returns raw array of values, which are stored inside
+        the entity via state variable.
+    ]]
+    as_array = function(self)
+        logging.log(logging.INFO, "as_array: " .. tostring(self))
 
-        -- caching
-        if CLIENT or self._queued_sv_changes_complete then
-            self.state_var_vals[tostring(var._name)] = val
-            self.state_var_val_timestamps[tostring(var._name)] = GLOBAL_CURRENT_TIMESTAMP
+        local r = {}
+        for i = 1, self.length do
+            logging.log(logging.INFO, "as_array(" .. tostring(i) .. ")")
+            table.insert(r, self[i])
         end
-
-        return val
-    else
-        logging.log(logging.INFO, "WCV getter: fallback to state_data since " .. tostring(var.cgetter))
-        return var.__base.getter(self, var)
-    end
-end
-
---- Wrapped C integer. Inherits from state_integer,
--- but wraps it over C getter / setter.
--- @class table
--- @name wrapped_cinteger
-wrapped_cinteger = class.new(state_integer, wrapped_cvariable)
-function wrapped_cinteger:__tostring() return "wrapped_cinteger" end
-
---- Wrapped C float. Inherits from state_float,
--- but wraps it over C getter / setter.
--- @class table
--- @name wrapped_cfloat
-wrapped_cfloat = class.new(state_float, wrapped_cvariable)
-function wrapped_cfloat:__tostring() return "wrapped_cfloat" end
-
---- Wrapped C boolean. Inherits from state_bool,
--- but wraps it over C getter / setter.
--- @class table
--- @name wrapped_cbool
-wrapped_cbool = class.new(state_bool, wrapped_cvariable)
-function wrapped_cbool:__tostring() return "wrapped_cbool" end
-
---- Wrapped C string. Inherits from state_string,
--- but wraps it over C getter / setter.
--- @class table
--- @name wrapped_cstring
-wrapped_cstring = class.new(state_string, wrapped_cvariable)
-function wrapped_cstring:__tostring() return "wrapped_cstring" end
-
---- Wrapped C array. Inherits from state_array,
--- but wraps it over C getter / setter.
--- @class table
--- @name wrapped_carray
-wrapped_carray = class.new(state_array)
-function wrapped_carray:__tostring() return "wrapped_carray" end
-wrapped_carray.__init    = wrapped_cvariable.__init
-wrapped_carray._register = wrapped_cvariable._register
-
---- Wrapped C array overrides method for getting raw array
--- so it makes use of C getter (though everything is cached).
--- @param ent Entity the wrapped C array is belonging to.
-function wrapped_carray:get_raw(ent)
-    logging.log(logging.INFO, "WCA:get_raw " .. tostring(self._name) .. " " .. tostring(self.cgetter))
-
-    if self.cgetter and (CLIENT or ent:can_call_cfuncs()) then
-        -- caching
-        local cached_timestamp = ent.state_var_val_timestamps[tostring(self._name)]
-        if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
-            return ent.state_var_vals[tostring(self._name)]
-        end
-
-        logging.log(logging.INFO, "WCA:get_raw: call C")
-        -- caching
-        local val = self.cgetter(ent)
-        logging.log(logging.INFO, "WCA:get_raw:result: " .. json.encode(val))
-        if CLIENT or ent._queued_sv_changes_complete then
-            ent.state_var_vals[tostring(self._name)] = val
-            ent.state_var_val_timestamps[tostring(self._name)] = GLOBAL_CURRENT_TIMESTAMP
-        end
-        return val
-    else
-        logging.log(logging.INFO, "WCA:get_raw: fallback to state_data")
-        local r = ent.state_var_vals[tostring(self._name)]
-        logging.log(logging.INFO, "WCA:get_raw .. " .. json.encode(r))
         return r
     end
-end
+}, "array_surrogate")
 
---- This inherits from array surrogate in order to achieve
--- vec3 behavior. Used by state_vec3 and wrapped_cvec3.
--- @class table
--- @name vec3_surrogate
--- @see vec4_surrogate
-vec3_surrogate = class.new(array_surrogate, math.vec3)
+--[[!
+    Class: state_array
+    State array class. Inherits from <state_variable>. It's an example
+    of more complex state variable, which doesn't just convert data
+    to wire format and back. State arrays make use of <array_surrogate>
+    to provide interface for manipulating. When the getter is called,
+    instead of returning raw array (which can't write changes back
+    to the entity) it returns <array_surrogate> which has entity
+    and SV assigned and thus can change internal values.
+]]
+state_array = class.new(state_variable, {
+    --[[!
+        Variable: separator
+        This is the separator that is used in wire format (string)
+        to separate array elements.
+    ]]
+    separator = "|",
 
---- Return string representation of vec3 surrogate.
--- @return String representation of vec3 surrogate.
-function vec3_surrogate:__tostring() return "vec3_surrogate" end
+    --[[!
+        Variable: surrogate_class
+        This is the surrogate class that will be used to return
+        from getter. Default state array uses <array_surrogate>.
+    ]]
+    surrogate_class = array_surrogate,
 
---- Vec3 surrogate constructor. Surrogate gets created for
--- specific state variable and specific entity and
--- getter / setter gets created for it.
--- @param ent Entity to create surrogate for.
--- @param var State variable to create surrogate for.
-function vec3_surrogate:__init(ent, var)
-    array_surrogate.__init(self, ent, var)
+    --[[!
+        Function: getter
+        Overriden <state_variable.getter>. Instead of returning
+        raw value in non-wire format (which would be array in
+        our case), it returns <surrogate_class> instance.
 
-    self.entity = ent
-    self.variable = var
+        Surrogate class instance is cached, so it doesn't have to
+        be recreated every get (usually is created on first getter
+        call only).
 
-    self:define_getter("length", function(self) return 3 end)
-    self:define_getter(
-        "x", function(self)
-            return self.variable.get_item(self.variable, self.entity, 1)
+        Other rules apply the same way as for <state_variable.getter>,
+        including execution of <state_variable.read_tests> and
+        function arguments.
+    ]]
+    getter = function(self, variable)
+        -- read tests
+        variable:read_tests(self)
+
+        -- if we don't have raw value, return nil
+        if not variable:get_raw(self) then
+            return nil
         end
-    )
-    self:define_getter(
-        "y", function(self)
-            return self.variable.get_item(self.variable, self.entity, 2)
+
+        -- surrogate caching - save it inside the entity
+        if not self["__asurrogate_" .. variable._name] then
+               self["__asurrogate_" .. variable._name]
+                = variable.surrogate_class(self, variable)
         end
-    )
-    self:define_getter(
-        "z", function(self)
-            return self.variable.get_item(self.variable, self.entity, 3)
+
+        -- return the surrogate instance
+        return self["__asurrogate_" .. variable._name]
+    end,
+
+    --[[!
+        Function: setter
+        Overriden <state_variable.setter>. Same rules
+        as for parent function apply, but you have more
+        possibilities to set as value.
+
+        You can besides raw array also provide array
+        surrogate as value. That is sometimes handy.
+    ]]
+    setter = function(self, value, variable)
+        logging.log(
+            logging.DEBUG, "state_array setter: " .. json.encode(value)
+        )
+
+        -- we can also detect vectors :)
+        if value.x then
+            logging.log(
+                logging.INFO,
+                "state_array setter: "
+                    .. value.x
+                    .. ", "
+                    .. value.y
+                    .. ", "
+                    .. value.z
+            )
         end
-    )
 
-    self:define_setter(
-        "x", function(self, v)
-            self.variable.set_item(self.variable, self.entity, 1, v)
+        -- and arrays, try to print first 3 values
+        -- we tostring the two ones because of nil values
+        if value[1] then
+            logging.log(
+                logging.INFO,
+                "state_array setter: "
+                    .. value[1]
+                    .. ", "
+                    .. tostring(value[2])
+                    .. ", "
+                    .. tostring(value[3])
+            )
         end
-    )
-    self:define_setter(
-        "y", function(self, v)
-            self.variable.set_item(self.variable, self.entity, 2, v)
+
+        -- pre-declare data
+        local data
+
+        -- for surrogates, we have as_array
+        if value.as_array then
+            data = value:as_array()
+        else
+            -- otherwise we get raw table, copy it
+            data = table.copy(value)
         end
-    )
-    self:define_setter(
-        "z", function(self, v)
-            self.variable.set_item(self.variable, self.entity, 3, v)
+
+        -- set data
+        self:set_state_data(variable._name, data, -1)
+    end,
+
+    --[[!
+        Function: to_wire_item
+        Used by <to_wire> to convert a single table item to wire format.
+        Doesn't have self argument, accepts just one argument and that
+        is the value. Returns an item in wire format.
+    ]]
+    to_wire_item = convert.tostring,
+
+    --[[!
+        Function: to_wire
+        Overriden <state_variable.to_wire>. It takes an array as an argument
+        (or array surrogate, which is then converted to raw array) and
+        returns the array in wire format which looks like this:
+
+        (start code)
+            [ITEM|ITEM2|ITEM3]
+        (end)
+
+        Separator for items is selected using <separator> and each item
+        is converted to wire format using <to_wire_item>.
+
+        Parameters:
+            value - either raw array or array surrogate to convert.
+    ]]
+    to_wire = function(self, value)
+        logging.log(
+            logging.INFO, "to_wire of state_array: " .. json.encode(value)
+        )
+
+        -- if we have array surrogate, get a raw array
+        if value.as_array then
+            value = value:as_array()
         end
-    )
 
-    self:define_userget(
-        function(n) return tonumber(n) and true or false end,
-        function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
-    )
-    self:define_userset(
-        function(n, v) return tonumber(n) and true or false end,
-        function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
-    )
-end
+        -- return right format, use <table.map> to map items to wire format.
+        return "["
+            .. table.concat(
+                table.map(value, self.to_wire_item),
+                self.separator
+            )
+            .. "]"
+    end,
 
---- Push method for vec3 throws a failed assertion,
--- because you never push into vec3.
-function vec3_surrogate:push(v)
-    assert(false)
-end
+    --[[!
+        Function: from_wire_item
+        Used by <from_wire> to convert a single table item from wire format.
+        Doesn't have self argument, accepts just one argument and that
+        is the value. Returns an item in non-wire format.
+    ]]
+    from_wire_item = convert.tostring,
 
---- Wrapped C vec3. Inherits from state_array,
--- but wraps it over C getter / setter and uses
--- surrogate class of vec3, as well as its own
--- wire / data methods.
--- @class table
--- @name wrapped_cvec3
--- @see wrapped_cvec4
-wrapped_cvec3 = class.new(state_array)
-function wrapped_cvec3:__tostring() return "wrapped_cvec3" end
+    --[[!
+        Function: from_wire
+        Overriden <state_variable.from_wire>. Converts output of <to_wire>
+        back to its raw format. To convert each item from wire format,
+        <from_wire_item> output is used.
 
-wrapped_cvec3.surrogate_class = vec3_surrogate
-wrapped_cvec3.__init          = wrapped_cvariable.__init
-wrapped_cvec3._register       = wrapped_cvariable._register
-wrapped_cvec3.from_wire_item  = convert.tonumber
-wrapped_cvec3.to_wire_item    = convert.todec2str
-wrapped_cvec3.get_raw         = wrapped_carray.get_raw
+        Basically, it splits the string with stripped out leading/trailing []
+        by <separator> and then re-maps it to array. Returns the raw array.
 
---- State vec3. Inherits state array, but uses
--- its own surrogate class as well as its own
--- wire / data methods.
--- @class table
--- @name state_vec3
--- @see state_vec4
-state_vec3 = class.new(state_array)
-function state_vec3:__tostring() return "state_vec3" end
+        Parameters:
+            value - the string value to get array from.
+    ]]
+    from_wire = function(self, value)
+        logging.log(
+            logging.DEBUG,
+            "from_wire of state_array: "
+                .. tostring(self._name)
+                .. "::"
+                .. value
+        )
 
-state_vec3.surrogate_class = vec3_surrogate
-state_vec3.from_wire_item  = convert.tonumber
-state_vec3.to_wire_item    = convert.todec2str
-
---- This inherits from array surrogate in order to achieve
--- vec4 behavior. Used by state_vec4 and wrapped_cvec4.
--- @class table
--- @name vec4_surrogate
--- @see vec3_surrogate
-vec4_surrogate = class.new(array_surrogate, math.vec4)
-
---- Return string representation of vec4 surrogate.
--- @return String representation of vec4 surrogate.
-function vec4_surrogate:__tostring() return "vec4_surrogate" end
-
---- Vec4 surrogate constructor. Surrogate gets created for
--- specific state variable and specific entity and
--- getter / setter gets created for it.
--- @param ent Entity to create surrogate for.
--- @param var State variable to create surrogate for.
-function vec4_surrogate:__init(ent, var)
-    array_surrogate.__init(self, ent, var)
-
-    self.entity = ent
-    self.variable = var
-
-    self:define_getter("length", function(self) return 4 end)
-    self:define_getter(
-        "x", function(self)
-            return self.variable.get_item(self.variable, self.entity, 1)
+        -- if it's empty, don't bother mapping
+        if value == "[]" then
+            return {}
+        else
+            return table.map(
+                string.split(
+                    string.sub(value, 2, #value - 1),
+                    self.separator
+                ),
+                self.from_wire_item
+            )
         end
-    )
-    self:define_getter(
-        "y", function(self)
-            return self.variable.get_item(self.variable, self.entity, 2)
+    end,
+
+    --[[!
+        Function: get_raw
+        Gets raw array of state array data. Gets the value from local storage,
+        doesn't involve any client-server messing.
+
+        Parameters:
+            entity - the entity to get raw data from.
+    ]]
+    get_raw = function(self, entity)
+        logging.log(logging.INFO, "get_raw: " .. tostring(self))
+        logging.log(logging.INFO, json.encode(entity.state_variable_values))
+
+        local val = entity.state_variable_values[self._name]
+        return val and val or {}
+    end,
+
+    --[[!
+        Function: set_item
+        Sets state array item. Used by <array_surrogate> to set elements.
+        Performs an update on all clients by calling set_state_data on
+        the entity (see <base_server.set_state_data> and
+        <base_client.set_state_data> for more information).
+
+        Parameters:
+            entity - the entity to set item for.
+            index - state array index.
+            value - the value to set.
+    ]]
+    set_item = function(self, entity, index, value)
+        logging.log(
+            logging.INFO,
+            "set_item: " .. index .. " : " .. json.encode(value)
+        )
+
+        -- get raw array
+        local arr = self:get_raw(entity)
+
+        logging.log(logging.INFO, "got_raw: " .. json.encode(arr))
+
+        -- do not allow separator to be present in the item if it's
+        -- string, it could mess up the whole system.
+        if type(value) == "string" then
+            assert(not string.find(value, "%" .. self.separator))
         end
-    )
-    self:define_getter(
-        "z", function(self)
-            return self.variable.get_item(self.variable, self.entity, 3)
+
+        -- set the item in array
+        arr[index] = value
+
+        -- and set it as state data
+        entity:set_state_data(self._name, arr, -1)
+    end,
+
+    --[[!
+        Function: get_item
+        Gets state array item. Used by <array_surrogate> to get elements.
+        Basically calls <get_raw> and returns required index.
+
+        Parameters:
+            entity - the entity to get item from.
+            index - state array index.
+    ]]
+    get_item = function(self, entity, index)
+        logging.log(logging.INFO, "state_array:get_item for " .. index)
+
+        -- raw array
+        local arr = self:get_raw(entity)
+        logging.log(
+            logging.INFO,
+            "state_array:get_item "
+                .. json.encode(arr)
+                .. " ==> "
+                .. arr[index]
+        )
+
+        -- TODO: optimize
+        return arr[index]
+    end,
+
+    --[[!
+        Function: get_length
+        Gets state array length. Used by
+        <array_surrogate> to get its length.
+
+        Basically gets a raw array using
+        <get_raw> and counts its elements.
+
+        Parameters:
+            entity - the entity to get length for.
+    ]]
+    get_length = function(self, entity)
+        local  arr = self:get_raw(entity)
+        if not arr then
+            assert(arr)
         end
-    )
-    self:define_getter(
-        "w", function(self)
-            return self.variable.get_item(self.variable, self.entity, 4)
+        return #arr
+    end
+}, "state_array")
+
+--[[!
+    Class: state_array_float
+    Version of <state_array> that works with floating
+    point numbers. The 2-digit rule applies in the same
+    way as for <state_float>. Overrides <state_array.to_wire_item>
+    and <state_array.from_wire_item>.
+]]
+state_array_float = class.new(state_array, {
+    to_wire_item = convert.todec2str,
+    from_wire_item = convert.tonumber
+}, "state_array_float")
+
+--[[!
+    Class: state_array_integer
+    Version of <state_array> that works with integer numbers.
+    Overrides <state_array.to_wire_item> and
+    <state_array.from_wire_item>.
+]]
+state_array_integer = class.new(state_array, {
+    to_wire_item = convert.tostring,
+    from_wire_item = convert.tointeger
+
+}, "state_array_integer")
+
+--[[!
+    Class: variable_alias
+    State variable alias. Variable aliases are always registered
+    last for the entity, so the variables they point at are ready
+    at the time of registration. Variable alias basically points
+    at existing state variable, providing an alternative getter
+    and setter for the SV. Useful when you're i.e. aliasing
+    Cube 2 entity properties (attrN) to a nicer name.
+]]
+variable_alias = class.new(state_variable, {
+    --[[!
+        Constructor: __init
+        Overriden constructor for alias. Variable aliases don't
+        have properties like client_set, custom_synch etc., so
+        no need to call parent constructor. This sets just target
+        state variable name.
+
+        Parameter:
+            target_name - name of the SV this alias points at.
+    ]]
+    __init = function(self, target_name)
+        self.target_name = target_name
+    end,
+
+    --[[!
+        Function: register
+        See <state_variable.register>. This doesn't call parent,
+        it just sets up the alias. Basically, it allows to access
+        the true state variable under <state_variables._SV_PREFIX>
+        plus alias name, and creates a getter / setter for alias name.
+    ]]
+    register = function(self, _name, parent)
+        logging.log(
+            logging.DEBUG,
+            "variable_alias:register(%(1)q, %(2)s)"
+                % { _name, tostring(parent) }
+        )
+
+        -- set _name
+        self._name = _name
+
+        logging.log(
+            logging.DEBUG,
+            "Getting target entity for variable alias "
+                .. _name
+                .. ": "
+                .. _SV_PREFIX
+                .. self.target_name
+        )
+
+        -- point to the true variable
+        local tg = parent[_SV_PREFIX .. self.target_name]
+        parent[_SV_PREFIX .. _name] = tg
+
+        -- define getters
+        parent:define_getter(_name, tg.getter, tg)
+        parent:define_setter(_name, tg.setter, tg)
+    end
+}, "variable_alias")
+
+--[[!
+    Class: wrapped_c_variable
+    This is not actual class. This is a mixin table that can make
+    a wrapped C state variable class from actual standard state
+    variable class. Basically, each wrapped C SV has C getter
+    function and C setter function (in fact, sometimes one of
+    them can be omitted, like when client_set is true - see
+    <state_variable.__init> kwargs section).
+
+    This table overrides constructor, registration and getter
+    for the SV class.
+]]
+wrapped_c_variable = {
+    --[[!
+        Constructor: __init
+        Overriden constructor, see <state_variable.__init>.
+
+        This one reads two more kwargs - that is, c_setter
+        and c_getter, which are either strings containing
+        names of C getter and setter functions (like, "CAPI.blah")
+        or are directly the functions.
+
+        They get saved in the class as c_getter_raw and c_setter_raw.
+        Values in kwargs get set to nil.
+
+        Then, parent constructor gets called as usual.
+    ]]
+    __init = function(self, kwargs)
+        logging.log(logging.INFO, "wrapped_c_variable:__init()")
+
+        -- read kwargs
+        self.c_getter_raw = kwargs.c_getter
+        self.c_setter_raw = kwargs.c_setter
+        -- and clear up kwargs
+        kwargs.c_getter = nil
+        kwargs.c_setter = nil
+
+        -- and call parent with the kwargs
+        self.__base.__init(self, kwargs)
+    end,
+
+    --[[!
+        Function: register
+        Overriden <state_variable.register> (or any registration
+        method further overriden by children). It first calls the
+        parent function as usual and then evaluates c_getter_raw
+        and c_setter_raw. If they're functions, it just sets
+        them directly. If they're strings, it gets the functions.
+
+        Then, if C setter is available (as mentioned in <__init>,
+        it can be omitted in certain cases), it connects a signal
+        on value modification (see <base_client.set_state_data>
+        and <base_server.set_state_data>) which performs required
+        setting of values on C side. The signal handler calls C
+        setter always on client or on server if there are no
+        queued SV changes (when <base_server.can_call_c_functions>
+        returns true value). Otherwise, it queues the SV change
+        for next time.
+
+        The value is also cached after C getter is called for
+        performance reasons (via global timestamp).
+    ]]
+    register = function(self, _name, parent)
+        -- call parent
+        self.__base.register(self, _name, parent)
+
+        logging.log(logging.DEBUG, "WCV register: " .. tostring(_name))
+
+        -- allow use of string names, for late binding at
+        -- this stage we copy raw walues, then eval
+        self.c_getter = self.c_getter_raw
+        self.c_setter = self.c_setter_raw
+
+        -- evaluate string names
+        if type(self.c_getter) == "string" then
+            self.c_getter = loadstring("return " .. self.c_getter)()
         end
-    )
-
-    self:define_setter(
-        "x", function(self, v)
-            self.variable.set_item(self.variable, self.entity, 1, v)
+        if type(self.c_setter) == "string" then
+            self.c_setter = loadstring("return " .. self.c_setter)()
         end
-    )
-    self:define_setter(
-        "y", function(self, v)
-            self.variable.set_item(self.variable, self.entity, 2, v)
+
+        -- if we have C setter ..
+        if self.c_setter then
+            -- prepare a renamed instance of state variable
+            local variable = self
+            -- connect the handler
+            parent:connect(get_on_modify_name(_name), function (self, value)
+                -- on client or with empty SV change queue, call the setter
+                if CLIENT or parent:can_call_c_functions() then
+                    logging.log(
+                        logging.INFO,
+                        string.format(
+                            "Calling c_setter for %s, with %s (%s)",
+                            variable._name, tostring(value), type(value)
+                        )
+                    )
+                    -- we've been set up, apply the change
+                    variable.c_setter(parent, value)
+                    logging.log(logging.INFO, "c_setter called successfully.")
+
+                    -- cache the value locally for performance reasons
+                    parent.state_variable_values[variable._name] = value
+                    parent.state_variable_value_timestamps[variable._name]
+                        = GLOBAL_CURRENT_TIMESTAMP
+                else
+                    -- not yet set up, queue change
+                    parent:queue_state_variable_change(variable._name, value)
+                end
+            end)
+        else
+            -- valid behavior, but log it anyway
+            logging.log(
+                logging.DEBUG,
+                "No c_setter for " .. _name .. ": not connecting to signal."
+            )
         end
-    )
-    self:define_setter(
-        "z", function(self, v)
-            self.variable.set_item(self.variable, self.entity, 3, v)
+    end,
+
+    --[[!
+        Function: getter
+        Overriden <state_variable.getter> (or any getter defined
+        further by children). Performs <state_variable.read_tests>,
+        checks for cached value - if timestamp fits, returns the local
+        value directly (values are cached by event handler set up by
+        <register>). If not, it checks for getter (it doesn't have to
+        exist, omitting it sometimes is valid behavior) and also
+        checks if state variable change queue is empty
+        (that is, when <base_server.can_call_c_functions> returns true).
+        If all conditions are true, gets the value using C getter
+        and on client (or on server when all queued SV changes are
+        already done) caches the value again via global timestamp.
+
+        If no getter is available, it calls standard SV getter
+        as defined by <state_variable.getter> or children.
+    ]]
+    getter = function(self, variable)
+        -- read tests
+        variable:read_tests(self)
+
+        logging.log(logging.INFO, "WCV getter " .. variable._name)
+
+        -- caching - return from cache if timestamp is okay
+        local cached_timestamp
+            = self.state_variable_value_timestamps[variable._name]
+        if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
+            return self.state_variable_values[variable._name]
         end
-    )
-    self:define_setter(
-        "w", function(self, v)
-            self.variable.set_item(self.variable, self.entity, 4, v)
+
+        -- if it needs updated value, do checks
+        if variable.c_getter and (CLIENT or self:can_call_c_functions()) then
+            logging.log(logging.INFO, "WCV getter: call C")
+            -- call C now
+            local val = variable.c_getter(self)
+
+            -- re-cache the value since it was outdated
+            if CLIENT or self._queued_sv_changes_complete then
+                self.state_variable_values[variable._name] = val
+                self.state_variable_value_timestamps[variable._name]
+                    = GLOBAL_CURRENT_TIMESTAMP
+            end
+
+            -- return the value
+            return val
+        else
+            -- call standard getter if no C getter available
+            logging.log(
+                logging.INFO,
+                "WCV getter: fallback to state_data since "
+                    .. tostring(variable.c_getter)
+            )
+            return variable.__base.getter(self, variable)
         end
-    )
+    end
+}
 
-    self:define_userget(
-        function(n) return tonumber(n) and true or false end,
-        function(self, n) return self.variable.get_item(self.variable, self.entity, tonumber(n)) end
-    )
-    self:define_userset(
-        function(n, v) return tonumber(n) and true or false end,
-        function(self, n, v) self.variable.set_item(self.variable, self.entity, tonumber(n), v) end
-    )
-end
+--[[!
+    Class: wrapped_c_integer
+    Wrapped C version of <state_integer>. Takes <state_integer>
+    and mixes in <wrapped_c_variable>.
+]]
+wrapped_c_integer = class.new(
+    state_integer, wrapped_c_variable, "wrapped_c_integer"
+)
 
---- Push method for vec4 throws a failed assertion,
--- because you never push into vec4.
-function vec4_surrogate:push(v)
-    assert(false)
-end
+--[[!
+    Class: wrapped_c_float
+    Wrapped C version of <state_float>. Takes <state_float>
+    and mixes in <wrapped_c_variable>.
+]]
+wrapped_c_float = class.new(
+    state_float, wrapped_c_variable, "wrapped_c_float"
+)
 
---- Wrapped C vec4. Inherits from state_array,
--- but wraps it over C getter / setter and uses
--- surrogate class of vec4, as well as its own
--- wire / data methods.
--- @class table
--- @name wrapped_cvec4
--- @see wrapped_cvec3
-wrapped_cvec4 = class.new(state_array)
-function wrapped_cvec4:__tostring() return "wrapped_cvec4" end
+--[[!
+    Class: wrapped_c_bool
+    Wrapped C version of <state_bool>. Takes <state_bool>
+    and mixes in <wrapped_c_variable>.
+]]
+wrapped_c_bool = class.new(
+    state_bool, wrapped_c_variable, "wrapped_c_bool"
+)
 
-wrapped_cvec4.surrogate_class = vec4_surrogate
-wrapped_cvec4.__init          = wrapped_cvariable.__init
-wrapped_cvec4._register       = wrapped_cvariable._register
-wrapped_cvec4.from_wire_item  = convert.tonumber
-wrapped_cvec4.to_wire_item    = convert.todec2str
-wrapped_cvec4.get_raw         = wrapped_carray.get_raw
+--[[!
+    Class: wrapped_c_string
+    Wrapped C version of <state_string>. Takes <state_string>
+    and mixes in <wrapped_c_variable>.
+]]
+wrapped_c_string = class.new(
+    state_string, wrapped_c_variable, "wrapped_c_string"
+)
 
---- State vec4. Inherits state array, but uses
--- its own surrogate class as well as its own
--- wire / data methods.
--- @class table
--- @name state_vec4
--- @see state_vec3
-state_vec4 = class.new(state_array)
-function state_vec4:__tostring() return "state_vec4" end
+--[[!
+    Class: wrapped_c_array
+    Wrapped C version of <state_array>. Takes <state_array>
+    and mixes in part of <wrapped_c_variable>. Doesn't use
+    <wrapped_c_variable.getter>. Overrides <state_array.get_raw>
+    so it makes use of C getters.
+]]
+wrapped_c_array = class.new(state_array, "wrapped_c_array"):mixin({
+    __init   = wrapped_c_variable.__init,
+    register = wrapped_c_variable.register,
 
-state_vec4.surrogate_class = vec4_surrogate
-state_vec4.from_wire_item  = convert.tonumber
-state_vec4.to_wire_item    = convert.todec2str
+    --[[!
+        Function: get_raw
+        Overriden <state_array.get_raw>. Never calls the parent.
+        It checks if we have c_getter and if we're either on client
+        or on server with empty SV change queue. If we are, it
+        checks if we're up to date enough according to timestamp,
+        if we are, it just returns local value.
 
---- State json. Simple state variable. On to_(wire|data)
--- it encodes JSON table, on from_(wire|data), it decodes
--- JSON string.
--- @class table
--- @name state_json
-state_json = class.new(state_variable)
-function state_json:__tostring() return "state_json" end
-function state_json:to_wire(v) return json.encode(v) end
-function state_json:from_wire(v) return json.decode(v) end
+        If timestamp is out of date, it gets the value using c_getter
+        and caches it as local for next call.
 
-json.register(function(v) return (type(v) == "table" and v.uid ~= nil) end, function(v) return v.uid end)
+        If we don't have c_getter (valid behavior) it just falls back
+        to local state data.
+    ]]
+    get_raw = function(self, entity)
+        logging.log(
+            logging.INFO,
+            "WCA:get_raw " .. self._name .. " " .. tostring(self.c_getter)
+        )
+
+        -- check if we can use getter
+        if self.c_getter and (CLIENT or entity:can_call_c_functions()) then
+            -- try getting the value from cache first, check timestamp
+            local cached_timestamp
+                = entity.state_variable_value_timestamps[self._name]
+            if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
+                return entity.state_variable_values[self._name]
+            end
+
+            logging.log(logging.INFO, "WCA:get_raw: call C")
+            -- call C if we can't.
+            local val = self.c_getter(entity)
+            logging.log(
+                logging.INFO, "WCA:get_raw:result: " .. json.encode(val)
+            )
+
+            -- cache the value so we're up to date for next time
+            if CLIENT or entity._queued_sv_changes_complete then
+                entity.state_variable_values[self._name] = val
+                entity.state_variable_value_timestamps[self._name]
+                    = GLOBAL_CURRENT_TIMESTAMP
+            end
+
+            -- return the value
+            return val
+        else
+            -- fallback to state data
+            logging.log(logging.INFO, "WCA:get_raw: fallback to state_data")
+            local r = entity.state_variable_values[self._name]
+            logging.log(logging.INFO, "WCA:get_raw .. " .. json.encode(r))
+            return r
+        end
+    end
+})
+
+--[[!
+    Class: vec3_surrogate
+    Inherited from <array_surrogate>. It's basically array surrogate
+    modified to fit better with <vec3>. It takes <array_surrogate>,
+    mixes in <vec3> so it has all vector operation methods and
+    overrides <array_surrogate.__init> and <array_surrogate.push>
+    with its own methods.
+]]
+vec3_surrogate = class.new(
+    array_surrogate, math.vec3, "vec3_surrogate"
+):mixin({
+    --[[!
+        Constructor: __init
+        Overriden <array_surrogate.__init>. Doesn't call the parent,
+        but performs most of its actions (like setting internal
+        references to entity and variable). Defines custom getters
+        for x, y, z as well as setters + standard numerical access.
+
+        Length getter always returns 3.
+    ]]
+    __init = function(self, entity, variable)
+        -- internal references
+        self.entity = entity
+        self.variable = variable
+
+        -- proper getters
+        self:define_getter("length", function(self) return 3 end)
+        self:define_getter(
+            "x", function(self)
+                return self.variable.get_item(self.variable, self.entity, 1)
+            end
+        )
+        self:define_getter(
+            "y", function(self)
+                return self.variable.get_item(self.variable, self.entity, 2)
+            end
+        )
+        self:define_getter(
+            "z", function(self)
+                return self.variable.get_item(self.variable, self.entity, 3)
+            end
+        )
+
+        -- and setters
+        self:define_setter(
+            "x", function(self, v)
+                self.variable.set_item(self.variable, self.entity, 1, v)
+            end
+        )
+        self:define_setter(
+            "y", function(self, v)
+                self.variable.set_item(self.variable, self.entity, 2, v)
+            end
+        )
+        self:define_setter(
+            "z", function(self, v)
+                self.variable.set_item(self.variable, self.entity, 3, v)
+            end
+        )
+
+        -- allow classic numerical access
+        self:define_global_getter(
+            function(n) return tonumber(n) and true or false end,
+            function(self, n)
+                return self.variable.get_item(
+                    self.variable, self.entity, tonumber(n)
+                )
+            end
+        )
+        self:define_global_setter(
+            function(n, v) return tonumber(n) and true or false end,
+            function(self, n, v)
+                self.variable.set_item(
+                    self.variable, self.entity, tonumber(n), v
+                )
+            end
+        )
+    end,
+
+    --[[!
+        Function: push
+        Overriden <array_surrogate.push>. Throws a failed assertion,
+        because we never push into vector so this is bad behavior.
+    ]]
+    push = function(self, value)
+        assert(false)
+    end
+})
+
+--[[!
+    Class: state_vec3
+    State vec3. Inherits from <state_array_float>. Provides its own
+    surrogate class, <vec3_surrogate> which provides the part with
+    which you manipulate (and contains all vector manipulation methods).
+    See <state_array.surrogate_class>.
+]]
+state_vec3 = class.new(state_array_float, {
+    surrogate_class = vec3_surrogate
+}, "state_vec3")
+
+--[[!
+    Class: wrapped_c_vec3
+    Wrapped C version of <state_vec3>. Takes <state_vec3>
+    and mixes in part of <wrapped_c_variable>. Doesn't use
+    <wrapped_c_variable.getter>. Uses <wrapped_c_array.get_raw>
+    for C interfacing.
+]]
+wrapped_c_vec3 = class.new(state_vec3, {
+    __init   = wrapped_c_variable.__init,
+    register = wrapped_c_variable.register,
+    get_raw  = wrapped_c_array.get_raw
+}, "wrapped_c_vec3")
+
+--[[!
+    Class: vec4_surrogate
+    Inherited from <array_surrogate>. It's basically array surrogate
+    modified to fit better with <math.vec4>. It takes <array_surrogate>,
+    mixes in <math.vec4> so it has all vector operation methods and
+    overrides <array_surrogate.__init> and <array_surrogate.push>
+    with its own methods.
+]]
+vec4_surrogate = class.new(
+    array_surrogate, math.vec4, "vec4_surrogate"
+):mixin({
+    --[[!
+        Constructor: __init
+        Overriden <array_surrogate.__init>. Doesn't call the parent,
+        but performs most of its actions (like setting internal
+        references to entity and variable). Defines custom getters
+        for x, y, z, w as well as setters + standard numerical access.
+
+        Length getter always returns 4.
+    ]]
+    __init = function(self, entity, variable)
+        -- internal references
+        self.entity = entity
+        self.variable = variable
+
+        -- proper getters
+        self:define_getter("length", function(self) return 4 end)
+        self:define_getter(
+            "x", function(self)
+                return self.variable.get_item(self.variable, self.entity, 1)
+            end
+        )
+        self:define_getter(
+            "y", function(self)
+                return self.variable.get_item(self.variable, self.entity, 2)
+            end
+        )
+        self:define_getter(
+            "z", function(self)
+                return self.variable.get_item(self.variable, self.entity, 3)
+            end
+        )
+        self:define_getter(
+            "w", function(self)
+                return self.variable.get_item(self.variable, self.entity, 4)
+            end
+        )
+
+        -- and setters
+        self:define_setter(
+            "x", function(self, v)
+                self.variable.set_item(self.variable, self.entity, 1, v)
+            end
+        )
+        self:define_setter(
+            "y", function(self, v)
+                self.variable.set_item(self.variable, self.entity, 2, v)
+            end
+        )
+        self:define_setter(
+            "z", function(self, v)
+                self.variable.set_item(self.variable, self.entity, 3, v)
+            end
+        )
+        self:define_setter(
+            "w", function(self, v)
+                self.variable.set_item(self.variable, self.entity, 4, v)
+            end
+        )
+
+        -- allow classic numerical access
+        self:define_global_getter(
+            function(n) return tonumber(n) and true or false end,
+            function(self, n)
+                return self.variable.get_item(
+                    self.variable, self.entity, tonumber(n)
+                )
+            end
+        )
+        self:define_global_setter(
+            function(n, v) return tonumber(n) and true or false end,
+            function(self, n, v)
+                self.variable.set_item(
+                    self.variable, self.entity, tonumber(n), v
+                )
+            end
+        )
+    end,
+
+    --[[!
+        Function: push
+        Overriden <array_surrogate.push>. Throws a failed assertion,
+        because we never push into vector so this is bad behavior.
+    ]]
+    push = function(self, value)
+        assert(false)
+    end
+})
+
+--[[!
+    Class: state_vec4
+    State vec4. Inherits from <state_array_float>. Provides its own
+    surrogate class, <vec4_surrogate> which provides the part with
+    which you manipulate (and contains all vector manipulation methods).
+    See <state_array.surrogate_class>.
+]]
+state_vec4 = class.new(state_array_float, {
+    surrogate_class = vec4_surrogate
+}, "state_vec4")
+
+--[[!
+    Class: wrapped_c_vec4
+    Wrapped C version of <state_vec4>. Takes <state_vec4>
+    and mixes in part of <wrapped_c_variable>. Doesn't use
+    <wrapped_c_variable.getter>. Uses <wrapped_c_array.get_raw>
+    for C interfacing.
+]]
+wrapped_c_vec4 = class.new(state_vec4, {
+    __init   = wrapped_c_variable.__init,
+    register = wrapped_c_variable.register,
+    get_raw  = wrapped_c_array.get_raw
+}, "wrapped_c_vec4")

@@ -90,7 +90,7 @@ struct physent                                  // base entity type, can be affe
         deltapos = vec(0, 0, 0);
     }
 
-    virtual void reset() // INTENSITY: Made virtual
+    virtual void reset() // OF: virtual
     {
         inwater = 0;
         timeinair = 0;
@@ -128,8 +128,8 @@ static const char * const animnames[] =
        "pain", 
        "jump", "sink", "swim", 
        "edit", "lag", "taunt", "win", "lose", 
-       "gun idle", "gun shoot",
-       "vwep idle", "vwep shoot", "shield", "powerup", 
+       "gunidle", "gunshoot", // INTENSITY: No spaces, so can be validated as non-spaced
+       "vwepidle", "vwepshoot", "shield", "powerup", // INTENSITY: No spaces, so can be validated as non-spaced
        "mapmodel", "trigger"
 };
 
@@ -193,7 +193,7 @@ struct dynent : physent                         // animated characters, or chara
         reset(); 
     }
 
-    virtual ~dynent() // INTENSITY: added this virtual so that this is polymorphic, and dynamic_cast of fpsent is valid
+    virtual ~dynent() // OF: virtual
     {
 #ifndef STANDALONE
         extern void cleanragdoll(dynent *d);
@@ -201,13 +201,13 @@ struct dynent : physent                         // animated characters, or chara
 #endif
     }
                
-    virtual void stopmoving() // INTENSITY: Made virtual
+    virtual void stopmoving() // OF: virtual
     {
         k_left = k_right = k_up = k_down = jumping = false;
         move = strafe = 0;
     }
         
-    virtual void reset() // INTENSITY: Made virtual
+    virtual void reset() // OF: virtual
     {
         physent::reset();
         stopmoving();

@@ -12,182 +12,298 @@
 
     About: Purpose
         This file features signal system.
-
-    Section: Signal handling
 ]]
 
 --[[!
     Package: signals
-    This module controls signal handling. If you set up a table with signal handlers,
-    you can connect event to it and emit it anytime later.
+    This module controls signal handling. If you set up a table with signal
+    handlers, you can connect event to it and emit it anytime later.
 ]]
 module("signals", package.seeall)
 
---- Table of actions to be done after doing emit,
--- see postemitevent_add.
--- @class table
--- @name __post_emit_event_stack
+--[[!
+    Variable: __post_emit_event_stack
+    This is a local queue of actions to be done after emit. It's basically
+    an array containing 1 other array which serves as an action queue.
+    See <post_emit_event_add>.
+]]
 local __post_emit_event_stack = {}
 
---- This is used to connect signals to table.
--- You don't call this directly. Instead, you add the method into the table using
--- methods_add, and then it's called "connect" without the underscore.
--- @param self The table you connect signal to (hidden usually, automatically filled in using : )
--- @param name Name of the signal; serves as identifier so you can emit it later
--- @param callback Function to connect to name
--- @return Unique numerical identifier for the signal.
--- @see methods_add
--- @see _disconnect
--- @see _disconnectall
--- @see _emit
+--[[!
+    Function: _connect
+    This is used to connect a signal to a table. You never call this function
+    directly. Instead, you use <methods_add> to add required signal handlers
+    to the table and then use this function as table method, without
+    the underscore.
+
+    If you connect a signal function to a name, you can later <_emit>
+    it and even pass some arguments to it (besides "self" which is passed
+    automatically and it represents the table it was connected to).
+
+    Parameters:
+        self - the table you'll be calling connect for.
+        Usually hidden by using :.
+        name - the signal name to connect.
+        callback - the callback function, accepts "self" argument + custom.
+        The handler function can return two values, first one being boolean
+        value, which when it's true, it makes the emit stop at that callback
+        even when multiple callbacks are connected to the same signal,
+        and second one being any return value you want to return from <_emit>.
+
+    Returns:
+        Unique ID for the signal.
+
+    See Also:
+        <methods_add>
+        <_disconnect>
+        <_disconnect_all>
+        <_emit>
+]]
 function _connect(self, name, callback) 
     -- check if callback really is function
     if type(callback) ~= "function" then
-        error("Specified callback is not a function, not connecting.")
+        logging.log(
+            logging.ERROR,
+            "Specified callback is not a function, not connecting."
+        )
+        return nil
     end
 
     -- check if we already initiated the array
-    if not self._signalConnections then
-        self._signalConnections = {}
-        self._nextConnectionId = 1
+    if not self._signal_connections then
+        self._signal_connections = {}
+        self._next_connection_id = 1
     end
 
-    local id = self._nextConnectionId
-    self._nextConnectionId = self._nextConnectionId + 1
+    local id = self._next_connection_id
+    self._next_connection_id = self._next_connection_id + 1
 
-    table.insert(self._signalConnections, { id = id, name = name, callback = callback, disconnected = false })
+    table.insert(self._signal_connections, {
+        id = id,
+        name = name,
+        callback = callback,
+        disconnected = false
+    })
 
     return id
 end
 
---- This is used to disconnect signals from table.
--- You don't call this directly. Instead, you add the method into the table using
--- methods_add, and then it's called "disconnect" without the underscore.
--- @param self The table you disconnect signal from (hidden usually, automatically filled in using : )
--- @param id Number specifying signal connection ID. Returned from connect.
--- @see methods_add
--- @see _connect
--- @see _disconnectall
--- @see _emit
+--[[!
+    Function: _disconnect
+    This is used to disconnect a signal from a table.
+    You never call this function directly. Instead, you use
+    <methods_add> to add required signal handlers to the table
+    and then use this function as table method, without the underscore.
+
+    If you disconnect a signal, you won't be able to emit it anymore.
+    To disconnect it, you need to know the ID.
+
+    Parameters:
+        self - the table you'll be calling connect for.
+        Usually hidden by using :.
+        id - the ID to disconnect.
+
+    See Also:
+        <methods_add>
+        <_connect>
+        <_disconnect_all>
+        <_emit>
+]]
 function _disconnect(self, id)
-    if self._signalConnections then
-        for i = 1, #self._signalConnections do
-            local connection = self._signalConnections[i]
+    -- do only if we already have connections
+    if self._signal_connections then
+        for i, connection in pairs(self._signal_connections) do
             if connection.id == id then
+                -- fail if disconnected
                 if connection.disconnected then
-                    error("Connection with id " .. id .. " was already disconnected before.")
+                    logging.log(
+                        logging.ERROR,
+                        "Connection with id "
+                            .. id
+                            .. " was already disconnected before."
+                    )
+                    return nil
                 end
-                self._signalConnections[i].disconnected = true
-                table.remove(self._signalConnections, i)
+                -- set as disconnected
+                connection.disconnected = true
+                -- remove from connections
+                table.remove(self._signal_connections, i)
+                -- break from the function
                 return nil
             end
         end
     end
-    error("Connection with id " .. id .. " not found.")
+    logging.log(logging.ERROR, "Connection with id " .. id .. " not found.")
 end
 
---- This is used to disconnect signals from table, but unlike _disconnect it disconnects all signals.
--- You don't call this directly. Instead, you add the method into the table using
--- methods_add, and then it's called "disconnectall" without the underscore.
--- @param self The table you disconnect signals from (hidden usually, automatically filled in using : )
--- @see methods_add
--- @see _connect
--- @see _disconnect
--- @see _emit
-function _disconnectall(self)
-    if self._signalConncetions then
-        while #self._signalConnections > 0 do
-            self:disconnect(self, self._signalConnections[1].id)
+--[[!
+    Function: _disconnect_all
+    See <_disconnect>. This basically loops all the IDs and disconnects
+    them using <_disconnect>. No other arguments than self required.
+    Other rules apply in the same way as for other methods.
+
+    See Also:
+        <methods_add>
+        <_connect>
+        <_disconnect>
+        <_emit>
+]]
+function _disconnect_all(self)
+    -- disconnect only if we have any
+    if self._signal_connections then
+        -- loop until it's not empty
+        while #self._signal_connections > 0 do
+            -- disconnect the id
+            self:disconnect(self, self._signal_connections[1].id)
         end
     end
 end
 
---- This is used to emit a signal.
--- You don't call this directly. Instead, you add the method into the table using
--- methods_add, and then it's called "emit" without the underscore.
--- @param self The table you emit signal from (hidden usually, automatically filled in using : )
--- @param name Name of signal connection specified when calling connect.
--- @param ... Variable number of arguments, they're all passed to callback.
--- @return Return value of last callback assigned to name.
--- @see methods_add
--- @see _connect
--- @see _disconnect
--- @see _disconnectall
+--[[!
+    Function: _emit
+    Emits a signal. Same calling rules as for i.e. <_connect> apply.
+    Please note that if some callback adds another one, it won't get executed
+    this run, since we're manipulating with separate table.
+
+    Parameters:
+        self - the table you'll be calling connect for.
+        Usually hidden by using :.
+        name - name of the signal.
+        ... - additional arguments for emitting handler
+        function, besides "self".
+
+    Returns:
+        Return value of last callback that was executed.
+
+    See Also:
+        <methods_add>
+        <_connect>
+        <_disconnect>
+        <_disconnect_all>
+]]
 function _emit(self, name, ...)
-    if not self._signalConnections then return nil end
-
-    local args = {...}
-    local handlers = {}
-    local length = #self._signalConnections
-
-    for i = 1, length do
-        local connection = self._signalConnections[i]
-        if connection.name == name then table.insert(handlers, connection) end
+    -- without signal connections, just return nil.
+    if not self._signal_connections then
+        return nil
     end
 
-    local arg_array = {}
-    length = #args
-    for i = 1, length do
-        table.insert(arg_array, args[i])
-    end
+    -- get the args into a table
+    local args = { ... }
 
+    -- contains handlers, we manipulate with copy just in case
+    local handlers = table.filter_array(
+        self._signal_connections,
+        function(i, connection)
+            if connection.name == name then
+                return true
+            end
+        end
+    )
+
+    -- initialize post-emit event stack
     table.insert(__post_emit_event_stack, {})
 
-    length = #handlers
-    for i = 1, length do
-        local connection = handlers[i]
+    -- loop the connections
+    for i, connection in pairs(handlers) do
+        -- exec only if not disconnected
         if not connection.disconnected then
+            -- get return values
             local ret, retval = connection.callback(self, unpack(args))
-            if ret == true then break end
+
+            -- allow to break when we've got appropriate retval
+            if ret == true then
+                break
+            end
         end
     end
 
+    -- get a table of events from post emit event stack, which could
+    -- be filled now, by signal handlers.
     local events = __post_emit_event_stack[#__post_emit_event_stack]
+
+    -- clear it from the stack itself
     table.remove(__post_emit_event_stack)
-    length = #events
-    while length > 0 do
+
+    -- loop while we've actually got events
+    while #events > 0 do
+        -- add clear table again
         table.insert(__post_emit_event_stack, {})
-        for i = 1, #events do
-            events[i](self)
+
+        -- loop all post emit events and let them possibly
+        -- queue more actions to post emit stack
+        for i, event in pairs(events) do
+            event(self)
         end
+
+        -- get new events which could be possibly filled already
+        -- by latest queued action execution
         events = __post_emit_event_stack[#__post_emit_event_stack]
+
+        -- clear it from the stack itself
         table.remove(__post_emit_event_stack)
-        length = #events
     end
 
+    -- return the retval finally
     return retval
 end
 
---- Adds signal calls into a table.
--- @param self The table to insert calls into.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local mytable = {}<br/>
--- Signals.methods_add(mytable)<br/>
--- local id = mytable:connect("test", function () echo("Hello world") end)<br/>
--- mytable:emit("test")<br/>
--- mytable:disconnect(id)<br/>
--- </code>
+--[[!
+    Function: methods_add
+    Prepares a table for signal handling by adding methods
+    named "connect" (<_connect>), "disconnect" (<_disconnect>),
+    "emit" (<_emit>) and "disconnect_all" (<_disconnect_all)
+    to it.
+
+    Usage:
+        (start code)
+            local t = { x = 5 }
+            signals.methods_add(t)
+
+            local id = t:connect(
+                "foo", function(self, arg)
+                    echo(t.x + arg)
+                end
+            )
+            t:emit("foo", 5) -- prints "10"
+            t:disconnect(id) -- clear it up
+        (end)
+]]
 function methods_add(self)
-    self.connect = _connect
-    self.disconnect = _disconnect
-    self.emit = _emit
-    self.disconnectall = _disconnectall
+    self.connect        = _connect
+    self.disconnect     = _disconnect
+    self.emit           = _emit
+    self.disconnect_all = _disconnect_all
 end
 
---- Adds an event to be called after emit. You can add as many events as you want.
--- @param event A function to be called as post-emit event.
--- <br/><br/>Usage:<br/><br/>
--- <code>
--- local mytable = {}<br/>
--- Signals.methods_add(mytable)<br/>
--- local id = mytable:connect("test", function () postemitevent_add(function (self) echo("Hello world") end) end)<br/>
--- mytable:emit("test")<br/>
--- mytable:disconnect(id)<br/>
--- </code>
+--[[!
+    Function: post_emit_event_add
+    Queues an event into post emit event stack. Meant to be used from signal
+    handlers. The queue gets then looped and every function from it gets
+    executed. If any of functions added more events into the queue, it
+    gets iterated once again and same actions are performed. Loops until
+    the queue is empty.
+
+    Usage:
+        (start code)
+            local t = {}
+            signals.methods_add(t)
+
+            local id = t:connect(
+                "foo", function(self)
+                    signals.post_emit_event_add(function(self)
+                        echo("first iteration")
+
+                        signal.post_emit_event_add(function(self)
+                            echo("second iteration")
+                        end)
+                    end)
+                end
+            )
+            -- prints "first iteration" and then "second iteration"
+            t:emit("foo")
+            t:disconnect(id) -- clear it up
+        (end)
+]]
 function post_emit_event_add(event)
-    if not __post_emit_event_stack[#__post_emit_event_stack + 1] then
-        __post_emit_event_stack[#__post_emit_event_stack + 1] = {}
-    end
-    table.insert(__post_emit_event_stack[#__post_emit_event_stack + 1], event)
+    table.insert(__post_emit_event_stack[#__post_emit_event_stack], event)
 end

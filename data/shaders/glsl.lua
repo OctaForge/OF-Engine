@@ -2,18 +2,9 @@
 
 -- safe nesting level involved
 function lazyshader(st, nm, vs, fs)
-    shader.defer(st, nm,
-        string.format([===================[
-            shader.std(%i, "%s",
-                [====================[
-                    %s
-                ]====================],
-                [====================[
-                    %s
-                ]====================]
-            )
-        ]===================], st, nm, vs, fs)
-    )
+    shader.defer(st, nm, function()
+            shader.std(st, nm, vs, fs)
+    end)
 end
 
 lmcoordscale = 1.0 / 32767.0
@@ -112,6 +103,22 @@ shader.std(4, "notexture",
     ]]
 )
 
+shader.std(4, "notextureglsl",
+    [[
+        void main(void)
+        {
+            gl_Position = ftransform();
+            gl_FrontColor = gl_Color;
+        }
+    ]],
+    [[
+        void main(void)
+        {
+            gl_FragColor = gl_Color;
+        }
+    ]]
+)
+
 -- fogged variants of default shaders
 
 shader.std(4, "fogged",
@@ -134,6 +141,23 @@ shader.std(4, "fogged",
 )
 
 shader.std(4, "foggednotexture",
+    [[
+        #pragma CUBE2_fog
+        void main(void)
+        {
+            gl_Position = ftransform();
+            gl_FrontColor = gl_Color;
+        }
+    ]],
+    [[
+        void main(void)
+        {
+            gl_FragColor = gl_Color;
+        }
+    ]]
+)
+
+shader.std(4, "foggednotextureglsl",
     [[
         #pragma CUBE2_fog
         void main(void)
@@ -249,7 +273,7 @@ end
 
 worldshader("stdworld", "", "")
 
-shader.defer(4, "decalworld", [[
+shader.defer(4, "decalworld", function()
     worldshader(
         "decalworld", "",
         [=[
@@ -258,10 +282,10 @@ shader.defer(4, "decalworld", [[
         ]=],
         "", "", "uniform sampler2D decal;"
     )
-]])
+end)
 
-shader.defer(4, "glowworld", [[
-    shader.defup("glowcolor", 1, 1, 1) -- glow color
+shader.defer(4, "glowworld", function()
+    shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
     worldshader(
         "glowworld", "", "",
         [=[
@@ -287,10 +311,10 @@ shader.defer(4, "glowworld", [[
             #pragma CUBE2_variant uniform sampler2D lightmap;
         ]=]
     )
-]])
+end)
 
-shader.defer(4, "pulseworld", [[
-    shader.defup("pulsespeed", 1) -- pulse frequency (Hz)
+shader.defer(4, "pulseworld", function()
+    shader.define_uniform_param("pulsespeed", 1) -- pulse frequency (Hz)
     worldshader(
         "pulseworld",
         "pulse = abs(fract(millis.x * pulsespeed.x)*2.0 - 1.0);",
@@ -300,12 +324,12 @@ shader.defer(4, "pulseworld", [[
         ]=],
         "", "uniform vec4 millis; varying float pulse;", "uniform sampler2D decal;"
     )
-]])
+end)
 
-shader.defer(4, "pulseglowworld", [[
-    shader.defup("glowcolor", 1, 1, 1) -- glow color
-    shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
-    shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
+shader.defer(4, "pulseglowworld", function()
+    shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
+    shader.define_uniform_param("pulseglowspeed", 1) -- pulse frequency (Hz)
+    shader.define_uniform_param("pulseglowcolor", 0, 0, 0) -- pulse glow color
     worldshader(
         "pulseglowworld",
         "pulse = mix(glowcolor.rgb, pulseglowcolor.rgb, abs(fract(millis.x * pulseglowspeed.x)*2.0 - 1.0));",
@@ -333,7 +357,7 @@ shader.defer(4, "pulseglowworld", [[
             #pragma CUBE2_variant uniform sampler2D lightmap;
         ]=]
     )
-]])
+end)
 
 shader.std(4, "fogworld",
     [[ void main() { gl_Position = ftransform(); } ]],
@@ -381,8 +405,8 @@ shader.std(4, "noglarealphaworld",
     ]]
 )
 
-shader.defer(6, "envworld", [[
-    shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+shader.defer(6, "envworld", function()
+    shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader(
         "envworld",
         [=[
@@ -398,7 +422,7 @@ shader.defer(6, "envworld", [[
         "uniform vec4 camera; varying vec3 normal, camvec;", "uniform samplerCube envmap;"
     )
 
-    shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+    shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader(
         "envworldfast",
         [=[
@@ -414,13 +438,13 @@ shader.defer(6, "envworld", [[
         "uniform vec4 camera; varying vec3 rvec;", "uniform samplerCube envmap;"
     )
 
-    shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+    shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
     worldshader("envworldalt", "", "")
 
     shader.alt("envworld", "envworldfast")
     shader.fast("envworld", "envworldfast", 2)
     shader.fast("envworld", "envworldalt", 1)
-]])
+end)
 
 shader.std(4, "depthfxworld",
     [[
@@ -478,60 +502,62 @@ end
 
 function bumpvariantshader(...)
     local arg = { ... }
+
     local bts = {
-        bt_e = tostring(btopt(arg[2], "e")),
-        bt_o = tostring(btopt(arg[2], "o")),
-        bt_t = tostring(btopt(arg[2], "t")),
-        bt_r = tostring(btopt(arg[2], "r")),
-        bt_R = tostring(btopt(arg[2], "R")),
-        bt_s = tostring(btopt(arg[2], "s")),
-        bt_S = tostring(btopt(arg[2], "S")),
-        bt_p = tostring(btopt(arg[2], "p")),
-        bt_P = tostring(btopt(arg[2], "P")),
-        bt_g = tostring(btopt(arg[2], "g")),
-        bt_G = tostring(btopt(arg[2], "G")),
-        bt_i = tostring(btopt(arg[2], "i"))
+        bt_e = btopt(arg[2], "e"),
+        bt_o = btopt(arg[2], "o"),
+        bt_t = btopt(arg[2], "t"),
+        bt_r = btopt(arg[2], "r"),
+        bt_R = btopt(arg[2], "R"),
+        bt_s = btopt(arg[2], "s"),
+        bt_S = btopt(arg[2], "S"),
+        bt_p = btopt(arg[2], "p"),
+        bt_P = btopt(arg[2], "P"),
+        bt_g = btopt(arg[2], "g"),
+        bt_G = btopt(arg[2], "G"),
+        bt_i = btopt(arg[2], "i")
     }
-    local stype = btopt(arg[2], "e") and 7 or 5
 
-    if not btopt(arg[2], "i") then
-        if btopt(arg[2], "G") then
-            shader.defup("glowcolor", 1, 1, 1) -- glow color
-            shader.defup("pulseglowspeed", 1) -- pulse frequency (Hz)
-            shader.defup("pulseglowcolor", 0, 0, 0) -- pulse glow color
-        elseif btopt(arg[2], "g") then
-            shader.defup("glowcolor", 1, 1, 1) -- glow color
+    local stype = bts.bt_e and 7 or 5
+
+    if not bts.bt_i then
+        if bts.bt_G then
+            shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
+            shader.define_uniform_param("pulseglowspeed", 1) -- pulse frequency (Hz)
+            shader.define_uniform_param("pulseglowcolor", 0, 0, 0) -- pulse glow color
+        elseif bts.bt_g then
+            shader.define_uniform_param("glowcolor", 1, 1, 1) -- glow color
         end
 
-        if btopt(arg[2], "S") then
-            shader.defup("specscale", 6, 6, 6) -- spec map multiplier
-        elseif btopt(arg[2], "s") then
-            shader.defup("specscale", 1, 1, 1) -- spec multiplier
+        if bts.bt_S then
+            shader.define_uniform_param("specscale", 6, 6, 6) -- spec map multiplier
+        elseif bts.bt_s then
+            shader.define_uniform_param("specscale", 1, 1, 1) -- spec multiplier
         end
 
-        if btopt(arg[2], "p") or btopt(arg[2], "P") then
-            shader.defup("parallaxscale", 0.06, -0.03) -- parallax scaling
+        if bts.bt_p or bts.bt_P then
+            shader.define_uniform_param("parallaxscale", 0.06, -0.03) -- parallax scaling
         end
 
-        if btopt(arg[2], "R") then
-            shader.defup("envscale", 1, 1, 1) -- reflectivity map multiplier
-        elseif btopt(arg[2], "r") then
-            shader.defup("envscale", 0.2, 0.2, 0.2) -- reflectivity
+        if bts.bt_R then
+            shader.define_uniform_param("envscale", 1, 1, 1) -- reflectivity map multiplier
+        elseif bts.bt_r then
+            shader.define_uniform_param("envscale", 0.2, 0.2, 0.2) -- reflectivity
         end
     else
-        stype = btopt(arg[2], "s") and stype + 8 or stype
+        stype = bts.bt_s and stype + 8 or stype
     end
 
     shader.variant(
         stype, arg[1],
-        btopt(arg[2], "i") and 4 or -1,
+        bts.bt_i and 4 or -1,
         string.template([[
             #pragma CUBE2_fog
             uniform vec4 texgenscroll;
-            <$0 if %(bt_o)s then return "uniform vec4 orienttangent, orientbinormal;" end $0>
-            <$0 if %(bt_t)s or %(bt_r)s then return "uniform vec4 camera; varying vec3 camvec;" end $0>
-            <$0 if %(bt_G)s then return "uniform vec4 millis; varying float pulse;" end $0>
-            <$0 if %(bt_r)s then return "varying mat3 world;" end $0>
+            <$0 if bt_o then return "uniform vec4 orienttangent, orientbinormal;" end $0>
+            <$0 if bt_t or bt_r then return "uniform vec4 camera; varying vec3 camvec;" end $0>
+            <$0 if bt_G then return "uniform vec4 millis; varying float pulse;" end $0>
+            <$0 if bt_r then return "varying mat3 world;" end $0>
             void main(void)
             {
                 gl_Position = ftransform();
@@ -539,19 +565,19 @@ function bumpvariantshader(...)
                 // need to store these in Z/W to keep texcoords < 6, otherwise kills performance on Radeons
                 // but slows lightmap access in fragment shader a bit, so avoid when possible
                 <$0
-                    if minimizetcusage == 1 or %(bt_r)s then
+                    if minimizetcusage == 1 or bt_r then
                         return "gl_TexCoord[0].zw = gl_MultiTexCoord1.yx * <$1=lmcoordscale$1>;"
                     else
                         return "gl_TexCoord[1].xy = gl_MultiTexCoord1.xy * <$1=lmcoordscale$1>;"
                     end
                 $0>
                 <$0
-                    if %(bt_o)s then
+                    if bt_o then
                         return [=[
                             vec4 tangent = gl_Color*2.0 - 1.0;
                             vec3 binormal = cross(gl_Normal, tangent.xyz) * tangent.w;
                             <$1
-                                if %(bt_t)s then
+                                if bt_t then
                                     return [==[
                                         // trans eye vector into TS
                                         vec3 camobj = camera.xyz - gl_Vertex.xyz;
@@ -560,10 +586,10 @@ function bumpvariantshader(...)
                                 end
                             $1>
                             <$1
-                                if %(bt_r)s then
+                                if bt_r then
                                     return [==[
                                         <$2
-                                            if not %(bt_t)s then
+                                            if not bt_t then
                                                 return "camvec = camera.xyz - gl_Vertex.xyz;"
                                             end
                                         $2>
@@ -576,17 +602,17 @@ function bumpvariantshader(...)
                     end
                 $0>
                 <$0
-                    if %(bt_G)s then
+                    if bt_G then
                         return "pulse = abs(fract(millis.x*pulseglowspeed.x)*2.0 - 1.0);"
                     end
                 $0>
                 <$0
-                    if not %(bt_i)s or %(bt_s)s then
+                    if not bt_i or bt_s then
                         return "#pragma CUBE2_dynlight"
                     end
                 $0>
                 <$0
-                    if not %(bt_i)s then
+                    if not bt_i then
                         return [=[
                             #pragma CUBE2_shadowmap
                             #pragma CUBE2_water
@@ -594,25 +620,25 @@ function bumpvariantshader(...)
                     end
                 $0>
             }
-        ]] % bts),
+        ]], 0, bts),
         string.template([[
             uniform vec4 colorparams;
             uniform sampler2D diffusemap, lmcolor, lmdir;
             <$0
-                if not %(bt_i)s or %(bt_s)s or %(bt_p)s or %(bt_P)s then
+                if not bt_i or bt_s or bt_p or bt_P then
                     return "uniform sampler2D normalmap;"
                 end
             $0>
-            <$0 if %(bt_t)s or %(bt_r)s then return "varying vec3 camvec;" end $0>
-            <$0 if %(bt_g)s then return "uniform sampler2D glowmap;" end $0>
-            <$0 if %(bt_G)s then return "varying float pulse;" end $0>
-            <$0 if %(bt_r)s then return "uniform samplerCube envmap; varying mat3 world;" end $0>
-            <$0 if not %(bt_i)s or %(bt_s)s then return "uniform vec4 ambient;" end $0>
+            <$0 if bt_t or bt_r then return "varying vec3 camvec;" end $0>
+            <$0 if bt_g then return "uniform sampler2D glowmap;" end $0>
+            <$0 if bt_G then return "varying float pulse;" end $0>
+            <$0 if bt_r then return "uniform samplerCube envmap; varying mat3 world;" end $0>
+            <$0 if not bt_i or bt_s then return "uniform vec4 ambient;" end $0>
             void main(void)
             {
-                #define lmtc <$0 return (minimizetcusage == 1 or %(bt_r)s) and "gl_TexCoord[0].wz" or "gl_TexCoord[1].xy" $0>
+                #define lmtc <$0 return (minimizetcusage == 1 or bt_r) and "gl_TexCoord[0].wz" or "gl_TexCoord[1].xy" $0>
                 <$0
-                    if not %(bt_i)s or %(bt_s)s then
+                    if not bt_i or bt_s then
                         return [=[
                             vec4 lmc = texture2D(lmcolor, lmtc);
                             gl_FragColor.a = colorparams.a * lmc.a;
@@ -620,9 +646,9 @@ function bumpvariantshader(...)
                         ]=]
                     end
                 $0>
-                <$0 if %(bt_t)s then return "vec3 camdir = normalize(camvec);" end $0>
+                <$0 if bt_t then return "vec3 camdir = normalize(camvec);" end $0>
                 <$0
-                    if %(bt_p)s then
+                    if bt_p then
                         return [=[
                             float height = texture2D(normalmap, gl_TexCoord[0].xy).a;
                             vec2 dtc = gl_TexCoord[0].xy + camdir.xy*(height*parallaxscale.x + parallaxscale.y);
@@ -630,7 +656,7 @@ function bumpvariantshader(...)
                     end
                 $0>
                 <$0
-                    if %(bt_P)s then
+                    if bt_P then
                         return [=[
                             const float step = -1.0/7.0;
                             vec3 duv = vec3((step*parallaxscale.x/camdir.z)*camdir.xy, step);
@@ -652,25 +678,25 @@ function bumpvariantshader(...)
                     end
                 $0>
                 <$0
-                    if not %(bt_p)s and not %(bt_P)s then
+                    if not bt_p and not bt_P then
                         return "#define dtc gl_TexCoord[0].xy"
                     end
                 $0>
                 <$0
-                    if not %(bt_i)s or %(bt_S)s then
+                    if not bt_i or bt_S then
                         return "vec4 diffuse = texture2D(diffusemap, dtc);"
                     end
                 $0>
                 <$0
-                    if not %(bt_i)s then
+                    if not bt_i then
                         return "diffuse.rgb *= colorparams.rgb;"
                     end
                 $0>
                 <$0
-                    if not %(bt_i)s or %(bt_s)s then
+                    if not bt_i or bt_s then
                         return [=[
                             <$1
-                                if not %(bt_P)s then
+                                if not bt_P then
                                     return "vec3 bump = texture2D(normalmap, dtc).rgb;"
                                 end
                             $1>
@@ -679,15 +705,15 @@ function bumpvariantshader(...)
                     end
                 $0>
                 <$0
-                    if %(bt_s)s then
+                    if bt_s then
                         return [=[
                             vec3 halfangle = normalize(camdir + lmlv);
-                            float spec = pow(clamp(dot(halfangle, bump), 0.0, 1.0), <$1 return %(bt_i)s and "128.0" or "32.0" $1>);
-                            <$1 if %(bt_i)s then return "spec = min(spec*64.0, 1.0);" end $1>
-                            <$1 if %(bt_S)s then return "spec *= diffuse.a;" end $1>
+                            float spec = pow(clamp(dot(halfangle, bump), 0.0, 1.0), <$1 return bt_i and "128.0" or "32.0" $1>);
+                            <$1 if bt_i then return "spec = min(spec*64.0, 1.0);" end $1>
+                            <$1 if bt_S then return "spec *= diffuse.a;" end $1>
                             <$1
-                                if %(bt_i)s then
-                                    return [==[<$2 return %(bt_S)s and "diffuse.rgb" or "vec3 diffuse" $2> = specscale.xyz*spec;]==]
+                                if bt_i then
+                                    return [==[<$2 return bt_S and "diffuse.rgb" or "vec3 diffuse" $2> = specscale.xyz*spec;]==]
                                 else
                                     return "diffuse.rgb += specscale.xyz*spec;"
                                 end
@@ -696,20 +722,20 @@ function bumpvariantshader(...)
                     end
                 $0>
                 <$0
-                    if not %(bt_i)s or %(bt_s)s then
+                    if not bt_i or bt_s then
                         return [=[
                             lmc.rgb = max(lmc.rgb*clamp(dot(lmlv, bump), 0.0, 1.0), ambient.xyz);
                             <$1
-                                if %(bt_i)s then
+                                if bt_i then
                                     return [==[
                                         #pragma CUBE2_dynlight lmc
-                                        <$2 return %(bt_g)s and "diffuse.rgb" or "gl_FragColor.rgb" $2> = diffuse.rgb * lmc.rgb;
+                                        <$2 return bt_g and "diffuse.rgb" or "gl_FragColor.rgb" $2> = diffuse.rgb * lmc.rgb;
                                     ]==]
                                 else
                                     return [==[
                                         #pragma CUBE2_shadowmap lmc
                                         #pragma CUBE2_dynlight lmc
-                                        <$2 return (%(bt_g)s or %(bt_r)s) and "diffuse.rgb" or "gl_FragColor.rgb" $2> = diffuse.rgb * lmc.rgb;
+                                        <$2 return (bt_g or bt_r) and "diffuse.rgb" or "gl_FragColor.rgb" $2> = diffuse.rgb * lmc.rgb;
                                     ]==]
                                 end
                             $1>
@@ -717,11 +743,11 @@ function bumpvariantshader(...)
                     end
                 $0>
                 <$0
-                    if %(bt_r)s then
+                    if bt_r then
                         return [=[
                             vec3 rvec;
                             <$1
-                                if %(bt_t)s then
+                                if bt_t then
                                     return [==[
                                         vec3 rvects = 2.0*bump*dot(camvec, bump) - camvec;
                                         rvec = world * rvects;
@@ -735,33 +761,33 @@ function bumpvariantshader(...)
                             $1>
                             vec3 reflect = textureCube(envmap, rvec).rgb;
                             <$1
-                                if %(bt_R)s then
+                                if bt_R then
                                     return "vec3 rmod = envscale.xyz*diffuse.a;"
                                 else
                                     return "#define rmod envscale.xyz"
                                 end
                             $1>
-                            <$1 return %(bt_g)s and "diffuse.rgb" or "gl_FragColor.rgb" $1> = mix(diffuse.rgb, reflect, rmod);
+                            <$1 return bt_g and "diffuse.rgb" or "gl_FragColor.rgb" $1> = mix(diffuse.rgb, reflect, rmod);
                         ]=]
                     end
                 $0>
                 <$0
-                    if %(bt_g)s then
+                    if bt_g then
                         return [=[
                             vec3 glow = texture2D(glowmap, dtc).rgb;
                             <$1
-                                if %(bt_G)s then
+                                if bt_G then
                                     return "vec3 pulsecol = mix(glowcolor.xyz, pulseglowcolor.xyz, pulse);"
                                 end
                             $1>
                             <$1
-                                if %(bt_i)s then
+                                if bt_i then
                                     return [==[
-                                        glow *= <$2 return %(bt_G)s and "pulsecol" or "glowcolor.xyz" $2>;
+                                        glow *= <$2 return bt_G and "pulsecol" or "glowcolor.xyz" $2>;
                                         float k = max(glow.r, max(glow.g, glow.b));
                                         k = min(k*k*32.0, 1.0);
                                         <$2
-                                            if %(bt_s)s then
+                                            if bt_s then
                                                 return "gl_FragColor.rgb = glow*k + diffuse.rgb;"
                                             else
                                                 return [===[
@@ -774,7 +800,7 @@ function bumpvariantshader(...)
                                     ]==]
                                 else
                                     return [==[
-                                        gl_FragColor.rgb = glow * <$2 return %(bt_G)s and "pulsecol" or "glowcolor.xyz" $2> + diffuse.rgb;
+                                        gl_FragColor.rgb = glow * <$2 return bt_G and "pulsecol" or "glowcolor.xyz" $2> + diffuse.rgb;
                                     ]==]
                                 end
                             $1>
@@ -782,12 +808,12 @@ function bumpvariantshader(...)
                     end
                 $0>
                 <$0
-                    if not %(bt_i)s then
+                    if not bt_i then
                         return "#pragma CUBE2_water"
                     end
                 $0>
             }
-        ]] % bts)
+        ]], 0, bts)
     )
 end
 
@@ -796,17 +822,12 @@ function bumpshader(...)
     shader.defer(
         btopt(arg[2], "e") and 7 or 5,
         arg[1],
-        [[
-            bumpvariantshader(%(arg1)q, %(arg2)q)
-            if %(bt_g)s or %(bt_s)s then
-                bumpvariantshader(%(arg1)q, string.gsub(%(arg2)q .. "i", "r", ""))
+        function()
+            bumpvariantshader(arg[1], arg[2])
+            if btopt(arg[2], "g") or btopt(arg[2], "s") then
+                bumpvariantshader(arg[1], string.gsub(arg[2] .. "i", "r", ""))
             end
-        ]] % {
-            arg1 = arg[1],
-            arg2 = arg[2],
-            bt_g = tostring(btopt(arg[2], "g")),
-            bt_s = tostring(btopt(arg[2], "s"))
-        }
+        end
     )
 end
 
@@ -1930,17 +1951,17 @@ blur5shader("vblur5", 0, 1)
 
 function rotoscope(...)
     local arg = { ... }
-    shader.postfx.clear()
+    shader.postfx_clear()
     if #arg >= 1 then
-        shader.postfx.add("rotoscope", 0, 0, 0, arg[1])
+        shader.postfx_add("rotoscope", 0, 0, 0, arg[1])
     end
     if #arg >= 2 then
         if arg[2] == 1 then
-            shader.postfx.add("hblur3")
-            shader.postfx.add("vblur3")
+            shader.postfx_add("hblur3")
+            shader.postfx_add("vblur3")
         elseif arg[2] == 2 then
-            shader.postfx.add("hblur5")
-            shader.postfx.add("vblur5")
+            shader.postfx_add("hblur5")
+            shader.postfx_add("vblur5")
         end
     end
 end
@@ -1991,11 +2012,11 @@ lazyshader(
 function bloomshader(sn, n)
     shader.defer(
         4, sn,
-        [[
+        function()
             shader.force("bloom_scale")
             shader.force("bloom_init")
             shader.std(
-                4, %(arg1)q,
+                4, sn,
                 string.template([=[
                     void main(void)
                     {
@@ -2013,7 +2034,7 @@ function bloomshader(sn, n)
                             return sum
                         $0>
                     }
-                ]=]),
+                ]=] % { arg2 = n }),
                 string.template([=[
                     #extension GL_ARB_texture_rectangle : enable
                     uniform vec4 params;
@@ -2034,12 +2055,9 @@ function bloomshader(sn, n)
                         $0>
                         gl_FragColor = bloom*params.x + sample;
                     }
-                ]=])
+                ]=] % { arg2 = n })
             )
-        ]] % {
-            arg1 = sn,
-            arg2 = n
-        }
+        end
     )
 end
 
@@ -2052,17 +2070,17 @@ bloomshader("bloom6", 6)
 
 function setupbloom(...)
     local arg = { ... }
-    shader.postfx.add("bloom_init", 1, 1, "+0")
+    shader.postfx_add("bloom_init", 1, 1, "+0")
     for i = 1, arg[1] - 1 do
-        shader.postfx.add("bloom_scale", i + 1, i + 1, "+" .. i)
+        shader.postfx_add("bloom_scale", i + 1, i + 1, "+" .. i)
     end
     local tbl = { 0 }
     for i = 1, arg[1] do table.insert(tbl, i) end
-    shader.postfx.add("bloom" .. arg[1], 0, 0, table.concat(tbl, " "), arg[2])
+    shader.postfx_add("bloom" .. arg[1], 0, 0, table.concat(tbl, " "), arg[2])
 end
 
 function bloom(a)
-    shader.postfx.clear()
+    shader.postfx_clear()
     if a and a ~= 0 then setupbloom(6, a) end
 end
 
@@ -2518,7 +2536,7 @@ function skelmatanim(...)
             mx += animdata[index] * vweights.w;
             my += animdata[index+1] * vweights.w;
             mz += animdata[index+2] * vweights.w;
-        ]],
+        ]] or "",
         arg[2] and arg[2] ~= 0 and [[
             vec3 onormal = vec3(dot(mx.xyz, gl_Normal), dot(my.xyz, gl_Normal), dot(mz.xyz, gl_Normal));
         ]] or "",
@@ -2688,29 +2706,29 @@ end
 function modelvertexshader(...)
     local arg = { ... }
     local mdls = {
-        mdl_b = tostring(mdlopt(arg[1], "b")),
-        mdl_B = tostring(mdlopt(arg[1], "B")),
-        mdl_n = tostring(mdlopt(arg[1], "n")),
-        mdl_e = tostring(mdlopt(arg[1], "e")),
-        mdl_s = tostring(mdlopt(arg[1], "s")),
-        mdl_i = tostring(mdlopt(arg[1], "i")),
-        mdl_m = tostring(mdlopt(arg[1], "m")),
-        arg2  = tostring(arg[2])
+        mdl_b = mdlopt(arg[1], "b"),
+        mdl_B = mdlopt(arg[1], "B"),
+        mdl_n = mdlopt(arg[1], "n"),
+        mdl_e = mdlopt(arg[1], "e"),
+        mdl_s = mdlopt(arg[1], "s"),
+        mdl_i = mdlopt(arg[1], "i"),
+        mdl_m = mdlopt(arg[1], "m"),
+        arg2  = arg[2]
     }
     return string.template([[
-        <$0 if %(mdl_b)s or %(mdl_B)s then return skelanimdefs() end $0>
+        <$0 if mdl_b or mdl_B then return skelanimdefs() end $0>
         #pragma CUBE2_fog opos
         <$0
-            if %(mdl_n)s then return [=[
+            if mdl_n then return [=[
                 #pragma CUBE2_attrib vtangent 1
                 attribute vec4 vtangent;
             ]=] end
         $0>
         uniform vec4 camera, lightdir, lightscale, texscroll;
         <$0
-            if %(mdl_n)s then return [=[
+            if mdl_n then return [=[
                 <$1
-                    if %(mdl_e)s then return [==[
+                    if mdl_e then return [==[
                         varying vec3 camvec;
                         varying mat3 world;
                     ]==] else return [==[
@@ -2719,10 +2737,10 @@ function modelvertexshader(...)
                 $1>
             ]=] else return [=[
                 <$1
-                    if %(mdl_s)s then return "varying vec3 nvec, halfangle;" end
+                    if mdl_s then return "varying vec3 nvec, halfangle;" end
                 $1>
                 <$1
-                    if %(mdl_e)s then return [==[
+                    if mdl_e then return [==[
                         uniform vec4 envmapscale;
                         varying vec3 rvec;
                         varying float rmod;
@@ -2732,10 +2750,10 @@ function modelvertexshader(...)
         $0>
         void main(void)
         {
-            <$0 if %(mdl_B)s then return skelmatanim(%(arg2)s, 1, %(mdl_n)s and 1 or 0) end $0>
-            <$0 if %(mdl_b)s then return skelquatanim(%(arg2)s, 1, %(mdl_n)s and 1 or 0) end $0>
+            <$0 if mdl_B then return skelmatanim(arg2, 1, mdl_n and 1 or 0) end $0>
+            <$0 if mdl_b then return skelquatanim(arg2, 1, mdl_n and 1 or 0) end $0>
             <$0
-                if %(mdl_b)s or %(mdl_B)s then return "gl_Position = gl_ModelViewProjectionMatrix * opos;"
+                if mdl_b or mdl_B then return "gl_Position = gl_ModelViewProjectionMatrix * opos;"
                 else return [=[
                     gl_Position = ftransform();
                     #define opos gl_Vertex
@@ -2743,14 +2761,13 @@ function modelvertexshader(...)
                     #define otangent vtangent.xyz
                 ]=] end
             $0>
-            <$0 if %(mdl_n)s or %(mdl_s)s or %(mdl_i)s then return "gl_FrontColor = gl_Color;" end $0>
+            <$0 if mdl_n or mdl_s or mdl_i then return "gl_FrontColor = gl_Color;" end $0>
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy + texscroll.yz;
-            <$0 if %(mdl_e)s or %(mdl_s)s then return "vec3 camdir = normalize(camera.xyz - opos.xyz);" end $0>
-
+            <$0 if mdl_e or mdl_s then return "vec3 camdir = normalize(camera.xyz - opos.xyz);" end $0>
             <$0
-                if %(mdl_n)s then return [=[
+                if mdl_n then return [=[
                     <$1
-                        if %(mdl_e)s then return [==[
+                        if mdl_e then return [==[
                             camvec = mat3(gl_TextureMatrix[0][0].xyz, gl_TextureMatrix[0][1].xyz, gl_TextureMatrix[0][2].xyz) * camdir;
                             // composition of tangent -> object and object -> world transforms
                             //   becomes tangent -> world
@@ -2761,7 +2778,7 @@ function modelvertexshader(...)
                             vec3 obitangent = cross(onormal, otangent) * vtangent.w;
                             lightvec = vec3(dot(lightdir.xyz, otangent), dot(lightdir.xyz, obitangent), dot(lightdir.xyz, onormal));
                             <$2
-                                if %(mdl_s)s then return [===[
+                                if mdl_s then return [===[
                                     vec3 halfdir = lightdir.xyz + camdir; 
                                     halfangle = vec3(dot(halfdir, otangent), dot(halfdir, obitangent), dot(halfdir, onormal));
                                 ]===] end
@@ -2770,16 +2787,16 @@ function modelvertexshader(...)
                     $1>
                 ]=] else return [=[
                     <$1
-                        if %(mdl_s)s then return [==[
+                        if mdl_s then return [==[
                             nvec = onormal; 
                             halfangle = lightdir.xyz + camdir;
-                        ]==] else return [==[
+                        ]==] elseif not mdl_i then return [==[
                             float intensity = dot(onormal, lightdir.xyz);
                             gl_FrontColor = vec4(gl_Color.rgb*clamp(intensity*(intensity*lightscale.x + lightscale.y) + lightscale.z, 0.0, 1.0), gl_Color.a);
-                        ]==] end
+                        ]==] else return "" end
                     $1>
                     <$1
-                        if %(mdl_e)s then return [==[
+                        if mdl_e then return [==[
                             float invfresnel = dot(camdir, onormal);
                             rvec = mat3(gl_TextureMatrix[0][0].xyz, gl_TextureMatrix[0][1].xyz, gl_TextureMatrix[0][2].xyz) * (2.0*invfresnel*onormal - camdir);
                             rmod = envmapscale.x*max(invfresnel, 0.0) + envmapscale.y;  
@@ -2788,27 +2805,27 @@ function modelvertexshader(...)
                 ]=] end
             $0>
         }
-    ]] % mdls)
+    ]], 0, mdls)
 end
 
 function modelfragmentshader(...)
     local arg = { ... }
     local mdls = {
-        mdl_b = tostring(mdlopt(arg[1], "b")),
-        mdl_B = tostring(mdlopt(arg[1], "B")),
-        mdl_n = tostring(mdlopt(arg[1], "n")),
-        mdl_e = tostring(mdlopt(arg[1], "e")),
-        mdl_s = tostring(mdlopt(arg[1], "s")),
-        mdl_i = tostring(mdlopt(arg[1], "i")),
-        mdl_m = tostring(mdlopt(arg[1], "m")),
-        arg2  = tostring(arg[2])
+        mdl_b = mdlopt(arg[1], "b"),
+        mdl_B = mdlopt(arg[1], "B"),
+        mdl_n = mdlopt(arg[1], "n"),
+        mdl_e = mdlopt(arg[1], "e"),
+        mdl_s = mdlopt(arg[1], "s"),
+        mdl_i = mdlopt(arg[1], "i"),
+        mdl_m = mdlopt(arg[1], "m"),
+        arg2  = arg[2]
     }
     return string.template([[
-        <$0 if %(mdl_b)s or %(mdl_B)s then return skelanimfragdefs() end $0>
+        <$0 if mdl_b or mdl_B then return skelanimfragdefs() end $0>
         <$0
-            if %(mdl_n)s then return [=[
+            if mdl_n then return [=[
                 <$1
-                    if %(mdl_e)s then return [==[
+                    if mdl_e then return [==[
                         #define lightvec lightdirworld.xyz
                         uniform vec4 lightdirworld, envmapscale;
                         varying vec3 camvec;
@@ -2819,77 +2836,77 @@ function modelfragmentshader(...)
                 $1>
             ]=] else return [=[
                 <$1
-                    if %(mdl_s)s then return [==[
+                    if mdl_s then return [==[
                         #define lightvec lightdir.xyz
                         uniform vec4 lightdir;
                         varying vec3 nvec, halfangle;
                     ]==] end
                 $1>
                 <$1
-                    if %(mdl_e)s then return [==[
+                    if mdl_e then return [==[
                         varying vec3 rvec;
                         varying float rmod;
                     ]==] end
                 $1>
             ]=] end
         $0>
-        <$0 if (%(mdl_s)s or %(mdl_n)s) and not %(mdl_i)s then return "uniform vec4 lightscale;" end $0>
-        <$0 if %(mdl_s)s or %(mdl_m)s then return "uniform vec4 maskscale;" end $0>
+        <$0 if (mdl_s or mdl_n) and not mdl_i then return "uniform vec4 lightscale;" end $0>
+        <$0 if  mdl_s or mdl_m then return "uniform vec4 maskscale;" end $0>
         uniform sampler2D tex0;
-        <$0 if %(mdl_m)s then return "uniform sampler2D tex1;" end $0>
-        <$0 if %(mdl_e)s then return "uniform samplerCube tex2;" end $0>
-        <$0 if %(mdl_n)s then return "uniform sampler2D tex3;" end $0>
+        <$0 if mdl_m then return "uniform sampler2D tex1;" end $0>
+        <$0 if mdl_e then return "uniform samplerCube tex2;" end $0>
+        <$0 if mdl_n then return "uniform sampler2D tex3;" end $0>
         void main(void)
         {
             vec4 light = texture2D(tex0, gl_TexCoord[0].xy);
             light.rgb *= 2.0;
             <$0
-                if %(mdl_m)s then return [=[
+                if mdl_m then return [=[
                     vec3 masks = texture2D(tex1, gl_TexCoord[0].xy).rgb;
                     vec3 glow = light.rgb * maskscale.y;
                 ]=] end
             $0>
             <$0
-                if %(mdl_n)s then return [=[
+                if mdl_n then return [=[
                     vec3 normal = texture2D(tex3, gl_TexCoord[0].xy).rgb - 0.5;
-                    <$1 if %(mdl_e)s then return "normal = world * normal;" end $1>
+                    <$1 if mdl_e then return "normal = world * normal;" end $1>
                     normal = normalize(normal);
                 ]=] end
             $0>
             <$0
-                if %(mdl_s)s then return [=[
+                if mdl_s then return [=[
                     <$1
-                        if %(mdl_n)s then return [==[
-                            <$2 if %(mdl_e)s then return "vec3 halfangle = lightvec + camvec;" end $2>
+                        if mdl_n then return [==[
+                            <$2 if mdl_e then return "vec3 halfangle = lightvec + camvec;" end $2>
                         ]==] else return "vec3 normal = normalize(nvec);" end
                     $1>
-                    float spec = maskscale.x * pow(clamp(dot(normalize(halfangle), normal), 0.0, 1.0), <$1=%(mdl_i)s and "256.0" or "128.0"$1>);
-                    <$1 if %(mdl_m)s then return "spec *= masks.r;" end $1> // specmap in red channel
+                    float spec = maskscale.x * pow(clamp(dot(normalize(halfangle), normal), 0.0, 1.0), <$1=mdl_i and "256.0" or "128.0"$1>);
+                    <$1 if mdl_m then return "spec *= masks.r;" end $1> // specmap in red channel
                 ]=] end
             $0>
             <$0
-                if %(mdl_i)s then return [=[
+                if mdl_i then return [=[
                     <$1
-                        if %(mdl_s)s then return [==[
+                        if mdl_s then return [==[
                             spec *= maskscale.z;
-                            <$2=%(mdl_m)s and "light.rgb" or "gl_FragColor.rgb"$2> = spec * gl_Color.rgb;
-                        ]==] elseif not %(mdl_m)s then return "gl_FragColor.rgb = vec3(0.0);" end
+                            <$2=mdl_m and "light.rgb" or "gl_FragColor.rgb"$2> = spec * gl_Color.rgb;
+                        ]==] elseif not mdl_m then return "gl_FragColor.rgb = vec3(0.0);" end
                     $1>
                 ]=] else return [=[
-                    <$1 if %(mdl_s)s or %(mdl_n)s then return [==[
+                    <$1 if mdl_s or mdl_n then return [==[
                         float intensity = dot(normal, lightvec);
                         light.rgb *= clamp(intensity*(intensity*lightscale.x + lightscale.y) + lightscale.z, 0.0, 1.0);
                     ]==] end $1>
-                    <$1 if %(mdl_s)s then return "light.rgb += spec;" end $1>
-                    <$1 if %(mdl_m)s then return "light.rgb *= gl_Color.rgb;" else return "gl_FragColor = light * gl_Color;" end $1>
+                    <$1 if mdl_s then return "light.rgb += spec;" end $1>
+                    <$1 if mdl_m then return "light.rgb *= gl_Color.rgb;" else return "gl_FragColor = light * gl_Color;" end $1>
                 ]=] end
             $0>
             <$0
-                if %(mdl_m)s then
-                    if %(mdl_e)s then return [=[
+                if mdl_m then
+                    if mdl_e then return [=[
                         light.rgb = mix(light.rgb, glow, masks.g); // glow mask in green channel
                         <$1
-                            if %(mdl_n)s then return [==[
+                            if mdl_n then return [==[
                                 vec3 camn = normalize(camvec);
                                 float invfresnel = dot(camn, normal);
                                 vec3 rvec = 2.0*invfresnel*normal - camn;
@@ -2899,27 +2916,27 @@ function modelfragmentshader(...)
                         vec3 reflect = textureCube(tex2, rvec).rgb; 
                         gl_FragColor.rgb = mix(light.rgb, reflect, rmod*masks.b); // envmap mask in blue channel
                     ]=] else
-                        if %(mdl_i)s then return [=[
+                        if mdl_i then return [=[
                             float k = min(masks.g*masks.g*maskscale.w, 1.0); // glow mask in green channel
-                            gl_FragColor.rgb = <$1=%(mdl_s)s and "glow*k + light.rgb" or "glow*k"$1>;
+                            gl_FragColor.rgb = <$1=mdl_s and "glow*k + light.rgb" or "glow*k"$1>;
                         ]=] else return [=[
                             gl_FragColor.rgb = mix(light.rgb, glow, masks.g); // glow mask in green channel
                         ]=] end
                     end
                 end
             $0>
-            <$0 if %(mdl_i)s or %(mdl_m)s then return "gl_FragColor.a = light.a * gl_Color.a;" end $0>
+            <$0 if mdl_i or mdl_m then return "gl_FragColor.a = light.a * gl_Color.a;" end $0>
         }
-    ]] % mdls)
+    ]], 0, mdls)
 end
 
 function modelanimshader(...)
     local arg = { ... }
-    local fraganimshader = arg[2] > 0 and arg[2] or 0
+    local fraganimshader = arg[2] > 0 and tostring(arg[2]) or ""
     local reuseanimshader = fraganimshader
     if ati_ubo_bug ~= 0 then
-        reuseanimshader = "%(1)s , %(2)s" % { arg[2], arg[2] > 0 and 1 or 0 }
-        fraganimshader = arg[4] == 1 and modelfragmentshader("bB" .. arg[3]) or reuseanimshader
+        reuseanimshader = "%(1)i , %(2)i" % { arg[2], arg[2] > 0 and 1 or 0 }
+        fraganimshader = (arg[4] == 1) and modelfragmentshader("bB" .. arg[3]) or reuseanimshader
     end
     shader.variant(4, arg[1], arg[2], modelvertexshader("B" .. arg[3], arg[4]), fraganimshader)
     shader.variant(4, arg[1], arg[2] + 1, modelvertexshader("b" .. arg[3], arg[4]), reuseanimshader)
@@ -2929,22 +2946,19 @@ function modelshader(...)
     local arg = { ... }
     shader.defer(
         4, arg[1],
-        [[
-            local basemodeltype = %(arg2)q
-            shader.std(4, %(arg1)q, modelvertexshader(basemodeltype), modelfragmentshader(basemodeltype))
+        function()
+            local basemodeltype = arg[2]
+            shader.std(4, arg[1], modelvertexshader(basemodeltype), modelfragmentshader(basemodeltype))
             for i = 1, 4 do
-                modelanimshader(%(arg1)q, 0, basemodeltype, i)
+                modelanimshader(arg[1], 0, basemodeltype, i)
             end
             local glaremodeltype = string.gsub(basemodeltype .. "i", "e", "")
             if not string.find(glaremodeltype, "s") then glaremodeltype = string.gsub(glaremodeltype, "n", "") end
-            shader.variant(4, %(arg1)q, 2, modelvertexshader(glaremodeltype), modelfragmentshader(glaremodeltype))
+            shader.variant(4, arg[1], 2, modelvertexshader(glaremodeltype), modelfragmentshader(glaremodeltype))
             for i = 1, 4 do
-                modelanimshader(%(arg1)q, 2, glaremodeltype, i)
+                modelanimshader(arg[1], 2, glaremodeltype, i)
             end
-        ]] % {
-            arg1 = arg[1] or "",
-            arg2 = arg[2] or ""
-        }
+        end
     )
 end
 

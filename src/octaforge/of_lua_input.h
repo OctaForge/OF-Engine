@@ -105,7 +105,7 @@ namespace lua_binds
             s = addreleaseaction("CAPI."#name"()")!=0; \
             e.getg(#v); \
             if (!e.is<void*>(-1)) e.getg("entity_store") \
-                  .t_getraw("get_plyent") \
+                  .t_getraw("get_player_entity") \
                   .call(0, 1) \
                   .t_set(#p, s ? d : (os ? -(d) : 0)) \
                   .pop(3); \
@@ -137,7 +137,7 @@ namespace lua_binds
             {
                 if (down)
                     e.getg("entity_store")
-                     .t_getraw("get_plyent")
+                     .t_getraw("get_player_entity")
                      .call(0, 1)
                      .t_getraw("jump")
                      .push_index(-2)

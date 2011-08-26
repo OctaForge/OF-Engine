@@ -157,8 +157,8 @@ namespace world
         char buf[512];
         snprintf(
             buf, sizeof(buf),
-            "%s%cdata%c%s%c%s",
-            homedir, PATHDIV, PATHDIV,
+            "%sdata%c%s%c%s",
+            homedir, PATHDIV,
             prefix, PATHDIV, fname
         );
         delete[] prefix;
@@ -194,8 +194,8 @@ namespace world
             return newstring(buf);
         }
         snprintf(
-            buff, sizeof(buff), "%s%c%s",
-            homedir, PATHDIV, buf
+            buff, sizeof(buff), "%s%s",
+            homedir, buf
         );
         snprintf(buf, sizeof(buf), "%s", buff);
         delete[] aloc;

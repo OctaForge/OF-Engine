@@ -6,7 +6,7 @@ plugin = {
     should_act = true,
 
     client_on_collision = function(self, entity)
-        if entity ~= entity_store.get_plyent() then return nil end
+        if entity ~= entity_store.get_player_entity() then return nil end
 
         -- cannot have more than one active
         if active then return nil end
@@ -17,12 +17,12 @@ plugin = {
 }
 
 action = class.new(actions.action, {
-    dostart = function(self)
+    do_start = function(self)
         assert(active == self.actor)
     end,
 
-    doexecute = function(self, seconds)
-        if world.is_player_colliding_entity(entity_store.get_plyent(), self.actor) then
+    do_execute = function(self, seconds)
+        if geometry.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
             self.actor:emit("world_area_active")
             return false
         else
@@ -30,13 +30,13 @@ action = class.new(actions.action, {
         end
     end,
 
-    dofinish = function(self)
+    do_finish = function(self)
         active = nil
     end
 })
 
 action_input_capture = class.new(actions.action, {
-    dostart = function(self)
+    do_start = function(self)
         self.client_click = function(self, ...) return self.actor.client_click(self.actor, ...) end
 
         self.per_map_keys  = self.actor.per_map_keys
@@ -46,8 +46,8 @@ action_input_capture = class.new(actions.action, {
         self.do_mousemove = function(self, ...) return self.actor.do_mousemove(self.actor, ...) end
         self.do_jump      = function(self, ...) return self.actor.do_jump     (self.actor, ...) end
 
-        events.action_input_capture_plugin.dostart(self)
+        events.action_input_capture_plugin.do_start(self)
     end,
 
-    dofinish = events.action_input_capture_plugin.dofinish
+    do_finish = events.action_input_capture_plugin.do_finish
 })

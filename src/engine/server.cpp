@@ -637,7 +637,7 @@ void server_init()//int argc, char* argv[])
     localconnect();
     assert(clients.length() == 1); // Ensure noone else connected before
 
-    fpsent* fpsEntity = dynamic_cast<fpsent*>( game::newclient(0) ); // Create a new fpsclient for this client
+    fpsent* fpsEntity = game::newclient(0); // Create a new fpsclient for this client
 
     fpsEntity->serverControlled = true; // Mark this as not controlled by server, so we don't try to actually do anything with it
                                         // After all it doesn't really exist
@@ -746,19 +746,9 @@ int main(int argc, char **argv)
     server_init();
 
     logger::log(logger::DEBUG, "Running first slice.\n");
-    server_runslice();
-
-    int servermillis = time(0) * 1000;
     while (!should_quit)
     {
-        while ((time(0) * 1000) - servermillis < 33)
-            continue;
-
-        servermillis = time(0) * 1000;
-
-        if (!should_quit)
-            server_runslice();
-
+        server_runslice();
         if (map_asset)
         {
             logger::log(logger::DEBUG, "Setting map to %s ..\n", map_asset);

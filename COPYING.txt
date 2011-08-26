@@ -20,14 +20,14 @@ THE SOFTWARE.
 
 OctaForge is brought to you by:
 
-  * <Fill e-mails and more people>
-  * Daniel 'q66' Kolesa <quaker66@gmail.com>
-  * Ryan 'TheAncientGoat' Swart
-  * Steven 'CyanDynamo' Bussinger
-  * Pieter 'Spiney' Verhoeven
-  * Bart 'bartbes' van Strien
-  * Keyvan 'keyvan' Fatehi
-  * T7g
+- <Fill e-mails and more people>
+- Daniel 'q66' Kolesa <quaker66@gmail.com>
+- Ryan 'TheAncientGoat' Swart
+- Steven 'CyanDynamo' Bussinger
+- Pieter 'Spiney' Verhoeven
+- Bart 'bartbes' van Strien
+- Keyvan 'keyvan' Fatehi
+- T7g
 
 OctaForge is based on CubeCreate/Syntensity project, Syntensity contributors were:
 

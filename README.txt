@@ -1,7 +1,7 @@
 OctaForge
 ================
 
-This is OctaForge developer alpha 8 (0.1.7, 20 June 2011)
+This is OctaForge developer alpha 9 (0.1.8, 26 August 2011)
 
 In sync with Cube 2 / Sauerbraten revision: 3575
 
