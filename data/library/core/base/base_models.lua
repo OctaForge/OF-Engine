@@ -375,11 +375,11 @@ all = {
     shader = CAPI.mdlshader,
 
     --[[!
-        Function: translate_center
+        Function: translate
         Translates the model's center by argument, which is a <vec3>
         with x, y, z represented in model units (may use floating point).
     ]]
-    translate_center = CAPI.mdltrans,
+    translate = CAPI.mdltrans,
 
     --[[!
         Function: yaw

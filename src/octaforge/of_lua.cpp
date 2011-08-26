@@ -99,6 +99,10 @@ namespace lua
             homedir, PATHDIV, PATHDIV
         );
         lua_pushfstring(
+            m_handle, ";%sdata%c?.lua",
+            homedir, PATHDIV
+        );
+        lua_pushfstring(
             m_handle, ";%sdata%clibrary%c?%cinit.lua",
             homedir, PATHDIV, PATHDIV, PATHDIV
         );
@@ -107,10 +111,11 @@ namespace lua
         lua_pushliteral(m_handle, ";./data/library/core/?.lua");
         lua_pushliteral(m_handle, ";./data/library/core/?/init.lua");
         lua_pushliteral(m_handle, ";./data/?/init.lua");
+        lua_pushliteral(m_handle, ";./data/?.lua");
         lua_pushliteral(m_handle, ";./data/library/?/init.lua");
 
         /* concat them */
-        lua_concat(m_handle, 6);
+        lua_concat(m_handle, 8);
 
         /* we got package and string on the stack, push the name */
         lua_pushliteral(m_handle, "path");
