@@ -7,3 +7,4 @@
 - 29 May 2011 - 0.1.5 Alpha 6
 - 05 June 2011 - 0.1.6 Alpha 7
 - 20 June 2011 - 0.1.7 Alpha 8
+- 26 August 2011 - 0.1.8 Alpha 9
