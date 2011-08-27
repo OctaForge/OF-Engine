@@ -15,7 +15,7 @@ entity_classes.register(plugins.bake(
 --      firing.plugins.player,
         health.plugin,
 -- enable to shoot
---      chaingun.gun.plugin,
+--      chaingun.chaingun.plugin,
         {
             _class = "game_player",
 
@@ -120,7 +120,7 @@ entity_classes.register(plugins.bake(
 ), "fpsent")
 
 -- enable to shoot
---player_chaingun = firing.register_gun(chaingun.gun(), "chaingun")
+--player_chaingun = firing.register_gun(chaingun.chaingun(), "chaingun")
 
 -- Override clientside click method.
 -- When left mouse button is clicked, set pressing to down, and disable stop_batch.
@@ -128,7 +128,9 @@ entity_classes.register(plugins.bake(
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
 function client_click(btn, down, pos, ent, x, y)
     -- enable to shoot
-    -- return firing.client_click(btn, down, pos, ent, x, y)
+    --if true then
+    --    return firing.client_click(btn, down, pos, ent, x, y)
+    --end
 
     if btn == 1 then
         entity_store.get_player_entity().pressing   = down
