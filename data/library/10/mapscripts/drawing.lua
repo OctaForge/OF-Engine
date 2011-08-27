@@ -10,13 +10,24 @@ entity_classes.register(plugins.bake(
     character.player, {
 -- enable for platformer game
 --      platformer.plugin,
+-- enable to shoot
+--      firing.plugins.protocol,
+--      firing.plugins.player,
         health.plugin,
+-- enable to shoot
+--      chaingun.gun.plugin,
         {
             _class = "game_player",
 
             properties = {
                 new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
             },
+
+            -- enable to shoot
+--          init = function(self)
+--              self.gun_indexes = { player_chaingun }
+--              self.current_gun_index = player_chaingun
+--          end,
 
             -- Switches color in entity
             next_color = function(self)
@@ -108,11 +119,17 @@ entity_classes.register(plugins.bake(
     }
 ), "fpsent")
 
+-- enable to shoot
+--player_chaingun = firing.register_gun(chaingun.gun(), "chaingun")
+
 -- Override clientside click method.
 -- When left mouse button is clicked, set pressing to down, and disable stop_batch.
 -- When middle mouse button is clicked, change to next color.
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
 function client_click(btn, down, pos, ent, x, y)
+    -- enable to shoot
+    -- return firing.client_click(btn, down, pos, ent, x, y)
+
     if btn == 1 then
         entity_store.get_player_entity().pressing   = down
         entity_store.get_player_entity().stop_batch = false
