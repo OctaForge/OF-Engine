@@ -85,18 +85,19 @@ end
 function get_ray_collision_entities(origin, target, ignore)
     local entities  = get_collidable_entities()
     local direction = target:sub_new(origin)
-    local dist2     = direcion:magnitude()
+    local dist2     = direction:magnitude()
     if    dist2 == 0 then
         return nil
     end
     dist2           = dist2 * dist2
 
     local best = nil
-    local function consider(entity, alpha, collision_position)
+    local function consider(entity, alpha, collision_position, distance)
         if not best or distance < best.distance then
             best = {
-                entity = entity,
-                alpha  = alpha,
+                entity   = entity,
+                alpha    = alpha,
+                distance = distance,
                 collision_position = collision_position
             }
         end
@@ -120,7 +121,7 @@ function get_ray_collision_entities(origin, target, ignore)
             if alpha < 0 or alpha > 1 or distance > entity_rad then
                 return nil
             end
-            consider(entity, alpha, collision_position)
+            consider(entity, alpha, collision_position, distance)
         end
     end
 

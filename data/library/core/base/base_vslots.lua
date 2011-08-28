@@ -29,7 +29,7 @@ module("vslot", package.seeall)
     they only add to the current value. For example,
 
     (start code)
-        vslots.delta("vslots.rotate(1)")
+        vslots.delta(function() vslots.rotate(1) end)
     (end)
 
     will add 1 to the current rotation, instead of setting it to 1.

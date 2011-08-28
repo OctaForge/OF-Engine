@@ -315,9 +315,11 @@ function show_entity_properties_tab()
                         end)
 
                         -- pre-create an alias with initial value
+                        local was_persisting = engine.persist_vars(false)
                         engine.new_var(
                             name, engine.VAR_S, pair[2], true
                         )
+                        engine.persist_vars(was_persisting)
 
                         -- a field for the value - XXX: long enough?
                         field(name, #pair[2] + 25, function()

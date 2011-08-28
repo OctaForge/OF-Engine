@@ -383,17 +383,12 @@ end
     See Also:
         <rgb_to_hex>
 ]]
-hex_to_rgb = function (hex)
-    local r
-    local g
-    local b
-
-    local hex = string.format("%X", hex)
-    r = tonumber(string.sub(hex, 1, 2), 16)
-    g = tonumber(string.sub(hex, 3, 4), 16)
-    b = tonumber(string.sub(hex, 5, 6), 16)
-
-    return { r = r, g = g, b = b }
+hex_to_rgb = function(hex)
+    return {
+        r = math.band(math.rsh(hex, 16), 0xFF),
+        g = math.band(math.rsh(hex,  8), 0xFF),
+        b = math.band(hex, 0xFF)
+    }
 end
 
 --[[!

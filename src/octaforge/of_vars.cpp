@@ -113,13 +113,12 @@ namespace var
 
     cvar::cvar(
         const char *n,
-        int v,
-        bool temporary
+        int v
     ) : name(n),
         type(VAR_I)
     {
         flags |= VAR_ALIAS;
-        if (persistvars && !temporary) flags |= VAR_PERSIST;
+        if (persistvars) flags |= VAR_PERSIST;
 
         minv.i = maxv.i = -1;
         oldv.i = curv.i = v;
@@ -128,13 +127,12 @@ namespace var
 
     cvar::cvar(
         const char *n,
-        float v,
-        bool temporary
+        float v
     ) : name(n),
         type(VAR_F)
     {
         flags |= VAR_ALIAS;
-        if (persistvars && !temporary) flags |= VAR_PERSIST;
+        if (persistvars) flags |= VAR_PERSIST;
 
         minv.f = maxv.f = -1.0f;
         oldv.f = curv.f = v;
@@ -143,13 +141,12 @@ namespace var
 
     cvar::cvar(
         const char *n,
-        const char *v,
-        bool temporary
+        const char *v
     ) : name(n),
         type(VAR_S)
     {
         flags |= VAR_ALIAS;
-        if (persistvars && !temporary) flags |= VAR_PERSIST;
+        if (persistvars) flags |= VAR_PERSIST;
 
         curv.s = (v ? newstring(v) : NULL);
         oldv.s = NULL;
@@ -173,6 +170,9 @@ namespace var
             oldv.i = curv.i;
         }
 
+        if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
+             flags ^= VAR_PERSIST;
+
         if (_clamp && (v < minv.i || v > maxv.i) && (flags&VAR_ALIAS) == 0)
         {
             logger::log(
@@ -193,6 +193,10 @@ namespace var
             flags |= VAR_OVERRIDEN;
             oldv.f = curv.f;
         }
+
+        if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
+             flags ^= VAR_PERSIST;
+
         if (_clamp && (v < minv.f || v > maxv.f) && (flags&VAR_ALIAS) == 0)
         {
             logger::log(
@@ -214,6 +218,10 @@ namespace var
             if (oldv.s) DELETEA(oldv.s);
             oldv.s = (curv.s ? newstring(curv.s) : NULL);
         }
+
+        if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
+             flags ^= VAR_PERSIST;
+
         curv.s = (v ? newstring(v) : NULL);
         if (vfun && dofun) vfun();
     }

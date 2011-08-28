@@ -47,7 +47,6 @@ function setup(plugins_add)
                     end,
 
                     client_activate = function(self)
-                        print("ACTIIIING")
                     end,
 
                     get_players = function(self)

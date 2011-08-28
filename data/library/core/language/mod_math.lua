@@ -421,6 +421,25 @@ function compare_pitch(o, t, cp, ae)
 end
 
 --[[!
+    Function: is_nan
+    Returns true if given argument is NaN (Not a Number).
+    This is handy for some checks when working with i.e.
+    goniometric functions. See also <is_inf>.
+]]
+function is_nan(n)
+    return (n ~= n)
+end
+
+--[[!
+    Function: is_inf
+    Returns true if given argument is infinite number.
+    See also <is_nan>.
+]]
+function is_inf(n)
+    return (n == 1/0)
+end
+
+--[[!
     Class: vec3
     A vec3 class (with x, y, z coordinates) for OctaForge's
     scripting system.

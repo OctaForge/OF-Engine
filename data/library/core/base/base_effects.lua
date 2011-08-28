@@ -184,6 +184,9 @@ function dynamic_light(
     local rgbc  = convert.hex_to_rgb(color)
     local rgbic = convert.hex_to_rgb(initial_color or 0xFFFFFF)
 
+    fade = fade or 0
+    peak = peak or 0
+
     CAPI.adddynlight(
         position, radius,
         math.vec3(rgbc.r / 255, rgbc.g / 255, rgbc.b / 255),

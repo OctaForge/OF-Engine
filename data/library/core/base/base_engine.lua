@@ -149,8 +149,9 @@ remove_zip = CAPI.removezip
 
     Aliases are engine variables that are defined by scripting system and
     those have no minimal or maximal values. Aliases get saved into the
-    configuration file, so they're loaded on next engine run - that can
-    be overriden when creating the alias.
+    configuration file, so they're loaded on next engine run, but only
+    under certain conditions (they don't get saved when initiated from
+    the map script). You can override the saving behavior using <persist_vars>.
 
     Aliases are useful when i.e. manipulating with fields, using them,
     you can pre-set a value for future field (field doesn't then create
@@ -196,9 +197,6 @@ reset_var = CAPI.resetvar
         name - name of the alias.
         type - see <VAR_I>, <VAR_F>, <VAR_S>.
         value - initial value for the alias.
-        no_save - if true, the alias won't get written
-        into config file, defaults to false.
-        
 ]]
 new_var = CAPI.newvar
 
@@ -240,3 +238,23 @@ set_var = CAPI.setvar
         true if it exists, false otherwise.
 ]]
 var_exists = CAPI.varexists
+
+--[[!
+    Function: persist_vars
+    Overrides the saving behavior of engine variable aliases.
+    Returns the persisting state how it was before overriding.
+
+    Example:
+        (start code)
+            -- let's assume it was false before
+            -- make it true
+            local was_persisting = engine.persist_vars(true)
+            -- will be saved
+            engine.new_var("foo", engine.VAR_S, "blah")
+            -- back to false
+            engine.persist_vars(was_persisting)
+            -- won't be saved
+            engine.new_var("bar", engine.VAR_S, "meh")
+        (end code)
+]]
+persist_vars = CAPI.persist_vars
