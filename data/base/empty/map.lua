@@ -39,6 +39,26 @@ game_manager.setup({
 })
 get_scoreboard_text = game_manager.get_scoreboard_text
 
+--[[
+-- enable for bot player
+entity_classes.register(plugins.bake(
+    character.player, {
+        health.plugin,
+        {
+            _class = "bot_player",
+            init   = function(self)
+                self.model_name = "player"
+            end
+        }
+    }
+), "fpsent")
+]]
+
 -- this function will run on server only (condition inside it)
 -- it loads the entities into server storage and sends to clients
 entity_store.load_entities()
+
+-- enable for bot player
+--if SERVER then
+--    edit.add_npc("bot_player")
+--end

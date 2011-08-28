@@ -10,13 +10,11 @@ entity_classes.register(plugins.bake(
     character.player, {
 -- enable for platformer game
 --      platformer.plugin,
--- enable to shoot
---      firing.plugins.protocol,
---      firing.plugins.player,
+        firing.plugins.protocol,
+        firing.plugins.player,
         health.plugin,
--- enable to shoot
---      projectiles.plugin,
---      chaingun.chaingun.plugin,
+        projectiles.plugin,
+        chaingun.chaingun.plugin,
         {
             _class = "game_player",
 
@@ -24,11 +22,10 @@ entity_classes.register(plugins.bake(
                 new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
             },
 
-            -- enable to shoot
---          init = function(self)
---              self.gun_indexes = { player_chaingun, player_rocket_launcher }
---              self.current_gun_index = player_chaingun
---          end,
+            init = function(self)
+                self.gun_indexes = { player_chaingun, player_rocket_launcher }
+                self.current_gun_index = player_chaingun
+            end,
 
             -- Switches color in entity
             next_color = function(self)
@@ -120,13 +117,12 @@ entity_classes.register(plugins.bake(
     }
 ), "fpsent")
 
--- enable to shoot
---player_chaingun        = firing.register_gun(
---    chaingun.chaingun(), "chaingun"
---)
---player_rocket_launcher = firing.register_gun(
---    rocket_launcher.rocket_launcher(), "rocket_launcher"
---)
+player_chaingun        = firing.register_gun(
+    chaingun.chaingun(), "chaingun"
+)
+player_rocket_launcher = firing.register_gun(
+    rocket_launcher.rocket_launcher(), "rocket_launcher"
+)
 
 -- Override clientside click method.
 -- When left mouse button is clicked, set pressing to down, and disable stop_batch.
