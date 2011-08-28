@@ -5,6 +5,16 @@
 -- built on OF API v1
 -- author: q66 <quaker66@gmail.com>
 
+-- set up "shoot mode" variable aloas, which will be persistent.
+-- you can then toggle shooting and drawing from the console using this.
+-- because it's persistent, your last state (drawing / shooting) will
+-- be saved and applied the next run.
+if not shoot_mode then
+    local was_persisting = engine.persist_vars(true)
+    engine.new_var("shoot_mode", engine.VAR_I, 0)
+    engine.persist_vars(was_persisting)
+end
+
 -- Register our custom player entity class into storage
 entity_classes.register(plugins.bake(
     character.player, {
@@ -22,6 +32,7 @@ entity_classes.register(plugins.bake(
                 new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
             },
 
+            -- player gun indexes and current gun
             init = function(self)
                 self.gun_indexes = { player_chaingun, player_rocket_launcher }
                 self.current_gun_index = player_chaingun
@@ -117,9 +128,11 @@ entity_classes.register(plugins.bake(
     }
 ), "fpsent")
 
+-- set up a chaingun (non-projectile, repeating)
 player_chaingun        = firing.register_gun(
     chaingun.chaingun(), "chaingun"
 )
+-- and a rocket launcher (projectile, non-repeating)
 player_rocket_launcher = firing.register_gun(
     rocket_launcher.rocket_launcher(), "rocket_launcher"
 )
@@ -129,10 +142,10 @@ player_rocket_launcher = firing.register_gun(
 -- When middle mouse button is clicked, change to next color.
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
 function client_click(btn, down, pos, ent, x, y)
--- enable to shoot
---  if true then
---      return firing.client_click(btn, down, pos, ent, x, y)
---  end
+    -- in shoot mode, shoot instead of drawing
+    if shoot_mode == 1 then
+        return firing.client_click(btn, down, pos, ent, x, y)
+    end
 
     if btn == 1 then
         entity_store.get_player_entity().pressing   = down

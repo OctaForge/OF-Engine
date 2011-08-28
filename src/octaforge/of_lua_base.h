@@ -176,7 +176,7 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::regvar(name, new var::cvar(name, e.get<int>(3), e.get<bool>(4)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<int>(3)));
                 }
                 else ev->set(e.get<int>(3), false, false);
                 break;
@@ -186,7 +186,7 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::regvar(name, new var::cvar(name, e.get<float>(3), e.get<bool>(4)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<float>(3)));
                 }
                 else ev->set(e.get<float>(3), false, false);
                 break;
@@ -196,7 +196,7 @@ namespace lua_binds
                 var::cvar *ev = var::get(name);
                 if (!ev)
                 {
-                    ev = var::regvar(name, new var::cvar(name, e.get<const char*>(3), e.get<bool>(4)));
+                    ev = var::regvar(name, new var::cvar(name, e.get<const char*>(3)));
                 }
                 else ev->set(e.get<const char*>(3), false);
                 break;
@@ -257,6 +257,12 @@ namespace lua_binds
     })
 
     LUA_BIND_STD(varexists, e.push, var::get(e.get<const char*>(1)) ? true : false)
+
+    LUA_BIND_DEF(persist_vars, {
+        bool waspersisting = var::persistvars;
+        var::persistvars = e.get<bool>(1);
+        e.push(waspersisting);
+    })
 
     // Console
 

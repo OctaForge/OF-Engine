@@ -283,6 +283,7 @@ namespace tools
         f->printf("\n");
 
         f->printf("-- aliases\n");
+        f->printf("local was_persisting = engine.persist_vars(true)\n");
         loopv(varv)
         {
             var::cvar *v = varv[i];
@@ -310,6 +311,7 @@ namespace tools
                 }
             }
         }
+        f->printf("engine.persist_vars(was_persisting)\n");
         f->printf("\nOF_CFG_VERSION_PASSED = true\n");
         delete f;
     }
