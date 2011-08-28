@@ -3,7 +3,7 @@ module("firing", package.seeall)
 guns = {}
 
 function register_gun(gun, comment, hud)
-    local index = #guns
+    local index = #guns + 1
     comment = comment or tostring(index)
 
     guns[index]   = gun
@@ -32,16 +32,17 @@ function client_click(button, down, position, entity)
 end
 
 function cycle_gun_index(entity, indexes)
-    local curr = table.find(indexes, entity.current_gun_index) + 1
-    if curr >= #indexes then
-        curr = 1
+    local curr = entity.current_gun_index + 1
+    if    curr > #indexes then
+          curr = 1
     end
-    entity.current_gun_index = indexes[curr]
+    entity.current_gun_index = curr
 end
 
-function find_target(shooter, visual_origin, targeting_origin, range, scatter)
+function find_target(shooter, visual_origin, targeting_origin, fallback_target, range, scatter)
     -- targeting from the camera - where the player aimed the mouse
     local direction = math.vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
+    if math.is_nan(direction.x) then return { target = fallback_target } end
     if scatter then direction:add(math.vec3_normalized():mul(scatter)):normalize() end
 
     local target = geometry.get_ray_collision_world   (targeting_origin, direction, range)

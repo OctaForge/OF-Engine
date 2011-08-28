@@ -32,7 +32,8 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
 
         local distance = entity:get_center():sub(position):magnitude()
         distance   = math.max(1, distance)
-        local bump = math.max(0, power - math.pow(distance, expo))
+        local bump = math.round(math.max(0, power - math.pow(distance, expo)))
+              bump = bump - (bump % 5)
 
         if not custom_damage_fun then
             if entity.velocity then

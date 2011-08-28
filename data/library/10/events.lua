@@ -114,7 +114,7 @@ function action_delayed:__init(command, kwargs)
     self.command = command
 end
 
-function action_delayed:do_execute()
+function action_delayed:do_execute(seconds)
     if actions.action.do_execute(self, seconds) then
         self.command()
         return true
@@ -237,8 +237,8 @@ client_actions_parallel_plugin = {
     end
 }
 
-actions_parallel_plugin = {
+actions_parallel_plugin = table.merge_dicts(client_actions_parallel_plugin, {
     activate = client_actions_parallel_plugin.client_activate,
     act = client_actions_parallel_plugin.client_act
-}
+})
 

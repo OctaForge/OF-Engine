@@ -17,6 +17,7 @@ library.include("mapelements.world_notices")
 library.include("mapelements.world_sequences")
 library.include("platformer")
 library.include("guns.chaingun")
+library.include("guns.rocket_launcher")
 
 -- rain
 library.include("custom_effect")
@@ -33,7 +34,8 @@ library.include("mapscripts.drawing")
 game_manager.setup({
     game_manager.manager_plugins.messages,
     game_manager.manager_plugins.event_list,
-    projectiles.plugin
+    projectiles.plugin,
+    events.actions_parallel_plugin
 })
 get_scoreboard_text = game_manager.get_scoreboard_text
 

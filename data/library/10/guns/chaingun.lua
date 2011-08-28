@@ -31,7 +31,8 @@ chaingun = class.new(firing.gun, {
         local visual_origin    = self:get_origin(shooter)
         local targeting_origin = shooter:get_targeting_origin(visual_origin)
         local target_data      = firing.find_target(
-            shooter, visual_origin, targeting_origin, self.range, self.scatter
+            shooter, visual_origin, targeting_origin,
+            nil, self.range, self.scatter
         )
         local target           = target_data.target
         local target_entity    = target_data.target_entity
