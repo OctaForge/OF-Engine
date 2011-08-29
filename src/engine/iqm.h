@@ -60,15 +60,21 @@ struct iqmjoint
 {
     uint name;
     int parent;
-    vec pos, orient, size;
+    vec pos; 
+    quat orient; 
+    vec size;
 };
 
 struct iqmpose
 {
     int parent;
     uint mask;
-    vec offsetpos, offsetorient, offsetsize;
-    vec scalepos, scaleorient, scalesize;
+    vec offsetpos;
+    vec4 offsetorient;
+    vec offsetsize;
+    vec scalepos;
+    vec4 scaleorient;
+    vec scalesize;
 };
 
 struct iqmanim
@@ -146,7 +152,8 @@ struct iqm : skelmodel, skelloader<iqm>
                             j.pos.y = -j.pos.y;
                             j.orient.x = -j.orient.x;
                             j.orient.z = -j.orient.z;
-                            b.base = dualquat(quat(j.orient), j.pos);     
+                            j.orient.normalize();
+                            b.base = dualquat(j.orient, j.pos);      
                             if(b.parent >= 0) b.base.mul(skel->bones[b.parent].base, dualquat(b.base));
                             (b.invbase = b.base).invert();
                         }
@@ -186,8 +193,7 @@ struct iqm : skelmodel, skelloader<iqm>
                         {
                             bumpvert &bv = m->bumpverts[j];
                             loopk(3) bv.tangent[k] = vtan[4*fj + k];
-                            bv.tangent.x = -bv.tangent.x;
-                            bv.tangent.z = -bv.tangent.z;
+                            bv.tangent.y = -bv.tangent.y;
                             bv.bitangent = vtan[4*fj + 3];
                         }
                     } 
@@ -255,20 +261,23 @@ struct iqm : skelmodel, skelloader<iqm>
                     loopk(skel->numbones)
                     {
                         iqmpose &p = poses[k];
-                        vec pos, orient;
+                        vec pos;
+                        quat orient;
                         pos.x = p.offsetpos.x; if(p.mask&0x01) pos.x += *animdata++ * p.scalepos.x;
                         pos.y = -p.offsetpos.y; if(p.mask&0x02) pos.y -= *animdata++ * p.scalepos.y;
                         pos.z = p.offsetpos.z; if(p.mask&0x04) pos.z += *animdata++ * p.scalepos.z;
                         orient.x = -p.offsetorient.x; if(p.mask&0x08) orient.x -= *animdata++ * p.scaleorient.x;
                         orient.y = p.offsetorient.y; if(p.mask&0x10) orient.y += *animdata++ * p.scaleorient.y;
                         orient.z = -p.offsetorient.z; if(p.mask&0x20) orient.z -= *animdata++ * p.scaleorient.z;
-                        if(p.mask&0x1C0)
+                        orient.w = p.offsetorient.w; if(p.mask&0x40) orient.w += *animdata++ * p.scaleorient.w;
+                        orient.normalize();
+                        if(p.mask&0x380)
                         {
-                            if(p.mask&0x40) animdata++;
                             if(p.mask&0x80) animdata++;
                             if(p.mask&0x100) animdata++;
+                            if(p.mask&0x200) animdata++;
                         }
-                        frame[k] = dualquat(quat(orient), pos);
+                        frame[k] = dualquat(orient, pos);
                         if(adjustments.inrange(k)) adjustments[k].adjust(frame[k]);
                         boneinfo &b = skel->bones[k];
                         frame[k].mul(b.invbase);
@@ -290,7 +299,7 @@ struct iqm : skelmodel, skelloader<iqm>
             iqmheader hdr;
             if(f->read(&hdr, sizeof(hdr)) != sizeof(hdr) || memcmp(hdr.magic, "INTERQUAKEMODEL", sizeof(hdr.magic))) goto error;
             lilswap(&hdr.version, (sizeof(hdr) - sizeof(hdr.magic))/sizeof(uint));
-            if(hdr.version != 1) goto error;
+            if(hdr.version != 2) goto error;
             if(hdr.filesize > (16<<20)) goto error; // sanity check... don't load files bigger than 16 MB
             buf = new uchar[hdr.filesize];
             if(f->read(buf + sizeof(hdr), hdr.filesize - sizeof(hdr)) != int(hdr.filesize - sizeof(hdr))) goto error;

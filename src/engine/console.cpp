@@ -636,9 +636,9 @@ void clear_console()
     keyms.clear();
 }
 
-static int sortbinds(keym **x, keym **y)
+static inline bool sortbinds(keym *x, keym *y)
 {
-    return strcmp((*x)->name, (*y)->name);
+    return strcmp(x->name, y->name) < 0;
 }
 
 void writebinds(stream *f)

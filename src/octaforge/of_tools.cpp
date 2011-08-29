@@ -228,9 +228,9 @@ namespace tools
         return loaded;
     }
 
-    static int sortvars(var::cvar **x, var::cvar **y)
+    static inline bool sortvars(var::cvar *x, var::cvar *y)
     {
-        return strcmp((*x)->name, (*y)->name);
+        return strcmp(x->name, y->name) < 0;
     }
 
     void writecfg(const char *name)

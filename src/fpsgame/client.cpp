@@ -367,6 +367,8 @@ namespace game
 
     void parsepacketclient(int chan, packetbuf &p)   // processes any updates from the server
     {
+        if(p.packet->flags&ENET_PACKET_FLAG_UNSEQUENCED) return;
+
         logger::log(logger::INFO, "Client: Receiving packet, channel: %d\r\n", chan);
 
         switch(chan)

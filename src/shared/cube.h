@@ -1,6 +1,8 @@
 #ifndef __CUBE_H__
 #define __CUBE_H__
 
+#define _FILE_OFFSET_BITS 64
+
 #ifdef __GNUC__
 #define gamma __gamma
 #endif

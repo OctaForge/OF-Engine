@@ -239,17 +239,10 @@ static void subdivide(int depth, int face)
     loopi(3) genface(depth, idx[i], idx[3+i], idx[3+(i+2)%3]);
 }
 
-static int sortdomecap(const GLushort *x, const GLushort *y)
+static int sortdomecap(GLushort x, GLushort y)
 {
-    const vec &xv = domeverts[*x].pos, &yv = domeverts[*y].pos;
-    if(xv.y < 0)
-    {
-        if(yv.y >= 0 || xv.x < yv.x) return -1;
-        if(xv.x > yv.x) return 1;
-    }
-    else if(yv.y < 0 || xv.x < yv.x) return 1;
-    else if(xv.x > yv.x) return -1;
-    return 0;
+    const vec &xv = domeverts[x].pos, &yv = domeverts[y].pos;
+    return xv.y < 0 ? yv.y >= 0 || xv.x < yv.x : yv.y >= 0 && xv.x > yv.x;
 }
 
 static void initdome(const bvec &color, float minalpha = 0.0f, float maxalpha = 1.0f, float capsize = -1, float clipz = 1, int hres = 16, int depth = 2)

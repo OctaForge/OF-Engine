@@ -43,7 +43,7 @@ struct compatheader             // map file format header
     char maptitle[128];
 };
 
-#define WATER_AMPLITUDE 0.8f
+#define WATER_AMPLITUDE 0.4f
 #define WATER_OFFSET 1.1f
 
 enum 

@@ -121,8 +121,8 @@ static inline void setcubevector(cube &c, int i, const ivec &p)
 
 void optiface(uchar *p, cube &c)
 {
-    loopi(4) if(edgeget(p[i], 0)!=edgeget(p[i], 1)) return;
-    emptyfaces(c);
+    uint f = *(uint *)p;
+    if(((f>>4)&0x0F0F0F0FU) == (f&0x0F0F0F0FU)) emptyfaces(c);
 }
 
 void printcube()
@@ -163,11 +163,15 @@ void validatec(cube *c, int size)
         }
         else
         {
-            loopj(3) optiface((uchar *)&(c[i].faces[j]), c[i]);
-            loopj(12)
-                if(edgeget(c[i].edges[j], 1)>8 ||
-                   edgeget(c[i].edges[j], 1)<edgeget(c[i].edges[j], 0))
+            loopj(3)
+            {
+                uint f = c[i].faces[j], e0 = f&0x0F0F0F0FU, e1 = (f>>4)&0x0F0F0F0FU;
+                if(e0 == e1 || ((e1+0x07070707U)|(e1-e0))&0xF0F0F0F0U)
+                {
                     emptyfaces(c[i]);
+                    break;
+                }
+            }
         }
     }
 }
@@ -328,7 +332,7 @@ bool subdividecube(cube &c, bool fullcheck, bool brighten)
         return true;
     }
     cube *ch = c.children = newcubes(F_SOLID, c.material);
-    bool perfect = true, p1, p2;
+    bool perfect = true;
     ivec v[8];
     loopi(8)
     {
@@ -338,44 +342,49 @@ bool subdividecube(cube &c, bool fullcheck, bool brighten)
 
     loopj(6)
     {
-        int d = dimension(j);
-        int z = dimcoord(j);
+        int d = dimension(j), z = dimcoord(j);
+        const ivec &v00 = v[octaindex(d, 0, 0, z)],
+                   &v10 = v[octaindex(d, 1, 0, z)],
+                   &v01 = v[octaindex(d, 0, 1, z)],
+                   &v11 = v[octaindex(d, 1, 1, z)];
         int e[3][3];
-        ivec *v1[2][2];
-        loop(y, 2) loop(x, 2)
-            v1[x][y] = v+octaindex(d, x, y, z);
-
-        loop(y, 3) loop(x, 3)       // gen edges
+        // corners   
+        e[0][0] = v00[d];
+        e[0][2] = v01[d];
+        e[2][0] = v10[d];
+        e[2][2] = v11[d];
+        // edges
+        e[0][1] = midedge(v00, v01, C[d], d, perfect); 
+        e[1][0] = midedge(v00, v10, R[d], d, perfect);
+        e[1][2] = midedge(v11, v01, R[d], d, perfect);
+        e[2][1] = midedge(v11, v10, C[d], d, perfect); 
+        // center
+        bool p1 = perfect, p2 = perfect;
+        int c1 = midedge(v00, v11, R[d], d, p1);
+        int c2 = midedge(v01, v10, R[d], d, p2);
+        if(z ? c1 > c2 : c1 < c2)
         {
-            if(x==1 && y==1)        // center
-            {
-                int c1 = midedge(*v1[0][0], *v1[1][1], R[d], d, p1 = perfect);
-                int c2 = midedge(*v1[0][1], *v1[1][0], R[d], d, p2 = perfect);
-                e[x][y] = z ? max(c1,c2) : min(c1,c2);
-                perfect = e[x][y]==c1 ? p1 : p2;
-            }
-            else if(((x+y)&1)==0)   // corner
-                e[x][y] = (*v1[x>>1][y>>1])[d];
-            else                    // edge
-            {
-                int a = min(x, y), b = x&1;
-                e[x][y] = midedge(*v1[a][a], *v1[a^b][a^(1-b)], x==1?R[d]:C[d], d, perfect);
-            }
+            e[1][1] = c1;
+            perfect = p1 && (c1 == c2 || v00[C[d]] + v11[C[d]] == 16);
         }
+        else
+        {
+            e[1][1] = c2;
+            perfect = p2 && (c1 == c2 || v01[C[d]] + v10[C[d]] == 16);
+        }    
 
         loopi(8)
         {
-            ivec o(i);
             ch[i].texture[j] = c.texture[j];
-            loop(y, 2) loop(x, 2) // assign child edges
-            {
-                int ce = clamp(e[x+((i>>R[d])&1)][y+((i>>C[d])&1)] - ((i>>D[d])&1)*8, 0, 8);
-                edgeset(cubeedge(ch[i], d, x, y), z, ce);
-            }
+            int rd = (i>>R[d])&1, cd = (i>>C[d])&1, dd = (i>>D[d])&1;
+            edgeset(cubeedge(ch[i], d, 0, 0), z, clamp(e[rd][cd] - dd*8, 0, 8));
+            edgeset(cubeedge(ch[i], d, 1, 0), z, clamp(e[1+rd][cd] - dd*8, 0, 8));
+            edgeset(cubeedge(ch[i], d, 0, 1), z, clamp(e[rd][1+cd] - dd*8, 0, 8));
+            edgeset(cubeedge(ch[i], d, 1, 1), z, clamp(e[1+rd][1+cd] - dd*8, 0, 8));
         }
     }
 
-    validatec(ch, worldsize);
+    validatec(ch);
     if(fullcheck) loopi(8) if(!isvalidcube(ch[i])) // not so good...
     {
         emptyfaces(ch[i]);
@@ -1128,13 +1137,13 @@ void genclipplanes(cube &c, int x, int y, int z, int size, clipplanes &p)
     }
 }
 
-static int mergefacecmp(const cubeface *x, const cubeface *y)
+static inline bool mergefacecmp(const cubeface &x, const cubeface &y)
 {
-    if(x->v2 < y->v2) return -1;
-    if(x->v2 > y->v2) return 1;
-    if(x->u1 < y->u1) return -1;
-    if(x->u1 > y->u1) return 1;
-    return 0;
+    if(x.v2 < y.v2) return true;
+    if(x.v2 > y.v2) return false;
+    if(x.u1 < y.u1) return true;
+    if(x.u1 > y.u1) return false;
+    return false;
 }
 
 static int mergefacev(int orient, cubeface *m, int sz, cubeface &n)

@@ -119,6 +119,7 @@ static inline T clamp(T a, T b, T c)
 
 #define strcasecmp _stricmp
 #define PATHDIV '\\'
+
 #else
 #define __cdecl
 #define _vsnprintf vsnprintf
@@ -287,10 +288,91 @@ struct packetbuf : ucharbuf
 template<class T>
 static inline float heapscore(const T &n) { return n; }
 
-template<class T, class U>
-static inline void quicksort(T *buf, int n, int (__cdecl *func)(U *, U *))
+template<class T>
+static inline bool compareless(const T &x, const T &y) { return x < y; }
+
+template<class T, class F>
+static inline void insertionsort(T *start, T *end, F fun)
 {
-    qsort(buf, n, sizeof(T), (int (__cdecl *)(const void *,const void *))func);
+    for(T *i = start+1; i < end; i++)
+    {
+        if(fun(*i, i[-1]))
+        {
+            T tmp = *i;
+            *i = i[-1];
+            T *j = i-1;
+            for(; j > start && fun(tmp, j[-1]); --j)
+                *j = j[-1];
+            *j = tmp;
+        }
+    }
+
+}
+
+template<class T, class F>
+static inline void insertionsort(T *buf, int n, F fun)
+{
+    insertionsort(buf, buf+n, fun);
+}
+
+template<class T>
+static inline void insertionsort(T *buf, int n)
+{
+    insertionsort(buf, buf+n, compareless<T>);
+}
+
+template<class T, class F>
+static inline void quicksort(T *start, T *end, F fun)
+{
+    while(end-start > 10)
+    {
+        T *mid = &start[(end-start)/2], *i = start+1, *j = end-2, pivot;
+        if(fun(*start, *mid)) /* start < mid */
+        {
+            if(fun(end[-1], *start)) { pivot = *start; *start = end[-1]; end[-1] = *mid; } /* end < start < mid */
+            else if(fun(end[-1], *mid)) { pivot = end[-1]; end[-1] = *mid; } /* start <= end < mid */
+            else { pivot = *mid; } /* start < mid <= end */
+        }
+        else if(fun(*start, end[-1])) { pivot = *start; *start = *mid; } /*mid <= start < end */
+        else if(fun(*mid, end[-1])) { pivot = end[-1]; end[-1] = *start; *start = *mid; } /* mid < end <= start */
+        else { pivot = *mid; swap(*start, end[-1]); }  /* end <= mid <= start */
+        *mid = end[-2];
+        do
+        {
+            while(fun(*i, pivot)) if(++i >= j) goto partitioned;
+            while(fun(pivot, *--j)) if(i >= j) goto partitioned;
+            swap(*i, *j);
+        }
+        while(++i < j);
+    partitioned:
+        end[-2] = *i;
+        *i = pivot;
+
+        if(i-start < end-(i+1))
+        {
+            quicksort(start, i, fun);
+            start = i+1;
+        }
+        else
+        {
+            quicksort(i+1, end, fun);
+            end = i;
+        }
+    }
+
+    insertionsort(start, end, fun);
+}
+
+template<class T, class F>
+static inline void quicksort(T *buf, int n, F fun)
+{
+    quicksort(buf, buf+n, fun);
+}
+
+template<class T>
+static inline void quicksort(T *buf, int n)
+{
+    quicksort(buf, buf+n, compareless<T>);
 }
 
 template <class T> struct vector
@@ -380,11 +462,13 @@ template <class T> struct vector
     const T *getbuf() const { return buf; }
     bool inbuf(const T *e) const { return e >= buf && e < &buf[ulen]; }
 
-    template<class ST>
-    void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1) 
+    template<class F>
+    void sort(F fun, int i = 0, int n = -1) 
     { 
-        quicksort(&buf[i], n < 0 ? ulen : n, cf);
+        quicksort(&buf[i], n < 0 ? ulen-i : n, fun);
     }
+
+    void sort() { sort(compareless<T>); }
 
     void growbuf(int sz)
     {
@@ -920,12 +1004,22 @@ template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&isl
 
 struct stream
 {
+#ifdef WIN32
+#ifdef __GNUC__
+    typedef off64_t offset;
+#else
+    typedef __int64 offset;
+#endif
+#else
+    typedef off_t offset;
+#endif
+    
     virtual ~stream() {}
     virtual void close() = 0;
     virtual bool end() = 0;
-    virtual long tell() { return -1; }
-    virtual bool seek(long offset, int whence = SEEK_SET) { return false; }
-    virtual long size();
+    virtual offset tell() { return -1; }
+    virtual bool seek(offset pos, int whence = SEEK_SET) { return false; }
+    virtual offset size();
     virtual int read(void *buf, int len) { return 0; }
     virtual int write(const void *buf, int len) { return 0; }
     virtual int getchar() { uchar c; return read(&c, 1) == 1 ? c : -1; }

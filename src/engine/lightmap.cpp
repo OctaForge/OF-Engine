@@ -91,11 +91,18 @@ HVARFR(sunlight, 0, 0, 0xFFFFFF,
     setupsunlight();
 });
 FVARFR(sunlightscale, 0, 1, 16, setupsunlight());
-vec sunlightdir(0, 90*RAD);
+vec sunlightdir(0, 0, 1);
 extern void setsunlightdir();
 VARFR(sunlightyaw, 0, 0, 360, setsunlightdir());
 VARFR(sunlightpitch, -90, 90, 90, setsunlightdir());
-void setsunlightdir() { sunlightdir = vec(sunlightyaw*RAD, sunlightpitch*RAD); setupsunlight(); }
+
+void setsunlightdir() 
+{ 
+    sunlightdir = vec(sunlightyaw*RAD, sunlightpitch*RAD); 
+    loopk(3) if(fabs(sunlightdir[k]) < 1e-5f) sunlightdir[k] = 0;
+    sunlightdir.normalize();
+    setupsunlight(); 
+}
 
 entity sunlightent;
 void setupsunlight()
@@ -1208,7 +1215,7 @@ static int setupsurface(lightmapworker *w, plane planes[2], int numplanes, const
         if(area < carea) { carea = area; cx = px; cy = py; co = c[i]; cmin = pmin; cmax = pmax; }
     }
     int scale = int(min(cmax.x - cmin.x, cmax.y - cmin.y));
-    float lpu = 16.0f / float(scale < (1 << lightlod) ? lightprecision / 2 : lightprecision);
+    float lpu = 16.0f / float(lightlod && scale < (1 << lightlod) ? max(lightprecision / 2, 1) : lightprecision);
     w->w = clamp(int(ceil((cmax.x - cmin.x + 1)*lpu)), LM_MINW, LM_MAXW);
     w->h = clamp(int(ceil((cmax.y - cmin.y + 1)*lpu)), LM_MINH, LM_MAXH);
 
@@ -1308,8 +1315,10 @@ static lightmapinfo *setupsurfaces(lightmapworker *w, lightmaptask &task)
         Shader *shader = vslot.slot->shader;
         int shadertype = shader->type;
         if(layer) shadertype |= layer->slot->shader->type;
-        if(c.ext && c.ext->merges && !c.ext->merges[i].empty())
+        if(c.merged&(1<<i))
         {
+            if(!c.ext || !c.ext->merges || c.ext->merges[i].empty()) continue;
+
             const mergeinfo &m = c.ext->merges[i];
             ivec mo(co);
             genmergedverts(c, i, mo, size, m, v, planes);

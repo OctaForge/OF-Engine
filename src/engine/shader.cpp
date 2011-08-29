@@ -513,11 +513,9 @@ static inline void flushparam(int type, int index)
     }
 }
 
-static int sortparamversions(const GlobalShaderParamState **x, const GlobalShaderParamState **y)
+static inline bool sortparamversions(const GlobalShaderParamState *x, const GlobalShaderParamState *y)
 {
-    if((*x)->version < (*y)->version) return -1;
-    else if((*x)->version > (*y)->version) return 1;
-    else return 0;
+    return x->version < y->version;
 }
 
 static uint resetparamversions()

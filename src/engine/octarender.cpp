@@ -397,32 +397,32 @@ struct vacollect : verthash
         matsurfs.shrink(optimizematsurfs(matsurfs.getbuf(), matsurfs.length()));
     }
 
-    static int texsort(const sortkey *x, const sortkey *y)
+    static inline bool texsort(const sortkey &x, const sortkey &y)
     {
-        if(x->alpha < y->alpha) return -1;
-        if(x->alpha > y->alpha) return 1;
-        if(x->layer < y->layer) return -1;
-        if(x->layer > y->layer) return 1;
-        if(x->tex == y->tex) 
+        if(x.alpha < y.alpha) return true;
+        if(x.alpha > y.alpha) return false;
+        if(x.layer < y.layer) return true;
+        if(x.layer > y.layer) return false;
+        if(x.tex == y.tex) 
         {
-            if(x->lmid < y->lmid) return -1;
-            if(x->lmid > y->lmid) return 1;
-            if(x->envmap < y->envmap) return -1;
-            if(x->envmap > y->envmap) return 1;
-            if(x->dim < y->dim) return -1;
-            if(x->dim > y->dim) return 1;
-            return 0;
+            if(x.lmid < y.lmid) return true;
+            if(x.lmid > y.lmid) return false;
+            if(x.envmap < y.envmap) return true;
+            if(x.envmap > y.envmap) return false;
+            if(x.dim < y.dim) return true;
+            if(x.dim > y.dim) return false;
+            return false;
         }
         if(renderpath!=R_FIXEDFUNCTION)
         {
-            VSlot &xs = lookupvslot(x->tex, false), &ys = lookupvslot(y->tex, false);
-            if(xs.slot->shader < ys.slot->shader) return -1;
-            if(xs.slot->shader > ys.slot->shader) return 1;
-            if(xs.slot->params.length() < ys.slot->params.length()) return -1;
-            if(xs.slot->params.length() > ys.slot->params.length()) return 1;
+            VSlot &xs = lookupvslot(x.tex, false), &ys = lookupvslot(y.tex, false);
+            if(xs.slot->shader < ys.slot->shader) return true;
+            if(xs.slot->shader > ys.slot->shader) return false;
+            if(xs.slot->params.length() < ys.slot->params.length()) return true;
+            if(xs.slot->params.length() > ys.slot->params.length()) return false;
         }
-        if(x->tex < y->tex) return -1;
-        else return 1;
+        if(x.tex < y.tex) return true;
+        else return false;
     }
 
 #define GENVERTS(type, ptr, body) do \
@@ -906,8 +906,10 @@ void gencubeedges(cube &c, int x, int y, int z, int size)
     int vis;
     loopi(6) if((vis = visibletris(c, i, x, y, z, size)))
     {
-        if(c.ext && c.ext->merges && !c.ext->merges[i].empty())
+        if(c.merged&(1<<i))
         {
+            if(!c.ext || !c.ext->merges || c.ext->merges[i].empty()) continue;
+
             const mergeinfo &m = c.ext->merges[i];
             vec mv[4];
             genmergedverts(c, i, ivec(x, y, z), size, m, mv);

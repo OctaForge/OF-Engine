@@ -350,7 +350,7 @@ namespace game
         const char *ffa, *blueteam, *redteam, *hudguns,
                    *vwep, *quad, *armour[3],
                    *ffaicon, *blueicon, *redicon;
-        bool ragdoll, selectable;
+        bool ragdoll;
     };
 
     extern int playermodel, teamskins, testteam;

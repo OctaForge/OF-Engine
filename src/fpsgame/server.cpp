@@ -453,7 +453,7 @@ namespace server
     {
         logger::log(logger::INFO, "Server: Parsing packet, %d-%d\r\n", sender, chan);
 
-        if(sender<0) return;
+        if(sender<0 || p.packet->flags&ENET_PACKET_FLAG_UNSEQUENCED) return;
         if(chan==2) // Kripken: Channel 2 is, just like with the client, for file transfers
         {
             assert(0); // We do file transfers completely differently

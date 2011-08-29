@@ -996,6 +996,8 @@ struct ivec
     ivec &div(int n) { x /= n; y /= n; z /= n; return *this; }
     ivec &add(int n) { x += n; y += n; z += n; return *this; }
     ivec &sub(int n) { x -= n; y -= n; z -= n; return *this; }
+    ivec &mul(const ivec &v) { x *= v.x; y *= v.y; z *= v.z; return *this; }
+    ivec &div(const ivec &v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
     ivec &add(const ivec &v) { x += v.x; y += v.y; z += v.z; return *this; }
     ivec &sub(const ivec &v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
     ivec &mask(int n) { x &= n; y &= n; z &= n; return *this; }
@@ -1004,6 +1006,7 @@ struct ivec
     ivec &max(const ivec &o) { x = ::max(x, o.x); y = ::max(y, o.y); z = ::max(z, o.z); return *this; }
     ivec &min(int n) { x = ::min(x, n); y = ::min(y, n); z = ::min(z, n); return *this; }
     ivec &max(int n) { x = ::max(x, n); y = ::max(y, n); z = ::max(z, n); return *this; }
+    ivec &abs() { x = ::abs(x); y = ::abs(y); z = ::abs(z); return *this; }
     ivec &cross(const ivec &a, const ivec &b) { x = a.y*b.z-a.z*b.y; y = a.z*b.x-a.x*b.z; z = a.x*b.y-a.y*b.x; return *this; }
     int dot(const ivec &o) const { return x*o.x + y*o.y + z*o.z; }
     float dist(const plane &p) const { return x*p.x + y*p.y + z*p.z + p.offset; }

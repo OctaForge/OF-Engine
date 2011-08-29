@@ -451,12 +451,16 @@ struct animmodel : model
                          &tc1 = tcverts[t.vert[1]],
                          &tc2 = tcverts[t.vert[2]];
                 float u1 = tc1.u - tc0.u, v1 = tc1.v - tc0.v,
-                      u2 = tc2.u - tc0.u, v2 = tc2.v - tc0.v,
-                      scale = u1*v2 - u2*v1;
-                if(scale!=0) scale = 1.0f / scale;
-                vec u(e1), v(e2);
-                u.mul(v2).sub(vec(e2).mul(v1)).mul(scale);
-                v.mul(u1).sub(vec(e1).mul(u2)).mul(scale);
+                      u2 = tc2.u - tc0.u, v2 = tc2.v - tc0.v;
+                vec u(e2), v(e2);
+                u.mul(v1).sub(vec(e1).mul(v2));
+                v.mul(u1).sub(vec(e1).mul(u2));
+
+                if(vec().cross(e2, e1).dot(vec().cross(v, u)) < 0)
+                {
+                    u.neg();
+                    v.neg();
+                }
 
                 if(!areaweight)
                 {

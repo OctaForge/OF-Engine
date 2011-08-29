@@ -233,7 +233,7 @@ extern int familysize(cube &c);
 extern void freeocta(cube *c);
 extern void discardchildren(cube &c, bool fixtex = false, int depth = 0);
 extern void optiface(uchar *p, cube &c);
-extern void validatec(cube *c, int size);
+extern void validatec(cube *c, int size = 0);
 extern bool isvalidcube(cube &c);
 extern ivec lu;
 extern int lusize;

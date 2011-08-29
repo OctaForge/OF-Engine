@@ -232,6 +232,7 @@ void rdtri(int *v1, int *v2, int *v3)
 void rdjoint(int *n, int *t, char *v1, char *v2, char *v3)
 {
     checkragdoll;
+    if(*n < 0 || *n >= skel->numbones) return;
     ragdollskel::joint &j = ragdoll->joints.add();
     j.bone = *n;
     j.tri = *t;
@@ -523,11 +524,9 @@ struct transparentmodel
     float dist;
 };
 
-static int sorttransparentmodels(const transparentmodel *x, const transparentmodel *y)
+static inline bool sorttransparentmodels(const transparentmodel &x, const transparentmodel &y)
 {
-    if(x->dist > y->dist) return -1;
-    if(x->dist < y->dist) return 1;
-    return 0;
+    return x.dist < y.dist;
 }
 
 void endmodelbatches()
@@ -539,7 +538,7 @@ void endmodelbatches()
         if(b.batched.empty()) continue;
         if(b.flags&(MDL_SHADOW|MDL_DYNSHADOW))
         {
-            vec center, bbradius;
+            vec center(0, 0, 0), bbradius(0, 0, 0);
             b.m->boundbox(0/*frame*/, center, bbradius); // FIXME
             loopvj(b.batched)
             {

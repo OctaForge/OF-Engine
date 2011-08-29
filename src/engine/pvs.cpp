@@ -122,6 +122,8 @@ struct usvec
 
     ushort &operator[](int i) { return v[i]; }
     ushort operator[](int i) const { return v[i]; }
+
+    ivec toivec() const { return ivec(x, y, z); }
 };
 
 struct shaftbb
@@ -421,25 +423,64 @@ struct pvsworker
 
     ringbuf<shaftbb, 32> prevblockers;
 
+    struct cullorder
+    {
+        int index, dist;
+
+        cullorder() {}
+        cullorder(int index, int dist) : index(index), dist(dist) {}
+    };
+
     void cullpvs(pvsnode &p, const ivec &co = ivec(0, 0, 0), int size = worldsize)
     {
         if(p.flags&(PVS_HIDE_BB | PVS_HIDE_GEOM) || genpvs_canceled) return;
         if(p.children && !(p.flags&PVS_HIDE_BB))
         {
             pvsnode *children = &pvsnodes[p.children];
+            int csize = size>>1;
+            ivec dmin = ivec(co).add(csize>>1).sub(viewcellbb.min.toivec().add(viewcellbb.max.toivec()).shr(1)), dmax = ivec(dmin).add(csize);
+            dmin.mul(dmin);
+            dmax.mul(dmax);
+            ivec diff = ivec(dmax).sub(dmin);
+            cullorder order[8];
+            int dir = 0;
+            if(diff.x < 0) { diff.x = -diff.x; dir |= 1; }
+            if(diff.y < 0) { diff.y = -diff.y; dir |= 2; }
+            if(diff.z < 0) { diff.z = -diff.z; dir |= 4; }
+            order[0] = cullorder(0, 0);
+            order[7] = cullorder(7, diff.x + diff.y + diff.z);
+            order[1] = cullorder(1, diff.x);
+            order[2] = cullorder(2, diff.y);
+            order[3] = cullorder(4, diff.z);
+            if(order[2].dist < order[1].dist) swap(order[1], order[2]);
+            if(order[3].dist < order[2].dist) swap(order[2], order[3]);
+            if(order[2].dist < order[1].dist) swap(order[1], order[2]);
+            cullorder dxy(order[1].index|order[2].index, order[1].dist+order[2].dist),
+                      dxz(order[1].index|order[3].index, order[1].dist+order[3].dist),
+                      dyz(order[2].index|order[3].index, order[2].dist+order[3].dist);
+            int j;
+            for(j = 4; j > 0 && dxy.dist < order[j-1].dist; --j) order[j] = order[j-1]; order[j] = dxy;
+            for(j = 5; j > 0 && dxz.dist < order[j-1].dist; --j) order[j] = order[j-1]; order[j] = dxz;
+            for(j = 6; j > 0 && dyz.dist < order[j-1].dist; --j) order[j] = order[j-1]; order[j] = dyz;
             loopi(8)
             {
-                ivec o(i, co.x, co.y, co.z, size>>1);
-                cullpvs(children[i], o, size>>1);
+                int index = order[i].index^dir;
+                ivec o(index, co.x, co.y, co.z, csize);
+                cullpvs(children[index], o, csize);
             }
             if(!(p.flags & PVS_HIDE_BB)) return;
         }
         bvec edges = p.children ? bvec(0x80, 0x80, 0x80) : p.edges;
         if(edges.x==0xFF) return;
         shaftbb geom(co, size, edges);
+        ivec diff = geom.max.toivec().sub(viewcellbb.min.toivec()).abs();
+        cullorder order[3] = { cullorder(0, diff.x), cullorder(1, diff.y), cullorder(2, diff.z) };
+        if(order[1].dist > order[0].dist) swap(order[0], order[1]);
+        if(order[2].dist > order[1].dist) swap(order[1], order[2]);
+        if(order[1].dist > order[0].dist) swap(order[0], order[1]);
         loopi(6)
         {
-            int dim = dimension(i), dc = dimcoord(i), r = R[dim], c = C[dim];
+            int dim = order[i >= 3 ? i-3 : i].index, dc = (i >= 3) != (geom.max[dim] <= viewcellbb.min[dim]) ? 1 : 0, r = R[dim], c = C[dim];
             int ccenter = geom.min[c];
             if(geom.min[r]==geom.max[r] || geom.min[c]==geom.max[c]) continue;
             while(ccenter < geom.max[c])
