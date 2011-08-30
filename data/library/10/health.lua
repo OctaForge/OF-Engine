@@ -214,7 +214,8 @@ deadly_area_trigger_plugin = {
 deadly_area = entity_classes.register(
     plugins.bake(
         entity_static.area_trigger,
-        { deadly_area_trigger_plugin, { _class = "deadly_area" } }
+        { deadly_area_trigger_plugin },
+        "deadly_area"
     ),
     "mapmodel"
 )

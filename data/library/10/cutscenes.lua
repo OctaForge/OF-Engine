@@ -171,7 +171,6 @@ end
 -- cutscene controller
 entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
-        _class     = "cutscene_controller",
         should_act = true,
         factor     = 4 / 3,
         started    = false,
@@ -382,13 +381,12 @@ entity_classes.register(
                 end
             end
         end
-    }}), "playerstart"
+    }}, "cutscene_controller"), "playerstart"
 )
 
 -- cutscene position marker
 entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
-        _class     = "cutscene_marker",
         should_act = true,
 
         properties = {
@@ -449,13 +447,12 @@ entity_classes.register(
                 0, 0x22BBFF, 0.3
             )
         end
-    }}), "playerstart"
+    }}, "cutscene_marker"), "playerstart"
 )
 
 -- cutscene subtitle marker
 entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
-        _class     = "cutscene_subtitle",
         should_act = true,
 
         properties = {
@@ -525,13 +522,12 @@ entity_classes.register(
                 show_distance("ctl_" .. arr[2], self, 0xFF2222, seconds)
             end
         end
-    }}), "playerstart"
+    }}, "cutscene_subtitle"), "playerstart"
 )
 
 -- cutscene base action
 entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
-        _class     = "cutscene_base_action",
         should_act = true,
 
         properties = {
@@ -613,13 +609,12 @@ entity_classes.register(
                 end
             end
         })
-    }}), "playerstart"
+    }}, "cutscene_base_action"), "playerstart"
 )
 
 -- cutscene action marker
 entity_classes.register(
     plugins.bake(entity_static.world_marker, {{
-        _class     = "cutscene_action",
         should_act = true,
 
         client_activate = function(self)
@@ -654,5 +649,5 @@ entity_classes.register(
         action = {
             -- extend with do_start, do_execute, do_finish, don't forget to call parent
         }
-    }}), "playerstart"
+    }}, "cutscene_action"), "playerstart"
 )

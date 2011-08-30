@@ -46,7 +46,7 @@ class_storage = {}
 ]]
 function register(class, sauer_type)
     -- get the class name
-    local class_name = class._class
+    local class_name = class.name
 
     logging.log(logging.DEBUG, "registering LE class: " .. class_name)
 
@@ -56,7 +56,7 @@ function register(class, sauer_type)
     -- store in class_storage, assert non-existance
     assert(
         not class_storage[class_name],
-        "must not exist already, ensure each class has a different _class."
+        "must not exist already, ensure each class has a different name."
     )
     class_storage[class_name] = { class, sauer_type }
 

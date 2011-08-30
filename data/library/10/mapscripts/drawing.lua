@@ -26,8 +26,6 @@ entity_classes.register(plugins.bake(
         projectiles.plugin,
         chaingun.chaingun.plugin,
         {
-            _class = "game_player",
-
             properties = {
                 new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
             },
@@ -125,7 +123,7 @@ entity_classes.register(plugins.bake(
                 end
             end
         }
-    }
+    }, "game_player"
 ), "fpsent")
 
 -- set up a chaingun (non-projectile, repeating)

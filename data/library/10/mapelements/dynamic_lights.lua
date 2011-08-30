@@ -1,8 +1,6 @@
 module("dynamic_lights", package.seeall)
 
 dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker, {{
-    _class = "dynamic_light",
-
     should_act = { client = true },
     properties = {
         attr1 = state_variables.state_integer({ gui_name = "radius", alt_name = "radius" }),
@@ -37,11 +35,9 @@ dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker,
     client_act = function(self, seconds)
         self:dynamic_light_show(seconds)
     end
-}}), "playerstart")
+}}, "dynamic_light"), "playerstart")
 
 entity_classes.register(plugins.bake(dynamic_light, {{
-    _class = "flickering_dynamic_light",
-
     properties = {
         probability = state_variables.state_float(),
         min_delay   = state_variables.state_float(),
@@ -74,4 +70,4 @@ entity_classes.register(plugins.bake(dynamic_light, {{
             end
         end
     end
-}}), "playerstart")
+}}, "flickering_dynamic_light"), "playerstart")

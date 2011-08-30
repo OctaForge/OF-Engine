@@ -1,7 +1,6 @@
 module("detection_areas", package.seeall)
 
 plugin = {
-    _class         = "detection_area",
     detection_area = true,
 
     check = function(self, position)
@@ -33,4 +32,4 @@ function check(position, tag)
     return false
 end
 
-entity_classes.register(plugins.bake(entity_static.area_trigger, { plugin }), "mapmodel")
+entity_classes.register(plugins.bake(entity_static.area_trigger, { plugin }, "detection_area"), "mapmodel")

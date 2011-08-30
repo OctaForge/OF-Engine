@@ -1,8 +1,6 @@
 module("jump_pad", package.seeall)
 
 plugin = {
-    _class = "jump_pad",
-
     properties = {
         jump_velocity = state_variables.state_vec3(),
         pad_model  = state_variables.state_string(),
@@ -76,7 +74,8 @@ plugin = {
 entity_classes.register(
     plugins.bake(
         entity_static.area_trigger,
-        { plugin }
+        { plugin },
+        "jump_pad"
     ),
     "mapmodel"
 )

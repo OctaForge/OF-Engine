@@ -106,13 +106,6 @@ PHYSICAL_STATE = {
 ]]
 character = class.new(entity_animated.base_animated, {
     --[[!
-        Variable: _class
-        The entity class for character. Its value is usually
-        the same as class name, but doesn't have to be.
-    ]]
-    _class = "character",
-
-    --[[!
         Variable: sauer_type
         The sauer type of the entity, fpsent
         is a dynamic character entity in sauer.
@@ -720,7 +713,7 @@ character = class.new(entity_animated.base_animated, {
     get_targeting_origin = function(self, origin)
         return origin
     end
-})
+}, "character")
 
 --[[!
     Class: player
@@ -739,13 +732,6 @@ character = class.new(entity_animated.base_animated, {
         <character>
 ]]
 player = class.new(character, {
-    --[[!
-        Variable: _class
-        The entity class for player. Its value is usually
-        the same as class name, but doesn't have to be.
-    ]]
-    _class = "player",
-
     properties = {
         can_edit = state_variables.state_bool(),
         hud_model_name = state_variables.state_string()
@@ -771,7 +757,7 @@ player = class.new(character, {
         self.can_edit       = false
         self.hud_model_name = ""
     end
-})
+}, "player")
 
 entity_classes.register(character, "fpsent")
 entity_classes.register(player, "fpsent")

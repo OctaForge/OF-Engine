@@ -3,9 +3,7 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = class.new(character.player)
--- Set a class for storage lookup
-myplayer._class = "myplayer"
+myplayer = class.new(character.player, "myplayer")
 
 -- Called right after initialization on client
 function myplayer:client_activate(kwargs)

@@ -32,10 +32,6 @@ module("entity_animated", package.seeall)
         attachments - model attachments for the entity.
 ]]
 base_animated = class.new(entity.base, {
-    --! Variable: _class
-    --! See <base_root._class>
-    _class = "base_animated",
-
     properties = {
         animation      = state_variables.wrapped_c_integer({
             c_setter   = "CAPI.setanim",
@@ -158,7 +154,7 @@ base_animated = class.new(entity.base, {
         used just for the new getter done in <general_setup> work.
     ]]
     get_center = function(self) end
-})
+}, "base_animated")
 
 --[[!
     Class: action_local_animation

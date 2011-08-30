@@ -184,8 +184,6 @@ end
 axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger, {
     world_areas.plugin,
     {
-        _class = "axis_switcher",
-
         properties = {
             platform_axises = state_variables.state_array(),
             platform_camera_axises = state_variables.state_array()
@@ -221,4 +219,4 @@ axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger,
             logging.log(logging.ERROR, "did not find player axis to flip, %(1)s" % { player.platform_axis })
         end
     }
-}), "mapmodel")
+}, "axis_switcher"), "mapmodel")

@@ -729,6 +729,12 @@ md5 = {
             0, 10 FPS is the default.
             priority - optional argument specifying a priority for
             the animation (defaults to 0).
+            start - an optional start frame offset within the animation,
+            where a positive values is an offset from the first frame,
+            and a negative value is an offset from end.
+            end - an optional animation length in frames, where positive
+            values specify the length, or negative values merely subtract
+            off from the length.
 
         Animation names:
             - dying

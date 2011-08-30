@@ -39,10 +39,6 @@ module("entity_static", package.seeall)
         attr4 - fourth sauer entity property.
 ]]
 base_static = class.new(entity_animated.base_animated, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "base_static",
-
     --! Variable: should_act
     --! See <base_root.should_act>.
     should_act = false,
@@ -326,7 +322,7 @@ base_static = class.new(entity_animated.base_animated, {
         r.z = r.z + self.radius
         return r
     end
-})
+}, "base_static")
 
 --[[!
     Class: light
@@ -339,10 +335,6 @@ base_static = class.new(entity_animated.base_animated, {
         attr4 - blue value (0 to 255, alias "blue")
 ]]
 light = class.new(base_static, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "light",
-
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 1,
@@ -390,7 +382,7 @@ light = class.new(base_static, {
         self.green = 128
         self.blue = 128
     end
-})
+}, "light")
 
 --[[!
     Class: spotlight
@@ -400,10 +392,6 @@ light = class.new(base_static, {
     and 0 simply a line.
 ]]
 spotlight = class.new(base_static, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "spotlight",
-
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 7,
@@ -424,7 +412,7 @@ spotlight = class.new(base_static, {
         base_static.init(self, uid, kwargs)
         self.radius = 90
     end
-})
+}, "spotlight")
 
 --[[!
     Class: envmap
@@ -436,10 +424,6 @@ spotlight = class.new(base_static, {
     It has just one own property, and that is attr1 (alias "radius").
 ]]
 envmap = class.new(base_static, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "envmap",
-
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 4,
@@ -460,7 +444,7 @@ envmap = class.new(base_static, {
         base_static.init(self, uid, kwargs)
         self.radius = 128
     end
-})
+}, "envmap")
 
 --[[!
     Class: ambient_sound
@@ -475,10 +459,6 @@ envmap = class.new(base_static, {
         sound_name - path to the sound in data/sounds.
 ]]
 ambient_sound = class.new(base_static, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "ambient_sound",
-
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 6,
@@ -522,7 +502,7 @@ ambient_sound = class.new(base_static, {
         if not self.volume then self.volume = 100 end
         self.sound_name = ""
     end
-})
+}, "ambient_sound")
 
 --[[!
     Class: particle_effect
@@ -618,10 +598,6 @@ ambient_sound = class.new(base_static, {
         shimmer - if 1, the glow particle will "shimmer" (usable on i.e. fire).
 ]]
 particle_effect = class.new(base_static, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "particle_effect",
-
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 5,
@@ -668,7 +644,7 @@ particle_effect = class.new(base_static, {
         self.value2 = 0
         self.value3 = 0
     end
-})
+}, "particle_effect")
 
 --[[!
     Class: mapmodel
@@ -682,10 +658,6 @@ particle_effect = class.new(base_static, {
         collision_radius_height - see above.
 ]]
 mapmodel = class.new(base_static, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "mapmodel",
-
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 2,
@@ -767,7 +739,7 @@ mapmodel = class.new(base_static, {
             return base_static.get_center(self)
         end
     end
-})
+}, "mapmodel")
 
 --[[!
     Class: area_trigger
@@ -780,10 +752,6 @@ mapmodel = class.new(base_static, {
         client_function - clientside variant of server_function.
 ]]
 area_trigger = class.new(mapmodel, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "area_trigger",
-
     properties = {
         server_function = state_variables.state_string(),
         client_function = state_variables.state_string(),
@@ -827,7 +795,7 @@ area_trigger = class.new(mapmodel, {
             _G[self.client_function](collider)
         end
     end
-})
+}, "area_trigger")
 
 --[[!
     Class: resettable_area_trigger
@@ -841,10 +809,6 @@ area_trigger = class.new(mapmodel, {
     and triggering.
 ]]
 resettable_area_trigger = class.new(area_trigger, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "resettable_area_trigger",
-
     --! Function: activate
     --! See <base_static.activate>. Calls <reset>.
     activate = function(self, kwargs)
@@ -967,7 +931,7 @@ resettable_area_trigger = class.new(area_trigger, {
     ]]
     client_on_trigger = function(self, collider)
     end
-})
+}, "resettable_area_trigger")
 
 --[[!
     Class: world_marker
@@ -983,10 +947,6 @@ resettable_area_trigger = class.new(area_trigger, {
         attr1 - marker yaw, alias "yaw".
 ]]
 world_marker = class.new(base_static, {
-    --! Variable: _class
-    --! See <base_root._class>.
-    _class = "world_marker",
-
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 3,
@@ -1012,7 +972,7 @@ world_marker = class.new(base_static, {
         entity.position = self.position
         entity.yaw      = self.yaw
     end
-})
+}, "world_marker")
 
 -- register all the entities
 entity_classes.register(base_static, "mapmodel")

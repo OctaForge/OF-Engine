@@ -41,13 +41,14 @@ local __MODULAR_PREFIX = "__MODULAR_"
     <slots>, it simply overrides the old one.
 
     Parameters:
-        _class - The class to merge plugins into.
-        plugins - Array of plugins to bake in.
+        _class - the class to merge plugins into.
+        plugins - array of plugins to bake in.
+        name - name of the new class (see <class.new>).
 
     Returns:
         A new class with the items baked inside.
 ]]
-function bake(_class, plugins)
+function bake(_class, plugins, name)
     local cldata     = {}
     local properties = {}
 
@@ -82,7 +83,7 @@ function bake(_class, plugins)
 
     for i, slot in pairs(slots) do
         local old = _class[slot]
-        assert(not _class[__MODULAR_PREFIX .. _class._class .. slot])
+        assert(not _class[__MODULAR_PREFIX .. _class.name .. slot])
 
         local callees = {}
         if old then
@@ -99,9 +100,9 @@ function bake(_class, plugins)
         skip = #callees == 0 and true or false
         skip = #callees == 1 and callees[1] == old and true or false
         if not skip then
-            cldata[__MODULAR_PREFIX .. _class._class .. slot] = callees
+            cldata[__MODULAR_PREFIX .. _class.name .. slot] = callees
             cldata[slot] = function(self, ...)
-                local callees = self[__MODULAR_PREFIX .. _class._class .. slot]
+                local callees = self[__MODULAR_PREFIX .. _class.name .. slot]
                 for i = 1, #callees do
                     callees[i](self, ...)
                 end
@@ -126,7 +127,7 @@ function bake(_class, plugins)
         end
     end
 
-    local newclass = class.new(_class, cldata)
+    local newclass = class.new(_class, cldata, name)
     newclass.properties = properties
 
     return newclass

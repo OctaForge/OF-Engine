@@ -34,7 +34,6 @@ function setup(plugins_add)
             entity.base,
             table.merge_arrays(
                 {{
-                    _class     = "game_manager",
                     properties = {
                         team_data = state_variables.state_json()
                     },
@@ -198,7 +197,8 @@ function setup(plugins_add)
                     set_local_animation = function(self) end -- just so it can fake being animated by actions
                 }},
                 plugins_add
-            )
+            ),
+            "game_manager"
         )
     )
 

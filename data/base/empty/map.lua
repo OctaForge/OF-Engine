@@ -45,12 +45,11 @@ entity_classes.register(plugins.bake(
     character.player, {
         health.plugin,
         {
-            _class = "bot_player",
-            init   = function(self)
+            init = function(self)
                 self.model_name = "player"
             end
         }
-    }
+    }, "bot_player"
 ), "fpsent")
 ]]
 
