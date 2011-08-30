@@ -57,11 +57,13 @@
         the position where the click occured, fourth one being the entity on
         which it occured, fifth one being X position where click occured
         (from 0 to 1) and sixth one being Y position where click occured
-        (again, 0 to 1).
+        (again, 0 to 1). You can also override this per-entity, see
+        <base_client.client_click>.
 
     click:
-        Same as client_click, but serverside.
-        Doesn't take last two x, y arguments.
+        Same as client_click, but serverside. Doesn't take the last
+        two x, y arguments. You can also override this per-entity,
+        see <base_server.click>.
 ]]
 module("input", package.seeall)
 

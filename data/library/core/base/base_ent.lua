@@ -683,6 +683,27 @@ base_client = class.new(base_root, {
         )
 
         self.action_system:manage(seconds)
+    end,
+
+    --[[!
+        Function: client_click
+        Called clientside when some client clicks on the entity.
+        See <input> and its global client_click function documentation
+        and also <base_server.click>. Please note that this gets called
+        by default only when global client_click is not overriden. If
+        you want to call it and override global client_click at once,
+        you'll have to do it manually by placing a bit of code in the
+        beginning of your global client_click function.
+
+        (start code)
+            if  ent and ent.client_click then
+                ent:client_click(button, down, position, x, y)
+            end
+        (end)
+
+        This by default does nothing.
+    ]]
+    client_click = function(self, button, down, position, x, y)
     end
 })
 
@@ -1081,6 +1102,27 @@ base_server = class.new(base_root, {
         end
 
         self._queued_sv_changes_complete = true
+    end,
+
+    --[[!
+        Function: click
+        Called serverside when some client clicks on the entity.
+        See <input> and its global click function documentation
+        and also <base_client.client_click>. Please note that
+        this gets called by default only when global click is
+        not overriden. If you want to call it and override global
+        click at once, you'll have to do it manually by placing a
+        bit of code in the beginning of your global click function.
+
+        (start code)
+            if  ent and ent.click then
+                ent:click(button, down, position)
+            end
+        (end)
+
+        This by default does nothing.
+    ]]
+    click = function(self, button, down, position)
     end
 })
 
