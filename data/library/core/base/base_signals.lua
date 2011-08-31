@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_signals.lua
+    File: library/core/base/base_signals.lua
 
     About: Author
         q66 <quaker66@gmail.com>

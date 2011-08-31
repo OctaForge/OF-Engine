@@ -1,5 +1,5 @@
 --[[!
-    File: tgui/interface.lua
+    File: library/core/tgui/interface.lua
 
     About: Author
         q66 <quaker66@gmail.com>

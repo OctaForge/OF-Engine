@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_character.lua
+    File: library/core/base/base_character.lua
 
     About: Author
         q66 <quaker66@gmail.com>

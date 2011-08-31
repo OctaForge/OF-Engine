@@ -20,7 +20,7 @@ library.include("guns.chaingun")
 library.include("guns.rocket_launcher")
 
 -- rain
-library.include("custom_effect")
+library.include("weather_effects")
 
 -- default skybox
 skybox = "textures/sky/remus/sky01"

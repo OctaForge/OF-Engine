@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_ent_classes.lua
+    File: library/core/base/base_ent_classes.lua
 
     About: Author
         q66 <quaker66@gmail.com>

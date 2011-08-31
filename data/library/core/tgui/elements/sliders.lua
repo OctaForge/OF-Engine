@@ -1,5 +1,5 @@
 --[[!
-    File: tgui/elements/sliders.lua
+    File: library/core/tgui/elements/sliders.lua
 
     About: Author
         q66 <quaker66@gmail.com>

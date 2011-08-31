@@ -1,5 +1,5 @@
 --[[!
-    File: tgui/elements/scrollers.lua
+    File: library/core/tgui/elements/scrollers.lua
 
     About: Author
         q66 <quaker66@gmail.com>

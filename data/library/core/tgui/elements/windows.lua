@@ -1,5 +1,5 @@
 --[[!
-    File: tgui/elements/windows.lua
+    File: library/core/tgui/elements/windows.lua
 
     About: Author
         q66 <quaker66@gmail.com>

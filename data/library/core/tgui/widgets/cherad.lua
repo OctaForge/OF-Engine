@@ -1,5 +1,5 @@
 --[[!
-    File: tgui/widgets/cherad.lua
+    File: library/core/tgui/widgets/cherad.lua
 
     About: Author
         q66 <quaker66@gmail.com>

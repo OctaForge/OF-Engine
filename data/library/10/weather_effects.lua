@@ -1,9 +1,68 @@
-module("custom_effect", package.seeall)
+--[[!
+    File: library/10/weather_effects.lua
 
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2011 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        Weather effects for OctaForge. Currently features rain.
+]]
+
+--[[!
+    Package: weather_effects
+    This module is meant to provide various weather effects like rain,
+    snow etc., currently rain is provided. Can be used in more complex
+    modules later.
+]]
+module("weather_effects", package.seeall)
+
+--[[!
+    Class: rain
+    Rain effect. Fully customizable. Use <start> to begin.
+]]
 rain = {
     drops = {},
 
+    --[[!
+        Function: start
+        Starts a rain effect. Use like this:
+
+        (start code)
+            weather_effects.rain:start(PARAMETERS)
+        (end)
+
+        Parameters:
+            kwargs - an optional argument. It's an associative table supplying
+            various additional parameters to adjust the rain effect.
+
+        Kwargs:
+            radius - the radius around the player the rain will take effect
+            in. Defaults to 200, which is mostly satisfactory.
+            frequency - the rain frequency. Defaults to 0.1.
+            spawn_at_once - maximal amount of raindrops that can spawn at
+            once, defaults to 400.
+            max_amount - maximal amount of raindrops that can spawn, defaults
+            to 2000.
+            x_tilt - specifies by how much to tilt the raindrops to create
+            a wind effect on them. Defaults to 0.
+            y_tilt - see above.
+            drop_color - hex number specifying the raindrop color. Defaults
+            to 0xBDBDBD
+            splash_color - hex number specifying the color of the splash
+            that appears on the ground when the raindrop hits it. Defaults
+            to 0xCCDDFF.
+            speed - raindrop speed, defaults to 1300.
+            size - raindrop size, defaults to 15.
+            thickness - raindrop thickness, defaults to 0.05.
+    ]]
     start = function(self, kwargs)
+        -- default values for kwargs
         kwargs = kwargs or {}
         kwargs.radius        = kwargs.radius        or 200
         kwargs.frequency     = kwargs.frequency     or 0.1
@@ -17,11 +76,19 @@ rain = {
         kwargs.size          = kwargs.size          or 15
         kwargs.thickness     = kwargs.thickness     or 0.05
 
+        -- clears up the drops - there is a possibility previous rain
+        -- was started already, clear up its stuff
         self.drops = {}
 
+        -- world size
         local wsize = world.get_size()
 
-        self.add_drop_event = game_manager.get_singleton().event_manager:add({
+        -- the game manager singleton
+        local singleton = game_manager.get_singleton()
+
+        -- add drop event - the one that has no visible effect, adds a
+        -- raindrop to the storage with the right parameters
+        self.add_drop_event = singleton.event_manager:add({
             seconds_before  = 0,
             seconds_between = kwargs.frequency,
             func = function(_self)
@@ -38,8 +105,14 @@ rain = {
                     amount = max_amount - #self.drops
                 end
                 for i = 1, amount do
-                    local origin = math.vec3(lx + math.random() * dx, ly + math.random() * dy, wsize)
-                    local floor_dist = math.get_floor_distance(origin, wsize * 2)
+                    local origin = math.vec3(
+                        lx + math.random() * dx,
+                        ly + math.random() * dy,
+                        wsize
+                    )
+                    local floor_dist = math.get_floor_distance(
+                        origin, wsize * 2
+                    )
                     if floor_dist < 0 then floor_dist = wsize end
                     table.insert(self.drops, {
                         position = origin,
@@ -49,7 +122,9 @@ rain = {
             end
         }, self.add_drop_event)
 
-        self.visual_effect_event = game_manager.get_singleton().event_manager:add({
+        -- the visual effect, loops the drops, shows some and filters
+        -- them out
+        self.visual_effect_event = singleton.event_manager:add({
             seconds_before = 0,
             seconds_between = 0,
             func = function(_self)

@@ -1,5 +1,5 @@
 --[[!
-    File: language/mod_math.lua
+    File: library/core/language/mod_math.lua
 
     About: Author
         q66 <quaker66@gmail.com>

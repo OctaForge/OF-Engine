@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_ent_anim.lua
+    File: library/core/base/base_ent_anim.lua
 
     About: Author
         q66 <quaker66@gmail.com>
