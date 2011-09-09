@@ -220,7 +220,7 @@ namespace lua_binds
     LUA_BIND_DEF(get_map_preview_filename, {
         char buf [512];
         char buff[512];
-        snprintf(buf, sizeof(buf), "data%cbase%c%s%cpreview.png", PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV);
+        snprintf(buf, sizeof(buf), "data%cmaps%c%s%cpreview.png", PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV);
         if (fileexists(buf, "r"))
         {
             e.push(buf);
@@ -245,7 +245,7 @@ namespace lua_binds
 
         char buf [512];
         char buff[512];
-        snprintf(buf,  sizeof(buf),  "data%cbase", PATHDIV);
+        snprintf(buf,  sizeof(buf),  "data%cmaps", PATHDIV);
         snprintf(buff, sizeof(buff), "%s%s", homedir, buf);
 
         e.t_new();

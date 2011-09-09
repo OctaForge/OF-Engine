@@ -46,11 +46,11 @@ void getmapfilenames(const char *fname, const char *cname, char *pakname, char *
     }
     else
     {
-        copystring(pakname, "base");
+        copystring(pakname, "maps");
         copystring(cfgname, name);
     }
     if(strpbrk(fname, "/\\")) copystring(mapname, fname);
-    else formatstring(mapname)("base/%s", fname);
+    else formatstring(mapname)("maps/%s", fname);
     cutogz(mapname);
 }
 

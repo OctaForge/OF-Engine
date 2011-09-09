@@ -87,7 +87,7 @@ namespace local_server
 
         snprintf(
             buf, sizeof(buf),
-            "%s -g%s -mbase/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
+            "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
 #ifdef WIN32
             "run_server.bat",
 #else
