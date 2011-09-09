@@ -2534,6 +2534,11 @@ namespace gui
 
     void setup()
     {
+        if (world_inst)
+        {
+            delete world_inst;
+            build.deletecontents();
+        }
         world_inst = new world;
     }
 

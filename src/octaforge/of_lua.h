@@ -95,7 +95,8 @@ namespace lua
          * Automatically done from destructor if needed.
          * @see Create()
          */
-        int destroy();
+        int  destroy();
+        void reset  ();
         /**
          * @brief Is the state handler allocated?
          * @return True if state handler is allocated, otherwise false.

@@ -105,13 +105,8 @@ namespace world
 
     bool set_map(const char *id)
     {
-        const char *old_scenario_code = scenario_code;
-        if (old_scenario_code)
-        {
-            while (!strcmp(old_scenario_code, scenario_code))
-                scenario_code = generate_scenario_code();
-        }
-        else scenario_code = generate_scenario_code();
+        /* TODO: remove uuid, replace with something more random */
+        scenario_code = generate_scenario_code();
 
 #ifdef SERVER
         send_PrepareForNewScenario(-1, scenario_code);

@@ -351,7 +351,7 @@ void CLogicEntity::noteActualRender()
 
 LogicSystem::LogicEntityMap LogicSystem::logicEntities;
 
-void LogicSystem::clear()
+void LogicSystem::clear(bool restart_lua)
 {
     logger::log(logger::DEBUG, "clear()ing LogicSystem\r\n");
     INDENT_LOG(logger::DEBUG);
@@ -361,7 +361,7 @@ void LogicSystem::clear()
         engine.getg("entity_store").t_getraw("del_all").call(0, 0).pop(1);
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
-        //engine.destroy();
+        if (restart_lua) engine.reset();
     }
 }
 

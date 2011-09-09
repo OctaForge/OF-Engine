@@ -1,127 +1,131 @@
 module("events", package.seeall)
 
-repeating_timer = class.new()
-function repeating_timer:__tostring()
-    return string.format("repeating_timer: %s %s %s",
-                         tostring(self.interval),
-                         tostring(self.carryover),
-                         tostring(self.sum))
-end
+repeating_timer = class.new(nil, {
+    __tostring = function(self)
+        return string.format(
+            "repeating_timer: %s %s %s",
+            tostring(self.interval),
+            tostring(self.carry_over),
+            tostring(self.sum)
+        )
+    end,
 
-function repeating_timer:__init(i, c)
-    self.interval = i
-    self.carryover = c or false
-    self.sum = 0
-end
+    __init = function(self, interval, carry_over)
+        self.interval   = interval
+        self.carry_over = carry_over or false
+        self.sum        = 0
+    end,
 
-function repeating_timer:tick(s)
-    self.sum = self.sum + s
-    if self.sum >= self.interval then
-        if not self.carryover then
-            self.sum = 0
+    tick = function(self, seconds)
+        self.sum = self.sum + seconds
+
+        if  self.sum >= self.interval then
+            self.sum  = self.carry_over
+                and (self.sum - self.interval)
+                or 0
+            return true
         else
-            self.sum = self.sum - self.interval
+            return false
         end
-        return true
-    else
-        return false
-    end
-end
+    end,
 
-function repeating_timer:prime()
-    self.sum = self.interval
-end
+    prime = function(self)
+        self.sum = self.interval
+    end
+}, "repeating_timer")
 
 -- action that can queue more actions on itself, which run on its actor,
 -- finishes when both this action an all subactions are done.
-action_container = class.new(actions.action, nil, "action_container")
+action_container = class.new(actions.action, {
+    __init = function(self, other_actions, kwargs)
+        actions.action.__init(self, kwargs)
+        self.other_actions = other_actions
+    end,
 
-function action_container:__init(other_actions, kwargs)
-    actions.action.__init(self, kwargs)
-    self.other_actions = other_actions
-end
+    do_start = function(self)
+        self.action_system = actions.action_system(self.actor)
 
-function action_container:do_start()
-    self.action_system = actions.action_system(self.actor)
+        for k, other_action in pairs(self.other_actions) do
+            self.action_system:queue(other_action)
+        end
+    end,
 
-    for k, other_action in pairs(self.other_actions) do
-        self.action_system:queue(other_action)
+    do_execute = function(self, seconds)
+        self.action_system:manage(seconds)
+        return actions.action.do_execute(self, seconds)
+           and self.action_system:is_empty()
+    end,
+
+    do_finish = function(self)
+        if not self.action_system:is_empty()
+           and self.action_system.action_list[1].begun then
+            self.action_system.action_list[1]:finish()
+        end
+    end,
+
+    cancel = function(self)
+        self.action_system:clear()
+        self.action_system:manage(0.01)
+        self:finish()
     end
-end
-
-function action_container:do_execute(seconds)
-    self.action_system:manage(seconds)
-    return actions.action.do_execute(self, seconds)
-       and self.action_system:is_empty()
-end
-
-function action_container:do_finish()
-    if not self.action_system:is_empty() and self.action_system.action_list[1].begun then
-        self.action_system.action_list[1]:finish()
-    end
-end
-
-function action_container:cancel()
-    self.action_system:clear()
-    self.action_system:manage(0.01)
-    self:finish()
-end
+}, "action_container")
 
 -- like action_container, but runs actions in parallel - finishes when all are done
-action_parallel = class.new(actions.action, nil, "action_parallel")
-action_parallel.cancellable = false
+action_parallel = class.new(actions.action, {
+    cancellable = false,
 
-function action_parallel:__init(other_actions, kwargs)
-    actions.action.__init(self, kwargs)
-    self.action_systems = {}
-    self.other_actions  = other_actions
-end
+    __init = function(self, other_actions, kwargs)
+        actions.action.__init(self, kwargs)
+        self.action_systems = {}
+        self.other_actions  = other_actions
+    end,
 
-function action_parallel:do_start()
-    for k, other_action in pairs(self.other_actions) do
-        self:add_action(other_action)
-    end
-end
-
-function action_parallel:do_execute(seconds)
-    self.action_systems = table.filter_dict(
-        self.action_systems,
-        function(i, action_system)
-            action_system:manage(seconds)
-            return (not action_system:is_empty())
+    do_start = function(self)
+        for k, other_action in pairs(self.other_actions) do
+            self:add_action(other_action)
         end
-    )
-    return actions.action.do_execute(self, seconds)
-     and (#self.action_systems == 0)
-end
+    end,
 
-function action_parallel:do_finish()
-    for k, action_system in pairs(self.action_systems) do
-        action_system:clear()
+    do_execute = function(self, seconds)
+        self.action_systems = table.filter_dict(
+            self.action_systems,
+            function(i, action_system)
+                action_system:manage(seconds)
+                return (not action_system:is_empty())
+            end
+        )
+        return actions.action.do_execute(self, seconds)
+         and (#self.action_systems == 0)
+    end,
+
+    do_finish = function(self)
+        for k, action_system in pairs(self.action_systems) do
+            action_system:clear()
+        end
+    end,
+
+    add_action = function(self, other_action)
+        local action_system = actions.action_system(self.actor)
+        action_system:queue(other_action)
+        table.insert(self.action_systems, action_system)
     end
-end
+}, "action_parallel")
 
-function action_parallel:add_action(other_action)
-    local action_system = actions.action_system(self.actor)
-    action_system:queue(other_action)
-    table.insert(self.action_systems, action_system)
-end
+action_delayed = class.new(actions.action, {
+    __init = function(self, command, kwargs)
+        actions.action.__init(self, kwargs)
+        self.command = command
+    end,
 
-action_delayed = class.new(actions.action, nil, "action_delayed")
-
-function action_delayed:__init(command, kwargs)
-    actions.action.__init(self, kwargs)
-    self.command = command
-end
-
-function action_delayed:do_execute(seconds)
-    if actions.action.do_execute(self, seconds) then
-        self.command()
-        return true
-    else
-        return false
+    do_execute = function(self, seconds)
+        if actions.action.do_execute(self, seconds) then
+            self.command()
+            return true
+        else
+            return false
+        end
     end
-end
+}, "action_delayed")
 
 action_input_capture_plugin = {
     do_start = function(self)

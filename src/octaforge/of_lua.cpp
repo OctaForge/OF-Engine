@@ -632,6 +632,25 @@ namespace lua
         return -1;
     }
 
+    void lua_Engine::reset()
+    {
+        /* only destroying and creating again is not enough */
+        destroy(); create();
+
+#ifdef CLIENT
+        gui::setup();
+#endif
+
+        bool waspersisting = var::persistvars;
+
+        var::persistvars = false;
+        lua::engine.execf("data/cfg/menus.lua");
+        lua::engine.execf("data/cfg/brush.lua");
+        var::persistvars = true;
+        lua::engine.execf("data/cfg/config.lua");
+        var::persistvars = waspersisting;
+    }
+
     bool lua_Engine::hashandle()
     {
         return m_hashandle;

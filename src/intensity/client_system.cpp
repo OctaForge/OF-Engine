@@ -78,7 +78,8 @@ void ClientSystem::onDisconnect()
     // it's also useful to stop all mapsounds and gamesounds (but only for client that disconnects!)
     stopsounds();
 
-    LogicSystem::clear();
+    // we also must get the lua system into clear state
+    LogicSystem::clear(true);
 }
 
 bool ClientSystem::scenarioStarted()

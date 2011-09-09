@@ -145,7 +145,7 @@ struct LogicSystem
     static LogicEntityMap logicEntities; //!< All the entities in the scenario
 
     //! Called before a map loads. Empties list of entities, and unloads the PC logic entity. Removes the lua engine
-    static void clear();
+    static void clear(bool restart_lua = false);
 
     //! Calls clear(), and creates a new lua engine
     static void init();
