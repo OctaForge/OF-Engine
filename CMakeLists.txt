@@ -41,8 +41,8 @@ else (UNIX) # this is windows. Well, not really, but mostly yes (TODO: check?)
     link_directories(${CMAKE_SOURCE_DIR}/src/lib)
     # append cmake prefix path so it finds required libraries on Windows
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR}/src)
-    # build wuuid and sdlmain into client and server on Windows
-    set(EXTRA_SOURCES ../lib/src/wuuid ../lib/src/SDL_win32_main.cpp)
+    # build sdlmain into client and server on Windows
+    set(EXTRA_SOURCES ../lib/src/SDL_win32_main.cpp)
 endif (UNIX)
 
 # find other packages
@@ -52,10 +52,6 @@ find_package(SDL_mixer REQUIRED)
 find_package(SDL_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Lua51 REQUIRED)
-if (NOT WIN32 AND NOT APPLE)
-    find_package(PkgConfig)
-    pkg_check_modules(UUID REQUIRED uuid)
-endif (NOT WIN32 AND NOT APPLE)
 
 # PROCEED TO NEXT DIR
 add_subdirectory(src)

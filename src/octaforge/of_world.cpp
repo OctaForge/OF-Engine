@@ -32,12 +32,6 @@
 #include "game.h"
 #include "engine.h"
 
-#ifdef WIN32
-#include "wuuid.h"
-#else
-#include <uuid/uuid.h>
-#endif
-
 void force_network_flush();
 namespace MessageSystem
 {
@@ -51,10 +45,11 @@ extern string homedir;
 
 namespace world
 {
-    bool loading = false;
+    bool loading           = false;
+    bool has_scenario_code = false;
 
-    static const char *curr_map_id   = NULL;
-    static const char *scenario_code = NULL;
+    static const char *curr_map_id = NULL;
+    static       char  scenario_code[37];
 
     static int num_expected_entities = 0;
     static int num_received_entities = 0;
@@ -82,19 +77,43 @@ namespace world
         }
     }
 
-    const char *generate_scenario_code()
+    /*
+     * Scenario code UUID (version 4) generator for OctaForge
+     * Based on a JS snippet from here
+     * 
+     * http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+     * 
+     */
+    void generate_scenario_code()
     {
-        uuid_t c;
-        static char buf[2 * sizeof(c) + 4 + 1];
-        uuid_generate(c);
-        uuid_unparse (c, buf);
-        return buf;
+        snprintf(
+            scenario_code, sizeof(scenario_code),
+            "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+        );
+
+        int r = 0;
+        char tmp[2];
+
+        for (size_t i = 0; i < (sizeof(scenario_code) - 1); i++)
+        {
+            char ch = scenario_code[i];
+            if  (ch == '4' || ch == '-') continue;
+
+            r = (int)floor(rndscale(1) * 16);
+            snprintf(
+                tmp, sizeof(tmp), "%x",
+                (ch == 'x') ? r : ((r&0x3)|0x8)
+            );
+            scenario_code[i] = tmp[0];
+        }
+
+        has_scenario_code = true;
     }
 
 #ifdef SERVER
     void send_curr_map(int cn)
     {
-        if (!scenario_code) return;
+        if (!has_scenario_code) return;
         send_NotifyAboutCurrentScenario(
             cn,
             curr_map_id,
@@ -105,8 +124,7 @@ namespace world
 
     bool set_map(const char *id)
     {
-        /* TODO: remove uuid, replace with something more random */
-        scenario_code = generate_scenario_code();
+        generate_scenario_code();
 
 #ifdef SERVER
         send_PrepareForNewScenario(-1, scenario_code);

@@ -11,11 +11,6 @@ include_directories(
     ${SDLIMAGE_INCLUDE_DIR}
     ${LUA_INCLUDE_DIR}
 )
-# include uuid on non-windows
-if (NOT WIN32 AND NOT APPLE)
-    include_directories(${UUID_INCLUDE_DIRS})
-endif (NOT WIN32 AND NOT APPLE)
-
 add_definitions(-fno-exceptions -fno-rtti)
 
 # there is no LINUX variable declared
@@ -82,7 +77,7 @@ if (WIN32)
     set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ws2_32 opengl32 winmm rpcrt4)
 else (WIN32)
     if (NOT APPLE)
-        set(SERVER_LIBRARIES ${SERVER_LIBRARIES} ${UUID_LIBRARIES})
+        set(SERVER_LIBRARIES ${SERVER_LIBRARIES})
     endif (NOT APPLE)
     # there is no BSD variable declared
     if (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
