@@ -31,6 +31,7 @@
 #include "of_world.h"
 #include "of_tools.h"
 #include <sys/stat.h>
+#include <ctype.h>
 
 void writebinds(stream *f);
 extern string homedir;
@@ -40,36 +41,10 @@ namespace tools
 {
     bool valanumeric(const char *str, const char *allow)
     {
-        register unsigned int i, n;
-        bool skip = false;
-        for (i = 0; i < strlen(str); i++)
+        for (; *str; str++)
         {
-            if (str[i] <= 47
-            || (str[i] >= 58 && str[i] <= 64)
-            || (str[i] >= 91 && str[i] <= 96)
-            ||  str[i] >= 123
-            ) {
-                if (allow)
-                {
-                    for (n = 0; n < strlen(allow); n++) if (str[i] == allow[n])
-                    {
-                        skip = true;
-                        break;
-                    }
-                    if (skip)
-                    {
-                        skip = false;
-                        continue;
-                    }
-                }
-                logger::log(
-                    logger::WARNING,
-                    "Alphanumeric validation of string \"%s\" failed (using alphanumeric + %s)",
-                    str,
-                    allow ? allow : "nothing"
-                );
+            if (!isalnum(*str) && !strchr(allow, *str))
                 return false;
-            }
         }
         return true;
     }
