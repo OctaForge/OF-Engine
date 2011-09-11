@@ -83,7 +83,7 @@ namespace game
     {
         static char buf[512];
 
-        types::string prefix = world::curr_map_id(
+        types::string prefix = world::curr_map_id.substr(
             0, world::curr_map_id.length - 6
         );
         snprintf(buf, sizeof(buf), "%smap", prefix.buf);

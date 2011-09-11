@@ -122,7 +122,7 @@ namespace types
     char  string::at(size_t idx) const         { return buf[idx]; }
 
     /* slicing */
-    string string::operator()(size_t idx, size_t len)
+    string string::substr(size_t idx, size_t len) const
     {
         if (idx >= length || (idx + len) > length)
             return string();

@@ -116,7 +116,7 @@ namespace world
     }
 #endif
 
-    bool set_map(types::string id)
+    bool set_map(const types::string& id)
     {
         generate_scenario_code();
 
@@ -127,7 +127,7 @@ namespace world
 
         curr_map_id = id;
 
-        types::string s = id(0, id.length - 7);
+        types::string s = id.substr(0, id.length - 7);
         s += "/";
 
         if (!load_world(types::string().format("%smap", s.buf).buf))
@@ -153,7 +153,7 @@ namespace world
 
     void export_ents(const char *fname)
     {
-        types::string prefix = curr_map_id(0, curr_map_id.length - 6);
+        types::string prefix = curr_map_id.substr(0, curr_map_id.length - 6);
         prefix += PATHDIV;
 
         types::string buf = types::string().format(
@@ -181,7 +181,7 @@ namespace world
 
     types::string get_mapfile_path(const char *rpath)
     {
-        types::string aloc = curr_map_id(0, curr_map_id.length - 7);
+        types::string aloc = curr_map_id.substr(0, curr_map_id.length - 7);
 
         types::string buf = types::string().format(
             "data%c%s%c%s", PATHDIV, aloc.buf, PATHDIV, rpath

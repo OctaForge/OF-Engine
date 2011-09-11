@@ -145,12 +145,12 @@ namespace types
         char at(size_t idx) const;
 
         /*
-         * Operator: ()
+         * Function: substr
          * Used for slicing. First argument is the index the sliced
          * result begins on, second argument is the length of the
          * resulting slice. Returns the slice as a new string.
          */
-        string operator()(size_t idx, size_t len);
+        string substr(size_t idx, size_t len) const;
 
         /*
          * Function: find
