@@ -19,6 +19,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cstdarg>
 
 #include "of_utils.h"
 

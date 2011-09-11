@@ -23,6 +23,7 @@ add_definitions(-fno-exceptions)
 # set client sources, configure preprocessor
 add_definitions(-DCLIENT)
 set(CLIENT_SOURCES
+    ../ofstdlib/of_stdio
     ../ofstdlib/of_string
     ../octaforge/of_tools
     ../engine/ui

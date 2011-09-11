@@ -25,8 +25,10 @@ Currently contains:
                operators using malloc/free and also DELETEA and
                DELETEP macros for NULL-deleting arrays and pointers.
 
-    of_utils.h - unified definition for NULL (0), some unsigned typedefs
-                 and definition of va_copy on systems where cstdarg does
-                 not define them (Windows + Visual Studio).
+    of_utils.h - unified definition for NULL (0), some unsigned typedefs.
+
+    of_stdio.(cpp,h) - stdio extensions for now for Windows. Features
+                       the vasprintf and asprintf functions required
+                       by string for formatting.
 
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>

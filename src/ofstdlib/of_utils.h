@@ -17,8 +17,6 @@
 #ifndef OF_UTILS_H
 #define OF_UTILS_H
 
-#include <cstdarg>
-
 #ifdef NULL
 #undef NULL
 #endif
@@ -52,15 +50,5 @@ typedef unsigned long ulong;
  * Defined as unsigned char.
  */
 typedef unsigned char uchar;
-
-#ifndef va_copy
-/*
- * Define: va_copy
- * Defined in case cstdarg doesn't define it by itself
- * (for example, in Visual Studio). In that case, it
- * just does an assignment.
- */
-#define va_copy(d,s) ((d) = (s))
-#endif
 
 #endif

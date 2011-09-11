@@ -21,6 +21,7 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 # set server sources, configure preprocessor
 add_definitions(-DSERVER)
 set(SERVER_SOURCES
+    ../ofstdlib/of_stdio
     ../ofstdlib/of_string
     ../octaforge/of_tools
     ../intensity/editing_system

@@ -199,22 +199,7 @@ namespace types
     {
         clear();
 
-        char tmp[1];
-
-        va_list aq;
-        va_copy(aq, ap);
-
-        /*
-         * as we first try with size 1 buffer, this
-         * will return the size required for the new buffer
-         */
-        int len = vsnprintf(tmp, sizeof(tmp), fmt, aq);
-        va_end(aq);
-
-        /* but without null terminator, needs + 1 */
-        buf = new char[len + 1];
-        vsnprintf(buf, len + 1, fmt, ap);
-
+        vasprintf(&buf, fmt, ap);
         length   = strlen(buf);
         capacity = length;
 
