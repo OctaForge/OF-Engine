@@ -5,7 +5,11 @@
 #
 
 # internal things
-include_directories(shared engine fpsgame intensity cubecreate octaforge enet/include)
+include_directories(
+    ofstdlib shared engine
+    fpsgame intensity cubecreate
+    octaforge enet/include
+)
 link_directories(${CMAKE_SOURCE_DIR}/src/enet)
 
 # further proceed

@@ -86,15 +86,17 @@ namespace world
      */
     void generate_scenario_code()
     {
+        size_t sz = sizeof(scenario_code) - 1;
+
         snprintf(
-            scenario_code, sizeof(scenario_code),
+            scenario_code, sz + 1,
             "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
         );
 
         int r = 0;
         char tmp[2];
 
-        for (size_t i = 0; i < (sizeof(scenario_code) - 1); i++)
+        for (size_t i = 0; i < sz; i++)
         {
             char ch = scenario_code[i];
             if  (ch == '4' || ch == '-') continue;
