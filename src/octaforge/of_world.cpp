@@ -32,6 +32,9 @@
 #include "game.h"
 #include "engine.h"
 
+/* ofstdlib */
+#include "of_string.h"
+
 void force_network_flush();
 namespace MessageSystem
 {
@@ -45,11 +48,10 @@ extern string homedir;
 
 namespace world
 {
-    bool loading           = false;
-    bool has_scenario_code = false;
+    bool loading = false;
 
-    static const char *curr_map_id = NULL;
-    static       char  scenario_code[37];
+    types::string curr_map_id;
+    types::string scenario_code;
 
     static int num_expected_entities = 0;
     static int num_received_entities = 0;
@@ -86,67 +88,53 @@ namespace world
      */
     void generate_scenario_code()
     {
-        size_t sz = sizeof(scenario_code) - 1;
-
-        snprintf(
-            scenario_code, sz + 1,
-            "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-        );
+        scenario_code = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
 
         int r = 0;
-        char tmp[2];
+        types::string tmp;
 
-        for (size_t i = 0; i < sz; i++)
+        char  *it = scenario_code.first();
+        for (; it < scenario_code.last (); it++)
         {
-            char ch = scenario_code[i];
-            if  (ch == '4' || ch == '-') continue;
+            if  (*it == '4' || *it == '-') continue;
 
             r = (int)floor(rndscale(1) * 16);
-            snprintf(
-                tmp, sizeof(tmp), "%x",
-                (ch == 'x') ? r : ((r&0x3)|0x8)
-            );
-            scenario_code[i] = tmp[0];
+            tmp.format("%x", (*it == 'x') ? r : ((r&0x3)|0x8));
+            *it = tmp[0];
         }
-
-        has_scenario_code = true;
     }
 
 #ifdef SERVER
     void send_curr_map(int cn)
     {
-        if (!has_scenario_code) return;
+        if (scenario_code.is_empty()) return;
         send_NotifyAboutCurrentScenario(
             cn,
-            curr_map_id,
-            scenario_code
+            curr_map_id.buf,
+            scenario_code.buf
         );
     }
 #endif
 
-    bool set_map(const char *id)
+    bool set_map(types::string id)
     {
         generate_scenario_code();
 
 #ifdef SERVER
-        send_PrepareForNewScenario(-1, scenario_code);
+        send_PrepareForNewScenario(-1, scenario_code.buf);
         force_network_flush();
 #endif
 
         curr_map_id = id;
 
-        char *s = newstring(id);
-        s[strlen(s) - 6] = '\0';
-        s[strlen(s) - 1] = '/';
+        types::string s = id(0, id.length - 7);
+        s += "/";
 
-        char buf[512];
-        snprintf(buf, sizeof(buf), "%smap", s);
-        if (!load_world(buf))
+        if (!load_world(types::string().format("%smap", s.buf).buf))
         {
             logger::log(logger::ERROR, "Failed to load world!\n");
             return false;
         }
-        delete[] s;
 
 #ifdef SERVER
         server::createluaEntity(-1);
@@ -165,68 +153,48 @@ namespace world
 
     void export_ents(const char *fname)
     {
-        char *prefix = newstring(curr_map_id);
-        prefix[strlen(prefix) - 6] = '\0';
-        prefix[strlen(prefix) - 1] = PATHDIV;
+        types::string prefix = curr_map_id(0, curr_map_id.length - 6);
+        prefix += PATHDIV;
 
-        char buf[512];
-        snprintf(
-            buf, sizeof(buf),
-            "%sdata%c%s%c%s",
-            homedir, PATHDIV,
-            prefix, PATHDIV, fname
+        types::string buf = types::string().format(
+            "%sdata%c%s%c%s", homedir, PATHDIV, prefix.buf, PATHDIV, fname
         );
-        delete[] prefix;
 
         const char *data = lua::engine.exec<const char*>("return entity_store.save_entities()");
-        if (fileexists(buf, "r"))
+        if (fileexists(buf.buf, "r"))
         {
-            char buff[strlen(buf) + 16];
-            snprintf(buff, sizeof(buff), "%s-%i.bak", buf, (int)time(0));
-            tools::fcopy(buf, buff);
+            types::string buff = types::string().format(
+                "%s-%i.bak", buf.buf, (int)time(0)
+            );
+            tools::fcopy(buf.buf, buff.buf);
         }
 
-        FILE *f = fopen(buf, "w");
+        FILE *f = fopen(buf.buf, "w");
         if  (!f)
         {
-            logger::log(logger::ERROR, "Cannot open file %s for writing.\n", buf);
+            logger::log(logger::ERROR, "Cannot open file %s for writing.\n", buf.buf);
             return;
         }
         fputs(data, f);
         fclose(f);
     }
 
-    char *get_mapfile_path(const char *rpath)
+    types::string get_mapfile_path(const char *rpath)
     {
-        char *aloc = newstring(curr_map_id);
-        aloc[strlen(aloc) - 7] = '\0';
-    
-        char buf[512], buff[512];
-        snprintf(buf, sizeof(buf), "data%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
-        if (fileexists(buf, "r"))
-        {
-            delete[] aloc;
-            return newstring(buf);
-        }
-        snprintf(
-            buff, sizeof(buff), "%s%s",
-            homedir, buf
+        types::string aloc = curr_map_id(0, curr_map_id.length - 7);
+
+        types::string buf = types::string().format(
+            "data%c%s%c%s", PATHDIV, aloc.buf, PATHDIV, rpath
         );
-        snprintf(buf, sizeof(buf), "%s", buff);
-        delete[] aloc;
-        return newstring(buf);
+        if (fileexists(buf.buf, "r")) return buf;
+
+        return types::string().format("%s%s", homedir, buf.buf);
     }
 
-    char *get_mapscript_filename() { return get_mapfile_path("map.lua"); }
+    types::string get_mapscript_filename() { return get_mapfile_path("map.lua"); }
 
     void run_mapscript()
     {
-        char *name = get_mapscript_filename();
-        lua::engine.execf(name);
-        delete[] name;
+        lua::engine.execf(get_mapscript_filename().buf);
     }
-
-    const char *get_curr_mapid()    { return curr_map_id;   }
-    const char *get_scenario_code() { return scenario_code; }
-
 } /* end namespace world */

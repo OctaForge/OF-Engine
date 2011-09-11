@@ -46,6 +46,9 @@
 #include "of_world.h"
 #include "of_entities.h"
 
+/* ofstdlib */
+#include "of_string.h"
+
 vector<lua::LE_reg> CAPI;
 #include "of_lua_definitions.h"
 

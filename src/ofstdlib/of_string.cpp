@@ -19,23 +19,15 @@
 namespace types
 {
     /* const char* constructor */
-    string::string(const char *str)
+    string::string(const char *str) : buf(NULL), length(0), capacity(0)
     {
-        length   = strlen(str);
-        capacity = length;
-
-        buf = new char[capacity + 1];
-        memcpy(buf, str, length + 1);
+        *this = str;
     }
 
     /* string constructor */
-    string::string(const string& str)
+    string::string(const string& str) : buf(NULL), length(0), capacity(0)
     {
-        length   = str.length;
-        capacity = str.capacity;
-
-        buf = new char[capacity + 1];
-        memcpy(buf, str.buf, length + 1);
+        *this = str;
     }
 
     /* destructor */

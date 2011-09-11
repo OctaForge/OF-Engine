@@ -83,12 +83,10 @@ namespace game
     {
         static char buf[512];
 
-        char *prefix = newstring(world::get_curr_mapid());
-        prefix[strlen(prefix) - 6] = '\0';
-        prefix[strlen(prefix) - 1] = PATHDIV;
-
-        snprintf(buf, sizeof(buf), "%smap", prefix);
-        delete[] prefix;
+        types::string prefix = world::curr_map_id(
+            0, world::curr_map_id.length - 6
+        );
+        snprintf(buf, sizeof(buf), "%smap", prefix.buf);
 
         return buf;
     }

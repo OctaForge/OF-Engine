@@ -30,14 +30,20 @@
 #ifndef OF_WORLD_H
 #define OF_WORLD_H
 
+/* ofstdlib */
+#include "of_string.h"
+
 namespace world
 {
     extern bool loading;
 
+    extern types::string curr_map_id;
+    extern types::string scenario_code;
+
     void set_num_expected_entities(int num);
     void trigger_received_entity();
 
-    bool set_map(const char *id);
+    bool set_map(types::string id);
     bool restart_map();
 
 #ifdef SERVER
@@ -45,13 +51,9 @@ namespace world
 #endif
 
     void export_ents(const char *fname);
-    char *get_mapfile_path(const char *rpath);
-    char *get_mapscript_filename();
+    types::string get_mapfile_path(const char *rpath);
+    types::string get_mapscript_filename();
     void run_mapscript();
-
-    const char *get_curr_mapid();
-    const char *get_scenario_code();
-
 } /* end namespace world */
 
 #endif

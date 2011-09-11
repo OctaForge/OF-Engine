@@ -174,30 +174,24 @@ namespace tools
         ) return NULL;
         /* TODO: more checks */
 
-        char buf[512], buff[512];
         char *loaded = NULL;
 
-        if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
-        {
-            char *path = world::get_mapfile_path(fname + 2);
-            snprintf(buf, sizeof(buf), "%s", path);
-            delete[] path;
-        }
-        else snprintf(
-            buf, sizeof(buf),
-            "%sdata%c%s",
-            homedir, PATHDIV, fname
-        );
+        types::string buf, buff;
 
-        loaded = loadfile(buf, NULL);
+        if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
+            buf = world::get_mapfile_path(fname + 2);
+        else
+            buf.format("%sdata%c%s", homedir, PATHDIV, fname);
+
+        loaded = loadfile(buf.buf, NULL);
         if (!loaded)
         {
-            snprintf(buff, sizeof(buff), "data%c%s", PATHDIV, fname);
-            loaded = loadfile(buff, NULL);
+            buff.format("data%c%s", PATHDIV, fname);
+            loaded = loadfile(buff.buf, NULL);
         }
         if (!loaded)
         {
-            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf, buff);
+            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf.buf, buff.buf);
             return NULL;
         }
         return loaded;

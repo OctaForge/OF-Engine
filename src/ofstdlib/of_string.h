@@ -1,5 +1,5 @@
 /*
- * File: of_string.cpp
+ * File: of_string.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -26,7 +26,7 @@
 /*
  * Package: types
  * This namespace features some types used in OctaForge.
- * This part exactly defines strings.
+ * This part exactly defines string.
  */
 namespace types
 {

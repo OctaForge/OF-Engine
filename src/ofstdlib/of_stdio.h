@@ -31,7 +31,7 @@ int _vasprintf(char **strp, const char *fmt, va_list ap);
  * Function: _asprintf
  * See <_vasprintf>.
  */
-int  _asprintf(char **strp, const char *fmt, ...);
+int _asprintf(char **strp, const char *fmt, ...);
 
 /*
  * Define: vasprintf
