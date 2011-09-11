@@ -1,30 +1,17 @@
 /*
- * of_string.h, version 1
- * String for ofstdlib (OctaForge standard library) - header
+ * File: of_string.cpp
  *
- * author: Daniel "q66" Kolesa <quaker66@gmail.com>
- * license: MIT/X11
+ * About: Version
+ *  This is version 1 of the file.
  *
- * Copyright (c) 2011 q66
+ * About: Purpose
+ *  String class header.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * About: Author
+ *  Daniel "q66" Kolesa <quaker66@gmail.com>
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
+ * About: License
+ *  This file is licensed under MIT. See COPYING.txt for more information.
  */
 
 #ifndef OF_STRING_H
@@ -32,12 +19,8 @@
 
 #include <cstdio>
 #include <cstring>
-#include <cstdarg>
 
-/* visual studio hack (and possibly others) */
-#ifndef va_copy
-#define va_copy(d,s) ((d) = (s))
-#endif
+#include "of_utils.h"
 
 /*
  * Package: types

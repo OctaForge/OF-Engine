@@ -16,9 +16,17 @@ standard library.
 It's part of OctaForge and thus is licensed under the MIT license.
 
 Currently contains:
-    of_string - simple non-templated string class, with basic operations
-                including slicing, finding and true string formatting,
-                printf style. It's const correct, fast and standard
-                conformant.
+    of_string.(cpp,h) - simple non-templated string class, with basic
+                        operations including slicing, finding and true
+                        string formatting, printf style. It's const
+                        correct, fast and standard conformant.
+
+    of_new.h - features overloaded new, new[], delete and delete[]
+               operators using malloc/free and also DELETEA and
+               DELETEP macros for NULL-deleting arrays and pointers.
+
+    of_utils.h - unified definition for NULL (0), some unsigned typedefs
+                 and definition of va_copy on systems where cstdarg does
+                 not define them (Windows + Visual Studio).
 
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>
