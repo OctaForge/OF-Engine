@@ -217,8 +217,7 @@ namespace types
     {
         clear();
 
-        vasprintf(&buf, fmt, ap);
-        length   = strlen(buf);
+        length   = vasprintf(&buf, fmt, ap);
         capacity = length;
 
         return *this;

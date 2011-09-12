@@ -74,7 +74,7 @@ void serverkeepalive()
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    printf(types::string().format("%s\n", args).buf);
+    printf("%s\n", types::string().format(fmt, args).buf);
 }
 
 void conoutf(int type, const char *fmt, ...)

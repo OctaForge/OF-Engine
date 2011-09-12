@@ -395,9 +395,8 @@ namespace lua
 
         if (!is<void**>(-1))
         {
-            vec v;
             pop(1);
-            return v;
+            return vec(0);
         }
 
         vec r(t_get<float>("x"), t_get<float>("y"), t_get<float>("z"));
@@ -412,9 +411,8 @@ namespace lua
 
         if (!is<void**>(-1))
         {
-            bvec v;
             pop(1);
-            return v;
+            return bvec(0, 0, 0);
         }
 
         bvec r(t_get<int>("r"), t_get<int>("g"), t_get<int>("b"));
