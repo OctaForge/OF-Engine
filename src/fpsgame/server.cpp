@@ -459,7 +459,7 @@ namespace server
             assert(0); // We do file transfers completely differently
         }
         if(p.packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
-        char text[MAXTRANS];
+        types::string text;
         int cn = -1, type;
         clientinfo *ci = sender>=0 ? (clientinfo *)getinfo(sender) : NULL;
 
@@ -479,7 +479,7 @@ namespace server
         }
         #define QUEUE_INT(n) QUEUE_BUF(putint(ci->messages, n))
         #define QUEUE_UINT(n) QUEUE_BUF(putuint(ci->messages, n))
-        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text, ci->messages))
+        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text.buf, ci->messages))
         int curmsg;
         while((curmsg = p.length()) < p.maxlen)
         {
@@ -529,7 +529,8 @@ namespace server
             case N_TEXT:
             {
                 getstring(text, p);
-                filtertext(text, text);
+                /* FIXME: hack attack - add filtering method into the string class */
+                filtertext(text.buf, text.buf);
 
                 if (!engine.hashandle())
                 {
@@ -542,7 +543,7 @@ namespace server
                 engine.getg("handle_textmsg");
                 if (engine.is<void*>(-1))
                 {
-                    engine.push(ci->uniqueId).push(text).call(3, 1);
+                    engine.push(ci->uniqueId).push(text.buf).call(3, 1);
                     handle_textmsg = engine.get<bool>(-1);
                 }
                 engine.pop(1);

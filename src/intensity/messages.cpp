@@ -87,15 +87,15 @@ namespace MessageSystem
         is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
 
-        static char title[MAXTRANS];
+        types::string title;
         getstring(title, p);
-        static char content[MAXTRANS];
+        types::string content;
         getstring(content, p);
 
         engine.getg("gui")
               .t_getraw("message")
-              .push(title)
-              .push(content)
+              .push(title.buf)
+              .push(content.buf)
               .call(2, 0).pop(1);
     }
 #endif
@@ -116,10 +116,10 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestServerMessageToAll (1002)\r\n");
 
-        static char message[MAXTRANS];
+        types::string message;
         getstring(message, p);
 
-        send_PersonalServerMessage(-1, "Message from Client", message);
+        send_PersonalServerMessage(-1, "Message from Client", message.buf);
     }
 #endif
 
@@ -351,7 +351,7 @@ namespace MessageSystem
         is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
 
-        static char scenarioCode[MAXTRANS];
+        types::string scenarioCode;
         getstring(scenarioCode, p);
 
         engine.getg("gui")
@@ -439,9 +439,9 @@ namespace MessageSystem
         is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
 
-        static char mid[MAXTRANS];
+        types::string mid;
         getstring(mid, p);
-        static char sc[MAXTRANS];
+        types::string sc;
         getstring(sc, p);
 
         ClientSystem::currScenarioCode = sc;
@@ -493,12 +493,12 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NewEntityRequest (1010)\r\n");
 
-        static char _class[MAXTRANS];
+        types::string _class;
         getstring(_class, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        static char stateData[MAXTRANS];
+        types::string stateData;
         getstring(stateData, p);
 
         if (world::scenario_code.is_empty()) return;
@@ -509,7 +509,7 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        lua::engine.getg("entity_classes").t_getraw("get_class").push(_class).call(1, 1);
+        lua::engine.getg("entity_classes").t_getraw("get_class").push(_class.buf).call(1, 1);
         if (lua::engine.is<void>(-1))
         {
             lua::engine.pop(2);
@@ -517,26 +517,26 @@ namespace MessageSystem
         }
         lua::engine.pop(2);
         // Add entity
-        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
+        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.buf, x, y, z, stateData.buf);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("entity_classes").t_getraw("get_sauer_type").push(_class).call(1, 1);
+        engine.getg("entity_classes").t_getraw("get_sauer_type").push(_class.buf).call(1, 1);
         const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
         logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
-        engine.getg("entity_store").t_getraw("new").push(_class);
+        engine.getg("entity_store").t_getraw("new").push(_class.buf);
         engine.t_new();
         engine.push("position")
             .t_new()
             .t_set("x", x)
             .t_set("y", y)
             .t_set("z", z);
-        engine.t_set().t_set("state_data", stateData);
+        engine.t_set().t_set("state_data", stateData.buf);
         engine.call(2, 1);
         int newUniqueId = engine.t_get<int>("uid");
         engine.pop(2);
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
-                                      newUniqueId, _class, x, y, z);
+                                      newUniqueId, _class.buf, x, y, z);
     }
 #endif
 
@@ -600,7 +600,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        static char value[MAXTRANS];
+        types::string value;
         getstring(value, p);
         int originalClientNumber = getint(p);
 
@@ -615,12 +615,12 @@ namespace MessageSystem
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
+                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value.buf); \
                 \
                 if (!engine.hashandle()) \
                     return; \
                 \
-                engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value).call(3, 0).pop(1);
+                engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value.buf).call(3, 0).pop(1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -652,18 +652,18 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        static char value[MAXTRANS];
+        types::string value;
         getstring(value, p);
 
         if (world::scenario_code.is_empty()) return;
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
+        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.buf); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value).push(actorUniqueId).call(4, 0).pop(1);
+        engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value.buf).push(actorUniqueId).call(4, 0).pop(1);
         STATE_DATA_REQUEST
     }
 #endif
@@ -728,7 +728,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        static char value[MAXTRANS];
+        types::string value;
         getstring(value, p);
         int originalClientNumber = getint(p);
 
@@ -753,7 +753,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        static char value[MAXTRANS];
+        types::string value;
         getstring(value, p);
 
         if (world::scenario_code.is_empty()) return;
@@ -897,17 +897,17 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ActiveEntitiesRequest (1017)\r\n");
 
-        static char scenarioCode[MAXTRANS];
+        types::string scenarioCode;
         getstring(scenarioCode, p);
 
         #ifdef SERVER
             if (world::scenario_code.is_empty()) return;
             // Mark the client as running the current scenario, if indeed doing so
-            server::setClientScenario(sender, scenarioCode);
+            server::setClientScenario(sender, scenarioCode.buf);
             if ( !server::isRunningCurrentScenario(sender) )
             {
                 logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
-                    sender, scenarioCode
+                    sender, scenarioCode.buf
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
@@ -997,9 +997,9 @@ namespace MessageSystem
 
         int otherClientNumber = getint(p);
         int otherUniqueId = getint(p);
-        static char otherClass[MAXTRANS];
+        types::string otherClass;
         getstring(otherClass, p);
-        static char stateData[MAXTRANS];
+        types::string stateData;
         getstring(stateData, p);
 
         #ifdef SERVER
@@ -1008,7 +1008,7 @@ namespace MessageSystem
         #endif
         if (!engine.hashandle())
             return;
-        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
+        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.buf);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
@@ -1016,7 +1016,7 @@ namespace MessageSystem
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass)
+                .push(otherClass.buf)
                 .push(otherUniqueId)
                 .t_new();
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
@@ -1036,7 +1036,7 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
-                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
+                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass.buf);
                 return;
             }
         } else
@@ -1044,11 +1044,11 @@ namespace MessageSystem
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData);
+        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.buf);
         engine.getref(entity->luaRef)
             .t_getraw("update_complete_state_data")
             .push_index(-2)
-            .push(stateData)
+            .push(stateData.buf)
             .call(2, 0)
             .pop(1);
         #ifdef CLIENT
@@ -1215,9 +1215,9 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
 
         int otherUniqueId = getint(p);
-        static char otherClass[MAXTRANS];
+        types::string otherClass;
         getstring(otherClass, p);
-        static char stateData[MAXTRANS];
+        types::string stateData;
         getstring(stateData, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
@@ -1229,7 +1229,7 @@ namespace MessageSystem
 
         if (!engine.hashandle())
             return;
-        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass,
+        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass.buf,
             x, y, z, attr1, attr2, attr3, attr4);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
@@ -1237,11 +1237,11 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("entity_classes").t_getraw("get_sauer_type").push(otherClass).call(1, 1);
+            engine.getg("entity_classes").t_getraw("get_sauer_type").push(otherClass.buf).call(1, 1);
             const char *sauerType = engine.get(-1, "extent");
             engine.pop(2);
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass)
+                .push(otherClass.buf)
                 .push(otherUniqueId)
                 .t_new()
                     .t_set("_type", findtype((char*)sauerType))
@@ -1264,7 +1264,7 @@ namespace MessageSystem
         engine.getref(entity->luaRef)
             .t_getraw("update_complete_state_data")
             .push_index(-2)
-            .push(stateData)
+            .push(stateData.buf)
             .call(2, 0)
             .pop(1);
         // Events post-reception
@@ -1516,7 +1516,7 @@ namespace MessageSystem
         is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
 
-        static char soundName[MAXTRANS];
+        types::string soundName;
         getstring(soundName, p);
         int entityUniqueId = getint(p);
 
@@ -1527,7 +1527,7 @@ namespace MessageSystem
             stopmapsound(e);
             if(camera1->o.dist(e->o) < e->attr2)
             {
-                if(!e->visible) playmapsound(soundName, e, e->attr4, -1);
+                if(!e->visible) playmapsound(soundName.buf, e, e->attr4, -1);
                 else if(e->visible) stopmapsound(e);
             }
         }
@@ -1593,16 +1593,16 @@ namespace MessageSystem
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        static char soundName[MAXTRANS];
+        types::string soundName;
         getstring(soundName, p);
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
         vec pos(x,y,z);
         if (pos.x || pos.y || pos.z)
-            playsoundname(soundName, &pos);
+            playsoundname(soundName.buf, &pos);
         else
-            playsoundname(soundName);
+            playsoundname(soundName.buf);
     }
 #endif
 
@@ -1663,12 +1663,12 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
 
         int volume = getint(p);
-        static char soundName[MAXTRANS];
+        types::string soundName;
         getstring(soundName, p);
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
-        stopsoundbyid(getsoundid(soundName, volume));
+        stopsoundbyid(getsoundid(soundName.buf, volume));
     }
 #endif
 

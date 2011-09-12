@@ -82,6 +82,17 @@ namespace types
         void clear();
 
         /*
+         * Function: resize
+         * Changes the string capacity. If the new capacity
+         * should be smaller than current, the string will
+         * get truncated appropriately if needed (that is,
+         * if the length of the string is bigger than the
+         * new capacity, the truncated string will include
+         * the trailing \0).
+         */
+        void resize(size_t new_len);
+
+        /*
          * Function: is_empty
          * Returns true if the string is empty (length
          * set to 0 or freed buffer).
@@ -239,15 +250,31 @@ namespace types
 
         /*
          * Function: first
-         * Returns the buffer pointer offset to the last index.
+         * Returns the buffer pointer offset to the last index
+         * (offset by length).
          */
         char *last();
 
         /*
          * Function: first
-         * Returns the buffer const pointer offset to the last index.
+         * Returns the buffer const pointer offset to the last index
+         * (offset by length).
          */
         const char *last() const;
+
+        /*
+         * Function: end
+         * Returns the buffer pointer offset to end
+         * (offset by capacity).
+         */
+        char *end();
+
+        /*
+         * Function: end
+         * Returns the buffer const pointer offset to end
+         * (offset by capacity).
+         */
+        const char *end() const;
 
         /*
          * Function: _append

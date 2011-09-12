@@ -396,7 +396,7 @@ namespace game
     void parsemessages(int cn, fpsent *d, ucharbuf &p) // cn: Sauer's sending client
     {
 //        int gamemode = gamemode; Kripken
-        static char text[MAXTRANS];
+        types::string text;
         int type;
 //        bool mapchanged = false; Kripken
 
@@ -419,14 +419,15 @@ namespace game
             {
                 if(!d) return;
                 getstring(text, p);
-                filtertext(text, text);
+                /* FIXME: hack attack - add filtering method into the string class */
+                filtertext(text.buf, text.buf);
 #ifdef CLIENT
                 if(d->state!=CS_SPECTATOR)
-                    particle_textcopy(d->abovehead(), text, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
+                    particle_textcopy(d->abovehead(), text.buf, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
                 if (chat_sound[0])
                     playsoundname(chat_sound);
 #endif
-                conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text);
+                conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text.buf);
                 break;
             }
 

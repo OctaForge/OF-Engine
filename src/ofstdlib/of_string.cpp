@@ -45,6 +45,27 @@ namespace types
         capacity = 0;
     }
 
+    void string::resize(size_t new_len)
+    {
+        if (new_len == capacity) return;
+
+        char *new_buf = new char[new_len + 1];
+        if   (new_len > capacity || length <= new_len)
+        {
+            memcpy(new_buf, buf, length + 1);
+            capacity = new_len;
+        }
+        else
+        {
+            memcpy(new_buf, buf, new_len);
+            new_buf[new_len] = '\0';
+            length   = new_len;
+            capacity = length;
+        }
+        delete[]  buf;
+        buf = new_buf;
+    }
+
     /* empty checker */
     bool string::is_empty()
     {
@@ -260,11 +281,28 @@ namespace types
     char       *string::first()       { return buf; }
     const char *string::first() const { return buf; }
     char       *string::last()        { return buf + length; }
-    const char *string::last() const  { return buf + length; }
+    const char *string::last()  const { return buf + length; }
+    char       *string::end()         { return buf + capacity; }
+    const char *string::end()   const { return buf + capacity; }
 
     /* internal appender */
     void string::_append(const char *str, size_t len)
     {
+        /* in that case, we can just append without copying */
+        size_t left = capacity - length;
+        if    (left > 0 && left >= len)
+        {
+            buf += length;
+            for (; *str;  str++)
+                *buf++ = *str;
+            *buf++ = '\0';
+
+            length += len;
+            buf -= (length + 1);
+            
+            return;
+        }
+
         /* save old buf */
         char  *old_buf = buf;
 

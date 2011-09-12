@@ -184,16 +184,27 @@ void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, packetbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 
-void getstring(char *text, ucharbuf &p, int len)
+void getstring(types::string& text, ucharbuf &p, int len)
 {
-    char *t = text;
+    text.resize(len);
+
+    char *it = text.first();
     do
     {
-        if(t>=&text[len]) { text[len-1] = 0; return; }
-        if(!p.remaining()) { *t = 0; return; } 
-        *t = getint(p);
-    }
-    while(*t++);
+        if (it >= text.end())
+        {
+            text[len - 1] = '\0';
+            return;
+        }
+        if (!p.remaining())
+        {
+            *it = '\0';
+            return;
+        } 
+        *it = getint(p);
+    } while (*it++);
+
+    text.length = strlen(text.buf);
 }
 
 void filtertext(char *dst, const char *src, bool whitespace, int len)

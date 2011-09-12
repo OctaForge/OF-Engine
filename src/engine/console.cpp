@@ -28,11 +28,11 @@ void conline(int type, const char *sf)        // add a line to the console buffe
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    static char buf[CONSTRLEN];
-    vformatstring(buf, fmt, args, sizeof(buf));
-    conline(type, buf);
-    filtertext(buf, buf);
-    logoutf("%s", buf);
+    types::string buf;
+    buf.format(fmt, args);
+    conline(type, buf.buf);
+    filtertext(buf.buf, buf.buf);
+    logoutf("%s", buf.buf);
 }
 
 void conoutf(const char *fmt, ...)
