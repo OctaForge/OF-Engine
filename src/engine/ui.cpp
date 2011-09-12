@@ -1621,28 +1621,18 @@ namespace gui
 
         float drawscale() const { return scale / (FONTH * uitextrows); }
 
-        char *getval()
+        types::string getval()
         {
             switch (ev->type)
             {
                 case var::VAR_I:
-                {
-                    static char s[64];
-                    snprintf(s, sizeof(s), "%i", ev->curv.i);
-                    return s;
-                }
+                    return types::string().format("%i", ev->curv.i);
                 case var::VAR_F:
-                {
-                    static char s[64];
-                    snprintf(s, sizeof(s), "%f", ev->curv.f);
-                    return s;
-                }
+                    return types::string().format("%f", ev->curv.f);
                 case var::VAR_S:
-                {
                     return ev->curv.s;
-                    break;
-                }
-                default: return NULL;
+                default:
+                    return NULL;
             }
         }
 
@@ -1651,7 +1641,7 @@ namespace gui
             float k = drawscale();
             glPushMatrix();
             glScalef(k, k, 1);
-            draw_text(getval(), int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255);
+            draw_text(getval().buf, int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255);
             glColor3f(1, 1, 1);
             glPopMatrix();
 
@@ -1663,7 +1653,7 @@ namespace gui
             object::layout();
 
             int tw, th;
-            text_bounds(getval(), tw, th);
+            text_bounds(getval().buf, tw, th);
             float k = drawscale();
             w = max(w, tw*k);
             h = max(h, th*k);

@@ -79,16 +79,14 @@ namespace game
         stopfollowing();
     }
 
-    const char *getclientmap()
+    types::string getclientmap()
     {
-        static char buf[512];
-
-        types::string prefix = world::curr_map_id.substr(
-            0, world::curr_map_id.length - 6
+        types::string s = world::curr_map_id.substr(
+            0, world::curr_map_id.length - 7
         );
-        snprintf(buf, sizeof(buf), "%smap", prefix.buf);
+        s += "/";
 
-        return buf;
+        return types::string().format("%smap", s.buf);
     }
 
     fpsent *spawnstate(fpsent *d)              // reset player state not persistent accross spawns

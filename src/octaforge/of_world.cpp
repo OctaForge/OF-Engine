@@ -32,9 +32,6 @@
 #include "game.h"
 #include "engine.h"
 
-/* ofstdlib */
-#include "of_string.h"
-
 void force_network_flush();
 namespace MessageSystem
 {
@@ -153,11 +150,11 @@ namespace world
 
     void export_ents(const char *fname)
     {
-        types::string prefix = curr_map_id.substr(0, curr_map_id.length - 6);
-        prefix += PATHDIV;
-
         types::string buf = types::string().format(
-            "%sdata%c%s%c%s", homedir, PATHDIV, prefix.buf, PATHDIV, fname
+            "%sdata%c%s%c%s",
+            homedir, PATHDIV,
+            curr_map_id.substr(0, curr_map_id.length - 7).buf,
+            PATHDIV, fname
         );
 
         const char *data = lua::engine.exec<const char*>("return entity_store.save_entities()");

@@ -78,7 +78,7 @@ namespace lua_binds
         }
 
         renderprogress(0.3, "generating map ..");
-        save_world(game::getclientmap());
+        save_world(game::getclientmap().buf);
 
         renderprogress(0.4, "exporting entities ..");
         world::export_ents("entities.json");

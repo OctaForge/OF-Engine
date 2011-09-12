@@ -182,7 +182,7 @@ namespace lua_binds
     LUA_BIND_STD(newmap, newmap, e.get<int*>(1))
     LUA_BIND_STD(mapenlarge, mapenlarge)
     LUA_BIND_STD(shrinkmap, shrinkmap)
-    LUA_BIND_STD(mapname, e.push, game::getclientmap())
+    LUA_BIND_STD(mapname, e.push, game::getclientmap().buf)
     // In our new system, this is called when dragging concludes. Only then do we update the server.
     // This facilitates smooth dragging on the client, and a single bandwidth use at the end.
     LUA_BIND_DEF(finish_dragging, {
@@ -193,13 +193,13 @@ namespace lua_binds
     })
 
     LUA_BIND_DEF(mapcfgname, {
-        const char *mname = game::getclientmap();
-        if(!*mname) mname = "untitled";
+        types::string mname = game::getclientmap();
+        if (mname.is_empty()) mname = "untitled";
 
         string pakname;
         string mapname;
         string mcfgname;
-        getmapfilenames(mname, NULL, pakname, mapname, mcfgname);
+        getmapfilenames(mname.buf, NULL, pakname, mapname, mcfgname);
         defformatstring(cfgname)("data/%s/%s.lua", pakname, mcfgname);
         path(cfgname);
         e.push(cfgname);

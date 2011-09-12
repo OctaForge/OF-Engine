@@ -176,6 +176,24 @@ namespace types
         size_t find(const char *str, size_t len, size_t pos);
 
         /*
+         * Function: rfind
+         * See <find>. Finds the last occurence.
+         */
+        size_t rfind(const string& str, size_t pos = 0);
+
+        /*
+         * Function: rfind
+         * See <find>. Finds the last occurence.
+         */
+        size_t rfind(const char *str, size_t pos = 0);
+
+        /*
+         * Function: rfind
+         * See <find>. Finds the last occurence.
+         */
+        size_t rfind(const char *str, size_t len, size_t pos);
+
+        /*
          * Function: format
          * Formats the string buffer according to the first
          * argument (specifying the format) and va_list.

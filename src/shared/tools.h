@@ -3,14 +3,8 @@
 #ifndef _TOOLS_H
 #define _TOOLS_H
 
-#ifdef NULL
-#undef NULL
-#endif
-#define NULL 0
-
-typedef unsigned char uchar;
-typedef unsigned short ushort;
-typedef unsigned int uint;
+#include "of_utils.h"
+#include "of_new.h"
 
 #ifdef _DEBUG
 #ifdef __GNUC__
@@ -27,27 +21,6 @@ typedef unsigned int uint;
 #else
 #define RESTRICT
 #endif
-
-inline void *operator new(size_t size) 
-{ 
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-inline void *operator new[](size_t size) 
-{
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-
-inline void operator delete(void *p) { if(p) free(p); }
-inline void operator delete[](void *p) { if(p) free(p); } 
-
-inline void *operator new(size_t, void *p) { return p; }
-inline void *operator new[](size_t, void *p) { return p; }
-inline void operator delete(void *, void *) {}
-inline void operator delete[](void *, void *) {}
 
 #ifdef swap
 #undef swap
@@ -90,10 +63,6 @@ static inline T clamp(T a, T b, T c)
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
 #define loopl(m) loop(l,m)
-
-
-#define DELETEP(p) if(p) { delete   p; p = 0; }
-#define DELETEA(p) if(p) { delete[] p; p = 0; }
 
 #define PI  (3.1415927f)
 #define PI2 (2*PI)

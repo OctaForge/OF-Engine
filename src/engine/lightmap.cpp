@@ -2495,8 +2495,15 @@ void dumplms()
     loopv(lightmaps)
     {
         ImageData temp(LM_PACKW, LM_PACKH, lightmaps[i].bpp, lightmaps[i].data);
-        const char *map = game::getclientmap(), *name = strrchr(map, '/');
-        defformatstring(buf)("lightmap_%s_%d.png", name ? name+1 : map, i);
-        savepng(buf, temp, true);
+        types::string map = game::getclientmap();
+
+        size_t slash = map.rfind("/");
+        if (slash != types::string::npos)
+            map = map.substr(0, slash);
+
+        savepng(
+            types::string().format("lightmap_%s_%d.png", map.buf, i).buf,
+            temp, true
+        );
     }
 }

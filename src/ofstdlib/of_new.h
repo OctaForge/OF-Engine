@@ -25,7 +25,7 @@
  * Operator: new
  * Allocates storage space.
  */
-inline void *operator new(size_t s) 
+inline void *operator new(size_t size) 
 { 
     void  *p = malloc(size);
     if   (!p)  abort();

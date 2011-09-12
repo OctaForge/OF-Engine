@@ -186,6 +186,32 @@ namespace types
         return npos;
     }
 
+    /* find last string */
+    size_t string::rfind(const string& str, size_t pos)
+    {
+        return rfind(str.buf, str.length, pos);
+    }
+
+    /* find last const char* */
+    size_t string::rfind(const char *str, size_t pos)
+    {
+        return rfind(str, strlen(str), pos);
+    }
+
+    /* find last const char* with given size */
+    size_t string::rfind(const char *str, size_t len, size_t pos)
+    {
+        size_t res = 0, ret = npos;
+
+        for (;;)
+        {
+            res = find(str, len, res);
+            if (res == npos) break;
+            ret = res;
+        }
+        return ret;
+    }
+
     /* format with const char* and va_list */
     const string& string::format(const char *fmt, va_list ap)
     {
