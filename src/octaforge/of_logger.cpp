@@ -77,30 +77,21 @@ namespace logger
         for (int i = 0; i < current_indent; i++)
             printf("    ");
 
-        /* 4096 chars should be enough for everyone */
-        char buf[4096];
-        va_list  args;
-        va_start(args, fmt);
-
-        vsnprintf(buf, sizeof(buf), fmt, args);
-        va_end   (args);
+        va_list  ap;
+        va_start(ap, fmt);
+        types::string buf = types::string().format(fmt, ap);
+        va_end(ap);
 
 #ifdef CLIENT
         if (level == ERROR)
         {
-            size_t sz = strlen(level_s) + strlen(buf) + 8;
-            char *out = new char[sz];
-            snprintf(out, sz, "[[%s]] - %s", level_s, buf);
-            if   (out)
-            {
-                    conoutf(CON_ERROR, out);
-                    delete[] out;
-            }
-            else return;
+            conoutf(CON_ERROR, types::string().format(
+                "[[%s]] - %s", level_s, buf.buf
+            ).buf);
         }
         else
 #endif
-        printf("[[%s]] - %s", level_s, buf);
+        printf("[[%s]] - %s", level_s, buf.buf);
 
         fflush(stdout);
     }

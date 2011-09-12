@@ -218,22 +218,22 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(hasmap, e.push, local_server::is_running())
 
     LUA_BIND_DEF(get_map_preview_filename, {
-        char buf [512];
-        char buff[512];
-        snprintf(buf, sizeof(buf), "data%cmaps%c%s%cpreview.png", PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV);
-        if (fileexists(buf, "r"))
+        types::string buf;
+
+        buf.format(
+            "data%cmaps%c%s%cpreview.png",
+            PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV
+        );
+        if (fileexists(buf.buf, "r"))
         {
-            e.push(buf);
+            e.push(buf.buf);
             return;
         }
-        snprintf(
-            buff, sizeof(buff), "%s%s",
-            homedir, buf
-        );
-        snprintf(buf, sizeof(buf), "%s", buff);
-        if (fileexists(buf, "r"))
+
+        buf.format("%s%s", homedir, buf.buf);
+        if (fileexists(buf.buf, "r"))
         {
-            e.push(buf);
+            e.push(buf.buf);
             return;
         }
         e.push();
@@ -243,13 +243,11 @@ namespace lua_binds
         vector<char *> glob;
         vector<char *> user;
 
-        char buf [512];
-        char buff[512];
-        snprintf(buf,  sizeof(buf),  "data%cmaps", PATHDIV);
-        snprintf(buff, sizeof(buff), "%s%s", homedir, buf);
+        types::string buf;
 
         e.t_new();
-        listdir(buf, false, NULL, glob);
+        buf.format("data%cmaps", PATHDIV);
+        listdir(buf.buf, false, NULL, glob);
         if (glob.length() > 0)
         {
             loopv(glob)
@@ -260,7 +258,8 @@ namespace lua_binds
         }
 
         e.t_new();
-        listdir(buff, false, NULL, user);
+        buf.format("%s%s", homedir, buf.buf);
+        listdir(buf.buf, false, NULL, user);
         if (user.length() > 0)
         {
             loopv(user)

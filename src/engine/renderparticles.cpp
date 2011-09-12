@@ -1610,15 +1610,15 @@ void updateparticles()
     }
     if(editmode) // show sparkly thingies for map entities in edit mode
     {
-        char buf[256];
+        types::string buf;
         int editid = -1;
         // note: order matters in this case as particles of the same type are drawn in the reverse order that they are added
         loopv(entgroup)
         {
             extentity &e = *entities::storage[entgroup[i]]; // INTENSITY: Made extentity
             if (!LogicSystem::getLogicEntity(e)) continue;
-            snprintf(buf, sizeof(buf), "@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf, PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
+            buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());
+            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.buf, PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
             switch (e.type)
             {
                 case ET_LIGHT:
@@ -1653,8 +1653,8 @@ void updateparticles()
             extentity &e = *entities::storage[i]; // INTENSITY: Made extentity
             if(e.type==ET_EMPTY || editid==e.uniqueId) continue;
             if (!LogicSystem::getLogicEntity(e)) continue;
-            snprintf(buf, sizeof(buf), "@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf, PART_TEXT, 1, 0x1EC850, editpartsize); // INTENSITY: Use class
+            buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());
+            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.buf, PART_TEXT, 1, 0x1EC850, editpartsize); // INTENSITY: Use class
             switch (e.type)
             {
                 case ET_LIGHT:

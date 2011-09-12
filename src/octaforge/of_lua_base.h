@@ -235,16 +235,13 @@ namespace lua_binds
             {
                 /*if ((ev->flags&var::VAR_HEX) != 0)
                 {
-                    char buf[32];
-                    snprintf(
-                        buf, sizeof(buf),
+                    e.push(types::string().format(
                         "0x%.6X <%d, %d, %d>",
                         ev->curv.i,
                         (ev->curv.i>>16)&0xFF,
                         (ev->curv.i>>8)&0xFF,
                         ev->curv.i&0xFF
-                    );
-                    e.push(buf);
+                    ).buf)
                 }
                 else e.push(ev->curv.i);*/
                 e.push(ev->curv.i);

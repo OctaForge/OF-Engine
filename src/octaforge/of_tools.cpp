@@ -131,40 +131,6 @@ namespace tools
         return true;
     }
 
-    bool mkpath(const char *path)
-    {
-        char  buf[4096];
-        char buff[4096];
-        char  *p = newstring(path);
-        char  *t = strtok(p, "/\\");   
-        while (t)
-        {
-            if (t[0] == '.')
-                t = strtok(NULL, "/\\");
-
-            if (strlen(buf) > 0)
-            {
-                snprintf(buff, sizeof(buff), "%s%c%s", buf, PATHDIV, t);
-                if (!createdir(buff))
-                {
-                    delete[] p;
-                    return false;
-                }
-                snprintf(buf, sizeof(buf), "%s", buff);
-            }
-            else if (!createdir(t))
-            {
-                delete[] p;
-                return false;
-            }
-            else snprintf(buf, sizeof(buf), "%s", t);
-
-            t  = strtok(NULL, "/\\");
-        }
-        delete[] p;
-        return true;
-    }
-
     char *sread(const char *fname)
     {
         if (!fname

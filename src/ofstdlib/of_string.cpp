@@ -215,10 +215,13 @@ namespace types
     /* format with const char* and va_list */
     const string& string::format(const char *fmt, va_list ap)
     {
-        clear();
+        char *new_buf = NULL;
 
-        length   = vasprintf(&buf, fmt, ap);
+        length   = vasprintf(&new_buf, fmt, ap);
         capacity = length;
+
+        delete[] buf;
+        buf = new_buf;
 
         return *this;
     }

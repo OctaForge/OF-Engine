@@ -66,13 +66,10 @@ namespace world
         if (num_expected_entities > 0)
         {
             float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
-            char  buf[32];
-
-            snprintf(buf, sizeof(buf), "received entity %i ...", num_received_entities);
             if (loading)
-            {
-                renderprogress(val, buf);
-            }
+                renderprogress(val, types::string().format(
+                    "received entity %i ...", num_received_entities
+                ).buf);
         }
     }
 

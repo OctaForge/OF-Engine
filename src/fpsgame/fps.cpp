@@ -230,15 +230,13 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            char cmd[2048];
-            snprintf(cmd, sizeof(cmd),
+            engine.exec(types::string().format(
                 "entity_store.get(%i).position = {"
                 "entity_store.get(%i).position.x,"
                 "entity_store.get(%i).position.y,"
                 "entity_store.get(%i).position.z}",
                 d->uniqueId, d->uniqueId, d->uniqueId, d->uniqueId
-            );
-            engine.exec(cmd);
+            ).buf);
 #endif
         }
     }

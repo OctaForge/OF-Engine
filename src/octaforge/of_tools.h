@@ -42,7 +42,6 @@ namespace tools
     bool  fdel(const char *file);
     bool  fempty(const char *file);
 
-    bool  mkpath(const char *path);
     char *sread(const char *fname);
 
     void  writecfg(const char *name = NULL);

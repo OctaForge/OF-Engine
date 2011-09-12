@@ -76,8 +76,6 @@ namespace local_server
 
     void run(const char *map)
     {
-        char buf[512];
-
         if (started)
         {
             conoutf("Stopping old server instance ..");
@@ -85,8 +83,7 @@ namespace local_server
         }
         conoutf("Starting server, please wait ..");
 
-        snprintf(
-            buf, sizeof(buf),
+        types::string buf = types::string().format(
             "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
 #ifdef WIN32
             "run_server.bat",
@@ -97,9 +94,9 @@ namespace local_server
         );
 
 #ifdef WIN32
-        popen_out = _popen(buf, "r");
+        popen_out = _popen(buf.buf, "r");
 #else
-        popen_out =  popen(buf, "r");
+        popen_out =  popen(buf.buf, "r");
 #endif
 
         started = true;

@@ -920,13 +920,13 @@ bool matchanim(const char *name, const char *pattern)
 void findanims(const char *pattern, vector<int> &anims)
 {
     loopi(sizeof(animnames)/sizeof(animnames[0])) if(matchanim(animnames[i], pattern)) anims.add(i);
-    char buf[16];
+    types::string buf;
 
     // INTENSITY: Accept integer values as well, up to 128 of them
     loopi(ANIM_ALL+1)
     {
-        snprintf(buf, sizeof(buf), "%i", i);
-        if(matchanim(buf, pattern)) anims.add(i);
+        buf.format("%i", i);
+        if(matchanim(buf.buf, pattern)) anims.add(i);
     }
     // INTENSITY: End Accept integer values as well
 }
