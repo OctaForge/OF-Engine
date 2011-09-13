@@ -3,8 +3,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-// Automatically generated from messages.template - DO NOT MODIFY THIS FILE!
-
 
 #include "cube.h"
 #include "engine.h"
@@ -617,7 +615,7 @@ namespace MessageSystem
                 \
                 logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value.buf); \
                 \
-                if (!engine.hashandle()) \
+                if (!LogicSystem::initialized) \
                     return; \
                 \
                 engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value.buf).call(3, 0).pop(1);
@@ -1006,7 +1004,7 @@ namespace MessageSystem
             return; // We do send this to the NPCs sometimes, as it is sent during their creation (before they are fully
                     // registered even). But we have no need to process it on the server.
         #endif
-        if (!engine.hashandle())
+        if (!LogicSystem::initialized)
             return;
         logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.buf);
         INDENT_LOG(logger::DEBUG);
@@ -1153,7 +1151,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
 
-        if (!engine.hashandle())
+        if (!LogicSystem::initialized)
             return;
         engine.getg("entity_store").t_getraw("del").push(uniqueId).call(1, 0).pop(1);
     }
@@ -1227,7 +1225,7 @@ namespace MessageSystem
         int attr3 = getint(p);
         int attr4 = getint(p);
 
-        if (!engine.hashandle())
+        if (!LogicSystem::initialized)
             return;
         logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass.buf,
             x, y, z, attr1, attr2, attr3, attr4);

@@ -350,6 +350,7 @@ void CLogicEntity::noteActualRender()
 //=========================
 
 LogicSystem::LogicEntityMap LogicSystem::logicEntities;
+bool LogicSystem::initialized = false;
 
 void LogicSystem::clear(bool restart_lua)
 {
@@ -363,12 +364,15 @@ void LogicSystem::clear(bool restart_lua)
 
         //if (restart_lua) engine.reset();
     }
+
+    LogicSystem::initialized = false;
 }
 
 void LogicSystem::init()
 {
     clear();
     engine.create();
+    LogicSystem::initialized = true;
 }
 
 void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
