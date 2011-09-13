@@ -17,8 +17,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    add_definitions (-fsigned-char)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-# keep rtti enabled for dynamic_casts
-add_definitions(-fno-exceptions)
+add_definitions(-fno-exceptions -fno-rtti)
 
 # set client sources, configure preprocessor
 add_definitions(-DCLIENT)
