@@ -644,7 +644,8 @@ namespace lua
         /* Passing name and map of binds, this method registers a table of binds in Lua */
         void setup_namespace(const char *n, const LE_reg *r);
         /* Loads a "module" - that is a lua script in m_scriptDir. */
-        void setup_module(const char *n, bool t = false);
+        void setup_module (const char *n, bool t = false);
+        void unload_module(const char *n);
         /* Registers the Lua namespaces, handles CubeCreate Lua modules and tests. */
         lua_Engine& bind();
 

@@ -213,6 +213,18 @@ namespace lua
         execf(f); if (m_runtests && !t) execf(ft);
     }
 
+    void lua_Engine::unload_module(const char *n)
+    {
+        /* nil the global */
+        push(n).push().setg();
+
+        /* nil in _LOADED */
+        lua_getfield(m_handle, LUA_REGISTRYINDEX, "_LOADED");
+        push(n).push().t_set();
+        t_getraw("package").t_getraw("loaded");
+        push(n).push().t_set().pop(3);
+    }
+
     lua_Engine& lua_Engine::bind()
     {
         if (!m_hashandle) return *this;
@@ -632,21 +644,49 @@ namespace lua
 
     void lua_Engine::reset()
     {
-        /* only destroying and creating again is not enough */
-        destroy(); create();
+        /*
+         * create a list of values to clear, including
+         * internal list, library-specified list and
+         * variants.
+         */
+        vector<types::string> list;
 
-#ifdef CLIENT
-        gui::setup();
-#endif
+        list.add("table");
+        list.add("string");
+        list.add("math");
+        list.add("package");
+        list.add("debug");
+        list.add("obj");
+        list.add("coroutine");
+        list.add("_G");
+        list.add("CAPI");
+        list.add("md5");
+        list.add("smd");
+        list.add("iqm");
+        list.add("obj");
 
-        bool waspersisting = var::persistvars;
+        getg("library").t_getraw("unresettable");
+        push();
+        while (t_next(-2))
+        {
+            list.add(get<const char*>(-1));
+            pop(1);
+        }
+        pop(2);
 
-        var::persistvars = false;
-        lua::engine.execf("data/cfg/menus.lua");
-        lua::engine.execf("data/cfg/brush.lua");
-        var::persistvars = true;
-        lua::engine.execf("data/cfg/config.lua");
-        var::persistvars = waspersisting;
+        lua_getfield(m_handle, LUA_REGISTRYINDEX, "_LOADED");
+        push();
+        while (t_next(-2))
+        {
+            const char *key = get<const char*>(-2);
+            if (list.find(key) == -1)
+                unload_module(key);
+            pop(1);
+        }
+        pop(1);
+
+        /* set up the core library again */
+        setup_module("init");
     }
 
     bool lua_Engine::hashandle()

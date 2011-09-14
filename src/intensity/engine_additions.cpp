@@ -362,7 +362,7 @@ void LogicSystem::clear(bool restart_lua)
         engine.getg("entity_store").t_getraw("del_all").call(0, 0).pop(1);
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
-        //if (restart_lua) engine.reset();
+        if (restart_lua) engine.reset();
     }
 
     LogicSystem::initialized = false;
