@@ -25,7 +25,7 @@ if (UNIX) # All kinds of POSIX compatible OSes (Linux, BSD, Mac for now)
         # we build for i386
         set(CMAKE_OSX_ARCHITECTURES "i386")
         # some extra OS X sources
-        set(EXTRA_SOURCES ../osx_dev/macutils.mm ../osx_dev/SDLMain.m)
+        set(EXTRA_SOURCES ../platform_osx/macutils.mm ../platform_osx/SDLMain.m)
         # extra includes for some OS X installations
         include_directories(${CMAKE_SOURCE_DIR}/src/include)
     else (APPLE) # these are other POSIX compatible OSes, most likely Linux, BSD
@@ -37,12 +37,12 @@ else (UNIX) # this is windows. Well, not really, but mostly yes (TODO: check?)
     add_definitions(-DWINDOWS)
     add_definitions(-DWIN32)
     # link and include from extra dir.
-    include_directories(${CMAKE_SOURCE_DIR}/src/include)
-    link_directories(${CMAKE_SOURCE_DIR}/src/lib)
+    include_directories(${CMAKE_SOURCE_DIR}/src/platform_windows/include)
+    link_directories(${CMAKE_SOURCE_DIR}/src/platform_windows/lib)
     # append cmake prefix path so it finds required libraries on Windows
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR}/src)
     # build sdlmain into client and server on Windows
-    set(EXTRA_SOURCES ../lib/src/SDL_win32_main.cpp)
+    set(EXTRA_SOURCES ${CMAKE_SOURCE_DIR}/src/platform_windows/lib/src/SDL_win32_main.cpp)
 endif (UNIX)
 
 # find other packages
@@ -51,7 +51,6 @@ find_package(SDL REQUIRED)
 find_package(SDL_mixer REQUIRED)
 find_package(SDL_image REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(Lua51 REQUIRED)
 
 # PROCEED TO NEXT DIR
 add_subdirectory(src)

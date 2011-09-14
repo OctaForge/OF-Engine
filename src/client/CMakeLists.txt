@@ -4,12 +4,11 @@
 # this makes client binary.
 #
 
-# include headers of SDL, Lua
+# include headers of SDL
 include_directories(
     ${SDL_INCLUDE_DIR}
     ${SDLMIXER_INCLUDE_DIR}
     ${SDLIMAGE_INCLUDE_DIR}
-    ${LUA_INCLUDE_DIR}
 )
 
 # there is no LINUX variable declared
@@ -90,7 +89,7 @@ set(CLIENT_SOURCES
 # link libs to executable
 set(CLIENT_LIBRARIES
     enet_${OF_BUILD_SUFFIX}
-    ${LUA_LIBRARIES}
+    lua_${OF_BUILD_SUFFIX}
     ${SDL_LIBRARY}
     ${SDLMIXER_LIBRARY}
     ${SDLIMAGE_LIBRARY}

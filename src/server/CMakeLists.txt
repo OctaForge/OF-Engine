@@ -4,12 +4,11 @@
 # this makes server binary.
 #
 
-# include headers of SDL, Lua
+# include headers of SDL
 include_directories(
     ${SDL_INCLUDE_DIR}
     ${SDLMIXER_INCLUDE_DIR}
     ${SDLIMAGE_INCLUDE_DIR}
-    ${LUA_INCLUDE_DIR}
 )
 add_definitions(-fno-exceptions -fno-rtti)
 
@@ -64,7 +63,7 @@ set(SERVER_SOURCES
 # link libs to executable
 set(SERVER_LIBRARIES
     enet_${OF_BUILD_SUFFIX}
-    ${LUA_LIBRARIES}
+    lua_${OF_BUILD_SUFFIX}
     ${SDL_LIBRARY}
     ${SDLMIXER_LIBRARY}
     ${SDLIMAGE_LIBRARY}
