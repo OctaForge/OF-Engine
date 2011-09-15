@@ -341,77 +341,104 @@ endif
 # builds the C files appropriately, using secondary
 # expansion to properly pre-create needed directories
 $(OBJDIR)/%.o: %.c $$(@D)/.stamp
+	@echo [libraries] Building a C object file $(subst $(OBJDIR)/,,$@).
 	$(CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
 # some Mac OS X specific targets
 ifeq ($(OS), Darwin)
 $(OBJDIR)/platform_osx/macutils.o: platform_osx/macutils.mm $$(@D)/.stamp
+	@echo Building an Obj-C++ object file platform_osx/macutils.mm.
 	$(CXX) $(CXXFLAGS) -Wno-import -c -o $@ platform_osx/macutils.mm
 
 $(OBJDIR)/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
+	@echo Building an Obj-C object file platform_osx/SDLMain.m.
 	$(CC) $(CFLAGS) -Wno-import -c -o $@ platform_osx/SDLMain.m
 endif
 
 # enet
 $(ENET_OBJ_BUILD): CFLAGS += $(ENET_INC)
 enet: $(ENET_OBJ_BUILD)
+	@echo Creating a static library $(ENET_LIB).
 	$(AR) $(OBJDIR)/$(ENET_LIB) $(ENET_OBJ_BUILD)
 	$(RANLIB) $(OBJDIR)/$(ENET_LIB)
+	@echo Built target: enet.
 
 # lua
 $(LUA_OBJ_BUILD): CFLAGS += $(LUA_INC)
 lua: $(LUA_OBJ_BUILD)
+	@echo Creating a static library $(LUA_LIB).
 	$(AR) $(OBJDIR)/$(LUA_LIB) $(LUA_OBJ_BUILD)
 	$(RANLIB) $(OBJDIR)/$(LUA_LIB)
+	@echo Built target: lua.
 
 # client
 $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
+	@echo [client] Building a C++ object file $(subst $(OBJDIR)/client/,,$@).
 	$(CXX) $(CXXFLAGS) -c -o $@ $(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
 $(CLIENT_OBJ_BUILD): CXXFLAGS += $(CLIENT_INC)
 client: enet lua $(CLIENT_OBJ_BUILD)
+	@echo Linking a client executable $(CLIENT_BIN).
 	$(CXX) $(CXXFLAGS) -o $(CLIENT_BIN) $(CLIENT_OBJ_BUILD) $(CLIENT_LDD)
+	@echo Built target: client.
 
 # server
 $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
+	@echo [server] Building a C++ object file $(subst $(OBJDIR)/server/,,$@).
 	$(CXX) $(CXXFLAGS) -c -o $@ $(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
 $(SERVER_OBJ_BUILD): CXXFLAGS += $(SERVER_INC)
 server: enet lua $(SERVER_OBJ_BUILD)
+	@echo Linking a server executable $(SERVER_BIN).
 	$(CXX) $(CXXFLAGS) -o $(SERVER_BIN) $(SERVER_OBJ_BUILD) $(SERVER_LDD)
+	@echo Built target: server.
 
 # general targets
 all: client server
 
 ifneq ($(OS), Windows)
 clean:
+	@echo Cleaning up...
 	-rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
+	@echo ... done.
 else
 clean:
+	@echo Cleaning up...
 	-rmdir //s //f //q $(OBJDIR)
 	-del //s //f //q $(CLIENT_BIN).exe $(SERVER_BIN).exe
+	@echo ... done.
 endif
 
 install: client server
+	@echo Installing...
 ifneq ($(OS), Windows)
+	@echo Copying $(CLIENT_BIN) to $(BIN_PATH).
 	cp $(CLIENT_BIN) $(BIN_PATH)
+	@echo Copying $(SERVER_BIN) to $(BIN_PATH).
 	cp $(SERVER_BIN) $(BIN_PATH)
 ifneq (,$(STRIP))
 ifeq (,$(NOSTRIP))
+	@echo Stripping $(BIN_PATH)/$(CLIENT_BIN).
 	$(STRIP) $(BIN_PATH)/$(CLIENT_BIN)
+	@echo Stripping $(BIN_PATH)/$(SERVER_BIN).
 	$(STRIP) $(BIN_PATH)/$(SERVER_BIN)
 endif
 endif
 else
+	@echo Copying $(CLIENT_BIN).exe to $(BIN_PATH).
 	copy $(CLIENT_BIN).exe $(BIN_PATH)
+	@echo Copying $(SERVER_BIN).exe to $(BIN_PATH).
 	copy $(SERVER_BIN).exe $(BIN_PATH)
 ifneq (,$(STRIP))
 ifeq (,$(NOSTRIP))
+	@echo Stripping $(BIN_PATH)\$(CLIENT_BIN).
 	$(STRIP) $(BIN_PATH)\$(CLIENT_BIN).exe
+	@echo Stripping $(BIN_PATH)\$(SERVER_BIN).
 	$(STRIP) $(BIN_PATH)\$(SERVER_BIN).exe
 endif
 endif
 endif
+	@echo ... done.
 
 # dependency generator
 depend:

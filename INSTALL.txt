@@ -49,10 +49,11 @@ with little modifications it should work everywhere.
    .. code-block :: bash
 
        $ cd $HOME/OctaForge_source/src
-       $ make install
+       $ make install -s
 
    If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
    On some systems (like FreeBSD), you'll have to use "gmake" instead of "make".
+   Remove the -s for verbose builds.
 
 3. You're done, you should have binaries in OFROOT/bin_unix.
 
@@ -82,9 +83,10 @@ So the steps are:
 
    .. code-block :: bash
 
-       $ mingw32-make install
+       $ mingw32-make install -s
 
    If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
+   Remove the -s for verbose builds.
 
 Mac OS X (Darwin)
 =================
@@ -101,8 +103,9 @@ Mac OS X (Darwin)
 
    .. code-block :: bash
 
-       $ make install
+       $ make install -s
 
    If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
+   Remove the -s for verbose builds.
 
    After everything goes OK, you should have binaries and you can launch (run_client.command file from Finder)
