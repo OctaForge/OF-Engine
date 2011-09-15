@@ -15,6 +15,7 @@
  */
 
 #include "of_string.h"
+#include "of_stdio.h"
 
 namespace types
 {

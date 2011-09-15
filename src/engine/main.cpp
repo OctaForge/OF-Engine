@@ -987,7 +987,7 @@ void getfps(int &fps, int &bestdiff, int &worstdiff)
 
 void getfps_(int *raw)
 {
-    int fps, bestdiff, worstdiff;
+    int fps, bestdiff = 0, worstdiff = 0;
     if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
     else getfps(fps, bestdiff, worstdiff);
     lua::engine.push(fps);

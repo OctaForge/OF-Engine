@@ -37,13 +37,13 @@ int _asprintf(char **strp, const char *fmt, ...);
  * Define: vasprintf
  * Alias for <_vasprintf> to get around redefinition issues.
  */
-#define vasprintf _vasprintf;
+#define vasprintf _vasprintf
 
 /*
  * Define: asprintf
  * Alias for <_asprintf> to get around redefinition issues.
  */
-#define asprintf _asprintf;
+#define asprintf _asprintf
 
 #endif
 
