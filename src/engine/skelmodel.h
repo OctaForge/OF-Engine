@@ -2108,12 +2108,16 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
             conoutf("\frcould not find pitch target %s to pitch correct %s", e.get<char*>(2), e.get<char*>(1));
             return;
         }
+
         pitchcorrect c;
         c.bone = bone;
         c.target = target;
+        c.parent = 0;
         c.pitchmin = e.get<float>(4);
         c.pitchmax = e.get<float>(5);
         c.pitchscale = e.get<float>(3);
+        c.pitchangle = 0;
+        c.pitchtotal = 0;
         int pos = skel->pitchcorrects.length();
         loopv(skel->pitchcorrects) if(bone <= skel->pitchcorrects[i].bone) { pos = i; break; break; }
         skel->pitchcorrects.insert(pos, c); 

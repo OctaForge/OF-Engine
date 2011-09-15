@@ -234,7 +234,7 @@ namespace lua
         m_runtests = false;
         if (m_rantests) m_runtests = false;
 
-        addcommand((LE_reg){ NULL, NULL });
+        addcommand(LE_reg(NULL, NULL));
         setup_namespace("CAPI", CAPI.getbuf());
         #define PUSHLEVEL(l) t_set(#l, logger::l);
         PUSHLEVEL(INFO)

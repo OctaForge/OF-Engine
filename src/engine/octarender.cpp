@@ -183,7 +183,7 @@ struct verthash
                  if(c.lmu==v.lmu && c.lmv==v.lmv) return i;
             }
         }
-        if(verts.length() >= USHRT_MAX) return -1;
+        if(verts.length() >= (int)USHRT_MAX) return -1;
         verts.add(v);
         chain.add(table[h]);
         return table[h] = verts.length()-1;
@@ -457,8 +457,8 @@ struct vacollect : verthash
         if(va->verts)
         {
             if(vbosize[VBO_VBUF] + verts.length() > maxvbosize || 
-               vbosize[VBO_EBUF] + worldtris > USHRT_MAX ||
-               vbosize[VBO_SKYBUF] + skytris > USHRT_MAX) 
+               vbosize[VBO_EBUF] + worldtris > (int)USHRT_MAX ||
+               vbosize[VBO_SKYBUF] + skytris > (int)USHRT_MAX) 
                 flushvbo();
 
             va->voffset = vbosize[VBO_VBUF];
@@ -684,7 +684,7 @@ void addtris(const sortkey &key, int orient, vertex verts[4], int index[4], int 
                 vt.tangent.lerp(v1.tangent, v2.tangent, offset);
                 vt.bitangent = v1.bitangent;
                 int nextindex = vc.addvert(vt);
-                if(nextindex < 0 || total + 3 > USHRT_MAX) return;
+                if(nextindex < 0 || total + 3 > (int)USHRT_MAX) return;
                 total += 3;
                 idxs.add(right);
                 idxs.add(left);
@@ -694,7 +694,7 @@ void addtris(const sortkey &key, int orient, vertex verts[4], int index[4], int 
             }
         }
 
-        if(total + 3 > USHRT_MAX) return;
+        if(total + 3 > (int)USHRT_MAX) return;
         total += 3;
         idxs.add(right);
         idxs.add(left);
@@ -1143,7 +1143,7 @@ void addskyverts(const ivec &o, int size)
                 if(index[k] < 0) goto nextskyface;
                 vc.skyclip = min(vc.skyclip, int(v.z*8)>>3);
             }
-            if(vc.skytris + 6 > USHRT_MAX) break;
+            if(vc.skytris + 6 > (int)USHRT_MAX) break;
             vc.skytris += 6;
             vc.skyindices.add(index[0]);
             vc.skyindices.add(index[1]);

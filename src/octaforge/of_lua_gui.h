@@ -87,7 +87,7 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(menukeyclicktrig, GuiControl::menuKeyClickTrigger)
 
 #ifdef CLIENT
-    #define REG(n) bool __dummy_##n = lua::addcommand((LE_reg){ #n, gui::_bind_##n });
+    #define REG(n) bool __dummy_##n = lua::addcommand(LE_reg(#n, gui::_bind_##n));
 
     REG(showui)
     REG(hideui)
@@ -128,8 +128,8 @@ namespace lua_binds
     REG(uitexteditor)
     REG(uifield)
 
-    bool __dummy_clearchanges = lua::addcommand((LE_reg){ "clearchanges", _bind_clearchanges });
-    bool __dummy_applychanges = lua::addcommand((LE_reg){ "applychanges", _bind_applychanges });
-    bool __dummy_getchanges   = lua::addcommand((LE_reg){ "getchanges",   _bind_getchanges   });
+    bool __dummy_clearchanges = lua::addcommand(LE_reg("clearchanges", _bind_clearchanges));
+    bool __dummy_applychanges = lua::addcommand(LE_reg("applychanges", _bind_applychanges));
+    bool __dummy_getchanges   = lua::addcommand(LE_reg("getchanges",   _bind_getchanges));
 #endif
 }
