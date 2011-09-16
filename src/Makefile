@@ -8,6 +8,25 @@
 CXXFLAGS = -O3 -fomit-frame-pointer
 override CXXFLAGS += -Wall -fsigned-char -fno-exceptions -fno-rtti
 
+ifneq (,$(MINGW_CROSS))
+OS   = Windows
+FLAV = MinGW-cross
+ARCH = x86
+
+AR     = mingw32-ar rcu
+RANLIB = mingw32-ranlib
+STRIP  =
+ifeq (,$(findstring -g, $(CXXFLAGS)))
+ifeq (,$(findstring -pg, $(CXXFLAGS)))
+STRIP  = mingw32-strip
+endif
+endif
+
+CC  = mingw32-gcc
+CXX = mingw32-g++
+CPP = mingw32-cpp
+endif
+
 # basic OS information
 ifeq (,$(OS))
 OS   = $(shell uname -s)
@@ -25,18 +44,24 @@ ifeq (,$(ARCH))
 ARCH = x86
 endif
 
+ifeq (,$(FLAV))
+FLAV = $(OS)
+endif
+
 # under mingw, CC defaults to 'cc' and that does not exist by default
 ifeq ($(CC), cc)
 	CC = gcc
 endif
 
 # tools
+ifeq (,$(MINGW_CROSS))
 AR     = ar rcu
 RANLIB = ranlib
 STRIP  =
 ifeq (,$(findstring -g, $(CXXFLAGS)))
 ifeq (,$(findstring -pg, $(CXXFLAGS)))
-	STRIP = strip
+STRIP  = strip
+endif
 endif
 endif
 
@@ -46,7 +71,8 @@ AT = @
 endif
 
 # output colorization on non-windows
-ifneq ($(OS), Windows)
+
+ifneq ($(FLAV), Windows)
 ifeq (,$(NOCOLOR))
 RED    = -e "\033[1;31m
 GREEN  = -e "\033[1;32m
@@ -67,7 +93,11 @@ LUA_PATH  = libraries/lua
 ifneq ($(OS), Windows)
 BIN_PATH  = ../bin_unix
 else
+ifeq ($(FLAV), Windows)
 BIN_PATH  = ..\bin_win
+else
+BIN_PATH  = ../bin_win
+endif
 endif
 
 # include paths
@@ -75,8 +105,13 @@ ENET_INCLUDE_PATH = $(ENET_PATH)/include
 LUA_INCLUDE_PATH  = $(LUA_PATH)/include
 
 # binary names
+ifeq (,$(findstring Windows,$(OS)))
 CLIENT_BIN = OF_Client_$(OS)-$(ARCH)
 SERVER_BIN = OF_Server_$(OS)-$(ARCH)
+else
+CLIENT_BIN = OF_Client_$(OS)-$(ARCH).exe
+SERVER_BIN = OF_Server_$(OS)-$(ARCH).exe
+endif
 
 # library names
 ENET_LIB = $(ENET_PATH)/libenet.a
@@ -356,7 +391,7 @@ default: all
 
 # target for appropriately handling
 # directory creation (for OBJDIR)
-ifneq ($(OS), Windows)
+ifneq ($(FLAV), Windows)
 %/.stamp:
 	$(AT) mkdir -p $(dir $@)
 	$(AT) touch $@
@@ -450,7 +485,7 @@ server: enet lua $(SERVER_OBJ_BUILD)
 # general targets
 all: client server
 
-ifneq ($(OS), Windows)
+ifneq ($(FLAV), Windows)
 clean:
 	@echo $(CYAN)Cleaning up...$(ENDCOL)
 	$(AT) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
@@ -459,13 +494,13 @@ else
 clean:
 	@echo Cleaning up...
 	$(AT) -rmdir //s //f //q $(OBJDIR)
-	$(AT) -del //s //f //q $(CLIENT_BIN).exe $(SERVER_BIN).exe
+	$(AT) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN)
 	@echo ... done.
 endif
 
 install: client server
 	@echo $(CYAN)Installing...$(ENDCOL)
-ifneq ($(OS), Windows)
+ifneq ($(FLAV), Windows)
 	@echo $(CYAN)Copying $(CLIENT_BIN) to $(BIN_PATH).$(ENDCOL)
 	$(AT) cp $(CLIENT_BIN) $(BIN_PATH)
 	@echo $(CYAN)Copying $(SERVER_BIN) to $(BIN_PATH).$(ENDCOL)
@@ -479,16 +514,16 @@ ifeq (,$(NOSTRIP))
 endif
 endif
 else
-	@echo Copying $(CLIENT_BIN).exe to $(BIN_PATH).
-	$(AT) copy $(CLIENT_BIN).exe $(BIN_PATH)
-	@echo Copying $(SERVER_BIN).exe to $(BIN_PATH).
-	$(AT) copy $(SERVER_BIN).exe $(BIN_PATH)
+	@echo Copying $(CLIENT_BIN) to $(BIN_PATH).
+	$(AT) copy $(CLIENT_BIN) $(BIN_PATH)
+	@echo Copying $(SERVER_BIN) to $(BIN_PATH).
+	$(AT) copy $(SERVER_BIN) $(BIN_PATH)
 ifneq (,$(STRIP))
 ifeq (,$(NOSTRIP))
 	@echo Stripping $(BIN_PATH)\$(CLIENT_BIN).
-	$(AT) $(STRIP) $(BIN_PATH)\$(CLIENT_BIN).exe
+	$(AT) $(STRIP) $(BIN_PATH)\$(CLIENT_BIN)
 	@echo Stripping $(BIN_PATH)\$(SERVER_BIN).
-	$(AT) $(STRIP) $(BIN_PATH)\$(SERVER_BIN).exe
+	$(AT) $(STRIP) $(BIN_PATH)\$(SERVER_BIN)
 endif
 endif
 endif
