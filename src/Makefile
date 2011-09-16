@@ -90,42 +90,52 @@ INCLUDES += -I$(LUA_INCLUDE_PATH)
 
 # Windows specific
 ifeq ($(OS), Windows)
-WINDOWS_INCLUDES = platform_windows/include
-WINDOWS_LIBS     = platform_windows/lib
+WINDOWS_INCLUDES = -Iplatform_windows/include
+WINDOWS_LIBS     = -Lplatform_windows/lib
 endif
 
 # Mac OS X specific
 ifeq ($(OS), Darwin)
-OBJC_OBJ = \
+OSX_FRAMEWORK_PATH = /Library/Frameworks
+
+OSX_OBJ = \
 	platform_osx/macutils.o \
 	platform_osx/SDLMain.o
+
+OSX_INCLUDES  = -I$(OSX_FRAMEWORK_PATH)/SDL.framework/Headers
+OSX_INCLUDES += -I$(OSX_FRAMEWORK_PATH)/SDL_image.framework/Headers
+OSX_INCLUDES += -I$(OSX_FRAMEWORK_PATH)/SDL_mixer.framework/Headers
+OSX_LIBS  = -F$(OSX_FRAMEWORK_PATH) -framework Cocoa
+OSX_LIBS += -framework SDL -framework SDL_image -framework SDL_mixer
 endif
 
 # client includes and libs
 ifneq ($(OS), Windows)
-CLIENT_INC  = $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` -DCLIENT
-CLIENT_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
-CLIENT_LDD += -lenet -llua -L/usr/X11R6/lib -lX11 `sdl-config --libs`
-CLIENT_LDD += -lSDL_image -lSDL_mixer -lz -lGL
+	ifneq ($(OS), Darwin)
+		CLIENT_INC  = $(INCLUDES) -I/usr/X11R6/include
+		CLIENT_INC += `sdl-config --cflags` -DCLIENT
+		CLIENT_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
+		CLIENT_LDD += -lenet -llua -L/usr/X11R6/lib -lX11 `sdl-config --libs`
+		CLIENT_LDD += -lSDL_image -lSDL_mixer -lz -lGL
+		ifeq ($(OS), Linux)
+			CLIENT_LDD += -lrt
+		endif
+		ifeq ($(OS), SunOS)
+			CLIENT_LDD += -lsocket -lnsl
+		endif
+	else
+		CLIENT_INC  = $(INCLUDES) -I/usr/X11R6/include $(OSX_INCLUDES) -DCLIENT
+		CLIENT_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
+		CLIENT_LDD += -lenet -llua -L/usr/X11R6/lib -lX11 $(OSX_LIBS)
+		CLIENT_LDD += -lz -lGL -lobjc
+	endif
 else
-CLIENT_INC  = $(INCLUDES) -I$(WINDOWS_INCLUDES) -DCLIENT
-CLIENT_LDD  = -mwindows -L$(WINDOWS_LIBS)
-CLIENT_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
-CLIENT_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
-CLIENT_LDD += -lzdll -lopengl32 -lws2_32 -lwinmm
-CLIENT_LDD += -static-libgcc -static-libstdc++
-endif
-
-ifeq ($(OS), Linux)
-CLIENT_LDD += -lrt
-endif
-
-ifeq ($(OS), SunOS)
-CLIENT_LDD += -lsocket -lnsl
-endif
-
-ifeq ($(OS), Darwin)
-CLIENT_LDD += -lobjc
+	CLIENT_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DCLIENT
+	CLIENT_LDD  = -mwindows $(WINDOWS_LIBS)
+	CLIENT_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
+	CLIENT_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
+	CLIENT_LDD += -lzdll -lopengl32 -lws2_32 -lwinmm
+	CLIENT_LDD += -static-libgcc -static-libstdc++
 endif
 
 # client objects
@@ -198,32 +208,35 @@ CLIENT_OBJ += platform_windows/lib/src/SDL_win32_main.o
 endif
 
 ifeq ($(OS), Darwin)
-CLIENT_OBJ += $(OBJC_OBJ)
+CLIENT_OBJ += $(OSX_OBJ)
 endif
 
 CLIENT_OBJ_BUILD = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 
 # server includes and libs
 ifneq ($(OS), Windows)
-SERVER_INC  = $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` -DSERVER
-SERVER_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
-SERVER_LDD += -lenet -llua -L/usr/X11R6/lib -lX11 `sdl-config --libs`
-SERVER_LDD += -lSDL_image -lSDL_mixer -lz
+	ifneq ($(OS), Darwin)
+		SERVER_INC  = $(INCLUDES) -I/usr/X11R6/include
+		SERVER_INC += `sdl-config --cflags` -DSERVER
+		SERVER_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
+		SERVER_LDD += -lenet -llua -L/usr/X11R6/lib -lX11 `sdl-config --libs`
+		SERVER_LDD += -lSDL_image -lSDL_mixer -lz
+		ifeq ($(OS), SunOS)
+			SERVER_LDD += -lsocket -lnsl
+		endif
+	else
+		SERVER_INC  = $(INCLUDES) -I/usr/X11R6/include $(OSX_INCLUDES) -DSERVER
+		SERVER_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
+		SERVER_LDD += -lenet -llua -L/usr/X11R6/lib -lX11 $(OSX_LIBS)
+		SERVER_LDD += -lz -lobjc
+	endif
 else
-SERVER_INC  = $(INCLUDES) -I$(WINDOWS_INCLUDES) -DSERVER
-SERVER_LDD  = -mwindows -L$(WINDOWS_LIBS)
-SERVER_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
-SERVER_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
-SERVER_LDD += -lzdll -lopengl32 -lws2_32 -lwinmm
-CLIENT_LDD += -static-libgcc -static-libstdc++
-endif
-
-ifeq ($(OS), SunOS)
-SERVER_LDD += -lsocket -lnsl
-endif
-
-ifeq ($(OS), Darwin)
-SERVER_LDD += -lobjc
+	SERVER_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DSERVER
+	SERVER_LDD  = -mwindows $(WINDOWS_LIBS)
+	SERVER_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
+	SERVER_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
+	SERVER_LDD += -lzdll -lopengl32 -lws2_32 -lwinmm
+	SERVER_LDD += -static-libgcc -static-libstdc++
 endif
 
 # server objects
@@ -271,7 +284,7 @@ SERVER_OBJ += platform_windows/lib/src/SDL_win32_main.o
 endif
 
 ifeq ($(OS), Darwin)
-SERVER_OBJ += $(OBJC_OBJ)
+SERVER_OBJ += $(OSX_OBJ)
 endif
 
 SERVER_OBJ_BUILD = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
@@ -365,15 +378,31 @@ $(OBJDIR)/%.o: %.c $$(@D)/.stamp
 
 # some Mac OS X specific targets
 ifeq ($(OS), Darwin)
-$(OBJDIR)/platform_osx/macutils.o: platform_osx/macutils.mm $$(@D)/.stamp
-	@echo $(PURPLE)[OS X]$(RRED)Building an Obj-C++ object file \
+$(OBJDIR)/client/platform_osx/macutils.o: platform_osx/macutils.mm \
+$$(@D)/.stamp
+	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C++ object file \
 	platform_osx/macutils.mm.$(ENDCOL)
-	$(AT) $(CXX) $(CXXFLAGS) -Wno-import -c -o $@ platform_osx/macutils.mm
+	$(AT) $(CXX) $(CXXFLAGS) $(OSX_INCLUDES) \
+		-Wno-import -c -o $@ platform_osx/macutils.mm
 
-$(OBJDIR)/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	@echo $(PURPLE)[OS X]$(RRED)Building an Obj-C object file \
+$(OBJDIR)/client/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
+	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C object file \
 	platform_osx/SDLMain.m.$(ENDCOL)
-	$(AT) $(CC) $(CFLAGS) -Wno-import -c -o $@ platform_osx/SDLMain.m
+	$(AT) $(CC) $(CFLAGS) $(OSX_INCLUDES) \
+		-Wno-import -c -o $@ platform_osx/SDLMain.m
+
+$(OBJDIR)/server/platform_osx/macutils.o: platform_osx/macutils.mm \
+$$(@D)/.stamp
+	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C++ object file \
+	platform_osx/macutils.mm.$(ENDCOL)
+	$(AT) $(CXX) $(CXXFLAGS) $(OSX_INCLUDES) \
+		-Wno-import -c -o $@ platform_osx/macutils.mm
+
+$(OBJDIR)/server/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
+	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C object file \
+	platform_osx/SDLMain.m.$(ENDCOL)
+	$(AT) $(CC) $(CFLAGS) $(OSX_INCLUDES) \
+		-Wno-import -c -o $@ platform_osx/SDLMain.m
 endif
 
 # enet
