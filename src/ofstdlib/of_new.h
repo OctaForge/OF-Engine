@@ -49,7 +49,8 @@ inline void *operator new[](size_t size)
  */
 inline void operator delete(void *p)
 {
-    if (p) free(p);
+    free(p);
+    p = NULL;
 }
 
 /*
@@ -58,7 +59,8 @@ inline void operator delete(void *p)
  */
 inline void operator delete[](void *p)
 {
-    if (p) free(p);
+    free(p);
+    p = NULL;
 } 
 
 inline void *operator new  (size_t, void *p)  { return p; }
