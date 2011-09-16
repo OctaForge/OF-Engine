@@ -380,26 +380,26 @@ $(OBJDIR)/%.o: %.c $$(@D)/.stamp
 ifeq ($(OS), Darwin)
 $(OBJDIR)/client/platform_osx/macutils.o: platform_osx/macutils.mm \
 $$(@D)/.stamp
-	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C++ object file \
+	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C++ object file \
 	platform_osx/macutils.mm.$(ENDCOL)
 	$(AT) $(CXX) $(CXXFLAGS) $(OSX_INCLUDES) \
 		-Wno-import -c -o $@ platform_osx/macutils.mm
 
 $(OBJDIR)/client/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C object file \
+	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C object file \
 	platform_osx/SDLMain.m.$(ENDCOL)
 	$(AT) $(CC) $(CFLAGS) $(OSX_INCLUDES) \
 		-Wno-import -c -o $@ platform_osx/SDLMain.m
 
 $(OBJDIR)/server/platform_osx/macutils.o: platform_osx/macutils.mm \
 $$(@D)/.stamp
-	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C++ object file \
+	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C++ object file \
 	platform_osx/macutils.mm.$(ENDCOL)
 	$(AT) $(CXX) $(CXXFLAGS) $(OSX_INCLUDES) \
 		-Wno-import -c -o $@ platform_osx/macutils.mm
 
 $(OBJDIR)/server/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	@echo $(PURPLE)[OS X]$(RRED) Building an Obj-C object file \
+	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C object file \
 	platform_osx/SDLMain.m.$(ENDCOL)
 	$(AT) $(CC) $(CFLAGS) $(OSX_INCLUDES) \
 		-Wno-import -c -o $@ platform_osx/SDLMain.m
