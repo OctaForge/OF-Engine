@@ -45,6 +45,19 @@ ifeq (,$(VERBOSE))
 AT = @
 endif
 
+# output colorization on non-windows
+ifneq ($(OS), Windows)
+ifeq (,$(NOCOLOR))
+RED    = -e "\033[1;31m
+GREEN  = -e "\033[1;32m
+BLUE   = -e "\033[1;34m
+PURPLE = -e "\033[1;35m
+CYAN   = -e "\033[1;36m
+RRED   = \033[1;31m
+ENDCOL = \033[m"
+endif
+endif
+
 # object directory
 OBJDIR = build
 
@@ -346,68 +359,73 @@ endif
 # builds the C files appropriately, using secondary
 # expansion to properly pre-create needed directories
 $(OBJDIR)/%.o: %.c $$(@D)/.stamp
-	@echo [libraries] Building a C object file $(subst $(OBJDIR)/,,$@).
+	@echo $(CYAN)[libraries]$(RRED) Building a C object file \
+	$(subst $(OBJDIR)/,,$@).$(ENDCOL)
 	$(AT) $(CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
 # some Mac OS X specific targets
 ifeq ($(OS), Darwin)
 $(OBJDIR)/platform_osx/macutils.o: platform_osx/macutils.mm $$(@D)/.stamp
-	@echo Building an Obj-C++ object file platform_osx/macutils.mm.
+	@echo $(PURPLE)[OS X]$(RRED)Building an Obj-C++ object file \
+	platform_osx/macutils.mm.$(ENDCOL)
 	$(AT) $(CXX) $(CXXFLAGS) -Wno-import -c -o $@ platform_osx/macutils.mm
 
 $(OBJDIR)/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	@echo Building an Obj-C object file platform_osx/SDLMain.m.
+	@echo $(PURPLE)[OS X]$(RRED)Building an Obj-C object file \
+	platform_osx/SDLMain.m.$(ENDCOL)
 	$(AT) $(CC) $(CFLAGS) -Wno-import -c -o $@ platform_osx/SDLMain.m
 endif
 
 # enet
 $(ENET_OBJ_BUILD): CFLAGS += $(ENET_INC)
 enet: $(ENET_OBJ_BUILD)
-	@echo Creating a static library $(ENET_LIB).
+	@echo $(PURPLE)Creating a static library $(ENET_LIB).$(ENDCOL)
 	$(AT) $(AR) $(OBJDIR)/$(ENET_LIB) $(ENET_OBJ_BUILD)
 	$(AT) $(RANLIB) $(OBJDIR)/$(ENET_LIB)
-	@echo Built target: enet.
+	@echo $(GREEN)Built target: enet.$(ENDCOL)
 
 # lua
 $(LUA_OBJ_BUILD): CFLAGS += $(LUA_INC)
 lua: $(LUA_OBJ_BUILD)
-	@echo Creating a static library $(LUA_LIB).
+	@echo $(PURPLE)Creating a static library $(LUA_LIB).$(ENDCOL)
 	$(AT) $(AR) $(OBJDIR)/$(LUA_LIB) $(LUA_OBJ_BUILD)
 	$(AT) $(RANLIB) $(OBJDIR)/$(LUA_LIB)
-	@echo Built target: lua.
+	@echo $(GREEN)Built target: lua.$(ENDCOL)
 
 # client
 $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
-	@echo [client] Building a C++ object file $(subst $(OBJDIR)/client/,,$@).
+	@echo $(BLUE)[client]$(RRED) Building a C++ object file \
+	$(subst $(OBJDIR)/client/,,$@).$(ENDCOL)
 	$(AT) $(CXX) $(CXXFLAGS) -c -o $@ \
 		$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
 $(CLIENT_OBJ_BUILD): CXXFLAGS += $(CLIENT_INC)
 client: enet lua $(CLIENT_OBJ_BUILD)
-	@echo Linking a client executable $(CLIENT_BIN).
+	@echo $(BLUE)Linking a client executable $(CLIENT_BIN).$(ENDCOL)
 	$(AT) $(CXX) $(CXXFLAGS) -o $(CLIENT_BIN) $(CLIENT_OBJ_BUILD) $(CLIENT_LDD)
-	@echo Built target: client.
+	@echo $(GREEN)Built target: client.$(ENDCOL)
 
 # server
 $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
-	@echo [server] Building a C++ object file $(subst $(OBJDIR)/server/,,$@).
+	@echo $(PURPLE)[server]$(RRED) Building a C++ object file \
+	$(subst $(OBJDIR)/server/,,$@).$(ENDCOL)
 	$(AT) $(CXX) $(CXXFLAGS) -c -o $@ \
 		$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
 $(SERVER_OBJ_BUILD): CXXFLAGS += $(SERVER_INC)
 server: enet lua $(SERVER_OBJ_BUILD)
-	@echo Linking a server executable $(SERVER_BIN).
+	@echo $(BLUE)Linking a server executable $(SERVER_BIN).$(ENDCOL)
 	$(AT) $(CXX) $(CXXFLAGS) -o $(SERVER_BIN) $(SERVER_OBJ_BUILD) $(SERVER_LDD)
-	@echo Built target: server.
+	@echo $(GREEN)Built target: server.$(ENDCOL)
 
 # general targets
 all: client server
 
 ifneq ($(OS), Windows)
 clean:
-	@echo Cleaning up...
+	@echo $(CYAN)Cleaning up...$(ENDCOL)
 	$(AT) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
-	@echo ... done.
+	@echo $(GREEN)... done.$(ENDCOL)
 else
 clean:
 	@echo Cleaning up...
@@ -417,17 +435,17 @@ clean:
 endif
 
 install: client server
-	@echo Installing...
+	@echo $(CYAN)Installing...$(ENDCOL)
 ifneq ($(OS), Windows)
-	@echo Copying $(CLIENT_BIN) to $(BIN_PATH).
+	@echo $(CYAN)Copying $(CLIENT_BIN) to $(BIN_PATH).$(ENDCOL)
 	$(AT) cp $(CLIENT_BIN) $(BIN_PATH)
-	@echo Copying $(SERVER_BIN) to $(BIN_PATH).
+	@echo $(CYAN)Copying $(SERVER_BIN) to $(BIN_PATH).$(ENDCOL)
 	$(AT) cp $(SERVER_BIN) $(BIN_PATH)
 ifneq (,$(STRIP))
 ifeq (,$(NOSTRIP))
-	@echo Stripping $(BIN_PATH)/$(CLIENT_BIN).
+	@echo $(CYAN)Stripping $(BIN_PATH)/$(CLIENT_BIN).$(ENDCOL)
 	$(AT) $(STRIP) $(BIN_PATH)/$(CLIENT_BIN)
-	@echo Stripping $(BIN_PATH)/$(SERVER_BIN).
+	@echo $(CYAN)Stripping $(BIN_PATH)/$(SERVER_BIN).$(ENDCOL)
 	$(AT) $(STRIP) $(BIN_PATH)/$(SERVER_BIN)
 endif
 endif
@@ -445,7 +463,7 @@ ifeq (,$(NOSTRIP))
 endif
 endif
 endif
-	@echo ... done.
+	@echo $(GREEN)... done.$(ENDCOL)
 
 # dependency generator
 depend:
