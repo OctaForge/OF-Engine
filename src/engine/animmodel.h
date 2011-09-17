@@ -225,12 +225,12 @@ struct animmodel : model
         void preloadshader()
         {
             bool shouldenvmap = envmapped();
-            if(masks->type&Texture::STUB && !strncmp(masks->name, "<stub>", 6))
+            if(masks->type&Texture::STUB && !strncmp(masks->name.buf, "<stub>", 6))
             {
                 float glowscale = glow/(glow>2 ? 4 : (glow>1 ? 2 : 1)),
                       envscale = envmapmax > 0 ? 0.2f*envmapmax + 0.8f*envmapmin : 0;
                 defformatstring(ffmask)("<ffmask:%.2f,%.2f>", floor(glowscale*16 + 0.5f)/16, floor(envscale*16 + 0.5f)/16);
-                masks = textureload(makerelpath(NULL, masks->name + 6, NULL, ffmask), 0, true, false);
+                masks = textureload(makerelpath(NULL, masks->name.buf + 6, NULL, ffmask), 0, true, false);
             }
             loadshader(shouldenvmap, masks!=notexture && !(masks->type&Texture::STUB) && (lightmodels || glowmodels || shouldenvmap));
         }

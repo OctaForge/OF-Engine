@@ -29,7 +29,7 @@
 
 /* PROTOTYPES */
 
-void keymap(int code, char *key);
+void keymap(int code, const char *key);
 void registersound(char *name, int vol);
 void force_quit();
 void quit();
@@ -39,10 +39,10 @@ void getwallclock();
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
 extern vector<cline> conlines;
-void bindkey(char *key, char *action, int state);
-void getbind(char *key, int type);
-void searchbinds(char *action, int type);
-void inputcommand(char *init, char *action = NULL, char *prompt = NULL);
+void bindkey(const char *key, const char *action, int state);
+void getbind(const char *key, int type);
+void searchbinds(const char *action, int type);
+void inputcommand(const char *init, const char *action = NULL, const char *prompt = NULL);
 void history_(int n);
 void screenshot(char *filename);
 void movie(char *name);
@@ -103,7 +103,7 @@ namespace lua_binds
 
     LUA_BIND_DEF(currtime, e.push(tools::currtime());)
     LUA_BIND_STD(getmillis, e.push, e.get<bool>(1) ? totalmillis : lastmillis)
-    LUA_BIND_STD_CLIENT(keymap, keymap, e.get<int>(1), e.get<char*>(2))
+    LUA_BIND_STD_CLIENT(keymap, keymap, e.get<int>(1), e.get<const char*>(2))
     LUA_BIND_STD_CLIENT(registersound, registersound, e.get<char*>(1), e.get<int>(2))
     LUA_BIND_STD_CLIENT(resetsound, resetsound)
     LUA_BIND_STD_CLIENT(quit, quit)
@@ -266,11 +266,11 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(toggleconsole, SETV, fullconsole, fullconsole ^ 1)
     LUA_BIND_STD_CLIENT(conskip, setconskip, conskip, fullconsole ? fullconfilter : confilter, e.get<int>(1))
     LUA_BIND_STD_CLIENT(miniconskip, setconskip, miniconskip, miniconfilter, e.get<int>(1))
-    LUA_BIND_CLIENT(clearconsole, while(conlines.length()) delete[] conlines.pop().line;)
-    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<char*>(1), e.get<char*>(3), e.get<int>(2))
-    LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), e.get<int>(2))
-    LUA_BIND_STD_CLIENT(searchbinds, searchbinds, e.get<char*>(1), e.get<int>(2))
-    LUA_BIND_STD_CLIENT(prompt, inputcommand, e.get(1, (char*)""), e.get<char*>(2), e.get<char*>(3))
+    LUA_BIND_CLIENT(clearconsole, while(conlines.length()) conlines.pop();)
+    LUA_BIND_STD_CLIENT(bind, bindkey, e.get<const char*>(1), e.get<const char*>(3), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(getbind, getbind, e.get<const char*>(1), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(searchbinds, searchbinds, e.get<const char*>(1), e.get<int>(2))
+    LUA_BIND_STD_CLIENT(prompt, inputcommand, e.get(1, ""), e.get<const char*>(2), e.get<const char*>(3))
     LUA_BIND_STD_CLIENT(history, history_, e.get<int>(1))
     LUA_BIND_STD_CLIENT(onrelease, addreleaseaction, e.ref_keep_stack())
 }

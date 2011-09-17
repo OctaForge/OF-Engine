@@ -123,7 +123,7 @@ struct font
         short x, y, w, h;
     };
 
-    char *name;
+    types::string name;
     Texture *tex;
     vector<charinfo> chars;
     int charoffset, defaultw, defaulth;
@@ -427,7 +427,7 @@ extern const char *addreleaseaction(int a);
 extern const char *addreleaseaction(const char *s);
 extern void writebinds(stream *f);
 
-struct cline { char *line; int type, outtime; };
+struct cline { types::string line; int type, outtime; };
 
 struct keym
 {
@@ -440,12 +440,12 @@ struct keym
     };
     
     int code;
-    char *name;
-    char *actions[NUMACTIONS];
+    types::string name;
+    types::string actions[NUMACTIONS];
     bool pressed;
 
-    keym() : code(-1), name(NULL), pressed(false) { loopi(NUMACTIONS) actions[i] = newstring(""); }
-    ~keym() { DELETEA(name); loopi(NUMACTIONS) DELETEA(actions[i]); }
+    keym() : code(-1), name(types::string()), pressed(false) { loopi(NUMACTIONS) actions[i] = types::string(); }
+    ~keym() {}
 };
 
 // main

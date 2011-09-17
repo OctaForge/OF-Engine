@@ -636,7 +636,7 @@ void createcompressedtexture(int tnum, int w, int h, uchar *data, int align, int
     uploadcompressedtexture(target, format, w, h, data, align, blocksize, levels, filter > 1); 
 }
 
-hashtable<char *, Texture> textures;
+hashtable<types::string, Texture> textures;
 
 Texture *notexture = NULL; // used as default, ensured to be loaded
 
@@ -665,9 +665,8 @@ static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clam
 {
     if(!t)
     {
-        char *key = newstring(rname);
-        t = &textures[key];
-        t->name = key;
+        t = &textures[rname];
+        t->name = rname;
     }
 
     t->clamp = clamp;
@@ -1164,7 +1163,7 @@ void loadalphamask(Texture *t)
 {
     if(t->alphamask || t->bpp!=4 || t->type&Texture::COMPRESSED) return;
     ImageData s;
-    if(!texturedata(s, t->name, NULL, false) || !s.data || s.bpp!=4 || s.compressed) return;
+    if(!texturedata(s, t->name.buf, NULL, false) || !s.data || s.bpp!=4 || s.compressed) return;
     t->alphamask = new uchar[s.h * ((s.w+7)/8)];
     uchar *srcrow = s.data, *dst = t->alphamask-1;
     loop(y, s.h)
@@ -2040,7 +2039,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
 {
     if(!hasCM) return NULL;
     string tname;
-    if(!name) copystring(tname, t->name);
+    if(!name) copystring(tname, t->name.buf);
     else
     {
         copystring(tname, name);
@@ -2083,9 +2082,8 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
     }
     if(name)
     {
-        char *key = newstring(tname);
-        t = &textures[key];
-        t->name = key;
+        t = &textures[tname];
+        t->name = tname;
     }
     t->bpp = surface[0].compressed ? formatsize(uncompressedformat(format)) : surface[0].bpp;
     t->mipmap = mipit;
@@ -2337,7 +2335,7 @@ bool reloadtexture(Texture &tex)
         {
             int compress = 0;
             ImageData s;
-            if(!texturedata(s, tex.name, NULL, true, &compress) || !newtexture(&tex, NULL, s, tex.clamp, tex.mipmap, false, false, compress)) return false;
+            if(!texturedata(s, tex.name.buf, NULL, true, &compress) || !newtexture(&tex, NULL, s, tex.clamp, tex.mipmap, false, false, compress)) return false;
             break;
         }
 

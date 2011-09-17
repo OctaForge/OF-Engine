@@ -5,12 +5,11 @@ static font *fontdef = NULL;
 
 font *curfont = NULL;
 
-void newfont(char *name, char *tex, int defaultw, int defaulth, int offsetx, int offsety, int offsetw, int offseth)
+void newfont(const char *name, const char *tex, int defaultw, int defaulth, int offsetx, int offsety, int offsetw, int offseth)
 {
     font *f = fonts.access(name);
     if(!f)
     {
-        name = newstring(name);
         f = &fonts[name];
         f->name = name;
     }

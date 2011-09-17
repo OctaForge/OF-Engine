@@ -450,7 +450,7 @@ struct Texture
         FLAGS      = 0xF0
     };
 
-    char *name;
+    types::string name;
     int type, w, h, xs, ys, bpp, clamp;
     bool mipmap, canreduce;
     GLuint id;
