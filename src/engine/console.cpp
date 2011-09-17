@@ -154,11 +154,11 @@ int renderconsole(int w, int h, int abovehud)                   // render buffer
 
 hashtable<int, keym> keyms(128);
 
-void keymap(int *code, char *key)
+void keymap(int code, char *key)
 {
-    if(var::overridevars) { conoutf(CON_ERROR, "cannot override keymap %s", code); return; }
-    keym &km = keyms[*code];
-    km.code = *code;
+    if(var::overridevars) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
+    keym &km = keyms[code];
+    km.code = code;
     DELETEA(km.name);
     km.name = newstring(key);
 }
@@ -426,13 +426,13 @@ int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);
 
-void history_(int *n)
+void history_(int n)
 {
     static bool inhistory = false;
-    if(!inhistory && history.inrange(*n))
+    if(!inhistory && history.inrange(n))
     {
         inhistory = true;
-        history[history.length()-*n-1]->run();
+        history[history.length()-n-1]->run();
         inhistory = false;
     }
 }

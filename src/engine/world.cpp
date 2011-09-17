@@ -432,11 +432,11 @@ void entflip()
     groupeditundo(ent.o[d] -= (ent.o[d]-mid)*2);
 }
 
-void entrotate(int *cw)
+void entrotate(int cw)
 {
     if(noentedit()) return;
     int d = dimension(sel.orient);
-    int dd = (*cw<0) == dimcoord(sel.orient) ? R[d] : C[d];
+    int dd = (cw<0) == dimcoord(sel.orient) ? R[d] : C[d];
     float mid = sel.s[dd]*sel.grid/2+sel.o[dd];
     vec s(sel.o.v);
     groupeditundo(
@@ -714,11 +714,11 @@ VARF(entmoving, 0, 0, 2,
         initentdragging = true;
 );
 
-void entpush(int *dir)
+void entpush(int dir)
 {
     if(noentedit()) return;
     int d = dimension(entorient);
-    int s = dimcoord(entorient) ? -*dir : *dir;
+    int s = dimcoord(entorient) ? -dir : dir;
     if(entmoving) 
     {
         groupeditpure(ent.o[d] += float(s*sel.grid)); // editdrag supplies the undo
@@ -733,7 +733,7 @@ void entpush(int *dir)
 }
 
 VAR(entautoviewdist, 0, 25, 100);
-void entautoview(int *dir) 
+void entautoview(int dir) 
 {
     if(!haveselent()) return;
     static int s = 0;
@@ -742,7 +742,7 @@ void entautoview(int *dir)
     v.normalize();
     extern int& entautoviewdist;
     v.mul(entautoviewdist);
-    int t = s + *dir;
+    int t = s + dir;
     s = abs(t) % entgroup.length();
     if(t<0 && s>0) s = entgroup.length() - s;
     entfocus(entgroup[s],
@@ -934,16 +934,16 @@ void entpaste()
 // INTENSITY   groupeditundo(e.type = entcopybuf[j++].type;);
 }
 
-void entset(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
+void entset(char *what, int a1, int a2, int a3, int a4, int a5)
 {
     if(noentedit()) return;
     int type = findtype(what);
     groupedit(ent.type=type;
-              ent.attr1=*a1;
-              ent.attr2=*a2;
-              ent.attr3=*a3;
-              ent.attr4=*a4;
-              ent.attr5=*a5);
+              ent.attr1=a1;
+              ent.attr2=a2;
+              ent.attr3=a3;
+              ent.attr4=a4;
+              ent.attr5=a5);
 }
 
 void printent(extentity &e, char *buf)
@@ -1207,7 +1207,7 @@ void shrinkmap()
     conoutf("shrunk map to size %d", worldscale);
 }
 
-void newmap(int *i) { bool force = !isconnected() && !haslocalclients(); if(emptymap(*i, force, NULL)) game::newmap(max(*i, 0)); }
+void newmap(int i) { bool force = !isconnected() && !haslocalclients(); if(emptymap(i, force, NULL)) game::newmap(max(i, 0)); }
 void mapenlarge() { if(enlargemap(false)) game::newmap(-1); }
 
 void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, int attr4, int attr5, bool local)

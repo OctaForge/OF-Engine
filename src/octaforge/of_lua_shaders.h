@@ -28,13 +28,13 @@
  */
 
 /* PROTOTYPES */
-void shader(int *type, char *name, char *vs, char *ps);
-void variantshader(int *type, char *name, int *row, char *vs, char *ps);
+void shader(int type, char *name, char *vs, char *ps);
+void variantshader(int type, char *name, int row, char *vs, char *ps);
 void setshader(char *name);
 void addshaderparam(const char *name, int type, int n, float x, float y, float z, float w);
 void altshader(char *origname, char *altname);
-void fastshader(char *nice, char *fast, int *detail);
-void defershader(int *type, const char *name, int contents);
+void fastshader(char *nice, char *fast, int detail);
+void defershader(int type, const char *name, int contents);
 Shader *useshaderbyname(const char *name);
 void isshaderdefined(char *name);
 void isshadernative(char *name);
@@ -45,16 +45,16 @@ void clearpostfx();
 namespace lua_binds
 {
     LUA_BIND_STD_CLIENT(shader, shader,
-                        e.get<int*>(1), e.get<char*>(2),
+                        e.get<int>(1), e.get<char*>(2),
                         e.get<char*>(3), e.get<char*>(4))
     LUA_BIND_STD_CLIENT(variantshader, variantshader,
-                        e.get<int*>(1), e.get<char*>(2),
-                        e.get<int*>(3), e.get<char*>(4),
+                        e.get<int>(1), e.get<char*>(2),
+                        e.get<int>(3), e.get<char*>(4),
                         e.get<char*>(5))
     LUA_BIND_STD_CLIENT(setshader, setshader, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(altshader, altshader, e.get<char*>(1), e.get<char*>(2))
-    LUA_BIND_STD_CLIENT(fastshader, fastshader, e.get<char*>(1), e.get<char*>(2), e.get<int*>(3))
-    LUA_BIND_STD_CLIENT(defershader, defershader, e.get<int*>(1), e.get<const char*>(2), e.ref_keep_stack())
+    LUA_BIND_STD_CLIENT(fastshader, fastshader, e.get<char*>(1), e.get<char*>(2), e.get<int>(3))
+    LUA_BIND_STD_CLIENT(defershader, defershader, e.get<int>(1), e.get<const char*>(2), e.ref_keep_stack())
     LUA_BIND_STD_CLIENT(forceshader, useshaderbyname, e.get<const char*>(1))
 
     LUA_BIND_STD_CLIENT(isshaderdefined, isshaderdefined, e.get<char*>(1))

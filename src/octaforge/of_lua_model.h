@@ -28,41 +28,41 @@
  */
 
 /* PROTOTYPES */
-void mapmodelreset(int *n);
+void mapmodelreset(int n);
 void mmodel(char *name);
 extern vector<mapmodelinfo> mapmodels;
 void clearmodel(char *name);
 
 void mdlname();
-void mdlalphatest(float *cutoff);
+void mdlalphatest(float cutoff);
 void mdlalphablend(bool blend);
 void mdlalphadepth(bool depth);
 void mdldepthoffset(bool offset);
 void mdlcullface(bool cullface);
 void mdlcollide(bool collide);
 void mdlellipsecollide(bool collide);
-void mdlspec(int *percent);
-void mdlambient(int *percent);
-void mdlglow(int *percent, int *delta, float *pulse);
-void mdlglare(float *specglare, float *glowglare);
-void mdlenvmap(float *envmapmax, float *envmapmin, char *envmap);
-void mdlfullbright(float *fullbright);
+void mdlspec(int percent);
+void mdlambient(int percent);
+void mdlglow(int percent, int delta, float pulse);
+void mdlglare(float specglare, float glowglare);
+void mdlenvmap(float envmapmax, float envmapmin, char *envmap);
+void mdlfullbright(float fullbright);
 void mdlshader(char *shader);
-void mdlspin(float *yaw, float *pitch);
-void mdlscale(int *percent);
+void mdlspin(float yaw, float pitch);
+void mdlscale(int percent);
 void mdltrans(const vec& v);
-void mdlyaw(float *angle);
-void mdlpitch(float *angle);
+void mdlyaw(float angle);
+void mdlpitch(float angle);
 void mdlshadow(bool shadow);
-void mdlbb(float *rad, float *h, float *eyeheight);
+void mdlbb(float rad, float h, float eyeheight);
 void mdlextendbb(const vec& extend);
 void mdlperentitycollisionboxes(bool val);
 void rdvert(const vec& o, float radius);
-void rdeye(int *v);
-void rdtri(int *v1, int *v2, int *v3);
-void rdjoint(int *n, int *t, char *v1, char *v2, char *v3);
-void rdlimitdist(int *v1, int *v2, float *mindist, float *maxdist);
-void rdlimitrot(int *t1, int *t2, float *maxangle, float *qx, float *qy, float *qz, float *qw);
+void rdeye(int v);
+void rdtri(int v1, int v2, int v3);
+void rdjoint(int n, int t, char *v1, char *v2, char *v3);
+void rdlimitdist(int v1, int v2, float mindist, float maxdist);
+void rdlimitrot(int t1, int t2, float maxangle, float qx, float qy, float qz, float qw);
 void rdanimjoints(bool on);
 
 void clearmodel(char *name);
@@ -71,42 +71,42 @@ VARP(ragdoll, 0, 1, 1);
 
 namespace lua_binds
 {
-    LUA_BIND_DEF(mapmodelreset, mapmodelreset(e.get<int*>(1));)
+    LUA_BIND_DEF(mapmodelreset, mapmodelreset(e.get<int>(1));)
     LUA_BIND_DEF(mapmodel, mmodel(e.get<char*>(1));)
     LUA_BIND_DEF(nummapmodels, e.push(mapmodels.length());)
     LUA_BIND_STD(clearmodel, clearmodel, e.get<char*>(1))
 
     LUA_BIND_STD(mdlname, mdlname)
-    LUA_BIND_STD(mdlalphatest, mdlalphatest, e.get<float*>(1))
+    LUA_BIND_STD(mdlalphatest, mdlalphatest, e.get<float>(1))
     LUA_BIND_STD(mdlalphablend, mdlalphablend, e.get<bool>(1))
     LUA_BIND_STD(mdlalphadepth, mdlalphadepth, e.get<bool>(1))
-    LUA_BIND_STD(mdlbb, mdlbb, e.get<float*>(1), e.get<float*>(2), e.get<float*>(3))
+    LUA_BIND_STD(mdlbb, mdlbb, e.get<float>(1), e.get<float>(2), e.get<float>(3))
     LUA_BIND_STD(mdlextendbb, mdlextendbb, e.get<vec>(1))
-    LUA_BIND_STD(mdlscale, mdlscale, e.get<int*>(1))
-    LUA_BIND_STD(mdlspec, mdlspec, e.get<int*>(1))
-    LUA_BIND_STD(mdlglow, mdlglow, e.get<int*>(1), e.get<int*>(2), e.get<float*>(3))
-    LUA_BIND_STD(mdlglare, mdlglare, e.get<float*>(1), e.get<float*>(2))
-    LUA_BIND_STD(mdlambient, mdlambient, e.get<int*>(1))
+    LUA_BIND_STD(mdlscale, mdlscale, e.get<int>(1))
+    LUA_BIND_STD(mdlspec, mdlspec, e.get<int>(1))
+    LUA_BIND_STD(mdlglow, mdlglow, e.get<int>(1), e.get<int>(2), e.get<float>(3))
+    LUA_BIND_STD(mdlglare, mdlglare, e.get<float>(1), e.get<float>(2))
+    LUA_BIND_STD(mdlambient, mdlambient, e.get<int>(1))
     LUA_BIND_STD(mdlcullface, mdlcullface, e.get<bool>(1))
     LUA_BIND_STD(mdldepthoffset, mdldepthoffset, e.get<bool>(1))
-    LUA_BIND_STD(mdlfullbright, mdlfullbright, e.get<float*>(1))
-    LUA_BIND_STD(mdlspin, mdlspin, e.get<float*>(1), e.get<float*>(2))
-    LUA_BIND_STD(mdlenvmap, mdlenvmap, e.get<float*>(1), e.get<float*>(2), e.get<char*>(3))
+    LUA_BIND_STD(mdlfullbright, mdlfullbright, e.get<float>(1))
+    LUA_BIND_STD(mdlspin, mdlspin, e.get<float>(1), e.get<float>(2))
+    LUA_BIND_STD(mdlenvmap, mdlenvmap, e.get<float>(1), e.get<float>(2), e.get<char*>(3))
     LUA_BIND_STD(mdlshader, mdlshader, e.get<char*>(1))
     LUA_BIND_STD(mdltrans, mdltrans, e.get<vec>(1))
-    LUA_BIND_STD(mdlyaw, mdlyaw, e.get<float*>(1))
-    LUA_BIND_STD(mdlpitch, mdlpitch, e.get<float*>(1))
+    LUA_BIND_STD(mdlyaw, mdlyaw, e.get<float>(1))
+    LUA_BIND_STD(mdlpitch, mdlpitch, e.get<float>(1))
     LUA_BIND_STD(mdlshadow, mdlshadow, e.get<bool>(1))
     LUA_BIND_STD(mdlcollide, mdlcollide, e.get<bool>(1))
     LUA_BIND_STD(mdlperentitycollisionboxes, mdlperentitycollisionboxes, e.get<bool>(1))
     LUA_BIND_STD(mdlellipsecollide, mdlellipsecollide, e.get<bool>(1))
 
     LUA_BIND_STD(rdvert, rdvert, e.get<vec>(1), e.get<float>(2));
-    LUA_BIND_STD(rdeye, rdeye, e.get<int*>(1));
-    LUA_BIND_STD(rdtri, rdtri, e.get<int*>(1), e.get<int*>(2), e.get<int*>(3));
-    LUA_BIND_STD(rdjoint, rdjoint, e.get<int*>(1), e.get<int*>(2), e.get<char*>(3), e.get<char*>(4), e.get<char*>(5));
-    LUA_BIND_STD(rdlimitdist, rdlimitdist, e.get<int*>(1), e.get<int*>(2), e.get<float*>(3), e.get<float*>(4));
-    LUA_BIND_STD(rdlimitrot, rdlimitrot, e.get<int*>(1), e.get<int*>(2), e.get<float*>(3), e.get<float*>(4), e.get<float*>(5), e.get<float*>(6), e.get<float*>(7));
+    LUA_BIND_STD(rdeye, rdeye, e.get<int>(1));
+    LUA_BIND_STD(rdtri, rdtri, e.get<int>(1), e.get<int>(2), e.get<int>(3));
+    LUA_BIND_STD(rdjoint, rdjoint, e.get<int>(1), e.get<int>(2), e.get<char*>(3), e.get<char*>(4), e.get<char*>(5));
+    LUA_BIND_STD(rdlimitdist, rdlimitdist, e.get<int>(1), e.get<int>(2), e.get<float>(3), e.get<float>(4));
+    LUA_BIND_STD(rdlimitrot, rdlimitrot, e.get<int>(1), e.get<int>(2), e.get<float>(3), e.get<float>(4), e.get<float>(5), e.get<float>(6), e.get<float>(7));
     LUA_BIND_STD(rdanimjoints, rdanimjoints, e.get<bool>(1));
 
     LUA_BIND_STD(preloadmodel, preloadmodel, e.get<const char*>(1))

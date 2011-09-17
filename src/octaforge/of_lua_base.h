@@ -29,12 +29,12 @@
 
 /* PROTOTYPES */
 
-void keymap(int *code, char *key);
-void registersound(char *name, int *vol);
+void keymap(int code, char *key);
+void registersound(char *name, int vol);
 void force_quit();
 void quit();
 void resetgl();
-void getfps_(int *raw);
+void getfps_(bool raw);
 void getwallclock();
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
@@ -43,7 +43,7 @@ void bindkey(char *key, char *action, int state);
 void getbind(char *key, int type);
 void searchbinds(char *action, int type);
 void inputcommand(char *init, char *action = NULL, char *prompt = NULL);
-void history_(int *n);
+void history_(int n);
 void screenshot(char *filename);
 void movie(char *name);
 void glext(char *ext);
@@ -103,14 +103,14 @@ namespace lua_binds
 
     LUA_BIND_DEF(currtime, e.push(tools::currtime());)
     LUA_BIND_STD(getmillis, e.push, e.get<bool>(1) ? totalmillis : lastmillis)
-    LUA_BIND_STD_CLIENT(keymap, keymap, e.get<int*>(1), e.get<char*>(2))
-    LUA_BIND_STD_CLIENT(registersound, registersound, e.get<char*>(1), e.get<int*>(2))
+    LUA_BIND_STD_CLIENT(keymap, keymap, e.get<int>(1), e.get<char*>(2))
+    LUA_BIND_STD_CLIENT(registersound, registersound, e.get<char*>(1), e.get<int>(2))
     LUA_BIND_STD_CLIENT(resetsound, resetsound)
     LUA_BIND_STD_CLIENT(quit, quit)
     LUA_BIND_STD_CLIENT(force_quit, force_quit)
     LUA_BIND_STD_CLIENT(resetgl, resetgl)
     LUA_BIND_STD_CLIENT(glext, glext, e.get<char*>(1))
-    LUA_BIND_STD_CLIENT(getfps, getfps_, e.get<int*>(1))
+    LUA_BIND_STD_CLIENT(getfps, getfps_, e.get<bool>(1))
     LUA_BIND_STD_CLIENT(getwallclock, getwallclock)
     LUA_BIND_STD_CLIENT(screenshot, screenshot, e.get<char*>(1))
     LUA_BIND_STD_CLIENT(movie, movie, e.get<char*>(1))
@@ -271,6 +271,6 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(getbind, getbind, e.get<char*>(1), e.get<int>(2))
     LUA_BIND_STD_CLIENT(searchbinds, searchbinds, e.get<char*>(1), e.get<int>(2))
     LUA_BIND_STD_CLIENT(prompt, inputcommand, e.get(1, (char*)""), e.get<char*>(2), e.get<char*>(3))
-    LUA_BIND_STD_CLIENT(history, history_, e.get<int*>(1))
+    LUA_BIND_STD_CLIENT(history, history_, e.get<int>(1))
     LUA_BIND_STD_CLIENT(onrelease, addreleaseaction, e.ref_keep_stack())
 }

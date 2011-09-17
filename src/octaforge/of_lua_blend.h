@@ -32,11 +32,11 @@ extern int paintingblendmap;
 void clearblendbrushes();
 void delblendbrush(const char *name);
 void addblendbrush(const char *name, const char *imgname);
-void nextblendbrush(int *dir);
+void nextblendbrush(int dir);
 void setblendbrush(const char *name);
-void getblendbrushname(int *n);
+void getblendbrushname(int n);
 void curblendbrush();
-void rotateblendbrush(int *val);
+void rotateblendbrush(int val);
 void paintblendmap(bool msg);
 void clearblendmapsel();
 void invertblendmapsel();
@@ -50,11 +50,11 @@ namespace lua_binds
     LUA_BIND_STD(clearblendbrushes, clearblendbrushes)
     LUA_BIND_STD(delblendbrush, delblendbrush, e.get<const char*>(1))
     LUA_BIND_STD(addblendbrush, addblendbrush, e.get<const char*>(1), e.get<const char*>(2))
-    LUA_BIND_STD(nextblendbrush, nextblendbrush, e.get<int*>(1))
+    LUA_BIND_STD(nextblendbrush, nextblendbrush, e.get<int>(1))
     LUA_BIND_STD(setblendbrush, setblendbrush, e.get<const char*>(1))
-    LUA_BIND_STD(getblendbrushname, getblendbrushname, e.get<int*>(1))
+    LUA_BIND_STD(getblendbrushname, getblendbrushname, e.get<int>(1))
     LUA_BIND_STD(curblendbrush, curblendbrush)
-    LUA_BIND_STD(rotateblendbrush, rotateblendbrush, e.get<int*>(1))
+    LUA_BIND_STD(rotateblendbrush, rotateblendbrush, e.get<int>(1))
     LUA_BIND_DEF(paintblendmap, {
         if (addreleaseaction("CAPI.paintblendmap()"))
         {

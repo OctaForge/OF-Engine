@@ -37,14 +37,14 @@ void entadd(int id);
 bool noentedit();
 void printent(extentity &e, char *buf);
 void nearestent();
-void entset(char *what, int *a1, int *a2, int *a3, int *a4, int *a5);
+void entset(char *what, int a1, int a2, int a3, int a4, int a5);
 void addentity(int id);
 void removeentity(int id);
 void detachentity(extentity &e);
-void entautoview(int *dir);
+void entautoview(int dir);
 void entflip();
-void entrotate(int *cw);
-void entpush(int *dir);
+void entrotate(int cw);
+void entpush(int dir);
 void attachent();
 void delent();
 void dropent();
@@ -52,7 +52,7 @@ void entcopy();
 void entpaste();
 void intensityentcopy();
 void intensitypasteent();
-void newmap(int *i);
+void newmap(int i);
 void mapenlarge();
 void shrinkmap();
 void writeobj(char *name);
@@ -153,10 +153,10 @@ namespace lua_binds
     #define groupeditundo(f){ makeundoent(); groupeditpure(f); }
     #define groupedit(f)    { addimplicit(groupeditundo(f)); }
 
-    LUA_BIND_STD(entautoview, entautoview, e.get<int*>(1))
+    LUA_BIND_STD(entautoview, entautoview, e.get<int>(1))
     LUA_BIND_STD(entflip, entflip)
-    LUA_BIND_STD(entrotate, entrotate, e.get<int*>(1))
-    LUA_BIND_STD(entpush, entpush, e.get<int*>(1))
+    LUA_BIND_STD(entrotate, entrotate, e.get<int>(1))
+    LUA_BIND_STD(entpush, entpush, e.get<int>(1))
     LUA_BIND_STD(attachent, attachent)
     LUA_BIND_STD(delent, delent)
     LUA_BIND_STD(dropent, dropent)
@@ -175,11 +175,11 @@ namespace lua_binds
     LUA_BIND_DEF(insel, entfocus(efocus, e.push(pointinsel(sel, ent.o) ? true : false));)
     LUA_BIND_DEF(entget, entfocus(efocus, string s; printent(ent, s); e.push(s));)
     LUA_BIND_STD(entindex, e.push, efocus)
-    LUA_BIND_STD(entset, entset, e.get<char*>(1), e.get<int*>(2), e.get<int*>(3), e.get<int*>(4), e.get<int*>(5), e.get<int*>(6))
+    LUA_BIND_STD(entset, entset, e.get<char*>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<int>(6))
     LUA_BIND_STD(nearestent, nearestent)
     LUA_BIND_STD(intensityentcopy, intensityentcopy)
     LUA_BIND_STD(intensitypasteent, intensitypasteent)
-    LUA_BIND_STD(newmap, newmap, e.get<int*>(1))
+    LUA_BIND_STD(newmap, newmap, e.get<int>(1))
     LUA_BIND_STD(mapenlarge, mapenlarge)
     LUA_BIND_STD(shrinkmap, shrinkmap)
     LUA_BIND_STD(mapname, e.push, game::getclientmap().buf)

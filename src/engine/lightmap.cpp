@@ -1909,9 +1909,9 @@ static void cleanupthreads()
     lightmapping = 0;
 }
 
-void calclight(int *quality)
+void calclight(int quality)
 {
-    if(!setlightmapquality(*quality))
+    if(!setlightmapquality(quality))
     {
         conoutf(CON_ERROR, "valid range for calclight quality is -1..1"); 
         return;
@@ -1961,10 +1961,10 @@ void calclight(int *quality)
 
 VAR(patchnormals, 0, 0, 1);
 
-void patchlight(int *quality)
+void patchlight(int quality)
 {
     if(noedit(true)) return;
-    if(!setlightmapquality(*quality))
+    if(!setlightmapquality(quality))
     {
         conoutf(CON_ERROR, "valid range for patchlight quality is -1..1"); 
         return;

@@ -37,7 +37,6 @@ namespace game
     VAR(minimaprightalign, 0, 1, 1); // do we want to align minimap right? if this is 1, then we do, if 0, then it's aligned to left.
 
     int gamemode = 0;
-    string clientmap = "";
     int maptime = 0, maprealtime = 0;
 
     int following = -1, followdir = 0;
@@ -501,7 +500,6 @@ namespace game
 
     void initclient()
     {
-        clientmap[0] = 0;
         player1 = spawnstate(new fpsent);
 #ifdef CLIENT
         players.add(player1);
@@ -532,10 +530,6 @@ namespace game
 
 #ifdef CLIENT
         spawnplayer(player1);
-#endif
-
-        copystring(clientmap, name ? name : "");
-#ifdef CLIENT
         SETVFN(zoom, -1);
 #endif
         maptime = 0;

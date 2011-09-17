@@ -500,50 +500,6 @@ namespace lua
         return d;
     }
 
-    // specializations for pointers; temporary till stuff requiring this is rewritten
-
-    template<>
-    int *lua_Engine::get(int i)
-    {
-        if (!m_hashandle) return new int(0);
-        else if (!lua_isnoneornil(m_handle, i))
-        {
-            int *v = new int(lua_tointeger(m_handle, i));
-            if (!*v && !lua_isnumber(m_handle, i))
-                typeerror(i, "integer");
-            return v;
-        }
-        else return new int(0);
-    }
-
-    template<>
-    double *lua_Engine::get(int i)
-    {
-        if (!m_hashandle) return new double(0);
-        else if (!lua_isnoneornil(m_handle, i))
-        {
-            double *v = new double(lua_tonumber(m_handle, i));
-            if (!*v && !lua_isnumber(m_handle, i))
-                typeerror(i, "number");
-            return v;
-        }
-        else return new double(0);
-    }
-
-    template<>
-    float *lua_Engine::get(int i)
-    {
-        if (!m_hashandle) return new float(0);
-        else if (!lua_isnoneornil(m_handle, i))
-        {
-            float *v = new float((float)lua_tonumber(m_handle, i));
-            if (!*v && !lua_isnumber(m_handle, i))
-                typeerror(i, "number");
-            return v;
-        }
-        else return new float(0);
-    }
-
     template<>
     char *lua_Engine::get(int i)
     {

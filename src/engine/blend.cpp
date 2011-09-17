@@ -582,11 +582,11 @@ void addblendbrush(const char *name, const char *imgname)
 
 }
 
-void nextblendbrush(int *dir)
+void nextblendbrush(int dir)
 {
-    curbrush += *dir < 0 ? -1 : 1;
+    curbrush += dir < 0 ? -1 : 1;
     if(brushes.empty()) curbrush = -1;
-    else if(!brushes.inrange(curbrush)) curbrush = *dir < 0 ? brushes.length()-1 : 0;
+    else if(!brushes.inrange(curbrush)) curbrush = dir < 0 ? brushes.length()-1 : 0;
 }
 
 void setblendbrush(const char *name)
@@ -594,9 +594,9 @@ void setblendbrush(const char *name)
     loopv(brushes) if(!strcmp(brushes[i]->name, name)) { curbrush = i; break; }
 }
 
-void getblendbrushname(int *n)
+void getblendbrushname(int n)
 {
-    lua::engine.push(brushes.inrange(*n) ? brushes[*n]->name : "");
+    lua::engine.push(brushes.inrange(n) ? brushes[n]->name : "");
 }
 
 void curblendbrush()
@@ -622,11 +622,11 @@ bool canpaintblendmap(bool brush = true, bool sel = false, bool msg = true)
     return true;
 }
 
-void rotateblendbrush(int *val)
+void rotateblendbrush(int val)
 {
     if(!canpaintblendmap()) return;
     
-    int numrots = *val < 0 ? 3 : clamp(*val, 1, 5);
+    int numrots = val < 0 ? 3 : clamp(val, 1, 5);
     BlendBrush *brush = brushes[curbrush];
     brush->reorient(numrots>=2 && numrots<=4, numrots<=2 || numrots==5, (numrots&5)==1);
 }

@@ -246,7 +246,7 @@ int addsound(const char *name, int vol, int maxuses, vector<soundslot> &sounds)
 }
 
 int preload_sound(char *name, int vol); // INTENSITY
-void registersound(char *name, int *vol) { lua::engine.push(preload_sound(name, *vol)); } // INTENSITY
+void registersound(char *name, int vol) { lua::engine.push(preload_sound(name, vol)); } // INTENSITY
 
 void resetchannels()
 {

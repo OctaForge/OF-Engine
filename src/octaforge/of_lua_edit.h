@@ -42,22 +42,22 @@ void editundo();
 void editredo();
 void clearbrush();
 void brushvert(int x, int y, int v);
-void pushsel(int *dir);
-void editface(int *dir, int *mode);
+void pushsel(int dir);
+void editface(int dir, int mode);
 void delcube();
 void mpeditvslot(VSlot &ds, int allfaces, selinfo &sel, bool local);
-void edittex_(int *dir);
+void edittex_(int dir);
 void gettex();
 void getcurtex();
 void getseltex();
-void gettexname(int *tex, int *subslot);
+void gettexname(int tex, int subslot);
 void replace(bool insel);
 void flip();
-void rotate(int *cw);
+void rotate(int cw);
 void editmat(char *name, char *filtername);
 void resetlightmaps(bool fullclean);
-void calclight(int *quality);
-void patchlight(int *quality);
+void calclight(int quality);
+void patchlight(int quality);
 void clearlightmaps();
 void dumplms();
 void recalc();
@@ -65,8 +65,8 @@ void printcube();
 void remip_();
 void phystest();
 void clearpvs();
-void testpvs(int *vcsize);
-void genpvs(int *viewcellsize);
+void testpvs(int vcsize);
+void genpvs(int viewcellsize);
 void pvsstats();
 void edittex(int i, bool save = true);
 
@@ -136,8 +136,8 @@ namespace lua_binds
         if (i < 0) htextures.add(t);
         else htextures.remove(i);
     })
-    LUA_BIND_STD(pushsel, pushsel, e.get<int*>(1))
-    LUA_BIND_STD(editface, editface, e.get<int*>(1), e.get<int*>(2))
+    LUA_BIND_STD(pushsel, pushsel, e.get<int>(1))
+    LUA_BIND_STD(editface, editface, e.get<int>(1), e.get<int>(2))
     LUA_BIND_STD(delcube, delcube)
     LUA_BIND_DEF(vdelta, {
         if (noedit() || (nompedit && multiplayer())) return;
@@ -223,7 +223,7 @@ namespace lua_binds
         }
         mpeditvslot(ds, allfaces, sel, true);
     })
-    LUA_BIND_STD(edittex, edittex_, e.get<int*>(1))
+    LUA_BIND_STD(edittex, edittex_, e.get<int>(1))
     LUA_BIND_DEF(settex, {
         if(!noedit() && texmru.inrange(e.get<int>(1))) edittex(texmru[e.get<int>(1)]);
     })
@@ -233,11 +233,11 @@ namespace lua_binds
     LUA_BIND_DEF(getreptex, {
         if (!noedit()) e.push(vslots.inrange(reptex) ? reptex : -1);
     })
-    LUA_BIND_STD(gettexname, gettexname, e.get<int*>(1), e.get<int*>(2))
+    LUA_BIND_STD(gettexname, gettexname, e.get<int>(1), e.get<int>(2))
     LUA_BIND_STD(replace, replace, false)
     LUA_BIND_STD(replacesel, replace, true)
     LUA_BIND_STD(flip, flip)
-    LUA_BIND_STD(rotate, rotate, e.get<int*>(1))
+    LUA_BIND_STD(rotate, rotate, e.get<int>(1))
     LUA_BIND_STD(editmat, editmat, e.get<char*>(1), e.get<char*>(2))
     // 0/noargs = toggle, 1 = on, other = off - will autoclose if too far away or exit editmode
     LUA_BIND_SERVER(npcadd, {
@@ -266,8 +266,8 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(requestprivedit, MessageSystem::send_RequestPrivateEditMode)
     LUA_BIND_STD_CLIENT(hasprivedit, e.push, ClientSystem::editingAlone)
 
-    LUA_BIND_STD_CLIENT(calclight, calclight, e.get<int*>(1))
-    LUA_BIND_STD_CLIENT(patchlight, patchlight, e.get<int*>(1))
+    LUA_BIND_STD_CLIENT(calclight, calclight, e.get<int>(1))
+    LUA_BIND_STD_CLIENT(patchlight, patchlight, e.get<int>(1))
     LUA_BIND_STD_CLIENT(clearlightmaps, clearlightmaps)
     LUA_BIND_STD_CLIENT(dumplms, dumplms)
 
@@ -275,8 +275,8 @@ namespace lua_binds
     LUA_BIND_STD(printcube, printcube)
     LUA_BIND_STD(remip, remip_)
     LUA_BIND_STD(phystest, phystest)
-    LUA_BIND_STD(genpvs, genpvs, e.get<int*>(1))
-    LUA_BIND_STD(testpvs, testpvs, e.get<int*>(1))
+    LUA_BIND_STD(genpvs, genpvs, e.get<int>(1))
+    LUA_BIND_STD(testpvs, testpvs, e.get<int>(1))
     LUA_BIND_STD(clearpvs, clearpvs)
     LUA_BIND_STD(pvsstats, pvsstats)
 }

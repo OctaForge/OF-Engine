@@ -1072,7 +1072,7 @@ static void findwaterplanes()
     if(waterfalls.length() > 0 && numwaterplanes < MAXWATERPVS) numwaterplanes++;
 }
 
-void testpvs(int *vcsize)
+void testpvs(int vcsize)
 {
     lockpvs_(false);
 
@@ -1091,7 +1091,7 @@ void testpvs(int *vcsize)
     genpvs_canceled = false;
     check_genpvs_progress = false;
 
-    int size = *vcsize>0 ? *vcsize : 32;
+    int size = vcsize>0 ? vcsize : 32;
     for(int mask = 1; mask < size; mask <<= 1) size &= ~mask;
 
     ivec o = camera1->o;
@@ -1108,7 +1108,7 @@ void testpvs(int *vcsize)
     loopi(numwaterplanes) waterplanes[i].height = oldwaterplanes[i];
 }
 
-void genpvs(int *viewcellsize)
+void genpvs(int viewcellsize)
 {
     if(worldsize > 1<<15)
     {
@@ -1132,7 +1132,7 @@ void genpvs(int *viewcellsize)
     root.children = 0;
     genpvsnodes(worldroot);
 
-    totalviewcells = countviewcells(worldroot, ivec(0, 0, 0), worldsize>>1, *viewcellsize>0 ? *viewcellsize : 32);
+    totalviewcells = countviewcells(worldroot, ivec(0, 0, 0), worldsize>>1, viewcellsize>0 ? viewcellsize : 32);
     numviewcells = 0;
     genpvs_canceled = false;
     check_genpvs_progress = false;
@@ -1143,7 +1143,7 @@ void genpvs(int *viewcellsize)
         timer = SDL_AddTimer(500, genpvs_timer, NULL);
     }
     viewcells = new viewcellnode;
-    genviewcells(*viewcells, worldroot, ivec(0, 0, 0), worldsize>>1, *viewcellsize>0 ? *viewcellsize : 32);
+    genviewcells(*viewcells, worldroot, ivec(0, 0, 0), worldsize>>1, viewcellsize>0 ? viewcellsize : 32);
     if(pvsthreads<=1)
     {
         SDL_RemoveTimer(timer);

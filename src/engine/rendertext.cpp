@@ -5,7 +5,7 @@ static font *fontdef = NULL;
 
 font *curfont = NULL;
 
-void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, int *offsety, int *offsetw, int *offseth)
+void newfont(char *name, char *tex, int defaultw, int defaulth, int offsetx, int offsety, int offsetw, int offseth)
 {
     font *f = fonts.access(name);
     if(!f)
@@ -18,12 +18,12 @@ void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, 
     f->tex = textureload(tex);
     f->chars.shrink(0);
     f->charoffset = '!';
-    f->defaultw = *defaultw;
-    f->defaulth = *defaulth;
-    f->offsetx = *offsetx;
-    f->offsety = *offsety;
-    f->offsetw = *offsetw;
-    f->offseth = *offseth;
+    f->defaultw = defaultw;
+    f->defaulth = defaulth;
+    f->offsetx = offsetx;
+    f->offsety = offsety;
+    f->offsetw = offsetw;
+    f->offseth = offseth;
 
     fontdef = f;
 }
@@ -35,15 +35,15 @@ void fontoffset(char *c)
     fontdef->charoffset = c[0];
 }
 
-void fontchar(int *x, int *y, int *w, int *h)
+void fontchar(int x, int y, int w, int h)
 {
     if(!fontdef) return;
 
     font::charinfo &c = fontdef->chars.add();
-    c.x = *x;
-    c.y = *y;
-    c.w = *w ? *w : fontdef->defaultw;
-    c.h = *h ? *h : fontdef->defaulth;
+    c.x = x;
+    c.y = y;
+    c.w = w ? w : fontdef->defaultw;
+    c.h = h ? h : fontdef->defaulth;
 }
 
 bool setfont(const char *name)
