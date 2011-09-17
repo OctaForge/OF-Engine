@@ -450,13 +450,14 @@ struct Texture
         FLAGS      = 0xF0
     };
 
-    types::string name;
+    char *name;
     int type, w, h, xs, ys, bpp, clamp;
     bool mipmap, canreduce;
     GLuint id;
     uchar *alphamask;
 
     Texture() : alphamask(NULL) {}
+    ~Texture() { delete[] name; }
 };
 
 enum
