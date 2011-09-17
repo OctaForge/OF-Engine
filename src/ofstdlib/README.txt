@@ -31,4 +31,7 @@ Currently contains:
                        the vasprintf and asprintf functions required
                        by string for formatting.
 
+    of_shared_ptr.(cpp,h) - reference-counted pointer container for use
+                            with vectors, hashtables etc. to prevent leaks.
+
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>
