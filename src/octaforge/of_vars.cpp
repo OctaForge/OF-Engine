@@ -218,13 +218,14 @@ namespace var
         if ((flags&VAR_OVERRIDE) || overridevars)
         {
             flags |= VAR_OVERRIDEN;
-            if (oldv.s) DELETEA(oldv.s);
+            DELETEA(oldv.s);
             oldv.s = (curv.s ? newstring(curv.s) : NULL);
         }
 
         if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
              flags ^= VAR_PERSIST;
 
+        DELETEA(curv.s);
         curv.s = (v ? newstring(v) : NULL);
         if (vfun && dofun) vfun();
     }
