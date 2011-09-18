@@ -177,7 +177,6 @@ endif
 CLIENT_OBJ = \
 	ofstdlib/of_stdio.o \
 	ofstdlib/of_string.o \
-	ofstdlib/of_shared_ptr.o \
 	octaforge/of_tools.o \
 	engine/ui.o \
 	engine/blob.o \
@@ -279,7 +278,6 @@ endif
 SERVER_OBJ = \
 	ofstdlib/of_stdio.o \
 	ofstdlib/of_string.o \
-	ofstdlib/of_shared_ptr.o \
 	octaforge/of_tools.o \
 	intensity/editing_system.o \
 	shared/tools.o \
