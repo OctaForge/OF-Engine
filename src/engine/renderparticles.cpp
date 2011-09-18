@@ -75,7 +75,7 @@ void addparticleemitters()
     emitters.shrink(0);
     loopv(entities::storage)
     {
-        extentity &e = *entities::storage[i];
+        extentity &e = *entities::get(i);
         if(e.type != ET_PARTICLES) continue;
         emitters.add(particleemitter(&e));
     }
@@ -1615,7 +1615,7 @@ void updateparticles()
         // note: order matters in this case as particles of the same type are drawn in the reverse order that they are added
         loopv(entgroup)
         {
-            extentity &e = *entities::storage[entgroup[i]]; // INTENSITY: Made extentity
+            extentity &e = *entities::get(entgroup[i]); // INTENSITY: Made extentity
             if (!LogicSystem::getLogicEntity(e)) continue;
             buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());
             particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.buf, PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
@@ -1650,7 +1650,7 @@ void updateparticles()
         }
         loopv(entities::storage)
         {
-            extentity &e = *entities::storage[i]; // INTENSITY: Made extentity
+            extentity &e = *entities::get(i); // INTENSITY: Made extentity
             if(e.type==ET_EMPTY || editid==e.uniqueId) continue;
             if (!LogicSystem::getLogicEntity(e)) continue;
             buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());

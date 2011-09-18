@@ -319,6 +319,7 @@ void savevslot(stream *f, VSlot &vs, int prev)
     }
 }
 
+/* OctaForge: shared_ptr */
 void savevslots(stream *f, int numvslots)
 {
     if(vslots.empty()) return;
@@ -326,7 +327,7 @@ void savevslots(stream *f, int numvslots)
     memset(prev, -1, numvslots*sizeof(int));
     loopi(numvslots)
     {
-        VSlot *vs = vslots[i];
+        VSlot *vs = vslots[i].ptr;
         if(vs->changed) continue;
         for(;;)
         {
@@ -339,7 +340,7 @@ void savevslots(stream *f, int numvslots)
     int lastroot = 0;
     loopi(numvslots)
     {
-        VSlot &vs = *vslots[i];
+        VSlot &vs = *(vslots[i].ptr);
         if(!vs.changed) continue;
         if(lastroot < i) f->putlil<int>(-(i - lastroot));
         savevslot(f, vs, prev[i]);
@@ -409,12 +410,12 @@ void loadvslots(stream *f, int numvslots)
         else
         {
             prev[vslots.length()] = f->getlil<int>();
-            loadvslot(f, *vslots.add(new VSlot(NULL, vslots.length())), changed);    
+            loadvslot(f, *(vslots.add(new VSlot(NULL, vslots.length())).ptr), changed);    
             numvslots--;
         }
     }
-    loopv(vslots) if(vslots.inrange(prev[i])) vslots[prev[i]]->next = vslots[i];
-    if (numvslots > 0) delete[] prev; // INTENSITY - check for numvslots, for server
+    loopv(vslots) if(vslots.inrange(prev[i])) vslots[prev[i]]->next = vslots[i].ptr;
+    delete[] prev;
 }
 
 bool save_world(const char *mname, bool nolms)

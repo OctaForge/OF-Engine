@@ -81,7 +81,7 @@ void TargetingControl::intersectClosestMapmodel(vec &from, vec &to, float& dist,
     dist = rayent(from, unitv, 1000.0f, RAY_CLIPMAT|RAY_ALPHAPOLY/*was: RAY_ENTS*/, 0, orient, ent); // TODO: maxdist, or 1000.0f...?
 
     if (ent != -1)
-        target = entities::storage[ent];
+        target = entities::get(ent);
     else
     {
         target = NULL;
@@ -98,7 +98,7 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
     if (entities::storage.inrange(enthover))
     {
         dist = -7654; // TODO: Calculate
-        entity = LogicSystem::getLogicEntity(*entities::storage[enthover]);
+        entity = LogicSystem::getLogicEntity(*entities::get(enthover));
     } else {
         // Manually check if we are hovering, using ray intersections. TODO: Not needed for extents?
         CLogicEntity *ignore = (fpsent*)targeter ? LogicSystem::getLogicEntity(targeter) : NULL;

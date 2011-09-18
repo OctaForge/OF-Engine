@@ -136,7 +136,7 @@ namespace lua_binds
 
     // TODO: REMOVE THESE
     #define addimplicit(f)  { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }
-    #define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &ent = *entities::storage[n]; f; } }
+    #define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &ent = *entities::get(n); f; } }
     #define entedit(i, f) \
     { \
         entfocus(i, \

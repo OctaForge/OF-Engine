@@ -100,7 +100,7 @@ struct flarerenderer : partrenderer
         const vector<int> &lights = checklightcache(int(camera1->o.x), int(camera1->o.y));
         loopv(lights)
         {
-            entity &e = *entities::storage[lights[i]];
+            entity &e = *entities::get(lights[i]);
             if(e.type != ET_LIGHT) continue;
             bool sun = (e.attr1==0);
             float radius = float(e.attr1);

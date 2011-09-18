@@ -930,7 +930,7 @@ VARF(lightcachesize, 4, 6, 12, clearlightcache());
 
 void clearlightcache(int e)
 {
-    if(e < 0 || !entities::storage[e]->attr1)
+    if(e < 0 || !entities::get(e)->attr1)
     {
         for(lightcacheentry *lce = lightcache; lce < &lightcache[LIGHTCACHESIZE]; lce++)
         {
@@ -940,7 +940,7 @@ void clearlightcache(int e)
     }
     else
     {
-        const extentity &light = *entities::storage[e];
+        const extentity &light = *entities::get(e);
         int radius = light.attr1;
         for(int x = int(max(light.o.x-radius, 0.0f))>>lightcachesize, ex = int(min(light.o.x+radius, worldsize-1.0f))>>lightcachesize; x <= ex; x++)
         for(int y = int(max(light.o.y-radius, 0.0f))>>lightcachesize, ey = int(min(light.o.y+radius, worldsize-1.0f))>>lightcachesize; y <= ey; y++)
@@ -964,7 +964,7 @@ const vector<int> &checklightcache(int x, int y)
     int csize = 1<<lightcachesize, cx = x<<lightcachesize, cy = y<<lightcachesize;
     loopv(entities::storage)
     {
-        const extentity &light = *entities::storage[i];
+        const extentity &light = *entities::get(i);
         switch(light.type)
         {
             case ET_LIGHT:
@@ -1022,7 +1022,7 @@ static bool findlights(lightmapworker *w, int cx, int cy, int cz, int size, cons
         const vector<int> &lights = checklightcache(cx, cy);
         loopv(lights)
         {
-            const extentity &light = *entities::storage[lights[i]];
+            const extentity &light = *entities::get(lights[i]);
             switch(light.type)
             {
                 case ET_LIGHT: addlight(w, light, cx, cy, cz, size, v, n); break;
@@ -1032,7 +1032,7 @@ static bool findlights(lightmapworker *w, int cx, int cy, int cz, int size, cons
     }
     else loopv(entities::storage)
     {
-        const extentity &light = *entities::storage[i];
+        const extentity &light = *entities::get(i);
         switch(light.type)
         {
             case ET_LIGHT: addlight(w, light, cx, cy, cz, size, v, n); break;
@@ -2280,7 +2280,7 @@ void clearlights()
     clearlightcache();
     loopv(entities::storage)
     {
-        extentity &e = *entities::storage[i];
+        extentity &e = *entities::get(i);
         e.light.color = vec(1, 1, 1);
         e.light.dir = vec(0, 0, 1);
     }
@@ -2306,7 +2306,7 @@ void lightent(extentity &e, float height)
 
 void updateentlighting()
 {
-    loopv(entities::storage) lightent(*entities::storage[i]);
+    loopv(entities::storage) lightent(*entities::get(i));
 }
 
 void initlights()
@@ -2364,7 +2364,7 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
     const vector<int> &lights = checklightcache(int(target.x), int(target.y));
     loopv(lights)
     {
-        extentity &e = *entities::storage[lights[i]];
+        extentity &e = *entities::get(lights[i]);
         if(e.type != ET_LIGHT)
             continue;
     
@@ -2427,7 +2427,7 @@ entity *brightestlight(const vec &target, const vec &dir)
     float bintensity = 0;
     loopv(lights)
     {
-        extentity &e = *entities::storage[lights[i]];
+        extentity &e = *entities::get(lights[i]);
         if(e.type != ET_LIGHT || vec(e.o).sub(target).dot(dir)<0)
             continue;
 

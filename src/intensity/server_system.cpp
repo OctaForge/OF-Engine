@@ -238,8 +238,8 @@ GLuint lookupenvmap(ushort emid) { return 0; };
 void loadalphamask(Texture *t) { };
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format) { };
 
-vector<VSlot *> vslots;
-vector<Slot *> slots;
+vector< types::shared_ptr<VSlot> > vslots;
+vector< types::shared_ptr< Slot> > slots;
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 

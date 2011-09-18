@@ -10,9 +10,9 @@
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
  *
- *  Inspired by implementation from ecaprice library
- *  (http://github.com/graphitemaster/ecaprice)
- *  by Dale "graphitemaster" Weiler.
+ *  Originally inspired by implementation from ecaprice library
+ *  (http://github.com/graphitemaster/ecaprice) by Dale "graphitemaster"
+ *  Weiler, currently completely custom implementation.
  *
  * About: License
  *  This file is licensed under MIT. See COPYING.txt for more information.
@@ -44,41 +44,78 @@ namespace types
          * Constructor: shared_ptr
          * Initializes empty shared_ptr.
          */
-        shared_ptr();
+        shared_ptr(): ptr(NULL), count(NULL)
+        {
+            count = new counter;
+        }
 
         /*
          * Constructor: shared_ptr
-         * Initializes shared_ptr from shared_ptr. Inherits
-         * its pointer and reference count.
+         * Initializes shared_ptr from shared_ptr.
+         * Increments the counter.
          */
-        shared_ptr(const shared_ptr<T>& p);
+        shared_ptr(const shared_ptr<T>& p): ptr(p.ptr), count(p.count)
+        {
+            count->increment();
+        }
 
         /*
          * Constructor: shared_ptr
-         * Initializes shared_ptr from a pointer. Initializes
-         * the reference count as result of <nil>.
+         * Initializes shared_ptr from a pointer.
          */
-        shared_ptr(T *p);
+        shared_ptr(T *p): ptr(p), count(NULL)
+        {
+            count = new counter;
+        }
 
         /*
          * Destructor: shared_ptr
-         * Decrements the <counter>.
+         * Decrements the <counter>. If it reaches 0,
+         * both pointer and counter will be freed.
          */
-        ~shared_ptr();
+        ~shared_ptr()
+        {
+            if (count && count->decrement() == 0)
+            {
+                delete ptr;
+                delete count;
+            }
+        }
+
+        /*
+         * Operator: =
+         * Assigns the shared_ptr from another one. Inherits
+         * its reference count and increments it by one.
+         */
+        shared_ptr<T>& operator=(const shared_ptr<T>& p)
+        {
+            if (p != *this)
+            {
+                if (count && count->decrement() == 0)
+                {
+                    delete ptr;
+                    delete count;
+                }
+                ptr   = p.ptr;
+                count = p.count;
+                count->increment();
+            }
+            return *this;
+        }
 
         /*
          * Operator: ->
          * Overload of this operator so you can manipulate
          * with the container simillarily to standard pointer.
          */
-        T *operator->();
+        T *operator->() { return ptr; }
 
         /*
          * Operator: *
          * Overload of this operator so you can manipulate
          * with the container simillarily to standard pointer.
          */
-        T& operator*();
+        T& operator*() { return *ptr; }
 
         /*
          * Operator: ->
@@ -86,7 +123,7 @@ namespace types
          * with the container simillarily to standard pointer.
          * Const version.
          */
-        const T *operator->() const;
+        const T *operator->() const { return ptr; }
 
         /*
          * Operator: *
@@ -94,43 +131,34 @@ namespace types
          * with the container simillarily to standard pointer.
          * Const version.
          */
-        const T& operator*() const;
+        const T& operator*() const { return *ptr; }
 
         /*
          * Operator: ==,!=,<,<=,>,>=
          * Overloads for comparison operators.
          */
-        bool operator==(const shared_ptr<T>& p) const;
-        bool operator!=(const shared_ptr<T>& p) const;
-        bool operator< (const shared_ptr<T>& p) const;
-        bool operator<=(const shared_ptr<T>& p) const;
-        bool operator> (const shared_ptr<T>& p) const;
-        bool operator>=(const shared_ptr<T>& p) const;
+        bool operator==(const shared_ptr<T>& p) const { return ptr == p.ptr; }
+        bool operator!=(const shared_ptr<T>& p) const { return ptr != p.ptr; }
+        bool operator< (const shared_ptr<T>& p) const { return ptr <  p.ptr; }
+        bool operator<=(const shared_ptr<T>& p) const { return ptr <= p.ptr; }
+        bool operator> (const shared_ptr<T>& p) const { return ptr >  p.ptr; }
+        bool operator>=(const shared_ptr<T>& p) const { return ptr >= p.ptr; }
 
         /*
-         * Function: get_count
-         * Returns the reference count as size_t.
+         * Variable: counter
+         * A simple nested struct holding the count.
+         * It has two methods, increment, which returns
+         * nothing, and decrement, which returns --count.
          */
-        size_t get_count();
+        struct counter
+        {
+            counter(): count(1) {};
 
-        /*
-         * Function: increment
-         * Increments the counter.
-         */
-        void increment();
+            void   increment() {        count++; }
+            size_t decrement() { return --count; }
 
-        /*
-         * Function: decrement
-         * Decrements the counter.
-         */
-        void decrement();
-
-        /*
-         * Function: nil
-         * Nil for the reference counter. It's static,
-         * so it can live on for inherited shared_ptrs.
-         */
-        static size_t *nil();
+            size_t count;
+        };
 
         /*
          * Variable: ptr
@@ -140,9 +168,9 @@ namespace types
 
         /*
          * Variable: count
-         * The reference count stored as pointer to size_t.
+         * Current instance of <counter>.
          */
-        size_t *count;
+        counter *count;
     };
 } /* end namespace types */
 

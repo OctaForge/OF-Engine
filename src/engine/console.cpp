@@ -315,7 +315,7 @@ struct hline
         else game::toserver(buf.buf);
     }
 };
-vector<hline *> history;
+vector< types::shared_ptr<hline> > history;
 int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);
@@ -487,23 +487,22 @@ void consolekey(int code, bool isdown, int cooked)
     {
         if(code==SDLK_RETURN || code==SDLK_KP_ENTER)
         {
-            hline *h = NULL;
+            hline *h;
             if(commandbuf[0])
             {
                 if(history.empty() || history.last()->shouldsave())
                 {
                     if(maxhistory && history.length() >= maxhistory)
                     {
-                        loopi(history.length()-maxhistory+1) delete history[i];
                         history.remove(0, history.length()-maxhistory+1);
                     }
-                    history.add(h = new hline)->save();
+                    history.add(new hline)->save();
                 }
-                else h = history.last();
+                h = history.last().ptr;
             }
             histpos = history.length();
             inputcommand(NULL);
-            if(h) h->run();
+            if (h) h->run();
         }
         else if(code==SDLK_ESCAPE)
         {
