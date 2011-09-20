@@ -21,8 +21,6 @@
 #ifndef OF_SHARED_PTR_H
 #define OF_SHARED_PTR_H
 
-#include <cstdlib>
-
 #include "of_utils.h"
 
 /*

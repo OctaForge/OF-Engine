@@ -34,4 +34,16 @@ Currently contains:
     of_shared_ptr.h - reference-counted pointer container for use
                       with vectors, hashtables etc. to prevent leaks.
 
+    of_stack.h - a stack container, which is internally a singly linked
+                 list. It provides a top node and all other nodes are
+                 linked to it ("stacked"). You can get the top node,
+                 push data (that'll create new top node) and pop
+                 (that'll destroy the current top node and bring
+                 back the previous one, which was linked below
+                 the top node).
+
+    of_map.h - an efficient implementation of generic associative
+               container using an AA tree (enhancement to red-black
+               tree).
+
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>

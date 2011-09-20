@@ -487,7 +487,7 @@ void consolekey(int code, bool isdown, int cooked)
     {
         if(code==SDLK_RETURN || code==SDLK_KP_ENTER)
         {
-            hline *h;
+            hline *h = NULL;
             if(commandbuf[0])
             {
                 if(history.empty() || history.last()->shouldsave())

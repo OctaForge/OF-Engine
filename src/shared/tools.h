@@ -3,9 +3,6 @@
 #ifndef _TOOLS_H
 #define _TOOLS_H
 
-#include "of_utils.h"
-#include "of_new.h"
-
 #ifdef _DEBUG
 #ifdef __GNUC__
 #define ASSERT(c) if(!(c)) { asm("int $3"); }

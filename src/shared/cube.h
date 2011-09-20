@@ -24,8 +24,7 @@
 #include <climits>
 #include <cassert>
 #include <ctime>
-#include "of_string.h"
-#include "of_shared_ptr.h"
+#include "of_stdlib.h"
 
 #ifdef WIN32
   #define WIN32_LEAN_AND_MEAN
