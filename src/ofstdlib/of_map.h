@@ -45,7 +45,7 @@ namespace types
      * appropriate comparison operators inside your
      * class).
      */
-    template<typename T> static inline int map_cmp(T a, T b)
+    template<typename T> inline int map_cmp(T a, T b)
     {
         return ((a > b) ? 1 : ((a < b) ? -1 : 0));
     }
@@ -56,7 +56,7 @@ namespace types
      * uses strcmp instead of direct comparisons, as
      * you can't compare char pointers like that.
      */
-    template<> static inline int map_cmp(const char *a, const char *b)
+    template<> inline int map_cmp(const char *a, const char *b)
     {
         return strcmp(a, b);
     }
@@ -222,19 +222,19 @@ namespace types
          * Function: last
          * Const version of <last>.
          */
-        const node *last() const { return last (); }
+        const node *last() const { return last(); }
 
         /*
          * Function: next
          * Const version of <next>.
          */
-        const node *next() const { return next (); }
+        const node *next() const { return next(); }
 
         /*
          * Function: prev
          * Const version of <prev>.
          */
-        const node *prev() const { return prev (); }
+        const node *prev() const { return prev(); }
 
         /*
          * Function: insert
