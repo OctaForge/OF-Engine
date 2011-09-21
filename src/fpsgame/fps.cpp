@@ -85,7 +85,7 @@ namespace game
         );
         s += "/";
 
-        return types::string().format("%smap", s.buf);
+        return types::string().format("%smap", s.get_buf());
     }
 
     fpsent *spawnstate(fpsent *d)              // reset player state not persistent accross spawns
@@ -235,7 +235,7 @@ namespace game
                 "entity_store.get(%i).position.y,"
                 "entity_store.get(%i).position.z}",
                 d->uniqueId, d->uniqueId, d->uniqueId, d->uniqueId
-            ).buf);
+            ).get_buf());
 #endif
         }
     }

@@ -19,38 +19,6 @@
 #define RESTRICT
 #endif
 
-#ifdef swap
-#undef swap
-#endif
-template<class T>
-static inline void swap(T &a, T &b)
-{
-    T t = a;
-    a = b;
-    b = t;
-}
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
-template<class T>
-static inline T max(T a, T b)
-{
-    return a > b ? a : b;
-}
-template<class T>
-static inline T min(T a, T b)
-{
-    return a < b ? a : b;
-}
-template<class T>
-static inline T clamp(T a, T b, T c)
-{
-    return max(b, min(a, c));
-}
-
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))

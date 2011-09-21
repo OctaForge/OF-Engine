@@ -67,7 +67,7 @@ namespace lua_binds
         renderprogress(0.1, "compiling scripts ..");
 
         types::string fname = world::get_mapscript_filename();
-        if (!engine.loadf(fname.buf))
+        if (!engine.loadf(fname.get_buf()))
         {
             engine.getg("gui")
                   .t_getraw("message")
@@ -78,7 +78,7 @@ namespace lua_binds
         }
 
         renderprogress(0.3, "generating map ..");
-        save_world(game::getclientmap().buf);
+        save_world(game::getclientmap().get_buf());
 
         renderprogress(0.4, "exporting entities ..");
         world::export_ents("entities.json");

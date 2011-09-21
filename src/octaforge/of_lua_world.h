@@ -182,7 +182,7 @@ namespace lua_binds
     LUA_BIND_STD(newmap, newmap, e.get<int>(1))
     LUA_BIND_STD(mapenlarge, mapenlarge)
     LUA_BIND_STD(shrinkmap, shrinkmap)
-    LUA_BIND_STD(mapname, e.push, game::getclientmap().buf)
+    LUA_BIND_STD(mapname, e.push, game::getclientmap().get_buf())
     // In our new system, this is called when dragging concludes. Only then do we update the server.
     // This facilitates smooth dragging on the client, and a single bandwidth use at the end.
     LUA_BIND_DEF(finish_dragging, {
@@ -199,7 +199,7 @@ namespace lua_binds
         string pakname;
         string mapname;
         string mcfgname;
-        getmapfilenames(mname.buf, NULL, pakname, mapname, mcfgname);
+        getmapfilenames(mname.get_buf(), NULL, pakname, mapname, mcfgname);
         defformatstring(cfgname)("data/%s/%s.lua", pakname, mcfgname);
         path(cfgname);
         e.push(cfgname);
@@ -224,16 +224,16 @@ namespace lua_binds
             "data%cmaps%c%s%cpreview.png",
             PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV
         );
-        if (fileexists(buf.buf, "r"))
+        if (fileexists(buf.get_buf(), "r"))
         {
-            e.push(buf.buf);
+            e.push(buf.get_buf());
             return;
         }
 
-        buf.format("%s%s", homedir, buf.buf);
-        if (fileexists(buf.buf, "r"))
+        buf.format("%s%s", homedir, buf.get_buf());
+        if (fileexists(buf.get_buf(), "r"))
         {
-            e.push(buf.buf);
+            e.push(buf.get_buf());
             return;
         }
         e.push();
@@ -247,7 +247,7 @@ namespace lua_binds
 
         e.t_new();
         buf.format("data%cmaps", PATHDIV);
-        listdir(buf.buf, false, NULL, glob);
+        listdir(buf.get_buf(), false, NULL, glob);
         if (glob.length() > 0)
         {
             loopv(glob)
@@ -258,8 +258,8 @@ namespace lua_binds
         }
 
         e.t_new();
-        buf.format("%s%s", homedir, buf.buf);
-        listdir(buf.buf, false, NULL, user);
+        buf.format("%s%s", homedir, buf.get_buf());
+        listdir(buf.get_buf(), false, NULL, user);
         if (user.length() > 0)
         {
             loopv(user)

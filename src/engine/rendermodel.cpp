@@ -926,7 +926,7 @@ void findanims(const char *pattern, vector<int> &anims)
     loopi(ANIM_ALL+1)
     {
         buf.format("%i", i);
-        if(matchanim(buf.buf, pattern)) anims.add(i);
+        if(matchanim(buf.get_buf(), pattern)) anims.add(i);
     }
     // INTENSITY: End Accept integer values as well
 }

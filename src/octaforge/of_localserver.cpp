@@ -94,9 +94,9 @@ namespace local_server
         );
 
 #ifdef WIN32
-        popen_out = _popen(buf.buf, "r");
+        popen_out = _popen(buf.get_buf(), "r");
 #else
-        popen_out =  popen(buf.buf, "r");
+        popen_out =  popen(buf.get_buf(), "r");
 #endif
 
         started = true;

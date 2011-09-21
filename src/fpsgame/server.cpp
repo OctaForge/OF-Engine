@@ -479,7 +479,7 @@ namespace server
         }
         #define QUEUE_INT(n) QUEUE_BUF(putint(ci->messages, n))
         #define QUEUE_UINT(n) QUEUE_BUF(putuint(ci->messages, n))
-        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text.buf, ci->messages))
+        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text.get_buf(), ci->messages))
         int curmsg;
         while((curmsg = p.length()) < p.maxlen)
         {
@@ -530,7 +530,7 @@ namespace server
             {
                 getstring(text, p);
                 /* FIXME: hack attack - add filtering method into the string class */
-                filtertext(text.buf, text.buf);
+                filtertext(text.get_buf(), text.get_buf());
 
                 if (!engine.hashandle())
                 {
@@ -543,7 +543,7 @@ namespace server
                 engine.getg("handle_textmsg");
                 if (engine.is<void*>(-1))
                 {
-                    engine.push(ci->uniqueId).push(text.buf).call(3, 1);
+                    engine.push(ci->uniqueId).push(text.get_buf()).call(3, 1);
                     handle_textmsg = engine.get<bool>(-1);
                 }
                 engine.pop(1);

@@ -2502,7 +2502,7 @@ void dumplms()
             map = map.substr(0, slash);
 
         savepng(
-            types::string().format("lightmap_%s_%d.png", map.buf, i).buf,
+            types::string().format("lightmap_%s_%d.png", map.get_buf(), i).get_buf(),
             temp, true
         );
     }

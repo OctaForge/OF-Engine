@@ -226,6 +226,18 @@ namespace types
         const char *end() const { return buf + capacity; }
 
         /*
+         * Function: get_buf
+         * Returns the internal buffer.
+         */
+        char *get_buf() { return buf; }
+
+        /*
+         * Function: get_buf
+         * Returns the internal buffer as const.
+         */
+        const char *get_buf() const { return buf; }
+
+        /*
          * Function: resize
          * Resizes the string to be of the given capacity. If the new
          * capacity is smaller than the current length, the string will

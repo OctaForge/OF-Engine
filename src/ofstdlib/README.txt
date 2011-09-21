@@ -46,4 +46,7 @@ Currently contains:
                container using an AA tree (enhancement to red-black
                tree).
 
+    of_vector.h - an efficient implementation of generic vector
+                  container (simillar to array, but easily manipulable).
+
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>

@@ -386,7 +386,7 @@ namespace game
             case 2:
                 // kripken: TODO: For now, this should only be for players, not NPCs on the server
                 assert(0);
-//                receivefile(p.buf, p.maxlen);
+//                receivefile(p.get_buf(), p.maxlen);
                 break;
         }
     }
@@ -420,14 +420,14 @@ namespace game
                 if(!d) return;
                 getstring(text, p);
                 /* FIXME: hack attack - add filtering method into the string class */
-                filtertext(text.buf, text.buf);
+                filtertext(text.get_buf(), text.get_buf());
 #ifdef CLIENT
                 if(d->state!=CS_SPECTATOR)
-                    particle_textcopy(d->abovehead(), text.buf, PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
+                    particle_textcopy(d->abovehead(), text.get_buf(), PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
                 if (chat_sound[0])
                     playsoundname(chat_sound);
 #endif
-                conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text.buf);
+                conoutf(CON_CHAT, "%s:\f0 %s", colorname(d), text.get_buf());
                 break;
             }
 

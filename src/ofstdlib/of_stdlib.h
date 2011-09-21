@@ -19,7 +19,6 @@
 
 #include "of_utils.h"
 #include "of_new.h"
-#include "of_algorithm.h"
 #include "of_string.h"
 #include "of_shared_ptr.h"
 #include "of_stack.h"

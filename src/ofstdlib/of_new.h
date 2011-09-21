@@ -47,13 +47,13 @@ inline void *operator new[](size_t size)
  * Operator: delete
  * Deallocates storage space.
  */
-inline void operator delete(void *p) { free(p); }
+inline void operator delete(void *p) { if (p) free(p); }
 
 /*
  * Operator: delete[]
  * Deallocates storage space of array.
  */
-inline void operator delete[](void *p) { free(p); } 
+inline void operator delete[](void *p) { if (p) free(p); } 
 
 inline void *operator new  (size_t, void *p)  { return p; }
 inline void *operator new[](size_t, void *p)  { return p; }

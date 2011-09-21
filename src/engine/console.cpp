@@ -31,8 +31,8 @@ void conoutfv(int type, const char *fmt, va_list args)
     types::string buf;
     buf.format(fmt, args);
     conline(type, buf);
-    filtertext(buf.buf, buf.buf);
-    logoutf("%s", buf.buf);
+    filtertext(buf.get_buf(), buf.get_buf());
+    logoutf("%s", buf.get_buf());
 }
 
 void conoutf(const char *fmt, ...)
@@ -57,7 +57,7 @@ int rendercommand(int x, int y, int w)
 {
     if(commandmillis < 0) return 0;
 
-    defformatstring(s)("%s %s", !commandprompt.is_empty() ? commandprompt.buf : ">", commandbuf);
+    defformatstring(s)("%s %s", !commandprompt.is_empty() ? commandprompt.get_buf() : ">", commandbuf);
     int width, height;
     text_bounds(s, width, height, w);
     y -= height;
@@ -115,7 +115,7 @@ int drawconlines(int conskip, int confade, int conwidth, int conheight, int cono
         if(!(conlines[idx].type&filter)) continue;
         const types::string& line = conlines[idx].line;
         int width, height;
-        text_bounds(line.buf, width, height, conwidth);
+        text_bounds(line.get_buf(), width, height, conwidth);
         if(totalheight + height > conheight) { numl = i; if(offset == idx) ++offset; break; }
         totalheight += height;
     }
@@ -126,9 +126,9 @@ int drawconlines(int conskip, int confade, int conwidth, int conheight, int cono
         if(!(conlines[idx].type&filter)) continue;
         const types::string& line = conlines[idx].line;
         int width, height;
-        text_bounds(line.buf, width, height, conwidth);
+        text_bounds(line.get_buf(), width, height, conwidth);
         if(dir <= 0) y -= height; 
-        draw_text(line.buf, conoff, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, conwidth);
+        draw_text(line.get_buf(), conoff, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, conwidth);
         if(dir > 0) y += height;
     }
     return y+conoff;
@@ -168,7 +168,7 @@ types::string keyaction;
 const char *getkeyname(int code)
 {
     keym *km = keyms.access(code);
-    return km ? km->name.buf : NULL;
+    return km ? km->name.get_buf() : NULL;
 }
 
 void searchbinds(const char *action, int type)
@@ -179,7 +179,7 @@ void searchbinds(const char *action, int type)
     {
         if(km.actions[type] == action)
         {
-            lua::engine.t_set(n, km.name.buf);
+            lua::engine.t_set(n, km.name.get_buf());
             n++;
         }
     });
@@ -189,7 +189,7 @@ keym *findbind(const char *key)
 {
     enumerate(keyms, keym, km,
     {
-        if(!strcasecmp(km.name.buf, key)) return &km;
+        if(!strcasecmp(km.name.get_buf(), key)) return &km;
     });
     return NULL;
 }   
@@ -197,7 +197,7 @@ keym *findbind(const char *key)
 void getbind(const char *key, int type)
 {
     keym *km = findbind(key);
-    lua::engine.push(km ? km->actions[type].buf : "");
+    lua::engine.push(km ? km->actions[type].get_buf() : "");
 }   
 
 void bindkey(const char *key, const char *action, int state)
@@ -276,7 +276,7 @@ struct hline
 
     void restore()
     {
-        copystring(commandbuf, buf.buf);
+        copystring(commandbuf, buf.get_buf());
         if(commandpos >= (int)strlen(commandbuf)) commandpos = -1;
         if(!action.is_empty()) commandaction = action;
         if(!prompt.is_empty()) commandprompt = prompt;
@@ -303,16 +303,16 @@ struct hline
             var::cvar *ev = var::get("commandbuf");
             if (!ev)
             {
-                ev = var::regvar("commandbuf", new var::cvar("commandbuf", buf.buf));
+                ev = var::regvar("commandbuf", new var::cvar("commandbuf", buf.get_buf()));
             }
-            else ev->set(buf.buf, false);
-            lua::engine.exec(action.buf);
+            else ev->set(buf.get_buf(), false);
+            lua::engine.exec(action.get_buf());
         }
         else if (buf[0] == '/')
         {
-            lua::engine.exec(buf.buf + 1);
+            lua::engine.exec(buf.get_buf() + 1);
         }
-        else game::toserver(buf.buf);
+        else game::toserver(buf.get_buf());
     }
 };
 vector< types::shared_ptr<hline> > history;
@@ -344,7 +344,7 @@ const char *addreleaseaction(int a)
     releaseaction &ra = releaseactions.add();
     ra.key = keypressed;
     ra.action = a;
-    return keypressed->name.buf;
+    return keypressed->name.get_buf();
 }
 
 const char *addreleaseaction(const char *s)
@@ -377,7 +377,7 @@ void execbind(keym &k, bool isdown)
 
         if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
         {
-            lua::engine.getg("input").t_getraw("per_map_keys").t_getraw(k.name.buf);
+            lua::engine.getg("input").t_getraw("per_map_keys").t_getraw(k.name.get_buf());
             if (lua::engine.is<void*>(-1))
             {
                 keypressed = &k;
@@ -393,7 +393,7 @@ void execbind(keym &k, bool isdown)
         types::string& action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
         keyaction = action;
         keypressed = &k;
-        lua::engine.exec(keyaction.buf);
+        lua::engine.exec(keyaction.get_buf());
         keypressed = NULL;
         if (keyaction!=action) keyaction.clear();
     }
@@ -545,7 +545,7 @@ void writebinds(stream *f)
         loopv(binds)
         {
             keym &km = *binds[i];
-            if(!km.actions[j].is_empty()) f->printf("input.bind%s(\"%s\", [[%s]])\n", cmds[j], km.name.buf, km.actions[j].buf);
+            if(!km.actions[j].is_empty()) f->printf("input.bind%s(\"%s\", [[%s]])\n", cmds[j], km.name.get_buf(), km.actions[j].get_buf());
         }
     }
 }

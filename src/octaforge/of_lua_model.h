@@ -264,7 +264,7 @@ namespace lua_binds
         for (int i = 0; i < tris.length(); i++)
         {
             BIH::tri& bt = tris[i];
-            e.push(buf.format("%i", i).buf)
+            e.push(buf.format("%i", i).get_buf())
                 .t_new()
                 .t_set("a", bt.a)
                 .t_set("b", bt.b)

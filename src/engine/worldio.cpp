@@ -422,7 +422,7 @@ bool save_world(const char *mname, bool nolms)
 {
     types::string map_name(mname);
     if (map_name.is_empty()) map_name = game::getclientmap();
-    setmapfilenames(!map_name.is_empty() ? map_name.buf : "untitled");
+    setmapfilenames(!map_name.is_empty() ? map_name.get_buf() : "untitled");
     if(savebak) backup(ogzname, bakname);
     stream *f = opengzfile(ogzname, "wb");
     if(!f) { conoutf(CON_WARN, "could not write map to %s", ogzname); return false; }
@@ -988,7 +988,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");
     logger::log(logger::DEBUG, "Requesting active entities...\r\n");
-    MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode.buf); // Ask for the NPCs and other players, which are not part of the map proper
+    MessageSystem::send_ActiveEntitiesRequest(ClientSystem::currScenarioCode.get_buf()); // Ask for the NPCs and other players, which are not part of the map proper
 #else // SERVER
     logger::log(logger::DEBUG, "Finishing loading of the world...\r\n");
     finish_load_world();

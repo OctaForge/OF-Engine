@@ -92,8 +92,8 @@ namespace MessageSystem
 
         engine.getg("gui")
               .t_getraw("message")
-              .push(title.buf)
-              .push(content.buf)
+              .push(title.get_buf())
+              .push(content.get_buf())
               .call(2, 0).pop(1);
     }
 #endif
@@ -117,7 +117,7 @@ namespace MessageSystem
         types::string message;
         getstring(message, p);
 
-        send_PersonalServerMessage(-1, "Message from Client", message.buf);
+        send_PersonalServerMessage(-1, "Message from Client", message.get_buf());
     }
 #endif
 
@@ -507,7 +507,7 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        lua::engine.getg("entity_classes").t_getraw("get_class").push(_class.buf).call(1, 1);
+        lua::engine.getg("entity_classes").t_getraw("get_class").push(_class.get_buf()).call(1, 1);
         if (lua::engine.is<void>(-1))
         {
             lua::engine.pop(2);
@@ -515,26 +515,26 @@ namespace MessageSystem
         }
         lua::engine.pop(2);
         // Add entity
-        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.buf, x, y, z, stateData.buf);
+        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.get_buf(), x, y, z, stateData.get_buf());
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        engine.getg("entity_classes").t_getraw("get_sauer_type").push(_class.buf).call(1, 1);
+        engine.getg("entity_classes").t_getraw("get_sauer_type").push(_class.get_buf()).call(1, 1);
         const char *sauerType = engine.get(-1, "extent");
         engine.pop(2);
         logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
-        engine.getg("entity_store").t_getraw("new").push(_class.buf);
+        engine.getg("entity_store").t_getraw("new").push(_class.get_buf());
         engine.t_new();
         engine.push("position")
             .t_new()
             .t_set("x", x)
             .t_set("y", y)
             .t_set("z", z);
-        engine.t_set().t_set("state_data", stateData.buf);
+        engine.t_set().t_set("state_data", stateData.get_buf());
         engine.call(2, 1);
         int newUniqueId = engine.t_get<int>("uid");
         engine.pop(2);
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
-                                      newUniqueId, _class.buf, x, y, z);
+                                      newUniqueId, _class.get_buf(), x, y, z);
     }
 #endif
 
@@ -613,12 +613,12 @@ namespace MessageSystem
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value.buf); \
+                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value.get_buf()); \
                 \
                 if (!LogicSystem::initialized) \
                     return; \
                 \
-                engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value.buf).call(3, 0).pop(1);
+                engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value.get_buf()).call(3, 0).pop(1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -657,11 +657,11 @@ namespace MessageSystem
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.buf); \
+        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.get_buf()); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value.buf).push(actorUniqueId).call(4, 0).pop(1);
+        engine.getg("entity_store").t_getraw("set_state_data").push(uniqueId).push(keyProtocolId).push(value.get_buf()).push(actorUniqueId).call(4, 0).pop(1);
         STATE_DATA_REQUEST
     }
 #endif
@@ -901,11 +901,11 @@ namespace MessageSystem
         #ifdef SERVER
             if (world::scenario_code.is_empty()) return;
             // Mark the client as running the current scenario, if indeed doing so
-            server::setClientScenario(sender, scenarioCode.buf);
+            server::setClientScenario(sender, scenarioCode.get_buf());
             if ( !server::isRunningCurrentScenario(sender) )
             {
                 logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
-                    sender, scenarioCode.buf
+                    sender, scenarioCode.get_buf()
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
@@ -1006,7 +1006,7 @@ namespace MessageSystem
         #endif
         if (!LogicSystem::initialized)
             return;
-        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.buf);
+        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.get_buf());
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
@@ -1014,7 +1014,7 @@ namespace MessageSystem
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass.buf)
+                .push(otherClass.get_buf())
                 .push(otherUniqueId)
                 .t_new();
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
@@ -1034,7 +1034,7 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
-                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass.buf);
+                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass.get_buf());
                 return;
             }
         } else
@@ -1042,11 +1042,11 @@ namespace MessageSystem
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.buf);
+        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.get_buf());
         engine.getref(entity->luaRef)
             .t_getraw("update_complete_state_data")
             .push_index(-2)
-            .push(stateData.buf)
+            .push(stateData.get_buf())
             .call(2, 0)
             .pop(1);
         #ifdef CLIENT
@@ -1227,7 +1227,7 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass.buf,
+        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d\r\n", otherUniqueId, otherClass.get_buf(),
             x, y, z, attr1, attr2, attr3, attr4);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
@@ -1235,11 +1235,11 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            engine.getg("entity_classes").t_getraw("get_sauer_type").push(otherClass.buf).call(1, 1);
+            engine.getg("entity_classes").t_getraw("get_sauer_type").push(otherClass.get_buf()).call(1, 1);
             const char *sauerType = engine.get(-1, "extent");
             engine.pop(2);
             engine.getg("entity_store").t_getraw("add")
-                .push(otherClass.buf)
+                .push(otherClass.get_buf())
                 .push(otherUniqueId)
                 .t_new()
                     .t_set("_type", findtype((char*)sauerType))
@@ -1262,7 +1262,7 @@ namespace MessageSystem
         engine.getref(entity->luaRef)
             .t_getraw("update_complete_state_data")
             .push_index(-2)
-            .push(stateData.buf)
+            .push(stateData.get_buf())
             .call(2, 0)
             .pop(1);
         // Events post-reception
@@ -1525,7 +1525,7 @@ namespace MessageSystem
             stopmapsound(e);
             if(camera1->o.dist(e->o) < e->attr2)
             {
-                if(!e->visible) playmapsound(soundName.buf, e, e->attr4, -1);
+                if(!e->visible) playmapsound(soundName.get_buf(), e, e->attr4, -1);
                 else if(e->visible) stopmapsound(e);
             }
         }
@@ -1598,9 +1598,9 @@ namespace MessageSystem
         assert(ClientSystem::playerNumber != originalClientNumber);
         vec pos(x,y,z);
         if (pos.x || pos.y || pos.z)
-            playsoundname(soundName.buf, &pos);
+            playsoundname(soundName.get_buf(), &pos);
         else
-            playsoundname(soundName.buf);
+            playsoundname(soundName.get_buf());
     }
 #endif
 
@@ -1666,7 +1666,7 @@ namespace MessageSystem
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
-        stopsoundbyid(getsoundid(soundName.buf, volume));
+        stopsoundbyid(getsoundid(soundName.get_buf(), volume));
     }
 #endif
 

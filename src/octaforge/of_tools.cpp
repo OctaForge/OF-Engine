@@ -149,15 +149,15 @@ namespace tools
         else
             buf.format("%sdata%c%s", homedir, PATHDIV, fname);
 
-        loaded = loadfile(buf.buf, NULL);
+        loaded = loadfile(buf.get_buf(), NULL);
         if (!loaded)
         {
             buff.format("data%c%s", PATHDIV, fname);
-            loaded = loadfile(buff.buf, NULL);
+            loaded = loadfile(buff.get_buf(), NULL);
         }
         if (!loaded)
         {
-            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf.buf, buff.buf);
+            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf.get_buf(), buff.get_buf());
             return NULL;
         }
         return loaded;

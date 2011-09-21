@@ -1618,7 +1618,7 @@ void updateparticles()
             extentity &e = *entities::get(entgroup[i]); // INTENSITY: Made extentity
             if (!LogicSystem::getLogicEntity(e)) continue;
             buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.buf, PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
+            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.get_buf(), PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
             switch (e.type)
             {
                 case ET_LIGHT:
@@ -1654,7 +1654,7 @@ void updateparticles()
             if(e.type==ET_EMPTY || editid==e.uniqueId) continue;
             if (!LogicSystem::getLogicEntity(e)) continue;
             buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.buf, PART_TEXT, 1, 0x1EC850, editpartsize); // INTENSITY: Use class
+            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.get_buf(), PART_TEXT, 1, 0x1EC850, editpartsize); // INTENSITY: Use class
             switch (e.type)
             {
                 case ET_LIGHT:

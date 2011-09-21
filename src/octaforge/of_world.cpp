@@ -69,7 +69,7 @@ namespace world
             if (loading)
                 renderprogress(val, types::string().format(
                     "received entity %i ...", num_received_entities
-                ).buf);
+                ).get_buf());
         }
     }
 
@@ -104,8 +104,8 @@ namespace world
         if (scenario_code.is_empty()) return;
         send_NotifyAboutCurrentScenario(
             cn,
-            curr_map_id.buf,
-            scenario_code.buf
+            curr_map_id.get_buf(),
+            scenario_code.get_buf()
         );
     }
 #endif
@@ -115,7 +115,7 @@ namespace world
         generate_scenario_code();
 
 #ifdef SERVER
-        send_PrepareForNewScenario(-1, scenario_code.buf);
+        send_PrepareForNewScenario(-1, scenario_code.get_buf());
         force_network_flush();
 #endif
 
@@ -124,7 +124,7 @@ namespace world
         types::string s = id.substr(0, id.length - 7);
         s += "/";
 
-        if (!load_world(types::string().format("%smap", s.buf).buf))
+        if (!load_world(types::string().format("%smap", s.get_buf()).get_buf()))
         {
             logger::log(logger::ERROR, "Failed to load world!\n");
             return false;
@@ -150,23 +150,23 @@ namespace world
         types::string buf = types::string().format(
             "%sdata%c%s%c%s",
             homedir, PATHDIV,
-            curr_map_id.substr(0, curr_map_id.length - 7).buf,
+            curr_map_id.substr(0, curr_map_id.length - 7).get_buf(),
             PATHDIV, fname
         );
 
         const char *data = lua::engine.exec<const char*>("return entity_store.save_entities()");
-        if (fileexists(buf.buf, "r"))
+        if (fileexists(buf.get_buf(), "r"))
         {
             types::string buff = types::string().format(
-                "%s-%i.bak", buf.buf, (int)time(0)
+                "%s-%i.bak", buf.get_buf(), (int)time(0)
             );
-            tools::fcopy(buf.buf, buff.buf);
+            tools::fcopy(buf.get_buf(), buff.get_buf());
         }
 
-        FILE *f = fopen(buf.buf, "w");
+        FILE *f = fopen(buf.get_buf(), "w");
         if  (!f)
         {
-            logger::log(logger::ERROR, "Cannot open file %s for writing.\n", buf.buf);
+            logger::log(logger::ERROR, "Cannot open file %s for writing.\n", buf.get_buf());
             return;
         }
         fputs(data, f);
@@ -178,17 +178,17 @@ namespace world
         types::string aloc = curr_map_id.substr(0, curr_map_id.length - 7);
 
         types::string buf = types::string().format(
-            "data%c%s%c%s", PATHDIV, aloc.buf, PATHDIV, rpath
+            "data%c%s%c%s", PATHDIV, aloc.get_buf(), PATHDIV, rpath
         );
-        if (fileexists(buf.buf, "r")) return buf;
+        if (fileexists(buf.get_buf(), "r")) return buf;
 
-        return types::string().format("%s%s", homedir, buf.buf);
+        return types::string().format("%s%s", homedir, buf.get_buf());
     }
 
     types::string get_mapscript_filename() { return get_mapfile_path("map.lua"); }
 
     void run_mapscript()
     {
-        lua::engine.execf(get_mapscript_filename().buf);
+        lua::engine.execf(get_mapscript_filename().get_buf());
     }
 } /* end namespace world */

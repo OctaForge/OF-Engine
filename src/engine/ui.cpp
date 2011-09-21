@@ -1687,7 +1687,7 @@ namespace gui
             float k = drawscale();
             glPushMatrix();
             glScalef(k, k, 1);
-            draw_text(getval().buf, int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255);
+            draw_text(getval().get_buf(), int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255);
             glColor3f(1, 1, 1);
             glPopMatrix();
 
@@ -1699,7 +1699,7 @@ namespace gui
             object::layout();
 
             int tw, th;
-            text_bounds(getval().buf, tw, th);
+            text_bounds(getval().get_buf(), tw, th);
             float k = drawscale();
             w = max(w, tw*k);
             h = max(h, th*k);

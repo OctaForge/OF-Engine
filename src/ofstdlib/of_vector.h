@@ -9,6 +9,7 @@
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
+ *  Partially inspired by the Cube 2 vector implementation (zlib).
  *
  * About: License
  *  This file is licensed under MIT. See COPYING.txt for more information.
@@ -18,7 +19,6 @@
 #define OF_VECTOR_H
 
 #include "of_utils.h"
-#include "of_algorithm.h"
 
 /*
  * Package: types
@@ -35,6 +35,13 @@ namespace types
      */
     template<typename T> struct vector
     {
+        /*
+         * Variable: MIN_SIZE
+         * The minimal amount of elements to reserve
+         * space for when creating the buffer.
+         */
+        static const size_t MIN_SIZE = 8;
+
         /*
          * Constructor: vector
          * Constructs an empty vector.
@@ -57,11 +64,13 @@ namespace types
          */
         vector(size_t sz, const T& v = T()): vector()
         {
-            buf = new T[sz];
+            uchar *tmp = new uchar[sz * sizeof(T)];
             length = capacity = sz;
 
-            for (size_t sz = 0; sz < length; sz++)
-                buf[sz] = v;
+            for (size_t i = 0; i < sz; sz++)
+                tmp[i] = v;
+
+            buf = (T*)tmp;
         }
 
         /*
@@ -82,15 +91,15 @@ namespace types
         {
             if (*this == v) return *this;
         
-            delete[] buf;
+            delete[] (uchar*)buf;
 
             length   = v.length;
             capacity = v.capacity;
 
-            buf = new T[capacity];
+            uchar *tmp = new uchar[capacity * sizeof(T)];
+            memcpy(tmp, v.buf, length * sizeof(T));
 
-            for (size_t sz = 0; sz < length; sz++)
-                buf[sz] = v.buf[sz];
+            buf = (T*)tmp;
 
             return *this;
         }
@@ -120,6 +129,18 @@ namespace types
         const T *last() const { return buf + length; }
 
         /*
+         * Function: get_buf
+         * Returns the internal buffer.
+         */
+        T *get_buf() { return buf; }
+
+        /*
+         * Function: get_buf
+         * Returns the internal buffer as const.
+         */
+        const T *get_buf() const { return buf; }
+
+        /*
          * Function: resize
          * Resizes the vector to be of given size. If the capacity
          * is too small for that, it calls <reserve> with the size
@@ -136,8 +157,8 @@ namespace types
             reserve (sz);
             length = sz;
 
-            for (size_t i = len; i < length; sz++)
-                buf[i] = c;
+            for (;  len < length; len++)
+                buf[len] = c;
         }
 
         /*
@@ -149,27 +170,29 @@ namespace types
         /*
          * Function: reserve
          * Reserves the size given by the argument. If that is
-         * smaller than current capacity, this will do nothing.
-         * If it's bigger, the buffer will be reallocated.
+         * smaller(or equal) than current capacity, this will
+         * do nothing. If it's bigger, the buffer will be
+         * reallocated.
          */
         void reserve(size_t sz)
         {
-            if (!buf)
+            size_t old_cap = capacity;
+
+            if (!capacity)
+                 capacity = max(MIN_SIZE, sz);
+            else
+                while (capacity < sz)
+                       capacity *= 2;
+
+            if (capacity <= old_cap) return;
+
+            uchar *tmp = new uchar[capacity * sizeof(T)];
+            if (old_cap > 0)
             {
-                length   = 0;
-                capacity = 0;
+                memcpy(tmp, buf, old_cap * sizeof(T));
+                delete[] (uchar*)buf;
             }
-
-            if (sz <= capacity)
-                return;
-
-            T *tmp = new T[sz];
-
-            algorithm::copy(buf, buf + length, tmp);
-            capacity = sz;
-
-            delete[] buf;
-            buf = tmp;
+            buf = (T*)tmp;
         }
 
         /*
@@ -204,14 +227,17 @@ namespace types
          * Function: push
          * Appends a given value to the end of the vector.
          * If the current capacity is not big enough to hold
-         * the future contents, it is resized by 5.
+         * the future contents, it'll be resized.
+         *
+         * This returns a reference to the newly added element.
          */
-        void push(const T& data)
+        T& push(const T& data = T())
         {
-            if (length >= capacity)
-                reserve(capacity + 5);
+            if(length >= capacity)
+                reserve (capacity + 1);
 
-            buf[length++] = data;
+            new  (&buf[length]) T(data);
+            return buf[length++];
         }
 
         /*
@@ -230,7 +256,7 @@ namespace types
         {
             if (capacity > 0)
             {
-                delete[] buf;
+                delete[] (uchar*)buf;
                 length = capacity = 0;
             }
         }

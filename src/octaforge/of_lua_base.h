@@ -241,7 +241,7 @@ namespace lua_binds
                         (ev->curv.i>>16)&0xFF,
                         (ev->curv.i>>8)&0xFF,
                         ev->curv.i&0xFF
-                    ).buf)
+                    ).get_buf())
                 }
                 else e.push(ev->curv.i);*/
                 e.push(ev->curv.i);

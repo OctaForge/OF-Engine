@@ -1795,7 +1795,7 @@ static hashset<types::string> shaderparamnames(256);
 const char *getshaderparamname(const char *name)
 {
     types::string *exists = shaderparamnames.access(name);
-    if(exists) return (*exists).buf;
+    if(exists) return (*exists).get_buf();
     shaderparamnames[name] = name;
     return name;
 }

@@ -86,12 +86,12 @@ namespace logger
         if (level == ERROR)
         {
             conoutf(CON_ERROR, types::string().format(
-                "[[%s]] - %s", level_s, buf.buf
-            ).buf);
+                "[[%s]] - %s", level_s, buf.get_buf()
+            ).get_buf());
         }
         else
 #endif
-        printf("[[%s]] - %s", level_s, buf.buf);
+        printf("[[%s]] - %s", level_s, buf.get_buf());
 
         fflush(stdout);
     }
