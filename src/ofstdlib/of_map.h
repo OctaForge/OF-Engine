@@ -280,10 +280,9 @@ namespace types
 
         /*
          * Function: find
-         * Returns a reference to a value that belongs to a given key.
-         * Because it's an actual reference, you can modify it and
-         * the changes will reflect in the node. There is also a const
-         * version that returns a const reference (non-modifiable).
+         * Returns a node that belongs to a given key. Because it's an
+         * actual node, you can modify its data. There is also a const
+         * version that returns a const node pointer (non-modifiable).
          */
         node *find(const T& key) { return find(root, key); }
 
@@ -296,7 +295,9 @@ namespace types
         /*
          * Operator: []
          * See <find>. This one is not const, so you can assign
-         * the value.
+         * the value. If you assign a non-existant key, it'll
+         * get created first, because this has to return the
+         * data, not a node.
          *
          * (start code)
          *     tree[key] = value;
