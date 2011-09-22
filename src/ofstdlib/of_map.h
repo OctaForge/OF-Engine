@@ -285,13 +285,13 @@ namespace types
          * the changes will reflect in the node. There is also a const
          * version that returns a const reference (non-modifiable).
          */
-        U& find(const T& key) { return find(root, key)->data; }
+        node *find(const T& key) { return find(root, key); }
 
         /*
          * Function: find
          * Const version of <find>. The result cannot be modified.
          */
-        const U& find(const T& key) const { return find(root, key)->data; }
+        const node *find(const T& key) const { return find(root, key); }
 
         /*
          * Operator: []
@@ -304,7 +304,7 @@ namespace types
          *
          * There is also a const version used for reading.
          */
-        U& operator[](const T& key) { return find(key); }
+        U& operator[](const T& key) { return find(root, key, true)->data; }
 
         /*
          * Operator: []
@@ -315,7 +315,7 @@ namespace types
          *     printf("%s\n", tree[key]);
          * (end)
          */
-        const U& operator[](const T& key) const { return find(key); }
+        const U& operator[](const T& key) const { return find(key)->data; }
 
         /*
          * Function: destroy_node
@@ -478,17 +478,22 @@ namespace types
          * Used by <[]> and the interface <find> (the one that
          * doesn't take a root node argument).
          */
-        node *find(node *nd, const T& key)
+        node *find(node *nd, const T& key, bool do_insert = false)
         {
             if (nd == nil)
-                return insert(root, key, U());
+            {
+                if (do_insert)
+                    return insert(root, key, U());
+                else
+                    return NULL;
+            }
 
             int cmp = map_cmp(key, nd->key);
             if (cmp)
                 return find(((cmp < 0)
                     ? nd->left
                     : nd->right
-                ), key);
+                ), key, do_insert);
 
             return nd;
         }
