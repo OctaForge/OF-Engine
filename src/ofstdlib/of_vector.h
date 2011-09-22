@@ -248,6 +248,22 @@ namespace types
         T& pop() { return buf[--length]; }
 
         /*
+         * Function: sort
+         * Sorts the vector using the quicksort algorithm (see
+         * the function in of_utils). The first argument is a
+         * function as specified by the quicksort implementation,
+         * second argument is the index to start sorting on, third
+         * argument is the amount of items to sort.
+         *
+         * Only the first argument is mandatory.
+         */
+        template<typename U>
+        void sort(U f, size_t idx = 0, size_t len = -1)
+        {
+            quicksort(&buf[idx], (len < 0) ? (length - idx) : len, f);
+        }
+
+        /*
          * Function: clear
          * Clears the vector contents. Deletes the buffer
          * and sets the length and capacity to 0.

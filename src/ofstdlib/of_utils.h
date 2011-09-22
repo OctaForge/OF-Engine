@@ -61,7 +61,7 @@ typedef unsigned char uchar;
  * Swaps two values.
  */
 template<typename T>
-inline void swap(T &a, T &b)
+inline void swap(T& a, T& b)
 {
     T t = a;
     a = b;
@@ -102,10 +102,79 @@ inline T min(T a, T b)
  * Clamps a given value a into the
  * bounds of b(minimum) and c(maximum)
  */
-template<class T>
+template<typename T>
 inline T clamp(T a, T b, T c)
 {
     return max(b, min(a, c));
 }
+
+/*
+ * Function: quicksort_cmp
+ * Default comparison function for <quicksort>.
+template<typename T>
+inline bool quicksort_cmp(const T& a, const T& b)
+{
+    return (a < b);
+}
+*/
+
+/*
+ * Function: quicksort
+ * Sorts a range using given arguments.
+ *
+ * The first one is a pointer to the beginning
+ * of the range (usually ptr), the second one
+ * is a pointer to the end of the range (usually
+ * ptr+len-1).
+ *
+ * The last "cmp" argument specifies a function
+ * taking the two elements and returning a boolean
+ * (for example, return (a < b) will make it sort
+ * from smallest to largest).
+ *
+ * It's optional. 
+template<typename T, typename U>
+inline void quicksort(T *first, T *last, U cmp = quicksort_cmp<T>)
+{
+    if (first != last)
+    {
+        T *left  = first;
+        T *right = last;
+        T *pivot = left++;
+
+        while (left != right)
+        {
+            if (cmp(*left, *pivot))
+            {
+                left++;
+            }
+            else
+            {
+                while ((left != right) && cmp(*pivot, *right))
+                    right--;
+
+                swap(*left, *right);
+            }
+        }
+
+        left--;
+        swap(*pivot, *left);
+ 
+        quicksort(first, left, cmp);
+        quicksort(right, last, cmp);
+    }
+}
+*/
+
+/*
+ * Function: quicksort
+ * An overload of <quicksort> allowing to specify
+ * a pointer and a number of elements to sort.
+template<typename T, typename U>
+inline void quicksort(T *buf, size_t n, U cmp = quicksort_cmp<T>)
+{
+    quicksort(buf, &buf[n], cmp);
+}
+*/
 
 #endif
