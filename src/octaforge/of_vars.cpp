@@ -248,56 +248,64 @@ namespace var
         flags ^= VAR_OVERRIDEN;
     }
 
-    vartable *vars = NULL;
+    vartable vars;
+    bool table_initialized = false;
     bool persistvars = true, overridevars = false;
 
     int& regivar(const char *name, int minv, int curv, int maxv, int *stor, void (*fun)(), int flags)
     {
-        var::cvar *nvar = new var::cvar(name, minv, curv, maxv, stor, fun, flags);
+        cvar *nvar = new cvar(name, minv, curv, maxv, stor, fun, flags);
         regvar(name, nvar);
         return *stor;
     }
 
     float& regfvar(const char *name, float minv, float curv, float maxv, float *stor, void (*fun)(), int flags)
     {
-        var::cvar *nvar = new var::cvar(name, minv, curv, maxv, stor, fun, flags);
+        cvar *nvar = new cvar(name, minv, curv, maxv, stor, fun, flags);
         regvar(name, nvar);
         return *stor;
     }
 
     char *&regsvar(const char *name, const char *curv, char **stor, void (*fun)(), int flags)
     {
-        var::cvar *nvar = new var::cvar(name, curv, stor, fun, flags);
+        cvar *nvar = new cvar(name, curv, stor, fun, flags);
         regvar(name, nvar);
         return *stor;
     }
 
-    cvar *regvar(const char *name, var::cvar *var)
+    cvar *regvar(const char *name, cvar *v)
     {
-        if (!vars) vars = new vartable;
-        vars->access(name, var);
-        return var;
+        if (!table_initialized)
+        {
+            vars = vartable();
+            table_initialized = true;
+        }
+        vars.insert(name, v);
+        return v;
     }
 
     void clear()
     {
-        if (!vars) return;
-        enumerate(*vars, cvar*, v, v->reset(););
+        if (vars.is_empty()) return;
+        for (vartable::node *n = vars.first(); n; n = vars.next())
+            n->data->reset();
     }
 
     void flush()
     {
-        if (vars)
+        if (!vars.is_empty());
         {
-            enumerate(*vars,  cvar*, v, { if (v) delete v; });
-            delete vars;
+            for (vartable::node *n = vars.first(); n; n = vars.next())
+                delete n->data;
+
+            vars.clear();
         }
     }
 
     cvar *get(const char *name)
     {
-        if (vars && vars->access(name))
-            return *vars->access(name);
-        else return NULL;
+        vartable::node *n = vars.find(name);
+        if (n) return n->data;
+        else   return NULL;
     }
 } /* end namespace var */

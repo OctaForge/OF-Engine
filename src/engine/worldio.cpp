@@ -447,14 +447,17 @@ bool save_world(const char *mname, bool nolms)
     hdr.blendmap = shouldsaveblendmap();
     hdr.numvars = 0;
     hdr.numvslots = numvslots;
-    enumerate(*var::vars, var::cvar*, v, {
+    for (var::vartable::node *n = var::vars.first(); n; n = var::vars.next())
+    {
+        var::cvar *v = n->data;
         if ((v->flags&var::VAR_OVERRIDE) != 0 && (v->flags&var::VAR_READONLY) == 0 && (v->flags&var::VAR_OVERRIDEN) != 0) hdr.numvars++;
-    });
+    }
     lilswap(&hdr.version, 9);
     f->write(&hdr, sizeof(hdr));
    
-    enumerate(*var::vars, var::cvar*, v,
+    for (var::vartable::node *n = var::vars.first(); n; n = var::vars.next())
     {
+        var::cvar *v = n->data;
         if((v->flags&var::VAR_OVERRIDE) == 0 || (v->flags&var::VAR_READONLY) != 0 || (v->flags&var::VAR_OVERRIDEN) == 0) continue;
         f->putchar(v->type);
         f->putlil<ushort>(strlen(v->name));
@@ -481,7 +484,7 @@ bool save_world(const char *mname, bool nolms)
                 break;
             }
         }
-    });
+    }
 
     if(dbgvars) conoutf(CON_DEBUG, "wrote %d vars", hdr.numvars);
 

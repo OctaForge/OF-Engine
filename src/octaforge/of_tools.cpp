@@ -179,13 +179,10 @@ namespace tools
         f->printf("-- configuration file version\n");
         f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");
-        vector<var::cvar*> varv;
 
-        enumerate(*var::vars, var::cvar*, v, varv.add(v));
-        varv.sort(sortvars);
-        loopv(varv)
+        for (var::vartable::node *n = var::vars.first(); n; n = var::vars.next())
         {
-            var::cvar *v = varv[i];
+            var::cvar *v = n->data;
             /* do not write aliases here! */
             if ((v->flags&var::VAR_ALIAS)   != 0) continue;
             if ((v->flags&var::VAR_PERSIST) != 0) switch(v->type)
@@ -219,9 +216,9 @@ namespace tools
 
         f->printf("-- aliases\n");
         f->printf("local was_persisting = engine.persist_vars(true)\n");
-        loopv(varv)
+        for (var::vartable::node *n = var::vars.first(); n; n = var::vars.next())
         {
-            var::cvar *v = varv[i];
+            var::cvar *v = n->data;
             if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)
             {
                 case var::VAR_I: f->printf("engine.new_var(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;

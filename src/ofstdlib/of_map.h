@@ -168,6 +168,13 @@ namespace types
         }
 
         /*
+         * Function: is_empty
+         * Returns true if the map contains no nodes
+         * (except root / nil) and false otherwise.
+         */
+        bool is_empty() { return (length == 0); }
+
+        /*
          * Function: first
          * Returns a pointer to the first node in the
          * tree. Useful for iteration. It basically
