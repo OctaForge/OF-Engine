@@ -180,7 +180,7 @@ namespace tools
         f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");
 
-        for (var::vartable::node *n = var::vars.first(); n; n = var::vars.next())
+        for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
         {
             var::cvar *v = n->data;
             /* do not write aliases here! */
@@ -216,7 +216,7 @@ namespace tools
 
         f->printf("-- aliases\n");
         f->printf("local was_persisting = engine.persist_vars(true)\n");
-        for (var::vartable::node *n = var::vars.first(); n; n = var::vars.next())
+        for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
         {
             var::cvar *v = n->data;
             if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)

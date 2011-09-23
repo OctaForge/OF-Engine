@@ -248,8 +248,7 @@ namespace var
         flags ^= VAR_OVERRIDEN;
     }
 
-    vartable vars;
-    bool table_initialized = false;
+    vartable *vars = NULL;
     bool persistvars = true, overridevars = false;
 
     int& regivar(const char *name, int minv, int curv, int maxv, int *stor, void (*fun)(), int flags)
@@ -275,36 +274,34 @@ namespace var
 
     cvar *regvar(const char *name, cvar *v)
     {
-        if (!table_initialized)
-        {
-            vars = vartable();
-            table_initialized = true;
-        }
-        vars.insert(name, v);
+        if (!vars) vars = new vartable;
+        vars->insert(name, v);
         return v;
     }
 
     void clear()
     {
-        if (vars.is_empty()) return;
-        for (vartable::node *n = vars.first(); n; n = vars.next())
+        if (!vars || vars->is_empty()) return;
+        for (vartable::node *n = vars->first(); n; n = vars->next())
             n->data->reset();
     }
 
     void flush()
     {
-        if (!vars.is_empty());
+        if (vars)
         {
-            for (vartable::node *n = vars.first(); n; n = vars.next())
+            for (vartable::node *n = vars->first(); n; n = vars->next())
                 delete n->data;
 
-            vars.clear();
+            delete vars;
         }
     }
 
     cvar *get(const char *name)
     {
-        vartable::node *n = vars.find(name);
+        if (!vars) return NULL;
+
+        vartable::node *n = vars->find(name);
         if (n) return n->data;
         else   return NULL;
     }

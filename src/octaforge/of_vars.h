@@ -120,7 +120,7 @@ namespace var
 
     typedef types::map<const char*, cvar*> vartable;
 
-    extern vartable vars;
+    extern vartable *vars;
     extern bool persistvars, overridevars;
 
     int&   regivar(const char *name, int minv, int curv, int maxv, int *stor, void (*fun)(), int flags);
