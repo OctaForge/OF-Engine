@@ -37,8 +37,8 @@
  * @date 2011
  */
 
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 #include <lua.hpp>
 
 /**

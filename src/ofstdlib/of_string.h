@@ -17,9 +17,9 @@
 #ifndef OF_STRING_H
 #define OF_STRING_H
 
-#include <cstdio>
-#include <cstring>
-#include <cstdarg>
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 
 #include "of_utils.h"
 #include "of_stdio.h"

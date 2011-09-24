@@ -17,7 +17,7 @@
 #ifndef OF_MAP_H
 #define OF_MAP_H
 
-#include <cstring>
+#include <string.h>
 
 #include "of_utils.h"
 

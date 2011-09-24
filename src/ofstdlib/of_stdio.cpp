@@ -15,9 +15,9 @@
  */
 
 #ifdef WIN32
-#include <cstdio>
-#include <cstdlib>
-#include <cstdarg>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
 
 int _vasprintf(char **strp, const char *fmt, va_list ap)
 {

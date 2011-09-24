@@ -17,7 +17,7 @@
 #ifndef OF_NEW_H
 #define OF_NEW_H
 
-#include <cstdlib>
+#include <stdlib.h>
 
 #include "of_utils.h"
 

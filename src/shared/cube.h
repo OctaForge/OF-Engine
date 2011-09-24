@@ -10,20 +10,20 @@
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
-#include <cmath>
+#include <math.h>
 
 #ifdef __GNUC__
 #undef gamma
 #endif
 
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <cctype>
-#include <cstdarg>
-#include <climits>
-#include <cassert>
-#include <ctime>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <assert.h>
+#include <time.h>
 #include "of_stdlib.h"
 
 #ifdef WIN32
