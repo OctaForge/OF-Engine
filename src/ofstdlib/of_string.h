@@ -227,13 +227,7 @@ namespace types
 
         /*
          * Function: get_buf
-         * Returns the internal buffer.
-         */
-        char *get_buf() { return buf; }
-
-        /*
-         * Function: get_buf
-         * Returns the internal buffer as const.
+         * Returns the internal buffer as const char pointer.
          */
         const char *get_buf() const { return buf; }
 

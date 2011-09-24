@@ -31,7 +31,7 @@ void conoutfv(int type, const char *fmt, va_list args)
     types::string buf;
     buf.format(fmt, args);
     conline(type, buf);
-    filtertext(buf.get_buf(), buf.get_buf());
+    filtertext(&buf[0], buf.get_buf());
     logoutf("%s", buf.get_buf());
 }
 
@@ -312,7 +312,7 @@ struct hline
         {
             lua::engine.exec(buf.get_buf() + 1);
         }
-        else game::toserver(buf.get_buf());
+        else game::toserver((char*)buf.get_buf());
     }
 };
 vector< types::shared_ptr<hline> > history;

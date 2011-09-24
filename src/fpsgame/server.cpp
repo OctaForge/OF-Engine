@@ -530,7 +530,7 @@ namespace server
             {
                 getstring(text, p);
                 /* FIXME: hack attack - add filtering method into the string class */
-                filtertext(text.get_buf(), text.get_buf());
+                filtertext(&text[0], text.get_buf());
 
                 if (!engine.hashandle())
                 {

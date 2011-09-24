@@ -420,7 +420,7 @@ namespace game
                 if(!d) return;
                 getstring(text, p);
                 /* FIXME: hack attack - add filtering method into the string class */
-                filtertext(text.get_buf(), text.get_buf());
+                filtertext(&text[0], text.get_buf());
 #ifdef CLIENT
                 if(d->state!=CS_SPECTATOR)
                     particle_textcopy(d->abovehead(), text.get_buf(), PART_TEXT, 2000, 0x32FF64, 4.0f, -8);
