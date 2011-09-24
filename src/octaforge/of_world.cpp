@@ -122,9 +122,9 @@ namespace world
         curr_map_id = id;
 
         types::string s = id.substr(0, id.length - 7);
-        s += "/";
+        s += "/map";
 
-        if (!load_world(types::string().format("%smap", s.get_buf()).get_buf()))
+        if (!load_world(s.get_buf()))
         {
             logger::log(logger::ERROR, "Failed to load world!\n");
             return false;
