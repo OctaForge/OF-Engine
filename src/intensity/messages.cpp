@@ -81,8 +81,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void PersonalServerMessage::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
 
         types::string title;
@@ -210,8 +208,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void YourUniqueId::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type YourUniqueId (1004)\r\n");
 
         int uniqueId = getint(p);
@@ -275,8 +271,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void LoginResponse::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LoginResponse (1005)\r\n");
 
         bool success = getint(p);
@@ -345,8 +339,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void PrepareForNewScenario::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
 
         types::string scenarioCode;
@@ -433,8 +425,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void NotifyAboutCurrentScenario::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
 
         types::string mid;
@@ -588,12 +578,6 @@ namespace MessageSystem
 
     void StateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-#ifdef CLIENT
-        is_npc = false;
-#else // SERVER
-        is_npc = true;
-#endif
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type StateDataUpdate (1011)\r\n");
 
         int uniqueId = getint(p);
@@ -716,12 +700,6 @@ namespace MessageSystem
 
     void UnreliableStateDataUpdate::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-#ifdef CLIENT
-        is_npc = false;
-#else // SERVER
-        is_npc = true;
-#endif
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type UnreliableStateDataUpdate (1013)\r\n");
 
         int uniqueId = getint(p);
@@ -809,8 +787,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void NotifyNumEntities::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyNumEntities (1015)\r\n");
 
         int num = getint(p);
@@ -870,11 +846,7 @@ namespace MessageSystem
 #ifdef CLIENT
     void AllActiveEntitiesSent::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type AllActiveEntitiesSent (1016)\r\n");
-
-
         ClientSystem::finishLoadWorld();
     }
 #endif
@@ -985,12 +957,6 @@ namespace MessageSystem
 
     void LogicEntityCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-#ifdef CLIENT
-        is_npc = false;
-#else // SERVER
-        is_npc = true;
-#endif
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityCompleteNotification (1018)\r\n");
 
         int otherClientNumber = getint(p);
@@ -1145,8 +1111,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void LogicEntityRemoval::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type LogicEntityRemoval (1020)\r\n");
 
         int uniqueId = getint(p);
@@ -1208,8 +1172,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void ExtentCompleteNotification::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
 
         int otherUniqueId = getint(p);
@@ -1321,38 +1283,29 @@ namespace MessageSystem
 #ifdef CLIENT
     void InitS2C::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type InitS2C (1022)\r\n");
 
         int explicitClientNumber = getint(p);
         int protocolVersion = getint(p);
 
-        if (!is_npc)
+        logger::log(logger::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
+        if(protocolVersion != PROTOCOL_VERSION)
         {
-            logger::log(logger::DEBUG, "client.h: N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
-            if(protocolVersion != PROTOCOL_VERSION)
-            {
-                conoutf(CON_ERROR, "You are using a different network protocol (you: %d, server: %d)", PROTOCOL_VERSION, protocolVersion);
-                disconnect();
-                return;
-            }
-            #ifdef CLIENT
-                fpsent *player1 = game::player1;
-            #else
-                assert(0);
-                fpsent *player1 = NULL;
-            #endif
-            player1->clientnum = explicitClientNumber; // we are now fully connected
-                                                       // Kripken: Well, sauer would be, we still need more...
-            #ifdef CLIENT
-            ClientSystem::login(explicitClientNumber); // Finish the login process, send server our user/pass. NPCs need not do this.
-            #endif
-        } else {
-            // NPC
-            logger::log(logger::INFO, "client.h (npc): N_INITS2C gave us cn/protocol: %d/%d\r\n", explicitClientNumber, protocolVersion);
-            assert(0); //does this ever occur?
+            conoutf(CON_ERROR, "You are using a different network protocol (you: %d, server: %d)", PROTOCOL_VERSION, protocolVersion);
+            disconnect();
+            return;
         }
+        #ifdef CLIENT
+            fpsent *player1 = game::player1;
+        #else
+            assert(0);
+            fpsent *player1 = NULL;
+        #endif
+        player1->clientnum = explicitClientNumber; // we are now fully connected
+                                                   // Kripken: Well, sauer would be, we still need more...
+        #ifdef CLIENT
+        ClientSystem::login(explicitClientNumber); // Finish the login process, send server our user/pass. NPCs need not do this.
+        #endif
     }
 #endif
 
@@ -1433,8 +1386,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void SoundToClients::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundToClients (1024)\r\n");
 
         int soundId = getint(p);
@@ -1510,8 +1461,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void MapSoundToClients::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
 
         types::string soundName;
@@ -1584,8 +1533,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void SoundToClientsByName::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundToClientsByName (1026)\r\n");
 
         float x = float(getint(p))/DMF;
@@ -1656,8 +1603,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void SoundStopToClientsByName::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
 
         int volume = getint(p);
@@ -1743,12 +1688,6 @@ namespace MessageSystem
 
     void EditModeS2C::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-#ifdef CLIENT
-        is_npc = false;
-#else // SERVER
-        is_npc = true;
-#endif
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type EditModeS2C (1029)\r\n");
 
         int otherClientNumber = getint(p);
@@ -1909,8 +1848,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void ParticleSplashToClients::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashToClients (1032)\r\n");
 
         int _type = getint(p);
@@ -1976,8 +1913,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void ParticleSplashRegularToClients::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ParticleSplashRegularToClients (1033)\r\n");
 
         int _type = getint(p);
@@ -2064,8 +1999,6 @@ namespace MessageSystem
 #ifdef CLIENT
     void NotifyPrivateEditMode::receive(int receiver, int sender, ucharbuf &p)
     {
-        bool is_npc;
-        is_npc = false;
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyPrivateEditMode (1035)\r\n");
 
 

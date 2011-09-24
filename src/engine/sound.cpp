@@ -306,7 +306,7 @@ void checkmapsounds()
 {
     if(lookupmaterial(camera1->o)==MAT_WATER && uwambient) // SAUER ENHANCED start - underwater sound
     {
-        if(waterchan==-1) waterchan = playsound(6, NULL, NULL, -1, NULL, NULL, waterchan);
+        if(waterchan==-1) waterchan = playsound(6, NULL, NULL, -1, 0, 0, waterchan);
     }
     else
     {

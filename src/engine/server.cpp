@@ -519,7 +519,9 @@ void flushserver(bool force)
 #ifndef STANDALONE
 void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 {
+#ifdef CLIENT
     bool disconnected = false;
+#endif
     loopv(clients) if(clients[i]->type==ST_LOCAL) 
     {
         if (cn != -1 && cn != clients[i]->num) continue; // INTENSITY: if cn given, only process that one
@@ -528,7 +530,9 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
         clients[i]->type = ST_EMPTY;
         server::deleteclientinfo(clients[i]->info);
         clients[i]->info = NULL;
+#ifdef CLIENT
         disconnected = true;
+#endif
     }
 
 #ifdef CLIENT // INTENSITY: Added this

@@ -2189,7 +2189,7 @@ void gl_drawhud(int w, int h)
     glEnable(GL_TEXTURE_2D);
     defaultshader->set();
 
-    int conw = int(w/conscale), conh = int(h/conscale), abovehud = conh - FONTH, limitgui = abovehud;
+    int conw = int(w/conscale), conh = int(h/conscale), abovehud = conh - FONTH;
     if(!hidehud && !gui::mainmenu)
     {
         if(!hidestats)
@@ -2257,7 +2257,6 @@ void gl_drawhud(int w, int h)
                 abovehud -= 2*FONTH;
                 draw_textf("wtr:%dk(%d%%) wvt:%dk(%d%%) evt:%dk eva:%dk", FONTH/2, abovehud, wtris/1024, curstats[0], wverts/1024, curstats[1], curstats[2], curstats[3]);
                 draw_textf("ond:%d va:%d gl:%d(%d) oq:%d lm:%d rp:%d pvs:%d", FONTH/2, abovehud+FONTH, allocnodes*8, allocva, curstats[4], curstats[5], curstats[6], lightmaps.length(), curstats[7], getnumviewcells());
-                limitgui = abovehud;
             }
 
             if(editmode)
@@ -2307,7 +2306,7 @@ void gl_drawhud(int w, int h)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             game::gameplayhud(w, h);
-            limitgui = abovehud = min(abovehud, int(conh*game::abovegameplayhud()));
+            abovehud = min(abovehud, int(conh*game::abovegameplayhud()));
         }
 
         rendertexturepanel(w, h);
