@@ -483,4 +483,4 @@ static inline bool htcmp(const smd::smdmeshgroup::smdvertkey &k, int index)
 }
 
 skelcommands<smd> smdcommands;
-LE_reg *smdbinds = smdcommands.getbuf();
+const types::vector<LE_reg>& smdbinds = smdcommands.command_stor;

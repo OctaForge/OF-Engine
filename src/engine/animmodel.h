@@ -534,7 +534,7 @@ struct animmodel : model
 
     meshgroup *sharemeshes(char *name, ...)
     {
-        static hashtable<char *, meshgroup *> meshgroups;
+        static hashtable<char *, types::shared_ptr<meshgroup> > meshgroups;
         if(!meshgroups.access(name))
         {
             va_list args;
@@ -544,7 +544,7 @@ struct animmodel : model
             if(!group) return NULL;
             meshgroups[group->name] = group;
         }
-        return meshgroups[name];
+        return meshgroups[name].ptr;
     }
 
     struct linkedpart
@@ -1410,7 +1410,7 @@ template<class MDL> string modelloader<MDL>::dir = "";
 
 template<class MDL, class MESH> struct modelcommands
 {
-    vector<LE_reg> command_stor;
+    types::vector<LE_reg> command_stor;
     typedef struct MDL::part part;
     typedef struct MDL::skin skin;
 
@@ -1536,12 +1536,7 @@ template<class MDL, class MESH> struct modelcommands
  
     void modelcommand(lua_Binding fun, const char *name)
     {
-        command_stor.add(LE_reg(name, fun));
-    }
-
-    LE_reg *getbuf()
-    {
-        return command_stor.getbuf();
+        command_stor.push(LE_reg(name, fun));
     }
 
     modelcommands()

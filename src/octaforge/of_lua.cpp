@@ -46,13 +46,13 @@
 #include "of_world.h"
 #include "of_entities.h"
 
-vector<lua::LE_reg> CAPI;
+types::vector<lua::LE_reg> CAPI;
 #include "of_lua_definitions.h"
 
-extern LE_reg *objbinds;
-extern LE_reg *md5binds;
-extern LE_reg *iqmbinds;
-extern LE_reg *smdbinds;
+extern const types::vector<LE_reg>& objbinds;
+extern const types::vector<LE_reg>& md5binds;
+extern const types::vector<LE_reg>& iqmbinds;
+extern const types::vector<LE_reg>& smdbinds;
 
 extern string homedir;
 
@@ -61,7 +61,7 @@ namespace lua
     /* our binds */
     using namespace lua_binds;
 
-    bool addcommand(LE_reg l) { CAPI.add(l); return true; }
+    bool addcommand(LE_reg l) { CAPI.push(l); return true; }
 
     /* externed in header */
     lua_Engine engine;
@@ -140,13 +140,12 @@ namespace lua
         setg();
     }
 
-    void lua_Engine::setup_namespace(const char *n, const LE_reg *r)
+    void lua_Engine::setup_namespace(const char *n, const types::vector<LE_reg>& r)
     {
         logger::log(logger::DEBUG, "Setting up Lua embed namespace \"%s\"\n", n);
 
-        int size = 0;
-        for (; r->n; r++) size++;
-        r = r - size;
+        size_t size = r.length;
+
         logger::log(logger::DEBUG, "Future namespace size: %i\n", size);
 
         lua_pushvalue(m_handle, LUA_REGISTRYINDEX);
@@ -193,15 +192,13 @@ namespace lua
         lua_insert(m_handle, -1);
 
         logger::log(logger::DEBUG, "Registering functions into namespace.\n");
-        for (; r->n; r++)
+        for (const LE_reg *it = r.first(); it <= r.last(); it++)
         {
-            logger::log(logger::INFO, "Registering: %s\n", r->n);
-            lua_pushlightuserdata(m_handle, (void*)r);
+            logger::log(logger::INFO, "Registering: %s\n", it->n);
+            lua_pushlightuserdata(m_handle, (void*)it);
             lua_pushcclosure(m_handle, l_disp, 1);
-            lua_setfield(m_handle, -2, r->n);
+            lua_setfield(m_handle, -2, it->n);
         }
-        r = r - size;
-
         logger::log(logger::DEBUG, "Namespace \"%s\" registration went properly, leaving on stack.\n", n);
     }
 
@@ -234,8 +231,7 @@ namespace lua
         m_runtests = false;
         if (m_rantests) m_runtests = false;
 
-        addcommand(LE_reg(NULL, NULL));
-        setup_namespace("CAPI", CAPI.getbuf());
+        setup_namespace("CAPI", CAPI);
         #define PUSHLEVEL(l) t_set(#l, logger::l);
         PUSHLEVEL(INFO)
         PUSHLEVEL(DEBUG)
