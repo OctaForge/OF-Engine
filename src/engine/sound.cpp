@@ -13,8 +13,14 @@ struct soundsample
     char *name;
     Mix_Chunk *chunk;
 
-    soundsample() : name(NULL) {}
-    ~soundsample() { DELETEA(name); }
+    soundsample() : name(NULL), chunk(NULL) {}
+    ~soundsample()
+    {
+        DELETEA(name);
+
+        if (chunk)
+            Mix_FreeChunk(chunk);
+    }
 };
 
 struct soundslot
