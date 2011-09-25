@@ -456,7 +456,10 @@ struct Texture
     GLuint id;
     uchar *alphamask;
 
-    Texture() : alphamask(NULL) {}
+    Texture() : name(NULL), alphamask(NULL) {}
+#ifdef CLIENT
+    ~Texture() { DELETEA(name); }
+#endif
 };
 
 enum
