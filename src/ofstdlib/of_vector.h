@@ -18,6 +18,7 @@
 #ifndef OF_VECTOR_H
 #define OF_VECTOR_H
 
+#include "of_traits.h"
 #include "of_utils.h"
 
 /*
@@ -64,13 +65,15 @@ namespace types
          */
         vector(size_t sz, const T& v = T()): vector()
         {
-            uchar *tmp = new uchar[sz * sizeof(T)];
+            buf = new uchar[sz * sizeof(T)];
             length = capacity = sz;
 
-            for (size_t i = 0; i < sz; sz++)
-                tmp[i] = v;
+            T *last = buf + sz;
 
-            buf = (T*)tmp;
+            while   (buf != last)
+                new (buf++) T(v);
+
+            buf -= sz;
         }
 
         /*
@@ -86,20 +89,32 @@ namespace types
          *
          * Buffer is not simply assigned, instead, a new one
          * is allocated and the elements are inserted inside it.
+         *
+         * This makes heavy use of copy constructors.
          */
         vector& operator=(const vector& v)
         {
-            if (*this == v) return *this;
+            if (this == &v) return *this;
         
             delete[] (uchar*)buf;
 
             length   = v.length;
             capacity = v.capacity;
 
-            uchar *tmp = new uchar[capacity * sizeof(T)];
-            memcpy(tmp, v.buf, length * sizeof(T));
+            buf = (T*) new uchar[capacity * sizeof(T)];
 
-            buf = (T*)tmp;
+            if (traits::is_pod<T>::value)
+                memcpy(buf, v.buf, length * sizeof(T));
+            else
+            {
+                T *last = buf + length;
+                T *vbuf = v.buf;
+
+                while   (buf != last)
+                    new (buf++) T(*vbuf++);
+
+                buf -= length;
+            }
 
             return *this;
         }
@@ -118,15 +133,15 @@ namespace types
 
         /*
          * Function: last
-         * Returns a pointer to the buffer offset by its length.
+         * Returns a pointer to the last buffer element.
          */
-        T *last() { return buf + length; }
+        T *last() { return buf + length - 1; }
 
         /*
          * Function: last
-         * Returns a const pointer to the buffer offset by its length.
+         * Returns a const pointer to the last buffer element.
          */
-        const T *last() const { return buf + length; }
+        const T *last() const { return buf + length - 1; }
 
         /*
          * Function: get_buf
@@ -150,15 +165,26 @@ namespace types
          * into each field that was initialized this time (happens
          * when the given size is greater than the old size).
          */
-        void resize(size_t sz, T c = T())
+        void resize(size_t sz, const T& v = T())
         {
             size_t len = length;
 
             reserve (sz);
             length = sz;
 
-            for (;  len < length; len++)
-                buf[len] = c;
+            if (traits::is_pod<T>::value)
+            {
+                for (size_t i = len; i < length; i++)
+                    buf[i] = T(v);
+            }
+            else
+            {
+                T *first = buf + len;
+                T *last  = buf + length;
+
+                while   (first != last)
+                    new (first++) T(v);
+            }
         }
 
         /*
@@ -180,19 +206,34 @@ namespace types
 
             if (!capacity)
                  capacity = max(MIN_SIZE, sz);
-            else
-                while (capacity < sz)
-                       capacity *= 2;
+            else while (capacity < sz)
+                        capacity *= 2;
 
             if (capacity <= old_cap) return;
 
-            uchar *tmp = new uchar[capacity * sizeof(T)];
+            T *tmp = (T*) new uchar[capacity * sizeof(T)];
             if (old_cap > 0)
             {
-                memcpy(tmp, buf, old_cap * sizeof(T));
+                if (traits::is_pod<T>::value)
+                    memcpy(tmp, buf, length * sizeof(T));
+                else
+                {
+                    T *curr = buf;
+                    T *last = tmp + length;
+
+                    while (tmp != last)
+                    {
+                        new (tmp++) T(*curr);
+
+                        (*curr).~T();
+                          curr++;
+                    }
+
+                    tmp -= length;
+                }
                 delete[] (uchar*)buf;
             }
-            buf = (T*)tmp;
+            buf = tmp;
         }
 
         /*
@@ -258,21 +299,34 @@ namespace types
          * Only the first argument is mandatory.
          */
         template<typename U>
-        void sort(U f, size_t idx = 0, size_t len = -1)
+        void sort(U f, size_t idx = 0, size_t len = 0)
         {
-            quicksort(&buf[idx], (len < 0) ? (length - idx) : len, f);
+            quicksort(&buf[idx], (!len) ? (length - idx - 1) : len, f);
         }
 
         /*
          * Function: clear
          * Clears the vector contents. Deletes the buffer
          * and sets the length and capacity to 0.
+         *
+         * As the buffer is initialized as uchar*, it also
+         * calls a destructor for each value inside the buffer.
          */
         void clear()
         {
             if (capacity > 0)
             {
+                if (!traits::is_pod<T>::value)
+                {
+                    T *last = buf + length;
+
+                    while (buf != last)
+                         (*buf++).~T();
+
+                    buf -= length;
+                }
                 delete[] (uchar*)buf;
+
                 length = capacity = 0;
             }
         }
@@ -281,6 +335,9 @@ namespace types
          * Variable: buf
          * This stores the contents. Its size can be
          * retrieved using <capacity>.
+         *
+         * Allocated as uchar*, so ctors / dtors are
+         * managed manually.
          */
         T *buf;
 

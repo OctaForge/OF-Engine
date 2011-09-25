@@ -17,6 +17,7 @@
 #ifndef OF_STDLIB_H
 #define OF_STDLIB_H
 
+#include "of_traits.h"
 #include "of_utils.h"
 #include "of_new.h"
 #include "of_string.h"
