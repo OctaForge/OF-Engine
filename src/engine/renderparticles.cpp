@@ -301,7 +301,7 @@ struct listrenderer : partrenderer
             else prev = &cur->next;
         }
     }
-    
+
     particle *addpart(const vec &o, const vec &d, int fade, int color, float size, int gravity, int grow) // SAUER ENHANCED - add grow
     {
         if(!parempty)
@@ -320,10 +320,13 @@ struct listrenderer : partrenderer
         p->gravity = gravity;
         p->fade = fade;
         p->millis = lastmillis + emitoffset;
+        p->grow   = grow;
         p->color = bvec(color>>16, (color>>8)&0xFF, color&0xFF);
         p->size = size;
         p->owner = NULL;
         p->flags = 0;
+        p->fastsplash = false;
+        p->fixedfade  = false;
         return p;
     }
     
@@ -680,11 +683,13 @@ struct varenderer : partrenderer
         p->gravity = gravity;
         p->fade = fade;
         p->millis = lastmillis + emitoffset;
+        p->grow = grow; // SAUER ENHANCED - add grow
         p->color = bvec(color>>16, (color>>8)&0xFF, color&0xFF);
         p->size = size;
         p->owner = NULL;
         p->flags = 0x80 | (rndmask ? rnd(0x80) & rndmask : 0);
-        p->grow = grow; // SAUER ENHANCED - add grow
+        p->fastsplash = false;
+        p->fixedfade  = false;
         lastupdate = -1;
         return p;
     }

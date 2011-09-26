@@ -1428,7 +1428,7 @@ struct skelmodel : animmodel
                 return;
             }
 
-            static hashtable<char *, skeleton *> skeletons;
+            static hashtable<char *, skeleton*> skeletons;
             if(skeletons.access(name)) skel = skeletons[name];
             else
             {
@@ -2157,34 +2157,33 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
     
         part *p = (part *)MDL::loading->parts.last();
-    
-        vector<char *> bonestrs;
-        char *maskstr = newstring(e.get<const char*>(1));
 
-        // TODO: get rid of this thing
-        maskstr += strspn(maskstr, "\n\t ");
-        while(*maskstr)
+        int nargs = e.gettop();
+        types::vector<const char *> bonestrs;
+
+        for (int i = 1; i <= nargs; i++)
+            bonestrs.push(e.get<const char*>(i));
+
+        types::string maskstr;
+        for (const char **it = bonestrs.first(); it < bonestrs.last(); it++)
         {
-            const char *elem = maskstr;
-            *maskstr=='"' ? (++maskstr, maskstr += strcspn(maskstr, "\"\n\0"), maskstr += *maskstr=='"') : maskstr += strcspn(maskstr, "\n\t \0");
-            bonestrs.add(*elem=='"' ? newstring(elem+1, maskstr-elem-(maskstr[-1]=='"' ? 2 : 1)) : newstring(elem, maskstr-elem));
-            maskstr += strspn(maskstr, "\n\t ");
+            maskstr += *it;
+            maskstr += " ";
         }
+        maskstr += *bonestrs.last();
 
         vector<ushort> bonemask;
-        loopv(bonestrs)
+        for (const char **it = bonestrs.first(); it < bonestrs.last(); it++)
         {
-            char *bonestr = bonestrs[i];
+            const char *bonestr = *it;
             int bone = p->meshes ? ((meshgroup *)p->meshes)->skel->findbone(bonestr[0]=='!' ? bonestr+1 : bonestr) : -1;
-            if(bone<0) { conoutf("could not find bone %s for anim part mask [%s]", bonestr, maskstr); bonestrs.deletearrays(); return; }
+            if(bone<0) { conoutf("could not find bone %s for anim part mask [%s]", bonestr, maskstr.get_buf()); return; }
             bonemask.add(bone | (bonestr[0]=='!' ? BONEMASK_NOT : 0));
         }
-        bonestrs.deletearrays();
         bonemask.sort();
         if(bonemask.length()) bonemask.add(BONEMASK_END);
     
         if(!p->addanimpart(bonemask.getbuf())) conoutf("too many animation parts");
-        delete[] maskstr;
     }
 
     static void setadjust(lua_Engine e)

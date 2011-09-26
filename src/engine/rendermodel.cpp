@@ -449,7 +449,7 @@ struct modelbatch
     int flags;
     vector<batchedmodel> batched;
 };  
-static vector<modelbatch *> batches;
+static vector<types::shared_ptr<modelbatch> > batches;
 static vector<modelattach> modelattached;
 static int numbatches = -1;
 static occludequery *modelquery = NULL;
@@ -463,15 +463,15 @@ void startmodelbatches()
 modelbatch &addbatchedmodel(model *m)
 {
     modelbatch *b = NULL;
-    if(m->batch>=0 && m->batch<numbatches && batches[m->batch]->m==m) b = batches[m->batch];
+    if(m->batch>=0 && m->batch<numbatches && batches[m->batch].ptr->m==m) b = batches[m->batch].ptr;
     else
     {
         if(numbatches<batches.length())
         {
-            b = batches[numbatches];
+            b = batches[numbatches].ptr;
             b->batched.setsize(0);
         }
-        else b = batches.add(new modelbatch);
+        else b = batches.add(new modelbatch).ptr;
         b->m = m;
         b->flags = 0;
         m->batch = numbatches++;
