@@ -6,7 +6,7 @@ player_plugin = {
     },
 
     init = function(self)
-        self.team = '' -- empty until set
+        self.team = "" -- empty until set
     end,
 
     activate = function(self)
@@ -120,6 +120,7 @@ function setup(plugins_add)
                                 smallest = name
                             end
                         end
+                        if smallest == "" then return nil end
                         self:set_player_team(player, smallest, sync)
                     end,
 
@@ -142,7 +143,15 @@ function setup(plugins_add)
                     leave_team = function(self, player, sync)
                         sync = sync or true
 
-                        local player_list = self.teams[player.team].player_list
+                        if player.team == "" then
+                            return nil
+                        end
+                        local  player_team = self.teams[player.team]
+                        if not player_team then
+                            return nil
+                        end
+
+                        local player_list = player_team.player_list
                         local index = table.find(player_list, player)
                         if index and index >= 0 then
                             table.pop(player_list, index)

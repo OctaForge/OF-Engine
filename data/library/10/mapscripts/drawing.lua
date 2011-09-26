@@ -18,6 +18,7 @@ end
 -- Register our custom player entity class into storage
 entity_classes.register(plugins.bake(
     character.player, {
+        game_manager.player_plugin,
 -- enable for platformer game
 --      platformer.plugin,
         firing.plugins.protocol,

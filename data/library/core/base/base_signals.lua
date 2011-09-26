@@ -203,12 +203,16 @@ function _emit(self, name, ...)
     -- initialize post-emit event stack
     table.insert(__post_emit_event_stack, {})
 
+    -- so they're accessible outside for scope
+    local ret
+    local retval
+
     -- loop the connections
     for i, connection in pairs(handlers) do
         -- exec only if not disconnected
         if not connection.disconnected then
             -- get return values
-            local ret, retval = connection.callback(self, unpack(args))
+            ret, retval = connection.callback(self, unpack(args))
 
             -- allow to break when we've got appropriate retval
             if ret == true then
