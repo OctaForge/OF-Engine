@@ -27,6 +27,7 @@
 #include "of_tree_node.h"
 #include "of_set.h"
 #include "of_map.h"
+#include "of_list.h"
 #include "of_vector.h"
 
 #endif

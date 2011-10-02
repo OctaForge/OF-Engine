@@ -5,7 +5,7 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  stack class header.
+ *  Stack class header.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
@@ -49,13 +49,13 @@ namespace types
 
         /*
          * Destructor: stack
-         * Calls <pop> until the length is 0. That makes
+         * Calls <pop_back> until the length is 0. That makes
          * sure all the nodes are deleted (and thus memory
          * is not leaked).
          */
         ~stack()
         {
-            while (c_length > 0) pop();
+            while (c_length > 0) pop_back();
         }
 
         /*
@@ -84,11 +84,11 @@ namespace types
         const T& top() const { return top_node->data; }
 
         /*
-         * Function: push
+         * Function: push_back
          * Creates a new top node with the data specified
          * by the argument.
          */
-        void push(const T& data)
+        void push_back(const T& data)
         {
             node *tmp = new node(data, top_node);
             top_node  = tmp;
@@ -97,26 +97,30 @@ namespace types
         }
 
         /*
-         * Function: pop
+         * Function: pop_back
          * Pops out the top node. The node gets deleted so
-         * the memory is not leaked.
+         * the memory is not leaked. Return value is the
+         * data of the deleted node.
          */
-        void pop()
+        T& pop_back()
         {
             node *popped = top_node;
             top_node     = popped->below;
-            delete         popped;
+
+            T& ret = popped->data;
+            delete   popped;
 
             c_length--;
+            return ret;
         }
 
         /*
          * Function: clear
-         * Calls <pop> until the stack is empty.
+         * Calls <pop_back> until the stack is empty.
          */
         void clear()
         {
-            while (c_length > 0) pop();
+            while (c_length > 0) pop_back();
         }
 
     protected:
@@ -148,7 +152,7 @@ namespace types
 
         /*
          * Variable: c_length
-         * Stores the stack length (number of nodes).
+         * Stores the stack length (the number of nodes).
          *
          * Protected level of access.
          */

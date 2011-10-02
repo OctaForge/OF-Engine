@@ -2162,7 +2162,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         types::vector<const char *> bonestrs;
 
         for (int i = 1; i <= nargs; i++)
-            bonestrs.push(e.get<const char*>(i));
+            bonestrs.push_back(e.get<const char*>(i));
 
         types::string maskstr;
         for (const char **it = bonestrs.first(); it < bonestrs.last(); it++)

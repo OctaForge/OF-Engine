@@ -28,13 +28,13 @@ namespace traits
      * Variable: bool_type
      * Compile-time boolean type.
      */
-    template<bool v> struct   bool_type { enum { value = v }; };
+    template<bool v> struct bool_type { enum { value = v }; };
 
     /*
      * Variable: true_type
      * True version of <bool_type>.
      */
-    typedef bool_type<true >  true_type;
+    typedef bool_type<true> true_type;
 
     /*
      * Variable: false_type

@@ -5,7 +5,7 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  vector class header.
+ *  Vector class header.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
@@ -277,14 +277,14 @@ namespace types
         const T& at(size_t idx) const { return buf[idx]; }
 
         /*
-         * Function: push
+         * Function: push_back
          * Appends a given value to the end of the vector.
          * If the current capacity is not big enough to hold
          * the future contents, it'll be resized.
          *
          * This returns a reference to the newly added element.
          */
-        T& push(const T& data = T())
+        T& push_back(const T& data = T())
         {
             if(c_length >= c_capacity)
                 reserve   (c_capacity + 1);
@@ -294,11 +294,11 @@ namespace types
         }
 
         /*
-         * Function: pop
+         * Function: pop_back
          * Pops a last value out of the vector
          * and returns a reference to it.
          */
-        T& pop() { return buf[--c_length]; }
+        T& pop_back() { return buf[--c_length]; }
 
         /*
          * Function: sort

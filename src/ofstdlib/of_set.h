@@ -5,7 +5,7 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  set class header.
+ *  Set class header.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
@@ -509,7 +509,7 @@ namespace types
             node  *nd = root;
             while (nd != nil)
             {
-                node_stack.push(nd);
+                node_stack.push_back(nd);
                 nd = reverse
                     ? nd->right
                     : nd->left;
@@ -538,7 +538,7 @@ namespace types
             if (node_stack.is_empty()) return NULL;
 
             node *nd = node_stack.top();
-            node_stack.pop();
+            node_stack.pop_back();
 
             nd = reverse
                 ? nd->left
@@ -546,7 +546,7 @@ namespace types
 
             while (nd != nil)
             {
-                node_stack.push(nd);
+                node_stack.push_back(nd);
                 nd = reverse
                     ? nd->right
                     : nd->left;

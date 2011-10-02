@@ -5,7 +5,7 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  map class header.
+ *  Map class header.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>

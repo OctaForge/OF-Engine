@@ -5,7 +5,7 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  pair class header.
+ *  Pair class header.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>

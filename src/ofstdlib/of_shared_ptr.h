@@ -5,7 +5,7 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  shared_ptr class header.
+ *  Shared_ptr class header.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>

@@ -61,7 +61,7 @@ namespace lua
     /* our binds */
     using namespace lua_binds;
 
-    bool addcommand(LE_reg l) { CAPI.push(l); return true; }
+    bool addcommand(LE_reg l) { CAPI.push_back(l); return true; }
 
     /* externed in header */
     lua_Engine engine;

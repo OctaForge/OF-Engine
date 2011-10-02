@@ -1536,7 +1536,7 @@ template<class MDL, class MESH> struct modelcommands
  
     void modelcommand(lua_Binding fun, const char *name)
     {
-        command_stor.push(LE_reg(name, fun));
+        command_stor.push_back(LE_reg(name, fun));
     }
 
     modelcommands()

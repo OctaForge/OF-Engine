@@ -56,6 +56,10 @@ Currently contains:
     of_map.h - a variant of set that has unique keys and values, thus
                representing an associative array.
 
+    of_list.h - an implementation of doubly linked list with links to
+                the first and the last node. Allows insertions and
+                deletions from both the beginning and the end.
+
     of_vector.h - an efficient implementation of generic vector
                   container (simillar to array, but easily manipulable).
 
