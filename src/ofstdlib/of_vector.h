@@ -47,13 +47,13 @@ namespace types
          * Constructor: vector
          * Constructs an empty vector.
          */
-        vector(): buf(NULL), length(0), capacity(0) {}
+        vector(): buf(NULL), c_length(0), c_capacity(0) {}
 
         /*
          * Constructor: vector
          * Constructs a vector from another vector.
          */
-        vector(const vector& v): buf(NULL), length(0), capacity(0)
+        vector(const vector& v): buf(NULL), c_length(0), c_capacity(0)
         {
             *this = v;
         }
@@ -66,7 +66,7 @@ namespace types
         vector(size_t sz, const T& v = T()): vector()
         {
             buf = new uchar[sz * sizeof(T)];
-            length = capacity = sz;
+            c_length = c_capacity = sz;
 
             T *last = buf + sz;
 
@@ -98,22 +98,22 @@ namespace types
         
             delete[] (uchar*)buf;
 
-            length   = v.length;
-            capacity = v.capacity;
+            c_length   = v.length  ();
+            c_capacity = v.capacity();
 
-            buf = (T*) new uchar[capacity * sizeof(T)];
+            buf = (T*) new uchar[c_capacity * sizeof(T)];
 
             if (traits::is_pod<T>::value)
-                memcpy(buf, v.buf, length * sizeof(T));
+                memcpy(buf, v.buf, c_length * sizeof(T));
             else
             {
-                T *last = buf + length;
+                T *last = buf + c_length;
                 T *vbuf = v.buf;
 
                 while   (buf != last)
                     new (buf++) T(*vbuf++);
 
-                buf -= length;
+                buf -= c_length;
             }
 
             return *this;
@@ -135,13 +135,13 @@ namespace types
          * Function: last
          * Returns a pointer to the last buffer element.
          */
-        T *last() { return buf + length - 1; }
+        T *last() { return buf + c_length - 1; }
 
         /*
          * Function: last
          * Returns a const pointer to the last buffer element.
          */
-        const T *last() const { return buf + length - 1; }
+        const T *last() const { return buf + c_length - 1; }
 
         /*
          * Function: get_buf
@@ -167,20 +167,20 @@ namespace types
          */
         void resize(size_t sz, const T& v = T())
         {
-            size_t len = length;
+            size_t len = c_length;
 
-            reserve (sz);
-            length = sz;
+            reserve   (sz);
+            c_length = sz;
 
             if (traits::is_pod<T>::value)
             {
-                for (size_t i = len; i < length; i++)
+                for (size_t i = len; i < c_length; i++)
                     buf[i] = T(v);
             }
             else
             {
                 T *first = buf + len;
-                T *last  = buf + length;
+                T *last  = buf + c_length;
 
                 while   (first != last)
                     new (first++) T(v);
@@ -188,10 +188,22 @@ namespace types
         }
 
         /*
+         * Function: length
+         * Returns the current vector length.
+         */
+        size_t length() const { return c_length; }
+
+        /*
+         * Function: capacity
+         * Returns the current vector capacity.
+         */
+        size_t capacity() const { return c_capacity; }
+
+        /*
          * Function: is_empty
          * Returns true if the vector is empty, false otherwise.
          */
-        bool is_empty() { return (length == 0); }
+        bool is_empty() const { return (c_length == 0); }
 
         /*
          * Function: reserve
@@ -202,24 +214,24 @@ namespace types
          */
         void reserve(size_t sz)
         {
-            size_t old_cap = capacity;
+            size_t old_cap = c_capacity;
 
-            if (!capacity)
-                 capacity = max(MIN_SIZE, sz);
-            else while (capacity < sz)
-                        capacity *= 2;
+            if (!c_capacity)
+                 c_capacity = max(MIN_SIZE, sz);
+            else while (c_capacity < sz)
+                        c_capacity *= 2;
 
-            if (capacity <= old_cap) return;
+            if (c_capacity <= old_cap) return;
 
-            T *tmp = (T*) new uchar[capacity * sizeof(T)];
+            T *tmp = (T*) new uchar[c_capacity * sizeof(T)];
             if (old_cap > 0)
             {
                 if (traits::is_pod<T>::value)
-                    memcpy(tmp, buf, length * sizeof(T));
+                    memcpy(tmp, buf, c_length * sizeof(T));
                 else
                 {
                     T *curr = buf;
-                    T *last = tmp + length;
+                    T *last = tmp + c_length;
 
                     while (tmp != last)
                     {
@@ -229,7 +241,7 @@ namespace types
                           curr++;
                     }
 
-                    tmp -= length;
+                    tmp -= c_length;
                 }
                 delete[] (uchar*)buf;
             }
@@ -274,11 +286,11 @@ namespace types
          */
         T& push(const T& data = T())
         {
-            if(length >= capacity)
-                reserve (capacity + 1);
+            if(c_length >= c_capacity)
+                reserve   (c_capacity + 1);
 
-            new  (&buf[length]) T(data);
-            return buf[length++];
+            new  (&buf[c_length]) T(data);
+            return buf[c_length++];
         }
 
         /*
@@ -286,7 +298,7 @@ namespace types
          * Pops a last value out of the vector
          * and returns a reference to it.
          */
-        T& pop() { return buf[--length]; }
+        T& pop() { return buf[--c_length]; }
 
         /*
          * Function: sort
@@ -301,7 +313,7 @@ namespace types
         template<typename U>
         void sort(U f, size_t idx = 0, size_t len = 0)
         {
-            quicksort(&buf[idx], (!len) ? (length - idx - 1) : len, f);
+            quicksort(&buf[idx], (!len) ? (c_length - idx - 1) : len, f);
         }
 
         /*
@@ -314,22 +326,24 @@ namespace types
          */
         void clear()
         {
-            if (capacity > 0)
+            if (c_capacity > 0)
             {
                 if (!traits::is_pod<T>::value)
                 {
-                    T *last = buf + length;
+                    T *last = buf + c_length;
 
                     while (buf != last)
                          (*buf++).~T();
 
-                    buf -= length;
+                    buf -= c_length;
                 }
                 delete[] (uchar*)buf;
 
-                length = capacity = 0;
+                c_length = c_capacity = 0;
             }
         }
+
+    private:
 
         /*
          * Variable: buf
@@ -338,22 +352,28 @@ namespace types
          *
          * Allocated as uchar*, so ctors / dtors are
          * managed manually.
+         *
+         * Private level of access.
          */
         T *buf;
 
         /*
-         * Variable: length
+         * Variable: c_length
          * Stores the current vector length ("how many
          * items are stored in it").
+         *
+         * Private level of access.
          */
-        size_t length;
+        size_t c_length;
 
         /*
-         * Variable: capacity
+         * Variable: c_capacity
          * Stores the current vector capacity ("how many
          * items can be stored in it").
+         *
+         * Private level of access.
          */
-        size_t capacity;
+        size_t c_capacity;
     };
 } /* end namespace types */
 

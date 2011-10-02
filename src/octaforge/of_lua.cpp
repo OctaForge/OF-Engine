@@ -144,7 +144,7 @@ namespace lua
     {
         logger::log(logger::DEBUG, "Setting up Lua embed namespace \"%s\"\n", n);
 
-        size_t size = r.length;
+        size_t size = r.length();
 
         logger::log(logger::DEBUG, "Future namespace size: %i\n", size);
 

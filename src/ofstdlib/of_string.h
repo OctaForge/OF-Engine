@@ -66,7 +66,7 @@ namespace types
          * pointer. It simply calls the assignment overload.
          */
         string_base(const char *str = ""):
-            buf(NULL), length(0), capacity(0)
+            buf(NULL), s_length(0), s_capacity(0)
         {
             *this = str;
         }
@@ -77,7 +77,7 @@ namespace types
          * string. It simply calls the assignment overload.
          */
         string_base(const string_base& str):
-            buf(NULL), length(0), capacity(0)
+            buf(NULL), s_length(0), s_capacity(0)
         {
             *this = str;
         }
@@ -105,21 +105,21 @@ namespace types
         {
             if (this != &str)
             {
-                if (str.length <= capacity && capacity > 0)
+                if (str.length() <= s_capacity && s_capacity > 0)
                 {
-                    length = str.length;
-                    memcpy(buf, str.buf, length + 1);
+                    s_length = str.length();
+                    memcpy(buf, str.buf, s_length + 1);
                     return *this;
                 }
 
                 delete[] buf;
                 buf = NULL;
                 
-                length   = str.length;
-                capacity = str.capacity;
+                s_length   = str.length  ();
+                s_capacity = str.capacity();
 
-                buf = new char[capacity + 1];
-                memcpy(buf, str.buf, length + 1);
+                buf = new char[s_capacity + 1];
+                memcpy(buf, str.buf, s_length + 1);
             }
 
             return *this;
@@ -137,21 +137,21 @@ namespace types
          */
         string_base& operator=(const char *str)
         {
-            if (strlen(str) <= capacity && capacity > 0)
+            if (strlen(str) <= s_capacity && s_capacity > 0)
             {
-                    length = strlen(str);
-                    memcpy(buf, str, length + 1);
+                    s_length = strlen(str);
+                    memcpy(buf, str, s_length + 1);
                     return *this;
             }
 
             delete[] buf;
             buf = NULL;
             
-            length   = strlen(str);
-            capacity = length;
+            s_length   = strlen(str);
+            s_capacity = s_length;
 
-            buf = new char[capacity + 1];
-            memcpy(buf, str, length + 1);
+            buf = new char  [s_capacity + 1];
+            memcpy(buf, str, s_length   + 1);
 
             return *this;
         }
@@ -168,11 +168,11 @@ namespace types
          */
         string_base& operator=(char c)
         {
-            if (capacity >= 1)
+            if (s_capacity >= 1)
             {
                 buf[0] = c;
                 buf[1] = '\0';
-                length = 1;
+                s_length = 1;
                 return *this;
             }
 
@@ -183,8 +183,8 @@ namespace types
             buf[0] = c;
             buf[1] = '\0';
 
-            length   = 1;
-            capacity = 1;
+            s_length   = 1;
+            s_capacity = 1;
 
             return *this;
         }
@@ -205,25 +205,25 @@ namespace types
          * Function: last
          * Returns a pointer to the buffer offset by its length.
          */
-        char *last() { return buf + length; }
+        char *last() { return buf + s_length; }
 
         /*
          * Function: last
          * Returns a const pointer to the buffer offset by its length.
          */
-        const char *last() const { return buf + length; }
+        const char *last() const { return buf + s_length; }
 
         /*
          * Function: end
          * Returns a pointer to the buffer offset by its capacity.
          */
-        char *end() { return buf + capacity; }
+        char *end() { return buf + s_capacity; }
 
         /*
          * Function: end
          * Returns a const pointer to the buffer offset by its capacity.
          */
-        const char *end() const { return buf + capacity; }
+        const char *end() const { return buf + s_capacity; }
 
         /*
          * Function: get_buf
@@ -239,20 +239,20 @@ namespace types
          */
         void resize(size_t new_len)
         {
-            if (new_len == capacity) return;
+            if (new_len == s_capacity) return;
 
             char *new_buf = new char[new_len + 1];
-            if   (new_len > capacity || length <= new_len)
+            if   (new_len > s_capacity || s_length <= new_len)
             {
-                memcpy(new_buf, buf, length + 1);
-                capacity = new_len;
+                memcpy(new_buf, buf, s_length + 1);
+                s_capacity = new_len;
             }
             else
             {
                 memcpy(new_buf, buf, new_len);
                 new_buf[new_len] = '\0';
-                length   = new_len;
-                capacity = length;
+                s_length   = new_len;
+                s_capacity = s_length;
             }
             delete[]  buf;
             buf = new_buf;
@@ -266,16 +266,28 @@ namespace types
         void clear()
         {
             delete[] buf;
-            buf      = NULL;
-            length   = 0;
-            capacity = 0;
+            buf        = NULL;
+            s_length   = 0;
+            s_capacity = 0;
         }
+
+        /*
+         * Function: length
+         * Returns the string length.
+         */
+        size_t length() const { return s_length; }
+
+        /*
+         * Function: capacity
+         * Returns the string capacity.
+         */
+        size_t capacity() const { return s_capacity; }
 
         /*
          * Function: is_empty
          * Returns true if the string is empty, false otherwise.
          */
-        bool is_empty() { return (length == 0); }
+        bool is_empty() const { return (s_length == 0); }
 
         /*
          * Operator: []
@@ -313,8 +325,8 @@ namespace types
         {
             if (this != &str)
             {
-                if (str.length == 0) return *this;
-                append(str.buf, str.length);
+                if (str.length() == 0) return *this;
+                append(str.buf, str.length());
             }
 
             return *this;
@@ -376,7 +388,7 @@ namespace types
          */
         string_base substr(size_t idx, size_t len) const
         {
-            if (idx >= length || (idx + len) > length)
+            if (idx >= s_length || (idx + len) > s_length)
                 return string_base();
 
             char  *sub_buf = new char [len + 1];
@@ -398,7 +410,7 @@ namespace types
          */
         size_t find(const string_base& str, size_t pos = 0)
         {
-            return find(str.buf, str.length, pos);
+            return find(str.buf, str.length(), pos);
         }
 
         /*
@@ -465,7 +477,7 @@ namespace types
          */
         size_t rfind(const string_base& str, size_t pos = 0)
         {
-            return rfind(str.buf, str.length, pos);
+            return rfind(str.buf, str.length(), pos);
         }
 
         /*
@@ -510,8 +522,8 @@ namespace types
         {
             char *new_buf = NULL;
 
-            length   = vasprintf(&new_buf, fmt, ap);
-            capacity = length;
+            s_length   = vasprintf(&new_buf, fmt, ap);
+            s_capacity = s_length;
 
             delete[] buf;
             buf = new_buf;
@@ -567,27 +579,29 @@ namespace types
             return *this;
         }
 
+    private:
+
         /*
          * Function: append
          * Given a const char* and the length of the given string,
          * it appends the string to the buffer. If the capacity is
          * fine to hold the appended part, no reallocation is made.
          *
-         * This is for internal use only.
+         * This is for internal use only, private level of access.
          */
         void append(const char *str, size_t len)
         {
             /* in that case, we can just append without copying */
-            size_t left = capacity - length;
+            size_t left = s_capacity - s_length;
             if    (left > 0 && left >= len)
             {
-                buf += length;
+                buf += s_length;
                 for (; *str;  str++)
                     *buf++ = *str;
                 *buf++ = '\0';
 
-                length += len;
-                buf -= (length + 1);
+                s_length += len;
+                buf -= (s_length + 1);
                 
                 return;
             }
@@ -596,7 +610,7 @@ namespace types
             char  *old_buf = buf;
 
             /* this will be the new length */
-            size_t new_len = length + len;
+            size_t new_len = s_length + len;
 
             buf = new char[new_len + 1];
 
@@ -605,8 +619,8 @@ namespace types
              * and new string into new buffer,
              * copy new string with offset.
              */
-            memcpy(buf, old_buf, length);
-            memcpy(buf + length, str, len);
+            memcpy(buf, old_buf, s_length);
+            memcpy(buf + s_length, str, len);
 
             /* important: null termination */
             buf[new_len] = '\0';
@@ -614,8 +628,8 @@ namespace types
             delete[] old_buf;
 
             /* length now equals capacity */
-            length   = new_len;
-            capacity = length;
+            s_length   = new_len;
+            s_capacity = s_length;
         }
 
         /*
@@ -623,25 +637,31 @@ namespace types
          * A buffer the string is stored in. It is
          * managed, so you don't have to care about
          * its memory.
+         *
+         * Private level of access.
          */
         char *buf;
 
         /*
-         * Variable: length
+         * Variable: s_length
          * Stores the actual length of the string
          * (that is, the amount of characters before
          * the terminating '\0'), not the <capacity>
          * of <buf>.
+         *
+         * Private level of access.
          */
-        size_t length;
+        size_t s_length;
 
         /*
          * Variable: capacity
          * Stores the <buf>'s capacity. That is not
          * always the length of the string, though
-         * often it is. For length, see <length>.
+         * often it is. For length, see <s_length>.
+         *
+         * Private level of access.
          */
-        size_t capacity;
+        size_t s_capacity;
     };
 
     typedef string_base<char> string;
@@ -652,7 +672,7 @@ namespace types
      */
     inline bool operator==(const string& a, const string& b)
     {
-        return (strcmp(a.buf, b.buf) == 0);
+        return (strcmp(a.get_buf(), b.get_buf()) == 0);
     }
 
     /*
@@ -661,7 +681,7 @@ namespace types
      */
     inline bool operator<(const string& a, const string& b)
     {
-        return (strcmp(a.buf, b.buf) < 0);
+        return (strcmp(a.get_buf(), b.get_buf()) < 0);
     }
 
     /*
@@ -670,7 +690,7 @@ namespace types
      */
     inline bool operator>(const string& a, const string& b)
     {
-        return (strcmp(a.buf, b.buf) > 0);
+        return (strcmp(a.get_buf(), b.get_buf()) > 0);
     }
 
     /*

@@ -1215,7 +1215,7 @@ void texturereset(int n)
     int limit = clamp(n, 0, slots.length());
     for(int i = limit; i < slots.length(); i++) 
     {
-        Slot *s = slots[i].ptr;
+        Slot *s = slots[i].get();
         for(VSlot *vs = s->variants; vs; vs = vs->next) vs->slot = &dummyslot;
         //delete s;
     }
@@ -1244,7 +1244,7 @@ static inline void assignvslotlayer(VSlot &vs)
 {
     if(vs.layer && vslots.inrange(vs.layer))
     {
-        VSlot &layer = *(vslots[vs.layer].ptr);
+        VSlot &layer = *(vslots[vs.layer].get());
         if(layer.index < 0) assignvslot(layer);
     }
 }
@@ -1260,7 +1260,7 @@ void compactvslot(int &index)
 {
     if(vslots.inrange(index))
     {
-        VSlot &vs = *(vslots[index].ptr);
+        VSlot &vs = *(vslots[index].get());
         if(vs.index < 0) assignvslot(vs);
         if(!markingvslots) index = vs.index;
     }
@@ -1275,7 +1275,7 @@ void compactvslots(cube *c, int n)
         if(c[i].children) compactvslots(c[i].children);
         else loopj(6) if(vslots.inrange(c[i].texture[j]))
         {
-            VSlot &vs = *(vslots[c[i].texture[j]].ptr);
+            VSlot &vs = *(vslots[c[i].texture[j]].get());
             if(vs.index < 0) assignvslot(vs);
             if(!markingvslots) c[i].texture[j] = vs.index;
         }
@@ -1294,7 +1294,7 @@ int compactvslots()
     loopv(slots) assignvslotlayer(*slots[i]->variants);
     loopv(vslots)
     {
-        VSlot &vs = *(vslots[i].ptr);
+        VSlot &vs = *(vslots[i].get());
         if(!vs.changed && vs.index < 0) { markingvslots = true; break; }
     }
     compactvslots(worldroot);
@@ -1302,7 +1302,7 @@ int compactvslots()
     compacteditvslots();
     loopv(vslots)
     {
-        VSlot *vs = vslots[i].ptr;
+        VSlot *vs = vslots[i].get();
         if(vs->changed) continue;
         while(vs->next)
         {
@@ -1318,13 +1318,13 @@ int compactvslots()
         int lastdiscard = 0;
         loopv(vslots)
         {
-            VSlot &vs = *(vslots[i].ptr);
+            VSlot &vs = *(vslots[i].get());
             if(vs.changed || (vs.index < 0 && !vs.next)) vs.index = -1;
             else
             {
                 while(lastdiscard < i)
                 {
-                    VSlot &ds = *(vslots[lastdiscard++].ptr);
+                    VSlot &ds = *(vslots[lastdiscard++].get());
                     if(!ds.changed && ds.index < 0) ds.index = compactedvslots++;
                 } 
                 vs.index = compactedvslots++;
@@ -1337,7 +1337,7 @@ int compactvslots()
     compactmruvslots();
     loopv(vslots)
     {
-        VSlot &vs = *(vslots[i].ptr);
+        VSlot &vs = *(vslots[i].get());
         if(vs.index >= 0 && vs.layer && vslots.inrange(vs.layer)) vs.layer = vslots[vs.layer]->index;
     }
     loopv(vslots) 
@@ -1479,8 +1479,8 @@ static VSlot *emptyvslot(Slot &owner)
 {
     int offset = 0;
     loopvrev(slots) if(slots[i]->variants) { offset = slots[i]->variants->index + 1; break; }
-    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) return reassignvslot(owner, vslots[i].ptr);
-    return vslots.add(new VSlot(&owner, vslots.length())).ptr;
+    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) return reassignvslot(owner, vslots[i].get());
+    return vslots.add(new VSlot(&owner, vslots.length())).get();
 }
 
 static bool comparevslot(const VSlot &dst, const VSlot &src, int diff)
@@ -1518,7 +1518,7 @@ VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta)
 
 static VSlot *clonevslot(const VSlot &src, const VSlot &delta)
 {
-    VSlot *dst = vslots.add(new VSlot(src.slot, vslots.length())).ptr;
+    VSlot *dst = vslots.add(new VSlot(src.slot, vslots.length())).get();
     dst->changed = src.changed | delta.changed;
     propagatevslot(*dst, src, ((1<<VSLOT_NUM)-1) & ~delta.changed);
     propagatevslot(*dst, delta, delta.changed, true);
@@ -1583,7 +1583,7 @@ void texture(const char *type, const char *name, int rot, int xoffset, int yoffs
     assert(forcedindex <= 0 || slots.inrange(forcedindex)); // INTENSITY
     if (forcedindex > 0 && tnum==TEX_DIFFUSE) // INTENSITY: reset old slots we force the index of
         slots[forcedindex]->reset();
-    Slot &s = matslot>=0 ? materialslots[matslot] : (forcedindex <= 0 ? *(tnum!=TEX_DIFFUSE ? slots.last() : slots.add(new Slot(slots.length()))) : *(slots[forcedindex].ptr)); // INTENSITY: Allow forced indexes
+    Slot &s = matslot>=0 ? materialslots[matslot] : (forcedindex <= 0 ? *(tnum!=TEX_DIFFUSE ? slots.last() : slots.add(new Slot(slots.length()))) : *(slots[forcedindex].get())); // INTENSITY: Allow forced indexes
 
     s.loaded = false;
     s.texmask |= 1<<tnum;
@@ -1840,7 +1840,7 @@ MSlot &lookupmaterialslot(int index, bool load)
 /* OctaForge: shared_ptr */
 Slot &lookupslot(int index, bool load)
 {
-    Slot &s = slots.inrange(index) ? *(slots[index].ptr) : (slots.inrange(DEFAULT_GEOM) ? *(slots[DEFAULT_GEOM].ptr) : dummyslot);
+    Slot &s = slots.inrange(index) ? *(slots[index].get()) : (slots.inrange(DEFAULT_GEOM) ? *(slots[DEFAULT_GEOM].get()) : dummyslot);
     if (load && !s.loaded)
     {
         if (slots.inrange(index))
@@ -1870,7 +1870,7 @@ void dobgload(bool all)
         requested_slots.remove(0);
 
         assert(slots.inrange(slot));
-        Slot &s = *(slots[slot].ptr);
+        Slot &s = *(slots[slot].get());
         loadslot(s, false); /* for materials, would be true */
 
         if (!all) break;
@@ -1880,7 +1880,7 @@ void dobgload(bool all)
 /* OctaForge: shared_ptr */
 VSlot &lookupvslot(int index, bool load)
 {
-    VSlot &s = vslots.inrange(index) && vslots[index]->slot ? *(vslots[index].ptr) : (slots.inrange(DEFAULT_GEOM) && slots[DEFAULT_GEOM]->variants ? *slots[DEFAULT_GEOM]->variants : dummyvslot);
+    VSlot &s = vslots.inrange(index) && vslots[index]->slot ? *(vslots[index].get()) : (slots.inrange(DEFAULT_GEOM) && slots[DEFAULT_GEOM]->variants ? *slots[DEFAULT_GEOM]->variants : dummyvslot);
     if(load && !s.linked)
     {
         if(!s.slot->loaded) loadslot(*s.slot, false);
@@ -1893,8 +1893,8 @@ VSlot &lookupvslot(int index, bool load)
 /* OctaForge: shared_ptr */
 void linkslotshaders()
 {
-    loopv(slots) if(slots[i]->loaded) linkslotshader(*(slots[i].ptr));
-    loopv(vslots) if(vslots[i]->linked) linkvslotshader(*(vslots[i].ptr));
+    loopv(slots) if(slots[i]->loaded) linkslotshader(*(slots[i].get()));
+    loopv(vslots) if(vslots[i]->linked) linkvslotshader(*(vslots[i].get()));
     loopi(MATF_VOLUME+1) if(materialslots[i].loaded) 
     {
         linkslotshader(materialslots[i]);
@@ -1992,7 +1992,7 @@ void loadlayermasks()
 {
     loopv(slots)
     {
-        Slot &slot = *(slots[i].ptr);
+        Slot &slot = *(slots[i].get());
         if(slot.loaded && slot.layermaskname && !slot.layermask) 
         {
             slot.layermask = new ImageData;

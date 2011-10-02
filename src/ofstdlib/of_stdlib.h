@@ -20,9 +20,12 @@
 #include "of_traits.h"
 #include "of_utils.h"
 #include "of_new.h"
+#include "of_pair.h"
 #include "of_string.h"
 #include "of_shared_ptr.h"
 #include "of_stack.h"
+#include "of_tree_node.h"
+#include "of_set.h"
 #include "of_map.h"
 #include "of_vector.h"
 

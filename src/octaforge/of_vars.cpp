@@ -283,7 +283,7 @@ namespace var
     {
         if (!vars || vars->is_empty()) return;
         for (vartable::node *n = vars->first(); n; n = vars->next())
-            n->data->reset();
+            n->get().second->reset();
     }
 
     void flush()
@@ -291,7 +291,7 @@ namespace var
         if (vars)
         {
             for (vartable::node *n = vars->first(); n; n = vars->next())
-                delete n->data;
+                delete n->get().second;
 
             delete vars;
         }
@@ -302,7 +302,7 @@ namespace var
         if (!vars) return NULL;
 
         vartable::node *n = vars->find(name);
-        if (n) return n->data;
+        if (n) return n->get().second;
         else   return NULL;
     }
 } /* end namespace var */

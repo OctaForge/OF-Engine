@@ -580,7 +580,7 @@ static inline uint hthash(const char *key)
 
 static inline uint hthash(const types::string& key)
 {
-    return hthash(key.buf);
+    return hthash(key.get_buf());
 }
 
 static inline bool htcmp(const char *x, const char *y)

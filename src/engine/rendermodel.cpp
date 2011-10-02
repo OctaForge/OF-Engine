@@ -463,15 +463,15 @@ void startmodelbatches()
 modelbatch &addbatchedmodel(model *m)
 {
     modelbatch *b = NULL;
-    if(m->batch>=0 && m->batch<numbatches && batches[m->batch].ptr->m==m) b = batches[m->batch].ptr;
+    if(m->batch>=0 && m->batch<numbatches && batches[m->batch]->m==m) b = batches[m->batch].get();
     else
     {
         if(numbatches<batches.length())
         {
-            b = batches[numbatches].ptr;
+            b = batches[numbatches].get();
             b->batched.setsize(0);
         }
-        else b = batches.add(new modelbatch).ptr;
+        else b = batches.add(new modelbatch).get();
         b->m = m;
         b->flags = 0;
         m->batch = numbatches++;

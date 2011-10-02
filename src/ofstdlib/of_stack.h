@@ -45,7 +45,7 @@ namespace types
          * Constructor: stack
          * Initializes the stack.
          */
-        stack(): top_node(NULL), length(0) {}
+        stack(): top_node(NULL), c_length(0) {}
 
         /*
          * Destructor: stack
@@ -55,15 +55,21 @@ namespace types
          */
         ~stack()
         {
-            while (length > 0) pop();
+            while (c_length > 0) pop();
         }
+
+        /*
+         * Function: length
+         * Returns the current stack length.
+         */
+        size_t length() const { return c_length; }
 
         /*
          * Function: is_empty
          * Returns true if the stack contains no nodes,
          * and false otherwise.
          */
-        bool is_empty() { return (length == 0); }
+        bool is_empty() const { return (c_length == 0); }
 
         /*
          * Function: top
@@ -84,10 +90,10 @@ namespace types
          */
         void push(const T& data)
         {
-            stack_node *tmp = new stack_node(data, top_node);
+            node *tmp = new node(data, top_node);
             top_node  = tmp;
 
-            length++;
+            c_length++;
         }
 
         /*
@@ -97,11 +103,11 @@ namespace types
          */
         void pop()
         {
-            stack_node *popped = top_node;
-            top_node  = popped->below;
-            delete      popped;
+            node *popped = top_node;
+            top_node     = popped->below;
+            delete         popped;
 
-            length--;
+            c_length--;
         }
 
         /*
@@ -110,35 +116,43 @@ namespace types
          */
         void clear()
         {
-            while (length > 0) pop();
+            while (c_length > 0) pop();
         }
 
+    protected:
+
         /*
-         * Variable: stack_node
-         * A node for the stack. Since this works as a singly
+         * Variable: node
+         * A node for the stack. As this works as a singly
          * linked list, it contains a pointer to the node below,
          * besides data.
+         *
+         * Protected level of access.
          */
-        struct stack_node
+        struct node
         {
-            stack_node(const T& data, stack_node *below = NULL):
+            node(const T& data, node *below = NULL):
                 below(below), data(data) {}
 
-            stack_node *below;
+            node *below;
             T data;
         };
 
         /*
          * Variable: top_node
          * The top node of the stack (represented as <stack_node>).
+         *
+         * Protected level of access.
          */
-        stack_node *top_node;
+        node *top_node;
 
         /*
-         * Variable: length
+         * Variable: c_length
          * Stores the stack length (number of nodes).
+         *
+         * Protected level of access.
          */
-        size_t length;
+        size_t c_length;
     };
 } /* end namespace types */
 

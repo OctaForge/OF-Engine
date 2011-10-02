@@ -61,7 +61,7 @@ int rendercommand(int x, int y, int w)
     int width, height;
     text_bounds(s, width, height, w);
     y -= height;
-    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, (commandpos>=0) ? (commandpos+1+(!commandprompt.is_empty() ? commandprompt.length : 1)) : strlen(s), w);
+    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, (commandpos>=0) ? (commandpos+1+(!commandprompt.is_empty() ? commandprompt.length() : 1)) : strlen(s), w);
     return height;
 }
 
@@ -498,7 +498,7 @@ void consolekey(int code, bool isdown, int cooked)
                     }
                     history.add(new hline)->save();
                 }
-                h = history.last().ptr;
+                h = history.last().get();
             }
             histpos = history.length();
             inputcommand(NULL);

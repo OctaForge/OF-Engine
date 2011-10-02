@@ -102,6 +102,18 @@ namespace types
         }
 
         /*
+         * Function: get
+         * Returns the raw pointer.
+         */
+        T *get() { return ptr; }
+
+        /*
+         * Function: get
+         * Returns a const version of the raw pointer.
+         */
+        const T *get() const { return ptr; }
+
+        /*
          * Operator: ->
          * Overload of this operator so you can manipulate
          * with the container simillarily to standard pointer.
@@ -142,11 +154,15 @@ namespace types
         bool operator> (const shared_ptr<T>& p) const { return ptr >  p.ptr; }
         bool operator>=(const shared_ptr<T>& p) const { return ptr >= p.ptr; }
 
+    protected:
+
         /*
          * Variable: counter
          * A simple nested struct holding the count.
          * It has two methods, increment, which returns
          * nothing, and decrement, which returns --count.
+         *
+         * Proteced level of access.
          */
         struct counter
         {
@@ -160,13 +176,14 @@ namespace types
 
         /*
          * Variable: ptr
-         * The pointer.
+         * The pointer. Proteced level of access.
          */
         T *ptr;
 
         /*
          * Variable: count
          * Current instance of <counter>.
+         * Proteced level of access.
          */
         counter *count;
     };

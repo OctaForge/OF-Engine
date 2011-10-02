@@ -1626,7 +1626,7 @@ void compactmruvslots()
     {
         if(vslots.inrange(texmru[i]))
         {
-            VSlot &vs = *(vslots[texmru[i]]).ptr;
+            VSlot &vs = *(vslots[texmru[i]]).get();
             if(vs.index >= 0) 
             {
                 texmru[i] = vs.index;
@@ -1639,7 +1639,7 @@ void compactmruvslots()
     }
     if(vslots.inrange(lasttex))
     {
-        VSlot &vs = *(vslots[lasttex].ptr);
+        VSlot &vs = *(vslots[lasttex].get());
         lasttex = vs.index >= 0 ? vs.index : 0;
     }
     else lasttex = 0;

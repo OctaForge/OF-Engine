@@ -204,7 +204,8 @@ void getstring(types::string& text, ucharbuf &p, int len)
         *it = getint(p);
     } while (*it++);
 
-    text.length = strlen(text.get_buf());
+    /* length update - ugly hack, FIXME */
+    text.format("%s", text.get_buf());
 }
 
 void filtertext(char *dst, const char *src, bool whitespace, int len)

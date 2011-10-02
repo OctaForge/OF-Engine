@@ -342,7 +342,7 @@ static inline bool insideoe(const octaentities *oe, const vec &v, int margin = 1
            v.x<=oe->bbmax.x+margin && v.y<=oe->bbmax.y+margin && v.z<=oe->bbmax.z+margin;
 }
 
-void findvisiblemms(const vector< types::shared_ptr<extentity> > &ents)
+void findvisiblemms(vector< types::shared_ptr<extentity> > &ents)
 {
     for(vtxarray *va = visibleva; va; va = va->next)
     {
@@ -366,7 +366,7 @@ void findvisiblemms(const vector< types::shared_ptr<extentity> > &ents)
                 int visible = 0;
                 loopv(oe->mapmodels)
                 {
-                    extentity &e = *(ents[oe->mapmodels[i]].ptr);
+                    extentity &e = *(ents[oe->mapmodels[i]].get());
                     if(e.flags&extentity::F_NOVIS) continue;
                     e.visible = true;
                     ++visible;

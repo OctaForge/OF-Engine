@@ -327,7 +327,7 @@ void savevslots(stream *f, int numvslots)
     memset(prev, -1, numvslots*sizeof(int));
     loopi(numvslots)
     {
-        VSlot *vs = vslots[i].ptr;
+        VSlot *vs = vslots[i].get();
         if(vs->changed) continue;
         for(;;)
         {
@@ -340,7 +340,7 @@ void savevslots(stream *f, int numvslots)
     int lastroot = 0;
     loopi(numvslots)
     {
-        VSlot &vs = *(vslots[i].ptr);
+        VSlot &vs = *(vslots[i].get());
         if(!vs.changed) continue;
         if(lastroot < i) f->putlil<int>(-(i - lastroot));
         savevslot(f, vs, prev[i]);
@@ -410,11 +410,11 @@ void loadvslots(stream *f, int numvslots)
         else
         {
             prev[vslots.length()] = f->getlil<int>();
-            loadvslot(f, *(vslots.add(new VSlot(NULL, vslots.length())).ptr), changed);    
+            loadvslot(f, *(vslots.add(new VSlot(NULL, vslots.length())).get()), changed);    
             numvslots--;
         }
     }
-    loopv(vslots) if(vslots.inrange(prev[i])) vslots[prev[i]]->next = vslots[i].ptr;
+    loopv(vslots) if(vslots.inrange(prev[i])) vslots[prev[i]]->next = vslots[i].get();
     delete[] prev;
 }
 
@@ -449,7 +449,7 @@ bool save_world(const char *mname, bool nolms)
     hdr.numvslots = numvslots;
     for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
     {
-        var::cvar *v = n->data;
+        var::cvar *v = n->get().second;
         if ((v->flags&var::VAR_OVERRIDE) != 0 && (v->flags&var::VAR_READONLY) == 0 && (v->flags&var::VAR_OVERRIDEN) != 0) hdr.numvars++;
     }
     lilswap(&hdr.version, 9);
@@ -457,7 +457,7 @@ bool save_world(const char *mname, bool nolms)
    
     for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
     {
-        var::cvar *v = n->data;
+        var::cvar *v = n->get().second;
         if((v->flags&var::VAR_OVERRIDE) == 0 || (v->flags&var::VAR_READONLY) != 0 || (v->flags&var::VAR_OVERRIDEN) == 0) continue;
         f->putchar(v->type);
         f->putlil<ushort>(strlen(v->name));

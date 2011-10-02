@@ -81,7 +81,7 @@ namespace game
     types::string getclientmap()
     {
         types::string s = world::curr_map_id.substr(
-            0, world::curr_map_id.length - 7
+            0, world::curr_map_id.length() - 7
         );
         s += "/";
 

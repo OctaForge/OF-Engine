@@ -182,7 +182,7 @@ namespace tools
 
         for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
         {
-            var::cvar *v = n->data;
+            var::cvar *v = n->get().second;
             /* do not write aliases here! */
             if ((v->flags&var::VAR_ALIAS)   != 0) continue;
             if ((v->flags&var::VAR_PERSIST) != 0) switch(v->type)
@@ -218,7 +218,7 @@ namespace tools
         f->printf("local was_persisting = engine.persist_vars(true)\n");
         for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
         {
-            var::cvar *v = n->data;
+            var::cvar *v = n->get().second;
             if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)
             {
                 case var::VAR_I: f->printf("engine.new_var(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;

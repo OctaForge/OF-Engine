@@ -18,6 +18,8 @@
 #ifndef OF_UTILS_H
 #define OF_UTILS_H
 
+#include <string.h>
+
 #ifdef NULL
 #undef NULL
 #endif
@@ -106,6 +108,28 @@ template<typename T>
 inline T clamp(T a, T b, T c)
 {
     return max(b, min(a, c));
+}
+
+/*
+ * Function: compare
+ * Generic compare function that returns 1
+ * when a is bigger than b, 0 when they're
+ * equal and -1 when b is bigger than a.
+ *
+ * Used mainly in sets / maps to compare keys.
+ */
+template<typename T> inline int compare(T a, T b)
+{
+    return ((a > b) ? 1 : ((a < b) ? -1 : 0));
+}
+
+/*
+ * Function: compare
+ * Specialization for strings.
+ */
+template<> inline int compare(const char *a, const char *b)
+{
+    return strcmp(a, b);
 }
 
 /*

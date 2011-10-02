@@ -41,7 +41,7 @@ namespace entities
 
     extentity *get(size_t idx)
     {
-        return storage[idx].ptr;
+        return storage[idx].get();
     }
 
     void clear()

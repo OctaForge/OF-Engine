@@ -52,7 +52,7 @@ bool MessageManager::receive(int type, int receiver, int sender, ucharbuf &p)
         return false; // This isn't one of our messages, hopefully it's a sauer one
     }
 
-    MessageType *message_type = messageTypes[type].ptr;
+    MessageType *message_type = messageTypes[type].get();
     message_type->receive(receiver, sender, p);
 
     logger::log(logger::DEBUG, "MessageSystem: message successfully handled\r\n");

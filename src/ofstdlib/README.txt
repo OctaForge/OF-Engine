@@ -16,16 +16,16 @@ standard library.
 It's part of OctaForge and thus is licensed under the MIT license.
 
 Currently contains:
-    of_string.(cpp,h) - simple non-templated string class, with basic
-                        operations including slicing, finding and true
-                        string formatting, printf style. It's const
-                        correct, fast and standard conformant.
+    of_string.h - simple string class with basic operations including
+                  slicing, finding and true string formatting, printf
+                  style.
 
     of_new.h - features overloaded new, new[], delete and delete[]
                operators using malloc/free and also DELETEA and
                DELETEP macros for NULL-deleting arrays and pointers.
 
-    of_utils.h - unified definition for NULL (0), some unsigned typedefs.
+    of_utils.h - unified definition for NULL (0), some unsigned typedefs,
+                 min, max, clamping, swapping, comparing, sorting..
 
     of_stdio.(cpp,h) - stdio extensions for now for Windows. Features
                        the vasprintf and asprintf functions required
@@ -42,11 +42,25 @@ Currently contains:
                  back the previous one, which was linked below
                  the top node).
 
-    of_map.h - an efficient implementation of generic associative
+    of_pair.h - a pair container used to implement maps using sets.
+                Also useful elsewhere.
+
+    of_tree_node.h - a generic tree node for use in various tree containers
+                     like red black trees and AA trees.
+
+    of_set.h - an efficient implemention of generic associative
                container using an AA tree (enhancement to red-black
-               tree).
+               tree). Here used to implement a set (an associative
+               container where key and value are the same).
+
+    of_map.h - a variant of set that has unique keys and values, thus
+               representing an associative array.
 
     of_vector.h - an efficient implementation of generic vector
                   container (simillar to array, but easily manipulable).
+
+    of_traits.h - basic type traits (integral type, floating point type,
+                                     pointer type, POD type checking).
+
 
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>

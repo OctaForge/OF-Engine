@@ -544,7 +544,7 @@ struct animmodel : model
             if(!group) return NULL;
             meshgroups[group->name] = group;
         }
-        return meshgroups[name].ptr;
+        return meshgroups[name].get();
     }
 
     struct linkedpart

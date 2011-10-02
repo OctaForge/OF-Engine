@@ -121,7 +121,7 @@ namespace world
 
         curr_map_id = id;
 
-        types::string s = id.substr(0, id.length - 7);
+        types::string s = id.substr(0, id.length() - 7);
         s += "/map";
 
         if (!load_world(s.get_buf()))
@@ -150,7 +150,7 @@ namespace world
         types::string buf = types::string().format(
             "%sdata%c%s%c%s",
             homedir, PATHDIV,
-            curr_map_id.substr(0, curr_map_id.length - 7).get_buf(),
+            curr_map_id.substr(0, curr_map_id.length() - 7).get_buf(),
             PATHDIV, fname
         );
 
@@ -175,7 +175,7 @@ namespace world
 
     types::string get_mapfile_path(const char *rpath)
     {
-        types::string aloc = curr_map_id.substr(0, curr_map_id.length - 7);
+        types::string aloc = curr_map_id.substr(0, curr_map_id.length() - 7);
 
         types::string buf = types::string().format(
             "data%c%s%c%s", PATHDIV, aloc.get_buf(), PATHDIV, rpath
