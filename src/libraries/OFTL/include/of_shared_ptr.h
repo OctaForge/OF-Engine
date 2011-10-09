@@ -25,8 +25,7 @@
 
 /*
  * Package: types
- * This namespace features some types used in OctaForge.
- * This part exactly defines shared_ptr.
+ * A namespace containing various container types.
  */
 namespace types
 {
@@ -87,7 +86,7 @@ namespace types
          */
         shared_ptr<T>& operator=(const shared_ptr<T>& p)
         {
-            if (p != *this)
+            if (&p != this)
             {
                 if (count && count->decrement() == 0)
                 {
@@ -143,15 +142,17 @@ namespace types
          */
         const T& operator*() const { return *ptr; }
 
-        /*
-         * Operator: ==,!=,<,<=,>,>=
-         * Overloads for comparison operators.
-         */
+        /* Operator: == */
         bool operator==(const shared_ptr<T>& p) const { return ptr == p.ptr; }
+        /* Operator: != */
         bool operator!=(const shared_ptr<T>& p) const { return ptr != p.ptr; }
+        /* Operator: < */
         bool operator< (const shared_ptr<T>& p) const { return ptr <  p.ptr; }
+        /* Operator: <= */
         bool operator<=(const shared_ptr<T>& p) const { return ptr <= p.ptr; }
+        /* Operator: > */
         bool operator> (const shared_ptr<T>& p) const { return ptr >  p.ptr; }
+        /* Operator: >= */
         bool operator>=(const shared_ptr<T>& p) const { return ptr >= p.ptr; }
 
     protected:

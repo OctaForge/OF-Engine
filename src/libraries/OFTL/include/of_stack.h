@@ -21,8 +21,7 @@
 
 /*
  * Package: types
- * This namespace features some types used in OctaForge.
- * This part exactly defines stack.
+ * A namespace containing various container types.
  */
 namespace types
 {
@@ -98,20 +97,15 @@ namespace types
 
         /*
          * Function: pop_back
-         * Pops out the top node. The node gets deleted so
-         * the memory is not leaked. Return value is the
-         * data of the deleted node.
+         * Pops out the top node.
          */
-        T& pop_back()
+        void pop_back()
         {
             node *popped = top_node;
             top_node     = popped->below;
 
-            T& ret = popped->data;
-            delete   popped;
-
+            delete popped;
             c_length--;
-            return ret;
         }
 
         /*
@@ -144,7 +138,7 @@ namespace types
 
         /*
          * Variable: top_node
-         * The top node of the stack (represented as <stack_node>).
+         * The top node of the stack (represented as <node>).
          *
          * Protected level of access.
          */

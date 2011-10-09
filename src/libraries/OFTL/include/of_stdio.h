@@ -5,7 +5,7 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  Standard I/O extensions - headers.
+ *  Standard I/O extensions, header part.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>

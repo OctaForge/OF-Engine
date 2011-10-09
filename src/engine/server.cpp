@@ -188,10 +188,11 @@ void getstring(types::string& text, ucharbuf &p, int len)
 {
     text.resize(len);
 
-    char *it = text.first();
+    char *it = text.begin();
+    char *lt = text.begin() + text.capacity();
     do
     {
-        if (it >= text.end())
+        if (it > lt)
         {
             text[len - 1] = '\0';
             return;

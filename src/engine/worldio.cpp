@@ -447,17 +447,17 @@ bool save_world(const char *mname, bool nolms)
     hdr.blendmap = shouldsaveblendmap();
     hdr.numvars = 0;
     hdr.numvslots = numvslots;
-    for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
+    for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
     {
-        var::cvar *v = n->get().second;
+        var::cvar *v = it->second;
         if ((v->flags&var::VAR_OVERRIDE) != 0 && (v->flags&var::VAR_READONLY) == 0 && (v->flags&var::VAR_OVERRIDEN) != 0) hdr.numvars++;
     }
     lilswap(&hdr.version, 9);
     f->write(&hdr, sizeof(hdr));
    
-    for (var::vartable::node *n = var::vars->first(); n; n = var::vars->next())
+    for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
     {
-        var::cvar *v = n->get().second;
+        var::cvar *v = it->second;
         if((v->flags&var::VAR_OVERRIDE) == 0 || (v->flags&var::VAR_READONLY) != 0 || (v->flags&var::VAR_OVERRIDEN) == 0) continue;
         f->putchar(v->type);
         f->putlil<ushort>(strlen(v->name));

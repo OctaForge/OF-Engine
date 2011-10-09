@@ -2159,21 +2159,22 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         part *p = (part *)MDL::loading->parts.last();
 
         int nargs = e.gettop();
-        types::vector<const char *> bonestrs;
+        typedef types::vector<const char*> cvec;
+        cvec bonestrs;
 
         for (int i = 1; i <= nargs; i++)
             bonestrs.push_back(e.get<const char*>(i));
 
         types::string maskstr;
-        for (const char **it = bonestrs.first(); it < bonestrs.last(); it++)
+        for (cvec::cit it = bonestrs.begin(); it != (bonestrs.end() - 1); ++it)
         {
             maskstr += *it;
             maskstr += " ";
         }
-        maskstr += *bonestrs.last();
+        maskstr += *(bonestrs.end() - 1);
 
         vector<ushort> bonemask;
-        for (const char **it = bonestrs.first(); it < bonestrs.last(); it++)
+        for (cvec::cit it = bonestrs.begin(); it != bonestrs.end(); ++it)
         {
             const char *bonestr = *it;
             int bone = p->meshes ? ((meshgroup *)p->meshes)->skel->findbone(bonestr[0]=='!' ? bonestr+1 : bonestr) : -1;

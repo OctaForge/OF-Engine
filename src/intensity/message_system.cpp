@@ -36,7 +36,7 @@ void MessageManager::registerMessageType(MessageType *newMessageType)
                                  newMessageType->type_name,
                                  newMessageType->type_code);
 
-    assert(!messageTypes.find(newMessageType->type_code)); // We cannot have duplicate message types
+    assert(messageTypes.find(newMessageType->type_code) == messageTypes.end()); // We cannot have duplicate message types
 
     messageTypes.insert(newMessageType->type_code, newMessageType);
 }
@@ -46,7 +46,7 @@ bool MessageManager::receive(int type, int receiver, int sender, ucharbuf &p)
     logger::log(logger::DEBUG, "MessageSystem: Trying to handle a message, type/sender:: %d/%d\r\n", type, sender);
     INDENT_LOG(logger::DEBUG);
 
-    if (!messageTypes.find(type))
+    if (messageTypes.find(type) == messageTypes.end())
     {
         logger::log(logger::DEBUG, "Message type not found in our extensions to Sauer: %d\r\n", type);
         return false; // This isn't one of our messages, hopefully it's a sauer one

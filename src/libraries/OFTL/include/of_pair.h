@@ -19,8 +19,7 @@
 
 /*
  * Package: types
- * This namespace features some types used in OctaForge.
- * This part exactly defines pair.
+ * A namespace containing various container types.
  */
 namespace types
 {
@@ -58,8 +57,12 @@ namespace types
          */
         pair& operator=(const pair& p)
         {
+            if (&p == this) return *this;
+
             first  = p.first;
             second = p.second;
+
+            return *this;
         }
 
         /*
@@ -77,26 +80,32 @@ namespace types
 } /* end namespace types */
 
 /*
- * Function: compare
- * Specialization for cases where
- * both arguments are <pair> <T, U>.
+ * Package: algorithm
+ * The pair header overloads algorithm compare
+ * function for pair types.
  */
-template<typename T, typename U>
-inline int compare(const types::pair<T, U>& a, const types::pair<T, U>& b)
+namespace algorithm
 {
-    return compare(a.first, b.first);
-}
+    /*
+     * Function: compare
+     * Comparison for cases where both arguments are <pair> <T, U>.
+     */
+    template<typename T, typename U>
+    inline int compare(const types::pair<T, U>& a, const types::pair<T, U>& b)
+    {
+        return compare(a.first, b.first);
+    }
 
-/*
- * Function: compare
- * Specialization for cases where first
- * argument is T and second argument
- * is <pair> <T, U>.
- */
-template<typename T, typename U>
-inline int compare(const T& a, const types::pair<T, U>& b)
-{
-    return compare(a, b.first);
-}
+    /*
+     * Function: compare
+     * Comparison for cases where first argument is T and
+     * second argument is <pair> <T, U>.
+     */
+    template<typename T, typename U>
+    inline int compare(const T& a, const types::pair<T, U>& b)
+    {
+        return compare(a, b.first);
+    }
+} /* end namespace algorithm */
 
 #endif

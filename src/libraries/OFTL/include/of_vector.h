@@ -20,11 +20,13 @@
 
 #include "of_traits.h"
 #include "of_utils.h"
+#include "of_new.h"
+#include "of_iterator.h"
+#include "of_algorithm.h"
 
 /*
  * Package: types
- * This namespace features some types used in OctaForge.
- * This part exactly defines vector.
+ * A namespace containing various container types.
  */
 namespace types
 {
@@ -41,7 +43,31 @@ namespace types
          * The minimal amount of elements to reserve
          * space for when creating the buffer.
          */
-        static const size_t MIN_SIZE = 8;
+        enum { MIN_SIZE = 8 };
+
+        /*
+         * Typedef: it
+         * Iterator typedef, a T*.
+         */
+        typedef T* it;
+
+        /*
+         * Typedef: cit
+         * Const iterator typedef, a const T*.
+         */
+        typedef const T* cit;
+
+        /*
+         * Typedef: rit
+         * Reverse iterator typedef, a <reverse> < <it> >.
+         */
+        typedef iterators::reverse<it> rit;
+
+        /*
+         * Typedef: vrit
+         * Const reverse iterator typedef, a <reverse> < <cit> >.
+         */
+        typedef iterators::reverse<cit> crit;
 
         /*
          * Constructor: vector
@@ -95,13 +121,29 @@ namespace types
         vector& operator=(const vector& v)
         {
             if (this == &v) return *this;
-        
-            delete[] (uchar*)buf;
 
-            c_length   = v.length  ();
-            c_capacity = v.capacity();
+            if (c_capacity >= v.capacity())
+            {
+                if (!traits::is_pod<T>::value)
+                {
+                    T *last = buf + c_length;
 
-            buf = (T*) new uchar[c_capacity * sizeof(T)];
+                    while (buf != last)
+                         (*buf++).~T();
+
+                    buf -= c_length;
+                }
+                c_length = v.length();
+            }
+            else
+            {
+                clear();
+
+                c_length   = v.length  ();
+                c_capacity = v.capacity();
+
+                buf = (T*) new uchar[c_capacity * sizeof(T)];
+            }
 
             if (traits::is_pod<T>::value)
                 memcpy(buf, v.buf, c_length * sizeof(T));
@@ -120,28 +162,52 @@ namespace types
         }
 
         /*
-         * Function: first
+         * Function: begin
          * Returns a pointer to the buffer.
          */
-        T *first() { return buf; }
+        it begin() { return buf; }
 
         /*
-         * Function: first
+         * Function: begin
          * Returns a const pointer to the buffer.
          */
-        const T *first() const { return buf; }
+        cit begin() const { return buf; }
 
         /*
-         * Function: last
-         * Returns a pointer to the last buffer element.
+         * Function: rbegin
+         * Returns a <reverse> iterator to <end>.
          */
-        T *last() { return buf + c_length - 1; }
+        rit rbegin() { return rit(end()); }
 
         /*
-         * Function: last
-         * Returns a const pointer to the last buffer element.
+         * Function: rbegin
+         * Returns a const <reverse> iterator to <end>.
          */
-        const T *last() const { return buf + c_length - 1; }
+        crit rbegin() const { return crit(end()); }
+
+        /*
+         * Function: end
+         * Returns a pointer to the element after the last one.
+         */
+        it end() { return buf + c_length; }
+
+        /*
+         * Function: end
+         * Returns a const pointer to the element after the last one.
+         */
+        cit end() const { return buf + c_length; }
+
+        /*
+         * Function: rend
+         * Returns a <reverse> iterator to <begin>.
+         */
+        rit rend() { return rit(begin()); }
+
+        /*
+         * Function: rend
+         * Returns a const <reverse> iterator to <begin>.
+         */
+        crit rend() const { return crit(begin()); }
 
         /*
          * Function: get_buf
@@ -217,7 +283,7 @@ namespace types
             size_t old_cap = c_capacity;
 
             if (!c_capacity)
-                 c_capacity = max(MIN_SIZE, sz);
+                 c_capacity = algorithm::max((size_t)MIN_SIZE, sz);
             else while (c_capacity < sz)
                         c_capacity *= 2;
 
@@ -295,25 +361,14 @@ namespace types
 
         /*
          * Function: pop_back
-         * Pops a last value out of the vector
-         * and returns a reference to it.
+         * Pops a last value out of the vector.
          */
-        T& pop_back() { return buf[--c_length]; }
-
-        /*
-         * Function: sort
-         * Sorts the vector using the quicksort algorithm (see
-         * the function in of_utils). The first argument is a
-         * function as specified by the quicksort implementation,
-         * second argument is the index to start sorting on, third
-         * argument is the amount of items to sort.
-         *
-         * Only the first argument is mandatory.
-         */
-        template<typename U>
-        void sort(U f, size_t idx = 0, size_t len = 0)
+        void pop_back()
         {
-            quicksort(&buf[idx], (!len) ? (c_length - idx - 1) : len, f);
+            if (!traits::is_pod<T>::value)
+                buf[--c_length].~T();
+            else
+                c_length--;
         }
 
         /*

@@ -23,11 +23,11 @@
 
 #include "of_utils.h"
 #include "of_stdio.h"
+#include "of_iterator.h"
 
 /*
  * Package: types
- * This namespace features some types used in OctaForge.
- * This part exactly defines string.
+ * A namespace containing various container types.
  */
 namespace types
 {
@@ -61,6 +61,30 @@ namespace types
         static const size_t npos = ~0;
 
         /*
+         * Typedef: it
+         * Iterator typedef, a char*.
+         */
+        typedef char* it;
+
+        /*
+         * Typedef: cit
+         * Const iterator typedef, a const char*.
+         */
+        typedef const char* cit;
+
+        /*
+         * Typedef: rit
+         * Reverse iterator typedef, a <reverse> < <it> >.
+         */
+        typedef iterators::reverse<it> rit;
+
+        /*
+         * Typedef: vrit
+         * Const reverse iterator typedef, a <reverse> < <cit> >.
+         */
+        typedef iterators::reverse<cit> crit;
+
+        /*
          * Constructor: string_base
          * A constructor that creates the string from const char
          * pointer. It simply calls the assignment overload.
@@ -84,11 +108,11 @@ namespace types
 
         /*
          * Destructor: string_base
-         * Deletest the buffer.
+         * Deletes the buffer.
          */
         ~string_base()
         {
-            if (buf) delete[] buf;
+            delete[] buf;
         }
 
         /*
@@ -190,40 +214,52 @@ namespace types
         }
 
         /*
-         * Function: first
+         * Function: begin
          * Returns a pointer to the buffer.
          */
-        char *first() { return buf; }
+        it begin() { return buf; }
 
         /*
-         * Function: first
+         * Function: begin
          * Returns a const pointer to the buffer.
          */
-        const char *first() const { return buf; }
+        cit begin() const { return buf; }
 
         /*
-         * Function: last
-         * Returns a pointer to the buffer offset by its length.
+         * Function: rbegin
+         * Returns a <reverse> iterator to <end>.
          */
-        char *last() { return buf + s_length; }
+        rit rbegin() { return rit(end()); }
 
         /*
-         * Function: last
-         * Returns a const pointer to the buffer offset by its length.
+         * Function: rbegin
+         * Returns a const <reverse> iterator to <end>.
          */
-        const char *last() const { return buf + s_length; }
-
-        /*
-         * Function: end
-         * Returns a pointer to the buffer offset by its capacity.
-         */
-        char *end() { return buf + s_capacity; }
+        crit rbegin() const { return crit(end()); }
 
         /*
          * Function: end
-         * Returns a const pointer to the buffer offset by its capacity.
+         * Returns a pointer to the string end ('\0').
          */
-        const char *end() const { return buf + s_capacity; }
+        it end() { return buf + s_length; }
+
+        /*
+         * Function: end
+         * Returns a const pointer to the string end ('\0').
+         */
+        cit end() const { return buf + s_length; }
+
+        /*
+         * Function: rend
+         * Returns a <reverse> iterator to <begin>.
+         */
+        rit rend() { return rit(begin()); }
+
+        /*
+         * Function: rend
+         * Returns a const <reverse> iterator to <begin>.
+         */
+        crit rend() const { return crit(begin()); }
 
         /*
          * Function: get_buf
@@ -668,53 +704,38 @@ namespace types
 
     /*
      * Operator: ==
-     * See strcmp.
+     * See strcmp. Global, not part of the class.
      */
     inline bool operator==(const string& a, const string& b)
     {
         return (strcmp(a.get_buf(), b.get_buf()) == 0);
     }
 
-    /*
-     * Operator: <
-     * See strcmp.
-     */
+    /* Operator: < */
     inline bool operator<(const string& a, const string& b)
     {
         return (strcmp(a.get_buf(), b.get_buf()) < 0);
     }
 
-    /*
-     * Operator: >
-     * See strcmp.
-     */
+    /* Operator: > */
     inline bool operator>(const string& a, const string& b)
     {
         return (strcmp(a.get_buf(), b.get_buf()) > 0);
     }
 
-    /*
-     * Operator: !=
-     * See strcmp.
-     */
+    /* Operator: != */
     inline bool operator!=(const string& a, const string& b)
     {
         return !(a == b);
     }
 
-    /*
-     * Operator: <=
-     * See strcmp.
-     */
+    /* Operator: <= */
     inline bool operator<=(const string& a, const string& b)
     {
         return (b == a || b < a);
     }
 
-    /*
-     * Operator: >=
-     * See strcmp.
-     */
+    /* Operator: >= */
     inline bool operator>=(const string& a, const string& b)
     {
         return (b == a || b > a);

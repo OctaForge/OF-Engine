@@ -87,8 +87,8 @@ namespace world
         int r = 0;
         types::string tmp;
 
-        char  *it = scenario_code.first();
-        for (; it < scenario_code.last (); it++)
+        char  *it = scenario_code.begin();
+        for (; it < scenario_code.end  (); it++)
         {
             if  (*it == '4' || *it == '-') continue;
 

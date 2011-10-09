@@ -20,7 +20,8 @@
 /*
  * Package: traits
  * This namespace provides basic type traits. It can be used for
- * checking if a type is POD, pointer, integral or floating point.
+ * checking if a type is POD, pointer, integral or floating point
+ * and if two types are equal.
  */
 namespace traits
 {
@@ -104,6 +105,19 @@ namespace traits
     template<typename T> struct is_pod: bool_type<(is_integral<T>::value
                                                 || is_fpoint  <T>::value
                                                 || is_pointer <T>::value)> {};
+
+    /*
+     * Variable: are_equal
+     * Checks whether two types are equal. This is a definition for
+     * the case when they are different, so its "value" is 0.
+     */
+    template<typename, typename> struct are_equal { enum { value = 0 }; };
+
+    /*
+     * Variable: are_equal
+     * Version for when they are equal, so the "value" is 1.
+     */
+    template<typename T> struct are_equal<T, T> { enum { value = 1 }; };
 } /* end namespace traits */
 
 #endif

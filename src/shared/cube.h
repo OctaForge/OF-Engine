@@ -24,7 +24,12 @@
 #include <limits.h>
 #include <assert.h>
 #include <time.h>
-#include "of_stdlib.h"
+#include "of_all.h"
+
+using algorithm::min;
+using algorithm::max;
+using algorithm::swap;
+using algorithm::clamp;
 
 #ifdef WIN32
   #define WIN32_LEAN_AND_MEAN

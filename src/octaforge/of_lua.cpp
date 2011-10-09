@@ -192,7 +192,7 @@ namespace lua
         lua_insert(m_handle, -1);
 
         logger::log(logger::DEBUG, "Registering functions into namespace.\n");
-        for (const LE_reg *it = r.first(); it <= r.last(); it++)
+        for (const LE_reg *it = r.begin(); it != r.end(); ++it)
         {
             logger::log(logger::INFO, "Registering: %s\n", it->n);
             lua_pushlightuserdata(m_handle, (void*)it);

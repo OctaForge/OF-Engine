@@ -18,13 +18,13 @@
 #define OF_MAP_H
 
 #include "of_utils.h"
-#include "of_tree_node.h"
+#include "of_algorithm.h"
+#include "of_pair.h"
 #include "of_set.h"
 
 /*
  * Package: types
- * This namespace features some types used in OctaForge.
- * This part exactly defines map.
+ * A namespace containing various container types.
  */
 namespace types
 {
@@ -51,12 +51,12 @@ namespace types
      *     printf("%i\n", test["baz"]);
      *
      *     // iteration
-     *     for (mymap::node *n = test.first(); n; n = test.next())
-     *         printf("%s - %i\n", (**n).first, (**n).second);
+     *     for (mymap::cit it = test.begin(); it != test.end(); ++it)
+     *         printf("%s - %i\n", (*n).first, (*n).second);
      *
      *     // reverse iteration
-     *     for (mymap::node *n = test.last(); n; n = test.prev())
-     *         printf("%s - %i\n", n->get().first, n->get().second);
+     *     for (mymap::crit it = test.rbegin(); it != test.rend(); ++it)
+     *         printf("%s - %i\n", n->first, n->second);
      *
      *     // erasing, will delete the node
      *     test.erase("baz");
@@ -77,17 +77,41 @@ namespace types
     {
         /*
          * Typedef: base
-         * Typedefs <set> <<pair> <T, U>> so it can be used
+         * Typedefs <set> < <pair> <T, U>> so it can be used
          * as "base", for accessing parent (<set>) methods etc.
          */
         typedef set<pair<T, U> > base;
 
         /*
          * Typedef: node
-         * Typedefs <tree_node> <<pair> <T, U>> so it can be used
+         * Typedefs <set_node> < <pair> <T, U>> so it can be used
          * as "node".
          */
-        typedef tree_node<pair<T, U> > node;
+        typedef set_node<pair<T, U> > node;
+
+        /*
+         * Typedef: it
+         * An iterator typedef for standard, non-const iterator.
+         */
+        typedef set_iterator<pair<T, U> > it;
+
+        /*
+         * Typedef: cit
+         * An iterator typedef for const iterator.
+         */
+        typedef set_const_iterator<pair<T, U> > cit;
+
+        /*
+         * Typedef: rit
+         * Reverse iterator typedef, a <reverse> < <it> >.
+         */
+        typedef iterators::reverse<it> rit;
+
+        /*
+         * Typedef: crit
+         * Const reverse iterator typedef, a <reverse> < <cit> >.
+         */
+        typedef iterators::reverse<cit> crit;
 
         /*
          * Function: insert
@@ -119,31 +143,23 @@ namespace types
 
         /*
          * Function: erase
-         * Erases a node with a given key from the tree. Unlike
-         * <pop>, it also deletes the node (and returns nothing).
+         * Erases a node with a given key from the tree.
          */
         void erase(const T& key) { delete base::erase(base::root, key); }
 
         /*
-         * Function: pop
-         * Simillar to <erase>, but the node doesn't get deleted,
-         * instead this returns the node for the user to manage.
-         */
-        node *pop(const T& key) { return base::erase(base::root, key); }
-
-        /*
          * Function: find
-         * Returns a node that belongs to a given key. Because it's an
-         * actual node, you can modify its data. There is also a const
-         * version that returns a const node pointer (non-modifiable).
+         * Returns an iterator to a node that belongs to a given key.
+         * There is also a const version that returns a const
+         * iterator (non-modifiable).
          */
-        node *find(const T& key) { return find(base::root, key); }
+        it find(const T& key) { return it(find(base::root, key)); }
 
         /*
          * Function: find
          * Const version of <find>. The result cannot be modified.
          */
-        const node *find(const T& key) const { return find(base::root, key); }
+        cit find(const T& key) const { return cit(find(base::root, key)); }
 
         /*
          * Operator: []
@@ -196,10 +212,10 @@ namespace types
                 if (do_insert)
                     return base::insert(base::root, pair<T, U>(key, U()));
                 else
-                    return NULL;
+                    return base::nil;
             }
 
-            int cmp = compare(key, nd->data.first);
+            int cmp = algorithm::compare(key, nd->data.first);
             if (cmp)
                 return find(((cmp < 0)
                     ? nd->left
