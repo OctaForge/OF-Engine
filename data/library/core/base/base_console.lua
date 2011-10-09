@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_console.lua
+    File: library/core/base/base_console.lua
 
     About: Author
         q66 <quaker66@gmail.com>

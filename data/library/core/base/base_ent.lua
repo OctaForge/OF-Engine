@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_ent.lua
+    File: library/core/base/base_ent.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -26,6 +26,12 @@ module("entity", package.seeall)
     This represents the base class for all entities.
     It contains basic handler methods common for both client and server.
 
+    Entity always needs a class name. You can specify class name as third
+    argument to <class.new> (or second, if you don't  specify table mixin,
+    see the class documentation). Entity class name is required for proper
+    database lookups. The core library entities ALWAYS have the same class
+    name as name of the class object in Lua.
+
     Properties:
         tags - each entity can have a set of tags, which can be then used
         when finding the entity.
@@ -34,13 +40,6 @@ module("entity", package.seeall)
         entities don't mostly get saved.
 ]]
 base_root = class.new(nil, {
-    --[[!
-        Variable: _class
-        The entity class. Usually the same as the entity class name, but
-        doesn't have to be. It's used for searching and registering.
-    ]]
-    _class     = "base",
-
     --[[!
         Variable: should_act
         Boolean value specifying whether the entity should run <act>
@@ -70,10 +69,10 @@ base_root = class.new(nil, {
         Function: __tostring
         Overriden metamethod specifying what is returned when
         tostring gets called on entity instance. By default,
-        returns <_class>.
+        returns the entity class.
     ]]
     __tostring = function(self)
-        return self._class
+        return self.name
     end,
 
     --[[!
@@ -530,7 +529,7 @@ base_root = class.new(nil, {
 
         logging.log(logging.DEBUG, "update of complete state data done.")
     end
-})
+}, "base")
 
 --[[!
     Class: base_client
@@ -684,6 +683,27 @@ base_client = class.new(base_root, {
         )
 
         self.action_system:manage(seconds)
+    end,
+
+    --[[!
+        Function: client_click
+        Called clientside when some client clicks on the entity.
+        See <input> and its global client_click function documentation
+        and also <base_server.click>. Please note that this gets called
+        by default only when global client_click is not overriden. If
+        you want to call it and override global client_click at once,
+        you'll have to do it manually by placing a bit of code in the
+        beginning of your global client_click function.
+
+        (start code)
+            if  ent and ent.client_click then
+                ent:client_click(button, down, position, x, y)
+            end
+        (end)
+
+        This by default does nothing.
+    ]]
+    client_click = function(self, button, down, position, x, y)
     end
 })
 
@@ -1082,6 +1102,27 @@ base_server = class.new(base_root, {
         end
 
         self._queued_sv_changes_complete = true
+    end,
+
+    --[[!
+        Function: click
+        Called serverside when some client clicks on the entity.
+        See <input> and its global click function documentation
+        and also <base_client.client_click>. Please note that
+        this gets called by default only when global click is
+        not overriden. If you want to call it and override global
+        click at once, you'll have to do it manually by placing a
+        bit of code in the beginning of your global click function.
+
+        (start code)
+            if  ent and ent.click then
+                ent:click(button, down, position)
+            end
+        (end)
+
+        This by default does nothing.
+    ]]
+    click = function(self, button, down, position)
     end
 })
 

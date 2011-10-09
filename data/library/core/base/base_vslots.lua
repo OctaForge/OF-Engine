@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_vslots.lua
+    File: library/core/base/base_vslots.lua
 
     About: Author
         q66 <quaker66@gmail.com>

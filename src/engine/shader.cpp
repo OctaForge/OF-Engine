@@ -513,11 +513,9 @@ static inline void flushparam(int type, int index)
     }
 }
 
-static int sortparamversions(const GlobalShaderParamState **x, const GlobalShaderParamState **y)
+static inline bool sortparamversions(const GlobalShaderParamState *x, const GlobalShaderParamState *y)
 {
-    if((*x)->version < (*y)->version) return -1;
-    else if((*x)->version > (*y)->version) return 1;
-    else return 0;
+    return x->version < y->version;
 }
 
 static uint resetparamversions()
@@ -1455,7 +1453,7 @@ static void genuniformdefs(vector<char> &vsbuf, vector<char> &psbuf, const char 
 
 VAR(defershaders, 0, 1, 1);
 
-void defershader(int *type, const char *name, int contents)
+void defershader(int type, const char *name, int contents)
 {
     Shader *exists = shaders.access(name);
     if(exists && !(exists->type&SHADER_INVALID)) return;
@@ -1469,7 +1467,7 @@ void defershader(int *type, const char *name, int contents)
     Shader &s = shaders[rname];
     s.name = rname;
     s.defer = contents;
-    s.type = SHADER_DEFERRED | *type;
+    s.type = SHADER_DEFERRED | type;
     s.standard = standardshader;
 }
 
@@ -1553,13 +1551,13 @@ Shader *useshaderbyname(const char *name)
     return s;
 }
 
-void shader(int *type, char *name, char *vs, char *ps)
+void shader(int type, char *name, char *vs, char *ps)
 {
     if(lookupshaderbyname(name)) return;
    
-    if((*type & SHADER_GLSLANG ? renderpath!=R_GLSLANG && renderpath!=R_ASMGLSLANG : renderpath==R_GLSLANG) ||
-       (!hasCM && strstr(ps, *type & SHADER_GLSLANG ? "textureCube" : "CUBE;")) ||
-       (!hasTR && strstr(ps, *type & SHADER_GLSLANG ? "texture2DRect" : "RECT;")))
+    if((type & SHADER_GLSLANG ? renderpath!=R_GLSLANG && renderpath!=R_ASMGLSLANG : renderpath==R_GLSLANG) ||
+       (!hasCM && strstr(ps, type & SHADER_GLSLANG ? "textureCube" : "CUBE;")) ||
+       (!hasTR && strstr(ps, type & SHADER_GLSLANG ? "texture2DRect" : "RECT;")))
     {
         curparams.shrink(0);
         return;
@@ -1571,7 +1569,7 @@ void shader(int *type, char *name, char *vs, char *ps)
         defformatstring(info)("shader %s", name);
         renderprogress(loadprogress, info);
     }
-    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(*type & SHADER_GLSLANG))
+    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(type & SHADER_GLSLANG))
     {
         glEnable(GL_VERTEX_PROGRAM_ARB);
         glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -1588,13 +1586,13 @@ void shader(int *type, char *name, char *vs, char *ps)
     }
     if(renderpath!=R_FIXEDFUNCTION)
     {
-        if(*type & SHADER_GLSLANG)
+        if(type & SHADER_GLSLANG)
         {
             GENSHADER(curparams.length(), genuniformdefs(vsbuf, psbuf, vs, ps));
             GENSHADER(strstr(vs, "#pragma CUBE2_fog") || strstr(ps, "#pragma CUBE2_fog"), genfogshader(vsbuf, psbuf, vs, ps)); 
         }
     }
-    Shader *s = newshader(*type, name, vs, ps);
+    Shader *s = newshader(type, name, vs, ps);
     if(s && renderpath!=R_FIXEDFUNCTION)
     {
         // '#' is a comment in vertex/fragment programs, while '#pragma' allows an escape for GLSL, so can handle both at once
@@ -1602,7 +1600,7 @@ void shader(int *type, char *name, char *vs, char *ps)
         if(strstr(vs, "#pragma CUBE2_shadowmap")) genshadowmapvariant(*s, s->name, vs, ps);
         if(strstr(vs, "#pragma CUBE2_dynlight")) gendynlightvariant(*s, s->name, vs, ps);
     }
-    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(*type & SHADER_GLSLANG))
+    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(type & SHADER_GLSLANG))
     {
         glDisable(GL_VERTEX_PROGRAM_ARB);
         glDisable(GL_FRAGMENT_PROGRAM_ARB);
@@ -1610,9 +1608,9 @@ void shader(int *type, char *name, char *vs, char *ps)
     curparams.shrink(0);
 }
 
-void variantshader(int *type, char *name, int *row, char *vs, char *ps)
+void variantshader(int type, char *name, int row, char *vs, char *ps)
 {
-    if(*row < 0)
+    if(row < 0)
     {
         shader(type, name, vs, ps);
         return;
@@ -1623,11 +1621,11 @@ void variantshader(int *type, char *name, int *row, char *vs, char *ps)
     Shader *s = lookupshaderbyname(name);
     if(!s) return;
 
-    defformatstring(varname)("<variant:%d,%d>%s", s->variants[*row].length(), *row, name);
+    defformatstring(varname)("<variant:%d,%d>%s", s->variants[row].length(), row, name);
     //defformatstring(info)("shader %s", varname);
     //renderprogress(loadprogress, info);
     extern int& mesa_program_bug;
-    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(*type & SHADER_GLSLANG))
+    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(type & SHADER_GLSLANG))
     {
         glEnable(GL_VERTEX_PROGRAM_ARB);
         glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -1635,20 +1633,20 @@ void variantshader(int *type, char *name, int *row, char *vs, char *ps)
     vector<char> vsbuf, psbuf, vsbak, psbak;
     if(renderpath!=R_FIXEDFUNCTION)
     {
-        if(*type & SHADER_GLSLANG)
+        if(type & SHADER_GLSLANG)
         {
             GENSHADER(s->defaultparams.length(), genuniformdefs(vsbuf, psbuf, vs, ps, s));
             GENSHADER(strstr(vs, "#pragma CUBE2_fog") || strstr(ps, "#pragma CUBE2_fog"), genfogshader(vsbuf, psbuf, vs, ps));
         }
     }
-    Shader *v = newshader(*type, varname, vs, ps, s, *row);
+    Shader *v = newshader(type, varname, vs, ps, s, row);
     if(v && renderpath!=R_FIXEDFUNCTION)
     {
         // '#' is a comment in vertex/fragment programs, while '#pragma' allows an escape for GLSL, so can handle both at once
-        if(strstr(vs, "#pragma CUBE2_dynlight")) gendynlightvariant(*s, varname, vs, ps, *row);
-        if(strstr(ps, "#pragma CUBE2_variant") || strstr(vs, "#pragma CUBE2_variant")) gengenericvariant(*s, varname, vs, ps, *row);
+        if(strstr(vs, "#pragma CUBE2_dynlight")) gendynlightvariant(*s, varname, vs, ps, row);
+        if(strstr(ps, "#pragma CUBE2_variant") || strstr(vs, "#pragma CUBE2_variant")) gengenericvariant(*s, varname, vs, ps, row);
     }
-    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(*type & SHADER_GLSLANG))
+    if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(type & SHADER_GLSLANG))
     {
         glDisable(GL_VERTEX_PROGRAM_ARB);
         glDisable(GL_FRAGMENT_PROGRAM_ARB);
@@ -1772,11 +1770,11 @@ void altshader(char *origname, char *altname)
     orig->fixdetailshader(false);
 }
 
-void fastshader(char *nice, char *fast, int *detail)
+void fastshader(char *nice, char *fast, int detail)
 {
     Shader *ns = shaders.access(nice), *fs = shaders.access(fast);
     if(!ns || !fs) return;
-    loopi(min(*detail+1, MAXSHADERDETAIL)) ns->fastshader[i] = fs;
+    loopi(min(detail+1, MAXSHADERDETAIL)) ns->fastshader[i] = fs;
     ns->fixdetailshader(false);
 }
 
@@ -1792,13 +1790,12 @@ void isshadernative(char *name)
     lua::engine.push(s && s->native ? true : false);
 }
 
-static hashset<const char *> shaderparamnames(256);
+static hashset<types::string> shaderparamnames(256);
 
 const char *getshaderparamname(const char *name)
 {
-    const char **exists = shaderparamnames.access(name);
-    if(exists) return *exists;
-    name = newstring(name);
+    types::string *exists = shaderparamnames.access(name);
+    if(exists) return (*exists).get_buf();
     shaderparamnames[name] = name;
     return name;
 }

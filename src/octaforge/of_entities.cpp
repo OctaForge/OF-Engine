@@ -37,12 +37,17 @@ namespace entities
         "envmap", "particles",
         "sound", "spotlight"
     };
-    vector<extentity*> storage;
+    vector< types::shared_ptr<extentity> > storage;
+
+    extentity *get(size_t idx)
+    {
+        return storage[idx].get();
+    }
 
     void clear()
     {
         while (storage.length())
-            delete storage.pop();
+            storage.pop();
     }
 
     const char *getname(int idx)

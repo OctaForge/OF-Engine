@@ -5,6 +5,40 @@
 #include "of_lua.h"
 #include "client_engine_additions.h"
 
+// a 'stack' where the last is the current focused editor
+vector <editor*> editors;
+
+editor *currentfocus()
+{
+    return editors.length() ? editors.last() : NULL;
+}
+
+editor *useeditor(const char *name, int mode, bool focus, const char *initval, bool password) // INTENSITY: password
+{
+    loopv(editors) if(strcmp(editors[i]->name, name) == 0) 
+    {
+        editor *e = editors[i];
+        if(focus) { editors.add(e); editors.remove(i); } // re-position as last
+        e->active = true;
+        return e;
+    }
+    editor *e = new editor(name, mode, initval, password); // INTENSITY: Password
+    if(focus) editors.add(e); else editors.insert(0, e); 
+    return e;
+}
+
+static void focuseditor(editor *e)
+{
+    editors.removeobj(e);
+    editors.add(e);
+}
+
+static void removeeditor(editor *e)
+{
+    editors.removeobj(e);
+    DELETEP(e);
+}
+
 using namespace lua;
 
 namespace gui
@@ -348,9 +382,19 @@ namespace gui
             return "";
         }
 
+        virtual const char *gettype() const
+        {
+            return getname();
+        }
+
         bool isnamed(const char *name) const
         {
             return !strcmp(name, getname());
+        }
+
+        bool istype(const char *type) const
+        {
+            return !strcmp(type, gettype());
         }
 
         object *findname(const char *name, bool recurse = true, const object *exclude = NULL) const
@@ -930,9 +974,9 @@ namespace gui
 
         void hovering(float cx, float cy)
         {
-            if (isselected(this))
+            if (isselected(this) && parent->isnamed("scrollbar"))
             {
-                scrollbar *scroll = dynamic_cast<scrollbar *>(parent);
+                scrollbar *scroll = (scrollbar*)parent;
                 if (!scroll) return;
                 scroll->movebutton(this, offsetx, offsety, cx, cy);
             }
@@ -960,16 +1004,16 @@ namespace gui
 
         void arrowscroll()
         {
-            scroller *scroll = dynamic_cast<scroller *>(findsibling("scroller"));
+            scroller *scroll = (scroller*)findsibling("scroller");
             if (!scroll) return;
             scroll->addhscroll(arrowdir*arrowspeed*curtime/1000.0f);
         }
 
         void scrollto(float cx, float cy)
         {
-            scroller *scroll = dynamic_cast<scroller *>(findsibling("scroller"));
+            scroller *scroll = (scroller*)findsibling("scroller");
             if (!scroll) return;
-            scroll_button *btn = dynamic_cast<scroll_button *>(findname("scrollbutton", false));
+            scroll_button *btn = (scroll_button*)findname("scrollbutton", false);
             if (!btn) return;
             float bscale = (max(w - 2*arrowsize, 0.0f) - btn->w) / (1 - scroll->hscale()),
                   offset = bscale > 1e-3f ? (cx - arrowsize)/bscale : 0;
@@ -978,9 +1022,9 @@ namespace gui
 
         void adjustchildren()
         {
-            scroller *scroll = dynamic_cast<scroller *>(findsibling("scroller"));
+            scroller *scroll = (scroller*)findsibling("scroller");
             if (!scroll) return;
-            scroll_button *btn = dynamic_cast<scroll_button *>(findname("scrollbutton", false));
+            scroll_button *btn = (scroll_button*)findname("scrollbutton", false);
             if (!btn) return;
             float bw = max(w - 2*arrowsize, 0.0f)*scroll->hscale();
             btn->w = max(btn->w, bw);
@@ -1010,16 +1054,16 @@ namespace gui
 
         void arrowscroll()
         {
-            scroller *scroll = dynamic_cast<scroller *>(findsibling("scroller"));
+            scroller *scroll = (scroller*)findsibling("scroller");
             if (!scroll) return;
             scroll->addvscroll(arrowdir*arrowspeed*curtime/1000.0f);
         }
 
         void scrollto(float cx, float cy)
         {
-            scroller *scroll = dynamic_cast<scroller *>(findsibling("scroller"));
+            scroller *scroll = (scroller*)findsibling("scroller");
             if (!scroll) return;
-            scroll_button *btn = dynamic_cast<scroll_button *>(findname("scrollbutton", false));
+            scroll_button *btn = (scroll_button*)findname("scrollbutton", false);
             if (!btn) return;
             float bscale = (max(h - 2*arrowsize, 0.0f) - btn->h) / (1 - scroll->vscale()),
                   offset = bscale > 1e-3f ? (cy - arrowsize)/bscale : 0;
@@ -1028,9 +1072,9 @@ namespace gui
 
         void adjustchildren()
         {
-            scroller *scroll = dynamic_cast<scroller *>(findsibling("scroller"));
+            scroller *scroll = (scroller*)findsibling("scroller");
             if (!scroll) return;
-            scroll_button *btn = dynamic_cast<scroll_button *>(findname("scrollbutton", false));
+            scroll_button *btn = (scroll_button*)findname("scrollbutton", false);
             if (!btn) return;
             float bh = max(h - 2*arrowsize, 0.0f)*scroll->vscale();
             btn->h = max(btn->h, bh);
@@ -1131,9 +1175,9 @@ namespace gui
 
         void hovering(float cx, float cy)
         {
-            if (isselected(this))
+            if (isselected(this) && parent->isnamed("slider"))
             {
-                slider *sl = dynamic_cast<slider *>(parent);
+                slider *sl = (slider*)parent;
                 if (!sl) return;
                 sl->movebutton(this, offsetx, offsety, cx, cy);
             }
@@ -1157,7 +1201,7 @@ namespace gui
 
         void slideto(float cx, float cy)
         {
-            slider_button *btn = dynamic_cast<slider_button *>(findname("sliderbutton", false));
+            slider_button *btn = (slider_button *)findname("sliderbutton", false);
             if (!btn) return;
 
             float step      = w / (maxv - minv + 1);
@@ -1168,7 +1212,7 @@ namespace gui
 
         void adjustchildren()
         {
-            slider_button *btn = dynamic_cast<slider_button *>(findname("sliderbutton", false));
+            slider_button *btn = (slider_button *)findname("sliderbutton", false);
             if (!btn) return;
             btn->x = offset;
             btn->w = w / (maxv - minv + 1);
@@ -1201,7 +1245,7 @@ namespace gui
 
         void slideto(float cx, float cy)
         {
-            slider_button *btn = dynamic_cast<slider_button *>(findname("sliderbutton", false));
+            slider_button *btn = (slider_button *)findname("sliderbutton", false);
             if (!btn) return;
 
             float step      = h / (maxv - minv + 1);
@@ -1212,7 +1256,7 @@ namespace gui
 
         void adjustchildren()
         {
-            slider_button *btn = dynamic_cast<slider_button *>(findname("sliderbutton", false));
+            slider_button *btn = (slider_button *)findname("sliderbutton", false);
             if (!btn) return;
             btn->y = offset;
             btn->h = h / (maxv - minv + 1);
@@ -1295,6 +1339,8 @@ namespace gui
 
             object::draw(sx, sy);
         }
+
+        const char *getname() const { return "image"; }
     };
 
     VAR(thumbtime, 0, 25, 1000);
@@ -1621,28 +1667,18 @@ namespace gui
 
         float drawscale() const { return scale / (FONTH * uitextrows); }
 
-        char *getval()
+        types::string getval()
         {
             switch (ev->type)
             {
                 case var::VAR_I:
-                {
-                    static char s[64];
-                    snprintf(s, sizeof(s), "%i", ev->curv.i);
-                    return s;
-                }
+                    return types::string().format("%i", ev->curv.i);
                 case var::VAR_F:
-                {
-                    static char s[64];
-                    snprintf(s, sizeof(s), "%f", ev->curv.f);
-                    return s;
-                }
+                    return types::string().format("%f", ev->curv.f);
                 case var::VAR_S:
-                {
                     return ev->curv.s;
-                    break;
-                }
-                default: return NULL;
+                default:
+                    return NULL;
             }
         }
 
@@ -1651,7 +1687,7 @@ namespace gui
             float k = drawscale();
             glPushMatrix();
             glScalef(k, k, 1);
-            draw_text(getval(), int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255);
+            draw_text(getval().get_buf(), int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255);
             glColor3f(1, 1, 1);
             glPopMatrix();
 
@@ -1663,7 +1699,7 @@ namespace gui
             object::layout();
 
             int tw, th;
-            text_bounds(getval(), tw, th);
+            text_bounds(getval().get_buf(), tw, th);
             float k = drawscale();
             w = max(w, tw*k);
             h = max(h, th*k);
@@ -1863,6 +1899,8 @@ namespace gui
 
             object::draw(sx, sy);
         }
+
+        const char *getname() const { return "texteditor"; }
     };
 
     struct named_object : object
@@ -1878,6 +1916,8 @@ namespace gui
     struct tag : named_object
     {
         tag(const char *name) : named_object(name) {}
+
+        const char *gettype() const { return "tag"; };
     };
 
     struct window : named_object
@@ -1908,6 +1948,8 @@ namespace gui
             if (customx != x) x = customx;
             if (customy != y) y = customy;
         }
+
+        const char *gettype() const { return "window"; };
     };
 
     struct window_mover : object
@@ -1923,15 +1965,13 @@ namespace gui
         void init()
         {
             object *par = parent;
-
-            win = dynamic_cast<window*>(par);
-            while (!win)
+            while (!par->istype("window"))
             {
+                if  (!par->parent) break;
                 par = par->parent;
-                if (!par) return;
-
-                win = dynamic_cast<window*>(par);
             }
+
+            if (par->istype("window")) win = (window*)par;
         }
 
         object *hover(float cx, float cy)
@@ -2002,7 +2042,9 @@ namespace gui
 
     bool hideui(const char *name)
     {
-        window *win = dynamic_cast<window *>(world_inst->findname(name, false));
+        window *win = NULL;
+        object *obj = world_inst->findname(name, false);
+        if (obj && obj->istype("window")) win = (window*)obj;
         if (win)
         {
             win->hidden();
@@ -2057,7 +2099,12 @@ namespace gui
             return;
         }
 
-        window *oldwindow = dynamic_cast<window *>(world_inst->findname(name, false));
+        object *obj = world_inst->findname(name, false);
+
+        window *oldwindow = NULL;
+        if (obj && obj->istype("window"))
+            oldwindow = (window*)obj;
+
         if (oldwindow)
         {
             oldwindow->hidden();
@@ -2093,15 +2140,19 @@ namespace gui
             return;
         }
 
-        window *win = dynamic_cast<window *>(world_inst->findname(wname, false));
-        if (!win)
+        window *win = NULL;
+        object *obj = world_inst->findname(wname, false);
+        if (obj && obj->istype("window")) win = (window*)obj;
+        else
         {
             e.push(false);
             return;
         }
 
-        tag *tg = dynamic_cast<tag *>(win->findname(tname));
-        if (!tg)
+        tag *tg = NULL;
+        obj = win->findname(tname);
+        if (obj && obj->istype("tag")) tg = (tag*)obj;
+        else
         {
             e.push(false);
             return;
@@ -2272,9 +2323,8 @@ namespace gui
 
     void _bind_uialtimage(lua_Engine e)
     {
-        if (build.empty()) return;
-
-        image *img = dynamic_cast<image *>(build.last());
+        if (build.empty() || !build.last()->isnamed("image")) return;
+        image *img = (image*)build.last();
         if (img && img->tex==notexture)
         {
             img->tex = textureload(e.get<const char*>(1), 3, true, false);
@@ -2495,7 +2545,11 @@ namespace gui
                     if (selected)
                     {
                         /* apply changes in focused field */
-                        text_editor *focus = dynamic_cast<text_editor *>(focused);
+                        
+                        text_editor *focus = NULL;
+                        if (focused && focused->isnamed("texteditor"))
+                            focus = (text_editor*)focused;
+
                         if (focus && focus->fieldmode)
                         {
                             focus->handle_focus(false);
@@ -2534,10 +2588,15 @@ namespace gui
 
     void setup()
     {
+        if (world_inst)
+        {
+            delete world_inst;
+            build.deletecontents();
+        }
         world_inst = new world;
     }
 
-    text_editor *textediting = NULL;
+    bool textediting = false;
 
     static bool space = false;
 
@@ -2582,12 +2641,14 @@ namespace gui
 
         world_inst->layout();
 
-        bool wastextediting = textediting!=NULL;
-        textediting = dynamic_cast<text_editor *>(focused);
-        if ((textediting!=NULL) != wastextediting)
+        bool wastextediting = textediting;
+
+        textediting = (focused && focused->isnamed("texteditor"));
+
+        if (textediting != wastextediting)
         {
-            SDL_EnableUNICODE(textediting!=NULL);
-            keyrepeat(textediting!=NULL || editmode);
+            SDL_EnableUNICODE(textediting);
+            keyrepeat(textediting || editmode);
         }
     }
 

@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_sound.lua
+    File: library/core/base/base_sound.lua
 
     About: Author
         q66 <quaker66@gmail.com>

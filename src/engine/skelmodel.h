@@ -5,13 +5,6 @@ VARP(matskel, 0, 1, 1);
 #define BONEMASK_END  0xFFFF
 #define BONEMASK_BONE 0x7FFF
 
-static int bonemaskcmp(ushort *x, ushort *y)
-{
-    if(*x<*y) return -1;
-    if(*x>*y) return 1;
-    return 0;
-}
-
 struct skelmodel : animmodel
 {
     struct vert { vec pos, norm; float u, v; int blend, interpindex; };
@@ -47,18 +40,18 @@ struct skelmodel : animmodel
             return i;
         }
 
-        static int sortcmp(const blendcombo *x, const blendcombo *y)
+        static bool sortcmp(const blendcombo &x, const blendcombo &y)
         {
             loopi(4)
             {
-                if(x->weights[i])
+                if(x.weights[i])
                 {
-                    if(!y->weights[i]) return -1;
+                    if(!y.weights[i]) return true;
                 }
-                else if(y->weights[i]) return 1;
+                else if(y.weights[i]) return false;
                 else break;
             }
-            return 0;
+            return false;
         }
 
         int addweight(int sorted, float weight, int bone)
@@ -1435,7 +1428,7 @@ struct skelmodel : animmodel
                 return;
             }
 
-            static hashtable<char *, skeleton *> skeletons;
+            static hashtable<char *, skeleton*> skeletons;
             if(skeletons.access(name)) skel = skeletons[name];
             else
             {
@@ -2115,12 +2108,16 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
             conoutf("\frcould not find pitch target %s to pitch correct %s", e.get<char*>(2), e.get<char*>(1));
             return;
         }
+
         pitchcorrect c;
         c.bone = bone;
         c.target = target;
+        c.parent = 0;
         c.pitchmin = e.get<float>(4);
         c.pitchmax = e.get<float>(5);
         c.pitchscale = e.get<float>(3);
+        c.pitchangle = 0;
+        c.pitchtotal = 0;
         int pos = skel->pitchcorrects.length();
         loopv(skel->pitchcorrects) if(bone <= skel->pitchcorrects[i].bone) { pos = i; break; break; }
         skel->pitchcorrects.insert(pos, c); 
@@ -2142,7 +2139,15 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
             if(!sa) conoutf("could not load %s anim file %s", MDL::formatname(), filename);
             else loopv(anims)
             {
-                MDL::loading->parts.last()->setanim(p->numanimparts-1, anims[i], sa->frame, sa->range, e.get<float>(3), e.get<int>(4));
+                int startoffset = e.get<int>(5);
+                int endoffset   = e.get<int>(6);
+                int start = sa->frame, end = sa->range;
+                if(startoffset > 0) start += min(startoffset, end-1);
+                else if(startoffset < 0) start += max(end + startoffset, 0);
+                end -= start - sa->frame;
+                if(endoffset > 0) end = min(end, endoffset);
+                else if(endoffset < 0) end = max(end + endoffset, 1); 
+                MDL::loading->parts.last()->setanim(p->numanimparts-1, anims[i], start, end, e.get<float>(3), e.get<int>(4));
             }
         }
     }
@@ -2152,34 +2157,34 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
     
         part *p = (part *)MDL::loading->parts.last();
-    
-        vector<char *> bonestrs;
-        char *maskstr = newstring(e.get<const char*>(1));
 
-        // TODO: get rid of this thing
-        maskstr += strspn(maskstr, "\n\t ");
-        while(*maskstr)
+        int nargs = e.gettop();
+        typedef types::vector<const char*> cvec;
+        cvec bonestrs;
+
+        for (int i = 1; i <= nargs; i++)
+            bonestrs.push_back(e.get<const char*>(i));
+
+        types::string maskstr;
+        for (cvec::cit it = bonestrs.begin(); it != (bonestrs.end() - 1); ++it)
         {
-            const char *elem = maskstr;
-            *maskstr=='"' ? (++maskstr, maskstr += strcspn(maskstr, "\"\n\0"), maskstr += *maskstr=='"') : maskstr += strcspn(maskstr, "\n\t \0");
-            bonestrs.add(*elem=='"' ? newstring(elem+1, maskstr-elem-(maskstr[-1]=='"' ? 2 : 1)) : newstring(elem, maskstr-elem));
-            maskstr += strspn(maskstr, "\n\t ");
+            maskstr += *it;
+            maskstr += " ";
         }
+        maskstr += *(bonestrs.end() - 1);
 
         vector<ushort> bonemask;
-        loopv(bonestrs)
+        for (cvec::cit it = bonestrs.begin(); it != bonestrs.end(); ++it)
         {
-            char *bonestr = bonestrs[i];
+            const char *bonestr = *it;
             int bone = p->meshes ? ((meshgroup *)p->meshes)->skel->findbone(bonestr[0]=='!' ? bonestr+1 : bonestr) : -1;
-            if(bone<0) { conoutf("could not find bone %s for anim part mask [%s]", bonestr, maskstr); bonestrs.deletearrays(); return; }
+            if(bone<0) { conoutf("could not find bone %s for anim part mask [%s]", bonestr, maskstr.get_buf()); return; }
             bonemask.add(bone | (bonestr[0]=='!' ? BONEMASK_NOT : 0));
         }
-        bonestrs.deletearrays();
-        bonemask.sort(bonemaskcmp);
+        bonemask.sort();
         if(bonemask.length()) bonemask.add(BONEMASK_END);
     
         if(!p->addanimpart(bonemask.getbuf())) conoutf("too many animation parts");
-        delete[] maskstr;
     }
 
     static void setadjust(lua_Engine e)

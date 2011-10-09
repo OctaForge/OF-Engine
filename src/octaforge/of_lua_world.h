@@ -37,14 +37,14 @@ void entadd(int id);
 bool noentedit();
 void printent(extentity &e, char *buf);
 void nearestent();
-void entset(char *what, int *a1, int *a2, int *a3, int *a4, int *a5);
+void entset(char *what, int a1, int a2, int a3, int a4, int a5);
 void addentity(int id);
 void removeentity(int id);
 void detachentity(extentity &e);
-void entautoview(int *dir);
+void entautoview(int dir);
 void entflip();
-void entrotate(int *cw);
-void entpush(int *dir);
+void entrotate(int cw);
+void entpush(int dir);
 void attachent();
 void delent();
 void dropent();
@@ -52,7 +52,7 @@ void entcopy();
 void entpaste();
 void intensityentcopy();
 void intensitypasteent();
-void newmap(int *i);
+void newmap(int i);
 void mapenlarge();
 void shrinkmap();
 void writeobj(char *name);
@@ -136,7 +136,7 @@ namespace lua_binds
 
     // TODO: REMOVE THESE
     #define addimplicit(f)  { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }
-    #define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &ent = *entities::storage[n]; f; } }
+    #define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &ent = *entities::get(n); f; } }
     #define entedit(i, f) \
     { \
         entfocus(i, \
@@ -153,10 +153,10 @@ namespace lua_binds
     #define groupeditundo(f){ makeundoent(); groupeditpure(f); }
     #define groupedit(f)    { addimplicit(groupeditundo(f)); }
 
-    LUA_BIND_STD(entautoview, entautoview, e.get<int*>(1))
+    LUA_BIND_STD(entautoview, entautoview, e.get<int>(1))
     LUA_BIND_STD(entflip, entflip)
-    LUA_BIND_STD(entrotate, entrotate, e.get<int*>(1))
-    LUA_BIND_STD(entpush, entpush, e.get<int*>(1))
+    LUA_BIND_STD(entrotate, entrotate, e.get<int>(1))
+    LUA_BIND_STD(entpush, entpush, e.get<int>(1))
     LUA_BIND_STD(attachent, attachent)
     LUA_BIND_STD(delent, delent)
     LUA_BIND_STD(dropent, dropent)
@@ -175,14 +175,14 @@ namespace lua_binds
     LUA_BIND_DEF(insel, entfocus(efocus, e.push(pointinsel(sel, ent.o) ? true : false));)
     LUA_BIND_DEF(entget, entfocus(efocus, string s; printent(ent, s); e.push(s));)
     LUA_BIND_STD(entindex, e.push, efocus)
-    LUA_BIND_STD(entset, entset, e.get<char*>(1), e.get<int*>(2), e.get<int*>(3), e.get<int*>(4), e.get<int*>(5), e.get<int*>(6))
+    LUA_BIND_STD(entset, entset, e.get<char*>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<int>(6))
     LUA_BIND_STD(nearestent, nearestent)
     LUA_BIND_STD(intensityentcopy, intensityentcopy)
     LUA_BIND_STD(intensitypasteent, intensitypasteent)
-    LUA_BIND_STD(newmap, newmap, e.get<int*>(1))
+    LUA_BIND_STD(newmap, newmap, e.get<int>(1))
     LUA_BIND_STD(mapenlarge, mapenlarge)
     LUA_BIND_STD(shrinkmap, shrinkmap)
-    LUA_BIND_STD(mapname, e.push, game::getclientmap())
+    LUA_BIND_STD(mapname, e.push, game::getclientmap().get_buf())
     // In our new system, this is called when dragging concludes. Only then do we update the server.
     // This facilitates smooth dragging on the client, and a single bandwidth use at the end.
     LUA_BIND_DEF(finish_dragging, {
@@ -193,13 +193,13 @@ namespace lua_binds
     })
 
     LUA_BIND_DEF(mapcfgname, {
-        const char *mname = game::getclientmap();
-        if(!*mname) mname = "untitled";
+        types::string mname = game::getclientmap();
+        if (mname.is_empty()) mname = "untitled";
 
         string pakname;
         string mapname;
         string mcfgname;
-        getmapfilenames(mname, NULL, pakname, mapname, mcfgname);
+        getmapfilenames(mname.get_buf(), NULL, pakname, mapname, mcfgname);
         defformatstring(cfgname)("data/%s/%s.lua", pakname, mcfgname);
         path(cfgname);
         e.push(cfgname);
@@ -218,22 +218,22 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(hasmap, e.push, local_server::is_running())
 
     LUA_BIND_DEF(get_map_preview_filename, {
-        char buf [512];
-        char buff[512];
-        snprintf(buf, sizeof(buf), "data%cbase%c%s%cpreview.png", PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV);
-        if (fileexists(buf, "r"))
+        types::string buf;
+
+        buf.format(
+            "data%cmaps%c%s%cpreview.png",
+            PATHDIV, PATHDIV, e.get<const char*>(1), PATHDIV
+        );
+        if (fileexists(buf.get_buf(), "r"))
         {
-            e.push(buf);
+            e.push(buf.get_buf());
             return;
         }
-        snprintf(
-            buff, sizeof(buff), "%s%s",
-            homedir, buf
-        );
-        snprintf(buf, sizeof(buf), "%s", buff);
-        if (fileexists(buf, "r"))
+
+        buf.format("%s%s", homedir, buf.get_buf());
+        if (fileexists(buf.get_buf(), "r"))
         {
-            e.push(buf);
+            e.push(buf.get_buf());
             return;
         }
         e.push();
@@ -243,13 +243,11 @@ namespace lua_binds
         vector<char *> glob;
         vector<char *> user;
 
-        char buf [512];
-        char buff[512];
-        snprintf(buf,  sizeof(buf),  "data%cbase", PATHDIV);
-        snprintf(buff, sizeof(buff), "%s%s", homedir, buf);
+        types::string buf;
 
         e.t_new();
-        listdir(buf, false, NULL, glob);
+        buf.format("data%cmaps", PATHDIV);
+        listdir(buf.get_buf(), false, NULL, glob);
         if (glob.length() > 0)
         {
             loopv(glob)
@@ -260,7 +258,8 @@ namespace lua_binds
         }
 
         e.t_new();
-        listdir(buff, false, NULL, user);
+        buf.format("%s%s", homedir, buf.get_buf());
+        listdir(buf.get_buf(), false, NULL, user);
         if (user.length() > 0)
         {
             loopv(user)

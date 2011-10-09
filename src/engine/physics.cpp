@@ -133,7 +133,7 @@ static float disttoent(octaentities *oc, octaentities *last, const vec &o, const
             loopv(oc->type) \
                 if(!last || last->type.find(oc->type[i])<0) \
                 { \
-                    extentity &e = *entities::storage[oc->type[i]]; \
+                    extentity &e = *entities::get(oc->type[i]); \
                     if(!e.inoctanode || &e==t) continue; \
                     func; \
                     if(f<dist && f>0) \
@@ -171,7 +171,7 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
     float dist = 1e16f, f = 0.0f;
     loopv(outsideents)
     {
-        extentity &e = *entities::storage[outsideents[i]];
+        extentity &e = *entities::get(outsideents[i]);
         if(!e.inoctanode || &e == t) continue;
         entselectionbox(e, eo, es);
         if(!rayrectintersect(eo, es, o, ray, f, orient)) continue;
@@ -192,7 +192,7 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
     if(oc == last) return dist;
     loopv(oc->mapmodels) if(!last || last->mapmodels.find(oc->mapmodels[i])<0)
     {
-        extentity &e = *entities::storage[oc->mapmodels[i]];
+        extentity &e = *entities::get(oc->mapmodels[i]);
         if(!e.inoctanode || &e==t) continue;
         if(!mmintersect(e, o, ray, radius, mode, f)) continue;
         if(f>0 && f<dist) dist = f;
@@ -768,7 +768,7 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
 {
     loopv(oc.mapmodels)
     {
-        extentity &e = *entities::storage[oc.mapmodels[i]];
+        extentity &e = *entities::get(oc.mapmodels[i]);
         if(e.flags&extentity::F_NOCOLLIDE) continue;
         CLogicEntity *entity = LogicSystem::getLogicEntity(e);
         model *m = entity->getModel(); //loadmodel(NULL, e.attr2);

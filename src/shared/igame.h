@@ -25,7 +25,7 @@ namespace game
     extern void initclient();
     extern void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material = 0);
     extern void edittrigger(const selinfo &sel, int op, int arg1 = 0, int arg2 = 0, int arg3 = 0);
-    extern const char *getclientmap();
+    extern types::string getclientmap();
     extern const char *getmapinfo();
     extern void newmap(int size);
     extern void startmap(const char *name);

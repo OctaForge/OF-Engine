@@ -1,7 +1,6 @@
 module("world_notices", package.seeall)
 
 world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, {{
-    _class     = "world_notice",
     should_act = true,
 
     properties = {
@@ -39,7 +38,7 @@ world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, 
 
         self.colliding_time = GLOBAL_TIME
     end
-}}), "mapmodel")
+}}, "world_notice"), "mapmodel")
 
 notice_action = class.new(actions.action, {
     can_multiply_queue = false,

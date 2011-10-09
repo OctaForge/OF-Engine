@@ -31,6 +31,7 @@
 #include "of_world.h"
 #include "of_tools.h"
 #include <sys/stat.h>
+#include <ctype.h>
 
 void writebinds(stream *f);
 extern string homedir;
@@ -40,36 +41,10 @@ namespace tools
 {
     bool valanumeric(const char *str, const char *allow)
     {
-        register unsigned int i, n;
-        bool skip = false;
-        for (i = 0; i < strlen(str); i++)
+        for (; *str; str++)
         {
-            if (str[i] <= 47
-            || (str[i] >= 58 && str[i] <= 64)
-            || (str[i] >= 91 && str[i] <= 96)
-            ||  str[i] >= 123
-            ) {
-                if (allow)
-                {
-                    for (n = 0; n < strlen(allow); n++) if (str[i] == allow[n])
-                    {
-                        skip = true;
-                        break;
-                    }
-                    if (skip)
-                    {
-                        skip = false;
-                        continue;
-                    }
-                }
-                logger::log(
-                    logger::WARNING,
-                    "Alphanumeric validation of string \"%s\" failed (using alphanumeric + %s)",
-                    str,
-                    allow ? allow : "nothing"
-                );
+            if (!isalnum(*str) && !strchr(allow, *str))
                 return false;
-            }
         }
         return true;
     }
@@ -156,40 +131,6 @@ namespace tools
         return true;
     }
 
-    bool mkpath(const char *path)
-    {
-        char  buf[4096];
-        char buff[4096];
-        char  *p = newstring(path);
-        char  *t = strtok(p, "/\\");   
-        while (t)
-        {
-            if (t[0] == '.')
-                t = strtok(NULL, "/\\");
-
-            if (strlen(buf) > 0)
-            {
-                snprintf(buff, sizeof(buff), "%s%c%s", buf, PATHDIV, t);
-                if (!createdir(buff))
-                {
-                    delete[] p;
-                    return false;
-                }
-                snprintf(buf, sizeof(buf), "%s", buff);
-            }
-            else if (!createdir(t))
-            {
-                delete[] p;
-                return false;
-            }
-            else snprintf(buf, sizeof(buf), "%s", t);
-
-            t  = strtok(NULL, "/\\");
-        }
-        delete[] p;
-        return true;
-    }
-
     char *sread(const char *fname)
     {
         if (!fname
@@ -199,38 +140,32 @@ namespace tools
         ) return NULL;
         /* TODO: more checks */
 
-        char buf[512], buff[512];
         char *loaded = NULL;
 
-        if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
-        {
-            char *path = world::get_mapfile_path(fname + 2);
-            snprintf(buf, sizeof(buf), "%s", path);
-            delete[] path;
-        }
-        else snprintf(
-            buf, sizeof(buf),
-            "%sdata%c%s",
-            homedir, PATHDIV, fname
-        );
+        types::string buf, buff;
 
-        loaded = loadfile(buf, NULL);
+        if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
+            buf = world::get_mapfile_path(fname + 2);
+        else
+            buf.format("%sdata%c%s", homedir, PATHDIV, fname);
+
+        loaded = loadfile(buf.get_buf(), NULL);
         if (!loaded)
         {
-            snprintf(buff, sizeof(buff), "data%c%s", PATHDIV, fname);
-            loaded = loadfile(buff, NULL);
+            buff.format("data%c%s", PATHDIV, fname);
+            loaded = loadfile(buff.get_buf(), NULL);
         }
         if (!loaded)
         {
-            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf, buff);
+            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf.get_buf(), buff.get_buf());
             return NULL;
         }
         return loaded;
     }
 
-    static int sortvars(var::cvar **x, var::cvar **y)
+    static inline bool sortvars(var::cvar *x, var::cvar *y)
     {
-        return strcmp((*x)->name, (*y)->name);
+        return strcmp(x->name, y->name) < 0;
     }
 
     void writecfg(const char *name)
@@ -244,13 +179,10 @@ namespace tools
         f->printf("-- configuration file version\n");
         f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");
-        vector<var::cvar*> varv;
 
-        enumerate(*var::vars, var::cvar*, v, varv.add(v));
-        varv.sort(sortvars);
-        loopv(varv)
+        for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
         {
-            var::cvar *v = varv[i];
+            var::cvar *v = it->second;
             /* do not write aliases here! */
             if ((v->flags&var::VAR_ALIAS)   != 0) continue;
             if ((v->flags&var::VAR_PERSIST) != 0) switch(v->type)
@@ -284,9 +216,9 @@ namespace tools
 
         f->printf("-- aliases\n");
         f->printf("local was_persisting = engine.persist_vars(true)\n");
-        loopv(varv)
+        for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
         {
-            var::cvar *v = varv[i];
+            var::cvar *v = it->second;
             if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)
             {
                 case var::VAR_I: f->printf("engine.new_var(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;

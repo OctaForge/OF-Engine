@@ -3,15 +3,6 @@
 #ifndef _TOOLS_H
 #define _TOOLS_H
 
-#ifdef NULL
-#undef NULL
-#endif
-#define NULL 0
-
-typedef unsigned char uchar;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-
 #ifdef _DEBUG
 #ifdef __GNUC__
 #define ASSERT(c) if(!(c)) { asm("int $3"); }
@@ -28,59 +19,6 @@ typedef unsigned int uint;
 #define RESTRICT
 #endif
 
-inline void *operator new(size_t size) 
-{ 
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-inline void *operator new[](size_t size) 
-{
-    void *p = malloc(size);
-    if(!p) abort();
-    return p;
-}
-
-inline void operator delete(void *p) { if(p) free(p); }
-inline void operator delete[](void *p) { if(p) free(p); } 
-
-inline void *operator new(size_t, void *p) { return p; }
-inline void *operator new[](size_t, void *p) { return p; }
-inline void operator delete(void *, void *) {}
-inline void operator delete[](void *, void *) {}
-
-#ifdef swap
-#undef swap
-#endif
-template<class T>
-static inline void swap(T &a, T &b)
-{
-    T t = a;
-    a = b;
-    b = t;
-}
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
-template<class T>
-static inline T max(T a, T b)
-{
-    return a > b ? a : b;
-}
-template<class T>
-static inline T min(T a, T b)
-{
-    return a < b ? a : b;
-}
-template<class T>
-static inline T clamp(T a, T b, T c)
-{
-    return max(b, min(a, c));
-}
-
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
@@ -90,10 +28,6 @@ static inline T clamp(T a, T b, T c)
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
 #define loopl(m) loop(l,m)
-
-
-#define DELETEP(p) if(p) { delete   p; p = 0; }
-#define DELETEA(p) if(p) { delete[] p; p = 0; }
 
 #define PI  (3.1415927f)
 #define PI2 (2*PI)
@@ -119,6 +53,7 @@ static inline T clamp(T a, T b, T c)
 
 #define strcasecmp _stricmp
 #define PATHDIV '\\'
+
 #else
 #define __cdecl
 #define _vsnprintf vsnprintf
@@ -287,10 +222,91 @@ struct packetbuf : ucharbuf
 template<class T>
 static inline float heapscore(const T &n) { return n; }
 
-template<class T, class U>
-static inline void quicksort(T *buf, int n, int (__cdecl *func)(U *, U *))
+template<class T>
+static inline bool compareless(const T &x, const T &y) { return x < y; }
+
+template<class T, class F>
+static inline void insertionsort(T *start, T *end, F fun)
 {
-    qsort(buf, n, sizeof(T), (int (__cdecl *)(const void *,const void *))func);
+    for(T *i = start+1; i < end; i++)
+    {
+        if(fun(*i, i[-1]))
+        {
+            T tmp = *i;
+            *i = i[-1];
+            T *j = i-1;
+            for(; j > start && fun(tmp, j[-1]); --j)
+                *j = j[-1];
+            *j = tmp;
+        }
+    }
+
+}
+
+template<class T, class F>
+static inline void insertionsort(T *buf, int n, F fun)
+{
+    insertionsort(buf, buf+n, fun);
+}
+
+template<class T>
+static inline void insertionsort(T *buf, int n)
+{
+    insertionsort(buf, buf+n, compareless<T>);
+}
+
+template<class T, class F>
+static inline void quicksort(T *start, T *end, F fun)
+{
+    while(end-start > 10)
+    {
+        T *mid = &start[(end-start)/2], *i = start+1, *j = end-2, pivot;
+        if(fun(*start, *mid)) /* start < mid */
+        {
+            if(fun(end[-1], *start)) { pivot = *start; *start = end[-1]; end[-1] = *mid; } /* end < start < mid */
+            else if(fun(end[-1], *mid)) { pivot = end[-1]; end[-1] = *mid; } /* start <= end < mid */
+            else { pivot = *mid; } /* start < mid <= end */
+        }
+        else if(fun(*start, end[-1])) { pivot = *start; *start = *mid; } /*mid <= start < end */
+        else if(fun(*mid, end[-1])) { pivot = end[-1]; end[-1] = *start; *start = *mid; } /* mid < end <= start */
+        else { pivot = *mid; swap(*start, end[-1]); }  /* end <= mid <= start */
+        *mid = end[-2];
+        do
+        {
+            while(fun(*i, pivot)) if(++i >= j) goto partitioned;
+            while(fun(pivot, *--j)) if(i >= j) goto partitioned;
+            swap(*i, *j);
+        }
+        while(++i < j);
+    partitioned:
+        end[-2] = *i;
+        *i = pivot;
+
+        if(i-start < end-(i+1))
+        {
+            quicksort(start, i, fun);
+            start = i+1;
+        }
+        else
+        {
+            quicksort(i+1, end, fun);
+            end = i;
+        }
+    }
+
+    insertionsort(start, end, fun);
+}
+
+template<class T, class F>
+static inline void quicksort(T *buf, int n, F fun)
+{
+    quicksort(buf, buf+n, fun);
+}
+
+template<class T>
+static inline void quicksort(T *buf, int n)
+{
+    quicksort(buf, buf+n, compareless<T>);
 }
 
 template <class T> struct vector
@@ -380,11 +396,13 @@ template <class T> struct vector
     const T *getbuf() const { return buf; }
     bool inbuf(const T *e) const { return e >= buf && e < &buf[ulen]; }
 
-    template<class ST>
-    void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1) 
+    template<class F>
+    void sort(F fun, int i = 0, int n = -1) 
     { 
-        quicksort(&buf[i], n < 0 ? ulen : n, cf);
+        quicksort(&buf[i], n < 0 ? ulen-i : n, fun);
     }
+
+    void sort() { sort(compareless<T>); }
 
     void growbuf(int sz)
     {
@@ -560,9 +578,19 @@ static inline uint hthash(const char *key)
     return h;
 }
 
+static inline uint hthash(const types::string& key)
+{
+    return hthash(key.get_buf());
+}
+
 static inline bool htcmp(const char *x, const char *y)
 {
     return !strcmp(x, y);
+}
+
+static inline bool htcmp(const types::string& x, const types::string& y)
+{
+    return (x == y);
 }
 
 static inline uint hthash(int key)
@@ -920,12 +948,22 @@ template<class T> inline void bigswap(T *buf, int len) { if(*(const uchar *)&isl
 
 struct stream
 {
+#ifdef WIN32
+#ifdef __GNUC__
+    typedef off64_t offset;
+#else
+    typedef __int64 offset;
+#endif
+#else
+    typedef off_t offset;
+#endif
+    
     virtual ~stream() {}
     virtual void close() = 0;
     virtual bool end() = 0;
-    virtual long tell() { return -1; }
-    virtual bool seek(long offset, int whence = SEEK_SET) { return false; }
-    virtual long size();
+    virtual offset tell() { return -1; }
+    virtual bool seek(offset pos, int whence = SEEK_SET) { return false; }
+    virtual offset size();
     virtual int read(void *buf, int len) { return 0; }
     virtual int write(const void *buf, int len) { return 0; }
     virtual int getchar() { uchar c; return read(&c, 1) == 1 ? c : -1; }

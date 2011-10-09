@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_json.lua
+    File: library/core/base/base_json.lua
 
     About: Author
         Craig Mason-Jones, reformatted / modified by q66 <quaker66@gmail.com>.

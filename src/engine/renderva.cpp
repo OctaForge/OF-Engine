@@ -342,7 +342,7 @@ static inline bool insideoe(const octaentities *oe, const vec &v, int margin = 1
            v.x<=oe->bbmax.x+margin && v.y<=oe->bbmax.y+margin && v.z<=oe->bbmax.z+margin;
 }
 
-void findvisiblemms(const vector<extentity *> &ents)
+void findvisiblemms(vector< types::shared_ptr<extentity> > &ents)
 {
     for(vtxarray *va = visibleva; va; va = va->next)
     {
@@ -366,7 +366,7 @@ void findvisiblemms(const vector<extentity *> &ents)
                 int visible = 0;
                 loopv(oe->mapmodels)
                 {
-                    extentity &e = *ents[oe->mapmodels[i]];
+                    extentity &e = *(ents[oe->mapmodels[i]].get());
                     if(e.flags&extentity::F_NOVIS) continue;
                     e.visible = true;
                     ++visible;
@@ -441,7 +441,7 @@ void renderreflectedmapmodels()
         if(isfoggedcube(oe->o, oe->size)) continue;
         loopv(oe->mapmodels)
         {
-           extentity &e = *entities::storage[oe->mapmodels[i]];
+           extentity &e = *entities::get(oe->mapmodels[i]);
            if(e.visible || e.flags&extentity::F_NOVIS) continue;
            e.visible = true;
         }
@@ -453,7 +453,7 @@ void renderreflectedmapmodels()
         {
             loopv(oe->mapmodels)
             {
-                extentity &e = *entities::storage[oe->mapmodels[i]];
+                extentity &e = *entities::get(oe->mapmodels[i]);
                 if(!e.visible) continue;
                 rendermapmodel(e);
                 e.visible = false;
@@ -478,7 +478,7 @@ void rendermapmodels()
         bool rendered = false;
         loopv(oe->mapmodels)
         {
-            extentity &e = *entities::storage[oe->mapmodels[i]];
+            extentity &e = *entities::get(oe->mapmodels[i]);
             if(!e.visible) continue;
             if(!rendered)
             {
@@ -2345,6 +2345,7 @@ void rendergeom(float causticspass, bool fogpass)
 
     if(doZP)
     {
+		glFlush();
         if(shadowmap && hasFBO && mainpass)
         {
             glDisableClientState(GL_VERTEX_ARRAY);

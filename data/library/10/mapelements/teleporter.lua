@@ -1,8 +1,6 @@
 module("teleporter", package.seeall)
 
 plugin = {
-    _class = "teleporter",
-
     properties = {
         destination = state_variables.state_integer(),
         sound_name  = state_variables.state_string ()
@@ -36,7 +34,8 @@ plugin = {
 entity_classes.register(
     plugins.bake(
         entity_static.area_trigger,
-        { plugin }
+        { plugin },
+        "teleporter"
     ),
     "mapmodel"
 )

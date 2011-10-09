@@ -453,4 +453,4 @@ struct md5 : skelmodel, skelloader<md5>
 };
 
 skelcommands<md5> md5commands;
-LE_reg *md5binds = md5commands.getbuf();
+const types::vector<LE_reg>& md5binds = md5commands.command_stor;

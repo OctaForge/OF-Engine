@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_textures.lua
+    File: library/core/base/base_textures.lua
 
     About: Author
         q66 <quaker66@gmail.com>

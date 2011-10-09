@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_camera.lua
+    File: library/core/base/base_camera.lua
 
     About: Author
         q66 <quaker66@gmail.com>

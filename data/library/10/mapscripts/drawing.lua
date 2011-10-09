@@ -18,6 +18,7 @@ end
 -- Register our custom player entity class into storage
 entity_classes.register(plugins.bake(
     character.player, {
+        game_manager.player_plugin,
 -- enable for platformer game
 --      platformer.plugin,
         firing.plugins.protocol,
@@ -26,8 +27,6 @@ entity_classes.register(plugins.bake(
         projectiles.plugin,
         chaingun.chaingun.plugin,
         {
-            _class = "game_player",
-
             properties = {
                 new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
             },
@@ -125,7 +124,7 @@ entity_classes.register(plugins.bake(
                 end
             end
         }
-    }
+    }, "game_player"
 ), "fpsent")
 
 -- set up a chaingun (non-projectile, repeating)
@@ -142,6 +141,10 @@ player_rocket_launcher = firing.register_gun(
 -- When middle mouse button is clicked, change to next color.
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
 function client_click(btn, down, pos, ent, x, y)
+    if  ent and ent.client_click then
+        ent:client_click(btn, down, pos, x, y)
+    end
+
     -- in shoot mode, shoot instead of drawing
     if shoot_mode == 1 then
         return firing.client_click(btn, down, pos, ent, x, y)

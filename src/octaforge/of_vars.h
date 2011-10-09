@@ -118,7 +118,7 @@ namespace var
         void (*vfun)();
     };
 
-    typedef hashtable<const char*, cvar*> vartable;
+    typedef types::map<const char*, cvar*> vartable;
 
     extern vartable *vars;
     extern bool persistvars, overridevars;
@@ -126,7 +126,7 @@ namespace var
     int&   regivar(const char *name, int minv, int curv, int maxv, int *stor, void (*fun)(), int flags);
     float& regfvar(const char *name, float minv, float curv, float maxv, float *stor, void (*fun)(), int flags);
     char *&regsvar(const char *name, const char *curv, char **stor, void (*fun)(), int flags);
-    cvar  *regvar (const char *name, var::cvar *var);
+    cvar  *regvar (const char *name, cvar *v);
 
     void clear();
     void flush();

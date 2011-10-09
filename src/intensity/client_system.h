@@ -25,7 +25,7 @@ struct ClientSystem
 
     //! An identifier for the current scenario the client is active in. Used to check with the
     //! server, when the server starts a new scenario, to know when we are in sync or not
-    static const char *currScenarioCode;
+    static types::string currScenarioCode;
 
     // Functions
 
@@ -55,7 +55,7 @@ struct ClientSystem
 
     static void finishLoadWorld();
 
-    static void prepareForNewScenario(const char *sc);
+    static void prepareForNewScenario(const types::string& buf);
 
     //! Check if this user has admin privileges, which allows entering edit mode and using the Sauer console (/slash)
     static bool isAdmin();

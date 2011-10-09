@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_gui.lua
+    File: library/core/base/base_gui.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -91,7 +91,7 @@ font_offset = CAPI.fontoffset
 font_char = CAPI.fontchar
 
 --[[!
-    Section: HUD
+    Package: gui
     Functions relating to HUD management (rectangles, images, fonts).
 ]]
 

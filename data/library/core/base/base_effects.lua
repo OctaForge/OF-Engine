@@ -1,5 +1,5 @@
 --[[!
-    File: base/base_effects.lua
+    File: library/core/base/base_effects.lua
 
     About: Author
         q66 <quaker66@gmail.com>

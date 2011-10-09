@@ -183,7 +183,7 @@ struct verthash
                  if(c.lmu==v.lmu && c.lmv==v.lmv) return i;
             }
         }
-        if(verts.length() >= USHRT_MAX) return -1;
+        if(verts.length() >= (int)USHRT_MAX) return -1;
         verts.add(v);
         chain.add(table[h]);
         return table[h] = verts.length()-1;
@@ -397,32 +397,32 @@ struct vacollect : verthash
         matsurfs.shrink(optimizematsurfs(matsurfs.getbuf(), matsurfs.length()));
     }
 
-    static int texsort(const sortkey *x, const sortkey *y)
+    static inline bool texsort(const sortkey &x, const sortkey &y)
     {
-        if(x->alpha < y->alpha) return -1;
-        if(x->alpha > y->alpha) return 1;
-        if(x->layer < y->layer) return -1;
-        if(x->layer > y->layer) return 1;
-        if(x->tex == y->tex) 
+        if(x.alpha < y.alpha) return true;
+        if(x.alpha > y.alpha) return false;
+        if(x.layer < y.layer) return true;
+        if(x.layer > y.layer) return false;
+        if(x.tex == y.tex) 
         {
-            if(x->lmid < y->lmid) return -1;
-            if(x->lmid > y->lmid) return 1;
-            if(x->envmap < y->envmap) return -1;
-            if(x->envmap > y->envmap) return 1;
-            if(x->dim < y->dim) return -1;
-            if(x->dim > y->dim) return 1;
-            return 0;
+            if(x.lmid < y.lmid) return true;
+            if(x.lmid > y.lmid) return false;
+            if(x.envmap < y.envmap) return true;
+            if(x.envmap > y.envmap) return false;
+            if(x.dim < y.dim) return true;
+            if(x.dim > y.dim) return false;
+            return false;
         }
         if(renderpath!=R_FIXEDFUNCTION)
         {
-            VSlot &xs = lookupvslot(x->tex, false), &ys = lookupvslot(y->tex, false);
-            if(xs.slot->shader < ys.slot->shader) return -1;
-            if(xs.slot->shader > ys.slot->shader) return 1;
-            if(xs.slot->params.length() < ys.slot->params.length()) return -1;
-            if(xs.slot->params.length() > ys.slot->params.length()) return 1;
+            VSlot &xs = lookupvslot(x.tex, false), &ys = lookupvslot(y.tex, false);
+            if(xs.slot->shader < ys.slot->shader) return true;
+            if(xs.slot->shader > ys.slot->shader) return false;
+            if(xs.slot->params.length() < ys.slot->params.length()) return true;
+            if(xs.slot->params.length() > ys.slot->params.length()) return false;
         }
-        if(x->tex < y->tex) return -1;
-        else return 1;
+        if(x.tex < y.tex) return true;
+        else return false;
     }
 
 #define GENVERTS(type, ptr, body) do \
@@ -457,8 +457,8 @@ struct vacollect : verthash
         if(va->verts)
         {
             if(vbosize[VBO_VBUF] + verts.length() > maxvbosize || 
-               vbosize[VBO_EBUF] + worldtris > USHRT_MAX ||
-               vbosize[VBO_SKYBUF] + skytris > USHRT_MAX) 
+               vbosize[VBO_EBUF] + worldtris > (int)USHRT_MAX ||
+               vbosize[VBO_SKYBUF] + skytris > (int)USHRT_MAX) 
                 flushvbo();
 
             va->voffset = vbosize[VBO_VBUF];
@@ -684,7 +684,7 @@ void addtris(const sortkey &key, int orient, vertex verts[4], int index[4], int 
                 vt.tangent.lerp(v1.tangent, v2.tangent, offset);
                 vt.bitangent = v1.bitangent;
                 int nextindex = vc.addvert(vt);
-                if(nextindex < 0 || total + 3 > USHRT_MAX) return;
+                if(nextindex < 0 || total + 3 > (int)USHRT_MAX) return;
                 total += 3;
                 idxs.add(right);
                 idxs.add(left);
@@ -694,7 +694,7 @@ void addtris(const sortkey &key, int orient, vertex verts[4], int index[4], int 
             }
         }
 
-        if(total + 3 > USHRT_MAX) return;
+        if(total + 3 > (int)USHRT_MAX) return;
         total += 3;
         idxs.add(right);
         idxs.add(left);
@@ -906,8 +906,10 @@ void gencubeedges(cube &c, int x, int y, int z, int size)
     int vis;
     loopi(6) if((vis = visibletris(c, i, x, y, z, size)))
     {
-        if(c.ext && c.ext->merges && !c.ext->merges[i].empty())
+        if(c.merged&(1<<i))
         {
+            if(!c.ext || !c.ext->merges || c.ext->merges[i].empty()) continue;
+
             const mergeinfo &m = c.ext->merges[i];
             vec mv[4];
             genmergedverts(c, i, ivec(x, y, z), size, m, mv);
@@ -1141,7 +1143,7 @@ void addskyverts(const ivec &o, int size)
                 if(index[k] < 0) goto nextskyface;
                 vc.skyclip = min(vc.skyclip, int(v.z*8)>>3);
             }
-            if(vc.skytris + 6 > USHRT_MAX) break;
+            if(vc.skytris + 6 > (int)USHRT_MAX) break;
             vc.skytris += 6;
             vc.skyindices.add(index[0]);
             vc.skyindices.add(index[1]);

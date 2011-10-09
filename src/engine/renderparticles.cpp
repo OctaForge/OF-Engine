@@ -75,7 +75,7 @@ void addparticleemitters()
     emitters.shrink(0);
     loopv(entities::storage)
     {
-        extentity &e = *entities::storage[i];
+        extentity &e = *entities::get(i);
         if(e.type != ET_PARTICLES) continue;
         emitters.add(particleemitter(&e));
     }
@@ -301,7 +301,7 @@ struct listrenderer : partrenderer
             else prev = &cur->next;
         }
     }
-    
+
     particle *addpart(const vec &o, const vec &d, int fade, int color, float size, int gravity, int grow) // SAUER ENHANCED - add grow
     {
         if(!parempty)
@@ -320,10 +320,13 @@ struct listrenderer : partrenderer
         p->gravity = gravity;
         p->fade = fade;
         p->millis = lastmillis + emitoffset;
+        p->grow   = grow;
         p->color = bvec(color>>16, (color>>8)&0xFF, color&0xFF);
         p->size = size;
         p->owner = NULL;
         p->flags = 0;
+        p->fastsplash = false;
+        p->fixedfade  = false;
         return p;
     }
     
@@ -680,11 +683,13 @@ struct varenderer : partrenderer
         p->gravity = gravity;
         p->fade = fade;
         p->millis = lastmillis + emitoffset;
+        p->grow = grow; // SAUER ENHANCED - add grow
         p->color = bvec(color>>16, (color>>8)&0xFF, color&0xFF);
         p->size = size;
         p->owner = NULL;
         p->flags = 0x80 | (rndmask ? rnd(0x80) & rndmask : 0);
-        p->grow = grow; // SAUER ENHANCED - add grow
+        p->fastsplash = false;
+        p->fixedfade  = false;
         lastupdate = -1;
         return p;
     }
@@ -1610,15 +1615,15 @@ void updateparticles()
     }
     if(editmode) // show sparkly thingies for map entities in edit mode
     {
-        char buf[256];
+        types::string buf;
         int editid = -1;
         // note: order matters in this case as particles of the same type are drawn in the reverse order that they are added
         loopv(entgroup)
         {
-            extentity &e = *entities::storage[entgroup[i]]; // INTENSITY: Made extentity
+            extentity &e = *entities::get(entgroup[i]); // INTENSITY: Made extentity
             if (!LogicSystem::getLogicEntity(e)) continue;
-            snprintf(buf, sizeof(buf), "@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf, PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
+            buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());
+            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.get_buf(), PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
             switch (e.type)
             {
                 case ET_LIGHT:
@@ -1650,11 +1655,11 @@ void updateparticles()
         }
         loopv(entities::storage)
         {
-            extentity &e = *entities::storage[i]; // INTENSITY: Made extentity
+            extentity &e = *entities::get(i); // INTENSITY: Made extentity
             if(e.type==ET_EMPTY || editid==e.uniqueId) continue;
             if (!LogicSystem::getLogicEntity(e)) continue;
-            snprintf(buf, sizeof(buf), "@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf, PART_TEXT, 1, 0x1EC850, editpartsize); // INTENSITY: Use class
+            buf.format("@%s", LogicSystem::getLogicEntity(e)->getClass());
+            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf.get_buf(), PART_TEXT, 1, 0x1EC850, editpartsize); // INTENSITY: Use class
             switch (e.type)
             {
                 case ET_LIGHT:

@@ -37,8 +37,8 @@
  * @date 2011
  */
 
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 #include <lua.hpp>
 
 /**
@@ -59,6 +59,8 @@ namespace lua
      */
     struct LE_reg
     {
+        LE_reg(const char *n, lua_Binding f): n(n), f(f) {}
+
         const char *n;
         lua_Binding f;
     };
@@ -95,7 +97,8 @@ namespace lua
          * Automatically done from destructor if needed.
          * @see Create()
          */
-        int destroy();
+        int  destroy();
+        void reset  ();
         /**
          * @brief Is the state handler allocated?
          * @return True if state handler is allocated, otherwise false.
@@ -641,9 +644,10 @@ namespace lua
         /* Loads all needed Lua modules */
         void setup_libs();
         /* Passing name and map of binds, this method registers a table of binds in Lua */
-        void setup_namespace(const char *n, const LE_reg *r);
+        void setup_namespace(const char *n, const types::vector<LE_reg>& r);
         /* Loads a "module" - that is a lua script in m_scriptDir. */
-        void setup_module(const char *n, bool t = false);
+        void setup_module (const char *n, bool t = false);
+        void unload_module(const char *n);
         /* Registers the Lua namespaces, handles CubeCreate Lua modules and tests. */
         lua_Engine& bind();
 
@@ -666,11 +670,7 @@ namespace lua
     template<> float          lua_Engine::get(int i, float d);
     template<> bool           lua_Engine::get(int i, bool d);
     template<> const char    *lua_Engine::get(int i, const char *d);
-    // specializations for pointers; temporary till stuff requiring this is rewritten
     template<> char          *lua_Engine::get(int i, char *d);
-    template<> int           *lua_Engine::get(int i);
-    template<> double        *lua_Engine::get(int i);
-    template<> float         *lua_Engine::get(int i);
     template<> char          *lua_Engine::get(int i);
     // type checker specializations
     template<> bool           lua_Engine::is<int        >(int i);
@@ -735,7 +735,7 @@ void _bind_##n(lua_Engine e) \
     logger::log(logger::INFO, "Registering Lua function: %s\r\n", #n); \
     b; \
 } \
-bool __dummy_##n = lua::addcommand((LE_reg){ #n, _bind_##n });
+bool __dummy_##n = lua::addcommand(LE_reg(#n, _bind_##n));
 
 /**
  * @def LUA_BIND_STD

@@ -115,42 +115,45 @@ namespace var
         const char *n,
         int v
     ) : name(n),
-        type(VAR_I)
+        type(VAR_I),
+        flags(0),
+        vfun(NULL)
     {
         flags |= VAR_ALIAS;
         if (persistvars) flags |= VAR_PERSIST;
 
         minv.i = maxv.i = -1;
         oldv.i = curv.i = v;
-        vfun   = NULL;
     }
 
     cvar::cvar(
         const char *n,
         float v
     ) : name(n),
-        type(VAR_F)
+        type(VAR_F),
+        flags(0),
+        vfun(NULL)
     {
         flags |= VAR_ALIAS;
         if (persistvars) flags |= VAR_PERSIST;
 
         minv.f = maxv.f = -1.0f;
         oldv.f = curv.f = v;
-        vfun   = NULL;
     }
 
     cvar::cvar(
         const char *n,
         const char *v
     ) : name(n),
-        type(VAR_S)
+        type(VAR_S),
+        flags(0),
+        vfun(NULL)
     {
         flags |= VAR_ALIAS;
         if (persistvars) flags |= VAR_PERSIST;
 
         curv.s = (v ? newstring(v) : NULL);
         oldv.s = NULL;
-        vfun   = NULL;
     }
 
     cvar::~cvar()
@@ -215,13 +218,14 @@ namespace var
         if ((flags&VAR_OVERRIDE) || overridevars)
         {
             flags |= VAR_OVERRIDEN;
-            if (oldv.s) DELETEA(oldv.s);
+            DELETEA(oldv.s);
             oldv.s = (curv.s ? newstring(curv.s) : NULL);
         }
 
         if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
              flags ^= VAR_PERSIST;
 
+        DELETEA(curv.s);
         curv.s = (v ? newstring(v) : NULL);
         if (vfun && dofun) vfun();
     }
@@ -249,51 +253,56 @@ namespace var
 
     int& regivar(const char *name, int minv, int curv, int maxv, int *stor, void (*fun)(), int flags)
     {
-        var::cvar *nvar = new var::cvar(name, minv, curv, maxv, stor, fun, flags);
+        cvar *nvar = new cvar(name, minv, curv, maxv, stor, fun, flags);
         regvar(name, nvar);
         return *stor;
     }
 
     float& regfvar(const char *name, float minv, float curv, float maxv, float *stor, void (*fun)(), int flags)
     {
-        var::cvar *nvar = new var::cvar(name, minv, curv, maxv, stor, fun, flags);
+        cvar *nvar = new cvar(name, minv, curv, maxv, stor, fun, flags);
         regvar(name, nvar);
         return *stor;
     }
 
     char *&regsvar(const char *name, const char *curv, char **stor, void (*fun)(), int flags)
     {
-        var::cvar *nvar = new var::cvar(name, curv, stor, fun, flags);
+        cvar *nvar = new cvar(name, curv, stor, fun, flags);
         regvar(name, nvar);
         return *stor;
     }
 
-    cvar *regvar(const char *name, var::cvar *var)
+    cvar *regvar(const char *name, cvar *v)
     {
         if (!vars) vars = new vartable;
-        vars->access(name, var);
-        return var;
+        vars->insert(name, v);
+        return v;
     }
 
     void clear()
     {
-        if (!vars) return;
-        enumerate(*vars, cvar*, v, v->reset(););
+        if (!vars || vars->is_empty()) return;
+        for (vartable::it it = vars->begin(); it != vars->end(); ++it)
+            it->second->reset();
     }
 
     void flush()
     {
         if (vars)
         {
-            enumerate(*vars,  cvar*, v, { if (v) delete v; });
+            for (vartable::it it = vars->begin(); it != vars->end(); ++it)
+                delete it->second;
+
             delete vars;
         }
     }
 
     cvar *get(const char *name)
     {
-        if (vars && vars->access(name))
-            return *vars->access(name);
+        if (!vars) return NULL;
+
+        vartable::cit it = vars->find(name);
+        if (it != vars->end()) return it->second;
         else return NULL;
     }
 } /* end namespace var */

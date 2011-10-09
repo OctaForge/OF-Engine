@@ -451,12 +451,16 @@ struct animmodel : model
                          &tc1 = tcverts[t.vert[1]],
                          &tc2 = tcverts[t.vert[2]];
                 float u1 = tc1.u - tc0.u, v1 = tc1.v - tc0.v,
-                      u2 = tc2.u - tc0.u, v2 = tc2.v - tc0.v,
-                      scale = u1*v2 - u2*v1;
-                if(scale!=0) scale = 1.0f / scale;
-                vec u(e1), v(e2);
-                u.mul(v2).sub(vec(e2).mul(v1)).mul(scale);
-                v.mul(u1).sub(vec(e1).mul(u2)).mul(scale);
+                      u2 = tc2.u - tc0.u, v2 = tc2.v - tc0.v;
+                vec u(e2), v(e2);
+                u.mul(v1).sub(vec(e1).mul(v2));
+                v.mul(u1).sub(vec(e1).mul(u2));
+
+                if(vec().cross(e2, e1).dot(vec().cross(v, u)) < 0)
+                {
+                    u.neg();
+                    v.neg();
+                }
 
                 if(!areaweight)
                 {
@@ -530,7 +534,7 @@ struct animmodel : model
 
     meshgroup *sharemeshes(char *name, ...)
     {
-        static hashtable<char *, meshgroup *> meshgroups;
+        static hashtable<char *, types::shared_ptr<meshgroup> > meshgroups;
         if(!meshgroups.access(name))
         {
             va_list args;
@@ -540,7 +544,7 @@ struct animmodel : model
             if(!group) return NULL;
             meshgroups[group->name] = group;
         }
-        return meshgroups[name];
+        return meshgroups[name].get();
     }
 
     struct linkedpart
@@ -1406,7 +1410,7 @@ template<class MDL> string modelloader<MDL>::dir = "";
 
 template<class MDL, class MESH> struct modelcommands
 {
-    vector<LE_reg> command_stor;
+    types::vector<LE_reg> command_stor;
     typedef struct MDL::part part;
     typedef struct MDL::skin skin;
 
@@ -1532,12 +1536,7 @@ template<class MDL, class MESH> struct modelcommands
  
     void modelcommand(lua_Binding fun, const char *name)
     {
-        command_stor.add((LE_reg){ name, fun });
-    }
-
-    LE_reg *getbuf()
-    {
-        return command_stor.getbuf();
+        command_stor.push_back(LE_reg(name, fun));
     }
 
     modelcommands()

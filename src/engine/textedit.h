@@ -1,4 +1,3 @@
-
 struct editline
 {
     enum { CHUNKSIZE = 256 };
@@ -652,33 +651,7 @@ struct editor
     }
 };
 
-// a 'stack' where the last is the current focused editor
-static vector <editor*> editors;
+extern vector <editor*> editors;
 
-static editor *currentfocus() { return editors.length() ? editors.last() : NULL; }
-
-static editor *useeditor(const char *name, int mode, bool focus, const char *initval = NULL, bool password=false) // INTENSITY: password
-{
-    loopv(editors) if(strcmp(editors[i]->name, name) == 0) 
-    {
-        editor *e = editors[i];
-        if(focus) { editors.add(e); editors.remove(i); } // re-position as last
-        e->active = true;
-        return e;
-    }
-    editor *e = new editor(name, mode, initval, password); // INTENSITY: Password
-    if(focus) editors.add(e); else editors.insert(0, e); 
-    return e;
-}
-
-static void focuseditor(editor *e)
-{
-    editors.removeobj(e);
-    editors.add(e);
-}
-
-static void removeeditor(editor *e)
-{
-    editors.removeobj(e);
-    DELETEP(e);
-}
+editor *currentfocus();
+editor *useeditor(const char *name, int mode, bool focus, const char *initval = NULL, bool password=false);

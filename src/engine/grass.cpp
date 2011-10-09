@@ -220,11 +220,9 @@ static void gengrassquads(vtxarray *va)
     }
 }
 
-static inline int comparegrassgroups(const grassgroup *x, const grassgroup *y)
+static inline bool comparegrassgroups(const grassgroup &x, const grassgroup &y)
 {
-    if(x->dist > y->dist) return -1;
-    else if(x->dist < y->dist) return 1;
-    else return 0;
+    return x.dist > y.dist;
 }
 
 void generategrass()

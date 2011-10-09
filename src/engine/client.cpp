@@ -29,10 +29,10 @@ bool multiplayer(bool msg)
 void setrate(int rate)
 {
    if(!curpeer) return;
-   enet_host_bandwidth_limit(clienthost, rate, rate);
+   enet_host_bandwidth_limit(clienthost, rate*1024, rate*1024);
 }
 
-VARF(rate, 0, 0, 25000, setrate(rate));
+VARF(rate, 0, 0, 1024, setrate(rate));
 
 void throttle();
 

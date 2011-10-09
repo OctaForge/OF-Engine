@@ -66,21 +66,19 @@ namespace lua_binds
     LUA_BIND_CLIENT(do_upload, {
         renderprogress(0.1, "compiling scripts ..");
 
-        char *fname = world::get_mapscript_filename();
-        if (!engine.loadf(fname))
+        types::string fname = world::get_mapscript_filename();
+        if (!engine.loadf(fname.get_buf()))
         {
             engine.getg("gui")
                   .t_getraw("message")
                   .push("Compilation failed")
                   .push(engine.geterror_last())
                   .call(2, 0).pop(1);
-            delete[] fname;
             return;
         }
-        delete[] fname;
 
         renderprogress(0.3, "generating map ..");
-        save_world(game::getclientmap());
+        save_world(game::getclientmap().get_buf());
 
         renderprogress(0.4, "exporting entities ..");
         world::export_ents("entities.json");

@@ -1428,22 +1428,22 @@ void mpeditface(int dir, int mode, selinfo &sel, bool local)
         sel.o[d] += sel.grid * seldir;
 }
 
-void editface(int *dir, int *mode)
+void editface(int dir, int mode)
 {
     if(noedit(moving!=0)) return;
     if(hmapedit!=1)
-        mpeditface(*dir, *mode, sel, true);        
+        mpeditface(dir, mode, sel, true);        
     else 
-        edithmap(*dir, *mode);       
+        edithmap(dir, mode);       
 }
 
 VAR(selectionsurf, 0, 0, 1);
 
-void pushsel(int *dir)
+void pushsel(int dir)
 {
     if(noedit(moving!=0)) return;
     int d = dimension(orient);
-    int s = dimcoord(orient) ? -*dir : *dir;
+    int s = dimcoord(orient) ? -dir : dir;
     sel.o[d] += s*sel.grid;
     if(selectionsurf==1) 
     {
@@ -1618,6 +1618,7 @@ void filltexlist()
     }
 }
 
+/* OctaForge: use shared_ptr */
 void compactmruvslots()
 {
     remappedvslots.setsize(0);
@@ -1625,7 +1626,7 @@ void compactmruvslots()
     {
         if(vslots.inrange(texmru[i]))
         {
-            VSlot &vs = *vslots[texmru[i]];
+            VSlot &vs = *(vslots[texmru[i]]).get();
             if(vs.index >= 0) 
             {
                 texmru[i] = vs.index;
@@ -1638,7 +1639,7 @@ void compactmruvslots()
     }
     if(vslots.inrange(lasttex))
     {
-        VSlot &vs = *vslots[lasttex];
+        VSlot &vs = *(vslots[lasttex].get());
         lasttex = vs.index >= 0 ? vs.index : 0;
     }
     else lasttex = 0;
@@ -1656,13 +1657,13 @@ void edittex(int i, bool save = true)
     mpedittex(i, allfaces, sel, true);
 }
 
-void edittex_(int *dir)
+void edittex_(int dir)
 {
     if(noedit()) return;
     filltexlist();
     texpaneltimer = 5000;
     if(!(lastsel==sel)) tofronttex();
-    curtexindex = clamp(curtexindex<0 ? 0 : curtexindex+*dir, 0, texmru.length()-1);
+    curtexindex = clamp(curtexindex<0 ? 0 : curtexindex+dir, 0, texmru.length()-1);
     edittex(texmru[curtexindex], false);
 }
 
@@ -1697,13 +1698,13 @@ void getseltex()
     lua::engine.push(c.texture[sel.orient]);
 }
 
-void gettexname(int *tex, int *subslot)
+void gettexname(int tex, int subslot)
 {
-    if(noedit() || *tex<0) return;
-    VSlot &vslot = lookupvslot(*tex);
+    if(noedit() || tex<0) return;
+    VSlot &vslot = lookupvslot(tex);
     Slot &slot = *vslot.slot;
-    if(!slot.sts.inrange(*subslot)) return;
-    lua::engine.push(slot.sts[*subslot].name);
+    if(!slot.sts.inrange(subslot)) return;
+    lua::engine.push(slot.sts[subslot].name);
 }
 
 void replacetexcube(cube &c, int oldtex, int newtex)
@@ -1829,10 +1830,10 @@ void mprotate(int cw, selinfo &sel, bool local)
     changed(sel);
 }
 
-void rotate(int *cw)
+void rotate(int cw)
 {
     if(noedit()) return;
-    mprotate(*cw, sel, true);
+    mprotate(cw, sel, true);
 }
 
 void setmat(cube &c, uchar mat, uchar matmask, uchar filtermat, uchar filtermask)

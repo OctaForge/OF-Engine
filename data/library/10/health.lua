@@ -18,7 +18,7 @@ action_death = class.new(actions.action, {
         self.actor.can_move = false
     end,
 
-    dofinish = function(self)
+    do_finish = function(self)
         self.actor:respawn()
     end
 }, "action_death")
@@ -42,7 +42,9 @@ plugin = {
         elseif stage == 2 then -- server vanishes player
             if SERVER then
                 if auid == self.uid then
-                    self.model_name  = ""
+                    if  self.default_model_name then
+                        self.model_name  = ""
+                    end
                     self.animation   = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
                     self.spawn_stage = 3
                 end
@@ -59,8 +61,10 @@ plugin = {
                 self.health     = self.max_health
                 self.can_move   = true
 
-                self.model_name = self.default_model_name or ""
-                if self.default_hud_model_name then
+                if  self.default_model_name then
+                    self.model_name = self.default_model_name
+                end
+                if  self.default_hud_model_name then
                     self.hud_model_name = self.default_hud_model_name
                 end
 
@@ -194,6 +198,7 @@ end
 
 function is_valid_target(entity)
     return (entity and not entity.deactivated
+                   and entity.health
                    and entity.health > 0
                    and entity.client_state ~= character.CLIENT_STATE.EDITING
                    and (not entity.spawn_stage or entity.spawn_stage == 0)
@@ -214,7 +219,8 @@ deadly_area_trigger_plugin = {
 deadly_area = entity_classes.register(
     plugins.bake(
         entity_static.area_trigger,
-        { deadly_area_trigger_plugin, { _class = "deadly_area" } }
+        { deadly_area_trigger_plugin },
+        "deadly_area"
     ),
     "mapmodel"
 )

@@ -1,5 +1,5 @@
 --[[!
-    File: tgui/widgets/fields.lua
+    File: library/core/tgui/widgets/fields.lua
 
     About: Author
         q66 <quaker66@gmail.com>

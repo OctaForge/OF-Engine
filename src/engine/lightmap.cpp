@@ -91,11 +91,18 @@ HVARFR(sunlight, 0, 0, 0xFFFFFF,
     setupsunlight();
 });
 FVARFR(sunlightscale, 0, 1, 16, setupsunlight());
-vec sunlightdir(0, 90*RAD);
+vec sunlightdir(0, 0, 1);
 extern void setsunlightdir();
 VARFR(sunlightyaw, 0, 0, 360, setsunlightdir());
 VARFR(sunlightpitch, -90, 90, 90, setsunlightdir());
-void setsunlightdir() { sunlightdir = vec(sunlightyaw*RAD, sunlightpitch*RAD); setupsunlight(); }
+
+void setsunlightdir() 
+{ 
+    sunlightdir = vec(sunlightyaw*RAD, sunlightpitch*RAD); 
+    loopk(3) if(fabs(sunlightdir[k]) < 1e-5f) sunlightdir[k] = 0;
+    sunlightdir.normalize();
+    setupsunlight(); 
+}
 
 entity sunlightent;
 void setupsunlight()
@@ -923,7 +930,7 @@ VARF(lightcachesize, 4, 6, 12, clearlightcache());
 
 void clearlightcache(int e)
 {
-    if(e < 0 || !entities::storage[e]->attr1)
+    if(e < 0 || !entities::get(e)->attr1)
     {
         for(lightcacheentry *lce = lightcache; lce < &lightcache[LIGHTCACHESIZE]; lce++)
         {
@@ -933,7 +940,7 @@ void clearlightcache(int e)
     }
     else
     {
-        const extentity &light = *entities::storage[e];
+        const extentity &light = *entities::get(e);
         int radius = light.attr1;
         for(int x = int(max(light.o.x-radius, 0.0f))>>lightcachesize, ex = int(min(light.o.x+radius, worldsize-1.0f))>>lightcachesize; x <= ex; x++)
         for(int y = int(max(light.o.y-radius, 0.0f))>>lightcachesize, ey = int(min(light.o.y+radius, worldsize-1.0f))>>lightcachesize; y <= ey; y++)
@@ -957,7 +964,7 @@ const vector<int> &checklightcache(int x, int y)
     int csize = 1<<lightcachesize, cx = x<<lightcachesize, cy = y<<lightcachesize;
     loopv(entities::storage)
     {
-        const extentity &light = *entities::storage[i];
+        const extentity &light = *entities::get(i);
         switch(light.type)
         {
             case ET_LIGHT:
@@ -1015,7 +1022,7 @@ static bool findlights(lightmapworker *w, int cx, int cy, int cz, int size, cons
         const vector<int> &lights = checklightcache(cx, cy);
         loopv(lights)
         {
-            const extentity &light = *entities::storage[lights[i]];
+            const extentity &light = *entities::get(lights[i]);
             switch(light.type)
             {
                 case ET_LIGHT: addlight(w, light, cx, cy, cz, size, v, n); break;
@@ -1025,7 +1032,7 @@ static bool findlights(lightmapworker *w, int cx, int cy, int cz, int size, cons
     }
     else loopv(entities::storage)
     {
-        const extentity &light = *entities::storage[i];
+        const extentity &light = *entities::get(i);
         switch(light.type)
         {
             case ET_LIGHT: addlight(w, light, cx, cy, cz, size, v, n); break;
@@ -1208,7 +1215,7 @@ static int setupsurface(lightmapworker *w, plane planes[2], int numplanes, const
         if(area < carea) { carea = area; cx = px; cy = py; co = c[i]; cmin = pmin; cmax = pmax; }
     }
     int scale = int(min(cmax.x - cmin.x, cmax.y - cmin.y));
-    float lpu = 16.0f / float(scale < (1 << lightlod) ? lightprecision / 2 : lightprecision);
+    float lpu = 16.0f / float(lightlod && scale < (1 << lightlod) ? max(lightprecision / 2, 1) : lightprecision);
     w->w = clamp(int(ceil((cmax.x - cmin.x + 1)*lpu)), LM_MINW, LM_MAXW);
     w->h = clamp(int(ceil((cmax.y - cmin.y + 1)*lpu)), LM_MINH, LM_MAXH);
 
@@ -1308,8 +1315,10 @@ static lightmapinfo *setupsurfaces(lightmapworker *w, lightmaptask &task)
         Shader *shader = vslot.slot->shader;
         int shadertype = shader->type;
         if(layer) shadertype |= layer->slot->shader->type;
-        if(c.ext && c.ext->merges && !c.ext->merges[i].empty())
+        if(c.merged&(1<<i))
         {
+            if(!c.ext || !c.ext->merges || c.ext->merges[i].empty()) continue;
+
             const mergeinfo &m = c.ext->merges[i];
             ivec mo(co);
             genmergedverts(c, i, mo, size, m, v, planes);
@@ -1900,9 +1909,9 @@ static void cleanupthreads()
     lightmapping = 0;
 }
 
-void calclight(int *quality)
+void calclight(int quality)
 {
-    if(!setlightmapquality(*quality))
+    if(!setlightmapquality(quality))
     {
         conoutf(CON_ERROR, "valid range for calclight quality is -1..1"); 
         return;
@@ -1952,10 +1961,10 @@ void calclight(int *quality)
 
 VAR(patchnormals, 0, 0, 1);
 
-void patchlight(int *quality)
+void patchlight(int quality)
 {
     if(noedit(true)) return;
-    if(!setlightmapquality(*quality))
+    if(!setlightmapquality(quality))
     {
         conoutf(CON_ERROR, "valid range for patchlight quality is -1..1"); 
         return;
@@ -2271,7 +2280,7 @@ void clearlights()
     clearlightcache();
     loopv(entities::storage)
     {
-        extentity &e = *entities::storage[i];
+        extentity &e = *entities::get(i);
         e.light.color = vec(1, 1, 1);
         e.light.dir = vec(0, 0, 1);
     }
@@ -2297,7 +2306,7 @@ void lightent(extentity &e, float height)
 
 void updateentlighting()
 {
-    loopv(entities::storage) lightent(*entities::storage[i]);
+    loopv(entities::storage) lightent(*entities::get(i));
 }
 
 void initlights()
@@ -2355,7 +2364,7 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
     const vector<int> &lights = checklightcache(int(target.x), int(target.y));
     loopv(lights)
     {
-        extentity &e = *entities::storage[lights[i]];
+        extentity &e = *entities::get(lights[i]);
         if(e.type != ET_LIGHT)
             continue;
     
@@ -2418,7 +2427,7 @@ entity *brightestlight(const vec &target, const vec &dir)
     float bintensity = 0;
     loopv(lights)
     {
-        extentity &e = *entities::storage[lights[i]];
+        extentity &e = *entities::get(lights[i]);
         if(e.type != ET_LIGHT || vec(e.o).sub(target).dot(dir)<0)
             continue;
 
@@ -2486,8 +2495,15 @@ void dumplms()
     loopv(lightmaps)
     {
         ImageData temp(LM_PACKW, LM_PACKH, lightmaps[i].bpp, lightmaps[i].data);
-        const char *map = game::getclientmap(), *name = strrchr(map, '/');
-        defformatstring(buf)("lightmap_%s_%d.png", name ? name+1 : map, i);
-        savepng(buf, temp, true);
+        types::string map = game::getclientmap();
+
+        size_t slash = map.rfind("/");
+        if (slash != types::string::npos)
+            map = map.substr(0, slash);
+
+        savepng(
+            types::string().format("lightmap_%s_%d.png", map.get_buf(), i).get_buf(),
+            temp, true
+        );
     }
 }

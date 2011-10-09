@@ -20,7 +20,7 @@ texture.add("1",    "textures/core/lava.png", 0, 0, 0, 2) -- falling lava
 
 texture.reset() -- let's start at texture slot 0
 
-shader.set("bumpspecworld") -- default world shader
+shader.set("bumpworld") -- default world shader
 
 texture.add("0", "textures/core/defsky.png") -- fallback sky
 texture.add("0", "textures/core/256.png") -- fallback geometry

@@ -51,7 +51,7 @@ void guessshadowdir()
         int numlights = 0, numcasters = 0;
         loopv(entities::storage)
         {
-            extentity &e = *entities::storage[i];
+            extentity &e = *entities::get(i);
             switch(e.type)
             {
                 case ET_LIGHT:

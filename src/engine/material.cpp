@@ -216,14 +216,12 @@ void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurfa
     }
 }
 
-static int mergematcmp(const materialsurface *x, const materialsurface *y)
+static inline bool mergematcmp(const materialsurface &x, const materialsurface &y)
 {
-    int dim = dimension(x->orient), c = C[dim], r = R[dim];
-    if(x->o[r] + x->rsize < y->o[r] + y->rsize) return -1;
-    if(x->o[r] + x->rsize > y->o[r] + y->rsize) return 1;
-    if(x->o[c] < y->o[c]) return -1;
-    if(x->o[c] > y->o[c]) return 1;
-    return 0;
+    int dim = dimension(x.orient), c = C[dim], r = R[dim];
+    if(x.o[r] + x.rsize < y.o[r] + y.rsize) return true;
+    if(x.o[r] + x.rsize > y.o[r] + y.rsize) return false;
+    return x.o[c] < y.o[c];
 }
 
 static int mergematr(materialsurface *m, int sz, materialsurface &n)
@@ -280,16 +278,14 @@ static int mergemats(materialsurface *m, int sz)
     return nsz;
 }
 
-static int optmatcmp(const materialsurface *x, const materialsurface *y)
+static inline bool optmatcmp(const materialsurface &x, const materialsurface &y)
 {
-    if(x->material < y->material) return -1;
-    if(x->material > y->material) return 1;
-    if(x->orient > y->orient) return -1;
-    if(x->orient < y->orient) return 1;
-    int dim = dimension(x->orient), xc = x->o[dim], yc = y->o[dim];
-    if(xc < yc) return -1;
-    if(xc > yc) return 1;
-    return 0;
+    if(x.material < y.material) return true;
+    if(x.material > y.material) return false;
+    if(x.orient > y.orient) return true;
+    if(x.orient < y.orient) return false;
+    int dim = dimension(x.orient);
+    return x.o[dim] < y.o[dim];
 }
 
 VARF(optmats, 0, 1, 1, allchanged());
@@ -448,10 +444,11 @@ VARP(showmat, 0, 1, 1);
 
 static int sortdim[3];
 static ivec sortorigin;
+static bool sortedit;
 
-static inline int vismatcmp(const materialsurface ** xm, const materialsurface ** ym)
+static inline bool vismatcmp(const materialsurface *xm, const materialsurface *ym)
 {
-    const materialsurface &x = **xm, &y = **ym;
+    const materialsurface &x = *xm, &y = *ym;
     int xdim = dimension(x.orient), ydim = dimension(y.orient);
     loopi(3)
     {
@@ -464,23 +461,18 @@ static inline int vismatcmp(const materialsurface ** xm, const materialsurface *
         else if(dim==R[ydim]) ymax += y.rsize;
         if(xmax > ymin && ymax > xmin) continue;
         int c = sortorigin[dim];
-        if(c > xmin && c < xmax) return 1;
-        if(c > ymin && c < ymax) return -1;
+        if(c > xmin && c < xmax) return sortedit;
+        if(c > ymin && c < ymax) return !sortedit;
         xmin = abs(xmin - c);
         xmax = abs(xmax - c);
         ymin = abs(ymin - c);
         ymax = abs(ymax - c);
-        if(max(xmin, xmax) <= min(ymin, ymax)) return 1;
-        else if(max(ymin, ymax) <= min(xmin, xmax)) return -1;
+        if(max(xmin, xmax) <= min(ymin, ymax)) return sortedit;
+        else if(max(ymin, ymax) <= min(xmin, xmax)) return !sortedit;
     }
-    if(x.material < y.material) return 1;
-    if(x.material > y.material) return -1;
-    return 0;
-}
-
-static inline int editmatcmp(const materialsurface ** xm, const materialsurface ** ym)
-{
-    return -vismatcmp(xm, ym);
+    if(x.material < y.material) return sortedit;
+    if(x.material > y.material) return !sortedit;
+    return false;
 }
 
 extern vtxarray *visibleva, *reflectedva;
@@ -513,7 +505,8 @@ void sortmaterials(vector<materialsurface *> &vismats)
             vismats.add(&m);
         }
     }
-    vismats.sort(editmode && showmat && !envmapping ? editmatcmp : vismatcmp);
+    sortedit = editmode && showmat && !envmapping;
+    vismats.sort(vismatcmp);
 }
 
 void rendermatgrid(vector<materialsurface *> &vismats)
@@ -650,7 +643,7 @@ void rendermaterials()
             switch(m.material)
             {
                 case MAT_WATER:
-                    if(m.orient == O_TOP) continue;
+                    if(!wslot.loaded || m.orient == O_TOP) continue;
                     else if(lastmat==MAT_WATER) break;
                     else
                     {
@@ -747,6 +740,7 @@ void rendermaterials()
                     break;
 
                 case MAT_LAVA:
+                    if(!lslot.loaded) continue;
                     if(lastmat==MAT_LAVA && lastorient!=O_TOP && m.orient!=O_TOP) break;
                     else
                     {

@@ -270,10 +270,10 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files)
 }
 
 #ifndef STANDALONE
-static int rwopsseek(SDL_RWops *rw, int offset, int whence)
+static int rwopsseek(SDL_RWops *rw, int pos, int whence)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
-    if((!offset && whence==SEEK_CUR) || f->seek(offset, whence)) return f->tell();
+    if((!pos && whence==SEEK_CUR) || f->seek(pos, whence)) return (int)f->tell();
     return -1;
 }
 
@@ -307,9 +307,9 @@ SDL_RWops *stream::rwops()
 }
 #endif
 
-long stream::size()
+stream::offset stream::size()
 {
-    long pos = tell(), endpos;
+    offset pos = tell(), endpos;
     if(pos < 0 || !seek(0, SEEK_END)) return -1;
     endpos = tell();
     return pos == endpos || seek(pos, SEEK_SET) ? endpos : -1;
@@ -357,8 +357,31 @@ struct filestream : stream
     }
 
     bool end() { return feof(file)!=0; }
-    long tell() { return ftell(file); }
-    bool seek(long offset, int whence) { return fseek(file, offset, whence) >= 0; }
+    offset tell() 
+    { 
+#ifdef WIN32
+#ifdef __GNUC__
+        return ftello64(file);
+#else
+        return _ftelli64(file);       
+#endif
+#else
+        return ftello(file); 
+#endif
+    }
+    bool seek(offset pos, int whence) 
+    { 
+#ifdef WIN32
+#ifdef __GNUC__
+        return fseeko64(file, pos, whence) >= 0;
+#else
+        return _fseeki64(file, pos, whence) >= 0;
+#endif
+#else
+        return fseeko(file, pos, whence) >= 0;
+#endif
+    }
+
     int read(void *buf, int len) { return (int)fread(buf, 1, len, file); }
     int write(const void *buf, int len) { return (int)fwrite(buf, 1, len, file); }
     int getchar() { return fgetc(file); }
@@ -472,7 +495,7 @@ struct gzstream : stream
         if(flags & F_NAME) while(readbyte(512));
         if(flags & F_COMMENT) while(readbyte(512));
         if(flags & F_CRC) skipbytes(2);
-        headersize = file->tell() - zfile.avail_in;
+        headersize = int(file->tell() - zfile.avail_in);
         return zfile.avail_in > 0 || !file->end();
     }
 
@@ -566,9 +589,9 @@ struct gzstream : stream
     }
 
     bool end() { return !reading && !writing; }
-    long tell() { return reading ? zfile.total_out : (writing ? zfile.total_in : -1); }
+    offset tell() { return reading ? zfile.total_out : (writing ? zfile.total_in : -1); }
 
-    bool seek(long offset, int whence)
+    bool seek(offset pos, int whence)
     {
         if(writing || !reading) return false;
 
@@ -576,12 +599,12 @@ struct gzstream : stream
         {
             uchar skip[512];
             while(read(skip, sizeof(skip)) == sizeof(skip));
-            return !offset;
+            return !pos;
         }
-        else if(whence == SEEK_CUR) offset += zfile.total_out;
+        else if(whence == SEEK_CUR) pos += zfile.total_out;
 
-        if(offset >= (int)zfile.total_out) offset -= zfile.total_out;
-        else if(offset < 0 || !file->seek(headersize, SEEK_SET)) return false;
+        if(pos >= (offset)zfile.total_out) pos -= zfile.total_out;
+        else if(pos < 0 || !file->seek(headersize, SEEK_SET)) return false;
         else
         {
             if(zfile.next_in && zfile.total_in <= uint(zfile.next_in - buf))
@@ -599,11 +622,11 @@ struct gzstream : stream
         }
 
         uchar skip[512];
-        while(offset > 0)
+        while(pos > 0)
         {
-            int skipped = min(offset, (long)sizeof(skip));
+            int skipped = (int)min(pos, (offset)sizeof(skip));
             if(read(skip, skipped) != skipped) { stopreading(); return false; }
-            offset -= skipped;
+            pos -= skipped;
         }
 
         return true;
@@ -697,8 +720,8 @@ char *loadfile(const char *fn, int *size)
 {
     stream *f = openfile(fn, "rb");
     if(!f) return NULL;
-    int len = f->size();
-    if(len<=0) { delete f; return NULL; }
+    int len = (int)f->size();
+    if(len <= 0) { delete f; return NULL; }
     char *buf = new char[len+1];
     if(!buf) { delete f; return NULL; }
     buf[len] = 0;

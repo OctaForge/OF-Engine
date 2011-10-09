@@ -530,7 +530,7 @@ struct BlendBrush
     } 
 };
 
-static vector<BlendBrush *> brushes;
+static vector< types::shared_ptr<BlendBrush> > brushes;
 static int curbrush = -1;
 
 void cleanupblendmap()
@@ -540,7 +540,7 @@ void cleanupblendmap()
 
 void clearblendbrushes()
 {
-    while(brushes.length()) delete brushes.pop();
+    while(brushes.length()) brushes.pop();
     curbrush = -1;
 }
 
@@ -548,7 +548,6 @@ void delblendbrush(const char *name)
 {
     loopv(brushes) if(!strcmp(brushes[i]->name, name)) 
     {
-        delete brushes[i];
         brushes.remove(i--);
     }
     curbrush = brushes.empty() ? -1 : clamp(curbrush, 0, brushes.length()-1);
@@ -582,11 +581,11 @@ void addblendbrush(const char *name, const char *imgname)
 
 }
 
-void nextblendbrush(int *dir)
+void nextblendbrush(int dir)
 {
-    curbrush += *dir < 0 ? -1 : 1;
+    curbrush += dir < 0 ? -1 : 1;
     if(brushes.empty()) curbrush = -1;
-    else if(!brushes.inrange(curbrush)) curbrush = *dir < 0 ? brushes.length()-1 : 0;
+    else if(!brushes.inrange(curbrush)) curbrush = dir < 0 ? brushes.length()-1 : 0;
 }
 
 void setblendbrush(const char *name)
@@ -594,9 +593,9 @@ void setblendbrush(const char *name)
     loopv(brushes) if(!strcmp(brushes[i]->name, name)) { curbrush = i; break; }
 }
 
-void getblendbrushname(int *n)
+void getblendbrushname(int n)
 {
-    lua::engine.push(brushes.inrange(*n) ? brushes[*n]->name : "");
+    lua::engine.push(brushes.inrange(n) ? brushes[n]->name : "");
 }
 
 void curblendbrush()
@@ -622,12 +621,12 @@ bool canpaintblendmap(bool brush = true, bool sel = false, bool msg = true)
     return true;
 }
 
-void rotateblendbrush(int *val)
+void rotateblendbrush(int val)
 {
     if(!canpaintblendmap()) return;
     
-    int numrots = *val < 0 ? 3 : clamp(*val, 1, 5);
-    BlendBrush *brush = brushes[curbrush];
+    int numrots = val < 0 ? 3 : clamp(val, 1, 5);
+    BlendBrush *brush = brushes[curbrush].get();
     brush->reorient(numrots>=2 && numrots<=4, numrots<=2 || numrots==5, (numrots&5)==1);
 }
 
@@ -635,7 +634,7 @@ void paintblendmap(bool msg)
 {
     if(!canpaintblendmap(true, false, msg)) return;
 
-    BlendBrush *brush = brushes[curbrush];
+    BlendBrush *brush = brushes[curbrush].get();
     int x = (int)floor(clamp(worldpos.x, 0.0f, float(worldsize))/(1<<BM_SCALE) - 0.5f*brush->w),
         y = (int)floor(clamp(worldpos.y, 0.0f, float(worldsize))/(1<<BM_SCALE) - 0.5f*brush->h);
     blitblendmap(brush->data, x, y, brush->w, brush->h);
@@ -708,7 +707,7 @@ void renderblendbrush()
 {
     if(!blendpaintmode || !brushes.inrange(curbrush)) return;
 
-    BlendBrush *brush = brushes[curbrush];
+    BlendBrush *brush = brushes[curbrush].get();
     int x1 = (int)floor(clamp(worldpos.x, 0.0f, float(worldsize))/(1<<BM_SCALE) - 0.5f*(brush->w+2)) << BM_SCALE,
         y1 = (int)floor(clamp(worldpos.y, 0.0f, float(worldsize))/(1<<BM_SCALE) - 0.5f*(brush->h+2)) << BM_SCALE,
         x2 = x1 + ((brush->w+2) << BM_SCALE),

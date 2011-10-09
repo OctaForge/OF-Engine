@@ -456,7 +456,10 @@ struct Texture
     GLuint id;
     uchar *alphamask;
 
-    Texture() : alphamask(NULL) {}
+    Texture() : name(NULL), alphamask(NULL) {}
+#ifdef CLIENT
+    ~Texture() { DELETEA(name); }
+#endif
 };
 
 enum
@@ -681,6 +684,7 @@ extern VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta);
 extern VSlot *editvslot(const VSlot &src, const VSlot &delta);
 extern void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta);
 
-extern vector<Slot *> slots;
-extern vector<VSlot *> vslots;
+/* OctaForge: shared_ptr */
+extern vector< types::shared_ptr< Slot> > slots;
+extern vector< types::shared_ptr<VSlot> > vslots;
 

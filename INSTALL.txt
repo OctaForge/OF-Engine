@@ -1,4 +1,3 @@
-
 Compiling OctaForge
 ********************
 
@@ -36,64 +35,40 @@ with little modifications it should work everywhere.
 
    .. code-block :: bash
 
-       $ sudo apt-get install cmake build-essential libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev zlib1g-dev liblua5.1-dev uuid-dev
+       $ sudo apt-get install build-essential libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev zlib1g-dev
 
    If I list the dependencies (for other OSes), they are:
 
-   1. CMake - http://cmake.org - this is a build system.
-   2. build-essential - on Debian, metapackage installing GNU compiler set and a few other things.
+   1. build-essential - on Debian, metapackage installing GNU compiler set and a few other things.
       Basically basic things you need to build sources.
-   3. SDL dev package, SDL_image dev package, SDL_mixer dev package
-   4. Zlib dev libraries and headers
-   5. Lua dev libraries and headers
-   6. e2fsprogs for uuid generator, is part of almost every Linux distro by default,
-      on FreeBSD it's available in ports as e2fsprogs-libuuid
+   2. SDL dev package, SDL_image dev package, SDL_mixer dev package
+   3. Zlib dev libraries and headers
 
 2. Open a terminal, build OF:
 
    .. code-block :: bash
 
-       $ cd $HOME/OctaForge_source/cbuild
-       $ cmake ..
-       $ make
+       $ cd $HOME/OctaForge_source/src
        $ make install
 
    If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
+   On some systems (like FreeBSD), you'll have to use "gmake" instead of "make".
+   Add VERBOSE=1 at the end of the make command for verbose builds.
 
 3. You're done, you should have binaries in OFROOT/bin_unix.
-
-You can as well crosscompile Windows binaries on that environment.
-In order to do so, install mingw32 environment (gcc/g++, libraries etc.)
-and proceed normally as when compiling ELF binaries, just append
-required argument when running cmake:
-
-   .. code-block :: bash
-
-       $ cmake .. -DCMAKE_TOOLCHAIN_FILE=../src/tools/mingw32-toolchain.cmake
-
-The toolchain file possibly won't work on your system without modification
-because of different path to MinGW install, so modify the toolchain file
-if required. Variables to modify are clearly commented.
-
-Remember that resulting binaries won't go to bin_unix, they'll go to bin_win.
 
 Windows
 =======
 
 On Windows, you don't need to get dependencies, they're bundled.
-You have to get CMake though, so install it from www.cmake.org and let it write PATH.
 
-Then you can proceed with compilation, which is done using MinGW
-(you should be as well able to use code::blocks to build)
+You can proceed right with compilation, which is done using MinGW.
 
-Remember that Visual Studio is NOT supported because of its lack of standards conformance.
-Also, OF supports just 32bit binaries currently. You can use/build 32bit binaries on
+OF supports just 32bit binaries currently. You can use/build 32bit binaries on
 64-bit Windows too, so it's not a big problem for now. The guide assumes 32bit Windows,
 but it should be the same or almost the same on 64bit Windows too.
 
-You can also crosscompile Windows binaries on Linux/BSD box. See UNIX/UNIX-like part to see how to do that.
-
-So next steps are:
+So the steps are:
 
 1. Install latest MinGW distribution whichever way you want. You need just the core (C/C++ support).
    You can install it wherever you want, but make sure to change steps of this guide accordingly after that.
@@ -104,71 +79,33 @@ So next steps are:
 
        ;C:\mingw\bin
 
-1. Run CMake GUI. As "Where is source code", set path to your OF directory. As "Where to build binaries",
-   set cbuild directory of your OF directory.
-
-   Hit "Configure" button. It will ask you what type of build files it should generate.
-   Select MinGW Makefiles.
-
-   You'll see some variables in red. Set CMAKE_INSTALL_PREFIX to same value as "Where is source code" is.
-
-   Hit Configure once again, and Generate.
-
-   Or instead of running GUI for CMake, open cmd, go into cbuild directory, and do "cmake .. -DCMAKE_INSTALL_PREFIX=. -G 'MinGW Makefiles'",
-   that will take care of both configuring and generating.
-
-   If you prefer to use code::blocks IDE, you can use CodeBlocks MinGW Makefiles generator and build using the cbp project file that'll
-   appear in cbuild directory, but that's untested around now and might NOT work (though should work just fine).
-
-   If you use code::block, specify CMAKE_CODEBLOCKS_EXECUTABLE variable when running cmake and point it to your codeblocks.exe path.
-   See how you're setting CMAKE_INSTALL_PREFIX, it's the same thing.
-
-   Example cmake command for cbp is
+3. Open a cmd, go to OFROOT\src, type
 
    .. code-block :: bash
 
-       cmake .. -DCMAKE_INSTALL_PREFIX=. -DCMAKE_CODEBLOCKS_EXECUTABLE='C:\\Program Files\\CodeBlocks\\codeblocks.exe' -G 'CodeBlocks - MinGW Makefiles'
+       $ mingw32-make install
 
-    After building in cbp, make sure to "build" INSTALL target as well. After that, binaries should be in CCROOT\\bin_win.
+   If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
+   Add VERBOSE=1 at the end of the make command for verbose builds.
 
 Mac OS X (Darwin)
 =================
 
-**Note:** Might not work (untested with lua)
-
 1. You'll need to get some dependencies, first. (I assume you've got OF repository already downloaded)
-    1. The XCode developer DVD. I got it after registration on Mac developer portal, filename of xcode dvd i downloaded was "xcode322_2148_developerdvd.dmg"
-       at this URL http://connect.apple.com/cgi-bin/WebObjects/MemberSite.woa/wo/5.1.17.2.1.3.3.1.0.1.1.0.3.3.3.3.1
+    1. XCode SDK installed (from Mac OS X DVD or XCode developer DVD).
     2. The needed SDL dmg files - http://www.libsdl.org/release/SDL-1.2.14.dmg , 
        http://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.10.dmg , 
        http://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.11.dmg
        
-       Put the SDL.framework, SDL_mixer.framework and SDL_image.framework from the dmgs to /Library/Frameworks
-    3. Get CMake here http://www.cmake.org/files/v2.8/cmake-2.8.2-Darwin-universal.dmg
-    4. Install Lua libraries / headers using your preferred way (i.e. with fink)
+       Put the SDL.framework, SDL_mixer.framework and SDL_image.framework from the dmgs to /Library/Frameworks.
 
-2. If you don't want to use xcode IDE, then simply go to "cbuild" directory in your OF tree in terminal and do
+2. Go to OF's src directory in the terminal and do
 
    .. code-block :: bash
 
-       $ cmake ..
-       $ make -j3 install // you don't need to put the -j3 if you have single core CPU, for dualcore, put -j3, for quad, -j5 (numcores + 1)
+       $ make install
 
-   If you want, you can run the CMake GUI from Applications instead and hit Configure, select Unix Makefiles generator and Generate,
-   and then do the "make -j3 install" from terminal - it has the same effect.
+   If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
+   Add VERBOSE=1 at the end of the make command for verbose builds.
 
    After everything goes OK, you should have binaries and you can launch (run_client.command file from Finder)
-
-3. If you want to use the xcode IDE, then it's as easy as first method. Simply go into "cbuild" dir in your OF tree in terminal and do
-
-   .. code-block :: bash
-
-       $ cmake .. -G Xcode
-
-   If you want, you can run the CMake GUI from Applications instead and hit Configure, select Xcode generator and Generate instead.
-
-   After having things generated, go to cbuild directory in Finder and open the xcodeproj file. In combobox on top left, set Active Configuration
-   to Release in order to get proper binaries. Then, in the tree on the left, open Targets tree, right-click ALL_BUILD, and select "Build ALL_BUILD".
-   Then wait some time and after it's built, right-click target "install" and select "Build install"
-
-   Then, you should have binaries in your bin_unix/ directory same as with normal "make" building. Then, just run OF.

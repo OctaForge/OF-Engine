@@ -141,8 +141,8 @@ input.bind_edit("2", [[domodifier(9)]]) -- vSlot: offset V
 input.bind_edit("3", [[domodifier(10)]]) -- vSlot: rotate
 input.bind_edit("4", [[domodifier(11)]]) -- vSlot: scale
 
-input.bind_edit("LALT", [[multiplier = 10; input.on_release(function() multiplier = 1 end)]])
-input.bind_edit("RALT", [[multiplier2 = 32; input.on_release(function() multiplier2 = 16 end)]])
+--input.bind_edit("LALT", [[multiplier = 10; input.on_release(function() multiplier = 1 end)]])
+--input.bind_edit("RALT", [[multiplier2 = 32; input.on_release(function() multiplier2 = 16 end)]])
 
 -- blendmap painting
 input.bind_edit("KP0", [[texture.set_blend_paint_mode(blendpaintmode ~= 0 and 0 or 1)]])

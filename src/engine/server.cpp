@@ -184,25 +184,39 @@ void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, packetbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 
-void getstring(char *text, ucharbuf &p, int len)
+void getstring(types::string& text, ucharbuf &p, int len)
 {
-    char *t = text;
+    text.resize(len);
+
+    char *it = text.begin();
+    char *lt = text.begin() + text.capacity();
     do
     {
-        if(t>=&text[len]) { text[len-1] = 0; return; }
-        if(!p.remaining()) { *t = 0; return; } 
-        *t = getint(p);
-    }
-    while(*t++);
+        if (it > lt)
+        {
+            text[len - 1] = '\0';
+            return;
+        }
+        if (!p.remaining())
+        {
+            *it = '\0';
+            return;
+        } 
+        *it = getint(p);
+    } while (*it++);
+
+    /* length update - ugly hack, FIXME */
+    text.format("%s", text.get_buf());
 }
 
 void filtertext(char *dst, const char *src, bool whitespace, int len)
 {
     for(int c = *src; c; c = *++src)
     {
-        switch(c)
+        if(c == '\f')
         {
-        case '\f': ++src; continue;
+            if(!*++src) break;
+            continue;
         }
         if(isspace(c) ? whitespace : isprint(c))
         {
@@ -507,7 +521,9 @@ void flushserver(bool force)
 #ifndef STANDALONE
 void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 {
+#ifdef CLIENT
     bool disconnected = false;
+#endif
     loopv(clients) if(clients[i]->type==ST_LOCAL) 
     {
         if (cn != -1 && cn != clients[i]->num) continue; // INTENSITY: if cn given, only process that one
@@ -516,7 +532,9 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
         clients[i]->type = ST_EMPTY;
         server::deleteclientinfo(clients[i]->info);
         clients[i]->info = NULL;
+#ifdef CLIENT
         disconnected = true;
+#endif
     }
 
 #ifdef CLIENT // INTENSITY: Added this

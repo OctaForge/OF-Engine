@@ -37,7 +37,6 @@ namespace game
     VAR(minimaprightalign, 0, 1, 1); // do we want to align minimap right? if this is 1, then we do, if 0, then it's aligned to left.
 
     int gamemode = 0;
-    string clientmap = "";
     int maptime = 0, maprealtime = 0;
 
     int following = -1, followdir = 0;
@@ -79,18 +78,14 @@ namespace game
         stopfollowing();
     }
 
-    const char *getclientmap()
+    types::string getclientmap()
     {
-        static char buf[512];
+        types::string s = world::curr_map_id.substr(
+            0, world::curr_map_id.length() - 7
+        );
+        s += "/";
 
-        char *prefix = newstring(world::get_curr_mapid());
-        prefix[strlen(prefix) - 6] = '\0';
-        prefix[strlen(prefix) - 1] = PATHDIV;
-
-        snprintf(buf, sizeof(buf), "%smap", prefix);
-        delete[] prefix;
-
-        return buf;
+        return types::string().format("%smap", s.get_buf());
     }
 
     fpsent *spawnstate(fpsent *d)              // reset player state not persistent accross spawns
@@ -234,15 +229,13 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            char cmd[2048];
-            snprintf(cmd, sizeof(cmd),
+            engine.exec(types::string().format(
                 "entity_store.get(%i).position = {"
                 "entity_store.get(%i).position.x,"
                 "entity_store.get(%i).position.y,"
                 "entity_store.get(%i).position.z}",
                 d->uniqueId, d->uniqueId, d->uniqueId, d->uniqueId
-            );
-            engine.exec(cmd);
+            ).get_buf());
 #endif
         }
     }
@@ -507,7 +500,6 @@ namespace game
 
     void initclient()
     {
-        clientmap[0] = 0;
         player1 = spawnstate(new fpsent);
 #ifdef CLIENT
         players.add(player1);
@@ -538,10 +530,6 @@ namespace game
 
 #ifdef CLIENT
         spawnplayer(player1);
-#endif
-
-        copystring(clientmap, name ? name : "");
-#ifdef CLIENT
         SETVFN(zoom, -1);
 #endif
         maptime = 0;

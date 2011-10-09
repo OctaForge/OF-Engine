@@ -453,13 +453,13 @@ namespace server
     {
         logger::log(logger::INFO, "Server: Parsing packet, %d-%d\r\n", sender, chan);
 
-        if(sender<0) return;
+        if(sender<0 || p.packet->flags&ENET_PACKET_FLAG_UNSEQUENCED) return;
         if(chan==2) // Kripken: Channel 2 is, just like with the client, for file transfers
         {
             assert(0); // We do file transfers completely differently
         }
         if(p.packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
-        char text[MAXTRANS];
+        types::string text;
         int cn = -1, type;
         clientinfo *ci = sender>=0 ? (clientinfo *)getinfo(sender) : NULL;
 
@@ -479,7 +479,7 @@ namespace server
         }
         #define QUEUE_INT(n) QUEUE_BUF(putint(ci->messages, n))
         #define QUEUE_UINT(n) QUEUE_BUF(putuint(ci->messages, n))
-        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text, ci->messages))
+        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text.get_buf(), ci->messages))
         int curmsg;
         while((curmsg = p.length()) < p.maxlen)
         {
@@ -529,7 +529,8 @@ namespace server
             case N_TEXT:
             {
                 getstring(text, p);
-                filtertext(text, text);
+                /* FIXME: hack attack - add filtering method into the string class */
+                filtertext(&text[0], text.get_buf());
 
                 if (!engine.hashandle())
                 {
@@ -542,7 +543,7 @@ namespace server
                 engine.getg("handle_textmsg");
                 if (engine.is<void*>(-1))
                 {
-                    engine.push(ci->uniqueId).push(text).call(3, 1);
+                    engine.push(ci->uniqueId).push(text.get_buf()).call(3, 1);
                     handle_textmsg = engine.get<bool>(-1);
                 }
                 engine.pop(1);
@@ -903,7 +904,7 @@ namespace server
     {
         clientinfo *ci = getinfo(cn);
         if (!ci) return;
-        ci->runningCurrentScenario = !strcmp(world::get_scenario_code(), sc);
+        ci->runningCurrentScenario = (world::scenario_code == sc);
     }
 
     bool isRunningCurrentScenario(int clientNumber)

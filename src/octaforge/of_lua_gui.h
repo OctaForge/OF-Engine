@@ -28,9 +28,9 @@
  */
 
 /* PROTOTYPES */
-void newfont(char *name, char *tex, int *defaultw, int *defaulth, int *offsetx, int *offsety, int *offsetw, int *offseth);
+void newfont(const char *name, const char *tex, int defaultw, int defaulth, int offsetx, int offsety, int offsetw, int offseth);
 void fontoffset(char *c);
-void fontchar(int *x, int *y, int *w, int *h);
+void fontchar(int x, int y, int w, int h);
 
 namespace gui
 {
@@ -80,14 +80,14 @@ void _bind_getchanges  (lua_Engine e);
 
 namespace lua_binds
 {
-    LUA_BIND_STD_CLIENT(font, newfont, e.get<char*>(1), e.get<char*>(2), e.get<int*>(3), e.get<int*>(4), e.get<int*>(5), e.get<int*>(6), e.get<int*>(7), e.get<int*>(8))
+    LUA_BIND_STD_CLIENT(font, newfont, e.get<const char*>(1), e.get<const char*>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<int>(6), e.get<int>(7), e.get<int>(8))
     LUA_BIND_STD_CLIENT(fontoffset, fontoffset, e.get<char*>(1))
-    LUA_BIND_STD_CLIENT(fontchar, fontchar, e.get<int*>(1), e.get<int*>(2), e.get<int*>(3), e.get<int*>(4))
+    LUA_BIND_STD_CLIENT(fontchar, fontchar, e.get<int>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4))
 
     LUA_BIND_STD_CLIENT(menukeyclicktrig, GuiControl::menuKeyClickTrigger)
 
 #ifdef CLIENT
-    #define REG(n) bool __dummy_##n = lua::addcommand((LE_reg){ #n, gui::_bind_##n });
+    #define REG(n) bool __dummy_##n = lua::addcommand(LE_reg(#n, gui::_bind_##n));
 
     REG(showui)
     REG(hideui)
@@ -128,8 +128,8 @@ namespace lua_binds
     REG(uitexteditor)
     REG(uifield)
 
-    bool __dummy_clearchanges = lua::addcommand((LE_reg){ "clearchanges", _bind_clearchanges });
-    bool __dummy_applychanges = lua::addcommand((LE_reg){ "applychanges", _bind_applychanges });
-    bool __dummy_getchanges   = lua::addcommand((LE_reg){ "getchanges",   _bind_getchanges   });
+    bool __dummy_clearchanges = lua::addcommand(LE_reg("clearchanges", _bind_clearchanges));
+    bool __dummy_applychanges = lua::addcommand(LE_reg("applychanges", _bind_applychanges));
+    bool __dummy_getchanges   = lua::addcommand(LE_reg("getchanges",   _bind_getchanges));
 #endif
 }

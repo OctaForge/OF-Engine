@@ -58,28 +58,28 @@ void mdlellipsecollide(bool collide)
     loadingmodel->ellipsecollide = collide;
 }   
     
-void mdlspec(int *percent)
+void mdlspec(int percent)
 {
     checkmdl;
     float spec = 1.0f; 
-    if(*percent>0) spec = *percent/100.0f;
-    else if(*percent<0) spec = 0.0f;
+    if(percent>0) spec = percent/100.0f;
+    else if(percent<0) spec = 0.0f;
     loadingmodel->setspec(spec);
 }
 
-void mdlambient(int *percent)
+void mdlambient(int percent)
 {
     checkmdl;
     float ambient = 0.3f;
-    if(*percent>0) ambient = *percent/100.0f;
-    else if(*percent<0) ambient = 0.0f;
+    if(percent>0) ambient = percent/100.0f;
+    else if(percent<0) ambient = 0.0f;
     loadingmodel->setambient(ambient);
 }
 
-void mdlalphatest(float *cutoff)
+void mdlalphatest(float cutoff)
 {   
     checkmdl;
-    loadingmodel->setalphatest(max(0.0f, min(1.0f, *cutoff)));
+    loadingmodel->setalphatest(max(0.0f, min(1.0f, cutoff)));
 }
 
 void mdlalphablend(bool blend)
@@ -100,32 +100,32 @@ void mdldepthoffset(bool offset)
     loadingmodel->depthoffset = offset;
 }
 
-void mdlglow(int *percent, int *delta, float *pulse)
+void mdlglow(int percent, int delta, float pulse)
 {
     checkmdl;
-    float glow = 3.0f, glowdelta = *delta/100.0f, glowpulse = *pulse > 0 ? *pulse/1000.0f : 0;
-    if(*percent>0) glow = *percent/100.0f;
-    else if(*percent<0) glow = 0.0f;
+    float glow = 3.0f, glowdelta = delta/100.0f, glowpulse = pulse > 0 ? pulse/1000.0f : 0;
+    if(percent>0) glow = percent/100.0f;
+    else if(percent<0) glow = 0.0f;
     glowdelta -= glow;
     loadingmodel->setglow(glow, glowdelta, glowpulse);
 }
 
-void mdlglare(float *specglare, float *glowglare)
+void mdlglare(float specglare, float glowglare)
 {
     checkmdl;
-    loadingmodel->setglare(*specglare, *glowglare);
+    loadingmodel->setglare(specglare, glowglare);
 }
 
-void mdlenvmap(float *envmapmax, float *envmapmin, char *envmap)
+void mdlenvmap(float envmapmax, float envmapmin, char *envmap)
 {
     checkmdl;
-    loadingmodel->setenvmap(*envmapmin, *envmapmax, envmap ? cubemapload(envmap) : NULL);
+    loadingmodel->setenvmap(envmapmin, envmapmax, envmap ? cubemapload(envmap) : NULL);
 }
 
-void mdlfullbright(float *fullbright)
+void mdlfullbright(float fullbright)
 {
     checkmdl;
-    loadingmodel->setfullbright(*fullbright);
+    loadingmodel->setfullbright(fullbright);
 }
 
 void mdlshader(char *shader)
@@ -135,19 +135,19 @@ void mdlshader(char *shader)
     loadingmodel->setshader(lookupshaderbyname(shader));
 }
 
-void mdlspin(float *yaw, float *pitch)
+void mdlspin(float yaw, float pitch)
 {
     checkmdl;
-    loadingmodel->spinyaw = *yaw;
-    loadingmodel->spinpitch = *pitch;
+    loadingmodel->spinyaw = yaw;
+    loadingmodel->spinpitch = pitch;
 }
 
-void mdlscale(int *percent)
+void mdlscale(int percent)
 {
     checkmdl;
     float scale = 0.3f;
-    if(*percent>0) scale = *percent/100.0f;
-    else if(*percent<0) scale = 0.0f;
+    if(percent>0) scale = percent/100.0f;
+    else if(percent<0) scale = 0.0f;
     loadingmodel->scale = scale;
 }  
 
@@ -157,16 +157,16 @@ void mdltrans(const vec& v)
     loadingmodel->translate = v;
 } 
 
-void mdlyaw(float *angle)
+void mdlyaw(float angle)
 {
     checkmdl;
-    loadingmodel->offsetyaw = *angle;
+    loadingmodel->offsetyaw = angle;
 }
 
-void mdlpitch(float *angle)
+void mdlpitch(float angle)
 {
     checkmdl;
-    loadingmodel->offsetpitch = *angle;
+    loadingmodel->offsetpitch = angle;
 }
 
 void mdlshadow(bool shadow)
@@ -175,12 +175,12 @@ void mdlshadow(bool shadow)
     loadingmodel->shadow = shadow;
 }
 
-void mdlbb(float *rad, float *h, float *eyeheight)
+void mdlbb(float rad, float h, float eyeheight)
 {
     checkmdl;
-    loadingmodel->collideradius = *rad;
-    loadingmodel->collideheight = *h;
-    loadingmodel->eyeheight = *eyeheight; 
+    loadingmodel->collideradius = rad;
+    loadingmodel->collideheight = h;
+    loadingmodel->eyeheight = eyeheight; 
 }
 
 void mdlextendbb(const vec& extend)
@@ -214,50 +214,51 @@ void rdvert(const vec& o, float radius)
     v.radius = radius > 0 ? radius : 1;
 }
 
-void rdeye(int *v)
+void rdeye(int v)
 {
     checkragdoll;
-    ragdoll->eye = *v;
+    ragdoll->eye = v;
 }
 
-void rdtri(int *v1, int *v2, int *v3)
+void rdtri(int v1, int v2, int v3)
 {
     checkragdoll;
     ragdollskel::tri &t = ragdoll->tris.add();
-    t.vert[0] = *v1;
-    t.vert[1] = *v2;
-    t.vert[2] = *v3;
+    t.vert[0] = v1;
+    t.vert[1] = v2;
+    t.vert[2] = v3;
 }
 
-void rdjoint(int *n, int *t, char *v1, char *v2, char *v3)
+void rdjoint(int n, int t, char *v1, char *v2, char *v3)
 {
     checkragdoll;
+    if(n < 0 || n >= skel->numbones) return;
     ragdollskel::joint &j = ragdoll->joints.add();
-    j.bone = *n;
-    j.tri = *t;
+    j.bone = n;
+    j.tri = t;
     j.vert[0] = v1 ? int(strtol(v1, NULL, 0)) : -1;
     j.vert[1] = v2 ? int(strtol(v2, NULL, 0)) : -1;
     j.vert[2] = v3 ? int(strtol(v3, NULL, 0)) : -1;
 }
    
-void rdlimitdist(int *v1, int *v2, float *mindist, float *maxdist)
+void rdlimitdist(int v1, int v2, float mindist, float maxdist)
 {
     checkragdoll;
     ragdollskel::distlimit &d = ragdoll->distlimits.add();
-    d.vert[0] = *v1;
-    d.vert[1] = *v2;
-    d.mindist = *mindist;
-    d.maxdist = max(*maxdist, *mindist);
+    d.vert[0] = v1;
+    d.vert[1] = v2;
+    d.mindist = mindist;
+    d.maxdist = max(maxdist, mindist);
 }
 
-void rdlimitrot(int *t1, int *t2, float *maxangle, float *qx, float *qy, float *qz, float *qw)
+void rdlimitrot(int t1, int t2, float maxangle, float qx, float qy, float qz, float qw)
 {
     checkragdoll;
     ragdollskel::rotlimit &r = ragdoll->rotlimits.add();
-    r.tri[0] = *t1;
-    r.tri[1] = *t2;
-    r.maxangle = *maxangle * RAD;
-    r.middle = matrix3x3(quat(*qx, *qy, *qz, *qw));
+    r.tri[0] = t1;
+    r.tri[1] = t2;
+    r.maxangle = maxangle * RAD;
+    r.middle = matrix3x3(quat(qx, qy, qz, qw));
 }
 
 void rdanimjoints(bool on)
@@ -277,15 +278,15 @@ void mmodel(char *name)
     mmi.m = NULL;
 }
 
-void mapmodelcompat(int *rad, int *h, int *tex, char *name, char *shadow)
+void mapmodelcompat(int rad, int h, int tex, char *name, char *shadow)
 {
     mmodel(name);
 }
 
-void mapmodelreset(int *n) 
+void mapmodelreset(int n) 
 { 
     if(!var::overridevars && !game::allowedittoggle()) return;
-    mapmodels.shrink(clamp(*n, 0, mapmodels.length())); 
+    mapmodels.shrink(clamp(n, 0, mapmodels.length())); 
 }
 
 mapmodelinfo &getmminfo(int i) { return /*mapmodels.inrange(i) ? mapmodels[i] :*/ *(mapmodelinfo *)0; } // INTENSITY
@@ -448,7 +449,7 @@ struct modelbatch
     int flags;
     vector<batchedmodel> batched;
 };  
-static vector<modelbatch *> batches;
+static vector<types::shared_ptr<modelbatch> > batches;
 static vector<modelattach> modelattached;
 static int numbatches = -1;
 static occludequery *modelquery = NULL;
@@ -462,15 +463,15 @@ void startmodelbatches()
 modelbatch &addbatchedmodel(model *m)
 {
     modelbatch *b = NULL;
-    if(m->batch>=0 && m->batch<numbatches && batches[m->batch]->m==m) b = batches[m->batch];
+    if(m->batch>=0 && m->batch<numbatches && batches[m->batch]->m==m) b = batches[m->batch].get();
     else
     {
         if(numbatches<batches.length())
         {
-            b = batches[numbatches];
+            b = batches[numbatches].get();
             b->batched.setsize(0);
         }
-        else b = batches.add(new modelbatch);
+        else b = batches.add(new modelbatch).get();
         b->m = m;
         b->flags = 0;
         m->batch = numbatches++;
@@ -523,11 +524,9 @@ struct transparentmodel
     float dist;
 };
 
-static int sorttransparentmodels(const transparentmodel *x, const transparentmodel *y)
+static inline bool sorttransparentmodels(const transparentmodel &x, const transparentmodel &y)
 {
-    if(x->dist > y->dist) return -1;
-    if(x->dist < y->dist) return 1;
-    return 0;
+    return x.dist < y.dist;
 }
 
 void endmodelbatches()
@@ -539,7 +538,7 @@ void endmodelbatches()
         if(b.batched.empty()) continue;
         if(b.flags&(MDL_SHADOW|MDL_DYNSHADOW))
         {
-            vec center, bbradius;
+            vec center(0, 0, 0), bbradius(0, 0, 0);
             b.m->boundbox(0/*frame*/, center, bbradius); // FIXME
             loopvj(b.batched)
             {
@@ -921,13 +920,13 @@ bool matchanim(const char *name, const char *pattern)
 void findanims(const char *pattern, vector<int> &anims)
 {
     loopi(sizeof(animnames)/sizeof(animnames[0])) if(matchanim(animnames[i], pattern)) anims.add(i);
-    char buf[16];
+    types::string buf;
 
     // INTENSITY: Accept integer values as well, up to 128 of them
     loopi(ANIM_ALL+1)
     {
-        snprintf(buf, sizeof(buf), "%i", i);
-        if(matchanim(buf, pattern)) anims.add(i);
+        buf.format("%i", i);
+        if(matchanim(buf.get_buf(), pattern)) anims.add(i);
     }
     // INTENSITY: End Accept integer values as well
 }

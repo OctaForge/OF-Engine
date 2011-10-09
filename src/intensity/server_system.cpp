@@ -74,9 +74,7 @@ void serverkeepalive()
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    static char buf[CONSTRLEN];
-    vformatstring(buf, fmt, args);
-    printf("%s\r\n", buf);
+    printf("%s\n", types::string().format(fmt, args).get_buf());
 }
 
 void conoutf(int type, const char *fmt, ...)
@@ -240,8 +238,8 @@ GLuint lookupenvmap(ushort emid) { return 0; };
 void loadalphamask(Texture *t) { };
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format) { };
 
-vector<VSlot *> vslots;
-vector<Slot *> slots;
+vector< types::shared_ptr<VSlot> > vslots;
+vector< types::shared_ptr< Slot> > slots;
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 

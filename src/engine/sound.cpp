@@ -13,8 +13,14 @@ struct soundsample
     char *name;
     Mix_Chunk *chunk;
 
-    soundsample() : name(NULL) {}
-    ~soundsample() { DELETEA(name); }
+    soundsample() : name(NULL), chunk(NULL) {}
+    ~soundsample()
+    {
+        DELETEA(name);
+
+        if (chunk)
+            Mix_FreeChunk(chunk);
+    }
 };
 
 struct soundslot
@@ -246,7 +252,7 @@ int addsound(const char *name, int vol, int maxuses, vector<soundslot> &sounds)
 }
 
 int preload_sound(char *name, int vol); // INTENSITY
-void registersound(char *name, int *vol) { lua::engine.push(preload_sound(name, *vol)); } // INTENSITY
+void registersound(char *name, int vol) { lua::engine.push(preload_sound(name, vol)); } // INTENSITY
 
 void resetchannels()
 {
@@ -306,7 +312,7 @@ void checkmapsounds()
 {
     if(lookupmaterial(camera1->o)==MAT_WATER && uwambient) // SAUER ENHANCED start - underwater sound
     {
-        if(waterchan==-1) waterchan = playsound(6, NULL, NULL, -1, NULL, NULL, waterchan);
+        if(waterchan==-1) waterchan = playsound(6, NULL, NULL, -1, 0, 0, waterchan);
     }
     else
     {
@@ -315,7 +321,7 @@ void checkmapsounds()
     } // SAUER ENHANCED end
     loopv(entities::storage)
     {
-        extentity &e = *entities::storage[i];
+        extentity &e = *entities::get(i);
         if(e.type!=ET_SOUND) continue;
         if(camera1->o.dist(e.o) < e.attr2)
         {

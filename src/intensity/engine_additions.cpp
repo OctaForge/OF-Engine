@@ -350,8 +350,9 @@ void CLogicEntity::noteActualRender()
 //=========================
 
 LogicSystem::LogicEntityMap LogicSystem::logicEntities;
+bool LogicSystem::initialized = false;
 
-void LogicSystem::clear()
+void LogicSystem::clear(bool restart_lua)
 {
     logger::log(logger::DEBUG, "clear()ing LogicSystem\r\n");
     INDENT_LOG(logger::DEBUG);
@@ -361,14 +362,17 @@ void LogicSystem::clear()
         engine.getg("entity_store").t_getraw("del_all").call(0, 0).pop(1);
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
-        //engine.destroy();
+        if (restart_lua) engine.reset();
     }
+
+    LogicSystem::initialized = false;
 }
 
 void LogicSystem::init()
 {
     clear();
     engine.create();
+    LogicSystem::initialized = true;
 }
 
 void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
@@ -540,24 +544,24 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
     logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4);
     INDENT_LOG(logger::DEBUG);
 
-    extentity &e = *(new extentity);
-    entities::storage.add(&e);
+    extentity *e = new extentity;
+    entities::storage.add(e);
 
-    e.type  = type;
-    e.o     = vec(x,y,z);
-    e.attr1 = attr1;
-    e.attr2 = attr2;
-    e.attr3 = attr3;
-    e.attr4 = attr4;
+    e->type  = type;
+    e->o     = vec(x,y,z);
+    e->attr1 = attr1;
+    e->attr2 = attr2;
+    e->attr3 = attr3;
+    e->attr4 = attr4;
 
-    e.inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
+    e->inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
 
     extern void addentity(extentity* entity);
-    addentity(&e);
-    attachentity(e);
+    addentity(e);
+    attachentity(*e);
 
-    LogicSystem::setUniqueId(&e, uniqueId);
-    LogicSystem::registerLogicEntity(&e);
+    LogicSystem::setUniqueId(e, uniqueId);
+    LogicSystem::registerLogicEntity(e);
 }
 
 void LogicSystem::setupCharacter(int ref)

@@ -1,5 +1,5 @@
 --[[!
-    File: tgui/widgets/buttons.lua
+    File: library/core/tgui/widgets/buttons.lua
 
     About: Author
         q66 <quaker66@gmail.com>

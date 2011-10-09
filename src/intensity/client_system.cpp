@@ -22,7 +22,7 @@ CLogicEntity  *ClientSystem::playerLogicEntity  = NULL;
 bool           ClientSystem::loggedIn           = false;
 bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
-const char    *ClientSystem::currScenarioCode   = "";
+types::string  ClientSystem::currScenarioCode   = "";
 
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
@@ -78,7 +78,8 @@ void ClientSystem::onDisconnect()
     // it's also useful to stop all mapsounds and gamesounds (but only for client that disconnects!)
     stopsounds();
 
-    LogicSystem::clear();
+    // we also must get the lua system into clear state
+    LogicSystem::clear(true);
 }
 
 bool ClientSystem::scenarioStarted()
@@ -400,7 +401,7 @@ void ClientSystem::finishLoadWorld()
     gui::clearmainmenu(); // (see prepareForMap)
 }
 
-void ClientSystem::prepareForNewScenario(const char *sc)
+void ClientSystem::prepareForNewScenario(const types::string& sc)
 {
     _mapCompletelyReceived = false; // We no longer have a map. This implies scenarioStarted will return false, thus
                                     // stopping sending of position updates, as well as rendering

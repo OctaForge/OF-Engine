@@ -1,5 +1,5 @@
 --[[!
-    File: language/mod_string.lua
+    File: library/core/language/mod_string.lua
 
     About: Author
         q66 <quaker66@gmail.com>

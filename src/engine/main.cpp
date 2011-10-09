@@ -177,7 +177,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     glEnable(GL_TEXTURE_2D);
 
     static int lastupdate = -1, lastw = -1, lasth = -1;
-    static float backgroundu = 0, backgroundv = 0, detailu = 0, detailv = 0;
+    static float backgroundu = 0, backgroundv = 0;
     static int numdecals = 0;
     static struct decal { float x, y, size; int side; } decals[12];
 
@@ -189,8 +189,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
         backgroundu = rndscale(1);
         backgroundv = rndscale(1);
-        detailu = rndscale(1);
-        detailv = rndscale(1);
     }
     else if(lastupdate != lastmillis) lastupdate = lastmillis;
 
@@ -985,10 +983,10 @@ void getfps(int &fps, int &bestdiff, int &worstdiff)
     worstdiff = fps-1000/worst;
 }
 
-void getfps_(int *raw)
+void getfps_(bool raw)
 {
-    int fps, bestdiff, worstdiff;
-    if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
+    int fps, bestdiff = 0, worstdiff = 0;
+    if(raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
     else getfps(fps, bestdiff, worstdiff);
     lua::engine.push(fps);
     lua::engine.push(bestdiff);
