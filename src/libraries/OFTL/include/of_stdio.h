@@ -1,5 +1,4 @@
-/*
- * File: of_stdio.h
+/* File: of_stdio.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -19,28 +18,24 @@
 
 #ifdef WIN32
 
-/*
- * Function: _vasprintf
+/* Function: _vasprintf
  * See vasprintf. Windows-specific implementation.
  * Defined as <vasprintf> by macro to get around
  * redefinition issue on MinGW/Cygwin.
  */
 int _vasprintf(char **strp, const char *fmt, va_list ap);
 
-/*
- * Function: _asprintf
+/* Function: _asprintf
  * See <_vasprintf>.
  */
 int _asprintf(char **strp, const char *fmt, ...);
 
-/*
- * Define: vasprintf
+/* Define: vasprintf
  * Alias for <_vasprintf> to get around redefinition issues.
  */
 #define vasprintf _vasprintf
 
-/*
- * Define: asprintf
+/* Define: asprintf
  * Alias for <_asprintf> to get around redefinition issues.
  */
 #define asprintf _asprintf

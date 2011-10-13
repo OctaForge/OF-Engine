@@ -29,13 +29,17 @@ Currently included:
     - algorithm library
     - unified definition for the new and delete operators.
     - stdio extensions (asprintf/vasprintf for Windows).
+    - mersenne twister for pseudorandom numbers.
     - utilities (unified NULL constant definition, typedefs like
       unsigned int -> uint..).
 
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>
 
 USAGE:
-    Simply include the header you want and specify the include path
-    when compiling (i.e. -I../include). On Windows, you'll have to
-    compile of_stdio.cpp into your application if you want strings
-    working.
+    Build a library using the bundled Makefile or any other way
+    and include the headers in your project. Then link it against
+    the library. Please note that you don't need the library unless
+    you're on Windows (stdio extensions).
+
+    For tests, you can use the makefile inside the tests directory.
+    That requires the library to be built beforehand.

@@ -1,5 +1,4 @@
-/*
- * File: of_all.h
+/* File: of_all.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -31,5 +30,6 @@
 #include "of_map.h"
 #include "of_list.h"
 #include "of_vector.h"
+#include "of_random.h"
 
 #endif

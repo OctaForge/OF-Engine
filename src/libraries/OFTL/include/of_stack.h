@@ -1,5 +1,4 @@
-/*
- * File: of_stack.h
+/* File: of_stack.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -19,14 +18,12 @@
 
 #include "of_utils.h"
 
-/*
- * Package: types
+/* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /*
-     * Class: stack
+    /* Class: stack
      * A "stack" class. Internally it's a singly linked list
      * of nodes. Every node has data of type specified by the
      * template argument.
@@ -40,14 +37,12 @@ namespace types
      */
     template<typename T> struct stack
     {
-        /*
-         * Constructor: stack
+        /* Constructor: stack
          * Initializes the stack.
          */
         stack(): top_node(NULL), c_length(0) {}
 
-        /*
-         * Destructor: stack
+        /* Destructor: stack
          * Calls <pop_back> until the length is 0. That makes
          * sure all the nodes are deleted (and thus memory
          * is not leaked).
@@ -57,33 +52,28 @@ namespace types
             while (c_length > 0) pop_back();
         }
 
-        /*
-         * Function: length
+        /* Function: length
          * Returns the current stack length.
          */
         size_t length() const { return c_length; }
 
-        /*
-         * Function: is_empty
+        /* Function: is_empty
          * Returns true if the stack contains no nodes,
          * and false otherwise.
          */
         bool is_empty() const { return (c_length == 0); }
 
-        /*
-         * Function: top
+        /* Function: top
          * Returns the data of the top node.
          */
         T& top() { return top_node->data; }
 
-        /*
-         * Function: top
+        /* Function: top
          * Returns the data of the top node, const version.
          */
         const T& top() const { return top_node->data; }
 
-        /*
-         * Function: push_back
+        /* Function: push_back
          * Creates a new top node with the data specified
          * by the argument.
          */
@@ -95,8 +85,7 @@ namespace types
             c_length++;
         }
 
-        /*
-         * Function: pop_back
+        /* Function: pop_back
          * Pops out the top node.
          */
         void pop_back()
@@ -108,8 +97,7 @@ namespace types
             c_length--;
         }
 
-        /*
-         * Function: clear
+        /* Function: clear
          * Calls <pop_back> until the stack is empty.
          */
         void clear()
@@ -119,14 +107,6 @@ namespace types
 
     protected:
 
-        /*
-         * Variable: node
-         * A node for the stack. As this works as a singly
-         * linked list, it contains a pointer to the node below,
-         * besides data.
-         *
-         * Protected level of access.
-         */
         struct node
         {
             node(const T& data, node *below = NULL):
@@ -136,20 +116,7 @@ namespace types
             T data;
         };
 
-        /*
-         * Variable: top_node
-         * The top node of the stack (represented as <node>).
-         *
-         * Protected level of access.
-         */
-        node *top_node;
-
-        /*
-         * Variable: c_length
-         * Stores the stack length (the number of nodes).
-         *
-         * Protected level of access.
-         */
+        node  *top_node;
         size_t c_length;
     };
 } /* end namespace types */

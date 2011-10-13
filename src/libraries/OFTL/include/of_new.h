@@ -1,5 +1,4 @@
-/*
- * File: of_new.h
+/* File: of_new.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -25,8 +24,7 @@
 #ifndef OF_NO_NEW
 #include <stdlib.h>
 
-/*
- * Operator: new
+/* Operator: new
  * Allocates storage space.
  */
 inline void *operator new(size_t size) 
@@ -36,8 +34,7 @@ inline void *operator new(size_t size)
     return p;
 }
 
-/*
- * Operator: new[]
+/* Operator: new[]
  * Allocates storage space for array.
  */
 inline void *operator new[](size_t size) 
@@ -47,17 +44,15 @@ inline void *operator new[](size_t size)
     return p;
 }
 
-/*
- * Operator: delete
+/* Operator: delete
  * Deallocates storage space.
  */
-inline void operator delete(void *p) { if (p) free(p); }
+inline void operator delete(void *p) { free(p); }
 
-/*
- * Operator: delete[]
+/* Operator: delete[]
  * Deallocates storage space of array.
  */
-inline void operator delete[](void *p) { if (p) free(p); } 
+inline void operator delete[](void *p) { free(p); } 
 
 inline void *operator new  (size_t, void *p)  { return p; }
 inline void *operator new[](size_t, void *p)  { return p; }
@@ -66,8 +61,7 @@ inline void operator delete[](void *, void *) {}
 
 #endif
 
-/*
- * Define: DELETEA
+/* Define: DELETEA
  * Behaves like <delete[]>, but NULLs the pointer after
  * deleting.
  *
@@ -79,8 +73,7 @@ inline void operator delete[](void *, void *) {}
     p = NULL; \
 }
 
-/*
- * Define: DELETEP
+/* Define: DELETEP
  * Behaves like <delete>, but NULLs the pointer after
  * deleting.
  *

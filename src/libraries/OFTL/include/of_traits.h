@@ -1,5 +1,4 @@
-/*
- * File: of_traits.h
+/* File: of_traits.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -17,34 +16,29 @@
 #ifndef OF_TRAITS_H
 #define OF_TRAITS_H
 
-/*
- * Package: traits
+/* Package: traits
  * This namespace provides basic type traits. It can be used for
  * checking if a type is POD, pointer, integral or floating point
  * and if two types are equal.
  */
 namespace traits
 {
-    /*
-     * Variable: bool_type
+    /* Variable: bool_type
      * Compile-time boolean type.
      */
     template<bool v> struct bool_type { enum { value = v }; };
 
-    /*
-     * Variable: true_type
+    /* Variable: true_type
      * True version of <bool_type>.
      */
     typedef bool_type<true> true_type;
 
-    /*
-     * Variable: false_type
+    /* Variable: false_type
      * False version of <bool_type>.
      */
     typedef bool_type<false> false_type;
 
-    /*
-     * Variable: is_integral
+    /* Variable: is_integral
      * Version of <bool_type> for integral types.
      *
      * Specializations:
@@ -61,8 +55,7 @@ namespace traits
      */
     template<typename T> struct is_integral: false_type {};
 
-    /*
-     * Variable: is_fpoint
+    /* Variable: is_fpoint
      * Version of <bool_type> for floating point types.
      *
      * Specializations:
@@ -72,8 +65,7 @@ namespace traits
      */
     template<typename T> struct is_fpoint: false_type {};
 
-    /*
-     * Variable: is_pointer
+    /* Variable: is_pointer
      * Version of <bool_type> for pointer types.
      *
      * Only true specialization here is for T*.
@@ -96,8 +88,7 @@ namespace traits
     template<>           struct is_fpoint<long double     > :  true_type {};
     template<typename T> struct is_pointer<T*             > :  true_type {};
 
-    /*
-     * Variable: is_pod
+    /* Variable: is_pod
      * Version of <bool_type> for POD types. POD type is every integral,
      * floating point or pointer type. Non-POD types are defined, like
      * various structs / classes.
@@ -106,15 +97,13 @@ namespace traits
                                                 || is_fpoint  <T>::value
                                                 || is_pointer <T>::value)> {};
 
-    /*
-     * Variable: are_equal
+    /* Variable: are_equal
      * Checks whether two types are equal. This is a definition for
      * the case when they are different, so its "value" is 0.
      */
     template<typename, typename> struct are_equal { enum { value = 0 }; };
 
-    /*
-     * Variable: are_equal
+    /* Variable: are_equal
      * Version for when they are equal, so the "value" is 1.
      */
     template<typename T> struct are_equal<T, T> { enum { value = 1 }; };

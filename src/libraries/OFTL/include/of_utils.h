@@ -1,5 +1,4 @@
-/*
- * File: of_utils.h
+/* File: of_utils.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -24,32 +23,27 @@
 #undef NULL
 #endif
 
-/*
- * Define: NULL
+/* Define: NULL
  * Set to 0.
  */
 #define NULL 0
 
-/*
- * Typedef: uint
+/* Typedef: uint
  * Defined as unsigned int.
  */
 typedef unsigned int uint;
 
-/*
- * Typedef: ushort
+/* Typedef: ushort
  * Defined as unsigned short.
  */
 typedef unsigned short ushort;
 
-/*
- * Typedef: ulong
+/* Typedef: ulong
  * Defined as unsigned long.
  */
 typedef unsigned long ulong;
 
-/*
- * Typedef: uchar
+/* Typedef: uchar
  * Defined as unsigned char.
  */
 typedef unsigned char uchar;

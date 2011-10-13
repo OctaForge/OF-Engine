@@ -1,5 +1,4 @@
-/*
- * File: of_iterator.h
+/* File: of_iterator.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -19,15 +18,13 @@
 
 #include <stddef.h>
 
-/*
- * Package: iterators
+/* Package: iterators
  * This namespace provides various iterator types
  * like reverse iterator and iterator traits.
  */
 namespace iterators
 {
-    /*
-     * Struct: traits
+    /* Struct: traits
      * Default iterator traits. Every iterator should have
      * 4 typedefs, diff_t, which is a size type (for i.e.
      * offset between iterators). That one is usually
@@ -50,8 +47,7 @@ namespace iterators
         typedef typename T::ref_t  ref_t;
     };
 
-    /*
-     * Struct: traits
+    /* Struct: traits
      * Special structure for pointer types. Difference type is
      * ptrdiff_t, value type is T, pointer type T* and reference
      * type T&.
@@ -68,8 +64,7 @@ namespace iterators
         typedef T& ref_t;
     };
 
-    /*
-     * Struct: traits
+    /* Struct: traits
      * Special structure for const pointer types. Difference
      * type is ptrdiff_t, value type is T, pointer type
      * const T* and reference type const T&.
@@ -86,8 +81,7 @@ namespace iterators
         typedef T val_t;
     };
 
-    /*
-     * Struct: traits
+    /* Struct: traits
      * This one is for void pointers, as there can't be a
      * "void" value type. Difference type is ptrdiff_t,
      * value type unsigned char, pointer type void*
@@ -105,8 +99,7 @@ namespace iterators
         typedef val_t& ref_t;
     };
 
-    /*
-     * Struct: traits
+    /* Struct: traits
      * This one is for const void pointers. Difference
      * type is ptrdiff_t, value type unsigned char,
      * pointer type const void* and reference type
@@ -124,8 +117,7 @@ namespace iterators
         typedef const val_t& ref_t;
     };
 
-    /*
-     * Struct: reverse
+    /* Struct: reverse
      * A reverse iterator. Given any iterator type (random
      * access or bidirectional), it returns a reverse one
      * for the type. Incrementing then means going back,
@@ -145,28 +137,24 @@ namespace iterators
         /* Typedef: val_t */
         typedef typename traits<T>::val_t val_t;
 
-        /*
-         * Constructor: reverse
+        /* Constructor: reverse
          * An empty constructor.
          */
         reverse(): it_base(T()) {}
 
-        /*
-         * Constructor: reverse
+        /* Constructor: reverse
          * Constructs a reverse iterator from given iterator.
          */
         reverse(T it): it_base(it ) {}
 
-        /*
-         * Constructor: reverse
+        /* Constructor: reverse
          * Constructs a reverse iterator from a reverse iterator of
          * any type.
          */
         template<typename U>
         reverse(const reverse<U>& it): it_base(it.base()) {}
 
-        /*
-         * Function: equals
+        /* Function: equals
          * Returns true if given reverse iterator equals the current
          * one (that is, if their bases are the same).
          */
@@ -174,8 +162,7 @@ namespace iterators
         bool equals(const reverse<U>& it) const
         { return (it.base() == it_base); }
 
-        /*
-         * Function: base
+        /* Function: base
          * Returns the standard iterator held by the
          * reverse iterator. It isn't a reference, so
          * you can safely modify the returned iterator
@@ -183,8 +170,7 @@ namespace iterators
          */
         T base() const { return it_base; }
 
-        /*
-         * Operator: *
+        /* Operator: *
          * Overloaded dereference operator. Returns what
          * a standard iterator it holds returns when
          * dereferencing.
@@ -195,8 +181,7 @@ namespace iterators
             return *--tmp;
         }
 
-        /*
-         * Operator: +
+        /* Operator: +
          * Useful for random access iterators to
          * perform offsets. Basically returns
          * reverse iterator to "base - N".
@@ -206,8 +191,7 @@ namespace iterators
             return reverse(it_base - n);
         }
 
-        /*
-         * Operator: ++
+        /* Operator: ++
          * The prefix version of the ++ operator.
          * Decrements the base iterator.
          */
@@ -217,8 +201,7 @@ namespace iterators
             return *this;
         }
 
-        /*
-         * Operator: ++
+        /* Operator: ++
          * The postfix version of the ++ operator.
          * Creates a new reverse iterator from
          * this one, decrements the current one
@@ -231,8 +214,7 @@ namespace iterators
             return tmp;
         }
 
-        /*
-         * Operator: +=
+        /* Operator: +=
          * Decrements the base iterator by N.
          */
         reverse& operator+=(diff_t n)
@@ -241,8 +223,7 @@ namespace iterators
             return *this;
         }
 
-        /*
-         * Operator: -
+        /* Operator: -
          * See above. Performs the opposite action.
          */
         reverse operator-(diff_t n) const
@@ -250,8 +231,7 @@ namespace iterators
             return reverse(it_base + n);
         }
 
-        /*
-         * Operator: --
+        /* Operator: --
          * See above. Performs the opposite action.
          * Prefix version.
          */
@@ -261,8 +241,7 @@ namespace iterators
             return *this;
         }
 
-        /*
-         * Operator: --
+        /* Operator: --
          * See above. Performs the opposite action.
          * Postfix version.
          */
@@ -273,8 +252,7 @@ namespace iterators
             return tmp;
         }
 
-        /*
-         * Operator: -=
+        /* Operator: -=
          * See above. Performs the opposite action.
          */
         reverse& operator-=(size_t n)
@@ -283,8 +261,7 @@ namespace iterators
             return *this;
         }
 
-        /*
-         * Operator: ->
+        /* Operator: ->
          * Defined for pointer-based base iterators in
          * order to access elements in a pointer-ish way.
          */
@@ -293,8 +270,7 @@ namespace iterators
             return &(operator*());
         }
 
-        /*
-         * Operator: []
+        /* Operator: []
          * Defined for pointer/array-based base iterators
          * in order to access elements in an array-ish way.
          */
@@ -305,15 +281,10 @@ namespace iterators
 
     protected:
 
-        /*
-         * Variable: it_base
-         * The base iterator. Protected access.
-         */
         T it_base;
     };
 
-    /*
-     * Operator: ==
+    /* Operator: ==
      * Defines == comparison behavior for reverse iterators.
      * Global operator, not part of the class. Can be used
      * for any two reverse iterators, even of different types.

@@ -1,5 +1,4 @@
-/*
- * File: of_pair.h
+/* File: of_pair.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -17,42 +16,36 @@
 #ifndef OF_PAIR_H
 #define OF_PAIR_H
 
-/*
- * Package: types
+/* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /*
-     * Class: pair
+    /* Class: pair
      * This is a pair struct which encapsulates two members.
      * The members are passed by const ref in the constructor.
      */
     template<typename T, typename U> struct pair
     {
-        /*
-         * Constructor: pair
+        /* Constructor: pair
          * Default empty ctor.
          */
         pair(): first(T()), second(U()) {}
 
-        /*
-         * Constructor: pair
+        /* Constructor: pair
          * A constructor accepting arguments of
          * types T and U. Passing is done by const
          * ref.
          */
         pair(const T& a, const U& b): first(a), second(b) {}
 
-        /*
-         * Constructor: pair
+        /* Constructor: pair
          * A constructor accepting another pair,
          * again by const reference.
          */
         pair(const pair<T, U>& p): first(p.first), second(p.second) {}
 
-        /*
-         * Operator: =
+        /* Operator: =
          * A copy constructor.
          */
         pair& operator=(const pair& p)
@@ -65,29 +58,25 @@ namespace types
             return *this;
         }
 
-        /*
-         * Variable: first
+        /* Variable: first
          * The "T" member which you can access / set.
          */
         T first;
 
-        /*
-         * Variable: second
+        /* Variable: second
          * The "U" member which you can access / set.
          */
         U second;
     };
 } /* end namespace types */
 
-/*
- * Package: algorithm
+/* Package: algorithm
  * The pair header overloads algorithm compare
  * function for pair types.
  */
 namespace algorithm
 {
-    /*
-     * Function: compare
+    /* Function: compare
      * Comparison for cases where both arguments are <pair> <T, U>.
      */
     template<typename T, typename U>
@@ -96,8 +85,7 @@ namespace algorithm
         return compare(a.first, b.first);
     }
 
-    /*
-     * Function: compare
+    /* Function: compare
      * Comparison for cases where first argument is T and
      * second argument is <pair> <T, U>.
      */

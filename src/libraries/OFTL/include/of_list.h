@@ -1,5 +1,4 @@
-/*
- * File: of_list.h
+/* File: of_list.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -20,71 +19,40 @@
 #include "of_utils.h"
 #include "of_iterator.h"
 
-/*
- * Package: types
+/* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /*
-     * Struct: list_node
+    /* Struct: list_node
      * The list node class. Holds the data and the links (prev, next).
      */
     template<typename T> struct list_node
     {
-        /*
-         * Constructor: list_node
+        /* Constructor: list_node
          * An empty constructor.
          */
         list_node(): prev(NULL), next(NULL) {}
 
-        /*
-         * Constructor: list_node
+        /* Constructor: list_node
          * Constructs a list node from data and prev, next nodes.
          */
         list_node(const T& data, list_node *prev, list_node *next):
             data(data), prev(prev), next(next) {}
 
     private:
-        /*
-         * Variable: data
-         * Private access.
-         */
+
         T data;
 
-        /*
-         * Variable: prev
-         * Private access.
-         */
         list_node *prev;
-
-        /*
-         * Variable: next
-         * Private access.
-         */
         list_node *next;
 
-        /*
-         * Property: list_iterator
-         * <list_iterator> is a friend of this class.
-         */
         template<typename U> friend struct list_iterator;
-
-        /*
-         * Property: list_const_iterator
-         * <list_const_iterator> is a friend of this class.
-         */
         template<typename U> friend struct list_const_iterator;
-
-        /*
-         * Property: list
-         * <list> is a friend of this class.
-         */
         template<typename U> friend struct list;
     };
 
-    /*
-     * Struct: list_iterator
+    /* Struct: list_iterator
      * An iterator for the linked list. It's a bidirectional
      * iterator, you can only go two directions and without
      * offsets.
@@ -100,46 +68,39 @@ namespace types
         /* Typedef: ref_t */
         typedef T& ref_t;
 
-        /*
-         * Constructor: list_iterator
+        /* Constructor: list_iterator
          * Constructs an empty iterator.
          */
         list_iterator(): nd(NULL) {}
 
-        /*
-         * Constructor: list_iterator
+        /* Constructor: list_iterator
          * Constructs an iterator from a given <list_node>.
          */
         list_iterator(list_node<T> *nd): nd(nd) {}
 
-        /*
-         * Constructor: list_iterator
+        /* Constructor: list_iterator
          * Constructs an iterator from another iterator.
          */
         list_iterator(const list_iterator& it): nd(it.nd) {}
 
-        /*
-         * Function: equals
+        /* Function: equals
          * Returns true if given list iterator equals this one
          * (that is, if their nodes equal).
          */
         bool equals(const list_iterator& it) const { return (it.nd == nd); }
 
-        /*
-         * Operator: *
+        /* Operator: *
          * Dereferencing list iterator returns
          * the current node data.
          */
         ref_t operator*() const { return nd->data; }
 
-        /*
-         * Operator: ->
+        /* Operator: ->
          * Pointer-like iterator access.
          */
         ptr_t operator->() const { return &nd->data; }
 
-        /*
-         * Operator: ++
+        /* Operator: ++
          * Moves on to the next node, prefix version.
          */
         list_iterator& operator++()
@@ -148,8 +109,7 @@ namespace types
             return *this;
         }
 
-        /*
-         * Operator: ++
+        /* Operator: ++
          * Moves on to the next node and returns
          * an iterator to the current node (before
          * incrementing). Postfix version.
@@ -161,8 +121,7 @@ namespace types
             return tmp;
         }
 
-        /*
-         * Operator: --
+        /* Operator: --
          * Prefix version, see <++>.
          */
         list_iterator& operator--()
@@ -171,8 +130,7 @@ namespace types
             return *this;
         }
 
-        /*
-         * Operator: --
+        /* Operator: --
          * Postfix version, see <++>.
          */
         list_iterator& operator--(int)
@@ -184,22 +142,13 @@ namespace types
 
     protected:
 
-        /*
-         * Variable: nd
-         * The current list node the iterator
-         * is at. Protected level of access.
-         */
         list_node<T> *nd;
 
-        /* Property: friend list_iterator */
         template<typename U> friend struct list_iterator;
-
-        /* Property: friend list_const_iterator */
         template<typename U> friend struct list_const_iterator;
     };
 
-    /*
-     * Struct: list_const_iterator
+    /* Struct: list_const_iterator
      * Const version of <list_iterator>. Inherits from
      * <list_iterator>. Besides its own typedefs, it provides
      * a constructor allowing to create it from standard
@@ -221,36 +170,31 @@ namespace types
         /* Typedef: val_t */
         typedef T val_t;
 
-        /*
-         * Constructor: list_const_iterator
+        /* Constructor: list_const_iterator
          * Constructs a list const iterator from <base>.
          */
         list_const_iterator(const base& it) { base::nd = it.nd; }
 
-        /*
-         * Function: equals
+        /* Function: equals
          * Returns true if given const list iterator equals the
          * current one (that is, if their nodes equal).
          */
         bool equals(const list_const_iterator& it) const
         { return (it.nd == base::nd); }
 
-        /*
-         * Operator: *
+        /* Operator: *
          * Dereferencing list iterator returns
          * the current node data.
          */
         ref_t operator*() const { return base::nd->data; }
 
-        /*
-         * Operator: ->
+        /* Operator: ->
          * Pointer-like iterator access.
          */
         ptr_t operator->() const { return &base::nd->data; }
     };
 
-    /*
-     * Class: list
+    /* Class: list
      * A "list" class. It represents a doubly linked list with
      * links to first and last node, so you can insert and delete
      * from both the beginning and the end. That means you can
@@ -288,38 +232,32 @@ namespace types
         /* Typedef: node */
         typedef list_node<T> node;
 
-        /*
-         * Typedef: it
+        /* Typedef: it
          * An iterator typedef for standard, non-const iterator.
          */
         typedef list_iterator<T> it;
 
-        /*
-         * Typedef: cit
+        /* Typedef: cit
          * An iterator typedef for const iterator.
          */
         typedef list_const_iterator<T> cit;
 
-        /*
-         * Typedef: rit
+        /* Typedef: rit
          * Reverse iterator typedef, a <reverse> < <it> >.
          */
         typedef iterators::reverse<it> rit;
 
-        /*
-         * Typedef: crit
+        /* Typedef: crit
          * Const reverse iterator typedef, a <reverse> < <cit> >.
          */
         typedef iterators::reverse<cit> crit;
 
-        /*
-         * Constructor: list
+        /* Constructor: list
          * An empty list constructor.
          */
         list(): n_first(NULL), n_last(NULL), c_length(0) {}
 
-        /*
-         * Destructor: list
+        /* Destructor: list
          * Calls <pop_back> until the length is 0.
          */
         ~list()
@@ -327,69 +265,58 @@ namespace types
             while (c_length > 0) pop_back();
         }
 
-        /*
-         * Function: begin
+        /* Function: begin
          * Returns an iterator to the first node.
          */
         it begin() { return it(n_first); }
 
-        /*
-         * Function: begin
+        /* Function: begin
          * Returns a const iterator to the first node.
          */
         cit begin() const { return cit(n_first); }
 
-        /*
-         * Function: rbegin
+        /* Function: rbegin
          * Returns a <reverse> iterator to <end>.
          */
         rit rbegin() { return rit(end()); }
 
-        /*
-         * Function: rbegin
+        /* Function: rbegin
          * Returns a const <reverse> iterator to <end>.
          */
         crit rbegin() const { return crit(end()); }
 
-        /*
-         * Function: end
+        /* Function: end
          * Returns an iterator to the last node.
          */
         it end() { return it(n_last); }
 
-        /*
-         * Function: end
+        /* Function: end
          * Returns a const iterator to the last node.
          */
         cit end() const { return cit(n_last); }
 
-        /*
-         * Function: rend
+        /* Function: rend
          * Returns a <reverse> iterator to <begin>.
          */
         rit rend() { return rit(begin()); }
 
-        /*
-         * Function: rend
+        /* Function: rend
          * Returns a const <reverse> iterator to <begin>.
          */
         crit rend() const { return crit(begin()); }
 
-        /*
-         * Function: length
+        /* Function: length
          * Returns the current list length.
          */
         size_t length() const { return c_length; }
 
-        /*
-         * Function: is_empty
+        /* Function: is_empty
          * Returns true if the list contains no nodes,
          * and false otherwise.
          */
         bool is_empty() const { return (c_length == 0); }
 
-        /*
-         * Function: push_back
+        /* Function: push_back
          * Pushes the given data to the end of the list.
          * Returns a reference to the data.
          */
@@ -406,8 +333,7 @@ namespace types
             return n->data;
         }
 
-        /*
-         * Function: push_front
+        /* Function: push_front
          * Pushes the given data to the beginning of the list.
          * Returns a reference to the data.
          */
@@ -424,8 +350,7 @@ namespace types
             return n->data;
         }
 
-        /*
-         * Function: pop_back
+        /* Function: pop_back
          * Pops out the node at the end.
          */
         void pop_back()
@@ -440,8 +365,7 @@ namespace types
             c_length--;
         }
 
-        /*
-         * Function: pop_front
+        /* Function: pop_front
          * Pops out the node at the beginning.
          */
         void pop_front()
@@ -456,8 +380,7 @@ namespace types
             c_length--;
         }
 
-        /*
-         * Function: clear
+        /* Function: clear
          * Calls <pop_back> until the length is 0.
          */
         void clear()
@@ -467,33 +390,13 @@ namespace types
 
     protected:
 
-        /*
-         * Variable: n_first
-         * A pointer to the first node of the list.
-         *
-         * Protected level of access.
-         */
         node *n_first;
-
-        /*
-         * Variable: n_first
-         * A pointer to the last node of the list.
-         *
-         * Protected level of access.
-         */
         node *n_last;
 
-        /*
-         * Variable: c_length
-         * Stores the list length (the number of nodes).
-         *
-         * Protected level of access.
-         */
         size_t c_length;
     };
 
-    /*
-     * Operator: ==
+    /* Operator: ==
      * Defines == comparison behavior for list iterators.
      * Global operator, not part of the class. Can be used
      * for any two list iterators, even of different types.

@@ -1,5 +1,4 @@
-/*
- * File: of_shared_ptr.h
+/* File: of_shared_ptr.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -23,22 +22,19 @@
 
 #include "of_utils.h"
 
-/*
- * Package: types
+/* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /*
-     * Class: shared_ptr
+    /* Class: shared_ptr
      * A shared pointer. Basically a reference counted container.
      * Useful for i.e. storing pointers in various container types
      * like vectors and hashtables without risking leaks.
      */
     template<typename T> struct shared_ptr
     {
-        /*
-         * Constructor: shared_ptr
+        /* Constructor: shared_ptr
          * Initializes empty shared_ptr.
          */
         shared_ptr(): ptr(NULL), count(NULL)
@@ -46,8 +42,7 @@ namespace types
             count = new counter;
         }
 
-        /*
-         * Constructor: shared_ptr
+        /* Constructor: shared_ptr
          * Initializes shared_ptr from shared_ptr.
          * Increments the counter.
          */
@@ -56,8 +51,7 @@ namespace types
             count->increment();
         }
 
-        /*
-         * Constructor: shared_ptr
+        /* Constructor: shared_ptr
          * Initializes shared_ptr from a pointer.
          */
         shared_ptr(T *p): ptr(p), count(NULL)
@@ -65,8 +59,7 @@ namespace types
             count = new counter;
         }
 
-        /*
-         * Destructor: shared_ptr
+        /* Destructor: shared_ptr
          * Decrements the <counter>. If it reaches 0,
          * both pointer and counter will be freed.
          */
@@ -79,8 +72,7 @@ namespace types
             }
         }
 
-        /*
-         * Operator: =
+        /* Operator: =
          * Assigns the shared_ptr from another one. Inherits
          * its reference count and increments it by one.
          */
@@ -100,42 +92,36 @@ namespace types
             return *this;
         }
 
-        /*
-         * Function: get
+        /* Function: get
          * Returns the raw pointer.
          */
         T *get() { return ptr; }
 
-        /*
-         * Function: get
+        /* Function: get
          * Returns a const version of the raw pointer.
          */
         const T *get() const { return ptr; }
 
-        /*
-         * Operator: ->
+        /* Operator: ->
          * Overload of this operator so you can manipulate
          * with the container simillarily to standard pointer.
          */
         T *operator->() { return ptr; }
 
-        /*
-         * Operator: *
+        /* Operator: *
          * Overload of this operator so you can manipulate
          * with the container simillarily to standard pointer.
          */
         T& operator*() { return *ptr; }
 
-        /*
-         * Operator: ->
+        /* Operator: ->
          * Overload of this operator so you can manipulate
          * with the container simillarily to standard pointer.
          * Const version.
          */
         const T *operator->() const { return ptr; }
 
-        /*
-         * Operator: *
+        /* Operator: *
          * Overload of this operator so you can manipulate
          * with the container simillarily to standard pointer.
          * Const version.
@@ -175,17 +161,7 @@ namespace types
             size_t count;
         };
 
-        /*
-         * Variable: ptr
-         * The pointer. Proteced level of access.
-         */
-        T *ptr;
-
-        /*
-         * Variable: count
-         * Current instance of <counter>.
-         * Proteced level of access.
-         */
+        T       *ptr;
         counter *count;
     };
 } /* end namespace types */

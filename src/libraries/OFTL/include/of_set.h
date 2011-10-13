@@ -1,5 +1,4 @@
-/*
- * File: of_set.h
+/* File: of_set.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -21,14 +20,12 @@
 #include "of_algorithm.h"
 #include "of_iterator.h"
 
-/*
- * Package: types
+/* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /*
-     * Struct: set_node
+    /* Struct: set_node
      * A node structure for the tree. Has two constructors,
      * one of them takes no arguments (level 0, left and right
      * nodes as "this") and the other takes data, a node
@@ -47,16 +44,14 @@ namespace types
      */
     template<typename T> struct set_node
     {
-        /*
-         * Constructor: set_node
-         * A default constructor. The <level> is set to 0 and all
+        /* Constructor: set_node
+         * A default constructor. The level is set to 0 and all
          * links to "this".
          */
         set_node():
             level(0), parent(this), left(this), right(this) {}
 
-        /*
-         * Constructor: set_node
+        /* Constructor: set_node
          * Passes data, parent node and left/right nodes (the same).
          * The <level> member is initialized to 1 (the node begins
          * life as leaf node).
@@ -66,40 +61,21 @@ namespace types
 
     protected:
 
-        /* Variable: data */
         T data;
-
-        /* Variable: level */
         size_t level;
 
-        /* Variable: parent */
         set_node *parent;
-
-        /* Variable: left */
         set_node *left;
-
-        /* Variable: right */
         set_node *right;
 
-        /*
-         * Property: friend set_iterator
-         * <set_iterator> is a friend of the node so it can access
-         * its members directly.
-         */
         template<typename U> friend struct set_iterator;
-
-        /* Property: friend set_const_iterator */
         template<typename U> friend struct set_const_iterator;
-
-        /* Property: friend set */
         template<typename U> friend struct set;
 
-        /* Property: friend map */
         template<typename U, typename V> friend struct map;
     };
 
-    /*
-     * Struct: set_iterator
+    /* Struct: set_iterator
      * An iterator for set (and map). It's a bidirectional
      * iterator, you can only go two directions and without
      * offsets.
@@ -115,46 +91,39 @@ namespace types
         /* Typedef: ref_t */
         typedef T& ref_t;
 
-        /*
-         * Constructor: set_iterator
+        /* Constructor: set_iterator
          * Constructs an empty iterator.
          */
         set_iterator(): nd(NULL) {}
 
-        /*
-         * Constructor: set_iterator
+        /* Constructor: set_iterator
          * Constructs an iterator from <set_node>.
          */
         set_iterator(set_node<T> *nd): nd(nd) {}
 
-        /*
-         * Constructor: set_iterator
+        /* Constructor: set_iterator
          * Constructs an iterator from another iterator.
          */
         set_iterator(const set_iterator& it): nd(it.nd) {}
 
-        /*
-         * Function: equals
+        /* Function: equals
          * Returns true if given set iterator equals this one
          * (that is, if their nodes equal).
          */
         bool equals(const set_iterator& it) const { return (it.nd == nd); }
 
-        /*
-         * Operator: *
+        /* Operator: *
          * Dereferencing set iterator returns
          * the current node data.
          */
         ref_t operator*() const { return nd->data; }
 
-        /*
-         * Operator: ->
+        /* Operator: ->
          * Pointer-like iterator access.
          */
         ptr_t operator->() const { return &nd->data; }
 
-        /*
-         * Operator: ++
+        /* Operator: ++
          * Moves on to the next node, prefix version.
          */
         set_iterator& operator++()
@@ -179,8 +148,7 @@ namespace types
             return *this;
         }
 
-        /*
-         * Operator: ++
+        /* Operator: ++
          * Moves on to the next node and returns
          * an iterator to the current node (before
          * incrementing). Postfix version.
@@ -192,8 +160,7 @@ namespace types
             return tmp;
         }
 
-        /*
-         * Operator: --
+        /* Operator: --
          * Prefix version, see <++>.
          */
         set_iterator& operator--()
@@ -218,8 +185,7 @@ namespace types
             return *this;
         }
 
-        /*
-         * Operator: --
+        /* Operator: --
          * Postfix version, see <++>.
          */
         set_iterator& operator--(int)
@@ -231,22 +197,13 @@ namespace types
 
     protected:
 
-        /*
-         * Variable: nd
-         * The current set node the iterator
-         * is at. Protected level of access.
-         */
         set_node<T> *nd;
 
-        /* Property: friend set_iterator */
         template<typename U> friend struct set_iterator;
-
-        /* Property: friend set_const_iterator */
         template<typename U> friend struct set_const_iterator;
     };
 
-    /*
-     * Struct: set_const_iterator
+    /* Struct: set_const_iterator
      * Const version of <set_iterator>. Inherits from
      * <set_iterator>. Besides its own typedefs, it provides
      * a constructor allowing to create it from standard
@@ -268,36 +225,31 @@ namespace types
         /* Typedef: val_t */
         typedef T val_t;
 
-        /*
-         * Constructor: set_const_iterator
+        /* Constructor: set_const_iterator
          * Constructs a set const iterator from <base>.
          */
         set_const_iterator(const base& it) { base::nd = it.nd; }
 
-        /*
-         * Function: equals
+        /* Function: equals
          * Returns true if given const set iterator equals the
          * current one (that is, if their nodes equal).
          */
         bool equals(const set_const_iterator& it) const
         { return (it.nd == base::nd); }
 
-        /*
-         * Operator: *
+        /* Operator: *
          * Dereferencing set iterator returns
          * the current node data.
          */
         ref_t operator*() const { return base::nd->data; }
 
-        /*
-         * Operator: ->
+        /* Operator: ->
          * Pointer-like iterator access.
          */
         ptr_t operator->() const { return &base::nd->data; }
     };
 
-    /*
-     * Class: set
+    /* Class: set
      * An efficient associative container implementation
      * using AA tree (an enhancement to red-black tree,
      * see <http://en.wikipedia.org/wiki/AA_tree>).
@@ -358,39 +310,33 @@ namespace types
      */
     template<typename T> struct set
     {
-        /*
-         * Typedef: node
+        /* Typedef: node
          * Typedefs <set_node> <T> so it can
          * be used as "node".
          */
         typedef set_node<T> node;
 
-        /*
-         * Typedef: it
+        /* Typedef: it
          * An iterator typedef for standard, non-const iterator.
          */
         typedef set_iterator<T> it;
 
-        /*
-         * Typedef: cit
+        /* Typedef: cit
          * An iterator typedef for const iterator.
          */
         typedef set_const_iterator<T> cit;
 
-        /*
-         * Typedef: rit
+        /* Typedef: rit
          * Reverse iterator typedef, a <reverse> < <it> >.
          */
         typedef iterators::reverse<it> rit;
 
-        /*
-         * Typedef: crit
+        /* Typedef: crit
          * Const reverse iterator typedef, a <reverse> < <cit> >.
          */
         typedef iterators::reverse<cit> crit;
 
-        /*
-         * Constructor: set
+        /* Constructor: set
          * Creates a new set with root <node> where root
          * is the same as nil (will change when something
          * gets inserted).
@@ -400,8 +346,7 @@ namespace types
             nil = root;
         }
 
-        /*
-         * Destructor: set
+        /* Destructor: set
          * Deletes a root node, all its sub-nodes and
          * a nil node. Done to not leak memory.
          */
@@ -411,22 +356,19 @@ namespace types
             delete nil;
         }
 
-        /*
-         * Function: length
+        /* Function: length
          * Returns the tree length (the amount of nodes
          * with actual data).
          */
         size_t length() const { return c_length; }
 
-        /*
-         * Function: is_empty
+        /* Function: is_empty
          * Returns true if the set contains no nodes
          * (except root / nil) and false otherwise.
          */
         bool is_empty() const { return (c_length == 0); }
 
-        /*
-         * Function: begin
+        /* Function: begin
          * Returns an iterator to the first node.
          */
         it begin()
@@ -441,8 +383,7 @@ namespace types
             return it(nd);
         }
 
-        /*
-         * Function: begin
+        /* Function: begin
          * Returns a const iterator to the first node.
          */
         cit begin() const
@@ -457,20 +398,17 @@ namespace types
             return cit(nd);
         }
 
-        /*
-         * Function: rbegin
+        /* Function: rbegin
          * Returns a <reverse> iterator to <end>.
          */
         rit rbegin() { return rit(end()); }
 
-        /*
-         * Function: rbegin
+        /* Function: rbegin
          * Returns a const <reverse> iterator to <end>.
          */
         crit rbegin() const { return crit(end()); }
 
-        /*
-         * Function: end
+        /* Function: end
          * Returns an iterator to the last node.
          */
         it end()
@@ -482,8 +420,7 @@ namespace types
             return it(nd);
         }
 
-        /*
-         * Function: end
+        /* Function: end
          * Returns a const iterator to the last node.
          */
         cit end() const
@@ -495,20 +432,17 @@ namespace types
             return cit(nd);
         }
 
-        /*
-         * Function: rend
+        /* Function: rend
          * Returns a <reverse> iterator to <begin>.
          */
         rit rend() { return rit(begin()); }
 
-        /*
-         * Function: rend
+        /* Function: rend
          * Returns a const <reverse> iterator to <begin>.
          */
         crit rend() const { return crit(begin()); }
 
-        /*
-         * Function: insert
+        /* Function: insert
          * Inserts a new node into the tree with data
          * member given by the arguments.
          *
@@ -523,8 +457,7 @@ namespace types
             return insert(root, data)->data;
         }
 
-        /*
-         * Function: clear
+        /* Function: clear
          * Destroys the root node, all its sub-nodes and the nil
          * node, and re-initializes the tree with length 0.
          */
@@ -538,29 +471,25 @@ namespace types
             c_length = 0;
         }
 
-        /*
-         * Function: erase
+        /* Function: erase
          * Erases a node with a given key from the tree. Unlike
          * <pop>, it also deletes the node (and returns nothing).
          */
         void erase(const T& key) { delete erase(root, key); }
 
-        /*
-         * Function: find
+        /* Function: find
          * Returns an iterator to a node that belongs to a given key.
          * There is also a const version that returns a const
          * iterator (non-modifiable).
          */
         it find(const T& key) { return it(find(root, key)); }
 
-        /*
-         * Function: find
+        /* Function: find
          * Const version of <find>. The result cannot be modified.
          */
         cit find(const T& key) const { return cit(find(root, key)); }
 
-        /*
-         * Operator: []
+        /* Operator: []
          * See <find>. This one is not const, so you can assign
          * the value. If you assign a non-existant key, it'll
          * get created first, because this has to return the
@@ -574,8 +503,7 @@ namespace types
          */
         T& operator[](const T& key) { return find(root, key, true)->data; }
 
-        /*
-         * Operator: []
+        /* Operator: []
          * Const version of <[]>. Used for reading only, because it
          * returns a const reference which is non-modifiable.
          *
@@ -587,19 +515,6 @@ namespace types
 
     protected:
 
-        /*
-         * Function: destroy_node
-         * Destroys a node given by the argument. This method is
-         * recursive, which means it'll call itself for left and
-         * right nodes of the given node (and for left and right
-         * of those, and so on).
-         *
-         * Called in <clear> and in the destructor (to destroy the
-         * root node and all its sub-nodes).
-         *
-         * It does nothing when the given node is <nil>.
-         * This method has protected level of access.
-         */
         void destroy_node(node *nd)
         {
             if (nd == nil) return;
@@ -608,8 +523,7 @@ namespace types
             delete nd;
         }
 
-        /*
-         * Function: skew
+        /* Function: skew
          * See <http://en.wikipedia.org/wiki/AA_tree>.
          * The given argument is a reference to a node
          * (it modifies the node from inside).
@@ -634,8 +548,7 @@ namespace types
             }
         }
 
-        /*
-         * Function: split
+        /* Function: split
          * See <http://en.wikipedia.org/wiki/AA_tree>.
          * The given argument is a reference to a node
          * (it modifies the node from inside).
@@ -661,8 +574,7 @@ namespace types
             }
         }
 
-        /*
-         * Function: insert
+        /* Function: insert
          * See <http://en.wikipedia.org/wiki/AA_tree>.
          * The first given argument is a reference to
          * a node (it modifies the node from inside).
@@ -703,8 +615,7 @@ namespace types
             return ret;
         }
 
-        /*
-         * Function: erase
+        /* Function: erase
          * See <http://en.wikipedia.org/wiki/AA_tree>.
          * The first given argument is a reference to
          * a node (it modifies the node from inside).
@@ -757,8 +668,7 @@ namespace types
             return NULL;
         }
 
-        /*
-         * Function: find
+        /* Function: find
          * Returns a node the key given by the second argument
          * belongs to. The first argument is a root node, usually.
          *
@@ -787,40 +697,15 @@ namespace types
             return nd;
         }
 
-        /*
-         * Variable: root
-         * Stores the root node (the one in the middle).
-         *
-         * This member has protected level of access.
-         */
         node *root;
-
-        /*
-         * Variable: nil
-         * The nil node (the one that always has level 0 and
-         * is present in the endings of all nodes that are
-         * not further linked).
-         *
-         * This member has protected level of access.
-         */
         node *nil;
 
     private:
 
-        /*
-         * Variable: c_length
-         * Stores the current tree length (the amount of
-         * nodes that contain some data and are accessible).
-         *
-         * This member has private level of access. If you
-         * want to access it elsewhere, use <length>, which
-         * doesn't actually allow you to modify it.
-         */
         size_t c_length;
     };
 
-    /*
-     * Operator: ==
+    /* Operator: ==
      * Defines == comparison behavior for set iterators.
      * Global operator, not part of the class. Can be used
      * for any two set iterators, even of different types.

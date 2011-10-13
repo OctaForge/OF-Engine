@@ -1,5 +1,4 @@
-/*
- * File: of_vector.h
+/* File: of_vector.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -24,59 +23,50 @@
 #include "of_iterator.h"
 #include "of_algorithm.h"
 
-/*
- * Package: types
+/* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /*
-     * Class: vector
+    /* Class: vector
      * Vector is a container that holds a list of elements simillarily
      * to an array, but it's generic, can be easily manipulated (resized,
      * appended etc.) and its memory is managed automatically.
      */
     template<typename T> struct vector
     {
-        /*
-         * Variable: MIN_SIZE
+        /* Variable: MIN_SIZE
          * The minimal amount of elements to reserve
          * space for when creating the buffer.
          */
         enum { MIN_SIZE = 8 };
 
-        /*
-         * Typedef: it
+        /* Typedef: it
          * Iterator typedef, a T*.
          */
         typedef T* it;
 
-        /*
-         * Typedef: cit
+        /* Typedef: cit
          * Const iterator typedef, a const T*.
          */
         typedef const T* cit;
 
-        /*
-         * Typedef: rit
+        /* Typedef: rit
          * Reverse iterator typedef, a <reverse> < <it> >.
          */
         typedef iterators::reverse<it> rit;
 
-        /*
-         * Typedef: vrit
+        /* Typedef: vrit
          * Const reverse iterator typedef, a <reverse> < <cit> >.
          */
         typedef iterators::reverse<cit> crit;
 
-        /*
-         * Constructor: vector
+        /* Constructor: vector
          * Constructs an empty vector.
          */
         vector(): buf(NULL), c_length(0), c_capacity(0) {}
 
-        /*
-         * Constructor: vector
+        /* Constructor: vector
          * Constructs a vector from another vector.
          */
         vector(const vector& v): buf(NULL), c_length(0), c_capacity(0)
@@ -84,8 +74,7 @@ namespace types
             *this = v;
         }
 
-        /*
-         * Constructor: vector
+        /* Constructor: vector
          * Constructs a vector of a given size. Optional element
          * given by the second argument will be repeated in it.
          */
@@ -102,14 +91,12 @@ namespace types
             buf -= sz;
         }
 
-        /*
-         * Destructor: vector
+        /* Destructor: vector
          * Calls <clear>.
          */
         ~vector() { clear(); }
 
-        /*
-         * Operator: =
+        /* Operator: =
          * Assignment operator for the vector. It makes this
          * vector take parameters of the given vector.
          *
@@ -161,68 +148,57 @@ namespace types
             return *this;
         }
 
-        /*
-         * Function: begin
+        /* Function: begin
          * Returns a pointer to the buffer.
          */
         it begin() { return buf; }
 
-        /*
-         * Function: begin
+        /* Function: begin
          * Returns a const pointer to the buffer.
          */
         cit begin() const { return buf; }
 
-        /*
-         * Function: rbegin
+        /* Function: rbegin
          * Returns a <reverse> iterator to <end>.
          */
         rit rbegin() { return rit(end()); }
 
-        /*
-         * Function: rbegin
+        /* Function: rbegin
          * Returns a const <reverse> iterator to <end>.
          */
         crit rbegin() const { return crit(end()); }
 
-        /*
-         * Function: end
+        /* Function: end
          * Returns a pointer to the element after the last one.
          */
         it end() { return buf + c_length; }
 
-        /*
-         * Function: end
+        /* Function: end
          * Returns a const pointer to the element after the last one.
          */
         cit end() const { return buf + c_length; }
 
-        /*
-         * Function: rend
+        /* Function: rend
          * Returns a <reverse> iterator to <begin>.
          */
         rit rend() { return rit(begin()); }
 
-        /*
-         * Function: rend
+        /* Function: rend
          * Returns a const <reverse> iterator to <begin>.
          */
         crit rend() const { return crit(begin()); }
 
-        /*
-         * Function: get_buf
+        /* Function: get_buf
          * Returns the internal buffer.
          */
         T *get_buf() { return buf; }
 
-        /*
-         * Function: get_buf
+        /* Function: get_buf
          * Returns the internal buffer as const.
          */
         const T *get_buf() const { return buf; }
 
-        /*
-         * Function: resize
+        /* Function: resize
          * Resizes the vector to be of given size. If the capacity
          * is too small for that, it calls <reserve> with the size
          * first.
@@ -253,26 +229,22 @@ namespace types
             }
         }
 
-        /*
-         * Function: length
+        /* Function: length
          * Returns the current vector length.
          */
         size_t length() const { return c_length; }
 
-        /*
-         * Function: capacity
+        /* Function: capacity
          * Returns the current vector capacity.
          */
         size_t capacity() const { return c_capacity; }
 
-        /*
-         * Function: is_empty
+        /* Function: is_empty
          * Returns true if the vector is empty, false otherwise.
          */
         bool is_empty() const { return (c_length == 0); }
 
-        /*
-         * Function: reserve
+        /* Function: reserve
          * Reserves the size given by the argument. If that is
          * smaller(or equal) than current capacity, this will
          * do nothing. If it's bigger, the buffer will be
@@ -314,36 +286,31 @@ namespace types
             buf = tmp;
         }
 
-        /*
-         * Operator: []
+        /* Operator: []
          * Returns a reference to the field on the given index.
          * Used for assignment.
          */
         T& operator[](size_t idx) { return buf[idx]; }
 
-        /*
-         * Operator: []
+        /* Operator: []
          * Returns a const reference to the field on the given
          * index. Used for reading.
          */
         const T& operator[](size_t idx) const { return buf[idx]; }
 
-        /*
-         * Function: at
+        /* Function: at
          * Returns a reference to the field on the given index.
          * Used for assignment.
          */
         T& at(size_t idx) { return buf[idx]; }
 
-        /*
-         * Function: at
+        /* Function: at
          * Returns a const reference to the field on the given
          * index. Used for reading.
          */
         const T& at(size_t idx) const { return buf[idx]; }
 
-        /*
-         * Function: push_back
+        /* Function: push_back
          * Appends a given value to the end of the vector.
          * If the current capacity is not big enough to hold
          * the future contents, it'll be resized.
@@ -359,8 +326,7 @@ namespace types
             return buf[c_length++];
         }
 
-        /*
-         * Function: pop_back
+        /* Function: pop_back
          * Pops a last value out of the vector.
          */
         void pop_back()
@@ -371,8 +337,7 @@ namespace types
                 c_length--;
         }
 
-        /*
-         * Function: clear
+        /* Function: clear
          * Clears the vector contents. Deletes the buffer
          * and sets the length and capacity to 0.
          *
@@ -400,34 +365,9 @@ namespace types
 
     private:
 
-        /*
-         * Variable: buf
-         * This stores the contents. Its size can be
-         * retrieved using <capacity>.
-         *
-         * Allocated as uchar*, so ctors / dtors are
-         * managed manually.
-         *
-         * Private level of access.
-         */
         T *buf;
 
-        /*
-         * Variable: c_length
-         * Stores the current vector length ("how many
-         * items are stored in it").
-         *
-         * Private level of access.
-         */
         size_t c_length;
-
-        /*
-         * Variable: c_capacity
-         * Stores the current vector capacity ("how many
-         * items can be stored in it").
-         *
-         * Private level of access.
-         */
         size_t c_capacity;
     };
 } /* end namespace types */

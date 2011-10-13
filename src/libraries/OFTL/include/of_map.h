@@ -1,5 +1,4 @@
-/*
- * File: of_map.h
+/* File: of_map.h
  *
  * About: Version
  *  This is version 1 of the file.
@@ -22,14 +21,12 @@
 #include "of_pair.h"
 #include "of_set.h"
 
-/*
- * Package: types
+/* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /*
-     * Class: map
+    /* Class: map
      * See <set>. This is the same thing, but it makes
      * use of <pair> to create a key-value associative
      * container, not key-key (value-value). The interface
@@ -75,46 +72,39 @@ namespace types
      */
     template<typename T, typename U> struct map: set<pair<T, U> >
     {
-        /*
-         * Typedef: base
+        /* Typedef: base
          * Typedefs <set> < <pair> <T, U>> so it can be used
          * as "base", for accessing parent (<set>) methods etc.
          */
         typedef set<pair<T, U> > base;
 
-        /*
-         * Typedef: node
+        /* Typedef: node
          * Typedefs <set_node> < <pair> <T, U>> so it can be used
          * as "node".
          */
         typedef set_node<pair<T, U> > node;
 
-        /*
-         * Typedef: it
+        /* Typedef: it
          * An iterator typedef for standard, non-const iterator.
          */
         typedef set_iterator<pair<T, U> > it;
 
-        /*
-         * Typedef: cit
+        /* Typedef: cit
          * An iterator typedef for const iterator.
          */
         typedef set_const_iterator<pair<T, U> > cit;
 
-        /*
-         * Typedef: rit
+        /* Typedef: rit
          * Reverse iterator typedef, a <reverse> < <it> >.
          */
         typedef iterators::reverse<it> rit;
 
-        /*
-         * Typedef: crit
+        /* Typedef: crit
          * Const reverse iterator typedef, a <reverse> < <cit> >.
          */
         typedef iterators::reverse<cit> crit;
 
-        /*
-         * Function: insert
+        /* Function: insert
          * Inserts a new node into the tree with key and
          * data members given by the arguments.
          *
@@ -131,8 +121,7 @@ namespace types
             )->data.second;
         }
 
-        /*
-         * Function: insert
+        /* Function: insert
          * A variant of insert that accepts a <pair> of key and
          * data instead of key and data separately.
          */
@@ -141,28 +130,24 @@ namespace types
             return base::insert(base::root, data)->data.second;
         }
 
-        /*
-         * Function: erase
+        /* Function: erase
          * Erases a node with a given key from the tree.
          */
         void erase(const T& key) { delete base::erase(base::root, key); }
 
-        /*
-         * Function: find
+        /* Function: find
          * Returns an iterator to a node that belongs to a given key.
          * There is also a const version that returns a const
          * iterator (non-modifiable).
          */
         it find(const T& key) { return it(find(base::root, key)); }
 
-        /*
-         * Function: find
+        /* Function: find
          * Const version of <find>. The result cannot be modified.
          */
         cit find(const T& key) const { return cit(find(base::root, key)); }
 
-        /*
-         * Operator: []
+        /* Operator: []
          * See <find>. This one is not const, so you can assign
          * the value. If you assign a non-existant key, it'll
          * get created first, because this has to return the
@@ -179,8 +164,7 @@ namespace types
             return find(base::root, key, true)->data.second;
         }
 
-        /*
-         * Operator: []
+        /* Operator: []
          * Const version of <[]>. Used for reading only, because it
          * returns a const reference which is non-modifiable.
          *
@@ -195,16 +179,6 @@ namespace types
 
     protected:
 
-        /*
-         * Function: find
-         * Returns a node the key given by the second argument
-         * belongs to. The first argument is a root node, usually.
-         *
-         * Used by <[]> and the interface <find> (the one that
-         * doesn't take a root node argument).
-         *
-         * This method has protected level of access.
-         */
         node *find(node *nd, const T& key, bool do_insert = false)
         {
             if (nd == base::nil)
