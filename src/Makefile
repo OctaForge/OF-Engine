@@ -178,7 +178,6 @@ endif
 
 # client objects
 CLIENT_OBJ = \
-	$(OFTL_PATH)/src/of_stdio.o \
 	octaforge/of_tools.o \
 	engine/ui.o \
 	engine/blob.o \
@@ -278,7 +277,6 @@ endif
 
 # server objects
 SERVER_OBJ = \
-	$(OFTL_PATH)/src/of_stdio.o \
 	octaforge/of_tools.o \
 	intensity/editing_system.o \
 	shared/tools.o \

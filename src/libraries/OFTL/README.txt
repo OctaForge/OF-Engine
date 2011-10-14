@@ -36,10 +36,5 @@ Currently included:
 Author: Daniel "q66" Kolesa <quaker66@gmail.com>
 
 USAGE:
-    Build a library using the bundled Makefile or any other way
-    and include the headers in your project. Then link it against
-    the library. Please note that you don't need the library unless
-    you're on Windows (stdio extensions).
-
+    Include the headers you need in your project.
     For tests, you can use the makefile inside the tests directory.
-    That requires the library to be built beforehand.

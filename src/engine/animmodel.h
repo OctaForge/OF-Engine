@@ -1437,11 +1437,11 @@ template<class MDL, class MESH> struct modelcommands
     
     static void setskin(lua_Engine e)
     {
-        loopskins(e.get<char*>(1), s,
-            s.tex = textureload(makerelpath(MDL::dir, e.get<char*>(2)), 0, true, false);
-            if(*(e.get<char*>(3)))
+        loopskins(e.get<const char*>(1), s,
+            s.tex = textureload(makerelpath(MDL::dir, e.get<const char*>(2)), 0, true, false);
+            if(e.get<const char*>(3))
             {
-                s.masks = textureload(makerelpath(MDL::dir, e.get<char*>(3), "<stub>"), 0, true, false);
+                s.masks = textureload(makerelpath(MDL::dir, e.get<const char*>(3), "<stub>"), 0, true, false);
                 s.envmapmax = e.get<float>(4);
                 s.envmapmin = e.get<float>(5);
             }

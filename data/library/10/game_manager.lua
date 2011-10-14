@@ -165,7 +165,7 @@ function setup(plugins_add)
                         local start_tag = "start_" .. player.team
                         local possibles = entity_store.get_all_by_tag(start_tag)
                         if possibles and #possibles > 0 then
-                            local start = possibles[math.floor(math.random() * #possibles)]
+                            local start = possibles[math.random(1, #possibles)]
                             if start then
                                 start:place_entity(player)
                                 return nil

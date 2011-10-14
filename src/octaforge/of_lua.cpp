@@ -50,6 +50,7 @@ types::vector<lua::LE_reg> CAPI;
 #include "of_lua_definitions.h"
 
 extern const types::vector<LE_reg>& objbinds;
+extern const types::vector<LE_reg>& md3binds;
 extern const types::vector<LE_reg>& md5binds;
 extern const types::vector<LE_reg>& iqmbinds;
 extern const types::vector<LE_reg>& smdbinds;
@@ -240,6 +241,7 @@ namespace lua
         pop(1);
 
         setup_namespace("obj", objbinds);
+        setup_namespace("md3", md3binds);
         setup_namespace("md5", md5binds);
         setup_namespace("iqm", iqmbinds);
         setup_namespace("smd", smdbinds);
@@ -612,6 +614,7 @@ namespace lua
         list.add("coroutine");
         list.add("_G");
         list.add("CAPI");
+        list.add("md3");
         list.add("md5");
         list.add("smd");
         list.add("iqm");

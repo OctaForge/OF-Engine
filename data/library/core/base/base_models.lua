@@ -19,9 +19,9 @@ local base = _G
 
 --[[!
     Package: model
-    This module controls models. OctaForge currently supports 4 model formats,
-    md5, smd, iqm and obj. This as well handles some variables for culling,
-    shadowing etc., general model manipulation and ragdoll control.
+    This module controls models. OctaForge currently supports 5 model formats,
+    md3, md5, smd, iqm and obj. This as well handles some variables for
+    culling, shadowing etc., general model manipulation and ragdoll control.
 ]]
 module("model", package.seeall)
 
@@ -978,6 +978,34 @@ obj = {
         Identical with <md5.noclip>.
     ]]
     noclip = _G["obj"].noclip
+}
+
+--[[!
+    Class: md3
+    The md3 model format. The use is the same with <obj>,
+    but md3 also supports animations (not skeletal) via
+    the "animation" function (see <md5.anim>, only
+    difference is that there are no animation parts).
+]]
+md3 = {
+    load            = _G["md3"].load,
+    skin            = _G["md3"].skin,
+    bumpmap         = _G["md3"].bumpmap,
+    envmap          = _G["md3"].envmap,
+    specularity     = _G["md3"].spec,
+    pitch           = _G["md3"].pitch,
+    ambient         = _G["md3"].ambient,
+    glow            = _G["md3"].glow,
+    glare           = _G["md3"].glare,
+    alpha_test      = _G["md3"].alphatest,
+    alpha_blend     = _G["md3"].alphablend,
+    cull_back_faces = _G["md3"].cullface,
+    fullbright      = _G["md3"].fullbright,
+    shader          = _G["md3"].shader,
+    scroll          = _G["md3"].scroll,
+    noclip          = _G["md3"].noclip,
+    animation       = _G["md3"].anim,
+    
 }
 
 --[[!

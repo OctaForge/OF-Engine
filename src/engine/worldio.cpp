@@ -763,18 +763,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             if(e.attr4) conoutf(CON_WARN, "warning: mapmodel ent (index %d) uses texture slot %d", i, e.attr4);
             e.attr3 = e.attr4 = 0;
         }
-        // INTENSITY: Print ent out, useful for copy-paste importing sauer maps
-        // we usually begin with 3 on emptymap
-
-#define PRINT_STD(e) \
-    printf("\"attr1\":\"%d\", ", e.attr1); \
-    printf("\"attr2\":\"%d\", ", e.attr2); \
-    printf("\"attr3\":\"%d\", ", e.attr3); \
-    printf("\"attr4\":\"%d\", ", e.attr4); \
-    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z); \
-    printf("\"animation\":\"130\", ");
-
-        static bool writeEntity = false;
 
         switch (e.type) // check if to write the entity
         {
@@ -785,144 +773,22 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case ET_MAPMODEL:
             case ET_SOUND:
             case ET_PLAYERSTART:
-            case 16: /* JUMPPAD */
-            case 12: /* TELEPORT */
-            case 13: /* TELEDEST */
-                writeEntity = true;
+            case 19: /* TELEPORT */
+            case 20: /* TELEDEST */
+            case 23: /* JUMPPAD */
+                lua::engine.getg("entity_store")
+                    .t_getraw("add_sauer")
+                    .push(e.type)
+                    .push(e.o)
+                    .push(e.attr1)
+                    .push(e.attr2)
+                    .push(e.attr3)
+                    .push(e.attr4)
+                    .call(6, 0);
                 break;
             default:
-                writeEntity = false;
                 break;
         }
-
-        static int uniqueId = 3;
-        if (writeEntity)
-        {
-            printf("[%d, \"", uniqueId);
-            switch (e.type)
-            {
-                case ET_LIGHT:
-                {
-                    printf("light\", {");
-                    goto standardEntity;
-                }
-                case ET_SPOTLIGHT:
-                {
-                    printf("spotlight\", {");
-                    goto standardEntity;
-                }
-                case ET_ENVMAP:
-                {
-                    printf("envmap\", {");
-                    goto standardEntity;
-                }
-                case ET_PARTICLES:
-                {
-                    printf("particle_effect\", {");
-                    goto standardEntity;
-                }
-                case ET_MAPMODEL:
-                {
-                    printf("mapmodel\", {");
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"@REPLACE_MODEL_PATH@\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case ET_SOUND:
-                {
-                    printf("ambient_sound\", {");
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"\", ");
-                    printf("\"sound_name\":\"@REPLACE_SOUND_PATH@\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case ET_PLAYERSTART:
-                {
-                    printf("world_marker\", {");
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[start_@REPLACE_TEAM@]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case 16:
-                {
-                    printf("jumppad\", {");
-                    printf("\"jumpvel\":\"[%f|%f|%f]\", ", (int)(char)e.attr3*10.0f, (int)(char)e.attr2*10.0f, e.attr1*12.5f);
-                    printf("\"padmodel\":\"\", ");
-                    printf("\"padrotate\":\"false\", ");
-                    printf("\"padpitch\":\"0\", ");
-                    printf("\"attr1\":\"0\", ");
-                    printf("\"collision_radius_width\":\"5\", ");
-                    printf("\"collision_radius_height\":\"1\", ");
-                    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z);
-                    printf("\"attr2\":\"-1\", ");
-                    printf("\"attr3\":\"0\", ");
-                    printf("\"attr4\":\"0\", ");
-                    printf("\"animation\":\"130\", ");
-                    printf("\"model_name\":\"areatrigger\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case 12:
-                {
-                    printf("teleporter\", {");
-                    printf("\"target\":\"[0|0|0]\", ");
-                    printf("\"targetyaw\":\"0\", ");
-                    printf("\"teledest\":\"%d\", ", e.attr1);
-                    printf("\"attr1\":\"0\", ");
-                    printf("\"collision_radius_width\":\"5\", ");
-                    printf("\"collision_radius_height\":\"5\", ");
-                    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z);
-                    printf("\"attr2\":\"%d\", ", e.attr2);
-                    printf("\"attr3\":\"%d\", ", e.attr3);
-                    printf("\"attr4\":\"%d\", ", e.attr4);
-                    printf("\"animation\":\"130\", ");
-                    printf("\"model_name\":\"%s\", ", (e.attr2 < 0) ? "areatrigger" : "@REPLACE_MODEL_PATH@");
-                    printf("\"sound_name\":\"0ad/alarmcreatemiltaryfoot_1.ogg\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case 13:
-                {
-                    printf("world_marker\", {");
-                    printf("\"attr1\":\"%d\", ", e.attr1);
-                    printf("\"attr2\":\"0\", ");
-                    printf("\"attr3\":\"%d\", ", e.attr3);
-                    printf("\"attr4\":\"%d\", ", e.attr4);
-                    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z);
-                    printf("\"animation\":\"130\", ");
-                    printf("\"model_name\":\"\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[teledest_%i]\", ", e.attr2);
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                default: standardEntity:
-                {
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-            }
-            printf("}],\r\n");
-            uniqueId++;
-        }
-        // INTENSITY: end Print ent out
     }
 
     if(hdr.numents > MAXENTS) 

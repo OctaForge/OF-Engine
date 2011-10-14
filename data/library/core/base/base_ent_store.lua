@@ -41,6 +41,32 @@ local __entities_store = {}
 local __entities_store_by_class = {}
 
 --[[!
+    Variable: __entities_sauer
+    Stores Sauerbraten entity definitions for the map. Automatically
+    cleared after the entities are loaded. It's made for the automatic
+    Sauerbraten map import.
+]]
+local __entities_sauer = {}
+
+--[[!
+    Function: add_sauer
+    Adds a Sauerbraten entity into <__entities_sauer>. Called from
+    inside the engine.
+
+    Parameters:
+        entity_type - a number specifying the entity type according
+        to Cube 2 source code.
+        position - a <vec3> specifying the entity position.
+        attr1..4 - entity attributes.
+]]
+function add_sauer(entity_type, position, attr1, attr2, attr3, attr4)
+    if not SERVER then return nil end
+    table.insert(__entities_sauer, {
+        entity_type, position, attr1, attr2, attr3, attr4
+    })
+end
+
+--[[!
     Function: get
     Returns an entity that has specified unique ID. If not found, nil
     is returned.
@@ -656,6 +682,10 @@ end
     JSON string which then gets decoded, entities get looped and state
     data are set.
 
+    If <__entities_sauer> is non-empty, it also loads entities whose
+    definitions are stored there. That is useful for importing
+    Sauerbraten maps.
+
     Performs some backwards compatibility adjustments for old sauer
     map formats. Entities created this way are then passed to all clients.
 
@@ -677,13 +707,146 @@ function load_entities()
     logging.log(
         logging.DEBUG,
         "Loading entities .. "
-            .. entities_json
+            .. tostring(entities_json)
             .. ", "
             .. type(entities_json)
     )
 
     -- decode it
-    local entities = json.decode(entities_json)
+    local entities = {}
+    if entities_json then
+        entities = json.decode(entities_json)
+    end
+
+    -- only if there are sauer entities loaded
+    if #__entities_sauer > 0 then
+        logging.log(logging.DEBUG, "Loading sauer entities ..")
+
+        logging.log(logging.DEBUG, "    Trying to load import JSON file ..")
+
+        local import_json = CAPI.readfile("./import.json")
+        local import_models = {}
+        local import_sounds = {}
+
+        if import_json then
+            local import_table = json.decode(import_json)
+            if import_table["models"] then
+                import_models = import_table["models"]
+            end
+            if import_table["sounds"] then
+                import_sounds = import_table["sounds"]
+            end
+        end
+            
+
+        -- get highest uuid from current table
+        local huid = 2
+        for i, entity in pairs(entities) do
+            huid = math.max(huid, entity[1])
+        end
+        huid = huid + 1
+
+        -- name conversions
+        local sn = {}
+        sn[1] = "light"
+        sn[2] = "mapmodel"
+        sn[3] = "world_marker"
+        sn[4] = "envmap"
+        sn[5] = "particle_effect"
+        sn[6] = "ambient_sound"
+        sn[7] = "spotlight"
+        sn[19] = "teleporter"
+        sn[20] = "world_marker"
+        sn[23] = "jump_pad"
+
+        -- load sauer entities
+        for i, entity in pairs(__entities_sauer) do
+            local et    = entity[1]
+            local o     = entity[2]
+            local attr1 = entity[3]
+            local attr2 = entity[4]
+            local attr3 = entity[5]
+            local attr4 = entity[6]
+
+            table.insert(entities, {
+                huid, sn[et], {
+                    attr1 = tostring(attr1), attr2 = tostring(attr2),
+                    attr3 = tostring(attr3), attr4 = tostring(attr4),
+                    radius = "0", position = "[%(1)i|%(2)i|%(3)i]" % {
+                        o.x, o.y, o.z
+                    }, animation = "130", model_name = "", attachments = "[]",
+                    tags = "[]", persistent = "true"
+                }
+            })
+
+            local ent = entities[#entities][3]
+
+            -- 2 is MAPMODEL, 6 is SOUND, 3 is PLAYERSTART, 23 is JUMPPAD,
+            -- 19 is TELEPORT, 20 is TELEDEST
+            if et == 2 then
+                if #import_models > attr2 then
+                    ent["model_name"] = import_models[attr2 + 1]
+                    ent["attr2"]      = "-1"
+                else
+                    ent["model_name"] = "@REPLACE@"
+                end
+            elseif et == 6 then
+                if #import_sounds > attr1 then
+                    local snd = import_sounds[attr1 + 1]
+                    ent["sound_name"] = snd[1]
+                    if #snd > 1 then
+                        ent["volume"] = snd[2]
+                    end
+                    ent["attr1"] = "-1"
+                else
+                    ent["sound_name"] = "@REPLACE@"
+                end
+            elseif et == 3 then
+                ent["tags"] = "[start_]"
+            elseif et == 23 then
+                ent["attr1"]                   = "0"
+                ent["attr2"]                   = "-1"
+                ent["attr3"]                   = "0"
+                ent["attr4"]                   = "0"
+                ent["pad_model"]               = ""
+                ent["pad_rotate"]              = "false"
+                ent["pad_pitch"]               = "0"
+                ent["pad_sound"]               = ""
+                ent["collision_radius_width"]  = "5"
+                ent["collision_radius_height"] = "1"
+                ent["model_name"]              = "areatrigger"
+                ent["jump_velocity"]           = "[%(1)f|%(2)f|%(3)f]" % {
+                    attr3 * 10, attr2 * 10, attr1 * 12.5
+                }
+            elseif et == 19 then
+                ent["attr1"]                   = "0"
+                ent["attr3"]                   = "0"
+                ent["attr4"]                   = "0"
+                ent["collision_radius_width"]  = "5"
+                ent["collision_radius_height"] = "5"
+                ent["destination"]             = tostring(attr1)
+                ent["sound_name"]              = ""
+                if attr2 < 0 then
+                    ent["model_name"] = "areatrigger"
+                else
+                    if #import_models > attr2 then
+                        ent["model_name"] = import_models[attr2 + 1]
+                        ent["attr2"]      = "-1"
+                    else
+                        ent["model_name"] = "@REPLACE@"
+                    end
+                end
+            elseif et == 20 then
+                ent["attr2"] = "0"
+                ent["tags"]  = "[teledest_%(1)i]" % { attr2 }
+            end
+
+            huid = huid + 1
+        end
+
+        -- clear up sauer entities
+        __entities_sauer = {}
+    end
 
     -- loop the table
     for i, entity in pairs(entities) do

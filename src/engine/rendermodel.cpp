@@ -28,11 +28,13 @@ static model *__loadmodel__##modelclass(const char *filename) \
 } \
 static int __dummy__##modelclass = addmodeltype((modeltype), __loadmodel__##modelclass);
 
+#include "md3.h"
 #include "md5.h"
 #include "obj.h"
 #include "smd.h"
 #include "iqm.h"
 
+MODELTYPE(MDL_MD3, md3);
 MODELTYPE(MDL_MD5, md5);
 MODELTYPE(MDL_OBJ, obj);
 MODELTYPE(MDL_SMD, smd);
