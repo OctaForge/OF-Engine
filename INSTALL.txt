@@ -60,7 +60,8 @@ with little modifications it should work everywhere.
 Windows
 =======
 
-On Windows, you don't need to get dependencies, they're bundled.
+You need to fetch and appropriately place the dependency pack, which
+you can get here: https://github.com/OctaForge/OF-Windows
 
 You can proceed right with compilation, which is done using MinGW.
 
