@@ -1201,13 +1201,13 @@ bool settexture(const char *name, int clamp)
 }
 
 vector<int> requested_slots;
-vector< types::shared_ptr<VSlot> > vslots;
-vector< types::shared_ptr< Slot> > slots;
+vector< types::Shared_Ptr<VSlot> > vslots;
+vector< types::Shared_Ptr< Slot> > slots;
 MSlot materialslots[MATF_VOLUME+1];
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void texturereset(int n)
 {
     if(!var::overridevars && !game::allowedittoggle()) return;
@@ -1225,7 +1225,7 @@ void texturereset(int n)
 static int compactedvslots = 0, compactvslotsprogress = 0, clonedvslots = 0;
 static bool markingvslots = false;
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void clearslots()
 {
     resetslotshader();
@@ -1239,7 +1239,7 @@ void clearslots()
 
 static void assignvslot(VSlot &vs);
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 static inline void assignvslotlayer(VSlot &vs)
 {
     if(vs.layer && vslots.inrange(vs.layer))
@@ -1255,7 +1255,7 @@ static void assignvslot(VSlot &vs)
     assignvslotlayer(vs);
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void compactvslot(int &index)
 {
     if(vslots.inrange(index))
@@ -1266,7 +1266,7 @@ void compactvslot(int &index)
     }
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void compactvslots(cube *c, int n)
 {
     if((compactvslotsprogress++&0xFFF)==0) renderprogress(min(float(compactvslotsprogress)/allocnodes, 1.0f), markingvslots ? "marking slots..." : "compacting slots...");
@@ -1282,7 +1282,7 @@ void compactvslots(cube *c, int n)
     }
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 int compactvslots()
 {
     clonedvslots = 0;
@@ -1474,7 +1474,7 @@ static VSlot *reassignvslot(Slot &owner, VSlot *vs)
     return owner.variants;
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 static VSlot *emptyvslot(Slot &owner)
 {
     int offset = 0;
@@ -1556,7 +1556,7 @@ void fixinsidefaces(cube *c, const ivec &o, int size, int tex)
     }
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void texture(const char *type, const char *name, int rot, int xoffset, int yoffset, float scale, int forcedindex) // INTENSITY: forcedindex
 {
     if(slots.length()>=0x10000) return;
@@ -1837,7 +1837,7 @@ MSlot &lookupmaterialslot(int index, bool load)
 }
 
 /* OctaForge: background loading system */
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 Slot &lookupslot(int index, bool load)
 {
     Slot &s = slots.inrange(index) ? *(slots[index].get()) : (slots.inrange(DEFAULT_GEOM) ? *(slots[DEFAULT_GEOM].get()) : dummyslot);
@@ -1861,7 +1861,7 @@ void resetbgload()
     requested_slots.setsize(0);
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void dobgload(bool all)
 {
     while (requested_slots.length() > 0)
@@ -1877,7 +1877,7 @@ void dobgload(bool all)
     }
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 VSlot &lookupvslot(int index, bool load)
 {
     VSlot &s = vslots.inrange(index) && vslots[index]->slot ? *(vslots[index].get()) : (slots.inrange(DEFAULT_GEOM) && slots[DEFAULT_GEOM]->variants ? *slots[DEFAULT_GEOM]->variants : dummyvslot);
@@ -1890,7 +1890,7 @@ VSlot &lookupvslot(int index, bool load)
     return s;
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void linkslotshaders()
 {
     loopv(slots) if(slots[i]->loaded) linkslotshader(*(slots[i].get()));
@@ -1987,7 +1987,7 @@ Texture *loadthumbnail(Slot &slot)
     return t;
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void loadlayermasks()
 {
     loopv(slots)

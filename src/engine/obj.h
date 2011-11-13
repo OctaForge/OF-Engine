@@ -219,4 +219,4 @@ struct obj : vertmodel, vertloader<obj>
 };
 
 vertcommands<obj> objcommands;
-const types::vector<LE_reg>& objbinds = objcommands.command_stor;
+const types::Vector<LE_reg>& objbinds = objcommands.command_stor;

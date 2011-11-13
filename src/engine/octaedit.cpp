@@ -1618,7 +1618,7 @@ void filltexlist()
     }
 }
 
-/* OctaForge: use shared_ptr */
+/* OctaForge: use Shared_Ptr */
 void compactmruvslots()
 {
     remappedvslots.setsize(0);

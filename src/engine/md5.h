@@ -453,4 +453,4 @@ struct md5 : skelmodel, skelloader<md5>
 };
 
 skelcommands<md5> md5commands;
-const types::vector<LE_reg>& md5binds = md5commands.command_stor;
+const types::Vector<LE_reg>& md5binds = md5commands.command_stor;

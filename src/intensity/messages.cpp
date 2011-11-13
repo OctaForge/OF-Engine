@@ -83,9 +83,9 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
 
-        types::string title;
+        types::String title;
         getstring(title, p);
-        types::string content;
+        types::String content;
         getstring(content, p);
 
         engine.getg("gui")
@@ -112,7 +112,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestServerMessageToAll (1002)\r\n");
 
-        types::string message;
+        types::String message;
         getstring(message, p);
 
         send_PersonalServerMessage(-1, "Message from Client", message.get_buf());
@@ -341,7 +341,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
 
-        types::string scenarioCode;
+        types::String scenarioCode;
         getstring(scenarioCode, p);
 
         engine.getg("gui")
@@ -427,9 +427,9 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
 
-        types::string mid;
+        types::String mid;
         getstring(mid, p);
-        types::string sc;
+        types::String sc;
         getstring(sc, p);
 
         ClientSystem::currScenarioCode = sc;
@@ -481,12 +481,12 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NewEntityRequest (1010)\r\n");
 
-        types::string _class;
+        types::String _class;
         getstring(_class, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        types::string stateData;
+        types::String stateData;
         getstring(stateData, p);
 
         if (world::scenario_code.is_empty()) return;
@@ -582,7 +582,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::string value;
+        types::String value;
         getstring(value, p);
         int originalClientNumber = getint(p);
 
@@ -634,7 +634,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::string value;
+        types::String value;
         getstring(value, p);
 
         if (world::scenario_code.is_empty()) return;
@@ -704,7 +704,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::string value;
+        types::String value;
         getstring(value, p);
         int originalClientNumber = getint(p);
 
@@ -729,7 +729,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::string value;
+        types::String value;
         getstring(value, p);
 
         if (world::scenario_code.is_empty()) return;
@@ -867,7 +867,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ActiveEntitiesRequest (1017)\r\n");
 
-        types::string scenarioCode;
+        types::String scenarioCode;
         getstring(scenarioCode, p);
 
         #ifdef SERVER
@@ -961,9 +961,9 @@ namespace MessageSystem
 
         int otherClientNumber = getint(p);
         int otherUniqueId = getint(p);
-        types::string otherClass;
+        types::String otherClass;
         getstring(otherClass, p);
-        types::string stateData;
+        types::String stateData;
         getstring(stateData, p);
 
         #ifdef SERVER
@@ -1175,9 +1175,9 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
 
         int otherUniqueId = getint(p);
-        types::string otherClass;
+        types::String otherClass;
         getstring(otherClass, p);
-        types::string stateData;
+        types::String stateData;
         getstring(stateData, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
@@ -1463,7 +1463,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
 
-        types::string soundName;
+        types::String soundName;
         getstring(soundName, p);
         int entityUniqueId = getint(p);
 
@@ -1538,7 +1538,7 @@ namespace MessageSystem
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        types::string soundName;
+        types::String soundName;
         getstring(soundName, p);
         int originalClientNumber = getint(p);
 
@@ -1606,7 +1606,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
 
         int volume = getint(p);
-        types::string soundName;
+        types::String soundName;
         getstring(soundName, p);
         int originalClientNumber = getint(p);
 

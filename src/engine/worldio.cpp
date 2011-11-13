@@ -319,7 +319,7 @@ void savevslot(stream *f, VSlot &vs, int prev)
     }
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void savevslots(stream *f, int numvslots)
 {
     if(vslots.empty()) return;
@@ -420,7 +420,7 @@ void loadvslots(stream *f, int numvslots)
 
 bool save_world(const char *mname, bool nolms)
 {
-    types::string map_name(mname);
+    types::String map_name(mname);
     if (map_name.is_empty()) map_name = game::getclientmap();
     setmapfilenames(!map_name.is_empty() ? map_name.get_buf() : "untitled");
     if(savebak) backup(ogzname, bakname);

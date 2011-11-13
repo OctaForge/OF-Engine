@@ -142,7 +142,7 @@ namespace tools
 
         char *loaded = NULL;
 
-        types::string buf, buff;
+        types::String buf, buff;
 
         if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
             buf = world::get_mapfile_path(fname + 2);

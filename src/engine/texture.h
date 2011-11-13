@@ -684,7 +684,7 @@ extern VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta);
 extern VSlot *editvslot(const VSlot &src, const VSlot &delta);
 extern void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta);
 
-/* OctaForge: shared_ptr */
-extern vector< types::shared_ptr< Slot> > slots;
-extern vector< types::shared_ptr<VSlot> > vslots;
+/* OctaForge: Shared_Ptr */
+extern vector< types::Shared_Ptr< Slot> > slots;
+extern vector< types::Shared_Ptr<VSlot> > vslots;
 

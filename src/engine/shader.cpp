@@ -1790,11 +1790,11 @@ void isshadernative(char *name)
     lua::engine.push(s && s->native ? true : false);
 }
 
-static hashset<types::string> shaderparamnames(256);
+static hashset<types::String> shaderparamnames(256);
 
 const char *getshaderparamname(const char *name)
 {
-    types::string *exists = shaderparamnames.access(name);
+    types::String *exists = shaderparamnames.access(name);
     if(exists) return (*exists).get_buf();
     shaderparamnames[name] = name;
     return name;

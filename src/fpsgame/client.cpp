@@ -396,7 +396,7 @@ namespace game
     void parsemessages(int cn, fpsent *d, ucharbuf &p) // cn: Sauer's sending client
     {
 //        int gamemode = gamemode; Kripken
-        types::string text;
+        types::String text;
         int type;
 //        bool mapchanged = false; Kripken
 

@@ -227,4 +227,4 @@ struct md3 : vertmodel, vertloader<md3>
 };
 
 vertcommands<md3> md3commands;
-const types::vector<LE_reg>& md3binds = md3commands.command_stor;
+const types::Vector<LE_reg>& md3binds = md3commands.command_stor;

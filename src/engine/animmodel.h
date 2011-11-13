@@ -534,7 +534,7 @@ struct animmodel : model
 
     meshgroup *sharemeshes(char *name, ...)
     {
-        static hashtable<char *, types::shared_ptr<meshgroup> > meshgroups;
+        static hashtable<char *, types::Shared_Ptr<meshgroup> > meshgroups;
         if(!meshgroups.access(name))
         {
             va_list args;
@@ -1410,7 +1410,7 @@ template<class MDL> string modelloader<MDL>::dir = "";
 
 template<class MDL, class MESH> struct modelcommands
 {
-    types::vector<LE_reg> command_stor;
+    types::Vector<LE_reg> command_stor;
     typedef struct MDL::part part;
     typedef struct MDL::skin skin;
 

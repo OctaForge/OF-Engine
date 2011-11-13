@@ -235,7 +235,7 @@ namespace lua_binds
             {
                 /*if ((ev->flags&var::VAR_HEX) != 0)
                 {
-                    e.push(types::string().format(
+                    e.push(types::String().format(
                         "0x%.6X <%d, %d, %d>",
                         ev->curv.i,
                         (ev->curv.i>>16)&0xFF,

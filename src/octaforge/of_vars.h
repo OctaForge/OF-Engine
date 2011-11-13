@@ -118,7 +118,7 @@ namespace var
         void (*vfun)();
     };
 
-    typedef types::map<const char*, cvar*> vartable;
+    typedef types::Map<const char*, cvar*> vartable;
 
     extern vartable *vars;
     extern bool persistvars, overridevars;

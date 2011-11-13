@@ -258,7 +258,7 @@ namespace lua_binds
         vector<BIH::tri> tris2[2];
         theModel->gentris(0, tris2);
         vector<BIH::tri>& tris = tris2[0];
-        types::string buf;
+        types::String buf;
 
         e.t_new().t_set("length", tris.length());
         for (int i = 0; i < tris.length(); i++)

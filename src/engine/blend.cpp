@@ -530,7 +530,7 @@ struct BlendBrush
     } 
 };
 
-static vector< types::shared_ptr<BlendBrush> > brushes;
+static vector< types::Shared_Ptr<BlendBrush> > brushes;
 static int curbrush = -1;
 
 void cleanupblendmap()

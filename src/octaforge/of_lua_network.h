@@ -66,7 +66,7 @@ namespace lua_binds
     LUA_BIND_CLIENT(do_upload, {
         renderprogress(0.1, "compiling scripts ..");
 
-        types::string fname = world::get_mapscript_filename();
+        types::String fname = world::get_mapscript_filename();
         if (!engine.loadf(fname.get_buf()))
         {
             engine.getg("gui")

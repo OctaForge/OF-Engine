@@ -78,14 +78,14 @@ namespace game
         stopfollowing();
     }
 
-    types::string getclientmap()
+    types::String getclientmap()
     {
-        types::string s = world::curr_map_id.substr(
+        types::String s = world::curr_map_id.substr(
             0, world::curr_map_id.length() - 7
         );
         s += "/";
 
-        return types::string().format("%smap", s.get_buf());
+        return types::String().format("%smap", s.get_buf());
     }
 
     fpsent *spawnstate(fpsent *d)              // reset player state not persistent accross spawns
@@ -229,7 +229,7 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            engine.exec(types::string().format(
+            engine.exec(types::String().format(
                 "entity_store.get(%i).position = {"
                 "entity_store.get(%i).position.x,"
                 "entity_store.get(%i).position.y,"

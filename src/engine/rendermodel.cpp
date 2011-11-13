@@ -451,7 +451,7 @@ struct modelbatch
     int flags;
     vector<batchedmodel> batched;
 };  
-static vector<types::shared_ptr<modelbatch> > batches;
+static vector<types::Shared_Ptr<modelbatch> > batches;
 static vector<modelattach> modelattached;
 static int numbatches = -1;
 static occludequery *modelquery = NULL;
@@ -922,7 +922,7 @@ bool matchanim(const char *name, const char *pattern)
 void findanims(const char *pattern, vector<int> &anims)
 {
     loopi(sizeof(animnames)/sizeof(animnames[0])) if(matchanim(animnames[i], pattern)) anims.add(i);
-    types::string buf;
+    types::String buf;
 
     // INTENSITY: Accept integer values as well, up to 128 of them
     loopi(ANIM_ALL+1)

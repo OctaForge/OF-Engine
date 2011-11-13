@@ -459,7 +459,7 @@ namespace server
             assert(0); // We do file transfers completely differently
         }
         if(p.packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
-        types::string text;
+        types::String text;
         int cn = -1, type;
         clientinfo *ci = sender>=0 ? (clientinfo *)getinfo(sender) : NULL;
 

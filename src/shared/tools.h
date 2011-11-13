@@ -91,6 +91,9 @@ struct stringformatter
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)
 #define loopvrev(v) for(int i = (v).length()-1; i>=0; i--)
 
+#define DELETEP(p) if(p) { delete   p; p = 0; }
+#define DELETEA(p) if(p) { delete[] p; p = 0; }
+
 template <class T>
 struct databuf
 {
@@ -578,7 +581,7 @@ static inline uint hthash(const char *key)
     return h;
 }
 
-static inline uint hthash(const types::string& key)
+static inline uint hthash(const types::String& key)
 {
     return hthash(key.get_buf());
 }
@@ -588,7 +591,7 @@ static inline bool htcmp(const char *x, const char *y)
     return !strcmp(x, y);
 }
 
-static inline bool htcmp(const types::string& x, const types::string& y)
+static inline bool htcmp(const types::String& x, const types::String& y)
 {
     return (x == y);
 }

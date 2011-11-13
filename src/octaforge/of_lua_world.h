@@ -193,7 +193,7 @@ namespace lua_binds
     })
 
     LUA_BIND_DEF(mapcfgname, {
-        types::string mname = game::getclientmap();
+        types::String mname = game::getclientmap();
         if (mname.is_empty()) mname = "untitled";
 
         string pakname;
@@ -218,7 +218,7 @@ namespace lua_binds
     LUA_BIND_STD_CLIENT(hasmap, e.push, local_server::is_running())
 
     LUA_BIND_DEF(get_map_preview_filename, {
-        types::string buf;
+        types::String buf;
 
         buf.format(
             "data%cmaps%c%s%cpreview.png",
@@ -243,7 +243,7 @@ namespace lua_binds
         vector<char *> glob;
         vector<char *> user;
 
-        types::string buf;
+        types::String buf;
 
         e.t_new();
         buf.format("data%cmaps", PATHDIV);

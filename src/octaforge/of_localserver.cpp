@@ -83,7 +83,7 @@ namespace local_server
         }
         conoutf("Starting server, please wait ..");
 
-        types::string buf = types::string().format(
+        types::String buf = types::String().format(
             "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
 #ifdef WIN32
             "run_server.bat",

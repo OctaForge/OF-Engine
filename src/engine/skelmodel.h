@@ -2159,13 +2159,13 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         part *p = (part *)MDL::loading->parts.last();
 
         int nargs = e.gettop();
-        typedef types::vector<const char*> cvec;
+        typedef types::Vector<const char*> cvec;
         cvec bonestrs;
 
         for (int i = 1; i <= nargs; i++)
             bonestrs.push_back(e.get<const char*>(i));
 
-        types::string maskstr;
+        types::String maskstr;
         for (cvec::cit it = bonestrs.begin(); it != (bonestrs.end() - 1); ++it)
         {
             maskstr += *it;

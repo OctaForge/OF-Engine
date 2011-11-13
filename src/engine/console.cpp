@@ -9,17 +9,17 @@ vector<cline> conlines;
 
 int commandmillis = -1;
 string commandbuf;
-types::string commandaction, commandprompt;
+types::String commandaction, commandprompt;
 int commandpos = -1;
 
 VARFP(maxcon, 10, 200, 1000, { while(conlines.length() > maxcon) conlines.pop(); });
 
 #define CONSTRLEN 512
 
-void conline(int type, const types::string& sf)        // add a line to the console buffer
+void conline(int type, const types::String& sf)        // add a line to the console buffer
 {
     cline cl;
-    cl.line = conlines.length()>maxcon ? conlines.pop().line : types::string();   // constrain the buffer size
+    cl.line = conlines.length()>maxcon ? conlines.pop().line : types::String();   // constrain the buffer size
     cl.type = type;
     cl.outtime = totalmillis;                       // for how long to keep line on screen
     cl.line = sf;
@@ -28,7 +28,7 @@ void conline(int type, const types::string& sf)        // add a line to the cons
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    types::string buf;
+    types::String buf;
     buf.format(fmt, args);
     conline(type, buf);
     filtertext(&buf[0], buf.get_buf());
@@ -113,7 +113,7 @@ int drawconlines(int conskip, int confade, int conwidth, int conheight, int cono
         // shuffle backwards to fill if necessary
         int idx = offset+i < numl ? offset+i : --offset;
         if(!(conlines[idx].type&filter)) continue;
-        const types::string& line = conlines[idx].line;
+        const types::String& line = conlines[idx].line;
         int width, height;
         text_bounds(line.get_buf(), width, height, conwidth);
         if(totalheight + height > conheight) { numl = i; if(offset == idx) ++offset; break; }
@@ -124,7 +124,7 @@ int drawconlines(int conskip, int confade, int conwidth, int conheight, int cono
     {
         int idx = offset + (dir > 0 ? numl-i-1 : i);
         if(!(conlines[idx].type&filter)) continue;
-        const types::string& line = conlines[idx].line;
+        const types::String& line = conlines[idx].line;
         int width, height;
         text_bounds(line.get_buf(), width, height, conwidth);
         if(dir <= 0) y -= height; 
@@ -163,7 +163,7 @@ void keymap(int code, const char *key)
 }
 
 keym *keypressed = NULL;
-types::string keyaction;
+types::String keyaction;
 
 const char *getkeyname(int code)
 {
@@ -205,11 +205,11 @@ void bindkey(const char *key, const char *action, int state)
     if(var::overridevars) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
     keym *km = findbind(key);
     if(!km) { conoutf(CON_ERROR, "unknown key \"%s\"", key); return; }
-    types::string& binding = km->actions[state];
+    types::String& binding = km->actions[state];
     if(!keypressed || keyaction!=binding) binding.clear();
     // trim white-space to make searchbinds more reliable
     while(isspace(*action)) action++;
-    binding = types::string(action);
+    binding = types::String(action);
 }
 
 void inputcommand(const char *init, const char *action = NULL, const char *prompt = NULL) // turns input to the command line on or off
@@ -269,9 +269,9 @@ void pasteconsole()
 
 struct hline
 {
-    types::string buf, action, prompt;
+    types::String buf, action, prompt;
 
-    hline() : buf(types::string()), action(types::string()), prompt(types::string()) {}
+    hline() : buf(types::String()), action(types::String()), prompt(types::String()) {}
     ~hline() {}
 
     void restore()
@@ -315,7 +315,7 @@ struct hline
         else game::toserver((char*)buf.get_buf());
     }
 };
-vector< types::shared_ptr<hline> > history;
+vector< types::Shared_Ptr<hline> > history;
 int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);
@@ -390,7 +390,7 @@ void execbind(keym &k, bool isdown)
             }
             lua::engine.pop(3);
         }
-        types::string& action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
+        types::String& action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
         keyaction = action;
         keypressed = &k;
         lua::engine.exec(keyaction.get_buf());

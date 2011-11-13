@@ -47,7 +47,7 @@ struct MessageType
 
 struct MessageManager
 {
-    typedef types::map<int, types::shared_ptr<MessageType> > MessageMap;
+    typedef types::Map<int, types::Shared_Ptr<MessageType> > MessageMap;
 
     //! The message types in our system
     static MessageMap messageTypes;

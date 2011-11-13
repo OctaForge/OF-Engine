@@ -1667,14 +1667,14 @@ namespace gui
 
         float drawscale() const { return scale / (FONTH * uitextrows); }
 
-        types::string getval()
+        types::String getval()
         {
             switch (ev->type)
             {
                 case var::VAR_I:
-                    return types::string().format("%i", ev->curv.i);
+                    return types::String().format("%i", ev->curv.i);
                 case var::VAR_F:
-                    return types::string().format("%f", ev->curv.f);
+                    return types::String().format("%f", ev->curv.f);
                 case var::VAR_S:
                     return ev->curv.s;
                 default:

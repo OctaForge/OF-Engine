@@ -405,4 +405,4 @@ struct iqm : skelmodel, skelloader<iqm>
 };
 
 skelcommands<iqm> iqmcommands;
-const types::vector<LE_reg>& iqmbinds = iqmcommands.command_stor;
+const types::Vector<LE_reg>& iqmbinds = iqmcommands.command_stor;

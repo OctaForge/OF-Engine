@@ -46,14 +46,14 @@
 #include "of_world.h"
 #include "of_entities.h"
 
-types::vector<lua::LE_reg> CAPI;
+types::Vector<lua::LE_reg> CAPI;
 #include "of_lua_definitions.h"
 
-extern const types::vector<LE_reg>& objbinds;
-extern const types::vector<LE_reg>& md3binds;
-extern const types::vector<LE_reg>& md5binds;
-extern const types::vector<LE_reg>& iqmbinds;
-extern const types::vector<LE_reg>& smdbinds;
+extern const types::Vector<LE_reg>& objbinds;
+extern const types::Vector<LE_reg>& md3binds;
+extern const types::Vector<LE_reg>& md5binds;
+extern const types::Vector<LE_reg>& iqmbinds;
+extern const types::Vector<LE_reg>& smdbinds;
 
 extern string homedir;
 
@@ -141,7 +141,7 @@ namespace lua
         setg();
     }
 
-    void lua_Engine::setup_namespace(const char *n, const types::vector<LE_reg>& r)
+    void lua_Engine::setup_namespace(const char *n, const types::Vector<LE_reg>& r)
     {
         logger::log(logger::DEBUG, "Setting up Lua embed namespace \"%s\"\n", n);
 
@@ -603,7 +603,7 @@ namespace lua
          * internal list, library-specified list and
          * variants.
          */
-        vector<types::string> list;
+        vector<types::String> list;
 
         list.add("table");
         list.add("string");

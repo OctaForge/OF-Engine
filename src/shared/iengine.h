@@ -340,7 +340,7 @@ extern float getfloat(ucharbuf &p);
 extern void sendstring(const char *t, ucharbuf &p);
 extern void sendstring(const char *t, packetbuf &p);
 extern void sendstring(const char *t, vector<uchar> &p);
-extern void getstring(types::string& text, ucharbuf &p, int len = MAXTRANS);
+extern void getstring(types::String& text, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, bool whitespace = true, int len = sizeof(string)-1);
 extern int localconnect(); // INTENSITY: Added returning of client number
 extern void disconnect_client(int n, int reason);
