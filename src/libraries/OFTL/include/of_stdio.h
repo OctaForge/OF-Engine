@@ -23,9 +23,8 @@
 #include <stdarg.h>
 
 /* Function: _vasprintf
- * See vasprintf. Windows-specific implementation.
- * Defined as <vasprintf> by macro to get around
- * redefinition issue on MinGW/Cygwin.
+ * See vasprintf. Windows-specific implementation. Defined as <vasprintf>
+ * by macro to get around redefinition issue on MinGW/Cygwin.
  */
 inline int _vasprintf(char **strp, const char *fmt, va_list ap)
 {

@@ -27,67 +27,66 @@
  */
 namespace types
 {
-    /* Class: shared_ptr
-     * A shared pointer. Basically a reference counted container.
-     * Useful for i.e. storing pointers in various container types
-     * like vectors and hashtables without risking leaks.
+    /* Struct: Shared_Ptr
+     * A shared pointer. Basically a reference counted container. Useful for
+     * i.e. storing pointers in various container types like vectors and
+     * hashtables without risking leaks.
      */
-    template<typename T> struct shared_ptr
+    template<typename T> struct Shared_Ptr
     {
-        /* Constructor: shared_ptr
-         * Initializes empty shared_ptr.
+        /* Constructor: Shared_Ptr
+         * Initializes empty Shared_Ptr.
          */
-        shared_ptr(): ptr(NULL), count(NULL)
+        Shared_Ptr(): p_ptr(NULL), p_count(NULL)
         {
-            count = new counter;
+            p_count = new p_counter;
         }
 
-        /* Constructor: shared_ptr
-         * Initializes shared_ptr from shared_ptr.
-         * Increments the counter.
+        /* Constructor: Shared_Ptr
+         * Initializes Shared_Ptr from Shared_Ptr. Increments the counter.
          */
-        shared_ptr(const shared_ptr<T>& p): ptr(p.ptr), count(p.count)
+        Shared_Ptr(const Shared_Ptr<T>& p): p_ptr(p.p_ptr), p_count(p.p_count)
         {
-            count->increment();
+            ++p_count->count;
         }
 
-        /* Constructor: shared_ptr
-         * Initializes shared_ptr from a pointer.
+        /* Constructor: Shared_Ptr
+         * Initializes Shared_Ptr from a pointer.
          */
-        shared_ptr(T *p): ptr(p), count(NULL)
+        Shared_Ptr(T *p): p_ptr(p), p_count(NULL)
         {
-            count = new counter;
+            p_count = new p_counter;
         }
 
-        /* Destructor: shared_ptr
-         * Decrements the <counter>. If it reaches 0,
-         * both pointer and counter will be freed.
+        /* Destructor: Shared_Ptr
+         * Decrements the counter. If it reaches 0, both pointer and
+         * counter will be freed.
          */
-        ~shared_ptr()
+        ~Shared_Ptr()
         {
-            if (count && count->decrement() == 0)
+            if (p_count && --(p_count->count) == 0)
             {
-                delete ptr;
-                delete count;
+                delete p_ptr;
+                delete p_count;
             }
         }
 
         /* Operator: =
-         * Assigns the shared_ptr from another one. Inherits
-         * its reference count and increments it by one.
+         * Assigns the Shared_Ptr from another one. Inherits its reference
+         * count and increments it by one.
          */
-        shared_ptr<T>& operator=(const shared_ptr<T>& p)
+        Shared_Ptr<T>& operator=(const Shared_Ptr<T>& p)
         {
             if (&p != this)
             {
-                if (count && count->decrement() == 0)
+                if (p_count && --(p_count->count) == 0)
                 {
-                    delete ptr;
-                    delete count;
+                    delete p_ptr;
+                    delete p_count;
                 }
-                ptr   = p.ptr;
-                count = p.count;
-                count->increment();
+                p_ptr   = p.p_ptr;
+                p_count = p.p_count;
+                ++(p_count->count);
             }
             return *this;
         }
@@ -95,74 +94,71 @@ namespace types
         /* Function: get
          * Returns the raw pointer.
          */
-        T *get() { return ptr; }
+        T *get() { return p_ptr; }
 
         /* Function: get
          * Returns a const version of the raw pointer.
          */
-        const T *get() const { return ptr; }
+        const T *get() const { return p_ptr; }
 
         /* Operator: ->
-         * Overload of this operator so you can manipulate
-         * with the container simillarily to standard pointer.
+         * Overload of this operator so you can manipulate with the container
+         * simillarily to a standard pointer.
          */
-        T *operator->() { return ptr; }
+        T *operator->() { return p_ptr; }
 
         /* Operator: *
-         * Overload of this operator so you can manipulate
-         * with the container simillarily to standard pointer.
+         * Overload of this operator so you can manipulate with the container
+         * simillarily to a standard pointer.
          */
-        T& operator*() { return *ptr; }
+        T& operator*() { return *p_ptr; }
 
         /* Operator: ->
-         * Overload of this operator so you can manipulate
-         * with the container simillarily to standard pointer.
-         * Const version.
+         * Overload of this operator so you can manipulate with the container
+         * simillarily to a standard pointer. Const version.
          */
-        const T *operator->() const { return ptr; }
+        const T *operator->() const { return p_ptr; }
 
         /* Operator: *
-         * Overload of this operator so you can manipulate
-         * with the container simillarily to standard pointer.
-         * Const version.
+         * Overload of this operator so you can manipulate with the container
+         * simillarily to a standard pointer. Const version.
          */
-        const T& operator*() const { return *ptr; }
+        const T& operator*() const { return *p_ptr; }
 
         /* Operator: == */
-        bool operator==(const shared_ptr<T>& p) const { return ptr == p.ptr; }
+        bool operator==(const Shared_Ptr<T>& p) const
+        { return p_ptr == p.p_ptr; }
+
         /* Operator: != */
-        bool operator!=(const shared_ptr<T>& p) const { return ptr != p.ptr; }
+        bool operator!=(const Shared_Ptr<T>& p) const
+        { return p_ptr != p.p_ptr; }
+
         /* Operator: < */
-        bool operator< (const shared_ptr<T>& p) const { return ptr <  p.ptr; }
+        bool operator< (const Shared_Ptr<T>& p) const
+        { return p_ptr <  p.p_ptr; }
+
         /* Operator: <= */
-        bool operator<=(const shared_ptr<T>& p) const { return ptr <= p.ptr; }
+        bool operator<=(const Shared_Ptr<T>& p) const
+        { return p_ptr <= p.p_ptr; }
+
         /* Operator: > */
-        bool operator> (const shared_ptr<T>& p) const { return ptr >  p.ptr; }
+        bool operator> (const Shared_Ptr<T>& p) const
+        { return p_ptr >  p.p_ptr; }
+
         /* Operator: >= */
-        bool operator>=(const shared_ptr<T>& p) const { return ptr >= p.ptr; }
+        bool operator>=(const Shared_Ptr<T>& p) const
+        { return p_ptr >= p.p_ptr; }
 
     protected:
 
-        /*
-         * Variable: counter
-         * A simple nested struct holding the count.
-         * It has two methods, increment, which returns
-         * nothing, and decrement, which returns --count.
-         *
-         * Proteced level of access.
-         */
-        struct counter
+        struct p_counter
         {
-            counter(): count(1) {};
-
-            void   increment() {        count++; }
-            size_t decrement() { return --count; }
-
+            p_counter(): count(1) {};
             size_t count;
         };
 
-        T       *ptr;
-        counter *count;
+        T         *p_ptr;
+        p_counter *p_count;
     };
 } /* end namespace types */
 

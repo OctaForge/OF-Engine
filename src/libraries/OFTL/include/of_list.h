@@ -24,40 +24,29 @@
  */
 namespace types
 {
-    /* Struct: list_node
-     * The list node class. Holds the data and the links (prev, next).
-     */
-    template<typename T> struct list_node
+    template<typename T> struct List_Node
     {
-        /* Constructor: list_node
-         * An empty constructor.
-         */
-        list_node(): prev(NULL), next(NULL) {}
-
-        /* Constructor: list_node
-         * Constructs a list node from data and prev, next nodes.
-         */
-        list_node(const T& data, list_node *prev, list_node *next):
-            data(data), prev(prev), next(next) {}
+        List_Node(): p_prev(NULL), p_next(NULL) {}
+        List_Node(const T& data, List_Node *prev, List_Node *next):
+            p_data(data), p_prev(prev), p_next(next) {}
 
     private:
 
-        T data;
+        T p_data;
 
-        list_node *prev;
-        list_node *next;
+        List_Node *p_prev;
+        List_Node *p_next;
 
-        template<typename U> friend struct list_iterator;
-        template<typename U> friend struct list_const_iterator;
-        template<typename U> friend struct list;
+        template<typename U> friend struct List_Iterator;
+        template<typename U> friend struct List_Const_Iterator;
+        template<typename U> friend struct List;
     };
 
-    /* Struct: list_iterator
-     * An iterator for the linked list. It's a bidirectional
-     * iterator, you can only go two directions and without
-     * offsets.
+    /* Struct: List_Iterator
+     * An iterator for the linked list. It's a bidirectional iterator,
+     * you can only go two directions and without offsets.
      */
-    template<typename T> struct list_iterator
+    template<typename T> struct List_Iterator
     {
         /* Typedef: diff_t */
         typedef ptrdiff_t diff_t;
@@ -68,98 +57,102 @@ namespace types
         /* Typedef: ref_t */
         typedef T& ref_t;
 
-        /* Constructor: list_iterator
+        /* Constructor: List_Iterator
          * Constructs an empty iterator.
          */
-        list_iterator(): nd(NULL) {}
+        List_Iterator(): p_nd(NULL) {}
 
-        /* Constructor: list_iterator
-         * Constructs an iterator from a given <list_node>.
+        /* Constructor: List_Iterator
+         * Constructs an iterator from a given <List_Node>.
          */
-        list_iterator(list_node<T> *nd): nd(nd) {}
+        List_Iterator(List_Node<T> *nd): p_nd(nd) {}
 
-        /* Constructor: list_iterator
+        /* Constructor: List_Iterator
          * Constructs an iterator from another iterator.
          */
-        list_iterator(const list_iterator& it): nd(it.nd) {}
-
-        /* Function: equals
-         * Returns true if given list iterator equals this one
-         * (that is, if their nodes equal).
-         */
-        bool equals(const list_iterator& it) const { return (it.nd == nd); }
+        List_Iterator(const List_Iterator& it): p_nd(it.p_nd) {}
 
         /* Operator: *
          * Dereferencing list iterator returns
          * the current node data.
          */
-        ref_t operator*() const { return nd->data; }
+        ref_t operator*() const { return p_nd->p_data; }
 
         /* Operator: ->
          * Pointer-like iterator access.
          */
-        ptr_t operator->() const { return &nd->data; }
+        ptr_t operator->() const { return &p_nd->p_data; }
 
         /* Operator: ++
          * Moves on to the next node, prefix version.
          */
-        list_iterator& operator++()
+        List_Iterator& operator++()
         {
-            nd = nd->next;
+            p_nd = p_nd->p_next;
             return *this;
         }
 
         /* Operator: ++
-         * Moves on to the next node and returns
-         * an iterator to the current node (before
-         * incrementing). Postfix version.
+         * Moves on to the next node and returns an iterator to the current
+         * node (before incrementing). Postfix version.
          */
-        list_iterator& operator++(int)
+        List_Iterator operator++(int)
         {
-            list_iterator tmp = *this;
-            nd = nd->next;
+            List_Iterator tmp = *this;
+            p_nd = p_nd->p_next;
             return tmp;
         }
 
         /* Operator: --
          * Prefix version, see <++>.
          */
-        list_iterator& operator--()
+        List_Iterator& operator--()
         {
-            nd = nd->prev;
+            p_nd = p_nd->p_prev;
             return *this;
         }
 
         /* Operator: --
          * Postfix version, see <++>.
          */
-        list_iterator& operator--(int)
+        List_Iterator operator--(int)
         {
-            list_iterator tmp = *this;
-            nd = nd->prev;
+            List_Iterator tmp = *this;
+            p_nd = p_nd->p_prev;
             return tmp;
         }
 
+        /* Operator: == */
+        template<typename U>
+        friend bool operator==(
+            const List_Iterator& a, const List_Iterator<U>& b
+        )
+        { return a.p_nd == b.p_nd; }
+
+        /* Operator: != */
+        template<typename U>
+        friend bool operator!=(
+            const List_Iterator& a, const List_Iterator<U>& b
+        )
+        { return a.p_nd != b.p_nd; }
+
     protected:
 
-        list_node<T> *nd;
+        List_Node<T> *p_nd;
 
-        template<typename U> friend struct list_iterator;
-        template<typename U> friend struct list_const_iterator;
+        template<typename U> friend struct List_Iterator;
+        template<typename U> friend struct List_Const_Iterator;
     };
 
-    /* Struct: list_const_iterator
-     * Const version of <list_iterator>. Inherits from
-     * <list_iterator>. Besides its own typedefs, it provides
-     * a constructor allowing to create it from standard
-     * <list_iterator>, an "equals" function for comparison
-     * with another const iterator and overloads for * and
+    /* Struct: List_Const_Iterator
+     * Const version of <List_Iterator>. Inherits from <List_Iterator>.
+     * Besides its own typedefs, it provides a constructor allowing to
+     * create it from standard <List_Iterator> and overloads for * and
      * -> operators.
      */
-    template<typename T> struct list_const_iterator: list_iterator<T>
+    template<typename T> struct List_Const_Iterator: List_Iterator<T>
     {
-        /* Typedef: base */
-        typedef list_iterator<T> base;
+        typedef List_Iterator<T> base;
 
         /* Typedef: diff_t */
         typedef ptrdiff_t diff_t;
@@ -170,41 +163,32 @@ namespace types
         /* Typedef: val_t */
         typedef T val_t;
 
-        /* Constructor: list_const_iterator
+        /* Constructor: List_Const_Iterator
          * Constructs a list const iterator from <base>.
          */
-        list_const_iterator(const base& it) { base::nd = it.nd; }
-
-        /* Function: equals
-         * Returns true if given const list iterator equals the
-         * current one (that is, if their nodes equal).
-         */
-        bool equals(const list_const_iterator& it) const
-        { return (it.nd == base::nd); }
+        List_Const_Iterator(const base& it) { base::p_nd = it.p_nd; }
 
         /* Operator: *
          * Dereferencing list iterator returns
          * the current node data.
          */
-        ref_t operator*() const { return base::nd->data; }
+        ref_t operator*() const { return base::p_nd->p_data; }
 
         /* Operator: ->
          * Pointer-like iterator access.
          */
-        ptr_t operator->() const { return &base::nd->data; }
+        ptr_t operator->() const { return &base::p_nd->p_data; }
     };
 
-    /* Class: list
-     * A "list" class. It represents a doubly linked list with
-     * links to first and last node, so you can insert and delete
-     * from both the beginning and the end. That means you can
-     * use this as a double-ended queue (deque).
+    /* Struct: List
+     * A "list" class. It represents a doubly linked list with links to first
+     * and last node, so you can insert and delete from both the beginning and
+     * the end. That means you can use this as a double-ended queue (deque).
      *
-     * Also stores <length> and you can iterate it from all
-     * directions.
+     * Also stores <length> and you can iterate it from all directions.
      *
      * (start code)
-     *     typedef types::list<int> lst;
+     *     typedef types::List<int> lst;
      *
      *     lst foo;
      *     foo.push_back(5);
@@ -215,11 +199,11 @@ namespace types
      *
      *     // prints 20 15 5 10
      *     for (lst::cit it = foo.begin(); it != foo.end(); ++it)
-     *         printf("%i\n", **n);
+     *         printf("%i\n", *n);
      *
      *     // prints 10 5 15 20
      *     for (lst::crit it = foo.rbegin(); it != foo.rend(); ++it)
-     *         printf("%i\n", n->get());
+     *         printf("%i\n", *n);
      *
      *     foo.pop_back ();
      *     foo.pop_front();
@@ -227,53 +211,53 @@ namespace types
      *     foo.clear();
      * (end)
      */
-    template<typename T> struct list
+    template<typename T> struct List
     {
-        /* Typedef: node */
-        typedef list_node<T> node;
+        typedef List_Node<T> node;
 
         /* Typedef: it
          * An iterator typedef for standard, non-const iterator.
          */
-        typedef list_iterator<T> it;
+        typedef List_Iterator<T> it;
 
         /* Typedef: cit
          * An iterator typedef for const iterator.
          */
-        typedef list_const_iterator<T> cit;
+        typedef List_Const_Iterator<T> cit;
 
         /* Typedef: rit
-         * Reverse iterator typedef, a <reverse> < <it> >.
+         * Reverse iterator typedef, a <Reverse> < <it> >.
          */
-        typedef iterators::reverse<it> rit;
+        typedef iterators::Reverse_Iterator<it> rit;
 
         /* Typedef: crit
-         * Const reverse iterator typedef, a <reverse> < <cit> >.
+         * Const reverse iterator typedef, a <Reverse> < <cit> >.
          */
-        typedef iterators::reverse<cit> crit;
+        typedef iterators::Reverse_Iterator<cit> crit;
 
         /* Constructor: list
          * An empty list constructor.
          */
-        list(): n_first(NULL), n_last(NULL), c_length(0) {}
+        List(): p_first(NULL), p_last(new node), p_length(0) {}
 
         /* Destructor: list
          * Calls <pop_back> until the length is 0.
          */
-        ~list()
+        ~List()
         {
-            while (c_length > 0) pop_back();
+            while (p_length > 0) pop_back();
+            delete p_last;
         }
 
         /* Function: begin
          * Returns an iterator to the first node.
          */
-        it begin() { return it(n_first); }
+        it begin() { return it(p_first); }
 
         /* Function: begin
          * Returns a const iterator to the first node.
          */
-        cit begin() const { return cit(n_first); }
+        cit begin() const { return cit(p_first); }
 
         /* Function: rbegin
          * Returns a <reverse> iterator to <end>.
@@ -288,12 +272,12 @@ namespace types
         /* Function: end
          * Returns an iterator to the last node.
          */
-        it end() { return it(n_last); }
+        it end() { return it(p_last); }
 
         /* Function: end
          * Returns a const iterator to the last node.
          */
-        cit end() const { return cit(n_last); }
+        cit end() const { return cit(p_last); }
 
         /* Function: rend
          * Returns a <reverse> iterator to <begin>.
@@ -308,46 +292,46 @@ namespace types
         /* Function: length
          * Returns the current list length.
          */
-        size_t length() const { return c_length; }
+        size_t length() const { return p_length; }
 
         /* Function: is_empty
          * Returns true if the list contains no nodes,
          * and false otherwise.
          */
-        bool is_empty() const { return (c_length == 0); }
+        bool is_empty() const { return (p_length == 0); }
 
         /* Function: push_back
-         * Pushes the given data to the end of the list.
-         * Returns a reference to the data.
+         * Pushes the given data to the end of the list. Returns a
+         * reference to the data.
          */
         T& push_back(const T& data)
         {
-            node *n = new node(data, n_last, NULL);
+            node *n = new node(data, p_last->p_prev, p_last);
 
-            if (!n_last) n_first = n;
-            else n_last->   next = n;
+            if (!p_last->p_prev) p_first = n;
+            else p_last->p_prev->p_next  = n;
 
-            n_last = n;
-            c_length++;
+            p_last->p_prev = n;
+            ++p_length;
 
-            return n->data;
+            return n->p_data;
         }
 
         /* Function: push_front
-         * Pushes the given data to the beginning of the list.
-         * Returns a reference to the data.
+         * Pushes the given data to the beginning of the list. Returns
+         * a reference to the data.
          */
         T& push_front(const T& data)
         {
-            node *n = new node(data, NULL, n_first);
+            node *n = new node(data, NULL, p_first);
 
-            if (!n_first) n_last = n;
-            else n_first->  prev = n;
+            if (!p_first) p_last->p_prev = n;
+            else p_first->p_prev = n;
 
-            n_first = n;
-            c_length++;
+            p_first = n;
+            ++p_length;
 
-            return n->data;
+            return n->p_data;
         }
 
         /* Function: pop_back
@@ -355,14 +339,25 @@ namespace types
          */
         void pop_back()
         {
-            node *n =    n_last;
-            n_last  = n->prev;
+            node *n = p_last->p_prev;
+            if  (!n) return;
 
-            if (!n_last) n_first = NULL;
-            else n_last->   next = NULL;
+            p_last->p_prev = n->p_prev;
+
+            if (p_last->p_prev)
+                p_last->p_prev->p_next = n->p_next;
+
+            if (p_length == 1)
+                p_first = NULL;
+
+            if (p_last->p_prev && !p_last->p_prev->p_prev)
+            {
+                p_first = p_last->p_prev;
+                p_first ->p_prev = NULL;
+            }
 
             delete n;
-            c_length--;
+            --p_length;
         }
 
         /* Function: pop_front
@@ -370,14 +365,19 @@ namespace types
          */
         void pop_front()
         {
-            node *n =   n_first;
-            n_first = n->next;
+            node *n = p_first;
+            if  (!n) return;
 
-            if (!n_first) n_last = NULL;
-            else n_first->  prev = NULL;
+            if (p_length == 1)
+                p_first = NULL;
+            else
+            {
+                p_first = n->p_next;
+                p_first->p_prev = NULL;
+            }
 
             delete n;
-            c_length--;
+            --p_length;
         }
 
         /* Function: clear
@@ -385,76 +385,16 @@ namespace types
          */
         void clear()
         {
-            while (c_length > 0) pop_back();
+            while (p_length > 0) pop_back();
         }
 
     protected:
 
-        node *n_first;
-        node *n_last;
+        node *p_first;
+        node *p_last;
 
-        size_t c_length;
+        size_t p_length;
     };
-
-    /* Operator: ==
-     * Defines == comparison behavior for list iterators.
-     * Global operator, not part of the class. Can be used
-     * for any two list iterators, even of different types.
-     */
-    template<typename T, typename U>
-    inline bool operator==(
-        const list_iterator<T>& a, const list_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const list_iterator<T>& a, const list_iterator<U>& b
-    )
-    { return !a.equals(b); }
-
-    /* Operator: == */
-    template<typename T, typename U>
-    inline bool operator==(
-        const list_const_iterator<T>& a, const list_const_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const list_const_iterator<T>& a, const list_const_iterator<U>& b
-    )
-    { return !a.equals(b); }
-
-    /* Operator: == */
-    template<typename T, typename U>
-    inline bool operator==(
-        const list_iterator<T>& a, const list_const_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const list_iterator<T>& a, const list_const_iterator<U>& b
-    )
-    { return !a.equals(b); }
-
-    /* Operator: == */
-    template<typename T, typename U>
-    inline bool operator==(
-        const list_const_iterator<T>& a, const list_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const list_const_iterator<T>& a, const list_iterator<U>& b
-    )
-    { return !a.equals(b); }
 } /* end namespace types */
 
 #endif

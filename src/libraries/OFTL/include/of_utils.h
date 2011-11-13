@@ -17,8 +17,6 @@
 #ifndef OF_UTILS_H
 #define OF_UTILS_H
 
-#include <string.h>
-
 #ifdef NULL
 #undef NULL
 #endif

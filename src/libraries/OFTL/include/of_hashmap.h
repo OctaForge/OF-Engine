@@ -1,10 +1,10 @@
-/* File: of_map.h
+/* File: of_hashmap.h
  *
  * About: Version
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  Map class header.
+ *  Hashmap class header.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
@@ -13,28 +13,28 @@
  *  This file is licensed under MIT. See COPYING.txt for more information.
  */
 
-#ifndef OF_MAP_H
-#define OF_MAP_H
+#ifndef OF_HASHMAP_H
+#define OF_HASHMAP_H
 
 #include "of_utils.h"
 #include "of_algorithm.h"
 #include "of_functional.h"
 #include "of_pair.h"
-#include "of_set.h"
+#include "of_hashset.h"
 
 /* Package: types
  * A namespace containing various container types.
  */
 namespace types
 {
-    /* Struct: Map
-     * See <Set>. This is the same thing, but it makes use of <Pair> to
+    /* Struct: Hash_Map
+     * See <Hash_Set>. This is the same thing, but it makes use of <Pair> to
      * create a key-value associative container, not key-key (value-value).
      * The interface is designed in that way you don't actually access
      * or modify pairs much, only when iterating.
      *
      * (start code)
-     *     typedef types::Map<const char*, int> mymap;
+     *     typedef types::Hash_Map<const char*, int> mymap;
      *     mymap test;
      *     // these two ways are equivalent in function, the
      *     // second one is better if the element doesn't exist.
@@ -51,14 +51,10 @@ namespace types
      *     for (mymap::cit it = test.begin(); it != test.end(); ++it)
      *         printf("%s - %i\n", (*n).first, (*n).second);
      *
-     *     // reverse iteration
-     *     for (mymap::crit it = test.rbegin(); it != test.rend(); ++it)
-     *         printf("%s - %i\n", n->first, n->second);
-     *
      *     // erasing, will delete the node
      *     test.erase("baz");
      *
-     *     // retrieving the tree length
+     *     // retrieving the map length
      *     printf("%i\n", test.length());
      *
      *     // will clear the node - also done
@@ -66,34 +62,23 @@ namespace types
      *     test.clear();
      * (end)
      */
-    template<typename T, typename U> struct Map: Set<Pair<T, U> >
+    template<typename T, typename U> struct Hash_Map: Hash_Set<Pair<T, U> >
     {
-        typedef Set<Pair<T, U> > base;
-        typedef Set_Node<Pair<T, U> > node;
+        typedef Hash_Set<Pair<T, U> > base;
+        typedef Hash_Set_Chain<Pair<T, U> > chain;
 
         /* Typedef: it
          * An iterator typedef for standard, non-const iterator.
          */
-        typedef Set_Iterator<Pair<T, U> > it;
+        typedef Hash_Set_Iterator<Pair<T, U> > it;
 
         /* Typedef: cit
          * An iterator typedef for const iterator.
          */
-        typedef Set_Const_Iterator<Pair<T, U> > cit;
-
-        /* Typedef: rit
-         * Reverse iterator typedef, a <Reverse> < <it> >.
-         */
-        typedef iterators::Reverse_Iterator<it> rit;
-
-        /* Typedef: crit
-         * Const reverse iterator typedef, a <Reverse> < <cit> >.
-         */
-        typedef iterators::Reverse_Iterator<cit> crit;
+        typedef Hash_Set_Const_Iterator<Pair<T, U> > cit;
 
         /* Function: insert
-         * Inserts a new node into the tree with key and data members given
-         * by the arguments.
+         * Inserts a key / value pair into the map.
          *
          * You can also use the <[]> operator with assignment, both ways are
          * equivalent in function, this is however better on non-existent keys
@@ -102,71 +87,89 @@ namespace types
          */
         U& insert(const T& key, const U& data)
         {
-            return base::p_insert(
-                base::p_root, Pair<T, U>(key, data)
-            )->p_data.second;
+            return base::insert(Pair<T, U>(key, data)).second;
         }
 
         /* Function: insert
-         * A variant of insert that accepts a <pair> of key and data instead
+         * A variant of insert that accepts a <Pair> of key and data instead
          * of key and data separately.
          */
         U& insert(const Pair<T, U>& data)
         {
-            return base::p_insert(base::p_root, data)->p_data.second;
+            return base::insert(data).second;
         }
 
         /* Function: erase
-         * Erases a node with a given key from the tree.
+         * Erases a given key / value pair from the map.
          */
-        void erase(const T& key) { delete base::p_erase(base::p_root, key); }
+        void erase(const T& key) { base::erase(key); }
 
         /* Function: find
-         * Returns an iterator to a node that belongs to a given key. There is
+         * Returns an iterator to a chain that belongs to a given key. There is
          * also a const version that returns a const iterator (non-modifiable).
          */
-        it find(const T& key) { return it(p_find(base::p_root, key)); }
+        it find(const T& key)
+        {
+            chain **ch   = base::p_chains;
+            chain  *curr = NULL;
+
+            p_find(ch, curr, key);
+            return it(ch, curr);
+        }
 
         /* Function: find
          * Const version of <find>. The result cannot be modified.
          */
-        cit find(const T& key) const { return cit(p_find(base::p_root, key)); }
+        cit find(const T& key) const
+        {
+            chain **ch   = base::p_chains;
+            chain  *curr = NULL;
+
+            p_find(ch, curr, key);
+            return cit(ch, curr);
+        }
 
         /* Operator: []
          * See <find>. If you assign a non-existant key, it'll get created
-         * first, because this has to return the data, not a node
-         * (see <insert>).
+         * first, because this has to return some data (see <insert>).
          *
          * (start code)
-         *     tree[key] = value;
-         *     printf("%s\n", tree[key]);
+         *     map[key] = value;
+         *     printf("%s\n", map[key]);
          * (end)
          */
         U& operator[](const T& key)
         {
-            return p_find(base::p_root, key, true)->p_data.second;
+            chain **ch   = base::p_chains;
+            chain  *curr = NULL;
+
+            p_find(ch, curr, key);
+            if (curr == base::p_nil)
+                return insert(key, U());
+            else
+                return curr->p_data.second;
         }
 
     protected:
 
-        node *p_find(node *nd, const T& key, bool do_insert = false)
+        void p_find(chain **&ch, chain *&curr, const T& key)
         {
-            if (nd == base::p_nil)
+            uint h = algorithm::hash(key) & (base::p_tsize - 1);
+            if (!ch[h])
             {
-                if (do_insert)
-                    return base::p_insert(base::p_root, Pair<T, U>(key, U()));
-                else
-                    return base::p_nil;
+                ch  += base::p_tsize;
+                curr = *ch;
             }
-
-            if (!functional::Equal<T, T>()(key, nd->p_data.first))
-                return p_find((
-                    (functional::Less<T, T>()(key, nd->p_data.first))
-                        ? nd->p_left
-                        : nd->p_right
-                ), key, do_insert);
-
-            return nd;
+            else
+            {
+                ch += h;
+                chain *e = *ch;
+                while (
+                    e != base::p_nil &&
+                    !functional::Equal<T, T>()(e->p_data.first, key)
+                ) e = e->p_next;
+                curr = e;
+            }
         }
     };
 } /* end namespace types */

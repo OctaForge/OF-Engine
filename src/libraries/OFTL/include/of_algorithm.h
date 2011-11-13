@@ -19,8 +19,11 @@
 #ifndef OF_ALGORITHM_H
 #define OF_ALGORITHM_H
 
+#include "of_functional.h"
 #include "of_iterator.h"
 #include "of_traits.h"
+#include "of_string.h"
+#include "of_pair.h"
 
 /* Package: algorithm
  * Various algorithms for OFTL.
@@ -28,8 +31,7 @@
 namespace algorithm
 {
     /* Function: max
-     * Returns the largest of
-     * the given values.
+     * Returns the largest of the given values.
      */
     template<typename T>
     inline T max(T a, T b)
@@ -39,8 +41,7 @@ namespace algorithm
     }
 
     /* Function: max
-     * Returns the smallest of
-     * the given values.
+     * Returns the smallest of the given values.
      */
     template<typename T>
     inline T min(T a, T b)
@@ -50,8 +51,8 @@ namespace algorithm
     }
 
     /* Function: clamp
-     * Clamps a given value a into the
-     * bounds of b(minimum) and c(maximum)
+     * Clamps a given value a into the bounds of b (minimum)
+     * and c (maximum).
      */
     template<typename T>
     inline T clamp(T a, T b, T c)
@@ -60,8 +61,7 @@ namespace algorithm
     }
 
     /* Function: swap
-     * Assigns the content of a to b and
-     * the content of b to a.
+     * Assigns the content of a to b and the content of b to a.
      */
     template<typename T> inline void swap(T& a, T& b)
     {
@@ -70,18 +70,18 @@ namespace algorithm
         b   = t;
     }
 
-    template<bool T> struct i_swap
+    template<bool T> struct I_Swap
     {
         template<typename U, typename V> static void iter_swap(U a, V b)
         {
-            typedef typename iterators::traits<U>::val_t val_t;
+            typedef typename iterators::Traits<U>::val_t val_t;
             val_t t = *a;
             *a      = *b;
             *b      = t;
         }
     };
 
-    template<> struct i_swap<true>
+    template<> struct I_Swap<true>
     {
         template<typename U, typename V> static void iter_swap(U a, V b)
         {
@@ -90,63 +90,68 @@ namespace algorithm
     };
 
     /* Function: iter_swap
-     * Assigns the content of *a to *b and
-     * the content of *b to *a.
+     * Assigns the content of *a to *b and the content of *b to *a.
      *
-     * Internally does some more checking
-     * for proxying iterators.
+     * Internally does some more checking for proxying iterators.
      */
     template<typename T, typename U> inline void iter_swap(T a, U b)
     {
-        typedef typename iterators::traits<T>::val_t val_t1;
-        typedef typename iterators::traits<U>::val_t val_t2;
-        typedef typename iterators::traits<T>::ref_t ref_t1;
-        typedef typename iterators::traits<U>::ref_t ref_t2;
-        i_swap<
-            traits::are_equal<val_t1, val_t2> ::value &&
-            traits::are_equal<ref_t1, val_t1&>::value &&
-            traits::are_equal<ref_t2, val_t2&>::value
+        typedef typename iterators::Traits<T>::val_t val_t1;
+        typedef typename iterators::Traits<U>::val_t val_t2;
+        typedef typename iterators::Traits<T>::ref_t ref_t1;
+        typedef typename iterators::Traits<U>::ref_t ref_t2;
+        I_Swap<
+            traits::Is_Equal<val_t1, val_t2> ::value &&
+            traits::Is_Equal<ref_t1, val_t1&>::value &&
+            traits::Is_Equal<ref_t2, val_t2&>::value
         >::iter_swap(a, b);
     }
 
-    /* Function: compare
-     * Generic compare function that returns 1
-     * when a is bigger than b, 0 when they're
-     * equal and -1 when b is bigger than a.
-     *
-     * Used mainly in sets / maps to compare keys.
-     */
-    template<typename T> inline int compare(T a, T b)
+    /* POD hash functions */
+    template<bool T> struct F_Hash_POD
     {
-        return ((a > b) ? 1 : ((a < b) ? -1 : 0));
-    }
+        template<typename U> static uint f(U k)
+        { return k; }
 
-    /* Function: compare
-     * Specialization for strings.
-     */
-    template<> inline int compare(const char *a, const char *b)
-    {
-        return strcmp(a, b);
-    }
+        static uint f(const char *k)
+        {
+            uint r = 5381;
 
-    /* Function: quicksort_cmp
-     * Default comparison function for <sort> and <insertion_sort>.
-     * Using this on compatible value type (one that can be compared
-     * with <) results in sort from the lowest to the highest value.
-     *
-     * For other ordering or incompatible value types, define your
-     * own and pass it to the respective sort function.
-     */
-    template<typename T>
-    inline bool sort_cmp(const T& a, const T& b)
+            for (size_t c; (c = *k++);)
+                r = ((r << 5) + r) + c;
+
+            return r;
+        }
+    };
+
+    /* Non-POD hash functions */
+    template<> struct F_Hash_POD<true>
     {
-        return (a < b);
+        static uint f(const types::String& k)
+        { return F_Hash_POD<false>::f(k.get_buf()); }
+
+        template<typename T, typename U>
+        static uint f(const types::Pair<T, U>& k)
+        { return F_Hash_POD<!traits::Is_POD<T>::value>::f(k.first); }
+    };
+
+    /* Function: hash
+     * Hashes a type, returning an uint. For integral numbers, it simply
+     * returns them, doing required conversion to unsigned. For char
+     * pointers, it uses bernstein hash, the same for <string>.
+     *
+     * The function is undefined for types that are either not integral
+     * numbers or strings.
+     */
+    template<typename T> uint hash(const T& k)
+    {
+        return F_Hash_POD<!traits::Is_POD<T>::value>::f(k);
     }
 
     /* Function: insertion_sort
-     * Performs an insertion sort on the range given by "first"
-     * and "last", with comparator function defined by "cmp".
-     * See below for version that doesn't need "cmp".
+     * Performs an insertion sort on the range given by "first" and "last",
+     * with comparator function defined by "cmp". See below for version
+     * that doesn't need "cmp".
      *
      * For big ranges, it's a better idea to use <sort>.
      */
@@ -155,7 +160,7 @@ namespace algorithm
     {
         for (T i = (first + 1); i < last; ++i)
         {
-            typename iterators::traits<T>::val_t tmp = *i;
+            typename iterators::Traits<T>::val_t tmp = *i;
             T j = i;
 
             for (; j > first && cmp(tmp, *(j - 1)); --j)
@@ -166,33 +171,31 @@ namespace algorithm
     }
 
     /* Function: insertion_sort
-     * An overload that doesn't require a comparator
-     * function and simply uses <sort_cmp> instead.
+     * An overload that doesn't require a comparator function and simply
+     * uses <sort_cmp> instead.
      */
     template<typename T>
     inline void insertion_sort(T first, T last)
     {
-        insertion_sort(first, last, sort_cmp<
-            typename iterators::traits<T>::val_t
-        >);
+        insertion_sort(first, last, functional::Less<
+            typename iterators::Traits<T>::val_t,
+            typename iterators::Traits<T>::val_t
+        >());
     }
 
     /* Function: sort
-     * Sorts a range given by "first" and "last", with
-     * comparator function defined by "cmp". See below
-     * for version that doesn't need "cmp".
+     * Sorts a range given by "first" and "last", with comparator function
+     * defined by "cmp". See below for version that doesn't need "cmp".
      *
-     * Internally, this is a hybrid sorting algorithm,
-     * which first uses quicksort with a pivot of median
-     * of three if the range is big and when the chunk
-     * is 10 elements long or fewer, it performs an
-     * <insertion_sort> which is more efficient in
-     * such cases. You can use this for any general
-     * sorting then, because it should be efficient
-     * for both small and big ranges.
+     * Internally, this is a hybrid sorting algorithm, which first uses
+     * quicksort with a pivot of median of three if the range is big and
+     * when the chunk is 10 elements long or fewer, it performs an
+     * <insertion_sort> which is more efficient in such cases. You
+     * can use this for any general sorting then, because it should
+     * be efficient for both small and big ranges.
      */
     template<typename T, typename U>
-    void sort(T first, T last, U cmp)
+    inline void sort(T first, T last, U cmp)
     {
         while ((last - first) > 10)
         {
@@ -207,7 +210,7 @@ namespace algorithm
                 pivot = last - 1;
             }
 
-            typename iterators::traits<T>::val_t p(*pivot);
+            typename iterators::Traits<T>::val_t p(*pivot);
             iter_swap(pivot, last - 1);
 
             T s = first;
@@ -229,15 +232,16 @@ namespace algorithm
     }
 
     /* Function: sort
-     * An overload that doesn't require a comparator
-     * function and simply uses <sort_cmp> instead.
+     * An overload that doesn't require a comparator function and simply
+     * uses <sort_cmp> instead.
      */
     template<typename T>
-    void sort(T first, T last)
+    inline void sort(T first, T last)
     {
-        sort(first, last, sort_cmp<
-            typename iterators::traits<T>::val_t
-        >);
+        sort(first, last, functional::Less<
+            typename iterators::Traits<T>::val_t,
+            typename iterators::Traits<T>::val_t
+        >());
     }
 } /* end namespace algorithm */
 

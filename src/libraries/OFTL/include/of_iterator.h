@@ -24,18 +24,16 @@
  */
 namespace iterators
 {
-    /* Struct: traits
-     * Default iterator traits. Every iterator should have
-     * 4 typedefs, diff_t, which is a size type (for i.e.
-     * offset between iterators). That one is usually
-     * ptrdiff_t.
+    /* Struct: Traits
+     * Default iterator traits. Every iterator should have 4 typedefs,
+     * diff_t, which is a size type (for i.e. offset between iterators).
+     * That one is usually ptrdiff_t.
      *
-     * Then val_t has to be defined, which specifies a
-     * value type for the iterator. Then, ptr_t specifies
-     * pointer type (mostly pointer to value type) and
-     * ref_t specifies reference type.
+     * Then val_t has to be defined, which specifies a value type for the
+     * iterator. Then, ptr_t specifies pointer type (mostly pointer to
+     * the value type) and ref_t specifies reference type.
      */
-    template<typename T> struct traits
+    template<typename T> struct Traits
     {
         /* Typedef: diff_t */
         typedef typename T::diff_t diff_t;
@@ -47,12 +45,11 @@ namespace iterators
         typedef typename T::ref_t  ref_t;
     };
 
-    /* Struct: traits
-     * Special structure for pointer types. Difference type is
-     * ptrdiff_t, value type is T, pointer type T* and reference
-     * type T&.
+    /* Struct: Traits
+     * Special structure for pointer types. Difference type is ptrdiff_t,
+     * value type is T, pointer type T* and reference type T&.
      */
-    template<typename T> struct traits<T*>
+    template<typename T> struct Traits<T*>
     {
         /* Typedef: diff_t */
         typedef ptrdiff_t diff_t;
@@ -64,12 +61,12 @@ namespace iterators
         typedef T& ref_t;
     };
 
-    /* Struct: traits
-     * Special structure for const pointer types. Difference
-     * type is ptrdiff_t, value type is T, pointer type
-     * const T* and reference type const T&.
+    /* Struct: Traits
+     * Special structure for const pointer types. Difference type is
+     * ptrdiff_t, value type is T, pointer type const T* and reference
+     * type const T&.
      */
-    template<typename T> struct traits<const T*>
+    template<typename T> struct Traits<const T*>
     {
         /* Typedef: diff_t */
         typedef ptrdiff_t diff_t;
@@ -81,16 +78,15 @@ namespace iterators
         typedef T val_t;
     };
 
-    /* Struct: traits
-     * This one is for void pointers, as there can't be a
-     * "void" value type. Difference type is ptrdiff_t,
-     * value type unsigned char, pointer type void*
-     * and reference type unsigned char&.
+    /* Struct: Traits
+     * This one is for void pointers, as there can't be a "void" value type.
+     * Difference type is ptrdiff_t, value type unsigned char, pointer type
+     * void* and reference type unsigned char&.
      */
-    template<> struct traits<void*>
+    template<> struct Traits<void*>
     {
         /* Typedef: diff_t */
-        typedef ptrdiff_t    diff_t;
+        typedef ptrdiff_t diff_t;
         /* Typedef: val_t */
         typedef unsigned char val_t;
         /* Typedef: ptr_t */
@@ -99,13 +95,12 @@ namespace iterators
         typedef val_t& ref_t;
     };
 
-    /* Struct: traits
-     * This one is for const void pointers. Difference
-     * type is ptrdiff_t, value type unsigned char,
-     * pointer type const void* and reference type
-     * const unsigned char&.
+    /* Struct: Traits
+     * This one is for const void pointers. Difference type is ptrdiff_t,
+     * value type unsigned char, pointer type const void* and reference
+     * type const unsigned char&.
      */
-    template<> struct traits<const void*>
+    template<> struct Traits<const void*>
     {
         /* Typedef: diff_t */
         typedef ptrdiff_t    diff_t;
@@ -117,127 +112,114 @@ namespace iterators
         typedef const val_t& ref_t;
     };
 
-    /* Struct: reverse
-     * A reverse iterator. Given any iterator type (random
-     * access or bidirectional), it returns a reverse one
-     * for the type. Incrementing then means going back,
-     * first value will be in fact last value and so on.
+    /* Struct: Reverse_Iterator
+     * A reverse iterator. Given any iterator type (random access or
+     * bidirectional), it returns a reverse one for the type. Incrementing
+     * then means going back, first value will be in fact last value and
+     * so on.
      *
-     * Reverse iterators are usually returned by "rbegin"
-     * and "rend" methods of container types.
+     * Reverse_Iterator iterators are usually returned by "rbegin" and "rend" methods
+     * of container types.
      */
-    template<typename T> struct reverse
+    template<typename T> struct Reverse_Iterator
     {
         /* Typedef: diff_t */
-        typedef typename traits<T>::diff_t diff_t;
+        typedef typename Traits<T>::diff_t diff_t;
         /* Typedef: ptr_t */
-        typedef typename traits<T>::ptr_t ptr_t;
+        typedef typename Traits<T>::ptr_t ptr_t;
         /* Typedef: ref_t */
-        typedef typename traits<T>::ref_t ref_t;
+        typedef typename Traits<T>::ref_t ref_t;
         /* Typedef: val_t */
-        typedef typename traits<T>::val_t val_t;
+        typedef typename Traits<T>::val_t val_t;
 
-        /* Constructor: reverse
+        /* Constructor: Reverse_Iterator
          * An empty constructor.
          */
-        reverse(): it_base(T()) {}
+        Reverse_Iterator(): p_base(T()) {}
 
-        /* Constructor: reverse
+        /* Constructor: Reverse_Iterator
          * Constructs a reverse iterator from given iterator.
          */
-        reverse(T it): it_base(it ) {}
+        Reverse_Iterator(T it): p_base(it) {}
 
-        /* Constructor: reverse
-         * Constructs a reverse iterator from a reverse iterator of
-         * any type.
+        /* Constructor: Reverse_Iterator
+         * Constructs a reverse iterator from a reverse iterator of any type.
          */
         template<typename U>
-        reverse(const reverse<U>& it): it_base(it.base()) {}
-
-        /* Function: equals
-         * Returns true if given reverse iterator equals the current
-         * one (that is, if their bases are the same).
-         */
-        template<typename U>
-        bool equals(const reverse<U>& it) const
-        { return (it.base() == it_base); }
+        Reverse_Iterator(const Reverse_Iterator<U>& it): p_base(it.base()) {}
 
         /* Function: base
-         * Returns the standard iterator held by the
-         * reverse iterator. It isn't a reference, so
-         * you can safely modify the returned iterator
+         * Returns the standard iterator held by the reverse iterator. It
+         * isn't a reference, so you can safely modify the returned iterator
          * without worrying about the reverse one.
          */
-        T base() const { return it_base; }
+        T base() const { return p_base; }
 
         /* Operator: *
-         * Overloaded dereference operator. Returns what
-         * a standard iterator it holds returns when
-         * dereferencing.
+         * Overloaded dereference operator. Returns what a standard iterator
+         * it holds returns when dereferencing.
          */
         ref_t operator*() const
         {
-            T tmp(it_base);
+            T tmp(p_base);
             return *--tmp;
         }
 
         /* Operator: +
-         * Useful for random access iterators to
-         * perform offsets. Basically returns
-         * reverse iterator to "base - N".
+         * Useful for random access iterators to perform offsets. Basically
+         * returns reverse iterator to "base - N".
          */
-        reverse operator+(diff_t n) const
+        Reverse_Iterator operator+(diff_t n) const
         {
-            return reverse(it_base - n);
+            return Reverse_Iterator(p_base - n);
         }
 
         /* Operator: ++
-         * The prefix version of the ++ operator.
-         * Decrements the base iterator.
+         * The prefix version of the ++ operator. Decrements the base
+         * iterator.
          */
-        reverse& operator++()
+        Reverse_Iterator& operator++()
         {
-            --it_base;
+            --p_base;
             return *this;
         }
 
         /* Operator: ++
-         * The postfix version of the ++ operator.
-         * Creates a new reverse iterator from
-         * this one, decrements the current one
-         * and returns the new one.
+         * The postfix version of the ++ operator. Creates a new reverse
+         * iterator from this one, decrements the current one and returns
+         * the new one.
          */
-        reverse operator++(int)
+        Reverse_Iterator operator++(int)
         {
-            reverse tmp(*this);
-            --it_base;
+            Reverse_Iterator tmp(*this);
+            --p_base;
             return tmp;
         }
 
         /* Operator: +=
          * Decrements the base iterator by N.
          */
-        reverse& operator+=(diff_t n)
+        Reverse_Iterator& operator+=(diff_t n)
         {
-            it_base -= n;
+            p_base -= n;
             return *this;
         }
 
         /* Operator: -
          * See above. Performs the opposite action.
          */
-        reverse operator-(diff_t n) const
+        Reverse_Iterator operator-(diff_t n) const
         {
-            return reverse(it_base + n);
+            return Reverse_Iterator(p_base + n);
         }
 
         /* Operator: --
          * See above. Performs the opposite action.
          * Prefix version.
          */
-        reverse& operator--()
+        Reverse_Iterator& operator--()
         {
-            ++it_base;
+            ++p_base;
             return *this;
         }
 
@@ -245,25 +227,25 @@ namespace iterators
          * See above. Performs the opposite action.
          * Postfix version.
          */
-        reverse operator--(int)
+        Reverse_Iterator operator--(int)
         {
-            reverse tmp(*this);
-            ++it_base;
+            Reverse_Iterator tmp(*this);
+            ++p_base;
             return tmp;
         }
 
         /* Operator: -=
          * See above. Performs the opposite action.
          */
-        reverse& operator-=(size_t n)
+        Reverse_Iterator& operator-=(size_t n)
         {
-            it_base += n;
+            p_base += n;
             return *this;
         }
 
         /* Operator: ->
-         * Defined for pointer-based base iterators in
-         * order to access elements in a pointer-ish way.
+         * Defined for pointer-based base iterators in order to access
+         * elements in a pointer-ish way.
          */
         ptr_t operator->() const
         {
@@ -271,32 +253,30 @@ namespace iterators
         }
 
         /* Operator: []
-         * Defined for pointer/array-based base iterators
-         * in order to access elements in an array-ish way.
+         * Defined for pointer/array-based base iterators in order to access
+         * elements in an array-ish way.
          */
         ref_t operator[](size_t n) const
         {
-            return *(*it_base + n);
+            return *(*p_base + n);
         }
+
+        /* Operator: == */
+        template<typename U>
+        friend bool operator==(
+            const Reverse_Iterator& a, const Reverse_Iterator<U>& b
+        ) { return a.base() == b.base(); }
+
+        /* Operator: != */
+        template<typename U>
+        friend bool operator!=(
+            const Reverse_Iterator& a, const Reverse_Iterator<U>& b
+        ) { return a.base() != b.base(); }
 
     protected:
 
-        T it_base;
+        T p_base;
     };
-
-    /* Operator: ==
-     * Defines == comparison behavior for reverse iterators.
-     * Global operator, not part of the class. Can be used
-     * for any two reverse iterators, even of different types.
-     */
-    template<typename T, typename U>
-    inline bool operator==(const reverse<T>& a, const reverse<U>& b)
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(const reverse<T>& a, const reverse<U>& b)
-    { return !a.equals(b); }
 } /* end namespace iterators */
 
 #endif

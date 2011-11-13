@@ -8,7 +8,7 @@
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
- *  Partially inspired by the Cube 2 vector implementation (zlib).
+ *  Partially inspired by the Cube 2 Vector implementation (zlib).
  *
  * About: License
  *  This file is licensed under MIT. See COPYING.txt for more information.
@@ -28,16 +28,16 @@
  */
 namespace types
 {
-    /* Class: vector
-     * Vector is a container that holds a list of elements simillarily
-     * to an array, but it's generic, can be easily manipulated (resized,
-     * appended etc.) and its memory is managed automatically.
+    /* Struct: Vector
+     * Vector is a container that holds a list of elements simillarily to an
+     * array, but it's generic, can be easily manipulated (resized, appended
+     * etc.) and its memory is managed automatically.
      */
-    template<typename T> struct vector
+    template<typename T> struct Vector
     {
         /* Variable: MIN_SIZE
-         * The minimal amount of elements to reserve
-         * space for when creating the buffer.
+         * The minimal amount of elements to reserve space for when creating
+         * the buffer.
          */
         enum { MIN_SIZE = 8 };
 
@@ -52,97 +52,97 @@ namespace types
         typedef const T* cit;
 
         /* Typedef: rit
-         * Reverse iterator typedef, a <reverse> < <it> >.
+         * Reverse iterator typedef, a <Reverse> < <it> >.
          */
-        typedef iterators::reverse<it> rit;
+        typedef iterators::Reverse_Iterator<it> rit;
 
         /* Typedef: vrit
-         * Const reverse iterator typedef, a <reverse> < <cit> >.
+         * Const reverse iterator typedef, a <Reverse> < <cit> >.
          */
-        typedef iterators::reverse<cit> crit;
+        typedef iterators::Reverse_Iterator<cit> crit;
 
-        /* Constructor: vector
+        /* Constructor: Vector
          * Constructs an empty vector.
          */
-        vector(): buf(NULL), c_length(0), c_capacity(0) {}
+        Vector(): p_buf(NULL), p_length(0), p_capacity(0) {}
 
-        /* Constructor: vector
+        /* Constructor: Vector
          * Constructs a vector from another vector.
          */
-        vector(const vector& v): buf(NULL), c_length(0), c_capacity(0)
+        Vector(const Vector& v): p_buf(NULL), p_length(0), p_capacity(0)
         {
             *this = v;
         }
 
-        /* Constructor: vector
-         * Constructs a vector of a given size. Optional element
-         * given by the second argument will be repeated in it.
+        /* Constructor: Vector
+         * Constructs a vector of a given size. Optional element given by
+         * the second argument will be repeated in it.
          */
-        vector(size_t sz, const T& v = T()): vector()
+        Vector(size_t sz, const T& v = T()): Vector()
         {
-            buf = new uchar[sz * sizeof(T)];
-            c_length = c_capacity = sz;
+            p_buf = new uchar[sz * sizeof(T)];
+            p_length = p_capacity = sz;
 
-            T *last = buf + sz;
+            T *last = p_buf + sz;
 
-            while   (buf != last)
-                new (buf++) T(v);
+            while   (p_buf != last)
+                new (p_buf++) T(v);
 
-            buf -= sz;
+            p_buf -= sz;
         }
 
-        /* Destructor: vector
+        /* Destructor: Vector
          * Calls <clear>.
          */
-        ~vector() { clear(); }
+        ~Vector() { clear(); }
 
         /* Operator: =
-         * Assignment operator for the vector. It makes this
-         * vector take parameters of the given vector.
+         * Assignment operator for the vector. It makes this vector take
+         * parameters of the given vector.
          *
-         * Buffer is not simply assigned, instead, a new one
-         * is allocated and the elements are inserted inside it.
+         * Buffer is not simply assigned, instead, a new one is allocated and
+         * the elements are inserted inside it.
          *
          * This makes heavy use of copy constructors.
          */
-        vector& operator=(const vector& v)
+        Vector& operator=(const Vector& v)
         {
             if (this == &v) return *this;
 
-            if (c_capacity >= v.capacity())
+            if (p_capacity >= v.capacity())
             {
-                if (!traits::is_pod<T>::value)
+                if (!traits::Is_POD<T>::value)
                 {
-                    T *last = buf + c_length;
+                    T *last = p_buf + p_length;
 
-                    while (buf != last)
-                         (*buf++).~T();
+                    while (p_buf != last)
+                         (*p_buf++).~T();
 
-                    buf -= c_length;
+                    p_buf -= p_length;
                 }
-                c_length = v.length();
+                p_length = v.length();
             }
             else
             {
                 clear();
 
-                c_length   = v.length  ();
-                c_capacity = v.capacity();
+                p_length   = v.length  ();
+                p_capacity = v.capacity();
 
-                buf = (T*) new uchar[c_capacity * sizeof(T)];
+                p_buf = (T*) new uchar[p_capacity * sizeof(T)];
             }
 
-            if (traits::is_pod<T>::value)
-                memcpy(buf, v.buf, c_length * sizeof(T));
+            if (traits::Is_POD<T>::value)
+                memcpy(p_buf, v.p_buf, p_length * sizeof(T));
             else
             {
-                T *last = buf + c_length;
-                T *vbuf = v.buf;
+                T *last =   p_buf + p_length;
+                T *vbuf = v.p_buf;
 
-                while   (buf != last)
-                    new (buf++) T(*vbuf++);
+                while   (p_buf != last)
+                    new (p_buf++) T(*vbuf++);
 
-                buf -= c_length;
+                p_buf -= p_length;
             }
 
             return *this;
@@ -151,12 +151,12 @@ namespace types
         /* Function: begin
          * Returns a pointer to the buffer.
          */
-        it begin() { return buf; }
+        it begin() { return p_buf; }
 
         /* Function: begin
          * Returns a const pointer to the buffer.
          */
-        cit begin() const { return buf; }
+        cit begin() const { return p_buf; }
 
         /* Function: rbegin
          * Returns a <reverse> iterator to <end>.
@@ -171,12 +171,12 @@ namespace types
         /* Function: end
          * Returns a pointer to the element after the last one.
          */
-        it end() { return buf + c_length; }
+        it end() { return p_buf + p_length; }
 
         /* Function: end
          * Returns a const pointer to the element after the last one.
          */
-        cit end() const { return buf + c_length; }
+        cit end() const { return p_buf + p_length; }
 
         /* Function: rend
          * Returns a <reverse> iterator to <begin>.
@@ -191,38 +191,37 @@ namespace types
         /* Function: get_buf
          * Returns the internal buffer.
          */
-        T *get_buf() { return buf; }
+        T *get_buf() { return p_buf; }
 
         /* Function: get_buf
          * Returns the internal buffer as const.
          */
-        const T *get_buf() const { return buf; }
+        const T *get_buf() const { return p_buf; }
 
         /* Function: resize
-         * Resizes the vector to be of given size. If the capacity
-         * is too small for that, it calls <reserve> with the size
-         * first.
+         * Resizes the vector to be of given size. If the capacity is too
+         * small for that, it calls <reserve> with the size first.
          *
-         * Second optional argument provides data that can be copied
-         * into each field that was initialized this time (happens
-         * when the given size is greater than the old size).
+         * Second optional argument provides data that can be copied into
+         * each field that was initialized this time (happens when the
+         * given size is greater than the old size).
          */
         void resize(size_t sz, const T& v = T())
         {
-            size_t len = c_length;
+            size_t len = p_length;
 
             reserve   (sz);
-            c_length = sz;
+            p_length = sz;
 
-            if (traits::is_pod<T>::value)
+            if (traits::Is_POD<T>::value)
             {
-                for (size_t i = len; i < c_length; i++)
-                    buf[i] = T(v);
+                for (size_t i = len; i < p_length; i++)
+                    p_buf[i] = T(v);
             }
             else
             {
-                T *first = buf + len;
-                T *last  = buf + c_length;
+                T *first = p_buf + len;
+                T *last  = p_buf + p_length;
 
                 while   (first != last)
                     new (first++) T(v);
@@ -232,44 +231,43 @@ namespace types
         /* Function: length
          * Returns the current vector length.
          */
-        size_t length() const { return c_length; }
+        size_t length() const { return p_length; }
 
         /* Function: capacity
          * Returns the current vector capacity.
          */
-        size_t capacity() const { return c_capacity; }
+        size_t capacity() const { return p_capacity; }
 
         /* Function: is_empty
          * Returns true if the vector is empty, false otherwise.
          */
-        bool is_empty() const { return (c_length == 0); }
+        bool is_empty() const { return (p_length == 0); }
 
         /* Function: reserve
-         * Reserves the size given by the argument. If that is
-         * smaller(or equal) than current capacity, this will
-         * do nothing. If it's bigger, the buffer will be
-         * reallocated.
+         * Reserves the size given by the argument. If that is smaller
+         * (or equal) than current capacity, this will do nothing.
+         * If it's bigger, the buffer will be reallocated.
          */
         void reserve(size_t sz)
         {
-            size_t old_cap = c_capacity;
+            size_t old_cap = p_capacity;
 
-            if (!c_capacity)
-                 c_capacity = algorithm::max((size_t)MIN_SIZE, sz);
-            else while (c_capacity < sz)
-                        c_capacity *= 2;
+            if (!p_capacity)
+                 p_capacity = algorithm::max((size_t)MIN_SIZE, sz);
+            else while (p_capacity < sz)
+                        p_capacity *= 2;
 
-            if (c_capacity <= old_cap) return;
+            if (p_capacity <= old_cap) return;
 
-            T *tmp = (T*) new uchar[c_capacity * sizeof(T)];
+            T *tmp = (T*) new uchar[p_capacity * sizeof(T)];
             if (old_cap > 0)
             {
-                if (traits::is_pod<T>::value)
-                    memcpy(tmp, buf, c_length * sizeof(T));
+                if (traits::Is_POD<T>::value)
+                    memcpy(tmp, p_buf, p_length * sizeof(T));
                 else
                 {
-                    T *curr = buf;
-                    T *last = tmp + c_length;
+                    T *curr = p_buf;
+                    T *last = tmp + p_length;
 
                     while (tmp != last)
                     {
@@ -279,51 +277,51 @@ namespace types
                           curr++;
                     }
 
-                    tmp -= c_length;
+                    tmp -= p_length;
                 }
-                delete[] (uchar*)buf;
+                delete[] (uchar*)p_buf;
             }
-            buf = tmp;
+            p_buf = tmp;
         }
 
         /* Operator: []
          * Returns a reference to the field on the given index.
          * Used for assignment.
          */
-        T& operator[](size_t idx) { return buf[idx]; }
+        T& operator[](size_t idx) { return p_buf[idx]; }
 
         /* Operator: []
          * Returns a const reference to the field on the given
          * index. Used for reading.
          */
-        const T& operator[](size_t idx) const { return buf[idx]; }
+        const T& operator[](size_t idx) const { return p_buf[idx]; }
 
         /* Function: at
          * Returns a reference to the field on the given index.
          * Used for assignment.
          */
-        T& at(size_t idx) { return buf[idx]; }
+        T& at(size_t idx) { return p_buf[idx]; }
 
         /* Function: at
          * Returns a const reference to the field on the given
          * index. Used for reading.
          */
-        const T& at(size_t idx) const { return buf[idx]; }
+        const T& at(size_t idx) const { return p_buf[idx]; }
 
         /* Function: push_back
-         * Appends a given value to the end of the vector.
-         * If the current capacity is not big enough to hold
-         * the future contents, it'll be resized.
+         * Appends a given value to the end of the vector. If the current
+         * capacity is not big enough to hold the future contents, it'll be
+         * resized.
          *
          * This returns a reference to the newly added element.
          */
         T& push_back(const T& data = T())
         {
-            if(c_length >= c_capacity)
-                reserve   (c_capacity + 1);
+            if(p_length >= p_capacity)
+                reserve   (p_capacity + 1);
 
-            new  (&buf[c_length]) T(data);
-            return buf[c_length++];
+            new  (&p_buf[p_length]) T(data);
+            return p_buf[p_length++];
         }
 
         /* Function: pop_back
@@ -331,44 +329,43 @@ namespace types
          */
         void pop_back()
         {
-            if (!traits::is_pod<T>::value)
-                buf[--c_length].~T();
+            if (!traits::Is_POD<T>::value)
+                p_buf[--p_length].~T();
             else
-                c_length--;
+                p_length--;
         }
 
         /* Function: clear
-         * Clears the vector contents. Deletes the buffer
-         * and sets the length and capacity to 0.
+         * Clears the vector contents. Deletes the buffer and sets the length
+         * and capacity to 0.
          *
-         * As the buffer is initialized as uchar*, it also
-         * calls a destructor for each value inside the buffer.
+         * As the buffer is initialized as uchar*, it also calls a destructor
+         * for each value inside the buffer.
          */
         void clear()
         {
-            if (c_capacity > 0)
+            if (p_capacity > 0)
             {
-                if (!traits::is_pod<T>::value)
+                if (!traits::Is_POD<T>::value)
                 {
-                    T *last = buf + c_length;
+                    T *last = p_buf + p_length;
 
-                    while (buf != last)
-                         (*buf++).~T();
+                    while (p_buf != last)
+                         (*p_buf++).~T();
 
-                    buf -= c_length;
+                    p_buf -= p_length;
                 }
-                delete[] (uchar*)buf;
+                delete[] (uchar*)p_buf;
 
-                c_length = c_capacity = 0;
+                p_length = p_capacity = 0;
             }
         }
 
     private:
 
-        T *buf;
-
-        size_t c_length;
-        size_t c_capacity;
+        T     *p_buf;
+        size_t p_length;
+        size_t p_capacity;
     };
 } /* end namespace types */
 

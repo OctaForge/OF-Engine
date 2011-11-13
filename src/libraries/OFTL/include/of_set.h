@@ -25,62 +25,36 @@
  */
 namespace types
 {
-    /* Struct: set_node
-     * A node structure for the tree. Has two constructors,
-     * one of them takes no arguments (level 0, left and right
-     * nodes as "this") and the other takes data, a node
-     * the left and right links will point at (initializes
-     * with level 1 and thus it'll be a leaf node) and a parent
-     * node (see below).
-     *
-     * The "parent" link is used on iteration to "go back".
-     * Default constructor initializes it to "this", the other
-     * one has it passed.
-     *
-     * Protected members are the data, current node level and
-     * the left and right links and the parent link. Besides
-     * that, the structure has friends set to <map>, <set>,
-     * <set_iterator> and <set_const_iterator>.
-     */
-    template<typename T> struct set_node
+    template<typename T> struct Set_Node
     {
-        /* Constructor: set_node
-         * A default constructor. The level is set to 0 and all
-         * links to "this".
-         */
-        set_node():
-            level(0), parent(this), left(this), right(this) {}
+        Set_Node():
+            p_level(0), p_parent(this), p_left(this), p_right(this) {}
 
-        /* Constructor: set_node
-         * Passes data, parent node and left/right nodes (the same).
-         * The <level> member is initialized to 1 (the node begins
-         * life as leaf node).
-         */
-        set_node(const T& data, set_node *nd, set_node *parent):
-            data(data), level(1), parent(parent), left(nd), right(nd) {}
+        Set_Node(const T& data, Set_Node *nd, Set_Node *parent):
+            p_data(data), p_level(1),
+            p_parent(parent), p_left(nd), p_right(nd) {}
 
     protected:
 
-        T data;
-        size_t level;
+        T p_data;
+        size_t p_level;
 
-        set_node *parent;
-        set_node *left;
-        set_node *right;
+        Set_Node *p_parent;
+        Set_Node *p_left;
+        Set_Node *p_right;
 
-        template<typename U> friend struct set_iterator;
-        template<typename U> friend struct set_const_iterator;
-        template<typename U> friend struct set;
+        template<typename U> friend struct Set_Iterator;
+        template<typename U> friend struct Set_Const_Iterator;
+        template<typename U> friend struct Set;
 
-        template<typename U, typename V> friend struct map;
+        template<typename U, typename V> friend struct Map;
     };
 
-    /* Struct: set_iterator
-     * An iterator for set (and map). It's a bidirectional
-     * iterator, you can only go two directions and without
-     * offsets.
+    /* Struct: Set_Iterator
+     * An iterator for set (and map). It's a bidirectional iterator, you can
+     * only go two directions and without offsets.
      */
-    template<typename T> struct set_iterator
+    template<typename T> struct Set_Iterator
     {
         /* Typedef: diff_t */
         typedef ptrdiff_t diff_t;
@@ -91,71 +65,63 @@ namespace types
         /* Typedef: ref_t */
         typedef T& ref_t;
 
-        /* Constructor: set_iterator
+        /* Constructor: Set_Iterator
          * Constructs an empty iterator.
          */
-        set_iterator(): nd(NULL) {}
+        Set_Iterator(): p_nd(NULL) {}
 
-        /* Constructor: set_iterator
-         * Constructs an iterator from <set_node>.
+        /* Constructor: Set_Iterator
+         * Constructs an iterator from <Set_Node>.
          */
-        set_iterator(set_node<T> *nd): nd(nd) {}
+        Set_Iterator(Set_Node<T> *nd): p_nd(nd) {}
 
-        /* Constructor: set_iterator
+        /* Constructor: Set_Iterator
          * Constructs an iterator from another iterator.
          */
-        set_iterator(const set_iterator& it): nd(it.nd) {}
-
-        /* Function: equals
-         * Returns true if given set iterator equals this one
-         * (that is, if their nodes equal).
-         */
-        bool equals(const set_iterator& it) const { return (it.nd == nd); }
+        Set_Iterator(const Set_Iterator& it): p_nd(it.p_nd) {}
 
         /* Operator: *
-         * Dereferencing set iterator returns
-         * the current node data.
+         * Dereferencing set iterator returns the current node data.
          */
-        ref_t operator*() const { return nd->data; }
+        ref_t operator*() const { return p_nd->p_data; }
 
         /* Operator: ->
          * Pointer-like iterator access.
          */
-        ptr_t operator->() const { return &nd->data; }
+        ptr_t operator->() const { return &p_nd->p_data; }
 
         /* Operator: ++
          * Moves on to the next node, prefix version.
          */
-        set_iterator& operator++()
+        Set_Iterator& operator++()
         {
-            if (nd->right->level != 0)
+            if (p_nd->p_right->p_level != 0)
             {
-                nd = nd->right;
-                while (nd->left->level != 0)
-                    nd = nd->left;
+                p_nd = p_nd->p_right;
+                while (p_nd->p_left->p_level != 0)
+                       p_nd = p_nd->p_left;
             }
             else
             {
-                set_node<T> *n = nd->parent;
-                while (nd == n->right)
+                Set_Node<T> *n = p_nd->p_parent;
+                while (p_nd == n->p_right)
                 {
-                    nd = n;
-                    n = n->parent;
+                    p_nd = n;
+                    n = n->p_parent;
                 }
-                if (nd->right != n)
-                    nd = n;
+                if (p_nd->p_right != n)
+                    p_nd = n;
             }
             return *this;
         }
 
         /* Operator: ++
-         * Moves on to the next node and returns
-         * an iterator to the current node (before
-         * incrementing). Postfix version.
+         * Moves on to the next node and returns an iterator to the
+         * current node (before incrementing). Postfix version.
          */
-        set_iterator& operator++(int)
+        Set_Iterator operator++(int)
         {
-            set_iterator tmp = *this;
+            Set_Iterator tmp = *this;
             operator++();
             return tmp;
         }
@@ -163,24 +129,24 @@ namespace types
         /* Operator: --
          * Prefix version, see <++>.
          */
-        set_iterator& operator--()
+        Set_Iterator& operator--()
         {
-            if (nd->left->level != 0)
+            if (p_nd->p_left->p_level != 0)
             {
-                nd = nd->left;
-                while (nd->right->level != 0)
-                    nd = nd->right;
+                p_nd = p_nd->p_left;
+                while (p_nd->p_right->p_level != 0)
+                       p_nd = p_nd->p_right;
             }
             else
             {
-                set_node<T> *n = nd->parent;
-                while (nd->level != 0 && nd == n->left)
+                Set_Node<T> *n = p_nd->p_parent;
+                while (p_nd->p_level != 0 && p_nd == n->p_left)
                 {
-                    nd = n;
-                    n = n->parent;
+                    p_nd = n;
+                    n = n->p_parent;
                 }
-                if (nd->left != n)
-                    nd = n;
+                if (p_nd->p_left != n)
+                    p_nd = n;
             }
             return *this;
         }
@@ -188,33 +154,44 @@ namespace types
         /* Operator: --
          * Postfix version, see <++>.
          */
-        set_iterator& operator--(int)
+        Set_Iterator operator--(int)
         {
-            set_iterator tmp = *this;
+            Set_Iterator tmp = *this;
             operator--();
             return tmp;
         }
 
+        /* Operator: == */
+        template<typename U>
+        friend bool operator==(
+            const Set_Iterator& a, const Set_Iterator<U>& b
+        )
+        { return a.p_nd == b.p_nd; }
+
+        /* Operator: != */
+        template<typename U>
+        friend bool operator!=(
+            const Set_Iterator& a, const Set_Iterator<U>& b
+        )
+        { return a.p_nd != b.p_nd; }
+
     protected:
 
-        set_node<T> *nd;
+        Set_Node<T> *p_nd;
 
-        template<typename U> friend struct set_iterator;
-        template<typename U> friend struct set_const_iterator;
+        template<typename U> friend struct Set_Iterator;
+        template<typename U> friend struct Set_Const_Iterator;
     };
 
-    /* Struct: set_const_iterator
-     * Const version of <set_iterator>. Inherits from
-     * <set_iterator>. Besides its own typedefs, it provides
-     * a constructor allowing to create it from standard
-     * <set_iterator>, an "equals" function for comparison
-     * with another const iterator and overloads for * and
-     * -> operators.
+    /* Struct: Set_Const_Iterator
+     * Const version of <Set_Iterator>. Inherits from <Set_Iterator>.
+     * Besides its own typedefs, it provides a constructor allowing
+     * to create it from a standard <Set_Iterator> and overloads for
+     * the * and -> operators.
      */
-    template<typename T> struct set_const_iterator: set_iterator<T>
+    template<typename T> struct Set_Const_Iterator: Set_Iterator<T>
     {
-        /* Typedef: base */
-        typedef set_iterator<T> base;
+        typedef Set_Iterator<T> base;
 
         /* Typedef: diff_t */
         typedef ptrdiff_t diff_t;
@@ -225,52 +202,46 @@ namespace types
         /* Typedef: val_t */
         typedef T val_t;
 
-        /* Constructor: set_const_iterator
-         * Constructs a set const iterator from <base>.
+        /* Constructor: Set_Const_Iterator
+         * Constructs a set const iterator from <Set_Iterator>.
          */
-        set_const_iterator(const base& it) { base::nd = it.nd; }
-
-        /* Function: equals
-         * Returns true if given const set iterator equals the
-         * current one (that is, if their nodes equal).
-         */
-        bool equals(const set_const_iterator& it) const
-        { return (it.nd == base::nd); }
+        Set_Const_Iterator(const base& it) { base::p_nd = it.p_nd; }
 
         /* Operator: *
-         * Dereferencing set iterator returns
-         * the current node data.
+         * Dereferencing set iterator returns the current node data.
          */
-        ref_t operator*() const { return base::nd->data; }
+        ref_t operator*() const { return base::p_nd->p_data; }
 
         /* Operator: ->
          * Pointer-like iterator access.
          */
-        ptr_t operator->() const { return &base::nd->data; }
+        ptr_t operator->() const { return &base::p_nd->p_data; }
     };
 
-    /* Class: set
-     * An efficient associative container implementation
-     * using AA tree (an enhancement to red-black tree,
-     * see <http://en.wikipedia.org/wiki/AA_tree>).
+    /* Struct: set
+     * An efficient associative container implementation using AA
+     * tree (an enhancement to the red-black tree algorithm, see
+     * <http://en.wikipedia.org/wiki/AA_tree>).
      *
-     * It can be used for efficient key-value associations
-     * that are ordered, while remaining very efficient in
-     * insertion and search.
+     * It can be used for efficient key-value associations that are ordered,
+     * while remaining very efficient in insertion and search.
      *
-     * Anything can be used as either key or value, ranging
-     * from POD types through objects to pointers.
+     * Anything can be used as either key or value, ranging from POD types
+     * through objects to pointers.
      *
-     * You should, however, never store a pointer inside the
-     * container unless you manage it elsewhere to prevent
-     * memory leaks (you can however store it in reference
-     * counted container, <shared_ptr>).
+     * You should, however, never store a pointer inside the container unless
+     * you manage it elsewhere to prevent memory leaks (you can however store
+     * it in reference counted container, <shared_ptr>).
      *
-     * This structure represents a "set", where a key value
-     * is the same as data value. It serves as a base for
-     * actual map, where key and data are different. It
-     * simply inherites and makes use of <pair>.
-     *
+     * This structure represents a "set", where a key value is the same as
+     * data value. It serves as a base for actual map, where key and data are
+     * different. It simply inherits and makes use of <pair>.
+     * 
+     * If you need unordered storage with forward iterators only, you can use
+     * <hashset>, which is implemented using a hash table. It has better
+     * insertion / lookup time complexity, but also less features and
+     * fewer types can be used as keys.
+     * 
      * (start code)
      *     typedef types::set<int> myset;
      *     myset test;
@@ -281,8 +252,7 @@ namespace types
      * 
      *     // searching
      *     printf("%i\n", test[5]);
-     *     // this will not fail - it'll insert an empty value,
-     *     // so it'll print just 0 (default value for an int)
+     *     // this will not fail - it'll insert a value, so it'll print 10.
      *     printf("%i\n", test[10]);
      *
      *     // iteration
@@ -296,10 +266,6 @@ namespace types
      *     // erasing, will delete the node
      *     test.erase(5);
      *
-     *     // same as erase, but will return the node instead
-     *     // of deletion, letting the user to manage it
-     *     myset::node *n = test.pop(10);
-     *
      *     // retrieving the tree length
      *     printf("%i\n", test.length());
      *
@@ -308,76 +274,70 @@ namespace types
      *     test.clear();
      * (end)
      */
-    template<typename T> struct set
+    template<typename T> struct Set
     {
-        /* Typedef: node
-         * Typedefs <set_node> <T> so it can
-         * be used as "node".
-         */
-        typedef set_node<T> node;
+        typedef Set_Node<T> node;
 
         /* Typedef: it
          * An iterator typedef for standard, non-const iterator.
          */
-        typedef set_iterator<T> it;
+        typedef Set_Iterator<T> it;
 
         /* Typedef: cit
          * An iterator typedef for const iterator.
          */
-        typedef set_const_iterator<T> cit;
+        typedef Set_Const_Iterator<T> cit;
 
         /* Typedef: rit
-         * Reverse iterator typedef, a <reverse> < <it> >.
+         * Reverse iterator typedef, a <Reverse> < <it> >.
          */
-        typedef iterators::reverse<it> rit;
+        typedef iterators::Reverse_Iterator<it> rit;
 
         /* Typedef: crit
-         * Const reverse iterator typedef, a <reverse> < <cit> >.
+         * Const reverse iterator typedef, a <Reverse> < <cit> >.
          */
-        typedef iterators::reverse<cit> crit;
+        typedef iterators::Reverse_Iterator<cit> crit;
 
         /* Constructor: set
-         * Creates a new set with root <node> where root
-         * is the same as nil (will change when something
-         * gets inserted).
+         * Creates a new set with root node where root is the same as nil
+         * (will change when something gets inserted).
          */
-        set(): root(new node), nil(NULL), c_length(0)
+        Set(): p_root(new node), p_nil(NULL), p_length(0)
         {
-            nil = root;
+            p_nil = p_root;
         }
 
         /* Destructor: set
-         * Deletes a root node, all its sub-nodes and
-         * a nil node. Done to not leak memory.
+         * Deletes a root node, all its sub-nodes and a nil node. Done to not
+         * leak memory.
          */
-        ~set()
+        ~Set()
         {
-            destroy_node(root);
-            delete nil;
+            p_destroy_node(p_root);
+            delete p_nil;
         }
 
         /* Function: length
-         * Returns the tree length (the amount of nodes
-         * with actual data).
+         * Returns the tree length (the amount of nodes with actual data).
          */
-        size_t length() const { return c_length; }
+        size_t length() const { return p_length; }
 
         /* Function: is_empty
-         * Returns true if the set contains no nodes
-         * (except root / nil) and false otherwise.
+         * Returns true if the set contains no nodes (except root / nil)
+         * and false otherwise.
          */
-        bool is_empty() const { return (c_length == 0); }
+        bool is_empty() const { return (p_length == 0); }
 
         /* Function: begin
          * Returns an iterator to the first node.
          */
         it begin()
         {
-            node  *nd = root;
-            while (nd != nil)
+            node  *nd = p_root;
+            while (nd != p_nil)
             {
-                if (nd->left == nil) break;
-                    nd = nd->left;
+                if (nd->p_left == p_nil) break;
+                    nd = nd->p_left;
             }
 
             return it(nd);
@@ -388,11 +348,11 @@ namespace types
          */
         cit begin() const
         {
-            node  *nd = root;
-            while (nd != nil)
+            node  *nd = p_root;
+            while (nd != p_nil)
             {
-                if (nd->left == nil) break;
-                    nd = nd->left;
+                if (nd->p_left == p_nil) break;
+                    nd = nd->p_left;
             }
 
             return cit(nd);
@@ -413,9 +373,9 @@ namespace types
          */
         it end()
         {
-            node  *nd = root;
-            while (nd != nil)
-                nd = nd->right;
+            node  *nd = p_root;
+            while (nd != p_nil)
+                nd = nd->p_right;
 
             return it(nd);
         }
@@ -425,9 +385,9 @@ namespace types
          */
         cit end() const
         {
-            node  *nd = root;
-            while (nd != nil)
-                nd = nd->right;
+            node  *nd = p_root;
+            while (nd != p_nil)
+                nd = nd->p_right;
 
             return cit(nd);
         }
@@ -443,327 +403,183 @@ namespace types
         crit rend() const { return crit(begin()); }
 
         /* Function: insert
-         * Inserts a new node into the tree with data
-         * member given by the arguments.
-         *
-         * You can also use the <[]> operator with assignment,
-         * both ways are equivalent in function, this is however
-         * better on non-existent keys because it doesn't have to
-         * insert first and then assign, instead it creates with
-         * the given data directly.
+         * Inserts a new node into the tree with data member given by the
+         * arguments.
          */
         T& insert(const T& data)
         {
-            return insert(root, data)->data;
+            return p_insert(p_root, data)->p_data;
         }
 
         /* Function: clear
-         * Destroys the root node, all its sub-nodes and the nil
-         * node, and re-initializes the tree with length 0.
+         * Destroys the root node, all its sub-nodes and the nil node, and
+         * re-initializes the tree with length 0.
          */
         void clear()
         {
-            destroy_node(root);
-            delete nil;
+            p_destroy_node(p_root);
+            delete p_nil;
 
-            root     = new node;
-            nil      = root;
-            c_length = 0;
+            p_root     = new node;
+            p_nil      = p_root;
+            p_length = 0;
         }
 
         /* Function: erase
-         * Erases a node with a given key from the tree. Unlike
-         * <pop>, it also deletes the node (and returns nothing).
+         * Erases a node with a given key from the tree.
          */
-        void erase(const T& key) { delete erase(root, key); }
+        void erase(const T& key) { delete p_erase(p_root, key); }
 
         /* Function: find
-         * Returns an iterator to a node that belongs to a given key.
-         * There is also a const version that returns a const
-         * iterator (non-modifiable).
+         * Returns an iterator to a node that belongs to a given key. There is
+         * also a const version that returns a const iterator (non-modifiable).
          */
-        it find(const T& key) { return it(find(root, key)); }
+        it find(const T& key) { return it(p_find(p_root, key)); }
 
         /* Function: find
          * Const version of <find>. The result cannot be modified.
          */
-        cit find(const T& key) const { return cit(find(root, key)); }
-
-        /* Operator: []
-         * See <find>. This one is not const, so you can assign
-         * the value. If you assign a non-existant key, it'll
-         * get created first, because this has to return the
-         * data, not a node (see <insert>).
-         *
-         * (start code)
-         *     tree[value] = value;
-         * (end)
-         *
-         * There is also a const version used for reading.
-         */
-        T& operator[](const T& key) { return find(root, key, true)->data; }
-
-        /* Operator: []
-         * Const version of <[]>. Used for reading only, because it
-         * returns a const reference which is non-modifiable.
-         *
-         * (start code)
-         *     printf("%s\n", tree[key]);
-         * (end)
-         */
-        const T& operator[](const T& key) const { return find(key)->data; }
+        cit find(const T& key) const { return cit(p_find(p_root, key)); }
 
     protected:
 
-        void destroy_node(node *nd)
+        void p_destroy_node(node *nd)
         {
-            if (nd == nil) return;
-            destroy_node(nd->left);
-            destroy_node(nd->right);
+            if (nd == p_nil) return;
+            p_destroy_node(nd->p_left);
+            p_destroy_node(nd->p_right);
             delete nd;
         }
 
-        /* Function: skew
-         * See <http://en.wikipedia.org/wiki/AA_tree>.
-         * The given argument is a reference to a node
-         * (it modifies the node from inside).
-         *
-         * See also <split>, <insert> and <erase>.
-         * This method has protected level of access.
-         */
-        void skew(node *&nd)
+        void p_skew(node *&nd)
         {
-            if (nd->level && nd->level == nd->left->level)
+            if (nd->p_level && nd->p_level == nd->p_left->p_level)
             {
-                node *n   = nd->left;
-                n->parent = nd->parent;
+                node *n     = nd->p_left;
+                n->p_parent = nd->p_parent;
 
-                nd->left = n->right;
-                nd->left->parent = nd;
+                nd->p_left = n->p_right;
+                nd->p_left->p_parent = nd;
 
-                n->right = nd;
-                n->right->parent = n;
+                n->p_right = nd;
+                n->p_right->p_parent = n;
 
                 nd = n;
             }
         }
 
-        /* Function: split
-         * See <http://en.wikipedia.org/wiki/AA_tree>.
-         * The given argument is a reference to a node
-         * (it modifies the node from inside).
-         *
-         * See also <skew>, <insert> and <erase>.
-         * This method has protected level of access.
-         */
-        void split(node *&nd)
+        void p_split(node *&nd)
         {
-            if (nd->level && nd->level == nd->right->right->level)
+            if (nd->p_level && nd->p_level == nd->p_right->p_right->p_level)
             {
-                node *n   = nd->right;
-                n->parent = nd->parent;
+                node *n     = nd->p_right;
+                n->p_parent = nd->p_parent;
 
-                nd->right = n->left;
-                nd->right->parent = nd;
+                nd->p_right = n->p_left;
+                nd->p_right->p_parent = nd;
 
-                n->left = nd;
-                n->left->parent = n;
+                n->p_left = nd;
+                n->p_left->p_parent = n;
 
                 nd = n;
-                nd->level++;
+                nd->p_level++;
             }
         }
 
-        /* Function: insert
-         * See <http://en.wikipedia.org/wiki/AA_tree>.
-         * The first given argument is a reference to
-         * a node (it modifies the node from inside).
-         * The other argument is a const reference to
-         * the value we're inserting.
-         *
-         * Returns the newly inserted node.
-         *
-         * See also <skew>, <split> and <erase>.
-         * This method has protected level of access.
-         */
         template<typename U>
-        node *insert(node *&nd, const U& data, node *prev = NULL)
+        node *p_insert(node *&nd, const U& data, node *prev = NULL)
         {
-            if (nd == nil)
+            if (nd == p_nil)
             {
-                if (!prev) prev = root;
-                nd = new node(data, nil, prev);
-                c_length++;
+                if (!prev) prev = p_root;
+                nd = new node(data, p_nil, prev);
+                p_length++;
                 return nd;
             }
 
             node *ret = NULL;
 
-            int cmp = algorithm::compare(data, nd->data);
-            if (cmp)
+            if (!functional::Equal<U, U>()(data, nd->p_data))
             {
-                ret = insert(((cmp > 0)
-                    ? nd->right
-                    : nd->left
+                ret = p_insert(((functional::Greater<U, U>()(data, nd->p_data))
+                    ? nd->p_right
+                    : nd->p_left
                 ), data, nd);
                 if (!ret) return NULL;
             }
 
-            skew (nd);
-            split(nd);
+            p_skew (nd);
+            p_split(nd);
 
             return ret;
         }
 
-        /* Function: erase
-         * See <http://en.wikipedia.org/wiki/AA_tree>.
-         * The first given argument is a reference to
-         * a node (it modifies the node from inside).
-         * The other argument is the key belonging
-         * to the node we're erasing.
-         *
-         * Returns the erased node for later processing.
-         *
-         * See also <skew>, <split> and <insert>.
-         * This method has protected level of access.
-         */
         template<typename U>
-        node *erase(node *&nd, const U& key)
+        node *p_erase(node *&nd, const U& key)
         {
-            if (nd == nil) return NULL;
+            if (nd == p_nil) return NULL;
 
-            int cmp = algorithm::compare(key, nd->data);
-            if (cmp == 0)
+            if (functional::Equal<U, T>()(key, nd->p_data))
             {
-                if (nd->left != nil && nd->right != nil)
+                if (nd->p_left != p_nil && nd->p_right != p_nil)
                 {
-                    node  *heir = nd->left;
-                    while (heir->right != nil)
-                           heir = heir->right;
+                    node  *heir = nd->p_left;
+                    while (heir->p_right != p_nil)
+                           heir = heir->p_right;
 
-                    nd->data = heir->data;
+                    nd->p_data = heir->p_data;
 
-                    return erase(nd->left, nd->data);
+                    return p_erase(nd->p_left, nd->p_data);
                 }
                 else
                 {
                     node *ret = nd;
-                    node *par = nd->parent;
-                    nd = ((nd->left == nil)
-                        ? nd->right
-                        : nd->left
+                    node *par = nd->p_parent;
+                    nd = ((nd->p_left == p_nil)
+                        ? nd->p_right
+                        : nd->p_left
                     );
-                    nd->parent = par;
+                    nd->p_parent = par;
 
-                    c_length--;
+                    p_length--;
 
                     return ret;
                 }
             }
-            else return erase(((cmp < 0)
-                ? nd->left
-                : nd->right
+            else return p_erase(((functional::Less<U, T>()(key, nd->p_data))
+                ? nd->p_left
+                : nd->p_right
             ), key);
 
             return NULL;
         }
 
-        /* Function: find
-         * Returns a node the key given by the second argument
-         * belongs to. The first argument is a root node, usually.
-         *
-         * Used by <[]> and the interface <find> (the one that
-         * doesn't take a root node argument).
-         *
-         * This method has protected level of access.
-         */
-        node *find(node *nd, const T& key, bool do_insert = false)
+        node *p_find(node *nd, const T& key, bool do_insert = false)
         {
-            if (nd == nil)
+            if (nd == p_nil)
             {
                 if (do_insert)
-                    return insert(root, T());
+                    return insert(p_root, T());
                 else
-                    return nil;
+                    return p_nil;
             }
 
-            int cmp = algorithm::compare(key, nd->data);
-            if (cmp)
-                return find(((cmp < 0)
-                    ? nd->left
-                    : nd->right
+            if (!functional::Equal<T, T>()(key, nd->p_data))
+                return p_find(((functional::Less<T, T>()(key, nd->p_data))
+                    ? nd->p_left
+                    : nd->p_right
                 ), key, do_insert);
 
             return nd;
         }
 
-        node *root;
-        node *nil;
+        node *p_root;
+        node *p_nil;
 
     private:
 
-        size_t c_length;
+        size_t p_length;
     };
-
-    /* Operator: ==
-     * Defines == comparison behavior for set iterators.
-     * Global operator, not part of the class. Can be used
-     * for any two set iterators, even of different types.
-     */
-    template<typename T, typename U>
-    inline bool operator==(
-        const set_iterator<T>& a, const set_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const set_iterator<T>& a, const set_iterator<U>& b
-    )
-    { return !a.equals(b); }
-
-    /* Operator: == */
-    template<typename T, typename U>
-    inline bool operator==(
-        const set_const_iterator<T>& a, const set_const_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const set_const_iterator<T>& a, const set_const_iterator<U>& b
-    )
-    { return !a.equals(b); }
-
-    /* Operator: == */
-    template<typename T, typename U>
-    inline bool operator==(
-        const set_iterator<T>& a, const set_const_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const set_iterator<T>& a, const set_const_iterator<U>& b
-    )
-    { return !a.equals(b); }
-
-    /* Operator: == */
-    template<typename T, typename U>
-    inline bool operator==(
-        const set_const_iterator<T>& a, const set_iterator<U>& b
-    )
-    { return a.equals(b); }
-
-    /* Operator: != */
-    template<typename T, typename U>
-    inline bool operator!=(
-        const set_const_iterator<T>& a, const set_iterator<U>& b
-    )
-    { return !a.equals(b); }
 } /* end namespace types */
 
 #endif

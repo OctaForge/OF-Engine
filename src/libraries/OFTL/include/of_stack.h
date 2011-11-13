@@ -23,66 +23,62 @@
  */
 namespace types
 {
-    /* Class: stack
-     * A "stack" class. Internally it's a singly linked list
-     * of nodes. Every node has data of type specified by the
-     * template argument.
+    /* Struct: Stack
+     * A "stack" class. Internally it's a singly linked list of nodes.
+     * Every node has data of type specified by the template argument.
      *
-     * As any stack, it has a top node, pushing onto the stack
-     * results in new top node with data of the last pushed item,
-     * popping results in removal of current top node (that means,
-     * previous node will be top again).
+     * As any stack, it has a top node, pushing onto the stack results
+     * in a new top node with data of the last pushed item, popping results
+     * in removal of the current top node (that means, previous node will be
+     * top again).
      * 
      * It also stores <length>.
      */
-    template<typename T> struct stack
+    template<typename T> struct Stack
     {
-        /* Constructor: stack
-         * Initializes the stack.
+        /* Constructor: Stack
+         * Initializes the Stack.
          */
-        stack(): top_node(NULL), c_length(0) {}
+        Stack(): p_top_node(NULL), p_length(0) {}
 
-        /* Destructor: stack
-         * Calls <pop_back> until the length is 0. That makes
-         * sure all the nodes are deleted (and thus memory
-         * is not leaked).
+        /* Destructor: Stack
+         * Calls <pop_back> until the length is 0. That makes sure all the
+         * nodes are deleted (and thus memory is not leaked).
          */
-        ~stack()
+        ~Stack()
         {
-            while (c_length > 0) pop_back();
+            while (p_length > 0) pop_back();
         }
 
         /* Function: length
-         * Returns the current stack length.
+         * Returns the current Stack length.
          */
-        size_t length() const { return c_length; }
+        size_t length() const { return p_length; }
 
         /* Function: is_empty
-         * Returns true if the stack contains no nodes,
-         * and false otherwise.
+         * Returns true if the Stack contains no nodes, and false otherwise.
          */
-        bool is_empty() const { return (c_length == 0); }
+        bool is_empty() const { return (p_length == 0); }
 
         /* Function: top
          * Returns the data of the top node.
          */
-        T& top() { return top_node->data; }
+        T& top() { return p_top_node->data; }
 
         /* Function: top
          * Returns the data of the top node, const version.
          */
-        const T& top() const { return top_node->data; }
+        const T& top() const { return p_top_node->data; }
 
         /* Function: push_back
-         * Creates a new top node with the data specified
-         * by the argument.
+         * Creates a new top node with the data specified by the argument.
          */
         void push_back(const T& data)
         {
-            node *tmp = new node(data, top_node);
-            top_node  = tmp;
+            p_node *tmp = new p_node(data, p_top_node);
+            p_top_node  = tmp;
 
-            c_length++;
+            p_length++;
         }
 
         /* Function: pop_back
@@ -90,34 +86,34 @@ namespace types
          */
         void pop_back()
         {
-            node *popped = top_node;
-            top_node     = popped->below;
+            p_node *popped = p_top_node;
+            p_top_node     = popped->below;
 
             delete popped;
-            c_length--;
+            p_length--;
         }
 
         /* Function: clear
-         * Calls <pop_back> until the stack is empty.
+         * Calls <pop_back> until the Stack is empty.
          */
         void clear()
         {
-            while (c_length > 0) pop_back();
+            while (p_length > 0) pop_back();
         }
 
     protected:
 
-        struct node
+        struct p_node
         {
-            node(const T& data, node *below = NULL):
+            p_node(const T& data, p_node *below = NULL):
                 below(below), data(data) {}
 
-            node *below;
-            T data;
+            p_node *below;
+            T       data;
         };
 
-        node  *top_node;
-        size_t c_length;
+        p_node *p_top_node;
+        size_t  p_length;
     };
 } /* end namespace types */
 

@@ -4,10 +4,9 @@
  *  This is version 1 of the file.
  *
  * About: Purpose
- *  Overloads for the new and delete operators.
- *  Included by of_utils.h. Defining OF_NO_NEW
- *  before including this makes it not define
- *  the new / delete operators.
+ *  Overloads for the new and delete operators. Included by of_utils.h.
+ *  Defining OF_NO_NEW before including this makes it not define the
+ *  new / delete operators.
  *
  * About: Author
  *  Daniel "q66" Kolesa <quaker66@gmail.com>
@@ -60,29 +59,4 @@ inline void operator delete  (void *, void *) {}
 inline void operator delete[](void *, void *) {}
 
 #endif
-
-/* Define: DELETEA
- * Behaves like <delete[]>, but NULLs the pointer after
- * deleting.
- *
- * See also <DELETEP>.
- */
-#define DELETEA(p) \
-{ \
-    delete[] p; \
-    p = NULL; \
-}
-
-/* Define: DELETEP
- * Behaves like <delete>, but NULLs the pointer after
- * deleting.
- *
- * See also <DELETEA>.
- */
-#define DELETEP(p) \
-{ \
-    delete p; \
-    p = NULL; \
-}
-
 #endif

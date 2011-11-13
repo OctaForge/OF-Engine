@@ -29,29 +29,27 @@
  */
 namespace types
 {
-    /* Variable: string_base
-     * A base struct for string class. The string then
-     * specializes for T == char.
+    /* Variable: String_Base
+     * A base struct for string class. The string then specializes
+     * for T == char.
      */
-    template<typename T> struct string_base {};
+    template<typename T> struct String_Base {};
 
-    /* Class: string_base
-     * A char specialization for string_base class.
-     * It's later typedef'd, so it's just "string".
+    /* Struct: String_Base
+     * A char specialization for String_Base class. It's later typedef'd,
+     * so it's just "string".
      *
-     * This provides a RAII string container that
-     * internally uses char*, but automatically manages
-     * the memory and provides some other neat features
+     * This provides a RAII string container that internally uses char*, but
+     * automatically manages the memory and provides some other neat features
      * as well, like easy formatting.
      *
      * Use this when working with char* is too complicated.
      */
-    template<> struct string_base<char>
+    template<> struct String_Base<char>
     {
         /* Constant: npos
-         * This is a constant of the largest value size_t
-         * type can have. It's used mostly as "not found"
-         * return value.
+         * This is a constant of the largest value size_t type can have.
+         * It's used mostly as "not found" return value.
          */
         static const size_t npos = ~0;
 
@@ -66,134 +64,141 @@ namespace types
         typedef const char* cit;
 
         /* Typedef: rit
-         * Reverse iterator typedef, a <reverse> < <it> >.
+         * Reverse iterator typedef, a <Reverse> < <it> >.
          */
-        typedef iterators::reverse<it> rit;
+        typedef iterators::Reverse_Iterator<it> rit;
 
         /* Typedef: vrit
-         * Const reverse iterator typedef, a <reverse> < <cit> >.
+         * Const reverse iterator typedef, a <Reverse> < <cit> >.
          */
-        typedef iterators::reverse<cit> crit;
+        typedef iterators::Reverse_Iterator<cit> crit;
 
-        /* Constructor: string_base
-         * A constructor that creates the string from const char
-         * pointer. It simply calls the assignment overload.
+        /* Constructor: String_Base
+         * A constructor that creates the string from const char pointer.
+         * It simply calls the assignment overload.
          */
-        string_base(const char *str = ""):
-            buf(NULL), s_length(0), s_capacity(0)
+        String_Base(const char *str = ""):
+            p_buf(NULL), p_length(0), p_capacity(0)
         {
             *this = str;
         }
 
-        /* Constructor: string_base
-         * A constructor that creates the string from another
-         * string. It simply calls the assignment overload.
+        /* Constructor: String_Base
+         * A constructor that creates the string from another string.
+         * It simply calls the assignment overload.
          */
-        string_base(const string_base& str):
-            buf(NULL), s_length(0), s_capacity(0)
+        String_Base(const String_Base& str):
+            p_buf(NULL), p_length(0), p_capacity(0)
         {
             *this = str;
         }
 
-        /* Destructor: string_base
+        /* Destructor: String_Base
          * Deletes the buffer.
          */
-        ~string_base()
+        ~String_Base()
         {
-            delete[] buf;
+            delete[] p_buf;
         }
 
         /* Operator: =
-         * Assignment operator overriden to assign current
-         * contents from a given string. Self-assignment
-         * is ignored.
+         * Assignment operator overriden to assign current contents from a
+         * given string. Self-assignment is ignored.
          *
-         * If the current capacity is big enough, new buffer
-         * won't be allocated and instead, existing one will
-         * be used.
+         * If the current capacity is big enough, new buffer won't be
+         * allocated and instead, existing one will be used.
          */
-        string_base& operator=(const string_base& str)
+        String_Base& operator=(const String_Base& str)
         {
             if (this != &str)
             {
-                if (str.length() <= s_capacity && s_capacity > 0)
+                if (str.length() <= p_capacity && p_capacity > 0)
                 {
-                    s_length = str.length();
-                    memcpy(buf, str.buf, s_length + 1);
+                    p_length = str.length();
+                    memcpy(p_buf, str.p_buf, p_length + 1);
                     return *this;
                 }
 
-                delete[] buf;
-                buf = NULL;
+                delete[] p_buf;
+                p_buf = NULL;
                 
-                s_length   = str.length  ();
-                s_capacity = str.capacity();
+                p_length   = str.length  ();
+                p_capacity = str.capacity();
 
-                buf = new char[s_capacity + 1];
-                memcpy(buf, str.buf, s_length + 1);
+                p_buf = new char[p_capacity + 1];
+                memcpy(p_buf, str.p_buf, p_length + 1);
             }
 
             return *this;
         }
 
         /* Operator: =
-         * Assignment operator overriden to assign current
-         * contents from a given const char pointer.
-         * Self-assignment is ignored.
+         * Assignment operator overriden to assign current contents from a
+         * given const char pointer.
          *
-         * If the current capacity is big enough, new buffer
-         * won't be allocated and instead, existing one will
-         * be used.
+         * If the current capacity is big enough, new buffer won't be allocated
+         * and instead, existing one will be used.
          */
-        string_base& operator=(const char *str)
+        String_Base& operator=(const char *str)
         {
-            if (strlen(str) <= s_capacity && s_capacity > 0)
+            if (!str)
             {
-                    s_length = strlen(str);
-                    memcpy(buf, str, s_length + 1);
-                    return *this;
-            }
+                if (p_capacity > 0)
+                {
+                    delete[] p_buf;
+                    p_buf = NULL;
 
-            delete[] buf;
-            buf = NULL;
-            
-            s_length   = strlen(str);
-            s_capacity = s_length;
-
-            buf = new char  [s_capacity + 1];
-            memcpy(buf, str, s_length   + 1);
-
-            return *this;
-        }
-
-        /* Operator: =
-         * Assignment operator overriden to assign current
-         * contents from a given character. Self-assignment
-         * is ignored.
-         *
-         * If the current capacity is big enough, new buffer
-         * won't be allocated and instead, existing one will
-         * be used.
-         */
-        string_base& operator=(char c)
-        {
-            if (s_capacity >= 1)
-            {
-                buf[0] = c;
-                buf[1] = '\0';
-                s_length = 1;
+                    p_length   = 0;
+                    p_capacity = 0;
+                }
                 return *this;
             }
 
-            delete[] buf;
-            buf = NULL;
+            if (strlen(str) <= p_capacity && p_capacity > 0)
+            {
+                    p_length = strlen(str);
+                    memcpy(p_buf, str, p_length + 1);
+                    return *this;
+            }
 
-            buf = new char[2];
-            buf[0] = c;
-            buf[1] = '\0';
+            delete[] p_buf;
+            p_buf = NULL;
+            
+            p_length   = strlen(str);
+            p_capacity = p_length;
 
-            s_length   = 1;
-            s_capacity = 1;
+            p_buf = new char  [p_capacity + 1];
+            memcpy(p_buf, str, p_length   + 1);
+
+            return *this;
+        }
+
+        /* Operator: =
+         * Assignment operator overriden to assign current contents from a
+         * given character. Self-assignment is ignored.
+         *
+         * If the current capacity is big enough, new buffer won't be allocated
+         * and instead, existing one will be used.
+         */
+        String_Base& operator=(char c)
+        {
+            if (p_capacity >= 1)
+            {
+                p_buf[0] = c;
+                p_buf[1] = '\0';
+                p_length = 1;
+                return *this;
+            }
+
+            delete[] p_buf;
+            p_buf = NULL;
+
+            p_buf = new char[2];
+            p_buf[0] = c;
+            p_buf[1] = '\0';
+
+            p_length   = 1;
+            p_capacity = 1;
 
             return *this;
         }
@@ -201,12 +206,12 @@ namespace types
         /* Function: begin
          * Returns a pointer to the buffer.
          */
-        it begin() { return buf; }
+        it begin() { return p_buf; }
 
         /* Function: begin
          * Returns a const pointer to the buffer.
          */
-        cit begin() const { return buf; }
+        cit begin() const { return p_buf; }
 
         /* Function: rbegin
          * Returns a <reverse> iterator to <end>.
@@ -221,12 +226,12 @@ namespace types
         /* Function: end
          * Returns a pointer to the string end ('\0').
          */
-        it end() { return buf + s_length; }
+        it end() { return p_buf + p_length; }
 
         /* Function: end
          * Returns a const pointer to the string end ('\0').
          */
-        cit end() const { return buf + s_length; }
+        cit end() const { return p_buf + p_length; }
 
         /* Function: rend
          * Returns a <reverse> iterator to <begin>.
@@ -241,94 +246,92 @@ namespace types
         /* Function: get_buf
          * Returns the internal buffer as const char pointer.
          */
-        const char *get_buf() const { return buf; }
+        const char *get_buf() const { return p_buf; }
 
         /* Function: resize
-         * Resizes the string to be of the given capacity. If the new
-         * capacity is smaller than the current length, the string will
-         * be truncated.
+         * Resizes the string to be of the given capacity. If the new capacity
+         * is smaller than the current length, the string will be truncated.
          */
         void resize(size_t new_len)
         {
-            if (new_len == s_capacity) return;
+            if (new_len == p_capacity) return;
 
             char *new_buf = new char[new_len + 1];
-            if   (new_len > s_capacity || s_length <= new_len)
+            if   (new_len > p_capacity || p_length <= new_len)
             {
-                memcpy(new_buf, buf, s_length + 1);
-                s_capacity = new_len;
+                memcpy(new_buf, p_buf, p_length + 1);
+                p_capacity = new_len;
             }
             else
             {
-                memcpy(new_buf, buf, new_len);
+                memcpy(new_buf, p_buf, new_len);
                 new_buf[new_len] = '\0';
-                s_length   = new_len;
-                s_capacity = s_length;
+                p_length   = new_len;
+                p_capacity = p_length;
             }
-            delete[]  buf;
-            buf = new_buf;
+            delete[]  p_buf;
+            p_buf = new_buf;
         }
 
         /* Function: clear
-         * Deletes the string buffer and sets the
-         * length and the capacity to 0.
+         * Deletes the string buffer and sets the length and the capacity to 0.
          */
         void clear()
         {
-            delete[] buf;
-            buf        = NULL;
-            s_length   = 0;
-            s_capacity = 0;
+            delete[] p_buf;
+            p_buf      = NULL;
+            p_length   = 0;
+            p_capacity = 0;
         }
 
         /* Function: length
          * Returns the string length.
          */
-        size_t length() const { return s_length; }
+        size_t length() const { return p_length; }
 
         /* Function: capacity
          * Returns the string capacity.
          */
-        size_t capacity() const { return s_capacity; }
+        size_t capacity() const { return p_capacity; }
 
         /* Function: is_empty
          * Returns true if the string is empty, false otherwise.
          */
-        bool is_empty() const { return (s_length == 0); }
+        bool is_empty() const { return (p_length == 0); }
 
         /* Operator: []
-         * Returns a reference to the character on the given index.
-         * Used for assignment.
+         * Returns a reference to the character on the given index. Used for
+         * assignment.
          */
-        char& operator[](size_t idx) { return buf[idx]; }
+        char& operator[](size_t idx) { return p_buf[idx]; }
 
         /* Operator: []
-         * Returns a const reference to the character on the given
-         * index. Used for reading.
+         * Returns a const reference to the character on the given index. Used
+         * for reading.
          */
-        const char& operator[](size_t idx) const { return buf[idx]; }
+        const char& operator[](size_t idx) const { return p_buf[idx]; }
 
         /* Function: at
-         * Returns a reference to the character on the given index.
-         * Used for assignment.
+         * Returns a reference to the character on the given index. Used for
+         * assignment.
          */
-        char& at(size_t idx) { return buf[idx]; }
+        char& at(size_t idx) { return p_buf[idx]; }
 
         /* Function: at
-         * Returns a const reference to the character on the given
-         * index. Used for reading.
+         * Returns a const reference to the character on the given index. Used
+         * for reading.
          */
-        const char& at(size_t idx) const { return buf[idx]; }
+        const char& at(size_t idx) const { return p_buf[idx]; }
 
         /* Function: append
          * Appends a given string to the current one.
          */
-        string_base& append(const string_base& str)
+        String_Base& append(const String_Base& str)
         {
             if (this != &str)
             {
                 if (str.length() == 0) return *this;
-                append(str.buf, str.length());
+                p_append(str.p_buf, str.length());
             }
 
             return *this;
@@ -337,12 +340,12 @@ namespace types
         /* Function: append
          * Appends a given string (const char*) to the current one.
          */
-        string_base& append(const char *str)
+        String_Base& append(const char *str)
         {
             if (!str) return *this;
 
             size_t len   = strlen(str);
-            if (len != 0) append(str, len);
+            if (len != 0) p_append(str, len);
 
             return *this;
         }
@@ -350,10 +353,10 @@ namespace types
         /* Function: append
          * Appends a given character to the string.
          */
-        string_base& append(char c)
+        String_Base& append(char c)
         {
             char tmp[2] = { c, '\0' };
-            append(tmp, 1);
+            p_append(tmp, 1);
 
             return *this;
         }
@@ -361,96 +364,102 @@ namespace types
         /* Operator: +=
          * Appends a given string to the current one.
          */
-        string_base& operator+=(const string_base& str) { return append(str); }
+        String_Base& operator+=(const String_Base& str) { return append(str); }
 
         /* Operator: +=
          * Appends a given string (const char*) to the current one.
          */
-        string_base& operator+=(const char *str) { return append(str); }
+        String_Base& operator+=(const char *str) { return append(str); }
 
         /* Operator: +=
          * Appends a given character to the string.
          */
-        string_base& operator+=(char c) { return append(c); }
+        String_Base& operator+=(char c) { return append(c); }
 
         /* Function: substr
-         * Returns a substring of the string based on the given
-         * arguments. It will be a new instance with its own
-         * buffer.
+         * Returns a substring of the string based on the given arguments. It
+         * will be a new instance with its own buffer.
          *
-         * First argument specifies the index to start the
-         * substring on, second argument specifies the length
-         * of the substring.
+         * First argument specifies the index to start the substring on,
+         * second argument specifies the length of the substring.
          */
-        string_base substr(size_t idx, size_t len) const
+        String_Base substr(size_t idx, size_t len) const
         {
-            if (idx >= s_length || (idx + len) > s_length)
-                return string_base();
+            if (idx >= p_length || (idx + len) > p_length)
+                return String_Base();
 
-            char  *sub_buf = new char [len + 1];
-            memcpy(sub_buf, &buf[idx], len);
+            char  *sub_buf = new char   [len + 1];
+            memcpy(sub_buf, &p_buf[idx], len);
             sub_buf[len] = '\0';
 
-            string_base ret(sub_buf);
+            String_Base ret(sub_buf);
             delete[]   sub_buf;
 
             return ret;
         }
 
         /* Function: find
-         * Given a string, this returns the position of the first
-         * occurence of the given string in the string. You can
-         * also provide an optional second argument specifying
-         * the index to start searching on.
+         * Given a string, this returns the position of the first occurence of
+         * the given string in the string. You can also provide optional
+         * arguments specifying where to start and end searching.
          */
-        size_t find(const string_base& str, size_t pos = 0)
+        size_t find(const String_Base& str,
+            size_t beg = 0,
+            size_t end = npos
+        ) const
         {
-            return find(str.buf, str.length(), pos);
+            return find(str.p_buf, str.length(), beg, end);
         }
 
         /* Function: find
          * Given a const char*, this returns the position of the first
-         * occurence of the given string in the string. You can
-         * also provide an optional second argument specifying
-         * the index to start searching on.
+         * occurence of the given string in the string. You can also provide
+         * optional arguments specifying where to start and end searching.
          */
-        size_t find(const char *str, size_t pos = 0)
+        size_t find(const char *str,
+            size_t beg = 0,
+            size_t end = npos
+        ) const
         {
-            return find(str, strlen(str), pos);
+            return find(str, strlen(str), beg, end);
         }
 
         /* Function: find
-         * This is used internally by the two find functions above.
-         * All arguments are mandatory here and you need to provide
-         * the length of the substring to search for.
+         * This is used internally by the two find functions above. All the
+         * arguments are mandatory here and you need to provide the length of
+         * the substring to search for.
          */
-        size_t find(const char *str, size_t len, size_t pos)
+        size_t find(const char *str,
+            size_t len,
+            size_t beg,
+            size_t end
+        ) const
         {
             /* performance improvement - check if
              * we CAN find the substring
              */
-            if (!strstr(buf, str)) return npos;
+            if (!strstr(p_buf, str)) return npos;
 
             /* begin searching from position */
-            char  *tmp = &buf[pos];
-            for (; tmp[0]; pos++)
+            char  *tmp = &p_buf[beg];
+            for (; tmp[0]   && (beg <= end); ++beg)
             {
                 /* this loop will check if the string we search
                  * for is equal with the beginning of the offset
                  * tmp pointer, if not, breaks out and moves on
                  */
-                for (size_t i = 0; i < len; i++)
+                for (size_t i = 0; i < len; ++i)
                 {
                     if (str[i] != tmp[i]) break;
                     /* if everything is fine, return the position */
                     if (i == (len - 1) && str[i] == tmp[i])
-                        return pos;
+                        return beg;
                 }
 
                 /* if it was not equal, let's offset by
                  * one more char and loop it again
                  */
-                tmp = &buf[pos + 1];
+                tmp = &p_buf[beg + 1];
             }
 
             /* on unsuccessful find, return npos constant */
@@ -458,83 +467,177 @@ namespace types
         }
 
         /* Function: rfind
-         * See <find>. The difference is that it returns the
-         * position of the last occurence instead of first.
+         * See <find>. The difference is that it returns the position of the
+         * last occurence instead of first.
          *
-         * The position argument has the same meaning as
-         * previously.
+         * The position argument has the same meaning as previously.
          */
-        size_t rfind(const string_base& str, size_t pos = 0)
+        size_t rfind(const String_Base& str,
+            size_t beg = 0,
+            size_t end = npos
+        ) const
         {
-            return rfind(str.buf, str.length(), pos);
+            return rfind(str.p_buf, str.length(), beg, end);
         }
 
         /* Function: rfind
-         * See <find>. The difference is that it returns the
-         * position of the last occurence instead of first.
+         * See <find>. The difference is that it returns the position of the
+         * last occurence instead of first.
          *
-         * The position argument has the same meaning as
-         * previously.
+         * The position argument has the same meaning as previously.
          */
-        size_t rfind(const char *str, size_t pos = 0)
+        size_t rfind(const char *str,
+            size_t beg = 0,
+            size_t end = npos
+        ) const
         {
-            return rfind(str, strlen(str), pos);
+            return rfind(str, strlen(str), beg, end);
         }
 
         /* Function: find
-         * This is used internally by the two rfind functions
-         * above. It uses <find> to locate the last occurence.
+         * This is used internally by the two rfind functions above. It uses
+         * <find> to locate the last occurence.
          */
-        size_t rfind(const char *str, size_t len, size_t pos)
+        size_t rfind(const char *str,
+            size_t len,
+            size_t beg,
+            size_t end
+        ) const
         {
-            size_t res = 0, ret = npos;
+            size_t res = beg - 1, ret = npos;
 
             for (;;)
             {
-                res = find(str, len, res);
+                res = find(str, len, res + 1, end);
                 if (res == npos) break;
                 ret = res;
             }
             return ret;
         }
 
+        /* Function: erase
+         * Erases a part of the string, moving the rest of it back
+         * by the erased part. The erased part is here specified
+         * by the position of the first character to erase and
+         * the length of the erased part.
+         */
+        String_Base& erase(size_t pos = 0, size_t len = npos)
+        {
+            if (pos == 0 && len == npos)
+            {
+                p_length = 0;
+                p_buf[0] = '\0';
+                return *this;
+            }
+
+            for (size_t i = (pos + len); i < p_length; ++i)
+                p_buf[i - len] = p_buf[i];
+
+            p_length -= len;
+            p_buf[p_length] = '\0';
+
+            return *this;
+        }
+
+        /* Function: erase
+         * This erases a single character specified by an iterator.
+         */
+        it erase(it position)
+        {
+            if (position < p_buf || position >= (p_buf + p_length))
+                return end();
+
+            size_t pos = (position - p_buf);
+            erase(pos, 1);
+
+            it p = (p_buf + pos);
+
+            if (p >= (p_buf + p_length))
+                return end();
+
+            return p;
+        }
+
+        /* Function: erase
+         * This erases a part of the string specified by two iterators,
+         * the first one specifying the first character to erase and
+         * the second one specifying the last character to erase.
+         */
+        it erase(it first, it last)
+        {
+            if (first <   p_buf) first = p_buf;
+            if (first >= (p_buf + p_length) || last < p_buf)
+                return end();
+            if (last >= (p_buf + p_length))
+                last  = (p_buf + p_length - 1);
+
+            size_t pos = (first - p_buf);
+            size_t len = (last  - p_buf);
+
+            erase(pos, len - pos + 1);
+
+            it p = (p_buf + pos);
+
+            if (p >= (p_buf + p_length))
+                return end();
+
+            return p;
+        }
+
         /* Function: format
-         * Formats the string using a given format string (as
-         * const char*) and a va_list of arguments.
+         * Formats the string using a given format string (as const char*)
+         * and a va_list of arguments.
          *
          * The format string is the same as with printf family.
          */
-        string_base& format(const char *fmt, va_list ap)
+        String_Base& format(const char *fmt, va_list ap)
         {
             char *new_buf = NULL;
 
-            s_length   = vasprintf(&new_buf, fmt, ap);
-            s_capacity = s_length;
+            p_length   = vasprintf(&new_buf, fmt, ap);
+            p_capacity = p_length;
 
-            delete[] buf;
-            buf = new_buf;
+            delete[] p_buf;
+            p_buf = new_buf;
 
             return *this;
         }
 
         /* Function: format
-         * Formats the string using a given format string (as
-         * const string&) and a va_list of arguments.
+         * Formats the string using a given format string (as const string&)
+         * and a va_list of arguments.
          *
          * The format string is the same as with printf family.
          */
-        string_base& format(const string_base& fmt, va_list ap)
+        String_Base& format(const String_Base& fmt, va_list ap)
         {
-            return format(fmt.buf, ap);
+            return format(fmt.p_buf, ap);
         }
 
         /* Function: format
-         * Formats the string using a given format string (as
-         * const char*) and a list of arguments.
+         * Formats the string using a given format string (as const char*)
+         * and a list of arguments.
          *
          * The format string is the same as with printf family.
          */
-        string_base& format(const char *fmt, ...)
+        String_Base& format(const char *fmt, ...)
+        {
+            va_list ap;
+
+            va_start(ap, fmt);
+            format  (fmt, ap);
+            va_end  (ap);
+
+            return *this;
+        }
+
+        /* Function: format
+         * Formats the string using a given format string (as const string&)
+         * and a list of arguments.
+         *
+         * The format string is the same as with printf family.
+         */
+        String_Base& format(const String_Base& fmt, ...)
         {
             va_list ap;
 
@@ -545,115 +648,84 @@ namespace types
             return *this;
         }
 
-        /* Function: format
-         * Formats the string using a given format string (as
-         * const string&) and a list of arguments.
-         *
-         * The format string is the same as with printf family.
-         */
-        string_base& format(const string_base& fmt, ...)
-        {
-            va_list ap;
+        /* Operator: == */
+        friend bool operator==(const String_Base& a, const String_Base& b)
+        { return (strcmp(a.p_buf, b.p_buf) == 0); }
 
-            va_start(ap, fmt);
-            format  (fmt, ap);
-            va_end  (ap);
+        /* Operator: != */
+        friend bool operator!=(const String_Base& a, const String_Base& b)
+        { return (strcmp(a.p_buf, b.p_buf) != 0); }
 
-            return *this;
-        }
+        /* Operator: < */
+        friend bool operator<(const String_Base& a, const String_Base& b)
+        { return (strcmp(a.p_buf, b.p_buf) < 0); }
+
+        /* Operator: > */
+        friend bool operator>(const String_Base& a, const String_Base& b)
+        { return (strcmp(a.p_buf, b.p_buf) > 0); }
+
+        /* Operator: <= */
+        friend bool operator<=(const String_Base& a, const String_Base& b)
+        { return (strcmp(a.p_buf, b.p_buf) <= 0); }
+
+        /* Operator: >= */
+        friend bool operator>=(const String_Base& a, const String_Base& b)
+        { return (strcmp(a.p_buf, b.p_buf) >= 0); }
 
     private:
 
-        void append(const char *str, size_t len)
+        void p_append(const char *str, size_t len)
         {
             /* in that case, we can just append without copying */
-            size_t left = s_capacity - s_length;
+            size_t left = p_capacity - p_length;
             if    (left > 0 && left >= len)
             {
-                buf += s_length;
-                for (; *str;  str++)
-                    *buf++ = *str;
-                *buf++ = '\0';
+                p_buf += p_length;
+                for (; *str;    str++)
+                    *p_buf++ = *str;
+                *p_buf++ = '\0';
 
-                s_length += len;
-                buf -= (s_length + 1);
+                p_length += len;
+                p_buf -= (p_length + 1);
                 
                 return;
             }
 
             /* save old buf */
-            char  *old_buf = buf;
+            char  *old_buf = p_buf;
 
             /* this will be the new length */
-            size_t new_len = s_length + len;
+            size_t new_len = p_length + len;
 
-            buf = new char[new_len + 1];
+            p_buf = new char[new_len + 1];
 
             /* copy both old buf contents
              * and new string into new buffer,
              * copy new string with offset.
              */
-            memcpy(buf, old_buf, s_length);
-            memcpy(buf + s_length, str, len);
+            memcpy(p_buf,  old_buf, p_length);
+            memcpy(p_buf + p_length, str, len);
 
             /* important: null termination */
-            buf[new_len] = '\0';
+            p_buf[new_len] = '\0';
 
             delete[] old_buf;
 
             /* length now equals capacity */
-            s_length   = new_len;
-            s_capacity = s_length;
+            p_length   = new_len;
+            p_capacity = p_length;
         }
 
-        char *buf;
+        char *p_buf;
 
-        size_t s_length;
-        size_t s_capacity;
+        size_t p_length;
+        size_t p_capacity;
     };
 
-    /* Typedef: string
-     * Defined as string_base<char>.
+    /* Typedef: String
+     * Defined as String_Base<char>.
      */
-    typedef string_base<char> string;
-
-    /* Operator: ==
-     * See strcmp. Global, not part of the class.
-     */
-    inline bool operator==(const string& a, const string& b)
-    {
-        return (strcmp(a.get_buf(), b.get_buf()) == 0);
-    }
-
-    /* Operator: < */
-    inline bool operator<(const string& a, const string& b)
-    {
-        return (strcmp(a.get_buf(), b.get_buf()) < 0);
-    }
-
-    /* Operator: > */
-    inline bool operator>(const string& a, const string& b)
-    {
-        return (strcmp(a.get_buf(), b.get_buf()) > 0);
-    }
-
-    /* Operator: != */
-    inline bool operator!=(const string& a, const string& b)
-    {
-        return !(a == b);
-    }
-
-    /* Operator: <= */
-    inline bool operator<=(const string& a, const string& b)
-    {
-        return (b == a || b < a);
-    }
-
-    /* Operator: >= */
-    inline bool operator>=(const string& a, const string& b)
-    {
-        return (b == a || b > a);
-    }
+    typedef String_Base<char> String;
 } /* end namespace types */
 
 #endif
