@@ -1,0 +1,3 @@
+[submodule "src/libraries/OFTL"]
+	path = src/libraries/OFTL
+	url = git://github.com/quaker66/OFTL.git
