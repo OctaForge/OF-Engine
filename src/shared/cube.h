@@ -24,7 +24,20 @@
 #include <limits.h>
 #include <assert.h>
 #include <time.h>
-#include "of_all.h"
+
+#include "OFTL/new.h"
+#include "OFTL/utils.h"
+#include "OFTL/traits.h"
+#include "OFTL/algorithm.h"
+#include "OFTL/functional.h"
+#include "OFTL/string.h"
+#include "OFTL/hashmap.h"
+#include "OFTL/map.h"
+#include "OFTL/vector.h"
+#include "OFTL/shared_ptr.h"
+#include "OFTL/random.h"
+#include "OFTL/filesystem.h"
+#include "OFTL/lua.h"
 
 using algorithm::min;
 using algorithm::max;

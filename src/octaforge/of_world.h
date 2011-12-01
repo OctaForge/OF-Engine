@@ -31,7 +31,7 @@
 #define OF_WORLD_H
 
 /* ofstdlib */
-#include "of_string.h"
+#include "OFTL/string.h"
 
 namespace world
 {
