@@ -363,8 +363,8 @@ struct decalrenderer
 
     void gendecaltris(cube &cu, int orient, vec *v, bool solid)
     {
-        int f[4], faces = 0;
-        loopk(4) f[k] = solid ? fv[orient][k] : faceverts(cu, orient, k);
+        int f[4], convex = solid ? 0 : faceconvexity(cu, orient), order = convex < 0 ? 1 : 0, faces = 0;
+        loopk(4) f[k] = fv[orient][(k+order)&3];
         vec p(v[f[0]]), surfaces[2];
         if(solid)
         {
@@ -384,7 +384,7 @@ struct decalrenderer
             if(mag2)
             {
                 surfaces[1].div(sqrtf(mag2));
-                faces |= (!faces || faceconvexity(cu, orient) ? 2 : 4);
+                faces |= (!faces || convex ? 2 : 4);
             }
         }
         p.sub(decalcenter);

@@ -6,6 +6,7 @@ extern int curtime;                     // current frame time
 extern int lastmillis;                  // last time
 extern int skymillis;                    // INTENSITY: SkyManager: for skies, this needs to be reset for proper sync'ing.
 extern int totalmillis;                 // total elapsed time
+extern uint totalsecs;
 
 enum
 {

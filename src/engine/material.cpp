@@ -123,10 +123,10 @@ void drawmaterial(int orient, int x, int y, int z, int csize, int rsize, float o
     int dim = dimension(orient), c = C[dim], r = R[dim];
     loopi(4)
     {
-        int coord = fv[orient][i];
+        const ivec &cc = facecoords[orient][i];
         vec v(x, y, z);
-        v[c] += cubecoords[coord][c]/8*csize;
-        v[r] += cubecoords[coord][r]/8*rsize;
+        v[c] += cc[c]/8*csize;
+        v[r] += cc[r]/8*rsize;
         v[dim] += dimcoord(orient) ? -offset : offset;
         varray::attribv<3>(v.v);
     }
@@ -554,10 +554,10 @@ void drawglass(int orient, int x, int y, int z, int csize, int rsize, float offs
     int dim = dimension(orient), c = C[dim], r = R[dim];
     loopi(4)
     {
-        int coord = fv[orient][i];
+        const ivec &cc = facecoords[orient][i];
         vec v(x, y, z);
-        v[c] += cubecoords[coord][c]/8*csize;
-        v[r] += cubecoords[coord][r]/8*rsize;
+        v[c] += cc[c]/8*csize;
+        v[r] += cc[r]/8*rsize;
         v[dim] += dimcoord(orient) ? -offset : offset;
 
         vec reflect(v);

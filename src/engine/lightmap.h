@@ -115,9 +115,9 @@ struct lerpbounds
     int winding;
 };
 
-extern void calcnormals();
+extern void calcnormals(bool lerptjoints = false);
 extern void clearnormals();
-extern void findnormal(const vec &key, const vec &surface, vec &v);
+extern void findnormal(const vec &key, const vec &surface, vec &v, bool checktnormals = true);
 extern void calclerpverts(const vec2 *c, const vec *n, lerpvert *lv, int &numv);
 extern void initlerpbounds(const lerpvert *lv, int numv, lerpbounds &start, lerpbounds &end);
 extern void lerpnormal(float v, const lerpvert *lv, int numv, lerpbounds &start, lerpbounds &end, vec &normal, vec &nstep);

@@ -262,7 +262,6 @@ function glareworldshader(...)
             %(arg4)s
             %(arg5)s
             uniform vec4 colorparams;
-            uniform sampler2D diffusemap, lightmap;
             void main(void)
             {
                 %(arg3)s
@@ -1188,7 +1187,7 @@ watershader(
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
         invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel) + spec*light;
+        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel);
         gl_FragColor.a = invfresnel*depth.y;
     ]]
 )
@@ -2432,9 +2431,6 @@ function skelanimdefs() return string.template([[
         if useubo ~= 0 then return [=[
             #ifdef GL_ARB_uniform_buffer_object
                 #extension GL_ARB_uniform_buffer_object : enable
-            #elif defined(GL_ARB_compatibility)
-                #version 140
-                #extension GL_ARB_compatibility : enable
             #endif
         ]=] end
     $0>
@@ -2450,7 +2446,7 @@ function skelanimdefs() return string.template([[
     #pragma CUBE2_uniform animdata AnimData 0 16
     <$0
         if useubo ~= 0 then return [=[
-            #if defined(GL_ARB_uniform_buffer_object) || __VERSION__ >= 140
+            #ifdef GL_ARB_uniform_buffer_object
                 layout(std140) uniform AnimData
                 {
                     vec4 animdata[<$1=(math.min(maxvsuniforms - reservevpparams, 256) - 10)$1>];
@@ -2477,11 +2473,6 @@ function skelanimfragdefs() return ati_ubo_bug ~= 0 and
     (useubo ~= 0 and [[
         #ifdef GL_ARB_uniform_buffer_object
             #extension GL_ARB_uniform_buffer_object : enable
-        #elif defined(GL_ARB_compatibility)
-            #version 140
-            #extension GL_ARB_compatibility : enable
-        #endif
-        #if defined(GL_ARB_uniform_buffer_object) || __VERSION__ >= 140
             layout(std140) uniform AnimData
             {
                 vec4 animdata[%(1)i];
@@ -2493,13 +2484,7 @@ function skelanimfragdefs() return ati_ubo_bug ~= 0 and
             bindable uniform vec4 animdata[%(1)i];
         #endif
     ]] % { math.min(maxvsuniforms - reservevpparams, 256) - 10 })
-or
-    (useubo ~= 0 and [[
-        #if !defined(GL_ARB_uniform_buffer_object) && defined(GL_ARB_compatibility)
-            #version 140
-        #endif
-    ]] or "")
-end
+or "" end
 
 function skelmatanim(...)
     local arg = { ... }

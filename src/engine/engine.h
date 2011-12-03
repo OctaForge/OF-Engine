@@ -105,6 +105,7 @@ extern char*& maptitle;
 extern vector<ushort> texmru;
 extern int xtraverts, xtravertsva;
 extern const ivec cubecoords[8];
+extern const ivec facecoords[6][4];
 extern const uchar fv[6][4];
 extern const uchar fvmasks[64];
 extern const uchar faceedgesidx[6][4];
@@ -246,12 +247,12 @@ extern int getmippedtexture(cube &p, int orient);
 extern void forcemip(cube &c, bool fixtex = true);
 extern bool subdividecube(cube &c, bool fullcheck=true, bool brighten=true);
 extern void converttovectorworld();
-extern int faceverts(cube &c, int orient, int vert);
+extern int faceconvexity(ivec v[4]);
 extern int faceconvexity(cube &c, int orient);
 extern void calcvert(cube &c, int x, int y, int z, int size, ivec &vert, int i, bool solid = false);
 extern void calcvert(cube &c, int x, int y, int z, int size, vec &vert, int i, bool solid = false);
 extern uint faceedges(cube &c, int orient);
-extern bool collapsedface(uint cfe);
+extern bool collapsedface(cube &c, int orient);
 extern bool touchingface(cube &c, int orient);
 extern bool flataxisface(cube &c, int orient);
 extern int genclipplane(cube &c, int i, vec *v, plane *clip);
@@ -260,9 +261,9 @@ extern bool visibleface(cube &c, int orient, int x, int y, int z, int size, ucha
 extern int visibletris(cube &c, int orient, int x, int y, int z, int size);
 extern int visibleorient(cube &c, int orient);
 extern bool threeplaneintersect(plane &pl1, plane &pl2, plane &pl3, vec &dest);
-extern void genvectorvert(const ivec &p, cube &c, ivec &v);
+extern void genfaceverts(cube &c, int orient, ivec v[4]);
 extern void freemergeinfo(cube &c);
-extern void genmergedverts(cube &cu, int orient, const ivec &co, int size, const mergeinfo &m, vec *vv, plane *p = NULL);
+extern bool genmergedverts(cube &cu, int orient, const ivec &co, int size, const mergeinfo &m, vec *vv, int vis = 3, plane *p = NULL);
 extern int calcmergedsize(int orient, const ivec &co, int size, const mergeinfo &m, const vec *vv);
 extern void invalidatemerges(cube &c, bool msg);
 extern void calcmerges();
@@ -304,6 +305,10 @@ extern void rendereditcursor();
 extern void tryedit();
 
 // octarender
+extern vector<tjoint> tjoints;
+
+extern void reduceslope(ivec &n);
+extern void findtjoints();
 extern void octarender();
 extern void allchanged(bool load = false);
 extern void clearvas(cube *c);

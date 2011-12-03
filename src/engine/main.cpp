@@ -1234,6 +1234,9 @@ int main(int argc, char **argv)
 
         logger::log(logger::INFO, "New frame: lastmillis: %d   curtime: %d\r\n", lastmillis, curtime); // INTENSITY
 
+        extern void updatetime();
+        updatetime();
+
         checkinput();
         gui::update();
         tryedit();

@@ -912,21 +912,18 @@ void gencubeedges(cube &c, int x, int y, int z, int size)
 
             const mergeinfo &m = c.ext->merges[i];
             vec mv[4];
-            genmergedverts(c, i, ivec(x, y, z), size, m, mv);
+            genmergedverts(c, i, ivec(x, y, z), size, m, mv, vis);
             loopj(4) pos[j] = ivec(mv[j].mul(8));
         } 
         else 
         {
-            int order = vis&4 || faceconvexity(c, i)<0 ? 1 : 0;
-            loopj(4)
-            {
-                int k = fv[i][(j+order)&3];
-                if(isentirelysolid(c)) pos[j] = cubecoords[k];
-                else genvectorvert(cubecoords[k], c, pos[j]);
-                pos[j].mul(size).add(ivec(x, y, z).shl(3));
-            }
-            if(!(vis&1)) pos[1] = pos[0];
-            if(!(vis&2)) pos[3] = pos[0];
+            ivec v[4];
+            genfaceverts(c, i, v);
+            int order = vis&4 || (!flataxisface(c, i) && faceconvexity(v) < 0) ? 1 : 0;
+            pos[0] = v[order].mul(size).add(ivec(x, y, z).shl(3));
+            pos[1] = vis&1 ? v[order+1].mul(size).add(ivec(x, y, z).shl(3)) : v[0];
+            pos[2] = v[order+2].mul(size).add(ivec(x, y, z).shl(3));
+            pos[3] = vis&2 ? v[(order+3)&3].mul(size).add(ivec(x, y, z).shl(3)) : v[0];
         }
         loopj(4)
         {
@@ -1014,12 +1011,14 @@ void gencubeedges(cube *c = worldroot, int x = 0, int y = 0, int z = 0, int size
     --neighbourdepth;
 }
 
-void gencubeverts(cube &c, int x, int y, int z, int size, int csi, uchar &vismask, uchar &clipmask)
+int gencubeverts(cube &c, int x, int y, int z, int size, int csi, uchar &vismask, uchar &clipmask)
 {
     c.visible = 0;
-    int tj = c.ext ? c.ext->tjoints : -1, numblends = 0, vis;
+    int tj = filltjoints && c.ext ? c.ext->tjoints : -1, numblends = 0, usedfaces = 0, vis;
     loopi(6) if((vis = visibletris(c, i, x, y, z, size)))
     {
+        usedfaces |= vis<<(4*i);
+
         if(c.texture[i]!=DEFAULT_SKY) vismask |= 1<<i;
 
         // this is necessary for physics to work, even if the face is merged
@@ -1056,6 +1055,7 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi, uchar &vismas
         if(visibleface(c, i, x, y, z, size, MAT_AIR, MAT_NOCLIP, MATF_CLIP)) c.visible |= 1<<i;
         if(faceedges(c, i)==F_SOLID) clipmask |= 1<<i;
     }
+    return usedfaces;
 }
 
 bool skyoccluded(cube &c, int orient)
@@ -1133,7 +1133,7 @@ void addskyverts(const ivec &o, int size)
             int index[4];
             loopk(4)
             {
-                const ivec &coords = cubecoords[fv[i][3-k]];
+                const ivec &coords = facecoords[opposite(i)][k];
                 vec v;
                 v[dim] = o[dim];
                 if(coords[dim]) v[dim] += size;
@@ -1298,7 +1298,7 @@ struct mergedface
 static int vahasmerges = 0, vamergemax = 0;
 static vector<mergedface> vamerges[13];
 
-int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
+int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1, int vis = 0x333333)
 {
     if(!c.ext || !c.ext->merges || isempty(c)) return 0;
     int tj = c.ext->tjoints, numblends = 0, used = 0;
@@ -1316,7 +1316,7 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
         mf.surface = c.ext->surfaces ? &c.ext->surfaces[i] : NULL;
         mf.normals = c.ext->normals ? &c.ext->normals[i] : NULL;
         mf.tjoints = -1;
-        genmergedverts(c, i, co, size, m, mf.v);
+        genmergedverts(c, i, co, size, m, mf.v, (vis>>(4*i))&0xF);
         int level = calcmergedsize(i, co, size, m, mf.v);
         if(level > minlevel)
         {
@@ -1426,9 +1426,12 @@ void rendercube(cube &c, int cx, int cy, int cz, int size, int csi, uchar &visma
 
     vismask = clipmask = 0;
 
-    if(!isempty(c)) gencubeverts(c, cx, cy, cz, size, csi, vismask, clipmask);
+    if(!isempty(c)) 
+    {
+        int vis = gencubeverts(c, cx, cy, cz, size, csi, vismask, clipmask);
+        if(c.merged && c.merged&~genmergedfaces(c, ivec(cx, cy, cz), size, -1, vis)) vahasmerges |= MERGE_PART;
+    }
     if(c.material != MAT_AIR) genmatsurfs(c, cx, cy, cz, size, vc.matsurfs, vismask, clipmask);
-    if(c.merged && c.merged&~genmergedfaces(c, ivec(cx, cy, cz), size)) vahasmerges |= MERGE_PART;
 
     if(c.ext)
     {
@@ -1682,6 +1685,16 @@ void findtjoints(int cur, const edgegroup &g)
     }
 }
 
+void findtjoints()
+{
+    recalcprogress = 0;
+    gencubeedges();
+    tjoints.setsize(0);
+    enumeratekt(edgegroups, edgegroup, g, int, e, findtjoints(e, g));
+    cubeedges.setsize(0);
+    edgegroups.clear();
+}
+
 void octarender()                               // creates va s for all leaf cubes that don't already have them
 {
     int csi = 0;
@@ -1744,14 +1757,7 @@ void allchanged(bool load)
     guessshadowdir();
     entitiesinoctanodes();
     tjoints.setsize(0);
-    if(filltjoints)
-    {
-        recalcprogress = 0;
-        gencubeedges();
-        enumeratekt(edgegroups, edgegroup, g, int, e, findtjoints(e, g));
-        cubeedges.setsize(0);
-        edgegroups.clear();
-    }
+    if(filltjoints) findtjoints();
     octarender();
     if(load) precachetextures();
     setupmaterials();

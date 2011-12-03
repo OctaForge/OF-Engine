@@ -420,6 +420,19 @@ VAR(serveruprate, 0, 0, INT_MAX);
 SVAR(serverip, "");
 VARF(serverport, 0, server::serverport(), 0xFFFF, { if(!serverport) serverport = server::serverport(); });
 
+uint totalsecs = 0;
+
+void updatetime()
+{
+    static int lastsec = 0;
+    if(totalmillis - lastsec >= 1000) 
+    {
+        int cursecs = (totalmillis - lastsec) / 1000;
+        totalsecs += cursecs;
+        lastsec += cursecs * 1000;
+    }
+}
+
 void serverslice(bool dedicated, uint timeout)   // main server update, called from main loop in sp, or from below in dedicated server
 {
     localclients = nonlocalclients = 0;
@@ -443,6 +456,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
         int millis = (int)enet_time_get();
         curtime = millis - totalmillis;
         lastmillis = totalmillis = millis;
+        updatetime();
     }
     server::serverupdate();
     

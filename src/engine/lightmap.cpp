@@ -132,7 +132,8 @@ static surfaceinfo brightsurfaces[6] =
 // quality parameters, set by the calclight arg
 VARN(lmshadows, lmshadows_, 0, 2, 2);
 VARN(lmaa, lmaa_, 0, 3, 3);
-static int lmshadows = 2, lmaa = 3;
+VARN(lerptjoints, lerptjoints_, 0, 1, 1);
+static int lmshadows = 2, lmaa = 3, lerptjoints = 1;
 
 static uint progress = 0, taskprogress = 0;
 static GLuint progresstex = 0;
@@ -1321,7 +1322,7 @@ static lightmapinfo *setupsurfaces(lightmapworker *w, lightmaptask &task)
 
             const mergeinfo &m = c.ext->merges[i];
             ivec mo(co);
-            genmergedverts(c, i, mo, size, m, v, planes);
+            genmergedverts(c, i, mo, size, m, v, usefaces, planes);
 
             numplanes = 1;
             int msz = calcmergedsize(i, mo, size, m, v);
@@ -1838,9 +1839,9 @@ bool setlightmapquality(int quality)
 {
     switch(quality)
     {
-        case  1: lmshadows = 2; lmaa = 3; break;
-        case  0: lmshadows = lmshadows_; lmaa = lmaa_; break;
-        case -1: lmshadows = 1; lmaa = 0; break;
+        case  1: lmshadows = 2; lmaa = 3; lerptjoints = 1; break;
+        case  0: lmshadows = lmshadows_; lmaa = lmaa_; lerptjoints = lerptjoints_; break;
+        case -1: lmshadows = 1; lmaa = 0; lerptjoints = 0; break;
         default: return false;
     }
     return true;
@@ -1929,7 +1930,7 @@ void calclight(int quality)
     check_calclight_progress = false;
     SDL_TimerID timer = SDL_AddTimer(250, calclighttimer, NULL);
     Uint32 start = SDL_GetTicks();
-    calcnormals();
+    calcnormals(lerptjoints > 0);
     show_calclight_progress();
     setupthreads();
     generatelightmaps(worldroot, 0, 0, 0, worldsize >> 1);
@@ -1987,7 +1988,7 @@ void patchlight(int quality)
     SDL_TimerID timer = SDL_AddTimer(250, calclighttimer, NULL);
     if(patchnormals) renderprogress(0, "computing normals...");
     Uint32 start = SDL_GetTicks();
-    if(patchnormals) calcnormals();
+    if(patchnormals) calcnormals(lerptjoints > 0);
     show_calclight_progress();
     setupthreads();
     generatelightmaps(worldroot, 0, 0, 0, worldsize >> 1);

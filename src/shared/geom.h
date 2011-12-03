@@ -961,7 +961,7 @@ struct ivec
 
     ivec() {}
     ivec(const vec &v) : x(int(v.x)), y(int(v.y)), z(int(v.z)) {}
-    ivec(int i)
+    explicit ivec(int i)
     {
         x = ((i&1)>>0);
         y = ((i&2)>>1);
