@@ -672,8 +672,8 @@ template<class T> struct hashset
         HTFIND(key, &c->elem, NULL);
     }
 
-    template<class K>
-    T &access(const K &key, const T &elem)
+    template<class K, class E>
+    T &access(const K &key, const E &elem)
     {
         HTFIND(key, c->elem, insert(h)->elem = elem);
     }

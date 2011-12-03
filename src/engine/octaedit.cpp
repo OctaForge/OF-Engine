@@ -490,7 +490,7 @@ void readychanges(block3 &b, cube *c, const ivec &cor, int size)
                 int hasmerges = c[i].ext->va->hasmerges;
                 destroyva(c[i].ext->va);
                 c[i].ext->va = NULL;
-                if(hasmerges) invalidatemerges(c[i], true); 
+                if(hasmerges) invalidatemerges(c[i], o, size, true); 
             }
             freeoctaentities(c[i]);
             c[i].ext->tjoints = -1;
@@ -551,6 +551,7 @@ static inline void copycube(const cube &src, cube &dst)
 {
     dst = src;
     dst.visible = 0;
+    dst.collide = 0;
     dst.merged = 0;
     dst.ext = NULL; // src cube is responsible for va destruction
     if(src.children)

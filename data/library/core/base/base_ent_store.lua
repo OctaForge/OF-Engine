@@ -884,6 +884,19 @@ function load_entities()
             end
         end
 
+        if mapversion <= 31 and state_data.attr1 then
+            if  class_name ~= "light"
+            and class_name ~= "flickering_light"
+            and class_name ~= "particle_effect"
+            and class_name ~= "envmap"
+            and class_name ~= "world_marker" then
+                local yaw = (
+                    math.floor(state_data.attr1) % 360 + 360
+                ) % 360 + 7
+                state_data.attr1 = yaw - (yaw % 15)
+            end
+        end
+
         -- add the entity, pass state data via kwargs
         add(class_name, uid, { state_data = json.encode(state_data) })
     end

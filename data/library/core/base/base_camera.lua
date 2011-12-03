@@ -125,12 +125,6 @@ zoom_out = CAPI.camdec
 mouselook = CAPI.mouselook
 
 --[[!
-    Function: character_view
-    Toggles character viewing.
-]]
-character_view = CAPI.characterview
-
---[[!
     Functions: center_on_entity
     Centers view on selected entity. Increment
     through selection by N. For example, N == 1

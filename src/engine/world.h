@@ -5,7 +5,7 @@ enum                            // hardcoded texture numbers
     DEFAULT_GEOM
 };
 
-#define MAPVERSION 31           // bump if map format changes, see worldio.cpp
+#define MAPVERSION 32           // bump if map format changes, see worldio.cpp
 
 struct octaheader
 {

@@ -1,13 +1,5 @@
 // 6-directional octree heightfield map format
 
-enum
-{
-    LAYER_TOP = 0,
-    LAYER_BOTTOM,
-
-    LAYER_BLEND = 1<<1
-};
-
 struct elementset
 {
     ushort texture, lmid, envmap;
@@ -37,7 +29,7 @@ struct materialsurface
         short index;
         short depth;
     };
-    uchar material, orient, flags;
+    uchar material, orient, flags, skip;
     union
     {
         entity *light;
@@ -46,18 +38,44 @@ struct materialsurface
     };
 };
 
-struct surfaceinfo
+struct vertinfo
 {
-    uchar texcoords[8];
-    uchar w, h;
-    ushort x, y;
-    uchar lmid, layer;
+    ushort x, y, z, u, v, norm;
+
+    void setxyz(ushort a, ushort b, ushort c) { x = a; y = b; z = c; }
+    void setxyz(const ivec &v) { setxyz(v.x, v.y, v.z); }
+    void set(ushort a, ushort b, ushort c, ushort s = 0, ushort t = 0, ushort n = 0) { setxyz(a, b, c); u = s; v = t; norm = n; }
+    void set(const ivec &v, ushort s = 0, ushort t = 0, ushort n = 0) { set(v.x, v.y, v.z, s, t, n); }
+    ivec getxyz() const { return ivec(x, y, z); }
 };
 
-struct surfacenormals
+enum
 {
-    bvec normals[4];
+    LAYER_TOP    = (1<<5),
+    LAYER_BOTTOM = (1<<6),
+    LAYER_DUP    = (1<<7),
+
+    LAYER_BLEND  = LAYER_TOP|LAYER_BOTTOM,
+    
+    MAXFACEVERTS = 15
 };
+
+enum { LMID_AMBIENT = 0, LMID_AMBIENT1, LMID_BRIGHT, LMID_BRIGHT1, LMID_DARK, LMID_DARK1, LMID_RESERVED };
+
+struct surfaceinfo
+{
+    uchar lmid[2];
+    uchar verts, numverts;
+
+    int totalverts() const { return numverts&LAYER_DUP ? (numverts&MAXFACEVERTS)*2 : numverts&MAXFACEVERTS; }
+    bool used() const { return lmid[0] != LMID_AMBIENT || lmid[1] != LMID_AMBIENT || numverts&~LAYER_TOP; }
+    void clear() { lmid[0] = LMID_AMBIENT; lmid[1] = LMID_AMBIENT; numverts = (numverts&MAXFACEVERTS) | LAYER_TOP; }
+    void brighten() { lmid[0] = LMID_BRIGHT; lmid[1] = LMID_AMBIENT; numverts = (numverts&MAXFACEVERTS) | LAYER_TOP; }
+};
+
+static const surfaceinfo ambientsurface = {{LMID_AMBIENT, LMID_AMBIENT}, 0, LAYER_TOP};
+static const surfaceinfo brightsurface = {{LMID_BRIGHT, LMID_AMBIENT}, 0, LAYER_TOP};
+static const surfaceinfo brightbottomsurface = {{LMID_AMBIENT, LMID_BRIGHT}, 0, LAYER_BOTTOM};
 
 struct grasstri
 {
@@ -136,7 +154,7 @@ struct vtxarray
     occludequery *query;
     vector<octaentities *> mapmodels;
     vector<grasstri> grasstris;
-    int hasmerges;
+    int hasmerges, mergelevel;
     uint dynlightmask;
     bool shadowed;
 };
@@ -153,7 +171,7 @@ struct clipplanes
     int version;
 };
 
-struct mergeinfo
+struct facebounds
 {
     ushort u1, u2, v1, v2;
 
@@ -170,43 +188,34 @@ struct tjoint
 struct cubeext
 {
     vtxarray *va;            // vertex array for children, or NULL
-    surfaceinfo *surfaces;   // lighting info for each surface
-    surfacenormals *normals; // per-vertex normals for each surface
-    octaentities *ents;      // list of map entites totally inside cube
-    mergeinfo *merges;       // bounds of merged surfaces
+    octaentities *ents;      // map entities inside cube
+    surfaceinfo surfaces[6]; // render info for each surface
     int tjoints;             // linked list of t-joints
+    uchar maxverts;          // allocated space for verts
+
+    vertinfo *verts() { return (vertinfo *)(this+1); }
 };  
 
 struct cube
 {
     cube *children;          // points to 8 cube structures which are its children, or NULL. -Z first, then -Y, -X
+    cubeext *ext;            // extended info for the cube
     union
     {
         uchar edges[12];     // edges of the cube, each uchar is 2 4bit values denoting the range.
                              // see documentation jpgs for more info.
         uint faces[3];       // 4 edges of each dimension together representing 2 perpendicular faces
     };
+    ushort texture[6];       // one for each face. same order as orient.
+    uchar material;          // empty-space material
+    uchar collide;           // collision faces of the cube
+    uchar merged;            // merged faces of the cube
     union
     {
-        ushort texture[6];       // one for each face. same order as orient.
-        struct
-        {
-            uchar clipmask, vismask;
-            uchar vismasks[8];
-        };
+        uchar escaped;       // mask of which children have escaped merges, mask of merged faces that escaped if no children
+        uchar visible;       // visibility info for non-merged faces
     };
-    cubeext *ext;            // extended info for the cube
-    uchar material;          // empty-space material
-    uchar visible;           // visible faces of the cube
-    uchar merged;            // merged faces of the cube
-    uchar reserved;
 };
-
-static inline cubeext &ext(cube &c)
-{
-    extern cubeext *newcubeext(cube &c);
-    return *(c.ext ? c.ext : newcubeext(c));
-}
 
 struct block3
 {

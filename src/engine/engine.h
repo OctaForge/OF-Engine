@@ -227,7 +227,9 @@ extern void render3dbox(vec &o, float tofloor, float toceil, float xradius, floa
 
 // octa
 extern cube *newcubes(uint face = F_EMPTY, int mat = MAT_AIR);
-extern cubeext *newcubeext(cube &c);
+extern cubeext *growcubeext(cube &c, int maxverts);
+extern void setcubeext(cube &c, cubeext *ext);
+extern cubeext *newcubeext(cube &c, int maxverts = 0, bool init = true);
 extern void getcubevector(cube &c, int d, int x, int y, int z, ivec &p);
 extern void setcubevector(cube &c, int d, int x, int y, int z, const ivec &p);
 extern int familysize(cube &c);
@@ -248,6 +250,8 @@ extern void forcemip(cube &c, bool fixtex = true);
 extern bool subdividecube(cube &c, bool fullcheck=true, bool brighten=true);
 extern void converttovectorworld();
 extern int faceconvexity(ivec v[4]);
+extern int faceconvexity(ivec v[4], int &vis);
+extern int faceconvexity(vertinfo *verts, int numverts);
 extern int faceconvexity(cube &c, int orient);
 extern void calcvert(cube &c, int x, int y, int z, int size, ivec &vert, int i, bool solid = false);
 extern void calcvert(cube &c, int x, int y, int z, int size, vec &vert, int i, bool solid = false);
@@ -255,26 +259,20 @@ extern uint faceedges(cube &c, int orient);
 extern bool collapsedface(cube &c, int orient);
 extern bool touchingface(cube &c, int orient);
 extern bool flataxisface(cube &c, int orient);
+extern bool collideface(cube &c, int orient);
 extern int genclipplane(cube &c, int i, vec *v, plane *clip);
 extern void genclipplanes(cube &c, int x, int y, int z, int size, clipplanes &p);
 extern bool visibleface(cube &c, int orient, int x, int y, int z, int size, uchar mat = MAT_AIR, uchar nmat = MAT_AIR, uchar matmask = MATF_VOLUME);
-extern int visibletris(cube &c, int orient, int x, int y, int z, int size);
+extern int visibletris(cube &c, int orient, int x, int y, int z, int size, uchar nmat = MAT_AIR, uchar matmask = MAT_AIR);
 extern int visibleorient(cube &c, int orient);
 extern bool threeplaneintersect(plane &pl1, plane &pl2, plane &pl3, vec &dest);
 extern void genfaceverts(cube &c, int orient, ivec v[4]);
-extern void freemergeinfo(cube &c);
-extern bool genmergedverts(cube &cu, int orient, const ivec &co, int size, const mergeinfo &m, vec *vv, int vis = 3, plane *p = NULL);
-extern int calcmergedsize(int orient, const ivec &co, int size, const mergeinfo &m, const vec *vv);
-extern void invalidatemerges(cube &c, bool msg);
+extern int calcmergedsize(int orient, const ivec &co, int size, const vertinfo *verts, int numverts);
+extern void invalidatemerges(cube &c, const ivec &co, int size, bool msg);
 extern void calcmerges();
 
-struct cubeface : mergeinfo
-{
-    cube *c;
-};
-
-extern int mergefaces(int orient, cubeface *m, int sz);
-extern void mincubeface(cube &cu, int orient, const ivec &o, int size, const mergeinfo &orig, mergeinfo &cf, uchar nmat = MAT_AIR, uchar matmask = MATF_VOLUME);
+extern int mergefaces(int orient, facebounds *m, int sz);
+extern void mincubeface(cube &cu, int orient, const ivec &o, int size, const facebounds &orig, facebounds &cf, uchar nmat = MAT_AIR, uchar matmask = MATF_VOLUME);
 
 static inline uchar octantrectangleoverlap(const ivec &c, int size, const ivec &o, const ivec &s)
 {
@@ -288,6 +286,11 @@ static inline uchar octantrectangleoverlap(const ivec &c, int size, const ivec &
     if(v.x <= o.x)     p &= 0xAA;
     if(v.x >= o.x+s.x) p &= 0x55;
     return p;
+}
+
+static inline cubeext &ext(cube &c)
+{
+    return *(c.ext ? c.ext : newcubeext(c));
 }
 
 // ents
@@ -307,6 +310,8 @@ extern void tryedit();
 // octarender
 extern vector<tjoint> tjoints;
 
+extern ushort encodenormal(const vec &n);
+extern vec decodenormal(ushort norm);
 extern void reduceslope(ivec &n);
 extern void findtjoints();
 extern void octarender();
@@ -361,7 +366,7 @@ extern bool getdynlight(int n, vec &o, float &radius, vec &color);
 extern int& showmat;
 
 extern int findmaterial(const char *name);
-extern void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs, uchar &vismask, uchar &clipmask);
+extern void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs);
 extern void rendermatsurfs(materialsurface *matbuf, int matsurfs);
 extern void rendermatgrid(materialsurface *matbuf, int matsurfs);
 extern int optimizematsurfs(materialsurface *matbuf, int matsurfs);
@@ -485,8 +490,6 @@ extern void addchange(const char *desc, int type);
 extern void clearchanges(int type);
 
 // physics
-extern const vec2 mmrots[];
-
 extern void mousemove(int dx, int dy);
 extern bool pointincube(const clipplanes &p, const vec &v);
 extern bool overlapsdynent(const vec &o, float radius);

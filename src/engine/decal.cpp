@@ -295,26 +295,6 @@ struct decalrenderer
         return d;
     }
 
-    static int decalclip(const vec *in, int numin, const plane &c, vec *out)
-    {
-        int numout = 0;
-        const vec *n = in;
-        float idist = c.dist(*n), ndist = idist;
-        loopi(numin-1)
-        {
-            const vec &p = *n;
-            float pdist = ndist;
-            ndist = c.dist(*++n);
-            if(pdist>=0) out[numout++] = p;
-            if((pdist>0 && ndist<0) || (pdist<0 && ndist>0))
-                (out[numout++] = *n).sub(p).mul(pdist / (pdist - ndist)).add(p);
-        }
-        if(ndist>=0) out[numout++] = *n;
-        if((ndist>0 && idist<0) || (ndist<0 && idist>0))
-            (out[numout++] = *in).sub(*n).mul(ndist / (ndist - idist)).add(*n);
-        return numout;
-    }
-        
     ivec bborigin, bbsize;
     vec decalcenter, decalnormal, decaltangent, decalbitangent;
     float decalradius, decalu, decalv;
@@ -346,7 +326,7 @@ struct decalrenderer
         }
 
         ushort dstart = endvert;
-        gendecaltris(worldroot, ivec(0, 0, 0), worldsize>>1);
+        gentris(worldroot, ivec(0, 0, 0), worldsize>>1);
         if(dbgdec)
         {
             int nverts = endvert < dstart ? endvert + maxverts - dstart : endvert - dstart;
@@ -361,38 +341,91 @@ struct decalrenderer
         d.endvert = endvert;
     }
 
-    void gendecaltris(cube &cu, int orient, vec *v, bool solid)
+    static int clip(const vec *in, int numin, const vec &dir, float below, float above, vec *out)
     {
-        int f[4], convex = solid ? 0 : faceconvexity(cu, orient), order = convex < 0 ? 1 : 0, faces = 0;
-        loopk(4) f[k] = fv[orient][(k+order)&3];
-        vec p(v[f[0]]), surfaces[2];
-        if(solid)
+        int numout = 0;
+        const vec *p = &in[numin-1];
+        float pc = dir.dot(*p);
+        loopi(numin)
         {
-            surfaces[0] = vec(0, 0, 0);
-            surfaces[0][dimension(orient)] = 2*dimcoord(orient) - 1;
-            faces = 1 | 4;
-        }
-        else
-        {
-            vec e(v[f[2]]);
-            e.sub(p);
-            surfaces[0].cross(vec(v[f[1]]).sub(p), e);
-            float mag1 = surfaces[0].squaredlen();
-            if(mag1) { surfaces[0].div(sqrtf(mag1)); faces |= 1; }
-            surfaces[1].cross(e, vec(v[f[3]]).sub(p));
-            float mag2 = surfaces[1].squaredlen();
-            if(mag2)
+            const vec &v = in[i];
+            float c = dir.dot(v);
+            if(c < below)
             {
-                surfaces[1].div(sqrtf(mag2));
-                faces |= (!faces || convex ? 2 : 4);
+                if(pc > above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+                if(pc > below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
+            }
+            else if(c > above)
+            {
+                if(pc < below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
+                if(pc < above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+            }
+            else
+            {
+                if(pc < below)
+                {
+                    if(c > below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
+                }
+                else if(pc > above && c < above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+                out[numout++] = v;
+            }
+            p = &v;
+            pc = c;
+        }
+        return numout;
+    }
+
+    void gentris(cube &cu, int orient, const ivec &o, int size, materialsurface *mat = NULL)
+    {
+        vec pos[MAXFACEVERTS+4];
+        int numverts = 0, numplanes = 1;
+        vec planes[2];
+        if(mat)
+        {
+            vec vo = o.tovec(), scale;
+            int dim = dimension(orient), dc = dimcoord(orient), c = C[dim], r = R[dim];
+            vo[dim] += dc ? -0.1f : 0.1f;
+            scale[c] = mat->csize/8.0f;
+            scale[r] = mat->rsize/8.0f;
+            scale[dim] = 0;
+            loopk(4) pos[numverts++] = facecoords[orient][k].tovec().mul(scale).add(vo);
+            planes[0] = vec(0, 0, 0);
+            planes[0][dim] = dc ? 1 : -1;
+        }
+        else if(cu.texture[orient] == DEFAULT_SKY) return;
+        else if(cu.ext && (numverts = cu.ext->surfaces[orient].numverts&MAXFACEVERTS))
+        {
+            vertinfo *verts = cu.ext->verts() + cu.ext->surfaces[orient].verts;
+            ivec vo = ivec(o).mask(~0xFFF).shl(3);
+            loopj(numverts) pos[j] = verts[j].getxyz().add(vo).tovec().mul(1/8.0f);
+            planes[0].cross(pos[0], pos[1], pos[2]).normalize();
+            if(numverts >= 4 && !(cu.merged&(1<<orient)) && !flataxisface(cu, orient) && faceconvexity(verts, numverts))
+            {
+                planes[1].cross(pos[0], pos[2], pos[3]).normalize();
+                numplanes++;
             }
         }
-        p.sub(decalcenter);
-        loopl(2) if(faces&(1<<l))
+        else if(cu.merged&(1<<orient)) return;
+        else
         {
-            const vec &n = surfaces[l];
+            ivec v[4];
+            genfaceverts(cu, orient, v);
+            int vis = 3, convex = faceconvexity(v, vis), order = convex < 0 ? 1 : 0;
+            vec vo = o.tovec();
+            pos[numverts++] = v[order].tovec().mul(size/8.0f).add(vo);
+            if(vis&1) pos[numverts++] = v[order+1].tovec().mul(size/8.0f).add(vo);
+            pos[numverts++] = v[order+2].tovec().mul(size/8.0f).add(vo);
+            if(vis&2) pos[numverts++] = v[(order+3)&3].tovec().mul(size/8.0f).add(vo);
+            planes[0].cross(pos[0], pos[1], pos[2]).normalize();
+            if(convex) { planes[1].cross(pos[0], pos[2], pos[3]).normalize(); numplanes++; }
+        } 
+
+        loopl(numplanes)
+        {
+            const vec &n = planes[l];
             float facing = n.dot(decalnormal);
-            if(facing<=0) continue;
+            if(facing <= 0) continue;
+            vec p = vec(pos[0]).sub(decalcenter);
 #if 0
             // intersect ray along decal normal with plane
             float dist = n.dot(p) / facing;
@@ -412,26 +445,30 @@ struct decalrenderer
                 pb = vec(ft).mul(ft.dot(decalbitangent)).add(vec(fb).mul(fb.dot(decalbitangent))).normalize();
             // orthonormalize projected bitangent to prevent streaking
             pb.sub(vec(pt).mul(pt.dot(pb))).normalize();
-            vec v1[8] = { v[f[0]], v[f[l+1]], v[f[l+2]] }, v2[8];
-            int numv = 3;
-            if(faces&4) { v1[3] = v[f[3]]; numv = 4; }
+            vec v1[MAXFACEVERTS+4], v2[MAXFACEVERTS+4];
             float ptc = pt.dot(pcenter), pbc = pb.dot(pcenter);
-            numv = decalclip(v1, numv, plane(pt, decalradius - ptc), v2);
-            if(numv<3) continue;
-            numv = decalclip(v2, numv, plane(vec(pt).neg(), decalradius + ptc), v1);
-            if(numv<3) continue;
-            numv = decalclip(v1, numv, plane(pb, decalradius - pbc), v2);
-            if(numv<3) continue;
-            numv = decalclip(v2, numv, plane(vec(pb).neg(), decalradius + pbc), v1);
+            int numv;
+            if(numplanes >= 2)
+            {
+                if(l) { pos[1] = pos[2]; pos[2] = pos[3]; } 
+                numv = clip(pos, 3, pt, ptc - decalradius, ptc + decalradius, v1);
+                if(numv<3) continue;
+            }
+            else
+            {
+                numv = clip(pos, numverts, pt, ptc - decalradius, ptc + decalradius, v1);
+                if(numv<3) continue;
+            }
+            numv = clip(v1, numv, pb, pbc - decalradius, pbc + decalradius, v2);
             if(numv<3) continue;
             float tsz = flags&DF_RND4 ? 0.5f : 1.0f, scale = tsz*0.5f/decalradius,
                   tu = decalu + tsz*0.5f - ptc*scale, tv = decalv + tsz*0.5f - pbc*scale;
             pt.mul(scale); pb.mul(scale);
-            decalvert dv1 = { v1[0], pt.dot(v1[0]) + tu, pb.dot(v1[0]) + tv, decalcolor, 255 },
-                      dv2 = { v1[1], pt.dot(v1[1]) + tu, pb.dot(v1[1]) + tv, decalcolor, 255 };
+            decalvert dv1 = { v2[0], pt.dot(v2[0]) + tu, pb.dot(v2[0]) + tv, decalcolor, 255 },
+                      dv2 = { v2[1], pt.dot(v2[1]) + tu, pb.dot(v2[1]) + tv, decalcolor, 255 };
             int totalverts = 3*(numv-2);
             if(totalverts > maxverts-3) return;
-            while(availverts < totalverts) 
+            while(availverts < totalverts)
             {
                 if(!freedecal()) return;
             }
@@ -440,53 +477,88 @@ struct decalrenderer
             {
                 verts[endvert++] = dv1;
                 verts[endvert++] = dv2;
-                dv2.pos = v1[k+2];
-                dv2.u = pt.dot(v1[k+2]) + tu;
-                dv2.v = pb.dot(v1[k+2]) + tv;
+                dv2.pos = v2[k+2];
+                dv2.u = pt.dot(v2[k+2]) + tu;
+                dv2.v = pb.dot(v2[k+2]) + tv;
                 verts[endvert++] = dv2;
                 if(endvert>=maxverts) endvert = 0;
             }
         }
     }
 
-    void gendecaltris(cube *cu, const ivec &o, int size, uchar *vismasks = NULL, uchar avoid = 0)
+    void findmaterials(vtxarray *va)
     {
-        loopoctabox(o, size, bborigin, bbsize)
+        materialsurface *matbuf = va->matbuf;
+        int matsurfs = va->matsurfs;
+        loopi(matsurfs)
         {
-            ivec co(i, o.x, o.y, o.z, size);
-            if(cu[i].children) 
+            materialsurface &m = matbuf[i];
+            if(!isclipped(m.material&MATF_VOLUME)) { i += m.skip; continue; }
+            int dim = dimension(m.orient), dc = dimcoord(m.orient);
+            if(dc ? decalnormal[dim] <= 0 : decalnormal[dim] >= 0) { i += m.skip; continue; }
+            int c = C[dim], r = R[dim];
+            for(;;)
             {
-                uchar visclip = cu[i].vismask & cu[i].clipmask & ~avoid;    
-                if(visclip)
+                materialsurface &m = matbuf[i];
+                if(m.o[dim] >= bborigin[dim] && m.o[dim] <= bborigin[dim] + bbsize[dim] &&
+                   m.o[c] + m.csize >= bborigin[c] && m.o[c] <= bborigin[c] + bbsize[c] &&
+                   m.o[r] + m.rsize >= bborigin[r] && m.o[r] <= bborigin[r] + bbsize[r])
                 {
-                    uchar vertused = fvmasks[visclip];
-                    vec v[8];
-                    loopj(8) if(vertused&(1<<j)) calcvert(cu[i], co.x, co.y, co.z, size, v[j], j, true);
-                    loopj(6) if(visclip&(1<<j)) gendecaltris(cu[i], j, v, true);
+                    static cube dummy;
+                    gentris(dummy, m.orient, m.o, max(m.csize, m.rsize), &m); 
                 }
-                if(cu[i].vismask & ~avoid) gendecaltris(cu[i].children, co, size>>1, cu[i].vismasks, avoid | visclip);
-            }
-            else if(vismasks)
+                if(i+1 >= matsurfs) break;
+                materialsurface &n = matbuf[i+1];
+                if(n.material != m.material || n.orient != m.orient) break;
+                i++;
+            } 
+        }
+    }
+
+    void findescaped(cube *cu, const ivec &o, int size, int escaped)
+    {
+        loopi(8)
+        {
+            if(escaped&(1<<i)) 
+            { 
+                ivec co(i, o.x, o.y, o.z, size);
+                if(cu[i].children) findescaped(cu[i].children, co, size>>1, cu[i].escaped);
+                else
+                {
+                    int vismask = cu[i].escaped&cu[i].merged;
+                    if(vismask) loopj(6) if(vismask&(1<<j)) gentris(cu[i], j, co, size);
+                }
+            } 
+        }
+    }
+
+    void gentris(cube *cu, const ivec &o, int size, int escaped = 0)
+    {
+        int overlap = octantrectangleoverlap(o, size, bborigin, bbsize);
+        loopi(8) 
+        {
+            if(overlap&(1<<i))
             {
-                uchar vismask = vismasks[i] & ~avoid;
-                if(!vismask) continue;
-                uchar vertused = fvmasks[vismask];
-                bool solid = isclipped(cu[i].material&MATF_VOLUME);
-                vec v[8];
-                loopj(8) if(vertused&(1<<j)) calcvert(cu[i], co.x, co.y, co.z, size, v[j], j, solid);
-                loopj(6) if(vismask&(1<<j)) gendecaltris(cu[i], j, v, solid || (flataxisface(cu[i], j) && faceedges(cu[i], j)==F_SOLID));
+                ivec co(i, o.x, o.y, o.z, size);
+                if(cu[i].ext && cu[i].ext->va && cu[i].ext->va->matsurfs)
+                    findmaterials(cu[i].ext->va);
+                if(cu[i].children) gentris(cu[i].children, co, size>>1, cu[i].escaped);
+                else 
+                {
+                    int vismask = cu[i].visible|cu[i].merged;
+                    if(vismask) loopj(6) if(vismask&(1<<j)) gentris(cu[i], j, co, size);
+                }
             }
-            else
+            else if(escaped&(1<<i))
             {
-                bool solid = isclipped(cu[i].material&MATF_VOLUME);
-                uchar vismask = 0, nmat = cu[i].material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA;
-                loopj(6) if(!(avoid&(1<<j)) && (solid ? visiblematerial(cu[i], j, co.x, co.y, co.z, size)==MATSURF_VISIBLE : cu[i].texture[j]!=DEFAULT_SKY && visibleface(cu[i], j, co.x, co.y, co.z, size, MAT_AIR, nmat, MAT_ALPHA))) vismask |= 1<<j;
-                if(!vismask) continue;
-                uchar vertused = fvmasks[vismask];
-                vec v[8];
-                loopj(8) if(vertused&(1<<j)) calcvert(cu[i], co.x, co.y, co.z, size, v[j], j, solid);
-                loopj(6) if(vismask&(1<<j)) gendecaltris(cu[i], j, v, solid || (flataxisface(cu[i], j) && faceedges(cu[i], j)==F_SOLID));
-            }
+                ivec co(i, o.x, o.y, o.z, size);
+                if(cu[i].children) findescaped(cu[i].children, co, size>>1, cu[i].escaped);
+                else
+                {
+                    int vismask = cu[i].escaped&cu[i].merged;
+                    if(vismask) loopj(6) if(vismask&(1<<j)) gentris(cu[i], j, co, size);
+                }
+            } 
         }
     }
 };

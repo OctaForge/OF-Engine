@@ -217,7 +217,7 @@ void visiblecubes(bool cull)
     }
 }
 
-static inline bool insideva(const vtxarray *va, const vec &v, int margin = 1)
+static inline bool insideva(const vtxarray *va, const vec &v, int margin = 2)
 {
     int size = va->size + margin;
     return v.x>=va->o.x-margin && v.y>=va->o.y-margin && v.z>=va->o.z-margin && 
@@ -410,7 +410,7 @@ void rendermapmodel(extentity &e)
 
     // Kripken: MDL_SHADOW is necessary for getting shadows for a mapmodel. Note however the notes in fpsrender.h, that isn't enough.
     if(theModel)
-        rendermodel(&e.light, theModel->name(), anim, e.o, entity, (float)((e.attr1+7)-(e.attr1+7)%15), 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
+        rendermodel(&e.light, theModel->name(), anim, e.o, entity, e.attr1, 0, MDL_CULL_VFC | MDL_CULL_DIST | MDL_DYNLIGHT, NULL, NULL, basetime);
 }
 
 extern int& reflectdist;
@@ -892,7 +892,7 @@ void renderquery(renderstate &cur, occludequery *query, vtxarray *va, bool full 
 
     startquery(query);
 
-    if(full) drawbb(va->bbmin, ivec(va->bbmax).sub(va->bbmin), camera);
+    if(full) drawbb(ivec(va->bbmin).sub(1), ivec(va->bbmax).sub(va->bbmin).add(2), camera);
     else drawbb(va->geommin, ivec(va->geommax).sub(va->geommin), camera);
 
     endquery(query);

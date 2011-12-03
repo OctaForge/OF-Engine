@@ -283,7 +283,7 @@ struct vacollect : verthash
             {
                 LightMapTexture &lmtex = lightmaptexs[k.lmid];
                 int type = lmtex.type&LM_TYPE;
-                if(k.layer&LAYER_BLEND) type += 2;
+                if(k.layer==LAYER_BLEND) type += 2;
                 else if(k.alpha) type = 4 + 2*(k.alpha-1);
                 lastlmid[type] = lmtex.unlitx>=0 ? k.lmid : LMID_AMBIENT;
                 if(firstlmid[type]==LMID_AMBIENT && lastlmid[type]!=LMID_AMBIENT)
@@ -296,7 +296,7 @@ struct vacollect : verthash
             {
                 Shader *s = lookupvslot(k.tex, false).slot->shader;
                 int type = s->type&SHADER_NORMALSLMS ? LM_BUMPMAP0 : LM_DIFFUSE;
-                if(k.layer&LAYER_BLEND) type += 2;
+                if(k.layer==LAYER_BLEND) type += 2;
                 else if(k.alpha) type = 4 + 2*(k.alpha-1);
                 if(lastlmid[type]!=LMID_AMBIENT)
                 {
@@ -312,7 +312,7 @@ struct vacollect : verthash
             loopi(max(firstlit[offset], firstlit[offset+1]))
             {
                 sortkey &k = texs[i];
-                if((j ? !(k.layer&LAYER_BLEND) : k.layer&LAYER_BLEND) || k.alpha) continue;
+                if((j ? k.layer!=LAYER_BLEND : k.layer==LAYER_BLEND) || k.alpha) continue;
                 if(k.lmid!=LMID_AMBIENT) continue;
                 Shader *s = lookupvslot(k.tex, false).slot->shader;
                 int type = offset + (s->type&SHADER_NORMALSLMS ? LM_BUMPMAP0 : LM_DIFFUSE);
@@ -535,7 +535,7 @@ struct vacollect : verthash
                     }
                     e.length[l] = curbuf-startbuf;
                 }
-                if(k.layer&LAYER_BLEND) { va->texs--; va->tris -= e.length[1]/3; va->blends++; va->blendtris += e.length[1]/3; }
+                if(k.layer==LAYER_BLEND) { va->texs--; va->tris -= e.length[1]/3; va->blends++; va->blendtris += e.length[1]/3; }
                 else if(k.alpha==ALPHA_BACK) { va->texs--; va->tris -= e.length[1]/3; va->alphaback++; va->alphabacktris += e.length[1]/3; }
                 else if(k.alpha==ALPHA_FRONT) { va->texs--; va->tris -= e.length[1]/3; va->alphafront++; va->alphafronttris += e.length[1]/3; } 
             }
@@ -571,30 +571,27 @@ vector<tjoint> tjoints;
 
 vec shadowmapmin, shadowmapmax;
 
-int calcshadowmask(vec *vv)
+int calcshadowmask(vec *pos, int numpos)
 {
     extern vec shadowdir;
-    int mask = 0, used = 0;
-    if(vv[0]==vv[2]) return 0;
-    vec v2 = vec(vv[2]).sub(vv[0]);
-    if(vv[0]!=vv[1] && vv[1]!=vv[2])
+    int mask = 0, used = 1;
+    vec pe = vec(pos[1]).sub(pos[0]);
+    loopk(numpos-2)
     {
-        vec v1 = vec(vv[1]).sub(vv[0]);
-        if(vec().cross(v1, v2).dot(shadowdir)>0) { mask |= 1; used |= 0x7; } 
-    }
-    if(vv[0]!=vv[3] && vv[2]!=vv[3])
-    {
-        vec v3 = vec(vv[3]).sub(vv[0]);
-        if(vec().cross(v2, v3).dot(shadowdir)>0) { mask |= 2; used |= 0xD; }
-    }
-    if(used) loopi(4) if(used&(1<<i))
-    {
-        const vec &v = vv[i];
-        loopk(3)
+        vec e = vec(pos[k+2]).sub(pos[0]);
+        if(vec().cross(pe, e).dot(shadowdir)>0)
         {
-            if(v[k]<shadowmapmin[k]) shadowmapmin[k] = v[k];
-            if(v[k]>shadowmapmax[k]) shadowmapmax[k] = v[k];
+            mask |= 1<<k;
+            used |= 6<<k;
         }
+        pe = e;
+    }
+    if(!mask) return 0;
+    loopk(numpos) if(used&(1<<k))
+    {
+        const vec &v = pos[k];
+        shadowmapmin.min(v);
+        shadowmapmax.max(v);
     }
     return mask;
 }
@@ -637,79 +634,107 @@ vec orientation_binormal[6][3] =
     { vec(0,  0,  1), vec( 0, 0,  1), vec( 0, -1, 0) },
 };
 
-void addtris(const sortkey &key, int orient, vertex verts[4], int index[4], int shadowmask, int tj)
+void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numverts, int convex, int shadowmask, int tj)
 {
     int &total = key.tex==DEFAULT_SKY ? vc.skytris : vc.worldtris;
-    loopi(2) if(index[0]!=index[i+1] && index[i+1]!=index[i+2] && index[i+2]!=index[0])
+    int edge = orient*(MAXFACEVERTS+1);
+    loopi(numverts-2) if(index[0]!=index[i+1] && index[i+1]!=index[i+2] && index[i+2]!=index[0])
     {
         vector<ushort> &idxs = key.tex==DEFAULT_SKY ? vc.explicitskyindices : vc.indices[key].tris[(shadowmask>>i)&1];
-        int left = index[2*i], mid = index[2*i + 1], right = index[(2*i + 2)%4];
-        loopj(2)
+        int left = index[0], mid = index[i+1], right = index[i+2], start = left, i0 = left, i1 = -1;
+        loopk(4)
         {
-            int e1 = 2*i + j, edge = orient*4 + e1;
-            if(tj < 0 || tjoints[tj].edge > edge) continue;
-            int e2 = (e1 + 1)%4;
-            vertex &v1 = verts[e1], &v2 = verts[e2];
-            ivec d(vec(v2.pos).sub(v1.pos).mul(8));
-            int axis = abs(d.x) > abs(d.y) ? (abs(d.x) > abs(d.z) ? 0 : 2) : (abs(d.y) > abs(d.z) ? 1 : 2);
-            if(d[axis] < 0) d.neg();
-            reduceslope(d);
-            int origin = int(min(v1.pos[axis], v2.pos[axis])*8)&~0x7FFF,
-                offset1 = (int(v1.pos[axis]*8) - origin) / d[axis], 
-                offset2 = (int(v2.pos[axis]*8) - origin) / d[axis];
-            vec o = vec(v1.pos).sub(d.tovec().mul(offset1/8.0f));
-            float doffset = 1.0f / (offset2 - offset1);
-
-            if(j)
+            int i2 = -1, ctj = -1, cedge = -1;
+            switch(k)
             {
-                int tmp = right;
-                right = left;
-                left = mid;
-                mid = tmp;
+            case 1: i1 = i2 = mid; cedge = edge+i+1; break;
+            case 2: if(i1 != mid || i0 == left) { i0 = i1; i1 = right; } i2 = right; if(i+1 == numverts-2) cedge = edge+i+2; break;
+            case 3: if(i0 == start) { i0 = i1; i1 = left; } i2 = left; // fall-through 
+            default: if(!i) cedge = edge; break;
             }
-
-            while(tj >= 0)
+            if(i1 != i2)
             {
-                tjoint &t = tjoints[tj];
-                if(t.edge != edge) break;
-                float offset = (t.offset - offset1) * doffset;
-                vertex vt;
-                vt.pos = d.tovec().mul(t.offset/8.0f).add(o);
-                vt.reserved = 0;
-                vt.u = v1.u + (v2.u-v1.u)*offset;
-                vt.v = v1.v + (v2.v-v1.v)*offset;
-                vt.lmu = short(v1.lmu + (v2.lmu-v1.lmu)*offset),
-                vt.lmv = short(v1.lmv + (v2.lmv-v1.lmv)*offset);
-                vt.norm.lerp(v1.norm, v2.norm, offset);
-                vt.tangent.lerp(v1.tangent, v2.tangent, offset);
-                vt.bitangent = v1.bitangent;
-                int nextindex = vc.addvert(vt);
-                if(nextindex < 0 || total + 3 > (int)USHRT_MAX) return;
+                if(total + 3 > USHRT_MAX) return;
                 total += 3;
-                idxs.add(right);
-                idxs.add(left);
-                idxs.add(nextindex);
-                tj = t.next;
-                left = nextindex;
+                idxs.add(i0);
+                idxs.add(i1);
+                idxs.add(i2);
+                i1 = i2;
+            }
+            if(cedge >= 0)
+            {
+                for(ctj = tj;;)
+                {
+                    if(ctj < 0) break;
+                    if(tjoints[ctj].edge < cedge) { ctj = tjoints[ctj].next; continue; }
+                    if(tjoints[ctj].edge != cedge) ctj = -1;
+                    break;
+                }
+            }
+            if(ctj >= 0)
+            {
+                int e1 = cedge%(MAXFACEVERTS+1), e2 = (e1+1)%numverts;
+                vertex &v1 = verts[e1], &v2 = verts[e2];
+                ivec d(vec(v2.pos).sub(v1.pos).mul(8));
+                int axis = abs(d.x) > abs(d.y) ? (abs(d.x) > abs(d.z) ? 0 : 2) : (abs(d.y) > abs(d.z) ? 1 : 2);
+                if(d[axis] < 0) d.neg();
+                reduceslope(d);
+                int origin = int(min(v1.pos[axis], v2.pos[axis])*8)&~0x7FFF,
+                    offset1 = (int(v1.pos[axis]*8) - origin) / d[axis],
+                    offset2 = (int(v2.pos[axis]*8) - origin) / d[axis];
+                vec o = vec(v1.pos).sub(d.tovec().mul(offset1/8.0f));
+                float doffset = 1.0f / (offset2 - offset1);
+    
+                if(i1 < 0) for(;;)
+                {
+                    tjoint &t = tjoints[ctj];
+                    if(t.next < 0 || tjoints[t.next].edge != cedge) break;
+                    ctj = t.next;
+                } 
+                while(ctj >= 0)
+                {
+                    tjoint &t = tjoints[ctj];
+                    if(t.edge != cedge) break;
+                    float offset = (t.offset - offset1) * doffset;
+                    vertex vt;
+                    vt.pos = d.tovec().mul(t.offset/8.0f).add(o);
+                    vt.reserved = 0;
+                    vt.u = v1.u + (v2.u-v1.u)*offset;
+                    vt.v = v1.v + (v2.v-v1.v)*offset;
+                    vt.lmu = short(v1.lmu + (v2.lmu-v1.lmu)*offset),
+                    vt.lmv = short(v1.lmv + (v2.lmv-v1.lmv)*offset);
+                    vt.norm.lerp(v1.norm, v2.norm, offset);
+                    vt.tangent.lerp(v1.tangent, v2.tangent, offset);
+                    vt.bitangent = v1.bitangent;
+                    int i2 = vc.addvert(vt);
+                    if(i2 < 0) return;
+                    if(i1 >= 0)
+                    {
+                        if(total + 3 > USHRT_MAX) return;
+                        total += 3;
+                        idxs.add(i0);
+                        idxs.add(i1);
+                        idxs.add(i2);
+                        i1 = i2;
+                    }
+                    else start = i0 = i2;
+                    ctj = t.next;
+                }
             }
         }
-
-        if(total + 3 > (int)USHRT_MAX) return;
-        total += 3;
-        idxs.add(right);
-        idxs.add(left);
-        idxs.add(mid);
     }
 }
 
 void addgrasstri(int face, vertex *verts, int numv, ushort texture, ushort lmid)
 {
     grasstri &g = vc.grasstris.add();
-    int i1 = 2*face, i2 = i1+1, i3 = (i1+2)%4;
+    int i1, i2, i3, i4;
+    if(numv <= 3 && face%2) { i1 = face+1; i2 = face+2; i3 = i4 = 0; }
+    else { i1 = 0; i2 = face+1; i3 = face+2; i4 = numv > 3 ? face+3 : i3; } 
     g.v[0] = verts[i1].pos;
     g.v[1] = verts[i2].pos;
     g.v[2] = verts[i3].pos;
-    g.v[3] = verts[numv>3 ? 3 : i3].pos;
+    g.v[3] = verts[i4].pos;
     g.numv = numv;
 
     g.surface.toplane(g.v[0], g.v[1], g.v[2]);
@@ -788,51 +813,68 @@ static inline void calctexgen(VSlot &vslot, int dim, vec4 &sgen, vec4 &tgen)
         tgen[tdim] = (dim <= 1 ? -tk : tk);
     }
 }
- 
-void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, ushort texture, surfaceinfo *surface, surfacenormals *normals, int tj = -1, ushort envmap = EMID_NONE, int grassy = 0, bool alpha = false)
+
+ushort encodenormal(const vec &n)
+{               
+    if(n.iszero()) return 0;
+    int yaw = int(-atan2(n.x, n.y)/RAD), pitch = int(asin(n.z)/RAD);
+    return ushort(clamp(pitch + 90, 0, 180)*360 + (yaw < 0 ? yaw%360 + 360 : yaw%360) + 1);
+}
+
+vec decodenormal(ushort norm)
+{
+    if(!norm) return vec(0, 0, 0);
+    norm--;
+    const vec2 &yaw = sincos360[norm%360], &pitch = sincos360[norm/360+270];
+    return vec(-yaw.y*pitch.x, yaw.x*pitch.x, pitch.y);
+}
+
+void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, ushort texture, ushort lmid, vertinfo *vinfo, int numverts, int tj = -1, ushort envmap = EMID_NONE, int grassy = 0, bool alpha = false, int layer = LAYER_TOP)
 {
     int dim = dimension(orient);
-    int index[4];
-    int shadowmask = texture==DEFAULT_SKY || alpha ? 0 : calcshadowmask(pos);
+    int shadowmask = texture==DEFAULT_SKY || alpha ? 0 : calcshadowmask(pos, numverts);
+
     LightMap *lm = NULL;
     LightMapTexture *lmtex = NULL;
-    if(!nolights && surface && lightmaps.inrange(surface->lmid-LMID_RESERVED))
+    if(!nolights && lightmaps.inrange(lmid-LMID_RESERVED))
     {
-        lm = &lightmaps[surface->lmid-LMID_RESERVED];
+        lm = &lightmaps[lmid-LMID_RESERVED];
         if((lm->type&LM_TYPE)==LM_DIFFUSE ||
             ((lm->type&LM_TYPE)==LM_BUMPMAP0 &&
-                lightmaps.inrange(surface->lmid+1-LMID_RESERVED) &&
-                (lightmaps[surface->lmid+1-LMID_RESERVED].type&LM_TYPE)==LM_BUMPMAP1))
+                lightmaps.inrange(lmid+1-LMID_RESERVED) &&
+                (lightmaps[lmid+1-LMID_RESERVED].type&LM_TYPE)==LM_BUMPMAP1))
             lmtex = &lightmaptexs[lm->tex];
         else lm = NULL;
     }
+
     vec4 sgen, tgen;
     calctexgen(vslot, dim, sgen, tgen);
-    vertex verts[4];
-    loopk(4)
+    vertex verts[MAXFACEVERTS];
+    int index[MAXFACEVERTS];
+    loopk(numverts)
     {
         vertex &v = verts[k];
         v.pos = pos[k];
         v.reserved = 0;
         v.u = sgen.dot(v.pos);
         v.v = tgen.dot(v.pos);
-        if(lmtex)
-        {
-            v.lmu = short(ceil((lm->offsetx + surface->x + (surface->texcoords[k*2] / 255.0f) * (surface->w - 1) + 0.5f) * SHRT_MAX/lmtex->w));
-            v.lmv = short(ceil((lm->offsety + surface->y + (surface->texcoords[k*2 + 1] / 255.0f) * (surface->h - 1) + 0.5f) * SHRT_MAX/lmtex->h));
+        if(lmtex) 
+        { 
+            v.lmu = short(ceil((lm->offsetx + vinfo[k].u*(float(LM_PACKW)/float(USHRT_MAX+1)) + 0.5f) * float(SHRT_MAX)/lmtex->w)); 
+            v.lmv = short(ceil((lm->offsety + vinfo[k].v*(float(LM_PACKH)/float(USHRT_MAX+1)) + 0.5f) * float(SHRT_MAX)/lmtex->h));
         }
         else v.lmu = v.lmv = 0;
-        if(renderpath!=R_FIXEDFUNCTION && normals)
+        if(renderpath!=R_FIXEDFUNCTION && vinfo && vinfo[k].norm)
         {
-            v.norm = normals->normals[k];
-            vec n = normals->normals[k].tovec(), t = orientation_tangent[vslot.rotation][dim];
+            vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][dim];
             t.sub(vec(n).mul(n.dot(t))).normalize();
+            v.norm = bvec(n);
             v.tangent = bvec(t);
             v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][dim]) < 0 ? 0 : 255;
         }
         else
         {
-            v.norm = normals && envmap != EMID_NONE ? normals->normals[k] : bvec(128, 128, 128);
+            v.norm = vinfo && vinfo[k].norm && envmap != EMID_NONE ? bvec(decodenormal(vinfo[k].norm)) : bvec(128, 128, 128);
             v.tangent = bvec(128, 128, 128);
             v.bitangent = 128;
         }
@@ -842,26 +884,29 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, ushort texture, 
 
     if(texture == DEFAULT_SKY)
     {
-        loopk(4) vc.skyclip = min(vc.skyclip, int(pos[k].z*8)>>3);
+        loopk(numverts) vc.skyclip = min(vc.skyclip, int(pos[k].z*8)>>3);
         vc.skyfaces |= 0x3F&~(1<<orient);
     }
 
-    int lmid = LMID_AMBIENT;
-    if(surface)
-    {
-        if(surface->lmid < LMID_RESERVED) lmid = surface->lmid;
-        else if(lm) lmid = lm->tex;
-    }
+    if(lmid >= LMID_RESERVED) lmid = lm ? lm->tex : LMID_AMBIENT;
 
-    sortkey key(texture, lmid, vslot.scrollS || vslot.scrollT ? dim : 3, surface ? surface->layer&LAYER_BLEND : LAYER_TOP, envmap, alpha ? (vslot.alphaback ? ALPHA_BACK : (vslot.alphafront ? ALPHA_FRONT : NO_ALPHA)) : NO_ALPHA);
-    addtris(key, orient, verts, index, shadowmask, tj);
+    sortkey key(texture, lmid, vslot.scrollS || vslot.scrollT ? dim : 3, layer == LAYER_BLEND ? LAYER_BLEND : LAYER_TOP, envmap, alpha ? (vslot.alphaback ? ALPHA_BACK : (vslot.alphafront ? ALPHA_FRONT : NO_ALPHA)) : NO_ALPHA);
+    addtris(key, orient, verts, index, numverts, convex, shadowmask, tj);
 
     if(grassy) 
     {
-        int faces = 0;
-        loopi(2) if(index[0]!=index[i+1] && index[i+1]!=index[i+2] && index[i+2]!=index[0]) faces |= 1<<i;
-        if(grassy>1 && faces==3) addgrasstri(0, verts, 4, texture, lmid);
-        else loopi(2) if(faces&(1<<i)) addgrasstri(i, verts, 3, texture, lmid);
+        for(int i = 0; i < numverts-2; i += 2)
+        {
+            int faces = 0;
+            if(index[0]!=index[i+1] && index[i+1]!=index[i+2] && index[i+2]!=index[0]) faces |= 1;
+            if(i+3 < numverts && index[0]!=index[i+2] && index[i+2]!=index[i+3] && index[i+3]!=index[0]) faces |= 2;
+            if(grassy > 1 && faces==3) addgrasstri(i, verts, 4, texture, lmid);
+            else 
+            {
+                if(faces&1) addgrasstri(i, verts, 3, texture, lmid);
+                if(faces&2) addgrasstri(i+1, verts, 3, texture, lmid);
+            }
+        }
     }
 }
 
@@ -902,32 +947,36 @@ hashtable<edgegroup, int> edgegroups(1<<13);
 
 void gencubeedges(cube &c, int x, int y, int z, int size)
 {
-    ivec pos[4];
+    ivec pos[MAXFACEVERTS];
     int vis;
     loopi(6) if((vis = visibletris(c, i, x, y, z, size)))
     {
-        if(c.merged&(1<<i))
+        int numverts = c.ext ? c.ext->surfaces[i].numverts&MAXFACEVERTS : 0;
+        if(numverts)
         {
-            if(!c.ext || !c.ext->merges || c.ext->merges[i].empty()) continue;
-
-            const mergeinfo &m = c.ext->merges[i];
-            vec mv[4];
-            genmergedverts(c, i, ivec(x, y, z), size, m, mv, vis);
-            loopj(4) pos[j] = ivec(mv[j].mul(8));
-        } 
-        else 
+            vertinfo *verts = c.ext->verts() + c.ext->surfaces[i].verts;
+            ivec vo = ivec(x, y, z).mask(~0xFFF).shl(3);
+            loopj(numverts)
+            {
+                vertinfo &v = verts[j];
+                pos[j] = ivec(v.x, v.y, v.z).add(vo);
+            }
+        }
+        else if(c.merged&(1<<i)) continue;
+        else
         {
             ivec v[4];
             genfaceverts(c, i, v);
             int order = vis&4 || (!flataxisface(c, i) && faceconvexity(v) < 0) ? 1 : 0;
-            pos[0] = v[order].mul(size).add(ivec(x, y, z).shl(3));
-            pos[1] = vis&1 ? v[order+1].mul(size).add(ivec(x, y, z).shl(3)) : v[0];
-            pos[2] = v[order+2].mul(size).add(ivec(x, y, z).shl(3));
-            pos[3] = vis&2 ? v[(order+3)&3].mul(size).add(ivec(x, y, z).shl(3)) : v[0];
+            ivec vo = ivec(x, y, z).shl(3);
+            pos[numverts++] = v[order].mul(size).add(vo);
+            if(vis&1) pos[numverts++] = v[order+1].mul(size).add(vo);
+            pos[numverts++] = v[order+2].mul(size).add(vo);
+            if(vis&2) pos[numverts++] = v[(order+3)&3].mul(size).add(vo);
         }
-        loopj(4)
+        loopj(numverts)
         {
-            int e1 = j, e2 = (j+1)%4;
+            int e1 = j, e2 = j+1 < numverts ? j+1 : 0;
             ivec d = pos[e2];
             d.sub(pos[e1]);
             if(d.iszero()) continue;
@@ -949,7 +998,7 @@ void gencubeedges(cube &c, int x, int y, int z, int size)
             ce.c = &c;
             ce.offset = t1;
             ce.size = t2 - t1;
-            ce.index = i*4+j;
+            ce.index = i*(MAXFACEVERTS+1)+j;
             ce.flags = CE_START | CE_END | (e1!=j ? CE_FLIP : 0);
             ce.next = -1;
 
@@ -1011,51 +1060,65 @@ void gencubeedges(cube *c = worldroot, int x = 0, int y = 0, int z = 0, int size
     --neighbourdepth;
 }
 
-int gencubeverts(cube &c, int x, int y, int z, int size, int csi, uchar &vismask, uchar &clipmask)
+void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
 {
     c.visible = 0;
-    int tj = filltjoints && c.ext ? c.ext->tjoints : -1, numblends = 0, usedfaces = 0, vis;
+    c.collide = 0;
+    int tj = filltjoints && c.ext ? c.ext->tjoints : -1, vis;
     loopi(6) if((vis = visibletris(c, i, x, y, z, size)))
     {
-        usedfaces |= vis<<(4*i);
-
-        if(c.texture[i]!=DEFAULT_SKY) vismask |= 1<<i;
-
         // this is necessary for physics to work, even if the face is merged
-        if(touchingface(c, i)) 
-        {
-            c.visible |= 1<<i;
-            if(c.texture[i]!=DEFAULT_SKY && faceedges(c, i)==F_SOLID) clipmask |= 1<<i;
-        }
-
-        if(c.ext && c.ext->surfaces && c.ext->surfaces[i].layer&LAYER_BLEND) numblends++; 
+        if(collideface(c, i)) c.collide |= 1<<i;
 
         if(c.merged&(1<<i)) continue;
 
-        int order = vis&4 || faceconvexity(c, i)<0 ? 1 : 0;
-        vec pos[4];
-        loopk(4) calcvert(c, x, y, z, size, pos[k], fv[i][(k+order)&3]);
-        if(!(vis&1)) pos[1] = pos[0];
-        if(!(vis&2)) pos[3] = pos[0];
+        c.visible |= 1<<i;
+
+        vec pos[MAXFACEVERTS];
+        vertinfo *verts = NULL;
+        int numverts = c.ext ? c.ext->surfaces[i].numverts&MAXFACEVERTS : 0, convex = 0;
+        if(numverts)
+        {
+            verts = c.ext->verts() + c.ext->surfaces[i].verts;
+            vec vo = ivec(x, y, z).mask(~0xFFF).tovec();
+            loopj(numverts) pos[j] = verts[j].getxyz().tovec().mul(1.0f/8).add(vo);
+            if(!(c.merged&(1<<i)) && !flataxisface(c, i)) convex = faceconvexity(verts, numverts);
+        }
+        else
+        {
+            ivec v[4];
+            genfaceverts(c, i, v);
+            if(!flataxisface(c, i)) convex = faceconvexity(v);
+            int order = vis&4 || convex < 0 ? 1 : 0;
+            vec vo(x, y, z);
+            pos[numverts++] = v[order].tovec().mul(size/8.0f).add(vo);
+            if(vis&1) pos[numverts++] = v[order+1].tovec().mul(size/8.0f).add(vo);
+            pos[numverts++] = v[order+2].tovec().mul(size/8.0f).add(vo);
+            if(vis&2) pos[numverts++] = v[(order+3)&3].tovec().mul(size/8.0f).add(vo);
+        }
 
         VSlot &vslot = lookupvslot(c.texture[i], true),
               *layer = vslot.layer && !(c.material&MAT_ALPHA) ? &lookupvslot(vslot.layer, true) : NULL;
         ushort envmap = vslot.slot->shader->type&SHADER_ENVMAP ? (vslot.slot->texmask&(1<<TEX_ENVMAP) ? EMID_CUSTOM : closestenvmap(i, x, y, z, size)) : EMID_NONE,
                envmap2 = layer && layer->slot->shader->type&SHADER_ENVMAP ? (layer->slot->texmask&(1<<TEX_ENVMAP) ? EMID_CUSTOM : closestenvmap(i, x, y, z, size)) : EMID_NONE;
-        while(tj >= 0 && tjoints[tj].edge < i*4) tj = tjoints[tj].next;
-        int hastj = tj >= 0 && tjoints[tj].edge/4 == i ? tj : -1;
-        int grassy = vslot.slot->autograss && i!=O_BOTTOM ? (vis!=3 || faceconvexity(c, i) ? 1 : 2) : 0;
-        if(!c.ext || !c.ext->surfaces || c.ext->surfaces[i].layer!=LAYER_BOTTOM)
-            addcubeverts(vslot, i, size, pos, c.texture[i], c.ext && c.ext->surfaces ? &c.ext->surfaces[i] : NULL, c.ext && c.ext->normals ? &c.ext->normals[i] : NULL, hastj, envmap, grassy, (c.material&MAT_ALPHA)!=0);
-        if(c.ext && c.ext->surfaces && c.ext->surfaces[i].layer!=LAYER_TOP)
-            addcubeverts(layer ? *layer : vslot, i, size, pos, vslot.layer, &c.ext->surfaces[c.ext->surfaces[i].layer&LAYER_BLEND ? 5+numblends : i], c.ext->normals ? &c.ext->normals[i] : NULL, hastj, envmap2);
+        while(tj >= 0 && tjoints[tj].edge < i*(MAXFACEVERTS+1)) tj = tjoints[tj].next;
+        int hastj = tj >= 0 && tjoints[tj].edge < (i+1)*(MAXFACEVERTS+1) ? tj : -1;
+        int grassy = vslot.slot->autograss && i!=O_BOTTOM ? (vis!=3 || convex ? 1 : 2) : 0;
+        if(!c.ext)
+            addcubeverts(vslot, i, size, pos, convex, c.texture[i], LMID_AMBIENT, NULL, numverts, hastj, envmap, grassy, (c.material&MAT_ALPHA)!=0);
+        else
+        { 
+            const surfaceinfo &surf = c.ext->surfaces[i];
+            if(!surf.numverts || surf.numverts&LAYER_TOP)
+                addcubeverts(vslot, i, size, pos, convex, c.texture[i], surf.lmid[0], verts, numverts, hastj, envmap, grassy, (c.material&MAT_ALPHA)!=0, LAYER_TOP|(surf.numverts&LAYER_BLEND));
+            if(surf.numverts&LAYER_BOTTOM)
+                addcubeverts(layer ? *layer : vslot, i, size, pos, convex, vslot.layer, surf.lmid[1], surf.numverts&LAYER_DUP ? verts + numverts : verts, numverts, hastj, envmap2);
+        }
     }
-    else if(touchingface(c, i))
+    else
     {
-        if(visibleface(c, i, x, y, z, size, MAT_AIR, MAT_NOCLIP, MATF_CLIP)) c.visible |= 1<<i;
-        if(faceedges(c, i)==F_SOLID) clipmask |= 1<<i;
+        if(visibleface(c, i, x, y, z, size, MAT_AIR, MAT_NOCLIP, MATF_CLIP) && collideface(c, i)) c.collide |= 1<<i;
     }
-    return usedfaces;
 }
 
 bool skyoccluded(cube &c, int orient)
@@ -1078,11 +1141,11 @@ int hasskyfaces(cube &c, int x, int y, int z, int size, int faces[6])
     return numfaces;
 }
 
-vector<cubeface> skyfaces[6];
+vector<facebounds> skyfaces[6];
  
-void minskyface(cube &cu, int orient, const ivec &co, int size, mergeinfo &orig)
+void minskyface(cube &cu, int orient, const ivec &co, int size, facebounds &orig)
 {   
-    mergeinfo mincf;
+    facebounds mincf;
     mincf.u1 = orig.u2;
     mincf.u2 = orig.u1;
     mincf.v1 = orig.v2;
@@ -1105,8 +1168,7 @@ void genskyfaces(cube &c, const ivec &o, int size)
     loopi(numfaces)
     {
         int orient = faces[i], dim = dimension(orient);
-        cubeface m;
-        m.c = NULL;
+        facebounds m;
         m.u1 = (o[C[dim]]&0xFFF)<<3; 
         m.u2 = m.u1 + (size<<3);
         m.v1 = (o[R[dim]]&0xFFF)<<3;
@@ -1123,13 +1185,13 @@ void addskyverts(const ivec &o, int size)
     loopi(6)
     {
         int dim = dimension(i), c = C[dim], r = R[dim];
-        vector<cubeface> &sf = skyfaces[i]; 
+        vector<facebounds> &sf = skyfaces[i]; 
         if(sf.empty()) continue;
         vc.skyfaces |= 0x3F&~(1<<opposite(i));
         sf.setsize(mergefaces(i, sf.getbuf(), sf.length()));
         loopvj(sf)
         {
-            mergeinfo &m = sf[j];
+            facebounds &m = sf[j];
             int index[4];
             loopk(4)
             {
@@ -1181,6 +1243,7 @@ vtxarray *newva(int x, int y, int z, int size)
     va->bbmin = ivec(-1, -1, -1);
     va->bbmax = ivec(-1, -1, -1);
     va->hasmerges = 0;
+    va->mergelevel = -1;
 
     vc.setupdata(va);
 
@@ -1237,29 +1300,20 @@ void updatevabb(vtxarray *va, bool force)
 
     va->bbmin = va->geommin;
     va->bbmax = va->geommax;
-    loopk(3)
-    {
-        va->bbmin[k] = min(va->bbmin[k], va->matmin[k]);
-        va->bbmax[k] = max(va->bbmax[k], va->matmax[k]);
-    }
+    va->bbmin.min(va->matmin);
+    va->bbmax.max(va->matmax);
     loopv(va->children)
     {
         vtxarray *child = va->children[i];
         updatevabb(child, force);
-        loopk(3)
-        {
-            va->bbmin[k] = min(va->bbmin[k], child->bbmin[k]);
-            va->bbmax[k] = max(va->bbmax[k], child->bbmax[k]);
-        }
+        va->bbmin.min(child->bbmin);
+        va->bbmax.max(child->bbmax);
     }
     loopv(va->mapmodels)
     {
         octaentities *oe = va->mapmodels[i];
-        loopk(3)
-        {
-            va->bbmin[k] = min(va->bbmin[k], oe->bbmin[k]);
-            va->bbmax[k] = max(va->bbmax[k], oe->bbmax[k]);
-        }
+        va->bbmin.min(oe->bbmin);
+        va->bbmax.max(oe->bbmax);
     }
 
     if(va->skyfaces)
@@ -1287,41 +1341,49 @@ void updatevabbs(bool force)
 
 struct mergedface
 {   
-    uchar orient, mat;
+    uchar orient, mat, lmid, numverts;
     ushort tex, envmap;
-    vec v[4];
-    surfaceinfo *surface;
-    surfacenormals *normals;
+    vertinfo *verts;
     int tjoints;
 };  
 
+#define MAXMERGELEVEL 12
 static int vahasmerges = 0, vamergemax = 0;
-static vector<mergedface> vamerges[13];
+static vector<mergedface> vamerges[MAXMERGELEVEL+1];
 
-int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1, int vis = 0x333333)
+int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
 {
-    if(!c.ext || !c.ext->merges || isempty(c)) return 0;
-    int tj = c.ext->tjoints, numblends = 0, used = 0;
+    if(!c.ext || isempty(c)) return -1;
+    int tj = c.ext->tjoints, maxlevel = -1;
+    if(minlevel < 0) c.escaped &= ~c.merged;
     loopi(6) 
     {
-        if(c.ext->surfaces && c.ext->surfaces[i].layer&LAYER_BLEND) numblends++;
-        mergeinfo &m = c.ext->merges[i];
-        if(m.empty()) continue;
-        used |= 1<<i;
+        if(!(c.merged&(1<<i))) continue;
+        surfaceinfo &surf = c.ext->surfaces[i];
+        int numverts = surf.numverts&MAXFACEVERTS;
+        if(!numverts) 
+        {
+            if(minlevel < 0) vahasmerges |= MERGE_PART;
+            continue;
+        }
         mergedface mf;
         mf.orient = i;
         mf.mat = c.material;
         mf.tex = c.texture[i];
         mf.envmap = EMID_NONE;
-        mf.surface = c.ext->surfaces ? &c.ext->surfaces[i] : NULL;
-        mf.normals = c.ext->normals ? &c.ext->normals[i] : NULL;
+        mf.lmid = surf.lmid[0];
+        mf.numverts = surf.numverts;
+        mf.verts = c.ext->verts() + surf.verts; 
         mf.tjoints = -1;
-        genmergedverts(c, i, co, size, m, mf.v, (vis>>(4*i))&0xF);
-        int level = calcmergedsize(i, co, size, m, mf.v);
+        int level = calcmergedsize(i, co, size, mf.verts, mf.numverts&MAXFACEVERTS);
+        if(minlevel < 0 && 1<<level > size) 
+            c.escaped |= 1<<i;
         if(level > minlevel)
         {
-            while(tj >= 0 && tjoints[tj].edge < i*4) tj = tjoints[tj].next;
-            if(tj >= 0 && tjoints[tj].edge/4 == i) mf.tjoints = tj;
+            maxlevel = max(maxlevel, level);
+
+            while(tj >= 0 && tjoints[tj].edge < i*(MAXFACEVERTS+1)) tj = tjoints[tj].next;
+            if(tj >= 0 && tjoints[tj].edge < (i+1)*(MAXFACEVERTS+1)) mf.tjoints = tj;
 
             VSlot &vslot = lookupvslot(mf.tex, true),
                   *layer = vslot.layer && !(c.material&MAT_ALPHA) ? &lookupvslot(vslot.layer, true) : NULL;
@@ -1329,91 +1391,92 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1, int vis
                 mf.envmap = vslot.slot->texmask&(1<<TEX_ENVMAP) ? EMID_CUSTOM : closestenvmap(i, co.x, co.y, co.z, size);
             ushort envmap2 = layer && layer->slot->shader->type&SHADER_ENVMAP ? (layer->slot->texmask&(1<<TEX_ENVMAP) ? EMID_CUSTOM : closestenvmap(i, co.x, co.y, co.z, size)) : EMID_NONE;
 
-            if(c.ext->surfaces)
+            if(surf.numverts&LAYER_TOP) vamerges[level].add(mf); 
+            if(surf.numverts&LAYER_BOTTOM)
             {
-                if(c.ext->surfaces[i].layer&LAYER_BLEND)
-                {
-                    mergedface mf2 = mf;
-                    mf2.tex = vslot.layer;
-                    mf2.envmap = envmap2;
-                    mf2.surface = &c.ext->surfaces[5+numblends];
-                    vamerges[level].add(mf2);
-                }
-                else if(c.ext->surfaces[i].layer==LAYER_BOTTOM)
-                {
-                    mf.tex = vslot.layer;
-                    mf.envmap = envmap2;
-                }
-            } 
-
-            vamerges[level].add(mf);
-            vamergemax = max(vamergemax, level);
-            vahasmerges |= MERGE_ORIGIN;
+                mf.tex = vslot.layer;
+                mf.envmap = envmap2;
+                mf.lmid = surf.lmid[1];
+                mf.numverts &= ~LAYER_TOP;
+                if(surf.numverts&LAYER_DUP) mf.verts += numverts;
+                vamerges[level].add(mf);
+            }
         }
     }
-    return used;
+    if(maxlevel >= 0)
+    {
+        vamergemax = max(vamergemax, maxlevel);
+        vahasmerges |= MERGE_ORIGIN;
+    }
+    return maxlevel;
 }
 
-void findmergedfaces(cube &c, const ivec &co, int size, int csi, int minlevel)
+int findmergedfaces(cube &c, const ivec &co, int size, int csi, int minlevel)
 {
-    if(c.ext && c.ext->va && !(c.ext->va->hasmerges&MERGE_ORIGIN)) return;
-    if(c.children)
+    if(c.ext && c.ext->va && !(c.ext->va->hasmerges&MERGE_ORIGIN)) return c.ext->va->mergelevel;
+    else if(c.children)
     {
+        int maxlevel = -1;
         loopi(8)
         {
             ivec o(i, co.x, co.y, co.z, size/2); 
-            findmergedfaces(c.children[i], o, size/2, csi-1, minlevel);
+            int level = findmergedfaces(c.children[i], o, size/2, csi-1, minlevel);
+            maxlevel = max(maxlevel, level);
         }
+        return maxlevel;
     }
-    else if(c.ext && c.ext->merges) genmergedfaces(c, co, size, minlevel);
+    else if(c.ext && c.merged) return genmergedfaces(c, co, size, minlevel);
+    else return -1;
 }
 
-void addmergedverts(int level)
+void addmergedverts(int level, const ivec &o)
 {
     vector<mergedface> &mfl = vamerges[level];
     if(mfl.empty()) return;
+    vec vo = ivec(o).mask(~0xFFF).tovec();
+    vec pos[MAXFACEVERTS];
     loopv(mfl)
     {
         mergedface &mf = mfl[i];
+        int numverts = mf.numverts&MAXFACEVERTS;
+        loopi(numverts)
+        {
+            vertinfo &v = mf.verts[i];
+            pos[i] = vec(v.x, v.y, v.z).mul(1.0f/8).add(vo);
+        }
         VSlot &vslot = lookupvslot(mf.tex, true);
-        int grassy = vslot.slot->autograss && mf.orient!=O_BOTTOM && (!mf.surface || mf.surface->layer!=LAYER_BOTTOM) ? 2 : 0;
-        addcubeverts(vslot, mf.orient, 1<<level, mf.v, mf.tex, mf.surface, mf.normals, mf.tjoints, mf.envmap, grassy, (mf.mat&MAT_ALPHA)!=0);
+        int grassy = vslot.slot->autograss && mf.orient!=O_BOTTOM && mf.numverts&LAYER_TOP ? 2 : 0;
+        addcubeverts(vslot, mf.orient, 1<<level, pos, 0, mf.tex, mf.lmid, mf.verts, numverts, mf.tjoints, mf.envmap, grassy, (mf.mat&MAT_ALPHA)!=0, mf.numverts&LAYER_BLEND);
         vahasmerges |= MERGE_USE;
     }
     mfl.setsize(0);
 }
 
-static uchar unusedmask;
-
-void rendercube(cube &c, int cx, int cy, int cz, int size, int csi, uchar &vismask = unusedmask, uchar &clipmask = unusedmask)  // creates vertices and indices ready to be put into a va
+void rendercube(cube &c, int cx, int cy, int cz, int size, int csi, int &maxlevel)  // creates vertices and indices ready to be put into a va
 {
     //if(size<=16) return;
     if(c.ext && c.ext->va) 
     {
-        vismask = c.children ? c.vismask : 0x3F;
-        clipmask = c.children ? c.clipmask : 0;
+        maxlevel = max(maxlevel, c.ext->va->mergelevel);
         return;                            // don't re-render
     }
 
     if(c.children)
     {
-        uchar visparent = 0, clipparent = 0x3F;
-        uchar clipchild[8];
         neighbourstack[++neighbourdepth] = c.children;
+        c.escaped = 0;
         loopi(8)
         {
             ivec o(i, cx, cy, cz, size/2);
-            rendercube(c.children[i], o.x, o.y, o.z, size/2, csi-1, c.vismasks[i], clipchild[i]);
-            uchar mask = (1<<octacoord(0, i)) | (4<<octacoord(1, i)) | (16<<octacoord(2, i));
-            visparent |= c.vismasks[i];
-            clipparent &= (clipchild[i]&mask) | ~mask;
-            clipparent &= ~(c.vismasks[i] & (mask^0x3F));
+            int level = -1;
+            rendercube(c.children[i], o.x, o.y, o.z, size/2, csi-1, level);
+            if(level >= csi) 
+                c.escaped |= 1<<i;
+            maxlevel = max(maxlevel, level);   
         }
         --neighbourdepth;
-        vismask = c.vismask = visparent;
-        clipmask = c.clipmask = clipparent;
 
-        if(csi < int(sizeof(vamerges)/sizeof(vamerges[0])) && vamerges[csi].length()) addmergedverts(csi);
+        if(csi <= MAXMERGELEVEL && vamerges[csi].length()) addmergedverts(csi, ivec(cx, cy, cz));
 
         if(c.ext)
         {
@@ -1424,21 +1487,19 @@ void rendercube(cube &c, int cx, int cy, int cz, int size, int csi, uchar &visma
     
     genskyfaces(c, ivec(cx, cy, cz), size);
 
-    vismask = clipmask = 0;
-
     if(!isempty(c)) 
     {
-        int vis = gencubeverts(c, cx, cy, cz, size, csi, vismask, clipmask);
-        if(c.merged && c.merged&~genmergedfaces(c, ivec(cx, cy, cz), size, -1, vis)) vahasmerges |= MERGE_PART;
+        gencubeverts(c, cx, cy, cz, size, csi);
+        if(c.merged) maxlevel = max(maxlevel, genmergedfaces(c, ivec(cx, cy, cz), size));
     }
-    if(c.material != MAT_AIR) genmatsurfs(c, cx, cy, cz, size, vc.matsurfs, vismask, clipmask);
+    if(c.material != MAT_AIR) genmatsurfs(c, cx, cy, cz, size, vc.matsurfs);
 
     if(c.ext)
     {
         if(c.ext->ents && c.ext->ents->mapmodels.length()) vc.mapmodels.add(c.ext->ents);
     }
 
-    if(csi < int(sizeof(vamerges)/sizeof(vamerges[0])) && vamerges[csi].length()) addmergedverts(csi);
+    if(csi <= MAXMERGELEVEL && vamerges[csi].length()) addmergedverts(csi, ivec(cx, cy, cz));
 }
 
 void calcgeombb(int cx, int cy, int cz, int size, ivec &bbmin, ivec &bbmax)
@@ -1449,11 +1510,8 @@ void calcgeombb(int cx, int cy, int cz, int size, ivec &bbmin, ivec &bbmax)
     loopv(vc.verts)
     {
         const vec &v = vc.verts[i].pos;
-        loopj(3)
-        {
-            if(v[j]<vmin[j]) vmin[j] = v[j];
-            if(v[j]>vmax[j]) vmax[j] = v[j];
-        }
+        vmin.min(v);
+        vmax.max(v);
     }
 
     bbmin = ivec(vmin.mul(8)).shr(3);
@@ -1496,8 +1554,8 @@ void setva(cube &c, int cx, int cy, int cz, int size, int csi)
 {
     ASSERT(size <= 0x1000);
 
-    int vamergeoffset[sizeof(vamerges)/sizeof(vamerges[0])];
-    loopi(sizeof(vamerges)/sizeof(vamerges[0])) vamergeoffset[i] = vamerges[i].length();
+    int vamergeoffset[MAXMERGELEVEL+1];
+    loopi(MAXMERGELEVEL+1) vamergeoffset[i] = vamerges[i].length();
 
     vc.origin = ivec(cx, cy, cz);
     vc.size = size;
@@ -1505,7 +1563,8 @@ void setva(cube &c, int cx, int cy, int cz, int size, int csi)
     shadowmapmin = vec(cx+size, cy+size, cz+size);
     shadowmapmax = vec(cx, cy, cz);
 
-    rendercube(c, cx, cy, cz, size, csi);
+    int maxlevel = -1;
+    rendercube(c, cx, cy, cz, size, csi, maxlevel);
 
     ivec bbmin, bbmax;
 
@@ -1523,10 +1582,11 @@ void setva(cube &c, int cx, int cy, int cz, int size, int csi)
         va->shadowmapmin = ivec(shadowmapmin.mul(8)).shr(3);
         va->shadowmapmax = ivec(shadowmapmax.mul(8)).add(7).shr(3);
         va->hasmerges = vahasmerges;
+        va->mergelevel = vamergemax;
     }
     else
     {
-        loopi(sizeof(vamerges)/sizeof(vamerges[0])) vamerges[i].setsize(vamergeoffset[i]);
+        loopi(MAXMERGELEVEL+1) vamerges[i].setsize(vamergeoffset[i]);
     }
 
     vc.clear();
@@ -1558,7 +1618,7 @@ int updateva(cube *c, int cx, int cy, int cz, int size, int csi)
         {
             if(c[i].children) count += updateva(c[i].children, o.x, o.y, o.z, size/2, csi-1);
             else if(!isempty(c[i]) || hasskyfaces(c[i], o.x, o.y, o.z, size, faces)) count++;
-            int tcount = count + (csi < int(sizeof(vamerges)/sizeof(vamerges[0])) ? vamerges[csi].length() : 0);
+            int tcount = count + (csi <= MAXMERGELEVEL ? vamerges[csi].length() : 0);
             if(tcount > vacubemax || (tcount >= vacubemin && size >= vacubesize) || size == min(0x1000, worldsize/2)) 
             {
                 loadprogress = clamp(recalcprogress/float(allocnodes), 0.0f, 1.0f);
@@ -1582,7 +1642,7 @@ int updateva(cube *c, int cx, int cy, int cz, int size, int csi)
                 else count = 0;
             }
         }
-        if(csi+1 < int(sizeof(vamerges)/sizeof(vamerges[0])) && vamerges[csi].length()) vamerges[csi+1].move(vamerges[csi]);
+        if(csi+1 <= MAXMERGELEVEL && vamerges[csi].length()) vamerges[csi+1].move(vamerges[csi]);
         cmergemax = max(cmergemax, vamergemax);
         chasmerges |= vahasmerges;
         ccount += count;
@@ -1592,34 +1652,6 @@ int updateva(cube *c, int cx, int cy, int cz, int size, int csi)
     vahasmerges = chasmerges;
 
     return ccount;
-}
-
-void buildclipmasks(cube &c, uchar &vismask = unusedmask, uchar &clipmask = unusedmask)
-{
-    if(c.ext && c.ext->va)
-    {
-        vismask = c.children ? c.vismask : 0x3F;
-        clipmask = c.children ? c.clipmask : 0;
-        return;
-    }
-    if(!c.children)
-    {
-        if(isempty(c)) c.vismask = c.clipmask = 0;
-        vismask = clipmask = 0;
-        return;
-    }
-    uchar visparent = 0, clipparent = 0x3F;
-    uchar clipchild[8];
-    loopi(8)
-    {
-        buildclipmasks(c.children[i], c.vismasks[i], clipchild[i]);
-        uchar mask = (1<<octacoord(0, i)) | (4<<octacoord(1, i)) | (16<<octacoord(2, i));
-        visparent |= c.vismasks[i];
-        clipparent &= (clipchild[i]&mask) | ~mask;
-        clipparent &= ~(c.vismasks[i] & (mask^0x3F));
-    }
-    vismask = c.vismask = visparent;
-    clipmask = c.clipmask = clipparent;
 }
 
 void addtjoint(const edgegroup &g, const cubeedge &e, int offset)
@@ -1705,8 +1737,6 @@ void octarender()                               // creates va s for all leaf cub
     updateva(worldroot, 0, 0, 0, worldsize/2, csi-1);
     loadprogress = 0;
     flushvbo();
-
-    loopi(8) buildclipmasks(worldroot[i]);
 
     explicitsky = 0;
     skyarea = 0;
