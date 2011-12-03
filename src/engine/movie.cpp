@@ -444,7 +444,7 @@ struct aviwriter
         srcw &= ~1;
         srch &= ~1;
         const uint wfrac = (srcw<<12)/videow, hfrac = (srch<<12)/videoh, 
-                   area = ((unsigned long long int)planesize<<12)/(srcw*srch + 1),
+                   area = ((ullong)planesize<<12)/(srcw*srch + 1),
                    dw = videow*wfrac, dh = videoh*hfrac;
   
         for(uint y = 0; y < dh;)

@@ -253,7 +253,7 @@ struct mergecompat
     ushort u1, u2, v1, v2;
 };
 
-cube *loadchildren(stream *f, const ivec &co, int size);
+cube *loadchildren(stream *f, const ivec &co, int size, bool &failed);
 
 void convertoldsurfaces(cube &c, const ivec &co, int size, surfacecompat *srcsurfs, int hassurfs, normalscompat *normals, int hasnorms, mergecompat *merges, int hasmerges)
 {
@@ -276,7 +276,7 @@ void convertoldsurfaces(cube &c, const ivec &co, int size, surfacecompat *srcsur
                 dst.lmid[0] = src->lmid;
                 dst.lmid[1] = blend->lmid;
                 dst.numverts |= LAYER_BLEND;
-                if(blend->lmid >= LMID_RESERVED && memcmp(src->texcoords, blend->texcoords, sizeof(src->texcoords)))
+                if(blend->lmid >= LMID_RESERVED && (src->x != blend->x || src->y != blend->y || src->w != blend->w || src->h != blend->h || memcmp(src->texcoords, blend->texcoords, sizeof(src->texcoords))))
                     dst.numverts |= LAYER_DUP;
             }
             else if(src->layer == 1) { dst.lmid[1] = src->lmid; dst.numverts |= LAYER_BOTTOM; }
@@ -327,9 +327,7 @@ void convertoldsurfaces(cube &c, const ivec &co, int size, surfacecompat *srcsur
             {
                 if(k > 0 && (pos[k] == pos[0] || pos[k] == pos[k-1])) continue;
                 vertinfo &dv = curverts[numverts++];
-                dv.x = ushort(pos[k].x);
-                dv.y = ushort(pos[k].y);
-                dv.z = ushort(pos[k].z);
+                dv.setxyz(pos[k]);
                 if(uselms)
                 {
                     float u = src->x + (src->texcoords[k*2] / 255.0f) * (src->w - 1),
@@ -343,35 +341,35 @@ void convertoldsurfaces(cube &c, const ivec &co, int size, surfacecompat *srcsur
             dst.verts = totalverts;
             dst.numverts |= numverts;
             totalverts += numverts;
-            if(blend) loopk(numverts)
+            if(dst.numverts&LAYER_DUP) loopk(4)
             {
+                if(k > 0 && (pos[k] == pos[0] || pos[k] == pos[k-1])) continue;
                 vertinfo &bv = verts[totalverts++];
-                bv = curverts[k];
+                bv.setxyz(pos[k]);
                 bv.u = ushort(floor(clamp((blend->x + (blend->texcoords[k*2] / 255.0f) * (blend->w - 1)) * float(USHRT_MAX+1)/LM_PACKW, 0.0f, float(USHRT_MAX))));
                 bv.v = ushort(floor(clamp((blend->y + (blend->texcoords[k*2+1] / 255.0f) * (blend->h - 1)) * float(USHRT_MAX+1)/LM_PACKH, 0.0f, float(USHRT_MAX))));
+                bv.norm = usenorms && normals[i].normals[k] != bvec(128, 128, 128) ? encodenormal(normals[i].normals[k].tovec().normalize()) : 0;
             }
         }    
     }
     setsurfaces(c, dstsurfs, verts, totalverts);
 }
  
-void loadc(stream *f, cube &c, const ivec &co, int size)
+void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
 {
     bool haschildren = false;
     int octsav = f->getchar();
     switch(octsav&0x7)
     {
         case OCTSAV_CHILDREN:
-            c.children = loadchildren(f, co, size>>1);
+            c.children = loadchildren(f, co, size>>1, failed);
             return;
 
         case OCTSAV_LODCUBE: haschildren = true;    break;
         case OCTSAV_EMPTY:  emptyfaces(c);          break;
         case OCTSAV_SOLID:  solidfaces(c);          break;
         case OCTSAV_NORMAL: f->read(c.edges, 12); break;
-
-        default:
-            fatal("garbage in map");
+        default: failed = true; return;
     }
     loopi(6) c.texture[i] = mapversion<14 ? f->getchar() : f->getlil<ushort>();
     if(mapversion < 7) f->seek(3, SEEK_CUR);
@@ -552,22 +550,26 @@ void loadc(stream *f, cube &c, const ivec &co, int size)
                 }
                 if(surf.numverts&LAYER_DUP) loopk(layerverts)
                 {
-                    vertinfo &v = verts[k+layerverts];
-                    v = verts[k];
+                    vertinfo &v = verts[k+layerverts], &t = verts[k];
+                    v.setxyz(t.x, t.y, t.z);
                     if(hasuv) { v.u = f->getlil<ushort>(); v.v = f->getlil<ushort>(); }
+                    v.norm = t.norm;
                 }
             }
         }    
     }
 
-    c.children = (haschildren ? loadchildren(f, co, size>>1) : NULL);
+    c.children = (haschildren ? loadchildren(f, co, size>>1, failed) : NULL);
 }
 
-cube *loadchildren(stream *f, const ivec &co, int size)
+cube *loadchildren(stream *f, const ivec &co, int size, bool &failed)
 {
     cube *c = newcubes();
-    loopi(8) loadc(f, c[i], ivec(i, co.x, co.y, co.z, size), size);
-    // TODO: remip c from children here
+    loopi(8) 
+    {
+        loadc(f, c[i], ivec(i, co.x, co.y, co.z, size), size, failed);
+        if(failed) break;
+    }
     return c;
 }
 
@@ -843,16 +845,6 @@ static void swapXZ(cube *c)
     }
 }
 
-static void fixoversizedcubes(cube *c, int size)
-{
-    if(size <= 0x1000) return;
-    loopi(8)
-    {
-        if(!c[i].children) subdividecube(c[i], true, false);
-        fixoversizedcubes(c[i].children, size>>1);
-    }
-}
-
 bool finish_load_world(); // INTENSITY: Added this, and use it inside load_world
 
 const char *_saved_mname = NULL; // INTENSITY
@@ -1099,7 +1091,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     loadvslots(f, hdr.numvslots);
 
     renderprogress(0, "loading octree...");
-    worldroot = loadchildren(f, ivec(0, 0, 0), hdr.worldsize>>1);
+    bool failed = false;
+    worldroot = loadchildren(f, ivec(0, 0, 0), hdr.worldsize>>1, failed);
+    if(failed) conoutf(CON_ERROR, "garbage in map");
 
     if(hdr.version <= 11)
         swapXZ(worldroot);
@@ -1107,36 +1101,36 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(hdr.version <= 8)
         converttovectorworld();
 
-    if(hdr.version <= 25 && hdr.worldsize > 0x1000)
-        fixoversizedcubes(worldroot, hdr.worldsize>>1);
-
     renderprogress(0, "validating...");
     validatec(worldroot, hdr.worldsize>>1);
 
 #ifdef CLIENT // INTENSITY: Server doesn't need lightmaps, pvs and blendmap (and current code for server wouldn't clean
               //            them up if we did read them, so would have a leak)
-    if(hdr.version >= 7) loopi(hdr.lightmaps)
+    if(!failed)
     {
-        renderprogress(i/(float)hdr.lightmaps, "loading lightmaps...");
-        LightMap &lm = lightmaps.add();
-        if(hdr.version >= 17)
+        if(hdr.version >= 7) loopi(hdr.lightmaps)
         {
-            int type = f->getchar();
-            lm.type = type&0x7F;
-            if(hdr.version >= 20 && type&0x80)
+            renderprogress(i/(float)hdr.lightmaps, "loading lightmaps...");
+            LightMap &lm = lightmaps.add();
+            if(hdr.version >= 17)
             {
-                lm.unlitx = f->getlil<ushort>();
-                lm.unlity = f->getlil<ushort>();
+                int type = f->getchar();
+                lm.type = type&0x7F;
+                if(hdr.version >= 20 && type&0x80)
+                {
+                    lm.unlitx = f->getlil<ushort>();
+                    lm.unlity = f->getlil<ushort>();
+                }
             }
+            if(lm.type&LM_ALPHA && (lm.type&LM_TYPE)!=LM_BUMPMAP1) lm.bpp = 4;
+            lm.data = new uchar[lm.bpp*LM_PACKW*LM_PACKH];
+            f->read(lm.data, lm.bpp * LM_PACKW * LM_PACKH);
+            lm.finalize();
         }
-        if(lm.type&LM_ALPHA && (lm.type&LM_TYPE)!=LM_BUMPMAP1) lm.bpp = 4;
-        lm.data = new uchar[lm.bpp*LM_PACKW*LM_PACKH];
-        f->read(lm.data, lm.bpp * LM_PACKW * LM_PACKH);
-        lm.finalize();
-    }
 
-    if(hdr.version >= 25 && hdr.numpvs > 0) loadpvs(f, hdr.numpvs);
-    if(hdr.version >= 28 && hdr.blendmap) loadblendmap(f, hdr.blendmap);
+        if(hdr.version >= 25 && hdr.numpvs > 0) loadpvs(f, hdr.numpvs);
+        if(hdr.version >= 28 && hdr.blendmap) loadblendmap(f, hdr.blendmap);
+    }
 #endif // INTENSITY
 
 //    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures

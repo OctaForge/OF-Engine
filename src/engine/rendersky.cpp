@@ -4,15 +4,29 @@ Texture *sky[6] = { 0, 0, 0, 0, 0, 0 }, *clouds[6] = { 0, 0, 0, 0, 0, 0 }, *star
 
 void loadsky(const char *basename, Texture *texs[6])
 {
+    const char *wildcard = strchr(basename, '*');
     loopi(6)
     {
         const char *side = cubemapsides[i].name;
-        defformatstring(name)("%s_%s.jpg", makerelpath("data", basename), side);
-        if((texs[i] = textureload(name, 3, true, false))==notexture)
+        string name;
+        copystring(name, makerelpath("data", basename));
+        if(wildcard)
         {
-            strcpy(name+strlen(name)-3, "png");
-            if((texs[i] = textureload(name, 3, true, false))==notexture) conoutf(CON_ERROR, "could not load sky texture data/%s_%s", basename, side);
+            char *chop = strchr(name, '*');
+            if(chop) { *chop = '\0'; concatstring(name, side); concatstring(name, wildcard+1); }
+            texs[i] = textureload(name, 3, true, false); 
         }
+        else
+        {
+            defformatstring(ext)("_%s.jpg", side);
+            concatstring(name, ext);
+            if((texs[i] = textureload(name, 3, true, false))==notexture)
+            {
+                strcpy(name+strlen(name)-3, "png");
+                texs[i] = textureload(name, 3, true, false);
+            }
+        }
+        if(texs[i]==notexture) conoutf(CON_ERROR, "could not load side %s of sky texture %s", side, basename);
     }
 }
 
@@ -20,12 +34,21 @@ Texture *cloudoverlay = NULL; Texture *altcloudoverlay = NULL; // INTENSITY: Sky
 
 Texture *loadskyoverlay(const char *basename)
 {
-    defformatstring(name)("%s.jpg", makerelpath("data", basename));
-    Texture *t = textureload(name, 0, true, false);
-    if(t!=notexture) return t;
-    strcpy(name+strlen(name)-3, "png");
-    t = textureload(name, 0, true, false);
-    if(t==notexture) conoutf(CON_ERROR, "could not load sky overlay texture data/%s", basename);
+    const char *ext = strrchr(basename, '.'); 
+    string name;
+    copystring(name, makerelpath("data", basename));
+    Texture *t = notexture;
+    if(ext) t = textureload(name, 0, true, false);
+    else
+    {
+        concatstring(name, ".jpg");
+        if((t = textureload(name, 0, true, false)) == notexture)
+        {
+            strcpy(name+strlen(name)-3, "png");
+            t = textureload(name, 0, true, false);
+        }
+    }
+    if(t==notexture) conoutf(CON_ERROR, "could not load sky overlay texture %s", basename);
     return t;
 }
 

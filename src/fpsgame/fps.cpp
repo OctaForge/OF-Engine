@@ -198,7 +198,7 @@ namespace game
             // might be better to also add an explicit condition, that we don't just check for 0
             // lagtime as below, but also for lagtime within say 1-2 frames at the server's fps rate.
 #if (SERVER_DRIVEN_PLAYERS == 0)
-            const int lagtime = lastmillis-d->lastupdate; // Change to '1' to have server ALWAYS run physics
+            const int lagtime = totalmillis-d->lastupdate; // Change to '1' to have server ALWAYS run physics
 #else
             const int lagtime = 1;
 #endif

@@ -13,6 +13,7 @@ struct lightmapworker
     int bufstart, bufused;
     lightmapinfo *firstlightmap, *lastlightmap, *curlightmaps;
     cube *c;
+    cubeext *ext;
     uchar *colorbuf;
     bvec *raybuf;
     uchar *ambient, *blur;
@@ -52,12 +53,20 @@ struct lightmaptask
     ivec o;
     int size, usefaces, progress;
     cube *c;
+    cubeext *ext;
     lightmapinfo *lightmaps;
     lightmapworker *worker;
 };
 
+struct lightmapext
+{
+    cube *c;
+    cubeext *ext;
+};
+
 static vector<lightmapworker *> lightmapworkers;
 static vector<lightmaptask> lightmaptasks[2];
+static vector<lightmapext> lightmapexts;
 static int packidx = 0, allocidx = 0;
 static SDL_mutex *lightlock = NULL, *tasklock = NULL;
 static SDL_cond *fullcond = NULL, *emptycond = NULL;
@@ -172,7 +181,7 @@ void setsurface(cube &c, int orient, const surfaceinfo &src, const vertinfo *src
             cubeext *ext = c.ext;
             if(numbefore + numsrcverts + numafter > c.ext->maxverts)
             {
-                ext = growcubeext(c, numbefore + numsrcverts + numafter);
+                ext = growcubeext(c.ext, numbefore + numsrcverts + numafter);
                 memcpy(ext->surfaces, c.ext->surfaces, sizeof(ext->surfaces));
             }
             int offset = 0;
@@ -1143,6 +1152,12 @@ static int packlightmaps(lightmapworker *w = NULL)
     {
         lightmaptask &t = lightmaptasks[0][packidx];
         if(!t.lightmaps) break;
+        if(t.ext && t.c->ext != t.ext) 
+        {
+            lightmapext &e = lightmapexts.add();
+            e.c = t.c;
+            e.ext = t.ext;
+        }
         progress = t.progress;
         lightmapinfo *l = t.lightmaps;
         if(l == (lightmapinfo *)-1) continue;
@@ -1151,12 +1166,12 @@ static int packlightmaps(lightmapworker *w = NULL)
         {
             l->packed = true;
             space += l->bufsize;
-            if(l->surface < 0 || !t.c->ext) continue; 
-            surfaceinfo &surf = t.c->ext->surfaces[l->surface];
+            if(l->surface < 0 || !t.ext) continue; 
+            surfaceinfo &surf = t.ext->surfaces[l->surface];
             layoutinfo layout;
             packlightmap(*l, layout);
             int numverts = surf.numverts&MAXFACEVERTS;
-            vertinfo *verts = t.c->ext->verts() + surf.verts;
+            vertinfo *verts = t.ext->verts() + surf.verts;
             if(surf.numverts&LAYER_DUP)
             {
                 if(l->type&LM_ALPHA) surf.lmid[0] = layout.lmid;
@@ -1421,7 +1436,9 @@ static lightmapinfo *setupsurfaces(lightmapworker *w, lightmaptask &task)
         usefacemask >>= 4;
         if(!usefaces)
         {
+            if(!c.ext) continue;
             surfaceinfo &surf = surfaces[i];
+            surf = c.ext->surfaces[i];
             int numverts = surf.totalverts();
             if(numverts)
             {
@@ -1614,7 +1631,10 @@ static lightmapinfo *setupsurfaces(lightmapworker *w, lightmaptask &task)
         surfaceinfo &surf = surfaces[k];
         if(surf.used())
         {
-            setsurfaces(c, surfaces, litverts, numlitverts);
+            cubeext *ext = c.ext && c.ext->maxverts >= numlitverts ? c.ext : growcubeext(c.ext, numlitverts);
+            memcpy(ext->surfaces, surfaces, sizeof(ext->surfaces));
+            memcpy(ext->verts(), litverts, numlitverts*sizeof(vertinfo));
+            task.ext = ext;
             break;
         }
     }
@@ -1715,6 +1735,7 @@ static void generatelightmaps(cube *c, int cx, int cy, int cz, int size)
                 t.size = size;
                 t.usefaces = usefacemask;
                 t.c = &c[i]; 
+                t.ext = NULL;
                 t.lightmaps = NULL;
                 t.progress = taskprogress;
                 if(lightmaptasks[1].length() >= MAXLIGHTMAPTASKS && !processtasks()) return;
@@ -2012,6 +2033,7 @@ static void cleanuplocks()
 static void setupthreads()
 {
     loopi(2) lightmaptasks[i].setsize(0);
+    lightmapexts.setsize(0);
     packidx = allocidx = 0;
     lightmapping = lightthreads;
     if(lightmapping > 1)
@@ -2053,6 +2075,11 @@ static void cleanupthreads()
             lightmapworker *w = lightmapworkers[i];
             if(w->thread) SDL_WaitThread(w->thread, NULL);
         }
+    }
+    loopv(lightmapexts)
+    {
+        lightmapext &e = lightmapexts[i];
+        setcubeext(*e.c, e.ext);
     }
     loopv(lightmapworkers) lightmapworkers[i]->cleanupthread();
     cleanuplocks();

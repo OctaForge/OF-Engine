@@ -49,7 +49,7 @@ static void scaletex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint
     uint cscale = clamp(under, over - 12, 12),
          ascale = clamp(12 + under - over, 0, 24),
          dscale = ascale + 12 - cscale,
-         area = ((unsigned long long int)darea<<ascale)/sarea;
+         area = ((ullong)darea<<ascale)/sarea;
     dw *= wfrac;
     dh *= hfrac;
     for(uint y = 0; y < dh; y += hfrac)
@@ -147,6 +147,90 @@ static inline void reorienttexture(uchar *src, int sw, int sh, int bpp, int stri
     }
 }
 
+static void reorients3tc(GLenum format, int blocksize, int w, int h, uchar *src, uchar *dst, bool flipx, bool flipy, bool swapxy, bool normals = false)
+{
+    int bx1 = 0, by1 = 0, bx2 = min(w, 4), by2 = min(h, 4), bw = (w+3)/4, bh = (h+3)/4, stridex = blocksize, stridey = blocksize;
+    if(swapxy) stridex *= bw; else stridey *= bh;
+    if(flipx) { dst += (bw-1)*stridex; stridex = -stridex; bx1 += 4-bx2; bx2 = 4; }
+    if(flipy) { dst += (bh-1)*stridey; stridey = -stridey; by1 += 4-by2; by2 = 4; }
+    loopi(bh)
+    {
+        for(uchar *curdst = dst, *end = &src[bw*blocksize]; src < end; src += blocksize, curdst += stridex)
+        {
+            if(format == GL_COMPRESSED_RGBA_S3TC_DXT3_EXT)
+            {
+                ullong salpha = lilswap(*(ullong *)src), dalpha = 0;
+                uint xmask = flipx ? 15 : 0, ymask = flipy ? 15 : 0, xshift = 2, yshift = 4;
+                if(swapxy) swap(xshift, yshift);
+                for(int y = by1; y < by2; y++) for(int x = bx1; x < bx2; x++)
+                {
+                    dalpha |= ((salpha&15) << (((xmask^x)<<xshift) + ((ymask^y)<<yshift)));
+                    salpha >>= 4;
+                }
+                *(ullong *)curdst = lilswap(dalpha);
+                src += 8;
+                curdst += 8;
+            }
+            else if(format == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
+            {
+                uchar alpha1 = src[0], alpha2 = src[1];
+                ullong salpha = lilswap(*(ushort *)&src[2]) + ((ullong)lilswap(*(ushort *)&src[4])<<16) + ((ullong)lilswap(*(ushort *)&src[6])<<32), dalpha = 0;
+                uint xmask = flipx ? 7 : 0, ymask = flipy ? 7 : 0, xshift = 0, yshift = 2;
+                if(swapxy) swap(xshift, yshift);
+                for(int y = by1; y < by2; y++) for(int x = bx1; x < bx2; x++)
+                {
+                    dalpha |= ((salpha&7) << (3*((xmask^x)<<xshift) + ((ymask^y)<<yshift)));
+                    salpha >>= 3;
+                }
+                curdst[0] = alpha1;
+                curdst[1] = alpha2;
+                *(ushort *)&curdst[2] = lilswap(ushort(dalpha));
+                *(ushort *)&curdst[4] = lilswap(ushort(dalpha>>16));
+                *(ushort *)&curdst[6] = lilswap(ushort(dalpha>>32));
+                src += 8;
+                curdst += 8;
+            }
+
+            ushort color1 = lilswap(*(ushort *)src), color2 = lilswap(*(ushort *)&src[2]);
+            uint sbits = lilswap(*(uint *)&src[4]);
+            if(normals)
+            {
+                ushort ncolor1 = color1, ncolor2 = color2;
+                if(flipx) 
+                { 
+                    ncolor1 = (ncolor1 & ~0xF800) | (0xF800 - (ncolor1 & 0xF800)); 
+                    ncolor2 = (ncolor2 & ~0xF800) | (0xF800 - (ncolor2 & 0xF800));
+                }
+                if(flipy)
+                {
+                    ncolor1 = (ncolor1 & ~0x7E0) | (0x7E0 - (ncolor1 & 0x7E0));
+                    ncolor2 = (ncolor2 & ~0x7E0) | (0x7E0 - (ncolor2 & 0x7E0));
+                }
+                if(swapxy)
+                {
+                    ncolor1 = (ncolor1 & 0x1F) | (((((ncolor1 >> 11) & 0x1F) * 0x3F) / 0x1F) << 5) | (((((ncolor1 >> 5) & 0x3F) * 0x1F) / 0x3F) << 11);
+                    ncolor2 = (ncolor2 & 0x1F) | (((((ncolor2 >> 11) & 0x1F) * 0x3F) / 0x1F) << 5) | (((((ncolor2 >> 5) & 0x3F) * 0x1F) / 0x3F) << 11);
+                }
+                if(color1 <= color2 && ncolor1 > ncolor2) { color1 = ncolor2; color2 = ncolor1; }
+                else { color1 = ncolor1; color2 = ncolor2; }
+            }
+            uint dbits = 0, xmask = flipx ? 3 : 0, ymask = flipy ? 3 : 0, xshift = 1, yshift = 3;
+            if(swapxy) swap(xshift, yshift);
+            for(int y = by1; y < by2; y++) for(int x = bx1; x < bx2; x++)
+            {
+                dbits |= ((sbits&3) << (((xmask^x)<<xshift) + ((ymask^y)<<yshift)));
+                sbits >>= 2;
+            }
+            *(ushort *)curdst = lilswap(color1);
+            *(ushort *)&curdst[2] = lilswap(color2);
+            *(uint *)&curdst[4] = lilswap(dbits);
+
+            if(blocksize > 8) { src -= 8; curdst -= 8; }
+        }
+        dst += stridey;
+    }
+}
+
 #define writetex(t, body) \
     { \
         uchar *dstrow = t.data; \
@@ -191,8 +275,27 @@ static inline void reorienttexture(uchar *src, int sw, int sh, int bpp, int stri
 
 void texreorient(ImageData &s, bool flipx, bool flipy, bool swapxy, int type = TEX_DIFFUSE)
 {
-    ImageData d(swapxy ? s.h : s.w, swapxy ? s.w : s.h, s.bpp);
-    reorienttexture(s.data, s.w, s.h, s.bpp, s.pitch, d.data, flipx, flipy, swapxy, type==TEX_NORMAL);
+    ImageData d(swapxy ? s.h : s.w, swapxy ? s.w : s.h, s.bpp, s.levels, s.align, s.compressed);
+    switch(s.compressed)
+    {
+    case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+    case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+    case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+    case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+        {
+            uchar *dst = d.data, *src = s.data;
+            loopi(s.levels)
+            {
+                reorients3tc(s.compressed, s.bpp, max(s.w>>i, 1), max(s.h>>i, 1), src, dst, flipx, flipy, swapxy, type==TEX_NORMAL);
+                src += s.calclevelsize(i);
+                dst += d.calclevelsize(i);
+            }
+            break;
+        }
+    default:
+        reorienttexture(s.data, s.w, s.h, s.bpp, s.pitch, d.data, flipx, flipy, swapxy, type==TEX_NORMAL);
+        break;
+    }
     s.replace(d);
 }
 
@@ -502,7 +605,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
     if(buf) delete[] buf;
 }
 
-void uploadcompressedtexture(GLenum target, GLenum format, int w, int h, uchar *data, int align, int blocksize, int levels, bool mipmap)
+void uploadcompressedtexture(GLenum target, GLenum subtarget, GLenum format, int w, int h, uchar *data, int align, int blocksize, int levels, bool mipmap)
 {
     int hwlimit = target==GL_TEXTURE_CUBE_MAP_ARB ? hwcubetexsize : hwtexsize,
         sizelimit = levels > 1 && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
@@ -512,8 +615,8 @@ void uploadcompressedtexture(GLenum target, GLenum format, int w, int h, uchar *
         int size = ((w + align-1)/align) * ((h + align-1)/align) * blocksize;
         if(w <= sizelimit && h <= sizelimit)
         {
-            if(target==GL_TEXTURE_1D) glCompressedTexImage1D_(target, level, format, w, 0, size, data);
-            else glCompressedTexImage2D_(target, level, format, w, h, 0, size, data);
+            if(target==GL_TEXTURE_1D) glCompressedTexImage1D_(subtarget, level, format, w, 0, size, data);
+            else glCompressedTexImage2D_(subtarget, level, format, w, h, 0, size, data);
             level++;
             if(!mipmap) break;
         }
@@ -535,7 +638,6 @@ GLenum textarget(GLenum subtarget)
         case GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB:
         case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB:
             return GL_TEXTURE_CUBE_MAP_ARB;
-            break;
     }
     return subtarget;
 }
@@ -633,7 +735,7 @@ void createcompressedtexture(int tnum, int w, int h, uchar *data, int align, int
 {
     GLenum target = textarget(subtarget);
     if(tnum) setuptexparameters(tnum, data, clamp, filter, format, target);
-    uploadcompressedtexture(target, format, w, h, data, align, blocksize, levels, filter > 1); 
+    uploadcompressedtexture(target, subtarget, format, w, h, data, align, blocksize, levels, filter > 1); 
 }
 
 hashtable<char*, Texture> textures;
@@ -2116,16 +2218,16 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
         case GL_RGB: component = GL_RGB5; break;
     }
     glGenTextures(1, &t->id);
-    int sizelimit = mipit && maxtexsize ? min(maxtexsize, hwcubetexsize) : hwcubetexsize;
     loopi(6)
     {
         ImageData &s = surface[i];
         cubemapside &side = cubemapsides[i];
+        texreorient(s, side.flipx, side.flipy, side.swapxy);
         if(s.compressed)
         {
             int w = s.w, h = s.h, levels = s.levels, level = 0;
             uchar *data = s.data;
-            while(levels > 1 && (w > sizelimit || h > sizelimit))
+            while(levels > 1 && (w > t->w || h > t->h))
             {
                 data += s.calclevelsize(level++);
                 levels--;
@@ -2136,7 +2238,6 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
         }
         else
         {
-            texreorient(s, side.flipx, side.flipy, side.swapxy);
             createtexture(!i ? t->id : 0, t->w, t->h, s.data, 3, mipit ? 2 : 1, component, side.target, s.w, s.h, s.pitch, false, format);
         }
     }
