@@ -170,7 +170,7 @@ namespace tools
 
     void writecfg(const char *name)
     {
-        stream *f = openfile(path(name && name[0] ? name : game::savedconfig(), true), "w");
+        stream *f = openutf8file(path(name && name[0] ? name : game::savedconfig(), true), "wb");
         if(!f) return;
 
         f->printf("-- automatically written on exit, DO NOT MODIFY\n");

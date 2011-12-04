@@ -18,6 +18,8 @@ namespace server
 }
 bool should_quit = false;
 
+#define LOGSTRLEN 512
+
 static FILE *logfile = NULL;
 
 void closelogfile()
@@ -40,18 +42,31 @@ void setlogfile(const char *fname)
     setvbuf(logfile ? logfile : stdout, NULL, _IOLBF, BUFSIZ);
 }
 
-void logoutfv(const char *fmt, va_list args)
-{
-    vfprintf(logfile ? logfile : stdout, fmt, args);
-    fputc('\n', logfile ? logfile : stdout);
-}
-
 void logoutf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     logoutfv(fmt, args);
     va_end(args);
+}
+
+static void writelog(FILE *file, const char *fmt, va_list args)
+{
+    static char buf[LOGSTRLEN];
+    static uchar ubuf[512];
+    vformatstring(buf, fmt, args, sizeof(buf));
+    int len = strlen(buf), carry = 0;
+    while(carry < len)
+    {
+        int numu = encodeutf8(ubuf, sizeof(ubuf)-1, &((uchar *)buf)[carry], len - carry, &carry);
+        if(carry >= len) ubuf[numu++] = '\n';
+        fwrite(ubuf, 1, numu, file);
+    }
+}
+
+void logoutfv(const char *fmt, va_list args)
+{
+    writelog(logfile ? logfile : stdout, fmt, args);
 }
 
 #ifdef STANDALONE
@@ -211,14 +226,14 @@ void getstring(types::String& text, ucharbuf &p, int len)
 
 void filtertext(char *dst, const char *src, bool whitespace, int len)
 {
-    for(int c = *src; c; c = *++src)
+    for(int c = uchar(*src); c; c = uchar(*++src))
     {
         if(c == '\f')
         {
             if(!*++src) break;
             continue;
         }
-        if(isspace(c) ? whitespace : isprint(c))
+        if(iscubeprint(c) || (isspace(c) && whitespace))
         {
             *dst++ = c;
             if(!--len) break;
@@ -349,7 +364,7 @@ void disconnect_client(int n, int reason)
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
     defformatstring(s)("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
-    puts(s);
+    logoutf("%s", s);
     server::sendservmsg(s);
 }
 

@@ -821,21 +821,21 @@ static inline bool clampcollide(const clipplanes &p, const E &entvol, const plan
         vec c = entvol.center();
         float fv = pw.x < p.o.x ? p.o.x-p.r.x : p.o.x+p.r.x, fdist = (w.x*fv + w.y*c.y + w.z*c.z + w.offset) / (w.y*w.y + w.z*w.z);
         vec fdir(fv - c.x, -w.y*fdist, -w.z*fdist);
-        if(entvol.supportpoint(fdir).squaredist(c) < fdir.squaredlen()) return true;
+        if((pw.y-c.y-fdir.y)*w.y + (pw.z-c.z-fdir.z)*w.z >= 0 && entvol.supportpoint(fdir).squaredist(c) < fdir.squaredlen()) return true;
     }
     if(w.y && (w.x || w.z) && fabs(pw.y - p.o.y) > p.r.y)
     {
         vec c = entvol.center();
         float fv = pw.y < p.o.y ? p.o.y-p.r.y : p.o.y+p.r.y, fdist = (w.x*c.x + w.y*fv + w.z*c.z + w.offset) / (w.x*w.x + w.z*w.z);
         vec fdir(-w.x*fdist, fv - c.y, -w.z*fdist);
-        if(entvol.supportpoint(fdir).squaredist(c) < fdir.squaredlen()) return true;
+        if((pw.x-c.x-fdir.x)*w.x + (pw.z-c.z-fdir.z)*w.z >= 0 && entvol.supportpoint(fdir).squaredist(c) < fdir.squaredlen()) return true;
     }
     if(w.z && (w.x || w.y) && fabs(pw.z - p.o.z) > p.r.z)
     {
         vec c = entvol.center();
         float fv = pw.z < p.o.z ? p.o.z-p.r.z : p.o.z+p.r.z, fdist = (w.x*c.x + w.y*c.y + w.z*fv + w.offset) / (w.x*w.x + w.y*w.y);
         vec fdir(-w.x*fdist, -w.y*fdist, fv - c.z);
-        if(entvol.supportpoint(fdir).squaredist(c) < fdir.squaredlen()) return true;
+        if((pw.x-c.x-fdir.x)*w.x + (pw.y-c.y-fdir.y)*w.y >= 0 && entvol.supportpoint(fdir).squaredist(c) < fdir.squaredlen()) return true;
     }
     return false;
 }
@@ -873,6 +873,7 @@ static bool fuzzycollideplanes(physent *d, const vec &dir, float cutoff, cube &c
         wall = w;
         bestdist = dist;
     }
+    int bestplane = -1;
     loopi(p.size)
     {
         plane &w = p.p[i];
@@ -880,7 +881,7 @@ static bool fuzzycollideplanes(physent *d, const vec &dir, float cutoff, cube &c
         float dist = w.dist(pw);
         if(dist >= 0) return true;
         if(dist <= bestdist) continue;
-        wall = vec(0, 0, 0);
+        bestplane = -1;
         bestdist = dist;
         if(!dir.iszero())
         {
@@ -892,9 +893,10 @@ static bool fuzzycollideplanes(physent *d, const vec &dir, float cutoff, cube &c
                 continue;
         }
         if(clampcollide(p, entvol, w, pw)) continue;
-        wall = w;
+        bestplane = i;
     }
-    if(wall.iszero())
+    if(bestplane >= 0) wall = p.p[bestplane];
+    else if(wall.iszero())
     {
         inside = true;
         return true;
@@ -980,13 +982,14 @@ static bool cubecollideplanes(physent *d, const vec &dir, float cutoff, cube &c,
         wall = w;
         bestdist = dist;
     }
+    int bestplane = -1;
     loopi(p.size)
     {
         plane &w = p.p[i];
         vec pw = entvol.supportpoint(vec(w).neg());
         float dist = w.dist(pw);
         if(dist <= bestdist) continue;
-        wall = vec(0, 0, 0);
+        bestplane = -1;
         bestdist = dist;
         if(!dir.iszero())
         {
@@ -998,9 +1001,10 @@ static bool cubecollideplanes(physent *d, const vec &dir, float cutoff, cube &c,
                 continue;
         }
         if(clampcollide(p, entvol, w, pw)) continue;
-        wall = w;
+        bestplane = i;
     }
-    if(wall.iszero())
+    if(bestplane >= 0) wall = p.p[bestplane];
+    else if(wall.iszero())
     {
         inside = true;
         return true;
@@ -1689,7 +1693,7 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
         {
             if(pl==player) d.mul(floatspeed/100.0f);
         }
-        else if(!water && game::allowmove(pl)) d.mul((pl->move && !pl->strafe ? 1.3f : 1.0f) * (pl->physstate < PHYS_SLOPE ? 1.3f : 1.0f)); // EXPERIMENTAL
+        else if(!water && game::allowmove(pl)) d.mul((pl->move && !pl->strafe ? 1.3f : 1.0f) * (pl->physstate < PHYS_SLOPE ? 1.3f : 1.0f));
     }
     float fric = water && !floating ? 20.0f : (pl->physstate >= PHYS_SLOPE || floating ? 6.0f : 30.0f);
     pl->vel.lerp(d, pl->vel, pow(1 - 1/fric, curtime/20.0f));

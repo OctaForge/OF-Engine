@@ -419,6 +419,19 @@ void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
                 }
             }
         }
+        if(mapversion <= 8) edgespan2vectorcube(c);
+        if(mapversion <= 11)
+        {
+            swap(c.faces[0], c.faces[2]);
+            swap(c.texture[0], c.texture[4]);
+            swap(c.texture[1], c.texture[5]);
+            if(hassurfs&0x33)
+            {
+                swap(surfaces[0], surfaces[4]);
+                swap(surfaces[1], surfaces[5]);
+                hassurfs = (hassurfs&~0x33) | ((hassurfs&0x30)>>4) | ((hassurfs&0x03)<<4);
+            }
+        }
         if(mapversion >= 20)
         {
             if(octsav&0x80)
@@ -829,22 +842,6 @@ static uint mapcrc = 0;
 
 uint getmapcrc() { return mapcrc; }
 
-static void swapXZ(cube *c)
-{    
-    loopi(8) 
-    {
-        swap(c[i].faces[0],   c[i].faces[2]);
-        swap(c[i].texture[0], c[i].texture[4]);
-        swap(c[i].texture[1], c[i].texture[5]);
-        if(c[i].ext && c[i].ext->surfaces)
-        {
-            swap(c[i].ext->surfaces[0], c[i].ext->surfaces[4]);
-            swap(c[i].ext->surfaces[1], c[i].ext->surfaces[5]);
-        }
-        if(c[i].children) swapXZ(c[i].children);
-    }
-}
-
 bool finish_load_world(); // INTENSITY: Added this, and use it inside load_world
 
 const char *_saved_mname = NULL; // INTENSITY
@@ -890,7 +887,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(hdr.version <= 28)
     {
         lilswap(&chdr.lightprecision, 3);
-        if(hdr.version<=20) conoutf(CON_WARN, "loading older / less efficient map format, may benefit from \"calclight\", then \"savecurrentmap\"");
         if(chdr.lightprecision) SETVF(lightprecision, chdr.lightprecision);
         if(chdr.lighterror) SETVF(lighterror, chdr.lighterror);
         if(chdr.bumperror) SETVF(bumperror, chdr.bumperror);
@@ -1094,12 +1090,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     bool failed = false;
     worldroot = loadchildren(f, ivec(0, 0, 0), hdr.worldsize>>1, failed);
     if(failed) conoutf(CON_ERROR, "garbage in map");
-
-    if(hdr.version <= 11)
-        swapXZ(worldroot);
-
-    if(hdr.version <= 8)
-        converttovectorworld();
 
     renderprogress(0, "validating...");
     validatec(worldroot, hdr.worldsize>>1);

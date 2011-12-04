@@ -115,7 +115,7 @@ VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 void writeinitcfg()
 {
     if(!restoredinits) return;
-    stream *f = openfile("init.lua", "w");
+    stream *f = openutf8file("init.lua", "wb");
     if(!f) return;
     f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
     extern int& fullscreen, &useshaders, &shaderprecision, &forceglsl, &soundchans, &soundfreq, &soundbufferlen;
@@ -849,7 +849,7 @@ void checkinput()
                 printf("SDL_KEY: %d, %d, %d\r\n", event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode);
                 #endif // INTENSITY end
 
-                keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode);
+                keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, uni2cube(event.key.keysym.unicode));
                 break;
 
             case SDL_ACTIVEEVENT:

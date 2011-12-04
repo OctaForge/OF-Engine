@@ -121,18 +121,20 @@ struct font
 {
     struct charinfo
     {
-        short x, y, w, h;
+        short x, y, w, h, offsetx, offsety, advance, tex;
     };
 
-    types::String name;
-    Texture *tex;
+    char *name;
+    vector<Texture *> texs;
     vector<charinfo> chars;
-    int charoffset, defaultw, defaulth;
-    int offsetx, offsety, offsetw, offseth;
+    int charoffset, defaultw, defaulth, scale;
+
+    font() : name(NULL) {}
+    ~font() { DELETEA(name); }
 };
 
-#define FONTH (curfont->defaulth)
-#define FONTW (curfont->defaultw)
+#define FONTH (curfont->scale)
+#define FONTW (FONTH/2)
 #define MINRESW 640
 #define MINRESH 480
 
@@ -248,7 +250,7 @@ extern void resetclipplanes();
 extern int getmippedtexture(cube &p, int orient);
 extern void forcemip(cube &c, bool fixtex = true);
 extern bool subdividecube(cube &c, bool fullcheck=true, bool brighten=true);
-extern void converttovectorworld();
+extern void edgespan2vectorcube(cube &c);
 extern int faceconvexity(ivec v[4]);
 extern int faceconvexity(ivec v[4], int &vis);
 extern int faceconvexity(vertinfo *verts, int numverts);
@@ -265,7 +267,6 @@ extern void genclipplanes(cube &c, int x, int y, int z, int size, clipplanes &p)
 extern bool visibleface(cube &c, int orient, int x, int y, int z, int size, uchar mat = MAT_AIR, uchar nmat = MAT_AIR, uchar matmask = MATF_VOLUME);
 extern int visibletris(cube &c, int orient, int x, int y, int z, int size, uchar nmat = MAT_AIR, uchar matmask = MAT_AIR);
 extern int visibleorient(cube &c, int orient);
-extern bool threeplaneintersect(plane &pl1, plane &pl2, plane &pl3, vec &dest);
 extern void genfaceverts(cube &c, int orient, ivec v[4]);
 extern int calcmergedsize(int orient, const ivec &co, int size, const vertinfo *verts, int numverts);
 extern void invalidatemerges(cube &c, const ivec &co, int size, bool msg);

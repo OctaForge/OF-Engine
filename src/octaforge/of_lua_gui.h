@@ -28,9 +28,13 @@
  */
 
 /* PROTOTYPES */
-void newfont(const char *name, const char *tex, int defaultw, int defaulth, int offsetx, int offsety, int offsetw, int offseth);
-void fontoffset(char *c);
-void fontchar(int x, int y, int w, int h);
+void newfont(const char *name, const char *tex, int defaultw, int defaulth);
+void fontoffset(const char *c);
+void fontscale(int scale);
+void fonttex(const char *s);
+void fontchar(int x, int y, int w, int h, int offsetx, int offsety, int advance);
+void fontskip(int n);
+void fontalias(const char *dst, const char *src);
 
 namespace gui
 {
@@ -80,9 +84,13 @@ void _bind_getchanges  (lua_Engine e);
 
 namespace lua_binds
 {
-    LUA_BIND_STD_CLIENT(font, newfont, e.get<const char*>(1), e.get<const char*>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<int>(6), e.get<int>(7), e.get<int>(8))
+    LUA_BIND_STD_CLIENT(font, newfont, e.get<const char*>(1), e.get<const char*>(2), e.get<int>(3), e.get<int>(4))
     LUA_BIND_STD_CLIENT(fontoffset, fontoffset, e.get<char*>(1))
-    LUA_BIND_STD_CLIENT(fontchar, fontchar, e.get<int>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4))
+    LUA_BIND_STD_CLIENT(fonttex, fonttex, e.get<const char*>(1))
+    LUA_BIND_STD_CLIENT(fontscale, fontscale, e.get<int>(1))
+    LUA_BIND_STD_CLIENT(fontchar, fontchar, e.get<int>(1), e.get<int>(2), e.get<int>(3), e.get<int>(4), e.get<int>(5), e.get<int>(6), e.get<int>(7))
+    LUA_BIND_STD_CLIENT(fontskip, fontskip, e.get<int>(1))
+    LUA_BIND_STD_CLIENT(fontalias, fontalias, e.get<const char*>(1), e.get<const char*>(2))
 
     LUA_BIND_STD_CLIENT(menukeyclicktrig, GuiControl::menuKeyClickTrigger)
 

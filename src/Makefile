@@ -490,6 +490,13 @@ server: enet lua $(SERVER_OBJ_BUILD)
 	$(AT) $(CXX) $(CXXFLAGS) -o $(SERVER_BIN) $(SERVER_OBJ_BUILD) $(SERVER_LDD)
 	@echo $(GREEN)Built target: server.$(ENDCOL)
 
+$(OBJDIR)/cube2font.o: shared/cube2font.c
+	$(CXX) $(CXXFLAGS) -c -o $@ $< `freetype-config --cflags`
+
+cube2font: $(OBJDIR)/cube2font.o
+	$(CXX) $(CXXFLAGS) -o cube2font $(OBJDIR)/cube2font.o \
+		`freetype-config --libs` -lz -lpng
+
 # general targets
 all: client server
 

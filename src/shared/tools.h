@@ -979,7 +979,7 @@ struct stream
     virtual bool getline(char *str, int len);
     virtual bool putstring(const char *str) { int len = (int)strlen(str); return write(str, len) == len; }
     virtual bool putline(const char *str) { return putstring(str) && putchar('\n'); }
-    virtual int printf(const char *fmt, ...) { return -1; }
+    virtual int printf(const char *fmt, ...);
     virtual uint getcrc() { return 0; }
 
     template<class T> bool put(T n) { return write(&n, sizeof(n)) == sizeof(n); }
@@ -995,6 +995,11 @@ struct stream
 #endif
 };
 
+extern int iscubeprint(int c);
+extern int uni2cube(int c);
+extern int cube2uni(int c);
+extern int decodeutf8(uchar *dst, uchar *src, int len, int *carry = NULL);
+extern int encodeutf8(uchar *dstbuf, int dstlen, uchar *srcbuf, int srclen, int *carry = NULL);
 extern char *makerelpath(const char *dir, const char *file, const char *prefix = NULL, const char *cmd = NULL);
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
@@ -1010,7 +1015,8 @@ extern stream *openzipfile(const char *filename, const char *mode);
 extern stream *openfile(const char *filename, const char *mode);
 extern stream *opentempfile(const char *filename, const char *mode);
 extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
-extern char *loadfile(const char *fn, int *size);
+extern stream *openutf8file(const char *filename, const char *mode, stream *file = NULL);
+extern char *loadfile(const char *fn, int *size, bool utf8 = true);
 extern bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
