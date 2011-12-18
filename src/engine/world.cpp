@@ -909,19 +909,18 @@ void entpaste()
         CLogicEntity *entity = LogicSystem::getLogicEntity(c);
         const char *_class = entity->getClass();
 
-        using namespace lua;
-        engine.getref(entity->luaRef).t_getraw("create_state_data_dict");
-        engine.push_index(-2).call(1, 1);
-        engine.push("__ccentcopy__TEMP").shift();
-        engine.setg().pop(1);
+        lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
+            "create_state_data_dict"
+        ).call<lua::Object>(entity->lua_ref);
 
-        defformatstring(s)("__ccentcopy__TEMP.position = '[%f|%f|%f]'", o.x, o.y, o.z);
-        engine.exec(s);
+        lapi::state.get<lua::Table>(
+            "__centcopy__TEMP"
+        )["position"] = types::String().format("[%f|%f|%f]", o.x, o.y, o.z);
 
-        engine.getg("json").t_getraw("encode");
-        engine.getg("__ccentcopy__TEMP").call(1, 1);
-        const char *sd = engine.get(-1, "{}");
-        engine.pop(2);
+        const char *sd = lapi::state.get<lua::Function>(
+            "json", "encode"
+        ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
+        if (!sd) sd = "{}";
 
         EditingSystem::newent(_class, sd);
         // INTENSITY: end Create entity using new system
@@ -990,20 +989,20 @@ void intensityentcopy() // INTENSITY
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     intensityCopiedClass = entity->getClass();
 
-    using namespace lua;
-    engine.getref(entity->luaRef).t_getraw("create_state_data_dict");
-    engine.push_index(-2).call(1, 1);
-    engine.push("__ccentcopy__TEMP").shift().setg();
-    engine.pop(1);
+    lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
+        "create_state_data_dict"
+    ).call<lua::Object>(entity->lua_ref);
 
-    engine.exec("__ccentcopy__TEMP.position = nil"); // Position is determined at paste time
+    lapi::state.get<lua::Table>(
+        "__ccentcopy__TEMP"
+    )["position"] = lua::nil;
 
-    engine.getg("json").t_getraw("encode");
-    engine.getg("__ccentcopy__TEMP").call(1, 1);
-    intensityCopiedStateData = engine.get(-1, "{}");
-    engine.pop(2);
+    intensityCopiedStateData = lapi::state.get<lua::Function>(
+        "json", "encode"
+    ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
+    if (!intensityCopiedStateData) intensityCopiedStateData = "{}";
 
-    engine.exec("__ccentcopy__TEMP = nil");
+    lapi::state["__ccentcopy__TEMP"] = lua::nil;
 }
 
 void intensitypasteent() // INTENSITY
@@ -1127,7 +1126,7 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     if (usecfg)
     {
         var::overridevars = true;
-        lua::engine.execf("data/cfg/default_map_settings.lua", false);
+        lapi::state.do_file("data/cfg/default_map_settings.lua");
         var::overridevars = false;
     }
 

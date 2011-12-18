@@ -165,7 +165,9 @@ void musicdone()
     if(!musicdonecmd) return;
     char *cmd = musicdonecmd;
     musicdonecmd = NULL;
-    lua::engine.exec(cmd); // CubeCreate: lua
+    auto err = lapi::state.do_string(cmd, lua::ERROR_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     delete[] cmd;
 }
 
@@ -187,9 +189,9 @@ Mix_Music *loadmusic(const char *name)
     return music;
 }
  
-void startmusic(char *name, char *cmd)
+bool startmusic(const char *name, const char *cmd)
 {
-    if(nosound) return;
+    if(nosound) return false;
     stopmusic();
     if(soundvol && musicvol && *name)
     {
@@ -203,14 +205,15 @@ void startmusic(char *name, char *cmd)
             if(cmd[0]) musicdonecmd = newstring(cmd);
             Mix_PlayMusic(music, cmd[0] ? 0 : -1);
             Mix_VolumeMusic((musicvol*MAXVOL)/255);
-            lua::engine.push(true);
+            return true;
         }
         else
         {
             conoutf(CON_ERROR, "could not play music: %s", file);
-            lua::engine.push(false);
+            return false;
         }
     }
+    return false;
 }
 
 hashtable<const char *, soundsample> samples;
@@ -250,9 +253,6 @@ int addsound(const char *name, int vol, int maxuses, vector<soundslot> &sounds)
     slot.maxuses = maxuses;
     return oldlen;
 }
-
-int preload_sound(char *name, int vol); // INTENSITY
-void registersound(char *name, int vol) { lua::engine.push(preload_sound(name, vol)); } // INTENSITY
 
 void resetchannels()
 {
@@ -523,7 +523,7 @@ int playsound(int n, const vec *loc, extentity *ent, int loops, int fade, int ch
     return playing;
 }
 
-int preload_sound(char *name, int vol) // INTENSITY: Actually preload sounds, for responsiveness
+int preload_sound(const char *name, int vol) // INTENSITY: Actually preload sounds, for responsiveness
 {
     int id = findsound(name, vol, gamesounds);
     if(id < 0) id = addsound(name, vol, 0, gamesounds);

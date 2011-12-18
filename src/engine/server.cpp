@@ -634,7 +634,14 @@ bool setuplistenserver(bool dedicated)
 
 void initserver(bool listen, bool dedicated)
 {
-    if(dedicated) lua::engine.execf("server-init.lua", false);
+    if (dedicated)
+    {
+        auto err = lapi::state.do_file(
+            "server-init.lua", lua::ERROR_TRACEBACK
+        );
+        if (types::get<0>(err))
+            logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    }
 
     if(listen) setuplistenserver(dedicated);
 
@@ -789,7 +796,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    lua::engine.create();
+    lapi::init();
     server_init();
 
     logger::log(logger::DEBUG, "Running first slice.\n");

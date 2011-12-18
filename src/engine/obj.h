@@ -197,7 +197,7 @@ struct obj : vertmodel, vertloader<obj>
 
         loading = this;
         var::persistvars = false;
-        if(lua::engine.execf(path(cfgname), false) && parts.length()) // INTENSITY configured obj, will call the obj* commands below
+        if(!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // INTENSITY configured obj, will call the obj* commands below
         {
             var::persistvars = true;
             loading = NULL;
@@ -218,5 +218,8 @@ struct obj : vertmodel, vertloader<obj>
     }
 };
 
-vertcommands<obj> objcommands;
-const types::Vector<LE_reg>& objbinds = objcommands.command_stor;
+lua::Table objcommands()
+{
+    vertcommands<obj> cmds;
+    return cmds.module;
+}

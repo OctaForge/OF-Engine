@@ -31,7 +31,7 @@ void force_quit(); // INTENSITY
 void quit()                     // normal exit
 {
     if (!EditingSystem::madeChanges) force_quit();
-    lua::engine.getg("gui").t_getraw("show").push("can_quit").call(1, 0).pop(1);
+    lapi::state.get<lua::Function>("gui", "show")("can_quit");
 }
 
 void force_quit() // INTENSITY - change quit to force_quit
@@ -45,7 +45,6 @@ void force_quit() // INTENSITY - change quit to force_quit
     tools::writecfg();
     cleanup();
 
-    lua::engine.destroy();
     var::flush();
 
     exit(EXIT_SUCCESS);
@@ -983,14 +982,12 @@ void getfps(int &fps, int &bestdiff, int &worstdiff)
     worstdiff = fps-1000/worst;
 }
 
-void getfps_(bool raw)
+types::Tuple<int, int, int> getfps_(bool raw)
 {
     int fps, bestdiff = 0, worstdiff = 0;
     if(raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
     else getfps(fps, bestdiff, worstdiff);
-    lua::engine.push(fps);
-    lua::engine.push(bestdiff);
-    lua::engine.push(worstdiff);
+    return types::make_tuple(fps, bestdiff, worstdiff);
 }
 
 bool inbetweenframes = false, renderedframe = true;
@@ -1090,8 +1087,8 @@ int main(int argc, char **argv)
     logger::setlevel(loglevel);
 
     initlog("lua");
-    lua::engine.create();
-    if (!lua::engine.hashandle()) fatal("cannot initialize lua script engine");
+    lapi::init();
+    if (!lapi::state.state()) fatal("cannot initialize lua script engine");
     if (restoredinits) tools::execcfg(initcfg, true);
 
     initing = NOT_INITING;
@@ -1146,7 +1143,8 @@ int main(int argc, char **argv)
 
     initlog("console");
     var::persistvars = false;
-    if(!lua::engine.execf("data/cfg/font.lua"), false) fatal("cannot find font definitions");
+    if(types::get<0>(lapi::state.do_file("data/cfg/font.lua")))
+        fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
 
     inbetweenframes = true;
@@ -1166,23 +1164,37 @@ int main(int argc, char **argv)
 
     initlog("cfg");
 
-    lua::engine.execf("data/cfg/keymap.lua");
-    lua::engine.execf("data/cfg/sounds.lua");
-    lua::engine.execf("data/cfg/menus.lua");
-    lua::engine.execf("data/cfg/brush.lua");
-    lua::engine.execf("mybrushes.lua");
-    if(game::savedservers()) lua::engine.execf(game::savedservers(), false);
+    types::Tuple<int, const char*> err;
+
+    lapi::state.do_file("data/cfg/keymap.lua", lua::ERROR_EXIT_TRACEBACK);
+    lapi::state.do_file("data/cfg/sounds.lua", lua::ERROR_EXIT_TRACEBACK);
+    lapi::state.do_file("data/cfg/menus.lua",  lua::ERROR_EXIT_TRACEBACK);
+    lapi::state.do_file("data/cfg/brush.lua",  lua::ERROR_EXIT_TRACEBACK);
+    err = lapi::state.do_file("mybrushes.lua", lua::ERROR_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+
+    if (game::savedservers())
+    {
+        err = lapi::state.do_file(
+            game::savedservers(), lua::ERROR_TRACEBACK
+        );
+        if (types::get<0>(err))
+            logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    }
     
     var::persistvars = true;
     
     initing = INIT_LOAD;
     if(!tools::execcfg(game::savedconfig())) 
     {
-        lua::engine.execf(game::defaultconfig());
+        lapi::state.do_file(game::defaultconfig(), lua::ERROR_EXIT_TRACEBACK);
         tools::writecfg(game::restoreconfig());
     }
-    lua::engine.execf("data/cfg/config.lua");
-    lua::engine.execf(game::autoexec(), false);
+    lapi::state.do_file("data/cfg/config.lua", lua::ERROR_EXIT_TRACEBACK);
+    err = lapi::state.do_file(game::autoexec(), lua::ERROR_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     initing = NOT_INITING;
 
     var::persistvars = false;
@@ -1201,7 +1213,12 @@ int main(int argc, char **argv)
         game::changemap(load);
     }
 
-    if(initscript) lua::engine.execf(initscript);
+    if (initscript)
+    {
+        err = lapi::state.do_file(initscript, lua::ERROR_TRACEBACK);
+        if (types::get<0>(err))
+            logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    }
 
     initlog("mainloop");
 

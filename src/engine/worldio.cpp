@@ -1062,15 +1062,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
-                lua::engine.getg("entity_store")
-                    .t_getraw("add_sauer")
-                    .push(e.type)
-                    .push(e.o)
-                    .push(e.attr1)
-                    .push(e.attr2)
-                    .push(e.attr3)
-                    .push(e.attr4)
-                    .call(6, 0);
+                lapi::state.get<lua::Function>("entity_store", "add_sauer")(
+                    e.type, e.o, e.attr1, e.attr2, e.attr3, e.attr4
+                );
                 break;
             default:
                 break;
@@ -1129,9 +1123,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     gui::clearmainmenu();
 
     var::overridevars = true;
-    if (lua::engine.hashandle())
+    if (lapi::state.state())
     {
-        lua::engine.execf("data/cfg/default_map_settings.lua", false);
+        lapi::state.do_file("data/cfg/default_map_settings.lua");
         world::run_mapscript();
     }
     var::overridevars = false;

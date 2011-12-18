@@ -5,9 +5,6 @@ VARP(animationinterpolationtime, 0, 150, 1000);
 
 model *loadingmodel = NULL;
 
-#include "of_lua.h"
-using namespace lua;
-
 #include "ragdoll.h"
 #include "animmodel.h"
 #include "vertmodel.h"
@@ -191,10 +188,14 @@ void mdlextendbb(const vec& extend)
     loadingmodel->bbextend = extend;
 }
 
-void mdlname()
+const char *mdlname()
 {
-    checkmdl;
-    lua::engine.push(loadingmodel->name());
+    if (!loadingmodel)
+    {
+        conoutf(CON_ERROR, "not loading a model");
+        return NULL;
+    }
+    return loadingmodel->name();
 }
 
 #define checkragdoll \

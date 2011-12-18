@@ -131,38 +131,6 @@ namespace tools
         return true;
     }
 
-    char *sread(const char *fname)
-    {
-        if (!fname
-          || strstr(fname, "..")
-          || strchr(fname, '~')
-          || fname[0] == '/'
-        ) return NULL;
-        /* TODO: more checks */
-
-        char *loaded = NULL;
-
-        types::String buf, buff;
-
-        if (strlen(fname) >= 2 && fname[0] == '.' && fname[1] == '/')
-            buf = world::get_mapfile_path(fname + 2);
-        else
-            buf.format("%sdata%c%s", homedir, PATHDIV, fname);
-
-        loaded = loadfile(buf.get_buf(), NULL);
-        if (!loaded)
-        {
-            buff.format("data%c%s", PATHDIV, fname);
-            loaded = loadfile(buff.get_buf(), NULL);
-        }
-        if (!loaded)
-        {
-            logger::log(logger::ERROR, "Could not load file %s (%s, %s)", fname, buf.get_buf(), buff.get_buf());
-            return NULL;
-        }
-        return loaded;
-    }
-
     static inline bool sortvars(var::cvar *x, var::cvar *y)
     {
         return strcmp(x->name, y->name) < 0;
@@ -254,21 +222,22 @@ namespace tools
         copystring(s, cfgfile);
         char *buf = loadfile(path(s), NULL);
         if(!buf) return false;
-        lua::engine.exec(buf);
+        auto err = lapi::state.do_string(buf, lua::ERROR_TRACEBACK);
+        if (types::get<0>(err))
+            logger::log(logger::ERROR, "%s\n", types::get<1>(err));
 
         bool ret = true;
         if (!ignore_ret)
         {
-            lua::engine.getg("OF_CFG_VERSION_PASSED");
-            if (!(ret = lua::engine.get<bool>(-1)))
+            ret = lapi::state["OF_CFG_VERSION_PASSED"].to<bool>();
+            if (!ret)
             {
                 conoutf(
                     "Your OctaForge config file was too old to run with "
                     "your current client. Initializing a default set."
                 );
             }
-            lua::engine.pop(1);
-            lua::engine.push("OF_CFG_VERSION_PASSED").push().setg();
+            lapi::state["OF_CFG_VERSION_PASSED"] = lua::nil;
         }
 
         delete[] buf;

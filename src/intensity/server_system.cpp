@@ -209,6 +209,7 @@ void loadpvs(gzFile f) { };
 void savepvs(gzFile f) { };
 void writebinds(stream *f) { };
 const char *addreleaseaction(const char *s) { return NULL; };
+const char *addreleaseaction(const lua::Function& a) { return NULL; };
 void freesurfaces(cube &c) { };
 occludequery *newquery(void *owner) { return NULL; };
 void drawbb(const ivec &bo, const ivec &br, const vec &camera) { };

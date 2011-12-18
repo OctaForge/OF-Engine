@@ -21,7 +21,6 @@
 // Enable to let *server* do physics for players - useful for debugging. Must also be defined in client.cpp!
 #define SERVER_DRIVEN_PLAYERS 0
 
-using namespace lua;
 namespace game
 {
     VAR(useminimap, 0, 0, 1); // do we want the minimap? Set from JS.
@@ -229,13 +228,15 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            engine.exec(types::String().format(
+            auto err = lapi::state.do_string(types::String().format(
                 "entity_store.get(%i).position = {"
                 "entity_store.get(%i).position.x,"
                 "entity_store.get(%i).position.y,"
                 "entity_store.get(%i).position.z}",
                 d->uniqueId, d->uniqueId, d->uniqueId, d->uniqueId
-            ).get_buf());
+            ), lua::ERROR_TRACEBACK);
+            if (types::get<0>(err))
+                logger::log(logger::ERROR, "%s\n", types::get<1>(err));
 #endif
         }
     }
@@ -245,8 +246,7 @@ namespace game
 #ifdef CLIENT
         if (ClientSystem::playerLogicEntity)
         {
-            engine.getref(ClientSystem::playerLogicEntity->luaRef);
-            if (engine.t_get<bool>("initialized"))
+            if (ClientSystem::playerLogicEntity->lua_ref["initialized"].to<bool>())
             {
                 logger::log(logger::INFO, "Player %d (%lu) is initialized, run moveplayer(): %f,%f,%f.\r\n",
                     player1->uniqueId, (unsigned long)player1,
@@ -275,8 +275,6 @@ namespace game
                 swayhudgun(curtime);
             } else
                 logger::log(logger::INFO, "Player is not yet initialized, do not run moveplayer() etc.\r\n");
-
-            engine.pop(1);
         }
         else
             logger::log(logger::INFO, "Player does not yet exist, or scenario not started, do not run moveplayer() etc.\r\n");
@@ -329,7 +327,7 @@ namespace game
 #ifdef CLIENT
         bool runWorld = ClientSystem::scenarioStarted();
 #else
-        bool runWorld = engine.hashandle();
+        bool runWorld = (lapi::state.state() != NULL);
 #endif
         //===================
         // Run physics
@@ -370,9 +368,7 @@ namespace game
 
             // If triggering collisions can be done by the lua library code, use that
 
-            engine.getg("entity_store")
-                  .t_getraw("manage_triggering_collisions");
-            engine.call(0, 0);
+            lapi::state.get<lua::Function>("entity_store", "manage_triggering_collisions")();
         }
 
         //==============================================
@@ -382,9 +378,7 @@ namespace game
 
         if (runWorld)
         {
-            engine.getg("entity_store")
-                  .t_getraw("start_frame")
-                  .call(0, 0).pop(1);
+            lapi::state.get<lua::Function>("entity_store", "start_frame")();
             LogicSystem::manageActions(curtime);
         }
 
@@ -582,12 +576,11 @@ namespace game
 
     const char *scriptname(fpsent *d)
     {
-        engine.getg("entity_store")
-              .t_getraw("get")
-              .push(LogicSystem::getUniqueId(d)).call(1, 1);
-        // got class here
-        const char *ret = engine.t_get<const char*>("_name");
-        engine.pop(2);
+        const char *ret = lapi::state.get<lua::Function>(
+            "entity_store", "get"
+        ).call<lua::Table>(LogicSystem::getUniqueId(d)).get<const char*>(
+            "_name"
+        );
         return ret;
     }
 

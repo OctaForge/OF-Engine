@@ -423,7 +423,7 @@ struct md5 : skelmodel, skelloader<md5>
 
         loading = this;
         var::persistvars = false;
-        if(lua::engine.execf(path(cfgname), false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured md5, will call the md5* commands below
+        if(!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured md5, will call the md5* commands below
         {
             var::persistvars = true;
             loading = NULL;
@@ -452,5 +452,8 @@ struct md5 : skelmodel, skelloader<md5>
     }
 };
 
-skelcommands<md5> md5commands;
-const types::Vector<LE_reg>& md5binds = md5commands.command_stor;
+lua::Table md5commands()
+{
+    skelcommands<md5> cmds;
+    return cmds.module;
+}

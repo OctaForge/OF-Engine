@@ -42,8 +42,6 @@ namespace tools
     bool  fdel(const char *file);
     bool  fempty(const char *file);
 
-    char *sread(const char *fname);
-
     void  writecfg(const char *name = NULL);
     bool  execcfg(const char *cfgfile, bool ignore_ret = false);
 

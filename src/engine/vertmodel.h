@@ -600,34 +600,35 @@ template<class MDL> struct vertloader : modelloader<MDL>
 
 template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmesh>
 {
+    typedef modelcommands<MDL, struct MDL::vertmesh> base;
     typedef struct MDL::part part;
     typedef struct MDL::skin skin;
 
-    static void loadpart(lua_Engine e)
+    static void loadpart(const char *model, float smooth)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        defformatstring(filename)("%s/%s", MDL::dir, e.get<char*>(1));
+        defformatstring(filename)("%s/%s", MDL::dir, model);
         part &mdl = *new part;
         MDL::loading->parts.add(&mdl);
         mdl.model = MDL::loading;
         mdl.index = MDL::loading->parts.length()-1;
         if(mdl.index) mdl.pitchscale = mdl.pitchoffset = mdl.pitchmin = mdl.pitchmax = 0;
-        mdl.meshes = MDL::loading->sharemeshes(path(filename), double(e.get<float>(2) > 0 ? cos(clamp(e.get<float>(2), 0.0f, 180.0f)*RAD) : 2));
+        mdl.meshes = MDL::loading->sharemeshes(path(filename), double(smooth > 0 ? cos(clamp(smooth, 0.0f, 180.0f)*RAD) : 2));
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else mdl.initskins();
     }
     
-    static void setpitch(lua_Engine e)
+    static void setpitch(float pitchscale, float pitchoffset, float pitchmin, float pitchmax)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *MDL::loading->parts.last();
     
-        mdl.pitchscale = e.get<float>(1);
-        mdl.pitchoffset = e.get<float>(2);
-        if(e.get<float>(3) || e.get<float>(4))
+        mdl.pitchscale = pitchscale;
+        mdl.pitchoffset = pitchoffset;
+        if(pitchmin || pitchmax)
         {
-            mdl.pitchmin = e.get<float>(3);
-            mdl.pitchmax = e.get<float>(4);
+            mdl.pitchmin = pitchmin;
+            mdl.pitchmax = pitchmax;
         }
         else
         {
@@ -636,23 +637,24 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
         }
     }
 
-    static void setanim(lua_Engine e)
+    static void setanim(const char *anim, int frame, int range, float speed, int priority)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         vector<int> anims;
-        findanims(e.get<char*>(1), anims);
-        if(anims.empty()) conoutf("could not find animation %s", e.get<char*>(1));
+        findanims(anim, anims);
+        if(anims.empty()) conoutf("could not find animation %s", anim);
         else loopv(anims)
         {
-            MDL::loading->parts.last()->setanim(0, anims[i], e.get<int>(2), e.get<int>(3), e.get<float>(4), e.get<int>(5));
+            MDL::loading->parts.last()->setanim(0, anims[i], frame, range, speed, priority);
         }
     }
 
     vertcommands()
     {
-        modelcommand(loadpart, "load"); 
-        modelcommand(setpitch, "pitch");
-        if(MDL::animated()) modelcommand(setanim, "anim");
+        base::module["load" ] = &loadpart;
+        base::module["pitch"] = &setpitch;
+        if (MDL::animated())
+            base::module["anim"] = &setanim;
     }
 };
 

@@ -1682,30 +1682,31 @@ void gettex()
     }
 }
 
-void getcurtex()
+int getcurtex()
 {
-    if(noedit(true)) return;
+    if(noedit(true)) return 0;
     filltexlist();
     int index = curtexindex < 0 ? 0 : curtexindex;
-    if(!texmru.inrange(index)) return;
-    lua::engine.push(texmru[index]);
+    if(!texmru.inrange(index)) return 0;
+    return texmru[index];
 }
 
-void getseltex()
+int getseltex()
 {
-    if(noedit(true)) return;
+    if(noedit(true)) return 0;
     cube &c = lookupcube(sel.o.x, sel.o.y, sel.o.z, -sel.grid);
-    if(c.children || isempty(c)) return;
-    lua::engine.push(c.texture[sel.orient]);
+    if(c.children || isempty(c)) return 0;
+    return c.texture[sel.orient];
 }
 
-void gettexname(int tex, int subslot)
+const char *gettexname(int tex, int subslot)
 {
-    if(noedit(true) || tex<0) return;
+    if(noedit(true) || tex<0) return NULL;
     VSlot &vslot = lookupvslot(tex, false);
     Slot &slot = *vslot.slot;
-    if(!slot.sts.inrange(subslot)) return;
-    lua::engine.push(slot.sts[subslot].name);
+    if(!slot.sts.inrange(subslot)) return NULL;
+    
+    return slot.sts[subslot].name;
 }
 
 void replacetexcube(cube &c, int oldtex, int newtex)

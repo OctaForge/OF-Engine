@@ -11,8 +11,6 @@
 #include "of_tools.h"
 #include "of_entities.h"
 
-using namespace lua;
-
 // WorldSystem
 extern void removeentity(extentity* entity);
 extern void addentity(extentity* entity);
@@ -122,8 +120,11 @@ float CLogicEntity::getRadius()
 
 void CLogicEntity::setOrigin(vec &newOrigin)
 {
-    defformatstring(c)("entity_store.get(%i).position = {%f,%f,%f}", getUniqueId(), newOrigin.x, newOrigin.y, newOrigin.z);
-    engine.exec(c);
+    lua::Table t = lapi::state.new_table(3);
+    t[0] = newOrigin.x; t[1] = newOrigin.y; t[2] = newOrigin.z;
+    lapi::state.get<lua::Function>(
+        "entity_store", "get"
+    ).call<lua::Table>(getUniqueId())["position"] = t;
 }
 
 int CLogicEntity::getAnimation()
@@ -143,10 +144,10 @@ int CLogicEntity::getAnimationFrame()
 
 const char *CLogicEntity::getClass()
 {
-    engine.getg("tostring").getref(luaRef).call(1, 1);
-    const char *cl = engine.get(-1, "unknown");
-    engine.pop(1);
-    return cl;
+    const char *cl = lapi::state.get<lua::Function>(
+        "tostring"
+    ).call<const char*>(lua_ref);
+    return cl ? cl : "unknown";
 }
 
 model* CLogicEntity::getModel()
@@ -357,12 +358,12 @@ void LogicSystem::clear(bool restart_lua)
     logger::log(logger::DEBUG, "clear()ing LogicSystem\r\n");
     INDENT_LOG(logger::DEBUG);
 
-    if (engine.hashandle())
+    if (lapi::state.state())
     {
-        engine.getg("entity_store").t_getraw("del_all").call(0, 0).pop(1);
+        lapi::state.get<lua::Function>("entity_store", "del_all")();
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
-        if (restart_lua) engine.reset();
+        if (restart_lua) lapi::reset();
     }
 
     LogicSystem::initialized = false;
@@ -370,8 +371,7 @@ void LogicSystem::clear(bool restart_lua)
 
 void LogicSystem::init()
 {
-    clear();
-    engine.create();
+    lapi::init();
     LogicSystem::initialized = true;
 }
 
@@ -384,11 +384,10 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(!logicEntities.access(uniqueId));
     logicEntities.access(uniqueId, newEntity);
 
-    engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
-    newEntity->luaRef = engine.ref();
-    engine.pop(1);
-
-    assert(newEntity->luaRef >= 0);
+    new (&(newEntity->lua_ref)) lua::Table(lapi::state.get<lua::Function>(
+        "entity_store", "get"
+    ).call<lua::Object>(uniqueId));
+    assert(!newEntity->lua_ref.is_nil());
 
     logger::log(logger::DEBUG, "C registerLogicEntity completes\r\n");
 }
@@ -455,7 +454,7 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
         delete[] ptr->attachments[i].name;
     }
 
-    if (ptr->luaRef >= 0) engine.unref(ptr->luaRef);
+    if (!ptr->lua_ref.is_nil()) ptr->lua_ref.clear();
     delete ptr;
 }
 
@@ -464,11 +463,10 @@ void LogicSystem::manageActions(long millis)
     logger::log(logger::INFO, "manageActions: %d\r\n", millis);
     INDENT_LOG(logger::INFO);
 
-    if (engine.hashandle())
-        engine.getg("entity_store")
-              .t_getraw("manage_actions")
-              .push(double(millis) / 1000.0f)
-              .push(lastmillis).call(2, 0).pop(1);
+    if (lapi::state.state())
+        lapi::state.get<lua::Function>("entity_store", "manage_actions")(
+            double(millis) / 1000.0f, lastmillis
+        );
 
     logger::log(logger::INFO, "manageActions complete\r\n");
 }
@@ -535,12 +533,9 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
     ((fpsent*)dynamicEntity)->uniqueId = uniqueId;
 }
 
-void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4)
+void LogicSystem::setupExtent(const lua::Table& ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4)
 {
-    engine.getref(ref);
-    int uniqueId = engine.t_get("uid", -1);
-    engine.pop(1);
-
+    int uniqueId = ref.get<int>("uid");
     logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4);
     INDENT_LOG(logger::DEBUG);
 
@@ -564,31 +559,27 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
     LogicSystem::registerLogicEntity(e);
 }
 
-void LogicSystem::setupCharacter(int ref)
+void LogicSystem::setupCharacter(const lua::Table& ref)
 {
 //    #ifdef CLIENT
 //        assert(0); // until we figure this out
 //    #endif
 
-    engine.getref(ref);
-    int uniqueId = engine.t_get("uid", -1);
+    int uniqueId = ref.get<int>("uid");
 
     logger::log(logger::DEBUG, "setupCharacter: %d\r\n", uniqueId);
     INDENT_LOG(logger::DEBUG);
 
     fpsent* fpsEntity;
 
-    int clientNumber = engine.t_get("cn", -1);
+    int clientNumber = ref.get<int>("cn");
     logger::log(logger::DEBUG, "(a) cn: %d\r\n", clientNumber);
 
     #ifdef CLIENT
         logger::log(logger::DEBUG, "client numbers: %d, %d\r\n", ClientSystem::playerNumber, clientNumber);
 
-        if (uniqueId == ClientSystem::uniqueId) engine.t_set("cn", ClientSystem::playerNumber);
+        if (uniqueId == ClientSystem::uniqueId) ref["cn"] = ClientSystem::playerNumber;
     #endif
-
-    // nothing else will happen with lua table got from ref, so let's pop it out
-    engine.pop(1);
 
     logger::log(logger::DEBUG, "(b) cn: %d\r\n", clientNumber);
 
@@ -623,11 +614,9 @@ void LogicSystem::setupCharacter(int ref)
     LogicSystem::registerLogicEntity(fpsEntity);
 }
 
-void LogicSystem::setupNonSauer(int ref)
+void LogicSystem::setupNonSauer(const lua::Table& ref)
 {
-    engine.getref(ref);
-    int uniqueId = engine.t_get("uid", -1);
-    engine.pop(1);
+    int uniqueId = ref.get<int>("uid");
 
     logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uniqueId);
     INDENT_LOG(logger::DEBUG);
@@ -635,11 +624,9 @@ void LogicSystem::setupNonSauer(int ref)
     LogicSystem::registerLogicEntityNonSauer(uniqueId);
 }
 
-void LogicSystem::dismantleExtent(int ref)
+void LogicSystem::dismantleExtent(const lua::Table& ref)
 {
-    engine.getref(ref);
-    int uniqueId = engine.t_get("uid", -1);
-    engine.pop(1);
+    int uniqueId = ref.get<int>("uid");
 
     logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uniqueId);
 
@@ -654,11 +641,9 @@ void LogicSystem::dismantleExtent(int ref)
                                                      // in clearents() in the next load_world.
 }
 
-void LogicSystem::dismantleCharacter(int ref)
+void LogicSystem::dismantleCharacter(const lua::Table& ref)
 {
-    engine.getref(ref);
-    int clientNumber = engine.t_get("cn", -1);
-    engine.pop(1);
+    int clientNumber = ref.get<int>("cn");
     #ifdef CLIENT
     if (clientNumber == ClientSystem::playerNumber)
         logger::log(logger::DEBUG, "Not dismantling own client\r\n", clientNumber);

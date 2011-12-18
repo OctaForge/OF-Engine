@@ -205,7 +205,7 @@ struct md3 : vertmodel, vertloader<md3>
 
         loading = this;
         var::persistvars = false;
-        if(lua::engine.execf(path(cfgname), false) && parts.length()) // OF configured md3, will call the md3* commands below
+        if(!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // OF configured md3, will call the md3* commands below
         {
             var::persistvars = true;
             loading = NULL;
@@ -226,5 +226,8 @@ struct md3 : vertmodel, vertloader<md3>
     }
 };
 
-vertcommands<md3> md3commands;
-const types::Vector<LE_reg>& md3binds = md3commands.command_stor;
+lua::Table md3commands()
+{
+    vertcommands<md3> cmds;
+    return cmds.module;
+}

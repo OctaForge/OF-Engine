@@ -657,10 +657,10 @@ void gl_checkextensions()
     hwtexsize = val;
 }
 
-void glext(char *ext)
+bool glext(const char *ext)
 {
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
-    lua::engine.push(hasext(exts, ext) ? true : false);
+    return (hasext(exts, ext) ? true : false);
 }
 
 void gl_init(int w, int h, int bpp, int depth, int fsaa)
@@ -852,33 +852,30 @@ void mousemove(int dx, int dy)
     cursens /= 33.0f*sensitivityscale;
 
     // INTENSITY: Let scripts customize mousemoving
-    using namespace lua;
-    if (engine.hashandle())
+    if (lapi::state.state())
     {
-        engine.getg("do_mousemove");
-        if (!engine.is<void*>(-1)) engine.pop(1)
-                  .t_new()
-                  .t_set("yaw", dx * cursens)
-                  .t_set("pitch", -dy * cursens * (invmouse ? -1 : 1));
-        else engine.push(dx * cursens)
-                   .push(-dy * cursens * (invmouse ? -1 : 1))
-                   .call(2, 1);
-
-        engine.t_getraw("yaw");
-        if (!engine.is<void>(-1))
+        lua::Function do_mousemove = lapi::state["do_mousemove"];
+        if (do_mousemove.is_nil())
         {
-            camera1->yaw += engine.get<double>(-1);
-            engine.pop(1).t_getraw("pitch");
-            camera1->pitch += engine.get<double>(-1);
-
-            fixcamerarange();
-            if(camera1!=player && !detachedcamera)
-            {
-                player->yaw = camera1->yaw;
-                player->pitch = camera1->pitch;
-            }
+            camera1->yaw   += (dx * cursens);
+            camera1->pitch += (-dy * cursens * (invmouse ? -1 : 1));
         }
-        engine.pop(2);
+        else
+        {
+            lua::Table t = do_mousemove.call<lua::Object>(
+                (dx * cursens),
+                (-dy * cursens * (invmouse ? -1 : 1))
+            );
+            camera1->yaw   += t["yaw"  ].to<double>();
+            camera1->pitch += t["pitch"].to<double>();
+        }
+
+        fixcamerarange();
+        if(camera1!=player && !detachedcamera)
+        {
+            player->yaw   = camera1->yaw;
+            player->pitch = camera1->pitch;
+        }
     }
 }
 
@@ -2103,7 +2100,7 @@ VARP(wallclocksecs, 0, 0, 1);
 
 static time_t walltime = 0;
 
-void getwallclock()
+types::String getwallclock()
 {
     if(wallclock)
     {
@@ -2120,9 +2117,10 @@ void getwallclock()
             while(*src) *dst++ = tolower(*src++);
             *dst++ = '\0';
 
-            lua::engine.push(buf);
+            return buf;
         }
     }
+    return types::String();
 }
 
 VARP(showfps, 0, 1, 1);
@@ -2264,11 +2262,10 @@ void gl_drawhud(int w, int h)
                 abovehud -= FONTH;
                 draw_textf("cube %s%d", FONTH/2, abovehud, selchildcount<0 ? "1/" : "", abs(selchildcount));
 
-                lua::engine.getg("edithud");
-                if (!lua::engine.is<void>(-1))
+                lua::Function edithud = lapi::state["edithud"];
+                if (!edithud.is_nil())
                 {
-                    lua::engine.call(0, 1);
-                    const char *editinfo = lua::engine.get<const char*>(-1);
+                    const char *editinfo = edithud.call<const char*>();
                     if(editinfo && editinfo[0])
                     {
                         int tw, th;
@@ -2277,16 +2274,14 @@ void gl_drawhud(int w, int h)
                         abovehud -= max(th, FONTH);
                         draw_text(editinfo, FONTH/2, abovehud);
                     }
-                    lua::engine.pop(1);
                 }
             }
             else
             {
-                lua::engine.getg("gamehud");
-                if (!lua::engine.is<void>(-1))
+                lua::Function gamehud = lapi::state["gamehud"];
+                if (!gamehud.is_nil())
                 {
-                    lua::engine.call(0, 1);
-                    const char *gameinfo = lua::engine.get<const char*>(-1);
+                    const char *gameinfo = gamehud.call<const char*>();
                     if(gameinfo && gameinfo[0])
                     {
                         int tw, th;
@@ -2295,7 +2290,6 @@ void gl_drawhud(int w, int h)
                         roffset += max(th, FONTH);    
                         draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+tw), conh-FONTH/2-roffset);
                     }
-                    lua::engine.pop(1);
                 }
             } 
             

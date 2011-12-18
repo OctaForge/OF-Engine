@@ -2,7 +2,7 @@
 
 #include "engine.h"
 #include "textedit.h"
-#include "of_lua.h"
+#include "of_lapi.h"
 #include "client_engine_additions.h"
 
 // a 'stack' where the last is the current focused editor
@@ -38,8 +38,6 @@ static void removeeditor(editor *e)
     editors.removeobj(e);
     DELETEP(e);
 }
-
-using namespace lua;
 
 namespace gui
 {
@@ -178,7 +176,7 @@ namespace gui
         NO_ADJUST     = ALIGN_HNONE | ALIGN_VNONE,
     };
 
-    static vector<int> executelater;
+    static types::Vector<lua::Function> executelater;
 
     struct object
     {
@@ -703,34 +701,27 @@ namespace gui
 
     struct conditional : object
     {
-        int cond;
+        lua::Function cond;
 
-        conditional(int cond) : cond(cond) {}
+        conditional(const lua::Function& cond) : cond(cond) {}
         ~conditional()
         {
-            lua::engine.unref(cond);
+            cond.clear();
         }
 
         int forks()      const { return 2; }
-        int choosefork() const
-        {
-            lua::engine.getref(cond).call(0, 1);
-            bool ret = lua::engine.get<bool>(-1);
-            lua::engine.pop(1);
-
-            return ret ? 0 : 1;
-        }
+        int choosefork() const { return cond.call<bool>() ? 0 : 1; }
     };
 
     struct button : object
     {
-        int onselect;
+        lua::Function onselect;
         bool queued;
 
-        button(int onselect) : onselect(onselect), queued(false) {}
+        button(const lua::Function& os) : onselect(os), queued(false) {}
         ~button()
         {
-            lua::engine.unref(onselect);
+            onselect.clear();
         }
 
         int forks()      const { return 3; }
@@ -748,37 +739,32 @@ namespace gui
 
         void selected(float cx, float cy)
         {
-            executelater.add(onselect);
+            executelater.push_back(onselect);
         }
     };
 
     struct conditional_button : button
     {
-        int cond;
+        lua::Function cond;
 
-        conditional_button(int cond, int onselect) : button(onselect), cond(cond) {}
+        conditional_button(const lua::Function& cond, const lua::Function& onselect):
+            button(onselect), cond(cond) {}
+
         ~conditional_button()
         {
-            lua::engine.unref(cond);
+            cond.clear();
         }
 
         int forks() const { return 4; }
         int choosefork() const
         {
-            lua::engine.getref(cond).call(0, 1);
-            bool ret = lua::engine.get<bool>(-1);
-            lua::engine.pop(1);
-
-            return ret ? 1 + button::choosefork() : 0;
+            return (cond.call<bool>() ? (1 + button::choosefork()) : 0);
         }
 
         void selected(float cx, float cy)
         {
-            lua::engine.getref(cond).call(0, 1);
-            bool ret = lua::engine.get<bool>(-1);
-            lua::engine.pop(1);
-
-            if (ret) button::selected(cx, cy);
+            if (cond.call<bool>())
+                button::selected(cx, cy);
         }
     };
 
@@ -787,23 +773,21 @@ namespace gui
 
     struct toggle : button
     {
-        int cond;
+        lua::Function cond;
         float split;
 
-        toggle(int cond, int onselect, float split = 0) : button(onselect), cond(cond), split(split) {}
+        toggle(const lua::Function& cond, const lua::Function& onselect, float split = 0):
+            button(onselect), cond(cond), split(split) {}
+
         ~toggle()
         {
-            lua::engine.unref(cond);
+            cond.clear();
         }
 
         int forks() const { return 4; }
         int choosefork() const
         {
-            lua::engine.getref(cond).call(0, 1);
-            bool ret = lua::engine.get<bool>(-1);
-            lua::engine.pop(1);
-
-            return (ret ? 2 : 0) + (ishovering(this) ? 1 : 0);
+            return (cond.call<bool>() ? 2 : 0) + (ishovering(this) ? 1 : 0);
         }
 
         object *hover(float cx, float cy)
@@ -1713,7 +1697,7 @@ namespace gui
         editor *edit;
         char *keyfilter, *fieldval;
         bool fieldmode, wasfocused;
-        int onchange;
+        lua::Function onchange;
 
         text_editor(
             const char *name,
@@ -1724,7 +1708,7 @@ namespace gui
             const char *keyfilter = NULL,
             bool password = false,
             bool fieldmode = false,
-            int onchange = 0
+            const lua::Function& onchange = lua::Function()
         ) :
             name(name), scale(scale),
             offsetx(0), offsety(0),
@@ -1848,10 +1832,7 @@ namespace gui
                     var::cvar *ev = var::get(name);
                     ev->set(fieldval, true);
 
-                    lua::engine.getref(onchange);
-                    if  (lua::engine.is<void*>(-1))
-                         lua::engine.call(0, 0);
-                    else lua::engine.pop(1);
+                    if (!onchange.is_nil()) onchange();
                 }
                 else
                 {
@@ -1863,10 +1844,7 @@ namespace gui
                         var::cvar *ev = var::get(name);
                         ev->set(fieldval, true);
 
-                        lua::engine.getref(onchange);
-                        if  (lua::engine.is<void*>(-1))
-                             lua::engine.call(0, 0);
-                        else lua::engine.pop(1);
+                        if (!onchange.is_nil()) onchange();
                     }
                 }
             }
@@ -1922,19 +1900,19 @@ namespace gui
 
     struct window : named_object
     {
-        int onhide;
+        lua::Function onhide;
         bool nofocus;
 
         float customx, customy;
 
-        window(const char *name, int onhide = 0, bool nofocus = false)
+        window(const char *name, const lua::Function& onhide = lua::Function(), bool nofocus = false)
          : named_object(name), onhide(onhide), nofocus(nofocus), customx(0), customy(0)
         {}
-        ~window() { lua::engine.unref(onhide); }
+        ~window() { onhide.clear(); }
 
         void hidden()
         {
-            if (onhide) lua::engine.getref(onhide).call(0, 0);
+            if (!onhide.is_nil()) onhide();
             resetcursor();
         }
 
@@ -2030,17 +2008,21 @@ namespace gui
 
     vector<object *> build;
 
-    window *buildwindow(const char *name, int contents, int onhide = 0, bool nofocus = false)
+    window *buildwindow(
+        const char *name,
+        const lua::Function& contents,
+        const lua::Function& onhide = lua::Function(),
+        bool nofocus = false
+    )
     {
         window *win = new window(name, onhide, nofocus);
         build.add(win);
-        lua::engine.getref(contents).call(0, 0);
-        lua::engine.unref (contents);
+        contents();
         build.pop();
         return win;
     }
 
-    bool hideui(const char *name)
+    bool hideui(const char *name) // _bind_hideui
     {
         window *win = NULL;
         object *obj = world_inst->findname(name, false);
@@ -2053,22 +2035,19 @@ namespace gui
         return win!=NULL;
     }
 
-    void addui(object *o, int children)
+    void addui(object *o, const lua::Function& children)
     {
         if (build.length())
         {
             o->parent = build.last();
             build.last()->children.add(o);
         }
-        lua::engine.getref(children);
-        if (lua::engine.is<void*>(-1))
+        if (!children.is_nil())
         {
             build.add(o);
-            lua::engine.call(0, 0);
-            lua::engine.unref(children);
+            children();
             build.pop();
         }
-        else lua::engine.pop(1);
 
         o->init();
     }
@@ -2078,26 +2057,19 @@ namespace gui
 
     /* COMMAND SECTION */
 
-    void _bind_showui(lua_Engine e)
+    bool _bind_showui(
+        const char *name,
+        lua::Function contents,
+        lua::Function onhide,
+        bool nofocus
+    )
     {
-        const char *name = e.get<const char*>(1);
-
-        if (!e.is<void*>(2))
+        if (contents.is_nil())
         {
-            e.typeerror(2, "function");
-            return;
+            logger::log(logger::ERROR, "showui(\"%s\"): contents is nil\n");
+            return false;
         }
-        int contents = e.push_index(2).ref();
-
-        int onhide   = 0;
-        if (e.is<void*>(3))
-            onhide = e.push_index(3).ref();
-
-        if (build.length())
-        {
-            e.push(false);
-            return;
-        }
+        if (build.length()) return false;
 
         object *obj = world_inst->findname(name, false);
 
@@ -2110,389 +2082,360 @@ namespace gui
             oldwindow->hidden();
             world_inst->remove(oldwindow);
         }
-        window *window = buildwindow(name, contents, onhide, e.get<bool>(4));
+        window *window = buildwindow(name, contents, onhide, nofocus);
         world_inst->children.add(window);
         window->parent = world_inst;
 
-        e.push(true);
+        return true;
     }
 
-    void _bind_hideui(lua_Engine e)
+    bool _bind_replaceui(
+        const char *wname, const char *tname, lua::Function contents
+    )
     {
-        e.push(hideui(e.get<const char*>(1)));
-    }
-
-    void _bind_replaceui(lua_Engine e)
-    {
-        const char *wname    = e.get<const char*>(1);
-        const char *tname    = e.get<const char*>(2);
-
-        if (!e.is<void*>(3))
+        if (contents.is_nil())
         {
-            e.typeerror(3, "function");
-            return;
+            logger::log(logger::ERROR, "showui(\"%s\"): contents is nil\n");
+            return false;
         }
-        int contents = e.push_index(3).ref();
-
-        if (build.length())
-        {
-            e.push(false);
-            return;
-        }
+        if (build.length()) return false;
 
         window *win = NULL;
         object *obj = world_inst->findname(wname, false);
         if (obj && obj->istype("window")) win = (window*)obj;
-        else
-        {
-            e.push(false);
-            return;
-        }
+        else return false;
 
         tag *tg = NULL;
         obj = win->findname(tname);
         if (obj && obj->istype("tag")) tg = (tag*)obj;
-        else
-        {
-            e.push(false);
-            return;
-        }
+        else return false;
 
         tg->children.deletecontents();
         build.add(tg);
-        lua::engine.getref(contents).call(0, 0);
-        lua::engine.unref (contents);
+        contents();
         build.pop();
 
-        e.push(true);
+        return true;
     }
 
-    void _bind_uialign(lua_Engine e)
+    void _bind_uialign(int h, int v)
     {
         if (build.length())
         {
             build.last()->adjust = (build.last()->adjust & ~ALIGN_MASK)
-                | ((clamp(e.get<int>(1), -1, 1)+2)<<ALIGN_HSHIFT)
-                | ((clamp(e.get<int>(2), -1, 1)+2)<<ALIGN_VSHIFT);
+                | ((clamp(h, -1, 1)+2)<<ALIGN_HSHIFT)
+                | ((clamp(v, -1, 1)+2)<<ALIGN_VSHIFT);
         }
     }
 
-    void _bind_uiclamp(lua_Engine e)
+    void _bind_uiclamp(int l, int r, int b, int t)
     {
         if (build.length())
         {
             build.last()->adjust = (build.last()->adjust & ~CLAMP_MASK)
-                | (e.get<int>(1) ? CLAMP_LEFT : 0)
-                | (e.get<int>(2) ? CLAMP_RIGHT : 0)
-                | (e.get<int>(3) ? CLAMP_BOTTOM : 0)
-                | (e.get<int>(4) ? CLAMP_TOP : 0);
+                | (l ? CLAMP_LEFT : 0)
+                | (r ? CLAMP_RIGHT : 0)
+                | (b ? CLAMP_BOTTOM : 0)
+                | (t ? CLAMP_TOP : 0);
         }
     }
 
-    void _bind_uiwinmover(lua_Engine e)
+    void _bind_uiwinmover(lua::Function children)
     {
-        addui(new window_mover, e.push_index(1).ref());
+        addui(new window_mover, children);
     }
 
-    void _bind_uitag(lua_Engine e)
+    void _bind_uitag(const char *name, lua::Function children)
     {
-        addui(new tag(e.get<const char*>(1)), e.push_index(2).ref());
+        addui(new tag(name), children);
     }
 
-    void _bind_uivlist(lua_Engine e)
+    void _bind_uivlist(float space, lua::Function children)
     {
-        addui(new list(false, e.get<float>(1)), e.push_index(2).ref());
+        addui(new list(false, space), children);
     }
 
-    void _bind_uihlist(lua_Engine e)
+    void _bind_uihlist(float space, lua::Function children)
     {
-        addui(new list(true, e.get<float>(1)), e.push_index(2).ref());
+        addui(new list(true, space), children);
     }
 
-    void _bind_uitable(lua_Engine e)
+    void _bind_uitable(int columns, float space, lua::Function children)
     {
-        addui(new table(e.get<int>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new table(columns, space), children);
     }
 
-    void _bind_uispace(lua_Engine e)
+    void _bind_uispace(float h, float v, lua::Function children)
     {
-        addui(new spacer(e.get<float>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new spacer(h, v), children);
     }
 
-    void _bind_uifill(lua_Engine e)
+    void _bind_uifill(float h, float v, lua::Function children)
     {
-        addui(new filler(e.get<float>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new filler(h, v), children);
     }
 
-    void _bind_uiclip(lua_Engine e)
+    void _bind_uiclip(float h, float v, lua::Function children)
     {
-        addui(new clipper(e.get<float>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new clipper(h, v), children);
     }
 
-    void _bind_uiscroll(lua_Engine e)
+    void _bind_uiscroll(float h, float v, lua::Function children)
     {
-        addui(new scroller(e.get<float>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new scroller(h, v), children);
     }
 
-    void _bind_uihscrollbar(lua_Engine e)
+    void _bind_uihscrollbar(float h, float v, lua::Function children)
     {
-        addui(new hscrollbar(e.get<float>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new hscrollbar(h, v), children);
     }
 
-    void _bind_uivscrollbar(lua_Engine e)
+    void _bind_uivscrollbar(float h, float v, lua::Function children)
     {
-        addui(new vscrollbar(e.get<float>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new vscrollbar(h, v), children);
     }
 
-    void _bind_uiscrollbutton(lua_Engine e)
+    void _bind_uiscrollbutton(lua::Function children)
     {
-        addui(new scroll_button, e.push_index(1).ref());
+        addui(new scroll_button, children);
     }
 
-    void _bind_uihslider(lua_Engine e)
+    void _bind_uihslider(
+        const char *var,
+        int defaultv, int minv, int maxv,
+        lua::Function children
+    )
     {
-        const char *var = e.get<const char*>(1);
         var::cvar  *ev  = var::get(var);
-        if (!ev)    ev  = var::regvar(var, new var::cvar(var, e.get<int>(2)));
+        if (!ev)    ev  = var::regvar(var, new var::cvar(var, defaultv));
 
-        int minv = e.get<int>(2) ? e.get<int>(2) : (ev->minv.i != -1 ? ev->minv.i : 0);
-        int maxv = e.get<int>(3) ? e.get<int>(3) : (ev->maxv.i != -1 ? ev->maxv.i : 0);
-        addui(new hslider(var, minv, maxv), e.push_index(4).ref());
+        if (!minv) minv = (ev->minv.i != -1 ? ev->minv.i : 0);
+        if (!maxv) maxv = (ev->maxv.i != -1 ? ev->maxv.i : 0);
+
+        addui(new hslider(var, minv, maxv), children);
     }
 
-    void _bind_uivslider(lua_Engine e)
+    void _bind_uivslider(
+        const char *var,
+        int defaultv, int minv, int maxv,
+        lua::Function children
+    )
     {
-        const char *var = e.get<const char*>(1);
         var::cvar  *ev  = var::get(var);
-        if (!ev)    ev  = var::regvar(var, new var::cvar(var, e.get<int>(2)));
+        if (!ev)    ev  = var::regvar(var, new var::cvar(var, defaultv));
 
-        int minv = e.get<int>(2) ? e.get<int>(2) : (ev->minv.i != -1 ? ev->minv.i : 0);
-        int maxv = e.get<int>(3) ? e.get<int>(3) : (ev->maxv.i != -1 ? ev->maxv.i : 0);
-        addui(new vslider(var, minv, maxv), e.push_index(4).ref());
+        if (!minv) minv = (ev->minv.i != -1 ? ev->minv.i : 0);
+        if (!maxv) maxv = (ev->maxv.i != -1 ? ev->maxv.i : 0);
+
+        addui(new vslider(var, minv, maxv), children);
     }
 
-    void _bind_uisliderbutton(lua_Engine e)
+    void _bind_uisliderbutton(lua::Function children)
     {
-        addui(new slider_button, e.push_index(1).ref());
+        addui(new slider_button, children);
     }
 
-    void _bind_uioffset(lua_Engine e)
+    void _bind_uioffset(float h, float v, lua::Function children)
     {
-        addui(new offsetter(e.get<float>(1), e.get<float>(2)), e.push_index(3).ref());
+        addui(new offsetter(h, v), children);
     }
 
-    void _bind_uibutton(lua_Engine e)
+    void _bind_uibutton(lua::Function cb, lua::Function children)
     {
-        addui(new button(e.push_index(1).ref()), e.push_index(2).ref());
+        addui(new button(cb), children);
     }
 
-    void _bind_uicond(lua_Engine e)
+    void _bind_uicond(lua::Function cb, lua::Function children)
     {
-        addui(new conditional(e.push_index(1).ref()), e.push_index(2).ref());
+        addui(new conditional(cb), children);
     }
 
-    void _bind_uicondbutton(lua_Engine e)
+    void _bind_uicondbutton(
+        lua::Function cond, lua::Function cb, lua::Function children
+    )
     {
-        addui(new conditional_button(e.push_index(1).ref(), e.push_index(2).ref()), e.push_index(3).ref());
+        addui(new conditional_button(cond, cb), children);
     }
 
-    void _bind_uitoggle(lua_Engine e)
+    void _bind_uitoggle(
+        lua::Function cond,
+        lua::Function cb,
+        float split,
+        lua::Function children
+    )
     {
-        addui(new toggle(e.push_index(1).ref(), e.push_index(2).ref(), e.get<float>(3)), e.push_index(4).ref());
+        addui(new toggle(cond, cb, split), children);
     }
 
-    void _bind_uiimage(lua_Engine e)
+    void _bind_uiimage(
+        const char *path, float minw, float minh, lua::Function children
+    )
     {
         addui(
-            new image(
-                textureload(
-                    e.get<const char*>(1),
-                    3, true, false
-                ),
-                e.get<float>(2),
-                e.get<float>(3)
-            ),
-            e.push_index(4).ref()
+            new image(textureload(path, 3, true, false), minw, minh),children
         );
     }
 
-    void _bind_uislotview(lua_Engine e)
+    void _bind_uislotview(
+        int slot, float minw, float minh, lua::Function children
+    )
     {
-        addui(new slot_viewer(e.get<int>(1), e.get<float>(2), e.get<float>(3)), e.push_index(4).ref());
+        addui(new slot_viewer(slot, minw, minh), children);
     }
 
-    void _bind_uialtimage(lua_Engine e)
+    void _bind_uialtimage(const char *path)
     {
         if (build.empty() || !build.last()->isnamed("image")) return;
         image *img = (image*)build.last();
         if (img && img->tex==notexture)
         {
-            img->tex = textureload(e.get<const char*>(1), 3, true, false);
+            img->tex = textureload(path, 3, true, false);
         }
     }
 
-    void _bind_uicolor(lua_Engine e)
+    void _bind_uicolor(
+        float r, float g, float b, float a,
+        float minw, float minh, lua::Function children
+    )
     {
         addui(
-            new rectangle(
-                rectangle::SOLID,
-                e.get<float>(1),
-                e.get<float>(2),
-                e.get<float>(3),
-                e.get<float>(4),
-                e.get<float>(5),
-                e.get<float>(6)
-            ),
-            e.push_index(7).ref()
+            new rectangle(rectangle::SOLID, r, g, b, a, minw, minh),
+            children
         );
     }
 
-    void _bind_uimodcolor(lua_Engine e)
+    void _bind_uimodcolor(
+        float r, float g, float b,
+        float minw, float minh, lua::Function children
+    )
     {
         addui(
-            new rectangle(
-                rectangle::MODULATE,
-                e.get<float>(1),
-                e.get<float>(2),
-                e.get<float>(3),
-                1,
-                e.get<float>(4),
-                e.get<float>(5)
-            ),
-            e.push_index(6).ref()
+            new rectangle(rectangle::MODULATE, r, g, b, 1, minw, minh),
+            children
         );
     }
 
-    void _bind_uistretchedimage(lua_Engine e)
+    void _bind_uistretchedimage(
+        const char *path, float minw, float minh, lua::Function children
+    )
     {
         addui(
-            new stretched_image(
-                textureload(
-                    e.get<const char*>(1),
-                    3, true, false
-                ),
-                e.get<float>(2),
-                e.get<float>(3)
-            ),
-            e.push_index(4).ref()
+            new stretched_image(textureload(path, 3, true, false), minw, minh),
+            children
         );
     }
 
-    void _bind_uicroppedimage(lua_Engine e)
+    void _bind_uicroppedimage(
+        const char *path,
+        float minw, float minh,
+        const char *cropx,
+        const char *cropy,
+        const char *cropw,
+        const char *croph,
+        lua::Function children
+    )
     {
-        Texture *tex = textureload(e.get<const char*>(1), 3, true, false);
-        const char *cropx = e.get<const char*>(4);
-        const char *cropy = e.get<const char*>(5);
-        const char *cropw = e.get<const char*>(6);
-        const char *croph = e.get<const char*>(7);
-
+        Texture *tex = textureload(path, 3, true, false);
         addui(
             new cropped_image(
-                tex, e.get<float>(3), e.get<float>(4),
+                tex, minw, minh,
                 strchr(cropx, 'p') ? atof(cropx) / tex->xs : atof(cropx),
                 strchr(cropy, 'p') ? atof(cropy) / tex->ys : atof(cropy),
                 strchr(cropw, 'p') ? atof(cropw) / tex->xs : atof(cropw),
                 strchr(croph, 'p') ? atof(croph) / tex->ys : atof(croph)
             ),
-            e.push_index(8).ref()
+            children
         );
     }
 
-    void _bind_uiborderedimage(lua_Engine e)
+    void _bind_uiborderedimage(
+        const char *path, const char *texborder,
+        float screenborder, lua::Function children
+    )
     {
-        Texture *tex = textureload(e.get<const char*>(1), 3, true, false);
-
-        const char *texborder = e.get<const char*>(2);
+        Texture *tex = textureload(path, 3, true, false);
         addui(
             new bordered_image(
                 tex,
                 strchr(texborder, 'p') ? atof(texborder) / tex->xs : atof(texborder),
-                e.get<float>(3)
+                screenborder
             ),
-            e.push_index(4).ref()
+            children
         );
     }
 
-    void _bind_uilabel(lua_Engine e)
+    int _bind_uilabel(
+        const char *lbl, float scale,
+        float r, float g, float b,
+        lua::Function children
+    )
     {
-        float scale = e.get<float>(2);
-        label *text  = new label(
-            e.get<const char*>(1),
-            (scale <= 0) ? 1 : scale,
-            e.get<float>(3, 1),
-            e.get<float>(4, 1),
-            e.get<float>(5, 1)
-        );
-
+        label *text = new label(lbl, (scale <= 0) ? 1 : scale, r, g, b);
         labels.add(text);
-        addui(text, e.push_index(6).ref());
-        e.push(labels.length());
+        addui(text, children);
+        return (int)labels.length();
     }
 
-    void _bind_uisetlabel(lua_Engine e)
+    void _bind_uisetlabel(int ref, const char *lbl)
     {
-        label *text = labels[e.get<int>(1) - 1];
+        label *text = labels[ref - 1];
         if  (!text) return;
 
-        text->set(e.get<const char*>(2));
+        text->set(lbl);
     }
 
-    void _bind_uivarlabel(lua_Engine e)
+    void _bind_uivarlabel(
+        const char *var, float scale,
+        float r, float g, float b,
+        lua::Function children
+    )
     {
-        const char *var = e.get<const char*>(1);
-        var::cvar  *ev  = var::get(e.get<const char*>(1));
+        var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, ""));
 
-        float scale = e.get<float>(2);
-        varlabel *text  = new varlabel(
-            ev,
-            (scale <= 0) ? 1 : scale,
-            e.get<float>(3, 1),
-            e.get<float>(4, 1),
-            e.get<float>(5, 1)
-        );
-        addui(text, e.push_index(6).ref());
+        varlabel *text  = new varlabel(ev, (scale <= 0) ? 1 : scale, r, g, b);
+        addui(text, children);
     }
 
-    void _bind_uitexteditor(lua_Engine e)
+    void _bind_uitexteditor(
+        const char *name,
+        int length,
+        int height,
+        float scale,
+        const char *initval,
+        bool keep,
+        const char *filter,
+        lua::Function children
+    )
     {
-        int keep = e.get<bool>(6);
-        const char *filter = e.get<const char*>(7);
         addui(
             new text_editor(
-                e.get<const char*>(1),
-                e.get<int>(2),
-                e.get<int>(3),
-                e.get<float>(4, 1),
-                e.get<const char*>(5),
-                keep ? EDITORFOREVER : EDITORUSED,
-                filter ? filter : NULL
+                name, length, height, scale ? scale : 1.0f, initval,
+                keep ? EDITORFOREVER : EDITORUSED, filter ? filter : NULL
             ),
-            e.push_index(8).ref()
+            children
         );
     }
 
-    void _bind_uifield(lua_Engine e)
+    void _bind_uifield(
+        const char *var,
+        int length,
+        lua::Function onchange,
+        float scale,
+        const char *filter,
+        bool password,
+        lua::Function children
+    )
     {
-        const char *var = e.get<const char*>(1);
-        var::cvar  *ev  = var::get(e.get<const char*>(1));
+        var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, ""));
 
-        const char *filter = e.get<const char*>(5);
         addui(
             new text_editor(
-                var,
-                e.get<int>(2),
-                0,
-                e.get<float>(4, 1),
-                ev->curv.s,
-                EDITORFOCUSED,
-                filter ? filter : NULL,
-                e.get<bool>(6),
-                true,
-                e.push_index(3).ref()
+                var, length, 0, scale ? scale : 1.0f, ev->curv.s,
+                EDITORFOCUSED, filter ? filter : NULL, password, true, onchange
             ),
-            e.push_index(7).ref()
+            children
         );
     }
 
@@ -2576,13 +2519,10 @@ namespace gui
         {
             mainmenu = 0;
 
-            lua::engine.getg("gui")
-                      .t_getraw("hide")
-                      .push("main")
-                      .call(1, 0);
-            lua::engine.t_getraw("hide").push("vtab").call(1, 0);
-            lua::engine.t_getraw("hide").push("htab").call(1, 0);
-            lua::engine.pop(1);
+            lua::Function h = lapi::state.get("gui", "hide");
+            h("main");
+            h("vtab");
+            h("htab");
         }
     }
 
@@ -2602,30 +2542,27 @@ namespace gui
 
     void update()
     {
-        loopv(executelater)
-        {
-            lua::engine.getref(executelater[i]).call(0, 0);
-        }
-        executelater.setsize(0);
+        for (size_t i = 0; i < executelater.length(); ++i) executelater[i]();
+        executelater.clear();
 
         if (mainmenu && !isconnected(true) && !world_inst->children.length())
-            lua::engine.getg("gui").t_getraw("show").push("main").call(1, 0).pop(1);
+            lapi::state.get<lua::Function>("gui", "show")("main");
 
         if ((editmode && !mainmenu) && !space)
         {
-            lua::engine.getg("gui").t_getraw("show").push("space").call(1, 0);
-            lua::engine.t_getraw("hide").push("vtab").call(1, 0);
-            lua::engine.t_getraw("hide").push("htab").call(1, 0);
-            lua::engine.pop(1);
+            lapi::state.get<lua::Function>   ("gui", "show")("space");
+            lua::Function h = lapi::state.get("gui", "hide");
+            h("vtab");
+            h("htab");
             space = true;
             resetcursor();
         }
         else if ((!editmode || mainmenu) && space)
         {
-            lua::engine.getg("gui").t_getraw("hide").push("space").call(1, 0);
-            lua::engine.t_getraw("hide").push("vtab").call(1, 0);
-            lua::engine.t_getraw("hide").push("htab").call(1, 0);
-            lua::engine.pop(1);
+            lapi::state.get<lua::Function>   ("gui", "hide")("space");
+            lua::Function h = lapi::state.get("gui", "hide");
+            h("vtab");
+            h("htab");
             space = false;
             resetcursor();
         }
@@ -2697,10 +2634,7 @@ void addchange(const char *desc, int type)
     if (!applydialog) return;
     loopv(needsapply) if (!strcmp(needsapply[i].desc, desc)) return;
     needsapply.add(change(type, desc));
-    lua::engine.getg("gui")
-               .t_getraw("show_changes")
-               .call(0, 0)
-               .pop(1);
+    lapi::state.get<lua::Function>("gui", "show_changes")();
 }
 
 void clearchanges(int type)
@@ -2715,48 +2649,35 @@ void clearchanges(int type)
     }
 }
 
-void applychanges()
+void applychanges() // _bind_applychanges
 {
     int changetypes = 0;
     loopv(needsapply) changetypes |= needsapply[i].type;
     if (changetypes&CHANGE_GFX)
-    {
-        int ref = lua::engine.getg("engine").t_getraw("resetgl").ref();
-        gui::executelater.add(ref);
-        lua::engine.pop(1);
-    }
+        gui::executelater.push_back(lapi::state.get("engine", "resetgl"));
     if (changetypes&CHANGE_SOUND)
-    {
-        int ref = lua::engine.getg("sound").t_getraw("reset").ref();
-        gui::executelater.add(ref);
-        lua::engine.pop(1);
-    }
+        gui::executelater.push_back(lapi::state.get("sound", "reset"));
 }
 
-void _bind_clearchanges(lua_Engine e)
+void _bind_clearchanges()
 {
     clearchanges(CHANGE_GFX | CHANGE_SOUND);
 }
 
-void _bind_applychanges(lua_Engine e)
+types::Vector<const char*> _bind_getchanges()
 {
-    applychanges();
-}
+    types::Vector<const char*> ret;
+    ret.reserve((size_t)needsapply.length());
 
-void _bind_getchanges(lua_Engine e)
-{
-    e.t_new();
     loopv(needsapply)
-    {
-        e.t_set(i + 1, needsapply[i].desc);
-    }
+        ret.push_back(needsapply[i].desc);
+
+    return ret;
 }
 
 VAR(fonth, 512, 0, 0);
 
 void consolebox(int x1, int y1, int x2, int y2)
 {
-    lua::engine.getg("tgui").t_getraw("show_console_bg");
-    lua::engine.push(x1).push(y1).push(x2).push(y2).call(4, 0);
-    lua::engine.pop(1);
+    /* unimplemented */
 }

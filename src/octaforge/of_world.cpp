@@ -154,7 +154,9 @@ namespace world
             PATHDIV, fname
         );
 
-        const char *data = lua::engine.exec<const char*>("return entity_store.save_entities()");
+        const char *data = lapi::state.get<lua::Function>(
+            "entity_store", "save_entities"
+        ).call<const char*>();
         if (fileexists(buf.get_buf(), "r"))
         {
             types::String buff = types::String().format(
@@ -189,6 +191,6 @@ namespace world
 
     void run_mapscript()
     {
-        lua::engine.execf(get_mapscript_filename().get_buf());
+        lapi::state.do_file(get_mapscript_filename(), lua::ERROR_EXIT_TRACEBACK);
     }
 } /* end namespace world */

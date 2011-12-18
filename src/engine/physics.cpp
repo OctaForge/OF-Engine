@@ -1814,19 +1814,13 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
 
     if (pl->o.z < 0)
     {
-        using namespace lua;
 #ifdef CLIENT
-        engine.getg("client_on_ent_offmap");
+        lua::Function f = lapi::state["client_on_ent_offmap"];
 #else
-        engine.getg("on_ent_offmap");
+        lua::Function f = lapi::state["on_ent_offmap"];
 #endif
-        if (!engine.is<void*>(-1))
-        {
-            engine.pop(1);
-            return true;
-        }
-        engine.getref(LogicSystem::getLogicEntity((dynent*)pl)->luaRef);
-        engine.call(1, 0);
+        if (f.is_nil()) return true;
+        f(LogicSystem::getLogicEntity((dynent*)pl)->lua_ref);
     }
 
     return true;

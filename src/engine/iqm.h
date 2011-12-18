@@ -375,7 +375,7 @@ struct iqm : skelmodel, skelloader<iqm>
 
         loading = this;
         var::persistvars = false;
-        if (lua::engine.execf(path(cfgname), false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
+        if (!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
         {
             var::persistvars = true;
             loading = NULL;
@@ -404,5 +404,8 @@ struct iqm : skelmodel, skelloader<iqm>
     }
 };
 
-skelcommands<iqm> iqmcommands;
-const types::Vector<LE_reg>& iqmbinds = iqmcommands.command_stor;
+lua::Table iqmcommands()
+{
+    skelcommands<iqm> cmds;
+    return cmds.module;
+}

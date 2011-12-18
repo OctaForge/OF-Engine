@@ -11,8 +11,6 @@
 #include "targeting.h"
 #include "message_system.h"
 
-using namespace lua;
-
 //=========================
 // Camera stuff
 //=========================
@@ -153,7 +151,7 @@ void CameraControl::positionCamera(physent* camera1)
 
     // Sync camera height to scripts, if necessary
     static double lastCameraHeight = -1;
-    if (engine.hashandle() && lastCameraHeight != cameraheight) lastCameraHeight = cameraheight;
+    if (lapi::state.state() && lastCameraHeight != cameraheight) lastCameraHeight = cameraheight;
 
     // If we just left forced camera mode, restore thirdperson state
     if (savedThirdperson != -1)

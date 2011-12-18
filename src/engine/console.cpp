@@ -171,18 +171,19 @@ const char *getkeyname(int code)
     return km ? km->name.get_buf() : NULL;
 }
 
-void searchbinds(const char *action, int type)
+lua::Table searchbinds(const char *action, int type)
 {
     int n = 1;
-    lua::engine.t_new();
+    lua::Table t = lapi::state.new_table();
     enumerate(keyms, keym, km,
     {
         if(km.actions[type] == action)
         {
-            lua::engine.t_set(n, km.name.get_buf());
+            t[n] = km.name.get_buf();
             n++;
         }
     });
+    return t;
 }
 
 keym *findbind(const char *key)
@@ -194,10 +195,10 @@ keym *findbind(const char *key)
     return NULL;
 }   
     
-void getbind(const char *key, int type)
+types::String getbind(const char *key, int type)
 {
     keym *km = findbind(key);
-    lua::engine.push(km ? km->actions[type].get_buf() : "");
+    return (km ? km->actions[type] : "");
 }   
 
 void bindkey(const char *key, const char *action, int state)
@@ -306,11 +307,13 @@ struct hline
                 ev = var::regvar("commandbuf", new var::cvar("commandbuf", buf.get_buf()));
             }
             else ev->set(buf.get_buf(), false);
-            lua::engine.exec(action.get_buf());
+            types::Tuple<int, const char*> err = lapi::state.do_string(action);
+            if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         }
         else if (buf[0] == '/')
         {
-            lua::engine.exec(buf.get_buf() + 1);
+            types::Tuple<int, const char*> err = lapi::state.do_string(buf.get_buf() + 1);
+            if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         }
         else game::toserver((char*)buf.get_buf());
     }
@@ -334,11 +337,11 @@ void history_(int n)
 struct releaseaction
 {
     keym *key;
-    int action;
+    lua::Function action;
 };
 vector<releaseaction> releaseactions;
 
-const char *addreleaseaction(int a)
+const char *addreleaseaction(const lua::Function& a)
 {
     if(!keypressed) return NULL;
     releaseaction &ra = releaseactions.add();
@@ -350,8 +353,11 @@ const char *addreleaseaction(int a)
 const char *addreleaseaction(const char *s)
 {
     if(!keypressed) return NULL;
-    lua::engine.getg("loadstring").push(s).call(1, 1);
-    return addreleaseaction(lua::engine.ref());
+    auto ret = lapi::state.load_string(s);
+    if (types::get<0>(ret))
+        logger::log(logger::DEBUG, "%s\n", types::get<1>(ret));
+
+    return addreleaseaction(types::get<2>(ret));
 }
 
 void execbind(keym &k, bool isdown)
@@ -361,8 +367,7 @@ void execbind(keym &k, bool isdown)
         releaseaction &ra = releaseactions[i];
         if(ra.key==&k)
         {
-            if(!isdown) lua::engine.getref(ra.action).call(0, 0);
-            lua::engine.unref(ra.action);
+            if(!isdown) ra.action();
             releaseactions.remove(i--);
         }
     }
@@ -377,23 +382,23 @@ void execbind(keym &k, bool isdown)
 
         if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
         {
-            lua::engine.getg("input").t_getraw("per_map_keys").t_getraw(k.name.get_buf());
-            if (lua::engine.is<void*>(-1))
+            lua::Object o = lapi::state.get<lua::Table>("input")
+                                       .get<lua::Table>("per_map_keys")[k.name];
+
+            if (o.type() == lua::TYPE_FUNCTION)
             {
                 keypressed = &k;
-                lua::engine.call(0, 0);
+                o.to<lua::Function>()();
                 keypressed = NULL;
-
                 k.pressed = isdown;
-                lua::engine.pop(2);
                 return;
             }
-            lua::engine.pop(3);
         }
         types::String& action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
         keyaction = action;
         keypressed = &k;
-        lua::engine.exec(keyaction.get_buf());
+        types::Tuple<int, const char*> err = lapi::state.do_string(keyaction);
+        if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         keypressed = NULL;
         if (keyaction!=action) keyaction.clear();
     }
