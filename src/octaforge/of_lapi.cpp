@@ -40,6 +40,7 @@ if (!name) \
 #include "of_lapi_entity.h"
 #ifdef CLIENT
 #include "of_lapi_gui.h"
+#include "of_lapi_input.h"
 #endif
 
 #undef LAPI_GET_ENT
@@ -169,6 +170,7 @@ namespace lapi
         CAPI_REG(entity);
 #ifdef CLIENT
         CAPI_REG(gui);
+        CAPI_REG(input);
 #endif
         #undef CAPI_REG
 
