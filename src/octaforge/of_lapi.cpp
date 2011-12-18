@@ -18,10 +18,26 @@
 #include "of_localserver.h"
 
 #define LAPI_REG(name) t[#name] = &_lua_##name
+
+#define LAPI_GET_ENT(name, tname, _log, retexpr) \
+int uid = tname.get<int>("uid"); \
+\
+CLogicEntity *name = LogicSystem::getLogicEntity(uid); \
+if (!name) \
+{ \
+    logger::log( \
+        logger::ERROR, "Cannot find CLE for entity %i (%s).\n", uid, _log \
+    ); \
+    retexpr; \
+}
+
 #include "of_lapi_base.h"
 #include "of_lapi_blend.h"
 #include "of_lapi_camera.h"
 #include "of_lapi_edit.h"
+#include "of_lapi_entity.h"
+
+#undef LAPI_GET_ENT
 #undef LAPI_REG
 
 using namespace types;
@@ -143,6 +159,7 @@ namespace lapi
         CAPI_REG(blend);
         CAPI_REG(camera);
         CAPI_REG(edit);
+        CAPI_REG(entity);
         #undef CAPI_REG
 
         api_all["INFO"   ] = (int)logger::INFO;

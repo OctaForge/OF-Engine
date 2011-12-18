@@ -292,17 +292,7 @@ namespace lapi_binds
 
     void _lua_npcdel(lua::Table self)
     {
-        int uid = self.get<int>("uid");
-
-        CLogicEntity *entity = LogicSystem::getLogicEntity(uid);
-        if (!entity)
-        {
-            logger::log(
-                logger::ERROR, "Cannot find CLE for entity %i.\n", uid
-            );
-            return;
-        }
-
+        LAPI_GET_ENT(entity, self, "CAPI.npcdel", return)
         fpsent *fp = (fpsent*)entity->dynamicEntity;
         localdisconnect(true, fp->clientnum);
     }
