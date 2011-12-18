@@ -42,6 +42,8 @@ if (!name) \
 #include "of_lapi_gui.h"
 #include "of_lapi_input.h"
 #endif
+#include "of_lapi_messages.h"
+#include "of_lapi_model.h"
 
 #undef LAPI_GET_ENT
 #undef LAPI_REG
@@ -172,6 +174,8 @@ namespace lapi
         CAPI_REG(gui);
         CAPI_REG(input);
 #endif
+        CAPI_REG(messages);
+        CAPI_REG(model);
         #undef CAPI_REG
 
         api_all["INFO"   ] = (int)logger::INFO;
