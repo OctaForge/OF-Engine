@@ -325,8 +325,6 @@ namespace lapi_binds
 
         return lua::Object();
     }
-#else
-    void _lua_get_target_entity_uid() {}
 #endif
 
     lua::Object _lua_getplag(lua::Table self)
@@ -419,7 +417,9 @@ namespace lapi_binds
         LAPI_REG(setdynentvel);
         LAPI_REG(getdynentfalling);
         LAPI_REG(setdynentfalling);
+#ifdef CLIENT
         LAPI_REG(get_target_entity_uid);
+#endif
         LAPI_REG(getplag);
         LAPI_REG(getping);
     }

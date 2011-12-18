@@ -115,19 +115,6 @@ namespace lapi_binds
         showscoreboard = on ? 1 : 0;
         scorebshow(on);
     }
-#else
-    void _lua_keymap       () {}
-    void _lua_registersound() {}
-    void _lua_resetsound   () {}
-    void _lua_quit         () {}
-    void _lua_force_quit   () {}
-    void _lua_resetgl      () {}
-    void _lua_glext        () {}
-    void _lua_getfps       () {}
-    void _lua_getwallclock () {}
-    void _lua_screenshot   () {}
-    void _lua_movie        () {}
-    void _lua_showscores   () {}
 #endif
 
     void _lua_writecfg(const char *name)
@@ -205,8 +192,6 @@ namespace lapi_binds
     {
         EditingSystem::saved_pos = TargetingControl::worldPosition;
     }
-#else
-    void _lua_save_mouse_position() {}
 #endif
 
     /* some bit math */
@@ -373,17 +358,6 @@ namespace lapi_binds
     {
         return addreleaseaction(f);
     }
-#else
-    void _lua_toggleconsole() {}
-    void _lua_conskip      () {}
-    void _lua_miniconskip  () {}
-    void _lua_clearconsole () {}
-    void _lua_bind         () {}
-    void _lua_getbind      () {}
-    void _lua_searchbinds  () {}
-    void _lua_prompt       () {}
-    void _lua_history      () {}
-    void _lua_onrelease    () {}
 #endif
 
     void reg_base(lua::Table& t)
@@ -393,6 +367,7 @@ namespace lapi_binds
         LAPI_REG(say);
         LAPI_REG(currtime);
         LAPI_REG(getmillis);
+#ifdef CLIENT
         LAPI_REG(keymap);
         LAPI_REG(registersound);
         LAPI_REG(resetsound);
@@ -405,13 +380,16 @@ namespace lapi_binds
         LAPI_REG(screenshot);
         LAPI_REG(movie);
         LAPI_REG(showscores);
+#endif
         LAPI_REG(writecfg);
         LAPI_REG(readfile);
         LAPI_REG(addzip);
         LAPI_REG(removezip);
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);
+#ifdef CLIENT
         LAPI_REG(save_mouse_position);
+#endif
         LAPI_REG(lsh);
         LAPI_REG(rsh);
         LAPI_REG(bor);
@@ -423,6 +401,7 @@ namespace lapi_binds
         LAPI_REG(getvar);
         LAPI_REG(varexists);
         LAPI_REG(persist_vars);
+#ifdef CLIENT
         LAPI_REG(toggleconsole);
         LAPI_REG(conskip);
         LAPI_REG(miniconskip);
@@ -433,5 +412,6 @@ namespace lapi_binds
         LAPI_REG(prompt);
         LAPI_REG(history);
         LAPI_REG(onrelease);
+#endif
     }
 }

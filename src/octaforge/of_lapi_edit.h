@@ -333,14 +333,6 @@ namespace lapi_binds
     void _lua_clearlightmaps() { clearlightmaps(); }
     void _lua_dumplms       () { dumplms       (); }
     void _lua_recalc        () { recalc        (); }
-#else
-    void _lua_requestprivedit() {}
-    void _lua_hasprivedit    () {}
-    void _lua_calclight      () {}
-    void _lua_patchlight     () {}
-    void _lua_clearlightmaps () {}
-    void _lua_dumplms        () {}
-    void _lua_recalc         () {}
 #endif
 
     void _lua_printcube() { printcube(); }
@@ -409,6 +401,7 @@ namespace lapi_binds
         LAPI_REG(npcadd);
         LAPI_REG(npcdel);
         LAPI_REG(spawnent);
+#ifdef CLIENT
         LAPI_REG(requestprivedit);
         LAPI_REG(hasprivedit);
         LAPI_REG(calclight);
@@ -416,6 +409,7 @@ namespace lapi_binds
         LAPI_REG(clearlightmaps);
         LAPI_REG(dumplms);
         LAPI_REG(recalc);
+#endif
         LAPI_REG(printcube);
         LAPI_REG(remip);
         LAPI_REG(phystest);

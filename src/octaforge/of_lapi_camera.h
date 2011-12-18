@@ -1,6 +1,5 @@
 namespace lapi_binds
 {
-#ifdef CLIENT
     void _lua_forcecam(vec pos, float yaw, float pitch, float roll, float fov)
     {
         CameraControl::forceCamera(pos, yaw, pitch, roll, fov);
@@ -37,20 +36,6 @@ namespace lapi_binds
 
     void _lua_mouselook    () { GuiControl::toggleMouselook       (); }
     void _lua_characterview() { GuiControl::toggleCharacterViewing(); }
-#else
-    void _lua_forcecam     () {}
-    void _lua_forcepos     () {}
-    void _lua_forceyaw     () {}
-    void _lua_forcepitch   () {}
-    void _lua_forceroll    () {}
-    void _lua_forcefov     () {}
-    void _lua_resetcam     () {}
-    void _lua_getcam       () {}
-    void _lua_caminc       () {}
-    void _lua_camdec       () {}
-    void _lua_mouselook    () {}
-    void _lua_characterview() {}
-#endif
 
     void reg_camera(lua::Table& t)
     {

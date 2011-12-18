@@ -32,10 +32,15 @@ if (!name) \
 }
 
 #include "of_lapi_base.h"
+#ifdef CLIENT
 #include "of_lapi_blend.h"
 #include "of_lapi_camera.h"
+#endif
 #include "of_lapi_edit.h"
 #include "of_lapi_entity.h"
+#ifdef CLIENT
+#include "of_lapi_gui.h"
+#endif
 
 #undef LAPI_GET_ENT
 #undef LAPI_REG
@@ -156,10 +161,15 @@ namespace lapi
 
         #define CAPI_REG(name) lapi_binds::reg_##name(api_all)
         CAPI_REG(base);
+#ifdef CLIENT
         CAPI_REG(blend);
         CAPI_REG(camera);
+#endif
         CAPI_REG(edit);
         CAPI_REG(entity);
+#ifdef CLIENT
+        CAPI_REG(gui);
+#endif
         #undef CAPI_REG
 
         api_all["INFO"   ] = (int)logger::INFO;
