@@ -225,7 +225,7 @@ namespace lapi_binds
     types::String _lua_entget()
     {
         entfocus(efocus, string s; printent(ent, s); return s);
-        return types::String();
+        return NULL;
     }
 
     int _lua_entindex() { return efocus; }
@@ -311,7 +311,7 @@ namespace lapi_binds
         if (fileexists(buf.get_buf(), "r"))
             return buf;
 
-        return types::String();
+        return NULL;
     }
 
     types::Tuple<lua::Table, lua::Table> _lua_get_all_map_names()
@@ -326,27 +326,29 @@ namespace lapi_binds
         buf.format("data%cmaps", PATHDIV);
         listdir(buf.get_buf(), false, NULL, glob);
 
-        gret = lapi::state.new_table(glob.length());
-        if (glob.length() > 0)
+        if (glob.length() >= 2)
+            gret = lapi::state.new_table(glob.length() - 2);
+        else
+            gret = lapi::state.new_table();
+
+        if (glob.length() > 2)
         {
-            loopv(glob)
-            {
-                if (strchr(glob[i], '.')) continue;
-                gret[i + 1] = glob[i];
-            }
+            for (int i = 2; i < glob.length(); ++i)
+                gret[i - 1] = glob[i];
         }
 
         buf.format("%s%s", homedir, buf.get_buf());
         listdir(buf.get_buf(), false, NULL, user);
 
-        uret = lapi::state.new_table(user.length());
-        if (user.length() > 0)
+        if (user.length() >= 2)
+            uret = lapi::state.new_table(user.length() - 2);
+        else
+            gret = lapi::state.new_table();
+
+        if (user.length() > 2)
         {
-            loopv(user)
-            {
-                if (strchr(user[i], '.')) continue;
-                uret[i + 1] = user[i];
-            }
+            for (int i = 2; i < user.length(); ++i)
+                uret[i - 1] = user[i];
         }
 
         glob.deletecontents();

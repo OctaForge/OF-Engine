@@ -130,7 +130,7 @@ namespace lapi_binds
             strchr(path, '~')  ||
             path[0] == '/'     ||
             path[0] == '\\'
-        ) return types::String();
+        ) return NULL;
 
         char *loaded = NULL;
 
@@ -159,7 +159,7 @@ namespace lapi_binds
                 "Could not read file %s (paths: %sdata, .%cdata)",
                 path, homedir, filesystem::separator()
             );
-            return types::String();
+            return NULL;
         }
 
         types::String ret(loaded);

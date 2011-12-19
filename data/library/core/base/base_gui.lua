@@ -60,12 +60,15 @@ show_scores = CAPI.showscores
         file - path to the bitmap.
         dchw - default character width.
         dchh - default character height.
-        offx - X character offset (optional).
-        offy - Y character offset (optional).
-        offw - W character offset (optional).
-        offh - H character offset (optional).
 ]]
 font = CAPI.font
+
+--[[!
+    Function: font_tex
+    Defines a texture aftercoming <font_char> s will use.
+    In format data/.../name.png.
+]]
+font_tex = CAPI.fonttex
 
 --[[!
     Function: font_offset
@@ -79,6 +82,20 @@ font = CAPI.font
 font_offset = CAPI.fontoffset
 
 --[[!
+    Function: font_scale
+    Scales a font. Accepts an integer.
+    Default scale is dchh argument of <font>.
+]]
+font_scale = CAPI.fontscale
+
+--[[!
+    Function: font_alias
+    Creates a font alias. First argument
+    is the alias name, second is the font name.
+]]
+font_alias = CAPI.fontalias
+
+--[[!
     Function: font_char
     Defines a font cahracter.
 
@@ -87,8 +104,17 @@ font_offset = CAPI.fontoffset
         y - number of pixels where the character begins on Y axis.
         w - number of pixels the character takes from x.
         h - number of pixels the character takes from y (optional).
+        ox - X offset in pixels (optional).
+        oy - Y offset in pixels (optional).
+        adv - specifies by how many pixels to advance (optional).
 ]]
 font_char = CAPI.fontchar
+
+--[[!
+    Function: font_skip
+    Skips N characters.
+]]
+font_skip = CAPI.fontskip
 
 --[[!
     Package: gui
@@ -989,7 +1015,12 @@ bordered_image = CAPI.uiborderedimage
     See Also:
         <var_label>
 ]]
-label = CAPI.uilabel
+function label(lbl, scale, r, g, b, children)
+    r = r or 1
+    g = g or 1
+    b = b or 1
+    CAPI.uilabel(lbl, scale, r, g, b, children)
+end
 
 --[[!
     Function: set_label
@@ -1011,7 +1042,12 @@ set_label = CAPI.uisetlabel
     <slider_button> and value of it will change everytime
     the slider changes.
 ]]
-var_label = CAPI.uivarlabel
+function var_label(var, scale, r, g, b, children)
+    r = r or 1
+    g = g or 1
+    b = b or 1
+    CAPI.uivarlabel(var, scale, r, g, b, children)
+end
 
 --[[!
     Function: editor
