@@ -14,6 +14,7 @@
 #include "editing_system.h"
 #include "message_system.h"
 
+#include "of_entities.h"
 #include "of_world.h"
 #include "of_localserver.h"
 
@@ -54,6 +55,7 @@ if (!name) \
 #include "of_lapi_tex.h"
 #include "of_lapi_textedit.h"
 #endif
+#include "of_lapi_world.h"
 
 #undef LAPI_GET_ENT
 #undef LAPI_REG
@@ -196,6 +198,7 @@ namespace lapi
         CAPI_REG(tex);
         CAPI_REG(textedit);
 #endif
+        CAPI_REG(world);
         #undef CAPI_REG
 
         api_all["INFO"   ] = (int)logger::INFO;
