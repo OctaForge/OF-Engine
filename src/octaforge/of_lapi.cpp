@@ -47,7 +47,9 @@ if (!name) \
 #include "of_lapi_network.h"
 #ifdef CLIENT
 #include "of_lapi_parthud.h"
+#include "of_lapi_shaders.h"
 #endif
+#include "of_lapi_sound.h"
 
 #undef LAPI_GET_ENT
 #undef LAPI_REG
@@ -183,7 +185,9 @@ namespace lapi
         CAPI_REG(network);
 #ifdef CLIENT
         CAPI_REG(parthud);
+        CAPI_REG(shaders);
 #endif
+        CAPI_REG(sound);
         #undef CAPI_REG
 
         api_all["INFO"   ] = (int)logger::INFO;
