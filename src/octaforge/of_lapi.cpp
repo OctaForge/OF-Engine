@@ -52,6 +52,7 @@ if (!name) \
 #include "of_lapi_sound.h"
 #ifdef CLIENT
 #include "of_lapi_tex.h"
+#include "of_lapi_textedit.h"
 #endif
 
 #undef LAPI_GET_ENT
@@ -193,6 +194,7 @@ namespace lapi
         CAPI_REG(sound);
 #ifdef CLIENT
         CAPI_REG(tex);
+        CAPI_REG(textedit);
 #endif
         #undef CAPI_REG
 
