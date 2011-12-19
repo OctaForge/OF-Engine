@@ -1097,6 +1097,35 @@ struct bvec
     bvec(uchar x, uchar y, uchar z) : x(x), y(y), z(z) {}
     bvec(const vec &v) : x((uchar)((v.x+1)*255/2)), y((uchar)((v.y+1)*255/2)), z((uchar)((v.z+1)*255/2)) {}
 
+    bvec(lua_State *L, int idx)
+    {
+        lua_getfield(L, idx, "r");
+        x = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, idx, "g");
+        y = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, idx, "b");
+        z = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+    }
+
+    void push(lua_State *L) const
+    {
+        lua_createtable(L, 0, 3);
+
+        lua_pushnumber(L, r);
+        lua_setfield(L, -1, "r");
+
+        lua_pushnumber(L, g);
+        lua_setfield(L, -1, "g");
+
+        lua_pushnumber(L, b);
+        lua_setfield(L, -1, "b");
+    }
+
     uchar &operator[](int i)       { return v[i]; }
     uchar  operator[](int i) const { return v[i]; }
 

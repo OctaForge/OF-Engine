@@ -44,6 +44,10 @@ if (!name) \
 #endif
 #include "of_lapi_messages.h"
 #include "of_lapi_model.h"
+#include "of_lapi_network.h"
+#ifdef CLIENT
+#include "of_lapi_parthud.h"
+#endif
 
 #undef LAPI_GET_ENT
 #undef LAPI_REG
@@ -176,6 +180,10 @@ namespace lapi
 #endif
         CAPI_REG(messages);
         CAPI_REG(model);
+        CAPI_REG(network);
+#ifdef CLIENT
+        CAPI_REG(parthud);
+#endif
         #undef CAPI_REG
 
         api_all["INFO"   ] = (int)logger::INFO;
