@@ -50,6 +50,9 @@ if (!name) \
 #include "of_lapi_shaders.h"
 #endif
 #include "of_lapi_sound.h"
+#ifdef CLIENT
+#include "of_lapi_tex.h"
+#endif
 
 #undef LAPI_GET_ENT
 #undef LAPI_REG
@@ -188,6 +191,9 @@ namespace lapi
         CAPI_REG(shaders);
 #endif
         CAPI_REG(sound);
+#ifdef CLIENT
+        CAPI_REG(tex);
+#endif
         #undef CAPI_REG
 
         api_all["INFO"   ] = (int)logger::INFO;
