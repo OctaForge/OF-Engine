@@ -184,16 +184,16 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setextent0(lua::Table self, float x, float y, float z)
+    void _lua_setextent0(lua::Table self, vec o)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setextent0", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
 
         removeentity(ext);
-        ext->o.x = x;
-        ext->o.y = y;
-        ext->o.z = z;
+        ext->o.x = o.x;
+        ext->o.y = o.y;
+        ext->o.z = o.z;
         addentity(ext);
     }
 
@@ -247,15 +247,15 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setdynent0(lua::Table self, float x, float y, float z)
+    void _lua_setdynent0(lua::Table self, vec o)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setdynent0", return)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        d->o.x = x;
-        d->o.y = y;
-        d->o.z = z + d->eyeheight;/* + d->aboveeye; */
+        d->o.x = o.x;
+        d->o.y = o.y;
+        d->o.z = o.z + d->eyeheight;/* + d->aboveeye; */
 
         /* also set newpos, otherwise this change may get overwritten */
         d->newpos = d->o;
@@ -279,15 +279,15 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setdynentvel(lua::Table self, float x, float y, float z)
+    void _lua_setdynentvel(lua::Table self, vec vel)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setdynent0", return)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        d->vel.x = x;
-        d->vel.y = y;
-        d->vel.z = z;
+        d->vel.x = vel.x;
+        d->vel.y = vel.y;
+        d->vel.z = vel.z;
     }
 
     lua::Table _lua_getdynentfalling(lua::Table self)
@@ -302,15 +302,15 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setdynentfalling(lua::Table self, float x, float y, float z)
+    void _lua_setdynentfalling(lua::Table self, vec fall)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setdynentfalling", return)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        d->falling.x = x;
-        d->falling.y = y;
-        d->falling.z = z;
+        d->falling.x = fall.x;
+        d->falling.y = fall.y;
+        d->falling.z = fall.z;
     }
 
 #ifdef CLIENT

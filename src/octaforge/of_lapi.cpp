@@ -262,12 +262,12 @@ end:
         if (tonumber.call<Object>(version).is_nil())
             return false;
 
-        Table package = state.registry().get<Object>("package", "_LOADED");
+        Table package = state.registry().get<Object>("_LOADED", "package");
 
         String pattern = String().format(";./data/library/%s/?.lua", version);
         Function  find = state.get<Object>("string", "find");
 
-        if (find.call<Object>(package["path"], pattern).is_nil())
+        if (!find.call<Object>(package["path"], pattern).is_nil())
             return true;
 
         lua_State *L  = state.state();

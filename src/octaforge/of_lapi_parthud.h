@@ -120,22 +120,27 @@ namespace lapi_binds
     }
 
     void _lua_showhudrect(
-        float x1, float y1, float x2, float y2, int color, float alpha
+        float x1, float y1, float x2, float y2,
+        lua::Object color, lua::Object alpha
     )
     {
-        if (!color) color = 0xFFFFFF;
-        if (!alpha) alpha = 1.0f;
-        ClientSystem::addHUDRect(x1, y1, x2, y2, color, alpha);
+        ClientSystem::addHUDRect(
+            x1, y1, x2, y2,
+            (color.is_nil() ? 0xFFFFFF : color.to<int>()),
+            (alpha.is_nil() ? 1.0f : color.to<float>())
+        );
     }
 
     void _lua_showhudimage(
         const char *tex, float cx, float cy,
-        float wiu, float hiu, int color, float alpha
+        float wiu, float hiu, lua::Object color, lua::Object alpha
     )
     {
-        if (!color) color = 0xFFFFFF;
-        if (!alpha) alpha = 1.0f;
-        ClientSystem::addHUDImage(tex, cx, cy, wiu, hiu, color, alpha);
+        ClientSystem::addHUDImage(
+            tex, cx, cy, wiu, hiu,
+            (color.is_nil() ? 0xFFFFFF : color.to<int>()),
+            (alpha.is_nil() ? 1.0f : color.to<float>())
+        );
     }
 
     void _lua_showhudtext(

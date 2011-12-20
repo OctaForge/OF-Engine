@@ -1015,12 +1015,7 @@ bordered_image = CAPI.uiborderedimage
     See Also:
         <var_label>
 ]]
-function label(lbl, scale, r, g, b, children)
-    r = r or 1
-    g = g or 1
-    b = b or 1
-    CAPI.uilabel(lbl, scale, r, g, b, children)
-end
+label = CAPI.uilabel
 
 --[[!
     Function: set_label
@@ -1042,12 +1037,7 @@ set_label = CAPI.uisetlabel
     <slider_button> and value of it will change everytime
     the slider changes.
 ]]
-function var_label(var, scale, r, g, b, children)
-    r = r or 1
-    g = g or 1
-    b = b or 1
-    CAPI.uivarlabel(var, scale, r, g, b, children)
-end
+var_label = CAPI.uivarlabel
 
 --[[!
     Function: editor

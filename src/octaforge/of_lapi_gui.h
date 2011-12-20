@@ -33,12 +33,10 @@ namespace gui
     void _lua_uivscrollbar(float h, float v, lua::Function children);
     void _lua_uiscrollbutton(lua::Function children);
     void _lua_uihslider(
-        const char *var, int defaultv,
-        int minv, int maxv, lua::Function children
+        const char *var, int minv, int maxv, lua::Function children
     );
     void _lua_uivslider(
-        const char *var, int defaultv,
-        int minv, int maxv, lua::Function children
+        const char *var, int minv, int maxv, lua::Function children
     );
     void _lua_uisliderbutton(lua::Function children);
     void _lua_uioffset(float h, float v, lua::Function children);
@@ -84,16 +82,16 @@ namespace gui
         const char *path, const char *texborder,
         float screenborder, lua::Function children
     );
-    int  _lua_uilabel(
+    int _lua_uilabel(
         const char *lbl, float scale,
-        float r, float g, float b,
+        lua::Object r, lua::Object g, lua::Object b,
         lua::Function children
     );
     void _lua_uisetlabel(int ref, const char *lbl);
     void _lua_uivarlabel(
         const char *var, float scale,
-        float r, float g, float b,
-        lua::Function childrenn
+        lua::Object r, lua::Object g, lua::Object b,
+        lua::Function children
     );
     void _lua_uitexteditor(
         const char *name,

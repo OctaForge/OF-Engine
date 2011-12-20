@@ -2022,7 +2022,7 @@ namespace gui
         return win;
     }
 
-    bool hideui(const char *name) // _bind_hideui
+    bool _lua_hideui(const char *name)
     {
         window *win = NULL;
         object *obj = world_inst->findname(name, false);
@@ -2057,7 +2057,7 @@ namespace gui
 
     /* COMMAND SECTION */
 
-    bool _bind_showui(
+    bool _lua_showui(
         const char *name,
         lua::Function contents,
         lua::Function onhide,
@@ -2089,7 +2089,7 @@ namespace gui
         return true;
     }
 
-    bool _bind_replaceui(
+    bool _lua_replaceui(
         const char *wname, const char *tname, lua::Function contents
     )
     {
@@ -2118,7 +2118,7 @@ namespace gui
         return true;
     }
 
-    void _bind_uialign(int h, int v)
+    void _lua_uialign(int h, int v)
     {
         if (build.length())
         {
@@ -2128,7 +2128,7 @@ namespace gui
         }
     }
 
-    void _bind_uiclamp(int l, int r, int b, int t)
+    void _lua_uiclamp(int l, int r, int b, int t)
     {
         if (build.length())
         {
@@ -2140,74 +2140,72 @@ namespace gui
         }
     }
 
-    void _bind_uiwinmover(lua::Function children)
+    void _lua_uiwinmover(lua::Function children)
     {
         addui(new window_mover, children);
     }
 
-    void _bind_uitag(const char *name, lua::Function children)
+    void _lua_uitag(const char *name, lua::Function children)
     {
         addui(new tag(name), children);
     }
 
-    void _bind_uivlist(float space, lua::Function children)
+    void _lua_uivlist(float space, lua::Function children)
     {
         addui(new list(false, space), children);
     }
 
-    void _bind_uihlist(float space, lua::Function children)
+    void _lua_uihlist(float space, lua::Function children)
     {
         addui(new list(true, space), children);
     }
 
-    void _bind_uitable(int columns, float space, lua::Function children)
+    void _lua_uitable(int columns, float space, lua::Function children)
     {
         addui(new table(columns, space), children);
     }
 
-    void _bind_uispace(float h, float v, lua::Function children)
+    void _lua_uispace(float h, float v, lua::Function children)
     {
         addui(new spacer(h, v), children);
     }
 
-    void _bind_uifill(float h, float v, lua::Function children)
+    void _lua_uifill(float h, float v, lua::Function children)
     {
         addui(new filler(h, v), children);
     }
 
-    void _bind_uiclip(float h, float v, lua::Function children)
+    void _lua_uiclip(float h, float v, lua::Function children)
     {
         addui(new clipper(h, v), children);
     }
 
-    void _bind_uiscroll(float h, float v, lua::Function children)
+    void _lua_uiscroll(float h, float v, lua::Function children)
     {
         addui(new scroller(h, v), children);
     }
 
-    void _bind_uihscrollbar(float h, float v, lua::Function children)
+    void _lua_uihscrollbar(float h, float v, lua::Function children)
     {
         addui(new hscrollbar(h, v), children);
     }
 
-    void _bind_uivscrollbar(float h, float v, lua::Function children)
+    void _lua_uivscrollbar(float h, float v, lua::Function children)
     {
         addui(new vscrollbar(h, v), children);
     }
 
-    void _bind_uiscrollbutton(lua::Function children)
+    void _lua_uiscrollbutton(lua::Function children)
     {
         addui(new scroll_button, children);
     }
 
-    void _bind_uihslider(
-        const char *var,
-        int defaultv, int minv, int maxv,
-        lua::Function children
+    void _lua_uihslider(
+        const char *var, int minv, int maxv, lua::Function children
     )
     {
         var::cvar  *ev  = var::get(var);
-        if (!ev)    ev  = var::regvar(var, new var::cvar(var, defaultv));
+        if (!ev)    ev  = var::regvar(var, new var::cvar(var, minv));
 
         if (!minv) minv = (ev->minv.i != -1 ? ev->minv.i : 0);
         if (!maxv) maxv = (ev->maxv.i != -1 ? ev->maxv.i : 0);
@@ -2215,14 +2213,12 @@ namespace gui
         addui(new hslider(var, minv, maxv), children);
     }
 
-    void _bind_uivslider(
-        const char *var,
-        int defaultv, int minv, int maxv,
-        lua::Function children
+    void _lua_uivslider(
+        const char *var, int minv, int maxv, lua::Function children
     )
     {
         var::cvar  *ev  = var::get(var);
-        if (!ev)    ev  = var::regvar(var, new var::cvar(var, defaultv));
+        if (!ev)    ev  = var::regvar(var, new var::cvar(var, minv));
 
         if (!minv) minv = (ev->minv.i != -1 ? ev->minv.i : 0);
         if (!maxv) maxv = (ev->maxv.i != -1 ? ev->maxv.i : 0);
@@ -2230,34 +2226,34 @@ namespace gui
         addui(new vslider(var, minv, maxv), children);
     }
 
-    void _bind_uisliderbutton(lua::Function children)
+    void _lua_uisliderbutton(lua::Function children)
     {
         addui(new slider_button, children);
     }
 
-    void _bind_uioffset(float h, float v, lua::Function children)
+    void _lua_uioffset(float h, float v, lua::Function children)
     {
         addui(new offsetter(h, v), children);
     }
 
-    void _bind_uibutton(lua::Function cb, lua::Function children)
+    void _lua_uibutton(lua::Function cb, lua::Function children)
     {
         addui(new button(cb), children);
     }
 
-    void _bind_uicond(lua::Function cb, lua::Function children)
+    void _lua_uicond(lua::Function cb, lua::Function children)
     {
         addui(new conditional(cb), children);
     }
 
-    void _bind_uicondbutton(
+    void _lua_uicondbutton(
         lua::Function cond, lua::Function cb, lua::Function children
     )
     {
         addui(new conditional_button(cond, cb), children);
     }
 
-    void _bind_uitoggle(
+    void _lua_uitoggle(
         lua::Function cond,
         lua::Function cb,
         float split,
@@ -2267,7 +2263,7 @@ namespace gui
         addui(new toggle(cond, cb, split), children);
     }
 
-    void _bind_uiimage(
+    void _lua_uiimage(
         const char *path, float minw, float minh, lua::Function children
     )
     {
@@ -2276,14 +2272,14 @@ namespace gui
         );
     }
 
-    void _bind_uislotview(
+    void _lua_uislotview(
         int slot, float minw, float minh, lua::Function children
     )
     {
         addui(new slot_viewer(slot, minw, minh), children);
     }
 
-    void _bind_uialtimage(const char *path)
+    void _lua_uialtimage(const char *path)
     {
         if (build.empty() || !build.last()->isnamed("image")) return;
         image *img = (image*)build.last();
@@ -2293,7 +2289,7 @@ namespace gui
         }
     }
 
-    void _bind_uicolor(
+    void _lua_uicolor(
         float r, float g, float b, float a,
         float minw, float minh, lua::Function children
     )
@@ -2304,7 +2300,7 @@ namespace gui
         );
     }
 
-    void _bind_uimodcolor(
+    void _lua_uimodcolor(
         float r, float g, float b,
         float minw, float minh, lua::Function children
     )
@@ -2315,7 +2311,7 @@ namespace gui
         );
     }
 
-    void _bind_uistretchedimage(
+    void _lua_uistretchedimage(
         const char *path, float minw, float minh, lua::Function children
     )
     {
@@ -2325,7 +2321,7 @@ namespace gui
         );
     }
 
-    void _bind_uicroppedimage(
+    void _lua_uicroppedimage(
         const char *path,
         float minw, float minh,
         const char *cropx,
@@ -2348,7 +2344,7 @@ namespace gui
         );
     }
 
-    void _bind_uiborderedimage(
+    void _lua_uiborderedimage(
         const char *path, const char *texborder,
         float screenborder, lua::Function children
     )
@@ -2364,19 +2360,24 @@ namespace gui
         );
     }
 
-    int _bind_uilabel(
+    int _lua_uilabel(
         const char *lbl, float scale,
-        float r, float g, float b,
+        lua::Object r, lua::Object g, lua::Object b,
         lua::Function children
     )
     {
-        label *text = new label(lbl, (scale <= 0) ? 1 : scale, r, g, b);
+        label *text = new label(
+            lbl, (scale <= 0) ? 1 : scale,
+            (r.is_nil() ? 1.0f : r.to<float>()),
+            (g.is_nil() ? 1.0f : g.to<float>()),
+            (b.is_nil() ? 1.0f : b.to<float>())
+        );
         labels.add(text);
         addui(text, children);
         return (int)labels.length();
     }
 
-    void _bind_uisetlabel(int ref, const char *lbl)
+    void _lua_uisetlabel(int ref, const char *lbl)
     {
         label *text = labels[ref - 1];
         if  (!text) return;
@@ -2384,20 +2385,25 @@ namespace gui
         text->set(lbl);
     }
 
-    void _bind_uivarlabel(
+    void _lua_uivarlabel(
         const char *var, float scale,
-        float r, float g, float b,
+        lua::Object r, lua::Object g, lua::Object b,
         lua::Function children
     )
     {
         var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, ""));
 
-        varlabel *text  = new varlabel(ev, (scale <= 0) ? 1 : scale, r, g, b);
+        varlabel *text  = new varlabel(
+            ev, (scale <= 0) ? 1 : scale,
+            (r.is_nil() ? 1.0f : r.to<float>()),
+            (g.is_nil() ? 1.0f : g.to<float>()),
+            (b.is_nil() ? 1.0f : b.to<float>())
+        );
         addui(text, children);
     }
 
-    void _bind_uitexteditor(
+    void _lua_uitexteditor(
         const char *name,
         int length,
         int height,
@@ -2417,7 +2423,7 @@ namespace gui
         );
     }
 
-    void _bind_uifield(
+    void _lua_uifield(
         const char *var,
         int length,
         lua::Function onchange,
@@ -2649,7 +2655,7 @@ void clearchanges(int type)
     }
 }
 
-void applychanges() // _bind_applychanges
+void _lua_applychanges()
 {
     int changetypes = 0;
     loopv(needsapply) changetypes |= needsapply[i].type;
@@ -2659,12 +2665,12 @@ void applychanges() // _bind_applychanges
         gui::executelater.push_back(lapi::state.get("sound", "reset"));
 }
 
-void _bind_clearchanges()
+void _lua_clearchanges()
 {
     clearchanges(CHANGE_GFX | CHANGE_SOUND);
 }
 
-types::Vector<const char*> _bind_getchanges()
+types::Vector<const char*> _lua_getchanges()
 {
     types::Vector<const char*> ret;
     ret.reserve((size_t)needsapply.length());

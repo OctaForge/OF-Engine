@@ -1143,8 +1143,13 @@ int main(int argc, char **argv)
 
     initlog("console");
     var::persistvars = false;
-    if(types::get<0>(lapi::state.do_file("data/cfg/font.lua")))
-        fatal("cannot find font definitions");
+
+    types::Tuple<int, const char*> err;
+
+    err = lapi::state.do_file("data/cfg/font.lua");
+
+    if(types::get<0>(err))
+        fatal("cannot find font definitions: %s", types::get<1>(err));
     if(!setfont("default")) fatal("no default font specified");
 
     inbetweenframes = true;
@@ -1163,8 +1168,6 @@ int main(int argc, char **argv)
     initsound();
 
     initlog("cfg");
-
-    types::Tuple<int, const char*> err;
 
     lapi::state.do_file("data/cfg/keymap.lua", lua::ERROR_EXIT_TRACEBACK);
     lapi::state.do_file("data/cfg/sounds.lua", lua::ERROR_EXIT_TRACEBACK);

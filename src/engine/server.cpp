@@ -635,13 +635,7 @@ bool setuplistenserver(bool dedicated)
 void initserver(bool listen, bool dedicated)
 {
     if (dedicated)
-    {
-        auto err = lapi::state.do_file(
-            "server-init.lua", lua::ERROR_TRACEBACK
-        );
-        if (types::get<0>(err))
-            logger::log(logger::ERROR, "%s\n", types::get<1>(err));
-    }
+        lapi::state.do_file("server-init.lua");
 
     if(listen) setuplistenserver(dedicated);
 
