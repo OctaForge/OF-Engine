@@ -1441,9 +1441,10 @@ template<class MDL, class MESH> struct modelcommands
     
     static void setskin(const char *meshname, const char *tex, const char *masks, float envmapmax, float envmapmin)
     {
+        if (meshname) 
         loopskins(meshname, s,
-            s.tex = textureload(makerelpath(MDL::dir, tex), 0, true, false);
-            if(*masks)
+            s.tex = textureload(makerelpath(MDL::dir, tex ? tex : ""), 0, true, false);
+            if(masks && masks[0])
             {
                 s.masks = textureload(makerelpath(MDL::dir, masks, "<stub>"), 0, true, false);
                 s.envmapmax = envmapmax;
@@ -1457,7 +1458,7 @@ template<class MDL, class MESH> struct modelcommands
         float spec = 1.0f;
         if(percent>0) spec = percent/100.0f;
         else if(percent<0) spec = 0.0f;
-        loopskins(meshname, s, s.spec = spec);
+        loopskins(meshname ? meshname : "", s, s.spec = spec);
     }
     
     static void setambient(const char *meshname, int percent)
@@ -1465,7 +1466,7 @@ template<class MDL, class MESH> struct modelcommands
         float ambient = 0.3f;
         if(percent>0) ambient = percent/100.0f;
         else if(percent<0) ambient = 0.0f;
-        loopskins(meshname, s, s.ambient = ambient);
+        loopskins(meshname ? meshname : "", s, s.ambient = ambient);
     }
     
     static void setglow(const char *meshname, int percent, int delta, float pulse)
@@ -1474,33 +1475,33 @@ template<class MDL, class MESH> struct modelcommands
         if(percent>0) glow = percent/100.0f;
         else if(percent<0) glow = 0.0f;
         glowdelta -= glow;
-        loopskins(meshname, s, { s.glow = glow; s.glowdelta = glowdelta; s.glowpulse = glowpulse; });
+        loopskins(meshname ? meshname : "", s, { s.glow = glow; s.glowdelta = glowdelta; s.glowpulse = glowpulse; });
     }
     
     static void setglare(const char *meshname, float specglare, float glowglare)
     {
-        loopskins(meshname, s, { s.specglare = specglare; s.glowglare = glowglare; });
+        loopskins(meshname ? meshname : "", s, { s.specglare = specglare; s.glowglare = glowglare; });
     }
     
     static void setalphatest(const char *meshname, float cutoff)
     {
-        loopskins(meshname, s, s.alphatest = max(0.0f, min(1.0f, cutoff)));
+        loopskins(meshname ? meshname : "", s, s.alphatest = max(0.0f, min(1.0f, cutoff)));
     }
     
     static void setalphablend(const char *meshname, bool blend)
     {
-        loopskins(meshname, s, s.alphablend = blend);
+        loopskins(meshname ? meshname : "", s, s.alphablend = blend);
     }
     
     static void setcullface(const char *meshname, bool cullface)
     {
-        loopskins(meshname, s, s.cullface = cullface);
+        loopskins(meshname ? meshname : "", s, s.cullface = cullface);
     }
     
     static void setenvmap(const char *meshname, const char *envmap)
     {
         Texture *tex = cubemapload(envmap);
-        loopskins(meshname, s, s.envmap = tex);
+        loopskins(meshname ? meshname : "", s, s.envmap = tex);
     }
     
     static void setbumpmap(const char *meshname, const char *normalmapfile, const char *skinfile)
@@ -1508,34 +1509,36 @@ template<class MDL, class MESH> struct modelcommands
         Texture *normalmaptex = NULL, *skintex = NULL;
         normalmaptex = textureload(makerelpath(MDL::dir, normalmapfile, "<noff>"), 0, true, false);
         if(skinfile) skintex = textureload(makerelpath(MDL::dir, skinfile, "<noff>"), 0, true, false);
-        loopskins(meshname, s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
+        loopskins(meshname ? meshname : "", s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
     }
     
     static void setfullbright(const char *meshname, float fullbright)
     {
-        loopskins(meshname, s, s.fullbright = fullbright);
+        loopskins(meshname ? meshname : "", s, s.fullbright = fullbright);
     }
     
     static void setshader(const char *meshname, const char *shader)
     {
-        loopskins(meshname, s, s.shader = lookupshaderbyname(shader));
+        loopskins(meshname ? meshname : "", s, s.shader = lookupshaderbyname(shader ? shader : ""));
     }
     
     static void setscroll(const char *meshname, float scrollu, float scrollv)
     {
-        loopskins(meshname, s, { s.scrollu = scrollu; s.scrollv = scrollv; });
+        loopskins(meshname ? meshname : "", s, { s.scrollu = scrollu; s.scrollv = scrollv; });
     }
     
     static void setnoclip(const char *meshname, bool noclip)
     {
-        loopmeshes(meshname, m, m.noclip = noclip);
+        loopmeshes(meshname ? meshname : "", m, m.noclip = noclip);
     }
   
     static void setlink(int parent, int child, const char *tagname, float x, float y, float z)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
         if(!MDL::loading->parts.inrange(parent) || !MDL::loading->parts.inrange(child)) { conoutf("no models loaded to link"); return; }
-        if(!MDL::loading->parts[parent]->link(MDL::loading->parts[child], tagname, vec(x, y, z))) conoutf("could not link model %s", MDL::loading->loadname);
+        if(!MDL::loading->parts[parent]->link(
+            MDL::loading->parts[child], tagname ? tagname : "", vec(x, y, z)
+        )) conoutf("could not link model %s", MDL::loading->loadname);
     }
  
     modelcommands(): module(lapi::state.new_table(0, 16))

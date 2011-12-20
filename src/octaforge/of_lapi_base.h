@@ -94,7 +94,7 @@ namespace lapi_binds
 
     void _lua_registersound(const char *snd, int vol )
     {
-        preload_sound(snd, vol);
+        preload_sound(snd ? snd : "", vol);
     }
 
     void _lua_screenshot(const char *name)
@@ -239,6 +239,7 @@ namespace lapi_binds
 
     void _lua_newvar(const char *name, int type, lua::Object value)
     {
+        if (!name) return;
         switch (type)
         {
             case var::VAR_I:
@@ -274,6 +275,7 @@ namespace lapi_binds
 
     void _lua_setvar(const char *name, lua::Object value)
     {
+        if (!name) return;
         var::cvar *ev = var::get(name);
         if       (!ev) return;
         if       ((ev->flags&var::VAR_READONLY) != 0)
@@ -294,6 +296,7 @@ namespace lapi_binds
 
     lua::Object _lua_getvar(const char *name)
     {
+        if (!name) return lua::Object();
         var::cvar *ev = var::get(name);
         if       (!ev) return lua::Object();
         switch   ( ev->type)
@@ -311,6 +314,7 @@ namespace lapi_binds
 
     bool _lua_varexists(const char *vn)
     {
+        if (!vn) return false;
         return (var::get(vn) ? true : false);
     }
 
@@ -346,12 +350,12 @@ namespace lapi_binds
 
     void _lua_bind(const char *key, int state, const char *action)
     {
-        bindkey(key, action, state);
+        bindkey(key ? key : "", action, state);
     }
 
     types::String _lua_getbind(const char *key, int type)
     {
-        return getbind(key, type);
+        return getbind(key ? key : "", type);
     }
 
     lua::Table _lua_searchbinds(const char *action, int type)

@@ -2064,6 +2064,7 @@ namespace gui
         bool nofocus
     )
     {
+        if (!name) name = "";
         if (contents.is_nil())
         {
             logger::log(logger::ERROR, "showui(\"%s\"): contents is nil\n");
@@ -2093,6 +2094,8 @@ namespace gui
         const char *wname, const char *tname, lua::Function contents
     )
     {
+        if (!wname) wname = "";
+        if (!tname) tname = "";
         if (contents.is_nil())
         {
             logger::log(logger::ERROR, "showui(\"%s\"): contents is nil\n");
@@ -2147,6 +2150,7 @@ namespace gui
 
     void _lua_uitag(const char *name, lua::Function children)
     {
+        if (!name) name = "";
         addui(new tag(name), children);
     }
 
@@ -2204,6 +2208,7 @@ namespace gui
         const char *var, int minv, int maxv, lua::Function children
     )
     {
+        if (!var) var   = "";
         var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, minv));
 
@@ -2217,6 +2222,7 @@ namespace gui
         const char *var, int minv, int maxv, lua::Function children
     )
     {
+        if (!var) var   = "";
         var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, minv));
 
@@ -2267,9 +2273,9 @@ namespace gui
         const char *path, float minw, float minh, lua::Function children
     )
     {
-        addui(
-            new image(textureload(path, 3, true, false), minw, minh),children
-        );
+        addui(new image(textureload(
+            path ? path : "", 3, true, false
+        ), minw, minh),children);
     }
 
     void _lua_uislotview(
@@ -2285,7 +2291,7 @@ namespace gui
         image *img = (image*)build.last();
         if (img && img->tex==notexture)
         {
-            img->tex = textureload(path, 3, true, false);
+            img->tex = textureload(path ? path : "", 3, true, false);
         }
     }
 
@@ -2315,10 +2321,9 @@ namespace gui
         const char *path, float minw, float minh, lua::Function children
     )
     {
-        addui(
-            new stretched_image(textureload(path, 3, true, false), minw, minh),
-            children
-        );
+        addui(new stretched_image(
+            textureload(path ? path : "", 3, true, false), minw, minh
+        ), children);
     }
 
     void _lua_uicroppedimage(
@@ -2331,7 +2336,7 @@ namespace gui
         lua::Function children
     )
     {
-        Texture *tex = textureload(path, 3, true, false);
+        Texture *tex = textureload(path ? path : "", 3, true, false);
         addui(
             new cropped_image(
                 tex, minw, minh,
@@ -2349,11 +2354,13 @@ namespace gui
         float screenborder, lua::Function children
     )
     {
-        Texture *tex = textureload(path, 3, true, false);
+        Texture *tex = textureload(path ? path : "", 3, true, false);
         addui(
             new bordered_image(
                 tex,
-                strchr(texborder, 'p') ? atof(texborder) / tex->xs : atof(texborder),
+                strchr(texborder, 'p') ? (
+                    atof(texborder) / tex->xs
+                ) : atof(texborder),
                 screenborder
             ),
             children
@@ -2367,7 +2374,7 @@ namespace gui
     )
     {
         label *text = new label(
-            lbl, (scale <= 0) ? 1 : scale,
+            lbl ? lbl : "", (scale <= 0) ? 1 : scale,
             (r.is_nil() ? 1.0f : r.to<float>()),
             (g.is_nil() ? 1.0f : g.to<float>()),
             (b.is_nil() ? 1.0f : b.to<float>())
@@ -2382,7 +2389,7 @@ namespace gui
         label *text = labels[ref - 1];
         if  (!text) return;
 
-        text->set(lbl);
+        text->set(lbl ? lbl : "");
     }
 
     void _lua_uivarlabel(
@@ -2391,6 +2398,7 @@ namespace gui
         lua::Function children
     )
     {
+        if (!var) var   = "";
         var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, ""));
 
@@ -2414,6 +2422,8 @@ namespace gui
         lua::Function children
     )
     {
+        if (!name   ) name    = "";
+        if (!initval) initval = "";
         addui(
             new text_editor(
                 name, length, height, scale ? scale : 1.0f, initval,
@@ -2433,6 +2443,7 @@ namespace gui
         lua::Function children
     )
     {
+        if (!var) var   = "";
         var::cvar  *ev  = var::get(var);
         if (!ev)    ev  = var::regvar(var, new var::cvar(var, ""));
 

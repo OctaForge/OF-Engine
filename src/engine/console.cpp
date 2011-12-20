@@ -156,6 +156,7 @@ hashtable<int, keym> keyms(128);
 
 void keymap(int code, const char *key)
 {
+    if (!key) { conoutf(CON_ERROR, "no key given"); return; }
     if(var::overridevars) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
     keym &km = keyms[code];
     km.code = code;

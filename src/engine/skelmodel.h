@@ -1991,7 +1991,10 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         mdl.index = MDL::loading->parts.length()-1;
         mdl.pitchscale = mdl.pitchoffset = mdl.pitchmin = mdl.pitchmax = 0;
         MDL::adjustments.setsize(0);
-        mdl.meshes = MDL::loading->sharemeshes(path(filename), skelname ? skelname : NULL, double(smooth > 0 ? cos(clamp(smooth, 0.0f, 180.0f)*RAD) : 2));
+        mdl.meshes = MDL::loading->sharemeshes(
+            path(filename), (skelname && skelname[0]) ? skelname : NULL,
+            double(smooth > 0 ? cos(clamp(smooth, 0.0f, 180.0f)*RAD) : 2)
+        );
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else
         {
@@ -2004,14 +2007,14 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
-        int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name) : -1;
+        int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name ? name : "") : -1;
         if(i >= 0)
         {
             float cx = rot.x ? cosf(rot.x/2*RAD) : 1, sx = rot.x ? sinf(rot.x/2*RAD) : 0,
                   cy = rot.x ? cosf(rot.x/2*RAD) : 1, sy = rot.x ? sinf(rot.x/2*RAD) : 0,
                   cz = rot.x ? cosf(rot.x/2*RAD) : 1, sz = rot.x ? sinf(rot.x/2*RAD) : 0;
             matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)), t);
-            ((meshgroup *)mdl.meshes)->skel->addtag(tagname, i, m);
+            ((meshgroup *)mdl.meshes)->skel->addtag(tagname ? tagname : "", i, m);
             return;
         }
         conoutf("could not find bone %s for tag %s", name, tagname);
@@ -2022,7 +2025,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
     
-        if(name)
+        if(name && name[0])
         {
             int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name) : -1;
             if(i>=0)
@@ -2069,7 +2072,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         animspec *sa = ((meshgroup *)mdl.meshes)->loadanim(path(filename));
         if(!sa) { conoutf("\frcould not load %s anim file %s", MDL::formatname(), filename); return; }
         skeleton *skel = ((meshgroup *)mdl.meshes)->skel;
-        int bone = skel ? skel->findbone(name) : -1;
+        int bone = skel ? skel->findbone(name ? name : "") : -1;
         if(bone < 0)
         {
             conoutf("\frcould not find bone %s to pitch target", name);
@@ -2089,14 +2092,14 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         part &mdl = *(part *)MDL::loading->parts.last();
         if(!mdl.meshes) return;
         skeleton *skel = ((meshgroup *)mdl.meshes)->skel;
-        int bone = skel ? skel->findbone(name) : -1;
+        int bone = skel ? skel->findbone(name ? name : "") : -1;
         if(bone < 0)
         {
             conoutf("\frcould not find bone %s to pitch correct", name);
             return;
         }
         if(skel->findpitchcorrect(bone) >= 0) return;
-        int targetbone = skel->findbone(targetname), target = -1;
+        int targetbone = skel->findbone(targetname ? targetname : ""), target = -1;
         if(targetbone >= 0) loopv(skel->pitchtargets) if(skel->pitchtargets[i].bone == targetbone) { target = i; break; }
         if(target < 0)
         {
@@ -2119,7 +2122,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
     
         vector<int> anims;
-        findanims(anim, anims);
+        findanims(anim ? anim : "", anims);
         if(anims.empty()) conoutf("could not find animation %s", anim);
         else
         {
@@ -2176,7 +2179,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
 
-        if(!name) return;
+        if(!name || !name[0]) return;
         int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name) : -1;
         if(i < 0) {  conoutf("could not find bone %s to adjust", name); return; }
         while(!MDL::adjustments.inrange(i)) MDL::adjustments.add(skeladjustment(0, 0, 0, vec(0, 0, 0)));

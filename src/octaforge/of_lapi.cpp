@@ -246,6 +246,8 @@ end:
 
     bool load_library(const char *version)
     {
+        if (!version) return false;
+
         Function tonumber = state["tonumber"];
         if (tonumber.call<Object>(version).is_nil())
             return false;

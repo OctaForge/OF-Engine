@@ -501,7 +501,7 @@ namespace MessageSystem
         v["x"] = x; v["y"] = y; v["z"] = z;
         t["position"  ] = v;
         t["state_data"] = stateData;
-        int newUniqueId = lapi::state.get<lua::Function>("entity_store", "new").call<int>(_class, t);
+        int newUniqueId = lapi::state.get<lua::Function>("entity_store", "new").call<lua::Table>(_class, t).get<int>("uid");
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
                                       newUniqueId, _class.get_buf(), x, y, z);
     }
