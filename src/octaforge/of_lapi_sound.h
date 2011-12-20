@@ -42,16 +42,19 @@ namespace lapi_binds
     {
         MessageSystem::send_SoundToClients(-1, n, -1);
     }
+
+    LAPI_EMPTY(playsoundname)
+    LAPI_EMPTY(stopsoundname)
+    LAPI_EMPTY(music)
+    LAPI_EMPTY(preloadsound)
 #endif
 
     void reg_sound(lua::Table& t)
     {
-#ifdef CLIENT
         LAPI_REG(playsoundname);
         LAPI_REG(stopsoundname);
         LAPI_REG(music);
         LAPI_REG(preloadsound);
-#endif
         LAPI_REG(playsound);
     }
 }

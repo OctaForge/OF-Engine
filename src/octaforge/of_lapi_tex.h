@@ -1,3 +1,4 @@
+#ifdef CLIENT
 void texturereset(int n);
 void texture(const char *type, const char *name, int rot, int xoffset, int yoffset, float scale, int forcedindex);
 
@@ -21,9 +22,10 @@ void saveimage(const char *filename, int format, ImageData &image, bool flip = f
 void filltexlist();
 
 extern int& nompedit, &worldsize;
-
+#endif
 namespace lapi_binds
 {
+#ifdef CLIENT
     void _lua_texturereset() { texturereset(0); }
 
     void _lua_texture(
@@ -228,6 +230,28 @@ namespace lapi_binds
 
     void _lua_filltexlist() { filltexlist        (); }
     int  _lua_getnumslots() { return slots.length(); }
+#else
+    LAPI_EMPTY(texturereset)
+    LAPI_EMPTY(texture)
+    LAPI_EMPTY(materialreset)
+    LAPI_EMPTY(compactvslots)
+    LAPI_EMPTY(fixinsidefaces)
+    LAPI_EMPTY(autograss)
+    LAPI_EMPTY(texscroll)
+    LAPI_EMPTY(texoffset)
+    LAPI_EMPTY(texrotate)
+    LAPI_EMPTY(texscale)
+    LAPI_EMPTY(texlayer)
+    LAPI_EMPTY(texalpha)
+    LAPI_EMPTY(texcolor)
+    LAPI_EMPTY(texffenv)
+    LAPI_EMPTY(reloadtex)
+    LAPI_EMPTY(gendds)
+    LAPI_EMPTY(flipnormalmapy)
+    LAPI_EMPTY(mergenormalmaps)
+    LAPI_EMPTY(filltexlist)
+    LAPI_EMPTY(getnumslots)
+#endif
 
     void reg_tex(lua::Table& t)
     {

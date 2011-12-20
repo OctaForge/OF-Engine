@@ -249,6 +249,8 @@ namespace lapi_binds
             flags, fp, entity->attachments, basetime, 0, 1
         );
     }
+#else
+    LAPI_EMPTY(rendermodel)
 #endif
 
     lua::Table _lua_scriptmdlbb(const char *name)
@@ -356,9 +358,7 @@ namespace lapi_binds
         LAPI_REG(rdanimjoints);
         LAPI_REG(preloadmodel);
         LAPI_REG(reloadmodel);
-#ifdef CLIENT
         LAPI_REG(rendermodel);
-#endif
         LAPI_REG(scriptmdlbb);
         LAPI_REG(scriptmdlcb);
         LAPI_REG(mdlmesh);

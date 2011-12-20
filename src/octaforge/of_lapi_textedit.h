@@ -1,5 +1,6 @@
 namespace lapi_binds
 {
+#ifdef CLIENT
     /* return list of all editors */
     lua::Table _lua_textlist()
     {
@@ -203,7 +204,22 @@ namespace lapi_binds
         if (types::get<0>(arr))
             logger::log(logger::ERROR, "%s\n", types::get<1>(arr));
     }
-
+#else
+    LAPI_EMPTY(textlist)
+    LAPI_EMPTY(textshow)
+    LAPI_EMPTY(textfocus)
+    LAPI_EMPTY(textprev)
+    LAPI_EMPTY(textmode)
+    LAPI_EMPTY(textsave)
+    LAPI_EMPTY(textinit)
+    LAPI_EMPTY(textcopy)
+    LAPI_EMPTY(textpaste)
+    LAPI_EMPTY(textmark)
+    LAPI_EMPTY(textselectall)
+    LAPI_EMPTY(textclear)
+    LAPI_EMPTY(textcurrentline)
+    LAPI_EMPTY(textexec)
+#endif
 
     void reg_textedit(lua::Table& t)
     {

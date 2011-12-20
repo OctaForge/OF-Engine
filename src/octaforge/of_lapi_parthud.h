@@ -1,7 +1,9 @@
+#ifdef CLIENT
 VARP(blood, 0, 1, 1);
-
+#endif
 namespace lapi_binds
 {
+#ifdef CLIENT
     void _lua_adddecal(
         int type, vec center, vec surface, float radius, bvec color, int info
     )
@@ -149,6 +151,24 @@ namespace lapi_binds
     {
         ClientSystem::addHUDText(tx, x, y, scale, color);
     }
+#else
+    LAPI_EMPTY(adddecal)
+    LAPI_EMPTY(particle_splash)
+    LAPI_EMPTY(regular_particle_splash)
+    LAPI_EMPTY(particle_fireball)
+    LAPI_EMPTY(particle_explodesplash)
+    LAPI_EMPTY(particle_flare)
+    LAPI_EMPTY(particle_flying_flare)
+    LAPI_EMPTY(particle_trail)
+    LAPI_EMPTY(particle_flame)
+    LAPI_EMPTY(adddynlight)
+    LAPI_EMPTY(particle_meter)
+    LAPI_EMPTY(particle_text)
+    LAPI_EMPTY(client_damage_effect)
+    LAPI_EMPTY(showhudrect)
+    LAPI_EMPTY(showhudimage)
+    LAPI_EMPTY(showhudtext)
+#endif
 
     void reg_parthud(lua::Table& t)
     {

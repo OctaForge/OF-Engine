@@ -115,6 +115,19 @@ namespace lapi_binds
         showscoreboard = on ? 1 : 0;
         scorebshow(on);
     }
+#else
+    LAPI_EMPTY(keymap)
+    LAPI_EMPTY(resetsound)
+    LAPI_EMPTY(quit)
+    LAPI_EMPTY(force_quit)
+    LAPI_EMPTY(resetgl)
+    LAPI_EMPTY(glext)
+    LAPI_EMPTY(getfps)
+    LAPI_EMPTY(getwallclock)
+    LAPI_EMPTY(registersound)
+    LAPI_EMPTY(screenshot)
+    LAPI_EMPTY(movie)
+    LAPI_EMPTY(showscores)
 #endif
 
     void _lua_writecfg(const char *name)
@@ -192,6 +205,8 @@ namespace lapi_binds
     {
         EditingSystem::saved_pos = TargetingControl::worldPosition;
     }
+#else
+    LAPI_EMPTY(save_mouse_position)
 #endif
 
     /* some bit math */
@@ -358,6 +373,17 @@ namespace lapi_binds
     {
         return addreleaseaction(f);
     }
+#else
+    LAPI_EMPTY(toggleconsole)
+    LAPI_EMPTY(conskip)
+    LAPI_EMPTY(miniconskip)
+    LAPI_EMPTY(clearconsole)
+    LAPI_EMPTY(bind)
+    LAPI_EMPTY(getbind)
+    LAPI_EMPTY(searchbinds)
+    LAPI_EMPTY(prompt)
+    LAPI_EMPTY(history)
+    LAPI_EMPTY(onrelease)
 #endif
 
     void reg_base(lua::Table& t)
@@ -367,7 +393,6 @@ namespace lapi_binds
         LAPI_REG(say);
         LAPI_REG(currtime);
         LAPI_REG(getmillis);
-#ifdef CLIENT
         LAPI_REG(keymap);
         LAPI_REG(registersound);
         LAPI_REG(resetsound);
@@ -380,16 +405,13 @@ namespace lapi_binds
         LAPI_REG(screenshot);
         LAPI_REG(movie);
         LAPI_REG(showscores);
-#endif
         LAPI_REG(writecfg);
         LAPI_REG(readfile);
         LAPI_REG(addzip);
         LAPI_REG(removezip);
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);
-#ifdef CLIENT
         LAPI_REG(save_mouse_position);
-#endif
         LAPI_REG(lsh);
         LAPI_REG(rsh);
         LAPI_REG(bor);
@@ -401,7 +423,6 @@ namespace lapi_binds
         LAPI_REG(getvar);
         LAPI_REG(varexists);
         LAPI_REG(persist_vars);
-#ifdef CLIENT
         LAPI_REG(toggleconsole);
         LAPI_REG(conskip);
         LAPI_REG(miniconskip);
@@ -412,6 +433,5 @@ namespace lapi_binds
         LAPI_REG(prompt);
         LAPI_REG(history);
         LAPI_REG(onrelease);
-#endif
     }
 }

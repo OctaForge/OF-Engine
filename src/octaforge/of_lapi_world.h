@@ -66,6 +66,9 @@ namespace lapi_binds
 
         return lua::Table();
     }
+#else
+    LAPI_EMPTY(gettargetpos)
+    LAPI_EMPTY(gettargetent)
 #endif
 
     /* World */
@@ -294,6 +297,9 @@ namespace lapi_binds
     }
 
     bool _lua_hasmap() { return local_server::is_running(); }
+#else
+    LAPI_EMPTY(map)
+    LAPI_EMPTY(hasmap)
 #endif
 
     types::String _lua_get_map_preview_filename(const char *name)
@@ -362,10 +368,8 @@ namespace lapi_binds
         LAPI_REG(raylos);
         LAPI_REG(raypos);
         LAPI_REG(rayfloor);
-#ifdef CLIENT
         LAPI_REG(gettargetpos);
         LAPI_REG(gettargetent);
-#endif
         LAPI_REG(iscolliding);
         LAPI_REG(setgravity);
         LAPI_REG(getmat);
@@ -396,10 +400,8 @@ namespace lapi_binds
         LAPI_REG(mapcfgname);
         LAPI_REG(writeobj);
         LAPI_REG(export_entities);
-#ifdef CLIENT
         LAPI_REG(map);
         LAPI_REG(hasmap);
-#endif
         LAPI_REG(get_map_preview_filename);
         LAPI_REG(get_all_map_names);
 

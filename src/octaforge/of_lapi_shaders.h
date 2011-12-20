@@ -1,3 +1,4 @@
+#ifdef CLIENT
 void shader(int type, char *name, char *vs, char *ps);
 void variantshader(int type, char *name, int row, char *vs, char *ps);
 void setshader(char *name);
@@ -11,9 +12,10 @@ bool isshadernative(const char *name);
 void addpostfx(const char *name, int bind, int scale, const char *inputs, float x, float y, float z, float w);
 void setpostfx(const char *name, float x, float y, float z, float w);
 void clearpostfx();
-
+#endif
 namespace lapi_binds
 {
+#ifdef CLIENT
     void _lua_shader(int t, const char *n, const char *vs, const char *ps)
     {
         shader(t, (char*)n, (char*)vs, (char*)ps);
@@ -108,6 +110,27 @@ namespace lapi_binds
     }
 
     void _lua_clearpostfx() { clearpostfx(); }
+#else
+    LAPI_EMPTY(shader)
+    LAPI_EMPTY(variantshader)
+    LAPI_EMPTY(setshader)
+    LAPI_EMPTY(altshader)
+    LAPI_EMPTY(fastshader)
+    LAPI_EMPTY(defershader)
+    LAPI_EMPTY(forceshader)
+    LAPI_EMPTY(isshaderdefined)
+    LAPI_EMPTY(isshadernative)
+    LAPI_EMPTY(setvertexparam)
+    LAPI_EMPTY(setpixelparam)
+    LAPI_EMPTY(setuniformparam)
+    LAPI_EMPTY(setshaderparam)
+    LAPI_EMPTY(defvertexparam)
+    LAPI_EMPTY(defpixelparam)
+    LAPI_EMPTY(defuniformparam)
+    LAPI_EMPTY(addpostfx)
+    LAPI_EMPTY(setpostfx)
+    LAPI_EMPTY(clearpostfx)
+#endif
 
     void reg_shaders(lua::Table& t)
     {

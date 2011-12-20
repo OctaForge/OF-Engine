@@ -1,10 +1,12 @@
+#ifdef CLIENT
 bool getkeydown();
 bool getkeyup();
 bool getmousedown();
 bool getmouseup();
-
+#endif
 namespace lapi_binds
 {
+#ifdef CLIENT
     using namespace MessageSystem;
 
     #define QUOT(arg) #arg
@@ -80,7 +82,7 @@ namespace lapi_binds
             CLogicEntity *e = ClientSystem::playerLogicEntity; \
             e->lua_ref.get<lua::Function>( \
                 "action_system", "clear" \
-            )(e->lua_ref); \
+            )(e->lua_ref["action_system"]); \
 \
             s = (addreleaseaction( \
                 lapi::state.get<lua::Function>("CAPI", #name) \
@@ -115,7 +117,7 @@ namespace lapi_binds
             CLogicEntity *e = ClientSystem::playerLogicEntity;
             e->lua_ref.get<lua::Function>(
                 "action_system", "clear"
-            )(e->lua_ref);
+            )(e->lua_ref["action_system"]);
 
             bool down = (addreleaseaction(
                 lapi::state.get<lua::Function>("CAPI", "jump")
@@ -144,6 +146,21 @@ namespace lapi_binds
         TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(uid);
         return (TargetingControl::targetLogicEntity != NULL);
     }
+#else
+    LAPI_EMPTY(mouse1click)
+    LAPI_EMPTY(mouse2click)
+    LAPI_EMPTY(mouse3click)
+    LAPI_EMPTY(turn_left)
+    LAPI_EMPTY(turn_right)
+    LAPI_EMPTY(look_down)
+    LAPI_EMPTY(look_up)
+    LAPI_EMPTY(backward)
+    LAPI_EMPTY(forward)
+    LAPI_EMPTY(left)
+    LAPI_EMPTY(right)
+    LAPI_EMPTY(jump)
+    LAPI_EMPTY(set_targeted_entity)
+#endif
 
     void reg_input(lua::Table& t)
     {

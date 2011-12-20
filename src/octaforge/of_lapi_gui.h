@@ -1,3 +1,4 @@
+#ifdef CLIENT
 void newfont(const char *name, const char *tex, int defaultw, int defaulth);
 void fontoffset(const char *c);
 void fontscale(int scale);
@@ -117,9 +118,10 @@ namespace gui
 void _lua_applychanges();
 void _lua_clearchanges();
 types::Vector<const char*> _lua_getchanges();
-
+#endif
 namespace lapi_binds
 {
+#ifdef CLIENT
     using namespace gui;
 
     void _lua_font(const char *name, const char *text, int dw, int dh)
@@ -144,6 +146,57 @@ namespace lapi_binds
     }
 
     void _lua_menukeyclicktrig() { GuiControl::menuKeyClickTrigger(); }
+#else
+    LAPI_EMPTY(font)
+    LAPI_EMPTY(fontoffset)
+    LAPI_EMPTY(fonttex)
+    LAPI_EMPTY(fontscale)
+    LAPI_EMPTY(fontchar)
+    LAPI_EMPTY(fontskip)
+    LAPI_EMPTY(fontalias)
+    LAPI_EMPTY(menukeyclicktrig)
+    LAPI_EMPTY(hideui)
+    LAPI_EMPTY(showui)
+    LAPI_EMPTY(replaceui)
+    LAPI_EMPTY(uialign)
+    LAPI_EMPTY(uiclamp)
+    LAPI_EMPTY(uiwinmover)
+    LAPI_EMPTY(uitag)
+    LAPI_EMPTY(uivlist)
+    LAPI_EMPTY(uihlist)
+    LAPI_EMPTY(uitable)
+    LAPI_EMPTY(uispace)
+    LAPI_EMPTY(uifill)
+    LAPI_EMPTY(uiclip)
+    LAPI_EMPTY(uiscroll)
+    LAPI_EMPTY(uihscrollbar)
+    LAPI_EMPTY(uivscrollbar)
+    LAPI_EMPTY(uiscrollbutton)
+    LAPI_EMPTY(uihslider)
+    LAPI_EMPTY(uivslider)
+    LAPI_EMPTY(uisliderbutton)
+    LAPI_EMPTY(uioffset)
+    LAPI_EMPTY(uibutton)
+    LAPI_EMPTY(uicond)
+    LAPI_EMPTY(uicondbutton)
+    LAPI_EMPTY(uitoggle)
+    LAPI_EMPTY(uiimage)
+    LAPI_EMPTY(uislotview)
+    LAPI_EMPTY(uialtimage)
+    LAPI_EMPTY(uicolor)
+    LAPI_EMPTY(uimodcolor)
+    LAPI_EMPTY(uistretchedimage)
+    LAPI_EMPTY(uicroppedimage)
+    LAPI_EMPTY(uiborderedimage)
+    LAPI_EMPTY(uilabel)
+    LAPI_EMPTY(uisetlabel)
+    LAPI_EMPTY(uivarlabel)
+    LAPI_EMPTY(uitexteditor)
+    LAPI_EMPTY(uifield)
+    LAPI_EMPTY(applychanges)
+    LAPI_EMPTY(clearchanges)
+    LAPI_EMPTY(getchanges)
+#endif
 
     void reg_gui(lua::Table& t)
     {

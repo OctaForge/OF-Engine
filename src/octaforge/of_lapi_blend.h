@@ -19,6 +19,7 @@ extern int& nompedit;
 
 namespace lapi_binds
 {
+#ifdef CLIENT
     void _lua_clearblendbrushes(             ) { clearblendbrushes(); }
     void _lua_delblendbrush    (const char *n) { delblendbrush   (n); }
 
@@ -79,6 +80,23 @@ namespace lapi_binds
         resetblendmap();
         showblendmap ();
     }
+#else
+    LAPI_EMPTY(clearblendbrushes)
+    LAPI_EMPTY(delblendbrush)
+    LAPI_EMPTY(addblendbrush)
+    LAPI_EMPTY(nextblendbrush)
+    LAPI_EMPTY(setblendbrush)
+    LAPI_EMPTY(getblendbrushname)
+    LAPI_EMPTY(curblendbrush)
+    LAPI_EMPTY(rotateblendbrush)
+    LAPI_EMPTY(paintblendmap)
+    LAPI_EMPTY(clearblendmapsel)
+    LAPI_EMPTY(invertblendmapsel)
+    LAPI_EMPTY(invertblendmap)
+    LAPI_EMPTY(showblendmap)
+    LAPI_EMPTY(optimizeblendmap)
+    LAPI_EMPTY(clearblendmap)
+#endif
 
     void reg_blend(lua::Table& t)
     {

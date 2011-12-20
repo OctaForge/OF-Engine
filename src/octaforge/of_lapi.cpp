@@ -32,31 +32,27 @@ if (!name) \
     retexpr; \
 }
 
+#define LAPI_EMPTY(name) void _lua_##name() \
+{ logger::log(logger::DEBUG, "stub: CAPI."#name"\n"); }
+
 #include "of_lapi_base.h"
-#ifdef CLIENT
 #include "of_lapi_blend.h"
 #include "of_lapi_camera.h"
-#endif
 #include "of_lapi_edit.h"
 #include "of_lapi_entity.h"
-#ifdef CLIENT
 #include "of_lapi_gui.h"
 #include "of_lapi_input.h"
-#endif
 #include "of_lapi_messages.h"
 #include "of_lapi_model.h"
 #include "of_lapi_network.h"
-#ifdef CLIENT
 #include "of_lapi_parthud.h"
 #include "of_lapi_shaders.h"
-#endif
 #include "of_lapi_sound.h"
-#ifdef CLIENT
 #include "of_lapi_tex.h"
 #include "of_lapi_textedit.h"
-#endif
 #include "of_lapi_world.h"
 
+#undef LAPI_EMPTY
 #undef LAPI_GET_ENT
 #undef LAPI_REG
 
@@ -176,28 +172,20 @@ namespace lapi
 
         #define CAPI_REG(name) lapi_binds::reg_##name(api_all)
         CAPI_REG(base);
-#ifdef CLIENT
         CAPI_REG(blend);
         CAPI_REG(camera);
-#endif
         CAPI_REG(edit);
         CAPI_REG(entity);
-#ifdef CLIENT
         CAPI_REG(gui);
         CAPI_REG(input);
-#endif
         CAPI_REG(messages);
         CAPI_REG(model);
         CAPI_REG(network);
-#ifdef CLIENT
         CAPI_REG(parthud);
         CAPI_REG(shaders);
-#endif
         CAPI_REG(sound);
-#ifdef CLIENT
         CAPI_REG(tex);
         CAPI_REG(textedit);
-#endif
         CAPI_REG(world);
         #undef CAPI_REG
 
@@ -235,14 +223,14 @@ namespace lapi
         list.push_back("iqm");
         list.push_back("obj");
 
-        Table t = state.get<Table>("library")["unresettable"];
+        Table t = state.get<Table>("library", "unresettable");
         for (Table::it it = t.begin(); it != t.end(); ++it)
             list.push_back((*it).to<const char*>());
 
-        t = state.registry()["_LOADED"];
+        t = state.registry().get<Object>("_LOADED");
         for (Table::pit it = t.pbegin(); it != t.pend(); ++it)
         {
-            const char *key = (*it).second.to<const char*>();
+            const char *key = (*it).first.to<const char*>();
             if (!key) continue;
 
             for (size_t i = 0; i < list.length(); ++i)

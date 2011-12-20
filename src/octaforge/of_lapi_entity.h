@@ -184,16 +184,16 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setextent0(lua::Table self, vec o)
+    void _lua_setextent0(lua::Table self, lua::Table o)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setextent0", return)
         extentity *ext = entity->staticEntity;
         assert(ext);
 
         removeentity(ext);
-        ext->o.x = o.x;
-        ext->o.y = o.y;
-        ext->o.z = o.z;
+        ext->o.x = o.get<float>(1);
+        ext->o.y = o.get<float>(2);
+        ext->o.z = o.get<float>(3);
         addentity(ext);
     }
 
@@ -247,15 +247,15 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setdynent0(lua::Table self, vec o)
+    void _lua_setdynent0(lua::Table self, lua::Table o)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setdynent0", return)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        d->o.x = o.x;
-        d->o.y = o.y;
-        d->o.z = o.z + d->eyeheight;/* + d->aboveeye; */
+        d->o.x = o.get<float>(1);
+        d->o.y = o.get<float>(2);
+        d->o.z = o.get<float>(3) + d->eyeheight;/* + d->aboveeye; */
 
         /* also set newpos, otherwise this change may get overwritten */
         d->newpos = d->o;
@@ -279,15 +279,15 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setdynentvel(lua::Table self, vec vel)
+    void _lua_setdynentvel(lua::Table self, lua::Table vel)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setdynent0", return)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        d->vel.x = vel.x;
-        d->vel.y = vel.y;
-        d->vel.z = vel.z;
+        d->vel.x = vel.get<float>(1);
+        d->vel.y = vel.get<float>(2);
+        d->vel.z = vel.get<float>(3);
     }
 
     lua::Table _lua_getdynentfalling(lua::Table self)
@@ -302,15 +302,15 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_setdynentfalling(lua::Table self, vec fall)
+    void _lua_setdynentfalling(lua::Table self, lua::Table fall)
     {
         LAPI_GET_ENT(entity, self, "CAPI.setdynentfalling", return)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        d->falling.x = fall.x;
-        d->falling.y = fall.y;
-        d->falling.z = fall.z;
+        d->falling.x = fall.get<float>(1);
+        d->falling.y = fall.get<float>(2);
+        d->falling.z = fall.get<float>(3);
     }
 
 #ifdef CLIENT
@@ -325,6 +325,8 @@ namespace lapi_binds
 
         return lua::Object();
     }
+#else
+    LAPI_EMPTY(get_target_entity_uid)
 #endif
 
     lua::Object _lua_getplag(lua::Table self)
@@ -417,9 +419,7 @@ namespace lapi_binds
         LAPI_REG(setdynentvel);
         LAPI_REG(getdynentfalling);
         LAPI_REG(setdynentfalling);
-#ifdef CLIENT
         LAPI_REG(get_target_entity_uid);
-#endif
         LAPI_REG(getplag);
         LAPI_REG(getping);
     }

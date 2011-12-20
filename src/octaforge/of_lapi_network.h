@@ -13,6 +13,8 @@ namespace lapi_binds
     {
         ClientSystem::connect(addr, port);
     }
+#else
+    LAPI_EMPTY(connect)
 #endif
 
     bool _lua_isconnected(bool attempt)
@@ -93,13 +95,14 @@ namespace lapi_binds
     {
         MessageSystem::send_RestartMap();
     }
+#else
+    LAPI_EMPTY(do_upload)
+    LAPI_EMPTY(restart_map)
 #endif
 
     void reg_network(lua::Table& t)
     {
-#ifdef CLIENT
         LAPI_REG(connect);
-#endif
         LAPI_REG(isconnected);
         LAPI_REG(connectedip);
         LAPI_REG(connectedport);
@@ -109,9 +112,7 @@ namespace lapi_binds
         LAPI_REG(localconnect);
         LAPI_REG(localdisconnect);
         LAPI_REG(getfollow);
-#ifdef CLIENT
         LAPI_REG(do_upload);
         LAPI_REG(restart_map);
-#endif
     }
 }
