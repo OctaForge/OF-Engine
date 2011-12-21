@@ -423,7 +423,7 @@ struct md5 : skelmodel, skelloader<md5>
 
         loading = this;
         var::persistvars = false;
-        if(!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured md5, will call the md5* commands below
+        if(tools::execfile(cfgname, false) && parts.length()) // configured md5, will call the md5* commands below
         {
             var::persistvars = true;
             loading = NULL;

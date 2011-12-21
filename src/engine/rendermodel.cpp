@@ -10,6 +10,8 @@ model *loadingmodel = NULL;
 #include "vertmodel.h"
 #include "skelmodel.h"
 
+#include "of_tools.h"
+
 static model *(__cdecl *modeltypes[NUMMODELTYPES])(const char *);
 
 static int addmodeltype(int type, model *(__cdecl *loader)(const char *))

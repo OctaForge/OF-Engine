@@ -441,7 +441,7 @@ struct smd : skelmodel, skelloader<smd>
 
         loading = this;
         var::persistvars = false;
-        if(!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
+        if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
         {
             var::persistvars = true;
             loading = NULL;

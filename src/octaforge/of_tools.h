@@ -43,7 +43,8 @@ namespace tools
     bool  fempty(const char *file);
 
     void  writecfg(const char *name = NULL);
-    bool  execcfg(const char *cfgfile, bool ignore_ret = false);
+    bool  execcfg (const char *cfgfile, bool ignore_ret = false);
+    bool  execfile(const char *cfgfile, bool msg = true);
 
     int   currtime();
 } /* end namespace tools */

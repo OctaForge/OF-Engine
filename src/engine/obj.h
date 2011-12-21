@@ -197,7 +197,7 @@ struct obj : vertmodel, vertloader<obj>
 
         loading = this;
         var::persistvars = false;
-        if(!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // INTENSITY configured obj, will call the obj* commands below
+        if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY configured obj, will call the obj* commands below
         {
             var::persistvars = true;
             loading = NULL;

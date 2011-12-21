@@ -244,6 +244,21 @@ namespace tools
         return ret;
     }
 
+    bool execfile(const char *cfgfile, bool msg)
+    {
+        string s;
+        copystring(s, cfgfile);
+        char *buf = loadfile(path(s), NULL);
+        if(!buf)
+        {
+            if(msg) conoutf(CON_ERROR, "could not read \"%s\"", cfgfile);
+            return false;
+        }
+        lapi::state.do_string(buf);
+        delete[] buf;
+        return true;
+    }
+
     int currtime()
     {
 #ifdef SERVER

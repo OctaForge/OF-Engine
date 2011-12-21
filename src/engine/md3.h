@@ -205,7 +205,7 @@ struct md3 : vertmodel, vertloader<md3>
 
         loading = this;
         var::persistvars = false;
-        if(!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // OF configured md3, will call the md3* commands below
+        if(tools::execfile(cfgname, false) && parts.length()) // OF configured md3, will call the md3* commands below
         {
             var::persistvars = true;
             loading = NULL;

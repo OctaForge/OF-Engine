@@ -375,7 +375,7 @@ struct iqm : skelmodel, skelloader<iqm>
 
         loading = this;
         var::persistvars = false;
-        if (!types::get<0>(lapi::state.do_file(path(cfgname))) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
+        if (tools::execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
         {
             var::persistvars = true;
             loading = NULL;
