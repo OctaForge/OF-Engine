@@ -21,6 +21,12 @@ struct vec
 
     vec(lua_State *L, int idx)
     {
+        if (!lua_istable(L, idx))
+        {
+            x = y = z = 0.0f;
+            return;
+        }
+
         lua_getfield(L, idx, "x");
         x = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -195,6 +201,12 @@ struct vec4
 
     vec4(lua_State *L, int idx)
     {
+        if (!lua_istable(L, idx))
+        {
+            x = y = z = w = 0.0f;
+            return;
+        }
+
         lua_getfield(L, idx, "x");
         x = lua_tonumber(L, -1);
         lua_pop(L, 1);
@@ -1099,6 +1111,12 @@ struct bvec
 
     bvec(lua_State *L, int idx)
     {
+        if (!lua_istable(L, idx))
+        {
+            x = y = z = 0.0f;
+            return;
+        }
+
         lua_getfield(L, idx, "r");
         x = lua_tointeger(L, -1);
         lua_pop(L, 1);
