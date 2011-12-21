@@ -694,7 +694,7 @@ namespace server
     {
 #ifdef CLIENT
         assert(0);
-        return lua::Table();
+        return lapi::state.wrap<lua::Table>(lua::nil);
 #else // SERVER
         // cn of -1 means "all of them"
         if (cn == -1)
@@ -710,7 +710,7 @@ namespace server
 
                 createluaEntity(i);
             }
-            return lua::Table();
+            return lapi::state.wrap<lua::Table>(lua::nil);
         }
 
         assert(cn >= 0);
@@ -718,7 +718,7 @@ namespace server
         if (!ci)
         {
             logger::log(logger::WARNING, "Asked to create a player entity for %d, but no clientinfo (perhaps disconnected meanwhile)\r\n", cn);
-            return lua::Table();
+            return lapi::state.wrap<lua::Table>(lua::nil);
         }
 
         fpsent* fpsEntity = game::getclient(cn);
@@ -727,7 +727,7 @@ namespace server
             // Already created an entity
             logger::log(logger::WARNING, "createluaEntity(%d): already have fpsEntity, and hence lua entity. Kicking.\r\n", cn);
             disconnect_client(cn, DISC_KICK);
-            return lua::Table();
+            return lapi::state.wrap<lua::Table>(lua::nil);
         }
 
         // Use the PC class, unless told otherwise

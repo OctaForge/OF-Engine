@@ -16,7 +16,7 @@ namespace lapi_binds
     lua::Object _lua_textshow()
     {
         editor *top = currentfocus();
-        if (!top) return lua::Object();
+        if (!top) return lapi::state.wrap<lua::Object>(lua::nil);
 
         editline line;
         line.combinelines(top->lines);
@@ -43,7 +43,7 @@ namespace lapi_binds
         else if (editors.length() > 0)
             return lapi::state.wrap<lua::Object>(editors.last()->name);
 
-        return lua::Object();
+        return lapi::state.wrap<lua::Object>(lua::nil);
     }
 
     /* return to the previous editor */
@@ -63,12 +63,12 @@ namespace lapi_binds
     lua::Object _lua_textmode(int i)
     {
         editor *top = currentfocus();
-        if (!top) return lua::Object();
+        if (!top) return lapi::state.wrap<lua::Object>(lua::nil);
 
         if (i)
         {
             top->mode = i;
-            return lua::Object();
+            return lapi::state.wrap<lua::Object>(lua::nil);
         }
         return lapi::state.wrap<lua::Object>(top->mode);
     }
@@ -88,18 +88,18 @@ namespace lapi_binds
     lua::Object textload(const char *fn)
     {
         editor *top = currentfocus();
-        if (!top) return lua::Object();
+        if (!top) return lapi::state.wrap<lua::Object>(lua::nil);
 
         if (fn && fn[0])
         {
             top->setfile(path(fn, true));
             top->load();
-            return lua::Object();
+            return lapi::state.wrap<lua::Object>(lua::nil);
         }
         else if (top->filename)
             return lapi::state.wrap<lua::Object>(top->filename);
 
-        return lua::Object();
+        return lapi::state.wrap<lua::Object>(lua::nil);
     }
 
     void _lua_textinit(const char *name, const char *s1, const char *s2)
@@ -156,14 +156,14 @@ namespace lapi_binds
     lua::Object _lua_textmark(int i)
     {
         editor *top = currentfocus();
-        if (!top) return lua::Object();
+        if (!top) return lapi::state.wrap<lua::Object>(lua::nil);
 
         editor *b = useeditor(PASTEBUFFER, EDITORFOREVER, false);
         top->insertallfrom(b);
         if (i)
         {
             top->mark(i == 1);
-            return lua::Object();
+            return lapi::state.wrap<lua::Object>(lua::nil);
         }
         return lapi::state.wrap<lua::Object>(top->region() ? 1 : 2);
     }
@@ -187,7 +187,7 @@ namespace lapi_binds
     lua::Object _lua_textcurrentline()
     {
         editor *top = currentfocus();
-        if (!top) return lua::Object();
+        if (!top) return lapi::state.wrap<lua::Object>(lua::nil);
 
         return lapi::state.wrap<lua::Object>(top->currentline().text);
     }

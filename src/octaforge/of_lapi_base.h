@@ -296,9 +296,9 @@ namespace lapi_binds
 
     lua::Object _lua_getvar(const char *name)
     {
-        if (!name) return lua::Object();
+        if (!name) return lapi::state.wrap<lua::Object>(lua::nil);
         var::cvar *ev = var::get(name);
-        if       (!ev) return lua::Object();
+        if       (!ev) return lapi::state.wrap<lua::Object>(lua::nil);
         switch   ( ev->type)
         {
             case var::VAR_I:
@@ -309,7 +309,7 @@ namespace lapi_binds
                 return lapi::state.wrap<lua::Object>(ev->curv.s); break;
             default: break;
         }
-        return lua::Object();
+        return lapi::state.wrap<lua::Object>(lua::nil);
     }
 
     bool _lua_varexists(const char *vn)

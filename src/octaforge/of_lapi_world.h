@@ -64,7 +64,7 @@ namespace lapi_binds
         if (target && !target->isNone() && !target->lua_ref.is_nil())
             return target->lua_ref;
 
-        return lua::Table();
+        return lapi::state.wrap<lua::Table>(lua::nil);
     }
 #else
     LAPI_EMPTY(gettargetpos)

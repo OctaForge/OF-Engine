@@ -51,7 +51,10 @@ namespace lapi_binds
 
     lua::Object _lua_getstarttime(lua::Table self)
     {
-        LAPI_GET_ENT(entity, self, "CAPI.getstarttime", return lua::Object())
+        LAPI_GET_ENT(
+            entity, self, "CAPI.getstarttime",
+            return lapi::state.wrap<lua::Object>(lua::nil)
+        )
         return lapi::state.wrap<lua::Object>(entity->getStartTime());
     }
 
@@ -104,7 +107,7 @@ namespace lapi_binds
     {
         LAPI_GET_ENT(
             entity, self, "CAPI.getattachmentpos",
-            return lua::Object()
+            return lapi::state.wrap<lua::Object>(lua::nil)
         )
         return lapi::state.wrap<lua::Object>(
             entity->getAttachmentPosition(attachment)
@@ -122,7 +125,10 @@ namespace lapi_binds
     #define EXTENT_ACCESSORS(n) \
     lua::Object _lua_get##n(lua::Table self) \
     { \
-        LAPI_GET_ENT(entity, self, "CAPI.get"#n, return lua::Object()) \
+        LAPI_GET_ENT( \
+            entity, self, "CAPI.get"#n, \
+            return lapi::state.wrap<lua::Object>(lua::nil) \
+        ) \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
         return lapi::state.wrap<lua::Object>(ext->n); \
@@ -153,7 +159,10 @@ namespace lapi_binds
     #define EXTENT_LE_ACCESSORS(n, an) \
     lua::Object _lua_get##n(lua::Table self) \
     { \
-        LAPI_GET_ENT(entity, self, "CAPI.get"#n, return lua::Object()) \
+        LAPI_GET_ENT( \
+            entity, self, "CAPI.get"#n, \
+            return lapi::state.wrap<lua::Object>(lua::nil) \
+        ) \
         return lapi::state.wrap<lua::Object>(entity->an); \
     } \
     void _lua_set##n(lua::Table self, float v) \
@@ -172,7 +181,10 @@ namespace lapi_binds
 
     lua::Table _lua_getextent0(lua::Table self)
     {
-        LAPI_GET_ENT(entity, self, "CAPI.getextent0", return lua::Table())
+        LAPI_GET_ENT(
+            entity, self, "CAPI.getextent0", 
+            return lapi::state.wrap<lua::Table>(lua::nil)
+        )
         extentity *ext = entity->staticEntity;
         assert(ext);
         logger::log(
@@ -202,7 +214,10 @@ namespace lapi_binds
     #define DYNENT_ACCESSORS(n, t, an) \
     lua::Object _lua_get##n(lua::Table self) \
     { \
-        LAPI_GET_ENT(entity, self, "CAPI.get"#n, return lua::Object()) \
+        LAPI_GET_ENT( \
+            entity, self, "CAPI.get"#n, \
+            return lapi::state.wrap<lua::Object>(lua::nil) \
+        ) \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
         return lapi::state.wrap<lua::Object>((t)d->an); \
@@ -237,7 +252,10 @@ namespace lapi_binds
 
     lua::Table _lua_getdynent0(lua::Table self)
     {
-        LAPI_GET_ENT(entity, self, "CAPI.getdynent0", return lua::Table())
+        LAPI_GET_ENT(
+            entity, self, "CAPI.getdynent0",
+            return lapi::state.wrap<lua::Table>(lua::nil)
+        )
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
         lua::Table ret = lapi::state.new_table(3, 0);
@@ -271,7 +289,10 @@ namespace lapi_binds
 
     lua::Table _lua_getdynentvel(lua::Table self)
     {
-        LAPI_GET_ENT(entity, self, "CAPI.getdynentvel", return lua::Table())
+        LAPI_GET_ENT(
+            entity, self, "CAPI.getdynentvel",
+            return lapi::state.wrap<lua::Table>(lua::nil)
+        )
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
         lua::Table ret = lapi::state.new_table(3, 0);
@@ -293,7 +314,8 @@ namespace lapi_binds
     lua::Table _lua_getdynentfalling(lua::Table self)
     {
         LAPI_GET_ENT(
-            entity, self, "CAPI.getdynentfalling", return lua::Table()
+            entity, self, "CAPI.getdynentfalling",
+            return lapi::state.wrap<lua::Table>(lua::nil)
         )
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
@@ -323,7 +345,7 @@ namespace lapi_binds
             TargetingControl::targetLogicEntity->getUniqueId()
         );
 
-        return lua::Object();
+        return lapi::state.wrap<lua::Object>(lua::nil);
     }
 #else
     LAPI_EMPTY(get_target_entity_uid)
@@ -331,7 +353,10 @@ namespace lapi_binds
 
     lua::Object _lua_getplag(lua::Table self)
     {
-        LAPI_GET_ENT(entity, self, "CAPI.getplag", return lua::Object())
+        LAPI_GET_ENT(
+            entity, self, "CAPI.getplag",
+            return lapi::state.wrap<lua::Object>(lua::nil)
+        )
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
         return lapi::state.wrap<lua::Object>(p->plag);
@@ -339,7 +364,10 @@ namespace lapi_binds
 
     lua::Object _lua_getping(lua::Table self)
     {
-        LAPI_GET_ENT(entity, self, "CAPI.getping", return lua::Object())
+        LAPI_GET_ENT(
+            entity, self, "CAPI.getping",
+            return lapi::state.wrap<lua::Object>(lua::nil)
+        )
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
         return lapi::state.wrap<lua::Object>(p->ping);

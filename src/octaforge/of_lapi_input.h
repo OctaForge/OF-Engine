@@ -61,7 +61,9 @@ namespace lapi_binds
 \
             if (!f.call<bool>( \
                 num, down, pos, \
-                ((tle && !tle->isNone()) ? tle->lua_ref : lua::Table()), \
+                ((tle && !tle->isNone()) ? tle->lua_ref : \
+                    lapi::state.wrap<lua::Table>(lua::nil) \
+                ), \
                 x, y \
             )) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
         } \

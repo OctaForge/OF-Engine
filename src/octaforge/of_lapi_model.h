@@ -257,7 +257,7 @@ namespace lapi_binds
     {
         model *mdl = loadmodel(name);
         if   (!mdl)
-            return lua::Table();
+            return lapi::state.wrap<lua::Table>(lua::nil);
 
         vec center, radius;
         mdl->boundbox(0, center, radius);
@@ -271,7 +271,7 @@ namespace lapi_binds
     {
         model *mdl = loadmodel(name);
         if   (!mdl)
-            return lua::Table();
+            return lapi::state.wrap<lua::Table>(lua::nil);
 
         vec center, radius;
         mdl->collisionbox(0, center, radius);
@@ -285,7 +285,7 @@ namespace lapi_binds
     {
         model *mdl = loadmodel(name);
         if   (!mdl)
-            return lua::Table();
+            return lapi::state.wrap<lua::Table>(lua::nil);
 
         vector<BIH::tri> tris2[2];
         mdl->gentris(0, tris2);

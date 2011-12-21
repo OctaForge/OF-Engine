@@ -95,7 +95,7 @@ namespace lapi_binds
         if (ret && !ret->isNone() && !ret->lua_ref.is_nil())
             return ret->lua_ref;
         else
-            return lua::Table();
+            return lapi::state.wrap<lua::Table>(lua::nil);
     }
 
     void _lua_renderprogress(float p, const char *text)
@@ -260,7 +260,7 @@ namespace lapi_binds
             return lapi::state.wrap<lua::Object>(
                 vslots.inrange(reptex) ? reptex : -1
             );
-        return lua::Object();
+        return lapi::state.wrap<lua::Object>(lua::nil);
     }
 
     const char *_lua_gettexname(int tex, int subslot)
