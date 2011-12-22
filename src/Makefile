@@ -170,7 +170,7 @@ ifneq ($(OS), Windows)
 		CLIENT_LDD += `curl-config --libs` -lz -lGL -lobjc
 	endif
 else
-	CLIENT_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DCLIENT
+	CLIENT_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DCLIENT -DWIN32 -DWINDOWS
 	CLIENT_LDD  = -mwindows $(WINDOWS_LIBS)
 	CLIENT_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
 	CLIENT_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
@@ -273,7 +273,7 @@ ifneq ($(OS), Windows)
 		SERVER_LDD += `curl-config --libs` -lz -lobjc
 	endif
 else
-	SERVER_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DSERVER
+	SERVER_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DSERVER -DWIN32 -DWINDOWS
 	SERVER_LDD  = -mwindows $(WINDOWS_LIBS)
 	SERVER_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
 	SERVER_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer

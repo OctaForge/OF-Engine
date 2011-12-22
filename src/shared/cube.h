@@ -16,6 +16,16 @@
 #undef gamma
 #endif
 
+/* workaround for -std=c++0x */
+
+#ifdef WIN32
+#ifdef __GNUC__
+#ifdef __STRICT_ANSI__
+#undef __STRICT_ANSI__
+#endif
+#endif
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +63,8 @@ using algorithm::clamp;
   #ifndef __GNUC__
     #include <eh.h>
     #include <dbghelp.h>
+  #else
+    #include <sys/types.h>
   #endif
   #define ZLIB_DLL
 #endif
@@ -79,6 +91,16 @@ using algorithm::clamp;
   #undef queue
 #endif
 #define queue __squeue
+#endif
+
+#ifdef swap
+#undef swap
+#endif
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
 #endif
 
 #include "tools.h"
