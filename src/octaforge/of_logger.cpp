@@ -79,13 +79,13 @@ namespace logger
 
         va_list  ap;
         va_start(ap, fmt);
-        types::string buf = types::string().format(fmt, ap);
+        types::String buf = types::String().format(fmt, ap);
         va_end(ap);
 
 #ifdef CLIENT
         if (level == ERROR)
         {
-            conoutf(CON_ERROR, types::string().format(
+            conoutf(CON_ERROR, types::String().format(
                 "[[%s]] - %s", level_s, buf.get_buf()
             ).get_buf());
         }

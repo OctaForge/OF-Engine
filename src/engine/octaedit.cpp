@@ -490,7 +490,7 @@ void readychanges(block3 &b, cube *c, const ivec &cor, int size)
                 int hasmerges = c[i].ext->va->hasmerges;
                 destroyva(c[i].ext->va);
                 c[i].ext->va = NULL;
-                if(hasmerges) invalidatemerges(c[i], true); 
+                if(hasmerges) invalidatemerges(c[i], o, size, true); 
             }
             freeoctaentities(c[i]);
             c[i].ext->tjoints = -1;
@@ -551,6 +551,7 @@ static inline void copycube(const cube &src, cube &dst)
 {
     dst = src;
     dst.visible = 0;
+    dst.collide = 0;
     dst.merged = 0;
     dst.ext = NULL; // src cube is responsible for va destruction
     if(src.children)
@@ -1618,7 +1619,7 @@ void filltexlist()
     }
 }
 
-/* OctaForge: use shared_ptr */
+/* OctaForge: use Shared_Ptr */
 void compactmruvslots()
 {
     remappedvslots.setsize(0);
@@ -1681,30 +1682,31 @@ void gettex()
     }
 }
 
-void getcurtex()
+int getcurtex()
 {
-    if(noedit()) return;
+    if(noedit(true)) return 0;
     filltexlist();
     int index = curtexindex < 0 ? 0 : curtexindex;
-    if(!texmru.inrange(index)) return;
-    lua::engine.push(texmru[index]);
+    if(!texmru.inrange(index)) return 0;
+    return texmru[index];
 }
 
-void getseltex()
+int getseltex()
 {
-    if(noedit(true)) return;
+    if(noedit(true)) return 0;
     cube &c = lookupcube(sel.o.x, sel.o.y, sel.o.z, -sel.grid);
-    if(c.children || isempty(c)) return;
-    lua::engine.push(c.texture[sel.orient]);
+    if(c.children || isempty(c)) return 0;
+    return c.texture[sel.orient];
 }
 
-void gettexname(int tex, int subslot)
+const char *gettexname(int tex, int subslot)
 {
-    if(noedit() || tex<0) return;
-    VSlot &vslot = lookupvslot(tex);
+    if(noedit(true) || tex<0) return NULL;
+    VSlot &vslot = lookupvslot(tex, false);
     Slot &slot = *vslot.slot;
-    if(!slot.sts.inrange(subslot)) return;
-    lua::engine.push(slot.sts[subslot].name);
+    if(!slot.sts.inrange(subslot)) return NULL;
+    
+    return slot.sts[subslot].name;
 }
 
 void replacetexcube(cube &c, int oldtex, int newtex)
@@ -1874,13 +1876,13 @@ void editmat(char *name, char *filtername)
 {
     if(noedit()) return;
     int filter = -1;
-    if(filtername)
+    if(filtername && filtername[0])
     {
         filter = findmaterial(filtername);
         if(filter < 0) { conoutf(CON_ERROR, "unknown material \"%s\"", filtername); return; }
     }
     int id = -1;
-    if(name[0] || filter < 0)
+    if((name && name[0]) || filter < 0)
     {
         id = findmaterial(name);
         if(id<0) { conoutf(CON_ERROR, "unknown material \"%s\"", name); return; }

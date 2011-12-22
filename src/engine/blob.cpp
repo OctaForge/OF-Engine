@@ -143,83 +143,73 @@ struct blobrenderer
         availindexes = maxindexes - 3;
     }
     
-   
     template<int C>
-    static int split(const vec *in, int numin, float val, vec *out)
+    static int split(const vec *in, int numin, float below, float above, vec *out)
     {
         int numout = 0;
-        const vec *n = in;
-        float c = (*n)[C];
-        loopi(numin-1)
+        const vec *p = &in[numin-1];
+        float pc = (*p)[C];
+        loopi(numin)
         {
-            const vec &p = *n++;
-            float pc = c;
-            c = (*n)[C];
-            out[numout++] = p;
-            if(pc < val ? c > val : pc > val && c < val) (out[numout++] = *n).sub(p).mul((pc - val) / (pc - c)).add(p);
-        }
-        float ic = (*in)[C];
-        out[numout++] = *n;
-        if(c < val ? ic > val : c > val && ic < val) (out[numout++] = *in).sub(*n).mul((c - val) / (c - ic)).add(*n);
-        return numout;
-    }
-
-    template<int C>
-    static int clipabove(const vec *in, int numin, float val, vec *out)
-    {
-        int numout = 0;
-        const vec *n = in;
-        float c = (*n)[C];
-        loopi(numin-1)
-        {
-            const vec &p = *n++;
-            float pc = c;
-            c = (*n)[C];
-            if(pc >= val) 
+            const vec &v = in[i];
+            float c = v[C];
+            if(c < below)
             {
-                out[numout++] = p;
-                if(pc > val && c < val) (out[numout++] = *n).sub(p).mul((pc - val) / (pc - c)).add(p);
+                if(pc > above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+                if(pc > below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
             }
-            else if(c > val) (out[numout++] = *n).sub(p).mul((pc - val) / (pc - c)).add(p);
+            else if(c > above)
+            {
+                if(pc < below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
+                if(pc < above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+            }
+            else if(pc < below)
+            {
+                if(c > below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
+            }
+            else if(pc > above && c < above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+            out[numout++] = v;
+            p = &v;
+            pc = c;
         }
-        float ic = (*in)[C];
-        if(c >= val)
-        {   
-            out[numout++] = *n;
-            if(c > val && ic < val) (out[numout++] = *in).sub(*n).mul((c - val) / (c - ic)).add(*n);
-        }
-        else if(ic > val) (out[numout++] = *in).sub(*n).mul((c - val) / (c - ic)).add(*n);
         return numout;
     }
 
     template<int C>
-    static int clipbelow(const vec *in, int numin, float val, vec *out)
+    static int clip(const vec *in, int numin, float below, float above, vec *out)
     {
         int numout = 0;
-        const vec *n = in;
-        float c = (*n)[C];
-        loopi(numin-1)
+        const vec *p = &in[numin-1];
+        float pc = (*p)[C];
+        loopi(numin)
         {
-            const vec &p = *n++;
-            float pc = c;
-            c = (*n)[C];
-            if(pc <= val)   
+            const vec &v = in[i];
+            float c = v[C];
+            if(c < below)
             {
-                out[numout++] = p;
-                if(pc < val && c > val) (out[numout++] = *n).sub(p).mul((pc - val) / (pc - c)).add(p);
+                if(pc > above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+                if(pc > below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
             }
-            else if(c < val) (out[numout++] = *n).sub(p).mul((pc - val) / (pc - c)).add(p);
+            else if(c > above)
+            {
+                if(pc < below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
+                if(pc < above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+            }
+            else
+            {
+                if(pc < below)  
+                {
+                    if(c > below) out[numout++] = vec(*p).sub(v).mul((below - c)/(pc - c)).add(v);
+                }
+                else if(pc > above && c < above) out[numout++] = vec(*p).sub(v).mul((above - c)/(pc - c)).add(v);
+                out[numout++] = v;
+            }
+            p = &v;
+            pc = c;
         }
-        float ic = (*in)[C];
-        if(c <= val)
-        { 
-            out[numout++] = *n;
-            if(c < val && ic > val) (out[numout++] = *in).sub(*n).mul((c - val) / (c - ic)).add(*n);
-        }
-        else if(ic < val) (out[numout++] = *in).sub(*n).mul((c - val) / (c - ic)).add(*n);
         return numout;
     }
-
+        
     void dupblob()
     {
         if(lastblob->startvert >= lastblob->endvert) 
@@ -285,148 +275,155 @@ struct blobrenderer
         }
     }
 
-    void genflattris(cube &cu, int orient, vec *v, uint overlap)
+    void gentris(cube &cu, int orient, const ivec &o, int size, materialsurface *mat = NULL)
     {
-        int dim = dimension(orient);
-        float c = v[fv[orient][0]][dim];
-        if(c < blobmin[dim] || c > blobmax[dim]) return;
-        #define CLIPSIDE(flag, clip, val, check) \
-            if(overlap&(flag)) \
-            { \
-                vec *in = v; \
-                v = in==v1 ? v2 : v1; \
-                numv = clip(in, numv, val, v); \
-                check \
-            }
-        static vec v1[16], v2[16];
-        loopk(4) v1[k] = v[fv[orient][k]];
-        v = v1;
-        int numv = 4;
-        overlap &= ~(3<<(2*dim));
-        CLIPSIDE(1<<0, clipabove<0>, blobmin.x, { if(numv < 3) return; });
-        CLIPSIDE(1<<1, clipbelow<0>, blobmax.x, { if(numv < 3) return; });
-        CLIPSIDE(1<<2, clipabove<1>, blobmin.y, { if(numv < 3) return; });
-        CLIPSIDE(1<<3, clipbelow<1>, blobmax.y, { if(numv < 3) return; });
-        CLIPSIDE(1<<4, clipabove<2>, blobmin.z, { if(numv < 3) return; });
-        CLIPSIDE(1<<5, clipbelow<2>, blobmax.z, { if(numv < 3) return; });
-        if(dim!=2)
+        vec pos[MAXFACEVERTS+8];
+        int dim = dimension(orient), numverts = 0, numplanes = 1, flat = -1;
+        if(mat)
         {
-            CLIPSIDE(1<<6, split<2>, blobmin.z + blobfadelow, );
-            CLIPSIDE(1<<7, split<2>, blobmax.z - blobfadehigh, );
+            int dc = dimcoord(orient), c = C[dim], r = R[dim];
+            vec vo = o.tovec(), vscale;
+            vo[dim] += dc ? -0.1f : 0.1f;
+            vscale[c] = mat->csize/8.0f;
+            vscale[r] = mat->rsize/8.0f;
+            vscale[dim] = 0;
+            loopk(4) pos[numverts++] = facecoords[orient][k].tovec().mul(vscale).add(vo);
+            flat = dim;
+        }
+        else if(cu.texture[orient] == DEFAULT_SKY) return;
+        else if(cu.ext && (numverts = cu.ext->surfaces[orient].numverts&MAXFACEVERTS))
+        {
+            vertinfo *verts = cu.ext->verts() + cu.ext->surfaces[orient].verts;
+            ivec vo = ivec(o).mask(~0xFFF).shl(3);
+            loopj(numverts) pos[j] = verts[j].getxyz().add(vo).tovec().mul(1/8.0f);
+            if(numverts >= 4 && !(cu.merged&(1<<orient)) && !flataxisface(cu, orient) && faceconvexity(verts, numverts)) numplanes++;
+            else flat = dim;
+        }
+        else if(cu.merged&(1<<orient)) return;
+        else
+        {
+            ivec v[4];
+            genfaceverts(cu, orient, v);
+            int vis = 3, convex = faceconvexity(v, vis), order = convex < 0 ? 1 : 0;
+            vec vo = o.tovec();
+            pos[numverts++] = v[order].tovec().mul(size/8.0f).add(vo);
+            if(vis&1) pos[numverts++] = v[order+1].tovec().mul(size/8.0f).add(vo);
+            pos[numverts++] = v[order+2].tovec().mul(size/8.0f).add(vo);
+            if(vis&2) pos[numverts++] = v[(order+3)&3].tovec().mul(size/8.0f).add(vo);
+            if(convex) numplanes++;
+            else flat = dim;
         }
 
-        addtris(v, numv);
-    }
-
-    void genslopedtris(cube &cu, int orient, vec *v, uint overlap)
-    {
-        int convexity = faceconvexity(cu, orient), order = convexity < 0 ? 1 : 0;
-        const vec &p0 = v[fv[orient][0 + order]],
-                  &p1 = v[fv[orient][1 + order]],
-                  &p2 = v[fv[orient][2 + order]],
-                  &p3 = v[fv[orient][(3 + order)&3]];
-        if(p0 == p2) return;
-        static vec v1[16], v2[16];
-        if(p0 != p1 && p1 != p2)
+        if(flat >= 0)
         {
-            if((p1.x - p0.x)*(p2.y - p0.y) - (p1.y - p0.y)*(p2.x - p0.x) < 0) goto nexttri;
-            v1[0] = p0; v1[1] = p1; v1[2] = p2;
-            int numv = 3;
-            if(!convexity && p0 != p3 && p2 != p3) { v1[3] = p3; numv = 4; } 
-            v = v1;
-            CLIPSIDE(1<<0, clipabove<0>, blobmin.x, { if(numv < 3) goto nexttri; });
-            CLIPSIDE(1<<1, clipbelow<0>, blobmax.x, { if(numv < 3) goto nexttri; });
-            CLIPSIDE(1<<2, clipabove<1>, blobmin.y, { if(numv < 3) goto nexttri; });
-            CLIPSIDE(1<<3, clipbelow<1>, blobmax.y, { if(numv < 3) goto nexttri; });
-            CLIPSIDE(1<<4, clipabove<2>, blobmin.z, { if(numv < 3) goto nexttri; });
-            CLIPSIDE(1<<5, clipbelow<2>, blobmax.z, { if(numv < 3) goto nexttri; });
-            CLIPSIDE(1<<6, split<2>, blobmin.z + blobfadelow, );
-            CLIPSIDE(1<<7, split<2>, blobmax.z - blobfadehigh, );
+            float offset = pos[0][dim];
+            if(offset < blobmin[dim] || offset > blobmax[dim]) return;
+            flat = dim;
+        }
+    
+        vec vmin = pos[0], vmax = pos[0];
+        for(int i = 1; i < numverts; i++) { vmin.min(pos[i]); vmax.max(pos[i]); }
+        if(vmax.x < blobmin.x || vmin.x > blobmax.x || vmax.y < blobmin.y || vmin.y > blobmax.y ||
+           vmax.z < blobmin.z || vmin.z > blobmax.z)
+            return;
 
+        vec v1[MAXFACEVERTS+6+4], v2[MAXFACEVERTS+6+4];
+        loopl(numplanes)
+        {
+            vec *v = pos;
+            int numv = numverts;
+            if(numplanes >= 2)
+            {
+                if(l) { pos[1] = pos[2]; pos[2] = pos[3]; }
+                numv = 3;
+            }
+            #define CLIPSIDE(clip, below, above) \
+                { \
+                    vec *in = v; \
+                    v = in==v1 ? v2 : v1; \
+                    numv = clip(in, numv, below, above, v); \
+                    if(numv < 3) continue; \
+                }
+            if(flat!=0) CLIPSIDE(clip<0>, blobmin.x, blobmax.x);
+            if(flat!=1) CLIPSIDE(clip<1>, blobmin.y, blobmax.y);
+            if(flat!=2) 
+            {
+                CLIPSIDE(clip<2>, blobmin.z, blobmax.z);
+                CLIPSIDE(split<2>, blobmin.z + blobfadelow, blobmax.z - blobfadehigh);
+            }
             addtris(v, numv);
         }
-        else convexity = 1;
-    nexttri:
-        if(convexity && p0 != p3 && p2 != p3)
-        {
-            if((p2.x - p0.x)*(p3.y - p0.y) - (p2.y - p0.y)*(p3.x - p0.x) < 0) return;
-            v1[0] = p0; v1[1] = p2; v1[2] = p3;
-            int numv = 3;
-            v = v1;
-            CLIPSIDE(1<<0, clipabove<0>, blobmin.x, { if(numv < 3) return; });
-            CLIPSIDE(1<<1, clipbelow<0>, blobmax.x, { if(numv < 3) return; });
-            CLIPSIDE(1<<2, clipabove<1>, blobmin.y, { if(numv < 3) return; });
-            CLIPSIDE(1<<3, clipbelow<1>, blobmax.y, { if(numv < 3) return; });
-            CLIPSIDE(1<<4, clipabove<2>, blobmin.z, { if(numv < 3) return; });
-            CLIPSIDE(1<<5, clipbelow<2>, blobmax.z, { if(numv < 3) return; });
-            CLIPSIDE(1<<6, split<2>, blobmin.z + blobfadelow, );
-            CLIPSIDE(1<<7, split<2>, blobmax.z - blobfadehigh, );
-
-            addtris(v, numv);
-        }
-    } 
-
-    int checkoverlap(const ivec &o, int size)
-    {
-        int overlap = 0;
-        if(o.x < blobmin.x) overlap |= 1<<0;
-        if(o.x + size > blobmax.x) overlap |= 1<<1;
-        if(o.y < blobmin.y) overlap |= 1<<2;
-        if(o.y + size > blobmax.y) overlap |= 1<<3;
-        if(o.z < blobmin.z) overlap |= 1<<4;
-        if(o.z + size > blobmax.z) overlap |= 1<<5;
-        if(o.z < blobmin.z + blobfadelow && o.z + size > blobmin.z + blobfadelow) overlap |= 1<<6;
-        if(o.z < blobmax.z - blobfadehigh && o.z + size > blobmax.z - blobfadehigh) overlap |= 1<<7;
-        return overlap;
     }
 
-    void gentris(cube *cu, const ivec &o, int size, uchar *vismasks = NULL, uchar avoid = 1<<O_BOTTOM)
+    void findmaterials(vtxarray *va)
     {
-        loopoctabox(o, size, bborigin, bbsize)
+        materialsurface *matbuf = va->matbuf;
+        int matsurfs = va->matsurfs;
+        loopi(matsurfs)
         {
-            ivec co(i, o.x, o.y, o.z, size);
-            if(cu[i].children)
+            materialsurface &m = matbuf[i];
+            if(!isclipped(m.material&MATF_VOLUME) || m.orient == O_BOTTOM) { i += m.skip; continue; }
+            int dim = dimension(m.orient), c = C[dim], r = R[dim];
+            for(;;)
             {
-                uchar visclip = cu[i].vismask & cu[i].clipmask & ~avoid;
-                if(visclip)
+                materialsurface &m = matbuf[i];
+                if(m.o[dim] >= blobmin[dim] && m.o[dim] <= blobmax[dim] &&
+                   m.o[c] + m.csize >= blobmin[c] && m.o[c] <= blobmax[c] &&
+                   m.o[r] + m.rsize >= blobmin[r] && m.o[r] <= blobmax[r])
                 {
-                    uint overlap = checkoverlap(co, size);
-                    uchar vertused = fvmasks[visclip];
-                    vec v[8];
-                    loopj(8) if(vertused&(1<<j)) calcvert(cu[i], co.x, co.y, co.z, size, v[j], j, true);
-                    loopj(6) if(visclip&(1<<j)) genflattris(cu[i], j, v, overlap);
+                    static cube dummy;
+                    gentris(dummy, m.orient, m.o, max(m.csize, m.rsize), &m);
                 }
-                if(cu[i].vismask & ~avoid) gentris(cu[i].children, co, size>>1, cu[i].vismasks, avoid | visclip);
+                if(i+1 >= matsurfs) break;
+                materialsurface &n = matbuf[i+1];
+                if(n.material != m.material || n.orient != m.orient) break;
+                i++;
             }
-            else if(vismasks)
+        }
+    }
+            
+    void findescaped(cube *cu, const ivec &o, int size, int escaped)
+    {
+        loopi(8)
+        {
+            if(escaped&(1<<i))
             {
-                uchar vismask = vismasks[i] & ~avoid;
-                if(!vismask) continue;
-                uint overlap = checkoverlap(co, size);
-                uchar vertused = fvmasks[vismask];
-                bool solid = isclipped(cu[i].material&MATF_VOLUME);
-                vec v[8];
-                loopj(8) if(vertused&(1<<j)) calcvert(cu[i], co.x, co.y, co.z, size, v[j], j, solid);
-                loopj(6) if(vismask&(1<<j))
+                ivec co(i, o.x, o.y, o.z, size);
+                if(cu[i].children) findescaped(cu[i].children, co, size>>1, cu[i].escaped);
+                else
                 {
-                    if(solid || (flataxisface(cu[i], j) && faceedges(cu[i], j)==F_SOLID)) genflattris(cu[i], j, v, overlap);
-                    else genslopedtris(cu[i], j, v, overlap);
+                    int vismask = cu[i].escaped&cu[i].merged;
+                    if(vismask) loopj(6) if(vismask&(1<<j)) gentris(cu[i], j, co, size);
                 }
             }
-            else
+        }
+    }
+
+    void gentris(cube *cu, const ivec &o, int size, int escaped = 0)
+    {
+        int overlap = octantrectangleoverlap(o, size, bborigin, bbsize);
+        loopi(8)
+        {
+            if(overlap&(1<<i))
             {
-                bool solid = isclipped(cu[i].material&MATF_VOLUME);
-                uchar vismask = 0, nmat = cu[i].material&MAT_ALPHA ? MAT_AIR : MAT_ALPHA;
-                loopj(6) if(!(avoid&(1<<j)) && (solid ? visiblematerial(cu[i], j, co.x, co.y, co.z, size)==MATSURF_VISIBLE : cu[i].texture[j]!=DEFAULT_SKY && visibleface(cu[i], j, co.x, co.y, co.z, size, MAT_AIR, nmat, MAT_ALPHA))) vismask |= 1<<j;
-                if(!vismask) continue;
-                uint overlap = checkoverlap(co, size);
-                uchar vertused = fvmasks[vismask];
-                vec v[8];
-                loopj(8) if(vertused&(1<<j)) calcvert(cu[i], co.x, co.y, co.z, size, v[j], j, solid);
-                loopj(6) if(vismask&(1<<j)) 
+                ivec co(i, o.x, o.y, o.z, size);
+                if(cu[i].ext && cu[i].ext->va && cu[i].ext->va->matsurfs)
+                    findmaterials(cu[i].ext->va);
+                if(cu[i].children) gentris(cu[i].children, co, size>>1, cu[i].escaped);
+                else
                 {
-                    if(solid || (flataxisface(cu[i], j) && faceedges(cu[i], j)==F_SOLID)) genflattris(cu[i], j, v, overlap);
-                    else genslopedtris(cu[i], j, v, overlap);
+                    int vismask = cu[i].visible|cu[i].merged;
+                    if(vismask) loopj(6) if(vismask&(1<<j)) gentris(cu[i], j, co, size);
+                }
+            }
+            else if(escaped&(1<<i))
+            {
+                ivec co(i, o.x, o.y, o.z, size);
+                if(cu[i].children) findescaped(cu[i].children, co, size>>1, cu[i].escaped);
+                else
+                {
+                    int vismask = cu[i].escaped&cu[i].merged;
+                    if(vismask) loopj(6) if(vismask&(1<<j)) gentris(cu[i], j, co, size);
                 }
             }
         }

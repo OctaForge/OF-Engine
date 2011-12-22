@@ -47,8 +47,8 @@ namespace world
 {
     bool loading = false;
 
-    types::string curr_map_id;
-    types::string scenario_code;
+    types::String curr_map_id;
+    types::String scenario_code;
 
     static int num_expected_entities = 0;
     static int num_received_entities = 0;
@@ -67,7 +67,7 @@ namespace world
         {
             float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
             if (loading)
-                renderprogress(val, types::string().format(
+                renderprogress(val, types::String().format(
                     "received entity %i ...", num_received_entities
                 ).get_buf());
         }
@@ -85,7 +85,7 @@ namespace world
         scenario_code = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
 
         int r = 0;
-        types::string tmp;
+        types::String tmp;
 
         char  *it = scenario_code.begin();
         for (; it < scenario_code.end  (); it++)
@@ -110,7 +110,7 @@ namespace world
     }
 #endif
 
-    bool set_map(const types::string& id)
+    bool set_map(const types::String& id)
     {
         generate_scenario_code();
 
@@ -121,7 +121,7 @@ namespace world
 
         curr_map_id = id;
 
-        types::string s = id.substr(0, id.length() - 7);
+        types::String s = id.substr(0, id.length() - 7);
         s += "/map";
 
         if (!load_world(s.get_buf()))
@@ -147,17 +147,19 @@ namespace world
 
     void export_ents(const char *fname)
     {
-        types::string buf = types::string().format(
+        types::String buf = types::String().format(
             "%sdata%c%s%c%s",
             homedir, PATHDIV,
             curr_map_id.substr(0, curr_map_id.length() - 7).get_buf(),
             PATHDIV, fname
         );
 
-        const char *data = lua::engine.exec<const char*>("return entity_store.save_entities()");
+        const char *data = lapi::state.get<lua::Function>(
+            "entity_store", "save_entities"
+        ).call<const char*>();
         if (fileexists(buf.get_buf(), "r"))
         {
-            types::string buff = types::string().format(
+            types::String buff = types::String().format(
                 "%s-%i.bak", buf.get_buf(), (int)time(0)
             );
             tools::fcopy(buf.get_buf(), buff.get_buf());
@@ -173,22 +175,22 @@ namespace world
         fclose(f);
     }
 
-    types::string get_mapfile_path(const char *rpath)
+    types::String get_mapfile_path(const char *rpath)
     {
-        types::string aloc = curr_map_id.substr(0, curr_map_id.length() - 7);
+        types::String aloc = curr_map_id.substr(0, curr_map_id.length() - 7);
 
-        types::string buf = types::string().format(
+        types::String buf = types::String().format(
             "data%c%s%c%s", PATHDIV, aloc.get_buf(), PATHDIV, rpath
         );
         if (fileexists(buf.get_buf(), "r")) return buf;
 
-        return types::string().format("%s%s", homedir, buf.get_buf());
+        return types::String().format("%s%s", homedir, buf.get_buf());
     }
 
-    types::string get_mapscript_filename() { return get_mapfile_path("map.lua"); }
+    types::String get_mapscript_filename() { return get_mapfile_path("map.lua"); }
 
     void run_mapscript()
     {
-        lua::engine.execf(get_mapscript_filename().get_buf());
+        lapi::state.do_file(get_mapscript_filename(), lua::ERROR_EXIT_TRACEBACK);
     }
 } /* end namespace world */

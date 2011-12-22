@@ -534,7 +534,7 @@ struct animmodel : model
 
     meshgroup *sharemeshes(char *name, ...)
     {
-        static hashtable<char *, types::shared_ptr<meshgroup> > meshgroups;
+        static hashtable<char *, types::Shared_Ptr<meshgroup> > meshgroups;
         if(!meshgroups.access(name))
         {
             va_list args;
@@ -671,7 +671,7 @@ struct animmodel : model
             info.range = 1;
         }
 
-        bool calcanim(int animpart, int anim, int basetime, int basetime2, dynent *d, int interp, animinfo &info)
+        bool calcanim(int animpart, int anim, int basetime, int basetime2, dynent *d, int interp, animinfo &info, int &aitime)
         {
             uint varseed = uint((size_t)d);
             info.anim = anim;
@@ -716,15 +716,18 @@ struct animmodel : model
 
             info.anim &= (1<<ANIM_SECONDARY)-1;
             info.anim |= anim&ANIM_FLAGS;
-            if(info.anim&(ANIM_LOOP|ANIM_START|ANIM_END))
+            if((info.anim&ANIM_CLAMP) != ANIM_CLAMP)
             {
-                info.anim &= ~ANIM_SETTIME;
-                if(!info.basetime) info.basetime = -((int)(size_t)d&0xFFF);
-            }
-            if(info.anim&(ANIM_START|ANIM_END))
-            {
-                if(info.anim&ANIM_END) info.frame += info.range-1;
-                info.range = 1;
+                if(info.anim&(ANIM_LOOP|ANIM_START|ANIM_END))
+                {
+                    info.anim &= ~ANIM_SETTIME;
+                    if(!info.basetime) info.basetime = -((int)(size_t)d&0xFFF);
+                }
+                if(info.anim&(ANIM_START|ANIM_END))
+                {
+                    if(info.anim&ANIM_END) info.frame += info.range-1;
+                    info.range = 1;
+                }
             }
 
             if(!meshes->hasframes(info.frame, info.range))
@@ -736,19 +739,20 @@ struct animmodel : model
             if(d && interp>=0)
             {
                 animinterpinfo &ai = d->animinterp[interp];
+                if((info.anim&ANIM_CLAMP)==ANIM_CLAMP) aitime = min(aitime, int(info.range*info.speed*0.5e-3f));
                 if(d->ragdoll && !(anim&ANIM_RAGDOLL)) 
                 {
                     ai.prev.range = ai.cur.range = 0;
                     ai.lastswitch = -1;
                 }
-                else if(ai.lastmodel!=this || ai.lastswitch<0 || lastmillis-d->lastrendered>animationinterpolationtime)
+                else if(ai.lastmodel!=this || ai.lastswitch<0 || lastmillis-d->lastrendered>aitime)
                 {
                     ai.prev = ai.cur = info;
-                    ai.lastswitch = lastmillis-animationinterpolationtime*2;
+                    ai.lastswitch = lastmillis-aitime*2;
                 }
                 else if(ai.cur!=info)
                 {
-                    if(lastmillis-ai.lastswitch>animationinterpolationtime/2) ai.prev = ai.cur;
+                    if(lastmillis-ai.lastswitch>aitime/2) ai.prev = ai.cur;
                     ai.cur = info;
                     ai.lastswitch = lastmillis;
                 }
@@ -769,8 +773,8 @@ struct animmodel : model
             if(!(anim&ANIM_REUSE)) loopi(numanimparts)
             {
                 animinfo info;
-                int interp = d && index+numanimparts<=MAXANIMPARTS ? index+i : -1;
-                if(!calcanim(i, anim, basetime, basetime2, d, interp, info)) return;
+                int interp = d && index+numanimparts<=MAXANIMPARTS ? index+i : -1, aitime = animationinterpolationtime;
+                if(!calcanim(i, anim, basetime, basetime2, d, interp, info, aitime)) return;
                 animstate &p = as[i];
                 p.owner = this;
                 p.cur.setframes(info);
@@ -778,10 +782,10 @@ struct animmodel : model
                 if(interp>=0 && d->animinterp[interp].prev.range>0)
                 {
                     int diff = lastmillis-d->animinterp[interp].lastswitch;
-                    if(diff<animationinterpolationtime)
+                    if(diff<aitime)
                     {
                         p.prev.setframes(d->animinterp[interp].prev);
-                        p.interp = diff/float(animationinterpolationtime);
+                        p.interp = diff/float(aitime);
                     }
                 }
             }
@@ -1410,14 +1414,14 @@ template<class MDL> string modelloader<MDL>::dir = "";
 
 template<class MDL, class MESH> struct modelcommands
 {
-    types::vector<LE_reg> command_stor;
+    lua::Table module;
     typedef struct MDL::part part;
     typedef struct MDL::skin skin;
 
-    static void setdir(lua_Engine e)
+    static void setdir(const char *name)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        formatstring(MDL::dir)("data/models/%s", e.get<char*>(1));
+        formatstring(MDL::dir)("packages/models/%s", name);
     }
 
     #define loopmeshes(meshname, m, body) \
@@ -1435,128 +1439,126 @@ template<class MDL, class MESH> struct modelcommands
 
     #define loopskins(meshname, s, body) loopmeshes(meshname, m, { skin &s = mdl.skins[i]; body; })
     
-    static void setskin(lua_Engine e)
+    static void setskin(const char *meshname, const char *tex, const char *masks, float envmapmax, float envmapmin)
     {
-        loopskins(e.get<char*>(1), s,
-            s.tex = textureload(makerelpath(MDL::dir, e.get<char*>(2)), 0, true, false);
-            if(*(e.get<char*>(3)))
+        if (meshname) 
+        loopskins(meshname, s,
+            s.tex = textureload(makerelpath(MDL::dir, tex ? tex : ""), 0, true, false);
+            if(masks && masks[0])
             {
-                s.masks = textureload(makerelpath(MDL::dir, e.get<char*>(3), "<stub>"), 0, true, false);
-                s.envmapmax = e.get<float>(4);
-                s.envmapmin = e.get<float>(5);
+                s.masks = textureload(makerelpath(MDL::dir, masks, "<stub>"), 0, true, false);
+                s.envmapmax = envmapmax;
+                s.envmapmin = envmapmin;
             }
         );
     }
     
-    static void setspec(lua_Engine e)
+    static void setspec(const char *meshname, int percent)
     {
         float spec = 1.0f;
-        if(e.get<int>(2)>0) spec = e.get<int>(2)/100.0f;
-        else if(e.get<int>(2)<0) spec = 0.0f;
-        loopskins(e.get<char*>(1), s, s.spec = spec);
+        if(percent>0) spec = percent/100.0f;
+        else if(percent<0) spec = 0.0f;
+        loopskins(meshname ? meshname : "", s, s.spec = spec);
     }
     
-    static void setambient(lua_Engine e)
+    static void setambient(const char *meshname, int percent)
     {
         float ambient = 0.3f;
-        if(e.get<int>(2)>0) ambient = e.get<int>(2)/100.0f;
-        else if(e.get<int>(2)<0) ambient = 0.0f;
-        loopskins(e.get<char*>(1), s, s.ambient = ambient);
+        if(percent>0) ambient = percent/100.0f;
+        else if(percent<0) ambient = 0.0f;
+        loopskins(meshname ? meshname : "", s, s.ambient = ambient);
     }
     
-    static void setglow(lua_Engine e)
+    static void setglow(const char *meshname, int percent, int delta, float pulse)
     {
-        float glow = 3.0f, glowdelta = e.get<int>(3)/100.0f, glowpulse = e.get<int>(4) > 0 ? e.get<int>(4)/1000.0f : 0;
-        if(e.get<int>(2)>0) glow = e.get<int>(2)/100.0f;
-        else if(e.get<int>(2)<0) glow = 0.0f;
+        float glow = 3.0f, glowdelta = delta/100.0f, glowpulse = pulse > 0 ? pulse/1000.0f : 0;
+        if(percent>0) glow = percent/100.0f;
+        else if(percent<0) glow = 0.0f;
         glowdelta -= glow;
-        loopskins(e.get<char*>(1), s, { s.glow = glow; s.glowdelta = glowdelta; s.glowpulse = glowpulse; });
+        loopskins(meshname ? meshname : "", s, { s.glow = glow; s.glowdelta = glowdelta; s.glowpulse = glowpulse; });
     }
     
-    static void setglare(lua_Engine e)
+    static void setglare(const char *meshname, float specglare, float glowglare)
     {
-        loopskins(e.get<char*>(1), s, { s.specglare = e.get<float>(2); s.glowglare = e.get<float>(3); });
+        loopskins(meshname ? meshname : "", s, { s.specglare = specglare; s.glowglare = glowglare; });
     }
     
-    static void setalphatest(lua_Engine e)
+    static void setalphatest(const char *meshname, float cutoff)
     {
-        loopskins(e.get<char*>(1), s, s.alphatest = max(0.0f, min(1.0f, e.get<float>(2))));
+        loopskins(meshname ? meshname : "", s, s.alphatest = max(0.0f, min(1.0f, cutoff)));
     }
     
-    static void setalphablend(lua_Engine e)
+    static void setalphablend(const char *meshname, bool blend)
     {
-        loopskins(e.get<char*>(1), s, s.alphablend = e.get<bool>(2));
+        loopskins(meshname ? meshname : "", s, s.alphablend = blend);
     }
     
-    static void setcullface(lua_Engine e)
+    static void setcullface(const char *meshname, bool cullface)
     {
-        loopskins(e.get<char*>(1), s, s.cullface = e.get<bool>(2));
+        loopskins(meshname ? meshname : "", s, s.cullface = cullface);
     }
     
-    static void setenvmap(lua_Engine e)
+    static void setenvmap(const char *meshname, const char *envmap)
     {
-        Texture *tex = cubemapload(e.get<char*>(2));
-        loopskins(e.get<char*>(1), s, s.envmap = tex);
+        Texture *tex = cubemapload(envmap);
+        loopskins(meshname ? meshname : "", s, s.envmap = tex);
     }
     
-    static void setbumpmap(lua_Engine e)
+    static void setbumpmap(const char *meshname, const char *normalmapfile, const char *skinfile)
     {
         Texture *normalmaptex = NULL, *skintex = NULL;
-        normalmaptex = textureload(makerelpath(MDL::dir, e.get<char*>(2), "<noff>"), 0, true, false);
-        if(e.get<char*>(3)) skintex = textureload(makerelpath(MDL::dir, e.get<char*>(3), "<noff>"), 0, true, false);
-        loopskins(e.get<char*>(1), s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
+        normalmaptex = textureload(makerelpath(MDL::dir, normalmapfile, "<noff>"), 0, true, false);
+        if(skinfile) skintex = textureload(makerelpath(MDL::dir, skinfile, "<noff>"), 0, true, false);
+        loopskins(meshname ? meshname : "", s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
     }
     
-    static void setfullbright(lua_Engine e)
+    static void setfullbright(const char *meshname, float fullbright)
     {
-        loopskins(e.get<char*>(1), s, s.fullbright = e.get<float>(2));
+        loopskins(meshname ? meshname : "", s, s.fullbright = fullbright);
     }
     
-    static void setshader(lua_Engine e)
+    static void setshader(const char *meshname, const char *shader)
     {
-        loopskins(e.get<char*>(1), s, s.shader = lookupshaderbyname(e.get<char*>(2)));
+        loopskins(meshname ? meshname : "", s, s.shader = lookupshaderbyname(shader ? shader : ""));
     }
     
-    static void setscroll(lua_Engine e)
+    static void setscroll(const char *meshname, float scrollu, float scrollv)
     {
-        loopskins(e.get<char*>(1), s, { s.scrollu = e.get<float>(2); s.scrollv = e.get<float>(3); });
+        loopskins(meshname ? meshname : "", s, { s.scrollu = scrollu; s.scrollv = scrollv; });
     }
     
-    static void setnoclip(lua_Engine e)
+    static void setnoclip(const char *meshname, bool noclip)
     {
-        loopmeshes(e.get<char*>(1), m, m.noclip = e.get<bool>(2));
+        loopmeshes(meshname ? meshname : "", m, m.noclip = noclip);
     }
   
-    static void setlink(lua_Engine e)
+    static void setlink(int parent, int child, const char *tagname, float x, float y, float z)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        if(!MDL::loading->parts.inrange(e.get<int>(1)) || !MDL::loading->parts.inrange(e.get<int>(2))) { conoutf("no models loaded to link"); return; }
-        if(!MDL::loading->parts[e.get<int>(1)]->link(MDL::loading->parts[e.get<int>(2)], e.get<char*>(3), e.get<vec>(4))) conoutf("could not link model %s", MDL::loading->loadname);
+        if(!MDL::loading->parts.inrange(parent) || !MDL::loading->parts.inrange(child)) { conoutf("no models loaded to link"); return; }
+        if(!MDL::loading->parts[parent]->link(
+            MDL::loading->parts[child], tagname ? tagname : "", vec(x, y, z)
+        )) conoutf("could not link model %s", MDL::loading->loadname);
     }
  
-    void modelcommand(lua_Binding fun, const char *name)
+    modelcommands(): module(lapi::state.new_table(0, 16))
     {
-        command_stor.push_back(LE_reg(name, fun));
-    }
-
-    modelcommands()
-    {
-        modelcommand(setdir, "dir");
-        modelcommand(setskin, "skin");
-        modelcommand(setspec, "spec");
-        modelcommand(setambient, "ambient");
-        modelcommand(setglow, "glow");
-        modelcommand(setglare, "glare");
-        modelcommand(setalphatest, "alphatest");
-        modelcommand(setalphablend, "alphablend");
-        modelcommand(setcullface, "cullface");
-        modelcommand(setenvmap, "envmap");
-        modelcommand(setbumpmap, "bumpmap");
-        modelcommand(setfullbright, "fullbright");
-        modelcommand(setshader, "shader");
-        modelcommand(setscroll, "scroll");
-        modelcommand(setnoclip, "noclip");
-        modelcommand(setlink, "link");
+        module["dir"       ] = &setdir;
+        module["skin"      ] = &setskin;
+        module["spec"      ] = &setspec;
+        module["ambient"   ] = &setambient;
+        module["glow"      ] = &setglow;
+        module["glare"     ] = &setglare;
+        module["alphatest" ] = &setalphatest;
+        module["alphablend"] = &setalphablend;
+        module["cullface"  ] = &setcullface;
+        module["envmap"    ] = &setenvmap;
+        module["bumpmap"   ] = &setbumpmap;
+        module["fullbright"] = &setfullbright;
+        module["shader"    ] = &setshader;
+        module["scroll"    ] = &setscroll;
+        module["noclip"    ] = &setnoclip;
+        module["link"      ] = &setlink;
     }
 };
 

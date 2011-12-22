@@ -5,13 +5,12 @@ VARP(animationinterpolationtime, 0, 150, 1000);
 
 model *loadingmodel = NULL;
 
-#include "of_lua.h"
-using namespace lua;
-
 #include "ragdoll.h"
 #include "animmodel.h"
 #include "vertmodel.h"
 #include "skelmodel.h"
+
+#include "of_tools.h"
 
 static model *(__cdecl *modeltypes[NUMMODELTYPES])(const char *);
 
@@ -28,11 +27,13 @@ static model *__loadmodel__##modelclass(const char *filename) \
 } \
 static int __dummy__##modelclass = addmodeltype((modeltype), __loadmodel__##modelclass);
 
+#include "md3.h"
 #include "md5.h"
 #include "obj.h"
 #include "smd.h"
 #include "iqm.h"
 
+MODELTYPE(MDL_MD3, md3);
 MODELTYPE(MDL_MD5, md5);
 MODELTYPE(MDL_OBJ, obj);
 MODELTYPE(MDL_SMD, smd);
@@ -189,10 +190,14 @@ void mdlextendbb(const vec& extend)
     loadingmodel->bbextend = extend;
 }
 
-void mdlname()
+const char *mdlname()
 {
-    checkmdl;
-    lua::engine.push(loadingmodel->name());
+    if (!loadingmodel)
+    {
+        conoutf(CON_ERROR, "not loading a model");
+        return NULL;
+    }
+    return loadingmodel->name();
 }
 
 #define checkragdoll \
@@ -449,7 +454,7 @@ struct modelbatch
     int flags;
     vector<batchedmodel> batched;
 };  
-static vector<types::shared_ptr<modelbatch> > batches;
+static vector<types::Shared_Ptr<modelbatch> > batches;
 static vector<modelattach> modelattached;
 static int numbatches = -1;
 static occludequery *modelquery = NULL;
@@ -920,7 +925,7 @@ bool matchanim(const char *name, const char *pattern)
 void findanims(const char *pattern, vector<int> &anims)
 {
     loopi(sizeof(animnames)/sizeof(animnames[0])) if(matchanim(animnames[i], pattern)) anims.add(i);
-    types::string buf;
+    types::String buf;
 
     // INTENSITY: Accept integer values as well, up to 128 of them
     loopi(ANIM_ALL+1)

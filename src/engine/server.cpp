@@ -18,6 +18,8 @@ namespace server
 }
 bool should_quit = false;
 
+#define LOGSTRLEN 512
+
 static FILE *logfile = NULL;
 
 void closelogfile()
@@ -40,18 +42,31 @@ void setlogfile(const char *fname)
     setvbuf(logfile ? logfile : stdout, NULL, _IOLBF, BUFSIZ);
 }
 
-void logoutfv(const char *fmt, va_list args)
-{
-    vfprintf(logfile ? logfile : stdout, fmt, args);
-    fputc('\n', logfile ? logfile : stdout);
-}
-
 void logoutf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     logoutfv(fmt, args);
     va_end(args);
+}
+
+static void writelog(FILE *file, const char *fmt, va_list args)
+{
+    static char buf[LOGSTRLEN];
+    static uchar ubuf[512];
+    vformatstring(buf, fmt, args, sizeof(buf));
+    int len = strlen(buf), carry = 0;
+    while(carry < len)
+    {
+        int numu = encodeutf8(ubuf, sizeof(ubuf)-1, &((uchar *)buf)[carry], len - carry, &carry);
+        if(carry >= len) ubuf[numu++] = '\n';
+        fwrite(ubuf, 1, numu, file);
+    }
+}
+
+void logoutfv(const char *fmt, va_list args)
+{
+    writelog(logfile ? logfile : stdout, fmt, args);
 }
 
 #ifdef STANDALONE
@@ -184,7 +199,7 @@ void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, packetbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 
-void getstring(types::string& text, ucharbuf &p, int len)
+void getstring(types::String& text, ucharbuf &p, int len)
 {
     text.resize(len);
 
@@ -211,14 +226,14 @@ void getstring(types::string& text, ucharbuf &p, int len)
 
 void filtertext(char *dst, const char *src, bool whitespace, int len)
 {
-    for(int c = *src; c; c = *++src)
+    for(int c = uchar(*src); c; c = uchar(*++src))
     {
         if(c == '\f')
         {
             if(!*++src) break;
             continue;
         }
-        if(isspace(c) ? whitespace : isprint(c))
+        if(iscubeprint(c) || (isspace(c) && whitespace))
         {
             *dst++ = c;
             if(!--len) break;
@@ -349,7 +364,7 @@ void disconnect_client(int n, int reason)
     server::deleteclientinfo(clients[n]->info);
     clients[n]->info = NULL;
     defformatstring(s)("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
-    puts(s);
+    logoutf("%s", s);
     server::sendservmsg(s);
 }
 
@@ -420,6 +435,19 @@ VAR(serveruprate, 0, 0, INT_MAX);
 SVAR(serverip, "");
 VARF(serverport, 0, server::serverport(), 0xFFFF, { if(!serverport) serverport = server::serverport(); });
 
+uint totalsecs = 0;
+
+void updatetime()
+{
+    static int lastsec = 0;
+    if(totalmillis - lastsec >= 1000) 
+    {
+        int cursecs = (totalmillis - lastsec) / 1000;
+        totalsecs += cursecs;
+        lastsec += cursecs * 1000;
+    }
+}
+
 void serverslice(bool dedicated, uint timeout)   // main server update, called from main loop in sp, or from below in dedicated server
 {
     localclients = nonlocalclients = 0;
@@ -443,6 +471,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
         int millis = (int)enet_time_get();
         curtime = millis - totalmillis;
         lastmillis = totalmillis = millis;
+        updatetime();
     }
     server::serverupdate();
     
@@ -605,7 +634,8 @@ bool setuplistenserver(bool dedicated)
 
 void initserver(bool listen, bool dedicated)
 {
-    if(dedicated) lua::engine.execf("server-init.lua", false);
+    if (dedicated)
+        lapi::state.do_file("server-init.lua");
 
     if(listen) setuplistenserver(dedicated);
 
@@ -760,7 +790,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    lua::engine.create();
+    lapi::init();
     server_init();
 
     logger::log(logger::DEBUG, "Running first slice.\n");

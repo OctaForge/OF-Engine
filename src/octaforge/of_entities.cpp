@@ -37,7 +37,7 @@ namespace entities
         "envmap", "particles",
         "sound", "spotlight"
     };
-    vector< types::shared_ptr<extentity> > storage;
+    vector< types::Shared_Ptr<extentity> > storage;
 
     extentity *get(size_t idx)
     {

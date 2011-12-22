@@ -21,12 +21,10 @@ namespace game
 
         void show(bool on)
         {
-            lua::engine.getg("gui");
             if(!showing && on)
-                lua::engine.t_getraw("show").push("scoreboard").call(1, 0);
+                lapi::state.get<lua::Function>("gui", "show")("scoreboard");
             else
-                lua::engine.t_getraw("hide").push("scoreboard").call(1, 0);
-            lua::engine.pop(1);
+                lapi::state.get<lua::Function>("gui", "hide")("scoreboard");
             showing = on;
         }
     } scoreboard;

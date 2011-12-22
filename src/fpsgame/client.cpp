@@ -276,11 +276,11 @@ namespace game
             messagereliable = false;
             messagecn = -1;
         }
-        if(lastmillis-lastping>250)
+        if(totalmillis-lastping>250)
         {
             putint(p, N_PING);
-            putint(p, lastmillis);
-            lastping = lastmillis;
+            putint(p, totalmillis);
+            lastping = totalmillis;
         }
         sendclientpacket(p.finalize(), 1, d->clientnum);
     }
@@ -332,11 +332,11 @@ namespace game
             else      d->o.x += dx<0 ? r-fx : -(r-fx);
         }
 #endif
-        int lagtime = lastmillis-d->lastupdate;
+        int lagtime = totalmillis-d->lastupdate;
         if(lagtime)
         {
             if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
-            d->lastupdate = lastmillis;
+            d->lastupdate = totalmillis;
         }
 
         // The client's position has been changed, not by running physics, but by info from the remote
@@ -396,7 +396,7 @@ namespace game
     void parsemessages(int cn, fpsent *d, ucharbuf &p) // cn: Sauer's sending client
     {
 //        int gamemode = gamemode; Kripken
-        types::string text;
+        types::String text;
         int type;
 //        bool mapchanged = false; Kripken
 
@@ -506,7 +506,7 @@ assert(0);
 #endif
                 // Kripken: Do not let clients know other clients' pings
                 player1->ping = (player1->ping*5+lastmillis-getint(p))/6;
-//                addmsg(N_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-getint(p))/6);
+//                addmsg(N_CLIENTPING, "i", player1->ping = (player1->ping*5+totalmillis-getint(p))/6);
                 break;
 
             case N_INITCLIENT:

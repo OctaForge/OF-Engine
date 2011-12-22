@@ -262,7 +262,6 @@ function glareworldshader(...)
             %(arg4)s
             %(arg5)s
             uniform vec4 colorparams;
-            uniform sampler2D diffusemap, lightmap;
             void main(void)
             {
                 %(arg3)s
@@ -1148,8 +1147,7 @@ watershader(
     "vec3 bump = texture2D(tex1, gl_TexCoord[2].xy + 0.025*dudv).rgb*2.0 - 1.0;",
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = gl_Color.rgb*depth.x*mix(0.6, 1.0, invfresnel) + spec*light;
+        gl_FragColor.rgb = gl_Color.rgb*depth.x*mix(0.6, 1.0, invfresnel*0.5+0.5) + spec*light;
         gl_FragColor.a = invfresnel*depth.y;
     ]]
 )
@@ -1158,8 +1156,7 @@ watershader(
     "vec3 bump = texture2D(tex1, gl_TexCoord[2].xy + 0.025*dudv).rgb*2.0 - 1.0;",
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = gl_Color.rgb*depth.x*mix(0.6, 1.0, invfresnel);
+        gl_FragColor.rgb = gl_Color.rgb*depth.x*mix(0.6, 1.0, invfresnel*0.5+0.5);
         gl_FragColor.a = invfresnel*depth.y;
     ]]
 )
@@ -1174,8 +1171,7 @@ watershader(
     ]],
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel) + spec*light;
+        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel*0.5+0.5) + spec*light;
         gl_FragColor.a = invfresnel*depth.y;
     ]]
 )
@@ -1187,8 +1183,7 @@ watershader(
     ]],
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel) + spec*light;
+        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel*0.5+0.5);
         gl_FragColor.a = invfresnel*depth.y;
     ]]
 )
@@ -1208,8 +1203,7 @@ watershader(
     ]],
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor = vec4(mix(reflect, refract, invfresnel) + spec*light, 0.0);
+        gl_FragColor = vec4(mix(reflect, refract, invfresnel*0.5+0.5) + spec*light, 0.0);
     ]]
 )
 watershader(
@@ -1222,8 +1216,7 @@ watershader(
     ]],
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor = vec4(mix(reflect, refract, invfresnel), 0.0);
+        gl_FragColor = vec4(mix(reflect, refract, invfresnel*0.5+0.5), 0.0
     ]]
 )
 shader.fast("waterrefract", "waterrefractfast", 2)
@@ -1245,8 +1238,7 @@ watershader(
     ]],
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, refract, invfresnel) + spec*light;
+        gl_FragColor.rgb = mix(reflect, refract, invfresnel*0.5+0.5) + spec*light;
     ]]
 )
 watershader(
@@ -1260,8 +1252,7 @@ watershader(
     ]],
     [[
         float invfresnel = clamp(dot(camvec, bump), 0.0, 1.0);
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, refract, invfresnel);
+        gl_FragColor.rgb = mix(reflect, refract, invfresnel*0.5+0.5);
     ]]
 )
 shader.fast("waterfade", "watefadefast", 2)
@@ -1275,8 +1266,7 @@ watershader(
         vec3 reflect = textureCube(tex0, camvec - 2.0*invfresnel*bump).rgb;
     ]],
     [[
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel) + spec*light;
+        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel*0.5+0.5) + spec*light;
         gl_FragColor.a = invfresnel*depth.y; 
     ]]
 )
@@ -1288,8 +1278,7 @@ watershader(
         vec3 reflect = textureCube(tex0, camvec - 2.0*invfresnel*bump).rgb;
     ]],
     [[
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel);
+        gl_FragColor.rgb = mix(reflect, gl_Color.rgb*depth.x, invfresnel*0.5+0.5);
         gl_FragColor.a = invfresnel*depth.y; 
     ]]
 )
@@ -1308,8 +1297,7 @@ watershader(
         vec3 reflect = textureCube(tex0, camvec - 2.0*invfresnel*bump).rgb;
     ]],
     [[
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor = vec4(mix(reflect, refract, invfresnel) + spec*light, 0.0);
+        gl_FragColor = vec4(mix(reflect, refract, invfresnel*0.5+0.5) + spec*light, 0.0);
     ]]
 )
 watershader(
@@ -1321,8 +1309,7 @@ watershader(
         vec3 reflect = textureCube(tex0, camvec - 2.0*invfresnel*bump).rgb;
     ]],
     [[
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor = vec4(mix(reflect, refract, invfresnel), 0.0);
+        gl_FragColor = vec4(mix(reflect, refract, invfresnel*0.5+0.5), 0.0);
     ]]
 )
 shader.fast("waterenvrefract", "waterenvrefractfast", 2)
@@ -1344,8 +1331,7 @@ watershader(
         vec3 reflect = textureCube(tex0, camvec - 2.0*invfresnel*bump).rgb;
     ]],
     [[
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, refract, invfresnel) + spec*light;
+        gl_FragColor.rgb = mix(reflect, refract, invfresnel*0.5+0.5) + spec*light;
     ]]
 )
 watershader(
@@ -1358,8 +1344,7 @@ watershader(
         vec3 reflect = textureCube(tex0, camvec - 2.0*invfresnel*bump).rgb;
     ]],
     [[
-        invfresnel = invfresnel*0.5 + 0.5;
-        gl_FragColor.rgb = mix(reflect, refract, invfresnel);
+        gl_FragColor.rgb = mix(reflect, refract, invfresnel*0.5+0.5);
     ]]
 )
 shader.fast("waterenvfade", "waterenvfadefast", 2)
@@ -2432,9 +2417,6 @@ function skelanimdefs() return string.template([[
         if useubo ~= 0 then return [=[
             #ifdef GL_ARB_uniform_buffer_object
                 #extension GL_ARB_uniform_buffer_object : enable
-            #elif defined(GL_ARB_compatibility)
-                #version 140
-                #extension GL_ARB_compatibility : enable
             #endif
         ]=] end
     $0>
@@ -2450,7 +2432,7 @@ function skelanimdefs() return string.template([[
     #pragma CUBE2_uniform animdata AnimData 0 16
     <$0
         if useubo ~= 0 then return [=[
-            #if defined(GL_ARB_uniform_buffer_object) || __VERSION__ >= 140
+            #ifdef GL_ARB_uniform_buffer_object
                 layout(std140) uniform AnimData
                 {
                     vec4 animdata[<$1=(math.min(maxvsuniforms - reservevpparams, 256) - 10)$1>];
@@ -2477,11 +2459,6 @@ function skelanimfragdefs() return ati_ubo_bug ~= 0 and
     (useubo ~= 0 and [[
         #ifdef GL_ARB_uniform_buffer_object
             #extension GL_ARB_uniform_buffer_object : enable
-        #elif defined(GL_ARB_compatibility)
-            #version 140
-            #extension GL_ARB_compatibility : enable
-        #endif
-        #if defined(GL_ARB_uniform_buffer_object) || __VERSION__ >= 140
             layout(std140) uniform AnimData
             {
                 vec4 animdata[%(1)i];
@@ -2493,13 +2470,7 @@ function skelanimfragdefs() return ati_ubo_bug ~= 0 and
             bindable uniform vec4 animdata[%(1)i];
         #endif
     ]] % { math.min(maxvsuniforms - reservevpparams, 256) - 10 })
-or
-    (useubo ~= 0 and [[
-        #if !defined(GL_ARB_uniform_buffer_object) && defined(GL_ARB_compatibility)
-            #version 140
-        #endif
-    ]] or "")
-end
+or "" end
 
 function skelmatanim(...)
     local arg = { ... }

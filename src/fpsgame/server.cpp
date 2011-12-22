@@ -28,8 +28,6 @@ extern bool should_quit;
 
 extern char*& player_class;
 
-using namespace lua;
-
 namespace server
 {
     struct server_entity            // server side version of "entity" type
@@ -119,8 +117,8 @@ namespace server
         // Also do not do this if the uniqueId is negative - it means we are disconnecting this client *before* a lua
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
-        if (engine.hashandle() && !_ci->local && uniqueId >= 0)
-            engine.getg("entity_store").t_getraw("del").push(uniqueId).call(1, 0).pop(1);
+        if (lapi::state.state() && !_ci->local && uniqueId >= 0)
+            lapi::state.get<lua::Function>("entity_store", "del")(uniqueId);
         
         delete (clientinfo *)ci;
     } 
@@ -459,7 +457,7 @@ namespace server
             assert(0); // We do file transfers completely differently
         }
         if(p.packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
-        types::string text;
+        types::String text;
         int cn = -1, type;
         clientinfo *ci = sender>=0 ? (clientinfo *)getinfo(sender) : NULL;
 
@@ -532,7 +530,7 @@ namespace server
                 /* FIXME: hack attack - add filtering method into the string class */
                 filtertext(&text[0], text.get_buf());
 
-                if (!engine.hashandle())
+                if (!lapi::state.state())
                 {
                     QUEUE_INT(type);
                     QUEUE_STR(text);
@@ -540,13 +538,9 @@ namespace server
                 }
 
                 bool handle_textmsg = false;
-                engine.getg("handle_textmsg");
-                if (engine.is<void*>(-1))
-                {
-                    engine.push(ci->uniqueId).push(text.get_buf()).call(3, 1);
-                    handle_textmsg = engine.get<bool>(-1);
-                }
-                engine.pop(1);
+                lua::Function f = lapi::state["handle_textmsg"];
+                if (!f.is_nil())
+                    handle_textmsg = f.call<bool>(ci->uniqueId, text);
 
                 if (!handle_textmsg)
                 {
@@ -681,10 +675,9 @@ namespace server
         ci->isAdmin = isAdmin;
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
-        {
-            defformatstring(c)("entity_store.get(%i).can_edit = true", ci->uniqueId);
-            engine.exec(c);
-        }
+            lapi::state.get<lua::Function>(
+                "entity_store", "get"
+            ).call<lua::Table>(ci->uniqueId)["can_edit"] = true;
     }
 
     bool isAdmin(int clientNumber)
@@ -697,11 +690,11 @@ namespace server
     // INTENSITY: Called when logging in, and also when the map restarts (need a new entity).
     // Creates a new lua entity, in the process of which a uniqueId is generated.
     // returns its ref, no need to store it anywhere.
-    int createluaEntity(int cn, const char *_class, const char *uname)
+    lua::Table createluaEntity(int cn, const char *_class, const char *uname)
     {
 #ifdef CLIENT
         assert(0);
-        return -1;
+        return lapi::state.wrap<lua::Table>(lua::nil);
 #else // SERVER
         // cn of -1 means "all of them"
         if (cn == -1)
@@ -717,7 +710,7 @@ namespace server
 
                 createluaEntity(i);
             }
-            return -1;
+            return lapi::state.wrap<lua::Table>(lua::nil);
         }
 
         assert(cn >= 0);
@@ -725,7 +718,7 @@ namespace server
         if (!ci)
         {
             logger::log(logger::WARNING, "Asked to create a player entity for %d, but no clientinfo (perhaps disconnected meanwhile)\r\n", cn);
-            return -1;
+            return lapi::state.wrap<lua::Table>(lua::nil);
         }
 
         fpsent* fpsEntity = game::getclient(cn);
@@ -734,7 +727,7 @@ namespace server
             // Already created an entity
             logger::log(logger::WARNING, "createluaEntity(%d): already have fpsEntity, and hence lua entity. Kicking.\r\n", cn);
             disconnect_client(cn, DISC_KICK);
-            return -1;
+            return lapi::state.wrap<lua::Table>(lua::nil);
         }
 
         // Use the PC class, unless told otherwise
@@ -742,7 +735,9 @@ namespace server
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
 
-        int uniqueId = engine.exec<int>("return entity_store.generate_uid()");
+        int uniqueId = lapi::state.get<lua::Function>(
+            "entity_store", "generate_uid"
+        ).call<int>();
 
         // Notify of uniqueId *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
@@ -751,23 +746,25 @@ namespace server
 
         ci->uniqueId = uniqueId;
 
-        defformatstring(c)("entity_store.new('%s', { cn = %i }, %i, true)", _class, cn, uniqueId);
-        engine.exec(c);
+        lua::Table t = lapi::state.new_table(0, 1); t["cn"] = cn;
+        lapi::state.get<lua::Function>("entity_store", "new")(_class, t, uniqueId, true);
 
-        defformatstring(a)("return entity_store.get(%i).cn", uniqueId);
-        assert(engine.exec<int>(a) == cn);
+        assert(
+            lapi::state.get<lua::Function>(
+                "entity_store", "get"
+            ).call<lua::Table>(uniqueId).get<int>("cn") == cn
+        );
 
         // Add admin status, if relevant
         if (ci->isAdmin)
-        {
-            defformatstring(d)("entity_store.get(%i).can_edit = true", uniqueId);
-            engine.exec(d);
-        }
+            lapi::state.get<lua::Function>(
+                "entity_store", "get"
+            ).call<lua::Table>(uniqueId)["can_edit"] = true;
 
         // Add nickname
-        engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
+        t = lapi::state.get<lua::Function>("entity_store", "get").call<lua::Table>(uniqueId);
         // got class here
-        engine.t_set("_name", uname).pop(2);
+        t["_name"] = uname;
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
@@ -779,12 +776,7 @@ namespace server
 
             game::spawnplayer(fpsEntity);
         }
-
-        engine.getg("entity_store").t_getraw("get").push(uniqueId).call(1, 1);
-        int ret = engine.ref();
-        engine.pop(1);
-
-        return ret;
+        return t;
 #endif
     }
 

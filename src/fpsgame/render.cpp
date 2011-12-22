@@ -22,11 +22,7 @@ namespace game
 
         startmodelbatches();
 
-        lua::engine.getg("entity_store")
-                   .t_getraw("render_dynamic")
-                   .push(isthirdperson()).call(1, 0)
-                   .pop(1);
-
+        lapi::state.get<lua::Function>("entity_store", "render_dynamic")(isthirdperson());
         endmodelbatches();
     }
 
@@ -49,7 +45,7 @@ namespace game
 
     void renderavatar()
     {
-        lua::engine.getg("entity_store").t_getraw("render_hud_model").call(0, 0).pop(1);
+        lapi::state.get<lua::Function>("entity_store", "render_hud_model")();
     }
 }
 

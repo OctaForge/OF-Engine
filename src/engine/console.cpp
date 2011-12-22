@@ -9,17 +9,17 @@ vector<cline> conlines;
 
 int commandmillis = -1;
 string commandbuf;
-types::string commandaction, commandprompt;
+types::String commandaction, commandprompt;
 int commandpos = -1;
 
 VARFP(maxcon, 10, 200, 1000, { while(conlines.length() > maxcon) conlines.pop(); });
 
 #define CONSTRLEN 512
 
-void conline(int type, const types::string& sf)        // add a line to the console buffer
+void conline(int type, const types::String& sf)        // add a line to the console buffer
 {
     cline cl;
-    cl.line = conlines.length()>maxcon ? conlines.pop().line : types::string();   // constrain the buffer size
+    cl.line = conlines.length()>maxcon ? conlines.pop().line : types::String();   // constrain the buffer size
     cl.type = type;
     cl.outtime = totalmillis;                       // for how long to keep line on screen
     cl.line = sf;
@@ -28,7 +28,7 @@ void conline(int type, const types::string& sf)        // add a line to the cons
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    types::string buf;
+    types::String buf;
     buf.format(fmt, args);
     conline(type, buf);
     filtertext(&buf[0], buf.get_buf());
@@ -113,7 +113,7 @@ int drawconlines(int conskip, int confade, int conwidth, int conheight, int cono
         // shuffle backwards to fill if necessary
         int idx = offset+i < numl ? offset+i : --offset;
         if(!(conlines[idx].type&filter)) continue;
-        const types::string& line = conlines[idx].line;
+        const types::String& line = conlines[idx].line;
         int width, height;
         text_bounds(line.get_buf(), width, height, conwidth);
         if(totalheight + height > conheight) { numl = i; if(offset == idx) ++offset; break; }
@@ -124,7 +124,7 @@ int drawconlines(int conskip, int confade, int conwidth, int conheight, int cono
     {
         int idx = offset + (dir > 0 ? numl-i-1 : i);
         if(!(conlines[idx].type&filter)) continue;
-        const types::string& line = conlines[idx].line;
+        const types::String& line = conlines[idx].line;
         int width, height;
         text_bounds(line.get_buf(), width, height, conwidth);
         if(dir <= 0) y -= height; 
@@ -156,6 +156,7 @@ hashtable<int, keym> keyms(128);
 
 void keymap(int code, const char *key)
 {
+    if (!key) { conoutf(CON_ERROR, "no key given"); return; }
     if(var::overridevars) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
     keym &km = keyms[code];
     km.code = code;
@@ -163,7 +164,7 @@ void keymap(int code, const char *key)
 }
 
 keym *keypressed = NULL;
-types::string keyaction;
+types::String keyaction;
 
 const char *getkeyname(int code)
 {
@@ -171,18 +172,19 @@ const char *getkeyname(int code)
     return km ? km->name.get_buf() : NULL;
 }
 
-void searchbinds(const char *action, int type)
+lua::Table searchbinds(const char *action, int type)
 {
     int n = 1;
-    lua::engine.t_new();
+    lua::Table t = lapi::state.new_table();
     enumerate(keyms, keym, km,
     {
         if(km.actions[type] == action)
         {
-            lua::engine.t_set(n, km.name.get_buf());
+            t[n] = km.name.get_buf();
             n++;
         }
     });
+    return t;
 }
 
 keym *findbind(const char *key)
@@ -194,10 +196,10 @@ keym *findbind(const char *key)
     return NULL;
 }   
     
-void getbind(const char *key, int type)
+types::String getbind(const char *key, int type)
 {
     keym *km = findbind(key);
-    lua::engine.push(km ? km->actions[type].get_buf() : "");
+    return (km ? km->actions[type] : "");
 }   
 
 void bindkey(const char *key, const char *action, int state)
@@ -205,11 +207,11 @@ void bindkey(const char *key, const char *action, int state)
     if(var::overridevars) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
     keym *km = findbind(key);
     if(!km) { conoutf(CON_ERROR, "unknown key \"%s\"", key); return; }
-    types::string& binding = km->actions[state];
+    types::String& binding = km->actions[state];
     if(!keypressed || keyaction!=binding) binding.clear();
     // trim white-space to make searchbinds more reliable
     while(isspace(*action)) action++;
-    binding = types::string(action);
+    binding = types::String(action);
 }
 
 void inputcommand(const char *init, const char *action = NULL, const char *prompt = NULL) // turns input to the command line on or off
@@ -232,46 +234,76 @@ void inputcommand(const char *init, const char *action = NULL, const char *promp
 
 void pasteconsole()
 {
-    #ifdef WIN32
-    if(!IsClipboardFormatAvailable(CF_TEXT)) return; 
+#ifdef WIN32
+    UINT fmt = CF_UNICODETEXT;
+    if(!IsClipboardFormatAvailable(fmt)) 
+    {
+        fmt = CF_TEXT;
+        if(!IsClipboardFormatAvailable(fmt)) return; 
+    }
     if(!OpenClipboard(NULL)) return;
-    char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
-    concatstring(commandbuf, cb);
+    HANDLE h = GetClipboardData(fmt);
+    size_t commandlen = strlen(commandbuf);
+    int cblen = int(GlobalSize(h)), decoded = 0;
+    ushort *cb = (ushort *)GlobalLock(h);
+    switch(fmt)
+    {
+        case CF_UNICODETEXT:
+            decoded = min(int(sizeof(commandbuf)-1-commandlen), cblen/2);
+            loopi(decoded) commandbuf[commandlen++] = uchar(uni2cube(cb[i]));
+            break;
+        case CF_TEXT:
+            decoded = min(int(sizeof(commandbuf)-1-commandlen), cblen);
+            memcpy(&commandbuf[commandlen], cb, decoded);
+            break;
+    }    
+    commandbuf[commandlen + decoded] = '\0';
     GlobalUnlock(cb);
     CloseClipboard();
-    #elif defined(__APPLE__)
-    extern void mac_pasteconsole(char *commandbuf);
-
-    mac_pasteconsole(commandbuf);
+#elif defined(__APPLE__)
+    extern char *mac_pasteconsole(int *cblen);
+    int cblen = 0;
+    uchar *cb = (uchar *)mac_pasteconsole(&cblen);
+    if(!cb) return;
+    size_t commandlen = strlen(commandbuf);
+    int decoded = decodeutf8((uchar *)&commandbuf[commandlen], int(sizeof(commandbuf)-1-commandlen), cb, cblen);
+    commandbuf[commandlen + decoded] = '\0';
+    free(cb);
     #else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version); 
     wminfo.subsystem = SDL_SYSWM_X11;
     if(!SDL_GetWMInfo(&wminfo)) return;
     int cbsize;
-    char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
+    uchar *cb = (uchar *)XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
     size_t commandlen = strlen(commandbuf);
-    for(char *cbline = cb, *cbend; commandlen + 1 < sizeof(commandbuf) && cbline < &cb[cbsize]; cbline = cbend + 1)
+    for(uchar *cbline = cb, *cbend; commandlen + 1 < sizeof(commandbuf) && cbline < &cb[cbsize]; cbline = cbend + 1)
     {
-        cbend = (char *)memchr(cbline, '\0', &cb[cbsize] - cbline);
+        cbend = (uchar *)memchr(cbline, '\0', &cb[cbsize] - cbline);
         if(!cbend) cbend = &cb[cbsize];
-        if(size_t(commandlen + cbend - cbline + 1) > sizeof(commandbuf)) cbend = cbline + sizeof(commandbuf) - commandlen - 1;
-        memcpy(&commandbuf[commandlen], cbline, cbend - cbline);
-        commandlen += cbend - cbline;
+        int cblen = int(cbend-cbline), commandmax = int(sizeof(commandbuf)-1-commandlen); 
+        loopi(cblen) if((cbline[i]&0xC0) == 0x80) 
+        { 
+            commandlen += decodeutf8((uchar *)&commandbuf[commandlen], commandmax, cbline, cblen);
+            goto nextline;
+        }
+        cblen = min(cblen, commandmax);
+        loopi(cblen) commandbuf[commandlen++] = uchar(uni2cube(*cbline++));
+    nextline:
         commandbuf[commandlen] = '\n';
         if(commandlen + 1 < sizeof(commandbuf) && cbend < &cb[cbsize]) ++commandlen;
         commandbuf[commandlen] = '\0';
     }
     XFree(cb);
-    #endif
+#endif
 }
 
 struct hline
 {
-    types::string buf, action, prompt;
+    types::String buf, action, prompt;
 
-    hline() : buf(types::string()), action(types::string()), prompt(types::string()) {}
+    hline() : buf(types::String()), action(types::String()), prompt(types::String()) {}
     ~hline() {}
 
     void restore()
@@ -306,16 +338,18 @@ struct hline
                 ev = var::regvar("commandbuf", new var::cvar("commandbuf", buf.get_buf()));
             }
             else ev->set(buf.get_buf(), false);
-            lua::engine.exec(action.get_buf());
+            types::Tuple<int, const char*> err = lapi::state.do_string(action);
+            if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         }
         else if (buf[0] == '/')
         {
-            lua::engine.exec(buf.get_buf() + 1);
+            types::Tuple<int, const char*> err = lapi::state.do_string(buf.get_buf() + 1);
+            if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         }
         else game::toserver((char*)buf.get_buf());
     }
 };
-vector< types::shared_ptr<hline> > history;
+vector< types::Shared_Ptr<hline> > history;
 int histpos = 0;
 
 VARP(maxhistory, 0, 1000, 10000);
@@ -334,11 +368,11 @@ void history_(int n)
 struct releaseaction
 {
     keym *key;
-    int action;
+    lua::Function action;
 };
 vector<releaseaction> releaseactions;
 
-const char *addreleaseaction(int a)
+const char *addreleaseaction(const lua::Function& a)
 {
     if(!keypressed) return NULL;
     releaseaction &ra = releaseactions.add();
@@ -350,8 +384,11 @@ const char *addreleaseaction(int a)
 const char *addreleaseaction(const char *s)
 {
     if(!keypressed) return NULL;
-    lua::engine.getg("loadstring").push(s).call(1, 1);
-    return addreleaseaction(lua::engine.ref());
+    auto ret = lapi::state.load_string(s);
+    if (types::get<0>(ret))
+        logger::log(logger::DEBUG, "%s\n", types::get<1>(ret));
+
+    return addreleaseaction(types::get<2>(ret));
 }
 
 void execbind(keym &k, bool isdown)
@@ -361,8 +398,7 @@ void execbind(keym &k, bool isdown)
         releaseaction &ra = releaseactions[i];
         if(ra.key==&k)
         {
-            if(!isdown) lua::engine.getref(ra.action).call(0, 0);
-            lua::engine.unref(ra.action);
+            if(!isdown) ra.action();
             releaseactions.remove(i--);
         }
     }
@@ -377,23 +413,23 @@ void execbind(keym &k, bool isdown)
 
         if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
         {
-            lua::engine.getg("input").t_getraw("per_map_keys").t_getraw(k.name.get_buf());
-            if (lua::engine.is<void*>(-1))
+            lua::Object o = lapi::state.get<lua::Table>("input")
+                                       .get<lua::Table>("per_map_keys")[k.name];
+
+            if (o.type() == lua::TYPE_FUNCTION)
             {
                 keypressed = &k;
-                lua::engine.call(0, 0);
+                o.to<lua::Function>()();
                 keypressed = NULL;
-
                 k.pressed = isdown;
-                lua::engine.pop(2);
                 return;
             }
-            lua::engine.pop(3);
         }
-        types::string& action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
+        types::String& action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
         keyaction = action;
         keypressed = &k;
-        lua::engine.exec(keyaction.get_buf());
+        types::Tuple<int, const char*> err = lapi::state.do_string(keyaction);
+        if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         keypressed = NULL;
         if (keyaction!=action) keyaction.clear();
     }

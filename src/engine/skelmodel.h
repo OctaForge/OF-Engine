@@ -1970,6 +1970,7 @@ template<class MDL> vector<skeladjustment> skelloader<MDL>::adjustments;
 
 template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmesh>
 {
+    typedef modelcommands<MDL, struct MDL::skelmesh> base;
     typedef struct MDL::skeleton skeleton;
     typedef struct MDL::skelmeshgroup meshgroup;
     typedef struct MDL::skelpart part;
@@ -1980,10 +1981,10 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
     typedef struct MDL::pitchtarget pitchtarget;
     typedef struct MDL::pitchcorrect pitchcorrect;
 
-    static void loadpart(lua_Engine e)
+    static void loadpart(const char *meshfile, const char *skelname, float smooth)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        defformatstring(filename)("%s/%s", MDL::dir, e.get<char*>(1));
+        defformatstring(filename)("%s/%s", MDL::dir, meshfile);
         part &mdl = *new part;
         MDL::loading->parts.add(&mdl);
         mdl.model = MDL::loading;
@@ -1991,9 +1992,8 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         mdl.pitchscale = mdl.pitchoffset = mdl.pitchmin = mdl.pitchmax = 0;
         MDL::adjustments.setsize(0);
         mdl.meshes = MDL::loading->sharemeshes(
-            path(filename),
-            e.get<char*>(2) ? e.get<char*>(2) : NULL,
-            double(e.get<float>(3) > 0 ? cos(clamp(e.get<float>(3), 0.0f, 180.0f)*RAD) : 2)
+            path(filename), (skelname && skelname[0]) ? skelname : NULL,
+            double(smooth > 0 ? cos(clamp(smooth, 0.0f, 180.0f)*RAD) : 2)
         );
         if(!mdl.meshes) conoutf("could not load %s", filename);
         else
@@ -2002,43 +2002,41 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
             mdl.initskins();
         }
     }
-    
-    static void settag(lua_Engine e)
+   
+    static void settag(const char *name, const char *tagname, vec t, vec rot)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
-        int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
+        int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name ? name : "") : -1;
         if(i >= 0)
         {
-            vec rot = e.get<vec>(4);
             float cx = rot.x ? cosf(rot.x/2*RAD) : 1, sx = rot.x ? sinf(rot.x/2*RAD) : 0,
-                  cy = rot.y ? cosf(rot.y/2*RAD) : 1, sy = rot.y ? sinf(rot.y/2*RAD) : 0,
-                  cz = rot.z ? cosf(rot.z/2*RAD) : 1, sz = rot.z ? sinf(rot.z/2*RAD) : 0;
-            matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)),
-                        e.get<vec>(3));
-            ((meshgroup *)mdl.meshes)->skel->addtag(e.get<char*>(2), i, m);
+                  cy = rot.x ? cosf(rot.x/2*RAD) : 1, sy = rot.x ? sinf(rot.x/2*RAD) : 0,
+                  cz = rot.x ? cosf(rot.x/2*RAD) : 1, sz = rot.x ? sinf(rot.x/2*RAD) : 0;
+            matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)), t);
+            ((meshgroup *)mdl.meshes)->skel->addtag(tagname ? tagname : "", i, m);
             return;
         }
-        conoutf("could not find bone %s for tag %s", e.get<char*>(1), e.get<char*>(2));
+        conoutf("could not find bone %s for tag %s", name, tagname);
     }
 
-    static void setpitch(lua_Engine e)
+    static void setpitch(const char *name, float pitchscale, float pitchoffset, float pitchmin, float pitchmax)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
     
-        if(e.get<char*>(1))
+        if(name && name[0])
         {
-            int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
+            int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name) : -1;
             if(i>=0)
             {
                 boneinfo &b = ((meshgroup *)mdl.meshes)->skel->bones[i];
-                b.pitchscale = e.get<float>(2);
-                b.pitchoffset = e.get<float>(3);
-                if(e.get<float>(4) || e.get<float>(5))
+                b.pitchscale = pitchscale;
+                b.pitchoffset = pitchoffset;
+                if(pitchmin || pitchmax)
                 {
-                    b.pitchmin = e.get<float>(4);
-                    b.pitchmax = e.get<float>(5);
+                    b.pitchmin = pitchmin;
+                    b.pitchmax = pitchmax;
                 }
                 else
                 {
@@ -2047,16 +2045,16 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
                 }
                 return;
             }
-            conoutf("could not find bone %s to pitch", e.get<char*>(1));
+            conoutf("could not find bone %s to pitch", name);
             return;
         }
     
-        mdl.pitchscale = e.get<float>(2);
-        mdl.pitchoffset = e.get<float>(3);
-        if(e.get<float>(4) || e.get<float>(5))
+        mdl.pitchscale = pitchscale;
+        mdl.pitchoffset = pitchoffset;
+        if(pitchmin || pitchmax)
         {
-            mdl.pitchmin = e.get<float>(4);
-            mdl.pitchmax = e.get<float>(5);
+            mdl.pitchmin = pitchmin;
+            mdl.pitchmax = pitchmax;
         }
         else
         {
@@ -2065,107 +2063,96 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         }
     }
 
-    static void setpitchtarget(lua_Engine e)
+    static void setpitchtarget(const char *name, const char *animfile, int frameoffset, float pitchmin, float pitchmax)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("\frnot loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
         if(!mdl.meshes) return;
-        defformatstring(filename)("%s/%s", MDL::dir, e.get<char*>(2));
+        defformatstring(filename)("%s/%s", MDL::dir, animfile);
         animspec *sa = ((meshgroup *)mdl.meshes)->loadanim(path(filename));
         if(!sa) { conoutf("\frcould not load %s anim file %s", MDL::formatname(), filename); return; }
         skeleton *skel = ((meshgroup *)mdl.meshes)->skel;
-        int bone = skel ? skel->findbone(e.get<char*>(1)) : -1;
+        int bone = skel ? skel->findbone(name ? name : "") : -1;
         if(bone < 0)
         {
-            conoutf("\frcould not find bone %s to pitch target", e.get<char*>(1));
+            conoutf("\frcould not find bone %s to pitch target", name);
             return;
         }
         loopv(skel->pitchtargets) if(skel->pitchtargets[i].bone == bone) return;
         pitchtarget &t = skel->pitchtargets.add();
         t.bone = bone;
-        t.frame = sa->frame + clamp(e.get<int>(3), 0, sa->range-1);
-        t.pitchmin = e.get<float>(4);
-        t.pitchmax = e.get<float>(5);
+        t.frame = sa->frame + clamp(frameoffset, 0, sa->range-1);
+        t.pitchmin = pitchmin;
+        t.pitchmax = pitchmax;
     }
 
-    static void setpitchcorrect(lua_Engine e)
+    static void setpitchcorrect(const char *name, const char *targetname, float scale, float pitchmin, float pitchmax)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("\frnot loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
         if(!mdl.meshes) return;
         skeleton *skel = ((meshgroup *)mdl.meshes)->skel;
-        int bone = skel ? skel->findbone(e.get<char*>(1)) : -1;
+        int bone = skel ? skel->findbone(name ? name : "") : -1;
         if(bone < 0)
         {
-            conoutf("\frcould not find bone %s to pitch correct", e.get<char*>(1));
+            conoutf("\frcould not find bone %s to pitch correct", name);
             return;
         }
         if(skel->findpitchcorrect(bone) >= 0) return;
-        int targetbone = skel->findbone(e.get<char*>(2)), target = -1;
+        int targetbone = skel->findbone(targetname ? targetname : ""), target = -1;
         if(targetbone >= 0) loopv(skel->pitchtargets) if(skel->pitchtargets[i].bone == targetbone) { target = i; break; }
         if(target < 0)
         {
-            conoutf("\frcould not find pitch target %s to pitch correct %s", e.get<char*>(2), e.get<char*>(1));
+            conoutf("\frcould not find pitch target %s to pitch correct %s", targetname, name);
             return;
         }
-
         pitchcorrect c;
         c.bone = bone;
         c.target = target;
-        c.parent = 0;
-        c.pitchmin = e.get<float>(4);
-        c.pitchmax = e.get<float>(5);
-        c.pitchscale = e.get<float>(3);
-        c.pitchangle = 0;
-        c.pitchtotal = 0;
+        c.pitchmin = pitchmin;
+        c.pitchmax = pitchmax;
+        c.pitchscale = scale;
         int pos = skel->pitchcorrects.length();
         loopv(skel->pitchcorrects) if(bone <= skel->pitchcorrects[i].bone) { pos = i; break; break; }
         skel->pitchcorrects.insert(pos, c); 
     }
 
-    static void setanim(lua_Engine e)
+    static void setanim(const char *anim, const char *animfile, float speed, int priority, int startoffset, int endoffset)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
     
         vector<int> anims;
-        findanims(e.get<char*>(1), anims);
-        if(anims.empty()) conoutf("could not find animation %s", e.get<char*>(1));
+        findanims(anim ? anim : "", anims);
+        if(anims.empty()) conoutf("could not find animation %s", anim);
         else
         {
             part *p = (part *)MDL::loading->parts.last();
             if(!p->meshes) return;
-            defformatstring(filename)("%s/%s", MDL::dir, e.get<char*>(2));
+            defformatstring(filename)("%s/%s", MDL::dir, animfile);
             animspec *sa = ((meshgroup *)p->meshes)->loadanim(path(filename));
             if(!sa) conoutf("could not load %s anim file %s", MDL::formatname(), filename);
             else loopv(anims)
             {
-                int startoffset = e.get<int>(5);
-                int endoffset   = e.get<int>(6);
                 int start = sa->frame, end = sa->range;
                 if(startoffset > 0) start += min(startoffset, end-1);
                 else if(startoffset < 0) start += max(end + startoffset, 0);
                 end -= start - sa->frame;
                 if(endoffset > 0) end = min(end, endoffset);
                 else if(endoffset < 0) end = max(end + endoffset, 1); 
-                MDL::loading->parts.last()->setanim(p->numanimparts-1, anims[i], start, end, e.get<float>(3), e.get<int>(4));
+                MDL::loading->parts.last()->setanim(p->numanimparts-1, anims[i], start, end, speed, priority);
             }
         }
     }
     
-    static void setanimpart(lua_Engine e)
+    static void setanimpart(types::Vector<const char*> bonestrs)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
     
         part *p = (part *)MDL::loading->parts.last();
 
-        int nargs = e.gettop();
-        typedef types::vector<const char*> cvec;
-        cvec bonestrs;
+        typedef types::Vector<const char*> cvec;
 
-        for (int i = 1; i <= nargs; i++)
-            bonestrs.push_back(e.get<const char*>(i));
-
-        types::string maskstr;
+        types::String maskstr;
         for (cvec::cit it = bonestrs.begin(); it != (bonestrs.end() - 1); ++it)
         {
             maskstr += *it;
@@ -2187,30 +2174,30 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!p->addanimpart(bonemask.getbuf())) conoutf("too many animation parts");
     }
 
-    static void setadjust(lua_Engine e)
+    static void setadjust(const char *name, float yaw, float pitch, float roll, vec t)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
 
-        if(!e.get<char*>(1)) return;
-        int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(e.get<char*>(1)) : -1;
-        if(i < 0) {  conoutf("could not find bone %s to adjust", e.get<char*>(1)); return; }
+        if(!name || !name[0]) return;
+        int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name) : -1;
+        if(i < 0) {  conoutf("could not find bone %s to adjust", name); return; }
         while(!MDL::adjustments.inrange(i)) MDL::adjustments.add(skeladjustment(0, 0, 0, vec(0, 0, 0)));
-        MDL::adjustments[i] = skeladjustment(e.get<float>(2), e.get<float>(3), e.get<float>(4), e.get<vec>(5).div(4));
+        MDL::adjustments[i] = skeladjustment(yaw, pitch, roll, t.div(4));
     }
     
     skelcommands()
     {
-        modelcommand(loadpart, "load");
-        modelcommand(settag, "tag");
-        modelcommand(setpitch, "pitch");
-        modelcommand(setpitchtarget, "pitchtarget");
-        modelcommand(setpitchcorrect, "pitchcorrect");
-        if(MDL::animated())
+        base::module["load"        ] = &loadpart;
+        base::module["tag"         ] = &settag;
+        base::module["pitch"       ] = &setpitch;
+        base::module["pitchtarget" ] = &setpitchtarget;
+        base::module["pitchcorrect"] = &setpitchcorrect;
+        if (MDL::animated())
         {
-            modelcommand(setanim, "anim");
-            modelcommand(setanimpart, "animpart");
-            modelcommand(setadjust, "adjust");
+            base::module["anim"    ] = &setanim;
+            base::module["animpart"] = &setanimpart;
+            base::module["adjust"  ] = &setadjust;
         }
     }
 };

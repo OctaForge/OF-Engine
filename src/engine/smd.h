@@ -441,7 +441,7 @@ struct smd : skelmodel, skelloader<smd>
 
         loading = this;
         var::persistvars = false;
-        if(lua::engine.execf(path(cfgname), false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
+        if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
         {
             var::persistvars = true;
             loading = NULL;
@@ -482,5 +482,8 @@ static inline bool htcmp(const smd::smdmeshgroup::smdvertkey &k, int index)
     return k.pos == v.pos && k.norm == v.norm && k.u == v.u && k.v == v.v && k.blend == v.blend;
 }
 
-skelcommands<smd> smdcommands;
-const types::vector<LE_reg>& smdbinds = smdcommands.command_stor;
+lua::Table smdcommands()
+{
+    skelcommands<smd> cmds;
+    return cmds.module;
+}

@@ -299,7 +299,7 @@ namespace var
 
     cvar *get(const char *name)
     {
-        if (!vars) return NULL;
+        if (!vars || !name) return NULL;
 
         vartable::cit it = vars->find(name);
         if (it != vars->end()) return it->second;

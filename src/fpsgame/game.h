@@ -375,7 +375,7 @@ namespace server
     extern bool serveroption(const char *arg);
 
     extern int getUniqueIdFromInfo(void *ci); // INTENSITY
-    extern int createluaEntity(int cn, const char *_class = "", const char *uname = "local_editor");
+    extern lua::Table createluaEntity(int cn, const char *_class = "", const char *uname = "local_editor");
     extern void setAdmin(int clientNumber, bool isAdmin); // INTENSITY: Called when logging in,
                                                           // and this is later applied whenever
                                                           // creating the lua logic entity (login and map restart)

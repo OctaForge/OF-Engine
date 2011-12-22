@@ -64,7 +64,9 @@ void loadshaders()
 
     initshaders = true;
     standardshader = true;
-    lua::engine.execf("data/shaders/glsl.lua");
+    auto err = lapi::state.do_file("data/shaders/glsl.lua", lua::ERROR_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     standardshader = false;
     initshaders = false;
     defaultshader = lookupshaderbyname("default");
@@ -792,11 +794,7 @@ void Shader::cleanup(bool invalid)
         DELETEA(vsstr);
         DELETEA(psstr);
 
-        if (defer > 0)
-        {
-            lua::engine.unref(defer);
-            defer = 0;
-        }
+        if (!defer.is_nil()) defer.clear();
 
         defaultparams.setsize(0);
         attriblocs.setsize(0);
@@ -854,11 +852,7 @@ Shader *newshader(int type, const char *name, const char *vs, const char *ps, Sh
     s.vsstr = newstring(vs);
     s.psstr = newstring(ps);
 
-    if (s.defer > 0)
-    {
-        lua::engine.unref(s.defer);
-        s.defer = 0;
-    }
+    if (!s.defer.is_nil()) s.defer.clear();
 
     s.type = type;
     s.variantshader = variant;
@@ -1453,39 +1447,37 @@ static void genuniformdefs(vector<char> &vsbuf, vector<char> &psbuf, const char 
 
 VAR(defershaders, 0, 1, 1);
 
-void defershader(int type, const char *name, int contents)
+void defershader(int type, const char *name, lua::Function contents)
 {
     Shader *exists = shaders.access(name);
     if(exists && !(exists->type&SHADER_INVALID)) return;
     if(!defershaders)
     {
-        lua::engine.getref(contents).call(0, 0);
-        lua::engine.unref (contents);
+        contents();
         return;
     }
     char *rname = exists ? exists->name : newstring(name);
     Shader &s = shaders[rname];
     s.name = rname;
-    s.defer = contents;
+    new (&s.defer) lua::Function(contents);
     s.type = SHADER_DEFERRED | type;
     s.standard = standardshader;
 }
 
 void useshader(Shader *s)
 {
-    if(!(s->type&SHADER_DEFERRED) || !s->defer) return;
+    if(!(s->type&SHADER_DEFERRED) || s->defer.is_nil()) return;
         
-    int defer = s->defer;
-    s->defer  = 0;
+    lua::Function defer = s->defer;
+    s->defer.clear();
     bool wasstandard = standardshader, wasforcing = forceshaders, waspersisting = var::persistvars;
     standardshader = s->standard;
     forceshaders = false;
     var::persistvars = false;
     curparams.shrink(0);
 
-    lua::engine.getref(defer).call(0, 0);
-    lua::engine.unref (defer);
-    defer = 0;
+    defer();
+    defer.clear();
 
     var::persistvars = waspersisting;
     forceshaders = wasforcing;
@@ -1493,11 +1485,7 @@ void useshader(Shader *s)
 
     if(s->type&SHADER_DEFERRED)
     {
-        if (s->defer > 0)
-        {
-            lua::engine.unref(s->defer);
-            s->defer = 0;
-        }
+        if (!s->defer.is_nil()) s->defer.clear();
         s->type = SHADER_INVALID;
     }
 }
@@ -1778,23 +1766,23 @@ void fastshader(char *nice, char *fast, int detail)
     ns->fixdetailshader(false);
 }
 
-void isshaderdefined(char *name)
+bool isshaderdefined(const char *name)
 {
     Shader *s = lookupshaderbyname(name);
-    lua::engine.push(s ? true : false);
+    return (s ? true : false);
 }
 
-void isshadernative(char *name)
+bool isshadernative(const char *name)
 {
     Shader *s = lookupshaderbyname(name);
-    lua::engine.push(s && s->native ? true : false);
+    return (s && s->native ? true : false);
 }
 
-static hashset<types::string> shaderparamnames(256);
+static hashset<types::String> shaderparamnames(256);
 
 const char *getshaderparamname(const char *name)
 {
-    types::string *exists = shaderparamnames.access(name);
+    types::String *exists = shaderparamnames.access(name);
     if(exists) return (*exists).get_buf();
     shaderparamnames[name] = name;
     return name;

@@ -278,7 +278,7 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
     {
         if(yaw < 0) yaw = 360 + yaw%360;
         else if(yaw >= 360) yaw %= 360;
-        const vec2 &rot = mmrots[yaw+7];
+        const vec2 &rot = sincos360[yaw];
         mo.rotate_around_z(rot.x, -rot.y);
         mray.rotate_around_z(rot.x, -rot.y);
     }

@@ -74,7 +74,7 @@ void serverkeepalive()
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    printf("%s\n", types::string().format(fmt, args).get_buf());
+    printf("%s\n", types::String().format(fmt, args).get_buf());
 }
 
 void conoutf(int type, const char *fmt, ...)
@@ -197,8 +197,11 @@ void clearlights() { };
 void clearlightcache(int e) { };
 void lightent(extentity &e, float height) { };
 void fixlightmapnormals() { };
+void fixrotatedlightmaps() { };
 void initlights() { };
 void newsurfaces(cube &c, const surfaceinfo *surfs, int numsurfs) { };
+void setsurfaces(cube &c, const surfaceinfo *surfs, const vertinfo *verts, int numverts) { };
+void setsurface(cube &c, int orient, const surfaceinfo &src, const vertinfo *srcverts, int numsrcverts) { };
 void brightencube(cube &c) { };
 Texture *textureload(const char *name, int clamp, bool mipit, bool msg) { return notexture; }; // or return no-texture texture?
 void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool restore, bool force) { };
@@ -206,6 +209,7 @@ void loadpvs(gzFile f) { };
 void savepvs(gzFile f) { };
 void writebinds(stream *f) { };
 const char *addreleaseaction(const char *s) { return NULL; };
+const char *addreleaseaction(const lua::Function& a) { return NULL; };
 void freesurfaces(cube &c) { };
 occludequery *newquery(void *owner) { return NULL; };
 void drawbb(const ivec &bo, const ivec &br, const vec &camera) { };
@@ -238,8 +242,8 @@ GLuint lookupenvmap(ushort emid) { return 0; };
 void loadalphamask(Texture *t) { };
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format) { };
 
-vector< types::shared_ptr<VSlot> > vslots;
-vector< types::shared_ptr< Slot> > slots;
+vector< types::Shared_Ptr<VSlot> > vslots;
+vector< types::Shared_Ptr< Slot> > slots;
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 
@@ -289,7 +293,7 @@ bool g3d_windowhit(bool on, bool act) { return false; };
 void enablepolygonoffset(GLenum type) { };
 void disablepolygonoffset(GLenum type) { };
 vec menuinfrontofplayer() { return vec(0,0,0); };
-void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs, uchar &vismask, uchar &clipmask) { };
+void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs) { };
 void resetqueries() { };
 void initenvmaps() { };
 void guessshadowdir() { };

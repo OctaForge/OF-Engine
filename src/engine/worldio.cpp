@@ -75,19 +75,37 @@ void setmapfilenames(const char *fname, const char *cname = 0)
 
 enum { OCTSAV_CHILDREN = 0, OCTSAV_EMPTY, OCTSAV_SOLID, OCTSAV_NORMAL, OCTSAV_LODCUBE };
 
-void savec(cube *c, stream *f, bool nolms)
+static int savemapprogress = 0;
+
+void savec(cube *c, const ivec &o, int size, stream *f, bool nolms)
 {
+    if((savemapprogress++&0xFFF)==0) renderprogress(float(savemapprogress)/allocnodes, "saving octree...");
+
     loopi(8)
     {
-        if(c[i].children && (!c[i].ext || !c[i].ext->surfaces))
+        ivec co(i, o.x, o.y, o.z, size);
+        if(c[i].children)
         {
             f->putchar(OCTSAV_CHILDREN);
-            savec(c[i].children, f, nolms);
+            savec(c[i].children, co, size>>1, f, nolms);
         }
         else
         {
-            int oflags = 0;
-            if(c[i].merged) oflags |= 0x80;
+            int oflags = 0, surfmask = 0, totalverts = 0;
+            if(c[i].material!=MAT_AIR) oflags |= 0x40;
+            if(!nolms)
+            {
+                if(c[i].merged) oflags |= 0x80;
+                if(c[i].ext) loopj(6) 
+                {
+                    const surfaceinfo &surf = c[i].ext->surfaces[j];
+                    if(!surf.used()) continue;
+                    oflags |= 0x20; 
+                    surfmask |= 1<<j; 
+                    totalverts += surf.totalverts(); 
+                }
+            }
+
             if(c[i].children) f->putchar(oflags | OCTSAV_LODCUBE);
             else if(isempty(c[i])) f->putchar(oflags | OCTSAV_EMPTY);
             else if(isentirelysolid(c[i])) f->putchar(oflags | OCTSAV_SOLID);
@@ -96,96 +114,266 @@ void savec(cube *c, stream *f, bool nolms)
                 f->putchar(oflags | OCTSAV_NORMAL);
                 f->write(c[i].edges, 12);
             }
+    
             loopj(6) f->putlil<ushort>(c[i].texture[j]);
-            uchar mask = c[i].material != MAT_AIR ? 0x80 : 0;
-            if(c[i].ext)
+
+            if(oflags&0x40) f->putchar(c[i].material);
+            if(oflags&0x80) f->putchar(c[i].merged);
+            if(oflags&0x20) 
             {
-                if(c[i].ext->normals && !nolms)
+                f->putchar(surfmask);
+                f->putchar(totalverts);
+                loopj(6) if(surfmask&(1<<j))
                 {
-                    mask |= 0x40;
-                    loopj(6) if(c[i].ext->normals[j].normals[0] != bvec(128, 128, 128)) mask |= 1 << j;
-                }
-            }
-            // save surface info for lighting
-            if(!c[i].ext || !c[i].ext->surfaces || nolms)
-            {
-                f->putchar(mask);
-                if(c[i].material != MAT_AIR) f->putchar(c[i].material);
-                if(c[i].ext)
-                {
-                    if(c[i].ext->normals && !nolms) loopj(6) if(mask & (1 << j))
+                    surfaceinfo surf = c[i].ext->surfaces[j];
+                    vertinfo *verts = c[i].ext->verts() + surf.verts;
+                    int layerverts = surf.numverts&MAXFACEVERTS, numverts = surf.totalverts(), 
+                        vertmask = 0, vertorder = 0, uvorder = 0,
+                        dim = dimension(j), vc = C[dim], vr = R[dim];
+                    if(numverts)
                     {
-                        loopk(sizeof(surfaceinfo)) f->putchar(0);
-                        f->write(&c[i].ext->normals[j], sizeof(surfacenormals));
+                        if(c[i].merged&(1<<j)) 
+                        {
+                            vertmask |= 0x04;
+                            if(layerverts == 4)
+                            {
+                                ivec v[4] = { verts[0].getxyz(), verts[1].getxyz(), verts[2].getxyz(), verts[3].getxyz() };
+                                loopk(4) 
+                                {
+                                    const ivec &v0 = v[k], &v1 = v[(k+1)&3], &v2 = v[(k+2)&3], &v3 = v[(k+3)&3];
+                                    if(v1[vc] == v0[vc] && v1[vr] == v2[vr] && v3[vc] == v2[vc] && v3[vr] == v0[vr])
+                                    {
+                                        vertmask |= 0x01;
+                                        vertorder = k;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            int vis = visibletris(c[i], j, co.x, co.y, co.z, size);
+                            if(vis&4 || faceconvexity(c[i], j) < 0) vertmask |= 0x01;
+                            if(layerverts < 4 && vis&2) vertmask |= 0x02; 
+                        }
+                        bool matchnorm = true;
+                        loopk(numverts) 
+                        { 
+                            const vertinfo &v = verts[k]; 
+                            if(v.u || v.v) vertmask |= 0x40; 
+                            if(v.norm) { vertmask |= 0x80; if(v.norm != verts[0].norm) matchnorm = false; }
+                        }
+                        if(matchnorm) vertmask |= 0x08;
+                        if(vertmask&0x40 && layerverts == 4)
+                        {
+                            loopk(4)
+                            {
+                                const vertinfo &v0 = verts[k], &v1 = verts[(k+1)&3], &v2 = verts[(k+2)&3], &v3 = verts[(k+3)&3];
+                                if(v1.u == v0.u && v1.v == v2.v && v3.u == v2.u && v3.v == v0.v)
+                                {
+                                    if(surf.numverts&LAYER_DUP)
+                                    {
+                                        const vertinfo &b0 = verts[4+k], &b1 = verts[4+((k+1)&3)], &b2 = verts[4+((k+2)&3)], &b3 = verts[4+((k+3)&3)];
+                                        if(b1.u != b0.u || b1.v != b2.v || b3.u != b2.u || b3.v != b0.v)
+                                            continue;
+                                    }
+                                    uvorder = k;
+                                    vertmask |= 0x02 | (((k+4-vertorder)&3)<<4);
+                                    break;
+                                }
+                            } 
+                        }
+                    }
+                    surf.verts = vertmask;
+                    f->write(&surf, sizeof(surfaceinfo));
+                    bool hasxyz = (vertmask&0x04)!=0, hasuv = (vertmask&0x40)!=0, hasnorm = (vertmask&0x80)!=0;
+                    if(layerverts == 4)
+                    {
+                        if(hasxyz && vertmask&0x01)
+                        {
+                            ivec v0 = verts[vertorder].getxyz(), v2 = verts[(vertorder+2)&3].getxyz();
+                            f->putlil<ushort>(v0[vc]); f->putlil<ushort>(v0[vr]);
+                            f->putlil<ushort>(v2[vc]); f->putlil<ushort>(v2[vr]);
+                            hasxyz = false;
+                        }
+                        if(hasuv && vertmask&0x02)
+                        {
+                            const vertinfo &v0 = verts[uvorder], &v2 = verts[(uvorder+2)&3];
+                            f->putlil<ushort>(v0.u); f->putlil<ushort>(v0.v);
+                            f->putlil<ushort>(v2.u); f->putlil<ushort>(v2.v);
+                            if(surf.numverts&LAYER_DUP)
+                            {
+                                const vertinfo &b0 = verts[4+uvorder], &b2 = verts[4+((uvorder+2)&3)];
+                                f->putlil<ushort>(b0.u); f->putlil<ushort>(b0.v);
+                                f->putlil<ushort>(b2.u); f->putlil<ushort>(b2.v);
+                            }
+                            hasuv = false;
+                        }
                     } 
-                }
-            }
-            else
-            {
-                int numsurfs = 6;
-                loopj(6) 
-                {
-                    surfaceinfo &surface = c[i].ext->surfaces[j];
-                    if(surface.lmid >= LMID_RESERVED || surface.layer!=LAYER_TOP) 
+                    if(hasnorm && vertmask&0x08) { f->putlil<ushort>(verts[0].norm); hasnorm = false; }
+                    if(hasxyz || hasuv || hasnorm) loopk(layerverts)
                     {
-                        mask |= 1 << j;
-                        if(surface.layer&LAYER_BLEND) numsurfs++;
+                        const vertinfo &v = verts[(k+vertorder)%layerverts];
+                        if(hasxyz) 
+                        { 
+                            ivec xyz = v.getxyz(); 
+                            f->putlil<ushort>(xyz[vc]); f->putlil<ushort>(xyz[vr]); 
+                        }
+                        if(hasuv) { f->putlil<ushort>(v.u); f->putlil<ushort>(v.v); }
+                        if(hasnorm) f->putlil<ushort>(v.norm); 
                     }
-                }
-                f->putchar(mask);
-                if(c[i].material != MAT_AIR) f->putchar(c[i].material);
-                loopj(numsurfs) if(j >= 6 || mask & (1 << j))
-                {
-                    surfaceinfo tmp = c[i].ext->surfaces[j];
-                    lilswap(&tmp.x, 2);
-                    f->write(&tmp, sizeof(surfaceinfo));
-                    if(j < 6 && c[i].ext->normals) f->write(&c[i].ext->normals[j], sizeof(surfacenormals));
-                }
-            }
-            if(c[i].merged)
-            {
-                f->putchar(c[i].merged | (c[i].ext && c[i].ext->merges ? 0x80 : 0));
-                if(c[i].ext && c[i].ext->merges)
-                {
-                    int mask = 0;
-                    loopj(6) if(!c[i].ext->merges[j].empty()) mask |= 1<<j;
-                    f->putchar(mask);
-                    loopj(6) if(!c[i].ext->merges[j].empty())
+                    if(surf.numverts&LAYER_DUP) loopk(layerverts)
                     {
-                        mergeinfo tmp = c[i].ext->merges[j];
-                        lilswap(&tmp.u1, 4);
-                        f->write(&tmp, sizeof(mergeinfo));
+                        const vertinfo &v = verts[layerverts + (k+vertorder)%layerverts];
+                        if(hasuv) { f->putlil<ushort>(v.u); f->putlil<ushort>(v.v); }
                     }
                 }
             }
-            if(c[i].children) savec(c[i].children, f, nolms);
+
+            if(c[i].children) savec(c[i].children, co, size>>1, f, nolms);
         }
     }
 }
 
-cube *loadchildren(stream *f);
+struct surfacecompat
+{
+    uchar texcoords[8];
+    uchar w, h;
+    ushort x, y;
+    uchar lmid, layer;
+};
 
-void loadc(stream *f, cube &c)
+struct normalscompat
+{
+    bvec normals[4];
+};
+
+struct mergecompat
+{
+    ushort u1, u2, v1, v2;
+};
+
+cube *loadchildren(stream *f, const ivec &co, int size, bool &failed);
+
+void convertoldsurfaces(cube &c, const ivec &co, int size, surfacecompat *srcsurfs, int hassurfs, normalscompat *normals, int hasnorms, mergecompat *merges, int hasmerges)
+{
+    surfaceinfo dstsurfs[6];
+    vertinfo verts[6*2*MAXFACEVERTS];
+    int totalverts = 0, numsurfs = 6;
+    memset(dstsurfs, 0, sizeof(dstsurfs));
+    loopi(6) if((hassurfs|hasnorms|hasmerges)&(1<<i))
+    {
+        surfaceinfo &dst = dstsurfs[i];
+        vertinfo *curverts = NULL;
+        int numverts = 0;
+        surfacecompat *src = NULL, *blend = NULL;
+        if(hassurfs&(1<<i))
+        {
+            src = &srcsurfs[i];
+            if(src->layer&2) 
+            { 
+                blend = &srcsurfs[numsurfs++];
+                dst.lmid[0] = src->lmid;
+                dst.lmid[1] = blend->lmid;
+                dst.numverts |= LAYER_BLEND;
+                if(blend->lmid >= LMID_RESERVED && (src->x != blend->x || src->y != blend->y || src->w != blend->w || src->h != blend->h || memcmp(src->texcoords, blend->texcoords, sizeof(src->texcoords))))
+                    dst.numverts |= LAYER_DUP;
+            }
+            else if(src->layer == 1) { dst.lmid[1] = src->lmid; dst.numverts |= LAYER_BOTTOM; }
+            else { dst.lmid[0] = src->lmid; dst.numverts |= LAYER_TOP; } 
+        }
+        else dst.numverts |= LAYER_TOP;
+        bool uselms = hassurfs&(1<<i) && (dst.lmid[0] >= LMID_RESERVED || dst.lmid[1] >= LMID_RESERVED || dst.numverts&~LAYER_TOP),
+             usemerges = hasmerges&(1<<i) && merges[i].u1 < merges[i].u2 && merges[i].v1 < merges[i].v2,
+             usenorms = hasnorms&(1<<i) && normals[i].normals[0] != bvec(128, 128, 128);
+        if(uselms || usemerges || usenorms)
+        {
+            ivec v[4], pos[4], e1, e2, e3, n, vo = ivec(co).mask(0xFFF).shl(3);
+            genfaceverts(c, i, v); 
+            n.cross((e1 = v[1]).sub(v[0]), (e2 = v[2]).sub(v[0]));
+            if(usemerges)
+            {
+                const mergecompat &m = merges[i];
+                int offset = -n.dot(v[0].mul(size).add(vo)),
+                    dim = dimension(i), vc = C[dim], vr = R[dim];
+                loopk(4)
+                {
+                    const ivec &coords = facecoords[i][k];
+                    int cc = coords[vc] ? m.u2 : m.u1,
+                        rc = coords[vr] ? m.v2 : m.v1,
+                        dc = -(offset + n[vc]*cc + n[vr]*rc)/n[dim];
+                    ivec &mv = pos[k];
+                    mv[vc] = cc;
+                    mv[vr] = rc;
+                    mv[dim] = dc;
+                }
+            }
+            else
+            {
+                int convex = (e3 = v[0]).sub(v[3]).dot(n), vis = 3;
+                if(!convex)
+                {
+                    if(ivec().cross(e3, e2).iszero()) { if(!n.iszero()) vis = 1; } 
+                    else if(n.iszero()) vis = 2;
+                }
+                int order = convex < 0 ? 1 : 0;
+                pos[0] = v[order].mul(size).add(vo);
+                pos[1] = vis&1 ? v[order+1].mul(size).add(vo) : pos[0];
+                pos[2] = v[order+2].mul(size).add(vo);
+                pos[3] = vis&2 ? v[(order+3)&3].mul(size).add(vo) : pos[0];
+            }
+            curverts = verts + totalverts;
+            loopk(4)
+            {
+                if(k > 0 && (pos[k] == pos[0] || pos[k] == pos[k-1])) continue;
+                vertinfo &dv = curverts[numverts++];
+                dv.setxyz(pos[k]);
+                if(uselms)
+                {
+                    float u = src->x + (src->texcoords[k*2] / 255.0f) * (src->w - 1),
+                          v = src->y + (src->texcoords[k*2+1] / 255.0f) * (src->h - 1);
+                    dv.u = ushort(floor(clamp((u) * float(USHRT_MAX+1)/LM_PACKW + 0.5f, 0.0f, float(USHRT_MAX))));
+                    dv.v = ushort(floor(clamp((v) * float(USHRT_MAX+1)/LM_PACKH + 0.5f, 0.0f, float(USHRT_MAX))));
+                }
+                else dv.u = dv.v = 0;
+                dv.norm = usenorms && normals[i].normals[k] != bvec(128, 128, 128) ? encodenormal(normals[i].normals[k].tovec().normalize()) : 0;
+            }
+            dst.verts = totalverts;
+            dst.numverts |= numverts;
+            totalverts += numverts;
+            if(dst.numverts&LAYER_DUP) loopk(4)
+            {
+                if(k > 0 && (pos[k] == pos[0] || pos[k] == pos[k-1])) continue;
+                vertinfo &bv = verts[totalverts++];
+                bv.setxyz(pos[k]);
+                bv.u = ushort(floor(clamp((blend->x + (blend->texcoords[k*2] / 255.0f) * (blend->w - 1)) * float(USHRT_MAX+1)/LM_PACKW, 0.0f, float(USHRT_MAX))));
+                bv.v = ushort(floor(clamp((blend->y + (blend->texcoords[k*2+1] / 255.0f) * (blend->h - 1)) * float(USHRT_MAX+1)/LM_PACKH, 0.0f, float(USHRT_MAX))));
+                bv.norm = usenorms && normals[i].normals[k] != bvec(128, 128, 128) ? encodenormal(normals[i].normals[k].tovec().normalize()) : 0;
+            }
+        }    
+    }
+    setsurfaces(c, dstsurfs, verts, totalverts);
+}
+ 
+void loadc(stream *f, cube &c, const ivec &co, int size, bool &failed)
 {
     bool haschildren = false;
     int octsav = f->getchar();
     switch(octsav&0x7)
     {
         case OCTSAV_CHILDREN:
-            c.children = loadchildren(f);
+            c.children = loadchildren(f, co, size>>1, failed);
             return;
 
         case OCTSAV_LODCUBE: haschildren = true;    break;
         case OCTSAV_EMPTY:  emptyfaces(c);          break;
         case OCTSAV_SOLID:  solidfaces(c);          break;
         case OCTSAV_NORMAL: f->read(c.edges, 12); break;
-
-        default:
-            fatal("garbage in map");
+        default: failed = true; return;
     }
     loopi(6) c.texture[i] = mapversion<14 ? f->getchar() : f->getlil<ushort>();
     if(mapversion < 7) f->seek(3, SEEK_CUR);
-    else
+    else if(mapversion <= 31)
     {
         uchar mask = f->getchar();
         if(mask & 0x80) 
@@ -198,18 +386,18 @@ void loadc(stream *f, cube &c)
             }
             c.material = mat;
         }
+        surfacecompat surfaces[12];
+        normalscompat normals[6];
+        mergecompat merges[6];
+        int hassurfs = 0, hasnorms = 0, hasmerges = 0;
         if(mask & 0x3F)
         {
-            uchar lit = 0, bright = 0;
-            static surfaceinfo surfaces[12];
-            memset(surfaces, 0, 6*sizeof(surfaceinfo));
-            if(mask & 0x40) newnormals(c);
             int numsurfs = 6;
             loopi(numsurfs)
             {
                 if(i >= 6 || mask & (1 << i))
                 {
-                    f->read(&surfaces[i], sizeof(surfaceinfo));
+                    f->read(&surfaces[i], sizeof(surfacecompat));
                     lilswap(&surfaces[i].x, 2);
                     if(mapversion < 10) ++surfaces[i].lmid;
                     if(mapversion < 18)
@@ -223,17 +411,26 @@ void loadc(stream *f, cube &c)
                     }
                     if(i < 6)
                     {
-                        if(mask & 0x40) f->read(&c.ext->normals[i], sizeof(surfacenormals));
-                        if(surfaces[i].layer != LAYER_TOP) lit |= 1 << i;
-                        else if(surfaces[i].lmid == LMID_BRIGHT) bright |= 1 << i;
-                        else if(surfaces[i].lmid != LMID_AMBIENT) lit |= 1 << i;
-                        if(surfaces[i].layer&LAYER_BLEND) numsurfs++;
+                        if(mask & 0x40) { hasnorms |= 1<<i; f->read(&normals[i], sizeof(normalscompat)); }
+                        if(surfaces[i].layer != 0 || surfaces[i].lmid != LMID_AMBIENT) 
+                            hassurfs |= 1<<i;
+                        if(surfaces[i].layer&2) numsurfs++;
                     }
                 }
-                else surfaces[i].lmid = LMID_AMBIENT;
             }
-            if(lit) newsurfaces(c, surfaces, numsurfs);
-            else if(bright) brightencube(c);
+        }
+        if(mapversion <= 8) edgespan2vectorcube(c);
+        if(mapversion <= 11)
+        {
+            swap(c.faces[0], c.faces[2]);
+            swap(c.texture[0], c.texture[4]);
+            swap(c.texture[1], c.texture[5]);
+            if(hassurfs&0x33)
+            {
+                swap(surfaces[0], surfaces[4]);
+                swap(surfaces[1], surfaces[5]);
+                hassurfs = (hassurfs&~0x33) | ((hassurfs&0x30)>>4) | ((hassurfs&0x03)<<4);
+            }
         }
         if(mapversion >= 20)
         {
@@ -246,12 +443,11 @@ void loadc(stream *f, cube &c)
                     int mask = f->getchar();
                     if(mask)
                     {
-                        ext(c).merges = new mergeinfo[6];
-                        loopi(6)
+                        hasmerges = mask&0x3F;
+                        loopi(6) if(mask&(1<<i))
                         {
-                            mergeinfo *m = &c.ext->merges[i];
-                            if(!(mask&(1<<i))) { memset(m, 0, sizeof(mergeinfo)); continue; }
-                            f->read(m, sizeof(mergeinfo));
+                            mergecompat *m = &merges[i];
+                            f->read(m, sizeof(mergecompat));
                             lilswap(&m->u1, 4);
                             if(mapversion <= 25)
                             {
@@ -266,15 +462,127 @@ void loadc(stream *f, cube &c)
                 }
             }    
         }                
+        if(hassurfs || hasnorms || hasmerges)
+            convertoldsurfaces(c, co, size, surfaces, hassurfs, normals, hasnorms, merges, hasmerges);
     }
-    c.children = (haschildren ? loadchildren(f) : NULL);
+    else
+    {
+        if(octsav&0x40) c.material = f->getchar();
+        if(octsav&0x80) c.merged = f->getchar();
+        if(octsav&0x20)
+        {
+            int surfmask, totalverts;
+            surfmask = f->getchar();
+            totalverts = f->getchar();
+            newcubeext(c, totalverts, false);
+            memset(c.ext->surfaces, 0, sizeof(c.ext->surfaces));
+            memset(c.ext->verts(), 0, totalverts*sizeof(vertinfo));
+            int offset = 0;
+            loopi(6) if(surfmask&(1<<i)) 
+            {
+                surfaceinfo &surf = c.ext->surfaces[i];
+                f->read(&surf, sizeof(surfaceinfo));
+                int vertmask = surf.verts, numverts = surf.totalverts();
+                if(!numverts) { surf.verts = 0; continue; }
+                surf.verts = offset;
+                vertinfo *verts = c.ext->verts() + offset;
+                offset += numverts;
+                ivec v[4], n;
+                int layerverts = surf.numverts&MAXFACEVERTS, dim = dimension(i), vc = C[dim], vr = R[dim], bias = 0;
+                genfaceverts(c, i, v);
+                bool hasxyz = (vertmask&0x04)!=0, hasuv = (vertmask&0x40)!=0, hasnorm = (vertmask&0x80)!=0;
+                if(hasxyz)
+                { 
+                    ivec e1, e2, e3;
+                    n.cross((e1 = v[1]).sub(v[0]), (e2 = v[2]).sub(v[0]));   
+                    if(n.iszero()) n.cross(e2, (e3 = v[3]).sub(v[0]));
+                    bias = -n.dot(ivec(v[0]).mul(size).add(ivec(co).mask(0xFFF).shl(3)));
+                }
+                else
+                {
+                    int vis = layerverts < 4 ? (vertmask&0x02 ? 2 : 1) : 3, order = vertmask&0x01 ? 1 : 0, k = 0;
+                    ivec vo = ivec(co).mask(0xFFF).shl(3);
+                    verts[k++].setxyz(v[order].mul(size).add(vo));
+                    if(vis&1) verts[k++].setxyz(v[order+1].mul(size).add(vo));
+                    verts[k++].setxyz(v[order+2].mul(size).add(vo));
+                    if(vis&2) verts[k++].setxyz(v[(order+3)&3].mul(size).add(vo));
+                }
+                if(layerverts == 4)
+                {
+                    if(hasxyz && vertmask&0x01)
+                    {
+                        ushort c1 = f->getlil<ushort>(), r1 = f->getlil<ushort>(), c2 = f->getlil<ushort>(), r2 = f->getlil<ushort>();
+                        ivec xyz;
+                        xyz[vc] = c1; xyz[vr] = r1; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                        verts[0].setxyz(xyz);
+                        xyz[vc] = c1; xyz[vr] = r2; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                        verts[1].setxyz(xyz);
+                        xyz[vc] = c2; xyz[vr] = r2; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                        verts[2].setxyz(xyz);
+                        xyz[vc] = c2; xyz[vr] = r1; xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                        verts[3].setxyz(xyz);
+                        hasxyz = false;
+                    }
+                    if(hasuv && vertmask&0x02)
+                    {
+                        int uvorder = (vertmask&0x30)>>4;
+                        vertinfo &v0 = verts[uvorder], &v1 = verts[(uvorder+1)&3], &v2 = verts[(uvorder+2)&3], &v3 = verts[(uvorder+3)&3]; 
+                        v0.u = f->getlil<ushort>(); v0.v = f->getlil<ushort>();
+                        v2.u = f->getlil<ushort>(); v2.v = f->getlil<ushort>();
+                        v1.u = v0.u; v1.v = v2.v;
+                        v3.u = v2.u; v3.v = v0.v;
+                        if(surf.numverts&LAYER_DUP)
+                        {
+                            vertinfo &b0 = verts[4+uvorder], &b1 = verts[4+((uvorder+1)&3)], &b2 = verts[4+((uvorder+2)&3)], &b3 = verts[4+((uvorder+3)&3)];
+                            b0.u = f->getlil<ushort>(); b0.v = f->getlil<ushort>();
+                            b2.u = f->getlil<ushort>(); b2.v = f->getlil<ushort>();
+                            b1.u = b0.u; b1.v = b2.v;
+                            b3.u = b2.u; b3.v = b0.v;
+                        }
+                        hasuv = false;
+                    } 
+                }
+                if(hasnorm && vertmask&0x08)
+                {
+                    ushort norm = f->getlil<ushort>();
+                    loopk(layerverts) verts[k].norm = norm;
+                    hasnorm = false;
+                }
+                if(hasxyz || hasuv || hasnorm) loopk(layerverts)
+                {
+                    vertinfo &v = verts[k];
+                    if(hasxyz)
+                    {
+                        ivec xyz;
+                        xyz[vc] = f->getlil<ushort>(); xyz[vr] = f->getlil<ushort>();
+                        xyz[dim] = -(bias + n[vc]*xyz[vc] + n[vr]*xyz[vr])/n[dim];
+                        v.setxyz(xyz);
+                    }
+                    if(hasuv) { v.u = f->getlil<ushort>(); v.v = f->getlil<ushort>(); }    
+                    if(hasnorm) v.norm = f->getlil<ushort>();
+                }
+                if(surf.numverts&LAYER_DUP) loopk(layerverts)
+                {
+                    vertinfo &v = verts[k+layerverts], &t = verts[k];
+                    v.setxyz(t.x, t.y, t.z);
+                    if(hasuv) { v.u = f->getlil<ushort>(); v.v = f->getlil<ushort>(); }
+                    v.norm = t.norm;
+                }
+            }
+        }    
+    }
+
+    c.children = (haschildren ? loadchildren(f, co, size>>1, failed) : NULL);
 }
 
-cube *loadchildren(stream *f)
+cube *loadchildren(stream *f, const ivec &co, int size, bool &failed)
 {
     cube *c = newcubes();
-    loopi(8) loadc(f, c[i]);
-    // TODO: remip c from children here
+    loopi(8) 
+    {
+        loadc(f, c[i], ivec(i, co.x, co.y, co.z, size), size, failed);
+        if(failed) break;
+    }
     return c;
 }
 
@@ -319,7 +627,7 @@ void savevslot(stream *f, VSlot &vs, int prev)
     }
 }
 
-/* OctaForge: shared_ptr */
+/* OctaForge: Shared_Ptr */
 void savevslots(stream *f, int numvslots)
 {
     if(vslots.empty()) return;
@@ -420,7 +728,7 @@ void loadvslots(stream *f, int numvslots)
 
 bool save_world(const char *mname, bool nolms)
 {
-    types::string map_name(mname);
+    types::String map_name(mname);
     if (map_name.is_empty()) map_name = game::getclientmap();
     setmapfilenames(!map_name.is_empty() ? map_name.get_buf() : "untitled");
     if(savebak) backup(ogzname, bakname);
@@ -434,6 +742,7 @@ bool save_world(const char *mname, bool nolms)
         allchanged();
     }
 
+    savemapprogress = 0;
     renderprogress(0, "saving map...");
 
     octaheader hdr;
@@ -501,9 +810,12 @@ bool save_world(const char *mname, bool nolms)
 
     savevslots(f, numvslots);
 
-    savec(worldroot, f, nolms);
+    renderprogress(0, "saving octree...");
+    savec(worldroot, ivec(0, 0, 0), worldsize>>1, f, nolms);
+
     if(!nolms) 
     {
+        if(lightmaps.length()) renderprogress(0, "saving lightmaps...");
         loopv(lightmaps)
         {
             LightMap &lm = lightmaps[i];
@@ -514,10 +826,11 @@ bool save_world(const char *mname, bool nolms)
                 f->putlil<ushort>(ushort(lm.unlity));
             }
             f->write(lm.data, lm.bpp*LM_PACKW*LM_PACKH);
+            renderprogress(float(i+1)/lightmaps.length(), "saving lightmaps...");
         }
-        if(getnumviewcells()>0) savepvs(f);
+        if(getnumviewcells()>0) { renderprogress(0, "saving pvs..."); savepvs(f); }
     }
-    if(shouldsaveblendmap()) saveblendmap(f);
+    if(shouldsaveblendmap()) { renderprogress(0, "saving blendmap..."); saveblendmap(f); }
 
     delete f;
     conoutf("wrote map file %s", ogzname);
@@ -528,32 +841,7 @@ bool save_world(const char *mname, bool nolms)
 static uint mapcrc = 0;
 
 uint getmapcrc() { return mapcrc; }
-
-static void swapXZ(cube *c)
-{    
-    loopi(8) 
-    {
-        swap(c[i].faces[0],   c[i].faces[2]);
-        swap(c[i].texture[0], c[i].texture[4]);
-        swap(c[i].texture[1], c[i].texture[5]);
-        if(c[i].ext && c[i].ext->surfaces)
-        {
-            swap(c[i].ext->surfaces[0], c[i].ext->surfaces[4]);
-            swap(c[i].ext->surfaces[1], c[i].ext->surfaces[5]);
-        }
-        if(c[i].children) swapXZ(c[i].children);
-    }
-}
-
-static void fixoversizedcubes(cube *c, int size)
-{
-    if(size <= 0x1000) return;
-    loopi(8)
-    {
-        if(!c[i].children) subdividecube(c[i], true, false);
-        fixoversizedcubes(c[i].children, size>>1);
-    }
-}
+void clearmapcrc() { mapcrc = 0; }
 
 bool finish_load_world(); // INTENSITY: Added this, and use it inside load_world
 
@@ -600,7 +888,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     if(hdr.version <= 28)
     {
         lilswap(&chdr.lightprecision, 3);
-        if(hdr.version<=20) conoutf(CON_WARN, "loading older / less efficient map format, may benefit from \"calclight\", then \"savecurrentmap\"");
         if(chdr.lightprecision) SETVF(lightprecision, chdr.lightprecision);
         if(chdr.lighterror) SETVF(lighterror, chdr.lighterror);
         if(chdr.bumperror) SETVF(bumperror, chdr.bumperror);
@@ -763,18 +1050,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             if(e.attr4) conoutf(CON_WARN, "warning: mapmodel ent (index %d) uses texture slot %d", i, e.attr4);
             e.attr3 = e.attr4 = 0;
         }
-        // INTENSITY: Print ent out, useful for copy-paste importing sauer maps
-        // we usually begin with 3 on emptymap
-
-#define PRINT_STD(e) \
-    printf("\"attr1\":\"%d\", ", e.attr1); \
-    printf("\"attr2\":\"%d\", ", e.attr2); \
-    printf("\"attr3\":\"%d\", ", e.attr3); \
-    printf("\"attr4\":\"%d\", ", e.attr4); \
-    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z); \
-    printf("\"animation\":\"130\", ");
-
-        static bool writeEntity = false;
 
         switch (e.type) // check if to write the entity
         {
@@ -785,144 +1060,16 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case ET_MAPMODEL:
             case ET_SOUND:
             case ET_PLAYERSTART:
-            case 16: /* JUMPPAD */
-            case 12: /* TELEPORT */
-            case 13: /* TELEDEST */
-                writeEntity = true;
+            case 19: /* TELEPORT */
+            case 20: /* TELEDEST */
+            case 23: /* JUMPPAD */
+                lapi::state.get<lua::Function>("entity_store", "add_sauer")(
+                    e.type, e.o, e.attr1, e.attr2, e.attr3, e.attr4
+                );
                 break;
             default:
-                writeEntity = false;
                 break;
         }
-
-        static int uniqueId = 3;
-        if (writeEntity)
-        {
-            printf("[%d, \"", uniqueId);
-            switch (e.type)
-            {
-                case ET_LIGHT:
-                {
-                    printf("light\", {");
-                    goto standardEntity;
-                }
-                case ET_SPOTLIGHT:
-                {
-                    printf("spotlight\", {");
-                    goto standardEntity;
-                }
-                case ET_ENVMAP:
-                {
-                    printf("envmap\", {");
-                    goto standardEntity;
-                }
-                case ET_PARTICLES:
-                {
-                    printf("particle_effect\", {");
-                    goto standardEntity;
-                }
-                case ET_MAPMODEL:
-                {
-                    printf("mapmodel\", {");
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"@REPLACE_MODEL_PATH@\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case ET_SOUND:
-                {
-                    printf("ambient_sound\", {");
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"\", ");
-                    printf("\"sound_name\":\"@REPLACE_SOUND_PATH@\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case ET_PLAYERSTART:
-                {
-                    printf("world_marker\", {");
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[start_@REPLACE_TEAM@]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case 16:
-                {
-                    printf("jumppad\", {");
-                    printf("\"jumpvel\":\"[%f|%f|%f]\", ", (int)(char)e.attr3*10.0f, (int)(char)e.attr2*10.0f, e.attr1*12.5f);
-                    printf("\"padmodel\":\"\", ");
-                    printf("\"padrotate\":\"false\", ");
-                    printf("\"padpitch\":\"0\", ");
-                    printf("\"attr1\":\"0\", ");
-                    printf("\"collision_radius_width\":\"5\", ");
-                    printf("\"collision_radius_height\":\"1\", ");
-                    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z);
-                    printf("\"attr2\":\"-1\", ");
-                    printf("\"attr3\":\"0\", ");
-                    printf("\"attr4\":\"0\", ");
-                    printf("\"animation\":\"130\", ");
-                    printf("\"model_name\":\"areatrigger\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case 12:
-                {
-                    printf("teleporter\", {");
-                    printf("\"target\":\"[0|0|0]\", ");
-                    printf("\"targetyaw\":\"0\", ");
-                    printf("\"teledest\":\"%d\", ", e.attr1);
-                    printf("\"attr1\":\"0\", ");
-                    printf("\"collision_radius_width\":\"5\", ");
-                    printf("\"collision_radius_height\":\"5\", ");
-                    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z);
-                    printf("\"attr2\":\"%d\", ", e.attr2);
-                    printf("\"attr3\":\"%d\", ", e.attr3);
-                    printf("\"attr4\":\"%d\", ", e.attr4);
-                    printf("\"animation\":\"130\", ");
-                    printf("\"model_name\":\"%s\", ", (e.attr2 < 0) ? "areatrigger" : "@REPLACE_MODEL_PATH@");
-                    printf("\"sound_name\":\"0ad/alarmcreatemiltaryfoot_1.ogg\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                case 13:
-                {
-                    printf("world_marker\", {");
-                    printf("\"attr1\":\"%d\", ", e.attr1);
-                    printf("\"attr2\":\"0\", ");
-                    printf("\"attr3\":\"%d\", ", e.attr3);
-                    printf("\"attr4\":\"%d\", ", e.attr4);
-                    printf("\"position\":\"[%f|%f|%f]\", ", e.o.x, e.o.y, e.o.z);
-                    printf("\"animation\":\"130\", ");
-                    printf("\"model_name\":\"\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[teledest_%i]\", ", e.attr2);
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-                default: standardEntity:
-                {
-                    PRINT_STD(e)
-                    printf("\"model_name\":\"\", ");
-                    printf("\"attachments\":\"[]\", ");
-                    printf("\"tags\":\"[]\", ");
-                    printf("\"persistent\":\"true\"");
-                    break;
-                }
-            }
-            printf("}],\r\n");
-            uniqueId++;
-        }
-        // INTENSITY: end Print ent out
     }
 
     if(hdr.numents > MAXENTS) 
@@ -935,44 +1082,40 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     loadvslots(f, hdr.numvslots);
 
     renderprogress(0, "loading octree...");
-    worldroot = loadchildren(f);
-
-    if(hdr.version <= 11)
-        swapXZ(worldroot);
-
-    if(hdr.version <= 8)
-        converttovectorworld();
-
-    if(hdr.version <= 25 && hdr.worldsize > 0x1000)
-        fixoversizedcubes(worldroot, hdr.worldsize>>1);
+    bool failed = false;
+    worldroot = loadchildren(f, ivec(0, 0, 0), hdr.worldsize>>1, failed);
+    if(failed) conoutf(CON_ERROR, "garbage in map");
 
     renderprogress(0, "validating...");
     validatec(worldroot, hdr.worldsize>>1);
 
 #ifdef CLIENT // INTENSITY: Server doesn't need lightmaps, pvs and blendmap (and current code for server wouldn't clean
               //            them up if we did read them, so would have a leak)
-    if(hdr.version >= 7) loopi(hdr.lightmaps)
+    if(!failed)
     {
-        renderprogress(i/(float)hdr.lightmaps, "loading lightmaps...");
-        LightMap &lm = lightmaps.add();
-        if(hdr.version >= 17)
+        if(hdr.version >= 7) loopi(hdr.lightmaps)
         {
-            int type = f->getchar();
-            lm.type = type&0x7F;
-            if(hdr.version >= 20 && type&0x80)
+            renderprogress(i/(float)hdr.lightmaps, "loading lightmaps...");
+            LightMap &lm = lightmaps.add();
+            if(hdr.version >= 17)
             {
-                lm.unlitx = f->getlil<ushort>();
-                lm.unlity = f->getlil<ushort>();
+                int type = f->getchar();
+                lm.type = type&0x7F;
+                if(hdr.version >= 20 && type&0x80)
+                {
+                    lm.unlitx = f->getlil<ushort>();
+                    lm.unlity = f->getlil<ushort>();
+                }
             }
+            if(lm.type&LM_ALPHA && (lm.type&LM_TYPE)!=LM_BUMPMAP1) lm.bpp = 4;
+            lm.data = new uchar[lm.bpp*LM_PACKW*LM_PACKH];
+            f->read(lm.data, lm.bpp * LM_PACKW * LM_PACKH);
+            lm.finalize();
         }
-        if(lm.type&LM_ALPHA && (lm.type&LM_TYPE)!=LM_BUMPMAP1) lm.bpp = 4;
-        lm.data = new uchar[lm.bpp*LM_PACKW*LM_PACKH];
-        f->read(lm.data, lm.bpp * LM_PACKW * LM_PACKH);
-        lm.finalize();
-    }
 
-    if(hdr.version >= 25 && hdr.numpvs > 0) loadpvs(f, hdr.numpvs);
-    if(hdr.version >= 28 && hdr.blendmap) loadblendmap(f, hdr.blendmap);
+        if(hdr.version >= 25 && hdr.numpvs > 0) loadpvs(f, hdr.numpvs);
+        if(hdr.version >= 28 && hdr.blendmap) loadblendmap(f, hdr.blendmap);
+    }
 #endif // INTENSITY
 
 //    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures
@@ -981,9 +1124,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     gui::clearmainmenu();
 
     var::overridevars = true;
-    if (lua::engine.hashandle())
+    if (lapi::state.state())
     {
-        lua::engine.execf("data/cfg/default_map_settings.lua", false);
+        lapi::state.do_file("data/cfg/default_map_settings.lua");
         world::run_mapscript();
     }
     var::overridevars = false;
@@ -1010,6 +1153,8 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
     extern void fixlightmapnormals();
     if(hdr.version <= 25) fixlightmapnormals();
+    extern void fixrotatedlightmaps();
+    if(hdr.version <= 31) fixrotatedlightmaps();
 
     loadprogress = 0;
 

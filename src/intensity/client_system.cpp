@@ -15,14 +15,12 @@
 #include "client_system.h"
 #include "of_world.h"
 
-using namespace lua;
-
 int            ClientSystem::playerNumber       = -1;
 CLogicEntity  *ClientSystem::playerLogicEntity  = NULL;
 bool           ClientSystem::loggedIn           = false;
 bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
-types::string  ClientSystem::currScenarioCode   = "";
+types::String  ClientSystem::currScenarioCode   = "";
 
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
@@ -90,12 +88,10 @@ bool ClientSystem::scenarioStarted()
     // If not already started, test if indeed started
     if (_mapCompletelyReceived && !_scenarioStarted)
     {
-        if (engine.hashandle())
-        {
-            engine.getg("entity_store").t_getraw("has_scenario_started").call(0, 1);
-            _scenarioStarted = engine.get<bool>(-1);
-            engine.pop(2);
-        }
+        if (lapi::state.state())
+            _scenarioStarted = lapi::state.get<lua::Function>(
+                "entity_store", "has_scenario_started"
+            ).call<bool>();
     }
 
     return _mapCompletelyReceived && _scenarioStarted;
@@ -116,8 +112,7 @@ void ClientSystem::frameTrigger(int curtime)
 
         /* turning */
         fpsent *fp = (fpsent*)player;
-        engine.getref(ClientSystem::playerLogicEntity->luaRef);
-        float fs = engine.t_get<double>("facing_speed");
+        float fs = ClientSystem::playerLogicEntity->lua_ref.get<float>("facing_speed");
 
         if (fp->turn_move || fabs(x - 0.5) > 0.45)
         {
@@ -132,8 +127,6 @@ void ClientSystem::frameTrigger(int curtime)
                 fp->look_updown_move ? fp->look_updown_move : (y > 0.5 ? -1 : 1)
             ) * delta;
         }
-
-        engine.pop(1);
 
         /* normalize and limit the yaw and pitch values to appropriate ranges */
         extern void fixcamerarange();
@@ -401,7 +394,7 @@ void ClientSystem::finishLoadWorld()
     gui::clearmainmenu(); // (see prepareForMap)
 }
 
-void ClientSystem::prepareForNewScenario(const types::string& sc)
+void ClientSystem::prepareForNewScenario(const types::String& sc)
 {
     _mapCompletelyReceived = false; // We no longer have a map. This implies scenarioStarted will return false, thus
                                     // stopping sending of position updates, as well as rendering
@@ -418,14 +411,9 @@ void ClientSystem::prepareForNewScenario(const types::string& sc)
 
 bool ClientSystem::isAdmin()
 {
-    bool isAdmin = false;
-    if (!loggedIn) return isAdmin;
-    if (!playerLogicEntity) return isAdmin;
+    if (!loggedIn) return false;
+    if (!playerLogicEntity) return false;
 
-    engine.getref(playerLogicEntity->luaRef);
-    isAdmin = engine.t_get<bool>("can_edit");
-    engine.pop(1);
-
-    return isAdmin;
+    return playerLogicEntity->lua_ref.get<bool>("can_edit");
 }
 

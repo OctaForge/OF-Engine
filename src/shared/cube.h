@@ -16,6 +16,16 @@
 #undef gamma
 #endif
 
+/* workaround for -std=c++0x */
+
+#ifdef WIN32
+#ifdef __GNUC__
+#ifdef __STRICT_ANSI__
+#undef __STRICT_ANSI__
+#endif
+#endif
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +34,20 @@
 #include <limits.h>
 #include <assert.h>
 #include <time.h>
-#include "of_all.h"
+
+#include "OFTL/new.h"
+#include "OFTL/utils.h"
+#include "OFTL/traits.h"
+#include "OFTL/algorithm.h"
+#include "OFTL/functional.h"
+#include "OFTL/string.h"
+#include "OFTL/hashmap.h"
+#include "OFTL/map.h"
+#include "OFTL/vector.h"
+#include "OFTL/shared_ptr.h"
+#include "OFTL/random.h"
+#include "OFTL/filesystem.h"
+#include "OFTL/lua.h"
 
 using algorithm::min;
 using algorithm::max;
@@ -40,6 +63,8 @@ using algorithm::clamp;
   #ifndef __GNUC__
     #include <eh.h>
     #include <dbghelp.h>
+  #else
+    #include <sys/types.h>
   #endif
   #define ZLIB_DLL
 #endif
@@ -66,6 +91,16 @@ using algorithm::clamp;
   #undef queue
 #endif
 #define queue __squeue
+#endif
+
+#ifdef swap
+#undef swap
+#endif
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
 #endif
 
 #include "tools.h"

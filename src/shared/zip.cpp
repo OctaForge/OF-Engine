@@ -261,6 +261,10 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
 
 bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL)
 {
+    if (!name) { conoutf(CON_ERROR, "zip: no name given."); return false; }
+    if (mount && !mount[0]) mount = NULL;
+    if (strip && !strip[0]) strip = NULL;
+
     string pname;
     copystring(pname, name);
     path(pname);

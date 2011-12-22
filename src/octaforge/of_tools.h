@@ -42,10 +42,9 @@ namespace tools
     bool  fdel(const char *file);
     bool  fempty(const char *file);
 
-    char *sread(const char *fname);
-
     void  writecfg(const char *name = NULL);
-    bool  execcfg(const char *cfgfile, bool ignore_ret = false);
+    bool  execcfg (const char *cfgfile, bool ignore_ret = false);
+    bool  execfile(const char *cfgfile, bool msg = true);
 
     int   currtime();
 } /* end namespace tools */

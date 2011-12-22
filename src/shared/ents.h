@@ -139,6 +139,7 @@ static const char * const animnames[] =
 #define ANIM_START       (1<<8)
 #define ANIM_END         (1<<9)
 #define ANIM_REVERSE     (1<<10)
+#define ANIM_CLAMP       (ANIM_START|ANIM_END)
 #define ANIM_DIR         0x780
 #define ANIM_SECONDARY   11
 #define ANIM_NOSKIN      (1<<22)

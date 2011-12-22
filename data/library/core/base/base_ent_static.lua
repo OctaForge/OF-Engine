@@ -779,7 +779,7 @@ area_trigger = class.new(mapmodel, {
     ]]
     on_collision = function(self, collider)
         --- XXX potential security risk
-        if     self.server_function ~= "" then
+        if     self.server_function ~= "" and _G[self.server_function] then
             _G[self.server_function](collider)
         end
     end,
@@ -791,7 +791,7 @@ area_trigger = class.new(mapmodel, {
     ]]
     client_on_collision = function(self, collider)
         --- XXX potential security risk
-        if     self.client_function ~= "" then
+        if     self.client_function ~= "" and _G[self.server_function] then
             _G[self.client_function](collider)
         end
     end

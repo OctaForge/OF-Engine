@@ -530,7 +530,7 @@ struct BlendBrush
     } 
 };
 
-static vector< types::shared_ptr<BlendBrush> > brushes;
+static vector< types::Shared_Ptr<BlendBrush> > brushes;
 static int curbrush = -1;
 
 void cleanupblendmap()
@@ -593,14 +593,14 @@ void setblendbrush(const char *name)
     loopv(brushes) if(!strcmp(brushes[i]->name, name)) { curbrush = i; break; }
 }
 
-void getblendbrushname(int n)
+types::String getblendbrushname(int n)
 {
-    lua::engine.push(brushes.inrange(n) ? brushes[n]->name : "");
+    return (brushes.inrange(n) ? brushes[n]->name : "");
 }
 
-void curblendbrush()
+int curblendbrush()
 {
-    lua::engine.push(curbrush);
+    return curbrush;
 }
 
 extern int nompedit;

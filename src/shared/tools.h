@@ -91,6 +91,9 @@ struct stringformatter
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)
 #define loopvrev(v) for(int i = (v).length()-1; i>=0; i--)
 
+#define DELETEP(p) if(p) { delete   p; p = 0; }
+#define DELETEA(p) if(p) { delete[] p; p = 0; }
+
 template <class T>
 struct databuf
 {
@@ -578,7 +581,7 @@ static inline uint hthash(const char *key)
     return h;
 }
 
-static inline uint hthash(const types::string& key)
+static inline uint hthash(const types::String& key)
 {
     return hthash(key.get_buf());
 }
@@ -588,7 +591,7 @@ static inline bool htcmp(const char *x, const char *y)
     return !strcmp(x, y);
 }
 
-static inline bool htcmp(const types::string& x, const types::string& y)
+static inline bool htcmp(const types::String& x, const types::String& y)
 {
     return (x == y);
 }
@@ -669,8 +672,8 @@ template<class T> struct hashset
         HTFIND(key, &c->elem, NULL);
     }
 
-    template<class K>
-    T &access(const K &key, const T &elem)
+    template<class K, class E>
+    T &access(const K &key, const E &elem)
     {
         HTFIND(key, c->elem, insert(h)->elem = elem);
     }
@@ -911,15 +914,20 @@ const int islittleendian = 1;
 #ifdef SDL_BYTEORDER
 #define endianswap16 SDL_Swap16
 #define endianswap32 SDL_Swap32
+#define endianswap64 SDL_Swap64
 #else
 inline ushort endianswap16(ushort n) { return (n<<8) | (n>>8); }
 inline uint endianswap32(uint n) { return (n<<24) | (n>>24) | ((n>>8)&0xFF00) | ((n<<8)&0xFF0000); }
+inline ullong endianswap64(ullong n) { return endianswap32(uint(n >> 32)) | ((ullong)endianswap32(uint(n)) << 32); }
 #endif
 template<class T> inline T endianswap(T n) { union { T t; uint i; } conv; conv.t = n; conv.i = endianswap32(conv.i); return conv.t; }
 template<> inline ushort endianswap<ushort>(ushort n) { return endianswap16(n); }
 template<> inline short endianswap<short>(short n) { return endianswap16(n); }
 template<> inline uint endianswap<uint>(uint n) { return endianswap32(n); }
 template<> inline int endianswap<int>(int n) { return endianswap32(n); }
+template<> inline ullong endianswap<ullong>(ullong n) { return endianswap64(n); }
+template<> inline llong endianswap<llong>(llong n) { return endianswap64(n); }
+template<> inline double endianswap<double>(double n) { union { double t; uint i; } conv; conv.t = n; conv.i = endianswap64(conv.i); return conv.t; }
 template<class T> inline void endianswap(T *buf, int len) { for(T *end = &buf[len]; buf < end; buf++) *buf = endianswap(*buf); }
 template<class T> inline T endiansame(T n) { return n; }
 template<class T> inline void endiansame(T *buf, int len) {}
@@ -971,7 +979,7 @@ struct stream
     virtual bool getline(char *str, int len);
     virtual bool putstring(const char *str) { int len = (int)strlen(str); return write(str, len) == len; }
     virtual bool putline(const char *str) { return putstring(str) && putchar('\n'); }
-    virtual int printf(const char *fmt, ...) { return -1; }
+    virtual int printf(const char *fmt, ...);
     virtual uint getcrc() { return 0; }
 
     template<class T> bool put(T n) { return write(&n, sizeof(n)) == sizeof(n); }
@@ -987,6 +995,11 @@ struct stream
 #endif
 };
 
+extern int iscubeprint(int c);
+extern int uni2cube(int c);
+extern int cube2uni(int c);
+extern int decodeutf8(uchar *dst, int dstlen, uchar *src, int srclen, int *carry = NULL);
+extern int encodeutf8(uchar *dstbuf, int dstlen, uchar *srcbuf, int srclen, int *carry = NULL);
 extern char *makerelpath(const char *dir, const char *file, const char *prefix = NULL, const char *cmd = NULL);
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
@@ -1002,7 +1015,8 @@ extern stream *openzipfile(const char *filename, const char *mode);
 extern stream *openfile(const char *filename, const char *mode);
 extern stream *opentempfile(const char *filename, const char *mode);
 extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
-extern char *loadfile(const char *fn, int *size);
+extern stream *openutf8file(const char *filename, const char *mode, stream *file = NULL);
+extern char *loadfile(const char *fn, int *size, bool utf8 = true);
 extern bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);

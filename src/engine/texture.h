@@ -220,7 +220,8 @@ struct Shader
     static Shader *lastshader;
 
     char *name, *vsstr, *psstr;
-    int defer, type;
+    lua::Function defer;
+    int type;
     GLuint vs, ps;
     GLhandleARB program, vsobj, psobj;
     vector<LocalShaderParamState> defaultparams;
@@ -234,7 +235,7 @@ struct Shader
     vector<UniformLoc> uniformlocs;
     vector<AttribLoc> attriblocs;
 
-    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(0), type(SHADER_DEFAULT), vs(0), ps(0), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL), numextparams(0), extparams(NULL), extvertparams(NULL), extpixparams(NULL)
+    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(lua::Function()), type(SHADER_DEFAULT), vs(0), ps(0), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL), numextparams(0), extparams(NULL), extvertparams(NULL), extpixparams(NULL)
     {
         loopi(MAXSHADERDETAIL) fastshader[i] = this;
     }
@@ -248,11 +249,7 @@ struct Shader
         DELETEA(extvertparams);
         extpixparams = NULL;
 
-        if (defer > 0)
-        {
-            lua::engine.unref(defer);
-            defer = 0;
-        }
+        if (!defer.is_nil()) defer.clear();
     }
 
     void fixdetailshader(bool force = true, bool recurse = true);
@@ -684,7 +681,7 @@ extern VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta);
 extern VSlot *editvslot(const VSlot &src, const VSlot &delta);
 extern void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta);
 
-/* OctaForge: shared_ptr */
-extern vector< types::shared_ptr< Slot> > slots;
-extern vector< types::shared_ptr<VSlot> > vslots;
+/* OctaForge: Shared_Ptr */
+extern vector< types::Shared_Ptr< Slot> > slots;
+extern vector< types::Shared_Ptr<VSlot> > vslots;
 

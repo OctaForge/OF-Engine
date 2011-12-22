@@ -9,7 +9,7 @@
     #include "of_vars.h"
     #include "engine_additions.h"
     #include "of_logger.h"
-    #include "of_lua.h"
+    #include "of_lapi.h"
 
     // Additional externs from sauer
 
