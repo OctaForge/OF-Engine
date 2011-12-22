@@ -8,7 +8,7 @@ char *mac_pasteconsole(int *cblen)
         NSString *contents = [pasteboard stringForType:type];
         if(contents != nil)
         {
-            NSUInteger len = [contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1; // 10.4+
+            int len = (int)[contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1; // 10.4+
             if(len > 1)
             {
                 char *buf = (char *)malloc(len);
