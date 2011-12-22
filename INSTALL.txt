@@ -20,6 +20,14 @@ For all OSes
 
        $ git clone git://github.com/OctaForge/OF-Engine.git
 
+    To fetch the required dependencies from additional repositories,
+    use the submodules and do the following:
+
+    .. code-block :: bash
+
+       $ git submodule init
+       $ git submodule update
+
    It assumes you have Git installed. (http://git-scm.com).
    If you're using Windows, you can use TortoiseGit GUI to make download easier.
    On Mac, you can get packages for example here http://code.google.com/p/git-osx-installer/
@@ -35,7 +43,7 @@ with little modifications it should work everywhere.
 
    .. code-block :: bash
 
-       $ sudo apt-get install build-essential libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev zlib1g-dev
+       $ sudo apt-get install build-essential libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev zlib1g-dev libcurl4-openssl-dev
 
    If I list the dependencies (for other OSes), they are:
 
@@ -43,6 +51,7 @@ with little modifications it should work everywhere.
       Basically basic things you need to build sources.
    2. SDL dev package, SDL_image dev package, SDL_mixer dev package
    3. Zlib dev libraries and headers
+   4. libcurl - pick whatever version you want
 
 2. Open a terminal, build OF:
 
@@ -60,10 +69,10 @@ with little modifications it should work everywhere.
 Windows
 =======
 
-You need to fetch and appropriately place the dependency pack, which
-you can get here: https://github.com/OctaForge/OF-Windows
+On Windows, fetch the repository https://github.com/OctaForge/OF-Windows and place
+the platform_windows directory into src and contents of bin_win to bin_win.
 
-You can proceed right with compilation, which is done using MinGW.
+Then just proceed with the compilation.
 
 OF supports just 32bit binaries currently. You can use/build 32bit binaries on
 64-bit Windows too, so it's not a big problem for now. The guide assumes 32bit Windows,
