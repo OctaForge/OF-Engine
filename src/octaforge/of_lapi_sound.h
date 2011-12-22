@@ -6,6 +6,7 @@ namespace lapi_binds
 #ifdef CLIENT
     void _lua_playsoundname(const char *n, vec loc, lua::Object vol)
     {
+        if (!n) n = "";
         if (loc.x || loc.y || loc.z)
             playsoundname(n, &loc, (vol.is_nil() ? 100 : vol.to<int>()));
         else
@@ -14,12 +15,14 @@ namespace lapi_binds
 
     void _lua_stopsoundname(const char *n, lua::Object vol)
     {
-        stopsoundbyid(getsoundid(n, (vol.is_nil() ? 100 : vol.to<int>())));
+        stopsoundbyid(getsoundid(
+            n ? n : "", (vol.is_nil() ? 100 : vol.to<int>())
+        ));
     }
 
     void _lua_music(const char *n)
     {
-        startmusic(n, "sound.music_callback()");
+        startmusic(n ? n : "", "sound.music_callback()");
     }
 
     int _lua_preloadsound(const char *n, lua::Object vol)
@@ -29,7 +32,7 @@ namespace lapi_binds
         ).get_buf());
 
         return preload_sound(
-            n, min((vol.is_nil() ? 100 : vol.to<int>()), 100)
+            n ? n : "", min((vol.is_nil() ? 100 : vol.to<int>()), 100)
         );
     }
 

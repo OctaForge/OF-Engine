@@ -25,7 +25,7 @@ namespace lapi_binds
 
     void _lua_addblendbrush(const char *n, const char *img)
     {
-        addblendbrush(n, img);
+        addblendbrush(n ? n : "", img ? img : "");
     }
 
     void _lua_nextblendbrush(int d)
@@ -35,7 +35,7 @@ namespace lapi_binds
 
     void _lua_setblendbrush(const char *n)
     {
-        setblendbrush(n);
+        setblendbrush(n ? n : "");
     }
 
     types::String _lua_getblendbrushname(int n)

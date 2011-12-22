@@ -235,7 +235,7 @@ namespace lapi_binds
 
     void _lua_entset(const char *what, int a1, int a2, int a3, int a4, int a5)
     {
-        entset((char*)what, a1, a2, a3, a4, a5);
+        entset((char*)(what ? what : ""), a1, a2, a3, a4, a5);
     }
 
     void _lua_nearestent() { nearestent(); }

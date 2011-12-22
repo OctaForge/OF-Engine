@@ -998,7 +998,7 @@ struct stream
 extern int iscubeprint(int c);
 extern int uni2cube(int c);
 extern int cube2uni(int c);
-extern int decodeutf8(uchar *dst, uchar *src, int len, int *carry = NULL);
+extern int decodeutf8(uchar *dst, int dstlen, uchar *src, int srclen, int *carry = NULL);
 extern int encodeutf8(uchar *dstbuf, int dstlen, uchar *srcbuf, int srclen, int *carry = NULL);
 extern char *makerelpath(const char *dir, const char *file, const char *prefix = NULL, const char *cmd = NULL);
 extern char *path(char *s);

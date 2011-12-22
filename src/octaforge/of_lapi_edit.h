@@ -100,7 +100,7 @@ namespace lapi_binds
 
     void _lua_renderprogress(float p, const char *text)
     {
-        renderprogress(p, text);
+        renderprogress(p, text ? text : "");
     }
 
     void _lua_edittoggle () { toggleedit(false); }
@@ -276,7 +276,10 @@ namespace lapi_binds
 
     void _lua_editmat(const char *name, const char *filtername)
     {
-        editmat((char*)name, (char*)filtername);
+        editmat(
+            (char*)(name ? name : ""),
+            (char*)(filtername ? filtername : "")
+        );
     }
 
 #ifdef SERVER
@@ -306,7 +309,7 @@ namespace lapi_binds
 
     void _lua_spawnent(const char *cl)
     {
-        EditingSystem::newent(cl, "");
+        EditingSystem::newent(cl ? cl : "", "");
     }
 
 #ifdef CLIENT

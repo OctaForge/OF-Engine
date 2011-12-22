@@ -841,6 +841,7 @@ bool save_world(const char *mname, bool nolms)
 static uint mapcrc = 0;
 
 uint getmapcrc() { return mapcrc; }
+void clearmapcrc() { mapcrc = 0; }
 
 bool finish_load_world(); // INTENSITY: Added this, and use it inside load_world
 

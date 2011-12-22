@@ -1088,6 +1088,7 @@ void resetmap()
     cleardecals();
     cancelsel();
     pruneundos();
+    clearmapcrc();
 
     SETV(gamespeed, 100);
     SETV(paused, 0);

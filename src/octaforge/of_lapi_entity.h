@@ -60,6 +60,7 @@ namespace lapi_binds
 
     void _lua_setmodelname(lua::Table self, const char *name)
     {
+        if (!name) name = "";
         LAPI_GET_ENT(entity, self, "CAPI.setmodelname", return)
         logger::log(
             logger::DEBUG, "CAPI.setmodelname(\"%s\", \"%s\")\n",
@@ -70,6 +71,7 @@ namespace lapi_binds
 
     void _lua_setsoundname(lua::Table self, const char *name)
     {
+        if (!name) name = "";
         LAPI_GET_ENT(entity, self, "CAPI.setsoundname", return)
         logger::log(
             logger::DEBUG, "CAPI.setsoundname(\"%s\", \"%s\")\n",
@@ -105,6 +107,7 @@ namespace lapi_binds
 
     lua::Object _lua_getattachmentpos(lua::Table self, const char *attachment)
     {
+        if (!attachment) attachment = "";
         LAPI_GET_ENT(
             entity, self, "CAPI.getattachmentpos",
             return lapi::state.wrap<lua::Object>(lua::nil)

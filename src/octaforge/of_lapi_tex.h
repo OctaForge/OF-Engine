@@ -32,7 +32,7 @@ namespace lapi_binds
         const char *t, const char *n, int r, int xo, int yo, float s, int fi
     )
     {
-        texture(t, n, r, xo, yo, (s ? s : 1.0f), fi);
+        texture(t ? t : "", n ? n : "", r, xo, yo, (s ? s : 1.0f), fi);
     }
 
     void _lua_materialreset()
@@ -164,6 +164,8 @@ namespace lapi_binds
 
     void _lua_flipnormalmapy(const char *dst, const char *nst)
     {
+        if (!dst) dst = "";
+        if (!nst) nst = "";
         ImageData ns;
         if (!loadimage(nst, ns)) return;
 
@@ -193,6 +195,8 @@ namespace lapi_binds
 
     void _lua_mergenormalmaps(const char *h, const char *n)
     {
+        if (!h) h = "";
+        if (!n) n = "";
         ImageData hs, ns;
 
         if (

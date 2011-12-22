@@ -1876,13 +1876,13 @@ void editmat(char *name, char *filtername)
 {
     if(noedit()) return;
     int filter = -1;
-    if(filtername)
+    if(filtername && filtername[0])
     {
         filter = findmaterial(filtername);
         if(filter < 0) { conoutf(CON_ERROR, "unknown material \"%s\"", filtername); return; }
     }
     int id = -1;
-    if(name[0] || filter < 0)
+    if((name && name[0]) || filter < 0)
     {
         id = findmaterial(name);
         if(id<0) { conoutf(CON_ERROR, "unknown material \"%s\"", name); return; }

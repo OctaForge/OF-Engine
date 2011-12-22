@@ -30,7 +30,7 @@ void fontoffset(const char *c)
     if(!fontdef) return;
 
     uchar buf[2];
-    decodeutf8(buf, (uchar*)c, 2, NULL);
+    decodeutf8(buf, 2, (uchar*)c, 2);
     fontdef->charoffset = buf[0];
 }
 

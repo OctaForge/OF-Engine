@@ -234,39 +234,69 @@ void inputcommand(const char *init, const char *action = NULL, const char *promp
 
 void pasteconsole()
 {
-    #ifdef WIN32
-    if(!IsClipboardFormatAvailable(CF_TEXT)) return; 
+#ifdef WIN32
+    UINT fmt = CF_UNICODETEXT;
+    if(!IsClipboardFormatAvailable(fmt)) 
+    {
+        fmt = CF_TEXT;
+        if(!IsClipboardFormatAvailable(fmt)) return; 
+    }
     if(!OpenClipboard(NULL)) return;
-    char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
-    concatstring(commandbuf, cb);
+    HANDLE h = GetClipboardData(fmt);
+    size_t commandlen = strlen(commandbuf);
+    int cblen = int(GlobalSize(h)), decoded = 0;
+    ushort *cb = (ushort *)GlobalLock(h);
+    switch(fmt)
+    {
+        case CF_UNICODETEXT:
+            decoded = min(int(sizeof(commandbuf)-1-commandlen), cblen/2);
+            loopi(decoded) commandbuf[commandlen++] = uchar(uni2cube(cb[i]));
+            break;
+        case CF_TEXT:
+            decoded = min(int(sizeof(commandbuf)-1-commandlen), cblen);
+            memcpy(&commandbuf[commandlen], cb, decoded);
+            break;
+    }    
+    commandbuf[commandlen + decoded] = '\0';
     GlobalUnlock(cb);
     CloseClipboard();
-    #elif defined(__APPLE__)
-    extern void mac_pasteconsole(char *commandbuf);
-
-    mac_pasteconsole(commandbuf);
+#elif defined(__APPLE__)
+    extern char *mac_pasteconsole(int *cblen);
+    int cblen = 0;
+    uchar *cb = (uchar *)mac_pasteconsole(&cblen);
+    if(!cb) return;
+    size_t commandlen = strlen(commandbuf);
+    int decoded = decodeutf8((uchar *)&commandbuf[commandlen], int(sizeof(commandbuf)-1-commandlen), cb, cblen);
+    commandbuf[commandlen + decoded] = '\0';
+    free(cb);
     #else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version); 
     wminfo.subsystem = SDL_SYSWM_X11;
     if(!SDL_GetWMInfo(&wminfo)) return;
     int cbsize;
-    char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
+    uchar *cb = (uchar *)XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
     size_t commandlen = strlen(commandbuf);
-    for(char *cbline = cb, *cbend; commandlen + 1 < sizeof(commandbuf) && cbline < &cb[cbsize]; cbline = cbend + 1)
+    for(uchar *cbline = cb, *cbend; commandlen + 1 < sizeof(commandbuf) && cbline < &cb[cbsize]; cbline = cbend + 1)
     {
-        cbend = (char *)memchr(cbline, '\0', &cb[cbsize] - cbline);
+        cbend = (uchar *)memchr(cbline, '\0', &cb[cbsize] - cbline);
         if(!cbend) cbend = &cb[cbsize];
-        if(size_t(commandlen + cbend - cbline + 1) > sizeof(commandbuf)) cbend = cbline + sizeof(commandbuf) - commandlen - 1;
-        memcpy(&commandbuf[commandlen], cbline, cbend - cbline);
-        commandlen += cbend - cbline;
+        int cblen = int(cbend-cbline), commandmax = int(sizeof(commandbuf)-1-commandlen); 
+        loopi(cblen) if((cbline[i]&0xC0) == 0x80) 
+        { 
+            commandlen += decodeutf8((uchar *)&commandbuf[commandlen], commandmax, cbline, cblen);
+            goto nextline;
+        }
+        cblen = min(cblen, commandmax);
+        loopi(cblen) commandbuf[commandlen++] = uchar(uni2cube(*cbline++));
+    nextline:
         commandbuf[commandlen] = '\n';
         if(commandlen + 1 < sizeof(commandbuf) && cbend < &cb[cbsize]) ++commandlen;
         commandbuf[commandlen] = '\0';
     }
     XFree(cb);
-    #endif
+#endif
 }
 
 struct hline

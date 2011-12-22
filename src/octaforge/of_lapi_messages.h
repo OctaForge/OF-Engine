@@ -4,7 +4,9 @@ namespace lapi_binds
 
     void _lua_personal_servmsg(int cn, const char *title, const char *content)
     {
-        send_PersonalServerMessage(cn, title, content);
+        send_PersonalServerMessage(
+            cn, title ? title : "", content ? content : ""
+        );
     }
 
     void _lua_particle_splash_toclients(
@@ -25,19 +27,19 @@ namespace lapi_binds
         int cn, float x, float y, float z, const char *sn, int ocn
     )
     {
-        send_SoundToClientsByName(cn, x, y, z, sn, ocn);
+        send_SoundToClientsByName(cn, x, y, z, sn ? sn : "", ocn);
     }
 
     void _lua_statedata_changerequest(int uid, int kpid, const char *val)
     {
-        send_StateDataChangeRequest(uid, kpid, val);
+        send_StateDataChangeRequest(uid, kpid, val ? val : "");
     }
 
     void _lua_statedata_changerequest_unreliable(
         int uid, int kpid, const char *val
     )
     {
-        send_UnreliableStateDataChangeRequest(uid, kpid, val);
+        send_UnreliableStateDataChangeRequest(uid, kpid, val ? val : "");
     }
 
     void _lua_notify_numents(int cn, int num)
@@ -49,7 +51,7 @@ namespace lapi_binds
         int cn, int ocn, int ouid, const char *oc, const char *sd
     )
     {
-        send_LogicEntityCompleteNotification(cn, ocn, ouid, oc, sd);
+        send_LogicEntityCompleteNotification(cn, ocn, ouid, oc, sd ? sd : "");
     }
 
     void _lua_le_removal(int cn, int uid)
@@ -61,14 +63,14 @@ namespace lapi_binds
         int cn, int uid, int kpid, const char *val, int ocn
     )
     {
-        send_StateDataUpdate(cn, uid, kpid, val, ocn);
+        send_StateDataUpdate(cn, uid, kpid, val ? val : "", ocn);
     }
 
     void _lua_statedata_update_unreliable(
         int cn, int uid, int kpid, const char *val, int ocn
     )
     {
-        send_UnreliableStateDataUpdate(cn, uid, kpid, val, ocn);
+        send_UnreliableStateDataUpdate(cn, uid, kpid, val ? val : "", ocn);
     }
 
     void _lua_do_click(int btn, int down, float x, float y, float z, int uid)
@@ -84,7 +86,8 @@ namespace lapi_binds
     )
     {
         send_ExtentCompleteNotification(
-            cn, ouid, oc, sd, x, y, z, attr1, attr2, attr3, attr4
+            cn, ouid, oc ? oc : "", sd ? sd : "",
+            x, y, z, attr1, attr2, attr3, attr4
         );
     }
 

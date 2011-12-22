@@ -1,18 +1,30 @@
 #import <Cocoa/Cocoa.h>
 
-#define MAXSTRLEN 260
-inline char *s_strncpy(char *d, const char *s, size_t m) { strncpy(d,s,m); d[m-1] = 0; return d; };
-inline char *s_strcat(char *d, const char *s) { size_t n = strlen(d); return s_strncpy(d+n,s,MAXSTRLEN-n); };
-
-void mac_pasteconsole(char *commandbuf)
+char *mac_pasteconsole(int *cblen)
 {	
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
     NSString *type = [pasteboard availableTypeFromArray:[NSArray arrayWithObject:NSStringPboardType]];
     if (type != nil) {
         NSString *contents = [pasteboard stringForType:type];
-        if (contents != nil)
-			s_strcat(commandbuf, [contents lossyCString]);
+        if(contents != nil)
+        {
+            NSUInteger len = [contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding] + 1; // 10.4+
+            if(len > 1)
+            {
+                char *buf = (char *)malloc(len);
+                if(buf)
+                {
+                    if([contents getCString:buf maxLength:len encoding:NSUTF8StringEncoding]) // 10.4+
+                    {
+                        *cblen = len;
+                        return buf;
+                    }
+                    free(buf);
+                }
+            }
+        }
     }
+    return NULL;
 }
 
 /*

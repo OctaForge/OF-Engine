@@ -139,7 +139,7 @@ namespace lapi_binds
     )
     {
         ClientSystem::addHUDImage(
-            tex, cx, cy, wiu, hiu,
+            tex ? tex : "", cx, cy, wiu, hiu,
             (color.is_nil() ? 0xFFFFFF : color.to<int>()),
             (alpha.is_nil() ? 1.0f : color.to<float>())
         );
@@ -149,7 +149,7 @@ namespace lapi_binds
         const char *tx, float x, float y, float scale, int color
     )
     {
-        ClientSystem::addHUDText(tx, x, y, scale, color);
+        ClientSystem::addHUDText(tx ? tx : "", x, y, scale, color);
     }
 #else
     LAPI_EMPTY(adddecal)

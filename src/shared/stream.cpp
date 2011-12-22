@@ -98,20 +98,21 @@ int uni2cube(int c)
     return uint(c) <= 0xFFFF ? chars[offsets[c>>8] + (c&0xFF)] : 0;
 }
 
-int decodeutf8(uchar *dstbuf, uchar *srcbuf, int len, int *carry)
+int decodeutf8(uchar *dstbuf, int dstlen, uchar *srcbuf, int srclen, int *carry)
 {
-    uchar *dst = dstbuf, *src = srcbuf, *end = &srcbuf[len];
+    uchar *dst = dstbuf, *dstend = &dstbuf[dstlen], *src = srcbuf, *srcend = &srcbuf[srclen];
     if(dstbuf == srcbuf)
     {
+        int len = min(dstlen, srclen);
         for(uchar *end4 = &srcbuf[len&~3]; src < end4; src += 4) if(*(int *)src & 0x80808080) goto decode;
-        for(; src < end; src++) if(*src & 0x80) goto decode;
+        for(uchar *end = &srcbuf[len]; src < end; src++) if(*src & 0x80) goto decode;
         if(carry) *carry += len;
         return len;
     }
 
 decode:
     dst += src - srcbuf;
-    while(src < end)
+    while(src < srcend && dst < dstend)
     {
         int c = *src++;
         if(c < 0x80) *dst++ = c;
@@ -127,19 +128,19 @@ decode:
                         if(c >= 0xFC)
                         {
                             if(c >= 0xFE) continue;
-                            uni = c&1; if(end - src < 5) break;
+                            uni = c&1; if(srcend - src < 5) break;
                             c = *src; if((c&0xC0) != 0x80) continue; src++; uni = (uni<<6) | (c&0x3F);
                         }
-                        else { uni = c&3; if(end - src < 4) break; }
+                        else { uni = c&3; if(srcend - src < 4) break; }
                         c = *src; if((c&0xC0) != 0x80) continue; src++; uni = (uni<<6) | (c&0x3F);
                     }
-                    else { uni = c&7; if(end - src < 3) break; }
+                    else { uni = c&7; if(srcend - src < 3) break; }
                     c = *src; if((c&0xC0) != 0x80) continue; src++; uni = (uni<<6) | (c&0x3F);
                 }
-                else { uni = c&0xF; if(end - src < 2) break; }
+                else { uni = c&0xF; if(srcend - src < 2) break; }
                 c = *src; if((c&0xC0) != 0x80) continue; src++; uni = (uni<<6) | (c&0x3F);
             }
-            else { uni = c&0x1F; if(end - src < 1) break; }
+            else { uni = c&0x1F; if(srcend - src < 1) break; }
             c = *src; if((c&0xC0) != 0x80) continue; src++; uni = (uni<<6) | (c&0x3F);
             c = uni2cube(uni);
             if(!c) continue;
@@ -913,7 +914,7 @@ struct utf8stream : stream
     offset pos;
     int bufread, bufcarry, buflen;
     bool reading, writing, autoclose;
-    uchar buf[4096]; 
+    uchar buf[BUFSIZE]; 
 
     utf8stream() : file(NULL), pos(0), bufread(0), bufcarry(0), buflen(0), reading(false), writing(false), autoclose(false)
     {
@@ -931,7 +932,7 @@ struct utf8stream : stream
         if(n <= 0) return false;
         buflen += n;
         int carry = bufcarry;
-        bufcarry += decodeutf8(&buf[bufcarry], &buf[bufcarry], buflen-bufcarry, &carry);
+        bufcarry += decodeutf8(&buf[bufcarry], BUFSIZE-bufcarry, &buf[bufcarry], buflen-bufcarry, &carry);
         if(carry > bufcarry && carry < buflen) { memmove(&buf[bufcarry], &buf[carry], buflen - carry); buflen -= carry - bufcarry; }
         return true;
     }
@@ -956,7 +957,9 @@ struct utf8stream : stream
        
         autoclose = needclose;
         file = f;
-        
+
+        if(reading) checkheader();
+
         return true;
     } 
 
@@ -1133,7 +1136,7 @@ char *loadfile(const char *fn, int *size, bool utf8)
     int rlen = f->read(&buf[offset], len-offset);
     delete f;
     if(rlen != len-offset) { delete[] buf; return NULL; }
-    if(utf8) len = decodeutf8((uchar *)buf, (uchar *)buf, len);
+    if(utf8) len = decodeutf8((uchar *)buf, len, (uchar *)buf, len);
     buf[len] = '\0';
     if(size!=NULL) *size = len;
     return buf;
