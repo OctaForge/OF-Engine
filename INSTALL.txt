@@ -32,6 +32,10 @@ For all OSes
    If you're using Windows, you can use TortoiseGit GUI to make download easier.
    On Mac, you can get packages for example here http://code.google.com/p/git-osx-installer/
 
+   Note that if you use a tarball from git, it won't include required .git directory, so you won't be able
+   to fetch the submodules. Because of that, get an archive from octaforge.org, that already contains the
+   required submodules.
+
 Linux, BSD, Solaris and other UNIX-like or UNIX systems (excluding Darwin)
 ==========================================================================
 
