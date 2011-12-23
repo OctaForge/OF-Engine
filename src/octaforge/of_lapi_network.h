@@ -75,7 +75,7 @@ namespace lapi_binds
 
         types::String fname(world::get_mapscript_filename());
 
-        auto err = lapi::state.load_string(fname);
+        auto err = lapi::state.load_file(fname);
         if (types::get<0>(err))
         {
             lapi::state.get<lua::Function>("gui", "message")(
