@@ -349,7 +349,7 @@ namespace lapi_binds
         if (user.length() >= 2)
             uret = lapi::state.new_table(user.length() - 2);
         else
-            gret = lapi::state.new_table();
+            uret = lapi::state.new_table();
 
         if (user.length() > 2)
         {
