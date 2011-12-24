@@ -29,6 +29,8 @@ void writeobj(char *name);
 
 namespace lapi_binds
 {
+    using namespace filesystem;
+
     /* Geometry utilities */
 
     bool _lua_raylos(vec o, vec d)
@@ -322,43 +324,32 @@ namespace lapi_binds
 
     types::Tuple<lua::Table, lua::Table> _lua_get_all_map_names()
     {
-        vector<char *> glob;
-        vector<char *> user;
+        lua::Table gret = lapi::state.new_table();
+        lua::Table uret = lapi::state.new_table();
 
-        lua::Table gret, uret;
+        File_Info path = join_path("data", "maps");
+        size_t       i = 1;
 
-        types::String buf;
-
-        buf.format("data%cmaps", PATHDIV);
-        listdir(buf.get_buf(), false, NULL, glob);
-
-        if (glob.length() >= 2)
-            gret = lapi::state.new_table(glob.length() - 2);
-        else
-            gret = lapi::state.new_table();
-
-        if (glob.length() > 2)
+        for (File_Info::it it = path.begin(); it != path.end(); ++it)
         {
-            for (int i = 2; i < glob.length(); ++i)
-                gret[i - 1] = glob[i];
+            if (it->type() == OFTL_FILE_DIR)
+            {
+                gret[i] = it->filename();
+                ++i;
+            }
         }
 
-        buf.format("%s%s", homedir, buf.get_buf());
-        listdir(buf.get_buf(), false, NULL, user);
+        path = join_path(homedir, "data", "maps");
+        i    = 1;
 
-        if (user.length() >= 2)
-            uret = lapi::state.new_table(user.length() - 2);
-        else
-            uret = lapi::state.new_table();
-
-        if (user.length() > 2)
+        for (File_Info::it it = path.begin(); it != path.end(); ++it)
         {
-            for (int i = 2; i < user.length(); ++i)
-                uret[i - 1] = user[i];
+            if (it->type() == OFTL_FILE_DIR)
+            {
+                uret[i] = it->filename();
+                ++i;
+            }
         }
-
-        glob.deletecontents();
-        user.deletecontents();
 
         return types::make_tuple(gret, uret);
     }
