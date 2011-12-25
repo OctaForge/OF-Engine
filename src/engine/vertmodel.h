@@ -607,7 +607,7 @@ template<class MDL> struct vertcommands : modelcommands<MDL, struct MDL::vertmes
     static void loadpart(const char *model, float smooth)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        defformatstring(filename)("%s/%s", MDL::dir, model);
+        defformatstring(filename)("%s/%s", MDL::dir.get_buf(), model);
         part &mdl = *new part;
         MDL::loading->parts.add(&mdl);
         mdl.model = MDL::loading;

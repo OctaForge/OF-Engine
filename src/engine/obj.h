@@ -192,7 +192,7 @@ struct obj : vertmodel, vertloader<obj>
     bool load()
     { 
         if(loaded) return true;
-        formatstring(dir)("data/models/%s", loadname);
+        dir.format("data/models/%s", loadname);
         defformatstring(cfgname)("data/models/%s/obj.lua", loadname); // INTENSITY
 
         loading = this;
