@@ -144,7 +144,7 @@ OSX_OBJ = \
 OSX_INCLUDES  = -I$(OSX_FRAMEWORK_PATH)/SDL.framework/Headers
 OSX_INCLUDES += -I$(OSX_FRAMEWORK_PATH)/SDL_image.framework/Headers
 OSX_INCLUDES += -I$(OSX_FRAMEWORK_PATH)/SDL_mixer.framework/Headers
-OSX_LIBS  = -F$(OSX_FRAMEWORK_PATH) -framework Cocoa
+OSX_LIBS  = -F$(OSX_FRAMEWORK_PATH) -framework Cocoa -framework OpenGL
 OSX_LIBS += -framework SDL -framework SDL_image -framework SDL_mixer
 endif
 
