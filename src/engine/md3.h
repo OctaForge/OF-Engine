@@ -200,7 +200,7 @@ struct md3 : vertmodel, vertloader<md3>
     bool load()
     {
         if(loaded) return true;
-        formatstring(dir)("data/models/%s", loadname);
+        dir.format("data/models/%s", loadname);
         defformatstring(cfgname)("data/models/%s/md3.lua", loadname); // OF
 
         loading = this;

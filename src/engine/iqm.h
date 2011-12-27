@@ -370,7 +370,7 @@ struct iqm : skelmodel, skelloader<iqm>
     bool load()
     {
         if(loaded) return true;
-        formatstring(dir)("data/models/%s", loadname);
+        dir.format("data/models/%s", loadname);
         defformatstring(cfgname)("data/models/%s/iqm.lua", loadname); // INTENSITY
 
         loading = this;

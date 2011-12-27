@@ -1404,13 +1404,13 @@ glmatrixf animmodel::matrixstack[64];
 template<class MDL> struct modelloader
 {
     static MDL *loading;
-    static string dir;
+    static types::String dir;
 
     static bool animated() { return true; }
 };
 
 template<class MDL> MDL *modelloader<MDL>::loading = NULL;
-template<class MDL> string modelloader<MDL>::dir = "";
+template<class MDL> types::String modelloader<MDL>::dir = "";
 
 template<class MDL, class MESH> struct modelcommands
 {
@@ -1421,7 +1421,7 @@ template<class MDL, class MESH> struct modelcommands
     static void setdir(const char *name)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        formatstring(MDL::dir)("packages/models/%s", name);
+        MDL::dir.format("packages/models/%s", name);
     }
 
     #define loopmeshes(meshname, m, body) \
@@ -1443,10 +1443,10 @@ template<class MDL, class MESH> struct modelcommands
     {
         if (meshname) 
         loopskins(meshname, s,
-            s.tex = textureload(makerelpath(MDL::dir, tex ? tex : ""), 0, true, false);
+            s.tex = textureload(makerelpath(MDL::dir.get_buf(), tex ? tex : ""), 0, true, false);
             if(masks && masks[0])
             {
-                s.masks = textureload(makerelpath(MDL::dir, masks, "<stub>"), 0, true, false);
+                s.masks = textureload(makerelpath(MDL::dir.get_buf(), masks, "<stub>"), 0, true, false);
                 s.envmapmax = envmapmax;
                 s.envmapmin = envmapmin;
             }
@@ -1507,8 +1507,8 @@ template<class MDL, class MESH> struct modelcommands
     static void setbumpmap(const char *meshname, const char *normalmapfile, const char *skinfile)
     {
         Texture *normalmaptex = NULL, *skintex = NULL;
-        normalmaptex = textureload(makerelpath(MDL::dir, normalmapfile, "<noff>"), 0, true, false);
-        if(skinfile) skintex = textureload(makerelpath(MDL::dir, skinfile, "<noff>"), 0, true, false);
+        normalmaptex = textureload(makerelpath(MDL::dir.get_buf(), normalmapfile, "<noff>"), 0, true, false);
+        if(skinfile) skintex = textureload(makerelpath(MDL::dir.get_buf(), skinfile, "<noff>"), 0, true, false);
         loopskins(meshname ? meshname : "", s, { s.unlittex = skintex; s.normalmap = normalmaptex; m.calctangents(); });
     }
     

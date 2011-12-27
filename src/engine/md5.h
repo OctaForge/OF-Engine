@@ -108,7 +108,7 @@ struct md5 : skelmodel, skelloader<md5>
                         part *p = loading->parts.last();
                         p->initskins(notexture, notexture, group->meshes.length());
                         skin &s = p->skins.last();
-                        s.tex = textureload(makerelpath(dir, texname), 0, true, false);
+                        s.tex = textureload(makerelpath(dir.get_buf(), texname), 0, true, false);
                         delete[] texname;
                     }
                 }
@@ -418,7 +418,7 @@ struct md5 : skelmodel, skelloader<md5>
     bool load()
     {
         if(loaded) return true;
-        formatstring(dir)("data/models/%s", loadname);
+        dir.format("data/models/%s", loadname);
         defformatstring(cfgname)("data/models/%s/md5.lua", loadname); // INTENSITY
 
         loading = this;
