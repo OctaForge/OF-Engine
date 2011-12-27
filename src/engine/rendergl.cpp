@@ -2077,7 +2077,7 @@ void drawcrosshair(int w, int h)
 
         chsize = crosshairsize*w/900.0f;
     }
-    if(crosshair->bpp==4) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if(crosshair->type&Texture::ALPHA) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     else glBlendFunc(GL_ONE, GL_ONE);
     glColor3f(r, g, b);
     float x = cx*w - (windowhit ? 0 : chsize/2.0f);

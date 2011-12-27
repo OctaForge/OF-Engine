@@ -312,6 +312,13 @@ static inline void quicksort(T *buf, int n)
     quicksort(buf, buf+n, compareless<T>);
 }
 
+template<class T> struct isclass
+{
+    template<class C> static char test(void (C::*)(void));
+    template<class C> static int test(...);
+    enum { yes = sizeof(test<T>(0)) == 1 ? 1 : 0, no = yes^1 };
+};
+
 template <class T> struct vector
 {
     static const int MINSIZE = 8;
@@ -389,7 +396,7 @@ template <class T> struct vector
     T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
     const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
     
-    void shrink(int i)         { ASSERT(i<=ulen); while(ulen>i) drop(); }
+    void shrink(int i) { ASSERT(i<=ulen); if(isclass<T>::no) ulen = i; else while(ulen>i) drop(); }
     void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
     
     void deletecontents() { while(!empty()) delete   pop(); }
@@ -685,6 +692,18 @@ template<class T> struct hashset
     }
 
     template<class K>
+    T &find(const K &key, T &notfound)
+    {
+        HTFIND(key, c->elem, notfound);
+    }
+
+    template<class K>
+    const T &find(const K &key, const T &notfound)
+    {
+        HTFIND(key, c->elem, notfound);
+    }
+
+    template<class K>
     bool remove(const K &key)
     {
         uint h = hthash(key)&(size-1);
@@ -777,6 +796,16 @@ template<class K, class T> struct hashtable : hashset<hashtableentry<K, T> >
     {
         HTFIND(key, c->elem.data, insert(key, h).data);
     }
+
+    T &find(const K &key, T &notfound)
+    {
+        HTFIND(key, c->elem.data, notfound);
+    }
+
+    const T &find(const K &key, const T &notfound)
+    {
+        HTFIND(key, c->elem.data, notfound);
+    }   
 
     static inline chain *getnext(void *i) { return ((chain *)i)->next; }
     static inline K &getkey(void *i) { return ((chain *)i)->elem.key; }
@@ -995,11 +1024,37 @@ struct stream
 #endif
 };
 
-extern int iscubeprint(int c);
-extern int uni2cube(int c);
-extern int cube2uni(int c);
+enum
+{
+    CT_PRINT   = 1<<0,
+    CT_SPACE   = 1<<1,
+    CT_DIGIT   = 1<<2,
+    CT_ALPHA   = 1<<3,
+    CT_LOWER   = 1<<4,
+    CT_UPPER   = 1<<5,
+    CT_UNICODE = 1<<6
+};
+extern const uchar cubectype[256];
+static inline int iscubeprint(uchar c) { return cubectype[c]&CT_PRINT; }
+static inline int iscubespace(uchar c) { return cubectype[c]&CT_SPACE; }
+static inline int iscubealpha(uchar c) { return cubectype[c]&CT_ALPHA; }
+static inline int iscubealnum(uchar c) { return cubectype[c]&(CT_ALPHA|CT_DIGIT); }
+static inline int iscubelower(uchar c) { return cubectype[c]&CT_LOWER; }
+static inline int iscubeupper(uchar c) { return cubectype[c]&CT_UPPER; }
+static inline int cube2uni(uchar c)
+{ 
+    extern const int cube2unichars[256]; 
+    return cube2unichars[c]; 
+}
+static inline uchar uni2cube(int c)
+{
+    extern const int uni2cubeoffsets[8];
+    extern const uchar uni2cubechars[];
+    return uint(c) <= 0x7FF ? uni2cubechars[uni2cubeoffsets[c>>8] + (c&0xFF)] : 0;
+}
 extern int decodeutf8(uchar *dst, int dstlen, uchar *src, int srclen, int *carry = NULL);
 extern int encodeutf8(uchar *dstbuf, int dstlen, uchar *srcbuf, int srclen, int *carry = NULL);
+
 extern char *makerelpath(const char *dir, const char *file, const char *prefix = NULL, const char *cmd = NULL);
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);

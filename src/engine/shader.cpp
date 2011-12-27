@@ -1386,7 +1386,7 @@ static void genfogshader(vector<char> &vsbuf, vector<char> &psbuf, const char *v
         if(vspragma)
         {
             vspragma += pragmalen;
-            while(*vspragma && !isspace(*vspragma)) vspragma++;
+            while(*vspragma && !iscubespace(*vspragma)) vspragma++;
             vspragma += strspn(vspragma, " \t\v\f");
             clen = strcspn(vspragma, "\r\n");
         }
@@ -1409,8 +1409,8 @@ static void genfogshader(vector<char> &vsbuf, vector<char> &psbuf, const char *v
         if(pspragma)
         {
             pspragma += pragmalen;
-            while (isalpha(*pspragma)) pspragma++;
-            while(*pspragma && !isspace(*pspragma)) pspragma++;
+            while(iscubealpha(*pspragma)) pspragma++;
+            while(*pspragma && !iscubespace(*pspragma)) pspragma++;
             pspragma += strspn(pspragma, " \t\v\f");
             clen = strcspn(pspragma, "\r\n");
         }

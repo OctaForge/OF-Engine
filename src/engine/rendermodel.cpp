@@ -909,8 +909,8 @@ bool matchanim(const char *name, const char *pattern)
             if(!c || c=='|') break;
             else if(c=='*') 
             {
-                if(!*s || isspace(*s)) break;
-                do s++; while(*s && !isspace(*s));
+                if(!*s || iscubespace(*s)) break;
+                do s++; while(*s && !iscubespace(*s));
             }
             else if(c!=*s) break;
             else s++;

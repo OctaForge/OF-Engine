@@ -754,6 +754,19 @@ static GLenum texformat(int bpp)
     }
 }
 
+static bool alphaformat(GLenum format)
+{
+    switch(format)
+    {
+        case GL_ALPHA:
+        case GL_LUMINANCE_ALPHA:
+        case GL_RGBA:
+            return true;
+        default:
+            return false;
+    }
+}
+
 int texalign(void *data, int w, int bpp)
 {
     size_t address = size_t(data) | (w*bpp);
@@ -782,8 +795,19 @@ static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clam
         t->w = t->h = t->xs = t->ys = t->bpp = 0;
         return t;
     }
-    if(s.compressed) t->type |= Texture::COMPRESSED;
-    t->bpp = s.compressed ? formatsize(uncompressedformat(s.compressed)) : s.bpp;
+    GLenum format;
+    if(s.compressed)
+    {
+        format = uncompressedformat(s.compressed);
+        t->bpp = formatsize(format);
+        t->type |= Texture::COMPRESSED;
+    }
+    else 
+    {
+        format = texformat(s.bpp);
+        t->bpp = s.bpp;
+    }
+    if(alphaformat(format)) t->type |= Texture::ALPHA;
     t->w = t->xs = s.w;
     t->h = t->ys = s.h;
 
@@ -813,7 +837,7 @@ static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clam
     else
     {
         resizetexture(t->w, t->h, mipit, canreduce, GL_TEXTURE_2D, compress, t->w, t->h);
-        GLenum format = texformat(t->bpp), component = compressedformat(format, t->w, t->h, compress);
+        GLenum component = compressedformat(format, t->w, t->h, compress);
         createtexture(t->id, t->w, t->h, s.data, clamp, filter, component, GL_TEXTURE_2D, t->xs, t->ys, s.pitch, false, format);
     }
     return t;
@@ -1264,9 +1288,9 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
 
 void loadalphamask(Texture *t)
 {
-    if(t->alphamask || t->bpp!=4 || t->type&Texture::COMPRESSED) return;
+    if(t->alphamask || (t->type&(Texture::ALPHA|Texture::COMPRESSED)) != Texture::ALPHA) return;
     ImageData s;
-    if(!texturedata(s, t->name, NULL, false) || !s.data || s.bpp!=4 || s.compressed) return;
+    if(!texturedata(s, t->name, NULL, false) || !s.data || s.compressed) return;
     t->alphamask = new uchar[s.h * ((s.w+7)/8)];
     uchar *srcrow = s.data, *dst = t->alphamask-1;
     loop(y, s.h)
@@ -2173,7 +2197,6 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
     ImageData surface[6];
     string sname;
     if(!wildcard) copystring(sname, tname);
-    GLenum format = GL_FALSE;
     int tsize = 0, compress = 0;
     loopi(6)
     {
@@ -2191,8 +2214,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
             if(msg) conoutf(CON_ERROR, "cubemap texture %s does not have square size", sname);
             return NULL;
         }
-        if(!format) format = s.compressed ? s.compressed : texformat(s.bpp);
-        else if((s.compressed ? s.compressed : texformat(s.bpp))!=format || (s.compressed && (s.w!=surface[0].w || s.h!=surface[0].h || s.levels!=surface[0].levels)))
+        if(s.compressed ? s.compressed!=surface[0].compressed || s.w!=surface[0].w || s.h!=surface[0].h || s.levels!=surface[0].levels : surface[0].compressed || s.bpp!=surface[0].bpp)
         {
             if(msg) conoutf(CON_ERROR, "cubemap texture %s doesn't match other sides' format", sname);
             return NULL;
@@ -2205,17 +2227,34 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
         t = &textures[key];
         t->name = key;
     }
-    t->bpp = surface[0].compressed ? formatsize(uncompressedformat(format)) : surface[0].bpp;
+    t->type = Texture::CUBEMAP;
+    if(transient) t->type |= Texture::TRANSIENT;
+    GLenum format;
+    if(surface[0].compressed)
+    {
+        format = uncompressedformat(surface[0].compressed);
+        t->bpp = formatsize(format);
+        t->type |= Texture::COMPRESSED;
+    }
+    else 
+    {
+        format = texformat(surface[0].bpp);
+        t->bpp = surface[0].bpp;
+    }
+    if(alphaformat(format)) t->type |= Texture::ALPHA;
     t->mipmap = mipit;
     t->clamp = 3;
-    t->type = Texture::CUBEMAP | (transient ? Texture::TRANSIENT : 0);
     t->xs = t->ys = tsize;
     t->w = t->h = min(1<<envmapsize, tsize);
     resizetexture(t->w, t->h, mipit, false, GL_TEXTURE_CUBE_MAP_ARB, compress, t->w, t->h);
-    GLenum component = compressedformat(format, t->w, t->h, compress);
-    switch(component)
+    GLenum component = format;
+    if(!surface[0].compressed)
     {
-        case GL_RGB: component = GL_RGB5; break;
+        component = compressedformat(format, t->w, t->h, compress);
+        switch(component)
+        {
+            case GL_RGB: component = GL_RGB5; break;
+        }
     }
     glGenTextures(1, &t->id);
     loopi(6)

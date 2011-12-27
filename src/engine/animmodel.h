@@ -219,7 +219,7 @@ struct animmodel : model
 
         void preloadBIH()
         {
-            if(tex && tex->bpp==4 && !tex->alphamask) loadalphamask(tex);
+            if(tex && tex->type&Texture::ALPHA && !tex->alphamask) loadalphamask(tex);
         }
  
         void preloadshader()
@@ -282,7 +282,7 @@ struct animmodel : model
                 glBindTexture(GL_TEXTURE_2D, n->id);
                 glActiveTexture_(GL_TEXTURE0_ARB);
             }
-            if(s->bpp==4)
+            if(s->type&Texture::ALPHA)
             {
                 if(alphablend)
                 {
@@ -518,7 +518,7 @@ struct animmodel : model
 
         void gentris(int frame, vector<skin> &skins, vector<BIH::tri> *tris, const matrix3x4 &m)
         {
-            loopv(meshes) meshes[i]->gentris(frame, skins[i].tex && skins[i].tex->bpp == 4 ? skins[i].tex : NULL, tris, m);
+            loopv(meshes) meshes[i]->gentris(frame, skins[i].tex && skins[i].tex->type&Texture::ALPHA ? skins[i].tex : NULL, tris, m);
         }
 
         virtual int totalframes() const { return 1; }

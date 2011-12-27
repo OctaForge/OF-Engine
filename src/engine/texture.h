@@ -444,7 +444,8 @@ struct Texture
         STUB       = 1<<8,
         TRANSIENT  = 1<<9,
         COMPRESSED = 1<<10, 
-        FLAGS      = 0xF0
+        ALPHA      = 1<<11,
+        FLAGS      = 0xFF00
     };
 
     char *name;

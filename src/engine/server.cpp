@@ -233,7 +233,7 @@ void filtertext(char *dst, const char *src, bool whitespace, int len)
             if(!*++src) break;
             continue;
         }
-        if(iscubeprint(c) || (isspace(c) && whitespace))
+        if(iscubeprint(c) || (iscubespace(c) && whitespace))
         {
             *dst++ = c;
             if(!--len) break;
@@ -258,6 +258,53 @@ vector<client *> clients;
 ENetHost *serverhost = NULL;
 int laststatus = 0; 
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
+
+int localclients = 0, nonlocalclients = 0;
+
+bool hasnonlocalclients() { return nonlocalclients!=0; }
+bool haslocalclients() { return localclients!=0; }
+
+client &addclient(int type)
+{
+    client *c = NULL;
+    loopv(clients) if(clients[i]->type==ST_EMPTY)
+    {
+        c = clients[i];
+        break;
+    }
+    if(!c)
+    {
+        c = new client;
+        c->num = clients.length();
+        clients.add(c);
+    }
+    c->info = server::newclientinfo();
+    c->type = type;
+    switch(type)
+    {
+        case ST_TCPIP: nonlocalclients++; break;
+        case ST_LOCAL: localclients++; break;
+    }
+    return *c;
+}
+
+void delclient(client *c)
+{
+    if(!c) return;
+    switch(c->type)
+    {
+        case ST_TCPIP: nonlocalclients--; if(c->peer) c->peer->data = NULL; break;
+        case ST_LOCAL: localclients--; break;
+        case ST_EMPTY: return;
+    }
+    c->type = ST_EMPTY;
+    c->peer = NULL;
+    if(c->info)
+    {
+        server::deleteclientinfo(c->info);
+        c->info = NULL;
+    }
+}
 
 void cleanupserver()
 {
@@ -359,10 +406,7 @@ void disconnect_client(int n, int reason)
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     enet_peer_disconnect(clients[n]->peer, reason);
     server::clientdisconnect(n);
-    clients[n]->type = ST_EMPTY;
-    clients[n]->peer->data = NULL;
-    server::deleteclientinfo(clients[n]->info);
-    clients[n]->info = NULL;
+    delclient(clients[n]);
     defformatstring(s)("client (%s) disconnected because: %s", clients[n]->hostname, disc_reasons[reason]);
     logoutf("%s", s);
     server::sendservmsg(s);
@@ -392,25 +436,6 @@ void localclienttoserver(int chan, ENetPacket *packet, int cn) // INTENSITY: Add
 
     if(c) process(packet, c->num, chan);
 }
-
-client &addclient()
-{
-    loopv(clients) if(clients[i]->type==ST_EMPTY)
-    {
-        clients[i]->info = server::newclientinfo();
-        return *clients[i];
-    }
-    client *c = new client;
-    c->num = clients.length();
-    c->info = server::newclientinfo();
-    clients.add(c);
-    return *c;
-}
-
-int localclients = 0, nonlocalclients = 0;
-
-bool hasnonlocalclients() { return nonlocalclients!=0; }
-bool haslocalclients() { return localclients!=0; }
 
 static ENetAddress pongaddr;
 
@@ -450,13 +475,6 @@ void updatetime()
 
 void serverslice(bool dedicated, uint timeout)   // main server update, called from main loop in sp, or from below in dedicated server
 {
-    localclients = nonlocalclients = 0;
-    loopv(clients) switch(clients[i]->type)
-    {
-        case ST_LOCAL: localclients++; break;
-        case ST_TCPIP: nonlocalclients++; break;
-    }
-
     if(!serverhost) 
     {
         server::serverupdate();
@@ -488,16 +506,14 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
         {
             case ENET_EVENT_TYPE_CONNECT:
             {
-                client &c = addclient();
-                c.type = ST_TCPIP;
+                client &c = addclient(ST_TCPIP);
                 c.peer = event.peer;
                 c.peer->data = &c;
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logoutf("client connected (%s)", c.hostname);
                 int reason = server::clientconnect(c.num, c.peer->address.host);
-                if(!reason) nonlocalclients++;
-                else disconnect_client(c.num, reason);
+                if(reason) disconnect_client(c.num, reason);
                 break;
             }
             case ENET_EVENT_TYPE_RECEIVE:
@@ -513,11 +529,7 @@ void serverslice(bool dedicated, uint timeout)   // main server update, called f
                 if(!c) break;
                 logoutf("disconnected client (%s)", c->hostname);
                 server::clientdisconnect(c->num);
-                nonlocalclients--;
-                c->type = ST_EMPTY;
-                event.peer->data = NULL;
-                server::deleteclientinfo(c->info);
-                c->info = NULL;
+                delclient(c);
                 break;
             }
             default:
@@ -557,10 +569,7 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
     {
         if (cn != -1 && cn != clients[i]->num) continue; // INTENSITY: if cn given, only process that one
         server::localdisconnect(i);
-        localclients--;
-        clients[i]->type = ST_EMPTY;
-        server::deleteclientinfo(clients[i]->info);
-        clients[i]->info = NULL;
+        delclient(clients[i]);
 #ifdef CLIENT
         disconnected = true;
 #endif
@@ -575,10 +584,8 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 
 int localconnect() // INTENSITY: Added returning client num
 {
-    client &c = addclient();
-    c.type = ST_LOCAL;
+    client &c = addclient(ST_LOCAL);
     copystring(c.hostname, "local");
-    localclients++;
     game::gameconnect(false);
     server::localconnect(c.num);
     return c.num; // INTENSITY: Added returning client num

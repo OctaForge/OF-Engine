@@ -210,7 +210,7 @@ void bindkey(const char *key, const char *action, int state)
     types::String& binding = km->actions[state];
     if(!keypressed || keyaction!=binding) binding.clear();
     // trim white-space to make searchbinds more reliable
-    while(isspace(*action)) action++;
+    while(iscubespace(*action)) action++;
     binding = types::String(action);
 }
 
@@ -250,7 +250,7 @@ void pasteconsole()
     {
         case CF_UNICODETEXT:
             decoded = min(int(sizeof(commandbuf)-1-commandlen), cblen/2);
-            loopi(decoded) commandbuf[commandlen++] = uchar(uni2cube(cb[i]));
+            loopi(decoded) commandbuf[commandlen++] = uni2cube(cb[i]);
             break;
         case CF_TEXT:
             decoded = min(int(sizeof(commandbuf)-1-commandlen), cblen);
@@ -289,7 +289,7 @@ void pasteconsole()
             goto nextline;
         }
         cblen = min(cblen, commandmax);
-        loopi(cblen) commandbuf[commandlen++] = uchar(uni2cube(*cbline++));
+        loopi(cblen) commandbuf[commandlen++] = uni2cube(*cbline++);
     nextline:
         commandbuf[commandlen] = '\n';
         if(commandlen + 1 < sizeof(commandbuf) && cbend < &cb[cbsize]) ++commandlen;
