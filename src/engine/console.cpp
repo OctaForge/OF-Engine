@@ -29,7 +29,7 @@ void conline(int type, const types::String& sf)        // add a line to the cons
 void conoutfv(int type, const char *fmt, va_list args)
 {
     types::String buf;
-    buf.format(fmt, args);
+    buf.vformat(fmt, args);
     conline(type, buf);
     filtertext(&buf[0], buf.get_buf());
     logoutf("%s", buf.get_buf());

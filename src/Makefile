@@ -170,8 +170,9 @@ ifneq ($(OS), Windows)
 		CLIENT_LDD += `curl-config --libs` -lz -lGL -lobjc
 	endif
 else
-	CLIENT_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DCLIENT -DWIN32 -DWINDOWS
-	CLIENT_LDD  = -mwindows $(WINDOWS_LIBS)
+	CLIENT_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DCLIENT
+	CLIENT_INC += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
+	CLIENT_LDD  = $(WINDOWS_LIBS)
 	CLIENT_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
 	CLIENT_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
 	CLIENT_LDD += -lzdll -lcurl -lopengl32 -lws2_32 -lwinmm
@@ -273,8 +274,9 @@ ifneq ($(OS), Windows)
 		SERVER_LDD += `curl-config --libs` -lz -lobjc
 	endif
 else
-	SERVER_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DSERVER -DWIN32 -DWINDOWS
-	SERVER_LDD  = -mwindows $(WINDOWS_LIBS)
+	SERVER_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DSERVER
+	SERVER_INC += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
+	SERVER_LDD  = $(WINDOWS_LIBS)
 	SERVER_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
 	SERVER_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
 	SERVER_LDD += -lzdll -lcurl -lopengl32 -lws2_32 -lwinmm

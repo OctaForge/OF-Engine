@@ -79,7 +79,7 @@ namespace logger
 
         va_list  ap;
         va_start(ap, fmt);
-        types::String buf = types::String().format(fmt, ap);
+        types::String buf = types::String().vformat(fmt, ap);
         va_end(ap);
 
 #ifdef CLIENT
