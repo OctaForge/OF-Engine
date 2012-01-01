@@ -143,8 +143,8 @@ void QuantizedInfo::applyToEntity(fpsent *d)
     // Only possibly discard if we get a value for the lifesequence
     if(!d || (hasMisc && (getLifeSequence()!=(d->lifesequence&1))))
     {
-        logger::log(logger::WARNING, "Not applying position update for client %d, reasons: %lu,%d,%d (real:%d)\r\n",
-                     clientNumber, (unsigned long)d, getLifeSequence(), d ? d->lifesequence&1 : -1, d ? d->lifesequence : -1);
+        logger::log(logger::WARNING, "Not applying position update for client %d, reasons: %p,%d,%d (real:%d)\r\n",
+                     clientNumber, (void*)d, getLifeSequence(), d ? d->lifesequence&1 : -1, d ? d->lifesequence : -1);
         return;
     } else
         logger::log(logger::INFO, "Applying position update for client %d\r\n", clientNumber);

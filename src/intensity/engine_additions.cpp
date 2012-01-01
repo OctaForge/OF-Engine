@@ -179,7 +179,7 @@ void CLogicEntity::setModel(const char *name)
 
     if (strcmp(name, "")) theModel = loadmodel(name);
 
-    logger::log(logger::DEBUG, "CLE:setModel: %s (%lu)\r\n", name, (unsigned long)theModel);
+    logger::log(logger::DEBUG, "CLE:setModel: %s (%p)\r\n", name, (void*)theModel);
 
     if (staticEntity)
         addentity(staticEntity);

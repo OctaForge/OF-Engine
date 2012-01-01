@@ -41,7 +41,11 @@ OS = Windows
 endif
 
 ifeq (,$(ARCH))
+ifeq (,$(WIN64))
 ARCH = x86
+else
+ARCH = x64
+endif
 endif
 
 ifeq (,$(FLAV))
@@ -95,9 +99,13 @@ ifneq ($(OS), Windows)
 BIN_PATH  = ../bin_unix
 else
 ifeq ($(FLAV), Windows)
-BIN_PATH  = ..\bin_win
+ifeq (,$(WIN64))
+BIN_PATH  = ..\bin_win32
 else
-BIN_PATH  = ../bin_win
+BIN_PATH = ..\bin_win64
+endif
+else
+BIN_PATH  = ../bin_win32
 endif
 endif
 
@@ -130,7 +138,11 @@ INCLUDES += -std=c++0x
 # Windows specific
 ifeq ($(OS), Windows)
 WINDOWS_INCLUDES = -Iplatform_windows/include
-WINDOWS_LIBS     = -Lplatform_windows/lib
+ifeq (,$(WIN64))
+WINDOWS_LIBS = -Lplatform_windows/lib32
+else
+WINDOWS_LIBS = -Lplatform_windows/lib64
+endif
 endif
 
 # Mac OS X specific
@@ -243,7 +255,6 @@ CLIENT_OBJ = \
 	octaforge/of_entities.o
 
 ifeq ($(OS), Windows)
-CLIENT_OBJ += platform_windows/lib/src/SDL_win32_main.o
 CLIENT_OBJ += libraries/OFTL/src/filesystem/platform_win32.o
 else
 CLIENT_OBJ += libraries/OFTL/src/filesystem/platform_posix.o
@@ -322,7 +333,6 @@ SERVER_OBJ = \
 	octaforge/of_entities.o
 
 ifeq ($(OS), Windows)
-SERVER_OBJ += platform_windows/lib/src/SDL_win32_main.o
 SERVER_OBJ += libraries/OFTL/src/filesystem/platform_win32.o
 else
 SERVER_OBJ += libraries/OFTL/src/filesystem/platform_posix.o

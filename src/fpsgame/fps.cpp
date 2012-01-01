@@ -248,8 +248,8 @@ namespace game
         {
             if (ClientSystem::playerLogicEntity->lua_ref["initialized"].to<bool>())
             {
-                logger::log(logger::INFO, "Player %d (%lu) is initialized, run moveplayer(): %f,%f,%f.\r\n",
-                    player1->uniqueId, (unsigned long)player1,
+                logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.\r\n",
+                    player1->uniqueId, (void*)player1,
                     player1->o.x,
                     player1->o.y,
                     player1->o.z
