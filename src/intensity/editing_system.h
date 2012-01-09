@@ -23,6 +23,8 @@ namespace EditingSystem
 
     void setCubeMaterial(int x, int y, int z, int gridsize, int material);
 
+    void setCubeColor(int x, int y, int z, int gridsize, float r, float g, float b);
+
     //! @param corner We use a simpler indexing than Sauer. For NEWS faces, when looking
     //! at the face head on, we have 0 1 / 2 3. For the top and bottom, 0 is toward
     //! the origin, and 1 is along the x axis (then 2 3 on the other row).

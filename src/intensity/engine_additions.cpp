@@ -123,8 +123,10 @@ void CLogicEntity::setOrigin(vec &newOrigin)
     lua::Table t = lapi::state.new_table(3);
     t[0] = newOrigin.x; t[1] = newOrigin.y; t[2] = newOrigin.z;
     lapi::state.get<lua::Function>(
-        "entity_store", "get"
-    ).call<lua::Table>(getUniqueId())["position"] = t;
+        "LAPI", "World", "Entities", "get"
+    ).call<lua::Table>(getUniqueId())[lapi::state.get<lua::Object>(
+        "LAPI", "World", "Entity", "Properties", "position"
+    )] = t;
 }
 
 int CLogicEntity::getAnimation()
@@ -360,7 +362,7 @@ void LogicSystem::clear(bool restart_lua)
 
     if (lapi::state.state())
     {
-        lapi::state.get<lua::Function>("entity_store", "del_all")();
+        lapi::state.get<lua::Function>("LAPI", "World", "Entities", "delete_all")();
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
         if (restart_lua) lapi::reset();
@@ -385,7 +387,7 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     logicEntities.access(uniqueId, newEntity);
 
     new (&(newEntity->lua_ref)) lua::Table(lapi::state.get<lua::Function>(
-        "entity_store", "get"
+        "LAPI", "World", "Entities", "get"
     ).call<lua::Object>(uniqueId));
     assert(!newEntity->lua_ref.is_nil());
 
@@ -464,7 +466,7 @@ void LogicSystem::manageActions(long millis)
     INDENT_LOG(logger::INFO);
 
     if (lapi::state.state())
-        lapi::state.get<lua::Function>("entity_store", "manage_actions")(
+        lapi::state.get<lua::Function>("LAPI", "World", "manage_actions")(
             double(millis) / 1000.0f, lastmillis
         );
 

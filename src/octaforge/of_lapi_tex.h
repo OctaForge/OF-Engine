@@ -232,6 +232,66 @@ namespace lapi_binds
         saveimage(n, guessimageformat(n, IMG_TGA), d);
     }
 
+    lua::Table _lua_parsepixels(const char *fn)
+    {
+        if (!fn) fn = "";
+
+        ImageData d;
+        if (!loadimage(fn, d)) return lapi::state.wrap<lua::Table>(lua::nil);
+
+        lua::Table ret = lapi::state.new_table(0, 3);
+        ret["w"] = d.w;
+        ret["h"] = d.h;
+
+        lua::Table    row = lapi::state.new_table(d.w);
+        ret["data"] = row;
+
+        for (int x = 0; x < d.w; ++x)
+        {
+            lua::Table   col = lapi::state.new_table(d.h);
+            row[x + 1] = col;
+
+            for (int y = 0; y < d.h; ++y)
+            {
+                uchar *p = d.data + y * d.pitch + x * d.bpp;
+
+                Uint32 ret;
+                switch (d.bpp)
+                {
+                    case 1:
+                        ret = *p;
+                        break;
+                    case 2:
+                        ret = *(Uint16*)p;
+                        break;
+                    case 3:
+                        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+                            ret = (p[0] << 16 | p[1] << 8 | p[2]);
+                        else
+                            ret = (p[0] | p[1] << 8 | p[2] << 16);
+                        break;
+                    case 4:
+                        ret = *(Uint32*)p;
+                        break;
+                    default:
+                        ret = 0;
+                        break;
+                }
+
+                uchar r, g, b;
+                SDL_GetRGB(ret, ((SDL_Surface*)d.owner)->format, &r, &g, &b);
+
+                lua::Table px = lapi::state.new_table(0, 3);
+                px["r"   ] = (uint)r;
+                px["g"   ] = (uint)g;
+                px["b"   ] = (uint)b;
+                col[y + 1] = px;
+            }
+        }
+
+        return ret;
+    }
+
     void _lua_filltexlist() { filltexlist        (); }
     int  _lua_getnumslots() { return slots.length(); }
 #else
@@ -253,6 +313,7 @@ namespace lapi_binds
     LAPI_EMPTY(gendds)
     LAPI_EMPTY(flipnormalmapy)
     LAPI_EMPTY(mergenormalmaps)
+    LAPI_EMPTY(parsepixels)
     LAPI_EMPTY(filltexlist)
     LAPI_EMPTY(getnumslots)
 #endif
@@ -277,6 +338,7 @@ namespace lapi_binds
         LAPI_REG(gendds);
         LAPI_REG(flipnormalmapy);
         LAPI_REG(mergenormalmaps);
+        LAPI_REG(parsepixels);
         LAPI_REG(filltexlist);
         LAPI_REG(getnumslots);
     }

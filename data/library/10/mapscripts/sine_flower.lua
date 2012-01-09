@@ -3,11 +3,11 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = class.new(character.player, "myplayer")
+myplayer = std.class.new(character.player, "myplayer")
 
 -- Called right after initialization on client
 function myplayer:client_activate(kwargs)
-    self.__base.client_activate(self, kwargs)
+    self.base_class.client_activate(self, kwargs)
     -- Current rotation angle
     self.angle = 1
     -- Current circle radius
@@ -18,16 +18,16 @@ end
 
 -- Called every frame on client after initialization
 function myplayer:client_act(sec)
-    self.__base.client_act(self, sec)
+    self.base_class.client_act(self, sec)
     -- Loop just until radius reaches 60, so it doesn't take too long.
     -- Make bigger for bigger circles
     if self.circle_rad <= 60 then
         -- The X position. Cosine calculation
-        self.position.x = (math.cos(math.rad(self.angle)) * self.circle_rad) + 150
+        self.position.x = (std.math.cos(std.math.rad(self.angle)) * self.circle_rad) + 150
         -- The Y position. Sine calculation
-        self.position.y = (math.sin(math.rad(self.angle)) * self.circle_rad) + 150
+        self.position.y = (std.math.sin(std.math.rad(self.angle)) * self.circle_rad) + 150
         -- Height. Basically makes a sine curve so the player goes up and down with the right period
-        self.position.z = math.sin(math.rad(self.angle) * 10) * 2 + 650
+        self.position.z = std.math.sin(std.math.rad(self.angle) * 10) * 2 + 650
 
         -- Create cube on current position. Use minimal size
         edit.procedural.create_cube(self.position.x, self.position.y, self.position.z, 1)

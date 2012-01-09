@@ -80,6 +80,13 @@ namespace lapi_binds
         EditingSystem::setCubeMaterial(x, y, z, gridsize, material);
     }
 
+    void _lua_editing_setcubecolor(
+        int x, int y, int z, int gridsize, float r, float g, float b
+    )
+    {
+        EditingSystem::setCubeColor(x, y, z, gridsize, r, g, b);
+    }
+
     void _lua_editing_pushcubecorner(
         int x, int y, int z, int gridsize, int face, int corner, int direction
     )
@@ -364,6 +371,7 @@ namespace lapi_binds
         LAPI_REG(editing_deletecube);
         LAPI_REG(editing_setcubetex);
         LAPI_REG(editing_setcubemat);
+        LAPI_REG(editing_setcubecolor);
         LAPI_REG(editing_pushcubecorner);
         LAPI_REG(editing_getselent);
         LAPI_REG(renderprogress);

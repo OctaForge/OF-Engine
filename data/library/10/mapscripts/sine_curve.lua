@@ -3,12 +3,12 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = class.new(character.player, "myplayer")
+myplayer = std.class.new(character.player, "myplayer")
 
 -- Called right after initialization on client
 function myplayer:client_activate(kwargs)
     -- Call the parent
-    self.__base.client_activate(self, kwargs)
+    self.base_class.client_activate(self, kwargs)
     -- Initialize a counter
     self.n = 1
     -- Move the player a bit more to the open space
@@ -18,13 +18,13 @@ end
 -- Called every frame on client after initialization
 function myplayer:client_act(sec)
     -- Call the parent
-    self.__base.client_act(self, sec)
+    self.base_class.client_act(self, sec)
     -- Loop 1000 times
     if self.n <= 1000 then
         -- Calculate X position. Move everything a bit.
         self.position.x = self.n + 50
         -- Calculate Z position (vertical) - create a nice sine graph
-        self.position.z = math.sin(math.rad(self.n) * 3) * 100 + 700
+        self.position.z = std.math.sin(std.math.rad(self.n) * 3) * 100 + 700
 
         -- Create cubes for X axis
         edit.procedural.create_cube(self.position.x, self.position.y, self.position.z, 1)

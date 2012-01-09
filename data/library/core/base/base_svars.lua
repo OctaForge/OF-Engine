@@ -22,6 +22,14 @@
 ]]
 module("state_variables", package.seeall)
 
+local function todec2str(v)
+    v = v or 0
+    if std.math.abs(v) < 0.01 then return "0" end
+    local r = std.conv.to("string", v)
+    local p = std.string.find(r, "%.")
+    return not p and r or std.string.sub(r, 1, p + 2)
+end
+
 --[[!
     Function: get_on_modify_name
     Gets "on modify" name for state variables on either client or server.
@@ -136,11 +144,11 @@ json.register(
     this one, providing their own methods to convert from / to wire format
     and others.
 ]]
-state_variable = class.new(nil, {
+state_variable = std.class.new(nil, {
     --[[!
         Function: __tostring
         Returns a string representation of this state variable,
-        that is the name set as third argument to <class.new>.
+        that is the name set as third argument to <std.class.new>.
         Each class overrides this name, so there is no need
         for overriding __tostring further.
     ]]
@@ -402,7 +410,7 @@ state_variable = class.new(nil, {
             value - the value to convert.
     ]]
     to_wire = function(self, value)
-        return convert.tostring(value)
+        return std.conv.to("string", value)
     end,
 
     --[[!
@@ -415,7 +423,7 @@ state_variable = class.new(nil, {
             value - the value to convert.
     ]]
     from_wire = function(self, value)
-        return convert.tostring(value)
+        return std.conv.to("string", value)
     end
 }, "state_variable")
 
@@ -427,13 +435,13 @@ state_variable = class.new(nil, {
     to_wire performs raw conversion to a string.
     from_wire performs raw conversion to an integer.
 ]]
-state_integer = class.new(state_variable, {
+state_integer = std.class.new(state_variable, {
     to_wire = function(self, value)
-        return convert.tostring(value)
+        return std.conv.to("string", value)
     end,
 
     from_wire = function(self, value)
-        return convert.tointeger(value)
+        return std.conv.to("integer", value)
     end
 }, "state_integer")
 
@@ -446,13 +454,13 @@ state_integer = class.new(state_variable, {
     of two digits after floating point (see <convert.todec2str>).
     from_wire performs raw conversion to a number.
 ]]
-state_float = class.new(state_variable, {
+state_float = std.class.new(state_variable, {
     to_wire = function(self, value)
-        return convert.todec2str(value)
+        return todec2str(value)
     end,
 
     from_wire = function(self, value)
-        return convert.tonumber(value)
+        return std.conv.to("number", value)
     end
 }, "state_float")
 
@@ -464,13 +472,13 @@ state_float = class.new(state_variable, {
     to_wire performs raw conversion to a string.
     from_wire performs conversion to a boolean (<convert.toboolean>).
 ]]
-state_bool = class.new(state_variable, {
+state_bool = std.class.new(state_variable, {
     to_wire = function(self, value)
-        return convert.tostring(value)
+        return std.conv.to("string", value)
     end,
 
     from_wire = function(self, value)
-        return convert.toboolean(value)
+        return std.conv.to("boolean", value)
     end
 }, "state_bool")
 
@@ -482,7 +490,7 @@ state_bool = class.new(state_variable, {
     to_wire performs JSON encoding of an object, returning a string.
     from_wire decodes the string back to original object.
 ]]
-state_json = class.new(state_variable, {
+state_json = std.class.new(state_variable, {
     to_wire = function(self, value)
         return json.encode(value)
     end,
@@ -499,7 +507,7 @@ state_json = class.new(state_variable, {
     already work with strings. This is basically a nice alias
     for <state_variable>.
 ]]
-state_string = class.new(state_variable, "state_string")
+state_string = std.class.new(state_variable, "state_string")
 
 --[[!
     Class: array_surrogate
@@ -521,11 +529,11 @@ state_string = class.new(state_variable, "state_string")
     There are certain specialized methods for manipulation present
     as object methods.
 ]]
-array_surrogate = class.new(nil, {
+array_surrogate = std.class.new(nil, {
     --[[!
         Function: __tostring
         Returns string representation of the surrogate, that is
-        name set as third argument to <class.new>.
+        name set as third argument to <std.class.new>.
     ]]
     __tostring = function(self)
         return self.name
@@ -598,16 +606,16 @@ array_surrogate = class.new(nil, {
     end,
 
     --[[!
-        Function: as_array
+        Function: to_array
         Returns raw array of values, which are stored inside
         the entity via state variable.
     ]]
-    as_array = function(self)
-        logging.log(logging.INFO, "as_array: " .. tostring(self))
+    to_array = function(self)
+        logging.log(logging.INFO, "to_array: " .. tostring(self))
 
         local r = {}
         for i = 1, self.length do
-            logging.log(logging.INFO, "as_array(" .. tostring(i) .. ")")
+            logging.log(logging.INFO, "to_array(" .. tostring(i) .. ")")
             table.insert(r, self[i])
         end
         return r
@@ -624,7 +632,7 @@ array_surrogate = class.new(nil, {
     to the entity) it returns <array_surrogate> which has entity
     and SV assigned and thus can change internal values.
 ]]
-state_array = class.new(state_variable, {
+state_array = std.class.new(state_variable, {
     --[[!
         Variable: separator
         This is the separator that is used in wire format (string)
@@ -716,9 +724,9 @@ state_array = class.new(state_variable, {
         -- pre-declare data
         local data
 
-        -- for surrogates, we have as_array
-        if value.as_array then
-            data = value:as_array()
+        -- for surrogates, we have to_array
+        if value.to_array then
+            data = value:to_array()
         else
             -- otherwise we get raw table, copy it
             data = table.copy(value)
@@ -734,7 +742,7 @@ state_array = class.new(state_variable, {
         Doesn't have self argument, accepts just one argument and that
         is the value. Returns an item in wire format.
     ]]
-    to_wire_item = convert.tostring,
+    to_wire_item = function(v) return std.conv.to("string", v) end,
 
     --[[!
         Function: to_wire
@@ -758,8 +766,8 @@ state_array = class.new(state_variable, {
         )
 
         -- if we have array surrogate, get a raw array
-        if value.as_array then
-            value = value:as_array()
+        if value.to_array then
+            value = value:to_array()
         end
 
         -- return right format, use <table.map> to map items to wire format.
@@ -777,7 +785,7 @@ state_array = class.new(state_variable, {
         Doesn't have self argument, accepts just one argument and that
         is the value. Returns an item in non-wire format.
     ]]
-    from_wire_item = convert.tostring,
+    from_wire_item = function(v) return std.conv.to("string", v) end,
 
     --[[!
         Function: from_wire
@@ -919,9 +927,9 @@ state_array = class.new(state_variable, {
     way as for <state_float>. Overrides <state_array.to_wire_item>
     and <state_array.from_wire_item>.
 ]]
-state_array_float = class.new(state_array, {
-    to_wire_item = convert.todec2str,
-    from_wire_item = convert.tonumber
+state_array_float = std.class.new(state_array, {
+    to_wire_item = todec2str,
+    from_wire_item = function(v) return std.conv.to("number", v) end
 }, "state_array_float")
 
 --[[!
@@ -930,9 +938,9 @@ state_array_float = class.new(state_array, {
     Overrides <state_array.to_wire_item> and
     <state_array.from_wire_item>.
 ]]
-state_array_integer = class.new(state_array, {
-    to_wire_item = convert.tostring,
-    from_wire_item = convert.tointeger
+state_array_integer = std.class.new(state_array, {
+    to_wire_item = function(v) return std.conv.to("string", v) end,
+    from_wire_item = function(v) return std.conv.to("integer", v) end
 
 }, "state_array_integer")
 
@@ -945,7 +953,7 @@ state_array_integer = class.new(state_array, {
     and setter for the SV. Useful when you're i.e. aliasing
     Cube 2 entity properties (attrN) to a nicer name.
 ]]
-variable_alias = class.new(state_variable, {
+variable_alias = std.class.new(state_variable, {
     --[[!
         Constructor: __init
         Overriden constructor for alias. Variable aliases don't
@@ -1034,7 +1042,7 @@ wrapped_c_variable = {
         kwargs.c_setter = nil
 
         -- and call parent with the kwargs
-        self.__base.__init(self, kwargs)
+        self.base_class.__init(self, kwargs)
     end,
 
     --[[!
@@ -1060,7 +1068,7 @@ wrapped_c_variable = {
     ]]
     register = function(self, _name, parent)
         -- call parent
-        self.__base.register(self, _name, parent)
+        self.base_class.register(self, _name, parent)
 
         logging.log(logging.DEBUG, "WCV register: " .. tostring(_name))
 
@@ -1166,7 +1174,7 @@ wrapped_c_variable = {
                 "WCV getter: fallback to state_data since "
                     .. tostring(variable.c_getter)
             )
-            return variable.__base.getter(self, variable)
+            return variable.base_class.getter(self, variable)
         end
     end
 }
@@ -1176,7 +1184,7 @@ wrapped_c_variable = {
     Wrapped C version of <state_integer>. Takes <state_integer>
     and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_integer = class.new(
+wrapped_c_integer = std.class.new(
     state_integer, wrapped_c_variable, "wrapped_c_integer"
 )
 
@@ -1185,7 +1193,7 @@ wrapped_c_integer = class.new(
     Wrapped C version of <state_float>. Takes <state_float>
     and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_float = class.new(
+wrapped_c_float = std.class.new(
     state_float, wrapped_c_variable, "wrapped_c_float"
 )
 
@@ -1194,7 +1202,7 @@ wrapped_c_float = class.new(
     Wrapped C version of <state_bool>. Takes <state_bool>
     and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_bool = class.new(
+wrapped_c_bool = std.class.new(
     state_bool, wrapped_c_variable, "wrapped_c_bool"
 )
 
@@ -1203,7 +1211,7 @@ wrapped_c_bool = class.new(
     Wrapped C version of <state_string>. Takes <state_string>
     and mixes in <wrapped_c_variable>.
 ]]
-wrapped_c_string = class.new(
+wrapped_c_string = std.class.new(
     state_string, wrapped_c_variable, "wrapped_c_string"
 )
 
@@ -1214,7 +1222,7 @@ wrapped_c_string = class.new(
     <wrapped_c_variable.getter>. Overrides <state_array.get_raw>
     so it makes use of C getters.
 ]]
-wrapped_c_array = class.new(state_array, "wrapped_c_array"):mixin({
+wrapped_c_array = std.class.new(state_array, "wrapped_c_array"):mixin({
     __init   = wrapped_c_variable.__init,
     register = wrapped_c_variable.register,
 
@@ -1281,8 +1289,8 @@ wrapped_c_array = class.new(state_array, "wrapped_c_array"):mixin({
     overrides <array_surrogate.__init> and <array_surrogate.push>
     with its own methods.
 ]]
-vec3_surrogate = class.new(
-    array_surrogate, math.vec3, "vec3_surrogate"
+vec3_surrogate = std.class.new(
+    array_surrogate, std.math.Vec3, "vec3_surrogate"
 ):mixin({
     --[[!
         Constructor: __init
@@ -1369,7 +1377,7 @@ vec3_surrogate = class.new(
     which you manipulate (and contains all vector manipulation methods).
     See <state_array.surrogate_class>.
 ]]
-state_vec3 = class.new(state_array_float, {
+state_vec3 = std.class.new(state_array_float, {
     surrogate_class = vec3_surrogate
 }, "state_vec3")
 
@@ -1380,7 +1388,7 @@ state_vec3 = class.new(state_array_float, {
     <wrapped_c_variable.getter>. Uses <wrapped_c_array.get_raw>
     for C interfacing.
 ]]
-wrapped_c_vec3 = class.new(state_vec3, {
+wrapped_c_vec3 = std.class.new(state_vec3, {
     __init   = wrapped_c_variable.__init,
     register = wrapped_c_variable.register,
     get_raw  = wrapped_c_array.get_raw
@@ -1389,13 +1397,13 @@ wrapped_c_vec3 = class.new(state_vec3, {
 --[[!
     Class: vec4_surrogate
     Inherited from <array_surrogate>. It's basically array surrogate
-    modified to fit better with <math.vec4>. It takes <array_surrogate>,
-    mixes in <math.vec4> so it has all vector operation methods and
+    modified to fit better with <std.math.Vec4>. It takes <array_surrogate>,
+    mixes in <std.math.Vec4> so it has all vector operation methods and
     overrides <array_surrogate.__init> and <array_surrogate.push>
     with its own methods.
 ]]
-vec4_surrogate = class.new(
-    array_surrogate, math.vec4, "vec4_surrogate"
+vec4_surrogate = std.class.new(
+    array_surrogate, std.math.Vec4, "vec4_surrogate"
 ):mixin({
     --[[!
         Constructor: __init
@@ -1492,7 +1500,7 @@ vec4_surrogate = class.new(
     which you manipulate (and contains all vector manipulation methods).
     See <state_array.surrogate_class>.
 ]]
-state_vec4 = class.new(state_array_float, {
+state_vec4 = std.class.new(state_array_float, {
     surrogate_class = vec4_surrogate
 }, "state_vec4")
 
@@ -1503,7 +1511,7 @@ state_vec4 = class.new(state_array_float, {
     <wrapped_c_variable.getter>. Uses <wrapped_c_array.get_raw>
     for C interfacing.
 ]]
-wrapped_c_vec4 = class.new(state_vec4, {
+wrapped_c_vec4 = std.class.new(state_vec4, {
     __init   = wrapped_c_variable.__init,
     register = wrapped_c_variable.register,
     get_raw  = wrapped_c_array.get_raw

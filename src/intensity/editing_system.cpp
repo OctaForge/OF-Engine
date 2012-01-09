@@ -40,7 +40,7 @@
 // local: whether initiated here (if so, notify others)
 /////////////////////void mpeditface(int dir, int mode, selinfo &sel, bool local)
 
-
+void mpeditvslot(VSlot &ds, int allfaces, selinfo &sel, bool local);
 
 // 1.0 is to place it exactly on worldpos
 #define FAR_PLACING_FACTOR 0.9
@@ -50,6 +50,8 @@ extern int orient;
 
 extern bool havesel;
 extern selinfo sel;
+
+extern int& allfaces;
 
 namespace EditingSystem
 {
@@ -222,6 +224,36 @@ void setCubeMaterial(int x, int y, int z, int gridsize, int material)
     mpeditmat(material, 0, sel, true);
 }
 
+void setCubeColor(int x, int y, int z, int gridsize, float r, float g, float b)
+{
+    if (!checkCubeCoords(x, y, z, gridsize))
+    {
+        logger::log(logger::ERROR, "Bad cube coordinates to setCubeMaterial: %d,%d,%d : %d\r\n", x, y, z, gridsize);
+        return;
+    }
+
+    selinfo sel;
+    sel.o = ivec(x, y, z);
+    sel.s = ivec(1, 1, 1);
+    sel.grid = gridsize;
+
+    // Does it matter?
+    sel.orient = 5;
+    sel.corner = 1;
+    sel.cx = 0;
+    sel.cxs = 2;
+    sel.cy = 0;
+    sel.cys = 2;
+
+    VSlot ds;
+    ds.changed = 1 << VSLOT_COLOR;
+    ds.colorscale = vec(
+        clamp(r, 0.0f, 1.0f),
+        clamp(g, 0.0f, 1.0f),
+        clamp(b, 0.0f, 1.0f)
+    );
+    mpeditvslot(ds, allfaces, sel, true);  
+}
 
 int cornerTranslators[6][4] =
     {

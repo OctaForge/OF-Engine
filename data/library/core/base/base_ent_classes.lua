@@ -81,7 +81,7 @@ function register(class, sauer_type)
         -- save iteration
         if base == entity.base_root then break end
         -- go deeper
-        base = base.__base
+        base = base.base_class
     end
 
     -- get a list of names from proptable

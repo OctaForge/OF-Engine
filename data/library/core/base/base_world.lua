@@ -110,7 +110,7 @@ get_size = CAPI.editing_getworldsize
     compute grid size from <gridpower> by calling
 
     (start code)
-        math.lsh(1, gridpower)
+        std.math.lsh(1, gridpower)
     (end)
 ]]
 get_grid_size = CAPI.editing_getgridsize

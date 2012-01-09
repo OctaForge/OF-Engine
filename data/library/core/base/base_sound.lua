@@ -39,7 +39,7 @@ module("sound", package.seeall)
 function play(name, position, volume, cn)
     -- defaults, we don't default volume since 0 is represented as
     -- 100 by the C API in this case
-    position = position or math.vec3(0, 0, 0)
+    position = position or std.math.Vec3(0, 0, 0)
 
     if CLIENT then
         -- clientside behavior

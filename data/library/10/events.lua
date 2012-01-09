@@ -1,6 +1,6 @@
 module("events", package.seeall)
 
-repeating_timer = class.new(nil, {
+repeating_timer = std.class.new(nil, {
     __tostring = function(self)
         return string.format(
             "repeating_timer: %s %s %s",
@@ -36,7 +36,7 @@ repeating_timer = class.new(nil, {
 
 -- action that can queue more actions on itself, which run on its actor,
 -- finishes when both this action an all subactions are done.
-action_container = class.new(actions.action, {
+action_container = std.class.new(actions.action, {
     __init = function(self, other_actions, kwargs)
         actions.action.__init(self, kwargs)
         self.other_actions = other_actions
@@ -71,7 +71,7 @@ action_container = class.new(actions.action, {
 }, "action_container")
 
 -- like action_container, but runs actions in parallel - finishes when all are done
-action_parallel = class.new(actions.action, {
+action_parallel = std.class.new(actions.action, {
     cancellable = false,
 
     __init = function(self, other_actions, kwargs)
@@ -111,7 +111,7 @@ action_parallel = class.new(actions.action, {
     end
 }, "action_parallel")
 
-action_delayed = class.new(actions.action, {
+action_delayed = std.class.new(actions.action, {
     __init = function(self, command, kwargs)
         actions.action.__init(self, kwargs)
         self.command = command
@@ -175,7 +175,7 @@ action_input_capture_plugin = {
     end
 }
 
-action_input_capture = class.new(
+action_input_capture = std.class.new(
     actions.action,
     action_input_capture_plugin,
     "action_input_capture"
@@ -183,7 +183,7 @@ action_input_capture = class.new(
 
 action_render_capture_plugin = {
     do_start = function(self, ...)
-        self.__base.do_start(self, ...)
+        self.base_class.do_start(self, ...)
 
         if  self.render_dynamic then
             self.render_dynamic_old     = entity_store.render_dynamic
@@ -203,7 +203,7 @@ action_render_capture_plugin = {
             entity_store.render_hud_model = self.render_hud_model_old
         end
 
-        self.__base.do_finish(self, ...)
+        self.base_class.do_finish(self, ...)
     end
 }
 
@@ -217,9 +217,9 @@ action_system_plugin = {
     end
 }
 
-_action_system_parallel_manager = class.new(class.new(nil, action_system_plugin), {
+_action_system_parallel_manager = std.class.new(std.class.new(nil, action_system_plugin), {
     __init = function(self, owner)
-        self.__base.__init(self, owner)
+        self.base_class.__init(self, owner)
 
         self.action = action_parallel({})
         self.action_system:queue(self.action)

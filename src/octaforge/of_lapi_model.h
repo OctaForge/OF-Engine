@@ -147,17 +147,19 @@ namespace lapi_binds
         model *old = loadmodel(name);
         if (!old) return;
 
-        lapi::state.get<lua::Function>("CAPI", "clearmodel")(name);
+        clearmodel((char*)name);
         model *_new = loadmodel(name);
 
         lua::Table ents = lapi::state.get<lua::Function>(
-            "entity_store", "get_all"
+            "LAPI", "World", "Entities", "get_all"
         ).call<lua::Table>();
 
         for (lua::Table::it it = ents.begin(); it != ents.end(); ++it)
         {
             CLogicEntity *ent = LogicSystem::getLogicEntity(
-                lua::Table(*it).get<int>("uid")
+                lua::Table(*it).get<int>(lapi::state.get<lua::Object>(
+                    "LAPI", "World", "Entity", "Properties", "id"
+                ))
             );
             if (!ent) continue;
             if (ent->theModel == old) ent->theModel = _new;
@@ -186,9 +188,9 @@ namespace lapi_binds
             if (fp->ragdoll || !ragdoll)
             {
                 anim &= ~ANIM_RAGDOLL;
-                self->lua_ref.get<lua::Function>("set_local_animation")(
-                    self->lua_ref, anim
-                );
+                lapi::state.get<lua::Function>(
+                    "LAPI", "World", "Entity", "set_local_animation"
+                )(self->lua_ref, anim);
             }
         }
         else
@@ -208,7 +210,9 @@ namespace lapi_binds
 
     fpsent *getproxyfpsent(CLogicEntity *self)
     {
-        lua::Object h(self->lua_ref["rendering_hash_hint"]);
+        lua::Object h(self->lua_ref[lapi::state.get<lua::Object>(
+            "LAPI", "World", "Entity", "Properties", "rendering_hash_hint"
+        )]);
         if (!h.is_nil())
         {
             static bool initialized = false;

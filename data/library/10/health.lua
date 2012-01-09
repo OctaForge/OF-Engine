@@ -1,12 +1,12 @@
 module("health", package.seeall)
 
-action_pain = class.new(entity_animated.action_local_animation, {
+action_pain = std.class.new(entity_animated.action_local_animation, {
     seconds_left       = 0.6,
     local_animation    = actions.ANIM_PAIN,
     can_multiply_queue = false
 }, "action_pain")
 
-action_death = class.new(actions.action, {
+action_death = std.class.new(actions.action, {
     can_multiply_queue = false,
     cancellable        = false,
     seconds_left       = 5.5,
@@ -45,7 +45,7 @@ plugin = {
                     if  self.default_model_name then
                         self.model_name  = ""
                     end
-                    self.animation   = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
+                    self.animation   = std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
                     self.spawn_stage = 3
                 end
                 return true, "cancel_state_data_update"
@@ -97,18 +97,18 @@ plugin = {
 
     decide_animation = function(self, ...)
         if self.health > 0 then
-            return self.__base.decide_animation(self, ...)
+            return self.base_class.decide_animation(self, ...)
         else
-            return math.bor(actions.ANIM_DYING, actions.ANIM_RAGDOLL)
+            return std.math.bor(actions.ANIM_DYING, actions.ANIM_RAGDOLL)
         end
     end,
 
     decide_action_animation = function(self, ...)
-        local ret = self.__base.decide_action_animation(self, ...)
+        local ret = self.base_class.decide_action_animation(self, ...)
 
         -- clean up if not dead
-        if self.health > 0 and (ret == actions.ANIM_DYING or ret == math.bor(actions.ANIM_DYING, actions.ANIM_RAGDOLL)) then
-            self:set_local_animation(math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP))
+        if self.health > 0 and (ret == actions.ANIM_DYING or ret == std.math.bor(actions.ANIM_DYING, actions.ANIM_RAGDOLL)) then
+            self:set_local_animation(std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP))
             ret = self.animation
         end
 
@@ -132,15 +132,15 @@ plugin = {
                 gui.hud_label(tostring(health), 0.94, 0.88, 0.5, color)
             end
         else
-            local raw    = math.floor((34 * self.health) / self.max_health)
-            local whole  = math.floor(raw  / 2)
+            local raw    = std.math.floor((34 * self.health) / self.max_health)
+            local whole  = std.math.floor(raw  / 2)
             local half   = raw > whole * 2
             local params = GLOBAL_GAME_HUD:get_health_params()
             gui.hud_image(
                 string.gsub(
                     params.icon,
                     "%VARIANT%",
-                    (whole >= 10 and whole or "0" .. math.clamp(whole, 1, 100))
+                    (whole >= 10 and whole or "0" .. std.math.clamp(whole, 1, 100))
                      .. (half and "_5" or "")
                 ),
                 params.x, params.y, params.w, params.h
@@ -177,15 +177,15 @@ plugin = {
     visual_pain_effect = function(self, health)
         local pos = self.position:copy()
         pos.z = pos.z + self.eye_height - 4
-        effects.splash(effects.PARTICLE.BLOOD, convert.tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
-        effects.decal(effects.DECAL.BLOOD, self.position, math.vec3(0, 0, 1), 7, self.blood_color)
+        effects.splash(effects.PARTICLE.BLOOD, std.conv.to("integer", (self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
+        effects.decal(effects.DECAL.BLOOD, self.position, std.math.Vec3(0, 0, 1), 7, self.blood_color)
         if self == entity_store.get_player_entity() then effects.client_damage(0, self.old_health - health) end
     end,
 
     suffer_damage = function(self, source)
         local damage = (type(source.damage) == "number") and source.damage or source
         if  self.health > 0 and damage and damage ~= 0 then
-            self.health = math.max(0, self.health - damage)
+            self.health = std.math.max(0, self.health - damage)
         end
     end
 }

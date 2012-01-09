@@ -34,7 +34,7 @@ module("model", package.seeall)
         <CULL_OCCLUDED>
         <CULL_QUERY>
 ]]
-CULL_VFC = math.lsh(1, 0)
+CULL_VFC = std.math.lsh(1, 0)
 
 --[[!
     Variable: CULL_DIST
@@ -45,7 +45,7 @@ CULL_VFC = math.lsh(1, 0)
         <CULL_OCCLUDED>
         <CULL_QUERY>
 ]]
-CULL_DIST = math.lsh(1, 1)
+CULL_DIST = std.math.lsh(1, 1)
 
 --[[!
     Variable: CULL_OCCLUDED
@@ -56,7 +56,7 @@ CULL_DIST = math.lsh(1, 1)
         <CULL_DIST>
         <CULL_QUERY>
 ]]
-CULL_OCCLUDED = math.lsh(1, 2)
+CULL_OCCLUDED = std.math.lsh(1, 2)
 
 --[[!
     Variable: CULL_QUERY
@@ -67,57 +67,57 @@ CULL_OCCLUDED = math.lsh(1, 2)
         <CULL_DIST>
         <CULL_OCCLUDED>
 ]]
-CULL_QUERY = math.lsh(1, 3)
+CULL_QUERY = std.math.lsh(1, 3)
 
 --[[!
     Variable: SHADOW
     A flag that enables shadowing of mapmodels for <render>.
 ]]
-SHADOW = math.lsh(1, 4)
+SHADOW = std.math.lsh(1, 4)
 
 --[[!
     Variable: DYNSHADOW
     A flag that gives model a dynamic shadow for <render>.
 ]]
-DYNSHADOW = math.lsh(1, 5)
+DYNSHADOW = std.math.lsh(1, 5)
 
 --[[!
     Variable: LIGHT
     A flag for <render> that makes model lit. See also
     <DYNLIGHT>.
 ]]
-LIGHT = math.lsh(1, 6)
+LIGHT = std.math.lsh(1, 6)
 
 --[[!
     Variable: DYNLIGHT
     See <LIGHT>, this is for dynlights (see <effects.dynamic_light>).
 ]]
-DYNLIGHT = math.lsh(1, 7)
+DYNLIGHT = std.math.lsh(1, 7)
 
 --[[!
     Variable: FULLBRIGHT
     A flag for <render> that gives the model fullbright.
 ]]
-FULLBRIGHT = math.lsh(1, 8)
+FULLBRIGHT = std.math.lsh(1, 8)
 
 --[[!
     Variable: LIGHT_FAST
     A flag for <render> that gives the model a cheap lighting.
 ]]
-LIGHT_FAST = math.lsh(1, 10)
+LIGHT_FAST = std.math.lsh(1, 10)
 
 --[[!
     Variable: HUD
     Use this <render> flag for HUD models. Affects some lighting
     capabilities.
 ]]
-HUD = math.lsh(1, 11)
+HUD = std.math.lsh(1, 11)
 
 --[[!
     Variable: GHOST
     Use this <render> flag to make the model half opaque.
 ]]
-GHOST = math.lsh(1, 12)
+GHOST = std.math.lsh(1, 12)
 
 --[[!
     Function: clear
@@ -159,7 +159,7 @@ reload = CAPI.reloadmodel
         yaw - model yaw.
         pitch - model pitch.
         flags - various model flags for i.e. occlusion and lighting,
-        see the flags above. Use <math.bor> to join them.
+        see the flags above. Use <std.math.bor> to join them.
         base_time - entity's start_time property.
 ]]
 render = CAPI.rendermodel

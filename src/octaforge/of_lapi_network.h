@@ -78,7 +78,7 @@ namespace lapi_binds
         auto err = lapi::state.load_file(fname);
         if (types::get<0>(err))
         {
-            lapi::state.get<lua::Function>("gui", "message")(
+            lapi::state.get<lua::Function>("LAPI", "GUI", "show_message")(
                 "Compilation failed", types::get<1>(err)
             );
             return;

@@ -851,21 +851,14 @@ void mousemove(int dx, int dy)
     // INTENSITY: Let scripts customize mousemoving
     if (lapi::state.state())
     {
-        lua::Function do_mousemove = lapi::state["do_mousemove"];
-        if (do_mousemove.is_nil())
-        {
-            camera1->yaw   += (dx * cursens);
-            camera1->pitch += (-dy * cursens * (invmouse ? -1 : 1));
-        }
-        else
-        {
-            lua::Table t = do_mousemove.call<lua::Object>(
-                (dx * cursens),
-                (-dy * cursens * (invmouse ? -1 : 1))
-            );
-            camera1->yaw   += t["yaw"  ].to<double>();
-            camera1->pitch += t["pitch"].to<double>();
-        }
+        lua::Table t = lapi::state.get<lua::Function>(
+            "LAPI", "Input", "Events", "Client", "mouse_move"
+        ).call<lua::Object>(
+            (dx * cursens),
+            (-dy * cursens * (invmouse ? -1 : 1))
+        );
+        camera1->yaw   += t["yaw"  ].to<double>();
+        camera1->pitch += t["pitch"].to<double>();
 
         fixcamerarange();
         if(camera1!=player && !detachedcamera)
@@ -2259,34 +2252,30 @@ void gl_drawhud(int w, int h)
                 abovehud -= FONTH;
                 draw_textf("cube %s%d", FONTH/2, abovehud, selchildcount<0 ? "1/" : "", abs(selchildcount));
 
-                lua::Function edithud = lapi::state["edithud"];
-                if (!edithud.is_nil())
+                const char *editinfo = lapi::state.get<lua::Function>(
+                    "LAPI", "GUI", "HUD", "edit"
+                ).call<const char*>();
+                if(editinfo && editinfo[0])
                 {
-                    const char *editinfo = edithud.call<const char*>();
-                    if(editinfo && editinfo[0])
-                    {
-                        int tw, th;
-                        text_bounds(editinfo, tw, th);
-                        th += FONTH-1; th -= th%FONTH;
-                        abovehud -= max(th, FONTH);
-                        draw_text(editinfo, FONTH/2, abovehud);
-                    }
+                    int tw, th;
+                    text_bounds(editinfo, tw, th);
+                    th += FONTH-1; th -= th%FONTH;
+                    abovehud -= max(th, FONTH);
+                    draw_text(editinfo, FONTH/2, abovehud);
                 }
             }
             else
             {
-                lua::Function gamehud = lapi::state["gamehud"];
-                if (!gamehud.is_nil())
+                const char *gameinfo = lapi::state.get<lua::Function>(
+                    "LAPI", "GUI", "HUD", "game"
+                ).call<const char*>();
+                if(gameinfo && gameinfo[0])
                 {
-                    const char *gameinfo = gamehud.call<const char*>();
-                    if(gameinfo && gameinfo[0])
-                    {
-                        int tw, th;
-                        text_bounds(gameinfo, tw, th);
-                        th += FONTH-1; th -= th%FONTH;
-                        roffset += max(th, FONTH);    
-                        draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+tw), conh-FONTH/2-roffset);
-                    }
+                    int tw, th;
+                    text_bounds(gameinfo, tw, th);
+                    th += FONTH-1; th -= th%FONTH;
+                    roffset += max(th, FONTH);    
+                    draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+tw), conh-FONTH/2-roffset);
                 }
             } 
             

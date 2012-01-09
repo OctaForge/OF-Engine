@@ -55,13 +55,16 @@ end
 CAPI.log(CAPI.DEBUG, "Initializing logging.")
 require("logger")
 
-logging.log(logging.DEBUG, "Initializing language extensions.")
-require("language")
+logging.log(logging.DEBUG, "Initializing new core library.")
+require("std")
 
 logging.log(logging.DEBUG, "Initializing base.")
 require("base")
 
 logging.log(logging.DEBUG, "Initializing tgui.")
 require("tgui")
+
+logging.log(logging.DEBUG, "Initializing LAPI.")
+LAPI = require("lapi")
 
 logging.log(logging.DEBUG, "Core scripting initialization complete.")

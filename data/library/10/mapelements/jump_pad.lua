@@ -40,7 +40,7 @@ plugin = {
            self.player_delay = 0.5
 
         -- throw collider up
-        collider.velocity = self.jump_velocity:as_array()
+        collider.velocity = self.jump_velocity:to_array()
 
         if self.pad_sound ~= "" then
             sound.play(self.pad_sound)
@@ -51,7 +51,7 @@ plugin = {
         if self.pad_model == "" then return nil end
 
         local o = self.position
-        local flags = math.bor(
+        local flags = std.math.bor(
             model.LIGHT, model.CULL_VFC,
             model.OCCLUDED, model.CULL_QUERY,
             model.FULLBRIGHT, model.CULL_DIST,
@@ -64,7 +64,7 @@ plugin = {
 
         model.render(
             self, self.pad_model,
-            math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
+            std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
             o, yaw and yaw or self.yaw, self.pad_pitch,
             flags, 0
         )

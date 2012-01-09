@@ -413,8 +413,9 @@ void execbind(keym &k, bool isdown)
 
         if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
         {
-            lua::Object o = lapi::state.get<lua::Table>("input")
-                                       .get<lua::Table>("per_map_keys")[k.name];
+            lua::Object o = lapi::state.get<lua::Function>(
+                "LAPI", "Input", "get_local_bind"
+            ).call<lua::Object>(k.name);
 
             if (o.type() == lua::TYPE_FUNCTION)
             {

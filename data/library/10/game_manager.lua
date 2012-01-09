@@ -67,7 +67,7 @@ function setup(plugins_add)
 
                         -- place players randomly
                         while #players > 0 do
-                            local player = table.pop(players, math.floor(math.random() * #players))[1]
+                            local player = table.pop(players, std.math.floor(std.math.random() * #players))[1]
                             self:pick_team(player, false) -- pick teams with no syncing until the end
                         end
 
@@ -165,7 +165,7 @@ function setup(plugins_add)
                         local start_tag = "start_" .. player.team
                         local possibles = entity_store.get_all_by_tag(start_tag)
                         if possibles and #possibles > 0 then
-                            local start = possibles[math.random(1, #possibles)]
+                            local start = possibles[std.math.random(1, #possibles)]
                             if start then
                                 start:place_entity(player)
                                 return nil
@@ -269,7 +269,7 @@ manager_plugins = {
                 if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_player_entity() then return false end
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
-                size = msg.duration >= 0.5 and size or size * math.pow(msg.duration * 2, 2)
+                size = msg.duration >= 0.5 and size or size * std.math.pow(msg.duration * 2, 2)
                 gui.showhudtext(
                     msg.text,
                     msg.x and msg.x ~= 0 and msg.x or 0.5,
@@ -334,8 +334,8 @@ manager_plugins = {
                 for k, team in pairs(self.teams) do
                     max_score = max_score or team.score
                     min_score = min_score or team.score
-                    max_score = math.max(team.score, max_score)
-                    min_score = math.min(team.score, min_score)
+                    max_score = std.math.max(team.score, max_score)
+                    min_score = std.math.min(team.score, min_score)
                 end
 
                 local tie = (max_score == min_score)
@@ -347,23 +347,23 @@ manager_plugins = {
                     local sound
                     if not tie then
                         if self.steams[player.team].score == max_score then
-                            player.animation = math.bor(actions.ANIM_WIN, actions.ANIM_LOOP)
+                            player.animation = std.math.bor(actions.ANIM_WIN, actions.ANIM_LOOP)
                             message.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
-                                sound.play(self.win_sound, math.vec3(0, 0, 0), player.cn)
+                                sound.play(self.win_sound, std.math.Vec3(0, 0, 0), player.cn)
                             end
                         else
-                            player.animation = math.bor(actions.ANIM_LOSE, actions.ANIM_LOOP)
+                            player.animation = std.math.bor(actions.ANIM_LOSE, actions.ANIM_LOOP)
                             message.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
-                                sound.play(self.lose_sound, math.vec3(0, 0, 0), player.cn)
+                                sound.play(self.lose_sound, std.math.Vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
-                        player.animation = math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
+                        player.animation = std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
                         message.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
-                            sound.play(self.tie_sound, math.vec3(0, 0, 0), player.cn)
+                            sound.play(self.tie_sound, std.math.Vec3(0, 0, 0), player.cn)
                         end
                     end
                 end
@@ -515,7 +515,7 @@ manager_plugins = {
                     if item.seconds_between >= 0 and more ~= false then
                         more = more or 0
                         -- negative more means 'add some jitter'
-                        if more < 0 then more = more * -(math.random() + 0.5) end
+                        if more < 0 then more = more * -(std.math.random() + 0.5) end
                         item.deadline = GLOBAL_TIME + item.seconds_between + more
                         curr_index = curr_index + 1
                     else

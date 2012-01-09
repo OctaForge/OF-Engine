@@ -22,7 +22,7 @@ namespace game
 
         startmodelbatches();
 
-        lapi::state.get<lua::Function>("entity_store", "render_dynamic")(isthirdperson());
+        lapi::state.get<lua::Function>("LAPI", "World", "Entities", "render")(isthirdperson());
         endmodelbatches();
     }
 
@@ -45,7 +45,7 @@ namespace game
 
     void renderavatar()
     {
-        lapi::state.get<lua::Function>("entity_store", "render_hud_model")();
+        lapi::state.get<lua::Function>("LAPI", "World", "render_hud")();
     }
 }
 

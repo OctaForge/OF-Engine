@@ -85,6 +85,8 @@ namespace lapi_binds
         LAPI_GET_ENT(entity, self, "CAPI.setsoundvol", return)
         logger::log(logger::DEBUG, "CAPI.setsoundvol(%i)\n", vol);
 
+        if (!entity->sndname) return;
+
         extentity *ext = entity->staticEntity;
         assert(ext);
 

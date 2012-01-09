@@ -1063,7 +1063,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
-                lapi::state.get<lua::Function>("entity_store", "add_sauer")(
+                lapi::state.get<lua::Function>("LAPI", "World", "Entity", "add_sauer")(
                     e.type, e.o, e.attr1, e.attr2, e.attr3, e.attr4
                 );
                 break;

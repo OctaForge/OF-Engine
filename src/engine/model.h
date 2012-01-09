@@ -102,8 +102,12 @@ struct model
                         // This is necessary because these are values cached from lua, unlike normal
                         // Sauer C++ variables that are managed in C++. Here, the *true* values are in lua
         {
-            width  = entity->lua_ref["collision_radius_width" ].to<double>();
-            height = entity->lua_ref["collision_radius_height"].to<double>();
+            width  = entity->lua_ref[lapi::state.get<lua::Object>(
+                "LAPI", "World", "Entity", "Properties", "collision_w"
+            )].to<double>();
+            height = entity->lua_ref[lapi::state.get<lua::Object>(
+                "LAPI", "World", "Entity", "Properties", "collision_h"
+            )].to<double>();
         }
 
         center[0] = center[1] = 0;

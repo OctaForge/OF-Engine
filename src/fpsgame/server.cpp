@@ -118,7 +118,7 @@ namespace server
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
         if (lapi::state.state() && !_ci->local && uniqueId >= 0)
-            lapi::state.get<lua::Function>("entity_store", "del")(uniqueId);
+            lapi::state.get<lua::Function>("LAPI", "World", "Entities", "delete")(uniqueId);
         
         delete (clientinfo *)ci;
     } 
@@ -537,12 +537,9 @@ namespace server
                     break;
                 }
 
-                bool handle_textmsg = false;
-                lua::Function f = lapi::state["handle_textmsg"];
-                if (!f.is_nil())
-                    handle_textmsg = f.call<bool>(ci->uniqueId, text);
-
-                if (!handle_textmsg)
+                if (!lapi::state.get<lua::Function>(
+                    "LAPI", "World", "Events", "text_message"
+                ).call<bool>(ci->uniqueId, text))
                 {
                     QUEUE_INT(type);
                     QUEUE_STR(text);
@@ -676,8 +673,10 @@ namespace server
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
             lapi::state.get<lua::Function>(
-                "entity_store", "get"
-            ).call<lua::Table>(ci->uniqueId)["can_edit"] = true;
+                "LAPI", "World", "Entities", "get"
+            ).call<lua::Table>(ci->uniqueId)[lapi::state.get<lua::Object>(
+                "LAPI", "World", "Entity", "Properties", "can_edit"
+            )] = true;
     }
 
     bool isAdmin(int clientNumber)
@@ -736,7 +735,7 @@ namespace server
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
 
         int uniqueId = lapi::state.get<lua::Function>(
-            "entity_store", "generate_uid"
+            "LAPI", "World", "Entities", "gen_id"
         ).call<int>();
 
         // Notify of uniqueId *before* creating the entity, so when the entity is created, player realizes it is them
@@ -746,25 +745,30 @@ namespace server
 
         ci->uniqueId = uniqueId;
 
-        lua::Table t = lapi::state.new_table(0, 1); t["cn"] = cn;
-        lapi::state.get<lua::Function>("entity_store", "new")(_class, t, uniqueId, true);
+        lua::Table t = lapi::state.new_table(0, 1);
+        t[lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "cn")] = cn;
+        lapi::state.get<lua::Function>("LAPI", "World", "Entities", "new")(_class, t, uniqueId, true);
 
         assert(
             lapi::state.get<lua::Function>(
-                "entity_store", "get"
-            ).call<lua::Table>(uniqueId).get<int>("cn") == cn
+                "LAPI", "World", "Entities", "get"
+            ).call<lua::Table>(uniqueId).get<int>(lapi::state.get<lua::Object>(
+                "LAPI", "World", "Entity", "Properties", "cn"
+            )) == cn
         );
 
         // Add admin status, if relevant
         if (ci->isAdmin)
             lapi::state.get<lua::Function>(
-                "entity_store", "get"
-            ).call<lua::Table>(uniqueId)["can_edit"] = true;
+                "LAPI", "World", "Entities", "get"
+            ).call<lua::Table>(uniqueId)[lapi::state.get<lua::Object>(
+                "LAPI", "World", "Entity", "Properties", "can_edit")
+            ] = true;
 
         // Add nickname
-        t = lapi::state.get<lua::Function>("entity_store", "get").call<lua::Table>(uniqueId);
+        t = lapi::state.get<lua::Function>("LAPI", "World", "Entities", "get").call<lua::Table>(uniqueId);
         // got class here
-        t["_name"] = uname;
+        t[lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "name")] = uname;
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)

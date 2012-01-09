@@ -44,8 +44,10 @@ struct vec
 
     void push(lua_State *L) const
     {
-        lua_getglobal (L, "math");
-        lua_getfield  (L, -1, "vec3");
+        lua_getglobal (L, "LAPI");
+        lua_getfield  (L, -1, "Math");
+        lua_getfield  (L, -1, "make_vec3");
+        lua_remove    (L, -2);
         lua_remove    (L, -2);
         lua_pushnumber(L, x);
         lua_pushnumber(L, y);
@@ -226,8 +228,10 @@ struct vec4
 
     void push(lua_State *L) const
     {
-        lua_getglobal (L, "math");
-        lua_getfield  (L, -1, "vec4");
+        lua_getglobal (L, "LAPI");
+        lua_getfield  (L, -1, "Math");
+        lua_getfield  (L, -1, "make_vec4");
+        lua_remove    (L, -2);
         lua_remove    (L, -2);
         lua_pushnumber(L, x);
         lua_pushnumber(L, y);

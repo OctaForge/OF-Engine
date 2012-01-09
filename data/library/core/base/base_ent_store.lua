@@ -267,7 +267,7 @@ function get_all_close(origin, kwargs)
 
         -- check distances
         if not skip and (
-            origin:sub_new(fun(entity)):magnitude() <= max_distance
+            origin:sub_new(fun(entity)):length() <= max_distance
         ) then
             table.insert(ret, { entity, distance })
         end
@@ -620,41 +620,39 @@ end
     so the performance is sufficient.
 ]]
 manage_triggering_collisions = actions.cache_by_time_delay(
-    convert.tocalltable(
-        function()
-            -- get all area triggers and entities inherited from area triggers
-            local ents = get_all_by_class("area_trigger")
+    std.conv.to("calltable", function()
+        -- get all area triggers and entities inherited from area triggers
+        local ents = get_all_by_class("area_trigger")
 
-            -- loop all clients
-            for i, player in pairs(get_all_clients()) do
-                -- skipping?
-                local skip = false
+        -- loop all clients
+        for i, player in pairs(get_all_clients()) do
+            -- skipping?
+            local skip = false
 
-                -- skip players that are editing - they're not colliding
-                if is_player_editing(player) then
-                    skip = true
-                end
+            -- skip players that are editing - they're not colliding
+            if is_player_editing(player) then
+                skip = true
+            end
 
-                -- if not skipping ..
-                if not skip then
-                    -- loop the triggers
-                    for n, entity in pairs(ents) do
-                        -- if player is colliding the trigger ..
-                        if geometry.is_player_colliding_entity(
-                            player, entity
-                        ) then
-                            -- call needed methods
-                            if CLIENT then
-                                entity:client_on_collision(player)
-                            else
-                                entity:on_collision(player)
-                            end
+            -- if not skipping ..
+            if not skip then
+                -- loop the triggers
+                for n, entity in pairs(ents) do
+                    -- if player is colliding the trigger ..
+                    if geometry.is_player_colliding_entity(
+                        player, entity
+                    ) then
+                        -- call needed methods
+                        if CLIENT then
+                            entity:client_on_collision(player)
+                        else
+                            entity:on_collision(player)
                         end
                     end
                 end
             end
         end
-    ),
+    end),
     0.1
 )
 
@@ -742,7 +740,7 @@ function load_entities()
         -- get highest uuid from current table
         local huid = 2
         for i, entity in pairs(entities) do
-            huid = math.max(huid, entity[1])
+            huid = std.math.max(huid, entity[1])
         end
         huid = huid + 1
 
@@ -891,7 +889,7 @@ function load_entities()
             and class_name ~= "envmap"
             and class_name ~= "world_marker" then
                 local yaw = (
-                    math.floor(state_data.attr1) % 360 + 360
+                    std.math.floor(state_data.attr1) % 360 + 360
                 ) % 360 + 7
                 state_data.attr1 = yaw - (yaw % 15)
             end
@@ -967,14 +965,14 @@ function setup_dynamic_rendering_test(entity)
     -- cache with delay of 1/3 second
     entity.render_dynamic_test = actions.cache_by_time_delay(
         -- callable table
-        convert.tocalltable(function()
+        std.conv.to("calltable", function()
             -- player center
             local player_center = get_player_entity().center
 
             -- check the distance - skip rendering only if it's distant
-            if entity.position:sub_new(player_center):magnitude() > 256 then
+            if entity.position:sub_new(player_center):length() > 256 then
                 -- check for line of sight
-                if not math.has_line_of_sight(
+                if not std.math.is_los(
                     player_center, entity.position
                 ) then
                     -- do not render
@@ -1114,7 +1112,7 @@ else
 
         -- get highest unique ID.
         for uid, entity in pairs(__entities_store) do
-            r = math.max(r, uid)
+            r = std.math.max(r, uid)
         end
 
         -- r is at highest unique ID available. Increment it.

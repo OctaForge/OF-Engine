@@ -1815,9 +1815,9 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     if (pl->o.z < 0)
     {
 #ifdef CLIENT
-        lua::Function f = lapi::state["client_on_ent_offmap"];
+        lua::Function f(lapi::state.get<lua::Object>("LAPI", "World", "Events", "Client", "off_map"));
 #else
-        lua::Function f = lapi::state["on_ent_offmap"];
+        lua::Function f(lapi::state.get<lua::Object>("LAPI", "World", "Events", "Server", "off_map"));
 #endif
         if (f.is_nil()) return true;
         f(LogicSystem::getLogicEntity((dynent*)pl)->lua_ref);

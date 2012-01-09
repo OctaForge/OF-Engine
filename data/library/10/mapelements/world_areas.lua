@@ -16,7 +16,7 @@ plugin = {
     end
 }
 
-action = class.new(actions.action, {
+action = std.class.new(actions.action, {
     do_start = function(self)
         assert(active == self.actor)
     end,
@@ -35,7 +35,7 @@ action = class.new(actions.action, {
     end
 })
 
-action_input_capture = class.new(actions.action, {
+action_input_capture = std.class.new(actions.action, {
     do_start = function(self)
         self.client_click = function(self, ...) return self.actor.client_click(self.actor, ...) end
 

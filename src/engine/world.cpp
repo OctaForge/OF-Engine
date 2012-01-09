@@ -907,18 +907,22 @@ void entpaste()
 
         // INTENSITY: Create entity using new system
         CLogicEntity *entity = LogicSystem::getLogicEntity(c);
+        if (!entity) return;
+
         const char *_class = entity->getClass();
 
-        lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
-            "create_state_data_dict"
+        lapi::state["__ccentcopy__TEMP"] = lapi::state.get<lua::Function>(
+            "LAPI", "World", "Entity", "create_state_data_dict"
         ).call<lua::Object>(entity->lua_ref);
 
         lapi::state.get<lua::Table>(
-            "__centcopy__TEMP"
-        )["position"] = types::String().format("[%f|%f|%f]", o.x, o.y, o.z);
+            "__ccentcopy__TEMP"
+        )[lapi::state.get<lua::Object>(
+            "LAPI", "World", "Entity", "Properties", "position"
+        )] = types::String().format("[%f|%f|%f]", o.x, o.y, o.z);
 
         const char *sd = lapi::state.get<lua::Function>(
-            "json", "encode"
+            "LAPI", "JSON", "encode"
         ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
         if (!sd) sd = "{}";
 
@@ -989,16 +993,18 @@ void intensityentcopy() // INTENSITY
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     intensityCopiedClass = entity->getClass();
 
-    lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
-        "create_state_data_dict"
+    lapi::state["__ccentcopy__TEMP"] = lapi::state.get<lua::Function>(
+        "LAPI", "World", "Entity", "create_state_data_dict"
     ).call<lua::Object>(entity->lua_ref);
 
     lapi::state.get<lua::Table>(
         "__ccentcopy__TEMP"
-    )["position"] = lua::nil;
+    )[lapi::state.get<lua::Object>(
+        "LAPI", "World", "Entity", "Properties", "position"
+    )] = lua::nil;
 
     intensityCopiedStateData = lapi::state.get<lua::Function>(
-        "json", "encode"
+        "LAPI", "JSON", "encode"
     ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
     if (!intensityCopiedStateData) intensityCopiedStateData = "{}";
 

@@ -40,7 +40,7 @@ world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, 
     end
 }}, "world_notice"), "mapmodel")
 
-notice_action = class.new(actions.action, {
+notice_action = std.class.new(actions.action, {
     can_multiply_queue = false,
 
     should_continue = function(self)
@@ -61,13 +61,13 @@ notice_action = class.new(actions.action, {
             end
 
             self.current_time = self.current_time + seconds * 3
-            self.current_time = math.min(math.pi / 2, self.current_time)
-            self.current_size_ratio = math.sin(self.current_time)
+            self.current_time = std.math.min(std.math.pi / 2, self.current_time)
+            self.current_size_ratio = std.math.sin(self.current_time)
             current_size = self.current_size_ratio * self.size
         else
             self.current_time = self.current_time - seconds * 4
-            self.current_time = math.max(0, self.current_time)
-            self.current_size_ratio = math.sin(self.current_time)
+            self.current_time = std.math.max(0, self.current_time)
+            self.current_size_ratio = std.math.sin(self.current_time)
             current_size = self.current_size_ratio * self.size
         end
 
@@ -79,7 +79,7 @@ notice_action = class.new(actions.action, {
     end
 })
 
-world_notice_action = class.new(notice_action, {
+world_notice_action = std.class.new(notice_action, {
     do_start = function(self)
         notice_action.do_start(self)
 

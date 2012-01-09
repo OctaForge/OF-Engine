@@ -43,7 +43,7 @@ local __MODULAR_PREFIX = "__MODULAR_"
     Parameters:
         _class - the class to merge plugins into.
         plugins - array of plugins to bake in.
-        name - name of the new class (see <class.new>).
+        name - name of the new class (see <std.class.new>).
 
     Returns:
         A new class with the items baked inside.
@@ -127,7 +127,7 @@ function bake(_class, plugins, name)
         end
     end
 
-    local newclass = class.new(_class, cldata, name)
+    local newclass = std.class.new(_class, cldata, name)
     newclass.properties = properties
 
     return newclass

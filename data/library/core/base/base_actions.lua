@@ -107,18 +107,18 @@ NUMANIMS = 38
 --! Variable: ANIM_INDEX
 ANIM_INDEX = 0x7F
 --! Variable: ANIM_LOOP
-ANIM_LOOP = math.lsh(1, 7)
+ANIM_LOOP = std.math.lsh(1, 7)
 --! Variable: ANIM_START
-ANIM_START = math.lsh(1, 8)
+ANIM_START = std.math.lsh(1, 8)
 --! Variable: ANIM_END
-ANIM_END = math.lsh(1, 9)
+ANIM_END = std.math.lsh(1, 9)
 --! Variable: ANIM_REVERSE
-ANIM_REVERSE = math.lsh(1, 10)
+ANIM_REVERSE = std.math.lsh(1, 10)
 --! Variable: ANIM_SECONDARY
 ANIM_SECONDARY = 11
 
 --! Variable: ANIM_RAGDOLL
-ANIM_RAGDOLL = math.lsh(1, 27)
+ANIM_RAGDOLL = std.math.lsh(1, 27)
 
 --[[!
     Function: cache_by_time_delay
@@ -175,7 +175,7 @@ end
     Default action class which is here for other actions to
     inherit from. No other real use.
 ]]
-action = class.new(nil, {
+action = std.class.new(nil, {
     --[[!
         Constructor: __init
         This initializes the action.
@@ -232,7 +232,7 @@ action = class.new(nil, {
         Function: __tostring
         Returns string representation of the action. It basically
         returns action's name, which is set as third argument
-        to <class.new>.
+        to <std.class.new>.
     ]]
     __tostring = function(self)
         return self.name
@@ -345,7 +345,7 @@ action = class.new(nil, {
         (start code)
             function myaction:do_execute(seconds)
                 echo("HAH!")
-                return self.__base.do_execute(self, seconds)
+                return self.base_class.do_execute(self, seconds)
             end
         (end)
 
@@ -430,7 +430,7 @@ action = class.new(nil, {
     Infinite action accomplished by always returning false
     on do_execute.
 ]]
-action_infinite = class.new(action, {
+action_infinite = std.class.new(action, {
     --[[!
         Function: do_execute
         Overriden do_execute to accomplish never ending behavior.
@@ -451,7 +451,7 @@ action_infinite = class.new(action, {
     Action with entity as a target. Such actions inherit this
     class and save some code.
 ]]
-action_targeted = class.new(action, {
+action_targeted = std.class.new(action, {
     --[[!
         Constructor: __init
         This initializes the action.
@@ -478,7 +478,7 @@ action_targeted = class.new(action, {
     Useful for i.e. queuing a command for next act() of
     an entity.
 ]]
-action_single_command = class.new(action, {
+action_single_command = std.class.new(action, {
     --[[!
         Constructor: __init
         This initializes the action.
@@ -520,7 +520,7 @@ action_single_command = class.new(action, {
     Action system class which manages action queue. One action per <manage>
     gets executed.
 ]]
-action_system = class.new(nil, {
+action_system = std.class.new(nil, {
     --[[!
         Constructor: __init
         This initializes the action system. It basically sets the parent entity

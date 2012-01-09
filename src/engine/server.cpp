@@ -603,6 +603,7 @@ void rundedicatedserver()
 #endif
 }
 
+#ifdef WIN32
 static char *parsecommandline(const char *src, vector<char *> &args)
 {
     char *buf = new char[strlen(src) + 1], *dst = buf;
@@ -635,6 +636,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
     exit(status);
     return 0;
 }
+#endif
 
 bool servererror(bool dedicated, const char *desc)
 {

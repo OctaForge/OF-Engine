@@ -28,11 +28,11 @@ plugin = {
     end,
 
     get_multipart_animation = function(self)
-        return math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
+        return std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
     end,
 
     get_multipart_flags = function(self)
-        return math.bor(
+        return std.math.bor(
             model.LIGHT,
             model.CULL_VFC,
             model.CULL_OCCLUDED,

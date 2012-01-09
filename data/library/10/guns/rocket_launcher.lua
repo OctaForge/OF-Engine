@@ -3,7 +3,7 @@ library.include("projectiles")
 
 module("rocket_launcher", package.seeall)
 
-rocket = class.new(projectiles.projectile, {
+rocket = std.class.new(projectiles.projectile, {
     radius          = 2,
     visual_radius   = 20,
     color           = 0xDCBBAA,
@@ -25,7 +25,7 @@ rocket = class.new(projectiles.projectile, {
 
     render_dynamic = function(self)
         local o     = self.position
-        local flags = math.bor(
+        local flags = std.math.bor(
             model.LIGHT,
             model.CULL_VFC,
             model.CULL_OCCLUDED,
@@ -36,11 +36,11 @@ rocket = class.new(projectiles.projectile, {
         local yaw_pitch = self.velocity:to_yaw_pitch()
         local yaw       = yaw_pitch.yaw - 90
         local pitch     = 90 - yaw_pitch.pitch
-              pitch     = math.is_nan(pitch) and 0 or pitch
+              pitch     = std.math.is_nan(pitch) and 0 or pitch
         local args      = {
             self.owner,
             "guns/rocket",
-            math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
+            std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
             o,
             yaw,
             pitch,
@@ -77,11 +77,11 @@ rocket = class.new(projectiles.projectile, {
     end
 })
 
-action_rocket_fire = class.new(events.action_parallel, {
+action_rocket_fire = std.class.new(events.action_parallel, {
     can_multiply_queue = false
 }, "action_rocket_fire")
 
-rocket_launcher = class.new(projectiles.gun, {
+rocket_launcher = std.class.new(projectiles.gun, {
     projectile_class = rocket,
     delay            = 0.5,
     repeating        = false,
@@ -131,7 +131,7 @@ rocket_launcher = class.new(projectiles.gun, {
                     local dir = shooter_position:sub_new(
                         current_origin_position
                     )
-                    local dist = dir:magnitude()
+                    local dist = dir:length()
                         + self.projectile_class.radius
 
                     if dist > shooter.radius then

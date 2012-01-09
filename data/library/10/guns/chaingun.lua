@@ -2,7 +2,7 @@ library.include("firing")
 
 module("chaingun", package.seeall)
 
-chaingun = class.new(firing.gun, {
+chaingun = std.class.new(firing.gun, {
     repeating     = true,
     delay         = 100, -- unused
     origin_tag    = "tag_weapon",
@@ -25,7 +25,7 @@ chaingun = class.new(firing.gun, {
 
     do_real_shot = function(self, shooter)
         if shooter.controlled_here then
-            self:do_recoil(shooter, math.random() * 4)
+            self:do_recoil(shooter, std.math.random() * 4)
         end
 
         local visual_origin    = self:get_origin(shooter)
@@ -50,18 +50,18 @@ chaingun = class.new(firing.gun, {
             })
         end
 
-        for i = 1, math.random(2, 4) do
+        for i = 1, std.math.random(2, 4) do
             effects.flare(
                 effects.PARTICLE.STREAK,
                 visual_origin, target:sub_new(
-                    math.vec3_normalized():mul(1.5)
+                    std.math.norm_vec3():mul(1.5)
                 ), self.firing_rate * 1.5, 0xE49B4B
             )
         end
         effects.lightning(
             visual_origin, target, self.firing_rate * 1.5, 0xFF3333
         )
-        if math.random() < 0.25 then
+        if std.math.random() < 0.25 then
             effects.splash(
                 effects.PARTICLE.SPARK, 1,
                 self.firing_rate * 0.75, visual_origin,

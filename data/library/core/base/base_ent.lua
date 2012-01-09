@@ -27,7 +27,7 @@ module("entity", package.seeall)
     It contains basic handler methods common for both client and server.
 
     Entity always needs a class name. You can specify class name as third
-    argument to <class.new> (or second, if you don't  specify table mixin,
+    argument to <std.class.new> (or second, if you don't  specify table mixin,
     see the class documentation). Entity class name is required for proper
     database lookups. The core library entities ALWAYS have the same class
     name as name of the class object in Lua.
@@ -39,7 +39,7 @@ module("entity", package.seeall)
         Dynamic entities are usually not saved, static usually are. Non-sauer
         entities don't mostly get saved.
 ]]
-base_root = class.new(nil, {
+base_root = std.class.new(nil, {
     --[[!
         Variable: should_act
         Boolean value specifying whether the entity should run <act>
@@ -211,7 +211,7 @@ base_root = class.new(nil, {
         -- let's filter the state variable
         self.tags = table.filter_array(
             -- convert <array_surrogate> to raw array
-            self.tags:as_array(),
+            self.tags:to_array(),
             -- compare the tags
             function(i, _tag)
                 return _tag ~= tag
@@ -233,7 +233,7 @@ base_root = class.new(nil, {
         logging.log(logging.INFO, "i can has tag " .. tostring(tag))
 
         -- try to find the tag in raw array
-        return (table.find(self.tags:as_array(), tag) ~= nil)
+        return (table.find(self.tags:to_array(), tag) ~= nil)
     end,
 
     --[[!
@@ -280,7 +280,7 @@ base_root = class.new(nil, {
             end
 
             -- try another parent
-            base =  base.__base
+            base =  base.base_class
         end
 
         -- get state variable names from p_table
@@ -536,7 +536,7 @@ base_root = class.new(nil, {
     This represents clientside base class. It extends <base_root> with client
     specific methods.
 ]]
-base_client = class.new(base_root, {
+base_client = std.class.new(base_root, {
     --[[!
         Function: client_activate
         This is called on clientside entity activation.
@@ -712,7 +712,7 @@ base_client = class.new(base_root, {
     This represents serverside base class. It extends <base_root> with server
     specific methods.
 ]]
-base_server = class.new(base_root, {
+base_server = std.class.new(base_root, {
     --[[!
         Variable: sent_complete_notification
         This is set to true after <send_complete_notification>.

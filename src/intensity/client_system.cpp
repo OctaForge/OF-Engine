@@ -90,7 +90,7 @@ bool ClientSystem::scenarioStarted()
     {
         if (lapi::state.state())
             _scenarioStarted = lapi::state.get<lua::Function>(
-                "entity_store", "has_scenario_started"
+                "LAPI", "World", "scenario_started"
             ).call<bool>();
     }
 
@@ -112,7 +112,11 @@ void ClientSystem::frameTrigger(int curtime)
 
         /* turning */
         fpsent *fp = (fpsent*)player;
-        float fs = ClientSystem::playerLogicEntity->lua_ref.get<float>("facing_speed");
+        float fs = ClientSystem::playerLogicEntity->lua_ref.get<float>(
+            lapi::state.get<lua::Object>(
+                "LAPI", "World", "Entity", "Properties", "facing_speed"
+            )
+        );
 
         if (fp->turn_move || fabs(x - 0.5) > 0.45)
         {
@@ -414,6 +418,8 @@ bool ClientSystem::isAdmin()
     if (!loggedIn) return false;
     if (!playerLogicEntity) return false;
 
-    return playerLogicEntity->lua_ref.get<bool>("can_edit");
+    return playerLogicEntity->lua_ref.get<bool>(lapi::state.get<lua::Object>(
+        "LAPI", "World", "Entity", "Properties", "can_edit"
+    ));
 }
 

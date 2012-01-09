@@ -3,7 +3,7 @@ library.include("mapelements.world_areas")
 module("platformer", package.seeall)
 
 function vec3_from_axis(axis)
-    local ret = math.vec3(0, 0, 0)
+    local ret = std.math.Vec3(0, 0, 0)
     if axis == "+x" then
         ret.x =  1
     elseif axis == "-x" then
@@ -65,14 +65,14 @@ plugin = {
                 local velocity = self.velocity:copy()
 
                 if self.platform_axis[2] == "x" then
-                    if math.abs(position.y - self.platform_position) > 0.5 then
+                    if std.math.abs(position.y - self.platform_position) > 0.5 then
                         position.y = self.platform_position
                         velocity.y = 0
                     else
                         position = nil
                     end
                 else
-                    if math.abs(position.x - self.platform_position) > 0.5 then
+                    if std.math.abs(position.x - self.platform_position) > 0.5 then
                         position.x = self.platform_position
                         velocity.x = 0
                     else
@@ -88,12 +88,12 @@ plugin = {
             end
 
             local platform_axis = vec3_from_axis(self.platform_axis)
-            self.platform_yaw   = math.normalize_angle(
+            self.platform_yaw   = std.math.normalize_angle(
                 platform_axis:mul(self:get_platform_direction()):to_yaw_pitch().yaw,
                 self.yaw
             ) + 90
-            self.yaw = math.magnet(
-                math.lerp(
+            self.yaw = std.math.magnet(
+                std.math.lerp(
                     self.yaw,
                     self.platform_yaw,
                     seconds * 15
@@ -102,10 +102,10 @@ plugin = {
                 45
             )
             self.pitch = 0
-            self.move  = (self.platform_move == 1 and (math.abs(self.platform_yaw - self.yaw) < 1)) and 1 or 0
+            self.move  = (self.platform_move == 1 and (std.math.abs(self.platform_yaw - self.yaw) < 1)) and 1 or 0
 
             if GLOBAL_CAMERA_DISTANCE then
-                self.platform_camera_distance = math.lerp(
+                self.platform_camera_distance = std.math.lerp(
                     self.platform_camera_distance,
                     GLOBAL_CAMERA_DISTANCE * 3,
                     seconds * 5
@@ -201,7 +201,7 @@ axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger,
         flip_axes = function(self, up)
             local player = entity_store.get_player_entity()
 
-            for i, axis in pairs(self.platform_axises:as_array()) do
+            for i, axis in pairs(self.platform_axises:to_array()) do
                 if player.platform_axis[2] ~= axis[2] then
                     axis = ((up < 0) and
                         player.platform_camera_axis or

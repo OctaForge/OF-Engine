@@ -35,11 +35,11 @@ module("geometry", package.seeall)
         The distance along the ray to the first collision.
 ]]
 function get_ray_collision_distance(o, r)
-    local rm = r:magnitude()
+    local rm = r:length()
     if    rm == 0 then
         return -1
     end
-    return CAPI.raypos(o, math.vec3(r.x / rm, r.y / rm, r.z / rm), rm)
+    return CAPI.raypos(o, std.math.Vec3(r.x / rm, r.y / rm, r.z / rm), rm)
 end
 
 --[[!
@@ -66,7 +66,7 @@ function get_ray_collision_world(origin, direction, max_dist)
         origin, direction:mul_new(max_dist)
     )
     return origin:add_new(
-        direction:mul_new(math.min(dist, max_dist))
+        direction:mul_new(std.math.min(dist, max_dist))
     )
 end
 
@@ -85,7 +85,7 @@ end
 function get_ray_collision_entities(origin, target, ignore)
     local entities  = get_collidable_entities()
     local direction = target:sub_new(origin)
-    local dist2     = direction:magnitude()
+    local dist2     = direction:length()
     if    dist2 == 0 then
         return nil
     end
@@ -108,7 +108,7 @@ function get_ray_collision_entities(origin, target, ignore)
             local entity_dir = entity.center:sub_new(origin)
             local entity_rad = entity.radius
                            and entity.radius
-                            or math.max(
+                            or std.math.max(
                                 entity.collision_radius_width,
                                 entity.collision_radius_height
                             )
@@ -116,7 +116,7 @@ function get_ray_collision_entities(origin, target, ignore)
             local collision_position
                 = origin:add_new(direction:mul_new(alpha))
             local distance
-                = entity.center:sub_new(collision_position):magnitude()
+                = entity.center:sub_new(collision_position):length()
             -- XXX alpha check ignores radius
             if alpha < 0 or alpha > 1 or distance > entity_rad then
                 return nil
@@ -157,7 +157,7 @@ function is_colliding_entities(position, radius, ignore)
         if entity ~= ignore and not entity.deactivated then
             local   entity_radius = entity.radius
                 and entity.radius
-                or math.max(
+                or std.math.max(
                     entity.collision_radius_width,
                     entity.collision_radius_height
                 )
@@ -188,14 +188,14 @@ end
 ]]
 function get_surface_normal(reference, surface, resolution)
     local direction = surface:sub_new(reference)
-    local distance  = direction:magnitude()
+    local distance  = direction:length()
     if    distance == 0 then
         return nil
     end
 
     resolution = resolution or (distance / 20)
     local function random_resolutional()
-        return ((math.random() - 0.5) * 2 * resolution)
+        return ((std.math.random() - 0.5) * 2 * resolution)
     end
 
     local point_direction
@@ -206,12 +206,12 @@ function get_surface_normal(reference, surface, resolution)
     for i = 1, 3 do
         points = {}
         for n = 1, 3 do
-            point_direction = surface:add_new(math.vec3(
+            point_direction = surface:add_new(std.math.Vec3(
                 random_resolutional(),
                 random_resolutional(),
                 random_resolutional()
             )):sub(reference)
-            if  point_direction:magnitude() == 0 then
+            if  point_direction:length() == 0 then
                 point_direction.z = point_direction.z + resolution
             end
 
@@ -225,7 +225,7 @@ function get_surface_normal(reference, surface, resolution)
         end
 
         ret = points[2]:sub(points[1]):cross_product(points[3]:sub(points[1]))
-        if ret:magnitude() > 0 then
+        if ret:length() > 0 then
             if  ret:dot_product(reference:sub_new(surface)) < 0 then
                 ret:mul(-1)
             end
@@ -293,7 +293,7 @@ function bounce(thing, elasticity, friction, seconds)
 
     elasticity = elasticity or 0.9
 
-    if seconds == 0 or thing.velocity:magnitude() == 0 then
+    if seconds == 0 or thing.velocity:length() == 0 then
         return true
     end
 
@@ -321,7 +321,7 @@ function bounce(thing, elasticity, friction, seconds)
     local direction = movement:copy():normalize()
     local surface_dist = get_ray_collision_distance(
         old_position, direction:mul_new(
-            3 * movement:magnitude() + 3 * thing.radius + 1.5
+            3 * movement:length() + 3 * thing.radius + 1.5
         )
     )
     if surface_dist < 0 then return fallback() end

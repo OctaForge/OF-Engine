@@ -27,7 +27,7 @@ function client_click(button, down, position, entity)
             player:stop_shooting(position)
         end
     elseif button == 3 and down then
-        cycle_gun_index(player, player.gun_indexes:as_array())
+        cycle_gun_index(player, player.gun_indexes:to_array())
     end
 end
 
@@ -41,9 +41,9 @@ end
 
 function find_target(shooter, visual_origin, targeting_origin, fallback_target, range, scatter)
     -- targeting from the camera - where the player aimed the mouse
-    local direction = math.vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
-    if math.is_nan(direction.x) then return { target = fallback_target } end
-    if scatter then direction:add(math.vec3_normalized():mul(scatter)):normalize() end
+    local direction = std.math.Vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
+    if std.math.is_nan(direction.x) then return { target = fallback_target } end
+    if scatter then direction:add(std.math.norm_vec3():mul(scatter)):normalize() end
 
     local target = geometry.get_ray_collision_world   (targeting_origin, direction, range)
     local temp   = geometry.get_ray_collision_entities(targeting_origin, target,  shooter)
@@ -63,7 +63,7 @@ function find_target(shooter, visual_origin, targeting_origin, fallback_target, 
 
     -- check for hitting the scenery from the gun source
     direction  = target:sub_new(visual_origin)
-    local dist = direction:magnitude()
+    local dist = direction:length()
     if dist > 2 then
         local target2 = geometry.get_ray_collision_world(visual_origin, direction:normalize(), dist)
         if target2:is_close_to(visual_origin, dist - 2) then
@@ -99,7 +99,7 @@ plugins = {
 
             if #info ~= 5 then return nil end
             local gun_index = info[1]
-            local target_pos = math.vec3(info[2], info[3], info[4])
+            local target_pos = std.math.Vec3(info[2], info[3], info[4])
             local target_ent = entity_store.get(info[5])
             local gun = guns[gun_index]
 
@@ -128,7 +128,7 @@ plugins = {
         init = function(self)
             for k, gun in pairs(guns) do
                 local tag = "*" .. gun.origin_tag
-                if gun.origin_tag and not table.find(self.attachments:as_array(), tag) then
+                if gun.origin_tag and not table.find(self.attachments:to_array(), tag) then
                     self.attachments:push(tag)
                 end
             end
@@ -166,7 +166,7 @@ plugins = {
         client_act = function(self, seconds)
             if self ~= entity_store.get_player_entity() then return nil end
 
-            self.gun_delay = math.max(self.gun_delay - seconds, 0)
+            self.gun_delay = std.math.max(self.gun_delay - seconds, 0)
 
             local gun = guns[self.current_gun_index]
             if gun then
@@ -241,7 +241,7 @@ plugins = {
     }
 }
 
-gun = class.new()
+gun = std.class.new()
 
 gun.handle_start_logic   = nil
 gun.handle_client_effect = nil
@@ -273,7 +273,7 @@ function gun:do_recoil(shooter, magnitude)
     if CLIENT and shooter ~= entity_store.get_player_entity() then return nil end
 
     if shooter.can_move then
-        local dir = math.vec3():from_yaw_pitch(
+        local dir = std.math.Vec3():from_yaw_pitch(
             shooter.yaw, shooter.pitch
         ):normalize(1)
          :mul(-magnitude)
@@ -281,7 +281,7 @@ function gun:do_recoil(shooter, magnitude)
     end
 end
 
-action_shoot1 = class.new(
+action_shoot1 = std.class.new(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
@@ -291,14 +291,14 @@ action_shoot1.cancellable = false
 -- convenience
 action_shoot = action_shoot1
 
-action_shoot2 = class.new(
+action_shoot2 = std.class.new(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
 action_shoot2.local_animation   = actions.ANIM_ATTACK2
 action_shoot2.cancellable = false
 
-action_shoot3 = class.new(
+action_shoot3 = std.class.new(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
@@ -306,17 +306,17 @@ action_shoot3.local_animation   = actions.ANIM_ATTACK3
 action_shoot3.cancellable = false
 
 
-action_shoot2_repeating = class.new(
+action_shoot2_repeating = std.class.new(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
-action_shoot2_repeating.local_animation = math.bor(
+action_shoot2_repeating.local_animation = std.math.bor(
     actions.ANIM_ATTACK2,
     actions.ANIM_LOOP
 )
 action_shoot2_repeating.cancellable = false
 
-action_out_of_ammo = class.new(
+action_out_of_ammo = std.class.new(
     actions.action,
     nil, "action_out_of_ammo"
 )

@@ -389,7 +389,7 @@ mouse3click = CAPI.mouse3click
     Returns the position we're targeting to.
 ]]
 get_target_position = actions.cache_by_global_timestamp(
-    convert.tocalltable(CAPI.gettargetpos)
+    std.conv.to("calltable", CAPI.gettargetpos)
 )
 
 --[[!
@@ -397,7 +397,7 @@ get_target_position = actions.cache_by_global_timestamp(
     Returns the entity we're targeting to.
 ]]
 get_target_entity = actions.cache_by_global_timestamp(
-    convert.tocalltable(CAPI.gettargetent)
+    std.conv.to("calltable", CAPI.gettargetent)
 )
 
 --[[!

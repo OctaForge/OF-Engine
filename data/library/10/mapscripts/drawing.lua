@@ -58,7 +58,7 @@ entity_classes.register(plugins.bake(
             -- vec4's are used, first three elements for position, fourth for color.
             on_new_mark = function(self, mark)
                 if #mark == 3 then
-                    mark = math.vec4(mark[1], mark[2], mark[3], self.color)
+                    mark = std.math.Vec4(mark[1], mark[2], mark[3], self.color)
                 else
                     mark = nil
                 end
@@ -119,7 +119,7 @@ entity_classes.register(plugins.bake(
                     local toplyr = self.position:sub_new(newpos)
                     newpos:add(toplyr:normalize():mul(1.0)) -- bring a little out of the scenery
                     if newbatch or not self.marks[#self.marks - 1]:is_close_to(newpos, 5.0) then
-                        self.new_mark = newpos:as_array()
+                        self.new_mark = newpos:to_array()
                     end
                 end
             end

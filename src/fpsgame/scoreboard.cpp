@@ -22,9 +22,13 @@ namespace game
         void show(bool on)
         {
             if(!showing && on)
-                lapi::state.get<lua::Function>("gui", "show")("scoreboard");
+                lapi::state.get<lua::Function>(
+                    "LAPI", "GUI", "show"
+                )("scoreboard");
             else
-                lapi::state.get<lua::Function>("gui", "hide")("scoreboard");
+                lapi::state.get<lua::Function>(
+                    "LAPI", "GUI", "hide"
+                )("scoreboard");
             showing = on;
         }
     } scoreboard;

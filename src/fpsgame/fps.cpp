@@ -228,15 +228,14 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            auto err = lapi::state.do_string(types::String().format(
-                "entity_store.get(%i).position = {"
-                "entity_store.get(%i).position.x,"
-                "entity_store.get(%i).position.y,"
-                "entity_store.get(%i).position.z}",
-                d->uniqueId, d->uniqueId, d->uniqueId, d->uniqueId
-            ), lua::ERROR_TRACEBACK);
-            if (types::get<0>(err))
-                logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+            lua::Object ent (lapi::state.get<lua::Object>("LAPI", "World", "Entities", "get"));
+            lua::Object name(lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "position"));
+
+            lua::Table t = lapi::state.new_table(3);
+            t[1] = ent[name]["x"];
+            t[2] = ent[name]["y"];
+            t[3] = ent[name]["z"];
+            ent[name] = t;
 #endif
         }
     }
@@ -246,7 +245,9 @@ namespace game
 #ifdef CLIENT
         if (ClientSystem::playerLogicEntity)
         {
-            if (ClientSystem::playerLogicEntity->lua_ref["initialized"].to<bool>())
+            if (ClientSystem::playerLogicEntity->lua_ref[lapi::state.get<lua::Object>(
+                "LAPI", "World", "Entity", "Properties", "initialized"
+            )].to<bool>())
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.\r\n",
                     player1->uniqueId, (void*)player1,
@@ -368,7 +369,7 @@ namespace game
 
             // If triggering collisions can be done by the lua library code, use that
 
-            lapi::state.get<lua::Function>("entity_store", "manage_triggering_collisions")();
+            lapi::state.get<lua::Function>("LAPI", "World", "manage_collisions")();
         }
 
         //==============================================
@@ -378,7 +379,7 @@ namespace game
 
         if (runWorld)
         {
-            lapi::state.get<lua::Function>("entity_store", "start_frame")();
+            lapi::state.get<lua::Function>("LAPI", "World", "start_frame")();
             LogicSystem::manageActions(curtime);
         }
 
@@ -577,9 +578,9 @@ namespace game
     const char *scriptname(fpsent *d)
     {
         const char *ret = lapi::state.get<lua::Function>(
-            "entity_store", "get"
+            "LAPI", "World", "Entities", "get"
         ).call<lua::Table>(LogicSystem::getUniqueId(d)).get<const char*>(
-            "_name"
+            lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "name")
         );
         return ret;
     }

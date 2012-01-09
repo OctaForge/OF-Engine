@@ -2536,7 +2536,7 @@ namespace gui
         {
             mainmenu = 0;
 
-            lua::Function h = lapi::state.get("gui", "hide");
+            lua::Function h = lapi::state.get("LAPI", "GUI", "hide");
             h("main");
             h("vtab");
             h("htab");
@@ -2563,12 +2563,12 @@ namespace gui
         executelater.clear();
 
         if (mainmenu && !isconnected(true) && !world_inst->children.length())
-            lapi::state.get<lua::Function>("gui", "show")("main");
+            lapi::state.get<lua::Function>("LAPI", "GUI", "show")("main");
 
         if ((editmode && !mainmenu) && !space)
         {
-            lapi::state.get<lua::Function>   ("gui", "show")("space");
-            lua::Function h = lapi::state.get("gui", "hide");
+            lapi::state.get<lua::Function>   ("LAPI", "GUI", "show")("space");
+            lua::Function h = lapi::state.get("LAPI", "GUI", "hide");
             h("vtab");
             h("htab");
             space = true;
@@ -2576,8 +2576,8 @@ namespace gui
         }
         else if ((!editmode || mainmenu) && space)
         {
-            lapi::state.get<lua::Function>   ("gui", "hide")("space");
-            lua::Function h = lapi::state.get("gui", "hide");
+            lapi::state.get<lua::Function>   ("LAPI", "GUI", "hide")("space");
+            lua::Function h = lapi::state.get("LAPI", "GUI", "hide");
             h("vtab");
             h("htab");
             space = false;
@@ -2651,7 +2651,7 @@ void addchange(const char *desc, int type)
     if (!applydialog) return;
     loopv(needsapply) if (!strcmp(needsapply[i].desc, desc)) return;
     needsapply.add(change(type, desc));
-    lapi::state.get<lua::Function>("gui", "show_changes")();
+    lapi::state.get<lua::Function>("LAPI", "GUI", "show_changes")();
 }
 
 void clearchanges(int type)
@@ -2671,9 +2671,13 @@ void _lua_applychanges()
     int changetypes = 0;
     loopv(needsapply) changetypes |= needsapply[i].type;
     if (changetypes&CHANGE_GFX)
-        gui::executelater.push_back(lapi::state.get("engine", "resetgl"));
+        gui::executelater.push_back(
+            lapi::state.get("LAPI", "Graphics", "reset")
+        );
     if (changetypes&CHANGE_SOUND)
-        gui::executelater.push_back(lapi::state.get("sound", "reset"));
+        gui::executelater.push_back(
+            lapi::state.get("LAPI", "Sound", "reset")
+        );
 }
 
 void _lua_clearchanges()
