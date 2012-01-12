@@ -62,8 +62,8 @@ local __post_emit_event_stack = {}
 function _connect(self, name, callback) 
     -- check if callback really is function
     if type(callback) ~= "function" then
-        logging.log(
-            logging.ERROR,
+        log(
+            ERROR,
             "Specified callback is not a function, not connecting."
         )
         return nil
@@ -116,8 +116,8 @@ function _disconnect(self, id)
             if connection.id == id then
                 -- fail if disconnected
                 if connection.disconnected then
-                    logging.log(
-                        logging.ERROR,
+                    log(
+                        ERROR,
                         "Connection with id "
                             .. id
                             .. " was already disconnected before."
@@ -133,7 +133,7 @@ function _disconnect(self, id)
             end
         end
     end
-    logging.log(logging.ERROR, "Connection with id " .. id .. " not found.")
+    log(ERROR, "Connection with id " .. id .. " not found.")
 end
 
 --[[!

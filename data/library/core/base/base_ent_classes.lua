@@ -48,7 +48,7 @@ function register(class, sauer_type)
     -- get the class name
     local class_name = class.name
 
-    logging.log(logging.DEBUG, "registering LE class: " .. class_name)
+    log(DEBUG, "registering LE class: " .. class_name)
 
     -- default sauer type to empty (nonsauer entity)
     sauer_type = sauer_type or ""
@@ -102,8 +102,8 @@ function register(class, sauer_type)
         return (n1 < n2)
     end)
 
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         "generating protocol data for { "
             .. table.concat(sv_names, ", ")
             .. " }"
@@ -127,7 +127,7 @@ function get_class(class_name)
     if class_storage[class_name] then
         return class_storage[class_name][1]
     else
-        logging.log(logging.ERROR, "invalid class: " .. class_name)
+        log(ERROR, "invalid class: " .. class_name)
         return nil
     end
 end
@@ -144,7 +144,7 @@ function get_sauer_type(class_name)
     if class_storage[class_name] then
         return class_storage[class_name][2]
     else
-        logging.log(logging.ERROR, "invalid class: " .. class_name)
+        log(ERROR, "invalid class: " .. class_name)
         return nil
     end
 end

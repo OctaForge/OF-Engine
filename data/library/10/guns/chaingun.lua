@@ -148,7 +148,7 @@ chaingun.plugin = {
                 if    gun:is_a(chaingun) then
                     firing.guns[self.current_gun_index]:do_real_shot(self)
                 else
-                    logging.log(logging.ERROR, "chaingun firing error")
+                    log(ERROR, "chaingun firing error")
                     self.chaingun_firing = false
                 end
             end

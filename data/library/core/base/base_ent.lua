@@ -83,7 +83,7 @@ base_root = std.class.new(nil, {
         (serverside) and <base_client.client_activate> (clientside).
     ]]
     general_setup = function(self)
-        logging.log(logging.DEBUG, "base_root:general_setup")
+        log(DEBUG, "base_root:general_setup")
 
         -- do not re-run this
         if self.general_setup_complete then
@@ -201,7 +201,7 @@ base_root = std.class.new(nil, {
             tag - the tag to remove.
     ]]
     del_tag = function(self, tag)
-        logging.log(logging.DEBUG, "base_root:del_tag(\"" .. tag .. "\")")
+        log(DEBUG, "base_root:del_tag(\"" .. tag .. "\")")
 
         -- do not attempt to filter if we don't have the tag
         if not self:has_tag(tag) then
@@ -230,7 +230,7 @@ base_root = std.class.new(nil, {
             true if it has, false otherwise.
     ]]
     has_tag = function(self, tag)
-        logging.log(logging.INFO, "i can has tag " .. tostring(tag))
+        log(INFO, "i can has tag " .. tostring(tag))
 
         -- try to find the tag in raw array
         return (table.find(self.tags:to_array(), tag) ~= nil)
@@ -307,8 +307,8 @@ base_root = std.class.new(nil, {
 
         -- loop the sorted names now
         for i, name in pairs(sv_names) do
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "Setting up var: %(1)s %(2)s" % {
                     name, tostring(p_table[name])
                 }
@@ -351,8 +351,8 @@ base_root = std.class.new(nil, {
         target_cn = target_cn or message.ALL_CLIENTS
         kwargs    = kwargs    or {}
 
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "create_state_data_dict(): "
                 .. tostring(self)
                 .. tostring(self.uid)
@@ -388,12 +388,12 @@ base_root = std.class.new(nil, {
 
                     -- if value exists or is false (important), include
                     if val or val == false then
-                        logging.log(
-                            logging.DEBUG,
+                        log(
+                            DEBUG,
                             "create_state_data_dict() adding "
                                 .. tostring(var._name)
                                 .. ": "
-                                .. json.encode(val)
+                                .. std.json.encode(val)
                         )
 
                         -- get the name - if we're compressing,
@@ -407,19 +407,19 @@ base_root = std.class.new(nil, {
                         -- insert as converted to wire (== as string)
                         r[key] = var:to_wire(val)
 
-                        logging.log(
-                            logging.DEBUG,
+                        log(
+                            DEBUG,
                             "create_state_data_dict() currently: "
-                                .. json.encode(r)
+                                .. std.json.encode(r)
                         )
                     end
                 end
             end
         end
 
-        logging.log(
-            logging.DEBUG,
-            "create_state_data_dict() returns: " .. json.encode(r)
+        log(
+            DEBUG,
+            "create_state_data_dict() returns: " .. std.json.encode(r)
         )
 
         -- if we're not compressing, fine, return - raw table
@@ -436,8 +436,8 @@ base_root = std.class.new(nil, {
         end
 
         -- encode it into JSON
-        r = json.encode(r)
-        logging.log(logging.DEBUG, "pre-compression: " .. r)
+        r = std.json.encode(r)
+        log(DEBUG, "pre-compression: " .. r)
 
         -- several string filters
         local _filters = {
@@ -461,13 +461,13 @@ base_root = std.class.new(nil, {
             local n = filter(r)
 
             if #n < #r
-            and json.encode(json.decode(n))
-             == json.encode(json.decode(r)) then
+            and std.json.encode(std.json.decode(n))
+             == std.json.encode(std.json.decode(r)) then
                 r = n
             end
         end
 
-        logging.log(logging.DEBUG, "compressed: " .. r)
+        log(DEBUG, "compressed: " .. r)
 
         -- return with removed leading and trailing { / }
         return string.sub(r, 2, #r - 1)
@@ -481,8 +481,8 @@ base_root = std.class.new(nil, {
             state_data - the input string.
     ]]
     update_complete_state_data = function(self, state_data)
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "updating complete state data for "
                 .. tostring(self.uid)
                 .. " with "
@@ -498,7 +498,7 @@ base_root = std.class.new(nil, {
             or state_data
 
         -- and decode it into raw table again
-        local raw_state_data = json.decode(state_data)
+        local raw_state_data = std.json.decode(state_data)
         assert(type(raw_state_data) == "table")
 
         -- set the entity as initialized
@@ -512,8 +512,8 @@ base_root = std.class.new(nil, {
                 and message.to_protocol_name(tostring(self), tonumber(k))
                 or k
 
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "update of complete state data: "
                     .. tostring(k)
                     .. " = "
@@ -524,10 +524,10 @@ base_root = std.class.new(nil, {
             -- operation, we're sending raw state data.
             self:set_state_data(k, v, nil, true)
 
-            logging.log(logging.DEBUG, "update of complete state data ok")
+            log(DEBUG, "update of complete state data ok")
         end
 
-        logging.log(logging.DEBUG, "update of complete state data done.")
+        log(DEBUG, "update of complete state data done.")
     end
 }, "base")
 
@@ -555,8 +555,8 @@ base_client = std.class.new(base_root, {
         self:general_setup()
 
         if not self.sauer_type then
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "non-sauer entity going to be set up: "
                     .. tostring(self)
                     .. ", "
@@ -607,12 +607,12 @@ base_client = std.class.new(base_root, {
             argument from wire format (== from string).
     ]]
     set_state_data = function(self, key, value, actor_uid)
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "setting state data: "
                 .. key
                 .. " = "
-                .. json.encode(value)
+                .. std.json.encode(value)
                 .. " for "
                 .. self.uid
         )
@@ -633,8 +633,8 @@ base_client = std.class.new(base_root, {
         -- from here, let's send a message to server without emitting
         -- a signal or setting anything
         if actor_uid == -1 and not custom_synch_from_here then
-            logging.log(
-                logging.DEBUG, "sending request / notification to server."
+            log(
+                DEBUG, "sending request / notification to server."
             )
 
             -- TODO: supress msg sending of the same val, at least for some SVs
@@ -652,7 +652,7 @@ base_client = std.class.new(base_root, {
         -- has client_set flag OR we're custom synching from here,
         -- update the value locally
         if actor_uid ~= -1 or client_set or custom_synch_from_here then
-            logging.log(logging.INFO, "updating locally")
+            log(INFO, "updating locally")
 
             -- if originated from server, translate the value 
             if actor_uid ~= -1 then
@@ -677,8 +677,8 @@ base_client = std.class.new(base_root, {
         Clientside version of <base_root.act>.
     ]]
     client_act = function(self, seconds)
-        logging.log(
-            logging.INFO,
+        log(
+            INFO,
             "base_client:client_act, " .. self.uid
         )
 
@@ -741,8 +741,8 @@ base_server = std.class.new(base_root, {
             property, see <base_root>).
     ]]
     init = function(self, uid, kwargs)
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "base_server:init("
                 .. uid
                 .. ", "
@@ -778,8 +778,8 @@ base_server = std.class.new(base_root, {
             containing state data to initialize the entity with.
     ]]
     activate = function(self, kwargs)
-        logging.log(
-            logging.DEBUG, "base_server:activate(" .. tostring(kwargs) .. ")"
+        log(
+            DEBUG, "base_server:activate(" .. tostring(kwargs) .. ")"
         )
 
         -- set up the entity just in case
@@ -787,8 +787,8 @@ base_server = std.class.new(base_root, {
 
         -- if we're not sauer entity ..
         if not self.sauer_type then
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "non-sauer entity going to be set up: "
                     .. tostring(self)
                     .. ", "
@@ -812,7 +812,7 @@ base_server = std.class.new(base_root, {
         self:send_complete_notification(message.ALL_CLIENTS)
         self.sent_complete_notification = true
 
-        logging.log(logging.DEBUG, "LE.activate complete.")
+        log(DEBUG, "LE.activate complete.")
     end,
 
     --[[!
@@ -834,8 +834,8 @@ base_server = std.class.new(base_root, {
                     and entity_store.get_all_client_numbers()
                      or { cn }
 
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "LE.send_complete_notification: "
             .. tostring(self.cn)
             .. ", "
@@ -856,7 +856,7 @@ base_server = std.class.new(base_root, {
             )
         end
 
-        logging.log(logging.DEBUG, "LE.send_complete_notification done.")
+        log(DEBUG, "LE.send_complete_notification done.")
     end,
 
     --[[!
@@ -869,7 +869,7 @@ base_server = std.class.new(base_root, {
     entity_setup = function(self)
         -- perform only if not initialized yet
         if not self.initialized then
-            logging.log(logging.DEBUG, "LE setup")
+            log(DEBUG, "LE setup")
 
             -- general setup
             self:general_setup()
@@ -880,7 +880,7 @@ base_server = std.class.new(base_root, {
 
             -- and lock it up
             self.initialized = true
-            logging.log(logging.DEBUG, "LE setup complete.")
+            log(DEBUG, "LE setup complete.")
         end
     end,
 
@@ -921,11 +921,11 @@ base_server = std.class.new(base_root, {
             gets converted from wire format.
     ]]
     set_state_data = function(self, key, value, actor_uid, internal_op)
-        logging.log(logging.INFO, "Setting state data: " ..
+        log(INFO, "Setting state data: " ..
                           key .. " = " ..
                           tostring(value) .. " (" ..
                           type(value) .. ") : " ..
-                          json.encode(value) .. ", " ..
+                          std.json.encode(value) .. ", " ..
                           tostring(value))
 
         -- get entity class string
@@ -936,8 +936,8 @@ base_server = std.class.new(base_root, {
 
         -- if we don't have the variable, log it and return (ignore)
         if not var then
-            logging.log(
-                logging.WARNING,
+            log(
+                WARNING,
                 "Ignoring SD setting for unknown (deprecated?) variable "
                     .. tostring(key)
             )
@@ -952,8 +952,8 @@ base_server = std.class.new(base_root, {
             -- (through server message), return - see client_write
             -- in state variables documentation
             if not var.client_write then
-                logging.log(
-                    logging.ERROR,
+                log(
+                    ERROR,
                     "Client "
                         .. tostring(actor_uid)
                         .. " tried to change "
@@ -967,11 +967,11 @@ base_server = std.class.new(base_root, {
             value = var:from_wire(value)
         end
 
-        logging.log(logging.INFO, "Translated value: " ..
+        log(INFO, "Translated value: " ..
                           key .. " = " ..
                           tostring(value) .. " (" ..
                           type(value) .. ") : " ..
-                          json.encode(value) .. ", " ..
+                          std.json.encode(value) .. ", " ..
                           tostring(value))
 
         -- emit the change
@@ -987,8 +987,8 @@ base_server = std.class.new(base_root, {
 
         -- locally save the value
         self.state_variable_values[key] = value
-        logging.log(
-            logging.INFO,
+        log(
+            INFO,
             "new state data: " .. tostring(self.state_variable_values[key])
         )
 
@@ -1045,8 +1045,8 @@ base_server = std.class.new(base_root, {
             value - the value to queue.
     ]]
     queue_state_variable_change = function(self, key, value)
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "Queueing SV change: "
                 .. key
                 .. " - "
@@ -1074,8 +1074,8 @@ base_server = std.class.new(base_root, {
         (applies changes from them and sets the table to nil).
     ]]
     flush_queued_state_variable_changes = function(self)
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "flushing queued SV changes for " .. self.uid
         )
         if self:can_call_c_functions() then return nil end
@@ -1088,15 +1088,15 @@ base_server = std.class.new(base_root, {
             local val = changes[_keys[i]]
             local var = self[state_variables._SV_PREFIX .. tostring(k)]
 
-            logging.log(logging.DEBUG, "(A) flushing queued SV change: " ..
+            log(DEBUG, "(A) flushing queued SV change: " ..
                     tostring(_keys[i]) .. " - " ..
                     tostring(val) .. " (real: " ..
                     tostring(self.state_variable_values[_keys[i]]) .. ")")
 
             self[_keys[i]] = self.state_variable_values[_keys[i]]
 
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "(B) flushing of " .. tostring(_keys[i]) .. " - ok."
             )
         end

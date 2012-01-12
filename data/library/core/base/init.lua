@@ -16,7 +16,6 @@
 
         It loads:
         - Library system
-        - JSON parser
         - Signals system
         - Engine interface
         - Utility library
@@ -43,16 +42,13 @@
 -- see world metatable below
 local gravity
 
-logging.log(logging.DEBUG, ":: Library system.")
+log(DEBUG, ":: Library system.")
 require("base.base_library")
 
-logging.log(logging.DEBUG, ":: JSON.")
-require("base.base_json")
-
-logging.log(logging.DEBUG, ":: Signals.")
+log(DEBUG, ":: Signals.")
 require("base.base_signals")
 
-logging.log(logging.DEBUG, ":: Engine interface.")
+log(DEBUG, ":: Engine interface.")
 require("base.base_engine")
 
 
@@ -104,67 +100,67 @@ setmetatable(_G, {
     end
 })
 
-logging.log(logging.DEBUG, ":: Geometry interface.")
+log(DEBUG, ":: Geometry interface.")
 require("base.base_geometry")
 
-logging.log(logging.DEBUG, ":: Action system.")
+log(DEBUG, ":: Action system.")
 require("base.base_actions")
 
-logging.log(logging.DEBUG, ":: Input.")
+log(DEBUG, ":: Input.")
 require("base.base_input")
 
-logging.log(logging.DEBUG, ":: Console.")
+log(DEBUG, ":: Console.")
 require("base.base_console")
 
-logging.log(logging.DEBUG, ":: GUI.")
+log(DEBUG, ":: GUI.")
 require("base.base_gui")
 
-logging.log(logging.DEBUG, ":: Shaders.")
+log(DEBUG, ":: Shaders.")
 require("base.base_shaders")
 
-logging.log(logging.DEBUG, ":: Models.")
+log(DEBUG, ":: Models.")
 require("base.base_models")
 
-logging.log(logging.DEBUG, ":: Message system.")
+log(DEBUG, ":: Message system.")
 require("base.base_messages")
 
-logging.log(logging.DEBUG, ":: Logic entity storage.")
+log(DEBUG, ":: Logic entity storage.")
 require("base.base_ent_store")
 
-logging.log(logging.DEBUG, ":: State variables.")
+log(DEBUG, ":: State variables.")
 require("base.base_svars")
 
-logging.log(logging.DEBUG, ":: Logic entity classes.")
+log(DEBUG, ":: Logic entity classes.")
 require("base.base_ent_classes")
 
-logging.log(logging.DEBUG, ":: Logic entities.")
+log(DEBUG, ":: Logic entities.")
 require("base.base_ent")
 
-logging.log(logging.DEBUG, ":: Effects.")
+log(DEBUG, ":: Effects.")
 require("base.base_effects")
 
-logging.log(logging.DEBUG, ":: Sound.")
+log(DEBUG, ":: Sound.")
 require("base.base_sound")
 
-logging.log(logging.DEBUG, ":: Animatables.")
+log(DEBUG, ":: Animatables.")
 require("base.base_ent_anim")
 
-logging.log(logging.DEBUG, ":: Character.")
+log(DEBUG, ":: Character.")
 require("base.base_character")
 
-logging.log(logging.DEBUG, ":: Static entities.")
+log(DEBUG, ":: Static entities.")
 require("base.base_ent_static")
 
-logging.log(logging.DEBUG, ":: Textures.")
+log(DEBUG, ":: Textures.")
 require("base.base_textures")
 
-logging.log(logging.DEBUG, ":: VSlots.")
+log(DEBUG, ":: VSlots.")
 require("base.base_vslots")
 
-logging.log(logging.DEBUG, ":: Editing.")
+log(DEBUG, ":: Editing.")
 require("base.base_editing")
 
-logging.log(logging.DEBUG, ":: World interface.")
+log(DEBUG, ":: World interface.")
 require("base.base_world")
 
 --[[!
@@ -211,5 +207,5 @@ setmetatable(world, {
 
 world.gravity = 200
 
-logging.log(logging.DEBUG, ":: Camera.")
+log(DEBUG, ":: Camera.")
 require("base.base_camera")

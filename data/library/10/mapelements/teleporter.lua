@@ -15,7 +15,7 @@ plugin = {
         if self.destination >= 1 then
             local destinations = entity_store.get_all_by_tag("teledest_" .. self.destination)
             if #destinations == 0 then
-                logging.log(logging.ERROR, "No teleport destination found.")
+                log(ERROR, "No teleport destination found.")
                 return nil
             end
 

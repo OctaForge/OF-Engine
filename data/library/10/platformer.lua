@@ -83,7 +83,7 @@ plugin = {
                 if position then
                     self.position = position:lerp(self.position, 1 - (seconds * 5))
                     self.velocity = velocity
-                    logging.log(logging.WARNING, "Fixed platform position %(1)i" % { GLOBAL_TIME })
+                    log(WARNING, "Fixed platform position %(1)i" % { GLOBAL_TIME })
                 end
             end
 
@@ -216,7 +216,7 @@ axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger,
                 end
             end
 
-            logging.log(logging.ERROR, "did not find player axis to flip, %(1)s" % { player.platform_axis })
+            log(ERROR, "did not find player axis to flip, %(1)s" % { player.platform_axis })
         end
     }
 }, "axis_switcher"), "mapmodel")

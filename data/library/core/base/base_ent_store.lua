@@ -75,18 +75,18 @@ end
         uid - the unique ID of the entity.
 ]]
 function get(uid)
-    logging.log(logging.DEBUG, "get: entity " .. uid)
+    log(DEBUG, "get: entity " .. uid)
 
     local r = __entities_store[uid]
     if    r then
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "get: entity " .. uid .. " found (" .. r.uid .. ")"
         )
         return r
     else
-        logging.log(
-            logging.DEBUG, "get: could not find entity " .. uid
+        log(
+            DEBUG, "get: could not find entity " .. uid
         )
         return nil
     end
@@ -133,16 +133,16 @@ function get_by_tag(tag)
     if   #r == 1 then
         return r[1]
     elseif  #r > 1 then
-        logging.log(
-            logging.WARNING,
+        log(
+            WARNING,
             "Attempt to get a single entity with tag '"
                 .. tostring(wtag)
                 .. "', but several exist."
         )
         return nil
     else
-        logging.log(
-            logging.WARNING,
+        log(
+            WARNING,
             "Attempt to get a single entity with tag '"
                 .. tostring(wtag)
                 .. "', but none exist."
@@ -183,8 +183,8 @@ end
 function get_all_clients()
     local ret = get_all_by_class(player_class)
 
-    logging.log(
-        logging.INFO,
+    log(
+        INFO,
         "entity store: get_all_clients: got %(1)s clients" % { #ret }
     )
 
@@ -311,17 +311,17 @@ function add(class_name, uid, kwargs, _new)
     -- debugging, we're leet
     uid = uid or 1337
 
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         "Adding new scripting entity of type "
             .. class_name
             .. " with uid "
             .. uid
     )
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         "   with arguments: "
-            .. json.encode(kwargs)
+            .. std.json.encode(kwargs)
             .. ", "
             .. tostring(_new)
     )
@@ -362,7 +362,7 @@ function add(class_name, uid, kwargs, _new)
     -- done after setting the uid and placing in the global store,
     -- because c++ registration relies on both
 
-    logging.log(logging.DEBUG, "Activating ..")
+    log(DEBUG, "Activating ..")
 
     if CLIENT then
         r:client_activate(kwargs)
@@ -385,12 +385,12 @@ end
         uid - known unique ID of the entity.
 ]]
 function del(uid)
-    logging.log(logging.DEBUG, "Removing scripting entity: " .. uid)
+    log(DEBUG, "Removing scripting entity: " .. uid)
 
     -- check for existence
     if not __entities_store[uid] then
-        logging.log(
-            logging.WARNING,
+        log(
+            WARNING,
             "Cannot remove entity " .. uid .. " as it does not exist."
         )
         return nil
@@ -509,7 +509,7 @@ _G["GLOBAL_QUEUED_ACTIONS"] = {}
         (see <GLOBAL_LASTMILLIS>).
 ]]
 function manage_actions(seconds, lastmillis)
-    logging.log(logging.INFO, "manage_actions: queued ..")
+    log(INFO, "manage_actions: queued ..")
 
     -- work on copy as actions might add more actions.
     local curr_actions = table.copy(GLOBAL_QUEUED_ACTIONS)
@@ -526,7 +526,7 @@ function manage_actions(seconds, lastmillis)
     _G["GLOBAL_CURRENT_TIMEDELTA"] = seconds
     _G["GLOBAL_LASTMILLIS"] = lastmillis
 
-    logging.log(logging.INFO, "manage_actions: " .. seconds)
+    log(INFO, "manage_actions: " .. seconds)
 
     -- act!
     for uid, entity in pairs(__entities_store) do
@@ -570,7 +570,7 @@ end
         <render_hud_model> does that.
 ]]
 function render_dynamic(thirdperson)
-    logging.log(logging.INFO, "render_dynamic")
+    log(INFO, "render_dynamic")
 
     -- get the player entity, return if it doesn't exist
     local  player = get_player_entity()
@@ -697,13 +697,13 @@ function load_entities()
         return nil
     end
 
-    logging.log(logging.DEBUG, "Reading entities.json..")
+    log(DEBUG, "Reading entities.std.json..")
 
     -- read the entities
     local entities_json = CAPI.readfile("./entities.json")
 
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         "Loading entities .. "
             .. tostring(entities_json)
             .. ", "
@@ -713,21 +713,21 @@ function load_entities()
     -- decode it
     local entities = {}
     if entities_json then
-        entities = json.decode(entities_json)
+        entities = std.json.decode(entities_json)
     end
 
     -- only if there are sauer entities loaded
     if #__entities_sauer > 0 then
-        logging.log(logging.DEBUG, "Loading sauer entities ..")
+        log(DEBUG, "Loading sauer entities ..")
 
-        logging.log(logging.DEBUG, "    Trying to load import JSON file ..")
+        log(DEBUG, "    Trying to load import JSON file ..")
 
         local import_json = CAPI.readfile("./import.json")
         local import_models = {}
         local import_sounds = {}
 
         if import_json then
-            local import_table = json.decode(import_json)
+            local import_table = std.json.decode(import_json)
             if import_table["models"] then
                 import_models = import_table["models"]
             end
@@ -848,8 +848,8 @@ function load_entities()
 
     -- loop the table
     for i, entity in pairs(entities) do
-        logging.log(
-            logging.DEBUG, "load_entities: " .. json.encode(entity)
+        log(
+            DEBUG, "load_entities: " .. std.json.encode(entity)
         )
 
         -- entity unique ID
@@ -859,14 +859,14 @@ function load_entities()
         -- entity state data
         local state_data = entity[3]
 
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "load_entities: "
                 .. uid
                 .. ", "
                 .. class_name
                 .. ", "
-                .. json.encode(state_data)
+                .. std.json.encode(state_data)
             )
 
         -- backwards comptaibility, rotate by 180 degrees
@@ -896,10 +896,10 @@ function load_entities()
         end
 
         -- add the entity, pass state data via kwargs
-        add(class_name, uid, { state_data = json.encode(state_data) })
+        add(class_name, uid, { state_data = std.json.encode(state_data) })
     end
 
-    logging.log(logging.DEBUG, "Loading entities complete")
+    log(DEBUG, "Loading entities complete")
 end
 
 --[[!
@@ -910,13 +910,13 @@ end
 function save_entities()
     -- stores encoded entity JSON strings
     local r = {}
-    logging.log(logging.DEBUG, "Saving entities ..:")
+    log(DEBUG, "Saving entities ..:")
 
     -- loop the storage
     for uid, entity in pairs(__entities_store) do
         -- save only persistent entities
         if entity.persistent then
-            logging.log(logging.DEBUG, "Saving entity " .. entity.uid)
+            log(DEBUG, "Saving entity " .. entity.uid)
 
             local class_name = tostring(entity)
 
@@ -925,11 +925,11 @@ function save_entities()
             local state_data = entity:create_state_data_dict()
 
             -- insert encoded entity as JSON string
-            table.insert(r, json.encode({ uid, class_name, state_data }))
+            table.insert(r, std.json.encode({ uid, class_name, state_data }))
         end
     end
 
-    logging.log(logging.DEBUG, "Saving entities complete.")
+    log(DEBUG, "Saving entities complete.")
 
     -- return as string
     return "[\n" .. table.concat(r, ",\n") .. "\n]\n"
@@ -1003,14 +1003,14 @@ if CLIENT then
         <base_client.set_state_data>. 
     ]]
     function set_player_uid(uid)
-        logging.log(logging.DEBUG, "Setting player uid to " .. tostring(uid))
+        log(DEBUG, "Setting player uid to " .. tostring(uid))
 
         if uid then
             player_entity = get(uid)
             player_entity.controlled_here = true
 
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "Player controlled_here:"
                     .. tostring(player_entity.controlled_here)
             )
@@ -1047,8 +1047,8 @@ if CLIENT then
             local key = message.to_protocol_name(
                 tostring(entity), key_protocol_id
             )
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "set_state_data: "
                     .. uid
                     .. ", "
@@ -1067,21 +1067,21 @@ if CLIENT then
         returns false.
     ]]
     function has_scenario_started()
-        logging.log(logging.INFO, "Testing whether the scenario started ..")
+        log(INFO, "Testing whether the scenario started ..")
 
         -- not ready if we don't have player entity
         if not get_player_entity() then
-            logging.log(logging.INFO, ".. no, player entity not created yet.")
+            log(INFO, ".. no, player entity not created yet.")
             return false
         end
 
-        logging.log(logging.INFO, ".. player entity created.")
+        log(INFO, ".. player entity created.")
 
         -- not ready if anything is uninitialized
         for uid, entity in pairs(__entities_store) do
             if not entity.initialized then
-                logging.log(
-                    logging.INFO,
+                log(
+                    INFO,
                     ".. no, entity " .. entity.uid .. " is not initialized."
                 )
                 return false
@@ -1089,7 +1089,7 @@ if CLIENT then
         end
 
         -- we're ready
-        logging.log(logging.INFO, ".. yes, scenario is running.")
+        log(INFO, ".. yes, scenario is running.")
         return true
     end
 else
@@ -1118,7 +1118,7 @@ else
         -- r is at highest unique ID available. Increment it.
         r = r + 1
 
-        logging.log(logging.DEBUG, "Generating new uid: " .. r)
+        log(DEBUG, "Generating new uid: " .. r)
 
         -- we're done, return
         return r
@@ -1147,7 +1147,7 @@ else
         -- force or generate
         force_uid = force_uid or generate_uid()
 
-        logging.log(logging.DEBUG, "New entity: " .. force_uid)
+        log(DEBUG, "New entity: " .. force_uid)
 
         -- create instance
         local r = add(class, force_uid, kwargs, true)
@@ -1193,8 +1193,8 @@ else
             cn - client number of the receiver.
     ]]
     function send_entities(cn)
-        logging.log(
-            logging.DEBUG, "Sending active entities to " .. cn
+        log(
+            DEBUG, "Sending active entities to " .. cn
         )
 
         -- get table of unique IDs

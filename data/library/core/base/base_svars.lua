@@ -109,7 +109,7 @@ end
 --[[!
     Event: simplifier
     Registers a JSON simplifier for entity instances.
-    See <json.register>. When JSON finds it should
+    See <std.json.register>. When JSON finds it should
     encode something that is an entity instance,
     instead of encoding it in a raw way, it substitutes
     it with entity's unique ID. We don't mostly need more,
@@ -117,7 +117,7 @@ end
 
     Code:
         (start code)
-            json.register(
+            std.json.register(
                 function(value)
                     return (type(value) == "table"
                              and value.uid ~= nil)
@@ -128,7 +128,7 @@ end
             )
         (end
 ]]
-json.register(
+std.json.register(
     function(value)
         return (type(value) == "table"
                  and value.uid ~= nil)
@@ -198,7 +198,7 @@ state_variable = std.class.new(nil, {
             clients).
     ]]
     __init = function(self, kwargs)
-        logging.log(logging.INFO, "state_variable: constructor ..")
+        log(INFO, "state_variable: constructor ..")
 
         if not kwargs then
             kwargs = {}
@@ -229,7 +229,7 @@ state_variable = std.class.new(nil, {
             parent - entity to register the SV for.
     ]]
     register = function(self, _name, parent)
-        logging.log(logging.DEBUG, "state_variable:register("
+        log(DEBUG, "state_variable:register("
              .. tostring(_name) .. ", "
              .. tostring(parent) .. ")")
 
@@ -243,8 +243,8 @@ state_variable = std.class.new(nil, {
         assert(self.getter)
         assert(self.setter)
 
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "state_variable:register: defining (g|s)etter for "
                 .. _name
         )
@@ -255,8 +255,8 @@ state_variable = std.class.new(nil, {
 
         -- if alt_name is available, setup as well.
         if self.alt_name then
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "state_variable:register: defining (g|s)etter for "
                     .. self.alt_name
             )
@@ -296,8 +296,8 @@ state_variable = std.class.new(nil, {
     write_tests = function(self, entity)
         -- if deactivated, do extra logging and fail
         if entity.deactivated then
-            logging.log(
-                logging.ERROR,
+            log(
+                ERROR,
                 "Trying to write a field "
                     .. self._name
                     .. " of "
@@ -338,7 +338,7 @@ state_variable = std.class.new(nil, {
         -- read tests
         variable:read_tests(self)
 
-        logging.log(logging.INFO, "SV getter: " .. variable._name)
+        log(INFO, "SV getter: " .. variable._name)
 
         -- return the local value
         return self.state_variable_values[variable._name]
@@ -492,11 +492,11 @@ state_bool = std.class.new(state_variable, {
 ]]
 state_json = std.class.new(state_variable, {
     to_wire = function(self, value)
-        return json.encode(value)
+        return std.json.encode(value)
     end,
 
     from_wire = function(self, value)
-        return json.decode(value)
+        return std.json.decode(value)
     end
 }, "state_json")
 
@@ -550,8 +550,8 @@ array_surrogate = std.class.new(nil, {
             variable - the state variable the surrogate belongs to.
     ]]
     __init = function(self, entity, variable)
-        logging.log(
-            logging.INFO,
+        log(
+            INFO,
             "setting up array_surrogate("
                 .. tostring(entity)
                 .. ", "
@@ -611,11 +611,11 @@ array_surrogate = std.class.new(nil, {
         the entity via state variable.
     ]]
     to_array = function(self)
-        logging.log(logging.INFO, "to_array: " .. tostring(self))
+        log(INFO, "to_array: " .. tostring(self))
 
         local r = {}
         for i = 1, self.length do
-            logging.log(logging.INFO, "to_array(" .. tostring(i) .. ")")
+            log(INFO, "to_array(" .. tostring(i) .. ")")
             table.insert(r, self[i])
         end
         return r
@@ -690,14 +690,14 @@ state_array = std.class.new(state_variable, {
         surrogate as value. That is sometimes handy.
     ]]
     setter = function(self, value, variable)
-        logging.log(
-            logging.DEBUG, "state_array setter: " .. json.encode(value)
+        log(
+            DEBUG, "state_array setter: " .. std.json.encode(value)
         )
 
         -- we can also detect vectors :)
         if value.x then
-            logging.log(
-                logging.INFO,
+            log(
+                INFO,
                 "state_array setter: "
                     .. value.x
                     .. ", "
@@ -710,8 +710,8 @@ state_array = std.class.new(state_variable, {
         -- and arrays, try to print first 3 values
         -- we tostring the two ones because of nil values
         if value[1] then
-            logging.log(
-                logging.INFO,
+            log(
+                INFO,
                 "state_array setter: "
                     .. value[1]
                     .. ", "
@@ -761,8 +761,8 @@ state_array = std.class.new(state_variable, {
             value - either raw array or array surrogate to convert.
     ]]
     to_wire = function(self, value)
-        logging.log(
-            logging.INFO, "to_wire of state_array: " .. json.encode(value)
+        log(
+            INFO, "to_wire of state_array: " .. std.json.encode(value)
         )
 
         -- if we have array surrogate, get a raw array
@@ -800,8 +800,8 @@ state_array = std.class.new(state_variable, {
             value - the string value to get array from.
     ]]
     from_wire = function(self, value)
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "from_wire of state_array: "
                 .. tostring(self._name)
                 .. "::"
@@ -831,8 +831,8 @@ state_array = std.class.new(state_variable, {
             entity - the entity to get raw data from.
     ]]
     get_raw = function(self, entity)
-        logging.log(logging.INFO, "get_raw: " .. tostring(self))
-        logging.log(logging.INFO, json.encode(entity.state_variable_values))
+        log(INFO, "get_raw: " .. tostring(self))
+        log(INFO, std.json.encode(entity.state_variable_values))
 
         local val = entity.state_variable_values[self._name]
         return val and val or {}
@@ -851,15 +851,15 @@ state_array = std.class.new(state_variable, {
             value - the value to set.
     ]]
     set_item = function(self, entity, index, value)
-        logging.log(
-            logging.INFO,
-            "set_item: " .. index .. " : " .. json.encode(value)
+        log(
+            INFO,
+            "set_item: " .. index .. " : " .. std.json.encode(value)
         )
 
         -- get raw array
         local arr = self:get_raw(entity)
 
-        logging.log(logging.INFO, "got_raw: " .. json.encode(arr))
+        log(INFO, "got_raw: " .. std.json.encode(arr))
 
         -- do not allow separator to be present in the item if it's
         -- string, it could mess up the whole system.
@@ -884,14 +884,14 @@ state_array = std.class.new(state_variable, {
             index - state array index.
     ]]
     get_item = function(self, entity, index)
-        logging.log(logging.INFO, "state_array:get_item for " .. index)
+        log(INFO, "state_array:get_item for " .. index)
 
         -- raw array
         local arr = self:get_raw(entity)
-        logging.log(
-            logging.INFO,
+        log(
+            INFO,
             "state_array:get_item "
-                .. json.encode(arr)
+                .. std.json.encode(arr)
                 .. " ==> "
                 .. arr[index]
         )
@@ -976,8 +976,8 @@ variable_alias = std.class.new(state_variable, {
         plus alias name, and creates a getter / setter for alias name.
     ]]
     register = function(self, _name, parent)
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "variable_alias:register(%(1)q, %(2)s)"
                 % { _name, tostring(parent) }
         )
@@ -985,8 +985,8 @@ variable_alias = std.class.new(state_variable, {
         -- set _name
         self._name = _name
 
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "Getting target entity for variable alias "
                 .. _name
                 .. ": "
@@ -1032,7 +1032,7 @@ wrapped_c_variable = {
         Then, parent constructor gets called as usual.
     ]]
     __init = function(self, kwargs)
-        logging.log(logging.INFO, "wrapped_c_variable:__init()")
+        log(INFO, "wrapped_c_variable:__init()")
 
         -- read kwargs
         self.c_getter_raw = kwargs.c_getter
@@ -1070,7 +1070,7 @@ wrapped_c_variable = {
         -- call parent
         self.base_class.register(self, _name, parent)
 
-        logging.log(logging.DEBUG, "WCV register: " .. tostring(_name))
+        log(DEBUG, "WCV register: " .. tostring(_name))
 
         -- allow use of string names, for late binding at
         -- this stage we copy raw walues, then eval
@@ -1093,8 +1093,8 @@ wrapped_c_variable = {
             parent:connect(get_on_modify_name(_name), function (self, value)
                 -- on client or with empty SV change queue, call the setter
                 if CLIENT or parent:can_call_c_functions() then
-                    logging.log(
-                        logging.INFO,
+                    log(
+                        INFO,
                         string.format(
                             "Calling c_setter for %s, with %s (%s)",
                             variable._name, tostring(value), type(value)
@@ -1102,7 +1102,7 @@ wrapped_c_variable = {
                     )
                     -- we've been set up, apply the change
                     variable.c_setter(parent, value)
-                    logging.log(logging.INFO, "c_setter called successfully.")
+                    log(INFO, "c_setter called successfully.")
 
                     -- cache the value locally for performance reasons
                     parent.state_variable_values[variable._name] = value
@@ -1115,8 +1115,8 @@ wrapped_c_variable = {
             end)
         else
             -- valid behavior, but log it anyway
-            logging.log(
-                logging.DEBUG,
+            log(
+                DEBUG,
                 "No c_setter for " .. _name .. ": not connecting to signal."
             )
         end
@@ -1143,7 +1143,7 @@ wrapped_c_variable = {
         -- read tests
         variable:read_tests(self)
 
-        logging.log(logging.INFO, "WCV getter " .. variable._name)
+        log(INFO, "WCV getter " .. variable._name)
 
         -- caching - return from cache if timestamp is okay
         local cached_timestamp
@@ -1154,7 +1154,7 @@ wrapped_c_variable = {
 
         -- if it needs updated value, do checks
         if variable.c_getter and (CLIENT or self:can_call_c_functions()) then
-            logging.log(logging.INFO, "WCV getter: call C")
+            log(INFO, "WCV getter: call C")
             -- call C now
             local val = variable.c_getter(self)
 
@@ -1169,8 +1169,8 @@ wrapped_c_variable = {
             return val
         else
             -- call standard getter if no C getter available
-            logging.log(
-                logging.INFO,
+            log(
+                INFO,
                 "WCV getter: fallback to state_data since "
                     .. tostring(variable.c_getter)
             )
@@ -1241,8 +1241,8 @@ wrapped_c_array = std.class.new(state_array, "wrapped_c_array"):mixin({
         to local state data.
     ]]
     get_raw = function(self, entity)
-        logging.log(
-            logging.INFO,
+        log(
+            INFO,
             "WCA:get_raw " .. self._name .. " " .. tostring(self.c_getter)
         )
 
@@ -1255,11 +1255,11 @@ wrapped_c_array = std.class.new(state_array, "wrapped_c_array"):mixin({
                 return entity.state_variable_values[self._name]
             end
 
-            logging.log(logging.INFO, "WCA:get_raw: call C")
+            log(INFO, "WCA:get_raw: call C")
             -- call C if we can't.
             local val = self.c_getter(entity)
-            logging.log(
-                logging.INFO, "WCA:get_raw:result: " .. json.encode(val)
+            log(
+                INFO, "WCA:get_raw:result: " .. std.json.encode(val)
             )
 
             -- cache the value so we're up to date for next time
@@ -1273,9 +1273,9 @@ wrapped_c_array = std.class.new(state_array, "wrapped_c_array"):mixin({
             return val
         else
             -- fallback to state data
-            logging.log(logging.INFO, "WCA:get_raw: fallback to state_data")
+            log(INFO, "WCA:get_raw: fallback to state_data")
             local r = entity.state_variable_values[self._name]
-            logging.log(logging.INFO, "WCA:get_raw .. " .. json.encode(r))
+            log(INFO, "WCA:get_raw .. " .. std.json.encode(r))
             return r
         end
     end

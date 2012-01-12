@@ -318,10 +318,7 @@ math.Vec3 = std.class.new(nil, {
         if    len ~= 0 then
             self:mul(1 / len)
         else
-            logging.log(
-                logging.ERROR,
-                "Can't normalize a vector of zero length."
-            )
+            log(ERROR, "Can't normalize a vector of zero length.")
         end
         return self
     end,

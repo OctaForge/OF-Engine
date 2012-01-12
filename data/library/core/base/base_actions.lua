@@ -306,7 +306,7 @@ action = std.class.new(nil, {
         -- handle execution, and mirror finish status of parallel action
         -- if exists.
         if self.parallel_to == false then
-            logging.log(logging.INFO, "executing action " .. tostring(self))
+            log(INFO, "executing action " .. tostring(self))
 
             -- check if we've already finished via retvals of do_execute
             local finished = self:do_execute(seconds)
@@ -316,8 +316,8 @@ action = std.class.new(nil, {
                 self:finish()
             end
 
-            logging.log(
-                logging.INFO,
+            log(
+                INFO,
                 "        ...finished: "
                     .. tostring(finished)
             )
@@ -570,8 +570,8 @@ action_system = std.class.new(nil, {
 
         -- if we've still got something queued, proceed
         if #self.action_list > 0 then
-            logging.log(
-                logging.INFO,
+            log(
+                INFO,
                 "executing " .. tostring(self.action_list[1])
             )
 
@@ -621,8 +621,8 @@ action_system = std.class.new(nil, {
                 -- check via tostring, we don't want
                 -- to assume inherited actions
                 if tostring(self.action_list[i]) == tostring(action) then
-                    logging.log(
-                        logging.WARNING,
+                    log(
+                        WARNING,
                         string.format(
                             "Trying to multiply queue %s, that isn't allowed.",
                             tostring(action)

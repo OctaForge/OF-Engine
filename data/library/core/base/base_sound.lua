@@ -48,8 +48,8 @@ function play(name, position, volume, cn)
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names
         if #name > 2 then
-            logging.log(
-                logging.WARNING,
+            log(
+                WARNING,
                 string.format(
                     "Sending a sound '%s' to clients using"
                     .. " full string name. This should be done rarely,"
@@ -87,8 +87,8 @@ function stop(name, volume, cn)
     else
         -- warn when using non-compressed names
         if #name > 2 then
-            logging.log(
-                logging.WARNING,
+            log(
+                WARNING,
                 string.format(
                     "Sending a sound '%s' to clients using"
                     .. " full string name. This should be done rarely,"

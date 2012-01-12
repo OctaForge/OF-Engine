@@ -242,13 +242,13 @@ function show_entity_properties_tab()
     -- first try if we're targeting at entity
     local  uid = entity_store.get_target_entity_uid()
     if not uid then
-        logging.log(logging.DEBUG, "No entity to show GUI for.")
+        log(DEBUG, "No entity to show GUI for.")
     end
 
     -- then try if it's gettable
     local  entity = entity_store.get(uid)
     if not entity then
-        logging.log(logging.DEBUG, "No entity to show GUI for.")
+        log(DEBUG, "No entity to show GUI for.")
     end
 
     -- sorted_keys is an array of keys sorted by name

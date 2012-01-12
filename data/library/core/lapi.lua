@@ -190,7 +190,7 @@ return {
         start_frame       = entity_store.start_frame
     },
     JSON = {
-        encode = json.encode,
-        decode = json.decode
+        encode = std.json.encode,
+        decode = std.json.decode
     }
 }

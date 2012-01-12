@@ -15,5 +15,5 @@
 
 std = {}
 
-logging.log(logging.DEBUG, ":: Lua extensions.")
+log(DEBUG, ":: Lua extensions.")
 require("std.lua")

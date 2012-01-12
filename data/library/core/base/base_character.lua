@@ -240,7 +240,7 @@ character = std.class.new(entity_animated.base_animated, {
             <activate>
     ]]
     init = function(self, uid, kwargs)
-        logging.log(logging.DEBUG, "character:init")
+        log(DEBUG, "character:init")
         entity_animated.base_animated.init(self, uid, kwargs)
 
         -- initial properties set by server, _name is set even later
@@ -278,7 +278,7 @@ character = std.class.new(entity_animated.base_animated, {
             <init>
     ]]
     activate = function(self, kwargs)
-        logging.log(logging.DEBUG, "character:activate")
+        log(DEBUG, "character:activate")
 
         -- client number is set when character gets activated
         -- once again, asserting valid value
@@ -292,7 +292,7 @@ character = std.class.new(entity_animated.base_animated, {
         entity_animated.base_animated.activate(self, kwargs)
         self:flush_queued_state_variable_changes()
 
-        logging.log(logging.DEBUG, "character:activate complete.")
+        log(DEBUG, "character:activate complete.")
     end,
 
     --[[!
@@ -749,7 +749,7 @@ player = std.class.new(character, {
             <character.init>
     ]]
     init = function(self, uid, kwargs)
-        logging.log(logging.DEBUG, "player:init")
+        log(DEBUG, "player:init")
         -- init on parent, then add its own properties
         character.init(self, uid, kwargs)
 

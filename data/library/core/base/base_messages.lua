@@ -61,7 +61,7 @@ protocol_ids_to_names = {}
         this is first data argument or nil.
 ]]
 function send(...)
-    logging.log(logging.DEBUG, "message.send")
+    log(DEBUG, "message.send")
 
     -- pre-declare locals
     local server
@@ -101,8 +101,8 @@ function send(...)
         table.insert(args, 1, cn)
     end
 
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         string.format(
             "Lua msgsys: send(): %s with { %s }",
             tostring(mf), table.concat(
@@ -134,8 +134,8 @@ end
         the class (an array).
 ]]
 function generate_protocol_data(class_name, sv_names)
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         string.format(
             "Generating protocol names for %s",
             class_name
@@ -170,8 +170,8 @@ end
         sv_name - name of the state variable.
 ]]
 function to_protocol_id(class_name, sv_name)
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         string.format(
             "Retrieving protocol ID for %s / %s",
             class_name, sv_name
@@ -189,8 +189,8 @@ end
         protocol_id - the protocol ID.
 ]]
 function to_protocol_name(class_name, protocol_id)
-    logging.log(
-        logging.DEBUG,
+    log(
+        DEBUG,
         string.format(
             "Retrieving state variable name for %s / %i",
             class_name, protocol_id

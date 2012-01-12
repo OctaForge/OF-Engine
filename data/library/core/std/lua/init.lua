@@ -13,17 +13,17 @@
         OctaForge standard library loader (Lua extensions).
 ]]
 
-logging.log(logging.DEBUG, ":::: Class system.")
+log(DEBUG, ":::: Class system.")
 
 std["class"] = require("std.lua.class")
 
-logging.log(logging.DEBUG, ":::: Lua extensions: table")
+log(DEBUG, ":::: Lua extensions: table")
 require("std.lua.table")
 
-logging.log(logging.DEBUG, ":::: Lua extensions: string")
+log(DEBUG, ":::: Lua extensions: string")
 require("std.lua.string")
 
-logging.log(logging.DEBUG, ":::: Lua extensions: math")
+log(DEBUG, ":::: Lua extensions: math")
 require("std.lua.math")
 
 std["table" ] = _G["table" ]
@@ -31,5 +31,8 @@ std["string"] = _G["string"]
 std["math"  ] = _G["math"  ]
 std["debug" ] = _G["debug" ]
 
-logging.log(logging.DEBUG, ":::: Type conversion module.")
+log(DEBUG, ":::: Type conversions.")
 std["conv"] = require("std.lua.conv")
+
+log(DEBUG, ":::: JSON.")
+std["json"] = require("std.lua.json")

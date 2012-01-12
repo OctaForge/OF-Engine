@@ -114,7 +114,7 @@ base_static = std.class.new(entity_animated.base_animated, {
         function and initialize their state variable defaults here.
     ]]
     init = function(self, uid, kwargs)
-        logging.log(logging.DEBUG, "base:init")
+        log(DEBUG, "base:init")
 
         kwargs = kwargs or {}
         -- static entities are persistent by default
@@ -133,7 +133,7 @@ base_static = std.class.new(entity_animated.base_animated, {
         end
         self.radius = 0
 
-        logging.log(logging.DEBUG, "base:init complete")
+        log(DEBUG, "base:init complete")
     end,
 
     --[[!
@@ -149,9 +149,9 @@ base_static = std.class.new(entity_animated.base_animated, {
     activate = function(self, kwargs)
         kwargs = kwargs or {}
 
-        logging.log(
-            logging.DEBUG,
-            self.uid .. " base: __activate() " .. json.encode(kwargs)
+        log(
+            DEBUG,
+            self.uid .. " base: __activate() " .. std.json.encode(kwargs)
         )
 
         -- call parent
@@ -163,7 +163,7 @@ base_static = std.class.new(entity_animated.base_animated, {
         end
 
         -- default some kwargs items
-        logging.log(logging.DEBUG, "base defaults:")
+        log(DEBUG, "base defaults:")
         kwargs.x = self.position.x or 512
         kwargs.y = self.position.y or 512
         kwargs.z = self.position.z or 512
@@ -172,7 +172,7 @@ base_static = std.class.new(entity_animated.base_animated, {
         kwargs.attr3 = self.attr3 or 0
         kwargs.attr4 = self.attr4 or 0
 
-        logging.log(logging.DEBUG, "base: setupextent:")
+        log(DEBUG, "base: setupextent:")
         -- set up static entity in sauer subsystem
         CAPI.setupextent(
             self, kwargs._type,
@@ -180,16 +180,16 @@ base_static = std.class.new(entity_animated.base_animated, {
             kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4
         )
 
-        logging.log(logging.DEBUG, "base: flush:")
+        log(DEBUG, "base: flush:")
         -- flush queue
         self:flush_queued_state_variable_changes()
 
         -- ensure the state data contains copies for C++ stuff
         -- (otherwise, might be empty, and we need it for
         -- initializing on the server)
-        logging.log(logging.DEBUG, "ensuring base values - deprecate")
-        logging.log(
-            logging.DEBUG,
+        log(DEBUG, "ensuring base values - deprecate")
+        log(
+            DEBUG,
             "position: "
                 .. tostring(self.position.x)
                 .. ", "
@@ -197,15 +197,15 @@ base_static = std.class.new(entity_animated.base_animated, {
                 .. ", "
                 .. tostring(self.position.z)
         )
-        logging.log(
-            logging.DEBUG, "position class: " .. tostring(self.position)
+        log(
+            DEBUG, "position class: " .. tostring(self.position)
         )
 
         -- trigger SV change
         self.position = self.position
 
-        logging.log(
-            logging.DEBUG,
+        log(
+            DEBUG,
             "position(2): "
                 .. tostring(self.position.x)
                 .. ", "
@@ -214,12 +214,12 @@ base_static = std.class.new(entity_animated.base_animated, {
                 .. tostring(self.position.z)
         )
 
-        logging.log(logging.DEBUG, "ensuring base values (2)")
+        log(DEBUG, "ensuring base values (2)")
         self.attr1 = self.attr1
         self.attr2 = self.attr2
         self.attr3 = self.attr3
         self.attr4 = self.attr4
-        logging.log(logging.DEBUG, "ensuring base values complete.")
+        log(DEBUG, "ensuring base values complete.")
     end,
 
     --! Function: deactivate
@@ -285,7 +285,7 @@ base_static = std.class.new(entity_animated.base_animated, {
                     and entity_store.get_all_client_numbers()
                      or { cn }
 
-        logging.log(logging.DEBUG, "base:send_complete_notification:")
+        log(DEBUG, "base:send_complete_notification:")
 
         -- loop client numbers and send message to each
         for i = 1, #cns do
@@ -305,7 +305,7 @@ base_static = std.class.new(entity_animated.base_animated, {
                         tonumber(self.attr3),
                         tonumber(self.attr4))
         end
-        logging.log(logging.DEBUG, "base:send_complete_notification done.")
+        log(DEBUG, "base:send_complete_notification done.")
     end,
 
     --[[!
@@ -684,7 +684,7 @@ mapmodel = std.class.new(base_static, {
     --! Function: init
     --! See <base_static.init>.
     init = function(self, uid, kwargs)
-        logging.log(logging.DEBUG, "mapmodel:init")
+        log(DEBUG, "mapmodel:init")
         base_static.init(self, uid, kwargs)
 
         -- sauer mapmodel index - put as -1 to use out model names as default
@@ -694,7 +694,7 @@ mapmodel = std.class.new(base_static, {
         self.collision_radius_width = 0
         self.collision_radius_height = 0
 
-        logging.log(logging.DEBUG, "mapmodel:init complete.")
+        log(DEBUG, "mapmodel:init complete.")
     end,
 
     --[[!

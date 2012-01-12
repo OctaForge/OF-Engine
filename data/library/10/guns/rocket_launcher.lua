@@ -125,7 +125,7 @@ rocket_launcher = std.class.new(projectiles.gun, {
                 )
 
                 if shooter.radius > 0 then
-                    logging.log(logging.DEBUG, "adjusting rocket origin")
+                    log(DEBUG, "adjusting rocket origin")
                     local shooter_position = shooter.position:copy()
                     shooter_position.z = current_origin_position.z
                     local dir = shooter_position:sub_new(

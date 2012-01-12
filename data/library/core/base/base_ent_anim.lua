@@ -69,14 +69,14 @@ base_animated = std.class.new(entity.base, {
     --! Note: Queues model_name property for updating.
     activate = function(self, kwargs)
         -- call parent
-        logging.log(logging.DEBUG, "base:activate")
+        log(DEBUG, "base:activate")
         entity.base.activate(self, kwargs)
 
         -- queue model_name for updating
-        logging.log(logging.DEBUG, "base:activate (2)")
+        log(DEBUG, "base:activate (2)")
         self.model_name = self.model_name
 
-        logging.log(logging.DEBUG, "base:activate complete")
+        log(DEBUG, "base:activate complete")
     end,
 
     --[[!
