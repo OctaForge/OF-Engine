@@ -118,7 +118,7 @@ function bake(_class, plugins, name)
                     if not properties then
                         properties = item
                     else
-                        table.merge_dicts(properties, item)
+                        properties = table.merge(properties, item)
                     end
                 else
                     cldata[name] = item

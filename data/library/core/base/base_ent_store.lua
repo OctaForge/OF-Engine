@@ -397,7 +397,7 @@ function del(uid)
     end
 
     -- emit the signal
-    __entities_store[uid]:emit("pre_deactivate")
+    std.signal.emit(__entities_store[uid], "pre_deactivate")
 
     -- call deactivators
     if CLIENT then
@@ -410,7 +410,7 @@ function del(uid)
     local ent = __entities_store[uid]
     for k, v in pairs(entity_classes.class_storage) do
         if ent:is_a(v[1]) then
-            __entities_store_by_class[k] = table.filter_array(
+            __entities_store_by_class[k] = table.filter(
                 __entities_store_by_class[k],
                 function(a, b) return (b ~= ent) end
             )

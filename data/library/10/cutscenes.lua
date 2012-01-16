@@ -601,13 +601,13 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
                 end
             )
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("next_controller"),
                 function(self)
                     -- flush the cache
@@ -698,7 +698,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
@@ -710,7 +710,7 @@ entity_classes.register(
                     end
                 end
             )
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("next_marker"),
                 function(self)
                     -- flush the cache
@@ -829,7 +829,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
@@ -841,7 +841,7 @@ entity_classes.register(
                     end
                 end
             )
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("parent_id"),
                 function(self)
                     -- flush the cache
@@ -930,7 +930,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
@@ -1042,7 +1042,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]

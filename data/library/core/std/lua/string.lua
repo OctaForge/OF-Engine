@@ -98,11 +98,10 @@ string.template = function(str, level, env)
     )
 
     env = env or _G
-    env = (not env._VERSION) and
-        setmetatable(
-            std.table.merge_dicts(env, std.table.copy(_G)), getmetatable(_G)
-        )
-    or env
+    if not env._VERSION then
+        env = std.table.merge(env, std.table.copy(_G))
+        setmetatable(env, getmetatable(_G))
+    end
 
     -- r - table to concaterate as retval; sp - start position
     local r = {}; local sp = 1

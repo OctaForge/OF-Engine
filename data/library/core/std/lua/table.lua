@@ -36,26 +36,32 @@ table.map = function(t, f)
     return r
 end
 
---[[! Function: table.merge_dicts
-    Merges two associative arrays (dictionaries) together
-    and returns the result.
+--[[! Function: table.merge
+    Merges the two given tables together and returns the result. The original
+    tables are left unmodified. If they are arrays, the second table's contents
+    come after the first's. If they are associative arrays and both tables
+    contain an element of the same key, the one from the second table is
+    used. If one of them is an array and the other is an associative array,
+    the result is an associative array as well.
 ]]
-table.merge_dicts = function(ta, tb)
-    for a, b in pairs(tb) do
-        ta[a] = b
+table.merge = function(ta, tb)
+    local r = {}
+    if #ta ~= 0 and #tb ~= 0 then
+        for a, b in pairs(ta) do
+            table.insert(r, b)
+        end
+        for a, b in pairs(tb) do
+            table.insert(r, b)
+        end
+    else
+        for a, b in pairs(ta) do
+            r[a] = b
+        end
+        for a, b in pairs(tb) do
+            r[a] = b
+        end
     end
-    return ta
-end
-
---[[! Function: table.merge_arrays
-    Merges two arrays (with numerical indexes) together and
-    returns the result. The table has to be a proper array.
-]]
-table.merge_arrays = function(ta, tb)
-    for i, v in pairs(tb) do
-        table.insert(ta, v)
-    end
-    return ta
+    return r
 end
 
 --[[! Function: table.copy
@@ -69,16 +75,16 @@ table.copy = function(t)
     return r
 end
 
---[[! Function: table.filter_dict
-    Filters an associative array (dictionary). Takes the table and a function
-    returning true if the passed item should be part of the returned table
-    and false if it shouldn't. The function takes two arguments, the key
-    and the value. This doesn't perform anything on the original table.
+--[[! Function: table.filter
+    Filters a table. Takes the table and a function returning true if the
+    passed item should be a part of the returned table and false if it
+    shouldn't. The function takes two arguments, the key or index and
+    the value. This doesn't perform anything on the original table.
 
     (start code)
-        -- array to filter
+        -- table to filter
         foo = { a = 5, b = 10, c = 15, d = 15 }
-        -- filtered array, contains just a, b, c
+        -- filtered table, contains just a, b, c
         bar = table.filter(foo, function(k, v)
             if k == "d" and v == 15 then
                 return false
@@ -87,29 +93,20 @@ end
             end
         end)
     (end)
-
-    See also <table.filter_array>.
 ]]
-table.filter_dict = function(t, f)
+table.filter = function(t, f)
     local r = {}
-    for a, b in pairs(t) do
-        if f(a, b) then
-            r[a] = b
+    if #t ~= 0 then
+        for a, b in pairs(t) do
+            if f(a, b) then
+                table.insert(r, b)
+            end
         end
-    end
-    return r
-end
-
---[[! Function: table.filter_array
-    See <table.filter_dict>. This works exactly in the same way, except that
-    the table is not a dict, instead, it's an array. The function takes the
-    same arguments, except that the first argument is an index, not a key.
-]]
-table.filter_array = function(t, f)
-    local r = {}
-    for i, v in pairs(t) do
-        if f(i, v) then
-            table.insert(r, v)
+    else
+        for a, b in pairs(t) do
+            if f(a, b) then
+                r[a] = b
+            end
         end
     end
     return r

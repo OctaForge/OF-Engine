@@ -561,7 +561,7 @@ action_system = std.class.new(nil, {
     ]]
     manage = function(self, seconds)
         -- filter out finished actions beforehand
-        self.action_list = table.filter_array(
+        self.action_list = table.filter(
             self.action_list,
             function (i, v)
                 return not v.finished

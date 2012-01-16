@@ -96,7 +96,7 @@ chaingun.plugin = {
     client_activate = function(self)
         self.chaingun_firing = false
 
-        self:connect(
+        std.signal.connect(self,
             state_variables.get_on_modify_name("chaingun_firing_update"),
             function(self, value)
                 value = value and health.is_valid_target(self)

@@ -23,7 +23,7 @@ action = std.class.new(actions.action, {
 
     do_execute = function(self, seconds)
         if geometry.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
-            self.actor:emit("world_area_active")
+            std.signal.emit(self.actor, "world_area_active")
             return false
         else
             return true

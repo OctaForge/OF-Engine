@@ -14,15 +14,15 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
             entities = { entity_store.get_player_entity() }
         else
             entities = entity_store.get_all_close(position, { max_distance = max_dist })
-            entities = table.map        (entities, function(pair) return pair[1] end)
-            entities = table.filter_dict(entities, function(i, entity) return not entity:is_a(character.player) end)
+            entities = table.map   (entities, function(pair) return pair[1] end)
+            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
     else
         entities = {}
         if owner == entity_store.get_player_entity() then
             entities = entity_store.get_all_close(position, { max_distance = max_dist })
-            entities = table.map        (entities, function(pair) return pair[1] end)
-            entities = table.filter_dict(entities, function(i, entity) return not entity:is_a(character.player) end)
+            entities = table.map   (entities, function(pair) return pair[1] end)
+            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
         table.insert(entities, entity_store.get_player_entity())
     end
@@ -179,7 +179,7 @@ manager = std.class.new(nil, {
     end,
 
     tick = function(self, seconds)
-        self.projectiles = table.filter_dict(self.projectiles, function(i, projectile)
+        self.projectiles = table.filter(self.projectiles, function(i, projectile)
             local persist = projectile:tick(seconds)
             if not persist then
                 projectile:destroy()

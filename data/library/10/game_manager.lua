@@ -12,7 +12,7 @@ player_plugin = {
     activate = function(self)
         get_singleton():pick_team(self)
 
-        self:connect("pre_deactivate", function(self)
+        std.signal.connect(self,"pre_deactivate", function(self)
             get_singleton():leave_team(self)
         end)
 
@@ -20,7 +20,7 @@ player_plugin = {
     end,
 
     client_activate = function(self)
-        self:connect("client_respawn", function(self)
+        std.signal.connect(self,"client_respawn", function(self)
             get_singleton():place_player(self)
         end)
     end
@@ -32,7 +32,7 @@ function setup(plugins_add)
     entity_classes.register(
         plugins.bake(
             entity.base,
-            table.merge_arrays(
+            table.merge(
                 {{
                     properties = {
                         team_data = state_variables.state_json()
@@ -51,7 +51,7 @@ function setup(plugins_add)
                     get_players = function(self)
                         local players = {}
                         for i, team in pairs(table.values(self.teams)) do
-                            table.merge_arrays(players, team.player_list)
+                            players = table.merge(players, team.player_list)
                         end
                         return players
                     end,
@@ -77,7 +77,7 @@ function setup(plugins_add)
                             player:respawn()
                         end
 
-                        self:emit("start_game")
+                        std.signal.emit(self,"start_game")
                         self.game_running = true
                     end,
 
@@ -85,7 +85,7 @@ function setup(plugins_add)
                         self.game_running = false
                         -- usually you want to connect something here to run
                         -- self.start_game, but see intermission plugin
-                        self:emit("end_game")
+                        std.signal.emit(self,"end_game")
                     end,
 
                     register_teams = function(self, data)
@@ -100,7 +100,7 @@ function setup(plugins_add)
                             }
                         end
 
-                        self:emit('post_register_teams')
+                        std.signal.emit(self,'post_register_teams')
                         self:start_game()
                     end,
 
@@ -109,7 +109,7 @@ function setup(plugins_add)
                         if not self.deactivated then
                             self.team_data = self.teams
                         end
-                        self:emit("team_data_modified")
+                        std.signal.emit(self,"team_data_modified")
                     end,
 
                     pick_team = function(self, player, sync)
@@ -193,7 +193,7 @@ function setup(plugins_add)
                     end,
 
                     client_activate = function(self)
-                        self:connect(state_variables.get_on_modify_name("team_data"), function(self, value)
+                        std.signal.connect(self,state_variables.get_on_modify_name("team_data"), function(self, value)
                             if self.team_data and value and entity_store.get_player_entity() then
                                 local player_team = entity_store.get_player_entity().team
                                 if value[player_team].score > self.team_data[player_team].score and
@@ -258,14 +258,14 @@ manager_plugins = {
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_on_modify_name("server_message"), function(self, kwargs)
+            std.signal.connect(self,state_variables.get_on_modify_name("server_message"), function(self, kwargs)
                 self:add_hud_message(kwargs)
             end)
             self.rendering_hash_hint = 0 -- used for rendering entities without fpsents
         end,
 
         client_act = function(self, seconds)
-            self.hud_messages = table.filter_dict(self.hud_messages, function(i, msg)
+            self.hud_messages = table.filter(self.hud_messages, function(i, msg)
                 if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_player_entity() then return false end
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
@@ -286,7 +286,7 @@ manager_plugins = {
         max_time = 600, -- 10 minutes
 
         activate = function(self)
-            self:connect("start_game", function(self)
+            std.signal.connect(self,"start_game", function(self)
                 self.time_left = self.max_time
             end)
         end,
@@ -305,7 +305,7 @@ manager_plugins = {
         max_score = 10,
 
         activate = function(self)
-            self:connect("team_data_modified", function(self)
+            std.signal.connect(self,"team_data_modified", function(self)
                 if not self.game_running then return nil end
 
                 for k, team in pairs(self.teams) do
@@ -327,7 +327,7 @@ manager_plugins = {
         finish_title = "Game finished",
 
         activate = function(self)
-            self:connect("end_game", function(self)
+            std.signal.connect(self,"end_game", function(self)
                 -- decide winner
                 local max_score
                 local min_score
@@ -398,7 +398,7 @@ manager_plugins = {
 
         act = function(self, seconds)
             if self.balancer_timer:tick(seconds) then
-                local relevant_teams = table.filter_dict(self.teams, function(i, team)
+                local relevant_teams = table.filter(self.teams, function(i, team)
                     return (not team.kwargs.ignore_for_balancing)
                 end)
 
@@ -411,7 +411,7 @@ manager_plugins = {
                 )
                 local expected_players = total_players / num_teams
 
-                local needs_reduce = table.filter_dict(
+                local needs_reduce = table.filter(
                     relevant_teams,
                     function(k, team_data)
                         return (#team_data.player_list > expected_players + 1)

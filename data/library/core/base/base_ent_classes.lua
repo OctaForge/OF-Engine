@@ -157,7 +157,7 @@ end
 ]]
 function list()
     local r = table.values(
-        table.filter_dict(
+        table.filter(
             table.keys(class_storage),
             function(k, v)
                 local c = get_class(v)

@@ -14,7 +14,6 @@
 ]]
 
 log(DEBUG, ":::: Class system.")
-
 std["class"] = require("std.lua.class")
 
 log(DEBUG, ":::: Lua extensions: table")

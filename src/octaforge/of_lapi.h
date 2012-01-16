@@ -9,7 +9,7 @@ namespace lapi
 
     void init        (const char *dir = "data/library/core");
     void reset       ();
-    bool load_library(const char *version);
+    bool load_library(const char *name);
 }
 
 #endif

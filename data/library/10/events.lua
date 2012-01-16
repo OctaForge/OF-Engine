@@ -87,7 +87,7 @@ action_parallel = std.class.new(actions.action, {
     end,
 
     do_execute = function(self, seconds)
-        self.action_systems = table.filter_dict(
+        self.action_systems = table.filter(
             self.action_systems,
             function(i, action_system)
                 action_system:manage(seconds)
@@ -241,7 +241,7 @@ client_actions_parallel_plugin = {
     end
 }
 
-actions_parallel_plugin = table.merge_dicts(client_actions_parallel_plugin, {
+actions_parallel_plugin = table.merge(client_actions_parallel_plugin, {
     activate = client_actions_parallel_plugin.client_activate,
     act = client_actions_parallel_plugin.client_act
 })

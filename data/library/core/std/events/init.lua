@@ -1,4 +1,4 @@
---[[! File: library/core/std/init.lua
+--[[! File: library/core/std/events/init.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -10,13 +10,8 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        OctaForge standard library general loader.
+        OctaForge standard library loader (Event system).
 ]]
 
-std = {}
-
-log(DEBUG, ":: Lua extensions.")
-require("std.lua")
-
-log(DEBUG, ":: Event system.")
-require("std.events")
+log(DEBUG, ":::: Signal system.")
+std["signal"] = require("std.events.signal")

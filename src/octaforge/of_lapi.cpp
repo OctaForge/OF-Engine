@@ -147,16 +147,6 @@ namespace lapi
             logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     }
 
-    void unload_module(const char *name)
-    {
-        Table loaded = state.registry().get<Table>("_LOADED");
-
-        state [name] = nil;
-        loaded[name] = nil;
-        loaded.get<Table>("package")
-              .get<Table>("loaded" )[name] = nil;
-    }
-
     void setup_binds()
     {
 #ifdef CLIENT
@@ -206,55 +196,38 @@ namespace lapi
 
     void reset()
     {
-        Vector<String> list;
-
-        list.push_back("table");
-        list.push_back("string");
-        list.push_back("math");
-        list.push_back("package");
-        list.push_back("debug");
-        list.push_back("obj");
-        list.push_back("coroutine");
-        list.push_back("_G");
-        list.push_back("CAPI");
-        list.push_back("md3");
-        list.push_back("md5");
-        list.push_back("smd");
-        list.push_back("iqm");
-        list.push_back("obj");
-
-        Table t = state.get<Table>("library", "unresettable");
-        for (Table::it it = t.begin(); it != t.end(); ++it)
-            list.push_back((*it).to<const char*>());
-
-        t = state.registry().get<Object>("_LOADED");
-        for (Table::pit it = t.pbegin(); it != t.pend(); ++it)
+        for (
+            Table::pit it = state.globals().pbegin();
+            it != state.globals().pend();
+            ++it
+        )
         {
             const char *key = (*it).first.to<const char*>();
             if (!key) continue;
 
-            for (size_t i = 0; i < list.length(); ++i)
-                if (list[i] == key) goto end;
+            if (state.get<Function>(
+                "LAPI", "Library", "is_unresettable"
+            ).call<bool>(key)) continue;
 
-            unload_module(key);
-end:
-            continue;
+            Type type = (*it).second.type();
+            Object o(state.registry().get<Object>("_LOADED", key));
+
+            if (strcmp(key, "_G") && type == TYPE_TABLE && o.is_nil())
+                state[key] = nil;
         }
+
+        state.get<Function>("LAPI", "Library", "reset")();
 
         load_module("init");
     }
 
-    bool load_library(const char *version)
+    bool load_library(const char *name)
     {
-        if (!version) return false;
-
-        Function tonumber = state["tonumber"];
-        if (tonumber.call<Object>(version).is_nil())
-            return false;
+        if (!name || strstr(name, "..")) return false;
 
         Table package = state.registry().get<Object>("_LOADED", "package");
 
-        String pattern = String().format(";./data/library/%s/?.lua", version);
+        String pattern = String().format(";./data/library/%s/?.lua", name);
         Function  find = state.get<Object>("string", "find");
 
         if (!find.call<Object>(package["path"], pattern).is_nil())
@@ -268,11 +241,11 @@ end:
         /* home directory path */
         lua_pushfstring(
             L, ";%sdata%clibrary%c%s%c?.lua",
-            homedir, PATHDIV, PATHDIV, version, PATHDIV
+            homedir, PATHDIV, PATHDIV, name, PATHDIV
         );
 
         /* root path */
-        lua_pushfstring(L, ";./data/library/%s/?.lua", version);
+        lua_pushfstring(L, ";./data/library/%s/?.lua", name);
 
         lua_concat(L,  3);
         Object str(L, -1);

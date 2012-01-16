@@ -86,11 +86,11 @@ plugins = {
         },
 
         activate = function(self)
-            self:connect(state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
+            std.signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         client_activate = function(self)
-            self:connect(state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
+            std.signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         on_firing_info = function(self, info)
@@ -138,7 +138,7 @@ plugins = {
         end,
 
         activate = function(self)
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("gun_indexes"),
                 function(self, indexes)
                     if #indexes > 0 then
@@ -153,7 +153,7 @@ plugins = {
             self.last_handled_shot_counter = 0
             self.now_firing = false
 
-            self:connect(
+            std.signal.connect(self,
                 state_variables.get_on_modify_name("current_gun_index"),
                 function(self)
                     if self.gun_switch_sound ~= "" then

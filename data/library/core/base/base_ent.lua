@@ -90,9 +90,6 @@ base_root = std.class.new(nil, {
             return nil
         end
 
-        -- add signal methods
-        signals.methods_add(self)
-
         -- create action system
         self.action_system = actions.action_system(self)
 
@@ -209,7 +206,7 @@ base_root = std.class.new(nil, {
         end
 
         -- let's filter the state variable
-        self.tags = table.filter_array(
+        self.tags = table.filter(
             -- convert <array_surrogate> to raw array
             self.tags:to_array(),
             -- compare the tags
@@ -663,7 +660,7 @@ base_client = std.class.new(base_root, {
             assert(var:validate(value))
 
             -- emit the change handler
-            self:emit(
+            std.signal.emit(self,
                 state_variables.get_on_modify_name(key),
                 value, actor_uid ~= -1
             )
@@ -975,7 +972,7 @@ base_server = std.class.new(base_root, {
                           tostring(value))
 
         -- emit the change
-        local ret = self:emit(
+        local ret = std.signal.emit(self,
             state_variables.get_on_modify_name(key),
             value, actor_uid
         )

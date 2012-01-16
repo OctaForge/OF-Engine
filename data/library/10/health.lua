@@ -12,7 +12,7 @@ action_death = std.class.new(actions.action, {
     seconds_left       = 5.5,
 
     do_start = function(self)
-        self.actor:emit("fragged")
+        std.signal.emit(self.actor, "fragged")
         -- this won't clear us, as we cannot be cancelled
         self.actor:clear_actions()
         self.actor.can_move = false
@@ -52,7 +52,7 @@ plugin = {
             end
         elseif stage == 3 then -- client repositions etc.
             if CLIENT and self == entity_store.get_player_entity() then
-                self:emit("client_respawn")
+                std.signal.emit(self,"client_respawn")
                 self.spawn_stage = 4
             end
         elseif stage == 4 then -- server appears player and sets in motion
@@ -86,13 +86,13 @@ plugin = {
     end,
 
     activate = function(self)
-        self:connect(state_variables.get_on_modify_name("health"),      self.on_health)
-        self:connect(state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
+        std.signal.connect(self,state_variables.get_on_modify_name("health"),      self.on_health)
+        std.signal.connect(self,state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
     end,
 
     client_activate = function(self)
-        self:connect(state_variables.get_on_modify_name("health"),      self.on_health)
-        self:connect(state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
+        std.signal.connect(self,state_variables.get_on_modify_name("health"),      self.on_health)
+        std.signal.connect(self,state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
     end,
 
     decide_animation = function(self, ...)

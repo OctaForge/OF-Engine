@@ -22,7 +22,7 @@ plugins = {
 
                 local area_triggers = entity_store.get_all_by_class("area_trigger")
 
-                if #table.filter_dict(area_triggers, function(i, entity)
+                if #table.filter(area_triggers, function(i, entity)
                     return (entity.sequence_id  == self.sequence_id  and
                             entity.sequence_num == self.sequence_num and
                             entity.sequence_is_mandatory and
@@ -30,7 +30,7 @@ plugins = {
                     )
                 end) > 0 then return nil end
 
-                for k, entity in pairs(table.filter_dict(area_triggers, function(i, entity)
+                for k, entity in pairs(table.filter(area_triggers, function(i, entity)
                     return (entity.sequence_id  == self.sequence_id and
                             entity.sequence_num == self.sequence_num
                     )

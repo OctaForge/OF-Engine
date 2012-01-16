@@ -1090,7 +1090,7 @@ wrapped_c_variable = {
             -- prepare a renamed instance of state variable
             local variable = self
             -- connect the handler
-            parent:connect(get_on_modify_name(_name), function (self, value)
+            std.signal.connect(parent,get_on_modify_name(_name), function (self, value)
                 -- on client or with empty SV change queue, call the setter
                 if CLIENT or parent:can_call_c_functions() then
                     log(

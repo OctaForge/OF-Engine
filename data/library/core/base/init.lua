@@ -16,7 +16,6 @@
 
         It loads:
         - Library system
-        - Signals system
         - Engine interface
         - Utility library
         - Geometry library
@@ -44,9 +43,6 @@ local gravity
 
 log(DEBUG, ":: Library system.")
 require("base.base_library")
-
-log(DEBUG, ":: Signals.")
-require("base.base_signals")
 
 log(DEBUG, ":: Engine interface.")
 require("base.base_engine")
