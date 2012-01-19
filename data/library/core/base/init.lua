@@ -99,9 +99,6 @@ setmetatable(_G, {
 log(DEBUG, ":: Geometry interface.")
 require("base.base_geometry")
 
-log(DEBUG, ":: Action system.")
-require("base.base_actions")
-
 log(DEBUG, ":: Input.")
 require("base.base_input")
 

@@ -183,11 +183,11 @@ return {
             gen_id     = entity_store.generate_uid,
             render     = entity_store.render_dynamic
         },
-        manage_actions    = entity_store.manage_actions,
         scenario_started  = entity_store.has_scenario_started,
         render_hud        = entity_store.render_hud_model,
         manage_collisions = entity_store.manage_triggering_collisions,
-        start_frame       = entity_store.start_frame
+        handle_frame      = std.frame.handle_frame,
+        start_frame       = std.frame.start_frame
     },
     JSON = {
         encode = std.json.encode,

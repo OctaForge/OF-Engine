@@ -91,7 +91,7 @@ base_root = std.class.new(nil, {
         end
 
         -- create action system
-        self.action_system = actions.action_system(self)
+        self.action_system = std.actions.Action_System(self)
 
         -- create state variable value storage
         self.state_variable_values           = {}

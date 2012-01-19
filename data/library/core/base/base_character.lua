@@ -402,7 +402,7 @@ character = std.class.new(entity_animated.base_animated, {
         if not hudpass and needhud then return nil end
 
         -- re-generate the parameters if timestamp changed - efficiency
-        if self.rendering_args_timestamp ~= GLOBAL_CURRENT_TIMESTAMP then
+        if self.rendering_args_timestamp ~= std.frame.get_frame() then
             -- this is current client state, used when deciding animation
             local state = self.client_state
 
@@ -469,7 +469,7 @@ character = std.class.new(entity_animated.base_animated, {
                 self, mdlname, anim, o,
                 yaw, pitch, flags, basetime
             }
-            self.rendering_args_timestamp = GLOBAL_CURRENT_TIMESTAMP
+            self.rendering_args_timestamp = std.frame.get_frame()
         end
 
         -- render only when model is set using the rendering arguments table
@@ -554,10 +554,10 @@ character = std.class.new(entity_animated.base_animated, {
         if state == CLIENT_STATE.EDITING
         or state == CLIENT_STATE.SPECTATOR then
             -- in editing and spec mode, use edit animation and loop it
-            anim = std.math.bor(actions.ANIM_EDIT, actions.ANIM_LOOP)
+            anim = std.math.bor(model.ANIM_EDIT, model.ANIM_LOOP)
         elseif state == CLIENT_STATE.LAGGED then
             -- in lagged state, loop lag animation
-            anim = std.math.bor(actions.ANIM_LAG, actions.ANIM_LOOP)
+            anim = std.math.bor(model.ANIM_LAG, model.ANIM_LOOP)
         else
             -- more complex deciding
             if in_water ~= 0 and pstate <= PHYSICAL_STATE.FALL then
@@ -568,11 +568,11 @@ character = std.class.new(entity_animated.base_animated, {
                     std.math.lsh(
                         std.math.bor(
                             ((move or strafe) or vel.z + falling.z > 0)
-                                and actions.ANIM_SWIM
-                                or  actions.ANIM_SINK,
-                            actions.ANIM_LOOP
+                                and model.ANIM_SWIM
+                                or  model.ANIM_SINK,
+                            model.ANIM_LOOP
                         ),
-                        actions.ANIM_SECONDARY
+                        model.ANIM_SECONDARY
                     )
                 )
             elseif time_in_air > 250 then
@@ -582,10 +582,10 @@ character = std.class.new(entity_animated.base_animated, {
                     anim,
                     std.math.lsh(
                         std.math.bor(
-                            actions.ANIM_JUMP,
-                            actions.ANIM_END
+                            model.ANIM_JUMP,
+                            model.ANIM_END
                         ),
-                        actions.ANIM_SECONDARY
+                        model.ANIM_SECONDARY
                     )
                 )
             elseif move ~= 0 or strafe ~= 0 then
@@ -596,8 +596,8 @@ character = std.class.new(entity_animated.base_animated, {
                     anim = std.math.bor(
                         anim,
                         std.math.lsh(
-                            std.math.bor(actions.ANIM_FORWARD, actions.ANIM_LOOP),
-                            actions.ANIM_SECONDARY
+                            std.math.bor(model.ANIM_FORWARD, model.ANIM_LOOP),
+                            model.ANIM_SECONDARY
                         )
                     )
                 elseif strafe ~= 0 then
@@ -608,9 +608,9 @@ character = std.class.new(entity_animated.base_animated, {
                         std.math.lsh(
                             std.math.bor(
                                 (strafe > 0 and ANIM_LEFT or ANIM_RIGHT),
-                                actions.ANIM_LOOP
+                                model.ANIM_LOOP
                             ),
-                            actions.ANIM_SECONDARY
+                            model.ANIM_SECONDARY
                         )
                     )
                 elseif move < 0 then
@@ -619,31 +619,31 @@ character = std.class.new(entity_animated.base_animated, {
                     anim = std.math.bor(
                         anim,
                         std.math.lsh(
-                            std.math.bor(actions.ANIM_BACKWARD, actions.ANIM_LOOP),
-                            actions.ANIM_SECONDARY
+                            std.math.bor(model.ANIM_BACKWARD, model.ANIM_LOOP),
+                            model.ANIM_SECONDARY
                         )
                     )
                 end
             end
 
-            if  std.math.band(anim, actions.ANIM_INDEX) == actions.ANIM_IDLE
+            if  std.math.band(anim, model.ANIM_INDEX) == model.ANIM_IDLE
             and std.math.band(
-                std.math.rsh(anim, actions.ANIM_SECONDARY),
-                actions.ANIM_INDEX
+                std.math.rsh(anim, model.ANIM_SECONDARY),
+                model.ANIM_INDEX
             ) ~= 0 then
-                anim = std.math.rsh(anim, actions.ANIM_SECONDARY)
+                anim = std.math.rsh(anim, model.ANIM_SECONDARY)
             end
         end
 
         if std.math.band(
-            std.math.rsh(anim, actions.ANIM_SECONDARY),
-            actions.ANIM_INDEX
+            std.math.rsh(anim, model.ANIM_SECONDARY),
+            model.ANIM_INDEX
         ) == 0 then
             anim = std.math.bor(
                 anim,
                 std.math.lsh(
-                    std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
-                    actions.ANIM_SECONDARY
+                    std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
+                    model.ANIM_SECONDARY
                 )
             )
         end

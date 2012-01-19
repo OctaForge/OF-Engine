@@ -77,13 +77,13 @@ action_base = std.class.new(events.action_container, {
     end,
 
     --[[!
-        Function: do_start
+        Function: start
         This basically sets up some stuff before the cutscene can start.
         It saves original actor's yaw and pitch, makes him not able to move,
         hides a crosshair, any sort of HUD and ends.
     ]]
-    do_start = function(self)
-        events.action_container.do_start(self)
+    start = function(self)
+        events.action_container.start(self)
 
         self.actor.can_move = false
 
@@ -103,18 +103,18 @@ action_base = std.class.new(events.action_container, {
 
         self.old_seconds_left = self.seconds_left
 
-        events.action_input_capture_plugin.do_start(self)
+        events.action_input_capture_plugin.start(self)
     end,
 
     --[[!
-        Function: do_execute
+        Function: run
         This forces a yaw and pitch on unmovable actor, so you can't
         i.e. control your player with a mouse while the cutscene is
         running.
 
         It also shows subtitles and manages the timing.
     ]]
-    do_execute = function(self, seconds)
+    run = function(self, seconds)
         self.actor.yaw   = self.original_yaw
         self.actor.pitch = self.original_pitch
 
@@ -124,17 +124,17 @@ action_base = std.class.new(events.action_container, {
             )
         end
 
-        return events.action_container.do_execute(self, seconds)
+        return events.action_container.run(self, seconds)
             or entity_store.is_player_editing()
     end,
 
     --[[!
-        Function: do_finish
+        Function: finish
         Called when the cutscene ends. Restores the state set
-        up by <do_start>.
+        up by <start>.
     ]]
-   do_finish = function(self)
-        events.action_container.do_finish(self)
+   finish = function(self)
+        events.action_container.finish(self)
 
         self.actor.can_move = true
 
@@ -144,12 +144,12 @@ action_base = std.class.new(events.action_container, {
         CAPI.showhudrect  = self.old_show_hud_rect
         CAPI.showhudimage = self.old_show_hud_image
 
-        events.action_input_capture_plugin.do_finish(self)
+        events.action_input_capture_plugin.finish(self)
     end,
 
     --[[!
         Function: show_subtitles
-        Called from <do_execute> every frame. The time_val argument
+        Called from <run> every frame. The time_val argument
         is used to check whether to show a subtitle or not (this basically
         loops all available subtitles, checks them and shows if needed).
     ]]
@@ -177,7 +177,7 @@ action_base = std.class.new(events.action_container, {
     <action_base>. It manages the "points" the cutscene goes through
     and smooth interpolation between them.
 ]]
-action_smooth = std.class.new(actions.action, {
+action_smooth = std.class.new(std.actions.Action, {
     --[[!
         Variable: seconds_per_marker
         Specifies a number of seconds it takes to go between two
@@ -208,7 +208,7 @@ action_smooth = std.class.new(actions.action, {
     --[[!
         Function: init_markers
         A method that does nothing by default. It's called at the
-        beginning of <do_start> and is meant mainly for later
+        beginning of <start> and is meant mainly for later
         <cutscene_controller>. There it reads the marker entities
         and converts them into raw marker data to be used by this.
     ]]
@@ -216,10 +216,10 @@ action_smooth = std.class.new(actions.action, {
     end,
 
     --[[!
-        Function: do_start
+        Function: start
         Starts the smooth action. Manages the timer.
     ]]
-    do_start = function(self)
+    start = function(self)
         self:init_markers()
 
         self.timer = (- self.seconds_per_marker) / 2 - self.delay_before
@@ -227,19 +227,19 @@ action_smooth = std.class.new(actions.action, {
     end,
 
     --[[!
-        Function: do_execute
+        Function: run
         Per frame executed method taking care of camera forcing.
         Before doing that, it calls <set_markers> to perform
         proper interpolation.
     ]]
-    do_execute = function(self, seconds)
+    run = function(self, seconds)
         -- get around loading time delays by ignoring long frames
         self.timer = self.timer + std.math.min(seconds, 1 / 25)
 
         self:set_markers()
         camera.force(self.position, self.yaw, self.pitch, 0)
 
-        actions.action.do_execute(self, seconds)
+        std.actions.Action.run(self, seconds)
 
         if self.looped then
             if (not self.looping
@@ -446,8 +446,8 @@ entity_classes.register(
                         end
                     end,
 
-                    do_start = function(self)
-                        self.base_class.do_start(self)
+                    start = function(self)
+                        self.base_class.start(self)
 
                         self.cancellable = entity.cancellable
 
@@ -515,12 +515,12 @@ entity_classes.register(
                         end
                     end,
 
-                    do_finish = function(self)
-                        self.base_class.do_finish(self)
+                    finish = function(self)
+                        self.base_class.finish(self)
 
                         -- clear up the queue from base actions just in case
                         local player = entity_store.get_player_entity()
-                        local queue  = player.action_system.action_list
+                        local queue  = player.action_system.get_queue()
                         for i, v in pairs(queue) do
                             if v:is_a(base_action) then
                                 table.remove(queue, i)
@@ -977,18 +977,18 @@ entity_classes.register(
             Variable: action
             Actual action used by <cutscene_controller>. This
             inherits from <action_base>. By default, it inherits
-            do_start, do_execute and show_subtitle_background
+            start, run and show_subtitle_background
             methods.
         ]]
         action = std.class.new(action_base, {
-            do_start = function(self)
-                self.base_class.do_start(self)
+            start = function(self)
+                self.base_class.start(self)
 
                 self.background_image    = ""
                 self.subtitle_background = ""
             end,
 
-            do_execute = function(self, seconds)
+            run = function(self, seconds)
                 if self.background_image ~= "" then
                     self.old_show_hud_image(
                         self.background_image,
@@ -997,7 +997,7 @@ entity_classes.register(
                         std.math.min((scr_w / scr_h), 1)
                     )
                 end
-                return self.base_class.do_execute(self, seconds)
+                return self.base_class.run(self, seconds)
             end,
 
             show_subtitle_background = function(self)
@@ -1025,8 +1025,8 @@ entity_classes.register(
 
     Same as <cutscene_base_action>, this encapsulates the actual
     <action>, which is represented by a raw table to mix inside
-    the smooth action. It can contain do_start, do_execute and
-    do_finish and user-defined methods.
+    the smooth action. It can contain start, run and
+    finish and user-defined methods.
 
     This is useful when you need something that manages events,
     like opening doors the camera goes through.
@@ -1078,8 +1078,8 @@ entity_classes.register(
         end,
 
         action = {
-            -- extend with do_start, do_execute,
-            -- do_finish, don't forget to call parent
+            -- extend with start, run,
+            -- finish, don't forget to call parent
         }
     }}, "cutscene_action"), "playerstart"
 )

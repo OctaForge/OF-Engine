@@ -285,7 +285,7 @@ action_shoot1 = std.class.new(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
-action_shoot1.local_animation   = actions.ANIM_ATTACK1
+action_shoot1.local_animation   = model.ANIM_ATTACK1
 action_shoot1.cancellable = false
 
 -- convenience
@@ -295,14 +295,14 @@ action_shoot2 = std.class.new(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
-action_shoot2.local_animation   = actions.ANIM_ATTACK2
+action_shoot2.local_animation   = model.ANIM_ATTACK2
 action_shoot2.cancellable = false
 
 action_shoot3 = std.class.new(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
-action_shoot3.local_animation   = actions.ANIM_ATTACK3
+action_shoot3.local_animation   = model.ANIM_ATTACK3
 action_shoot3.cancellable = false
 
 
@@ -311,20 +311,20 @@ action_shoot2_repeating = std.class.new(
     nil, "action_shoot"
 )
 action_shoot2_repeating.local_animation = std.math.bor(
-    actions.ANIM_ATTACK2,
-    actions.ANIM_LOOP
+    model.ANIM_ATTACK2,
+    model.ANIM_LOOP
 )
 action_shoot2_repeating.cancellable = false
 
 action_out_of_ammo = std.class.new(
-    actions.action,
+    std.actions.Action,
     nil, "action_out_of_ammo"
 )
 action_out_of_ammo.seconds_left       = 0.5
 action_out_of_ammo.cancellable        = false
 action_out_of_ammo.can_multiply_queue = false
 
-function action_out_of_ammo:do_start()
+function action_out_of_ammo:start()
     local player = entity_store.get_player_entity()
 
     local message = player.out_of_ammo_msg or "(Out of ammo)"

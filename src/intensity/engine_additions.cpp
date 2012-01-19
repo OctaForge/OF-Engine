@@ -466,7 +466,7 @@ void LogicSystem::manageActions(long millis)
     INDENT_LOG(logger::INFO);
 
     if (lapi::state.state())
-        lapi::state.get<lua::Function>("LAPI", "World", "manage_actions")(
+        lapi::state.get<lua::Function>("LAPI", "World", "handle_frame")(
             double(millis) / 1000.0f, lastmillis
         );
 

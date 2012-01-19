@@ -347,20 +347,20 @@ manager_plugins = {
                     local sound
                     if not tie then
                         if self.steams[player.team].score == max_score then
-                            player.animation = std.math.bor(actions.ANIM_WIN, actions.ANIM_LOOP)
+                            player.animation = std.math.bor(model.ANIM_WIN, model.ANIM_LOOP)
                             message.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
                                 sound.play(self.win_sound, std.math.Vec3(0, 0, 0), player.cn)
                             end
                         else
-                            player.animation = std.math.bor(actions.ANIM_LOSE, actions.ANIM_LOOP)
+                            player.animation = std.math.bor(model.ANIM_LOSE, model.ANIM_LOOP)
                             message.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
                                 sound.play(self.lose_sound, std.math.Vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
-                        player.animation = std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
+                        player.animation = std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
                         message.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
                             sound.play(self.tie_sound, std.math.Vec3(0, 0, 0), player.cn)
@@ -452,7 +452,7 @@ manager_plugins = {
                     kwargs.seconds_before  = kwargs.seconds_before  or 0
                     -- not repeating, no time between
                     kwargs.seconds_between = kwargs.seconds_between or -1
-                    kwargs.deadline        = GLOBAL_TIME + kwargs.seconds_before
+                    kwargs.deadline        = std.frame.get_time() + kwargs.seconds_before
                     kwargs.abort           = false
                     kwargs.sleeping        = false
 
@@ -465,7 +465,7 @@ manager_plugins = {
                 suspend = function(self, item)
                     if not item.sleeping then
                         item.sleeping  = true
-                        item.deadline  = GLOBAL_TIME + 86400 -- 24 hours
+                        item.deadline  = std.frame.get_time() + 86400 -- 24 hours
                         item.need_sort = true
                     end
                 end,
@@ -473,7 +473,7 @@ manager_plugins = {
                 awaken = function(self, item, delay)
                     if item.sleeping then
                         item.sleeping  = false
-                        item.deadline  = GLOBAL_TIME + delay and delay or 0
+                        item.deadline  = std.frame.get_time() + delay and delay or 0
                         item.need_sort = true
                     end
                 end
@@ -495,7 +495,7 @@ manager_plugins = {
             local curr_index = 1
             for i, event in pairs(events) do
                 local item = events[curr_index]
-                if GLOBAL_TIME < item.deadline then break end
+                if std.frame.get_time() < item.deadline then break end
 
                 -- the item's time is now
                 local skip = false
@@ -506,7 +506,7 @@ manager_plugins = {
                 end
 
                 if not skip and item.sleeping then
-                    item.deadline = GLOBAL_TIME + 86400 -- 24 hours
+                    item.deadline = std.frame.get_time() + 86400 -- 24 hours
                     curr_index = curr_index + 1
                     skip = true
                 end
@@ -516,7 +516,7 @@ manager_plugins = {
                         more = more or 0
                         -- negative more means 'add some jitter'
                         if more < 0 then more = more * -(std.math.random() + 0.5) end
-                        item.deadline = GLOBAL_TIME + item.seconds_between + more
+                        item.deadline = std.frame.get_time() + item.seconds_between + more
                         curr_index = curr_index + 1
                     else
                         table.remove(events, curr_index)

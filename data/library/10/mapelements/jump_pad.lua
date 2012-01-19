@@ -59,12 +59,12 @@ plugin = {
         )
         local yaw
         if self.pad_rotate then
-            yaw = -(GLOBAL_TIME * 120) % 360
+            yaw = -(std.frame.get_time() * 120) % 360
         end
 
         model.render(
             self, self.pad_model,
-            std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
+            std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
             o, yaw and yaw or self.yaw, self.pad_pitch,
             flags, 0
         )

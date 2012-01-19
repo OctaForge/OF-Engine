@@ -40,7 +40,7 @@ rocket = std.class.new(projectiles.projectile, {
         local args      = {
             self.owner,
             "guns/rocket",
-            std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP),
+            std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
             o,
             yaw,
             pitch,

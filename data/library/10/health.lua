@@ -2,23 +2,23 @@ module("health", package.seeall)
 
 action_pain = std.class.new(entity_animated.action_local_animation, {
     seconds_left       = 0.6,
-    local_animation    = actions.ANIM_PAIN,
+    local_animation    = model.ANIM_PAIN,
     can_multiply_queue = false
 }, "action_pain")
 
-action_death = std.class.new(actions.action, {
+action_death = std.class.new(std.actions.Action, {
     can_multiply_queue = false,
     cancellable        = false,
     seconds_left       = 5.5,
 
-    do_start = function(self)
+    start = function(self)
         std.signal.emit(self.actor, "fragged")
         -- this won't clear us, as we cannot be cancelled
         self.actor:clear_actions()
         self.actor.can_move = false
     end,
 
-    do_finish = function(self)
+    finish = function(self)
         self.actor:respawn()
     end
 }, "action_death")
@@ -45,7 +45,7 @@ plugin = {
                     if  self.default_model_name then
                         self.model_name  = ""
                     end
-                    self.animation   = std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP)
+                    self.animation   = std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
                     self.spawn_stage = 3
                 end
                 return true, "cancel_state_data_update"
@@ -99,7 +99,7 @@ plugin = {
         if self.health > 0 then
             return self.base_class.decide_animation(self, ...)
         else
-            return std.math.bor(actions.ANIM_DYING, actions.ANIM_RAGDOLL)
+            return std.math.bor(model.ANIM_DYING, model.ANIM_RAGDOLL)
         end
     end,
 
@@ -107,8 +107,8 @@ plugin = {
         local ret = self.base_class.decide_action_animation(self, ...)
 
         -- clean up if not dead
-        if self.health > 0 and (ret == actions.ANIM_DYING or ret == std.math.bor(actions.ANIM_DYING, actions.ANIM_RAGDOLL)) then
-            self:set_local_animation(std.math.bor(actions.ANIM_IDLE, actions.ANIM_LOOP))
+        if self.health > 0 and (ret == model.ANIM_DYING or ret == std.math.bor(model.ANIM_DYING, model.ANIM_RAGDOLL)) then
+            self:set_local_animation(std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP))
             ret = self.animation
         end
 

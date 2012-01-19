@@ -129,7 +129,7 @@ return {
         local events = Post_Emit_Event_Queue
         Post_Emit_Event_Queue = nil
 
-        while #events > 0 do
+        while events and #events > 0 do
             Post_Emit_Event_Queue = {}
 
             for i, event in pairs(events) do

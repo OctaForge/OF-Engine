@@ -16,12 +16,12 @@ plugin = {
     end
 }
 
-action = std.class.new(actions.action, {
-    do_start = function(self)
+action = std.class.new(std.actions.Action, {
+    start = function(self)
         assert(active == self.actor)
     end,
 
-    do_execute = function(self, seconds)
+    run = function(self, seconds)
         if geometry.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
             std.signal.emit(self.actor, "world_area_active")
             return false
@@ -30,13 +30,13 @@ action = std.class.new(actions.action, {
         end
     end,
 
-    do_finish = function(self)
+    finish = function(self)
         active = nil
     end
 })
 
-action_input_capture = std.class.new(actions.action, {
-    do_start = function(self)
+action_input_capture = std.class.new(std.actions.Action, {
+    start = function(self)
         self.client_click = function(self, ...) return self.actor.client_click(self.actor, ...) end
 
         self.per_map_keys  = self.actor.per_map_keys
@@ -46,8 +46,8 @@ action_input_capture = std.class.new(actions.action, {
         self.do_mousemove = function(self, ...) return self.actor.do_mousemove(self.actor, ...) end
         self.do_jump      = function(self, ...) return self.actor.do_jump     (self.actor, ...) end
 
-        events.action_input_capture_plugin.do_start(self)
+        events.action_input_capture_plugin.start(self)
     end,
 
-    do_finish = events.action_input_capture_plugin.do_finish
+    finish = events.action_input_capture_plugin.finish
 })

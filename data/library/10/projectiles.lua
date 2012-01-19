@@ -303,7 +303,7 @@ debris = std.class.new(projectile, {
         model.render(
             game_manager.get_singleton(),
             self.debris_model,
-            actions.ANIM_IDLE,
+            model.ANIM_IDLE,
             o, 0, 0, flags, 0
         )
     end,

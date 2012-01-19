@@ -1,7 +1,6 @@
 module("dynamic_lights", package.seeall)
 
 dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker, {{
-    should_act = { client = true },
     properties = {
         attr1 = state_variables.state_integer({ gui_name = "radius", alt_name = "radius" }),
         attr2 = state_variables.state_integer({ gui_name = "red",    alt_name = "red"    }),
@@ -13,6 +12,8 @@ dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker,
         green  = state_variables.variable_alias("attr3"),
         blue   = state_variables.variable_alias("attr4")
     },
+
+    act = function(self, seconds) end,
 
     init = function(self)
         self.radius = 100

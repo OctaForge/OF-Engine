@@ -83,7 +83,7 @@ plugin = {
                 if position then
                     self.position = position:lerp(self.position, 1 - (seconds * 5))
                     self.velocity = velocity
-                    log(WARNING, "Fixed platform position %(1)i" % { GLOBAL_TIME })
+                    log(WARNING, "Fixed platform position %(1)i" % { std.frame.get_time() })
                 end
             end
 

@@ -432,133 +432,6 @@ function del_all()
 end
 
 --[[!
-    Variable: current_timestamp
-    Local variable storing current "timestamp". It gets
-    added to every frame. Used for caching of various kinds.
-    Publicly accessible via <GLOBAL_CURRENT_TIMESTAMP>.
-]]
-local current_timestamp = 0
-
---[[!
-    Variable: GLOBAL_CURRENT_TIMESTAMP
-    Global interface for <current_timestamp>.
-]]
-_G["GLOBAL_CURRENT_TIMESTAMP"] = current_timestamp
-
---[[!
-    Function: start_frame
-    Called per-frame in updateworld function in engine.
-    Adds to <current_timestamp>.
-]]
-function start_frame()
-    current_timestamp = current_timestamp + 1
-    _G["GLOBAL_CURRENT_TIMESTAMP"] = current_timestamp
-end
-
---[[!
-    Variable: GLOBAL_TIME
-    Global engine time. It gets added to every frame
-    in <manage_actions>. It basically stores a number
-    of seconds since the engine start.
-]]
-_G["GLOBAL_TIME"] = 0
-
---[[!
-    Variable: GLOBAL_CURRENT_TIMEDELTA
-    This stores how long time did <manage_actions> simulate
-    during the frame. Floating point number, value in seconds.
-]]
-_G["GLOBAL_CURRENT_TIMEDELTA"] = 1.0
-
---[[!
-    Variable: GLOBAL_LASTMILLIS
-    Number of miliseconds since last counter reset. It's also
-    stored as internal engine variable. If you want to know
-    total number of miliseconds, multiply <GLOBAL_TIME>
-    by 1000.
-]]
-_G["GLOBAL_LASTMILLIS"] = 0
-
---[[!
-    Variable: GLOBAL_QUEUED_ACTIONS
-    Table of actions queued globally, executed by <manage_actions>.
-    It's simply an array of functions taking no arguments which
-    you can safely insert to and queue your global actions.
-]]
-_G["GLOBAL_QUEUED_ACTIONS"] = {}
-
---[[!
-    Function: manage_actions
-    This is sort of Lua's "mainloop". It is executed per-frame from
-    C++, so performance is very important here. It first executes
-    actions that were queued into <GLOBAL_QUEUED_ACTIONS>, but works
-    on copy, as actions can actually add more actions into the queue.
-
-    Then, it applies changes to certain global variables (see
-    <GLOBAL_TIME>, <GLOBAL_CURRENT_TIMEDELTA>, <GLOBAL_LASTMILLIS>).
-
-    Finally, it loops whole entity storage and runs either act or
-    client_act (see <base_root.act> and <base_client.client_act>)
-    on each entity that has should_act set to true (or at least acts
-    for either client or server, see <base_root.should_act>).
-
-    Parameters:
-        seconds - number in seconds specifying how long to simulate, this
-        also affects <GLOBAL_TIME> and <GLOBAL_CURRENT_TIMEDELTA>.
-        lastmillis - internal lastmillis variable passed from the engine
-        (see <GLOBAL_LASTMILLIS>).
-]]
-function manage_actions(seconds, lastmillis)
-    log(INFO, "manage_actions: queued ..")
-
-    -- work on copy as actions might add more actions.
-    local curr_actions = table.copy(GLOBAL_QUEUED_ACTIONS)
-    -- clear up the queue
-    _G["GLOBAL_QUEUED_ACTIONS"] = {}
-
-    -- execute the actions
-    for k, v in pairs(curr_actions) do
-        v()
-    end
-
-    -- set the globals
-    _G["GLOBAL_TIME"] = GLOBAL_TIME + seconds
-    _G["GLOBAL_CURRENT_TIMEDELTA"] = seconds
-    _G["GLOBAL_LASTMILLIS"] = lastmillis
-
-    log(INFO, "manage_actions: " .. seconds)
-
-    -- act!
-    for uid, entity in pairs(__entities_store) do
-        local skip = false
-
-        -- do not act on deactivated or on those which
-        -- shouldn't really act
-        if entity.deactivated or not entity.should_act then
-            skip = true
-        end
-
-        -- check if we have clientside or serverside
-        -- acting, in that case do skipping if needed
-        if type(entity.should_act) == "table" and (
-            (CLIENT and not entity.should_act.client) or
-            (SERVER and not entity.should_act.server)
-        ) then
-            skip = true
-        end
-
-        -- if we can act, then act, on either client or server.
-        if not skip then
-            if CLIENT then
-                entity:client_act(seconds)
-            else
-                entity:act(seconds)
-            end
-        end
-    end
-end
-
---[[!
     Global rendering method. Performed every frame, so performance
     is very important. It loops the entity storage, checks if an
     entity can render, does rendering tests if needed (to improve
@@ -616,45 +489,42 @@ end
 --[[!
     Function: manage_triggering_collisions
     This function manages area trigger collisions. It's cached by time delay
-    (see <actions.cache_by_time_delay>) with delay set to 0.1 seconds,
+    (see <actions.cache_by_delay>) with delay set to 0.1 seconds,
     so the performance is sufficient.
 ]]
-manage_triggering_collisions = actions.cache_by_time_delay(
-    std.conv.to("calltable", function()
-        -- get all area triggers and entities inherited from area triggers
-        local ents = get_all_by_class("area_trigger")
+manage_triggering_collisions = std.frame.cache_by_delay(function()
+    -- get all area triggers and entities inherited from area triggers
+    local ents = get_all_by_class("area_trigger")
 
-        -- loop all clients
-        for i, player in pairs(get_all_clients()) do
-            -- skipping?
-            local skip = false
+    -- loop all clients
+    for i, player in pairs(get_all_clients()) do
+        -- skipping?
+        local skip = false
 
-            -- skip players that are editing - they're not colliding
-            if is_player_editing(player) then
-                skip = true
-            end
+        -- skip players that are editing - they're not colliding
+        if is_player_editing(player) then
+            skip = true
+        end
 
-            -- if not skipping ..
-            if not skip then
-                -- loop the triggers
-                for n, entity in pairs(ents) do
-                    -- if player is colliding the trigger ..
-                    if geometry.is_player_colliding_entity(
-                        player, entity
-                    ) then
-                        -- call needed methods
-                        if CLIENT then
-                            entity:client_on_collision(player)
-                        else
-                            entity:on_collision(player)
-                        end
+        -- if not skipping ..
+        if not skip then
+            -- loop the triggers
+            for n, entity in pairs(ents) do
+                -- if player is colliding the trigger ..
+                if geometry.is_player_colliding_entity(
+                    player, entity
+                ) then
+                    -- call needed methods
+                    if CLIENT then
+                        entity:client_on_collision(player)
+                    else
+                        entity:on_collision(player)
                     end
                 end
             end
         end
-    end),
-    0.1
-)
+    end
+end, 0.1)
 
 --[[!
     Function: render_hud_model
@@ -963,9 +833,7 @@ get_selected_entity = CAPI.editing_getselent
 ]]
 function setup_dynamic_rendering_test(entity)
     -- cache with delay of 1/3 second
-    entity.render_dynamic_test = actions.cache_by_time_delay(
-        -- callable table
-        std.conv.to("calltable", function()
+    entity.render_dynamic_test = std.frame.cache_by_delay(function()
             -- player center
             local player_center = get_player_entity().center
 
@@ -982,9 +850,7 @@ function setup_dynamic_rendering_test(entity)
 
             -- render
             return true
-        end),
-        1 / 3
-    )
+    end, 1 / 3)
 end
 
 if CLIENT then

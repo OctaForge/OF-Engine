@@ -1107,7 +1107,7 @@ wrapped_c_variable = {
                     -- cache the value locally for performance reasons
                     parent.state_variable_values[variable._name] = value
                     parent.state_variable_value_timestamps[variable._name]
-                        = GLOBAL_CURRENT_TIMESTAMP
+                        = std.frame.get_frame()
                 else
                     -- not yet set up, queue change
                     parent:queue_state_variable_change(variable._name, value)
@@ -1148,7 +1148,7 @@ wrapped_c_variable = {
         -- caching - return from cache if timestamp is okay
         local cached_timestamp
             = self.state_variable_value_timestamps[variable._name]
-        if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
+        if cached_timestamp == std.frame.get_frame() then
             return self.state_variable_values[variable._name]
         end
 
@@ -1162,7 +1162,7 @@ wrapped_c_variable = {
             if CLIENT or self._queued_sv_changes_complete then
                 self.state_variable_values[variable._name] = val
                 self.state_variable_value_timestamps[variable._name]
-                    = GLOBAL_CURRENT_TIMESTAMP
+                    = std.frame.get_frame()
             end
 
             -- return the value
@@ -1251,7 +1251,7 @@ wrapped_c_array = std.class.new(state_array, "wrapped_c_array"):mixin({
             -- try getting the value from cache first, check timestamp
             local cached_timestamp
                 = entity.state_variable_value_timestamps[self._name]
-            if cached_timestamp == GLOBAL_CURRENT_TIMESTAMP then
+            if cached_timestamp == std.frame.get_frame() then
                 return entity.state_variable_values[self._name]
             end
 
@@ -1266,7 +1266,7 @@ wrapped_c_array = std.class.new(state_array, "wrapped_c_array"):mixin({
             if CLIENT or entity._queued_sv_changes_complete then
                 entity.state_variable_values[self._name] = val
                 entity.state_variable_value_timestamps[self._name]
-                    = GLOBAL_CURRENT_TIMESTAMP
+                    = std.frame.get_frame()
             end
 
             -- return the value
