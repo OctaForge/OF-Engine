@@ -139,9 +139,9 @@ INCLUDES += -std=c++0x
 ifeq ($(OS), Windows)
 WINDOWS_INCLUDES = -Iplatform_windows/include
 ifeq (,$(WIN64))
-WINDOWS_LIBS = -Lplatform_windows/lib32
+WINDOWS_LIBS = -L../bin_win32
 else
-WINDOWS_LIBS = -Lplatform_windows/lib64
+WINDOWS_LIBS = -L../bin_win64
 endif
 endif
 
@@ -187,7 +187,7 @@ else
 	CLIENT_LDD  = $(WINDOWS_LIBS)
 	CLIENT_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
 	CLIENT_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
-	CLIENT_LDD += -lzdll -lcurl -lopengl32 -lws2_32 -lwinmm
+	CLIENT_LDD += -lzlib1 -lcurl -lopengl32 -lws2_32 -lwinmm
 	CLIENT_LDD += -static-libgcc -static-libstdc++
 endif
 
@@ -290,7 +290,7 @@ else
 	SERVER_LDD  = $(WINDOWS_LIBS)
 	SERVER_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUA_PATH)
 	SERVER_LDD += -lenet -llua -lSDL -lSDL_image -lSDL_mixer
-	SERVER_LDD += -lzdll -lcurl -lopengl32 -lws2_32 -lwinmm
+	SERVER_LDD += -lzlib1 -lcurl -lopengl32 -lws2_32 -lwinmm
 	SERVER_LDD += -static-libgcc -static-libstdc++
 endif
 
