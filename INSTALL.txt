@@ -74,18 +74,18 @@ Windows
 =======
 
 On Windows, fetch the repository https://github.com/OctaForge/OF-Windows and place
-the platform_windows directory into src and contents of bin_win to bin_win.
+the platform_windows directory into src and contents of bin_win32/64 to bin_win32/64.
 
 Then just proceed with the compilation.
 
-OF supports just 32bit binaries currently. You can use/build 32bit binaries on
-64-bit Windows too, so it's not a big problem for now. The guide assumes 32bit Windows,
-but it should be the same or almost the same on 64bit Windows too.
+OF supports both Win32 and Win64 binaries. By default, Win32 binaries are compiled.
+If you want to compile Win64 binaries, append another WIN64=1 parameter to mingw32-make.
 
 So the steps are:
 
 1. Install latest MinGW distribution whichever way you want. You need just the core (C/C++ support).
    You can install it wherever you want, but make sure to change steps of this guide accordingly after that.
+   Note that you need MinGW64 to build 64bit binaries.
 
 2. Append this into your PATH environment variable. (modify path if needed)
 
@@ -100,7 +100,8 @@ So the steps are:
        $ mingw32-make install
 
    If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
-   Add VERBOSE=1 at the end of the make command for verbose builds.
+   Add VERBOSE=1 at the end of the make command for verbose builds. Add WIN64=1
+   for 64bit builds.
 
 Mac OS X (Darwin)
 =================
