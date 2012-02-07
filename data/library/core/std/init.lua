@@ -20,3 +20,9 @@ require("std.lua")
 
 log(DEBUG, ":: Event system.")
 require("std.events")
+
+log(DEBUG, ":: GUI system.")
+require("std.gui")
+
+log(DEBUG, ":: Entity system.")
+require("std.entities")

@@ -1,5 +1,5 @@
-library.include("firing")
-library.include("projectiles")
+std.library.include("firing")
+std.library.include("projectiles")
 
 module("rocket_launcher", package.seeall)
 

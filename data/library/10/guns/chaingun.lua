@@ -1,4 +1,4 @@
-library.include("firing")
+std.library.include("firing")
 
 module("chaingun", package.seeall)
 

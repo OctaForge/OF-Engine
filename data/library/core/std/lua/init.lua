@@ -35,3 +35,6 @@ std["conv"] = require("std.lua.conv")
 
 log(DEBUG, ":::: JSON.")
 std["json"] = require("std.lua.json")
+
+log(DEBUG, ":::: Library.")
+std["library"] = require("std.lua.library")

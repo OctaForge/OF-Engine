@@ -33,6 +33,32 @@
 #include <sys/stat.h>
 #include <ctype.h>
 
+/* avoid libsupc++ linkage, we don't need most of the runtime
+ * disabled, experimental, do not use
+ */
+#if 0
+extern "C"
+{
+    __extension__ typedef int __guard __attribute__((mode (__DI__)));
+
+    void __cxa_pure_virtual()
+    {
+        fprintf(stderr, "ERROR: Pure virtual method call.\n");
+        abort();
+    }
+
+    int __cxa_guard_acquire(__guard *g)
+    {
+        return (*((char*)g) == 0);
+    }
+
+    void __cxa_guard_release(__guard *g)
+    {
+        *((char*)g) = 1;
+    }
+}
+#endif
+
 void writebinds(stream *f);
 extern string homedir;
 extern int clockrealbase;

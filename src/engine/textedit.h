@@ -1,3 +1,4 @@
+#define PASTEBUFFER "#pastebuffer"
 struct editline
 {
     enum { CHUNKSIZE = 256 };
@@ -58,7 +59,7 @@ struct editline
         if(!grow(slen + len, "%s%s", str, text ? text : ""))
         {
             memmove(&text[slen], text, len + 1);
-            memcpy(text, str, slen + 1);
+            memcpy(text, str, slen);
         }
         len += slen;
     }
@@ -277,7 +278,7 @@ struct editor
                 line += sx;
                 len = ex - sx;
             }
-            else if(y == sy) line += sx;
+            else if(y == sy) { line += sx; len -= sx; }
             else if(y == ey) len = ex;
             b->lines.add().set(line, len);
         }
@@ -331,29 +332,39 @@ struct editor
         lines.remove(start, count);
     }
             
-    void del() // removes the current selection (if any)
+    bool del() // removes the current selection (if any), returns true if selection was removed
     {
         int sx, sy, ex, ey;
         if(!region(sx, sy, ex, ey)) 
         { 
             mark(false); 
-            return; 
+            return false;
         }
         if(sy == ey) 
         {
-            if(sx == 0 || ex == lines[ey].len) removelines(sy, 1);
+            if(sx == 0 && ex == lines[ey].len) removelines(sy, 1);
             else lines[sy].del(sx, ex - sx);
         }
         else
         {
-            if(ey > sy+2) { removelines(sy+1, ey-(sy+2)); ey = sy+1; }
-            if(ex == lines[ey].len) removelines(ey, 1); else lines[ey].del(0, ex);
-            if(sx == 0) removelines(sy, 1); else lines[sy].del(sx, lines[sy].len - sx);
+            if(ey > sy+1) { removelines(sy+1, ey-(sy+1)); ey = sy+1; }
+            if(ex == lines[ey].len) removelines(ey, 1);
+            else lines[ey].del(0, ex);
+            if(sx == 0) removelines(sy, 1);
+            else lines[sy].del(sx, lines[sy].len - sx);
         }
         if(lines.empty()) lines.add().set("");
         mark(false);
         cx = sx;
         cy = sy;
+        editline &current = currentline();
+        if(cx >= current.len && cy < lines.length() - 1)
+        {
+            current.append(lines[cy+1].text);
+            removelines(cy + 1, 1);
+        }
+
+        return true;
     }
         
     void insert(char ch) 
@@ -411,9 +422,12 @@ struct editor
             {   
                 if(!i) 
                 {
-                    lines[cy++].append(b->lines[i].text);
+                    editline newline(&lines[cy].text[cx]);
+                    lines[cy].chop(cx);
+                    lines[cy].insert(b->lines[i].text,cx);
+                    lines.insert(++cy, newline);
                 }
-                else if(i >= b->lines.length())
+                else if(i >= b->lines.length() - 1)
                 {
                     cx = b->lines[i].len;
                     lines[cy].prepend(b->lines[i].text);
@@ -423,21 +437,59 @@ struct editor
         }
     }
 
+    void movementmark()
+    {
+        scrollonscreen();
+        if(SDL_GetModState() & KMOD_SHIFT)
+        {
+            if(!region()) mark(true);
+        }
+        else mark(false);
+    }
+
+    void scrollonscreen()
+    {
+        region();
+        scrolly = clamp(scrolly, 0, cy);
+        int h = 0;
+        for(int i = cy; i >= scrolly; i--)
+        {
+            int width, height;
+            text_bounds(lines[i].text, width, height, linewrap ? pixelwidth : -1);
+            if(h + height > pixelheight) { scrolly = i + 1; break; }
+            h += height;
+        }
+    }
+
     void key(int code, int cooked)
     {
+        #ifdef __APPLE__
+            #define MOD_KEYS (KMOD_LMETA|KMOD_RMETA)
+        #else
+            #define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
+        #endif
+
         switch(code) 
         {
             case SDLK_UP:
+                movementmark();
                 if(linewrap) 
                 {
                     int x, y; 
                     char *str = currentline().text;
                     text_pos(str, cx+1, x, y, pixelwidth);
-                    if(y > 0) { cx = text_visible(str, x, y-FONTH, pixelwidth); break; }
+                    if(y > 0)
+                    {
+                        cx = text_visible(str, x, y-FONTH, pixelwidth);
+                        scrollonscreen();
+                        break;
+                    }
                 }
                 cy--;
+                scrollonscreen();
                 break;
             case SDLK_DOWN:
+                movementmark();
                 if(linewrap) 
                 {
                     int x, y, width, height;
@@ -445,69 +497,202 @@ struct editor
                     text_pos(str, cx, x, y, pixelwidth);
                     text_bounds(str, width, height, pixelwidth);
                     y += FONTH;
-                    if(y < height) { cx = text_visible(str, x, y, pixelwidth); break; }
+                    if(y < height)
+                    {
+                        cx = text_visible(str, x, y, pixelwidth);
+                        scrollonscreen();
+                        break;
+                    }
                 }
                 cy++;
+                scrollonscreen();
                 break;
             case -4:
-                cy--;
+                scrolly -= 3;
                 break;
             case -5:
-                cy++;
+                scrolly += 3;
                 break;
             case SDLK_PAGEUP:
-                cy-=pixelheight/FONTH;
+                movementmark();
+                if(SDL_GetModState() & MOD_KEYS) cy = 0;
+                else cy-=pixelheight/FONTH;
+                scrollonscreen();
                 break;
             case SDLK_PAGEDOWN:
-                cy+=pixelheight/FONTH;
+                movementmark();
+                if(SDL_GetModState() & MOD_KEYS) cy = INT_MAX;
+                else cy+=pixelheight/FONTH;
+                scrollonscreen();
                 break;
             case SDLK_HOME:
-                cx = cy = 0;
+                movementmark();
+                cx = 0;
+                if(SDL_GetModState() & MOD_KEYS) cy = 0;
+                scrollonscreen();
                 break;
             case SDLK_END:
-                cx = cy = INT_MAX;
+                movementmark();
+                cx = INT_MAX;
+                if(SDL_GetModState() & MOD_KEYS) cy = INT_MAX;
+                scrollonscreen();
                 break;
             case SDLK_LEFT:
-                cx--;
+                movementmark();
+                if(cx > 0) cx--;
+                else if(cy > 0)
+                {
+                    cx = INT_MAX;
+                    cy--;
+                }
+                scrollonscreen();
                 break;
             case SDLK_RIGHT:
-                cx++;
+                movementmark();
+                if(cx < lines[cy].len) cx++;
+                else if(cy < lines.length() - 1)
+                {
+                    cx = 0;
+                    cy++;
+                }
+                scrollonscreen();
                 break;
             case SDLK_DELETE:
             {
-                del();
-                editline &current = currentline();
-                if(cx < current.len) current.del(cx, 1);
-                else if(cy < lines.length()-1)
-                {   //combine with next line
-                    current.append(lines[cy+1].text);
-                    removelines(cy+1, 1);
+                if(!del())
+                {
+                    editline &current = currentline();
+                    if(cx < current.len) current.del(cx, 1);
+                    else if(cy < lines.length()-1)
+                    {   //combine with next line
+                        current.append(lines[cy+1].text);
+                        removelines(cy+1, 1);
+                    }
                 }
+                scrollonscreen();
                 break;
             }
             case SDLK_BACKSPACE:
             {
-                del();
-                editline &current = currentline();
-                if(cx > 0) current.del(--cx, 1); 
-                else if(cy > 0)
-                {   //combine with previous line
-                    cx = lines[cy-1].len;
-                    lines[cy-1].append(current.text);
-                    removelines(cy--, 1);
+                if(!del())
+                {
+                    editline &current = currentline();
+                    if(cx > 0) current.del(--cx, 1);
+                    else if(cy > 0)
+                    {   //combine with previous line
+                        cx = lines[cy-1].len;
+                        lines[cy-1].append(current.text);
+                        removelines(cy--, 1);
+                    }
                 }
+                scrollonscreen();
                 break;
             }
             case SDLK_LSHIFT:
             case SDLK_RSHIFT:
+            case SDLK_LCTRL:
+            case SDLK_RCTRL:
+            case SDLK_LMETA:
+            case SDLK_RMETA:
                 break;
             case SDLK_RETURN:    
-                cooked = '\n';
-                // fall through
+            {
+                //maintain indentation
+                const char *str = currentline().text;
+                insert('\n');
+                while((*str == ' ' || *str == '\t') && *(str++))
+                {
+                    insert(*(str - 1));
+                }
+                scrollonscreen();
+                break;
+            }
+            case SDLK_TAB:
+            {
+                int sx, sy, ex, ey;
+                if(region(sx, sy, ex, ey))
+                {
+                    for(int i = sy; i <= ey; i++)
+                    {
+                        if(SDL_GetModState() & KMOD_SHIFT)
+                        {
+                            int rem = 0;
+                            loopj(min(4, lines[i].len))
+                            {
+                                if(lines[i].text[j] == ' ')
+                                    rem++;
+                                else
+                                {
+                                    if(lines[i].text[j] == '\t' && !j)
+                                        rem++;
+                                    break;
+                                }
+                            }
+                            lines[i].del(0, rem);
+                            if(i == my) mx -= rem > mx ? mx : rem;
+                            if(i == cy) cx -= rem;
+                        }
+                        else
+                        {
+                            lines[i].prepend("\t");
+                            if(i == my) mx++;
+                            if(i == cy) cx++;
+                        }
+                    }
+                }
+                else if(cooked)
+                    insert(cooked);
+                scrollonscreen();
+                break;
+            }
+            case SDLK_a:
+            case SDLK_x:
+            case SDLK_c:
+            case SDLK_v:
+                if(SDL_GetModState() & MOD_KEYS) break;
+                if(!cooked) break;
             default:
                 insert(cooked);
+                scrollonscreen();
                 break;
         }
+
+        if(SDL_GetModState() & MOD_KEYS)
+        {
+            editor *useeditor(const char *name, int mode, bool focus, const char *initval = NULL, bool password=false);
+
+            switch(code)
+            {
+                case SDLK_a:
+                    selectall();
+                    break;
+                case SDLK_x:
+                {
+                    editor *b = useeditor(PASTEBUFFER, EDITORFOREVER, false);
+                    if(this == b) break;
+                    copyselectionto(b);
+                    del();
+                    break;
+                }
+                case SDLK_c:
+                {
+                    editor *b = useeditor(PASTEBUFFER, EDITORFOREVER, false);
+                    if(this == b) break;
+                    copyselectionto(b);
+                    break;
+                }
+                case SDLK_v:
+                {
+                    editor *b = useeditor(PASTEBUFFER, EDITORFOREVER, false);
+                    if(this == b) break;
+                    insertallfrom(b);
+                    break;
+                }
+            }
+            scrollonscreen();
+        }
+
+        #undef MOD_KEYS
     }
 
     void hit(int hitx, int hity, bool dragged)
@@ -553,19 +738,7 @@ struct editor
         bool selection = region(sx, sy, ex, ey);
         
         // fix scrolly so that <cx, cy> is always on screen
-        if(cy < scrolly) scrolly = cy;
-        else 
-        {
-            if(scrolly < 0) scrolly = 0;
-            int h = 0;
-            for(int i = cy; i >= scrolly; i--)
-            {
-                int width, height;
-                text_bounds(lines[i].text, width, height, maxwidth);
-                if(h + height > pixelheight) { scrolly = i+1; break; }
-                h += height;
-            }
-        }
+        scrolly = clamp(scrolly, 0, lines.length() - 1);
         
         if(selection)
         {

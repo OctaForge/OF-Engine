@@ -34,10 +34,12 @@ namespace gui
     void _lua_uivscrollbar(float h, float v, lua::Function children);
     void _lua_uiscrollbutton(lua::Function children);
     void _lua_uihslider(
-        const char *var, int minv, int maxv, lua::Function children
+        const char *var, float vmin, float vmax, lua::Function onchange,
+        float arrowsize, float stepsize, int steptime, lua::Function children
     );
     void _lua_uivslider(
-        const char *var, int minv, int maxv, lua::Function children
+        const char *var, float vmin, float vmax, lua::Function onchange,
+        float arrowsize, float stepsize, int steptime, lua::Function children
     );
     void _lua_uisliderbutton(lua::Function children);
     void _lua_uioffset(float h, float v, lua::Function children);
@@ -83,14 +85,13 @@ namespace gui
         const char *path, const char *texborder,
         float screenborder, lua::Function children
     );
-    int _lua_uilabel(
-        const char *lbl, float scale,
+    void _lua_uilabel(
+        const char *lbl, float scale, float wrap,
         lua::Object r, lua::Object g, lua::Object b,
         lua::Function children
     );
-    void _lua_uisetlabel(int ref, const char *lbl);
-    void _lua_uivarlabel(
-        const char *var, float scale,
+    void _lua_uifunlabel(
+        lua::Function cmd, float scale, float wrap,
         lua::Object r, lua::Object g, lua::Object b,
         lua::Function children
     );
@@ -189,8 +190,7 @@ namespace lapi_binds
     LAPI_EMPTY(uicroppedimage)
     LAPI_EMPTY(uiborderedimage)
     LAPI_EMPTY(uilabel)
-    LAPI_EMPTY(uisetlabel)
-    LAPI_EMPTY(uivarlabel)
+    LAPI_EMPTY(uifunlabel)
     LAPI_EMPTY(uitexteditor)
     LAPI_EMPTY(uifield)
     LAPI_EMPTY(applychanges)
@@ -243,8 +243,7 @@ namespace lapi_binds
         LAPI_REG(uicroppedimage);
         LAPI_REG(uiborderedimage);
         LAPI_REG(uilabel);
-        LAPI_REG(uisetlabel);
-        LAPI_REG(uivarlabel);
+        LAPI_REG(uifunlabel);
         LAPI_REG(uitexteditor);
         LAPI_REG(uifield);
         LAPI_REG(applychanges);

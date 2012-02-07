@@ -17,18 +17,18 @@
     Section: Extension library 1.0 initialization
 ]]
 
-log(DEBUG, "Initializing library version %(1)s" % { library.current })
+log(DEBUG, "Initializing library version %(1)s" % { std.library.current })
 
 log(DEBUG, ":: Plugin system.")
-library.include("plugins")
+std.library.include("plugins")
 
 log(DEBUG, ":: Game manager.")
-library.include("game_manager")
+std.library.include("game_manager")
 
 log(DEBUG, ":: Events.")
-library.include("events")
+std.library.include("events")
 
 log(DEBUG, ":: Health.")
-library.include("health")
+std.library.include("health")
 
 uwambient = 1

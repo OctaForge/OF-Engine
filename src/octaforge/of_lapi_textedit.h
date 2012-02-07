@@ -120,7 +120,7 @@ namespace lapi_binds
             }
         }
         if (
-            ed && ed->rendered && !ed->filename && s1 &&
+            ed /*&& ed->rendered*/ && !ed->filename && s1 &&
             (
                 ed->lines.empty() || (
                     ed->lines.length() == 1 && !strcmp(s2, ed->lines[0].text)
@@ -132,8 +132,6 @@ namespace lapi_binds
             ed->load();
         }
     }
- 
-    #define PASTEBUFFER "#pastebuffer"
 
     void _lua_textcopy()
     {

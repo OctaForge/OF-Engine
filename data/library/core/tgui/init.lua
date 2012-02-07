@@ -219,7 +219,7 @@ function show_changes()
     gui.replace("changes", "changes", function()
         gui.vlist(0, function()
             for i, change in pairs(gui.get_changes()) do
-                gui.label(change, 1, 1, 1, 1, function() gui.align(-1, 0) end)
+                gui.label(change, 1, 0, 1, 1, 1, function() gui.align(-1, 0) end)
             end
         end)
     end)
@@ -307,7 +307,7 @@ function show_entity_properties_tab()
                             -- and label
                             gui.label(
                                 pair[1] .. ": ",
-                                1, 1, 1, 1,
+                                1, 0, 1, 1, 1,
                                 function()
                                     gui.align(-1, 0)
                                 end

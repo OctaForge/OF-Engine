@@ -41,9 +41,6 @@
 -- see world metatable below
 local gravity
 
-log(DEBUG, ":: Library system.")
-require("base.base_library")
-
 log(DEBUG, ":: Engine interface.")
 require("base.base_engine")
 

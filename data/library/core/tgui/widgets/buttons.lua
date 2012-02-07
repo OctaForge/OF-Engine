@@ -118,7 +118,7 @@ function button_no_bg(label, action)
             gui.color(0, 0, 0, 0, 0, 0.03, function()
                 gui.clamp(1, 1, 0, 0)
             end)
-            gui.label(label, 1, 1, 1, 1)
+            gui.label(label, 1, 0, 1, 1, 1)
         end)
 
         -- hover state
@@ -127,7 +127,7 @@ function button_no_bg(label, action)
             gui.color(0, 0, 0, 0, 0, 0.03, function()
                 gui.clamp(1, 1, 0, 0)
             end)
-            gui.label(label, 1, 1, 0, 0)
+            gui.label(label, 1, 0, 1, 0, 0)
         end)
 
         -- selected state
@@ -136,7 +136,7 @@ function button_no_bg(label, action)
             gui.color(0, 0, 0, 0, 0, 0.03, function()
                 gui.clamp(1, 1, 0, 0)
             end)
-            gui.label(label, 1, 0.5, 0, 0)
+            gui.label(label, 1, 0, 0.5, 0, 0)
         end)
     end)
 end

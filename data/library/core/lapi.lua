@@ -201,6 +201,6 @@ return {
 
             return false
         end,
-        reset = library.reset
+        reset = std.library.reset
     }
 }

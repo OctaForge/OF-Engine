@@ -1,4 +1,4 @@
-library.include("mapelements.world_areas")
+std.library.include("mapelements.world_areas")
 
 module("platformer", package.seeall)
 

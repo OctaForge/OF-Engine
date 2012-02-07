@@ -430,7 +430,7 @@ replace = CAPI.replaceui
 
     Example:
         (start code)
-            gui.label("foo", 1, 1, 1, 1, function()
+            gui.label("foo", 1, 0, 1, 1, 1, function()
                 -- aligns the label to the left
                 gui.align(-1, 0)
             end)
@@ -1004,6 +1004,7 @@ bordered_image = CAPI.uiborderedimage
         text - the text itself.
         scale - 1.0 is default. Floating point number.
         Can be bigger than 1.
+        wrap - ...
         r - red color component as floating
         point value from 0.0 to 1.0.
         g - green color component as floating
@@ -1018,16 +1019,6 @@ bordered_image = CAPI.uiborderedimage
 label = CAPI.uilabel
 
 --[[!
-    Function: set_label
-    Sets a label using known ID returned by <label>.
-
-    Parameters:
-        id - label ID.
-        text - the text to set.
-]]
-set_label = CAPI.uisetlabel
-
---[[!
     Function: var_label
     Simillar to <label> but it doesn't return anything and
     first argument is not text, it's engine variable name.
@@ -1037,7 +1028,7 @@ set_label = CAPI.uisetlabel
     <slider_button> and value of it will change everytime
     the slider changes.
 ]]
-var_label = CAPI.uivarlabel
+function_label = CAPI.uifunlabel
 
 --[[!
     Function: editor
