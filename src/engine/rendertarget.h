@@ -1,4 +1,4 @@
-extern int& rtsharefb, &rtscissor, &blurtile;
+extern int rtsharefb, rtscissor, blurtile;
 
 struct rendertarget
 {

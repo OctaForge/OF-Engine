@@ -99,9 +99,9 @@ extern PFNGLFOGCOORDPOINTEREXTPROC glFogCoordPointer_;
 extern dynent *player;
 extern physent *camera1;                // special ent that acts as camera, same object as player1 in FPS mode
 
-extern int& worldscale, &worldsize;
-extern int& mapversion;
-extern char*& maptitle;
+extern int worldscale, worldsize;
+extern int mapversion;
+extern char* maptitle;
 extern vector<ushort> texmru;
 extern int xtraverts, xtravertsva;
 extern const ivec cubecoords[8];
@@ -112,7 +112,7 @@ extern const uchar faceedgesidx[6][4];
 extern bool inbetweenframes, renderedframe;
 
 extern SDL_Surface *screen;
-extern int& zpass, &glowpass;
+extern int zpass, glowpass;
 
 extern vector<int> entgroup;
 
@@ -141,7 +141,7 @@ struct font
 extern font *curfont;
 
 // texture
-extern int& hwtexsize, &hwcubetexsize, &hwmaxaniso, &maxtexsize;
+extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize;
 
 extern Texture *textureload(const char *name, int clamp = 0, bool mipit = true, bool msg = true);
 extern int texalign(void *data, int w, int bpp);
@@ -173,7 +173,7 @@ extern int compactvslots();
 
 // shadowmap
 
-extern int& shadowmap, &shadowmapcasters;
+extern int shadowmap, shadowmapcasters;
 extern bool shadowmapping;
 
 extern bool isshadowmapcaster(const vec &o, float rad);
@@ -350,7 +350,7 @@ extern void drawbb(const ivec &bo, const ivec &br, const vec &camera = camera1->
 #define endquery(query) \
     { \
         glEndQuery_(GL_SAMPLES_PASSED_ARB); \
-        extern int& ati_oq_bug; \
+        extern int ati_oq_bug; \
         if(ati_oq_bug) glFlush(); \
     }
 
@@ -364,7 +364,7 @@ extern bool getdynlight(int n, vec &o, float &radius, vec &color);
 
 // material
 
-extern int& showmat;
+extern int showmat;
 
 extern int findmaterial(const char *name);
 extern void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs);
@@ -380,7 +380,7 @@ extern int visiblematerial(cube &c, int orient, int x, int y, int z, int size, u
 extern int refracting;
 extern bool reflecting, fading, fogging;
 extern float reflectz;
-extern int& reflectdist, &vertwater, &waterrefract, &waterreflect, &waterfade, &caustics, &waterfallrefract, &waterfog, &lavafog;
+extern int reflectdist, vertwater, waterrefract, waterreflect, waterfade, caustics, waterfallrefract, waterfog, lavafog;
 extern bvec watercolor, waterfallcolor, lavacolor;
 
 extern void cleanreflections();
@@ -547,7 +547,7 @@ enum
     BLOB_DYNAMIC
 };
 
-extern int& showblobs;
+extern int showblobs;
 
 extern void initblobs(int type = -1);
 extern void resetblobs();
@@ -573,7 +573,7 @@ namespace gui
     extern void update();
     extern void render();
     extern void clearmainmenu();
-    extern int& mainmenu;
+    extern int  mainmenu;
 }
 
 // sound
@@ -590,7 +590,7 @@ extern void generategrass();
 extern void rendergrass();
 
 // blendmap
-extern int& blendpaintmode;
+extern int blendpaintmode;
 
 struct BlendMapCache;
 extern BlendMapCache *newblendmapcache();

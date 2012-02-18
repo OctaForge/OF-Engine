@@ -15,7 +15,7 @@ void showblendmap();
 void optimizeblendmap();
 void resetblendmap();
 
-extern int& nompedit;
+extern int nompedit;
 
 namespace lapi_binds
 {

@@ -117,7 +117,7 @@ static inline bool raycubeintersect(clipplanes &p, const cube &c, const vec &v, 
 }
 
 extern void entselectionbox(const entity &e, vec &eo, vec &es);
-extern int& entselradius;
+extern int  entselradius;
 float hitentdist;
 int hitent, hitorient;
 
@@ -1836,7 +1836,7 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     if(diff <= 0) physsteps = 0;
     else
     {
-        extern int& gamespeed;
+        extern int gamespeed;
         physframetime = clamp((PHYSFRAMETIME*gamespeed)/100, 1, PHYSFRAMETIME);
         physsteps = (diff + physframetime - 1)/physframetime;
         lastphysframe += physsteps * physframetime;

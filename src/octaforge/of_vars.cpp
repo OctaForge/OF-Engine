@@ -1,32 +1,3 @@
-/*
- * of_vars.cpp, version 1
- * Source file for engine varsystem
- *
- * author: q66 <quaker66@gmail.com>
- * license: MIT/X11
- *
- * Copyright (c) 2011 q66
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
 #include "cube.h"
 #include "engine.h"
 #include "game.h"
@@ -37,272 +8,174 @@
     #include "targeting.h"
 #endif
 
-namespace var
+namespace varsys
 {
-    cvar::cvar(
-        const char *n,
-        int min,
-        int cur,
-        int max,
-        int *&stor,
-        void (*fun)(),
-        int fl
-    ) : name(n),
-        type(VAR_I),
-        flags(fl),
-        vfun(fun)
+    Variable_Map *variables = NULL;
+    bool persistvars = true, overridevars = false, changed = false;
+
+    int reg_ivar(
+        const char *name, int min_v, int def_v, int max_v,
+        int *storage, void (*callback)(), int flags
+    )
     {
-        if (min > max)
-        {
-            flags |= VAR_READONLY;
-            minv.i = max;
-            maxv.i = min;
-        }
-        else
-        {
-            minv.i = min;
-            maxv.i = max;
-        }
-        oldv.i = curv.i = cur;
-        stor = &curv.i;
+        Int_Variable *nvar = new Int_Variable(
+            name, min_v, def_v, max_v, storage, callback, flags
+        );
+        reg_var(name, nvar);
+        return *storage;
     }
 
-    cvar::cvar(
-        const char *n,
-        float min,
-        float cur,
-        float max,
-        float *&stor,
-        void (*fun)(),
-        int fl
-    ) : name(n),
-        type(VAR_F),
-        flags(fl),
-        vfun(fun)
+    float reg_fvar(
+        const char *name, float min_v, float def_v, float max_v,
+        float *storage, void (*callback)(), int flags
+    )
     {
-        if (min > max)
-        {
-            flags |= VAR_READONLY;
-            minv.f = max;
-            maxv.f = min;
-        }
-        else
-        {
-            minv.f = min;
-            maxv.f = max;
-        }
-        oldv.f = curv.f = cur;
-        stor = &curv.f;
+        Float_Variable *nvar = new Float_Variable(
+            name, min_v, def_v, max_v, storage, callback, flags
+        );
+        reg_var(name, nvar);
+        return *storage;
     }
 
-    cvar::cvar(
-        const char *n,
-        const char *cur,
-        char **&stor,
-        void (*fun)(),
-        int fl
-    ) : name(n),
-        type(VAR_S),
-        flags(fl),
-        vfun(fun)
+    char *reg_svar(
+        const char *name, const char *def_v,
+        char **storage, void (*callback)(), int flags
+    )
     {
-        curv.s = (cur ? newstring(cur) : NULL);
-        oldv.s = (cur ? newstring(cur) : NULL);
-        stor = &curv.s;
+        String_Variable *nvar = new String_Variable(
+            name, def_v, storage, callback, flags
+        );
+        reg_var(name, nvar);
+        return *storage;
     }
 
-    cvar::cvar(
-        const char *n,
-        int v
-    ) : name(n),
-        type(VAR_I),
-        flags(0),
-        vfun(NULL)
+    Variable *reg_var(const char *name, Variable *v)
     {
-        flags |= VAR_ALIAS;
-        if (persistvars) flags |= VAR_PERSIST;
-
-        minv.i = maxv.i = -1;
-        oldv.i = curv.i = v;
-    }
-
-    cvar::cvar(
-        const char *n,
-        float v
-    ) : name(n),
-        type(VAR_F),
-        flags(0),
-        vfun(NULL)
-    {
-        flags |= VAR_ALIAS;
-        if (persistvars) flags |= VAR_PERSIST;
-
-        minv.f = maxv.f = -1.0f;
-        oldv.f = curv.f = v;
-    }
-
-    cvar::cvar(
-        const char *n,
-        const char *v
-    ) : name(n),
-        type(VAR_S),
-        flags(0),
-        vfun(NULL)
-    {
-        flags |= VAR_ALIAS;
-        if (persistvars) flags |= VAR_PERSIST;
-
-        curv.s = (v ? newstring(v) : NULL);
-        oldv.s = NULL;
-    }
-
-    cvar::~cvar()
-    {
-        if (type == VAR_S)
-        {
-            DELETEA(curv.s);
-            DELETEA(oldv.s);
-        }
-    }
-
-    void cvar::set(int v, bool dofun, bool _clamp)
-    {
-        if ((flags&VAR_OVERRIDE) || overridevars)
-        {
-            flags |= VAR_OVERRIDEN;
-            oldv.i = curv.i;
-        }
-
-        if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
-             flags ^= VAR_PERSIST;
-
-        if (_clamp && (v < minv.i || v > maxv.i) && (flags&VAR_ALIAS) == 0)
-        {
-            logger::log(
-                logger::ERROR,
-                "Variable %s only accepts values of range %i to %i.\n",
-                name, minv.i, maxv.i
-            );
-            curv.i = clamp(v, minv.i, maxv.i);
-        }
-        else curv.i = v;
-        if (vfun && dofun) vfun();
-    }
-
-    void cvar::set(float v, bool dofun, bool _clamp)
-    {
-        if ((flags&VAR_OVERRIDE) || overridevars)
-        {
-            flags |= VAR_OVERRIDEN;
-            oldv.f = curv.f;
-        }
-
-        if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
-             flags ^= VAR_PERSIST;
-
-        if (_clamp && (v < minv.f || v > maxv.f) && (flags&VAR_ALIAS) == 0)
-        {
-            logger::log(
-                logger::ERROR,
-                "Variable %s only accepts values of range %f to %f.\n",
-                name, minv.f, maxv.f
-            );
-            curv.f = clamp(v, minv.f, maxv.f);
-        }
-        else curv.f = v;
-        if (vfun && dofun) vfun();
-    }
-
-    void cvar::set(const char *v, bool dofun)
-    {
-        if ((flags&VAR_OVERRIDE) || overridevars)
-        {
-            flags |= VAR_OVERRIDEN;
-            DELETEA(oldv.s);
-            oldv.s = (curv.s ? newstring(curv.s) : NULL);
-        }
-
-        if ((flags&VAR_ALIAS) && (flags&VAR_PERSIST) && !persistvars)
-             flags ^= VAR_PERSIST;
-
-        DELETEA(curv.s);
-        curv.s = (v ? newstring(v) : NULL);
-        if (vfun && dofun) vfun();
-    }
-
-    void cvar::reset()
-    {
-        if ((flags&VAR_OVERRIDEN) == 0) return;
-        switch (type)
-        {
-            case VAR_I: curv.i = oldv.i; break;
-            case VAR_F: curv.f = oldv.f; break;
-            case VAR_S:
-            {
-                DELETEA(curv.s);
-                curv.s = (oldv.s ? newstring(oldv.s) : NULL);
-                break;
-            }
-            default: break;
-        }
-        flags ^= VAR_OVERRIDEN;
-    }
-
-    vartable *vars = NULL;
-    bool persistvars = true, overridevars = false;
-
-    int& regivar(const char *name, int minv, int curv, int maxv, int *stor, void (*fun)(), int flags)
-    {
-        cvar *nvar = new cvar(name, minv, curv, maxv, stor, fun, flags);
-        regvar(name, nvar);
-        return *stor;
-    }
-
-    float& regfvar(const char *name, float minv, float curv, float maxv, float *stor, void (*fun)(), int flags)
-    {
-        cvar *nvar = new cvar(name, minv, curv, maxv, stor, fun, flags);
-        regvar(name, nvar);
-        return *stor;
-    }
-
-    char *&regsvar(const char *name, const char *curv, char **stor, void (*fun)(), int flags)
-    {
-        cvar *nvar = new cvar(name, curv, stor, fun, flags);
-        regvar(name, nvar);
-        return *stor;
-    }
-
-    cvar *regvar(const char *name, cvar *v)
-    {
-        if (!vars) vars = new vartable;
-        vars->insert(name, v);
+        if (!variables) variables = new Variable_Map;
+        variables->insert(name, v);
         return v;
     }
 
     void clear()
     {
-        if (!vars || vars->is_empty()) return;
-        for (vartable::it it = vars->begin(); it != vars->end(); ++it)
-            it->second->reset();
+        if (!variables || variables->is_empty())
+            return;
+
+        Variable_Map *tmp = new Variable_Map;
+
+        Variable_Map::it end(variables->end());
+
+        for (Variable_Map::it it = variables->begin(); it != end; ++it)
+        {
+            if (!(it->second->flags()&FLAG_ALIAS))
+            {
+                it->second->reset();
+                tmp->insert(*it);
+            }
+            else delete it->second;
+        }
+
+        delete variables;
+        variables = tmp;
     }
 
     void flush()
     {
-        if (vars)
+        if (variables)
         {
-            for (vartable::it it = vars->begin(); it != vars->end(); ++it)
+            Variable_Map::it end(variables->end());
+
+            for (Variable_Map::it it = variables->begin(); it != end; ++it)
                 delete it->second;
 
-            delete vars;
+            delete variables;
         }
     }
 
-    cvar *get(const char *name)
+    Variable *get(const char *name)
     {
-        if (!vars || !name) return NULL;
+        if (!variables || !name) return NULL;
 
-        vartable::cit it = vars->find(name);
-        if (it != vars->end()) return it->second;
+        Variable_Map::cit it = variables->find(name);
+        if (it != variables->end()) return it->second;
         else return NULL;
     }
-} /* end namespace var */
+
+    int get_int(Variable *v)
+    {
+        if (v->type () != TYPE_I) return 0;
+        if (v->flags()&FLAG_ALIAS)
+            return ((Int_Alias*)v)->get();
+        return  ((Int_Variable*)v)->get();
+    }
+
+    float get_float(Variable *v)
+    {
+        if (v->type () != TYPE_F) return 0;
+        if (v->flags()&FLAG_ALIAS)
+            return ((Float_Alias*)v)->get();
+        return  ((Float_Variable*)v)->get();
+    }
+
+    const char *get_string(Variable *v)
+    {
+        if (v->type () != TYPE_S) return 0;
+        if (v->flags()&FLAG_ALIAS)
+            return ((String_Alias*)v)->get();
+        return  ((String_Variable*)v)->get();
+    }
+
+    void set(Variable *v, int val, bool call_cb, bool clamp)
+    {
+        if (v->type() != TYPE_I)
+            return;
+
+        if (v->flags()&FLAG_ALIAS)
+            ((Int_Alias*)v)->set(val);
+        else
+            ((Int_Variable*)v)->set(val, call_cb, clamp);
+    }
+
+    void set(Variable *v, float val, bool call_cb, bool clamp)
+    {
+        if (v->type() != TYPE_F)
+            return;
+
+        if (v->flags()&FLAG_ALIAS)
+            ((Float_Alias*)v)->set(val);
+        else
+            ((Float_Variable*)v)->set(val, call_cb, clamp);
+    }
+
+    void set(Variable *v, const char *val, bool call_cb)
+    {
+        if (v->type() != TYPE_S)
+            return;
+
+        if (v->flags()&FLAG_ALIAS)
+            ((String_Alias*)v)->set(val);
+        else
+            ((String_Variable*)v)->set(val, call_cb);
+    }
+
+    void set(const char *name, int value, bool call_cb, bool clamp)
+    {
+        Variable *var = get(name);
+        if (!var) return;
+        set(var, value, call_cb, clamp);
+    }
+
+    void set(const char *name, float value, bool call_cb, bool clamp)
+    {
+        Variable *var = get(name);
+        if (!var) return;
+        set(var, value, call_cb, clamp);
+    }
+
+    void set(const char *name, const char *value, bool call_cb)
+    {
+        Variable *var = get(name);
+        if (!var) return;
+        set(var, value, call_cb);
+    }
+} /* end namespace varsystem */

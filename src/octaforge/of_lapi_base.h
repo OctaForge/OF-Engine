@@ -27,7 +27,7 @@ bool addzip(
 bool removezip(const char *name);
 
 extern string homedir;
-extern int& fullconsole, &fullconfilter, &confilter, &miniconfilter;
+extern int fullconsole, fullconfilter, confilter, miniconfilter;
 
 #ifdef CLIENT
 VARFN(scoreboard, showscoreboard, 0, 0, 1, scorebshow(showscoreboard!=0));
@@ -234,7 +234,7 @@ namespace lapi_binds
 
     void _lua_resetvar(const char *name)
     {
-        var::get(name)->reset();
+        varsys::get(name)->reset();
     }
 
     void _lua_newvar(const char *name, int type, lua::Object value)
@@ -242,31 +242,36 @@ namespace lapi_binds
         if (!name) return;
         switch (type)
         {
-            case var::VAR_I:
+            case varsys::TYPE_I:
             {
-                var::cvar *ev = var::get(name);
-                if (!ev)   ev = var::regvar(
-                    name, new var::cvar(name, value.to<int>())
+                varsys::Variable *ev = varsys::get(name);
+                if (!ev) ev = varsys::reg_var(
+                    name, new varsys::Int_Alias(name, value.to<int>())
                 );
-                else ev->set(value.to<int>(), false, false);
+                else if (ev->type() != varsys::TYPE_I) break;
+                else varsys::set(ev, value.to<int>(), false, false);
                 break;
             }
-            case var::VAR_F:
+            case varsys::TYPE_F:
             {
-                var::cvar *ev = var::get(name);
-                if (!ev)   ev = var::regvar(
-                    name, new var::cvar(name, value.to<float>())
+                varsys::Variable *ev = varsys::get(name);
+                if (!ev) ev = varsys::reg_var(
+                    name, new varsys::Float_Alias(name, value.to<float>())
                 );
-                else ev->set(value.to<float>(), false, false);
+                else if (ev->type() != varsys::TYPE_F) break;
+                else varsys::set(ev, value.to<float>(), false, false);
                 break;
             }
-            case var::VAR_S:
+            case varsys::TYPE_S:
             {
-                var::cvar *ev = var::get(name);
-                if (!ev)   ev = var::regvar(
-                    name, new var::cvar(name, value.to<const char*>())
+                varsys::Variable *ev = varsys::get(name);
+                if (!ev) ev = varsys::reg_var(
+                    name, new varsys::String_Alias(
+                        name, value.to<const char*>()
+                    )
                 );
-                else ev->set(value.to<const char*>(), false);
+                else if (ev->type() != varsys::TYPE_S) break;
+                else varsys::set(ev, value.to<const char*>(), false);
                 break;
             }
             default: break;
@@ -276,20 +281,20 @@ namespace lapi_binds
     void _lua_setvar(const char *name, lua::Object value)
     {
         if (!name) return;
-        var::cvar *ev = var::get(name);
-        if       (!ev) return;
-        if       ((ev->flags&var::VAR_READONLY) != 0)
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev) return;
+        if ((ev->flags()&varsys::FLAG_READONLY) != 0)
         {
             logger::log(
-                logger::ERROR, "Variable %s is read-only.\n", ev->name
+                logger::ERROR, "Variable %s is read-only.\n", ev->name()
             );
             return;
         }
-        switch (ev->type)
+        switch (ev->type())
         {
-            case var::VAR_I: ev->set(value.to<int>  (), true, true); break;
-            case var::VAR_F: ev->set(value.to<float>(), true, true); break;
-            case var::VAR_S: ev->set(value.to<const char*>(), true); break;
+            case varsys::TYPE_I: varsys::set(ev, value.to<int  >(), true, true); break;
+            case varsys::TYPE_F: varsys::set(ev, value.to<float>(), true, true); break;
+            case varsys::TYPE_S: varsys::set(ev, value.to<const char*>(), true); break;
             default: break;
         }
     }
@@ -297,16 +302,16 @@ namespace lapi_binds
     lua::Object _lua_getvar(const char *name)
     {
         if (!name) return lapi::state.wrap<lua::Object>(lua::nil);
-        var::cvar *ev = var::get(name);
+        varsys::Variable *ev = varsys::get(name);
         if       (!ev) return lapi::state.wrap<lua::Object>(lua::nil);
-        switch   ( ev->type)
+        switch   ( ev->type())
         {
-            case var::VAR_I:
-                return lapi::state.wrap<lua::Object>(ev->curv.i); break;
-            case var::VAR_F:
-                return lapi::state.wrap<lua::Object>(ev->curv.f); break;
-            case var::VAR_S:
-                return lapi::state.wrap<lua::Object>(ev->curv.s); break;
+            case varsys::TYPE_I:
+                return lapi::state.wrap<lua::Object>(varsys::get_int(ev)); break;
+            case varsys::TYPE_F:
+                return lapi::state.wrap<lua::Object>(varsys::get_float(ev)); break;
+            case varsys::TYPE_S:
+                return lapi::state.wrap<lua::Object>(varsys::get_string(ev)); break;
             default: break;
         }
         return lapi::state.wrap<lua::Object>(lua::nil);
@@ -315,13 +320,13 @@ namespace lapi_binds
     bool _lua_varexists(const char *vn)
     {
         if (!vn) return false;
-        return (var::get(vn) ? true : false);
+        return (varsys::get(vn) ? true : false);
     }
 
     bool _lua_persist_vars(bool persist)
     {
-        bool was = var::persistvars;
-        var::persistvars = persist;
+        bool was = varsys::persistvars;
+        varsys::persistvars = persist;
         return was;
     }
 

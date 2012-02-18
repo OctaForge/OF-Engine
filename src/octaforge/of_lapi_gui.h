@@ -90,11 +90,7 @@ namespace gui
         lua::Object r, lua::Object g, lua::Object b,
         lua::Function children
     );
-    void _lua_uifunlabel(
-        lua::Function cmd, float scale, float wrap,
-        lua::Object r, lua::Object g, lua::Object b,
-        lua::Function children
-    );
+    void _lua_uifunlabel(lua::Function cmd, lua::Function children);
     void _lua_uitexteditor(
         const char *name,
         int length,

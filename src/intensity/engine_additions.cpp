@@ -296,7 +296,7 @@ void CLogicEntity::setSound(const char *snd)
     logger::log(logger::DEBUG, "setSound: %s\r\n", snd);
 
     // This is important as this is called before setupExtent.
-    if ((!this) || (!staticEntity && !dynamicEntity))
+    if ((!this) || !staticEntity)
         return;
 
     logger::log(logger::DEBUG, "(2) setSound: %s\r\n", snd);
@@ -317,10 +317,6 @@ void CLogicEntity::setSound(const char *snd)
 
 const char *CLogicEntity::getSound()
 {
-    // This is important as this is called before setupExtent.
-    if ((!this) || (!staticEntity && !dynamicEntity))
-        return NULL;
-
     return sndname;
 }
 

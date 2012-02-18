@@ -1,6 +1,6 @@
 #include "engine.h"
 
-extern int& outline;
+extern int outline;
 
 void boxs(int orient, vec o, const vec &s, bool quad = false)
 {
@@ -69,13 +69,13 @@ int gridsize = 8;
 ivec cor, lastcor;
 ivec cur, lastcur;
 
-extern int& entediting;
+extern int entediting;
 bool editmode = false;
 bool havesel = false;
 bool hmapsel = false;
 int horient  = 0;
 
-extern int& entmoving;
+extern int entmoving;
 
 VARF(dragging, 0, 0, 1,
     if(!dragging || cor[0]<0) return;
@@ -139,7 +139,7 @@ void toggleedit(bool force)
     stoppaintblendmap();
     keyrepeat(editmode);
     editing = entediting = editmode;
-    extern int& fullbright;
+    extern int fullbright;
     if(fullbright) initlights();
     if(!force) game::edittoggled(editmode);
 }
@@ -468,7 +468,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
 void tryedit()
 {
 #ifdef CLIENT // CubeCreate
-    extern int& hidehud;
+    extern int hidehud;
     if(!editmode || hidehud || gui::mainmenu) return;
     if(blendpaintmode) trypaintblendmap();
 #endif

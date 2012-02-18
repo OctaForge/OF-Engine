@@ -76,7 +76,7 @@ void loadshaders()
     extern Slot dummyslot;
     dummyslot.shader = stdworldshader;
 
-    extern int& ati_line_bug;
+    extern int ati_line_bug;
     rectshader = lookupshaderbyname("rect");
     cubemapshader = lookupshaderbyname("cubemap");
     notextureshader = lookupshaderbyname("notexture");
@@ -1119,7 +1119,7 @@ static void gendynlightvariant(Shader &s, const char *sname, const char *vs, con
             lights[numlights++] = i;    
             if(numlights>=limit) break;
         }
-        extern int& emulatefog;
+        extern int emulatefog;
         if(emulatefog && reservetc>0 && numlights+1<limit && !(usedtc&(1<<(maxtexcoords-reservetc))) && strstr(ps, "OPTION ARB_fog_linear;") && strstr(vs, "result.fogcoord"))
         {
             if(!findunusedtexcoordcomponent(vs, emufogtc, emufogcomp))
@@ -1186,7 +1186,7 @@ static void gendynlightvariant(Shader &s, const char *sname, const char *vs, con
 
         loopk(i+1)
         {
-            extern int& ati_dph_bug;
+            extern int ati_dph_bug;
             string tc, dl;
             if(s.type & SHADER_GLSLANG) formatstring(tc)(
                 k<numlights ? 
@@ -1254,7 +1254,7 @@ static void genshadowmapvariant(Shader &s, const char *sname, const char *vs, co
         uint usedtc = findusedtexcoords(vs);
         if(maxtexcoords-reserveshadowmaptc<0) return;
         loopi(maxtexcoords-reserveshadowmaptc) if(!(usedtc&(1<<i))) { smtc = i; break; }
-        extern int& emulatefog;
+        extern int emulatefog;
         if(smtc<0 && emulatefog && reserveshadowmaptc>0 && !(usedtc&(1<<(maxtexcoords-reserveshadowmaptc))) && strstr(ps, "OPTION ARB_fog_linear;"))
         {
             if(!strstr(vs, "result.fogcoord") || !findunusedtexcoordcomponent(vs, emufogtc, emufogcomp)) return;
@@ -1298,7 +1298,7 @@ static void genshadowmapvariant(Shader &s, const char *sname, const char *vs, co
     vssm.put(vsmain, vspragma-vsmain);
     pssm.put(psmain, pspragma-psmain);
 
-    extern int& smoothshadowmappeel;
+    extern int smoothshadowmappeel;
     if(s.type & SHADER_GLSLANG)
     {
         const char *tc =
@@ -1470,16 +1470,16 @@ void useshader(Shader *s)
         
     lua::Function defer = s->defer;
     s->defer.clear();
-    bool wasstandard = standardshader, wasforcing = forceshaders, waspersisting = var::persistvars;
+    bool wasstandard = standardshader, wasforcing = forceshaders, waspersisting = varsys::persistvars;
     standardshader = s->standard;
     forceshaders = false;
-    var::persistvars = false;
+    varsys::persistvars = false;
     curparams.shrink(0);
 
     defer();
     defer.clear();
 
-    var::persistvars = waspersisting;
+    varsys::persistvars = waspersisting;
     forceshaders = wasforcing;
     standardshader = wasstandard;
 
@@ -1551,7 +1551,7 @@ void shader(int type, char *name, char *vs, char *ps)
         return;
     }
 
-    extern int& mesa_program_bug;
+    extern int mesa_program_bug;
     if(renderpath!=R_FIXEDFUNCTION)
     {
         defformatstring(info)("shader %s", name);
@@ -1612,7 +1612,7 @@ void variantshader(int type, char *name, int row, char *vs, char *ps)
     defformatstring(varname)("<variant:%d,%d>%s", s->variants[row].length(), row, name);
     //defformatstring(info)("shader %s", varname);
     //renderprogress(loadprogress, info);
-    extern int& mesa_program_bug;
+    extern int mesa_program_bug;
     if((renderpath==R_ASMSHADER || renderpath==R_ASMGLSLANG) && mesa_program_bug && initshaders && !(type & SHADER_GLSLANG))
     {
         glEnable(GL_VERTEX_PROGRAM_ARB);
@@ -2176,7 +2176,7 @@ void inittmus()
         if(maxtmus<2)
         {
             nolights = nowater = nomasks = 1;
-            extern int& lightmodels;
+            extern int lightmodels;
             lightmodels = 0;
         }
     }
@@ -2209,9 +2209,9 @@ void cleanupshaders()
 
 void reloadshaders()
 {
-    var::persistvars = false;
+    varsys::persistvars = false;
     loadshaders();
-    var::persistvars = true;
+    varsys::persistvars = true;
     if(renderpath==R_FIXEDFUNCTION) return;
     linkslotshaders();
     enumerate(shaders, Shader, s, 

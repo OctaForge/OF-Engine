@@ -963,7 +963,7 @@ static int finishlightmap(lightmapworker *w)
 
 static int previewlightmapalpha(lightmapworker *w, float lpu, const vec &origin1, const vec &xstep1, const vec &ystep1, const vec &origin2, const vec &xstep2, const vec &ystep2, float side0, float sidestep)
 {
-    extern int& fullbrightlevel;
+    extern int fullbrightlevel;
     float tolerance = 0.5 / lpu;
     uchar *dst = w->colorbuf;
     uchar minalpha = 255, maxalpha = 0;

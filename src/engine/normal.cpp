@@ -298,6 +298,7 @@ void initlerpbounds(const lerpvert *lv, int numv, lerpbounds &start, lerpbounds 
         if(lv[i+1].v < first->v) { second = first; first = &lv[i+1]; }
         else if(!second || lv[i+1].v < second->v) second = &lv[i+1];
     }
+    if (!second) return;
 
     if(int(first->v) < int(second->v)) { start.min = end.min = first; }
     else if(first->u > second->u) { start.min = second; end.min = first; }

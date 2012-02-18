@@ -374,16 +374,16 @@ struct iqm : skelmodel, skelloader<iqm>
         defformatstring(cfgname)("data/models/%s/iqm.lua", loadname); // INTENSITY
 
         loading = this;
-        var::persistvars = false;
+        varsys::persistvars = false;
         if (tools::execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // iqm without configuration, try default tris and skin 
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             if(!loaddefaultparts()) 
             {
                 loading = NULL;

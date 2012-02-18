@@ -328,7 +328,7 @@ void convertoldsurfaces(cube &c, const ivec &co, int size, surfacecompat *srcsur
                 if(k > 0 && (pos[k] == pos[0] || pos[k] == pos[k-1])) continue;
                 vertinfo &dv = curverts[numverts++];
                 dv.setxyz(pos[k]);
-                if(uselms)
+                if(uselms && src)
                 {
                     float u = src->x + (src->texcoords[k*2] / 255.0f) * (src->w - 1),
                           v = src->y + (src->texcoords[k*2+1] / 255.0f) * (src->h - 1);
@@ -756,40 +756,51 @@ bool save_world(const char *mname, bool nolms)
     hdr.blendmap = shouldsaveblendmap();
     hdr.numvars = 0;
     hdr.numvslots = numvslots;
-    for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
+    for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
     {
-        var::cvar *v = it->second;
-        if ((v->flags&var::VAR_OVERRIDE) != 0 && (v->flags&var::VAR_READONLY) == 0 && (v->flags&var::VAR_OVERRIDEN) != 0) hdr.numvars++;
+        varsys::Variable *v = it->second;
+        if (
+            (v->flags()&varsys::FLAG_OVERRIDE) != 0 &&
+            (v->flags()&varsys::FLAG_READONLY) == 0 &&
+            (v->flags()&varsys::FLAG_OVERRIDEN) != 0
+        ) hdr.numvars++;
     }
     lilswap(&hdr.version, 9);
     f->write(&hdr, sizeof(hdr));
    
-    for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
+    for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
     {
-        var::cvar *v = it->second;
-        if((v->flags&var::VAR_OVERRIDE) == 0 || (v->flags&var::VAR_READONLY) != 0 || (v->flags&var::VAR_OVERRIDEN) == 0) continue;
-        f->putchar(v->type);
-        f->putlil<ushort>(strlen(v->name));
-        f->write(v->name, strlen(v->name));
-        switch(v->type)
+        varsys::Variable *v = it->second;
+        if(
+            (v->flags()&varsys::FLAG_OVERRIDE) == 0 ||
+            (v->flags()&varsys::FLAG_READONLY) != 0 ||
+            (v->flags()&varsys::FLAG_OVERRIDEN) == 0
+        ) continue;
+        f->putchar(v->type());
+        f->putlil<ushort>(  strlen(v->name()));
+        f->write(v->name(), strlen(v->name()));
+        switch(v->type())
         {
-            case var::VAR_I:
+            case varsys::TYPE_I:
             {
-                if(dbgvars) conoutf(CON_DEBUG, "wrote var %s: %d", v->name, v->curv.i);
-                f->putlil<int>(v->curv.i);
+                int val = varsys::get_int(v);
+                if(dbgvars) conoutf(CON_DEBUG, "wrote var %s: %d", v->name(), val);
+                f->putlil<int>(val);
                 break;
             }
-            case var::VAR_F:
+            case varsys::TYPE_F:
             {
-                if(dbgvars) conoutf(CON_DEBUG, "wrote fvar %s: %f", v->name, v->curv.f);
-                f->putlil<float>(v->curv.f);
+                float val = varsys::get_float(v);
+                if(dbgvars) conoutf(CON_DEBUG, "wrote fvar %s: %f", v->name(), val);
+                f->putlil<float>(val);
                 break;
             }
-            case var::VAR_S:
+            case varsys::TYPE_S:
             {
-                if(dbgvars) conoutf(CON_DEBUG, "wrote svar %s: %s", v->name, v->curv.s);
-                f->putlil<ushort>(strlen(v->curv.s));
-                f->write(v->curv.s, strlen(v->curv.s));
+                const char *val = varsys::get_string(v);
+                if(dbgvars) conoutf(CON_DEBUG, "wrote svar %s: %s", v->name(), val);
+                f->putlil<ushort>(strlen(val));
+                f->write(val, strlen(val));
                 break;
             }
         }
@@ -935,34 +946,38 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         f->read(name, min(ilen, MAXSTRLEN-1));
         name[min(ilen, MAXSTRLEN-1)] = '\0';
         if(ilen >= MAXSTRLEN) f->seek(ilen - (MAXSTRLEN-1), SEEK_CUR);
-        var::cvar *v = var::get(name);
-        bool exists = v && v->type == type;
+        varsys::Variable *v = varsys::get(name);
+        bool exists = v && v->type() == type;
         switch(type)
         {
-            case var::VAR_I:
+            case varsys::TYPE_I:
             {
                 int val = f->getlil<int>();
-                if(exists && v->minv.i <= v->maxv.i) v->set(val, true, false);
+                varsys::Int_Variable *iv = (varsys::Int_Variable*)v;
+
+                if(exists && iv->get_min() <= iv->get_max()) iv->set(val, true, false);
                 if(dbgvars) conoutf(CON_DEBUG, "read var %s: %d", name, val);
                 break;
             }
  
-            case var::VAR_F:
+            case varsys::TYPE_F:
             {
                 float val = f->getlil<float>();
-                if(exists && v->minv.f <= v->maxv.f) v->set(val, true, false);
+                varsys::Float_Variable *fv = (varsys::Float_Variable*)v;
+
+                if(exists && fv->get_min() <= fv->get_max()) fv->set(val, true, false);
                 if(dbgvars) conoutf(CON_DEBUG, "read fvar %s: %f", name, val);
                 break;
             }
     
-            case var::VAR_S:
+            case varsys::TYPE_S:
             {
                 int slen = f->getlil<ushort>();
                 string val;
                 f->read(val, min(slen, MAXSTRLEN-1));
                 val[min(slen, MAXSTRLEN-1)] = '\0';
                 if(slen >= MAXSTRLEN) f->seek(slen - (MAXSTRLEN-1), SEEK_CUR);
-                if(exists) v->set(val, true);
+                if(exists) ((varsys::String_Variable*)v)->set(val, true);
                 if(dbgvars) conoutf(CON_DEBUG, "read svar %s: %s", name, val);
                 break;
             }
@@ -1123,13 +1138,13 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     gui::clearmainmenu();
 
-    var::overridevars = true;
+    varsys::overridevars = true;
     if (lapi::state.state())
     {
         lapi::state.do_file("data/cfg/default_map_settings.lua");
         world::run_mapscript();
     }
-    var::overridevars = false;
+    varsys::overridevars = false;
    
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");

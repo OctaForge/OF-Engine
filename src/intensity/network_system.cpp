@@ -12,7 +12,7 @@
 namespace game
 {
     void updatepos(fpsent *d);
-    extern int& smoothmove, &smoothdist;
+    extern int smoothmove, smoothdist;
 }
 
 namespace NetworkSystem

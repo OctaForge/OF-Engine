@@ -204,16 +204,16 @@ struct md3 : vertmodel, vertloader<md3>
         defformatstring(cfgname)("data/models/%s/md3.lua", loadname); // OF
 
         loading = this;
-        var::persistvars = false;
+        varsys::persistvars = false;
         if(tools::execfile(cfgname, false) && parts.length()) // OF configured md3, will call the md3* commands below
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             loading = NULL;
             if(!loaddefaultparts()) return false;
         }

@@ -757,7 +757,7 @@ void rendermaterials()
                         float t = lastmillis/2000.0f;
                         t -= floor(t);
                         t = 1.0f - 2*fabs(t-0.5f);
-                        extern int& glare;
+                        extern int glare;
                         if(renderpath!=R_FIXEDFUNCTION && glare) t = 0.625f + 0.075f*t;
                         else t = 0.5f + 0.5f*t;
                         glColor3f(t, t, t);

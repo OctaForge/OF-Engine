@@ -618,7 +618,7 @@ void renderentradius(extentity &e, bool color)
 
         case ET_ENVMAP:
         {
-            extern int& envmapradius;
+            extern int envmapradius;
             if(color) glColor3f(0, 1, 1);
             renderentsphere(e, e.attr1 ? max(0, min(10000, int(e.attr1))) : envmapradius);
             break;
@@ -667,7 +667,7 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
         glLineWidth(1);
     }
 
-    extern int& showentradius;
+    extern int showentradius;
     if(showentradius && (entgroup.length() || enthover >= 0))
     {
         glDepthFunc(GL_GREATER);
@@ -740,7 +740,7 @@ void entautoview(int dir)
     vec v(player->o);
     v.sub(worldpos);
     v.normalize();
-    extern int& entautoviewdist;
+    extern int entautoviewdist;
     v.mul(entautoviewdist);
     int t = s + dir;
     s = abs(t) % entgroup.length();
@@ -775,7 +775,7 @@ VAR(entdrop, 0, 2, 3);
 
 bool dropentity(entity &e, int drop = -1)
 {
-    extern int& entdrop;
+    extern int entdrop;
     vec radius(4.0f, 4.0f, 4.0f);
     if(drop<0) drop = entdrop;
     if(e.type == ET_MAPMODEL)
@@ -1083,7 +1083,7 @@ void splitocta(cube *c, int size)
 
 void resetmap()
 {
-    var::clear();
+    varsys::clear();
     clearmapsounds();
     cleanreflections();
     resetblendmap();
@@ -1132,9 +1132,9 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
 
     if (usecfg)
     {
-        var::overridevars = true;
+        varsys::overridevars = true;
         lapi::state.do_file("data/cfg/default_map_settings.lua");
-        var::overridevars = false;
+        varsys::overridevars = false;
     }
 
     clearlights();
@@ -1181,7 +1181,7 @@ static bool isallempty(cube &c)
 
 void shrinkmap()
 {
-    extern int& nompedit;
+    extern int nompedit;
     if(noedit(true) || (nompedit && multiplayer())) return;
     if(worldsize <= 1<<10) return;
 

@@ -198,7 +198,7 @@ void gl_checkextensions()
     sdl_backingstore_bug = -1;
 #endif
 
-    //extern int& shaderprecision;
+    //extern int shaderprecision;
     // default to low precision shaders on certain cards, can be overridden with -f3
     // char *weakcards[] = { "GeForce FX", "Quadro FX", "6200", "9500", "9550", "9600", "9700", "9800", "X300", "X600", "FireGL", "Intel", "Chrome", NULL } 
     // if(shaderprecision==2) for(char **wc = weakcards; *wc; wc++) if(strstr(renderer, *wc)) shaderprecision = 1;
@@ -239,7 +239,7 @@ void gl_checkextensions()
     else conoutf(CON_WARN, "WARNING: No vertex_buffer_object extension! (geometry heavy maps will be SLOW)");
 #ifdef __APPLE__
     /* VBOs over 256KB seem to destroy performance on 10.5, but not in 10.6 */
-    extern int& maxvbosize;
+    extern int maxvbosize;
     if(osversion < 0x1060) maxvbosize = min(maxvbosize, 8192);  
 #endif
 
@@ -285,7 +285,7 @@ void gl_checkextensions()
         hasTF = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_float extension.");
         shadowmap = 1;
-        extern int& smoothshadowmappeel;
+        extern int smoothshadowmappeel;
         smoothshadowmappeel = 1;
     }
 
@@ -348,7 +348,7 @@ void gl_checkextensions()
     if(!hasOQ)
     {
         conoutf(CON_WARN, "WARNING: No occlusion query support! (large maps may be SLOW)");
-        extern int& vacubesize;
+        extern int vacubesize;
         vacubesize = 64;
         waterreflect = 0;
     }
@@ -357,7 +357,7 @@ void gl_checkextensions()
     {
         //conoutf(CON_WARN, "WARNING: ATI cards may show garbage in skybox. (use \"/ati_skybox_bug 1\" to fix)");
 
-        extern int& reservedynlighttc, &reserveshadowmaptc, &fpdepthfx;
+        extern int reservedynlighttc, reserveshadowmaptc, fpdepthfx;
         reservedynlighttc = 2;
         reserveshadowmaptc = 3;
         minimizetcusage = 1;
@@ -368,17 +368,17 @@ void gl_checkextensions()
     {
         reservevpparams = 10;
         rtsharefb = 0; // work-around for strange driver stalls involving when using many FBOs
-        extern int& filltjoints;
+        extern int filltjoints;
         if(!hasext(exts, "GL_EXT_gpu_shader4")) filltjoints = 0; // DX9 or less NV cards seem to not cause many sparklies
         
         if(hasFBO && !hasTF) nvidia_scissor_bug = 1; // 5200 bug, clearing with scissor on an FBO messes up on reflections, may affect lesser cards too 
-        extern int& fpdepthfx;
+        extern int fpdepthfx;
         if(hasTF && (!strstr(renderer, "GeForce") || !checkseries(renderer, 6000, 6600)))
             fpdepthfx = 1; // FP filtering causes software fallback on 6200?
     }
     else
     {
-        extern int& batchlightmaps, &ffdynlights;
+        extern int batchlightmaps, ffdynlights;
         if(strstr(vendor, "Intel"))
         {
 #ifdef __APPLE__
@@ -475,7 +475,7 @@ void gl_checkextensions()
     bool hasshaders = (hasVP && hasFP) && hasGLSL; // OF: OR -> AND
     if(hasshaders)
     {
-        extern int& matskel;
+        extern int matskel;
         if(!avoidshaders) matskel = 0;
     }
 
@@ -565,7 +565,7 @@ void gl_checkextensions()
     }
     else conoutf(CON_WARN, "WARNING: No cube map texture support. (no reflective glass)");
 
-    extern int& usenp2;
+    extern int usenp2;
     if(hasext(exts, "GL_ARB_texture_non_power_of_two"))
     {
         hasNP2 = true;
@@ -636,7 +636,7 @@ void gl_checkextensions()
     if(hasext(exts, "GL_EXT_gpu_shader4") && !avoidshaders)
     {
         // on DX10 or above class cards (i.e. GF8 or RadeonHD) enable expensive features
-        extern int& grass, &glare, &maxdynlights, &depthfxsize, &depthfxrect, &depthfxfilter, &blurdepthfx;
+        extern int grass, glare, maxdynlights, depthfxsize, depthfxrect, depthfxfilter, blurdepthfx;
         grass = 1;
         if(hasOQ)
         {
@@ -697,7 +697,7 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     }
 #endif
 
-    extern int& useshaders, &forceglsl;
+    extern int useshaders, forceglsl;
     bool hasshaders = (hasVP && hasFP) && hasGLSL; // OF: OR -> AND
     if(!useshaders || (useshaders<0 && avoidshaders) || !hasMT || !hasshaders)
     {
@@ -716,7 +716,7 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
 
 void cleanupgl()
 {
-    extern int& nomasks, &nolights, &nowater;
+    extern int nomasks, nolights, nowater;
     nomasks = nolights = nowater = 0;
 
     extern void cleanupmotionblur();
@@ -1717,7 +1717,7 @@ void addmotionblur()
 {
     if(!motionblur || !hasTR || max(screen->w, screen->h) > hwtexsize) return;
 
-    extern int& paused;
+    extern int paused;
     if(paused || game::ispaused()) { lastmotion = 0; return; }
 
     if(!motiontex || motionw != screen->w || motionh != screen->h)
@@ -1851,7 +1851,7 @@ void gl_drawframe(int w, int h)
 
     rendergeom(causticspass);
 
-    extern int& outline;
+    extern int outline;
     if(!wireframe && editmode && outline) renderoutline();
 
     queryreflections();
@@ -2061,9 +2061,11 @@ void drawcrosshair(int w, int h)
     else
     { 
         const char *crname = ""; // OF: Start script-controlled crosshairs
-        var::cvar *ev = var::get("crosshair");
-        if (!ev) crname = "data/textures/hud/crosshair.png";
-        else crname = ev->curv.s;
+        varsys::Variable *ev = varsys::get("crosshair");
+        if (!ev || (ev->type() != varsys::TYPE_S))
+            crname = "data/textures/hud/crosshair.png";
+        else
+            crname = ((varsys::String_Alias*)ev)->get();
 
         crosshair = textureload(crname, 3, true, false);
         if (crosshair == notexture) return;
@@ -2145,21 +2147,21 @@ void gl_drawhud(int w, int h)
     
     glColor3f(1, 1, 1);
 
-    extern int& debugsm;
+    extern int debugsm;
     if(debugsm)
     {
         extern void viewshadowmap();
         viewshadowmap();
     }
 
-    extern int& debugglare;
+    extern int debugglare;
     if(debugglare)
     {
         extern void viewglaretex();
         viewglaretex();
     }
 
-    extern int& debugdepthfx;
+    extern int debugdepthfx;
     if(debugdepthfx)
     {
         extern void viewdepthfxtex();
@@ -2294,7 +2296,7 @@ void gl_drawhud(int w, int h)
     glPushMatrix();
     glScalef(conscale, conscale, 1);
     abovehud -= rendercommand(FONTH/2, abovehud - FONTH/2, conw-FONTH);
-    extern int& fullconsole;
+    extern int fullconsole;
     if(!hidehud || fullconsole) renderconsole(conw, conh, abovehud - FONTH/2);
     glPopMatrix();
 

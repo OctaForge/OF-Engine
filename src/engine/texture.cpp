@@ -1336,7 +1336,7 @@ VSlot dummyvslot(&dummyslot);
 /* OctaForge: Shared_Ptr */
 void texturereset(int n)
 {
-    if(!var::overridevars && !game::allowedittoggle()) return;
+    if(!varsys::overridevars && !game::allowedittoggle()) return;
     resetslotshader();
     int limit = clamp(n, 0, slots.length());
     for(int i = limit; i < slots.length(); i++) 
@@ -2132,7 +2132,7 @@ void loadlayermasks()
 
 void forcecubemapload(GLuint tex)
 {
-    extern int& ati_cubemap_bug;
+    extern int ati_cubemap_bug;
     if(!ati_cubemap_bug || !tex) return;
 
     glMatrixMode(GL_PROJECTION);
@@ -2385,7 +2385,7 @@ void initenvmaps()
 {
     if(!hasCM) return;
     clearenvmaps();
-    extern char *&skybox;
+    extern char *skybox;
     skyenvmap = skybox[0] ? cubemapload(skybox, true, false, true) : NULL;
     loopv(entities::storage)
     {

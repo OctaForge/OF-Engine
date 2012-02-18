@@ -27,12 +27,12 @@ bool _mapCompletelyReceived = false;
 
 namespace game
 {
-    extern int& minimapradius;
-    extern int& minimaprightalign;
-    extern int& forceminminimapzoom, &forcemaxminimapzoom;
-    extern int& minimapsides;
-    extern int& minminimapzoom, &maxminimapzoom;
-    extern float& minimapxpos, &minimapypos, &minimaprotation;
+    extern int minimapradius;
+    extern int minimaprightalign;
+    extern int forceminminimapzoom, forcemaxminimapzoom;
+    extern int minimapsides;
+    extern int minminimapzoom, maxminimapzoom;
+    extern float minimapxpos, minimapypos, minimaprotation;
 }
 
 

@@ -157,11 +157,6 @@ namespace tools
         return true;
     }
 
-    static inline bool sortvars(var::cvar *x, var::cvar *y)
-    {
-        return strcmp(x->name, y->name) < 0;
-    }
-
     void writecfg(const char *name)
     {
         stream *f = openutf8file(path(name && name[0] ? name : game::savedconfig(), true), "w");
@@ -174,28 +169,30 @@ namespace tools
         f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");
 
-        for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
+        for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
         {
-            var::cvar *v = it->second;
+            varsys::Variable *v = it->second;
             /* do not write aliases here! */
-            if ((v->flags&var::VAR_ALIAS)   != 0) continue;
-            if ((v->flags&var::VAR_PERSIST) != 0) switch(v->type)
+            if ((v->flags()&varsys::FLAG_ALIAS)   != 0) continue;
+            if ((v->flags()&varsys::FLAG_PERSIST) != 0) switch (v->type())
             {
-                case var::VAR_I: f->printf("%s = %d\n", v->name, v->curv.i); break;
-                case var::VAR_F: f->printf("%s = %f\n", v->name, v->curv.f); break;
-                case var::VAR_S:
+                case varsys::TYPE_I: f->printf("%s = %d\n", v->name(), varsys::get_int(v)); break;
+                case varsys::TYPE_F: f->printf("%s = %f\n", v->name(), varsys::get_float(v)); break;
+                case varsys::TYPE_S:
                 {
-                    if (!v->curv.s) continue;
-                    f->printf("%s = \"", v->name);
-                    for (size_t sz = 0; sz < strlen(v->curv.s); sz++)
+                    const char *str = varsys::get_string(v);
+                    if (!str) continue;
+                    f->printf("%s = \"", v->name());
+                    size_t len = strlen(str);
+                    for (size_t sz = 0; sz < len; ++sz)
                     {
-                        switch (v->curv.s[sz])
+                        switch (str[sz])
                         {
                             case '\n': f->write("^n", 2); break;
                             case '\t': f->write("^t", 2); break;
                             case '\f': f->write("^f", 2); break;
                             case '"': f->write("^\"", 2); break;
-                            default: f->putchar(v->curv.s[sz]); break;
+                            default: f->putchar(str[sz]); break;
                         }
                     }
                     f->printf("\"\n");
@@ -210,26 +207,28 @@ namespace tools
 
         f->printf("-- aliases\n");
         f->printf("local was_persisting = engine.persist_vars(true)\n");
-        for (var::vartable::cit it = var::vars->begin(); it != var::vars->end(); ++it)
+        for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
         {
-            var::cvar *v = it->second;
-            if ((v->flags&var::VAR_ALIAS) != 0 && (v->flags&var::VAR_PERSIST) != 0) switch (v->type)
+            varsys::Variable *v = it->second;
+            if ((v->flags()&varsys::FLAG_ALIAS) != 0 && (v->flags()&varsys::FLAG_PERSIST) != 0) switch (v->type())
             {
-                case var::VAR_I: f->printf("engine.new_var(\"%s\", engine.VAR_I, %d)\n", v->name, v->curv.i); break;
-                case var::VAR_F: f->printf("engine.new_var(\"%s\", engine.VAR_F, %f)\n", v->name, v->curv.f); break;
-                case var::VAR_S:
+                case varsys::TYPE_I: f->printf("engine.new_var(\"%s\", engine.VAR_I, %d)\n", v->name(), varsys::get_int(v)); break;
+                case varsys::TYPE_F: f->printf("engine.new_var(\"%s\", engine.VAR_F, %f)\n", v->name(), varsys::get_float(v)); break;
+                case varsys::TYPE_S:
                 {
-                    if (strstr(v->name, "new_entity_gui_field") || !v->curv.s) continue;
-                    f->printf("engine.new_var(\"%s\", engine.VAR_S, \"", v->name);
-                    for (size_t sz = 0; sz < strlen(v->curv.s); sz++)
+                    const char *str = varsys::get_string(v);
+                    if (strstr(v->name(), "new_entity_gui_field") || !str) continue;
+                    f->printf("engine.new_var(\"%s\", engine.VAR_S, \"", v->name());
+                    size_t len = strlen(str);
+                    for (size_t sz = 0; sz < len; ++sz)
                     {
-                        switch (v->curv.s[sz])
+                        switch (str[sz])
                         {
                             case '\n': f->write("^n", 2); break;
                             case '\t': f->write("^t", 2); break;
                             case '\f': f->write("^f", 2); break;
                             case '"': f->write("^\"", 2); break;
-                            default: f->putchar(v->curv.s[sz]); break;
+                            default: f->putchar(str[sz]); break;
                         }
                     }
                     f->printf("\")\n");

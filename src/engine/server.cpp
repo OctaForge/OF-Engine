@@ -848,7 +848,7 @@ int main(int argc, char **argv)
     }
 
     logger::log(logger::WARNING, "Stopping main server.");
-    var::flush();
+    varsys::flush();
 
     return 0;
 }

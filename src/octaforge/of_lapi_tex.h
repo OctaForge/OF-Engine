@@ -21,7 +21,7 @@ void saveimage(const char *filename, int format, ImageData &image, bool flip = f
 
 void filltexlist();
 
-extern int& nompedit, &worldsize;
+extern int nompedit, worldsize;
 #endif
 namespace lapi_binds
 {
@@ -37,7 +37,7 @@ namespace lapi_binds
 
     void _lua_materialreset()
     {
-        if (!var::overridevars && !game::allowedittoggle()) return;
+        if (!varsys::overridevars && !game::allowedittoggle()) return;
         loopi(MATF_VOLUME + 1) materialslots[i].reset();
     }
 

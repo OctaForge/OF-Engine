@@ -422,16 +422,16 @@ struct md5 : skelmodel, skelloader<md5>
         defformatstring(cfgname)("data/models/%s/md5.lua", loadname); // INTENSITY
 
         loading = this;
-        var::persistvars = false;
+        varsys::persistvars = false;
         if(tools::execfile(cfgname, false) && parts.length()) // configured md5, will call the md5* commands below
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // md5 without configuration, try default tris and skin 
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             if(!loaddefaultparts()) 
             {
                 loading = NULL;

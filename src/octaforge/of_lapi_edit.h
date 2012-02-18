@@ -47,7 +47,7 @@ namespace EditingSystem
     void newent(const char *cl, const char *sd);
 }
 
-extern int& usevdelta, &gridpower, &nompedit, &allfaces;
+extern int usevdelta, gridpower, nompedit, allfaces;
 
 namespace lapi_binds
 {

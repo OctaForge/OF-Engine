@@ -42,7 +42,7 @@ void guessshadowdir()
 {
     if(shadowmapangle) return;
     vec dir;
-    extern int& sunlight;
+    extern int sunlight;
     extern vec sunlightdir;
     if(sunlight) dir = sunlightdir;
     else

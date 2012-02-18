@@ -55,7 +55,7 @@ namespace gui
             ACTION
         } type;
 
-        var::cvar *ev;
+        varsys::Variable *ev;
         lua::Function fun;
 
         union
@@ -80,9 +80,9 @@ namespace gui
         ~Delayed_Update() { if((type == STRING || type == ACTION) && val.s) delete[] val.s; }
 
         void schedule(lua::Function f) { type = ACTION; fun = f; }
-        void schedule(var::cvar *var, int i) { type = INT; ev = var; val.i = i; }
-        void schedule(var::cvar *var, float f) { type = FLOAT; ev = var; val.f = f; }
-        void schedule(var::cvar *var, const char *s) { type = STRING; ev = var; val.s = newstring(s); }
+        void schedule(varsys::Variable *var, int i) { type = INT; ev = var; val.i = i; }
+        void schedule(varsys::Variable *var, float f) { type = FLOAT; ev = var; val.f = f; }
+        void schedule(varsys::Variable *var, const char *s) { type = STRING; ev = var; val.s = newstring(s); }
 
         int getint() const
         {
@@ -129,11 +129,11 @@ namespace gui
             {
                 if (!fun.is_nil()) fun();
             }
-            else if (ev) switch(ev->type)
+            else if (ev) switch (ev->type())
             {
-                case var::VAR_I: ev->set(getint(), true); break;
-                case var::VAR_F: ev->set(getfloat(), true); break;
-                case var::VAR_S: ev->set(getstring(), true); break;
+                case varsys::TYPE_I: varsys::set(ev, getint   (), true); break;
+                case varsys::TYPE_F: varsys::set(ev, getfloat (), true); break;
+                case varsys::TYPE_S: varsys::set(ev, getstring(), true); break;
             }
         }
     };
@@ -142,7 +142,7 @@ namespace gui
 
     template<class T> static void updateval(const char *var, T val, lua::Function onchange)
     {
-        var::cvar *ev = var::get(var);
+        varsys::Variable *ev = varsys::get(var);
         if (!ev) return;
 
         Delayed_Update d;
@@ -159,35 +159,32 @@ namespace gui
 
     static float getfval(const char *var)
     {
-        var::cvar *ev = var::get(var);
+        varsys::Variable *ev = varsys::get(var);
         if (!ev) return 0;
 
-        switch (ev->type)
+        switch (ev->type())
         {
-            case var::VAR_I: return ev->curv.i;
-            case var::VAR_F: return ev->curv.f;
-            case var::VAR_S: return lapi::state.get<lua::Function>(
-                "tonumber"
-            ).call<float>(ev->curv.s);
-            default: return 0;
+            case varsys::TYPE_I: return varsys::get_int(ev);
+            case varsys::TYPE_F: return varsys::get_float(ev);
+            case varsys::TYPE_S: return lapi::state.get<lua::Function>("tonumber")
+                .call<float>(varsys::get_string(ev));
+            default: return 0.0f;
         }
     }
 
     static const char *getsval(const char *var)
     {
-        var::cvar *ev = var::get(var);
-        if (!ev) return 0;
+        varsys::Variable *ev = varsys::get(var);
+        if (!ev) return NULL;
 
-        switch (ev->type)
+        switch (ev->type())
         {
-            case var::VAR_I: return lapi::state.get<lua::Function>(
-                "tostring"
-            ).call<const char*>(ev->curv.i);
-            case var::VAR_F: return lapi::state.get<lua::Function>(
-                "tostring"
-            ).call<const char*>(ev->curv.f);
-            case var::VAR_S: return ev->curv.s;
-            default: return 0;
+            case varsys::TYPE_I: return lapi::state.get<lua::Function>("tostring")
+                .call<const char*>(varsys::get_int(ev));
+            case varsys::TYPE_F: return lapi::state.get<lua::Function>("tostring")
+                .call<const char*>(varsys::get_float(ev));
+            case varsys::TYPE_S: return varsys::get_string(ev);
+            default: return NULL;
         }
     }
 
@@ -1028,12 +1025,12 @@ namespace gui
         const int gettype() const { return TYPE_SCROLLER; }
     };
 
-    struct scrollbar : Object
+    struct Scrollbar : Object
     {
         float arrowsize, arrowspeed;
         int arrowdir;
 
-        scrollbar(float arrowsize = 0, float arrowspeed = 0) : arrowsize(arrowsize), arrowspeed(arrowspeed), arrowdir(0) {}
+        Scrollbar(float arrowsize = 0, float arrowspeed = 0) : arrowsize(arrowsize), arrowspeed(arrowspeed), arrowdir(0) {}
 
         int forks()      const { return 5; }
         int choosefork() const
@@ -1117,7 +1114,7 @@ namespace gui
 
         if(code == -4 || code == -5)
         {
-            scrollbar *slider = (scrollbar *) findsibling(TYPE_SCROLLBAR, NULL);
+            Scrollbar *slider = (Scrollbar *) findsibling(TYPE_SCROLLBAR, NULL);
             if(!slider) return false;
 
             float adjust = (code == -4 ? -.2 : .2) * slider->arrowspeed;
@@ -1153,7 +1150,7 @@ namespace gui
         {
             if (isselected(this) && parent->isnamed("scrollbar"))
             {
-                scrollbar *scroll = (scrollbar*)parent;
+                Scrollbar *scroll = (Scrollbar*)parent;
                 if (!scroll) return;
                 scroll->movebutton(this, offsetx, offsety, cx, cy);
             }
@@ -1168,9 +1165,9 @@ namespace gui
         const int gettype() const { return TYPE_SCROLLBUTTON; }
     };
 
-    struct Horizontal_Scrollbar : scrollbar
+    struct Horizontal_Scrollbar : Scrollbar
     {
-        Horizontal_Scrollbar(float arrowsize = 0, float arrowspeed = 0) : scrollbar(arrowsize, arrowspeed) {}
+        Horizontal_Scrollbar(float arrowsize = 0, float arrowspeed = 0) : Scrollbar(arrowsize, arrowspeed) {}
 
         int choosedir(float cx, float cy) const
         {
@@ -1214,7 +1211,7 @@ namespace gui
             btn->x = arrowsize + scroll->hoffset()*bscale;
             btn->adjust &= ~ALIGN_HMASK;
 
-            scrollbar::adjustchildren();
+            Scrollbar::adjustchildren();
         }
 
         void movebutton(Object *o, float fromx, float fromy, float tox, float toy)
@@ -1223,9 +1220,9 @@ namespace gui
         }
     };
 
-    struct Vertical_Scrollbar : scrollbar
+    struct Vertical_Scrollbar : Scrollbar
     {
-        Vertical_Scrollbar(float arrowsize = 0, float arrowspeed = 0) : scrollbar(arrowsize, arrowspeed) {}
+        Vertical_Scrollbar(float arrowsize = 0, float arrowspeed = 0) : Scrollbar(arrowsize, arrowspeed) {}
 
         int choosedir(float cx, float cy) const
         {
@@ -1269,7 +1266,7 @@ namespace gui
             btn->y = arrowsize + scroll->voffset()*bscale;
             btn->adjust &= ~ALIGN_VMASK;
 
-            scrollbar::adjustchildren();
+            Scrollbar::adjustchildren();
         }
 
         void movebutton(Object *o, float fromx, float fromy, float tox, float toy)
@@ -1308,20 +1305,22 @@ namespace gui
         var(varname), vmin(min), vmax(max), onchange(onchange), arrowsize(arrowsize), stepsize(stepsize), steptime(steptime), laststep(0), arrowdir(0)
         {
             if (!var) var = "";
-            var::cvar *ev = var::get(var);
-            if (!ev)   ev = var::regvar(var, new var::cvar(var, vmin));
 
-            if (vmin == 0 && vmax == 0)
+            varsys::Variable *ev = varsys::get(var);
+            if (!ev)
+                 ev = varsys::reg_var(var, new varsys::Int_Alias(var, vmin));
+
+            if (vmin == 0 && vmax == 0 && !(ev->flags()&varsys::FLAG_ALIAS))
             {
-                if (ev->type == var::VAR_I)
+                if (ev->type() == varsys::TYPE_I)
                 {
-                    vmin = ev->minv.i;
-                    vmax = ev->maxv.i;
+                    vmin = ((varsys::Int_Variable*)ev)->get_min();
+                    vmax = ((varsys::Int_Variable*)ev)->get_max();
                 }
-                else if (ev->type == var::VAR_F)
+                else if (ev->type() == varsys::TYPE_F)
                 {
-                    vmin = ev->minv.f;
-                    vmax = ev->maxv.f;
+                    vmin = ((varsys::Float_Variable*)ev)->get_min();
+                    vmax = ((varsys::Float_Variable*)ev)->get_max();
                 }
             }
         }
@@ -1981,22 +1980,45 @@ namespace gui
     struct Function_Label : Object
     {
         lua::Function cmd;
+        const char *text;
         float scale;
         float wrap;
         vec color;
 
-        Function_Label(lua::Function cmd, float scale = 1, float wrap = -1, float r = 1, float g = 1, float b = 1) : cmd(cmd), scale(scale), wrap(wrap), color(r, g, b) {}
+        Function_Label(lua::Function cmd) : cmd(cmd), text(""), scale(1), wrap(-1), color(1, 1, 1) {}
+
+        void handle_cmd()
+        {
+            auto t = cmd.call<
+                lua::Object, lua::Object,
+                lua::Object, lua::Object
+            >();
+
+            if (!types::get<0>(t).is_nil())
+                text = types::get<0>(t).to<const char*>();
+
+            if (!types::get<1>(t).is_nil())
+                scale = types::get<1>(t).to<float>();
+
+            if (!types::get<2>(t).is_nil())
+                wrap = types::get<2>(t).to<float>();
+
+            if (!types::get<3>(t).is_nil())
+                color = types::get<3>(t).to<vec>();
+
+            if (!text) text = "";
+        }
 
         float drawscale() const { return scale / (FONTH * uitextrows); }
 
         void draw(float sx, float sy)
         {
-            const char *ret = (!cmd.is_nil()) ? cmd.call<const char*>() : "";
+            handle_cmd();
 
             float k = drawscale();
             glPushMatrix();
             glScalef(k, k, 1);
-            draw_text(ret ? ret : "", int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255, -1, wrap <= 0 ? -1 : wrap/k);
+            draw_text(text, int(sx/k), int(sy/k), color.x * 255, color.y * 255, color.z * 255, 255, -1, wrap <= 0 ? -1 : wrap/k);
             glColor3f(1, 1, 1);
             glPopMatrix();
 
@@ -2005,12 +2027,12 @@ namespace gui
 
         void layout()
         {
-            const char *ret = (!cmd.is_nil()) ? cmd.call<const char*>() : "";
+            handle_cmd();
             Object::layout();
 
             int tw, th;
             float k = drawscale();
-            text_bounds(ret ? ret : "", tw, th, wrap <= 0 ? -1 : wrap/k);
+            text_bounds(text, tw, th, wrap <= 0 ? -1 : wrap/k);
             if(wrap <= 0)
                 w = max(w, tw*k);
             else
@@ -2225,7 +2247,7 @@ namespace gui
 
         void layout()
         {
-            if(state == EDIT_COMMIT && lastaction != totalmillis)
+            if((state == EDIT_COMMIT || varsys::changed) && lastaction != totalmillis)
             {
                 edit->clear(getsval(var));
                 state = EDIT_IDLE;
@@ -2709,19 +2731,8 @@ namespace gui
         ), children);
     }
 
-    void _lua_uifunlabel(
-        lua::Function cmd, float scale, float wrap,
-        lua::Object r, lua::Object g, lua::Object b,
-        lua::Function children
-    )
-    {
-        addui(new Function_Label(
-            cmd, (scale <= 0) ? 1 : scale, wrap,
-            (r.is_nil() ? 1.0f : r.to<float>()),
-            (g.is_nil() ? 1.0f : g.to<float>()),
-            (b.is_nil() ? 1.0f : b.to<float>())
-        ), children);
-    }
+    void _lua_uifunlabel(lua::Function cmd, lua::Function children)
+    { addui(new Function_Label(cmd), children); }
 
     void _lua_uitexteditor(
         const char *name,
@@ -2756,13 +2767,14 @@ namespace gui
     )
     {
         if (!var) var = "";
-        var::cvar *ev = var::get(var);
-        if (!ev)   ev = var::regvar(var, new var::cvar(var, ""));
+
+        varsys::Variable *ev = varsys::get(var);
+        if (!ev) ev = varsys::reg_var(var, new varsys::String_Alias(var, ""));
 
         addui(
             new Field(
-                var, length, onchange, scale ? scale : 1.0f, ev->curv.s,
-                filter ? filter : NULL, password
+                var, length, onchange, scale ? scale : 1.0f,
+                varsys::get_string(ev), filter ? filter : NULL, password
             ),
             children
         );
@@ -2880,6 +2892,7 @@ namespace gui
         }
 
         world->layout();
+        varsys::changed = false;
 
         if (hascursor())
         {

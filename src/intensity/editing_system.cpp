@@ -51,7 +51,7 @@ extern int orient;
 extern bool havesel;
 extern selinfo sel;
 
-extern int& allfaces;
+extern int allfaces;
 
 namespace EditingSystem
 {

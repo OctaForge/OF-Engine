@@ -157,7 +157,7 @@ hashtable<int, keym> keyms(128);
 void keymap(int code, const char *key)
 {
     if (!key) { conoutf(CON_ERROR, "no key given"); return; }
-    if(var::overridevars) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
+    if(varsys::overridevars) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
     keym &km = keyms[code];
     km.code = code;
     km.name = key;
@@ -204,7 +204,7 @@ types::String getbind(const char *key, int type)
 
 void bindkey(const char *key, const char *action, int state)
 {
-    if(var::overridevars) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
+    if(varsys::overridevars) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
     keym *km = findbind(key);
     if(!km) { conoutf(CON_ERROR, "unknown key \"%s\"", key); return; }
     types::String& binding = km->actions[state];
@@ -332,12 +332,18 @@ struct hline
     {
         if (!action.is_empty())
         {
-            var::cvar *ev = var::get("commandbuf");
+            varsys::Variable *ev = varsys::get("commandbuf");
             if (!ev)
             {
-                ev = var::regvar("commandbuf", new var::cvar("commandbuf", buf.get_buf()));
+                ev = varsys::reg_var("commandbuf", new varsys::String_Alias("commandbuf", buf.get_buf()));
             }
-            else ev->set(buf.get_buf(), false);
+            else
+            {
+                if (ev->type() != varsys::TYPE_S)
+                    return;
+
+                ((varsys::String_Alias*)ev)->set(buf.get_buf());
+            }
             types::Tuple<int, const char*> err = lapi::state.do_string(action);
             if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         }

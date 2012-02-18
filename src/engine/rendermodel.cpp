@@ -290,7 +290,7 @@ void mapmodelcompat(int rad, int h, int tex, char *name, char *shadow)
 
 void mapmodelreset(int n) 
 { 
-    if(!var::overridevars && !game::allowedittoggle()) return;
+    if(!varsys::overridevars && !game::allowedittoggle()) return;
     mapmodels.shrink(clamp(n, 0, mapmodels.length())); 
 }
 
@@ -686,7 +686,7 @@ void rendermodelquery(model *m, dynent *d, const vec &center, float radius)
     glDepthMask(GL_TRUE);
 }   
 
-extern int& oqfrags;
+extern int oqfrags;
 
 void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CLogicEntity *entity, float yaw, float pitch, int flags, dynent *d, modelattach *a, int basetime, int basetime2, float trans)
 {
@@ -695,7 +695,7 @@ void rendermodel(entitylight *light, const char *mdl, int anim, const vec &o, CL
     if(!m) return;
     vec center(0), bbradius(0);
     float radius = 0;
-    extern int& showblobs;
+    extern int showblobs;
     bool shadow = !shadowmap && !glaring && (flags&(MDL_SHADOW|MDL_DYNSHADOW)) && showblobs,
          doOQ = flags&MDL_CULL_QUERY && hasOQ && oqfrags && oqdynent;
     if(flags&(MDL_CULL_VFC|MDL_CULL_DIST|MDL_CULL_OCCLUDED|MDL_CULL_QUERY|MDL_SHADOW|MDL_DYNSHADOW))

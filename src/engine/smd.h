@@ -440,16 +440,16 @@ struct smd : skelmodel, skelloader<smd>
         defformatstring(cfgname)("data/models/%s/smd.lua", loadname); // INTENSITY
 
         loading = this;
-        var::persistvars = false;
+        varsys::persistvars = false;
         if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // smd without configuration, try default tris and skin 
         {
-            var::persistvars = true;
+            varsys::persistvars = true;
             if(!loaddefaultparts()) 
             {
                 loading = NULL;

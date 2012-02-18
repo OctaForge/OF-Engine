@@ -26,7 +26,7 @@
 
 extern bool should_quit;
 
-extern char*& player_class;
+extern char *player_class;
 
 namespace server
 {

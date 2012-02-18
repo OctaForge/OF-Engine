@@ -1416,8 +1416,7 @@ static void makeparticles(entity &e)
 {
     int type; // SAUER ENHANCED start
     float size;
-    int gravity;
-    int dir; // SAUER ENHANCED end
+    int gravity; // SAUER ENHANCED end
     switch(e.attr1)
     {
         case 0: //fire and smoke -  <radius> <height> <rgb> - 0 values default to compat for old maps // SAUER ENHANCED - modifications - add glow
@@ -1457,8 +1456,6 @@ static void makeparticles(entity &e)
             type = typemap2[e.attr1-4];
             size = sizemap2[e.attr1-4];
             gravity = gravmap2[e.attr1-4];
-            dir=e.attr2;
-            dir &= 0x1F;
             if(e.attr2 >= 256) regularshape(type, max(1+e.attr3, 1), colorfromattr(e.attr4), e.attr2-256, 5, 200, e.o, size, gravity);
             else newparticle(e.o, offsetvec(e.o, e.attr2, max(1+e.attr3, 0)), 1, type, colorfromattr(e.attr4), size, gravity);
             break; // SAUER ENHANCED end

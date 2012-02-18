@@ -18,7 +18,7 @@ void cleanup()
     SDL_WM_GrabInput(SDL_GRAB_OFF);
     cleargamma();
     freeocta(worldroot);
-    var::clear();
+    varsys::clear();
     extern void clear_console(); clear_console();
     extern void clear_mdls();    clear_mdls();
     extern void clear_sound();   clear_sound();
@@ -47,7 +47,7 @@ void force_quit() // INTENSITY - change quit to force_quit
     tools::writecfg();
     cleanup();
 
-    var::flush();
+    varsys::flush();
 
     exit(EXIT_SUCCESS);
 }
@@ -119,7 +119,7 @@ void writeinitcfg()
     stream *f = openutf8file("init.lua", "w");
     if(!f) return;
     f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
-    extern int& fullscreen, &useshaders, &shaderprecision, &forceglsl, &soundchans, &soundfreq, &soundbufferlen;
+    extern int fullscreen, useshaders, shaderprecision, forceglsl, soundchans, soundfreq, soundbufferlen;
     f->printf("fullscreen = %d\n", fullscreen);
     f->printf("scr_w = %d\n", scr_w);
     f->printf("scr_h = %d\n", scr_h);
@@ -331,7 +331,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
     #endif
 
-    extern int& sdl_backingstore_bug;
+    extern int sdl_backingstore_bug;
     if(background || sdl_backingstore_bug > 0) restorebackground();
 
     int w = screen->w, h = screen->h;
@@ -533,7 +533,7 @@ void screenres(int *w, int *h)
     scr_h = screen->h;
     glViewport(0, 0, scr_w, scr_h);
 #endif
-    extern int& fonth;
+    extern int fonth;
     fonth = FONTH;
 }
 
@@ -1065,7 +1065,7 @@ int main(int argc, char **argv)
             case 's': stencilbits = atoi(&argv[i][2]); break;
             case 'f': 
             {
-                extern int& useshaders, &shaderprecision, &forceglsl;
+                extern int useshaders, shaderprecision, forceglsl;
                 int n = atoi(&argv[i][2]);
                 useshaders = n > 0 ? 1 : 0;
                 shaderprecision = clamp(n >= 4 ? n - 4 : n - 1, 0, 2);
@@ -1144,7 +1144,7 @@ int main(int argc, char **argv)
     gui::setup();
 
     initlog("console");
-    var::persistvars = false;
+    varsys::persistvars = false;
 
     types::Tuple<int, const char*> err;
 
@@ -1188,7 +1188,7 @@ int main(int argc, char **argv)
             logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     }
     
-    var::persistvars = true;
+    varsys::persistvars = true;
     
     initing = INIT_LOAD;
     if(!tools::execcfg(game::savedconfig())) 
@@ -1202,11 +1202,11 @@ int main(int argc, char **argv)
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     initing = NOT_INITING;
 
-    var::persistvars = false;
+    varsys::persistvars = false;
 
     game::loadconfigs();
 
-    var::persistvars = true;
+    varsys::persistvars = true;
 
     initlog("Registering messages\n");
     MessageSystem::MessageManager::registerAll();
