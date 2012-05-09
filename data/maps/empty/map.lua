@@ -28,7 +28,7 @@ EVAR.skybox = "textures/sky/spiney/bluecloud"
 -- use drawing mode on empty map
 std.library.include("mapscripts.drawing")
 --std.library.include("mapscripts.sine_curve")
---std.library.include("mapscripts.trollface")
+--std.library.include("mapscripts.sine_flower")
 
 -- this is how you initialize game manager
 game_manager.setup({
