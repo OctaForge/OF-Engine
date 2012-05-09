@@ -11,6 +11,8 @@
 
     About: Purpose
         Loads all required core modules. Before doing that, sets up logging.
+        This also loads the LuaJIT FFI, which is however fully accessible for
+        the core library only.
 ]]
 
 --[[! Function: trace
@@ -38,9 +40,12 @@ function trace (event, line)
     print("    " .. tostring(s.currentline))
 end
 
+ffi  = require("ffi")
+EAPI = require("eapi")
+
 --debug.sethook(trace, "c")
 
-CAPI.log(CAPI.DEBUG, "Initializing logging.")
+EAPI.base_log(EAPI.BASE_LOG_DEBUG, "Initializing logging.")
 
 --[[! Function: log
     Logs some text into the console with a given level. By default, OF
@@ -56,19 +61,23 @@ CAPI.log(CAPI.DEBUG, "Initializing logging.")
         ERROR - Use for serious error messages, displayed always. Printed into
         the in-engine console too, unlike all others.
 ]]
-log = CAPI.log
+log = function(level, msg)
+    -- convenience
+    return EAPI.base_log(level, tostring(msg)) end
 
-INFO    = CAPI.INFO
-DEBUG   = CAPI.DEBUG
-WARNING = CAPI.WARNING
-ERROR   = CAPI.ERROR
+INFO    = EAPI.BASE_LOG_INFO
+DEBUG   = EAPI.BASE_LOG_DEBUG
+WARNING = EAPI.BASE_LOG_WARNING
+ERROR   = EAPI.BASE_LOG_ERROR
 
 --[[! Function: echo
     Displays some text into both consoles (in-engine and terminal). Takes
     only the text, there is no logging level, no changes are made to the
     text. It's printed as it's given.
 ]]
-echo = CAPI.echo
+echo = function(msg)
+    -- convenience
+    return EAPI.base_echo(tostring(msg)) end
 
 log(DEBUG, "Initializing the new core library.")
 require("std")

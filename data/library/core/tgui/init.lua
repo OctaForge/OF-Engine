@@ -59,8 +59,8 @@ want to quit?]])
         end)
         -- yes / no selection
         gui.hlist(0, function()
-            button("yes", function() engine.force_quit()  end)
-            button("no",  function() gui.hide("can_quit") end)
+            button("yes", function() EAPI.base_quit_force() end)
+            button("no",  function() gui.hide("can_quit")   end)
         end)
     end)
 end)
@@ -315,11 +315,9 @@ function show_entity_properties_tab()
                         end)
 
                         -- pre-create an alias with initial value
-                        local was_persisting = engine.persist_vars(false)
-                        engine.new_var(
-                            name, engine.VAR_S, pair[2], true
-                        )
-                        engine.persist_vars(was_persisting)
+                        local was_persisting = std.var.persist_vars(false)
+                        std.var.new(name, EAPI.VAR_S, pair[2], true)
+                        std.var.persist_vars(was_persisting)
 
                         -- a field for the value - XXX: long enough?
                         field(name, #pair[2] + 25, function()
@@ -418,23 +416,3 @@ function show_message(title, text)
     end)
 end
 gui.message = show_message
-
-window("console", "Console", function()
-    gui.tag("sizer", function() end)
-end)
-
-function show_console_bg(x1, y1, x2, y2)
-    local bw = x2 - x1
-    local bh = y2 - y1
-    local aspect = bw / bh
-    local sh = bh
-    local sw = sh * aspect
-    sw = sw / bw * (scr_w / scr_h)
-    sh = sh / bh
-    print(sw, sh)
-
-    gui.show("console")
-    gui.replace("console", "sizer", function()
-        gui.fill(sw - 0.1, sh - 0.1)
-    end)
-end

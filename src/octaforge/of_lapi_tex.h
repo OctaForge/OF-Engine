@@ -294,6 +294,252 @@ namespace lapi_binds
 
     void _lua_filltexlist() { filltexlist        (); }
     int  _lua_getnumslots() { return slots.length(); }
+
+    bool _lua_hastexslot(int slotnum) { return texmru.inrange(slotnum); }
+    bool _lua_checkvslot(int slotnum)
+    {
+        VSlot &vslot = lookupvslot(texmru[slotnum], false);
+        if(vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail))
+            return true;
+
+        return false;
+    }
+
+    int _lua_texture_load(lua_State *L)
+    {
+        const char *path = luaL_checkstring(L, 1);
+        if (!path) return 0;
+
+        Texture *tex    = textureload(path, 3, true, false);
+        Texture **udata = (Texture**)lua_newuserdata(L, sizeof(void*));
+        *udata = tex;
+
+        luaL_newmetatable(L, "Texture");
+        lua_setmetatable (L, -2);
+
+        return 1;
+    }
+
+    int _lua_texture_check_alpha_mask(lua_State *L)
+    {
+        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
+        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
+
+        float x = luaL_checknumber(L, 2);
+        float y = luaL_checknumber(L, 3);
+
+        Texture *tex = *tp;
+        if (!tex->alphamask)
+        {
+            loadalphamask(tex);
+            if (!tex->alphamask)
+            {
+                lua_pushboolean(L, 1);
+                return 1;
+            }
+        }
+        int tx = clamp(int(floor(x*tex->xs)), 0, tex->xs-1),
+            ty = clamp(int(floor(y*tex->ys)), 0, tex->ys-1);
+
+        if (tex->alphamask[ty*((tex->xs+7)/8) + tx/8] & (1<<(tx%8)))
+            lua_pushboolean(L, 1);
+        else
+            lua_pushboolean(L, 0);
+
+        return 1;
+    }
+
+    int _lua_texture_get_bpp(lua_State *L)
+    {
+        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
+        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
+
+        Texture *tex = *tp;
+        lua_pushinteger(L, tex->bpp);
+        return 1;
+    }
+
+    int _lua_texture_draw_helper(lua_State *L)
+    {
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        float w = luaL_checknumber(L, 3);
+        float h = luaL_checknumber(L, 4);
+
+        float tx = luaL_optnumber(L, 5, 0.0f);
+        float ty = luaL_optnumber(L, 6, 0.0f);
+        float tw = luaL_optnumber(L, 7, 1.0f);
+        float th = luaL_optnumber(L, 8, 1.0f);
+
+        glTexCoord2f(tx,      ty);      glVertex2f(x,     y);
+        glTexCoord2f(tx + tw, ty);      glVertex2f(x + w, y);
+        glTexCoord2f(tx + tw, ty + th); glVertex2f(x + w, y + h);
+        glTexCoord2f(tx,      ty + th); glVertex2f(x,     y + h);
+
+        return 0;
+    }
+
+    int _lua_texture_draw(lua_State *L)
+    {
+        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
+        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
+
+        if (!lua_isfunction(L, 2))
+            luaL_typerror  (L, 2, "function");
+
+        Texture *tex = *tp;
+        glBindTexture(GL_TEXTURE_2D, tex->id);
+        glBegin(GL_QUADS);
+
+        lua_pushcfunction(L, &_lua_texture_draw_helper);
+        int r = lua_pcall(L, 1, 0, 0);
+
+        glEnd();
+
+        if (r) lua_error(L);
+
+        return 0;
+    }
+
+    int _lua_texture_loaded(lua_State *L)
+    {
+        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
+        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
+
+        Texture *tex = *tp;
+        if (tex == notexture)
+            lua_pushboolean(L, 0);
+        else
+            lua_pushboolean(L, 1);
+
+        return 1;
+    }
+
+    int _lua_texture_border_size_get(lua_State *L)
+    {
+        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
+        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
+
+        if (lua_isnumber(L, 2))
+        {
+            lua_pushvalue(L, 2);
+            return 1;
+        }
+
+        int vert = false;
+        if (lua_isboolean(L, 3))
+            vert = lua_toboolean(L, 3);
+
+        const char *str = luaL_checkstring(L, 2);
+        Texture    *tex = *tp;
+
+        if (strchr(str, 'p'))
+            lua_pushnumber(L, atof(str) / (vert ? tex->ys : tex->xs));
+        else
+            lua_pushnumber(L, atof(str));
+
+        return 1;
+    }
+
+    VAR(thumbtime, 0, 25, 1000);
+    static int lastthumbnail = 0;
+
+    void drawslot(Slot &slot, VSlot &vslot, float w, float h, float sx, float sy)
+    {
+        Texture *tex = notexture, *glowtex = NULL, *layertex = NULL;
+        VSlot *layer = NULL;
+        if (slot.loaded)
+        {
+            tex = slot.sts[0].t;
+            if(slot.texmask&(1<<TEX_GLOW)) {
+                loopv(slot.sts) if(slot.sts[i].type==TEX_GLOW)
+                { glowtex = slot.sts[i].t; break; }
+            }
+            if (vslot.layer)
+            {
+                layer = &lookupvslot(vslot.layer);
+                if(!layer->slot->sts.empty())
+                    layertex = layer->slot->sts[0].t;
+            }
+        }
+        else if (slot.thumbnail) tex = slot.thumbnail;
+        float xt, yt;
+        xt = min(1.0f, tex->xs/(float)tex->ys),
+        yt = min(1.0f, tex->ys/(float)tex->xs);
+
+        static Shader *rgbonlyshader = NULL;
+        if (!rgbonlyshader) rgbonlyshader = lookupshaderbyname("rgbonly");
+        rgbonlyshader->set();
+
+        float tc[4][2] = { { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 } };
+        int xoff = vslot.xoffset, yoff = vslot.yoffset;
+        if (vslot.rotation)
+        {
+            if ((vslot.rotation&5) == 1) { swap(xoff, yoff); loopk(4) swap(tc[k][0], tc[k][1]); }
+            if (vslot.rotation >= 2 && vslot.rotation <= 4) { xoff *= -1; loopk(4) tc[k][0] *= -1; }
+            if (vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k][1] *= -1; }
+        }
+        loopk(4) { tc[k][0] = tc[k][0]/xt - float(xoff)/tex->xs; tc[k][1] = tc[k][1]/yt - float(yoff)/tex->ys; }
+        if(slot.loaded) glColor3fv(vslot.colorscale.v);
+        glBindTexture(GL_TEXTURE_2D, tex->id);
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2fv(tc[0]); glVertex2f(sx,   sy);
+        glTexCoord2fv(tc[1]); glVertex2f(sx+w, sy);
+        glTexCoord2fv(tc[3]); glVertex2f(sx,   sy+h);
+        glTexCoord2fv(tc[2]); glVertex2f(sx+w, sy+h);
+        glEnd();
+
+        if (glowtex)
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glBindTexture(GL_TEXTURE_2D, glowtex->id);
+            glColor3fv(vslot.glowcolor.v);
+            glBegin(GL_TRIANGLE_STRIP);
+            glTexCoord2fv(tc[0]); glVertex2f(sx,   sy);
+            glTexCoord2fv(tc[1]); glVertex2f(sx+w, sy);
+            glTexCoord2fv(tc[3]); glVertex2f(sx,   sy+h);
+            glTexCoord2fv(tc[2]); glVertex2f(sx+w, sy+h);
+            glEnd();
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        if (layertex)
+        {
+            glBindTexture(GL_TEXTURE_2D, layertex->id);
+            glColor3fv(layer->colorscale.v);
+            glBegin(GL_TRIANGLE_STRIP);
+            glTexCoord2fv(tc[0]); glVertex2f(sx+w/2, sy+h/2);
+            glTexCoord2fv(tc[1]); glVertex2f(sx+w,   sy+h/2);
+            glTexCoord2fv(tc[3]); glVertex2f(sx+w/2, sy+h);
+            glTexCoord2fv(tc[2]); glVertex2f(sx+w,   sy+h);
+            glEnd();
+        }
+        glColor3f(1, 1, 1);
+
+        defaultshader->set();
+    }
+
+    void _lua_texture_draw_slot(
+        int slotnum, float w, float h, float sx, float sy
+    )
+    {
+        if (texmru.inrange(slotnum))
+        {
+            VSlot &vslot = lookupvslot(texmru[slotnum], false);
+            Slot &slot = *vslot.slot;
+            if (slot.sts.length())
+            {
+                if(slot.loaded || slot.thumbnail)
+                    drawslot(slot, vslot, w, h, sx, sy);
+
+                else if (totalmillis-lastthumbnail >= thumbtime)
+                {
+                    loadthumbnail(slot);
+                    lastthumbnail = totalmillis;
+                }
+            }
+        }
+    }
+
 #else
     LAPI_EMPTY(texturereset)
     LAPI_EMPTY(texture)
@@ -316,6 +562,15 @@ namespace lapi_binds
     LAPI_EMPTY(parsepixels)
     LAPI_EMPTY(filltexlist)
     LAPI_EMPTY(getnumslots)
+    LAPI_EMPTY(hastexslot)
+    LAPI_EMPTY(checkvslot)
+    LAPI_EMPTY(texture_load)
+    LAPI_EMPTY(texture_check_alpha_mask)
+    LAPI_EMPTY(texture_get_bpp)
+    LAPI_EMPTY(texture_draw)
+    LAPI_EMPTY(texture_loaded)
+    LAPI_EMPTY(texture_border_size_get)
+    LAPI_EMPTY(texture_draw_slot)
 #endif
 
     void reg_tex(lua::Table& t)
@@ -341,5 +596,14 @@ namespace lapi_binds
         LAPI_REG(parsepixels);
         LAPI_REG(filltexlist);
         LAPI_REG(getnumslots);
+        LAPI_REG(hastexslot);
+        LAPI_REG(checkvslot);
+        LAPI_REG(texture_load);
+        LAPI_REG(texture_check_alpha_mask);
+        LAPI_REG(texture_get_bpp);
+        LAPI_REG(texture_draw);
+        LAPI_REG(texture_loaded);
+        LAPI_REG(texture_border_size_get);
+        LAPI_REG(texture_draw_slot);
     }
 }

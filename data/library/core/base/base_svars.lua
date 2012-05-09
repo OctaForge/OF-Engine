@@ -509,7 +509,7 @@ state_json = std.class.new(state_variable, {
     already work with strings. This is basically a nice alias
     for <state_variable>.
 ]]
-state_string = std.class.new(state_variable, "state_string")
+state_string = std.class.new(state_variable, nil, "state_string")
 
 --[[!
     Class: array_surrogate
@@ -1224,7 +1224,7 @@ wrapped_c_string = std.class.new(
     <wrapped_c_variable.getter>. Overrides <state_array.get_raw>
     so it makes use of C getters.
 ]]
-wrapped_c_array = std.class.new(state_array, "wrapped_c_array"):mixin({
+wrapped_c_array = std.class.new(state_array, nil, "wrapped_c_array"):mixin({
     __init   = wrapped_c_variable.__init,
     register = wrapped_c_variable.register,
 

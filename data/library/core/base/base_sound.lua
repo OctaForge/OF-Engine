@@ -151,12 +151,6 @@ end
 register = CAPI.registersound
 
 --[[!
-    Function: reset
-    Resets the sound system, including music, slots and others.
-]]
-reset = CAPI.resetsound
-
---[[!
     Function: preload
     Preloads a sound about which we know it'll be used, so it
     doesn't have to be loaded later during gameplay.

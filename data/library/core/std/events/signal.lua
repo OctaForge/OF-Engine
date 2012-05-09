@@ -14,7 +14,7 @@
         Available as "std.signal".
 ]]
 
-local Post_Emit_Event_Queue = {}
+local post_emit_queue = {}
 
 return {
     --[[! Function: connect
@@ -32,67 +32,47 @@ return {
             std.signal.connect(Foo, "blah", function(self, a, b, c)
                 echo(a)
                 echo(b)
-                echo(c)
-            end)
-            std.signal.emit(Foo, 5, 10, 15)
+                echo(c) end)
+            std.signal.emit(Foo, "blah", 5, 10, 15)
         (end)
     ]]
     connect = function(self, name, callback)
         if type(callback) ~= "function" then
             log(ERROR, "Not connecting non-function callback: " .. name)
-            return nil
-        end
+            return nil end
 
-        if not self._Signal_Connections then
-            self._Signal_Connections = {}
-            self._next_connection_id = 1
-        end
+        if not self._sig_connections then
+            self._sig_connections = {}
+            self._sig_next_id = 1 end
 
-        local id = self._next_connection_id
-        self._next_connection_id = self._next_connection_id + 1
+        local id = self._sig_next_id
+        self._sig_next_id = self._sig_next_id + 1
 
-        table.insert(self._Signal_Connections, {
-            id = id,
-            name = name,
-            callback = callback
-        })
+        table.insert(self._sig_connections, {
+            id = id, name = name, callback = callback })
 
-        return id
-    end,
+        return id end,
 
     --[[! Function: disconnect
         Disconnects a signal previously connected with <connect>. You have to
         provide a signal ID, which is the return value of <connect>.
     ]]
     disconnect = function(self, id)
-        if self._Signal_Connections then
-            local len = #self._Signal_Connections
-            self._Signal_Connections = std.table.filter(
-                self._Signal_Connections, function(idx, connection)
-                    if connection.id == id then
-                        return false
-                    else
-                        return true
-                    end
-                end
-            )
-            if #self._Signal_Connections ~= len then
-                return nil
-            end
-        end
-        log(ERROR, "Connection with id " .. id .. " not found.")
-    end,
+        if self._sig_connections then
+            local len = #self._sig_connections
+            self._sig_connections = std.table.filter(self._sig_connections,
+                function(idx, connection)
+                    if connection.id == id then return false
+                    else return true end end)
+            if #self._sig_connections ~= len then return nil end end
+        log(ERROR, "Connection with id " .. id .. " not found.") end,
 
     --[[! Function: disconnect_all
         Disconnects all signals from a table.
     ]]
     disconnect_all = function(self)
-        if not self._Signal_Connections then
-            return nil
-        end
-
-        self._Signal_Connections = {}
-    end,
+        if not self._sig_connections then return nil end
+        self._sig_connections = {} end,
 
     --[[! Function: emit
         Emits a previously connected signal of a given name. You can
@@ -101,47 +81,31 @@ return {
         See <connect> if you want an example.
     ]]
     emit = function(self, name, ...)
-        if not self._Signal_Connections then
-            return nil
-        end
+        if not self._sig_connections then return nil end
 
-        local handlers = table.filter(
-            self._Signal_Connections, function(i, connection)
-                if connection.name == name then
-                    return true
-                end
-            end
-        )
+        local handlers = std.table.filter(self._sig_connections,
+            function(i, connection) if connection.name == name then
+                return true end end)
 
-        Post_Emit_Event_Queue = {}
-
+        post_emit_queue = {}
         local ret
         local retval
 
         for i, connection in pairs(handlers) do
             ret, retval = connection.callback(self, ...)
+            if ret then break end end
 
-            if ret then
-                break
-            end
-        end
-
-        local events = Post_Emit_Event_Queue
-        Post_Emit_Event_Queue = nil
+        local events = post_emit_queue
+        post_emit_queue = nil
 
         while events and #events > 0 do
-            Post_Emit_Event_Queue = {}
-
+            post_emit_queue = {}
             for i, event in pairs(events) do
-                event(self)
-            end
+                event(self) end
+            events = post_emit_queue
+            post_emit_queue = nil end
 
-            events = Post_Emit_Event_Queue
-            Post_Emit_Event_Queue = nil
-        end
-
-        return retval
-    end,
+        return retval end,
 
     --[[! Function: add_post_emit_event
         Queues an event to be done after emit. Typically called from the
@@ -154,15 +118,10 @@ return {
                 std.signal.add_post_emit_event(function(self)
                     echo("first")
                     std.signal.add_post_emit_event(function(self)
-                        echo("second")
-                    end)
-                end)
-            end)
+                        echo("second") end) end) end)
             -- prints "first" and then "second".
             std.signal.emit(t, "foo")
         (end)
     ]]
     add_post_emit_event = function(event)
-        table.insert(Post_Emit_Event_Queue, event)
-    end
-}
+        table.insert(post_emit_queue, event) end }

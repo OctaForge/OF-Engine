@@ -7,12 +7,6 @@ return {
             return std.math.Vec4(x, y, z, w)
         end
     },
-    Graphics = {
-        reset = engine.resetgl
-    },
-    Sound = {
-        reset = sound.reset
-    },
     Input = {
         Events = {
             Client = {

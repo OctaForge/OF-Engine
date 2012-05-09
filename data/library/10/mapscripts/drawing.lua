@@ -10,9 +10,9 @@
 -- because it's persistent, your last state (drawing / shooting) will
 -- be saved and applied the next run.
 if not shoot_mode then
-    local was_persisting = engine.persist_vars(true)
-    engine.new_var("shoot_mode", engine.VAR_I, 0)
-    engine.persist_vars(was_persisting)
+    local was_persisting = std.var.persist_vars(true)
+    std.var.new("shoot_mode", EAPI.VAR_I, 0)
+    std.var.persist_vars(was_persisting)
 end
 
 -- Register our custom player entity class into storage
@@ -166,7 +166,7 @@ end
 -- do_mousemove = platformer.do_mousemove
 
 -- Notify the engine that we're overriding player by setting engine variable
-player_class = "game_player"
+EVAR.player_class = "game_player"
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0

@@ -565,7 +565,7 @@ extern bool limitsky();
 namespace gui
 {
     extern void resetcursor();
-    extern bool movecursor(int &dx, int &dy);
+    extern bool movecursor(int dx, int dy);
     extern bool hascursor(bool targeting = false);
     extern void getcursorpos(float &x, float &y);
     extern bool keypress(int code, bool isdown, int cooked);

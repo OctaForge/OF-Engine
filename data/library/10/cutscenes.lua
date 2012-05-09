@@ -993,8 +993,8 @@ entity_classes.register(
                     self.old_show_hud_image(
                         self.background_image,
                         0.5, 0.5,
-                        std.math.max((scr_w / scr_h), 1),
-                        std.math.min((scr_w / scr_h), 1)
+                        std.math.max((EVAR.scr_w / EVAR.scr_h), 1),
+                        std.math.min((EVAR.scr_w / EVAR.scr_h), 1)
                     )
                 end
                 return self.base_class.run(self, seconds)
@@ -1008,8 +1008,8 @@ entity_classes.register(
                             self.subtitle_background,
                             0.5,
                             0.9,
-                            (factors.x * 800) / scr_w,
-                            (factors.y * 128) / scr_h
+                            (factors.x * 800) / EVAR.scr_w,
+                            (factors.y * 128) / EVAR.scr_h
                         )
                     end
                 end

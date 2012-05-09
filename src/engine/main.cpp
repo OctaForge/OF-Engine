@@ -120,20 +120,20 @@ void writeinitcfg()
     if(!f) return;
     f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
     extern int fullscreen, useshaders, shaderprecision, forceglsl, soundchans, soundfreq, soundbufferlen;
-    f->printf("fullscreen = %d\n", fullscreen);
-    f->printf("scr_w = %d\n", scr_w);
-    f->printf("scr_h = %d\n", scr_h);
-    f->printf("colorbits = %d\n", colorbits);
-    f->printf("depthbits = %d\n", depthbits);
-    f->printf("stencilbits = %d\n", stencilbits);
-    f->printf("fsaa = %d\n", fsaa);
-    f->printf("vsync = %d\n", vsync);
-    f->printf("shaders = %d\n", useshaders);
-    f->printf("shaderprecision = %d\n", shaderprecision);
-    f->printf("forceglsl = %d\n", forceglsl);
-    f->printf("soundchans = %d\n", soundchans);
-    f->printf("soundfreq = %d\n", soundfreq);
-    f->printf("soundbufferlen = %d\n", soundbufferlen);
+    f->printf("EVAR.fullscreen = %d\n", fullscreen);
+    f->printf("EVAR.scr_w = %d\n", scr_w);
+    f->printf("EVAR.scr_h = %d\n", scr_h);
+    f->printf("EVAR.colorbits = %d\n", colorbits);
+    f->printf("EVAR.depthbits = %d\n", depthbits);
+    f->printf("EVAR.stencilbits = %d\n", stencilbits);
+    f->printf("EVAR.fsaa = %d\n", fsaa);
+    f->printf("EVAR.vsync = %d\n", vsync);
+    f->printf("EVAR.shaders = %d\n", useshaders);
+    f->printf("EVAR.shaderprecision = %d\n", shaderprecision);
+    f->printf("EVAR.forceglsl = %d\n", forceglsl);
+    f->printf("EVAR.soundchans = %d\n", soundchans);
+    f->printf("EVAR.soundfreq = %d\n", soundfreq);
+    f->printf("EVAR.soundbufferlen = %d\n", soundbufferlen);
     delete f;
 }
 
@@ -533,8 +533,6 @@ void screenres(int *w, int *h)
     scr_h = screen->h;
     glViewport(0, 0, scr_w, scr_h);
 #endif
-    extern int fonth;
-    fonth = FONTH;
 }
 
 static int curgamma = 100;

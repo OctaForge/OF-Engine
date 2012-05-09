@@ -96,6 +96,10 @@ namespace lapi
         state.open_math   ();
         state.open_package();
         state.open_debug  ();
+        state.open_os     ();
+
+        lua_pushcfunction(state.state(), luaopen_ffi);
+        lua_call         (state.state(), 0, 0);
 
         lua_State *L  = state.state();
         Table loaded  = state.registry()["_LOADED"];
@@ -178,11 +182,6 @@ namespace lapi
         CAPI_REG(textedit);
         CAPI_REG(world);
         #undef CAPI_REG
-
-        api_all["INFO"   ] = (int)logger::INFO;
-        api_all["DEBUG"  ] = (int)logger::DEBUG;
-        api_all["WARNING"] = (int)logger::WARNING;
-        api_all["ERROR"  ] = (int)logger::ERROR;
 
         state.register_module("CAPI", api_all);
         state.register_module("obj",  objcommands());

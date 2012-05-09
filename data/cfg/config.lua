@@ -11,7 +11,7 @@ function domodifier(m)
 end
 
 function universaldelta(n)
-    if editing ~= 0 then
+    if EVAR.editing ~= 0 then
         _G["delta_edit_" .. modifier](n)
     else
         _G["delta_game_" .. modifier](n)
@@ -19,7 +19,7 @@ function universaldelta(n)
 end
 
 function delta_edit_0(a)
-    if blendpaintmode ~= 0 then
+    if EVAR.blendpaintmode ~= 0 then
         texture.scroll_blend_brush(a)
     else
         edit.push(a, edit.PUSH_CUBE)

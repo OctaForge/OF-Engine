@@ -44,55 +44,6 @@ local gravity
 log(DEBUG, ":: Engine interface.")
 require("base.base_engine")
 
-
---[[!
-    Class: _G
-    Overriden metamethods for transparently getting / setting
-    engine variables. If engine variable exists, it's returned,
-    otherwise normal variable is returned. Same applies for
-    setting.
-]]
-setmetatable(_G, {
-    --[[!
-        Function: __index
-        This is overriden metamethod for getting.
-        It returns engine variable if it exists,
-        normal variable otherwise.
-
-        Parameters:
-            self - the table
-            n - name of the variable we're getting
-
-        Returns:
-            either engine variable or normal variable.
-    ]]
-    __index = function(self, n)
-        return (engine.var_exists(n) and
-            engine.get_var(n) or
-            rawget(self, n)
-        )
-    end,
-
-    --[[!
-        Function: __newindex
-        This is overriden metamethod for setting.
-        It sets engine variable if it exists or normal
-        one otherwise.
-
-        Parameters:
-            self - the table
-            n - name of the variable we're setting
-            v - value we're setting
-    ]]
-    __newindex = function(self, n, v)
-        if engine.var_exists(n) then
-            engine.set_var(n, v)
-        else
-            rawset(self, n, v)
-        end
-    end
-})
-
 log(DEBUG, ":: Geometry interface.")
 require("base.base_geometry")
 

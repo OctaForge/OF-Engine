@@ -1,8 +1,5 @@
 void keymap(int code, const char *key);
 int preload_sound(const char *name, int vol);
-void force_quit();
-void quit();
-void resetgl();
 types::Tuple<int, int, int> getfps_(bool raw);
 types::String getwallclock();
 extern int conskip, miniconskip;
@@ -19,7 +16,6 @@ void screenshot(char *filename);
 void movie(char *name);
 bool glext(const char *ext);
 void loadcrosshair_(const char *name, int *i);
-void resetsound();
 void scorebshow(bool on);
 bool addzip(
     const char *name, const char *mount = NULL, const char *strip = NULL
@@ -42,16 +38,6 @@ namespace lapi_binds
 {
     /* Logger module */
 
-    void _lua_log(int level, const char *msg)
-    {
-        logger::log((logger::loglevel)level, "%s\n", msg);
-    }
-
-    void _lua_echo(const char *msg)
-    {
-        conoutf("\f1%s", msg);
-    }
-
     void _lua_say(types::Vector<const char*> args)
     {
         switch (args.length())
@@ -71,15 +57,10 @@ namespace lapi_binds
 
     /* CAPI module */
 
-    int _lua_currtime (      ) { return tools::currtime();              }
-    int _lua_getmillis(bool t) { return (t ? totalmillis : lastmillis); }
+    int _lua_currtime() { return tools::currtime(); }
 
 #ifdef CLIENT
     void _lua_keymap       (int key, const char *name) { keymap(key, name); }
-    void _lua_resetsound   (                         ) { resetsound();      }
-    void _lua_quit         (                         ) { quit();            }
-    void _lua_force_quit   (                         ) { force_quit();      }
-    void _lua_resetgl      (                         ) { resetgl();         }
     bool _lua_glext        (const char           *ext) { return glext(ext); }
 
     types::Tuple<int, int, int> _lua_getfps(bool  raw)
@@ -117,10 +98,6 @@ namespace lapi_binds
     }
 #else
     LAPI_EMPTY(keymap)
-    LAPI_EMPTY(resetsound)
-    LAPI_EMPTY(quit)
-    LAPI_EMPTY(force_quit)
-    LAPI_EMPTY(resetgl)
     LAPI_EMPTY(glext)
     LAPI_EMPTY(getfps)
     LAPI_EMPTY(getwallclock)
@@ -230,104 +207,16 @@ namespace lapi_binds
 
     int _lua_bnot(int a) { return ~a; }
 
-    /* engine variables */
-
-    void _lua_resetvar(const char *name)
+    int _lua_create_table(lua_State *L)
     {
-        varsys::get(name)->reset();
-    }
+        size_t narr = luaL_optinteger(L, 1, 0);
+        size_t nrec = luaL_optinteger(L, 2, 0);
 
-    void _lua_newvar(const char *name, int type, lua::Object value)
-    {
-        if (!name) return;
-        switch (type)
-        {
-            case varsys::TYPE_I:
-            {
-                varsys::Variable *ev = varsys::get(name);
-                if (!ev) ev = varsys::reg_var(
-                    name, new varsys::Int_Alias(name, value.to<int>())
-                );
-                else if (ev->type() != varsys::TYPE_I) break;
-                else varsys::set(ev, value.to<int>(), false, false);
-                break;
-            }
-            case varsys::TYPE_F:
-            {
-                varsys::Variable *ev = varsys::get(name);
-                if (!ev) ev = varsys::reg_var(
-                    name, new varsys::Float_Alias(name, value.to<float>())
-                );
-                else if (ev->type() != varsys::TYPE_F) break;
-                else varsys::set(ev, value.to<float>(), false, false);
-                break;
-            }
-            case varsys::TYPE_S:
-            {
-                varsys::Variable *ev = varsys::get(name);
-                if (!ev) ev = varsys::reg_var(
-                    name, new varsys::String_Alias(
-                        name, value.to<const char*>()
-                    )
-                );
-                else if (ev->type() != varsys::TYPE_S) break;
-                else varsys::set(ev, value.to<const char*>(), false);
-                break;
-            }
-            default: break;
-        }
-    }
+        luaL_argcheck(L, narr >= 0, 1, "negative number of array elements");
+        luaL_argcheck(L, nrec >= 0, 2, "negative number of hash elements");
 
-    void _lua_setvar(const char *name, lua::Object value)
-    {
-        if (!name) return;
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) return;
-        if ((ev->flags()&varsys::FLAG_READONLY) != 0)
-        {
-            logger::log(
-                logger::ERROR, "Variable %s is read-only.\n", ev->name()
-            );
-            return;
-        }
-        switch (ev->type())
-        {
-            case varsys::TYPE_I: varsys::set(ev, value.to<int  >(), true, true); break;
-            case varsys::TYPE_F: varsys::set(ev, value.to<float>(), true, true); break;
-            case varsys::TYPE_S: varsys::set(ev, value.to<const char*>(), true); break;
-            default: break;
-        }
-    }
-
-    lua::Object _lua_getvar(const char *name)
-    {
-        if (!name) return lapi::state.wrap<lua::Object>(lua::nil);
-        varsys::Variable *ev = varsys::get(name);
-        if       (!ev) return lapi::state.wrap<lua::Object>(lua::nil);
-        switch   ( ev->type())
-        {
-            case varsys::TYPE_I:
-                return lapi::state.wrap<lua::Object>(varsys::get_int(ev)); break;
-            case varsys::TYPE_F:
-                return lapi::state.wrap<lua::Object>(varsys::get_float(ev)); break;
-            case varsys::TYPE_S:
-                return lapi::state.wrap<lua::Object>(varsys::get_string(ev)); break;
-            default: break;
-        }
-        return lapi::state.wrap<lua::Object>(lua::nil);
-    }
-
-    bool _lua_varexists(const char *vn)
-    {
-        if (!vn) return false;
-        return (varsys::get(vn) ? true : false);
-    }
-
-    bool _lua_persist_vars(bool persist)
-    {
-        bool was = varsys::persistvars;
-        varsys::persistvars = persist;
-        return was;
+        lua_createtable(L, narr, nrec);
+        return 1;
     }
 
     /* console */
@@ -397,17 +286,10 @@ namespace lapi_binds
 
     void reg_base(lua::Table& t)
     {
-        LAPI_REG(log);
-        LAPI_REG(echo);
         LAPI_REG(say);
         LAPI_REG(currtime);
-        LAPI_REG(getmillis);
         LAPI_REG(keymap);
         LAPI_REG(registersound);
-        LAPI_REG(resetsound);
-        LAPI_REG(quit);
-        LAPI_REG(force_quit);
-        LAPI_REG(resetgl);
         LAPI_REG(glext);
         LAPI_REG(getfps);
         LAPI_REG(getwallclock);
@@ -426,12 +308,7 @@ namespace lapi_binds
         LAPI_REG(bor);
         LAPI_REG(band);
         LAPI_REG(bnot);
-        LAPI_REG(resetvar);
-        LAPI_REG(newvar);
-        LAPI_REG(setvar);
-        LAPI_REG(getvar);
-        LAPI_REG(varexists);
-        LAPI_REG(persist_vars);
+        LAPI_REG(create_table);
         LAPI_REG(toggleconsole);
         LAPI_REG(conskip);
         LAPI_REG(miniconskip);

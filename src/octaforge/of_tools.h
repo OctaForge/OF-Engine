@@ -30,7 +30,7 @@
 #ifndef OF_TOOLS_H
 #define OF_TOOLS_H
 
-#define OF_CFG_VERSION 2
+#define OF_CFG_VERSION 3
 
 namespace tools
 {

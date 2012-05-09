@@ -31,4 +31,4 @@ std.library.include("events")
 log(DEBUG, ":: Health.")
 std.library.include("health")
 
-uwambient = 1
+EVAR.uwambient = 1

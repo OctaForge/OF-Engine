@@ -23,12 +23,12 @@ std.library.include("guns.rocket_launcher")
 std.library.include("weather_effects")
 
 -- default skybox
-skybox = "textures/sky/remus/sky01"
+EVAR.skybox = "textures/sky/spiney/bluecloud"
 
 -- use drawing mode on empty map
 std.library.include("mapscripts.drawing")
 --std.library.include("mapscripts.sine_curve")
---std.library.include("mapscripts.sine_flower")
+--std.library.include("mapscripts.trollface")
 
 -- this is how you initialize game manager
 game_manager.setup({

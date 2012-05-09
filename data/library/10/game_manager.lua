@@ -270,7 +270,7 @@ manager_plugins = {
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
                 size = msg.duration >= 0.5 and size or size * std.math.pow(msg.duration * 2, 2)
-                gui.showhudtext(
+                gui.hud_label(
                     msg.text,
                     msg.x and msg.x ~= 0 and msg.x or 0.5,
                     msg.y and msg.y ~= 0 and msg.y or 0.2,

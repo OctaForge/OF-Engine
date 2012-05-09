@@ -3,7 +3,7 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = std.class.new(character.player, "myplayer")
+myplayer = std.class.new(character.player, nil, "myplayer")
 
 -- Called right after initialization on client
 function myplayer:client_activate(kwargs)
@@ -52,7 +52,7 @@ end
 entity_classes.register(myplayer, "fpsent")
 
 -- Notify the engine that we're overriding player by setting engine variable
-player_class = "myplayer"
+EVAR.player_class = "myplayer"
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0

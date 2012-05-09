@@ -70,7 +70,9 @@ return {
             return _G["tostring"](value)
         elseif name == "calltable" then
             return (type(value) == "function"
-                and setmetatable({}, { __call = value })
+                and setmetatable({}, { __call = function(self, ...)
+                    return value(...) end
+                })
                 or nil
             )
         elseif name == "vec3" or name == "Vec3" then

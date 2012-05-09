@@ -98,6 +98,9 @@ bool setfont(const char *name)
     font *f = fonts.access(name);
     if(!f) return false;
     curfont = f;
+    extern int fontw, fonth;
+    fontw = FONTW;
+    fonth = FONTH;
     return true;
 }
 
@@ -112,6 +115,9 @@ bool popfont()
 {
     if(fontstack.empty()) return false;
     curfont = fontstack.pop();
+    extern int fontw, fonth;
+    fontw = FONTW;
+    fonth = FONTH;
     return true;
 }
 

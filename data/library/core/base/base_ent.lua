@@ -442,9 +442,9 @@ base_root = std.class.new(nil, {
                 return string.gsub(d, "\", \"", "\",\"")
             end, -- "foo", "bar" --> "foo","bar"
 
-            function(d)
-                return string.gsub(d, ":\"(%d+)\.(%d+)\"", ":\"%1\".\"%2\"")
-            end, -- :"3.14" --> :"3"."14"
+            --function(d)
+            --    return string.gsub(d, ":\"(%d+)\.(%d+)\"", ":\"%1\".\"%2\"")
+            --end, -- :"3.14" --> :"3"."14"
 
             function(d)
                 return string.gsub(d, ", ", ",")

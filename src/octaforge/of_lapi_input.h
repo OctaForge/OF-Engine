@@ -110,6 +110,26 @@ namespace lapi_binds
         TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(uid);
         return (TargetingControl::targetLogicEntity != NULL);
     }
+
+    bool _lua_is_mouselooking()
+    {
+        return GuiControl::isMouselooking();
+    }
+
+    bool _lua_is_modifier_pressed()
+    {
+        return (SDL_GetModState() != KMOD_NONE);
+    }
+
+    bool _lua_enable_unicode(bool enable)
+    {
+        return SDL_EnableUNICODE(enable);
+    }
+
+    void _lua_keyrepeat(bool on)
+    {
+        keyrepeat(on);
+    }
 #else
     LAPI_EMPTY(mouse1click)
     LAPI_EMPTY(mouse2click)
@@ -124,6 +144,10 @@ namespace lapi_binds
     LAPI_EMPTY(right)
     LAPI_EMPTY(jump)
     LAPI_EMPTY(set_targeted_entity)
+    LAPI_EMPTY(is_mouselooking)
+    LAPI_EMPTY(is_modifier_pressed)
+    LAPI_EMPTY(enable_unicode)
+    LAPI_EMPTY(keyrepeat)
 #endif
 
     void reg_input(lua::Table& t)
@@ -141,5 +165,9 @@ namespace lapi_binds
         LAPI_REG(right);
         LAPI_REG(jump);
         LAPI_REG(set_targeted_entity);
+        LAPI_REG(is_mouselooking);
+        LAPI_REG(is_modifier_pressed);
+        LAPI_REG(enable_unicode);
+        LAPI_REG(keyrepeat);
     }
 }

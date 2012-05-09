@@ -564,7 +564,7 @@ function bumpvariantshader(...)
                 // need to store these in Z/W to keep texcoords < 6, otherwise kills performance on Radeons
                 // but slows lightmap access in fragment shader a bit, so avoid when possible
                 <$0
-                    if minimizetcusage == 1 or bt_r then
+                    if EVAR.minimizetcusage == 1 or bt_r then
                         return "gl_TexCoord[0].zw = gl_MultiTexCoord1.yx * <$1=lmcoordscale$1>;"
                     else
                         return "gl_TexCoord[1].xy = gl_MultiTexCoord1.xy * <$1=lmcoordscale$1>;"
@@ -635,7 +635,7 @@ function bumpvariantshader(...)
             <$0 if not bt_i or bt_s then return "uniform vec4 ambient;" end $0>
             void main(void)
             {
-                #define lmtc <$0 return (minimizetcusage == 1 or bt_r) and "gl_TexCoord[0].wz" or "gl_TexCoord[1].xy" $0>
+                #define lmtc <$0 return (EVAR.minimizetcusage == 1 or bt_r) and "gl_TexCoord[0].wz" or "gl_TexCoord[1].xy" $0>
                 <$0
                     if not bt_i or bt_s then
                         return [=[
@@ -1754,7 +1754,7 @@ for i = 1, 7 do
         shader.alt("blurx" .. i, "blurx" .. i - 1)
         shader.alt("blury" .. i, "blury" .. i - 1)
     end
-    if usetexrect ~= 0 then
+    if EVAR.usetexrect ~= 0 then
         blurshader("blurx" .. i .. "rect", i, "x", "2DRect")
         blurshader("blury" .. i .. "rect", i, "y", "2DRect")
         if i > 1 then
@@ -2301,7 +2301,7 @@ function explosionshader(...)
     )
 end
 
-for i = 1, usetexrect == 0 and 4 or 6 do
+for i = 1, EVAR.usetexrect == 0 and 4 or 6 do
     explosionshader(
         "explosion2d" .. ({ "", "glare", "soft", "soft8", "softrect", "soft8rect" })[i],
         [[
@@ -2404,7 +2404,7 @@ function particleshader(...)
     )
 end
 
-for i = 1, usetexrect == 0 and 3 or 5 do
+for i = 1, EVAR.usetexrect == 0 and 3 or 5 do
     particleshader("particle" .. ({ "", "soft", "soft8", "softrect", "soft8rect" })[i])
 end
 
@@ -2414,14 +2414,14 @@ end
 
 function skelanimdefs() return string.template([[
     <$0
-        if useubo ~= 0 then return [=[
+        if EVAR.useubo ~= 0 then return [=[
             #ifdef GL_ARB_uniform_buffer_object
                 #extension GL_ARB_uniform_buffer_object : enable
             #endif
         ]=] end
     $0>
     <$0
-        if usebue ~= 0 then return [=[
+        if EVAR.usebue ~= 0 then return [=[
             #extension GL_EXT_bindable_uniform : enable
         ]=] end
     $0>
@@ -2431,32 +2431,32 @@ function skelanimdefs() return string.template([[
     attribute vec4 vbones;
     #pragma CUBE2_uniform animdata AnimData 0 16
     <$0
-        if useubo ~= 0 then return [=[
+        if EVAR.useubo ~= 0 then return [=[
             #ifdef GL_ARB_uniform_buffer_object
                 layout(std140) uniform AnimData
                 {
-                    vec4 animdata[<$1=(math.min(maxvsuniforms - reservevpparams, 256) - 10)$1>];
+                    vec4 animdata[<$1=(math.min(EVAR.maxvsuniforms - EVAR.reservevpparams, 256) - 10)$1>];
                 };
             #else
         ]=] end
     $0>
     <$0
-        if usebue ~= 0 then return [=[
+        if EVAR.usebue ~= 0 then return [=[
             #ifdef GL_EXT_bindable_uniform
                 bindable
             #endif
         ]=] end
     $0>
-    uniform vec4 animdata[<$0=(math.min(maxvsuniforms - reservevpparams, 256) - 10)$0>];
+    uniform vec4 animdata[<$0=(math.min(EVAR.maxvsuniforms - EVAR.reservevpparams, 256) - 10)$0>];
     <$0
-        if useubo ~= 0 then return [=[
+        if EVAR.useubo ~= 0 then return [=[
             #endif
         ]=] end
     $0>
 ]]) end
 
-function skelanimfragdefs() return ati_ubo_bug ~= 0 and
-    (useubo ~= 0 and [[
+function skelanimfragdefs() return EVAR.ati_ubo_bug ~= 0 and
+    (EVAR.useubo ~= 0 and [[
         #ifdef GL_ARB_uniform_buffer_object
             #extension GL_ARB_uniform_buffer_object : enable
             layout(std140) uniform AnimData
@@ -2464,12 +2464,12 @@ function skelanimfragdefs() return ati_ubo_bug ~= 0 and
                 vec4 animdata[%(1)i];
             };
         #endif
-    ]] % { math.min(maxvsuniforms - reservevpparams, 256) - 10 } or [[
+    ]] % { math.min(EVAR.maxvsuniforms - EVAR.reservevpparams, 256) - 10 } or [[
         #ifdef GL_EXT_bindable_uniform
             #extension GL_EXT_bindable_uniform : enable
             bindable uniform vec4 animdata[%(1)i];
         #endif
-    ]] % { math.min(maxvsuniforms - reservevpparams, 256) - 10 })
+    ]] % { math.min(EVAR.maxvsuniforms - EVAR.reservevpparams, 256) - 10 })
 or "" end
 
 function skelmatanim(...)
@@ -2905,7 +2905,7 @@ function modelanimshader(...)
     local arg = { ... }
     local fraganimshader = arg[2] > 0 and tostring(arg[2]) or ""
     local reuseanimshader = fraganimshader
-    if ati_ubo_bug ~= 0 then
+    if EVAR.ati_ubo_bug ~= 0 then
         reuseanimshader = "%(1)i , %(2)i" % { arg[2], arg[2] > 0 and 1 or 0 }
         fraganimshader = (arg[4] == 1) and modelfragmentshader("bB" .. arg[3]) or reuseanimshader
     end

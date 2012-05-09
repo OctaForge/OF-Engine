@@ -15,32 +15,36 @@
 ]]
 
 --[[! Function: math.lsh
-    Bitwise left shift of a by b (both arguments are integral).
+    Bitwise left shift of a by b (both arguments are integral). Globally
+    available as "bitlsh".
 ]]
 math.lsh = CAPI.lsh
 
 --[[! Function: math.rsh
-    Bitwise right shift of a by b (both arguments are integral).
+    Bitwise right shift of a by b (both arguments are integral). Globally
+    available as "bitrsh".
 ]]
 math.rsh = CAPI.rsh
 
 --[[! Function: math.bor
-    Bitwise OR of variable number of integral arguments.
+    Bitwise OR of variable number of integral arguments. Globally available
+    as "bitor".
 ]]
 math.bor = CAPI.bor
 
 --[[! Function: math.band
-    Bitwise AND of variable number of integral arguments.
+    Bitwise AND of variable number of integral arguments. Globally available
+    as "bitand".
 ]]
 math.band = CAPI.band
 
 --[[! Function: math.bnot
-    Bitwise NOT of an integral argument.
+    Bitwise NOT of an integral argument. Globally available as "bitnot".
 ]]
 math.bnot = CAPI.bnot
 
 --[[! Function: math.round
-    Rounds a given number and returns it.
+    Rounds a given number and returns it. Globally available.
 ]]
 math.round = function(v)
     return (type(v) == "number"
@@ -50,8 +54,8 @@ math.round = function(v)
 end
 
 --[[! Function: math.clamp
-    Clamps a number value given by the first
-    argument between third and second argument.
+    Clamps a number value given by the first argument between third and
+    second argument. Globally available.
 ]]
 math.clamp = function(val, low, high)
     return math.max(low, math.min(val, high))
@@ -257,7 +261,7 @@ end
         echo(a.x)
     (end)
 ]]
-math.Vec3 = std.class.new(nil, {
+math.Vec3 = std.table.classify({
     --[[! Constructor: __init
         Constructs the vector. Besides self, there can be either one more
         argument, which then has to be either another vector or associative
@@ -520,7 +524,7 @@ math.Vec3 = std.class.new(nil, {
         echo(a.x)
     (end)
 ]]
-math.Vec4 = std.class.new(math.Vec3, {
+math.Vec4 = std.table.subclass(math.Vec3, {
     __init = function(self, x, y, z, w)
         if type(x) == "table" then
             if (x.is_a and x:is_a(math.Vec4)) or

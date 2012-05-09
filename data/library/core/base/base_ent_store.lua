@@ -181,7 +181,7 @@ end
     Empty if no clients are found (that means we're not in game probably).
 ]]
 function get_all_clients()
-    local ret = get_all_by_class(player_class)
+    local ret = get_all_by_class(EVAR.player_class)
 
     log(
         INFO,
@@ -741,7 +741,7 @@ function load_entities()
 
         -- backwards comptaibility, rotate by 180 degrees
         -- for yawed entities
-        if mapversion <= 30 and state_data.attr1 then
+        if EVAR.mapversion <= 30 and state_data.attr1 then
             -- skip certain entities which have different attr1 than yaw
             if  class_name ~= "light"
             and class_name ~= "flickering_light"
@@ -752,7 +752,7 @@ function load_entities()
             end
         end
 
-        if mapversion <= 31 and state_data.attr1 then
+        if EVAR.mapversion <= 31 and state_data.attr1 then
             if  class_name ~= "light"
             and class_name ~= "flickering_light"
             and class_name ~= "particle_effect"

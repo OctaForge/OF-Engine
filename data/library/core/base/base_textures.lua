@@ -477,7 +477,7 @@ local blend_paint_modes = {
     texture blending gets turned off.
 ]]
 function set_blend_paint_mode(mode)
-    _G["blendpaintmode"] = m or 0
+    _G["blendpaintmode"] = mode or 0
     echo("blend paint mode set to %(1)s" % {
         blend_paint_modes[_G["blendpaintmode"] + 1]
     })

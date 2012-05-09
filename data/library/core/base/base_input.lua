@@ -147,8 +147,8 @@ end
 ]]
 function bind_var_toggle(key, var)
     bind(key, [[
-        _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
-        echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
+        EVAR[%(1)q] =  (EVAR[%(1)q] == 1) and 0 or 1
+        echo(%(1)q .. ((EVAR[%(1)q] == 1) and " ON" or " OFF"))
     ]] % { var })
 end
 
@@ -164,9 +164,9 @@ end
 ]]
 function bind_modifier(key, modifier)
     bind(key, [[
-        _G[%(1)q] = 1
+        EVAR[%(1)q] = 1
         input.on_release(function()
-            _G[%(1)q] = 0
+            EVAR[%(1)q] = 0
         end)
     ]] % { modifier })
 end
@@ -230,8 +230,8 @@ end
 ]]
 function bind_var_toggle_edit(key, var)
     bind_edit(key, [[
-        _G[%(1)q] = (_G[%(1)q] == 1) and 0 or 1
-        echo(%(1)q .. ((_G[%(1)q] == 1) and " ON" or " OFF"))
+        EVAR[%(1)q] =  (EVAR[%(1)q] == 1) and 0 or 1
+        echo(%(1)q .. ((EVAR[%(1)q] == 1) and " ON" or " OFF"))
     ]] % { var })
 end
 
@@ -241,9 +241,9 @@ end
 ]]
 function bind_modifier_edit(key, modifier)
     bind_edit(key, [[
-        _G[%(1)q] = 1
+        EVAR[%(1)q] = 1
         input.on_release(function()
-            _G[%(1)q] = 0
+            EVAR[%(1)q] = 0
         end)
     ]] % { modifier })
 end

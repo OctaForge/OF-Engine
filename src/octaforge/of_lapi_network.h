@@ -22,6 +22,11 @@ namespace lapi_binds
         return isconnected(attempt);
     }
 
+    bool _lua_haslocalclients()
+    {
+        return haslocalclients();
+    }
+
     types::String _lua_connectedip()
     {
         const ENetAddress *addr = connectedpeer();
@@ -104,6 +109,7 @@ namespace lapi_binds
     {
         LAPI_REG(connect);
         LAPI_REG(isconnected);
+        LAPI_REG(haslocalclients);
         LAPI_REG(connectedip);
         LAPI_REG(connectedport);
         LAPI_REG(connectserv);

@@ -9,112 +9,6 @@ void fontchar(
 void fontskip(int n);
 void fontalias(const char *dst, const char *src);
 
-namespace gui
-{
-    bool _lua_hideui(const char *name);
-    bool _lua_showui(
-        const char *name, lua::Function contents,
-        lua::Function onhide, bool nofocus
-    );
-    bool _lua_replaceui(
-        const char *wname, const char *tname, lua::Function contents
-    );
-    void _lua_uialign(int h, int v);
-    void _lua_uiclamp(int l, int r, int b, int t);
-    void _lua_uiwinmover(lua::Function children);
-    void _lua_uitag(const char *name, lua::Function children);
-    void _lua_uivlist(float space, lua::Function children);
-    void _lua_uihlist(float space, lua::Function children);
-    void _lua_uitable(int columns, float space, lua::Function children);
-    void _lua_uispace(float h, float v, lua::Function children);
-    void _lua_uifill(float h, float v, lua::Function children);
-    void _lua_uiclip(float h, float v, lua::Function children);
-    void _lua_uiscroll(float h, float v, lua::Function children);
-    void _lua_uihscrollbar(float h, float v, lua::Function children);
-    void _lua_uivscrollbar(float h, float v, lua::Function children);
-    void _lua_uiscrollbutton(lua::Function children);
-    void _lua_uihslider(
-        const char *var, float vmin, float vmax, lua::Function onchange,
-        float arrowsize, float stepsize, int steptime, lua::Function children
-    );
-    void _lua_uivslider(
-        const char *var, float vmin, float vmax, lua::Function onchange,
-        float arrowsize, float stepsize, int steptime, lua::Function children
-    );
-    void _lua_uisliderbutton(lua::Function children);
-    void _lua_uioffset(float h, float v, lua::Function children);
-    void _lua_uibutton(lua::Function cb, lua::Function children);
-    void _lua_uicond(lua::Function cb, lua::Function children);
-    void _lua_uicondbutton(
-        lua::Function cond, lua::Function cb, lua::Function children
-    );
-    void _lua_uitoggle(
-        lua::Function cond,
-        lua::Function cb,
-        float split,
-        lua::Function children
-    );
-    void _lua_uiimage(
-        const char *path, float minw, float minh, lua::Function children
-    );
-    void _lua_uislotview(
-        int slot, float minw, float minh, lua::Function children
-    );
-    void _lua_uialtimage(const char *path);
-    void _lua_uicolor(
-        float r, float g, float b, float a,
-        float minw, float minh, lua::Function children
-    );
-    void _lua_uimodcolor(
-        float r, float g, float b,
-        float minw, float minh, lua::Function children
-    );
-    void _lua_uistretchedimage(
-        const char *path, float minw, float minh, lua::Function children
-    );
-    void _lua_uicroppedimage(
-        const char *path,
-        float minw, float minh,
-        const char *cropx,
-        const char *cropy,
-        const char *cropw,
-        const char *croph,
-        lua::Function children
-    );
-    void _lua_uiborderedimage(
-        const char *path, const char *texborder,
-        float screenborder, lua::Function children
-    );
-    void _lua_uilabel(
-        const char *lbl, float scale, float wrap,
-        lua::Object r, lua::Object g, lua::Object b,
-        lua::Function children
-    );
-    void _lua_uifunlabel(lua::Function cmd, lua::Function children);
-    void _lua_uitexteditor(
-        const char *name,
-        int length,
-        int height,
-        float scale,
-        const char *initval,
-        bool keep,
-        const char *filter,
-        lua::Function children
-    );
-    void _lua_uifield(
-        const char *var,
-        int length,
-        lua::Function onchange,
-        float scale,
-        const char *filter,
-        bool password,
-        lua::Function children
-    );
-};
-
-void _lua_applychanges();
-void _lua_clearchanges();
-types::Vector<const char*> _lua_getchanges();
 #endif
 namespace lapi_binds
 {
@@ -142,7 +36,127 @@ namespace lapi_binds
         fontalias(dst, src);
     }
 
+    void _lua_draw_text(
+        const char *str, float sx, float sy, float k, vec color, float wrap
+    )
+    {
+            glPushMatrix();
+            glScalef(k, k, 1);
+            draw_text(
+                str, int(sx/k), int(sy/k),
+                color.x * 255, color.y * 255, color.z * 255, 255,
+                -1, wrap <= 0 ? -1 : wrap/k
+            );
+            glColor3f(1, 1, 1);
+            glPopMatrix();
+    }
+
+    void _lua_draw_rect(
+        float sx, float sy, float w, float h, vec4 color, bool mod
+    )
+    {
+        if (mod) glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+        glDisable(GL_TEXTURE_2D);
+        notextureshader->set();
+        glColor4fv(color.v);
+        glBegin(GL_QUADS);
+        glVertex2f(sx,     sy);
+        glVertex2f(sx + w, sy);
+        glVertex2f(sx + w, sy + h);
+        glVertex2f(sx,     sy + h);
+        glEnd();
+        glColor3f(1, 1, 1);
+        glEnable(GL_TEXTURE_2D);
+        defaultshader->set();
+        if (mod) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
     void _lua_menukeyclicktrig() { GuiControl::menuKeyClickTrigger(); }
+
+    struct Clip_Area
+    {
+        float x1, y1, x2, y2;
+
+        Clip_Area(float x, float y, float w, float h) : x1(x), y1(y), x2(x+w), y2(y+h) {}
+
+        void intersect(const Clip_Area &c)
+        {
+            x1 = max(x1, c.x1);
+            y1 = max(y1, c.y1);
+            x2 = max(x1, min(x2, c.x2));
+            y2 = max(y1, min(y2, c.y2));
+
+        }
+
+        bool isfullyclipped(float x, float y, float w, float h)
+        {
+            return x1 == x2 || y1 == y2 || x >= x2 || y >= y2 || x+w <= x1 || y+h <= y1;
+        }
+
+        void scissor()
+        {
+            float margin = max((float(screen->w)/screen->h - 1)/2, 0.0f);
+
+            int sx1 = clamp(int(floor((x1+margin)/(1 + 2*margin)*screen->w)), 0, screen->w),
+                sy1 = clamp(int(floor(y1*screen->h)), 0, screen->h),
+                sx2 = clamp(int(ceil((x2+margin)/(1 + 2*margin)*screen->w)), 0, screen->w),
+                sy2 = clamp(int(ceil(y2*screen->h)), 0, screen->h);
+
+            glScissor(sx1, screen->h - sy2, sx2-sx1, sy2-sy1);
+        }
+    };
+
+    vector<Clip_Area> clipstack;
+
+    void _lua_pushclip(float x, float y, float w, float h)
+    {
+        if (clipstack.empty()) glEnable(GL_SCISSOR_TEST);
+
+        Clip_Area &c = clipstack.add(Clip_Area(x, y, w, h));
+        if (clipstack.length() >= 2) c.intersect(clipstack[clipstack.length()-2]);
+
+        c.scissor();
+    }
+
+    void _lua_popclip()
+    {
+        clipstack.pop();
+
+        if  (clipstack.empty()) glDisable(GL_SCISSOR_TEST);
+        else clipstack.last ().scissor();
+    }
+
+    bool _lua_isfullyclipped(float x, float y, float w, float h)
+    {
+        if    (clipstack.empty()) return false;
+        return clipstack.last ().isfullyclipped(x, y, w, h);
+    }
+
+    void _lua_draw_ui(float x, float y, float w, float h, lua::Function draw)
+    {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(x, x + w, y + h, y, -1, 1);
+
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glColor3f(1, 1, 1);
+
+        draw();
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+        glEnable(GL_BLEND);
+    }
+
 #else
     LAPI_EMPTY(font)
     LAPI_EMPTY(fontoffset)
@@ -151,47 +165,13 @@ namespace lapi_binds
     LAPI_EMPTY(fontchar)
     LAPI_EMPTY(fontskip)
     LAPI_EMPTY(fontalias)
+    LAPI_EMPTY(draw_text)
+    LAPI_EMPTY(draw_rect)
     LAPI_EMPTY(menukeyclicktrig)
-    LAPI_EMPTY(hideui)
-    LAPI_EMPTY(showui)
-    LAPI_EMPTY(replaceui)
-    LAPI_EMPTY(uialign)
-    LAPI_EMPTY(uiclamp)
-    LAPI_EMPTY(uiwinmover)
-    LAPI_EMPTY(uitag)
-    LAPI_EMPTY(uivlist)
-    LAPI_EMPTY(uihlist)
-    LAPI_EMPTY(uitable)
-    LAPI_EMPTY(uispace)
-    LAPI_EMPTY(uifill)
-    LAPI_EMPTY(uiclip)
-    LAPI_EMPTY(uiscroll)
-    LAPI_EMPTY(uihscrollbar)
-    LAPI_EMPTY(uivscrollbar)
-    LAPI_EMPTY(uiscrollbutton)
-    LAPI_EMPTY(uihslider)
-    LAPI_EMPTY(uivslider)
-    LAPI_EMPTY(uisliderbutton)
-    LAPI_EMPTY(uioffset)
-    LAPI_EMPTY(uibutton)
-    LAPI_EMPTY(uicond)
-    LAPI_EMPTY(uicondbutton)
-    LAPI_EMPTY(uitoggle)
-    LAPI_EMPTY(uiimage)
-    LAPI_EMPTY(uislotview)
-    LAPI_EMPTY(uialtimage)
-    LAPI_EMPTY(uicolor)
-    LAPI_EMPTY(uimodcolor)
-    LAPI_EMPTY(uistretchedimage)
-    LAPI_EMPTY(uicroppedimage)
-    LAPI_EMPTY(uiborderedimage)
-    LAPI_EMPTY(uilabel)
-    LAPI_EMPTY(uifunlabel)
-    LAPI_EMPTY(uitexteditor)
-    LAPI_EMPTY(uifield)
-    LAPI_EMPTY(applychanges)
-    LAPI_EMPTY(clearchanges)
-    LAPI_EMPTY(getchanges)
+    LAPI_EMPTY(pushclip)
+    LAPI_EMPTY(popclip)
+    LAPI_EMPTY(isfullyclipped)
+    LAPI_EMPTY(draw_ui)
 #endif
 
     void reg_gui(lua::Table& t)
@@ -203,47 +183,12 @@ namespace lapi_binds
         LAPI_REG(fontchar);
         LAPI_REG(fontskip);
         LAPI_REG(fontalias);
+        LAPI_REG(draw_text);
+        LAPI_REG(draw_rect);
         LAPI_REG(menukeyclicktrig);
-
-        LAPI_REG(hideui);
-        LAPI_REG(showui);
-        LAPI_REG(replaceui);
-        LAPI_REG(uialign);
-        LAPI_REG(uiclamp);
-        LAPI_REG(uiwinmover);
-        LAPI_REG(uitag);
-        LAPI_REG(uivlist);
-        LAPI_REG(uihlist);
-        LAPI_REG(uitable);
-        LAPI_REG(uispace);
-        LAPI_REG(uifill);
-        LAPI_REG(uiclip);
-        LAPI_REG(uiscroll);
-        LAPI_REG(uihscrollbar);
-        LAPI_REG(uivscrollbar);
-        LAPI_REG(uiscrollbutton);
-        LAPI_REG(uihslider);
-        LAPI_REG(uivslider);
-        LAPI_REG(uisliderbutton);
-        LAPI_REG(uioffset);
-        LAPI_REG(uibutton);
-        LAPI_REG(uicond);
-        LAPI_REG(uicondbutton);
-        LAPI_REG(uitoggle);
-        LAPI_REG(uiimage);
-        LAPI_REG(uislotview);
-        LAPI_REG(uialtimage);
-        LAPI_REG(uicolor);
-        LAPI_REG(uimodcolor);
-        LAPI_REG(uistretchedimage);
-        LAPI_REG(uicroppedimage);
-        LAPI_REG(uiborderedimage);
-        LAPI_REG(uilabel);
-        LAPI_REG(uifunlabel);
-        LAPI_REG(uitexteditor);
-        LAPI_REG(uifield);
-        LAPI_REG(applychanges);
-        LAPI_REG(clearchanges);
-        LAPI_REG(getchanges);
+        LAPI_REG(pushclip);
+        LAPI_REG(popclip);
+        LAPI_REG(isfullyclipped);
+        LAPI_REG(draw_ui);
     }
 }

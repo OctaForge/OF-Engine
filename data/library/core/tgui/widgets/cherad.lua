@@ -133,11 +133,11 @@ function resolutionbox(w, h)
         gui.align(-1, 0)
         gui.toggle(
             function()
-                return (scr_w == w and scr_h == h)
+                return (EVAR.scr_w == w and EVAR.scr_h == h)
             end,
             function()
-                _G["scr_w"] = w
-                _G["scr_h"] = h
+                EVAR["scr_w"] = w
+                EVAR["scr_h"] = h
             end,
             0, radio_base
         )

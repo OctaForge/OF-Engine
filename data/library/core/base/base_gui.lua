@@ -570,6 +570,8 @@ space = CAPI.uispace
 ]]
 fill = CAPI.uifill
 
+function_fill = CAPI.uifunfill
+
 --[[!
     Function: clip
     Creates a clipper object. Clipper works simillar as scroller

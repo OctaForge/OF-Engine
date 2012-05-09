@@ -13,6 +13,6 @@
         OctaForge standard library loader (GUI system).
 ]]
 
-log(DEBUG, ":::: Core GUI API.")
+log(DEBUG, ":::: Core UI implementation.")
 std    ["gui" ] = {}
---st1d.gui["core"] = require("std.gui.core")
+std.gui["core"] = require("std.gui.core")

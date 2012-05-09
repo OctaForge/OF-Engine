@@ -843,3 +843,6 @@ extern vector <editor*> editors;
 
 editor *currentfocus();
 editor *useeditor(const char *name, int mode, bool focus, const char *initval = NULL, bool password=false);
+
+void focuseditor (editor *e);
+void removeeditor(editor *e);

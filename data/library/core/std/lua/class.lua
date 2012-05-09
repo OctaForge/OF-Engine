@@ -21,7 +21,7 @@ local Object = {
 Object.__class_dict = {
     __init     = function() end,
     __tostring = function(self)
-        return string.format("Instance: %s", tostring(self.class.name))
+        return string.format("Complex instance: %s", tostring(self.class.name))
     end
 }
 
@@ -31,7 +31,7 @@ setmetatable(Object, {
     __index    = Object.__class_dict,
     __newindex = Object.__class_dict,
     __call     = Object.__new,
-    __tostring = function() return "Class: Object" end
+    __tostring = function() return "Complex class: Object" end
     
 })
 
@@ -106,7 +106,7 @@ Object.__sub_class = function(self, name)
             rawset(sub_dict, name, value)
         end,
         __tostring = function(obj)
-            return string.format("Class: %s", obj.name)
+            return string.format("Complex class: %s", obj.name)
         end,
         __call     = function(obj, ...)
             return self.__new(obj, ...)
@@ -114,6 +114,10 @@ Object.__sub_class = function(self, name)
     })
 
     sub_dict.__tostring = sup_dict.__tostring
+
+    for k, v in pairs(self) do if type(v) == "function" then
+        sub[k] = sup[k]
+    end end
 
     sub.__init = function(obj, ...)
         self.__init(obj, ...)
@@ -197,19 +201,17 @@ return {
         values etc. This one is optional.
 
         The third optional argument specifies name for the class. It's a
-        string. If the second argument (by default, the mixin table) is a
-        string, the actual mixin is assumed nil and is used as a name.
-        In that case, you don't specify this third argument.
+        string.
 
         (start code)
             -- empty named class
-            Foo = std.class.new(nil, "Foo")
+            Foo = std.class.new(nil, nil, "Foo")
 
             -- named class with mixin
             Bar = std.class.new(nil, { __init = function(self) end }, "Bar")
 
             -- named inherited class
-            Baz = std.class.new(Bar, "Baz")
+            Baz = std.class.new(Bar, nil, "Baz")
         (end)
 
         Inherited classes automatically call their parent constructors,
@@ -316,7 +318,7 @@ return {
                         end,
                         -- if they key is "bah", returns 5, otherwise
                         -- returns 10 (which applies only for the key "meh")
-                        function(key)
+                        function(self, key)
                             if key == "bah" then
                                 return 5
                             else
@@ -340,18 +342,17 @@ return {
         "define_setter". Both functions take an additional "value"
         argument, similarly to how "define_setter" callback does,
         but otherwise works as "define_global_getter".
+
+        Note that std.class is not compatible with the simple system provided
+        by the table module.
     ]]
     new = function(base, mixin, name)
         base = base or Object
 
         local obj = nil
 
-        if type(mixin) == "table" then
-            obj = base:__sub_class(name)
-            obj:mixin(mixin)
-        else
-            obj = base:__sub_class(mixin)
-        end
+        obj = base:__sub_class(name)
+        if mixin then obj:mixin(mixin) end
 
         return obj
     end
