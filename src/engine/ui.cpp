@@ -37,21 +37,6 @@ void removeeditor(editor *e)
 
 namespace gui
 {
-    struct Delayed_Update
-    {
-        lua::Function fun;
-
-        Delayed_Update() : fun(lua::Function()) {}
-        Delayed_Update(const Delayed_Update& d): fun(d.fun) {}
-
-        void schedule(lua::Function f) { fun = f; }
-
-        void run()
-        {
-            if (!fun.is_nil()) fun();
-        }
-    };
-
     VAR(uitogglehside, 1, 0, 0);
     VAR(uitogglevside, 1, 0, 0);
     // default size of text in terms of rows per screenful

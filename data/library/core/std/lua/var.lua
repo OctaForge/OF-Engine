@@ -82,7 +82,8 @@ EVAR = setmetatable({}, {
             return nil end
 
         EAPI["var_set_" .. (t == EAPI.VAR_I and
-            "i" or (t == EAPI.VAR_F and "f" or "s"))](name, value) end })
+            "i" or (t == EAPI.VAR_F and "f" or "s"))](name, value) end
+})
 
 return {
     reset        = reset,
@@ -95,4 +96,5 @@ return {
     exists       = exists,
     persist_vars = persist_vars,
     is_alias     = is_alias,
-    changed      = changed }
+    changed      = changed
+}

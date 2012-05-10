@@ -27,7 +27,8 @@ ffi.cdef [[
         BASE_LOG_WARNING,
         BASE_LOG_ERROR,
         BASE_LOG_INIT,
-        BASE_LOG_OFF };
+        BASE_LOG_OFF
+    };
 
     void base_log (int level, const char *msg);
     void base_echo(const char *msg);
@@ -41,14 +42,16 @@ if CLIENT then ffi.cdef [[
 
     enum {
         BASE_CHANGE_GFX   = 1 << 0,
-        BASE_CHANGE_SOUND = 1 << 1 }; ]] end
+        BASE_CHANGE_SOUND = 1 << 1
+    }; ]] end
 
 ffi.cdef [[
     enum {
         VAR_N = -1,
         VAR_I =  0,
         VAR_F =  1,
-        VAR_S =  2 };
+        VAR_S =  2
+    };
 
     void var_reset(const char *name);
 
@@ -94,13 +97,15 @@ if CLIENT then ffi.cdef [[
         INPUT_MOD_RMETA  = 0x0800,
         INPUT_MOD_NUM    = 0x1000,
         INPUT_MOD_CAPS   = 0x2000,
-        INPUT_MOD_MODE   = 0x4000 };
+        INPUT_MOD_MODE   = 0x4000
+    };
 
     enum {
         INPUT_MOD_CTRL  = INPUT_MOD_LCTRL  | INPUT_MOD_RCTRL,
         INPUT_MOD_SHIFT = INPUT_MOD_LSHIFT | INPUT_MOD_RSHIFT,
         INPUT_MOD_ALT   = INPUT_MOD_LALT   | INPUT_MOD_RALT,
-        INPUT_MOD_META  = INPUT_MOD_LMETA  | INPUT_MOD_RMETA };
+        INPUT_MOD_META  = INPUT_MOD_LMETA  | INPUT_MOD_RMETA
+    };
 
     enum {
         INPUT_KEY_MOUSE1 = -1,
@@ -242,15 +247,18 @@ if CLIENT then ffi.cdef [[
         INPUT_KEY_PRINT = 316,
         INPUT_KEY_SYSREQ = 317,
         INPUT_KEY_BREAK = 318,
-        INPUT_KEY_MENU = 319 };
+        INPUT_KEY_MENU = 319
+    };
 
     int input_get_modifier_state();
 
     typedef struct TB_Result {
-        int width, height; } TB_Result;
+        int width, height;
+    } TB_Result;
 
     typedef struct TB_Resultf {
-        float width, height; } TB_Resultf;
+        float width, height;
+    } TB_Resultf;
 
     TB_Result  gui_text_bounds  (const char *str, int maxw);
     TB_Resultf gui_text_bounds_f(const char *str, int maxw); ]] end

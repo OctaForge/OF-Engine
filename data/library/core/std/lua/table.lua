@@ -137,7 +137,8 @@ local Object = {
         local ret = setmetatable({}, { 
             __index    = self,
             __tostring = self.__tostring or function(self)
-                return ("Instance: %s"):format(self.name or "<UNNAMED>") end })
+                return ("Instance: %s"):format(self.name or "<UNNAMED>") end
+        })
 
         if  self.__init then
             self.__init(ret, ...) end
@@ -145,7 +146,8 @@ local Object = {
         return ret end,
 
     __tostring = function(self)
-        return ("Class: %s"):format(self.name or "<UNNAMED>") end }
+        return ("Class: %s"):format(self.name or "<UNNAMED>") end
+}
 
 --[[! Function: table.classify
     Makes any table a class. These classes are very simple and don't have
@@ -173,7 +175,8 @@ table.subclass = function(base, new, name)
     return setmetatable(new, {
         __index    = base,
         __call     = Object.__call,
-        __tostring = Object.__tostring }) end
+        __tostring = Object.__tostring
+    }) end
 
 --[[! Function: table.is_a
     Returns true if an object given by the first argument is an instance

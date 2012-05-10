@@ -49,7 +49,8 @@ return {
         self._sig_next_id = self._sig_next_id + 1
 
         table.insert(self._sig_connections, {
-            id = id, name = name, callback = callback })
+            id = id, name = name, callback = callback
+        })
 
         return id end,
 
@@ -124,4 +125,5 @@ return {
         (end)
     ]]
     add_post_emit_event = function(event)
-        table.insert(post_emit_queue, event) end }
+        table.insert(post_emit_queue, event) end
+}

@@ -21,11 +21,8 @@ return {
     match = function(val, ...)
         for k, v in pairs({ ... }) do
             if val == v then
-                return true
-            end
-        end
-        return false
-    end,
+                return true end end
+        return false end,
 
     --[[! Function: switch
         Implements switch, a type of conditional statement known from various
@@ -36,46 +33,36 @@ return {
             switch(i,
                 -- match one value
                 case(5, function()
-                    print("hello")
-                end),
+                    print("hello") end),
                 -- match multiple values
                 case({ 6, 8 }, function()
-                    print("something")
-                end),
+                    print("something") end),
                 -- no match, must always be last
                 default(function()
-                    print("default")
-                end)
-            )
+                    print("default") end))
         (end)
     ]]
     switch = function(expr, ...)
         local m = function(expr, t)
-            if type(t) ~= "table" then return (expr == t)
+            if type(t) ~= "table" then
+                return (expr == t)
             else for k, v in pairs(t) do
-                if v == expr then return true end
-            end end
-            return false
-        end
+                if v == expr then return true end end end
+            return false end
 
         for k, v in pairs({ ... }) do
             if not v[1] or m(expr, v[1]) then
-                return v[2]()
-            end
-        end
-    end,
+                return v[2]() end end end,
 
     --[[! Function: case
         Helper function for <switch>.
     ]]
     case = function(val, fun)
-        return { val, fun }
-    end,
+        return { val, fun } end,
 
     --[[! Function: default
         Helper function for <switch>.
     ]]
     default = function(fun)
-        return { nil, fun }
-    end
+        return { nil, fun } end
 }
