@@ -3,7 +3,7 @@ OctaForge
 
 This is OctaForge developer alpha 10 (0.1.9, 27 December 2011)
 
-In sync with Cube 2 / Sauerbraten revision: 3913
+In sync with Cube 2 / Sauerbraten revision: 4090
 
 For installation, read INSTALL.
 To run it, launch run_client.sh on *nix
