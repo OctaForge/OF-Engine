@@ -9,7 +9,7 @@ cd ${path_only}
 os=$(uname -s)
 arch=$(uname -m)
 
-PARAMS="-q${HOME}/.octaforge_client -r"
+PARAMS="-q${HOME}/.octaforge_client"
 PREFIX="./bin_unix"
 if [ -x ${PREFIX}/OF_Client_${os}-${arch} ]; then
     ${PREFIX}/OF_Client_${os}-${arch} ${PARAMS} $@

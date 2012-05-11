@@ -294,7 +294,7 @@ void mapmodelreset(int n)
     mapmodels.shrink(clamp(n, 0, mapmodels.length())); 
 }
 
-mapmodelinfo &getmminfo(int i) { return /*mapmodels.inrange(i) ? mapmodels[i] :*/ *(mapmodelinfo *)0; } // INTENSITY
+mapmodelinfo *getmminfo(int i) { return /*mapmodels.inrange(i) ? &mapmodels[i] :*/ NULL; } // INTENSITY
 const char *mapmodelname(int i) { return /*mapmodels.inrange(i) ? mapmodels[i].name :*/ NULL; } // INTENSITY
 
 // model registry

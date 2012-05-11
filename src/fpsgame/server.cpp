@@ -590,6 +590,11 @@ namespace server
                 break;
             } 
 
+            /* TODO: expose this */
+            case N_SERVCMD:
+                getstring(text, p);
+                break;
+
             case -1:
                 disconnect_client(sender, DISC_TAGT);
                 return;

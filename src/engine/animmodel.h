@@ -456,7 +456,7 @@ struct animmodel : model
                 u.mul(v1).sub(vec(e1).mul(v2));
                 v.mul(u1).sub(vec(e1).mul(u2));
 
-                if(vec().cross(e2, e1).dot(vec().cross(v, u)) < 0)
+                if(vec().cross(e2, e1).dot(vec().cross(v, u)) >= 0)
                 {
                     u.neg();
                     v.neg();
@@ -470,7 +470,7 @@ struct animmodel : model
 
                 loopj(3)
                 {
-                    tangent[t.vert[j]].add(u);
+                    tangent[t.vert[j]].sub(u);
                     bitangent[t.vert[j]].add(v);
                 }
             }

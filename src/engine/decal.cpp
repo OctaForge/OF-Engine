@@ -382,15 +382,20 @@ struct decalrenderer
         vec planes[2];
         if(mat)
         {
-            vec vo = o.tovec(), scale;
-            int dim = dimension(orient), dc = dimcoord(orient), c = C[dim], r = R[dim];
-            vo[dim] += dc ? -0.1f : 0.1f;
-            scale[c] = mat->csize/8.0f;
-            scale[r] = mat->rsize/8.0f;
-            scale[dim] = 0;
-            loopk(4) pos[numverts++] = facecoords[orient][k].tovec().mul(scale).add(vo);
             planes[0] = vec(0, 0, 0);
-            planes[0][dim] = dc ? 1 : -1;
+            switch(orient)
+            {
+            #define GENFACEORIENT(orient, v0, v1, v2, v3) \
+                case orient: \
+                    planes[0][dimension(orient)] = dimcoord(orient) ? 1 : -1; \
+                    v0 v1 v2 v3 \
+                    break;
+            #define GENFACEVERT(orient, vert, x,y,z, xv,yv,zv) \
+                    pos[numverts++] = vec(x xv, y yv, z zv);
+                GENFACEVERTS(o.x, o.x, o.y, o.y, o.z, o.z, , + mat->csize, , + mat->rsize, + 0.1f, - 0.1f);
+            #undef GENFACEORIENT
+            #undef GENFACEVERT 
+            }
         }
         else if(cu.texture[orient] == DEFAULT_SKY) return;
         else if(cu.ext && (numverts = cu.ext->surfaces[orient].numverts&MAXFACEVERTS))

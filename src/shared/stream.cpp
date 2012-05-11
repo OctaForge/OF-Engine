@@ -142,42 +142,35 @@ decode:
 int encodeutf8(uchar *dstbuf, int dstlen, uchar *srcbuf, int srclen, int *carry)
 {
     uchar *dst = dstbuf, *dstend = &dstbuf[dstlen], *src = srcbuf, *srcend = &srcbuf[srclen];
-    for(uchar *end4 = &srcbuf[min(srclen, dstlen)&~3]; src < end4; src += 4, dst += 4)
+    if(src < srcend && dst < dstend) do
     {
-        int c = *(int *)src;
-        if(c & 0x80808080) goto encode;
-        *(int *)dst = c;
-    }
-
-encode:
-    while((srclen = srcend - src) > 0 && (dstlen = dstend - dst) > 0)
-    {
-        int c;
-        for(uchar *end = &src[min(srclen, dstlen)]; !((c = *src) & 0x80);)
+        int uni = cube2uni(*src);
+        if(uni <= 0x7F)
         {
-            *dst++ = c;
-            if(++src >= end) goto done;
+            if(dst >= dstend) goto done;
+            uchar *end = min(srcend, &src[dstend-dst]);
+            do 
+            { 
+                *dst++ = uni; 
+                if(++src >= end) goto done; 
+                uni = cube2uni(*src); 
+            } 
+            while(uni <= 0x7F);
         }
-        while(c & 0x80)
-        {
-            int uni = cube2uni(c);
-            if(uni <= 0x7F) { if(dstlen < 1) goto done; *dst++ = uni; goto uni1; }
-            else if(uni <= 0x7FF) { if(dstlen < 2) goto done; *dst++ = 0xC0 | (uni>>6); goto uni2; }
-            else if(uni <= 0xFFFF) { if(dstlen < 3) goto done; *dst++ = 0xE0 | (uni>>12); goto uni3; }
-            else if(uni <= 0x1FFFFF) { if(dstlen < 4) goto done; *dst++ = 0xF0 | (uni>>18); goto uni4; }
-            else if(uni <= 0x3FFFFFF) { if(dstlen < 5) goto done; *dst++ = 0xF8 | (uni>>24); goto uni5; }
-            else if(uni <= 0x7FFFFFFF) { if(dstlen < 6) goto done; *dst++ = 0xFC | (uni>>30); goto uni6; }
-            else goto uni1;
-        uni6: *dst++ = 0x80 | ((uni>>24)&0x3F);
-        uni5: *dst++ = 0x80 | ((uni>>18)&0x3F);
-        uni4: *dst++ = 0x80 | ((uni>>12)&0x3F);
-        uni3: *dst++ = 0x80 | ((uni>>6)&0x3F);
-        uni2: *dst++ = 0x80 | (uni&0x3F);
-        uni1: 
-            if(++src >= srcend) goto done; 
-            c = *src;
-        }
-    }
+        if(uni <= 0x7FF) { if(dst + 2 > dstend) goto done; *dst++ = 0xC0 | (uni>>6); goto uni2; }
+        else if(uni <= 0xFFFF) { if(dst + 3 > dstend) goto done; *dst++ = 0xE0 | (uni>>12); goto uni3; }
+        else if(uni <= 0x1FFFFF) { if(dst + 4 > dstend) goto done; *dst++ = 0xF0 | (uni>>18); goto uni4; }
+        else if(uni <= 0x3FFFFFF) { if(dst + 5 > dstend) goto done; *dst++ = 0xF8 | (uni>>24); goto uni5; }
+        else if(uni <= 0x7FFFFFFF) { if(dst + 6 > dstend) goto done; *dst++ = 0xFC | (uni>>30); goto uni6; }
+        else goto uni1;
+    uni6: *dst++ = 0x80 | ((uni>>24)&0x3F);
+    uni5: *dst++ = 0x80 | ((uni>>18)&0x3F);
+    uni4: *dst++ = 0x80 | ((uni>>12)&0x3F);
+    uni3: *dst++ = 0x80 | ((uni>>6)&0x3F);
+    uni2: *dst++ = 0x80 | (uni&0x3F);
+    uni1:;
+    } 
+    while(++src < srcend);
 
 done:
     if(carry) *carry += src - srcbuf;
@@ -196,7 +189,12 @@ done:
 #endif
 
 string homedir = "";
-vector<char *> packagedirs;
+struct packagedir
+{
+    char *dir, *filter;
+    int dirlen, filterlen;
+};
+vector<packagedir> packagedirs;
 
 char *makerelpath(const char *dir, const char *file, const char *prefix, const char *cmd)
 {
@@ -238,7 +236,7 @@ char *path(char *s)
             curpart = file+1;
         }
         for(char *t = curpart; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
-        for(char *prevdir = NULL, *curdir = s;;)
+        for(char *prevdir = NULL, *curdir = curpart;;)
         {
             prevdir = curdir[0]==PATHDIV ? curdir+1 : curdir;
             curdir = strchr(prevdir, PATHDIV);
@@ -357,7 +355,21 @@ const char *addpackagedir(const char *dir)
     string pdir;
     copystring(pdir, dir);
     if(!subhomedir(pdir, sizeof(pdir), dir) || !fixpackagedir(pdir)) return NULL;
-    return packagedirs.add(newstring(pdir));
+    char *filter = pdir;
+    for(;;)
+    {
+        static int len = strlen("packages");
+        filter = strstr(filter, "packages");
+        if(!filter) break;
+        if(filter > pdir && filter[-1] == PATHDIV && filter[len] == PATHDIV) break;
+        filter += len;
+    }    
+    packagedir &pf = packagedirs.add();
+    pf.dir = filter ? newstring(pdir, filter-pdir) : newstring(pdir);
+    pf.dirlen = filter ? filter-pdir : strlen(pdir);
+    pf.filter = filter ? newstring(filter) : NULL;
+    pf.filterlen = filter ? strlen(filter) : 0;
+    return pf.dir;
 }
 
 const char *findfile(const char *filename, const char *mode)
@@ -385,7 +397,9 @@ const char *findfile(const char *filename, const char *mode)
     if(mode[0]=='w' || mode[0]=='a') return filename;
     loopv(packagedirs)
     {
-        formatstring(s)("%s%s", packagedirs[i], filename);
+        packagedir &pf = packagedirs[i];
+        if(pf.filter && strncmp(filename, pf.filter, pf.filterlen)) continue;
+        formatstring(s)("%s%s", pf.dir, filename);
         if(fileexists(s, mode)) return s;
     }
     return filename;
@@ -444,7 +458,14 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files)
     }
     loopv(packagedirs)
     {
-        formatstring(s)("%s%s", packagedirs[i], dir);
+        packagedir &pf = packagedirs[i];
+        if(pf.filter)
+        {
+            int dirlen = strlen(dir);
+            if(strncmp(dir, pf.filter, dirlen == pf.filterlen-1 ? dirlen : pf.filterlen))
+                continue;
+        }
+        formatstring(s)("%s%s", pf.dir, dir);
         if(listdir(s, false, ext, files)) dirs++;
     }
 #ifndef STANDALONE
@@ -802,6 +823,7 @@ struct gzstream : stream
 
     bool end() { return !reading && !writing; }
     offset tell() { return reading ? zfile.total_out : (writing ? zfile.total_in : -1); }
+    offset rawtell() { return file ? file->tell() : -1; }
 
     bool seek(offset pos, int whence)
     {

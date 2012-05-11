@@ -1158,6 +1158,16 @@ struct bvec
 
     vec tovec() const { return vec(x*(2.0f/255.0f)-1.0f, y*(2.0f/255.0f)-1.0f, z*(2.0f/255.0f)-1.0f); }
 
+    bvec &normalize()
+    {
+        vec n(x-127.5f, y-127.5f, z-127.5f);
+        float mag = 127.5f/n.magnitude();
+        x = uchar(n.x*mag+127.5f);
+        y = uchar(n.y*mag+127.5f);
+        z = uchar(n.z*mag+127.5f);
+        return *this;
+    }
+
     void lerp(const bvec &a, const bvec &b, float t) { x = uchar(a.x + (b.x-a.x)*t); y = uchar(a.y + (b.y-a.y)*t); z = uchar(a.z + (b.z-a.z)*t); }
 
     void flip() { x -= 128; y -= 128; z -= 128; }

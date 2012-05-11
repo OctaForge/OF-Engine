@@ -951,8 +951,8 @@ void texnormal(ImageData &s, int emphasis)
     s.replace(d);
 }
 
-template<int n, int bpp>
-static void blurtexture(int w, int h, uchar *dst, const uchar *src)
+template<int n, int bpp, bool normals>
+static void blurtexture(int w, int h, uchar *dst, const uchar *src, int margin)
 {
     static const int matrix3x3[9] =
     {
@@ -975,22 +975,23 @@ static void blurtexture(int w, int h, uchar *dst, const uchar *src)
         startoffset = n*bpp,
         nextoffset1 = stride + mstride*bpp,
         nextoffset2 = stride - mstride*bpp;
-    loop(y, h) loop(x, w)
+    src += margin*(stride + bpp);
+    for(int y = margin; y < h-margin; y++)
     {
-        loopk(3)
+        for(int x = margin; x < w-margin; x++)
         {
-            int val = 0;
+            int dr = 0, dg = 0, db = 0;
             const uchar *p = src - startoffset;
             const int *m = mat + mstartoffset;
             for(int t = y; t >= y-n; t--, p -= nextoffset1, m -= mstride)
             {
                 if(t < 0) p += stride;
                 int a = 0;
-                if(n > 1) { a += m[-2]; if(x >= 2) { val += *p * a; a = 0; } p += bpp; }
-                a += m[-1]; if(x >= 1) { val += *p * a; a = 0; } p += bpp;
-                int c = *p; val += c * (a + m[0]); p += bpp;
-                if(x+1 < w) c = *p; val += c * m[1]; p += bpp;
-                if(n > 1) { if(x+2 < w) c = *p; val += c * m[2]; p += bpp; }
+                if(n > 1) { a += m[-2]; if(x >= 2) { dr += p[0] * a; dg += p[1] * a; db += p[2] * a; a = 0; } p += bpp; }
+                a += m[-1]; if(x >= 1) { dr += p[0] * a; dg += p[1] * a; db += p[2] * a; a = 0; } p += bpp;
+                int cr = p[0], cg = p[1], cb = p[2]; a += m[0]; dr += cr * a; dg += cg * a; db += cb * a; p += bpp;
+                if(x+1 < w) { cr = p[0]; cg = p[1]; cb = p[2]; } dr += cr * m[1]; dg += cg * m[1]; db += cb * m[1]; p += bpp;
+                if(n > 1) { if(x+2 < w) { cr = p[0]; cg = p[1]; cb = p[2]; } dr += cr * m[2]; dg += cg * m[2]; db += cb * m[2]; p += bpp; }
             }
             p = src - startoffset + stride;
             m = mat + mstartoffset + mstride;
@@ -998,27 +999,51 @@ static void blurtexture(int w, int h, uchar *dst, const uchar *src)
             {
                 if(t >= h) p -= stride;
                 int a = 0;
-                if(n > 1) { a += m[-2]; if(x >= 2) { val += *p * a; a = 0; } p += bpp; }
-                a += m[-1]; if(x >= 1) { val += *p * a; a = 0; } p += bpp;
-                int c = *p; val += c * (a + m[0]); p += bpp;
-                if(x+1 < w) c = *p; val += c * m[1]; p += bpp;
-                if(n > 1) { if(x+2 < w) c = *p; val += c * m[2]; p += bpp; }
+                if(n > 1) { a += m[-2]; if(x >= 2) { dr += p[0] * a; dg += p[1] * a; db += p[2] * a; a = 0; } p += bpp; }
+                a += m[-1]; if(x >= 1) { dr += p[0] * a; dg += p[1] * a; db += p[2] * a; a = 0; } p += bpp;
+                int cr = p[0], cg = p[1], cb = p[2]; a += m[0]; dr += cr * a; dg += cg * a; db += cb * a; p += bpp;
+                if(x+1 < w) { cr = p[0]; cg = p[1]; cb = p[2]; } dr += cr * m[1]; dg += cg * m[1]; db += cb * m[1]; p += bpp;
+                if(n > 1) { if(x+2 < w) { cr = p[0]; cg = p[1]; cb = p[2]; } dr += cr * m[2]; dg += cg * m[2]; db += cb * m[2]; p += bpp; }
             }
-            *dst++ = val>>8;
-            src++;
+            if(normals)
+            {
+                vec v(dr-0x7F80, dg-0x7F80, db-0x7F80);
+                float mag = 127.5f/v.magnitude();
+                dst[0] = uchar(v.x*mag + 127.5f);
+                dst[1] = uchar(v.y*mag + 127.5f);
+                dst[2] = uchar(v.z*mag + 127.5f);
+            }
+            else 
+            {
+                dst[0] = dr>>8;
+                dst[1] = dg>>8;
+                dst[2] = db>>8;
+            }
+            if(bpp > 3) dst[3] = src[3];
+            dst += bpp;
+            src += bpp;
         }
-        if(bpp > 3) *dst++ = *src++;
+        src += 2*margin*bpp;
     }
 }
 
-void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src)
+void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src, int margin)
 {
     switch((clamp(n, 1, 2)<<4) | bpp)
     {
-        case 0x13: blurtexture<1, 3>(w, h, dst, src); break;
-        case 0x23: blurtexture<2, 3>(w, h, dst, src); break;
-        case 0x14: blurtexture<1, 4>(w, h, dst, src); break;
-        case 0x24: blurtexture<2, 4>(w, h, dst, src); break;
+        case 0x13: blurtexture<1, 3, false>(w, h, dst, src, margin); break;
+        case 0x23: blurtexture<2, 3, false>(w, h, dst, src, margin); break;
+        case 0x14: blurtexture<1, 4, false>(w, h, dst, src, margin); break;
+        case 0x24: blurtexture<2, 4, false>(w, h, dst, src, margin); break;
+    }
+}
+
+void blurnormals(int n, int w, int h, bvec *dst, const bvec *src, int margin)
+{
+    switch(clamp(n, 1, 2))
+    {
+        case 1: blurtexture<1, 3, true>(w, h, dst->v, src->v, margin); break;
+        case 2: blurtexture<2, 3, true>(w, h, dst->v, src->v, margin); break;
     }
 }
  
@@ -2408,7 +2433,7 @@ void genenvmaps()
     loopv(envmaps)
     {
         envmap &em = envmaps[i];
-        em.tex = genenvmap(em.o, em.size ? em.size : envmapsize, em.blur);
+        em.tex = genenvmap(em.o, em.size ? min(em.size, envmapsize) : envmapsize, em.blur);
         if(renderedframe) continue;
         int millis = SDL_GetTicks();
         if(millis - lastprogress >= 250)

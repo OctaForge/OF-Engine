@@ -121,7 +121,7 @@ struct rendertarget
         {
             if(hasDT && hasSH)
             {
-                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
+                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
                 glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
                 glTexParameteri(target, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
             }

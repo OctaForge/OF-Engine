@@ -835,8 +835,15 @@ void attachent()
     groupedit(attachentity(ent));
 }
 
-extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3, int v4, int v5)
+extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3, int v4, int v5, int &idx)
 {
+    if(local)
+    {
+        idx = -1;
+        loopv(entities::storage) if(entities::storage[i]->type == ET_EMPTY) { idx = i; break; }
+        if(idx < 0 && entities::storage.length() >= MAXENTS) { conoutf("too many entities"); return NULL; }
+    }
+    else while(entities::storage.length() < idx) entities::storage.add(new extentity)->type = ET_EMPTY;
     extentity &e = *(new extentity);
     e.o = o;
     e.attr1 = v1;
@@ -864,20 +871,21 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
                     break;
         }
     }
+    if(entities::storage.inrange(idx)) entities::storage[idx] = &e;
+    else { idx = entities::storage.length(); entities::storage.add(&e); }
     return &e;
 }
 
 void newentity(int type, int a1, int a2, int a3, int a4, int a5)
 {
-    if(entities::storage.length() >= MAXENTS) { conoutf("too many entities"); return; }
-    extentity *t = newentity(true, player->o, type, a1, a2, a3, a4, a5);
+    int idx;
+    extentity *t = newentity(true, player->o, type, a1, a2, a3, a4, a5, idx);
+    if(!t) return;
     dropentity(*t);
-    entities::storage.add(t);
-    int i = entities::storage.length()-1;
     t->type = ET_EMPTY;
-    enttoggle(i);
+    enttoggle(idx);
     makeundoent();
-    entedit(i, ent.type = type);
+    entedit(idx, ent.type = type);
 }
 
 int entcopygrid;
@@ -941,12 +949,13 @@ void entset(char *what, int a1, int a2, int a3, int a4, int a5)
 {
     if(noentedit()) return;
     int type = findtype(what);
-    groupedit(ent.type=type;
-              ent.attr1=a1;
-              ent.attr2=a2;
-              ent.attr3=a3;
-              ent.attr4=a4;
-              ent.attr5=a5);
+    if(type != ET_EMPTY)
+        groupedit(ent.type=type;
+                  ent.attr1=a1;
+                  ent.attr2=a2;
+                  ent.attr3=a3;
+                  ent.attr4=a4;
+                  ent.attr5=a5);
 }
 
 void printent(extentity &e, char *buf)
@@ -1221,9 +1230,7 @@ void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, i
     if(i < 0 || i >= MAXENTS) return;
     if(entities::storage.length()<=i)
     {
-        while(entities::storage.length()<i) entities::storage.add(new extentity)->type = ET_EMPTY;
-        extentity *e = newentity(local, o, type, attr1, attr2, attr3, attr4, attr5);
-        entities::storage.add(e);
+        extentity *e = newentity(local, o, type, attr1, attr2, attr3, attr4, attr5, i);
         addentity(i);
         attachentity(*e);
     }

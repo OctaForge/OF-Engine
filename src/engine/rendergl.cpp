@@ -176,7 +176,7 @@ VAR(dbgexts, 0, 0, 1);
 bool hasext(const char *exts, const char *ext)
 {
     int len = strlen(ext);
-    for(const char *cur = exts; (cur = strstr(cur, ext)); cur += len)
+    if(len) for(const char *cur = exts; (cur = strstr(cur, ext)); cur += len)
     {
         if((cur == exts || cur[-1] == ' ') && (cur[len] == ' ' || !cur[len])) return true;
     }
@@ -197,6 +197,16 @@ void gl_checkextensions()
     int osversion = mac_osversion();  /* 0x1050 = 10.5 (Leopard) */
     sdl_backingstore_bug = -1;
 #endif
+
+    bool mesa = false, intel = false, ati = false, nvidia = false;
+    if(strstr(renderer, "Mesa") || strstr(version, "Mesa"))
+        mesa = true;
+    else if(strstr(vendor, "NVIDIA"))
+        nvidia = true;
+    else if(strstr(vendor, "ATI") || strstr(vendor, "Advanced Micro Devices"))
+        ati = true;
+    else if(strstr(vendor, "Intel"))
+        intel = true;
 
     //extern int shaderprecision;
     // default to low precision shaders on certain cards, can be overridden with -f3
@@ -322,7 +332,7 @@ void gl_checkextensions()
 
 #ifdef __APPLE__
     // Intel HD3000 broke occlusion queries - either causing software fallback, or returning wrong results
-    if(!strstr(vendor, "Intel"))
+    if(!intel)
 #endif	   
     if(hasext(exts, "GL_ARB_occlusion_query"))
     {
@@ -340,7 +350,7 @@ void gl_checkextensions()
             hasOQ = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_occlusion_query extension.");
 #if defined(__APPLE__) && SDL_BYTEORDER == SDL_BIG_ENDIAN
-            if(strstr(vendor, "ATI") && (osversion<0x1050)) ati_oq_bug = 1;
+            if(ati && (osversion<0x1050)) ati_oq_bug = 1;
 #endif
             //if(ati_oq_bug) conoutf(CON_WARN, "WARNING: Using ATI occlusion query bug workaround. (use \"/ati_oq_bug 0\" to disable if unnecessary)");
         }
@@ -353,7 +363,7 @@ void gl_checkextensions()
         waterreflect = 0;
     }
 
-    if(strstr(vendor, "ATI"))
+    if(ati)
     {
         //conoutf(CON_WARN, "WARNING: ATI cards may show garbage in skybox. (use \"/ati_skybox_bug 1\" to fix)");
 
@@ -364,7 +374,7 @@ void gl_checkextensions()
         emulatefog = 1;
         if(hasTF && hasNVFB) fpdepthfx = 1;
     }
-    else if(strstr(vendor, "NVIDIA"))
+    else if(nvidia)
     {
         reservevpparams = 10;
         rtsharefb = 0; // work-around for strange driver stalls involving when using many FBOs
@@ -379,7 +389,7 @@ void gl_checkextensions()
     else
     {
         extern int batchlightmaps, ffdynlights;
-        if(strstr(vendor, "Intel"))
+        if(intel)
         {
 #ifdef __APPLE__
             apple_vp_bug = 1;
@@ -416,8 +426,8 @@ void gl_checkextensions()
         glDisableVertexAttribArray_ = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC) getprocaddress("glDisableVertexAttribArrayARB");
         glVertexAttribPointer_ =      (PFNGLVERTEXATTRIBPOINTERARBPROC)      getprocaddress("glVertexAttribPointerARB");
 
-        if(strstr(vendor, "ATI")) ati_dph_bug = ati_line_bug = 1;
-        else if(strstr(vendor, "Tungsten")) mesa_program_bug = 1;
+        if(ati) ati_dph_bug = ati_line_bug = 1;
+        else if(mesa) mesa_program_bug = 1;
 
 #ifdef __APPLE__
         if(osversion>=0x1050) // fixed in 1055 for some hardware.. but not all..
@@ -502,7 +512,7 @@ void gl_checkextensions()
 
         useubo = 1;
         hasUBO = true;
-        if(strstr(vendor, "ATI")) ati_ubo_bug = 1;
+        if(ati) ati_ubo_bug = 1;
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_uniform_buffer_object extension.");
     }
     else if(hasext(exts, "GL_EXT_bindable_uniform"))
@@ -513,7 +523,7 @@ void gl_checkextensions()
 
         usebue = 1;
         hasBUE = true;
-        if(strstr(vendor, "ATI")) ati_ubo_bug = 1;
+        if(ati) ati_ubo_bug = 1;
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_bindable_uniform extension.");
     }
 
@@ -535,7 +545,7 @@ void gl_checkextensions()
     {
         glBlendEquation_ = (PFNGLBLENDEQUATIONEXTPROC) getprocaddress("glBlendEquationEXT");
         hasBE = true;
-        if(strstr(vendor, "ATI")) ati_minmax_bug = 1;
+        if(ati) ati_minmax_bug = 1;
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_blend_minmax extension.");
     }
 
@@ -560,7 +570,7 @@ void gl_checkextensions()
         hwcubetexsize = val;
         hasCM = true;
         // On Catalyst 10.2, issuing an occlusion query on the first draw using a given cubemap texture causes a nasty crash
-        if(strstr(vendor, "ATI")) ati_cubemap_bug = 1;
+        if(ati) ati_cubemap_bug = 1;
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_cube_map extension.");
     }
     else conoutf(CON_WARN, "WARNING: No cube map texture support. (no reflective glass)");
@@ -616,7 +626,7 @@ void gl_checkextensions()
     if(hasext(exts, "GL_ARB_shadow"))
     {
         hasSGISH = hasSH = true;
-        if(strstr(vendor, "NVIDIA") || strstr(renderer, "Radeon HD")) hasNVPCF = true;
+        if(nvidia || (ati && strstr(renderer, "Radeon HD"))) hasNVPCF = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_shadow extension.");
     }
     else if(hasext(exts, "GL_SGIX_shadow"))

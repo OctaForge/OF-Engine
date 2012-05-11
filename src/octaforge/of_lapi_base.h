@@ -14,6 +14,9 @@ void inputcommand(
 void history_(int n);
 void screenshot(char *filename);
 void movie(char *name);
+namespace recorder {
+    bool isrecording();
+}
 bool glext(const char *ext);
 void loadcrosshair_(const char *name, int *i);
 void scorebshow(bool on);
@@ -87,6 +90,11 @@ namespace lapi_binds
     {
         movie((char*)name);
     }
+    
+    bool _lua_isrecording()
+    {
+        return recorder::isrecording();
+    }
 
     void _lua_showscores()
     {
@@ -104,6 +112,7 @@ namespace lapi_binds
     LAPI_EMPTY(registersound)
     LAPI_EMPTY(screenshot)
     LAPI_EMPTY(movie)
+    LAPI_EMPTY(isrecording)
     LAPI_EMPTY(showscores)
 #endif
 
@@ -295,6 +304,7 @@ namespace lapi_binds
         LAPI_REG(getwallclock);
         LAPI_REG(screenshot);
         LAPI_REG(movie);
+        LAPI_REG(isrecording);
         LAPI_REG(showscores);
         LAPI_REG(writecfg);
         LAPI_REG(readfile);

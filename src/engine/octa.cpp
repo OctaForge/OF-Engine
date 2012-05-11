@@ -94,6 +94,7 @@ void freecubeext(cube &c)
 
 void discardchildren(cube &c, bool fixtex, int depth)
 {
+    c.material = MAT_AIR;
     c.visible = 0;
     c.collide = 0;
     c.merged = 0;
@@ -295,9 +296,7 @@ cube &neighbourcube(cube &c, int orient, int x, int y, int z, int size, ivec &ro
 int getmippedtexture(cube &p, int orient)
 {
     cube *c = p.children;
-    int d = dimension(orient);
-    int dc = dimcoord(orient);
-    int tex[4] = { -1, -1, -1, -1 };
+    int d = dimension(orient), dc = dimcoord(orient), texs[4] = { -1, -1, -1, -1 }, numtexs = 0;
     loop(x, 2) loop(y, 2)
     {
         int n = octaindex(d, x, y, dc);
@@ -307,10 +306,11 @@ int getmippedtexture(cube &p, int orient)
             if(isempty(c[n]))
                 continue;
         }
-        loopk(3) if(tex[k] == c[n].texture[orient]) return tex[k];
-        if(c[n].texture[orient] > DEFAULT_SKY) tex[x*2+y] = c[n].texture[orient];
+        int tex = c[n].texture[orient];
+        if(tex > DEFAULT_SKY) loopi(numtexs) if(texs[i] == tex) return tex;
+        texs[numtexs++] = tex;
     }
-    loopk(4) if(tex[k] > DEFAULT_SKY) return tex[k];
+    loopirev(numtexs) if(!i || texs[i] > DEFAULT_SKY) return texs[i];
     return DEFAULT_GEOM;
 }
 
@@ -336,10 +336,9 @@ void forcemip(cube &c, bool fixtex)
         c.texture[j] = getmippedtexture(c, j);
 }
 
-int midedge(const ivec &a, const ivec &b, int xd, int yd, bool &perfect)
+static int midedge(const ivec &a, const ivec &b, int xd, int yd, bool &perfect)
 {
-    int ax = a[xd], bx = b[xd];
-    int ay = a[yd], by = b[yd];
+    int ax = a[xd], ay = a[yd], bx = b[xd], by = b[yd];
     if(ay==by) return ay;
     if(ax==bx) { perfect = false; return ay; }
     bool crossx = (ax<8 && bx>8) || (ax>8 && bx<8);
@@ -354,6 +353,14 @@ int midedge(const ivec &a, const ivec &b, int xd, int yd, bool &perfect)
         (crossy && y!=8) ||
         (y<0 || y>16)) perfect = false;
     return crossy ? 8 : min(max(y, 0), 16);
+}
+
+static inline bool crosscenter(const ivec &a, const ivec &b, int xd, int yd)
+{
+    int ax = a[xd], ay = a[yd], bx = b[xd], by = b[yd];
+    return (((ax <= 8 && bx <= 8) || (ax >= 8 && bx >= 8)) &&
+            ((ay <= 8 && by <= 8) || (ay >= 8 && by >= 8))) ||
+           (ax + bx == 16 && ay + by == 16);
 }
 
 bool subdividecube(cube &c, bool fullcheck, bool brighten)
@@ -404,12 +411,12 @@ bool subdividecube(cube &c, bool fullcheck, bool brighten)
         if(z ? c1 > c2 : c1 < c2)
         {
             e[1][1] = c1;
-            perfect = p1 && (c1 == c2 || v00[C[d]] + v11[C[d]] == 16);
+            perfect = p1 && (c1 == c2 || crosscenter(v00, v11, C[d], R[d]));
         }
         else
         {
             e[1][1] = c2;
-            perfect = p2 && (c1 == c2 || v01[C[d]] + v10[C[d]] == 16);
+            perfect = p2 && (c1 == c2 || crosscenter(v01, v10, C[d], R[d]));
         }    
 
         loopi(8)
@@ -640,64 +647,53 @@ void edgespan2vectorcube(cube &c)
 
 const ivec cubecoords[8] = // verts of bounding cube
 {
-    ivec(8, 8, 0),
-    ivec(0, 8, 0),
-    ivec(0, 8, 8),
-    ivec(8, 8, 8),
-    ivec(8, 0, 8),
-    ivec(0, 0, 8),
-    ivec(0, 0, 0),
-    ivec(8, 0, 0),
+#define GENCUBEVERT(n, x, y, z) ivec(x, y, z),
+    GENCUBEVERTS(0, 8, 0, 8, 0, 8)
+#undef GENCUBEVERT 
 };
 
 template<class T>
-static inline void genfacevert(cube &c, int i, T &v)
+static inline void gencubevert(cube &c, int i, T &v)
 {
-#define GENFACEVERT(v, X, Y, Z) { \
-        v.x = edgeget(cubeedge(c, 0, Y, Z), X); \
-        v.y = edgeget(cubeedge(c, 1, Z, X), Y); \
-        v.z = edgeget(cubeedge(c, 2, X, Y), Z); \
-    }
     switch(i)
     {
-    case 0: GENFACEVERT(v, 1, 1, 0); break;
-    case 1: GENFACEVERT(v, 0, 1, 0); break;
-    case 2: GENFACEVERT(v, 0, 1, 1); break;
-    case 3: GENFACEVERT(v, 1, 1, 1); break;
-    case 4: GENFACEVERT(v, 1, 0, 1); break;
-    case 5: GENFACEVERT(v, 0, 0, 1); break;
-    case 6: GENFACEVERT(v, 0, 0, 0); break;
-    case 7: GENFACEVERT(v, 1, 0, 0); break;
+#define GENCUBEVERT(n, x, y, z) \
+        case n: \
+            v = T(edgeget(cubeedge(c, 0, y, z), x), \
+                  edgeget(cubeedge(c, 1, z, x), y), \
+                  edgeget(cubeedge(c, 2, x, y), z)); \
+            break;
+        GENCUBEVERTS(0, 1, 0, 1, 0, 1)
+#undef GENCUBEVERT
     }
 }
 
 void genfaceverts(cube &c, int orient, ivec v[4])
 {
-#define GENFACEVERTS(X0,Y0,Z0, X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3) { \
-        GENFACEVERT(v[0], X0, Y0, Z0); \
-        GENFACEVERT(v[1], X1, Y1, Z1); \
-        GENFACEVERT(v[2], X2, Y2, Z2); \
-        GENFACEVERT(v[3], X3, Y3, Z3); \
-    }
+
     switch(orient)
     {
-    case 0: GENFACEVERTS(0,1,1, 0,1,0, 0,0,0, 0,0,1); break;
-    case 1: GENFACEVERTS(1,1,1, 1,0,1, 1,0,0, 1,1,0); break;
-    case 2: GENFACEVERTS(1,0,1, 0,0,1, 0,0,0, 1,0,0); break;
-    case 3: GENFACEVERTS(0,1,0, 0,1,1, 1,1,1, 1,1,0); break;
-    case 4: GENFACEVERTS(0,0,0, 0,1,0, 1,1,0, 1,0,0); break;
-    case 5: GENFACEVERTS(0,0,1, 1,0,1, 1,1,1, 0,1,1); break;
+#define GENFACEORIENT(o, v0, v1, v2, v3) \
+        case o: v0 v1 v2 v3 break;
+#define GENFACEVERT(o, n, x,y,z, xv,yv,zv) \
+            v[n] = ivec(edgeget(cubeedge(c, 0, y, z), x), \
+                        edgeget(cubeedge(c, 1, z, x), y), \
+                        edgeget(cubeedge(c, 2, x, y), z));
+        GENFACEVERTS(0, 1, 0, 1, 0, 1, , , , , , )
+    #undef GENFACEORIENT
+    #undef GENFACEVERT
     }
 }
 
 const ivec facecoords[6][4] =
 {
-    { ivec(0,8,8), ivec(0,8,0), ivec(0,0,0), ivec(0,0,8) },
-    { ivec(8,8,8), ivec(8,0,8), ivec(8,0,0), ivec(8,8,0) },
-    { ivec(8,0,8), ivec(0,0,8), ivec(0,0,0), ivec(8,0,0) },
-    { ivec(0,8,0), ivec(0,8,8), ivec(8,8,8), ivec(8,8,0) },
-    { ivec(0,0,0), ivec(0,8,0), ivec(8,8,0), ivec(8,0,0) },
-    { ivec(0,0,8), ivec(8,0,8), ivec(8,8,8), ivec(0,8,8) },
+#define GENFACEORIENT(o, v0, v1, v2, v3) \
+    { v0, v1, v2, v3 },
+#define GENFACEVERT(o, n, x,y,z, xv,yv,zv) \
+        ivec(x,y,z)
+    GENFACEVERTS(0, 8, 0, 8, 0, 8, , , , , , )
+#undef GENFACEORIENT
+#undef GENFACEVERT
 };
 
 const uchar fv[6][4] = // indexes for cubecoords, per each vert of a face orientation
@@ -830,30 +826,49 @@ struct facevec
 
 static inline int genfacevecs(cube &cu, int orient, const ivec &pos, int size, bool solid, facevec *fvecs, const ivec *v = NULL)
 {
-    int dim = dimension(orient), coord = dimcoord(orient), c = C[dim], r = R[dim], touching = 0;
-    ivec buf[4];
+    int i = 0;
     if(solid)
     {
-        loopi(4)
+        switch(orient)
         {
-            const ivec &cc = facecoords[orient][coord ? i : 3-i];
-            fvecs[i] = facevec(cc[c]*size + (pos[c]<<3), cc[r]*size + (pos[r]<<3));
+        #define GENFACEORIENT(orient, v0, v1, v2, v3) \
+            case orient: \
+            { \
+                if(dimcoord(orient)) { v0 v1 v2 v3 } else { v3 v2 v1 v0 } \
+                break; \
+            }
+        #define GENFACEVERT(orient, vert, xv,yv,zv, x,y,z) \
+            { facevec &f = fvecs[i]; x ((xv)<<3); y ((yv)<<3); z ((zv)<<3); i++; }
+            GENFACEVERTS(pos.x, pos.x+size, pos.y, pos.y+size, pos.z, pos.z+size, f.x = , f.x = , f.y = , f.y = , (void), (void))
+        #undef GENFACEVERT
         }
         return 4;
     }
+    ivec buf[4];
     if(!v) { genfaceverts(cu, orient, buf); v = buf; }
     facevec prev(INT_MAX, INT_MAX);
-    loopi(4)
+    switch(orient)
     {
-        const ivec &cc = v[coord ? i : 3-i];
-        if(cc[dim] == coord*8)
-        {
-            fvecs[touching] = facevec(cc[c]*size + (pos[c]<<3), cc[r]*size + (pos[r]<<3));
-            if(fvecs[touching] != prev) prev = fvecs[touching++];
-        }
+    #define GENFACEVERT(orient, vert, sx,sy,sz, dx,dy,dz) \
+        { \
+            const ivec &e = v[vert]; \
+            ivec ef; \
+            ef.dx = e.sx; ef.dy = e.sy; ef.dz = e.sz; \
+            if(ef.z == dimcoord(orient)*8) \
+            { \
+                facevec &f = fvecs[i]; \
+                ivec pf; \
+                pf.dx = pos.sx; pf.dy = pos.sy; pf.dz = pos.sz; \
+                f = facevec(ef.x*size + (pf.x<<3), ef.y*size + (pf.y<<3)); \
+                if(f != prev) { prev = f; i++; } \
+            } \
+        } 
+        GENFACEVERTS(x, x, y, y, z, z, x, x, y, y, z, z)
+    #undef GENFACEORIENT
+    #undef GENFACEVERT
     }
-    if(fvecs[0] == prev) touching--;
-    return touching;
+    if(fvecs[0] == prev) i--;
+    return i;
 }
 
 static inline int clipfacevecy(const facevec &o, const facevec &dir, int cx, int cy, int size, facevec &r)
@@ -1131,7 +1146,7 @@ int visibletris(cube &c, int orient, int x, int y, int z, int size, uchar nmat, 
 
 void calcvert(cube &c, int x, int y, int z, int size, ivec &v, int i, bool solid)
 {
-    if(solid) v = cubecoords[i]; else genfacevert(c, i, v);
+    if(solid) v = cubecoords[i]; else gencubevert(c, i, v);
     // avoid overflow
     if(size>=8) v.mul(size/8);
     else v.div(8/size);
@@ -1140,7 +1155,7 @@ void calcvert(cube &c, int x, int y, int z, int size, ivec &v, int i, bool solid
 
 void calcvert(cube &c, int x, int y, int z, int size, vec &v, int i, bool solid)
 {
-    if(solid) v = cubecoords[i].tovec(); else genfacevert(c, i, v);
+    if(solid) v = cubecoords[i].tovec(); else gencubevert(c, i, v);
     v.mul(size/8.0f).add(vec(x, y, z));
 }
 

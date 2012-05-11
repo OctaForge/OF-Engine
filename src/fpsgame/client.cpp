@@ -467,25 +467,25 @@ namespace game
                 ivec moveo;
                 switch(type)
                 {
-                    case N_EDITF: dir = getint(p); mode = getint(p); mpeditface(dir, mode, sel, false); break;
+                    case N_EDITF: dir = getint(p); mode = getint(p); if(sel.validate()) mpeditface(dir, mode, sel, false); break;
                     case N_EDITT:
                         #ifdef CLIENT
-                            tex = getint(p); allfaces = getint(p); mpedittex(tex, allfaces, sel, false); break;
+                            tex = getint(p); allfaces = getint(p); if(sel.validate()) mpedittex(tex, allfaces, sel, false); break;
                         #else // SERVER
                             getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (a)\r\n"); break;
                         #endif
-                    case N_EDITM: mat = getint(p); filter = getint(p); mpeditmat(mat, filter, sel, false); break;
-                    case N_FLIP: mpflip(sel, false); break;
-                    case N_COPY: if(d) mpcopy(d->edit, sel, false); break;
-                    case N_PASTE: if(d) mppaste(d->edit, sel, false); break;
-                    case N_ROTATE: dir = getint(p); mprotate(dir, sel, false); break;
+                    case N_EDITM: mat = getint(p); filter = getint(p); if(sel.validate()) mpeditmat(mat, filter, sel, false); break;
+                    case N_FLIP: if(sel.validate()) mpflip(sel, false); break;
+                    case N_COPY: if(d && sel.validate()) mpcopy(d->edit, sel, false); break;
+                    case N_PASTE: if(d && sel.validate()) mppaste(d->edit, sel, false); break;
+                    case N_ROTATE: dir = getint(p); if(sel.validate()) mprotate(dir, sel, false); break;
                     case N_REPLACE:
                         #ifdef CLIENT
-                            tex = getint(p); newtex = getint(p); insel = getint(p); mpreplacetex(tex, newtex, insel>0, sel, false); break;
+                            tex = getint(p); newtex = getint(p); insel = getint(p); if(sel.validate()) mpreplacetex(tex, newtex, insel>0, sel, false); break;
                         #else // SERVER
                             getint(p); getint(p); logger::log(logger::DEBUG, "Server ignoring texture change (b)\r\n"); break;
                         #endif
-                    case N_DELCUBE: mpdelcube(sel, false); break;
+                    case N_DELCUBE: if(sel.validate())mpdelcube(sel, false); break;
                 }
                 break;
             }
@@ -518,6 +518,10 @@ assert(0);
                     needclipboard++;
                 break;
             }
+
+            case N_SERVCMD:
+                getstring(text, p);
+                break;
 
             default:
             {

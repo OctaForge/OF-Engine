@@ -957,6 +957,26 @@ void addreflection(materialsurface &m)
     if(waterrefract && !ref->refracttex) genwatertex(ref->refracttex, reflectionfb, reflectiondb, true);
 }
 
+static void drawmaterialquery(const materialsurface &m, float offset, float border = 0)
+{
+    if(varray::data.empty())
+    {
+        varray::defattrib(varray::ATTRIB_VERTEX, 3, GL_FLOAT);
+        varray::begin(GL_QUADS);
+    }
+    float x = m.o.x, y = m.o.y, z = m.o.z, csize = m.csize + border, rsize = m.rsize + border;
+    switch(m.orient)
+    {
+#define GENFACEORIENT(orient, v0, v1, v2, v3) \
+        case orient: v0 v1 v2 v3 break;
+#define GENFACEVERT(orient, vert, mx,my,mz, sx,sy,sz) \
+            varray::attrib<float>(mx sx, my sy, mz sz); 
+        GENFACEVERTS(x, x, y, y, z, z, - border, + csize, - border, + rsize, + offset, - offset)
+#undef GENFACEORIENT
+#undef GENFACEVERT
+    }
+}
+
 extern vtxarray *visibleva;
 extern void drawreflection(float z, bool refract);
 
@@ -985,7 +1005,7 @@ void queryreflection(Reflection &ref, bool init)
             if(fabs(m.o.z-offset - camera1->o.z) < 0.5f && m.depth > WATER_AMPLITUDE+1.5f)
                 offset += camera1->pitch > 0 ? -1 : 1;
         }
-        drawmaterial(m.orient, m.o.x, m.o.y, m.o.z, m.csize, m.rsize, offset);
+        drawmaterialquery(m, offset);
     }
     xtraverts += varray::end();
     endquery(ref.query);
@@ -1109,15 +1129,11 @@ void maskreflection(Reflection &ref, float offset, bool reflect, bool clear = fa
         glTranslatef(0, 0, 2*(ref.height+offset));
         glScalef(1, 1, -1);
     }
-    int border = maskreflect;
     varray::enable();
     loopv(ref.matsurfs)
     {
         materialsurface &m = *ref.matsurfs[i];
-        ivec o(m.o);
-        o[R[dimension(m.orient)]] -= border;
-        o[C[dimension(m.orient)]] -= border;
-        drawmaterial(m.orient, o.x, o.y, o.z, m.csize+2*border, m.rsize+2*border, -offset);
+        drawmaterialquery(m, -offset, maskreflect);
     }
     xtraverts += varray::end();
     varray::disable();

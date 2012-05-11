@@ -74,8 +74,8 @@ string.insert = function(str, idx, new)
     allows you to optionally set the environment of execution.
 
     (start code)
-        assert(([[hello @(return "farkin @(return 'world')")]]):eval_embedded()
-            == "hello farkin world")
+        assert((\[\[hello @(return "farkin @(return 'world')")\]\]
+            ):eval_embedded() == "hello farkin world")
     (end)
 
     Note that for simple expressions you don't need the "return" keyword:

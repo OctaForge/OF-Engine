@@ -576,7 +576,9 @@ void blockcopy(const block3 &s, int rgrid, block3 *b)
 
 block3 *blockcopy(const block3 &s, int rgrid)
 {
-    block3 *b = (block3 *)new uchar[sizeof(block3)+sizeof(cube)*s.size()];
+    int bsize = sizeof(block3)+sizeof(cube)*s.size();
+    if(bsize <= 0 || bsize > (100<<20)) return 0;
+    block3 *b = (block3 *)new uchar[bsize];
     blockcopy(s, rgrid, b);
     return b;
 }
@@ -689,6 +691,7 @@ undoblock *newundocube(selinfo &s)
     int ssize = s.size(),
         selgridsize = ssize*sizeof(int),
         blocksize = sizeof(block3)+ssize*sizeof(cube);
+    if(blocksize <= 0 || blocksize > (undomegs<<20)) return NULL;
     undoblock *u = (undoblock *)new uchar[sizeof(undoblock) + blocksize + selgridsize];
     u->numents = 0;
     block3 *b = (block3 *)(u + 1);
@@ -713,7 +716,7 @@ void makeundoex(selinfo &s)
 {
     if(nompedit && multiplayer(false)) return;
     undoblock *u = newundocube(s);
-    addundo(u);
+    if(u) addundo(u);
 }
 
 void makeundo()                        // stores state of selected cubes before editing
@@ -742,9 +745,12 @@ void swapundo(undolist &a, undolist &b, const char *s)
             l.orient = ub->orient;
             r = newundocube(l);
         }
-        r->size = u->size;
-        r->timestamp = totalmillis;
-        b.add(r);
+        if(r)
+        {
+            r->size = u->size;
+            r->timestamp = totalmillis;
+            b.add(r);
+        }
         pasteundo(u);
         if(!u->numents) changed(l, false);
         freeundo(u);
@@ -783,7 +789,7 @@ static void packcube(cube &c, vector<uchar> &buf)
 
 static bool packeditinfo(editinfo *e, vector<uchar> &buf)
 {
-    if(!e || !e->copy || e->copy->size() > (16<<20)) return false;
+    if(!e || !e->copy || e->copy->size() <= 0 || e->copy->size() > (1<<20)) return false;
     block3 &b = *e->copy;
     block3 hdr = b; 
     lilswap(hdr.o.v, 3);
@@ -823,7 +829,7 @@ static bool unpackeditinfo(editinfo *&e, ucharbuf &buf)
     lilswap(hdr.s.v, 3);
     lilswap(&hdr.grid, 1);
     lilswap(&hdr.orient, 1);
-    if(hdr.size() > (16<<20)) return false;
+    if(hdr.size() > (1<<20)) return false;
     e->copy = (block3 *)new uchar[sizeof(block3)+hdr.size()*sizeof(cube)];
     block3 &b = *e->copy;
     b = hdr; 
@@ -896,7 +902,7 @@ void freeeditinfo(editinfo *&e)
 }
 
 // guard against subdivision
-#define protectsel(f) { undoblock *_u = newundocube(sel); f; pasteundo(_u); freeundo(_u); }
+#define protectsel(f) { undoblock *_u = newundocube(sel); f; if(_u) { pasteundo(_u); freeundo(_u); } }
 
 void mpcopy(editinfo *&e, selinfo &sel, bool local)
 {
@@ -918,7 +924,7 @@ void mppaste(editinfo *&e, selinfo &sel, bool local)
         int o = sel.orient;
         sel.orient = e->copy->orient;
         cube *s = e->copy->c();
-        loopselxyz(if (!isempty(*s) || s->children) pastecube(*s, c); s++); // 'transparent'. old opaque by 'delcube; paste'
+        loopselxyz(if(!isempty(*s) || s->children || s->material != MAT_AIR) pastecube(*s, c); s++); // 'transparent'. old opaque by 'delcube; paste'
         sel.orient = o;
     }
 }

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <limits.h>
-#include <png.h>
+#include <zlib.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_STROKER_H
@@ -16,7 +16,7 @@ typedef unsigned int uint;
 int imin(int a, int b) { return a < b ? a : b; }
 int imax(int a, int b) { return a > b ? a : b; }
 
-void fatal(const char *fmt, ...)    // failure exit
+void fatal(const char *fmt, ...)
 {
     va_list v;
     va_start(v, fmt);
@@ -27,34 +27,133 @@ void fatal(const char *fmt, ...)    // failure exit
     exit(EXIT_FAILURE);
 }
 
-void savepng(uchar *pixels, int w, int h, const char *name)
+uint bigswap(uint n)
 {
-    FILE *f = fopen(name, "wb");
-    int y;
-    png_structp p;
-    png_infop i;
-    if(!f) goto failed;
-    p = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if(!p) goto failed;
-    i = png_create_info_struct(p);
-    if(!i) goto failed;
-    if(!setjmp(png_jmpbuf(p)))
+    const int islittleendian = 1;
+    return *(const uchar *)&islittleendian ? (n<<24) | (n>>24) | ((n>>8)&0xFF00) | ((n<<8)&0xFF0000) : n;
+}
+
+size_t writebig(FILE *f, uint n)
+{
+    n = bigswap(n);
+    return fwrite(&n, 1, sizeof(n), f);
+}
+
+void writepngchunk(FILE *f, const char *type, uchar *data, uint len)
+{
+    uint crc;
+    writebig(f, len);
+    fwrite(type, 1, 4, f);
+    fwrite(data, 1, len, f);
+
+    crc = crc32(0, Z_NULL, 0);
+    crc = crc32(crc, (const Bytef *)type, 4);
+    if(data) crc = crc32(crc, data, len);
+    writebig(f, crc);
+}
+
+struct pngihdr
+{
+    uint width, height;
+    uchar bitdepth, colortype, compress, filter, interlace;
+};
+
+void savepng(const char *filename, uchar *data, int w, int h, int bpp, int flip)
+{
+    const uchar signature[] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+    struct pngihdr ihdr;
+    FILE *f;
+    long idat;
+    uint len, crc;
+    z_stream z;
+    uchar buf[1<<12];
+    int i, j;
+
+    memset(&ihdr, 0, sizeof(ihdr));
+    ihdr.width = bigswap(w);
+    ihdr.height = bigswap(h);
+    ihdr.bitdepth = 8;
+    switch(bpp)
     {
-        png_init_io(p, f);
-        png_set_compression_level(p, 9);
-        png_set_IHDR(p, i, w, h, 8, PNG_COLOR_TYPE_GRAY_ALPHA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-        png_write_info(p, i);
-        for(y = 0; y < h; y++)
-        {
-            png_write_row(p, &pixels[y*w*2]);
-        }
-        png_write_end(p, NULL);
-        png_destroy_write_struct(&p, &i);
-        fclose(f);
-        return;
+        case 1: ihdr.colortype = 0; break;
+        case 2: ihdr.colortype = 4; break;
+        case 3: ihdr.colortype = 2; break;
+        case 4: ihdr.colortype = 6; break;
+        default: fatal("cube2font: invalid PNG bpp"); return;
     }
-failed:
-    fatal("cube2font: failed writing %s", name);
+    f = fopen(filename, "wb");
+    if(!f) { fatal("cube2font: could not write to %s", filename); return; }
+
+    fwrite(signature, 1, sizeof(signature), f);
+
+    writepngchunk(f, "IHDR", (uchar *)&ihdr, 13);
+
+    idat = ftell(f);
+    len = 0;
+    fwrite("\0\0\0\0IDAT", 1, 8, f);
+    crc = crc32(0, Z_NULL, 0);
+    crc = crc32(crc, (const Bytef *)"IDAT", 4);
+
+    z.zalloc = NULL;
+    z.zfree = NULL;
+    z.opaque = NULL;
+
+    if(deflateInit(&z, Z_BEST_COMPRESSION) != Z_OK)
+        goto error;
+
+    z.next_out = (Bytef *)buf;
+    z.avail_out = sizeof(buf);
+
+    for(i = 0; i < h; i++)
+    {
+        uchar filter = 0;
+        for(j = 0; j < 2; j++)
+        {
+            z.next_in = j ? (Bytef *)data + (flip ? h-i-1 : i)*w*bpp : (Bytef *)&filter;
+            z.avail_in = j ? w*bpp : 1;
+            while(z.avail_in > 0)
+            {
+                if(deflate(&z, Z_NO_FLUSH) != Z_OK) goto cleanuperror;
+                #define FLUSHZ do { \
+                    int flush = sizeof(buf) - z.avail_out; \
+                    crc = crc32(crc, buf, flush); \
+                    len += flush; \
+                    fwrite(buf, 1, flush, f); \
+                    z.next_out = (Bytef *)buf; \
+                    z.avail_out = sizeof(buf); \
+                } while(0)
+                FLUSHZ;
+            }
+        }
+    }
+
+    for(;;)
+    {
+        int err = deflate(&z, Z_FINISH);
+        if(err != Z_OK && err != Z_STREAM_END) goto cleanuperror;
+        FLUSHZ;
+        if(err == Z_STREAM_END) break;
+    }
+
+    deflateEnd(&z);
+
+    fseek(f, idat, SEEK_SET);
+    writebig(f, len);
+    fseek(f, 0, SEEK_END);
+    writebig(f, crc);
+
+    writepngchunk(f, "IEND", NULL, 0);
+
+    fclose(f);
+    return;
+
+cleanuperror:
+    deflateEnd(&z);
+
+error:
+    fclose(f);
+
+    fatal("cube2font: failed saving PNG to %s", filename);
 }
 
 enum
@@ -199,7 +298,7 @@ void writetexs(const char *name, struct fontchar *chars, int numchars, int numte
             }
         }
         printf("cube2font: writing %d chars to %s\n", texchars, file);
-        savepng(pixels, tw, th, file);
+        savepng(file, pixels, tw, th, 2, 0);
    }
    free(pixels);
 }

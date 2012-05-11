@@ -67,8 +67,8 @@ void abortconnect()
     clienthost = NULL;
 }
 
-SVAR(connectname, "");
-VAR(connectport, 0, 0, 0xFFFF);
+SVARP(connectname, "");
+VARP(connectport, 0, 0, 0xFFFF);
 
 void connectserv(const char *servername, int serverport, const char *serverpassword)
 {   
@@ -103,7 +103,7 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
     }
 
     if(!clienthost) 
-        clienthost = enet_host_create(NULL, 2, server::numchannels(), rate, rate);
+        clienthost = enet_host_create(NULL, 2, server::numchannels(), rate*1024, rate*1024);
 
     if(clienthost)
     {

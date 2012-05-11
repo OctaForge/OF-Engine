@@ -13,7 +13,7 @@ if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (
 )
 
 if exist %OF_EXECUTABLE% (
-    %OF_EXECUTABLE% "-q$HOME\My Games\OctaForge" -gWARNING -r %*
+    %OF_EXECUTABLE% "-q$HOME\My Games\OctaForge" -gWARNING %*
     echo "To save the output, add: > out_client 2>&1"
 ) else (
     echo "There is no OF binary that matches your computer."

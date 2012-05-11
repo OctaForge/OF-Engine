@@ -308,26 +308,21 @@ void drawbb(const ivec &bo, const ivec &br, const vec &camera)
 {
     glBegin(GL_QUADS);
 
-    loopi(6)
-    {
-        int dim = dimension(i), coord = dimcoord(i);
-
-        if(coord)
-        {
-            if(camera[dim] < bo[dim] + br[dim]) continue;
-        }
-        else if(camera[dim] > bo[dim]) continue;
-
-        loopj(4)
-        {
-            const ivec &cc = facecoords[i][j];
-            glVertex3f(cc.x ? bo.x+br.x : bo.x,
-                       cc.y ? bo.y+br.y : bo.y,
-                       cc.z ? bo.z+br.z : bo.z);
-        }
-
-        xtraverts += 4;
-    }
+    #define GENFACEORIENT(orient, v0, v1, v2, v3) do { \
+        int dim = dimension(orient); \
+        if(dimcoord(orient)) \
+        { \
+            if(camera[dim] < bo[dim] + br[dim]) continue; \
+        } \
+        else if(camera[dim] > bo[dim]) continue; \
+        v0 v1 v2 v3 \
+        xtraverts += 4; \
+    } while(0); 
+    #define GENFACEVERT(orient, vert, ox,oy,oz, rx,ry,rz) \
+        glVertex3f(ox rx, oy ry, oz rz);
+    GENFACEVERTS(bo.x, bo.x + br.x, bo.y, bo.y + br.y, bo.z, bo.z + br.z, , , , , , )
+    #undef GENFACEORIENT
+    #undef GENFACEVERTS
 
     glEnd();
 }
@@ -435,7 +430,7 @@ void renderreflectedmapmodels()
         }
         *lastmms = NULL;
     }
-    for(octaentities *oe = mms; oe; oe = reflecting ? oe->rnext : oe->next)
+    for(octaentities *oe = mms; oe; oe = reflecting ? oe->rnext : oe->next) if(reflecting || oe->distance >= 0)
     {
         if(reflecting || refracting>0 ? oe->bbmax.z <= reflectz : oe->bbmin.z >= reflectz) continue;
         if(isfoggedcube(oe->o, oe->size)) continue;

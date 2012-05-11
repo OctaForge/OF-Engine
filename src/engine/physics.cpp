@@ -1639,8 +1639,11 @@ void vectoyawpitch(const vec &v, float &yaw, float &pitch)
     pitch = asin(v.z/v.magnitude())/RAD;
 }
 
-VARP(maxroll, 0, 3, 20);
+#define PHYSFRAMETIME 5
+
+VARP(maxroll, 0, 0, 20);
 FVAR(straferoll, 0, 0.033f, 90);
+FVAR(faderoll, 0, 0.95f, 1);
 VAR(floatspeed, 10, 100, 10000);
 
 void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curtime)
@@ -1790,16 +1793,8 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
 
     // automatically apply smooth roll when strafing
 
-    if(pl->strafe==0)
-    {
-        pl->roll = pl->roll/(1+(float)sqrtf((float)curtime)/25);
-    }
-    else
-    {
-        pl->roll -= pl->strafe*curtime*straferoll;
-        if(pl->roll > maxroll) pl->roll = maxroll;
-        else if(pl->roll < -maxroll) pl->roll = -maxroll;
-    }
+    if(pl->strafe && maxroll) pl->roll = clamp(pl->roll - pow(clamp(1.0f + pl->strafe*pl->roll/maxroll, 0.0f, 1.0f), 0.33f)*pl->strafe*curtime*straferoll, -maxroll, maxroll);
+    else pl->roll *= curtime == PHYSFRAMETIME ? faderoll : pow(faderoll, curtime/float(PHYSFRAMETIME));
 
     // play sounds on water transitions
 
@@ -1825,8 +1820,6 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
 
     return true;
 }
-
-#define PHYSFRAMETIME 5
 
 int physsteps = 0, physframetime = PHYSFRAMETIME, lastphysframe = 0;
 

@@ -281,13 +281,16 @@ struct blobrenderer
         int dim = dimension(orient), numverts = 0, numplanes = 1, flat = -1;
         if(mat)
         {
-            int dc = dimcoord(orient), c = C[dim], r = R[dim];
-            vec vo = o.tovec(), vscale;
-            vo[dim] += dc ? -0.1f : 0.1f;
-            vscale[c] = mat->csize/8.0f;
-            vscale[r] = mat->rsize/8.0f;
-            vscale[dim] = 0;
-            loopk(4) pos[numverts++] = facecoords[orient][k].tovec().mul(vscale).add(vo);
+            switch(orient)
+            {
+            #define GENFACEORIENT(orient, v0, v1, v2, v3) \
+                case orient: v0 v1 v2 v3 break;
+            #define GENFACEVERT(orient, vert, x,y,z, xv,yv,zv) \
+                    pos[numverts++] = vec(x xv, y yv, z zv);
+                GENFACEVERTS(o.x, o.x, o.y, o.y, o.z, o.z, , + mat->csize, , + mat->rsize, + 0.1f, - 0.1f);
+            #undef GENFACEORIENT
+            #undef GENFACEVERT 
+            }
             flat = dim;
         }
         else if(cu.texture[orient] == DEFAULT_SKY) return;

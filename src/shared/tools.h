@@ -28,6 +28,7 @@
 #define loopj(m) loop(j,m)
 #define loopk(m) loop(k,m)
 #define loopl(m) loop(l,m)
+#define loopirev(v) for(int i = v-1; i>=0; i--)
 
 #define PI  (3.1415927f)
 #define PI2 (2*PI)
@@ -136,7 +137,7 @@ struct databuf
     void put(const T *vals, int numvals)
     {
         if(maxlen-len<numvals) flags |= OVERWROTE;
-        memcpy(&buf[len], vals, min(maxlen-len, numvals)*sizeof(T));
+        memcpy(&buf[len], (const void *)vals, min(maxlen-len, numvals)*sizeof(T));
         len += min(maxlen-len, numvals);
     }
 
@@ -144,7 +145,7 @@ struct databuf
     {
         int read = min(maxlen-len, numvals);
         if(read<numvals) flags |= OVERREAD;
-        memcpy(vals, &buf[len], read*sizeof(T));
+        memcpy(vals, (void *)&buf[len], read*sizeof(T));
         len += read;
         return read;
     }
@@ -377,7 +378,7 @@ template <class T> struct vector
         else
         {
             growbuf(ulen+v.ulen);
-            if(v.ulen) memcpy(&buf[ulen], v.buf, v.ulen*sizeof(T));
+            if(v.ulen) memcpy(&buf[ulen], (void  *)v.buf, v.ulen*sizeof(T));
             ulen += v.ulen;
             v.ulen = 0;
         }
@@ -423,7 +424,7 @@ template <class T> struct vector
         uchar *newbuf = new uchar[alen*sizeof(T)];
         if(olen > 0)
         {
-            memcpy(newbuf, buf, olen*sizeof(T));
+            memcpy(newbuf, (void *)buf, olen*sizeof(T));
             delete[] (uchar *)buf;
         }
         buf = (T *)newbuf;
@@ -999,6 +1000,7 @@ struct stream
     virtual void close() = 0;
     virtual bool end() = 0;
     virtual offset tell() { return -1; }
+    virtual offset rawtell() { return tell(); }
     virtual bool seek(offset pos, int whence = SEEK_SET) { return false; }
     virtual offset size();
     virtual int read(void *buf, int len) { return 0; }

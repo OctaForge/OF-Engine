@@ -153,7 +153,8 @@ extern void drawcubemap(int size, const vec &o, float yaw, float pitch, const cu
 extern void loadshaders();
 extern void setuptexparameters(int tnum, void *pixels, int clamp, int filter, GLenum format = GL_RGB, GLenum target = GL_TEXTURE_2D);
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_2D, int pw = 0, int ph = 0, int pitch = 0, bool resize = true, GLenum format = GL_FALSE);
-extern void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src);
+extern void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src, int margin = 0);
+extern void blurnormals(int n, int w, int h, bvec *dst, const bvec *src, int margin = 0);
 extern void renderpostfx();
 extern void initenvmaps();
 extern void genenvmaps();
@@ -281,11 +282,11 @@ static inline uchar octantrectangleoverlap(const ivec &c, int size, const ivec &
     ivec v(c);
     v.add(size);
     if(v.z <= o.z)     p &= 0xF0; // not in a -ve Z octant
-    if(v.z >= o.z+s.z) p &= 0x0F; // not in a +ve Z octant
+    else if(v.z >= o.z+s.z) p &= 0x0F; // not in a +ve Z octant
     if(v.y <= o.y)     p &= 0xCC; // not in a -ve Y octant
-    if(v.y >= o.y+s.y) p &= 0x33; // etc..
+    else if(v.y >= o.y+s.y) p &= 0x33; // etc..
     if(v.x <= o.x)     p &= 0xAA;
-    if(v.x >= o.x+s.x) p &= 0x55;
+    else if(v.x >= o.x+s.x) p &= 0x55;
     return p;
 }
 
@@ -373,7 +374,6 @@ extern void rendermatgrid(materialsurface *matbuf, int matsurfs);
 extern int optimizematsurfs(materialsurface *matbuf, int matsurfs);
 extern void setupmaterials(int start = 0, int len = 0);
 extern void rendermaterials();
-extern void drawmaterial(int orient, int x, int y, int z, int csize, int rsize, float offset);
 extern int visiblematerial(cube &c, int orient, int x, int y, int z, int size, uchar matmask = MATF_VOLUME);
 
 // water
@@ -520,7 +520,7 @@ struct mapmodelinfo { string name; model *m; };
 
 extern void findanims(const char *pattern, vector<int> &anims);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks);
-extern mapmodelinfo &getmminfo(int i);
+extern mapmodelinfo *getmminfo(int i);
 extern void startmodelquery(occludequery *query);
 extern void endmodelquery();
 extern void preloadmodelshaders();
