@@ -65,6 +65,37 @@ string.del = function(str, start, count)
 string.insert = function(str, idx, new)
     return table.concat { str:sub(1, idx - 1), new, str:sub(idx) } end
 
+--[[! Function: string.eval_embedded
+    Evaluates embedded Lua code in a string. The code has to return a string
+    value that is used in place of the embedded code. Embedded code can
+    contain more embedded code, as the evaluation is recursive. Useful
+    for various sorts of templating. The optional second argument specifies
+    a prefix before the (embedded code), defaulting to "@". The third argument
+    allows you to optionally set the environment of execution.
+
+    (start code)
+        assert(([[hello @(return "farkin @(return 'world')")]]):eval_embedded()
+            == "hello farkin world")
+    (end)
+
+    Note that for simple expressions you don't need the "return" keyword:
+
+    (start code)
+        assert(("@(5 * 5 + 1)"):eval_embedded() == "26")
+    (end)
+
+    Non-string returns will be automatically stringified if possible.
+]]
+string.eval_embedded = function(str, prefix, env)
+    prefix = prefix or "@"
+    local ret = str:gsub(prefix .. "%b()", function(s)
+        s = s:sub(3, #s - 1)
+        s = s:find("return ") and s or "return " .. s
+        return tostring((env
+            and setfenv(loadstring(s), env)
+            or  loadstring(s))()):eval_embedded(prefix) end)
+    return ret end
+
 --[[! Function: string.template
     Parses a string template (a string with embedded Lua code), inspired by
     luadoc parser system. Takes a string and a level to parse string from,
