@@ -51,13 +51,13 @@ rocket = std.class.new(projectiles.projectile, {
     end,
 
     render = function(self)
-        if edit.get_material(self.position) == edit.MATERIAL_WATER then
-            effects.regular_splash(
-                effects.PARTICLE.BUBBLE,
-                4, 0.5, self.position,
-                0xFFFFFF, 0.5, 25, 500
-            )
-        else
+        --if edit.get_material(self.position) == edit.MATERIAL_WATER then
+        --    effects.regular_splash(
+        --        effects.PARTICLE.BUBBLE,
+        --        4, 0.5, self.position,
+        --        0xFFFFFF, 0.5, 25, 500
+        --    )
+        --else
             effects.splash(
                 effects.PARTICLE.SMOKE,
                 2, 0.3, self.position,
@@ -70,7 +70,7 @@ rocket = std.class.new(projectiles.projectile, {
                 0xBB8877, 2, 3, 100, 0.4,
                 -6
             )
-        end
+        --end
         effects.dynamic_light(
             self.position, self.visual_radius * 1.8, self.color
         )

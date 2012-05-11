@@ -47,7 +47,6 @@ DECAL = {
         BLOOD - blood particle used for immediate blood splatters on hit.
         WATER - water "fountain" particle.
         SMOKE - smoke particle.
-        SOFTSMOKE - soft smoke particle.
         STEAM - steam particle.
         FLAME - flame particle.
         FIREBALL1 - first variant of fireball - these are deprecated.
@@ -56,72 +55,42 @@ DECAL = {
         STREAK - streak particle.
         LIGHTNING - lightning particle.
         EXPLOSION - explosion particle.
-        EXPLOSION_NO_GLARE - exposion particle without glare.
+        EXPLOSION_BLUE - blue explosion.
         SPARK - spark particle.
         EDIT - edit mode particle, deprecated now (uses icons).
         MUZZLE_FLASH1 - muzzle flash particle.
         MUZZLE_FLASH2 - muzzle flash particle.
         MUZZLE_FLASH3 - muzzle flash particle.
-        MUZZLE_FLASH4A - muzzle flash particle.
-        MUZZLE_FLASH4B - muzzle flash particle.
-        MUZZLE_FLASH5 - muzzle flash particle.
         TEXT - text particle.
         METER - meter particle (rgb vs black)
         METER_VS - metervs particle (rgb vs bgr).
         LENS_FLARE - lens flare particle.
-        FLAME1 - flame particle.
-        FLAME2 - flame particle.
-        FLAME3 - flame particle.
-        FLAME4 - flame particle.
-        SNOW - snow particle.
-        RAIN - rain particle.
-        BULLET - bullet particle.
-        GLOW - glow particle.
-        GLOW_TRACK - glow track particle.
-        LIGHTFLARE - light flare particle.
-        BUBBLE - bubble particle.
-        EXPLODE - explosion particle (flat).
-        SMOKETRAIL - smoke trail particle.
 ]]
 PARTICLE = {
     BLOOD = 0,
     WATER = 1,
     SMOKE = 2,
-    SOFTSMOKE = 3,
-    STEAM = 4,
-    FLAME = 5,
-    FIREBALL1 = 6,
-    FIREBALL2 = 7,
-    FIREBALL3 = 8,
-    STREAK = 9,
-    LIGHTNING = 10,
-    EXPLOSION = 11,
-    EXPLOSION_NO_GLARE = 12,
-    SPARK = 13,
-    EDIT = 14,
+    STEAM = 3,
+    FLAME = 4,
+    FIREBALL1 = 5,
+    FIREBALL2 = 6,
+    FIREBALL3 = 7,
+    STREAK = 8,
+    LIGHTNING = 9,
+    EXPLOSION = 10,
+    EXPLOSION_BLUE = 11,
+    SPARK = 12,
+    EDIT = 13,
+    SNOW = 14,
     MUZZLE_FLASH1 = 15,
     MUZZLE_FLASH2 = 16,
     MUZZLE_FLASH3 = 17,
-    MUZZLE_FLASH4A = 18,
-    MUZZLE_FLASH4B = 19,
-    MUZZLE_FLASH5 = 20,
-    TEXT = 21,
-    METER = 22,
-    METER_VS = 23,
-    LENS_FLARE = 24,
-    FLAME1 = 25,
-    FLAME2 = 26,
-    FLAME3 = 27,
-    FLAME4 = 28,
-    SNOW = 29,
-    RAIN = 30,
-    BULLET = 31,
-    GLOW = 32,
-    GLOW_TRACK = 33,
-    LIGHTFLARE = 34,
-    BUBBLE = 35,
-    EXPLODE = 36,
-    SMOKETRAIL = 37
+    HUD_ICON = 18,
+    HUD_ICON_GREY = 19,
+    TEXT = 20,
+    METER = 21,
+    METER_VS = 22,
+    LENS_FLARE = 23
 }
 
 --[[!
@@ -210,12 +179,6 @@ end
         size - particle spze.
         radius - particle radius.
         gravity - gravity pull on the particles.
-        regular_fade - boolean value specifying whether
-        to use a regular particle fade (false usually).
-        flags - particle flags.
-        fast_splash - boolean value specifying whether
-        the splash should be fast.
-        grow - integer value specifying particle grow factor (1 to 4).
 ]]
 function splash(
     particle_type, num, fade, position,
@@ -227,20 +190,17 @@ function splash(
         size    = size    or 1.0
         radius  = radius  or 150
         gravity = gravity or 2
-        regular_fade = regular_fade or false
-        fast_splash  = fast_splash  or false
 
         CAPI.particle_splash(
             particle_type, num, fade * 1000, position,
-            color, size, radius, gravity, regular_fade,
-            flags, fast_splash, grow
+            color, size, radius, gravity
         )
     else
         message.send(
             message.ALL_CLIENTS, CAPI.particle_splash_toclients,
             particle_type, num, fade * 1000,
             position.x, position.y, position.z
-        ) -- TODO: last 8 params
+        ) -- TODO: last 4 params
     end
 end
 
@@ -259,32 +219,27 @@ end
         radius - particle radius.
         gravity - gravity pull on the particles.
         delay - particle delay.
-        hover - boolean value specifying whether
-        the particle should hover.
-        grow - integer value specifying particle grow factor (1 to 4).
 ]]
 function regular_splash(
     particle_type, num, fade, position,
-    color, size, radius, gravity, delay, hover, grow
+    color, size, radius, gravity, delay
 )
     if CLIENT then
         color   = color   or 0xFFFFFF
         size    = size    or 1.0
         radius  = radius  or 150
         gravity = gravity or 2
-        hover   = hover   or false
 
         CAPI.regular_particle_splash(
             particle_type, num, fade * 1000, position,
-            color, size, radius, gravity, delay, hover,
-            grow
+            color, size, radius, gravity, delay
         )
     else
         message.send(
             message.ALL_CLIENTS, CAPI.particle_regularsplash_toclients,
             particle_type, num, fade * 1000,
             position.x, position.y, position.z
-        ) -- TODO: last 7 params
+        ) -- TODO: last 5 params
     end
 end
 
@@ -326,12 +281,10 @@ end
         fade - fade time in seconds.
         color - flare color as hex integer (0xRRGGBB).
         size - flare size (thickness).
-        grow - integer value specifying particle grow factor (1 to 4).
         owner - flare owner entity.
 ]]
 function flare(
-    particle_type, target_position, source_position,
-    fade, color, size, grow, owner
+    particle_type, target_position, source_position, fade, color, size, owner
 )
     fade  = fade and fade * 1000 or 0
     color = color or 0xFFFFFF
@@ -339,34 +292,9 @@ function flare(
     local oid = owner and owner.uid or -1
     CAPI.particle_flare(
         source_position, target_position, fade,
-        particle_type, color, size, grow, oid
+        particle_type, color, size, oid
     )
 end
-
---[[!
-    Function: flying_flare
-    Spawns a flying flare. Clientside only.
-
-    Parameters:
-        particle_type - particle type (<PARTICLE>).
-        target_position - vector specifying target flare position.
-        source_position - vector specifying source flare position.
-        fade - fade time in seconds.
-        color - flare color as hex integer (0xRRGGBB).
-        size - flare size (thickness).
-        grow - integer value specifying particle grow factor (1 to 4).
-]]
-function flying_flare(
-    particle_type, target_position,
-    source_position, fade, color, size, grow
-)
-    fade  = fade and fade * 1000 or 0
-    CAPI.particle_flying_flare(
-        source_position, target_position, fade,
-        particle_type, color, size, grow
-    )
-end
-
 
 --[[!
     Function: trail
@@ -380,19 +308,16 @@ end
         color - flare color as hex integer (0xRRGGBB).
         size - flare size (thickness).
         grow - integer value specifying particle grow factor (1 to 4).
-        bubbles - if true, the trail will consist of bubbles.
 ]]
 function trail(
-    particle_type, fade, target_position,
-    source_position, color, size, grow, bubbles
+    particle_type, fade, target_position, source_position, color, size, grow
 )
     color   = color   or 0xFFFFFF
     size    = size    or 1.0
     grow    = grow    or 20
-    bubbles = bubbles or false
     CAPI.particle_trail(
         particle_type, fade * 1000, source_position,
-        target_position, color, size, grow, bubbles
+        target_position, color, size, grow
     )
 end
 

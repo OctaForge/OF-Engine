@@ -81,8 +81,19 @@ EVAR = setmetatable({}, {
         if    t == EAPI.VAR_N then
             return nil end
 
-        EAPI["var_set_" .. (t == EAPI.VAR_I and
-            "i" or (t == EAPI.VAR_F and "f" or "s"))](name, value) end
+        local f
+        local c
+        if t == EAPI.VAR_I then
+            f = EAPI.var_set_i
+            c = tonumber
+        elseif t == EAPI.VAR_F then
+            f = EAPI.var_set_f
+            c = tonumber
+        elseif t == EAPI.VAR_S then
+            f = EAPI.var_set_s
+            c = tostring end
+
+        f(name, c(value)) end
 })
 
 return {

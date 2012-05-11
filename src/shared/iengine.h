@@ -212,25 +212,20 @@ enum
 {
     PART_BLOOD = 0,
     PART_WATER,
-    PART_SMOKE, PART_SOFTSMOKE,
+    PART_SMOKE,
     PART_STEAM,
     PART_FLAME,
     PART_FIREBALL1, PART_FIREBALL2, PART_FIREBALL3,
     PART_STREAK, PART_LIGHTNING,
     PART_EXPLOSION, PART_EXPLOSION_BLUE,
     PART_SPARK, PART_EDIT,
-    PART_MUZZLE_FLASH1, PART_MUZZLE_FLASH2, PART_MUZZLE_FLASH3, PART_MUZZLE_FLASH4A, PART_MUZZLE_FLASH4B, PART_MUZZLE_FLASH5,
+    PART_SNOW,
+    PART_MUZZLE_FLASH1, PART_MUZZLE_FLASH2, PART_MUZZLE_FLASH3,
+    PART_HUD_ICON,
+    PART_HUD_ICON_GREY,
     PART_TEXT,
     PART_METER, PART_METER_VS,
     PART_LENS_FLARE,
-    PART_FLAME1, PART_FLAME2, PART_FLAME3, PART_FLAME4,
-    PART_SNOW, PART_RAIN,
-    PART_BULLET,
-    PART_GLOW, PART_GLOW_TRACK,
-    PART_LFLARE,
-    PART_BUBBLE,
-    PART_EXPLODE,
-    PART_SMOKETRAIL,
     // here come editmode particle images, they must ALWAYS be the last
     PART_EDIT_LIGHT,
     PART_EDIT_SPOTLIGHT,
@@ -242,19 +237,16 @@ enum
     PART_EDIT_GENERIC
 };
 
-
-
 extern bool canaddparticles();
-extern void particle_explodesplash(const vec &o, int fade, int type, int color = 0xFFFFFF, int size = 1, int gravity = -20, int num = 16);
-extern void particle_flying_flare(const vec &o, const vec &d, int fade, int type, int color, float size, int gravity = 0);
+extern void regular_particle_splash(int type, int num, int fade, const vec &p, int color = 0xFFFFFF, float size = 1.0f, int radius = 150, int gravity = 2, int delay = 0);
 extern void regular_particle_flame(int type, const vec &p, float radius, float height, int color, int density = 3, float scale = 2.0f, float speed = 200.0f, float fade = 600.0f, int gravity = -15);
-extern void regular_particle_splash(int type, int num, int fade, const vec &p, int color = 0xFFFFFF, float size = 1.0f, int radius = 150, int gravity = 2, int delay = 0, bool hover = false, int grow = 0);
-extern void particle_splash(int type, int num, int fade, const vec &p, int color = 0xFFFFFF, float size = 1.0f, int radius = 150, int gravity = 2, bool regfade = false, int flag = 0, bool fastsplash = false, int grow = 0);
-extern void particle_trail(int type, int fade, const vec &from, const vec &to, int color = 0xFFFFFF, float size = 1.0f, int gravity = 20, bool bubbles = false);
+extern void particle_splash(int type, int num, int fade, const vec &p, int color = 0xFFFFFF, float size = 1.0f, int radius = 150, int gravity = 2);
+extern void particle_trail(int type, int fade, const vec &from, const vec &to, int color = 0xFFFFFF, float size = 1.0f, int gravity = 20);
 extern void particle_text(const vec &s, const char *t, int type, int fade = 2000, int color = 0xFFFFFF, float size = 2.0f, int gravity = 0);
 extern void particle_textcopy(const vec &s, const char *t, int type, int fade = 2000, int color = 0xFFFFFF, float size = 2.0f, int gravity = 0);
+extern void particle_icon(const vec &s, int ix, int iy, int type, int fade = 2000, int color = 0xFFFFFF, float size = 2.0f, int gravity = 0);
 extern void particle_meter(const vec &s, float val, int type, int fade = 1, int color = 0xFFFFFF, int color2 = 0xFFFFF, float size = 2.0f);
-extern void particle_flare(const vec &p, const vec &dest, int fade, int type, int color = 0xFFFFFF, float size = 0.28f, physent *owner = NULL, int grow = 0);
+extern void particle_flare(const vec &p, const vec &dest, int fade, int type, int color = 0xFFFFFF, float size = 0.28f, physent *owner = NULL);
 extern void particle_fireball(const vec &dest, float max, int type, int fade = -1, int color = 0xFFFFFF, float size = 4.0f);
 extern void removetrackedparticles(physent *owner = NULL);
 
@@ -263,8 +255,7 @@ enum
 {
     DECAL_SCORCH = 0,
     DECAL_BLOOD,
-    DECAL_BULLET,
-    DECAL_DECAL
+    DECAL_BULLET
 };
 
 extern void adddecal(int type, const vec &center, const vec &surface, float radius, const bvec &color = bvec(0xFF, 0xFF, 0xFF), int info = 0);

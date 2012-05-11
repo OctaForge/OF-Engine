@@ -11,27 +11,21 @@ namespace lapi_binds
         adddecal(type, center, surface, radius, color, info);
     }
 
-    void _lua_particle_splash(
-        int type, int num, int fade, vec p, int color, float size, int radius,
-        int gravity, bool regfade, int flag, bool fastsplash, int grow
-    )
+    void _lua_particle_splash(int type, int num, int fade, vec p, int color,
+        float size, int radius, int gravity)
     {
         if (type == PART_BLOOD && !blood) return;
-        particle_splash(
-            type, num, fade, p, color, size, radius,
-            gravity, regfade, flag, fastsplash, grow
-        );
+        particle_splash(type, num, fade, p, color, size, radius, gravity);
     }
 
     void _lua_regular_particle_splash(
         int type, int num, int fade, vec p, int color, float size,
-        int radius, int gravity, int delay, bool hover, int grow
+        int radius, int gravity, int delay
     )
     {
         if (type == PART_BLOOD && !blood) return;
         regular_particle_splash(
-            type, num, fade, p, color, size,
-            radius, gravity, delay, hover, grow
+            type, num, fade, p, color, size, radius, gravity, delay
         );
     }
 
@@ -42,45 +36,29 @@ namespace lapi_binds
         particle_fireball(dest, max, type, fade, color, size);
     }
 
-    void _lua_particle_explodesplash(
-        vec o, int fade, int type, int color, int size, int gravity, int num
-    )
-    {
-        particle_explodesplash(o, fade, type, color, size, gravity, num);
-    }
-
     void _lua_particle_flare(
-        vec p, vec dest, int fade, int type,
-        int color, float size, int grow, int uid
+        vec p, vec dest, int fade, int type, int color, float size, int uid
     )
     {
         if (uid < 0)
-            particle_flare(p, dest, fade, type, color, size, NULL, grow);
+            particle_flare(p, dest, fade, type, color, size, NULL);
         else
         {
             CLogicEntity *o = LogicSystem::getLogicEntity(uid);
             assert(o->dynamicEntity);
 
             particle_flare(
-                p, dest, fade, type, color, size,
-                (fpsent*)(o->dynamicEntity), grow
+                p, dest, fade, type, color, size, (fpsent*)(o->dynamicEntity)
             );
         }
     }
 
-    void _lua_particle_flying_flare(
-        vec o, vec d, int fade, int type, int color, float size, int gravity
-    )
-    {
-        particle_flying_flare(o, d, fade, type, color, size, gravity);
-    }
-
     void _lua_particle_trail(
         int type, int fade, vec from, vec to,
-        int color, float size, int gravity, bool bubbles
+        int color, float size, int gravity
     )
     {
-        particle_trail(type, fade, from, to, color, size, gravity, bubbles);
+        particle_trail(type, fade, from, to, color, size, gravity);
     }
 
     void _lua_particle_flame(
@@ -156,9 +134,7 @@ namespace lapi_binds
     LAPI_EMPTY(particle_splash)
     LAPI_EMPTY(regular_particle_splash)
     LAPI_EMPTY(particle_fireball)
-    LAPI_EMPTY(particle_explodesplash)
     LAPI_EMPTY(particle_flare)
-    LAPI_EMPTY(particle_flying_flare)
     LAPI_EMPTY(particle_trail)
     LAPI_EMPTY(particle_flame)
     LAPI_EMPTY(adddynlight)
@@ -176,9 +152,7 @@ namespace lapi_binds
         LAPI_REG(particle_splash);
         LAPI_REG(regular_particle_splash);
         LAPI_REG(particle_fireball);
-        LAPI_REG(particle_explodesplash);
         LAPI_REG(particle_flare);
-        LAPI_REG(particle_flying_flare);
         LAPI_REG(particle_trail);
         LAPI_REG(particle_flame);
         LAPI_REG(adddynlight);
