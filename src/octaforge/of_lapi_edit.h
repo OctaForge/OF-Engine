@@ -27,9 +27,6 @@ void rotate(int cw);
 void editmat(char *name, char *filtername);
 void resetlightmaps(bool fullclean);
 void calclight(int quality);
-void patchlight(int quality);
-void clearlightmaps();
-void dumplms();
 void recalc();
 void printcube();
 void remip_();
@@ -222,6 +219,19 @@ namespace lapi_binds
         mpeditvslot(ds, allfaces, sel, true);  
     }
 
+    void _lua_vrefract(float k, float r, float g, float b)
+    {
+        if(noedit() || (nompedit && multiplayer())) return;
+        VSlot ds;
+        ds.changed = 1 << VSLOT_REFRACT;
+        ds.refractscale = clamp(k, 0.0f, 1.0f);
+        if(ds.refractscale > 0 && (r > 0 || g > 0 || b > 0))
+            ds.refractcolor = vec(clamp(r, 0.0f, 1.0f), clamp(g, 0.0f, 1.0f), clamp(b, 0.0f, 1.0f));
+        else
+            ds.refractcolor = vec(1, 1, 1);
+        mpeditvslot(ds, allfaces, sel, true);
+    }
+
     void _lua_vreset()
     {
         if (noedit() || (nompedit && multiplayer())) return;
@@ -231,23 +241,15 @@ namespace lapi_binds
 
     void _lua_vshaderparam(const char *n, float x, float y, float z, float w)
     {
-        if (noedit() || (nompedit && multiplayer())) return;
+        if(noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_SHPARAM;
-        if (n && n[0])
+        if(n && n[0])
         {
-            ShaderParam p;
-            p.name   = getshaderparamname(n);
-            p.type   = SHPARAM_LOOKUP;
-            p.index  = -1;
-            p.loc    = -1;
-            p.val[0] = x;
-            p.val[1] = y;
-            p.val[2] = z;
-            p.val[3] = w;
+            SlotShaderParam p = { getshaderparamname(n), -1, { x, y, z, w } };
             ds.params.add(p);
         }
-        mpeditvslot(ds, allfaces, sel, true);  
+        mpeditvslot(ds, allfaces, sel, true);
     }
 
     void _lua_edittex(int n) { edittex_(n); }
@@ -335,21 +337,11 @@ namespace lapi_binds
         calclight(quality);
     }
 
-    void _lua_patchlight(int quality)
-    {
-        patchlight(quality);
-    }
-
-    void _lua_clearlightmaps() { clearlightmaps(); }
-    void _lua_dumplms       () { dumplms       (); }
-    void _lua_recalc        () { recalc        (); }
+    void _lua_recalc() { recalc(); }
 #else
     LAPI_EMPTY(requestprivedit)
     LAPI_EMPTY(hasprivedit)
     LAPI_EMPTY(calclight)
-    LAPI_EMPTY(patchlight)
-    LAPI_EMPTY(clearlightmaps)
-    LAPI_EMPTY(dumplms)
     LAPI_EMPTY(recalc)
 #endif
 
@@ -404,6 +396,7 @@ namespace lapi_binds
         LAPI_REG(valpha);
         LAPI_REG(vcolor);
         LAPI_REG(vreset);
+        LAPI_REG(vrefract);
         LAPI_REG(vshaderparam);
         LAPI_REG(edittex);
         LAPI_REG(settex);
@@ -423,9 +416,6 @@ namespace lapi_binds
         LAPI_REG(requestprivedit);
         LAPI_REG(hasprivedit);
         LAPI_REG(calclight);
-        LAPI_REG(patchlight);
-        LAPI_REG(clearlightmaps);
-        LAPI_REG(dumplms);
         LAPI_REG(recalc);
         LAPI_REG(printcube);
         LAPI_REG(remip);

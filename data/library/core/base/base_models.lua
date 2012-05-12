@@ -119,7 +119,6 @@ ANIM_RAGDOLL = std.math.lsh(1, 27)
     culling, shadowing etc., general model manipulation and ragdoll control.
 ]]
 module("model", package.seeall)
-
 --[[!
     Variable: CULL_VFC
     View frustrum culling flag for <render>.
@@ -165,54 +164,25 @@ CULL_OCCLUDED = std.math.lsh(1, 2)
 CULL_QUERY = std.math.lsh(1, 3)
 
 --[[!
-    Variable: SHADOW
-    A flag that enables shadowing of mapmodels for <render>.
-]]
-SHADOW = std.math.lsh(1, 4)
-
---[[!
-    Variable: DYNSHADOW
-    A flag that gives model a dynamic shadow for <render>.
-]]
-DYNSHADOW = std.math.lsh(1, 5)
-
---[[!
-    Variable: LIGHT
-    A flag for <render> that makes model lit. See also
-    <DYNLIGHT>.
-]]
-LIGHT = std.math.lsh(1, 6)
-
---[[!
-    Variable: DYNLIGHT
-    See <LIGHT>, this is for dynlights (see <effects.dynamic_light>).
-]]
-DYNLIGHT = std.math.lsh(1, 7)
-
---[[!
     Variable: FULLBRIGHT
     A flag for <render> that gives the model fullbright.
 ]]
-FULLBRIGHT = std.math.lsh(1, 8)
+FULLBRIGHT = std.math.lsh(1, 4)
 
 --[[!
-    Variable: LIGHT_FAST
-    A flag for <render> that gives the model a cheap lighting.
+    Variable: NORENDER
 ]]
-LIGHT_FAST = std.math.lsh(1, 10)
+NORENDER = std.math.lsh(1, 5)
 
 --[[!
-    Variable: HUD
-    Use this <render> flag for HUD models. Affects some lighting
-    capabilities.
+    Variable: MAPMODEL
 ]]
-HUD = std.math.lsh(1, 11)
+MAPMODEL = std.math.lsh(1, 6)
 
 --[[!
-    Variable: GHOST
-    Use this <render> flag to make the model half opaque.
+    Variable: NOBATCH
 ]]
-GHOST = std.math.lsh(1, 12)
+NOBATCH = std.math.lsh(1, 7)
 
 --[[!
     Function: clear

@@ -26,12 +26,10 @@ rocket = std.class.new(projectiles.projectile, {
     render_dynamic = function(self)
         local o     = self.position
         local flags = std.math.bor(
-            model.LIGHT,
             model.CULL_VFC,
             model.CULL_OCCLUDED,
             model.FULLBRIGHT,
-            model.CULL_DIST,
-            model.DYNSHADOW
+            model.CULL_DIST
         )
         local yaw_pitch = self.velocity:to_yaw_pitch()
         local yaw       = yaw_pitch.yaw - 90

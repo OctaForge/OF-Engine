@@ -299,7 +299,7 @@ debris = std.class.new(projectile, {
         if not self.debris_model then return nil end
 
         local o     = self.position
-        local flags = std.math.bor(model.LIGHT, model.CULL_VFC, model.CULL_DIST, model.DYNSHADOW)
+        local flags = std.math.bor(model.CULL_VFC, model.CULL_DIST)
         
         model.render(
             game_manager.get_singleton(),

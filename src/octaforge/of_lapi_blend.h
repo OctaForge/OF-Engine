@@ -14,6 +14,7 @@ void invertblendmap();
 void showblendmap();
 void optimizeblendmap();
 void resetblendmap();
+void dumpblendtexs();
 
 extern int nompedit;
 
@@ -80,6 +81,9 @@ namespace lapi_binds
         resetblendmap();
         showblendmap ();
     }
+
+    void _lua_dumpblendtexs() { dumpblendtexs(); }
+
 #else
     LAPI_EMPTY(clearblendbrushes)
     LAPI_EMPTY(delblendbrush)
@@ -96,6 +100,7 @@ namespace lapi_binds
     LAPI_EMPTY(showblendmap)
     LAPI_EMPTY(optimizeblendmap)
     LAPI_EMPTY(clearblendmap)
+    LAPI_EMPTY(dumpblendtexs)
 #endif
 
     void reg_blend(lua::Table& t)
@@ -115,5 +120,6 @@ namespace lapi_binds
         LAPI_REG(showblendmap);
         LAPI_REG(optimizeblendmap);
         LAPI_REG(clearblendmap);
+        LAPI_REG(dumpblendtexs);
     }
 }

@@ -67,7 +67,7 @@ vec CLogicEntity::getOrigin()
                 {
                     CLogicEntity *ptr = LogicSystem::getLogicEntity(getUniqueId());
                     assert(ptr);
-                    m->collisionbox(0, bbcenter, bbradius, ptr);
+                    m->collisionbox(bbcenter, bbradius, ptr);
                     rotatebb(bbcenter, bbradius, int(staticEntity->attr1));
                     bbcenter.add(staticEntity->o);
                     return bbcenter;
@@ -100,7 +100,7 @@ float CLogicEntity::getRadius()
                 {
                     CLogicEntity *ptr = LogicSystem::getLogicEntity(getUniqueId());
                     assert(ptr);
-                    m->collisionbox(0, bbcenter, bbradius, ptr);
+                    m->collisionbox(bbcenter, bbradius, ptr);
                     rotatebb(bbcenter, bbradius, int(staticEntity->attr1));
                     bbcenter.add(staticEntity->o);
                     return bbradius.x + bbradius.y;

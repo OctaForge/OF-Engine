@@ -358,7 +358,7 @@ void ClientSystem::drawMinimap(int w, int h)
         if (game::minimaprotation > 0) // rotate the minimap if we want to rotate it, if not, just skip this
             tc.rotate_around_z(game::minimaprotation * (M_PI / 180.0f));
 
-        glTexCoord2f(pos.x + (tc.x * scale * minimapscale.x),
+        glTexCoord2f(1.0f - (pos.x + tc.x * scale * minimapscale.x),
                      pos.y + (tc.y * scale * minimapscale.y));
 
         // this part actually creates the triangle which is the texture bind to

@@ -742,7 +742,7 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
         model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
         if(!m || !m->collide) continue;
         vec center, radius;
-        m->collisionbox(0, center, radius, entity); // INTENSITY: entity
+        m->collisionbox(center, radius, entity); // INTENSITY: entity
         float yaw = e.attr1;
         switch(d->collidetype)
         {

@@ -33,12 +33,10 @@ plugin = {
 
     get_multipart_flags = function(self)
         return std.math.bor(
-            model.LIGHT,
             model.CULL_VFC,
             model.CULL_OCCLUDED,
             model.CULL_QUERY,
             model.CULL_DIST,
-            model.DYNSHADOW,
             model.FULLBRIGHT
         )
     end,

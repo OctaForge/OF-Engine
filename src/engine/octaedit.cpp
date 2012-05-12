@@ -139,8 +139,6 @@ void toggleedit(bool force)
     stoppaintblendmap();
     keyrepeat(editmode);
     editing = entediting = editmode;
-    extern int fullbright;
-    if(fullbright) initlights();
     if(!force) game::edittoggled(editmode);
 }
 
@@ -413,7 +411,8 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
     
     // cursors    
 
-    lineshader->set();
+    notextureshader->set();
+
     renderentselection(camera1->o, camdir, entmoving!=0);
 
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
@@ -459,8 +458,6 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
     }
    
     disablepolygonoffset(GL_POLYGON_OFFSET_LINE);
-
-    notextureshader->set();
 
     glDisable(GL_BLEND);
 }
@@ -523,8 +520,8 @@ void commitchanges(bool force)
     inbetweenframes = true;
     setupmaterials(oldlen);
     invalidatepostfx();
+    clearshadowcache();
     updatevabbs();
-    resetblobs();
 }
 
 void changed(const block3 &sel, bool commit = true)

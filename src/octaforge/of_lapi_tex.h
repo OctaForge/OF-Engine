@@ -65,7 +65,7 @@ namespace lapi_binds
 
         delete[] s.autograss;
         s.autograss = ((g && g[0]) ? newstring(
-            makerelpath("data", g, NULL, "<ffskip><premul>")
+            makerelpath("data", g, NULL, "<premul>")
         ) : NULL);
     }
 
@@ -107,7 +107,7 @@ namespace lapi_binds
         propagatevslot(s.variants, 1 << VSLOT_SCALE);
     }
 
-    void _lua_texlayer(int layer, const char *name, int lmm, float scale)
+    void _lua_texlayer(int layer)
     {
         if (slots.empty()) return;
         Slot& s = *slots.last();
@@ -115,11 +115,6 @@ namespace lapi_binds
         s.variants->layer = ((layer < 0) ? max(
             (slots.length() - 1 + layer), 0
         ) : layer);
-        s.layermaskname = ((name && name[0]) ? newstring(
-            path(makerelpath("data", name))
-        ) : NULL);
-        s.layermaskmode  = lmm;
-        s.layermaskscale = ((scale <= 0) ? 1.0f : scale);
         propagatevslot(s.variants, 1 << VSLOT_LAYER);
     }
 
@@ -146,10 +141,19 @@ namespace lapi_binds
         propagatevslot(s.variants, 1 << VSLOT_COLOR);
     }
 
-    void _lua_texffenv(bool ffenv)
+    void _lua_texrefract(float k, float r, float g, float b)
     {
         if (slots.empty()) return;
-        slots.last()->ffenv = ffenv;
+        Slot& s = *slots.last();
+
+        s.variants->refractscale = clamp(k, 0.0f, 1.0f);
+        if (s.variants->refractscale > 0 && (r > 0 || g > 0 || b > 0))
+            s.variants->refractcolor = vec(clamp(r, 0.0f, 1.0f),
+                                           clamp(g, 0.0f, 1.0f),
+                                           clamp(b, 0.0f, 1.0f));
+        else
+            s.variants->refractcolor = vec(1, 1, 1);
+        propagatevslot(s.variants, 1 << VSLOT_REFRACT);
     }
 
     void _lua_reloadtex(const char *name)
@@ -162,7 +166,7 @@ namespace lapi_binds
         gendds((char*)in, (char*)out);
     }
 
-    void _lua_flipnormalmapy(const char *dst, const char *nst)
+    void _lua_flipnormalmapy(const char *dst, const char *nst) // jpg/png/tga-> tga
     {
         if (!dst) dst = "";
         if (!nst) nst = "";
@@ -191,6 +195,45 @@ namespace lapi_binds
         }
 
         saveimage(dst, guessimageformat(dst, IMG_TGA), d);
+    }
+
+#define readwritetex(t, s, body) \
+    { \
+        uchar *dstrow = t.data, *srcrow = s.data; \
+        loop(y, t.h) \
+        { \
+            for(uchar *dst = dstrow, *src = srcrow, *end = &srcrow[s.w*s.bpp]; src < end; dst += t.bpp, src += s.bpp) \
+            { \
+                body; \
+            } \
+            dstrow += t.pitch; \
+            srcrow += s.pitch; \
+        } \
+    }
+
+    // jpg/png/tga-> tga
+    void _lua_normalizenormalmap(const char *destfile, const char *normalfile)
+    {
+        ImageData ns;
+        if(!loadimage(normalfile, ns)) return;
+        ImageData d(ns.w, ns.h, 3);
+        readwritetex(d, ns,
+            *(bvec *)dst = bvec(src[0], src[1], src[2]).normalize();
+        );
+        saveimage(destfile, guessimageformat(destfile, IMG_TGA), d);
+    }
+
+    void _lua_removealphachannel(const char *destfile, const char *rgbafile)
+    {
+        ImageData ns;
+        if(!loadimage(rgbafile, ns)) return;
+        ImageData d(ns.w, ns.h, 3);
+        readwritetex(d, ns,
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+        );
+        saveimage(destfile, guessimageformat(destfile, IMG_TGA), d);
     }
 
     void _lua_mergenormalmaps(const char *h, const char *n)
@@ -554,10 +597,12 @@ namespace lapi_binds
     LAPI_EMPTY(texlayer)
     LAPI_EMPTY(texalpha)
     LAPI_EMPTY(texcolor)
-    LAPI_EMPTY(texffenv)
+    LAPI_EMPTY(texrefract)
     LAPI_EMPTY(reloadtex)
     LAPI_EMPTY(gendds)
     LAPI_EMPTY(flipnormalmapy)
+    LAPI_EMPTY(normalizenormalmap)
+    LAPI_EMPTY(removealphachannel)
     LAPI_EMPTY(mergenormalmaps)
     LAPI_EMPTY(parsepixels)
     LAPI_EMPTY(filltexlist)
@@ -588,10 +633,12 @@ namespace lapi_binds
         LAPI_REG(texlayer);
         LAPI_REG(texalpha);
         LAPI_REG(texcolor);
-        LAPI_REG(texffenv);
+        LAPI_REG(texrefract);
         LAPI_REG(reloadtex);
         LAPI_REG(gendds);
         LAPI_REG(flipnormalmapy);
+        LAPI_REG(normalizenormalmap);
+        LAPI_REG(removealphachannel);
         LAPI_REG(mergenormalmaps);
         LAPI_REG(parsepixels);
         LAPI_REG(filltexlist);

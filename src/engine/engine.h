@@ -7,7 +7,7 @@
 
 #include "world.h"
 #include "octa.h"
-#include "lightmap.h"
+#include "light.h"
 #include "bih.h"
 #include "texture.h"
 #include "model.h"
@@ -38,6 +38,17 @@ extern PFNGLGETQUERYIVARBPROC        glGetQueryiv_;
 extern PFNGLGETQUERYOBJECTIVARBPROC  glGetQueryObjectiv_;
 extern PFNGLGETQUERYOBJECTUIVARBPROC glGetQueryObjectuiv_;
 
+// GL_EXT_timer_query
+#ifndef GL_EXT_timer_query
+#define GL_TIME_ELAPSED_EXT               0x88BF
+typedef llong GLint64EXT;
+typedef ullong GLuint64EXT;
+typedef void (APIENTRYP PFNGLGETQUERYOBJECTI64VEXTPROC) (GLuint id, GLenum pname, GLint64EXT *params);
+typedef void (APIENTRYP PFNGLGETQUERYOBJECTUI64VEXTPROC) (GLuint id, GLenum pname, GLuint64EXT *params);
+#endif
+extern PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v_;
+extern PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v_;
+
 // GL_EXT_framebuffer_object
 extern PFNGLBINDRENDERBUFFEREXTPROC        glBindRenderbuffer_;
 extern PFNGLDELETERENDERBUFFERSEXTPROC     glDeleteRenderbuffers_;
@@ -50,6 +61,9 @@ extern PFNGLGENFRAMEBUFFERSEXTPROC         glGenFramebuffers_;
 extern PFNGLFRAMEBUFFERTEXTURE2DEXTPROC    glFramebufferTexture2D_;
 extern PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbuffer_;
 extern PFNGLGENERATEMIPMAPEXTPROC          glGenerateMipmap_;
+
+// GL_ARB_draw_buffers
+extern PFNGLDRAWBUFFERSARBPROC glDrawBuffers_;
 
 // GL_EXT_framebuffer_blit
 #ifndef GL_EXT_framebuffer_blit
@@ -81,6 +95,14 @@ extern PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_;
 #ifndef GL_DEPTH24_STENCIL8_EXT
 #define GL_DEPTH24_STENCIL8_EXT 0x88F0
 #endif
+#ifndef GL_UNSIGNED_INT_24_8_EXT
+#define GL_UNSIGNED_INT_24_8_EXT 0x84FA
+#endif
+
+// GL_EXT_packed_float
+#ifndef GL_R11F_G11F_B10F_EXT
+#define GL_R11F_G11F_B10F_EXT 0x8C3A
+#endif
 
 // GL_ARB_texture_compression
 extern PFNGLCOMPRESSEDTEXIMAGE3DARBPROC    glCompressedTexImage3D_;
@@ -91,8 +113,25 @@ extern PFNGLCOMPRESSEDTEXSUBIMAGE2DARBPROC glCompressedTexSubImage2D_;
 extern PFNGLCOMPRESSEDTEXSUBIMAGE1DARBPROC glCompressedTexSubImage1D_;
 extern PFNGLGETCOMPRESSEDTEXIMAGEARBPROC   glGetCompressedTexImage_;
 
-// GL_EXT_fog_coord
-extern PFNGLFOGCOORDPOINTEREXTPROC glFogCoordPointer_;
+// GL_ARB_texture_rg
+#ifndef GL_ARB_texture_rg
+#define GL_RG                             0x8227
+#define GL_R8                             0x8229
+#define GL_R16                            0x822A
+#define GL_RG8                            0x822B
+#define GL_RG16                           0x822C
+#define GL_R16F                           0x822D
+#define GL_R32F                           0x822E
+#define GL_RG16F                          0x822F
+#define GL_RG32F                          0x8230
+#endif
+
+// GL_EXT_depth_bounds_test
+extern PFNGLDEPTHBOUNDSEXTPROC glDepthBounds_;
+
+extern void glerror(const char *file, int line, GLenum error);
+
+#define GLERROR do { GLenum error = glGetError(); if(error != GL_NO_ERROR) glerror(__FILE__, __LINE__, error); } while(0)
 
 #include "varray.h"
 
@@ -144,15 +183,14 @@ extern font *curfont;
 extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize;
 
 extern Texture *textureload(const char *name, int clamp = 0, bool mipit = true, bool msg = true);
-extern int texalign(void *data, int w, int bpp);
+extern int texalign(const void *data, int w, int bpp);
 extern void cleanuptexture(Texture *t);
 extern void loadalphamask(Texture *t);
-extern void loadlayermasks();
 extern Texture *cubemapload(const char *name, bool mipit = true, bool msg = true, bool transient = false);
 extern void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side);
 extern void loadshaders();
-extern void setuptexparameters(int tnum, void *pixels, int clamp, int filter, GLenum format = GL_RGB, GLenum target = GL_TEXTURE_2D);
-extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_2D, int pw = 0, int ph = 0, int pitch = 0, bool resize = true, GLenum format = GL_FALSE);
+extern void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLenum format = GL_RGB, GLenum target = GL_TEXTURE_2D);
+extern void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_2D, int pw = 0, int ph = 0, int pitch = 0, bool resize = true, GLenum format = GL_FALSE);
 extern void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src, int margin = 0);
 extern void blurnormals(int n, int w, int h, bvec *dst, const bvec *src, int margin = 0);
 extern void renderpostfx();
@@ -172,23 +210,10 @@ extern void compactvslots(cube *c, int n = 8);
 extern void compactvslot(int &index);
 extern int compactvslots();
 
-// shadowmap
-
-extern int shadowmap, shadowmapcasters;
-extern bool shadowmapping;
-
-extern bool isshadowmapcaster(const vec &o, float rad);
-extern bool addshadowmapcaster(const vec &o, float xyrad, float zrad);
-extern bool isshadowmapreceiver(vtxarray *va);
-extern void rendershadowmap();
-extern void pushshadowmap();
-extern void popshadowmap();
-extern void rendershadowmapreceivers();
-extern void guessshadowdir();
-
 // pvs
 extern void clearpvs();
 extern bool pvsoccluded(const ivec &bborigin, const ivec &bbsize);
+extern bool pvsoccludedsphere(const vec &center, float radius);
 extern bool waterpvsoccluded(int height);
 extern void setviewcell(const vec &p);
 extern void savepvs(stream *f);
@@ -201,27 +226,37 @@ static inline bool pvsoccluded(const ivec &bborigin, int size)
 }
 
 // rendergl
-extern bool hasVBO, hasDRE, hasOQ, hasTR, hasFBO, hasDS, hasTF, hasBE, hasBC, hasCM, hasNP2, hasTC, hasTE, hasMT, hasD3, hasAF, hasVP2, hasVP3, hasPP, hasMDA, hasTE3, hasTE4, hasVP, hasFP, hasGLSL, hasGM, hasNVFB, hasSGIDT, hasSGISH, hasDT, hasSH, hasNVPCF, hasRN, hasPBO, hasFBB, hasUBO, hasBUE, hasFC, hasTEX;
+extern bool hasVBO, hasDRE, hasOQ, hasTR, hasFBO, hasAFBO, hasDS, hasTF, hasBE, hasBC, hasCM, hasNP2, hasTC, hasMT, hasAF, hasMDA, hasGLSL, hasGM, hasNVFB, hasSGIDT, hasSGISH, hasDT, hasSH, hasNVPCF, hasPBO, hasFBB, hasUBO, hasBUE, hasDB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT;
 extern int hasstencil;
+extern int glslversion;
 
-extern bool envmapping, minimapping, renderedgame;
+extern int vieww, viewh;
+extern float curfov, fovy, aspect;
+extern float nearplane;
+extern int farplane;
+extern int hdr;
+extern bool envmapping;
+extern int minimapping;
 extern const glmatrixf viewmatrix;
-extern glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix, fogmatrix, invfogmatrix, envmatrix;
+extern glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix, eyematrix, worldmatrix;
 extern bvec fogcolor;
 
 extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
-extern void rendergame(bool mainpass = false);
 extern void invalidatepostfx();
+extern void gl_setupframe(int w, int h);
 extern void gl_drawframe(int w, int h);
 extern void gl_drawmainmenu(int w, int h);
 extern void drawminimap();
 extern void enablepolygonoffset(GLenum type);
 extern void disablepolygonoffset(GLenum type);
-extern void calcspherescissor(const vec &center, float size, float &sx1, float &sy1, float &sx2, float &sy2);
+extern bool calcspherescissor(const vec &center, float size, float &sx1, float &sy1, float &sx2, float &sy2);
+extern bool calcbbscissor(const ivec &bbmin, const ivec &bbmax, float &sx1, float &sy1, float &sx2, float &sy2);
 extern int pushscissor(float sx1, float sy1, float sx2, float sy2);
 extern void popscissor();
+extern void screenquad(float sw, float sh);
+extern void screenquad(float sw, float sh, float sw2, float sh2);
 extern void recomputecamera();
 extern void findorientation();
 
@@ -295,6 +330,54 @@ static inline cubeext &ext(cube &c)
     return *(c.ext ? c.ext : newcubeext(c));
 }
 
+// shadowmap
+
+#define LIGHTTILE_W 10
+#define LIGHTTILE_H 10
+
+static inline void masktiles(uint *tiles, float sx1, float sy1, float sx2, float sy2)
+{
+    int tx1 = max(int(floor((sx1 + 1)*0.5f*LIGHTTILE_W)), 0), ty1 = max(int(floor((sy1 + 1)*0.5f*LIGHTTILE_H)), 0),
+        tx2 = min(int(ceil((sx2 + 1)*0.5f*LIGHTTILE_W)), LIGHTTILE_W), ty2 = min(int(ceil((sy2 + 1)*0.5f*LIGHTTILE_H)), LIGHTTILE_H);
+    for(int ty = ty1; ty < ty2; ty++) tiles[ty] |= ((1<<(tx2-tx1))-1)<<tx1;
+}
+
+enum { SM_NONE = 0, SM_CUBEMAP, SM_TETRA, SM_CASCADE };
+ 
+extern int shadowmapping;
+
+extern int smtetra, smtetraclip;
+extern plane smtetraclipplane;
+
+extern vec shadoworigin;
+extern float shadowradius, shadowbias;
+extern int shadowside;
+
+extern void collectlights();
+
+extern void findshadowvas();
+extern void findshadowmms();
+
+extern void findcsmshadowvas();
+extern void findcsmshadowmms();
+
+extern void rendershadowmapworld();
+extern void batchshadowmapmodels();
+
+extern int calcbbtetramask(const vec &bbmin, const vec &bbmax, const vec &lightpos, float lightradius, float bias);
+extern int calcbbsidemask(const vec &bbmin, const vec &bbmax, const vec &lightpos, float lightradius, float bias);
+extern int calcspheresidemask(const vec &p, float radius, float bias);
+extern int calcspheretetramask(const vec &p, float radius, float bias);
+extern int cullfrustumsides(const vec &lightpos, float lightradius, float size, float border);
+extern int cullfrustumtetra(const vec &lightpos, float lightradius, float size, float border);
+extern int calcbbcsmsplits(const ivec &bbmin, const ivec &bbmax);
+extern int calcspherecsmsplits(const vec &center, float radius);
+
+extern void loaddeferredlightshaders();
+extern void cleardeferredlightshaders();
+
+extern void clearshadowcache();
+
 // ents
 extern char *entname(entity &e);
 extern bool haveselent();
@@ -310,6 +393,7 @@ extern void rendereditcursor();
 extern void tryedit();
 
 // octarender
+extern ivec worldmin, worldmax;
 extern vector<tjoint> tjoints;
 
 extern ushort encodenormal(const vec &n);
@@ -326,17 +410,22 @@ extern void updatevabb(vtxarray *va, bool force = false);
 extern void updatevabbs(bool force = false);
 
 // renderva
+
+extern int oqfrags;
+extern float alphafrontsx1, alphafrontsx2, alphafrontsy1, alphafrontsy2, alphabacksx1, alphabacksx2, alphabacksy1, alphabacksy2, alpharefractsx1, alpharefractsx2, alpharefractsy1, alpharefractsy2;
+extern uint alphatiles[LIGHTTILE_H];
+
 extern void visiblecubes(bool cull = true);
-extern void setvfcP(float z = -1, const vec &bbmin = vec(-1, -1, -1), const vec &bbmax = vec(1, 1, 1));
+extern void setvfcP(const vec &bbmin = vec(-1, -1, -1), const vec &bbmax = vec(1, 1, 1));
 extern void savevfcP();
 extern void restorevfcP();
-extern void rendergeom(float causticspass = 0, bool fogpass = false);
-extern void renderalphageom(bool fogpass = false);
+extern void rendergeom();
+extern int findalphavas();
+extern void renderrefractmask();
+extern void renderalphageom(int side);
 extern void rendermapmodels();
-extern void renderreflectedgeom(bool causticspass = false, bool fogpass = false);
-extern void renderreflectedmapmodels();
 extern void renderoutline();
-extern bool rendersky(bool explicitonly = false);
+extern void rendershadowmapworld();
 
 extern bool isfoggedsphere(float rad, const vec &cv);
 extern int isvisiblesphere(float rad, const vec &cv);
@@ -347,55 +436,56 @@ extern void resetqueries();
 extern int getnumqueries();
 extern void drawbb(const ivec &bo, const ivec &br, const vec &camera = camera1->o);
 
-#define startquery(query) { glBeginQuery_(GL_SAMPLES_PASSED_ARB, ((occludequery *)(query))->id); }
+#define startquery(query) do { glBeginQuery_(GL_SAMPLES_PASSED_ARB, ((occludequery *)(query))->id); } while(0)
 #define endquery(query) \
-    { \
+    do { \
         glEndQuery_(GL_SAMPLES_PASSED_ARB); \
         extern int ati_oq_bug; \
         if(ati_oq_bug) glFlush(); \
-    }
+    } while(0)
 
 // dynlight
 
 extern void updatedynlights();
 extern int finddynlights();
-extern void calcdynlightmask(vtxarray *va);
-extern int setdynlights(vtxarray *va);
 extern bool getdynlight(int n, vec &o, float &radius, vec &color);
 
 // material
+
+extern float matliquidsx1, matliquidsy1, matliquidsx2, matliquidsy2;
+extern float matsolidsx1, matsolidsy1, matsolidsx2, matsolidsy2;
+extern float matrefractsx1, matrefractsy1, matrefractsx2, matrefractsy2;
+extern uint matliquidtiles[LIGHTTILE_H], matsolidtiles[LIGHTTILE_H];
+extern vector<materialsurface> editsurfs, glasssurfs, watersurfs, waterfallsurfs, lavasurfs, lavafallsurfs;
+extern const vec matnormals[6];
 
 extern int showmat;
 
 extern int findmaterial(const char *name);
 extern void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs);
-extern void rendermatsurfs(materialsurface *matbuf, int matsurfs);
-extern void rendermatgrid(materialsurface *matbuf, int matsurfs);
+extern void calcmatbb(vtxarray *va, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs);
 extern int optimizematsurfs(materialsurface *matbuf, int matsurfs);
 extern void setupmaterials(int start = 0, int len = 0);
-extern void rendermaterials();
+extern int findmaterials();
+extern void rendermaterialmask();
+extern void renderliquidmaterials();
+extern void rendersolidmaterials();
+extern void rendereditmaterials();
+extern void renderminimapmaterials();
 extern int visiblematerial(cube &c, int orient, int x, int y, int z, int size, uchar matmask = MATF_VOLUME);
 
 // water
-extern int refracting;
-extern bool reflecting, fading, fogging;
-extern float reflectz;
-extern int reflectdist, vertwater, waterrefract, waterreflect, waterfade, caustics, waterfallrefract, waterfog, lavafog;
-extern bvec watercolor, waterfallcolor, lavacolor;
+extern int vertwater, waterreflect, caustics, waterfog, waterdeep, lavafog;
+extern bvec watercolor, waterdeepcolor, waterdeepfadecolor, waterfallcolor, lavacolor;
+extern float watersx1, watersy1, watersx2, watersy2;
 
-extern void cleanreflections();
-extern void queryreflections();
-extern void drawreflections();
 extern void renderwater();
+extern void renderwaterfalls();
+extern void renderlava();
 extern void renderlava(const materialsurface &m, Texture *tex, float scale);
 extern void loadcaustics(bool force = false);
+extern void renderwaterfog(int mat, float blend);
 extern void preloadwatershaders(bool force = false);
-
-// glare
-extern bool glaring;
-
-extern void drawglaretex();
-extern void addglare();
 
 // depthfx
 extern bool depthfxing;
@@ -482,6 +572,7 @@ extern float loadprogress;
 extern void renderbackground(const char *caption = NULL, Texture *mapshot = NULL, const char *mapname = NULL, const char *mapinfo = NULL, bool restore = false, bool force = false);
 extern void renderprogress(float bar, const char *text, GLuint tex = 0, bool background = false);
 
+extern void getframemillis(float &avg, float &best, float &worst);
 extern void getfps(int &fps, int &bestdiff, int &worstdiff);
 extern void swapbuffers();
 extern int getclockmillis();
@@ -521,9 +612,16 @@ struct mapmodelinfo { string name; model *m; };
 extern void findanims(const char *pattern, vector<int> &anims);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks);
 extern mapmodelinfo *getmminfo(int i);
+extern void resetmodelbatches();
 extern void startmodelquery(occludequery *query);
 extern void endmodelquery();
+extern void rendermodelbatches();
+extern void shadowmaskbatchedmodels(bool dynshadow = true);
+extern void rendermodelbatches();
+extern void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw = 0, float pitch = 0, int flags = MDL_CULL_VFC | MDL_CULL_DIST, int basetime = 0, float size = 1);
+extern void clearbatchedmapmodels();
 extern void preloadmodelshaders();
+extern int batcheddynamicmodels();
 
 // renderparticles
 extern void particleinit();
@@ -539,27 +637,12 @@ extern void initdecals();
 extern void cleardecals();
 extern void renderdecals(bool mainpass = false);
 
-// blob
-
-enum
-{
-    BLOB_STATIC = 0,
-    BLOB_DYNAMIC
-};
-
-extern int showblobs;
-
-extern void initblobs(int type = -1);
-extern void resetblobs();
-extern void renderblob(int type, const vec &o, float radius, float fade = 1);
-extern void flushblobs();
-
 // rendersky
 extern int explicitsky;
-extern double skyarea;
 
-extern void drawskybox(int farplane, bool limited);
+extern void drawskybox(int farplane);
 extern bool limitsky();
+extern bool renderexplicitsky(bool outline = false);
 
 // menus
 namespace gui
@@ -609,6 +692,11 @@ extern void renderblendbrush();
 extern bool loadblendmap(stream *f, int info);
 extern void saveblendmap(stream *f);
 extern uchar shouldsaveblendmap();
+extern bool usesblendmap(int x1 = 0, int y1 = 0, int x2 = worldsize, int y2 = worldsize);
+extern int calcblendlayer(int x1, int y1, int x2, int y2);
+extern void updateblendtextures(int x1 = 0, int y1 = 0, int x2 = worldsize, int y2 = worldsize);
+extern void bindblendtexture(const ivec &p);
+extern void clearblendtextures();
 
 // recorder
 

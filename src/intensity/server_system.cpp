@@ -39,7 +39,7 @@ VAR(fullbright, 0, 0, 1);
 VAR(menuautoclose, 32, 120, 4096);
 VAR(outline, 0, 0, 0xFFFFFF);
 VAR(oqfrags, 0, 8, 64);
-VAR(renderpath, 1, R_FIXEDFUNCTION, 0);
+VAR(renderpath, 1, 0, 0);
 VAR(ati_oq_bug, 0, 0, 1);
 VAR(lightprecision, 1, 32, 1024);
 VAR(lighterror, 1, 8, 16);
@@ -100,8 +100,8 @@ Texture *notexture = NULL; // Replacement for texture.cpp's notexture
 int hasstencil = 0; // For rendergl.cpp
 
 Shader *Shader::lastshader = NULL;
+void Shader::allocparams(Slot*) { assert(0); }
 void Shader::bindprograms() { assert(0); };
-void Shader::flushenvparams(Slot* slot) { assert(0); };
 void Shader::setslotparams(Slot& slot, VSlot &vslot) { assert(0); };
 
 bool glaring = false; // glare.cpp
@@ -141,8 +141,6 @@ void fatal(const char *s, ...)
 bool printparticles(extentity &e, char *buf) { return true; };
 void clearparticleemitters() { };
 
-void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize) { assert(0); };
-
 vec worldpos;
 vec camdir;
 bvec watercolor, waterfallcolor, lavacolor;
@@ -150,10 +148,8 @@ int hidehud; // to replace
 dynent *player = NULL;
 physent *camera1 = NULL;
 float loadprogress = 0.333;
-vector<LightMap> lightmaps;
 int initing = NOT_INITING;
-bool shadowmapping = false;
-Shader *nocolorshader = NULL, *notextureshader = NULL, *lineshader = NULL;
+Shader *nocolorshader = NULL, *notextureshader = NULL;
 bool fading = false;
 int xtraverts = 0, xtravertsva = 0;
 bool reflecting = false;
@@ -173,10 +169,29 @@ bool inbetweenframes = false, renderedframe = false;
 vec shadowoffset(0, 0, 0), shadowfocus(0, 0, 0), shadowdir(0, 0.707, 1);
 int explicitsky = 0;
 double skyarea = 0;
-vector<LightMapTexture> lightmaptexs;
 vtxarray *visibleva = NULL;
+int shadowmapping = 0;
+int shadowside = 0;
+vec shadoworigin(0, 0, 0);
+float shadowradius = 0.0f, shadowbias = 0.0f;
+int hwtexsize = 0;
+int maxtexsize = 0;
 
-int lightmapping = 0;
+plane smtetraclipplane;
+
+int GlobalShaderParamState::nextversion = 0;
+void GlobalShaderParamState::resetversions() { assert(0); }
+
+GlobalShaderParamState *getglobalparam(const char *name) { return NULL; }
+
+void savepng(const char *filename, ImageData &image, bool flip) {}
+
+void clearshadowcache() {}
+int calcspheretetramask(const vec &p, float radius, float bias) { return 0; }
+int calcspheresidemask(const vec &p, float radius, float bias) { return 0; }
+int calcspherecsmsplits(const vec &center, float radius) { return 0; }
+
+void calcmatbb(vtxarray *va, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs) {}
 
 bool getkeydown() { return false; };
 bool getkeyup() { return false; };
@@ -240,7 +255,7 @@ ushort closestenvmap(int orient, int x, int y, int z, int size) { return 0; };
 GLuint lookupenvmap(Slot &slot) { return 0; };
 GLuint lookupenvmap(ushort emid) { return 0; };
 void loadalphamask(Texture *t) { };
-void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format) { };
+void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format) { };
 
 vector< types::Shared_Ptr<VSlot> > vslots;
 vector< types::Shared_Ptr< Slot> > slots;
@@ -351,6 +366,9 @@ void glLoadIdentity( void ) { };
 void glTexCoord2fv( const GLfloat *v ) { };
 void glVertex2f( GLfloat x, GLfloat y ) { };
 void glDeleteTextures( GLsizei n, const GLuint *textures ) { };
+void glPixelStorei(GLenum pname, GLint param) { };
+void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+    GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *data) { };
 #endif
 
 PFNGLBEGINQUERYARBPROC glBeginQuery_ = NULL;
@@ -368,7 +386,13 @@ PFNGLVERTEXATTRIBPOINTERARBPROC      glVertexAttribPointer_      = NULL;
 PFNGLACTIVETEXTUREARBPROC       glActiveTexture_ = NULL;
 PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
 PFNGLGETBUFFERSUBDATAARBPROC glGetBufferSubData_ = NULL;
+PFNGLUNIFORM1FVARBPROC                glUniform1fv_               = NULL;
+PFNGLUNIFORM2FVARBPROC                glUniform2fv_               = NULL;
+PFNGLUNIFORM3FVARBPROC                glUniform3fv_               = NULL;
 PFNGLUNIFORM4FVARBPROC                glUniform4fv_               = NULL;
+PFNGLUNIFORMMATRIX2FVARBPROC          glUniformMatrix2fv_         = NULL;
+PFNGLUNIFORMMATRIX3FVARBPROC          glUniformMatrix3fv_         = NULL;
+PFNGLUNIFORMMATRIX4FVARBPROC          glUniformMatrix4fv_         = NULL;
 PFNGLBUFFERSUBDATAARBPROC    glBufferSubData_    = NULL;
 PFNGLBINDBUFFERBASEPROC          glBindBufferBase_          = NULL;
 PFNGLUNIFORMBUFFEREXTPROC        glUniformBuffer_        = NULL;

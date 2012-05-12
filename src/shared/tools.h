@@ -638,7 +638,7 @@ template<class T> struct hashset
         chunks = NULL;
         unused = NULL;
         chains = new chain *[size];
-        loopi(size) chains[i] = NULL;
+        memset(chains, 0, size*sizeof(chain *));
     }
 
     ~hashset()
@@ -736,7 +736,7 @@ template<class T> struct hashset
     void clear()
     {
         if(!numelems) return;
-        loopi(size) chains[i] = NULL;
+        memset(chains, 0, size*sizeof(chain *));
         numelems = 0;
         unused = NULL;
         deletechunks();

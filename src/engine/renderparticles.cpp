@@ -1,12 +1,14 @@
 // renderparticles.cpp
 
 #include "engine.h"
-#include "rendertarget.h"
 #include "of_entities.h"
 
 Shader *particleshader = NULL, *particlenotextureshader = NULL;
 
 VARP(particlesize, 20, 100, 500);
+
+VARP(softparticles, 0, 1, 1);
+VARP(softparticleblend, 1, 8, 64);
 
 // Check emit_particles() to limit the rate that paricles can be emitted for models/sparklies
 // Automatically stops particles being emitted when paused or in reflective drawing
@@ -16,7 +18,6 @@ static bool canemit = false, regenemitters = false, canstep = false;
 
 static bool emit_particles()
 {
-    if(reflecting || refracting) return false;
     return canemit || emitoffset;
 }
 
@@ -104,7 +105,6 @@ enum
     PT_RND4  = 1<<9,
     PT_LERP  = 1<<10, // use very sparingly - order of blending issues
     PT_TRACK = 1<<11,
-    PT_GLARE = 1<<12,
     PT_SOFT  = 1<<13,
     PT_HFLIP = 1<<14,
     PT_VFLIP = 1<<15,
@@ -172,7 +172,6 @@ struct partrenderer
     virtual void reset() = 0;
     virtual void resettracked(physent *owner) { }   
     virtual particle *addpart(const vec &o, const vec &d, int fade, int color, float size, int gravity = 0) = 0;    
-    virtual int adddepthfx(vec &bbmin, vec &bbmax) { return 0; }
     virtual void update() { }
     virtual void render() = 0;
     virtual bool haswork() = 0;
@@ -788,7 +787,6 @@ typedef varenderer<PT_PART> quadrenderer;
 typedef varenderer<PT_TAPE> taperenderer;
 typedef varenderer<PT_TRAIL> trailrenderer;
 
-#include "depthfx.h"
 #include "explosion.h"
 #include "lensflare.h"
 #include "lightning.h"
@@ -799,30 +797,6 @@ struct softquadrenderer : quadrenderer
         : quadrenderer(texname, type|PT_SOFT, collide)
     {
     }
-
-    int adddepthfx(vec &bbmin, vec &bbmax)
-    {
-        if(!depthfxtex.highprecision() && !depthfxtex.emulatehighprecision()) return 0;
-        int numsoft = 0;
-        loopi(numparts)
-        {
-            particle &p = parts[i];
-            float radius = p.size*SQRT2;
-            vec o, d;
-            int blend, ts;
-            calc(&p, blend, ts, o, d, false);
-            if(!isfoggedsphere(radius, p.o) && (depthfxscissor!=2 || depthfxtex.addscissorbox(p.o, radius))) 
-            {
-                numsoft++;
-                loopk(3)
-                {
-                    bbmin[k] = min(bbmin[k], o[k] - radius);
-                    bbmax[k] = max(bbmax[k], o[k] + radius);
-                }
-            }
-        }
-        return numsoft;
-    }
 };
 
 static partrenderer *parts[] = 
@@ -831,20 +805,20 @@ static partrenderer *parts[] =
     new trailrenderer("data/textures/particles/base.png", PT_TRAIL|PT_LERP),                            // water, entity
     new quadrenderer("<grey>data/textures/particles/smoke.png", PT_PART|PT_FLIP|PT_LERP),               // smoke
     new quadrenderer("<grey>data/textures/particles/steam.png", PT_PART|PT_FLIP),                       // steam
-    new quadrenderer("<grey>data/textures/particles/flames.png", PT_PART|PT_HFLIP|PT_RND4|PT_GLARE),    // flame on - no flipping please, they have orientation
-    new quadrenderer("data/textures/particles/ball1.png", PT_PART|PT_FEW|PT_GLARE),                     // fireball1
-    new quadrenderer("data/textures/particles/ball2.png", PT_PART|PT_FEW|PT_GLARE),                     // fireball2
-    new quadrenderer("data/textures/particles/ball3.png", PT_PART|PT_FEW|PT_GLARE),                     // fireball3
-    new taperenderer("data/textures/particles/flare.jpg", PT_TAPE|PT_GLARE),                            // streak
+    new quadrenderer("<grey>data/textures/particles/flames.png", PT_PART|PT_HFLIP|PT_RND4),    // flame on - no flipping please, they have orientation
+    new quadrenderer("data/textures/particles/ball1.png", PT_PART|PT_FEW),                     // fireball1
+    new quadrenderer("data/textures/particles/ball2.png", PT_PART|PT_FEW),                     // fireball2
+    new quadrenderer("data/textures/particles/ball3.png", PT_PART|PT_FEW),                     // fireball3
+    new taperenderer("data/textures/particles/flare.png", PT_TAPE),                            // streak
     &lightnings,                                                                                   // lightning
     &fireballs,                                                                                    // explosion fireball
     &bluefireballs,                                                                                // bluish explosion fireball
-    new quadrenderer("data/textures/particles/spark.png", PT_PART|PT_FLIP|PT_GLARE),                    // sparks
-    new quadrenderer("data/textures/particles/base.png",  PT_PART|PT_FLIP|PT_GLARE),                    // edit mode entities
+    new quadrenderer("data/textures/particles/spark.png", PT_PART|PT_FLIP),                    // sparks
+    new quadrenderer("data/textures/particles/base.png",  PT_PART|PT_FLIP),                    // edit mode entities
     new quadrenderer("<grey>data/textures/particles/snow.png", PT_PART|PT_FLIP|PT_RND4, -1),            // colliding snow
-    new quadrenderer("data/textures/particles/muzzleflash1.jpg", PT_PART|PT_FEW|PT_FLIP|PT_GLARE|PT_TRACK), // muzzle flash
-    new quadrenderer("data/textures/particles/muzzleflash2.jpg", PT_PART|PT_FEW|PT_FLIP|PT_GLARE|PT_TRACK), // muzzle flash
-    new quadrenderer("data/textures/particles/muzzleflash3.jpg", PT_PART|PT_FEW|PT_FLIP|PT_GLARE|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/muzzleflash1.png", PT_PART|PT_FEW|PT_FLIP|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/muzzleflash2.png", PT_PART|PT_FEW|PT_FLIP|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/muzzleflash3.png", PT_PART|PT_FEW|PT_FLIP|PT_TRACK), // muzzle flash
     new quadrenderer("packages/hud/items.png", PT_PART|PT_FEW|PT_ICON),                            // hud icon
     new quadrenderer("<colorify:1/1/1>packages/hud/items.png", PT_PART|PT_FEW|PT_ICON),            // grey hud icon
     &texts,                                                                                        // text
@@ -862,36 +836,6 @@ static partrenderer *parts[] =
     new quadrenderer("data/textures/icons/edit_generic.png", PT_PART)
 };
 
-void finddepthfxranges()
-{
-    depthfxmin = vec(1e16f, 1e16f, 1e16f);
-    depthfxmax = vec(0, 0, 0);
-    numdepthfxranges = fireballs.finddepthfxranges(depthfxowners, depthfxranges, 0, MAXDFXRANGES, depthfxmin, depthfxmax);
-    numdepthfxranges = bluefireballs.finddepthfxranges(depthfxowners, depthfxranges, numdepthfxranges, MAXDFXRANGES, depthfxmin, depthfxmax);
-    loopk(3)
-    {
-        depthfxmin[k] -= depthfxmargin;
-        depthfxmax[k] += depthfxmargin;
-    }
-    if(depthfxparts)
-    {
-        loopi(sizeof(parts)/sizeof(parts[0]))
-        {
-            partrenderer *p = parts[i];
-            if(p->type&PT_SOFT && p->adddepthfx(depthfxmin, depthfxmax))
-            {
-                if(!numdepthfxranges)
-                {
-                    numdepthfxranges = 1;
-                    depthfxowners[0] = NULL;
-                    depthfxranges[0] = 0;
-                }
-            }
-        }
-    }              
-    if(depthfxscissor<2 && numdepthfxranges>0) depthfxtex.addscissorbox(depthfxmin, depthfxmax);
-}
- 
 VARFP(maxparticles, 10, 4000, 40000, particleinit());
 VARFP(fewparticles, 10, 100, 40000, particleinit());
 
@@ -918,21 +862,19 @@ void removetrackedparticles(physent *owner)
     loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->resettracked(owner);
 }
 
-VARP(particleglare, 0, 2, 100);
-
 VAR(debugparticles, 0, 0, 1);
 
 void renderparticles(bool mainpass)
 {
     canstep = mainpass;
     //want to debug BEFORE the lastpass render (that would delete particles)
-    if(debugparticles && !glaring && !reflecting && !refracting) 
+    if(debugparticles)
     {
         int n = sizeof(parts)/sizeof(parts[0]);
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        glOrtho(0, FONTH*n*2*screen->w/float(screen->h), FONTH*n*2, 0, -1, 1); //squeeze into top-left corner        
+        glOrtho(0, FONTH*n*2*vieww/float(viewh), FONTH*n*2, 0, -1, 1); //squeeze into top-left corner        
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
         glLoadIdentity();
@@ -944,7 +886,6 @@ void renderparticles(bool mainpass)
             int type = parts[i]->type;
             const char *title = parts[i]->texname ? strrchr(parts[i]->texname, '/')+1 : NULL;
             string info = "";
-            if(type&PT_GLARE) concatstring(info, "g,");
             if(type&PT_LERP) concatstring(info, "l,");
             if(type&PT_MOD) concatstring(info, "m,");
             if(type&PT_RND4) concatstring(info, "r,");
@@ -963,11 +904,8 @@ void renderparticles(bool mainpass)
         glPopMatrix();
     }
 
-    if(glaring && !particleglare) return;
-    
     loopi(sizeof(parts)/sizeof(parts[0])) 
     {
-        if(glaring && !(parts[i]->type&PT_GLARE)) continue;
         parts[i]->update();
     }
     
@@ -976,12 +914,11 @@ void renderparticles(bool mainpass)
     bool rendered = false;
     uint lastflags = PT_LERP, flagmask = PT_LERP|PT_MOD;
    
-    if(binddepthfxtex()) flagmask |= PT_SOFT;
+    if(softparticles) flagmask |= PT_SOFT;
 
     loopi(sizeof(parts)/sizeof(parts[0]))
     {
         partrenderer *p = parts[i];
-        if(glaring && !(p->type&PT_GLARE)) continue;
         if(!p->haswork()) continue;
     
         if(!rendered)
@@ -991,8 +928,8 @@ void renderparticles(bool mainpass)
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);             
 
-            if(glaring) setenvparamf("colorscale", SHPARAM_VERTEX, 4, particleglare, particleglare, particleglare, 1);
-            else setenvparamf("colorscale", SHPARAM_VERTEX, 4, 1, 1, 1, 1);
+            float colorscale = hdr ? 0.5f : 1;
+            GLOBALPARAM(colorscale, (colorscale, colorscale, colorscale, 1));
 
             particleshader->set();
             glGetFloatv(GL_FOG_COLOR, oldfogc);
@@ -1029,18 +966,8 @@ void renderparticles(bool mainpass)
             {
                 if(flags&PT_SOFT)
                 {
-                    if(depthfxtex.target==GL_TEXTURE_RECTANGLE_ARB)
-                    {
-                        if(!depthfxtex.highprecision()) SETSHADER(particlesoft8rect);
-                        else SETSHADER(particlesoftrect);
-                    }
-                    else
-                    {
-                        if(!depthfxtex.highprecision()) SETSHADER(particlesoft8);
-                        else SETSHADER(particlesoft);
-                    }
-
-                    binddepthfxparams(depthfxpartblend);
+                    SETSHADER(particlesoft);
+                    LOCALPARAM(softparams, (-1.0f/softparticleblend, 0, 0));
                 }
                 else particleshader->set();
             }
@@ -1111,7 +1038,7 @@ static void regularsplash(int type, int color, int radius, int num, int fade, co
 
 bool canaddparticles()
 {
-    return !renderedgame && !shadowmapping;
+    return true;
 }
 
 void regular_particle_splash(int type, int num, int fade, const vec &p, int color, float size, int radius, int gravity, int delay) 

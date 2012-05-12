@@ -248,10 +248,8 @@ namespace lapi_binds
         else
             fp = getproxyfpsent(entity);
 
-        rendermodel(
-            NULL, mdl, anim, o, entity, yaw, pitch,
-            flags, fp, entity->attachments, basetime, 0, 1
-        );
+        rendermodel(mdl, anim, o, yaw, pitch, flags, fp,
+            entity->attachments, basetime, 0, 1);
     }
 #else
     LAPI_EMPTY(rendermodel)
@@ -264,7 +262,7 @@ namespace lapi_binds
             return lapi::state.wrap<lua::Table>(lua::nil);
 
         vec center, radius;
-        mdl->boundbox(0, center, radius);
+        mdl->boundbox(center, radius);
 
         lua::Table ret(lapi::state.new_table(0, 2));
         ret["center"] = center; ret["radius"] = radius;
@@ -278,7 +276,7 @@ namespace lapi_binds
             return lapi::state.wrap<lua::Table>(lua::nil);
 
         vec center, radius;
-        mdl->collisionbox(0, center, radius);
+        mdl->collisionbox(center, radius);
 
         lua::Table ret(lapi::state.new_table(0, 2));
         ret["center"] = center; ret["radius"] = radius;
@@ -292,7 +290,7 @@ namespace lapi_binds
             return lapi::state.wrap<lua::Table>(lua::nil);
 
         vector<BIH::tri> tris2[2];
-        mdl->gentris(0, tris2);
+        mdl->gentris(tris2);
         vector<BIH::tri>& tris = tris2[0];
         types::String buf;
 

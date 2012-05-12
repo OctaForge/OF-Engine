@@ -1,5 +1,6 @@
 VARP(gpuskel, 0, 1, 1);
-VARP(matskel, 0, 1, 1);
+VARP(matskel, 0, 0, 1);
+VAR(maxanimdata, 1, 192, 0);
 
 #define BONEMASK_NOT  0x8000
 #define BONEMASK_END  0xFFFF
@@ -210,7 +211,7 @@ struct skelmodel : animmodel
             mesh::calctangents(bumpverts, verts, verts, numverts, tris, numtris, areaweight);
         }
 
-        void calcbb(int frame, vec &bbmin, vec &bbmax, const matrix3x4 &m)
+        void calcbb(vec &bbmin, vec &bbmax, const matrix3x4 &m)
         {
             loopj(numverts)
             {
@@ -223,7 +224,7 @@ struct skelmodel : animmodel
             }
         }
 
-        void gentris(int frame, Texture *tex, vector<BIH::tri> *out, const matrix3x4 &m)
+        void gentris(Texture *tex, vector<BIH::tri> *out, const matrix3x4 &m)
         {
             loopj(numtris)
             {
@@ -447,96 +448,17 @@ struct skelmodel : animmodel
         void setshader(Shader *s)
         {
             skelmeshgroup *g = (skelmeshgroup *)group;
-            if(glaring)
-            {
-                if(!g->skel->usegpuskel) s->setvariant(0, 2);
-                else if(g->skel->usematskel) s->setvariant(min(maxweights, g->vweights), 2);
-                else s->setvariant(min(maxweights, g->vweights)-1, 3);
-            }
-            else if(!g->skel->usegpuskel) s->set();
+            if(!g->skel->usegpuskel) s->set();
             else if(g->skel->usematskel) s->setvariant(min(maxweights, g->vweights)-1, 0);
             else s->setvariant(min(maxweights, g->vweights)-1, 1);
         }
 
         void render(const animstate *as, skin &s, vbocacheentry &vc)
         {
-            if(!(as->cur.anim&ANIM_NOSKIN))
-            {
-                if(s.multitextured())
-                {
-                    if(!enablemtc || lastmtcbuf!=lastvbuf)
-                    {
-                        glClientActiveTexture_(GL_TEXTURE1_ARB);
-                        if(!enablemtc) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                        if(lastmtcbuf!=lastvbuf)
-                        {
-                            vvert *vverts = hasVBO ? 0 : (vvert *)vc.vdata;
-                            glTexCoordPointer(2, GL_FLOAT, ((skelmeshgroup *)group)->vertsize, &vverts->u);
-                        }
-                        glClientActiveTexture_(GL_TEXTURE0_ARB);
-                        lastmtcbuf = lastvbuf;
-                        enablemtc = true;
-                    }
-                }
-                else if(enablemtc) disablemtc();
-
-                if(s.tangents())
-                {
-                    if(!enabletangents || lastxbuf!=lastvbuf)
-                    {
-                        if(!enabletangents) glEnableVertexAttribArray_(1);
-                        if(lastxbuf!=lastvbuf)
-                        {
-                            if(((skelmeshgroup *)group)->vertsize==sizeof(vvertbumpw))
-                            {
-                                vvertbumpw *vverts = hasVBO ? 0 : (vvertbumpw *)vc.vdata;
-                                glVertexAttribPointer_(1, 4, GL_FLOAT, GL_FALSE, ((skelmeshgroup *)group)->vertsize, &vverts->tangent.x);
-                            }
-                            else
-                            {
-                                vvertbump *vverts = hasVBO ? 0 : (vvertbump *)vc.vdata;
-                                glVertexAttribPointer_(1, 4, GL_FLOAT, GL_FALSE, ((skelmeshgroup *)group)->vertsize, &vverts->tangent.x);
-                            }
-                        }
-                        lastxbuf = lastvbuf;
-                        enabletangents = true;
-                    }
-                }
-                else if(enabletangents) disabletangents();
-
-                if(renderpath==R_FIXEDFUNCTION && (s.scrollu || s.scrollv))
-                {
-                    glMatrixMode(GL_TEXTURE);
-                    glPushMatrix();
-                    glTranslatef(s.scrollu*lastmillis/1000.0f, s.scrollv*lastmillis/1000.0f, 0);
-
-                    if(s.multitextured())
-                    {
-                        glActiveTexture_(GL_TEXTURE1_ARB);
-                        glPushMatrix();
-                        glTranslatef(s.scrollu*lastmillis/1000.0f, s.scrollv*lastmillis/1000.0f, 0);
-                    }
-                }
-            }
-
             if(hasDRE) glDrawRangeElements_(GL_TRIANGLES, minvert, maxvert, elen, GL_UNSIGNED_SHORT, &((skelmeshgroup *)group)->edata[eoffset]);
             else glDrawElements(GL_TRIANGLES, elen, GL_UNSIGNED_SHORT, &((skelmeshgroup *)group)->edata[eoffset]);
             glde++;
             xtravertsva += numverts;
-
-            if(renderpath==R_FIXEDFUNCTION && !(as->cur.anim&ANIM_NOSKIN) && (s.scrollu || s.scrollv))
-            {
-                if(s.multitextured())
-                {
-                    glPopMatrix();
-                    glActiveTexture_(GL_TEXTURE0_ARB);
-                }
-
-                glPopMatrix();
-                glMatrixMode(GL_MODELVIEW);
-            }
-
-            return;
         }
     };
 
@@ -936,18 +858,8 @@ struct skelmodel : animmodel
             }
         }
 
-        int maxgpuparams() const
-        {
-            switch(renderpath)
-            {
-                case R_GLSLANG: return maxvsuniforms;
-                case R_ASMGLSLANG:
-                case R_ASMSHADER: return maxvpenvparams;
-                default: return 0;
-            }
-        }
-        int availgpubones() const { return (min(maxgpuparams() - reservevpparams, 256) - 10) / (matskel ? 3 : 2); }
-        bool gpuaccelerate() const { return renderpath!=R_FIXEDFUNCTION && numframes && gpuskel && numgpubones<=availgpubones(); }
+        int availgpubones() const { return min(maxvsuniforms, maxanimdata) / (matskel ? 3 : 2); }
+        bool gpuaccelerate() const { return numframes && gpuskel && numgpubones<=availgpubones(); }
 
         float calcdeviation(const vec &axis, const vec &forward, const dualquat &pose1, const dualquat &pose2)
         {
@@ -1134,13 +1046,14 @@ struct skelmodel : animmodel
 
         #define GENRAGDOLLBONES(outbody, relbody) \
             sc.nextversion(); \
+            vec trans = vec(d.center).div(p->model->scale).add(p->translate); \
             loopv(ragdoll->joints) \
             { \
                 const ragdollskel::joint &j = ragdoll->joints[i]; \
                 const boneinfo &b = bones[j.bone]; \
                 vec pos(0, 0, 0); \
                 loopk(3) if(j.vert[k]>=0) pos.add(d.verts[j.vert[k]].pos); \
-                pos.mul(j.weight/p->model->scale).sub(p->translate); \
+                pos.mul(j.weight/p->model->scale).sub(trans); \
                 outbody; \
             } \
             loopv(ragdoll->reljoints) \
@@ -1201,10 +1114,11 @@ struct skelmodel : animmodel
                     int interpindex = bones[t.bone].interpindex;
                     m.mul(usematskel ? sc->mdata[interpindex] : sc->bdata[interpindex], matrix3x4(m));
                 }
+                float resize = p->model->scale * sizescale;
                 l.matrix = m;
-                l.matrix[12] = (l.matrix[12] + p->translate.x) * p->model->scale;
-                l.matrix[13] = (l.matrix[13] + p->translate.y) * p->model->scale;
-                l.matrix[14] = (l.matrix[14] + p->translate.z) * p->model->scale;
+                l.matrix[12] = (l.matrix[12] + p->translate.x) * resize;
+                l.matrix[13] = (l.matrix[13] + p->translate.y) * resize;
+                l.matrix[14] = (l.matrix[14] + p->translate.z) * resize;
             }
         }
 
@@ -1263,32 +1177,6 @@ struct skelmodel : animmodel
             }
             sc->millis = lastmillis;
             return *sc;
-        }
-
-        void setasmbones(skelcacheentry &sc, int count = 0)
-        {
-            if(sc.dirty) sc.dirty = false;
-            else if((count ? lastbdata : lastsdata) == (usematskel ? (void *)sc.mdata : (void *)sc.bdata)) return;
-            int offset = count ? numgpubones : 0;
-            if(!offset) count = numgpubones;
-            if(hasPP)
-            {
-                if(usematskel) glProgramEnvParameters4fv_(GL_VERTEX_PROGRAM_ARB, 10 + 3*offset, 3*count, sc.mdata[offset].a.v);
-                else glProgramEnvParameters4fv_(GL_VERTEX_PROGRAM_ARB, 10 + 2*offset, 2*count, sc.bdata[offset].real.v);
-            }
-            else if(usematskel) loopi(count)
-            {
-                glProgramEnvParameter4fv_(GL_VERTEX_PROGRAM_ARB, 10 + 3*(offset+i), sc.mdata[offset+i].a.v);
-                glProgramEnvParameter4fv_(GL_VERTEX_PROGRAM_ARB, 11 + 3*(offset+i), sc.mdata[offset+i].b.v);
-                glProgramEnvParameter4fv_(GL_VERTEX_PROGRAM_ARB, 12 + 3*(offset+i), sc.mdata[offset+i].c.v);
-            }
-            else loopi(count)
-            {
-                glProgramEnvParameter4fv_(GL_VERTEX_PROGRAM_ARB, 10 + 2*(offset+i), sc.bdata[offset+i].real.v);
-                glProgramEnvParameter4fv_(GL_VERTEX_PROGRAM_ARB, 11 + 2*(offset+i), sc.bdata[offset+i].dual.v);
-            }
-            if(offset) lastbdata = usematskel ? (void *)sc.mdata : (void *)sc.bdata;
-            else lastsdata = usematskel ? (void *)sc.mdata : (void *)sc.bdata;
         }
 
         void bindubo(UniformLoc &u, skelcacheentry &sc, skelcacheentry &bc, int count)
@@ -1353,18 +1241,10 @@ struct skelmodel : animmodel
         void setgpubones(skelcacheentry &sc, blendcacheentry *bc, int count)
         {
             if(!Shader::lastshader) return;
-            if(Shader::lastshader->type & SHADER_GLSLANG) 
-            {
-                if(Shader::lastshader->uniformlocs.length() < 1) return;
-                UniformLoc &u = Shader::lastshader->uniformlocs[0];
-                if(u.size > 0 && (hasUBO || hasBUE)) bindubo(u, sc, bc ? *bc : sc, count);
-                else setglslbones(u, sc, bc ? *bc : sc, count);
-            }
-            else
-            {
-                setasmbones(sc);
-                if(bc) setasmbones(*bc, count);
-            }
+            if(Shader::lastshader->uniformlocs.length() < 1) return;
+            UniformLoc &u = Shader::lastshader->uniformlocs[0];
+            if(u.size > 0 && (hasUBO || hasBUE)) bindubo(u, sc, bc ? *bc : sc, count);
+            else setglslbones(u, sc, bc ? *bc : sc, count);
         }
     
         bool shouldcleanup() const
@@ -1570,71 +1450,30 @@ struct skelmodel : animmodel
             #undef ALLOCVDATA
         }
 
-        void bindvbo(const animstate *as, vbocacheentry &vc, skelcacheentry *sc = NULL, blendcacheentry *bc = NULL)
+        void bindvbo(const animstate *as, part *p, vbocacheentry &vc, skelcacheentry *sc = NULL, blendcacheentry *bc = NULL)
         {
             vvertn *vverts = hasVBO ? 0 : (vvertn *)vc.vdata;
-            if(hasVBO && lastebuf!=ebuf)
-            {
-                glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, ebuf);
-                lastebuf = ebuf;
-            }
-            if(lastvbuf != (hasVBO ? (void *)(size_t)vc.vbuf : vc.vdata))
-            {
-                if(hasVBO) glBindBuffer_(GL_ARRAY_BUFFER_ARB, vc.vbuf);
-                if(!lastvbuf) glEnableClientState(GL_VERTEX_ARRAY);
-                glVertexPointer(3, GL_FLOAT, vertsize, &vverts->pos);
-                lastvbuf = hasVBO ? (void *)(size_t)vc.vbuf : vc.vdata;
-            }
+            bindpos(ebuf, vc.vbuf, &vverts->pos, vertsize);
             if(as->cur.anim&ANIM_NOSKIN)
             {
-                if(enabletc) disabletc();
                 if(enablenormals) disablenormals();
+                if(enabletangents) disabletangents();
+
+                if(p->alphatested()) bindtc(&vverts->u, vertsize);
+                else if(enabletc) disabletc();
             }
             else
             {
-                if(vnorms || vtangents)
-                {
-                    if(!enablenormals)
-                    {
-                        glEnableClientState(GL_NORMAL_ARRAY);
-                        enablenormals = true;
-                    }
-                    if(lastnbuf!=lastvbuf)
-                    {
-                        glNormalPointer(GL_FLOAT, vertsize, &vverts->norm);
-                        lastnbuf = lastvbuf;
-                    }
-                }
+                if(vnorms || vtangents) bindnorm(&vverts->norm, vertsize);
                 else if(enablenormals) disablenormals();
 
-                if(!enabletc)
-                {
-                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                    enabletc = true;
-                }
-                if(lasttcbuf!=lastvbuf)
-                {
-                    glTexCoordPointer(2, GL_FLOAT, vertsize, &vverts->u);
-                    lasttcbuf = lastvbuf;
-                }
+                if(vtangents) bindtangents(vertsize == sizeof(vvertbumpw) ? &((vvertbumpw *)vverts)->tangent.x : &((vvertbump *)vverts)->tangent.x, vertsize);
+                else if(enabletangents) disabletangents();
+
+                bindtc(&vverts->u, vertsize);
             }
-            if(!sc || !skel->usegpuskel)
-            {
-                if(enablebones) disablebones();
-                return;
-            }
-            if(!enablebones)
-            {
-                glEnableVertexAttribArray_(6);
-                glEnableVertexAttribArray_(7);
-                enablebones = true;
-            }
-            if(lastbbuf!=lastvbuf)
-            {
-                glVertexAttribPointer_(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, vertsize, &((vvertw *)vverts)->weights);
-                glVertexAttribPointer_(7, 4, GL_UNSIGNED_BYTE, GL_FALSE, vertsize, &((vvertw *)vverts)->bones);
-                lastbbuf = lastvbuf;
-            }
+            if(sc && skel->usegpuskel) bindbones(&((vvertw *)vverts)->weights, &((vvertw *)vverts)->bones, vertsize);
+            else if(enablebones) disablebones();
         }
 
         void concattagtransform(part *p, int frame, int i, const matrix3x4 &m, matrix3x4 &n)
@@ -1774,12 +1613,7 @@ struct skelmodel : animmodel
 
         void render(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p)
         {
-            bool norms = false, tangents = false;
-            loopv(p->skins)
-            {
-                if(p->skins[i].normals()) norms = true;
-                if(p->skins[i].tangents()) tangents = true;
-            }
+            bool norms = p->hasnormals(), tangents = p->hastangents();
             if(skel->shouldcleanup()) { skel->cleanup(); disablevbo(); }
             else if(norms!=vnorms || tangents!=vtangents) { cleanup(); disablevbo(); }
 
@@ -1788,7 +1622,7 @@ struct skelmodel : animmodel
                 if(!(as->cur.anim&ANIM_NORENDER))
                 {
                     if(hasVBO ? !vbocache->vbuf : !vbocache->vdata) genvbo(norms, tangents, *vbocache);
-                    bindvbo(as, *vbocache);
+                    bindvbo(as, p, *vbocache);
                     loopv(meshes) 
                     {
                         skelmesh *m = (skelmesh *)meshes[i];
@@ -1837,7 +1671,7 @@ struct skelmodel : animmodel
                     }
                 }
 
-                bindvbo(as, vc, &sc, bc);
+                bindvbo(as, p, vc, &sc, bc);
                 loopv(meshes) 
                 {
                     skelmesh *m = (skelmesh *)meshes[i];
@@ -2193,7 +2027,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         base::module["pitch"       ] = &setpitch;
         base::module["pitchtarget" ] = &setpitchtarget;
         base::module["pitchcorrect"] = &setpitchcorrect;
-        if (MDL::animated())
+        if (MDL::cananimate())
         {
             base::module["anim"    ] = &setanim;
             base::module["animpart"] = &setanimpart;

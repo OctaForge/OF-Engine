@@ -4,11 +4,15 @@
 
 #include "client_engine_additions.h" // INTENSITY
 #include "targeting.h" // INTENSITY
+#include "of_entities.h"
 
-bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasFBO = false, hasDS = false, hasTF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasTE = false, hasMT = false, hasD3 = false, hasAF = false, hasVP2 = false, hasVP3 = false, hasPP = false, hasMDA = false, hasTE3 = false, hasTE4 = false, hasVP = false, hasFP = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasRN = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false, hasFC = false, hasTEX = false;
+bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasMT = false, hasAF = false, hasMDA = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false, hasDB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false;
+bool mesa = false, intel = false, ati = false, nvidia = false;
+
 int hasstencil = 0;
 
 VAR(renderpath, 1, 0, 0);
+VAR(glslversion, 1, 0, 0);
 
 // GL_ARB_vertex_buffer_object, GL_ARB_pixel_buffer_object
 PFNGLGENBUFFERSARBPROC       glGenBuffers_       = NULL;
@@ -27,22 +31,6 @@ PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_     = NULL;
 PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_     = NULL;
 PFNGLMULTITEXCOORD4FARBPROC     glMultiTexCoord4f_     = NULL;
 
-// GL_ARB_vertex_program, GL_ARB_fragment_program
-PFNGLGENPROGRAMSARBPROC              glGenPrograms_              = NULL;
-PFNGLDELETEPROGRAMSARBPROC           glDeletePrograms_           = NULL;
-PFNGLBINDPROGRAMARBPROC              glBindProgram_              = NULL;
-PFNGLPROGRAMSTRINGARBPROC            glProgramString_            = NULL;
-PFNGLGETPROGRAMIVARBPROC             glGetProgramiv_             = NULL;
-PFNGLPROGRAMENVPARAMETER4FARBPROC    glProgramEnvParameter4f_    = NULL;
-PFNGLPROGRAMENVPARAMETER4FVARBPROC   glProgramEnvParameter4fv_   = NULL;
-PFNGLENABLEVERTEXATTRIBARRAYARBPROC  glEnableVertexAttribArray_  = NULL;
-PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArray_ = NULL;
-PFNGLVERTEXATTRIBPOINTERARBPROC      glVertexAttribPointer_      = NULL;
-
-// GL_EXT_gpu_program_parameters
-PFNGLPROGRAMENVPARAMETERS4FVEXTPROC   glProgramEnvParameters4fv_   = NULL;
-PFNGLPROGRAMLOCALPARAMETERS4FVEXTPROC glProgramLocalParameters4fv_ = NULL;
-
 // GL_ARB_occlusion_query
 PFNGLGENQUERIESARBPROC        glGenQueries_        = NULL;
 PFNGLDELETEQUERIESARBPROC     glDeleteQueries_     = NULL;
@@ -51,6 +39,10 @@ PFNGLENDQUERYARBPROC          glEndQuery_          = NULL;
 PFNGLGETQUERYIVARBPROC        glGetQueryiv_        = NULL;
 PFNGLGETQUERYOBJECTIVARBPROC  glGetQueryObjectiv_  = NULL;
 PFNGLGETQUERYOBJECTUIVARBPROC glGetQueryObjectuiv_ = NULL;
+
+// GL_EXT_timer_query
+PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v_  = NULL;
+PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v_ = NULL;
 
 // GL_EXT_framebuffer_object
 PFNGLBINDRENDERBUFFEREXTPROC        glBindRenderbuffer_        = NULL;
@@ -64,6 +56,9 @@ PFNGLGENFRAMEBUFFERSEXTPROC         glGenFramebuffers_         = NULL;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC    glFramebufferTexture2D_    = NULL;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbuffer_ = NULL;
 PFNGLGENERATEMIPMAPEXTPROC          glGenerateMipmap_          = NULL;
+
+// GL_ARB_draw_buffers
+PFNGLDRAWBUFFERSARBPROC glDrawBuffers_ = NULL;
 
 // GL_EXT_framebuffer_blit
 PFNGLBLITFRAMEBUFFEREXTPROC         glBlitFramebuffer_         = NULL;
@@ -89,8 +84,14 @@ PFNGLUNIFORM2FVARBPROC                glUniform2fv_               = NULL;
 PFNGLUNIFORM3FVARBPROC                glUniform3fv_               = NULL;
 PFNGLUNIFORM4FVARBPROC                glUniform4fv_               = NULL;
 PFNGLUNIFORM1IARBPROC                 glUniform1i_                = NULL;
+PFNGLUNIFORMMATRIX2FVARBPROC          glUniformMatrix2fv_         = NULL;
+PFNGLUNIFORMMATRIX3FVARBPROC          glUniformMatrix3fv_         = NULL;
+PFNGLUNIFORMMATRIX4FVARBPROC          glUniformMatrix4fv_         = NULL;
 PFNGLBINDATTRIBLOCATIONARBPROC        glBindAttribLocation_       = NULL;
 PFNGLGETACTIVEUNIFORMARBPROC          glGetActiveUniform_         = NULL;
+PFNGLENABLEVERTEXATTRIBARRAYARBPROC   glEnableVertexAttribArray_  = NULL;
+PFNGLDISABLEVERTEXATTRIBARRAYARBPROC  glDisableVertexAttribArray_ = NULL;
+PFNGLVERTEXATTRIBPOINTERARBPROC       glVertexAttribPointer_      = NULL;
 
 // GL_EXT_draw_range_elements
 PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
@@ -128,40 +129,41 @@ PFNGLUNIFORMBUFFEREXTPROC        glUniformBuffer_        = NULL;
 PFNGLGETUNIFORMBUFFERSIZEEXTPROC glGetUniformBufferSize_ = NULL;
 PFNGLGETUNIFORMOFFSETEXTPROC     glGetUniformOffset_     = NULL;
 
-// GL_EXT_fog_coord
-PFNGLFOGCOORDPOINTEREXTPROC glFogCoordPointer_ = NULL;
+// GL_EXT_depth_bounds_test
+PFNGLDEPTHBOUNDSEXTPROC glDepthBounds_ = NULL;
 
 void *getprocaddress(const char *name)
 {
     return SDL_GL_GetProcAddress(name);
 }
 
-VARP(ati_skybox_bug, 0, 0, 1);
+void glerror(const char *file, int line, GLenum error)
+{
+    const char *desc = "unknown";
+    switch(error)
+    {
+    case GL_NO_ERROR: desc = "no error"; break;
+    case GL_INVALID_ENUM: desc = "invalid enum"; break;
+    case GL_INVALID_VALUE: desc = "invalid value"; break;
+    case GL_INVALID_OPERATION: desc = "invalid operation"; break;
+    case GL_STACK_OVERFLOW: desc = "stack overflow"; break;
+    case GL_STACK_UNDERFLOW: desc = "stack underflow"; break;
+    case GL_OUT_OF_MEMORY: desc = "out of memory"; break;
+    }
+    printf("GL error: %s:%d: %s (%x)\n", file, line, desc, error);
+}
+
 VAR(ati_oq_bug, 0, 0, 1);
 VAR(ati_minmax_bug, 0, 0, 1);
-VAR(ati_dph_bug, 0, 0, 1);
-VAR(ati_line_bug, 0, 0, 1);
 VAR(ati_cubemap_bug, 0, 0, 1);
 VAR(ati_ubo_bug, 0, 0, 1);
-VAR(nvidia_scissor_bug, 0, 0, 1);
-VAR(apple_glsldepth_bug, 0, 0, 1);
-VAR(apple_ff_bug, 0, 0, 1);
-VAR(apple_vp_bug, 0, 0, 1);
 VAR(sdl_backingstore_bug, -1, 0, 1);
-VAR(mesa_program_bug, 0, 0, 1);
-VAR(avoidshaders, 1, 0, 0);
-VAR(minimizetcusage, 1, 0, 0);
-VAR(emulatefog, 1, 0, 0);
-VAR(usevp2, 1, 0, 0);
-VAR(usevp3, 1, 0, 0);
 VAR(usetexrect, 1, 0, 0);
-VAR(hasglsl, 1, 0, 0);
 VAR(useubo, 1, 0, 0);
 VAR(usebue, 1, 0, 0);
-VAR(rtscissor, 0, 1, 1);
-VAR(blurtile, 0, 1, 1);
-VAR(rtsharefb, 0, 1, 1);
+VAR(usetexgather, 1, 0, 0);
 
+#if 0
 static bool checkseries(const char *s, int low, int high)
 {
     while(*s && !isdigit(*s)) ++s;
@@ -170,6 +172,7 @@ static bool checkseries(const char *s, int low, int high)
     while(isdigit(*s)) n = n*10 + (*s++ - '0');    
     return n >= low && n < high;
 }
+#endif
 
 VAR(dbgexts, 0, 0, 1);
 
@@ -189,8 +192,8 @@ void gl_checkextensions()
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
     const char *renderer = (const char *)glGetString(GL_RENDERER);
     const char *version = (const char *)glGetString(GL_VERSION);
-    printf("Renderer: %s (%s)\r\n", renderer, vendor);
-    printf("Driver: %s\r\n", version);
+    conoutf(CON_INIT, "Renderer: %s (%s)", renderer, vendor);
+    conoutf(CON_INIT, "Driver: %s", version);
 
 #ifdef __APPLE__
     extern int mac_osversion();
@@ -198,7 +201,6 @@ void gl_checkextensions()
     sdl_backingstore_bug = -1;
 #endif
 
-    bool mesa = false, intel = false, ati = false, nvidia = false;
     if(strstr(renderer, "Mesa") || strstr(version, "Mesa"))
         mesa = true;
     else if(strstr(vendor, "NVIDIA"))
@@ -216,17 +218,6 @@ void gl_checkextensions()
     GLint val;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &val);
     hwtexsize = val;
-
-    if(hasext(exts, "GL_EXT_texture_env_combine") || hasext(exts, "GL_ARB_texture_env_combine"))
-    {
-        hasTE = true;
-        if(hasext(exts, "GL_ARB_texture_env_crossbar")) hasTEX = true;
-        if(hasext(exts, "GL_ATI_texture_env_combine3")) hasTE3 = true;
-        if(hasext(exts, "GL_NV_texture_env_combine4")) hasTE4 = true;
-        if(hasext(exts, "GL_EXT_texture_env_dot3") || hasext(exts, "GL_ARB_texture_env_dot3")) hasD3 = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_env_combine extension.");
-    }
-    else conoutf(CON_WARN, "WARNING: No texture_env_combine extension! (your video card is WAY too old)");
 
     if(hasext(exts, "GL_ARB_multitexture"))
     {
@@ -294,15 +285,18 @@ void gl_checkextensions()
     {
         hasTF = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_float extension.");
-        shadowmap = 1;
-        extern int smoothshadowmappeel;
-        smoothshadowmappeel = 1;
     }
 
     if(hasext(exts, "GL_NV_float_buffer")) 
     {
         hasNVFB = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_NV_float_buffer extension.");
+    }
+
+    if(hasext(exts, "GL_ARB_texture_rg"))
+    {
+        hasTRG = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_rg extension.");
     }
 
     if(hasext(exts, "GL_EXT_framebuffer_object"))
@@ -321,6 +315,11 @@ void gl_checkextensions()
         hasFBO = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_framebuffer_object extension.");
 
+        if(hasext(exts, "GL_ARB_framebuffer_object"))
+        {
+            hasAFBO = true;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_framebuffer_object extension.");
+        } 
         if(hasext(exts, "GL_EXT_framebuffer_blit"))
         {
             glBlitFramebuffer_     = (PFNGLBLITFRAMEBUFFEREXTPROC)        getprocaddress("glBlitFramebufferEXT");
@@ -328,7 +327,19 @@ void gl_checkextensions()
             if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_framebuffer_blit extension.");
         }
     }
-    else conoutf(CON_WARN, "WARNING: No framebuffer object support. (reflective water may be slow)");
+    //else conoutf(CON_WARN, "WARNING: No framebuffer object support. (reflective water may be slow)");
+    else fatal("Framebuffer object support is required!");
+
+    if(hasext(exts, "GL_ARB_draw_buffers"))
+    {
+        glDrawBuffers_ = (PFNGLDRAWBUFFERSARBPROC)getprocaddress("glDrawBuffersARB");
+        hasDB = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_draw_buffers extension.");
+        GLint maxbufs = 0;
+        glGetIntegerv(GL_MAX_DRAW_BUFFERS_ARB, &maxbufs);
+        if(maxbufs < 3) fatal("Hardware does not support at least 3 draw buffers.");
+    }
+    else fatal("Draw buffers support is required!");
 
 #ifdef __APPLE__
     // Intel HD3000 broke occlusion queries - either causing software fallback, or returning wrong results
@@ -363,81 +374,45 @@ void gl_checkextensions()
         waterreflect = 0;
     }
 
+    if(hasext(exts, "GL_EXT_timer_query"))
+    {
+        glGetQueryiv_ =          (PFNGLGETQUERYIVARBPROC)       getprocaddress("glGetQueryivARB");
+        glGenQueries_ =          (PFNGLGENQUERIESARBPROC)       getprocaddress("glGenQueriesARB");
+        glDeleteQueries_ =       (PFNGLDELETEQUERIESARBPROC)    getprocaddress("glDeleteQueriesARB");
+        glBeginQuery_ =          (PFNGLBEGINQUERYARBPROC)       getprocaddress("glBeginQueryARB");
+        glEndQuery_ =            (PFNGLENDQUERYARBPROC)         getprocaddress("glEndQueryARB");
+        glGetQueryObjectiv_ =    (PFNGLGETQUERYOBJECTIVARBPROC) getprocaddress("glGetQueryObjectivARB");
+        glGetQueryObjectuiv_ =   (PFNGLGETQUERYOBJECTUIVARBPROC)getprocaddress("glGetQueryObjectuivARB");
+        glGetQueryObjecti64v_ =  (PFNGLGETQUERYOBJECTI64VEXTPROC)  getprocaddress("glGetQueryObjecti64vEXT");
+        glGetQueryObjectui64v_ = (PFNGLGETQUERYOBJECTUI64VEXTPROC) getprocaddress("glGetQueryObjectui64vEXT");
+        hasTQ = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_timer_query extension.");
+    }
+
+    extern int gdepthstencil;
     if(ati)
     {
         //conoutf(CON_WARN, "WARNING: ATI cards may show garbage in skybox. (use \"/ati_skybox_bug 1\" to fix)");
-
-        extern int reservedynlighttc, reserveshadowmaptc, fpdepthfx;
-        reservedynlighttc = 2;
-        reserveshadowmaptc = 3;
-        minimizetcusage = 1;
-        emulatefog = 1;
-        if(hasTF && hasNVFB) fpdepthfx = 1;
+        if(!hasext(exts, "GL_ARB_gpu_shader5")) gdepthstencil = 0; // some older ATI GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
     }
     else if(nvidia)
     {
-        reservevpparams = 10;
-        rtsharefb = 0; // work-around for strange driver stalls involving when using many FBOs
-        extern int filltjoints;
-        if(!hasext(exts, "GL_EXT_gpu_shader4")) filltjoints = 0; // DX9 or less NV cards seem to not cause many sparklies
-        
-        if(hasFBO && !hasTF) nvidia_scissor_bug = 1; // 5200 bug, clearing with scissor on an FBO messes up on reflections, may affect lesser cards too 
-        extern int fpdepthfx;
-        if(hasTF && (!strstr(renderer, "GeForce") || !checkseries(renderer, 6000, 6600)))
-            fpdepthfx = 1; // FP filtering causes software fallback on 6200?
     }
     else
     {
-        extern int batchlightmaps, ffdynlights;
-        if(intel)
-        {
-#ifdef __APPLE__
-            apple_vp_bug = 1;
-#endif
-        }
+        // silence warnings
+        (void)intel;
+        (void)mesa;
 
         if(!hasext(exts, "GL_EXT_gpu_shader4"))
         {
-            avoidshaders = 1;
             if(hwtexsize < 4096) 
             {
                 maxtexsize = hwtexsize >= 2048 ? 512 : 256;
-                batchlightmaps = 0;
             }
-            if(!hasTF) ffdynlights = 0;
         }
-
-        reservevpparams = 20;
-
-        if(!hasOQ) waterrefract = 0;
     }
 
-    if(hasext(exts, "GL_ARB_vertex_program") && hasext(exts, "GL_ARB_fragment_program"))
-    {
-        hasVP = hasFP = true;
-        glGenPrograms_ =              (PFNGLGENPROGRAMSARBPROC)              getprocaddress("glGenProgramsARB");
-        glDeletePrograms_ =           (PFNGLDELETEPROGRAMSARBPROC)           getprocaddress("glDeleteProgramsARB");
-        glBindProgram_ =              (PFNGLBINDPROGRAMARBPROC)              getprocaddress("glBindProgramARB");
-        glProgramString_ =            (PFNGLPROGRAMSTRINGARBPROC)            getprocaddress("glProgramStringARB");
-        glGetProgramiv_ =             (PFNGLGETPROGRAMIVARBPROC)             getprocaddress("glGetProgramivARB");
-        glProgramEnvParameter4f_ =    (PFNGLPROGRAMENVPARAMETER4FARBPROC)    getprocaddress("glProgramEnvParameter4fARB");
-        glProgramEnvParameter4fv_ =   (PFNGLPROGRAMENVPARAMETER4FVARBPROC)   getprocaddress("glProgramEnvParameter4fvARB");
-        glEnableVertexAttribArray_ =  (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)  getprocaddress("glEnableVertexAttribArrayARB");
-        glDisableVertexAttribArray_ = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC) getprocaddress("glDisableVertexAttribArrayARB");
-        glVertexAttribPointer_ =      (PFNGLVERTEXATTRIBPOINTERARBPROC)      getprocaddress("glVertexAttribPointerARB");
-
-        if(ati) ati_dph_bug = ati_line_bug = 1;
-        else if(mesa) mesa_program_bug = 1;
-
-#ifdef __APPLE__
-        if(osversion>=0x1050) // fixed in 1055 for some hardware.. but not all..
-        {
-            apple_ff_bug = 1;
-            //conoutf(CON_WARN, "WARNING: Using Leopard ARB_position_invariant bug workaround. (use \"/apple_ff_bug 0\" to disable if unnecessary)");
-        }
-#endif
-    }
-    
     if(hasext(exts, "GL_ARB_shading_language_100") && hasext(exts, "GL_ARB_shader_objects") && hasext(exts, "GL_ARB_vertex_shader") && hasext(exts, "GL_ARB_fragment_shader"))
     {
         glCreateProgramObject_ =        (PFNGLCREATEPROGRAMOBJECTARBPROC)     getprocaddress("glCreateProgramObjectARB");
@@ -460,46 +435,28 @@ void gl_checkextensions()
         glUniform3fv_ =                 (PFNGLUNIFORM3FVARBPROC)              getprocaddress("glUniform3fvARB");
         glUniform4fv_ =                 (PFNGLUNIFORM4FVARBPROC)              getprocaddress("glUniform4fvARB");
         glUniform1i_ =                  (PFNGLUNIFORM1IARBPROC)               getprocaddress("glUniform1iARB");
+        glUniformMatrix2fv_ =           (PFNGLUNIFORMMATRIX2FVARBPROC)        getprocaddress("glUniformMatrix2fvARB");
+        glUniformMatrix3fv_ =           (PFNGLUNIFORMMATRIX3FVARBPROC)        getprocaddress("glUniformMatrix3fvARB");          
+        glUniformMatrix4fv_ =           (PFNGLUNIFORMMATRIX4FVARBPROC)        getprocaddress("glUniformMatrix4fvARB");          
         glBindAttribLocation_ =         (PFNGLBINDATTRIBLOCATIONARBPROC)      getprocaddress("glBindAttribLocationARB");
         glGetActiveUniform_ =           (PFNGLGETACTIVEUNIFORMARBPROC)        getprocaddress("glGetActiveUniformARB");
-        if(!hasVP || !hasFP)
-        {
-            glEnableVertexAttribArray_ =  (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)  getprocaddress("glEnableVertexAttribArrayARB");
-            glDisableVertexAttribArray_ = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC) getprocaddress("glDisableVertexAttribArrayARB");
-            glVertexAttribPointer_ =      (PFNGLVERTEXATTRIBPOINTERARBPROC)      getprocaddress("glVertexAttribPointerARB");
-        }
+        glEnableVertexAttribArray_ =    (PFNGLENABLEVERTEXATTRIBARRAYARBPROC) getprocaddress("glEnableVertexAttribArrayARB");
+        glDisableVertexAttribArray_ =   (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)getprocaddress("glDisableVertexAttribArrayARB");
+        glVertexAttribPointer_ =        (PFNGLVERTEXATTRIBPOINTERARBPROC)     getprocaddress("glVertexAttribPointerARB");
 
         extern bool checkglslsupport();
-        if(checkglslsupport())
-        {
-            hasGLSL = true;
-            hasglsl = 1;
-#ifdef __APPLE__
-            //if(osversion<0x1050) ??
-            if(hasVP && hasFP) apple_glsldepth_bug = 1;
-#endif
-            //if(apple_glsldepth_bug) conoutf(CON_WARN, "WARNING: Using Apple GLSL depth bug workaround. (use \"/apple_glsldepth_bug 0\" to disable if unnecessary");
-        }
-    }
-    
-    bool hasshaders = (hasVP && hasFP) && hasGLSL; // OF: OR -> AND
-    if(hasshaders)
-    {
-        extern int matskel;
-        if(!avoidshaders) matskel = 0;
-    }
+        if(checkglslsupport()) hasGLSL = true;
+        
+        const char *str = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION_ARB);
+        conoutf(CON_INIT, "GLSL: %s", str ? str : "unknown");
 
-    if(hasext(exts, "GL_NV_vertex_program2_option")) { usevp2 = 1; hasVP2 = true; }
-    if(hasext(exts, "GL_NV_vertex_program3")) { usevp3 = 1; hasVP3 = true; }
-
-    if(hasext(exts, "GL_EXT_gpu_program_parameters"))
-    {
-        glProgramEnvParameters4fv_   = (PFNGLPROGRAMENVPARAMETERS4FVEXTPROC)  getprocaddress("glProgramEnvParameters4fvEXT");
-        glProgramLocalParameters4fv_ = (PFNGLPROGRAMLOCALPARAMETERS4FVEXTPROC)getprocaddress("glProgramLocalParameters4fvEXT");
-        hasPP = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_gpu_program_parameters extension.");
+        uint majorversion, minorversion;
+        if(!str || sscanf(str, " %u.%u", &majorversion, &minorversion) != 2) glslversion = 100;
+        else glslversion = majorversion*100 + minorversion; 
+        
     }
-
+    if(!hasGLSL || glslversion < 100) fatal("GLSL support is required!");
+ 
     if(hasext(exts, "GL_ARB_uniform_buffer_object"))
     {
         glGetUniformIndices_       = (PFNGLGETUNIFORMINDICESPROC)      getprocaddress("glGetUniformIndices");
@@ -533,12 +490,19 @@ void gl_checkextensions()
         hasTR = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_rectangle extension.");
     }
-    else if(hasMT && hasshaders) conoutf(CON_WARN, "WARNING: No texture rectangle support. (no full screen shaders)");
+    //else if(hasMT) conoutf(CON_WARN, "WARNING: No texture rectangle support. (no full screen shaders)");
+    else fatal("Texture rectangle support is required!");
 
     if(hasext(exts, "GL_EXT_packed_depth_stencil") || hasext(exts, "GL_NV_packed_depth_stencil"))
     {
         hasDS = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_packed_depth_stencil extension.");
+    }
+
+    if(hasext(exts, "GL_EXT_packed_float"))
+    {
+        hasPF = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_packed_float extension.");
     }
 
     if(hasext(exts, "GL_EXT_blend_minmax"))
@@ -556,13 +520,6 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_blend_color extension.");
     }
 
-    if(hasext(exts, "GL_EXT_fog_coord"))
-    {
-        glFogCoordPointer_ = (PFNGLFOGCOORDPOINTEREXTPROC) getprocaddress("glFogCoordPointerEXT");
-        hasFC = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_fog_coord extension.");
-    }
-
     if(hasext(exts, "GL_ARB_texture_cube_map"))
     {
         GLint val;
@@ -575,15 +532,14 @@ void gl_checkextensions()
     }
     else conoutf(CON_WARN, "WARNING: No cube map texture support. (no reflective glass)");
 
-    extern int usenp2;
     if(hasext(exts, "GL_ARB_texture_non_power_of_two"))
     {
         hasNP2 = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_non_power_of_two extension.");
     }
-    else if(usenp2) conoutf(CON_WARN, "WARNING: Non-power-of-two textures not supported!");
+    else fatal("Non-power-of-two texture support is required!");
 
-    if(hasext(exts, "GL_ARB_texture_compression") && strstr(exts, "GL_EXT_texture_compression_s3tc"))
+    if(hasext(exts, "GL_ARB_texture_compression") && hasext(exts, "GL_EXT_texture_compression_s3tc"))
     {
         glCompressedTexImage3D_ =    (PFNGLCOMPRESSEDTEXIMAGE3DARBPROC)   getprocaddress("glCompressedTexImage3DARB");
         glCompressedTexImage2D_ =    (PFNGLCOMPRESSEDTEXIMAGE2DARBPROC)   getprocaddress("glCompressedTexImage2DARB");
@@ -635,32 +591,22 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_SGIX_shadow extension.");
     }
 
-    if(hasext(exts, "GL_EXT_rescale_normal"))
+    if(hasext(exts, "GL_ARB_texture_gather"))
     {
-        hasRN = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_rescale_normal extension.");
+        hasTG = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_gather extension.");
     }
-
-    if(!hasSGIDT && !hasSGISH) shadowmap = 0;
-
-    if(hasext(exts, "GL_EXT_gpu_shader4") && !avoidshaders)
+    else if(hasext(exts, "GL_AMD_texture_texture4"))
     {
-        // on DX10 or above class cards (i.e. GF8 or RadeonHD) enable expensive features
-        extern int grass, glare, maxdynlights, depthfxsize, depthfxrect, depthfxfilter, blurdepthfx;
-        grass = 1;
-        if(hasOQ)
-        {
-            waterfallrefract = 1;
-            glare = 1;
-            maxdynlights = MAXDYNLIGHTS;
-            if(hasTR)
-            {
-                depthfxsize = 10;
-                depthfxrect = 1;
-                depthfxfilter = 0;
-                blurdepthfx = 0;
-            }
-        }
+        if(dbgexts) conoutf(CON_INIT, "Using GL_AMD_texture_texture4 extension.");
+    }
+    if(hasTG || hasT4) usetexgather = 1;
+
+    if(hasext(exts, "GL_EXT_depth_bounds_test"))
+    {
+        glDepthBounds_ = (PFNGLDEPTHBOUNDSEXTPROC) getprocaddress("glDepthBoundsEXT");
+        hasDBT = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_depth_bounds_test extension.");
     }
 }
 
@@ -670,13 +616,140 @@ bool glext(const char *ext)
     return (hasext(exts, ext) ? true : false);
 }
 
+// GPU-side timing information will use OGL timers
+enum { TIMER_SM = 0, TIMER_GBUFFER, TIMER_SHADING, TIMER_HDR, TIMER_AO, TIMER_TRANSPARENT, TIMER_SMAA, TIMER_SPLITTING, TIMER_MERGING, TIMER_CPU_SM, TIMER_CPU_GBUFFER, TIMER_CPU_SHADING, TIMER_N };
+#define TIMER_GPU_N TIMER_CPU_SM
+static const char *timer_string[] = {
+    "shadow map",
+    "g-buffer",
+    "deferred shading",
+    "hdr processing",
+    "ambient obscurance",
+    "transparent",
+    "smaa",
+    "buffer splitting",
+    "buffer merging",
+
+    "shadow map",
+    "g-buffer",
+    "deferred shading"
+};
+// gpu
+static const int timer_query_n = 4;
+static int timer_curr = 0;
+static GLuint timers[timer_query_n][TIMER_GPU_N];
+static uint timer_used[timer_query_n];
+// cpu
+static int timer_began[TIMER_N];
+
+static uint timer_available = 0;
+static float timer_results[TIMER_N];
+static float timer_prints[TIMER_N];
+static int timer_last_print = 0;
+VAR(timer, 0, 0, 1);
+
+static void timer_sync()
+{
+    if(!timer) return;
+    if(hasTQ) 
+    {
+        timer_curr = (timer_curr+1) % timer_query_n;
+        loopi(TIMER_GPU_N)
+        {
+            if(timer_used[timer_curr]&(1<<i))
+            {
+                GLint available = 0;
+                while(!available)
+                    glGetQueryObjectiv_(timers[timer_curr][i], GL_QUERY_RESULT_AVAILABLE_ARB, &available);
+                GLuint64EXT result = 0;
+                glGetQueryObjectui64v_(timers[timer_curr][i], GL_QUERY_RESULT_ARB, &result);
+                timer_results[i] = float(result) * 1e-6f;
+                timer_available |= 1<<i;
+            }
+        }
+        timer_used[timer_curr] = 0;
+    }
+}
+static inline void timer_begin(int whichone)
+{
+    if(!timer || inbetweenframes) return;
+    if(whichone < TIMER_GPU_N)
+    {
+        if(!hasTQ) return;
+        glBeginQuery_(GL_TIME_ELAPSED_EXT, timers[timer_curr][whichone]);
+    }
+    else timer_began[whichone] = getclockmillis();
+}
+static inline void timer_end(int whichone)
+{
+    if(!timer || inbetweenframes) return;
+    if(whichone < TIMER_GPU_N)
+    {
+        if(!hasTQ) return; 
+        glEndQuery_(GL_TIME_ELAPSED_EXT);
+        timer_used[timer_curr] |= 1<<whichone;
+    }
+    else 
+    {
+        timer_results[whichone] = float(getclockmillis() - timer_began[whichone]);
+        timer_available |= 1<<whichone;
+    }
+}
+static inline void timer_nextframe()
+{
+    timer_available = 0;
+}
+static void timer_print(int conw, int conh)
+{
+    if(!timer || !timer_available) return;
+    if(totalmillis - timer_last_print >= 200) // keep the timer read-outs from looking spastic on the hud
+    {
+        memcpy(timer_prints, timer_results, sizeof(timer_prints));
+        timer_last_print = totalmillis;
+    }        
+    int offset = 0;
+    loopi(TIMER_N)
+    {
+        if(!(timer_available&(1<<i))) continue;
+        draw_textf("%s%s %5.2f ms", conw-20*FONTH, conh-FONTH*3/2-offset*9*FONTH/8, timer_string[i], (i < TIMER_GPU_N)?"":" (cpu)", timer_prints[i]);
+        offset++;
+    }
+}
+static void timer_setup()
+{
+    memset(timer_used, 0, sizeof(timer_used));
+    memset(timer_results, 0, sizeof(timer_results));
+    memset(timer_prints, 0, sizeof(timer_prints));
+    if(hasTQ) loopi(timer_query_n) glGenQueries_(TIMER_GPU_N, timers[i]);
+}
+void cleanuptimer() 
+{ 
+    if(hasTQ) loopi(timer_query_n) glDeleteQueries_(TIMER_GPU_N, timers[i]); 
+}
+static void frametimer_print(int conw, int conh)
+{
+    extern int framemillis, frametimer;
+    if(!frametimer) return;
+    static int lastprint = 0, printmillis = 0;
+    if(totalmillis - lastprint >= 200) 
+    {
+        printmillis = framemillis;
+        lastprint = totalmillis;
+    }
+    draw_textf("frame time %i ms", conw-40*FONTH, conh-FONTH*3/2, printmillis);
+}
+
 void gl_init(int w, int h, int bpp, int depth, int fsaa)
 {
     glViewport(0, 0, w, h);
     glClearColor(0, 0, 0, 0);
     glClearDepth(1);
+    glClearStencil(0);
     glDepthFunc(GL_LESS);
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 0, ~0);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
     glShadeModel(GL_SMOOTH);
     
     
@@ -707,33 +780,46 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     }
 #endif
 
-    extern int useshaders, forceglsl;
-    bool hasshaders = (hasVP && hasFP) && hasGLSL; // OF: OR -> AND
-    if(!useshaders || (useshaders<0 && avoidshaders) || !hasMT || !hasshaders)
-    {
-        if(!hasMT || !hasshaders) conoutf(CON_WARN, "WARNING: No shader support! Using fixed-function fallback. (no fancy visuals for you)");
-        else if(useshaders<0 && !hasTF) conoutf(CON_WARN, "WARNING: Disabling shaders for extra performance. (use \"/shaders 1\" to enable shaders if desired)");
-        renderpath = R_FIXEDFUNCTION;
-    }
-    else renderpath = hasGLSL ? (!hasVP || !hasFP || forceglsl > 0 ? R_GLSLANG : R_ASMGLSLANG) : R_ASMSHADER;
+    renderpath = R_GLSLANG;
 
-    static const char * const rpnames[4] = { "fixed-function", "assembly shader", "GLSL shader", "assembly/GLSL shader" };
-    printf("Rendering using the OpenGL %s path.", rpnames[renderpath]);
+    static const char * const rpnames[1] = { "GLSL shader" };
+    conoutf(CON_INIT, "Rendering using the OpenGL %s path.", rpnames[renderpath]);
 
-    inittmus();
+    extern void initgbuffer();
+    initgbuffer();
+
     setuptexcompress();
+    timer_setup();
+
+    vieww = w;
+    viewh = h;
 }
 
 void cleanupgl()
 {
-    extern int nomasks, nolights, nowater;
-    nomasks = nolights = nowater = 0;
-
     extern void cleanupmotionblur();
     cleanupmotionblur();
 
     extern void clearminimap();
     clearminimap();
+
+    extern void cleanupgbuffer();
+    cleanupgbuffer();
+
+    extern void cleanupbloom();
+    cleanupbloom();
+
+    extern void cleanupao();
+    cleanupao();
+
+    extern void cleanupsmaa();
+    cleanupsmaa();
+
+    extern void cleanupshadowatlas();
+    cleanupshadowatlas();
+
+    extern void cleanuptimer();
+    cleanuptimer();
 }
 
 #define VARRAY_INTERNAL
@@ -760,6 +846,7 @@ void transplayer()
     glTranslatef(-camera1->o.x, -camera1->o.y, -camera1->o.z);   
 }
 
+int vieww = -1, viewh = -1;
 float curfov = 100, curavatarfov = 65, fovy, aspect;
 int farplane;
 
@@ -828,7 +915,7 @@ VAR(thirdperson, 0, 0, 2);
 FVAR(thirdpersondistance, 0, 20, 1000);
 physent *camera1 = NULL;
 bool detachedcamera = false;
-bool isthirdperson() { return player!=camera1 || detachedcamera || reflecting; }
+bool isthirdperson() { return player!=camera1 || detachedcamera; }
 
 void fixcamerarange()
 {
@@ -916,7 +1003,8 @@ void recomputecamera()
 }
 
 extern const glmatrixf viewmatrix(vec4(-1, 0, 0, 0), vec4(0, 0, 1, 0), vec4(0, -1, 0, 0));
-glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
+extern const glmatrixf invviewmatrix(vec4(-1, 0, 0, 0), vec4(0, 0, -1, 0), vec4(0, 1, 0, 0));
+glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix, invprojmatrix, eyematrix, worldmatrix, linearworldmatrix;
 
 void readmatrices()
 {
@@ -926,20 +1014,21 @@ void readmatrices()
     mvpmatrix.mul(projmatrix, mvmatrix);
     invmvmatrix.invert(mvmatrix);
     invmvpmatrix.invert(mvpmatrix);
+    invprojmatrix.invert(projmatrix);
 }
 
 FVAR(nearplane, 1e-3f, 0.54f, 1e3f);
 
-void project(float fovy, float aspect, int farplane, bool flipx = false, bool flipy = false, bool swapxy = false, float zscale = 1)
+void project(float fovy, float aspect, int farplane, float zscale = 1)
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    if(swapxy) glRotatef(90, 0, 0, 1);
-    if(flipx || flipy!=swapxy || zscale!=1) glScalef(flipx ? -1 : 1, flipy!=swapxy ? -1 : 1, zscale);
+    if(zscale!=1) glScalef(1, 1, zscale);
     GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
     glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
     glMatrixMode(GL_MODELVIEW);
 }
+
 
 vec calcavatarpos(const vec &pos, float dist)
 {
@@ -960,8 +1049,6 @@ vec calcavatarpos(const vec &pos, float dist)
 VAR(reflectclip, 0, 6, 64);
 VAR(reflectclipavatar, -64, 0, 64);
 
-glmatrixf clipmatrix;
-
 static const glmatrixf dummymatrix;
 static int projectioncount = 0;
 void pushprojection(const glmatrixf &m = dummymatrix)
@@ -969,11 +1056,6 @@ void pushprojection(const glmatrixf &m = dummymatrix)
     glMatrixMode(GL_PROJECTION);
     if(projectioncount <= 0) glPushMatrix();
     if(&m != &dummymatrix) glLoadMatrixf(m.v);
-    if(fogging)
-    {
-        glMultMatrixf(mvmatrix.v);
-        glMultMatrixf(invfogmatrix.v);
-    }
     glMatrixMode(GL_MODELVIEW);
     projectioncount++;
 }
@@ -986,11 +1068,6 @@ void popprojection()
     if(projectioncount > 0)
     {
         glPushMatrix();
-        if(fogging)
-        {
-            glMultMatrixf(mvmatrix.v);
-            glMultMatrixf(invfogmatrix.v);
-        }
     }
     glMatrixMode(GL_MODELVIEW);
 }
@@ -1008,19 +1085,12 @@ void enablepolygonoffset(GLenum type)
         return;
     }
     
-    bool clipped = reflectz < 1e15f && reflectclip;
-
-    glmatrixf offsetmatrix = clipped ? clipmatrix : projmatrix;
+    glmatrixf offsetmatrix = projmatrix;
     offsetmatrix[14] += depthoffset * projmatrix[10];
 
     glMatrixMode(GL_PROJECTION);
-    if(!clipped) glPushMatrix();
+    glPushMatrix();
     glLoadMatrixf(offsetmatrix.v);
-    if(fogging)
-    {
-        glMultMatrixf(mvmatrix.v);
-        glMultMatrixf(invfogmatrix.v);
-    }
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -1032,30 +1102,17 @@ void disablepolygonoffset(GLenum type)
         return;
     }
     
-    bool clipped = reflectz < 1e15f && reflectclip;
-
     glMatrixMode(GL_PROJECTION);
-    if(clipped) 
-    {
-        glLoadMatrixf(clipmatrix.v);
-        if(fogging)
-        {
-            glMultMatrixf(mvmatrix.v);
-            glMultMatrixf(invfogmatrix.v);
-        }
-    }
-    else glPopMatrix();
+    glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 }
 
-void calcspherescissor(const vec &center, float size, float &sx1, float &sy1, float &sx2, float &sy2)
+bool calcspherescissor(const vec &center, float size, float &sx1, float &sy1, float &sx2, float &sy2)
 {
-    vec worldpos(center);
-    if(reflecting) worldpos.z = 2*reflectz - worldpos.z; 
-    vec e(mvmatrix.transformx(worldpos),
-          mvmatrix.transformy(worldpos),
-          mvmatrix.transformz(worldpos));
-    if(e.z > 2*size) { sx1 = sy1 = 1; sx2 = sy2 = -1; return; }
+    vec e(mvmatrix.transformx(center),
+          mvmatrix.transformy(center),
+          mvmatrix.transformz(center));
+    if(e.z > 2*size) { sx1 = sy1 = 1; sx2 = sy2 = -1; return false; }
     float zzrr = e.z*e.z - size*size,
           dx = e.x*e.x + zzrr, dy = e.y*e.y + zzrr,
           focaldist = 1.0f/tan(fovy*0.5f*RAD);
@@ -1085,6 +1142,59 @@ void calcspherescissor(const vec &center, float size, float &sx1, float &sy1, fl
         CHECKPLANE(y, -, focaldist, sy1, sy2);
         CHECKPLANE(y, +, focaldist, sy1, sy2);
     }
+    return sx1 < sx2 && sy1 < sy2;
+}
+
+bool calcbbscissor(const ivec &bbmin, const ivec &bbmax, float &sx1, float &sy1, float &sx2, float &sy2)
+{
+    vec4 v[8];
+    sx1 = sy1 = 1;
+    sx2 = sy2 = -1;
+    loopi(8)
+    {
+        vec4 &p = v[i];
+        mvpmatrix.transform(vec(i&1 ? bbmax.x : bbmin.x, i&2 ? bbmax.y : bbmin.y, i&4 ? bbmax.z : bbmin.z), p);
+        if(p.z >= -p.w)
+        {
+            float x = p.x / p.w, y = p.y / p.w;
+            sx1 = min(sx1, x);
+            sy1 = min(sy1, y);
+            sx2 = max(sx2, x);
+            sy2 = max(sy2, y);
+        }
+    }
+    if(sx1 > sx2 || sy1 > sy2) return false;
+    loopi(8)
+    {
+        const vec4 &p = v[i];
+        if(p.z >= -p.w) continue;
+        loopj(3)
+        {
+            const vec4 &o = v[i^(1<<j)];
+            if(o.z <= -o.w) continue;
+            float t = (p.z + p.w)/(p.z + p.w - o.z - o.w),
+                  w = p.w + t*(o.w - p.w),
+                  x = (p.x + t*(o.x - p.x))/w,
+                  y = (p.y + t*(o.y - p.y))/w;
+            sx1 = min(sx1, x);
+            sy1 = min(sy1, y);
+            sx2 = max(sx2, x);
+            sy2 = max(sy2, y);
+        }
+    }
+    sx1 = max(sx1, -1.0f);
+    sy1 = max(sy1, -1.0f);
+    sx2 = min(sx2, 1.0f);
+    sy2 = min(sy2, 1.0f);
+    return true;
+}
+
+void calcspheredepth(const vec &center, float size, float &sz1, float &sz2)
+{
+    float z = mvmatrix.transformz(center),
+          z1 = min(z + size, -1e-3f - nearplane), z2 = min(z - size, -1e-3f - nearplane);
+    sz1 = (z1*projmatrix.v[10] + projmatrix.v[14]) / (z1*projmatrix.v[11] + projmatrix.v[15]);
+    sz2 = (z2*projmatrix.v[10] + projmatrix.v[14]) / (z2*projmatrix.v[11] + projmatrix.v[15]);
 }
 
 static int scissoring = 0;
@@ -1136,15 +1246,6 @@ void popscissor()
     scissoring = 0;
 }
 
-glmatrixf envmatrix;
-
-void setenvmatrix()
-{
-    envmatrix = fogging ? fogmatrix : mvmatrix;
-    if(reflecting) envmatrix.reflectz(reflectz);
-    envmatrix.transpose();
-}
-
 VARR(fog, 16, 4000, 1000024);
 bvec fogcolor(0x80, 0x99, 0xB3);
 HVARFR(fogcolour, 0, 0x8099B3, 0xFFFFFF,
@@ -1172,14 +1273,19 @@ static float findsurface(int fogmat, const vec &v, int &abovemat)
     return worldsize;
 }
 
-static void blendfog(int fogmat, float blend, float logblend, float &start, float &end, float *fogc)
+static void blendfog(int fogmat, float below, float blend, float logblend, float &start, float &end, float *fogc)
 {
     switch(fogmat)
     {
         case MAT_WATER:
-            loopk(3) fogc[k] += blend*watercolor[k]/255.0f;
+        {
+            float deepfade = clamp(below/max(waterdeep, waterfog), 0.0f, 1.0f);
+            vec color;
+            loopk(3) color[k] = watercolor[k]*(1-deepfade) + waterdeepcolor[k]*deepfade;
+            loopk(3) fogc[k] += blend*color[k]/255.0f;
             end += logblend*min(fog, max(waterfog*4, 32));
             break;
+        }
 
         case MAT_LAVA:
             loopk(3) fogc[k] += blend*lavacolor[k]/255.0f;
@@ -1194,30 +1300,37 @@ static void blendfog(int fogmat, float blend, float logblend, float &start, floa
     }
 }
 
-static void setfog(int fogmat, float below = 1, int abovemat = MAT_AIR)
+static void setfog(int fogmat, float below = 0, float blend = 1, int abovemat = MAT_AIR)
 {
     float fogc[4] = { 0, 0, 0, 1 };
     float start = 0, end = 0;
-    float logscale = 256, logblend = log(1 + (logscale - 1)*below) / log(logscale);
+    float logscale = 256, logblend = log(1 + (logscale - 1)*blend) / log(logscale);
 
-    blendfog(fogmat, below, logblend, start, end, fogc);
-    if(below < 1) blendfog(abovemat, 1-below, 1-logblend, start, end, fogc);
+    blendfog(fogmat, below, blend, logblend, start, end, fogc);
+    if(blend < 1) blendfog(abovemat, 0, 1-blend, 1-logblend, start, end, fogc);
+
+    if(hdr) loopk(3) fogc[k] *= 0.5f;
 
     glFogf(GL_FOG_START, start);
     glFogf(GL_FOG_END, end);
     glFogfv(GL_FOG_COLOR, fogc);
-    glClearColor(fogc[0], fogc[1], fogc[2], 1.0f);
+    //glClearColor(fogc[0], fogc[1], fogc[2], 1.0f);
 }
 
-static void blendfogoverlay(int fogmat, float blend, float *overlay)
+static void blendfogoverlay(int fogmat, float below, float blend, float *overlay)
 {
     float maxc;
     switch(fogmat)
     {
         case MAT_WATER:
-            maxc = max(watercolor[0], max(watercolor[1], watercolor[2]));
-            loopk(3) overlay[k] += blend*max(0.4f, watercolor[k]/min(32.0f + maxc*7.0f/8.0f, 255.0f));
+        {
+            float deepfade = clamp(below/max(waterdeep, waterfog), 0.0f, 1.0f);
+            vec color;
+            loopk(3) color[k] = watercolor[k]*(1-deepfade) + waterdeepcolor[k]*deepfade;
+            maxc = max(color[0], max(color[1], color[2]));
+            loopk(3) overlay[k] += blend*max(0.4f, color[k]/min(32.0f + maxc*7.0f/8.0f, 255.0f));
             break;
+        }
 
         case MAT_LAVA:
             maxc = max(lavacolor[0], max(lavacolor[1], lavacolor[2]));
@@ -1230,7 +1343,7 @@ static void blendfogoverlay(int fogmat, float blend, float *overlay)
     }
 }
 
-void drawfogoverlay(int fogmat, float fogblend, int abovemat)
+void drawfogoverlay(int fogmat, float fogbelow, float fogblend, int abovemat)
 {
     notextureshader->set();
     glDisable(GL_TEXTURE_2D);
@@ -1238,8 +1351,8 @@ void drawfogoverlay(int fogmat, float fogblend, int abovemat)
     glEnable(GL_BLEND);
     glBlendFunc(GL_ZERO, GL_SRC_COLOR);
     float overlay[3] = { 0, 0, 0 };
-    blendfogoverlay(fogmat, fogblend, overlay);
-    blendfogoverlay(abovemat, 1-fogblend, overlay);
+    blendfogoverlay(fogmat, fogbelow, fogblend, overlay);
+    blendfogoverlay(abovemat, 0, 1-fogblend, overlay);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -1268,292 +1381,8 @@ void drawfogoverlay(int fogmat, float fogblend, int abovemat)
     defaultshader->set();
 }
 
-bool renderedgame = false;
-
-void rendergame(bool mainpass)
-{
-    game::rendergame(mainpass);
-    if(!shadowmapping) renderedgame = true;
-}
-
-VARP(skyboxglare, 0, 1, 1);
-
-void drawglare()
-{
-    glaring = true;
-    refracting = -1;
-
-    float oldfogstart, oldfogend, oldfogcolor[4], zerofog[4] = { 0, 0, 0, 1 };
-    glGetFloatv(GL_FOG_START, &oldfogstart);
-    glGetFloatv(GL_FOG_END, &oldfogend);
-    glGetFloatv(GL_FOG_COLOR, oldfogcolor);
-
-    glFogf(GL_FOG_START, (fog+64)/8);
-    glFogf(GL_FOG_END, fog);
-    glFogfv(GL_FOG_COLOR, zerofog);
-
-    glClearColor(0, 0, 0, 1);
-    glClear((skyboxglare ? 0 : GL_COLOR_BUFFER_BIT) | GL_DEPTH_BUFFER_BIT);
-
-    rendergeom();
-
-    if(skyboxglare) drawskybox(farplane, false);
-
-    renderreflectedmapmodels();
-    rendergame();
-    if(!isthirdperson())
-    {
-        project(curavatarfov, aspect, farplane, false, false, false, avatardepth);
-        game::renderavatar();
-        project(fovy, aspect, farplane);
-    }
-
-    renderwater();
-    rendermaterials();
-    renderalphageom();
-    renderparticles();
-
-    glFogf(GL_FOG_START, oldfogstart);
-    glFogf(GL_FOG_END, oldfogend);
-    glFogfv(GL_FOG_COLOR, oldfogcolor);
-
-    refracting = 0;
-    glaring = false;
-}
-
-VARP(reflectmms, 0, 1, 1);
-VARR(refractsky, 0, 0, 1);
-
-glmatrixf fogmatrix, invfogmatrix;
-
-void drawreflection(float z, bool refract)
-{
-    reflectz = z < 0 ? 1e16f : z;
-    reflecting = !refract;
-    refracting = refract ? (z < 0 || camera1->o.z >= z ? -1 : 1) : 0;
-    fading = renderpath!=R_FIXEDFUNCTION && waterrefract && waterfade && hasFBO && z>=0;
-    fogging = refracting<0 && z>=0;
-
-    float oldfogstart, oldfogend, oldfogcolor[4];
-    glGetFloatv(GL_FOG_START, &oldfogstart);
-    glGetFloatv(GL_FOG_END, &oldfogend);
-    glGetFloatv(GL_FOG_COLOR, oldfogcolor);
-
-    if(fogging)
-    {
-        glFogf(GL_FOG_START, camera1->o.z - z);
-        glFogf(GL_FOG_END, camera1->o.z - (z-waterfog));
-        GLfloat m[16] =
-        {
-             1,   0,  0, 0,
-             0,   1,  0, 0,
-             0,   0,  1, 0,
-            -camera1->o.x, -camera1->o.y, -camera1->o.z, 1
-        };
-        memcpy(fogmatrix.v, m, sizeof(m));
-        invfogmatrix.invert(fogmatrix);
-        pushprojection();
-        glPushMatrix();
-        glLoadMatrixf(fogmatrix.v);
-        float fogc[4] = { watercolor.x/255.0f, watercolor.y/255.0f, watercolor.z/255.0f, 1.0f };
-        glFogfv(GL_FOG_COLOR, fogc);
-    }
-    else
-    {
-        glFogf(GL_FOG_START, (fog+64)/8);
-        glFogf(GL_FOG_END, fog);
-        float fogc[4] = { fogcolor.x/255.0f, fogcolor.y/255.0f, fogcolor.z/255.0f, 1.0f };
-        glFogfv(GL_FOG_COLOR, fogc);
-    }
-
-    if(fading)
-    {
-        float scale = fogging ? -0.25f : 0.25f, offset = 2*fabs(scale) - scale*z;
-        setenvparamf("waterfadeparams", SHPARAM_VERTEX, 8, scale, offset, -scale, offset + camera1->o.z*scale);
-        setenvparamf("waterfadeparams", SHPARAM_PIXEL, 8, scale, offset, -scale, offset + camera1->o.z*scale);
-    }
-
-    if(reflecting)
-    {
-        glPushMatrix();
-        glTranslatef(0, 0, 2*z);
-        glScalef(1, 1, -1);
-
-        glFrontFace(GL_CCW);
-    }
-
-    setenvmatrix();
-
-    if(reflectclip && z>=0)
-    {
-        float zoffset = reflectclip/4.0f, zclip;
-        if(refracting<0)
-        {
-            zclip = z+zoffset;
-            if(camera1->o.z<=zclip) zclip = z;
-        }
-        else
-        {
-            zclip = z-zoffset;
-            if(camera1->o.z>=zclip && camera1->o.z<=z+4.0f) zclip = z;
-            if(reflecting) zclip = 2*z - zclip;
-        }
-        plane clipplane;
-        invmvmatrix.transposedtransform(plane(0, 0, refracting>0 ? 1 : -1, refracting>0 ? -zclip : zclip), clipplane);
-        clipmatrix.clip(clipplane, projmatrix);
-        pushprojection(clipmatrix);
-    }
-
-    renderreflectedgeom(refracting<0 && z>=0 && caustics, fogging);
-
-    if(reflecting || refracting>0 || (refracting<0 && refractsky) || z<0)
-    {
-        if(fading) glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        if(reflectclip && z>=0) popprojection();
-        if(fogging) 
-        {
-            popprojection();
-            glPopMatrix();
-        }
-        drawskybox(farplane, false);
-        if(fogging) 
-        {
-            pushprojection();
-            glPushMatrix();
-            glLoadMatrixf(fogmatrix.v);
-        }
-        if(reflectclip && z>=0) pushprojection(clipmatrix);
-        if(fading) glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-    }
-    else if(fading) glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-
-    renderdecals();
-
-    if(reflectmms) renderreflectedmapmodels();
-    rendergame();
-
-    if(refracting && z>=0 && !isthirdperson() && fabs(camera1->o.z-z) <= 0.5f*(player->eyeheight + player->aboveeye))
-    {   
-        glmatrixf avatarproj;
-        avatarproj.perspective(curavatarfov, aspect, nearplane, farplane);
-        if(reflectclip)
-        {
-            popprojection();
-            glmatrixf avatarclip;
-            plane clipplane;
-            invmvmatrix.transposedtransform(plane(0, 0, refracting, reflectclipavatar/4.0f - refracting*z), clipplane);
-            avatarclip.clip(clipplane, avatarproj);
-            pushprojection(avatarclip);
-        }
-        else pushprojection(avatarproj);
-        game::renderavatar();
-        popprojection();
-        if(reflectclip) pushprojection(clipmatrix);
-    }
-
-    if(refracting) rendergrass();
-    rendermaterials();
-    renderalphageom(fogging);
-    renderparticles();
-
-    if(fading) glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-    if(reflectclip && z>=0) popprojection();
-
-    if(reflecting)
-    {
-        glPopMatrix();
-
-        glFrontFace(GL_CW);
-    }
-
-    if(fogging) 
-    {
-        popprojection();
-        glPopMatrix();
-    }
-    glFogf(GL_FOG_START, oldfogstart);
-    glFogf(GL_FOG_END, oldfogend);
-    glFogfv(GL_FOG_COLOR, oldfogcolor);
-    
-    reflectz = 1e16f;
-    refracting = 0;
-    reflecting = fading = fogging = false;
-
-    setenvmatrix();
-}
-
 bool envmapping = false;
-
-void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side)
-{
-    envmapping = true;
-
-    physent *oldcamera = camera1;
-    static physent cmcamera;
-    cmcamera = *player;
-    cmcamera.reset();
-    cmcamera.type = ENT_CAMERA;
-    cmcamera.o = o;
-    cmcamera.yaw = yaw;
-    cmcamera.pitch = pitch;
-    cmcamera.roll = 0;
-    camera1 = &cmcamera;
-    setviewcell(camera1->o);
-   
-    defaultshader->set();
-
-    int fogmat = lookupmaterial(o)&MATF_VOLUME;
-    if(fogmat!=MAT_WATER && fogmat!=MAT_LAVA) fogmat = MAT_AIR;
-
-    setfog(fogmat);
-
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    int farplane = worldsize*2;
-
-    project(90.0f, 1.0f, farplane, !side.flipx, !side.flipy, side.swapxy);
-
-    transplayer();
-    readmatrices();
-    findorientation();
-    setenvmatrix();
-
-    glEnable(GL_FOG);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
-
-    xtravertsva = xtraverts = glde = gbatches = 0;
-
-    visiblecubes();
-
-    if(limitsky()) drawskybox(farplane, true);
-
-    rendergeom();
-
-    if(!limitsky()) drawskybox(farplane, false);
-
-//    queryreflections();
-
-    rendermapmodels();
-    renderalphageom();
-
-//    drawreflections();
-
-//    renderwater();
-//    rendermaterials();
-
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_FOG);
-
-    camera1 = oldcamera;
-    envmapping = false;
-}
-
-bool minimapping = false;
+int minimapping = 0;
 
 GLuint minimaptex = 0;
 vec minimapcenter(0, 0, 0), minimapradius(0, 0, 0), minimapscale(0, 0, 0);
@@ -1591,124 +1420,6 @@ void clipminimap(ivec &bbmin, ivec &bbmax, cube *c = worldroot, int x = 0, int y
     }
 }
 
-void drawminimap()
-{
-    if(!game::needminimap()) { clearminimap(); return; }
-
-    renderprogress(0, "generating mini-map...", 0, !renderedframe);
-
-    int size = 1<<minimapsize, sizelimit = min(hwtexsize, min(screen->w, screen->h));
-    while(size > sizelimit) size /= 2;
-    if(!minimaptex) glGenTextures(1, &minimaptex);
-
-    extern vector<vtxarray *> valist;
-    ivec bbmin(worldsize, worldsize, worldsize), bbmax(0, 0, 0);
-    loopv(valist)
-    {
-        vtxarray *va = valist[i];
-        loopk(3)
-        {
-            if(va->geommin[k]>va->geommax[k]) continue;
-            bbmin[k] = min(bbmin[k], va->geommin[k]);
-            bbmax[k] = max(bbmax[k], va->geommax[k]);
-        }
-    }
-    if(minimapclip)
-    {
-        ivec clipmin(worldsize, worldsize, worldsize), clipmax(0, 0, 0);
-        clipminimap(clipmin, clipmax);
-        loopk(2) bbmin[k] = max(bbmin[k], clipmin[k]);
-        loopk(2) bbmax[k] = min(bbmax[k], clipmax[k]); 
-    }
- 
-    minimapradius = bbmax.tovec().sub(bbmin.tovec()).mul(0.5f); 
-    minimapcenter = bbmin.tovec().add(minimapradius);
-    minimapradius.x = minimapradius.y = max(minimapradius.x, minimapradius.y);
-    minimapscale = vec((0.5f - 1.0f/size)/minimapradius.x, (0.5f - 1.0f/size)/minimapradius.y, 1.0f);
-
-    envmapping = minimapping = true;
-
-    physent *oldcamera = camera1;
-    static physent cmcamera;
-    cmcamera = *player;
-    cmcamera.reset();
-    cmcamera.type = ENT_CAMERA;
-    cmcamera.o = vec(minimapcenter.x, minimapcenter.y, max(minimapcenter.z + minimapradius.z + 1, float(minimapheight)));
-    cmcamera.yaw = 0;
-    cmcamera.pitch = -90;
-    cmcamera.roll = 0;
-    camera1 = &cmcamera;
-    setviewcell(vec(-1, -1, -1));
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(-minimapradius.x, minimapradius.x, -minimapradius.y, minimapradius.y, 0, camera1->o.z + 1);
-    glScalef(-1, 1, 1);
-    glMatrixMode(GL_MODELVIEW);
-
-    transplayer();
-
-    defaultshader->set();
-
-    GLfloat fogc[4] = { minimapcolor.x/255.0f, minimapcolor.y/255.0f, minimapcolor.z/255.0f, 1.0f };
-    glFogf(GL_FOG_START, 0);
-    glFogf(GL_FOG_END, 1000000);
-    glFogfv(GL_FOG_COLOR, fogc);
-
-    glClearColor(fogc[0], fogc[1], fogc[2], fogc[3]);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-    glViewport(1, 1, size-2, size-2);
-    glScissor(1, 1, size-2, size-2);
-    glEnable(GL_SCISSOR_TEST);
-
-    glDisable(GL_FOG);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
-
-    glFrontFace(GL_CCW);
-
-    xtravertsva = xtraverts = glde = gbatches = 0;
-
-    visiblecubes(false);
-    queryreflections();
-    drawreflections();
-
-    loopi(minimapheight > 0 && minimapheight < minimapcenter.z + minimapradius.z ? 2 : 1)
-    {
-        if(i)
-        {
-            glClear(GL_DEPTH_BUFFER_BIT);
-            camera1->o.z = minimapheight;
-            transplayer();
-        }
-        rendergeom();
-        rendermapmodels();
-        renderwater();
-        rendermaterials();
-        renderalphageom();
-    }
-
-    glFrontFace(GL_CW);
-
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_FOG);
-
-    glDisable(GL_SCISSOR_TEST);
-    glViewport(0, 0, screen->w, screen->h);
-
-    camera1 = oldcamera;
-    envmapping = minimapping = false;
-
-    glBindTexture(GL_TEXTURE_2D, minimaptex);
-    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5, 0, 0, size, size, 0);
-    setuptexparameters(minimaptex, NULL, 3, 1, GL_RGB5, GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
 GLuint motiontex = 0;
 int motionw = 0, motionh = 0, lastmotion = 0;
 
@@ -1725,9 +1436,9 @@ FVARP(motionblurscale, 0, 0.5f, 1);
 
 void addmotionblur()
 {
+    extern int paused;
     if(!motionblur || !hasTR || max(screen->w, screen->h) > hwtexsize) return;
 
-    extern int paused;
     if(paused || game::ispaused()) { lastmotion = 0; return; }
 
     if(!motiontex || motionw != screen->w || motionh != screen->h)
@@ -1795,131 +1506,2817 @@ void gl_drawhud(int w, int h);
 
 int xtraverts, xtravertsva;
 
-void gl_drawframe(int w, int h)
+void screenquad(float sw, float sh)
 {
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(sw, 0); glVertex2f(1, -1);
+    glTexCoord2f(0, 0); glVertex2f(-1, -1);
+    glTexCoord2f(sw, sh); glVertex2f(1, 1);
+    glTexCoord2f(0, sh); glVertex2f(-1, 1);
+    glEnd();
+}
+
+void screenquad(float sw, float sh, float sw2, float sh2)
+{
+    glBegin(GL_TRIANGLE_STRIP);
+    glMultiTexCoord2f_(GL_TEXTURE0_ARB, sw, 0); glMultiTexCoord2f_(GL_TEXTURE1_ARB, sw2, 0); glVertex2f(1, -1);
+    glMultiTexCoord2f_(GL_TEXTURE0_ARB, 0, 0); glMultiTexCoord2f_(GL_TEXTURE1_ARB, 0, 0); glVertex2f(-1, -1);
+    glMultiTexCoord2f_(GL_TEXTURE0_ARB, sw, sh); glMultiTexCoord2f_(GL_TEXTURE1_ARB, sw2, sh2); glVertex2f(1, 1);
+    glMultiTexCoord2f_(GL_TEXTURE0_ARB, 0, sh); glMultiTexCoord2f_(GL_TEXTURE1_ARB, 0, sh2); glVertex2f(-1, 1);
+    glEnd();
+}
+
+int gw = -1, gh = -1, bloomw = -1, bloomh = -1, lasthdraccum = 0;
+GLuint gfbo = 0, gdepthtex = 0, gcolortex = 0, gnormaltex = 0, gglowtex = 0, gdepthrb = 0, gstencilrb = 0;
+GLuint smaaareatex = 0, smaasearchtex = 0, smaafbo[3] = { 0, 0, 0 };
+GLuint hdrfbo = 0, hdrtex = 0, bloomfbo[5] = { 0, 0, 0, 0, 0 }, bloomtex[5] = { 0, 0, 0, 0, 0 };
+int hdrclear = 0;
+GLuint refractfbo = 0, refracttex = 0;
+GLenum bloomformat = 0, hdrformat = 0;
+
+int aow = -1, aoh = -1;
+GLuint aofbo[3] = { 0, 0, 0 }, aotex[3] = { 0, 0, 0 }, aonoisetex = 0;
+
+extern int bloomsize, bloomprec;
+
+void setupbloom(int w, int h)
+{
+    int maxsize = ((1<<bloomsize)*5)/4;
+    while(w >= maxsize) w /= 2;
+    while(h >= maxsize) h /= 2; 
+    if(w == bloomw && h == bloomh) return;
+
+    bloomw = w;
+    bloomh = h;
+
+    loopi(5) if(!bloomtex[i]) glGenTextures(1, &bloomtex[i]);
+
+    loopi(5) if(!bloomfbo[i]) glGenFramebuffers_(1, &bloomfbo[i]);
+
+    bloomformat = bloomprec >= 3 && hasTF ? GL_RGB16F_ARB : (bloomprec >= 2 && hasPF ? GL_R11F_G11F_B10F_EXT : (bloomprec >= 1 ? GL_RGB10 : GL_RGB));
+    createtexture(bloomtex[0], max(gw/2, bloomw), max(gh/2, bloomh), NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE_ARB);
+    createtexture(bloomtex[1], max(gw/4, bloomw), max(gh/4, bloomh), NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE_ARB);
+    createtexture(bloomtex[2], bloomw, bloomh, NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE_ARB);
+    createtexture(bloomtex[3], bloomw, bloomh, NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE_ARB);
+
+    static uchar gray[3] = { 32, 32, 32 };
+    static float grayf[3] = { 0.125f, 0.125f, 0.125f };
+    createtexture(bloomtex[4], 1, 1, hasTF ? (void *)grayf : (void *)gray, 3, 1, hasTF ? GL_RGB16F_ARB : GL_RGB16, GL_TEXTURE_RECTANGLE_ARB);
+
+    loopi(5)
+    {
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, bloomfbo[i]);
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, bloomtex[i], 0);
+
+        if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+            fatal("failed allocating bloom buffer!");
+    }
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+}
+
+void cleanupbloom()
+{
+    loopi(5) if(bloomfbo[i]) { glDeleteFramebuffers_(1, &bloomfbo[i]); bloomfbo[i] = 0; }
+    loopi(5) if(bloomtex[i]) { glDeleteTextures(1, &bloomtex[i]); bloomtex[i] = 0; }
+    bloomw = bloomh = -1;
+    lasthdraccum = 0;
+}
+
+extern int ao, aotaps, aoreduce, aoreducedepth, aonoise, aobilateral, aopackdepth;
+
+static Shader *bilateralshader[2] = { NULL, NULL };
+
+Shader *loadbilateralshader(int pass)
+{
+    if(!aobilateral) return nullshader;
+
+    string opts;
+    int optslen = 0;
+
+    if(aoreduce) opts[optslen++] = 'r';
+    bool linear = hasTRG && hasTF && (aopackdepth || (aoreducedepth && (aoreduce || aoreducedepth > 1)));
+    if(linear)
+    {
+        opts[optslen++] = 'l';
+        if(aopackdepth) opts[optslen++] = 'p';
+    }
+    opts[optslen] = '\0';
+
+    defformatstring(name)("bilateral%c%s%d", 'x' + pass, opts, aobilateral);
+    Shader *s = lookupshaderbyname(name);
+    if(!s)
+    {
+        // XXX
+        lapi::state.get<lua::Function>("bilateralshader")(opts, aobilateral);
+        s = lookupshaderbyname(name);
+        if(!s) s = nullshader;
+    }
+    return s;
+}
+
+void loadbilateralshaders()
+{
+    loopk(2) bilateralshader[k] = loadbilateralshader(k);
+}
+
+void clearbilateralshaders()
+{
+    loopk(2) bilateralshader[k] = NULL;
+}
+
+static Shader *ambientobscuranceshader = NULL;
+
+Shader *loadambientobscuranceshader()
+{
+    string opts;
+    int optslen = 0;
+
+    if(aoreduce) opts[optslen++] = 'r';
+    bool linear = hasTRG && hasTF && (aoreducedepth && (aoreduce || aoreducedepth > 1));
+    if(linear) opts[optslen++] = 'l';
+    opts[optslen] = '\0';
+
+    defformatstring(name)("ambientobscurance%s%d", opts, aotaps);
+    Shader *s = lookupshaderbyname(name);
+    if(!s)
+    {
+        // XXX
+        lapi::state.get<lua::Function>("ambientobscuranceshader")(opts, aotaps);
+        s = lookupshaderbyname(name);
+        if(!s) s = nullshader;
+    }
+    return s;
+}
+
+void loadaoshaders()
+{
+    ambientobscuranceshader = loadambientobscuranceshader();
+}
+
+void clearaoshaders()
+{
+    ambientobscuranceshader = NULL;
+}
+
+void setupao(int w, int h)
+{
+    w >>= aoreduce;
+    h >>= aoreduce;
+
+    if(w == aow && h == aoh) return;
+
+    aow = w;
+    aoh = h;
+
+    if(!aonoisetex) glGenTextures(1, &aonoisetex);
+    bvec *noise = new bvec[(1<<aonoise)*(1<<aonoise)];
+    loopk((1<<aonoise)*(1<<aonoise)) noise[k] = bvec(vec(rndscale(2)-1, rndscale(2)-1, 0).normalize());
+    createtexture(aonoisetex, 1<<aonoise, 1<<aonoise, noise, 0, 0, GL_RGB, GL_TEXTURE_2D);
+    delete[] noise;
+
+    loopi(2)
+    {
+        if(!aotex[i]) glGenTextures(1, &aotex[i]);
+        if(!aofbo[i]) glGenFramebuffers_(1, &aofbo[i]);
+        createtexture(aotex[i], w, h, NULL, 3, 1, aobilateral && aopackdepth && hasTRG && hasTF ? GL_RG16F : GL_RGB , GL_TEXTURE_RECTANGLE_ARB);
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, aofbo[i]);
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, aotex[i], 0);
+        if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+            fatal("failed allocating AO buffer!");
+    }
+
+    if(hasTRG && hasTF && aoreducedepth && (aoreduce || aoreducedepth > 1))
+    {
+        if(!aotex[2]) glGenTextures(1, &aotex[2]);
+        if(!aofbo[2]) glGenFramebuffers_(1, &aofbo[2]);
+        createtexture(aotex[2], w, h, NULL, 3, 0, GL_R16F, GL_TEXTURE_RECTANGLE_ARB);
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, aofbo[2]);
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, aotex[2], 0);
+        if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+            fatal("failed allocating AO buffer!");
+    }
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+
+    loadaoshaders();
+    loadbilateralshaders();
+}
+
+void cleanupao()
+{
+    loopi(3) if(aofbo[i]) { glDeleteFramebuffers_(1, &aofbo[i]); aofbo[i] = 0; }
+    loopi(3) if(aotex[i]) { glDeleteTextures(1, &aotex[i]); aotex[i] = 0; }
+    if(aonoisetex) { glDeleteTextures(1, &aonoisetex); aonoisetex = 0; }
+    aow = bloomh = -1;
+    
+    clearaoshaders();
+    clearbilateralshaders();
+}
+
+void viewao()
+{
+    if(!ao) return;
+    int w = min(screen->w, screen->h)/2, h = (w*screen->h)/screen->w;
+    rectshader->set();
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, aotex[0]);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, aoh); glVertex2i(0, 0);
+    glTexCoord2f(aow, aoh); glVertex2i(w, 0);
+    glTexCoord2f(0, 0); glVertex2i(0, h);
+    glTexCoord2f(aow, 0); glVertex2i(w, h);
+    glEnd();
+    notextureshader->set();
+}
+
+#include "AreaTex.h"
+#include "SearchTex.h"
+
+extern int smaaquality, hdrprec, gdepthformat, gstencil, gdepthstencil, glineardepth;
+
+static Shader *smaalumaedgeshader = NULL, *smaacoloredgeshader = NULL, *smaablendweightshader = NULL, *smaaneighborhoodshader = NULL;
+
+void loadsmaashaders()
+{
+    defformatstring(lumaedgename)("SMAALumaEdgeDetection%d", smaaquality);
+    defformatstring(coloredgename)("SMAAColorEdgeDetection%d", smaaquality);
+    defformatstring(blendweightname)("SMAABlendingWeightCalculation%d", smaaquality);
+    defformatstring(neighborhoodname)("SMAANeighborhoodBlending%d", smaaquality);
+    smaalumaedgeshader = lookupshaderbyname(lumaedgename);
+    smaacoloredgeshader = lookupshaderbyname(coloredgename);
+    smaablendweightshader = lookupshaderbyname(blendweightname);
+    smaaneighborhoodshader = lookupshaderbyname(neighborhoodname);
+    if(smaalumaedgeshader && smaacoloredgeshader && smaablendweightshader && smaaneighborhoodshader) return;
+    // XXX
+    lapi::state.get<lua::Function>("smaashaders")(smaaquality);
+    smaalumaedgeshader = lookupshaderbyname(lumaedgename);
+    if(!smaalumaedgeshader) smaalumaedgeshader = nullshader;
+    smaacoloredgeshader = lookupshaderbyname(coloredgename);
+    if(!smaacoloredgeshader) smaacoloredgeshader = nullshader;
+    smaablendweightshader = lookupshaderbyname(blendweightname);
+    if(!smaablendweightshader) smaablendweightshader = nullshader;
+    smaaneighborhoodshader = lookupshaderbyname(neighborhoodname);
+    if(!smaaneighborhoodshader) smaaneighborhoodshader = nullshader;
+}
+
+void clearsmaashaders()
+{
+    smaalumaedgeshader = NULL;
+    smaacoloredgeshader = NULL;
+    smaablendweightshader = NULL;
+    smaaneighborhoodshader = NULL;
+}
+
+void setupsmaa()
+{
+    if(!smaaareatex) glGenTextures(1, &smaaareatex);
+    if(!smaasearchtex) glGenTextures(1, &smaasearchtex);
+    createtexture(smaaareatex, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, 3, 1, GL_LUMINANCE_ALPHA, GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, false);
+    createtexture(smaasearchtex, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, 3, 0, GL_LUMINANCE, GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, false);
+    loopi(3) 
+    {
+        if(!smaafbo[i]) glGenFramebuffers_(1, &smaafbo[i]);
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, smaafbo[i]);
+        GLuint tex = 0;
+        switch(i)
+        {
+            case 0: tex = gcolortex; break;
+            case 1: tex = gnormaltex; break;
+            case 2: tex = gglowtex; break;
+        }
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, tex, 0);
+        if(i > 0)
+        {
+            if(gdepthformat)
+            {
+                glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+                if(gdepthstencil && hasDS) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+            }
+            else
+            {
+                glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+                if(gdepthstencil && hasDS) glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+                else if(gstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gstencilrb);
+            }
+        }
+        if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+            fatal("failed allocating SMAA buffer!");
+    }
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+
+    loadsmaashaders();
+}
+
+void cleanupsmaa()
+{
+    if(smaaareatex) { glDeleteTextures(1, &smaaareatex); smaaareatex = 0; }
+    if(smaasearchtex) { glDeleteTextures(1, &smaasearchtex); smaasearchtex = 0; }
+    loopi(3) if(smaafbo[i]) { glDeleteFramebuffers_(1, &smaafbo[i]); smaafbo[i] = 0; }
+
+    clearsmaashaders();
+}
+
+VARFP(smaa, 0, 0, 1, cleanupsmaa());
+VARFP(smaaquality, 0, 2, 3, cleanupsmaa());
+VARP(smaacoloredge, 0, 0, 1);
+VAR(smaadepthmask, 0, 1, 1);
+VAR(smaastencil, 0, 1, 1);
+VAR(debugsmaa, 0, 0, 5);
+
+void viewsmaa()
+{
+    int w = min(screen->w, screen->h)*1.0f, h = (w*screen->h)/screen->w, tw = gw, th = gh;
+    rectshader->set();
+    glColor3f(1, 1, 1);
+    switch(debugsmaa)
+    {
+        case 1: glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gcolortex); break;
+        case 2: glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex); break;
+        case 3: glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gglowtex); break;
+        case 4: glBindTexture(GL_TEXTURE_RECTANGLE_ARB, smaaareatex); tw = AREATEX_WIDTH; th = AREATEX_HEIGHT; break;
+        case 5: glBindTexture(GL_TEXTURE_RECTANGLE_ARB, smaasearchtex); tw = SEARCHTEX_WIDTH; th = SEARCHTEX_HEIGHT; break;
+        
+    }
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, th); glVertex2i(0, 0);
+    glTexCoord2f(tw, th); glVertex2i(w, 0);
+    glTexCoord2f(0, 0); glVertex2i(0, h);
+    glTexCoord2f(tw, 0); glVertex2i(w, h);
+    glEnd();
+    notextureshader->set();
+}
+
+VAR(gdepthformat, 1, 0, 0);
+
+void maskgbuffer(const char *mask)
+{
+    GLenum drawbufs[4];
+    int numbufs = 0;
+    while(*mask) switch(*mask++)
+    {
+        case 'c': drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT0_EXT; break;
+        case 'n': drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT1_EXT; break;
+        case 'g': drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT2_EXT; break;
+        case 'd': if(gdepthformat) drawbufs[numbufs++] =  GL_COLOR_ATTACHMENT3_EXT; break;
+    }
+    glDrawBuffers_(numbufs, drawbufs);
+}
+
+void initgbuffer()
+{
+    if(glineardepth >= 2 && (!hasAFBO || !hasTF || !hasTRG)) gdepthformat = 1;
+    else gdepthformat = glineardepth;
+}
+
+void setupgbuffer(int w, int h)
+{
+    if(gw == w && gh == h) return;
+
+    gw = w;
+    gh = h;
+
+    if(!gdepthtex) glGenTextures(1, &gdepthtex);
+    if(!gcolortex) glGenTextures(1, &gcolortex);
+    if(!gnormaltex) glGenTextures(1, &gnormaltex);
+    if(!gglowtex) glGenTextures(1, &gglowtex);
+    if(!gfbo) glGenFramebuffers_(1, &gfbo);
+    
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, gfbo);
+
+    maskgbuffer("cngd");
+
+    static const GLenum depthformats[] = { GL_RGBA8, GL_R16F, GL_R32F };
+    GLenum depthformat = gdepthformat ? depthformats[gdepthformat-1] : (gdepthstencil && hasDS ? GL_DEPTH24_STENCIL8_EXT : GL_DEPTH_COMPONENT);
+    createtexture(gdepthtex, gw, gh, NULL, 3, 0, depthformat, GL_TEXTURE_RECTANGLE_ARB);
+
+    createtexture(gcolortex, gw, gh, NULL, 3, 0, GL_RGBA8, GL_TEXTURE_RECTANGLE_ARB);
+    createtexture(gnormaltex, gw, gh, NULL, 3, 0, GL_RGBA8, GL_TEXTURE_RECTANGLE_ARB);
+    createtexture(gglowtex, gw, gh, NULL, 3, 0, GL_RGBA8, GL_TEXTURE_RECTANGLE_ARB);
+ 
+    if(gdepthformat)
+    {
+        if(!gdepthrb) glGenRenderbuffers_(1, &gdepthrb);
+        glBindRenderbuffer_(GL_RENDERBUFFER_EXT, gdepthrb);
+        glRenderbufferStorage_(GL_RENDERBUFFER_EXT, gdepthstencil && hasDS ? GL_DEPTH24_STENCIL8_EXT : GL_DEPTH_COMPONENT, gw, gh);
+        glBindRenderbuffer_(GL_RENDERBUFFER_EXT, 0);
+    } 
+    else if(gstencil && (!gdepthstencil || !hasDS))
+    {
+        if(!gstencilrb) glGenRenderbuffers_(1, &gstencilrb);
+        glBindRenderbuffer_(GL_RENDERBUFFER_EXT, gstencilrb);
+        glRenderbufferStorage_(GL_RENDERBUFFER_EXT, GL_STENCIL_INDEX8_EXT, gw, gh);
+        glBindRenderbuffer_(GL_RENDERBUFFER_EXT, 0);
+    }
+ 
+    if(gdepthformat)
+    {
+        glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+        if(gdepthstencil && hasDS) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT3_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+    }
+    else
+    {
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+        if(gdepthstencil && hasDS) glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+        else if(gstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gstencilrb);
+    }
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, gcolortex, 0);
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, gnormaltex, 0);
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT2_EXT, GL_TEXTURE_RECTANGLE_ARB, gglowtex, 0);
+
+    if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT) 
+        fatal("failed allocating g-buffer!");
+
+    if(!hdrtex) glGenTextures(1, &hdrtex);
+
+    if(!hdrfbo) glGenFramebuffers_(1, &hdrfbo);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdrfbo);
+
+    hdrformat = hdrprec >= 3 && hasTF ? GL_RGB16F_ARB : (hdrprec >= 2 && hasPF ? GL_R11F_G11F_B10F_EXT : (hdrprec >= 1 ? GL_RGB10 : GL_RGB));
+    createtexture(hdrtex, gw, gh, NULL, 3, 1, hdrformat, GL_TEXTURE_RECTANGLE_ARB);
+
+    if(gdepthformat)
+    {
+        glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+        if(gdepthstencil && hasDS) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT3_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+    }
+    else
+    {
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+        if(gdepthstencil && hasDS) glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+        else if(gstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gstencilrb);
+    }
+
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, hdrtex, 0);
+
+    if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+        fatal("failed allocating HDR buffer!");
+
+    hdrclear = 3;
+
+    if(!refracttex) glGenTextures(1, &refracttex);
+    if(!refractfbo) glGenFramebuffers_(1, &refractfbo);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, refractfbo);
+
+    createtexture(refracttex, gw, gh, NULL, 3, 0, GL_RGBA8, GL_TEXTURE_RECTANGLE_ARB);
+
+    if(gdepthformat)
+    {
+        glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+        if(gdepthstencil && hasDS) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gdepthrb);
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT3_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+    }
+    else
+    {
+        glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+        if(gdepthstencil && hasDS) glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_RECTANGLE_ARB, gdepthtex, 0);
+        else if(gstencil) glFramebufferRenderbuffer_(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, gstencilrb);
+    }
+
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, refracttex, 0);
+
+    if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+        fatal("failed allocating refraction buffer!");
+ 
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+
+    cleanupbloom();
+    cleanupao();
+    cleanupsmaa();
+}
+
+void cleanupgbuffer()
+{
+    if(gfbo) { glDeleteFramebuffers_(1, &gfbo); gfbo = 0; }
+    if(gdepthtex) { glDeleteTextures(1, &gdepthtex); gdepthtex = 0; }
+    if(gcolortex) { glDeleteTextures(1, &gcolortex); gcolortex = 0; }
+    if(gnormaltex) { glDeleteTextures(1, &gnormaltex); gnormaltex = 0; }
+    if(gglowtex) { glDeleteTextures(1, &gglowtex); gglowtex = 0; }
+    if(gstencilrb) { glDeleteRenderbuffers_(1, &gstencilrb); gstencilrb = 0; }
+    if(gdepthrb) { glDeleteRenderbuffers_(1, &gdepthrb); gdepthrb = 0; }
+    if(hdrfbo) { glDeleteFramebuffers_(1, &hdrfbo); hdrfbo = 0; }
+    if(hdrtex) { glDeleteTextures(1, &hdrtex); hdrtex = 0; }
+    if(refractfbo) { glDeleteFramebuffers_(1, &refractfbo); refractfbo = 0; }
+    if(refracttex) { glDeleteTextures(1, &refracttex); refracttex = 0; }
+    gw = gh = -1;
+}
+
+VAR(debugdepth, 0, 0, 1);
+
+void viewdepth()
+{
+    int w = min(screen->w, screen->h)/2, h = (w*screen->h)/screen->w;
+    rectshader->set();
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, gh); glVertex2i(0, 0);
+    glTexCoord2f(gw, gh); glVertex2i(w, 0);
+    glTexCoord2f(0, 0); glVertex2i(0, h);
+    glTexCoord2f(gw, 0); glVertex2i(w, h);
+    glEnd();
+    notextureshader->set();
+}
+
+VAR(debugrefract, 0, 0, 1);
+
+void viewrefract()
+{
+    int w = min(screen->w, screen->h)/2, h = (w*screen->h)/screen->w;
+    rectshader->set();
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, refracttex);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, gh); glVertex2i(0, 0);
+    glTexCoord2f(gw, gh); glVertex2i(w, 0);
+    glTexCoord2f(0, 0); glVertex2i(0, h);
+    glTexCoord2f(gw, 0); glVertex2i(w, h);
+    glEnd();
+    notextureshader->set();
+}
+
+VARF(gstencil, 0, 0, 1, cleanupgbuffer());
+VARF(gdepthstencil, 0, 1, 1, cleanupgbuffer());
+VARF(glineardepth, 0, 0, 3, initwarning("g-buffer setup"))
+VAR(hdr, 0, 1, 1);
+VARFP(hdrprec, 0, 2, 3, cleanupgbuffer());
+FVAR(bloomthreshold, 0, 1.5f, 10.0f);
+FVARP(bloomscale, 0, 1.0f, 10.0f);
+VARP(bloomblur, 0, 7, 7);
+VARP(bloomiter, 0, 0, 4);
+FVARP(bloomsigma, 0.005f, 0.5f, 2.0f);
+VARFP(bloomsize, 6, 8, 10, cleanupbloom());
+VARFP(bloomprec, 0, 2, 3, cleanupbloom());
+FVAR(hdraccumscale, 0, 0.98f, 1);
+VAR(hdraccummillis, 1, 33, 1000);
+VAR(hdrreduce, 0, 2, 2);
+
+FVARR(hdrbright, 1e-3f, 0.18f, 1e3f);
+FVAR(hdrtonemin, 1e-3f, 0.75f, 1e3f);
+FVAR(hdrtonemax, 1e-3f, 2.0f, 1e3f);
+FVARR(bloombright, 1e-3f, 1.5f, 1e3f);
+FVAR(bloomlummin, 1e-3f, 0.125f, 1e3f);
+FVAR(bloomlummax, 1e-3f, 8.0f, 1e3f);
+
+#define SHADOWATLAS_SIZE 4096
+
+PackNode shadowatlaspacker(0, 0, SHADOWATLAS_SIZE, SHADOWATLAS_SIZE),
+         shadowcachepacker(0, 0, SHADOWATLAS_SIZE, SHADOWATLAS_SIZE);
+
+enum { L_NOSHADOW = 1<<0, L_NODYNSHADOW = 1<<1 };
+
+struct lightinfo
+{
+    float sx1, sy1, sx2, sy2, sz1, sz2;
+    int shadowmap, flags;
+    vec o, color;
+    int radius;
+    float dist;
+    occludequery *query;
+};
+
+struct shadowcachekey
+{
+    vec o;
+    float radius;
+
+    shadowcachekey() {}
+    shadowcachekey(const lightinfo &l) : o(l.o), radius(l.radius) {}
+};
+
+static inline uint hthash(const shadowcachekey &k)
+{
+    return hthash(k.o);
+}
+
+static inline bool htcmp(const shadowcachekey &x, const shadowcachekey &y)
+{
+    return x.o == y.o && x.radius == y.radius;
+}
+
+struct shadowcacheval;
+
+struct shadowmapinfo
+{
+    ushort x, y, size, sidemask;
+    int light;
+    shadowcacheval *cached;
+};
+
+struct shadowcacheval
+{
+    ushort x, y, size, sidemask;
+
+    shadowcacheval() {}
+    shadowcacheval(const shadowmapinfo &sm) : x(sm.x), y(sm.y), size(sm.size), sidemask(sm.sidemask) {}
+};
+
+struct shadowcache : hashtable<shadowcachekey, shadowcacheval>
+{
+    shadowcache() : hashtable<shadowcachekey, shadowcacheval>(256) {}
+
+    void reset()
+    {
+        clear();
+    } 
+};
+
+extern int smcache;
+
+#define SHADOWCACHE_EVICT 2
+
+GLuint shadowatlastex = 0, shadowatlasfbo = 0;
+shadowcache shadowcache[2];
+bool shadowcachefull = false;
+int evictshadowcache = 0;
+
+void setupshadowatlas()
+{
+    if(!shadowatlastex) glGenTextures(1, &shadowatlastex);
+
+    createtexture(shadowatlastex, smcache ? 2*SHADOWATLAS_SIZE : SHADOWATLAS_SIZE, SHADOWATLAS_SIZE, NULL, 3, 1, GL_DEPTH_COMPONENT16, GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
+
+    if(!shadowatlasfbo) glGenFramebuffers_(1, &shadowatlasfbo);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, shadowatlasfbo);
+
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, shadowatlastex, 0);
+
+    if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+        fatal("failed allocating shadow atlas!");
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+}
+
+void cleanupshadowatlas()
+{
+    if(shadowatlastex) { glDeleteTextures(1, &shadowatlastex); shadowatlastex = 0; }
+    if(shadowatlasfbo) { glDeleteFramebuffers_(1, &shadowatlasfbo); shadowatlasfbo = 0; }
+    clearshadowcache();
+}
+
+const float cubeshadowviewmatrix[6][16] =
+{
+    // sign-preserving cubemap projections
+    { // +X
+         0, 0,-1, 0,
+         0, 1, 0, 0,
+         1, 0, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // -X
+         0, 0, 1, 0,
+         0, 1, 0, 0,
+         1, 0, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // +Y
+         1, 0, 0, 0,
+         0, 0,-1, 0,
+         0, 1, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // -Y
+         1, 0, 0, 0,
+         0, 0, 1, 0,
+         0, 1, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // +Z
+         1, 0, 0, 0,
+         0, 1, 0, 0,
+         0, 0,-1, 0,
+         0, 0, 0, 1,
+    },
+    { // -Z
+         1, 0, 0, 0,
+         0, 1, 0, 0,
+         0, 0, 1, 0,
+         0, 0, 0, 1,
+    },
+};
+
+const float tetrashadowviewmatrix[4][16] =
+{
+    { // +1, +1, +1
+        1, 0,-1, 0,
+        0, 1,-1, 0,
+        0, 0,-1, 0,
+        0, 0, 0, 1
+    },
+    { // -1, -1, +1
+        1, 0, 1, 0,
+        0, 1, 1, 0,
+        0, 0,-1, 0,
+        0, 0, 0, 1
+    },
+    { // +1, -1, -1
+        1, 0,-1, 0,
+        0, 1, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    },
+    { // -1, +1, -1
+        1, 0, 1, 0,
+        0, 1,-1, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    }
+};
+
+FVAR(smpolyfactor, -1e3f, 1, 1e3f);
+FVAR(smpolyoffset, -1e3f, 0, 1e3f);
+FVAR(smbias, -1e6f, 0.01f, 1e6f);
+FVAR(smprec, 1e-3f, 1, 1e3f);
+FVAR(smtetraprec, 1e-3f, SQRT3, 1e3f);
+FVAR(smcubeprec, 1e-3f, 1, 1e3f);
+
+VAR(smsidecull, 0, 1, 1);
+VAR(smviscull, 0, 1, 1);
+VAR(smborder, 0, 2, 16);
+VAR(smminradius, 0, 16, 10000);
+VAR(smminsize, 1, 96, 1024);
+VAR(smmaxsize, 1, 384, 1024);
+//VAR(smmaxsize, 1, 4096, 4096);
+VAR(smused, 1, 0, 0);
+VAR(smquery, 0, 1, 1);
+VARFP(smtetra, 0, 0, 1, { cleardeferredlightshaders(); clearshadowcache(); });
+VAR(smtetraclip, 0, 1, 1);
+VAR(smtetraclear, 0, 1, 1);
+FVAR(smtetraborder, 0, 0, 1e3f);
+VAR(smcullside, 0, 1, 1);
+VARF(smcache, 0, 1, 2, cleanupshadowatlas());
+VARFP(smgather, 0, 0, 1, cleardeferredlightshaders());
+VAR(smnoshadow, 0, 0, 2);
+VAR(lighttilesused, 1, 0, 0);
+
+int shadowmapping = 0;
+
+plane smtetraclipplane;
+
+static inline void setsmnoncomparemode() // use texture gather
+{
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
+static inline void setsmcomparemode() // use embedded shadow cmp
+{
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+}
+
+static inline bool usegatherforsm() { return smgather && (hasTG || hasT4); }
+
+void viewshadowatlas()
+{
+    int w = min(screen->w, screen->h)/2, h = (w*screen->h)/screen->w;
     defaultshader->set();
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D, shadowatlastex);
+    if(!usegatherforsm()) setsmnoncomparemode(); // "normal" mode
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, 0); glVertex2i(screen->w-w, screen->h-h);
+    glTexCoord2f(1, 0); glVertex2i(screen->w, screen->h-h);
+    glTexCoord2f(0, 1); glVertex2i(screen->w-w, screen->h);
+    glTexCoord2f(1, 1); glVertex2i(screen->w, screen->h);
+    glEnd();
+    if(!usegatherforsm()) setsmcomparemode(); // "gather" mode basically
+    notextureshader->set();
+}
+VAR(debugshadowatlas, 0, 0, 1);
+
+vector<lightinfo> lights;
+vector<int> lightorder;
+vector<int> lighttiles[LIGHTTILE_H][LIGHTTILE_W];
+vector<shadowmapinfo> shadowmaps;
+
+void clearshadowcache()
+{
+    shadowmaps.setsize(0);
+}
+
+static shadowmapinfo *addshadowmap(ushort x, ushort y, int size, int &idx)
+{
+    idx = shadowmaps.length();
+    shadowmapinfo *sm = &shadowmaps.add();
+    sm->x = x;
+    sm->y = y;
+    sm->size = size;
+    sm->light = -1;
+    sm->sidemask = 0;
+    sm->cached = NULL;
+    return sm;
+}
+
+static const uint csmmaxsplitn = 8, csmminsplitn = 1;
+VAR(csmmaxsize, 256, 768, 2048);
+VAR(csmsplitn, csmminsplitn, 3, csmmaxsplitn);
+FVAR(csmsplitweight, 0.20f, 0.75f, 0.95f);
+VARF(csmshadowmap, 0, 1, 1, cleardeferredlightshaders());
+
+// cascaded shadow maps
+struct cascaded_shadow_map
+{
+    struct splitinfo
+    {
+        float nearplane;  // split distance to near plane
+        float farplane;   // split distance to farplane
+        glmatrixf proj;   // one projection per split
+        int idx;          // shadowmapinfo indices
+        vec bbmin, bbmax; // max extents of shadowmap in sunlight model space
+        plane cull[4];    // world space culling planes of the split's projected sides
+    };
+    glmatrixf model;                // model view is shared by all splits
+    splitinfo splits[csmmaxsplitn]; // per-split parameters
+    vec lightview;                  // view vector for light
+    void setup();                   // insert shadowmaps for each split frustum if there is sunlight
+    void updatesplitdist();         // compute split frustum distances
+    void getmodelmatrix();          // compute the shared model matrix
+    void getprojmatrix();           // compute each cropped projection matrix
+    void gencullplanes();           // generate culling planes for the mvp matrix
+    void bindparams();              // bind any shader params necessary for lighting
+};
+
+void cascaded_shadow_map::setup()
+{
+    loopi(csmsplitn)
+    {
+        ushort smx = USHRT_MAX, smy = USHRT_MAX;
+        splits[i].idx = -1;
+        if(shadowatlaspacker.insert(smx, smy, csmmaxsize, csmmaxsize))
+            addshadowmap(smx, smy, csmmaxsize, splits[i].idx);
+    }
+    getmodelmatrix();
+    getprojmatrix();
+    gencullplanes();
+}
+
+static float calcfrustumboundsphere(float nearplane, float farplane,  const vec &pos, const vec &view, vec &center)
+{
+    if(minimapping)
+    {
+        center = minimapcenter;
+        return minimapradius.magnitude();
+    }
+
+    float height = tan(fovy/2.0f*RAD), width = height * aspect,
+          cdist = ((nearplane + farplane)/2)*(1 + width*width + height*height);
+    if(cdist <= farplane)
+    {
+        center = vec(view).mul(cdist).add(pos);
+        return vec(width*nearplane, height*nearplane, cdist-nearplane).magnitude();
+    }
+    else
+    {
+        center = vec(view).mul(farplane).add(pos);
+        return vec(width*farplane, height*farplane, 0).magnitude();
+    }
+}
+
+VAR(csmfarplane, 64, 1024, 16384);
+FVAR(csmpradiustweak, 1e-3f, 1, 1e3f);
+FVAR(csmdepthmargin, 0, 0.1f, 1e3f);
+VAR(debugcsm, 0, 0, csmmaxsplitn);
+FVAR(csmpolyfactor, -1e3f, 2, 1e3f);
+FVAR(csmpolyoffset, -1e4f, 0, 1e4f);
+FVAR(csmbias, -1e6f, 4e-4f, 1e6f);
+VAR(csmcull, 0, 1, 1);
+
+void cascaded_shadow_map::updatesplitdist()
+{
+    float lambda = csmsplitweight, nd = nearplane, fd = csmfarplane, ratio = fd/nd;
+    splits[0].nearplane = nd;
+    for(int i = 1; i < csmsplitn; ++i)
+    {
+        float si = i / float(csmsplitn);
+        splits[i].nearplane = lambda*(nd*pow(ratio, si)) + (1-lambda)*(nd + (fd - nd)*si);
+        splits[i-1].farplane = splits[i].nearplane * 1.005f;
+    }
+    splits[csmsplitn-1].farplane = fd;
+}
+
+void cascaded_shadow_map::getmodelmatrix()
+{
+    model = viewmatrix;
+    model.rotate_around_x(sunlightpitch*RAD);
+    model.rotate_around_z((180-sunlightyaw)*RAD);
+}
+
+void cascaded_shadow_map::getprojmatrix()
+{
+    vec lightup, lightright;
+    lightview = vec(sunlightdir).neg();
+    lightup.orthogonal(lightview);
+    lightup.normalize();
+    lightright.cross(lightview, lightup);
+    lightup.cross(lightright, lightview);
+
+    // compute the split frustums
+    updatesplitdist();
+
+    // find z extent
+    float minz = lightview.project_bb(worldmin, worldmax), maxz = lightview.project_bb(worldmax, worldmin), zmargin = (maxz - minz)*csmdepthmargin;
+    minz -= zmargin;
+    maxz += zmargin;
+
+    // compute each split projection matrix
+    loopi(csmsplitn)
+    {
+        splitinfo &split = this->splits[i];
+        if(split.idx < 0) continue;
+
+        vec c;
+        float radius = calcfrustumboundsphere(split.nearplane, split.farplane, camera1->o, camdir, c);
+
+        // compute the projected bounding box of the sphere
+        const vec p = c + radius * lightright;
+        vec tp, tc;
+        this->model.transform(p, tp);
+        this->model.transform(c, tc);
+        const float pradius = tp.dist2(tc) * csmpradiustweak, step = (2.0f*pradius) / shadowmaps[split.idx].size;
+        vec2 minv = vec2(tc).sub(pradius), maxv = vec2(tc).add(pradius);
+        minv.x -= fmod(minv.x, step);
+        minv.y -= fmod(minv.y, step);
+        maxv.x -= fmod(maxv.x, step);
+        maxv.y -= fmod(maxv.y, step);
+        split.bbmin = vec(minv, -maxz);
+        split.bbmax = vec(maxv, -minz);
+
+        // modify mvp with a scale and offset
+        // now compute the update model view matrix for this split
+        split.proj.ortho(minv.x, maxv.x, minv.y, maxv.y, minz, maxz);
+    }
+}
+
+void cascaded_shadow_map::gencullplanes()
+{
+    loopi(csmsplitn)
+    {
+        splitinfo &split = splits[i];
+        glmatrixf mvp;
+        mvp.mul(split.proj, model);
+        vec4 px = mvp.getrow(0), py = mvp.getrow(1), pw = mvp.getrow(3);
+        split.cull[0] = plane(vec4(pw).add(px)).normalize(); // left plane
+        split.cull[1] = plane(vec4(pw).sub(px)).normalize(); // right plane
+        split.cull[2] = plane(vec4(pw).add(py)).normalize(); // bottom plane
+        split.cull[3] = plane(vec4(pw).sub(py)).normalize(); // top plane
+    }        
+}
+
+cascaded_shadow_map csm;
+
+int calcbbcsmsplits(const ivec &bbmin, const ivec &bbmax)
+{
+    int mask = (1<<csmsplitn)-1;
+    if(!csmcull) return mask;
+    loopi(csmsplitn)
+    {
+        const cascaded_shadow_map::splitinfo &split = csm.splits[i];
+        int k; 
+        for(k = 0; k < 4; k++)
+        {
+            const plane &p = split.cull[k];
+            ivec omin, omax;
+            if(p.x > 0) { omin.x = bbmin.x; omax.x = bbmax.x; } else { omin.x = bbmax.x; omax.x = bbmin.x; }
+            if(p.y > 0) { omin.y = bbmin.y; omax.y = bbmax.y; } else { omin.y = bbmax.y; omax.y = bbmin.y; }
+            if(p.z > 0) { omin.z = bbmin.z; omax.z = bbmax.z; } else { omin.z = bbmax.z; omax.z = bbmin.z; }
+            if(omax.dist(p) < 0) { mask &= ~(1<<i); goto nextsplit; }
+            if(omin.dist(p) < 0) goto notinside;
+        }
+        mask &= (2<<i)-1;
+        break;
+    notinside:
+        while(++k < 4)
+        {
+            const plane &p = split.cull[k];
+            ivec omax(p.x > 0 ? bbmax.x : bbmin.x, p.y > 0 ? bbmax.y : bbmin.y, p.z > 0 ? bbmax.z : bbmin.z);
+            if(omax.dist(p) < 0) { mask &= ~(1<<i); break; }
+        }
+    nextsplit:;
+    }
+    return mask;
+}
+
+int calcspherecsmsplits(const vec &center, float radius)
+{
+    int mask = (1<<csmsplitn)-1;
+    if(!csmcull) return mask;
+    loopi(csmsplitn)
+    {
+        const cascaded_shadow_map::splitinfo &split = csm.splits[i];
+        int k;
+        for(k = 0; k < 4; k++)
+        {
+            const plane &p = split.cull[k];
+            float dist = p.dist(center);
+            if(dist < -radius) { mask &= ~(1<<i); goto nextsplit; }
+            if(dist < radius) goto notinside;
+        }
+        mask &= (2<<i)-1;
+        break;
+    notinside:
+        while(++k < 4)
+        {
+            const plane &p = split.cull[k];
+            if(p.dist(center) < -radius) { mask &= ~(1<<i); break; }
+        }
+    nextsplit:;
+    }
+    return mask;
+}
+
+void viewbuffersplitmerge()
+{
+    const int w = screen->w, h = screen->h;
+#if 1
+    Shader *splitshader = lookupshaderbyname("buffersplit");
+    splitshader->set();
+    const float split[] = {4.f, 4.f};
+    const float tiledim[] = {float(w)/split[0], float(h)/split[1]};
+    LOCALPARAM(tiledim, (tiledim[0], tiledim[1]));
+    LOCALPARAM(rcptiledim, (1.f/tiledim[0], 1.f/tiledim[1]));
+    LOCALPARAM(split, (split[0], split[1]));
+    timer_begin(TIMER_SPLITTING);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0,        0);        glVertex2i(-w, -h);
+    glTexCoord2f(float(w), 0);        glVertex2i(w, -h);
+    glTexCoord2f(0,        float(h)); glVertex2i(-w, h);
+    glTexCoord2f(float(w), float(h)); glVertex2i(w, h);
+    glEnd();
+    timer_end(TIMER_SPLITTING);
+    notextureshader->set();
+#else
+    Shader *mergeshader = lookupshaderbyname("buffermerge");
+    mergeshader->set();
+    const float split[] = {4.f, 4.f};
+    const float tiledim[] = {float(w)/split[0], float(h)/split[1]};
+    LOCALPARAM(tiledim, (tiledim[0], tiledim[1]));
+    LOCALPARAM(rcptiledim, (1.f/tiledim[0], 1.f/tiledim[1]));
+    LOCALPARAM(split, (split[0], split[1]));
+    timer_begin(TIMER_MERGING);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0,        0);        glVertex2i(-w, -h);
+    glTexCoord2f(float(w), 0);        glVertex2i(w, -h);
+    glTexCoord2f(0,        float(h)); glVertex2i(-w, h);
+    glTexCoord2f(float(w), float(h)); glVertex2i(w, h);
+    glEnd();
+    timer_end(TIMER_MERGING);
+    notextureshader->set();
+
+#endif
+}
+VAR(debugbuffersplit, 0, 0, 1);
+
+VARFP(ao, 0, 1, 1, { cleanupao(); cleardeferredlightshaders(); });
+FVARR(aoradius, 0, 3, 256);
+FVARR(aodark, 1e-3f, 3, 1e3f);
+FVARR(aosharp, 1e-3f, 1, 1e3f);
+FVARR(aomin, 0, 0.25f, 1);
+VARFR(aosun, 0, 1, 1, cleardeferredlightshaders());
+FVARR(aosunmin, 0, 0.5f, 1);
+VARP(aoblur, 0, 4, 7);
+FVARP(aosigma, 0.005f, 0.5f, 2.0f);
+VARP(aoiter, 0, 0, 4);
+VARFP(aoreduce, 0, 1, 2, cleanupao());
+VARF(aoreducedepth, 0, 1, 2, cleanupao());
+VARF(aonoise, 0, 5, 8, cleanupao());
+VARFP(aobilateral, 0, 7, 10, cleanupao());
+FVARP(aobilateralsigma, 0, 0.5f, 1e3);
+FVARP(aobilateraldepth, 0, 4, 1e3);
+VARF(aopackdepth, 0, 1, 1, cleanupao());
+VARFP(aotaps, 1, 5, 12, cleanupao());
+VAR(debugao, 0, 0, 1);
+
+void cascaded_shadow_map::bindparams()
+{
+    static GlobalShaderParam splitcenter("splitcenter"), splitbounds("splitbounds"), splitscale("splitscale"), splitoffset("splitoffset");
+    vec *splitcenterv = splitcenter.reserve<vec>(csmsplitn),
+        *splitboundsv = splitbounds.reserve<vec>(csmsplitn),
+        *splitscalev = splitscale.reserve<vec>(csmsplitn),
+        *splitoffsetv = splitoffset.reserve<vec>(csmsplitn);
+    loopi(csmsplitn)
+    {
+        cascaded_shadow_map::splitinfo &split = csm.splits[i];
+        if(split.idx < 0) continue;
+        const shadowmapinfo &sm = shadowmaps[split.idx];
+        const float bias = csmbias * (1024.0f / sm.size) * sqrtf((split.farplane - split.nearplane) / (csm.splits[0].farplane - csm.splits[0].nearplane));
+        splitcenterv[i] = vec(split.bbmin).add(split.bbmax).mul(0.5f);
+        splitboundsv[i] = vec(split.bbmax).sub(split.bbmin).mul(0.5f*(sm.size - 2*smborder)/sm.size);
+        splitscalev[i] = vec(0.5f*sm.size*split.proj.v[0], 0.5f*sm.size*split.proj.v[5], 0.5f*split.proj.v[10]);
+        splitoffsetv[i] = vec(0.5f*sm.size*(split.proj.v[12] + 1) + sm.x, 0.5f*sm.size*(split.proj.v[13] + 1) + sm.y, 0.5f*(split.proj.v[14] + 1 - bias));
+    }
+    glMatrixMode(GL_TEXTURE);
+    glActiveTexture_(GL_TEXTURE1_ARB);
+    glLoadMatrixf(csm.model.v);
+    glActiveTexture_(GL_TEXTURE0_ARB);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+static Shader *deferredlightshader = NULL, *deferredminimapshader = NULL;
+
+void cleardeferredlightshaders()
+{
+    deferredlightshader = NULL;
+    deferredminimapshader = NULL;
+}
+
+Shader *loaddeferredlightshader(const char *prefix = NULL)
+{
+    string common, shadow, sun;
+    int commonlen = 0, shadowlen = 0, sunlen = 0;
+
+    if(prefix) { commonlen = strlen(prefix); memcpy(common, prefix, commonlen); }
+    if(usegatherforsm()) common[commonlen++] = 'g';
+    common[commonlen] = '\0';
+ 
+    shadow[shadowlen++] = 'p';
+    if(smtetra && glslversion >= 130) shadow[shadowlen++] = 't';
+    shadow[shadowlen] = '\0';
+
+    if(ao) sun[sunlen++] = 'a';
+    if(sunlight && csmshadowmap)
+    {
+        sun[sunlen++] = 'c';
+        sun[sunlen++] = '0' + csmsplitn;
+        if(ao && aosun) sun[sunlen++] = 'A';
+    }
+    sun[sunlen] = '\0';
+
+    defformatstring(name)("deferredlight%s%s%s", common, shadow, sun);
+    Shader *s = lookupshaderbyname(name);
+    if(!s)
+    {
+        // XXX
+        lapi::state.get<lua::Function>("deferredlightshader")(common, shadow, sun, csmsplitn);
+        s = lookupshaderbyname(name);
+        if(!s) s = nullshader;
+    }
+    return s;
+}
+
+void loaddeferredlightshaders()
+{
+    deferredlightshader = loaddeferredlightshader();
+}
+
+static inline bool sortlights(int x, int y)
+{
+    const lightinfo &xl = lights[x], &yl = lights[y];
+    return xl.dist - xl.radius < yl.dist - yl.radius;
+}
+
+void resetlights()
+{
+    if(smcache)
+    {
+        loopk(2) shadowcache[k].reset();
+        int evictx = SHADOWATLAS_SIZE + ((evictshadowcache%SHADOWCACHE_EVICT)*SHADOWATLAS_SIZE)/SHADOWCACHE_EVICT, 
+            evicty = ((evictshadowcache/SHADOWCACHE_EVICT)*SHADOWATLAS_SIZE)/SHADOWCACHE_EVICT,
+            evictx2 = SHADOWATLAS_SIZE + (((evictshadowcache%SHADOWCACHE_EVICT)+1)*SHADOWATLAS_SIZE)/SHADOWCACHE_EVICT,
+            evicty2 = (((evictshadowcache/SHADOWCACHE_EVICT)+1)*SHADOWATLAS_SIZE)/SHADOWCACHE_EVICT; 
+        bool tetra = smtetra && glslversion >= 130;
+        loopv(shadowmaps)
+        {
+            shadowmapinfo &sm = shadowmaps[i];
+            if(sm.light < 0) continue;
+            lightinfo &l = lights[sm.light];
+            if(sm.x >= SHADOWATLAS_SIZE)
+            {
+                if(shadowcachefull)
+                {
+                    int smw = tetra ? sm.size*2 : sm.size*3, smh = tetra ? sm.size : sm.size*2;
+                    if(sm.x < evictx2 && sm.x + smw > evictx && sm.y < evicty2 && sm.y + smh > evicty) continue;
+                }
+                shadowcache[1][l] = sm;
+            }
+            else shadowcache[0][l] = sm;
+        }
+        shadowcachepacker.reset();
+        if(shadowcachefull)
+        {
+            evictshadowcache = (evictshadowcache + 1)%(SHADOWCACHE_EVICT*SHADOWCACHE_EVICT);
+            shadowcachefull = false;
+        }
+    }
+
+    lights.setsize(0);
+    lightorder.setsize(0);
+    loopi(LIGHTTILE_H) loopj(LIGHTTILE_W) lighttiles[i][j].setsize(0);
+
+    shadowmaps.setsize(0);
+    shadowatlaspacker.reset();
+}
+
+VAR(depthtestlights, 0, 1, 2);
+VAR(lighttilebatch, 1, 8, 8);
+
+void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 = 1, const uint *tilemask = NULL)
+{
+    Shader *s = minimapping ? deferredminimapshader : deferredlightshader;
+    if(!s || s == nullshader) return;
+
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glEnable(GL_SCISSOR_TEST);
+
+    if(!depthtestlights) glDisable(GL_DEPTH_TEST);
+    else
+    {
+        glDepthMask(GL_FALSE);
+        if(hasDBT && depthtestlights > 1) glEnable(GL_DEPTH_BOUNDS_TEST_EXT);
+    }
+
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gcolortex);
+    glActiveTexture_(GL_TEXTURE1_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
+    glActiveTexture_(GL_TEXTURE2_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gglowtex);
+    glActiveTexture_(GL_TEXTURE3_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+    glActiveTexture_(GL_TEXTURE4_ARB);
+    glBindTexture(GL_TEXTURE_2D, shadowatlastex);
+    if(usegatherforsm()) setsmnoncomparemode(); else setsmcomparemode();
+    if(ao)
+    {
+        glActiveTexture_(GL_TEXTURE5_ARB);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, aotex[0]);
+    }
+    glActiveTexture_(GL_TEXTURE0_ARB);
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadMatrixf(worldmatrix.v);
+    glMatrixMode(GL_MODELVIEW);
+
+    GLOBALPARAM(shadowatlasscale, (1.0f/(smcache ? 2*SHADOWATLAS_SIZE : SHADOWATLAS_SIZE), 1.0f/SHADOWATLAS_SIZE));
+    if(ao) 
+    {
+        if((editmode && fullbright) || envmapping)
+        {
+            GLOBALPARAM(aoscale, (0.0f, 0.0f));
+            GLOBALPARAM(aoparams, (1.0f, 0.0f, 1.0f, 0.0f));
+        }
+        else
+        {
+            GLOBALPARAM(aoscale, (float(aow)/vieww, float(aoh)/viewh));
+            GLOBALPARAM(aoparams, (aomin, 1.0f-aomin, aosunmin, 1.0f-aosunmin));
+        }
+    }
+    float lightscale = 2.0f*(hdr ? 0.5f : 1)/255.0f;
+    if(editmode && fullbright)
+        GLOBALPARAM(lightscale, (fullbrightlevel*lightscale, fullbrightlevel*lightscale, fullbrightlevel*lightscale, 255*lightscale));
+    else
+        GLOBALPARAM(lightscale, (ambientcolor.x*lightscale, ambientcolor.y*lightscale, ambientcolor.z*lightscale, 255*lightscale));
+
+    if(sunlight && csmshadowmap)
+    {
+        if(editmode && fullbright)
+        {
+            GLOBALPARAM(sunlightdir, (0, 0, 0));
+            GLOBALPARAM(sunlightcolor, (0, 0, 0));
+        }
+        else
+        {
+            extern float sunlightscale;
+            GLOBALPARAM(sunlightdir, (sunlightdir));
+            GLOBALPARAM(sunlightcolor, (sunlightcolor.x*lightscale*sunlightscale, sunlightcolor.y*lightscale*sunlightscale, sunlightcolor.z*lightscale*sunlightscale));
+        }
+        csm.bindparams();
+    }
+
+    int btx1 = max(int(floor((bsx1 + 1)*0.5f*LIGHTTILE_W)), 0), bty1 = max(int(floor((bsy1 + 1)*0.5f*LIGHTTILE_H)), 0),
+        btx2 = min(int(ceil((bsx2 + 1)*0.5f*LIGHTTILE_W)), LIGHTTILE_W), bty2 = min(int(ceil((bsy2 + 1)*0.5f*LIGHTTILE_H)), LIGHTTILE_H);
+    for(int y = bty1; y < bty2; y++) if(!tilemask || tilemask[y]) for(int x = btx1; x < btx2; x++) if(!tilemask || tilemask[y]&(1<<x))
+    {
+        vector<int> &tile = lighttiles[y][x];
+
+        static LocalShaderParam lightpos("lightpos"), lightcolor("lightcolor"), shadowparams("shadowparams"), shadowoffset("shadowoffset");
+        static vec4 lightposv[8], shadowparamsv[8];
+        static vec lightcolorv[8];
+        static vec2 shadowoffsetv[8];
+
+        for(int i = 0;;)
+        {
+            int n = min(tile.length() - i, lighttilebatch);
+
+            bool shadowmap = n > 0 && lights[tile[i]].shadowmap >= 0;
+            loopj(n)
+            {
+                if((lights[tile[i+j]].shadowmap >= 0) != shadowmap) { n = j; break; }
+            }
+
+            float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1, sz1 = 1, sz2 = -1;
+            loopj(n)
+            {
+                lightinfo &l = lights[tile[i+j]];
+                lightposv[j] = vec4(l.o.x, l.o.y, l.o.z, 1.0f/l.radius);
+                lightcolorv[j] = vec(l.color.x*lightscale, l.color.y*lightscale, l.color.z*lightscale);
+                if(shadowmap)
+                {
+                    shadowmapinfo &sm = shadowmaps[l.shadowmap];
+                    float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
+                          bias = (smcullside ? smbias : -smbias) * smnearclip * (1024.0f / sm.size);
+                    shadowparamsv[j] = vec4(
+                        0.5f * (sm.size - smborder),
+                        -smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias,
+                        sm.size,
+                        0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
+                    shadowoffsetv[j] = vec2(sm.x + 0.5f*sm.size, sm.y + 0.5f*sm.size);
+                }
+                sx1 = min(sx1, l.sx1);
+                sy1 = min(sy1, l.sy1);
+                sx2 = max(sx2, l.sx2);
+                sy2 = max(sy2, l.sy2);
+                sz1 = min(sz1, l.sz1);
+                sz2 = max(sz2, l.sz2);
+            }
+            if(!i) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
+            else if(sx1 >= sx2 || sy1 >= sy2 || sz1 >= sz2) continue;
+
+            if(n) 
+            {
+                s->setvariant(n-1, (shadowmap ? 1 : 0) + (i ? 2 : 0));
+                lightpos.set(lightposv, n);
+                lightcolor.set(lightcolorv, n);
+                if(shadowmap)   
+                {
+                    shadowparams.set(shadowparamsv, n);
+                    shadowoffset.set(shadowoffsetv, n);
+                }
+            } 
+            else s->set();
+
+            sx1 = max(sx1, bsx1);
+            sy1 = max(sy1, bsy1);
+            sx2 = min(sx2, bsx2);
+            sy2 = min(sy2, bsy2);
+            if(sx1 < sx2 && sy1 < sy2)
+            { 
+                int tx1 = max(int(floor((sx1*0.5f+0.5f)*vieww)), (x*vieww)/LIGHTTILE_W), ty1 = max(int(floor((sy1*0.5f+0.5f)*viewh)), (y*viewh)/LIGHTTILE_H),
+                    tx2 = min(int(ceil((sx2*0.5f+0.5f)*vieww)), ((x+1)*vieww)/LIGHTTILE_W), ty2 = min(int(ceil((sy2*0.5f+0.5f)*viewh)), ((y+1)*viewh)/LIGHTTILE_H);
+
+                glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
+
+                if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
+
+                // FIXME: render light geometry here
+                glBegin(GL_TRIANGLE_STRIP);
+                glVertex3f( 1, -1, sz1);
+                glVertex3f(-1, -1, sz1);
+                glVertex3f( 1,  1, sz1);
+                glVertex3f(-1,  1, sz1);
+                glEnd();
+            }
+
+            i += n;
+            if(i >= tile.length()) break;
+        }
+    }
+
+    glDisable(GL_BLEND);
+    glDisable(GL_SCISSOR_TEST);
+
+    if(!depthtestlights) glEnable(GL_DEPTH_TEST);
+    else
+    {
+        glDepthMask(GL_TRUE);
+        if(hasDBT && depthtestlights > 1) glDisable(GL_DEPTH_BOUNDS_TEST_EXT);
+    }
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+VAR(oqlights, 0, 1, 1);
+
+void collectlights()
+{
+    // point lights processed here
+    if(!editmode || !fullbright) loopv(entities::storage)
+    {
+        extentity *e = entities::get(i);
+        if(e->type != ET_LIGHT) continue;
+
+        float sx1 = -1, sy1 = -1, sx2 = 1, sy2 = 1, sz1 = -1, sz2 = 1;
+        if(e->attr1 > 0)
+        {
+            if(smviscull)
+            {
+                if(isfoggedsphere(e->attr1, e->o)) continue;
+                if(pvsoccludedsphere(e->o, e->attr1)) continue;
+            }
+            calcspherescissor(e->o, e->attr1, sx1, sy1, sx2, sy2);
+            calcspheredepth(e->o, e->attr1, sz1, sz2);
+        }
+        if(sx1 >= sx2 || sy1 >= sy2 || sz1 >= sz2) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
+
+        lightorder.add(lights.length());
+        lightinfo &l = lights.add();
+        l.sx1 = sx1;
+        l.sx2 = sx2;
+        l.sy1 = sy1;
+        l.sy2 = sy2;
+        l.sz1 = sz1;
+        l.sz2 = sz2;
+        l.shadowmap = -1;
+        l.flags = e->attr5;
+        l.query = NULL;
+        l.o = e->o;
+        l.color = vec(e->attr2, e->attr3, e->attr4);
+        l.radius = e->attr1 > 0 ? e->attr1 : 2*worldsize;
+        l.dist = camera1->o.dist(e->o);
+    }
 
     updatedynlights();
-
-    aspect = w/float(h);
-    fovy = 2*atan2(tan(curfov/2*RAD), aspect)/RAD;
-    
-    int fogmat = lookupmaterial(camera1->o)&MATF_VOLUME, abovemat = MAT_AIR;
-    float fogblend = 1.0f, causticspass = 0.0f;
-    if(fogmat==MAT_WATER || fogmat==MAT_LAVA)
+    int numdynlights = finddynlights();
+    loopi(numdynlights)
     {
-        float z = findsurface(fogmat, camera1->o, abovemat) - WATER_OFFSET;
-        if(camera1->o.z < z + 1) fogblend = min(z + 1 - camera1->o.z, 1.0f);
-        else fogmat = abovemat;
-        if(caustics && fogmat==MAT_WATER && camera1->o.z < z)
-            causticspass = renderpath==R_FIXEDFUNCTION ? 1.0f : min(z - camera1->o.z, 1.0f);
+        vec o, color;
+        float radius;
+        if(!getdynlight(i, o, radius, color)) continue;
+
+        float sx1 = -1, sy1 = -1, sx2 = 1, sy2 = 1, sz1 = -1, sz2 = 1;
+        calcspherescissor(o, radius, sx1, sy1, sx2, sy2);
+        calcspheredepth(o, radius, sz1, sz2);
+        if(sx1 >= sx2 || sy1 >= sy2 || sz1 >= sz2) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
+
+        lightorder.add(lights.length());
+        lightinfo &l = lights.add();
+        l.sx1 = sx1;
+        l.sx2 = sx2;
+        l.sy1 = sy1;
+        l.sy2 = sy2;
+        l.sz1 = sz1;
+        l.sz2 = sz2;
+        l.shadowmap = -1;
+        l.flags = 0;
+        l.query = NULL;
+        l.o = o;
+        l.color = vec(color).mul(255);
+        l.radius = radius;
+        l.dist = camera1->o.dist(o);
     }
-    else fogmat = MAT_AIR;    
-    setfog(fogmat, fogblend, abovemat);
-    if(fogmat!=MAT_AIR)
+
+    lightorder.sort(sortlights);
+
+    if(!envmapping && smquery && hasOQ && oqfrags && oqlights) loopv(lightorder)
     {
-        float blend = abovemat==MAT_AIR ? fogblend : 1.0f;
-        fovy += blend*sinf(lastmillis/1000.0)*2.0f;
-        aspect += blend*sinf(lastmillis/1000.0+PI)*0.1f;
+        int idx = lightorder[i];
+        lightinfo &l = lights[idx];
+        if(!(l.flags&L_NOSHADOW) && l.radius > smminradius && l.radius < worldsize &&
+           (camera1->o.x < l.o.x - l.radius - 2 || camera1->o.x > l.o.x + l.radius + 2 ||
+            camera1->o.y < l.o.y - l.radius - 2 || camera1->o.y > l.o.y + l.radius + 2 ||
+            camera1->o.z < l.o.z - l.radius - 2 || camera1->o.z > l.o.z + l.radius + 2))
+        {
+            l.query = newquery(&l);
+            if(l.query)
+            {
+                startquery(l.query);
+                ivec bo = vec(l.o).sub(l.radius), br = vec(l.o).add(l.radius+1);
+                br.sub(bo);
+                drawbb(bo, br);
+                endquery(l.query);
+            }
+        }
+    }
+}
+
+static inline void addlighttiles(const lightinfo &l, int idx)
+{
+    int tx1 = max(int(floor((l.sx1 + 1)*0.5f*LIGHTTILE_W)), 0), ty1 = max(int(floor((l.sy1 + 1)*0.5f*LIGHTTILE_H)), 0),
+        tx2 = min(int(ceil((l.sx2 + 1)*0.5f*LIGHTTILE_W)), LIGHTTILE_W), ty2 = min(int(ceil((l.sy2 + 1)*0.5f*LIGHTTILE_H)), LIGHTTILE_H);
+    for(int y = ty1; y < ty2; y++) for(int x = tx1; x < tx2; x++) { lighttiles[y][x].add(idx); lighttilesused++; }
+}
+ 
+VAR(lightsvisible, 1, 0, 0);
+VAR(lightsoccluded, 1, 0, 0);
+ 
+void packlights()
+{ 
+    lightsvisible = lightsoccluded = 0;
+    lighttilesused = 0;
+    smused = 0;
+
+    bool tetra = smtetra && glslversion >= 130;
+    if(smcache && smnoshadow <= 1 && shadowcache[1].numelems) loopv(lightorder)
+    {
+        int idx = lightorder[i];
+        lightinfo &l = lights[idx];
+        if(l.flags&L_NOSHADOW || l.radius <= smminradius) continue;
+        if(l.query && l.query->owner == &l && checkquery(l.query)) continue; 
+
+        float smlod = clamp(l.radius * smprec / sqrtf(max(1.0f, l.dist/l.radius)), float(smminsize), float(smmaxsize));
+        int smsize = clamp(int(ceil(smlod * (tetra ? smtetraprec : smcubeprec))), 1, SHADOWATLAS_SIZE / (tetra ? 2 : 3)),
+            smw = tetra ? smsize*2 : smsize*3, smh = tetra ? smsize : smsize*2;
+        ushort smx = USHRT_MAX, smy = USHRT_MAX;
+        shadowmapinfo *sm = NULL;
+        int smidx = -1;
+        shadowcacheval *cached = shadowcache[1].access(l);
+        if(!cached || cached->size != smsize) continue;
+        smx = cached->x;
+        smy = cached->y;
+        shadowcachepacker.reserve(smx - SHADOWATLAS_SIZE, smy, smw, smh);
+        sm = addshadowmap(smx, smy, smsize, smidx);
+        sm->light = idx;
+        sm->cached = cached;
+        l.shadowmap = smidx;
+        smused += smsize*smsize*(tetra ? 2 : 6);
+
+        addlighttiles(l, idx);
+    }
+    loopv(lightorder)
+    {
+        int idx = lightorder[i];
+        lightinfo &l = lights[idx];
+        if(l.shadowmap >= 0) continue;
+
+        if(!(l.flags&L_NOSHADOW) && smnoshadow <= 1 && l.radius > smminradius)
+        {
+            if(l.query && l.query->owner == &l && checkquery(l.query)) { lightsoccluded++; continue; }
+            float smlod = clamp(l.radius * smprec / sqrtf(max(1.0f, l.dist/l.radius)), float(smminsize), float(smmaxsize));
+            int smsize = clamp(int(ceil(smlod * (tetra ? smtetraprec : smcubeprec))), 1, SHADOWATLAS_SIZE / (tetra ? 2 : 3)),
+                smw = tetra ? smsize*2 : smsize*3, smh = tetra ? smsize : smsize*2;
+            ushort smx = USHRT_MAX, smy = USHRT_MAX;
+            shadowmapinfo *sm = NULL;
+            int smidx = -1;
+            if(smcache)
+            {
+                shadowcacheval *prev = shadowcache[0].access(l);
+                if(prev && prev->size == smsize)
+                {
+                    if(shadowcachepacker.insert(smx, smy, smw, smh))
+                    {
+                        smx += SHADOWATLAS_SIZE;
+                        sm = addshadowmap(smx, smy, smsize, smidx); 
+                        sm->light = idx;
+                        l.shadowmap = smidx;
+                        smused += smsize*smsize*(tetra ? 2 : 6);
+
+                        addlighttiles(l, idx);
+                        continue;
+                    }
+                    shadowcachefull = true;
+                }
+            }
+            if(shadowatlaspacker.insert(smx, smy, smw, smh))
+            {
+                sm = addshadowmap(smx, smy, smsize, smidx);
+                sm->light = idx;
+                l.shadowmap = smidx;
+                smused += smsize*smsize*(tetra ? 2 : 6);
+            }
+        }
+   
+        addlighttiles(l, idx); 
     }
 
-    farplane = worldsize*2;
+    lightsvisible = lightorder.length() - lightsoccluded;
+}
 
-    project(fovy, aspect, farplane);
+void rendercsmshadowmaps()
+{
+    shadowmapping = SM_CASCADE;
+    shadoworigin = vec(0, 0, 0);
+    shadowradius = 2*worldsize;
+    shadowbias = 0;
+
+    if(csmpolyfactor || csmpolyoffset)
+    {
+        glPolygonOffset(csmpolyfactor, csmpolyoffset);
+        glEnable(GL_POLYGON_OFFSET_FILL);
+    }
+
+    findcsmshadowvas(); // no culling here
+    findcsmshadowmms(); // no culling here
+
+    shadowmaskbatchedmodels();
+    batchshadowmapmodels();
+
+    loopi(csmsplitn) if(csm.splits[i].idx >= 0)
+    {
+        const shadowmapinfo &sm = shadowmaps[csm.splits[i].idx];
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixf(csm.splits[i].proj.v);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixf(csm.model.v);
+        glViewport(sm.x, sm.y, sm.size, sm.size);
+        glScissor(sm.x, sm.y, sm.size, sm.size);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        shadowside = i;
+
+        rendershadowmapworld();
+        rendermodelbatches();
+    }
+
+    clearbatchedmapmodels();
+
+    if(csmpolyfactor || csmpolyoffset) glDisable(GL_POLYGON_OFFSET_FILL);
+
+    shadowmapping = 0;
+}
+
+void rendershadowmaps()
+{
+    shadowmapping = smtetra && glslversion >= 130 ? SM_TETRA : SM_CUBEMAP;
+
+    if(smpolyfactor || smpolyoffset)
+    {
+        glPolygonOffset(smpolyfactor, smpolyoffset);
+        glEnable(GL_POLYGON_OFFSET_FILL);
+    }
+    if(shadowmapping == SM_TETRA && smtetraclip) glEnable(GL_CLIP_PLANE0);
+
+    loopv(shadowmaps)
+    {
+        shadowmapinfo &sm = shadowmaps[i];
+        if(sm.light < 0) continue;
+
+        lightinfo &l = lights[sm.light];
+
+        int sidemask;
+        if(shadowmapping == SM_TETRA) sidemask = smsidecull ? cullfrustumtetra(l.o, l.radius, sm.size, smborder) : 0xF;
+        else sidemask = smsidecull ? cullfrustumsides(l.o, l.radius, sm.size, smborder) : 0x3F;
+
+        sm.sidemask = sidemask;
+
+        shadoworigin = l.o;
+        shadowradius = l.radius;
+        shadowbias = smborder / float(sm.size - smborder);
+
+        findshadowvas();
+        findshadowmms();
+
+        shadowmaskbatchedmodels(!(l.flags&L_NODYNSHADOW));
+        batchshadowmapmodels();
+
+        shadowcacheval *cached = NULL;
+        int cachemask = 0;
+        if(smcache)
+        {
+            int dynmask = smcache <= 1 ? batcheddynamicmodels() : 0;
+            if(shadowmapping == SM_TETRA && !smtetraclear)
+            {
+                if(dynmask&0x3) dynmask |= 0x3;
+                if(dynmask&0xC) dynmask |= 0xC;
+            }
+            cached = sm.cached;
+            if(cached)
+            {
+                if(!debugshadowatlas) cachemask = cached->sidemask & ~dynmask;
+                sm.sidemask |= cachemask;
+            }
+            sm.sidemask &= ~dynmask;
+
+            sidemask &= ~cachemask;
+            if(!sidemask) { clearbatchedmapmodels(); continue; }
+        }
+
+        float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3;
+        GLfloat smprojmatrix[16] =
+        {
+            float(sm.size - smborder) / sm.size, 0, 0, 0,
+            0, float(sm.size - smborder) / sm.size, 0, 0,
+            0, 0, -(smfarclip + smnearclip) / (smfarclip - smnearclip), -1,
+            0, 0, -2*smnearclip*smfarclip / (smfarclip - smnearclip), 0
+        };
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixf(smprojmatrix);
+        glMatrixMode(GL_MODELVIEW);
+
+        GLfloat lightmatrix[16] =
+        {
+            1.0f/l.radius, 0, 0, 0,
+            0, 1.0f/l.radius, 0, 0,
+            0, 0, 1.0f/l.radius, 0,
+            -l.o.x/l.radius, -l.o.y/l.radius, -l.o.z/l.radius, 1
+        };
+
+        glmatrixf smviewmatrix;
+
+        if(shadowmapping == SM_TETRA)
+        {
+            if(!cachemask)
+            {
+                glScissor(sm.x + (sidemask & 0x3 ? 0 : sm.size), sm.y, sidemask & 0x3 && sidemask & 0xC ? 2*sm.size : sm.size, sm.size);
+                glClear(GL_DEPTH_BUFFER_BIT);
+            }
+            loop(side, 4) if(sidemask&(1<<side))
+            {
+                int sidex = (side>>1)*sm.size;
+                if(!(side&1) || !(sidemask&(1<<(side-1))))
+                {
+                    glViewport(sm.x + sidex, sm.y, sm.size, sm.size);
+                    glScissor(sm.x + sidex, sm.y, sm.size, sm.size);
+                    if(cachemask && (!smtetraclear || (sidemask&(3<<(side&~1))) == (3<<(side&~1)))) glClear(GL_DEPTH_BUFFER_BIT);
+                }
+
+                if(cachemask && smtetraclear && (sidemask&(3<<(side&~1))) != (3<<(side&~1)))
+                {
+                    if(smtetraclip) glDisable(GL_CLIP_PLANE0);
+                    if(smpolyfactor || smpolyoffset) glDisable(GL_POLYGON_OFFSET_FILL);
+                    glDisable(GL_CULL_FACE);
+                    glDepthFunc(GL_ALWAYS);
+
+                    SETSHADER(tetraclear);
+                    glBegin(GL_TRIANGLES);
+                    switch(side)
+                    {
+                    case 0: glVertex3f(1, 1, 1); glVertex3f(-1, 1, 1); glVertex3f(1, -1, 1); break;
+                    case 1: glVertex3f(-1, -1, 1); glVertex3f(-1, 1, 1); glVertex3f(1, -1, 1); break;
+                    case 2: glVertex3f(1, -1, 1); glVertex3f(-1, -1, 1); glVertex3f(1, 1, 1); break;
+                    case 3: glVertex3f(-1, 1, 1); glVertex3f(-1, -1, 1); glVertex3f(1, 1, 1); break;
+                    }
+                    glEnd();
+
+                    glDepthFunc(GL_LESS);
+                    glEnable(GL_CULL_FACE);
+                    if(smpolyfactor || smpolyoffset) glEnable(GL_POLYGON_OFFSET_FILL);
+                    if(smtetraclip) glEnable(GL_CLIP_PLANE0);
+                }
+
+                smviewmatrix.mul(tetrashadowviewmatrix[side], lightmatrix);
+                glLoadMatrixf(smviewmatrix.v);
+
+                glCullFace((side>>1) ^ smcullside ? GL_BACK : GL_FRONT);
+
+                if(smtetraclip)
+                {
+                    smtetraclipplane.toplane(vec(-smviewmatrix.v[2], -smviewmatrix.v[6], 0), l.o);
+                    smtetraclipplane.offset += smtetraborder/(0.5f*sm.size);
+                    GLOBALPARAM(tetraclip, (smtetraclipplane));
+                }
+
+                shadowside = side;
+
+                rendershadowmapworld();
+                rendermodelbatches();
+            }
+        }
+        else
+        {
+            if(!cachemask)
+            {
+                int cx1 = sidemask & 0x03 ? 0 : (sidemask & 0xC ? sm.size : 2 * sm.size),
+                    cx2 = sidemask & 0x30 ? 3 * sm.size : (sidemask & 0xC ? 2 * sm.size : sm.size),
+                    cy1 = sidemask & 0x15 ? 0 : sm.size,
+                    cy2 = sidemask & 0x2A ? 2 * sm.size : sm.size;
+                glScissor(sm.x + cx1, sm.y + cy1, cx2 - cx1, cy2 - cy1);
+                glClear(GL_DEPTH_BUFFER_BIT);
+            }
+            loop(side, 6) if(sidemask&(1<<side))
+            {
+                int sidex = (side>>1)*sm.size, sidey = (side&1)*sm.size;
+                glViewport(sm.x + sidex, sm.y + sidey, sm.size, sm.size);
+                glScissor(sm.x + sidex, sm.y + sidey, sm.size, sm.size);
+                if(cachemask) glClear(GL_DEPTH_BUFFER_BIT);
+
+                smviewmatrix.mul(cubeshadowviewmatrix[side], lightmatrix);
+                glLoadMatrixf(smviewmatrix.v);
+
+                glCullFace((side & 1) ^ (side >> 2) ^ smcullside ? GL_FRONT : GL_BACK);
+
+                shadowside = side;
+
+                rendershadowmapworld();
+                rendermodelbatches();
+            }
+        }
+
+        clearbatchedmapmodels();
+    }
+
+    if(shadowmapping == SM_TETRA && smtetraclip) glDisable(GL_CLIP_PLANE0);
+    if(smpolyfactor || smpolyoffset) glDisable(GL_POLYGON_OFFSET_FILL);
+
+    shadowmapping = 0;
+}
+
+void rendershadowatlas()
+{
+    timer_begin(TIMER_CPU_SM);
+    timer_begin(TIMER_SM);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, shadowatlasfbo);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+    if(debugshadowatlas)
+    {
+        glClearDepth(0);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glClearDepth(1);
+    }
+
+    glEnable(GL_SCISSOR_TEST);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    // sun light
+    if(sunlight && csmshadowmap) 
+    {
+        csm.setup();
+        rendercsmshadowmaps();
+    }
+
+    packlights();
+
+    // point lights
+    rendershadowmaps();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    timer_end(TIMER_SM);
+    timer_end(TIMER_CPU_SM);
+}
+
+void setbilateralshader(int radius, int pass, float sigma, float depth, bool linear, bool packed)
+{
+    float stepx = linear ? 1 : float(vieww)/aow, stepy = linear ? 1 : float(viewh)/aoh;
+    bilateralshader[pass]->set();
+    sigma *= 2*radius;
+    LOCALPARAM(bilateralparams, (1.0f/(2*sigma*sigma), 1.0f/(depth*depth), pass==0 ? stepx : 0, pass==1 ? stepy : 0));
+}
+
+void renderao()
+{
+    timer_begin(TIMER_AO);
+
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+
+    bool linear = hasTRG && hasTF && aoreducedepth && (aoreduce || aoreducedepth > 1);
+    float xscale = eyematrix.v[0], yscale = eyematrix.v[5];
+    if(linear)
+    {
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, aofbo[2]);
+        glViewport(0, 0, aow, aoh);
+        SETSHADER(linearizedepth);
+        screenquad(vieww, viewh);
+
+        xscale *= float(vieww)/aow;
+        yscale *= float(viewh)/aoh;
+
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, aotex[2]);
+    }
+
+    ambientobscuranceshader->set();
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, aofbo[0]);
+    glViewport(0, 0, aow, aoh);
+    glActiveTexture_(GL_TEXTURE1_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
+    glActiveTexture_(GL_TEXTURE2_ARB);
+    glBindTexture(GL_TEXTURE_2D, aonoisetex);
+    glActiveTexture_(GL_TEXTURE0_ARB);
+
+    LOCALPARAM(tapparams, (aoradius*eyematrix.v[14]/xscale, aoradius*eyematrix.v[14]/yscale, (2.0f*M_PI*aodark)/aotaps, aosharp));
+    LOCALPARAM(offsetscale, (xscale/eyematrix.v[14], yscale/eyematrix.v[14], eyematrix.v[12]/eyematrix.v[14], eyematrix.v[13]/eyematrix.v[14]));
+    screenquad(vieww, viewh, aow/float(1<<aonoise), aoh/float(1<<aonoise));
+
+    if(aobilateral)
+    {
+        if(!linear && aopackdepth && hasTRG && hasTF) linear = true;
+        loopi(2 + 2*aoiter)
+        {
+            setbilateralshader(aobilateral, i%2, aobilateralsigma, aobilateraldepth, linear, linear && aopackdepth);
+            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, aofbo[(i+1)%2]);
+            glViewport(0, 0, aow, aoh);
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, aotex[i%2]);
+            if(!linear || !aopackdepth)
+            {
+                glActiveTexture_(GL_TEXTURE1_ARB);
+                glBindTexture(GL_TEXTURE_RECTANGLE_ARB, linear ? aotex[2] : gdepthtex);
+                glActiveTexture_(GL_TEXTURE0_ARB);
+            }
+            screenquad(vieww, viewh);
+        }
+    }
+    else if(aoblur)
+    {
+        float blurweights[MAXBLURRADIUS+1], bluroffsets[MAXBLURRADIUS+1];
+        setupblurkernel(aoblur, aosigma, blurweights, bluroffsets);
+        loopi(2 + 2*aoiter)
+        {
+            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, aofbo[(i+1)%2]);
+            glViewport(0, 0, aow, aoh);
+            setblurshader(i%2, 1, aoblur, blurweights, bluroffsets, GL_TEXTURE_RECTANGLE_ARB);
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, aotex[i%2]);
+            screenquad(aow, aoh);
+        }
+    }
+
+    timer_end(TIMER_AO);
+}
+
+void processhdr()
+{
+    timer_begin(TIMER_HDR);
+    GLuint b0fbo = bloomfbo[1], b0tex = bloomtex[1], b1fbo =  bloomfbo[0], b1tex = bloomtex[0], ptex = hdrtex;
+    int b0w = max(vieww/4, bloomw), b0h = max(viewh/4, bloomh), b1w = max(vieww/2, bloomw), b1h = max(viewh/2, bloomh),
+        pw = vieww, ph = viewh;
+    if(hdrreduce) while(pw > bloomw || ph > bloomh)
+    {
+        GLuint cfbo = b1fbo, ctex = b1tex;
+        int cw = max(pw/2, bloomw), ch = max(ph/2, bloomh);
+
+        if(hdrreduce > 1 && cw/2 >= bloomw && ch/2 >= bloomh)
+        {
+            cw /= 2;
+            ch /= 2;
+            SETSHADER(hdrreduce2);
+        }
+        else SETSHADER(hdrreduce);
+        if(cw == bloomw && ch == bloomh) { cfbo = bloomfbo[2]; ctex = bloomtex[2]; }
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, cfbo);
+        glViewport(0, 0, cw, ch);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ptex);
+        screenquad(pw, ph);
+
+        ptex = ctex;
+        pw = cw;
+        ph = ch;
+        swap(b0fbo, b1fbo);
+        swap(b0tex, b1tex);
+        swap(b0w, b1w);
+        swap(b0h, b1h);
+    }
+
+    if(!lasthdraccum || lastmillis - lasthdraccum >= hdraccummillis)
+    {
+        GLuint ltex = ptex;
+        int lw = pw, lh = ph;
+        for(int i = 0; lw > 2 || lh > 2; i++)
+        {
+            int cw = max(lw/2, 2), ch = max(lh/2, 2);
+
+            if(hdrreduce > 1 && cw/2 >= 2 && ch/2 >= 2)
+            {
+                cw /= 2;
+                ch /= 2;
+                if(i) SETSHADER(hdrreduce2); else SETSHADER(hdrluminance2);
+            }
+            else if(i) SETSHADER(hdrreduce); else SETSHADER(hdrluminance);
+            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, b1fbo);
+            glViewport(0, 0, cw, ch);
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ltex);
+            screenquad(lw, lh);
+
+            ltex = b1tex;
+            lw = cw;
+            lh = ch;
+            swap(b0fbo, b1fbo);
+            swap(b0tex, b1tex);
+            swap(b0w, b1w);
+            swap(b0h, b1h);
+        }
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, bloomfbo[4]);
+        glViewport(0, 0, 1, 1);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+        SETSHADER(hdraccum);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, b0tex);
+        LOCALPARAM(accumscale, (lasthdraccum ? pow(hdraccumscale, float(lastmillis - lasthdraccum)/hdraccummillis) : 0));
+        screenquad(2, 2);
+        glDisable(GL_BLEND);
+
+        lasthdraccum = lastmillis;
+    }
+
+    b0fbo = bloomfbo[3];
+    b0tex = bloomtex[3];
+    b1fbo = bloomfbo[2];
+    b1tex = bloomtex[2];
+    b0w = b1w = bloomw;
+    b0h = b1h = bloomh;
+
+    glActiveTexture_(GL_TEXTURE2_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, bloomtex[4]);
+    glActiveTexture_(GL_TEXTURE0_ARB);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, b0fbo);
+    glViewport(0, 0, b0w, b0h);
+    SETSHADER(hdrbloom);
+    LOCALPARAM(bloomparams, (-bloombright, bloomthreshold*bloombright/hdrbright, bloomlummin, bloomlummax));
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ptex);
+    screenquad(pw, ph);
+
+    if(bloomblur)
+    {
+        float blurweights[MAXBLURRADIUS+1], bluroffsets[MAXBLURRADIUS+1];
+        setupblurkernel(bloomblur, bloomsigma, blurweights, bluroffsets);
+        loopi(2 + 2*bloomiter)
+        {
+            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, b1fbo);
+            glViewport(0, 0, b1w, b1h);
+            setblurshader(i%2, 1, bloomblur, blurweights, bluroffsets, GL_TEXTURE_RECTANGLE_ARB);
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, b0tex);
+            screenquad(b0w, b0h);
+            swap(b0w, b1w);
+            swap(b0h, b1h);
+            swap(b0tex, b1tex);
+            swap(b0fbo, b1fbo);
+        }
+    }
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, smaa ? smaafbo[0] : 0);
+    glViewport(0, 0, vieww, viewh);
+    SETSHADER(hdrtonemap);
+    LOCALPARAM(bloomsize, (b0w, b0h));
+    LOCALPARAM(hdrparams, (-hdrbright, bloomscale, hdrtonemin, hdrtonemax));
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, hdrtex);
+    glActiveTexture_(GL_TEXTURE1_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, b0tex);
+    glActiveTexture_(GL_TEXTURE0_ARB);
+    screenquad(vieww, viewh);
+    timer_end(TIMER_HDR);
+
+    if(smaa)
+    {
+        timer_begin(TIMER_SMAA);
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, smaafbo[1]);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        if(smaadepthmask) 
+        {
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_ALWAYS);
+            glDepthRange(1, 1);
+        }
+        else if(smaastencil && ((gdepthstencil && hasDS) || gstencil)) 
+        {
+            glEnable(GL_STENCIL_TEST);
+            glStencilFunc(GL_ALWAYS, 8, 8);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        }
+        if(smaacoloredge) smaacoloredgeshader->set();
+        else smaalumaedgeshader->set();
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gcolortex);
+        screenquad(vieww, viewh);
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, smaafbo[2]);
+        if(smaadepthmask)
+        {
+            glDepthFunc(GL_EQUAL);
+            glDepthMask(GL_FALSE);
+        }
+        else if(smaastencil && ((gdepthstencil && hasDS) || gstencil))
+        {
+            glStencilFunc(GL_EQUAL, 8, 8);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        }
+        glClear(GL_COLOR_BUFFER_BIT);
+        smaablendweightshader->set();
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, smaaareatex);
+        glActiveTexture_(GL_TEXTURE2_ARB);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, smaasearchtex);
+        glActiveTexture_(GL_TEXTURE0_ARB);
+        screenquad(vieww, viewh);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        if(smaadepthmask) 
+        {
+            glDisable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
+            glDepthRange(0, 1);
+        }
+        else if(smaastencil && ((gdepthstencil && hasDS) || gstencil)) glDisable(GL_STENCIL_TEST);
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+        smaaneighborhoodshader->set();
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gcolortex);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gglowtex);
+        glActiveTexture_(GL_TEXTURE0_ARB);
+        screenquad(vieww, viewh);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        timer_end(TIMER_SMAA);
+    }
+}
+
+FVAR(refractmargin, 0, 0.1f, 1);
+FVAR(refractdepth, 1e-3f, 16, 1e3f);
+
+void rendertransparent()
+{
+    int hasalphavas = findalphavas();
+    int hasmats = findmaterials();
+    if(!hasalphavas && !hasmats) return;
+        
+    timer_begin(TIMER_TRANSPARENT);
+
+    if(hasalphavas&4 || hasmats&4)
+    {
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, refractfbo);
+        glDepthMask(GL_FALSE);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+        float sx1 = min(alpharefractsx1, matrefractsx1), sy1 = min(alpharefractsy1, matrefractsy1),
+              sx2 = max(alpharefractsx2, matrefractsx2), sy2 = max(alpharefractsy2, matrefractsy2);
+        bool scissor = sx1 > -1 || sy1 > -1 || sx2 < 1 || sy2 < 1;
+        if(scissor)
+        {
+            int x1 = int(floor(max(sx1*0.5f+0.5f-refractmargin*viewh/vieww, 0.0f)*vieww)),
+                y1 = int(floor(max(sy1*0.5f+0.5f-refractmargin, 0.0f)*viewh)),
+                x2 = int(ceil(min(sx2*0.5f+0.5f+refractmargin*viewh/vieww, 1.0f)*vieww)),
+                y2 = int(ceil(min(sy2*0.5f+0.5f+refractmargin, 1.0f)*viewh));
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(x1, y1, x2 - x1, y2 - y1);
+        }
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        if(scissor) glDisable(GL_SCISSOR_TEST);
+        SETSHADER(refractmask);
+		LOCALPARAM(refractdepth, (1.0f/refractdepth));
+        if(hasalphavas&4) renderrefractmask();
+        if(hasmats&4) rendermaterialmask();
+        glDepthMask(GL_TRUE);
+    }
+
+    glActiveTexture_(GL_TEXTURE7_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, refracttex);
+    glActiveTexture_(GL_TEXTURE8_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, hdrtex);
+    glActiveTexture_(GL_TEXTURE9_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+    glActiveTexture_(GL_TEXTURE0_ARB);
+
+    if((gdepthstencil && hasDS) || gstencil) glEnable(GL_STENCIL_TEST);
+
+    glmatrixf raymatrix = mvmatrix.v;
+    loopk(4)
+    {
+        raymatrix.v[0 + k*4] = 0.5f*vieww*(raymatrix.v[2 + k*4] - raymatrix.v[0 + k*4]*projmatrix.v[0]);
+        raymatrix.v[1 + k*4] = 0.5f*viewh*(raymatrix.v[2 + k*4] - raymatrix.v[1 + k*4]*projmatrix.v[5]);
+    }
+
+    loop(layer, 3)
+    loop(side, 2) if(hasalphavas&(1<<side) || (side && hasmats))
+    {
+        uint tiles[LIGHTTILE_H];
+        float sx1, sy1, sx2, sy2;
+        switch(layer)
+        {
+        case 0:
+            if(!(hasmats&1)) continue;
+            sx1 = matliquidsx1; sy1 = matliquidsy1; sx2 = matliquidsx2; sy2 = matliquidsy2;
+            memcpy(tiles, matliquidtiles, sizeof(tiles));
+            break;
+        case 1:
+            if(!(hasalphavas&1)) continue;
+            sx1 = alphabacksx1; sy1 = alphabacksy1; sx2 = alphabacksx2; sy2 = alphabacksy2;
+            memcpy(tiles, alphatiles, sizeof(tiles));
+            break;
+        case 2:
+            if(!(hasalphavas&2) && !(hasmats&2)) continue;
+            sx1 = alphafrontsx1; sy1 = alphafrontsy1; sx2 = alphafrontsx2; sy2 = alphafrontsy2;
+            memcpy(tiles, alphatiles, sizeof(tiles));
+            if(hasmats&2)
+            {
+                sx1 = min(sx1, matsolidsx1);
+                sy1 = min(sy1, matsolidsy1);
+                sx2 = max(sx2, matsolidsx2);
+                sy2 = max(sy2, matsolidsy2);
+                loopj(LIGHTTILE_H) tiles[j] |= matsolidtiles[j];
+            }
+            break;
+        default:
+            continue;
+        }
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, gfbo);
+        if((gdepthstencil && hasDS) || gstencil)
+        {
+            glStencilFunc(GL_ALWAYS, 1<<layer, 1<<layer);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        }
+        else
+        {
+            maskgbuffer("cg");
+            bool scissor = sx1 > -1 || sy1 > -1 || sx2 < 1 || sy2 < 1;
+            if(scissor)
+            {
+                int x1 = int(floor((sx1*0.5f+0.5f)*vieww)), y1 = int(floor((sy1*0.5f+0.5f)*viewh)),
+                    x2 = int(ceil((sx2*0.5f+0.5f)*vieww)), y2 = int(ceil((sy2*0.5f+0.5f)*viewh));
+                glEnable(GL_SCISSOR_TEST);
+                glScissor(x1, y1, x2 - x1, y2 - y1);
+            }
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            if(scissor) glDisable(GL_SCISSOR_TEST);
+            maskgbuffer("cngd");
+        }
+
+        if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        glMatrixMode(GL_TEXTURE);
+        glLoadMatrixf(linearworldmatrix.v);
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        glLoadMatrixf(raymatrix.v);
+        glActiveTexture_(GL_TEXTURE0_ARB);
+
+        switch(layer)
+        {
+        case 0:
+            if(hasmats&1) renderliquidmaterials();
+            break;
+        case 1:
+            if(hasalphavas&1) renderalphageom(1);
+            break;
+        case 2:
+            if(hasalphavas&2) renderalphageom(2);
+            if(hasmats&2) rendersolidmaterials();
+            break;
+        }
+
+        if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdr ? hdrfbo : 0);
+        if((gdepthstencil && hasDS) || gstencil)
+        {
+            glStencilFunc(GL_EQUAL, 1<<layer, 1<<layer);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        }
+
+        renderlights(sx1, sy1, sx2, sy2, tiles);
+    }
+
+    if((gdepthstencil && hasDS) || gstencil) glDisable(GL_STENCIL_TEST);
+
+    timer_end(TIMER_TRANSPARENT);
+}
+
+VAR(gdepthclear, 0, 1, 1);
+VAR(gcolorclear, 0, 1, 1);
+
+void rendergbuffer()
+{
+    timer_begin(TIMER_CPU_GBUFFER);
+    timer_begin(TIMER_GBUFFER);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, gfbo);
+    glViewport(0, 0, vieww, viewh);
+
+    if(gdepthformat && gdepthclear)
+    {
+        maskgbuffer("d");
+        if(gdepthformat == 1) glClearColor(1, 1, 1, 1);
+        else glClearColor(-farplane, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0, 0, 0, 0);
+        maskgbuffer("cng");
+    }
+    glClear((minimapping < 2 ? GL_DEPTH_BUFFER_BIT : 0)|(gcolorclear ? GL_COLOR_BUFFER_BIT : 0)|(minimapping < 2 && ((gdepthstencil && hasDS) || gstencil) ? GL_STENCIL_BUFFER_BIT : 0));
+    if(gdepthformat && gdepthclear) maskgbuffer("cngd");
+
+    glmatrixf screenmatrix;
+    screenmatrix.identity();
+    screenmatrix.scale(2.0f/vieww, 2.0f/viewh, 2.0f);
+    screenmatrix.translate(-1.0f, -1.0f, -1.0f);
+    eyematrix.mul(invprojmatrix, screenmatrix);
+    if(minimapping)
+    {
+        linearworldmatrix.mul(invmvpmatrix, screenmatrix);
+        worldmatrix = linearworldmatrix;
+        glScissor(1, 1, vieww-2, viewh-2);
+        glEnable(GL_SCISSOR_TEST);
+    }
+    else
+    {
+        linearworldmatrix.mul(invprojmatrix, screenmatrix);
+        float xscale = linearworldmatrix.v[0], yscale = linearworldmatrix.v[5], xoffset = linearworldmatrix.v[12], yoffset = linearworldmatrix.v[13], zscale = linearworldmatrix.v[14];
+        GLfloat depthmatrix[16] =
+        {
+            xscale/zscale,  0,              0, 0,
+            0,              yscale/zscale,  0, 0,
+            xoffset/zscale, yoffset/zscale, 1, 0,
+            0,              0,              0, 1
+        };
+        linearworldmatrix.mul(invmvmatrix.v, depthmatrix);
+        if(gdepthformat) worldmatrix = linearworldmatrix;
+        else worldmatrix.mul(invmvpmatrix, screenmatrix);
+    }
+
+    GLOBALPARAM(viewsize, (vieww, viewh, 1.0f/vieww, 1.0f/viewh));
+    GLOBALPARAM(gdepthscale, (eyematrix.v[14], eyematrix.v[11], eyematrix.v[15]));
+    GLOBALPARAM(gdepthpackparams, (-1.0f/farplane, -255.0f/farplane, -(255.0f*255.0f)/farplane));
+    GLOBALPARAM(gdepthunpackparams, (-farplane, -farplane/255.0f, -farplane/(255.0f*255.0f)));
+
+    GLERROR;
+    if(limitsky())
+    {
+        renderexplicitsky();
+        GLERROR;
+    }
+    rendergeom();
+    GLERROR;
+    resetmodelbatches();
+    rendermapmodels();
+    GLERROR;
+    if(minimapping)
+    {
+        renderminimapmaterials();
+        glDisable(GL_SCISSOR_TEST);
+    }
+    else if(!envmapping)
+    {
+        game::rendergame();
+        rendermodelbatches();
+        GLERROR;
+        maskgbuffer("c");
+        renderdecals(true);
+        maskgbuffer("cngd");
+        GLERROR;
+        if(!isthirdperson())
+        {
+            project(curavatarfov, aspect, farplane, avatardepth);
+            game::renderavatar();
+            project(fovy, aspect, farplane);
+        }
+        GLERROR;
+    }
+
+    timer_end(TIMER_GBUFFER);
+    timer_end(TIMER_CPU_GBUFFER);
+}
+
+void shadegbuffer()
+{
+    GLERROR;
+    timer_begin(TIMER_CPU_SHADING);
+    timer_begin(TIMER_SHADING);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdr ? hdrfbo : 0);
+    glViewport(0, 0, vieww, viewh);
+
+    if(!minimapping) 
+    {
+        if(hdrclear > 0)
+        {
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT);
+            hdrclear--;
+        }
+        drawskybox(farplane);
+    }
+
+    if(minimapping) renderlights(2.0f/vieww - 1, 2.0f/viewh - 1, 1 - 2.0f/vieww, 1 - 2.0f/viewh);
+    else renderlights();
+    GLERROR;
+
+    timer_end(TIMER_SHADING);
+    timer_end(TIMER_CPU_SHADING);
+}
+
+void drawminimap()
+{
+    if(!game::needminimap()) { clearminimap(); return; }
+
+    renderprogress(0, "generating mini-map...", 0, !renderedframe);
+
+    gl_setupframe(screen->w, screen->h);
+
+    if(!deferredminimapshader) deferredminimapshader = loaddeferredlightshader("m");
+
+    int size = 1<<minimapsize, sizelimit = min(hwtexsize, min(vieww, viewh));
+    while(size > sizelimit) size /= 2;
+    if(!minimaptex) glGenTextures(1, &minimaptex);
+
+    extern vector<vtxarray *> valist;
+    ivec bbmin(worldsize, worldsize, worldsize), bbmax(0, 0, 0);
+    loopv(valist)
+    {
+        vtxarray *va = valist[i];
+        loopk(3)
+        {
+            if(va->geommin[k]>va->geommax[k]) continue;
+            bbmin[k] = min(bbmin[k], va->geommin[k]);
+            bbmax[k] = max(bbmax[k], va->geommax[k]);
+        }
+    }
+    if(minimapclip)
+    {
+        ivec clipmin(worldsize, worldsize, worldsize), clipmax(0, 0, 0);
+        clipminimap(clipmin, clipmax);
+        loopk(2) bbmin[k] = max(bbmin[k], clipmin[k]);
+        loopk(2) bbmax[k] = min(bbmax[k], clipmax[k]);
+    }
+
+    minimapradius = bbmax.tovec().sub(bbmin.tovec()).mul(0.5f);
+    minimapcenter = bbmin.tovec().add(minimapradius);
+    minimapradius.x = minimapradius.y = max(minimapradius.x, minimapradius.y);
+    minimapscale = vec((0.5f - 1.0f/size)/minimapradius.x, (0.5f - 1.0f/size)/minimapradius.y, 1.0f);
+
+    envmapping = true;
+    minimapping = 1;
+
+    physent *oldcamera = camera1;
+    static physent cmcamera;
+    cmcamera = *player;
+    cmcamera.reset();
+    cmcamera.type = ENT_CAMERA;
+    cmcamera.o = vec(minimapcenter.x, minimapcenter.y, minimapheight > 0 ? minimapheight : minimapcenter.z + minimapradius.z + 1);
+    cmcamera.yaw = 0;
+    cmcamera.pitch = -90;
+    cmcamera.roll = 0;
+    camera1 = &cmcamera;
+    setviewcell(vec(-1, -1, -1));
+
+    int oldvieww = vieww, oldviewh = viewh;
+    vieww = viewh = size;
+
+    float zscale = max(float(minimapheight), minimapcenter.z + minimapradius.z + 1) + 1;
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-minimapradius.x, minimapradius.x, -minimapradius.y, minimapradius.y, 0, 2*zscale);
+    glMatrixMode(GL_MODELVIEW);
+
     transplayer();
     readmatrices();
-    findorientation();
-    setenvmatrix();
 
-    glEnable(GL_FOG);
+    resetlights();
+
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
 
     xtravertsva = xtraverts = glde = gbatches = 0;
 
-    if(!hasFBO)
+    GLOBALPARAM(camera, (camera1->o.x, camera1->o.y, camera1->o.z, 1));
+    GLOBALPARAM(millis, (lastmillis/1000.0f, lastmillis/1000.0f, lastmillis/1000.0f));
+
+    visiblecubes(false);
+    collectlights();
+    rendershadowatlas();
+    findmaterials();
+
+    rendergbuffer();
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdr ? hdrfbo : 0);
+    glViewport(0, 0, vieww, viewh);
+    float colorscale = (hdr ? 0.5f : 1)/255.0f;
+    glClearColor(minimapcolor.x*colorscale, minimapcolor.y*colorscale, minimapcolor.z*colorscale, 0); 
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    shadegbuffer();
+
+    if(minimapheight > 0 && minimapheight < minimapcenter.z + minimapradius.z)
     {
-        if(dopostfx)
-        {
-            drawglaretex();
-            drawdepthfxtex();
-            drawreflections();
-        }
-        else dopostfx = true;
+        minimapping = 2;
+        camera1->o.z = minimapcenter.z + minimapradius.z + 1;
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glTranslatef(0, 0, 1);
+        glOrtho(-minimapradius.x, minimapradius.x, -minimapradius.y, minimapradius.y, 0, 2*zscale);
+        glMatrixMode(GL_MODELVIEW);
+        transplayer();
+        readmatrices();
+        rendergbuffer();
+        shadegbuffer();
+    }
+        
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    vieww = oldvieww;
+    viewh = oldviewh;
+
+    camera1 = oldcamera;
+    envmapping = false;
+    minimapping = 0;
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+    glViewport(0, 0, vieww, viewh);
+
+    if(hdr)
+    {
+        SETSHADER(hdrundo);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, hdrtex);
+        float x1 = -1, y1 = -1, x2 = x1 + (2.0f*size)/vieww, y2 = y1 + (2.0f*size)/viewh;
+        glBegin(GL_TRIANGLE_STRIP);
+        glVertex2f(x2, y1);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+        glVertex2f(x1, y2);
+        glEnd();
+        GLERROR;
     }
 
-    visiblecubes();
+    glBindTexture(GL_TEXTURE_2D, minimaptex);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB5, 0, 0, size, size, 0);
+    setuptexparameters(minimaptex, NULL, 3, 1, GL_RGB5, GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    hdrclear = 3;
+}
+
+void drawcubemap(int size, const vec &o, float yaw, float pitch, const cubemapside &side)
+{
+    envmapping = true;
+
+    physent *oldcamera = camera1;
+    static physent cmcamera;
+    cmcamera = *player;
+    cmcamera.reset();
+    cmcamera.type = ENT_CAMERA;
+    cmcamera.o = o;
+    cmcamera.yaw = yaw;
+    cmcamera.pitch = pitch;
+    cmcamera.roll = 0;
+    camera1 = &cmcamera;
+    setviewcell(camera1->o);
+
+    float fogmargin = 1 + WATER_AMPLITUDE + nearplane;
+    int fogmat = lookupmaterial(vec(camera1->o.x, camera1->o.y, camera1->o.z - fogmargin))&MATF_VOLUME, abovemat = MAT_AIR;
+    float fogbelow = 0;
+    if(fogmat==MAT_WATER || fogmat==MAT_LAVA)
+    {
+        float z = findsurface(fogmat, vec(camera1->o.x, camera1->o.y, camera1->o.z - fogmargin), abovemat) - WATER_OFFSET;
+        if(camera1->o.z < z + fogmargin)
+        {
+            fogbelow = z - camera1->o.z;
+        }
+        else fogmat = abovemat;
+    }
+    else fogmat = MAT_AIR;
+    setfog(abovemat);
     
-    if(shadowmap && !hasFBO) rendershadowmap();
+    float oldaspect = aspect, oldfovy = fovy, oldfov = curfov;
+    int oldfarplane = farplane, oldvieww = vieww, oldviewh = viewh;
+    curfov = fovy = 90;
+    aspect = 1;
+    farplane = worldsize*2;
+    vieww = viewh = size;
+    project(90.0f, 1.0f, farplane);
 
-    glClear(GL_DEPTH_BUFFER_BIT|(wireframe && editmode ? GL_COLOR_BUFFER_BIT : 0)|(hasstencil ? GL_STENCIL_BUFFER_BIT : 0));
+    transplayer();
+    readmatrices();
+    findorientation();
 
-    if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+    resetlights();
 
-    if(limitsky()) drawskybox(farplane, true);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
 
-    rendergeom(causticspass);
+    xtravertsva = xtraverts = glde = gbatches = 0;
+
+    GLOBALPARAM(camera, (camera1->o.x, camera1->o.y, camera1->o.z, 1));
+    GLOBALPARAM(millis, (lastmillis/1000.0f, lastmillis/1000.0f, lastmillis/1000.0f));
+
+    visiblecubes();
+
+    GLERROR;
+
+    rendergbuffer();
+    GLERROR;
+
+    rendershadowatlas();
+    GLERROR;
+
+    shadegbuffer();
+    GLERROR;
+
+    if(fogmat)
+    {
+        setfog(fogmat, fogbelow, 1, abovemat);
+
+        glActiveTexture_(GL_TEXTURE9_ARB);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+        glActiveTexture_(GL_TEXTURE0_ARB);
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdr ? hdrfbo : 0);
+        renderwaterfog(fogmat, fogbelow);
+    
+        setfog(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
+    }
+    rendertransparent();
+    GLERROR;
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    aspect = oldaspect;
+    fovy = oldfovy;
+    curfov = oldfov;
+    farplane = oldfarplane;
+    vieww = oldvieww;
+    viewh = oldviewh;
+
+    camera1 = oldcamera;
+    envmapping = false;
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+    glViewport(0, 0, vieww, viewh);
+
+    if(hdr)
+    {
+        SETSHADER(hdrundo);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, hdrtex);
+        float x1 = -1, y1 = -1, x2 = x1 + (2.0f*size)/vieww, y2 = y1 + (2.0f*size)/viewh;
+        glBegin(GL_TRIANGLE_STRIP);
+        glVertex2f(x2, y1);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+        glVertex2f(x1, y2);
+        glEnd();
+        GLERROR;
+    } 
+
+    hdrclear = 3;
+}
+
+void gl_setupframe(int w, int h)
+{
+    setupgbuffer(w, h);
+    if(bloomw < 0 || bloomh < 0) setupbloom(w, h);
+    if(ao && (aow < 0 || aoh < 0)) setupao(w, h);
+    if(smaa && !smaafbo[0]) setupsmaa();
+    if(!shadowatlasfbo) setupshadowatlas();
+    if(!deferredlightshader) loaddeferredlightshaders();
+}
+
+void gl_drawframe(int w, int h)
+{
+    timer_sync();
+
+    defaultshader->set();
+
+    vieww = w;
+    viewh = h;
+    aspect = w/float(h);
+    fovy = 2*atan2(tan(curfov/2*RAD), aspect)/RAD;
+    
+    float fogmargin = 1 + WATER_AMPLITUDE + nearplane;
+    int fogmat = lookupmaterial(vec(camera1->o.x, camera1->o.y, camera1->o.z - fogmargin))&MATF_VOLUME, abovemat = MAT_AIR;
+    float fogbelow = 0;
+    if(fogmat==MAT_WATER || fogmat==MAT_LAVA)
+    {
+        float z = findsurface(fogmat, vec(camera1->o.x, camera1->o.y, camera1->o.z - fogmargin), abovemat) - WATER_OFFSET;
+        if(camera1->o.z < z + fogmargin)
+        {
+            fogbelow = z - camera1->o.z;
+        }
+        else fogmat = abovemat;
+    }
+    else fogmat = MAT_AIR;    
+    setfog(abovemat);
+    //setfog(fogmat, fogbelow, 1, abovemat);
+
+    farplane = worldsize*2;
+
+    resetlights();
+
+    if(!debugcsm)
+    {
+        project(fovy, aspect, farplane);
+        transplayer();
+    }
+    else
+    {
+        glMatrixMode(GL_PROJECTION);
+        const int splitid = min(debugcsm-1, csmsplitn-1);
+        glLoadMatrixf(csm.splits[splitid].proj.v);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixf(csm.model.v);
+    }
+
+    readmatrices();
+    findorientation();
+
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+
+    xtravertsva = xtraverts = glde = gbatches = 0;
+
+    GLOBALPARAM(camera, (camera1->o.x, camera1->o.y, camera1->o.z, 1));
+    GLOBALPARAM(millis, (lastmillis/1000.0f, lastmillis/1000.0f, lastmillis/1000.0f));
+
+    visiblecubes();
+  
+    if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+ 
+    rendergbuffer();
+
+    if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    else if(limitsky() && editmode) renderexplicitsky(true);
+
+    if(ao) 
+    {
+        renderao();
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, gfbo);
+        glViewport(0, 0, vieww, viewh);
+        GLERROR;
+    }
+ 
+    // render grass after AO to avoid disturbing shimmering patterns
+    generategrass();
+    rendergrass();
+    GLERROR;
+
+    rendershadowatlas();
+    GLERROR;
+
+    shadegbuffer();
+    GLERROR;
+
+    if(fogmat)
+    {
+        setfog(fogmat, fogbelow, 1, abovemat);
+
+        glActiveTexture_(GL_TEXTURE9_ARB);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+        glActiveTexture_(GL_TEXTURE0_ARB);
+
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdr ? hdrfbo : 0);
+        renderwaterfog(fogmat, fogbelow);
+
+        setfog(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
+    }
+
+    rendertransparent();
+    GLERROR;
+
+    if(fogmat) setfog(fogmat, fogbelow, 1, abovemat);
+
+    defaultshader->set();
+    GLERROR;
 
     extern int outline;
     if(!wireframe && editmode && outline) renderoutline();
+    GLERROR;
 
-    queryreflections();
+    rendereditmaterials();
+    GLERROR;
 
-    generategrass();
-
-    if(!limitsky()) drawskybox(farplane, false);
-
-    renderdecals(true);
-
-    rendermapmodels();
-    rendergame(true);
-    if(!isthirdperson())
-    {
-        project(curavatarfov, aspect, farplane, false, false, false, avatardepth);
-        game::renderavatar();
-        project(fovy, aspect, farplane);
-    }
-
-    if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    if(hasFBO) 
-    {
-        drawglaretex();
-        drawdepthfxtex();
-        drawreflections();
-    }
-
-    if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    renderwater();
-    rendergrass();
-
-    rendermaterials();
-    renderalphageom();
-
-    if(wireframe && editmode) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glActiveTexture_(GL_TEXTURE2_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+    glActiveTexture_(GL_TEXTURE0_ARB);
 
     renderparticles(true);
+    GLERROR;
 
-    glDisable(GL_FOG);
+    extern int hidehud;
+    if(editmode && !hidehud)
+    {
+        glDepthMask(GL_FALSE);
+        renderblendbrush();
+        rendereditcursor();
+        glDepthMask(GL_TRUE);
+    }
+
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
+    if(hdr) processhdr();
+
     addmotionblur();
-    addglare();
-    if(fogmat==MAT_WATER || fogmat==MAT_LAVA) drawfogoverlay(fogmat, fogblend, abovemat);
+    if(fogmat != MAT_AIR) drawfogoverlay(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
     renderpostfx();
 
     defaultshader->set();
     gui::render();
 
-    glDisable(GL_TEXTURE_2D);
     notextureshader->set();
 
     gl_drawhud(w, h);
 
-    renderedgame = false;
+    timer_nextframe();
 }
 
 void gl_drawmainmenu(int w, int h)
@@ -1935,11 +4332,9 @@ void gl_drawmainmenu(int w, int h)
     glLoadIdentity();
 
     defaultshader->set();
-    glEnable(GL_TEXTURE_2D);
     gui::render();
 
     notextureshader->set();
-    glDisable(GL_TEXTURE_2D);
 
     gl_drawhud(w, h);
 }
@@ -2134,19 +4529,6 @@ FVARP(conscale, 1e-3f, 0.33f, 1e3f);
 
 void gl_drawhud(int w, int h)
 {
-    if(editmode && !hidehud && !gui::mainmenu)
-    {
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_FALSE);
-
-        renderblendbrush();
-
-        rendereditcursor();
-
-        glDepthMask(GL_TRUE);
-        glDisable(GL_DEPTH_TEST);
-    }
-
     gettextres(w, h);
 
     glMatrixMode(GL_PROJECTION);
@@ -2157,26 +4539,12 @@ void gl_drawhud(int w, int h)
     
     glColor3f(1, 1, 1);
 
-    extern int debugsm;
-    if(debugsm)
-    {
-        extern void viewshadowmap();
-        viewshadowmap();
-    }
-
-    extern int debugglare;
-    if(debugglare)
-    {
-        extern void viewglaretex();
-        viewglaretex();
-    }
-
-    extern int debugdepthfx;
-    if(debugdepthfx)
-    {
-        extern void viewdepthfxtex();
-        viewdepthfxtex();
-    }
+    if(debugshadowatlas) viewshadowatlas();
+    else if(debugbuffersplit) viewbuffersplitmerge();
+    else if(debugao) viewao(); 
+    else if(debugdepth) viewdepth();
+    else if(debugrefract) viewrefract();
+    else if(debugsmaa) viewsmaa();
 
     glEnable(GL_BLEND);
 
@@ -2214,6 +4582,9 @@ void gl_drawhud(int w, int h)
                 roffset += FONTH;
             }
 
+            timer_print(conw, conh);
+            frametimer_print(conw, conh);
+
             if(wallclock)
             {
                 if(!walltime) { walltime = time(NULL); walltime -= totalmillis/1000; if(!walltime) walltime++; }
@@ -2235,13 +4606,13 @@ void gl_drawhud(int w, int h)
 
             if(editmode || showeditstats)
             {
-                static int laststats = 0, prevstats[8] = { 0, 0, 0, 0, 0, 0, 0 }, curstats[8] = { 0, 0, 0, 0, 0, 0, 0 };
+                static int laststats = 0, prevstats[7] = { 0, 0, 0, 0, 0, 0, 0 }, curstats[7] = { 0, 0, 0, 0, 0, 0, 0 };
                 if(totalmillis - laststats >= statrate)
                 {
                     memcpy(prevstats, curstats, sizeof(prevstats));
                     laststats = totalmillis - (totalmillis%statrate);
                 }
-                int nextstats[8] =
+                int nextstats[7] =
                 {
                     vtris*100/max(wtris, 1),
                     vverts*100/max(wverts, 1),
@@ -2249,14 +4620,13 @@ void gl_drawhud(int w, int h)
                     xtravertsva/1024,
                     glde,
                     gbatches,
-                    getnumqueries(),
-                    rplanes
+                    getnumqueries()
                 };
-                loopi(8) if(prevstats[i]==curstats[i]) curstats[i] = nextstats[i];
+                loopi(7) if(prevstats[i]==curstats[i]) curstats[i] = nextstats[i];
 
                 abovehud -= 2*FONTH;
                 draw_textf("wtr:%dk(%d%%) wvt:%dk(%d%%) evt:%dk eva:%dk", FONTH/2, abovehud, wtris/1024, curstats[0], wverts/1024, curstats[1], curstats[2], curstats[3]);
-                draw_textf("ond:%d va:%d gl:%d(%d) oq:%d lm:%d rp:%d pvs:%d", FONTH/2, abovehud+FONTH, allocnodes*8, allocva, curstats[4], curstats[5], curstats[6], lightmaps.length(), curstats[7], getnumviewcells());
+                draw_textf("ond:%d va:%d gl:%d(%d) oq:%d pvs:%d", FONTH/2, abovehud+FONTH, allocnodes*8, allocva, curstats[4], curstats[5], curstats[6], getnumviewcells());
             }
 
             if(editmode)

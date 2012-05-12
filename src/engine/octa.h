@@ -2,9 +2,9 @@
 
 struct elementset
 {
-    ushort texture, lmid, envmap;
+    ushort texture, envmap;
     uchar dim, layer;
-    ushort length[2], minvert[2], maxvert[2];
+    ushort length, minvert, maxvert;
 };
 
 enum
@@ -24,15 +24,9 @@ struct materialsurface
 
     ivec o;
     ushort csize, rsize;
-    union
-    {
-        short index;
-        short depth;
-    };
     uchar material, orient, flags, skip;
     union
     {
-        entity *light;
         ushort envmap;
         uchar ends;
     };
@@ -40,12 +34,12 @@ struct materialsurface
 
 struct vertinfo
 {
-    ushort x, y, z, u, v, norm;
+    ushort x, y, z, norm;
 
     void setxyz(ushort a, ushort b, ushort c) { x = a; y = b; z = c; }
     void setxyz(const ivec &v) { setxyz(v.x, v.y, v.z); }
-    void set(ushort a, ushort b, ushort c, ushort s = 0, ushort t = 0, ushort n = 0) { setxyz(a, b, c); u = s; v = t; norm = n; }
-    void set(const ivec &v, ushort s = 0, ushort t = 0, ushort n = 0) { set(v.x, v.y, v.z, s, t, n); }
+    void set(ushort a, ushort b, ushort c, ushort n = 0) { setxyz(a, b, c); norm = n; }
+    void set(const ivec &v, ushort n = 0) { set(v.x, v.y, v.z, n); }
     ivec getxyz() const { return ivec(x, y, z); }
 };
 
@@ -53,40 +47,36 @@ enum
 {
     LAYER_TOP    = (1<<5),
     LAYER_BOTTOM = (1<<6),
-    LAYER_DUP    = (1<<7),
 
     LAYER_BLEND  = LAYER_TOP|LAYER_BOTTOM,
     
     MAXFACEVERTS = 15
 };
 
-enum { LMID_AMBIENT = 0, LMID_AMBIENT1, LMID_BRIGHT, LMID_BRIGHT1, LMID_DARK, LMID_DARK1, LMID_RESERVED };
-
 struct surfaceinfo
 {
-    uchar lmid[2];
     uchar verts, numverts;
 
-    int totalverts() const { return numverts&LAYER_DUP ? (numverts&MAXFACEVERTS)*2 : numverts&MAXFACEVERTS; }
-    bool used() const { return lmid[0] != LMID_AMBIENT || lmid[1] != LMID_AMBIENT || numverts&~LAYER_TOP; }
-    void clear() { lmid[0] = LMID_AMBIENT; lmid[1] = LMID_AMBIENT; numverts = (numverts&MAXFACEVERTS) | LAYER_TOP; }
-    void brighten() { lmid[0] = LMID_BRIGHT; lmid[1] = LMID_AMBIENT; numverts = (numverts&MAXFACEVERTS) | LAYER_TOP; }
+    int totalverts() const { return numverts&MAXFACEVERTS; }
+    bool used() const { return numverts&~LAYER_TOP; }
+    void clear() { numverts = (numverts&MAXFACEVERTS) | LAYER_TOP; }
+    void brighten() { clear(); }
 };
 
-static const surfaceinfo ambientsurface = {{LMID_AMBIENT, LMID_AMBIENT}, 0, LAYER_TOP};
-static const surfaceinfo brightsurface = {{LMID_BRIGHT, LMID_AMBIENT}, 0, LAYER_TOP};
-static const surfaceinfo brightbottomsurface = {{LMID_AMBIENT, LMID_BRIGHT}, 0, LAYER_BOTTOM};
+static const surfaceinfo topsurface = {0, LAYER_TOP};
+static const surfaceinfo bottomsurface = {0, LAYER_BOTTOM};
+#define brightsurface topsurface
+#define ambientsurface topsurface
 
 struct grasstri
 {
     vec v[4];
     int numv;
-    vec4 tcu, tcv;
     plane surface;
     vec center;
     float radius;
     float minz, maxz;
-    ushort texture, lmid;
+    ushort texture, blend;
 };
 
 struct occludequery
@@ -134,7 +124,7 @@ struct vtxarray
 {
     vtxarray *parent;
     vector<vtxarray *> children;
-    vtxarray *next, *rnext; // linked list of visible VOBs
+    vtxarray *next, *rnext;  // linked list of visible VOBs
     vertex *vdata;           // vertex data
     ushort voffset;          // offset into vertex data
     ushort *edata, *skydata; // vertex indices
@@ -142,21 +132,22 @@ struct vtxarray
     ushort minvert, maxvert; // DRE info
     elementset *eslist;      // List of element indices sets (range) per texture
     materialsurface *matbuf; // buffer of material surfaces
-    int verts, tris, texs, blendtris, blends, alphabacktris, alphaback, alphafronttris, alphafront, texmask, sky, explicitsky, skyfaces, skyclip, matsurfs, distance;
-    double skyarea;
+    int verts, tris, texs, blendtris, blends, alphabacktris, alphaback, alphafronttris, alphafront, refracttris, refract, texmask, sky, matsurfs, matmask, distance, rdistance;
     ivec o;
     int size;                // location and size of cube.
     ivec geommin, geommax;   // BB of geom
-    ivec shadowmapmin, shadowmapmax; // BB of shadowmapped surfaces
-    ivec matmin, matmax;     // BB of any materials
+    ivec alphamin, alphamax; // BB of alpha geom
+    ivec refractmin, refractmax; // BB of refract geom
+    ivec lavamin, lavamax;   // BB of any lava
+    ivec watermin, watermax; // BB of any water
+    ivec glassmin, glassmax; // BB of any glass
     ivec bbmin, bbmax;       // BB of everything including children
     uchar curvfc, occluded;
     occludequery *query;
     vector<octaentities *> mapmodels;
     vector<grasstri> grasstris;
     int hasmerges, mergelevel;
-    uint dynlightmask;
-    bool shadowed;
+    int shadowmask;
 };
 
 struct cube;

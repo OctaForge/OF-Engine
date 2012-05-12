@@ -156,6 +156,7 @@ namespace lapi_binds
                     attachentity(ent); \
             } \
         ) \
+        clearshadowcache(); \
     }
     #define addgroup(exp) \
     { \

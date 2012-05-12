@@ -89,8 +89,8 @@ void genvbo(int type, void *buf, int len, vtxarray **vas, int numva)
                 va->ebuf = vbo; 
                 if(!hasVBO) va->edata = (ushort *)(data + (size_t)va->edata);
                 break;
-            case VBO_SKYBUF: 
-                va->skybuf = vbo; 
+            case VBO_SKYBUF:
+                va->skybuf = vbo;
                 if(!hasVBO) va->skydata = (ushort *)(data + (size_t)va->skydata);
                 break;
         }
@@ -178,10 +178,7 @@ struct verthash
         {
             const vertex &c = verts[i];
             if(c.pos==v.pos && c.u==v.u && c.v==v.v && c.norm==v.norm && c.tangent==v.tangent && c.bitangent==v.bitangent)
-            {
-                 if(!v.lmu && !v.lmv) return i; 
-                 if(c.lmu==v.lmu && c.lmv==v.lmv) return i;
-            }
+                 return i; 
         }
         if(verts.length() >= (int)USHRT_MAX) return -1;
         verts.add(v);
@@ -189,14 +186,12 @@ struct verthash
         return table[h] = verts.length()-1;
     }
 
-    int addvert(const vec &pos, float u = 0, float v = 0, short lmu = 0, short lmv = 0, const bvec &norm = bvec(128, 128, 128), const bvec &tangent = bvec(128, 128, 128), uchar bitangent = 128)
+    int addvert(const vec &pos, float u = 0, float v = 0, const bvec &norm = bvec(128, 128, 128), const bvec &tangent = bvec(128, 128, 128), uchar bitangent = 128)
     {
         vertex vtx;
         vtx.pos = pos;
         vtx.u = u;
         vtx.v = v;
-        vtx.lmu = lmu;
-        vtx.lmv = lmv;
         vtx.norm = norm;
         vtx.reserved = 0;
         vtx.tangent = tangent;
@@ -209,28 +204,28 @@ enum
 {
     NO_ALPHA = 0,
     ALPHA_BACK,
-    ALPHA_FRONT
+    ALPHA_FRONT,
+    ALPHA_REFRACT
 };
 
 struct sortkey
 {
-     ushort tex, lmid, envmap;
+     ushort tex, envmap;
      uchar dim, layer, alpha;
 
      sortkey() {}
-     sortkey(ushort tex, ushort lmid, uchar dim, uchar layer = LAYER_TOP, ushort envmap = EMID_NONE, uchar alpha = NO_ALPHA)
-      : tex(tex), lmid(lmid), envmap(envmap), dim(dim), layer(layer), alpha(alpha)
+     sortkey(ushort tex, uchar dim, uchar layer = LAYER_TOP, ushort envmap = EMID_NONE, uchar alpha = NO_ALPHA)
+      : tex(tex), envmap(envmap), dim(dim), layer(layer), alpha(alpha)
      {}
 
-     bool operator==(const sortkey &o) const { return tex==o.tex && lmid==o.lmid && envmap==o.envmap && dim==o.dim && layer==o.layer && alpha==o.alpha; }
+     bool operator==(const sortkey &o) const { return tex==o.tex && envmap==o.envmap && dim==o.dim && layer==o.layer && alpha==o.alpha; }
 };
 
 struct sortval
 {
-     int unlit;
-     vector<ushort> tris[2];
+     vector<ushort> tris;
 
-     sortval() : unlit(0) {}
+     sortval() {}
 };
 
 static inline bool htcmp(const sortkey &x, const sortkey &y)
@@ -240,7 +235,7 @@ static inline bool htcmp(const sortkey &x, const sortkey &y)
 
 static inline uint hthash(const sortkey &k)
 {
-    return k.tex + k.lmid*9741;
+    return k.tex;
 }
 
 struct vacollect : verthash
@@ -248,151 +243,38 @@ struct vacollect : verthash
     ivec origin;
     int size;
     hashtable<sortkey, sortval> indices;
+    vector<ushort> skyindices;
     vector<sortkey> texs;
     vector<grasstri> grasstris;
     vector<materialsurface> matsurfs;
     vector<octaentities *> mapmodels;
-    vector<ushort> skyindices, explicitskyindices;
-    int worldtris, skytris, skyfaces, skyclip, skyarea;
+    int worldtris, skytris;
+    vec alphamin, alphamax;
+    vec refractmin, refractmax;
 
     void clear()
     {
         clearverts();
         worldtris = skytris = 0;
-        skyfaces = 0;
-        skyclip = INT_MAX;
-        skyarea = 0;
         indices.clear();
         skyindices.setsize(0);
-        explicitskyindices.setsize(0);
         matsurfs.setsize(0);
         mapmodels.setsize(0);
         grasstris.setsize(0);
         texs.setsize(0);
+        alphamin = refractmin = vec(1e16f, 1e16f, 1e16f);
+        alphamax = refractmax = vec(-1e16f, -1e16f, -1e16f);
     }
 
-    void remapunlit(vector<sortkey> &remap)
-    {
-        uint lastlmid[8] = { LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT }, 
-             firstlmid[8] = { LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT, LMID_AMBIENT };
-        int firstlit[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
-        loopv(texs)
-        {
-            sortkey &k = texs[i];
-            if(k.lmid>=LMID_RESERVED) 
-            {
-                LightMapTexture &lmtex = lightmaptexs[k.lmid];
-                int type = lmtex.type&LM_TYPE;
-                if(k.layer==LAYER_BLEND) type += 2;
-                else if(k.alpha) type = 4 + 2*(k.alpha-1);
-                lastlmid[type] = lmtex.unlitx>=0 ? k.lmid : LMID_AMBIENT;
-                if(firstlmid[type]==LMID_AMBIENT && lastlmid[type]!=LMID_AMBIENT)
-                {
-                    firstlit[type] = i;
-                    firstlmid[type] = lastlmid[type];
-                }
-            }
-            else if(k.lmid==LMID_AMBIENT)
-            {
-                Shader *s = lookupvslot(k.tex, false).slot->shader;
-                int type = s->type&SHADER_NORMALSLMS ? LM_BUMPMAP0 : LM_DIFFUSE;
-                if(k.layer==LAYER_BLEND) type += 2;
-                else if(k.alpha) type = 4 + 2*(k.alpha-1);
-                if(lastlmid[type]!=LMID_AMBIENT)
-                {
-                    sortval &t = indices[k];
-                    if(t.unlit<=0) t.unlit = lastlmid[type];
-                }
-            }
-        }
-        loopj(2)
-        {
-            int offset = 2*j;
-            if(firstlmid[offset]==LMID_AMBIENT && firstlmid[offset+1]==LMID_AMBIENT) continue;
-            loopi(max(firstlit[offset], firstlit[offset+1]))
-            {
-                sortkey &k = texs[i];
-                if((j ? k.layer!=LAYER_BLEND : k.layer==LAYER_BLEND) || k.alpha) continue;
-                if(k.lmid!=LMID_AMBIENT) continue;
-                Shader *s = lookupvslot(k.tex, false).slot->shader;
-                int type = offset + (s->type&SHADER_NORMALSLMS ? LM_BUMPMAP0 : LM_DIFFUSE);
-                if(firstlmid[type]==LMID_AMBIENT) continue;
-                indices[k].unlit = firstlmid[type];
-            }
-        }  
-        loopj(2)
-        {
-            int offset = 4 + 2*j;
-            if(firstlmid[offset]==LMID_AMBIENT && firstlmid[offset+1]==LMID_AMBIENT) continue;
-            loopi(max(firstlit[offset], firstlit[offset+1]))
-            {
-                sortkey &k = texs[i];
-                if(k.alpha != j+1) continue;
-                if(k.lmid!=LMID_AMBIENT) continue;
-                Shader *s = lookupvslot(k.tex, false).slot->shader;
-                int type = offset + (s->type&SHADER_NORMALSLMS ? LM_BUMPMAP0 : LM_DIFFUSE);
-                if(firstlmid[type]==LMID_AMBIENT) continue;
-                indices[k].unlit = firstlmid[type];
-            }
-        } 
-        loopv(remap)
-        {
-            sortkey &k = remap[i];
-            sortval &t = indices[k];
-            if(t.unlit<=0) continue; 
-            LightMapTexture &lm = lightmaptexs[t.unlit];
-            short u = short(ceil((lm.unlitx + 0.5f) * SHRT_MAX/lm.w)), 
-                  v = short(ceil((lm.unlity + 0.5f) * SHRT_MAX/lm.h));
-            loopl(2) loopvj(t.tris[l])
-            {
-                vertex &vtx = verts[t.tris[l][j]];
-                if(!vtx.lmu && !vtx.lmv)
-                {
-                    vtx.lmu = u;
-                    vtx.lmv = v;
-                }
-                else if(vtx.lmu != u || vtx.lmv != v) 
-                {
-                    vertex vtx2 = vtx;
-                    vtx2.lmu = u;
-                    vtx2.lmv = v;
-                    t.tris[l][j] = addvert(vtx2);
-                }
-            }
-            sortval *dst = indices.access(sortkey(k.tex, t.unlit, k.dim, k.layer, k.envmap, k.alpha));
-            if(dst) loopl(2) loopvj(t.tris[l]) dst->tris[l].add(t.tris[l][j]);
-        }
-    }
-                    
     void optimize()
     {
-        vector<sortkey> remap;
         enumeratekt(indices, sortkey, k, sortval, t,
-            loopl(2) if(t.tris[l].length() && t.unlit<=0)
+            if(t.tris.length())
             {
-                if(k.lmid>=LMID_RESERVED && lightmaptexs[k.lmid].unlitx>=0)
-                {
-                    sortkey ukey(k.tex, LMID_AMBIENT, k.dim, k.layer, k.envmap, k.alpha);
-                    sortval *uval = indices.access(ukey);
-                    if(uval && uval->unlit<=0)
-                    {
-                        if(uval->unlit<0) texs.removeobj(ukey);
-                        else remap.add(ukey);
-                        uval->unlit = k.lmid;
-                    }
-                }
-                else if(k.lmid==LMID_AMBIENT)
-                {
-                    remap.add(k);
-                    t.unlit = -1;
-                }
                 texs.add(k);
-                break;
             }
         );
         texs.sort(texsort);
-
-        remapunlit(remap);
 
         matsurfs.shrink(optimizematsurfs(matsurfs.getbuf(), matsurfs.length()));
     }
@@ -405,22 +287,17 @@ struct vacollect : verthash
         if(x.layer > y.layer) return false;
         if(x.tex == y.tex) 
         {
-            if(x.lmid < y.lmid) return true;
-            if(x.lmid > y.lmid) return false;
             if(x.envmap < y.envmap) return true;
             if(x.envmap > y.envmap) return false;
             if(x.dim < y.dim) return true;
             if(x.dim > y.dim) return false;
             return false;
         }
-        if(renderpath!=R_FIXEDFUNCTION)
-        {
-            VSlot &xs = lookupvslot(x.tex, false), &ys = lookupvslot(y.tex, false);
-            if(xs.slot->shader < ys.slot->shader) return true;
-            if(xs.slot->shader > ys.slot->shader) return false;
-            if(xs.slot->params.length() < ys.slot->params.length()) return true;
-            if(xs.slot->params.length() > ys.slot->params.length()) return false;
-        }
+        VSlot &xs = lookupvslot(x.tex, false), &ys = lookupvslot(y.tex, false);
+        if(xs.slot->shader < ys.slot->shader) return true;
+        if(xs.slot->shader > ys.slot->shader) return false;
+        if(xs.slot->params.length() < ys.slot->params.length()) return true;
+        if(xs.slot->params.length() > ys.slot->params.length()) return false;
         if(x.tex < y.tex) return true;
         else return false;
     }
@@ -439,10 +316,7 @@ struct vacollect : verthash
 
     void genverts(void *buf)
     {
-        if(renderpath==R_FIXEDFUNCTION)
-            GENVERTSPOSNORMUV(vertexff, buf, { f->lmu = v.lmu/float(SHRT_MAX); f->lmv = v.lmv/float(SHRT_MAX); });
-        else 
-            GENVERTS(vertex, buf, { *f = v; f->norm.flip(); });
+        GENVERTS(vertex, buf, { *f = v; f->norm.flip(); });
     }
 
     void setupdata(vtxarray *va)
@@ -456,9 +330,9 @@ struct vacollect : verthash
         va->voffset = 0;
         if(va->verts)
         {
-            if(vbosize[VBO_VBUF] + verts.length() > maxvbosize || 
+            if(vbosize[VBO_VBUF] + verts.length() > maxvbosize ||
                vbosize[VBO_EBUF] + worldtris > (int)USHRT_MAX ||
-               vbosize[VBO_SKYBUF] + skytris > (int)USHRT_MAX) 
+               vbosize[VBO_SKYBUF] + skytris > (int)USHRT_MAX)
                 flushvbo();
 
             va->voffset = vbosize[VBO_VBUF];
@@ -470,23 +344,33 @@ struct vacollect : verthash
 
         va->matbuf = NULL;
         va->matsurfs = matsurfs.length();
+        va->matmask = 0;
         if(va->matsurfs) 
         {
             va->matbuf = new materialsurface[matsurfs.length()];
             memcpy(va->matbuf, matsurfs.getbuf(), matsurfs.length()*sizeof(materialsurface));
+            loopv(matsurfs)
+            {
+                materialsurface &m = matsurfs[i];
+                if(m.flags&materialsurface::F_EDIT) continue;
+                switch(m.material)
+                {
+                    case MAT_GLASS: case MAT_LAVA: case MAT_WATER: break;
+                    default: continue;
+                }
+                va->matmask |= 1<<m.material;
+            }
         }
 
         va->skybuf = 0;
         va->skydata = 0;
         va->sky = skyindices.length();
-        va->explicitsky = explicitskyindices.length();
-        if(va->sky + va->explicitsky)
+        if(va->sky)
         {
             va->skydata += vbosize[VBO_SKYBUF];
-            ushort *skydata = (ushort *)addvbo(va, VBO_SKYBUF, va->sky+va->explicitsky, sizeof(ushort));
+            ushort *skydata = (ushort *)addvbo(va, VBO_SKYBUF, va->sky, sizeof(ushort));
             memcpy(skydata, skyindices.getbuf(), va->sky*sizeof(ushort));
-            memcpy(skydata+va->sky, explicitskyindices.getbuf(), va->explicitsky*sizeof(ushort));
-            if(va->voffset) loopi(va->sky+va->explicitsky) skydata[i] += va->voffset; 
+            if(va->voffset) loopi(va->sky) skydata[i] += va->voffset;
         }
 
         va->eslist = NULL;
@@ -497,6 +381,8 @@ struct vacollect : verthash
         va->alphaback = 0;
         va->alphafronttris = 0;
         va->alphafront = 0;
+        va->refracttris = 0;
+        va->refract = 0;
         va->ebuf = 0;
         va->edata = 0;
         if(va->texs)
@@ -510,43 +396,41 @@ struct vacollect : verthash
                 const sortval &t = indices[k];
                 elementset &e = va->eslist[i];
                 e.texture = k.tex;
-                e.lmid = t.unlit>0 ? t.unlit : k.lmid;
                 e.dim = k.dim;
                 e.layer = k.layer;
                 e.envmap = k.envmap;
                 ushort *startbuf = curbuf;
-                loopl(2) 
+                e.minvert = USHRT_MAX;
+                e.maxvert = 0;
+
+                if(t.tris.length())
                 {
-                    e.minvert[l] = USHRT_MAX;
-                    e.maxvert[l] = 0;
+                    memcpy(curbuf, t.tris.getbuf(), t.tris.length() * sizeof(ushort));
 
-                    if(t.tris[l].length())
+                    loopvj(t.tris)
                     {
-                        memcpy(curbuf, t.tris[l].getbuf(), t.tris[l].length() * sizeof(ushort));
-
-                        loopvj(t.tris[l])
-                        {
-                            curbuf[j] += va->voffset;
-                            e.minvert[l] = min(e.minvert[l], curbuf[j]);
-                            e.maxvert[l] = max(e.maxvert[l], curbuf[j]);
-                        }
-
-                        curbuf += t.tris[l].length();
+                        curbuf[j] += va->voffset;
+                        e.minvert = min(e.minvert, curbuf[j]);
+                        e.maxvert = max(e.maxvert, curbuf[j]);
                     }
-                    e.length[l] = curbuf-startbuf;
+
+                    curbuf += t.tris.length();
                 }
-                if(k.layer==LAYER_BLEND) { va->texs--; va->tris -= e.length[1]/3; va->blends++; va->blendtris += e.length[1]/3; }
-                else if(k.alpha==ALPHA_BACK) { va->texs--; va->tris -= e.length[1]/3; va->alphaback++; va->alphabacktris += e.length[1]/3; }
-                else if(k.alpha==ALPHA_FRONT) { va->texs--; va->tris -= e.length[1]/3; va->alphafront++; va->alphafronttris += e.length[1]/3; } 
+                e.length = curbuf-startbuf;
+
+                if(k.layer==LAYER_BLEND) { va->texs--; va->tris -= e.length/3; va->blends++; va->blendtris += e.length/3; }
+                else if(k.alpha==ALPHA_BACK) { va->texs--; va->tris -= e.length/3; va->alphaback++; va->alphabacktris += e.length/3; }
+                else if(k.alpha==ALPHA_FRONT) { va->texs--; va->tris -= e.length/3; va->alphafront++; va->alphafronttris += e.length/3; } 
+                else if(k.alpha==ALPHA_REFRACT) { va->texs--; va->tris -= e.length/3; va->refract++; va->refracttris += e.length/3; }
             }
         }
 
         va->texmask = 0;
-        loopi(va->texs+va->blends+va->alphaback+va->alphafront)
+        loopi(va->texs+va->blends+va->alphaback+va->alphafront+va->refract)
         {
             Slot &slot = *lookupvslot(va->eslist[i].texture, false).slot;
             loopvj(slot.sts) va->texmask |= 1<<slot.sts[j].type;
-            if(slot.shader->type&SHADER_ENVMAP && (renderpath!=R_FIXEDFUNCTION || (slot.ffenv && hasCM && maxtmus >= 2))) va->texmask |= 1<<TEX_ENVMAP;
+            if(slot.shader->type&SHADER_ENVMAP) va->texmask |= 1<<TEX_ENVMAP;
         }
 
         if(grasstris.length())
@@ -560,7 +444,7 @@ struct vacollect : verthash
 
     bool emptyva()
     {
-        return verts.empty() && matsurfs.empty() && skyindices.empty() && explicitskyindices.empty() && grasstris.empty() && mapmodels.empty();
+        return verts.empty() && matsurfs.empty() && skyindices.empty() && grasstris.empty() && mapmodels.empty();
     }            
 } vc;
 
@@ -568,33 +452,6 @@ int recalcprogress = 0;
 #define progress(s)     if((recalcprogress++&0xFFF)==0) renderprogress(recalcprogress/(float)allocnodes, s);
 
 vector<tjoint> tjoints;
-
-vec shadowmapmin, shadowmapmax;
-
-int calcshadowmask(vec *pos, int numpos)
-{
-    extern vec shadowdir;
-    int mask = 0, used = 1;
-    vec pe = vec(pos[1]).sub(pos[0]);
-    loopk(numpos-2)
-    {
-        vec e = vec(pos[k+2]).sub(pos[0]);
-        if(vec().cross(pe, e).dot(shadowdir)>0)
-        {
-            mask |= 1<<k;
-            used |= 6<<k;
-        }
-        pe = e;
-    }
-    if(!mask) return 0;
-    loopk(numpos) if(used&(1<<k))
-    {
-        const vec &v = pos[k];
-        shadowmapmin.min(v);
-        shadowmapmax.max(v);
-    }
-    return mask;
-}
 
 VARFP(filltjoints, 0, 1, 1, allchanged());
 
@@ -615,7 +472,7 @@ void reduceslope(ivec &n)
 }
 
 // [rotation][dimension]
-vec orientation_tangent [6][3] =
+extern const vec orientation_tangent [6][3] =
 {
     { vec(0,  1,  0), vec( 1, 0,  0), vec( 1,  0, 0) },
     { vec(0,  0, -1), vec( 0, 0, -1), vec( 0,  1, 0) },
@@ -624,7 +481,7 @@ vec orientation_tangent [6][3] =
     { vec(0, -1,  0), vec(-1, 0,  0), vec(-1,  0, 0) },
     { vec(0,  1,  0), vec( 1, 0,  0), vec( 1,  0, 0) },
 };
-vec orientation_binormal[6][3] =
+extern const vec orientation_binormal[6][3] =
 {
     { vec(0,  0, -1), vec( 0, 0, -1), vec( 0,  1, 0) },
     { vec(0, -1,  0), vec(-1, 0,  0), vec(-1,  0, 0) },
@@ -634,13 +491,13 @@ vec orientation_binormal[6][3] =
     { vec(0,  0,  1), vec( 0, 0,  1), vec( 0, -1, 0) },
 };
 
-void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numverts, int convex, int shadowmask, int tj)
+void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numverts, int convex, int tj)
 {
     int &total = key.tex==DEFAULT_SKY ? vc.skytris : vc.worldtris;
     int edge = orient*(MAXFACEVERTS+1);
     loopi(numverts-2) if(index[0]!=index[i+1] && index[i+1]!=index[i+2] && index[i+2]!=index[0])
     {
-        vector<ushort> &idxs = key.tex==DEFAULT_SKY ? vc.explicitskyindices : vc.indices[key].tris[(shadowmask>>i)&1];
+        vector<ushort> &idxs = key.tex==DEFAULT_SKY ? vc.skyindices : vc.indices[key].tris;
         int left = index[0], mid = index[i+1], right = index[i+2], start = left, i0 = left, i1 = -1;
         loopk(4)
         {
@@ -654,7 +511,7 @@ void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numv
             }
             if(i1 != i2)
             {
-                if(total + 3 > USHRT_MAX) return;
+                if(total + 3 > (int)USHRT_MAX) return;
                 total += 3;
                 idxs.add(i0);
                 idxs.add(i1);
@@ -701,8 +558,6 @@ void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numv
                     vt.reserved = 0;
                     vt.u = v1.u + (v2.u-v1.u)*offset;
                     vt.v = v1.v + (v2.v-v1.v)*offset;
-                    vt.lmu = short(v1.lmu + (v2.lmu-v1.lmu)*offset),
-                    vt.lmv = short(v1.lmv + (v2.lmv-v1.lmv)*offset);
                     vt.norm.lerp(v1.norm, v2.norm, offset);
                     vt.tangent.lerp(v1.tangent, v2.tangent, offset);
                     vt.bitangent = v1.bitangent;
@@ -710,7 +565,7 @@ void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numv
                     if(i2 < 0) return;
                     if(i1 >= 0)
                     {
-                        if(total + 3 > USHRT_MAX) return;
+                        if(total + 3 > (int)USHRT_MAX) return;
                         total += 3;
                         idxs.add(i0);
                         idxs.add(i1);
@@ -725,7 +580,7 @@ void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numv
     }
 }
 
-void addgrasstri(int face, vertex *verts, int numv, ushort texture, ushort lmid)
+void addgrasstri(int face, vertex *verts, int numv, ushort texture, int layer)
 {
     grasstri &g = vc.grasstris.add();
     int i1, i2, i3, i4;
@@ -749,44 +604,8 @@ void addgrasstri(int face, vertex *verts, int numv, ushort texture, ushort lmid)
     g.radius = 0;
     loopk(numv) g.radius = max(g.radius, g.v[k].dist(g.center));
 
-    vec area, bx, by;
-    area.cross(vec(g.v[1]).sub(g.v[0]), vec(g.v[2]).sub(g.v[0]));
-    float scale;
-    int px, py;
-
-    if(fabs(area.x) >= fabs(area.y) && fabs(area.x) >= fabs(area.z))
-        scale = 1/area.x, px = 1, py = 2;
-    else if(fabs(area.y) >= fabs(area.x) && fabs(area.y) >= fabs(area.z))
-        scale = -1/area.y, px = 0, py = 2;
-    else
-        scale = 1/area.z, px = 0, py = 1;
-
-    bx.x = (g.v[2][py] - g.v[0][py])*scale;
-    bx.y = (g.v[2][px] - g.v[0][px])*scale;
-    bx.z = bx.x*g.v[2][px] - bx.y*g.v[2][py];
-
-    by.x = (g.v[2][py] - g.v[1][py])*scale;
-    by.y = (g.v[2][px] - g.v[1][px])*scale;
-    by.z = by.x*g.v[1][px] - by.y*g.v[1][py] - 1;
-    by.sub(bx);
-
-    float tc1u = verts[i1].lmu/float(SHRT_MAX),
-          tc1v = verts[i1].lmv/float(SHRT_MAX),
-          tc2u = (verts[i2].lmu - verts[i1].lmu)/float(SHRT_MAX),
-          tc2v = (verts[i2].lmv - verts[i1].lmv)/float(SHRT_MAX),
-          tc3u = (verts[i3].lmu - verts[i1].lmu)/float(SHRT_MAX),
-          tc3v = (verts[i3].lmv - verts[i1].lmv)/float(SHRT_MAX);
-        
-    g.tcu = vec4(0, 0, 0, tc1u - (bx.z*tc2u + by.z*tc3u));
-    g.tcu[px] = bx.x*tc2u + by.x*tc3u;
-    g.tcu[py] = -(bx.y*tc2u + by.y*tc3u);
-
-    g.tcv = vec4(0, 0, 0, tc1v - (bx.z*tc2v + by.z*tc3v));
-    g.tcv[px] = bx.x*tc2v + by.x*tc3v;
-    g.tcv[py] = -(bx.y*tc2v + by.y*tc3v);
-
     g.texture = texture;
-    g.lmid = lmid;
+    g.blend = layer == LAYER_BLEND ? ((int(g.v[0].x)>>12)+1) | (((int(g.v[0].y)>>12)+1)<<8) : 0;
 }
 
 static inline void calctexgen(VSlot &vslot, int dim, vec4 &sgen, vec4 &tgen)
@@ -829,28 +648,47 @@ vec decodenormal(ushort norm)
     return vec(-yaw.y*pitch.x, yaw.x*pitch.x, pitch.y);
 }
 
-void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, ushort texture, ushort lmid, vertinfo *vinfo, int numverts, int tj = -1, ushort envmap = EMID_NONE, int grassy = 0, bool alpha = false, int layer = LAYER_TOP)
+void guessnormals(const vec *pos, int numverts, vec *normals)
+{
+    vec n1, n2;
+    n1.cross(pos[0], pos[1], pos[2]);
+    if(numverts != 4)
+    {
+        n1.normalize();
+        loopk(numverts) normals[k] = n1;
+        return;
+    }
+    n2.cross(pos[0], pos[2], pos[3]);
+    if(n1.iszero())
+    {
+        n2.normalize();
+        loopk(4) normals[k] = n2;
+        return;
+    }
+    else n1.normalize();
+    if(n2.iszero())
+    {
+        n1.normalize();
+        loopk(4) normals[k] = n1;
+        return;
+    }
+    else n2.normalize();
+    vec avg = vec(n1).add(n2).normalize();
+    normals[0] = avg;
+    normals[1] = n1;
+    normals[2] = avg;
+    normals[3] = n2;
+}
+
+void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, ushort texture, vertinfo *vinfo, int numverts, int tj = -1, ushort envmap = EMID_NONE, int grassy = 0, bool alpha = false, int layer = LAYER_TOP)
 {
     int dim = dimension(orient);
-    int shadowmask = texture==DEFAULT_SKY || alpha ? 0 : calcshadowmask(pos, numverts);
-
-    LightMap *lm = NULL;
-    LightMapTexture *lmtex = NULL;
-    if(!nolights && lightmaps.inrange(lmid-LMID_RESERVED))
-    {
-        lm = &lightmaps[lmid-LMID_RESERVED];
-        if((lm->type&LM_TYPE)==LM_DIFFUSE ||
-            ((lm->type&LM_TYPE)==LM_BUMPMAP0 &&
-                lightmaps.inrange(lmid+1-LMID_RESERVED) &&
-                (lightmaps[lmid+1-LMID_RESERVED].type&LM_TYPE)==LM_BUMPMAP1))
-            lmtex = &lightmaptexs[lm->tex];
-        else lm = NULL;
-    }
 
     vec4 sgen, tgen;
     calctexgen(vslot, dim, sgen, tgen);
     vertex verts[MAXFACEVERTS];
     int index[MAXFACEVERTS];
+    vec normals[MAXFACEVERTS];
     loopk(numverts)
     {
         vertex &v = verts[k];
@@ -858,13 +696,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
         v.reserved = 0;
         v.u = sgen.dot(v.pos);
         v.v = tgen.dot(v.pos);
-        if(lmtex) 
-        { 
-            v.lmu = short(ceil((lm->offsetx + vinfo[k].u*(float(LM_PACKW)/float(USHRT_MAX+1)) + 0.5f) * float(SHRT_MAX)/lmtex->w)); 
-            v.lmv = short(ceil((lm->offsety + vinfo[k].v*(float(LM_PACKH)/float(USHRT_MAX+1)) + 0.5f) * float(SHRT_MAX)/lmtex->h));
-        }
-        else v.lmu = v.lmv = 0;
-        if(renderpath!=R_FIXEDFUNCTION && vinfo && vinfo[k].norm)
+        if(vinfo && vinfo[k].norm)
         {
             vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][dim];
             t.sub(vec(n).mul(n.dot(t))).normalize();
@@ -872,9 +704,19 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
             v.tangent = bvec(t);
             v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][dim]) < 0 ? 0 : 255;
         }
+        else if(texture != DEFAULT_SKY && vslot.slot->shader->type&(SHADER_NORMALSLMS | SHADER_ENVMAP))
+        {
+            if(!k) guessnormals(pos, numverts, normals);
+            const vec &n = normals[k];
+            vec t = orientation_tangent[vslot.rotation][dim];
+            t.sub(vec(n).mul(n.dot(t))).normalize();
+            v.norm = bvec(n);
+            v.tangent = bvec(t);
+            v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][dim]) < 0 ? 0 : 255;
+        }
         else
         {
-            v.norm = vinfo && vinfo[k].norm && envmap != EMID_NONE ? bvec(decodenormal(vinfo[k].norm)) : bvec(128, 128, 128);
+            v.norm = bvec(128, 128, 128);
             v.tangent = bvec(128, 128, 128);
             v.bitangent = 128;
         }
@@ -882,16 +724,14 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
         if(index[k] < 0) return;
     }
 
-    if(texture == DEFAULT_SKY)
+    if(alpha) 
     {
-        loopk(numverts) vc.skyclip = min(vc.skyclip, int(pos[k].z*8)>>3);
-        vc.skyfaces |= 0x3F&~(1<<orient);
+        loopk(numverts) { vc.alphamin.min(pos[k]); vc.alphamax.max(pos[k]); }
+        if(vslot.refractscale > 0) loopk(numverts) { vc.refractmin.min(pos[k]); vc.refractmax.max(pos[k]); }
     }
 
-    if(lmid >= LMID_RESERVED) lmid = lm ? lm->tex : LMID_AMBIENT;
-
-    sortkey key(texture, lmid, vslot.scrollS || vslot.scrollT ? dim : 3, layer == LAYER_BLEND ? LAYER_BLEND : LAYER_TOP, envmap, alpha ? (vslot.alphaback ? ALPHA_BACK : (vslot.alphafront ? ALPHA_FRONT : NO_ALPHA)) : NO_ALPHA);
-    addtris(key, orient, verts, index, numverts, convex, shadowmask, tj);
+    sortkey key(texture, vslot.scrollS || vslot.scrollT ? dim : 3, layer == LAYER_BLEND ? LAYER_BLEND : LAYER_TOP, envmap, alpha ? (vslot.refractscale > 0 ? ALPHA_REFRACT : (vslot.alphaback ? ALPHA_BACK : ALPHA_FRONT)) : NO_ALPHA);
+    addtris(key, orient, verts, index, numverts, convex, tj);
 
     if(grassy) 
     {
@@ -900,11 +740,11 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
             int faces = 0;
             if(index[0]!=index[i+1] && index[i+1]!=index[i+2] && index[i+2]!=index[0]) faces |= 1;
             if(i+3 < numverts && index[0]!=index[i+2] && index[i+2]!=index[i+3] && index[i+3]!=index[0]) faces |= 2;
-            if(grassy > 1 && faces==3) addgrasstri(i, verts, 4, texture, lmid);
+            if(grassy > 1 && faces==3) addgrasstri(i, verts, 4, texture, layer);
             else 
             {
-                if(faces&1) addgrasstri(i, verts, 3, texture, lmid);
-                if(faces&2) addgrasstri(i+1, verts, 3, texture, lmid);
+                if(faces&1) addgrasstri(i, verts, 3, texture, layer);
+                if(faces&2) addgrasstri(i+1, verts, 3, texture, layer);
             }
         }
     }
@@ -1105,14 +945,14 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
         int hastj = tj >= 0 && tjoints[tj].edge < (i+1)*(MAXFACEVERTS+1) ? tj : -1;
         int grassy = vslot.slot->autograss && i!=O_BOTTOM ? (vis!=3 || convex ? 1 : 2) : 0;
         if(!c.ext)
-            addcubeverts(vslot, i, size, pos, convex, c.texture[i], LMID_AMBIENT, NULL, numverts, hastj, envmap, grassy, (c.material&MAT_ALPHA)!=0);
+            addcubeverts(vslot, i, size, pos, convex, c.texture[i], NULL, numverts, hastj, envmap, grassy, (c.material&MAT_ALPHA)!=0);
         else
         { 
             const surfaceinfo &surf = c.ext->surfaces[i];
             if(!surf.numverts || surf.numverts&LAYER_TOP)
-                addcubeverts(vslot, i, size, pos, convex, c.texture[i], surf.lmid[0], verts, numverts, hastj, envmap, grassy, (c.material&MAT_ALPHA)!=0, LAYER_TOP|(surf.numverts&LAYER_BLEND));
+                addcubeverts(vslot, i, size, pos, convex, c.texture[i], verts, numverts, hastj, envmap, grassy, (c.material&MAT_ALPHA)!=0, LAYER_TOP|(surf.numverts&LAYER_BLEND));
             if(surf.numverts&LAYER_BOTTOM)
-                addcubeverts(layer ? *layer : vslot, i, size, pos, convex, vslot.layer, surf.lmid[1], surf.numverts&LAYER_DUP ? verts + numverts : verts, numverts, hastj, envmap2);
+                addcubeverts(layer ? *layer : vslot, i, size, pos, convex, vslot.layer, verts, numverts, hastj, envmap2);
         }
     }
     else
@@ -1121,105 +961,6 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
     }
 }
 
-bool skyoccluded(cube &c, int orient)
-{
-    if(isempty(c)) return false;
-//    if(c.texture[orient] == DEFAULT_SKY) return true;
-    if(touchingface(c, orient) && faceedges(c, orient) == F_SOLID && !(c.material&MAT_ALPHA)) return true;
-    return false;
-}
-
-int hasskyfaces(cube &c, int x, int y, int z, int size, int faces[6])
-{
-    int numfaces = 0;
-    if(x == 0 && !skyoccluded(c, O_LEFT)) faces[numfaces++] = O_LEFT;
-    if(x + size == worldsize && !skyoccluded(c, O_RIGHT)) faces[numfaces++] = O_RIGHT;
-    if(y == 0 && !skyoccluded(c, O_BACK)) faces[numfaces++] = O_BACK;
-    if(y + size == worldsize && !skyoccluded(c, O_FRONT)) faces[numfaces++] = O_FRONT;
-    if(z == 0 && !skyoccluded(c, O_BOTTOM)) faces[numfaces++] = O_BOTTOM;
-    if(z + size == worldsize && !skyoccluded(c, O_TOP)) faces[numfaces++] = O_TOP;
-    return numfaces;
-}
-
-vector<facebounds> skyfaces[6];
- 
-void minskyface(cube &cu, int orient, const ivec &co, int size, facebounds &orig)
-{   
-    facebounds mincf;
-    mincf.u1 = orig.u2;
-    mincf.u2 = orig.u1;
-    mincf.v1 = orig.v2;
-    mincf.v2 = orig.v1;
-    mincubeface(cu, orient, co, size, orig, mincf, MAT_ALPHA, MAT_ALPHA);
-    orig.u1 = max(mincf.u1, orig.u1);
-    orig.u2 = min(mincf.u2, orig.u2);
-    orig.v1 = max(mincf.v1, orig.v1);
-    orig.v2 = min(mincf.v2, orig.v2);
-}  
-
-void genskyfaces(cube &c, const ivec &o, int size)
-{
-    if(isentirelysolid(c) && !(c.material&MAT_ALPHA)) return;
-
-    int faces[6],
-        numfaces = hasskyfaces(c, o.x, o.y, o.z, size, faces);
-    if(!numfaces) return;
-
-    loopi(numfaces)
-    {
-        int orient = faces[i], dim = dimension(orient);
-        facebounds m;
-        m.u1 = (o[C[dim]]&0xFFF)<<3; 
-        m.u2 = m.u1 + (size<<3);
-        m.v1 = (o[R[dim]]&0xFFF)<<3;
-        m.v2 = m.v1 + (size<<3);
-        minskyface(c, orient, o, size, m);
-        if(m.u1 >= m.u2 || m.v1 >= m.v2) continue;
-        vc.skyarea += (int(m.u2-m.u1)*int(m.v2-m.v1) + (1<<(2*3))-1)>>(2*3);
-        skyfaces[orient].add(m);
-    }
-}
-
-void addskyverts(const ivec &o, int size)
-{
-    loopi(6)
-    {
-        int dim = dimension(i), c = C[dim], r = R[dim];
-        vector<facebounds> &sf = skyfaces[i]; 
-        if(sf.empty()) continue;
-        vc.skyfaces |= 0x3F&~(1<<opposite(i));
-        sf.setsize(mergefaces(i, sf.getbuf(), sf.length()));
-        loopvj(sf)
-        {
-            facebounds &m = sf[j];
-            int index[4];
-            loopk(4)
-            {
-                const ivec &coords = facecoords[opposite(i)][k];
-                vec v;
-                v[dim] = o[dim];
-                if(coords[dim]) v[dim] += size;
-                v[c] = (o[c]&~0xFFF) + (coords[c] ? m.u2 : m.u1)/8.0f;
-                v[r] = (o[r]&~0xFFF) + (coords[r] ? m.v2 : m.v1)/8.0f;
-                index[k] = vc.addvert(v);
-                if(index[k] < 0) goto nextskyface;
-                vc.skyclip = min(vc.skyclip, int(v.z*8)>>3);
-            }
-            if(vc.skytris + 6 > (int)USHRT_MAX) break;
-            vc.skytris += 6;
-            vc.skyindices.add(index[0]);
-            vc.skyindices.add(index[1]);
-            vc.skyindices.add(index[2]);
-
-            vc.skyindices.add(index[0]);
-            vc.skyindices.add(index[2]);
-            vc.skyindices.add(index[3]);
-        nextskyface:;
-        }
-        sf.setsize(0);
-    }
-}
-                    
 ////////// Vertex Arrays //////////////
 
 int allocva = 0;
@@ -1234,21 +975,30 @@ vtxarray *newva(int x, int y, int z, int size)
     va->parent = NULL;
     va->o = ivec(x, y, z);
     va->size = size;
-    va->skyarea = vc.skyarea;
-    va->skyfaces = vc.skyfaces;
-    va->skyclip = vc.skyclip < INT_MAX ? vc.skyclip : INT_MAX;
     va->curvfc = VFC_NOT_VISIBLE;
     va->occluded = OCCLUDE_NOTHING;
     va->query = NULL;
-    va->bbmin = ivec(-1, -1, -1);
-    va->bbmax = ivec(-1, -1, -1);
+    va->bbmin = va->alphamin = va->refractmin = ivec(-1, -1, -1);
+    va->bbmax = va->alphamax = va->refractmax = ivec(-1, -1, -1);
     va->hasmerges = 0;
     va->mergelevel = -1;
 
     vc.setupdata(va);
 
+    if(va->alphafronttris || va->alphabacktris)
+    {
+        va->alphamin = ivec(vec(vc.alphamin).mul(8)).shr(3);
+        va->alphamax = ivec(vec(vc.alphamax).mul(8)).add(7).shr(3);
+    }
+
+    if(va->refracttris)
+    {
+        va->refractmin = ivec(vec(vc.refractmin).mul(8)).shr(3);
+        va->refractmax = ivec(vec(vc.refractmax).mul(8)).add(7).shr(3);
+    }
+        
     wverts += va->verts;
-    wtris  += va->tris + va->blends + va->alphabacktris + va->alphafronttris;
+    wtris  += va->tris + va->blends + va->alphabacktris + va->alphafronttris + va->refracttris;
     allocva++;
     valist.add(va);
 
@@ -1294,14 +1044,20 @@ void clearvas(cube *c)
     }
 }
 
+ivec worldmin(0, 0, 0), worldmax(0, 0, 0);
+
 void updatevabb(vtxarray *va, bool force)
 {
     if(!force && va->bbmin.x >= 0) return;
 
     va->bbmin = va->geommin;
     va->bbmax = va->geommax;
-    va->bbmin.min(va->matmin);
-    va->bbmax.max(va->matmax);
+    va->bbmin.min(va->lavamin);
+    va->bbmax.max(va->lavamax);
+    va->bbmin.min(va->watermin);
+    va->bbmax.max(va->watermax);
+    va->bbmin.min(va->glassmin);
+    va->bbmax.max(va->glassmax);
     loopv(va->children)
     {
         vtxarray *child = va->children[i];
@@ -1315,33 +1071,29 @@ void updatevabb(vtxarray *va, bool force)
         va->bbmin.min(oe->bbmin);
         va->bbmax.max(oe->bbmax);
     }
-
-    if(va->skyfaces)
-    {
-        va->skyfaces |= 0x80;
-        if(va->sky) loop(dim, 3) if(va->skyfaces&(3<<(2*dim)))
-        {
-            int r = R[dim], c = C[dim];
-            if((va->skyfaces&(1<<(2*dim)) && va->o[dim] < va->bbmin[dim]) ||
-               (va->skyfaces&(2<<(2*dim)) && va->o[dim]+va->size > va->bbmax[dim]) ||
-               va->o[r] < va->bbmin[r] || va->o[r]+va->size > va->bbmax[r] ||
-               va->o[c] < va->bbmin[c] || va->o[c]+va->size > va->bbmax[c])
-            {
-                va->skyfaces &= ~0x80;
-                break;
-            }
-        }
-    }
+    worldmin.min(va->bbmin);
+    worldmax.max(va->bbmax);
 }
 
 void updatevabbs(bool force)
 {
-    loopv(varoot) updatevabb(varoot[i], force);
+    if(force)
+    {
+        worldmin = ivec(worldsize, worldsize, worldsize);
+        worldmax = ivec(0, 0, 0);
+        loopv(varoot) updatevabb(varoot[i], true);
+        if(worldmin.x >= worldmax.x) 
+        {
+            worldmin = ivec(0, 0, 0);
+            worldmax = ivec(worldsize, worldsize, worldsize);
+        }
+    }
+    else loopv(varoot) updatevabb(varoot[i]);
 }
 
 struct mergedface
 {   
-    uchar orient, mat, lmid, numverts;
+    uchar orient, mat, numverts;
     ushort tex, envmap;
     vertinfo *verts;
     int tjoints;
@@ -1371,7 +1123,6 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
         mf.mat = c.material;
         mf.tex = c.texture[i];
         mf.envmap = EMID_NONE;
-        mf.lmid = surf.lmid[0];
         mf.numverts = surf.numverts;
         mf.verts = c.ext->verts() + surf.verts; 
         mf.tjoints = -1;
@@ -1396,9 +1147,7 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
             {
                 mf.tex = vslot.layer;
                 mf.envmap = envmap2;
-                mf.lmid = surf.lmid[1];
                 mf.numverts &= ~LAYER_TOP;
-                if(surf.numverts&LAYER_DUP) mf.verts += numverts;
                 vamerges[level].add(mf);
             }
         }
@@ -1446,7 +1195,7 @@ void addmergedverts(int level, const ivec &o)
         }
         VSlot &vslot = lookupvslot(mf.tex, true);
         int grassy = vslot.slot->autograss && mf.orient!=O_BOTTOM && mf.numverts&LAYER_TOP ? 2 : 0;
-        addcubeverts(vslot, mf.orient, 1<<level, pos, 0, mf.tex, mf.lmid, mf.verts, numverts, mf.tjoints, mf.envmap, grassy, (mf.mat&MAT_ALPHA)!=0, mf.numverts&LAYER_BLEND);
+        addcubeverts(vslot, mf.orient, 1<<level, pos, 0, mf.tex, mf.verts, numverts, mf.tjoints, mf.envmap, grassy, (mf.mat&MAT_ALPHA)!=0, mf.numverts&LAYER_BLEND);
         vahasmerges |= MERGE_USE;
     }
     mfl.setsize(0);
@@ -1485,8 +1234,6 @@ void rendercube(cube &c, int cx, int cy, int cz, int size, int csi, int &maxleve
         return;
     }
     
-    genskyfaces(c, ivec(cx, cy, cz), size);
-
     if(!isempty(c)) 
     {
         gencubeverts(c, cx, cy, cz, size, csi);
@@ -1518,38 +1265,6 @@ void calcgeombb(int cx, int cy, int cz, int size, ivec &bbmin, ivec &bbmax)
     bbmax = ivec(vmax.mul(8)).add(7).shr(3);
 }
 
-void calcmatbb(int cx, int cy, int cz, int size, ivec &bbmin, ivec &bbmax)
-{
-    bbmax = ivec(cx, cy, cz);
-    (bbmin = bbmax).add(size);
-    loopv(vc.matsurfs)
-    {
-        materialsurface &m = vc.matsurfs[i];
-        switch(m.material)
-        {
-            case MAT_WATER:
-            case MAT_GLASS:
-            case MAT_LAVA:
-                break;
-
-            default:
-                continue;
-        }
-
-        int dim = dimension(m.orient),
-            r = R[dim],
-            c = C[dim];
-        bbmin[dim] = min(bbmin[dim], m.o[dim]);
-        bbmax[dim] = max(bbmax[dim], m.o[dim]);
-
-        bbmin[r] = min(bbmin[r], m.o[r]);
-        bbmax[r] = max(bbmax[r], m.o[r] + m.rsize);
-
-        bbmin[c] = min(bbmin[c], m.o[c]);
-        bbmax[c] = max(bbmax[c], m.o[c] + m.csize);
-    }
-}
-
 void setva(cube &c, int cx, int cy, int cz, int size, int csi)
 {
     ASSERT(size <= 0x1000);
@@ -1560,9 +1275,6 @@ void setva(cube &c, int cx, int cy, int cz, int size, int csi)
     vc.origin = ivec(cx, cy, cz);
     vc.size = size;
 
-    shadowmapmin = vec(cx+size, cy+size, cz+size);
-    shadowmapmax = vec(cx, cy, cz);
-
     int maxlevel = -1;
     rendercube(c, cx, cy, cz, size, csi, maxlevel);
 
@@ -1570,17 +1282,13 @@ void setva(cube &c, int cx, int cy, int cz, int size, int csi)
 
     calcgeombb(cx, cy, cz, size, bbmin, bbmax);
 
-    addskyverts(ivec(cx, cy, cz), size);
-
     if(!vc.emptyva())
     {
         vtxarray *va = newva(cx, cy, cz, size);
         ext(c).va = va;
         va->geommin = bbmin;
         va->geommax = bbmax;
-        calcmatbb(cx, cy, cz, size, va->matmin, va->matmax);
-        va->shadowmapmin = ivec(shadowmapmin.mul(8)).shr(3);
-        va->shadowmapmax = ivec(shadowmapmax.mul(8)).add(7).shr(3);
+        calcmatbb(va, cx, cy, cz, size, vc.matsurfs);
         va->hasmerges = vahasmerges;
         va->mergelevel = vamergemax;
     }
@@ -1599,7 +1307,6 @@ VARF(vacubemin, 0, 128, 256*256, allchanged());
 int updateva(cube *c, int cx, int cy, int cz, int size, int csi)
 {
     progress("recalculating geometry...");
-    static int faces[6];
     int ccount = 0, cmergemax = vamergemax, chasmerges = vahasmerges;
     neighbourstack[++neighbourdepth] = c;
     loopi(8)                                    // counting number of semi-solid/solid children cubes
@@ -1617,7 +1324,7 @@ int updateva(cube *c, int cx, int cy, int cz, int size, int csi)
         else
         {
             if(c[i].children) count += updateva(c[i].children, o.x, o.y, o.z, size/2, csi-1);
-            else if(!isempty(c[i]) || hasskyfaces(c[i], o.x, o.y, o.z, size, faces)) count++;
+            else if(!isempty(c[i])) count++;
             int tcount = count + (csi <= MAXMERGELEVEL ? vamerges[csi].length() : 0);
             if(tcount > vacubemax || (tcount >= vacubemin && size >= vacubesize) || size == min(0x1000, worldsize/2)) 
             {
@@ -1739,12 +1446,10 @@ void octarender()                               // creates va s for all leaf cub
     flushvbo();
 
     explicitsky = 0;
-    skyarea = 0;
     loopv(valist)
     {
         vtxarray *va = valist[i];
-        explicitsky += va->explicitsky;
-        skyarea += va->skyarea;
+        explicitsky += va->sky;
     }
 
     extern vtxarray *visibleva;
@@ -1784,7 +1489,6 @@ void allchanged(bool load)
     resetqueries();
     resetclipplanes();
     if(load) initenvmaps();
-    guessshadowdir();
     entitiesinoctanodes();
     tjoints.setsize(0);
     if(filltjoints) findtjoints();
@@ -1792,10 +1496,11 @@ void allchanged(bool load)
     if(load) precachetextures();
     setupmaterials();
     invalidatepostfx();
+    clearshadowcache();
     updatevabbs(true);
-    resetblobs();
     if(load) 
     {
+        updateblendtextures();
         seedparticles();
         genenvmaps();
         drawminimap();

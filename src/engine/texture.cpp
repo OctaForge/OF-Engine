@@ -347,41 +347,10 @@ void texcolorify(ImageData &s, const vec &color, vec weights)
     );
 }
 
-void texffmask(ImageData &s, float glowscale, float envscale)
-{
-    if(renderpath!=R_FIXEDFUNCTION) return;
-    if(nomasks || s.bpp<3) { s.cleanup(); return; }
-    const int minval = 0x18;
-    bool glow = false, envmap = true;
-    writetex(s,
-        if(dst[1]>minval) glow = true;
-        if(dst[2]>minval) { glow = envmap = true; goto needmask; }
-    );
-    if(!glow && !envmap) { s.cleanup(); return; }
-needmask:
-    ImageData m(s.w, s.h, envmap ? 2 : 1);
-    readwritetex(m, s,
-        dst[0] = uchar(src[1]*glowscale);
-        if(envmap) dst[1] = uchar(src[2]*envscale);
-    );
-    s.replace(m);
-}
-
 void texdup(ImageData &s, int srcchan, int dstchan)
 {
     if(srcchan==dstchan || max(srcchan, dstchan) >= s.bpp) return;
     writetex(s, dst[dstchan] = dst[srcchan]);
-}
-
-void texdecal(ImageData &s)
-{
-    if(renderpath!=R_FIXEDFUNCTION || hasTE) return;
-    ImageData m(s.w, s.w, 2);
-    readwritetex(m, s,
-        dst[0] = src[0];
-        dst[1] = 255 - src[0];
-    );
-    s.replace(m);
 }
 
 void texmix(ImageData &s, int c1, int c2, int c3, int c4)
@@ -563,7 +532,7 @@ void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int
     }
 }
 
-void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format, GLenum type, void *pixels, int pw, int ph, int pitch, bool mipmap)
+void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format, GLenum type, const void *pixels, int pw, int ph, int pitch, bool mipmap)
 {
     int bpp = formatsize(format), row = 0, rowalign = 0;
     if(!pitch) pitch = pw*bpp; 
@@ -658,7 +627,7 @@ GLenum uncompressedformat(GLenum format)
     return GL_FALSE;
 }
     
-void setuptexparameters(int tnum, void *pixels, int clamp, int filter, GLenum format, GLenum target)
+void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLenum format, GLenum target)
 {
     glBindTexture(target, tnum);
     glTexParameteri(target, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
@@ -675,15 +644,20 @@ void setuptexparameters(int tnum, void *pixels, int clamp, int filter, GLenum fo
         glTexParameteri(target, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 }
 
-void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format)
+void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format)
 {
     GLenum target = textarget(subtarget), type = GL_UNSIGNED_BYTE;
     switch(component)
     {
+        case GL_R16F:
+        case GL_R32F:
+        case GL_RG16F:
+        case GL_RG32F:
         case GL_FLOAT_RG16_NV:
         case GL_FLOAT_R32_NV:
         case GL_RGB16F_ARB:
         case GL_RGB32F_ARB:
+        case GL_R11F_G11F_B10F_EXT:
             if(!format) format = GL_RGB;
             type = GL_FLOAT;
             break;
@@ -700,9 +674,16 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, 
             if(!format) format = GL_DEPTH_COMPONENT;
             break;
 
+        case GL_DEPTH_STENCIL_EXT:
+        case GL_DEPTH24_STENCIL8_EXT:
+            if(!format) format = GL_DEPTH_STENCIL_EXT;
+            type = GL_UNSIGNED_INT_24_8_EXT;
+            break;
+
         case GL_RGB5:
         case GL_RGB8:
         case GL_RGB16:
+        case GL_RGB10:
         case GL_COMPRESSED_RGB_ARB:
         case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
             if(!format) format = GL_RGB;
@@ -710,6 +691,7 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, int filter, 
 
         case GL_RGBA8:
         case GL_RGBA16:
+        case GL_RGB10_A2:
         case GL_COMPRESSED_RGBA_ARB:
         case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
@@ -767,7 +749,7 @@ static bool alphaformat(GLenum format)
     }
 }
 
-int texalign(void *data, int w, int bpp)
+int texalign(const void *data, int w, int bpp)
 {
     size_t address = size_t(data) | (w*bpp);
     if(address&1) return 1;
@@ -1220,19 +1202,7 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
                 else arg[i]++; \
             }
         PARSETEXCOMMANDS(pcmds);
-        if(!strncmp(cmd, "noff", len))
-        {
-            if(renderpath==R_FIXEDFUNCTION) return true;
-        }
-        else if(!strncmp(cmd, "ffmask", len) || !strncmp(cmd, "ffskip", len))
-        {
-            if(renderpath==R_FIXEDFUNCTION) raw = true;
-        }
-        else if(!strncmp(cmd, "decal", len))
-        {
-            if(renderpath==R_FIXEDFUNCTION && !hasTE) raw = true;
-        }
-        else if(!strncmp(cmd, "dds", len)) dds = true;
+        if(!strncmp(cmd, "dds", len)) dds = true;
         else if(!strncmp(cmd, "thumbnail", len)) raw = true;
         else if(!strncmp(cmd, "stub", len)) return canloadsurface(file);
     }
@@ -1261,18 +1231,12 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         PARSETEXCOMMANDS(cmds);
         if(!strncmp(cmd, "mad", len)) texmad(d, parsevec(arg[0]), parsevec(arg[1])); 
         else if(!strncmp(cmd, "colorify", len)) texcolorify(d, parsevec(arg[0]), parsevec(arg[1]));
-        else if(!strncmp(cmd, "ffmask", len)) 
-        {
-            texffmask(d, atof(arg[0]), atof(arg[1]));
-            if(!d.data) break;
-        }
         else if(!strncmp(cmd, "normal", len)) 
         {
             int emphasis = atoi(arg[0]);
             texnormal(d, emphasis > 0 ? emphasis : 3);
         }
         else if(!strncmp(cmd, "dup", len)) texdup(d, atoi(arg[0]), atoi(arg[1]));
-        else if(!strncmp(cmd, "decal", len)) texdecal(d);
         else if(!strncmp(cmd, "offset", len)) texoffset(d, atoi(arg[0]), atoi(arg[1]));
         else if(!strncmp(cmd, "rotate", len)) texrotate(d, atoi(arg[0]), tex ? tex->type : 0);
         else if(!strncmp(cmd, "reorient", len)) texreorient(d, atoi(arg[0])>0, atoi(arg[1])>0, atoi(arg[2])>0, tex ? tex->type : TEX_DIFFUSE);
@@ -1301,10 +1265,6 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
             if(w <= 0 || w > (1<<12)) w = 64;
             if(h <= 0 || h > (1<<12)) h = w;
             if(d.w > w || d.h > h) scaleimage(d, w, h);
-        }
-        else if(!strncmp(cmd, "ffskip", len))
-        {
-            if(renderpath==R_FIXEDFUNCTION) break;
         }
     }
 
@@ -1549,6 +1509,11 @@ void propagatevslot(VSlot &dst, const VSlot &src, int diff, bool edit = false)
         dst.alphaback = src.alphaback;
     }
     if(diff & (1<<VSLOT_COLOR)) dst.colorscale = src.colorscale;
+    if(diff & (1<<VSLOT_REFRACT))
+    {
+        dst.refractscale = src.refractscale;
+        dst.refractcolor = src.refractcolor;
+    }
 }
 
 void propagatevslot(VSlot *root, int changed)
@@ -1564,10 +1529,10 @@ static void mergevslot(VSlot &dst, const VSlot &src, int diff, Slot *slot = NULL
 {
     if(diff & (1<<VSLOT_SHPARAM)) loopv(src.params) 
     {
-        const ShaderParam &sp = src.params[i];
+        const SlotShaderParam &sp = src.params[i];
         loopvj(dst.params)
         {
-            ShaderParam &dp = dst.params[j];
+            SlotShaderParam &dp = dst.params[j];
             if(sp.name == dp.name)
             {
                 memcpy(dp.val, sp.val, sizeof(dp.val));
@@ -1604,6 +1569,11 @@ static void mergevslot(VSlot &dst, const VSlot &src, int diff, Slot *slot = NULL
         dst.alphaback = src.alphaback;
     }
     if(diff & (1<<VSLOT_COLOR)) dst.colorscale.mul(src.colorscale);
+    if(diff & (1<<VSLOT_REFRACT))
+    {
+        dst.refractscale *= src.refractscale;
+        dst.refractcolor.mul(src.refractcolor);
+    }
 }
 
 void mergevslot(VSlot &dst, const VSlot &src, const VSlot &delta)
@@ -1641,7 +1611,7 @@ static bool comparevslot(const VSlot &dst, const VSlot &src, int diff)
         if(src.params.length() != dst.params.length()) return false;
         loopv(src.params) 
         {
-            const ShaderParam &sp = src.params[i], &dp = dst.params[i];
+            const SlotShaderParam &sp = src.params[i], &dp = dst.params[i];
             if(sp.name != dp.name || memcmp(sp.val, dp.val, sizeof(sp.val))) return false;
         }
     }
@@ -1652,6 +1622,7 @@ static bool comparevslot(const VSlot &dst, const VSlot &src, int diff)
     if(diff & (1<<VSLOT_LAYER) && dst.layer != src.layer) return false;
     if(diff & (1<<VSLOT_ALPHA) && (dst.alphafront != src.alphafront || dst.alphaback != src.alphaback)) return false;
     if(diff & (1<<VSLOT_COLOR) && dst.colorscale != src.colorscale) return false;
+    if(diff & (1<<VSLOT_REFRACT) && (dst.refractscale != src.refractscale || dst.refractcolor != src.refractcolor)) return false;
     return true;
 }
 
@@ -1764,41 +1735,6 @@ static int findtextype(Slot &s, int type, int last = -1)
     return -1;
 }
 
-static void addbump(ImageData &c, ImageData &n, bool envmap, bool specmap)
-{
-    if(n.bpp < 3) return;
-    if(envmap && c.bpp <= 3 && !specmap)
-    {
-        writetex(n, if(dst[2] < 0xF8) goto noenvmap;); 
-    }
-    if(envmap)
-    {
-        if(c.bpp <= 3)
-        {
-            readwritergbatex(c, n,
-                int z = max(int(src[2])*2-255, 0);
-                loopk(3) dst[k] = int(dst[k])*z/255;
-                dst[3] = z;
-            );
-        }
-        else
-        {
-            readwritergbatex(c, n,
-                int z = max(int(src[2])*2-255, 0);
-                loopk(4) dst[k] = int(dst[k])*z/255;
-            );
-        }
-    }
-    else
-    {
-    noenvmap:
-        readwritergbtex(c, n,
-            int z = max(int(src[2])*2-255, 0);
-            loopk(3) dst[k] = int(dst[k])*z/255;
-        );
-    }
-}
-
 static void addglow(ImageData &c, ImageData &g, const vec &glowcolor)
 {
     if(g.bpp < 3)
@@ -1813,15 +1749,6 @@ static void addglow(ImageData &c, ImageData &g, const vec &glowcolor)
             loopk(3) dst[k] = clamp(int(dst[k]) + int(src[k]*glowcolor[k]), 0, 255);
         );
     }
-}
-
-static void blenddecal(ImageData &c, ImageData &d)
-{
-    if(d.bpp < 4) return;
-    readwritergbtex(c, d,
-        uchar a = src[3];
-        loopk(3) dst[k] = (int(src[k])*int(a) + int(dst[k])*int(255-a))/255;
-    );
 }
 
 static void mergespec(ImageData &c, ImageData &s, bool envmap = false)
@@ -1872,30 +1799,14 @@ static void addname(vector<char> &key, Slot &slot, Slot::Tex &t, bool combined =
 
 static void texcombine(Slot &s, int index, Slot::Tex &t, bool forceload = false)
 {
-    if(renderpath==R_FIXEDFUNCTION && t.type!=TEX_DIFFUSE && t.type!=TEX_GLOW && !forceload) { t.t = notexture; return; }
     vector<char> key; 
     addname(key, s, t);
     int texmask = 0;
-    bool envmap = renderpath==R_FIXEDFUNCTION && s.shader->type&SHADER_ENVMAP && s.ffenv && hasCM && maxtmus >= 2;
     if(!forceload) switch(t.type)
     {
         case TEX_DIFFUSE:
-            if(renderpath==R_FIXEDFUNCTION)
-            {
-                int mask = (1<<TEX_DECAL)|(1<<TEX_NORMAL);
-                if(envmap) mask |= 1<<TEX_SPEC;
-                for(int i = -1; (i = findtextype(s, mask, i))>=0;)
-                {
-                    texmask |= 1<<s.sts[i].type;
-                    s.sts[i].combined = index;
-                    addname(key, s, s.sts[i], true, envmap && (s.sts[i].type==TEX_NORMAL || s.sts[i].type==TEX_SPEC) ? "<ffenv>" : NULL);
-                }
-                break;
-            } // fall through to shader case
-
         case TEX_NORMAL:
         {
-            if(renderpath==R_FIXEDFUNCTION) break;
             int i = findtextype(s, t.type==TEX_DIFFUSE ? (1<<TEX_SPEC) : (1<<TEX_DEPTH));
             if(i<0) break;
             texmask |= 1<<s.sts[i].type;
@@ -1913,25 +1824,6 @@ static void texcombine(Slot &s, int index, Slot::Tex &t, bool forceload = false)
     switch(t.type)
     {
         case TEX_DIFFUSE:
-            if(renderpath==R_FIXEDFUNCTION)
-            {
-                if(!ts.compressed) loopv(s.sts)
-                {
-                    Slot::Tex &b = s.sts[i];
-                    if(b.combined!=index) continue;
-                    ImageData bs;
-                    if(!texturedata(bs, NULL, &b)) continue;
-                    if(bs.w!=ts.w || bs.h!=ts.h) scaleimage(bs, ts.w, ts.h);
-                    switch(b.type)
-                    {
-                        case TEX_DECAL: blenddecal(ts, bs); break;
-                        case TEX_NORMAL: addbump(ts, bs, envmap, (texmask&(1<<TEX_SPEC))!=0); break;
-                        case TEX_SPEC: mergespec(ts, bs, envmap); break;
-                    }
-                }
-                break;
-            } // fall through to shader case
-
         case TEX_NORMAL:
             if(!ts.compressed) loopv(s.sts)
             {
@@ -1963,7 +1855,7 @@ static Slot &loadslot(Slot &s, bool forceload)
         switch(t.type)
         {
             case TEX_ENVMAP:
-                if(hasCM && (renderpath != R_FIXEDFUNCTION || (s.shader->type&SHADER_ENVMAP && s.ffenv && maxtmus >= 2) || forceload)) t.t = cubemapload(t.name);
+                if(hasCM) t.t = cubemapload(t.name);
                 break;
 
             default:
@@ -2136,21 +2028,6 @@ Texture *loadthumbnail(Slot &slot)
         }
     }
     return t;
-}
-
-/* OctaForge: Shared_Ptr */
-void loadlayermasks()
-{
-    loopv(slots)
-    {
-        Slot &slot = *(slots[i].get());
-        if(slot.loaded && slot.layermaskname && !slot.layermask) 
-        {
-            slot.layermask = new ImageData;
-            texturedata(*slot.layermask, slot.layermaskname);
-            if(!slot.layermask->data) DELETEP(slot.layermask);
-        }
-    }
 }
 
 // environment mapped reflections
@@ -2358,7 +2235,7 @@ VAR(aaenvmap, 0, 2, 4);
 
 GLuint genenvmap(const vec &o, int envmapsize, int blur)
 {
-    int rendersize = 1<<(envmapsize+aaenvmap), sizelimit = min(hwcubetexsize, min(screen->w, screen->h));
+    int rendersize = 1<<(envmapsize+aaenvmap), sizelimit = min(hwcubetexsize, min(vieww, viewh));
     if(maxtexsize) sizelimit = min(sizelimit, maxtexsize);
     while(rendersize > sizelimit) rendersize /= 2;
     int texsize = min(rendersize, 1<<envmapsize);
@@ -2367,7 +2244,7 @@ GLuint genenvmap(const vec &o, int envmapsize, int blur)
     glGenTextures(1, &tex);
     glViewport(0, 0, rendersize, rendersize);
     float yaw = 0, pitch = 0;
-    uchar *pixels = new uchar[3*rendersize*rendersize], *blurbuf = blur > 0 ? new uchar[3*rendersize*rendersize] : NULL;
+    uchar *pixels = new uchar[3*rendersize*rendersize*2];
     glPixelStorei(GL_PACK_ALIGNMENT, texalign(pixels, rendersize, 3));
     loopi(6)
     {
@@ -2387,20 +2264,18 @@ GLuint genenvmap(const vec &o, int envmapsize, int blur)
             case GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB: // up
                 yaw = 270; pitch = 90; break;
         }
-        glFrontFace((side.flipx==side.flipy)!=side.swapxy ? GL_CW : GL_CCW);
         drawcubemap(rendersize, o, yaw, pitch, side);
         glReadPixels(0, 0, rendersize, rendersize, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        if(blurbuf)
+        uchar *outpixels = &pixels[3*rendersize*rendersize];
+        reorienttexture(pixels, rendersize, rendersize, 3, 3*rendersize, outpixels, !side.flipx, !side.flipy, side.swapxy);
+        if(blur > 0)
         {
-            blurtexture(blur, 3, rendersize, rendersize, blurbuf, pixels);
-            swap(blurbuf, pixels);
+            blurtexture(blur, 3, rendersize, rendersize, pixels, outpixels);
+            outpixels = pixels;
         }
-        createtexture(tex, texsize, texsize, pixels, 3, 2, GL_RGB5, side.target, rendersize, rendersize);
+        createtexture(tex, texsize, texsize, outpixels, 3, 2, GL_RGB5, side.target, rendersize, rendersize);
     }
-    glFrontFace(GL_CW);
     delete[] pixels;
-    if(blurbuf) delete[] blurbuf;
-    glViewport(0, 0, screen->w, screen->h);
     clientkeepalive();
     forcecubemapload(tex);
     return tex;
@@ -2430,6 +2305,7 @@ void genenvmaps()
     if(envmaps.empty()) return;
     renderprogress(0, "generating environment maps...");
     int lastprogress = SDL_GetTicks();
+    gl_setupframe(screen->w, screen->h);
     loopv(envmaps)
     {
         envmap &em = envmaps[i];
@@ -2479,7 +2355,7 @@ GLuint lookupenvmap(Slot &slot)
 
 GLuint lookupenvmap(ushort emid)
 {
-    if(emid==EMID_SKY || emid==EMID_CUSTOM) return skyenvmap ? skyenvmap->id : 0;
+    if(emid==EMID_SKY || emid==EMID_CUSTOM || envmapping) return skyenvmap ? skyenvmap->id : 0;
     if(emid==EMID_NONE || !envmaps.inrange(emid-EMID_RESERVED)) return 0;
     GLuint tex = envmaps[emid-EMID_RESERVED].tex;
     return tex ? tex : (skyenvmap ? skyenvmap->id : 0);

@@ -496,8 +496,7 @@ character = std.class.new(entity_animated.base_animated, {
             <render_dynamic>
     ]]
     get_rendering_flags = function(self, hudpass, needhud)
-        -- we use dynamic shadow and lighting always.
-        local flags = std.math.bor(model.LIGHT, model.DYNSHADOW, model.FULLBRIGHT)
+        local flags = model.FULLBRIGHT
 
         -- for non-player, we add some culling flags
         if self ~= entity_store.get_player_entity() then
@@ -507,11 +506,6 @@ character = std.class.new(entity_animated.base_animated, {
                 model.CULL_OCCLUDED,
                 model.CULL_QUERY
             )
-        end
-
-        -- for hud models, we set hud flag
-        if hudpass and needhud then
-            flags = std.math.bor(flags, model.HUD)
         end
 
         -- return final flags

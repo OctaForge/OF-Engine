@@ -52,10 +52,8 @@ plugin = {
 
         local o = self.position
         local flags = std.math.bor(
-            model.LIGHT, model.CULL_VFC,
-            model.OCCLUDED, model.CULL_QUERY,
-            model.FULLBRIGHT, model.CULL_DIST,
-            model.DYNSHADOW
+            model.CULL_VFC, model.OCCLUDED, model.CULL_QUERY,
+            model.FULLBRIGHT, model.CULL_DIST
         )
         local yaw
         if self.pad_rotate then

@@ -2,7 +2,7 @@
 void shader(int type, char *name, char *vs, char *ps);
 void variantshader(int type, char *name, int row, char *vs, char *ps);
 void setshader(char *name);
-void addshaderparam(const char *name, int type, int n, float x, float y, float z, float w);
+void addslotparam(const char *name, float x, float y, float z, float w);
 void altshader(char *origname, char *altname);
 void fastshader(char *nice, char *fast, int detail);
 void defershader(int type, const char *name, lua::Function contents);
@@ -53,47 +53,24 @@ namespace lapi_binds
     bool _lua_isshaderdefined(const char *n) { return isshaderdefined(n); }
     bool _lua_isshadernative (const char *n) { return isshadernative (n); }
 
-    void _lua_setvertexparam(int t, float x, float y, float z, float w)
-    {
-        addshaderparam(NULL, SHPARAM_VERTEX, t, x, y, z, w);
-    }
-
-    void _lua_setpixelparam(int t, float x, float y, float z, float w)
-    {
-        addshaderparam(NULL, SHPARAM_PIXEL, t, x, y, z, w);
-    }
 
     void _lua_setuniformparam(
         const char *n, float x, float y, float z, float w
     )
     {
-        addshaderparam(n, SHPARAM_UNIFORM, -1, x, y, z, w);
+        addslotparam(n, x, y, z, w);
     }
 
     void _lua_setshaderparam(const char *n, float x, float y, float z, float w)
     {
-        addshaderparam(n, SHPARAM_LOOKUP, -1, x, y, z, w);
-    }
-
-    void _lua_defvertexparam(
-        const char *name, int n, float x, float y, float z, float w
-    )
-    {
-        addshaderparam(name, SHPARAM_VERTEX, n, x, y, z, w);
-    }
-
-    void _lua_defpixelparam(
-        const char *name, int n, float x, float y, float z, float w
-    )
-    {
-        addshaderparam(name, SHPARAM_PIXEL, n, x, y, z, w);
+        addslotparam(n, x, y, z, w);
     }
 
     void _lua_defuniformparam(
-        const char *name, float x, float y, float z, float w
+        const char *n, float x, float y, float z, float w
     )
     {
-        addshaderparam(name, SHPARAM_UNIFORM, -1, x, y, z, w);
+        addslotparam(n, x, y, z, w);
     }
 
     void _lua_addpostfx(
@@ -120,12 +97,8 @@ namespace lapi_binds
     LAPI_EMPTY(forceshader)
     LAPI_EMPTY(isshaderdefined)
     LAPI_EMPTY(isshadernative)
-    LAPI_EMPTY(setvertexparam)
-    LAPI_EMPTY(setpixelparam)
     LAPI_EMPTY(setuniformparam)
     LAPI_EMPTY(setshaderparam)
-    LAPI_EMPTY(defvertexparam)
-    LAPI_EMPTY(defpixelparam)
     LAPI_EMPTY(defuniformparam)
     LAPI_EMPTY(addpostfx)
     LAPI_EMPTY(setpostfx)
@@ -143,12 +116,8 @@ namespace lapi_binds
         LAPI_REG(forceshader);
         LAPI_REG(isshaderdefined);
         LAPI_REG(isshadernative);
-        LAPI_REG(setvertexparam);
-        LAPI_REG(setpixelparam);
         LAPI_REG(setuniformparam);
         LAPI_REG(setshaderparam);
-        LAPI_REG(defvertexparam);
-        LAPI_REG(defpixelparam);
         LAPI_REG(defuniformparam);
         LAPI_REG(addpostfx);
         LAPI_REG(setpostfx);

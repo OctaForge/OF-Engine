@@ -28,7 +28,7 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
             if(m)
             {
                 vec center, radius;
-                m->boundbox(0, center, radius, entity); // INTENSITY: entity
+                m->boundbox(center, radius, entity); // INTENSITY: entity
                 rotatebb(center, radius, e.attr1);
                 o = e.o;
                 o.add(center);
@@ -174,7 +174,6 @@ static bool modifyoctaent(int flags, int id)
     e.inoctanode = flags&MODOE_ADD ? 1 : 0;
     if(e.type == ET_LIGHT) clearlightcache(id);
     else if(e.type == ET_PARTICLES) clearparticleemitters();
-    else if(flags&MODOE_ADD) lightent(e);
     return true;
 }
 
@@ -390,6 +389,7 @@ void attachentities()
     f; \
     if(oldtype!=ent.type) detachentity(ent); \
     if(ent.type!=ET_EMPTY) { addentity(n); if(oldtype!=ent.type) attachentity(ent); }) \
+    clearshadowcache(); \
 }
 #define addgroup(exp)   { loopv(entities::storage) entfocus(i, if(exp) entadd(n)); }
 #define setgroup(exp)   { entcancel(); addgroup(exp); }
@@ -455,7 +455,7 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     model *m = NULL;
     if(e.type == ET_MAPMODEL && (m = entity->getModel())) // INTENSITY
     {
-        m->collisionbox(0, eo, es, entity); // INTENSITY
+        m->collisionbox(eo, es, entity); // INTENSITY
         rotatebb(eo, es, e.attr1);
         eo.add(e.o);
     }   
@@ -786,7 +786,7 @@ bool dropentity(entity &e, int drop = -1)
         if(m)
         {
             vec center;
-            m->boundbox(0, center, radius, entity); // INTENSITY: entity
+            m->boundbox(center, radius, entity); // INTENSITY: entity
             rotatebb(center, radius, e.attr1);
             radius.x += fabs(center.x);
             radius.y += fabs(center.y);
@@ -855,8 +855,6 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
     e.reserved = 0;
     e.spawned = false;
     e.inoctanode = false;
-    e.light.color = vec(1, 1, 1);
-    e.light.dir = vec(0, 0, 1);
     if(local)
     {
         switch(type)
@@ -1094,9 +1092,8 @@ void resetmap()
 {
     varsys::clear();
     clearmapsounds();
-    cleanreflections();
     resetblendmap();
-    resetlightmaps();
+    clearlights();
     clearpvs();
     clearslots();
     clearparticles();
@@ -1246,6 +1243,7 @@ void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, i
         addentity(i);
         if(oldtype!=type) attachentity(e);
     }
+    clearshadowcache();
 }
 
 int getworldsize() { return worldsize; }
