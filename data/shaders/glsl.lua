@@ -901,49 +901,55 @@ if EVAR.glslversion >= 130 then
         CAPI.variantshader(0, "alphashadowtetramodel", 0, alphashadowmodelvertexshader(skelanimdefs(i, 0, 0), skelmatanim (i, 0, 0), 1), "")
         CAPI.variantshader(0, "alphashadowtetramodel", 1, alphashadowmodelvertexshader(skelanimdefs(i, 0, 0), skelquatanim(i, 0, 0), 1), "") end end
 
---[====[
+-- mdltype:
+--    a -> alpha test
+--    e -> envmap
+--    n -> normalmap
+--    s -> spec
+--    m -> masks
+--    B -> matrix skeletal animation
+--    b -> dual-quat skeletal animation
 
-// mdltype:
-//    a -> alpha test
-//    e -> envmap
-//    n -> normalmap
-//    s -> spec
-//    m -> masks
-//    B -> matrix skeletal animation
-//    b -> dual-quat skeletal animation
+modelvertexshader = function(...)
+    local arg = { ... }
+    local modeltype = arg[1]
 
-mdlopt = [ >= (strstr $modeltype $arg1) 0 ]
+    local mdlopt = {
+        a = modeltype:find("a") ~= nil,
+        e = modeltype:find("e") ~= nil,
+        n = modeltype:find("n") ~= nil,
+        s = modeltype:find("s") ~= nil,
+        m = modeltype:find("m") ~= nil,
+        B = modeltype:find("B") ~= nil,
+        b = modeltype:find("b") ~= nil,
+    }
 
-modelvertexshader = [
-    modeltype = $arg1
-    result [
-        @(if (|| (mdlopt "b") (mdlopt "B")) [skelanimdefs $arg2 1 (mdlopt "n")])
-        @(if (mdlopt "n") [result [
+    return ([==[
+        @((mdlopt.b or mdlopt.B) and skelanimdefs(arg[2], 1, mdlopt.n) or nil)
+        @(mdlopt.n and [[
             #pragma CUBE2_attrib vtangent 1
             attribute vec4 vtangent;
-        ]])
+        ]] or nil)
         uniform vec4 ocamera, texscroll;
-        @(if (mdlopt "n") [result [
+        @(mdlopt.n and [[
             varying mat3 world;
-            @(if (mdlopt "e") [result [
-                varying vec3 camvec;
-            ]])
-        ]] [result [
+            @(mdlopt.e and "varying vec3 camvec;" or nil)
+        ]] or [=[
             varying vec3 nvec;
-            @(if (mdlopt "e") [result [
+            @(mdlopt.e and [[
                 uniform vec4 envmapscale;
                 varying vec3 rvec;
                 varying float rmod;
             ]])
-        ]])
-        @(gdepthinterp)
+        ]=])
+        @(gdepthinterp())
         void main(void)
         {
-            @(if (mdlopt "B") [skelmatanim $arg2 1 (mdlopt "n")])
-            @(if (mdlopt "b") [skelquatanim $arg2 1 (mdlopt "n")])
-            @(if (|| (mdlopt "b") (mdlopt "B")) [result [
+            @(mdlopt.B and skelmatanim (arg[2], 1, mdlopt.n) or nil)
+            @(mdlopt.b and skelquatanim(arg[2], 1, mdlopt.n) or nil)
+            @((mdlopt.b or mdlopt.B) and [[
                 gl_Position = gl_ModelViewProjectionMatrix * opos;
-            ]] [result [
+            ]] or [[
                 gl_Position = ftransform();
                 #define opos gl_Vertex
                 #define onormal gl_Normal
@@ -952,140 +958,144 @@ modelvertexshader = [
 
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy + texscroll.yz;
     
-            @(gdepthpackvert)
+            @(gdepthpackvert())
  
-            @(if (|| (mdlopt "e") (mdlopt "s")) [result [
+            @((mdlopt.e or mdlopt.s) and [[
                 vec3 camdir = normalize(ocamera.xyz - opos.xyz);
-            ]])
-
+            ]] or nil)
+ 
             mat3 objmat = mat3(gl_TextureMatrix[0][0].xyz, gl_TextureMatrix[0][1].xyz, gl_TextureMatrix[0][2].xyz);
-            @(if (mdlopt "n") [result [
-                @(if (mdlopt "e") [result [
+            @(mdlopt.n and [=[
+                @(mdlopt.e and [[
                     camvec = objmat * camdir;
-                ]])
+                ]] or nil)
                 // composition of tangent -> object and object -> world transforms
                 //   becomes tangent -> world
                 vec3 wnormal = objmat * onormal;
                 vec3 wtangent = objmat * otangent;
                 vec3 wbitangent = cross(wnormal, wtangent) * vtangent.w;
                 world = mat3(wtangent, wbitangent, wnormal);
-            ]] [result [
+            ]=] or [=[
                 nvec = objmat * onormal; 
-                @(if (mdlopt "e") [result [
+                @(mdlopt.e and [[
                     float invfresnel = dot(camdir, onormal);
                     rvec = objmat * (2.0*invfresnel*onormal - camdir);
-                    rmod = envmapscale.x*max(invfresnel, 0.0) + envmapscale.y;    
-                ]])
-            ]])
+                    rmod = envmapscale.x*max(invfresnel, 0.0) + envmapscale.y; 
+                ]] or nil)
+            ]=])
         }
-    ] 
-]
+    ]==]):eval_embedded(nil, { mdlopt = mdlopt, arg = arg }, _G) end
 
-modelfragmentshader = [
-    modeltype = $arg1
-    result [
-        @(if (|| (mdlopt "b") (mdlopt "B")) [skelanimfragdefs])
-        @(if (mdlopt "n") [result [
+modelfragmentshader = function(...)
+    local arg = { ... }
+    local modeltype = arg[1]
+
+    local mdlopt = {
+        a = modeltype:find("a") ~= nil,
+        e = modeltype:find("e") ~= nil,
+        n = modeltype:find("n") ~= nil,
+        s = modeltype:find("s") ~= nil,
+        m = modeltype:find("m") ~= nil,
+        B = modeltype:find("B") ~= nil,
+        b = modeltype:find("b") ~= nil,
+    }
+
+    return ([===[
+        @((mdlopt.b or mdlopt.B) and skelanimfragdefs() or nil)
+        @(mdlopt.n and [=[
             varying mat3 world; 
-            @(if (mdlopt "e") [result [
+            @(mdlopt.e and [[
                 uniform vec4 envmapscale;
                 varying vec3 camvec;
-            ]])
-        ]] [result [
+            ]] or nil)
+        ]=] or [=[
             varying vec3 nvec;
-            @(if (mdlopt "e") [result [
+            @(mdlopt.e and [[
                 varying vec3 rvec;
                 varying float rmod;
-            ]])
-        ]])
-        @(if (|| (mdlopt "s") (mdlopt "m")) [result [uniform vec4 maskscale;]])
-        @(if (mdlopt "a") [result [uniform float alphatest;]])
+            ]] or nil)
+        ]=])
+        @((mdlopt.s or mdlopt.m) and "uniform vec4 maskscale;" or nil)
+        @(mdlopt.a and "uniform float alphatest;" or nil)
         uniform sampler2D tex0;
-        @(if (mdlopt "m") [result [uniform sampler2D tex1;]])
-        @(if (mdlopt "e") [result [uniform samplerCube tex2;]])
-        @(if (mdlopt "n") [result [uniform sampler2D tex3;]])
-        @(gdepthinterp)
+        @(mdlopt.m and "uniform sampler2D tex1;" or nil)
+        @(mdlopt.e and "uniform samplerCube tex2;" or nil)
+        @(mdlopt.n and "uniform sampler2D tex3;" or nil)
+        @(gdepthinterp())
         void main(void)
         {
             vec4 diffuse = texture2D(tex0, gl_TexCoord[0].xy);
 
-            @(if (mdlopt "a") [result [
+            @(mdlopt.a and [[
                 if(diffuse.a <= alphatest)
                     discard;
                 gl_FragData[0] = vec4(diffuse.rgb, 1.0);
-            ]] [result [
+            ]] or [[
                 gl_FragData[0] = diffuse;
             ]])
 
-            @(if (mdlopt "m") [result [
+            @(mdlopt.m and [[
                 vec3 masks = texture2D(tex1, gl_TexCoord[0].xy).rgb;
             ]])
 
-            @(if (mdlopt "n") [result [
+            @(mdlopt.n and [[
                 vec3 normal = texture2D(tex3, gl_TexCoord[0].xy).rgb - 0.5;
                 normal = normalize(world * normal);
-            ]] [result [
+            ]] or [[
                 vec3 normal = normalize(nvec);
             ]])
 
             gl_FragData[1].rgb = 0.5*normal+0.5;
 
-            @(if (mdlopt "s") [result [
+            @(mdlopt.s and [[
                 float spec = maskscale.x;
-                @(if (mdlopt "m") [result [spec *= masks.r;]])   // specmap in red channel
+                @(mdlopt.m and "spec *= masks.r;" or nil) // specmap in red channel
                 gl_FragData[2].a = 0.5*spec;
-            ]] [result [
+            ]] or [[
                 gl_FragData[2].a = 0.0;
             ]])
 
-            @(if (mdlopt "m") [result [
+            @(mdlopt.m and [==[
                 float fade = masks.g;
                 gl_FragData[2].rgb = diffuse.rgb*maskscale.y*masks.g; // glow mask in green channel
-                @(if (mdlopt "e") [result [
-                    @(if (mdlopt "n") [result [
+                @(mdlopt.e and [=[
+                    @(mdlopt.n and [[
                         vec3 camn = normalize(camvec);
                         float invfresnel = dot(camn, normal);
                         vec3 rvec = 2.0*invfresnel*normal - camn;
                         float rmod = envmapscale.x*max(invfresnel, 0.0) + envmapscale.y;
-                    ]])
+                    ]] or nil)
                     vec3 reflect = textureCube(tex2, rvec).rgb; 
                     fade += rmod*masks.b; // envmap mask in blue channel
                     gl_FragData[2].rgb += reflect*(0.5*rmod*masks.b);
-                ]])
+                ]=] or nil)
                 gl_FragData[0].rgb *= 1.0-fade;
-            ]] [result [
+            ]==] or [[
                 gl_FragData[2].rgb = vec3(0.0);
             ]])
 
-            @(gdepthpackfrag)
+            @(gdepthpackfrag())
         }
-    ]
-]
+    ]===]):eval_embedded(nil, { mdlopt = mdlopt, arg = arg }, _G) end
 
-modelanimshader = [
-    fraganimshader = (? (> $arg2 0) $arg2)
-    reuseanimshader = $fraganimshader
-    if $ati_ubo_bug [
-        reuseanimshader = (format "%1 , %2" $arg2 (> $arg2 0))
-        if (= $arg4 1) [
-            fraganimshader = (modelfragmentshader (concatword "bB" $arg3))
-        ] [
-            fraganimshader = $reuseanimshader
-        ]
-    ]
-    variantshader 0 $arg1 $arg2 (modelvertexshader (concatword "B" $arg3) $arg4) $fraganimshader
-    variantshader 0 $arg1 (+ $arg2 1) (modelvertexshader (concatword "b" $arg3) $arg4) $reuseanimshader
-]
-    
-modelshader = [
-    defershader 0 $arg1 [
-        basemodeltype = [@@arg2]
-        shader 0 @arg1 (modelvertexshader $basemodeltype) (modelfragmentshader $basemodeltype)
-        loop i 4 [
-            modelanimshader @@arg1 0 $basemodeltype (+ $i 1)
-        ]
-    ]
-]
+modelanimshader = function(arg1, arg2, arg3, arg4)
+    local fraganimshader = arg2 > 0 and tostring(arg2) or ""
+    local reuseanimshader = fraganimshader
+    if EVAR.ati_ubo_bug ~= 0 then
+        reuseanimshader = ("%i , %i"):format(arg2, arg2 > 0 and 1 or 0)
+        fraganimshader = (arg4 == 1) and modelfragmentshader("bB" .. arg3) or reuseanimshader
+    end
+    CAPI.variantshader(0, arg1, arg2, modelvertexshader("B" .. arg3, arg4), fraganimshader)
+    CAPI.variantshader(0, arg1, arg2 + 1, modelvertexshader("b" .. arg3, arg4), reuseanimshader) end
+
+modelshader = function(arg1, arg2)
+    CAPI.defershader(0, arg1, function()
+        local basemodeltype = arg2
+        CAPI.shader(0, arg1, modelvertexshader(basemodeltype), modelfragmentshader(basemodeltype))
+        for i = 1, 4 do
+            modelanimshader(arg1, 0, basemodeltype, i) end end) end
+
+--[====[
 
 ////////////////////////////////////////////////
 //
