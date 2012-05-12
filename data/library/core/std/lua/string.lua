@@ -71,7 +71,10 @@ string.insert = function(str, idx, new)
     contain more embedded code, as the evaluation is recursive. Useful
     for various sorts of templating. The optional second argument specifies
     a prefix before the (embedded code), defaulting to "@". The third argument
-    allows you to optionally set the environment of execution.
+    allows you to optionally set the environment of execution. The fourth
+    argument allows you to set "alternative environment", from which
+    things will be indexed if they're not in the primary environment
+    (useful for i.e. global variables).
 
     (start code)
         assert((\[\[hello @(return "farkin @(return 'world')")\]\]
@@ -86,14 +89,16 @@ string.insert = function(str, idx, new)
 
     Non-string returns will be automatically stringified if possible.
 ]]
-string.eval_embedded = function(str, prefix, env)
+string.eval_embedded = function(str, prefix, env, envalt)
     prefix = prefix or "@"
     local ret = str:gsub(prefix .. "%b()", function(s)
         s = s:sub(3, #s - 1)
         s = s:find("return ") and s or "return " .. s
-        return tostring((env
+        env = envalt and setmetatable(env, { __index = envalt }) or env
+        local r = (env
             and setfenv(loadstring(s), env)
-            or  loadstring(s))()):eval_embedded(prefix) end)
+            or  loadstring(s))()
+        return r and tostring(r):eval_embedded(prefix, env, envalt) or "" end)
     return ret end
 
 --[[! Function: string.template
