@@ -2395,22 +2395,18 @@ lazyshader(0, "moviev", [[
     }
 ]])
 
---[====[
+--
+-- reflective/refractive water shaders:
+--
 
-///////////////////////////////////////////////////
-//
-// reflective/refractive water shaders:
-//
-///////////////////////////////////////////////////
-
-shader 0 "refractmask" [
+CAPI.shader(0, "refractmask", [[
     varying float lineardepth;
     void main(void)
     {
         gl_Position = ftransform();
         lineardepth = dot(gl_ModelViewMatrixTranspose[2], gl_Vertex);
     }
-] [
+]], ([=[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     @(gdepthunpackparams)
@@ -2419,25 +2415,25 @@ shader 0 "refractmask" [
     uniform float refractdepth;
     void main(void)
     {
-        @(if (= $gdepthformat 1) [result [
+        @(EVAR.gdepthformat == 1 and [[
             vec3 packdepth = texture2DRect(tex0, gl_FragCoord.xy).rgb;
             float depth = dot(packdepth, gdepthunpackparams);
-        ]] [result [
-            @(gdepthunpack depth tex0 gl_FragCoord.xy) 
+        ]] or [[
+            @(gdepthunpack("depth", "tex0", "gl_FragCoord.xy")) 
             vec3 packdepth = depth * gdepthpackparams.xyz;
             packdepth.yz = fract(packdepth.yz);
             packdepth.xy -= packdepth.yz * (1.0/255.0);
         ]])
         gl_FragColor = vec4(packdepth, clamp(refractdepth*(lineardepth - depth), 0.0, 1.0));
     }
-]
+]=]):eval_embedded())
 
-lazyshader 0 "waterminimap" [
+lazyshader(0, "waterminimap", [[
     void main(void)
     {
         gl_Position = ftransform();
     }
-] [
+]], [[
     uniform vec3 watercolor;
     void main(void)
     {
@@ -2445,111 +2441,110 @@ lazyshader 0 "waterminimap" [
         gl_FragData[1] = vec4(0.5, 0.5, 1.0, 0.0);
         gl_FragData[2] = vec4(watercolor, 0.0);
     }
-]
+]])
 
-watershader = [
-  lazyshader 0 $arg1 [
-    uniform vec3 camera;
-    varying vec3 surface, esurface;
-    void main(void)
-    {
-        gl_Position = ftransform();
-        surface = gl_Vertex.xyz;
-        @(? (>= (strstr $arg1 "reflect") 0) [
-            esurface = (gl_TextureMatrix[1] * gl_Vertex).xyz;
-        ])
-        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy * 0.1;
-    }
-  ] [
-    #extension GL_ARB_texture_rectangle : enable
-    uniform float millis;
-    uniform vec3 camera;
-    varying vec3 surface, esurface;
-    uniform sampler2D tex0, tex1;
-    uniform sampler2DRect tex7, tex8, tex9;
-    uniform vec4 viewsize;
-    uniform vec3 watercolor, waterdeepcolor, waterdeepfade;
-    uniform float waterfog, waterspec, waterreflectstep, waterrefract;
-    @(? (>= (strstr $arg1 "caustics") 0) [
-        uniform vec3 causticsS, causticsT;
-        uniform vec3 causticsblend;
-        uniform sampler2D tex2, tex3;
-    ])
-    @(? (>= (strstr $arg1 "env") 0) [
-        uniform samplerCube tex4;
-    ])
-    @(gdepthunpackparams)
-    void main(void)
-    {
-        vec3 camdir = camera - surface, camvec = normalize(camdir);
-        vec3 bump = texture2D(tex0, gl_TexCoord[0].xy + millis*0.05 + 0.23).rgb;
-        vec3 bump2 = texture2D(tex0, gl_TexCoord[0].xy - millis*0.05 + 0.71).rgb;
-        vec3 bump3 = texture2D(tex0, gl_TexCoord[0].xy + millis*vec2(0.05, -0.05) + 0.49).rgb;
-        vec3 bump4 = texture2D(tex0, gl_TexCoord[0].xy + millis*vec2(-0.05, 0.05) + 0.67).rgb;
-        bump = normalize(bump + bump2 + bump3 + bump4 - 2.0);
-        vec2 rtc = bump.xy*waterrefract;
+watershader = function(arg1)
+    lazyshader(0, arg1, ([=[
+        uniform vec3 camera;
+        varying vec3 surface, esurface;
+        void main(void)
+        {
+            gl_Position = ftransform();
+            surface = gl_Vertex.xyz;
+            @(arg1:find("reflect") ~= nil and [[
+                esurface = (gl_TextureMatrix[1] * gl_Vertex).xyz;
+            ]] or nil)
+            gl_TexCoord[0].xy = gl_MultiTexCoord0.xy * 0.1;
+        }
+    ]=]):eval_embedded(nil, { arg1 = arg1 }), ([==[
+        #extension GL_ARB_texture_rectangle : enable
+        uniform float millis;
+        uniform vec3 camera;
+        varying vec3 surface, esurface;
+        uniform sampler2D tex0, tex1;
+        uniform sampler2DRect tex7, tex8, tex9;
+        uniform vec4 viewsize;
+        uniform vec3 watercolor, waterdeepcolor, waterdeepfade;
+        uniform float waterfog, waterspec, waterreflectstep, waterrefract;
+        @(arg1:find("caustics") ~= nil and [[
+            uniform vec3 causticsS, causticsT;
+            uniform vec3 causticsblend;
+            uniform sampler2D tex2, tex3;
+        ]] or nil)
+        @(arg1:find("env") ~= nil and [[
+            uniform samplerCube tex4;
+        ]] or nil)
+        @(gdepthunpackparams)
+        void main(void)
+        {
+            vec3 camdir = camera - surface, camvec = normalize(camdir);
+            vec3 bump = texture2D(tex0, gl_TexCoord[0].xy + millis*0.05 + 0.23).rgb;
+            vec3 bump2 = texture2D(tex0, gl_TexCoord[0].xy - millis*0.05 + 0.71).rgb;
+            vec3 bump3 = texture2D(tex0, gl_TexCoord[0].xy + millis*vec2(0.05, -0.05) + 0.49).rgb;
+            vec3 bump4 = texture2D(tex0, gl_TexCoord[0].xy + millis*vec2(-0.05, 0.05) + 0.67).rgb;
+            bump = normalize(bump + bump2 + bump3 + bump4 - 2.0);
+            vec2 rtc = bump.xy*waterrefract;
 
-        float rmask = texture2DRect(tex7, gl_FragCoord.xy + rtc).a;
-        rtc = gl_FragCoord.xy + rtc*rmask;
-        vec3 rcolor = texture2DRect(tex8, rtc).rgb;
-        float rdepth = dot(texture2DRect(tex7, rtc).rgb, gdepthunpackparams);
-        vec3 rpos = (gl_TextureMatrix[0] * vec4(rdepth*rtc, rdepth, 1.0)).xyz;
+            float rmask = texture2DRect(tex7, gl_FragCoord.xy + rtc).a;
+            rtc = gl_FragCoord.xy + rtc*rmask;
+            vec3 rcolor = texture2DRect(tex8, rtc).rgb;
+            float rdepth = dot(texture2DRect(tex7, rtc).rgb, gdepthunpackparams);
+            vec3 rpos = (gl_TextureMatrix[0] * vec4(rdepth*rtc, rdepth, 1.0)).xyz;
 
-        @(if (>= (strstr $arg1 "under") 0) [result [
-            float above = rpos.z - surface.z; 
-            float alpha = clamp(above, 0.0, 1.0);
-        ]] [result [
-            vec3 rdir = rpos.xyz - camera;
-            float raydepth = length(rdir)*(1.0 + camdir.z/rdir.z);
-            float deep = surface.z - rpos.z;
-            float alpha = clamp(deep*0.5, 0.0, 1.0);
+            @(arg1:find("under") ~= nil and [[
+                float above = rpos.z - surface.z; 
+                float alpha = clamp(above, 0.0, 1.0);
+            ]] or [=[
+                vec3 rdir = rpos.xyz - camera;
+                float raydepth = length(rdir)*(1.0 + camdir.z/rdir.z);
+                float deep = surface.z - rpos.z;
+                float alpha = clamp(deep*0.5, 0.0, 1.0);
 
-            @(? (>= (strstr $arg1 "caustics") 0) [
-                vec2 ctc = vec2(dot(causticsS, rpos.xyz), dot(causticsT, rpos.xyz));
-                float caustics = causticsblend.x*texture2D(tex2, ctc).r + causticsblend.y*texture2D(tex3, ctc).r + causticsblend.z;
-                rcolor *= caustics;
-            ])
+                @(arg1:find("caustics") ~= nil and [[
+                    vec2 ctc = vec2(dot(causticsS, rpos.xyz), dot(causticsT, rpos.xyz));
+                    float caustics = causticsblend.x*texture2D(tex2, ctc).r + causticsblend.y*texture2D(tex3, ctc).r + causticsblend.z;
+                    rcolor *= caustics;
+                ]] or nil)
 
-            rcolor = mix(rcolor, watercolor, clamp(raydepth * waterfog, 0.0, 1.0));
-            rcolor = mix(rcolor, waterdeepcolor, clamp(deep * waterdeepfade, 0.0, 1.0));
-        ]])
+                rcolor = mix(rcolor, watercolor, clamp(raydepth * waterfog, 0.0, 1.0));
+                rcolor = mix(rcolor, waterdeepcolor, clamp(deep * waterdeepfade, 0.0, 1.0));
+            ]=])
 
-        @(if (>= (strstr $arg1 "reflect") 0) [result [
-            vec3 edir = (gl_TextureMatrix[1] * vec4(-waterreflectstep*reflect(camvec, bump), 0.0)).xyz;
-            vec3 epos = esurface + edir;
-            @(loopconcat i 4 [result [
-                @(gdepthunpackproj [edepth@[i]] tex9 epos [
-                    epos += step(edepth@[i], epos.z)*edir;
-                ] [
-                    epos += step(gdepthscale.x, epos.z*(edepth@[i]*gdepthscale.y + gdepthscale.z))*edir;
-                ])
-            ]])
-            vec2 etc = epos.xy/epos.z;
-            vec3 reflect = texture2DRect(tex8, etc).rgb;
-            float edgefade = clamp(4.0*(0.5 - max(abs(etc.x*viewsize.z - 0.5), abs(etc.y*viewsize.w - 0.5))), 0.0, 1.0);
-            float underfade = clamp(0.125*(dot(gl_TextureMatrixInverseTranspose[1][2], vec4(epos, 1.0)) - surface.z), 0.0, 1.0);
-            float fresnel = 0.25 + 0.75*pow(1.0 - max(dot(camvec, bump), 0.0), 4.0);
-            rcolor = mix(rcolor, reflect, fresnel*edgefade*underfade);
-        ]] [if (>= (strstr $arg1 "env") 0) [result [
-            vec3 reflect = textureCube(tex4, -reflect(camvec, bump)).rgb*0.5;
-            float fresnel = 0.5*pow(1.0 - max(dot(camvec, bump), 0.0), 4.0);
-            rcolor = mix(rcolor, reflect, fresnel);
-        ]]])
+            @(arg1:find("reflect") ~= nil and [=[
+                vec3 edir = (gl_TextureMatrix[1] * vec4(-waterreflectstep*reflect(camvec, bump), 0.0)).xyz;
+                vec3 epos = esurface + edir;
+                @(([[
+                    @(gdepthunpackproj("edepth$i", "tex9", "epos",
+                        "epos += step(edepth$i, epos.z)*edir;",
+                        "epos += step(gdepthscale.x, epos.z*(edepth$i*gdepthscale.y + gdepthscale.z))*edir;"))
+                ]]):reppn("$i", 0, 4))
+                vec2 etc = epos.xy/epos.z;
+                vec3 reflect = texture2DRect(tex8, etc).rgb;
+                float edgefade = clamp(4.0*(0.5 - max(abs(etc.x*viewsize.z - 0.5), abs(etc.y*viewsize.w - 0.5))), 0.0, 1.0);
+                float underfade = clamp(0.125*(dot(gl_TextureMatrixInverseTranspose[1][2], vec4(epos, 1.0)) - surface.z), 0.0, 1.0);
+                float fresnel = 0.25 + 0.75*pow(1.0 - max(dot(camvec, bump), 0.0), 4.0);
+                rcolor = mix(rcolor, reflect, fresnel*edgefade*underfade);
+            ]=] or (arg1:find("env") ~= nil and [[
+                vec3 reflect = textureCube(tex4, -reflect(camvec, bump)).rgb*0.5;
+                float fresnel = 0.5*pow(1.0 - max(dot(camvec, bump), 0.0), 4.0);
+                rcolor = mix(rcolor, reflect, fresnel);
+            ]] or nil))
 
-        gl_FragData[0] = vec4(0.0, 0.0, 0.0, alpha);
-        gl_FragData[1] = vec4(bump*0.5+0.5, 0.0);
-        gl_FragData[2] = vec4(rcolor*alpha, waterspec*alpha);
-    }
-  ]  
-]
+            gl_FragData[0] = vec4(0.0, 0.0, 0.0, alpha);
+            gl_FragData[1] = vec4(bump*0.5+0.5, 0.0);
+            gl_FragData[2] = vec4(rcolor*alpha, waterspec*alpha);
+        }
+    ]==]):eval_embedded(nil, { arg1 = arg1 }, _G)) end
 
-watershader "water"
-watershader "watercaustics"
-watershader "waterenv"
-watershader "waterenvcaustics"
-watershader "waterreflect"
-watershader "waterreflectcaustics"
-watershader "underwater"
+watershader("water")
+watershader("watercaustics")
+watershader("waterenv")
+watershader("waterenvcaustics")
+watershader("waterreflect")
+watershader("waterreflectcaustics")
+watershader("underwater")
+
+--[====[
 
 causticshader = [
     lazyshader 0 $arg1 [
