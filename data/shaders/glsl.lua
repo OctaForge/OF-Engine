@@ -1,6 +1,6 @@
 lazyshader = function(stype, name, vert, frag)
     CAPI.defershader (stype, name, function()
-        CAPI.shader  (stype, name, vert, frag) end) end
+        CAPI.shader  (stype, name, vert:eval_embedded(), frag:eval_embedded()) end) end
 
 gdepthinterp = function()
     if EVAR.gdepthformat ~= 0 then
@@ -1922,64 +1922,59 @@ for i = 1, 7 do
             CAPI.altshader(("blurx%irect"):format(i), ("blurx%irect"):format(i - 1))
             CAPI.altshader(("blury%irect"):format(i), ("blury%irect"):format(i - 1)) end end end
 
---[====[
+--
+-- full screen shaders: 
+--
 
-////////////////////////////////////////////////
-//
-// full screen shaders: 
-//
-////////////////////////////////////////////////
-
-fsvs = [
+fsvs = [[
     void main(void)
     {
         gl_Position = gl_Vertex;   // woohoo, no mvp :) 
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-]
+]]
 
-fsps = [
+fsps = [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0; 
     void main(void)
     {
         vec4 sample = texture2DRect(tex0, gl_TexCoord[0].xy);
-]
+]]
 
-setup4corners = [
+setup4corners = [[
     gl_TexCoord[1].xy = gl_MultiTexCoord0.xy + vec2(-1.5, -1.5);
     gl_TexCoord[2].xy = gl_MultiTexCoord0.xy + vec2( 1.5, -1.5);
     gl_TexCoord[3].xy = gl_MultiTexCoord0.xy + vec2(-1.5,  1.5);
     gl_TexCoord[4].xy = gl_MultiTexCoord0.xy + vec2( 1.5,  1.5);
-]
+]]
 
-sample4corners = [
+sample4corners = [[
     vec4 s00 = texture2DRect(tex0, gl_TexCoord[1].xy);
     vec4 s02 = texture2DRect(tex0, gl_TexCoord[2].xy);
     vec4 s20 = texture2DRect(tex0, gl_TexCoord[3].xy);
     vec4 s22 = texture2DRect(tex0, gl_TexCoord[4].xy);
-]
+]]
 
-// some simple ones that just do an effect on the RGB value...
+-- some simple ones that just do an effect on the RGB value...
 
-lazyshader 0 "invert" [ @fsvs } ] [ @fsps gl_FragColor = 1.0 - sample; } ]
-lazyshader 0 "gbr"    [ @fsvs } ] [ @fsps gl_FragColor = sample.yzxw; } ]
-lazyshader 0 "bw"     [ @fsvs } ] [ @fsps gl_FragColor = vec4(dot(sample.xyz, vec3(0.333))); } ]
+lazyshader(0, "invert", "@(fsvs) }", "@fsps gl_FragColor = 1.0 - sample; }")
+lazyshader(0, "gbr",    "@(fsvs) }", "@fsps gl_FragColor = sample.yzxw; }")
+lazyshader(0, "bw",     "@(fsvs) }", "@fsps gl_FragColor = vec4(dot(sample.xyz, vec3(0.333))); }")
 
-// sobel
+-- sobel
 
-lazyshader 0 "sobel" [ @fsvs @setup4corners } ] [
-    @fsps
-    @sample4corners
-
+lazyshader(0, "sobel", "@(fsvs) @(setup4corners) }", [[
+    @(fsps)
+    @(sample4corners)
         vec4 t = s00 + s20 - s02 - s22;
         vec4 u = s00 + s02 - s20 - s22;
         gl_FragColor = sample + t*t + u*u;
     }
-]
+]])
 
-// rotoscope
+-- rotoscope
 
-lazyshader 0 "rotoscope" [
+lazyshader(0, "rotoscope", [[
     uniform vec4 params;
     void main(void)
     {
@@ -1992,7 +1987,7 @@ lazyshader 0 "rotoscope" [
         gl_TexCoord[3] = vec4(-1.0,  1.0,  0.0, 1.0)*params.x + gl_MultiTexCoord0.xyyx;
         gl_TexCoord[4] = vec4( 0.0, -1.0,  1.0, 1.0)*params.x + gl_MultiTexCoord0.xyyx;
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0; 
     void main(void)
@@ -2028,125 +2023,123 @@ lazyshader 0 "rotoscope" [
         c11 *= dot(cc, vec3(0.5, 0.5, 1.5)); 
         
         gl_FragColor = c11 * max(cc.z, sobel);
-        
     }
-]
+]])
 
-blur3shader = [
-    lazyshader 0 $arg1 [ 
+blur3shader = function(arg1, arg2, arg3)
+    lazyshader(0, arg1, ([[
         void main(void)
         {
             gl_Position = gl_Vertex;
-            gl_TexCoord[0].xy = gl_MultiTexCoord0.xy + vec2(@(if $arg2 -0.5 0.0), @(if $arg3 -0.5 0.0));
-            gl_TexCoord[1].xy = gl_MultiTexCoord0.xy + vec2(@(if $arg2  0.5 0.0), @(if $arg3  0.5 0.0));
+            gl_TexCoord[0].xy = gl_MultiTexCoord0.xy + vec2(@(arg2 and -0.5 or 0.0), @(arg3 and -0.5 or 0.0));
+            gl_TexCoord[1].xy = gl_MultiTexCoord0.xy + vec2(@(arg2 and  0.5 or 0.0), @(arg3 and  0.5 or 0.0));
         }
-    ] [
+    ]]):eval_embedded(nil, { arg2 = arg2, arg3 = arg3 }), [[
         #extension GL_ARB_texture_rectangle : enable
         uniform sampler2DRect tex0; 
         void main(void)
         {
             gl_FragColor = 0.5*(texture2DRect(tex0, gl_TexCoord[0].xy) + texture2DRect(tex0, gl_TexCoord[1].xy));
         }
-    ]
-]
-blur3shader hblur3 1 0
-blur3shader vblur3 0 1
+    ]]) end
+blur3shader("hblur3", 1, 0)
+blur3shader("vblur3", 0, 1)
 
-blur5shader = [
-    lazyshader 0 $arg1 [ 
-        @fsvs 
-            gl_TexCoord[1].xy = gl_MultiTexCoord0.xy + vec2(@(if $arg2 -1.333 0.0), @(if $arg3 -1.333 0.0));
-            gl_TexCoord[2].xy = gl_MultiTexCoord0.xy + vec2(@(if $arg2  1.333 0.0), @(if $arg3  1.333 0.0));
+blur5shader = function(arg1, arg2, arg3)
+    lazyshader(0, arg1, ([[
+        void main(void)
+        {
+            gl_Position = gl_Vertex;
+            gl_TexCoord[0].xy = gl_MultiTexCoord0.xy + vec2(@(arg2 and -1.333 or 0.0), @(arg3 and -1.333 or 0.0));
+            gl_TexCoord[1].xy = gl_MultiTexCoord0.xy + vec2(@(arg2 and  1.333 or 0.0), @(arg3 and  1.333 or 0.0));
         }
-    ] [
+    ]]):eval_embedded(nil, { arg2 = arg2, arg3 = arg3 }), [[
         #extension GL_ARB_texture_rectangle : enable
         uniform sampler2DRect tex0; 
         void main(void)
         {
             gl_FragColor = 0.4*texture2DRect(tex0, gl_TexCoord[0].xy) + 0.3*(texture2DRect(tex0, gl_TexCoord[1].xy) + texture2DRect(tex0, gl_TexCoord[2].xy));
         }
-    ]
-]
-blur5shader hblur5 1 0
-blur5shader vblur5 0 1
+    ]]) end
+blur5shader("hblur5", 1, 0)
+blur5shader("vblur5", 0, 1)
 
-rotoscope = [
-    clearpostfx
-    if (>= $numargs 1) [addpostfx rotoscope 0 0 0 $arg1]
-    if (>= $numargs 2) [
-        if (= $arg2 1) [addpostfx hblur3; addpostfx vblur3]
-        if (= $arg2 2) [addpostfx hblur5; addpostfx vblur5]
-    ]
-]
+rotoscope = function(...)
+    local arg = { ... }
+    CAPI.clearpostfx()
+    if #arg >= 1 then CAPI.addpostfx("rotoscope", 0, 0, 0, arg[1]) end
+    if #arg >= 2 then
+        if arg[2] == 1 then
+            CAPI.addpostfx("hblur3")
+            CAPI.addpostfx("vblur3") end
+        if arg[2] == 2 then
+            CAPI.addpostfx("hblur5")
+            CAPI.addpostfx("vblur5") end end end
 
-// bloom-ish
+-- bloom-ish
 
-lazyshader 0 "bloom_scale" [ @fsvs @setup4corners } ] [
-    @fsps
-    @sample4corners
+lazyshader(0, "bloom_scale", "@(fsvs) @(setup4corners) }", [[
+    @(fsps)
+    @(sample4corners)
         gl_FragColor = 0.2 * (s02 + s00 + s22 + s20 + sample);
     }
-]
+]])
 
-lazyshader 0 "bloom_init" [ @fsvs } ] [
-    @fsps
+lazyshader(0, "bloom_init", "@(fsvs) }", [[
+    @(fsps)
         float t = max(sample.r, max(sample.g, sample.b));
         gl_FragColor = t*t*sample;
     }
-]
+]])
 
-bloomshader = [
-  defershader 0 $arg1 [
-    forceshader "bloom_scale"
-    forceshader "bloom_init"
-    shader 0 @arg1 [
-        void main(void)
-        {
-            gl_Position = gl_Vertex;
-            gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-            vec2 tc = gl_MultiTexCoord0.xy;
-            @@(loopconcat i $arg2 [concat [
-                tc *= 0.5;
-                gl_TexCoord[@@(+ $i 1)].xy = tc;
-            ]])
-        }
-    ] [
-        #extension GL_ARB_texture_rectangle : enable
-        uniform vec4 params;
-        uniform sampler2DRect tex0 @@(loopconcat i $arg2 [format ", tex%1" (+ $i 1)]); 
-        void main(void)
-        {
-            vec4 sample = texture2DRect(tex0, gl_TexCoord[0].xy);
-            @@(loopconcat i $arg2 [
-                format [
-                    @(? (> $i 0) "bloom +=" "vec4 bloom =") texture2DRect(tex%1, gl_TexCoord[%1].xy);
-                ] (+ $i 1)
-            ])
-            gl_FragColor = bloom*params.x + sample;
-        }
-    ]
-  ]
-]
+bloomshader = function(arg1, arg2)
+    CAPI.defershader(0, arg1, function()
+        CAPI.forceshader("bloom_scale")
+        CAPI.forceshader("bloom_init")
+        CAPI.shader(0, arg1, ([=[
+            void main(void)
+            {
+                gl_Position = gl_Vertex;
+                gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+                vec2 tc = gl_MultiTexCoord0.xy;
+                @(([[
+                    tc *= 0.5;
+                    gl_TexCoord[$i].xy = tc;
+                ]]):reppn("$i", 1, arg2))
+            }
+        ]=]):eval_embedded(nil, { arg2 = arg2 }, _G), ([=[
+            #extension GL_ARB_texture_rectangle : enable
+            uniform vec4 params;
+            uniform sampler2DRect tex0 @((", tex$i"):reppn("$i", 1, arg2)); 
+            void main(void)
+            {
+                vec4 sample = texture2DRect(tex0, gl_TexCoord[0].xy);
+                @(([[
+                    @($i > 1 and "bloom +=" or "vec4 bloom =") texture2DRect(tex$i, gl_TexCoord[$i].xy);
+                ]]):reppn("$i", 1, arg2))
+                gl_FragColor = bloom*params.x + sample;
+            }
+        ]=]):eval_embedded(nil, { arg2 = arg2 }, _G)) end) end
 
-bloomshader bloom1 1
-bloomshader bloom2 2
-bloomshader bloom3 3
-bloomshader bloom4 4
-bloomshader bloom5 5
-bloomshader bloom6 6
+bloomshader("bloom1", 1)
+bloomshader("bloom2", 2)
+bloomshader("bloom3", 3)
+bloomshader("bloom4", 4)
+bloomshader("bloom5", 5)
+bloomshader("bloom6", 6)
 
-setupbloom = [
-    addpostfx bloom_init 1 1 "+0"
-    loop i (- $arg1 1) [
-        addpostfx bloom_scale (+ $i 2) (+ $i 2) (concatword "+" (+ $i 1))
-    ]
-    addpostfx (concatword bloom $arg1) 0 0 (loopconcat i (+ $arg1 1) [result $i]) $arg2
-]
+setupbloom = function(arg1, arg2)
+    CAPI.addpostfx("bloom_init", 1, 1, "+0")
+    for i = 1, arg1 - 1 do
+        CAPI.addpostfx("bloom_scale", i + 1, i + 1, "+" .. i) end
+    CAPI.addpostfx("bloom" .. arg1, 0, 0, ("$i"):reppn("$i", 0, arg1 + 1), arg2) end
 
-bloom = [
-    clearpostfx
-    if (>= $numargs 1) [setupbloom 6 $arg1]
-]
+bloom = function(arg1)
+    CAPI.clearpostfx()
+    if arg1 then setupbloom(6, arg1) end end
+
+--[====[
+
 
 ////////////////////////////////////////////////
 //

@@ -108,28 +108,32 @@ string.eval_embedded = function(str, prefix, env, envalt)
     copies of the string str. Unlike string.rep, each copy of the string will
     be searched for a given pattern which will be then replaced with the
     current index. The indexes range from istart to iend. If iend is
-    smaller than istart, it'll iterate backwards.
+    smaller than istart, it'll iterate backwards. The copies will
+    be concatenated using a delimiter specified as the last argument.
+    If not given, a space will be used.
 
     (start code)
-        assert(("$i"):repp("$i", 5, 8) == "5678")
+        assert(("$i"):repp("$i", 5, 8) == "5 6 7 8")
     (end)
 ]]
-string.repp = function(str, pattern, istart, iend)
+string.repp = function(str, pattern, istart, iend, delim)
+    delim = delim or " "
     local ret = {}
     local bkw  = iend < istart and true or false
     for i = istart, iend, bkw and -1 or 1 do
         local s = str:gsub(pattern, tostring(i))
         table.insert(ret, s) end
-    return table.concat(ret) end
+    return table.concat(ret, delim) end
 
 --[[! Function: string.reppn
     See above. The difference is that the second number doesn't set the last
     index, but instead it sets the total amount of iterations (the first
     numbers remains the same as above).
 ]]
-string.reppn = function(str, pattern, is, n)
+string.reppn = function(str, pattern, is, n, delim)
+    delim = delim or " "
     local ret = {}
     for i = is, is + n - 1 do
         local s = str:gsub(pattern, tostring(i))
         table.insert(ret, s) end
-    return table.concat(ret) end
+    return table.concat(ret, delim) end
