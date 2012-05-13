@@ -111,6 +111,10 @@ namespace lapi
             homedir, PATHDIV, PATHDIV
         );
         lua_pushfstring(
+            L, ";%sdata%c?.lua",
+            homedir, PATHDIV
+        );
+        lua_pushfstring(
             L, ";%sdata%clibrary%c?%cinit.lua",
             homedir, PATHDIV, PATHDIV, PATHDIV
         );
@@ -119,9 +123,10 @@ namespace lapi
         lua_pushliteral(L, ";./data/library/core/?.lua");
         lua_pushliteral(L, ";./data/library/core/?/init.lua");
         lua_pushliteral(L, ";./data/?/init.lua");
+        lua_pushliteral(L, ";./data/?.lua");
         lua_pushliteral(L, ";./data/library/?/init.lua");
 
-        lua_concat(L,  6);
+        lua_concat(L,  8);
         Object str(L, -1);
         lua_pop   (L,  1);
         package["path"] = str;
