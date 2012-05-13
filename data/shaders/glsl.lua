@@ -2270,9 +2270,7 @@ particleshader = function(arg1)
 for i = 1, 2 do
     particleshader("particle" .. ({ "", "soft" })[i]) end
 
---[====[
-
-shader 0 "blendbrush" [
+CAPI.shader(0, "blendbrush", [[
     uniform vec4 texgenS, texgenT;
     void main(void)
     {
@@ -2280,36 +2278,36 @@ shader 0 "blendbrush" [
         gl_FrontColor = gl_Color;
         gl_TexCoord[0].xy = vec2(dot(texgenS, gl_Vertex), dot(texgenT, gl_Vertex));
     }
-] [
+]], [[
     uniform sampler2D tex0;
     void main(void)
     {
         gl_FragColor = texture2D(tex0, gl_TexCoord[0].xy) * gl_Color;
     }
-]
+]])
 
-lazyshader 0 "moviergb" [
+lazyshader(0, "moviergb", [[
     void main(void)
     {
         gl_Position = ftransform();
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     void main(void)
     {
         gl_FragColor = texture2DRect(tex0, gl_TexCoord[0].xy);
     }
-]
+]])
 
-lazyshader 0 "movieyuv" [
+lazyshader(0, "movieyuv", [[
     void main(void)
     {
         gl_Position = ftransform();
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     void main(void)
@@ -2320,9 +2318,9 @@ lazyshader 0 "movieyuv" [
                             dot(sample, vec3(0.256788, 0.504125, 0.097905)) + 0.062745,
                             0.0);
     }
-]
+]])
 
-lazyshader 0 "moviey" [
+lazyshader(0, "moviey", [[
     void main(void)
     {
         gl_Position = ftransform();
@@ -2331,7 +2329,7 @@ lazyshader 0 "moviey" [
         gl_TexCoord[2].xy = gl_MultiTexCoord0.xy + vec2( 0.5, 0.0);
         gl_TexCoord[3].xy = gl_MultiTexCoord0.xy + vec2( 1.5, 0.0);
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     void main(void)
@@ -2345,9 +2343,9 @@ lazyshader 0 "moviey" [
                             dot(sample1, vec3(0.256788, 0.504125, 0.097905)) + 0.062745,
                             dot(sample4, vec3(0.256788, 0.504125, 0.097905)) + 0.062745);
     }
-]
+]])
 
-lazyshader 0 "movieu" [
+lazyshader(0, "movieu", [[
     void main(void)
     {
         gl_Position = ftransform();
@@ -2356,7 +2354,7 @@ lazyshader 0 "movieu" [
         gl_TexCoord[2].xy = gl_MultiTexCoord0.xy + vec2( 1.0, 0.0);
         gl_TexCoord[3].xy = gl_MultiTexCoord0.xy + vec2( 3.0, 0.0);
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     void main(void)
@@ -2370,9 +2368,9 @@ lazyshader 0 "movieu" [
                             dot(sample1, vec3(-0.148224, -0.290992, 0.43921)) + 0.501961,
                             dot(sample4, vec3(-0.148224, -0.290992, 0.43921)) + 0.501961);
     }
-]
+]])
 
-lazyshader 0 "moviev" [
+lazyshader(0, "moviev", [[
     void main(void)
     {
         gl_Position = ftransform();
@@ -2381,7 +2379,7 @@ lazyshader 0 "moviev" [
         gl_TexCoord[2].xy = gl_MultiTexCoord0.xy + vec2( 1.0, 0.0);
         gl_TexCoord[3].xy = gl_MultiTexCoord0.xy + vec2( 3.0, 0.0);
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     void main(void)
@@ -2395,7 +2393,9 @@ lazyshader 0 "moviev" [
                             dot(sample1, vec3(0.439216, -0.367788, -0.071427)) + 0.501961,
                             dot(sample4, vec3(0.439216, -0.367788, -0.071427)) + 0.501961);
     }
-]
+]])
+
+--[====[
 
 ///////////////////////////////////////////////////
 //
