@@ -101,67 +101,21 @@ string.eval_embedded = function(str, prefix, env, envalt)
         return r and tostring(r):eval_embedded(prefix, env, envalt) or "" end)
     return ret end
 
---[[! Function: string.template
-    Parses a string template (a string with embedded Lua code), inspired by
-    luadoc parser system. Takes a string and a level to parse string from,
-    defaulting to 0. Everything with higher or equal level gets parsed.
-    The last optional argument is an associative table of items that
-    should be visible to the embedded Lua code as part of the
-    environment. Returns the parsed string.
+--[[! Function: string.repp
+    Returns a string that is the concatenation of iend-istart (or istart-iend)
+    copies of the string str. Unlike string.rep, each copy of the string will
+    be searched for a given pattern which will be then replaced with the
+    current index. The indexes range from istart to iend. If istart is
+    smaller than iend, it'll iterate backwards.
 
     (start code)
-        foo = "bar"
-        bar = "blah"
-        -- this returns "bar: blah"
-        -- first, gets parsed to "bar : <$0 return bar $0>"
-        -- then, it gets parsed to "bar : blah" (value of bar)
-        assert(string.template(
-            "bar : <$0 return <$1=foo$1> $0>") == "bar : blah")
+        assert(("$i"):repp("$i", 5, 8) == "5678")
     (end)
 ]]
-string.template = function(str, level, env)
-    level = level or 0
-    str   = str:gsub("<$" .. level .. "(.-)$" .. level .. ">", "<?lua %1 ?>")
-
-    env = env or _G
-    if not env._VERSION then
-        env = std.table.merge(env, std.table.copy(_G))
-        setmetatable(env, getmetatable(_G)) end
-
-    -- r - table to concatenate as retval; sp - start position
-    local r = {}; local sp = 1
-    -- it iterates if new matches are found. After last match, loop ends
-    while true do
-        -- ip - where the match begins, fp - where the match ends (numbers)
-        -- dm - not used, ex - "=" or "", in case of "=", match is expression
-        -- cd - the code / expression to run
-        local ip, fp, dm, ex, cd = str:find("<%?(%w*)[ \t]*(=?)(.-)%?>", sp)
-        -- no match? stop the loop
-        if not ip then break end
-
-        -- insert everything from start position to
-        -- match beginning into return table
-        table.insert(r, str:sub(sp, ip - 1))
-        -- expression? insert a return value of "return EXPRESSION"
-        -- command? insert a return value of the code.
-        if ex == "=" then
-            local ret = tostring(setfenv(loadstring("return " .. cd), env)())
-            if ret ~= "nil" then table.insert(r, ret) end
-        else
-            -- make sure there is no more embedded code by looping it.
-            local p  = cd:template(level + 1, env)
-            while p ~= cd do
-                  cd = p
-                  p  = p:template(level + 1, env) end
-
-            -- done, insert.
-            local rs = setfenv(loadstring(cd), env)()
-            if rs then table.insert(r, tostring(rs)) end end
-        -- set start position for next iteration as position
-        -- of first character after last match.
-        sp = fp + 1 end
-
-    -- make sure everything after last match is inserted too
-    table.insert(r, string.sub(str, sp, -1))
-    -- return concatenated output
-    return table.concat(r) end
+string.repp = function(str, pattern, istart, iend)
+    local ret = {}
+    local bkw  = iend < istart and true or false
+    for i = istart, iend, bkw and -1 or 1 do
+        local s = str:gsub(pattern, tostring(i))
+        table.insert(ret, s) end
+    return table.concat(ret) end

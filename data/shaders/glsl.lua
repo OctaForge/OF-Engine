@@ -1095,138 +1095,140 @@ modelshader = function(arg1, arg2)
         for i = 1, 4 do
             modelanimshader(arg1, 0, basemodeltype, i) end end) end
 
---[====[
+--
+-- gourad lighting model shader: cheaper, non-specular version for vegetation etc. gets used when spec==0
+--
 
-////////////////////////////////////////////////
-//
-// gourad lighting model shader: cheaper, non-specular version for vegetation etc. gets used when spec==0
-//
-////////////////////////////////////////////////
+modelshader("nospecmodel", "")
+modelshader("masksnospecmodel", "m")
+modelshader("envmapnospecmodel", "me")
+CAPI.altshader("envmapnospecmodel", "masksnospecmodel")
 
-modelshader "nospecmodel" ""
-modelshader "masksnospecmodel" "m"
-modelshader "envmapnospecmodel" "me"
-altshader envmapnospecmodel masksnospecmodel
+modelshader("bumpnospecmodel", "n")
+modelshader("bumpmasksnospecmodel", "nm")
+modelshader("bumpenvmapnospecmodel", "nme")
+CAPI.altshader("bumpenvmapnospecmodel", "bumpmasksnospecmodel")
 
-modelshader "bumpnospecmodel" "n"
-modelshader "bumpmasksnospecmodel" "nm"
-modelshader "bumpenvmapnospecmodel" "nme"
-altshader bumpenvmapnospecmodel bumpmasksnospecmodel
+modelshader("nospecalphamodel", "a")
+modelshader("masksnospecalphamodel", "am")
+modelshader("envmapnospecalphamodel", "ame")
+CAPI.altshader("envmapnospecalphamodel", "masksnospecalphamodel")
 
-modelshader "nospecalphamodel" "a"
-modelshader "masksnospecalphamodel" "am"
-modelshader "envmapnospecalphamodel" "ame"
-altshader envmapnospecalphamodel masksnospecalphamodel
+modelshader("bumpnospecalphamodel", "an")
+modelshader("bumpmasksnospecalphamodel", "anm")
+modelshader("bumpenvmapnospecalphamodel", "anme")
+CAPI.altshader("bumpenvmapnospecalphamodel", "bumpmasksnospecalphamodel")
 
-modelshader "bumpnospecalphamodel" "an"
-modelshader "bumpmasksnospecalphamodel" "anm"
-modelshader "bumpenvmapnospecalphamodel" "anme"
-altshader bumpenvmapnospecalphamodel bumpmasksnospecalphamodel
+--
+-- phong lighting model shader
+--
 
-////////////////////////////////////////////////
-//
-// phong lighting model shader
-//
-////////////////////////////////////////////////
+modelshader("stdmodel", "s")
+CAPI.fastshader("stdmodel", "nospecmodel", 1)
+modelshader("masksmodel", "sm")
+CAPI.fastshader("masksmodel", "masksnospecmodel", 1)
+modelshader("envmapmodel", "sme")
+CAPI.altshader("envmapmodel", "masksmodel")
+CAPI.fastshader("envmapmodel", "envmapnospecmodel", 1)
 
-modelshader "stdmodel" "s"
-fastshader stdmodel nospecmodel 1
-modelshader "masksmodel" "sm"
-fastshader masksmodel masksnospecmodel 1
-modelshader "envmapmodel" "sme"
-altshader envmapmodel masksmodel
-fastshader envmapmodel envmapnospecmodel 1
+modelshader("bumpmodel", "ns")
+CAPI.fastshader("bumpmodel", "bumpnospecmodel", 1)
+modelshader("bumpmasksmodel", "nsm")
+CAPI.fastshader("bumpmasksmodel", "bumpmasksnospecmodel", 1)
+modelshader("bumpenvmapmodel", "nsme")
+CAPI.altshader("bumpenvmapmodel", "bumpmasksmodel")
+CAPI.fastshader("bumpenvmapmodel", "bumpenvmapnospecmodel", 1)
 
-modelshader "bumpmodel" "ns"
-fastshader bumpmodel bumpnospecmodel 1
-modelshader "bumpmasksmodel" "nsm"
-fastshader bumpmasksmodel bumpmasksnospecmodel 1
-modelshader "bumpenvmapmodel" "nsme"
-altshader bumpenvmapmodel bumpmasksmodel
-fastshader bumpenvmapmodel bumpenvmapnospecmodel 1
+modelshader("alphamodel", "as")
+CAPI.fastshader("alphamodel", "nospecalphamodel", 1)
+modelshader("masksalphamodel", "asm")
+CAPI.fastshader("masksalphamodel", "masksnospecalphamodel", 1)
+modelshader("envmapalphamodel", "asme")
+CAPI.altshader("envmapalphamodel", "masksalphamodel")
+CAPI.fastshader("envmapalphamodel", "envmapnospecalphamodel", 1)
 
-modelshader "alphamodel" "as"
-fastshader alphamodel nospecalphamodel 1
-modelshader "masksalphamodel" "asm"
-fastshader masksalphamodel masksnospecalphamodel 1
-modelshader "envmapalphamodel" "asme"
-altshader envmapalphamodel masksalphamodel
-fastshader envmapalphamodel envmapnospecalphamodel 1
+modelshader("bumpalphamodel", "ans")
+CAPI.fastshader("bumpalphamodel", "bumpnospecalphamodel", 1)
+modelshader("bumpmasksalphamodel", "ansm")
+CAPI.fastshader("bumpmasksalphamodel", "bumpmasksnospecalphamodel", 1)
+modelshader("bumpenvmapalphamodel", "ansme")
+CAPI.altshader("bumpenvmapalphamodel", "bumpmasksalphamodel")
+CAPI.fastshader("bumpenvmapalphamodel", "bumpenvmapnospecalphamodel", 1)
 
-modelshader "bumpalphamodel" "ans"
-fastshader bumpalphamodel bumpnospecalphamodel 1
-modelshader "bumpmasksalphamodel" "ansm"
-fastshader bumpmasksalphamodel bumpmasksnospecalphamodel 1
-modelshader "bumpenvmapalphamodel" "ansme"
-altshader bumpenvmapalphamodel bumpmasksalphamodel
-fastshader bumpenvmapalphamodel bumpenvmapnospecalphamodel 1
+--
+-- deferred shading
+--
 
-////////////////////////////////////////////////
-//
-// deferred shading
-//
-////////////////////////////////////////////////
-
-shader 0 shadowmapworld [
+CAPI.shader(0, "shadowmapworld", [[
     void main(void)
     {
         gl_Position = ftransform();
     }
-] [
+]], [[
     void main(void)
     {
     }
-]
+]])
 
-if (>= $glslversion 130) [
-    shader 0 tetraclear [
+if EVAR.glslversion >= 130 then
+    CAPI.shader(0, "tetraclear", [[
         void main(void)
         {
             gl_Position = gl_Vertex;
         }
-    ] [
+    ]], [[
         void main(void)
         {
         }
-    ]
+    ]])
 
-    shader 0 tetraworld [
+    CAPI.shader(0, "tetraworld", [[
         uniform vec4 tetraclip;
         void main(void)
         {
             gl_Position = ftransform();
             gl_ClipDistance[0] = dot(gl_Vertex, tetraclip); 
         }
-    ] [
+    ]], [[
         void main(void)
         {
         }
-    ]
-]
+    ]]) end
 
-// deferredlighttype:
-//    p -> point-light shadow (default cubemap)
-//    t -> tetrahedrdal point-light shadow
-//    c -> CSM
-//    a -> AO
-//    A -> AO sun
-//    g -> gather filter
-//    m -> minimap
-dlopt = [ >= (strstr $deferredlighttype $arg1) 0 ]
+-- deferredlighttype:
+--    p -> point-light shadow (default cubemap)
+--    t -> tetrahedrdal point-light shadow
+--    c -> CSM
+--    a -> AO
+--    A -> AO sun
+--    g -> gather filter
+--    m -> minimap
 
-deferredlightvariantshader = [
-    deferredlighttype = $arg3
-    numsplits = (+ $arg4 0)
-    numlights = (+ $arg5 0)
-    baselight = (< $arg2 2)
-    variantshader 0 $arg1 $arg2 (? (< $arg2 0) [
+deferredlightvariantshader = function(...)
+    local arg = { ... }
+    local deferredlighttype = arg[3]
+    local numsplits = arg[4] + 0
+    local numlights = arg[5] + 0
+    local baselight = arg[2] < 2
+
+    local dlopt = {
+        p = deferredlighttype:find("p") ~= nil,
+        t = deferredlighttype:find("t") ~= nil,
+        c = deferredlighttype:find("c") ~= nil,
+        a = deferredlighttype:find("a") ~= nil,
+        A = deferredlighttype:find("A") ~= nil,
+        g = deferredlighttype:find("g") ~= nil,
+        m = deferredlighttype:find("m") ~= nil
+    }
+
+    CAPI.variantshader(0, arg[1], arg[2], arg[2] < 0 and [[
         void main(void)
         {
             gl_Position = gl_Vertex;
         }
-    ]) [
+    ]] or "", ([===[
         #extension GL_ARB_texture_rectangle : enable
-        @(if (dlopt "g") [result [
+        @(dlopt.g and [[
             #ifdef GL_EXT_gpu_shader4
             #  extension GL_EXT_gpu_shader4 : enable
             #endif
@@ -1237,41 +1239,41 @@ deferredlightvariantshader = [
             #    extension GL_AMD_texture_texture4 : enable
             #  endif
             #endif
-        ]])
+        ]] or nil)
         uniform sampler2DRect tex0, tex1, tex2, tex3;
-        @(if (|| (dlopt "p") (dlopt "c")) [
-            if (dlopt "g") [result [
+        @((dlopt.p or dlopt.c) and [=[
+            @(dlopt.g and [[
                 uniform sampler2D tex4;
-            ]] [result [
+            ]] or [[
                 uniform sampler2DShadow tex4;
-            ]]
-        ])
-        @(if $numlights [result [
-            uniform vec4 lightpos[@@numlights];
-            uniform vec3 lightcolor[@@numlights];
-            @(if (dlopt "p") [result [
-                uniform vec4 shadowparams[@@numlights];
-                uniform vec2 shadowoffset[@@numlights];
             ]])
-        ]])
-        @(if $numsplits [result [
-            uniform vec3 splitcenter[@@numsplits];
-            uniform vec3 splitbounds[@@numsplits];
-            uniform vec3 splitscale[@@numsplits];
-            uniform vec3 splitoffset[@@numsplits];
-        ]])
-        @(if (dlopt "c") [result [
+        ]=] or nil)
+        @(numlights ~= 0 and [=[
+            uniform vec4 lightpos[@(numlights)];
+            uniform vec3 lightcolor[@(numlights)];
+            @(dlopt.p and [[
+                uniform vec4 shadowparams[@(numlights)];
+                uniform vec2 shadowoffset[@(numlights)];
+            ]] or nil)
+        ]=] or nil)
+        @(numsplits ~= 0 and [[
+            uniform vec3 splitcenter[@(numsplits)];
+            uniform vec3 splitbounds[@(numsplits)];
+            uniform vec3 splitscale[@(numsplits)];
+            uniform vec3 splitoffset[@(numsplits)];
+        ]] or nil)
+        @(dlopt.c and [[
             uniform vec3 sunlightdir;
             uniform vec3 sunlightcolor;
-        ]])
+        ]] or nil)
         uniform vec3 camera;
         uniform vec2 shadowatlasscale;
         uniform vec4 colorscale, lightscale;
-        @(? (dlopt "a") [uniform sampler2DRect tex5; uniform vec2 aoscale; uniform vec4 aoparams;])
-        @(gdepthunpackparams)
+        @(dlopt.a and "uniform sampler2DRect tex5; uniform vec2 aoscale; uniform vec4 aoparams;" or nil)
+        @(gdepthunpackparams())
 
-        @(if (dlopt "p") [
-            if (dlopt "t") [result [
+        @(dlopt.p and [=[
+            @(dlopt.t and [[
                 vec3 getshadowtc(vec3 dir, vec4 shadowparams, vec2 shadowoffset)
                 {
                     float top = abs(dir.x+dir.y)+dir.z, bottom = abs(dir.x-dir.y)-dir.z;
@@ -1279,7 +1281,7 @@ deferredlightvariantshader = [
                     shadowoffset.x += step(top, bottom)*shadowparams.z;
                     return vec3(dir.xy*mparams.x + shadowoffset, mparams.y + shadowparams.w);
                 }
-            ]] [result [
+            ]] or [[
                 vec3 getshadowtc(vec3 dir, vec4 shadowparams, vec2 shadowoffset)
                 {
                     vec3 adir = abs(dir);
@@ -1289,11 +1291,11 @@ deferredlightvariantshader = [
                     vec2 mparams = shadowparams.xy / m;
                     return vec3(proj.xy * mparams.x + vec2(proj.w, step(proj.z, 0.0)) * shadowparams.z + shadowoffset, mparams.y + shadowparams.w);
                 }
-            ]]
-        ])
+            ]])
+        ]=] or nil)
 
-        @(if (|| (dlopt "p") (dlopt "c")) [
-            if (dlopt "g") [result [
+        @((dlopt.p or dlopt.c) and [=[
+            @(dlopt.g and [[
                 #ifdef GL_ARB_texture_gather
                 #  define shadowgather(center, xoff, yoff) textureGatherOffset(tex4, center, ivec2(xoff, yoff))
                 #else
@@ -1309,7 +1311,7 @@ deferredlightvariantshader = [
                     vec4 cols = vec4(group1.rg, group2.rg) + vec4(group3.ab, group4.ab) + mix(vec4(group1.ab, group2.ab), vec4(group3.rg, group4.rg), offset.y);
                     return dot(mix(cols.xyz, cols.yzw, offset.x), vec3(1.0/9.0));
                 }
-            ]] [result [
+            ]] or [[
                 #define shadowval(center, xoff, yoff) shadow2D(tex4, vec3((center.xy + vec2(xoff, yoff))*shadowatlasscale, center.z)).r
                 float filtershadow(vec3 shadowtc)
                 {
@@ -1319,149 +1321,144 @@ deferredlightvariantshader = [
                                     shadowval(shadowtc, 0.4, -1.0),
                                     shadowval(shadowtc, 1.0, 0.4))); 
                 }
-            ]]
-        ])
+            ]])
+        ]=] or nil)
 
-        @(if (dlopt "c") [result [
+        @(dlopt.c and [=[
             vec3 getcsmtc(vec3 pos)
             {
                 pos = (gl_TextureMatrix[1] * vec4(pos, 0.0)).xyz;
-                @(loopconcat j (- $numsplits 1) [result [
-                    if(all(lessThan(abs(pos - splitcenter[@@j]), splitbounds[@@j])))
-                        pos = pos*splitscale[@@j] + splitoffset[@@j];
+                @(([[
+                    if(all(lessThan(abs(pos - splitcenter[$j]), splitbounds[$j])))
+                        pos = pos*splitscale[$j] + splitoffset[$j];
                     else
-                ]])
-                if(all(lessThan(abs(pos.xy - splitcenter[@@(- $numsplits 1)].xy), splitbounds[@@(- $numsplits 1)].xy)))
-                    pos = pos*splitscale[@@(- $numsplits 1)] + splitoffset[@@(- $numsplits 1)];
+                ]]):repp("$j", 0, numsplits - 2))
+                if(all(lessThan(abs(pos.xy - splitcenter[@(numsplits - 1)].xy), splitbounds[@(numsplits - 1)].xy)))
+                    pos = pos*splitscale[@(numsplits - 1)] + splitoffset[@(numsplits - 1)];
                 else pos = vec3(-1.0);
                 return pos;
             }
-        ]])
-            
+        ]=] or nil)
+
         void main(void)
         {
             vec4 diffuse = texture2DRect(tex0, gl_FragCoord.xy);
             vec4 glow = texture2DRect(tex2, gl_FragCoord.xy);
-            @(if $baselight [result [
+            @(baselight and [=[
                 vec3 light = diffuse.rgb * lightscale.rgb;
-                @(if (dlopt "a") [result [
+                @(dlopt.a and [[
                     float ao = texture2DRect(tex5, gl_FragCoord.xy*aoscale).r;
                     light *= aoparams.x + ao*aoparams.y;
-                ]]) 
+                ]] or nil)
                 light += glow.rgb * lightscale.a;
-            ]] [result [
+            ]=] or [[
                 vec3 light = vec3(0.0);
-            ]])
-            @(if (|| (> $numlights 0) (dlopt "c")) [result [
+            ]] end)
+            @(numlights > 0 or dlopt.c and [==[
                 vec4 normal = texture2DRect(tex1, gl_FragCoord.xy);
-                @(gdepthunpack depth tex3 gl_FragCoord.xy [
-                    @(if (dlopt "m") [result [
+                @(gdepthunpack("depth", "tex3", "gl_FragCoord.xy", [=[
+                    @(dlopt.m and [[
                         vec3 pos = (gl_TextureMatrix[0] * vec4(gl_FragCoord.xy, depth, 1.0)).xyz;
-                    ]] [result [
+                    ]] or [[
                         vec3 pos = (gl_TextureMatrix[0] * vec4(depth*gl_FragCoord.xy, depth, 1.0)).xyz;
                     ]])
                     #define fogcoord depth
-                ] [
+                ]=], [[
                     vec4 pos = gl_TextureMatrix[0] * vec4(gl_FragCoord.xy, depth, 1.0);
                     pos.xyz /= pos.w;
                     #define fogcoord dot(gl_ModelViewMatrixTranspose[2], vec4(pos.xyz, 1.0))
-                ])
+                ]]))
                 normal.xyz = normal.xyz*2.0 - 1.0;
-                @(if (! (dlopt "m")) [result [
+                @(not dlopt.m and [[
                     vec3 camdir = normalize(camera - pos.xyz);
                     float facing = 2.0*dot(normal.xyz, camdir);
-                ]])
-            ]] [if (! (dlopt "m")) [result [
-                @(gdepthunpack depth tex3 gl_FragCoord.xy)
+                ]] or nil)
+            ]==] or (not dlopt.m and [[
+                @(gdepthunpack("depth" "tex3" "gl_FragCoord.xy"))
                 #define fogcoord depth
-            ]]])
-            @(if (dlopt "c") [result [
+            ]] or nil))
+            @(dlopt.c and [==[
                 float sunfacing = dot(sunlightdir, normal.xyz);
                 if(sunfacing > 0.0)
                 {
                     vec3 csmtc = getcsmtc(pos.xyz);
                     float sunoccluded = sunfacing * filtershadow(csmtc);
-                    @(if (dlopt "A") [result [
-                        sunoccluded *= aoparams.z + ao*aoparams.w;
-                    ]])
-                    @(if (dlopt "m") [result [
+                    @(dlopt.A and "sunoccluded *= aoparams.z + ao*aoparams.w;" or nil)
+                    @(dlopt.m and [[
                         light += diffuse.rgb * sunlightcolor * sunoccluded;
-                    ]] [result [
+                    ]] or [[
                         float sunspec = pow(max(sunfacing*facing - dot(camdir, sunlightdir), 0.0), 8.0) * glow.a;
                         light += (diffuse.rgb + sunspec) * sunlightcolor * sunoccluded;
                     ]])
                 }
-            ]])
-            @(loopconcat j $numlights [result [
-                vec3 light@[j]dir = (pos.xyz - lightpos[@@j].xyz) * lightpos[@@j].w;
-                float light@[j]dist2 = dot(light@[j]dir, light@[j]dir);
-                float light@[j]facing = dot(light@[j]dir, normal.xyz);
-                if(light@[j]dist2 < 1.0 && light@[j]facing < 0.0)
+            ]==] or nil)
+            @(([=[
+                vec3 light$jdir = (pos.xyz - lightpos[$j].xyz) * lightpos[$j].w;
+                float light$jdist2 = dot(light$jdir, light$jdir);
+                float light$jfacing = dot(light$jdir, normal.xyz);
+                if(light$jdist2 < 1.0 && light$jfacing < 0.0)
                 {
-                    @(if (dlopt "p") [result [
-                        vec3 shadow@[j]tc = getshadowtc(light@[j]dir, shadowparams[@@j], shadowoffset[@@j]);
-                        float shadow@[j]val = filtershadow(shadow@[j]tc);
-                    ]])
-                    float light@[j]invdist = inversesqrt(light@[j]dist2); 
-                    float light@[j]atten = light@[j]facing * (1.0 - light@[j]invdist);
-                    @(if (dlopt "p") [result [
-                        light@[j]atten *= shadow@[j]val;
-                    ]])
-                    @(if (dlopt "m") [result [
-                        light += diffuse.rgb * lightcolor[@@j] * light@[j]atten;
-                    ]] [result [
-                        float light@[j]spec = pow(max(light@[j]invdist*(dot(camdir, light@[j]dir) - light@[j]facing*facing), 0.0), 8.0) * glow.a;
-                        light += (diffuse.rgb + light@[j]spec) * lightcolor[@@j] * light@[j]atten;
+                    @(dlopt.p and [[
+                        vec3 shadow$jtc = getshadowtc(light$jdir, shadowparams$j, shadowoffset$j);
+                        float shadow$jval = filtershadow(shadow$jtc);
+                    ]] or nil)
+                    float light$jinvdist = inversesqrt(light$jdist2); 
+                    float light$jatten = light$jfacing * (1.0 - light$jinvdist);
+                    @(dlopt.p and [[
+                        light$jatten *= shadow$jval;
+                    ]] or nil)
+                    @(dlopt.m and [[
+                        light += diffuse.rgb * lightcolor[$j] * light$jatten;
+                    ]] or [[
+                        float light$jspec = pow(max(light$jinvdist*(dot(camdir, light$jdir) - light$jfacing*facing), 0.0), 8.0) * glow.a;
+                        light += (diffuse.rgb + light$jspec) * lightcolor[$j] * light$jatten;
                     ]])
                 }
-            ]])
-            @(if (dlopt "m") [if $baselight [result [
+            ]=]):repp("$j", 0, numlights - 1))
+            @(dlopt.m and (baselight and [[
                 gl_FragColor.rgb = light;
                 gl_FragColor.a = diffuse.a;
-            ]] [result [
+            ]] or [[
                 gl_FragColor.rgb = light;
                 gl_FragColor.a = 0.0;
-            ]]] [result [
+            ]]) or [=[
                 float foglerp = clamp((gl_Fog.end + fogcoord) * gl_Fog.scale, 0.0, 1.0);
-                @(? $baselight [
+                @(baselight and [[
                     gl_FragColor.rgb = mix(gl_Fog.color.rgb*diffuse.a, light, foglerp);
                     gl_FragColor.a = diffuse.a;
-                ] [
+                ]] or [[
                     gl_FragColor.rgb = light*foglerp;
                     gl_FragColor.a = 0.0;
-                ])
-            ]])
+                ]])
+            ]=])
         }
-    ]
-]
+    ]===]):eval_embedded(nil, { dlopt = dlopt, numsplits = numsplits, numlights = numlights, baselight = baselight }, _G)) end
 
-deferredlightshader = [
-    shadername = (concatword "deferredlight" $arg1 $arg2 $arg3)
-    deferredlightvariantshader $shadername -1 (concatword $arg1 $arg3) $arg4 0 // base shader, no points lights, sunlight
-    loop i 8 [
-        deferredlightvariantshader $shadername 0 (concatword $arg1 $arg3) $arg4 (+ $i 1) // row 0, point lights, sunlight
-        deferredlightvariantshader $shadername 1 (concatword $arg1 $arg2 $arg3) $arg4 (+ $i 1) // row 1, shadowed point lights, sunlight
-        deferredlightvariantshader $shadername 2 $arg1 $arg4 (+ $i 1) // row 2, point lights 
-        deferredlightvariantshader $shadername 3 (concatword $arg1 $arg2) $arg4 (+ $i 1) // row 3, shadowed point lights
-    ]
-]
+deferredlightshader = function(arg1, arg2, arg3, arg4)
+    local shadername = "deferredlight" .. arg1 .. arg2 .. arg3
+    deferredlightvariantshader(shadername, -1, arg1 .. arg3, arg4, 0) -- base shader, no point lights, sunlight
+    for i = 1, 8 do
+        deferredlightvariantshader(shadername, 0, arg1 .. arg3,         arg4, i) -- row 0, point lights, sunlight
+        deferredlightvariantshader(shadername, 1, arg1 .. arg2 .. arg3, arg4, i) -- row 1, shadowed point lights, sunlight
+        deferredlightvariantshader(shadername, 2, arg1,                 arg4, i) -- row 2, point lights
+        deferredlightvariantshader(shadername, 3, arg1 .. arg2,         arg4, i) end end -- row 0, row 3, shadowed point lights
 
-shader 0 "hdrreduce" [
+CAPI.shader(0, "hdrreduce", [[
     void main(void)
     {
         gl_Position = gl_Vertex;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0; 
     void main(void)
     {
         gl_FragColor.rgb = texture2DRect(tex0, gl_TexCoord[0].xy).rgb;
     }
-]
+]])
 
-shader 0 "hdrreduce2" [
+CAPI.shader(0, "hdrreduce2", [[
     uniform vec2 reducestep;
     varying vec2 tap0, tap1, tap2, tap3;
     void main(void)
@@ -1472,7 +1469,7 @@ shader 0 "hdrreduce2" [
         tap2 = gl_MultiTexCoord0.xy + vec2( 1.0,  1.0)*reducestep;
         tap3 = gl_MultiTexCoord0.xy + vec2(-1.0,  1.0)*reducestep;
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0; 
     varying vec2 tap0, tap1, tap2, tap3;
@@ -1481,30 +1478,30 @@ shader 0 "hdrreduce2" [
         gl_FragColor.rgb = 0.25*(texture2DRect(tex0, tap0).rgb + texture2DRect(tex0, tap1).rgb +
                                  texture2DRect(tex0, tap2).rgb + texture2DRect(tex0, tap3).rgb);
     }
-]
+]])
 
-//lumweights = "0.2126, 0.7152, 0.0722"
+--lumweights = "0.2126, 0.7152, 0.0722"
 lumweights = "0.299, 0.587, 0.114"
 
-shader 0 "hdrluminance" [
+CAPI.shader(0, "hdrluminance", [[
     void main(void)
     {
         gl_Position = gl_Vertex;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-] [
+]], ([[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0; 
     void main(void)
     {
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb;
-        float lum = dot(color, 2.0*vec3(@lumweights));
+        float lum = dot(color, 2.0*vec3(@(lumweights)));
         float loglum = (log2(lum + 1.0/511.0) + 9.0) * (1.0/(9.0+1.0));// allow values as low as 2^-9, and as high 2^1, with 2^-9ish epsilon
         gl_FragColor.rgb = vec3(loglum);
     }
-]
+]]):eval_embedded(nil, { lumweights = lumweights }))
 
-shader 0 "hdrluminance2" [
+CAPI.shader(0, "hdrluminance2", [[
     uniform vec2 reducestep;
     varying vec2 tap0, tap1, tap2, tap3;
     void main(void)
@@ -1515,28 +1512,29 @@ shader 0 "hdrluminance2" [
         tap2 = gl_MultiTexCoord0.xy + vec2( 1.0,  1.0)*reducestep;
         tap3 = gl_MultiTexCoord0.xy + vec2(-1.0,  1.0)*reducestep;
     }
-] [
+]], ([=[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0; 
     varying vec2 tap0, tap1, tap2, tap3;
     void main(void)
     {
-        @(loopconcat i 4 [result [
-            vec3 color@[i] = texture2DRect(tex0, tap@[i]).rgb;
-            float lum@[i] = dot(color@[i], 2.0*vec3(@lumweights));
-            float loglum@[i] = (log2(lum@[i] + 1.0/511.0) + 9.0) * (1.0/(9.0+1.0));// allow values as low as 2^-9, and as high 2^1, with 2^-9ish epsilon
-        ]])
+        @(([[
+            vec3 color$i = texture2DRect(tex0, tap$i).rgb;
+            float lum$i = dot(color$i, 2.0*vec3(@(lumweights)));
+            // allow values as low as 2^-9, and as high 2^1, with 2^-9ish epsilon
+            float loglum$i = (log2(lum$i + 1.0/511.0) + 9.0) * (1.0/(9.0+1.0));
+        ]]):repp("$i", 0, 3))
         gl_FragColor.rgb = vec3(0.25*(loglum0 + loglum1 + loglum2 + loglum3));
     }
-]
+]=]):eval_embedded(nil, { lumweights = lumweights }, _G))
 
-shader 0 "hdraccum" [
+CAPI.shader(0, "hdraccum", [[
     void main(void)
     {
         gl_Position = gl_Vertex;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     uniform float accumscale;
@@ -1545,9 +1543,9 @@ shader 0 "hdraccum" [
         float lum = exp2((texture2DRect(tex0, gl_TexCoord[0].xy).r * (9.0+1.0)) - 9.0) - 1.0/511.0;
         gl_FragColor = vec4(vec3(lum*0.5), accumscale);
     }
-]
+]])
 
-shader 0 "hdrbloom" [
+CAPI.shader(0, "hdrbloom", [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex2; 
     uniform vec4 bloomparams;
@@ -1559,7 +1557,7 @@ shader 0 "hdrbloom" [
         float avglum = 2.0*texture2DRect(tex2, vec2(0.5, 0.5)).r;
         lumscale = bloomparams.x/clamp(avglum, bloomparams.z, bloomparams.w);
     }
-] [
+]], ([[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0; 
     uniform vec4 bloomparams;
@@ -1567,13 +1565,13 @@ shader 0 "hdrbloom" [
     void main(void)
     {
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
-        float lum = dot(color, vec3(@lumweights));
+        float lum = dot(color, vec3(@(lumweights)));
         color *= (1.0 - exp2(min(lum*lumscale + bloomparams.y, 0.0))) / (lum + 1.0e-4);
         gl_FragColor.rgb = color;
     }
-]
+]]):eval_embedded(nil, { lumweights = lumweights }))
 
-shader 0 "hdrtonemap" [
+CAPI.shader(0, "hdrtonemap", [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex2; 
     uniform vec4 hdrparams;
@@ -1587,7 +1585,7 @@ shader 0 "hdrtonemap" [
         float avglum = 2.0*texture2DRect(tex2, vec2(0.5, 0.5)).r;
         lumscale = hdrparams.x/avglum;
     }
-] [
+]], ([[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0, tex1;
     uniform vec4 hdrparams;
@@ -1599,10 +1597,10 @@ shader 0 "hdrtonemap" [
 
         //color = clamp(pow(color/(color + avg*hdrparams.x), 2.2), hdrparams.z*color, hdrparams.w*color);
 
-        //float lumscale = dot(avg, vec3(@lumweights)), lum = dot(color, vec3(@lumweights));
+        //float lumscale = dot(avg, vec3(@(lumweights))), lum = dot(color, vec3(@(lumweights)));
         //float l = 0.18*lum/(lumscale*hdrparams.x);
         //color *= l * (1.0 + l / (2 * 2)) / (l + 1) / lum;
-//        float lumscale = dot(avg, vec3(@lumweights)), lum = dot(color, vec3(@lumweights));
+//        float lumscale = dot(avg, vec3(@(lumweights))), lum = dot(color, vec3(@(lumweights)));
 //        color *= (1.0 + 0.18*lum/(lumscale*hdrparams.x)/(4*4)) / (lum + lumscale*hdrparams.x/0.18);
         //(1.0 + lum*(1/(x*k))) / (lum + x)
         //color *= 0.18/(avg*hdrparams.x);
@@ -1628,7 +1626,7 @@ shader 0 "hdrtonemap" [
         //vec3 gdepthformat = avg*hdrparams.x/0.18;
        
 //        color = 1.0 - exp2(color*lumscale);
-        float lum = dot(color, vec3(@lumweights));       
+        float lum = dot(color, vec3(@(lumweights)));       
         color *= clamp((1.0 - exp2(lum*lumscale)) / (lum + 1.0e-4), hdrparams.z, hdrparams.w);
 
    //     color *= 0.36/(lumscale*hdrparams.x);
@@ -1638,21 +1636,23 @@ shader 0 "hdrtonemap" [
  //       color = F(color, 0.22, 0.30, 0.10, 0.20, 0.01, 0.30) / F(white, 0.22, 0.30, 0.10, 0.20, 0.01, 0.30);
         gl_FragColor.rgb = color + bloom;
     }
-]
+]]):eval_embedded(nil, { lumweights = lumweights }))
 
-shader 0 "hdrundo" [
+CAPI.shader(0, "hdrundo", [[
     void main(void)
     {
         gl_Position = gl_Vertex;
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     void main(void)
     {
         gl_FragColor = 2.0 * texture2DRect(tex0, gl_FragCoord.xy);
     }
-]
+]])
+
+--[====[
 
 aotapoffsets = [
 "-0.933103, 0.025116"
