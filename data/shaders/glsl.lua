@@ -45,12 +45,13 @@ gdepthunpack = function(arg1, arg2, arg3, arg4, arg5, arg6)
             @(arg4)
         ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3, arg4 = arg4 })
     else
-        return ((arg5 == "") and [[
+        return ((not arg5 or arg5 == "") and [[
             float @(arg1) = gdepthscale.x / (texture2DRect(@(arg2), @(arg3)).r*gdepthscale.y + gdepthscale.z);
         ]] or [[
             float @(arg1) = texture2DRect(@(arg2), @(arg3)).r;
             @(arg5)
         ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3, arg5 = arg5 }) end end
+
 
 gdepthunpackproj = function(arg1, arg2, arg3, arg4, arg5, arg6)
     if EVAR.gdepthformat ~= 0 or arg6 then
@@ -62,7 +63,7 @@ gdepthunpackproj = function(arg1, arg2, arg3, arg4, arg5, arg6)
             @(arg4)
         ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3, arg4 = arg4 })
     else
-        return ((arg5 == "") and [[
+        return ((not arg5 or arg5 == "") and [[
             float @(arg1) = gdepthscale.x / (texture2DRectProj(@(arg2), @(arg3)).r*gdepthscale.y + gdepthscale.z);
         ]] or [[
             float @(arg1) = texture2DRectProj(@(arg2), @(arg3)).r;
@@ -214,7 +215,7 @@ CAPI.shader(0, "nocolor", [[
 
 worldshader = function(...)
     local arg   = { ... }
-    local stype = arg[1]:find("env") and 3 or 1
+    local stype = arg[1]:find("env") ~= nil and 3 or 1
     for i = 0, 2 do CAPI.variantshader(i == 2 and stype + 4 or stype, arg[1], i - 1, ([[
         @(#arg >= 5 and arg[5] or nil)
         uniform vec4 texgenscroll;
@@ -262,7 +263,7 @@ worldshader = function(...)
             gl_FragData[0] = vec4(diffuse.rgb*colorparams.rgb, alpha);
             gl_FragData[1] = vec4(normal*0.5+0.5, alpha);
             gl_FragData[2].a = 0.0;
-            @((#arg < 4 or arg[4] == "") and "gl_FragData[2].rgb = vec3(0.0);" or arg[4])
+            @((#arg < 4 or not arg[4] or arg[4] == "") and "gl_FragData[2].rgb = vec3(0.0);" or arg[4])
 
             @(i == 2 and [[
                 vec3 rlight = texture2DRect(refractlight, gl_FragCoord.xy).rgb;
@@ -1369,11 +1370,11 @@ deferredlightvariantshader = function(...)
                     #define fogcoord dot(gl_ModelViewMatrixTranspose[2], vec4(pos.xyz, 1.0))
                 ]]))
                 normal.xyz = normal.xyz*2.0 - 1.0;
-                @(not dlopt.m and [[
+                @((not dlopt.m) and [[
                     vec3 camdir = normalize(camera - pos.xyz);
                     float facing = 2.0*dot(normal.xyz, camdir);
                 ]] or nil)
-            ]==] or (not dlopt.m and [[
+            ]==] or ((not dlopt.m) and [[
                 @(gdepthunpack("depth", "tex3", "gl_FragCoord.xy"))
                 #define fogcoord depth
             ]] or nil))
@@ -1594,46 +1595,8 @@ CAPI.shader(0, "hdrtonemap", [[
     {
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
         vec3 bloom = texture2DRect(tex1, gl_TexCoord[1].xy).rgb*hdrparams.y;
-
-        //color = clamp(pow(color/(color + avg*hdrparams.x), 2.2), hdrparams.z*color, hdrparams.w*color);
-
-        //float lumscale = dot(avg, vec3(@(lumweights))), lum = dot(color, vec3(@(lumweights)));
-        //float l = 0.18*lum/(lumscale*hdrparams.x);
-        //color *= l * (1.0 + l / (2 * 2)) / (l + 1) / lum;
-//        float lumscale = dot(avg, vec3(@(lumweights))), lum = dot(color, vec3(@(lumweights)));
-//        color *= (1.0 + 0.18*lum/(lumscale*hdrparams.x)/(4*4)) / (lum + lumscale*hdrparams.x/0.18);
-        //(1.0 + lum*(1/(x*k))) / (lum + x)
-        //color *= 0.18/(avg*hdrparams.x);
-        //color = color / (color + 1.0);
-
-        //color = pow(color, 2.2) * 0.18/pow(avg*hdrparams.x, 2.2);
-        //color = pow(color, 1.0) * 0.18 / pow(avg*hdrparams.x, 1.0);
-
-//        color = pow(color*0.18/(avg*hdrparams.x), 2.2);
-//        color = pow((color*(6.2*color+0.5))/(color*(6.2*color+1.7)+0.06), 1.0);
-
-        //float l = lum;
-        //l = pow(l*0.18/(lumscale*hdrparams.x), 1.0);
-        //l = pow((l*(6.2*l+0.5))/(l*(6.2*l+1.7)+0.06), 2.2);
-        //color *= l/lum;
-
-//        color *= 0.18/(avg*hdrparams.x);
-//        color = max(0.0, color-0.004);
-//        color = (color*(6.2*color+0.5))/(color*(6.2*color+1.7)+0.06);
-//        color = pow(color, 2.2);
-
-#define F(x,A,B,C,D,E,F) ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F)-E/F)
-        //vec3 gdepthformat = avg*hdrparams.x/0.18;
-       
-//        color = 1.0 - exp2(color*lumscale);
         float lum = dot(color, vec3(@(lumweights)));       
         color *= clamp((1.0 - exp2(lum*lumscale)) / (lum + 1.0e-4), hdrparams.z, hdrparams.w);
-
-   //     color *= 0.36/(lumscale*hdrparams.x);
-        //color = color * (1.0 + color/(4.0*4.0)) / (color + 1.0);
- //       color *= 2.0*0.18/(lumscale*hdrparams.x);
- //       float white = 11.2;
- //       color = F(color, 0.22, 0.30, 0.10, 0.20, 0.01, 0.30) / F(white, 0.22, 0.30, 0.10, 0.20, 0.01, 0.30);
         gl_FragColor.rgb = color + bloom;
     }
 ]]):eval_embedded(nil, { lumweights = lumweights }))
@@ -1812,7 +1775,7 @@ bilateralvariantshader = function(arg1, arg2, arg3, arg4)
                 gl_FragColor.rgb = vec3(color / weights);
             ]])
         }
-    ]===]):eval_embedded(nil, { reduced = reduced, linear = linear, packed = packed, numtaps = numtaps, filtedir = filterdir }, _G)) end
+    ]===]):eval_embedded(nil, { reduced = reduced, linear = linear, packed = packed, numtaps = numtaps, filterdir = filterdir }, _G)) end
 
 bilateralshader = function(arg1, arg2)
     bilateralvariantshader(("bilateralx%s%i"):format(arg1, arg2), arg1, arg2, "x")
@@ -2867,6 +2830,26 @@ CAPI.shader(0, "decal", [[
         gl_FragColor = gl_Color * texture2D(tex0, gl_TexCoord[0].xy);
     }
 ]])
+
+CAPI.shader(0, "skyboxoverbright", [[
+    void main(void)
+    {
+        gl_Position = ftransform();
+        gl_TexCoord[0] = gl_MultiTexCoord0;
+        gl_FrontColor = gl_Color;
+    }
+]], ([[
+    uniform sampler2D tex0;
+    uniform vec2 overbrightparams;
+    void main(void)
+    {
+        vec3 color = texture2D(tex0, gl_TexCoord[0].xy).rgb;
+        float lum = dot(vec3(@(lumweights)), color);
+        float scale = 1.0 + overbrightparams.x*clamp(lum - overbrightparams.y, 0.0, 1.0);
+        gl_FragColor.rgb = gl_Color.rgb * color * scale;
+    }
+]]):eval_embedded())
+
 
 smaashaders = function(arg1)
     smaapreset = arg1

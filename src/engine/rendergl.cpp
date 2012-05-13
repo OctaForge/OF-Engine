@@ -2392,7 +2392,7 @@ FVAR(csmdepthmargin, 0, 0.1f, 1e3f);
 VAR(debugcsm, 0, 0, csmmaxsplitn);
 FVAR(csmpolyfactor, -1e3f, 2, 1e3f);
 FVAR(csmpolyoffset, -1e4f, 0, 1e4f);
-FVAR(csmbias, -1e6f, 4e-4f, 1e6f);
+FVAR(csmbias, -1e6f, 1e-4f, 1e6f);
 VAR(csmcull, 0, 1, 1);
 
 void cascaded_shadow_map::updatesplitdist()
@@ -2614,7 +2614,7 @@ void cascaded_shadow_map::bindparams()
         cascaded_shadow_map::splitinfo &split = csm.splits[i];
         if(split.idx < 0) continue;
         const shadowmapinfo &sm = shadowmaps[split.idx];
-        const float bias = csmbias * (1024.0f / sm.size) * sqrtf((split.farplane - split.nearplane) / (csm.splits[0].farplane - csm.splits[0].nearplane));
+        const float bias = csmbias * (1024.0f / sm.size) * (split.farplane - split.nearplane) / (csm.splits[0].farplane - csm.splits[0].nearplane);
         splitcenterv[i] = vec(split.bbmin).add(split.bbmax).mul(0.5f);
         splitboundsv[i] = vec(split.bbmax).sub(split.bbmin).mul(0.5f*(sm.size - 2*smborder)/sm.size);
         splitscalev[i] = vec(0.5f*sm.size*split.proj.v[0], 0.5f*sm.size*split.proj.v[5], 0.5f*split.proj.v[10]);
@@ -3688,7 +3688,6 @@ void rendertransparent()
     }
 
     loop(layer, 3)
-    loop(side, 2) if(hasalphavas&(1<<side) || (side && hasmats))
     {
         uint tiles[LIGHTTILE_H];
         float sx1, sy1, sx2, sy2;
