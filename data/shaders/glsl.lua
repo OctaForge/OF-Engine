@@ -687,7 +687,7 @@ skelanimdefs = function()
         ]] or nil)
         @(EVAR.usebue ~= 0 and [[
             #extension GL_EXT_bindable_uniform : enable
-        ]])
+        ]] or nil)
         #pragma CUBE2_attrib vweights 6
         #pragma CUBE2_attrib vbones 7
         attribute vec4 vweights; 
@@ -705,7 +705,7 @@ skelanimdefs = function()
             #ifdef GL_EXT_bindable_uniform
                 bindable
             #endif
-        ]])
+        ]] or nil)
         uniform vec4 animdata[@(math.min(EVAR.maxvsuniforms, EVAR.maxanimdata))];
         @(EVAR.useubo ~= 0 and [[
             #endif
@@ -760,11 +760,11 @@ skelmatanim = function(arg1, arg2, arg3)
 
         vec4 opos = vec4(dot(mx, gl_Vertex), dot(my, gl_Vertex), dot(mz, gl_Vertex), gl_Vertex.w);
 
-        @(arg2 ~= 0 and [[
+        @((arg2 and arg2 ~= 0) and [[
             vec3 onormal = vec3(dot(mx.xyz, gl_Normal), dot(my.xyz, gl_Normal), dot(mz.xyz, gl_Normal));
         ]] or nil)
 
-        @(arg3 ~= 0 and [[
+        @((arg3 and arg3 ~= 0) and [[
             vec3 otangent = vec3(dot(mx.xyz, vtangent.xyz), dot(my.xyz, vtangent.xyz), dot(mz.xyz, vtangent.xyz));
         ]] or nil)
     ]=]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3 }, _G) end
@@ -798,11 +798,11 @@ skelquatanim = function(arg1, arg2, arg3)
 
         vec4 opos = vec4((cross(dqreal.xyz, cross(dqreal.xyz, gl_Vertex.xyz) + gl_Vertex.xyz*dqreal.w + dqdual.xyz) + dqdual.xyz*dqreal.w - dqreal.xyz*dqdual.w)*2.0 + gl_Vertex.xyz, gl_Vertex.w);
 
-        @(arg2 ~= 0 and [[
+        @((arg2 and arg2 ~= 0) and [[
             vec3 onormal = cross(dqreal.xyz, cross(dqreal.xyz, gl_Normal) + gl_Normal*dqreal.w)*2.0 + gl_Normal;
         ]] or nil)
 
-        @(arg3 ~= 0 and [[
+        @((arg3 and arg3 ~= 0) and [[
             vec3 otangent = cross(dqreal.xyz, cross(dqreal.xyz, vtangent.xyz) + vtangent.xyz*dqreal.w)*2.0 + vtangent.xyz;
         ]] or nil)
     ]==]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3 }) end
@@ -1354,7 +1354,7 @@ deferredlightvariantshader = function(...)
             ]=] or [[
                 vec3 light = vec3(0.0);
             ]])
-            @(numlights > 0 or dlopt.c and [==[
+            @((numlights > 0 or dlopt.c) and [==[
                 vec4 normal = texture2DRect(tex1, gl_FragCoord.xy);
                 @(gdepthunpack("depth", "tex3", "gl_FragCoord.xy", [=[
                     @(dlopt.m and [[
@@ -1399,7 +1399,7 @@ deferredlightvariantshader = function(...)
                 if(light$jdist2 < 1.0 && light$jfacing < 0.0)
                 {
                     @(dlopt.p and [[
-                        vec3 shadow$jtc = getshadowtc(light$jdir, shadowparams$j, shadowoffset$j);
+                        vec3 shadow$jtc = getshadowtc(light$jdir, shadowparams[$j], shadowoffset[$j]);
                         float shadow$jval = filtershadow(shadow$jtc);
                     ]] or nil)
                     float light$jinvdist = inversesqrt(light$jdist2); 
