@@ -93,7 +93,9 @@ string.eval_embedded = function(str, prefix, env, envalt)
     prefix = prefix or "@"
     local ret = str:gsub(prefix .. "%b()", function(s)
         s = s:sub(3, #s - 1)
-        s = s:find("return ") and s or "return " .. s
+        local ts = s:gsub(prefix .. "%b()", ""):gsub("%b\"\"", ""
+            ):gsub("%[=*%[.*%]=*%]", "")
+        s = ts:find("return ") and s or "return " .. s
         env = envalt and setmetatable(env, { __index = envalt }) or env
         local r = (env
             and setfenv(loadstring(s), env)
@@ -105,8 +107,8 @@ string.eval_embedded = function(str, prefix, env, envalt)
     Returns a string that is the concatenation of iend-istart (or istart-iend)
     copies of the string str. Unlike string.rep, each copy of the string will
     be searched for a given pattern which will be then replaced with the
-    current index. The indexes range from istart to iend. If istart is
-    smaller than iend, it'll iterate backwards.
+    current index. The indexes range from istart to iend. If iend is
+    smaller than istart, it'll iterate backwards.
 
     (start code)
         assert(("$i"):repp("$i", 5, 8) == "5678")
@@ -116,6 +118,18 @@ string.repp = function(str, pattern, istart, iend)
     local ret = {}
     local bkw  = iend < istart and true or false
     for i = istart, iend, bkw and -1 or 1 do
+        local s = str:gsub(pattern, tostring(i))
+        table.insert(ret, s) end
+    return table.concat(ret) end
+
+--[[! Function: string.reppn
+    See above. The difference is that the second number doesn't set the last
+    index, but instead it sets the total amount of iterations (the first
+    numbers remains the same as above).
+]]
+string.reppn = function(str, pattern, is, n)
+    local ret = {}
+    for i = is, is + n - 1 do
         local s = str:gsub(pattern, tostring(i))
         table.insert(ret, s) end
     return table.concat(ret) end
