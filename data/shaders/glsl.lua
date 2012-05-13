@@ -2419,7 +2419,7 @@ watershader = function(arg1)
             ]] or nil)
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy * 0.1;
         }
-    ]=]):eval_embedded(nil, { arg1 = arg1 }), ([==[
+    ]=]):eval_embedded(nil, { arg1 = arg1 }), ([===[
         #extension GL_ARB_texture_rectangle : enable
         uniform float millis;
         uniform vec3 camera;
@@ -2473,21 +2473,24 @@ watershader = function(arg1)
                 rcolor = mix(rcolor, waterdeepcolor, clamp(deep * waterdeepfade, 0.0, 1.0));
             ]=])
 
-            @(arg1:find("reflect") ~= nil and [=[
-                vec3 edir = (gl_TextureMatrix[1] * vec4(-waterreflectstep*reflect(camvec, bump), 0.0)).xyz;
+            @(arg1:find("reflect") ~= nil and [==[
+                vec3 reflectdir = reflect(camvec, bump);
+                vec3 edir = (gl_TextureMatrix[1] * vec4(-waterreflectstep*reflectdir, 0.0)).xyz;
                 vec3 epos = esurface + edir;
-                @(([[
-                    @(gdepthunpackproj("edepth$i", "tex9", "epos",
-                        "epos += step(edepth$i, epos.z)*edir;",
-                        "epos += step(gdepthscale.x, epos.z*(edepth$i*gdepthscale.y + gdepthscale.z))*edir;"))
-                ]]):reppn("$i", 0, 4))
+                @(([=[
+                    @(gdepthunpackproj("edepth$i", "tex9", "epos", [[
+                        if(edepth$i < epos.z || edepth$i > esurface.z) epos += edir;
+                    ]], [[
+                        edepth$i = edepth$i*gdepthscale.y + gdepthscale.z;
+                        if(gdepthscale.x < epos.z*edepth$i || gdepthscale.x > esurface.z*edepth$i) epos += edir;
+                    ]]))
+                ]=]):reppn("$i", 0, 4))
                 vec2 etc = epos.xy/epos.z;
                 vec3 reflect = texture2DRect(tex8, etc).rgb;
                 float edgefade = clamp(4.0*(0.5 - max(abs(etc.x*viewsize.z - 0.5), abs(etc.y*viewsize.w - 0.5))), 0.0, 1.0);
-                float underfade = clamp(0.125*(dot(gl_TextureMatrixInverseTranspose[1][2], vec4(epos, 1.0)) - surface.z), 0.0, 1.0);
                 float fresnel = 0.25 + 0.75*pow(1.0 - max(dot(camvec, bump), 0.0), 4.0);
-                rcolor = mix(rcolor, reflect, fresnel*edgefade*underfade);
-            ]=] or (arg1:find("env") ~= nil and [[
+                rcolor = mix(rcolor, reflect, fresnel*edgefade*clamp(-8.0*reflectdir.z, 0.0, 1.0));
+            ]==] or (arg1:find("env") ~= nil and [[
                 vec3 reflect = textureCube(tex4, -reflect(camvec, bump)).rgb*0.5;
                 float fresnel = 0.5*pow(1.0 - max(dot(camvec, bump), 0.0), 4.0);
                 rcolor = mix(rcolor, reflect, fresnel);
@@ -2497,7 +2500,7 @@ watershader = function(arg1)
             gl_FragData[1] = vec4(bump*0.5+0.5, 0.0);
             gl_FragData[2] = vec4(rcolor*alpha, waterspec*alpha);
         }
-    ]==]):eval_embedded(nil, { arg1 = arg1 }, _G)) end
+    ]===]):eval_embedded(nil, { arg1 = arg1 }, _G)) end
 
 watershader("water")
 watershader("watercaustics")
