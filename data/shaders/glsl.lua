@@ -2544,42 +2544,39 @@ watershader("waterreflect")
 watershader("waterreflectcaustics")
 watershader("underwater")
 
---[====[
-
-causticshader = [
-    lazyshader 0 $arg1 [
+causticshader = function(arg1)
+    lazyshader(0, arg1, [[
         void main(void)
         {
             gl_Position = gl_Vertex;
         }
-    ] [
+    ]], [=[
         #extension GL_ARB_texture_rectangle : enable
         uniform vec3 causticsblend;
         uniform sampler2D tex0, tex1;
         uniform sampler2DRect tex9;
         void main(void)
         {
-            @(gdepthunpack depth tex9 gl_FragCoord.xy [
+            @(gdepthunpack("depth", "tex9", "gl_FragCoord.xy", [[
                 vec3 ctc = (gl_TextureMatrix[0] * vec4(depth*gl_FragCoord.xy, depth, 1.0)).xyz;
-            ] [
+            ]], [[
                 vec4 ctc = gl_TextureMatrix[0] * vec4(gl_FragCoord.xy, depth, 1.0);
                 ctc.xyz /= ctc.w;
-            ])
+            ]]))
             float caustics = causticsblend.x*texture2D(tex0, ctc.xy).r + causticsblend.y*texture2D(tex1, ctc.xy).r + causticsblend.z;
             caustics *= clamp(ctc.z, 0.0, 1.0);
             gl_FragColor.rgb = vec3(0.5 + caustics);
         }
-    ]
-]
-causticshader caustics
+    ]=]) end
+causticshader("caustics")
 
-waterfogshader = [
-    lazyshader 0 $arg1 [
+waterfogshader = function(arg1)
+    lazyshader(0, arg1, [[
         void main(void)
         {
             gl_Position = gl_Vertex;
         }
-    ] [
+    ]], [=[
         #extension GL_ARB_texture_rectangle : enable
         uniform sampler2DRect tex9;
         @(gdepthunpackparams)
@@ -2587,26 +2584,25 @@ waterfogshader = [
         uniform vec3 waterdeepcolor, waterdeepfade;
         void main(void)
         {
-            @(gdepthunpack depth tex9 gl_FragCoord.xy [
+            @(gdepthunpack("depth", "tex9", "gl_FragCoord.xy", [[
                 float fogbelow = (gl_TextureMatrix[0] * vec4(depth*gl_FragCoord.xy, depth, 1.0)).z;
                 #define fogcoord depth 
-            ] [
+            ]], [[
                 vec3 pos = (gl_TextureMatrix[0] * vec4(gl_FragCoord.xy, depth, 1.0)).xzw;
                 pos.xy /= pos.z;
                 #define fogbelow pos.y
                 #define fogcoord pos.x
-            ])
+            ]]))
             float foglerp = clamp((gl_Fog.start - fogcoord) * gl_Fog.scale, 0.0, 1.0);
             foglerp *= clamp(2.0*fogbelow + 0.5, 0.0, 1.0);
             vec3 fogcolor = mix(gl_Fog.color.rgb, waterdeepcolor, clamp(fogbelow*waterdeepfade, 0.0, 1.0));
             gl_FragColor.rgb = fogcolor;
             gl_FragColor.a = foglerp;
         }
-    ]
-]
-waterfogshader waterfog
+    ]=]) end
+waterfogshader("waterfog")
 
-lazyshader 0 "lava" [
+lazyshader(0, "lava", [[
     varying mat3 world;
     void main(void)
     {
@@ -2616,7 +2612,7 @@ lazyshader 0 "lava" [
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
     }
-] [
+]], [[
     uniform sampler2D tex0, tex1;
     uniform float lavaglow, lavaspec;
     varying mat3 world;
@@ -2629,9 +2625,9 @@ lazyshader 0 "lava" [
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(diffuse*lavaglow, lavaspec);
     }
-]
+]])
 
-lazyshader 0 "waterfallenv" [
+lazyshader(0, "waterfallenv", [[
     uniform vec4 camera;
     varying vec3 camdir;
     varying mat3 world;
@@ -2644,7 +2640,7 @@ lazyshader 0 "waterfallenv" [
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex7, tex8;
     uniform samplerCube tex3;
@@ -2673,9 +2669,9 @@ lazyshader 0 "waterfallenv" [
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(mix(rcolor, waterfallcolor, diffuse) + env, waterfallspec*(1.0 - dot(diffuse, vec3(0.33)))); 
     }
-]
+]])
 
-lazyshader 0 "waterfall" [
+lazyshader(0, "waterfall", [[
     varying mat3 world;
     void main(void)
     {
@@ -2685,7 +2681,7 @@ lazyshader 0 "waterfall" [
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
     }
-] [ 
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex7, tex8;
     uniform sampler2D tex0, tex1;
@@ -2707,10 +2703,10 @@ lazyshader 0 "waterfall" [
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(mix(rcolor, waterfallcolor, diffuse), waterfallspec*(1.0 - dot(diffuse, vec3(0.33)))); 
     }
-]
-altshader waterfallenv waterfall
+]])
+CAPI.altshader("waterfallenv", "waterfall")
 
-lazyshader 0 "glassenv" [
+lazyshader(0, "glassenv", [[
     uniform vec4 camera;
     varying vec3 camdir;
     varying mat3 world;
@@ -2723,7 +2719,7 @@ lazyshader 0 "glassenv" [
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
     }
-] [ 
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex7, tex8;
     uniform samplerCube tex0;
@@ -2752,9 +2748,9 @@ lazyshader 0 "glassenv" [
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(rcolor + env, glassspec); 
     }
-]
+]])
 
-lazyshader 0 "glass" [
+lazyshader(0, "glass", [[
     varying mat3 world;
     void main(void)
     {
@@ -2764,7 +2760,7 @@ lazyshader 0 "glass" [
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
     }
-] [
+]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex7, tex8;
     uniform sampler2D tex1;
@@ -2786,70 +2782,68 @@ lazyshader 0 "glass" [
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(rcolor, glassspec); 
     }
-]
-altshader glassenv glass
+]])
+CAPI.altshader("glassenv", "glass")
 
-defershader 0 "grass" [
-  loop i 2 [
-    variantshader 0 "grass" (? $i 0 -1) [
-        @(gdepthinterp)
-        @(if $i [result [uniform vec4 blendmapparams;]])
-        void main(void)
-        {
-            gl_Position = ftransform();
-            gl_FrontColor = gl_Color;
-            gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-            @(if $i [result [
-                gl_TexCoord[1].xy = (gl_Vertex.xy - blendmapparams.xy)*blendmapparams.zw;
-            ]])
-            @(gdepthpackvert)
-        }
-    ] [
-        uniform sampler2D tex0;
-        uniform float grasstest;
-        @(gdepthinterp)
-        @(if $i [result [uniform sampler2D tex1;]])
-        void main(void)
-        {
-            vec4 color = texture2D(tex0, gl_TexCoord[0].xy) * gl_Color;
-            @(if $i [result [
-                color.a *= texture2D(tex1, gl_TexCoord[1].xy).r;
-            ]])
-            if(color.a <= grasstest)
-                discard;
-            gl_FragData[0] = vec4(color.rgb, 1.0);
-            gl_FragData[1] = vec4(0.5, 0.5, 1.0, 0.0); 
-            gl_FragData[2] = vec4(0.0);
-            @(gdepthpackfrag)
-        }
-    ]
-  ]
-]
+CAPI.defershader(0, "grass", function()
+    for i = 0, 1 do
+        CAPI.variantshader(0, "grass", i - 1, ([=[
+            @(gdepthinterp())
+            @(i ~= 0 and "uniform vec4 blendmapparams;" or nil)
+            void main(void)
+            {
+                gl_Position = ftransform();
+                gl_FrontColor = gl_Color;
+                gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+                @(i ~= 0
+                    and "gl_TexCoord[1].xy = (gl_Vertex.xy - blendmapparams.xy)*blendmapparams.zw;"
+                    or nil)
+                @(gdepthpackvert())
+            }
+        ]=]):eval_embedded(nil, { i = i }, _G), ([=[
+            uniform sampler2D tex0;
+            uniform float grasstest;
+            @(gdepthinterp())
+            @(i ~= 0 and "uniform sampler2D tex1;" or nil)
+            void main(void)
+            {
+                vec4 color = texture2D(tex0, gl_TexCoord[0].xy) * gl_Color;
+                @(i ~= 0
+                    color.a *= texture2D(tex1, gl_TexCoord[1].xy).r;
+                    or nil)
+                if(color.a <= grasstest)
+                    discard;
+                gl_FragData[0] = vec4(color.rgb, 1.0);
+                gl_FragData[1] = vec4(0.5, 0.5, 1.0, 0.0); 
+                gl_FragData[2] = vec4(0.0);
+                @(gdepthpackfrag())
+            }
+        ]=]):eval_embedded(nil, { i = i }, _G)) end end)
 
-shader 0 "overbrightdecal" [
+CAPI.shader(0, "overbrightdecal", [[
     void main(void)
     {
         gl_Position = ftransform();
         gl_FrontColor = gl_Color;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-] [
+]], [[
     uniform sampler2D tex0;
     void main(void)
     {
         vec4 diffuse = texture2D(tex0, gl_TexCoord[0].xy);
         gl_FragColor = mix(gl_Color, diffuse, gl_Color.a);
     }
-]
+]])
 
-shader 0 "saturatedecal" [
+CAPI.shader(0, "saturatedecal", [[
     void main(void)
     {
         gl_Position = ftransform();
         gl_FrontColor = gl_Color;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-] [
+]], [[
     uniform sampler2D tex0;
     void main(void)
     {
@@ -2857,22 +2851,25 @@ shader 0 "saturatedecal" [
         diffuse.rgb *= 2.0;
         gl_FragColor = diffuse * gl_Color;
     }
-]
+]])
 
-shader 0 "decal" [
+CAPI.shader(0, "decal", [[
     void main(void)
     {
         gl_Position = ftransform();
         gl_TexCoord[0] = gl_MultiTexCoord0;
         gl_FrontColor = gl_Color;
     }
-] [
+]], [[
     uniform sampler2D tex0;
     void main(void)
     {
         gl_FragColor = gl_Color * texture2D(tex0, gl_TexCoord[0].xy);
     }
-]
+]])
+
+--[====[
+
 
 smaashaders = [
     smaapreset = $arg1   
