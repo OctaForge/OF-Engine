@@ -2868,13 +2868,7 @@ CAPI.shader(0, "decal", [[
     }
 ]])
 
---[====[
-
-
-smaashaders = [
-    smaapreset = $arg1   
-    exec "data/smaa.cfg"
-]
-
-
-]====]
+smaashaders = function(arg1)
+    smaapreset = arg1
+    require("shaders.smaa")
+    package.loaded["shaders.smaa"] = nil end

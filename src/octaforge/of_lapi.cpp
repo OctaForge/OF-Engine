@@ -126,11 +126,6 @@ namespace lapi
         lua_pop   (L,  1);
         package["path"] = str;
 
-        /* restrict package */
-        Table pkg = state.new_table(0, 1);
-        pkg  ["seeall" ] = package["seeall"];
-        state["package"] = pkg;
-
         setup_binds();
     }
 
