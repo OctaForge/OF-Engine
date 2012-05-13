@@ -2138,86 +2138,79 @@ bloom = function(arg1)
     CAPI.clearpostfx()
     if arg1 then setupbloom(6, arg1) end end
 
---[====[
+--
+-- miscellaneous effect shaders: 
+--
 
-
-////////////////////////////////////////////////
-//
-// miscellaneous effect shaders: 
-//
-////////////////////////////////////////////////
-
-// wobbles the vertices of an explosion sphere
-// and generates all texcoords 
-// and blends the edge color
-// and modulates the texture
-explosionshader = [
-    shader 0 $arg1 [
+-- wobbles the vertices of an explosion sphere
+-- and generates all texcoords 
+-- and blends the edge color
+-- and modulates the texture
+explosionshader = function(arg1, arg2, arg3)
+    CAPI.shader(0, arg1, ([=[
         #pragma CUBE2_fog
         uniform vec4 center, animstate;
-        @(if (>= (strstr $arg1 "3d") 0) [result [uniform vec4 texgenS, texgenT;]])
-        @(if (>= (strstr $arg1 "soft") 0) [result [
+        @(arg1:find("3d")   ~= nil and "uniform vec4 texgenS, texgenT;" or nil)
+        @(arg1:find("soft") ~= nil and [[
             uniform vec4 softparams;
             varying float softdepth;
-        ]]) 
+        ]] or nil)
         void main(void)
         {
             vec4 wobble = vec4(gl_Vertex.xyz*(1.0 + 0.5*abs(fract(dot(gl_Vertex.xyz, center.xyz) + animstate.w*0.002) - 0.5)), gl_Vertex.w);
             gl_Position = gl_ModelViewProjectionMatrix * wobble;
-            @(if (>= (strstr $arg1 "soft") 0) [result [
+            @(arg1:find("soft") ~= nil and [[
                 softdepth = softparams.y + (gl_ModelViewMatrix * wobble).z*softparams.x;
-            ]])
+            ]] or nil)
 
             gl_FrontColor = gl_Color;
-        
-            @arg2 
-        } 
-    ] [ 
-        @(if (>= (strstr $arg1 "soft") 0) [result [
+
+            @(arg2)
+        }
+    ]=]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2 }), ([=[
+        @(arg1:find("soft") ~= nil and [[
             #extension GL_ARB_texture_rectangle : enable
             uniform sampler2DRect tex2;
             uniform vec4 softparams;
             varying float softdepth;
             @(gdepthunpackparams)
-        ]])
+        ]] or nil)
         uniform sampler2D tex0, tex1;
         void main(void)
         {
-            vec2 dtc = gl_TexCoord[0].xy + texture2D(tex0, @arg3.xy).xy*0.1; // use color texture as noise to distort texcoords
+            vec2 dtc = gl_TexCoord[0].xy + texture2D(tex0, @(arg3).xy).xy*0.1; // use color texture as noise to distort texcoords
             vec4 diffuse = texture2D(tex0, dtc);
             vec4 blend = texture2D(tex1, gl_TexCoord[1].xy); // get blend factors from modulation texture 
             diffuse *= blend.a*4.0; // dup alpha into RGB channels + intensify and over saturate
             diffuse.b += 0.5 - blend.a*0.5; // blue tint 
 
-            @(if (>= (strstr $arg1 "soft") 0) [result [
+            @(arg1:find("soft") ~= nil and [[
                 gl_FragColor.rgb = diffuse.rgb * gl_Color.rgb;
 
-                @(gdepthunpack depth tex2 gl_FragCoord.xy)
+                @(gdepthunpack("depth", "tex2", "gl_FragCoord.xy"))
                 gl_FragColor.a = diffuse.a * max(clamp(depth*softparams.x - softdepth, 0.0, 1.0) * gl_Color.a, softparams.w);
-            ]] [result [
+            ]] or [[
                 gl_FragColor = diffuse * gl_Color;
             ]])
         }
-    ]
-]
+    ]=]):eval_embedded(nil, { arg1 = arg1, arg3 = arg3 }, _G)) end
 
-loop i 2 [
-    explosionshader (concatword "explosion2d" (at ["" "soft"] $i)) [
+for i = 1, 2 do
+    explosionshader("explosion2d" .. ({ "", "soft" })[i], [[
         //blow up the tex coords
         float dtc = 1.768 - animstate.x*1.414; // -2, 2.5; -> -2*sqrt(0.5), 2.5*sqrt(0.5);
         dtc *= dtc;
         gl_TexCoord[0].xy = animstate.w*0.0004 + dtc*gl_Vertex.xy;
         gl_TexCoord[1].xy = gl_Vertex.xy*0.5 + 0.5; //using wobble makes it look too spherical at a distance
-    ] "gl_TexCoord[1]"
-    explosionshader (concatword "explosion3d" (at ["" "soft"] $i)) [
+    ]], "gl_TexCoord[1]")
+    explosionshader("explosion3d" .. ({ "", "soft" })[i], [[
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
         vec2 texgen = vec2(dot(texgenS, gl_Vertex), dot(texgenT, gl_Vertex)); 
         gl_TexCoord[1].xy = texgen;
         gl_TexCoord[2].xy = texgen - animstate.w*0.0005;
-    ] "gl_TexCoord[2]"
-]
+    ]], "gl_TexCoord[2]") end
 
-shader 0 "particlenotexture" [
+CAPI.shader(0, "particlenotexture", [[
     #pragma CUBE2_fog
     uniform vec4 colorscale;
     void main(void)
@@ -2225,59 +2218,59 @@ shader 0 "particlenotexture" [
         gl_Position = ftransform();
         gl_TexCoord[0] = gl_Color * colorscale;
     } 
-] [
+]], [[
     void main(void)
     {
         gl_FragColor = gl_TexCoord[0];
     }
-]
+]])
 
-particleshader = [
-    shader 0 $arg1 [
+particleshader = function(arg1)
+    CAPI.shader(0, arg1, ([=[
         #pragma CUBE2_fog
         uniform vec4 colorscale;
-        @(if (>= (strstr $arg1 "soft") 0) [result [
+        @(arg1:find("soft") ~= nil and [[
             uniform vec4 softparams;
             varying float softdepth;
-        ]])
+        ]] or nil)
         void main(void)
         {
             gl_Position = ftransform();
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
             gl_TexCoord[1] = gl_Color * colorscale; 
 
-            @(if (>= (strstr $arg1 "soft") 0) [result [
+            @(arg1:find("soft") ~= nil and [[
                 vec2 offset = gl_MultiTexCoord0.xy*2.82842712474619 - 1.4142135623731;
                 gl_TexCoord[2].xyz = vec3(offset, 1.0);
                 gl_TexCoord[3].xyz = vec3(offset, softparams.y + (gl_ModelViewMatrix * gl_Vertex).z*softparams.x);
-            ]])
+            ]] or nil)
         }
-    ] [
-        @(if (>= (strstr $arg1 "soft") 0) [result [
+    ]=]):eval_embedded(nil, { arg1 = arg1 }), ([=[
+        @(arg1:find("soft") ~= nil and [[
             #extension GL_ARB_texture_rectangle : enable
             uniform sampler2DRect tex2;
             uniform vec4 softparams;
             varying float softdepth;
             @(gdepthunpackparams)
-        ]])
+        ]] or nil)
         uniform sampler2D tex0;
         void main(void)
         {
             vec4 diffuse = texture2D(tex0, gl_TexCoord[0].xy);
 
-            @(if (>= (strstr $arg1 "soft") 0) [result [
-                @(gdepthunpack depth tex2 gl_FragCoord.xy)
+            @(arg1:find("soft") ~= nil and [[
+                @(gdepthunpack("depth", "tex2", "gl_FragCoord.xy"))
                 diffuse.a *= clamp(depth*softparams.x - dot(gl_TexCoord[2].xyz, gl_TexCoord[3].xyz), 0.0, 1.0);
-            ]])
+            ]] or nil)
 
             gl_FragColor = diffuse * gl_TexCoord[1];
         }
-    ]     
-]
+    ]=]):eval_embedded(nil, { arg1 = arg1 }, _G)) end
 
-loop i 2 [
-    particleshader (concatword "particle" (at ["" "soft"] $i))
-]
+for i = 1, 2 do
+    particleshader("particle" .. ({ "", "soft" })[i]) end
+
+--[====[
 
 shader 0 "blendbrush" [
     uniform vec4 texgenS, texgenT;
