@@ -67,7 +67,7 @@ namespace local_server
             else conoutf("Waiting for server to finish starting up .. (%i)", num_trials);
 
             if (num_trials == 20)
-                logger::log(logger::ERROR, "Failed to start server. See "SERVER_LOGFILE" for more information.\n");
+                logger::log(logger::ERROR, "Failed to start server. See " SERVER_LOGFILE " for more information.\n");
 
             num_trials++;
             last_connect_trial = lastmillis;
