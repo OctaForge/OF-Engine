@@ -29,7 +29,7 @@ end
 multiplier = 1
 multiplier2 = 16
 
-function delta_edit_1(a) gridpower = gridpower + a end
+function delta_edit_1(a) EVAR.gridpower = EVAR.gridpower + a end
 function delta_edit_2(a) edit.push(a, edit.PUSH_FACE) end
 function delta_edit_3(a) edit.push(a, edit.PUSH_CORNER) end
 function delta_edit_4(a) edit.rotate(a) end
