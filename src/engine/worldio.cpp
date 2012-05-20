@@ -1031,7 +1031,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
                 lapi::state.get<lua::Function>("LAPI", "World", "Entity", "add_sauer")(
-                    e.type, e.o, e.attr1, e.attr2, e.attr3, e.attr4
+                    e.type, e.o, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5
                 );
                 break;
             default:

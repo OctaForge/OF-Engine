@@ -82,12 +82,12 @@ namespace lapi_binds
         int cn, int ouid,
         const char *oc, const char *sd,
         float x, float y, float z,
-        int attr1, int attr2, int attr3, int attr4
+        int attr1, int attr2, int attr3, int attr4, int attr5
     )
     {
         send_ExtentCompleteNotification(
             cn, ouid, oc ? oc : "", sd ? sd : "",
-            x, y, z, attr1, attr2, attr3, attr4
+            x, y, z, attr1, attr2, attr3, attr4, attr5
         );
     }
 

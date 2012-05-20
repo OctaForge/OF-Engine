@@ -59,10 +59,10 @@ local __entities_sauer = {}
         position - a <vec3> specifying the entity position.
         attr1..4 - entity attributes.
 ]]
-function add_sauer(entity_type, position, attr1, attr2, attr3, attr4)
+function add_sauer(entity_type, position, attr1, attr2, attr3, attr4, attr5)
     if not SERVER then return nil end
     table.insert(__entities_sauer, {
-        entity_type, position, attr1, attr2, attr3, attr4
+        entity_type, position, attr1, attr2, attr3, attr4, attr5
     })
 end
 
@@ -635,11 +635,13 @@ function load_entities()
             local attr2 = entity[4]
             local attr3 = entity[5]
             local attr4 = entity[6]
+            local attr5 = entity[7]
 
             if sn[et] then table.insert(entities, {
                 huid, sn[et], {
                     attr1 = tostring(attr1), attr2 = tostring(attr2),
                     attr3 = tostring(attr3), attr4 = tostring(attr4),
+                    attr5 = tostring(attr5),
                     radius = "0", position = "[%(1)i|%(2)i|%(3)i]" % {
                         o.x, o.y, o.z
                     }, animation = "130", model_name = "", attachments = "[]",

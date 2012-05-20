@@ -531,10 +531,10 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
     ((fpsent*)dynamicEntity)->uniqueId = uniqueId;
 }
 
-void LogicSystem::setupExtent(const lua::Table& ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4)
+void LogicSystem::setupExtent(const lua::Table& ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5)
 {
     int uniqueId = ref.get<int>("uid");
-    logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4);
+    logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4, attr5);
     INDENT_LOG(logger::DEBUG);
 
     extentity *e = new extentity;
@@ -546,6 +546,7 @@ void LogicSystem::setupExtent(const lua::Table& ref, int type, float x, float y,
     e->attr2 = attr2;
     e->attr3 = attr3;
     e->attr4 = attr4;
+    e->attr5 = attr5;
 
     e->inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
 

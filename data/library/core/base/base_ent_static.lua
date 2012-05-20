@@ -37,6 +37,7 @@ module("entity_static", package.seeall)
         attr2 - second sauer entity property.
         attr3 - third sauer entity property.
         attr4 - fourth sauer entity property.
+        attr5 - fifth sauer entity property.
 ]]
 base_static = std.class.new(entity_animated.base_animated, {
     --! Variable: should_act
@@ -99,6 +100,10 @@ base_static = std.class.new(entity_animated.base_animated, {
         attr4        = state_variables.wrapped_c_integer({
             c_getter = "CAPI.getattr4",
             c_setter = "CAPI.setattr4"
+        }),
+        attr5        = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr5",
+            c_setter = "CAPI.setattr5"
         })
     },
 
@@ -141,9 +146,9 @@ base_static = std.class.new(entity_animated.base_animated, {
         See <base_server.activate>.
 
         Note: Inserts position into kwargs (kwargs.x, kwargs.y, kwargs.z).
-        Also inserts attr1, attr2, attr3, attr4 into kwargs and then sets up
-        the entity in sauer using values in kwargs. Also triggers SV change
-        for position property and attr* properties after flushing queued
+        Also inserts attr1, attr2, attr3, attr4, attr5 into kwargs and then
+        sets up the entity in sauer using values in kwargs. Also triggers SV
+        change for position property and attr* properties after flushing queued
         changes.
     ]]
     activate = function(self, kwargs)
@@ -171,13 +176,15 @@ base_static = std.class.new(entity_animated.base_animated, {
         kwargs.attr2 = self.attr2 or 0
         kwargs.attr3 = self.attr3 or 0
         kwargs.attr4 = self.attr4 or 0
+        kwargs.attr5 = self.attr5 or 0
 
         log(DEBUG, "base: setupextent:")
         -- set up static entity in sauer subsystem
         CAPI.setupextent(
             self, kwargs._type,
             kwargs.x, kwargs.y, kwargs.z,
-            kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4
+            kwargs.attr1, kwargs.attr2, kwargs.attr3,
+            kwargs.attr4, kwargs.attr5
         )
 
         log(DEBUG, "base: flush:")
@@ -219,6 +226,7 @@ base_static = std.class.new(entity_animated.base_animated, {
         self.attr2 = self.attr2
         self.attr3 = self.attr3
         self.attr4 = self.attr4
+        self.attr5 = self.attr5
         log(DEBUG, "ensuring base values complete.")
     end,
 
@@ -248,13 +256,15 @@ base_static = std.class.new(entity_animated.base_animated, {
             kwargs.attr2 = 0
             kwargs.attr3 = 0
             kwargs.attr4 = 0
+            kwargs.attr5 = 0
         end
 
         -- set up static entity
         CAPI.setupextent(
             self, kwargs._type,
             kwargs.x, kwargs.y, kwargs.z,
-            kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4
+            kwargs.attr1, kwargs.attr2, kwargs.attr3,
+            kwargs.attr4, kwargs.attr5
         )
         -- call parent
         entity_animated.base_animated.client_activate(self, kwargs)
@@ -303,7 +313,8 @@ base_static = std.class.new(entity_animated.base_animated, {
                         tonumber(self.attr1),
                         tonumber(self.attr2),
                         tonumber(self.attr3),
-                        tonumber(self.attr4))
+                        tonumber(self.attr4),
+                        tonumber(self.attr5))
         end
         log(DEBUG, "base:send_complete_notification done.")
     end,
@@ -333,6 +344,7 @@ base_static = std.class.new(entity_animated.base_animated, {
         attr2 - red value (0 to 255, alias "red")
         attr3 - green value (0 to 255, alias "green")
         attr4 - blue value (0 to 255, alias "blue")
+        attr5 - shadow, 0 for dynamic, 1 for no-shadow, 2 for static
 ]]
 light = std.class.new(base_static, {
     --! Variable: sauer_type_index
@@ -364,11 +376,18 @@ light = std.class.new(base_static, {
             gui_name = "blue",
             alt_name = "blue"
         }),
+        attr5 = state_variables.wrapped_c_integer({
+            c_getter = "CAPI.getattr5",
+            c_setter = "CAPI.setattr5",
+            gui_name = "shadow",
+            alt_name = "shadow"
+        }),
 
         radius = state_variables.variable_alias("attr1"),
         red = state_variables.variable_alias("attr2"),
         green = state_variables.variable_alias("attr3"),
-        blue = state_variables.variable_alias("attr4")
+        blue = state_variables.variable_alias("attr4"),
+        shadow = state_variables.variable_alias("attr5"),
     },
 
     --! Function: init
@@ -378,9 +397,10 @@ light = std.class.new(base_static, {
 
         -- default values
         self.radius = 100
-        self.red = 128
-        self.green = 128
-        self.blue = 128
+        self.red    = 128
+        self.green  = 128
+        self.blue   = 128
+        self.shadow = 0
     end
 }, "light")
 
