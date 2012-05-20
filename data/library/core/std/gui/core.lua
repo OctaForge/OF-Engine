@@ -38,11 +38,6 @@ local updateval = function(var, val, onchange)
     end
 end
 
-local resetcursor
-local movecursor
-local hascursor
-local getcursorpos
-
 local needsadjust = true
 
 local world = nil
@@ -2590,7 +2585,7 @@ getcursorpos = function()
     end
 end
 
-local keypress = function(code, isdown, cooked)
+keypress = function(code, isdown, cooked)
     if not hascursor() then
         return false
     end
@@ -2617,9 +2612,9 @@ local clearmainmenu = function(self)
     if  EVAR.mainmenu ~= 0 and (CAPI.isconnected() or CAPI.haslocalclients()) then
         EVAR.mainmenu  = 0
 
-        --hideui("main")
-        --hideui("vtab")
-        --hideui("htab")
+        hideui("main")
+        hideui("vtab")
+        hideui("htab")
     end
 end
 

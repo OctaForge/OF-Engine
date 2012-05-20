@@ -85,12 +85,10 @@ PARTICLE = {
     MUZZLE_FLASH1 = 15,
     MUZZLE_FLASH2 = 16,
     MUZZLE_FLASH3 = 17,
-    HUD_ICON = 18,
-    HUD_ICON_GREY = 19,
-    TEXT = 20,
-    METER = 21,
-    METER_VS = 22,
-    LENS_FLARE = 23
+    TEXT = 18,
+    METER = 19,
+    METER_VS = 20,
+    LENS_FLARE = 21
 }
 
 --[[!

@@ -636,7 +636,7 @@ function load_entities()
             local attr3 = entity[5]
             local attr4 = entity[6]
 
-            table.insert(entities, {
+            if sn[et] then table.insert(entities, {
                 huid, sn[et], {
                     attr1 = tostring(attr1), attr2 = tostring(attr2),
                     attr3 = tostring(attr3), attr4 = tostring(attr4),
@@ -645,7 +645,7 @@ function load_entities()
                     }, animation = "130", model_name = "", attachments = "[]",
                     tags = "[]", persistent = "true"
                 }
-            })
+            }) end
 
             local ent = entities[#entities][3]
 
