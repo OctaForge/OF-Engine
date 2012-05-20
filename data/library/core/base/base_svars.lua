@@ -106,8 +106,6 @@ function __get_gui_name(uid, sv_name)
     return var.gui_name and var.gui_name or sv_name
 end
 
-print("JSON::::", std.json.encode)
-
 --[[!
     Event: simplifier
     Registers a JSON simplifier for entity instances.

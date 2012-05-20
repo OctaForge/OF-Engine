@@ -880,7 +880,6 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         f->read(name, min(ilen, MAXSTRLEN-1));
         name[min(ilen, MAXSTRLEN-1)] = '\0';
         if(ilen >= MAXSTRLEN) f->seek(ilen - (MAXSTRLEN-1), SEEK_CUR);
-        printf("var: %s\n", name);
         varsys::Variable *v = varsys::get(name);
         lua::Function tostring(lapi::state.get<lua::Object>("tostring"));
         lua::Function tonumber(lapi::state.get<lua::Object>("tonumber"));
