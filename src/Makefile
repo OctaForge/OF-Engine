@@ -168,7 +168,7 @@ ifneq ($(OS), Windows)
 		CLIENT_LDD += -lSDL_image -lSDL_mixer -lz -lGL
 		CLIENT_LDD += -Wl,--export-dynamic
 		ifeq ($(OS), Linux)
-			CLIENT_LDD += -lrt
+			CLIENT_LDD += -ldl -lrt
 		endif
 		ifeq ($(OS), SunOS)
 			CLIENT_LDD += -lsocket -lnsl
@@ -274,6 +274,9 @@ ifneq ($(OS), Windows)
 		SERVER_LDD += -lenet -lluajit -L/usr/X11R6/lib -lX11 `sdl-config --libs`
 		SERVER_LDD += -lSDL_image -lSDL_mixer -lz
 		SERVER_LDD += -Wl,--export-dynamic
+		ifeq ($(OS), Linux)
+			SERVER_LDD += -ldl
+		endif
 		ifeq ($(OS), SunOS)
 			SERVER_LDD += -lsocket -lnsl
 		endif
