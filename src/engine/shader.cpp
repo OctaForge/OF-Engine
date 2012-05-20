@@ -1013,8 +1013,7 @@ const char *getshaderparamname(const char *name)
 {
     types::String *exists = shaderparamnames.access(name);
     if(exists) return (*exists).get_buf();
-    shaderparamnames[name] = name;
-    return name;
+    return shaderparamnames.access(name, name).get_buf();
 }
 
 void addslotparam(const char *name, float x, float y, float z, float w)
