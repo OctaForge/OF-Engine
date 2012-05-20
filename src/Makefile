@@ -162,10 +162,10 @@ endif
 ifneq ($(OS), Windows)
 	ifneq ($(OS), Darwin)
 		CLIENT_INC  = $(INCLUDES) -I/usr/X11R6/include
-		CLIENT_INC += `sdl-config --cflags` `curl-config --cflags` -DCLIENT
+		CLIENT_INC += `sdl-config --cflags` -DCLIENT
 		CLIENT_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
 		CLIENT_LDD += -lenet -lluajit -L/usr/X11R6/lib -lX11 `sdl-config --libs`
-		CLIENT_LDD += -lSDL_image -lSDL_mixer `curl-config --libs` -lz -lGL
+		CLIENT_LDD += -lSDL_image -lSDL_mixer -lz -lGL
 		CLIENT_LDD += -Wl,--export-dynamic
 		ifeq ($(OS), Linux)
 			CLIENT_LDD += -lrt
@@ -175,10 +175,10 @@ ifneq ($(OS), Windows)
 		endif
 	else
 		CLIENT_INC  = $(INCLUDES) -I/usr/X11R6/include $(OSX_INCLUDES)
-		CLIENT_INC += `curl-config --cflags` -DCLIENT
+		CLIENT_INC += -DCLIENT
 		CLIENT_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
 		CLIENT_LDD += -lenet -lluajit -L/usr/X11R6/lib -lX11 $(OSX_LIBS)
-		CLIENT_LDD += `curl-config --libs` -lz -lGL -lobjc
+		CLIENT_LDD += -lz -lGL -lobjc
 		CLIENT_LDD += -Wl,--export-dynamic
 	endif
 else
@@ -187,7 +187,7 @@ else
 	CLIENT_LDD  = $(WINDOWS_LIBS)
 	CLIENT_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
 	CLIENT_LDD += -lenet -lluajit -lSDL -lSDL_image -lSDL_mixer
-	CLIENT_LDD += -lzlib1 -lcurl -lopengl32 -lws2_32 -lwinmm
+	CLIENT_LDD += -lzlib1 -lopengl32 -lws2_32 -lwinmm
 	CLIENT_LDD += -static-libgcc -static-libstdc++
 	CLIENT_LDD += -Wl,--export-dynamic
 endif
@@ -269,20 +269,20 @@ CLIENT_OBJ_BUILD = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 ifneq ($(OS), Windows)
 	ifneq ($(OS), Darwin)
 		SERVER_INC  = $(INCLUDES) -I/usr/X11R6/include
-		SERVER_INC += `sdl-config --cflags` `curl-config --cflags` -DSERVER
+		SERVER_INC += `sdl-config --cflags` -DSERVER
 		SERVER_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
 		SERVER_LDD += -lenet -lluajit -L/usr/X11R6/lib -lX11 `sdl-config --libs`
-		SERVER_LDD += -lSDL_image -lSDL_mixer `curl-config --libs` -lz
+		SERVER_LDD += -lSDL_image -lSDL_mixer -lz
 		SERVER_LDD += -Wl,--export-dynamic
 		ifeq ($(OS), SunOS)
 			SERVER_LDD += -lsocket -lnsl
 		endif
 	else
 		SERVER_INC  = $(INCLUDES) -I/usr/X11R6/include $(OSX_INCLUDES)
-		SERVER_INC += `curl-config --cflags` -DSERVER
+		SERVER_INC += -DSERVER
 		SERVER_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
 		SERVER_LDD += -lenet -lluajit -L/usr/X11R6/lib -lX11 $(OSX_LIBS)
-		SERVER_LDD += `curl-config --libs` -lz -lobjc
+		SERVER_LDD += -lz -lobjc
 		SERVER_LDD += -Wl,--export-dynamic
 	endif
 else
@@ -291,7 +291,7 @@ else
 	SERVER_LDD  = $(WINDOWS_LIBS)
 	SERVER_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
 	SERVER_LDD += -lenet -lluajit -lSDL -lSDL_image -lSDL_mixer
-	SERVER_LDD += -lzlib1 -lcurl -lopengl32 -lws2_32 -lwinmm
+	SERVER_LDD += -lzlib1 -lopengl32 -lws2_32 -lwinmm
 	SERVER_LDD += -static-libgcc -static-libstdc++
 	SERVER_LDD += -Wl,--export-dynamic
 endif
