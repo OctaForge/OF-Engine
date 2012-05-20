@@ -522,8 +522,7 @@ void renderoutline()
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     bvec color((outlinecolour>>16)&0xFF, (outlinecolour>>8)&0xFF, outlinecolour&0xFF);
-    if(hdr) color.shr(1);
-    glColor3ub(color.x, color.y, color.z);
+    glColor3f(color.x*ldrscaleb, color.y*ldrscaleb, color.z*ldrscaleb);
 
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 
@@ -594,8 +593,7 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
     glEnable(GL_TEXTURE_2D); 
     glBindTexture(GL_TEXTURE_2D, tex);
     bvec color((blendbrushcolor>>16)&0xFF, (blendbrushcolor>>8)&0xFF, blendbrushcolor&0xFF);
-    if(hdr) color.shr(1);
-    glColor4ub(color.x, color.y, color.z, 0x40);
+    glColor4f(color.x*ldrscaleb, color.y*ldrscaleb, color.z*ldrscaleb, 0.25f);
 
     LOCALPARAM(texgenS, (1.0f/w, 0, 0, -x/w));
     LOCALPARAM(texgenT, (0, 1.0f/h, 0, -y/h));
@@ -973,9 +971,9 @@ VAR(smbbcull, 0, 1, 1);
 VAR(smdistcull, 0, 1, 1);
 VAR(smnodraw, 0, 0, 1);
 
-vec shadoworigin(0, 0, 0);
+vec shadoworigin(0, 0, 0), shadowdir(0, 0, 0);
 float shadowradius = 0, shadowbias = 0;
-int shadowside = 0;
+int shadowside = 0, shadowspot = 0;
 
 vtxarray *shadowva = NULL;
 
@@ -1043,14 +1041,6 @@ void findshadowvas(vector<vtxarray *> &vas)
     }
 }
 
-void findshadowvas()
-{
-    memset(vasort, 0, sizeof(vasort));
-    if(shadowmapping == SM_TETRA) findtetrashadowvas(varoot);
-    else findshadowvas(varoot);
-    sortshadowvas();
-}
-
 void findcsmshadowvas(vector<vtxarray *> &vas)
 {
     loopv(vas)
@@ -1062,17 +1052,40 @@ void findcsmshadowvas(vector<vtxarray *> &vas)
         v.shadowmask = calcbbcsmsplits(bbmin, bbmax);
         if(v.shadowmask)
         {
-            float dist = sunlightdir.project_bb(bbmin, bbmax);
+            float dist = shadowdir.project_bb(bbmin, bbmax) - shadowbias;
             addshadowva(&v, dist);
             if(v.children.length()) findcsmshadowvas(v.children);
         }
     }
 }
 
-void findcsmshadowvas()
+void findspotshadowvas(vector<vtxarray *> &vas)
+{
+    loopv(vas)
+    {
+        vtxarray &v = *vas[i];
+        float dist = vadist(&v, shadoworigin);
+        if(dist < shadowradius || !smdistcull)
+        {
+            v.shadowmask = !smbbcull || (v.children.length() || v.mapmodels.length() ?
+                                bbinsidespot(shadoworigin, shadowdir, shadowspot, v.bbmin, v.bbmax) :
+                                bbinsidespot(shadoworigin, shadowdir, shadowspot, v.geommin, v.geommax)) ? 1 : 0;
+            addshadowva(&v, dist);
+            if(v.children.length()) findspotshadowvas(v.children);
+        }
+    }
+}
+
+void findshadowvas()
 {
     memset(vasort, 0, sizeof(vasort));
-    findcsmshadowvas(varoot);
+    switch(shadowmapping)
+    {
+        case SM_CUBEMAP: findshadowvas(varoot); break;
+        case SM_TETRA: findtetrashadowvas(varoot); break;
+        case SM_CASCADE: findcsmshadowvas(varoot); break;
+        case SM_SPOT: findspotshadowvas(varoot); break;
+    }
     sortshadowvas();
 }
 
@@ -1125,29 +1138,24 @@ void findshadowmms()
         loopvj(va->mapmodels)
         {
             octaentities *oe = va->mapmodels[j];
-            if(smdistcull)
+            switch(shadowmapping)
             {
-                if(shadoworigin.dist_to_bb(oe->bbmin, oe->bbmax) >= shadowradius)
-                    continue;
+                case SM_CASCADE:
+                    if(!calcbbcsmsplits(oe->bbmin, oe->bbmax))
+                        continue;
+                    break;
+                case SM_TETRA:
+                case SM_CUBEMAP: 
+                    if(smdistcull && shadoworigin.dist_to_bb(oe->bbmin, oe->bbmax) >= shadowradius)
+                        continue;
+                    break;
+                case SM_SPOT:
+                    if(smdistcull && shadoworigin.dist_to_bb(oe->bbmin, oe->bbmax) >= shadowradius)
+                        continue;
+                    if(smbbcull && !bbinsidespot(shadoworigin, shadowdir, shadowspot, oe->bbmin, oe->bbmax))
+                        continue; 
+                    break;
             }
-            oe->rnext = NULL;
-            *lastmms = oe;
-            lastmms = &oe->rnext;
-        }
-    }
-}
-
-void findcsmshadowmms()
-{
-    shadowmms = NULL;
-    octaentities **lastmms = &shadowmms; 
-    for(vtxarray *va = shadowva; va; va = va->rnext)
-    {
-        loopvj(va->mapmodels)
-        {
-            octaentities *oe = va->mapmodels[j];
-            if(!calcbbcsmsplits(oe->bbmin, oe->bbmax))
-                continue;
             oe->rnext = NULL;
             *lastmms = oe;
             lastmms = &oe->rnext;
@@ -1419,7 +1427,8 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
         {
             cur.refractscale = vslot.refractscale;
             cur.refractcolor = vslot.refractcolor;
-            GLOBALPARAM(refractparams, (vslot.refractcolor.x*(1-alpha), vslot.refractcolor.y*(1-alpha), vslot.refractcolor.z*(1-alpha), vslot.refractscale*viewh));
+            float refractscale = 0.5f/ldrscale*(1-alpha);
+            GLOBALPARAM(refractparams, (vslot.refractcolor.x*refractscale, vslot.refractcolor.y*refractscale, vslot.refractcolor.z*refractscale, vslot.refractscale*viewh));
         }
     }
     else if(cur.colorscale != vslot.colorscale)
@@ -1948,8 +1957,7 @@ bool renderexplicitsky(bool outline)
                 {
                     notextureshader->set();
                     bvec color((explicitskycolour>>16)&0xFF, (explicitskycolour>>8)&0xFF, explicitskycolour&0xFF);
-                    if(hdr) color.shr(1);
-                    glColor3ub(color.x, color.y, color.z);
+                    glColor3f(color.x*ldrscaleb, color.y*ldrscaleb, color.z*ldrscaleb);
                     glDepthMask(GL_FALSE);
                     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

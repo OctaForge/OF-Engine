@@ -4,7 +4,7 @@
 
 Shader *Shader::lastshader = NULL;
 
-Shader *nullshader = NULL, *defaultshader = NULL, *rectshader = NULL, *cubemapshader = NULL, *notextureshader = NULL, *nocolorshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *stdworldshader = NULL;
+Shader *nullshader = NULL, *defaultshader = NULL, *rectshader = NULL, *cubemapshader = NULL, *notextureshader = NULL, *nocolorshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *ldrshader = NULL, *ldrnotextureshader = NULL, *stdworldshader = NULL;
 
 static hashtable<const char *, GlobalShaderParamState> globalparams(256);
 static hashtable<const char *, int> localparams(256);
@@ -53,6 +53,8 @@ void loadshaders()
     nocolorshader = lookupshaderbyname("nocolor");
     foggedshader = lookupshaderbyname("fogged");
     foggednotextureshader = lookupshaderbyname("foggednotexture");
+    ldrshader = lookupshaderbyname("ldr");
+    ldrnotextureshader = lookupshaderbyname("ldrnotexture");
     
     defaultshader->set();
 }
@@ -61,6 +63,21 @@ Shader *lookupshaderbyname(const char *name)
 { 
     Shader *s = shaders.access(name);
     return s && s->detailshader ? s : NULL;
+}
+
+Shader *generateshader(const char *name, const char *fmt, ...)
+{
+    Shader *s = name ? lookupshaderbyname(name) : NULL;
+    if(!s)
+    {
+        defvformatstring(cmd, fmt, fmt);
+        standardshader = true;
+        lapi::state.do_string(cmd, lua::ERROR_TRACEBACK);
+        standardshader = false;
+        s = name ? lookupshaderbyname(name) : NULL;
+        if(!s) s = nullshader;
+    }
+    return s;
 }
 
 static void showglslinfo(GLhandleARB obj, const char *tname, const char *name, const char *source)
@@ -517,8 +534,20 @@ static void genuniformlocs(Shader &s, const char *vs, const char *ps)
     }
 }
 
+
+
 Shader *newshader(int type, const char *name, const char *vs, const char *ps, Shader *variant = NULL, int row = 0)
 {
+    FILE *f = fopen("/home/q66/shaders/of.txt", "a");
+    if (f)
+    {
+        fprintf(f, "Shader: %s\n----\n", name);
+        fprintf(f, "Vertex:\n%s\n", vs);
+        fprintf(f, "Pixel:\n%s\n", ps);
+        fprintf(f, "----\n");
+        fclose(f);
+    }
+
     if(Shader::lastshader)
     {
         glUseProgramObject_(0);
@@ -821,7 +850,7 @@ void shader(int type, char *name, char *vs, char *ps)
     slotparams.shrink(0);
 }
 
-void variantshader(int type, char *name, int row, char *vs, char *ps)
+void variantshader(int type, char *name, int row, char *vs, char *ps, int maxvariants)
 {
     if(row < 0)
     {
@@ -833,8 +862,13 @@ void variantshader(int type, char *name, int row, char *vs, char *ps)
     if(!s) return;
 
     defformatstring(varname)("<variant:%d,%d>%s", s->variants[row].length(), row, name);
-    //defformatstring(info)("shader %s", varname);
-    //renderprogress(loadprogress, info);
+    if(maxvariants > 0)
+    {
+        int numvariants = 0;
+        loopi(MAXVARIANTROWS) numvariants += s->variants[i].length(); 
+        defformatstring(info)("shader %s", name);
+        renderprogress(numvariants / float(maxvariants), info);
+    }
     vector<char> vsbuf, psbuf, vsbak, psbak;
     GENSHADER(s->defaultparams.length(), genuniformdefs(vsbuf, psbuf, vs, ps, s));
     GENSHADER(strstr(vs, "#pragma CUBE2_fog") || strstr(ps, "#pragma CUBE2_fog"), genfogshader(vsbuf, psbuf, vs, ps));

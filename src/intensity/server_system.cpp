@@ -164,7 +164,7 @@ glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix, envmatrix;
 volatile bool check_calclight_progress = false;
 bool calclight_canceled = false;
 int curtexnum = 0;
-Shader *defaultshader = NULL, *rectshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *stdworldshader = NULL;
+Shader *defaultshader = NULL, *rectshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *stdworldshader = NULL, *ldrnotextureshader = NULL;
 bool inbetweenframes = false, renderedframe = false;
 vec shadowoffset(0, 0, 0), shadowfocus(0, 0, 0), shadowdir(0, 0.707, 1);
 int explicitsky = 0;
@@ -176,6 +176,7 @@ vec shadoworigin(0, 0, 0);
 float shadowradius = 0.0f, shadowbias = 0.0f;
 int hwtexsize = 0;
 int maxtexsize = 0;
+int shadowspot = 0;
 
 plane smtetraclipplane;
 

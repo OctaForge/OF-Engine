@@ -44,11 +44,7 @@ static void inithemisphere(int hres, int depth)
     hemiverts = new vec[tris+1];
     hemiindices = new GLushort[tris*3];
     hemiverts[heminumverts++] = vec(0.0f, 0.0f, 1.0f); //build initial 'hres' sided pyramid
-    loopi(hres)
-    {
-        float a = PI2*float(i)/hres;
-        hemiverts[heminumverts++] = vec(cosf(a), sinf(a), 0.0f);
-    }
+    loopi(hres) hemiverts[heminumverts++] = vec(sincos360[(360*i)/hres], 0.0f);
     loopi(hres) genface(depth, 0, i+1, 1+(i+1)%hres);
 
     if(hasVBO)
@@ -354,8 +350,7 @@ struct fireballrenderer : listrenderer
 
         glRotatef(lastmillis/7.0f, -rotdir.x, rotdir.y, -rotdir.z);
         glScalef(-psize, psize, -psize);
-        float colorscale = (hdr ? 0.5f : 1)/255.0f;
-        drawexplosion(inside, color[0]*colorscale, color[1]*colorscale, color[2]*colorscale, blend/255.0f);
+        drawexplosion(inside, color[0]*ldrscaleb, color[1]*ldrscaleb, color[2]*ldrscaleb, blend/255.0f);
 
         glPopMatrix();
     }

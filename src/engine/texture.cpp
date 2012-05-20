@@ -757,7 +757,28 @@ int texalign(const void *data, int w, int bpp)
     if(address&4) return 4;
     return 8;
 }
-    
+   
+bool floatformat(GLenum format)
+{
+    switch(format)
+    {
+        case GL_R16F:
+        case GL_R32F:
+        case GL_RG16F:
+        case GL_RG32F:
+        case GL_FLOAT_RG16_NV:
+        case GL_FLOAT_R32_NV:
+        case GL_RGB16F_ARB:
+        case GL_RGB32F_ARB:
+        case GL_R11F_G11F_B10F_EXT:
+        case GL_RGBA16F_ARB:
+        case GL_RGBA32F_ARB:
+            return true;
+        default:
+            return false;
+    }
+}
+ 
 static Texture *newtexture(Texture *t, const char *rname, ImageData &s, int clamp = 0, bool mipit = true, bool canreduce = false, bool transient = false, int compress = 0)
 {
     if(!t)
@@ -2045,10 +2066,8 @@ void forcecubemapload(GLuint tex)
     glLoadIdentity();
 
     cubemapshader->set();
-    GLenum tex2d = glIsEnabled(GL_TEXTURE_2D), depthtest = glIsEnabled(GL_DEPTH_TEST), blend = glIsEnabled(GL_BLEND);
-    if(tex2d) glDisable(GL_TEXTURE_2D);
+    GLenum depthtest = glIsEnabled(GL_DEPTH_TEST), blend = glIsEnabled(GL_BLEND);
     if(depthtest) glDisable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_CUBE_MAP_ARB);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, tex);
     if(!blend) glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2058,9 +2077,7 @@ void forcecubemapload(GLuint tex)
     glVertex2f(0, 0);
     glEnd();
     if(!blend) glDisable(GL_BLEND);
-    glDisable(GL_TEXTURE_CUBE_MAP_ARB);
     if(depthtest) glEnable(GL_DEPTH_TEST);
-    if(tex2d) glEnable(GL_TEXTURE_2D);
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -2246,6 +2263,7 @@ GLuint genenvmap(const vec &o, int envmapsize, int blur)
     float yaw = 0, pitch = 0;
     uchar *pixels = new uchar[3*rendersize*rendersize*2];
     glPixelStorei(GL_PACK_ALIGNMENT, texalign(pixels, rendersize, 3));
+    if(hasCBF && hdrfloat) glClampColor_(GL_CLAMP_READ_COLOR_ARB, GL_TRUE);
     loopi(6)
     {
         const cubemapside &side = cubemapsides[i];
@@ -2265,16 +2283,24 @@ GLuint genenvmap(const vec &o, int envmapsize, int blur)
                 yaw = 270; pitch = 90; break;
         }
         drawcubemap(rendersize, o, yaw, pitch, side);
-        glReadPixels(0, 0, rendersize, rendersize, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        uchar *outpixels = &pixels[3*rendersize*rendersize];
-        reorienttexture(pixels, rendersize, rendersize, 3, 3*rendersize, outpixels, !side.flipx, !side.flipy, side.swapxy);
+        uchar *src = pixels, *dst = &pixels[3*rendersize*rendersize];
+        glReadPixels(0, 0, rendersize, rendersize, GL_RGB, GL_UNSIGNED_BYTE, src);
+        if(rendersize > texsize)
+        {
+            scaletexture(src, rendersize, rendersize, 3, 3*rendersize, dst, texsize, texsize);
+            swap(src, dst);
+        }      
+        reorienttexture(src, texsize, texsize, 3, 3*texsize, dst, !side.flipx, !side.flipy, side.swapxy);
         if(blur > 0)
         {
-            blurtexture(blur, 3, rendersize, rendersize, pixels, outpixels);
-            outpixels = pixels;
+            swap(src, dst);
+            blurtexture(blur, 3, texsize, texsize, src, dst);
         }
-        createtexture(tex, texsize, texsize, outpixels, 3, 2, GL_RGB5, side.target, rendersize, rendersize);
+        createtexture(tex, texsize, texsize, dst, 3, 2, GL_RGB5, side.target);
     }
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+    glViewport(0, 0, vieww, viewh);
+    if(hasCBF && hdrfloat) glClampColor_(GL_CLAMP_READ_COLOR_ARB, GL_FIXED_ONLY_ARB);
     delete[] pixels;
     clientkeepalive();
     forcecubemapload(tex);

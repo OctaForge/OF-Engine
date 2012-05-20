@@ -68,10 +68,8 @@ struct flarerenderer : partrenderer
         //frustrum + fog check
         if(isvisiblesphere(0.0f, o) > (sun?VFC_FOGGED:VFC_FULL_VISIBLE)) return;
         //find closest point between camera line of sight and flare pos
-        vec viewdir;
-        vecfromyawpitch(camera1->yaw, camera1->pitch, 1, 0, viewdir);
         vec flaredir = vec(o).sub(camera1->o);
-        vec center = viewdir.mul(flaredir.dot(viewdir)).add(camera1->o);
+        vec center = vec(camdir).mul(flaredir.dot(camdir)).add(camera1->o);
         float mod, size;
         if(sun) //fixed size
         {
@@ -94,8 +92,6 @@ struct flarerenderer : partrenderer
 
         if(editmode || !flarelights) return;
 
-        vec viewdir;
-        vecfromyawpitch(camera1->yaw, camera1->pitch, 1, 0, viewdir);
         extern const vector<int> &checklightcache(int x, int y);
         const vector<int> &lights = checklightcache(int(camera1->o.x), int(camera1->o.y));
         loopv(lights)
@@ -108,7 +104,7 @@ struct flarerenderer : partrenderer
             float len = flaredir.magnitude();
             if(!sun && (len > radius)) continue;
             if(isvisiblesphere(0.0f, e.o) > (sun?VFC_FOGGED:VFC_FULL_VISIBLE)) continue;
-            vec center = vec(viewdir).mul(flaredir.dot(viewdir)).add(camera1->o);
+            vec center = vec(camdir).mul(flaredir.dot(camdir)).add(camera1->o);
             float mod, size;
             if(sun) //fixed size
             {
@@ -147,7 +143,7 @@ struct flarerenderer : partrenderer
             flare *f = flares+i;
             vec center = f->center;
             vec axis = vec(f->o).sub(center);
-            float colorscale = (hdr ? 0.5f : 1)/255.0f, color[4] = {f->color[0]*colorscale, f->color[1]*colorscale, f->color[2]*colorscale, 1};
+            float color[4] = {f->color[0]*ldrscaleb, f->color[1]*ldrscaleb, f->color[2]*ldrscaleb, 1};
             loopj(f->sparkle?12:9)
             {
                 const flaretype &ft = flaretypes[j];

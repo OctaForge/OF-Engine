@@ -880,39 +880,57 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         f->read(name, min(ilen, MAXSTRLEN-1));
         name[min(ilen, MAXSTRLEN-1)] = '\0';
         if(ilen >= MAXSTRLEN) f->seek(ilen - (MAXSTRLEN-1), SEEK_CUR);
+        printf("var: %s\n", name);
         varsys::Variable *v = varsys::get(name);
-        bool exists = v && v->type() == type;
-        switch(type)
+        lua::Function tostring(lapi::state.get<lua::Object>("tostring"));
+        lua::Function tonumber(lapi::state.get<lua::Object>("tonumber"));
+        const char *str = NULL;
+        string tmp;
+        switch (type)
+        {
+            case varsys::TYPE_I: str = tostring.call<const char*>(f->getlil<int>()); break;
+            case varsys::TYPE_F: str = tostring.call<const char*>(f->getlil<float>()); break;
+            case varsys::TYPE_S:
+            {
+                int slen = f->getlil<ushort>();
+                f->read(tmp, min(slen, MAXSTRLEN-1));
+                tmp[min(slen, MAXSTRLEN-1)] = '\0';
+                if(slen >= MAXSTRLEN) f->seek(slen - (MAXSTRLEN-1), SEEK_CUR);
+                str = tostring.call<const char*>(tmp);
+                break;
+            }
+            default: continue;
+        }
+        if (v) switch (type)
         {
             case varsys::TYPE_I:
             {
-                int val = f->getlil<int>();
+                int i = tonumber.call<int>(str);
                 varsys::Int_Variable *iv = (varsys::Int_Variable*)v;
-
-                if(exists && iv->get_min() <= iv->get_max()) iv->set(val, true, false);
-                if(dbgvars) conoutf(CON_DEBUG, "read var %s: %d", name, val);
+                if (iv->get_min() <= iv->get_max() && i >= iv->get_min() && i <= iv->get_max())
+                {
+                    iv->set(i, true, false);
+                    if(dbgvars) conoutf(CON_DEBUG, "read var %s: %d", name, i);
+                }
                 break;
             }
  
             case varsys::TYPE_F:
             {
-                float val = f->getlil<float>();
+                float f = tonumber.call<float>(str);
                 varsys::Float_Variable *fv = (varsys::Float_Variable*)v;
-
-                if(exists && fv->get_min() <= fv->get_max()) fv->set(val, true, false);
-                if(dbgvars) conoutf(CON_DEBUG, "read fvar %s: %f", name, val);
+                if (fv->get_min() <= fv->get_max() && f >= fv->get_min() && f <= fv->get_max())
+                {
+                    fv->set(i, true, false);
+                    if(dbgvars) conoutf(CON_DEBUG, "read var %s: %f", name, f);
+                }
                 break;
             }
     
             case varsys::TYPE_S:
             {
-                int slen = f->getlil<ushort>();
-                string val;
-                f->read(val, min(slen, MAXSTRLEN-1));
-                val[min(slen, MAXSTRLEN-1)] = '\0';
-                if(slen >= MAXSTRLEN) f->seek(slen - (MAXSTRLEN-1), SEEK_CUR);
-                if(exists) ((varsys::String_Variable*)v)->set(val, true);
-                if(dbgvars) conoutf(CON_DEBUG, "read svar %s: %s", name, val);
+                ((varsys::String_Variable*)v)->set(str, true);
+                if(dbgvars) conoutf(CON_DEBUG, "read svar %s: %s", name, str);
                 break;
             }
         }

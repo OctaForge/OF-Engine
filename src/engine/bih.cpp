@@ -89,7 +89,7 @@ inline bool BIH::traverse(const vec &o, const vec &ray, const vec &invray, float
                     {
                         if(traverse(o, ray, invray, maxdist, dist, mode, &nodes[curnode->childindex(nearidx)], tmin, min(tmax, nearsplit))) return true;
                         curnode = &nodes[curnode->childindex(faridx)];
-                        tmin = min(tmin, farsplit);
+                        tmin = max(tmin, farsplit);
                         continue;
                     }
                 }

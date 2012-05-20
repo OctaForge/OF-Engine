@@ -411,7 +411,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
     
     // cursors    
 
-    notextureshader->set();
+    ldrnotextureshader->set();
 
     renderentselection(camera1->o, camdir, entmoving!=0);
 

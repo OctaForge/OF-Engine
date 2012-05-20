@@ -61,12 +61,11 @@ namespace gui
 
     void getcursorpos(float &x, float &y)
     {
-        types::Tuple<float, float> ret = lapi::state.get<lua::Function>(
-            "std", "gui", "core", "getcursorpos"
-        ).call<float, float>(x, y);
-
-        x = types::get<0>(ret);
-        y = types::get<1>(ret);
+        lua_getglobal(lapi::state.state(), "getcursorpos");
+        lua_call(lapi::state.state(), 0, 2);
+        x = lua_tonumber(lapi::state.state(), -2);
+        y = lua_tonumber(lapi::state.state(), -1);
+        lua_pop(lapi::state.state(), 2);
     }
 
     bool keypress(int code, bool isdown, int cooked)

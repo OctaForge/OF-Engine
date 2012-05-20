@@ -457,7 +457,6 @@ void rendermatgrid()
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     int lastmat = -1;
-    float colorscale = (hdr ? 0.5f : 1)/255.0f;
     loopvrev(editsurfs)
     {
         materialsurface &m = editsurfs[i];
@@ -477,7 +476,7 @@ void rendermatgrid()
                 case MAT_ALPHA:    color = bvec(85,  0, 85); break; // pink
                 default: continue;
             }
-            glColor3f(color.x*colorscale, color.y*colorscale, color.z*colorscale);
+            glColor3f(color.x*ldrscaleb, color.y*ldrscaleb, color.z*ldrscaleb);
             lastmat = m.material;
         }
         drawmaterial(m, -0.1f);
@@ -675,9 +674,8 @@ void renderglass()
     glBindTexture(GL_TEXTURE_2D, tex->id);
     glActiveTexture_(GL_TEXTURE0_ARB);
 
-    float colorscale = 1/255.0f;
-    GLOBALPARAM(glasscolor, (glasscolor.x*colorscale, glasscolor.y*colorscale, glasscolor.z*colorscale));
-    GLOBALPARAM(glassrefract, (glassrefract*viewh));
+    float refractscale = (0.5f/255)/ldrscale;
+    GLOBALPARAM(glassrefract, (glasscolor.x*refractscale, glasscolor.y*refractscale, glasscolor.z*refractscale, glassrefract*viewh));
     GLOBALPARAM(glassspec, (0.5f*glassspec/100.0f));
 
     short envmap = EMID_NONE;

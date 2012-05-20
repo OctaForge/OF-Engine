@@ -89,6 +89,7 @@ namespace game
     bool allowedittoggle()
     {
 #ifdef CLIENT
+        if(editmode) return true;
         if (!ClientSystem::isAdmin())
         {
             conoutf("You are not authorized to enter edit mode\r\n");

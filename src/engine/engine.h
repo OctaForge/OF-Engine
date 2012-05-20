@@ -129,6 +129,9 @@ extern PFNGLGETCOMPRESSEDTEXIMAGEARBPROC   glGetCompressedTexImage_;
 // GL_EXT_depth_bounds_test
 extern PFNGLDEPTHBOUNDSEXTPROC glDepthBounds_;
 
+// GL_ARB_color_buffer_float
+extern PFNGLCLAMPCOLORARBPROC glClampColor_;
+
 extern void glerror(const char *file, int line, GLenum error);
 
 #define GLERROR do { GLenum error = glGetError(); if(error != GL_NO_ERROR) glerror(__FILE__, __LINE__, error); } while(0)
@@ -184,6 +187,7 @@ extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize;
 
 extern Texture *textureload(const char *name, int clamp = 0, bool mipit = true, bool msg = true);
 extern int texalign(const void *data, int w, int bpp);
+extern bool floatformat(GLenum format);
 extern void cleanuptexture(Texture *t);
 extern void loadalphamask(Texture *t);
 extern Texture *cubemapload(const char *name, bool mipit = true, bool msg = true, bool transient = false);
@@ -226,7 +230,7 @@ static inline bool pvsoccluded(const ivec &bborigin, int size)
 }
 
 // rendergl
-extern bool hasVBO, hasDRE, hasOQ, hasTR, hasFBO, hasAFBO, hasDS, hasTF, hasBE, hasBC, hasCM, hasNP2, hasTC, hasMT, hasAF, hasMDA, hasGLSL, hasGM, hasNVFB, hasSGIDT, hasSGISH, hasDT, hasSH, hasNVPCF, hasPBO, hasFBB, hasUBO, hasBUE, hasDB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT;
+extern bool hasVBO, hasDRE, hasOQ, hasTR, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasBE, hasBC, hasCM, hasNP2, hasTC, hasMT, hasAF, hasMDA, hasGLSL, hasGM, hasNVFB, hasSGIDT, hasSGISH, hasDT, hasSH, hasNVPCF, hasPBO, hasFBB, hasUBO, hasBUE, hasDB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT;
 extern int hasstencil;
 extern int glslversion;
 
@@ -235,6 +239,8 @@ extern float curfov, fovy, aspect;
 extern float nearplane;
 extern int farplane;
 extern int hdr;
+extern bool hdrfloat;
+extern float ldrscale, ldrscaleb;
 extern bool envmapping;
 extern int minimapping;
 extern const glmatrixf viewmatrix;
@@ -342,24 +348,21 @@ static inline void masktiles(uint *tiles, float sx1, float sy1, float sx2, float
     for(int ty = ty1; ty < ty2; ty++) tiles[ty] |= ((1<<(tx2-tx1))-1)<<tx1;
 }
 
-enum { SM_NONE = 0, SM_CUBEMAP, SM_TETRA, SM_CASCADE };
+enum { SM_NONE = 0, SM_CUBEMAP, SM_TETRA, SM_CASCADE, SM_SPOT };
  
 extern int shadowmapping;
 
 extern int smtetra, smtetraclip;
 extern plane smtetraclipplane;
 
-extern vec shadoworigin;
+extern vec shadoworigin, shadowdir;
 extern float shadowradius, shadowbias;
-extern int shadowside;
+extern int shadowside, shadowspot;
 
 extern void collectlights();
 
 extern void findshadowvas();
 extern void findshadowmms();
-
-extern void findcsmshadowvas();
-extern void findcsmshadowmms();
 
 extern void rendershadowmapworld();
 extern void batchshadowmapmodels();
@@ -372,6 +375,18 @@ extern int cullfrustumsides(const vec &lightpos, float lightradius, float size, 
 extern int cullfrustumtetra(const vec &lightpos, float lightradius, float size, float border);
 extern int calcbbcsmsplits(const ivec &bbmin, const ivec &bbmax);
 extern int calcspherecsmsplits(const vec &center, float radius);
+
+static inline bool sphereinsidespot(const vec &dir, int spot, const vec &center, float radius)
+{
+    const vec2 &sc = sincos360[spot];
+    float cdist = dir.dot(center), cradius = radius + sc.y*cdist;
+    return sc.x*sc.x*(center.dot(center) - cdist*cdist) <= cradius*cradius;
+}
+static inline bool bbinsidespot(const vec &origin, const vec &dir, int spot, const ivec &bbmin, const ivec &bbmax)
+{
+    vec radius = ivec(bbmax).sub(bbmin).tovec().mul(0.5f), center = bbmin.tovec().add(radius);
+    return sphereinsidespot(dir, spot, center.sub(origin), radius.magnitude());
+}
 
 extern void loaddeferredlightshaders();
 extern void cleardeferredlightshaders();

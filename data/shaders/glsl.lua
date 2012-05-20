@@ -200,6 +200,40 @@ CAPI.shader(0, "foggednotexture", [[
 ]])
 
 --
+-- LDR variants of default shaders
+--
+
+CAPI.shader(0, "ldr", [[
+    uniform float ldrscale;
+    void main(void)
+    {
+        gl_Position = ftransform();
+        gl_TexCoord[0] = gl_MultiTexCoord0;
+        gl_FrontColor = vec4(ldrscale * gl_Color.rgb, gl_Color.a);
+    }
+]], [[
+    uniform sampler2D tex0;
+    void main(void)
+    {
+        gl_FragColor = gl_Color * texture2D(tex0, gl_TexCoord[0].xy);
+    }
+]])
+
+CAPI.shader(0, "ldrnotexture", [[
+    uniform float ldrscale;
+    void main(void)
+    {
+        gl_Position = ftransform();
+        gl_FrontColor = vec4(ldrscale * gl_Color.rgb, gl_Color.a);
+    }
+]], [[
+    void main(void)
+    {
+        gl_FragColor = gl_Color;
+    }
+]])
+
+--
 -- for filling the z-buffer only (i.e. multi-pass rendering, OQ)
 --
 
@@ -400,7 +434,6 @@ bumpvariantshader = function(...)
         uniform vec4 texgenscroll;
         varying mat3 world;
         @(gdepthinterp())
-        @(btopt.o and "uniform vec4 orienttangent, orientbinormal;" or nil)
         @((btopt.t or btopt.r) and "uniform vec4 camera;" or nil)
         @(btopt.t and "varying vec3 camvects;" or nil)
         @(btopt.r and "varying vec3 camvecw;" or nil)
@@ -1210,7 +1243,8 @@ deferredlightvariantshader = function(...)
     local deferredlighttype = arg[3]
     local numsplits = arg[4] + 0
     local numlights = arg[5] + 0
-    local baselight = arg[2] < 2
+    local baselight = arg[2] < 0 and true or ((arg[2] % 4) < 2)
+    local spotlight = arg[2] >= 4
 
     local dlopt = {
         p = deferredlighttype:find("p") ~= nil,
@@ -1249,14 +1283,19 @@ deferredlightvariantshader = function(...)
                 uniform sampler2DShadow tex4;
             ]])
         ]=] or nil)
-        @(numlights ~= 0 and [=[
+        @(numlights ~= 0 and [==[
             uniform vec4 lightpos[@(numlights)];
             uniform vec3 lightcolor[@(numlights)];
-            @(dlopt.p and [[
+            @(spotlight and "uniform vec4 spotparams[@(numlights)];" or nil)
+            @(dlopt.p and [=[
+                @(spotlight and [[
+                    uniform vec3 spotx[@(numlights)];
+                    uniform vec3 spoty[@(numlights)];
+                ]] or nil)
                 uniform vec4 shadowparams[@(numlights)];
                 uniform vec2 shadowoffset[@(numlights)];
-            ]] or nil)
-        ]=] or nil)
+            ]=] or nil)
+        ]==] or nil)
         @(numsplits ~= 0 and [[
             uniform vec3 splitcenter[@(numsplits)];
             uniform vec3 splitbounds[@(numsplits)];
@@ -1267,14 +1306,21 @@ deferredlightvariantshader = function(...)
             uniform vec3 sunlightdir;
             uniform vec3 sunlightcolor;
         ]] or nil)
+
         uniform vec3 camera;
         uniform vec2 shadowatlasscale;
-        uniform vec4 colorscale, lightscale;
+        uniform vec4 lightscale;
         @(dlopt.a and "uniform sampler2DRect tex5; uniform vec2 aoscale; uniform vec4 aoparams;" or nil)
         @(gdepthunpackparams)
 
         @(dlopt.p and [=[
-            @(dlopt.t and [[
+            @(spotlight and [[
+                vec3 getspottc(vec3 dir, float spotdist, vec3 spotx, vec3 spoty, vec4 shadowparams, vec2 shadowoffset)
+                {
+                    vec2 mparams = shadowparams.xy / spotdist;
+                    return vec3(vec2(dot(dir, spotx), dot(dir, spoty))*mparams.x + shadowoffset, mparams.y + shadowparams.w);
+                }
+            ]] or (dlopt.t and [[
                 vec3 getshadowtc(vec3 dir, vec4 shadowparams, vec2 shadowoffset)
                 {
                     float top = abs(dir.x+dir.y)+dir.z, bottom = abs(dir.x-dir.y)-dir.z;
@@ -1292,7 +1338,7 @@ deferredlightvariantshader = function(...)
                     vec2 mparams = shadowparams.xy / m;
                     return vec3(proj.xy * mparams.x + vec2(proj.w, step(proj.z, 0.0)) * shadowparams.z + shadowoffset, mparams.y + shadowparams.w);
                 }
-            ]])
+            ]]))
         ]=] or nil)
 
         @((dlopt.p or dlopt.c) and [=[
@@ -1324,7 +1370,6 @@ deferredlightvariantshader = function(...)
                 }
             ]])
         ]=] or nil)
-
         @(dlopt.c and [=[
             vec3 getcsmtc(vec3 pos)
             {
@@ -1393,29 +1438,42 @@ deferredlightvariantshader = function(...)
                     ]])
                 }
             ]==] or nil)
-            @(([=[
+            @(([==[
                 vec3 light$jdir = (pos.xyz - lightpos[$j].xyz) * lightpos[$j].w;
                 float light$jdist2 = dot(light$jdir, light$jdir);
                 float light$jfacing = dot(light$jdir, normal.xyz);
                 if(light$jdist2 < 1.0 && light$jfacing < 0.0)
                 {
-                    @(dlopt.p and [[
-                        vec3 shadow$jtc = getshadowtc(light$jdir, shadowparams[$j], shadowoffset[$j]);
-                        float shadow$jval = filtershadow(shadow$jtc);
+                    float light$jinvdist = inversesqrt(light$jdist2);
+                    @(spotlight and [[
+                        float spot$jdist = dot(light$jdir, spotparams[$j].xyz);
+                        float spot$jatten = light$jinvdist * spot$jdist - spotparams[$j].w;
+                        if(spot$jatten > 0.0)
+                        {
                     ]] or nil)
-                    float light$jinvdist = inversesqrt(light$jdist2); 
                     float light$jatten = light$jfacing * (1.0 - light$jinvdist);
-                    @(dlopt.p and [[
-                        light$jatten *= shadow$jval;
-                    ]] or nil)
+                    @(spotlight and [=[
+                        @(dlopt.p and [[
+                            vec3 spot$jtc = getspottc(light$jdir, spot$jdist, spotx[$j], spoty[$j], shadowparams[$j], shadowoffset[$j]);
+                            light$jatten *= spot$jatten * filtershadow(spot$jtc);
+                        ]] or [[
+                            light$jatten *= spot$jatten;
+                        ]])
+                    ]=] or [=[
+                        @(dlopt.p and [[
+                            vec3 shadow$jtc = getshadowtc(light$jdir, shadowparams[$j], shadowoffset[$j]);
+                            light$jatten *= filtershadow(shadow$jtc);
+                        ]] or nil)
+                    ]=])
                     @(dlopt.m and [[
                         light += diffuse.rgb * lightcolor[$j] * light$jatten;
                     ]] or [[
                         float light$jspec = pow(max(light$jinvdist*(dot(camdir, light$jdir) - light$jfacing*facing), 0.0), 8.0) * glow.a;
                         light += (diffuse.rgb + light$jspec) * lightcolor[$j] * light$jatten;
                     ]])
+                    @(spotlight and "}" or nil)
                 }
-            ]=]):reppn("$j", 0, numlights))
+            ]==]):reppn("$j", 0, numlights))
             @(dlopt.m and (baselight and [[
                 gl_FragColor.rgb = light;
                 gl_FragColor.a = diffuse.a;
@@ -1433,7 +1491,7 @@ deferredlightvariantshader = function(...)
                 ]])
             ]=])
         }
-    ]===]):eval_embedded(nil, { dlopt = dlopt, numsplits = numsplits, numlights = numlights, baselight = baselight }, _G)) end
+    ]===]):eval_embedded(nil, { dlopt = dlopt, numsplits = numsplits, numlights = numlights, baselight = baselight, spotlight = spotlight }, _G), 64) end
 
 deferredlightshader = function(arg1, arg2, arg3, arg4)
     local shadername = "deferredlight" .. arg1 .. arg2 .. arg3
@@ -1442,7 +1500,11 @@ deferredlightshader = function(arg1, arg2, arg3, arg4)
         deferredlightvariantshader(shadername, 0, arg1 .. arg3,         arg4, i) -- row 0, point lights, sunlight
         deferredlightvariantshader(shadername, 1, arg1 .. arg2 .. arg3, arg4, i) -- row 1, shadowed point lights, sunlight
         deferredlightvariantshader(shadername, 2, arg1,                 arg4, i) -- row 2, point lights
-        deferredlightvariantshader(shadername, 3, arg1 .. arg2,         arg4, i) end end -- row 0, row 3, shadowed point lights
+        deferredlightvariantshader(shadername, 3, arg1 .. arg2,         arg4, i) -- row 3, shadowed point lights
+        deferredlightvariantshader(shadername, 4, arg1 .. arg3,         arg4, i) -- row 4, spot lights, sunlight
+        deferredlightvariantshader(shadername, 5, arg1 .. arg2 .. arg3, arg4, i) -- row 5, shadowed spot lights, sunlight
+        deferredlightvariantshader(shadername, 6, arg1,                 arg4, i) -- row 6, spot lights
+        deferredlightvariantshader(shadername, 7, arg1 .. arg2,         arg4, i) end end -- ow 7, shadowed spot lights
 
 CAPI.shader(0, "hdrreduce", [[
     void main(void)
@@ -1601,7 +1663,7 @@ CAPI.shader(0, "hdrtonemap", [[
     }
 ]]):eval_embedded(nil, { lumweights = lumweights }))
 
-CAPI.shader(0, "hdrundo", [[
+CAPI.shader(0, "hdrnop", [[
     void main(void)
     {
         gl_Position = gl_Vertex;
@@ -1611,7 +1673,7 @@ CAPI.shader(0, "hdrundo", [[
     uniform sampler2DRect tex0;
     void main(void)
     {
-        gl_FragColor = 2.0 * texture2DRect(tex0, gl_FragCoord.xy);
+        gl_FragColor = texture2DRect(tex0, gl_FragCoord.xy);
     }
 ]])
 
@@ -1920,9 +1982,9 @@ sample4corners = [[
 
 -- some simple ones that just do an effect on the RGB value...
 
-lazyshader(0, "invert", "@(fsvs) }", "@fsps gl_FragColor = 1.0 - sample; }")
-lazyshader(0, "gbr",    "@(fsvs) }", "@fsps gl_FragColor = sample.yzxw; }")
-lazyshader(0, "bw",     "@(fsvs) }", "@fsps gl_FragColor = vec4(dot(sample.xyz, vec3(0.333))); }")
+lazyshader(0, "invert", "@(fsvs) }", "@(fsps) gl_FragColor = 1.0 - sample; }")
+lazyshader(0, "gbr",    "@(fsvs) }", "@(fsps) gl_FragColor = sample.yzxw; }")
+lazyshader(0, "bw",     "@(fsvs) }", "@(fsps) gl_FragColor = vec4(dot(sample.xyz, vec3(0.333))); }")
 
 -- sobel
 
@@ -2410,6 +2472,7 @@ watershader = function(arg1)
     lazyshader(0, arg1, ([=[
         uniform vec3 camera;
         varying vec3 surface, esurface;
+        @(gdepthinterp())
         void main(void)
         {
             gl_Position = ftransform();
@@ -2418,8 +2481,9 @@ watershader = function(arg1)
                 esurface = (gl_TextureMatrix[1] * gl_Vertex).xyz;
             ]] or nil)
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy * 0.1;
+            @(gdepthpackvert())
         }
-    ]=]):eval_embedded(nil, { arg1 = arg1 }), ([===[
+    ]=]):eval_embedded(nil, { arg1 = arg1 }, _G), ([===[
         #extension GL_ARB_texture_rectangle : enable
         uniform float millis;
         uniform vec3 camera;
@@ -2428,7 +2492,8 @@ watershader = function(arg1)
         uniform sampler2DRect tex7, tex8, tex9;
         uniform vec4 viewsize;
         uniform vec3 watercolor, waterdeepcolor, waterdeepfade;
-        uniform float waterfog, waterspec, waterreflectstep, waterrefract;
+        uniform float waterfog, waterspec;
+        uniform vec4 waterreflect, waterrefract;
         @(arg1:find("caustics") ~= nil and [[
             uniform vec3 causticsS, causticsT;
             uniform vec3 causticsblend;
@@ -2438,6 +2503,7 @@ watershader = function(arg1)
             uniform samplerCube tex4;
         ]] or nil)
         @(gdepthunpackparams)
+        @(gdepthinterp())
         void main(void)
         {
             vec3 camdir = camera - surface, camvec = normalize(camdir);
@@ -2446,11 +2512,11 @@ watershader = function(arg1)
             vec3 bump3 = texture2D(tex0, gl_TexCoord[0].xy + millis*vec2(0.05, -0.05) + 0.49).rgb;
             vec3 bump4 = texture2D(tex0, gl_TexCoord[0].xy + millis*vec2(-0.05, 0.05) + 0.67).rgb;
             bump = normalize(bump + bump2 + bump3 + bump4 - 2.0);
-            vec2 rtc = bump.xy*waterrefract;
+            vec2 rtc = bump.xy * waterrefract.w;
 
             float rmask = texture2DRect(tex7, gl_FragCoord.xy + rtc).a;
             rtc = gl_FragCoord.xy + rtc*rmask;
-            vec3 rcolor = texture2DRect(tex8, rtc).rgb;
+            vec3 rcolor = texture2DRect(tex8, rtc).rgb * waterrefract.xyz;
             float rdepth = dot(texture2DRect(tex7, rtc).rgb, gdepthunpackparams);
             vec3 rpos = (gl_TextureMatrix[0] * vec4(rdepth*rtc, rdepth, 1.0)).xyz;
 
@@ -2475,7 +2541,7 @@ watershader = function(arg1)
 
             @(arg1:find("reflect") ~= nil and [==[
                 vec3 reflectdir = reflect(camvec, bump);
-                vec3 edir = (gl_TextureMatrix[1] * vec4(-waterreflectstep*reflectdir, 0.0)).xyz;
+                vec3 edir = (gl_TextureMatrix[1] * vec4(-waterreflect.w*reflectdir, 0.0)).xyz;
                 vec3 epos = esurface + edir;
                 @(([=[
                     @(gdepthunpackproj("edepth$i", "tex9", "epos", [[
@@ -2486,7 +2552,7 @@ watershader = function(arg1)
                     ]]))
                 ]=]):reppn("$i", 0, 4))
                 vec2 etc = epos.xy/epos.z;
-                vec3 reflect = texture2DRect(tex8, etc).rgb;
+                vec3 reflect = texture2DRect(tex8, etc).rgb * waterreflect.xyz;
                 float edgefade = clamp(4.0*(0.5 - max(abs(etc.x*viewsize.z - 0.5), abs(etc.y*viewsize.w - 0.5))), 0.0, 1.0);
                 float fresnel = 0.25 + 0.75*pow(1.0 - max(dot(camvec, bump), 0.0), 4.0);
                 rcolor = mix(rcolor, reflect, fresnel*edgefade*clamp(-8.0*reflectdir.z, 0.0, 1.0));
@@ -2499,6 +2565,7 @@ watershader = function(arg1)
             gl_FragData[0] = vec4(0.0, 0.0, 0.0, alpha);
             gl_FragData[1] = vec4(bump*0.5+0.5, 0.0);
             gl_FragData[2] = vec4(rcolor*alpha, waterspec*alpha);
+            @(gdepthpackfrag())
         }
     ]===]):eval_embedded(nil, { arg1 = arg1 }, _G)) end
 
@@ -2570,6 +2637,7 @@ waterfogshader("waterfog")
 
 lazyshader(0, "lava", [[
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         gl_Position = ftransform();
@@ -2577,11 +2645,13 @@ lazyshader(0, "lava", [[
         vec3 tangent = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.x));
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
+        @(gdepthpackvert())
     }
 ]], [[
     uniform sampler2D tex0, tex1;
     uniform float lavaglow, lavaspec;
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         vec3 diffuse = texture2D(tex0, gl_TexCoord[0].xy).rgb;
@@ -2590,6 +2660,7 @@ lazyshader(0, "lava", [[
         gl_FragData[0] = vec4(diffuse, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(diffuse*lavaglow, lavaspec);
+        @(gdepthpackfrag())
     }
 ]])
 
@@ -2597,6 +2668,7 @@ lazyshader(0, "waterfallenv", [[
     uniform vec4 camera;
     varying vec3 camdir;
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         gl_Position = ftransform();
@@ -2605,6 +2677,7 @@ lazyshader(0, "waterfallenv", [[
         vec3 tangent = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.x));
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
+        @(gdepthpackvert())
     }
 ]], [[
     #extension GL_ARB_texture_rectangle : enable
@@ -2612,9 +2685,11 @@ lazyshader(0, "waterfallenv", [[
     uniform samplerCube tex3;
     uniform sampler2D tex0, tex1;
     uniform vec3 waterfallcolor;
-    uniform float waterfallrefract, waterfallspec;
+    uniform float waterfallspec;
+    uniform vec4 waterfallrefract;
     varying vec3 camdir;
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         vec3 camvec = normalize(camdir);
@@ -2622,10 +2697,10 @@ lazyshader(0, "waterfallenv", [[
         vec3 bump = texture2D(tex1, gl_TexCoord[0].xy).rgb*2.0 - 1.0;
         vec3 bumpw = world * bump;
 
-        vec2 rtc = bump.xy*waterfallrefract;
+        vec2 rtc = bump.xy * waterfallrefract.w;
         float rmask = texture2DRect(tex7, gl_FragCoord.xy + rtc).a;
         rtc = gl_FragCoord.xy + rtc*rmask;
-        vec3 rcolor = texture2DRect(tex8, rtc).rgb;
+        vec3 rcolor = texture2DRect(tex8, rtc).rgb * waterfallrefract.xyz;
 
         float invfresnel = dot(camvec, bumpw);
         vec3 env = textureCube(tex3, 2.0*bumpw*invfresnel - camvec).rgb;
@@ -2634,11 +2709,13 @@ lazyshader(0, "waterfallenv", [[
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(mix(rcolor, waterfallcolor, diffuse) + env, waterfallspec*(1.0 - dot(diffuse, vec3(0.33)))); 
+        @(gdepthpackfrag())
     }
 ]])
 
 lazyshader(0, "waterfall", [[
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         gl_Position = ftransform();
@@ -2646,28 +2723,32 @@ lazyshader(0, "waterfall", [[
         vec3 tangent = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.x));
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
+        @(gdepthpackvert())
     }
 ]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex7, tex8;
     uniform sampler2D tex0, tex1;
     uniform vec3 waterfallcolor;
-    uniform float waterfallrefract, waterfallspec;
+    uniform float waterfallspec;
+    uniform vec4 waterfallrefract;
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         vec3 diffuse = texture2D(tex0, gl_TexCoord[0].xy).rgb;
         vec3 bump = texture2D(tex1, gl_TexCoord[0].xy).rgb*2.0 - 1.0;
         vec3 bumpw = world * bump;
 
-        vec2 rtc = bump.xy*waterfallrefract;
+        vec2 rtc = bump.xy * waterfallrefract.w;
         float rmask = texture2DRect(tex7, gl_FragCoord.xy + rtc).a;
         rtc = gl_FragCoord.xy + rtc*rmask;
-        vec3 rcolor = texture2DRect(tex8, rtc).rgb;
+        vec3 rcolor = texture2DRect(tex8, rtc).rgb * waterfallrefract.xyz;
 
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(mix(rcolor, waterfallcolor, diffuse), waterfallspec*(1.0 - dot(diffuse, vec3(0.33)))); 
+        @(gdepthpackfrag())
     }
 ]])
 CAPI.altshader("waterfallenv", "waterfall")
@@ -2676,6 +2757,7 @@ lazyshader(0, "glassenv", [[
     uniform vec4 camera;
     varying vec3 camdir;
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         gl_Position = ftransform();
@@ -2684,27 +2766,29 @@ lazyshader(0, "glassenv", [[
         vec3 tangent = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.x));
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
+        @(gdepthpackvert())
     }
 ]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex7, tex8;
     uniform samplerCube tex0;
     uniform sampler2D tex1;
-    uniform vec3 glasscolor;
-    uniform float glassrefract, glassspec;
+    uniform float glassspec;
+    uniform vec4 glassrefract;
     varying vec3 camdir;
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         vec3 camvec = normalize(camdir);
         vec3 bump = texture2D(tex1, gl_TexCoord[0].xy).rgb*2.0 - 1.0;
         vec3 bumpw = world * bump;
 
-        vec2 rtc = bump.xy*glassrefract;
+        vec2 rtc = bump.xy * glassrefract.w;
         float rmask = texture2DRect(tex7, gl_FragCoord.xy + rtc).a;
         rtc = gl_FragCoord.xy + rtc*rmask;
         vec3 rcolor = texture2DRect(tex8, rtc).rgb;
-        rcolor *= glasscolor;
+        rcolor *= glassrefract.xyz;
       
         float invfresnel = dot(camvec, bumpw);
         vec3 env = textureCube(tex0, 2.0*bumpw*invfresnel - camvec).rgb;
@@ -2712,12 +2796,14 @@ lazyshader(0, "glassenv", [[
   
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
-        gl_FragData[2] = vec4(rcolor + env, glassspec); 
+        gl_FragData[2] = vec4(rcolor + env, glassspec);
+        @(gdepthpackfrag())
     }
 ]])
 
 lazyshader(0, "glass", [[
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         gl_Position = ftransform();
@@ -2725,28 +2811,31 @@ lazyshader(0, "glass", [[
         vec3 tangent = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.x));
         vec3 bitangent = mix(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), abs(gl_Normal.z));
         world = mat3(tangent, bitangent, gl_Normal);
+        @(gdepthpackvert())
     }
 ]], [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex7, tex8;
     uniform sampler2D tex1;
-    uniform vec3 glasscolor;
-    uniform float glassrefract, glassspec;
+    uniform float glassspec;
+    uniform vec4 glassrefract;
     varying mat3 world;
+    @(gdepthinterp())
     void main(void)
     {
         vec3 bump = texture2D(tex1, gl_TexCoord[0].xy).rgb*2.0 - 1.0;
         vec3 bumpw = world * bump;
 
-        vec2 rtc = bump.xy*glassrefract;
+        vec2 rtc = bump.xy * glassrefract.w;
         float rmask = texture2DRect(tex7, gl_FragCoord.xy + rtc).a;
         rtc = gl_FragCoord.xy + rtc*rmask;
         vec3 rcolor = texture2DRect(tex8, rtc).rgb;
-        rcolor *= glasscolor;
+        rcolor *= glassrefract.xyz;
         
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, 0.0);
         gl_FragData[2] = vec4(rcolor, glassspec); 
+        @(gdepthpackfrag())
     }
 ]])
 CAPI.altshader("glassenv", "glass")
@@ -2775,7 +2864,7 @@ CAPI.defershader(0, "grass", function()
             {
                 vec4 color = texture2D(tex0, gl_TexCoord[0].xy) * gl_Color;
                 @(i ~= 0
-                    color.a *= texture2D(tex1, gl_TexCoord[1].xy).r;
+                    and "color.a *= texture2D(tex1, gl_TexCoord[1].xy).r;"
                     or nil)
                 if(color.a <= grasstest)
                     discard;

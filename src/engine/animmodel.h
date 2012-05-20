@@ -1315,7 +1315,7 @@ template<class MDL, class MESH> struct modelcommands
     static void setdir(const char *name)
     {
         if(!MDL::loading) { conoutf("not loading an %s", MDL::formatname()); return; }
-        MDL::dir.format("packages/models/%s", name);
+        MDL::dir.format("data/models/%s", name);
     }
 
     #define loopmeshes(meshname, m, body) \

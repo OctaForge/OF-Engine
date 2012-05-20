@@ -1,6 +1,6 @@
 #ifdef CLIENT
 void shader(int type, char *name, char *vs, char *ps);
-void variantshader(int type, char *name, int row, char *vs, char *ps);
+void variantshader(int type, char *name, int row, char *vs, char *ps, int maxvariants);
 void setshader(char *name);
 void addslotparam(const char *name, float x, float y, float z, float w);
 void altshader(char *origname, char *altname);
@@ -22,10 +22,10 @@ namespace lapi_binds
     }
 
     void _lua_variantshader(
-        int t, const char *n, int row, const char *vs, const char *ps
+        int t, const char *n, int row, const char *vs, const char *ps, int maxvariants
     )
     {
-        variantshader(t, (char*)n, row, (char*)vs, (char*)ps);
+        variantshader(t, (char*)n, row, (char*)vs, (char*)ps, maxvariants);
     }
 
     void _lua_setshader(const char *n) { setshader((char*)n); }

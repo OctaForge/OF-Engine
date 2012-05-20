@@ -1354,7 +1354,7 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        if(!gui::mainmenu) gl_setupframe(screen->w, screen->h);
+        if(!gui::mainmenu && ClientSystem::scenarioStarted()) gl_setupframe(screen->w, screen->h);
 
         inbetweenframes = false;
 

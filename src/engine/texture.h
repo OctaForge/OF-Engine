@@ -208,7 +208,7 @@ enum
 };
 
 #define MAXSHADERDETAIL 3
-#define MAXVARIANTROWS 5
+#define MAXVARIANTROWS 8
 
 extern int shaderdetail;
 
@@ -721,11 +721,12 @@ struct cubemapside
 
 extern cubemapside cubemapsides[6];
 extern Texture *notexture;
-extern Shader *nullshader, *defaultshader, *rectshader, *cubemapshader, *notextureshader, *nocolorshader, *foggedshader, *foggednotextureshader, *stdworldshader;
+extern Shader *nullshader, *defaultshader, *rectshader, *cubemapshader, *notextureshader, *nocolorshader, *foggedshader, *foggednotextureshader, *ldrshader, *ldrnotextureshader, *stdworldshader;
 extern int maxvsuniforms, maxfsuniforms;
 
 extern Shader *lookupshaderbyname(const char *name);
 extern Shader *useshaderbyname(const char *name);
+extern Shader *generateshader(const char *name, const char *cmd, ...);
 extern Texture *loadthumbnail(Slot &slot);
 extern void resetslotshader();
 extern void setslotshader(Slot &s);

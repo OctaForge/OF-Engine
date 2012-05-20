@@ -5,6 +5,7 @@
 
 Shader *particleshader = NULL, *particlenotextureshader = NULL;
 
+FVARP(particlebright, 0, 2, 100);
 VARP(particlesize, 20, 100, 500);
 
 VARP(softparticles, 0, 1, 1);
@@ -101,18 +102,19 @@ enum
     PT_LIGHTNING,
     PT_FLARE,
 
-    PT_MOD   = 1<<8,
-    PT_RND4  = 1<<9,
-    PT_LERP  = 1<<10, // use very sparingly - order of blending issues
-    PT_TRACK = 1<<11,
-    PT_SOFT  = 1<<13,
-    PT_HFLIP = 1<<14,
-    PT_VFLIP = 1<<15,
-    PT_ROT   = 1<<16,
-    PT_CULL  = 1<<17,
-    PT_FEW   = 1<<18,
-    PT_ICON  = 1<<19,
-    PT_FLIP  = PT_HFLIP | PT_VFLIP | PT_ROT
+    PT_MOD    = 1<<8,
+    PT_RND4   = 1<<9,
+    PT_LERP   = 1<<10, // use very sparingly - order of blending issues
+    PT_TRACK  = 1<<11,
+    PT_BRIGHT = 1<<12,
+    PT_SOFT   = 1<<13,
+    PT_HFLIP  = 1<<14,
+    PT_VFLIP  = 1<<15,
+    PT_ROT    = 1<<16,
+    PT_CULL   = 1<<17,
+    PT_FEW    = 1<<18,
+    PT_ICON   = 1<<19,
+    PT_FLIP   = PT_HFLIP | PT_VFLIP | PT_ROT
 };
 
 const char *partnames[] = { "part", "tape", "trail", "text", "textup", "meter", "metervs", "fireball", "lightning", "flare" };
@@ -389,12 +391,15 @@ struct meterrenderer : listrenderer
         int basetype = type&0xFF;
 
         glPushMatrix();
-        glTranslatef(o.x, o.y, o.z);
-        glRotatef(camera1->yaw, 0, 0, 1);
-        glRotatef(camera1->pitch-90, 1, 0, 0);
-
         float scale = p->size/80.0f;
-        glScalef(-scale, scale, -scale);
+        GLfloat billboardmatrix[16] =
+        {
+            scale*camright.x, scale*camright.y, scale*camright.z, 0,
+            -scale*camup.x, -scale*camup.y, -scale*camup.z, 0,
+            -scale*camdir.x, -scale*camdir.y, -scale*camdir.z, 0,
+            o.x, o.y, o.z, 1
+        };
+        glMultMatrixf(billboardmatrix);
 
         float right = 8*FONTH, left = p->progress/100.0f*right;
         glTranslatef(-right/2.0f, 0, 0);
@@ -405,7 +410,8 @@ struct meterrenderer : listrenderer
             glBegin(GL_TRIANGLE_STRIP);
             loopk(10)
             {
-                float c = (0.5f + 0.1f)*sinf(k/9.0f*M_PI), s = 0.5f - (0.5f + 0.1f)*cosf(k/9.0f*M_PI);
+                const vec2 &sc = sincos360[k*(180/(10-1))];
+                float c = (0.5f + 0.1f)*sc.y, s = 0.5f - (0.5f + 0.1f)*sc.x;
                 glVertex2f(-c*FONTH, s*FONTH);
                 glVertex2f(right + c*FONTH, s*FONTH);
             }
@@ -417,7 +423,8 @@ struct meterrenderer : listrenderer
         glBegin(GL_TRIANGLE_STRIP);
         loopk(10)
         {
-            float c = 0.5f*sinf(k/9.0f*M_PI), s = 0.5f - 0.5f*cosf(k/9.0f*M_PI);
+            const vec2 &sc = sincos360[k*(180/(10-1))];
+            float c = 0.5f*sc.y, s = 0.5f - 0.5f*sc.x;
             glVertex2f(left + c*FONTH, s*FONTH);
             glVertex2f(right + c*FONTH, s*FONTH);
         }
@@ -429,7 +436,8 @@ struct meterrenderer : listrenderer
             glBegin(GL_TRIANGLE_FAN);
             loopk(10)
             {
-                float c = (0.5f + 0.1f)*sinf(k/9.0f*M_PI), s = 0.5f - (0.5f + 0.1f)*cosf(k/9.0f*M_PI);
+                const vec2 &sc = sincos360[k*(180/(10-1))];
+                float c = (0.5f + 0.1f)*sc.y, s = 0.5f - (0.5f + 0.1f)*sc.x;
                 glVertex2f(left + c*FONTH, s*FONTH);
             }
             glEnd();
@@ -439,7 +447,8 @@ struct meterrenderer : listrenderer
         glBegin(GL_TRIANGLE_STRIP);
         loopk(10)
         {
-            float c = 0.5f*sinf(k/9.0f*M_PI), s = 0.5f - 0.5f*cosf(k/9.0f*M_PI);
+            const vec2 &sc = sincos360[k*(180/(10-1))];
+            float c = 0.5f*sc.y, s = 0.5f - 0.5f*sc.x;
             glVertex2f(-c*FONTH, s*FONTH);
             glVertex2f(left + c*FONTH, s*FONTH);
         }
@@ -473,13 +482,15 @@ struct textrenderer : listrenderer
     void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts, uchar *color)
     {
         glPushMatrix();
-        glTranslatef(o.x, o.y, o.z);
-
-        glRotatef(camera1->yaw, 0, 0, 1);
-        glRotatef(camera1->pitch-90, 1, 0, 0);
-
         float scale = p->size/80.0f;
-        glScalef(-scale, scale, -scale);
+        GLfloat billboardmatrix[16] =
+        {
+            scale*camright.x, scale*camright.y, scale*camright.z, 0,
+            -scale*camup.x, -scale*camup.y, -scale*camup.z, 0,
+            -scale*camdir.x, -scale*camdir.y, -scale*camdir.z, 0,
+            o.x, o.y, o.z, 1
+        };
+        glMultMatrixf(billboardmatrix);
 
         float xoff = -text_width(p->text)/2;
         float yoff = 0;
@@ -805,22 +816,20 @@ static partrenderer *parts[] =
     new trailrenderer("data/textures/particles/base.png", PT_TRAIL|PT_LERP),                            // water, entity
     new quadrenderer("<grey>data/textures/particles/smoke.png", PT_PART|PT_FLIP|PT_LERP),               // smoke
     new quadrenderer("<grey>data/textures/particles/steam.png", PT_PART|PT_FLIP),                       // steam
-    new quadrenderer("<grey>data/textures/particles/flames.png", PT_PART|PT_HFLIP|PT_RND4),    // flame on - no flipping please, they have orientation
-    new quadrenderer("data/textures/particles/ball1.png", PT_PART|PT_FEW),                     // fireball1
-    new quadrenderer("data/textures/particles/ball2.png", PT_PART|PT_FEW),                     // fireball2
-    new quadrenderer("data/textures/particles/ball3.png", PT_PART|PT_FEW),                     // fireball3
-    new taperenderer("data/textures/particles/flare.png", PT_TAPE),                            // streak
+    new quadrenderer("<grey>data/textures/particles/flames.png", PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT),    // flame on - no flipping please, they have orientation
+    new quadrenderer("data/textures/particles/ball1.png", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball1
+    new quadrenderer("data/textures/particles/ball2.png", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball2
+    new quadrenderer("data/textures/particles/ball3.png", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball3
+    new taperenderer("data/textures/particles/flare.png", PT_TAPE|PT_BRIGHT),                            // streak
     &lightnings,                                                                                   // lightning
     &fireballs,                                                                                    // explosion fireball
     &bluefireballs,                                                                                // bluish explosion fireball
-    new quadrenderer("data/textures/particles/spark.png", PT_PART|PT_FLIP),                    // sparks
-    new quadrenderer("data/textures/particles/base.png",  PT_PART|PT_FLIP),                    // edit mode entities
+    new quadrenderer("data/textures/particles/spark.png", PT_PART|PT_FLIP|PT_BRIGHT),                    // sparks
+    new quadrenderer("data/textures/particles/base.png",  PT_PART|PT_FLIP|PT_BRIGHT),                    // edit mode entities
     new quadrenderer("<grey>data/textures/particles/snow.png", PT_PART|PT_FLIP|PT_RND4, -1),            // colliding snow
-    new quadrenderer("data/textures/particles/muzzleflash1.png", PT_PART|PT_FEW|PT_FLIP|PT_TRACK), // muzzle flash
-    new quadrenderer("data/textures/particles/muzzleflash2.png", PT_PART|PT_FEW|PT_FLIP|PT_TRACK), // muzzle flash
-    new quadrenderer("data/textures/particles/muzzleflash3.png", PT_PART|PT_FEW|PT_FLIP|PT_TRACK), // muzzle flash
-    new quadrenderer("packages/hud/items.png", PT_PART|PT_FEW|PT_ICON),                            // hud icon
-    new quadrenderer("<colorify:1/1/1>packages/hud/items.png", PT_PART|PT_FEW|PT_ICON),            // grey hud icon
+    new quadrenderer("data/textures/particles/muzzleflash1.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/muzzleflash2.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/muzzleflash3.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
     &texts,                                                                                        // text
     &meters,                                                                                       // meter
     &metervs,                                                                                      // meter vs.
@@ -912,7 +921,7 @@ void renderparticles(bool mainpass)
     static float zerofog[4] = { 0, 0, 0, 1 };
     float oldfogc[4];
     bool rendered = false;
-    uint lastflags = PT_LERP, flagmask = PT_LERP|PT_MOD;
+    uint lastflags = PT_LERP, flagmask = PT_LERP|PT_MOD|PT_BRIGHT;
    
     if(softparticles) flagmask |= PT_SOFT;
 
@@ -928,10 +937,8 @@ void renderparticles(bool mainpass)
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);             
 
-            float colorscale = hdr ? 0.5f : 1;
-            GLOBALPARAM(colorscale, (colorscale, colorscale, colorscale, 1));
-
             particleshader->set();
+            LOCALPARAM(colorscale, (ldrscale, ldrscale, ldrscale, 1));
             glGetFloatv(GL_FOG_COLOR, oldfogc);
         }
         
@@ -970,6 +977,12 @@ void renderparticles(bool mainpass)
                     LOCALPARAM(softparams, (-1.0f/softparticleblend, 0, 0));
                 }
                 else particleshader->set();
+            }
+            if(changedbits&(PT_BRIGHT|PT_SOFT))
+            {
+                float colorscale = ldrscale;
+                if(flags&PT_BRIGHT) colorscale *= particlebright;
+                LOCALPARAM(colorscale, (colorscale, colorscale, colorscale, 1));
             }
             lastflags = flags;        
         }
@@ -1160,9 +1173,9 @@ void regularshape(int type, int radius, int color, int dir, int num, int fade, c
         vec to, from;
         if(dir < 12) 
         { 
-            float a = PI2*float(rnd(1000))/1000.0;
-            to[dir%3] = sinf(a)*radius;
-            to[(dir+1)%3] = cosf(a)*radius;
+            const vec2 &sc = sincos360[rnd(360)];
+            to[dir%3] = sc.y*radius;
+            to[(dir+1)%3] = sc.x*radius;
             to[(dir+2)%3] = 0.0;
             to.add(p);
             if(dir < 3) //circle
