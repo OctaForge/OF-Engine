@@ -494,7 +494,7 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_bindable_uniform extension.");
     }
 
-    if(hasext(exts, "GL_EXT_texture_rectangle") || hasext(exts, "GL_ARB_texture_rectangle"))
+    if(hasext(exts, "GL_ARB_texture_rectangle"))
     {
         usetexrect = 1;
         hasTR = true;
@@ -588,6 +588,7 @@ void gl_checkextensions()
         hasSGIDT = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_SGIX_depth_texture extension.");
     }
+    if(!hasSGIDT && !hasDT) fatal("Depth texture support is required!");
 
     if(hasext(exts, "GL_ARB_shadow"))
     {
@@ -600,6 +601,7 @@ void gl_checkextensions()
         hasSGISH = true;
         if(dbgexts) conoutf(CON_INIT, "Using GL_SGIX_shadow extension.");
     }
+    if(!hasSGISH && !hasSH) fatal("Shadow mapping support is required!");
 
     if(hasext(exts, "GL_ARB_texture_gather"))
     {
@@ -2206,23 +2208,66 @@ struct shadowcache : hashtable<shadowcachekey, shadowcacheval>
     } 
 };
 
-extern int smcache;
+extern int smcache, smfilter, smgather;
 
 #define SHADOWCACHE_EVICT 2
 
 GLuint shadowatlastex = 0, shadowatlasfbo = 0;
+GLenum shadowatlastarget = GL_NONE;
 shadowcache shadowcache[2];
 bool shadowcachefull = false;
 int evictshadowcache = 0;
+
+static inline void setsmnoncomparemode() // use texture gather
+{
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
+static inline void setsmcomparemode() // use embedded shadow cmp
+{
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+}
+
+static inline bool usegatherforsm() { return smfilter > 1 && smgather && (hasTG || hasT4); }
+
+void viewshadowatlas()
+{
+    int w = min(screen->w, screen->h)/2, h = (w*screen->h)/screen->w;
+    float tw = 1, th = 1;
+    if(shadowatlastarget == GL_TEXTURE_RECTANGLE_ARB)
+    {
+        tw = smcache ? 2*SHADOWATLAS_SIZE : SHADOWATLAS_SIZE;
+        th = SHADOWATLAS_SIZE;
+        rectshader->set();
+    }
+    else defaultshader->set();
+    glColor3f(1, 1, 1);
+    glBindTexture(shadowatlastarget, shadowatlastex);
+    if(!usegatherforsm()) setsmnoncomparemode(); // "normal" mode
+    glBegin(GL_TRIANGLE_STRIP);
+    glTexCoord2f(0, 0); glVertex2i(screen->w-w, screen->h-h);
+    glTexCoord2f(tw, 0); glVertex2i(screen->w, screen->h-h);
+    glTexCoord2f(0, th); glVertex2i(screen->w-w, screen->h);
+    glTexCoord2f(tw, th); glVertex2i(screen->w, screen->h);
+    glEnd();
+    if(!usegatherforsm()) setsmcomparemode(); // "gather" mode basically
+    notextureshader->set();
+}
+VAR(debugshadowatlas, 0, 0, 1);
 
 void setupshadowatlas()
 {
     if(!shadowatlastex) glGenTextures(1, &shadowatlastex);
 
-    createtexture(shadowatlastex, smcache ? 2*SHADOWATLAS_SIZE : SHADOWATLAS_SIZE, SHADOWATLAS_SIZE, NULL, 3, 1, GL_DEPTH_COMPONENT16, GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
-    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
+    shadowatlastarget = usegatherforsm() ? GL_TEXTURE_2D : GL_TEXTURE_RECTANGLE_ARB;
+    createtexture(shadowatlastex, smcache ? 2*SHADOWATLAS_SIZE : SHADOWATLAS_SIZE, SHADOWATLAS_SIZE, NULL, 3, 1, GL_DEPTH_COMPONENT16, shadowatlastarget);
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+    glTexParameteri(shadowatlastarget, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+    glTexParameteri(shadowatlastarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
 
     if(!shadowatlasfbo) glGenFramebuffers_(1, &shadowatlasfbo);
 
@@ -2231,7 +2276,7 @@ void setupshadowatlas()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
 
-    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, shadowatlastex, 0);
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, shadowatlastarget, shadowatlastex, 0);
 
     if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
         fatal("failed allocating shadow atlas!");
@@ -2325,7 +2370,7 @@ FVAR(smspotprec, 1e-3f, 1, 1e3f);
 
 VAR(smsidecull, 0, 1, 1);
 VAR(smviscull, 0, 1, 1);
-VAR(smborder, 0, 2, 16);
+VAR(smborder, 0, 3, 16);
 VAR(smminradius, 0, 16, 10000);
 VAR(smminsize, 1, 96, 1024);
 VAR(smmaxsize, 1, 384, 1024);
@@ -2338,47 +2383,14 @@ VAR(smtetraclear, 0, 1, 1);
 FVAR(smtetraborder, 0, 0, 1e3f);
 VAR(smcullside, 0, 1, 1);
 VARF(smcache, 0, 1, 2, cleanupshadowatlas());
-VARFP(smgather, 0, 0, 1, cleardeferredlightshaders());
+VARFP(smfilter, 0, 2, 2, { cleardeferredlightshaders(); cleanupshadowatlas(); });
+VARFP(smgather, 0, 0, 1, { cleardeferredlightshaders(); cleanupshadowatlas(); });
 VAR(smnoshadow, 0, 0, 2);
 VAR(lighttilesused, 1, 0, 0);
 
 int shadowmapping = 0;
 
 plane smtetraclipplane;
-
-static inline void setsmnoncomparemode() // use texture gather
-{
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-}
-
-static inline void setsmcomparemode() // use embedded shadow cmp
-{
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-}
-
-static inline bool usegatherforsm() { return smgather && (hasTG || hasT4); }
-
-void viewshadowatlas()
-{
-    int w = min(screen->w, screen->h)/2, h = (w*screen->h)/screen->w;
-    defaultshader->set();
-    glColor3f(1, 1, 1);
-    glBindTexture(GL_TEXTURE_2D, shadowatlastex);
-    if(!usegatherforsm()) setsmnoncomparemode(); // "normal" mode
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(0, 0); glVertex2i(screen->w-w, screen->h-h);
-    glTexCoord2f(1, 0); glVertex2i(screen->w, screen->h-h);
-    glTexCoord2f(0, 1); glVertex2i(screen->w-w, screen->h);
-    glTexCoord2f(1, 1); glVertex2i(screen->w, screen->h);
-    glEnd();
-    if(!usegatherforsm()) setsmcomparemode(); // "gather" mode basically
-    notextureshader->set();
-}
-VAR(debugshadowatlas, 0, 0, 1);
 
 vector<lightinfo> lights;
 vector<int> lightorder;
@@ -2724,6 +2736,7 @@ Shader *loaddeferredlightshader(const char *prefix = NULL)
 
     if(prefix) { commonlen = strlen(prefix); memcpy(common, prefix, commonlen); }
     if(usegatherforsm()) common[commonlen++] = 'g';
+    else if(smfilter) common[commonlen++] = smfilter > 1 ? 'F' : 'f';
     common[commonlen] = '\0';
  
     shadow[shadowlen++] = 'p';
@@ -2825,7 +2838,7 @@ void renderlights(float bsx1 = -1, float bsy1 = -1, float bsx2 = 1, float bsy2 =
     glActiveTexture_(GL_TEXTURE3_ARB);
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
     glActiveTexture_(GL_TEXTURE4_ARB);
-    glBindTexture(GL_TEXTURE_2D, shadowatlastex);
+    glBindTexture(shadowatlastarget, shadowatlastex);
     if(usegatherforsm()) setsmnoncomparemode(); else setsmcomparemode();
     if(ao)
     {

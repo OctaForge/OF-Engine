@@ -1366,8 +1366,8 @@ int main(int argc, char **argv)
         }
         if(frametimer)
         {
-            framemillis = getclockmillis() - millis;
             glFinish();
+            framemillis = getclockmillis() - millis;
         }
         swapbuffers();
         renderedframe = inbetweenframes = true;

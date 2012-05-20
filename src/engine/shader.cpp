@@ -538,16 +538,6 @@ static void genuniformlocs(Shader &s, const char *vs, const char *ps)
 
 Shader *newshader(int type, const char *name, const char *vs, const char *ps, Shader *variant = NULL, int row = 0)
 {
-    FILE *f = fopen("/home/q66/shaders/of.txt", "a");
-    if (f)
-    {
-        fprintf(f, "Shader: %s\n----\n", name);
-        fprintf(f, "Vertex:\n%s\n", vs);
-        fprintf(f, "Pixel:\n%s\n", ps);
-        fprintf(f, "----\n");
-        fclose(f);
-    }
-
     if(Shader::lastshader)
     {
         glUseProgramObject_(0);

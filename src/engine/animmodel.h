@@ -93,7 +93,10 @@ struct animmodel : model
             if(alphatested) GLOBALPARAM(alphatest, (alphatest));
 
             if(!skinned) return;
-    
+
+            if(fullbright) GLOBALPARAM(fullbright, (0.0f, fullbright));
+            else GLOBALPARAM(fullbright, (1.0f, as->cur.anim&ANIM_FULLBRIGHT ? 0.5f*fullbrightmodels/100.0f : 0.0f));
+
             float curglow = glow;
             if(glowpulse > 0)
             {
@@ -101,7 +104,7 @@ struct animmodel : model
                 curpulse -= floor(curpulse);
                 curglow += glowdelta*2*fabs(curpulse - 0.5f);
             }
-            GLOBALPARAM(maskscale, (0.5f*spec*lightmodels, 0.5f*curglow*glowmodels));
+            GLOBALPARAM(maskscale, (spec*lightmodels, curglow*glowmodels));
             if(envmaptmu>=0 && envmapmax>0) GLOBALPARAM(envmapscale, (envmapmin-envmapmax, envmapmax));
         }
 

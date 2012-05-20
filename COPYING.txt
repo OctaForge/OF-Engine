@@ -43,6 +43,10 @@ The codebase also contains code originating from Cube 2/Sauerbraten, see
 their license under src/readme_source.txt, and other open source projects
 may be bundled under thirdparty directories, with included license info.
 
+The Tesseract renderer is in use (created by Lee "eihrul" Salzman), see
+src/readme_tesseract.txt.
+
+Special thanks to Lee "eihrul" Salzman for the help with the Cube 2 / Tesseract
+codebase and moral support.
+
 In addition, code has been ported from SauerEnhanced. Thanks to Q009 (SauerEnhanced author).
-Some of the UI code was merged from Platinum Arts Sandbox (http://platinumartssandbox.com) with
-permission of the developers, under the zlib license.

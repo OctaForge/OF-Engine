@@ -23,7 +23,7 @@ std.library.include("guns.rocket_launcher")
 std.library.include("weather_effects")
 
 -- default skybox
-EVAR.skybox = "textures/sky/spiney/bluecloud"
+EVAR.skybox = "textures/sky/remus/sky01"
 
 -- use drawing mode on empty map
 std.library.include("mapscripts.drawing")

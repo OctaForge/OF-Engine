@@ -848,7 +848,7 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&mas
     defformatstring(maltdir)("data/models/%s", altdir);
     masks = notexture;
     tryload(skin, NULL, NULL, "skin");
-    tryload(masks, "<stub>", NULL, "masks");
+    tryload(masks, NULL, NULL, "masks");
 }
 
 // convenient function that covers the usual anims for players/monsters/npcs

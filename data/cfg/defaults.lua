@@ -12,7 +12,7 @@ EVAR.soundvol = 255      -- sounds average volume is actually set per sound, ave
 
 EVAR.gamma = 100          -- set to your liking, 100 = default
 
-EVAR.fullbrightmodels = 60 -- make player models a bit easier to see
+EVAR.fullbrightmodels = 25 -- make player models a bit easier to see
 
 EVAR.sensitivity = 3      -- similar number to quake
 EVAR.fov = 100            -- 90 is default in other games

@@ -1049,6 +1049,7 @@ modelfragmentshader = function(...)
                 varying float rmod;
             ]] or nil)
         ]=])
+        uniform vec2 fullbright;
         @((mdlopt.s or mdlopt.m) and "uniform vec4 maskscale;" or nil)
         @(mdlopt.a and "uniform float alphatest;" or nil)
         uniform sampler2D tex0;
@@ -1090,8 +1091,8 @@ modelfragmentshader = function(...)
             ]])
 
             @(mdlopt.m and [==[
-                float fade = masks.g;
-                gl_FragData[2].rgb = diffuse.rgb*maskscale.y*masks.g; // glow mask in green channel
+                float gmask = maskscale.y*masks.g; // glow mask in green channel
+                float fade = gmask;
                 @(mdlopt.e and [=[
                     @(mdlopt.n and [[
                         vec3 camn = normalize(camvec);
@@ -1099,13 +1100,20 @@ modelfragmentshader = function(...)
                         vec3 rvec = 2.0*invfresnel*normal - camn;
                         float rmod = envmapscale.x*max(invfresnel, 0.0) + envmapscale.y;
                     ]] or nil)
-                    vec3 reflect = textureCube(tex2, rvec).rgb; 
-                    fade += rmod*masks.b; // envmap mask in blue channel
-                    gl_FragData[2].rgb += reflect*(0.5*rmod*masks.b);
+                    float rmask = rmod*masks.b; // envmap mask in blue channel
+                    fade += rmask;
                 ]=] or nil)
-                gl_FragData[0].rgb *= 1.0-fade;
+                float fullbrightdiff = max(fullbright.y - fade, 0.0);
+                fade += fullbrightdiff;
+                gl_FragData[2].rgb = diffuse.rgb*(fullbrightdiff + gmask);
+                @(mdlopt.e and [[
+                    vec3 reflect = textureCube(tex2, rvec).rgb;
+                    gl_FragData[2].rgb += reflect*(0.5*rmask);
+                ]] or nil)
+                gl_FragData[0].rgb *= fullbright.x-fade;
             ]==] or [[
-                gl_FragData[2].rgb = vec3(0.0);
+                gl_FragData[2].rgb = diffuse.rgb*fullbright.y;
+                gl_FragData[0].rgb *= fullbright.x-fullbright.y;
             ]])
 
             @(gdepthpackfrag())
@@ -1236,6 +1244,8 @@ if EVAR.glslversion >= 130 then
 --    a -> AO
 --    A -> AO sun
 --    g -> gather filter
+--    F -> 3x3 weighted box filter
+--    f -> 4x filter
 --    m -> minimap
 
 deferredlightvariantshader = function(...)
@@ -1253,6 +1263,8 @@ deferredlightvariantshader = function(...)
         a = deferredlighttype:find("a") ~= nil,
         A = deferredlighttype:find("A") ~= nil,
         g = deferredlighttype:find("g") ~= nil,
+        F = deferredlighttype:find("F") ~= nil,
+        f = deferredlighttype:find("f") ~= nil,
         m = deferredlighttype:find("m") ~= nil
     }
 
@@ -1280,7 +1292,7 @@ deferredlightvariantshader = function(...)
             @(dlopt.g and [[
                 uniform sampler2D tex4;
             ]] or [[
-                uniform sampler2DShadow tex4;
+                uniform sampler2DRectShadow tex4;
             ]])
         ]=] or nil)
         @(numlights ~= 0 and [==[
@@ -1332,10 +1344,11 @@ deferredlightvariantshader = function(...)
                 vec3 getshadowtc(vec3 dir, vec4 shadowparams, vec2 shadowoffset)
                 {
                     vec3 adir = abs(dir);
-                    float m; vec4 proj;
-                    if (adir.x > adir.y) { m = adir.x; proj = vec4(dir.zyx, 0.0); } else { m = adir.y; proj = vec4(dir.xzy, 1.0); }
-                    if (adir.z > m) { m = adir.z; proj = vec4(dir, 2.0); }
-                    vec2 mparams = shadowparams.xy / m;
+                    float m = max(adir.x, adir.y);
+                    vec2 mparams = shadowparams.xy / max(adir.z, m);
+                    vec4 proj;
+                    if(adir.x > adir.y) proj = vec4(dir.zyx, 0.0); else proj = vec4(dir.xzy, 1.0);
+                    if(adir.z > m) proj = vec4(dir, 2.0);
                     return vec3(proj.xy * mparams.x + vec2(proj.w, step(proj.z, 0.0)) * shadowparams.z + shadowoffset, mparams.y + shadowparams.w);
                 }
             ]]))
@@ -1358,8 +1371,22 @@ deferredlightvariantshader = function(...)
                     vec4 cols = vec4(group1.rg, group2.rg) + vec4(group3.ab, group4.ab) + mix(vec4(group1.ab, group2.ab), vec4(group3.rg, group4.rg), offset.y);
                     return dot(mix(cols.xyz, cols.yzw, offset.x), vec3(1.0/9.0));
                 }
-            ]] or [[
-                #define shadowval(center, xoff, yoff) shadow2D(tex4, vec3((center.xy + vec2(xoff, yoff))*shadowatlasscale, center.z)).r
+            ]] or (dlopt.F and [[
+                #define shadowval(center, xyoff) shadow2DRect(tex4, vec3(center.xy + xyoff, center.z)).r
+                float filtershadow(vec3 shadowtc)
+                {
+                    vec2 offset = fract(shadowtc.xy - 0.5);
+                    vec3 center = shadowtc;
+                    center.xy -= offset;
+                    vec4 size = vec4(offset + 1.0, 2.0 - offset), weight = vec4(2.0 - 1.0 / size.xy, 1.0 / size.zw - 1.0);
+                    return (1.0/9.0)*dot(size.zxzx*size.wwyy,
+                        vec4(shadowval(center, weight.zw),
+                             shadowval(center, weight.xw),
+                             shadowval(center, weight.zy),
+                             shadowval(center, weight.xy)));
+                }
+            ]] or (dlopt.f and [[
+                #define shadowval(center, xoff, yoff) shadow2DRect(tex4, center + vec3(xoff, yoff, 0.0)).r
                 float filtershadow(vec3 shadowtc)
                 {
                     return dot(vec4(0.25),
@@ -1368,7 +1395,7 @@ deferredlightvariantshader = function(...)
                                     shadowval(shadowtc, 0.4, -1.0),
                                     shadowval(shadowtc, 1.0, 0.4))); 
                 }
-            ]])
+            ]] or "#define filtershadow(shadowtc) shadow2DRect(tex4, shadowtc).r")))
         ]=] or nil)
         @(dlopt.c and [=[
             vec3 getcsmtc(vec3 pos)
@@ -1441,37 +1468,40 @@ deferredlightvariantshader = function(...)
             @(([==[
                 vec3 light$jdir = (pos.xyz - lightpos[$j].xyz) * lightpos[$j].w;
                 float light$jdist2 = dot(light$jdir, light$jdir);
-                float light$jfacing = dot(light$jdir, normal.xyz);
-                if(light$jdist2 < 1.0 && light$jfacing < 0.0)
+                if(light$jdist2 < 1.0)
                 {
-                    float light$jinvdist = inversesqrt(light$jdist2);
-                    @(spotlight and [[
-                        float spot$jdist = dot(light$jdir, spotparams[$j].xyz);
-                        float spot$jatten = light$jinvdist * spot$jdist - spotparams[$j].w;
-                        if(spot$jatten > 0.0)
-                        {
-                    ]] or nil)
-                    float light$jatten = light$jfacing * (1.0 - light$jinvdist);
-                    @(spotlight and [=[
-                        @(dlopt.p and [[
-                            vec3 spot$jtc = getspottc(light$jdir, spot$jdist, spotx[$j], spoty[$j], shadowparams[$j], shadowoffset[$j]);
-                            light$jatten *= spot$jatten * filtershadow(spot$jtc);
-                        ]] or [[
-                            light$jatten *= spot$jatten;
-                        ]])
-                    ]=] or [=[
-                        @(dlopt.p and [[
-                            vec3 shadow$jtc = getshadowtc(light$jdir, shadowparams[$j], shadowoffset[$j]);
-                            light$jatten *= filtershadow(shadow$jtc);
+                    float light$jfacing = dot(light$jdir, normal.xyz);
+                    if(light$jfacing < 0.0) 
+                    {
+                        float light$jinvdist = inversesqrt(light$jdist2); 
+                        @(spotlight and [[
+                            float spot$jdist = dot(light$jdir, spotparams[$j].xyz);
+                            float spot$jatten = light$jinvdist * spot$jdist - spotparams[$j].w;
+                            if(spot$jatten > 0.0)
+                            {
                         ]] or nil)
-                    ]=])
-                    @(dlopt.m and [[
-                        light += diffuse.rgb * lightcolor[$j] * light$jatten;
-                    ]] or [[
-                        float light$jspec = pow(max(light$jinvdist*(dot(camdir, light$jdir) - light$jfacing*facing), 0.0), 8.0) * glow.a;
-                        light += (diffuse.rgb + light$jspec) * lightcolor[$j] * light$jatten;
-                    ]])
-                    @(spotlight and "}" or nil)
+                        float light$jatten = light$jfacing * (1.0 - light$jinvdist);
+                        @(spotlight and [=[
+                            @(dlopt.p and [[
+                                vec3 spot$jtc = getspottc(light$jdir, spot$jdist, spotx[$j], spoty[$j], shadowparams[$j], shadowoffset[$j]);
+                                light$jatten *= spot$jatten * filtershadow(spot$jtc);
+                            ]] or [[
+                                light$jatten *= spot$jatten;
+                            ]])
+                        ]=] or [=[
+                            @(dlopt.p and [[
+                                vec3 shadow$jtc = getshadowtc(light$jdir, shadowparams[$j], shadowoffset[$j]);
+                                light$jatten *= filtershadow(shadow$jtc);
+                            ]] or nil)
+                        ]=])
+                        @(dlopt.m and [[
+                            light += diffuse.rgb * lightcolor[$j] * light$jatten;
+                        ]] or [[
+                            float light$jspec = pow(max(light$jinvdist*(dot(camdir, light$jdir) - light$jfacing*facing), 0.0), 8.0) * glow.a;
+                            light += (diffuse.rgb + light$jspec) * lightcolor[$j] * light$jatten;
+                        ]])
+                        @(spotlight and "}" or nil)
+                    }
                 }
             ]==]):reppn("$j", 0, numlights))
             @(dlopt.m and (baselight and [[
