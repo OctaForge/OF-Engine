@@ -25,7 +25,7 @@ local delayed_update_run = function(self)
     end
 end
 
-local updatelater = CAPI.create_table(4)
+local updatelater = createtable(4)
 
 local updateval = function(varn, val, onchange)
     if not var.exists(varn) then
@@ -210,7 +210,7 @@ Object = table.classify({
         self.h = 0
 
         self.adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
-        self.children = CAPI.create_table(4)
+        self.children = createtable(4)
         self.curfork  = 0
     end,
 
@@ -503,8 +503,8 @@ local Table = table.subclass(Object, {
     end,
 
     layout = function(self)
-        self.widths  = CAPI.create_table(4)
-        self.heights = CAPI.create_table(4)
+        self.widths  = createtable(4)
+        self.heights = createtable(4)
 
         local column = 1
         local row    = 1
@@ -1883,38 +1883,34 @@ local Text_Editor = table.subclass(Object, {
         self.offsetx = 0
         self.offsety = 0
 
-        self.edit = CAPI.editor_use(
+        self.edit = gui.textedit.useeditor(
             name, mode or EDITORUSED, false, initval, password
         )
 
-        CAPI.editor_linewrap_set(self.edit, length < 0)
+        self.edit.line_wrap = length < 0
 
-        CAPI.editor_maxx_set(self.edit, length <  0 and -1 or length)
-        CAPI.editor_maxy_set(self.edit, height <= 0 and  1 or -1)
+        self.maxx = length <  0 and -1 or length
+        self.maxy = height <= 0 and  1 or -1
 
-        CAPI.editor_pixelwidth_set(
-            self.edit, abs(length) * EVAR["fontw"]
-        )
+        self.pixel_width = math.abs(length) * EVAR.fontw
 
         self._w = ffi.new("int[1]")
         self._h = ffi.new("int[1]")
 
         if length < 0 and height <= 0 then
-            EAPI.gui_text_bounds(CAPI.editor_line_get(self.edit, 1), self._w,
-                self._h, CAPI.editor_pixelwidth_get(self.edit))
-            CAPI.editor_pixelheight_set(self.edit, self._h[0])
+            EAPI.gui_text_bounds(self.edit.lines[1], self._w,
+                self._h, self.edit.pixel_width)
+            self.edit.pixel_height = self._h[0]
         else
-            CAPI.editor_pixelheight_set(
-                self.edit, EVAR["fonth"] * max(height, 1)
-            )
+            self.edit.pixel_height = EVAR.fonth * math.max(height, 1)
         end
 
         return Object.__init(self)
     end,
 
     clear = function(self)
-        if  CAPI.editor_mode_get(self.edit) ~= EDITORFOREVER then
-            CAPI.editor_remove  (self.edit)
+        if  self.edit.mode ~= EDITORFOREVER then
+            gui.textedit.removeeditor(self.edit)
         end
 
         if self == textediting then
@@ -1947,8 +1943,7 @@ local Text_Editor = table.subclass(Object, {
                     (EVAR["fontw"] / 4) * self.scale /
                         (EVAR["fonth"] * EVAR.uitextrows)
             )
-            CAPI.editor_hit(
-                self.edit,
+            self.edit:hit(
                 floor(cx * (EVAR["fonth"] * EVAR.uitextrows) /
                     self.scale - EVAR["fontw"] / 2
                 ),
@@ -1961,10 +1956,10 @@ local Text_Editor = table.subclass(Object, {
     end,
 
     selected = function(self, cx, cy)
-        CAPI.editor_focus(self.edit)
+        gui.textedit.focuseditor(self.edit)
         self.state = EDIT_FOCUSED
         setfocus(self)
-        CAPI.editor_mark(self.edit)
+        self.edit:mark()
         self.offsetx = cx
         self.offsety = cy
     end,
@@ -1978,7 +1973,7 @@ local Text_Editor = table.subclass(Object, {
                 if not cooked then return true end
             end),
             case(EAPI.INPUT_KEY_TAB, function()
-                if CAPI.editor_maxy_get(self.edit) == 1 then
+                if self.edit.maxy == 1 then
                     setfocus(nil)
                     return true
                 end
@@ -1988,7 +1983,7 @@ local Text_Editor = table.subclass(Object, {
                 return true
             end),
             case(EAPI.INPUT_KEY_KP_ENTER, function()
-                if cooked ~= 0 and CAPI.editor_maxy_get(self.edit) == 1 then
+                if cooked ~= 0 and self.edit.maxy == 1 then
                     setfocus(nil)
                 end
                 return true
@@ -2042,7 +2037,7 @@ local Text_Editor = table.subclass(Object, {
         if ret ~= nil then return ret end
 
         if isdown then
-            CAPI.editor_key(self.edit, code, cooked)
+            self.edit:key(code, cooked)
         end
         return true
     end,
@@ -2050,24 +2045,22 @@ local Text_Editor = table.subclass(Object, {
     layout = function(self)
         Object.layout(self)
 
-        if CAPI.editor_linewrap_get(self.edit) and
-            CAPI.editor_maxy_get(self.edit) == 1
-        then
-            local r = EAPI.gui_text_bounds(CAPI.editor_line_get(self.edit, 1),
-                self._w, self._h, CAPI.editor_pixelwidth_get(self.edit))
-            CAPI.editor_pixelheight_set(self.edit, self._h[0])
+        if self.edit.line_wrap and self.edit.maxy == 1 then
+            local r = EAPI.gui_text_bounds(self.edit.lines[1],
+                self._w, self._h, self.edit.pixel_width)
+            self.edit.pixel_height = self._h[0]
         end
 
-        self.w = max(self.w, (CAPI.editor_pixelwidth_get(self.edit) +
-            EVAR["fontw"]) * self.scale / (EVAR["fonth"] * EVAR.uitextrows))
+        self.w = max(self.w, (self.edit.pixel_width + EVAR.fontw) *
+            self.scale / (EVAR.fonth * EVAR.uitextrows))
 
-        self.h = max(self.h, CAPI.editor_pixelheight_get(self.edit) *
-            self.scale / (EVAR["fonth"] * EVAR.uitextrows)
+        self.h = max(self.h, self.edit.pixel_height *
+            self.scale / (EVAR.fonth * EVAR.uitextrows)
         )
     end,
 
     draw = function(self, sx, sy)
-        CAPI.editor_draw(self.edit, sx, sy, self.scale, isfocused(self))
+        self.edit:draw(sx, sy, self.scale, isfocused(self))
         return Object.draw(self, sx, sy)
     end,
 
@@ -2091,7 +2084,7 @@ local Field = table.subclass(Text_Editor, {
     commit = function(self)
         self.state = EDIT_COMMIT
         self.lastaction = EAPI.totalmillis
-        updateval(self.var, CAPI.editor_line_get(self.edit, 1), self.onchange)
+        updateval(self.var, self.edit.lines[1], self.onchange)
     end,
 
     key = function(self, code, isdown, cooked)
@@ -2132,7 +2125,7 @@ local Field = table.subclass(Text_Editor, {
         )
         if ret ~= nil then return ret end
         if isdown then
-            CAPI.editor_key(self.edit, code, cooked)
+            self.edit:key(code, cooked)
         end
         return true
     end,
@@ -2141,7 +2134,7 @@ local Field = table.subclass(Text_Editor, {
         if self.state == EDIT_COMMIT or var.changed() and
             self.lastaction ~= EAPI.totalmillis
         then
-            CAPI.editor_clear(self.edit, tostring(EVAR[self.var]))
+            self.edit:clear(tostring(EVAR[self.var]))
             self.state = EDIT_IDLE
         end
 
@@ -2252,7 +2245,7 @@ local Window_Mover = table.subclass(Object, {
 
 })
 
-local build = CAPI.create_table(4)
+local build = createtable(4)
 
 local buildwindow = function(name, contents, onhide, nofocus)
     local win = Window(name, onhide, nofocus)
@@ -2339,7 +2332,7 @@ local replaceui = function(wname, tname, contents)
         return false
     end
 
-    tg.children = CAPI.create_table(4)
+    tg.children = createtable(4)
     table.insert(build, tg)
     contents(tg)
     table.remove(build)
@@ -2624,7 +2617,7 @@ end
 local setup = function()
     if  world then
         world = nil
-        build = CAPI.create_table(4)
+        build = createtable(4)
     end
     world = World()
 end
@@ -2635,7 +2628,7 @@ local update = function()
     for i = 1, #updatelater do
         delayed_update_run(updatelater[i])
     end
-    updatelater = CAPI.create_table(4)
+    updatelater = createtable(4)
 
     if EVAR.mainmenu ~= 0 and not CAPI.isconnected(true) and
         #world.children == 0

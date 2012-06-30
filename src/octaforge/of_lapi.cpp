@@ -172,6 +172,7 @@ namespace lapi
         state.open_package();
         state.open_debug  ();
         state.open_os     ();
+        state.open_io     ();
 
         lua_pushcfunction(state.state(), luaopen_ffi);
         lua_call         (state.state(), 0, 0);

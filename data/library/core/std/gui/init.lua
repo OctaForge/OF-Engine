@@ -14,4 +14,7 @@
 ]]
 
 log(DEBUG, ":::: Core UI implementation.")
-gui = { core = require("std.gui.core") }
+gui = {
+    core     = require("std.gui.core"),
+    textedit = require("std.gui.textedit")
+}

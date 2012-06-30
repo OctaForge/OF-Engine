@@ -150,6 +150,36 @@ table.clear = function(t)
     for k, v in pairs(t) do t[k] = nil end
 end
 
+--[[! Function: table.slice
+    Slices a table using given index (represents the first value in the
+    table represented in the slice) and length (which specifies how many
+    values the resulting table should contain).
+
+    If the first index is out of table bounds or the length is less or equals
+    zero, this function returns nil. Otherwise the slice.
+]]
+table.slice = function(t, first, length)
+    local tlen = #t
+    if first > tlen or first <= 0 or length <= 0 then
+        return nil
+    end
+
+    local restl = tlen - first + 1
+    local r
+    if restl >= len then
+        r = ctable(len)
+        for i = first, first + len - 1 do
+            table.insert(r, t[i])
+        end
+    else
+        r = ctable(restl)
+        for i = first, tlen do
+            table.insert(r, t[i])
+        end
+    end
+    return r
+end
+
 local Object = {
     __call = function(self, ...)
         local ret = setmetatable({}, { 

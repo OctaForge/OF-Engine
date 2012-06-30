@@ -195,18 +195,6 @@ namespace lapi_binds
     LAPI_EMPTY(save_mouse_position)
 #endif
 
-    int _lua_create_table(lua_State *L)
-    {
-        size_t narr = luaL_optinteger(L, 1, 0);
-        size_t nrec = luaL_optinteger(L, 2, 0);
-
-        luaL_argcheck(L, narr >= 0, 1, "negative number of array elements");
-        luaL_argcheck(L, nrec >= 0, 2, "negative number of hash elements");
-
-        lua_createtable(L, narr, nrec);
-        return 1;
-    }
-
     /* console */
 
 #ifdef CLIENT
@@ -292,7 +280,6 @@ namespace lapi_binds
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);
         LAPI_REG(save_mouse_position);
-        LAPI_REG(create_table);
         LAPI_REG(toggleconsole);
         LAPI_REG(conskip);
         LAPI_REG(miniconskip);
