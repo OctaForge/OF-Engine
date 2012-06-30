@@ -28,7 +28,7 @@
 module("engine", package.seeall)
 
 --[[!
-    Function: quit
+    Function: glext
     Checks if a gl extension is available.
 
     Parameters:

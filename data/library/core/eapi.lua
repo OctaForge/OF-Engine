@@ -16,6 +16,11 @@
 ]]
 
 ffi.cdef [[
+    typedef unsigned int uint;
+    typedef unsigned char uchar;
+    typedef unsigned long ulong;
+    typedef unsigned short ushort;
+
     int lastmillis;
     int totalmillis;
 
@@ -33,8 +38,8 @@ ffi.cdef [[
     void base_log (int level, const char *msg);
     void base_echo(const char *msg);
 
-    void base_quit      ();
-    void base_quit_force(); ]]
+    void base_quit();
+]]
 
 if CLIENT then ffi.cdef [[
     void base_reset_renderer();
@@ -43,7 +48,8 @@ if CLIENT then ffi.cdef [[
     enum {
         BASE_CHANGE_GFX   = 1 << 0,
         BASE_CHANGE_SOUND = 1 << 1
-    }; ]] end
+    };
+]] end
 
 ffi.cdef [[
     enum {
@@ -80,7 +86,8 @@ ffi.cdef [[
     bool var_is_alias    (const char *name);
 
     bool var_changed();
-    void var_changed_set(bool ch); ]]
+    void var_changed_set(bool ch);
+]]
 
 if CLIENT then ffi.cdef [[
     /* Input handling */
@@ -252,15 +259,35 @@ if CLIENT then ffi.cdef [[
 
     int input_get_modifier_state();
 
-    typedef struct TB_Result {
-        int width, height;
-    } TB_Result;
+    /* GUI */
 
-    typedef struct TB_Resultf {
-        float width, height;
-    } TB_Resultf;
+    void gui_text_bounds  (const char *str, int   &w, int   &h, int maxw);
+    void gui_text_bounds_f(const char *str, float &w, float &h, int maxw);
 
-    TB_Result  gui_text_bounds  (const char *str, int maxw);
-    TB_Resultf gui_text_bounds_f(const char *str, int maxw); ]] end
+    void gui_text_pos  (const char *str, int cur, int &cx, int &cy, int maxw);
+    void gui_text_pos_f(const char *str, int cur,
+        float &cx, float &cy, int maxw);
+
+    int gui_text_visible(const char *str, float hitx, float hity, int maxw);
+
+    enum {
+        GUI_POINTS         = 0x0000,
+        GUI_LINES          = 0x0001,
+        GUI_LINE_LOOP      = 0x0002,
+        GUI_LINE_STRIP     = 0x0003,
+        GUI_TRIANGLES      = 0x0004,
+        GUI_TRIANGLE_STRIP = 0x0005,
+        GUI_TRIANGLE_FAN   = 0x0006,
+        GUI_QUADS          = 0x0007,
+        GUI_QUAD_STRIP     = 0x0008,
+        GUI_POLYGON        = 0x0009
+    };
+
+    void gui_draw_primitive(uint mode, int r, int g, int b, int a, bool mod,
+        size_t nv, ...);
+
+    void gui_draw_text(const char *str, int left, int top,
+        int r, int g, int b, int a, int cur, int maxw);
+]] end
 
 return ffi.C

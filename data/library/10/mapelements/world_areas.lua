@@ -16,14 +16,14 @@ plugin = {
     end
 }
 
-action = std.class.new(std.actions.Action, {
+action = table.subclass(actions.Action, {
     start = function(self)
         assert(active == self.actor)
     end,
 
     run = function(self, seconds)
         if geometry.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
-            std.signal.emit(self.actor, "world_area_active")
+            signal.emit(self.actor, "world_area_active")
             return false
         else
             return true
@@ -35,7 +35,7 @@ action = std.class.new(std.actions.Action, {
     end
 })
 
-action_input_capture = std.class.new(std.actions.Action, {
+action_input_capture = table.subclass(actions.Action, {
     start = function(self)
         self.client_click = function(self, ...) return self.actor.client_click(self.actor, ...) end
 

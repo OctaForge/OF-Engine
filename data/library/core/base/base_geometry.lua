@@ -39,7 +39,7 @@ function get_ray_collision_distance(o, r)
     if    rm == 0 then
         return -1
     end
-    return CAPI.raypos(o, std.math.Vec3(r.x / rm, r.y / rm, r.z / rm), rm)
+    return CAPI.raypos(o, math.Vec3(r.x / rm, r.y / rm, r.z / rm), rm)
 end
 
 --[[!
@@ -66,7 +66,7 @@ function get_ray_collision_world(origin, direction, max_dist)
         origin, direction:mul_new(max_dist)
     )
     return origin:add_new(
-        direction:mul_new(std.math.min(dist, max_dist))
+        direction:mul_new(math.min(dist, max_dist))
     )
 end
 
@@ -108,7 +108,7 @@ function get_ray_collision_entities(origin, target, ignore)
             local entity_dir = entity.center:sub_new(origin)
             local entity_rad = entity.radius
                            and entity.radius
-                            or std.math.max(
+                            or math.max(
                                 entity.collision_radius_width,
                                 entity.collision_radius_height
                             )
@@ -157,7 +157,7 @@ function is_colliding_entities(position, radius, ignore)
         if entity ~= ignore and not entity.deactivated then
             local   entity_radius = entity.radius
                 and entity.radius
-                or std.math.max(
+                or math.max(
                     entity.collision_radius_width,
                     entity.collision_radius_height
                 )
@@ -195,7 +195,7 @@ function get_surface_normal(reference, surface, resolution)
 
     resolution = resolution or (distance / 20)
     local function random_resolutional()
-        return ((std.math.random() - 0.5) * 2 * resolution)
+        return ((math.random() - 0.5) * 2 * resolution)
     end
 
     local point_direction
@@ -206,7 +206,7 @@ function get_surface_normal(reference, surface, resolution)
     for i = 1, 3 do
         points = {}
         for n = 1, 3 do
-            point_direction = surface:add_new(std.math.Vec3(
+            point_direction = surface:add_new(math.Vec3(
                 random_resolutional(),
                 random_resolutional(),
                 random_resolutional()

@@ -1,10 +1,10 @@
 return {
     Math = {
         make_vec3 = function(x, y, z)
-            return std.math.Vec3(x, y, z)
+            return math.Vec3(x, y, z)
         end,
         make_vec4 = function(x, y, z, w)
-            return std.math.Vec4(x, y, z, w)
+            return math.Vec4(x, y, z, w)
         end
     },
     Input = {
@@ -76,9 +76,6 @@ return {
         end
     },
     GUI = {
-        Names = {
-            can_quit = "can_quit"
-        },
         HUD = {
             edit = function()
                 if not edithud then
@@ -180,12 +177,12 @@ return {
         scenario_started  = entity_store.has_scenario_started,
         render_hud        = entity_store.render_hud_model,
         manage_collisions = entity_store.manage_triggering_collisions,
-        handle_frame      = std.frame.handle_frame,
-        start_frame       = std.frame.start_frame
+        handle_frame      = frame.handle_frame,
+        start_frame       = frame.start_frame
     },
     JSON = {
-        encode = std.json.encode,
-        decode = std.json.decode
+        encode = json.encode,
+        decode = json.decode
     },
     Library = {
         is_unresettable = function(name)
@@ -195,6 +192,6 @@ return {
 
             return false
         end,
-        reset = std.library.reset
+        reset = library.reset
     }
 }

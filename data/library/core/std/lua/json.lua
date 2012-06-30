@@ -129,10 +129,10 @@ isarr = function(t)
     local midx = 0
     for k, v in pairs(t) do
         -- k,v is an indexed pair
-        if type(k) == "number" and std.math.floor(k) == k and 1 <= k then
+        if type(k) == "number" and math.floor(k) == k and 1 <= k then
             -- All array elements must be encodable
             if not isencodable(v) then return false end
-            midx = std.math.max(midx,k)
+            midx = math.max(midx,k)
         else
             if k == "n" then
                 -- False if n does not hold the number of elements
@@ -340,7 +340,7 @@ do
         
         -- debug func
         --local function status (str)
-        --    print(str.." ("..s:sub(std.math.max(1,p-10),p+10)..")")
+        --    print(str.." ("..s:sub(math.max(1,p-10),p+10)..")")
         --end
         
         -- read the next token, according to the passed token table
@@ -352,8 +352,8 @@ do
                     error("Unexpected character at "..location()..": "..
                         string.char(b).." ("..b..") when reading "
                         ..tok.name.."\nContext: \n"..
-                        js_string:sub(std.math.max(1,pos-30),pos+30)
-                        .."\n"..(" "):rep(pos+std.math.min(-1,30-pos)).."^")
+                        js_string:sub(math.max(1,pos-30),pos+30)
+                        .."\n"..(" "):rep(pos+math.min(-1,30-pos)).."^")
                 end
                 pos = pos + 1
                 if t~=tt_ignore then return t end
@@ -412,7 +412,7 @@ do
             pos = pos + 1
             if a ~= c_a or b ~= c_l or c ~= c_s or d ~= c_e then 
                 error(
-                    "Invalid boolean: "..js_string:sub(std.math.max(1,pos-5),pos+5)
+                    "Invalid boolean: "..js_string:sub(math.max(1,pos-5),pos+5)
                 ) 
             end
             return false
@@ -448,7 +448,7 @@ do
             end
             error(
                 "unexpected termination - "
-                ..js_string:sub(std.math.max(1,pos-10),pos+10)
+                ..js_string:sub(math.max(1,pos-10),pos+10)
             )
         end
         

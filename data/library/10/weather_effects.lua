@@ -93,24 +93,24 @@ rain = {
             seconds_between = kwargs.frequency,
             func = function(_self)
                 local camera = entity_store.get_player_entity().position:copy()
-                local lx     = std.math.max(0, camera.x - kwargs.radius)
-                local ly     = std.math.max(0, camera.y - kwargs.radius)
-                local hx     = std.math.min(camera.x + kwargs.radius, wsize)
-                local hy     = std.math.min(camera.y + kwargs.radius, wsize)
+                local lx     = math.max(0, camera.x - kwargs.radius)
+                local ly     = math.max(0, camera.y - kwargs.radius)
+                local hx     = math.min(camera.x + kwargs.radius, wsize)
+                local hy     = math.min(camera.y + kwargs.radius, wsize)
                 local dx     = hx - lx
                 local dy     = hy - ly
-                local chance = (dx * dy) / std.math.pow(wsize, 2);
+                local chance = (dx * dy) / math.pow(wsize, 2);
                 local amount = kwargs.spawn_at_once * chance
                 if (#self.drops + amount) > kwargs.max_amount then
                     amount = max_amount - #self.drops
                 end
                 for i = 1, amount do
-                    local origin = std.math.Vec3(
-                        lx + std.math.random() * dx,
-                        ly + std.math.random() * dy,
+                    local origin = math.Vec3(
+                        lx + math.random() * dx,
+                        ly + math.random() * dy,
                         wsize
                     )
-                    local floor_dist = std.math.floor_distance(
+                    local floor_dist = math.floor_distance(
                         origin, wsize * 2
                     )
                     if floor_dist < 0 then floor_dist = wsize end
@@ -128,7 +128,7 @@ rain = {
             seconds_before = 0,
             seconds_between = 0,
             func = function(_self)
-                local delta = std.frame.get_frame_time()
+                local delta = frame.get_frame_time()
                 self.drops = table.filter(self.drops, function(k, drop)
                     local bottom = drop.position:copy()
                     bottom.z = bottom.z - kwargs.size

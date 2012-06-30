@@ -1,1 +1,1 @@
-std.library.include("fonts")
+library.include("fonts")

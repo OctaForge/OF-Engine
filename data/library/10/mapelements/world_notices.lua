@@ -36,11 +36,11 @@ world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, 
             self:queue_action(self.notice_action)
         end
 
-        self.colliding_time = std.frame.get_time()
+        self.colliding_time = frame.get_time()
     end
 }}, "world_notice"), "mapmodel")
 
-notice_action = std.class.new(std.actions.Action, {
+notice_action = table.subclass(actions.Action, {
     can_multiply_queue = false,
 
     should_continue = function(self)
@@ -61,13 +61,13 @@ notice_action = std.class.new(std.actions.Action, {
             end
 
             self.current_time = self.current_time + seconds * 3
-            self.current_time = std.math.min(std.math.pi / 2, self.current_time)
-            self.current_size_ratio = std.math.sin(self.current_time)
+            self.current_time = math.min(math.pi / 2, self.current_time)
+            self.current_size_ratio = math.sin(self.current_time)
             current_size = self.current_size_ratio * self.size
         else
             self.current_time = self.current_time - seconds * 4
-            self.current_time = std.math.max(0, self.current_time)
-            self.current_size_ratio = std.math.sin(self.current_time)
+            self.current_time = math.max(0, self.current_time)
+            self.current_size_ratio = math.sin(self.current_time)
             current_size = self.current_size_ratio * self.size
         end
 
@@ -79,7 +79,7 @@ notice_action = std.class.new(std.actions.Action, {
     end
 })
 
-world_notice_action = std.class.new(notice_action, {
+world_notice_action = table.subclass(notice_action, {
     start = function(self)
         notice_action.start(self)
 
@@ -92,11 +92,11 @@ world_notice_action = std.class.new(notice_action, {
     end,
 
     should_continue = function(self)
-        return ((std.frame.get_time() - self.actor.colliding_time) <= 0.5)
+        return ((frame.get_time() - self.actor.colliding_time) <= 0.5)
     end,
 
     finish = function(self)
-        std.actions.Action.finish(self)
+        actions.Action.finish(self)
         self.actor.notice_action = nil
     end
 })

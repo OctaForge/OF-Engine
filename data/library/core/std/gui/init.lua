@@ -14,5 +14,4 @@
 ]]
 
 log(DEBUG, ":::: Core UI implementation.")
-std    ["gui" ] = {}
-std.gui["core"] = require("std.gui.core")
+gui = { core = require("std.gui.core") }

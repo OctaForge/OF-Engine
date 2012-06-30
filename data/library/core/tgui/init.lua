@@ -31,41 +31,6 @@ require("tgui.config")
 ]]
 
 --[[!
-    Property: can_quit
-
-    Title:
-        Really quit?
-
-    Description:
-        This is a window that gets shown when editing changes are
-        made and the user attempts to exit OctaForge.
-]]
-window("can_quit", "Really quit?", function()
-    -- main body list
-    gui.vlist(0, function()
-        -- icon + text
-        gui.hlist(0, function()
-            -- icon
-            gui.stretched_image(
-                get_icon_path("icon_question.png"),
-                0.08, 0.08
-            )
-            -- space between icon and text
-            gui.space(0.005, 0)
-            -- text
-            gui.label([[Editing changes have been made. If you quit
-now then they will be lost. Are you sure you
-want to quit?]])
-        end)
-        -- yes / no selection
-        gui.hlist(0, function()
-            button("yes", function() EAPI.base_quit_force() end)
-            button("no",  function() gui.hide("can_quit")   end)
-        end)
-    end)
-end)
-
---[[!
     Property: local_server_output
 
     Title:
@@ -315,13 +280,13 @@ function show_entity_properties_tab()
                         end)
 
                         -- pre-create an alias with initial value
-                        local was_persisting = std.var.persist_vars(false)
-                        std.var.new(name, EAPI.VAR_S, pair[2], true)
-                        std.var.persist_vars(was_persisting)
+                        local was_persisting = var.persist_vars(false)
+                        var.new(name, EAPI.VAR_S, pair[2], true)
+                        var.persist_vars(was_persisting)
 
                         -- a field for the value - XXX: long enough?
                         field(name, #pair[2] + 25, function()
-                            local nv = _G[name]
+                            local nv = EVAR[name]
                             if nv ~= pair[2] then
                                 pair[2] = nv
                                 entity_store.get(entity.uid)[key]

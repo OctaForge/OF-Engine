@@ -41,9 +41,9 @@ end
 
 function find_target(shooter, visual_origin, targeting_origin, fallback_target, range, scatter)
     -- targeting from the camera - where the player aimed the mouse
-    local direction = std.math.Vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
-    if std.math.is_nan(direction.x) then return { target = fallback_target } end
-    if scatter then direction:add(std.math.norm_vec3():mul(scatter)):normalize() end
+    local direction = math.Vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
+    if math.is_nan(direction.x) then return { target = fallback_target } end
+    if scatter then direction:add(math.norm_vec3():mul(scatter)):normalize() end
 
     local target = geometry.get_ray_collision_world   (targeting_origin, direction, range)
     local temp   = geometry.get_ray_collision_entities(targeting_origin, target,  shooter)
@@ -86,11 +86,11 @@ plugins = {
         },
 
         activate = function(self)
-            std.signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
+            signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         client_activate = function(self)
-            std.signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
+            signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
         end,
 
         on_firing_info = function(self, info)
@@ -99,7 +99,7 @@ plugins = {
 
             if #info ~= 5 then return nil end
             local gun_index = info[1]
-            local target_pos = std.math.Vec3(info[2], info[3], info[4])
+            local target_pos = math.Vec3(info[2], info[3], info[4])
             local target_ent = entity_store.get(info[5])
             local gun = guns[gun_index]
 
@@ -138,7 +138,7 @@ plugins = {
         end,
 
         activate = function(self)
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("gun_indexes"),
                 function(self, indexes)
                     if #indexes > 0 then
@@ -153,7 +153,7 @@ plugins = {
             self.last_handled_shot_counter = 0
             self.now_firing = false
 
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("current_gun_index"),
                 function(self)
                     if self.gun_switch_sound ~= "" then
@@ -166,7 +166,7 @@ plugins = {
         client_act = function(self, seconds)
             if self ~= entity_store.get_player_entity() then return nil end
 
-            self.gun_delay = std.math.max(self.gun_delay - seconds, 0)
+            self.gun_delay = math.max(self.gun_delay - seconds, 0)
 
             local gun = guns[self.current_gun_index]
             if gun then
@@ -241,7 +241,7 @@ plugins = {
     }
 }
 
-gun = std.class.new()
+gun = table.classify({})
 
 gun.handle_start_logic   = nil
 gun.handle_client_effect = nil
@@ -273,7 +273,7 @@ function gun:do_recoil(shooter, magnitude)
     if CLIENT and shooter ~= entity_store.get_player_entity() then return nil end
 
     if shooter.can_move then
-        local dir = std.math.Vec3():from_yaw_pitch(
+        local dir = math.Vec3():from_yaw_pitch(
             shooter.yaw, shooter.pitch
         ):normalize(1)
          :mul(-magnitude)
@@ -281,7 +281,7 @@ function gun:do_recoil(shooter, magnitude)
     end
 end
 
-action_shoot1 = std.class.new(
+action_shoot1 = table.subclass(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
@@ -291,14 +291,14 @@ action_shoot1.cancellable = false
 -- convenience
 action_shoot = action_shoot1
 
-action_shoot2 = std.class.new(
+action_shoot2 = table.subclass(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
 action_shoot2.local_animation   = model.ANIM_ATTACK2
 action_shoot2.cancellable = false
 
-action_shoot3 = std.class.new(
+action_shoot3 = table.subclass(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
@@ -306,18 +306,18 @@ action_shoot3.local_animation   = model.ANIM_ATTACK3
 action_shoot3.cancellable = false
 
 
-action_shoot2_repeating = std.class.new(
+action_shoot2_repeating = table.subclass(
     entity_animated.action_local_animation,
     nil, "action_shoot"
 )
-action_shoot2_repeating.local_animation = std.math.bor(
+action_shoot2_repeating.local_animation = math.bor(
     model.ANIM_ATTACK2,
     model.ANIM_LOOP
 )
 action_shoot2_repeating.cancellable = false
 
-action_out_of_ammo = std.class.new(
-    std.actions.Action,
+action_out_of_ammo = table.subclass(
+    actions.Action,
     nil, "action_out_of_ammo"
 )
 action_out_of_ammo.seconds_left       = 0.5

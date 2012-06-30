@@ -1,9 +1,9 @@
-std.library.include("mapelements.world_areas")
+library.include("mapelements.world_areas")
 
 module("platformer", package.seeall)
 
 function vec3_from_axis(axis)
-    local ret = std.math.Vec3(0, 0, 0)
+    local ret = math.Vec3(0, 0, 0)
     if axis == "+x" then
         ret.x =  1
     elseif axis == "-x" then
@@ -48,8 +48,8 @@ plugin = {
         self.platform_fov = 50
         self:set_platform_direction(1)
 
-        std.signal.connect(self, "client_respawn", function(self)
-            std.signal.add_post_emit_event(function(self)
+        signal.connect(self, "client_respawn", function(self)
+            signal.add_post_emit_event(function(self)
                 self.platform_axis        = "+x"
                 self.platform_position    = self.position.y
                 self.platform_camera_axis = "+y"
@@ -65,14 +65,14 @@ plugin = {
                 local velocity = self.velocity:copy()
 
                 if self.platform_axis[2] == "x" then
-                    if std.math.abs(position.y - self.platform_position) > 0.5 then
+                    if math.abs(position.y - self.platform_position) > 0.5 then
                         position.y = self.platform_position
                         velocity.y = 0
                     else
                         position = nil
                     end
                 else
-                    if std.math.abs(position.x - self.platform_position) > 0.5 then
+                    if math.abs(position.x - self.platform_position) > 0.5 then
                         position.x = self.platform_position
                         velocity.x = 0
                     else
@@ -83,17 +83,17 @@ plugin = {
                 if position then
                     self.position = position:lerp(self.position, 1 - (seconds * 5))
                     self.velocity = velocity
-                    log(WARNING, "Fixed platform position %(1)i" % { std.frame.get_time() })
+                    log(WARNING, "Fixed platform position %(1)i" % { frame.get_time() })
                 end
             end
 
             local platform_axis = vec3_from_axis(self.platform_axis)
-            self.platform_yaw   = std.math.normalize_angle(
+            self.platform_yaw   = math.normalize_angle(
                 platform_axis:mul(self:get_platform_direction()):to_yaw_pitch().yaw,
                 self.yaw
             ) + 90
-            self.yaw = std.math.magnet(
-                std.math.lerp(
+            self.yaw = math.magnet(
+                math.lerp(
                     self.yaw,
                     self.platform_yaw,
                     seconds * 15
@@ -102,10 +102,10 @@ plugin = {
                 45
             )
             self.pitch = 0
-            self.move  = (self.platform_move == 1 and (std.math.abs(self.platform_yaw - self.yaw) < 1)) and 1 or 0
+            self.move  = (self.platform_move == 1 and (math.abs(self.platform_yaw - self.yaw) < 1)) and 1 or 0
 
             if GLOBAL_CAMERA_DISTANCE then
-                self.platform_camera_distance = std.math.lerp(
+                self.platform_camera_distance = math.lerp(
                     self.platform_camera_distance,
                     GLOBAL_CAMERA_DISTANCE * 3,
                     seconds * 5

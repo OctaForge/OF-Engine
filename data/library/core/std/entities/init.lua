@@ -14,4 +14,4 @@
 ]]
 
 --log(DEBUG, ":::: State variables.")
---std["svars"] = require("std.events.svars")
+--svars = require("std.events.svars")

@@ -11,7 +11,7 @@
 
     About: Purpose
         Provides high level engine variables handling, such as creation,
-        access and setting. Further accessible as "std.var" and the engine
+        access and setting. Further accessible as "var" and the engine
         variable table as EVAR (global).
 ]]
 

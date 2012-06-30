@@ -10,7 +10,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua util module. Further accessible as "std.util".
+        Lua util module. Further accessible as "util".
 ]]
 
 return {

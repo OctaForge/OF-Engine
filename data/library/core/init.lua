@@ -63,7 +63,8 @@ EAPI.base_log(EAPI.BASE_LOG_DEBUG, "Initializing logging.")
 ]]
 log = function(level, msg)
     -- convenience
-    return EAPI.base_log(level, tostring(msg)) end
+    return EAPI.base_log(level, tostring(msg))
+end
 
 INFO    = EAPI.BASE_LOG_INFO
 DEBUG   = EAPI.BASE_LOG_DEBUG
@@ -77,7 +78,8 @@ ERROR   = EAPI.BASE_LOG_ERROR
 ]]
 echo = function(msg)
     -- convenience
-    return EAPI.base_echo(tostring(msg)) end
+    return EAPI.base_echo(tostring(msg))
+end
 
 log(DEBUG, "Initializing the new core library.")
 require("std")

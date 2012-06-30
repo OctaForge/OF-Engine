@@ -27,7 +27,7 @@ module("entity", package.seeall)
     It contains basic handler methods common for both client and server.
 
     Entity always needs a class name. You can specify class name as third
-    argument to <std.class.new> (or second, if you don't  specify table mixin,
+    argument to <class.new> (or second, if you don't  specify table mixin,
     see the class documentation). Entity class name is required for proper
     database lookups. The core library entities ALWAYS have the same class
     name as name of the class object in Lua.
@@ -39,7 +39,7 @@ module("entity", package.seeall)
         Dynamic entities are usually not saved, static usually are. Non-sauer
         entities don't mostly get saved.
 ]]
-base_root = std.class.new(nil, {
+base_root = class.new(nil, {
     --[[!
         Variable: should_act
         Boolean value specifying whether the entity should run <act>
@@ -91,7 +91,7 @@ base_root = std.class.new(nil, {
         end
 
         -- create action system
-        self.action_system = std.actions.Action_System(self)
+        self.action_system = actions.Action_System(self)
 
         -- create state variable value storage
         self.state_variable_values           = {}
@@ -152,7 +152,7 @@ base_root = std.class.new(nil, {
             in system will modify their remaining time accordingly).
     ]]
     act = function(self, seconds)
-        self.action_system:manage(seconds)
+        self.action_system:run(seconds)
     end,
 
     --[[!
@@ -390,7 +390,7 @@ base_root = std.class.new(nil, {
                             "create_state_data_dict() adding "
                                 .. tostring(var._name)
                                 .. ": "
-                                .. std.json.encode(val)
+                                .. json.encode(val)
                         )
 
                         -- get the name - if we're compressing,
@@ -407,7 +407,7 @@ base_root = std.class.new(nil, {
                         log(
                             DEBUG,
                             "create_state_data_dict() currently: "
-                                .. std.json.encode(r)
+                                .. json.encode(r)
                         )
                     end
                 end
@@ -416,7 +416,7 @@ base_root = std.class.new(nil, {
 
         log(
             DEBUG,
-            "create_state_data_dict() returns: " .. std.json.encode(r)
+            "create_state_data_dict() returns: " .. json.encode(r)
         )
 
         -- if we're not compressing, fine, return - raw table
@@ -433,7 +433,7 @@ base_root = std.class.new(nil, {
         end
 
         -- encode it into JSON
-        r = std.json.encode(r)
+        r = json.encode(r)
         log(DEBUG, "pre-compression: " .. r)
 
         -- several string filters
@@ -458,8 +458,8 @@ base_root = std.class.new(nil, {
             local n = filter(r)
 
             if #n < #r
-            and std.json.encode(std.json.decode(n))
-             == std.json.encode(std.json.decode(r)) then
+            and json.encode(json.decode(n))
+             == json.encode(json.decode(r)) then
                 r = n
             end
         end
@@ -495,7 +495,7 @@ base_root = std.class.new(nil, {
             or state_data
 
         -- and decode it into raw table again
-        local raw_state_data = std.json.decode(state_data)
+        local raw_state_data = json.decode(state_data)
         assert(type(raw_state_data) == "table")
 
         -- set the entity as initialized
@@ -533,7 +533,7 @@ base_root = std.class.new(nil, {
     This represents clientside base class. It extends <base_root> with client
     specific methods.
 ]]
-base_client = std.class.new(base_root, {
+base_client = class.new(base_root, {
     --[[!
         Function: client_activate
         This is called on clientside entity activation.
@@ -609,7 +609,7 @@ base_client = std.class.new(base_root, {
             "setting state data: "
                 .. key
                 .. " = "
-                .. std.json.encode(value)
+                .. json.encode(value)
                 .. " for "
                 .. self.uid
         )
@@ -660,7 +660,7 @@ base_client = std.class.new(base_root, {
             assert(var:validate(value))
 
             -- emit the change handler
-            std.signal.emit(self,
+            signal.emit(self,
                 state_variables.get_on_modify_name(key),
                 value, actor_uid ~= -1
             )
@@ -679,7 +679,7 @@ base_client = std.class.new(base_root, {
             "base_client:client_act, " .. self.uid
         )
 
-        self.action_system:manage(seconds)
+        self.action_system:run(seconds)
     end,
 
     --[[!
@@ -709,7 +709,7 @@ base_client = std.class.new(base_root, {
     This represents serverside base class. It extends <base_root> with server
     specific methods.
 ]]
-base_server = std.class.new(base_root, {
+base_server = class.new(base_root, {
     --[[!
         Variable: sent_complete_notification
         This is set to true after <send_complete_notification>.
@@ -922,7 +922,7 @@ base_server = std.class.new(base_root, {
                           key .. " = " ..
                           tostring(value) .. " (" ..
                           type(value) .. ") : " ..
-                          std.json.encode(value) .. ", " ..
+                          json.encode(value) .. ", " ..
                           tostring(value))
 
         -- get entity class string
@@ -968,11 +968,11 @@ base_server = std.class.new(base_root, {
                           key .. " = " ..
                           tostring(value) .. " (" ..
                           type(value) .. ") : " ..
-                          std.json.encode(value) .. ", " ..
+                          json.encode(value) .. ", " ..
                           tostring(value))
 
         -- emit the change
-        local ret = std.signal.emit(self,
+        local ret = signal.emit(self,
             state_variables.get_on_modify_name(key),
             value, actor_uid
         )

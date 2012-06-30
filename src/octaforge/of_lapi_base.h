@@ -195,27 +195,6 @@ namespace lapi_binds
     LAPI_EMPTY(save_mouse_position)
 #endif
 
-    /* some bit math */
-
-    int _lua_lsh(int a, int b) { return (a << b); }
-    int _lua_rsh(int a, int b) { return (a >> b); }
-
-    int _lua_bor(types::Vector<int> args)
-    {
-        int ret = args[0];
-        for (size_t i = 1; i < args.length(); ++i) ret |= args[i];
-        return ret;
-    }
-
-    int _lua_band(types::Vector<int> args)
-    {
-        int ret = args[0];
-        for (size_t i = 1; i < args.length(); ++i) ret &= args[i];
-        return ret;
-    }
-
-    int _lua_bnot(int a) { return ~a; }
-
     int _lua_create_table(lua_State *L)
     {
         size_t narr = luaL_optinteger(L, 1, 0);
@@ -313,11 +292,6 @@ namespace lapi_binds
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);
         LAPI_REG(save_mouse_position);
-        LAPI_REG(lsh);
-        LAPI_REG(rsh);
-        LAPI_REG(bor);
-        LAPI_REG(band);
-        LAPI_REG(bnot);
         LAPI_REG(create_table);
         LAPI_REG(toggleconsole);
         LAPI_REG(conskip);

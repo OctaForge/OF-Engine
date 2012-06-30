@@ -13,8 +13,6 @@
         OctaForge standard library general loader.
 ]]
 
-std = {}
-
 log(DEBUG, ":: Lua extensions.")
 require("std.lua")
 

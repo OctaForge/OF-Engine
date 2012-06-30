@@ -10,7 +10,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Accessible as "std.actions". Actions are basically classes that are
+        Accessible as "actions". Actions are basically classes that are
         stored in an action queue (called action system). You can queue new
         actions and those will run for example for a period of time, depending
         on the action type. They're used to for example queue a player
@@ -23,7 +23,7 @@
     Takes care of the basic action infrastructure. It doesn't really
     do anything, though.
 ]]
-local Action = std.class.new(nil, {
+local Action = table.classify({
     --[[! Constructor: __init
         Constructs the action. Takes kwargs, which is an optional argument
         supplying modifiers for the action. It's an associative array.
@@ -84,9 +84,8 @@ local Action = std.class.new(nil, {
     end,
 
     --[[! Function: __tostring
-        Overloaded so that tostring(x) or std.conv.to("string", x) where
-        x is an action instance simply returns the name ("Action" for
-        the base action).
+        Overloaded so that tostring(x) where x is an action instance simply
+        returns the name ("Action" for the base action).
     ]]
     __tostring = function(self) return self.name end,
 
@@ -127,7 +126,7 @@ local Action = std.class.new(nil, {
                 self.priv_finish(self)
             end
 
-            log(INFO, "    finished: " .. std.conv.to("string", finished))
+            log(INFO, "    finished: " .. tostring(finished))
             return finished
         else
             if  self.parallel_to.finished then
@@ -201,7 +200,7 @@ local Action = std.class.new(nil, {
 --[[! Class: Infinite_Action
     An action that never ends.
 ]]
-local Infinite_Action = std.class.new(Action, {
+local Infinite_Action = table.subclass(Action, {
     --[[! Function: run
         One of the exceptional cases of the "run" method; it always returns
         false because it doesn't manipulate "seconds_left".
@@ -214,7 +213,7 @@ local Infinite_Action = std.class.new(Action, {
 --[[! Class: Targeted_Action
     An action with an entity as a "target" member.
 ]]
-local Targeted_Action = std.class.new(Action, {
+local Targeted_Action = table.subclass(Action, {
     --[[! Constructor: __init
         Constructs this action. Compared to a standard action, it takes
         an additional argument, "target". That specifies an entity that
@@ -230,7 +229,7 @@ local Targeted_Action = std.class.new(Action, {
     An action that runs a single command and ends. Useful for i.e. queuing
     a command for next act of an entity.
 ]]
-local Single_Action = std.class.new(Action, {
+local Single_Action = table.subclass(Action, {
     --[[! Constructor: __init
         Constructs this action. Compared to a standard action, it takes
         an additional argument, "command", which is a function taking
@@ -252,96 +251,56 @@ local Single_Action = std.class.new(Action, {
     end
 }, "Single_Action")
 
---[[! Class: Action_System
-    An action system that manages an action queue. One action per
-    <manage> is executed. Action system always belongs to an entity.
-]]
-local Action_System = std.class.new(nil, {
-    --[[! Constructor: __init
-        Initializes the system. Sets the "parent" member so that it's the
-        entity this action system belongs to and initializes an empty
-        queue of actions (which is an array).
-    ]]
-    __init = function(self, parent)
-        self.parent  = parent
-        self.actions = {}
-    end,
+local Action_System_MT = {
+    __index = {
+        get = function(sys)
+            return sys.actions
+        end,
 
-    --[[! Function: get_queue
-        Returns this system's action queue.
-    ]]
-    get_queue = function(self)
-        return self.actions
-    end,
+        run = function(sys, seconds)
+            sys.actions = table.filter(sys.actions,
+                function(i, v) return not v.finished end)
 
-    --[[! Function: is_empty
-        Returns true if there are no actions queued currently and false
-        otherwise.
-    ]]
-    is_empty = function(self)
-        return (#self.actions == 0)
-    end,
+            if #sys.actions > 0 then
+                local act = sys.actions[1]
+                log(INFO, table.concat { "Executing ", act.name })
 
-    --[[! Function: clear
-        Cancels all the actions in the queue. They get cleared out on
-        next <manage>.
-    ]]
-    clear = function(self)
-        for i, action in pairs(self.actions) do
-            action:cancel()
-        end
-    end,
-
-    --[[! Function: manage
-        Runs the next queued action (a single iteration of it) and
-        removes it from the queue if it finishes already (that is,
-        if true is returned by the run function). Before running
-        anything, it filters out finished actions from the queue
-        (in case i.e. <clear> was called previously).
-    ]]
-    manage = function(self, seconds)
-        self.actions = table.filter(self.actions, function(i, v)
-            return (not v.finished)
-        end)
-
-        if #self.actions > 0 then
-            log(INFO, "Executing " .. std.conv.to("string", self.actions[1]))
-            if self.actions[1]:priv_run(seconds) then
-                table.remove(self.actions, 1)
+                -- keep the removal for the next frame
+                act:priv_run(seconds)
             end
-        end
+        end,
 
-        -- TODO: move remaining seconds to the next action.
-        -- It's unlikely to do problems as of currently,
-        -- but eventually FIXME. Do not forget to clear
-        -- between every action.
-    end,
-
-    --[[! Function: queue
-        Queues an action into the system to be later executed by <manage>.
-        If the action's "allow_multiple" property is explicitly set to
-        false and there is already an action of that type present in the
-        system, nothing is done and a warning is shown.
-    ]]
-    queue = function(self, action)
-        if not action.allow_multiple then
-            for i, act in pairs(self.actions) do
-                local str = std.conv.to("string", action)
-                if std.conv.to("string", act) == str then
-                    log(WARNING, "Action of the type " .. str ..
-                        " is already present in the system, " ..
-                        "multiplication explicitly disabled " ..
-                        "for the action."
-                    )
-                    return nil
+        queue = function(sys, act)
+            if not act.allow_multiple then
+                local str = act.name
+                for i = 1, #sys do
+                    if str == sys[i].name then
+                        log(WARNING, table.concat { "Action of the type ", str,
+                            " is already present in the system, multiplication",
+                            " explicitly disabled for the action." })
+                        return nil
+                    end
                 end
             end
-        end
 
-        table.insert(self.actions, action)
-        action.actor = self.parent
-    end
-}, "Action_System")
+            table.insert(sys.actions, act)
+            act.actor = sys.parent
+        end,
+
+        clear = function(sys)
+            for i = 1, #sys.actions do
+                sys.actions[i]:cancel()
+            end
+        end
+    }
+}
+
+local Action_System = function(parent)
+    return setmetatable({
+        parent  = parent,
+        actions = createtable(4)
+    }, Action_System_MT)
+end
 
 return {
     Action          = Action,

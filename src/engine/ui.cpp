@@ -46,17 +46,17 @@ namespace gui
 
     void resetcursor()
     {
-        lapi::state.get<lua::Function>("std", "gui", "core", "resetcursor")();
+        lapi::state.get<lua::Function>("gui", "core", "resetcursor")();
     }
 
     bool movecursor(int dx, int dy)
     {
-        return lapi::state.get<lua::Function>("std", "gui", "core", "movecursor").call<bool>(dx, dy);
+        return lapi::state.get<lua::Function>("gui", "core", "movecursor").call<bool>(dx, dy);
     }
 
     bool hascursor(bool targeting)
     {
-        return lapi::state.get<lua::Function>("std", "gui", "core", "hascursor").call<bool>(targeting);
+        return lapi::state.get<lua::Function>("gui", "core", "hascursor").call<bool>(targeting);
     }
 
     void getcursorpos(float &x, float &y)
@@ -70,39 +70,39 @@ namespace gui
 
     bool keypress(int code, bool isdown, int cooked)
     {
-        return lapi::state.get<lua::Function>("std", "gui", "core", "keypress").call<bool>(code, isdown, cooked);
+        return lapi::state.get<lua::Function>("gui", "core", "keypress").call<bool>(code, isdown, cooked);
     }
 
     void clearmainmenu()
     {
-        lapi::state.get<lua::Function>("std", "gui", "core", "clearmainmenu")();
+        lapi::state.get<lua::Function>("gui", "core", "clearmainmenu")();
     }
 
     void setup()
     {
-        lapi::state.get<lua::Function>("std", "gui", "core", "setup")();
+        lapi::state.get<lua::Function>("gui", "core", "setup")();
     }
 
     void update()
     {
-        lapi::state.get<lua::Function>("std", "gui", "core", "update")();
+        lapi::state.get<lua::Function>("gui", "core", "update")();
     }
 
     void render()
     {
-        lapi::state.get<lua::Function>("std", "gui", "core", "render")();
+        lapi::state.get<lua::Function>("gui", "core", "render")();
     }
 }
 
 VARP(applydialog, 0, 1, 1);
 
 void addchange(const char *desc, int type) {
-    lapi::state.get<lua::Function>("std", "gui", "core",
-        "change_new")(desc, type); }
+    lapi::state.get<lua::Function>("gui", "core", "change_new")(desc, type);
+}
 
 void clearchanges(int type) {
-    lapi::state.get<lua::Function>("std", "gui", "core",
-        "changes_clear")(type); }
+    lapi::state.get<lua::Function>("gui", "core", "changes_clear")(type);
+}
 
 VAR(fonth, 512, 0, 0);
 VAR(fontw, 512, 0, 0);

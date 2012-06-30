@@ -11,7 +11,7 @@
 
     About: Purpose
         Handles a single main loop frame from the scripting system.
-        Further accessible as "std.frame".
+        Further accessible as "frame".
 ]]
 
 local current_frame      = 0
@@ -76,20 +76,22 @@ return {
         activated entities.
     ]]
     handle_frame = function(seconds, lastmillis)
-        log(INFO, "std.frame.handle_frame: New frame")
+        local get_ents = entity_store.get_all
+
+        log(INFO, "frame.handle_frame: New frame")
 
         local queue = table.copy(queued_actions)
         queued_actions = {}
 
-        for idx, fun in pairs(queue) do fun() end
+        for i = 1, #queue do queue[i]() end
 
         current_time       = current_time + seconds
         current_frame_time = seconds
         last_millis        = lastmillis
 
-        log(INFO, "std.frame.handle_frame: Acting on entities")
+        log(INFO, "frame.handle_frame: Acting on entities")
 
-        for uid, entity in pairs(entity_store.get_all()) do
+        for uid, entity in pairs(get_ents()) do
             local skip = false
 
             if entity.deactivated or not entity.should_act then
@@ -116,7 +118,7 @@ return {
     ]]
     cache_by_delay = function(fun, delay)
         if type(fun) == "function" then
-            fun = std.conv.to("calltable", fun)
+            fun = tocalltable(fun)
         end
 
         if type(fun) ~= "table" then
@@ -141,7 +143,7 @@ return {
     ]]
     cache_by_frame = function(fun)
         if type(fun) == "function" then
-            fun = std.conv.to("calltable", fun)
+            fun = tocalltable(fun)
         end
 
         if type(fun) ~= "table" then

@@ -26,17 +26,7 @@ void cleanup()
     SDL_Quit();
 }
 
-void force_quit(); // INTENSITY
-
-void quit()                     // normal exit
-{
-    if (!EditingSystem::madeChanges) force_quit();
-    lapi::state.get<lua::Function>(
-        "LAPI", "GUI", "show"
-    )(lapi::state.get<lua::Object>("LAPI", "GUI", "Names", "can_quit"));
-}
-
-void force_quit() // INTENSITY - change quit to force_quit
+void quit()
 {
     extern void writeinitcfg();
     writeinitcfg();

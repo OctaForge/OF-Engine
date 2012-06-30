@@ -101,9 +101,9 @@ PARTICLE = {
         FLASH  - dynamic light will be flashing.
 ]]
 DYNAMIC_LIGHT = {
-    SHRINK = std.math.lsh(1, 0),
-    EXPAND = std.math.lsh(1, 1),
-    FLASH  = std.math.lsh(1, 2)
+    SHRINK = math.lsh(1, 0),
+    EXPAND = math.lsh(1, 1),
+    FLASH  = math.lsh(1, 2)
 }
 
 --[[!
@@ -122,9 +122,10 @@ DYNAMIC_LIGHT = {
 ]]
 function decal(decal_type, position, direction, radius, color, info)
     info      = info or 0
-    local rgb = std.conv.hex_to_rgb(color or 0xFFFFFF)
+    local r, g, b = hextorgb(color or 0xFFFFFF)
 
-    CAPI.adddecal(decal_type, position, direction, radius, rgb, info)
+    CAPI.adddecal(decal_type, position, direction, radius,
+        { r = r, g = g, b = b }, info)
 end
 
 --[[!
@@ -148,18 +149,18 @@ function dynamic_light(
     position, radius, color, fade,
     peak, flags, initial_radius, initial_color
 )
-    local rgbc  = std.conv.hex_to_rgb(color)
-    local rgbic = std.conv.hex_to_rgb(initial_color or 0xFFFFFF)
+    local r,  g,  b  = hextorgb(color)
+    local r1, g1, b1 = hextorgb(initial_color or 0xFFFFFF)
 
     fade = fade or 0
     peak = peak or 0
 
     CAPI.adddynlight(
         position, radius,
-        std.math.Vec3(rgbc.r / 255, rgbc.g / 255, rgbc.b / 255),
+        math.Vec3(r / 255, g / 255, b / 255),
         fade * 1000, peak * 1000,
         flags, initial_radius,
-        std.math.Vec3(rgbic.r / 255, rgbic.g / 255, rgbic.b / 255)
+        math.Vec3(r1 / 255, g1 / 255, b1 / 255)
     )
 end
 

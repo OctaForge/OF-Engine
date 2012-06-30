@@ -12,7 +12,7 @@
     About: Purpose
         Lua FFI module. Abstracts away the FFI so that only a safe subset can
         be accessed from inside the sandboxed environment. The core library
-        has full access. Further accessible as "std.ffi".
+        has full access. Further accessible as "ffi".
 ]]
 
 return {

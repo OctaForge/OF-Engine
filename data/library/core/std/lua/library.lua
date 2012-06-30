@@ -10,7 +10,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua library system. Further accessible as "std.library". Used to set
+        Lua library system. Further accessible as "library". Used to set
         up a library, include something from it (or from something else)
         and get the current library string.
 ]]
@@ -47,7 +47,7 @@ end
 --[[! Function: include
     Includes a module, either from the core library, one of the loaded
     libraries or anywhere from data/ (useful to include various assets,
-    for example, std.library.include("textures.foo") runs a script
+    for example, library.include("textures.foo") runs a script
     "data/textures/foo/init.lua"). Returns the result of require()
     on the module, which is mostly irrelevant.
 ]]

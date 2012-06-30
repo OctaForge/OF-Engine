@@ -206,19 +206,19 @@ namespace tools
         f->printf("\n");
 
         f->printf("-- aliases\n");
-        f->printf("local was_persisting = std.var.persist_vars(true)\n");
+        f->printf("local was_persisting = var.persist_vars(true)\n");
         for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
         {
             varsys::Variable *v = it->second;
             if ((v->flags()&varsys::FLAG_ALIAS) != 0 && (v->flags()&varsys::FLAG_PERSIST) != 0) switch (v->type())
             {
-                case varsys::TYPE_I: f->printf("std.var.new(\"%s\", EAPI.VAR_I, %d)\n", v->name(), varsys::get_int(v)); break;
-                case varsys::TYPE_F: f->printf("std.var.new(\"%s\", EAPI.VAR_F, %f)\n", v->name(), varsys::get_float(v)); break;
+                case varsys::TYPE_I: f->printf("var.new(\"%s\", EAPI.VAR_I, %d)\n", v->name(), varsys::get_int(v)); break;
+                case varsys::TYPE_F: f->printf("var.new(\"%s\", EAPI.VAR_F, %f)\n", v->name(), varsys::get_float(v)); break;
                 case varsys::TYPE_S:
                 {
                     const char *str = varsys::get_string(v);
                     if (strstr(v->name(), "new_entity_gui_field") || !str) continue;
-                    f->printf("std.var.new(\"%s\", EAPI.VAR_S, \"", v->name());
+                    f->printf("var.new(\"%s\", EAPI.VAR_S, \"", v->name());
                     size_t len = strlen(str);
                     for (size_t sz = 0; sz < len; ++sz)
                     {
@@ -236,7 +236,7 @@ namespace tools
                 }
             }
         }
-        f->printf("std.var.persist_vars(was_persisting)\n");
+        f->printf("var.persist_vars(was_persisting)\n");
         f->printf("\nOF_CFG_VERSION_PASSED = true\n");
         delete f;
     }

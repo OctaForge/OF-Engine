@@ -9,7 +9,7 @@ plugin = {
                 return nil
             end
 
-            if self.rendering_args_timestamp ~= std.frame.get_frame() then
+            if self.rendering_args_timestamp ~= frame.get_frame() then
                 local anim     = self:get_multipart_animation()
                 local o        = self.position:copy()
                 local yaw      = self:get_multipart_yaw()
@@ -18,7 +18,7 @@ plugin = {
                 local basetime = 0
 
                 self.rendering_args = self:create_rendering_args(yaw, pitch, anim, o, flags, basetime)
-                self.rendering_args_timestamp = std.frame.get_frame()
+                self.rendering_args_timestamp = frame.get_frame()
             end
 
             for i, args in pairs(self.rendering_args) do
@@ -28,11 +28,11 @@ plugin = {
     end,
 
     get_multipart_animation = function(self)
-        return std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
+        return math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
     end,
 
     get_multipart_flags = function(self)
-        return std.math.bor(
+        return math.bor(
             model.CULL_VFC,
             model.CULL_OCCLUDED,
             model.CULL_QUERY,

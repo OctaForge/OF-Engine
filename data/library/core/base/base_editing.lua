@@ -144,7 +144,7 @@ MATERIAL_GLASS = 3
         <MATERIAL_GLASS>
         <MATERIAL_CLIP>
 ]]
-MATERIAL_NOCLIP = std.math.lsh(1, 3)
+MATERIAL_NOCLIP = math.lsh(1, 3)
 
 --[[!
     Variable: MATERIAL_CLIP
@@ -159,7 +159,7 @@ MATERIAL_NOCLIP = std.math.lsh(1, 3)
         <MATERIAL_GLASS>
         <MATERIAL_NOCLIP>
 ]]
-MATERIAL_CLIP = std.math.lsh(2, 3)
+MATERIAL_CLIP = math.lsh(2, 3)
 
 --[[!
     Function: toggle_mode

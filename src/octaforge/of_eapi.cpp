@@ -11,12 +11,12 @@
  */
 
 #include "cube.h"
+#include "texture.h"
 
 /* prototypes */
 
 #ifdef CLIENT
 void quit      ();
-void force_quit();
 void resetgl   ();
 void resetsound();
 #endif
@@ -36,10 +36,6 @@ extern "C" {
 
     void base_quit() {
         quit();
-    }
-
-    void base_quit_force() {
-        force_quit();
     }
 
     void base_reset_renderer() {
@@ -298,24 +294,55 @@ extern "C" {
 
     /* GUI */
 
-    typedef struct TB_Result {
-        int width, height;
-    } TB_Result;
-
-    typedef struct TB_Resultf {
-        float width, height;
-    } TB_Resultf;
-
-    TB_Result gui_text_bounds(const char *str, int maxw) {
-        int w, h;
+    void gui_text_bounds(const char *str, int &w, int &h, int maxw) {
         text_bounds(str, w, h, maxw);
-        return { w, h };
     }
 
-    TB_Resultf gui_text_bounds_f(const char *str, int maxw) {
-        float w, h;
+    void gui_text_bounds_f(const char *str, float &w, float &h, int maxw) {
         text_boundsf(str, w, h, maxw);
-        return { w, h };
+    }
+
+    void gui_text_pos(const char *str, int cur, int &cx, int &cy, int maxw) {
+        text_pos(str, cur, cx, cy, maxw);
+    }
+
+    void gui_text_pos_f(const char *str, int cur, float &cx, float &cy,
+        int maxw) {
+        text_posf(str, cur, cx, cy, maxw);
+    }
+
+    int gui_text_visible(const char *str, float hitx, float hity, int maxw) {
+        return text_visible(str, hitx, hity, maxw);
+    }
+
+    void gui_draw_primitive(uint mode, int r, int g, int b, int a, bool mod,
+        size_t nv, ...) {
+        va_list  ap;
+        va_start(ap, nv);
+
+        if (mod) glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+        notextureshader->set();
+        glDisable(GL_TEXTURE_2D);
+        glColor4ub(r, g, b, a);
+        glBegin(mode);
+
+        for (size_t i = 0; i < nv; ++i) {
+            float x = (float)va_arg(ap, double);
+            float y = (float)va_arg(ap, double);
+            glVertex2f(x, y);
+        }
+
+        glEnd();
+        glEnable(GL_TEXTURE_2D);
+        defaultshader->set();
+        if (mod) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        va_end(ap);
+    }
+
+    void gui_draw_text(const char *str, int left, int top,
+        int r, int g, int b, int a, int cur, int maxw) {
+        draw_text(str, left, top, r, g, b, a, cur, maxw);
     }
 
 #endif

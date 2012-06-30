@@ -64,7 +64,7 @@ end
 
     This class inherits from <action_container>.
 ]]
-action_base = std.class.new(events.action_container, {
+action_base = table.subclass(events.action_container, {
     --[[!
         Function: client_click
         This happens on client on click. By default,
@@ -177,7 +177,7 @@ action_base = std.class.new(events.action_container, {
     <action_base>. It manages the "points" the cutscene goes through
     and smooth interpolation between them.
 ]]
-action_smooth = std.class.new(std.actions.Action, {
+action_smooth = table.subclass(actions.Action, {
     --[[!
         Variable: seconds_per_marker
         Specifies a number of seconds it takes to go between two
@@ -234,12 +234,12 @@ action_smooth = std.class.new(std.actions.Action, {
     ]]
     run = function(self, seconds)
         -- get around loading time delays by ignoring long frames
-        self.timer = self.timer + std.math.min(seconds, 1 / 25)
+        self.timer = self.timer + math.min(seconds, 1 / 25)
 
         self:set_markers()
         camera.force(self.position, self.yaw, self.pitch, 0)
 
-        std.actions.Action.run(self, seconds)
+        actions.Action.run(self, seconds)
 
         if self.looped then
             if (not self.looping
@@ -266,8 +266,8 @@ action_smooth = std.class.new(std.actions.Action, {
     ]]
     set_markers = function(self)
         local raw = self.timer / self.seconds_per_marker
-        local current_index = std.math.clamp(
-            std.math.floor(raw + 0.5), 0, #self.markers
+        local current_index = math.clamp(
+            math.floor(raw + 0.5), 0, #self.markers
         )
 
         local function smooth_fun(x)
@@ -278,7 +278,7 @@ action_smooth = std.class.new(std.actions.Action, {
                 return 1
             else
                 -- gives 0 for -0.5, 0.5 for 0.5
-                return 0.5 * std.math.pow(std.math.abs(x + 0.5), 2)
+                return 0.5 * math.pow(math.abs(x + 0.5), 2)
             end
         end
 
@@ -287,13 +287,13 @@ action_smooth = std.class.new(std.actions.Action, {
         -- how much to give the next
         local beta  = smooth_fun(raw - current_index)
 
-        local last_marker = self.markers[std.math.clamp(
+        local last_marker = self.markers[math.clamp(
             current_index, 1, #self.markers
         )]
-        local curr_marker = self.markers[std.math.clamp(
+        local curr_marker = self.markers[math.clamp(
             current_index + 1, 1, #self.markers
         )]
-        local next_marker = self.markers[std.math.clamp(
+        local next_marker = self.markers[math.clamp(
             current_index + 2, 1, #self.markers
         )]
 
@@ -301,18 +301,18 @@ action_smooth = std.class.new(std.actions.Action, {
               curr_marker.position:mul_new(1 - alpha - beta)
         ):add(next_marker.position:mul_new(beta))
 
-        self.yaw   = std.math.normalize_angle(
+        self.yaw   = math.normalize_angle(
                         last_marker.yaw, curr_marker.yaw
                      ) * alpha
-                   + std.math.normalize_angle(
+                   + math.normalize_angle(
                         next_marker.yaw, curr_marker.yaw
                      ) * beta
                    + curr_marker.yaw * (1 - alpha - beta)
 
-        self.pitch = std.math.normalize_angle(
+        self.pitch = math.normalize_angle(
                         last_marker.pitch, curr_marker.pitch
                      ) * alpha
-                   + std.math.normalize_angle(
+                   + math.normalize_angle(
                         next_marker.pitch, curr_marker.pitch
                      ) * beta
                    + curr_marker.pitch * (1 - alpha - beta)
@@ -435,13 +435,13 @@ entity_classes.register(
             end
 
             entity_store.get_player_entity():queue_action(
-                std.class.new(base_action, {
+                table.subclass(base_action, {
                     cancel = function(self)
                         if  self.cancellable
                         and entity.started
                         and not self.finished then
                             self.action_system:clear()
-                            self.action_system:manage(0.01)
+                            self.action_system:run(0.01)
                             self:finish()
                         end
                     end,
@@ -476,7 +476,7 @@ entity_classes.register(
                                 x       = start_mark[1].x_pos,
                                 y       = start_mark[1].y_pos,
                                 size    = start_mark[1].size,
-                                color   = std.conv.rgb_to_hex(
+                                color   = rgbtohex(
                                     start_mark[1].red,
                                     start_mark[1].green,
                                     start_mark[1].blue
@@ -504,7 +504,7 @@ entity_classes.register(
                                     x       = next_mark[1].x_pos,
                                     y       = next_mark[1].y_pos,
                                     size    = next_mark[1].size,
-                                    color   = std.conv.rgb_to_hex(
+                                    color   = rgbtohex(
                                         next_mark[1].red,
                                         next_mark[1].green,
                                         next_mark[1].blue
@@ -520,7 +520,7 @@ entity_classes.register(
 
                         -- clear up the queue from base actions just in case
                         local player = entity_store.get_player_entity()
-                        local queue  = player.action_system.get_queue()
+                        local queue  = player.action_system(1) -- get
                         for i, v in pairs(queue) do
                             if v:is_a(base_action) then
                                 table.remove(queue, i)
@@ -536,7 +536,7 @@ entity_classes.register(
                         end
                     end
                 })({
-                    std.class.new(action_smooth, {
+                    table.subclass(action_smooth, {
                         init_markers = function(self)
                             self.markers            = {}
                             self.seconds_per_marker = entity.seconds_per_marker
@@ -601,13 +601,13 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
                 end
             )
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("next_controller"),
                 function(self)
                     -- flush the cache
@@ -698,7 +698,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
@@ -710,7 +710,7 @@ entity_classes.register(
                     end
                 end
             )
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("next_marker"),
                 function(self)
                     -- flush the cache
@@ -750,7 +750,7 @@ entity_classes.register(
                 show_distance("ctl_" .. arr[2], self, 0x22FF27)
             end
 
-            local direction = std.math.Vec3():from_yaw_pitch(self.yaw, self.pitch)
+            local direction = math.Vec3():from_yaw_pitch(self.yaw, self.pitch)
             local target    = geometry.get_ray_collision_world(
                 self.position:copy(), direction, 10
             )
@@ -829,7 +829,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
@@ -841,7 +841,7 @@ entity_classes.register(
                     end
                 end
             )
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("parent_id"),
                 function(self)
                     -- flush the cache
@@ -930,7 +930,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]
@@ -980,7 +980,7 @@ entity_classes.register(
             start, run and show_subtitle_background
             methods.
         ]]
-        action = std.class.new(action_base, {
+        action = table.subclass(action_base, {
             start = function(self)
                 self.base_class.start(self)
 
@@ -993,8 +993,8 @@ entity_classes.register(
                     self.old_show_hud_image(
                         self.background_image,
                         0.5, 0.5,
-                        std.math.max((EVAR.scr_w / EVAR.scr_h), 1),
-                        std.math.min((EVAR.scr_w / EVAR.scr_h), 1)
+                        math.max((EVAR.scr_w / EVAR.scr_h), 1),
+                        math.min((EVAR.scr_w / EVAR.scr_h), 1)
                     )
                 end
                 return self.base_class.run(self, seconds)
@@ -1042,7 +1042,7 @@ entity_classes.register(
             connections remains up to date.
         ]]
         client_activate = function(self)
-            std.signal.connect(self,
+            signal.connect(self,
                 state_variables.get_on_modify_name("tags"),
                 function(self)
                     self.m_tag = self.tags:to_array()[1]

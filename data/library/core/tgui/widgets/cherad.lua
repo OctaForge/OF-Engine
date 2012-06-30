@@ -35,13 +35,13 @@ function checkbox(var, label)
         gui.align(-1, 0)
         gui.toggle(
             function()
-                return _G[var] and _G[var] ~= 0
+                return EVAR[var] and EVAR[var] ~= 0
             end,
             function()
-                _G[var] = (type(_G[var]) == "number")
-                        and ((_G[var] == 0)
+                EVAR[var] = (type(EVAR[var]) == "number")
+                        and ((EVAR[var] == 0)
                             and 1 or 0
-                        ) or (not _G[var])
+                        ) or (not EVAR[var])
             end,
             0,
             function()
@@ -103,10 +103,10 @@ function radiobox(var, value, label)
         gui.align(-1, 0)
         gui.toggle(
             function()
-                return _G[var] and _G[var] == value
+                return EVAR[var] and EVAR[var] == value
             end,
             function()
-                _G[var] = value
+                EVAR[var] = value
             end,
             0, radio_base
         )

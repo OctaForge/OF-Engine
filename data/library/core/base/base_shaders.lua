@@ -25,19 +25,19 @@ module("shader", package.seeall)
     Variable: SHADER_GLSL
     Has value of <std.math.lsh> (1, 2). See <std>.
 ]]
-SHADER_GLSL = std.math.lsh(1, 2)
+SHADER_GLSL = math.lsh(1, 2)
 
 --[[!
     Variable: SHADER_NORMAL
     Has value of <std.math.lsh> (1, 0). See <std>.
 ]]
-SHADER_NORMAL = std.math.lsh(1, 0)
+SHADER_NORMAL = math.lsh(1, 0)
 
 --[[!
     Variable: SHADER_ENVMAP
     Has value of <std.math.lsh> (1, 1). See <std>.
 ]]
-SHADER_ENVMAP = std.math.lsh(1, 1)
+SHADER_ENVMAP = math.lsh(1, 1)
 
 --[[!
     Function: std
@@ -45,7 +45,7 @@ SHADER_ENVMAP = std.math.lsh(1, 1)
     shaders. Type indicates what resources the shader provides, or what backup
     method should be used if graphics card does not support shaders. It's
     either 0 for default ARB shader, <SHADER_GLSL> for default GLSL shader,
-    T for non-default ARB shader of std.math.bor(<SHADER_GLSL>, T) for non-default
+    T for non-default ARB shader of math.bor(<SHADER_GLSL>, T) for non-default
     GLSL shader.
 
     Values of T can be:

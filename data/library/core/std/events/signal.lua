@@ -11,7 +11,7 @@
 
     About: Purpose
         Lua signal system. Allows connecting and further emitting signals.
-        Available as "std.signal".
+        Available as "signal".
 ]]
 
 local post_emit_queue = {}
@@ -29,11 +29,11 @@ return {
 
         (start code)
             Foo = {}
-            std.signal.connect(Foo, "blah", function(self, a, b, c)
+            signal.connect(Foo, "blah", function(self, a, b, c)
                 echo(a)
                 echo(b)
                 echo(c) end)
-            std.signal.emit(Foo, "blah", 5, 10, 15)
+            signal.emit(Foo, "blah", 5, 10, 15)
         (end)
     ]]
     connect = function(self, name, callback)
@@ -61,7 +61,7 @@ return {
     disconnect = function(self, id)
         if self._sig_connections then
             local len = #self._sig_connections
-            self._sig_connections = std.table.filter(self._sig_connections,
+            self._sig_connections = table.filter(self._sig_connections,
                 function(idx, connection)
                     if connection.id == id then return false
                     else return true end end)
@@ -84,7 +84,7 @@ return {
     emit = function(self, name, ...)
         if not self._sig_connections then return nil end
 
-        local handlers = std.table.filter(self._sig_connections,
+        local handlers = table.filter(self._sig_connections,
             function(i, connection) if connection.name == name then
                 return true end end)
 
@@ -115,13 +115,13 @@ return {
 
         (start code)
             local t = {}
-            std.signal.connect(t, "foo", function(self)
-                std.signal.add_post_emit_event(function(self)
+            signal.connect(t, "foo", function(self)
+                signal.add_post_emit_event(function(self)
                     echo("first")
-                    std.signal.add_post_emit_event(function(self)
+                    signal.add_post_emit_event(function(self)
                         echo("second") end) end) end)
             -- prints "first" and then "second".
-            std.signal.emit(t, "foo")
+            signal.emit(t, "foo")
         (end)
     ]]
     add_post_emit_event = function(event)

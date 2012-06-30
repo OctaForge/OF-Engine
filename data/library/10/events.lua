@@ -1,6 +1,6 @@
 module("events", package.seeall)
 
-repeating_timer = std.class.new(nil, {
+repeating_timer = table.classify({
     __tostring = function(self)
         return string.format(
             "repeating_timer: %s %s %s",
@@ -36,14 +36,14 @@ repeating_timer = std.class.new(nil, {
 
 -- action that can queue more actions on itself, which run on its actor,
 -- finishes when both this action an all subactions are done.
-action_container = std.class.new(std.actions.Action, {
+action_container = table.subclass(actions.Action, {
     __init = function(self, other_actions, kwargs)
-        std.actions.Action.__init(self, kwargs)
+        actions.Action.__init(self, kwargs)
         self.other_actions = other_actions
     end,
 
     start = function(self)
-        self.action_system = std.actions.Action_System(self.actor)
+        self.action_system = actions.Action_System(self.actor)
 
         for k, other_action in pairs(self.other_actions) do
             self.action_system:queue(other_action)
@@ -51,31 +51,31 @@ action_container = std.class.new(std.actions.Action, {
     end,
 
     run = function(self, seconds)
-        self.action_system:manage(seconds)
-        return std.actions.Action.run(self, seconds)
-           and self.action_system:is_empty()
+        self.action_system:run(seconds)
+        return actions.Action.run(self, seconds)
+           and #self.action_system:get() == 0
     end,
 
     finish = function(self)
-        if not self.action_system:is_empty()
-           and self.action_system.get_queue()[1].begun then
-            self.action_system.get_queue()[1]:finish()
+        local sys = self.action_system:get()
+        if not #sys == 0 and sys[1].begun then
+            sys[1]:finish()
         end
     end,
 
     cancel = function(self)
         self.action_system:clear()
-        self.action_system:manage(0.01)
+        self.action_system:run(0.01)
         self:finish()
     end
 }, "action_container")
 
 -- like action_container, but runs actions in parallel - finishes when all are done
-action_parallel = std.class.new(std.actions.Action, {
+action_parallel = table.subclass(actions.Action, {
     cancellable = false,
 
     __init = function(self, other_actions, kwargs)
-        std.actions.Action.__init(self, kwargs)
+        actions.Action.__init(self, kwargs)
         self.action_systems = {}
         self.other_actions  = other_actions
     end,
@@ -90,11 +90,11 @@ action_parallel = std.class.new(std.actions.Action, {
         self.action_systems = table.filter(
             self.action_systems,
             function(i, action_system)
-                action_system:manage(seconds)
-                return (not action_system:is_empty())
+                action_system:run(seconds)
+                return (not (#action_system:get() == 0))
             end
         )
-        return std.actions.Action.run(self, seconds)
+        return actions.Action.run(self, seconds)
          and (#self.action_systems == 0)
     end,
 
@@ -105,20 +105,20 @@ action_parallel = std.class.new(std.actions.Action, {
     end,
 
     add_action = function(self, other_action)
-        local action_system = std.actions.Action_System(self.actor)
+        local action_system = actions.Action_System(self.actor)
         action_system:queue(other_action)
         table.insert(self.action_systems, action_system)
     end
 }, "action_parallel")
 
-action_delayed = std.class.new(std.actions.Action, {
+action_delayed = table.subclass(actions.Action, {
     __init = function(self, command, kwargs)
-        std.actions.Action.__init(self, kwargs)
+        actions.Action.__init(self, kwargs)
         self.command = command
     end,
 
     run = function(self, seconds)
-        if std.actions.Action.run(self, seconds) then
+        if actions.Action.run(self, seconds) then
             self.command()
             return true
         else
@@ -175,8 +175,8 @@ action_input_capture_plugin = {
     end
 }
 
-action_input_capture = std.class.new(
-    std.actions.Action,
+action_input_capture = table.subclass(
+    actions.Action,
     action_input_capture_plugin,
     "action_input_capture"
 )
@@ -209,15 +209,15 @@ action_render_capture_plugin = {
 
 action_system_plugin = {
     __init = function(self, owner)
-        self.action_system = std.actions.Action_System(owner and owner or self)
+        self.action_system = actions.Action_System(owner and owner or self)
     end,
 
     tick = function(self, seconds)
-        self.action_system:manage(seconds)
+        self.action_system:run(seconds)
     end
 }
 
-_action_system_parallel_manager = std.class.new(std.class.new(nil, action_system_plugin), {
+_action_system_parallel_manager = table.subclass(table.classify(action_system_plugin), {
     __init = function(self, owner)
         self.base_class.__init(self, owner)
 

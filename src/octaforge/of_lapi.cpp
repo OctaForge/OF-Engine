@@ -81,6 +81,81 @@ namespace lapi
 
     void setup_binds();
 
+    static int create_table(lua_State *L) {
+        lua_createtable(L, luaL_optinteger(L, 1, 0), luaL_optinteger(L, 2, 0));
+        return 1;
+    }
+
+    static int to_udata_gc(lua_State *L) {
+        luaL_unref(L, LUA_REGISTRYINDEX,
+            *((int*)luaL_checkudata(L, 1, "Reference")));
+        return 0;
+    }
+
+    static int to_udata_get(lua_State *L) {
+        lua_rawgeti(L, LUA_REGISTRYINDEX,
+            *((int*)luaL_checkudata(L, 1, "Reference")));
+        return 1;
+    }
+
+    static int to_udata_set(lua_State *L) {
+        int *ud = (int*)luaL_checkudata(L, 1, "Reference");
+        luaL_unref(L, LUA_REGISTRYINDEX, *ud);
+
+        lua_pushvalue(L, 2);
+        *ud = luaL_ref(L, LUA_REGISTRYINDEX);
+        return 0;
+    }
+
+    static int to_udata_tostring(lua_State *L) {
+        int *ud = (int*)luaL_checkudata(L, 1, "Reference");
+
+        lua_getglobal(L, "tostring");
+        lua_rawgeti  (L, LUA_REGISTRYINDEX, *ud);
+        lua_call     (L, 1, 1);
+
+        const char *str = lua_tostring(L, -1);
+        lua_pop(L, 1);
+
+        lua_pushfstring(L, "reference: %p (%s)", ud, str);
+        return 1;
+    }
+
+    static int to_udata(lua_State *L) {
+        lua_pushvalue(L, 1);
+        int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+        int *ud = (int*)lua_newuserdata(L, sizeof(void*));
+        *ud = ref;
+
+        if (luaL_newmetatable(L, "Reference")) {
+            lua_pushliteral  (L, "__gc");
+            lua_pushcfunction(L, &to_udata_gc);
+            lua_settable     (L, -3);
+
+            lua_pushliteral  (L, "__tostring");
+            lua_pushcfunction(L, &to_udata_tostring);
+            lua_settable     (L, -3);
+
+            lua_pushliteral  (L, "__index");
+            lua_createtable  (L, 0, 2);
+
+            lua_pushliteral  (L, "get");
+            lua_pushcfunction(L, &to_udata_get);
+            lua_settable     (L, -3);
+
+            lua_pushliteral  (L, "set");
+            lua_pushcfunction(L, &to_udata_set);
+            lua_settable     (L, -3);
+
+            lua_settable     (L, -3);
+        }
+
+        lua_setmetatable(L, -2);
+
+        return 1;
+    }
+
     void init(const char *dir)
     {
         if (initialized) return;
@@ -99,6 +174,9 @@ namespace lapi
         state.open_os     ();
 
         lua_pushcfunction(state.state(), luaopen_ffi);
+        lua_call         (state.state(), 0, 0);
+
+        lua_pushcfunction(state.state(), luaopen_bit);
         lua_call         (state.state(), 0, 0);
 
         lua_State *L  = state.state();
@@ -130,6 +208,12 @@ namespace lapi
         Object str(L, -1);
         lua_pop   (L,  1);
         package["path"] = str;
+
+        /* table allocation */
+        state["createtable"] = &create_table;
+
+        /* reference management functions */
+        state["toref"] = &to_udata;
 
         setup_binds();
     }

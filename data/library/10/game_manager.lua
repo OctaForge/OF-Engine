@@ -12,7 +12,7 @@ player_plugin = {
     activate = function(self)
         get_singleton():pick_team(self)
 
-        std.signal.connect(self,"pre_deactivate", function(self)
+        signal.connect(self,"pre_deactivate", function(self)
             get_singleton():leave_team(self)
         end)
 
@@ -20,7 +20,7 @@ player_plugin = {
     end,
 
     client_activate = function(self)
-        std.signal.connect(self,"client_respawn", function(self)
+        signal.connect(self,"client_respawn", function(self)
             get_singleton():place_player(self)
         end)
     end
@@ -67,7 +67,7 @@ function setup(plugins_add)
 
                         -- place players randomly
                         while #players > 0 do
-                            local player = table.pop(players, std.math.floor(std.math.random() * #players))[1]
+                            local player = table.pop(players, math.floor(math.random() * #players))[1]
                             self:pick_team(player, false) -- pick teams with no syncing until the end
                         end
 
@@ -77,7 +77,7 @@ function setup(plugins_add)
                             player:respawn()
                         end
 
-                        std.signal.emit(self,"start_game")
+                        signal.emit(self,"start_game")
                         self.game_running = true
                     end,
 
@@ -85,7 +85,7 @@ function setup(plugins_add)
                         self.game_running = false
                         -- usually you want to connect something here to run
                         -- self.start_game, but see intermission plugin
-                        std.signal.emit(self,"end_game")
+                        signal.emit(self,"end_game")
                     end,
 
                     register_teams = function(self, data)
@@ -100,7 +100,7 @@ function setup(plugins_add)
                             }
                         end
 
-                        std.signal.emit(self,'post_register_teams')
+                        signal.emit(self,'post_register_teams')
                         self:start_game()
                     end,
 
@@ -109,7 +109,7 @@ function setup(plugins_add)
                         if not self.deactivated then
                             self.team_data = self.teams
                         end
-                        std.signal.emit(self,"team_data_modified")
+                        signal.emit(self,"team_data_modified")
                     end,
 
                     pick_team = function(self, player, sync)
@@ -165,7 +165,7 @@ function setup(plugins_add)
                         local start_tag = "start_" .. player.team
                         local possibles = entity_store.get_all_by_tag(start_tag)
                         if possibles and #possibles > 0 then
-                            local start = possibles[std.math.random(1, #possibles)]
+                            local start = possibles[math.random(1, #possibles)]
                             if start then
                                 start:place_entity(player)
                                 return nil
@@ -193,7 +193,7 @@ function setup(plugins_add)
                     end,
 
                     client_activate = function(self)
-                        std.signal.connect(self,state_variables.get_on_modify_name("team_data"), function(self, value)
+                        signal.connect(self,state_variables.get_on_modify_name("team_data"), function(self, value)
                             if self.team_data and value and entity_store.get_player_entity() then
                                 local player_team = entity_store.get_player_entity().team
                                 if value[player_team].score > self.team_data[player_team].score and
@@ -258,7 +258,7 @@ manager_plugins = {
         end,
 
         client_activate = function(self)
-            std.signal.connect(self,state_variables.get_on_modify_name("server_message"), function(self, kwargs)
+            signal.connect(self,state_variables.get_on_modify_name("server_message"), function(self, kwargs)
                 self:add_hud_message(kwargs)
             end)
             self.rendering_hash_hint = 0 -- used for rendering entities without fpsents
@@ -269,7 +269,7 @@ manager_plugins = {
                 if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_player_entity() then return false end
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
-                size = msg.duration >= 0.5 and size or size * std.math.pow(msg.duration * 2, 2)
+                size = msg.duration >= 0.5 and size or size * math.pow(msg.duration * 2, 2)
                 gui.hud_label(
                     msg.text,
                     msg.x and msg.x ~= 0 and msg.x or 0.5,
@@ -286,7 +286,7 @@ manager_plugins = {
         max_time = 600, -- 10 minutes
 
         activate = function(self)
-            std.signal.connect(self,"start_game", function(self)
+            signal.connect(self,"start_game", function(self)
                 self.time_left = self.max_time
             end)
         end,
@@ -305,7 +305,7 @@ manager_plugins = {
         max_score = 10,
 
         activate = function(self)
-            std.signal.connect(self,"team_data_modified", function(self)
+            signal.connect(self,"team_data_modified", function(self)
                 if not self.game_running then return nil end
 
                 for k, team in pairs(self.teams) do
@@ -327,15 +327,15 @@ manager_plugins = {
         finish_title = "Game finished",
 
         activate = function(self)
-            std.signal.connect(self,"end_game", function(self)
+            signal.connect(self,"end_game", function(self)
                 -- decide winner
                 local max_score
                 local min_score
                 for k, team in pairs(self.teams) do
                     max_score = max_score or team.score
                     min_score = min_score or team.score
-                    max_score = std.math.max(team.score, max_score)
-                    min_score = std.math.min(team.score, min_score)
+                    max_score = math.max(team.score, max_score)
+                    min_score = math.min(team.score, min_score)
                 end
 
                 local tie = (max_score == min_score)
@@ -347,23 +347,23 @@ manager_plugins = {
                     local sound
                     if not tie then
                         if self.steams[player.team].score == max_score then
-                            player.animation = std.math.bor(model.ANIM_WIN, model.ANIM_LOOP)
+                            player.animation = math.bor(model.ANIM_WIN, model.ANIM_LOOP)
                             message.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
-                                sound.play(self.win_sound, std.math.Vec3(0, 0, 0), player.cn)
+                                sound.play(self.win_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         else
-                            player.animation = std.math.bor(model.ANIM_LOSE, model.ANIM_LOOP)
+                            player.animation = math.bor(model.ANIM_LOSE, model.ANIM_LOOP)
                             message.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
-                                sound.play(self.lose_sound, std.math.Vec3(0, 0, 0), player.cn)
+                                sound.play(self.lose_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
-                        player.animation = std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
+                        player.animation = math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
                         message.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
-                            sound.play(self.tie_sound, std.math.Vec3(0, 0, 0), player.cn)
+                            sound.play(self.tie_sound, math.Vec3(0, 0, 0), player.cn)
                         end
                     end
                 end
@@ -452,7 +452,7 @@ manager_plugins = {
                     kwargs.seconds_before  = kwargs.seconds_before  or 0
                     -- not repeating, no time between
                     kwargs.seconds_between = kwargs.seconds_between or -1
-                    kwargs.deadline        = std.frame.get_time() + kwargs.seconds_before
+                    kwargs.deadline        = frame.get_time() + kwargs.seconds_before
                     kwargs.abort           = false
                     kwargs.sleeping        = false
 
@@ -465,7 +465,7 @@ manager_plugins = {
                 suspend = function(self, item)
                     if not item.sleeping then
                         item.sleeping  = true
-                        item.deadline  = std.frame.get_time() + 86400 -- 24 hours
+                        item.deadline  = frame.get_time() + 86400 -- 24 hours
                         item.need_sort = true
                     end
                 end,
@@ -473,7 +473,7 @@ manager_plugins = {
                 awaken = function(self, item, delay)
                     if item.sleeping then
                         item.sleeping  = false
-                        item.deadline  = std.frame.get_time() + delay and delay or 0
+                        item.deadline  = frame.get_time() + delay and delay or 0
                         item.need_sort = true
                     end
                 end
@@ -495,7 +495,7 @@ manager_plugins = {
             local curr_index = 1
             for i, event in pairs(events) do
                 local item = events[curr_index]
-                if std.frame.get_time() < item.deadline then break end
+                if frame.get_time() < item.deadline then break end
 
                 -- the item's time is now
                 local skip = false
@@ -506,7 +506,7 @@ manager_plugins = {
                 end
 
                 if not skip and item.sleeping then
-                    item.deadline = std.frame.get_time() + 86400 -- 24 hours
+                    item.deadline = frame.get_time() + 86400 -- 24 hours
                     curr_index = curr_index + 1
                     skip = true
                 end
@@ -515,8 +515,8 @@ manager_plugins = {
                     if item.seconds_between >= 0 and more ~= false then
                         more = more or 0
                         -- negative more means 'add some jitter'
-                        if more < 0 then more = more * -(std.math.random() + 0.5) end
-                        item.deadline = std.frame.get_time() + item.seconds_between + more
+                        if more < 0 then more = more * -(math.random() + 0.5) end
+                        item.deadline = frame.get_time() + item.seconds_between + more
                         curr_index = curr_index + 1
                     else
                         table.remove(events, curr_index)

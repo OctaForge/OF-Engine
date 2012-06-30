@@ -321,7 +321,7 @@ function add(class_name, uid, kwargs, _new)
     log(
         DEBUG,
         "   with arguments: "
-            .. std.json.encode(kwargs)
+            .. json.encode(kwargs)
             .. ", "
             .. tostring(_new)
     )
@@ -397,7 +397,7 @@ function del(uid)
     end
 
     -- emit the signal
-    std.signal.emit(__entities_store[uid], "pre_deactivate")
+    signal.emit(__entities_store[uid], "pre_deactivate")
 
     -- call deactivators
     if CLIENT then
@@ -492,7 +492,7 @@ end
     (see <actions.cache_by_delay>) with delay set to 0.1 seconds,
     so the performance is sufficient.
 ]]
-manage_triggering_collisions = std.frame.cache_by_delay(function()
+manage_triggering_collisions = frame.cache_by_delay(function()
     -- get all area triggers and entities inherited from area triggers
     local ents = get_all_by_class("area_trigger")
 
@@ -567,7 +567,7 @@ function load_entities()
         return nil
     end
 
-    log(DEBUG, "Reading entities.std.json..")
+    log(DEBUG, "Reading entities.json..")
 
     -- read the entities
     local entities_json = CAPI.readfile("./entities.json")
@@ -583,7 +583,7 @@ function load_entities()
     -- decode it
     local entities = {}
     if entities_json then
-        entities = std.json.decode(entities_json)
+        entities = json.decode(entities_json)
     end
 
     -- only if there are sauer entities loaded
@@ -597,7 +597,7 @@ function load_entities()
         local import_sounds = {}
 
         if import_json then
-            local import_table = std.json.decode(import_json)
+            local import_table = json.decode(import_json)
             if import_table["models"] then
                 import_models = import_table["models"]
             end
@@ -610,7 +610,7 @@ function load_entities()
         -- get highest uuid from current table
         local huid = 2
         for i, entity in pairs(entities) do
-            huid = std.math.max(huid, entity[1])
+            huid = math.max(huid, entity[1])
         end
         huid = huid + 1
 
@@ -721,7 +721,7 @@ function load_entities()
     -- loop the table
     for i, entity in pairs(entities) do
         log(
-            DEBUG, "load_entities: " .. std.json.encode(entity)
+            DEBUG, "load_entities: " .. json.encode(entity)
         )
 
         -- entity unique ID
@@ -738,7 +738,7 @@ function load_entities()
                 .. ", "
                 .. class_name
                 .. ", "
-                .. std.json.encode(state_data)
+                .. json.encode(state_data)
             )
 
         -- backwards comptaibility, rotate by 180 degrees
@@ -761,14 +761,14 @@ function load_entities()
             and class_name ~= "envmap"
             and class_name ~= "world_marker" then
                 local yaw = (
-                    std.math.floor(state_data.attr1) % 360 + 360
+                    math.floor(state_data.attr1) % 360 + 360
                 ) % 360 + 7
                 state_data.attr1 = yaw - (yaw % 15)
             end
         end
 
         -- add the entity, pass state data via kwargs
-        add(class_name, uid, { state_data = std.json.encode(state_data) })
+        add(class_name, uid, { state_data = json.encode(state_data) })
     end
 
     log(DEBUG, "Loading entities complete")
@@ -797,7 +797,7 @@ function save_entities()
             local state_data = entity:create_state_data_dict()
 
             -- insert encoded entity as JSON string
-            table.insert(r, std.json.encode({ uid, class_name, state_data }))
+            table.insert(r, json.encode({ uid, class_name, state_data }))
         end
     end
 
@@ -835,14 +835,14 @@ get_selected_entity = CAPI.editing_getselent
 ]]
 function setup_dynamic_rendering_test(entity)
     -- cache with delay of 1/3 second
-    entity.render_dynamic_test = std.frame.cache_by_delay(function()
+    entity.render_dynamic_test = frame.cache_by_delay(function()
             -- player center
             local player_center = get_player_entity().center
 
             -- check the distance - skip rendering only if it's distant
             if entity.position:sub_new(player_center):length() > 256 then
                 -- check for line of sight
-                if not std.math.is_los(
+                if not math.is_los(
                     player_center, entity.position
                 ) then
                     -- do not render
@@ -980,7 +980,7 @@ else
 
         -- get highest unique ID.
         for uid, entity in pairs(__entities_store) do
-            r = std.math.max(r, uid)
+            r = math.max(r, uid)
         end
 
         -- r is at highest unique ID available. Increment it.

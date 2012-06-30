@@ -17,7 +17,7 @@ local delayed_update_run = function(self)
     if  self.fun then
         self.fun()
     else
-        local t = std.var.get_type(self.var)
+        local t = var.get_type(self.var)
         if    t == -1 then return nil end
 
         EVAR[self.var] = ((t == 3) and
@@ -27,12 +27,12 @@ end
 
 local updatelater = CAPI.create_table(4)
 
-local updateval = function(var, val, onchange)
-    if not std.var.exists(var) then
+local updateval = function(varn, val, onchange)
+    if not var.exists(varn) then
         return nil
     end
 
-    table.insert(updatelater, delayed_update_new(var, val))
+    table.insert(updatelater, delayed_update_new(varn, val))
     if onchange then
         table.insert(updatelater, delayed_update_new(onchange))
     end
@@ -193,11 +193,11 @@ end
 
 local Object
 Object = table.classify({
-    connect             = std.signal.connect,
-    disconnect          = std.signal.disconnect,
-    disconnect_all      = std.signal.disconnect_all,
-    emit                = std.signal.emit,
-    add_post_emit_event = std.signal.add_post_emit_event,
+    connect             = signal.connect,
+    disconnect          = signal.disconnect,
+    disconnect_all      = signal.disconnect_all,
+    emit                = signal.emit,
+    add_post_emit_event = signal.add_post_emit_event,
 
     forks = 0,
 
@@ -818,10 +818,10 @@ local Toggle = table.subclass(Button, {
 
     select = function(self, cx, cy)
         if self.target(self, cx, cy) then
-            std.var.set(
+            var.set(
                 "uitogglehside", (cx < self.w * self.split) and 0 or 1
             )
-            std.var.set(
+            var.set(
                 "uitogglevside", (cy < self.h * self.split) and 0 or 1
             )
             return self
@@ -1068,7 +1068,7 @@ local Horizontal_Scrollbar = table.subclass(Scrollbar, {
         if not scroll then return nil end
 
         scroll.addhscroll(
-            scroll, self.arrowdir * self.arrowspeed * std.frame.get_frame_time()
+            scroll, self.arrowdir * self.arrowspeed * frame.get_frame_time()
         )
     end,
 
@@ -1131,7 +1131,7 @@ local Vertical_Scrollbar = table.subclass(Scrollbar, {
         if not scroll then return nil end
 
         scroll.addvscroll(
-            scroll, self.arrowdir * self.arrowspeed * std.frame.get_frame_time()
+            scroll, self.arrowdir * self.arrowspeed * frame.get_frame_time()
         )
     end,
 
@@ -1179,9 +1179,9 @@ local Vertical_Scrollbar = table.subclass(Scrollbar, {
 
 local Slider = table.subclass(Object, {
     __init = function(
-        self, var, vmin, vmax, onchange, arrowsize, stepsize, steptime
+        self, varn, vmin, vmax, onchange, arrowsize, stepsize, steptime
     )
-        self.var  = var
+        self.var  = varn
         self.vmin = vmin or 0
         self.vmax = vmax or 0
         self.onchange  = onchange
@@ -1192,17 +1192,17 @@ local Slider = table.subclass(Object, {
         self.laststep = 0
         self.arrowdir = 0
 
-        if not var then
+        if not varn then
             return nil
         end
 
-        if not std.var.exists(var) then
-            std.var.new(var, EAPI.VAR_I, vmin)
+        if not var.exists(varn) then
+            var.new(varn, EAPI.VAR_I, vmin)
         end
 
-        if vmin == 0 and vmax == 0 and not std.var.is_alias(var) then
-            self.vmin = std.var.get_min(var)
-            self.vmax = std.var.get_max(var)
+        if vmin == 0 and vmax == 0 and not var.is_alias(varn) then
+            self.vmin = var.get_min(varn)
+            self.vmax = var.get_max(varn)
         end
 
         return Object.__init(self)
@@ -1816,6 +1816,9 @@ local Label = table.subclass(Object, {
         self.wrap  = wrap  or -1
         self.color = math.Vec3(r or 1, g or 1, b or 1)
 
+        self._w = ffi.new("int[1]")
+        self._h = ffi.new("int[1]")
+
         return Object.__init(self)
     end,
 
@@ -1838,16 +1841,17 @@ local Label = table.subclass(Object, {
         Object.layout(self)
 
         local k = self.drawscale(self)
-        local r = EAPI.gui_text_bounds(self.str,
+
+        EAPI.gui_text_bounds(self.str, self._w, self._h,
             self.wrap <= 0 and -1 or self.wrap / k)
 
         if self.wrap <= 0 then
-            self.w = max(self.w, r.width * k)
+            self.w = max(self.w, self._w[0] * k)
         else
-            self.w = max(self.w, min(self.wrap, r.width * k))
+            self.w = max(self.w, min(self.wrap, self._w[0] * k))
         end
 
-        self.h = max(self.h, r.height * k)
+        self.h = max(self.h, self._h[0] * k)
     end
 })
 
@@ -1892,12 +1896,13 @@ local Text_Editor = table.subclass(Object, {
             self.edit, abs(length) * EVAR["fontw"]
         )
 
+        self._w = ffi.new("int[1]")
+        self._h = ffi.new("int[1]")
+
         if length < 0 and height <= 0 then
-            local r = EAPI.gui_text_bounds(
-                CAPI.editor_line_get(self.edit, 1),
-                CAPI.editor_pixelwidth_get(self.edit)
-            )
-            CAPI.editor_pixelheight_set(self.edit, r.height)
+            EAPI.gui_text_bounds(CAPI.editor_line_get(self.edit, 1), self._w,
+                self._h, CAPI.editor_pixelwidth_get(self.edit))
+            CAPI.editor_pixelheight_set(self.edit, self._h[0])
         else
             CAPI.editor_pixelheight_set(
                 self.edit, EVAR["fonth"] * max(height, 1)
@@ -2048,11 +2053,9 @@ local Text_Editor = table.subclass(Object, {
         if CAPI.editor_linewrap_get(self.edit) and
             CAPI.editor_maxy_get(self.edit) == 1
         then
-            local r = EAPI.gui_text_bounds(
-                CAPI.editor_line_get(self.edit, 1),
-                CAPI.editor_pixelwidth_get(self.edit)
-            )
-            CAPI.editor_pixelheight_set(self.edit, r.height)
+            local r = EAPI.gui_text_bounds(CAPI.editor_line_get(self.edit, 1),
+                self._w, self._h, CAPI.editor_pixelwidth_get(self.edit))
+            CAPI.editor_pixelheight_set(self.edit, self._h[0])
         end
 
         self.w = max(self.w, (CAPI.editor_pixelwidth_get(self.edit) +
@@ -2135,7 +2138,7 @@ local Field = table.subclass(Text_Editor, {
     end,
 
     layout = function(self)
-        if self.state == EDIT_COMMIT or std.var.changed() and
+        if self.state == EDIT_COMMIT or var.changed() and
             self.lastaction ~= EAPI.totalmillis
         then
             CAPI.editor_clear(self.edit, tostring(EVAR[self.var]))
@@ -2520,15 +2523,15 @@ local uitexteditor = function(
     ), children)
 end
 
-local uifield = function(var, length, onchange, scale, filter, pwd, children)
+local uifield = function(varn, length, onchange, scale, filter, pwd, children)
     if not var then return nil end
 
-    if not std.var.exists(var) then
-        std.var.new(var, EAPI.VAR_S, "")
+    if not var.exists(varn) then
+        var.new(varn, EAPI.VAR_S, "")
     end
 
-    addui(Field(var,
-        length, onchange, scale, EVAR[var], filter, pwd), children)
+    addui(Field(varn,
+        length, onchange, scale, EVAR[varn], filter, pwd), children)
 end
 
 -- ???
@@ -2659,7 +2662,7 @@ local update = function()
         world.layout(world)
         needsadjust = false
     end
-    std.var.changed(false)
+    var.changed(false)
 
     washovering = hovering
     wasselected = selected
@@ -2734,7 +2737,7 @@ local change_new = function(desc, ctype)
 local changes_clear = function(ctype)
     ctype = ctype or bor(EAPI.BASE_CHANGE_GFX, EAPI.BASE_CHANGE_SOUND)
 
-    needsapply = std.table.filter(needsapply, function(i, v)
+    needsapply = table.filter(needsapply, function(i, v)
         if band(v.ctype, ctype) == 0 then
             return true end
 
@@ -2758,7 +2761,7 @@ local changes_apply = function()
             delayed_update_new(EAPI.base_reset_sound)) end end
 
 local changes_get = function()
-    return std.table.map(needsapply, function(v) return v.desc end) end
+    return table.map(needsapply, function(v) return v.desc end) end
 
 CAPI.hideui = hideui
 CAPI.showui = showui

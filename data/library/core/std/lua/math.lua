@@ -11,37 +11,45 @@
 
     About: Purpose
         Lua math module extensions. Functions are inserted directly into the
-        math module. You can also access the table module as "std.math".
+        math module.
 ]]
+
+local bit = require("bit")
 
 --[[! Function: math.lsh
     Bitwise left shift of a by b (both arguments are integral). Globally
     available as "bitlsh".
 ]]
-math.lsh = CAPI.lsh
+math.lsh = bit.lshift
 
 --[[! Function: math.rsh
     Bitwise right shift of a by b (both arguments are integral). Globally
     available as "bitrsh".
 ]]
-math.rsh = CAPI.rsh
+math.rsh = bit.rshift
 
 --[[! Function: math.bor
     Bitwise OR of variable number of integral arguments. Globally available
     as "bitor".
 ]]
-math.bor = CAPI.bor
+math.bor = bit.bor
+
+--[[! Function: math.bxor
+    Bitwise XOR of variable number of integral arguments. Globally available
+    as "bitxor".
+]]
+math.bxor = bit.bxor
 
 --[[! Function: math.band
     Bitwise AND of variable number of integral arguments. Globally available
     as "bitand".
 ]]
-math.band = CAPI.band
+math.band = bit.band
 
 --[[! Function: math.bnot
     Bitwise NOT of an integral argument. Globally available as "bitnot".
 ]]
-math.bnot = CAPI.bnot
+math.bnot = bit.bnot
 
 --[[! Function: math.round
     Rounds a given number and returns it. Globally available.
@@ -261,7 +269,7 @@ end
         echo(a.x)
     (end)
 ]]
-math.Vec3 = std.table.classify({
+math.Vec3 = table.classify({
     --[[! Constructor: __init
         Constructs the vector. Besides self, there can be either one more
         argument, which then has to be either another vector or associative
@@ -524,7 +532,7 @@ math.Vec3 = std.table.classify({
         echo(a.x)
     (end)
 ]]
-math.Vec4 = std.table.subclass(math.Vec3, {
+math.Vec4 = table.subclass(math.Vec3, {
     __init = function(self, x, y, z, w)
         if type(x) == "table" then
             if (x.is_a and x:is_a(math.Vec4)) or

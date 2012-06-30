@@ -14,10 +14,10 @@
 ]]
 
 log(DEBUG, ":::: Frame handling.")
-std["frame"] = require("std.events.frame")
+frame = require("std.events.frame")
 
 log(DEBUG, ":::: Signal system.")
-std["signal"] = require("std.events.signal")
+signal = require("std.events.signal")
 
 log(DEBUG, ":::: Action system.")
-std["actions"] = require("std.events.actions")
+actions = require("std.events.actions")

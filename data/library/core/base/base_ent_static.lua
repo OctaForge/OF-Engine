@@ -39,7 +39,7 @@ module("entity_static", package.seeall)
         attr4 - fourth sauer entity property.
         attr5 - fifth sauer entity property.
 ]]
-base_static = std.class.new(entity_animated.base_animated, {
+base_static = class.new(entity_animated.base_animated, {
     --! Variable: should_act
     --! See <base_root.should_act>.
     should_act = false,
@@ -156,7 +156,7 @@ base_static = std.class.new(entity_animated.base_animated, {
 
         log(
             DEBUG,
-            self.uid .. " base: __activate() " .. std.json.encode(kwargs)
+            self.uid .. " base: __activate() " .. json.encode(kwargs)
         )
 
         -- call parent
@@ -346,7 +346,7 @@ base_static = std.class.new(entity_animated.base_animated, {
         attr4 - blue value (0 to 255, alias "blue")
         attr5 - shadow, 0 for dynamic, 1 for no-shadow, 2 for static
 ]]
-light = std.class.new(base_static, {
+light = class.new(base_static, {
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 1,
@@ -411,7 +411,7 @@ light = std.class.new(base_static, {
     Radius is in degrees, 0 to 90, where 90 is full hemisphere
     and 0 simply a line.
 ]]
-spotlight = std.class.new(base_static, {
+spotlight = class.new(base_static, {
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 7,
@@ -443,7 +443,7 @@ spotlight = std.class.new(base_static, {
 
     It has just one own property, and that is attr1 (alias "radius").
 ]]
-envmap = std.class.new(base_static, {
+envmap = class.new(base_static, {
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 4,
@@ -478,7 +478,7 @@ envmap = std.class.new(base_static, {
         attr4 - alias "volume" - sound volume. Value from 0 to 100.
         sound_name - path to the sound in data/sounds.
 ]]
-ambient_sound = std.class.new(base_static, {
+ambient_sound = class.new(base_static, {
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 6,
@@ -617,7 +617,7 @@ ambient_sound = std.class.new(base_static, {
         size - 0 to N.
         shimmer - if 1, the glow particle will "shimmer" (usable on i.e. fire).
 ]]
-particle_effect = std.class.new(base_static, {
+particle_effect = class.new(base_static, {
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 5,
@@ -677,7 +677,7 @@ particle_effect = std.class.new(base_static, {
         Used with i.e. area trigger to specify trigger bounds.
         collision_radius_height - see above.
 ]]
-mapmodel = std.class.new(base_static, {
+mapmodel = class.new(base_static, {
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 2,
@@ -771,7 +771,7 @@ mapmodel = std.class.new(base_static, {
         is in area_trigger's area. Collider entity is passed to it.
         client_function - clientside variant of server_function.
 ]]
-area_trigger = std.class.new(mapmodel, {
+area_trigger = class.new(mapmodel, {
     properties = {
         server_function = state_variables.state_string(),
         client_function = state_variables.state_string(),
@@ -828,7 +828,7 @@ area_trigger = std.class.new(mapmodel, {
     Besides, this has multiple overridable callbacks for re-setting
     and triggering.
 ]]
-resettable_area_trigger = std.class.new(area_trigger, {
+resettable_area_trigger = class.new(area_trigger, {
     --! Function: activate
     --! See <base_static.activate>. Calls <reset>.
     activate = function(self, kwargs)
@@ -966,7 +966,7 @@ resettable_area_trigger = std.class.new(area_trigger, {
     Properties:
         attr1 - marker yaw, alias "yaw".
 ]]
-world_marker = std.class.new(base_static, {
+world_marker = class.new(base_static, {
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 3,

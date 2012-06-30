@@ -3,7 +3,7 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = std.class.new(character.player, nil, "myplayer")
+myplayer = class.new(character.player, nil, "myplayer")
 
 -- Called right after initialization on client
 function myplayer:client_activate(kwargs)
@@ -24,7 +24,7 @@ function myplayer:client_act(sec)
         -- Calculate X position. Move everything a bit.
         self.position.x = self.n + 50
         -- Calculate Z position (vertical) - create a nice sine graph
-        self.position.z = std.math.sin(std.math.rad(self.n) * 3) * 100 + 700
+        self.position.z = math.sin(math.rad(self.n) * 3) * 100 + 700
 
         -- Create cubes for X axis
         edit.procedural.create_cube(self.position.x, self.position.y, self.position.z, 1)

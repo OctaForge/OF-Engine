@@ -17,18 +17,18 @@
     Section: Extension library 1.0 initialization
 ]]
 
-log(DEBUG, "Initializing library version %(1)s" % { std.library.current })
+log(DEBUG, "Initializing library version %(1)s" % { library.current })
 
 log(DEBUG, ":: Plugin system.")
-std.library.include("plugins")
+library.include("plugins")
 
 log(DEBUG, ":: Game manager.")
-std.library.include("game_manager")
+library.include("game_manager")
 
 log(DEBUG, ":: Events.")
-std.library.include("events")
+library.include("events")
 
 log(DEBUG, ":: Health.")
-std.library.include("health")
+library.include("health")
 
 EVAR.uwambient = 1

@@ -51,18 +51,18 @@ plugin = {
         if self.pad_model == "" then return nil end
 
         local o = self.position
-        local flags = std.math.bor(
+        local flags = math.bor(
             model.CULL_VFC, model.OCCLUDED, model.CULL_QUERY,
             model.FULLBRIGHT, model.CULL_DIST
         )
         local yaw
         if self.pad_rotate then
-            yaw = -(std.frame.get_time() * 120) % 360
+            yaw = -(frame.get_time() * 120) % 360
         end
 
         model.render(
             self, self.pad_model,
-            std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
+            math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
             o, yaw and yaw or self.yaw, self.pad_pitch,
             flags, 0
         )

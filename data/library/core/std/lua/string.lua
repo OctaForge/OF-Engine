@@ -11,8 +11,7 @@
 
     About: Purpose
         Lua string module extensions. Functions are inserted directly
-        into the string module. You can also access the table module
-        as "std.string".
+        into the string module.
 ]]
 
 --[[! Function: string.__mod

@@ -99,18 +99,18 @@ NUMANIMS = 38
 --! Variable: ANIM_INDEX
 ANIM_INDEX = 0x7F
 --! Variable: ANIM_LOOP
-ANIM_LOOP = std.math.lsh(1, 7)
+ANIM_LOOP = math.lsh(1, 7)
 --! Variable: ANIM_START
-ANIM_START = std.math.lsh(1, 8)
+ANIM_START = math.lsh(1, 8)
 --! Variable: ANIM_END
-ANIM_END = std.math.lsh(1, 9)
+ANIM_END = math.lsh(1, 9)
 --! Variable: ANIM_REVERSE
-ANIM_REVERSE = std.math.lsh(1, 10)
+ANIM_REVERSE = math.lsh(1, 10)
 --! Variable: ANIM_SECONDARY
 ANIM_SECONDARY = 11
 
 --! Variable: ANIM_RAGDOLL
-ANIM_RAGDOLL = std.math.lsh(1, 27)
+ANIM_RAGDOLL = math.lsh(1, 27)
 
 --[[!
     Package: model
@@ -128,7 +128,7 @@ module("model", package.seeall)
         <CULL_OCCLUDED>
         <CULL_QUERY>
 ]]
-CULL_VFC = std.math.lsh(1, 0)
+CULL_VFC = math.lsh(1, 0)
 
 --[[!
     Variable: CULL_DIST
@@ -139,7 +139,7 @@ CULL_VFC = std.math.lsh(1, 0)
         <CULL_OCCLUDED>
         <CULL_QUERY>
 ]]
-CULL_DIST = std.math.lsh(1, 1)
+CULL_DIST = math.lsh(1, 1)
 
 --[[!
     Variable: CULL_OCCLUDED
@@ -150,7 +150,7 @@ CULL_DIST = std.math.lsh(1, 1)
         <CULL_DIST>
         <CULL_QUERY>
 ]]
-CULL_OCCLUDED = std.math.lsh(1, 2)
+CULL_OCCLUDED = math.lsh(1, 2)
 
 --[[!
     Variable: CULL_QUERY
@@ -161,28 +161,28 @@ CULL_OCCLUDED = std.math.lsh(1, 2)
         <CULL_DIST>
         <CULL_OCCLUDED>
 ]]
-CULL_QUERY = std.math.lsh(1, 3)
+CULL_QUERY = math.lsh(1, 3)
 
 --[[!
     Variable: FULLBRIGHT
     A flag for <render> that gives the model fullbright.
 ]]
-FULLBRIGHT = std.math.lsh(1, 4)
+FULLBRIGHT = math.lsh(1, 4)
 
 --[[!
     Variable: NORENDER
 ]]
-NORENDER = std.math.lsh(1, 5)
+NORENDER = math.lsh(1, 5)
 
 --[[!
     Variable: MAPMODEL
 ]]
-MAPMODEL = std.math.lsh(1, 6)
+MAPMODEL = math.lsh(1, 6)
 
 --[[!
     Variable: NOBATCH
 ]]
-NOBATCH = std.math.lsh(1, 7)
+NOBATCH = math.lsh(1, 7)
 
 --[[!
     Function: clear
@@ -224,7 +224,7 @@ reload = CAPI.reloadmodel
         yaw - model yaw.
         pitch - model pitch.
         flags - various model flags for i.e. occlusion and lighting,
-        see the flags above. Use <std.math.bor> to join them.
+        see the flags above. Use <math.bor> to join them.
         base_time - entity's start_time property.
 ]]
 render = CAPI.rendermodel

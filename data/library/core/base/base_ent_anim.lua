@@ -31,7 +31,7 @@ module("entity_animated", package.seeall)
         model_name - path to model assigned to this entity.
         attachments - model attachments for the entity.
 ]]
-base_animated = std.class.new(entity.base, {
+base_animated = class.new(entity.base, {
     properties = {
         animation      = state_variables.wrapped_c_integer({
             c_setter   = "CAPI.setanim",
@@ -60,7 +60,7 @@ base_animated = std.class.new(entity.base, {
 
         self.model_name  = ""
         self.attachments = {}
-        self.animation   = std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
+        self.animation   = math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
     end,
 
     --! Function: activate
@@ -162,7 +162,7 @@ base_animated = std.class.new(entity.base, {
     on finish. Useful for inheriting (some actions in <firing> and <health>
     do that). Inherits from <action>.
 ]]
-action_local_animation = std.class.new(std.actions.Action, {
+action_local_animation = table.subclass(actions.Action, {
     --[[!
         Function: start
         See <action.start>. This overriden method saves

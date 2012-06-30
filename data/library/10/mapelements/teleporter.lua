@@ -19,7 +19,7 @@ plugin = {
                 return nil
             end
 
-            local destnum = std.math.random(1, #destinations)
+            local destnum = math.random(1, #destinations)
             collider.position = destinations[destnum].position:to_array()
             collider.yaw      = destinations[destnum].yaw
             collider.velocity = { 0, 0, 0 }

@@ -9,10 +9,10 @@
 -- you can then toggle shooting and drawing from the console using this.
 -- because it's persistent, your last state (drawing / shooting) will
 -- be saved and applied the next run.
-if not shoot_mode then
-    local was_persisting = std.var.persist_vars(true)
-    std.var.new("shoot_mode", EAPI.VAR_I, 0)
-    std.var.persist_vars(was_persisting)
+if not EVAR.shoot_mode then
+    local was_persisting = var.persist_vars(true)
+    var.new("shoot_mode", EAPI.VAR_I, 0)
+    var.persist_vars(was_persisting)
 end
 
 -- Register our custom player entity class into storage
@@ -58,7 +58,7 @@ entity_classes.register(plugins.bake(
             -- vec4's are used, first three elements for position, fourth for color.
             on_new_mark = function(self, mark)
                 if #mark == 3 then
-                    mark = std.math.Vec4(mark[1], mark[2], mark[3], self.color)
+                    mark = math.Vec4(mark[1], mark[2], mark[3], self.color)
                 else
                     mark = nil
                 end
@@ -83,7 +83,7 @@ entity_classes.register(plugins.bake(
                 self.color    = self.colors[1]
 
                 -- When new_mark state variable is modified, let's call on_new_mark.
-                std.signal.connect(self,state_variables.get_on_modify_name("new_mark"), self.on_new_mark)
+                signal.connect(self,state_variables.get_on_modify_name("new_mark"), self.on_new_mark)
             end,
 
             -- Called every frame on client after initialization
@@ -146,7 +146,7 @@ function client_click(btn, down, pos, ent, x, y)
     end
 
     -- in shoot mode, shoot instead of drawing
-    if shoot_mode == 1 then
+    if EVAR.shoot_mode == 1 then
         return firing.client_click(btn, down, pos, ent, x, y)
     end
 

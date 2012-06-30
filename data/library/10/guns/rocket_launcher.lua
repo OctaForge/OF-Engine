@@ -1,9 +1,9 @@
-std.library.include("firing")
-std.library.include("projectiles")
+library.include("firing")
+library.include("projectiles")
 
 module("rocket_launcher", package.seeall)
 
-rocket = std.class.new(projectiles.projectile, {
+rocket = table.subclass(projectiles.projectile, {
     radius          = 2,
     visual_radius   = 20,
     color           = 0xDCBBAA,
@@ -25,7 +25,7 @@ rocket = std.class.new(projectiles.projectile, {
 
     render_dynamic = function(self)
         local o     = self.position
-        local flags = std.math.bor(
+        local flags = math.bor(
             model.CULL_VFC,
             model.CULL_OCCLUDED,
             model.FULLBRIGHT,
@@ -34,11 +34,11 @@ rocket = std.class.new(projectiles.projectile, {
         local yaw_pitch = self.velocity:to_yaw_pitch()
         local yaw       = yaw_pitch.yaw - 90
         local pitch     = 90 - yaw_pitch.pitch
-              pitch     = std.math.is_nan(pitch) and 0 or pitch
+              pitch     = math.is_nan(pitch) and 0 or pitch
         local args      = {
             self.owner,
             "guns/rocket",
-            std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
+            math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
             o,
             yaw,
             pitch,
@@ -75,11 +75,11 @@ rocket = std.class.new(projectiles.projectile, {
     end
 })
 
-action_rocket_fire = std.class.new(events.action_parallel, {
+action_rocket_fire = table.subclass(events.action_parallel, {
     can_multiply_queue = false
 }, "action_rocket_fire")
 
-rocket_launcher = std.class.new(projectiles.gun, {
+rocket_launcher = table.subclass(projectiles.gun, {
     projectile_class = rocket,
     delay            = 0.5,
     repeating        = false,

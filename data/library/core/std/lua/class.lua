@@ -10,7 +10,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        Lua class module. Further accessible as "std.class". Represents an
+        Lua class module. Further accessible as "class". Represents an
         OOP system which the library further extensively uses.
 ]]
 
@@ -205,13 +205,13 @@ return {
 
         (start code)
             -- empty named class
-            Foo = std.class.new(nil, nil, "Foo")
+            Foo = class.new(nil, nil, "Foo")
 
             -- named class with mixin
-            Bar = std.class.new(nil, { __init = function(self) end }, "Bar")
+            Bar = class.new(nil, { __init = function(self) end }, "Bar")
 
             -- named inherited class
-            Baz = std.class.new(Bar, nil, "Baz")
+            Baz = class.new(Bar, nil, "Baz")
         (end)
 
         Inherited classes automatically call their parent constructors,
@@ -220,10 +220,10 @@ return {
 
         Constructors are __init member function. Special __tostring member
         function returns a string that is supposed to be returned when doing
-        tostring(X) or std.conv.to("string", X).
+        tostring(X).
 
         (start code)
-            Foo = std.class.new(nil, {
+            Foo = class.new(nil, {
                 __init = function(self, arg1)
                     echo("hello world, " .. arg1)
                 end,
@@ -237,7 +237,7 @@ return {
                 end
             }, "Foo")
 
-            Bar = std.class.new(Foo, {
+            Bar = class.new(Foo, {
                 __init = function(self, arg1, arg2)
                     self.base_class.__init(self, arg1)
                     echo("hello from Bar: " .. arg2)
@@ -254,7 +254,7 @@ return {
             baz = Bar(5, 10)
 
             -- prints "this is Bar instance"
-            echo(std.conv.to("string", baz))
+            echo(tostring(baz))
 
             -- prints "hello from bar"
             -- and then "hello from foo"
@@ -267,7 +267,7 @@ return {
         a given class.
 
         (start code)
-            Foo = std.class.new(...)
+            Foo = class.new(...)
             foo = foo()
 
             assert(foo:is_a(Foo))
@@ -276,13 +276,13 @@ return {
         "define_getter" can be used to define a virtual getter for the class.
 
         (start code)
-            Foo = std.class.new(nil, {
+            Foo = class.new(nil, {
                 __init = function(self)
                     -- the third argument to define_getter is optional and
                     -- specifies data that will be passed to the function
                     -- as an argument (without it, nothing is passed)
                     self:define_getter("bah", function(data)
-                        return "data: " .. std.conv.to("string", data)
+                        return "data: " .. tostring(data)
                     end, "foobar")
                 end
             }, "Foo")
@@ -304,7 +304,7 @@ return {
         function is the actual getter.
 
         (start code)
-            Foo = std.class.new(nil, {
+            Foo = class.new(nil, {
                 __init = function(self)
                     self:define_global_getter(
                         -- will perform only on keys "bah" and "meh"
@@ -335,7 +335,7 @@ return {
             -- prints 10
             echo(foo.meh)
             -- prints nil - no such member and condition returned false
-            echo(std.conv.to("string", foo.xyz))
+            echo(tostring(foo.xyz))
         (end)
 
         For "define_global_setter", see "define_global_getter" and
@@ -343,7 +343,7 @@ return {
         argument, similarly to how "define_setter" callback does,
         but otherwise works as "define_global_getter".
 
-        Note that std.class is not compatible with the simple system provided
+        Note that class is not compatible with the simple system provided
         by the table module.
     ]]
     new = function(base, mixin, name)

@@ -104,7 +104,7 @@ PHYSICAL_STATE = {
     See Also:
         <player>
 ]]
-character = std.class.new(entity_animated.base_animated, {
+character = class.new(entity_animated.base_animated, {
     --[[!
         Variable: sauer_type
         The sauer type of the entity, fpsent
@@ -358,7 +358,7 @@ character = std.class.new(entity_animated.base_animated, {
     act = function(self, seconds)
         -- if we're empty, we run default_action, which
         -- does nothing by default (but can be overriden)
-        if self.action_system:is_empty() then
+        if #self.action_system:get() == 0 then
             self:default_action(seconds)
         else
             -- otherwise we act on parent
@@ -402,7 +402,7 @@ character = std.class.new(entity_animated.base_animated, {
         if not hudpass and needhud then return nil end
 
         -- re-generate the parameters if timestamp changed - efficiency
-        if self.rendering_args_timestamp ~= std.frame.get_frame() then
+        if self.rendering_args_timestamp ~= frame.get_frame() then
             -- this is current client state, used when deciding animation
             local state = self.client_state
 
@@ -469,7 +469,7 @@ character = std.class.new(entity_animated.base_animated, {
                 self, mdlname, anim, o,
                 yaw, pitch, flags, basetime
             }
-            self.rendering_args_timestamp = std.frame.get_frame()
+            self.rendering_args_timestamp = frame.get_frame()
         end
 
         -- render only when model is set using the rendering arguments table
@@ -500,7 +500,7 @@ character = std.class.new(entity_animated.base_animated, {
 
         -- for non-player, we add some culling flags
         if self ~= entity_store.get_player_entity() then
-            flags = std.math.bor(
+            flags = math.bor(
                 flags,
                 model.CULL_VFC,
                 model.CULL_OCCLUDED,
@@ -548,19 +548,19 @@ character = std.class.new(entity_animated.base_animated, {
         if state == CLIENT_STATE.EDITING
         or state == CLIENT_STATE.SPECTATOR then
             -- in editing and spec mode, use edit animation and loop it
-            anim = std.math.bor(model.ANIM_EDIT, model.ANIM_LOOP)
+            anim = math.bor(model.ANIM_EDIT, model.ANIM_LOOP)
         elseif state == CLIENT_STATE.LAGGED then
             -- in lagged state, loop lag animation
-            anim = std.math.bor(model.ANIM_LAG, model.ANIM_LOOP)
+            anim = math.bor(model.ANIM_LAG, model.ANIM_LOOP)
         else
             -- more complex deciding
             if in_water ~= 0 and pstate <= PHYSICAL_STATE.FALL then
                 -- in water, decide either swimming
                 -- or sinking secondary animation
-                anim = std.math.bor(
+                anim = math.bor(
                     anim,
-                    std.math.lsh(
-                        std.math.bor(
+                    math.lsh(
+                        math.bor(
                             ((move or strafe) or vel.z + falling.z > 0)
                                 and model.ANIM_SWIM
                                 or  model.ANIM_SINK,
@@ -572,10 +572,10 @@ character = std.class.new(entity_animated.base_animated, {
             elseif time_in_air > 250 then
                 -- jumping secondary animation gets decided,
                 -- if we're in air for more than 250 miliseconds
-                anim = std.math.bor(
+                anim = math.bor(
                     anim,
-                    std.math.lsh(
-                        std.math.bor(
+                    math.lsh(
+                        math.bor(
                             model.ANIM_JUMP,
                             model.ANIM_END
                         ),
@@ -587,20 +587,20 @@ character = std.class.new(entity_animated.base_animated, {
                 if move > 0 then
                     -- if we're moving forward, loop
                     -- secondary forward animation
-                    anim = std.math.bor(
+                    anim = math.bor(
                         anim,
-                        std.math.lsh(
-                            std.math.bor(model.ANIM_FORWARD, model.ANIM_LOOP),
+                        math.lsh(
+                            math.bor(model.ANIM_FORWARD, model.ANIM_LOOP),
                             model.ANIM_SECONDARY
                         )
                     )
                 elseif strafe ~= 0 then
                     -- if we're strafing any direction, but not
                     -- moving forward, loop secondary strafe animation
-                    anim = std.math.bor(
+                    anim = math.bor(
                         anim,
-                        std.math.lsh(
-                            std.math.bor(
+                        math.lsh(
+                            math.bor(
                                 (strafe > 0 and ANIM_LEFT or ANIM_RIGHT),
                                 model.ANIM_LOOP
                             ),
@@ -610,33 +610,33 @@ character = std.class.new(entity_animated.base_animated, {
                 elseif move < 0 then
                     -- if we're moving backwards with no strafe,
                     -- loop secondary backward animation
-                    anim = std.math.bor(
+                    anim = math.bor(
                         anim,
-                        std.math.lsh(
-                            std.math.bor(model.ANIM_BACKWARD, model.ANIM_LOOP),
+                        math.lsh(
+                            math.bor(model.ANIM_BACKWARD, model.ANIM_LOOP),
                             model.ANIM_SECONDARY
                         )
                     )
                 end
             end
 
-            if  std.math.band(anim, model.ANIM_INDEX) == model.ANIM_IDLE
-            and std.math.band(
-                std.math.rsh(anim, model.ANIM_SECONDARY),
+            if  math.band(anim, model.ANIM_INDEX) == model.ANIM_IDLE
+            and math.band(
+                math.rsh(anim, model.ANIM_SECONDARY),
                 model.ANIM_INDEX
             ) ~= 0 then
-                anim = std.math.rsh(anim, model.ANIM_SECONDARY)
+                anim = math.rsh(anim, model.ANIM_SECONDARY)
             end
         end
 
-        if std.math.band(
-            std.math.rsh(anim, model.ANIM_SECONDARY),
+        if math.band(
+            math.rsh(anim, model.ANIM_SECONDARY),
             model.ANIM_INDEX
         ) == 0 then
-            anim = std.math.bor(
+            anim = math.bor(
                 anim,
-                std.math.lsh(
-                    std.math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
+                math.lsh(
+                    math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
                     model.ANIM_SECONDARY
                 )
             )
@@ -725,7 +725,7 @@ character = std.class.new(entity_animated.base_animated, {
     See Also:
         <character>
 ]]
-player = std.class.new(character, {
+player = class.new(character, {
     properties = {
         can_edit = state_variables.state_bool(),
         hud_model_name = state_variables.state_string()
