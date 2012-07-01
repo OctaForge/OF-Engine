@@ -1887,10 +1887,10 @@ local Text_Editor = table.subclass(Object, {
 
         self.edit.line_wrap = length < 0
 
-        self.maxx = length <  0 and -1 or length
-        self.maxy = height <= 0 and  1 or -1
+        self.edit.maxx = length <  0 and -1 or length
+        self.edit.maxy = height <= 0 and  1 or -1
 
-        self.pixel_width = math.abs(length) * EVAR.fontw
+        self.edit.pixel_width = math.abs(length) * EVAR.fontw
 
         self._w = ffi.new("int[1]")
         self._h = ffi.new("int[1]")

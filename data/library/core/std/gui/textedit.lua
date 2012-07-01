@@ -1,3 +1,9 @@
+local band = math.band
+local bor  = math.bor
+local bnot = math.bnot
+local blsh = math.lsh
+local brsh = math.rsh
+
 local clipboard = {}
 
 Editor = table.classify({
@@ -360,13 +366,15 @@ Editor = table.classify({
         self.scrolly = math.clamp(self.scrolly, 0, self.cy)
         local h = 0
         for i = self.cy + 1, self.scrolly + 1, -1 do
-            local r = EAPI.gui_text_bounds(self.lines[i],
+            local width, height = ffi.new "int[1]", ffi.new "int[1]"
+            EAPI.gui_text_bounds(self.lines[i], width, height,
                 self.line_wrap and self.pixel_width or -1)
-            if self.h + r.height > self.pixel_height then
+            height = height[0]
+            if h + height > self.pixel_height then
                 self.scrolly = i
                 break
             end
-            self.h = self.h + height
+            h = h + height
         end
     end,
 
