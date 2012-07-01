@@ -285,7 +285,7 @@ function show_entity_properties_tab()
                         var.persist_vars(was_persisting)
 
                         -- a field for the value - XXX: long enough?
-                        field(name, -1, function()
+                        field(name, #pair[2] + 25, function()
                             local nv = EVAR[name]
                             if nv ~= pair[2] then
                                 pair[2] = nv

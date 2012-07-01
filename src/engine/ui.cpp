@@ -1,39 +1,4 @@
 #include "engine.h"
-#include "textedit.h"
-
-// a 'stack' where the last is the current focused editor
-vector <editor*> editors;
-
-editor *currentfocus()
-{
-    return editors.length() ? editors.last() : NULL;
-}
-
-editor *useeditor(const char *name, int mode, bool focus, const char *initval, bool password) // INTENSITY: password
-{
-    loopv(editors) if(strcmp(editors[i]->name, name) == 0) 
-    {
-        editor *e = editors[i];
-        if(focus) { editors.add(e); editors.remove(i); } // re-position as last
-        e->active = true;
-        return e;
-    }
-    editor *e = new editor(name, mode, initval, password); // INTENSITY: Password
-    if(focus) editors.add(e); else editors.insert(0, e); 
-    return e;
-}
-
-void focuseditor(editor *e)
-{
-    editors.removeobj(e);
-    editors.add(e);
-}
-
-void removeeditor(editor *e)
-{
-    editors.removeobj(e);
-    DELETEP(e);
-}
 
 namespace gui
 {

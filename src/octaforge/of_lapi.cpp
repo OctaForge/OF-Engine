@@ -9,7 +9,6 @@
     #include "client_engine_additions.h"
     #include "client_system.h"
     #include "targeting.h"
-    #include "textedit.h"
 #endif
 #include "editing_system.h"
 #include "message_system.h"
@@ -49,7 +48,6 @@ if (!name) \
 #include "of_lapi_shaders.h"
 #include "of_lapi_sound.h"
 #include "of_lapi_tex.h"
-#include "of_lapi_textedit.h"
 #include "of_lapi_world.h"
 
 #undef LAPI_EMPTY
@@ -264,7 +262,6 @@ namespace lapi
         CAPI_REG(shaders);
         CAPI_REG(sound);
         CAPI_REG(tex);
-        CAPI_REG(textedit);
         CAPI_REG(world);
         #undef CAPI_REG
 

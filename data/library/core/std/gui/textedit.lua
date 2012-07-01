@@ -595,7 +595,7 @@ Editor = table.classify({
 
                 if #clipboard == 0 then clipboard = { "" } end
 
-                if code == EAPI.INPUT_KEY_C then self:del() end
+                if code == EAPI.INPUT_KEY_X then self:del() end
             elseif code == EAPI.INPUT_KEY_V then
                 self:del()
 
@@ -738,7 +738,6 @@ Editor = table.classify({
             if h + height > self.pixel_height then
                 break
             end
-
             local r, g, b = hextorgb(color)
             EAPI.gui_draw_text(self.password and ("*"):rep(#self.lines[i])
                 or self.lines[i], x, y + h, r, g, b, 0xFF,
@@ -799,11 +798,17 @@ Editor = table.classify({
 
 local editors = {}
 
+local EDITORFOCUSED = 1
+local EDITORUSED    = 2
+local EDITORFOREVER = 3
+
 local currentfocus = function()
     return #editors ~= 0 and editors[#editors] or nil
 end
 
 local useeditor = function(name, mode, focus, initval, password)
+    password = password or false
+
     for i = 1, #editors do if editors[i].name == name then
         local e = editors[i]
         if focus then
@@ -828,10 +833,203 @@ local removeeditor = function(e)
     table.remove(editors, table.find(editors, e))
 end
 
+-- returns list of all editors
+CAPI.textlist = function()
+    return table.filter(editors, function(i, v) return v.name end)
+end
+
+-- returns the start of the buffer
+CAPI.textshow = function()
+    local  top = currentfocus()
+    if not top then return nil end
+
+    return table.concat(top.lines, "\n")
+end
+
+-- focus on a (or create a persistent) specific editor,
+-- else return current name
+CAPI.textfocus = function(arg1, arg2)
+    if type(arg1) == "string" then
+        arg2 = arg2 or 0
+        useeditor(arg1, arg2 <= 0 and EDITORFOREVER or arg2, true)
+    elseif #editors > 0 then
+        return editors[#editors].name
+    end
+end
+
+-- return to the previous editor
+CAPI.textprev = function()
+    local  top = currentfocus()
+    if not top then return nil end
+
+    table.insert(editors, 1, top)
+    table.remove(editors)
+end
+
+-- 1 = keep while focused, 2 = keep while used in gui,
+-- 3 = keep forever (i.e. until mode changes)) topmost editor,
+-- return current setting if no args
+CAPI.textmode = function(i)
+    local  top = currentfocus()
+    if not top then return nil end
+
+    if i then
+        top.mode = i
+    else
+        return top.mode
+    end
+end
+
+-- saves the topmost (filename is optional)
+CAPI.textsave = function(fn)
+    local  top = currentfocus()
+    if not top then return nil end
+
+    if fn then top:set_file(path(fn, true)) end -- XXX
+    top:save_file()
+end
+
+CAPI.textload = function(fn)
+    local  top = currentfocus()
+    if not top then return nil end
+
+    if fn then
+        top:set_file(path(fn, true)) -- XXX
+        top:load_file()
+    elseif top.filename then
+        return top.filename
+    end
+end
+
+CAPI.textinit = function(name, s1, s2)
+    local  top = currentfocus()
+    if not top then return nil end
+
+    local ed
+    for i = 1, #editors do
+        if editors[i].name == name then
+            ed = editors[i]
+            break
+        end
+    end
+    if ed and not ed.filename and s1 and -- and ed.rendered
+        (#ed.lines == 0 or (#ed.lines == 1 and s2 == ed.lines[1])) then
+        ed:set_file(path(s1, true)) -- XXX
+        ed:load_file()
+    end
+end
+
+CAPI.textcopy = function()
+    local  top = currentfocus()
+    if not top then return nil end
+
+    clipboard = {}
+
+    local kwargs = {}
+    top:region(kwargs)
+
+    for i = 1, 1 + kwargs.ey - kwargs.sy do
+        local y = kwargs.sy + i
+        local line = top.lines[y]
+
+        if y - 1 == kwargs.sy then line = line:sub(kwargs.sx + 1) end
+        table.insert(clipboard, line)
+    end
+
+    if #clipboard == 0 then clipboard = { "" } end
+end
+
+CAPI.textpaste = function()
+    local  top = currentfocus()
+    if not top then return nil end
+
+    top:del()
+
+    if #clipboard == 1 or top.maxy == 1 then
+        local current = top:current_line()
+        local str  = clipboard[1]
+        local slen = #str
+
+        if top.maxx >= 0 and slen + top.cx > top.maxx then
+            slen = top.maxx - top.cx
+        end
+
+        if slen > 0 then
+            local len = #current
+            if top.maxx >= 0 and slen + top.cx + len > top.maxx then
+                len = math.max(0, top.maxx - (top.cx + slen))
+            end
+
+            current = current:insert(top.cx + 1, slen)
+            top.cx = top.cx + slen
+        end
+
+        top.lines[top.cy + 1] = current
+    else for i = 1, #clipboard do
+        if i == 1 then
+            top.cy = top.cy + 1
+            local newline = top.lines[top.cy]:sub(top.cx + 1)
+            top.lines[top.cy] = top.lines[top.cy]:sub(
+                1, top.cx):insert(top.cy + 1, newline)
+        elseif i >= #clipboard then
+            top.cx = #clipboard[i]
+            top.lines[top.cy + 1] = table.concat {
+                clipboard[i], top.lines[top.cy + 1] }
+        elseif top.maxy < 0 or #top.lines < top.maxy then
+            top.cy = top.cy + 1
+            table.insert(top.cy, clipboard[i])
+        end
+    end end
+end
+
+CAPI.textmark = function(i)
+    local  top = currentfocus()
+    if not top then return nil end
+
+    if i then
+        top:mark(i == 1)
+    else
+        return top:region() and 1 or 2
+    end
+end
+
+CAPI.textselectall = function()
+    local  top = currentfocus()
+    if not top then return nil end
+
+    top:select_all()
+end
+
+CAPI.textclear = function()
+    local  top = currentfocus()
+    if not top then return nil end
+
+    top:clear()
+end
+
+CAPI.textcurrentline = function()
+    local  top = currentfocus()
+    if not top then return nil end
+
+    return top:current_line()
+end
+
+CAPI.textexec = function(sel)
+    local  top = currentfocus()
+    if not top then return nil end
+
+    local ret, err = pcall(loadstring(
+        sel and top:selection_to_string() or tostring(top)))
+    if not ret then log(ERROR, err) end
+end
+
 return {
     Editor = Editor,
     currentfocus = currentfocus,
     useeditor = useeditor,
     focuseditor = focuseditor,
-    removeeditor = removeeditor
+    removeeditor = removeeditor,
+    EDITORFOCUSED = EDITORFOCUSED,
+    EDITORUSED = EDITORUSED,
+    EDITORFOREVER = EDITORFOREVER
 }

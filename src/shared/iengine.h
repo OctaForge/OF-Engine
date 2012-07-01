@@ -397,8 +397,6 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 struct Texture;
 struct VSlot;
 
-enum { EDITORFOCUSED = 1, EDITORUSED, EDITORFOREVER };
-
 #include "intensity.h" // INTENSITY
 
 // octa

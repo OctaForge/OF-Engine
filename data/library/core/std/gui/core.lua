@@ -1862,14 +1862,12 @@ local EDIT_COMMIT  = 2
 local textediting   = nil
 local refreshrepeat = 0
 
-local EDITORFOCUSED = 1
-local EDITORUSED    = 2
-local EDITORFOREVER = 3
-
 local Text_Editor = table.subclass(Object, {
     __init = function(
         self, name, length, height, scale, initval, mode, keyfilter, password
     )
+        local EDITORUSED = gui.textedit.EDITORUSED
+
         length = length or 0
         height = height or 0
         scale  = scale  or 1
@@ -1909,7 +1907,7 @@ local Text_Editor = table.subclass(Object, {
     end,
 
     clear = function(self)
-        if  self.edit.mode ~= EDITORFOREVER then
+        if  self.edit.mode ~= gui.textedit.EDITORFOREVER then
             gui.textedit.removeeditor(self.edit)
         end
 
@@ -2074,7 +2072,7 @@ local Field = table.subclass(Text_Editor, {
         self, var, length, onchange, scale, initval, keyfilter, password
     )
         Text_Editor.__init(
-            self, var, length, 0, scale, initval, EDITORUSED,
+            self, var, length, 0, scale, initval, gui.textedit.EDITORUSED,
             keyfilter, password
         )
         self.var = var
@@ -2512,7 +2510,7 @@ local uitexteditor = function(
 )
     addui(Text_Editor(
         name, length, height, scale, initval,
-        keep and EDITORFOREVER or EDITORUSED, filter
+        keep and gui.textedit.EDITORFOREVER or gui.textedit.EDITORUSED, filter
     ), children)
 end
 
