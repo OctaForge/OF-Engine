@@ -13,8 +13,6 @@
 #define _fileno fileno
 #endif
 
-#include "intensity.h"
-
 #include "network_system.h"
 #include "message_system.h"
 

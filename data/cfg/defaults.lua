@@ -26,7 +26,7 @@ EVAR.miniconsize = 5        -- mini-console is 5 lines
 EVAR.miniconwidth = 40      -- mini-console is 40% of screen width
 EVAR.fullconsize = 75       -- full console is 75% of screen height
 EVAR.miniconfilter = 0x300  -- display chat and team chat in mini-console
-EVAR.confilter = math.band(0x2FFF, math.bnot(miniconfilter)) -- don't display other player frags or mini-console stuff in console
+EVAR.confilter = math.band(0x2FFF, math.bnot(EVAR.miniconfilter)) -- don't display other player frags or mini-console stuff in console
 EVAR.fullconfilter = 0xFFFF -- display all messages in full console
 
 -- WSAD

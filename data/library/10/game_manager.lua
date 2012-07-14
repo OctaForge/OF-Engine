@@ -67,7 +67,7 @@ function setup(plugins_add)
 
                         -- place players randomly
                         while #players > 0 do
-                            local player = table.pop(players, math.floor(math.random() * #players))[1]
+                            local player = table.remove(players, math.floor(math.random() * #players))[1]
                             self:pick_team(player, false) -- pick teams with no syncing until the end
                         end
 
@@ -154,7 +154,7 @@ function setup(plugins_add)
                         local player_list = player_team.player_list
                         local index = table.find(player_list, player)
                         if index and index >= 0 then
-                            table.pop(player_list, index)
+                            table.remove(player_list, index)
                             if sync then
                                 self:sync_team_data()
                             end

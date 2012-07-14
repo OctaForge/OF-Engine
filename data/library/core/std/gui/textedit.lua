@@ -3,6 +3,7 @@ local bor  = math.bor
 local bnot = math.bnot
 local blsh = math.lsh
 local brsh = math.rsh
+local EAPI = _G["EAPI"]
 
 local clipboard = {}
 
@@ -143,7 +144,7 @@ Editor = table.classify({
         end
 
         kwargs.sx = (self.mx >= 0) and self.mx or self.cx
-        kwargs.sy = (self.my >= 0) and self.my or self.cy -- or self.mx?
+        kwargs.sy = (self.mx >= 0) and self.my or self.cy -- XXX
 
         kwargs.ex = self.cx
         kwargs.ey = self.cy
@@ -184,7 +185,7 @@ Editor = table.classify({
     copy_selection_to = function(self, b)
         if self == b then return nil end
 
-        b.clear(b, false)
+        b:clear(false)
 
         local kwargs = {}
         self:region(kwargs)
@@ -683,15 +684,15 @@ Editor = table.classify({
             end
             maxy = maxy - 1
 
-            if kwargs.ey >= self.scrolly and kwargs.sy <= self.maxy then
+            if kwargs.ey >= self.scrolly and kwargs.sy <= maxy then
                 -- crop top/bottom within window
                 if  kwargs.sy < self.scrolly then
                     kwargs.sy = self.scrolly
                     psy = 0
                     psx = 0
                 end
-                if  kwargs.ey > self.maxy then
-                    kwargs.ey = self.maxy
+                if  kwargs.ey > maxy then
+                    kwargs.ey = maxy
                     pey = self.pixel_height - EVAR.fonth
                     pex = self.pixel_width
                 end

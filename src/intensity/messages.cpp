@@ -19,6 +19,8 @@
 #include "of_world.h"
 #include "of_tools.h"
 
+int findtype(char *what);
+
 /* Abuse generation from template for now */
 void force_network_flush();
 namespace server

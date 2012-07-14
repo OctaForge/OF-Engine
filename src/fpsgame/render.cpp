@@ -6,7 +6,6 @@
 #include "game.h"
 #include "crypto.h"
 
-#include "intensity.h"
 #include "client_system.h"
 
 namespace game

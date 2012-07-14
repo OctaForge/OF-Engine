@@ -16,6 +16,24 @@
 
 local ctable = createtable
 
+--[[! Function: table.is_array
+    Checks whether a given table is an array (that is, contains only a
+    consecutive sequence of values with indexes from 1 to #table). If
+    there is any non-array element found, returns false. Otherwise
+    returns true (and in both cases returns the amount of array
+    elements as a second return value).
+]]
+table.is_array = function(tbl)
+    local i = #tbl
+    for _ in pairs(tbl) do
+        i = i - 1
+        if i < 0 then
+            return false, #tbl
+        end
+    end
+    return true, #tbl
+end
+
 --[[! Function: table.map
     Performs conversion on each item of the table. Takes the table and a
     function taking one argument (which is the item value) and returning
@@ -37,25 +55,24 @@ table.map = function(t, f)
 end
 
 --[[! Function: table.merge
-    Merges the two given tables together and returns the result. The original
-    tables are left unmodified. If they are arrays, the second table's contents
-    come after the first's. If they are associative arrays and both tables
-    contain an element of the same key, the one from the second table is
-    used. If one of them is an array and the other is an associative array,
-    the result is an associative array as well.
+    Merges two arrays. Contents of the other come after those of the first one.
 ]]
 table.merge = function(ta, tb)
-    local r
     local l1, l2 = #ta, #tb
-    if l1 ~= 0 and l2 ~= 0 then
-        r = ctable(l1 + l2)
-        for i = 1, l1 do table.insert(r, ta[i]) end
-        for i = 1, l2 do table.insert(r, tb[i]) end
-    else
-        r = {}
-        for a, b in pairs(ta) do r[a] = b end
-        for a, b in pairs(tb) do r[a] = b end
-    end
+    local r = ctable(l1 + l2)
+    for i = 1, l1 do table.insert(r, ta[i]) end
+    for i = 1, l2 do table.insert(r, tb[i]) end
+    return r
+end
+
+--[[! Function: table.merge_maps
+    Merges two associative arrays (maps). When a key overlaps, the latter
+    value is preferred.
+]]
+table.merge_maps = function(ta, tb)
+    local r = {}
+    for a, b in pairs(ta) do r[a] = b end
+    for a, b in pairs(tb) do r[a] = b end
     return r
 end
 
@@ -69,17 +86,17 @@ table.copy = function(t)
 end
 
 --[[! Function: table.filter
-    Filters a table. Takes the table and a function returning true if the
-    passed item should be a part of the returned table and false if it
-    shouldn't. The function takes two arguments, the key or index and
-    the value. This doesn't perform anything on the original table.
+    Filters an array. Takes the array and a function returning true if the
+    passed value should be a part of the returned array and false if it
+    shouldn't. The function takes two arguments, the index and the value.
+    This doesn't perform anything on the original table.
 
     (start code)
-        -- table to filter
-        foo = { a = 5, b = 10, c = 15, d = 15 }
-        -- filtered table, contains just a, b, c
+        -- a table to filter
+        foo = { 5, 10, 15, 20 }
+        -- the filtered table, contains just 5, 10, 20
         bar = table.filter(foo, function(k, v)
-            if k == "d" and v == 15 then
+            if v == 15 then
                 return false
             else
                 return true
@@ -89,11 +106,31 @@ end
 ]]
 table.filter = function(t, f)
     local r = {}
-    if #t ~= 0 then
-        for a, b in pairs(t) do if f(a, b) then table.insert(r, b) end end
-    else
-        for a, b in pairs(t) do if f(a, b) then r[a] = b end end
-    end
+    for a, b in pairs(t) do if f(a, b) then table.insert(r, b) end end
+    return r
+end
+
+--[[! Function: table.filter_map
+    The same as the filter function above. The difference is that it works
+    on an associative array (map). That means it doesn't work with length,
+    but instead with key/value pairs.
+
+    (start code)
+        -- a table to filter
+        foo = { a = 5, b = 10, c = 15, d = 20 }
+        -- the filtered table, contains just key/value pairs a, b, d
+        bar = table.filter_map(foo, function(k, v)
+            if k == "c" then
+                return false
+            else
+                return true
+            end
+        end)
+    (end)
+]]
+table.filter_map = function(t, f)
+    local r = {}
+    for a, b in pairs(t) do if f(a, b) then r[a] = b end end
     return r
 end
 
@@ -122,17 +159,6 @@ table.values = function(t)
     local r = ctable(#t)
     for a, b in pairs(t) do table.insert(r, b) end
     return r
-end
-
---[[! Function: table.pop
-    Pops out the last item of an array. Performs on the array itself.
-    Returns the popped value.
-]]
-table.pop = function(t, p)
-    p = p or #t
-    local ret = t[p]
-    table.remove(t, p)
-    return ret
 end
 
 --[[! Function: table.sum
@@ -260,4 +286,140 @@ end
 ]]
 table.get_class = function(inst)
     return getmetatable(inst).__index
+end
+
+--[[! Function: table.serialize
+    Serializes a given table, returning a string containing a literal
+    representation of the table. By default it tries to be compact so
+    it avoids whitespace and newlines. Arrays vs associative arrays
+    are distinguished.
+
+    If the second given argument is true, the serializer attempts to
+    format it for readability. While the first case is good for things
+    like network transfers, the latter represents a human readable format.
+
+    The third argument specifies the number of spaces used for indentation.
+    It defaults to 4 spaces.
+
+    In the pretty formatting mode arrays are put on a single line with a space
+    after commas and before/after beginning/ending brace. One exception happens
+    when the array only contains one another table, then no spaces are used.
+    Associative arrays put each element on a separate line appropriately
+    indented, the beginning/ending braces are both on their own line.
+
+    In associative arrays, only numbers and strings representable as Lua
+    identifiers are allowed as keys. This limitation might be removed
+    later. The serializer is also smart enough to detect recursion
+    (both simple and mutual to any level) and avoid stack overflows.
+
+    There is one other optional argument called simplifier. It's a function
+    that takes a key/index and a value and returns true if it should be
+    simplified and false if it shouldn't. If it should be simplified,
+    it also has to return a second value specifying what it should
+    simplify to. If it does not, it means the value should be
+    omitted from the serialized table.
+
+    Values that cannot be serialized are passed through tostring.
+]]
+table.serialize = function(tbl, pretty, indent, simplifier)
+    assert(type(tbl) == "table", "the input value must be a table")
+
+    pretty = pretty or false
+    indent = indent or 4
+
+    local enc
+    enc = function(tbl, tables, ind)
+        local assoc, narr = is_assoc(tbl)
+        local ret         = {} -- or ctable(narr) for efficiency - custom api
+        tables = tables  or {}
+
+        for k, v in pairs(tbl) do
+            local skip = false
+
+            if simplifier then
+                local simplify, value = simplifier(k, v)
+                if simplify then
+                    if value == nil then
+                        skip = true
+                    else
+                        v = value
+                    end
+                end
+            end
+
+            if not skip then
+                local elem
+
+                if assoc then
+                    local  t = type(k)
+                    assert(t == "string" or t == "number", 
+                        "only string and number keys allowed for serialization"
+                    )
+
+                    elem = (t == "string") and
+                        { k, pretty and " = " or "=", true }
+                        or { "[", tostring(k), "]", pretty
+                            and " = " or "=", true }
+                else
+                    elem = { true }
+                end
+
+                local t = type(v)
+                if t == "table" then
+                    -- the table references itself, infinite recursion
+                    -- do not permit such behavior
+                    if v == tbl or tables[v] then
+                        elem[#elem] = "\"" .. tostring(v) .. "\""
+                    else
+                        tables[v] = true
+                        elem[#elem] =
+                            enc(v, tables, assoc and ind + indent or ind)
+                    end
+                elseif t == "number" then
+                    elem[#elem] = tostring(v)
+                else
+                    elem[#elem] = "\"" .. tostring(v) .. "\""
+                end
+
+                if assoc and pretty then
+                    table.insert(ret, "\n" .. (" "):rep(ind)
+                        .. table.concat(elem))
+                else
+                    table.insert(ret, table.concat(elem))
+                end
+            end
+        end
+
+        if pretty then
+            if assoc then
+                table.insert(ret, "\n" .. (" "):rep(ind - indent))
+                return "{" .. table.concat(ret, ",") .. "}"
+            -- special case - an array containing one table, don't add spaces
+            elseif #tbl == 1 and type(tbl[1] == "table") then
+                return "{" .. table.concat(ret, ", ") .. "}"
+            end
+
+            return "{ " .. table.concat(ret, ", ") .. " }"
+        end
+
+        return "{" .. table.concat(ret, ",") .. "}"
+    end
+
+    return enc(tbl, nil, indent)
+end
+
+--[[! Function: table.deserialize
+    Takes a previously serialized table and converts it back to the original.
+    This actually evaluates Lua code, but prevents anything malicious by
+    working in an empty environment. Returns the table (unless an error
+    happens).
+]]
+table.deserialize = function(str)
+    assert(type(str) == "string", "the input value must be a string")
+
+    -- loadstring with empty environment - prevent malicious code
+    local  status, ret = pcall(setfenv(loadstring("return " .. str), {}))
+    assert(status, ret)
+
+    return ret
 end

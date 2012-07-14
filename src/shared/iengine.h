@@ -397,8 +397,6 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 struct Texture;
 struct VSlot;
 
-#include "intensity.h" // INTENSITY
-
 // octa
 
 extern int worldsize;

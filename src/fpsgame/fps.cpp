@@ -7,7 +7,6 @@
 #include "game.h"
 
 #include "network_system.h"
-#include "intensity.h"
 
 #ifdef CLIENT
     #include "client_system.h"

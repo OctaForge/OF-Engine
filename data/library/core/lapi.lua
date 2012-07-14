@@ -186,10 +186,6 @@ return {
     },
     Library = {
         is_unresettable = function(name)
-            if name == "std" then
-                return true
-            end
-
             return false
         end,
         reset = library.reset

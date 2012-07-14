@@ -345,5 +345,18 @@ extern "C" {
         draw_text(str, left, top, r, g, b, a, cur, maxw);
     }
 
+    /* Low level OpenGL calls */
+
+    void gl_push_matrix() { glPushMatrix(); }
+    void gl_pop_matrix () { glPopMatrix (); }
+
+    void gl_translate_f(float x, float y, float z) {
+        glTranslatef(x, y, z);
+    }
+
+    void gl_scale_f(float x, float y, float z) {
+        glScalef(x, y, z);
+    }
+
 #endif
 }

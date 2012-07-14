@@ -24,10 +24,10 @@ local _tonumber = tonumber
     Extends the abilities of tonumber, it can now convert boolean values
     (true matches 1, false 0).
 ]]
-tonumber = function(value)
+tonumber = function(value, base)
     return (type(value) == "boolean")
         and (value and 1 or 0)
-        or _tonumber(value) end
+        or _tonumber(value, base) end
 
 --[[! Function: tointeger
     Same as tonumber, but floors the result.

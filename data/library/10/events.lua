@@ -241,7 +241,7 @@ client_actions_parallel_plugin = {
     end
 }
 
-actions_parallel_plugin = table.merge(client_actions_parallel_plugin, {
+actions_parallel_plugin = table.merge_maps(client_actions_parallel_plugin, {
     activate = client_actions_parallel_plugin.client_activate,
     act = client_actions_parallel_plugin.client_act
 })

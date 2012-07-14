@@ -111,5 +111,10 @@ using algorithm::clamp;
 #include "iengine.h"
 #include "igame.h"
 
+#include "of_logger.h"
+#include "of_vars.h"
+#include "of_lapi.h"
+#include "engine_additions.h"
+
 #endif
 

@@ -4,6 +4,7 @@ local bor  = math.bor
 local bnot = math.bnot
 local blsh = math.lsh
 local brsh = math.rsh
+local EAPI = _G["EAPI"]
 
 local delayed_update_new = function(arg, value)
     if type(arg) == "string" then
@@ -2058,7 +2059,16 @@ local Text_Editor = table.subclass(Object, {
     end,
 
     draw = function(self, sx, sy)
-        self.edit:draw(sx, sy, self.scale, isfocused(self))
+        EAPI.gl_push_matrix()
+
+        EAPI.gl_translate_f(sx, sy, 0);
+        local s = self.scale / (EVAR.fonth * EVAR.uitextrows)
+        EAPI.gl_scale_f(s, s, 1)
+
+        self.edit:draw(EVAR.fontw / 2, 0, 0xFFFFFF, isfocused(self))
+
+        EAPI.gl_pop_matrix()
+
         return Object.draw(self, sx, sy)
     end,
 

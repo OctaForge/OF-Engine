@@ -288,6 +288,14 @@ if CLIENT then ffi.cdef [[
 
     void gui_draw_text(const char *str, int left, int top,
         int r, int g, int b, int a, int cur, int maxw);
+
+    /* Low level OpenGL calls */
+
+    void gl_push_matrix();
+    void gl_pop_matrix ();
+
+    void gl_translate_f(float x, float y, float z);
+    void gl_scale_f    (float x, float y, float z);
 ]] end
 
 return ffi.C

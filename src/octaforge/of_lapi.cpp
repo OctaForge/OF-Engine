@@ -277,7 +277,7 @@ namespace lapi
 
     void reset()
     {
-        for (
+        /*for (
             Table::pit it = state.globals().pbegin();
             it != state.globals().pend();
             ++it
@@ -299,7 +299,7 @@ namespace lapi
 
         state.get<Function>("LAPI", "Library", "reset")();
 
-        load_module("init");
+        load_module("init");*/
     }
 
     bool load_library(const char *name)
