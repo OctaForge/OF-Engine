@@ -34,6 +34,8 @@ table.is_array = function(tbl)
     return true, #tbl
 end
 
+local is_array = table.is_array
+
 --[[! Function: table.map
     Performs conversion on each item of the table. Takes the table and a
     function taking one argument (which is the item value) and returning
@@ -294,6 +296,10 @@ end
     it avoids whitespace and newlines. Arrays vs associative arrays
     are distinguished.
 
+    Besides tables this can also serialize other Lua values. It serializes
+    them in the same way as values inside a table, returning their literal
+    representation (if serializable, otherwise just their tostring).
+
     If the second given argument is true, the serializer attempts to
     format it for readability. While the first case is good for things
     like network transfers, the latter represents a human readable format.
@@ -307,10 +313,9 @@ end
     Associative arrays put each element on a separate line appropriately
     indented, the beginning/ending braces are both on their own line.
 
-    In associative arrays, only numbers and strings representable as Lua
-    identifiers are allowed as keys. This limitation might be removed
-    later. The serializer is also smart enough to detect recursion
-    (both simple and mutual to any level) and avoid stack overflows.
+    In associative arrays, only numbers and strings are allowed as keys.
+    The serializer is also smart enough to detect recursion (both simple
+    and mutual to any level) and avoid stack overflows.
 
     There is one other optional argument called simplifier. It's a function
     that takes a key/index and a value and returns true if it should be
@@ -319,24 +324,37 @@ end
     simplify to. If it does not, it means the value should be
     omitted from the serialized table.
 
+    There is one case where the serializer simplifies by default, objects
+    having a numerical member "uid". Those are treated as entities and they
+    serialize directly to the uid.
+
     Values that cannot be serialized are passed through tostring.
 ]]
 table.serialize = function(tbl, pretty, indent, simplifier)
-    assert(type(tbl) == "table", "the input value must be a table")
-
     pretty = pretty or false
     indent = indent or 4
 
     local enc
     enc = function(tbl, tables, ind)
-        local assoc, narr = is_assoc(tbl)
+        local assoc, narr = is_array(tbl)
         local ret         = {} -- or ctable(narr) for efficiency - custom api
         tables = tables  or {}
+
+        -- we want to know whether it's an associative array,
+        -- not a regular array
+        assoc = not assoc
 
         for k, v in pairs(tbl) do
             local skip = false
 
-            if simplifier then
+            local tk = type(k)
+
+            -- do not even attempt, useless and will fuck up
+            if tk == "string" and k:sub(1, 2) == "__" then
+                skip = true
+            end
+
+            if simplifier and not skip then
                 local simplify, value = simplifier(k, v)
                 if simplify then
                     if value == nil then
@@ -350,21 +368,34 @@ table.serialize = function(tbl, pretty, indent, simplifier)
             if not skip then
                 local elem
 
+                local t = type(v)
+
+                -- simplify entities to their uids
+                if t == "table" and type(v.uid) == "number" then
+                    v = v.uid
+                    t = "number"
+                end
+
                 if assoc then
-                    local  t = type(k)
-                    assert(t == "string" or t == "number", 
+                    assert(tk == "string" or tk == "number", 
                         "only string and number keys allowed for serialization"
                     )
 
-                    elem = (t == "string") and
-                        { k, pretty and " = " or "=", true }
-                        or { "[", tostring(k), "]", pretty
-                            and " = " or "=", true }
+                    if tk == "string" then
+                        if not loadstring(k .. "=nil") then
+                            elem = { "[\"", k, "\"]",
+                                pretty and " = " or "=", true }
+                        else
+                            elem = { k, pretty and " = " or "=", true }
+                        end
+                    else
+                        elem = { "[", tostring(k), "]",
+                            pretty and " = " or "=", true }
+                    end
                 else
                     elem = { true }
                 end
 
-                local t = type(v)
                 if t == "table" then
                     -- the table references itself, infinite recursion
                     -- do not permit such behavior
@@ -405,6 +436,16 @@ table.serialize = function(tbl, pretty, indent, simplifier)
         return "{" .. table.concat(ret, ",") .. "}"
     end
 
+    local t = type(tbl)
+
+    if t ~= "table" then
+        if t == "number" then
+            return tostring(tbl)
+        else
+            return "\"" .. tostring(tbl) .. "\""
+        end
+    end
+
     return enc(tbl, nil, indent)
 end
 
@@ -412,7 +453,9 @@ end
     Takes a previously serialized table and converts it back to the original.
     This actually evaluates Lua code, but prevents anything malicious by
     working in an empty environment. Returns the table (unless an error
-    happens).
+    happens). Different given literal values will work as well (for
+    example, deserializing a string "\"foo\"" will result in value
+    "foo").
 ]]
 table.deserialize = function(str)
     assert(type(str) == "string", "the input value must be a string")

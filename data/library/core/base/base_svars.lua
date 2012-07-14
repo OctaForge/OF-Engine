@@ -107,38 +107,6 @@ function __get_gui_name(uid, sv_name)
 end
 
 --[[!
-    Event: simplifier
-    Registers a JSON simplifier for entity instances.
-    See <json.register>. When JSON finds it should
-    encode something that is an entity instance,
-    instead of encoding it in a raw way, it substitutes
-    it with entity's unique ID. We don't mostly need more,
-    and this can save bandwidth very much.
-
-    Code:
-        (start code)
-            json.register(
-                function(value)
-                    return (type(value) == "table"
-                             and value.uid ~= nil)
-                end,
-                function(value)
-                    return value.uid
-                end
-            )
-        (end
-]]
-json.register(
-    function(value)
-        return (type(value) == "table"
-                 and value.uid ~= nil)
-    end,
-    function(value)
-        return value.uid
-    end
-)
-
---[[!
     Class: state_variable
     Base state variable class. Other state variable classes inherit from
     this one, providing their own methods to convert from / to wire format
@@ -483,22 +451,22 @@ state_bool = class.new(state_variable, {
 }, "state_bool")
 
 --[[!
-    Class: state_json
-    State JSON variable class. Overrides <state_variable.to_wire>,
+    Class: state_table
+    State table variable class. Overrides <state_variable.to_wire>,
     <state_variable.from_wire>.
 
-    to_wire performs JSON encoding of an object, returning a string.
-    from_wire decodes the string back to original object.
+    to_wire performs serialization of the table, returning a string.
+    from_wire deserializes the string back to original object.
 ]]
-state_json = class.new(state_variable, {
+state_table = class.new(state_variable, {
     to_wire = function(self, value)
-        return json.encode(value)
+        return table.serialize(value)
     end,
 
     from_wire = function(self, value)
-        return json.decode(value)
+        return table.deserialize(value)
     end
-}, "state_json")
+}, "state_table")
 
 --[[!
     Class: state_string
@@ -691,7 +659,7 @@ state_array = class.new(state_variable, {
     ]]
     setter = function(self, value, variable)
         log(
-            DEBUG, "state_array setter: " .. json.encode(value)
+            DEBUG, "state_array setter: " .. table.serialize(value)
         )
 
         -- we can also detect vectors :)
@@ -762,7 +730,7 @@ state_array = class.new(state_variable, {
     ]]
     to_wire = function(self, value)
         log(
-            INFO, "to_wire of state_array: " .. json.encode(value)
+            INFO, "to_wire of state_array: " .. table.serialize(value)
         )
 
         -- if we have array surrogate, get a raw array
@@ -832,7 +800,7 @@ state_array = class.new(state_variable, {
     ]]
     get_raw = function(self, entity)
         log(INFO, "get_raw: " .. tostring(self))
-        log(INFO, json.encode(entity.state_variable_values))
+        log(INFO, table.serialize(entity.state_variable_values))
 
         local val = entity.state_variable_values[self._name]
         return val and val or {}
@@ -853,13 +821,13 @@ state_array = class.new(state_variable, {
     set_item = function(self, entity, index, value)
         log(
             INFO,
-            "set_item: " .. index .. " : " .. json.encode(value)
+            "set_item: " .. index .. " : " .. table.serialize(value)
         )
 
         -- get raw array
         local arr = self:get_raw(entity)
 
-        log(INFO, "got_raw: " .. json.encode(arr))
+        log(INFO, "got_raw: " .. table.serialize(arr))
 
         -- do not allow separator to be present in the item if it's
         -- string, it could mess up the whole system.
@@ -891,7 +859,7 @@ state_array = class.new(state_variable, {
         log(
             INFO,
             "state_array:get_item "
-                .. json.encode(arr)
+                .. table.serialize(arr)
                 .. " ==> "
                 .. arr[index]
         )
@@ -1259,7 +1227,7 @@ wrapped_c_array = class.new(state_array, nil, "wrapped_c_array"):mixin({
             -- call C if we can't.
             local val = self.c_getter(entity)
             log(
-                INFO, "WCA:get_raw:result: " .. json.encode(val)
+                INFO, "WCA:get_raw:result: " .. table.serialize(val)
             )
 
             -- cache the value so we're up to date for next time
@@ -1275,7 +1243,7 @@ wrapped_c_array = class.new(state_array, nil, "wrapped_c_array"):mixin({
             -- fallback to state data
             log(INFO, "WCA:get_raw: fallback to state_data")
             local r = entity.state_variable_values[self._name]
-            log(INFO, "WCA:get_raw .. " .. json.encode(r))
+            log(INFO, "WCA:get_raw .. " .. table.serialize(r))
             return r
         end
     end

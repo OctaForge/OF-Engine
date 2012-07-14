@@ -180,9 +180,9 @@ return {
         handle_frame      = frame.handle_frame,
         start_frame       = frame.start_frame
     },
-    JSON = {
-        encode = json.encode,
-        decode = json.decode
+    Table = {
+        serialize   = table.serialize,
+        deserialize = table.deserialize
     },
     Library = {
         is_unresettable = function(name)

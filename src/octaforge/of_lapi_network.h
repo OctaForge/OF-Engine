@@ -93,7 +93,7 @@ namespace lapi_binds
         save_world(game::getclientmap().get_buf());
 
         renderprogress(0.4, "exporting entities ..");
-        world::export_ents("entities.json");
+        world::export_ents("entities.lua");
     }
 
     void _lua_restart_map()

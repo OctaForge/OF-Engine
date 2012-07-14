@@ -195,7 +195,7 @@ save_map = CAPI.do_upload
 
 --[[!
     Function: export_entities
-    Exports the entities (see entities.json file brought with
+    Exports the entities (see entities.lua file brought with
     default empty map) into a file given by argument. The path
     in the argument is relative to user's home directory.
 ]]

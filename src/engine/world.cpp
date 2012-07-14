@@ -929,7 +929,7 @@ void entpaste()
         )] = types::String().format("[%f|%f|%f]", o.x, o.y, o.z);
 
         const char *sd = lapi::state.get<lua::Function>(
-            "LAPI", "JSON", "encode"
+            "LAPI", "Table", "serialize"
         ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
         if (!sd) sd = "{}";
 
@@ -1012,7 +1012,7 @@ void intensityentcopy() // INTENSITY
     )] = lua::nil;
 
     intensityCopiedStateData = lapi::state.get<lua::Function>(
-        "LAPI", "JSON", "encode"
+        "LAPI", "Table", "serialize"
     ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
     if (!intensityCopiedStateData) intensityCopiedStateData = "{}";
 

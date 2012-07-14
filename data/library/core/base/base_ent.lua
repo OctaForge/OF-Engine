@@ -321,7 +321,7 @@ base_root = class.new(nil, {
 
     --[[!
         Function: create_state_data_dict
-        Creates a state data JSON dictionary from properties
+        Creates a state data table from properties
         (state variables) we have. Several compression methods
         can get applied (remove redundant whitespaces, convert
         names to protocol IDs), so the final dictionary is smaller
@@ -329,7 +329,7 @@ base_root = class.new(nil, {
         this locally).
 
         Note that if we're NOT compressing, it'll return RAW TABLE.
-        No JSON encoding involved, you'll have to do that yourself if needed.
+        No serialization involved, you'll have to do that yourself if needed.
 
         Parameters:
             target_cn - target client number for state variable.
@@ -341,7 +341,7 @@ base_root = class.new(nil, {
             compress the dict for network transfer.
 
         Returns:
-            The generated JSON string.
+            The serialized table.
     ]]
     create_state_data_dict = function(self, target_cn, kwargs)
         -- default the values
@@ -390,7 +390,7 @@ base_root = class.new(nil, {
                             "create_state_data_dict() adding "
                                 .. tostring(var._name)
                                 .. ": "
-                                .. json.encode(val)
+                                .. table.serialize(val)
                         )
 
                         -- get the name - if we're compressing,
@@ -407,7 +407,7 @@ base_root = class.new(nil, {
                         log(
                             DEBUG,
                             "create_state_data_dict() currently: "
-                                .. json.encode(r)
+                                .. table.serialize(r)
                         )
                     end
                 end
@@ -416,7 +416,7 @@ base_root = class.new(nil, {
 
         log(
             DEBUG,
-            "create_state_data_dict() returns: " .. json.encode(r)
+            "create_state_data_dict() returns: " .. table.serialize(r)
         )
 
         -- if we're not compressing, fine, return - raw table
@@ -432,38 +432,8 @@ base_root = class.new(nil, {
             end
         end
 
-        -- encode it into JSON
-        r = json.encode(r)
-        log(DEBUG, "pre-compression: " .. r)
-
-        -- several string filters
-        local _filters = {
-            function(d)
-                return string.gsub(d, "\", \"", "\",\"")
-            end, -- "foo", "bar" --> "foo","bar"
-
-            --function(d)
-            --    return string.gsub(d, ":\"(%d+)\.(%d+)\"", ":\"%1\".\"%2\"")
-            --end, -- :"3.14" --> :"3"."14"
-
-            function(d)
-                return string.gsub(d, ", ", ",")
-            end, -- ", " --> "," (without quotes)
-        }
-
-        -- apply the filters - but the value after filtering gets checked by
-        -- de-encoding both strings and encoding them again and checking then
-        -- if they're the same.
-        for i, filter in pairs(_filters) do
-            local n = filter(r)
-
-            if #n < #r
-            and json.encode(json.decode(n))
-             == json.encode(json.decode(r)) then
-                r = n
-            end
-        end
-
+        -- serialize it
+        r = table.serialize(r)
         log(DEBUG, "compressed: " .. r)
 
         -- return with removed leading and trailing { / }
@@ -472,7 +442,7 @@ base_root = class.new(nil, {
 
     --[[!
         Function: update_complete_state_data
-        Updates complete state data for entity from JSON string input.
+        Updates complete state data for entity from serialized input.
 
         Parameters:
             state_data - the input string.
@@ -495,7 +465,7 @@ base_root = class.new(nil, {
             or state_data
 
         -- and decode it into raw table again
-        local raw_state_data = json.decode(state_data)
+        local raw_state_data = table.deserialize(state_data)
         assert(type(raw_state_data) == "table")
 
         -- set the entity as initialized
@@ -609,7 +579,7 @@ base_client = class.new(base_root, {
             "setting state data: "
                 .. key
                 .. " = "
-                .. json.encode(value)
+                .. table.serialize(value)
                 .. " for "
                 .. self.uid
         )
@@ -771,7 +741,7 @@ base_server = class.new(base_root, {
 
         Parameters:
             kwargs - table of additional parameters. This function can
-            use one of them, "state_data", which is a JSON string
+            use one of them, "state_data", which is a serialized string
             containing state data to initialize the entity with.
     ]]
     activate = function(self, kwargs)
@@ -922,7 +892,7 @@ base_server = class.new(base_root, {
                           key .. " = " ..
                           tostring(value) .. " (" ..
                           type(value) .. ") : " ..
-                          json.encode(value) .. ", " ..
+                          table.serialize(value) .. ", " ..
                           tostring(value))
 
         -- get entity class string
@@ -968,7 +938,7 @@ base_server = class.new(base_root, {
                           key .. " = " ..
                           tostring(value) .. " (" ..
                           type(value) .. ") : " ..
-                          json.encode(value) .. ", " ..
+                          table.serialize(value) .. ", " ..
                           tostring(value))
 
         -- emit the change

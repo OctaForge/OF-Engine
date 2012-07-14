@@ -321,7 +321,7 @@ function add(class_name, uid, kwargs, _new)
     log(
         DEBUG,
         "   with arguments: "
-            .. json.encode(kwargs)
+            .. table.serialize(kwargs)
             .. ", "
             .. tostring(_new)
     )
@@ -545,10 +545,10 @@ end
 
 --[[!
     Function: load_entities
-    Loads entities into server storage from a file named 'entities.json'
+    Loads entities into server storage from a file named 'entities.lua'
     which is stored in map directory. The file contents are read into
-    JSON string which then gets decoded, entities get looped and state
-    data are set.
+    a serialized string which then gets deserialized, entities get
+    looped and state data are set.
 
     If <__entities_sauer> is non-empty, it also loads entities whose
     definitions are stored there. That is useful for importing
@@ -567,37 +567,37 @@ function load_entities()
         return nil
     end
 
-    log(DEBUG, "Reading entities.json..")
+    log(DEBUG, "Reading entities.lua..")
 
     -- read the entities
-    local entities_json = CAPI.readfile("./entities.json")
+    local entities_lua = CAPI.readfile("./entities.lua")
 
     log(
         DEBUG,
         "Loading entities .. "
-            .. tostring(entities_json)
+            .. tostring(entities_lua)
             .. ", "
-            .. type(entities_json)
+            .. type(entities_lua)
     )
 
     -- decode it
     local entities = {}
-    if entities_json then
-        entities = json.decode(entities_json)
+    if entities_lua then
+        entities = table.deserialize(entities_lua)
     end
 
     -- only if there are sauer entities loaded
     if #__entities_sauer > 0 then
         log(DEBUG, "Loading sauer entities ..")
 
-        log(DEBUG, "    Trying to load import JSON file ..")
+        log(DEBUG, "    Trying to load import Lua file ..")
 
-        local import_json = CAPI.readfile("./import.json")
+        local import_lua = CAPI.readfile("./import.lua")
         local import_models = {}
         local import_sounds = {}
 
-        if import_json then
-            local import_table = json.decode(import_json)
+        if import_lua then
+            local import_table = table.deserialize(import_lua)
             if import_table["models"] then
                 import_models = import_table["models"]
             end
@@ -721,7 +721,7 @@ function load_entities()
     -- loop the table
     for i, entity in pairs(entities) do
         log(
-            DEBUG, "load_entities: " .. json.encode(entity)
+            DEBUG, "load_entities: " .. table.serialize(entity)
         )
 
         -- entity unique ID
@@ -738,7 +738,7 @@ function load_entities()
                 .. ", "
                 .. class_name
                 .. ", "
-                .. json.encode(state_data)
+                .. table.serialize(state_data)
             )
 
         -- backwards comptaibility, rotate by 180 degrees
@@ -768,7 +768,7 @@ function load_entities()
         end
 
         -- add the entity, pass state data via kwargs
-        add(class_name, uid, { state_data = json.encode(state_data) })
+        add(class_name, uid, { state_data = table.serialize(state_data) })
     end
 
     log(DEBUG, "Loading entities complete")
@@ -776,11 +776,11 @@ end
 
 --[[!
     Function: save_entities
-    Creates a JSON string of all entities in the storage and returns it.
+    Creates a serialized string of all entities in the storage and returns it.
     Useful when saving entities to a file, you can then load them again.
 ]]
 function save_entities()
-    -- stores encoded entity JSON strings
+    -- stores encoded entity serialized strings
     local r = {}
     log(DEBUG, "Saving entities ..:")
 
@@ -789,22 +789,15 @@ function save_entities()
         -- save only persistent entities
         if entity.persistent then
             log(DEBUG, "Saving entity " .. entity.uid)
-
-            local class_name = tostring(entity)
-
-            -- TODO: store as serialized here, to save some parse/unparsing
-            -- create state data dictionary
-            local state_data = entity:create_state_data_dict()
-
-            -- insert encoded entity as JSON string
-            table.insert(r, json.encode({ uid, class_name, state_data }))
+            table.insert(r, table.serialize(
+                { uid, tostring(entity), entity:create_state_data_dict() }))
         end
     end
 
     log(DEBUG, "Saving entities complete.")
 
     -- return as string
-    return "[\n" .. table.concat(r, ",\n") .. "\n]\n"
+    return "{\n" .. table.concat(r, ",\n") .. "\n}\n"
 end
 
 --[[!

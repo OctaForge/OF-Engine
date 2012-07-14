@@ -156,7 +156,7 @@ base_static = class.new(entity_animated.base_animated, {
 
         log(
             DEBUG,
-            self.uid .. " base: __activate() " .. json.encode(kwargs)
+            self.uid .. " base: __activate() " .. table.serialize(kwargs)
         )
 
         -- call parent

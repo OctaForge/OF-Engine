@@ -40,9 +40,6 @@ require("std.lua.math")
 log(DEBUG, ":::: Type conversions.")
 conv = require("std.lua.conv")
 
-log(DEBUG, ":::: JSON.")
-json = require("std.lua.json")
-
 log(DEBUG, ":::: Library.")
 library = require("std.lua.library")
 

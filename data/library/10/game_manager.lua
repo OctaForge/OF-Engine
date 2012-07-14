@@ -35,7 +35,7 @@ function setup(plugins_add)
             table.merge(
                 {{
                     properties = {
-                        team_data = state_variables.state_json()
+                        team_data = state_variables.state_table()
                     },
                     victory_sound = "",
 
@@ -230,7 +230,7 @@ end
 manager_plugins = {
     messages = {
         properties = {
-            server_message = state_variables.state_json({ has_history = false })
+            server_message = state_variables.state_table({ has_history = false })
         },
 
         hud_messages = {},
