@@ -562,7 +562,7 @@ int findmaterials()
     lavafallsurfs.setsize(0);
     matliquidsx1 = matliquidsy1 = matsolidsx1 = matsolidsy1 = matrefractsx1 = matrefractsy1 = 1;
     matliquidsx2 = matliquidsy2 = matsolidsx2 = matsolidsy2 = matrefractsx2 = matrefractsy2 = -1;
-    memset(matliquidtiles, 0, sizeof(matsolidtiles));
+    memset(matliquidtiles, 0, sizeof(matliquidtiles));
     memset(matsolidtiles, 0, sizeof(matsolidtiles));
     for(vtxarray *va = visibleva; va; va = va->next)
     {
@@ -731,10 +731,8 @@ void rendereditmaterials()
 
     foggednotextureshader->set();
 
-    static const float zerofog[4] = { 0, 0, 0, 1 };
-    float oldfogc[4];
-    glGetFloatv(GL_FOG_COLOR, oldfogc);
-    glFogfv(GL_FOG_COLOR, zerofog);
+    zerofogcolor();
+
     glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
     glEnable(GL_BLEND);
 
@@ -767,7 +765,8 @@ void rendereditmaterials()
     xtraverts += varray::end();
 
     glDisable(GL_BLEND);
-    glFogfv(GL_FOG_COLOR, oldfogc);
+
+    resetfogcolor();
 
     rendermatgrid();
     

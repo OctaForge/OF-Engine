@@ -574,7 +574,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
     if(buf) delete[] buf;
 }
 
-void uploadcompressedtexture(GLenum target, GLenum subtarget, GLenum format, int w, int h, uchar *data, int align, int blocksize, int levels, bool mipmap)
+void uploadcompressedtexture(GLenum target, GLenum subtarget, GLenum format, int w, int h, const uchar *data, int align, int blocksize, int levels, bool mipmap)
 {
     int hwlimit = target==GL_TEXTURE_CUBE_MAP_ARB ? hwcubetexsize : hwtexsize,
         sizelimit = levels > 1 && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
@@ -632,6 +632,7 @@ void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLe
     glBindTexture(target, tnum);
     glTexParameteri(target, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     if(target!=GL_TEXTURE_1D) glTexParameteri(target, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+    if(target==GL_TEXTURE_3D_EXT) glTexParameteri(target, GL_TEXTURE_WRAP_R, clamp&4 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     if(target==GL_TEXTURE_2D && hasAF && min(aniso, hwmaxaniso) > 0 && filter > 1) glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(aniso, hwmaxaniso));
     glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter && bilinear ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(target, GL_TEXTURE_MIN_FILTER,
@@ -644,9 +645,9 @@ void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLe
         glTexParameteri(target, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 }
 
-void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format)
+static GLenum textype(GLenum component, GLenum &format)
 {
-    GLenum target = textarget(subtarget), type = GL_UNSIGNED_BYTE;
+    GLenum type = GL_UNSIGNED_BYTE;
     switch(component)
     {
         case GL_R16F:
@@ -668,9 +669,9 @@ void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int fi
             type = GL_FLOAT;
             break;
 
-        case GL_DEPTH_COMPONENT16:
-        case GL_DEPTH_COMPONENT24:
-        case GL_DEPTH_COMPONENT32:
+        case GL_DEPTH_COMPONENT16_ARB:
+        case GL_DEPTH_COMPONENT24_ARB:
+        case GL_DEPTH_COMPONENT32_ARB:
             if(!format) format = GL_DEPTH_COMPONENT;
             break;
 
@@ -698,8 +699,24 @@ void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int fi
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
             if(!format) format = GL_RGBA;
             break;
+
+        case GL_LUMINANCE8:
+        case GL_LUMINANCE16:
+            if(!format) format = GL_LUMINANCE;
+            break;
+        
+        case GL_LUMINANCE8_ALPHA8:
+        case GL_LUMINANCE16_ALPHA16:
+            if(!format) format = GL_LUMINANCE_ALPHA;
+            break;
     }
     if(!format) format = component;
+    return type;
+}
+
+void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int filter, GLenum component, GLenum subtarget, int pw, int ph, int pitch, bool resize, GLenum format)
+{
+    GLenum target = textarget(subtarget), type = textype(component, format);
     if(tnum) setuptexparameters(tnum, pixels, clamp, filter, format, target);
     if(!pw) pw = w;
     if(!ph) ph = h;
@@ -713,14 +730,21 @@ void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int fi
     uploadtexture(subtarget, component, tw, th, format, type, pixels, pw, ph, pitch, mipmap); 
 }
 
-void createcompressedtexture(int tnum, int w, int h, uchar *data, int align, int blocksize, int levels, int clamp, int filter, GLenum format, GLenum subtarget)
+void createcompressedtexture(int tnum, int w, int h, const uchar *data, int align, int blocksize, int levels, int clamp, int filter, GLenum format, GLenum subtarget)
 {
     GLenum target = textarget(subtarget);
     if(tnum) setuptexparameters(tnum, data, clamp, filter, format, target);
     uploadcompressedtexture(target, subtarget, format, w, h, data, align, blocksize, levels, filter > 1); 
 }
 
-hashtable<char*, Texture> textures;
+void create3dtexture(int tnum, int w, int h, int d, const void *pixels, int clamp, int filter, GLenum component, GLenum target) 
+{
+    GLenum format = GL_FALSE, type = textype(component, format);
+    if(tnum) setuptexparameters(tnum, pixels, clamp, filter, format, target);
+    glTexImage3D_(target, 0, component, w, h, d, 0, format, type, pixels);
+}
+
+hashtable<char *, Texture> textures;
 
 Texture *notexture = NULL; // used as default, ensured to be loaded
 

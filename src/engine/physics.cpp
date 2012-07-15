@@ -117,7 +117,7 @@ static inline bool raycubeintersect(clipplanes &p, const cube &c, const vec &v, 
 }
 
 extern void entselectionbox(const entity &e, vec &eo, vec &es);
-extern int  entselradius;
+extern int entselradius;
 float hitentdist;
 int hitent, hitorient;
 
@@ -206,7 +206,7 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
     vec v(o), invray(ray.x ? 1/ray.x : 1e16f, ray.y ? 1/ray.y : 1e16f, ray.z ? 1/ray.z : 1e16f); \
     cube *levels[20]; \
     levels[worldscale] = worldroot; \
-    int lshift = worldscale; \
+    int lshift = worldscale, elvl = worldscale; \
     ivec lsizemask(invray.x>0 ? 1 : 0, invray.y>0 ? 1 : 0, invray.z>0 ? 1 : 0); \
 
 #define CHECKINSIDEWORLD \
@@ -236,10 +236,15 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
         { \
             lshift--; \
             lc += octastep(x, y, z, lshift); \
-            if(lc->ext && lc->ext->ents && dent > 1e15f) \
+            if(lc->ext && lc->ext->ents && lshift < elvl) \
             { \
-                dent = disttoent(lc->ext->ents, oclast, o, ray, radius, mode, t); \
-                if(dent < 1e15f earlyexit) return min(dent, dist); \
+                float edist = disttoent(lc->ext->ents, oclast, o, ray, radius, mode, t); \
+                if(edist < 1e15f) \
+                { \
+                    if(earlyexit) return min(edist, dist); \
+                    elvl = lshift; \
+                    dent = min(dent, edist); \
+                } \
                 oclast = lc->ext->ents; \
             } \
             if(lc->children==NULL) break; \
@@ -283,7 +288,7 @@ float raycube(const vec &o, const vec &ray, float radius, int mode, int size, ex
     int closest = -1, x = int(v.x), y = int(v.y), z = int(v.z);
     for(;;)
     {
-        DOWNOCTREE(disttoent, && (mode&RAY_SHADOW));
+        DOWNOCTREE(disttoent, mode&RAY_SHADOW);
 
         int lsize = 1<<lshift;
 
@@ -326,7 +331,7 @@ float shadowray(const vec &o, const vec &ray, float radius, int mode, extentity 
     int side = O_BOTTOM, x = int(v.x), y = int(v.y), z = int(v.z);
     for(;;)
     {
-        DOWNOCTREE(shadowent, );
+        DOWNOCTREE(shadowent, true);
 
         cube &c = *lc;
         ivec lo(x&(~0<<lshift), y&(~0<<lshift), z&(~0<<lshift));
@@ -376,7 +381,7 @@ float shadowray(ShadowRayCache *cache, const vec &o, const vec &ray, float radiu
     int side = O_BOTTOM, x = int(v.x), y = int(v.y), z = int(v.z);
     for(;;)
     {
-        DOWNOCTREE(shadowent, );
+        DOWNOCTREE(shadowent, true);
 
         cube &c = *lc;
         ivec lo(x&(~0<<lshift), y&(~0<<lshift), z&(~0<<lshift));
@@ -1644,7 +1649,7 @@ void vectoyawpitch(const vec &v, float &yaw, float &pitch)
 VARP(maxroll, 0, 0, 20);
 FVAR(straferoll, 0, 0.033f, 90);
 FVAR(faderoll, 0, 0.95f, 1);
-VAR(floatspeed, 10, 100, 10000);
+VAR(floatspeed, 1, 100, 10000);
 
 void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curtime)
 {

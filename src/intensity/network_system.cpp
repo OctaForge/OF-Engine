@@ -191,7 +191,9 @@ void QuantizedInfo::applyToEntity(fpsent *d)
         d->mapDefinedPositionData = mapDefinedPositionData;
     }
 
+#ifdef CLIENT
     vec oldpos(d->o);
+#endif
 
     if(game::allowmove(d))
     {

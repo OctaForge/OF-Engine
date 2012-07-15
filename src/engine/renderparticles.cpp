@@ -917,8 +917,6 @@ void renderparticles(bool mainpass)
         parts[i]->update();
     }
     
-    static float zerofog[4] = { 0, 0, 0, 1 };
-    float oldfogc[4];
     bool rendered = false;
     uint lastflags = PT_LERP, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;
    
@@ -936,7 +934,6 @@ void renderparticles(bool mainpass)
 
             particleshader->set();
             LOCALPARAM(colorscale, (ldrscale, ldrscale, ldrscale, 1));
-            glGetFloatv(GL_FOG_COLOR, oldfogc);
         }
         
         uint flags = p->type & flagmask;
@@ -959,7 +956,7 @@ void renderparticles(bool mainpass)
                     glDisableClientState(GL_COLOR_ARRAY);
                 }
             }
-            if(changedbits&PT_LERP) glFogfv(GL_FOG_COLOR, (flags&PT_LERP) ? oldfogc : zerofog);
+            if(changedbits&PT_LERP) { if(flags&PT_LERP) resetfogcolor(); else zerofogcolor(); }
             if(changedbits&(PT_LERP|PT_MOD))
             {
                 if(flags&PT_LERP) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -992,7 +989,7 @@ void renderparticles(bool mainpass)
     if(rendered)
     {
         if(lastflags&(PT_LERP|PT_MOD)) glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        if(!(lastflags&PT_LERP)) glFogfv(GL_FOG_COLOR, oldfogc);
+        if(!(lastflags&PT_LERP)) resetfogcolor();
         if(lastflags&0x01)
         {
             glDisableClientState(GL_VERTEX_ARRAY);

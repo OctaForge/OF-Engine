@@ -26,7 +26,7 @@ void cleanup()
     SDL_Quit();
 }
 
-void quit()
+void quit()                     // normal exit
 {
     extern void writeinitcfg();
     writeinitcfg();
@@ -72,7 +72,7 @@ void fatal(const char *s, ...)    // failure exit
 
 SDL_Surface *screen = NULL;
 
-int curtime = 0, totalmillis = 1, lastmillis = 1, skymillis = 1; // INTENSITY: SkyManager: add skymillis, for syncing
+int curtime = 0, totalmillis = 1, lastmillis = 1;
 
 dynent *player = NULL;
 
@@ -1317,7 +1317,6 @@ int main(int argc, char **argv)
         }
         local_server::try_connect(); /* Try connecting if server is ready */
 
-        skymillis += curtime; // INTENSITY: SkyManager
         lastmillis += curtime;
         totalmillis = millis;
 

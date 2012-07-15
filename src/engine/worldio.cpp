@@ -899,7 +899,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             }
             default: continue;
         }
-        if (v) switch (type)
+        if (v) switch (v->type())
         {
             case varsys::TYPE_I:
             {
@@ -919,7 +919,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                 varsys::Float_Variable *fv = (varsys::Float_Variable*)v;
                 if (fv->get_min() <= fv->get_max() && f >= fv->get_min() && f <= fv->get_max())
                 {
-                    fv->set(i, true, false);
+                    fv->set(f, true, false);
                     if(dbgvars) conoutf(CON_DEBUG, "read var %s: %f", name, f);
                 }
                 break;

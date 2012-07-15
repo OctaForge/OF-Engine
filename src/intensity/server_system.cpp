@@ -191,6 +191,7 @@ void clearshadowcache() {}
 int calcspheretetramask(const vec &p, float radius, float bias) { return 0; }
 int calcspheresidemask(const vec &p, float radius, float bias) { return 0; }
 int calcspherecsmsplits(const vec &center, float radius) { return 0; }
+int calcspherersmsplits(const vec &center, float radius) { return 0; }
 
 void calcmatbb(vtxarray *va, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs) {}
 
@@ -370,6 +371,8 @@ void glDeleteTextures( GLsizei n, const GLuint *textures ) { };
 void glPixelStorei(GLenum pname, GLint param) { };
 void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
     GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *data) { };
+void glTexParameteri(GLenum target, GLenum pname, GLint param) { };
+void glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params) { };
 #endif
 
 PFNGLBEGINQUERYARBPROC glBeginQuery_ = NULL;

@@ -65,7 +65,7 @@ HVARFR(grasscolour, 0, 0xFFFFFF, 0xFFFFFF,
     grasscolor = bvec((grasscolour>>16)&0xFF, (grasscolour>>8)&0xFF, grasscolour&0xFF);
 });
 FVARR(grasstest, 0, 0.6f, 1);
-
+  
 static void gengrassquads(grassgroup *&group, const grasswedge &w, const grasstri &g, Texture *tex)
 {
     float t = camera1->o.dot(w.dir);
@@ -74,13 +74,12 @@ static void gengrassquads(grassgroup *&group, const grasswedge &w, const grasstr
           t0 = w.dir.dot(g.v[0]), t1 = w.dir.dot(g.v[1]), t2 = w.dir.dot(g.v[2]), t3 = w.dir.dot(g.v[3]),
           tmin = min(min(t0, t1), min(t2, t3)),
           tmax = max(max(t0, t1), max(t2, t3));
-
     if(tmax < tstart || tmin > t + grassdist) return;
 
     int minstep = max(int(ceil(tmin/grassstep)) - tstep, 1),
         maxstep = int(floor(min(tmax, t + grassdist)/grassstep)) - tstep,
         numsteps = maxstep - minstep + 1;
-
+    
     float texscale = (grassscale*tex->ys)/float(grassheight*tex->xs), animscale = grassheight*texscale;
     vec tc;
     tc.cross(g.surface, w.dir).mul(texscale);

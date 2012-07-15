@@ -3,8 +3,7 @@ OctaForge
 
 This is OctaForge developer alpha 10 (0.1.9, 27 December 2011)
 
-In sync with Cube 2 / Sauerbraten revision: 4090
-In sync with Tesseract: raa3b6d0 (slightly larger shadowmap border)
+In sync with Tesseract: b9832064 (remove some debugging code)
 
 For installation, read INSTALL.
 To run it, launch run_client.sh on *nix

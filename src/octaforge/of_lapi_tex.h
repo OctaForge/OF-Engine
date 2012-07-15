@@ -64,9 +64,7 @@ namespace lapi_binds
         Slot& s = *slots.last();
 
         delete[] s.autograss;
-        s.autograss = ((g && g[0]) ? newstring(
-            makerelpath("data", g, NULL, "<premul>")
-        ) : NULL);
+        s.autograss = ((g && g[0]) ? newstring(makerelpath("data", g)) : NULL);
     }
 
     void _lua_texscroll(float ss, float ts)

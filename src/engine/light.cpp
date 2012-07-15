@@ -1,12 +1,13 @@
 #include "engine.h"
 #include "of_entities.h"
 
-bvec ambientcolor(0x19, 0x19, 0x19), skylightcolor(0, 0, 0);
+bvec ambientcolor(0x19, 0x19, 0x19);
 HVARFR(ambient, 1, 0x191919, 0xFFFFFF, 
 {
     if(ambient <= 255) ambient |= (ambient<<8) | (ambient<<16);
     ambientcolor = bvec((ambient>>16)&0xFF, (ambient>>8)&0xFF, ambient&0xFF);
 });
+FVARR(ambientscale, 0, 1, 16);
 extern void setupsunlight();
 bvec sunlightcolor(0, 0, 0);
 HVARFR(sunlight, 0, 0, 0xFFFFFF,
@@ -15,12 +16,13 @@ HVARFR(sunlight, 0, 0, 0xFFFFFF,
     sunlightcolor = bvec((sunlight>>16)&0xFF, (sunlight>>8)&0xFF, sunlight&0xFF);
     setupsunlight();
     cleardeferredlightshaders();
+    clearshadowcache();
 });
 FVARFR(sunlightscale, 0, 1, 16, setupsunlight());
 vec sunlightdir(0, 0, 1);
 extern void setsunlightdir();
-VARFR(sunlightyaw, 0, 0, 360, setsunlightdir());
-VARFR(sunlightpitch, -90, 90, 90, setsunlightdir());
+FVARFR(sunlightyaw, 0, 0, 360, setsunlightdir());
+FVARFR(sunlightpitch, -90, 90, 90, setsunlightdir());
 
 void setsunlightdir() 
 { 
@@ -592,7 +594,7 @@ static Uint32 calclighttimer(Uint32 interval, void *param)
 
 void calclight(int quality)
 {
-    renderbackground("computing lightmaps... (esc to abort)");
+    renderbackground("computing lighting... (esc to abort)");
     mpremip(true);
     optimizeblendmap();
     clearlightcache();
@@ -613,7 +615,7 @@ void calclight(int quality)
     if(calclight_canceled)
         conoutf("calclight aborted");
     else
-        conoutf("generated 0 lightmaps using 0%% of 0 textures (%.1f seconds)",
+        conoutf("computed lighting (%.1f seconds)",
             (end - start) / 1000.0f);
 }
 
