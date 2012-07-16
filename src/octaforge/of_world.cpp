@@ -182,9 +182,12 @@ namespace world
         types::String buf = types::String().format(
             "data%c%s%c%s", PATHDIV, aloc.get_buf(), PATHDIV, rpath
         );
-        if (fileexists(buf.get_buf(), "r")) return buf;
+        types::String homebuf = types::String().format(
+            "%s%s", homedir, buf.get_buf()
+        );
+        if (fileexists(homebuf.get_buf(), "r")) return homebuf;
 
-        return types::String().format("%s%s", homedir, buf.get_buf());
+        return buf;
     }
 
     types::String get_mapscript_filename() { return get_mapfile_path("map.lua"); }
