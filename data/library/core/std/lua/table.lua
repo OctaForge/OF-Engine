@@ -108,7 +108,7 @@ end
 ]]
 table.filter = function(t, f)
     local r = {}
-    for a, b in pairs(t) do if f(a, b) then table.insert(r, b) end end
+    for i = 1, #t do if f(i, t[i]) then table.insert(r, t[i]) end end
     return r
 end
 
@@ -344,7 +344,7 @@ table.serialize = function(tbl, pretty, indent, simplifier)
         -- not a regular array
         assoc = not assoc
 
-        for k, v in pairs(tbl) do
+        for k, v in (assoc and pairs or ipairs)(tbl) do
             local skip = false
 
             local tk = type(k)

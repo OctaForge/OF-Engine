@@ -27,13 +27,15 @@ local _tonumber = tonumber
 tonumber = function(value, base)
     return (type(value) == "boolean")
         and (value and 1 or 0)
-        or _tonumber(value, base) end
+        or _tonumber(value, base)
+end
 
 --[[! Function: tointeger
     Same as tonumber, but floors the result.
 ]]
 tointeger = function(value)
-    return math.floor(tonumber(value)) end
+    return math.floor(tonumber(value))
+end
 
 --[[! Function: toboolean
     Converts a value to boolean. Non-zero numerical values will produce true,
@@ -44,7 +46,8 @@ toboolean = function(value)
     return (type(value) == "number"  and value ~= 0      or false)
         or (type(value) == "string"  and value == "true" or false)
         or (type(value) == "boolean" and value           or false)
-        or false end
+        or false
+end
 
 --[[! Function: tocalltable
     Converts a function to callable table. Retains semantics, allows storage
@@ -52,7 +55,9 @@ toboolean = function(value)
 ]]
 tocalltable = function(value)
     return setmetatable({}, {
-        __call = function(self, ...) return value(...) end }) end
+        __call = function(self, ...) return value(...) end
+    })
+end
 
 --[[! Function: tovec3
     Converts a table value to OF-defined Vec3 from the math module. The table
@@ -64,7 +69,8 @@ tocalltable = function(value)
 tovec3 = function(value)
     return (type(v.x) == "number")
         and math.Vec3(v)
-        or  math.Vec3(v[1], v[2], v[3]) end
+        or  math.Vec3(v[1], v[2], v[3])
+end
 
 --[[! Function: tovec3
     Converts a table value to OF-defined Vec4 from the math module. The table
@@ -77,7 +83,8 @@ tovec3 = function(value)
 tovec4 = function(value)
     return (type(v.x) == "number")
         and math.Vec4(v)
-        or  math.Vec4(v[1], v[2], v[3], v[4]) end
+        or  math.Vec4(v[1], v[2], v[3], v[4])
+end
 
 --[[! Function: hextorgb
     Converts an integral value to be treated as hexadecimal color code to
@@ -86,14 +93,16 @@ tovec4 = function(value)
 hextorgb = function(hex)
     local band = math.band
     local rsh  = math.rsh
-    return rsh(hex, 16), band(rsh(hex, 8), 0xFF), band(hex, 0xFF) end
+    return rsh(hex, 16), band(rsh(hex, 8), 0xFF), band(hex, 0xFF)
+end
 
 --[[! Function: rgbtohex
     Converts r, g, b color values (0-255) to a hexadecimal color code.
 ]]
 rgbtohex = function(r, g, b)
     local lsh = math.lsh
-    return math.bor(b, lsh(g, 8), lsh(r, 16)) end
+    return math.bor(b, lsh(g, 8), lsh(r, 16))
+end
 
 --[[! Function: rgbtohsl
     Takes the r, g, b values (0-255) and returns the matching h, s, l
@@ -115,9 +124,11 @@ rgbtohsl = function(r, g, b)
         if     mx == r then h = (g - b) / d + (g < b and 6 or 0)
         elseif mx == g then h = (b - r) / d + 2
         elseif mx == b then h = (r - g) / d + 4 end
-        h = h / 6 end
+        h = h / 6
+    end
 
-    return h, s, l end
+    return h, s, l
+end
 
 --[[! Function: rgbtohsv
     Takes the r, g, b values (0-255) and returns the matching h, s, v
@@ -139,9 +150,11 @@ rgbtohsv = function(r, g, b)
         if     mx == r then h = (g - b) / d + (g < b and 6 or 0)
         elseif mx == g then h = (b - r) / d + 2
         elseif mx == b then h = (r - g) / d + 4 end
-        h = h / 6 end
+        h = h / 6
+    end
 
-    return h, s, v end
+    return h, s, v
+end
 
 --[[! Function: hsltorgb
     Takes the h, s, l values (0-1) and returns the matching r, g, b
@@ -161,7 +174,8 @@ hsltorgb = function(h, s, l)
             if t < (1 / 6) then return p + (q - p) * 6 * t end
             if t < (1 / 2) then return q end
             if t < (2 / 3) then return p + (q - p) * (2 / 3 - t) * 6 end
-            return p end
+            return p
+        end
 
         local q = l < 0.5 and l * (1 + s) or l + s - l * s
         local p = 2 * l - q
@@ -171,7 +185,8 @@ hsltorgb = function(h, s, l)
         b = hue2rgb(p, q, h - 1 / 3)
     end
 
-    return (r * 255), (g * 255), (b * 255) end
+    return (r * 255), (g * 255), (b * 255)
+end
 
 --[[! Function: hsvtorgb
     Takes the h, s, v values (0-1) and returns the matching r, g, b
@@ -197,6 +212,8 @@ hsvtorgb = function(h, s, v)
     elseif i % 6 == 4 then
         r, g, b = t, p, v
     elseif i % 6 == 5 then
-        r, g, b = v, p, q end
+        r, g, b = v, p, q
+    end
 
-    return (r * 255), (g * 255), (b * 255) end
+    return (r * 255), (g * 255), (b * 255)
+end

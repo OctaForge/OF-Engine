@@ -143,9 +143,7 @@ return {
             create_state_data_dict = function(ent)
                 return ent:create_state_data_dict()
             end,
-            add_sauer = function(etype, pos, a1, a2, a3, a4)
-                return entity_store.add_sauer(etype, pos, a1, a2, a3, a4)
-            end,
+            add_sauer = entity_store.add_sauer,
             clear_actions = function(ent)
                 return ent.action_system:clear()
             end,

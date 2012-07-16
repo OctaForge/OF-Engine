@@ -629,89 +629,92 @@ function load_entities()
 
         -- load sauer entities
         for i, entity in pairs(__entities_sauer) do
-            local et    = entity[1]
-            local o     = entity[2]
-            local attr1 = entity[3]
-            local attr2 = entity[4]
-            local attr3 = entity[5]
-            local attr4 = entity[6]
-            local attr5 = entity[7]
+            local et = entity[1]
+            if sn[et] then
+                local o     = entity[2]
+                local attr1 = entity[3]
+                local attr2 = entity[4]
+                local attr3 = entity[5]
+                local attr4 = entity[6]
+                local attr5 = entity[7]
 
-            if sn[et] then table.insert(entities, {
-                huid, sn[et], {
-                    attr1 = tostring(attr1), attr2 = tostring(attr2),
-                    attr3 = tostring(attr3), attr4 = tostring(attr4),
-                    attr5 = tostring(attr5),
-                    radius = "0", position = "[%(1)i|%(2)i|%(3)i]" % {
-                        o.x, o.y, o.z
-                    }, animation = "130", model_name = "", attachments = "[]",
-                    tags = "[]", persistent = "true"
-                }
-            }) end
+                table.insert(entities, {
+                    huid, sn[et], {
+                        attr1 = tostring(attr1), attr2 = tostring(attr2),
+                        attr3 = tostring(attr3), attr4 = tostring(attr4),
+                        attr5 = tostring(attr5),
+                        radius = "0", position = "[%(1)i|%(2)i|%(3)i]" % {
+                            o.x, o.y, o.z
+                        },
+                        animation = "130", model_name = "",
+                        attachments = "[]", tags = "[]", persistent = "true"
+                    }
+                })
 
-            local ent = entities[#entities][3]
+                local ent = entities[#entities][3]
 
-            -- 2 is MAPMODEL, 6 is SOUND, 3 is PLAYERSTART, 23 is JUMPPAD,
-            -- 19 is TELEPORT, 20 is TELEDEST
-            if et == 2 then
-                if #import_models > attr2 then
-                    ent["model_name"] = import_models[attr2 + 1]
-                    ent["attr2"]      = "-1"
-                else
-                    ent["model_name"] = "@REPLACE@"
-                end
-            elseif et == 6 then
-                if #import_sounds > attr1 then
-                    local snd = import_sounds[attr1 + 1]
-                    ent["sound_name"] = snd[1]
-                    if #snd > 1 then
-                        ent["volume"] = snd[2]
-                    end
-                    ent["attr1"] = "-1"
-                else
-                    ent["sound_name"] = "@REPLACE@"
-                end
-            elseif et == 3 then
-                ent["tags"] = "[start_]"
-            elseif et == 23 then
-                ent["attr1"]                   = "0"
-                ent["attr2"]                   = "-1"
-                ent["attr3"]                   = "0"
-                ent["attr4"]                   = "0"
-                ent["pad_model"]               = ""
-                ent["pad_rotate"]              = "false"
-                ent["pad_pitch"]               = "0"
-                ent["pad_sound"]               = ""
-                ent["collision_radius_width"]  = "5"
-                ent["collision_radius_height"] = "1"
-                ent["model_name"]              = "areatrigger"
-                ent["jump_velocity"]           = "[%(1)f|%(2)f|%(3)f]" % {
-                    attr3 * 10, attr2 * 10, attr1 * 12.5
-                }
-            elseif et == 19 then
-                ent["attr1"]                   = "0"
-                ent["attr3"]                   = "0"
-                ent["attr4"]                   = "0"
-                ent["collision_radius_width"]  = "5"
-                ent["collision_radius_height"] = "5"
-                ent["destination"]             = tostring(attr1)
-                ent["sound_name"]              = ""
-                if attr2 < 0 then
-                    ent["model_name"] = "areatrigger"
-                else
+                -- 2 is MAPMODEL, 6 is SOUND, 3 is PLAYERSTART, 23 is JUMPPAD,
+                -- 19 is TELEPORT, 20 is TELEDEST
+                if et == 2 then
                     if #import_models > attr2 then
                         ent["model_name"] = import_models[attr2 + 1]
                         ent["attr2"]      = "-1"
                     else
                         ent["model_name"] = "@REPLACE@"
                     end
+                elseif et == 6 then
+                    if #import_sounds > attr1 then
+                        local snd = import_sounds[attr1 + 1]
+                        ent["sound_name"] = snd[1]
+                        if #snd > 1 then
+                            ent["volume"] = snd[2]
+                        end
+                        ent["attr1"] = "-1"
+                    else
+                        ent["sound_name"] = "@REPLACE@"
+                    end
+                elseif et == 3 then
+                    ent["tags"] = "[start_]"
+                elseif et == 23 then
+                    ent["attr1"]                   = "0"
+                    ent["attr2"]                   = "-1"
+                    ent["attr3"]                   = "0"
+                    ent["attr4"]                   = "0"
+                    ent["pad_model"]               = ""
+                    ent["pad_rotate"]              = "false"
+                    ent["pad_pitch"]               = "0"
+                    ent["pad_sound"]               = ""
+                    ent["collision_radius_width"]  = "5"
+                    ent["collision_radius_height"] = "1"
+                    ent["model_name"]              = "areatrigger"
+                    ent["jump_velocity"]           = "[%(1)f|%(2)f|%(3)f]" % {
+                        attr3 * 10, attr2 * 10, attr1 * 12.5
+                    }
+                elseif et == 19 then
+                    ent["attr1"]                   = "0"
+                    ent["attr3"]                   = "0"
+                    ent["attr4"]                   = "0"
+                    ent["collision_radius_width"]  = "5"
+                    ent["collision_radius_height"] = "5"
+                    ent["destination"]             = tostring(attr1)
+                    ent["sound_name"]              = ""
+                    if attr2 < 0 then
+                        ent["model_name"] = "areatrigger"
+                    else
+                        if #import_models > attr2 then
+                            ent["model_name"] = import_models[attr2 + 1]
+                            ent["attr2"]      = "-1"
+                        else
+                            ent["model_name"] = "@REPLACE@"
+                        end
+                    end
+                elseif et == 20 then
+                    ent["attr2"] = "0"
+                    ent["tags"]  = "[teledest_%(1)i]" % { attr2 }
                 end
-            elseif et == 20 then
-                ent["attr2"] = "0"
-                ent["tags"]  = "[teledest_%(1)i]" % { attr2 }
-            end
 
-            huid = huid + 1
+                huid = huid + 1
+            end
         end
 
         -- clear up sauer entities

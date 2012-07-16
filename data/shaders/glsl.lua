@@ -1565,7 +1565,7 @@ radiancehintsshader = function(arg1)
             vec4 shr = vec4(0.0), shg = vec4(0.0), shb = vec4(0.0);
 
             @(([[
-                calcrhsample(vec3(@(rhtapoffsets@(numtaps)[$i]))*2.0 - 1.0, vec2(@(rsmtapoffsets@(numtaps)[$i]))*2.0 - 1.0, shr, shg, shb);
+                calcrhsample(vec3(@(_G["rhtapoffsets" .. numtaps][$i]))*2.0 - 1.0, vec2(@(_G["rsmtapoffsets" .. numtaps][$i]))*2.0 - 1.0, shr, shg, shb);
             ]]):reppn("$i", 1, numtaps))
 
             gl_FragData[0] = shr * (vec4(0.5, 0.5, 0.5, 1.0)/@(("%.1f"):format(numtaps))) + vec4(0.5, 0.5, 0.5, 0.0);
@@ -1665,7 +1665,8 @@ deferredlightvariantshader = function(...)
         g = deferredlighttype:find("g") ~= nil,
         F = deferredlighttype:find("F") ~= nil,
         f = deferredlighttype:find("f") ~= nil,
-        m = deferredlighttype:find("m") ~= nil
+        m = deferredlighttype:find("m") ~= nil,
+        r = deferredlighttype:find("r") ~= nil
     }
 
     CAPI.variantshader(0, arg[1], arg[2], arg[2] < 0 and [[
@@ -3104,6 +3105,7 @@ causticshader = function(arg1)
         uniform sampler2D tex0, tex1;
         uniform sampler2DRect tex9;
         uniform vec4 waterdeepfade;
+        @(gdepthunpackparams)
         void main(void)
         {
             @(gdepthunpack("depth", "tex9", "gl_FragCoord.xy", [[
