@@ -104,11 +104,17 @@ void ClientSystem::frameTrigger(int curtime)
         float delta = float(curtime)/1000.0f;
 
         /* turn if mouse is at borders */
-        float x, y;
-        gui::getcursorpos(x, y);
+        auto t = lapi::state.get<lua::Function>("external",
+            "cursor_get_position").call<float, float>();
+
+        float x = types::get<0>(t);
+        float y = types::get<1>(t);
+
+        bool b = lapi::state.get<lua::Function>("external",
+            "cursor_exists").call<bool>();
 
         /* do not scroll with mouse */
-        if (gui::hascursor(false)) x = y = 0.5;
+        if (b) x = y = 0.5;
 
         /* turning */
         fpsent *fp = (fpsent*)player;
@@ -225,7 +231,10 @@ void ClientSystem::addHUDText(const char *text, float x, float y, float scale, i
 
 void ClientSystem::drawHUD(int w, int h)
 {
-    if (gui::hascursor(false)) return; // Showing GUI - do not show HUD
+    bool b = lapi::state.get<lua::Function>("external", "cursor_exists")
+        .call<bool>();
+
+    if (b) return; // Showing GUI - do not show HUD
 
     float wFactor = float(h)/max(w,h);
     float hFactor = float(w)/max(w,h);
@@ -316,7 +325,10 @@ void ClientSystem::drawHUD(int w, int h)
 
 void ClientSystem::drawMinimap(int w, int h)
 {
-    if (gui::hascursor(false)) return; // Showing GUI - do not show HUD
+    bool b = lapi::state.get<lua::Function>("external", "cursor_exists")
+        .call<bool>();
+
+    if (b) return; // Showing GUI - do not show HUD
 
     float x, y;
     vec dir, pos;
@@ -395,7 +407,7 @@ void ClientSystem::finishLoadWorld()
 
     ClientSystem::editingAlone = false; // Assume not in this mode
 
-    gui::clearmainmenu(); // (see prepareForMap)
+    lapi::state.get<lua::Function>("external", "gui_clear")(); // (see prepareForMap)
 }
 
 void ClientSystem::prepareForNewScenario(const types::String& sc)
@@ -403,7 +415,7 @@ void ClientSystem::prepareForNewScenario(const types::String& sc)
     _mapCompletelyReceived = false; // We no longer have a map. This implies scenarioStarted will return false, thus
                                     // stopping sending of position updates, as well as rendering
 
-    SETV(mainmenu, 1); // Keep showing GUI meanwhile (in particular, to show the message about a new map on the way
+    gui_mainmenu = true; // Keep showing GUI meanwhile (in particular, to show the message about a new map on the way
 
     // Clear the logic system, as it is no longer valid - were it running, we might try to process messages from
     // the new map being set up on the server, even though they are irrelevant to the existing engine, set up for

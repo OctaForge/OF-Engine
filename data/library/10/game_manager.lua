@@ -2,7 +2,7 @@ module("game_manager", package.seeall)
 
 player_plugin = {
     properties = {
-        team = state_variables.state_string()
+        team = svars.State_String()
     },
 
     init = function(self)
@@ -10,42 +10,48 @@ player_plugin = {
     end,
 
     activate = function(self)
-        get_singleton():pick_team(self)
-
-        signal.connect(self,"pre_deactivate", function(self)
-            get_singleton():leave_team(self)
-        end)
-
-        self:respawn()
+        if SERVER then
+            get_singleton():pick_team(self)
+            signal.connect(self,"pre_deactivate", function(_, self)
+                get_singleton():leave_team(self)
+            end)
+            self:respawn()
+        else
+            signal.connect(self,"client_respawn", function(_, self)
+                get_singleton():place_player(self)
+            end)
+        end
     end,
-
-    client_activate = function(self)
-        signal.connect(self,"client_respawn", function(self)
-            get_singleton():place_player(self)
-        end)
-    end
 }
 
 function setup(plugins_add)
     plugins_add = plugins_add or {}
 
-    entity_classes.register(
+    ents.register_class(
         plugins.bake(
-            entity.base,
+            ents.Entity,
             table.merge(
                 {{
                     properties = {
-                        team_data = state_variables.state_table()
+                        team_data = svars.State_Table()
                     },
                     victory_sound = "",
 
                     activate = function(self)
-                        self:add_tag("game_manager")
-                        self.teams = {}
-                        self.victory_sound = ""
-                    end,
-
-                    client_activate = function(self)
+                        if SERVER then
+                            self:add_tag("game_manager")
+                            self.teams = {}
+                            self.victory_sound = ""
+                        else
+                            signal.connect(self,"team_data_changed", function(_, self, value)
+                                if self.team_data and value and ents.get_player() then
+                                    local player_team = ents.get_player().team
+                                    if value[player_team].score > self.team_data[player_team].score and
+                                       self.victory_sound ~= "" then sound.play(self.victory_sound)
+                                    end
+                                end
+                            end)
+                        end
                     end,
 
                     get_players = function(self)
@@ -163,7 +169,7 @@ function setup(plugins_add)
 
                     place_player = function(self, player)
                         local start_tag = "start_" .. player.team
-                        local possibles = entity_store.get_all_by_tag(start_tag)
+                        local possibles = ents.get_by_tag(start_tag)
                         if possibles and #possibles > 0 then
                             local start = possibles[math.random(1, #possibles)]
                             if start then
@@ -192,17 +198,6 @@ function setup(plugins_add)
                         return data
                     end,
 
-                    client_activate = function(self)
-                        signal.connect(self,state_variables.get_on_modify_name("team_data"), function(self, value)
-                            if self.team_data and value and entity_store.get_player_entity() then
-                                local player_team = entity_store.get_player_entity().team
-                                if value[player_team].score > self.team_data[player_team].score and
-                                   self.victory_sound ~= "" then sound.play(self.victory_sound)
-                                end
-                            end
-                        end)
-                    end,
-
                     set_local_animation = function(self) end -- just so it can fake being animated by actions
                 }},
                 plugins_add
@@ -212,13 +207,13 @@ function setup(plugins_add)
     )
 
     if SERVER then
-        entity_store.new("game_manager")
+        ents.new("game_manager")
     end
 end
 
 function get_singleton()
     if not singleton then
-        singleton = entity_store.get_all_by_class("game_manager")[1]
+        singleton = ents.get_by_class("game_manager")[1]
     end
     return singleton
 end
@@ -230,7 +225,7 @@ end
 manager_plugins = {
     messages = {
         properties = {
-            server_message = state_variables.state_table({ has_history = false })
+            server_message = svars.State_Table { has_history = false }
         },
 
         hud_messages = {},
@@ -247,7 +242,7 @@ manager_plugins = {
                 kwargs.player = kwargs.player and kwargs.player.uid or -1
                 self.server_message = kwargs
             else
-                if type(kwargs.player) == "number" then kwargs.player = entity_store.get(kwargs.player) end
+                if type(kwargs.player) == "number" then kwargs.player = ents.get(kwargs.player) end
                 self:clear_hud_messages() -- XXX: only 1 for now
                 table.insert(self.hud_messages, kwargs)
             end
@@ -257,55 +252,58 @@ manager_plugins = {
             self.hud_messages = {}
         end,
 
-        client_activate = function(self)
-            signal.connect(self,state_variables.get_on_modify_name("server_message"), function(self, kwargs)
+        activate = function(self)
+            if not CLIENT then return nil end
+            signal.connect(self,"server_message_changed", function(_, self, kwargs)
                 self:add_hud_message(kwargs)
             end)
             self.rendering_hash_hint = 0 -- used for rendering entities without fpsents
         end,
 
-        client_act = function(self, seconds)
+        run = CLIENT and function(self, seconds)
             self.hud_messages = table.filter(self.hud_messages, function(i, msg)
-                if msg.player and msg.player ~= 0 and msg.player ~= entity_store.get_player_entity() then return false end
+                if msg.player and msg.player ~= 0 and msg.player ~= ents.get_player() then return false end
 
                 local size = msg.size and msg.size ~= 0 and msg.size or 1.0
                 size = msg.duration >= 0.5 and size or size * math.pow(msg.duration * 2, 2)
-                gui.hud_label(
-                    msg.text,
-                    msg.x and msg.x ~= 0 and msg.x or 0.5,
-                    msg.y and msg.y ~= 0 and msg.y or 0.2,
-                    size, msg.color
-                )
+                --gui.hud_label(
+                --    msg.text,
+                --    msg.x and msg.x ~= 0 and msg.x or 0.5,
+                --    msg.y and msg.y ~= 0 and msg.y or 0.2,
+                --    size, msg.color
+                --)
                 msg.duration = msg.duration - seconds
                 return (msg.duration > 0)
             end)
-        end
+        end or nil
     },
 
     limit_game_time = {
         max_time = 600, -- 10 minutes
 
         activate = function(self)
-            signal.connect(self,"start_game", function(self)
+            if not SERVER then return nil end
+            signal.connect(self,"start_game", function(_, self)
                 self.time_left = self.max_time
             end)
         end,
 
-        act = function(self, seconds)
+        run = SERVER and function(self, seconds)
             if not self.game_running then return nil end
 
             self.time_left = self.time_left - seconds
             if self.time_left <= 0 then
                 self:end_game()
             end
-        end
+        end or nil
     },
 
     limit_game_score = {
         max_score = 10,
 
         activate = function(self)
-            signal.connect(self,"team_data_modified", function(self)
+            if not SERVER then return nil end
+            signal.connect(self,"team_data_modified", function(_, self)
                 if not self.game_running then return nil end
 
                 for k, team in pairs(self.teams) do
@@ -327,7 +325,8 @@ manager_plugins = {
         finish_title = "Game finished",
 
         activate = function(self)
-            signal.connect(self,"end_game", function(self)
+            if not SERVER then return nil end
+            signal.connect(self,"end_game", function(_, self)
                 -- decide winner
                 local max_score
                 local min_score
@@ -348,20 +347,20 @@ manager_plugins = {
                     if not tie then
                         if self.steams[player.team].score == max_score then
                             player.animation = math.bor(model.ANIM_WIN, model.ANIM_LOOP)
-                            message.show_client_message(player, self.finish_title, self.win_message)
+                            msg.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
                                 sound.play(self.win_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         else
                             player.animation = math.bor(model.ANIM_LOSE, model.ANIM_LOOP)
-                            message.show_client_message(player, self.finish_title, self.lose_message)
+                            msg.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
                                 sound.play(self.lose_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
                         player.animation = math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
-                        message.show_client_message(player, self.finish_title, self.tie_message)
+                        msg.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
                             sound.play(self.tie_sound, math.Vec3(0, 0, 0), player.cn)
                         end
@@ -371,7 +370,7 @@ manager_plugins = {
             end)
         end,
 
-        act = function(self, seconds)
+        run = SERVER and function(self, seconds)
             if self.intermission_delay_left and self.intermission_delay_left ~= 0 then
                 self.intermission_delay_left = self.intermission_delay_left - seconds
                 if self.intermission_delay_left <= 0 then
@@ -386,28 +385,30 @@ manager_plugins = {
                     self:start_game()
                 end
             end
-        end
+        end or nil
     },
 
     balancer = {
         balanced_message = "Balanced the teams",
 
         activate = function(self)
+            if not SERVER then return nil end
             self.balancer_timer = events.repeating_timer(1.0)
         end,
 
-        act = function(self, seconds)
+        run = SERVER and function(self, seconds)
             if self.balancer_timer:tick(seconds) then
                 local relevant_teams = table.filter(self.teams, function(i, team)
                     return (not team.kwargs.ignore_for_balancing)
                 end)
 
                 local num_teams = #table.keys(relevant_teams)
-                local total_players = table.sum(
+                local total_players = table.foldr(
                     table.map(
                         relevant_teams,
                         function(team_data) return #team_data.player_list end
-                    )
+                    ),
+                    function(a, b) return a + b end
                 )
                 local expected_players = total_players / num_teams
 
@@ -431,7 +432,7 @@ manager_plugins = {
                     self:add_hud_message(self.balanced_message, 0xFFFFFF, 2.0, 0.66)
                 end
             end
-        end
+        end or nil
     },
 
     event_list = {
@@ -480,11 +481,7 @@ manager_plugins = {
             }
         end,
 
-        client_activate = function(self)
-            self:activate()
-        end,
-
-        act = function(self, seconds)
+        run = function(self, seconds)
             if  self.event_manager.need_sort then
                 self.event_manager:sort_list()
             end
@@ -527,10 +524,6 @@ manager_plugins = {
                     end
                 end
             end
-        end,
-
-        client_act = function(self, seconds)
-            self:act(seconds)
         end
     }
 }

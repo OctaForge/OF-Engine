@@ -195,8 +195,8 @@ function splash(
             color, size, radius, gravity
         )
     else
-        message.send(
-            message.ALL_CLIENTS, CAPI.particle_splash_toclients,
+        msg.send(
+            msg.ALL_CLIENTS, CAPI.particle_splash_toclients,
             particle_type, num, fade * 1000,
             position.x, position.y, position.z
         ) -- TODO: last 4 params
@@ -234,8 +234,8 @@ function regular_splash(
             color, size, radius, gravity, delay
         )
     else
-        message.send(
-            message.ALL_CLIENTS, CAPI.particle_regularsplash_toclients,
+        msg.send(
+            msg.ALL_CLIENTS, CAPI.particle_regularsplash_toclients,
             particle_type, num, fade * 1000,
             position.x, position.y, position.z
         ) -- TODO: last 5 params

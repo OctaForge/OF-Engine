@@ -26,7 +26,7 @@ void flip();
 void rotate(int cw);
 void editmat(char *name, char *filtername);
 void resetlightmaps(bool fullclean);
-void calclight(int quality);
+void calclight();
 void recalc();
 void printcube();
 void remip_();
@@ -36,6 +36,9 @@ void testpvs(int vcsize);
 void genpvs(int viewcellsize);
 void pvsstats();
 void edittex(int i, bool save = true);
+void delbrush(const char *name);
+void savebrush(const char *name);
+void pastebrush(const char *name);
 
 extern selinfo sel;
 
@@ -100,11 +103,6 @@ namespace lapi_binds
             return ret->lua_ref;
         else
             return lapi::state.wrap<lua::Table>(lua::nil);
-    }
-
-    void _lua_renderprogress(float p, const char *text)
-    {
-        renderprogress(p, text ? text : "");
     }
 
     void _lua_edittoggle () { toggleedit(false); }
@@ -332,18 +330,12 @@ namespace lapi_binds
         return ClientSystem::editingAlone;
     }
 
-    void _lua_calclight(int quality)
+    void _lua_calclight()
     {
-        calclight(quality);
+        calclight();
     }
 
     void _lua_recalc() { recalc(); }
-#else
-    LAPI_EMPTY(requestprivedit)
-    LAPI_EMPTY(hasprivedit)
-    LAPI_EMPTY(calclight)
-    LAPI_EMPTY(recalc)
-#endif
 
     void _lua_printcube() { printcube(); }
     void _lua_remip    () { remip_   (); }
@@ -353,6 +345,26 @@ namespace lapi_binds
 
     void _lua_genpvs (int vcsize) { genpvs (vcsize); }
     void _lua_testpvs(int vcsize) { testpvs(vcsize); }
+
+    void _lua_delbrush  (const char *name) { delbrush  (name); }
+    void _lua_savebrush (const char *name) { savebrush (name); }
+    void _lua_pastebrush(const char *name) { pastebrush(name); }
+#else
+    LAPI_EMPTY(requestprivedit)
+    LAPI_EMPTY(hasprivedit)
+    LAPI_EMPTY(calclight)
+    LAPI_EMPTY(recalc)
+    LAPI_EMPTY(printcube)
+    LAPI_EMPTY(remip)
+    LAPI_EMPTY(phystest)
+    LAPI_EMPTY(clearpvs)
+    LAPI_EMPTY(pvsstats)
+    LAPI_EMPTY(genpvs)
+    LAPI_EMPTY(testpvs)
+    LAPI_EMPTY(delbrush)
+    LAPI_EMPTY(savebrush)
+    LAPI_EMPTY(pastebrush)
+#endif
 
     void reg_edit(lua::Table& t)
     {
@@ -366,7 +378,6 @@ namespace lapi_binds
         LAPI_REG(editing_setcubecolor);
         LAPI_REG(editing_pushcubecorner);
         LAPI_REG(editing_getselent);
-        LAPI_REG(renderprogress);
         LAPI_REG(edittoggle);
         LAPI_REG(entcancel);
         LAPI_REG(cubecancel);
@@ -424,5 +435,8 @@ namespace lapi_binds
         LAPI_REG(pvsstats);
         LAPI_REG(genpvs);
         LAPI_REG(testpvs);
+        LAPI_REG(delbrush);
+        LAPI_REG(savebrush);
+        LAPI_REG(pastebrush);
     }
 }

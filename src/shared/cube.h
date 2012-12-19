@@ -72,16 +72,14 @@ using algorithm::clamp;
   #define ZLIB_DLL
 #endif
 
-#ifndef STANDALONE
 #include <SDL.h>
 #include <SDL_image.h>
-
-#define GL_GLEXT_LEGACY
-#define __glext_h__
-#define NO_SDL_GLEXT
 #include <SDL_opengl.h>
-#undef __glext_h__
-#include "GL/glext.h"
+
+#ifdef SERVER
+#ifdef main
+#undef main
+#endif
 #endif
 
 #include <enet/enet.h>
@@ -114,8 +112,8 @@ using algorithm::clamp;
 #include "igame.h"
 
 #include "of_logger.h"
-#include "of_vars.h"
 #include "of_lapi.h"
+#include "of_vars.h"
 #include "engine_additions.h"
 
 #endif

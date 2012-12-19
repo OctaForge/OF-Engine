@@ -15,7 +15,7 @@ function register_gun(gun, comment, hud)
 end
 
 function client_click(button, down, position, entity)
-    local player = entity_store.get_player_entity()
+    local player = ents.get_player()
 
     if button == 1 then
         if down then
@@ -82,25 +82,21 @@ plugins = {
     -- network protocol for firing events
     protocol = {
         properties = {
-            firing_info = state_variables.state_array_float({ client_set = true, has_history = false })
+            firing_info = svars.State_Array_Float { client_set = true, has_history = false }
         },
 
         activate = function(self)
-            signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
+            signal.connect(self,"firing_info_changed", self.on_firing_info)
         end,
 
-        client_activate = function(self)
-            signal.connect(self,state_variables.get_on_modify_name("firing_info"), self.on_firing_info)
-        end,
-
-        on_firing_info = function(self, info)
+        on_firing_info = function(_, self, info)
             -- do not shoot if just killed (even though can_move = false didn't arrive yet)
             if not health.is_valid_target(self) then return nil end
 
             if #info ~= 5 then return nil end
             local gun_index = info[1]
             local target_pos = math.Vec3(info[2], info[3], info[4])
-            local target_ent = entity_store.get(info[5])
+            local target_ent = ents.get(info[5])
             local gun = guns[gun_index]
 
             if CLIENT then
@@ -118,9 +114,9 @@ plugins = {
     -- manages a player firing a gun - delay, repeat etc.
     player = {
         properties = {
-            current_gun_index = state_variables.state_integer({ client_set = true }),
-            gun_indexes = state_variables.state_array_integer(),
-            gun_switch_sound = state_variables.state_string()
+            current_gun_index = svars.State_Integer { client_set = true },
+            gun_indexes = svars.State_Array_Integer(),
+            gun_switch_sound = svars.State_String()
         },
 
         gun_ammos = {},
@@ -129,7 +125,7 @@ plugins = {
             for k, gun in pairs(guns) do
                 local tag = "*" .. gun.origin_tag
                 if gun.origin_tag and not table.find(self.attachments:to_array(), tag) then
-                    self.attachments:push(tag)
+                    self.attachments[#self.attachments + 1] = tag
                 end
             end
 
@@ -138,33 +134,33 @@ plugins = {
         end,
 
         activate = function(self)
-            signal.connect(self,
-                state_variables.get_on_modify_name("gun_indexes"),
-                function(self, indexes)
-                    if #indexes > 0 then
-                        self.current_gun_index = indexes[1] -- sets initial value
+            if SERVER then
+                signal.connect(self,
+                    "gun_indexes_changed",
+                    function(_, self, indexes)
+                        if #indexes > 0 then
+                            self.current_gun_index = indexes[1] -- sets initial value
+                        end
                     end
-                end
-            )
+                )
+            else
+                self.gun_delay = 0
+                self.last_handled_shot_counter = 0
+                self.now_firing = false
+
+                signal.connect(self,
+                    "current_gun_index_changed",
+                    function(_, self)
+                        if self.gun_switch_sound ~= "" then
+                            sound.play(self.gun_switch_sound, self.position:copy())
+                        end
+                    end
+                )
+            end
         end,
 
-        client_activate = function(self)
-            self.gun_delay = 0
-            self.last_handled_shot_counter = 0
-            self.now_firing = false
-
-            signal.connect(self,
-                state_variables.get_on_modify_name("current_gun_index"),
-                function(self)
-                    if self.gun_switch_sound ~= "" then
-                        sound.play(self.gun_switch_sound, self.position:copy())
-                    end
-                end
-            )
-        end,
-
-        client_act = function(self, seconds)
-            if self ~= entity_store.get_player_entity() then return nil end
+        run = CLIENT and function(self, seconds)
+            if self ~= ents.get_player() then return nil end
 
             self.gun_delay = math.max(self.gun_delay - seconds, 0)
 
@@ -192,34 +188,34 @@ plugins = {
 
                         if not GLOBAL_GAME_HUD then
                             if gun.hud then
-                                gui.hud_image(gun.hud, 0.80, 0.88, 0.05, 0.05)
+                                --gui.hud_image(gun.hud, 0.80, 0.88, 0.05, 0.05)
                             end
                         else
                             local params = GLOBAL_GAME_HUD:get_firing_params(gun)
-                            gui.hud_image(
-                                params.gun.icon,
-                                params.gun.x, params.gun.y,
-                                params.gun.w, params.gun.h
-                            )
+                            --gui.hud_image(
+                            --    params.gun.icon,
+                            --    params.gun.x, params.gun.y,
+                            --    params.gun.w, params.gun.h
+                            --)
                             if params.ammo1 then
-                                gui.hud_image(
-                                    params.ammo1.icon,
-                                    params.ammo1.x, params.ammo1.y,
-                                    params.ammo1.w, params.ammo1.h
-                                )
+                                --gui.hud_image(
+                                --    params.ammo1.icon,
+                                --    params.ammo1.x, params.ammo1.y,
+                                --    params.ammo1.w, params.ammo1.h
+                                --)
                             end
                             if params.ammo2 then
-                                gui.hud_image(
-                                    params.ammo2.icon,
-                                    params.ammo2.x, params.ammo2.y,
-                                    params.ammo2.w, params.ammo2.h
-                                )
+                                --gui.hud_image(
+                                --    params.ammo2.icon,
+                                --    params.ammo2.x, params.ammo2.y,
+                                --    params.ammo2.w, params.ammo2.h
+                                --)
                             end
                         end
                     end
                 end
             end
-        end,
+        end or nil,
 
         start_shooting = function(self, position)
             self.now_firing = true
@@ -241,7 +237,7 @@ plugins = {
     }
 }
 
-gun = table.classify({})
+gun = table.Object:clone {}
 
 gun.handle_start_logic   = nil
 gun.handle_client_effect = nil
@@ -270,7 +266,7 @@ function gun:get_origin(shooter)
 end
 
 function gun:do_recoil(shooter, magnitude)
-    if CLIENT and shooter ~= entity_store.get_player_entity() then return nil end
+    if CLIENT and shooter ~= ents.get_player() then return nil end
 
     if shooter.can_move then
         local dir = math.Vec3():from_yaw_pitch(
@@ -281,51 +277,45 @@ function gun:do_recoil(shooter, magnitude)
     end
 end
 
-action_shoot1 = table.subclass(
-    entity_animated.action_local_animation,
-    nil, "action_shoot"
-)
+action_shoot1 = entity_animated.action_local_animation:clone {
+    name = "action_shoot"
+}
 action_shoot1.local_animation   = model.ANIM_ATTACK1
 action_shoot1.cancellable = false
 
 -- convenience
 action_shoot = action_shoot1
 
-action_shoot2 = table.subclass(
-    entity_animated.action_local_animation,
-    nil, "action_shoot"
-)
+action_shoot2 = entity_animated.action_local_animation:clone {
+    name = "action_shoot"
+}
 action_shoot2.local_animation   = model.ANIM_ATTACK2
 action_shoot2.cancellable = false
 
-action_shoot3 = table.subclass(
-    entity_animated.action_local_animation,
-    nil, "action_shoot"
-)
+action_shoot3 = entity_animated.action_local_animation:clone {
+    name = "action_shoot"
+}
 action_shoot3.local_animation   = model.ANIM_ATTACK3
 action_shoot3.cancellable = false
 
-
-action_shoot2_repeating = table.subclass(
-    entity_animated.action_local_animation,
-    nil, "action_shoot"
-)
+action_shoot2_repeating = entity_animated.action_local_animation:clone {
+    name = "action_shoot"
+}
 action_shoot2_repeating.local_animation = math.bor(
     model.ANIM_ATTACK2,
     model.ANIM_LOOP
 )
 action_shoot2_repeating.cancellable = false
 
-action_out_of_ammo = table.subclass(
-    actions.Action,
-    nil, "action_out_of_ammo"
-)
+action_out_of_ammo = actions.Action:clone {
+    name = "action_out_of_ammo"
+}
 action_out_of_ammo.seconds_left       = 0.5
 action_out_of_ammo.cancellable        = false
 action_out_of_ammo.can_multiply_queue = false
 
 function action_out_of_ammo:start()
-    local player = entity_store.get_player_entity()
+    local player = ents.get_player()
 
     local message = player.out_of_ammo_msg or "(Out of ammo)"
     local color   = player.out_of_ammo_msg_color or 0xAA8833

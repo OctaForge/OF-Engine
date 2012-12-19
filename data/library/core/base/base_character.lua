@@ -104,7 +104,9 @@ PHYSICAL_STATE = {
     See Also:
         <player>
 ]]
-character = class.new(entity_animated.base_animated, {
+character = entity_animated.base_animated:clone {
+    name = "character",
+
     --[[!
         Variable: sauer_type
         The sauer type of the entity, fpsent
@@ -114,104 +116,104 @@ character = class.new(entity_animated.base_animated, {
 
     properties = {
         -- non-wrapped properties
-        _name        = state_variables.state_string (),
-        facing_speed = state_variables.state_integer(),
+        _name        = svars.State_String(),
+        facing_speed = svars.State_Integer(),
 
         -- wrapped C properties
-        movement_speed = state_variables.wrapped_c_float({
-            c_getter = "CAPI.getmaxspeed",
-            c_setter = "CAPI.setmaxspeed"
-        }),
-        yaw = state_variables.wrapped_c_float({
-            c_getter = "CAPI.getyaw",
-            c_setter = "CAPI.setyaw",
-            custom_synch = true
-        }),
-        pitch = state_variables.wrapped_c_float({
-            c_getter = "CAPI.getpitch",
-            c_setter = "CAPI.setpitch",
-            custom_synch = true
-        }),
-        move = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getmove",
-            c_setter = "CAPI.setmove",
-            custom_synch = true
-        }),
-        strafe = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getstrafe",
-            c_setter = "CAPI.setstrafe",
-            custom_synch = true
-        }),
-        yawing = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getyawing",
-            c_setter = "CAPI.setyawing",
-            custom_synch = true
-        }),
-        pitching = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getpitching",
-            c_setter = "CAPI.setpitching",
-            custom_synch = true
-        }),
-        position = state_variables.wrapped_c_vec3({
-            c_getter = "CAPI.getdynent0",
-            c_setter = "CAPI.setdynent0",
-            custom_synch = true
-        }),
-        velocity = state_variables.wrapped_c_vec3({
-            c_getter = "CAPI.getdynentvel",
-            c_setter = "CAPI.setdynentvel",
-            custom_synch = true
-        }),
-        falling = state_variables.wrapped_c_vec3({
-            c_getter = "CAPI.getdynentfalling",
-            c_setter = "CAPI.setdynentfalling",
-            custom_synch = true
-        }),
-        radius = state_variables.wrapped_c_float({
-            c_getter = "CAPI.getradius",
-            c_setter = "CAPI.setradius"
-        }),
-        above_eye = state_variables.wrapped_c_float({
-            c_getter = "CAPI.getaboveeye",
-            c_setter = "CAPI.setaboveeye"
-        }),
-        eye_height = state_variables.wrapped_c_float({
-            c_getter = "CAPI.geteyeheight",
-            c_setter = "CAPI.seteyeheight"
-        }),
-        blocked = state_variables.wrapped_c_bool({
-            c_getter = "CAPI.getblocked",
-            c_setter = "CAPI.setblocked"
-        }),
-        can_move = state_variables.wrapped_c_bool({
-            c_setter = "CAPI.setcanmove",
+        movement_speed = svars.State_Float {
+            getter = "CAPI.getmaxspeed",
+            setter = "CAPI.setmaxspeed"
+        },
+        yaw = svars.State_Float {
+            getter = "CAPI.getyaw",
+            setter = "CAPI.setyaw",
+            custom_sync = true
+        },
+        pitch = svars.State_Float {
+            getter = "CAPI.getpitch",
+            setter = "CAPI.setpitch",
+            custom_sync = true
+        },
+        move = svars.State_Integer {
+            getter = "CAPI.getmove",
+            setter = "CAPI.setmove",
+            custom_sync = true
+        },
+        strafe = svars.State_Integer {
+            getter = "CAPI.getstrafe",
+            setter = "CAPI.setstrafe",
+            custom_sync = true
+        },
+        yawing = svars.State_Integer {
+            getter = "CAPI.getyawing",
+            setter = "CAPI.setyawing",
+            custom_sync = true
+        },
+        pitching = svars.State_Integer {
+            getter = "CAPI.getpitching",
+            setter = "CAPI.setpitching",
+            custom_sync = true
+        },
+        position = svars.State_Vec3 {
+            getter = "CAPI.getdynent0",
+            setter = "CAPI.setdynent0",
+            custom_sync = true
+        },
+        velocity = svars.State_Vec3 {
+            getter = "CAPI.getdynentvel",
+            setter = "CAPI.setdynentvel",
+            custom_sync = true
+        },
+        falling = svars.State_Vec3 {
+            getter = "CAPI.getdynentfalling",
+            setter = "CAPI.setdynentfalling",
+            custom_sync = true
+        },
+        radius = svars.State_Float {
+            getter = "CAPI.getradius",
+            setter = "CAPI.setradius"
+        },
+        above_eye = svars.State_Float {
+            getter = "CAPI.getaboveeye",
+            setter = "CAPI.setaboveeye"
+        },
+        eye_height = svars.State_Float {
+            getter = "CAPI.geteyeheight",
+            setter = "CAPI.seteyeheight"
+        },
+        blocked = svars.State_Boolean {
+            getter = "CAPI.getblocked",
+            setter = "CAPI.setblocked"
+        },
+        can_move = svars.State_Boolean {
+            setter = "CAPI.setcanmove",
             client_set = true
-        }),
-        map_defined_position_data = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getmapdefinedposdata",
-            c_setter = "CAPI.setmapdefinedposdata",
-            custom_synch = true
-        }),
-        client_state = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getclientstate",
-            c_setter = "CAPI.setclientstate",
-            custom_synch = true
-        }),
-        physical_state = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getphysstate",
-            c_setter = "CAPI.setphysstate",
-            custom_synch = true
-        }),
-        in_water = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getinwater",
-            c_setter = "CAPI.setinwater",
-            custom_synch = true
-        }),
-        time_in_air = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.gettimeinair",
-            c_setter = "CAPI.settimeinair",
-            custom_synch = true
-        })
+        },
+        map_defined_position_data = svars.State_Integer {
+            getter = "CAPI.getmapdefinedposdata",
+            setter = "CAPI.setmapdefinedposdata",
+            custom_sync = true
+        },
+        client_state = svars.State_Integer {
+            getter = "CAPI.getclientstate",
+            setter = "CAPI.setclientstate",
+            custom_sync = true
+        },
+        physical_state = svars.State_Integer {
+            getter = "CAPI.getphysstate",
+            setter = "CAPI.setphysstate",
+            custom_sync = true
+        },
+        in_water = svars.State_Integer {
+            getter = "CAPI.getinwater",
+            setter = "CAPI.setinwater",
+            custom_sync = true
+        },
+        time_in_air = svars.State_Integer {
+            getter = "CAPI.gettimeinair",
+            setter = "CAPI.settimeinair",
+            custom_sync = true
+        }
     },
 
     --[[!
@@ -274,10 +276,9 @@ character = class.new(entity_animated.base_animated, {
 
         See Also:
             <base_animated.activate>
-            <client_activate>
             <init>
     ]]
-    activate = function(self, kwargs)
+    activate = SERVER and function(self, kwargs)
         log(DEBUG, "character:activate")
 
         -- client number is set when character gets activated
@@ -290,29 +291,11 @@ character = class.new(entity_animated.base_animated, {
 
         -- we activate parent and flush variable changes
         entity_animated.base_animated.activate(self, kwargs)
-        self:flush_queued_state_variable_changes()
+        self:flush_queued_svar_changes()
 
         log(DEBUG, "character:activate complete.")
-    end,
-
-    --[[!
-        Function: client_activate
-        This is clientside activator. It's called when
-        entity is almost ready. Kwargs listed here are the ones
-        that are specific to this class.
-
-        Parameters:
-            kwargs - additional parameters.
-
-        Kwargs:
-            cn - Client number. Passed automatically.
-
-        See Also:
-            <base_client.client_activate>
-            <activate>
-    ]]
-    client_activate = function(self, kwargs)
-        entity_animated.base_animated.client_activate(self, kwargs)
+    end or function(self, kwargs)
+        entity_animated.base_animated.activate(self, kwargs)
 
         -- we assert the client number on client as well
         self.cn = kwargs and kwargs.cn or -1
@@ -334,19 +317,7 @@ character = class.new(entity_animated.base_animated, {
     end,
 
     --[[!
-        Function: client_deactivate
-        This is clientside deactivator.
-        Ran when the entity is about to vanish.
-    ]]
-    client_deactivate = function(self)
-        -- we dismantle client-side character
-        -- and call parent deactivation
-        CAPI.dismantlecharacter(self)
-        entity_animated.base_animated.client_deactivate(self)
-    end,
-
-    --[[!
-        Function: act
+        Function: run
         This is a function ran serverside every frame.
 
         Parameters:
@@ -355,16 +326,16 @@ character = class.new(entity_animated.base_animated, {
         See Also:
             <default_action>
     ]]
-    act = function(self, seconds)
+    run = SERVER and function(self, seconds)
         -- if we're empty, we run default_action, which
         -- does nothing by default (but can be overriden)
         if #self.action_system:get() == 0 then
             self:default_action(seconds)
         else
-            -- otherwise we act on parent
-            entity_animated.base_animated.act(self, seconds)
+            -- otherwise we run on parent
+            entity_animated.base_animated.run(self, seconds)
         end
-    end,
+    end or nil,
 
     --[[!
         Function: default_action
@@ -382,7 +353,7 @@ character = class.new(entity_animated.base_animated, {
     end,
 
     --[[!
-        Function: render_dynamic
+        Function: render
         Clientside function ran every frame. It takes care of
         actually rendering the character model.
         It does computation of parameters, but caches them
@@ -396,7 +367,7 @@ character = class.new(entity_animated.base_animated, {
             needhud - true if model should be shown as HUD model
             (== we're in first person)
     ]]
-    render_dynamic = function(self, hudpass, needhud)
+    render = function(self, hudpass, needhud)
         -- just return if we're not yet initialized or shouldn't render
         if not self.initialized    then return nil end
         if not hudpass and needhud then return nil end
@@ -480,7 +451,7 @@ character = class.new(entity_animated.base_animated, {
 
     --[[!
         Function: get_rendering_flags
-        This function is used by <render_dynamic> to get model rendering flags.
+        This function is used by <render> to get model rendering flags.
         By default, it enables some occlusion and dynamic shadow.
         It as well enables some HUD-specific flags for HUD models.
 
@@ -493,13 +464,13 @@ character = class.new(entity_animated.base_animated, {
             Resulting rendering flags.
 
         See Also:
-            <render_dynamic>
+            <render>
     ]]
     get_rendering_flags = function(self, hudpass, needhud)
         local flags = model.FULLBRIGHT
 
         -- for non-player, we add some culling flags
-        if self ~= entity_store.get_player_entity() then
+        if self ~= ents.get_player() then
             flags = math.bor(
                 flags,
                 model.CULL_VFC,
@@ -514,7 +485,7 @@ character = class.new(entity_animated.base_animated, {
 
     --[[!
         Function: decide_animation
-        This function is used by <render_dynamic>
+        This function is used by <render>
         to get current model animation. This is guessed
         from values like strafe, move, in_water etc.
 
@@ -534,7 +505,7 @@ character = class.new(entity_animated.base_animated, {
             Resulting animation.
 
         See Also:
-            <render_dynamic>
+            <render>
     ]]
     decide_animation = function(
         self, state, pstate,
@@ -706,8 +677,12 @@ character = class.new(entity_animated.base_animated, {
     ]]
     get_targeting_origin = function(self, origin)
         return origin
+    end,
+
+    is_editing = function(self)
+        return self.client_state == 4
     end
-}, "character")
+}
 
 --[[!
     Class: player
@@ -725,10 +700,12 @@ character = class.new(entity_animated.base_animated, {
     See Also:
         <character>
 ]]
-player = class.new(character, {
+player = character:clone {
+    name = "player",
+
     properties = {
-        can_edit = state_variables.state_bool(),
-        hud_model_name = state_variables.state_string()
+        can_edit = svars.State_Boolean(),
+        hud_model_name = svars.State_String()
     },
 
     --[[!
@@ -751,7 +728,7 @@ player = class.new(character, {
         self.can_edit       = false
         self.hud_model_name = ""
     end
-}, "player")
+}
 
-entity_classes.register(character, "fpsent")
-entity_classes.register(player, "fpsent")
+ents.register_class(character)
+ents.register_class(player)

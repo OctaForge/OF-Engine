@@ -31,29 +31,31 @@ module("entity_animated", package.seeall)
         model_name - path to model assigned to this entity.
         attachments - model attachments for the entity.
 ]]
-base_animated = class.new(entity.base, {
+base_animated = ents.Entity:clone {
+    name = "base_animated",
+
     properties = {
-        animation      = state_variables.wrapped_c_integer({
-            c_setter   = "CAPI.setanim",
+        animation = svars.State_Integer {
+            setter = "CAPI.setanim",
             client_set = true
-        }),
-        start_time     = state_variables.wrapped_c_integer({
-            c_getter   = "CAPI.getstarttime"
-        }),
-        model_name     = state_variables.wrapped_c_string({
-            c_setter   = "CAPI.setmodelname"
-        }),
-        attachments    = state_variables.wrapped_c_array({
-            c_setter   = "CAPI.setattachments"
-        })
+        },
+        start_time = svars.State_Integer {
+            getter = "CAPI.getstarttime"
+        },
+        model_name = svars.State_String {
+            setter = "CAPI.setmodelname"
+        },
+        attachments = svars.State_Array {
+            setter  = "CAPI.setattachments"
+        }
     },
 
     --! Function: init
     --! See <base_server.init>.
     init = function(self, uid, kwargs)
         -- just in case
-        if  entity.base.init then
-            entity.base.init(self, uid, kwargs)
+        if  ents.Entity.init then
+            ents.Entity.init(self, uid, kwargs)
         end
 
         self._attachments_dict = {}
@@ -67,17 +69,17 @@ base_animated = class.new(entity.base, {
     --! See <base_server.activate>.
     --!
     --! Note: Queues model_name property for updating.
-    activate = function(self, kwargs)
+    activate = SERVER and function(self, kwargs)
         -- call parent
         log(DEBUG, "base:activate")
-        entity.base.activate(self, kwargs)
+        ents.Entity.activate(self, kwargs)
 
         -- queue model_name for updating
         log(DEBUG, "base:activate (2)")
         self.model_name = self.model_name
 
         log(DEBUG, "base:activate complete")
-    end,
+    end or nil,
 
     --[[!
         Function: set_attachment
@@ -122,7 +124,7 @@ base_animated = class.new(entity.base, {
     set_local_animation = function(self, animation)
         CAPI.setanim(self, animation)
         -- store value so reading of self.animation returns the value
-        self.state_variable_values["animation"] = animation
+        self.svar_values["animation"] = animation
     end,
 
 
@@ -135,26 +137,26 @@ base_animated = class.new(entity.base, {
     ]]
     set_local_model_name = function(self, model_name)
         CAPI.setmodelname(self, model_name)
-        self.state_variable_values["model_name"] = model_name
+        self.svar_values["model_name"] = model_name
     end,
 
     --[[!
-        Function: general_setup
+        Function: setup
         Overriden general setup method. Calls the parent and defines
         new "center" getter (see <get_center>).
     ]]
-    general_setup = function(self)
-        entity.base.general_setup(self)
+    setup = function(self)
+        ents.Entity.setup(self)
         self:define_getter("center", self.get_center)
     end,
 
     --[[!
         Function: get_center
         See <character.get_center>. This method is empty here,
-        used just for the new getter done in <general_setup> work.
+        used just for the new getter done in <setup> work.
     ]]
     get_center = function(self) end
-}, "base_animated")
+}
 
 --[[!
     Class: action_local_animation
@@ -162,7 +164,9 @@ base_animated = class.new(entity.base, {
     on finish. Useful for inheriting (some actions in <firing> and <health>
     do that). Inherits from <action>.
 ]]
-action_local_animation = table.subclass(actions.Action, {
+action_local_animation = actions.Action:clone {
+    name = "action_local_animation",
+
     --[[!
         Function: start
         See <action.start>. This overriden method saves
@@ -182,4 +186,4 @@ action_local_animation = table.subclass(actions.Action, {
             self.actor:set_local_animation(self.old_animation)
         end
     end
-}, "action_local_animation")
+}

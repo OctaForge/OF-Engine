@@ -72,11 +72,11 @@ return {
         Executed per frame from C++. It handles the current frame, meaning
         it first flushes the global action queue (see <queue_global_action>),
         then updates all the required timing vars (<get_frame>, <get_time>,
-        <get_frame_time>, <get_last_millis>) and then acts on all available
+        <get_frame_time>, <get_last_millis>) and then runs on all available
         activated entities.
     ]]
     handle_frame = function(seconds, lastmillis)
-        local get_ents = entity_store.get_all
+        local get_ents = ents.get_all
 
         log(INFO, "frame.handle_frame: New frame")
 
@@ -94,16 +94,12 @@ return {
         for uid, entity in pairs(get_ents()) do
             local skip = false
 
-            if entity.deactivated or not entity.should_act then
+            if entity.deactivated or not entity.per_frame then
                 skip = true
             end
 
             if not skip then
-                if CLIENT then
-                    entity.client_act(entity, seconds)
-                else
-                    entity.act(entity, seconds)
-                end
+                entity:run(seconds)
             end
         end
     end,

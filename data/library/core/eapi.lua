@@ -45,6 +45,11 @@ if CLIENT then ffi.cdef [[
     void base_reset_renderer();
     void base_reset_sound   ();
 
+    void *base_gl_get_proc_address(const char *proc);
+
+    void base_shader_notexture_set();
+    void base_shader_default_set  ();
+
     enum {
         BASE_CHANGE_GFX   = 1 << 0,
         BASE_CHANGE_SOUND = 1 << 1
@@ -52,11 +57,26 @@ if CLIENT then ffi.cdef [[
 ]] end
 
 ffi.cdef [[
+    /* zlib compression */
+
+    ulong zlib_compress_bound(ulong src_len);
+
+    int zlib_compress(uchar *dest, ulong *dest_len, const uchar *src,
+        ulong src_len, int level);
+
+    int zlib_uncompress(uchar *dest, ulong *dest_len, const uchar *src,
+        ulong src_len);
+
     enum {
-        VAR_N = -1,
         VAR_I =  0,
         VAR_F =  1,
         VAR_S =  2
+    };
+
+    enum {
+        VAR_PERSIST   = 1 << 0,
+        VAR_OVERRIDE  = 1 << 1,
+        VAR_HEX       = 1 << 2
     };
 
     void var_reset(const char *name);
@@ -64,6 +84,14 @@ ffi.cdef [[
     void var_new_i(const char *name, int value);
     void var_new_f(const char *name, float value);
     void var_new_s(const char *name, const char *value);
+
+    void var_new_i_full(const char *name, int min, int def, int max,
+        int flags);
+
+    void var_new_f_full(const char *name, float min, float def, float max,
+        int flags);
+
+    void var_new_s_full(const char *name, const char *def, int flags);
 
     void var_set_i(const char *name, int value);
     void var_set_f(const char *name, float value);
@@ -79,11 +107,17 @@ ffi.cdef [[
     int   var_get_max_i(const char *name);
     float var_get_max_f(const char *name);
 
+    int         var_get_def_i(const char *name);
+    float       var_get_def_f(const char *name);
+    const char *var_get_def_s(const char *name);
+
     int var_get_type(const char *name);
 
-    bool var_exists      (const char *name);
-    bool var_persist_vars(bool persist);
-    bool var_is_alias    (const char *name);
+    bool var_exists   (const char *name);
+    bool var_is_alias (const char *name);
+    bool var_is_hex   (const char *name);
+    bool var_emits    (const char *name);
+    void var_emits_set(const char *name, bool v);
 
     bool var_changed();
     void var_changed_set(bool ch);
@@ -261,6 +295,9 @@ if CLIENT then ffi.cdef [[
 
     /* GUI */
 
+    bool gui_mainmenu;
+    void gui_set_mainmenu(bool v);
+
     void gui_text_bounds  (const char *str, int   &w, int   &h, int maxw);
     void gui_text_bounds_f(const char *str, float &w, float &h, int maxw);
 
@@ -270,32 +307,61 @@ if CLIENT then ffi.cdef [[
 
     int gui_text_visible(const char *str, float hitx, float hity, int maxw);
 
-    enum {
-        GUI_POINTS         = 0x0000,
-        GUI_LINES          = 0x0001,
-        GUI_LINE_LOOP      = 0x0002,
-        GUI_LINE_STRIP     = 0x0003,
-        GUI_TRIANGLES      = 0x0004,
-        GUI_TRIANGLE_STRIP = 0x0005,
-        GUI_TRIANGLE_FAN   = 0x0006,
-        GUI_QUADS          = 0x0007,
-        GUI_QUAD_STRIP     = 0x0008,
-        GUI_POLYGON        = 0x0009
-    };
-
-    void gui_draw_primitive(uint mode, int r, int g, int b, int a, bool mod,
-        size_t nv, ...);
-
     void gui_draw_text(const char *str, int left, int top,
         int r, int g, int b, int a, int cur, int maxw);
 
-    /* Low level OpenGL calls */
+    /* Deprecated GUI stuff */
 
-    void gl_push_matrix();
-    void gl_pop_matrix ();
+    void gui_font(const char *name, const char *text, int dw, int dh);
+    void gui_font_offset(const char *c);
+    void gui_font_tex(const char *t);
+    void gui_font_scale(int s);
+    void gui_font_char(int x, int y, int w, int h, int ox, int oy, int adv);
+    void gui_font_skip(int n);
+    void gui_font_alias(const char *dst, const char *src);
 
-    void gl_translate_f(float x, float y, float z);
-    void gl_scale_f    (float x, float y, float z);
+    /* OpenGL types */
+
+    typedef unsigned int GLenum;
+    typedef unsigned char GLboolean;
+    typedef unsigned int GLbitfield;
+    typedef signed char GLbyte;
+    typedef short GLshort;
+    typedef int GLint;
+    typedef int GLsizei;
+    typedef unsigned char GLubyte;
+    typedef unsigned short GLushort;
+    typedef unsigned int GLuint;
+    typedef float GLfloat;
+    typedef float GLclampf;
+    typedef double GLdouble;
+    typedef double GLclampd;
+    typedef void GLvoid;
+    typedef long GLintptr;
+    typedef long GLsizeiptr;
+    typedef char GLchar;
+    typedef char GLcharARB;
+    typedef void *GLhandleARB;
+    typedef long GLintptrARB;
+    typedef long GLsizeiptrARB;
+    typedef unsigned short GLhalfARB;
+    typedef unsigned short GLhalf;
+
+    /* Textures */
+
+    typedef struct Texture {
+        char *name;
+        int type, w, h, xs, ys, bpp, clamp;
+        bool mipmap, canreduce;
+        GLuint id;
+        uchar *alphamask;
+    } Texture;
+
+    Texture *texture_load(const char *path);
+    Texture *texture_get_notexture();
+    void     texture_load_alpha_mask(Texture *tex);
 ]] end
+
+nullptr = ffi.cast("void*", nil)
 
 return ffi.C

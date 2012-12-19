@@ -43,7 +43,7 @@ local __MODULAR_PREFIX = "__MODULAR_"
     Parameters:
         _class - the class to merge plugins into.
         plugins - array of plugins to bake in.
-        name - name of the new class (see <class.new>).
+        name - name of the new class.
 
     Returns:
         A new class with the items baked inside.
@@ -63,22 +63,17 @@ function bake(_class, plugins, name)
         Items:
             init
             activate
-            client_activate
             deactivate
-            client_deactivate
             act
             client_act
-            render_dynamic
+            render
     ]]
     local slots = {
         "init",
         "activate",
-        "client_activate",
         "deactivate",
-        "client_deactivate",
-        "act",
-        "client_act",
-        "render_dynamic"
+        "run",
+        "render"
     }
 
     for i, slot in pairs(slots) do
@@ -127,7 +122,8 @@ function bake(_class, plugins, name)
         end
     end
 
-    local newclass = class.new(_class, cldata, name)
+    local newclass = _class:clone(cldata)
+    newclass.name = name
     newclass.properties = properties
 
     return newclass

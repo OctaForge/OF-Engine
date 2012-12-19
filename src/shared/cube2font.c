@@ -308,40 +308,40 @@ void writecfg(const char *name, struct fontchar *chars, int numchars, int x1, in
     FILE *f;
     char file[256];
     int i, lastcode = 0, lasttex = 0;
-    snprintf(file, sizeof(file), "%s.cfg", name);
+    snprintf(file, sizeof(file), "%s.lua", name);
     f = fopen(file, "w");
     if(!f) fatal("cube2font: failed writing %s", file);
     printf("cube2font: writing %d chars to %s\n", numchars, file);
-    fprintf(f, "//");
+    fprintf(f, "--");
     for(i = 1; i < argc; i++)
         fprintf(f, " %s", argv[i]);
     fprintf(f, "\n");
-    fprintf(f, "font \"%s\" \"%s\" %d %d\n", name, texname(name, 0), sw, sh);
+    fprintf(f, "gui.font(\"%s\", \"%s\", %d, %d)\n", name, texname(name, 0), sw, sh);
     for(i = 0; i < numchars; i++)
     {
         struct fontchar *c = &chars[i];
         if(!lastcode && lastcode < c->code)
         {
-            fprintf(f, "fontoffset \"%s\"\n", encodeutf8(c->uni));
+            fprintf(f, "gui.font_offset \"%s\"\n", encodeutf8(c->uni));
             lastcode = c->code;
         }
         else if(lastcode < c->code)
         {
             if(lastcode + 1 == c->code)
-                fprintf(f, "fontskip // %d\n", lastcode);
+                fprintf(f, "gui.font_skip() -- %d\n", lastcode);
             else
-                fprintf(f, "fontskip %d // %d .. %d\n", c->code - lastcode, lastcode, c->code-1);
+                fprintf(f, "gui.font_skip(%d) -- %d .. %d\n", c->code - lastcode, lastcode, c->code-1);
             lastcode = c->code;
         }
         if(lasttex != c->tex)
         {
-            fprintf(f, "\nfonttex \"%s\"\n", texname(name, c->tex));
+            fprintf(f, "\ngui.font_tex \"%s\"\n", texname(name, c->tex));
             lasttex = c->tex;
         }
         if(c->code != c->uni)
-            fprintf(f, "fontchar %d %d %d %d %d %d %d // %s (%d -> 0x%X)\n", c->x, c->y, c->w, c->h, c->offx+c->offset, y2-c->offy, c->advance, encodeutf8(c->uni), c->code, c->uni);
+            fprintf(f, "gui.font_char(%d, %d, %d, %d, %d, %d, %d) -- %s (%d -> 0x%X)\n", c->x, c->y, c->w, c->h, c->offx+c->offset, y2-c->offy, c->advance, encodeutf8(c->uni), c->code, c->uni);
         else
-            fprintf(f, "fontchar %d %d %d %d %d %d %d // %s (%d)\n", c->x, c->y, c->w, c->h, c->offx+c->offset, y2-c->offy, c->advance, encodeutf8(c->uni), c->code);
+            fprintf(f, "gui.font_char(%d, %d, %d, %d, %d, %d, %d) -- %s (%d)\n", c->x, c->y, c->w, c->h, c->offx+c->offset, y2-c->offy, c->advance, encodeutf8(c->uni), c->code);
         lastcode++;
     }
     fclose(f);

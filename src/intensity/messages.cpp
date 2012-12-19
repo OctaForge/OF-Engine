@@ -979,7 +979,7 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.get_buf());
-        entity->lua_ref.get<lua::Function>("update_complete_state_data")(entity->lua_ref, stateData);
+        lapi::state.get<lua::Function>("LAPI", "World", "Entity", "update_complete_state_data")(entity->lua_ref, stateData);
         #ifdef CLIENT
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)

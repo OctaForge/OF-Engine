@@ -23,7 +23,7 @@ library.include("guns.rocket_launcher")
 library.include("weather_effects")
 
 -- default skybox
-EVAR.skybox = "textures/sky/remus/sky01"
+EV.skybox = "textures/sky/remus/sky01"
 
 -- use drawing mode on empty map
 library.include("mapscripts.drawing")
@@ -55,7 +55,7 @@ entity_classes.register(plugins.bake(
 
 -- this function will run on server only (condition inside it)
 -- it loads the entities into server storage and sends to clients
-entity_store.load_entities()
+ents.load()
 
 -- enable for bot player
 --if SERVER then

@@ -71,7 +71,8 @@ SVARP(connectname, "");
 VARP(connectport, 0, 0, 0xFFFF);
 
 void connectserv(const char *servername, int serverport, const char *serverpassword)
-{   
+{
+#ifdef CLIENT
     if(connpeer)
     {
         conoutf("aborting connection attempt");
@@ -113,6 +114,7 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
         connattempts = 0;
     }
     else conoutf("\f3could not connect to server");
+#endif
 }
 
 void disconnect(bool async, bool cleanup)
@@ -134,7 +136,9 @@ void disconnect(bool async, bool cleanup)
         discmillis = 0;
         conoutf("disconnected");
         game::gamedisconnect(cleanup);
-        gui::mainmenu = 1;
+#ifdef CLIENT
+        gui_mainmenu = true;
+#endif
     }
     if(!connpeer && clienthost)
     {

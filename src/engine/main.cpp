@@ -82,7 +82,8 @@ bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level) 
     {
-        addchange(desc, type);
+        lapi::state.get<lua::Function>("external", "change_add")
+            (desc, type);
         return true;
     }
     return false;
@@ -108,20 +109,20 @@ void writeinitcfg()
     if(!f) return;
     f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
     extern int fullscreen, shaderprecision, glineardepth, sound, soundchans, soundfreq, soundbufferlen;
-    f->printf("EVAR.fullscreen = %d\n", fullscreen);
-    f->printf("EVAR.scr_w = %d\n", scr_w);
-    f->printf("EVAR.scr_h = %d\n", scr_h);
-    f->printf("EVAR.colorbits = %d\n", colorbits);
-    f->printf("EVAR.depthbits = %d\n", depthbits);
-    f->printf("EVAR.stencilbits = %d\n", stencilbits);
-    f->printf("EVAR.fsaa = %d\n", fsaa);
-    f->printf("EVAR.vsync = %d\n", vsync);
-    f->printf("EVAR.shaderprecision = %d\n", shaderprecision);
-    f->printf("EVAR.glineardepth = %d\n", glineardepth);
-    f->printf("EVAR.sound = %d\n", sound);
-    f->printf("EVAR.soundchans = %d\n", soundchans);
-    f->printf("EVAR.soundfreq = %d\n", soundfreq);
-    f->printf("EVAR.soundbufferlen = %d\n", soundbufferlen);
+    f->printf("EV.fullscreen = %d\n", fullscreen);
+    f->printf("EV.scr_w = %d\n", scr_w);
+    f->printf("EV.scr_h = %d\n", scr_h);
+    f->printf("EV.colorbits = %d\n", colorbits);
+    f->printf("EV.depthbits = %d\n", depthbits);
+    f->printf("EV.stencilbits = %d\n", stencilbits);
+    f->printf("EV.fsaa = %d\n", fsaa);
+    f->printf("EV.vsync = %d\n", vsync);
+    f->printf("EV.shaderprecision = %d\n", shaderprecision);
+    f->printf("EV.glineardepth = %d\n", glineardepth);
+    f->printf("EV.sound = %d\n", sound);
+    f->printf("EV.soundchans = %d\n", soundchans);
+    f->printf("EV.soundfreq = %d\n", soundfreq);
+    f->printf("EV.soundbufferlen = %d\n", soundbufferlen);
     delete f;
 }
 
@@ -172,7 +173,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     static int numdecals = 0;
     static struct decal { float x, y, size; int side; } decals[12];
 #endif
-    if((renderedframe && !gui::mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
+    if((renderedframe && !gui_mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
     {
         lastupdate = lastmillis;
         lastw = w;
@@ -706,8 +707,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
 
 void resetgl()
 {
-    clearchanges(CHANGE_GFX);
-
+    lapi::state.get<lua::Function>("external", "changes_clear")((int)CHANGE_GFX);
     renderbackground("resetting OpenGL");
 
     extern void cleanupva();
@@ -909,7 +909,12 @@ void checkinput()
                 {
                     int dx = event.motion.xrel, dy = event.motion.yrel;
                     checkmousemotion(dx, dy);
-                    if(!gui::movecursor(dx, dy) && !gui::hascursor()) mousemove(dx, dy);
+
+                    bool b1 = lapi::state.get<lua::Function>("external", "cursor_move").call<bool>(dx, dy);
+                    bool b2 = lapi::state.get<lua::Function>("external", "cursor_exists").call<bool>();
+
+                    if(!b1 && !b2)
+                        mousemove(dx, dy);
                     mousemoved = true;
                 }
                 break;
@@ -947,7 +952,7 @@ VARP(maxfps, 0, 200, 1000);
 
 void limitfps(int &millis, int curmillis)
 {
-    int limit = gui::mainmenu && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
+    int limit = gui_mainmenu && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
     if(!limit) return;
     static int fpserror = 0;
     int delay = 1000/limit - (millis-curmillis);
@@ -1207,7 +1212,8 @@ int main(int argc, char **argv)
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
     notexture = textureload("data/textures/core/notexture.png");
     if(!notexture) fatal("could not find core textures");
-    gui::setup();
+
+    lapi::state.get<lua::Function>("external", "gl_init")();
 
     initlog("console");
     varsys::persistvars = false;
@@ -1237,10 +1243,18 @@ int main(int argc, char **argv)
 
     initlog("cfg");
 
-    lapi::state.do_file("data/cfg/keymap.lua", lua::ERROR_EXIT_TRACEBACK);
-    lapi::state.do_file("data/cfg/sounds.lua", lua::ERROR_EXIT_TRACEBACK);
-    lapi::state.do_file("data/cfg/menus.lua",  lua::ERROR_EXIT_TRACEBACK);
-    lapi::state.do_file("data/cfg/brush.lua",  lua::ERROR_EXIT_TRACEBACK);
+    err = lapi::state.do_file("data/cfg/keymap.lua", lua::ERROR_EXIT_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    err = lapi::state.do_file("data/cfg/sounds.lua", lua::ERROR_EXIT_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    err = lapi::state.do_file("data/cfg/menus.lua" , lua::ERROR_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    err = lapi::state.do_file("data/cfg/brush.lua",  lua::ERROR_EXIT_TRACEBACK);
+    if (types::get<0>(err))
+        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     err = lapi::state.do_file("mybrushes.lua", lua::ERROR_TRACEBACK);
     if (types::get<0>(err))
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));
@@ -1326,7 +1340,7 @@ int main(int argc, char **argv)
         updatetime();
 
         checkinput();
-        gui::update();
+        lapi::state.get<lua::Function>("external", "frame_start")();
         tryedit();
 
         if(lastmillis) game::updateworld();
@@ -1343,11 +1357,11 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        if(!gui::mainmenu && ClientSystem::scenarioStarted()) gl_setupframe(screen->w, screen->h);
+        if(!gui_mainmenu && ClientSystem::scenarioStarted()) gl_setupframe(screen->w, screen->h);
 
         inbetweenframes = false;
 
-        if(gui::mainmenu) gl_drawmainmenu(screen->w, screen->h);
+        if(gui_mainmenu) gl_drawmainmenu(screen->w, screen->h);
         else
         {
             // INTENSITY: If we have all the data we need from the server to run the game, then we can actually draw

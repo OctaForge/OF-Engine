@@ -13,5 +13,8 @@
         OctaForge standard library loader (Entity system).
 ]]
 
---log(DEBUG, ":::: State variables.")
---svars = require("std.events.svars")
+log(DEBUG, ":::: State variables.")
+svars = require("std.entities.svars")
+
+log(DEBUG, ":::: Entities.")
+ents = require("std.entities.ents")

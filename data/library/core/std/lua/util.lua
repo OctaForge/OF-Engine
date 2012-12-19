@@ -21,8 +21,11 @@ return {
     match = function(val, ...)
         for k, v in pairs({ ... }) do
             if val == v then
-                return true end end
-        return false end,
+                return true
+            end
+        end
+        return false
+    end,
 
     --[[! Function: switch
         Implements switch, a type of conditional statement known from various
@@ -47,22 +50,42 @@ return {
             if type(t) ~= "table" then
                 return (expr == t)
             else for k, v in pairs(t) do
-                if v == expr then return true end end end
-            return false end
+                if v == expr then
+                    return true
+                end
+            end end
+            return false
+        end
 
         for k, v in pairs({ ... }) do
             if not v[1] or m(expr, v[1]) then
-                return v[2]() end end end,
+                return v[2]()
+            end
+        end
+    end,
 
     --[[! Function: case
         Helper function for <switch>.
     ]]
     case = function(val, fun)
-        return { val, fun } end,
+        return { val, fun }
+    end,
 
     --[[! Function: default
         Helper function for <switch>.
     ]]
     default = function(fun)
-        return { nil, fun } end
+        return { nil, fun }
+    end,
+
+    --[[! Function: assert_param
+        Performs function parameter assertion. Takes the parameter, the type
+        it should be and its number. Returns the value.
+    ]]
+    assert_param = function(val, t, n)
+        local at = type(val)
+        if    at ~= t then
+            error(("bad argument #%d (%s expected, got %s)"):format(n, t, at))
+        end
+    end
 }

@@ -1,87 +1,20 @@
-Authors:
-
-**********************
-* Creative Commons 0 *
-**********************
-
-Kubuntiac:
-----------
-
-ball1.png
-
-T7g:
-----
-
-base.png
-
-quaker66:
----------
-
-scorch.png
-
-***********************************
-* Creative Commons BY Share-Alike *
-***********************************
-
-kripken - Syntensity:
----------------------
-
-blob.png
-circle.png
-
-q009 - Sauerbraten Enhanced:
-----------------------------
-
-beam.png
-blood.png
-bubble.jpg
-decal.png
-explode.png
-flame1.png
-flame2.png
-flame3.png
-flame4.png
-flare.png
-glow.png
-lightflare.png
-muzzleflash1.jpg
-muzzleflash2.jpg
-muzzleflash3.jpg
-muzzleflash4a.jpg
-muzzleflash4b.jpg
-muzzleflash4.jpg
-rain.png
-smoke.png
-snow.png
-spark.png
-steam.png
-smoketrail.png
-
-******************************
-* GNU General Public License *
-******************************
-
-OpenArena:
-----------
-
-bullet.png
-
-*****************
-* Public domain *
-*****************
-
-baby-rabbit:
-------------
-
-lensflares.png
-flames.png
-
-RaZgRiZ - Sauerbraten:
-----------------------
-
-explosion.png
-
-quin - Sauerbraten:
--------------------
-
-lightning.jpg
+ball1.png -
+ball2.png -
+ball3.png -
+base.png - CC-0 by T7g
+blob.png - CC-BY-SA by kripken
+blood.png - "Feel free to edit, claim it's yours, use it in own projects" by FischKopF (http://www.quadropolis.us/node/2693)
+bullet.png -
+explosion.png - CC-BY by RaZgRiZ
+flames.png - CC-BY by RaZgRiZ
+flare.png - CC-BY by RaZgRiZ
+lensflares.png - public domain by baby-rabbit
+lightning.png - CC-BY by RaZgRiZ
+muzzleflash1.png - CC-BY-SA by q009
+muzzleflash2.png - CC-BY-SA by q009
+muzzleflash3.png - CC-BY-SA by q009
+scorch.png - CC-0 by q66
+smoke.png - CC-BY by RaZgRiZ
+snow.png - CC-BY-SA by Kevin "Hirato Kirata" Meyer
+spark.png - CC-BY-SA by q009
+steam.png - CC-BY-SA by q009

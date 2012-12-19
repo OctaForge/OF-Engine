@@ -9,6 +9,9 @@ static int fontdeftex = 0;
 font *curfont = NULL;
 int curfonttex = 0;
 
+VAR(fonth, 512, 0, 0);
+VAR(fontw, 512, 0, 0);
+
 void newfont(const char *name, const char *tex, int defaultw, int defaulth)
 {
     font *f = &fonts[name];

@@ -52,11 +52,14 @@ math.band = bit.band
 math.bnot = bit.bnot
 
 --[[! Function: math.round
-    Rounds a given number and returns it. Globally available.
+    Rounds a given number and returns it. Globally available. The second
+    argument can be used to specify the number of places past the floating
+    point, defaulting to 0 (rounding to integers).
 ]]
-math.round = function(v)
+math.round = function(v, d)
+    local m = 10 ^ (d or 0)
     return (type(v) == "number"
-        and math.floor(v + 0.5)
+        and math.floor(v * m + 0.5) / m
         or nil
     )
 end
@@ -269,7 +272,9 @@ end
         echo(a.x)
     (end)
 ]]
-math.Vec3 = table.classify({
+math.Vec3 = table.Object:clone {
+    name = "Vec3",
+
     --[[! Constructor: __init
         Constructs the vector. Besides self, there can be either one more
         argument, which then has to be either another vector or associative
@@ -296,12 +301,17 @@ math.Vec3 = table.classify({
             self.y = y or 0
             self.z = z or 0
         end
+
+        self.__add = self.add_new
+        self.__sub = self.sub_new
+        self.__mul = self.mul_new
+        self.__len = self.length
     end,
 
-    --[[! Function: __tostring
+    --[[! Function: __inst_tostring
         Causes tostring(some_vec) result in "Vec3 <x, y, z>".
     ]]
-    __tostring = function(self)
+    __inst_tostring = function(self)
         return string.format(
             "%s <%s, %s, %s>",
              self.name,
@@ -520,7 +530,7 @@ math.Vec3 = table.classify({
     is_zero = function(self)
         return (self.x == 0 and self.y == 0 and self.z == 0)
     end
-}, "Vec3")
+}
 
 --[[! Class: math.Vec4
     A standard 4 component vector with x, y, z components.
@@ -532,7 +542,9 @@ math.Vec3 = table.classify({
         echo(a.x)
     (end)
 ]]
-math.Vec4 = table.subclass(math.Vec3, {
+math.Vec4 = math.Vec3:clone {
+    name = "Vec4",
+
     __init = function(self, x, y, z, w)
         if type(x) == "table" then
             if (x.is_a and x:is_a(math.Vec4)) or
@@ -559,9 +571,14 @@ math.Vec4 = table.subclass(math.Vec3, {
             self.z = z or 0
             self.w = w or 0
         end
+
+        self.__add = self.add_new
+        self.__sub = self.sub_new
+        self.__mul = self.mul_new
+        self.__len = self.length
     end,
 
-    __tostring = function(self)
+    __inst_tostring = function(self)
         return string.format(
             "%s <%s, %s, %s, %s>",
              self.name,
@@ -660,4 +677,4 @@ math.Vec4 = table.subclass(math.Vec3, {
     is_zero = function(self)
         return (self.x == 0 and self.y == 0 and self.z == 0 and self.w == 0)
     end
-}, "Vec4")
+}

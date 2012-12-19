@@ -31,4 +31,4 @@ library.include("events")
 log(DEBUG, ":: Health.")
 library.include("health")
 
-EVAR.uwambient = 1
+EV.uwambient = 1

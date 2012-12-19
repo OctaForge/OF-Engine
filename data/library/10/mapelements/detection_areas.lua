@@ -18,7 +18,7 @@ function check(position, tag)
         return false
     end
 
-    local entities = entity_store.get_all_by_tag(tag)
+    local entities = ents.get_by_tag(tag)
     if   #entities == 0 then
         return false
     end
@@ -32,4 +32,4 @@ function check(position, tag)
     return false
 end
 
-entity_classes.register(plugins.bake(entity_static.area_trigger, { plugin }, "detection_area"), "mapmodel")
+ents.register_class(plugins.bake(entity_static.area_trigger, { plugin }, "detection_area"))

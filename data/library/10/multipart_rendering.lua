@@ -1,10 +1,11 @@
 module("multipart_rendering", package.seeall)
 
 plugin = {
-    client_activate = function(self)
+    activate = function(self)
+        if not CLIENT then return nil end
         self.rendering_args_timestamp = -2
 
-        self.render_dynamic = function(...)
+        self.render = function(...)
             if not self.initialized then
                 return nil
             end

@@ -11,20 +11,20 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
     local entities
     if serverside then
         if CLIENT then
-            entities = { entity_store.get_player_entity() }
+            entities = { ents.get_player() }
         else
-            entities = entity_store.get_all_close(position, { max_distance = max_dist })
+            entities = ents.get_by_distance(position, { max_distance = max_dist })
             entities = table.map   (entities, function(pair) return pair[1] end)
             entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
     else
         entities = {}
-        if owner == entity_store.get_player_entity() then
-            entities = entity_store.get_all_close(position, { max_distance = max_dist })
+        if owner == ents.get_player() then
+            entities = ents.get_by_distance(position, { max_distance = max_dist })
             entities = table.map   (entities, function(pair) return pair[1] end)
             entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
         end
-        table.insert(entities, entity_store.get_player_entity())
+        table.insert(entities, ents.get_player())
     end
 
     for i, entity in pairs(entities) do
@@ -54,7 +54,7 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
     end
 end
 
-projectile = table.classify({
+projectile = table.Object:clone {
     physics_frame_size = 0.02,
     speed              = 1,
     time_left          = 5,
@@ -168,9 +168,9 @@ projectile = table.classify({
         do_blast_wave(self.position, self.explosion_power, self.velocity, self.custom_damage_fun, self.owner)
         return false
     end
-})
+}
 
-manager = table.classify({
+manager = table.Object:clone {
     __init = function(self)
         self.projectiles = {}
     end,
@@ -197,56 +197,44 @@ manager = table.classify({
         end
     end,
 
-    render_dynamic = function(self)
+    render = function(self)
         for i,  projectile in pairs(self.projectiles) do
-            if  projectile.render_dynamic then
-                projectile:render_dynamic()
+            if  projectile.render then
+                projectile:render()
             end
         end
     end
-})
+}
 
 plugin = {
     activate = function(self)
         self.projectile_manager = manager()
     end,
 
-    client_activate = function(self)
-        self.projectile_manager = manager()
-    end,
-
-    act = function(self, seconds)
+    run = function(self, seconds)
         if #self.projectile_manager.projectiles == 0 then
             return nil
         end
 
         self.projectile_manager:tick(seconds)
+        if CLIENT then self.projectile_manager:render() end
     end,
 
-    client_act = function(self, seconds)
-        if #self.projectile_manager.projectiles == 0 then
-            return nil
-        end
-
-        self.projectile_manager:tick(seconds)
-        self.projectile_manager:render()
-    end,
-
-    render_dynamic = function(self, hud_pass, need_hud)
+    render = function(self, hud_pass, need_hud)
         if #self.projectile_manager.projectiles == 0 then
             return nil
         end
 
         if not hudpass then
-            self.projectile_manager:render_dynamic()
+            self.projectile_manager:render()
         end
     end
 }
 
-gun = table.subclass(firing.gun, {
+gun = firing.gun:clone {
     shoot_projectile = function(self, shooter, origin_position, target_position, target_entity, projectile_class)
         local projectile_handler = (
-            shooter.should_act and
+            shooter.per_frame and
             shooter.projectile_manager
         ) and shooter or game_manager.get_singleton()
 
@@ -259,18 +247,18 @@ gun = table.subclass(firing.gun, {
             )
         )
     end
-})
+}
 
 -- examples
 
-small_shot = table.subclass(projectile, {
+small_shot = projectile:clone {
     radius = 5,
     color  = 0xFFCC66,
     speed  = 50,
     explosion_power = 50
-})
+}
 
-debris = table.subclass(projectile, {
+debris = projectile:clone {
     radius     = 0.5,
     color      = 0xDCBBAA,
     time_left  = 5,
@@ -295,7 +283,7 @@ debris = table.subclass(projectile, {
         effects.splash(effects.PARTICLE.SMOKE, 1, 0.25, self.position, 0x000000, 1, 2, -20)
     end,
 
-    render_dynamic = function(self)
+    render = function(self)
         if not self.debris_model then return nil end
 
         local o     = self.position
@@ -312,4 +300,4 @@ debris = table.subclass(projectile, {
     on_explode = function(self)
         return false
     end
-})
+}

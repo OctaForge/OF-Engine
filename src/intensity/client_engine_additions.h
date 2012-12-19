@@ -2,12 +2,6 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-// 'Sauer-C'-style looping
-#define loopstdv(vec) for (unsigned int i = 0; i < vec.size(); i++)
-
-// XXX This should always be higher than the values in iengine for other DECALS_ - check when sauer is updated!
-#define DECAL_CIRCLE 3
-
 // Camera stuff
 
 extern void inc_camera();

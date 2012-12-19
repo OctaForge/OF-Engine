@@ -2,14 +2,14 @@ module("jump_pad", package.seeall)
 
 plugin = {
     properties = {
-        jump_velocity = state_variables.state_vec3(),
-        pad_model  = state_variables.state_string(),
-        pad_rotate = state_variables.state_bool(),
-        pad_pitch  = state_variables.state_integer(),
-        pad_sound  = state_variables.state_string()
+        jump_velocity = svars.State_Vec3(),
+        pad_model  = svars.State_String(),
+        pad_rotate = svars.State_Boolean(),
+        pad_pitch  = svars.State_Integer(),
+        pad_sound  = svars.State_String()
     },
 
-    should_act = true,
+    per_frame = true,
 
     init = function(self)
         self.jump_velocity = { 0, 0, 500 } -- default
@@ -21,19 +21,19 @@ plugin = {
         self.collision_radius_height = 0.5
     end,
 
-    client_activate = function(self)
-        self.player_delay = -1
+    activate = function(self)
+        if CLIENT then self.player_delay = -1 end
     end,
 
-    client_act = function(self, seconds)
+    run = CLIENT and function(self, seconds)
         if  self.player_delay > 0 then
             self.player_delay = self.player_delay - seconds
         end
-    end,
+    end or nil,
 
     client_on_collision = function(self, collider)
         -- each player handles themselves
-        if collider ~= entity_store.get_player_entity() then return nil end
+        if collider ~= ents.get_player() then return nil end
 
         -- do not trigger many times each jump
         if self.player_delay > 0 then return nil end
@@ -47,7 +47,7 @@ plugin = {
         end
     end,
 
-    render_dynamic = function(self)
+    render = function(self)
         if self.pad_model == "" then return nil end
 
         local o = self.position
@@ -69,11 +69,8 @@ plugin = {
     end
 }
 
-entity_classes.register(
-    plugins.bake(
-        entity_static.area_trigger,
-        { plugin },
-        "jump_pad"
-    ),
-    "mapmodel"
-)
+ents.register_class(plugins.bake(
+    entity_static.area_trigger,
+    { plugin },
+    "jump_pad"
+))

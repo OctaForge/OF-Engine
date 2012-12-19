@@ -3,7 +3,7 @@ library.include("projectiles")
 
 module("rocket_launcher", package.seeall)
 
-rocket = table.subclass(projectiles.projectile, {
+rocket = projectiles.projectile:clone {
     radius          = 2,
     visual_radius   = 20,
     color           = 0xDCBBAA,
@@ -23,7 +23,7 @@ rocket = table.subclass(projectiles.projectile, {
         return projectiles.projectile.tick(self, seconds)
     end,
 
-    render_dynamic = function(self)
+    render = function(self)
         local o     = self.position
         local flags = math.bor(
             model.CULL_VFC,
@@ -73,13 +73,14 @@ rocket = table.subclass(projectiles.projectile, {
             self.position, self.visual_radius * 1.8, self.color
         )
     end
-})
+}
 
-action_rocket_fire = table.subclass(events.action_parallel, {
+action_rocket_fire = events.action_parallel:clone {
+    name = "action_rocket_fire",
     can_multiply_queue = false
-}, "action_rocket_fire")
+}
 
-rocket_launcher = table.subclass(projectiles.gun, {
+rocket_launcher = projectiles.gun:clone {
     projectile_class = rocket,
     delay            = 0.5,
     repeating        = false,
@@ -151,4 +152,4 @@ rocket_launcher = table.subclass(projectiles.gun, {
             end, { seconds_left = 0.2 })
         }))
     end
-})
+}

@@ -19,7 +19,6 @@ namespace recorder {
 }
 bool glext(const char *ext);
 void loadcrosshair_(const char *name, int *i);
-void scorebshow(bool on);
 bool addzip(
     const char *name, const char *mount = NULL, const char *strip = NULL
 );
@@ -27,10 +26,6 @@ bool removezip(const char *name);
 
 extern string homedir;
 extern int fullconsole, fullconfilter, confilter, miniconfilter;
-
-#ifdef CLIENT
-VARFN(scoreboard, showscoreboard, 0, 0, 1, scorebshow(showscoreboard!=0));
-#endif
 
 namespace EditingSystem
 {
@@ -95,15 +90,6 @@ namespace lapi_binds
     {
         return recorder::isrecording();
     }
-
-    void _lua_showscores()
-    {
-        bool on = (addreleaseaction(
-            lapi::state.get<lua::Function>("CAPI", "showscores")
-        ) != NULL);
-        showscoreboard = on ? 1 : 0;
-        scorebshow(on);
-    }
 #else
     LAPI_EMPTY(keymap)
     LAPI_EMPTY(glext)
@@ -113,7 +99,6 @@ namespace lapi_binds
     LAPI_EMPTY(screenshot)
     LAPI_EMPTY(movie)
     LAPI_EMPTY(isrecording)
-    LAPI_EMPTY(showscores)
 #endif
 
     void _lua_writecfg(const char *name)
@@ -272,7 +257,6 @@ namespace lapi_binds
         LAPI_REG(screenshot);
         LAPI_REG(movie);
         LAPI_REG(isrecording);
-        LAPI_REG(showscores);
         LAPI_REG(writecfg);
         LAPI_REG(readfile);
         LAPI_REG(addzip);

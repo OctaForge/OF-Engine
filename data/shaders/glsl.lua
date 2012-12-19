@@ -3,8 +3,8 @@ lazyshader = function(stype, name, vert, frag)
         CAPI.shader  (stype, name, vert:eval_embedded(), frag:eval_embedded()) end) end
 
 gdepthinterp = function()
-    if EVAR.gdepthformat ~= 0 then
-        return (EVAR.gdepthformat > 1) and [[
+    if EV.gdepthformat ~= 0 then
+        return (EV.gdepthformat > 1) and [[
             uniform vec3 gdepthpackparams;
             varying float lineardepth;
         ]] or [[
@@ -13,16 +13,16 @@ gdepthinterp = function()
         ]] end end
 
 gdepthpackvert = function(arg1)
-    if EVAR.gdepthformat ~= 0 then
-        return ((EVAR.gdepthformat > 1) and [[
+    if EV.gdepthformat ~= 0 then
+        return ((EV.gdepthformat > 1) and [[
             lineardepth = dot(gl_ModelViewMatrixTranspose[2], @(arg1 and arg1 or "gl_Vertex"));
         ]] or [[
             lineardepth = dot(gl_ModelViewMatrixTranspose[2], @(arg1 and arg1 or "gl_Vertex")) * gdepthpackparams;
         ]]):eval_embedded(nil, { arg1 = arg1 }) end end
 
 gdepthpackfrag = function()
-    if EVAR.gdepthformat ~= 0 then
-        return (EVAR.gdepthformat > 1) and [[
+    if EV.gdepthformat ~= 0 then
+        return (EV.gdepthformat > 1) and [[
             gl_FragData[3].r = lineardepth;
         ]] or [[
             vec3 packdepth = vec3(lineardepth.x, fract(lineardepth.yz));
@@ -36,8 +36,8 @@ gdepthunpackparams = [[
 ]]
 
 gdepthunpack = function(arg1, arg2, arg3, arg4, arg5, arg6)
-    if EVAR.gdepthformat ~= 0 or arg6 then
-        return ((EVAR.gdepthformat > 1 or arg6) and [[
+    if EV.gdepthformat ~= 0 or arg6 then
+        return ((EV.gdepthformat > 1 or arg6) and [[
             float @(arg1) = texture2DRect(@(arg2), @(arg3)).r;
             @(arg4)
         ]] or [[
@@ -54,8 +54,8 @@ gdepthunpack = function(arg1, arg2, arg3, arg4, arg5, arg6)
 
 
 gdepthunpackproj = function(arg1, arg2, arg3, arg4, arg5, arg6)
-    if EVAR.gdepthformat ~= 0 or arg6 then
-        return ((EVAR.gdepthformat > 1 or arg6) and [[
+    if EV.gdepthformat ~= 0 or arg6 then
+        return ((EV.gdepthformat > 1 or arg6) and [[
             float @(arg1) = texture2DRectProj(@(arg2), @(arg3)).r;
             @(arg4)
         ]] or [[
@@ -790,6 +790,19 @@ for i = 0, 1 do
     ]=]):eval_embedded(nil, { i = i }, _G))
 end
 
+CAPI.shader(0, "rsmsky", [[
+    void main(void)
+    {
+        gl_Position = ftransform();
+    }
+]], [[
+    void main(void)
+    {
+        gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
+        gl_FragData[1] = vec4(0.5, 0.5, 0.5, 0.0);
+    }
+]])
+
 --
 -- phong lighting model shader
 --
@@ -798,12 +811,12 @@ end
 
 skelanimdefs = function()
     return ([=[
-        @(EVAR.useubo ~= 0 and [[
+        @(EV.useubo ~= 0 and [[
             #ifdef GL_ARB_uniform_buffer_object
                 #extension GL_ARB_uniform_buffer_object : enable
             #endif
         ]] or nil)
-        @(EVAR.usebue ~= 0 and [[
+        @(EV.usebue ~= 0 and [[
             #extension GL_EXT_bindable_uniform : enable
         ]] or nil)
         #pragma CUBE2_attrib vweights 6
@@ -811,39 +824,39 @@ skelanimdefs = function()
         attribute vec4 vweights; 
         attribute vec4 vbones;
         #pragma CUBE2_uniform animdata AnimData 0 16
-        @(EVAR.useubo ~= 0 and [[
+        @(EV.useubo ~= 0 and [[
             #ifdef GL_ARB_uniform_buffer_object
                 layout(std140) uniform AnimData
                 {
-                    vec4 animdata[@(math.min(EVAR.maxvsuniforms, EVAR.maxanimdata))];
+                    vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
                 };
             #else
         ]] or nil)
-        @(EVAR.usebue ~= 0 and [[
+        @(EV.usebue ~= 0 and [[
             #ifdef GL_EXT_bindable_uniform
                 bindable
             #endif
         ]] or nil)
-        uniform vec4 animdata[@(math.min(EVAR.maxvsuniforms, EVAR.maxanimdata))];
-        @(EVAR.useubo ~= 0 and [[
+        uniform vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
+        @(EV.useubo ~= 0 and [[
             #endif
         ]] or nil)
     ]=]):eval_embedded() end
 
 skelanimfragdefs = function()
-    if EVAR.ati_ubo_bug ~= 0 then
-        return (EVAR.useubo ~= 0 and [[
+    if EV.ati_ubo_bug ~= 0 then
+        return (EV.useubo ~= 0 and [[
             #ifdef GL_ARB_uniform_buffer_object
                 #extension GL_ARB_uniform_buffer_object : enable
                 layout(std140) uniform AnimData
                 {
-                    vec4 animdata[@(math.min(EVAR.maxvsuniforms, EVAR.maxanimdata))];
+                    vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
                 };
             #endif
         ]] or [[
             #ifdef GL_EXT_bindable_uniform
                 #extension GL_EXT_bindable_uniform : enable
-                bindable uniform vec4 animdata[@(math.min(EVAR.maxvsuniforms, EVAR.maxanimdata))];
+                bindable uniform vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
             #endif
         ]]):eval_embedded() end end
 
@@ -957,7 +970,7 @@ for i = 1, 4 do
     CAPI.variantshader(0, "shadowmodel", 0, shadowmodelvertexshader(skelanimdefs(i, 0, 0), skelmatanim (i, 0, 0)), "")
     CAPI.variantshader(0, "shadowmodel", 1, shadowmodelvertexshader(skelanimdefs(i, 0, 0), skelquatanim(i, 0, 0)), "") end
 
-if EVAR.glslversion >= 130 then
+if EV.glslversion >= 130 then
     CAPI.shader(0, "tetramodel", shadowmodelvertexshader("", "", 1), [[
         #version 130
         void main(void)
@@ -1009,7 +1022,7 @@ for i = 1, 4 do
     CAPI.variantshader(0, "alphashadowmodel", 0, alphashadowmodelvertexshader(skelanimdefs(i, 0, 0), skelmatanim (i, 0, 0)), "")
     CAPI.variantshader(0, "alphashadowmodel", 1, alphashadowmodelvertexshader(skelanimdefs(i, 0, 0), skelquatanim(i, 0, 0)), "") end
 
-if EVAR.glslversion >= 130 then
+if EV.glslversion >= 130 then
     CAPI.shader(0, "alphashadowtetramodel", alphashadowmodelvertexshader("", "", 1), [[
         #version 130
         uniform sampler2D tex0;
@@ -1209,7 +1222,7 @@ modelfragmentshader = function(...)
 modelanimshader = function(arg1, arg2, arg3, arg4)
     local fraganimshader = arg2 > 0 and tostring(arg2) or ""
     local reuseanimshader = fraganimshader
-    if EVAR.ati_ubo_bug ~= 0 then
+    if EV.ati_ubo_bug ~= 0 then
         reuseanimshader = ("%i , %i"):format(arg2, arg2 > 0 and 1 or 0)
         fraganimshader = (arg4 == 1) and modelfragmentshader("bB" .. arg3) or reuseanimshader
     end
@@ -1357,7 +1370,7 @@ end
 rsmmodelanimshader = function(arg1, arg2, arg3, arg4)
     local fraganimshader = arg2 > 0 and tostring(arg2) or ""
     local reuseanimshader = fraganimshader
-    if EVAR.ati_ubo_bug ~= 0 then
+    if EV.ati_ubo_bug ~= 0 then
         reuseanimshader = ("%i , %i"):format(arg2, arg2 > 0 and 1 or 0)
         fraganimshader = (arg4 == 1) and modelfragmentshader("bB" .. arg3) or reuseanimshader
     end
@@ -1609,7 +1622,7 @@ CAPI.shader(0, "shadowmapworld", [[
     }
 ]])
 
-if EVAR.glslversion >= 130 then
+if EV.glslversion >= 130 then
     CAPI.shader(0, "tetraclear", [[
         void main(void)
         {
@@ -2361,50 +2374,6 @@ bilateralshader = function(arg1, arg2)
 
 
 --
--- buffer splitting / merging
---
-
-CAPI.shader(0, "buffersplit", [[
-    void main(void)
-    {
-        gl_Position = gl_Vertex;
-    }
-]], [[
-    #extension GL_ARB_texture_rectangle : enable
-    uniform sampler2DRect tex;
-    uniform vec2 rcptiledim;
-    uniform vec2 tiledim;
-    uniform vec2 split;
-    void main(void)
-    {
-        vec2 tile = gl_FragCoord.xy * rcptiledim;
-        vec2 block = gl_FragCoord.xy - tiledim * floor(gl_FragCoord.xy * rcptiledim);
-        vec2 coord = tile + block * split;
-        gl_FragColor.rgb = texture2DRect(tex, coord).rgb;
-    }
-]])
-
-CAPI.shader(0, "buffermerge", [[
-    void main(void)
-    {
-        gl_Position = gl_Vertex;
-    }
-]], [[
-    #extension GL_ARB_texture_rectangle : enable
-    uniform sampler2DRect tex;
-    uniform vec2 tiledim;
-    uniform vec2 split;
-    uniform vec2 rcpsplit;
-    void main(void)
-    {
-        vec2 block = gl_FragCoord.xy * rcpsplit;
-        vec2 tile = gl_FragCoord.xy - split * floor(gl_FragCoord.xy * rcpsplit);
-        vec2 coord = tile * tiledim + block;
-        gl_FragColor.rgb = texture2DRect(tex, coord).rgb;
-    }
-]])
-
---
 -- separable blur with up to 7 taps
 --
 
@@ -2456,7 +2425,7 @@ for i = 1, 7 do
     if i > 1 then
         CAPI.altshader(("blurx%i"):format(i), ("blurx%i"):format(i - 1))
         CAPI.altshader(("blury%i"):format(i), ("blury%i"):format(i - 1)) end
-    if EVAR.usetexrect ~= 0 then
+    if EV.usetexrect ~= 0 then
         blurshader(("blurx%irect"):format(i), i, "x", "2DRect")
         blurshader(("blury%irect"):format(i), i, "y", "2DRect")
         if i > 1 then
@@ -2616,68 +2585,6 @@ rotoscope = function(...)
         if arg[2] == 2 then
             CAPI.addpostfx("hblur5")
             CAPI.addpostfx("vblur5") end end end
-
--- bloom-ish
-
-lazyshader(0, "bloom_scale", "@(fsvs) @(setup4corners) }", [[
-    @(fsps)
-    @(sample4corners)
-        gl_FragColor = 0.2 * (s02 + s00 + s22 + s20 + sample);
-    }
-]])
-
-lazyshader(0, "bloom_init", "@(fsvs) }", [[
-    @(fsps)
-        float t = max(sample.r, max(sample.g, sample.b));
-        gl_FragColor = t*t*sample;
-    }
-]])
-
-bloomshader = function(arg1, arg2)
-    CAPI.defershader(0, arg1, function()
-        CAPI.forceshader("bloom_scale")
-        CAPI.forceshader("bloom_init")
-        CAPI.shader(0, arg1, ([=[
-            void main(void)
-            {
-                gl_Position = gl_Vertex;
-                gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-                vec2 tc = gl_MultiTexCoord0.xy;
-                @(([[
-                    tc *= 0.5;
-                    gl_TexCoord[$i].xy = tc;
-                ]]):reppn("$i", 1, arg2))
-            }
-        ]=]):eval_embedded(nil, { arg2 = arg2 }, _G), ([=[
-            #extension GL_ARB_texture_rectangle : enable
-            uniform vec4 params;
-            uniform sampler2DRect tex0 @((", tex$i"):reppn("$i", 1, arg2)); 
-            void main(void)
-            {
-                vec4 sample = texture2DRect(tex0, gl_TexCoord[0].xy);
-                @(([[
-                    @($i > 1 and "bloom +=" or "vec4 bloom =") texture2DRect(tex$i, gl_TexCoord[$i].xy);
-                ]]):reppn("$i", 1, arg2))
-                gl_FragColor = bloom*params.x + sample;
-            }
-        ]=]):eval_embedded(nil, { arg2 = arg2 }, _G)) end) end
-
-bloomshader("bloom1", 1)
-bloomshader("bloom2", 2)
-bloomshader("bloom3", 3)
-bloomshader("bloom4", 4)
-bloomshader("bloom5", 5)
-bloomshader("bloom6", 6)
-
-setupbloom = function(arg1, arg2)
-    CAPI.addpostfx("bloom_init", 1, 1, "+0")
-    for i = 1, arg1 - 1 do
-        CAPI.addpostfx("bloom_scale", i + 1, i + 1, "+" .. i) end
-    CAPI.addpostfx("bloom" .. arg1, 0, 0, ("$i"):reppn("$i", 0, arg1 + 1), arg2) end
-
-bloom = function(arg1)
-    CAPI.clearpostfx()
-    if arg1 then setupbloom(6, arg1) end end
 
 --
 -- miscellaneous effect shaders: 
@@ -2956,7 +2863,7 @@ CAPI.shader(0, "refractmask", [[
     uniform float refractdepth;
     void main(void)
     {
-        @(EVAR.gdepthformat == 1 and [[
+        @(EV.gdepthformat == 1 and [[
             vec3 packdepth = texture2DRect(tex0, gl_FragCoord.xy).rgb;
             float depth = dot(packdepth, gdepthunpackparams);
         ]] or [[

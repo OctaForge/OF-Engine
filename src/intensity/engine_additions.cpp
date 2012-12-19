@@ -154,6 +154,7 @@ const char *CLogicEntity::getClass()
 
 model* CLogicEntity::getModel()
 {
+#ifdef CLIENT
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return NULL;
@@ -168,10 +169,14 @@ model* CLogicEntity::getModel()
     }
 
     return theModel;
+#else
+    return NULL;
+#endif
 }
 
 void CLogicEntity::setModel(const char *name)
 {
+#ifdef CLIENT
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return;
@@ -185,6 +190,7 @@ void CLogicEntity::setModel(const char *name)
 
     if (staticEntity)
         addentity(staticEntity);
+#endif
 }
 
 void CLogicEntity::setAttachments(const char *at)

@@ -1093,9 +1093,11 @@ void resetmap()
 {
     varsys::clear();
     clearmapsounds();
+#ifdef CLIENT
     resetblendmap();
     clearlights();
     clearpvs();
+#endif
     clearslots();
     clearparticles();
     cleardecals();
@@ -1135,7 +1137,9 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
-    gui::clearmainmenu();
+#ifdef CLIENT
+    lapi::state.get<lua::Function>("external", "gui_clear")();
+#endif
 
     if (usecfg)
     {
@@ -1172,7 +1176,9 @@ bool enlargemap(bool force)
 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
+#ifdef CLIENT
     enlargeblendmap();
+#endif
 
     allchanged();
 
@@ -1213,8 +1219,10 @@ void shrinkmap()
     ivec offset(octant, 0, 0, 0, worldsize);
     loopv(entities::storage) entities::get(i)->o.sub(offset.tovec());
 
+#ifdef CLIENT
     shrinkblendmap(octant);
- 
+#endif
+
     allchanged();
 
     conoutf("shrunk map to size %d", worldscale);

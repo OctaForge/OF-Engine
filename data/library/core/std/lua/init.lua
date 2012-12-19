@@ -13,20 +13,26 @@
         OctaForge standard library loader (Lua extensions).
 
         Exposes "min", "max", "clamp", "abs", "floor", "ceil", "round" and the
-        bitwise functions from math and "switch", "case", "default" and
-        "match" from util into globals, as they are widely used and the
-        default syntax is way too verbose. The bitwise functions are globally
-        named "bitlsh", "bitrsh", "bitor", "bitand" and "bitnot".
+        bitwise functions from math and the util module into globals, as they
+        are widely used and the default syntax is way too verbose. The bitwise
+        functions are globally named "bitlsh", "bitrsh", "bitor", "bitand" and
+        "bitnot".
 ]]
+
+--log(DEBUG, ":::: Strict mode.")
+--require("std.lua.strict")
+
+log(DEBUG, ":::: Console Lisp.")
+lisp = require("std.lua.lisp")
 
 log(DEBUG, ":::: Safe FFI.")
 sffi = require("std.lua.ffi")
 
+log(DEBUG, ":::: Zlib compression.")
+zlib = require("std.lua.zlib")
+
 log(DEBUG, ":::: Engine variables.")
 var = require("std.lua.var")
-
-log(DEBUG, ":::: Class system.")
-class = require("std.lua.class")
 
 log(DEBUG, ":::: Lua extensions: table")
 require("std.lua.table")
@@ -69,3 +75,5 @@ match   = util.match
 switch  = util.switch
 case    = util.case
 default = util.default
+
+assert_param = util.assert_param

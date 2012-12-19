@@ -2,6 +2,21 @@
 
 #include "engine.h"
 
+static struct emptycube : cube
+{
+    emptycube()
+    {
+        children = NULL;
+        ext = NULL;
+        visible = 0;
+        collide = 0;
+        merged = 0;
+        material = MAT_AIR;
+        setfaces(*this, F_EMPTY);
+        loopi(6) texture[i] = DEFAULT_SKY;
+    }
+} emptycube;
+
 cube *worldroot = newcubes(F_SOLID);
 int allocnodes = 0;
 
@@ -269,7 +284,7 @@ cube &neighbourcube(cube &c, int orient, int x, int y, int z, int size, ivec &ro
     uint diff = n[dim];
     if(dimcoord(orient)) n[dim] += size; else n[dim] -= size;
     diff ^= n[dim];
-    if(diff >= uint(worldsize)) { ro = n; rsize = size; return c; }
+    if(diff >= uint(worldsize)) { ro = n; rsize = size; return emptycube; }
     int scale = worldscale;
     cube *nc = worldroot;
     if(neighbourdepth >= 0)
@@ -767,11 +782,20 @@ int faceconvexity(ivec v[4])
     // 1 if convex, -1 if concave, 0 if flat
 }
 
-int faceconvexity(vertinfo *verts, int numverts)
+int faceconvexity(vertinfo *verts, int numverts, int size)
 {
     if(numverts < 4) return 0;
-    ivec v[4] = { verts[0].getxyz(), verts[1].getxyz(), verts[2].getxyz(), verts[3].getxyz() };
-    return faceconvexity(v);
+    ivec v0 = verts[0].getxyz(),
+         e1 = verts[1].getxyz().sub(v0),
+         e2 = verts[2].getxyz().sub(v0),
+         n;
+    if(size >= (8<<5))
+    {
+        if(size >= (8<<10)) n.cross(e1.shr(10), e2.shr(10));
+        else n.cross(e1, e2).shr(10);
+    }
+    else n.cross(e1, e2);
+    return verts[3].getxyz().sub(v0).dot(n);
 }
 
 int faceconvexity(ivec v[4], int &vis)
@@ -1025,7 +1049,6 @@ bool visibleface(cube &c, int orient, int x, int y, int z, int size, uchar mat, 
     ivec no;
     int nsize;
     cube &o = neighbourcube(c, orient, x, y, z, size, no, nsize);
-    if(&o==&c) return false;
 
     int opp = opposite(orient);
     if(nsize > size || (nsize == size && !o.children))
@@ -1085,7 +1108,6 @@ int visibletris(cube &c, int orient, int x, int y, int z, int size, uchar nmat, 
     ivec no;
     int nsize;
     cube &o = neighbourcube(c, orient, x, y, z, size, no, nsize);
-    if(&o==&c) return 0;
     
     if(matmask == MAT_AIR)
     {

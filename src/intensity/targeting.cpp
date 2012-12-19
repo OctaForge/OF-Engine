@@ -23,8 +23,11 @@ void TargetingControl::setupOrientation()
     vecfromyawpitch(camera1->yaw, camera1->pitch + 90, 1,  0, camup);
 
     // Account for mouse position in the world position we are aiming at
-    float cx, cy;
-    gui::getcursorpos(cx, cy);
+    auto t = lapi::state.get<lua::Function>("external", "cursor_get_position")
+        .call<float, float>();
+
+    float cx = types::get<0>(t);
+    float cy = types::get<1>(t);
 
     float factor = tanf(RAD*curfov/2.0f); // Size of edge opposite the angle of fov/2, in the triangle for (half of) viewport,
                                           // having unknown radius but known angle of fov/2 and close edge of 1.0
@@ -47,7 +50,6 @@ void TargetingControl::setupOrientation()
 vec           TargetingControl::worldPosition;
 vec           TargetingControl::targetPosition;
 CLogicEntity *TargetingControl::targetLogicEntity = NULL;
-#endif
 
 void TargetingControl::intersectClosestDynamicEntity(vec &from, vec &to, physent *targeter, float& dist, dynent*& target)
 {
@@ -133,7 +135,6 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
     }
 }
 
-#ifdef CLIENT
 VAR(has_mouse_target, 0, 0, 1);
 
 void TargetingControl::determineMouseTarget(bool forceEntityCheck)

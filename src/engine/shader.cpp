@@ -4,7 +4,7 @@
 
 Shader *Shader::lastshader = NULL;
 
-Shader *nullshader = NULL, *defaultshader = NULL, *rectshader = NULL, *cubemapshader = NULL, *notextureshader = NULL, *nocolorshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *ldrshader = NULL, *ldrnotextureshader = NULL, *stdworldshader = NULL, *rsmworldshader = NULL;
+Shader *nullshader = NULL, *defaultshader = NULL,  *rectshader = NULL, *cubemapshader = NULL, *notextureshader = NULL, *nocolorshader = NULL, *foggedshader = NULL, *foggednotextureshader = NULL, *ldrshader = NULL, *ldrnotextureshader = NULL, *stdworldshader = NULL, *rsmworldshader = NULL;
 
 static hashtable<const char *, GlobalShaderParamState> globalparams(256);
 static hashtable<const char *, int> localparams(256);
@@ -23,13 +23,13 @@ VAR(dbgshader, 0, 1, 2);
 void loadshaders()
 {
     GLint val;
-    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &val);
+    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &val);
     maxvsuniforms = val/4;
-    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB, &val);
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &val);
     maxfsuniforms = val/4;
-    glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, &val);
+    glGetIntegerv(GL_MAX_VARYING_FLOATS, &val);
     maxvaryings = val;
-    glGetIntegerv(GL_MAX_TEXTURE_COORDS_ARB, &val);
+    glGetIntegerv(GL_MAX_TEXTURE_COORDS, &val);
     maxtexcoords = val;
 
     initshaders = true;
@@ -39,6 +39,7 @@ void loadshaders()
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     standardshader = false;
     initshaders = false;
+
     nullshader = lookupshaderbyname("null");
     defaultshader = lookupshaderbyname("default");
     stdworldshader = lookupshaderbyname("stdworld");
@@ -81,15 +82,17 @@ Shader *generateshader(const char *name, const char *fmt, ...)
     return s;
 }
 
-static void showglslinfo(GLhandleARB obj, const char *tname, const char *name, const char *source)
+static void showglslinfo(GLenum type, GLuint obj, const char *name, const char *source)
 {
     GLint length = 0;
-    glGetObjectParameteriv_(obj, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+    if(type) glGetShaderiv_(obj, GL_INFO_LOG_LENGTH, &length);
+    else glGetProgramiv_(obj, GL_INFO_LOG_LENGTH, &length);
     if(length > 1)
     {
-        GLcharARB *log = new GLcharARB[length];
-        glGetInfoLog_(obj, length, &length, log);
-        conoutf(CON_ERROR, "GLSL ERROR (%s:%s)", tname, name);
+        GLchar *log = new GLchar[length];
+        if(type) glGetShaderInfoLog_(obj, length, &length, log);
+        else glGetProgramInfoLog_(obj, length, &length, log);
+        conoutf(CON_ERROR, "GLSL ERROR (%s:%s)", type == GL_VERTEX_SHADER ? "VS" : (type == GL_FRAGMENT_SHADER ? "FS" : "PROG"), name);
         puts(log);
         if(source) loopi(1000)
         {
@@ -103,21 +106,21 @@ static void showglslinfo(GLhandleARB obj, const char *tname, const char *name, c
     }
 }
 
-static void compileglslshader(GLenum type, GLhandleARB &obj, const char *def, const char *tname, const char *name, bool msg = true) 
+static void compileglslshader(GLenum type, GLuint &obj, const char *def, const char *name, bool msg = true) 
 {
-    const GLcharARB *source = (const GLcharARB*)(def + strspn(def, " \t\r\n")); 
-    obj = glCreateShaderObject_(type);
+    const GLchar *source = (const GLchar *)(def + strspn(def, " \t\r\n")); 
+    obj = glCreateShader_(type);
     glShaderSource_(obj, 1, &source, NULL);
     glCompileShader_(obj);
     GLint success;
-    glGetObjectParameteriv_(obj, GL_OBJECT_COMPILE_STATUS_ARB, &success);
+    glGetShaderiv_(obj, GL_COMPILE_STATUS, &success);
     if(!success) 
     {
-        if(msg) showglslinfo(obj, tname, name, source);
-        glDeleteObject_(obj);
+        if(msg) showglslinfo(type, obj, name, source);
+        glDeleteShader_(obj);
         obj = 0;
     }
-    else if(dbgshader > 1 && msg) showglslinfo(obj, tname, name, source);
+    else if(dbgshader > 1 && msg) showglslinfo(type, obj, name, source);
 }  
 
 VAR(dbgubo, 0, 0, 1);
@@ -170,23 +173,23 @@ static void bindglsluniform(Shader &s, UniformLoc &u)
 
 static void linkglslprogram(Shader &s, bool msg = true)
 {
-    s.program = s.vsobj && s.psobj ? glCreateProgramObject_() : 0;
+    s.program = s.vsobj && s.psobj ? glCreateProgram_() : 0;
     GLint success = 0;
     if(s.program)
     {
-        glAttachObject_(s.program, s.vsobj);
-        glAttachObject_(s.program, s.psobj);
+        glAttachShader_(s.program, s.vsobj);
+        glAttachShader_(s.program, s.psobj);
         loopv(s.attriblocs)
         {
             AttribLoc &a = s.attriblocs[i];
             glBindAttribLocation_(s.program, a.loc, a.name);
         }
         glLinkProgram_(s.program);
-        glGetObjectParameteriv_(s.program, GL_OBJECT_LINK_STATUS_ARB, &success);
+        glGetProgramiv_(s.program, GL_LINK_STATUS, &success);
     }
     if(success)
     {
-        glUseProgramObject_(s.program);
+        glUseProgram_(s.program);
         loopi(10)
         {
             static const char * const texnames[10] = { "tex0", "tex1", "tex2", "tex3", "tex4", "tex5", "tex6", "tex7", "tex8", "tex9" };
@@ -199,12 +202,12 @@ static void linkglslprogram(Shader &s, bool msg = true)
             param.loc = glGetUniformLocation_(s.program, param.name);
         }
         loopv(s.uniformlocs) bindglsluniform(s, s.uniformlocs[i]);
-        glUseProgramObject_(0);
+        glUseProgram_(0);
     }
     else if(s.program)
     {
-        if(msg) showglslinfo(s.program, "PROG", s.name, NULL);
-        glDeleteObject_(s.program);
+        if(msg) showglslinfo(GL_FALSE, s.program, s.name, NULL);
+        glDeleteProgram_(s.program);
         s.program = 0;
     }
 }
@@ -214,7 +217,7 @@ bool checkglslsupport()
 #if 0
     /* check if GLSL profile supports loops
      */
-    const GLcharARB *source = 
+    const GLchar *source = 
         "uniform int N;\n"
         "uniform vec4 delta;\n"
         "void main(void) {\n"
@@ -223,33 +226,33 @@ bool checkglslsupport()
         "   gl_FragColor = test;\n"
         "}\n";
 #else
-    const GLcharARB *source =
+    const GLchar *source =
         "void main(void) {\n"
         "   gl_FragColor = vec4(0.0);\n"
         "}\n";
 #endif
-    GLhandleARB obj = glCreateShaderObject_(GL_FRAGMENT_SHADER_ARB);
+    GLuint obj = glCreateShader_(GL_FRAGMENT_SHADER);
     if(!obj) return false;
     glShaderSource_(obj, 1, &source, NULL);
     glCompileShader_(obj);
     GLint success;
-    glGetObjectParameteriv_(obj, GL_OBJECT_COMPILE_STATUS_ARB, &success);
+    glGetShaderiv_(obj, GL_COMPILE_STATUS, &success);
     if(!success)
     {
-        glDeleteObject_(obj);
+        glDeleteShader_(obj);
         return false;
     }
-    GLhandleARB program = glCreateProgramObject_();
+    GLuint program = glCreateProgram_();
     if(!program)
     {
-        glDeleteObject_(obj);
+        glDeleteShader_(obj);
         return false;
     } 
-    glAttachObject_(program, obj);
+    glAttachShader_(program, obj);
     glLinkProgram_(program); 
-    glGetObjectParameteriv_(program, GL_OBJECT_LINK_STATUS_ARB, &success);
-    glDeleteObject_(obj);
-    glDeleteObject_(program);
+    glGetProgramiv_(program, GL_LINK_STATUS, &success);
+    glDeleteShader_(obj);
+    glDeleteProgram_(program);
     return success!=0;
 }
 
@@ -305,12 +308,12 @@ static void setglsluniformformat(Shader &s, const char *name, GLenum format, int
     switch(format)
     {
         case GL_FLOAT:
-        case GL_FLOAT_VEC2_ARB:
-        case GL_FLOAT_VEC3_ARB:
-        case GL_FLOAT_VEC4_ARB:
-        case GL_FLOAT_MAT2_ARB:
-        case GL_FLOAT_MAT3_ARB:
-        case GL_FLOAT_MAT4_ARB:
+        case GL_FLOAT_VEC2:
+        case GL_FLOAT_VEC3:
+        case GL_FLOAT_VEC4:
+        case GL_FLOAT_MAT2:
+        case GL_FLOAT_MAT3:
+        case GL_FLOAT_MAT4:
             break;
         default:
             return;
@@ -337,13 +340,13 @@ static void setglsluniformformat(Shader &s, const char *name, GLenum format, int
 static void allocglslactiveuniforms(Shader &s)
 {
     GLint numactive = 0;
-    glGetObjectParameteriv_(s.program, GL_OBJECT_ACTIVE_UNIFORMS_ARB, &numactive);
+    glGetProgramiv_(s.program, GL_ACTIVE_UNIFORMS, &numactive);
     string name;
     loopi(numactive)
     {
         GLsizei namelen = 0;
         GLint size = 0;
-        GLenum format = GL_FLOAT_VEC4_ARB;
+        GLenum format = GL_FLOAT_VEC4;
         name[0] = '\0';
         glGetActiveUniform_(s.program, i, sizeof(name)-1, &namelen, &size, &format, name);
         if(namelen <= 0 || size <= 0) continue;
@@ -427,10 +430,10 @@ static inline void setslotparam(SlotShaderParamState &l, uint &mask, int i, cons
         mask |= 1<<i;
         switch(l.format)
         {
-            case GL_FLOAT:          glUniform1fv_(l.loc, 1, val); break;
-            case GL_FLOAT_VEC2_ARB: glUniform2fv_(l.loc, 1, val); break;
-            case GL_FLOAT_VEC3_ARB: glUniform3fv_(l.loc, 1, val); break;
-            case GL_FLOAT_VEC4_ARB: glUniform4fv_(l.loc, 1, val); break;
+            case GL_FLOAT:      glUniform1fv_(l.loc, 1, val); break;
+            case GL_FLOAT_VEC2: glUniform2fv_(l.loc, 1, val); break;
+            case GL_FLOAT_VEC3: glUniform3fv_(l.loc, 1, val); break;
+            case GL_FLOAT_VEC4: glUniform4fv_(l.loc, 1, val); break;
         }
     }
 }
@@ -462,7 +465,7 @@ void Shader::setslotparams(Slot &slot, VSlot &vslot)
 void Shader::bindprograms()
 {
     if(this == lastshader || type&(SHADER_DEFERRED|SHADER_INVALID)) return;
-    glUseProgramObject_(program);
+    glUseProgram_(program);
     lastshader = this;
 }
 
@@ -471,9 +474,9 @@ VARF(shaderprecision, 0, 0, 2, initwarning("shader quality"));
 bool Shader::compile()
 {
     if(!vsstr) vsobj = !reusevs || reusevs->type&SHADER_INVALID ? 0 : reusevs->vsobj;
-    else compileglslshader(GL_VERTEX_SHADER_ARB,   vsobj, vsstr, "VS", name, dbgshader || !variantshader);
+    else compileglslshader(GL_VERTEX_SHADER,   vsobj, vsstr, name, dbgshader || !variantshader);
     if(!psstr) psobj = !reuseps || reuseps->type&SHADER_INVALID ? 0 : reuseps->psobj;
-    else compileglslshader(GL_FRAGMENT_SHADER_ARB, psobj, psstr, "PS", name, dbgshader || !variantshader);
+    else compileglslshader(GL_FRAGMENT_SHADER, psobj, psstr, name, dbgshader || !variantshader);
     linkglslprogram(*this, !variantshader);
     return program!=0;
 }
@@ -483,9 +486,9 @@ void Shader::cleanup(bool invalid)
     detailshader = NULL;
     used = false;
     native = true;
-    if(vsobj) { if(reusevs) glDeleteObject_(vsobj); vsobj = 0; }
-    if(psobj) { if(reuseps) glDeleteObject_(psobj); psobj = 0; }
-    if(program) { glDeleteObject_(program); program = 0; }
+    if(vsobj) { if(reusevs) glDeleteShader_(vsobj); vsobj = 0; }
+    if(psobj) { if(reuseps) glDeleteShader_(psobj); psobj = 0; }
+    if(program) { glDeleteProgram_(program); program = 0; }
     localparams.setsize(0);
     localparamremap.setsize(0);
     globalparams.setsize(0);
@@ -541,7 +544,7 @@ Shader *newshader(int type, const char *name, const char *vs, const char *ps, Sh
 {
     if(Shader::lastshader)
     {
-        glUseProgramObject_(0);
+        glUseProgram_(0);
         Shader::lastshader = NULL;
     }
 
@@ -1067,7 +1070,7 @@ static int allocatepostfxtex(int scale)
     postfxtex &t = postfxtexs.add();
     t.scale = scale;
     glGenTextures(1, &t.id);
-    createtexture(t.id, max(screen->w>>scale, 1), max(screen->h>>scale, 1), NULL, 3, 1, GL_RGB, GL_TEXTURE_RECTANGLE_ARB);
+    createtexture(t.id, max(postfxw>>scale, 1), max(postfxh>>scale, 1), NULL, 3, 1, GL_RGB, GL_TEXTURE_RECTANGLE_ARB);
     return postfxtexs.length()-1;
 }
 
@@ -1086,32 +1089,33 @@ void cleanuppostfx(bool fullclean)
     postfxh = 0;
 }
 
-void renderpostfx()
+GLuint setuppostfx(int w, int h)
 {
-    if(postfxpasses.empty()) return;
+    if(postfxpasses.empty()) return 0;
 
-    if(postfxw != screen->w || postfxh != screen->h) 
+    if(postfxw != w || postfxh != h)
     {
         cleanuppostfx(false);
-        postfxw = screen->w;
-        postfxh = screen->h;
+        postfxw = w;
+        postfxh = h;
     }
 
-    int binds[NUMPOSTFXBINDS];
-    loopi(NUMPOSTFXBINDS) binds[i] = -1;
+    loopi(NUMPOSTFXBINDS) postfxbinds[i] = -1;
     loopv(postfxtexs) postfxtexs[i].used = -1;
+    
+    if(!postfxfb) glGenFramebuffers_(1, &postfxfb);
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, postfxfb);
+    int tex = allocatepostfxtex(0);
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, postfxtexs[tex].id, 0);
 
-    binds[0] = allocatepostfxtex(0);
-    postfxtexs[binds[0]].used = 0;
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, postfxtexs[binds[0]].id);
-    glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, screen->w, screen->h);
+    postfxbinds[0] = tex;
+    postfxtexs[tex].used = 0;
 
-    if(hasFBO && postfxpasses.length() > 1)
-    {
-        if(!postfxfb) glGenFramebuffers_(1, &postfxfb);
-        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, postfxfb);
-    }
-
+    return postfxfb;
+}
+     
+void renderpostfx()
+{
     loopv(postfxpasses)
     {
         postfxpass &p = postfxpasses[i];
@@ -1119,29 +1123,29 @@ void renderpostfx()
         int tex = -1;
         if(!postfxpasses.inrange(i+1))
         {
-            if(hasFBO && postfxpasses.length() > 1) glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
         }
         else
         {
             tex = allocatepostfxtex(p.outputscale);
-            if(hasFBO) glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, postfxtexs[tex].id, 0);
+            glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, postfxtexs[tex].id, 0);
         }
 
-        int w = tex >= 0 ? max(screen->w>>postfxtexs[tex].scale, 1) : screen->w, 
-            h = tex >= 0 ? max(screen->h>>postfxtexs[tex].scale, 1) : screen->h;
+        int w = tex >= 0 ? max(postfxw>>postfxtexs[tex].scale, 1) : postfxw, 
+            h = tex >= 0 ? max(postfxh>>postfxtexs[tex].scale, 1) : postfxh;
         glViewport(0, 0, w, h);
         p.shader->set();
         LOCALPARAM(params, (p.params));
         int tw = w, th = h, tmu = 0;
-        loopj(NUMPOSTFXBINDS) if(p.inputs&(1<<j) && binds[j] >= 0)
+        loopj(NUMPOSTFXBINDS) if(p.inputs&(1<<j) && postfxbinds[j] >= 0)
         {
             if(!tmu)
             {
-                tw = max(screen->w>>postfxtexs[binds[j]].scale, 1);
-                th = max(screen->h>>postfxtexs[binds[j]].scale, 1);
+                tw = max(postfxw>>postfxtexs[postfxbinds[j]].scale, 1);
+                th = max(postfxh>>postfxtexs[postfxbinds[j]].scale, 1);
             }
             else glActiveTexture_(GL_TEXTURE0_ARB + tmu);
-            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, postfxtexs[binds[j]].id);
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, postfxtexs[postfxbinds[j]].id);
             ++tmu;
         }
         if(tmu) glActiveTexture_(GL_TEXTURE0_ARB);
@@ -1152,21 +1156,16 @@ void renderpostfx()
         glTexCoord2f(tw, th); glVertex2f( 1,  1);
         glEnd();
 
-        loopj(NUMPOSTFXBINDS) if(p.freeinputs&(1<<j) && binds[j] >= 0)
+        loopj(NUMPOSTFXBINDS) if(p.freeinputs&(1<<j) && postfxbinds[j] >= 0)
         {
-            postfxtexs[binds[j]].used = -1;
-            binds[j] = -1;
+            postfxtexs[postfxbinds[j]].used = -1;
+            postfxbinds[j] = -1;
         }
         if(tex >= 0)
         {
-            if(binds[p.outputbind] >= 0) postfxtexs[binds[p.outputbind]].used = -1;
-            binds[p.outputbind] = tex;
+            if(postfxbinds[p.outputbind] >= 0) postfxtexs[postfxbinds[p.outputbind]].used = -1;
+            postfxbinds[p.outputbind] = tex;
             postfxtexs[tex].used = p.outputbind;
-            if(!hasFBO)
-            {
-                glBindTexture(GL_TEXTURE_RECTANGLE_ARB, postfxtexs[tex].id);
-                glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, w, h);
-            }
         }
     }
 }
@@ -1201,13 +1200,16 @@ void addpostfx(const char *name, int bind, int scale, const char *inputs, float 
     int inputmask = inputs[0] ? 0 : 1;
     int freemask = inputs[0] ? 0 : 1;
     bool freeinputs = true;
-    for(; *inputs; inputs++) if(isdigit(*inputs)) 
+    for(; *inputs; inputs++) 
     {
-        inputmask |= 1<<(*inputs-'0');
-        if(freeinputs) freemask |= 1<<(*inputs-'0');
+        if(isdigit(*inputs)) 
+        {
+            inputmask |= 1<<(*inputs-'0');
+            if(freeinputs) freemask |= 1<<(*inputs-'0');
+        }
+        else if(*inputs=='+') freeinputs = false;
+        else if(*inputs=='-') freeinputs = true;
     }
-    else if(*inputs=='+') freeinputs = false;
-    else if(*inputs=='-') freeinputs = true;
     inputmask &= (1<<NUMPOSTFXBINDS)-1;
     freemask &= (1<<NUMPOSTFXBINDS)-1;
     addpostfx(name, clamp(bind, 0, NUMPOSTFXBINDS-1), max(scale, 0), inputmask, freemask, vec4(x, y, z, w));
@@ -1226,7 +1228,7 @@ void cleanupshaders()
     defaultshader = notextureshader = nocolorshader = foggedshader = foggednotextureshader = NULL;
     enumerate(shaders, Shader, s, s.cleanup());
     Shader::lastshader = NULL;
-    glUseProgramObject_(0);
+    glUseProgram_(0);
 }
 
 void reloadshaders()

@@ -608,7 +608,6 @@ assert(0);
 
             vec floornorm;
             float floordist = rayfloor(position, floornorm);
-            adddecal(DECAL_CIRCLE, position.sub(vec(0, 0, floordist)), floornorm, radius);
         #endif
     }
 

@@ -1,7 +1,9 @@
 module("events", package.seeall)
 
-repeating_timer = table.classify({
-    __tostring = function(self)
+repeating_timer = table.Object:clone {
+    name = "repeating_timer",
+
+    __inst_tostring = function(self)
         return string.format(
             "repeating_timer: %s %s %s",
             tostring(self.interval),
@@ -32,11 +34,13 @@ repeating_timer = table.classify({
     prime = function(self)
         self.sum = self.interval
     end
-}, "repeating_timer")
+}
 
 -- action that can queue more actions on itself, which run on its actor,
 -- finishes when both this action an all subactions are done.
-action_container = table.subclass(actions.Action, {
+action_container = actions.Action:clone {
+    name = "action_container",
+
     __init = function(self, other_actions, kwargs)
         actions.Action.__init(self, kwargs)
         self.other_actions = other_actions
@@ -68,10 +72,11 @@ action_container = table.subclass(actions.Action, {
         self.action_system:run(0.01)
         self:finish()
     end
-}, "action_container")
+}
 
 -- like action_container, but runs actions in parallel - finishes when all are done
-action_parallel = table.subclass(actions.Action, {
+action_parallel = actions.Action:clone {
+    name = "action_parallel",
     cancellable = false,
 
     __init = function(self, other_actions, kwargs)
@@ -109,9 +114,11 @@ action_parallel = table.subclass(actions.Action, {
         action_system:queue(other_action)
         table.insert(self.action_systems, action_system)
     end
-}, "action_parallel")
+}
 
-action_delayed = table.subclass(actions.Action, {
+action_delayed = actions.Action:clone {
+    name = "action_delayed",
+
     __init = function(self, command, kwargs)
         actions.Action.__init(self, kwargs)
         self.command = command
@@ -125,9 +132,11 @@ action_delayed = table.subclass(actions.Action, {
             return false
         end
     end
-}, "action_delayed")
+}
 
 action_input_capture_plugin = {
+    name = "action_input_capture",
+
     start = function(self)
         if self.client_click then
             self.old_client_click = _G["client_click"]
@@ -175,35 +184,35 @@ action_input_capture_plugin = {
     end
 }
 
-action_input_capture = table.subclass(
-    actions.Action,
-    action_input_capture_plugin,
-    "action_input_capture"
-)
+action_input_capture = actions.Action:clone(action_input_capture_plugin)
+
+local ext = external
 
 action_render_capture_plugin = {
     start = function(self, ...)
-        self.base_class.start(self, ...)
+        self.__proto.__proto.start(self, ...)
 
-        if  self.render_dynamic then
-            self.render_dynamic_old     = entity_store.render_dynamic
-            entity_store.render_dynamic = self.render_dynamic
+        if  self.render then
+            self.render_old = ext.game_render
+            ext.game_render = self.render
         end
         if  self.render_hud_model then
-            self.render_hud_model_old     = entity_store.render_hud_model
-            entity_store.render_hud_model = self.render_hud_model
+            self.render_hud_old = ext.game_render_hud
+            ext.game_render_hud = self.render_hud_model
         end
     end,
 
     finish = function(self, ...)
-        if self.render_dynamic then
-            entity_store.render_dynamic = self.render_dynamic_old
+        if self.render then
+            ext.game_render = self.render_old
+            self.render_old = nil
         end
         if self.render_hud_model then
-            entity_store.render_hud_model = self.render_hud_model_old
+            ext.game_render_hud = self.render_hud_old
+            self.render_hud_old = nil
         end
 
-        self.base_class.finish(self, ...)
+        self.__proto.__proto.finish(self, ...)
     end
 }
 
@@ -217,21 +226,21 @@ action_system_plugin = {
     end
 }
 
-_action_system_parallel_manager = table.subclass(table.classify(action_system_plugin), {
+_action_system_parallel_manager = table.Object:clone(action_system_plugin):clone {
     __init = function(self, owner)
-        self.base_class.__init(self, owner)
+        self.__proto.__proto.__init(self, owner)
 
         self.action = action_parallel({})
         self.action_system:queue(self.action)
     end
-})
+}
 
-client_actions_parallel_plugin = {
-    client_activate = function(self)
+actions_parallel_plugin = {
+    activate = function(self)
         self.action_system_parallel_manager = _action_system_parallel_manager(self)
     end,
 
-    client_act = function(self, seconds)
+    run = function(self, seconds)
         self.action_system_parallel_manager.action.seconds_left = seconds + 1.0 -- never end
         self.action_system_parallel_manager:tick(seconds)
     end,
@@ -240,9 +249,3 @@ client_actions_parallel_plugin = {
         self.action_system_parallel_manager.action:add_action(action)
     end
 }
-
-actions_parallel_plugin = table.merge_maps(client_actions_parallel_plugin, {
-    activate = client_actions_parallel_plugin.client_activate,
-    act = client_actions_parallel_plugin.client_act
-})
-

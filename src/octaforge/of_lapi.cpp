@@ -39,7 +39,6 @@ if (!name) \
 #include "of_lapi_camera.h"
 #include "of_lapi_edit.h"
 #include "of_lapi_entity.h"
-#include "of_lapi_gui.h"
 #include "of_lapi_input.h"
 #include "of_lapi_messages.h"
 #include "of_lapi_model.h"
@@ -154,6 +153,11 @@ namespace lapi
         return 1;
     }
 
+    static int raw_error(lua_State *L) {
+        lua_error(L);
+        return 0;
+    }
+
     void init(const char *dir)
     {
         if (initialized) return;
@@ -214,6 +218,9 @@ namespace lapi
         /* reference management functions */
         state["toref"] = &to_udata;
 
+        /* raw error without line number info etc. */
+        state["rawerror"] = &raw_error;
+
         setup_binds();
     }
 
@@ -253,7 +260,6 @@ namespace lapi
         CAPI_REG(camera);
         CAPI_REG(edit);
         CAPI_REG(entity);
-        CAPI_REG(gui);
         CAPI_REG(input);
         CAPI_REG(messages);
         CAPI_REG(model);
@@ -266,11 +272,19 @@ namespace lapi
         #undef CAPI_REG
 
         state.register_module("CAPI", api_all);
+#ifdef CLIENT
         state.register_module("obj",  objcommands());
         state.register_module("md3",  md3commands());
         state.register_module("md5",  md5commands());
         state.register_module("iqm",  iqmcommands());
         state.register_module("smd",  smdcommands());
+#else
+        state.register_module("obj",  state.new_table());
+        state.register_module("md3",  state.new_table());
+        state.register_module("md5",  state.new_table());
+        state.register_module("iqm",  state.new_table());
+        state.register_module("smd",  state.new_table());
+#endif
 
         load_module("init");
     }

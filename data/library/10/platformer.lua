@@ -22,9 +22,9 @@ end
 
 plugin = {
     properties = {
-        platform_axis        = state_variables.state_string ({ client_set = true }),
-        platform_position    = state_variables.state_integer({ client_set = true }),
-        platform_camera_axis = state_variables.state_string ({ client_set = true })
+        platform_axis        = svars.State_String { client_set = true },
+        platform_position    = svars.State_Integer { client_set = true },
+        platform_camera_axis = svars.State_String { client_set = true }
     },
 
     get_platform_direction = function(self)
@@ -39,7 +39,8 @@ plugin = {
         self.movement_speed = 75
     end,
 
-    client_activate = function(self)
+    activate = function(self)
+        if not CLIENT then return nil end
         self.platform_camera_distance  = 150
         self.platform_camera_smoothing = 0
         self.last_camera_position        = nil
@@ -48,18 +49,16 @@ plugin = {
         self.platform_fov = 50
         self:set_platform_direction(1)
 
-        signal.connect(self, "client_respawn", function(self)
-            signal.add_post_emit_event(function(self)
-                self.platform_axis        = "+x"
-                self.platform_position    = self.position.y
-                self.platform_camera_axis = "+y"
-                self.platform_move        = 0
-            end)
+        signal.connect(self, "client_respawn", function(_, self)
+            self.platform_axis        = "+x"
+            self.platform_position    = self.position.y
+            self.platform_camera_axis = "+y"
+            self.platform_move        = 0
         end)
     end,
 
-    client_act = function(self, seconds)
-        if self == entity_store.get_player_entity() and not entity_store.is_player_editing(self) then
+    run = CLIENT and function(self, seconds)
+        if self == ents.get_player() and not self:is_editing() then
             if self.spawn_stage == 0 then
                 local position = self.position:copy()
                 local velocity = self.velocity:copy()
@@ -138,12 +137,12 @@ plugin = {
                 0, self.platform_fov
             )
         end
-    end
+    end or nil
 }
 
 function do_movement(move, down)
-    local player = entity_store.get_player_entity()
-    if entity_store.is_player_editing(player) then
+    local player = ents.get_player()
+    if player:is_editing() then
         player.move = move
     end
     if health.is_valid_target(player) then
@@ -156,8 +155,8 @@ function do_movement(move, down)
 end
 
 function do_strafe(strafe, down)
-    local player = entity_store.get_player_entity()
-    if entity_store.is_player_editing(player) then
+    local player = ents.get_player()
+    if player:is_editing() then
         player.strafe = strafe
     end
     if not health.is_valid_target(player) then return nil end
@@ -175,18 +174,15 @@ function do_strafe(strafe, down)
 end
 
 function do_mousemove(yaw, pitch)
-    return (entity_store.is_player_editing(entity_store.get_player_entity()) and
-        { yaw = yaw, pitch = pitch } or
-        {}
-    )
+    return (ents.get_player():is_editing() and { yaw = yaw, pitch = pitch } or {})
 end
 
-axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger, {
+axis_switcher = ents.register_class(plugins.bake(entity_static.area_trigger, {
     world_areas.plugin,
     {
         properties = {
-            platform_axises = state_variables.state_array(),
-            platform_camera_axises = state_variables.state_array()
+            platform_axises = svars.State_Array(),
+            platform_camera_axises = svars.State_Array()
         },
 
         init = function(self)
@@ -199,7 +195,7 @@ axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger,
         end,
 
         flip_axes = function(self, up)
-            local player = entity_store.get_player_entity()
+            local player = ents.get_player()
 
             for i, axis in pairs(self.platform_axises:to_array()) do
                 if player.platform_axis[2] ~= axis[2] then
@@ -219,4 +215,4 @@ axis_switcher = entity_classes.register(plugins.bake(entity_static.area_trigger,
             log(ERROR, "did not find player axis to flip, %(1)s" % { player.platform_axis })
         end
     }
-}, "axis_switcher"), "mapmodel")
+}, "axis_switcher"))

@@ -70,35 +70,15 @@ void logoutfv(const char *fmt, va_list args)
 }
 
 #ifdef STANDALONE
-void fatal(const char *fmt, ...) 
-{ 
-    void cleanupserver();
-    cleanupserver(); 
-    va_list args;
-    va_start(args, fmt);
-    if(logfile) logoutfv(fmt, args);
-    fprintf(stderr, "server error: ");
-    vfprintf(stderr, fmt, args);
-    fputc('\n', stderr);
-    va_end(args);
-    closelogfile();
-    exit(EXIT_FAILURE); 
-}
+void fatal(const char *s, ...)
+{
+    printf("FATAL: %s\r\n", s);
+    exit(-1);
+};
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    string sf, sp;
-    vformatstring(sf, fmt, args);
-    filtertext(sp, sf);
-    logoutf("%s", sp);
-}
-
-void conoutf(const char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    conoutfv(CON_INFO, fmt, args);
-    va_end(args);
+    printf("%s\n", types::String().vformat(fmt, args).get_buf());
 }
 
 void conoutf(int type, const char *fmt, ...)
@@ -107,6 +87,14 @@ void conoutf(int type, const char *fmt, ...)
     va_start(args, fmt);
     conoutfv(type, fmt, args);
     va_end(args);
+}
+
+void conoutf(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    conoutfv(CON_INFO, fmt, args);
+    va_end(args); 
 }
 #endif
 
@@ -559,7 +547,6 @@ void flushserver(bool force)
     if(server::sendpackets(force) && serverhost) enet_host_flush(serverhost);
 }
 
-#ifndef STANDALONE
 void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 {
 #ifdef CLIENT
@@ -578,7 +565,7 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 #ifdef CLIENT // INTENSITY: Added this
     if(!disconnected) return;
     game::gamedisconnect(cleanup);
-    SETV(mainmenu, 1);
+    gui_mainmenu = true;
 #endif
 }
 
@@ -590,7 +577,6 @@ int localconnect() // INTENSITY: Added returning client num
     server::localconnect(c.num);
     return c.num; // INTENSITY: Added returning client num
 }
-#endif
 
 void rundedicatedserver()
 {

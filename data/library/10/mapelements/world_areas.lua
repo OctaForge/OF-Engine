@@ -3,10 +3,10 @@ module("world_areas", package.seeall)
 active = nil
 
 plugin = {
-    should_act = true,
+    per_frame = true,
 
     client_on_collision = function(self, entity)
-        if entity ~= entity_store.get_player_entity() then return nil end
+        if entity ~= ents.get_player() then return nil end
 
         -- cannot have more than one active
         if active then return nil end
@@ -16,13 +16,13 @@ plugin = {
     end
 }
 
-action = table.subclass(actions.Action, {
+action = actions.Action:clone {
     start = function(self)
         assert(active == self.actor)
     end,
 
     run = function(self, seconds)
-        if geometry.is_player_colliding_entity(entity_store.get_player_entity(), self.actor) then
+        if geometry.is_player_colliding_entity(ents.get_player(), self.actor) then
             signal.emit(self.actor, "world_area_active")
             return false
         else
@@ -33,9 +33,9 @@ action = table.subclass(actions.Action, {
     finish = function(self)
         active = nil
     end
-})
+}
 
-action_input_capture = table.subclass(actions.Action, {
+action_input_capture = actions.Action:clone {
     start = function(self)
         self.client_click = function(self, ...) return self.actor.client_click(self.actor, ...) end
 
@@ -50,4 +50,4 @@ action_input_capture = table.subclass(actions.Action, {
     end,
 
     finish = events.action_input_capture_plugin.finish
-})
+}

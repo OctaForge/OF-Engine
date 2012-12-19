@@ -605,7 +605,7 @@ void addgrasstri(int face, vertex *verts, int numv, ushort texture, int layer)
     loopk(numv) g.radius = max(g.radius, g.v[k].dist(g.center));
 
     g.texture = texture;
-    g.blend = layer == LAYER_BLEND ? ((int(g.v[0].x)>>12)+1) | (((int(g.v[0].y)>>12)+1)<<8) : 0;
+    g.blend = layer == LAYER_BLEND ? ((int(g.center.x)>>12)+1) | (((int(g.center.y)>>12)+1)<<8) : 0;
 }
 
 static inline void calctexgen(VSlot &vslot, int dim, vec4 &sgen, vec4 &tgen)
@@ -922,7 +922,7 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
             verts = c.ext->verts() + c.ext->surfaces[i].verts;
             vec vo = ivec(x, y, z).mask(~0xFFF).tovec();
             loopj(numverts) pos[j] = verts[j].getxyz().tovec().mul(1.0f/8).add(vo);
-            if(!(c.merged&(1<<i)) && !flataxisface(c, i)) convex = faceconvexity(verts, numverts);
+            if(!(c.merged&(1<<i)) && !flataxisface(c, i)) convex = faceconvexity(verts, numverts, size);
         }
         else
         {
@@ -1496,9 +1496,9 @@ void allchanged(bool load)
     octarender();
     if(load) precachetextures();
     setupmaterials();
-    invalidatepostfx();
     clearshadowcache();
     updatevabbs(true);
+#ifdef CLIENT
     if(load) 
     {
         updateblendtextures();
@@ -1506,6 +1506,7 @@ void allchanged(bool load)
         genenvmaps();
         drawminimap();
     }
+#endif
 }
 
 void recalc()

@@ -39,32 +39,16 @@ module("entity_static", package.seeall)
         attr4 - fourth sauer entity property.
         attr5 - fifth sauer entity property.
 ]]
-base_static = class.new(entity_animated.base_animated, {
-    --! Variable: should_act
-    --! See <base_root.should_act>.
-    should_act = false,
+base_static = entity_animated.base_animated:clone {
+    name = "base_static",
 
-    --[[!
-        Variable: use_render_dynamic_test
-        This boolean value specifies whether to use render test.
-        It's true by default for all static entities.
-        It basically means that if this is true, it'll be tested
-        if this entity is in player's sight and if it's not,
-        rendering will be skipped to increase performance.
-
-        The render test method is injected to entity by
-        <entity_store.render_dynamic>.
-
-        If this value is false, the entity will always render.
-    ]]
-    use_render_dynamic_test = true,
+    per_frame = false,
 
     --[[!
         Variable: sauer_type
-        Type of the entity in Cube 2. For static entities,
-        it's always "extent".
+        Type of the entity in Cube 2.
     ]]
-    sauer_type = "extent",
+    sauer_type = "mapmodel",
 
     --[[!
         Variable: sauer_type_index
@@ -73,38 +57,38 @@ base_static = class.new(entity_animated.base_animated, {
         4 (envmap), 5 (particles), 6 (sound) and 7 (spotlight).
 
         You specify the name in parentheses when registering the entity class,
-        see <entity_classes.register>.
+        see <ents.register_class>.
     ]]
     sauer_type_index = 0,
 
     properties = {
         -- TODO: use sauer values for bounding box -- XXX - needed?
-        radius       = state_variables.state_float(),
+        radius       = svars.State_Float(),
 
-        position     = state_variables.wrapped_c_vec3({
-            c_getter = "CAPI.getextent0",
-            c_setter = "CAPI.setextent0"
-        }),
-        attr1        = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr1",
-            c_setter = "CAPI.setattr1"
-        }),
-        attr2        = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr2",
-            c_setter = "CAPI.setattr2"
-        }),
-        attr3        = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr3",
-            c_setter = "CAPI.setattr3"
-        }),
-        attr4        = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr4",
-            c_setter = "CAPI.setattr4"
-        }),
-        attr5        = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr5",
-            c_setter = "CAPI.setattr5"
-        })
+        position     = svars.State_Vec3 {
+            getter = "CAPI.getextent0",
+            setter = "CAPI.setextent0"
+        },
+        attr1        = svars.State_Integer {
+            getter = "CAPI.getattr1",
+            setter = "CAPI.setattr1"
+        },
+        attr2        = svars.State_Integer {
+            getter = "CAPI.getattr2",
+            setter = "CAPI.setattr2"
+        },
+        attr3        = svars.State_Integer {
+            getter = "CAPI.getattr3",
+            setter = "CAPI.setattr3"
+        },
+        attr4        = svars.State_Integer {
+            getter = "CAPI.getattr4",
+            setter = "CAPI.setattr4"
+        },
+        attr5        = svars.State_Integer {
+            getter = "CAPI.getattr5",
+            setter = "CAPI.setattr5"
+        }
     },
 
     --[[!
@@ -151,7 +135,7 @@ base_static = class.new(entity_animated.base_animated, {
         change for position property and attr* properties after flushing queued
         changes.
     ]]
-    activate = function(self, kwargs)
+    activate = SERVER and function(self, kwargs)
         kwargs = kwargs or {}
 
         log(
@@ -189,7 +173,7 @@ base_static = class.new(entity_animated.base_animated, {
 
         log(DEBUG, "base: flush:")
         -- flush queue
-        self:flush_queued_state_variable_changes()
+        self:flush_queued_svar_changes()
 
         -- ensure the state data contains copies for C++ stuff
         -- (otherwise, might be empty, and we need it for
@@ -228,24 +212,7 @@ base_static = class.new(entity_animated.base_animated, {
         self.attr4 = self.attr4
         self.attr5 = self.attr5
         log(DEBUG, "ensuring base values complete.")
-    end,
-
-    --! Function: deactivate
-    --! See <base_server.deactivate>. Also dismantles
-    --! static entity in sauer beforehand.
-    deactivate = function(self)
-        CAPI.dismantleextent(self)
-        entity_animated.base_animated.deactivate(self)
-    end,
-
-    --[[!
-        Function: client_activate
-        See <base_client.client_activate>.
-
-        Note: Inserts some temporary data into kwargs
-        until it receives full state data.
-    ]]
-    client_activate = function(self, kwargs)
+    end or function(self, kwargs)
         -- make up some stuff until we get complete state data
         if not kwargs._type then
             kwargs._type = self.sauer_type_index
@@ -267,57 +234,41 @@ base_static = class.new(entity_animated.base_animated, {
             kwargs.attr4, kwargs.attr5
         )
         -- call parent
-        entity_animated.base_animated.client_activate(self, kwargs)
+        entity_animated.base_animated.activate(self, kwargs)
     end,
 
-    --! Function: client_deactivate
-    --! See <base_client.client_deactivate>.
-    --! Also dismantles static entity in sauer beforehand.
-    client_deactivate = function(self)
+    --! Function: deactivate
+    --! See <base_server.deactivate>. Also dismantles
+    --! static entity in sauer beforehand.
+    deactivate = function(self)
         CAPI.dismantleextent(self)
-        entity_animated.base_animated.client_deactivate(self)
+        entity_animated.base_animated.deactivate(self)
     end,
 
-    --[[!
-        Function: send_complete_notification
-        See <base_server.send_complete_notification>.
+    send_notification_full = SERVER and function(self, cn)
+        local acn = msg.ALL_CLIENTS
+        cn = cn or acn
 
-        This function overrides the original. The function remains,
-        but different message gets sent, and more parameters are passed
-        (like position and all the attr*).
-    ]]
-    send_complete_notification = function(self, cn)
-        -- default the client number
-        cn = cn or message.ALL_CLIENTS
+        local cns = (cn == acn) and table.map(ents.get_players(), function(p)
+            return p.cn end) or { cn }
 
-        -- create a table of client numbers
-        local cns = (cn == message.ALL_CLIENTS)
-                    and entity_store.get_all_client_numbers()
-                     or { cn }
+        local uid = self.uid
+        log(DEBUG, "base_static.send_notification_full: " .. cn .. ", " .. uid)
 
-        log(DEBUG, "base:send_complete_notification:")
-
-        -- loop client numbers and send message to each
+        local scn, sname = self.cn, tostring(self)
         for i = 1, #cns do
-            message.send(cns[i],
-                        CAPI.extent_notification_complete,
-                        self.uid,
-                        tostring(self),
-                        -- custom data per client
-                        self:create_state_data_dict(
-                            cns[i], { compressed = true }
-                        ),
-                        tonumber(self.position.x),
-                        tonumber(self.position.y),
-                        tonumber(self.position.z),
-                        tonumber(self.attr1),
-                        tonumber(self.attr2),
-                        tonumber(self.attr3),
-                        tonumber(self.attr4),
-                        tonumber(self.attr5))
+            local n = cns[i]
+            msg.send(n, CAPI.extent_notification_complete,
+                uid, sname, self:build_sdata({
+                    target_cn = n, compressed = true }),
+                tonumber(self.position.x), tonumber(self.position.y),
+                tonumber(self.position.z), tonumber(self.attr1),
+                tonumber(self.attr2), tonumber(self.attr3),
+                tonumber(self.attr4), tonumber(self.attr5))
         end
-        log(DEBUG, "base:send_complete_notification done.")
-    end,
+
+        log(DEBUG, "Entity.send_notification_full: done")
+    end or nil,
 
     --[[!
         Function: get_center
@@ -333,7 +284,7 @@ base_static = class.new(entity_animated.base_animated, {
         r.z = r.z + self.radius
         return r
     end
-}, "base_static")
+}
 
 --[[!
     Class: light
@@ -346,48 +297,45 @@ base_static = class.new(entity_animated.base_animated, {
         attr4 - blue value (0 to 255, alias "blue")
         attr5 - shadow, 0 for dynamic, 1 for no-shadow, 2 for static
 ]]
-light = class.new(base_static, {
+light = base_static:clone {
+    name = "light",
+
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 1,
+    sauer_type = "light",
 
     properties = {
-        attr1 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr1",
-            c_setter = "CAPI.setattr1",
+        attr1 = svars.State_Integer({
+            getter = "CAPI.getattr1",
+            setter = "CAPI.setattr1",
             gui_name = "radius",
             alt_name = "radius"
         }),
-        attr2 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr2",
-            c_setter = "CAPI.setattr2",
+        attr2 = svars.State_Integer({
+            getter = "CAPI.getattr2",
+            setter = "CAPI.setattr2",
             gui_name = "red",
             alt_name = "red"
         }),
-        attr3 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr3",
-            c_setter = "CAPI.setattr3",
+        attr3 = svars.State_Integer({
+            getter = "CAPI.getattr3",
+            setter = "CAPI.setattr3",
             gui_name = "green",
             alt_name = "green"
         }),
-        attr4 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr4",
-            c_setter = "CAPI.setattr4",
+        attr4 = svars.State_Integer({
+            getter = "CAPI.getattr4",
+            setter = "CAPI.setattr4",
             gui_name = "blue",
             alt_name = "blue"
         }),
-        attr5 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr5",
-            c_setter = "CAPI.setattr5",
+        attr5 = svars.State_Integer({
+            getter = "CAPI.getattr5",
+            setter = "CAPI.setattr5",
             gui_name = "shadow",
             alt_name = "shadow"
-        }),
-
-        radius = state_variables.variable_alias("attr1"),
-        red = state_variables.variable_alias("attr2"),
-        green = state_variables.variable_alias("attr3"),
-        blue = state_variables.variable_alias("attr4"),
-        shadow = state_variables.variable_alias("attr5"),
+        })
     },
 
     --! Function: init
@@ -402,7 +350,7 @@ light = class.new(base_static, {
         self.blue   = 128
         self.shadow = 0
     end
-}, "light")
+}
 
 --[[!
     Class: spotlight
@@ -411,19 +359,21 @@ light = class.new(base_static, {
     Radius is in degrees, 0 to 90, where 90 is full hemisphere
     and 0 simply a line.
 ]]
-spotlight = class.new(base_static, {
+spotlight = base_static:clone {
+    name = "spotlight",
+
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 7,
+    sauer_type = "spotlight",
 
     properties = {
-        attr1 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr1",
-            c_setter = "CAPI.setattr1",
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1",
+            setter = "CAPI.setattr1",
             gui_name = "radius",
             alt_name = "radius"
-        }),
-        radius = state_variables.variable_alias("attr1")
+        }
     },
 
     --! Function: init
@@ -432,7 +382,7 @@ spotlight = class.new(base_static, {
         base_static.init(self, uid, kwargs)
         self.radius = 90
     end
-}, "spotlight")
+}
 
 --[[!
     Class: envmap
@@ -443,19 +393,21 @@ spotlight = class.new(base_static, {
 
     It has just one own property, and that is attr1 (alias "radius").
 ]]
-envmap = class.new(base_static, {
+envmap = base_static:clone {
+    name = "envmap",
+
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 4,
+    sauer_type = "envmap",
 
     properties = {
-        attr1 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr1",
-            c_setter = "CAPI.setattr1",
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1",
+            setter = "CAPI.setattr1",
             gui_name = "radius",
             alt_name = "radius"
-        }),
-        radius = state_variables.variable_alias("attr1")
+        }
     },
 
     --! Function: init
@@ -464,7 +416,7 @@ envmap = class.new(base_static, {
         base_static.init(self, uid, kwargs)
         self.radius = 128
     end
-}, "envmap")
+}
 
 --[[!
     Class: ambient_sound
@@ -478,37 +430,36 @@ envmap = class.new(base_static, {
         attr4 - alias "volume" - sound volume. Value from 0 to 100.
         sound_name - path to the sound in data/sounds.
 ]]
-ambient_sound = class.new(base_static, {
+ambient_sound = base_static:clone {
+    name = "ambient_sound",
+
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 6,
+    sauer_type = "sound",
 
     properties = {
-        attr2 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr2",
-            c_setter = "CAPI.setattr2",
+        attr2 = svars.State_Integer {
+            getter = "CAPI.getattr2",
+            setter = "CAPI.setattr2",
             gui_name = "radius",
             alt_name = "radius"
-        }),
-        attr3 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr3",
-            c_setter = "CAPI.setattr3",
+        },
+        attr3 = svars.State_Integer {
+            getter = "CAPI.getattr3",
+            setter = "CAPI.setattr3",
             gui_name = "size",
             alt_name = "size"
-        }),
-        attr4 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr4",
-            c_setter = "CAPI.setsoundvol",
+        },
+        attr4 = svars.State_Integer {
+            getter = "CAPI.getattr4",
+            setter = "CAPI.setsoundvol",
             gui_name = "volume",
             alt_name = "volume"
-        }),
-        sound_name = state_variables.wrapped_c_string({
-            c_setter = "CAPI.setsoundname"
-        }),
-
-        radius = state_variables.variable_alias("attr2"),
-        size = state_variables.variable_alias("attr3"),
-        volume = state_variables.variable_alias("attr4")
+        },
+        sound_name = svars.State_String {
+            setter = "CAPI.setsoundname"
+        }
     },
 
     --! Function: init
@@ -522,7 +473,7 @@ ambient_sound = class.new(base_static, {
         if not self.volume then self.volume = 100 end
         self.sound_name = ""
     end
-}, "ambient_sound")
+}
 
 --[[!
     Class: particle_effect
@@ -617,41 +568,39 @@ ambient_sound = class.new(base_static, {
         size - 0 to N.
         shimmer - if 1, the glow particle will "shimmer" (usable on i.e. fire).
 ]]
-particle_effect = class.new(base_static, {
+particle_effect = base_static:clone {
+    name = "particle_effect",
+
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 5,
+    sauer_type = "particles",
 
     properties = {
-        attr1 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr1",
-            c_setter = "CAPI.setattr1",
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1",
+            setter = "CAPI.setattr1",
             gui_name = "particle_type",
             alt_name = "particle_type"
-        }),
-        attr2 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr2",
-            c_setter = "CAPI.setattr2",
+        },
+        attr2 = svars.State_Integer {
+            getter = "CAPI.getattr2",
+            setter = "CAPI.setattr2",
             gui_name = "value1",
             alt_name = "value1"
-        }),
-        attr3 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr3",
-            c_setter = "CAPI.setattr3",
+        },
+        attr3 = svars.State_Integer {
+            getter = "CAPI.getattr3",
+            setter = "CAPI.setattr3",
             gui_name = "value2",
             alt_name = "value2"
-        }),
-        attr4 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr4",
-            c_setter = "CAPI.setattr4",
+        },
+        attr4 = svars.State_Integer {
+            getter = "CAPI.getattr4",
+            setter = "CAPI.setattr4",
             gui_name = "value3",
             alt_name = "value3"
-        }),
-
-        particle_type = state_variables.variable_alias("attr1"),
-        value1 = state_variables.variable_alias("attr2"),
-        value2 = state_variables.variable_alias("attr3"),
-        value3 = state_variables.variable_alias("attr4")
+        }
     },
 
     --! Function: init
@@ -664,7 +613,7 @@ particle_effect = class.new(base_static, {
         self.value2 = 0
         self.value3 = 0
     end
-}, "particle_effect")
+}
 
 --[[!
     Class: mapmodel
@@ -677,28 +626,30 @@ particle_effect = class.new(base_static, {
         Used with i.e. area trigger to specify trigger bounds.
         collision_radius_height - see above.
 ]]
-mapmodel = class.new(base_static, {
+mapmodel = base_static:clone {
+    name = "mapmodel",
+
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 2,
+    sauer_type = "mapmodel",
 
     properties = {
-        attr1 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr1",
-            c_setter = "CAPI.setattr1",
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1",
+            setter = "CAPI.setattr1",
             gui_name = "yaw",
             alt_name = "yaw"
-        }),
-        yaw = state_variables.variable_alias("attr1"),
+        },
 
-        collision_radius_width = state_variables.wrapped_c_float({
-            c_getter = "CAPI.getcollisionradw",
-            c_setter = "CAPI.setcollisionradw"
-        }),
-        collision_radius_height = state_variables.wrapped_c_float({
-            c_getter = "CAPI.getcollisionradh",
-            c_setter = "CAPI.setcollisionradh"
-        })
+        collision_radius_width = svars.State_Float {
+            getter = "CAPI.getcollisionradw",
+            setter = "CAPI.setcollisionradw"
+        },
+        collision_radius_height = svars.State_Float {
+            getter = "CAPI.getcollisionradh",
+            setter = "CAPI.setcollisionradh"
+        }
     },
 
     --! Function: init
@@ -759,7 +710,7 @@ mapmodel = class.new(base_static, {
             return base_static.get_center(self)
         end
     end
-}, "mapmodel")
+}
 
 --[[!
     Class: area_trigger
@@ -771,10 +722,12 @@ mapmodel = class.new(base_static, {
         is in area_trigger's area. Collider entity is passed to it.
         client_function - clientside variant of server_function.
 ]]
-area_trigger = class.new(mapmodel, {
+area_trigger = mapmodel:clone {
+    name = "area_trigger",
+
     properties = {
-        server_function = state_variables.state_string(),
-        client_function = state_variables.state_string(),
+        server_function = svars.State_String(),
+        client_function = svars.State_String(),
     },
 
     --! Function: init
@@ -815,7 +768,7 @@ area_trigger = class.new(mapmodel, {
             _G[self.client_function](collider)
         end
     end
-}, "area_trigger")
+}
 
 --[[!
     Class: resettable_area_trigger
@@ -828,18 +781,13 @@ area_trigger = class.new(mapmodel, {
     Besides, this has multiple overridable callbacks for re-setting
     and triggering.
 ]]
-resettable_area_trigger = class.new(area_trigger, {
+resettable_area_trigger = area_trigger:clone {
+    name = "resettable_area_trigger",
+
     --! Function: activate
     --! See <base_static.activate>. Calls <reset>.
     activate = function(self, kwargs)
         area_trigger.activate(self, kwargs)
-        self:reset()
-    end,
-
-    --! Function: client_activate
-    --! See <base_static.client_activate>. Calls <reset>.
-    client_activate = function(self, kwargs)
-        area_trigger.client_activate(self, kwargs)
         self:reset()
     end,
 
@@ -951,7 +899,7 @@ resettable_area_trigger = class.new(area_trigger, {
     ]]
     client_on_trigger = function(self, collider)
     end
-}, "resettable_area_trigger")
+}
 
 --[[!
     Class: world_marker
@@ -966,19 +914,21 @@ resettable_area_trigger = class.new(area_trigger, {
     Properties:
         attr1 - marker yaw, alias "yaw".
 ]]
-world_marker = class.new(base_static, {
+world_marker = base_static:clone {
+    name = "world_marker",
+
     --! Variable: sauer_type_index
     --! See <base_static.sauer_type_index>.
     sauer_type_index = 3,
+    sauer_type = "playerstart",
 
     properties = {
-        attr1 = state_variables.wrapped_c_integer({
-            c_getter = "CAPI.getattr1",
-            c_setter = "CAPI.setattr1",
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1",
+            setter = "CAPI.setattr1",
             gui_name = "yaw",
             alt_name = "yaw"
-        }),
-        yaw = state_variables.variable_alias("attr1")
+        }
     },
 
     --[[!
@@ -992,16 +942,16 @@ world_marker = class.new(base_static, {
         entity.position = self.position
         entity.yaw      = self.yaw
     end
-}, "world_marker")
+}
 
 -- register all the entities
-entity_classes.register(base_static, "mapmodel")
-entity_classes.register(light, "light")
-entity_classes.register(spotlight, "spotlight")
-entity_classes.register(envmap, "envmap")
-entity_classes.register(ambient_sound, "sound")
-entity_classes.register(particle_effect, "particles")
-entity_classes.register(mapmodel, "mapmodel")
-entity_classes.register(area_trigger, "mapmodel")
-entity_classes.register(resettable_area_trigger, "mapmodel")
-entity_classes.register(world_marker, "playerstart")
+ents.register_class(base_static)
+ents.register_class(light)
+ents.register_class(spotlight)
+ents.register_class(envmap)
+ents.register_class(ambient_sound)
+ents.register_class(particle_effect)
+ents.register_class(mapmodel)
+ents.register_class(area_trigger)
+ents.register_class(resettable_area_trigger)
+ents.register_class(world_marker)

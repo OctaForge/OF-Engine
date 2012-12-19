@@ -674,6 +674,7 @@ void loadvslots(stream *f, int numvslots)
 
 bool save_world(const char *mname, bool nolms)
 {
+#ifdef CLIENT
     types::String map_name(mname);
     if (map_name.is_empty()) map_name = game::getclientmap();
     setmapfilenames(!map_name.is_empty() ? map_name.get_buf() : "untitled");
@@ -706,9 +707,9 @@ bool save_world(const char *mname, bool nolms)
     {
         varsys::Variable *v = it->second;
         if (
-            (v->flags()&varsys::FLAG_OVERRIDE) != 0 &&
-            (v->flags()&varsys::FLAG_READONLY) == 0 &&
-            (v->flags()&varsys::FLAG_OVERRIDEN) != 0
+            (v->flags & varsys::FLAG_OVERRIDE) != 0 &&
+            (v->flags & varsys::FLAG_READONLY) == 0 &&
+            (v->flags & varsys::FLAG_OVERRIDEN) != 0
         ) hdr.numvars++;
     }
     lilswap(&hdr.version, 9);
@@ -718,33 +719,33 @@ bool save_world(const char *mname, bool nolms)
     {
         varsys::Variable *v = it->second;
         if(
-            (v->flags()&varsys::FLAG_OVERRIDE) == 0 ||
-            (v->flags()&varsys::FLAG_READONLY) != 0 ||
-            (v->flags()&varsys::FLAG_OVERRIDEN) == 0
+            (v->flags & varsys::FLAG_OVERRIDE) == 0 ||
+            (v->flags & varsys::FLAG_READONLY) != 0 ||
+            (v->flags & varsys::FLAG_OVERRIDEN) == 0
         ) continue;
-        f->putchar(v->type());
-        f->putlil<ushort>(  strlen(v->name()));
-        f->write(v->name(), strlen(v->name()));
-        switch(v->type())
+        f->putchar(v->type);
+        f->putlil<ushort>(  strlen(v->name));
+        f->write(v->name, strlen(v->name));
+        switch(v->type)
         {
             case varsys::TYPE_I:
             {
                 int val = varsys::get_int(v);
-                if(dbgvars) conoutf(CON_DEBUG, "wrote var %s: %d", v->name(), val);
+                if(dbgvars) conoutf(CON_DEBUG, "wrote var %s: %d", v->name, val);
                 f->putlil<int>(val);
                 break;
             }
             case varsys::TYPE_F:
             {
                 float val = varsys::get_float(v);
-                if(dbgvars) conoutf(CON_DEBUG, "wrote fvar %s: %f", v->name(), val);
+                if(dbgvars) conoutf(CON_DEBUG, "wrote fvar %s: %f", v->name, val);
                 f->putlil<float>(val);
                 break;
             }
             case varsys::TYPE_S:
             {
                 const char *val = varsys::get_string(v);
-                if(dbgvars) conoutf(CON_DEBUG, "wrote svar %s: %s", v->name(), val);
+                if(dbgvars) conoutf(CON_DEBUG, "wrote svar %s: %s", v->name, val);
                 f->putlil<ushort>(strlen(val));
                 f->write(val, strlen(val));
                 break;
@@ -780,6 +781,9 @@ bool save_world(const char *mname, bool nolms)
     conoutf("wrote map file %s", ogzname);
 
     return true;
+#else
+    return false;
+#endif
 }
 
 static uint mapcrc = 0;
@@ -809,7 +813,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     octaheader& hdr = *saved_hdr; // INTENSITY
     if(f->read(&hdr, 7*sizeof(int))!=int(7*sizeof(int))) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); delete f; return false; }
     lilswap(&hdr.version, 6);
-    if(strncmp(hdr.magic, "OCTA", 4)!=0 || hdr.worldsize <= 0|| hdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); delete f; return false; }
+    if(memcmp(hdr.magic, "OCTA", 4) || hdr.worldsize <= 0|| hdr.numents < 0) { conoutf(CON_ERROR, "map %s has malformatted header", ogzname); delete f; return false; }
     if(hdr.version>MAPVERSION) { conoutf(CON_ERROR, "map %s requires a newer version of OctaForge", ogzname); delete f; return false; }
     compatheader chdr;
     if(hdr.version <= 28)
@@ -899,15 +903,15 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             }
             default: continue;
         }
-        if (v) switch (v->type())
+        if (v) switch (v->type)
         {
             case varsys::TYPE_I:
             {
                 int i = tonumber.call<int>(str);
                 varsys::Int_Variable *iv = (varsys::Int_Variable*)v;
-                if (iv->get_min() <= iv->get_max() && i >= iv->get_min() && i <= iv->get_max())
+                if (iv->min_v <= iv->max_v && i >= iv->min_v && i <= iv->max_v)
                 {
-                    iv->set(i, true, false);
+                    varsys::set((varsys::Variable*)iv, i, true, false);
                     if(dbgvars) conoutf(CON_DEBUG, "read var %s: %d", name, i);
                 }
                 break;
@@ -917,9 +921,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             {
                 float f = tonumber.call<float>(str);
                 varsys::Float_Variable *fv = (varsys::Float_Variable*)v;
-                if (fv->get_min() <= fv->get_max() && f >= fv->get_min() && f <= fv->get_max())
+                if (fv->min_v <= fv->max_v && f >= fv->min_v && f <= fv->max_v)
                 {
-                    fv->set(f, true, false);
+                    varsys::set((varsys::Variable*)fv, f, true, false);
                     if(dbgvars) conoutf(CON_DEBUG, "read var %s: %f", name, f);
                 }
                 break;
@@ -927,7 +931,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     
             case varsys::TYPE_S:
             {
-                ((varsys::String_Variable*)v)->set(str, true);
+                varsys::set(v, str, true);
                 if(dbgvars) conoutf(CON_DEBUG, "read svar %s: %s", name, str);
                 break;
             }
@@ -1083,7 +1087,9 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 //    mapcrc = f->getcrc(); // INTENSITY: We use our own signatures
     delete f;
 
-    gui::clearmainmenu();
+#ifdef CLIENT
+    lapi::state.get<lua::Function>("external", "gui_clear")();
+#endif
 
     varsys::overridevars = true;
     if (lapi::state.state())
@@ -1115,7 +1121,9 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
     loadprogress = 0;
 
     game::preload();
+#ifdef CLIENT
     flushpreloadedmodels();
+#endif
 
     entitiesinoctanodes();
     attachentities();

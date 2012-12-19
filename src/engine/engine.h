@@ -3,8 +3,6 @@
 
 #include "cube.h"
 
-#ifndef STANDALONE
-
 #include "world.h"
 #include "octa.h"
 #include "light.h"
@@ -139,6 +137,41 @@ extern PFNGLTEXIMAGE3DEXTPROC        glTexImage3D_;
 extern PFNGLTEXSUBIMAGE3DEXTPROC     glTexSubImage3D_;
 extern PFNGLCOPYTEXSUBIMAGE3DEXTPROC glCopyTexSubImage3D_;
 
+// GL_ARB_debug_output
+#ifndef GL_ARB_debug_output
+#define GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB   0x8242
+#define GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH_ARB 0x8243
+#define GL_DEBUG_CALLBACK_FUNCTION_ARB    0x8244
+#define GL_DEBUG_CALLBACK_USER_PARAM_ARB  0x8245
+#define GL_DEBUG_SOURCE_API_ARB           0x8246
+#define GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB 0x8247
+#define GL_DEBUG_SOURCE_SHADER_COMPILER_ARB 0x8248
+#define GL_DEBUG_SOURCE_THIRD_PARTY_ARB   0x8249
+#define GL_DEBUG_SOURCE_APPLICATION_ARB   0x824A
+#define GL_DEBUG_SOURCE_OTHER_ARB         0x824B
+#define GL_DEBUG_TYPE_ERROR_ARB           0x824C
+#define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB 0x824D
+#define GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB 0x824E
+#define GL_DEBUG_TYPE_PORTABILITY_ARB     0x824F
+#define GL_DEBUG_TYPE_PERFORMANCE_ARB     0x8250
+#define GL_DEBUG_TYPE_OTHER_ARB           0x8251
+#define GL_MAX_DEBUG_MESSAGE_LENGTH_ARB   0x9143
+#define GL_MAX_DEBUG_LOGGED_MESSAGES_ARB  0x9144
+#define GL_DEBUG_LOGGED_MESSAGES_ARB      0x9145
+#define GL_DEBUG_SEVERITY_HIGH_ARB        0x9146
+#define GL_DEBUG_SEVERITY_MEDIUM_ARB      0x9147
+#define GL_DEBUG_SEVERITY_LOW_ARB         0x9148
+typedef void (APIENTRY *GLDEBUGPROCARB)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
+typedef void (APIENTRYP PFNGLDEBUGMESSAGECONTROLARBPROC) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+typedef void (APIENTRYP PFNGLDEBUGMESSAGEINSERTARBPROC) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
+typedef void (APIENTRYP PFNGLDEBUGMESSAGECALLBACKARBPROC) (GLDEBUGPROCARB callback, const GLvoid *userParam);
+typedef GLuint (APIENTRYP PFNGLGETDEBUGMESSAGELOGARBPROC) (GLuint count, GLsizei bufsize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
+#endif
+extern PFNGLDEBUGMESSAGECONTROLARBPROC glDebugMessageControl_;
+extern PFNGLDEBUGMESSAGEINSERTARBPROC glDebugMessageInsert_;
+extern PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallback_;
+extern PFNGLGETDEBUGMESSAGELOGARBPROC glGetDebugMessageLog_;
+
 extern void glerror(const char *file, int line, GLenum error);
 
 #define GLERROR do { GLenum error = glGetError(); if(error != GL_NO_ERROR) glerror(__FILE__, __LINE__, error); } while(0)
@@ -205,6 +238,7 @@ extern void createtexture(int tnum, int w, int h, const void *pixels, int clamp,
 extern void create3dtexture(int tnum, int w, int h, int d, const void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_3D_EXT);
 extern void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src, int margin = 0);
 extern void blurnormals(int n, int w, int h, bvec *dst, const bvec *src, int margin = 0);
+extern GLuint setuppostfx(int w, int h);
 extern void renderpostfx();
 extern void initenvmaps();
 extern void genenvmaps();
@@ -238,7 +272,7 @@ static inline bool pvsoccluded(const ivec &bborigin, int size)
 }
 
 // rendergl
-extern bool hasVBO, hasDRE, hasOQ, hasTR, hasT3D, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasBE, hasBC, hasCM, hasNP2, hasTC, hasMT, hasAF, hasMDA, hasGLSL, hasGM, hasNVFB, hasSGIDT, hasSGISH, hasDT, hasSH, hasNVPCF, hasPBO, hasFBB, hasUBO, hasBUE, hasDB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT, hasDC;
+extern bool hasVBO, hasDRE, hasOQ, hasTR, hasT3D, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasBE, hasBC, hasCM, hasNP2, hasTC, hasMT, hasAF, hasMDA, hasGLSL, hasGM, hasNVFB, hasSGIDT, hasSGISH, hasDT, hasSH, hasNVPCF, hasPBO, hasFBB, hasUBO, hasBUE, hasDB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT, hasDC, hasDBGO;
 extern int hasstencil;
 extern int glslversion;
 
@@ -260,7 +294,6 @@ extern vec curfogcolor;
 extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
-extern void invalidatepostfx();
 extern void gl_setupframe(int w, int h);
 extern void gl_drawframe(int w, int h);
 extern void gl_drawmainmenu(int w, int h);
@@ -309,7 +342,7 @@ extern bool subdividecube(cube &c, bool fullcheck=true, bool brighten=true);
 extern void edgespan2vectorcube(cube &c);
 extern int faceconvexity(ivec v[4]);
 extern int faceconvexity(ivec v[4], int &vis);
-extern int faceconvexity(vertinfo *verts, int numverts);
+extern int faceconvexity(vertinfo *verts, int numverts, int size);
 extern int faceconvexity(cube &c, int orient);
 extern void calcvert(cube &c, int x, int y, int z, int size, ivec &vert, int i, bool solid = false);
 extern void calcvert(cube &c, int x, int y, int z, int size, vec &vert, int i, bool solid = false);
@@ -606,10 +639,6 @@ extern void getfps(int &fps, int &bestdiff, int &worstdiff);
 extern void swapbuffers();
 extern int getclockmillis();
 
-// menu
-extern void addchange(const char *desc, int type);
-extern void clearchanges(int type);
-
 // physics
 extern void mousemove(int dx, int dy);
 extern bool pointincube(const clipplanes &p, const vec &v);
@@ -667,26 +696,14 @@ extern void cleardecals();
 extern void renderdecals(bool mainpass = false);
 
 // rendersky
-extern int explicitsky;
+extern int skytexture, skyshadow, explicitsky;
 
 extern void drawskybox(int farplane);
 extern bool limitsky();
 extern bool renderexplicitsky(bool outline = false);
 
 // menus
-namespace gui
-{
-    extern void resetcursor();
-    extern bool movecursor(int dx, int dy);
-    extern bool hascursor(bool targeting = false);
-    extern void getcursorpos(float &x, float &y);
-    extern bool keypress(int code, bool isdown, int cooked);
-    extern void setup();
-    extern void update();
-    extern void render();
-    extern void clearmainmenu();
-    extern int  mainmenu;
-}
+extern bool gui_mainmenu;
 
 // sound
 extern void clearmapsounds();
@@ -735,8 +752,6 @@ namespace recorder
     extern void capture();
     extern void cleanup();
 }
-
-#endif
 
 #endif
 

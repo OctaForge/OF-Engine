@@ -10,8 +10,7 @@
  * Copyright (c) 2012 q66
  */
 
-#include "cube.h"
-#include "texture.h"
+#include "engine.h"
 
 /* prototypes */
 
@@ -19,7 +18,19 @@
 void quit      ();
 void resetgl   ();
 void resetsound();
+
+void newfont(const char *name, const char *tex, int defaultw, int defaulth);
+void fontoffset(const char *c);
+void fontscale(int scale);
+void fonttex(const char *s);
+void fontchar(
+    int x, int y, int w, int h, int offsetx, int offsety, int advance
+);
+void fontskip(int n);
+void fontalias(const char *dst, const char *src);
 #endif
+
+bool gui_mainmenu = true;
 
 extern "C" {
     /* Core primitives */
@@ -46,42 +57,79 @@ extern "C" {
         resetsound();
     }
 
+    void *base_gl_get_proc_address(const char *proc) {
+        return SDL_GL_GetProcAddress(proc);
+    }
+
+    void base_shader_notexture_set() {
+        notextureshader->set();
+    }
+
+    void base_shader_default_set() {
+        defaultshader->set();
+    }
+
 #endif
+
+    /* zlib compression */
+
+    ulong zlib_compress_bound(ulong src_len) {
+        return compressBound(src_len);
+    }
+
+    int zlib_compress(uchar *dest, ulong *dest_len, const uchar *src,
+        ulong src_len, int level) {
+        return compress2(dest, dest_len, src, src_len, level);
+    }
+
+    int zlib_uncompress(uchar *dest, ulong *dest_len, const uchar *src,
+        ulong src_len) {
+        return uncompress(dest, dest_len, src, src_len);
+    }
 
     /* Engine variables */
 
     void var_reset(const char *name) {
-        varsys::get(name)->reset();
+        varsys::reset(varsys::get(name));
     }
 
     void var_new_i(const char *name, int value) {
         if (!name) return;
+        printf("new!\n");
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev)
-            ev = varsys::reg_var(name, new varsys::Int_Alias(name, value));
-        else if (ev->type() != varsys::TYPE_I) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is not integral, cannot become %i.\n",
-                value);
-            return;
+        if (!ev) {
+            varsys::reg_int(name, value);
         }
-        else varsys::set(ev, value, false, false);
+        else if (ev->type != varsys::TYPE_I) {
+            logger::log(logger::ERROR,
+                "Creation of engine variable \"%s\" failed: already exists "
+                "and is of different type.\n", ev->name);
+        }
+        else if (ev->flags != varsys::FLAG_ALIAS) {
+            logger::log(logger::ERROR,
+                "Engine variable \"%s\" already exists and has different "
+                "flags.", ev->name);
+        }
     }
 
     void var_new_f(const char *name, float value) {
         if (!name) return;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev)
-            ev = varsys::reg_var(name, new varsys::Float_Alias(name, value));
-        else if (ev->type() != varsys::TYPE_F) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is not a float, cannot become %f.\n",
-                value);
-            return;
+        if (!ev) {
+            varsys::reg_float(name, value);
         }
-        else varsys::set(ev, value, false, false);
+        else if (ev->type != varsys::TYPE_F) {
+            logger::log(logger::ERROR,
+                "Creation of engine variable \"%s\" failed: already exists "
+                "and is of different type.\n", ev->name);
+        }
+        else if (ev->flags != varsys::FLAG_ALIAS) {
+            logger::log(logger::ERROR,
+                "Engine variable \"%s\" already exists and has different "
+                "flags.", ev->name);
+        }
     }
 
     void var_new_s(const char *name, const char *value) {
@@ -89,15 +137,79 @@ extern "C" {
         if (!value) value = "";
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev)
-            ev = varsys::reg_var(name, new varsys::String_Alias(name, value));
-        else if (ev->type() != varsys::TYPE_S) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is not a string, cannot become %s.\n",
-                value);
-            return;
+        if (!ev) {
+            varsys::reg_string(name, value);
         }
-        else varsys::set(ev, value, false);
+        else if (ev->type != varsys::TYPE_S) {
+            logger::log(logger::ERROR,
+                "Creation of engine variable \"%s\" failed: already exists "
+                "and is of different type.\n", ev->name);
+        }
+        else if (ev->flags != varsys::FLAG_ALIAS) {
+            logger::log(logger::ERROR,
+                "Engine variable \"%s\" already exists and has different "
+                "flags.", ev->name);
+        }
+    }
+
+    void var_new_i_full(const char *name, int min, int def, int max,
+        int flags) {
+        if (!name) return;
+
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev) {
+            varsys::reg_int(name, flags, NULL, NULL, min, def, max);
+        }
+        else if (ev->type != varsys::TYPE_I) {
+            logger::log(logger::ERROR,
+                "Creation of engine variable \"%s\" failed: already exists "
+                "and is of different type.\n", ev->name);
+        }
+        else if (ev->flags != flags) {
+            logger::log(logger::ERROR,
+                "Engine variable \"%s\" already exists and has different "
+                "flags.", ev->name);
+        }
+    }
+
+    void var_new_f_full(const char *name, float min, float def, float max,
+        int flags) {
+        if (!name) return;
+
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev) {
+            varsys::reg_float(name, flags, NULL, NULL, min, def, max);
+        }
+        else if (ev->type != varsys::TYPE_F) {
+            logger::log(logger::ERROR,
+                "Creation of engine variable \"%s\" failed: already exists "
+                "and is of different type.\n", ev->name);
+        }
+        else if (ev->flags != flags) {
+            logger::log(logger::ERROR,
+                "Engine variable \"%s\" already exists and has different "
+                "flags.", ev->name);
+        }
+    }
+
+    void var_new_s_full(const char *name, const char *def, int flags) {
+        if (!name) return;
+        if (!def ) def = "";
+
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev) {
+            varsys::reg_string(name, flags, NULL, NULL, def);
+        }
+        else if (ev->type != varsys::TYPE_S) {
+            logger::log(logger::ERROR,
+                "Creation of engine variable \"%s\" failed: already exists "
+                "and is of different type.\n", ev->name);
+        }
+        else if (ev->flags != flags) {
+            logger::log(logger::ERROR,
+                "Engine variable \"%s\" already exists and has different "
+                "flags.", ev->name);
+        }
     }
 
     void var_set_i(const char *name, int value) {
@@ -111,14 +223,14 @@ extern "C" {
             return;
         }
 
-        if (ev->type() != varsys::TYPE_I) {
+        if (ev->type != varsys::TYPE_I) {
             logger::log(logger::ERROR,
                 "Engine variable %s is not integral, cannot become %i.\n",
                 value);
             return;
         }
 
-        if ((ev->flags() & varsys::FLAG_READONLY) != 0) {
+        if ((ev->flags & varsys::FLAG_READONLY) != 0) {
             logger::log(logger::ERROR,
                 "Engine variable %s is read-only.\n", name);
             return;
@@ -138,14 +250,14 @@ extern "C" {
             return;
         }
 
-        if (ev->type() != varsys::TYPE_F) {
+        if (ev->type != varsys::TYPE_F) {
             logger::log(logger::ERROR,
                 "Engine variable %s is not a float, cannot become %f.\n",
                 value);
             return;
         }
 
-        if ((ev->flags() & varsys::FLAG_READONLY) != 0) {
+        if ((ev->flags & varsys::FLAG_READONLY) != 0) {
             logger::log(logger::ERROR,
                 "Engine variable %s is read-only.\n", name);
             return;
@@ -166,14 +278,14 @@ extern "C" {
             return;
         }
 
-        if (ev->type() != varsys::TYPE_S) {
+        if (ev->type != varsys::TYPE_S) {
             logger::log(logger::ERROR,
                 "Engine variable %s is not a string, cannot become %s.\n",
                 value);
             return;
         }
 
-        if ((ev->flags() & varsys::FLAG_READONLY) != 0) {
+        if ((ev->flags & varsys::FLAG_READONLY) != 0) {
             logger::log(logger::ERROR,
                 "Engine variable %s is read-only.\n", name);
             return;
@@ -186,7 +298,7 @@ extern "C" {
         if (!name) return 0;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type() != varsys::TYPE_I) return 0;
+        if (!ev || ev->type != varsys::TYPE_I) return 0;
 
         return varsys::get_int(ev);
     }
@@ -195,7 +307,7 @@ extern "C" {
         if (!name) return 0.0f;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type() != varsys::TYPE_F) return 0.0f;
+        if (!ev || ev->type != varsys::TYPE_F) return 0.0f;
 
         return varsys::get_float(ev);
     }
@@ -204,7 +316,7 @@ extern "C" {
         if (!name) return NULL;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type() != varsys::TYPE_S) return NULL;
+        if (!ev || ev->type != varsys::TYPE_S) return NULL;
 
         return varsys::get_string(ev);
     }
@@ -213,68 +325,109 @@ extern "C" {
         if (!name) return 0;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type() != varsys::TYPE_I ||
-            (ev->flags() & varsys::FLAG_ALIAS))
+        if (!ev || ev->type != varsys::TYPE_I ||
+            (ev->flags & varsys::FLAG_ALIAS))
                 return 0;
 
-        return (((varsys::Int_Variable *)ev)->get_min());
+        return (((varsys::Int_Variable *)ev)->min_v);
     }
 
     float var_get_min_f(const char *name) {
         if (!name) return 0.0f;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type() != varsys::TYPE_F ||
-            (ev->flags() & varsys::FLAG_ALIAS))
+        if (!ev || ev->type != varsys::TYPE_F ||
+            (ev->flags & varsys::FLAG_ALIAS))
                 return 0.0f;
 
-        return (((varsys::Float_Variable *)ev)->get_min());
+        return (((varsys::Float_Variable *)ev)->min_v);
     }
 
     int var_get_max_i(const char *name) {
         if (!name) return 0;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type() != varsys::TYPE_I ||
-            (ev->flags() & varsys::FLAG_ALIAS))
+        if (!ev || ev->type != varsys::TYPE_I ||
+            (ev->flags & varsys::FLAG_ALIAS))
                 return 0;
 
-        return (((varsys::Int_Variable *)ev)->get_max());
+        return (((varsys::Int_Variable *)ev)->max_v);
     }
 
     float var_get_max_f(const char *name) {
         if (!name) return 0.0f;
 
         varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type() != varsys::TYPE_F ||
-            (ev->flags() & varsys::FLAG_ALIAS))
+        if (!ev || ev->type != varsys::TYPE_F ||
+            (ev->flags & varsys::FLAG_ALIAS))
                 return 0.0f;
 
-        return (((varsys::Float_Variable *)ev)->get_max());
+        return (((varsys::Float_Variable *)ev)->max_v);
+    }
+
+    int var_get_def_i(const char *name) {
+        if (!name) return 0;
+
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev || ev->type != varsys::TYPE_I ||
+            (ev->flags & varsys::FLAG_ALIAS))
+                return 0;
+
+        return (((varsys::Int_Variable *)ev)->def_v);
+    }
+
+    float var_get_def_f(const char *name) {
+        if (!name) return 0.0f;
+
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev || ev->type != varsys::TYPE_F ||
+            (ev->flags & varsys::FLAG_ALIAS))
+                return 0.0f;
+
+        return (((varsys::Float_Variable *)ev)->def_v);
+    }
+
+    const char *var_get_def_s(const char *name) {
+        if (!name) return NULL;
+
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev || ev->type != varsys::TYPE_S ||
+            (ev->flags & varsys::FLAG_ALIAS))
+                return NULL;
+
+        return (((varsys::String_Variable *)ev)->def_v);
     }
 
     int var_get_type(const char *name) {
         varsys::Variable *ev = varsys::get(name);
-        if (!ev)
-            return varsys::TYPE_N;
-        return ev->type();
+        if (!ev) return -1;
+        return ev->type;
     }
 
     bool var_exists(const char *name) {
         return varsys::get(name) ? true : false;
     }
 
-    bool var_persist_vars(bool persist) {
-        bool was = varsys::persistvars;
-        varsys::persistvars = persist;
-        return was;
-    }
-
     bool var_is_alias(const char *name) {
         varsys::Variable *ev = varsys::get(name);
-        return (!ev || !(ev->flags() & varsys::FLAG_ALIAS)) ? false : true;
+        return (!ev || !(ev->flags & varsys::FLAG_ALIAS)) ? false : true;
     }
 
+    bool var_is_hex(const char *name) {
+        varsys::Variable *ev = varsys::get(name);
+        return (!ev || !(ev->flags & varsys::FLAG_HEX)) ? false : true;
+    }
+
+    bool var_emits(const char *name) {
+        varsys::Variable *ev = varsys::get(name);
+        return (!ev || !(ev->emits)) ? false : true;
+    }
+
+    void var_emits_set(const char *name, bool v) {
+        varsys::Variable *ev = varsys::get(name);
+        if (!ev || (ev->flags & varsys::FLAG_ALIAS)) return;
+        ev->emits = v;
+    }
 
     bool var_changed() {
         return varsys::changed;
@@ -293,6 +446,10 @@ extern "C" {
     }
 
     /* GUI */
+
+    void gui_set_mainmenu(bool v) {
+        gui_mainmenu = v;
+    }
 
     void gui_text_bounds(const char *str, int &w, int &h, int maxw) {
         text_bounds(str, w, h, maxw);
@@ -315,48 +472,53 @@ extern "C" {
         return text_visible(str, hitx, hity, maxw);
     }
 
-    void gui_draw_primitive(uint mode, int r, int g, int b, int a, bool mod,
-        size_t nv, ...) {
-        va_list  ap;
-        va_start(ap, nv);
-
-        if (mod) glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-        notextureshader->set();
-        glDisable(GL_TEXTURE_2D);
-        glColor4ub(r, g, b, a);
-        glBegin(mode);
-
-        for (size_t i = 0; i < nv; ++i) {
-            float x = (float)va_arg(ap, double);
-            float y = (float)va_arg(ap, double);
-            glVertex2f(x, y);
-        }
-
-        glEnd();
-        glEnable(GL_TEXTURE_2D);
-        defaultshader->set();
-        if (mod) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        va_end(ap);
-    }
-
     void gui_draw_text(const char *str, int left, int top,
         int r, int g, int b, int a, int cur, int maxw) {
         draw_text(str, left, top, r, g, b, a, cur, maxw);
     }
 
-    /* Low level OpenGL calls */
+    /* Deprecated GUI stuff */
 
-    void gl_push_matrix() { glPushMatrix(); }
-    void gl_pop_matrix () { glPopMatrix (); }
-
-    void gl_translate_f(float x, float y, float z) {
-        glTranslatef(x, y, z);
+    void gui_font(const char *name, const char *text, int dw, int dh) {
+        newfont(name, text, dw, dh);
     }
 
-    void gl_scale_f(float x, float y, float z) {
-        glScalef(x, y, z);
+    void gui_font_offset(const char *c) {
+        fontoffset(c);
     }
 
+    void gui_font_tex(const char *t) {
+        fonttex(t);
+    }
+
+    void gui_font_scale(int s) {
+        fontscale(s);
+    }
+
+    void gui_font_char(int x, int y, int w, int h, int ox, int oy, int adv) {
+        fontchar(x, y, w, h, ox, oy, adv);
+    }
+
+    void gui_font_skip(int n) {
+        fontskip(n);
+    }
+
+    void gui_font_alias(const char *dst, const char *src) {
+        fontalias(dst, src);
+    }
+
+    /* Textures */
+
+    Texture *texture_load(const char *path) {
+        return textureload(path, 3, true, false);
+    }
+
+    Texture *texture_get_notexture() {
+        return notexture;
+    }
+
+    void texture_load_alpha_mask(Texture *tex) {
+        loadalphamask(tex);
+    }
 #endif
 }

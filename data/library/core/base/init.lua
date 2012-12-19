@@ -20,13 +20,11 @@
         - Utility library
         - Geometry library
         - Console interface
-        - GUI interface
         - Shader interface
         - Model interface
         - Action system
         - Message system
         - Entity storage
-        - State variable system
         - Entity class system
         - Entity system
         - Effect system
@@ -53,29 +51,11 @@ require("base.base_input")
 log(DEBUG, ":: Console.")
 require("base.base_console")
 
-log(DEBUG, ":: GUI.")
-require("base.base_gui")
-
 log(DEBUG, ":: Shaders.")
 require("base.base_shaders")
 
 log(DEBUG, ":: Models.")
 require("base.base_models")
-
-log(DEBUG, ":: Message system.")
-require("base.base_messages")
-
-log(DEBUG, ":: Logic entity storage.")
-require("base.base_ent_store")
-
-log(DEBUG, ":: State variables.")
-require("base.base_svars")
-
-log(DEBUG, ":: Logic entity classes.")
-require("base.base_ent_classes")
-
-log(DEBUG, ":: Logic entities.")
-require("base.base_ent")
 
 log(DEBUG, ":: Effects.")
 require("base.base_effects")

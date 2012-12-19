@@ -2,7 +2,8 @@ library.include("firing")
 
 module("chaingun", package.seeall)
 
-chaingun = table.subclass(firing.gun, {
+chaingun = firing.gun:clone {
+    name          = "chaingun",
     repeating     = true,
     delay         = 100, -- unused
     origin_tag    = "tag_weapon",
@@ -40,11 +41,11 @@ chaingun = table.subclass(firing.gun, {
         if  target_entity and target_entity.suffer_damage then
             target_entity:suffer_damage({
                 origin = target,
-                damage = (shooter == entity_store.get_player_entity())
+                damage = (shooter == ents.get_player())
                     and self.damage
                     or 0,
                 non_controller_damage =
-                    (shooter ~= entity_store.get_player_entity())
+                    (shooter ~= ents.get_player())
                         and self.damage
                         or 0
             })
@@ -84,21 +85,22 @@ chaingun = table.subclass(firing.gun, {
 
         
     end,
-}, "chaingun")
+}
 
 chaingun.plugin = {
     properties = {
-        chaingun_firing_update = state_variables.state_bool({
+        chaingun_firing_update = svars.State_Boolean {
             client_set = true, reliable = false, has_history = false
-        })
+        }
     },
 
-    client_activate = function(self)
+    activate = function(self)
+        if not CLIENT then return nil end
         self.chaingun_firing = false
 
         signal.connect(self,
-            state_variables.get_on_modify_name("chaingun_firing_update"),
-            function(self, value)
+            "chaingun_firing_update_changed",
+            function(_, self, value)
                 value = value and health.is_valid_target(self)
 
                 if not self.chaingun_firing and value then
@@ -121,7 +123,7 @@ chaingun.plugin = {
         )
     end,
 
-    client_act = function(self, seconds)
+    run = CLIENT and function(self, seconds)
         if self.chaingun_firing then
             effects.dynamic_light(self.position, 30, 0xFFEECC)
 
@@ -171,5 +173,5 @@ chaingun.plugin = {
                 self.chaingun_firing_action = nil
             end
         end
-    end
+    end or nil
 }

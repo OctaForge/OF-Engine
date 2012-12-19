@@ -3,31 +3,31 @@
 
 echo("OctaForge defaults")
 
-EVAR.invmouse = 0         -- 1 for flightsim mode
-EVAR.sensitivity = 3      -- similar number to quake
-EVAR.fov = 100            -- 90 is default in other games
+EV.invmouse = 0         -- 1 for flightsim mode
+EV.sensitivity = 3      -- similar number to quake
+EV.fov = 100            -- 90 is default in other games
 
-EVAR.musicvol = 60       -- set higher if you want (max 255)
-EVAR.soundvol = 255      -- sounds average volume is actually set per sound, average 100
+EV.musicvol = 60       -- set higher if you want (max 255)
+EV.soundvol = 255      -- sounds average volume is actually set per sound, average 100
 
-EVAR.gamma = 100          -- set to your liking, 100 = default
+EV.gamma = 100          -- set to your liking, 100 = default
 
-EVAR.fullbrightmodels = 25 -- make player models a bit easier to see
+EV.fullbrightmodels = 25 -- make player models a bit easier to see
 
-EVAR.sensitivity = 3      -- similar number to quake
-EVAR.fov = 100            -- 90 is default in other games
+EV.sensitivity = 3      -- similar number to quake
+EV.fov = 100            -- 90 is default in other games
 
-EVAR.grassheight = 10
+EV.grassheight = 10
 
 -- console
 
-EVAR.consize = 5            -- console is 5 lines
-EVAR.miniconsize = 5        -- mini-console is 5 lines
-EVAR.miniconwidth = 40      -- mini-console is 40% of screen width
-EVAR.fullconsize = 75       -- full console is 75% of screen height
-EVAR.miniconfilter = 0x300  -- display chat and team chat in mini-console
-EVAR.confilter = math.band(0x2FFF, math.bnot(EVAR.miniconfilter)) -- don't display other player frags or mini-console stuff in console
-EVAR.fullconfilter = 0xFFFF -- display all messages in full console
+EV.consize = 5            -- console is 5 lines
+EV.miniconsize = 5        -- mini-console is 5 lines
+EV.miniconwidth = 40      -- mini-console is 40% of screen width
+EV.fullconsize = 75       -- full console is 75% of screen height
+EV.miniconfilter = 0x300  -- display chat and team chat in mini-console
+EV.confilter = math.band(0x2FFF, math.bnot(EV.miniconfilter)) -- don't display other player frags or mini-console stuff in console
+EV.fullconfilter = 0xFFFF -- display all messages in full console
 
 -- WSAD
 
@@ -43,7 +43,7 @@ input.bind("RIGHT", [[input.turn_right()]])
 
 input.bind("SPACE", [[input.jump()]])
 
-input.bind("TAB", [[gui.show_scores()]])
+--input.bind("TAB", [[gui.show_scores()]])
 
 input.bind("T", [[console.prompt()]])
 input.bind("BACKQUOTE", [[console.prompt("/")]])
@@ -74,11 +74,11 @@ input.bind("MOUSE5", [[universaldelta(-1)]])
 -- edit binds
 
 input.bind_edit("SPACE", [[edit.cancel_selection()]])
-input.bind_edit("MOUSE1", [[if EVAR.blendpaintmode ~= 0 then texture.paint_blend_map() else edit.drag() end]])
+input.bind_edit("MOUSE1", [[if EV.blendpaintmode ~= 0 then texture.paint_blend_map() else edit.drag() end]])
 input.bind_edit("MOUSE3", [[edit.select_corners()]])
 input.bind_edit("MOUSE2", [[
-    if EVAR.has_mouse_target == 0 then
-        if EVAR.blendpaintmode ~= 0 then
+    if EV.has_mouse_target == 0 then
+        if EV.blendpaintmode ~= 0 then
             texture.rotate_blend_brush()
         else
             edit.move_selection()
@@ -100,8 +100,8 @@ input.bind_edit("DELETE", [[edit.delete_selection()]])
 input.bind_edit("X", [[edit.flip()]])
 input.bind_edit("C", [[edit.copy()]])
 input.bind_edit("V", [[edit.paste()]])
-input.bind_edit("Z", [[edit.undo(); EVAR.passthroughsel = 0]])
-input.bind_edit("U", [[edit.undo(); EVAR.passthroughsel = 0]])
+input.bind_edit("Z", [[edit.undo(); EV.passthroughsel = 0]])
+input.bind_edit("U", [[edit.undo(); EV.passthroughsel = 0]])
 input.bind_edit("I", [[edit.redo()]])
 input.bind_var_toggle_edit("H", "hmapedit")
 
@@ -138,14 +138,14 @@ input.bind_edit("4", [[domodifier(11)]]) -- vSlot: scale
 --input.bind_edit("RALT", [[multiplier2 = 32; input.on_release(function() multiplier2 = 16 end)]])
 
 -- blendmap painting
-input.bind_edit("KP0", [[texture.set_blend_paint_mode(EVAR.blendpaintmode ~= 0 and 0 or 1)]])
-input.bind_edit("KP1", [[if EVAR.blendpaintmode ~= 0 then texture.set_blend_paint_mode(1) else input.left() end]])
-input.bind_edit("KP2", [[if EVAR.blendpaintmode ~= 0 then texture.set_blend_paint_mode(2) else input.backward() end]])
-input.bind_edit("KP3", [[if EVAR.blendpaintmode ~= 0 then texture.set_blend_paint_mode(3) else input.right() end]])
-input.bind_edit("KP4", [[if EVAR.blendpaintmode ~= 0 then texture.set_blend_paint_mode(4) else input.turn_left() end]])
+input.bind_edit("KP0", [[texture.set_blend_paint_mode(EV.blendpaintmode ~= 0 and 0 or 1)]])
+input.bind_edit("KP1", [[if EV.blendpaintmode ~= 0 then texture.set_blend_paint_mode(1) else input.left() end]])
+input.bind_edit("KP2", [[if EV.blendpaintmode ~= 0 then texture.set_blend_paint_mode(2) else input.backward() end]])
+input.bind_edit("KP3", [[if EV.blendpaintmode ~= 0 then texture.set_blend_paint_mode(3) else input.right() end]])
+input.bind_edit("KP4", [[if EV.blendpaintmode ~= 0 then texture.set_blend_paint_mode(4) else input.turn_left() end]])
 input.bind_edit("KP5", [[texture.set_blend_paint_mode(5)]])
 input.bind_edit("KP6", [[input.turn_right()]])
-input.bind_edit("KP8", [[if EVAR.blendpaintmode ~= 0 then texture.scroll_blend_brush(-1) else input.forward() end]])
+input.bind_edit("KP8", [[if EV.blendpaintmode ~= 0 then texture.scroll_blend_brush(-1) else input.forward() end]])
 input.bind_edit("KP9", [[texture.scroll_blend_brush(1)]])
 
 input.bind("M", [[camera.mouselook()]])

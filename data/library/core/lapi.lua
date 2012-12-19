@@ -30,32 +30,32 @@ return {
                     if do_yaw then
                         return do_yaw(dir, down)
                     end
-                    entity_store.get_player_entity().yawing = dir
+                    ents.get_player().yawing = dir
                 end,
                 pitch = function(dir, down)
                     if do_pitch then
                         return do_pitch(dir, down)
                     end
-                    entity_store.get_player_entity().pitching = dir
+                    ents.get_player().pitching = dir
                 end,
                 move = function(dir, down)
                     if do_movement then
                         return do_movement(dir, down)
                     end
-                    entity_store.get_player_entity().move = dir
+                    ents.get_player().move = dir
                 end,
                 strafe = function(dir, down)
                     if do_strafe then
                         return do_strafe(dir, down)
                     end
-                    entity_store.get_player_entity().strafe = dir
+                    ents.get_player().strafe = dir
                 end,
                 jump = function(down)
                     if do_jump then
                         return do_jump(down)
                     end
                     if down then
-                        entity_store.get_player_entity():jump()
+                        ents.get_player():jump()
                     end
                 end
             },
@@ -74,28 +74,6 @@ return {
         get_local_bind = function(name)
             return input.per_map_keys[name]
         end
-    },
-    GUI = {
-        HUD = {
-            edit = function()
-                if not edithud then
-                    return nil
-                end
-
-                return edithud()
-            end,
-            game = function()
-                if not gamehud then
-                    return nil
-                end
-
-                return gamehud()
-            end
-        },
-        show = gui.show,
-        hide = gui.hide,
-        show_changes = gui.show_changes,
-        show_message = gui.message
     },
     World = {
         Events = {
@@ -141,16 +119,16 @@ return {
                 rendering_hash_hint = "rendering_hash_hint"
             },
             create_state_data_dict = function(ent)
-                return ent:create_state_data_dict()
+                return ent:build_sdata()
             end,
-            add_sauer = entity_store.add_sauer,
+            add_sauer = ents.add_sauer,
             clear_actions = function(ent)
                 return ent.action_system:clear()
             end,
-            set_state_data = entity_store.set_state_data,
-            make_player    = entity_store.set_player_uid,
+            set_state_data = ents.set_sdata,
+            make_player    = ents.init_player,
             update_complete_state_data = function(ent, sd)
-                return  ent:update_complete_state_data(sd)
+                return  ent:set_sdata_full(sd)
             end,
             set_local_animation = function(ent, anim)
                 return ent:set_local_animation (anim)
@@ -158,23 +136,25 @@ return {
         },
         Entities = {
             Classes = {
-                get            = entity_classes.get_class,
-                get_sauer_type = entity_classes.get_sauer_type
+                get            = ents.get_class,
+                get_sauer_type = function(cn)
+                    return ents.get_class(cn).sauer_type
+                end
             },
-            add        = entity_store.add,
-            new        = entity_store.new,
-            delete     = entity_store.del,
-            delete_all = entity_store.del_all,
-            save_all   = entity_store.save_entities,
-            get        = entity_store.get,
-            get_all    = entity_store.get_all,
-            send       = entity_store.send_entities,
-            gen_id     = entity_store.generate_uid,
-            render     = entity_store.render_dynamic
+            add        = ents.add,
+            new        = ents.new,
+            delete     = ents.remove,
+            delete_all = ents.remove_all,
+            save_all   = ents.save,
+            get        = ents.get,
+            get_all    = ents.get_all,
+            send       = ents.send,
+            gen_id     = ents.gen_uid,
+            render     = ents.render
         },
-        scenario_started  = entity_store.has_scenario_started,
-        render_hud        = entity_store.render_hud_model,
-        manage_collisions = entity_store.manage_triggering_collisions,
+        scenario_started  = ents.scene_is_ready,
+        render_hud        = ents.render_hud,
+        manage_collisions = ents.handle_triggers,
         handle_frame      = frame.handle_frame,
         start_frame       = frame.start_frame
     },

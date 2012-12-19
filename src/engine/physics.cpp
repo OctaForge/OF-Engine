@@ -1858,6 +1858,7 @@ void interppos(physent *pl)
 
 void moveplayer(physent *pl, int moveres, bool local)
 {
+#ifdef CLIENT
     // INTENSITY: Don't move an entity not fully set up yet
     if (!pl || !LogicSystem::getLogicEntity(pl)) return;
 
@@ -1887,6 +1888,9 @@ void moveplayer(physent *pl, int moveres, bool local)
         pl->deltapos.sub(pl->newpos);
         interppos(pl);
     }
+#else
+    assert(false);
+#endif
 }
 
 bool bounce(physent *d, float elasticity, float waterfric)

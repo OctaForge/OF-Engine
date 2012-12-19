@@ -1,21 +1,14 @@
 module("dynamic_lights", package.seeall)
 
-dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker, {{
+dynamic_light = ents.register_class(plugins.bake(entity_static.world_marker, {{
     properties = {
-        attr1 = state_variables.state_integer({ gui_name = "radius", alt_name = "radius" }),
-        attr2 = state_variables.state_integer({ gui_name = "red",    alt_name = "red"    }),
-        attr3 = state_variables.state_integer({ gui_name = "green",  alt_name = "green"  }),
-        attr4 = state_variables.state_integer({ gui_name = "blue",   alt_name = "blue"   }),
-
-        radius = state_variables.variable_alias("attr1"),
-        red    = state_variables.variable_alias("attr2"),
-        green  = state_variables.variable_alias("attr3"),
-        blue   = state_variables.variable_alias("attr4")
+        attr1 = svars.State_Integer { gui_name = "radius", alt_name = "radius" },
+        attr2 = svars.State_Integer { gui_name = "red",    alt_name = "red"    },
+        attr3 = svars.State_Integer { gui_name = "green",  alt_name = "green"  },
+        attr4 = svars.State_Integer { gui_name = "blue",   alt_name = "blue"   }
     },
 
-    should_act = true,
-
-    act = function(self, seconds) end,
+    per_frame = true,
 
     init = function(self)
         self.radius = 100
@@ -35,16 +28,16 @@ dynamic_light = entity_classes.register(plugins.bake(entity_static.world_marker,
         )
     end,
 
-    client_act = function(self, seconds)
+    run = CLIENT and function(self, seconds)
         self:dynamic_light_show(seconds)
-    end
-}}, "dynamic_light"), "playerstart")
+    end or nil
+}}, "dynamic_light"))
 
-entity_classes.register(plugins.bake(dynamic_light, {{
+ents.register_class(plugins.bake(dynamic_light, {{
     properties = {
-        probability = state_variables.state_float(),
-        min_delay   = state_variables.state_float(),
-        max_delay   = state_variables.state_float()
+        probability = svars.State_Float(),
+        min_delay   = svars.State_Float(),
+        max_delay   = svars.State_Float()
     },
 
     init = function(self)
@@ -53,8 +46,10 @@ entity_classes.register(plugins.bake(dynamic_light, {{
         self.max_delay   = 0.3
     end,
 
-    client_activate = function(self)
-        self.delay = 0
+    activate = function(self)
+        if CLIENT then
+            self.delay = 0
+        end
     end,
 
     dynamic_light_show = function(self, seconds)
@@ -73,4 +68,4 @@ entity_classes.register(plugins.bake(dynamic_light, {{
             end
         end
     end
-}}, "flickering_dynamic_light"), "playerstart")
+}}, "flickering_dynamic_light"))

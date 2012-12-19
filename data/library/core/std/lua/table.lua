@@ -31,7 +31,7 @@ table.is_array = function(tbl)
             return false, #tbl
         end
     end
-    return true, #tbl
+    return i == 0, #tbl
 end
 
 local is_array = table.is_array
@@ -79,7 +79,8 @@ table.merge_maps = function(ta, tb)
 end
 
 --[[! Function: table.copy
-    Returns a copy of a given table.
+    Returns a copy of the given table. Doesn't copy tables inside (only
+    primitives are copied, no reference types).
 ]]
 table.copy = function(t)
     local r = ctable(#t)
@@ -163,131 +164,45 @@ table.values = function(t)
     return r
 end
 
---[[! Function: table.sum
-    Returns a sum of array values. Works on numerical arrays.
+--[[! Function: table.foldr
+    Performs a right fold on a table (array). The first argument
+    is the table, followed by the predicate and a default value.
+    If the default value is not provided, it defaults to the
+    first array element and folding is then performed from
+    indexes 2 to len.
+
+    (start code)
+        local a = { 5, 10, 15, 20 }
+        assert(table.foldr(a, function(a, b) return a + b end) == 50)
+    (end)
 ]]
-table.sum = function(t)
-    local ret = 0
-    for k, v in pairs(t) do ret = ret + tonumber(v) end
-end
-
---[[! Function: table.clear
-    Clears out all table elements.
-]]
-table.clear = function(t)
-    for k, v in pairs(t) do t[k] = nil end
-end
-
---[[! Function: table.slice
-    Slices a table using given index (represents the first value in the
-    table represented in the slice) and length (which specifies how many
-    values the resulting table should contain). If the length is unspecified,
-    it slices from the first index until the end.
-
-    If the first index is out of table bounds or the length is less or equals
-    zero, this function returns nil. Otherwise the slice.
-]]
-table.slice = function(t, first, length)
-    length = length or 1 / 0
-    local tlen = #t
-
-    if first > tlen or first <= 0 or length <= 0 then
-        return nil
+table.foldr = function(t, fun, z)
+    local idx = 1
+    if not z then
+        z   = t[1]
+        idx = 2
     end
 
-    local restl = tlen - first + 1
-    local r
-    if restl >= length then
-        r = ctable(length)
-        for i = first, first + length - 1 do
-            table.insert(r, t[i])
-        end
-    else
-        r = ctable(restl)
-        for i = first, tlen do
-            table.insert(r, t[i])
-        end
+    for i = idx, #t do
+        z = fun(z, t[i])
     end
-    return r
+    return z
 end
 
-local Object = {
-    __call = function(self, ...)
-        local ret = setmetatable({}, { 
-            __index    = self,
-            __tostring = self.__tostring or function(self)
-                return ("Instance: %s"):format(self.name or "<UNNAMED>")
-            end
-        })
-
-        if  self.__init then
-            self.__init(ret, ...)
-        end
-
-        return ret
-    end,
-
-    __tostring = function(self)
-        return ("Class: %s"):format(self.name or "<UNNAMED>")
+--[[! Function: table.foldl
+    See above. Performs a left fold on a table.
+]]
+table.foldl = function(t, fun, z)
+    local len = #t
+    if not z then
+        z   = t[len]
+        len = len - 1
     end
-}
-
---[[! Function: table.classify
-    Makes any table a class. These classes are very simple and don't have
-    any features except that they can inherit and have constructors (which
-    are standard member functions and are called __init). Instantiate such
-    class by simply calling it with the appropriate constructor arguments.
-    Classes can also specify a __tostring method, which returns a string
-    that is returned on tostring() of the class instance. The second
-    argument specifies an optional class name.
-
-    Note that this simple class system is not compatible with the class
-    module.
-]]
-table.classify = function(t, name)
-    t           = t or {}
-    t.name      = name
-    t.is_a      = table.is_a
-    t.get_class = table.get_class
-    return setmetatable(t, Object)
-end
-
---[[! Function: table.subclass
-    Inherits a classified table. That means the inherited table will have
-    access to all base member functions. Constructors inherit as well.
-    The third argument specifies an optional class name.
-]]
-table.subclass = function(base, new, name)
-    new = new or {}
-    new.name       = name
-    new.base_class = base
-    return setmetatable(new, {
-        __index    = base,
-        __call     = Object.__call,
-        __tostring = Object.__tostring
-    })
-end
-
---[[! Function: table.is_a
-    Returns true if an object given by the first argument is an instance
-    of the class given by the second argument, false otherwise. Note that
-    instance of a class X is an instance of any base class of X as well.
-]]
-table.is_a = function(inst, base)
-    local  cl = getmetatable(inst).__index
-    while  cl and type(cl) == "table" do
-        if cl == base then return true end
-        cl = cl.base_class
+    
+    for i = len, 1, -1 do
+        z = fun(z, t[i])
     end
-
-    return false
-end
-
---[[! Function: table.get_class
-    Returns the base class of an object.
-]]
-table.get_class = function(inst)
-    return getmetatable(inst).__index
+    return z
 end
 
 --[[! Function: table.serialize
@@ -300,12 +215,16 @@ end
     them in the same way as values inside a table, returning their literal
     representation (if serializable, otherwise just their tostring).
 
-    If the second given argument is true, the serializer attempts to
-    format it for readability. While the first case is good for things
-    like network transfers, the latter represents a human readable format.
+    The second argument is optional. It's a table containing additional
+    parameters for the serialization.
 
-    The third argument specifies the number of spaces used for indentation.
-    It defaults to 4 spaces.
+    If the table contains member "pretty" with boolean value "true", the
+    serializer attempts to format it for readability. While the "ugly" one
+    is good for things like network transfers, the latter represents a human
+    readable format.
+
+    If pretty-printing, you can specify also "indent", an integral value
+    specifying indentation. Defaults to 4 spaces.
 
     In the pretty formatting mode arrays are put on a single line with a space
     after commas and before/after beginning/ending brace. One exception happens
@@ -317,7 +236,7 @@ end
     The serializer is also smart enough to detect recursion (both simple
     and mutual to any level) and avoid stack overflows.
 
-    There is one other optional argument called simplifier. It's a function
+    The table can contain one other thing, "simplifier". It's a function
     that takes a key/index and a value and returns true if it should be
     simplified and false if it shouldn't. If it should be simplified,
     it also has to return a second value specifying what it should
@@ -330,14 +249,21 @@ end
 
     Values that cannot be serialized are passed through tostring.
 ]]
-table.serialize = function(tbl, pretty, indent, simplifier)
-    pretty = pretty or false
-    indent = indent or 4
+table.serialize = function(tbl, kwargs)
+    local pretty, indent, simplifier
+    if kwargs then
+        pretty     = kwargs.pretty or false
+        indent     = kwargs.indent or 4
+        simplifier = kwargs.simplifier
+    else
+        pretty = false
+        indent = 4
+    end
 
     local enc
     enc = function(tbl, tables, ind)
         local assoc, narr = is_array(tbl)
-        local ret         = {} -- or ctable(narr) for efficiency - custom api
+        local ret         = ctable(narr)
         tables = tables  or {}
 
         -- we want to know whether it's an associative array,
@@ -406,7 +332,7 @@ table.serialize = function(tbl, pretty, indent, simplifier)
                         elem[#elem] =
                             enc(v, tables, assoc and ind + indent or ind)
                     end
-                elseif t == "number" then
+                elseif t == "number" or t == "boolean" then
                     elem[#elem] = tostring(v)
                 else
                     elem[#elem] = "\"" .. tostring(v) .. "\""
@@ -466,3 +392,102 @@ table.deserialize = function(str)
 
     return ret
 end
+
+------------------
+-- Object system -
+------------------
+
+-- operator overloading
+local Meta = {
+    -- mathematic operators
+    "__unm",
+    "__add",
+    "__sub",
+    "__mul",
+    "__div",
+    "__pow",
+    "__concat",
+    "__eq",
+    "__lt",
+    "__le",
+
+    -- other metamethods
+    "__tostring",
+    "__gc",
+    "__mode",
+    "__metatable",
+    "__len"
+}
+
+table.Object = {
+    __call = function(self, ...)
+        local r = {
+            __index = self, __proto = self, __call = self.__call,
+            __tostring = self.__inst_tostring or self.__tostring
+        }
+        setmetatable(r, r)
+        if self.__init then self.__init(r, ...)end
+
+        -- if we don't allow metamethod inheritance, don't bother copying
+        -- improves performance where appropriate
+        if self.__inherit_meta then
+            for i = 1, #Meta do
+                local k, v = Meta[i], self[k]
+                if v then r[k] = v end
+            end
+        end
+
+        -- getters
+        if self.__get then
+            r.__index = function (obj, n)
+                local v = rawget(obj, n)
+                if v ~= nil then return v end
+                v = self.__get(obj, n)
+                if v ~= nil then return v end
+                return self[n]
+            end
+        end
+
+        -- setters
+        if self.__set then
+            r.__newindex = function  (obj, n, v)
+                local  r = self.__set(obj, n, v)
+                if not r then
+                    rawset(obj, n, v)
+                end
+            end
+        end
+
+        return r
+    end,
+
+    clone = function(self, tbl)
+        tbl = tbl or {}
+        tbl.__index, tbl.__proto, tbl.__call = self, self, self.__call
+        if not tbl.__tostring then tbl.__tostring = self.__tostring end
+
+        -- see above
+        if self.__inherit_meta then
+            for i = 1, #Meta do
+                local k, v = Meta[i], self[k]
+                if v then tbl[k] = v end
+            end
+        end
+
+        setmetatable(tbl, tbl)
+        return tbl
+    end,
+
+    is_a = function(self, base)
+        if self == base then return true end
+        local pt, is = self.__proto, pt == base
+        while not is and pt do
+            pt, is = pt.__proto, pt == base
+        end
+        return is
+    end,
+
+    __tostring = function(self)
+        return ("Object: %s"):format(self.name or "unnamed")
+    end
+}

@@ -30,9 +30,11 @@ namespace lapi_binds
         int uid = -1; \
         if (tle && !tle->isNone()) uid = tle->getUniqueId(); \
 \
-        float x; \
-        float y; \
-        gui::getcursorpos(x, y); \
+        auto t = lapi::state.get<lua::Function>("external", "cursor_get_position") \
+            .call<float, float>(); \
+\
+        float x = types::get<0>(t); \
+        float y = types::get<1>(t); \
 \
         if (!lapi::state.get<lua::Function>( \
             "LAPI", "Input", "Events", "Client", "click" \

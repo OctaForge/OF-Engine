@@ -141,8 +141,8 @@ int renderconsole(int w, int h, int abovehud)                   // render buffer
         conheight = min(fullconsole ? ((h*fullconsize/100)/FONTH)*FONTH : FONTH*consize, h - 2*(conpad + conoff)),
         conwidth = w - 2*(conpad + conoff) - (fullconsole ? 0 : game::clipconsole(w, h));
     
-    extern void consolebox(int x1, int y1, int x2, int y2);
-    if(fullconsole) consolebox(conpad, conpad, conwidth+conpad+2*conoff, conheight+conpad+2*conoff);
+    //extern void consolebox(int x1, int y1, int x2, int y2);
+    //if(fullconsole) consolebox(conpad, conpad, conwidth+conpad+2*conoff, conheight+conpad+2*conoff);
     
     int y = drawconlines(conskip, fullconsole ? 0 : confade, conwidth, conheight, conpad+conoff, fullconsole ? fullconfilter : confilter);
     if(!fullconsole && (miniconsize && miniconwidth))
@@ -335,22 +335,34 @@ struct hline
             varsys::Variable *ev = varsys::get("commandbuf");
             if (!ev)
             {
-                ev = varsys::reg_var("commandbuf", new varsys::String_Alias("commandbuf", buf.get_buf()));
+                varsys::reg_string("commandbuf", buf.get_buf());
+                ev = varsys::get("commandbuf");
             }
-            else
-            {
-                if (ev->type() != varsys::TYPE_S)
-                    return;
 
-                ((varsys::String_Alias*)ev)->set(buf.get_buf());
-            }
+            if (ev->type != varsys::TYPE_S)
+                return;
+
+            varsys::set((varsys::Variable*)ev, buf.get_buf());
+
             types::Tuple<int, const char*> err = lapi::state.do_string(action);
             if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         }
         else if (buf[0] == '/')
         {
-            types::Tuple<int, const char*> err = lapi::state.do_string(buf.get_buf() + 1);
-            if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+            types::Tuple<int, const char*> err;
+            if (buf[1] == '/') {
+                types::Tuple<int, const char*> err = lapi::state.do_string(buf.get_buf() + 2);
+                if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+            } else {
+                lua::Function f = lapi::state.get<lua::Function>("lisp", "run_string");
+                f.push();
+                lua_pushstring (lapi::state.state(), buf.get_buf() + 1);
+                lua_pushboolean(lapi::state.state(), true);
+                if (lua_pcall  (lapi::state.state(), 2, 0, 0)) {
+                    logger::log(logger::ERROR, "%s\n", lua_tostring(lapi::state.state(), -1));
+                    lua_pop(lapi::state.state(), 1);
+                }
+            }
         }
         else game::toserver((char*)buf.get_buf());
     }
@@ -411,13 +423,13 @@ void execbind(keym &k, bool isdown)
     if (isdown)
     {
         int state = keym::ACTION_DEFAULT;
-        if (!gui::mainmenu)
+        if (!gui_mainmenu)
         {
             if(editmode) state = keym::ACTION_EDITING;
             else if(player->state==CS_SPECTATOR) state = keym::ACTION_SPECTATOR;
         }
 
-        if (state == keym::ACTION_DEFAULT && !gui::mainmenu)
+        if (state == keym::ACTION_DEFAULT && !gui_mainmenu)
         {
             lua::Object o = lapi::state.get<lua::Function>(
                 "LAPI", "Input", "get_local_bind"
@@ -558,13 +570,19 @@ void consolekey(int code, bool isdown, int cooked)
 void keypress(int code, bool isdown, int cooked)
 {
     keym *haskey = keyms.access(code);
-    if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
-    else if(!gui::keypress(code, isdown, cooked)) // gui mouse button intercept
-    {
-        if(commandmillis >= 0) consolekey(code, isdown, cooked);
-        else if(haskey) execbind(*haskey, isdown);
+    if(haskey && haskey->pressed) {
+        execbind(*haskey, isdown); // allow pressed keys to release
+    } else {
+        bool b = lapi::state.get<lua::Function>("external", "input_keypress")
+            .call<bool>(code, isdown, cooked);
+
+        if (!b) { // gui mouse button intercept
+            if(commandmillis >= 0) consolekey(code, isdown, cooked);
+            else if(haskey) execbind(*haskey, isdown);
+        } else if (isdown) {
+            GuiControl::menuKeyClickTrigger();
+        }
     }
-    else if (isdown) GuiControl::menuKeyClickTrigger(); // INTENSITY
 }
 
 void clear_console()

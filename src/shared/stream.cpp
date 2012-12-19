@@ -474,7 +474,7 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files)
     return dirs;
 }
 
-#ifndef STANDALONE
+#ifdef CLIENT
 static int rwopsseek(SDL_RWops *rw, int pos, int whence)
 {
     stream *f = (stream *)rw->hidden.unknown.data1;
@@ -824,6 +824,17 @@ struct gzstream : stream
     bool end() { return !reading && !writing; }
     offset tell() { return reading ? zfile.total_out : (writing ? zfile.total_in : -1); }
     offset rawtell() { return file ? file->tell() : -1; }
+
+    offset size()
+    {
+        if(!file) return -1;
+        offset pos = tell();
+        if(!file->seek(-4, SEEK_END)) return -1;
+        uint isize = file->getlil<uint>();
+        return file->seek(pos, SEEK_SET) ? isize : -1;
+    }
+
+    offset rawsize() { return file ? file->size() : -1; }
 
     bool seek(offset pos, int whence)
     {

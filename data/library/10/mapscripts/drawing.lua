@@ -9,14 +9,12 @@
 -- you can then toggle shooting and drawing from the console using this.
 -- because it's persistent, your last state (drawing / shooting) will
 -- be saved and applied the next run.
-if not EVAR.shoot_mode then
-    local was_persisting = var.persist_vars(true)
-    var.new("shoot_mode", EAPI.VAR_I, 0)
-    var.persist_vars(was_persisting)
+if not EV.shoot_mode then
+    var.new("shoot_mode", var.INT, 0, 0, 1, var.PERSIST)
 end
 
 -- Register our custom player entity class into storage
-entity_classes.register(plugins.bake(
+ents.register_class(plugins.bake(
     character.player, {
         game_manager.player_plugin,
 -- enable for platformer game
@@ -28,7 +26,7 @@ entity_classes.register(plugins.bake(
         chaingun.chaingun.plugin,
         {
             properties = {
-                new_mark = state_variables.state_array_float({ client_set = true, has_history = false })
+                new_mark = svars.State_Array_Float { client_set = true, has_history = false }
             },
 
             -- player gun indexes and current gun
@@ -56,7 +54,7 @@ entity_classes.register(plugins.bake(
 
             -- This is called when new mark is created. It adds a point into a storage.
             -- vec4's are used, first three elements for position, fourth for color.
-            on_new_mark = function(self, mark)
+            on_new_mark = function(_, self, mark)
                 if #mark == 3 then
                     mark = math.Vec4(mark[1], mark[2], mark[3], self.color)
                 else
@@ -66,7 +64,7 @@ entity_classes.register(plugins.bake(
             end,
 
             -- Called right after initialization on client
-            client_activate = function(self, kwargs)
+            activate = CLIENT and function(self, kwargs)
                 -- Mark storage
                 self.marks    = {}
 
@@ -83,11 +81,11 @@ entity_classes.register(plugins.bake(
                 self.color    = self.colors[1]
 
                 -- When new_mark state variable is modified, let's call on_new_mark.
-                signal.connect(self,state_variables.get_on_modify_name("new_mark"), self.on_new_mark)
-            end,
+                signal.connect(self, "new_mark_changed", self.on_new_mark)
+            end or nil,
 
             -- Called every frame on client after initialization
-            client_act = function(self, sec)
+            run = CLIENT and function(self, sec)
                 -- Draw all marks.
                 local last = nil
 
@@ -122,10 +120,10 @@ entity_classes.register(plugins.bake(
                         self.new_mark = newpos:to_array()
                     end
                 end
-            end
+            end or nil
         }
     }, "game_player"
-), "fpsent")
+))
 
 -- set up a chaingun (non-projectile, repeating)
 player_chaingun        = firing.register_gun(
@@ -146,17 +144,17 @@ function client_click(btn, down, pos, ent, x, y)
     end
 
     -- in shoot mode, shoot instead of drawing
-    if EVAR.shoot_mode == 1 then
+    if EV.shoot_mode == 1 then
         return firing.client_click(btn, down, pos, ent, x, y)
     end
 
     if btn == 1 then
-        entity_store.get_player_entity().pressing   = down
-        entity_store.get_player_entity().stop_batch = false
+        ents.get_player().pressing   = down
+        ents.get_player().stop_batch = false
     elseif btn == 2 and down then
-        entity_store.get_player_entity():reset_mark()
+        ents.get_player():reset_mark()
     elseif btn == 3 and down then
-        entity_store.get_player_entity():next_color()
+        ents.get_player():next_color()
     end
 end
 
@@ -166,7 +164,7 @@ end
 -- do_mousemove = platformer.do_mousemove
 
 -- Notify the engine that we're overriding player by setting engine variable
-EVAR.player_class = "game_player"
+EV.player_class = "game_player"
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0

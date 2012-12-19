@@ -6,7 +6,7 @@
 #include "targeting.h" // INTENSITY
 #include "of_entities.h"
 
-bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasT3D = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasMT = false, hasAF = false, hasMDA = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false, hasDB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false;
+bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasT3D = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasMT = false, hasAF = false, hasMDA = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false, hasDB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false;
 bool mesa = false, intel = false, ati = false, nvidia = false;
 
 int hasstencil = 0;
@@ -66,35 +66,40 @@ PFNGLDRAWBUFFERSARBPROC glDrawBuffers_ = NULL;
 // GL_EXT_framebuffer_blit
 PFNGLBLITFRAMEBUFFEREXTPROC         glBlitFramebuffer_         = NULL;
 
-// GL_ARB_shading_language_100, GL_ARB_shader_objects, GL_ARB_fragment_shader, GL_ARB_vertex_shader
-PFNGLCREATEPROGRAMOBJECTARBPROC       glCreateProgramObject_      = NULL;
-PFNGLDELETEOBJECTARBPROC              glDeleteObject_             = NULL;
-PFNGLUSEPROGRAMOBJECTARBPROC          glUseProgramObject_         = NULL; 
-PFNGLCREATESHADEROBJECTARBPROC        glCreateShaderObject_       = NULL;
-PFNGLSHADERSOURCEARBPROC              glShaderSource_             = NULL;
-PFNGLCOMPILESHADERARBPROC             glCompileShader_            = NULL;
-PFNGLGETOBJECTPARAMETERIVARBPROC      glGetObjectParameteriv_     = NULL;
-PFNGLATTACHOBJECTARBPROC              glAttachObject_             = NULL;
-PFNGLGETINFOLOGARBPROC                glGetInfoLog_               = NULL;
-PFNGLLINKPROGRAMARBPROC               glLinkProgram_              = NULL;
-PFNGLGETUNIFORMLOCATIONARBPROC        glGetUniformLocation_       = NULL;
-PFNGLUNIFORM1FARBPROC                 glUniform1f_                = NULL;
-PFNGLUNIFORM2FARBPROC                 glUniform2f_                = NULL;
-PFNGLUNIFORM3FARBPROC                 glUniform3f_                = NULL;
-PFNGLUNIFORM4FARBPROC                 glUniform4f_                = NULL;
-PFNGLUNIFORM1FVARBPROC                glUniform1fv_               = NULL;
-PFNGLUNIFORM2FVARBPROC                glUniform2fv_               = NULL;
-PFNGLUNIFORM3FVARBPROC                glUniform3fv_               = NULL;
-PFNGLUNIFORM4FVARBPROC                glUniform4fv_               = NULL;
-PFNGLUNIFORM1IARBPROC                 glUniform1i_                = NULL;
-PFNGLUNIFORMMATRIX2FVARBPROC          glUniformMatrix2fv_         = NULL;
-PFNGLUNIFORMMATRIX3FVARBPROC          glUniformMatrix3fv_         = NULL;
-PFNGLUNIFORMMATRIX4FVARBPROC          glUniformMatrix4fv_         = NULL;
-PFNGLBINDATTRIBLOCATIONARBPROC        glBindAttribLocation_       = NULL;
-PFNGLGETACTIVEUNIFORMARBPROC          glGetActiveUniform_         = NULL;
-PFNGLENABLEVERTEXATTRIBARRAYARBPROC   glEnableVertexAttribArray_  = NULL;
-PFNGLDISABLEVERTEXATTRIBARRAYARBPROC  glDisableVertexAttribArray_ = NULL;
-PFNGLVERTEXATTRIBPOINTERARBPROC       glVertexAttribPointer_      = NULL;
+// OpenGL 2.0: GL_ARB_shading_language_100, GL_ARB_shader_objects, GL_ARB_fragment_shader, GL_ARB_vertex_shader
+#ifndef __APPLE__
+PFNGLCREATEPROGRAMPROC            glCreateProgram_            = NULL;
+PFNGLDELETEPROGRAMPROC            glDeleteProgram_            = NULL;
+PFNGLUSEPROGRAMPROC               glUseProgram_               = NULL;
+PFNGLCREATESHADERPROC             glCreateShader_             = NULL;
+PFNGLDELETESHADERPROC             glDeleteShader_             = NULL;
+PFNGLSHADERSOURCEPROC             glShaderSource_             = NULL;
+PFNGLCOMPILESHADERPROC            glCompileShader_            = NULL;
+PFNGLGETSHADERIVPROC              glGetShaderiv_              = NULL;
+PFNGLGETPROGRAMIVPROC             glGetProgramiv_             = NULL;
+PFNGLATTACHSHADERPROC             glAttachShader_             = NULL;
+PFNGLGETPROGRAMINFOLOGPROC        glGetProgramInfoLog_        = NULL;
+PFNGLGETSHADERINFOLOGPROC         glGetShaderInfoLog_         = NULL;
+PFNGLLINKPROGRAMPROC              glLinkProgram_              = NULL;
+PFNGLGETUNIFORMLOCATIONPROC       glGetUniformLocation_       = NULL;
+PFNGLUNIFORM1FPROC                glUniform1f_                = NULL;
+PFNGLUNIFORM2FPROC                glUniform2f_                = NULL;
+PFNGLUNIFORM3FPROC                glUniform3f_                = NULL;
+PFNGLUNIFORM4FPROC                glUniform4f_                = NULL;
+PFNGLUNIFORM1FVPROC               glUniform1fv_               = NULL;
+PFNGLUNIFORM2FVPROC               glUniform2fv_               = NULL;
+PFNGLUNIFORM3FVPROC               glUniform3fv_               = NULL;
+PFNGLUNIFORM4FVPROC               glUniform4fv_               = NULL;
+PFNGLUNIFORM1IPROC                glUniform1i_                = NULL;
+PFNGLUNIFORMMATRIX2FVPROC         glUniformMatrix2fv_         = NULL;
+PFNGLUNIFORMMATRIX3FVPROC         glUniformMatrix3fv_         = NULL;
+PFNGLUNIFORMMATRIX4FVPROC         glUniformMatrix4fv_         = NULL;
+PFNGLBINDATTRIBLOCATIONPROC       glBindAttribLocation_       = NULL;
+PFNGLGETACTIVEUNIFORMPROC         glGetActiveUniform_         = NULL;
+PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
+PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
+#endif
 
 // GL_EXT_draw_range_elements
 PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
@@ -142,6 +147,12 @@ PFNGLCLAMPCOLORARBPROC glClampColor_ = NULL;
 PFNGLTEXIMAGE3DEXTPROC        glTexImage3D_ = NULL;
 PFNGLTEXSUBIMAGE3DEXTPROC     glTexSubImage3D_ = NULL;
 PFNGLCOPYTEXSUBIMAGE3DEXTPROC glCopyTexSubImage3D_ = NULL;
+
+// GL_ARB_debug_output
+PFNGLDEBUGMESSAGECONTROLARBPROC glDebugMessageControl_ = NULL;
+PFNGLDEBUGMESSAGEINSERTARBPROC glDebugMessageInsert_ = NULL;
+PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallback_ = NULL;
+PFNGLGETDEBUGMESSAGELOGARBPROC glGetDebugMessageLog_ = NULL;
 
 void *getprocaddress(const char *name)
 {
@@ -207,8 +218,6 @@ void gl_checkextensions()
     conoutf(CON_INIT, "Driver: %s", version);
 
 #ifdef __APPLE__
-    extern int mac_osversion();
-    int osversion = mac_osversion();  /* 0x1050 = 10.5 (Leopard) */
     sdl_backingstore_bug = -1;
 #endif
 
@@ -258,11 +267,6 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_vertex_buffer_object extension.");
     }
     else conoutf(CON_WARN, "WARNING: No vertex_buffer_object extension! (geometry heavy maps will be SLOW)");
-#ifdef __APPLE__
-    /* VBOs over 256KB seem to destroy performance on 10.5, but not in 10.6 */
-    extern int maxvbosize;
-    if(osversion < 0x1060) maxvbosize = min(maxvbosize, 8192);  
-#endif
 
     if(hasext(exts, "GL_ARB_pixel_buffer_object"))
     {
@@ -297,10 +301,6 @@ void gl_checkextensions()
         if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_multi_draw_arrays extension.");
     }
 
-#ifdef __APPLE__
-    // floating point FBOs not fully supported until 10.5
-    if(osversion>=0x1050)
-#endif
     if(hasext(exts, "GL_ARB_texture_float") || hasext(exts, "GL_ATI_texture_float"))
     {
         hasTF = true;
@@ -389,10 +389,6 @@ void gl_checkextensions()
             glGetQueryObjectuiv_ = (PFNGLGETQUERYOBJECTUIVARBPROC)getprocaddress("glGetQueryObjectuivARB");
             hasOQ = true;
             if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_occlusion_query extension.");
-#if defined(__APPLE__) && SDL_BYTEORDER == SDL_BIG_ENDIAN
-            if(ati && (osversion<0x1050)) ati_oq_bug = 1;
-#endif
-            //if(ati_oq_bug) conoutf(CON_WARN, "WARNING: Using ATI occlusion query bug workaround. (use \"/ati_oq_bug 0\" to disable if unnecessary)");
         }
     }
     if(!hasOQ)
@@ -421,7 +417,7 @@ void gl_checkextensions()
     if(ati)
     {
         //conoutf(CON_WARN, "WARNING: ATI cards may show garbage in skybox. (use \"/ati_skybox_bug 1\" to fix)");
-        if(!hasext(exts, "GL_ARB_gpu_shader5")) gdepthstencil = 0; // some older ATI GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
+        gdepthstencil = 0; // some older ATI GPUs do not support reading from depth-stencil textures, so only use depth-stencil renderbuffer for now
     }
     else if(nvidia)
     {
@@ -441,41 +437,46 @@ void gl_checkextensions()
         (void)mesa;
     }
 
-    if(hasext(exts, "GL_ARB_shading_language_100") && hasext(exts, "GL_ARB_shader_objects") && hasext(exts, "GL_ARB_vertex_shader") && hasext(exts, "GL_ARB_fragment_shader"))
+    if(glversion >= 200)
     {
-        glCreateProgramObject_ =        (PFNGLCREATEPROGRAMOBJECTARBPROC)     getprocaddress("glCreateProgramObjectARB");
-        glDeleteObject_ =               (PFNGLDELETEOBJECTARBPROC)            getprocaddress("glDeleteObjectARB");
-        glUseProgramObject_ =           (PFNGLUSEPROGRAMOBJECTARBPROC)        getprocaddress("glUseProgramObjectARB");
-        glCreateShaderObject_ =         (PFNGLCREATESHADEROBJECTARBPROC)      getprocaddress("glCreateShaderObjectARB");
-        glShaderSource_ =               (PFNGLSHADERSOURCEARBPROC)            getprocaddress("glShaderSourceARB");
-        glCompileShader_ =              (PFNGLCOMPILESHADERARBPROC)           getprocaddress("glCompileShaderARB");
-        glGetObjectParameteriv_ =       (PFNGLGETOBJECTPARAMETERIVARBPROC)    getprocaddress("glGetObjectParameterivARB");
-        glAttachObject_ =               (PFNGLATTACHOBJECTARBPROC)            getprocaddress("glAttachObjectARB");
-        glGetInfoLog_ =                 (PFNGLGETINFOLOGARBPROC)              getprocaddress("glGetInfoLogARB");
-        glLinkProgram_ =                (PFNGLLINKPROGRAMARBPROC)             getprocaddress("glLinkProgramARB");
-        glGetUniformLocation_ =         (PFNGLGETUNIFORMLOCATIONARBPROC)      getprocaddress("glGetUniformLocationARB");
-        glUniform1f_ =                  (PFNGLUNIFORM1FARBPROC)               getprocaddress("glUniform1fARB");
-        glUniform2f_ =                  (PFNGLUNIFORM2FARBPROC)               getprocaddress("glUniform2fARB");
-        glUniform3f_ =                  (PFNGLUNIFORM3FARBPROC)               getprocaddress("glUniform3fARB");
-        glUniform4f_ =                  (PFNGLUNIFORM4FARBPROC)               getprocaddress("glUniform4fARB");
-        glUniform1fv_ =                 (PFNGLUNIFORM1FVARBPROC)              getprocaddress("glUniform1fvARB");
-        glUniform2fv_ =                 (PFNGLUNIFORM2FVARBPROC)              getprocaddress("glUniform2fvARB");
-        glUniform3fv_ =                 (PFNGLUNIFORM3FVARBPROC)              getprocaddress("glUniform3fvARB");
-        glUniform4fv_ =                 (PFNGLUNIFORM4FVARBPROC)              getprocaddress("glUniform4fvARB");
-        glUniform1i_ =                  (PFNGLUNIFORM1IARBPROC)               getprocaddress("glUniform1iARB");
-        glUniformMatrix2fv_ =           (PFNGLUNIFORMMATRIX2FVARBPROC)        getprocaddress("glUniformMatrix2fvARB");
-        glUniformMatrix3fv_ =           (PFNGLUNIFORMMATRIX3FVARBPROC)        getprocaddress("glUniformMatrix3fvARB");          
-        glUniformMatrix4fv_ =           (PFNGLUNIFORMMATRIX4FVARBPROC)        getprocaddress("glUniformMatrix4fvARB");          
-        glBindAttribLocation_ =         (PFNGLBINDATTRIBLOCATIONARBPROC)      getprocaddress("glBindAttribLocationARB");
-        glGetActiveUniform_ =           (PFNGLGETACTIVEUNIFORMARBPROC)        getprocaddress("glGetActiveUniformARB");
-        glEnableVertexAttribArray_ =    (PFNGLENABLEVERTEXATTRIBARRAYARBPROC) getprocaddress("glEnableVertexAttribArrayARB");
-        glDisableVertexAttribArray_ =   (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)getprocaddress("glDisableVertexAttribArrayARB");
-        glVertexAttribPointer_ =        (PFNGLVERTEXATTRIBPOINTERARBPROC)     getprocaddress("glVertexAttribPointerARB");
+#ifndef __APPLE__
+        glCreateProgram_ =            (PFNGLCREATEPROGRAMPROC)            getprocaddress("glCreateProgram");
+        glDeleteProgram_ =            (PFNGLDELETEPROGRAMPROC)            getprocaddress("glDeleteProgram");
+        glUseProgram_ =               (PFNGLUSEPROGRAMPROC)               getprocaddress("glUseProgram");
+        glCreateShader_ =             (PFNGLCREATESHADERPROC)             getprocaddress("glCreateShader");
+        glDeleteShader_ =             (PFNGLDELETESHADERPROC)             getprocaddress("glDeleteShader");
+        glShaderSource_ =             (PFNGLSHADERSOURCEPROC)             getprocaddress("glShaderSource");
+        glCompileShader_ =            (PFNGLCOMPILESHADERPROC)            getprocaddress("glCompileShader");
+        glGetShaderiv_ =              (PFNGLGETSHADERIVPROC)              getprocaddress("glGetShaderiv");
+        glGetProgramiv_ =             (PFNGLGETPROGRAMIVPROC)             getprocaddress("glGetProgramiv");
+        glAttachShader_ =             (PFNGLATTACHSHADERPROC)             getprocaddress("glAttachShader");
+        glGetProgramInfoLog_ =        (PFNGLGETPROGRAMINFOLOGPROC)        getprocaddress("glGetProgramInfoLog");
+        glGetShaderInfoLog_ =         (PFNGLGETSHADERINFOLOGPROC)         getprocaddress("glGetShaderInfoLog");
+        glLinkProgram_ =              (PFNGLLINKPROGRAMPROC)              getprocaddress("glLinkProgram");
+        glGetUniformLocation_ =       (PFNGLGETUNIFORMLOCATIONPROC)       getprocaddress("glGetUniformLocation");
+        glUniform1f_ =                (PFNGLUNIFORM1FPROC)                getprocaddress("glUniform1f");
+        glUniform2f_ =                (PFNGLUNIFORM2FPROC)                getprocaddress("glUniform2f");
+        glUniform3f_ =                (PFNGLUNIFORM3FPROC)                getprocaddress("glUniform3f");
+        glUniform4f_ =                (PFNGLUNIFORM4FPROC)                getprocaddress("glUniform4f");
+        glUniform1fv_ =               (PFNGLUNIFORM1FVPROC)               getprocaddress("glUniform1fv");
+        glUniform2fv_ =               (PFNGLUNIFORM2FVPROC)               getprocaddress("glUniform2fv");
+        glUniform3fv_ =               (PFNGLUNIFORM3FVPROC)               getprocaddress("glUniform3fv");
+        glUniform4fv_ =               (PFNGLUNIFORM4FVPROC)               getprocaddress("glUniform4fv");
+        glUniform1i_ =                (PFNGLUNIFORM1IPROC)                getprocaddress("glUniform1i");
+        glUniformMatrix2fv_ =         (PFNGLUNIFORMMATRIX2FVPROC)         getprocaddress("glUniformMatrix2fv");
+        glUniformMatrix3fv_ =         (PFNGLUNIFORMMATRIX3FVPROC)         getprocaddress("glUniformMatrix3fv");
+        glUniformMatrix4fv_ =         (PFNGLUNIFORMMATRIX4FVPROC)         getprocaddress("glUniformMatrix4fv");
+        glBindAttribLocation_ =       (PFNGLBINDATTRIBLOCATIONPROC)       getprocaddress("glBindAttribLocation");
+        glGetActiveUniform_ =         (PFNGLGETACTIVEUNIFORMPROC)         getprocaddress("glGetActiveUniform");
+        glEnableVertexAttribArray_ =  (PFNGLENABLEVERTEXATTRIBARRAYPROC)  getprocaddress("glEnableVertexAttribArray");
+        glDisableVertexAttribArray_ = (PFNGLDISABLEVERTEXATTRIBARRAYPROC) getprocaddress("glDisableVertexAttribArray");
+        glVertexAttribPointer_ =      (PFNGLVERTEXATTRIBPOINTERPROC)      getprocaddress("glVertexAttribPointer");
+#endif
 
         extern bool checkglslsupport();
         if(checkglslsupport()) hasGLSL = true;
         
-        const char *str = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION_ARB);
+        const char *str = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
         conoutf(CON_INIT, "GLSL: %s", str ? str : "unknown");
 
         uint majorversion, minorversion;
@@ -664,7 +665,18 @@ void gl_checkextensions()
     else if(hasext(exts, "GL_NV_depth_clamp"))
     {
         hasDC = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_NV_depth_clamp extension");
+        if(dbgexts) conoutf(CON_INIT, "Using GL_NV_depth_clamp extension.");
+    }
+
+    if(hasext(exts, "GL_ARB_debug_output"))
+    {
+        glDebugMessageControl_ =  (PFNGLDEBUGMESSAGECONTROLARBPROC) getprocaddress("glDebugMessageControlARB");
+        glDebugMessageInsert_ =   (PFNGLDEBUGMESSAGEINSERTARBPROC)  getprocaddress("glDebugMessageInsertARB");
+        glDebugMessageCallback_ = (PFNGLDEBUGMESSAGECALLBACKARBPROC)getprocaddress("glDebugMessageCallbackARB");
+        glGetDebugMessageLog_ =   (PFNGLGETDEBUGMESSAGELOGARBPROC)  getprocaddress("glGetDebugMessageLogARB");
+
+        hasDBGO = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_debug_output extension.");
     }
 }
 
@@ -852,9 +864,6 @@ static void cleanuplightsphere();
 
 void cleanupgl()
 {
-    extern void cleanupmotionblur();
-    cleanupmotionblur();
-
     extern void clearminimap();
     clearminimap();
 
@@ -1576,87 +1585,6 @@ void clipminimap(ivec &bbmin, ivec &bbmax, cube *c = worldroot, int x = 0, int y
     }
 }
 
-GLuint motiontex = 0;
-int motionw = 0, motionh = 0, lastmotion = 0;
-
-void cleanupmotionblur()
-{
-    if(motiontex) { glDeleteTextures(1, &motiontex); motiontex = 0; }
-    motionw = motionh = 0;
-    lastmotion = 0;
-}
-
-VARFP(motionblur, 0, 0, 1, { if(!motionblur) cleanupmotionblur(); });
-VARP(motionblurmillis, 1, 5, 1000);
-FVARP(motionblurscale, 0, 0.5f, 1);
-
-void addmotionblur()
-{
-    if(!motionblur || !hasTR || max(screen->w, screen->h) > hwtexsize) return;
-
-    if(paused || game::ispaused()) { lastmotion = 0; return; }
-
-    if(!motiontex || motionw != screen->w || motionh != screen->h)
-    {
-        if(!motiontex) glGenTextures(1, &motiontex);
-        motionw = screen->w;
-        motionh = screen->h;
-        lastmotion = 0;
-        createtexture(motiontex, motionw, motionh, NULL, 3, 0, GL_RGB, GL_TEXTURE_RECTANGLE_ARB);
-    }
-
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, motiontex);
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glDisable(GL_TEXTURE_2D);
-    glEnable(GL_TEXTURE_RECTANGLE_ARB);
-
-    rectshader->set();
-
-    glColor4f(1, 1, 1, lastmotion ? pow(motionblurscale, max(float(lastmillis - lastmotion)/motionblurmillis, 1.0f)) : 0);
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(      0,       0); glVertex2f(-1, -1);
-    glTexCoord2f(motionw,       0); glVertex2f( 1, -1);
-    glTexCoord2f(      0, motionh); glVertex2f(-1,  1);
-    glTexCoord2f(motionw, motionh); glVertex2f( 1,  1);
-    glEnd();
-
-    glDisable(GL_TEXTURE_RECTANGLE_ARB);
-    glEnable(GL_TEXTURE_2D);
-
-    glDisable(GL_BLEND);
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
- 
-    if(lastmillis - lastmotion >= motionblurmillis)
-    {
-        lastmotion = lastmillis - lastmillis%motionblurmillis;
-
-        glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, 0, 0, screen->w, screen->h);
-    }
-}
-
-bool dopostfx = false;
-
-void invalidatepostfx()
-{
-    dopostfx = false;
-}
-
 void gl_drawhud(int w, int h);
 
 int xtraverts, xtravertsva;
@@ -1684,7 +1612,7 @@ void screenquad(float sw, float sh, float sw2, float sh2)
 int gw = -1, gh = -1, bloomw = -1, bloomh = -1, lasthdraccum = 0;
 GLuint gfbo = 0, gdepthtex = 0, gcolortex = 0, gnormaltex = 0, gglowtex = 0, gdepthrb = 0, gstencilrb = 0;
 GLuint smaaareatex = 0, smaasearchtex = 0, smaafbo[3] = { 0, 0, 0 };
-GLuint hdrfbo = 0, hdrtex = 0, bloomfbo[6] = { 0, 0, 0, 0, 0 }, bloomtex[6] = { 0, 0, 0, 0, 0 };
+GLuint hdrfbo = 0, hdrtex = 0, bloomfbo[6] = { 0, 0, 0, 0, 0, 0 }, bloomtex[6] = { 0, 0, 0, 0, 0, 0 };
 int hdrclear = 0;
 GLuint refractfbo = 0, refracttex = 0;
 GLenum bloomformat = 0, hdrformat = 0;
@@ -2596,7 +2524,7 @@ VARFP(smtetra, 0, 0, 1, { cleardeferredlightshaders(); clearshadowcache(); });
 VAR(smtetraclip, 0, 1, 1);
 VAR(smtetraclear, 0, 1, 1);
 FVAR(smtetraborder, 0, 0, 1e3f);
-VAR(smcullside, 0, 1, 1);
+VARF(smcullside, 0, 1, 1, cleanupshadowatlas());
 VARF(smcache, 0, 1, 2, cleanupshadowatlas());
 VARFP(smfilter, 0, 2, 2, { cleardeferredlightshaders(); cleanupshadowatlas(); });
 VARFP(smgather, 0, 0, 1, { cleardeferredlightshaders(); cleanupshadowatlas(); });
@@ -3051,50 +2979,6 @@ void radiancehints::bindparams()
     float step = 2*splits[0].bounds/rhgrid;
     GLOBALPARAM(rhnudge, (rhnudge*step));
 }
-
-void viewbuffersplitmerge()
-{
-    const int w = screen->w, h = screen->h;
-#if 1
-    Shader *splitshader = lookupshaderbyname("buffersplit");
-    splitshader->set();
-    const float split[] = {4.f, 4.f};
-    const float tiledim[] = {float(w)/split[0], float(h)/split[1]};
-    LOCALPARAM(tiledim, (tiledim[0], tiledim[1]));
-    LOCALPARAM(rcptiledim, (1.f/tiledim[0], 1.f/tiledim[1]));
-    LOCALPARAM(split, (split[0], split[1]));
-    timer_begin(TIMER_SPLITTING);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(0,        0);        glVertex2i(-w, -h);
-    glTexCoord2f(float(w), 0);        glVertex2i(w, -h);
-    glTexCoord2f(0,        float(h)); glVertex2i(-w, h);
-    glTexCoord2f(float(w), float(h)); glVertex2i(w, h);
-    glEnd();
-    timer_end(TIMER_SPLITTING);
-    notextureshader->set();
-#else
-    Shader *mergeshader = lookupshaderbyname("buffermerge");
-    mergeshader->set();
-    const float split[] = {4.f, 4.f};
-    const float tiledim[] = {float(w)/split[0], float(h)/split[1]};
-    LOCALPARAM(tiledim, (tiledim[0], tiledim[1]));
-    LOCALPARAM(rcptiledim, (1.f/tiledim[0], 1.f/tiledim[1]));
-    LOCALPARAM(split, (split[0], split[1]));
-    timer_begin(TIMER_MERGING);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(0,        0);        glVertex2i(-w, -h);
-    glTexCoord2f(float(w), 0);        glVertex2i(w, -h);
-    glTexCoord2f(0,        float(h)); glVertex2i(-w, h);
-    glTexCoord2f(float(w), float(h)); glVertex2i(w, h);
-    glEnd();
-    timer_end(TIMER_MERGING);
-    notextureshader->set();
-
-#endif
-}
-VAR(debugbuffersplit, 0, 0, 1);
 
 VARFP(ao, 0, 1, 1, { cleanupao(); cleardeferredlightshaders(); });
 FVARR(aoradius, 0, 5, 256);
@@ -4380,7 +4264,7 @@ void rendershadowatlas()
     timer_begin(TIMER_SM);
 
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, shadowatlasfbo);
-    //glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
     if(debugshadowatlas)
     {
@@ -4414,7 +4298,6 @@ void rendershadowatlas()
     glPopMatrix();
 
     glCullFace(GL_BACK);
-    glEnable(GL_CULL_FACE);
     glDisable(GL_SCISSOR_TEST);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
@@ -4636,7 +4519,7 @@ void processhdr(GLuint outfbo = 0)
     timer_end(TIMER_HDR);
 }
 
-void dosmaa()
+void dosmaa(GLuint outfbo = 0)
 {
     timer_begin(TIMER_SMAA);
 
@@ -4693,7 +4576,7 @@ void dosmaa()
     }
     else if(smaastencil && ((gdepthstencil && hasDS) || gstencil)) glDisable(GL_STENCIL_TEST);
 
-    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, outfbo);
     smaaneighborhoodshader->set();
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gcolortex);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -4890,8 +4773,6 @@ void rendergbuffer()
     {
         linearworldmatrix.mul(invmvpmatrix, screenmatrix);
         worldmatrix = linearworldmatrix;
-        glScissor(1, 1, vieww-2, viewh-2);
-        glEnable(GL_SCISSOR_TEST);
     }
     else
     {
@@ -4928,7 +4809,6 @@ void rendergbuffer()
     if(minimapping)
     {
         renderminimapmaterials();
-        glDisable(GL_SCISSOR_TEST);
     }
     else if(!envmapping)
     {
@@ -5063,10 +4943,11 @@ void drawminimap()
 
     visiblecubes(false);
     collectlights();
-    rendershadowatlas();
     findmaterials();
 
     rendergbuffer();
+
+    rendershadowatlas();
 
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdrfbo);
     glViewport(0, 0, vieww, viewh);
@@ -5396,16 +5277,15 @@ void gl_drawframe(int w, int h)
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
-    processhdr(smaa ? smaafbo[0] : 0);
-    if(smaa) dosmaa();
+    GLuint postfxfbo = setuppostfx(w, h);
+    processhdr(smaa ? smaafbo[0] : postfxfbo);
+    if(smaa) dosmaa(postfxfbo);
 
-    addmotionblur();
     if(fogoverlay && fogmat != MAT_AIR) drawfogoverlay(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
     renderpostfx();
 
     defaultshader->set();
-    gui::render();
-
+    lapi::state.get<lua::Function>("external", "gl_render")();
     notextureshader->set();
 
     gl_drawhud(w, h);
@@ -5418,7 +5298,6 @@ void gl_drawmainmenu(int w, int h)
     xtravertsva = xtraverts = glde = gbatches = vtris = vverts = 0;
 
     renderbackground(NULL, NULL, NULL, NULL, true, true);
-    renderpostfx();
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -5426,8 +5305,7 @@ void gl_drawmainmenu(int w, int h)
     glLoadIdentity();
 
     defaultshader->set();
-    gui::render();
-
+    lapi::state.get<lua::Function>("external", "gl_render")();
     notextureshader->set();
 
     gl_drawhud(w, h);
@@ -5538,53 +5416,6 @@ void drawdamagescreen(int w, int h)
 VAR(hidestats, 0, 0, 1);
 VAR(hidehud, 0, 0, 1);
 
-VARP(crosshairsize, 0, 15, 50);
-VARP(cursorsize, 0, 10, 50);
-VARP(crosshairfx, 0, 1, 1);
-
-void drawcrosshair(int w, int h)
-{
-    bool windowhit = gui::hascursor(false) || !GuiControl::isMouselooking(); // INTENSITY: Mouselooking
-    if(!windowhit && (hidehud || gui::mainmenu)) return;
-
-    float r = 1, g = 1, b = 1, cx = 0.5f, cy = 0.5f, chsize;
-    Texture *crosshair;
-    if(windowhit)
-    {
-        static Texture *cursor = NULL;
-        if(!cursor) cursor = textureload("data/textures/ui/guicursor.png", 3, true);
-        crosshair = cursor;
-        chsize = cursorsize*w/900.0f;
-        gui::getcursorpos(cx, cy);
-    }
-    else
-    { 
-        const char *crname = ""; // OF: Start script-controlled crosshairs
-        varsys::Variable *ev = varsys::get("crosshair");
-        if (!ev || (ev->type() != varsys::TYPE_S))
-            crname = "data/textures/hud/crosshair.png";
-        else
-            crname = ((varsys::String_Alias*)ev)->get();
-
-        crosshair = textureload(crname, 3, true, false);
-        if (crosshair == notexture) return;
-
-        chsize = crosshairsize*w/900.0f;
-    }
-    if(crosshair->type&Texture::ALPHA) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    else glBlendFunc(GL_ONE, GL_ONE);
-    glColor3f(r, g, b);
-    float x = cx*w - (windowhit ? 0 : chsize/2.0f);
-    float y = cy*h - (windowhit ? 0 : chsize/2.0f);
-    glBindTexture(GL_TEXTURE_2D, crosshair->id);
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(0, 0); glVertex2f(x,          y);
-    glTexCoord2f(1, 0); glVertex2f(x + chsize, y);
-    glTexCoord2f(0, 1); glVertex2f(x,          y + chsize);
-    glTexCoord2f(1, 1); glVertex2f(x + chsize, y + chsize);
-    glEnd();
-}
-
 VARP(wallclock, 0, 0, 1);
 VARP(wallclock24, 0, 0, 1);
 VARP(wallclocksecs, 0, 0, 1);
@@ -5634,7 +5465,6 @@ void gl_drawhud(int w, int h)
     glColor3f(1, 1, 1);
 
     if(debugshadowatlas) viewshadowatlas();
-    else if(debugbuffersplit) viewbuffersplitmerge();
     else if(debugao) viewao(); 
     else if(debugdepth) viewdepth();
     else if(debugrefract) viewrefract();
@@ -5645,7 +5475,7 @@ void gl_drawhud(int w, int h)
 
     glEnable(GL_BLEND);
 
-    if(!gui::mainmenu)
+    if(!gui_mainmenu)
     {
         drawdamagescreen(w, h);
         drawdamagecompass(w, h);
@@ -5655,7 +5485,7 @@ void gl_drawhud(int w, int h)
     defaultshader->set();
 
     int conw = int(w/conscale), conh = int(h/conscale), abovehud = conh - FONTH;
-    if(!hidehud && !gui::mainmenu)
+    if(!hidehud && !gui_mainmenu)
     {
         if(!hidestats)
         {
@@ -5730,33 +5560,7 @@ void gl_drawhud(int w, int h)
             {
                 abovehud -= FONTH;
                 draw_textf("cube %s%d", FONTH/2, abovehud, selchildcount<0 ? "1/" : "", abs(selchildcount));
-
-                const char *editinfo = lapi::state.get<lua::Function>(
-                    "LAPI", "GUI", "HUD", "edit"
-                ).call<const char*>();
-                if(editinfo && editinfo[0])
-                {
-                    int tw, th;
-                    text_bounds(editinfo, tw, th);
-                    th += FONTH-1; th -= th%FONTH;
-                    abovehud -= max(th, FONTH);
-                    draw_text(editinfo, FONTH/2, abovehud);
-                }
             }
-            else
-            {
-                const char *gameinfo = lapi::state.get<lua::Function>(
-                    "LAPI", "GUI", "HUD", "game"
-                ).call<const char*>();
-                if(gameinfo && gameinfo[0])
-                {
-                    int tw, th;
-                    text_bounds(gameinfo, tw, th);
-                    th += FONTH-1; th -= th%FONTH;
-                    roffset += max(th, FONTH);    
-                    draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+tw), conh-FONTH/2-roffset);
-                }
-            } 
             
             glPopMatrix();
         }
@@ -5776,8 +5580,6 @@ void gl_drawhud(int w, int h)
     extern int fullconsole;
     if(!hidehud || fullconsole) renderconsole(conw, conh, abovehud - FONTH/2);
     glPopMatrix();
-
-    drawcrosshair(w, h);
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);

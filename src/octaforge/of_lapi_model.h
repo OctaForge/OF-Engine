@@ -41,6 +41,7 @@ VARP(ragdoll, 0, 1, 1);
 
 namespace lapi_binds
 {
+#ifdef CLIENT
     void _lua_mapmodelreset(int            n) { mapmodelreset(n);          }
     void _lua_mapmodel     (const char *name) { mmodel((char*)name);       }
     int  _lua_nummapmodels (                ) { return mapmodels.length(); }
@@ -166,7 +167,6 @@ namespace lapi_binds
         }
     }
 
-#ifdef CLIENT
     static int oldtp = -1;
 
     void preparerd(int& anim, CLogicEntity *self)
@@ -251,9 +251,6 @@ namespace lapi_binds
         rendermodel(mdl, anim, o, yaw, pitch, flags, fp,
             entity->attachments, basetime, 0, 1);
     }
-#else
-    LAPI_EMPTY(rendermodel)
-#endif
 
     lua::Table _lua_scriptmdlbb(const char *name)
     {
@@ -320,6 +317,50 @@ namespace lapi_binds
             ret[i + 1] = anims[i];
         return ret;
     }
+#else
+    LAPI_EMPTY(mapmodelreset)
+    LAPI_EMPTY(mapmodel)
+    LAPI_EMPTY(nummapmodels)
+    LAPI_EMPTY(clearmodel)
+    LAPI_EMPTY(mdlname)
+    LAPI_EMPTY(mdlalphatest)
+    LAPI_EMPTY(mdlalphablend)
+    LAPI_EMPTY(mdlalphadepth)
+    LAPI_EMPTY(mdlbb)
+    LAPI_EMPTY(mdlextendbb)
+    LAPI_EMPTY(mdlscale)
+    LAPI_EMPTY(mdlspec)
+    LAPI_EMPTY(mdlglow)
+    LAPI_EMPTY(mdlglare)
+    LAPI_EMPTY(mdlambient)
+    LAPI_EMPTY(mdlcullface)
+    LAPI_EMPTY(mdldepthoffset)
+    LAPI_EMPTY(mdlfullbright)
+    LAPI_EMPTY(mdlspin)
+    LAPI_EMPTY(mdlenvmap)
+    LAPI_EMPTY(mdlshader)
+    LAPI_EMPTY(mdltrans)
+    LAPI_EMPTY(mdlyaw)
+    LAPI_EMPTY(mdlpitch)
+    LAPI_EMPTY(mdlshadow)
+    LAPI_EMPTY(mdlcollide)
+    LAPI_EMPTY(mdlperentitycollisionboxes)
+    LAPI_EMPTY(mdlellipsecollide)
+    LAPI_EMPTY(rdvert)
+    LAPI_EMPTY(rdeye)
+    LAPI_EMPTY(rdtri)
+    LAPI_EMPTY(rdjoint)
+    LAPI_EMPTY(rdlimitdist)
+    LAPI_EMPTY(rdlimitrot)
+    LAPI_EMPTY(rdanimjoints)
+    LAPI_EMPTY(preloadmodel)
+    LAPI_EMPTY(reloadmodel)
+    LAPI_EMPTY(rendermodel)
+    LAPI_EMPTY(scriptmdlbb)
+    LAPI_EMPTY(scriptmdlcb)
+    LAPI_EMPTY(mdlmesh)
+    LAPI_EMPTY(findanims)
+#endif
 
     void reg_model(lua::Table& t)
     {

@@ -1,15 +1,15 @@
 module("world_notices", package.seeall)
 
-world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, {{
-    should_act = true,
+world_notice = ents.register_class(plugins.bake(entity_static.area_trigger, {{
+    per_frame = true,
 
     properties = {
-        text  = state_variables.state_string (),
-        color = state_variables.state_integer(),
-        size  = state_variables.state_float  (),
-        sound = state_variables.state_string (),
-        x     = state_variables.state_float  (),
-        y     = state_variables.state_float  ()
+        text  = svars.State_String(),
+        color = svars.State_Integer(),
+        size  = svars.State_Float(),
+        sound = svars.State_String(),
+        x     = svars.State_Float(),
+        y     = svars.State_Float()
     },
 
     init = function(self)
@@ -21,15 +21,15 @@ world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, 
         self.y     = 0.88
     end,
 
-    client_activate = function(self)
-        self.colliding_time = -1
+    activate = function(self)
+        if CLIENT then self.colliding_time = -1 end
     end,
 
-    client_act = function(self, seconds)
-    end,
+    run = CLIENT and function(self, seconds)
+    end or nil,
 
     client_on_collision = function(self, entity)
-        if entity ~= entity_store.get_player_entity() then return nil end
+        if entity ~= ents.get_player() then return nil end
 
         if not self.notice_action then
             self.notice_action = world_notice_action()
@@ -38,9 +38,9 @@ world_notice = entity_classes.register(plugins.bake(entity_static.area_trigger, 
 
         self.colliding_time = frame.get_time()
     end
-}}, "world_notice"), "mapmodel")
+}}, "world_notice"))
 
-notice_action = table.subclass(actions.Action, {
+notice_action = actions.Action:clone {
     can_multiply_queue = false,
 
     should_continue = function(self)
@@ -57,7 +57,7 @@ notice_action = table.subclass(actions.Action, {
 
         if self:should_continue() then
             if self.curr_time and self.sound and self.sound ~= "" then
-                sound.play(self.notice_sound, entity_store.get_player_entity().position:copy())
+                sound.play(self.notice_sound, ents.get_player().position:copy())
             end
 
             self.current_time = self.current_time + seconds * 3
@@ -72,14 +72,14 @@ notice_action = table.subclass(actions.Action, {
         end
 
         if self.current_time ~= 0 and self.text then
-            gui.hud_label(self.text, self.x, self.y, current_size, self.color)
+            --gui.hud_label(self.text, self.x, self.y, current_size, self.color)
         end
 
         return (self.current_time == 0)
     end
-})
+}
 
-world_notice_action = table.subclass(notice_action, {
+world_notice_action = notice_action:clone {
     start = function(self)
         notice_action.start(self)
 
@@ -99,4 +99,4 @@ world_notice_action = table.subclass(notice_action, {
         actions.Action.finish(self)
         self.actor.notice_action = nil
     end
-})
+}

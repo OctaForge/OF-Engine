@@ -3,12 +3,13 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = class.new(character.player, nil, "myplayer")
+myplayer = character.player:clone { name = "myplayer" }
 
 -- Called right after initialization on client
-function myplayer:client_activate(kwargs)
+if CLIENT then
+function myplayer:activate(kwargs)
     -- Call the parent
-    self.base_class.client_activate(self, kwargs)
+    character.player.activate(self, kwargs)
     -- Initialize a counter
     self.n = 1
     -- Move the player a bit more to the open space
@@ -16,9 +17,9 @@ function myplayer:client_activate(kwargs)
 end
 
 -- Called every frame on client after initialization
-function myplayer:client_act(sec)
+function myplayer:run(sec)
     -- Call the parent
-    self.base_class.client_act(self, sec)
+    character.player.run(self, sec)
     -- Loop 1000 times
     if self.n <= 1000 then
         -- Calculate X position. Move everything a bit.
@@ -34,12 +35,13 @@ function myplayer:client_act(sec)
         self.n = self.n + 1
     end
 end
+end
 
 -- Register our custom player entity class into storage
-entity_classes.register(myplayer, "fpsent")
+ents.register_class(myplayer)
 
 -- Notify the engine that we're overriding player by setting engine variable
-EVAR.player_class = "myplayer"
+EV.player_class = "myplayer"
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0

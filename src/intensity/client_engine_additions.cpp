@@ -267,7 +267,7 @@ void GuiControl::toggleMouselook()
     else
         _isMouselooking = true;
 
-    gui::resetcursor();
+    lapi::state.get<lua::Function>("external", "cursor_reset")();
 };
 
 bool _isCharacterViewing = false;

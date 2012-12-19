@@ -14,8 +14,6 @@
         Available as "signal".
 ]]
 
-local post_emit_queue = {}
-
 return {
     --[[! Function: connect
         Connects a signal to a table. The callback has to be a function.
@@ -23,107 +21,122 @@ return {
         You can later use <emit> to call the connected function, passing
         arguments to it.
 
-        Callbacks can add post emit hooks (see <add_post_emit_event>).
+        This function returns the position of the signal inside signal
+        queue for the given name (by default it's appended to the end,
+        optional fourth argument can specify position into which to insert).
+        It also returns the callback after being wrapped.
 
-        This function returns the signal ID.
+        Signals can return values (any number they want). They take at least
+        two arguments, first being a reference to the next signal in the
+        queue, second being the table. Only the first signal in the queue
+        is called on emit, so if you want to call the whole sequence, make
+        sure to use the argument. The system doesn't do it automatically.
+        Of course, any further arguments after the two are passed from
+        <emit>.
 
         (start code)
             Foo = {}
-            signal.connect(Foo, "blah", function(self, a, b, c)
+            signal.connect(Foo, "blah", function(_, self, a, b, c)
                 echo(a)
                 echo(b)
                 echo(c) end)
             signal.emit(Foo, "blah", 5, 10, 15)
         (end)
     ]]
-    connect = function(self, name, callback)
+    connect = function(self, name, callback, pos)
         if type(callback) ~= "function" then
             log(ERROR, "Not connecting non-function callback: " .. name)
-            return nil end
+            return nil
+        end
 
-        if not self._sig_connections then
-            self._sig_connections = {}
-            self._sig_next_id = 1 end
+        local  connections = rawget(self, "_sig_connections")
+        if not connections then
+               connections = {}
+               rawset(self, "_sig_connections", connections)
+        end
 
-        local id = self._sig_next_id
-        self._sig_next_id = self._sig_next_id + 1
+        local  conn = connections[name]
+        if not conn then
+               conn = {}
+               connections[name] = conn
+        end
 
-        table.insert(self._sig_connections, {
-            id = id, name = name, callback = callback
-        })
+        local id = #conn + 1
+        pos = clamp(pos or id, 1, id)
 
-        return id end,
+        local fun = function(...)
+            return callback(conn[pos + 1], ...)
+        end
+        if pos == id then
+            conn [id] = fun
+        else
+            table.insert(conn, pos, fun)
+        end
+
+        local cb = rawget(self, "__connect")
+        if    cb then cb (self, name, callback, pos) end
+
+        return id, fun
+    end,
 
     --[[! Function: disconnect
         Disconnects a signal previously connected with <connect>. You have to
-        provide a signal ID, which is the return value of <connect>.
-    ]]
-    disconnect = function(self, id)
-        if self._sig_connections then
-            local len = #self._sig_connections
-            self._sig_connections = table.filter(self._sig_connections,
-                function(idx, connection)
-                    if connection.id == id then return false
-                    else return true end end)
-            if #self._sig_connections ~= len then return nil end end
-        log(ERROR, "Connection with id " .. id .. " not found.") end,
+        provide the name and the number of the signal in the queue. If you
+        don't know the number, you can provide the callback itself (as
+        returned by <connect>, not the raw form).
+        If the number (or callback) is not provided, all signals of the
+        given name are disconnected. If the name is not given either,
+        all signals are disconnected from the table.
 
-    --[[! Function: disconnect_all
-        Disconnects all signals from a table.
+        If id is provided, this function returns the number of signals
+        connected to name after this disconnect. Otherwise nil.
     ]]
-    disconnect_all = function(self)
-        if not self._sig_connections then return nil end
-        self._sig_connections = {} end,
+    disconnect = function(self, name, id)
+        local connections = rawget(self, "_sig_connections")
+        local cb          = rawget(self, "__disconnect")
+        if    connections then
+            if not id then
+                connections[name] = nil
+                if cb then cb(self, name) end
+                return nil
+            end
+            local conn = connections[name]
+            if    conn and type(id) ~= "number" then
+                id = table.find(conn, id)
+            end
+            if conn and #conn >= id then
+                table.remove(conn, id)
+                local len = #conn
+                if cb then cb(self, name, id, len) end
+                return len
+            end
+        end
+        rawset(self, "_sig_connections", nil)
+        if cb then cb(self) end
+    end,
 
     --[[! Function: emit
         Emits a previously connected signal of a given name. You can
-        provide arguments to pass to the callback after "self".
+        provide arguments to pass to the callback after "next" and "self".
+
+        Only the first signal in the queue is called, so make sure to use
+        "next" when required in order to call further signals in the
+        sequence.
+
+        This function returns values returned by the called signal.
 
         See <connect> if you want an example.
     ]]
     emit = function(self, name, ...)
-        if not self._sig_connections then return nil end
+        local  connections = rawget(self, "_sig_connections")
+        if not connections then return nil end
 
-        local handlers = table.filter(self._sig_connections,
-            function(i, connection) if connection.name == name then
-                return true end end)
+        local  handlers = connections[name]
+        if not handlers then return nil end
 
-        post_emit_queue = {}
-        local ret
-        local retval
+        local  cb = handlers[1]
+        if not cb then return nil end
 
-        for i, connection in pairs(handlers) do
-            ret, retval = connection.callback(self, ...)
-            if ret then break end end
-
-        local events = post_emit_queue
-        post_emit_queue = nil
-
-        while events and #events > 0 do
-            post_emit_queue = {}
-            for i, event in pairs(events) do
-                event(self) end
-            events = post_emit_queue
-            post_emit_queue = nil end
-
-        return retval end,
-
-    --[[! Function: add_post_emit_event
-        Queues an event to be done after emit. Typically called from the
-        signal we're emitting. Post emit events can add their own post
-        emit events freely, they'll be called in the right order.
-
-        (start code)
-            local t = {}
-            signal.connect(t, "foo", function(self)
-                signal.add_post_emit_event(function(self)
-                    echo("first")
-                    signal.add_post_emit_event(function(self)
-                        echo("second") end) end) end)
-            -- prints "first" and then "second".
-            signal.emit(t, "foo")
-        (end)
-    ]]
-    add_post_emit_event = function(event)
-        table.insert(post_emit_queue, event) end
+        return cb(self, ...)
+    end
 }

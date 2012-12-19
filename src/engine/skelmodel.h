@@ -6,6 +6,8 @@ VAR(maxanimdata, 1, 192, 0);
 #define BONEMASK_END  0xFFFF
 #define BONEMASK_BONE 0x7FFF
 
+struct skelhitdata;
+
 struct skelmodel : animmodel
 {
     struct vert { vec pos, norm; float u, v; int blend, interpindex; };
@@ -129,6 +131,11 @@ struct skelmodel : animmodel
         {
             loopi(MAXANIMPARTS) if(as[i]!=c.as[i]) return false;
             return pitch==c.pitch && partmask==c.partmask && ragdoll==c.ragdoll && (!ragdoll || min(millis, c.millis) >= ragdoll->lastmove);
+        }
+
+        bool operator!=(const animcacheentry &c) const
+        {
+            return !operator==(c);
         }
     };
 
@@ -1206,7 +1213,7 @@ struct skelmodel : animmodel
             }
             else
             {
-                glUniformBuffer_(Shader::lastshader->program, u.loc, bc.ubuf); 
+                glUniformBuffer_(*((GLuint*)&Shader::lastshader->program), u.loc, bc.ubuf); 
                 u.version = bc.version;
                 u.data = &bc.ubuf;
             }
@@ -1272,7 +1279,9 @@ struct skelmodel : animmodel
         int vlen, vertsize, vblends, vweights;
         uchar *vdata;
 
-        skelmeshgroup() : skel(NULL), edata(NULL), ebuf(0), vdata(NULL)
+        skelhitdata *hitdata;
+
+        skelmeshgroup() : skel(NULL), edata(NULL), ebuf(0), vdata(NULL), hitdata(NULL)
         {
             memset(numblends, 0, sizeof(numblends));
         }
@@ -1297,6 +1306,7 @@ struct skelmodel : animmodel
                 if(vbocache[i].vbuf) glDeleteBuffers_(1, &vbocache[i].vbuf);
             }
             DELETEA(vdata);
+            deletehitdata();
         }
 
         void shareskeleton(char *name)
@@ -1560,6 +1570,21 @@ struct skelmodel : animmodel
             }
         }
 
+        static inline void blendbones(const matrix3x4 *mdata, matrix3x4 *dst, const blendcombo *c, int numblends)
+        {
+            loopi(numblends) blendbones(dst[i], mdata, c[i]);
+        }
+
+        static inline void blendbones(const dualquat *bdata, dualquat *dst, const blendcombo *c, int numblends)
+        {
+            loopi(numblends)
+            {
+                dualquat &d = dst[i];
+                blendbones(d, bdata, c[i]);
+                d.normalize();
+            }
+        }
+
         void cleanup()
         {
             loopi(MAXBLENDCACHE)
@@ -1580,6 +1605,7 @@ struct skelmodel : animmodel
             if(hasVBO) { if(ebuf) { glDeleteBuffers_(1, &ebuf); ebuf = 0; } }
             else DELETEA(vdata);
             if(skel) skel->cleanup(false);
+            cleanuphitdata();
         }
 
         #define SEARCHCACHE(cachesize, cacheentry, cache, reusecheck) \
@@ -1609,6 +1635,24 @@ struct skelmodel : animmodel
         blendcacheentry &checkblendcache(skelcacheentry &sc, int owner)
         {
             SEARCHCACHE(MAXBLENDCACHE, blendcacheentry, blendcache, )
+        }
+
+        void cleanuphitdata();
+        void deletehitdata();
+        void buildhitdata(const uchar *hitzones);
+        void intersect(skelhitdata *z, part *p, const skelmodel::skelcacheentry &sc, const vec &o, const vec &ray);
+
+        void intersect(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p, const vec &o, const vec &ray)
+        {
+            if(!hitdata) return;
+
+            if(skel->shouldcleanup()) skel->cleanup();
+
+            skelcacheentry &sc = skel->checkskelcache(p, as, pitch, axis, forward, as->cur.anim&ANIM_RAGDOLL || !d || !d->ragdoll || d->ragdoll->skel != skel->ragdoll ? NULL : d->ragdoll);
+
+            intersect(hitdata, p, sc, o, ray);
+
+            skel->calctags(p, &sc);
         }
 
         void render(const animstate *as, float pitch, const vec &axis, const vec &forward, dynent *d, part *p)
@@ -1798,9 +1842,23 @@ struct skeladjustment
 template<class MDL> struct skelloader : modelloader<MDL>
 {
     static vector<skeladjustment> adjustments;
+    static vector<uchar> hitzones;
+
+    void flushpart()
+    {
+        if(MDL::loading && MDL::loading->parts.length())
+        {
+            skelmodel::skelpart *p = (skelmodel::skelpart *)MDL::loading->parts.last();
+            skelmodel::skelmeshgroup *m = (skelmodel::skelmeshgroup *)p->meshes;
+            if(hitzones.length() && m) m->buildhitdata(hitzones.getbuf()); 
+        }
+        adjustments.setsize(0);
+        hitzones.setsize(0);
+    }
 };
 
 template<class MDL> vector<skeladjustment> skelloader<MDL>::adjustments;
+template<class MDL> vector<uchar> skelloader<MDL>::hitzones;
 
 template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmesh>
 {
@@ -2019,7 +2077,43 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         while(!MDL::adjustments.inrange(i)) MDL::adjustments.add(skeladjustment(0, 0, 0, vec(0, 0, 0)));
         MDL::adjustments[i] = skeladjustment(yaw, pitch, roll, t.div(4));
     }
-    
+
+    static void sethitzone(int id, types::Vector<const char*> bonestrs)
+    {
+        if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
+        if(id >= 0x80) { conoutf("invalid hit zone id %d", id); return; }
+
+        part *p = (part *)MDL::loading->parts.last();
+        meshgroup *m = (meshgroup *)p->meshes;
+        if(!m || m->hitdata) return;
+
+        typedef types::Vector<const char*> cvec;
+
+        types::String maskstr;
+        for (cvec::cit it = bonestrs.begin(); it != (bonestrs.end() - 1); ++it)
+        {
+            maskstr += *it;
+            maskstr += " ";
+        }
+        maskstr += *(bonestrs.end() - 1);
+
+        vector<ushort> bonemask;
+        for (cvec::cit it = bonestrs.begin(); it != bonestrs.end(); ++it)
+        {
+            const char *bonestr = *it;
+
+            int bone = p->meshes ? ((meshgroup *)p->meshes)->skel->findbone(bonestr[0]=='!' ? bonestr+1 : bonestr) : -1;
+            if(bone<0) { conoutf("could not find bone %s for hit zone mask [%s]", bonestr, maskstr.get_buf()); return; }
+            bonemask.add(bone | (bonestr[0]=='!' ? BONEMASK_NOT : 0));
+        }
+        if(bonemask.empty()) return;
+        bonemask.sort();
+        bonemask.add(BONEMASK_END);
+
+        while(MDL::hitzones.length() < m->skel->numbones) MDL::hitzones.add(0xFF);
+        m->skel->applybonemask(bonemask.getbuf(), MDL::hitzones.getbuf(), id < 0 ? 0xFF : id);
+    }
+
     skelcommands()
     {
         base::module["load"        ] = &loadpart;
@@ -2027,6 +2121,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         base::module["pitch"       ] = &setpitch;
         base::module["pitchtarget" ] = &setpitchtarget;
         base::module["pitchcorrect"] = &setpitchcorrect;
+        base::module["hitzone"     ] = &sethitzone;
         if (MDL::cananimate())
         {
             base::module["anim"    ] = &setanim;

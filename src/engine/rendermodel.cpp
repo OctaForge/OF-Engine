@@ -9,6 +9,7 @@ model *loadingmodel = NULL;
 #include "animmodel.h"
 #include "vertmodel.h"
 #include "skelmodel.h"
+#include "hitzone.h"
 
 #include "of_tools.h"
 
@@ -384,9 +385,13 @@ void clearmodel(char *name)
 
 bool modeloccluded(const vec &center, float radius)
 {
+#ifdef CLIENT
     int br = int(radius*2)+1;
     return pvsoccluded(ivec(int(center.x-radius), int(center.y-radius), int(center.z-radius)), ivec(br, br, br)) ||
            bboccluded(ivec(int(center.x-radius), int(center.y-radius), int(center.z-radius)), ivec(br, br, br));
+#else
+    return false;
+#endif
 }
 
 struct batchedmodel
@@ -783,6 +788,17 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
     b.attached = a ? modelattached.length() : -1;
     if(a) for(int i = 0;; i++) { modelattached.add(a[i]); if(!a[i].tag) break; }
     addbatchedmodel(m, b, batchedmodels.length()-1);
+}
+
+int intersectmodel(const char *mdl, int anim, const vec &pos, float yaw, float pitch, const vec &o, const vec &ray, float &dist, int mode, dynent *d, modelattach *a, int basetime, int basetime2, float size)
+{
+    model *m = loadmodel(mdl);
+    if(!m) return -1;
+    if(a) for(int i = 0; a[i].tag; i++)
+    {
+        if(a[i].name) a[i].m = loadmodel(a[i].name);
+    }
+    return m->intersect(anim, basetime, basetime2, pos, yaw, pitch, d, a, size, o, ray, dist, mode);
 }
 
 void abovemodel(vec &o, const char *mdl)

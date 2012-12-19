@@ -98,37 +98,6 @@ namespace lapi_binds
         ((fpsent*)player)->damageroll(roll);
         damageblend(n);
     }
-
-    void _lua_showhudrect(
-        float x1, float y1, float x2, float y2,
-        lua::Object color, lua::Object alpha
-    )
-    {
-        ClientSystem::addHUDRect(
-            x1, y1, x2, y2,
-            (color.is_nil() ? 0xFFFFFF : color.to<int>()),
-            (alpha.is_nil() ? 1.0f : color.to<float>())
-        );
-    }
-
-    void _lua_showhudimage(
-        const char *tex, float cx, float cy,
-        float wiu, float hiu, lua::Object color, lua::Object alpha
-    )
-    {
-        ClientSystem::addHUDImage(
-            tex ? tex : "", cx, cy, wiu, hiu,
-            (color.is_nil() ? 0xFFFFFF : color.to<int>()),
-            (alpha.is_nil() ? 1.0f : color.to<float>())
-        );
-    }
-
-    void _lua_showhudtext(
-        const char *tx, float x, float y, float scale, int color
-    )
-    {
-        ClientSystem::addHUDText(tx ? tx : "", x, y, scale, color);
-    }
 #else
     LAPI_EMPTY(adddecal)
     LAPI_EMPTY(particle_splash)
@@ -141,9 +110,6 @@ namespace lapi_binds
     LAPI_EMPTY(particle_meter)
     LAPI_EMPTY(particle_text)
     LAPI_EMPTY(client_damage_effect)
-    LAPI_EMPTY(showhudrect)
-    LAPI_EMPTY(showhudimage)
-    LAPI_EMPTY(showhudtext)
 #endif
 
     void reg_parthud(lua::Table& t)
@@ -159,8 +125,5 @@ namespace lapi_binds
         LAPI_REG(particle_meter);
         LAPI_REG(particle_text);
         LAPI_REG(client_damage_effect);
-        LAPI_REG(showhudrect);
-        LAPI_REG(showhudimage);
-        LAPI_REG(showhudtext);
     }
 }

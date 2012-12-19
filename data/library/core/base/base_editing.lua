@@ -572,7 +572,7 @@ function push(direction, mode)
     -- mode when no entity is selected or geometry is selected
     if has_selection() ~= 0 or num_selected_entities() == 0 then
         -- if we're moving selection
-        if EVAR["moving"] ~= 0 then
+        if EV["moving"] ~= 0 then
             push_selection(direction)
         else
             unselect_entities()
@@ -729,10 +729,10 @@ end
 ]]
 function cut_selection()
     local had_selection = has_selection()
-    EVAR["moving"] = 1
+    EV["moving"] = 1
 
     -- assure that we're actually moving
-    if EVAR["moving"] ~= 0 then
+    if EV["moving"] ~= 0 then
         -- copy and delete
         copy_world()
         copy_entities()
@@ -740,7 +740,7 @@ function cut_selection()
         delete_entities()
         CAPI.onrelease(function()
             -- on release, stop moving
-            EVAR["moving"] = 0
+            EV["moving"] = 0
             -- and paste back stuff
             paste_world()
             paste_entities()
@@ -759,16 +759,16 @@ end
 ]]
 function drag()
     cancel_selection()
-    EVAR["entmoving"] = 2
+    EV["entmoving"] = 2
     CAPI.onrelease(function()
         CAPI.finish_dragging()
-        EVAR["entmoving"] = 0
+        EV["entmoving"] = 0
     end)
 
-    if EVAR["entmoving"] == 0 then
-        EVAR["dragging"] = 1
+    if EV["entmoving"] == 0 then
+        EV["dragging"] = 1
         CAPI.onrelease(function()
-            EVAR["dragging"] = 0
+            EV["dragging"] = 0
         end)
     end
 end
@@ -779,18 +779,18 @@ end
     mouse button in edit mode (unless in heightmap mode).
 ]]
 function move_selection()
-    EVAR["entmoving"] = 2
+    EV["entmoving"] = 2
     CAPI.onrelease(function()
         CAPI.finish_dragging()
-        EVAR["entmoving"] = 0
+        EV["entmoving"] = 0
     end)
 
-    if EVAR["entmoving"] == 0 then
+    if EV["entmoving"] == 0 then
         extend_selection()
         reorient()
-        EVAR["moving"] = 1
+        EV["moving"] = 1
         CAPI.onrelease(function()
-            EVAR["moving"] = 0
+            EV["moving"] = 0
         end)
     end
 end
@@ -802,22 +802,22 @@ end
     it calls <select_height_map>.
 ]]
 function select_corners()
-    if EVAR["hmapedit"] ~= 0 then
+    if EV["hmapedit"] ~= 0 then
         select_height_map()
     else
         cancel_selection()
-        EVAR["entmoving"] = 2
+        EV["entmoving"] = 2
         CAPI.onrelease(function()
             CAPI.finish_dragging()
-            EVAR["entmoving"] = 0
+            EV["entmoving"] = 0
         end)
 
-        if EVAR["entmoving"] == 0 then
-            EVAR["selectcorners"] = 1
-            EVAR["dragging"]      = 1
+        if EV["entmoving"] == 0 then
+            EV["selectcorners"] = 1
+            EV["dragging"]      = 1
             CAPI.onrelease(function()
-                EVAR["selectcorners"] = 0
-                EVAR["dragging"]      = 0
+                EV["selectcorners"] = 0
+                EV["dragging"]      = 0
             end)
         end
     end
@@ -863,8 +863,8 @@ local brushes = {}
     See also <height_brush_verts>.
 ]]
 local function height_brush_handle(x, y)
-    EVAR["brushx"] = x
-    EVAR["brushy"] = y
+    EV["brushx"] = x
+    EV["brushy"] = y
 end
 
 --[[!

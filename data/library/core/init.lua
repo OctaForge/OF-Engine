@@ -81,6 +81,12 @@ echo = function(msg)
     return EAPI.base_echo(tostring(msg))
 end
 
+--[[! Variable: external
+    Here all the external functions (the ones the engine calls) are stored.
+]]
+external = {
+}
+
 log(DEBUG, "Initializing the new core library.")
 require("std")
 
@@ -88,7 +94,7 @@ log(DEBUG, "Initializing base.")
 require("base")
 
 log(DEBUG, "Initializing tgui.")
-require("tgui")
+--require("tgui")
 
 log(DEBUG, "Initializing LAPI.")
 LAPI = require("lapi")

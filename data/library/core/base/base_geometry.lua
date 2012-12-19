@@ -49,7 +49,7 @@ end
     all entities of <character> class and inherited classes.
 ]]
 function get_collidable_entities()
-    return entity_store.get_all_by_class("character")
+    return ents.get_by_class("character")
 end
 
 --[[!

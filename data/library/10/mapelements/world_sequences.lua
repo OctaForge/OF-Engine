@@ -3,9 +3,9 @@ module("world_sequences", package.seeall)
 plugins = {
     area_trigger = {
         properties = {
-            sequence_id  = state_variables.state_string (),
-            sequence_num = state_variables.state_integer(),
-            sequence_is_mandatory = state_variables.state_bool()
+            sequence_id  = svars.State_String(),
+            sequence_num = svars.State_Integer(),
+            sequence_is_mandatory = svars.State_Boolean()
         },
 
         init = function(self)
@@ -15,12 +15,12 @@ plugins = {
         end,
 
         client_on_collision = function(self, collider)
-            if collider ~= entity_store.get_player_entity() then return nil end
+            if collider ~= ents.get_player() then return nil end
 
             if collider.world_sequences[self.sequence_id] == (self.sequence_num - 1) then
                 self.sequence_is_mandatory_passed = true
 
-                local area_triggers = entity_store.get_all_by_class("area_trigger")
+                local area_triggers = ents.get_by_class("area_trigger")
 
                 if #table.filter(area_triggers, function(i, entity)
                     return (entity.sequence_id  == self.sequence_id  and
@@ -47,8 +47,8 @@ plugins = {
         end
     },
     player = {
-        client_activate = function(self)
-            self.world_sequences = {}
+        activate = function(self)
+            if CLIENT then self.world_sequences = {} end
         end,
 
         reset_world_sequence = function(self, sequence_id)

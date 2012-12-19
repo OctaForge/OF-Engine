@@ -2,8 +2,8 @@
 
 -- on every map load, this file will be executed, followed by mapscript.
 
-if not EVAR.skybox or EVAR.skybox == "" then
-    EVAR.skybox = "textures/sky/remus/sky01"
+if not EV.skybox or EV.skybox == "" then
+    EV.skybox = "textures/sky/remus/sky01"
 end
 
 edit.material_reset()

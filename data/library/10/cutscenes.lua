@@ -38,7 +38,7 @@ function show_distance(tag, origin, color)
     local cache_name = table.concat({ "__CACHED_", tag })
 
     if not origin[cache_name] then
-        local entities = entity_store.get_all_by_tag(tag)
+        local entities = ents.get_by_tag(tag)
         if   #entities == 1 then
             origin[cache_name] = entities[1]
         else
@@ -64,7 +64,9 @@ end
 
     This class inherits from <action_container>.
 ]]
-action_base = table.subclass(events.action_container, {
+action_base = events.action_container:clone {
+    name = "action_base",
+
     --[[!
         Function: client_click
         This happens on client on click. By default,
@@ -125,7 +127,7 @@ action_base = table.subclass(events.action_container, {
         end
 
         return events.action_container.run(self, seconds)
-            or entity_store.is_player_editing()
+            or ents.get_player():is_editing()
     end,
 
     --[[!
@@ -169,7 +171,7 @@ action_base = table.subclass(events.action_container, {
             end
         end
     end
-}, "action_base")
+}
 
 --[[!
     Class: action_smooth
@@ -177,7 +179,9 @@ action_base = table.subclass(events.action_container, {
     <action_base>. It manages the "points" the cutscene goes through
     and smooth interpolation between them.
 ]]
-action_smooth = table.subclass(actions.Action, {
+action_smooth = actions.Action:clone {
+    name = "action_smooth",
+
     --[[!
         Variable: seconds_per_marker
         Specifies a number of seconds it takes to go between two
@@ -317,7 +321,7 @@ action_smooth = table.subclass(actions.Action, {
                      ) * beta
                    + curr_marker.pitch * (1 - alpha - beta)
     end
-}, "action_smooth")
+}
 
 --[[!
     Class: cutscene_controller
@@ -354,20 +358,20 @@ action_smooth = table.subclass(actions.Action, {
 
     By setting it to true, you start the cutscene.
 ]]
-entity_classes.register(
+ents.register_class(
     plugins.bake(entity_static.world_marker, {{
-        should_act = true,
+        per_frame = true,
         factor     = 4 / 3,
         started    = false,
         cancel     = false,
 
         properties = {
-            cancellable        = state_variables.state_bool(),
-            cancel_siblings    = state_variables.state_bool(),
-            seconds_per_marker = state_variables.state_float(),
-            delay_before       = state_variables.state_float(),
-            delay_after        = state_variables.state_float(),
-            next_controller    = state_variables.state_integer(),
+            cancellable        = svars.State_Boolean(),
+            cancel_siblings    = svars.State_Boolean(),
+            seconds_per_marker = svars.State_Float(),
+            delay_before       = svars.State_Float(),
+            delay_after        = svars.State_Float(),
+            next_controller    = svars.State_Integer(),
         },
 
         --[[!
@@ -385,7 +389,7 @@ entity_classes.register(
 
         --[[!
             Function: start
-            Called once from <client_act> if the "started"
+            Called once from <run> if the "started"
             member is set to true. If a global variable called
             GLOBAL_NO_CUTSCENES is defined, nothing starts.
 
@@ -416,26 +420,22 @@ entity_classes.register(
 
             local entity = self
 
-            local base_action = entity_store.get_all_by_tag(
-                self.m_tag .. "_base"
-            )
+            local base_action = ents.get_by_tag(self.m_tag .. "_base")
             if #base_action ~= 1 then
                 base_action  = action_base
             else
                 base_action  = base_action[1].action
             end
 
-            local action = entity_store.get_all_by_tag(
-                self.m_tag .. "_action"
-            )
+            local action = ents.get_by_tag(self.m_tag .. "_action")
             if #action ~= 1 then
                 action  = {}
             else
                 action  = action[1].action
             end
 
-            entity_store.get_player_entity():queue_action(
-                table.subclass(base_action, {
+            ents.get_player():queue_action(
+                (base_action:clone {
                     cancel = function(self)
                         if  self.cancellable
                         and entity.started
@@ -447,7 +447,7 @@ entity_classes.register(
                     end,
 
                     start = function(self)
-                        self.base_class.start(self)
+                        base_action.start(self)
 
                         self.cancellable = entity.cancellable
 
@@ -456,7 +456,7 @@ entity_classes.register(
                         self.subtitles = {}
 
                         local i = 2
-                        local start_mark = entity_store.get_all_by_tag(
+                        local start_mark = ents.get_by_tag(
                             entity.m_tag .. "_sub_1"
                         )
                         if   #start_mark ~= 1 then return nil end
@@ -484,7 +484,7 @@ entity_classes.register(
                             })
                         end
                         while true do
-                            local next_mark = entity_store.get_all_by_tag(
+                            local next_mark = ents.get_by_tag(
                                 entity.m_tag .. "_sub_" .. i
                             )
                             if   #next_mark ~= 1 then break end
@@ -516,10 +516,10 @@ entity_classes.register(
                     end,
 
                     finish = function(self)
-                        self.base_class.finish(self)
+                        base_action.finish(self)
 
                         -- clear up the queue from base actions just in case
-                        local player = entity_store.get_player_entity()
+                        local player = ents.get_player()
                         local queue  = player.action_system(1) -- get
                         for i, v in pairs(queue) do
                             if v:is_a(base_action) then
@@ -527,7 +527,7 @@ entity_classes.register(
                             end
                         end
 
-                        local next_control = entity_store.get_all_by_tag(
+                        local next_control = ents.get_by_tag(
                             "ctl_" .. entity.next_controller
                         )
                         if   #next_control == 1 then
@@ -536,14 +536,14 @@ entity_classes.register(
                         end
                     end
                 })({
-                    table.subclass(action_smooth, {
+                    (action_smooth:clone {
                         init_markers = function(self)
                             self.markers            = {}
                             self.seconds_per_marker = entity.seconds_per_marker
                             self.delay_before       = entity.delay_before
                             self.delay_after        = entity.delay_after
 
-                            local start_mark = entity_store.get_all_by_tag(
+                            local start_mark = ents.get_by_tag(
                                 entity.m_tag .. "_mrk_1"
                             )
                             if   #start_mark ~= 1 then return nil end
@@ -555,7 +555,7 @@ entity_classes.register(
                             })
 
                             while true do
-                                local next_mark = entity_store.get_all_by_tag(
+                                local next_mark = ents.get_by_tag(
                                     entity.m_tag
                                         .. "_mrk_"
                                         .. prev_mark[1].next_marker
@@ -573,7 +573,7 @@ entity_classes.register(
                                     if entity.next_controller <= 0 then
                                         self.looped = true
                                     end
-                                    next_mark = entity_store.get_all_by_tag(
+                                    next_mark = ents.get_by_tag(
                                         entity.m_tag
                                             .. "_mrk_"
                                             .. prev_mark[1].next_marker
@@ -595,21 +595,22 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_activate
+            Function: activate
             Called clientside on entity activation. Sets up callbacks
             for attribute changes, so the visual representation of
             connections remains up to date.
         ]]
-        client_activate = function(self)
+        activate = function(self)
+            if not CLIENT then return nil end
             signal.connect(self,
-                state_variables.get_on_modify_name("tags"),
-                function(self)
+                "tags_changed",
+                function(_, self)
                     self.m_tag = self.tags:to_array()[1]
                 end
             )
             signal.connect(self,
-                state_variables.get_on_modify_name("next_controller"),
-                function(self)
+                "next_controller_changed",
+                function(_, self)
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -634,30 +635,30 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_act
+            Function: run
             Takes care of cutscene start (JUST ONCE) if the "started"
             member is set to true. After starting, it creates a lock,
             so the same thing can't be started twice.
 
             In edit mode, it takes care of visual connection representation.
         ]]
-        client_act = function(self, seconds)
-            if self.started and not entity_store.is_player_editing()
+        run = CLIENT and function(self, seconds)
+            if self.started and not ents.get_player():is_editing()
             and not self.lock then
                 self:start()
                 self.lock = true
             end
             self.lock = (not self.started and self.lock) and false or self.lock
 
-            if entity_store.is_player_editing() then
+            if ents.get_player():is_editing() then
                 if self.next_controller >= 1 then
                     show_distance(
                         "ctl_" .. self.next_controller, self, 0xFFED22
                     )
                 end
             end
-        end
-    }}, "cutscene_controller"), "playerstart"
+        end or nil
+    }}, "cutscene_controller")
 )
 
 --[[!
@@ -673,13 +674,13 @@ entity_classes.register(
         pitch - as sauer entities don't have any pitch, we're defining
         our own at this place.
 ]]
-entity_classes.register(
+ents.register_class(
     plugins.bake(entity_static.world_marker, {{
-        should_act = true,
+        per_frame = true,
 
         properties = {
-            next_marker = state_variables.state_integer(),
-            pitch       = state_variables.state_float()
+            next_marker = svars.State_Integer(),
+            pitch       = svars.State_Float()
         },
 
         --[[!
@@ -692,15 +693,16 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_activate
+            Function: activate
             Called clientside on entity activation. Sets up callbacks
             for attribute changes, so the visual representation of
             connections remains up to date.
         ]]
-        client_activate = function(self)
+        activate = function(self)
+            if not CLIENT then return nil end
             signal.connect(self,
-                state_variables.get_on_modify_name("tags"),
-                function(self)
+                "tags_changed",
+                function(_, self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
@@ -711,8 +713,8 @@ entity_classes.register(
                 end
             )
             signal.connect(self,
-                state_variables.get_on_modify_name("next_marker"),
-                function(self)
+                "next_marker_changed",
+                function(_, self)
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -724,11 +726,11 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_act
+            Function: run
             In edit mode, this takes care of proper visual representation.
         ]]
-        client_act = function(self, seconds)
-            if not entity_store.is_player_editing() then return nil end
+        run = CLIENT and function(self, seconds)
+            if not ents.get_player():is_editing() then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]
@@ -759,8 +761,8 @@ entity_classes.register(
                 self.position, target,
                 0, 0x22BBFF, 0.3
             )
-        end
-    }}, "cutscene_marker"), "playerstart"
+        end or nil
+    }}, "cutscene_marker")
 )
 
 --[[!
@@ -787,22 +789,22 @@ entity_classes.register(
         green - see above.
         blue - see above.
 ]]
-entity_classes.register(
+ents.register_class(
     plugins.bake(entity_static.world_marker, {{
-        should_act = true,
+        per_frame = true,
 
         properties = {
-            parent_id  = state_variables.state_integer(),
+            parent_id  = svars.State_Integer(),
 
-            start_time = state_variables.state_float(),
-            total_time = state_variables.state_float(),
-            text       = state_variables.state_string(),
-            x_pos      = state_variables.state_float(),
-            y_pos      = state_variables.state_float(),
-            size       = state_variables.state_float(),
-            red        = state_variables.state_integer(),
-            green      = state_variables.state_integer(),
-            blue       = state_variables.state_integer()
+            start_time = svars.State_Float(),
+            total_time = svars.State_Float(),
+            text       = svars.State_String(),
+            x_pos      = svars.State_Float(),
+            y_pos      = svars.State_Float(),
+            size       = svars.State_Float(),
+            red        = svars.State_Integer(),
+            green      = svars.State_Integer(),
+            blue       = svars.State_Integer()
         },
 
         --[[!
@@ -823,15 +825,16 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_activate
+            Function: activate
             Called clientside on entity activation. Sets up callbacks
             for attribute changes, so the visual representation of
             connections remains up to date.
         ]]
-        client_activate = function(self)
+        activate = function(self)
+            if not CLIENT then return nil end
             signal.connect(self,
-                state_variables.get_on_modify_name("tags"),
-                function(self)
+                "tags_changed",
+                function(_, self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
@@ -842,8 +845,8 @@ entity_classes.register(
                 end
             )
             signal.connect(self,
-                state_variables.get_on_modify_name("parent_id"),
-                function(self)
+                "parent_id_changed",
+                function(_, self)
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -855,11 +858,11 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_act
+            Function: run
             In edit mode, this takes care of proper visual representation.
         ]]
-        client_act = function(self, seconds)
-            if not entity_store.is_player_editing() then return nil end
+        run = CLIENT and function(self, seconds)
+            if not ents.get_player():is_editing() then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]
@@ -880,8 +883,8 @@ entity_classes.register(
             if tonumber(arr[2]) > 0 then
                 show_distance("ctl_" .. arr[2], self, 0xFF2222)
             end
-        end
-    }}, "cutscene_subtitle"), "playerstart"
+        end or nil
+    }}, "cutscene_subtitle")
 )
 
 --[[!
@@ -905,13 +908,13 @@ entity_classes.register(
         subtitle_background - see above. A background for subtitle
         area (0.5, 0.9).
 ]]
-entity_classes.register(
+ents.register_class(
     plugins.bake(entity_static.world_marker, {{
-        should_act = true,
+        per_frame = true,
 
         properties = {
-            background_image =    state_variables.state_string(),
-            subtitle_background = state_variables.state_string()
+            background_image =    svars.State_String(),
+            subtitle_background = svars.State_String()
         },
 
         --[[!
@@ -924,15 +927,16 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_activate
+            Function: activate
             Called clientside on entity activation. Sets up callbacks
             for attribute changes, so the visual representation of
             connections remains up to date.
         ]]
-        client_activate = function(self)
+        activate = function(self)
+            if not CLIENT then return nil end
             signal.connect(self,
-                state_variables.get_on_modify_name("tags"),
-                function(self)
+                "tags_changed",
+                function(_, self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
@@ -945,19 +949,19 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_act
+            Function: run
             In edit mode, this takes care of proper visual representation.
             In both modes, it takes care of that the background_image and
             subtitle_background attributes inside the <action> will be
             always up to date with those of entity.
         ]]
-        client_act = function(self, seconds)
+        run = CLIENT and function(self, seconds)
             if self.action.background_image    ~= self.background_image then
                self.action.background_image     = self.background_image end
             if self.action.subtitle_background ~= self.subtitle_background then
                self.action.subtitle_background  = self.subtitle_background end
 
-            if not entity_store.is_player_editing() then return nil end
+            if not ents.get_player():is_editing() then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]
@@ -971,7 +975,7 @@ entity_classes.register(
             if self.m_tag and tonumber(arr[2]) > 0 then
                 show_distance("ctl_" .. arr[2], self, 0xFF9A22)
             end
-        end,
+        end or nil,
 
         --[[!
             Variable: action
@@ -980,9 +984,9 @@ entity_classes.register(
             start, run and show_subtitle_background
             methods.
         ]]
-        action = table.subclass(action_base, {
+        action = action_base:clone {
             start = function(self)
-                self.base_class.start(self)
+                action_base.start(self)
 
                 self.background_image    = ""
                 self.subtitle_background = ""
@@ -993,11 +997,11 @@ entity_classes.register(
                     self.old_show_hud_image(
                         self.background_image,
                         0.5, 0.5,
-                        math.max((EVAR.scr_w / EVAR.scr_h), 1),
-                        math.min((EVAR.scr_w / EVAR.scr_h), 1)
+                        math.max((EV.scr_w / EV.scr_h), 1),
+                        math.min((EV.scr_w / EV.scr_h), 1)
                     )
                 end
-                return self.base_class.run(self, seconds)
+                return action_base.run(self, seconds)
             end,
 
             show_subtitle_background = function(self)
@@ -1008,14 +1012,14 @@ entity_classes.register(
                             self.subtitle_background,
                             0.5,
                             0.9,
-                            (factors.x * 800) / EVAR.scr_w,
-                            (factors.y * 128) / EVAR.scr_h
+                            (factors.x * 800) / EV.scr_w,
+                            (factors.y * 128) / EV.scr_h
                         )
                     end
                 end
             end
-        })
-    }}, "cutscene_base_action"), "playerstart"
+        }
+    }}, "cutscene_base_action")
 )
 
 --[[!
@@ -1031,20 +1035,21 @@ entity_classes.register(
     This is useful when you need something that manages events,
     like opening doors the camera goes through.
 ]]
-entity_classes.register(
+ents.register_class(
     plugins.bake(entity_static.world_marker, {{
-        should_act = true,
+        per_frame = true,
 
         --[[!
-            Function: client_activate
+            Function: activate
             Called clientside on entity activation. Sets up callbacks
             for attribute changes, so the visual representation of
             connections remains up to date.
         ]]
-        client_activate = function(self)
+        activate = function(self)
+            if not CLIENT then return nil end
             signal.connect(self,
-                state_variables.get_on_modify_name("tags"),
-                function(self)
+                "tags_changed",
+                function(_, self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
@@ -1057,11 +1062,11 @@ entity_classes.register(
         end,
 
         --[[!
-            Function: client_act
+            Function: run
             In edit mode, this takes care of proper visual representation.
         ]]
-        client_act = function(self, seconds)
-            if not entity_store.is_player_editing() then return nil end
+        run = CLIENT and function(self, seconds)
+            if not ents.get_player():is_editing() then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]
@@ -1075,11 +1080,11 @@ entity_classes.register(
             if self.m_tag and tonumber(arr[2]) > 0 then
                 show_distance("ctl_" .. arr[2], self, 0x22FFD3)
             end
-        end,
+        end or nil,
 
         action = {
             -- extend with start, run,
             -- finish, don't forget to call parent
         }
-    }}, "cutscene_action"), "playerstart"
+    }}, "cutscene_action")
 )

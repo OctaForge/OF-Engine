@@ -593,6 +593,7 @@ namespace game
         return cname;
     }
 
+#ifdef CLIENT
     void drawhudmodel(fpsent *d, int anim, float speed = 0, int base = 0)
     {
         logger::log(logger::WARNING, "Rendering hudmodel is deprecated for now\r\n");
@@ -605,7 +606,7 @@ namespace game
 
     bool needminimap() // you have to enable the minimap inside your map script.
     {
-        return (!gui::mainmenu && useminimap);
+        return (!gui_mainmenu && useminimap);
     }
 
     bool usedminimap()
@@ -617,7 +618,6 @@ namespace game
     {
     }
 
-#ifdef CLIENT
     float abovegameplayhud()
     {
         return 1650.0f/1800.0f;

@@ -172,17 +172,61 @@ namespace tools
         for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
         {
             varsys::Variable *v = it->second;
-            /* do not write aliases here! */
-            if ((v->flags()&varsys::FLAG_ALIAS)   != 0) continue;
-            if ((v->flags()&varsys::FLAG_PERSIST) != 0) switch (v->type())
+            /* do not write scripted evars here! */
+            if (v->has_value) continue;
+            if ((v->flags & varsys::FLAG_PERSIST) != 0) switch (v->type)
             {
-                case varsys::TYPE_I: f->printf("EVAR.%s = %d\n", v->name(), varsys::get_int(v)); break;
-                case varsys::TYPE_F: f->printf("EVAR.%s = %f\n", v->name(), varsys::get_float(v)); break;
+                case varsys::TYPE_I: f->printf("EV.%s = %d\n", v->name, varsys::get_int(v)); break;
+                case varsys::TYPE_F: f->printf("EV.%s = %f\n", v->name, varsys::get_float(v)); break;
                 case varsys::TYPE_S:
                 {
                     const char *str = varsys::get_string(v);
                     if (!str) continue;
-                    f->printf("EVAR.%s = \"", v->name());
+                    f->printf("EV.%s = \"", v->name);
+                    size_t len = strlen(str);
+                    for (size_t sz = 0; sz < len; ++sz)
+                    {
+                        switch (str[sz])
+                        {
+                            case '\n': f->write("^n", 2); break;
+                            case '\t': f->write("^t", 2); break;
+                            case '\f': f->write("^f", 2); break;
+                            case '"': f->write("^\"", 2); break;
+                            default: f->putchar(str[sz]); break;
+                        }
+                    }
+                    f->printf("\"\n");
+                    break;
+                }
+            }
+        }
+        f->printf("\n");
+        f->printf("-- lua engine variables\n");
+
+        for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
+        {
+            varsys::Variable *v = it->second;
+            /* write only scripted evars */
+            if (!v->has_value) continue;
+            if ((v->flags & varsys::FLAG_PERSIST) != 0) switch (v->type)
+            {
+                case varsys::TYPE_I: {
+                    varsys::Int_Variable *iv = (varsys::Int_Variable*)v;
+                    f->printf("EAPI.var_new_i_full(\"%s\", %d, %d, %d, %d) EV.%s = %d\n",
+                        v->name, iv->min_v, iv->def_v, iv->max_v, v->flags, v->name, varsys::get_int(v));
+                    break;
+                }
+                case varsys::TYPE_F: {
+                    varsys::Float_Variable *fv = (varsys::Float_Variable*)v;
+                    f->printf("EAPI.var_new_f_full(\"%s\", %f, %f, %f, %d) EV.%s = %f\n",
+                        v->name, fv->min_v, fv->def_v, fv->max_v, v->flags, v->name, varsys::get_float(v));
+                    break;
+                }
+                case varsys::TYPE_S: {
+                    const char *str = varsys::get_string(v);
+                    if (!str) continue;
+                    f->printf("EAPI.var_new_s_full(\"%s\", \"%s\", %d) EV.%s = \"",
+                        v->name, ((varsys::String_Variable*)v)->def_v, v->flags, v->name);
                     size_t len = strlen(str);
                     for (size_t sz = 0; sz < len; ++sz)
                     {
@@ -205,38 +249,6 @@ namespace tools
         writebinds(f);
         f->printf("\n");
 
-        f->printf("-- aliases\n");
-        f->printf("local was_persisting = var.persist_vars(true)\n");
-        for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
-        {
-            varsys::Variable *v = it->second;
-            if ((v->flags()&varsys::FLAG_ALIAS) != 0 && (v->flags()&varsys::FLAG_PERSIST) != 0) switch (v->type())
-            {
-                case varsys::TYPE_I: f->printf("var.new(\"%s\", EAPI.VAR_I, %d)\n", v->name(), varsys::get_int(v)); break;
-                case varsys::TYPE_F: f->printf("var.new(\"%s\", EAPI.VAR_F, %f)\n", v->name(), varsys::get_float(v)); break;
-                case varsys::TYPE_S:
-                {
-                    const char *str = varsys::get_string(v);
-                    if (strstr(v->name(), "new_entity_gui_field") || !str) continue;
-                    f->printf("var.new(\"%s\", EAPI.VAR_S, \"", v->name());
-                    size_t len = strlen(str);
-                    for (size_t sz = 0; sz < len; ++sz)
-                    {
-                        switch (str[sz])
-                        {
-                            case '\n': f->write("^n", 2); break;
-                            case '\t': f->write("^t", 2); break;
-                            case '\f': f->write("^f", 2); break;
-                            case '"': f->write("^\"", 2); break;
-                            default: f->putchar(str[sz]); break;
-                        }
-                    }
-                    f->printf("\")\n");
-                    break;
-                }
-            }
-        }
-        f->printf("var.persist_vars(was_persisting)\n");
         f->printf("\nOF_CFG_VERSION_PASSED = true\n");
         delete f;
     }

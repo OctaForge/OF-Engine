@@ -346,142 +346,6 @@ namespace lapi_binds
         return false;
     }
 
-    int _lua_texture_load(lua_State *L)
-    {
-        const char *path = luaL_checkstring(L, 1);
-        if (!path) return 0;
-
-        Texture *tex    = textureload(path, 3, true, false);
-        Texture **udata = (Texture**)lua_newuserdata(L, sizeof(void*));
-        *udata = tex;
-
-        luaL_newmetatable(L, "Texture");
-        lua_setmetatable (L, -2);
-
-        return 1;
-    }
-
-    int _lua_texture_check_alpha_mask(lua_State *L)
-    {
-        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
-        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
-
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-
-        Texture *tex = *tp;
-        if (!tex->alphamask)
-        {
-            loadalphamask(tex);
-            if (!tex->alphamask)
-            {
-                lua_pushboolean(L, 1);
-                return 1;
-            }
-        }
-        int tx = clamp(int(floor(x*tex->xs)), 0, tex->xs-1),
-            ty = clamp(int(floor(y*tex->ys)), 0, tex->ys-1);
-
-        if (tex->alphamask[ty*((tex->xs+7)/8) + tx/8] & (1<<(tx%8)))
-            lua_pushboolean(L, 1);
-        else
-            lua_pushboolean(L, 0);
-
-        return 1;
-    }
-
-    int _lua_texture_get_bpp(lua_State *L)
-    {
-        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
-        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
-
-        Texture *tex = *tp;
-        lua_pushinteger(L, tex->bpp);
-        return 1;
-    }
-
-    int _lua_texture_draw_helper(lua_State *L)
-    {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float w = luaL_checknumber(L, 3);
-        float h = luaL_checknumber(L, 4);
-
-        float tx = luaL_optnumber(L, 5, 0.0f);
-        float ty = luaL_optnumber(L, 6, 0.0f);
-        float tw = luaL_optnumber(L, 7, 1.0f);
-        float th = luaL_optnumber(L, 8, 1.0f);
-
-        glTexCoord2f(tx,      ty);      glVertex2f(x,     y);
-        glTexCoord2f(tx + tw, ty);      glVertex2f(x + w, y);
-        glTexCoord2f(tx + tw, ty + th); glVertex2f(x + w, y + h);
-        glTexCoord2f(tx,      ty + th); glVertex2f(x,     y + h);
-
-        return 0;
-    }
-
-    int _lua_texture_draw(lua_State *L)
-    {
-        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
-        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
-
-        if (!lua_isfunction(L, 2))
-            luaL_typerror  (L, 2, "function");
-
-        Texture *tex = *tp;
-        glBindTexture(GL_TEXTURE_2D, tex->id);
-        glBegin(GL_QUADS);
-
-        lua_pushcfunction(L, &_lua_texture_draw_helper);
-        int r = lua_pcall(L, 1, 0, 0);
-
-        glEnd();
-
-        if (r) lua_error(L);
-
-        return 0;
-    }
-
-    int _lua_texture_loaded(lua_State *L)
-    {
-        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
-        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
-
-        Texture *tex = *tp;
-        if (tex == notexture)
-            lua_pushboolean(L, 0);
-        else
-            lua_pushboolean(L, 1);
-
-        return 1;
-    }
-
-    int _lua_texture_border_size_get(lua_State *L)
-    {
-        Texture **tp = (Texture**)luaL_checkudata(L, 1, "Texture");
-        luaL_argcheck(L, tp != NULL, 1, "'Texture' expected");
-
-        if (lua_isnumber(L, 2))
-        {
-            lua_pushvalue(L, 2);
-            return 1;
-        }
-
-        int vert = false;
-        if (lua_isboolean(L, 3))
-            vert = lua_toboolean(L, 3);
-
-        const char *str = luaL_checkstring(L, 2);
-        Texture    *tex = *tp;
-
-        if (strchr(str, 'p'))
-            lua_pushnumber(L, atof(str) / (vert ? tex->ys : tex->xs));
-        else
-            lua_pushnumber(L, atof(str));
-
-        return 1;
-    }
-
     VAR(thumbtime, 0, 25, 1000);
     static int lastthumbnail = 0;
 
@@ -607,12 +471,6 @@ namespace lapi_binds
     LAPI_EMPTY(getnumslots)
     LAPI_EMPTY(hastexslot)
     LAPI_EMPTY(checkvslot)
-    LAPI_EMPTY(texture_load)
-    LAPI_EMPTY(texture_check_alpha_mask)
-    LAPI_EMPTY(texture_get_bpp)
-    LAPI_EMPTY(texture_draw)
-    LAPI_EMPTY(texture_loaded)
-    LAPI_EMPTY(texture_border_size_get)
     LAPI_EMPTY(texture_draw_slot)
 #endif
 
@@ -643,12 +501,6 @@ namespace lapi_binds
         LAPI_REG(getnumslots);
         LAPI_REG(hastexslot);
         LAPI_REG(checkvslot);
-        LAPI_REG(texture_load);
-        LAPI_REG(texture_check_alpha_mask);
-        LAPI_REG(texture_get_bpp);
-        LAPI_REG(texture_draw);
-        LAPI_REG(texture_loaded);
-        LAPI_REG(texture_border_size_get);
         LAPI_REG(texture_draw_slot);
     }
 }

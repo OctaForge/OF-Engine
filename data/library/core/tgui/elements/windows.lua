@@ -153,6 +153,6 @@ end
 function space(name, body, hasfocus, onhide)
     gui.new(name, function()
         gui.align(-1, 0)
-        gui.fill(EVAR.scr_w / EVAR.scr_h, 1, function() body() end)
+        gui.fill(EV.scr_w / EV.scr_h, 1, function() body() end)
     end, not hasfocus, onhide)
 end

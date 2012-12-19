@@ -1,12 +1,14 @@
 module("health", package.seeall)
 
-action_pain = table.subclass(entity_animated.action_local_animation, {
+action_pain = entity_animated.action_local_animation:clone {
+    name = "action_pain",
     seconds_left       = 0.6,
     local_animation    = model.ANIM_PAIN,
     can_multiply_queue = false
-}, "action_pain")
+}
 
-action_death = table.subclass(actions.Action, {
+action_death = actions.Action:clone {
+    name = "action_death",
     can_multiply_queue = false,
     cancellable        = false,
     seconds_left       = 5.5,
@@ -21,20 +23,20 @@ action_death = table.subclass(actions.Action, {
     finish = function(self)
         self.actor:respawn()
     end
-}, "action_death")
+}
 
 plugin = {
     -- client_set for health means that when we shoot someone, we get
     -- immediate feedback - no need to wait for server response
     properties = {
-        health      = state_variables.state_integer({ client_set = true }),
-        max_health  = state_variables.state_integer({ client_set = true }),
-        spawn_stage = state_variables.state_integer(),
-        blood_color = state_variables.state_integer(),
-        pain_sound  = state_variables.state_string ()
+        health      = svars.State_Integer { client_set = true },
+        max_health  = svars.State_Integer { client_set = true },
+        spawn_stage = svars.State_Integer(),
+        blood_color = svars.State_Integer(),
+        pain_sound  = svars.State_String()
     },
 
-    on_spawn_stage = function(self, stage, auid)
+    on_spawn_stage = function(_, self, stage, auid)
         if stage == 1 then -- client ack
             if CLIENT then
                 self.spawn_stage = 2
@@ -48,10 +50,10 @@ plugin = {
                     self.animation   = math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
                     self.spawn_stage = 3
                 end
-                return true, "cancel_state_data_update"
+                return "cancel_sdata_update"
             end
         elseif stage == 3 then -- client repositions etc.
-            if CLIENT and self == entity_store.get_player_entity() then
+            if CLIENT and self == ents.get_player() then
                 signal.emit(self,"client_respawn")
                 self.spawn_stage = 4
             end
@@ -69,7 +71,7 @@ plugin = {
                 end
 
                 self.spawn_stage = 0
-                return true, "cancel_state_data_update"
+                return "cancel_sdata_update"
             end
         end
     end,
@@ -86,25 +88,20 @@ plugin = {
     end,
 
     activate = function(self)
-        signal.connect(self,state_variables.get_on_modify_name("health"),      self.on_health)
-        signal.connect(self,state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
-    end,
-
-    client_activate = function(self)
-        signal.connect(self,state_variables.get_on_modify_name("health"),      self.on_health)
-        signal.connect(self,state_variables.get_on_modify_name("spawn_stage"), self.on_spawn_stage)
+        signal.connect(self,"health_changed",      self.on_health)
+        signal.connect(self,"spawn_stage_changed", self.on_spawn_stage)
     end,
 
     decide_animation = function(self, ...)
         if self.health > 0 then
-            return self.base_class.decide_animation(self, ...)
+            return self.__proto.__proto.decide_animation(self, ...)
         else
             return math.bor(model.ANIM_DYING, model.ANIM_RAGDOLL)
         end
     end,
 
     decide_action_animation = function(self, ...)
-        local ret = self.base_class.decide_action_animation(self, ...)
+        local ret = self.__proto.__proto.decide_action_animation(self, ...)
 
         -- clean up if not dead
         if self.health > 0 and (ret == model.ANIM_DYING or ret == math.bor(model.ANIM_DYING, model.ANIM_RAGDOLL)) then
@@ -115,8 +112,8 @@ plugin = {
         return ret
     end,
 
-    client_act = function(self)
-        if self ~= entity_store.get_player_entity() then return nil end
+    run = CLIENT and function(self)
+        if self ~= ents.get_player() then return nil end
 
         if not GLOBAL_GAME_HUD then
             local health = self.health
@@ -129,26 +126,26 @@ plugin = {
                 else
                     color = 0xFF4431
                 end
-                gui.hud_label(tostring(health), 0.94, 0.88, 0.5, color)
+                --gui.hud_label(tostring(health), 0.94, 0.88, 0.5, color)
             end
         else
             local raw    = math.floor((34 * self.health) / self.max_health)
             local whole  = math.floor(raw  / 2)
             local half   = raw > whole * 2
             local params = GLOBAL_GAME_HUD:get_health_params()
-            gui.hud_image(
-                string.gsub(
-                    params.icon,
-                    "%VARIANT%",
-                    (whole >= 10 and whole or "0" .. math.clamp(whole, 1, 100))
-                     .. (half and "_5" or "")
-                ),
-                params.x, params.y, params.w, params.h
-            )
+            --gui.hud_image(
+            --    string.gsub(
+            --        params.icon,
+            --        "%VARIANT%",
+            --        (whole >= 10 and whole or "0" .. math.clamp(whole, 1, 100))
+             --        .. (half and "_5" or "")
+             --   ),
+             --   params.x, params.y, params.w, params.h
+            --)
         end
-    end,
+    end or nil,
 
-    on_health = function(self, health, server_origin)
+    on_health = function(_, self, health, server_origin)
         if self.old_health and health < self.old_health then
             local diff = self.old_health - health
 
@@ -161,7 +158,7 @@ plugin = {
                     if not server_origin or health > 0 then
                         self:queue_action(action_pain())
                     end
-                    if self == entity_store.get_player_entity() and self.old_health ~= health then
+                    if self == ents.get_player() and self.old_health ~= health then
                         effects.client_damage(diff, diff)
                     end
                 end
@@ -179,7 +176,7 @@ plugin = {
         pos.z = pos.z + self.eye_height - 4
         effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
         effects.decal(effects.DECAL.BLOOD, self.position, math.Vec3(0, 0, 1), 7, self.blood_color)
-        if self == entity_store.get_player_entity() then effects.client_damage(0, self.old_health - health) end
+        if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
     end,
 
     suffer_damage = function(self, source)
@@ -191,7 +188,7 @@ plugin = {
 }
 
 function die_if_off_map(entity)
-    if  entity == entity_store.get_player_entity() and is_valid_target(entity) then
+    if  entity == ents.get_player() and is_valid_target(entity) then
         entity.health = 0 -- kill instantly
     end
 end
@@ -208,7 +205,7 @@ end
 
 deadly_area_trigger_plugin = {
     client_on_collision = function(self, entity)
-        if entity ~= entity_store.get_player_entity() then return nil end
+        if entity ~= ents.get_player() then return nil end
 
         if is_valid_target(entity) then
             entity.health = 0
@@ -216,11 +213,10 @@ deadly_area_trigger_plugin = {
     end
 }
 
-deadly_area = entity_classes.register(
+deadly_area = ents.register_class(
     plugins.bake(
         entity_static.area_trigger,
         { deadly_area_trigger_plugin },
         "deadly_area"
-    ),
-    "mapmodel"
+    )
 )

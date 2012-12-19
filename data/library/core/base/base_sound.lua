@@ -34,7 +34,7 @@ module("sound", package.seeall)
         Ignored on server (TODO!).
         cn - server only argument, specifies client number to which
         to send a message to play the sound, defaults to
-        <message.ALL_CLIENTS>.
+        <msg.ALL_CLIENTS>.
 ]]
 function play(name, position, volume, cn)
     -- defaults, we don't default volume since 0 is represented as
@@ -59,8 +59,8 @@ function play(name, position, volume, cn)
             )
         end
 
-        cn = cn or message.ALL_CLIENTS
-        message.send(
+        cn = cn or msg.ALL_CLIENTS
+        msg.send(
             cn, CAPI.sound_toclients_byname,
             position.x, position.y, position.z,
             name, -1
@@ -79,7 +79,7 @@ end
         volume - sound volume, optional, defaults to 100 (max volume).
         cn - server only argument, specifies client number to which
         to send a message to play the sound, defaults to
-        <message.ALL_CLIENTS>.
+        <msg.ALL_CLIENTS>.
 ]]
 function stop(name, volume, cn)
     if CLIENT then
@@ -97,8 +97,8 @@ function stop(name, volume, cn)
                 )
             )
         end
-        cn = cn or message.ALL_CLIENTS
-        message.send(cn, CAPI.soundstop_toclients_byname, volume, name, -1)
+        cn = cn or msg.ALL_CLIENTS
+        msg.send(cn, CAPI.soundstop_toclients_byname, volume, name, -1)
     end
 end
 

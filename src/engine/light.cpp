@@ -140,8 +140,6 @@ void setsurface(cube &c, int orient, const surfaceinfo &src, const vertinfo *src
     if(srcverts) memcpy(c.ext->verts() + dstoffset, srcverts, numsrcverts*sizeof(vertinfo));
 }
 
-// quality parameters, set by the calclight arg
-
 bool PackNode::insert(ushort &tx, ushort &ty, ushort tw, ushort th)
 {
     if((available < tw && available < th) || w < tw || h < th)
@@ -419,7 +417,7 @@ static void calcsurfaces(cube &c, const ivec &co, int size, int usefacemask, int
                     numlitverts += numverts;
                 }
             }
-            else if(!flataxisface(c, i)) convex = faceconvexity(verts, numverts);
+            else if(!flataxisface(c, i)) convex = faceconvexity(verts, numverts, size);
         }
         else
         {
@@ -592,7 +590,7 @@ static Uint32 calclighttimer(Uint32 interval, void *param)
     return interval;
 }
 
-void calclight(int quality)
+void calclight()
 {
     renderbackground("computing lighting... (esc to abort)");
     mpremip(true);

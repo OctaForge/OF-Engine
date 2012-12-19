@@ -640,7 +640,8 @@ void resetsound()
         conoutf(CON_ERROR, "Sound reset not available in-game due to SDL_mixer-1.2.8 bug. Please restart for changes to take effect.");
         return;
     }
-    clearchanges(CHANGE_SOUND);
+
+    lapi::state.get<lua::Function>("external", "changes_clear")((int)CHANGE_SOUND);
     if(!nosound) 
     {
         enumerate(samples, soundsample, s, { Mix_FreeChunk(s.chunk); s.chunk = NULL; });

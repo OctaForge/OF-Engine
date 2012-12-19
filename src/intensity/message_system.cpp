@@ -1,15 +1,9 @@
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
 
-#ifndef STANDALONE
-    #include "cube.h"
-    #include "engine.h"
-    #include "game.h"
-#else
-    #include "cube.h"
-    #include "iengine.h"
-    #include "igame.h"
-#endif
+#include "cube.h"
+#include "engine.h"
+#include "game.h"
 
 #include "message_system.h"
 

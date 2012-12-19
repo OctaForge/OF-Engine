@@ -23,7 +23,9 @@
     Takes care of the basic action infrastructure. It doesn't really
     do anything, though.
 ]]
-local Action = table.classify({
+local Action = table.Object:clone {
+    name = "Action",
+
     --[[! Constructor: __init
         Constructs the action. Takes kwargs, which is an optional argument
         supplying modifiers for the action. It's an associative array.
@@ -83,11 +85,11 @@ local Action = table.classify({
             (self.parallel_to == nil) and kwargs.parallel_to or false
     end,
 
-    --[[! Function: __tostring
+    --[[! Function: __inst_tostring
         Overloaded so that tostring(x) where x is an action instance simply
         returns the name ("Action" for the base action).
     ]]
-    __tostring = function(self) return self.name end,
+    __inst_tostring = function(self) return self.name end,
 
     priv_start = function(self)
         self.begun = true
@@ -147,7 +149,7 @@ local Action = table.classify({
         (start code)
             Foo.run = function(self, seconds)
                 echo("run")
-                return self.base_class.run(self, seconds)
+                return self.__proto.__proto.run(self, seconds)
             end
         (end)
 
@@ -195,12 +197,14 @@ local Action = table.classify({
             self.priv_finish(self)
         end
     end
-}, "Action")
+}
 
 --[[! Class: Infinite_Action
     An action that never ends.
 ]]
-local Infinite_Action = table.subclass(Action, {
+local Infinite_Action = Action:clone {
+    name = "Infinite_Action",
+
     --[[! Function: run
         One of the exceptional cases of the "run" method; it always returns
         false because it doesn't manipulate "seconds_left".
@@ -208,12 +212,14 @@ local Infinite_Action = table.subclass(Action, {
     run = function(self, seconds)
         return false
     end
-}, "Infinite_Action")
+}
 
 --[[! Class: Targeted_Action
     An action with an entity as a "target" member.
 ]]
-local Targeted_Action = table.subclass(Action, {
+local Targeted_Action = Action:clone {
+    name = "Targeted_Action",
+
     --[[! Constructor: __init
         Constructs this action. Compared to a standard action, it takes
         an additional argument, "target". That specifies an entity that
@@ -223,13 +229,15 @@ local Targeted_Action = table.subclass(Action, {
         Action.__init(self, kwargs)
         self.target = target
     end
-}, "Targeted_Action")
+}
 
 --[[! Class: Single_Action
     An action that runs a single command and ends. Useful for i.e. queuing
-    a command for next act of an entity.
+    a command for next run of an entity.
 ]]
-local Single_Action = table.subclass(Action, {
+local Single_Action = Action:clone {
+    name = "Single_Action",
+
     --[[! Constructor: __init
         Constructs this action. Compared to a standard action, it takes
         an additional argument, "command", which is a function taking
@@ -249,7 +257,7 @@ local Single_Action = table.subclass(Action, {
         self.command(self)
         return true
     end
-}, "Single_Action")
+}
 
 local Action_System_MT = {
     __index = {
