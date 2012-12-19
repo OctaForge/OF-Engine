@@ -1,0 +1,9 @@
+*.o
+*.so
+OF_Client*
+OF_Server*
+out
+*~
+.directory
+.DS_Store
+
