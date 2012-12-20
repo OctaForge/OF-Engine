@@ -314,6 +314,7 @@ extern void resetfogcolor();
 extern void cleanupgbuffer();
 extern void initgbuffer();
 extern void maskgbuffer(const char *mask);
+extern void clearradiancehintscache();
 
 // renderextras
 extern void render3dbox(vec &o, float tofloor, float toceil, float xradius, float yradius = 0);
@@ -428,6 +429,7 @@ extern void findshadowvas();
 extern void findshadowmms();
 
 extern void renderrsmgeom();
+extern int dynamicshadowvabounds(int mask, vec &bbmin, vec &bbmax);
 extern void rendershadowmapworld();
 extern void batchshadowmapmodels();
 
@@ -697,6 +699,7 @@ extern void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw = 
 extern void clearbatchedmapmodels();
 extern void preloadmodelshaders();
 extern int batcheddynamicmodels();
+extern int batcheddynamicmodelbounds(int mask, vec &bbmin, vec &bbmax);
 
 // renderparticles
 extern void particleinit();

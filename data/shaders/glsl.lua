@@ -265,6 +265,9 @@ CAPI.shader(0, "nocolor", [[
 worldshader = function(...)
     local arg   = { ... }
     local stype = arg[1]:find("env") ~= nil and 3 or 1
+    if arg[1]:find("pulse") then
+        stype = stype + 0x10
+    end
     for i = 0, 2 do CAPI.variantshader(i == 2 and stype + 4 or stype, arg[1], i - 1, ([[
         @(#arg >= 5 and arg[5] or nil)
         uniform vec4 texgenscroll;
@@ -344,7 +347,7 @@ CAPI.defershader(1, "glowworld", function()
         gl_FragData[2].rgb = glow;
     ]], "", "uniform sampler2D glowmap;") end)
 
-CAPI.defershader(1, "pulseworld", function()
+CAPI.defershader(0x11, "pulseworld", function()
     CAPI.defuniformparam("pulsespeed", 1, 0, 0, 0) -- pulse frequency (Hz)
     worldshader("pulseworld", [[
         pulse = abs(fract(millis.x * pulsespeed.x)*2.0 - 1.0); 
@@ -353,7 +356,7 @@ CAPI.defershader(1, "pulseworld", function()
         diffuse.rgb = mix(diffuse.rgb, diffuse2, pulse);
     ]], "", "uniform vec4 millis; varying float pulse;", "uniform sampler2D decal;") end)
 
-CAPI.defershader(1, "pulseglowworld", function()
+CAPI.defershader(0x11, "pulseglowworld", function()
     CAPI.defuniformparam("glowcolor", 1, 1, 1, 0) -- glow color
     CAPI.defuniformparam("pulseglowspeed", 1, 0, 0, 0) -- pulse frequency (Hz)
     CAPI.defuniformparam("pulseglowcolor", 0, 0, 0, 0) -- pulse glow color
@@ -432,6 +435,7 @@ bumpvariantshader = function(...)
     local srow  = -1
 
     if btopt.G then
+        stype = stype + 0x10
         CAPI.defuniformparam("glowcolor", 1, 1, 1, 0) -- glow color
         CAPI.defuniformparam("pulseglowspeed", 1, 0, 0, 0) -- pulse frequency (Hz)
         CAPI.defuniformparam("pulseglowcolor", 0, 0, 0, 1) -- pulse glow color
@@ -1574,7 +1578,7 @@ radiancehintsshader = function(arg1)
     ]=]):eval_embedded(nil, { numtaps = numtaps }, _G))
 end
 
-CAPI.shader(0, "radiancehintsborder", [[
+lazyshader(0, "radiancehintsborder", [[
     void main(void)
     {
         gl_Position = gl_Vertex;
@@ -1590,6 +1594,22 @@ CAPI.shader(0, "radiancehintsborder", [[
         gl_FragData[0] = texture3D(tex3, tc);
         gl_FragData[1] = texture3D(tex4, tc);
         gl_FragData[2] = mix(texture3D(tex5, tc), vec4(0.5, 0.5, 0.5, 0.0), outside);
+    }
+]])
+
+lazyshader(0, "radiancehintscached", [[
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+        gl_TexCoord[0].xyz = gl_MultiTexCoord0.xyz;
+    }
+]], [[
+    uniform sampler3D tex6, tex7, tex8;
+    void main(void)
+    {
+        gl_FragData[0] = texture3D(tex6, gl_TexCoord[0].xyz);
+        gl_FragData[1] = texture3D(tex7, gl_TexCoord[0].xyz);
+        gl_FragData[2] = texture3D(tex8, gl_TexCoord[0].xyz);
     }
 ]])
 
@@ -2249,12 +2269,47 @@ CAPI.shader(0, "hdrtonemap", [[
     }
 ]]):eval_embedded(nil, { lumweights = lumweights }))
 
+lazyshader(0, "hdrtonemapluma", [[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex2; 
+    uniform vec4 hdrparams;
+    varying float lumscale, lumsaturate;
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+        gl_TexCoord[1].xy = gl_MultiTexCoord1.xy;
+        float avglum = 4.0*texture2DRect(tex2, vec2(0.5, 0.5)).r;
+        lumscale = hdrparams.x * -log2(1.0 - clamp(avglum, 0.025, 0.25))/(avglum + 1e-4);
+        lumsaturate = -log2(1.0 - hdrparams.y) / lumscale;
+    }
+]], ([[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0, tex1;
+    uniform vec4 hdrparams;
+    uniform vec2 hdrgamma;
+    varying float lumscale, lumsaturate;
+    void main(void)
+    {
+        vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
+        vec3 bloom = texture2DRect(tex1, gl_TexCoord[1].xy).rgb*hdrparams.w;
+        color += bloom;
+        color = pow(color, vec3(hdrgamma.x));
+//        color = 1.0 - exp2(-color*lumscale);
+        float lum = dot(color, vec3(@(lumweights)));
+        color = min(color, lumsaturate);
+        color *= (1.0 - exp2(-lum*lumscale)) / (dot(color, vec3(@(lumweights))) + 1e-4);
+        color = pow(color, vec3(hdrgamma.y));
+        gl_FragColor = vec4(color, dot(color, vec3(@(lumweights))));
+    }
+]]):eval_embedded(nil, { lumweights = lumweights }))
+
 CAPI.shader(0, "hdrnop", [[
     void main(void)
     {
         gl_Position = gl_Vertex;
     }
-]], [[
+]], [[ 
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     void main(void)
@@ -2262,6 +2317,21 @@ CAPI.shader(0, "hdrnop", [[
         gl_FragColor = texture2DRect(tex0, gl_FragCoord.xy);
     }
 ]])
+
+lazyshader(0, "hdrnopluma", [[
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+    }
+]], ([[ 
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0;
+    void main(void)
+    {
+        vec3 color = texture2DRect(tex0, gl_FragCoord.xy).rgb;
+        gl_FragColor = vec4(color, dot(color, vec3(@(lumweights))));
+    }
+]]):eval_embedded(nil, { lumweights = lumweights }))
 
 aotapoffsets = {
     "-0.933103, 0.025116",
@@ -3428,8 +3498,14 @@ CAPI.shader(0, "skyboxoverbright", [[
     }
 ]]):eval_embedded())
 
-
 smaashaders = function(arg1)
     smaapreset = arg1
     require("shaders.smaa")
-    package.loaded["shaders.smaa"] = nil end
+    package.loaded["shaders.smaa"] = nil
+end
+
+fxaashaders = function(arg1)
+    fxaapreset = arg1
+    require("shaders.fxaa")
+    package.loaded["shaders.fxaa"] = nil
+end

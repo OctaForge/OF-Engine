@@ -683,7 +683,7 @@ bool glext(const char *ext)
 }
 
 // GPU-side timing information will use OGL timers
-enum { TIMER_SM = 0, TIMER_GBUFFER, TIMER_INFERRED, TIMER_SHADING, TIMER_HDR, TIMER_AO, TIMER_RH, TIMER_TRANSPARENT, TIMER_SMAA, TIMER_SPLITTING, TIMER_MERGING, TIMER_CPU_SM, TIMER_CPU_GBUFFER, TIMER_CPU_SHADING, TIMER_N };
+enum { TIMER_SM = 0, TIMER_GBUFFER, TIMER_INFERRED, TIMER_SHADING, TIMER_HDR, TIMER_AO, TIMER_RH, TIMER_TRANSPARENT, TIMER_FXAA, TIMER_SMAA, TIMER_SPLITTING, TIMER_MERGING, TIMER_CPU_SM, TIMER_CPU_GBUFFER, TIMER_CPU_SHADING, TIMER_N };
 #define TIMER_GPU_N TIMER_CPU_SM
 static const char *timer_string[] = {
     "shadow map",
@@ -694,6 +694,7 @@ static const char *timer_string[] = {
     "ambient obscurance",
     "radiance hints",
     "transparent",
+    "fxaa",
     "smaa",
     "buffer splitting",
     "buffer merging",
@@ -872,6 +873,9 @@ void cleanupgl()
 
     extern void cleanupao();
     cleanupao();
+
+    extern void cleanupfxaa();
+    cleanupfxaa();
 
     extern void cleanupsmaa();
     cleanupsmaa();
@@ -1609,6 +1613,7 @@ void screenquad(float sw, float sh, float sw2, float sh2)
 
 int gw = -1, gh = -1, bloomw = -1, bloomh = -1, lasthdraccum = 0;
 GLuint gfbo = 0, gdepthtex = 0, gcolortex = 0, gnormaltex = 0, gglowtex = 0, gdepthrb = 0, gstencilrb = 0;
+GLuint fxaafbo = 0;
 GLuint smaaareatex = 0, smaasearchtex = 0, smaafbo[3] = { 0, 0, 0 };
 GLuint hdrfbo = 0, hdrtex = 0, bloomfbo[6] = { 0, 0, 0, 0, 0, 0 }, bloomtex[6] = { 0, 0, 0, 0, 0, 0 };
 int hdrclear = 0;
@@ -1805,15 +1810,55 @@ void viewao()
     notextureshader->set();
 }
 
+extern int fxaaquality, smaaquality, hdrprec, gdepthformat, gstencil, gdepthstencil, glineardepth, inferprec, inferdepth, inferlights;
+
+static Shader *fxaashader = NULL;
+
+void loadfxaashaders()
+{
+    useshaderbyname("hdrtonemapluma");
+    useshaderbyname("hdrnopluma");
+    defformatstring(fxaaname)("fxaa%d", fxaaquality);
+    fxaashader = generateshader(fxaaname, "fxaashaders(%d)", fxaaquality);
+}
+
+void clearfxaashaders()
+{
+    fxaashader = NULL;
+}
+
+void setupfxaa()
+{
+    if(!fxaafbo) glGenFramebuffers_(1, &fxaafbo);
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, fxaafbo);
+    GLuint tex = gcolortex;
+    glFramebufferTexture2D_(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, tex, 0);
+    if(glCheckFramebufferStatus_(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+        fatal("failed allocating FXAA buffer!");
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+
+    loadfxaashaders();
+}
+
+void cleanupfxaa()
+{
+    if(fxaafbo) { glDeleteFramebuffers_(1, &fxaafbo); fxaafbo = 0; }
+
+    clearfxaashaders();
+}
+
+VARFP(fxaa, 0, 0, 1, cleanupfxaa());
+VARFP(fxaaquality, 0, 1, 3, cleanupfxaa());
+
 #include "AreaTex.h"
 #include "SearchTex.h"
-
-extern int smaaquality, hdrprec, gdepthformat, gstencil, gdepthstencil, glineardepth, inferprec, inferdepth, inferlights;
 
 static Shader *smaalumaedgeshader = NULL, *smaacoloredgeshader = NULL, *smaablendweightshader = NULL, *smaaneighborhoodshader = NULL;
 
 void loadsmaashaders()
 {
+    useshaderbyname("hdrtonemapluma");
+    useshaderbyname("hdrnopluma");
     defformatstring(lumaedgename)("SMAALumaEdgeDetection%d", smaaquality);
     defformatstring(coloredgename)("SMAAColorEdgeDetection%d", smaaquality);
     defformatstring(blendweightname)("SMAABlendingWeightCalculation%d", smaaquality);
@@ -2128,6 +2173,7 @@ void setupgbuffer(int w, int h)
 
     cleanupbloom();
     cleanupao();
+    cleanupfxaa();
     cleanupsmaa();
     cleanupinferred();
 }
@@ -2206,10 +2252,10 @@ float ldrscale = 1.0f, ldrscaleb = 1.0f/255;
 
 #define RH_MAXSPLITS 4
 
-GLuint rhtex[3] = { 0, 0, 0 }, rhfbo = 0;
+GLuint rhtex[6] = { 0, 0, 0, 0, 0, 0 }, rhfbo = 0;
 GLuint rsmdepthtex = 0, rsmcolortex = 0, rsmnormaltex = 0, rsmfbo = 0;
 
-extern int rhgrid, rhsplits, rhborder, rhprec, rhtaps, rsmprec, rsmsize;
+extern int rhgrid, rhsplits, rhborder, rhprec, rhtaps, rhcache, rsmprec, rsmsize;
 
 static Shader *radiancehintsshader = NULL;
 
@@ -2221,6 +2267,8 @@ Shader *loadradiancehintsshader()
 
 void loadrhshaders()
 {
+    if(rhborder) useshaderbyname("radiancehintsborder");
+    if(rhcache) useshaderbyname("radiancehintscached");
     radiancehintsshader = loadradiancehintsshader();
 }
 
@@ -2231,7 +2279,7 @@ void clearrhshaders()
 
 void setupradiancehints()
 {
-    loopi(3) if(!rhtex[i]) glGenTextures(1, &rhtex[i]);
+    loopi(rhcache ? 6 : 3) if(!rhtex[i]) glGenTextures(1, &rhtex[i]);
 
     if(!rhfbo) glGenFramebuffers_(1, &rhfbo);
 
@@ -2239,7 +2287,7 @@ void setupradiancehints()
 
     GLenum rhformat = hasTF && rhprec >= 1 ? GL_RGBA16F_ARB : GL_RGBA8;
 
-    loopi(3)
+    loopi(rhcache ? 6 : 3)
     {
         create3dtexture(rhtex[i], rhgrid+2*rhborder, rhgrid+2*rhborder, (rhgrid+2*rhborder)*rhsplits, NULL, 7, 1, rhformat);
         if(rhborder)
@@ -2286,10 +2334,12 @@ void setupradiancehints()
 
     loadrhshaders();
 }
-   
+
 void cleanupradiancehints()
 {
-    loopi(3) if(rhtex[i]) { glDeleteTextures(1, &rhtex[i]); rhtex[i] = 0; }
+    clearradiancehintscache();
+
+    loopi(6) if(rhtex[i]) { glDeleteTextures(1, &rhtex[i]); rhtex[i] = 0; }
     if(rhfbo) { glDeleteFramebuffers_(1, &rhfbo); rhfbo = 0; }
     if(rsmdepthtex) { glDeleteTextures(1, &rsmdepthtex); rsmdepthtex = 0; }
     if(rsmcolortex) { glDeleteTextures(1, &rsmcolortex); rsmcolortex = 0; }
@@ -2302,18 +2352,20 @@ void cleanupradiancehints()
 VARF(rhsplits, 1, 2, RH_MAXSPLITS, { cleardeferredlightshaders(); cleanupradiancehints(); });
 VARF(rhborder, 0, 1, 1, cleanupradiancehints());
 VARF(rsmsize, 64, 384, 2048, cleanupradiancehints());
-VAR(rhfarplane, 64, 1024, 16384);
-FVAR(rsmpradiustweak, 1e-3f, 1, 1e3f);
-FVAR(rhpradiustweak, 1e-3f, 1, 1e3f);
-FVAR(rsmdepthrange, 0, 1024, 1e6f);
-FVAR(rsmdepthmargin, 0, 0.1f, 1e3f);
+VARF(rhnearplane, 1, 1, 16, clearradiancehintscache());
+VARF(rhfarplane, 64, 1024, 16384, clearradiancehintscache());
+FVARF(rsmpradiustweak, 1e-3f, 1, 1e3f, clearradiancehintscache());
+FVARF(rhpradiustweak, 1e-3f, 1, 1e3f, clearradiancehintscache());
+FVARF(rsmdepthrange, 0, 1024, 1e6f, clearradiancehintscache());
+FVARF(rsmdepthmargin, 0, 0.1f, 1e3f, clearradiancehintscache());
 VARF(rhprec, 0, 0, 1, cleanupradiancehints());
 VARF(rsmprec, 0, 0, 3, cleanupradiancehints());
 FVAR(rhnudge, 0, 0.5f, 4);
-FVAR(rhsplitweight, 0.20f, 0.6f, 0.95f);
+FVARF(rhsplitweight, 0.20f, 0.6f, 0.95f, clearradiancehintscache());
 VARF(rhgrid, 3, 27, 128, cleanupradiancehints());
-FVAR(rsmspread, 0, 0.2f, 1);
+FVARF(rsmspread, 0, 0.2f, 1, clearradiancehintscache());
 VAR(rhclipgrid, 0, 1, 1);
+VARF(rhcache, 0, 1, 1, cleanupradiancehints());
 VAR(rsmcull, 0, 1, 1);
 VARFP(rhtaps, 0, 20, 32, cleanupradiancehints());
 VARFR(gidist, 0, 384, 1024, { cleardeferredlightshaders(); if(!gidist) cleanupradiancehints(); });
@@ -2611,6 +2663,8 @@ vector<shadowmapinfo> shadowmaps;
 void clearshadowcache()
 {
     shadowmaps.setsize(0);
+
+    clearradiancehintscache();
 }
 
 static shadowmapinfo *addshadowmap(ushort x, ushort y, int size, int &idx)
@@ -2692,6 +2746,7 @@ static float calcfrustumboundsphere(float nearplane, float farplane,  const vec 
     }
 }
 
+VAR(csmnearplane, 1, 1, 16);
 VAR(csmfarplane, 64, 1024, 16384);
 FVAR(csmpradiustweak, 1e-3f, 1, 1e3f);
 FVAR(csmdepthrange, 0, 1024, 1e6f);
@@ -2704,7 +2759,7 @@ VAR(csmcull, 0, 1, 1);
 
 void cascaded_shadow_map::updatesplitdist()
 {
-    float lambda = csmsplitweight, nd = nearplane, fd = csmfarplane, ratio = fd/nd;
+    float lambda = csmsplitweight, nd = csmnearplane, fd = csmfarplane, ratio = fd/nd;
     splits[0].nearplane = nd;
     for(int i = 1; i < csmsplitn; ++i)
     {
@@ -2748,7 +2803,7 @@ void cascaded_shadow_map::getprojmatrix()
         // compute the projected bounding box of the sphere
         vec tc;
         this->model.transform(c, tc);
-        const float pradius = radius * csmpradiustweak, step = (2*pradius) / (sm.size - 2*smborder);
+        const float pradius = ceil(radius * csmpradiustweak), step = (2*pradius) / (sm.size - 2*smborder);
         vec2 offset = vec2(tc).sub(pradius).div(step);
         offset.x = floor(offset.x);
         offset.y = floor(offset.y);
@@ -2907,12 +2962,12 @@ void reflectiveshadowmap::getprojmatrix()
     maxz += zmargin;
 
     vec c;
-    float radius = calcfrustumboundsphere(nearplane, rhfarplane, camera1->o, camdir, c);
+    float radius = calcfrustumboundsphere(rhnearplane, rhfarplane, camera1->o, camdir, c);
 
     // compute the projected bounding box of the sphere
     vec tc;
     model.transform(c, tc);
-    const float pradius = (radius + gidist) * rsmpradiustweak, step = (2*pradius) / rsmsize;
+    const float pradius = ceil((radius + gidist) * rsmpradiustweak), step = (2*pradius) / rsmsize;
     vec2 tcoff = vec2(tc).sub(pradius).div(step);
     tcoff.x = floor(tcoff.x);
     tcoff.y = floor(tcoff.y);
@@ -2983,17 +3038,34 @@ struct radiancehints
         float nearplane, farplane;
         vec offset, scale;
         vec center; float bounds;
+        vec cached;
+    
+        splitinfo() : center(-1e16f, -1e16f, -1e16f), bounds(-1e16f), cached(-1e16f, -1e16f, -1e16f) {}
+
+        void clearcache() { bounds = -1e16f; }
     } splits[RH_MAXSPLITS];
+
+    vec dynmin, dynmax, prevdynmin, prevdynmax;
+       
+    radiancehints() : dynmin(1e16f, 1e16f, 1e16f), dynmax(-1e16f, -1e16f, -1e16f), prevdynmin(1e16f, 1e16f, 1e16f), prevdynmax(-1e16f, -1e16f, -1e16f) {}
 
     void setup();
     void updatesplitdist();
     void bindparams();
     void renderslices();
+
+    void clearcache() { loopi(RH_MAXSPLITS) splits[i].clearcache(); }
+    bool allcached() const { loopi(rhsplits) if(splits[i].cached != splits[i].center) return false; return true; }
 } rh;
+
+void clearradiancehintscache()
+{
+    rh.clearcache();
+}
 
 void radiancehints::updatesplitdist()
 {
-    float lambda = rhsplitweight, nd = nearplane, fd = rhfarplane, ratio = fd/nd;
+    float lambda = rhsplitweight, nd = rhnearplane, fd = rhfarplane, ratio = fd/nd;
     splits[0].nearplane = nd;
     for(int i = 1; i < rhsplits; ++i)
     {
@@ -3016,11 +3088,12 @@ void radiancehints::setup()
         float radius = calcfrustumboundsphere(split.nearplane, split.farplane, camera1->o, camdir, c);
 
         // compute the projected bounding box of the sphere
-        const float pradius = radius * rhpradiustweak, step = (2*pradius) / rhgrid;
+        const float pradius = ceil(radius * rhpradiustweak), step = (2*pradius) / rhgrid;
         vec offset = vec(c).sub(pradius).div(step);
         offset.x = floor(offset.x);
         offset.y = floor(offset.y);
         offset.z = floor(offset.z);
+        split.cached = split.bounds == pradius ? split.center : vec(-1e16f, -1e16f, -1e16f);
         split.center = vec(offset).mul(step).add(pradius);
         split.bounds = pradius;
 
@@ -3575,149 +3648,153 @@ void renderlights(int infer = 0, float bsx1 = -1, float bsy1 = -1, float bsx2 = 
             glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
         }
     }
-    else if(infer != 1 || !inferskiplights) for(int y = bty1; y < bty2; y++) if(!tilemask || tilemask[y]) for(int x = btx1, skips[LIGHTTILE_MAXW] = {0}; x < btx2; x++) if(!tilemask || tilemask[y]&(1<<x))
+    else if(infer != 1 || !inferskiplights) for(int y = bty1; y < bty2; y++) if(!tilemask || tilemask[y]) 
     {
-        vector<int> &tile = lighttiles[y][x];
-        if(tile.empty() ? sunpass || skips[x] : skips[x] >= tile.length()) continue;
-        for(int i = skips[x];;)
+        int skips[LIGHTTILE_MAXW] = {0};
+        for(int x = btx1; x < btx2; x++) if(!tilemask || tilemask[y]&(1<<x))
         {
-            int n = min(tile.length() - i, lighttilebatch);
-            bool shadowmap = false, spotlight = false;
-            if(n > 0)
+            vector<int> &tile = lighttiles[y][x];
+            if(tile.empty() ? sunpass || skips[x] : skips[x] >= tile.length()) continue;
+            for(int i = skips[x];;)
             {
-                lightinfo &l = lights[tile[i]];
-                shadowmap = l.shadowmap >= 0;
-                spotlight = l.spot > 0;
-            }
-            loopj(n)
-            {
-                lightinfo &l = lights[tile[i+j]];
-                if((l.shadowmap >= 0) != shadowmap || (l.spot > 0) != spotlight) { n = j; break; }
-            }
+                int n = min(tile.length() - i, lighttilebatch);
+                bool shadowmap = false, spotlight = false;
+                if(n > 0)
+                {
+                    lightinfo &l = lights[tile[i]];
+                    shadowmap = l.shadowmap >= 0;
+                    spotlight = l.spot > 0;
+                }
+                loopj(n)
+                {
+                    lightinfo &l = lights[tile[i+j]];
+                    if((l.shadowmap >= 0) != shadowmap || (l.spot > 0) != spotlight) { n = j; break; }
+                }
 
-            int striplength = 1;
-            if(lighttilestrip && n >= min(min(lighttilebatch, lighttilestripthreshold), tile.length() - i)) 
-            {
-                for(int k = x+1; k < btx2; k++) 
-                { 
-                    vector<int> &striptile = lighttiles[y][k];
-                    if((tilemask && !(tilemask[y]&(1<<k))) ||
-                       skips[k] != i ||
-                       striptile.length() < i+n || 
-                       memcmp(&tile[i], &striptile[i], n*sizeof(int)) ||
-                       n < min(min(lighttilebatch, lighttilestripthreshold), striptile.length()-i))
-                        break;
-                    skips[k] = max(i+n, 1);
-                    striplength++;
-                }
-            }
- 
-            float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1, sz1 = 1, sz2 = -1;
-            loopj(n)
-            {
-                lightinfo &l = lights[tile[i+j]];
-                lightposv[j] = vec4(l.o.x, l.o.y, l.o.z, 1.0f/l.radius);
-                lightcolorv[j] = vec(l.color.x*lightscale, l.color.y*lightscale, l.color.z*lightscale);
-                if(spotlight)
+                int striplength = 1;
+                if(lighttilestrip && n >= min(min(lighttilebatch, lighttilestripthreshold), tile.length() - i)) 
                 {
-                    float maxatten = sincos360[l.spot].x;
-                    spotparamsv[j] = vec4(l.dir, maxatten).div(1 - maxatten);
+                    for(int k = x+1; k < btx2; k++) 
+                    { 
+                        vector<int> &striptile = lighttiles[y][k];
+                        if((tilemask && !(tilemask[y]&(1<<k))) ||
+                           skips[k] != i ||
+                           striptile.length() < i+n || 
+                           memcmp(&tile[i], &striptile[i], n*sizeof(int)) ||
+                           n < min(min(lighttilebatch, lighttilestripthreshold), striptile.length()-i))
+                            break;
+                        skips[k] = max(i+n, 1);
+                        striplength++;
+                    }
                 }
-                if(shadowmap)
+     
+                float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1, sz1 = 1, sz2 = -1;
+                loopj(n)
                 {
-                    shadowmapinfo &sm = shadowmaps[l.shadowmap];
-                    float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
-                          bias = (smcullside ? smbias : -smbias) * smnearclip * (1024.0f / sm.size);
+                    lightinfo &l = lights[tile[i+j]];
+                    lightposv[j] = vec4(l.o.x, l.o.y, l.o.z, 1.0f/l.radius);
+                    lightcolorv[j] = vec(l.color.x*lightscale, l.color.y*lightscale, l.color.z*lightscale);
                     if(spotlight)
                     {
-                        spotxv[j] = l.spotx;
-                        spotyv[j] = l.spoty;
                         float maxatten = sincos360[l.spot].x;
-                        shadowparamsv[j] = vec4(
-                            0.5f * sm.size / (1 - maxatten),
-                            (-smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias) / (1 - maxatten),
-                            sm.size,
-                            0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
+                        spotparamsv[j] = vec4(l.dir, maxatten).div(1 - maxatten);
                     }
-                    else 
+                    if(shadowmap)
                     {
-                        shadowparamsv[j] = vec4(
-                            0.5f * (sm.size - smborder),
-                            -smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias,
-                            sm.size,
-                            0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
+                        shadowmapinfo &sm = shadowmaps[l.shadowmap];
+                        float smnearclip = SQRT3 / l.radius, smfarclip = SQRT3,
+                              bias = (smcullside ? smbias : -smbias) * smnearclip * (1024.0f / sm.size);
+                        if(spotlight)
+                        {
+                            spotxv[j] = l.spotx;
+                            spotyv[j] = l.spoty;
+                            float maxatten = sincos360[l.spot].x;
+                            shadowparamsv[j] = vec4(
+                                0.5f * sm.size / (1 - maxatten),
+                                (-smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias) / (1 - maxatten),
+                                sm.size,
+                                0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
+                        }
+                        else 
+                        {
+                            shadowparamsv[j] = vec4(
+                                0.5f * (sm.size - smborder),
+                                -smnearclip * smfarclip / (smfarclip - smnearclip) - 0.5f*bias,
+                                sm.size,
+                                0.5f + 0.5f * (smfarclip + smnearclip) / (smfarclip - smnearclip));
+                        }
+                        shadowoffsetv[j] = vec2(sm.x + 0.5f*sm.size, sm.y + 0.5f*sm.size);
                     }
-                    shadowoffsetv[j] = vec2(sm.x + 0.5f*sm.size, sm.y + 0.5f*sm.size);
+                    sx1 = min(sx1, l.sx1);
+                    sy1 = min(sy1, l.sy1);
+                    sx2 = max(sx2, l.sx2);
+                    sy2 = max(sy2, l.sy2);
+                    sz1 = min(sz1, l.sz1);
+                    sz2 = max(sz2, l.sz2);
                 }
-                sx1 = min(sx1, l.sx1);
-                sy1 = min(sy1, l.sy1);
-                sx2 = max(sx2, l.sx2);
-                sy2 = max(sy2, l.sy2);
-                sz1 = min(sz1, l.sz1);
-                sz2 = max(sz2, l.sz2);
-            }
-            if(!i && !sunpass) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
-            else if(sx1 >= sx2 || sy1 >= sy2 || sz1 >= sz2) 
-            {
+                if(!i && !sunpass) { sx1 = sy1 = sz1 = -1; sx2 = sy2 = sz2 = 1; }
+                else if(sx1 >= sx2 || sy1 >= sy2 || sz1 >= sz2) 
+                {
+                    i += n;
+                    if(i >= tile.length()) break;
+                    continue;
+                }
+
+                if(infer > 1 && !inferclear)
+                {
+                    if(n && (i || sunpass))
+                    {
+                        if(!blend) { glEnable(GL_BLEND); blend = true; }
+                    }
+                    else if(blend) { glDisable(GL_BLEND); blend = false; }
+                }
+
+                if(n) 
+                {
+                    s->setvariant(n-1, (shadowmap ? 1 : 0) + (i || sunpass ? 2 : 0) + (spotlight ? 4 : 0));
+                    lightpos.set(lightposv, n);
+                    lightcolor.set(lightcolorv, n);
+                    if(spotlight) spotparams.set(spotparamsv, n);
+                    if(shadowmap)   
+                    {
+                        if(spotlight) 
+                        { 
+                            spotx.set(spotxv, n);
+                            spoty.set(spotyv, n);
+                        }
+                        shadowparams.set(shadowparamsv, n);
+                        shadowoffset.set(shadowoffsetv, n);
+                    }
+                } 
+                else s->set();
+
+                sx1 = max(sx1, bsx1);
+                sy1 = max(sy1, bsy1);
+                sx2 = min(sx2, bsx2);
+                sy2 = min(sy2, bsy2);
+                if(sx1 < sx2 && sy1 < sy2)
+                { 
+                    int tx1 = max(int(floor((sx1*0.5f+0.5f)*vieww)), ((x*lighttilevieww)/lighttilew)*lighttilealignw), 
+                        ty1 = max(int(floor((sy1*0.5f+0.5f)*viewh)), ((y*lighttileviewh)/lighttileh)*lighttilealignh),
+                        tx2 = min(int(ceil((sx2*0.5f+0.5f)*vieww)), min((((x+striplength)*lighttilevieww)/lighttilew)*lighttilealignw, vieww)), 
+                        ty2 = min(int(ceil((sy2*0.5f+0.5f)*viewh)), min((((y+1)*lighttileviewh)/lighttileh)*lighttilealignh, viewh));
+                    if(infer > 1) { tx1 /= 2; ty1 /= 2; tx2 = (tx2+1)/2; ty2 = (ty2+1)/2; }
+                    glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
+
+                    if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
+
+                    // FIXME: render light geometry here
+                    glBegin(GL_TRIANGLE_STRIP);
+                    glVertex3f( 1, -1, sz1);
+                    glVertex3f(-1, -1, sz1);
+                    glVertex3f( 1,  1, sz1);
+                    glVertex3f(-1,  1, sz1);
+                    glEnd();
+                }
+
                 i += n;
                 if(i >= tile.length()) break;
-                continue;
             }
-
-            if(infer > 1 && !inferclear)
-            {
-                if(n && (i || sunpass))
-                {
-                    if(!blend) { glEnable(GL_BLEND); blend = true; }
-                }
-                else if(blend) { glDisable(GL_BLEND); blend = false; }
-            }
-
-            if(n) 
-            {
-                s->setvariant(n-1, (shadowmap ? 1 : 0) + (i || sunpass ? 2 : 0) + (spotlight ? 4 : 0));
-                lightpos.set(lightposv, n);
-                lightcolor.set(lightcolorv, n);
-                if(spotlight) spotparams.set(spotparamsv, n);
-                if(shadowmap)   
-                {
-                    if(spotlight) 
-                    { 
-                        spotx.set(spotxv, n);
-                        spoty.set(spotyv, n);
-                    }
-                    shadowparams.set(shadowparamsv, n);
-                    shadowoffset.set(shadowoffsetv, n);
-                }
-            } 
-            else s->set();
-
-            sx1 = max(sx1, bsx1);
-            sy1 = max(sy1, bsy1);
-            sx2 = min(sx2, bsx2);
-            sy2 = min(sy2, bsy2);
-            if(sx1 < sx2 && sy1 < sy2)
-            { 
-                int tx1 = max(int(floor((sx1*0.5f+0.5f)*vieww)), ((x*lighttilevieww)/lighttilew)*lighttilealignw), 
-                    ty1 = max(int(floor((sy1*0.5f+0.5f)*viewh)), ((y*lighttileviewh)/lighttileh)*lighttilealignh),
-                    tx2 = min(int(ceil((sx2*0.5f+0.5f)*vieww)), min((((x+striplength)*lighttilevieww)/lighttilew)*lighttilealignw, vieww)), 
-                    ty2 = min(int(ceil((sy2*0.5f+0.5f)*viewh)), min((((y+1)*lighttileviewh)/lighttileh)*lighttilealignh, viewh));
-                if(infer > 1) { tx1 /= 2; ty1 /= 2; tx2 = (tx2+1)/2; ty2 = (ty2+1)/2; }
-                glScissor(tx1, ty1, tx2-tx1, ty2-ty1);
-
-                if(hasDBT && depthtestlights > 1) glDepthBounds_(sz1*0.5f + 0.5f, sz2*0.5f + 0.5f);
-
-                // FIXME: render light geometry here
-                glBegin(GL_TRIANGLE_STRIP);
-                glVertex3f( 1, -1, sz1);
-                glVertex3f(-1, -1, sz1);
-                glVertex3f( 1,  1, sz1);
-                glVertex3f(-1,  1, sz1);
-                glEnd();
-            }
-
-            i += n;
-            if(i >= tile.length()) break;
         }
     }
 
@@ -3989,6 +4066,8 @@ void packlights()
 
 void radiancehints::renderslices()
 {
+    if(rhcache) loopi(3) swap(rhtex[i], rhtex[i+3]);
+        
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, rhfbo);
     glViewport(0, 0, rhgrid+2*rhborder, rhgrid+2*rhborder);
 
@@ -4007,12 +4086,11 @@ void radiancehints::renderslices()
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, rsmcolortex);
     glActiveTexture_(GL_TEXTURE2_ARB);
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, rsmnormaltex);
-    glActiveTexture_(GL_TEXTURE3_ARB);
-    glBindTexture(GL_TEXTURE_3D_EXT, rhtex[0]);
-    glActiveTexture_(GL_TEXTURE4_ARB);
-    glBindTexture(GL_TEXTURE_3D_EXT, rhtex[1]);
-    glActiveTexture_(GL_TEXTURE5_ARB);
-    glBindTexture(GL_TEXTURE_3D_EXT, rhtex[2]);
+    loopi(rhcache ? 6 : 3)
+    {
+        glActiveTexture_(GL_TEXTURE3_ARB + i);
+        glBindTexture(GL_TEXTURE_3D_EXT, rhtex[i]);
+    }
     glActiveTexture_(GL_TEXTURE0_ARB);
 
     glClearColor(0.5f, 0.5f, 0.5f, 0);
@@ -4024,12 +4102,23 @@ void radiancehints::renderslices()
         float cellradius = split.bounds/rhgrid, step = 2*cellradius;
         GLOBALPARAM(rhspread, (cellradius));
 
-        vec cmin, cmax, bmin(1e16f, 1e16f, 1e16f), bmax(-1e16f, -1e16f, -1e16f);
+        vec cmin, cmax, bmin(1e16f, 1e16f, 1e16f), bmax(-1e16f, -1e16f, -1e16f), dmin(1e16f, 1e16f, 1e16f), dmax(-1e16f, -1e16f, -1e16f);
         loopk(3)
         {
             cmin[k] = floor((worldmin[k] - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds;
             cmax[k] = ceil((worldmax[k] - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds;
         }
+        if(prevdynmin.z < prevdynmax.z) loopk(3)
+        {
+            dmin[k] = min(dmin[k], (float)floor((prevdynmin[k] - gidist - cellradius - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds);
+            dmax[k] = max(dmax[k], (float)ceil((prevdynmax[k] + gidist + cellradius - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds);
+        }
+        if(dynmin.z < dynmax.z) loopk(3)
+        {
+            dmin[k] = min(dmin[k], (float)floor((dynmin[k] - gidist - cellradius - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds);
+            dmax[k] = max(dmax[k], (float)ceil((dynmax[k] + gidist + cellradius - (split.center[k] - split.bounds))/step)*step + split.center[k] - split.bounds);
+        }
+            
         if(rhborder && i + 1 < rhsplits)
         {
             GLOBALPARAM(bordercenter, (0.5f, 0.5f, float(i+1 + 0.5f)/rhsplits));
@@ -4102,6 +4191,8 @@ void radiancehints::renderslices()
                 if(rhborder) glClear(GL_COLOR_BUFFER_BIT);
             }
 
+            if(j < rhborder || j >= rhgrid + rhborder) continue;
+
             if(rhclipgrid)
             {
                 if(z < cmin.z || z > cmax.z) 
@@ -4121,6 +4212,100 @@ void radiancehints::renderslices()
                     vx2 += 2*rhgrid/float(rhgrid+2*rhborder)*(tx2 - x2)/(x2 - x1);
                     vy1 += 2*rhgrid/float(rhgrid+2*rhborder)*(ty1 - y1)/(y2 - y1);
                     vy2 += 2*rhgrid/float(rhgrid+2*rhborder)*(ty2 - y2)/(y2 - y1);
+                }
+            }
+
+            if(rhcache && z > split.cached.z - split.bounds && z < split.cached.z + split.bounds)
+            {
+                float px1 = max(tx1, split.cached.x - split.bounds), px2 = min(tx2, split.cached.x + split.bounds),
+                      py1 = max(ty1, split.cached.y - split.bounds), py2 = min(ty2, split.cached.y + split.bounds);
+                if(px1 < px2 && py1 < py2)
+                {
+                    float pvx1 = -1 + rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(px1 - x1)/(x2 - x1), 
+                          pvx2 = 1 - rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(px2 - x2)/(x2 - x1), 
+                          pvy1 = -1 + rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(py1 - y1)/(y2 - y1), 
+                          pvy2 = 1 - rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(py2 - y2)/(y2 - y1),
+                          ptx1 = (px1 + split.center.x - split.cached.x)*split.scale.x + split.offset.x, 
+                          ptx2 = (px2 + split.center.x - split.cached.x)*split.scale.x + split.offset.x,
+                          pty1 = (py1 + split.center.y - split.cached.y)*split.scale.y + split.offset.y, 
+                          pty2 = (py2 + split.center.y - split.cached.y)*split.scale.y + split.offset.y,
+                          pz = (z + split.center.z - split.cached.z)*split.scale.z + split.offset.z;
+
+                    if(px1 != tx1 || px2 != tx2 || py1 != ty1 || py2 != ty2)
+                    {
+                        radiancehintsshader->set();
+
+                        glBegin(GL_TRIANGLE_STRIP);
+                        glTexCoord3f(px2, py1, z); glVertex2f(pvx2, pvy1);
+                            glTexCoord3f(tx2, ty1, z); glVertex2f(vx2, vy1);
+                        glTexCoord3f(px1, py1, z); glVertex2f(pvx1, pvy1);
+                            glTexCoord3f(tx1, ty1, z); glVertex2f(vx1, vy1);
+                        glTexCoord3f(px1, py2, z); glVertex2f(pvx1, pvy2);
+                            glTexCoord3f(tx1, ty2, z); glVertex2f(vx1, vy2);
+                        glTexCoord3f(px2, py2, z); glVertex2f(pvx2, pvy2);
+                            glTexCoord3f(tx2, ty2, z); glVertex2f(vx2, vy2);
+                        glTexCoord3f(px2, py1, z); glVertex2f(pvx2, pvy1);
+                            glTexCoord3f(tx2, ty1, z); glVertex2f(vx2, vy1);
+                        glEnd();
+                    }
+
+                    if(z > dmin.z && z < dmax.z)
+                    {
+                        float dx1 = max(px1, dmin.x), dx2 = min(px2, dmax.x),
+                              dy1 = max(py1, dmin.y), dy2 = min(py2, dmax.y);
+                        if(dx1 < dx2 && dy1 < dy2)
+                        {
+                            float dvx1 = -1 + rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(dx1 - x1)/(x2 - x1),
+                                  dvx2 = 1 - rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(dx2 - x2)/(x2 - x1),
+                                  dvy1 = -1 + rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(dy1 - y1)/(y2 - y1),
+                                  dvy2 = 1 - rhborder*2.0f/(rhgrid+2) + 2*rhgrid/float(rhgrid+2*rhborder)*(dy2 - y2)/(y2 - y1),
+                                  dtx1 = (dx1 + split.center.x - split.cached.x)*split.scale.x + split.offset.x,
+                                  dtx2 = (dx2 + split.center.x - split.cached.x)*split.scale.x + split.offset.x,
+                                  dty1 = (dy1 + split.center.y - split.cached.y)*split.scale.y + split.offset.y,
+                                  dty2 = (dy2 + split.center.y - split.cached.y)*split.scale.y + split.offset.y,
+                                  dz = (z + split.center.z - split.cached.z)*split.scale.z + split.offset.z;
+                        
+                            if(dx1 != px1 || dx2 != px2 || dy1 != py1 || dy2 != py2)
+                            {
+                                SETSHADER(radiancehintscached);
+
+                                glBegin(GL_TRIANGLE_STRIP);
+                                glTexCoord3f(dtx2, dty1, dz); glVertex2f(dvx2, dvy1);
+                                    glTexCoord3f(ptx2, pty1, pz); glVertex2f(pvx2, pvy1);
+                                glTexCoord3f(dtx1, dty1, dz); glVertex2f(dvx1, dvy1);
+                                    glTexCoord3f(ptx1, pty1, pz); glVertex2f(pvx1, pvy1);
+                                glTexCoord3f(dtx1, dty2, dz); glVertex2f(dvx1, dvy2);
+                                    glTexCoord3f(ptx1, pty2, pz); glVertex2f(pvx1, pvy2);
+                                glTexCoord3f(dtx2, dty2, dz); glVertex2f(dvx2, dvy2);
+                                    glTexCoord3f(ptx2, pty2, pz); glVertex2f(pvx2, pvy2);
+                                glTexCoord3f(dtx2, dty1, dz); glVertex2f(dvx2, dvy1);
+                                    glTexCoord3f(ptx2, pty1, pz); glVertex2f(pvx2, pvy1);
+                                glEnd();
+                            }
+
+                            radiancehintsshader->set();
+
+                            glBegin(GL_TRIANGLE_STRIP);
+                            glTexCoord3f(dx2, dy1, z); glVertex2f(dvx2, dvy1);
+                            glTexCoord3f(dx1, dy1, z); glVertex2f(dvx1, dvy1);
+                            glTexCoord3f(dx2, dy2, z); glVertex2f(dvx2, dvy2);
+                            glTexCoord3f(dx1, dy2, z); glVertex2f(dvx1, dvy2);
+                            glEnd();
+
+                            continue;
+                        }
+                    }
+                        
+                    SETSHADER(radiancehintscached);
+           
+                    glBegin(GL_TRIANGLE_STRIP);
+                    glTexCoord3f(ptx2, pty1, pz); glVertex2f(pvx2, pvy1);
+                    glTexCoord3f(ptx1, pty1, pz); glVertex2f(pvx1, pvy1);
+                    glTexCoord3f(ptx2, pty2, pz); glVertex2f(pvx2, pvy2);
+                    glTexCoord3f(ptx1, pty2, pz); glVertex2f(pvx1, pvy2);
+                    glEnd();
+
+                    continue;
                 }
             }
 
@@ -4145,20 +4330,16 @@ void renderradiancehints()
     if(!sunlight || !csmshadowmap || !gi || !giscale || !gidist) return;
 
     if(!rhinoq) timer_begin(TIMER_RH);
-    else glFlush();
 
-    rsm.setup();
     rh.setup();
-
-    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, rsmfbo);
+    rsm.setup();
 
     shadowmapping = SM_REFLECT;
+    shadowside = 0;
     shadoworigin = vec(0, 0, 0);
     shadowdir = rsm.lightview;
     shadowbias = rsm.lightview.project_bb(worldmin, worldmax);
     shadowradius = fabs(rsm.lightview.project_bb(worldmax, worldmin));
-
-    GLOBALPARAM(rsmdir, (-rsm.lightview.x, -rsm.lightview.y, -rsm.lightview.z));
 
     findshadowvas();
     findshadowmms();
@@ -4166,38 +4347,54 @@ void renderradiancehints()
     shadowmaskbatchedmodels(false);
     batchshadowmapmodels();
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadMatrixf(rsm.proj.v);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadMatrixf(rsm.model.v);
-    glViewport(0, 0, rsmsize, rsmsize);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+    rh.prevdynmin = rh.dynmin;
+    rh.prevdynmax = rh.dynmax;
+    rh.dynmin = vec(1e16f, 1e16f, 1e16f);
+    rh.dynmax = vec(-1e16f, -1e16f, -1e16f);
+    dynamicshadowvabounds(1<<shadowside, rh.dynmin, rh.dynmax);
+    batcheddynamicmodelbounds(1<<shadowside, rh.dynmin, rh.dynmax);
 
-    shadowside = 0;
+    if(!rhcache || rh.prevdynmin.z < rh.prevdynmax.z || rh.dynmin.z < rh.dynmax.z || !rh.allcached())
+    {
+        if(rhinoq) glFlush();
+ 
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadMatrixf(rsm.proj.v);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadMatrixf(rsm.model.v);
 
-    renderrsmgeom();
-    rendermodelbatches();
+        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, rsmfbo);
+
+        GLOBALPARAM(rsmdir, (-rsm.lightview.x, -rsm.lightview.y, -rsm.lightview.z));
+
+        glViewport(0, 0, rsmsize, rsmsize);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+
+        renderrsmgeom();
+        rendermodelbatches();
+
+        rh.renderslices();
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+
+        if(rhinoq)
+        {
+            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, gfbo);
+            glViewport(0, 0, vieww, viewh);
+        }
+    }
 
     clearbatchedmapmodels();
-
+    
     shadowmapping = 0;
 
-    rh.renderslices();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-
     if(!rhinoq) timer_end(TIMER_RH);
-    else
-    {
-        glBindFramebuffer_(GL_FRAMEBUFFER_EXT, gfbo);
-        glViewport(0, 0, vieww, viewh);
-    }
 }
 
 void rendercsmshadowmaps()
@@ -4594,7 +4791,7 @@ void processhdr(GLuint outfbo = 0)
     {
         glBindFramebuffer_(GL_FRAMEBUFFER_EXT, outfbo);
         glViewport(0, 0, vieww, viewh);
-        SETSHADER(hdrnop);
+        if(fxaa || smaa) SETSHADER(hdrnopluma); else SETSHADER(hdrnop);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, hdrtex);
         screenquad(vieww, viewh);
         return;
@@ -4714,13 +4911,29 @@ void processhdr(GLuint outfbo = 0)
 
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, outfbo);
     glViewport(0, 0, vieww, viewh);
-    SETSHADER(hdrtonemap);
+    if(fxaa || smaa) SETSHADER(hdrtonemapluma); else SETSHADER(hdrtonemap);
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, hdrtex);
     glActiveTexture_(GL_TEXTURE1_ARB);
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, b0tex);
     glActiveTexture_(GL_TEXTURE0_ARB);
     screenquad(vieww, viewh, b0w, b0h);
     timer_end(TIMER_HDR);
+}
+
+void dofxaa(GLuint outfbo = 0)
+{
+    timer_begin(TIMER_FXAA);
+
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, outfbo);
+    fxaashader->set();
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gcolortex);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    screenquad(vieww, viewh);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    timer_end(TIMER_FXAA);
 }
 
 void dosmaa(GLuint outfbo = 0)
@@ -5396,6 +5609,7 @@ void gl_setupframe(int w, int h)
     setupgbuffer(w, h);
     if(hdr && (bloomw < 0 || bloomh < 0)) setupbloom(w, h);
     if(ao && (aow < 0 || aoh < 0)) setupao(w, h);
+    if(fxaa && !fxaafbo) setupfxaa();
     if(smaa && !smaafbo[0]) setupsmaa();
     if(inferlights && !infbo) setupinferred();
     if(!shadowatlasfbo) setupshadowatlas();
@@ -5546,8 +5760,9 @@ void gl_drawframe(int w, int h)
     glDisable(GL_DEPTH_TEST);
 
     GLuint postfxfbo = setuppostfx(w, h);
-    processhdr(smaa ? smaafbo[0] : postfxfbo);
+    processhdr(smaa ? smaafbo[0] : (fxaa ? fxaafbo : postfxfbo));
     if(smaa) dosmaa(postfxfbo);
+    else if(fxaa) dofxaa(postfxfbo);
 
     if(fogoverlay && fogmat != MAT_AIR) drawfogoverlay(fogmat, fogbelow, clamp(fogbelow, 0.0f, 1.0f), abovemat);
     renderpostfx();
