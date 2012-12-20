@@ -1044,8 +1044,8 @@ if EV.glslversion >= 130 then
 --    a -> alpha test
 --    e -> envmap
 --    n -> normalmap
---    s -> spec
 --    m -> masks
+--    d -> decal
 --    B -> matrix skeletal animation
 --    b -> dual-quat skeletal animation
 
@@ -1057,8 +1057,8 @@ modelvertexshader = function(...)
         a = modeltype:find("a") ~= nil,
         e = modeltype:find("e") ~= nil,
         n = modeltype:find("n") ~= nil,
-        s = modeltype:find("s") ~= nil,
         m = modeltype:find("m") ~= nil,
+        s = modeltype:find("d") ~= nil,
         B = modeltype:find("B") ~= nil,
         b = modeltype:find("b") ~= nil,
     }
@@ -1099,7 +1099,7 @@ modelvertexshader = function(...)
     
             @(gdepthpackvert())
  
-            @((mdlopt.e or mdlopt.s) and [[
+            @(mdlopt.e and [[
                 vec3 camdir = normalize(ocamera.xyz - opos.xyz);
             ]] or nil)
  
@@ -1155,12 +1155,13 @@ modelfragmentshader = function(...)
             ]] or nil)
         ]=])
         uniform vec2 fullbright;
-        @((mdlopt.s or mdlopt.m) and "uniform vec4 maskscale;" or nil)
+        uniform vec4 maskscale;
         @(mdlopt.a and "uniform float alphatest;" or nil)
         uniform sampler2D tex0;
         @(mdlopt.m and "uniform sampler2D tex1;" or nil)
         @(mdlopt.e and "uniform samplerCube tex2;" or nil)
         @(mdlopt.n and "uniform sampler2D tex3;" or nil)
+        @(mdlopt.d and "uniform sampler2D tex4;" or nil)
         @(gdepthinterp())
         void main(void)
         {
@@ -1174,9 +1175,14 @@ modelfragmentshader = function(...)
                 gl_FragData[0] = diffuse;
             ]])
 
+            @(mdlopt.d and [[
+                vec4 decal = texture2D(tex4, gl_TexCoord[0].xy);
+                gl_FragData[0].rgb = mix(gl_FragData[0].rgb, decal.rgb, decal.a);
+            ]] or nil)
+
             @(mdlopt.m and [[
                 vec3 masks = texture2D(tex1, gl_TexCoord[0].xy).rgb;
-            ]])
+            ]] or nil)
 
             @(mdlopt.n and [[
                 vec3 normal = texture2D(tex3, gl_TexCoord[0].xy).rgb - 0.5;
@@ -1187,13 +1193,9 @@ modelfragmentshader = function(...)
 
             gl_FragData[1].rgb = 0.5*normal+0.5;
 
-            @(mdlopt.s and [[
-                float spec = maskscale.x;
-                @(mdlopt.m and "spec *= masks.r;" or nil) // specmap in red channel
-                gl_FragData[1].a = 0.5*spec;
-            ]] or [[
-                gl_FragData[1].a = 0.0;
-            ]])
+            float spec = maskscale.x;
+            @(mdlopt.m and "spec *= masks.r;" or nil) // specmap in red channel
+            gl_FragData[1].a = 0.5*spec;
 
             @(mdlopt.m and [==[
                 float gmask = max(maskscale.y*masks.g, fullbright.y); // glow mask in green channel
@@ -1237,64 +1239,48 @@ modelshader = function(arg1, arg2)
             modelanimshader(arg1, 0, basemodeltype, i) end end) end
 
 --
--- gourad lighting model shader: cheaper, non-specular version for vegetation etc. gets used when spec==0
---
-
-modelshader("nospecmodel", "")
-modelshader("masksnospecmodel", "m")
-modelshader("envmapnospecmodel", "me")
-CAPI.altshader("envmapnospecmodel", "masksnospecmodel")
-
-modelshader("bumpnospecmodel", "n")
-modelshader("bumpmasksnospecmodel", "nm")
-modelshader("bumpenvmapnospecmodel", "nme")
-CAPI.altshader("bumpenvmapnospecmodel", "bumpmasksnospecmodel")
-
-modelshader("nospecalphamodel", "a")
-modelshader("masksnospecalphamodel", "am")
-modelshader("envmapnospecalphamodel", "ame")
-CAPI.altshader("envmapnospecalphamodel", "masksnospecalphamodel")
-
-modelshader("bumpnospecalphamodel", "an")
-modelshader("bumpmasksnospecalphamodel", "anm")
-modelshader("bumpenvmapnospecalphamodel", "anme")
-CAPI.altshader("bumpenvmapnospecalphamodel", "bumpmasksnospecalphamodel")
-
---
 -- phong lighting model shader
 --
 
-modelshader("stdmodel", "s")
-CAPI.fastshader("stdmodel", "nospecmodel", 1)
-modelshader("masksmodel", "sm")
-CAPI.fastshader("masksmodel", "masksnospecmodel", 1)
-modelshader("envmapmodel", "sme")
+modelshader("stdmodel", "")
+modelshader("masksmodel", "m")
+modelshader("envmapmodel", "me")
 CAPI.altshader("envmapmodel", "masksmodel")
-CAPI.fastshader("envmapmodel", "envmapnospecmodel", 1)
 
-modelshader("bumpmodel", "ns")
-CAPI.fastshader("bumpmodel", "bumpnospecmodel", 1)
-modelshader("bumpmasksmodel", "nsm")
-CAPI.fastshader("bumpmasksmodel", "bumpmasksnospecmodel", 1)
-modelshader("bumpenvmapmodel", "nsme")
+modelshader("bumpmodel", "n")
+modelshader("bumpmasksmodel", "nm")
+modelshader("bumpenvmapmodel", "nme")
 CAPI.altshader("bumpenvmapmodel", "bumpmasksmodel")
-CAPI.fastshader("bumpenvmapmodel", "bumpenvmapnospecmodel", 1)
 
-modelshader("alphamodel", "as")
-CAPI.fastshader("alphamodel", "nospecalphamodel", 1)
-modelshader("masksalphamodel", "asm")
-CAPI.fastshader("masksalphamodel", "masksnospecalphamodel", 1)
-modelshader("envmapalphamodel", "asme")
+modelshader("alphamodel", "a")
+modelshader("masksalphamodel", "am")
+modelshader("envmapalphamodel", "ame")
 CAPI.altshader("envmapalphamodel", "masksalphamodel")
-CAPI.fastshader("envmapalphamodel", "envmapnospecalphamodel", 1)
 
-modelshader("bumpalphamodel", "ans")
-CAPI.fastshader("bumpalphamodel", "bumpnospecalphamodel", 1)
-modelshader("bumpmasksalphamodel", "ansm")
-CAPI.fastshader("bumpmasksalphamodel", "bumpmasksnospecalphamodel", 1)
-modelshader("bumpenvmapalphamodel", "ansme")
+modelshader("bumpalphamodel", "an")
+modelshader("bumpmasksalphamodel", "anm")
+modelshader("bumpenvmapalphamodel", "anme")
 CAPI.altshader("bumpenvmapalphamodel", "bumpmasksalphamodel")
-CAPI.fastshader("bumpenvmapalphamodel", "bumpenvmapnospecalphamodel", 1)
+
+modelshader("decalmodel", "d")
+modelshader("decalmasksmodel", "dm")
+modelshader("decalenvmapmodel", "dme")
+CAPI.altshader("decalenvmapmodel", "decalmasksmodel")
+
+modelshader("decalbumpmodel", "dn")
+modelshader("decalbumpmasksmodel", "dnm")
+modelshader("decalbumpenvmapmodel", "dnme")
+CAPI.altshader("decalbumpenvmapmodel", "decalbumpmasksmodel")
+
+modelshader("decalalphamodel", "da")
+modelshader("decalmasksalphamodel", "dam")
+modelshader("decalenvmapalphamodel", "dame")
+CAPI.altshader("decalenvmapalphamodel", "decalmasksalphamodel")
+
+modelshader("decalbumpalphamodel", "dan")
+modelshader("decalbumpmasksalphamodel", "danm")
+modelshader("decalbumpenvmapalphamodel", "danme")
+CAPI.altshader("decalbumpenvmapalphamodel", "decalbumpmasksalphamodel")
 
 rsmmodelvertexshader = function(...)
     local arg = { ... }
@@ -1679,7 +1665,8 @@ deferredlightvariantshader = function(...)
         F = deferredlighttype:find("F") ~= nil,
         f = deferredlighttype:find("f") ~= nil,
         m = deferredlighttype:find("m") ~= nil,
-        r = deferredlighttype:find("r") ~= nil
+        r = deferredlighttype:find("r") ~= nil,
+        i = deferredlighttype:find("i") ~= nil
     }
 
     CAPI.variantshader(0, arg[1], arg[2], arg[2] < 0 and [[
@@ -1687,7 +1674,7 @@ deferredlightvariantshader = function(...)
         {
             gl_Position = ftransform();
         }
-    ]] or "", ([===[
+    ]] or "", ([====[
         #extension GL_ARB_texture_rectangle : enable
         @(dlopt.g and [[
             #ifdef GL_EXT_gpu_shader4
@@ -1860,35 +1847,49 @@ deferredlightvariantshader = function(...)
 
         void main(void)
         {
-            @((baselight or numlights > 1) and [[
-                vec4 diffuse = texture2DRect(tex0, gl_FragCoord.xy);
-            ]] or nil)
-            @(baselight and [=[
-                vec3 light = diffuse.rgb * lightscale.rgb;
-                @(dlopt.a and [[
-                    float ao = texture2DRect(tex5, gl_FragCoord.xy*aoscale).r;
-                    light *= aoparams.x + ao*aoparams.y;
+            @(dlopt.i and [==[
+                vec2 tc = (gl_FragCoord.xy - 0.5)*2.0 + 0.5;
+                @(baselight and [=[
+                    vec3 inferlight = lightscale.rgb, inferspec = vec3(0.0);
+                    @(dlopt.a and [[
+                        float ao = texture2DRect(tex5, tc*aoscale).r;
+                        inferlight *= aoparams.x + ao*aoparams.y;
+                    ]] or nil)
+                ]=] or [[
+                    vec3 inferlight = vec3(0.0), inferspec = vec3(0.0);
+                ]])
+            ]==] or [==[
+                #define tc gl_FragCoord.xy
+                @((baselight or (numlights > 1)) and [[
+                    vec4 diffuse = texture2DRect(tex0, tc);
                 ]] or nil)
-                vec3 glow = texture2DRect(tex2, gl_FragCoord.xy).rgb;
-                light += glow * lightscale.a;
-            ]=] or [[
-                vec3 light = vec3(0.0);
-            ]])
+                @(baselight and [=[
+                    vec3 light = diffuse.rgb * lightscale.rgb;
+                    @(dlopt.a and [[
+                        float ao = texture2DRect(tex5, tc*aoscale).r;
+                        light *= aoparams.x + ao*aoparams.y;
+                    ]] or nil)
+                    vec3 glow = texture2DRect(tex2, tc).rgb;
+                    light += glow * lightscale.a;
+                ]=] or [[
+                    vec3 light = vec3(0.0);
+                ]])
+            ]==])
             @((numlights > 0 or dlopt.c) and [==[
-                @(gdepthunpack("depth", "tex3", "gl_FragCoord.xy", [=[
+                @(gdepthunpack("depth", "tex3", "tc", [=[
                     @(dlopt.m and [[
-                        vec3 pos = (gl_TextureMatrix[0] * vec4(gl_FragCoord.xy, depth, 1.0)).xyz;
+                        vec3 pos = (gl_TextureMatrix[0] * vec4(tc, depth, 1.0)).xyz;
                     ]] or [[
-                        vec3 pos = (gl_TextureMatrix[0] * vec4(depth*gl_FragCoord.xy, depth, 1.0)).xyz;
+                        vec3 pos = (gl_TextureMatrix[0] * vec4(depth*tc, depth, 1.0)).xyz;
                     ]])
                     #define fogcoord depth
                 ]=], [[
-                    vec4 pos = gl_TextureMatrix[0] * vec4(gl_FragCoord.xy, depth, 1.0);
+                    vec4 pos = gl_TextureMatrix[0] * vec4(tc, depth, 1.0);
                     pos.xyz /= pos.w;
                     #define fogcoord dot(fogdir, vec4(pos.xyz, 1.0))
                 ]]))
                 @((dlopt.c or numlights > 1) and [[
-                    vec4 normal = texture2DRect(tex1, gl_FragCoord.xy);
+                    vec4 normal = texture2DRect(tex1, tc);
                     normal.xyz = normal.xyz*2.0 - 1.0;
                 ]] or nil)
                 @((((numlights + (dlopt.c and 1 or 0)) > 1) and (not dlopt.m)) and [[
@@ -1896,12 +1897,12 @@ deferredlightvariantshader = function(...)
                     float facing = 2.0*dot(normal.xyz, camdir);
                 ]] or nil)
             ]==] or ((not dlopt.m) and [[
-                @(gdepthunpack("depth", "tex3", "gl_FragCoord.xy"))
+                @(gdepthunpack("depth", "tex3", "tc"))
                 #define fogcoord depth
             ]] or nil))
-            @(dlopt.c and [==[
+            @(dlopt.c and [===[
                 @(dlopt.r and [[
-                    vec3 rhlight = diffuse.rgb * getrhlight(pos.xyz, normal.xyz) * giscale;
+                    vec3 rhlight = @(not dlopt.i and "diffuse.rgb *" or nil) getrhlight(pos.xyz, normal.xyz) * giscale;
                 ]] or nil)
                 float sunfacing = dot(sunlightdir, normal.xyz);
                 if(sunfacing > 0.0)
@@ -1911,32 +1912,39 @@ deferredlightvariantshader = function(...)
                     float sunoccluded = sunfacing * filtershadow(csmtc);
                     @(dlopt.m and [[
                         light += diffuse.rgb * sunlightcolor * sunoccluded;
-                    ]] or [=[
+                    ]] or [==[
                         @(((numlights + (dlopt.c and 1 or 0)) == 1) and [[
                             vec3 camdir = normalize(camera - pos.xyz);
                             float facing = 2.0*dot(normal.xyz, camdir);
                         ]] or nil)
                         float sunspec = pow(clamp(sunfacing*facing - dot(camdir, sunlightdir), 0.0, 1.0), 8.0) * normal.a;
-                        @(dlopt.r and [[
-                            rhlight += (diffuse.rgb + sunspec) * sunoccluded;
+                        @(dlopt.r and (dlopt.i and [[
+                            rhlight += sunoccluded;
+                            inferspec += sunspec * sunoccluded @(dlopt.A and "* (aoparams.z + ao*aoparams.w)" or nil) * sunlightcolor;
                         ]] or [[
+                            rhlight += (diffuse.rgb + sunspec) * sunoccluded;
+                        ]]) or [=[
                             @(dlopt.A and "sunoccluded *= aoparams.z + ao*aoparams.w;" or nil)
-                            light += (diffuse.rgb + sunspec) * sunoccluded * sunlightcolor;
-                        ]])
-                    ]=])
+                            @(dlopt.i and [[
+                                inferlight += sunoccluded * sunlightcolor;
+                                inferspec += sunspec * sunoccluded * sunlightcolor;
+                            ]] or [[
+                                light += (diffuse.rgb + sunspec) * sunoccluded * sunlightcolor;
+                            ]])
+                        ]=])
+                    ]==])
                 }
                 @(dlopt.r and [[
-                    @(dlopt.A and "rhlight *= aoparams.z + ao*aoparams.w;" or nil)
-                    light += rhlight * sunlightcolor;
+                    @(dlopt.i and "inferlight" or "light") += rhlight @(dlopt.A and "* (aoparams.z + ao*aoparams.w)" or nil) * sunlightcolor;
                 ]] or nil)
-            ]==] or nil)
-            @(([==[
+            ]===] or nil)
+            @(([===[
                 vec3 light$jdir = (pos.xyz - lightpos[$j].xyz) * lightpos[$j].w;
                 float light$jdist2 = dot(light$jdir, light$jdir);
                 if(light$jdist2 < 1.0)
                 {
                     @((numlights == 1 and (not dlopt.c)) and [[
-                        vec4 normal = texture2DRect(tex1, gl_FragCoord.xy);
+                        vec4 normal = texture2DRect(tex1, tc);
                         normal.xyz = normal.xyz*2.0 - 1.0;
                     ]] or nil)
                     float light$jfacing = dot(light$jdir, normal.xyz);
@@ -1963,34 +1971,48 @@ deferredlightvariantshader = function(...)
                                 light$jatten *= filtershadow(shadow$jtc);
                             ]] or nil)
                         ]=])
-                        @(((numlights == 1) and (not baselight)) and [[
-                            vec4 diffuse = texture2DRect(tex0, gl_FragCoord.xy);
-                        ]] or nil)
-                        @(dlopt.m and [[
-                            light += diffuse.rgb * lightcolor[$j] * light$jatten;
-                        ]] or [=[
+
+                        @(dlopt.i and [=[
                             @((numlights + (dlopt.c and 1 or 0)) == 1 and [[
                                 vec3 camdir = normalize(camera - pos.xyz);
                                 float facing = 2.0*dot(normal.xyz, camdir);
                             ]] or nil)
                             float light$jspec = pow(clamp(light$jinvdist*(dot(camdir, light$jdir) - light$jfacing*facing), 0.0, 1.0), 8.0) * normal.a;
-                            light += (diffuse.rgb + light$jspec) * lightcolor[$j] * light$jatten;
-                            @((numlights + (baselight and 1 or 0)) == 1 and [[
-                                float foglerp = clamp((fogparams.y + fogcoord)*fogparams.z, 0.0, 1.0);
-                                light *= foglerp;
+                            inferlight += lightcolor[$j] * light$jatten;
+                            inferspec += light$jspec * lightcolor[$j] * light$jatten;
+                        ]=] or [==[
+                            @((numlights == 1 and not baselight) and [[
+                                vec4 diffuse = texture2DRect(tex0, tc);
                             ]] or nil)
-                        ]=])
+                            @(dlopt.m and [[
+                                light += diffuse.rgb * lightcolor[$j] * light$jatten;
+                            ]] or [=[
+                                @((numlights + (dlopt.c and 1 or 0)) == 1 and [[
+                                    vec3 camdir = normalize(camera - pos.xyz);
+                                    float facing = 2.0*dot(normal.xyz, camdir);
+                                ]])
+                                float light$jspec = pow(clamp(light$jinvdist*(dot(camdir, light$jdir) - light$jfacing*facing), 0.0, 1.0), 8.0) * normal.a;
+                                light += (diffuse.rgb + light$jspec) * lightcolor[$j] * light$jatten;
+                                @(((numlights + (baselight and 1 or 0)) == 1) and [[
+                                    float foglerp = clamp((fogparams.y + fogcoord)*fogparams.z, 0.0, 1.0);
+                                    light *= foglerp;
+                                ]] or nil)
+                            ]=])
+                        ]==])
                         @(spotlight and "}" or nil)
                     }
                 }
-            ]==]):reppn("$j", 0, numlights))
+            ]===]):reppn("$j", 0, numlights))
             @(dlopt.m and (baselight and [[
                 gl_FragColor.rgb = light;
                 gl_FragColor.a = diffuse.a;
             ]] or [[
                 gl_FragColor.rgb = light;
                 gl_FragColor.a = 0.0;
-            ]]) or ((baselight or numlights > 1) and [=[
+            ]]) or (dlopt.i and [[
+                gl_FragData[0].rgb = inferlight;
+                gl_FragData[1].rgb = inferspec;
+            ]] or ((((baselight or numlights > 1) and [=[
                 float foglerp = clamp((fogparams.y + fogcoord)*fogparams.z, 0.0, 1.0);
                 @(baselight and [[
                     gl_FragColor.rgb = mix(fogcolor*diffuse.a, light, foglerp);
@@ -2002,9 +2024,9 @@ deferredlightvariantshader = function(...)
             ]=] or [[
                 gl_FragColor.rgb = light;
                 gl_FragColor.a = 0.0;
-            ]]))
+            ]])))))
         }
-    ]===]):eval_embedded(nil, { dlopt = dlopt, numsplits = numsplits, numrh = numrh, numlights = numlights, baselight = baselight, spotlight = spotlight }, _G), 64) end
+    ]====]):eval_embedded(nil, { dlopt = dlopt, numsplits = numsplits, numrh = numrh, numlights = numlights, baselight = baselight, spotlight = spotlight }, _G), 64) end
 
 deferredlightshader = function(arg1, arg2, arg3, arg4, arg5)
     local shadername = "deferredlight" .. arg1 .. arg2 .. arg3
@@ -2020,6 +2042,44 @@ deferredlightshader = function(arg1, arg2, arg3, arg4, arg5)
         deferredlightvariantshader(shadername, 7, arg1 .. arg2,         arg4, arg5, i) -- row 7, shadowed spot lights
     end
 end
+
+lazyshader(0, "inferredlight", [[
+    void main(void)
+    {
+        gl_Position = ftransform();
+        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+        gl_TexCoord[1].xy = gl_MultiTexCoord0.xy + 0.5;
+    }
+]], ([[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0, tex1, tex2, tex3, tex9, tex10;
+    uniform vec3 camera;
+    uniform vec4 fogdir;
+    uniform vec3 fogcolor, fogparams;
+    uniform vec4 lightscale;
+    uniform vec2 inferthreshold;
+    @(gdepthunpackparams)
+
+    void main(void)
+    {
+        vec3 color0 = texture2DRect(tex9, gl_TexCoord[0].xy).rgb;
+        vec3 color1 = texture2DRect(tex9, gl_TexCoord[1].xy).rgb;
+        vec3 spec0 = texture2DRect(tex10, gl_TexCoord[0].xy).rgb;
+        vec3 spec1 = texture2DRect(tex10, gl_TexCoord[1].xy).rgb;
+        vec3 diff = max(abs(color1 - color0), abs(spec0 - spec1)*inferthreshold.y);
+        if(max(max(diff.x, diff.y), diff.z) > inferthreshold.x) discard;
+
+        vec4 diffuse = texture2DRect(tex0, gl_FragCoord.xy);
+        vec3 light = (color0 + color1)*diffuse.rgb + spec0 + spec1;
+        vec3 glow = texture2DRect(tex2, gl_FragCoord.xy).rgb;
+        light += glow * lightscale.a;
+
+        @(gdepthunpack("depth", "tex3", "gl_FragCoord.xy"))
+        float foglerp = clamp((fogparams.y + depth)*fogparams.z, 0.0, 1.0);
+        gl_FragColor.rgb = mix(fogcolor*diffuse.a, light, foglerp);
+        gl_FragColor.a = diffuse.a;
+    }
+]]):eval_embedded())
 
 CAPI.shader(0, "hdrreduce", [[
     void main(void)

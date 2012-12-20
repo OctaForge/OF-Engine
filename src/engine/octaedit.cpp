@@ -123,8 +123,12 @@ void cancelsel()
 void toggleedit(bool force)
 {
 #ifdef CLIENT
-    if(player->state!=CS_ALIVE && player->state!=CS_DEAD && player->state!=CS_EDITING) return; // do not allow dead players to edit to avoid state confusion
-    if(!editmode && !game::allowedittoggle()) return;         // not in most multiplayer modes
+    if(!force)
+    {
+        if(!isconnected() && !haslocalclients()) return;
+        if(player->state!=CS_ALIVE && player->state!=CS_DEAD && player->state!=CS_EDITING) return; // do not allow dead players to edit to avoid state confusion
+        if(!game::allowedittoggle()) return;         // not in most multiplayer modes
+    }
     if(!(editmode = !editmode))
     {
         player->state = player->editstate;
@@ -157,8 +161,6 @@ bool noedit(bool view, bool msg)
     if(!viewable && msg) conoutf(CON_ERROR, "selection not in view");
     return !viewable;
 }
-
-extern void createheightmap();
 
 void reorient()
 {

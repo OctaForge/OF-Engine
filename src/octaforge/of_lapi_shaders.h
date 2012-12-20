@@ -12,6 +12,9 @@ bool isshadernative(const char *name);
 void addpostfx(const char *name, int bind, int scale, const char *inputs, float x, float y, float z, float w);
 void setpostfx(const char *name, float x, float y, float z, float w);
 void clearpostfx();
+void cleanupshaders();
+void setupshaders();
+void reloadshaders();
 #endif
 namespace lapi_binds
 {
@@ -87,6 +90,15 @@ namespace lapi_binds
     }
 
     void _lua_clearpostfx() { clearpostfx(); }
+
+    void _lua_resetshaders() {
+        cleanupgbuffer();
+        cleanupshaders();
+        setupshaders();
+        initgbuffer();
+        reloadshaders();
+        allchanged(true);
+    }
 #else
     LAPI_EMPTY(shader)
     LAPI_EMPTY(variantshader)
@@ -103,6 +115,7 @@ namespace lapi_binds
     LAPI_EMPTY(addpostfx)
     LAPI_EMPTY(setpostfx)
     LAPI_EMPTY(clearpostfx)
+    LAPI_EMPTY(resetshaders)
 #endif
 
     void reg_shaders(lua::Table& t)
@@ -122,5 +135,6 @@ namespace lapi_binds
         LAPI_REG(addpostfx);
         LAPI_REG(setpostfx);
         LAPI_REG(clearpostfx);
+        LAPI_REG(resetshaders);
     }
 }

@@ -108,7 +108,7 @@ void writeinitcfg()
     stream *f = openutf8file("init.lua", "w");
     if(!f) return;
     f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
-    extern int fullscreen, shaderprecision, glineardepth, sound, soundchans, soundfreq, soundbufferlen;
+    extern int fullscreen, sound, soundchans, soundfreq, soundbufferlen;
     f->printf("EV.fullscreen = %d\n", fullscreen);
     f->printf("EV.scr_w = %d\n", scr_w);
     f->printf("EV.scr_h = %d\n", scr_h);
@@ -117,8 +117,6 @@ void writeinitcfg()
     f->printf("EV.stencilbits = %d\n", stencilbits);
     f->printf("EV.fsaa = %d\n", fsaa);
     f->printf("EV.vsync = %d\n", vsync);
-    f->printf("EV.shaderprecision = %d\n", shaderprecision);
-    f->printf("EV.glineardepth = %d\n", glineardepth);
     f->printf("EV.sound = %d\n", sound);
     f->printf("EV.soundchans = %d\n", soundchans);
     f->printf("EV.soundfreq = %d\n", soundfreq);
@@ -164,7 +162,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     glLoadIdentity();
 
     defaultshader->set();
-    glEnable(GL_TEXTURE_2D);
 
     static int lastupdate = -1, lastw = -1, lasth = -1;
     static float backgroundu = 0, backgroundv = 0;
@@ -327,7 +324,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         glDisable(GL_BLEND);
         if(!restore) swapbuffers();
     }
-    glDisable(GL_TEXTURE_2D);
 
     if(!restore)
     {
@@ -372,7 +368,6 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     glPushMatrix();
     glLoadIdentity();
 
-    glEnable(GL_TEXTURE_2D);
     defaultshader->set();
     glColor3f(1, 1, 1);
 
@@ -495,8 +490,6 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
         glEnd();
         glDisable(GL_BLEND);
     }
-
-    glDisable(GL_TEXTURE_2D);
 
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -759,6 +752,7 @@ void resetgl()
     inbetweenframes = true;
     renderbackground("initializing...");
     restoregamma();
+    initgbuffer();
     reloadshaders();
     reloadtextures();
     initlights();
@@ -981,18 +975,34 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     CONTEXT *context = ep->ContextRecord;
     string out, t;
     formatstring(out)("Tesseract Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
-    STACKFRAME sf = {{context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0};
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
-
+#ifdef _AMD64_
+    STACKFRAME64 sf = {{context->Rip, 0, AddrModeFlat}, {}, {context->Rbp, 0, AddrModeFlat}, {context->Rsp, 0, AddrModeFlat}, 0};
+    while(::StackWalk64(IMAGE_FILE_MACHINE_AMD64, GetCurrentProcess(), GetCurrentThread(), &sf, context, NULL, ::SymFunctionTableAccess, ::SymGetModuleBase, NULL))
+    {
+        union { IMAGEHLP_SYMBOL64 sym; char symext[sizeof(IMAGEHLP_SYMBOL64) + sizeof(string)]; };
+        sym.SizeOfStruct = sizeof(sym);
+        sym.MaxNameLength = sizeof(symext) - sizeof(sym);
+        IMAGEHLP_LINE64 line;
+        line.SizeOfStruct = sizeof(line);
+        DWORD64 symoff;
+        DWORD lineoff;
+        if(SymGetSymFromAddr64(GetCurrentProcess(), sf.AddrPC.Offset, &symoff, &sym) && SymGetLineFromAddr64(GetCurrentProcess(), sf.AddrPC.Offset, &lineoff, &line))
+#else
+    STACKFRAME sf = {{context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0};
     while(::StackWalk(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &sf, context, NULL, ::SymFunctionTableAccess, ::SymGetModuleBase, NULL))
     {
-        struct { IMAGEHLP_SYMBOL sym; string n; } si = { { sizeof( IMAGEHLP_SYMBOL ), 0, 0, 0, sizeof(string) } };
-        IMAGEHLP_LINE li = { sizeof( IMAGEHLP_LINE ) };
-        DWORD off;
-        if(SymGetSymFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &si.sym) && SymGetLineFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &li))
+        union { IMAGEHLP_SYMBOL sym; char symext[sizeof(IMAGEHLP_SYMBOL) + sizeof(string)]; };
+        sym.SizeOfStruct = sizeof(sym);
+        sym.MaxNameLength = sizeof(symext) - sizeof(sym);
+        IMAGEHLP_LINE line;
+        line.SizeOfStruct = sizeof(line);
+        DWORD symoff, lineoff;
+        if(SymGetSymFromAddr(GetCurrentProcess(), sf.AddrPC.Offset, &symoff, &sym) && SymGetLineFromAddr(GetCurrentProcess(), sf.AddrPC.Offset, &lineoff, &line))
+#endif
         {
-            char *del = strrchr(li.FileName, '\\');
-            formatstring(t)("%s - %s [%d]\n", si.sym.Name, del ? del + 1 : li.FileName, li.LineNumber);
+            char *del = strrchr(line.FileName, '\\');
+            formatstring(t)("%s - %s [%d]\n", sym.Name, del ? del + 1 : line.FileName, line.LineNumber);
             concatstring(out, t);
         }
     }
@@ -1136,13 +1146,7 @@ int main(int argc, char **argv)
             case 'v': vsync = atoi(&argv[i][2]); break;
             case 't': fullscreen = atoi(&argv[i][2]); break;
             case 's': stencilbits = atoi(&argv[i][2]); break;
-            case 'f': 
-            {
-                extern int shaderprecision;
-                int n = atoi(&argv[i][2]);
-                shaderprecision = clamp(n - 1, 0, 2);
-                break;
-            }
+            case 'f': /* compat, ignore */ break;
             case 'l': 
             {
                 char pkgdir[] = "data/"; 
@@ -1229,11 +1233,6 @@ int main(int argc, char **argv)
     inbetweenframes = true;
     renderbackground("initializing...");
 
-    initlog("gl: effects");
-    loadshaders();
-    particleinit();
-    initdecals();
-
     initlog("world");
     camera1 = player = game::iterdynents(0);
     //emptymap(0, true, NULL, false);
@@ -1284,12 +1283,22 @@ int main(int argc, char **argv)
 
     varsys::persistvars = false;
 
+    initing = INIT_GAME;
     game::loadconfigs();
+    initing = NOT_INITING;
 
     varsys::persistvars = true;
 
     initlog("Registering messages\n");
     MessageSystem::MessageManager::registerAll();
+
+    initlog("init: shaders");
+    initgbuffer();
+    loadshaders();
+    particleinit();
+    initdecals();
+
+    initlog("init: mainloop");
 
     if(load)
     {
@@ -1304,8 +1313,6 @@ int main(int argc, char **argv)
         if (types::get<0>(err))
             logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     }
-
-    initlog("mainloop");
 
     initmumble();
     resetfpshistory();

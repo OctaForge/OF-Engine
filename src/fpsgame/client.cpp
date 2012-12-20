@@ -606,8 +606,8 @@ assert(0);
 
             adddynlight(position, radius * 2, color);
 
-            vec floornorm;
-            float floordist = rayfloor(position, floornorm);
+            //vec floornorm;
+            //float floordist = rayfloor(position, floornorm);
         #endif
     }
 

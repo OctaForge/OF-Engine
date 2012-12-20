@@ -6,4 +6,4 @@ out
 *~
 .directory
 .DS_Store
-
+*.orig

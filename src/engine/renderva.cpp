@@ -528,7 +528,6 @@ void renderoutline()
 {
     notextureshader->set();
 
-    glDisable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -581,7 +580,6 @@ void renderoutline()
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
     }
     glDisableClientState(GL_VERTEX_ARRAY);
-    glEnable(GL_TEXTURE_2D);
 
     defaultshader->set();
 }
@@ -601,7 +599,6 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnable(GL_TEXTURE_2D); 
     glBindTexture(GL_TEXTURE_2D, tex);
     bvec color((blendbrushcolor>>16)&0xFF, (blendbrushcolor>>8)&0xFF, blendbrushcolor&0xFF);
     glColor4f(color.x*ldrscaleb, color.y*ldrscaleb, color.z*ldrscaleb, 0.25f);
@@ -631,7 +628,6 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
         prev = va;
     }
 
-    glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
 
     glDepthFunc(GL_LESS);
@@ -1905,7 +1901,7 @@ void renderrsmgeom()
     {
         SETSHADER(rsmsky);
         vtxarray *prev = NULL;
-        for(vtxarray *va = shadowva; va; va = va->next)
+        for(vtxarray *va = shadowva; va; va = va->rnext)
         {
             if(!va->sky) continue;
 
@@ -1980,7 +1976,7 @@ static int alphabackvas = 0, alpharefractvas = 0;
 float alphafrontsx1 = -1, alphafrontsx2 = 1, alphafrontsy1 = -1, alphafrontsy2 = -1,
       alphabacksx1 = -1, alphabacksx2 = 1, alphabacksy1 = -1, alphabacksy2 = -1,
       alpharefractsx1 = -1, alpharefractsx2 = 1, alpharefractsy1 = -1, alpharefractsy2 = 1;
-uint alphatiles[LIGHTTILE_H];
+uint alphatiles[LIGHTTILE_MAXH];
 
 int findalphavas()
 {
@@ -2089,6 +2085,42 @@ void renderalphageom(int side)
         glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
     }
     glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void renderinferdepth()
+{
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    nocolorshader->set();
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    vtxarray *prev = NULL;
+    for(vtxarray *va = visibleva; va; va = va->next)
+    {
+        if(!va->texs || va->occluded >= OCCLUDE_GEOM) continue;
+
+        if(!prev || va->vbuf != prev->vbuf)
+        {
+            if(hasVBO)
+            {
+                glBindBuffer_(GL_ARRAY_BUFFER_ARB, va->vbuf);
+                glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, va->ebuf);
+            }
+            glVertexPointer(3, GL_FLOAT, VTXSIZE, va->vdata[0].pos.v);
+        }
+
+        xtravertsva += va->verts;
+        drawvatris(va, 3*va->tris, va->edata);
+    }
+
+    if(hasVBO)
+    {
+        glBindBuffer_(GL_ARRAY_BUFFER_ARB, 0);
+        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+    }
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
 
 HVARP(explicitskycolour, 0, 0x800080, 0xFFFFFF);

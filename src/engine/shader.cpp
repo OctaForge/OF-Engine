@@ -11,7 +11,7 @@ static hashtable<const char *, int> localparams(256);
 static hashtable<const char *, Shader> shaders(256);
 static Shader *slotshader = NULL;
 static vector<SlotShaderParam> slotparams;
-static bool standardshader = false, initshaders = false, forceshaders = true;
+static bool standardshader = false, forceshaders = true;
 
 VAR(maxtexcoords, 1, 0, 0);
 VAR(maxvsuniforms, 1, 0, 0);
@@ -22,30 +22,17 @@ VAR(dbgshader, 0, 1, 2);
 
 void loadshaders()
 {
-    GLint val;
-    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &val);
-    maxvsuniforms = val/4;
-    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &val);
-    maxfsuniforms = val/4;
-    glGetIntegerv(GL_MAX_VARYING_FLOATS, &val);
-    maxvaryings = val;
-    glGetIntegerv(GL_MAX_TEXTURE_COORDS, &val);
-    maxtexcoords = val;
-
-    initshaders = true;
     standardshader = true;
     auto err = lapi::state.do_file("data/shaders/glsl.lua", lua::ERROR_TRACEBACK);
     if (types::get<0>(err))
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     standardshader = false;
-    initshaders = false;
 
     nullshader = lookupshaderbyname("null");
     defaultshader = lookupshaderbyname("default");
     stdworldshader = lookupshaderbyname("stdworld");
     if(!nullshader || !defaultshader || !stdworldshader) fatal("cannot find shader definitions");
 
-    extern Slot dummyslot;
     dummyslot.shader = stdworldshader;
 
     rectshader = lookupshaderbyname("rect");
@@ -190,9 +177,9 @@ static void linkglslprogram(Shader &s, bool msg = true)
     if(success)
     {
         glUseProgram_(s.program);
-        loopi(10)
+        loopi(16)
         {
-            static const char * const texnames[10] = { "tex0", "tex1", "tex2", "tex3", "tex4", "tex5", "tex6", "tex7", "tex8", "tex9" };
+            static const char * const texnames[16] = { "tex0", "tex1", "tex2", "tex3", "tex4", "tex5", "tex6", "tex7", "tex8", "tex9", "tex10", "tex11", "tex12", "tex13", "tex14", "tex15" };
             GLint loc = glGetUniformLocation_(s.program, texnames[i]);
             if(loc != -1) glUniform1i_(loc, i);
         }
@@ -214,10 +201,14 @@ static void linkglslprogram(Shader &s, bool msg = true)
 
 bool checkglslsupport()
 {
+    const GLchar *vsstr = 
+        "void main(void) {\n" 
+        "    gl_Position = ftransform();\n"
+        "}\n";
 #if 0
     /* check if GLSL profile supports loops
      */
-    const GLchar *source = 
+    const GLchar *psstr = 
         "uniform int N;\n"
         "uniform vec4 delta;\n"
         "void main(void) {\n"
@@ -226,33 +217,36 @@ bool checkglslsupport()
         "   gl_FragColor = test;\n"
         "}\n";
 #else
-    const GLchar *source =
+    const GLchar *psstr =
         "void main(void) {\n"
         "   gl_FragColor = vec4(0.0);\n"
         "}\n";
 #endif
-    GLuint obj = glCreateShader_(GL_FRAGMENT_SHADER);
-    if(!obj) return false;
-    glShaderSource_(obj, 1, &source, NULL);
-    glCompileShader_(obj);
-    GLint success;
-    glGetShaderiv_(obj, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-        glDeleteShader_(obj);
-        return false;
-    }
+    GLuint vsobj = glCreateShader_(GL_VERTEX_SHADER), psobj = glCreateShader_(GL_FRAGMENT_SHADER);
     GLuint program = glCreateProgram_();
-    if(!program)
+    GLint success = 0;
+    if(vsobj && psobj && program)
     {
-        glDeleteShader_(obj);
-        return false;
-    } 
-    glAttachShader_(program, obj);
-    glLinkProgram_(program); 
-    glGetProgramiv_(program, GL_LINK_STATUS, &success);
-    glDeleteShader_(obj);
-    glDeleteProgram_(program);
+        glShaderSource_(vsobj, 1, &vsstr, NULL);
+        glCompileShader_(vsobj);
+        glGetShaderiv_(vsobj, GL_COMPILE_STATUS, &success);
+        if(success) 
+        {
+            glShaderSource_(psobj, 1, &psstr, NULL);
+            glCompileShader_(psobj);
+            glGetShaderiv_(psobj, GL_COMPILE_STATUS, &success);
+            if(success)
+            {
+                glAttachShader_(program, vsobj);
+                glAttachShader_(program, psobj);
+                glLinkProgram_(program); 
+                glGetProgramiv_(program, GL_LINK_STATUS, &success);
+            }
+        }
+    }
+    if(vsobj) glDeleteShader_(vsobj);
+    if(psobj) glDeleteShader_(psobj);
+    if(program) glDeleteProgram_(program);
     return success!=0;
 }
 
@@ -469,8 +463,6 @@ void Shader::bindprograms()
     lastshader = this;
 }
 
-VARF(shaderprecision, 0, 0, 2, initwarning("shader quality"));
-
 bool Shader::compile()
 {
     if(!vsstr) vsobj = !reusevs || reusevs->type&SHADER_INVALID ? 0 : reusevs->vsobj;
@@ -592,6 +584,51 @@ Shader *newshader(int type, const char *name, const char *vs, const char *ps, Sh
     if(variant) variant->variants[row].add(&s);
     s.fixdetailshader();
     return &s;
+}
+
+void setupshaders()
+{
+    GLint val;
+    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &val);
+    maxvsuniforms = val/4;
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &val);
+    maxfsuniforms = val/4;
+    glGetIntegerv(GL_MAX_VARYING_FLOATS, &val);
+    maxvaryings = val;
+    glGetIntegerv(GL_MAX_TEXTURE_COORDS, &val);
+    maxtexcoords = val;
+
+    standardshader = true;
+    nullshader = newshader(0, "<init>null",
+        "void main(void) {\n"
+        "   gl_Position = gl_Vertex;\n"
+        "}\n",
+        "void main(void) {\n"
+        "   gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
+        "}\n");
+    defaultshader = newshader(0, "<init>default", 
+        "void main(void) {\n"
+        "    gl_Position = ftransform();\n"
+        "    gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+        "    gl_FrontColor = gl_Color;\n"
+        "}\n",
+        "uniform sampler2D tex0;\n"
+        "void main(void) {\n"
+        "    gl_FragColor = gl_Color * texture2D(tex0, gl_TexCoord[0].xy);\n"
+        "}\n");
+    notextureshader = newshader(0, "<init>notexture",
+        "void main(void) {\n"
+        "    gl_Position = ftransform();\n"
+        "    gl_FrontColor = gl_Color;\n"
+        "}\n",
+        "void main(void) {\n"
+        "    gl_FragColor = gl_Color;\n"
+        "}\n");
+    standardshader = false;
+
+    if(!nullshader || !defaultshader || !notextureshader) fatal("failed to setup shaders");
+
+    dummyslot.shader = nullshader;
 }
 
 static const char *findglslmain(const char *s)
@@ -772,6 +809,7 @@ void useshader(Shader *s)
 
 void fixshaderdetail()
 {
+    if(initing) return;
     // must null out separately because fixdetailshader can recursively set it
     enumerate(shaders, Shader, s, { if(!s.forced) s.detailshader = NULL; });
     enumerate(shaders, Shader, s, { if(s.forced) s.fixdetailshader(); }); 
@@ -822,12 +860,6 @@ Shader *useshaderbyname(const char *name)
 void shader(int type, char *name, char *vs, char *ps)
 {
     if(lookupshaderbyname(name)) return;
-   
-    if((!hasCM && strstr(ps, "textureCube")) || (!hasTR && strstr(ps, "texture2DRect")))
-    {
-        slotparams.shrink(0);
-        return;
-    }
 
     defformatstring(info)("shader %s", name);
     renderprogress(loadprogress, info);
@@ -1172,7 +1204,7 @@ void renderpostfx()
 
 static bool addpostfx(const char *name, int outputbind, int outputscale, uint inputs, uint freeinputs, const vec4 &params)
 {
-    if(!hasTR || !*name) return false;
+    if(!*name) return false;
     Shader *s = useshaderbyname(name);
     if(!s)
     {
@@ -1225,7 +1257,7 @@ void cleanupshaders()
 {
     cleanuppostfx(true);
 
-    defaultshader = notextureshader = nocolorshader = foggedshader = foggednotextureshader = NULL;
+    nullshader = defaultshader = notextureshader = NULL;
     enumerate(shaders, Shader, s, s.cleanup());
     Shader::lastshader = NULL;
     glUseProgram_(0);
