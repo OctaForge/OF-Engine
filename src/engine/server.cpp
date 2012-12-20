@@ -31,6 +31,15 @@ void closelogfile()
     }
 }
 
+FILE *getlogfile()
+{
+#ifdef WIN32
+    return logfile;
+#else
+    return logfile ? logfile : stdout;
+#endif
+}
+
 void setlogfile(const char *fname)
 {
     closelogfile();
@@ -39,7 +48,8 @@ void setlogfile(const char *fname)
         fname = findfile(fname, "w");
         if(fname) logfile = fopen(fname, "w");
     }
-    setvbuf(logfile ? logfile : stdout, NULL, _IOLBF, BUFSIZ);
+    FILE *f = getlogfile();
+    if(f) setvbuf(f, NULL, _IOLBF, BUFSIZ);
 }
 
 void logoutf(const char *fmt, ...)
@@ -66,7 +76,8 @@ static void writelog(FILE *file, const char *fmt, va_list args)
 
 void logoutfv(const char *fmt, va_list args)
 {
-    writelog(logfile ? logfile : stdout, fmt, args);
+    FILE *f = getlogfile();
+    if(f) writelog(f, fmt, args);
 }
 
 #ifdef STANDALONE

@@ -3,7 +3,7 @@ OctaForge
 
 This is OctaForge developer alpha 10 (0.1.9, 27 December 2011)
 
-In sync with Tesseract: d876e8a2 (handle invalidate of rh cache for dynamic textures/models)
+In sync with Tesseract: 86de965b (cleanup some #ifdefs)
 
 For installation, read INSTALL.
 To run it, launch run_client.sh on *nix
