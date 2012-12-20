@@ -4,11 +4,7 @@
 #define _TOOLS_H
 
 #ifdef _DEBUG
-#ifdef __GNUC__
-#define ASSERT(c) if(!(c)) { asm("int $3"); }
-#else
-#define ASSERT(c) if(!(c)) { __asm int 3 }
-#endif
+#define ASSERT(c) assert(c)
 #else
 #define ASSERT(c) if(c) {}
 #endif
@@ -154,6 +150,15 @@ struct databuf
         return read;
     }
 
+    void offset(int n)
+    {
+        n = min(n, maxlen);
+        buf += n;
+        maxlen -= n;
+        len = max(len-n, 0);
+    }
+
+    bool empty() const { return len==0; }
     int length() const { return len; }
     int remaining() const { return maxlen-len; }
     bool overread() const { return (flags&OVERREAD)!=0; }
@@ -617,6 +622,18 @@ static inline bool htcmp(int x, int y)
 {
     return x==y;
 }
+
+#ifndef STANDALONE
+static inline uint hthash(GLuint key)
+{
+    return key;
+}
+
+static inline bool htcmp(GLuint x, GLuint y)
+{
+    return x==y;
+}
+#endif
 
 template<class T> struct hashset
 {

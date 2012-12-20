@@ -903,7 +903,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             }
             default: continue;
         }
-        if (v) switch (v->type)
+        if (v && ((v->flags) & varsys::FLAG_OVERRIDE)) switch (v->type)
         {
             case varsys::TYPE_I:
             {

@@ -3894,7 +3894,7 @@ ext.input_keypress = function(code, isdown, cooked)
 end
 
 ext.gui_clear = function()
-    if  EAPI.gui_mainmenu and (CAPI.isconnected() or CAPI.haslocalclients()) then
+    if  EAPI.gui_mainmenu and CAPI.isconnected() then
         EAPI.gui_set_mainmenu(false)
 
         world:hide_children()

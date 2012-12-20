@@ -516,11 +516,11 @@ bumpvariantshader = function(...)
             ]])
             @(btopt.P and [=[
                 const float step = -1.0/7.0;
-                vec3 duv = vec3((step*parallaxscale.x/camdir.z)*camdirts.xy, step);
+                vec3 duv = vec3((step*parallaxscale.x/camdirts.z)*camdirts.xy, step);
                 vec3 htc = vec3(gl_TexCoord[0].xy + duv.xy*parallaxscale.y, 1.0);
                 vec4 height = texture2D(normalmap, htc.xy);
                 @(string.rep([[
-                    htc += height.w < htc.z ? duv : vec(0.0);
+                    htc += height.w < htc.z ? duv : vec3(0.0);
                     height = texture2D(normalmap, htc.xy);
                 ]], 7))
                 #define dtc htc.xy
@@ -815,54 +815,14 @@ CAPI.shader(0, "rsmsky", [[
 
 skelanimdefs = function()
     return ([=[
-        @(EV.useubo ~= 0 and [[
-            #ifdef GL_ARB_uniform_buffer_object
-                #extension GL_ARB_uniform_buffer_object : enable
-            #endif
-        ]] or nil)
-        @(EV.usebue ~= 0 and [[
-            #extension GL_EXT_bindable_uniform : enable
-        ]] or nil)
         #pragma CUBE2_attrib vweights 6
         #pragma CUBE2_attrib vbones 7
         attribute vec4 vweights; 
         attribute vec4 vbones;
-        #pragma CUBE2_uniform animdata AnimData 0 16
-        @(EV.useubo ~= 0 and [[
-            #ifdef GL_ARB_uniform_buffer_object
-                layout(std140) uniform AnimData
-                {
-                    vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
-                };
-            #else
-        ]] or nil)
-        @(EV.usebue ~= 0 and [[
-            #ifdef GL_EXT_bindable_uniform
-                bindable
-            #endif
-        ]] or nil)
-        uniform vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
-        @(EV.useubo ~= 0 and [[
-            #endif
-        ]] or nil)
-    ]=]):eval_embedded() end
-
-skelanimfragdefs = function()
-    if EV.ati_ubo_bug ~= 0 then
-        return (EV.useubo ~= 0 and [[
-            #ifdef GL_ARB_uniform_buffer_object
-                #extension GL_ARB_uniform_buffer_object : enable
-                layout(std140) uniform AnimData
-                {
-                    vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
-                };
-            #endif
-        ]] or [[
-            #ifdef GL_EXT_bindable_uniform
-                #extension GL_EXT_bindable_uniform : enable
-                bindable uniform vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxanimdata))];
-            #endif
-        ]]):eval_embedded() end end
+        #pragma CUBE2_uniform animdata
+        uniform vec4 animdata[@(math.min(EV.maxvsuniforms, EV.maxskelanimdata))];
+    ]=]):eval_embedded()
+end
 
 skelmatanim = function(arg1, arg2, arg3)
     return ([=[
@@ -1144,7 +1104,6 @@ modelfragmentshader = function(...)
     }
 
     return ([===[
-        @((mdlopt.b or mdlopt.B) and skelanimfragdefs() or nil)
         @(mdlopt.n and [=[
             varying mat3 world; 
             @(mdlopt.e and [[
@@ -1227,13 +1186,9 @@ modelfragmentshader = function(...)
 
 modelanimshader = function(arg1, arg2, arg3, arg4)
     local fraganimshader = arg2 > 0 and tostring(arg2) or ""
-    local reuseanimshader = fraganimshader
-    if EV.ati_ubo_bug ~= 0 then
-        reuseanimshader = ("%i , %i"):format(arg2, arg2 > 0 and 1 or 0)
-        fraganimshader = (arg4 == 1) and modelfragmentshader("bB" .. arg3) or reuseanimshader
-    end
     CAPI.variantshader(0, arg1, arg2, modelvertexshader("B" .. arg3, arg4), fraganimshader)
-    CAPI.variantshader(0, arg1, arg2 + 1, modelvertexshader("b" .. arg3, arg4), reuseanimshader) end
+    CAPI.variantshader(0, arg1, arg2 + 1, modelvertexshader("b" .. arg3, arg4), fraganimshader)
+end
 
 modelshader = function(arg1, arg2)
     CAPI.defershader(0, arg1, function()
@@ -1339,7 +1294,6 @@ rsmmodelfragmentshader = function(...)
     }
 
     return ([=[
-        @((mdlopt.b or mdlopt.B) and skelanimfragdefs() or nil)
         varying vec4 normal;
         uniform vec2 fullbright;
         @(mdlopt.a and "uniform float alphatest;" or nil)
@@ -1359,13 +1313,8 @@ end
 
 rsmmodelanimshader = function(arg1, arg2, arg3, arg4)
     local fraganimshader = arg2 > 0 and tostring(arg2) or ""
-    local reuseanimshader = fraganimshader
-    if EV.ati_ubo_bug ~= 0 then
-        reuseanimshader = ("%i , %i"):format(arg2, arg2 > 0 and 1 or 0)
-        fraganimshader = (arg4 == 1) and modelfragmentshader("bB" .. arg3) or reuseanimshader
-    end
     CAPI.variantshader(0, arg1, arg2, rsmmodelvertexshader("B" .. arg3, arg4), fraganimshader)
-    CAPI.variantshader(0, arg1, arg2 + 1, rsmmodelvertexshader("b" .. arg3, arg4), reuseanimshader)
+    CAPI.variantshader(0, arg1, arg2 + 1, rsmmodelvertexshader("b" .. arg3, arg4), fraganimshader)
 end
 
 rsmmodelshader = function(arg1, arg2)
@@ -1927,7 +1876,6 @@ deferredlightvariantshader = function(...)
                 float sunfacing = dot(sunlightdir, normal.xyz);
                 if(sunfacing > 0.0)
                 {
-                    vec3 csmpos = (gl_TextureMatrix[1] * vec4(pos.xyz, 0.0)).xyz;
                     vec3 csmtc = getcsmtc(pos.xyz);
                     float sunoccluded = sunfacing * filtershadow(csmtc);
                     @(dlopt.m and [[

@@ -47,9 +47,9 @@ void throttle()
     enet_peer_throttle_configure(curpeer, throttle_interval*1000, throttle_accel, throttle_decel);
 }
 
-bool isconnected(bool attempt)
+bool isconnected(bool attempt, bool local)
 {
-    return curpeer || (attempt && connpeer);
+    return curpeer || (attempt && connpeer) || (local && haslocalclients());
 }
 
 const ENetAddress *connectedpeer()
@@ -147,7 +147,7 @@ void disconnect(bool async, bool cleanup)
     }
 }
 
-void trydisconnect()
+void trydisconnect(bool local)
 {
     if(connpeer)
     {
@@ -159,6 +159,7 @@ void trydisconnect()
         conoutf("attempting to disconnect...");
         disconnect(!discmillis);
     }
+    else if(local && haslocalclients()) localdisconnect();
     else conoutf("not connected");
 }
 

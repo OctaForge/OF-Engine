@@ -1,4 +1,4 @@
-void trydisconnect();
+void trydisconnect(bool local);
 
 namespace game
 {
@@ -17,9 +17,9 @@ namespace lapi_binds
     LAPI_EMPTY(connect)
 #endif
 
-    bool _lua_isconnected(bool attempt)
+    bool _lua_isconnected(bool attempt, bool local)
     {
-        return isconnected(attempt);
+        return isconnected(attempt, local);
     }
 
     bool _lua_haslocalclients()
@@ -55,7 +55,7 @@ namespace lapi_binds
         connectserv(NULL, port, passwd);
     }
 
-    void _lua_disconnect() { trydisconnect(); }
+    void _lua_disconnect(bool local) { trydisconnect(local); }
 
     void _lua_localconnect()
     {

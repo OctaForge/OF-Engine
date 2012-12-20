@@ -6,7 +6,7 @@
 #include "targeting.h" // INTENSITY
 #include "of_entities.h"
 
-bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasT3D = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasMT = false, hasAF = false, hasMDA = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false, hasDB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false;
+bool hasVBO = false, hasDRE = false, hasOQ = false, hasTR = false, hasT3D = false, hasFBO = false, hasAFBO = false, hasDS = false, hasTF = false, hasCBF = false, hasBE = false, hasBC = false, hasCM = false, hasNP2 = false, hasTC = false, hasS3TC = false, hasFXT1 = false, hasMT = false, hasAF = false, hasMDA = false, hasGLSL = false, hasGM = false, hasNVFB = false, hasSGIDT = false, hasSGISH = false, hasDT = false, hasSH = false, hasNVPCF = false, hasPBO = false, hasFBB = false, hasUBO = false, hasBUE = false, hasMBR = false, hasDB = false, hasTG = false, hasT4 = false, hasTQ = false, hasPF = false, hasTRG = false, hasDBT = false, hasDC = false, hasDBGO = false;
 bool mesa = false, intel = false, ati = false, nvidia = false;
 
 int hasstencil = 0;
@@ -99,6 +99,13 @@ PFNGLGETACTIVEUNIFORMPROC         glGetActiveUniform_         = NULL;
 PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
 PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
+
+PFNGLUNIFORMMATRIX2X3FVPROC       glUniformMatrix2x3fv_       = NULL;
+PFNGLUNIFORMMATRIX3X2FVPROC       glUniformMatrix3x2fv_       = NULL;
+PFNGLUNIFORMMATRIX2X4FVPROC       glUniformMatrix2x4fv_       = NULL;
+PFNGLUNIFORMMATRIX4X2FVPROC       glUniformMatrix4x2fv_       = NULL;
+PFNGLUNIFORMMATRIX3X4FVPROC       glUniformMatrix3x4fv_       = NULL;
+PFNGLUNIFORMMATRIX4X3FVPROC       glUniformMatrix4x3fv_       = NULL;
 #endif
 
 // GL_EXT_draw_range_elements
@@ -154,6 +161,10 @@ PFNGLDEBUGMESSAGEINSERTARBPROC glDebugMessageInsert_ = NULL;
 PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallback_ = NULL;
 PFNGLGETDEBUGMESSAGELOGARBPROC glGetDebugMessageLog_ = NULL;
 
+// GL_ARB_map_buffer_range
+PFNGLMAPBUFFERRANGEPROC         glMapBufferRange_         = NULL;
+PFNGLFLUSHMAPPEDBUFFERRANGEPROC glFlushMappedBufferRange_ = NULL;
+
 void *getprocaddress(const char *name)
 {
     return SDL_GL_GetProcAddress(name);
@@ -179,11 +190,13 @@ VAR(ati_oq_bug, 0, 0, 1);
 VAR(ati_minmax_bug, 0, 0, 1);
 VAR(ati_cubemap_bug, 0, 0, 1);
 VAR(ati_ubo_bug, 0, 0, 1);
+VAR(intel_immediate_bug, 0, 0, 1);
 VAR(sdl_backingstore_bug, -1, 0, 1);
 VAR(usetexrect, 1, 0, 0);
 VAR(useubo, 1, 0, 0);
 VAR(usebue, 1, 0, 0);
 VAR(usetexgather, 1, 0, 0);
+VAR(usetexcompress, 1, 0, 0);
 
 #if 0
 static bool checkseries(const char *s, int low, int high)
@@ -430,16 +443,12 @@ void gl_checkextensions()
     else if(intel)
     {
 #ifdef WIN32
+        intel_immediate_bug = 1;
         gdepthstencil = 0; // workaround for buggy stencil on windows ivy bridge driver
 #endif
         glineardepth = 1; // causes massive slowdown in windows driver (and sometimes in linux driver) if not using linear depth
         lighttilebatch = 4;
         if(mesa) batchsunlight = 0; // causes massive slowdown in linux driver
-    }
-    else
-    {
-        // silence warnings
-        (void)mesa;
     }
 
     if(glversion >= 200)
@@ -476,6 +485,16 @@ void gl_checkextensions()
         glEnableVertexAttribArray_ =  (PFNGLENABLEVERTEXATTRIBARRAYPROC)  getprocaddress("glEnableVertexAttribArray");
         glDisableVertexAttribArray_ = (PFNGLDISABLEVERTEXATTRIBARRAYPROC) getprocaddress("glDisableVertexAttribArray");
         glVertexAttribPointer_ =      (PFNGLVERTEXATTRIBPOINTERPROC)      getprocaddress("glVertexAttribPointer");
+
+        if(glversion >= 210)
+        {
+            glUniformMatrix2x3fv_ =   (PFNGLUNIFORMMATRIX2X3FVPROC)       getprocaddress("glUniformMatrix2x3fv");
+            glUniformMatrix3x2fv_ =   (PFNGLUNIFORMMATRIX3X2FVPROC)       getprocaddress("glUniformMatrix3x2fv");
+            glUniformMatrix2x4fv_ =   (PFNGLUNIFORMMATRIX2X4FVPROC)       getprocaddress("glUniformMatrix2x4fv");
+            glUniformMatrix4x2fv_ =   (PFNGLUNIFORMMATRIX4X2FVPROC)       getprocaddress("glUniformMatrix4x2fv");
+            glUniformMatrix3x4fv_ =   (PFNGLUNIFORMMATRIX3X4FVPROC)       getprocaddress("glUniformMatrix3x4fv");
+            glUniformMatrix4x3fv_ =   (PFNGLUNIFORMMATRIX4X3FVPROC)       getprocaddress("glUniformMatrix4x3fv");
+        }
 #endif
 
         extern bool checkglslsupport();
@@ -489,6 +508,14 @@ void gl_checkextensions()
         else glslversion = majorversion*100 + minorversion; 
     }
     if(!hasGLSL || glslversion < 100) fatal("GLSL support is required!");
+
+    if(hasext(exts, "GL_ARB_map_buffer_range"))
+    {
+        glMapBufferRange_         = (PFNGLMAPBUFFERRANGEPROC)        getprocaddress("glMapBufferRange");
+        glFlushMappedBufferRange_ = (PFNGLFLUSHMAPPEDBUFFERRANGEPROC)getprocaddress("glFlushMappedBufferRange");
+        hasMBR = true;
+        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_map_buffer_range.");
+    }
  
     if(hasext(exts, "GL_ARB_uniform_buffer_object"))
     {
@@ -590,7 +617,7 @@ void gl_checkextensions()
     }
     else fatal("Non-power-of-two texture support is required!");
 
-    if(hasext(exts, "GL_ARB_texture_compression") && hasext(exts, "GL_EXT_texture_compression_s3tc"))
+    if(hasext(exts, "GL_ARB_texture_compression"))
     {
         glCompressedTexImage3D_ =    (PFNGLCOMPRESSEDTEXIMAGE3DARBPROC)   getprocaddress("glCompressedTexImage3DARB");
         glCompressedTexImage2D_ =    (PFNGLCOMPRESSEDTEXIMAGE2DARBPROC)   getprocaddress("glCompressedTexImage2DARB");
@@ -601,7 +628,24 @@ void gl_checkextensions()
         glGetCompressedTexImage_ =   (PFNGLGETCOMPRESSEDTEXIMAGEARBPROC)  getprocaddress("glGetCompressedTexImageARB");
 
         hasTC = true;
-        if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_texture_compression_s3tc extension.");
+        if(dbgexts) conoutf(CON_INIT, "Using GL_ARB_texture_compression.");
+
+        if(hasext(exts, "GL_EXT_texture_compression_s3tc"))
+        {
+            hasS3TC = true;
+#ifdef __APPLE__
+            usetexcompress = 1;
+#else
+            if(!mesa) usetexcompress = 2;
+#endif
+            if(dbgexts) conoutf(CON_INIT, "Using GL_EXT_texture_compression_s3tc extension.");
+        }
+        if(hasext(exts, "GL_3DFX_texture_compression_FXT1"))
+        {
+            hasFXT1 = true;
+            if(mesa) usetexcompress = 1;
+            if(dbgexts) conoutf(CON_INIT, "Using GL_3DFX_texture_compression_FXT1.");
+        }
     }
 
     if(hasext(exts, "GL_EXT_texture_filter_anisotropic"))
@@ -951,7 +995,7 @@ VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
  
 VAR(thirdperson, 0, 0, 2);
-FVAR(thirdpersondistance, 0, 20, 1000);
+FVAR(thirdpersondistance, 0, 20, 100);
 physent *camera1 = NULL;
 bool detachedcamera = false;
 bool isthirdperson() { return player!=camera1 || detachedcamera; }
@@ -1990,7 +2034,7 @@ VARP(damagecompassmax, 1, 200, 1000);
 float dcompass[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 void damagecompass(int n, const vec &loc)
 {
-    if(!usedamagecompass) return;
+    if(!usedamagecompass || minimized) return;
     vec delta(loc);
     delta.sub(camera1->o); 
     float yaw, pitch;
@@ -2049,7 +2093,7 @@ VARP(damagescreenmax, 1, 100, 1000);
 
 void damageblend(int n)
 {
-    if(!damagescreen) return;
+    if(!damagescreen || minimized) return;
     if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
     damageblendmillis += clamp(n, damagescreenmin, damagescreenmax)*damagescreenfactor;
 }

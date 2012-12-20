@@ -347,6 +347,7 @@ extern void *getclientinfo(int i);
 extern ENetPacket *sendf(int cn, int chan, const char *format, ...);
 extern void sendpacket(int cn, int chan, ENetPacket *packet, int exclude = -1);
 extern void flushserver(bool force);
+extern int getservermtu();
 extern int getnumclients();
 extern uint getclientip(int n);
 extern void putint(ucharbuf &p, int n);
@@ -379,7 +380,7 @@ extern bool requestmasterf(const char *fmt, ...);
 extern void sendclientpacket(ENetPacket *packet, int chan, int cn=-1); // INTENSITY: added cn
 extern void flushclient();
 extern void disconnect(bool async = false, bool cleanup = true);
-extern bool isconnected(bool attempt = false);
+extern bool isconnected(bool attempt = false, bool local = true);
 extern const ENetAddress *connectedpeer();
 extern bool multiplayer(bool msg = true);
 extern void neterr(const char *s, bool disc = true);

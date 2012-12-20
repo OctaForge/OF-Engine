@@ -30,7 +30,7 @@ void mdlperentitycollisionboxes(bool val);
 void rdvert(const vec& o, float radius);
 void rdeye(int v);
 void rdtri(int v1, int v2, int v3);
-void rdjoint(int n, int t, char *v1, char *v2, char *v3);
+void rdjoint(int n, int t, int v1, int v2, int v3);
 void rdlimitdist(int v1, int v2, float mindist, float maxdist);
 void rdlimitrot(int t1, int t2, float maxangle, float qx, float qy, float qz, float qw);
 void rdanimjoints(bool on);
@@ -119,11 +119,9 @@ namespace lapi_binds
     void _lua_rdeye (int                  v) { rdeye (v);          }
     void _lua_rdtri (int v1, int v2, int v3) { rdtri (v1, v2, v3); }
 
-    void _lua_rdjoint(
-        int n, int t, const char *v1, const char *v2, const char *v3
-    )
+    void _lua_rdjoint(int n, int t, int v1, int v2, int v3)
     {
-        rdjoint(n, t, (char*)v1, (char*)v2, (char*)v3);
+        rdjoint(n, t, v1, v2, v3);
     }
 
     void _lua_rdlimitdist(int v1, int v2, float mind, float maxd)

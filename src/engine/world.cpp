@@ -1228,7 +1228,7 @@ void shrinkmap()
     conoutf("shrunk map to size %d", worldscale);
 }
 
-void newmap(int i) { bool force = !isconnected() && !haslocalclients(); if(emptymap(i, force, NULL)) game::newmap(max(i, 0)); }
+void newmap(int i) { bool force = !isconnected(); if(emptymap(i, force, NULL)) game::newmap(max(i, 0)); }
 void mapenlarge() { if(enlargemap(false)) game::newmap(-1); }
 
 void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, int attr4, int attr5, bool local)

@@ -34,7 +34,7 @@
 
 extern string homedir;
 
-void trydisconnect();
+void trydisconnect(bool local);
 
 namespace local_server
 {
@@ -106,7 +106,7 @@ namespace local_server
     {
         if (!started) return;
 
-        trydisconnect();
+        trydisconnect(false);
 #ifdef WIN32
         _pclose(popen_out);
 #else

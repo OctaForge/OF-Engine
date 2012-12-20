@@ -3,7 +3,7 @@ OctaForge
 
 This is OctaForge developer alpha 10 (0.1.9, 27 December 2011)
 
-In sync with Tesseract: 86de965b (cleanup some #ifdefs)
+In sync with Tesseract: 1bcc8f08 (require >= privilege to kick)
 
 For installation, read INSTALL.
 To run it, launch run_client.sh on *nix

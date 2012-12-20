@@ -451,9 +451,11 @@ VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
 
+extern int usetexcompress;
+
 void setuptexcompress()
 {
-    if(!hasTC) return;
+    if(!hasTC || !usetexcompress) return;
 
     GLenum hint = GL_DONT_CARE;
     switch(texcompressquality)
@@ -466,21 +468,14 @@ void setuptexcompress()
 
 GLenum compressedformat(GLenum format, int w, int h, int force = 0)
 {
-    if(hasTC && texcompress && force >= 0 && (force || max(w, h) >= texcompress)) switch(format)
+    if(hasTC && usetexcompress && texcompress && force >= 0 && (force || max(w, h) >= texcompress)) switch(format)
     {
         case GL_RGB5:
         case GL_RGB8:
-#ifdef __APPLE__
         case GL_LUMINANCE:
-        case GL_RGB: return GL_COMPRESSED_RGB_ARB;
+        case GL_RGB: return usetexcompress > 1 ? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGB_ARB;
         case GL_LUMINANCE_ALPHA:
-        case GL_RGBA: return GL_COMPRESSED_RGBA_ARB;
-#else
-        case GL_LUMINANCE:
-        case GL_RGB: return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-        case GL_LUMINANCE_ALPHA:
-        case GL_RGBA: return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-#endif
+        case GL_RGBA: return usetexcompress > 1 ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_ARB;
     }
     return format;
 }
@@ -505,7 +500,7 @@ void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int
 {
     int hwlimit = target==GL_TEXTURE_CUBE_MAP_ARB ? hwcubetexsize : hwtexsize,
         sizelimit = mipmap && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
-    if(compress > 0 && !hasTC)
+    if(compress > 0 && (!hasTC || !usetexcompress))
     {
         w = max(w/compress, 1);
         h = max(h/compress, 1);
@@ -1261,7 +1256,7 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         string dfile;
         copystring(dfile, file);
         memcpy(dfile + flen - 4, ".dds", 4);
-        if(!raw && hasTC && loaddds(dfile, d)) return true;
+        if(!raw && hasS3TC && loaddds(dfile, d)) return true;
         if(!dds || dbgdds) { if(msg) conoutf(CON_ERROR, "could not load texture %s", dfile); return false; }
     }
         
@@ -2435,7 +2430,6 @@ bool reloadtexture(Texture &tex)
     if(tex.id) return true;
     switch(tex.type&Texture::TYPE)
     {
-        case Texture::STUB:
         case Texture::IMAGE:
         {
             int compress = 0;
@@ -2581,7 +2575,7 @@ bool loaddds(const char *filename, ImageData &image)
 
 void gendds(char *infile, char *outfile)
 {
-    if(!hasTC) { conoutf(CON_ERROR, "OpenGL driver does not support texture compression"); return; }
+    if(!hasS3TC || usetexcompress <= 1) { conoutf(CON_ERROR, "OpenGL driver does not support S3TC texture compression"); return; }
 
     glHint(GL_TEXTURE_COMPRESSION_HINT_ARB, GL_NICEST);
 
