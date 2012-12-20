@@ -8,19 +8,21 @@ end
 
 edit.material_reset()
 
-texture.add("glass", "textures/core/glassn.png")
-
-texture.add("water", "textures/core/water.png") -- water
-texture.add("1", "textures/core/water.png") -- waterfall
-texture.add("1", "textures/core/watern.png") -- water normalmap
-texture.add("1", "textures/core/waterd.png") -- water dudv
-texture.add("1", "textures/core/watern.png") -- waterfall normalmap
-texture.add("1", "textures/core/waterd.png") -- waterfall dudv
-
-texture.add("lava", "textures/core/lava.png",  0, 0, 0, 2) -- lava
-texture.add("1", "textures/core/lava.png")   -- falling lava
-texture.add("1", "textures/core/watern.png") -- lava normalmap
-texture.add("1", "textures/core/watern.png") -- lavafall normalmap
+for i = 1, 4 do
+    texture.add("glass" .. i, "textures/core/glassn.png") -- glass normals
+    
+    texture.add("water" .. i, "textures/core/water.png") -- water
+    texture.add("1", "textures/core/water.png") -- waterfall
+    texture.add("1", "textures/core/watern.png") -- water normalmap
+    texture.add("1", "textures/core/waterd.png") -- water dudv
+    texture.add("1", "textures/core/watern.png") -- waterfall normalmap
+    texture.add("1", "textures/core/waterd.png") -- waterfall dudv
+    
+    texture.add("lava" .. i, "textures/core/lava.png",  0, 0, 0, 2) -- lava
+    texture.add("1", "textures/core/lava.png")   -- falling lava
+    texture.add("1", "textures/core/watern.png") -- lava normalmap
+    texture.add("1", "textures/core/watern.png") -- lavafall normalmap
+end
 
 texture.reset() -- let's start at texture slot 0
 

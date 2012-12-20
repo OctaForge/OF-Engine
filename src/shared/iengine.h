@@ -10,13 +10,15 @@ extern int gamespeed, paused;
 
 enum
 {
-    MATF_VOLUME_SHIFT = 0,
-    MATF_CLIP_SHIFT   = 3,
-    MATF_FLAG_SHIFT   = 5,
+    MATF_INDEX_SHIFT  = 0,
+    MATF_VOLUME_SHIFT = 2,
+    MATF_CLIP_SHIFT   = 5,
+    MATF_FLAG_SHIFT   = 8,
 
+    MATF_INDEX  = 3 << MATF_INDEX_SHIFT,
     MATF_VOLUME = 7 << MATF_VOLUME_SHIFT,
-    MATF_CLIP   = 3 << MATF_CLIP_SHIFT,
-    MATF_FLAGS  = 7 << MATF_FLAG_SHIFT
+    MATF_CLIP   = 7 << MATF_CLIP_SHIFT,
+    MATF_FLAGS  = 0xFF << MATF_FLAG_SHIFT
 };
 
 enum // cube empty-space materials
@@ -189,8 +191,8 @@ enum
     DL_FLASH  = 1<<2
 };
 
-extern void adddynlight  (const vec &o, float radius, const vec &color, int fade = 0, int peak = 0, int flags = 0, float initradius = 0, const vec &initcolor = vec(0, 0, 0), physent *owner = NULL);
-extern void queuedynlight(const vec &o, float radius, const vec &color, int fade = 0, int peak = 0, int flags = 0, float initradius = 0, const vec &initcolor = vec(0, 0, 0), physent *owner = NULL);
+extern void adddynlight  (const vec &o, float radius, const vec &color, int fade = 0, int peak = 0, int flags = 0, float initradius = 0, const vec &initcolor = vec(0, 0, 0), physent *owner = NULL, const vec &dir = vec(0, 0, 0), int spot = 0);
+extern void queuedynlight(const vec &o, float radius, const vec &color, int fade = 0, int peak = 0, int flags = 0, float initradius = 0, const vec &initcolor = vec(0, 0, 0), physent *owner = NULL, const vec &dir = vec(0, 0, 0), int spot = 0);
 extern void dynlightreaching(const vec &target, vec &color, vec &dir, bool hud = false);
 extern void removetrackeddynlights(physent *owner = NULL);
 
@@ -281,7 +283,6 @@ extern bool droptofloor(vec &o, float radius, float height);
 
 extern void vecfromyawpitch(float yaw, float pitch, int move, int strafe, vec &m);
 extern void vectoyawpitch(const vec &v, float &yaw, float &pitch);
-extern bool moveplatform(physent *p, const vec &dir);
 extern void updatephysstate(physent *d);
 extern void cleardynentcache();
 extern void updatedynentcache(physent *d);
@@ -375,6 +376,7 @@ extern bool haslocalclients();
 extern void sendserverinforeply(ucharbuf &p);
 extern bool requestmaster(const char *req);
 extern bool requestmasterf(const char *fmt, ...);
+extern bool isdedicatedserver();
 
 // client
 extern void sendclientpacket(ENetPacket *packet, int chan, int cn=-1); // INTENSITY: added cn

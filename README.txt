@@ -3,7 +3,7 @@ OctaForge
 
 This is OctaForge developer alpha 10 (0.1.9, 27 December 2011)
 
-In sync with Tesseract: cd643a04 (smnodynshadow var)
+In sync with Tesseract: 26b50e8f (flag icon fix)
 
 For installation, read INSTALL.
 To run it, launch run_client.sh on *nix

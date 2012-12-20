@@ -38,7 +38,7 @@ namespace lapi_binds
     void _lua_materialreset()
     {
         if (!varsys::overridevars && !game::allowedittoggle()) return;
-        loopi(MATF_VOLUME + 1) materialslots[i].reset();
+        loopi((MATF_VOLUME|MATF_INDEX)+1) materialslots[i].reset();
     }
 
     void _lua_compactvslots()

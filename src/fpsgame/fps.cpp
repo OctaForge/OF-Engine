@@ -553,7 +553,6 @@ namespace game
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
     {
 #ifdef CLIENT
-        if(d->type==ENT_INANIMATE) return;
         if     (waterlevel>0) { if(material!=MAT_LAVA) playsound(S_SPLASH1, d==player1 ? NULL : &d->o); }
         else if(waterlevel<0) playsound(material==MAT_LAVA ? S_BURN : S_SPLASH2, d==player1 ? NULL : &d->o);
         if     (floorlevel>0) { if(d==player1 || d->type!=ENT_PLAYER) playsoundc(S_JUMP, (fpsent *)d); }
@@ -639,7 +638,7 @@ namespace game
     void particletrack(physent *owner, vec &o, vec &d)
     {
 #ifdef CLIENT
-        if(owner->type!=ENT_PLAYER && owner->type!=ENT_AI) return;
+        if(owner->type!=ENT_PLAYER) return;
 //        fpsent *pl = (fpsent *)owner;
 //        if(pl->muzzle.x < 0 || pl->lastattackgun != pl->gunselect) return;
         float dist = o.dist(d);

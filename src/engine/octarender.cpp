@@ -895,17 +895,14 @@ void gencubeedges(cube *c = worldroot, int x = 0, int y = 0, int z = 0, int size
 
 void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
 {
-    c.visible = 0;
-    c.collide = 0;
-    int tj = filltjoints && c.ext ? c.ext->tjoints : -1, vis;
+    int tj = filltjoints && c.ext ? c.ext->tjoints : -1, vis, vismask = 0, collidemask = 0, checkmask = 0;
     loopi(6) if((vis = visibletris(c, i, x, y, z, size)))
     {
         // this is necessary for physics to work, even if the face is merged
-        if(collideface(c, i)) c.collide |= 1<<i;
+        vismask |= 1<<i;
+        if(collideface(c, i)) collidemask |= 1<<i;
 
         if(c.merged&(1<<i)) continue;
-
-        c.visible |= 1<<i;
 
         vec pos[MAXFACEVERTS];
         vertinfo *verts = NULL;
@@ -915,10 +912,11 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
             verts = c.ext->verts() + c.ext->surfaces[i].verts;
             vec vo = ivec(x, y, z).mask(~0xFFF).tovec();
             loopj(numverts) pos[j] = verts[j].getxyz().tovec().mul(1.0f/8).add(vo);
-            if(!(c.merged&(1<<i)) && !flataxisface(c, i)) convex = faceconvexity(verts, numverts, size);
+            if(!flataxisface(c, i)) convex = faceconvexity(verts, numverts, size);
         }
         else
         {
+            if(c.texture[i] != DEFAULT_SKY) checkmask |= 1<<i;
             ivec v[4];
             genfaceverts(c, i, v);
             if(!flataxisface(c, i)) convex = faceconvexity(v);
@@ -950,8 +948,10 @@ void gencubeverts(cube &c, int x, int y, int z, int size, int csi)
     }
     else
     {
-        if(visibleface(c, i, x, y, z, size, MAT_AIR, MAT_NOCLIP, MATF_CLIP) && collideface(c, i)) c.collide |= 1<<i;
+        if(c.material != MAT_NOCLIP && visibleface(c, i, x, y, z, size, MAT_AIR, MAT_NOCLIP, MATF_CLIP) && collideface(c, i)) collidemask |= 1<<i;
     }
+
+    c.visible = collidemask | (vismask ? (vismask != collidemask ? (checkmask ? 0x80|0x40 : 0x80) : 0x40) : 0);
 }
 
 ////////// Vertex Arrays //////////////
@@ -1086,8 +1086,8 @@ void updatevabbs(bool force)
 
 struct mergedface
 {   
-    uchar orient, mat, numverts;
-    ushort tex, envmap;
+    uchar orient, numverts;
+    ushort mat, tex, envmap;
     vertinfo *verts;
     int tjoints;
 };  
@@ -1100,10 +1100,8 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
 {
     if(!c.ext || isempty(c)) return -1;
     int tj = c.ext->tjoints, maxlevel = -1;
-    if(minlevel < 0) c.escaped &= ~c.merged;
-    loopi(6) 
+    loopi(6) if(c.merged&(1<<i)) 
     {
-        if(!(c.merged&(1<<i))) continue;
         surfaceinfo &surf = c.ext->surfaces[i];
         int numverts = surf.numverts&MAXFACEVERTS;
         if(!numverts) 
@@ -1120,8 +1118,6 @@ int genmergedfaces(cube &c, const ivec &co, int size, int minlevel = -1)
         mf.verts = c.ext->verts() + surf.verts; 
         mf.tjoints = -1;
         int level = calcmergedsize(i, co, size, mf.verts, mf.numverts&MAXFACEVERTS);
-        if(minlevel < 0 && 1<<level > size) 
-            c.escaped |= 1<<i;
         if(level > minlevel)
         {
             maxlevel = max(maxlevel, level);

@@ -18,7 +18,7 @@ const int MAXCLIPPLANES = 1024;
 static clipplanes clipcache[MAXCLIPPLANES];
 static int clipcacheversion = 0;
 
-static inline clipplanes &getclipplanes(cube &c, const ivec &o, int size)
+static inline clipplanes &getclipplanes(const cube &c, const ivec &o, int size)
 {
     clipplanes &p = clipcache[int(&c - worldroot)&(MAXCLIPPLANES-1)];
     if(p.owner != &c || p.version != clipcacheversion) 
@@ -104,7 +104,7 @@ bool pointincube(const clipplanes &p, const vec &v)
 
 vec hitsurface;
 
-static inline bool raycubeintersect(clipplanes &p, const cube &c, const vec &v, const vec &ray, const vec &invray, float &dist)
+static inline bool raycubeintersect(const clipplanes &p, const cube &c, const vec &v, const vec &ray, const vec &invray, float &dist)
 {
     int entry = -1, bbentry = -1;
     INTERSECTPLANES(entry = i, return false);
@@ -308,7 +308,7 @@ float raycube(const vec &o, const vec &ray, float radius, int mode, int size, ex
 
         if(!isempty(c))
         {
-            clipplanes &p = getclipplanes(c, lo, lsize);
+            const clipplanes &p = getclipplanes(c, lo, lsize);
             float f = 0;
             if(raycubeintersect(p, c, v, ray, invray, f) && (dist+f>0 || !(mode&RAY_SKIPFIRST)))
                 return min(dent, dist+f);
@@ -339,7 +339,7 @@ float shadowray(const vec &o, const vec &ray, float radius, int mode, extentity 
         if(!isempty(c) && !(c.material&MAT_ALPHA))
         {
             if(isentirelysolid(c)) return c.texture[side]==DEFAULT_SKY && mode&RAY_SKIPSKY ? radius : dist;
-            clipplanes &p = getclipplanes(c, lo, 1<<lshift);
+            const clipplanes &p = getclipplanes(c, lo, 1<<lshift);
             INTERSECTPLANES(side = p.side[i], goto nextcube);
             INTERSECTBOX(side = (i<<1) + 1 - lsizemask[i], goto nextcube);
             if(exitdist >= 0) return c.texture[side]==DEFAULT_SKY && mode&RAY_SKIPSKY ? radius : dist+max(enterdist+0.1f, 0.0f);
@@ -501,13 +501,13 @@ bool ellipserectcollide(physent *d, const vec &dir, const vec &o, const vec &cen
         }
         if(yo.z < 0)
         {
-            if(dir.iszero() || (dir.z > 0 && (d->type>=ENT_INANIMATE || below >= d->zmargin-(d->eyeheight+d->aboveeye)/4.0f)))
+            if(dir.iszero() || (dir.z > 0 && (d->type>=ENT_CAMERA || below >= d->zmargin-(d->eyeheight+d->aboveeye)/4.0f)))
             {
                 wall = vec(0, 0, -1);
                 return false;
             }
         }
-        else if(dir.iszero() || (dir.z < 0 && (d->type>=ENT_INANIMATE || above >= d->zmargin-(d->eyeheight+d->aboveeye)/3.0f)))
+        else if(dir.iszero() || (dir.z < 0 && (d->type>=ENT_CAMERA || above >= d->zmargin-(d->eyeheight+d->aboveeye)/3.0f)))
         {
             wall = vec(0, 0, 1);
             return false;
@@ -540,13 +540,13 @@ bool ellipsecollide(physent *d, const vec &dir, const vec &o, const vec &center,
         }
         if(d->o.z < yo.z)
         {
-            if(dir.iszero() || (dir.z > 0 && (d->type>=ENT_INANIMATE || below >= d->zmargin-(d->eyeheight+d->aboveeye)/4.0f)))
+            if(dir.iszero() || (dir.z > 0 && (d->type>=ENT_CAMERA || below >= d->zmargin-(d->eyeheight+d->aboveeye)/4.0f)))
             {
                 wall = vec(0, 0, -1);
                 return false;
             }
         }
-        else if(dir.iszero() || (dir.z < 0 && (d->type>=ENT_INANIMATE || above >= d->zmargin-(d->eyeheight+d->aboveeye)/3.0f)))
+        else if(dir.iszero() || (dir.z < 0 && (d->type>=ENT_CAMERA || above >= d->zmargin-(d->eyeheight+d->aboveeye)/3.0f)))
         {
             wall = vec(0, 0, 1);
             return false;
@@ -571,8 +571,8 @@ bool rectcollide(physent *d, const vec &dir, const vec &o, float xr, float yr,  
     wall.x = wall.y = wall.z = 0;
 #define TRYCOLLIDE(dim, ON, OP, N, P) \
     { \
-        if(s.dim<0) { if(visible&(1<<ON) && (dir.iszero() || (dir.dim>0 && (d->type>=ENT_INANIMATE || (N))))) { wall.dim = -1; return false; } } \
-        else if(visible&(1<<OP) && (dir.iszero() || (dir.dim<0 && (d->type>=ENT_INANIMATE || (P))))) { wall.dim = 1; return false; } \
+        if(s.dim<0) { if(visible&(1<<ON) && (dir.iszero() || (dir.dim>0 && (d->type>=ENT_CAMERA || (N))))) { wall.dim = -1; return false; } } \
+        else if(visible&(1<<OP) && (dir.iszero() || (dir.dim<0 && (d->type>=ENT_CAMERA || (P))))) { wall.dim = 1; return false; } \
     }
     if(ax>ay && ax>az) TRYCOLLIDE(x, O_LEFT, O_RIGHT, ax > -dxr, ax > -dxr);
     if(ay>az) TRYCOLLIDE(y, O_BACK, O_FRONT, ay > -dyr, ay > -dyr);
@@ -702,7 +702,6 @@ bool plcollide(physent *d, const vec &dir)    // collide with player or monster
                     break;
             }
             hitplayer = o;
-            if((d->type==ENT_AI || d->type==ENT_INANIMATE) && wall.z>0) d->onplayer = o;
             return false;
         }
     }
@@ -778,7 +777,7 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
 }
 
 template<class E>
-static bool fuzzycollidesolid(physent *d, const vec &dir, float cutoff, cube &c, const ivec &co, int size) // collide with solid cube geometry
+static bool fuzzycollidesolid(physent *d, const vec &dir, float cutoff, const cube &c, const ivec &co, int size) // collide with solid cube geometry
 {
     int crad = size/2;
     if(fabs(d->o.x - co.x - crad) > d->radius + crad || fabs(d->o.y - co.y - crad) > d->radius + crad ||
@@ -788,7 +787,7 @@ static bool fuzzycollidesolid(physent *d, const vec &dir, float cutoff, cube &c,
     E entvol(d);
     wall = vec(0, 0, 0);
     float bestdist = -1e10f;
-    int visible = isentirelysolid(c) ? c.collide : 0xFF;
+    int visible = isentirelysolid(c) ? c.visible : 0xFF;
     loopi(6) if(visible&(1<<i))
     {
         int dim = dimension(i), dc = dimcoord(i), dimdir = 2*dc - 1;
@@ -846,9 +845,9 @@ static inline bool clampcollide(const clipplanes &p, const E &entvol, const plan
 }
     
 template<class E>
-static bool fuzzycollideplanes(physent *d, const vec &dir, float cutoff, cube &c, const ivec &co, int size) // collide with deformed cube geometry
+static bool fuzzycollideplanes(physent *d, const vec &dir, float cutoff, const cube &c, const ivec &co, int size) // collide with deformed cube geometry
 {
-    clipplanes &p = getclipplanes(c, co, size);
+    const clipplanes &p = getclipplanes(c, co, size);
 
     if(fabs(d->o.x - p.o.x) > p.r.x + d->radius || fabs(d->o.y - p.o.y) > p.r.y + d->radius ||
        d->o.z + d->aboveeye < p.o.z - p.r.z || d->o.z - d->eyeheight > p.o.z + p.r.z)
@@ -881,7 +880,7 @@ static bool fuzzycollideplanes(physent *d, const vec &dir, float cutoff, cube &c
     int bestplane = -1;
     loopi(p.size)
     {
-        plane &w = p.p[i];
+        const plane &w = p.p[i];
         vec pw = entvol.supportpoint(vec(w).neg());
         float dist = w.dist(pw);
         if(dist >= 0) return true;
@@ -910,7 +909,7 @@ static bool fuzzycollideplanes(physent *d, const vec &dir, float cutoff, cube &c
 }
 
 template<class E>
-static bool cubecollidesolid(physent *d, const vec &dir, float cutoff, cube &c, const ivec &co, int size) // collide with solid cube geometry
+static bool cubecollidesolid(physent *d, const vec &dir, float cutoff, const cube &c, const ivec &co, int size) // collide with solid cube geometry
 {
     int crad = size/2;
     if(fabs(d->o.x - co.x - crad) > d->radius + crad || fabs(d->o.y - co.y - crad) > d->radius + crad ||
@@ -923,7 +922,7 @@ static bool cubecollidesolid(physent *d, const vec &dir, float cutoff, cube &c, 
 
     wall = vec(0, 0, 0);
     float bestdist = -1e10f;
-    int visible = isentirelysolid(c) ? c.collide : 0xFF;
+    int visible = isentirelysolid(c) ? c.visible : 0xFF;
     loopi(6) if(visible&(1<<i))
     {
         int dim = dimension(i), dc = dimcoord(i), dimdir = 2*dc - 1;
@@ -953,9 +952,9 @@ static bool cubecollidesolid(physent *d, const vec &dir, float cutoff, cube &c, 
 }
 
 template<class E>
-static bool cubecollideplanes(physent *d, const vec &dir, float cutoff, cube &c, const ivec &co, int size) // collide with deformed cube geometry
+static bool cubecollideplanes(physent *d, const vec &dir, float cutoff, const cube &c, const ivec &co, int size) // collide with deformed cube geometry
 {
-    clipplanes &p = getclipplanes(c, co, size);
+    const clipplanes &p = getclipplanes(c, co, size);
 
     if(fabs(d->o.x - p.o.x) > p.r.x + d->radius || fabs(d->o.y - p.o.y) > p.r.y + d->radius ||
        d->o.z + d->aboveeye < p.o.z - p.r.z || d->o.z - d->eyeheight > p.o.z + p.r.z)
@@ -990,7 +989,7 @@ static bool cubecollideplanes(physent *d, const vec &dir, float cutoff, cube &c,
     int bestplane = -1;
     loopi(p.size)
     {
-        plane &w = p.p[i];
+        const plane &w = p.p[i];
         vec pw = entvol.supportpoint(vec(w).neg());
         float dist = w.dist(pw);
         if(dist <= bestdist) continue;
@@ -1017,7 +1016,7 @@ static bool cubecollideplanes(physent *d, const vec &dir, float cutoff, cube &c,
     return false;
 }
 
-static inline bool cubecollide(physent *d, const vec &dir, float cutoff, cube &c, const ivec &co, int size, bool solid)
+static inline bool cubecollide(physent *d, const vec &dir, float cutoff, const cube &c, const ivec &co, int size, bool solid)
 {
     switch(d->collidetype)
     {
@@ -1027,7 +1026,7 @@ static inline bool cubecollide(physent *d, const vec &dir, float cutoff, cube &c
             if(cutoff <= 0)
             {
                 int crad = size/2;
-                return rectcollide(d, dir, vec(co.x + crad, co.y + crad, co.z), crad, crad, size, 0, isentirelysolid(c) ? c.collide : 0xFF);
+                return rectcollide(d, dir, vec(co.x + crad, co.y + crad, co.z), crad, crad, size, 0, isentirelysolid(c) ? c.visible : 0xFF);
             }
 #if 0
             else return cubecollidesolid<mpr::EntAABB>(d, dir, cutoff, c, co, size);
@@ -1040,7 +1039,7 @@ static inline bool cubecollide(physent *d, const vec &dir, float cutoff, cube &c
 #if 0
             if(cutoff <= 0)
             {
-                clipplanes &p = getclipplanes(c, co, size);
+                const clipplanes &p = getclipplanes(c, co, size);
                 if(!p.size) return rectcollide(d, dir, p.o, p.r.x, p.r.y, p.r.z, p.r.z, p.visible);
             }
             return cubecollideplanes<mpr::EntAABB>(d, dir, cutoff, c, co, size);
@@ -1063,7 +1062,7 @@ static inline bool cubecollide(physent *d, const vec &dir, float cutoff, cube &c
     }
 }
 
-static inline bool octacollide(physent *d, const vec &dir, float cutoff, const ivec &bo, const ivec &bs, cube *c, const ivec &cor, int size) // collide with octants
+static inline bool octacollide(physent *d, const vec &dir, float cutoff, const ivec &bo, const ivec &bs, const cube *c, const ivec &cor, int size) // collide with octants
 {
     loopoctabox(cor, size, bo, bs)
     {
@@ -1079,7 +1078,6 @@ static inline bool octacollide(physent *d, const vec &dir, float cutoff, const i
             switch(c[i].material&MATF_CLIP)
             {
                 case MAT_NOCLIP: continue;
-                case MAT_GAMECLIP: if(d->type==ENT_AI) solid = true; break;
                 case MAT_CLIP: if(isclipped(c[i].material&MATF_VOLUME) || d->type<ENT_CAMERA) solid = true; break;
             }
             if(!solid && isempty(c[i])) continue;
@@ -1095,7 +1093,7 @@ static inline bool octacollide(physent *d, const vec &dir, float cutoff, const i
         scale = worldscale-1;
     if(diff&~((1<<scale)-1) || uint(bo.x|bo.y|bo.z|(bo.x+bs.x)|(bo.y+bs.y)|(bo.z+bs.z)) >= uint(worldsize))
        return octacollide(d, dir, cutoff, bo, bs, worldroot, ivec(0, 0, 0), worldsize>>1);
-    cube *c = &worldroot[octastep(bo.x, bo.y, bo.z, scale)];
+    const cube *c = &worldroot[octastep(bo.x, bo.y, bo.z, scale)];
     if(c->ext && c->ext->ents && !mmcollide(d, dir, *c->ext->ents)) return false;
     scale--;
     while(c->children && !(diff&(1<<scale)))
@@ -1109,7 +1107,6 @@ static inline bool octacollide(physent *d, const vec &dir, float cutoff, const i
     switch(c->material&MATF_CLIP)
     {
         case MAT_NOCLIP: return true;
-        case MAT_GAMECLIP: if(d->type==ENT_AI) solid = true; break;
         case MAT_CLIP: if(isclipped(c->material&MATF_VOLUME) || d->type<ENT_CAMERA) solid = true; break;
     }
     if(!solid && isempty(*c)) return true;
@@ -1417,7 +1414,7 @@ bool move(physent *d, vec &dir)
     bool collided = false, slidecollide = false;
     vec obstacle;
     d->o.add(dir);
-    if(!collide(d, dir) || ((d->type==ENT_AI || d->type==ENT_INANIMATE) && !collide(d, vec(0, 0, 0), 0, false)))
+    if(!collide(d, dir))
     {
         obstacle = wall;
         /* check to see if there is an obstacle that would prevent this one from being used as a floor (or ceiling bump) */
@@ -1465,7 +1462,7 @@ bool move(physent *d, vec &dir)
     if(slide || (!collided && floor.z > 0 && floor.z < WALLZ))
     {
         slideagainst(d, dir, slide ? obstacle : floor, found, slidecollide);
-        /* if(d->type == ENT_AI || d->type == ENT_INANIMATE) */ d->blocked = true; // INTENSITY: Always note this
+        d->blocked = true;
     }
     if(found) landing(d, dir, floor, collided);
     else falling(d, dir, floor);
@@ -1756,14 +1753,12 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     // apply any player generated changes in velocity
     modifyvelocity(pl, local, water, floating, curtime);
 
-    vec d(pl->vel), oldpos(pl->o);
+    vec d(pl->vel);
     if(!floating && water) d.mul(0.5f);
     d.add(pl->falling);
     d.mul(secs);
 
     pl->blocked = false;
-    pl->moving = true;
-    pl->onplayer = NULL;
 
     if(floating)                // just apply velocity
     {
@@ -1790,11 +1785,6 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     if(pl->state==CS_ALIVE) updatedynentcache(pl);
-
-    if(!pl->timeinair && pl->physstate >= PHYS_FLOOR && pl->vel.squaredlen() < 1e-4f) pl->moving = false;
-
-    pl->lastmoveattempt = lastmillis;
-    if(pl->o!=oldpos) pl->lastmove = lastmillis;
 
     // automatically apply smooth roll when strafing
 
@@ -1948,167 +1938,6 @@ void updatephysstate(physent *d)
     }
     if(d->physstate > PHYS_FALL && d->floor.z <= 0) d->floor = vec(0, 0, 1);
     d->o = old;
-}
-
-const float PLATFORMMARGIN = 0.2f;
-const float PLATFORMBORDER = 10.0f;
-
-struct platforment
-{
-    physent *d;
-    int stacks, chains;
-
-    platforment() {}
-    platforment(physent *d) : d(d), stacks(-1), chains(-1) {}
-
-    bool operator==(const physent *o) const { return d == o; }
-};
-
-struct platformcollision
-{
-    platforment *ent;
-    int next;
-
-    platformcollision() {}
-    platformcollision(platforment *ent, int next) : ent(ent), next(next) {}
-};
-
-template<class E, class O>
-static inline bool platformcollide(physent *d, const vec &dir, physent *o, float margin)
-{
-    E entvol(d);
-    O obvol(o, margin);
-    vec cp;
-    if(mpr::collide(entvol, obvol, NULL, NULL, &cp))
-    {
-        vec wn = vec(cp).sub(obvol.center());
-        return obvol.contactface(wn, dir.iszero() ? vec(wn).neg() : dir).iszero();
-    }
-    return true;
-}
-
-bool platformcollide(physent *d, physent *o, const vec &dir, float margin = 0)
-{
-    if(d->collidetype == COLLIDE_ELLIPSE)
-    {
-        if(o->collidetype == COLLIDE_ELLIPSE) return ellipsecollide(d, dir, o->o, vec(0, 0, 0), o->yaw, o->xradius, o->yradius, o->aboveeye, o->eyeheight + margin);
-        else return ellipserectcollide(d, dir, o->o, vec(0, 0, 0), o->yaw, o->xradius, o->yradius, o->aboveeye, o->eyeheight + margin);
-    }
-    else if(o->collidetype == COLLIDE_ELLIPSE) return platformcollide<mpr::EntOBB, mpr::EntCylinder>(d, dir, o, margin);
-    else return platformcollide<mpr::EntOBB, mpr::EntOBB>(d, dir, o, margin);
-}
-
-bool moveplatform(physent *p, const vec &dir)
-{
-    if(!insideworld(p->newpos)) return false;
-
-    vec oldpos(p->o);
-    (p->o = p->newpos).add(dir);
-    if(!collide(p, dir, 0, dir.z<=0))
-    {
-        p->o = oldpos;
-        return false;
-    }
-    p->o = oldpos;
-
-    static vector<platforment> ents;
-    ents.setsize(0);
-    for(int x = int(max(p->o.x-p->radius-PLATFORMBORDER, 0.0f))>>dynentsize, ex = int(min(p->o.x+p->radius+PLATFORMBORDER, worldsize-1.0f))>>dynentsize; x <= ex; x++)
-    for(int y = int(max(p->o.y-p->radius-PLATFORMBORDER, 0.0f))>>dynentsize, ey = int(min(p->o.y+p->radius+PLATFORMBORDER, worldsize-1.0f))>>dynentsize; y <= ey; y++)
-    {
-        const vector<physent *> &dynents = checkdynentcache(x, y);
-        loopv(dynents)
-        {
-            physent *d = dynents[i];
-            if(p==d || d->o.z-d->eyeheight < p->o.z+p->aboveeye || p->o.reject(d->o, p->radius+PLATFORMBORDER+d->radius) || ents.find(d) >= 0) continue;
-            ents.add(d);
-        }
-    }
-    static vector<platforment *> passengers, colliders;
-    passengers.setsize(0);
-    colliders.setsize(0);
-    static vector<platformcollision> collisions;
-    collisions.setsize(0);
-    // build up collision DAG of colliders to be pushed off, and DAG of stacked passengers
-    loopv(ents)
-    {
-        platforment &ent = ents[i];
-        physent *d = ent.d;
-        // check if the dynent is on top of the platform
-        if(!platformcollide(p, d, vec(0, 0, 1), PLATFORMMARGIN)) passengers.add(&ent);
-        vec doldpos(d->o);
-        (d->o = d->newpos).add(dir);
-        if(!collide(d, dir, 0, false)) colliders.add(&ent);
-        d->o = doldpos;
-        loopvj(ents)
-        {
-            platforment &o = ents[j];
-            if(!platformcollide(d, o.d, dir))
-            {
-                collisions.add(platformcollision(&ent, o.chains));
-                o.chains = collisions.length() - 1;
-            }
-            if(d->o.z < o.d->o.z && !platformcollide(d, o.d, vec(0, 0, 1), PLATFORMMARGIN))
-            {
-                collisions.add(platformcollision(&o, ent.stacks));
-                ent.stacks = collisions.length() - 1;
-            }
-        }
-    }
-    loopv(colliders) // propagate collisions
-    {
-        platforment *ent = colliders[i];
-        for(int n = ent->chains; n>=0; n = collisions[n].next)
-        {
-            platforment *o = collisions[n].ent;
-            if(colliders.find(o)<0) colliders.add(o);
-        }
-    }
-    if(dir.z>0)
-    {
-        loopv(passengers) // if any stacked passengers collide, stop the platform
-        {
-            platforment *ent = passengers[i];
-            if(colliders.find(ent)>=0) return false;
-            for(int n = ent->stacks; n>=0; n = collisions[n].next)
-            {
-                platforment *o = collisions[n].ent;
-                if(passengers.find(o)<0) passengers.add(o);
-            }
-        }
-        loopv(passengers)
-        {
-            physent *d = passengers[i]->d;
-            d->o.add(dir);
-            d->newpos.add(dir);
-            d->lastmove = lastmillis;
-            if(dir.x || dir.y) updatedynentcache(d);
-        }
-    }
-    else loopv(passengers) // move any stacked passengers who aren't colliding with non-passengers
-    {
-        platforment *ent = passengers[i];
-        if(colliders.find(ent)>=0) continue;
-
-        physent *d = ent->d;
-        d->o.add(dir);
-        d->newpos.add(dir);
-        d->lastmove = lastmillis;
-        if(dir.x || dir.y) updatedynentcache(d);
-
-        for(int n = ent->stacks; n>=0; n = collisions[n].next)
-        {
-            platforment *o = collisions[n].ent;
-            if(passengers.find(o)<0) passengers.add(o);
-        }
-    }
-
-    p->o.add(dir);
-    p->newpos.add(dir);
-    p->lastmove = lastmillis;
-    if(dir.x || dir.y) updatedynentcache(p);
-
-    return true;
 }
 
 bool entinmap(dynent *d, bool avoidplayers)        // brute force but effective way to find a free spawn spot in the map

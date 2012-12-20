@@ -206,7 +206,7 @@ cube &blockcube(int x, int y, int z, const block3 &b, int rgrid) // looks up a w
 
 ////////////// cursor ///////////////
 
-int selchildcount = 0;
+int selchildcount = 0, selchildmat = -1;
 
 void countselchild(cube *c, const ivec &cor, int size)
 {
@@ -216,7 +216,15 @@ void countselchild(cube *c, const ivec &cor, int size)
     {
         ivec o(i, cor.x, cor.y, cor.z, size);
         if(c[i].children) countselchild(c[i].children, o, size/2);
-        else selchildcount++;
+        else 
+        {
+            selchildcount++;
+            if(c[i].material != MAT_AIR && selchildmat != MAT_AIR)
+            {
+                if(selchildmat < 0) selchildmat = c[i].material;
+                else if(selchildmat != c[i].material) selchildmat = MAT_AIR;
+            }
+        }
     }
 }
 
@@ -339,6 +347,7 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
            if(!havesel) 
            {
                selchildcount = 0;
+               selchildmat = -1;
                sel.s = ivec(0, 0, 0);
            }
         }
@@ -412,8 +421,13 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
 
             sel.corner = (cor[R[d]]-(lu[R[d]]*2)/gridsize)+(cor[C[d]]-(lu[C[d]]*2)/gridsize)*2;
             selchildcount = 0;
+            selchildmat = -1;
             countselchild(worldroot, ivec(0, 0, 0), worldsize/2);
-            if(mag>1 && selchildcount==1) selchildcount = -mag;
+            if(mag>=1 && selchildcount==1) 
+            {
+                selchildmat = c->material;
+                if(mag>1) selchildcount = -mag;
+            }
         }
     }
 
@@ -558,7 +572,6 @@ static inline void copycube(const cube &src, cube &dst)
 {
     dst = src;
     dst.visible = 0;
-    dst.collide = 0;
     dst.merged = 0;
     dst.ext = NULL; // src cube is responsible for va destruction
     if(src.children)
@@ -790,9 +803,10 @@ static void packcube(cube &c, B &buf)
     }
     else
     {
-        buf.put(c.material);
         cube data = c;
         lilswap(data.texture, 6);
+        buf.put(c.material&0xFF);
+        buf.put(c.material>>8);
         buf.put(data.edges, sizeof(data.edges));
         buf.put((uchar *)data.texture, sizeof(data.texture));
     }
@@ -824,7 +838,7 @@ static void unpackcube(cube &c, B &buf)
     }
     else
     {
-        c.material = mat;
+        c.material = mat | (buf.get()<<8);
         buf.get(c.edges, sizeof(c.edges));
         buf.get((uchar *)c.texture, sizeof(c.texture));
         lilswap(c.texture, 6);
@@ -1430,11 +1444,11 @@ void linkedpush(cube &c, int d, int x, int y, int dc, int dir)
     }
 }
 
-static uchar getmaterial(cube &c)
+static ushort getmaterial(cube &c)
 {
     if(c.children)
     {
-        uchar mat = getmaterial(c.children[7]);
+        ushort mat = getmaterial(c.children[7]);
         loopi(7) if(mat != getmaterial(c.children[i])) return MAT_AIR;
         return mat;
     }
@@ -1465,7 +1479,7 @@ void mpeditface(int dir, int mode, selinfo &sel, bool local)
 
     loopselxyz(
         if(c.children) solidfaces(c);
-        uchar mat = getmaterial(c);
+        ushort mat = getmaterial(c);
         discardchildren(c, true);
         c.material = mat;
         if(mode==1) // fill command
@@ -1931,7 +1945,7 @@ void rotate(int cw)
     mprotate(cw, sel, true);
 }
 
-enum { EDITMATF_EMPTY = 0x100, EDITMATF_NOTEMPTY = 0x200, EDITMATF_SOLID = 0x300, EDITMATF_NOTSOLID = 0x400 };
+enum { EDITMATF_EMPTY = 0x10000, EDITMATF_NOTEMPTY = 0x20000, EDITMATF_SOLID = 0x30000, EDITMATF_NOTSOLID = 0x40000 };
 static const struct { const char *name; int filter; } editmatfilters[] =
 {
     { "empty", EDITMATF_EMPTY },
@@ -1940,7 +1954,7 @@ static const struct { const char *name; int filter; } editmatfilters[] =
     { "notsolid", EDITMATF_NOTSOLID }
 };
 
-void setmat(cube &c, uchar mat, uchar matmask, uchar filtermat, uchar filtermask, int filtergeom)
+void setmat(cube &c, ushort mat, ushort matmask, ushort filtermat, ushort filtermask, int filtergeom)
 {
     if(c.children)
         loopi(8) setmat(c.children[i], mat, matmask, filtermat, filtermask, filtergeom);
@@ -1966,12 +1980,12 @@ void mpeditmat(int matid, int filter, selinfo &sel, bool local)
 {
     if(local) game::edittrigger(sel, EDIT_MAT, matid, filter);
 
-    uchar filtermat = 0, filtermask = 0, matmask;
+    ushort filtermat = 0, filtermask = 0, matmask;
     int filtergeom = 0;
     if(filter >= 0)
     {
         filtermat = filter&0xFF;
-        filtermask = filtermat&MATF_VOLUME ? MATF_VOLUME : (filtermat&MATF_CLIP ? MATF_CLIP : filtermat);
+        filtermask = filtermat&(MATF_VOLUME|MATF_INDEX) ? MATF_VOLUME|MATF_INDEX : (filtermat&MATF_CLIP ? MATF_CLIP : filtermat);
         filtergeom = filter&~0xFF;
     }
     if(matid < 0)
@@ -1983,7 +1997,7 @@ void mpeditmat(int matid, int filter, selinfo &sel, bool local)
     }
     else
     {
-        matmask = matid&MATF_VOLUME ? 0 : (matid&MATF_CLIP ? ~MATF_CLIP : ~matid);
+        matmask = matid&(MATF_VOLUME|MATF_INDEX) ? 0 : (matid&MATF_CLIP ? ~MATF_CLIP : ~matid);
         if(isclipped(matid&MATF_VOLUME)) matid |= MAT_CLIP;
         if(isdeadly(matid&MATF_VOLUME)) matid |= MAT_DEATH;
     }
@@ -2023,10 +2037,7 @@ void rendertexturepanel(int w, int h)
         glScalef(h/1800.0f, h/1800.0f, 1);
         int y = 50, gap = 10;
 
-        static Shader *rgbonlyshader = NULL;
-        if(!rgbonlyshader) rgbonlyshader = lookupshaderbyname("rgbonly");
-        
-        rgbonlyshader->set();
+        SETSHADER(rgbonly);
 
         loopi(7)
         {

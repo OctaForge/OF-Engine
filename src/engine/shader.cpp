@@ -1125,9 +1125,9 @@ void cleanuppostfx(bool fullclean)
     postfxh = 0;
 }
 
-GLuint setuppostfx(int w, int h)
+GLuint setuppostfx(int w, int h, GLuint outfbo)
 {
-    if(postfxpasses.empty()) return 0;
+    if(postfxpasses.empty()) return outfbo;
 
     if(postfxw != w || postfxh != h)
     {
@@ -1150,7 +1150,7 @@ GLuint setuppostfx(int w, int h)
     return postfxfb;
 }
      
-void renderpostfx()
+void renderpostfx(GLuint outfbo)
 {
     loopv(postfxpasses)
     {
@@ -1159,7 +1159,7 @@ void renderpostfx()
         int tex = -1;
         if(!postfxpasses.inrange(i+1))
         {
-            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+            glBindFramebuffer_(GL_FRAMEBUFFER_EXT, outfbo);
         }
         else
         {

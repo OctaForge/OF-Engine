@@ -1631,6 +1631,8 @@ deferredlightvariantshader = function(...)
         a = deferredlighttype:find("a") ~= nil,
         A = deferredlighttype:find("A") ~= nil,
         g = deferredlighttype:find("g") ~= nil,
+        G = deferredlighttype:find("G") ~= nil,
+        E = deferredlighttype:find("E") ~= nil,
         F = deferredlighttype:find("F") ~= nil,
         f = deferredlighttype:find("f") ~= nil,
         m = deferredlighttype:find("m") ~= nil,
@@ -1645,10 +1647,15 @@ deferredlightvariantshader = function(...)
         }
     ]] or "", ([====[
         #extension GL_ARB_texture_rectangle : enable
-        @(dlopt.g and [[
+        @((dlopt.g or dlopt.G) and [=[
             #ifdef GL_EXT_gpu_shader4
             #  extension GL_EXT_gpu_shader4 : enable
             #endif
+            @((EV.usetexgather > 1) and [[
+                #ifdef GL_ARB_gpu_shader5
+                #  extension GL_ARB_gpu_shader5 : enable
+                #endif
+            ]])
             #ifdef GL_ARB_texture_gather
             #  extension GL_ARB_texture_gather : enable
             #else
@@ -1656,12 +1663,18 @@ deferredlightvariantshader = function(...)
             #    extension GL_AMD_texture_texture4 : enable
             #  endif
             #endif
-        ]] or nil)
+        ]=] or nil)
         uniform sampler2DRect tex0, tex1, tex2, tex3;
         @((dlopt.p or dlopt.c) and [=[
-            @(dlopt.g and [[
-                uniform sampler2D tex4;
+            @((dlopt.g or dlopt.G) and ((EV.usetexgather > 1) and [[
+                #if defined(GL_ARB_texture_gather) && defined(GL_ARB_gpu_shader5)
+                    uniform sampler2DShadow tex4;
+                #else
+                    uniform sampler2D tex4;
+                #endif
             ]] or [[
+                uniform sampler2D tex4;
+            ]]) or [[
                 uniform sampler2DRectShadow tex4;
             ]])
         ]=] or nil)
@@ -1733,23 +1746,87 @@ deferredlightvariantshader = function(...)
             ]]))
         ]=] or nil)
 
-        @((dlopt.p or dlopt.c) and [=[
-            @(dlopt.g and [[
+        @((dlopt.p or dlopt.c) and [==[
+            @(dlopt.G and [=[
                 #ifdef GL_ARB_texture_gather
-                #  define shadowgather(center, xoff, yoff) textureGatherOffset(tex4, center, ivec2(xoff, yoff))
+                @((EV.usetexgather > 1) and [[
+                #  ifdef GL_ARB_gpu_shader5
+                #      define shadowgather(center, xoff, yoff) textureGatherOffset(tex4, center, shadowtc.z, ivec2(xoff, yoff))
+                #    else
+                #      define shadowgather(center, xoff, yoff) step(shadowtc.z, textureGatherOffset(tex4, center, ivec2(xoff, yoff)))
+                #  endif
+                ]] or [[
+                #  define shadowgather(center, xoff, yoff) step(shadowtc.z, textureGatherOffset(tex4, center, ivec2(xoff, yoff)))
+                ]])
                 #else
-                #  define shadowgather(center, xoff, yoff) texture4(tex4, center + vec2(xoff, yoff)*shadowatlasscale)
+                #  define shadowgather(center, xoff, yoff) step(shadowtc.z, texture4(tex4, center + vec2(xoff, yoff)*shadowatlasscale))
                 #endif
                 float filtershadow(vec3 shadowtc)
                 {
                     vec2 offset = fract(shadowtc.xy - 0.5), center = (shadowtc.xy - offset)*shadowatlasscale;
-                    vec4 group1 = step(shadowtc.z, shadowgather(center, -1.0, -1.0));
-                    vec4 group2 = step(shadowtc.z, shadowgather(center,  1.0, -1.0));
-                    vec4 group3 = step(shadowtc.z, shadowgather(center, -1.0,  1.0));
-                    vec4 group4 = step(shadowtc.z, shadowgather(center,  1.0,  1.0));
+                    vec4 group1 = shadowgather(center, -2.0, -2.0);
+                    vec4 group2 = shadowgather(center,  0.0, -2.0);
+                    vec4 group3 = shadowgather(center,  2.0, -2.0);
+                    vec4 group4 = shadowgather(center, -2.0,  0.0);
+                    vec4 group5 = shadowgather(center,  0.0,  0.0);
+                    vec4 group6 = shadowgather(center,  2.0,  0.0);
+                    vec4 group7 = shadowgather(center, -2.0,  2.0);
+                    vec4 group8 = shadowgather(center,  0.0,  2.0);
+                    vec4 group9 = shadowgather(center,  2.0,  2.0);
+                    vec4 locols = vec4(group1.ab, group3.ab);
+                    vec4 hicols = vec4(group7.rg, group9.rg);
+                    locols.yz += group2.ab;
+                    hicols.yz += group8.rg;
+                    vec4 midcols = vec4(group1.rg, group3.rg) + vec4(group7.ab, group9.ab) +
+                                   vec4(group4.rg, group6.rg) + vec4(group4.ab, group6.ab) +
+                                   mix(locols, hicols, offset.y);
+                    vec4 cols = group5 + vec4(group2.rg, group8.ab);
+                    cols.xyz += mix(midcols.xyz, midcols.yzw, offset.x);
+                    return dot(cols, vec4(1.0/25.0));
+                }
+            ]=] or (dlopt.g and [=[
+                #ifdef GL_ARB_texture_gather
+                @((EV.usetexgather > 1) and [[
+                #  ifdef GL_ARB_gpu_shader5
+                #      define shadowgather(center, xoff, yoff) textureGatherOffset(tex4, center, shadowtc.z, ivec2(xoff, yoff))
+                #    else
+                #      define shadowgather(center, xoff, yoff) step(shadowtc.z, textureGatherOffset(tex4, center, ivec2(xoff, yoff)))
+                #  endif
+                ]] or [[
+                #  define shadowgather(center, xoff, yoff) step(shadowtc.z, textureGatherOffset(tex4, center, ivec2(xoff, yoff)))
+                ]])
+                #else
+                #  define shadowgather(center, xoff, yoff) step(shadowtc.z, texture4(tex4, center + vec2(xoff, yoff)*shadowatlasscale))
+                #endif
+                float filtershadow(vec3 shadowtc)
+                {
+                    vec2 offset = fract(shadowtc.xy - 0.5), center = (shadowtc.xy - offset)*shadowatlasscale;
+                    vec4 group1 = shadowgather(center, -1.0, -1.0);
+                    vec4 group2 = shadowgather(center,  1.0, -1.0);
+                    vec4 group3 = shadowgather(center, -1.0,  1.0);
+                    vec4 group4 = shadowgather(center,  1.0,  1.0);
                     vec4 cols = vec4(group1.rg, group2.rg) + vec4(group3.ab, group4.ab) + mix(vec4(group1.ab, group2.ab), vec4(group3.rg, group4.rg), offset.y);
                     return dot(mix(cols.xyz, cols.yzw, offset.x), vec3(1.0/9.0));
                 }
+            ]=] or (dlopt.E and [[
+                #define shadowval(xy) shadow2DRect(tex4, vec3(xy, shadowtc.z)).r
+                float filtershadow(vec3 shadowtc)
+                {
+                    vec2 offset = fract(shadowtc.xy - 0.5);
+                    vec4 center = vec4(shadowtc.xy - offset + 0.5, shadowtc.xy - offset*0.5);
+                    vec4 size = vec4(offset + 1.0, 2.0 - offset);
+                    return (1.0/25.0)*dot(size.zxzx*size.wwyy, 
+                            vec4(shadowval(center.zw - 1.5), 
+                                 shadowval(center.zw + vec2(2.0, -1.5)), 
+                                 shadowval(center.zw + vec2(-1.5, 2.0)), 
+                                 shadowval(center.zw + 2.0))) + 
+                           (2.0/25.0)*dot(size, 
+                            vec4(shadowval(center.zy + vec2(2.0, 0.0)), 
+                                 shadowval(center.xw + vec2(0.0, 2.0)),
+                                 shadowval(center.zy + vec2(-1.5, 0.0)),
+                                 shadowval(center.xw + vec2(0.0, -1.5)))) +
+                           (4.0/25.0)*shadowval(center.xy);
+                }   
             ]] or (dlopt.F and [[
                 #define shadowval(center, xyoff) shadow2DRect(tex4, vec3(center.xy + xyoff, center.z)).r
                 float filtershadow(vec3 shadowtc)
@@ -1781,8 +1858,8 @@ deferredlightvariantshader = function(...)
                                     shadowval(shadowtc, 0.4, -1.0),
                                     shadowval(shadowtc, 1.0, 0.4))); 
                 }
-            ]] or "#define filtershadow(shadowtc) shadow2DRect(tex4, shadowtc).r")))
-        ]=] or nil)
+            ]] or "#define filtershadow(shadowtc) shadow2DRect(tex4, shadowtc).r")))))
+        ]==] or nil)
         @(dlopt.c and [==[
             vec3 getcsmtc(vec3 pos)
             {
@@ -2123,7 +2200,7 @@ CAPI.shader(0, "hdrluminance", [[
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
         @(hdrgammadecode("color"))
         float lum = dot(color, vec3(@(lumweights)));
-        float loglum = (log2(clamp(lum, 0.015625, 4.0)) + 6.0) * (1.0/(6.0+2.0));// allow values as low as 2^-6, and as high 2^2
+        float loglum = sqrt(clamp(lum, 0.015625, 4.0)) * (1.0/2.0); // allow values as low as 2^-6, and as high 2^2
         gl_FragColor.rgb = vec3(loglum);
     }
 ]]):eval_embedded(nil, { lumweights = lumweights }, _G))
@@ -2150,7 +2227,7 @@ CAPI.shader(0, "hdrluminance2", [[
             vec3 color$i = texture2DRect(tex0, tap$i).rgb*2.0;
             @(hdrgammadecode("color$i"))
             float lum$i = dot(color$i, vec3(@(lumweights)));
-            float loglum$i = (log2(clamp(lum$i, 0.015625, 4.0)) + 6.0) * (1.0/(6.0+2.0));
+            float loglum$i = sqrt(clamp(lum$i, 0.015625, 4.0)) * (1.0/2.0);
         ]]):reppn("$i", 0, 4))
         gl_FragColor.rgb = vec3(0.25*(loglum0 + loglum1 + loglum2 + loglum3));
     }
@@ -2168,7 +2245,8 @@ CAPI.shader(0, "hdraccum", [[
     uniform float accumscale;
     void main(void)
     {
-        float lum = exp2((texture2DRect(tex0, gl_TexCoord[0].xy).r * (6.0+2.0)) - 6.0);
+        float lum = texture2DRect(tex0, gl_TexCoord[0].xy).r * 2.0;
+        lum *= lum;
         gl_FragColor = vec4(vec3(lum*0.25), accumscale);
     }
 ]])
@@ -2183,7 +2261,7 @@ CAPI.shader(0, "hdrbloom", [[
         gl_Position = gl_Vertex;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
         float avglum = 4.0*texture2DRect(tex2, vec2(0.5, 0.5)).r;
-        lumscale = hdrparams.x * -log2(1.0 - clamp(avglum, 0.025, 0.25))/(avglum + 1e-4);
+        lumscale = hdrparams.x * -log2(1.0 - clamp(avglum, 0.03, 0.3))/(avglum + 1e-4);
         lumthreshold = -log2(1.0 - hdrparams.z);
     }
 ]], ([[
@@ -2213,7 +2291,7 @@ CAPI.shader(0, "hdrtonemap", [[
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
         gl_TexCoord[1].xy = gl_MultiTexCoord1.xy;
         float avglum = 4.0*texture2DRect(tex2, vec2(0.5, 0.5)).r;
-        lumscale = hdrparams.x * -log2(1.0 - clamp(avglum, 0.025, 0.25))/(avglum + 1e-4);
+        lumscale = hdrparams.x * -log2(1.0 - clamp(avglum, 0.03, 0.3))/(avglum + 1e-4);
         lumsaturate = -log2(1.0 - hdrparams.y) / lumscale;
     }
 ]], ([[
@@ -2248,7 +2326,7 @@ lazyshader(0, "hdrtonemapluma", [[
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
         gl_TexCoord[1].xy = gl_MultiTexCoord1.xy;
         float avglum = 4.0*texture2DRect(tex2, vec2(0.5, 0.5)).r;
-        lumscale = hdrparams.x * -log2(1.0 - clamp(avglum, 0.025, 0.25))/(avglum + 1e-4);
+        lumscale = hdrparams.x * -log2(1.0 - clamp(avglum, 0.03, 0.3))/(avglum + 1e-4);
         lumsaturate = -log2(1.0 - hdrparams.y) / lumscale;
     }
 ]], ([[
@@ -2300,6 +2378,21 @@ lazyshader(0, "hdrnopluma", [[
         gl_FragColor = vec4(color, dot(color, vec3(@(lumweights))));
     }
 ]]):eval_embedded(nil, { lumweights = lumweights }))
+
+lazyshader(0, "scale", [[
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+    }
+]], [[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0;
+    void main(void)
+    {
+        gl_FragColor = texture2DRect(tex0, gl_TexCoord[0].xy);
+    }
+]])
 
 aotapoffsets = {
     "-0.933103, 0.025116",

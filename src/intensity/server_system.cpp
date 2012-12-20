@@ -112,7 +112,7 @@ void setupmaterials(int start, int len) { };
 int findmaterial(const char *name) { return 0; };
 void enablepolygonoffset(GLenum type) { };
 void disablepolygonoffset(GLenum type) { };
-void genmatsurfs(cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs) { };
+void genmatsurfs(const cube &c, int cx, int cy, int cz, int size, vector<materialsurface> &matsurfs) { };
 void resetqueries() { };
 void initenvmaps() { };
 int optimizematsurfs(materialsurface *matbuf, int matsurfs) { return 0; };

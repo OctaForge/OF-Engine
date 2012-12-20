@@ -590,8 +590,13 @@ int localconnect() // INTENSITY: Added returning client num
     return c.num; // INTENSITY: Added returning client num
 }
 
+static bool dedicatedserver = false;
+
+bool isdedicatedserver() { return dedicatedserver; }
+
 void rundedicatedserver()
 {
+    dedicatedserver = true;
     #ifdef WIN32
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
     #endif
@@ -599,6 +604,7 @@ void rundedicatedserver()
     logoutf("dedicated server started, waiting for clients...");
     for(;;) serverslice(true, 5);
 #endif
+    dedicatedserver = false;
 }
 
 #ifdef WIN32

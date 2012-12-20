@@ -333,7 +333,8 @@ model *loadmodel(const char *name, int i, bool msg)
     model *m;
     if(mm) m = *mm;
     else
-    { 
+    {
+        if(loadingmodel) return NULL;
         if(msg)
         {
             defformatstring(filename)("data/models/%s", name);
@@ -959,7 +960,7 @@ void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSI
     if(!m) return;
     vec center, radius;
     m->collisionbox(center, radius, entity); // INTENSITY: Added entity
-    if(d->type==ENT_INANIMATE && !m->ellipsecollide)
+    if(!m->ellipsecollide)
     {
         d->collidetype = COLLIDE_OBB;
         //d->collidetype = COLLIDE_AABB;
