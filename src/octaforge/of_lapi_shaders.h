@@ -92,12 +92,28 @@ namespace lapi_binds
     void _lua_clearpostfx() { clearpostfx(); }
 
     void _lua_resetshaders() {
-        cleanupgbuffer();
+        lapi::state.get<lua::Function>("external", "changes_clear")((int)CHANGE_SHADERS);
+
+        cleanuplights();
         cleanupshaders();
         setupshaders();
         initgbuffer();
         reloadshaders();
         allchanged(true);
+        GLERROR;
+    }
+
+    void _lua_dumpshader(const char *name, int col, int row) {
+        Shader *s = lookupshaderbyname(name);
+        FILE *l = getlogfile();
+        if(!s || !l) return;
+        if(col >= 0)
+        {
+            if(row >= MAXVARIANTROWS || !s->variants[max(row, 0)].inrange(col)) return;
+            s = s->variants[max(row, 0)][col];
+        }
+        if(s->vsstr) fprintf(l, "%s:%s\n%s\n", s->name, "VS", s->vsstr);        
+        if(s->psstr) fprintf(l, "%s:%s\n%s\n", s->name, "FS", s->psstr);
     }
 #else
     LAPI_EMPTY(shader)
@@ -116,6 +132,7 @@ namespace lapi_binds
     LAPI_EMPTY(setpostfx)
     LAPI_EMPTY(clearpostfx)
     LAPI_EMPTY(resetshaders)
+    LAPI_EMPTY(dumpshader)
 #endif
 
     void reg_shaders(lua::Table& t)
@@ -136,5 +153,6 @@ namespace lapi_binds
         LAPI_REG(setpostfx);
         LAPI_REG(clearpostfx);
         LAPI_REG(resetshaders);
+        LAPI_REG(dumpshader);
     }
 }

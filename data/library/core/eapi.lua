@@ -51,8 +51,9 @@ if CLIENT then ffi.cdef [[
     void base_shader_default_set  ();
 
     enum {
-        BASE_CHANGE_GFX   = 1 << 0,
-        BASE_CHANGE_SOUND = 1 << 1
+        BASE_CHANGE_GFX     = 1 << 0,
+        BASE_CHANGE_SOUND   = 1 << 1,
+        BASE_CHANGE_SHADERS = 1 << 2
     };
 ]] end
 

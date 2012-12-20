@@ -380,7 +380,7 @@ void viewinferred()
     notextureshader->set();
 }
 
-VARFP(glineardepth, 0, 0, 3, initwarning("g-buffer setup", INIT_LOAD));
+VARFP(glineardepth, 0, 0, 3, initwarning("g-buffer setup", INIT_LOAD, CHANGE_SHADERS));
 VAR(gdepthformat, 1, 0, 0);
 
 void initgbuffer()
@@ -558,7 +558,7 @@ VAR(hdraccummillis, 1, 33, 1000);
 VAR(hdrreduce, 0, 2, 2);
 VARFP(hdr, 0, 1, 1, cleanupgbuffer());
 VARFP(hdrprec, 0, 2, 3, cleanupgbuffer());
-FVARP(hdrgamma, 1e-3f, 2.2f, 1e3f);
+FVARFP(hdrgamma, 1e-3f, 2, 1e3f, initwarning("HDR setup", INIT_LOAD, CHANGE_SHADERS));
 FVARR(hdrbright, 1e-4f, 1.0f, 1e4f);
 FVAR(hdrsaturate, 1e-3f, 0.8f, 1e3f);
 
@@ -1169,7 +1169,8 @@ VARF(smcullside, 0, 1, 1, cleanupshadowatlas());
 VARF(smcache, 0, 1, 2, cleanupshadowatlas());
 VARFP(smfilter, 0, 2, 2, { cleardeferredlightshaders(); cleanupshadowatlas(); });
 VARFP(smgather, 0, 0, 1, { cleardeferredlightshaders(); cleanupshadowatlas(); });
-VAR(smnoshadow, 0, 0, 2);
+VAR(smnoshadow, 0, 0, 1);
+VAR(smnodynshadow, 0, 0, 1);
 VAR(lighttilesused, 1, 0, 0);
 
 int shadowmapping = 0;
@@ -2464,7 +2465,7 @@ void packlights()
     smused = 0;
 
     bool tetra = smtetra && glslversion >= 130;
-    if(smcache && smnoshadow <= 1 && shadowcache.numelems) loopv(lightorder)
+    if(smcache && !smnoshadow && shadowcache.numelems) loopv(lightorder)
     {
         int idx = lightorder[i];
         lightinfo &l = lights[idx];
@@ -2502,7 +2503,7 @@ void packlights()
         lightinfo &l = lights[idx];
         if(l.shadowmap >= 0) continue;
 
-        if(!(l.flags&L_NOSHADOW) && smnoshadow <= 1 && l.radius > smminradius)
+        if(!(l.flags&L_NOSHADOW) && !smnoshadow && l.radius > smminradius)
         {
             if(l.query && l.query->owner == &l && checkquery(l.query)) { lightsoccluded++; continue; }
             float prec = smprec, smlod;
@@ -2960,7 +2961,7 @@ void rendershadowmaps()
         findshadowvas();
         findshadowmms();
 
-        shadowmaskbatchedmodels(!(l.flags&L_NODYNSHADOW));
+        shadowmaskbatchedmodels(!(l.flags&L_NODYNSHADOW) && !smnodynshadow);
         batchshadowmapmodels();
 
         shadowcacheval *cached = NULL;

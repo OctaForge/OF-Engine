@@ -11,7 +11,7 @@
 namespace varsys
 {
     Variable_Map *variables = NULL;
-    bool persistvars = true, overridevars = false, changed = false;
+    bool persistvars = false, overridevars = false, changed = false;
 
     #define VAR_INIT(v, t, vt, name, cb, fl) \
         t *v = new t;         \

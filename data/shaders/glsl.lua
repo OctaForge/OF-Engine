@@ -1756,13 +1756,20 @@ deferredlightvariantshader = function(...)
                 {
                     vec2 offset = fract(shadowtc.xy - 0.5);
                     vec3 center = shadowtc;
-                    center.xy -= offset;
-                    vec4 size = vec4(offset + 1.0, 2.0 - offset), weight = vec4(2.0 - 1.0 / size.xy, 1.0 / size.zw - 1.0);
+                    //center.xy -= offset;
+                    //vec4 size = vec4(offset + 1.0, 2.0 - offset), weight = vec4(2.0 - 1.0 / size.xy, 1.0 / size.zw - 1.0);
+                    //return (1.0/9.0)*dot(size.zxzx*size.wwyy,
+                    //    vec4(shadowval(center, weight.zw),
+                    //         shadowval(center, weight.xw),
+                    //         shadowval(center, weight.zy),
+                    //         shadowval(center, weight.xy)));
+                    center.xy -= offset*0.5;
+                    vec4 size = vec4(offset + 1.0, 2.0 - offset);
                     return (1.0/9.0)*dot(size.zxzx*size.wwyy,
-                        vec4(shadowval(center, weight.zw),
-                             shadowval(center, weight.xw),
-                             shadowval(center, weight.zy),
-                             shadowval(center, weight.xy)));
+                        vec4(shadowval(center, -0.5),
+                             shadowval(center, vec2(1.0, -0.5)),
+                             shadowval(center, vec2(-0.5, 1.0)),
+                             shadowval(center, 1.0)));
                 }
             ]] or (dlopt.f and [[
                 #define shadowval(center, xoff, yoff) shadow2DRect(tex4, center + vec3(xoff, yoff, 0.0)).r
@@ -2089,6 +2096,18 @@ CAPI.shader(0, "hdrreduce2", [[
 lumweights = "0.2126, 0.7152, 0.0722"
 --lumweights = "0.299, 0.587, 0.114"
 
+hdrgammadecode = function(arg1)
+    return (EV.hdrgamma == 2
+        and arg1 .. " *= " .. arg1 .. ";"
+         or arg1 .. " = pow(" .. arg1 .. ", vec3(hdrgamma.x));")
+end
+
+hdrgammaencode = function(arg1)
+    return (EV.hdrgamma == 2
+        and arg1 .. " = sqrt(" .. arg1 .. ");"
+         or arg1 .. " = pow(" .. arg1 .. ", vec3(hdrgamma.y));")
+end
+
 CAPI.shader(0, "hdrluminance", [[
     void main(void)
     {
@@ -2102,12 +2121,12 @@ CAPI.shader(0, "hdrluminance", [[
     void main(void)
     {
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
-        color = pow(color, vec3(hdrgamma.x));
+        @(hdrgammadecode("color"))
         float lum = dot(color, vec3(@(lumweights)));
         float loglum = (log2(clamp(lum, 0.015625, 4.0)) + 6.0) * (1.0/(6.0+2.0));// allow values as low as 2^-6, and as high 2^2
         gl_FragColor.rgb = vec3(loglum);
     }
-]]):eval_embedded(nil, { lumweights = lumweights }))
+]]):eval_embedded(nil, { lumweights = lumweights }, _G))
 
 CAPI.shader(0, "hdrluminance2", [[
     uniform vec2 reducestep;
@@ -2129,7 +2148,7 @@ CAPI.shader(0, "hdrluminance2", [[
     {
         @(([[
             vec3 color$i = texture2DRect(tex0, tap$i).rgb*2.0;
-            color$i = pow(color$i, vec3(hdrgamma.x));
+            @(hdrgammadecode("color$i"))
             float lum$i = dot(color$i, vec3(@(lumweights)));
             float loglum$i = (log2(clamp(lum$i, 0.015625, 4.0)) + 6.0) * (1.0/(6.0+2.0));
         ]]):reppn("$i", 0, 4))
@@ -2175,12 +2194,13 @@ CAPI.shader(0, "hdrbloom", [[
     void main(void)
     {
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
-        color = pow(color, vec3(hdrgamma.x));
+        @(hdrgammadecode("color"))
         float lum = dot(color, vec3(@(lumweights)));
         color *= max(lum*lumscale - lumthreshold, 0.0) / (lum + 1e-4);
-        gl_FragColor.rgb = pow(color, vec3(hdrgamma.y));
+        @(hdrgammaencode("color"))
+        gl_FragColor.rgb = color;
     }
-]]):eval_embedded(nil, { lumweights = lumweights }))
+]]):eval_embedded(nil, { lumweights = lumweights }, _G))
 
 CAPI.shader(0, "hdrtonemap", [[
     #extension GL_ARB_texture_rectangle : enable
@@ -2207,15 +2227,15 @@ CAPI.shader(0, "hdrtonemap", [[
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
         vec3 bloom = texture2DRect(tex1, gl_TexCoord[1].xy).rgb*hdrparams.w;
         color += bloom;
-        color = pow(color, vec3(hdrgamma.x));
+        @(hdrgammadecode("color"))
 //        color = 1.0 - exp2(-color*lumscale);
         float lum = dot(color, vec3(@(lumweights)));
         color = min(color, lumsaturate);
         color *= (1.0 - exp2(-lum*lumscale)) / (dot(color, vec3(@(lumweights))) + 1e-4);
-        color = pow(color, vec3(hdrgamma.y));
+        @(hdrgammaencode("color"))
         gl_FragColor.rgb = color;
     }
-]]):eval_embedded(nil, { lumweights = lumweights }))
+]]):eval_embedded(nil, { lumweights = lumweights }, _G))
 
 lazyshader(0, "hdrtonemapluma", [[
     #extension GL_ARB_texture_rectangle : enable
@@ -2242,15 +2262,15 @@ lazyshader(0, "hdrtonemapluma", [[
         vec3 color = texture2DRect(tex0, gl_TexCoord[0].xy).rgb*2.0;
         vec3 bloom = texture2DRect(tex1, gl_TexCoord[1].xy).rgb*hdrparams.w;
         color += bloom;
-        color = pow(color, vec3(hdrgamma.x));
+        @(hdrgammadecode("color"))
 //        color = 1.0 - exp2(-color*lumscale);
         float lum = dot(color, vec3(@(lumweights)));
         color = min(color, lumsaturate);
         color *= (1.0 - exp2(-lum*lumscale)) / (dot(color, vec3(@(lumweights))) + 1e-4);
-        color = pow(color, vec3(hdrgamma.y));
+        @(hdrgammaencode("color"))
         gl_FragColor = vec4(color, dot(color, vec3(@(lumweights))));
     }
-]]):eval_embedded(nil, { lumweights = lumweights }))
+]]):eval_embedded(nil, { lumweights = lumweights }, _G))
 
 CAPI.shader(0, "hdrnop", [[
     void main(void)
@@ -2458,18 +2478,19 @@ bilateralshader = function(arg1, arg2)
 blurshader = function(...)
     local arg = { ... }
     CAPI.shader(0, arg[1], ([=[
-        uniform vec4 offsets;
+        uniform float offsets[8];
         void main(void)
         {
             gl_Position = gl_Vertex;
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-            vec2 tc1 = gl_MultiTexCoord0.xy + offsets.xy;
-            vec2 tc2 = gl_MultiTexCoord0.xy - offsets.xy;
+            vec2 tc1 = gl_MultiTexCoord0.xy, tc2 = gl_MultiTexCoord0.xy;
+            tc1.@(arg[3]) += offsets[1];
+            tc2.@(arg[3]) -= offsets[1];
             gl_TexCoord[1].xy = tc1;
             gl_TexCoord[2].xy = tc2;
             @(([[
-                tc1.@(arg[3]) += offsets.@(({ "z", "w" })[$i + 1]);
-                tc2.@(arg[3]) -= offsets.@(({ "z", "w" })[$i + 1]);
+                tc1.@(arg[3]) = gl_MultiTexCoord0.@(arg[3]) + offsets[@($i + 2)];
+                tc2.@(arg[3]) = gl_MultiTexCoord0.@(arg[3]) - offsets[@($i + 2)];
                 gl_TexCoord[@($i * 2 + 3)].xy = tc1;
                 gl_TexCoord[@($i * 2 + 4)].xy = tc2;
             ]]):reppn("$i", 0, math.min(arg[2] - 1, 2)))
@@ -2478,19 +2499,22 @@ blurshader = function(...)
         @(arg[4] == "2DRect" and [[
             #extension GL_ARB_texture_rectangle : enable
         ]] or nil)
-        uniform vec4 weights, weights2, offset4, offset5, offset6, offset7;
-        uniform @("sampler" .. arg[4]) tex0;
+        uniform float weights[8];
+        uniform float offsets[8];
+        uniform sampler@(arg[4]) tex0;
         void main(void)
         {
-            #define texval(coords) @("texture" .. arg[4])(tex0, (coords))
-            vec4 val = texval(gl_TexCoord[0].xy) * weights.x;
+            #define texval(coords) texture@(arg[4])(tex0, (coords))
+            vec4 val = texval(gl_TexCoord[0].xy) * weights[0];
             @(([=[
                 @($i < 3 and [[
-                    val += weights.@(({ "y", "z", "w" })[$i + 1]) * (texval(gl_TexCoord[@($i * 2 + 1)].xy) + texval(gl_TexCoord[@($i * 2 + 2)].xy));
+                    val += weights[@($i + 1)] * (texval(gl_TexCoord[@($i * 2 + 1)].xy) + texval(gl_TexCoord[@($i * 2 + 2)].xy));
                 ]] or [[
-                    val += weights2.@(({ "x", "y", "z", "w" })[$i - 2]) * 
-                                (texval(gl_TexCoord[0].xy + @(({ "offset4", "offset5", "offset6", "offset7" })[$i - 2]).xy) +
-                                 texval(gl_TexCoord[0].xy - @(({ "offset4", "offset5", "offset6", "offset7" })[$i - 2]).xy));
+                    val += weights[@($i + 1)] * 
+                    @(arg[3] == "x"
+                        and "(texval(vec2(gl_TexCoord[0].x + offsets[@($i + 1)], gl_TexCoord[0].y)) + texval(vec2(gl_TexCoord[0].x - offsets[@($i + 1)], gl_TexCoord[0].y)));"
+                         or "(texval(vec2(gl_TexCoord[0].x, gl_TexCoord[0].y + offsets[@($i + 1)])) + texval(vec2(gl_TexCoord[0].x, gl_TexCoord[0].y - offsets[@($i + 1)])));"
+                    )
                 ]])
             ]=]):reppn("$i", 0, arg[2]))
             gl_FragColor = val;

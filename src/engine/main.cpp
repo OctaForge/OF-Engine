@@ -700,7 +700,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
 
 void resetgl()
 {
-    lapi::state.get<lua::Function>("external", "changes_clear")((int)CHANGE_GFX);
+    lapi::state.get<lua::Function>("external", "changes_clear")((int)(CHANGE_GFX|CHANGE_SHADERS));
     renderbackground("resetting OpenGL");
 
     extern void cleanupva();
@@ -1217,7 +1217,6 @@ int main(int argc, char **argv)
     lapi::state.get<lua::Function>("external", "gl_init")();
 
     initlog("console");
-    varsys::persistvars = false;
 
     types::Tuple<int, const char*> err;
 
@@ -1284,8 +1283,6 @@ int main(int argc, char **argv)
     game::loadconfigs();
     initing = NOT_INITING;
 
-    varsys::persistvars = true;
-
     initlog("Registering messages\n");
     MessageSystem::MessageManager::registerAll();
 
@@ -1294,6 +1291,8 @@ int main(int argc, char **argv)
     loadshaders();
     particleinit();
     initdecals();
+
+    varsys::persistvars = true;
 
     initlog("init: mainloop");
 

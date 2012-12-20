@@ -4036,6 +4036,10 @@ ext.changes_apply = function()
     if band(changetypes, EAPI.BASE_CHANGE_SOUND) ~= 0 then
         EAPI.base_reset_sound()
     end
+
+    if band(changetypes, EAPI.BASE_CHANGE_SHADERS) ~= 0 then
+        CAPI.resetshaders()
+    end
 end
 
 ext.changes_get = function()
