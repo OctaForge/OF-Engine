@@ -1,15 +1,19 @@
 # OctaForge makefile
 # written for FreeBSD, Linux, Solaris, Mac OS X and Windows
-# inspired by LuaJIT makefile
+# partially based on LuaJIT makefile (the LuaJIT parts)
 #
 # author: Daniel 'q66' Kolesa <quaker66@gmail.com>
 # license: MIT
 
-CC = cc
-CC_FLAGS = -O2 -fomit-frame-pointer -fsigned-char
+ifeq (,$(CC))
+	CC = cc
+endif
+CC_FLAGS = -O2 -fomit-frame-pointer
 
-CXX = c++
-CXX_FLAGS = $(CC_FLAGS)
+ifeq (,$(CXX))
+	CXX = c++
+endif
+CXX_FLAGS = -O2 -fomit-frame-pointer
 
 CC_FLAGS_x86 = -march=i686
 CC_FLAGS_x64 =
@@ -53,6 +57,9 @@ ENET_XCFLAGS =
 # C compiler flags for LuaJIT
 LUAJIT_XCFLAGS =
 
+# host C compiler flags for LuaJIT
+LUAJIT_HXCFLAGS =
+
 #####################
 # Debugging options #
 #####################
@@ -65,7 +72,8 @@ LUAJIT_XCFLAGS =
 
 OFTL_PATH = libraries/OFTL
 ENET_PATH = libraries/enet
-LUAJIT_PATH = libraries/luajit/src
+LUAJIT_PATHB = libraries/luajit
+LUAJIT_PATH = $(LUAJIT_PATHB)/src
 
 # Variables
 
@@ -130,14 +138,6 @@ ifeq (Darwin, $(TARGET_SYS))
 endif
 endif
 
-# extra flags
-
-#ifneq ($(HOST_SYS),$(TARGET_SYS))
-#	ifeq (Windows,$(TARGET_SYS))
-#		....
-#	endif
-#endif
-
 # do not strip on debug
 
 ifneq (,$(CC_DEBUG))
@@ -154,6 +154,9 @@ ifneq ($(HOST_SYS),Windows)
 		PURPLE = -e "\033[1;35m
 		CYAN   = -e "\033[1;36m
 		RRED   = \033[1;31m
+		RGREEN = \033[1;32m
+		RBLUE  = \033[1;34m
+		RCYAN  = \033[1;36m
 		ENDCOL = \033[m"
 	endif
 endif
@@ -196,10 +199,6 @@ else
 	SERVER_BIN = OF_Server_$(TARGET_SYS)-$(TARGET_BINARCH).exe
 endif
 
-# library names
-
-ENET_LIB = $(ENET_PATH)/libenet.a
-
 # client/server includes
 
 CS_INC = -Ishared -Iengine -Ifpsgame
@@ -232,9 +231,10 @@ endif
 ####################
 
 CLIENT_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
-	-fno-exceptions -fno-rtti -std=c++0x -DCLIENT
+	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DCLIENT
 
-CLIENT_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH) -lenet -lluajit
+CLIENT_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUAJIT_PATH) \
+	-lenet -lluajit
 
 ifeq ($(TARGET_SYS),Windows)
 	CLIENT_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
@@ -321,25 +321,26 @@ CLIENT_OBJ = \
 	octaforge/of_eapi.o
 
 ifeq ($(TARGET_SYS),Windows)
-CLIENT_OBJ += libraries/OFTL/src/filesystem/platform_win32.o
+CLIENT_OBJ += $(OFTL_PATH)/src/filesystem/platform_win32.o
 else
-CLIENT_OBJ += libraries/OFTL/src/filesystem/platform_posix.o
+CLIENT_OBJ += $(OFTL_PATH)/src/filesystem/platform_posix.o
 endif
 
 ifeq ($(TARGET_SYS),Darwin)
 CLIENT_OBJ += $(CS_OSX_OBJ)
 endif
 
-CLIENT_OBJ_BUILD = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
+CLIENT_OBJB = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 
 ####################
 # OctaForge server #
 ####################
 
 SERVER_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
-	-fno-exceptions -fno-rtti -std=c++0x -DSERVER -DSTANDALONE
+	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DSERVER -DSTANDALONE
 
-SERVER_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH) -lenet -lluajit
+SERVER_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUAJIT_PATH) \
+	-lenet -lluajit
 
 ifeq ($(TARGET_SYS),Windows)
 	SERVER_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
@@ -396,12 +397,12 @@ SERVER_OBJ = \
 	octaforge/of_eapi.o
 
 ifeq ($(TARGET_SYS),Windows)
-SERVER_OBJ += libraries/OFTL/src/filesystem/platform_win32.o
+SERVER_OBJ += $(OFTL_PATH)/src/filesystem/platform_win32.o
 else
-SERVER_OBJ += libraries/OFTL/src/filesystem/platform_posix.o
+SERVER_OBJ += $(OFTL_PATH)/src/filesystem/platform_posix.o
 endif
 
-SERVER_OBJ_BUILD = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
+SERVER_OBJB = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
 
 ########
 # ENet #
@@ -411,26 +412,245 @@ ENET_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(ENET_XCFLAGS) \
 	-I$(ENET_INC) -DHAS_SOCKLEN_T=1 -Wno-error
 
 ENET_OBJ = \
-	libraries/enet/callbacks.o \
-	libraries/enet/host.o \
-	libraries/enet/list.o \
-	libraries/enet/packet.o \
-	libraries/enet/peer.o \
-	libraries/enet/protocol.o \
-	libraries/enet/unix.o \
-	libraries/enet/win32.o
+	$(ENET_PATH)/callbacks.o \
+	$(ENET_PATH)/host.o \
+	$(ENET_PATH)/list.o \
+	$(ENET_PATH)/packet.o \
+	$(ENET_PATH)/peer.o \
+	$(ENET_PATH)/protocol.o \
+	$(ENET_PATH)/unix.o \
+	$(ENET_PATH)/win32.o
 
-ENET_OBJ_BUILD = $(addprefix $(OBJDIR)/, $(ENET_OBJ))
+ENET_OBJB = $(addprefix $(OBJDIR)/, $(ENET_OBJ))
+
+ENET_LIB = $(ENET_PATH)/libenet.a
 
 ##########
 # LuaJIT #
 ##########
 
-LUAJIT_BUILDMODE = static
-LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT
-LUAJIT_CC  = $(TARGET_CC)
-LUAJIT_TARGET_AR = $(TARGET_AR)
-LUAJIT_TARGET_STRIP = $(TARGET_STRIP)
+LUAJIT_CFLAGS = -I$(LUAJIT_INC) -I$(LUAJIT_INC)/host \
+	-I$(OBJDIR)/$(LUAJIT_INC) -I$(OBJDIR)/$(LUAJIT_INC)/host \
+	$(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(LUAJIT_XCFLAGS) \
+	-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -U_FORTIFY_SOURCE \
+	-DLUAJIT_ENABLE_LUA52COMPAT
+
+LUAJIT_HCFLAGS = -I$(LUAJIT_INC) -I$(LUAJIT_INC)/host \
+	-I$(OBJDIR)/$(LUAJIT_INC) -I$(OBJDIR)/$(LUAJIT_INC)/host \
+	$(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(LUAJIT_XCFLAGS) \
+	$(LUAJIT_HXCFLAGS) $(LUAJIT_TARCH) \
+	-DLUAJIT_ENABLE_LUA52COMPAT
+
+LUAJIT_HLDFLAGS = $(CC_DEBUG)
+
+ifneq (,$(findstring LJ_NO_UNWIND 1,$(TARGET_TESTARCH)))
+	LUAJIT_TARCH = -DLUAJIT_NO_UNWIND
+endif
+
+LUAJIT_TARCH += $(patsubst %,-DLUAJIT_TARGET=LUAJIT_ARCH_%,$(TARGET_ARCH))
+
+ifneq ($(HOST_SYS),$(TARGET_SYS))
+	ifeq (Windows,$(TARGET_SYS))
+		LUAJIT_HCFLAGS += -malign-double -DLUAJIT_OS=LUAJIT_OS_WINDOWS
+	else
+	ifeq (Linux,$(TARGET_SYS))
+		LUAJIT_HCFLAGS += -DLUAJIT_OS=LUAJIT_OS_LINUX
+	else
+	ifeq (Darwin,$(TARGET_SYS))
+		LUAJIT_HCFLAGS += -DLUAJIT_OS=LUAJIT_OS_OSX
+	else
+		LUAJIT_HCFLAGS += -DLUAJIT_OS=LUAJIT_OS_OTHER
+	endif
+	endif
+	endif
+endif
+
+LUAJIT_MLUA_OBJ = $(LUAJIT_PATH)/host/minilua.o
+LUAJIT_MLUA_LDFLAGS = -lm
+LUAJIT_MLUA_BIN = $(LUAJIT_PATH)/host/minilua
+LUAJIT_MLUA_EXC = $(OBJDIR)/$(LUAJIT_MLUA_BIN)
+LUAJIT_MLUA_OBJB = $(addprefix $(OBJDIR)/, $(LUAJIT_MLUA_OBJ))
+
+ifeq (Windows,$(HOST_SYS))
+	LUAJIT_MLUA_BIN = $(LUAJIT_PATH)/host/minilua.exe
+	ifeq (,$(HOST_MSYS))
+		LUAJIT_MLUA_EXC = $(OBJDIR)\$(subst /,\,$(LUAJIT_PATH))\host\minilua
+	endif
+endif
+
+LUAJIT_DASM_DIR = $(LUAJIT_PATHB)/dynasm
+LUAJIT_DASM = $(LUAJIT_MLUA_EXC) $(LUAJIT_DASM_DIR)/dynasm.lua
+
+LUAJIT_DASM_XFLAGS =
+LUAJIT_DASM_AFLAGS =
+LUAJIT_DASM_ARCH = $(TARGET_ARCH)
+
+ifneq (,$(findstring LJ_ARCH_BITS 64,$(TARGET_TESTARCH)))
+	LUAJIT_DASM_AFLAGS += -D P64
+endif
+ifneq (,$(findstring LJ_HASJIT 1,$(TARGET_TESTARCH)))
+	LUAJIT_DASM_AFLAGS += -D JIT
+else
+	$(warning JIT disabled, OctaForge might run slowly)
+endif
+ifneq (,$(findstring LJ_HASFFI 1,$(TARGET_TESTARCH)))
+	LUAJIT_DASM_AFLAGS += -D FFI
+else
+	$(error FFI required for OctaForge to run)
+endif
+ifneq (,$(findstring LJ_DUALNUM 1,$(TARGET_TESTARCH)))
+	LUAJIT_DASM_AFLAGS += -D DUALNUM
+endif
+ifneq (,$(findstring LJ_ARCH_HASFPU 1,$(TARGET_TESTARCH)))
+	LUAJIT_DASM_AFLAGS += -D FPU
+	LUAJIT_TARCH += -DLJ_ARCH_HASFPU=1
+else
+	LUAJIT_TARCH += -DLJ_ARCH_HASFPU=0
+endif
+ifeq (,$(findstring LJ_ABI_SOFTFP 1,$(TARGET_TESTARCH)))
+	LUAJIT_DASM_AFLAGS += -D HFABI
+	LUAJIT_TARCH += -DLJ_ABI_SOFTFP=0
+else
+	LUAJIT_TARCH += -DLJ_ABI_SOFTFP=1
+endif
+
+LUAJIT_DASM_AFLAGS += -D VER=$(subst LJ_ARCH_VERSION_,,$(filter \
+	LJ_ARCH_VERSION_%,$(subst LJ_ARCH_VERSION ,\
+	LJ_ARCH_VERSION_,$(TARGET_TESTARCH))))
+
+ifeq (Windows,$(TARGET_SYS))
+	LUAJIT_DASM_AFLAGS += -D WIN
+endif
+ifeq (x86,$(TARGET_ARCH))
+	ifneq (,$(findstring __SSE2__ 1,$(TARGET_TESTARCH)))
+		LUAJIT_DASM_AFLAGS+= -D SSE
+	endif
+else
+ifeq (x64,$(TARGET_ARCH))
+	LUAJIT_DASM_ARCH = x86
+endif
+endif
+
+LUAJIT_DASM_FLAGS = $(LUAJIT_DASM_XFLAGS) $(LUAJIT_DASM_AFLAGS)
+LUAJIT_DASM_DASC = $(LUAJIT_PATH)/vm_$(LUAJIT_DASM_ARCH).dasc
+
+LUAJIT_BUILDVM_OBJ = \
+	$(LUAJIT_PATH)/host/buildvm.o \
+	$(LUAJIT_PATH)/host/buildvm_asm.o \
+	$(LUAJIT_PATH)/host/buildvm_peobj.o \
+	$(LUAJIT_PATH)/host/buildvm_lib.o \
+	$(LUAJIT_PATH)/host/buildvm_fold.o
+
+LUAJIT_BUILDVM_OBJB = $(addprefix $(OBJDIR)/, $(LUAJIT_BUILDVM_OBJ))
+
+LUAJIT_BUILDVM_BIN = $(LUAJIT_PATH)/host/buildvm
+LUAJIT_BUILDVM_EXC = $(OBJDIR)/$(LUAJIT_BUILDVM_BIN)
+
+ifeq (Windows,$(HOST_SYS))
+	LUAJIT_BUILDVM_BIN = $(LUAJIT_PATH)/host/buildvm.exe
+	ifeq (,$(HOST_MSYS))
+		LUAJIT_BUILDVM_EXC = $(OBJDIR)\$(subst /,\,$(LUAJIT_PATH))\host\buildvm
+	endif
+endif
+
+LUAJIT_HOST_OBJ = $(LUAJIT_MLUA_OBJ) $(LUAJIT_BUILDVM_OBJ)
+LUAJIT_HOST_SRC = $(LUAJIT_HOST_OBJ:.o=.c)
+LUAJIT_HOST_BIN = $(LUAJIT_MLUA_BIN) $(LUAJIT_BUILDVM_BIN)
+
+LUAJIT_HOST_OBJB = $(addprefix $(OBJDIR)/, $(LUAJIT_HOST_OBJ))
+
+LUAJIT_VM_ASS = $(LUAJIT_PATH)/lj_vm.s
+LUAJIT_VM_OBJ = $(LUAJIT_PATH)/lj_vm.o
+LUAJIT_VM_MODE = elfasm
+
+ifeq (Windows,$(TARGET_SYS))
+	LUAJIT_VM_MODE = coffasm
+endif
+ifeq (Darwin,$(TARGET_SYS))
+	LUAJIT_VM_MODE = machasm
+endif
+
+LUAJIT_LIB_OBJ = \
+	$(LUAJIT_PATH)/lib_base.o \
+	$(LUAJIT_PATH)/lib_math.o \
+	$(LUAJIT_PATH)/lib_bit.o \
+	$(LUAJIT_PATH)/lib_string.o \
+	$(LUAJIT_PATH)/lib_table.o \
+	$(LUAJIT_PATH)/lib_io.o \
+	$(LUAJIT_PATH)/lib_os.o \
+	$(LUAJIT_PATH)/lib_package.o \
+	$(LUAJIT_PATH)/lib_debug.o \
+	$(LUAJIT_PATH)/lib_jit.o \
+	$(LUAJIT_PATH)/lib_ffi.o
+
+LUAJIT_LIB_SRC = $(LUAJIT_LIB_OBJ:.o=.c)
+
+LUAJIT_CORE_OBJ = \
+	$(LUAJIT_PATH)/lj_gc.o \
+	$(LUAJIT_PATH)/lj_err.o \
+	$(LUAJIT_PATH)/lj_char.o \
+	$(LUAJIT_PATH)/lj_bc.o \
+	$(LUAJIT_PATH)/lj_obj.o \
+	$(LUAJIT_PATH)/lj_str.o \
+	$(LUAJIT_PATH)/lj_tab.o \
+	$(LUAJIT_PATH)/lj_func.o \
+	$(LUAJIT_PATH)/lj_udata.o \
+	$(LUAJIT_PATH)/lj_meta.o \
+	$(LUAJIT_PATH)/lj_debug.o \
+	$(LUAJIT_PATH)/lj_state.o \
+	$(LUAJIT_PATH)/lj_dispatch.o \
+	$(LUAJIT_PATH)/lj_vmevent.o \
+	$(LUAJIT_PATH)/lj_vmmath.o \
+	$(LUAJIT_PATH)/lj_strscan.o \
+	$(LUAJIT_PATH)/lj_api.o \
+	$(LUAJIT_PATH)/lj_lex.o \
+	$(LUAJIT_PATH)/lj_parse.o \
+	$(LUAJIT_PATH)/lj_bcread.o \
+	$(LUAJIT_PATH)/lj_bcwrite.o \
+	$(LUAJIT_PATH)/lj_load.o \
+	$(LUAJIT_PATH)/lj_ir.o \
+	$(LUAJIT_PATH)/lj_opt_mem.o \
+	$(LUAJIT_PATH)/lj_opt_fold.o \
+	$(LUAJIT_PATH)/lj_opt_narrow.o \
+	$(LUAJIT_PATH)/lj_opt_dce.o \
+	$(LUAJIT_PATH)/lj_opt_loop.o \
+	$(LUAJIT_PATH)/lj_opt_split.o \
+	$(LUAJIT_PATH)/lj_opt_sink.o \
+	$(LUAJIT_PATH)/lj_mcode.o \
+	$(LUAJIT_PATH)/lj_snap.o \
+	$(LUAJIT_PATH)/lj_record.o \
+	$(LUAJIT_PATH)/lj_crecord.o \
+	$(LUAJIT_PATH)/lj_ffrecord.o \
+	$(LUAJIT_PATH)/lj_asm.o \
+	$(LUAJIT_PATH)/lj_trace.o \
+	$(LUAJIT_PATH)/lj_gdbjit.o \
+	$(LUAJIT_PATH)/lj_ctype.o \
+	$(LUAJIT_PATH)/lj_cdata.o \
+	$(LUAJIT_PATH)/lj_cconv.o \
+	$(LUAJIT_PATH)/lj_ccall.o \
+	$(LUAJIT_PATH)/lj_ccallback.o \
+	$(LUAJIT_PATH)/lj_carith.o \
+	$(LUAJIT_PATH)/lj_clib.o \
+	$(LUAJIT_PATH)/lj_cparse.o \
+	$(LUAJIT_PATH)/lj_lib.o \
+	$(LUAJIT_PATH)/lj_alloc.o \
+	$(LUAJIT_PATH)/lib_aux.o \
+	$(LUAJIT_LIB_OBJ) \
+	$(LUAJIT_PATH)/lib_init.o
+
+LUAJIT_VMCORE_OBJ = $(LUAJIT_VM_OBJ) $(LUAJIT_CORE_OBJ)
+
+LUAJIT_VMCORE_OBJB = $(addprefix $(OBJDIR)/, $(LUAJIT_VMCORE_OBJ))
+
+LUAJIT_LIB_VMDEF = $(LUAJIT_PATH)/jit/vmdef.lua
+LUAJIT_LIB_VMDEFP = $(LUAJIT_LIB_VMDEF)
+
+LUAJIT_LIB = $(LUAJIT_PATH)/libluajit.a
+
+LUAJIT_ALL_HDRGEN = \
+	$(LUAJIT_PATH)/lj_bcdef.h $(LUAJIT_PATH)/lj_ffdef.h \
+	$(LUAJIT_PATH)/lj_libdef.h $(LUAJIT_PATH)/lj_recdef.h \
+	$(LUAJIT_PATH)/lj_folddef.h $(LUAJIT_PATH)/host/buildvm_arch.h
 
 #################
 # Build targets #
@@ -453,109 +673,183 @@ endif
 
 .PRECIOUS: %/.stamp
 
+# macutils and SDLMain for Mac
+
 ifeq ($(TARGET_SYS), Darwin)
 $(OBJDIR)/client/platform_osx/macutils.o: platform_osx/macutils.mm \
 $$(@D)/.stamp
-	$(E) $(CYAN)[OS X]$(RRED) Building an Obj-C++ object file \
-	platform_osx/macutils.mm.$(ENDCOL)
+	$(E) $(PURPLE)[objc   ]$(RRED) platform_osx/macutils.mm$(ENDCOL)
 	$(Q) $(TARGET_CXX) $(CS_OSX_CXXFLAGS) -c -o $@ platform_osx/macutils.mm
 
 $(OBJDIR)/client/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	$(E) $(CYAN)[OS X]$(RRED) Building an Obj-C object file \
-	platform_osx/SDLMain.m.$(ENDCOL)
+	$(E) $(PURPLE)[objcxx ]$(RRED) platform_osx/SDLMain.m$(ENDCOL)
 	$(Q) $(TARGET_CC) $(CS_OSX_CFLAGS) -c -o $@ platform_osx/SDLMain.m
 endif
 
+# any C file - target platform
+
 $(OBJDIR)/%.o: %.c $$(@D)/.stamp
-	$(E) $(CYAN)[libraries]$(RRED) Building a C object file \
-		$(subst $(OBJDIR)/,,$@).$(ENDCOL)
+	$(E) $(PURPLE)[cc     ]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
 	$(Q) $(TARGET_CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
-$(ENET_OBJ_BUILD): CFLAGS = $(ENET_CFLAGS)
-enet: $(ENET_OBJ_BUILD)
-	$(E) $(PURPLE)Creating a static library $(ENET_LIB).$(ENDCOL)
-	$(Q) $(TARGET_AR) $(OBJDIR)/$(ENET_LIB) $(ENET_OBJ_BUILD)
-	$(E) $(GREEN)Built target: enet.$(ENDCOL)
+# any assembly file - target platform
 
-luajit:
-	$(E) $(PURPLE)Building LuaJIT.$(ENDCOL)
-	$(Q) cd $(LUAJIT_PATH); $(MAKE) XCFLAGS=$(LUAJIT_CFLAGS) \
-		BUILDMODE=$(LUAJIT_BUILDMODE) CC=$(LUAJIT_CC) \
-		TARGET_AR="$(LUAJIT_TARGET_AR)" TARGET_STRIP="$(LUAJIT_TARGET_STRIP)"
-	$(E) $(GREEN)Built target: luajit.$(ENDCOL)
+$(OBJDIR)/%.o: %.s $$(@D)/.stamp
+	$(E) $(PURPLE)[asm    ]$(RRED) $(subst $(OBJDIR)/,,$@).$(ENDCOL)
+	$(Q) $(TARGET_CC) $(CFLAGS) -c -o $@ $(subst .o,.s,$(subst $(OBJDIR)/,,$@))
+
+# LuaJIT host files (minilua, buildvm)
+
+$(LUAJIT_HOST_OBJB): %.o: $(LUAJIT_HOST_SRC) $$(@D)/.stamp
+	$(E) $(PURPLE)[hostcc ]$(RRED) $(subst $(OBJDIR)/,,$@).$(ENDCOL)
+	$(Q) $(HOST_CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
+
+# ENet
+
+$(ENET_OBJB): CFLAGS = $(ENET_CFLAGS)
+enet: $(ENET_OBJB)
+	$(E) $(CYAN)[ar     ]$(RRED) $(ENET_LIB)$(ENDCOL)
+	$(Q) $(TARGET_AR) $(OBJDIR)/$(ENET_LIB) $(ENET_OBJB)
+
+# LuaJIT - minilua
+
+$(LUAJIT_MLUA_OBJB): CFLAGS = $(LUAJIT_HCFLAGS)
+$(OBJDIR)/$(LUAJIT_MLUA_BIN): $(LUAJIT_MLUA_OBJB) $$(@D)/.stamp
+	$(E) $(GREEN)[hostld ]$(RRED) $(LUAJIT_MLUA_BIN)$(ENDCOL)
+	$(Q) $(HOST_CC) $(LUAJIT_HLDFLAGS) -o $@ $(LUAJIT_MLUA_OBJB) \
+	$(LUAJIT_MLUA_LDFLAGS)
+
+# LuaJIT - buildvm
+
+$(OBJDIR)/$(LUAJIT_PATH)/host/buildvm_arch.h: $(LUAJIT_DASM_DASC) \
+$(OBJDIR)/$(LUAJIT_MLUA_BIN) $$(@D)/.stamp
+	$(E) $(BLUE)[dynasm ]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_DASM) $(LUAJIT_DASM_FLAGS) -o $@ $(LUAJIT_DASM_DASC)
+
+$(OBJDIR)/$(LUAJIT_PATH)/host/buildvm.o: $(LUAJIT_DASM_DIR)/dasm_*.h \
+$$(@D)/.stamp
+
+$(LUAJIT_BUILDVM_OBJB): CFLAGS = $(LUAJIT_HCFLAGS)
+$(OBJDIR)/$(LUAJIT_BUILDVM_BIN): $(LUAJIT_BUILDVM_OBJB) $$(@D)/.stamp
+	$(E) $(GREEN)[hostld ]$(RRED) $(LUAJIT_BUILDVM_BIN)$(ENDCOL)
+	$(Q) $(HOST_CC) $(LUAJIT_HLDFLAGS) -o $@ $(LUAJIT_BUILDVM_OBJB) \
+	$(LUAJIT_BUILDVM_LDFLAGS)
+
+$(OBJDIR)/$(LUAJIT_VM_ASS): $(OBJDIR)/$(LUAJIT_BUILDVM_BIN) $$(@D)/.stamp
+	$(E) $(BLUE)[buildvm]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_BUILDVM_EXC) -m $(LUAJIT_VM_MODE) -o $@
+
+$(OBJDIR)/$(LUAJIT_PATH)/lj_bcdef.h: $(OBJDIR)/$(LUAJIT_BUILDVM_BIN) \
+$(LUAJIT_LIB_SRC) $$(@D)/.stamp
+	$(E) $(BLUE)[buildvm]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_BUILDVM_EXC) -m bcdef -o $@ $(LUAJIT_LIB_SRC)
+
+$(OBJDIR)/$(LUAJIT_PATH)/lj_ffdef.h: $(OBJDIR)/$(LUAJIT_BUILDVM_BIN) \
+$(LUAJIT_LIB_SRC) $$(@D)/.stamp
+	$(E) $(BLUE)[buildvm]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_BUILDVM_EXC) -m ffdef -o $@ $(LUAJIT_LIB_SRC)
+
+$(OBJDIR)/$(LUAJIT_PATH)/lj_libdef.h: $(OBJDIR)/$(LUAJIT_BUILDVM_BIN) \
+$(LUAJIT_LIB_SRC) $$(@D)/.stamp
+	$(E) $(BLUE)[buildvm]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_BUILDVM_EXC) -m libdef -o $@ $(LUAJIT_LIB_SRC)
+
+$(OBJDIR)/$(LUAJIT_PATH)/lj_recdef.h: $(OBJDIR)/$(LUAJIT_BUILDVM_BIN) \
+$(LUAJIT_LIB_SRC) $$(@D)/.stamp
+	$(E) $(BLUE)[buildvm]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_BUILDVM_EXC) -m recdef -o $@ $(LUAJIT_LIB_SRC)
+
+$(OBJDIR)/$(LUAJIT_LIB_VMDEF): $(OBJDIR)/$(LUAJIT_BUILDVM_BIN) \
+$(LUAJIT_LIB_SRC) $$(@D)/.stamp
+	$(E) $(BLUE)[buildvm]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_BUILDVM_EXC) -m vmdef -o $(OBJDIR)/$(LUAJIT_LIB_VMDEFP) \
+	$(LUAJIT_LIB_SRC)
+
+$(OBJDIR)/$(LUAJIT_PATH)/lj_folddef.h: $(OBJDIR)/$(LUAJIT_BUILDVM_BIN) \
+$(LUAJIT_PATH)/lj_opt_fold.c $$(@D)/.stamp
+	$(E) $(BLUE)[buildvm]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(LUAJIT_BUILDVM_EXC) -m folddef -o $@ $(LUAJIT_PATH)/lj_opt_fold.c
+
+# LuaJIT - library
+
+$(LUAJIT_VMCORE_OBJB): CFLAGS = $(LUAJIT_CFLAGS)
+luajit: $(LUAJIT_VMCORE_OBJB)
+	$(E) $(CYAN)[ar     ]$(RRED) $(LUAJIT_LIB)$(ENDCOL)
+	$(Q) $(TARGET_AR) $(OBJDIR)/$(LUAJIT_LIB) $(LUAJIT_VMCORE_OBJB)
+
+# OctaForge - client
 
 $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
-	$(E) $(BLUE)[client]$(RRED) Building a C++ object file \
-	$(subst $(OBJDIR)/client/,,$@).$(ENDCOL)
+	$(E) $(PURPLE)[cc     ]$(RGREEN)[client]$(RRED) \
+	$(subst $(OBJDIR)/client/,,$@)$(ENDCOL)
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -c -o $@ \
-		$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
+	$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
-client: enet luajit $(CLIENT_OBJ_BUILD)
-	$(E) $(BLUE)Linking a client executable $(CLIENT_BIN).$(ENDCOL)
+client: enet luajit $(CLIENT_OBJB)
+	$(E) $(GREEN)[ld     ]$(RGREEN) $(CLIENT_BIN)$(ENDCOL)
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -o $(CLIENT_BIN) \
-		$(CLIENT_OBJ_BUILD) $(CLIENT_LDFLAGS)
-	$(E) $(GREEN)Built target: client.$(ENDCOL)
+	$(CLIENT_OBJB) $(CLIENT_LDFLAGS)
+
+# OctaForge - server
 
 $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
-	$(E) $(PURPLE)[server]$(RRED) Building a C++ object file \
-	$(subst $(OBJDIR)/server/,,$@).$(ENDCOL)
+	$(E) $(PURPLE)[cc     ]$(RCYAN)[server]$(RRED) \
+	$(subst $(OBJDIR)/server/,,$@)$(ENDCOL)
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -c -o $@ \
-		$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
+	$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
-server: enet luajit $(SERVER_OBJ_BUILD)
-	$(E) $(BLUE)Linking a server executable $(SERVER_BIN).$(ENDCOL)
+server: enet luajit $(SERVER_OBJB)
+	$(E) $(GREEN)[ld     ]$(RCYAN) $(SERVER_BIN)$(ENDCOL)
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -o $(SERVER_BIN) \
-		$(SERVER_OBJ_BUILD) $(SERVER_LDFLAGS)
-	$(E) $(GREEN)Built target: server.$(ENDCOL)
+	$(SERVER_OBJB) $(SERVER_LDFLAGS)
 
 $(OBJDIR)/cube2font.o: shared/cube2font.c
+	$(E) $(PURPLE)[cc     ]$(RRED) cube2font.o$(ENDCOL)
 	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) \
-		-c -o $@ $< `freetype-config --cflags`
+	-c -o $@ $< `freetype-config --cflags`
 
 cube2font: $(OBJDIR)/cube2font.o
+	$(E) $(GREEN)[ld     ]$(RRED) cube2font$(ENDCOL)
 	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o cube2font \
-		$(OBJDIR)/cube2font.o `freetype-config --libs` -lz
+	$(OBJDIR)/cube2font.o `freetype-config --libs` -lz
 
 # general targets
 all: client server
 
 ifneq ($(FLAV), Windows)
 clean:
-	$(E) $(CYAN)Cleaning up...$(ENDCOL)
+	$(E) $(CYAN)[clean  ]$(RRED) $(OBJDIR) $(RGREEN)$(CLIENT_BIN) \
+	$(RCYAN)$(SERVER_BIN)$(ENDCOL)
 	$(Q) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
-	$(Q) -cd $(LUAJIT_PATH); $(MAKE) clean
-	$(E) $(GREEN)... done.$(ENDCOL)
 else
 clean:
-	$(E) Cleaning up...
+	$(E) [clean  ] $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
 	$(Q) -rmdir //s //f //q $(OBJDIR)
 	$(Q) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN)
-	$(Q) -cd $(LUAJIT_PATH); $(MAKE) clean
-	$(E) ... done.
 endif
 
 install: client server
-	$(E) $(CYAN)Installing...$(ENDCOL)
 ifneq ($(FLAV), Windows)
-	$(E) $(CYAN)Copying $(CLIENT_BIN) to $(BIN_PATH).$(ENDCOL)
+	$(E) $(GREEN)[install]$(RBLUE) $(CLIENT_BIN) $(RGREEN)-> \
+	$(RRED)$(BIN_PATH)$(ENDCOL)
 	$(Q) cp -f $(CLIENT_BIN) $(BIN_PATH)
-	$(E) $(CYAN)Copying $(SERVER_BIN) to $(BIN_PATH).$(ENDCOL)
+	$(E) $(GREEN)[install]$(RBLUE) $(SERVER_BIN) $(RGREEN)-> \
+	$(RRED)$(BIN_PATH)$(ENDCOL)
 	$(Q) cp -f $(SERVER_BIN) $(BIN_PATH)
 ifeq (,$(NOSTRIP))
 	$(Q) $(TARGET_STRIP) $(BIN_PATH)/$(CLIENT_BIN)
 	$(Q) $(TARGET_STRIP) $(BIN_PATH)/$(SERVER_BIN)
 endif
 else
-	$(E) Copying $(CLIENT_BIN) to $(BIN_PATH).
+	$(E) [install] $(CLIENT_BIN) -> $(BIN_PATH)
 	$(Q) copy $(CLIENT_BIN) $(BIN_PATH)
-	$(E) Copying $(SERVER_BIN) to $(BIN_PATH).
+	$(E) [install] $(SERVER_BIN) -> $(BIN_PATH)
 	$(Q) copy $(SERVER_BIN) $(BIN_PATH)
 ifeq (,$(NOSTRIP))
 	$(Q) $(TARGET_STRIP) $(BIN_PATH)\$(CLIENT_BIN)
 	$(Q) $(TARGET_STRIP) $(BIN_PATH)\$(SERVER_BIN)
 endif
 endif
-	$(E) $(GREEN)... done.$(ENDCOL)
 
 # dependency generator
 depend:
@@ -585,6 +879,27 @@ depend:
 		-I$(ENET_INC) \
 		-p$$\(OBJDIR\)/ \
 		$(subst .o,.c,$(ENET_OBJ))
+
+	@mkdir -p $(OBJDIR)/$(LUAJIT_PATH)/host
+	@for file in $(LUAJIT_ALL_HDRGEN); do \
+		test -f $(OBJDIR)/$$file || touch $(OBJDIR)/$$file; \
+		done
+
+	makedepend -a -Y -w 65536 \
+		-I$(LUAJIT_INC) -I$(OBJDIR)/$(LUAJIT_INC) \
+		-I$(OBJDIR)/$(LUAJIT_INC)/host \
+		-p$$\(OBJDIR\)/ \
+		$(subst .o,.c,$(LUAJIT_VMCORE_OBJ))
+
+	makedepend -a -Y -w 65536 \
+		-I$(LUAJIT_INC) -I$(OBJDIR)/$(LUAJIT_INC) \
+		-I$(OBJDIR)/$(LUAJIT_INC)/host \
+		-p$$\(OBJDIR\)/ \
+		$(subst .o,.c,$(LUAJIT_HOST_OBJ))
+
+	@for file in $(LUAJIT_ALL_HDRGEN); do \
+		test -s $(OBJDIR)/$$file || $(HOST_RM) $$file; \
+		done
 
 # DO NOT DELETE
 
@@ -686,3 +1001,71 @@ $(OBJDIR)/libraries/enet/packet.o: libraries/enet/include/enet/enet.h libraries/
 $(OBJDIR)/libraries/enet/peer.o: libraries/enet/include/enet/enet.h libraries/enet/include/enet/unix.h libraries/enet/include/enet/types.h libraries/enet/include/enet/protocol.h libraries/enet/include/enet/list.h libraries/enet/include/enet/callbacks.h
 $(OBJDIR)/libraries/enet/protocol.o: libraries/enet/include/enet/utility.h libraries/enet/include/enet/time.h libraries/enet/include/enet/enet.h libraries/enet/include/enet/unix.h libraries/enet/include/enet/types.h libraries/enet/include/enet/protocol.h libraries/enet/include/enet/list.h libraries/enet/include/enet/callbacks.h
 $(OBJDIR)/libraries/enet/unix.o: libraries/enet/include/enet/enet.h libraries/enet/include/enet/unix.h libraries/enet/include/enet/types.h libraries/enet/include/enet/protocol.h libraries/enet/include/enet/list.h libraries/enet/include/enet/callbacks.h
+
+$(OBJDIR)/libraries/luajit/src/lj_gc.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_udata.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_err.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_char.o: libraries/luajit/src/lj_char.h libraries/luajit/src/lj_def.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h
+$(OBJDIR)/libraries/luajit/src/lj_bc.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_bc.h build/libraries/luajit/src/lj_bcdef.h
+$(OBJDIR)/libraries/luajit/src/lj_obj.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h
+$(OBJDIR)/libraries/luajit/src/lj_str.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_char.h
+$(OBJDIR)/libraries/luajit/src/lj_tab.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_tab.h
+$(OBJDIR)/libraries/luajit/src/lj_func.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_udata.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_udata.h
+$(OBJDIR)/libraries/luajit/src/lj_meta.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_strscan.h
+$(OBJDIR)/libraries/luajit/src/lj_debug.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h
+$(OBJDIR)/libraries/luajit/src/lj_state.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_lex.h libraries/luajit/src/lj_alloc.h
+$(OBJDIR)/libraries/luajit/src/lj_dispatch.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_ccallback.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h libraries/luajit/src/luajit.h
+$(OBJDIR)/libraries/luajit/src/lj_vmevent.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_vmevent.h
+$(OBJDIR)/libraries/luajit/src/lj_vmmath.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_strscan.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_char.h libraries/luajit/src/lj_strscan.h
+$(OBJDIR)/libraries/luajit/src/lj_api.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_udata.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_strscan.h
+$(OBJDIR)/libraries/luajit/src/lj_lex.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_lex.h libraries/luajit/src/lj_parse.h libraries/luajit/src/lj_char.h libraries/luajit/src/lj_strscan.h
+$(OBJDIR)/libraries/luajit/src/lj_parse.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_lex.h libraries/luajit/src/lj_parse.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_vmevent.h
+$(OBJDIR)/libraries/luajit/src/lj_bcread.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_lex.h libraries/luajit/src/lj_bcdump.h libraries/luajit/src/lj_state.h
+$(OBJDIR)/libraries/luajit/src/lj_bcwrite.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_bcdump.h libraries/luajit/src/lj_lex.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_load.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_lex.h libraries/luajit/src/lj_bcdump.h libraries/luajit/src/lj_parse.h
+$(OBJDIR)/libraries/luajit/src/lj_ir.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ircall.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_carith.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_strscan.h libraries/luajit/src/lj_lib.h
+$(OBJDIR)/libraries/luajit/src/lj_opt_mem.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h
+$(OBJDIR)/libraries/luajit/src/lj_opt_fold.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_carith.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_strscan.h build/libraries/luajit/src/lj_folddef.h
+$(OBJDIR)/libraries/luajit/src/lj_opt_narrow.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_strscan.h
+$(OBJDIR)/libraries/luajit/src/lj_opt_dce.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h
+$(OBJDIR)/libraries/luajit/src/lj_opt_loop.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_snap.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_opt_split.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h
+$(OBJDIR)/libraries/luajit/src/lj_opt_sink.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_target.h libraries/luajit/src/lj_target_x86.h
+$(OBJDIR)/libraries/luajit/src/lj_mcode.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_mcode.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_snap.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_snap.h libraries/luajit/src/lj_target.h libraries/luajit/src/lj_target_x86.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cdata.h
+$(OBJDIR)/libraries/luajit/src/lj_record.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ircall.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_record.h libraries/luajit/src/lj_ffrecord.h libraries/luajit/src/lj_snap.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_crecord.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_cparse.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_clib.h libraries/luajit/src/lj_ccall.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ircall.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_record.h libraries/luajit/src/lj_ffrecord.h libraries/luajit/src/lj_snap.h libraries/luajit/src/lj_crecord.h
+$(OBJDIR)/libraries/luajit/src/lj_ffrecord.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ircall.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_record.h libraries/luajit/src/lj_ffrecord.h libraries/luajit/src/lj_crecord.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_strscan.h build/libraries/luajit/src/lj_recdef.h
+$(OBJDIR)/libraries/luajit/src/lj_asm.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ircall.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_mcode.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_snap.h libraries/luajit/src/lj_asm.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_target.h libraries/luajit/src/lj_target_x86.h libraries/luajit/src/lj_emit_x86.h libraries/luajit/src/lj_asm_x86.h
+$(OBJDIR)/libraries/luajit/src/lj_trace.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_mcode.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_snap.h libraries/luajit/src/lj_gdbjit.h libraries/luajit/src/lj_record.h libraries/luajit/src/lj_asm.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_vmevent.h libraries/luajit/src/lj_target.h libraries/luajit/src/lj_target_x86.h
+$(OBJDIR)/libraries/luajit/src/lj_gdbjit.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h
+$(OBJDIR)/libraries/luajit/src/lj_ctype.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_ccallback.h
+$(OBJDIR)/libraries/luajit/src/lj_cdata.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_cdata.h
+$(OBJDIR)/libraries/luajit/src/lj_cconv.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_ccallback.h
+$(OBJDIR)/libraries/luajit/src/lj_ccall.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_ccall.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_traceerr.h
+$(OBJDIR)/libraries/luajit/src/lj_ccallback.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_ccall.h libraries/luajit/src/lj_ccallback.h libraries/luajit/src/lj_target.h libraries/luajit/src/lj_target_x86.h libraries/luajit/src/lj_mcode.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_vm.h
+$(OBJDIR)/libraries/luajit/src/lj_carith.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_carith.h
+$(OBJDIR)/libraries/luajit/src/lj_clib.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_udata.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_clib.h
+$(OBJDIR)/libraries/luajit/src/lj_cparse.o: libraries/luajit/src/lj_obj.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cparse.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_char.h libraries/luajit/src/lj_strscan.h
+$(OBJDIR)/libraries/luajit/src/lj_lib.o: libraries/luajit/src/lauxlib.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_func.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_strscan.h libraries/luajit/src/lj_lib.h
+$(OBJDIR)/libraries/luajit/src/lj_alloc.o: libraries/luajit/src/lj_def.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_alloc.h
+$(OBJDIR)/libraries/luajit/src/lib_aux.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_trace.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_traceerr.h libraries/luajit/src/lj_lib.h libraries/luajit/src/lj_alloc.h
+$(OBJDIR)/libraries/luajit/src/lib_base.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_char.h libraries/luajit/src/lj_strscan.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_math.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_lib.h libraries/luajit/src/lj_vm.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_bit.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_string.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_bcdump.h libraries/luajit/src/lj_lex.h libraries/luajit/src/lj_char.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_table.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_io.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_state.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_os.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_package.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_lib.h
+$(OBJDIR)/libraries/luajit/src/lib_debug.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_jit.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_debug.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_ircall.h libraries/luajit/src/lj_iropt.h libraries/luajit/src/lj_target.h libraries/luajit/src/lj_target_x86.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_vm.h libraries/luajit/src/lj_vmevent.h libraries/luajit/src/lj_lib.h libraries/luajit/src/luajit.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_ffi.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_def.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_err.h libraries/luajit/src/lj_errmsg.h libraries/luajit/src/lj_str.h libraries/luajit/src/lj_tab.h libraries/luajit/src/lj_meta.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_cparse.h libraries/luajit/src/lj_cdata.h libraries/luajit/src/lj_cconv.h libraries/luajit/src/lj_carith.h libraries/luajit/src/lj_ccall.h libraries/luajit/src/lj_ccallback.h libraries/luajit/src/lj_clib.h libraries/luajit/src/lj_ff.h build/libraries/luajit/src/lj_ffdef.h libraries/luajit/src/lj_lib.h build/libraries/luajit/src/lj_libdef.h
+$(OBJDIR)/libraries/luajit/src/lib_init.o: libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lauxlib.h libraries/luajit/src/lualib.h libraries/luajit/src/lj_arch.h
+
+$(OBJDIR)/libraries/luajit/src/host/buildvm.o: libraries/luajit/src/host/buildvm.h libraries/luajit/src/lj_def.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_gc.h libraries/luajit/src/lj_bc.h libraries/luajit/src/lj_ir.h libraries/luajit/src/lj_ircall.h libraries/luajit/src/lj_jit.h libraries/luajit/src/lj_frame.h libraries/luajit/src/lj_dispatch.h libraries/luajit/src/lj_ctype.h libraries/luajit/src/lj_ccall.h libraries/luajit/src/luajit.h libraries/luajit/dynasm/dasm_proto.h libraries/luajit/dynasm/dasm_x86.h build/libraries/luajit/src/host/buildvm_arch.h libraries/luajit/src/lj_traceerr.h
+$(OBJDIR)/libraries/luajit/src/host/buildvm_asm.o: libraries/luajit/src/host/buildvm.h libraries/luajit/src/lj_def.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_bc.h
+$(OBJDIR)/libraries/luajit/src/host/buildvm_peobj.o: libraries/luajit/src/host/buildvm.h libraries/luajit/src/lj_def.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_bc.h
+$(OBJDIR)/libraries/luajit/src/host/buildvm_lib.o: libraries/luajit/src/host/buildvm.h libraries/luajit/src/lj_def.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_lib.h
+$(OBJDIR)/libraries/luajit/src/host/buildvm_fold.o: libraries/luajit/src/host/buildvm.h libraries/luajit/src/lj_def.h libraries/luajit/src/lua.h libraries/luajit/src/luaconf.h libraries/luajit/src/lj_arch.h libraries/luajit/src/lj_obj.h libraries/luajit/src/lj_ir.h
