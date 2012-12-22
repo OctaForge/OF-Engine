@@ -1,197 +1,265 @@
-# A makefile for OctaForge
-# for use under Linux, Windows, FreeBSD, Solaris and Mac OS X
+# OctaForge makefile
+# written for FreeBSD, Linux, Solaris, Mac OS X and Windows
+# inspired by LuaJIT makefile
 #
 # author: Daniel 'q66' Kolesa <quaker66@gmail.com>
-# licensed under MIT (see COPYING.txt for more information).
+# license: MIT
 
-# flag overrides
-CXXFLAGS = -O3 -fomit-frame-pointer
-override CXXFLAGS += -Wall -fsigned-char -fno-exceptions -fno-rtti
+CC = cc
+CC_FLAGS = -O2 -fomit-frame-pointer -fsigned-char
 
-ifneq (,$(MINGW_CROSS))
-OS   = Windows
-FLAV = MinGW-cross
-ARCH = x86
+CXX = c++
+CXX_FLAGS = $(CC_FLAGS)
 
-CROSS = mingw32-
+CC_FLAGS_x86 = -march=i686
+CC_FLAGS_x64 =
+#CC_FLAGS_x86 = -march=native
+#CC_FLAGS_x64 = -march-native
 
-AR     = $(CROSS)ar rcus
-STRIP  =
-ifeq (,$(findstring -g, $(CXXFLAGS)))
-ifeq (,$(findstring -pg, $(CXXFLAGS)))
-STRIP  = $(CROSS)strip
-endif
-endif
+CXX_FLAGS_x86 = $(CC_FLAGS_x86)
+CXX_FLAGS_x64 = $(CC_FLAGS_x64)
 
-CC  = $(CROSS)gcc
-CXX = $(CROSS)g++
+CC_DEBUG =
+#CC_DEBUG = -g
+
+ifeq ($(DEBUG),1)
+	CC_DEBUG = -g
 endif
 
-# basic OS information
-ifeq (,$(OS))
-OS   = $(shell uname -s)
-ARCH = $(shell uname -m)
-endif
+CXX_DEBUG = $(CC_DEBUG)
 
-ifneq (,$(findstring Windows,$(OS)))
-OS = Windows
-endif
-ifneq (,$(findstring MINGW,$(OS)))
-OS = Windows
-endif
+CC_WARN = -Wall
+CXX_WARN = $(CC_WARN)
 
-ifeq (,$(ARCH))
-ifeq (,$(WIN64))
-ARCH = x86
-else
-ARCH = x64
-endif
-endif
+#####################################
+# Feature section: modify as needed #
+#####################################
 
-ifeq (,$(FLAV))
-FLAV = $(OS)
-endif
-
-# under mingw, CC defaults to 'cc' and that does not exist by default
-ifeq ($(CC), cc)
-	CC = gcc
-endif
-
-# tools
-ifeq (,$(MINGW_CROSS))
-AR     = ar rcus
-STRIP  =
-ifeq (,$(findstring -g, $(CXXFLAGS)))
-ifeq (,$(findstring -pg, $(CXXFLAGS)))
-STRIP  = strip
-endif
-endif
-endif
-
-# verbose
-ifeq (,$(VERBOSE))
-AT = @
-endif
-
-# output colorization on non-windows
-
-ifneq ($(FLAV), Windows)
-ifeq (,$(NOCOLOR))
-RED    = -e "\033[1;31m
-GREEN  = -e "\033[1;32m
-BLUE   = -e "\033[1;34m
-PURPLE = -e "\033[1;35m
-CYAN   = -e "\033[1;36m
-RRED   = \033[1;31m
-ENDCOL = \033[m"
-endif
-endif
-
-# object directory
+# which directory object files will be written to
 OBJDIR = build
 
+# Mac OS X framework path
+OSX_FRAMEWORKS = /Library/Frameworks
+
+# C++ compiler flags for OF client
+CLIENT_XCXXFLAGS =
+
+# C++ compiler flags for OF server
+SERVER_XCXXFLAGS =
+
+# C compiler flags for ENet
+ENET_XCFLAGS =
+
+# C compiler flags for LuaJIT
+LUAJIT_XCFLAGS =
+
+#####################
+# Debugging options #
+#####################
+
+###########################################################
+# Do not change here if you don't know what you are doing #
+###########################################################
+
 # paths
-OFTL_PATH   = libraries/OFTL
-ENET_PATH   = libraries/enet
+
+OFTL_PATH = libraries/OFTL
+ENET_PATH = libraries/enet
 LUAJIT_PATH = libraries/luajit/src
-ifneq ($(OS), Windows)
-BIN_PATH  = ../bin_unix
+
+# Variables
+
+HOST_CC = $(CC)
+HOST_CXX = $(CXX)
+
+TARGET_CC = $(CROSS)$(CC)
+TARGET_CXX = $(CROSS)$(CXX)
+TARGET_AR = $(CROSS)ar rcus
+TARGET_STRIP = $(CROSS)strip
+
+ifeq (,$(VERBOSE))
+	Q = @
+	E = @echo
 else
-ifeq ($(FLAV), Windows)
-ifeq (,$(WIN64))
-BIN_PATH  = ..\bin_win32
-else
-BIN_PATH = ..\bin_win64
+	Q =
+	E = @:
 endif
+
+# OS detection
+
+ifeq (Windows,$(findstring Windows,$(OS))$(MSYSTEM)$(TERM))
+	HOST_SYS = Windows
+	HOST_RM = del
 else
-BIN_PATH  = ../bin_win32
+	HOST_SYS = $(shell uname -s)
+	ifneq (,$(findstring MINGW,$(HOST_SYS)))
+		HOST_SYS = Windows
+		HOST_MSYS = mingw
+	endif
+	ifneq (,$(findstring CYGWIN,$(HOST_SYS)))
+		HOST_SYS = Windows
+		HOST_MSYS = cygwin
+	endif
+endif
+
+# arch detection
+
+TARGET_TESTARCH = $(shell $(TARGET_CC) -E $(LUAJIT_PATH)/lj_arch.h -dM)
+ifneq (,$(findstring LJ_TARGET_X64,$(TARGET_TESTARCH)))
+	TARGET_ARCH = x64
+else
+ifneq (,$(findstring LJ_TARGET_X86,$(TARGET_TESTARCH)))
+	TARGET_ARCH = x86
+else
+	$(error Unsupported target architecture)
 endif
 endif
 
-# include paths
-OFTL_INCLUDE_PATH   = $(OFTL_PATH)/include
-ENET_INCLUDE_PATH   = $(ENET_PATH)/include
-LUAJIT_INCLUDE_PATH = $(LUAJIT_PATH)
+# extra OS stuff
+
+TARGET_SYS ?= $(HOST_SYS)
+ifeq (Windows, $(TARGET_SYS))
+	TARGET_STRIP += --strip-unneeded
+else
+ifeq (Darwin, $(TARGET_SYS))
+	ifeq (,$(MACOSX_DEPLOYMENT_TARGET))
+		export MACOSX_DEPLOYMENT_TARGET=10.6
+	endif
+	TARGET_STRIP += -x
+	TARGET_AR+= 2>/dev/null
+endif
+endif
+
+# extra flags
+
+#ifneq ($(HOST_SYS),$(TARGET_SYS))
+#	ifeq (Windows,$(TARGET_SYS))
+#		....
+#	endif
+#endif
+
+# do not strip on debug
+
+ifneq (,$(CC_DEBUG))
+	TARGET_STRIP = @:
+endif
+
+# colored output on non-windows
+
+ifneq ($(HOST_SYS),Windows)
+	ifeq (,$(NOCOLOR))
+		RED    = -e "\033[1;31m
+		GREEN  = -e "\033[1;32m
+		BLUE   = -e "\033[1;34m
+		PURPLE = -e "\033[1;35m
+		CYAN   = -e "\033[1;36m
+		RRED   = \033[1;31m
+		ENDCOL = \033[m"
+	endif
+endif
+
+# binary install paths
+
+ifneq ($(TARGET_SYS),Windows)
+	BIN_PATH = ../bin_unix
+else
+ifeq ($(TARGET_ARCH),x64)
+	BIN_PATH = ..\bin_win64
+else
+	BIN_PATH = ..\bin_win32
+endif
+endif
+
+# includes
+
+OFTL_INC = $(OFTL_PATH)/include
+ENET_INC = $(ENET_PATH)/include
+LUAJIT_INC = $(LUAJIT_PATH)
 
 # binary names
-ifeq (,$(findstring Windows,$(OS)))
-CLIENT_BIN = OF_Client_$(OS)-$(ARCH)
-SERVER_BIN = OF_Server_$(OS)-$(ARCH)
+
+ifeq ($(TARGET_ARCH),x64)
+ifneq ($(TARGET_SYS),Windows)
+	TARGET_BINARCH = x86_64
 else
-CLIENT_BIN = OF_Client_$(OS)-$(ARCH).exe
-SERVER_BIN = OF_Server_$(OS)-$(ARCH).exe
+	TARGET_BINARCH = $(TARGET_ARCH)
+endif
+else
+	TARGET_BINARCH = $(TARGET_ARCH)
+endif
+
+ifneq ($(TARGET_SYS),Windows)
+	CLIENT_BIN = OF_Client_$(TARGET_SYS)-$(TARGET_BINARCH)
+	SERVER_BIN = OF_Server_$(TARGET_SYS)-$(TARGET_BINARCH)
+else
+	CLIENT_BIN = OF_Client_$(TARGET_SYS)-$(TARGET_BINARCH).exe
+	SERVER_BIN = OF_Server_$(TARGET_SYS)-$(TARGET_BINARCH).exe
 endif
 
 # library names
+
 ENET_LIB = $(ENET_PATH)/libenet.a
 
-# general includes
-INCLUDES  = -Ishared -Iengine -Ifpsgame
-INCLUDES += -Iintensity -Ioctaforge
-INCLUDES += -I$(OFTL_INCLUDE_PATH)
-INCLUDES += -I$(ENET_INCLUDE_PATH)
-INCLUDES += -I$(LUAJIT_INCLUDE_PATH)
-INCLUDES += -std=c++0x
+# client/server includes
 
-# Windows specific
-ifeq ($(OS), Windows)
-WINDOWS_INCLUDES = -Iplatform_windows/include
-ifeq (,$(WIN64))
-WINDOWS_LIBS = -L../bin_win32
-else
-WINDOWS_LIBS = -L../bin_win64
-endif
-endif
+CS_INC = -Ishared -Iengine -Ifpsgame
+CS_INC += -Iintensity -Ioctaforge
+CS_INC += -I$(OFTL_INC) -I$(ENET_INC) -I$(LUAJIT_INC)
 
-# Mac OS X specific
-ifeq ($(OS), Darwin)
-OSX_FRAMEWORK_PATH = /Library/Frameworks
-
-OSX_OBJ = \
-	platform_osx/macutils.o \
-	platform_osx/SDLMain.o
-
-OSX_INCLUDES  = -I$(OSX_FRAMEWORK_PATH)/SDL.framework/Headers
-OSX_INCLUDES += -I$(OSX_FRAMEWORK_PATH)/SDL_image.framework/Headers
-OSX_INCLUDES += -I$(OSX_FRAMEWORK_PATH)/SDL_mixer.framework/Headers
-
-OSX_LIBS  = -F$(OSX_FRAMEWORK_PATH) -framework Cocoa \
-	-framework SDL -framework SDL_image -framework SDL_mixer
-endif
-
-# client includes and libs
-ifneq ($(OS), Windows)
-	ifneq ($(OS), Darwin)
-		CLIENT_INC  = $(INCLUDES) -I/usr/X11R6/include
-		CLIENT_INC += `sdl-config --cflags` -DCLIENT
-		CLIENT_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
-		CLIENT_LDD += -lenet -lluajit -L/usr/X11R6/lib -lX11 `sdl-config --libs`
-		CLIENT_LDD += -lSDL_image -lSDL_mixer -lz -lGL
-		CLIENT_LDD += -Wl,--export-dynamic
-		ifeq ($(OS), Linux)
-			CLIENT_LDD += -ldl -lrt
-		endif
-		ifeq ($(OS), SunOS)
-			CLIENT_LDD += -lsocket -lnsl
-		endif
+ifeq ($(TARGET_SYS),Windows)
+	CS_WIN_INC = -Iplatform_windows/include
+	ifeq ($(TARGET_ARCH),x64)
+		CS_WIN_LIB = -L../bin_win64
 	else
-		CLIENT_INC  = $(INCLUDES) $(OSX_INCLUDES) -DCLIENT
-		CLIENT_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
-		CLIENT_LDD += -lenet -lluajit $(OSX_LIBS) -framework OpenGL -lz
-		CLIENT_LDD += -pagezero_size 10000 -image_base 100000000
+		CS_WIN_LIB = -L../bin_win32
 	endif
-else
-	CLIENT_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DCLIENT
-	CLIENT_INC += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
-	CLIENT_LDD  = $(WINDOWS_LIBS)
-	CLIENT_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
-	CLIENT_LDD += -lenet -lluajit -lSDL -lSDL_image -lSDL_mixer
-	CLIENT_LDD += -lzlib1 -lopengl32 -lws2_32 -lwinmm
-	CLIENT_LDD += -static-libgcc -static-libstdc++
-	CLIENT_LDD += -Wl,--export-dynamic
 endif
 
-# client objects
+ifeq ($(TARGET_SYS),Darwin)
+	CS_OSX_OBJ = platform_osx/macutils.o platform_osx/SDLMain.o
+	CS_OSX_INC = -I$(OSX_FRAMEWORKS)/SDL.framework/Headers
+	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL_image.framework/Headers
+	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL_mixer.framework/Headers
+	CS_OSX_LIB = -F$(OSX_FRAMEWORKS) -framework Cocoa -framework SDL \
+		-framework SDL_image -framework SDL_mixer
+	CS_OSX_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(CS_OSX_INC)
+	CS_OSX_CFLAGS += -Wno-import
+	CS_OSX_CXXFLAGS = $(CS_OSX_CFLAGS) -fno-exceptions -fno-rtti
+endif
+
+####################
+# OctaForge client #
+####################
+
+CLIENT_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
+	-fno-exceptions -fno-rtti -std=c++0x -DCLIENT
+
+CLIENT_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH) -lenet -lluajit
+
+ifeq ($(TARGET_SYS),Windows)
+	CLIENT_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
+	CLIENT_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
+	CLIENT_LDFLAGS += $(CS_WIN_LIB) -lSDL -lSDL_image -lSDL_mixer
+	CLIENT_LDFLAGS += -lzlib1 -lopengl32 -lws2_32 -lwinmm
+	CLIENT_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-dynamic
+else
+ifeq ($(TARGET_SYS),Darwin)
+	CLIENT_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
+	CLIENT_LDFLAGS += $(CS_OSX_LIB) -framework OpenGL -lz
+	CLIENT_LDFLAGS += -pagezero_size 10000 -image_base 100000000
+else
+	CLIENT_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl-config --cflags`
+	CLIENT_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl-config --libs`
+	CLIENT_LDFLAGS += -lSDL_image -lSDL_mixer -lz -lGL -Wl,--export-dynamic
+	ifeq ($(TARGET_SYS),Linux)
+		CLIENT_LDD += -ldl -lrt
+	endif
+	ifeq ($(TARGET_SYS),SunOS)
+		CLIENT_LDD += -lsocket -lnsl
+	endif
+endif
+endif
+
 CLIENT_OBJ = \
 	octaforge/of_tools.o \
 	engine/blend.o \
@@ -252,49 +320,50 @@ CLIENT_OBJ = \
 	octaforge/of_entities.o \
 	octaforge/of_eapi.o
 
-ifeq ($(OS), Windows)
+ifeq ($(TARGET_SYS),Windows)
 CLIENT_OBJ += libraries/OFTL/src/filesystem/platform_win32.o
 else
 CLIENT_OBJ += libraries/OFTL/src/filesystem/platform_posix.o
 endif
 
-ifeq ($(OS), Darwin)
-CLIENT_OBJ += $(OSX_OBJ)
+ifeq ($(TARGET_SYS),Darwin)
+CLIENT_OBJ += $(CS_OSX_OBJ)
 endif
 
 CLIENT_OBJ_BUILD = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 
-# server includes and libs
-ifneq ($(OS), Windows)
-	ifneq ($(OS), Darwin)
-		SERVER_INC  = $(INCLUDES) -I/usr/X11R6/include
-		SERVER_INC += `sdl-config --cflags` -DSERVER -DSTANDALONE
-		SERVER_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
-		SERVER_LDD += -lenet -lluajit -L/usr/X11R6/lib -lX11 -lz
-		SERVER_LDD += -Wl,--export-dynamic
-		ifeq ($(OS), Linux)
-			SERVER_LDD += -ldl
-		endif
-		ifeq ($(OS), SunOS)
-			SERVER_LDD += -lsocket -lnsl
-		endif
-	else
-		SERVER_INC  = $(INCLUDES) $(OSX_INCLUDES) -DSERVER -DSTANDALONE
-		SERVER_LDD  = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
-		SERVER_LDD += -lenet -lluajit -lz
-		SERVER_LDD += -pagezero_size 10000 -image_base 100000000
-	endif
+####################
+# OctaForge server #
+####################
+
+SERVER_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
+	-fno-exceptions -fno-rtti -std=c++0x -DSERVER -DSTANDALONE
+
+SERVER_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH) -lenet -lluajit
+
+ifeq ($(TARGET_SYS),Windows)
+	SERVER_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
+	SERVER_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
+	SERVER_LDFLAGS += $(CS_WIN_LIB) -lzlib1 -lopengl32 -lws2_32 -lwinmm
+	SERVER_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-dynamic
 else
-	SERVER_INC  = $(INCLUDES) $(WINDOWS_INCLUDES) -DSERVER -DSTANDALONE
-	SERVER_INC += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
-	SERVER_LDD  = $(WINDOWS_LIBS)
-	SERVER_LDD += -L$(OBJDIR)/$(ENET_PATH) -L$(LUAJIT_PATH)
-	SERVER_LDD += -lenet -lluajit -lzlib1 -lopengl32 -lws2_32 -lwinmm
-	SERVER_LDD += -static-libgcc -static-libstdc++
-	SERVER_LDD += -Wl,--export-dynamic
+ifeq ($(TARGET_SYS),Darwin)
+	SERVER_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
+	SERVER_LDFLAGS += $(CS_OSX_LIB) -lz
+	SERVER_LDFLAGS += -pagezero_size 10000 -image_base 100000000
+else
+	SERVER_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl-config --cflags`
+	SERVER_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl-config --libs`
+	SERVER_LDFLAGS += -lz -Wl,--export-dynamic
+	ifeq ($(TARGET_SYS),Linux)
+		SERVER_LDD += -ldl
+	endif
+	ifeq ($(TARGET_SYS),SunOS)
+		SERVER_LDD += -lsocket -lnsl
+	endif
+endif
 endif
 
-# server objects
 SERVER_OBJ = \
 	octaforge/of_tools.o \
 	intensity/editing_system.o \
@@ -326,7 +395,7 @@ SERVER_OBJ = \
 	octaforge/of_entities.o \
 	octaforge/of_eapi.o
 
-ifeq ($(OS), Windows)
+ifeq ($(TARGET_SYS),Windows)
 SERVER_OBJ += libraries/OFTL/src/filesystem/platform_win32.o
 else
 SERVER_OBJ += libraries/OFTL/src/filesystem/platform_posix.o
@@ -334,10 +403,13 @@ endif
 
 SERVER_OBJ_BUILD = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
 
-# enet includes
-ENET_INC = -I$(ENET_INCLUDE_PATH) -DHAS_SOCKLEN_T=1 -Wno-error
+########
+# ENet #
+########
 
-# enet objects
+ENET_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(ENET_XCFLAGS) \
+	-I$(ENET_INC) -DHAS_SOCKLEN_T=1 -Wno-error
+
 ENET_OBJ = \
 	libraries/enet/callbacks.o \
 	libraries/enet/host.o \
@@ -347,175 +419,143 @@ ENET_OBJ = \
 	libraries/enet/protocol.o \
 	libraries/enet/unix.o \
 	libraries/enet/win32.o
+
 ENET_OBJ_BUILD = $(addprefix $(OBJDIR)/, $(ENET_OBJ))
 
-# luajit flags
+##########
+# LuaJIT #
+##########
+
 LUAJIT_BUILDMODE = static
 LUAJIT_CFLAGS = -DLUAJIT_ENABLE_LUA52COMPAT
-LUAJIT_CC  = $(CC)
-LUAJIT_TARGET_AR = $(AR)
-LUAJIT_TARGET_STRIP = $(STRIP)
+LUAJIT_CC  = $(TARGET_CC)
+LUAJIT_TARGET_AR = $(TARGET_AR)
+LUAJIT_TARGET_STRIP = $(TARGET_STRIP)
 
-#
-# TARGETS
-#
+#################
+# Build targets #
+#################
 
-# phony targets
 .PHONY: default all
-
-# default target - builds all
 default: all
 
-# secondary expansion - feature of gnu make 3.81
 .SECONDEXPANSION:
 
-# target for appropriately handling
-# directory creation (for OBJDIR)
-ifneq ($(FLAV), Windows)
+ifneq ($(TARGET_SYS),Windows)
 %/.stamp:
-	$(AT) mkdir -p $(dir $@)
-	$(AT) touch $@
+	$(Q) mkdir -p $(dir $@)
+	$(Q) touch $@
 else
 %/.stamp:
-	$(AT) md $(subst /,\,$(dir $@))
-	$(AT) type nul > $(subst /,\,$@)
+	$(Q) md $(subst /,\,$(dir $@))
+	$(Q) type nul > $(subst /,\,$@)
 endif
 
-# mark stamp files as precious so make doesn't delete them
 .PRECIOUS: %/.stamp
 
-# builds the C files appropriately, using secondary
-# expansion to properly pre-create needed directories
-$(OBJDIR)/%.o: %.c $$(@D)/.stamp
-	@echo $(CYAN)[libraries]$(RRED) Building a C object file \
-	$(subst $(OBJDIR)/,,$@).$(ENDCOL)
-	$(AT) $(CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
-
-# some Mac OS X specific targets
-ifeq ($(OS), Darwin)
+ifeq ($(TARGET_SYS), Darwin)
 $(OBJDIR)/client/platform_osx/macutils.o: platform_osx/macutils.mm \
 $$(@D)/.stamp
-	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C++ object file \
+	$(E) $(CYAN)[OS X]$(RRED) Building an Obj-C++ object file \
 	platform_osx/macutils.mm.$(ENDCOL)
-	$(AT) $(CXX) $(CXXFLAGS) $(OSX_INCLUDES) \
-		-Wno-import -c -o $@ platform_osx/macutils.mm
+	$(Q) $(TARGET_CXX) $(CS_OSX_CXXFLAGS) -c -o $@ platform_osx/macutils.mm
 
 $(OBJDIR)/client/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C object file \
+	$(E) $(CYAN)[OS X]$(RRED) Building an Obj-C object file \
 	platform_osx/SDLMain.m.$(ENDCOL)
-	$(AT) $(CC) $(CFLAGS) $(OSX_INCLUDES) \
-		-Wno-import -c -o $@ platform_osx/SDLMain.m
-
-$(OBJDIR)/server/platform_osx/macutils.o: platform_osx/macutils.mm \
-$$(@D)/.stamp
-	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C++ object file \
-	platform_osx/macutils.mm.$(ENDCOL)
-	$(AT) $(CXX) $(CXXFLAGS) $(OSX_INCLUDES) \
-		-Wno-import -c -o $@ platform_osx/macutils.mm
-
-$(OBJDIR)/server/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	@echo $(CYAN)[OS X]$(RRED) Building an Obj-C object file \
-	platform_osx/SDLMain.m.$(ENDCOL)
-	$(AT) $(CC) $(CFLAGS) $(OSX_INCLUDES) \
-		-Wno-import -c -o $@ platform_osx/SDLMain.m
+	$(Q) $(TARGET_CC) $(CS_OSX_CFLAGS) -c -o $@ platform_osx/SDLMain.m
 endif
 
-# enet
-$(ENET_OBJ_BUILD): CFLAGS += $(ENET_INC)
-enet: $(ENET_OBJ_BUILD)
-	@echo $(PURPLE)Creating a static library $(ENET_LIB).$(ENDCOL)
-	$(AT) $(AR) $(OBJDIR)/$(ENET_LIB) $(ENET_OBJ_BUILD)
-	@echo $(GREEN)Built target: enet.$(ENDCOL)
+$(OBJDIR)/%.o: %.c $$(@D)/.stamp
+	$(E) $(CYAN)[libraries]$(RRED) Building a C object file \
+		$(subst $(OBJDIR)/,,$@).$(ENDCOL)
+	$(Q) $(TARGET_CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
-# luajit
+$(ENET_OBJ_BUILD): CFLAGS = $(ENET_CFLAGS)
+enet: $(ENET_OBJ_BUILD)
+	$(E) $(PURPLE)Creating a static library $(ENET_LIB).$(ENDCOL)
+	$(Q) $(TARGET_AR) $(OBJDIR)/$(ENET_LIB) $(ENET_OBJ_BUILD)
+	$(E) $(GREEN)Built target: enet.$(ENDCOL)
+
 luajit:
-	@echo $(PURPLE)Building LuaJIT.$(ENDCOL)
-	$(AT) cd $(LUAJIT_PATH); $(MAKE) XCFLAGS=$(LUAJIT_CFLAGS) \
+	$(E) $(PURPLE)Building LuaJIT.$(ENDCOL)
+	$(Q) cd $(LUAJIT_PATH); $(MAKE) XCFLAGS=$(LUAJIT_CFLAGS) \
 		BUILDMODE=$(LUAJIT_BUILDMODE) CC=$(LUAJIT_CC) \
 		TARGET_AR="$(LUAJIT_TARGET_AR)" TARGET_STRIP="$(LUAJIT_TARGET_STRIP)"
-	@echo $(GREEN)Built target: luajit.$(ENDCOL)
+	$(E) $(GREEN)Built target: luajit.$(ENDCOL)
 
-# client
 $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
-	@echo $(BLUE)[client]$(RRED) Building a C++ object file \
+	$(E) $(BLUE)[client]$(RRED) Building a C++ object file \
 	$(subst $(OBJDIR)/client/,,$@).$(ENDCOL)
-	$(AT) $(CXX) $(CXXFLAGS) -c -o $@ \
+	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -c -o $@ \
 		$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
-$(CLIENT_OBJ_BUILD): CXXFLAGS += $(CLIENT_INC)
 client: enet luajit $(CLIENT_OBJ_BUILD)
-	@echo $(BLUE)Linking a client executable $(CLIENT_BIN).$(ENDCOL)
-	$(AT) $(CXX) $(CXXFLAGS) -o $(CLIENT_BIN) $(CLIENT_OBJ_BUILD) $(CLIENT_LDD)
-	@echo $(GREEN)Built target: client.$(ENDCOL)
+	$(E) $(BLUE)Linking a client executable $(CLIENT_BIN).$(ENDCOL)
+	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -o $(CLIENT_BIN) \
+		$(CLIENT_OBJ_BUILD) $(CLIENT_LDFLAGS)
+	$(E) $(GREEN)Built target: client.$(ENDCOL)
 
-# server
 $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
-	@echo $(PURPLE)[server]$(RRED) Building a C++ object file \
+	$(E) $(PURPLE)[server]$(RRED) Building a C++ object file \
 	$(subst $(OBJDIR)/server/,,$@).$(ENDCOL)
-	$(AT) $(CXX) $(CXXFLAGS) -c -o $@ \
+	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -c -o $@ \
 		$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
-$(SERVER_OBJ_BUILD): CXXFLAGS += $(SERVER_INC)
 server: enet luajit $(SERVER_OBJ_BUILD)
-	@echo $(BLUE)Linking a server executable $(SERVER_BIN).$(ENDCOL)
-	$(AT) $(CXX) $(CXXFLAGS) -o $(SERVER_BIN) $(SERVER_OBJ_BUILD) $(SERVER_LDD)
-	@echo $(GREEN)Built target: server.$(ENDCOL)
+	$(E) $(BLUE)Linking a server executable $(SERVER_BIN).$(ENDCOL)
+	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -o $(SERVER_BIN) \
+		$(SERVER_OBJ_BUILD) $(SERVER_LDFLAGS)
+	$(E) $(GREEN)Built target: server.$(ENDCOL)
 
 $(OBJDIR)/cube2font.o: shared/cube2font.c
-	$(CXX) $(CXXFLAGS) -c -o $@ $< `freetype-config --cflags`
+	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) \
+		-c -o $@ $< `freetype-config --cflags`
 
 cube2font: $(OBJDIR)/cube2font.o
-	$(CXX) $(CXXFLAGS) -o cube2font $(OBJDIR)/cube2font.o \
-		`freetype-config --libs` -lz
+	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o cube2font \
+		$(OBJDIR)/cube2font.o `freetype-config --libs` -lz
 
 # general targets
 all: client server
 
 ifneq ($(FLAV), Windows)
 clean:
-	@echo $(CYAN)Cleaning up...$(ENDCOL)
-	$(AT) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
-	$(AT) -cd $(LUAJIT_PATH); $(MAKE) clean
-	@echo $(GREEN)... done.$(ENDCOL)
+	$(E) $(CYAN)Cleaning up...$(ENDCOL)
+	$(Q) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
+	$(Q) -cd $(LUAJIT_PATH); $(MAKE) clean
+	$(E) $(GREEN)... done.$(ENDCOL)
 else
 clean:
-	@echo Cleaning up...
-	$(AT) -rmdir //s //f //q $(OBJDIR)
-	$(AT) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN)
-	$(AT) -cd $(LUAJIT_PATH); $(MAKE) clean
-	@echo ... done.
+	$(E) Cleaning up...
+	$(Q) -rmdir //s //f //q $(OBJDIR)
+	$(Q) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN)
+	$(Q) -cd $(LUAJIT_PATH); $(MAKE) clean
+	$(E) ... done.
 endif
 
 install: client server
-	@echo $(CYAN)Installing...$(ENDCOL)
+	$(E) $(CYAN)Installing...$(ENDCOL)
 ifneq ($(FLAV), Windows)
-	@echo $(CYAN)Copying $(CLIENT_BIN) to $(BIN_PATH).$(ENDCOL)
-	$(AT) cp -f $(CLIENT_BIN) $(BIN_PATH)
-	@echo $(CYAN)Copying $(SERVER_BIN) to $(BIN_PATH).$(ENDCOL)
-	$(AT) cp -f $(SERVER_BIN) $(BIN_PATH)
-ifneq (,$(STRIP))
+	$(E) $(CYAN)Copying $(CLIENT_BIN) to $(BIN_PATH).$(ENDCOL)
+	$(Q) cp -f $(CLIENT_BIN) $(BIN_PATH)
+	$(E) $(CYAN)Copying $(SERVER_BIN) to $(BIN_PATH).$(ENDCOL)
+	$(Q) cp -f $(SERVER_BIN) $(BIN_PATH)
 ifeq (,$(NOSTRIP))
-	@echo $(CYAN)Stripping $(BIN_PATH)/$(CLIENT_BIN).$(ENDCOL)
-	$(AT) $(STRIP) $(BIN_PATH)/$(CLIENT_BIN)
-	@echo $(CYAN)Stripping $(BIN_PATH)/$(SERVER_BIN).$(ENDCOL)
-	$(AT) $(STRIP) $(BIN_PATH)/$(SERVER_BIN)
-endif
+	$(Q) $(TARGET_STRIP) $(BIN_PATH)/$(CLIENT_BIN)
+	$(Q) $(TARGET_STRIP) $(BIN_PATH)/$(SERVER_BIN)
 endif
 else
-	@echo Copying $(CLIENT_BIN) to $(BIN_PATH).
-	$(AT) copy $(CLIENT_BIN) $(BIN_PATH)
-	@echo Copying $(SERVER_BIN) to $(BIN_PATH).
-	$(AT) copy $(SERVER_BIN) $(BIN_PATH)
-ifneq (,$(STRIP))
+	$(E) Copying $(CLIENT_BIN) to $(BIN_PATH).
+	$(Q) copy $(CLIENT_BIN) $(BIN_PATH)
+	$(E) Copying $(SERVER_BIN) to $(BIN_PATH).
+	$(Q) copy $(SERVER_BIN) $(BIN_PATH)
 ifeq (,$(NOSTRIP))
-	@echo Stripping $(BIN_PATH)\$(CLIENT_BIN).
-	$(AT) $(STRIP) $(BIN_PATH)\$(CLIENT_BIN)
-	@echo Stripping $(BIN_PATH)\$(SERVER_BIN).
-	$(AT) $(STRIP) $(BIN_PATH)\$(SERVER_BIN)
+	$(Q) $(TARGET_STRIP) $(BIN_PATH)\$(CLIENT_BIN)
+	$(Q) $(TARGET_STRIP) $(BIN_PATH)\$(SERVER_BIN)
 endif
 endif
-endif
-	@echo $(GREEN)... done.$(ENDCOL)
+	$(E) $(GREEN)... done.$(ENDCOL)
 
 # dependency generator
 depend:
@@ -525,7 +565,7 @@ depend:
 		-Ifpsgame \
 		-Iintensity \
 		-Ioctaforge \
-		-I$(OFTL_INCLUDE_PATH) \
+		-I$(OFTL_INC) \
 		-DCLIENT \
 		-p$$\(OBJDIR\)/client/ \
 		$(subst .o,.cpp,$(CLIENT_OBJ))
@@ -536,13 +576,13 @@ depend:
 		-Ifpsgame \
 		-Iintensity \
 		-Ioctaforge \
-		-I$(OFTL_INCLUDE_PATH) \
+		-I$(OFTL_INC) \
 		-DSERVER \
 		-p$$\(OBJDIR\)/server/ \
 		$(subst .o,.cpp,$(SERVER_OBJ))
 
 	makedepend -a -Y -w 65536 \
-		-I$(ENET_INCLUDE_PATH) \
+		-I$(ENET_INC) \
 		-p$$\(OBJDIR\)/ \
 		$(subst .o,.c,$(ENET_OBJ))
 
