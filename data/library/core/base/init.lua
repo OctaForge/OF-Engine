@@ -63,9 +63,6 @@ require("base.base_effects")
 log(DEBUG, ":: Sound.")
 require("base.base_sound")
 
-log(DEBUG, ":: Animatables.")
-require("base.base_ent_anim")
-
 log(DEBUG, ":: Character.")
 require("base.base_character")
 

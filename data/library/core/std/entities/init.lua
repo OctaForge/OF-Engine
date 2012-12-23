@@ -18,3 +18,6 @@ svars = require("std.entities.svars")
 
 log(DEBUG, ":::: Entities.")
 ents = require("std.entities.ents")
+
+log(DEBUG, ":::: Entities: basic set.")
+require("std.entities.ents_basic")

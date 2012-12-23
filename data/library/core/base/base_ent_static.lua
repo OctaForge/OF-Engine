@@ -25,7 +25,7 @@ module("entity_static", package.seeall)
     Class: base_static
     Base static entity class. Every other static entity inherits from this
     (or from something inherited from this and so on). This class itself
-    inherits from <base_animated>. Unlike dynamic entities, static
+    inherits from <Physical_Entity>. Unlike dynamic entities, static
     entities don't usually <base_root.act> or <base_client.client_act>.
     This functionality can be though re-enabled by setting <should_act>
     to true.
@@ -39,7 +39,7 @@ module("entity_static", package.seeall)
         attr4 - fourth sauer entity property.
         attr5 - fifth sauer entity property.
 ]]
-base_static = entity_animated.base_animated:clone {
+base_static = ents.Physical_Entity:clone {
     name = "base_static",
 
     per_frame = false,
@@ -109,7 +109,7 @@ base_static = entity_animated.base_animated:clone {
         -- static entities are persistent by default
         kwargs.persistent = true
 
-        entity_animated.base_animated.init(self, uid, kwargs)
+        ents.Physical_Entity.init(self, uid, kwargs)
 
         if not kwargs and not kwargs.position then
             self.position = { 511, 512, 513 }
@@ -144,7 +144,7 @@ base_static = entity_animated.base_animated:clone {
         )
 
         -- call parent
-        entity_animated.base_animated.activate(self, kwargs)
+        ents.Physical_Entity.activate(self, kwargs)
 
         -- set _type from sauer_type_index
         if not kwargs._type then
@@ -234,7 +234,7 @@ base_static = entity_animated.base_animated:clone {
             kwargs.attr4, kwargs.attr5
         )
         -- call parent
-        entity_animated.base_animated.activate(self, kwargs)
+        ents.Physical_Entity.activate(self, kwargs)
     end,
 
     --! Function: deactivate
@@ -242,7 +242,7 @@ base_static = entity_animated.base_animated:clone {
     --! static entity in sauer beforehand.
     deactivate = function(self)
         CAPI.dismantleextent(self)
-        entity_animated.base_animated.deactivate(self)
+        ents.Physical_Entity.deactivate(self)
     end,
 
     send_notification_full = SERVER and function(self, cn)

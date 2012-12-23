@@ -104,7 +104,7 @@ PHYSICAL_STATE = {
     See Also:
         <player>
 ]]
-character = entity_animated.base_animated:clone {
+character = ents.Physical_Entity:clone {
     name = "character",
 
     --[[!
@@ -238,12 +238,12 @@ character = entity_animated.base_animated:clone {
             cn - Client number. Passed automatically.
 
         See Also:
-            <base_animated.init>
+            <Physical_Entity.init>
             <activate>
     ]]
     init = function(self, uid, kwargs)
         log(DEBUG, "character:init")
-        entity_animated.base_animated.init(self, uid, kwargs)
+        ents.Physical_Entity.init(self, uid, kwargs)
 
         -- initial properties set by server, _name is set even later
         self._name          = "-?-"
@@ -275,7 +275,7 @@ character = entity_animated.base_animated:clone {
             cn - Client number. Passed automatically.
 
         See Also:
-            <base_animated.activate>
+            <Physical_Entity.activate>
             <init>
     ]]
     activate = SERVER and function(self, kwargs)
@@ -290,12 +290,12 @@ character = entity_animated.base_animated:clone {
         CAPI.setupcharacter(self)
 
         -- we activate parent and flush variable changes
-        entity_animated.base_animated.activate(self, kwargs)
+        ents.Physical_Entity.activate(self, kwargs)
         self:flush_queued_svar_changes()
 
         log(DEBUG, "character:activate complete.")
     end or function(self, kwargs)
-        entity_animated.base_animated.activate(self, kwargs)
+        ents.Physical_Entity.activate(self, kwargs)
 
         -- we assert the client number on client as well
         self.cn = kwargs and kwargs.cn or -1
@@ -313,7 +313,7 @@ character = entity_animated.base_animated:clone {
     deactivate = function(self)
         -- we dismantle character and call parent deactivation
         CAPI.dismantlecharacter(self)
-        entity_animated.base_animated.deactivate(self)
+        ents.Physical_Entity.deactivate(self)
     end,
 
     --[[!
@@ -333,7 +333,7 @@ character = entity_animated.base_animated:clone {
             self:default_action(seconds)
         else
             -- otherwise we run on parent
-            entity_animated.base_animated.run(self, seconds)
+            ents.Physical_Entity.run(self, seconds)
         end
     end or nil,
 

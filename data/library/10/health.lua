@@ -1,6 +1,6 @@
 module("health", package.seeall)
 
-action_pain = entity_animated.action_local_animation:clone {
+action_pain = ents.Local_Animation_Action:clone {
     name = "action_pain",
     seconds_left       = 0.6,
     local_animation    = model.ANIM_PAIN,
