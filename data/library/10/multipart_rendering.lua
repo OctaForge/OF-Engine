@@ -3,14 +3,14 @@ module("multipart_rendering", package.seeall)
 plugin = {
     activate = function(self)
         if not CLIENT then return nil end
-        self.rendering_args_timestamp = -2
+        self.render_args_timestamp = -2
 
         self.render = function(...)
             if not self.initialized then
                 return nil
             end
 
-            if self.rendering_args_timestamp ~= frame.get_frame() then
+            if self.render_args_timestamp ~= frame.get_frame() then
                 local anim     = self:get_multipart_animation()
                 local o        = self.position:copy()
                 local yaw      = self:get_multipart_yaw()
@@ -18,11 +18,11 @@ plugin = {
                 local flags    = self:get_multipart_flags()
                 local basetime = 0
 
-                self.rendering_args = self:create_rendering_args(yaw, pitch, anim, o, flags, basetime)
-                self.rendering_args_timestamp = frame.get_frame()
+                self.render_args = self:create_render_args(yaw, pitch, anim, o, flags, basetime)
+                self.render_args_timestamp = frame.get_frame()
             end
 
-            for i, args in pairs(self.rendering_args) do
+            for i, args in pairs(self.render_args) do
                 model.render(unpack(args))
             end
         end

@@ -15,14 +15,14 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
         else
             entities = ents.get_by_distance(position, { max_distance = max_dist })
             entities = table.map   (entities, function(pair) return pair[1] end)
-            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
+            entities = table.filter(entities, function(i, entity) return not entity:is_a(ents.Player) end)
         end
     else
         entities = {}
         if owner == ents.get_player() then
             entities = ents.get_by_distance(position, { max_distance = max_dist })
             entities = table.map   (entities, function(pair) return pair[1] end)
-            entities = table.filter(entities, function(i, entity) return not entity:is_a(character.player) end)
+            entities = table.filter(entities, function(i, entity) return not entity:is_a(ents.Player) end)
         end
         table.insert(entities, ents.get_player())
     end

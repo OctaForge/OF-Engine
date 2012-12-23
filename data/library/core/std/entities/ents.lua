@@ -1159,7 +1159,7 @@ local handle_triggers = frame.cache_by_delay(function(_)
     local pls  = get_players()
     for i = 1, #pls do
         local player = pls[i]
-        if not player:is_editing() then
+        if not player.editing then
             for i = 1, #ents do
                 local ent = ents[i]
                 if geometry.is_player_colliding_entity(player, ent) then
@@ -1180,7 +1180,7 @@ local render_hud = CLIENT and function()
     local  player = player_entity
     if not player then return nil end
 
-    if player.hud_model_name and not player:is_editing() then
+    if player.hud_model_name and not player.editing then
         player:render(true, true)
     end
 end or nil

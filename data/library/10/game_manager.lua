@@ -192,7 +192,7 @@ function setup(plugins_add)
                         for team_name, team in pairs(self.team_data) do
                             table.insert(data, { -1, " << " .. team_name .. " >> " .. team.score .. " points" })
                             for idx, player in pairs(team.player_list) do
-                                table.insert(data, { player.uid, player._name .. " -" })
+                                table.insert(data, { player.uid, player.character_name .. " -" })
                             end
                         end
                         return data

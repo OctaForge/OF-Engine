@@ -112,7 +112,7 @@ return {
                 cn           = "cn",
                 facing_speed = "facing_speed",
                 can_edit     = "can_edit",
-                name         = "_name",
+                name         = "character_name",
                 collision_w  = "collision_radius_width",
                 collision_h  = "collision_radius_height",
                 initialized  = "initialized",

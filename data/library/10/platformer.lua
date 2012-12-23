@@ -58,7 +58,7 @@ plugin = {
     end,
 
     run = CLIENT and function(self, seconds)
-        if self == ents.get_player() and not self:is_editing() then
+        if self == ents.get_player() and not self.editing then
             if self.spawn_stage == 0 then
                 local position = self.position:copy()
                 local velocity = self.velocity:copy()
@@ -142,7 +142,7 @@ plugin = {
 
 function do_movement(move, down)
     local player = ents.get_player()
-    if player:is_editing() then
+    if player.editing then
         player.move = move
     end
     if health.is_valid_target(player) then
@@ -156,7 +156,7 @@ end
 
 function do_strafe(strafe, down)
     local player = ents.get_player()
-    if player:is_editing() then
+    if player.editing then
         player.strafe = strafe
     end
     if not health.is_valid_target(player) then return nil end
@@ -174,7 +174,7 @@ function do_strafe(strafe, down)
 end
 
 function do_mousemove(yaw, pitch)
-    return (ents.get_player():is_editing() and { yaw = yaw, pitch = pitch } or {})
+    return (ents.get_player().editing and { yaw = yaw, pitch = pitch } or {})
 end
 
 axis_switcher = ents.register_class(plugins.bake(entity_static.area_trigger, {

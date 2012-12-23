@@ -3,13 +3,13 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = character.player:clone { name = "myplayer" }
+myplayer = ents.Player:clone { name = "myplayer" }
 
 -- Called right after initialization on client
 if CLIENT then
 function myplayer:activate(kwargs)
     -- Call the parent
-    character.player.activate(self, kwargs)
+    ents.Player.activate(self, kwargs)
     -- Initialize a counter
     self.n = 1
     -- Move the player a bit more to the open space
@@ -19,7 +19,7 @@ end
 -- Called every frame on client after initialization
 function myplayer:run(sec)
     -- Call the parent
-    character.player.run(self, sec)
+    ents.Player.run(self, sec)
     -- Loop 1000 times
     if self.n <= 1000 then
         -- Calculate X position. Move everything a bit.

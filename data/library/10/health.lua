@@ -100,8 +100,8 @@ plugin = {
         end
     end,
 
-    decide_action_animation = function(self, ...)
-        local ret = self.__proto.__proto.decide_action_animation(self, ...)
+    get_animation = function(self, ...)
+        local ret = self.__proto.__proto.get_animation(self, ...)
 
         -- clean up if not dead
         if self.health > 0 and (ret == model.ANIM_DYING or ret == math.bor(model.ANIM_DYING, model.ANIM_RAGDOLL)) then
@@ -197,9 +197,9 @@ function is_valid_target(entity)
     return (entity and not entity.deactivated
                    and entity.health
                    and entity.health > 0
-                   and entity.client_state ~= character.CLIENT_STATE.EDITING
+                   and not entity.editing
                    and (not entity.spawn_stage or entity.spawn_stage == 0)
-                   and entity.client_state ~= character.CLIENT_STATE.LAGGED
+                   and not entity.lagged
     )
 end
 

@@ -3820,7 +3820,7 @@ local ext = external
 
 ext.cursor_reset = function()
     local pl = ents.get_player()
-    if (pl and pl:is_editing()) or #world.p_children == 0 then
+    if (pl and pl.editing) or #world.p_children == 0 then
         cursor_x = 0.5
         cursor_y = 0.5
     end
@@ -4113,7 +4113,7 @@ ext.frame_start = function()
     if refreshrepeat ~= 0 or (textediting ~= nil) ~= wastextediting then
         CAPI.enable_unicode(textediting ~= nil)
         local pl = ents.get_player()
-        CAPI.keyrepeat(textediting ~= nil or (pl and pl:is_editing()))
+        CAPI.keyrepeat(textediting ~= nil or (pl and pl.editing))
         refreshrepeat = 0
     end
 

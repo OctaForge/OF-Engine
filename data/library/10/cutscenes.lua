@@ -127,7 +127,7 @@ action_base = events.action_container:clone {
         end
 
         return events.action_container.run(self, seconds)
-            or ents.get_player():is_editing()
+            or ents.get_player().editing
     end,
 
     --[[!
@@ -643,14 +643,14 @@ ents.register_class(
             In edit mode, it takes care of visual connection representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if self.started and not ents.get_player():is_editing()
+            if self.started and not ents.get_player().editing
             and not self.lock then
                 self:start()
                 self.lock = true
             end
             self.lock = (not self.started and self.lock) and false or self.lock
 
-            if ents.get_player():is_editing() then
+            if ents.get_player().editing then
                 if self.next_controller >= 1 then
                     show_distance(
                         "ctl_" .. self.next_controller, self, 0xFFED22
@@ -730,7 +730,7 @@ ents.register_class(
             In edit mode, this takes care of proper visual representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if not ents.get_player():is_editing() then return nil end
+            if not ents.get_player().editing then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]
@@ -862,7 +862,7 @@ ents.register_class(
             In edit mode, this takes care of proper visual representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if not ents.get_player():is_editing() then return nil end
+            if not ents.get_player().editing then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]
@@ -961,7 +961,7 @@ ents.register_class(
             if self.action.subtitle_background ~= self.subtitle_background then
                self.action.subtitle_background  = self.subtitle_background end
 
-            if not ents.get_player():is_editing() then return nil end
+            if not ents.get_player().editing then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]
@@ -1066,7 +1066,7 @@ ents.register_class(
             In edit mode, this takes care of proper visual representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if not ents.get_player():is_editing() then return nil end
+            if not ents.get_player().editing then return nil end
 
             if not self.m_tag then
                 self.m_tag = self.tags:to_array()[1]

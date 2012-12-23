@@ -3,12 +3,12 @@
 -- author: q66 <quaker66@gmail.com>
 
 -- Create a custom player class
-myplayer = character.player:clone { name = "myplayer" }
+myplayer = ents.Player:clone { name = "myplayer" }
 
 -- Called right after initialization on client
 if CLIENT then
 function myplayer:activate(kwargs)
-    character.player.activate(self, kwargs)
+    ents.Player.activate(self, kwargs)
     -- Current rotation angle
     self.angle = 1
     -- Current circle radius
@@ -19,7 +19,7 @@ end
 
 -- Called every frame on client after initialization
 function myplayer:run(sec)
-    character.player.run(self, sec)
+    ents.Player.run(self, sec)
     -- Loop just until radius reaches 60, so it doesn't take too long.
     -- Make bigger for bigger circles
     if self.circle_rad <= 60 then
