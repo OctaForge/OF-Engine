@@ -32,4 +32,4 @@ function check(position, tag)
     return false
 end
 
-ents.register_class(plugins.bake(entity_static.area_trigger, { plugin }, "detection_area"))
+ents.register_class(plugins.bake(ents.Area_Trigger, { plugin }, "detection_area"))

@@ -63,9 +63,6 @@ require("base.base_effects")
 log(DEBUG, ":: Sound.")
 require("base.base_sound")
 
-log(DEBUG, ":: Static entities.")
-require("base.base_ent_static")
-
 log(DEBUG, ":: Textures.")
 require("base.base_textures")
 

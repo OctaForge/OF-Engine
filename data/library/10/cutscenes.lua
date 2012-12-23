@@ -359,7 +359,7 @@ action_smooth = actions.Action:clone {
     By setting it to true, you start the cutscene.
 ]]
 ents.register_class(
-    plugins.bake(entity_static.world_marker, {{
+    plugins.bake(ents.World_Marker, {{
         per_frame = true,
         factor     = 4 / 3,
         started    = false,
@@ -675,7 +675,7 @@ ents.register_class(
         our own at this place.
 ]]
 ents.register_class(
-    plugins.bake(entity_static.world_marker, {{
+    plugins.bake(ents.World_Marker, {{
         per_frame = true,
 
         properties = {
@@ -790,7 +790,7 @@ ents.register_class(
         blue - see above.
 ]]
 ents.register_class(
-    plugins.bake(entity_static.world_marker, {{
+    plugins.bake(ents.World_Marker, {{
         per_frame = true,
 
         properties = {
@@ -909,7 +909,7 @@ ents.register_class(
         area (0.5, 0.9).
 ]]
 ents.register_class(
-    plugins.bake(entity_static.world_marker, {{
+    plugins.bake(ents.World_Marker, {{
         per_frame = true,
 
         properties = {
@@ -1036,7 +1036,7 @@ ents.register_class(
     like opening doors the camera goes through.
 ]]
 ents.register_class(
-    plugins.bake(entity_static.world_marker, {{
+    plugins.bake(ents.World_Marker, {{
         per_frame = true,
 
         --[[!

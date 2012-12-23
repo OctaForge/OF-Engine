@@ -19,7 +19,7 @@ local M = ents
 local Entity = M.Entity
 
 local band, bor, lsh, rsh = math.band, math.bor, math.lsh, math.rsh
-local assert, unpack = assert, unpack
+local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
 
 --[[! Class: Physical_Entity
     Represents a base for every entity that has some kind of physical
@@ -528,3 +528,542 @@ M.Player = Player
 
 ents.register_class(Character)
 ents.register_class(Player)
+
+local st_to_idx = {
+    ["none"] = 0, ["light"] = 1, ["mapmodel"] = 2, ["playerstart"] = 3,
+    ["envmap"] = 4, ["particles"] = 5, ["sound"] = 6, ["spotlight"] = 7
+}
+
+--[[! Class: Static_Entity
+    A base for any static entity. Inherits from <Physical_Entity>. Unlike
+    dynamic entities (such as <Character>), static entities usually don't
+    invoke their "run" method per frame. To re-enable that, set the
+    per_frame member to true (false by default for efficiency).
+
+    Static entities are persistent by default, so they set the "persistent"
+    inherited property to true. They also have the "sauer_type" member,
+    which determines the "physical" type of the entity as in Cube 2,
+    it can be "none", "light", "mapmodel", "playerstart", "envmap",
+    "particles", "sound" and "spotlight". The default here is "none".
+
+    This entity class is never registered, the inherited ones are.
+
+    Properties:
+        radius [<svars.State_Float>] - the entity bounding box radius.
+        position [<svars.State_Vec3>] - the entity position.
+        attr1 [<svars.State_Integer>] - the first "sauer" entity attribute.
+        attr2 [<svars.State_Integer>] - the second "sauer" entity attribute.
+        attr3 [<svars.State_Integer>] - the third "sauer" entity attribute.
+        attr4 [<svars.State_Integer>] - the fourth "sauer" entity attribute.
+        attr5 [<svars.State_Integer>] - the fifth "sauer" entity attribute.
+]]
+local Static_Entity = Physical_Entity:clone {
+    name = "Static_Entity",
+
+    per_frame = false,
+    sauer_type = "none",
+
+    properties = {
+        radius = svars.State_Float(),
+        position = svars.State_Vec3 {
+            getter = "CAPI.getextent0", setter = "CAPI.setextent0"
+        },
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1", setter = "CAPI.setattr1"
+        },
+        attr2 = svars.State_Integer {
+            getter = "CAPI.getattr2", setter = "CAPI.setattr2"
+        },
+        attr3 = svars.State_Integer {
+            getter = "CAPI.getattr3", setter = "CAPI.setattr3"
+        },
+        attr4 = svars.State_Integer {
+            getter = "CAPI.getattr4", setter = "CAPI.setattr4"
+        },
+        attr5 = svars.State_Integer {
+            getter = "CAPI.getattr5", setter = "CAPI.setattr5"
+        }
+    },
+
+    init = function(self, uid, kwargs)
+        log(DEBUG, "Static_Entity.init")
+
+        kwargs = kwargs or {}
+        kwargs.persistent = true
+
+        Physical_Entity.init(self, uid, kwargs)
+        if not kwargs.position then
+            self.position = { 511, 512, 513 }
+        else
+            self.position = {
+                tonumber(kwargs.position.x),
+                tonumber(kwargs.position.y),
+                tonumber(kwargs.position.z)
+            }
+        end
+        self.radius = 0
+
+        log(DEBUG, "Static_Entity.init complete")
+    end,
+
+    activate = SERVER and function(self, kwargs)
+        kwargs = kwargs or {}
+
+        log(DEBUG, "Static_Entity.activate")
+        Physical_Entity.activate(self, kwargs)
+
+        if not kwargs._type then
+            kwargs._type = st_to_idx[self.sauer_type]
+        end
+
+        kwargs.x = self.position.x or 512
+        kwargs.y = self.position.y or 512
+        kwargs.z = self.position.z or 512
+        kwargs.attr1 = self.attr1 or 0
+        kwargs.attr2 = self.attr2 or 0
+        kwargs.attr3 = self.attr3 or 0
+        kwargs.attr4 = self.attr4 or 0
+        kwargs.attr5 = self.attr5 or 0
+
+        log(DEBUG, "Static_Entity: extent setup")
+        CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z,
+            kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4,
+            kwargs.attr5)
+
+        log(DEBUG, "Static_Entity: flush")
+        self:flush_queued_svar_changes()
+
+        self.position = self.position
+        self.attr1, self.attr2, self.attr3 = self.attr1, self.attr2, self.attr3
+        self.attr4, self.attr5 = self.attr4, self.attr5
+    end or function(self, kwargs)
+        if not kwargs._type then
+            kwargs._type = st_to_idx[self.sauer_type]
+            kwargs.x, kwargs.y, kwargs.z = 512, 512, 512
+            kwargs.attr1, kwargs.attr2, kwargs.attr3 = 0, 0, 0
+            kwargs.attr4, kwargs.attr5 = 0, 0
+        end
+
+        CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z,
+            kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4,
+            kwargs.attr5)
+        return Physical_Entity.activate(self, kwargs)
+    end,
+
+    deactivate = function(self)
+        CAPI.dismantleextent(self)
+        return Physical_Entity.deactivate(self)
+    end,
+
+    send_notification_full = SERVER and function(self, cn)
+        local acn = msg.ALL_CLIENTS
+        cn = cn or acn
+
+        local cns = (cn == acn) and table.map(ents.get_players(), function(p)
+            return p.cn end) or { cn }
+
+        local uid = self.uid
+        log(DEBUG, "Static_Entity.send_notification_full: "
+            .. cn .. ", " .. uid)
+
+        local scn, sname = self.cn, tostring(self)
+        for i = 1, #cns do
+            local n = cns[i]
+            msg.send(n, CAPI.extent_notification_complete,
+                uid, sname, self:build_sdata({
+                    target_cn = n, compressed = true }),
+                tonumber(self.position.x), tonumber(self.position.y),
+                tonumber(self.position.z), tonumber(self.attr1),
+                tonumber(self.attr2), tonumber(self.attr3),
+                tonumber(self.attr4), tonumber(self.attr5))
+        end
+
+        log(DEBUG, "Static_Entity.send_notification_full: done")
+    end or nil,
+
+    --[[! Function: get_center
+        See <Character.get_center>. In this case, it's self.radius above
+        bottom.
+    ]]
+    get_center = function(self)
+        local r = self.position:copy()
+        r.z = r.z + self.radius
+        return r
+    end
+}
+M.Static_Entity = Static_Entity
+
+--[[! Class: Light
+    A regular point light. It has the sauer type "light" and five properties.
+    In the extension library there are special light entity types that are
+    e.g. triggered, flickering and so on.
+
+    Properties:
+        attr1 - light radius. (0 to N, alias "radius", default 100)
+        attr2 - red value (0 to 255, alias "red", default 128)
+        attr3 - green value (0 to 255, alias "green", default 128)
+        attr4 - blue value (0 to 255, alias "blue", default 128)
+        attr5 - shadow, 0 dynamic, 1 noshadow, 2 static (default 0)
+]]
+local Light = Static_Entity:clone {
+    name = "Light",
+
+    sauer_type = "light",
+
+    properties = {
+        attr1 = svars.State_Integer({
+            getter = "CAPI.getattr1", setter = "CAPI.setattr1",
+            gui_name = "radius", alt_name = "radius"
+        }),
+        attr2 = svars.State_Integer({
+            getter = "CAPI.getattr2", setter = "CAPI.setattr2",
+            gui_name = "red", alt_name = "red"
+        }),
+        attr3 = svars.State_Integer({
+            getter = "CAPI.getattr3", setter = "CAPI.setattr3",
+            gui_name = "green", alt_name = "green"
+        }),
+        attr4 = svars.State_Integer({
+            getter = "CAPI.getattr4", setter = "CAPI.setattr4",
+            gui_name = "blue", alt_name = "blue"
+        }),
+        attr5 = svars.State_Integer({
+            getter = "CAPI.getattr5", setter = "CAPI.setattr5",
+            gui_name = "shadow", alt_name = "shadow"
+        })
+    },
+
+    init = function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+        self.red, self.green, self.blue = 128, 128, 128
+        self.radius, self.shadow = 100, 0
+    end
+}
+M.Light = Light
+
+--[[! Class: Spot_Light
+    A spot light. It's attached to the nearest <Light>. It has just one
+    property, attr1 (alias "radius") which defaults to 90 and is in degrees
+    (90 is a full hemisphere, 0 is a line).
+
+    Properties such as color are inherited from the attached light entity.
+    Its sauer type is "spotlight".
+]]
+local Spot_Light = Static_Entity:clone {
+    name = "Spot_Light",
+
+    sauer_type = "spotlight",
+
+    properties = {
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1", setter = "CAPI.setattr1",
+            gui_name = "radius", alt_name = "radius"
+        }
+    },
+
+    init = function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+        self.radius = 90
+    end
+}
+M.Spot_Light = Spot_Light
+
+--[[! Class: Envmap
+    An environment map entity class. Things reflecting on their surface using
+    environment maps can generate their envmap from the nearest envmap entity
+    instead of using skybox and reflect geometry that way (statically).
+
+    It has one property, radius, which specifies the distance it'll still
+    have effect in. Its sauer type is "envmap".
+]]
+local Envmap = Static_Entity:clone {
+    name = "Envmap",
+
+    sauer_type = "envmap",
+
+    properties = {
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1", setter = "CAPI.setattr1",
+            gui_name = "radius", alt_name = "radius"
+        }
+    },
+
+    init = function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+        self.radius = 128
+    end
+}
+M.Envmap = Envmap
+
+--[[! Class: Sound
+    An ambient sound in the world. Repeats the given sound at entity position.
+    Its sauer type is "sound".
+
+    Properties:
+        attr2 - the sound radius (alias "radius", default 100)
+        attr3 - the sound size, if this is 0, the sound is a point source,
+        otherwise the sound volume will always be max until the distance
+        specified by this property and then it'll start fading off
+        (alias "size", default 0).
+        attr4 - the sound volume, from 0 to 100 (alias "volume", default 100).
+        sound_name [<svars.State_String>] - the  path to the sound in
+        data/sounds (default "").
+]]
+local Sound = Static_Entity:clone {
+    name = "Sound",
+
+    sauer_type = "sound",
+
+    properties = {
+        attr2 = svars.State_Integer {
+            getter = "CAPI.getattr2", setter = "CAPI.setattr2",
+            gui_name = "radius", alt_name = "radius"
+        },
+        attr3 = svars.State_Integer {
+            getter = "CAPI.getattr3", setter = "CAPI.setattr3",
+            gui_name = "size", alt_name = "size"
+        },
+        attr4 = svars.State_Integer {
+            getter = "CAPI.getattr4", setter = "CAPI.setsoundvol",
+            gui_name = "volume", alt_name = "volume"
+        },
+        sound_name = svars.State_String {
+            setter = "CAPI.setsoundname"
+        }
+    },
+
+    init = function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+        self.attr1, self.radius, self.size  = -1, 100, 0
+        if not self.volume then self.volume = 100 end
+        self.sound_name = ""
+    end
+}
+M.Sound = Sound
+
+--[[! Class: Particle_Effect
+    A particle effect entity class. Its sauer type is "particles". It has
+    four properties. They all default to 0.
+
+    Properties:
+        attr1 - the type of the particle effect (alias "particle_effect").
+        attr2 - alias "value1", effect specific.
+        attr3 - alias "value2", effect specific.
+        attr4 - alias "value3", effect specific.
+
+    Particle types (and their values):
+
+    0 (fire with smoke):
+        radius - 0 is default, that equals 100.
+        height - 0 is default, that equals 100.
+        rgb - 0x000000 is default, that equals 0x903020.
+
+    1 (steam vent):
+        direction - 0 to 5.
+
+    2 (water fountain):
+        direction - 0 to 5, its color inherits from the water color.
+
+    3 (explosion / fireball):
+        size - 0 to 40.
+        rgb - 0x000000 to 0xFFFFFF.
+
+    4 (streak / flare):
+        direction - 0 to 5.
+        length - 0 to 100.
+        rgb - 0x000000 to 0xFFFFFF.
+
+    4 (multiple streaks / flares):
+       direction - 256 + effect.
+       length - 0 to 100.
+       rgb - 0x000000 to 0xFFFFFF.
+
+    4 effects:
+        0 to 2 - circular.
+        3 to 5 - cylinderical shell.
+        6 to 11 - conic shell.
+        12 to 14 - cubic volume.
+        15 to 20 - planar surface.
+        21 - sphere.
+
+    5 (capture meter, rgb vs black):
+        percentage - 0 to 100.
+        rgb - 0x000000 to 0xFFFFFF.
+
+    6 (vs capture meter, rgb vs bgr):
+        percentage - 0 to 100.
+        rgb - 0x000000 to 0xFFFFFF.
+
+    7 (lightning):
+        direction, length, rgb - see 4.
+
+    9 (steam):
+        direction, length, rgb - see 4.
+
+    10 (water):
+        direction, length, rgb - see 4.
+
+    11 (flames):
+        radius, height, rgb, see 0.
+
+    12 (smoke plume):
+        radius, height, rgb, see 0.
+
+    32 (plain lens flare):
+        red - 0 to 255.
+        green - 0 to 255.
+        blue - 0 to 255.
+
+    33 (lens flare with sparkle center):
+        red - 0 to 255.
+        green - 0 to 255.
+        blue - 0 to 255.
+
+    34 (sun lens flare, i.e. fixed size regardless of distance):
+        red - 0 to 255.
+        green - 0 to 255.
+        blue - 0 to 255.
+
+    35 (sun lens flare with sparkle center):
+        red - 0 to 255.
+        green - 0 to 255.
+        blue - 0 to 255.
+]]
+local Particle_Effect = Static_Entity:clone {
+    name = "Particle_Effect",
+
+    sauer_type = "particles",
+
+    properties = {
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1", setter = "CAPI.setattr1",
+            gui_name = "particle_type", alt_name = "particle_type"
+        },
+        attr2 = svars.State_Integer {
+            getter = "CAPI.getattr2", setter = "CAPI.setattr2",
+            gui_name = "value1", alt_name = "value1"
+        },
+        attr3 = svars.State_Integer {
+            getter = "CAPI.getattr3", setter = "CAPI.setattr3",
+            gui_name = "value2", alt_name = "value2"
+        },
+        attr4 = svars.State_Integer {
+            getter = "CAPI.getattr4", setter = "CAPI.setattr4",
+            gui_name = "value3", alt_name = "value3"
+        }
+    },
+
+    init = function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+        self.particle_type, self.value1, self.value2, self.value3 = 0, 0, 0, 0
+    end
+}
+M.Particle_Effect = Particle_Effect
+
+--[[! Class: Mapmodel
+    A model in the world. Its sauer type is "mapmodel". All properties
+    default to 0.
+
+    Properties:
+        attr1 - the model yaw, alias "yaw".
+        collision_radius_width - a custom bounding box
+        width for models with per-entity collision boxes.
+        Used with e.g. area trigger to specify trigger bounds.
+        collision_radius_height - see above.
+]]
+local Mapmodel = Static_Entity:clone {
+    name = "Mapmodel",
+
+    sauer_type = "mapmodel",
+
+    properties = {
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1", setter = "CAPI.setattr1",
+            gui_name = "yaw", alt_name = "yaw"
+        },
+        collision_radius_width = svars.State_Float {
+            getter = "CAPI.getcollisionradw", setter = "CAPI.setcollisionradw"
+        },
+        collision_radius_height = svars.State_Float {
+            getter = "CAPI.getcollisionradh", setter = "CAPI.setcollisionradh"
+        }
+    },
+
+    init = function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+        self.yaw, self.attr2 = 0, -1
+        self.collision_radius_width = 0
+        self.collision_radius_height = 0
+    end,
+
+    --[[! Function: get_center
+        A variant of <Static_Entity.get_center> that assumes
+        collision_radius_height.
+    ]]
+    get_center = function(self)
+        local crh = self.collision_radius_height
+        if crh ~= 0 then
+            local r = self.position:copy()
+            r.z = r.z + crh
+        else
+            return Static_Entity.get_center(self)
+        end
+    end
+}
+M.Mapmodel = Mapmodel
+
+--[[! Class: Area_Trigger
+    A variant of <Mapmodel> that emits a "collision" signal on itself
+    when a client (player, NPC...) collide with it. Its default model
+    is "areatrigger" and collision radius width/height are both 10.
+    Likely deprecated (to be replaced with a better system).
+]]
+local Area_Trigger = Mapmodel:clone {
+    name = "Area_Trigger",
+
+    init = function(self, uid, kwargs)
+        Mapmodel.init(self, uid, kwargs)
+        self.collision_radius_width = 10
+        self.collision_radius_height = 10
+        self.model_name = "areatrigger"
+    end
+}
+M.Area_Trigger = Area_Trigger
+
+--[[! Class: World_Marker
+    A generic marker with a wide variety of uses. Can be used as a base
+    for various position markers (e.g. playerstarts). Its sauer type is
+    "playerstart". It has one property, attr1 alias yaw.
+
+    An example of world marker usage is a cutscene system. Different marker
+    types inherited from this one can represent different nodes.
+]]
+local World_Marker = Static_Entity:clone {
+    name = "World_Marker",
+
+    sauer_type = "playerstart",
+
+    properties = {
+        attr1 = svars.State_Integer {
+            getter = "CAPI.getattr1", setter = "CAPI.setattr1",
+            gui_name = "yaw", alt_name = "yaw"
+        }
+    },
+
+    --[[! Function: place_entity
+        Places an entity on this marker's position.
+    ]]
+    place_entity = function(self, ent)
+        ent.position, ent.yaw = self.position, self.yaw
+    end
+}
+M.World_Marker = World_Marker
+
+ents.register_class(Light)
+ents.register_class(Spot_Light)
+ents.register_class(Envmap)
+ents.register_class(Sound)
+ents.register_class(Particle_Effect)
+ents.register_class(Mapmodel)
+ents.register_class(Area_Trigger)
+ents.register_class(World_Marker)

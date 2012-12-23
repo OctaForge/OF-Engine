@@ -32,7 +32,7 @@
 namespace entities
 {
     const char *entity_names[] = {
-        "none?", "light",
+        "none", "light",
         "mapmodel", "playerstart",
         "envmap", "particles",
         "sound", "spotlight"

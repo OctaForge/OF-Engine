@@ -1,6 +1,6 @@
 module("world_notices", package.seeall)
 
-world_notice = ents.register_class(plugins.bake(entity_static.area_trigger, {{
+world_notice = ents.register_class(plugins.bake(ents.Area_Trigger, {{
     per_frame = true,
 
     properties = {
@@ -21,14 +21,15 @@ world_notice = ents.register_class(plugins.bake(entity_static.area_trigger, {{
         self.y     = 0.88
     end,
 
-    activate = function(self)
-        if CLIENT then self.colliding_time = -1 end
-    end,
+    activate = CLIENT and function(self)
+        self.colliding_time = -1
+        signal.connect(self, "collision", self.client_on_collision)
+    end or nil,
 
     run = CLIENT and function(self, seconds)
     end or nil,
 
-    client_on_collision = function(self, entity)
+    client_on_collision = function(_, self, entity)
         if entity ~= ents.get_player() then return nil end
 
         if not self.notice_action then

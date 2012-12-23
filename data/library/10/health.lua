@@ -204,18 +204,21 @@ function is_valid_target(entity)
 end
 
 deadly_area_trigger_plugin = {
-    client_on_collision = function(self, entity)
+    client_on_collision = function(_, self, entity)
         if entity ~= ents.get_player() then return nil end
 
         if is_valid_target(entity) then
             entity.health = 0
         end
-    end
+    end,
+    activate = CLIENT and function(self)
+        signal.connect(self, "collision", self.client_on_collision)
+    end or nil
 }
 
 deadly_area = ents.register_class(
     plugins.bake(
-        entity_static.area_trigger,
+        ents.Area_Trigger,
         { deadly_area_trigger_plugin },
         "deadly_area"
     )

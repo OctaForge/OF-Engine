@@ -446,11 +446,11 @@ M.load = function()
         huid = huid + 1
 
         local sn = {
-            [1] = "light"    , [2] = "mapmodel"       , [3] = "world_marker",
-            [4] = "envmap"   , [5] = "particle_effect", [6] = "ambient_sound",
-            [7] = "spotlight",
+            [1] = "Light"     , [2] = "Mapmodel"       , [3] = "World_Marker",
+            [4] = "Envmap"    , [5] = "Particle_Effect", [6] = "Sound",
+            [7] = "Spot_Light",
 
-            [19] = "teleporter", [20] = "world_marker", [23] = "jump_pad"
+            [19] = "teleporter", [20] = "World_Marker", [23] = "jump_pad"
         }
 
         for i = 1, #storage_sauer do
@@ -539,15 +539,15 @@ M.load = function()
 
         -- backwards compatibility
         if EV.mapversion <= 30 and sd.attr1 then
-            if  cn ~= "light" and cn ~= "flickering_light"
-            and cn ~= "particle_effect" and cn ~= "envmap" then
+            if  cn ~= "Light" and cn ~= "flickering_light"
+            and cn ~= "Particle_Effect" and cn ~= "Envmap" then
                 sd.attr1 = (sd.attr1 + 180) % 360
             end
         end
         if EV.mapversion <= 31 and sd.attr1 then
-            if  cn ~= "light" and cn ~= "flickering_light"
-            and cn ~= "particle_effect" and cn ~= "envmap"
-            and cn ~= "world_marker" then
+            if  cn ~= "Light" and cn ~= "flickering_light"
+            and cn ~= "Particle_Effect" and cn ~= "Envmap"
+            and cn ~= "World_Marker" then
                 local yaw = (floor(sd.attr1) % 360 + 360) % 360 + 7
                 sd.attr1 = yaw - (yaw % 15)
             end

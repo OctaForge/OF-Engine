@@ -5,7 +5,7 @@ active = nil
 plugin = {
     per_frame = true,
 
-    client_on_collision = function(self, entity)
+    client_on_collision = function(_, self, entity)
         if entity ~= ents.get_player() then return nil end
 
         -- cannot have more than one active
@@ -13,7 +13,10 @@ plugin = {
 
         active = self
         self:queue_action(action_input_capture())
-    end
+    end,
+    activate = CLIENT and function(self)
+        signal.connect(self, "collision", self.client_on_collision)
+    end or nil
 }
 
 action = actions.Action:clone {

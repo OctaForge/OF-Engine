@@ -21,9 +21,10 @@ plugin = {
         self.collision_radius_height = 0.5
     end,
 
-    activate = function(self)
-        if CLIENT then self.player_delay = -1 end
-    end,
+    activate = CLIENT and function(self)
+        self.player_delay = -1
+        signal.connect(self, "collision", self.client_on_collision)
+    end or nil,
 
     run = CLIENT and function(self, seconds)
         if  self.player_delay > 0 then
@@ -31,7 +32,7 @@ plugin = {
         end
     end or nil,
 
-    client_on_collision = function(self, collider)
+    client_on_collision = function(_, self, collider)
         -- each player handles themselves
         if collider ~= ents.get_player() then return nil end
 
@@ -70,7 +71,7 @@ plugin = {
 }
 
 ents.register_class(plugins.bake(
-    entity_static.area_trigger,
+    ents.Area_Trigger,
     { plugin },
     "jump_pad"
 ))

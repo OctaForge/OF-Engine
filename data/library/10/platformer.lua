@@ -177,7 +177,7 @@ function do_mousemove(yaw, pitch)
     return (ents.get_player().editing and { yaw = yaw, pitch = pitch } or {})
 end
 
-axis_switcher = ents.register_class(plugins.bake(entity_static.area_trigger, {
+axis_switcher = ents.register_class(plugins.bake(ents.Area_Trigger, {
     world_areas.plugin,
     {
         properties = {
