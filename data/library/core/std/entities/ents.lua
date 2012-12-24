@@ -439,10 +439,7 @@ M.load = function()
             if its then is = its end
         end
 
-        local huid = 2
-        for i, e in pairs(entities) do
-            huid = max(huid, e[1])
-        end
+        local huid = max(2, highest_uid)
         huid = huid + 1
 
         local sn = {
