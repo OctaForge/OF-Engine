@@ -15,6 +15,7 @@
 ]]
 
 local ctable = createtable
+local ext = external
 
 --[[! Function: table.is_array
     Checks whether a given table is an array (that is, contains only a
@@ -248,6 +249,8 @@ end
     serialize directly to the uid.
 
     Values that cannot be serialized are passed through tostring.
+
+    This function is externally available as "table_serialize".
 ]]
 table.serialize = function(tbl, kwargs)
     local pretty, indent, simplifier
@@ -374,6 +377,7 @@ table.serialize = function(tbl, kwargs)
 
     return enc(tbl, nil, indent)
 end
+ext.table_serialize = table.serialize
 
 --[[! Function: table.deserialize
     Takes a previously serialized table and converts it back to the original.
@@ -381,7 +385,7 @@ end
     working in an empty environment. Returns the table (unless an error
     happens). Different given literal values will work as well (for
     example, deserializing a string "\"foo\"" will result in value
-    "foo").
+    "foo"). External as "table_deserialize".
 ]]
 table.deserialize = function(str)
     assert(type(str) == "string", "the input value must be a string")
@@ -392,6 +396,7 @@ table.deserialize = function(str)
 
     return ret
 end
+ext.table_deserialize = table.deserialize
 
 ------------------
 -- Object system -

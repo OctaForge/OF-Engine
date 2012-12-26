@@ -150,7 +150,7 @@ namespace lapi_binds
         model *_new = loadmodel(name);
 
         lua::Table ents = lapi::state.get<lua::Function>(
-            "LAPI", "World", "Entities", "get_all"
+            "external", "entities_get_all"
         ).call<lua::Table>();
 
         for (lua::Table::it it = ents.begin(); it != ents.end(); ++it)

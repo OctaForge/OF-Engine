@@ -155,7 +155,7 @@ namespace world
         );
 
         const char *data = lapi::state.get<lua::Function>(
-            "LAPI", "World", "Entities", "save_all"
+            "external", "entities_save_all"
         ).call<const char*>();
         if (fileexists(buf.get_buf(), "r"))
         {

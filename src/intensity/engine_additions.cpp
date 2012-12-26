@@ -123,7 +123,7 @@ void CLogicEntity::setOrigin(vec &newOrigin)
     lua::Table t = lapi::state.new_table(3);
     t[0] = newOrigin.x; t[1] = newOrigin.y; t[2] = newOrigin.z;
     lapi::state.get<lua::Function>(
-        "LAPI", "World", "Entities", "get"
+        "external", "entity_get"
     ).call<lua::Table>(getUniqueId())[lapi::state.get<lua::Object>(
         "LAPI", "World", "Entity", "Properties", "position"
     )] = t;
@@ -364,7 +364,7 @@ void LogicSystem::clear(bool restart_lua)
 
     if (lapi::state.state())
     {
-        lapi::state.get<lua::Function>("LAPI", "World", "Entities", "delete_all")();
+        lapi::state.get<lua::Function>("external", "entities_remove_all")();
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
         if (restart_lua) lapi::reset();
@@ -389,7 +389,7 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     logicEntities.access(uniqueId, newEntity);
 
     new (&(newEntity->lua_ref)) lua::Table(lapi::state.get<lua::Function>(
-        "LAPI", "World", "Entities", "get"
+        "external", "entity_get"
     ).call<lua::Object>(uniqueId));
     assert(!newEntity->lua_ref.is_nil());
 

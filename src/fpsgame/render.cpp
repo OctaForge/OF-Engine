@@ -19,7 +19,7 @@ namespace game
             return;
         }
 
-        lapi::state.get<lua::Function>("LAPI", "World", "Entities", "render")(isthirdperson());
+        lapi::state.get<lua::Function>("external", "game_render")(isthirdperson());
     }
 
     int swaymillis = 0;
@@ -41,7 +41,7 @@ namespace game
 
     void renderavatar()
     {
-        lapi::state.get<lua::Function>("LAPI", "World", "render_hud")();
+        lapi::state.get<lua::Function>("external", "game_render_hud")();
     }
 }
 

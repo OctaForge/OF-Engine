@@ -259,7 +259,7 @@ namespace lapi_binds
     {
         groupeditpure(
             lapi::state.get<lua::Function>(
-                "LAPI", "World", "Entities", "get"
+                "external", "entity_get"
             ).call<lua::Table>(
                 LogicSystem::getUniqueId(&ent)
             )[lapi::state.get<lua::Object>(

@@ -487,13 +487,11 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        if (lapi::state.get<lua::Function>(
-            "LAPI", "World", "Entities", "Classes", "get"
-        ).call<lua::Object>(_class).is_nil()) return;
+        if (lapi::state.get<lua::Function>("external", "entity_class_get").call<lua::Object>(_class).is_nil()) return;
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.get_buf(), x, y, z, stateData.get_buf());
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        const char *sauerType = lapi::state.get<lua::Function>("LAPI", "World", "Entities", "Classes", "get_sauer_type").call<const char*>(_class);
+        const char *sauerType = lapi::state.get<lua::Function>("external", "entity_class_sauer_type_get").call<const char*>(_class);
         logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
         lua::Table t = lapi::state.new_table(0, 2);
@@ -502,7 +500,7 @@ namespace MessageSystem
         t["position"  ] = v;
         t["state_data"] = stateData;
         int newUniqueId = lapi::state.get<lua::Function>(
-            "LAPI", "World", "Entities", "new"
+            "external", "entity_new"
         ).call<lua::Table>(_class, t).get<int>(lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "id"));
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
                                       newUniqueId, _class.get_buf(), x, y, z);
@@ -863,11 +861,11 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            lapi::state.get<lua::Function>("LAPI", "World", "Entities", "send")(sender);
+            lapi::state.get<lua::Function>("external", "entities_send_all")(sender);
             MessageSystem::send_AllActiveEntitiesSent(sender);
             lapi::state.get<lua::Function>("LAPI", "World", "Events", "Server", "player_login")(
                 lapi::state.get<lua::Function>(
-                    "LAPI", "World", "Entities", "get"
+                    "external", "entity_get"
                 ).call<lua::Object>(server::getUniqueId(sender))
             );
         #else // CLIENT
@@ -966,7 +964,7 @@ namespace MessageSystem
                 #endif
                 t[lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "cn")] = otherClientNumber;
             }
-            lapi::state.get<lua::Function>("LAPI", "World", "Entities", "add")(otherClass, otherUniqueId, t);
+            lapi::state.get<lua::Function>("external", "entity_add")(otherClass, otherUniqueId, t);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
@@ -1022,7 +1020,7 @@ namespace MessageSystem
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lapi::state.get<lua::Function>("LAPI", "World", "Entities", "delete")(uniqueId);
+        lapi::state.get<lua::Function>("external", "entity_remove")(uniqueId);
     }
 #endif
 
@@ -1082,7 +1080,7 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        lapi::state.get<lua::Function>("LAPI", "World", "Entities", "delete")(uniqueId);
+        lapi::state.get<lua::Function>("external", "entity_remove")(uniqueId);
     }
 #endif
 
@@ -1163,13 +1161,13 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            const char *sauerType = lapi::state.get<lua::Function>("LAPI", "World", "Entities", "Classes", "get_sauer_type").call<const char*>(otherClass);
+            const char *sauerType = lapi::state.get<lua::Function>("external", "entity_class_sauer_type_get").call<const char*>(otherClass);
 
             lua::Table t = lapi::state.new_table(0, 8);
             t["_type"] = findtype((char*)sauerType);
             t["x"] = x; t["y"] = y; t["z"] = z;
             t["attr1"] = attr1; t["attr2"] = attr2; t["attr3"] = attr3; t["attr4"] = attr4; t["attr5"] = attr5;
-            lapi::state.get<lua::Function>("LAPI", "World", "Entities", "add")(otherClass, otherUniqueId, t);
+            lapi::state.get<lua::Function>("external", "entity_add")(otherClass, otherUniqueId, t);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else

@@ -227,7 +227,7 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            lua::Object ent (lapi::state.get<lua::Object>("LAPI", "World", "Entities", "get"));
+            lua::Object ent (lapi::state.get<lua::Object>("external", "entity_get"));
             lua::Object name(lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "position"));
 
             lua::Table t = lapi::state.new_table(3);
@@ -368,7 +368,7 @@ namespace game
 
             // If triggering collisions can be done by the lua library code, use that
 
-            lapi::state.get<lua::Function>("LAPI", "World", "manage_collisions")();
+            lapi::state.get<lua::Function>("external", "game_handle_triggers")();
         }
 
         //==============================================
@@ -575,8 +575,7 @@ namespace game
 
     const char *scriptname(fpsent *d)
     {
-        const char *ret = lapi::state.get<lua::Function>(
-            "LAPI", "World", "Entities", "get"
+        const char *ret = lapi::state.get<lua::Function>("external", "entity_get"
         ).call<lua::Table>(LogicSystem::getUniqueId(d)).get<const char*>(
             lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "name")
         );

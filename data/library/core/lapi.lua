@@ -134,38 +134,8 @@ return {
                 return ent:set_local_animation (anim)
             end
         },
-        Entities = {
-            Classes = {
-                get            = ents.get_class,
-                get_sauer_type = function(cn)
-                    return ents.get_class(cn).sauer_type
-                end
-            },
-            add        = ents.add,
-            new        = ents.new,
-            delete     = ents.remove,
-            delete_all = ents.remove_all,
-            save_all   = ents.save,
-            get        = ents.get,
-            get_all    = ents.get_all,
-            send       = ents.send,
-            gen_id     = ents.gen_uid,
-            render     = ents.render
-        },
         scenario_started  = ents.scene_is_ready,
-        render_hud        = ents.render_hud,
-        manage_collisions = ents.handle_triggers,
         handle_frame      = frame.handle_frame,
         start_frame       = frame.start_frame
-    },
-    Table = {
-        serialize   = table.serialize,
-        deserialize = table.deserialize
-    },
-    Library = {
-        is_unresettable = function(name)
-            return false
-        end,
-        reset = library.reset
     }
 }

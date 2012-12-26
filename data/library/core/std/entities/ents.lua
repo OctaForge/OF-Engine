@@ -173,13 +173,29 @@ end
 
 --[[! Function: get_class
     Returns the entity class with the given name. If it doesn't exist,
-    logs an error message and returns nil.
+    logs an error message and returns nil. External as "entity_class_get".
 ]]
-M.get_class = function(cn)
+local get_class = function(cn)
     local  t = class_storage[cn]
     if not t then log(ERROR, "ents.get_class: invalid class " .. cn) end
     return t
 end
+M.get_class, ext.entity_class_get = get_class, get_class
+
+--[[! Function: get_class_sauer_type
+    Given an entity class name, this function returns the sauer type
+    assigned to the class. External as "entity_class_sauer_type_get".
+]]
+local get_class_sauer_type = function(cn)
+    local  t = class_storage[cn]
+    if not t then
+        log(ERROR, "ents.get_class: invalid class " .. cn)
+    else
+        return t.sauer_type
+    end
+end
+M.get_class_sauer_type, ext.entity_class_sauer_type_get
+    = get_class_sauer_type, get_class_sauer_type
 
 --[[! Function: get_all_classes
     Returns <class_storage>. Use with care.
@@ -189,7 +205,8 @@ M.get_all_classes = function()
 end
 
 --[[! Function: get
-    Retrieves an entity, given its uuid. If not found, nil.
+    Retrieves an entity, given its uuid. If not found, nil. External as
+    "entity_get".
 ]]
 M.get = function(uid)
     local r = storage[uid]
@@ -200,13 +217,15 @@ M.get = function(uid)
         log(DEBUG, "ents.get: no such entity (" .. uid .. ")")
     end
 end
+ext.entity_get = M.get
 
 --[[! Function: get_all
-    Returns the whole storage. Use with care.
+    Returns the whole storage. Use with care. External as "entities_get_all".
 ]]
 M.get_all = function()
     return storage
 end
+ext.entities_get_all = M.get_all
 
 --[[! Function: get_all_by_tag
     Returns an array of entities with a common tag.
@@ -299,6 +318,7 @@ end
     the entity instead of just assigning an uid. That means it's
     a newly created entity. Sometimes we don't want this behavior,
     for example when loading an entity from a file.
+    External as "entity_add".
 ]]
 local add = function(cn, uid, kwargs, new)
     uid = uid or 1337
@@ -337,7 +357,7 @@ local add = function(cn, uid, kwargs, new)
     r:activate(kwargs)
     log(DEBUG, "ents.add: activated")
 end
-M.add = add
+M.add, ext.entity_add = add, add
 
 --[[! Function: add_sauer
     Appends a request to add a Sauer entity to the sauer storage queue.
@@ -355,6 +375,7 @@ M.add_sauer, ext.entity_add_sauer = add_sauer, add_sauer
 --[[! Function: remove
     Removes an entity of the given uid. First emits pre_deactivate signal
     on it, then deactivates it and then clears it out from both storages.
+    External as "entity_remove".
 ]]
 M.remove = function(uid)
     log(DEBUG, "ents.remove: " .. uid)
@@ -385,11 +406,12 @@ M.remove = function(uid)
         end
     end
 end
+ext.entity_remove = M.remove
 
 --[[! Function: remove_all
     Removes all entities from both storages. It's equivalent to looping
     over the whole storage and removing each entity individually, but
-    much faster.
+    much faster. External as "entities_remove_all".
 ]]
 M.remove_all = function()
     for uid, e in pairs(storage) do
@@ -400,6 +422,7 @@ M.remove_all = function()
     storage_by_class = {}
     highest_uid = 1
 end
+ext.entities_remove_all = M.remove_all
 
 --[[! Function: load
     Serverside. Reads a file called "entities.lua" in the map directory,
@@ -557,6 +580,7 @@ end
 
 --[[! Function: save
     Serializes all loaded entities into format that can be read by <load>.
+    External as "entities_save_all".
 ]]
 M.save = function()
     local r = {}
@@ -573,6 +597,7 @@ M.save = function()
     log(DEBUG, "ents.save: done")
     return "{\n" .. concat(r, ",\n") .. "\n}\n"
 end
+ext.entities_save_all = M.save
 
 --[[! Class: Entity
     The base entity class. Every other entity class inherits from this.
@@ -1242,29 +1267,30 @@ end or nil
 
 --[[! Function: gen_uid
     Generates a new entity unique ID. It's larger than the previous largest
-    by one. Serverside.
+    by one. Serverside. External as "entity_gen_uid".
 ]]
 local gen_uid = SERVER and function()
     log(DEBUG, "Generating an UID, last highest UID: " .. highest_uid)
     return highest_uid + 1
 end or nil
-M.gen_uid = gen_uid
+M.gen_uid, ext.entity_gen_uid = gen_uid, gen_uid
 
 --[[! Function: new
     Creates a new entity on the server. Takes the entity class, kwargs
     (will be passed directly to <add>) and optionally the unique ID to
-    force (otherwise <gen_uid>). Returns the entity.
+    force (otherwise <gen_uid>). Returns the entity. External as "entity_new".
 ]]
 M.new = SERVER and function(cl, kwargs, fuid)
     fuid = fuid or gen_uid()
     log(DEBUG, "New entity: " .. fuid)
     return add(cl, fuid, kwargs, true)
 end or nil
+ext.entity_new = M.new
 
 --[[! Function: send
     Notifies a client of the number of entities on the server and then
     send a complete notification for each of them. Takes the client number.
-    Works only serverside.
+    Works only serverside. External as "entities_send_all".
 ]]
 M.send = SERVER and function(cn)
     log(DEBUG, "Sending active entities to " .. cn)
@@ -1278,5 +1304,6 @@ M.send = SERVER and function(cn)
         storage[uids[i]]:send_notification_full(cn)
     end
 end or nil
+ext.entities_send_all = M.send
 
 return M
