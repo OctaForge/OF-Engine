@@ -375,7 +375,6 @@ namespace game
 
         if (runWorld)
         {
-            lapi::state.get<lua::Function>("LAPI", "World", "start_frame")();
             LogicSystem::manageActions(curtime);
         }
 

@@ -20,14 +20,45 @@ local current_frame_time = 1
 local last_millis        = 0
 local queued_actions     = {}
 
-return {
-    --[[! Function: start_frame
-        Increments the Lua frame count.
-    ]]
-    start_frame = function()
-        current_frame = current_frame + 1
-    end,
+--[[! Function: handle_frame
+    Executed per frame from C++. It handles the current frame, meaning
+    it first flushes the global action queue (see <queue_global_action>),
+    then updates all the required timing vars (<get_frame>, <get_time>,
+    <get_frame_time>, <get_last_millis>) and then runs on all available
+    activated entities. External as "frame_handle".
+]]
+local handle_frame = function(seconds, lastmillis)
+    local get_ents = ents.get_all
 
+    log(INFO, "frame.handle_frame: New frame")
+    current_frame = current_frame + 1
+
+    local queue = table.copy(queued_actions)
+    queued_actions = {}
+
+    for i = 1, #queue do queue[i]() end
+
+    current_time       = current_time + seconds
+    current_frame_time = seconds
+    last_millis        = lastmillis
+
+    log(INFO, "frame.handle_frame: Acting on entities")
+
+    for uid, entity in pairs(get_ents()) do
+        local skip = false
+
+        if entity.deactivated or not entity.per_frame then
+            skip = true
+        end
+
+        if not skip then
+            entity:run(seconds)
+        end
+    end
+end
+external.frame_handle = handle_frame
+
+return {
     --[[! Function: get_frame
         Returns the current Lua frame count.
     ]]
@@ -68,41 +99,7 @@ return {
         table.insert(queued_actions, action)
     end,
 
-    --[[! Function: handle_frame
-        Executed per frame from C++. It handles the current frame, meaning
-        it first flushes the global action queue (see <queue_global_action>),
-        then updates all the required timing vars (<get_frame>, <get_time>,
-        <get_frame_time>, <get_last_millis>) and then runs on all available
-        activated entities.
-    ]]
-    handle_frame = function(seconds, lastmillis)
-        local get_ents = ents.get_all
-
-        log(INFO, "frame.handle_frame: New frame")
-
-        local queue = table.copy(queued_actions)
-        queued_actions = {}
-
-        for i = 1, #queue do queue[i]() end
-
-        current_time       = current_time + seconds
-        current_frame_time = seconds
-        last_millis        = lastmillis
-
-        log(INFO, "frame.handle_frame: Acting on entities")
-
-        for uid, entity in pairs(get_ents()) do
-            local skip = false
-
-            if entity.deactivated or not entity.per_frame then
-                skip = true
-            end
-
-            if not skip then
-                entity:run(seconds)
-            end
-        end
-    end,
+    handle_frame = handle_frame,
 
     --[[! Function: cache_by_delay
         Caches a function by a delay. That comes in handy if you need to

@@ -104,8 +104,6 @@ return {
 
                 return false
             end
-        },
-        handle_frame      = frame.handle_frame,
-        start_frame       = frame.start_frame
+        }
     }
 }
