@@ -89,9 +89,7 @@ bool ClientSystem::scenarioStarted()
     if (_mapCompletelyReceived && !_scenarioStarted)
     {
         if (lapi::state.state())
-            _scenarioStarted = lapi::state.get<lua::Function>(
-                "LAPI", "World", "scenario_started"
-            ).call<bool>();
+            _scenarioStarted = lapi::state.get<lua::Function>("external", "World", "scene_is_ready").call<bool>();
     }
 
     return _mapCompletelyReceived && _scenarioStarted;

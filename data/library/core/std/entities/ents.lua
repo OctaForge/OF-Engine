@@ -1230,6 +1230,8 @@ M.init_player, ext.player_init = init_player, init_player
     On the server you can optionally provide "actor unique id", an unique id
     of the client that triggered the change. When set to -1, it means the
     server triggered it.
+
+    External as entity_set_sdata.
 ]]
 M.set_sdata = function(uid, kpid, value, auid)
     local ent = storage[uid]
@@ -1239,11 +1241,12 @@ M.set_sdata = function(uid, kpid, value, auid)
         ent:set_sdata(key, value, auid)
     end
 end
+ext.entity_set_sdata = M.set_sdata
 
 --[[ Function: scene_is_ready
     On the client, used to check if the current scene is ready and we can
     actually start (checks whether the player exists and whether all the
-    entities are initialized)
+    entities are initialized). External as scene_is_ready.
 !]]
 M.scene_is_ready = CLIENT and function()
     log(INFO, "Scene ready?")
@@ -1264,6 +1267,7 @@ M.scene_is_ready = CLIENT and function()
     log(INFO, "...yes!")
     return true
 end or nil
+ext.scene_is_ready = M.scene_is_ready
 
 --[[! Function: gen_uid
     Generates a new entity unique ID. It's larger than the previous largest

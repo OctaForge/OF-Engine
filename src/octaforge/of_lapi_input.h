@@ -60,9 +60,7 @@ namespace lapi_binds
         if (ClientSystem::scenarioStarted()) \
         { \
             CLogicEntity *e = ClientSystem::playerLogicEntity; \
-            lapi::state.get<lua::Function>( \
-                "LAPI", "World", "Entity", "clear_actions" \
-            )(e->lua_ref); \
+            e->lua_ref.get<lua::Function>("clear_actions")(e->lua_ref); \
 \
             s = (addreleaseaction( \
                 lapi::state.get<lua::Function>("CAPI", #name) \
@@ -90,9 +88,7 @@ namespace lapi_binds
         if (ClientSystem::scenarioStarted())
         {
             CLogicEntity *e = ClientSystem::playerLogicEntity;
-            lapi::state.get<lua::Function>(
-                "LAPI", "World", "Entity", "clear_actions"
-            )(e->lua_ref);
+            e->lua_ref.get<lua::Function>("clear_actions")(e->lua_ref);
 
             bool down = (addreleaseaction(
                 lapi::state.get<lua::Function>("CAPI", "jump")

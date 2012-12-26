@@ -581,7 +581,7 @@ namespace MessageSystem
                 if (!LogicSystem::initialized) \
                     return; \
                 \
-                lapi::state.get<lua::Function>("LAPI", "World", "Entity", "set_state_data")(uniqueId, keyProtocolId, value);
+                lapi::state.get<lua::Function>("external", "entity_set_sdata")(uniqueId, keyProtocolId, value);
         #endif
         STATE_DATA_UPDATE
     }
@@ -624,7 +624,7 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        lapi::state.get<lua::Function>("LAPI", "World", "Entity", "set_state_data")(uniqueId, keyProtocolId, value, actorUniqueId);
+        lapi::state.get<lua::Function>("external", "entity_set_sdata")(uniqueId, keyProtocolId, value, actorUniqueId);
         STATE_DATA_REQUEST
     }
 #endif
@@ -986,7 +986,7 @@ namespace MessageSystem
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
-                lapi::state.get<lua::Function>("LAPI", "World", "Entity", "make_player")(ClientSystem::uniqueId);
+                lapi::state.get<lua::Function>("external", "player_init")(ClientSystem::uniqueId);
             }
         #endif
         // Events post-reception

@@ -105,14 +105,6 @@ return {
                 return false
             end
         },
-        Entity = {
-            clear_actions = function(ent)
-                return ent.action_system:clear()
-            end,
-            set_state_data = ents.set_sdata,
-            make_player    = ents.init_player
-        },
-        scenario_started  = ents.scene_is_ready,
         handle_frame      = frame.handle_frame,
         start_frame       = frame.start_frame
     }
