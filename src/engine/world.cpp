@@ -918,15 +918,11 @@ void entpaste()
 
         const char *_class = entity->getClass();
 
-        lapi::state["__ccentcopy__TEMP"] = lapi::state.get<lua::Function>(
-            "LAPI", "World", "Entity", "create_state_data_dict"
-        ).call<lua::Object>(entity->lua_ref);
+        lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
+            "build_sdata").call<lua::Object>(entity->lua_ref);
 
-        lapi::state.get<lua::Table>(
-            "__ccentcopy__TEMP"
-        )[lapi::state.get<lua::Object>(
-            "LAPI", "World", "Entity", "Properties", "position"
-        )] = types::String().format("[%f|%f|%f]", o.x, o.y, o.z);
+        lapi::state.get<lua::Table>("__ccentcopy__TEMP")["position"]
+            = types::String().format("[%f|%f|%f]", o.x, o.y, o.z);
 
         const char *sd = lapi::state.get<lua::Function>(
             "external", "table_serialize"
@@ -1001,15 +997,10 @@ void intensityentcopy() // INTENSITY
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     intensityCopiedClass = entity->getClass();
 
-    lapi::state["__ccentcopy__TEMP"] = lapi::state.get<lua::Function>(
-        "LAPI", "World", "Entity", "create_state_data_dict"
-    ).call<lua::Object>(entity->lua_ref);
+    lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
+        "build_sdata").call<lua::Object>(entity->lua_ref);
 
-    lapi::state.get<lua::Table>(
-        "__ccentcopy__TEMP"
-    )[lapi::state.get<lua::Object>(
-        "LAPI", "World", "Entity", "Properties", "position"
-    )] = lua::nil;
+    lapi::state.get<lua::Table>("__ccentcopy__TEMP")["position"] = lua::nil;
 
     intensityCopiedStateData = lapi::state.get<lua::Function>(
         "external", "table_serialize"

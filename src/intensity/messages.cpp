@@ -501,7 +501,7 @@ namespace MessageSystem
         t["state_data"] = stateData;
         int newUniqueId = lapi::state.get<lua::Function>(
             "external", "entity_new"
-        ).call<lua::Table>(_class, t).get<int>(lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "id"));
+        ).call<lua::Table>(_class, t).get<int>("uid");
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
                                       newUniqueId, _class.get_buf(), x, y, z);
     }
@@ -962,7 +962,7 @@ namespace MessageSystem
                         assert(otherClientNumber == ClientSystem::playerNumber);
                     }
                 #endif
-                t[lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "cn")] = otherClientNumber;
+                t["cn"] = otherClientNumber;
             }
             lapi::state.get<lua::Function>("external", "entity_add")(otherClass, otherUniqueId, t);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
@@ -977,7 +977,7 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.get_buf());
-        lapi::state.get<lua::Function>("LAPI", "World", "Entity", "update_complete_state_data")(entity->lua_ref, stateData);
+        entity->lua_ref.get<lua::Function>("set_sdata_full").call<lua::Object>(entity->lua_ref, stateData);
         #ifdef CLIENT
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
@@ -1176,7 +1176,7 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData\r\n");
-        lapi::state.get<lua::Function>("LAPI", "World", "Entity", "update_complete_state_data")(entity->lua_ref, stateData);
+        entity->lua_ref.get<lua::Function>("set_sdata_full").call<lua::Object>(entity->lua_ref, stateData);
         // Events post-reception
         world::trigger_received_entity();
     }

@@ -124,9 +124,7 @@ void CLogicEntity::setOrigin(vec &newOrigin)
     t[0] = newOrigin.x; t[1] = newOrigin.y; t[2] = newOrigin.z;
     lapi::state.get<lua::Function>(
         "external", "entity_get"
-    ).call<lua::Table>(getUniqueId())[lapi::state.get<lua::Object>(
-        "LAPI", "World", "Entity", "Properties", "position"
-    )] = t;
+    ).call<lua::Table>(getUniqueId())["position"] = t;
 }
 
 int CLogicEntity::getAnimation()

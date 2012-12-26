@@ -258,13 +258,9 @@ namespace lapi_binds
     void _lua_finish_dragging()
     {
         groupeditpure(
-            lapi::state.get<lua::Function>(
-                "external", "entity_get"
-            ).call<lua::Table>(
-                LogicSystem::getUniqueId(&ent)
-            )[lapi::state.get<lua::Object>(
-                "LAPI", "World", "Entity", "Properties", "position"
-            )] = ent.o;
+            lapi::state.get<lua::Function>("external", "entity_get")
+                .call<lua::Table>(LogicSystem::getUniqueId(&ent))
+                    ["position"] = ent.o;
         );
     }
 

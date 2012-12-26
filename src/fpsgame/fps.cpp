@@ -227,13 +227,12 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            lua::Object ent (lapi::state.get<lua::Object>("external", "entity_get"));
-            lua::Object name(lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "position"));
+            lua::Table ent(lapi::state.get<lua::Object>("external", "entity_get").call<lua::Object>(d->uniqueId));
 
             lua::Table t = lapi::state.new_table(3);
-            t[1] = ent[name]["x"];
-            t[2] = ent[name]["y"];
-            t[3] = ent[name]["z"];
+            t[1] = ent["position"]["x"];
+            t[2] = ent["position"]["y"];
+            t[3] = ent["position"]["z"];
             ent[name] = t;
 #endif
         }
@@ -244,9 +243,7 @@ namespace game
 #ifdef CLIENT
         if (ClientSystem::playerLogicEntity)
         {
-            if (ClientSystem::playerLogicEntity->lua_ref[lapi::state.get<lua::Object>(
-                "LAPI", "World", "Entity", "Properties", "initialized"
-            )].to<bool>())
+            if (ClientSystem::playerLogicEntity->lua_ref["initialized"].to<bool>())
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.\r\n",
                     player1->uniqueId, (void*)player1,
@@ -576,9 +573,7 @@ namespace game
     const char *scriptname(fpsent *d)
     {
         const char *ret = lapi::state.get<lua::Function>("external", "entity_get"
-        ).call<lua::Table>(LogicSystem::getUniqueId(d)).get<const char*>(
-            lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "name")
-        );
+        ).call<lua::Table>(LogicSystem::getUniqueId(d)).get<const char*>("character_name");
         return ret;
     }
 

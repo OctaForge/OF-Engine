@@ -106,33 +106,11 @@ return {
             end
         },
         Entity = {
-            Properties = {
-                position     = "position",
-                id           = "uid",
-                cn           = "cn",
-                facing_speed = "facing_speed",
-                can_edit     = "can_edit",
-                name         = "character_name",
-                collision_w  = "collision_radius_width",
-                collision_h  = "collision_radius_height",
-                initialized  = "initialized",
-                rendering_hash_hint = "rendering_hash_hint"
-            },
-            create_state_data_dict = function(ent)
-                return ent:build_sdata()
-            end,
-            add_sauer = ents.add_sauer,
             clear_actions = function(ent)
                 return ent.action_system:clear()
             end,
             set_state_data = ents.set_sdata,
-            make_player    = ents.init_player,
-            update_complete_state_data = function(ent, sd)
-                return  ent:set_sdata_full(sd)
-            end,
-            set_local_animation = function(ent, anim)
-                return ent:set_local_animation (anim)
-            end
+            make_player    = ents.init_player
         },
         scenario_started  = ents.scene_is_ready,
         handle_frame      = frame.handle_frame,

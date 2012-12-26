@@ -676,9 +676,7 @@ namespace server
 
         if (ci->isAdmin && ci->uniqueId >= 0) // If an entity was already created, update it
             lapi::state.get<lua::Function>("external", "entity_get"
-            ).call<lua::Table>(ci->uniqueId)[lapi::state.get<lua::Object>(
-                "LAPI", "World", "Entity", "Properties", "can_edit"
-            )] = true;
+            ).call<lua::Table>(ci->uniqueId)["can_edit"] = true;
     }
 
     bool isAdmin(int clientNumber)
@@ -748,29 +746,23 @@ namespace server
         ci->uniqueId = uniqueId;
 
         lua::Table t = lapi::state.new_table(0, 1);
-        t[lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "cn")] = cn;
+        t["cn"] = cn;
         lapi::state.get<lua::Function>("external", "entity_new")(_class, t, uniqueId, true);
 
         assert(
             lapi::state.get<lua::Function>(
                 "external", "entity_get"
-            ).call<lua::Table>(uniqueId).get<int>(lapi::state.get<lua::Object>(
-                "LAPI", "World", "Entity", "Properties", "cn"
-            )) == cn
+            ).call<lua::Table>(uniqueId).get<int>("cn") == cn
         );
 
         // Add admin status, if relevant
         if (ci->isAdmin)
-            lapi::state.get<lua::Function>(
-                "external", "entity_get"
-            ).call<lua::Table>(uniqueId)[lapi::state.get<lua::Object>(
-                "LAPI", "World", "Entity", "Properties", "can_edit")
-            ] = true;
+            lapi::state.get<lua::Function>("external", "entity_get").call<lua::Table>(uniqueId)["can_edit"] = true;
 
         // Add nickname
         t = lapi::state.get<lua::Function>("external", "entity_get").call<lua::Table>(uniqueId);
         // got class here
-        t[lapi::state.get<lua::Object>("LAPI", "World", "Entity", "Properties", "name")] = uname;
+        t["character_name"] = uname;
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)
