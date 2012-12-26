@@ -36,14 +36,14 @@ module("sound", package.seeall)
         to send a message to play the sound, defaults to
         <msg.ALL_CLIENTS>.
 ]]
-function play(name, position, volume, cn)
+function play(name, pos, volume, cn)
     -- defaults, we don't default volume since 0 is represented as
     -- 100 by the C API in this case
-    position = position or math.Vec3(0, 0, 0)
+    pos = pos or math.Vec3(0, 0, 0)
 
     if CLIENT then
         -- clientside behavior
-        CAPI.playsoundname(name, position, volume)
+        CAPI.playsoundname(name, pos.x, pos.y, pos.z, volume)
     else
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names
@@ -62,7 +62,7 @@ function play(name, position, volume, cn)
         cn = cn or msg.ALL_CLIENTS
         msg.send(
             cn, CAPI.sound_toclients_byname,
-            position.x, position.y, position.z,
+            pos.x, pos.y, pos.z,
             name, -1
         )
     end

@@ -1,14 +1,16 @@
 namespace lapi_binds
 {
 #ifdef CLIENT
-    void _lua_forcecam(vec pos, float yaw, float pitch, float roll, float fov)
+    void _lua_forcecam(float x, float y, float z, float yaw, float pitch, float roll, float fov)
     {
-        CameraControl::forceCamera(pos, yaw, pitch, roll, fov);
+        vec o(x, y, z);
+        CameraControl::forceCamera(o, yaw, pitch, roll, fov);
     }
 
-    void _lua_forcepos(vec pos)
+    void _lua_forcepos(float x, float y, float z)
     {
-        CameraControl::forcePosition(pos);
+        vec o(x, y, z);
+        CameraControl::forcePosition(o);
     }
 
     void _lua_forceyaw  (float yaw  ) { CameraControl::forceYaw  (yaw  ); }
@@ -25,7 +27,9 @@ namespace lapi_binds
     {
         lua::Table t = lapi::state.new_table(0, 4);
         physent *camera = CameraControl::getCamera();
-        t["position"] = camera->o;
+        const vec& o = camera->o;
+        t["position"] = lapi::state.get<lua::Function>("external", "new_vec3")
+            .call<lua::Table>(o.x, o.y, o.z);
         t["yaw"     ] = camera->yaw;
         t["pitch"   ] = camera->pitch;
         t["roll"    ] = camera->roll;

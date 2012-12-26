@@ -19,41 +19,7 @@ struct vec
     explicit vec(const vec4 &v);
     explicit vec(const vec2 &v, float z = 0);
 
-    vec(lua_State *L, int idx)
-    {
-        if (!lua_istable(L, idx))
-        {
-            x = y = z = 0.0f;
-            return;
-        }
-
-        lua_getfield(L, idx, "x");
-        x = lua_tonumber(L, -1);
-        lua_pop(L, 1);
-
-        lua_getfield(L, idx, "y");
-        y = lua_tonumber(L, -1);
-        lua_pop(L, 1);
-
-        lua_getfield(L, idx, "z");
-        z = lua_tonumber(L, -1);
-        lua_pop(L, 1);
-    }
-
     vec(float yaw, float pitch) : x(-sinf(yaw)*cosf(pitch)), y(cosf(yaw)*cosf(pitch)), z(sinf(pitch)) {}
-
-    void push(lua_State *L) const
-    {
-        lua_getglobal (L, "LAPI");
-        lua_getfield  (L, -1, "Math");
-        lua_getfield  (L, -1, "make_vec3");
-        lua_remove    (L, -2);
-        lua_remove    (L, -2);
-        lua_pushnumber(L, x);
-        lua_pushnumber(L, y);
-        lua_pushnumber(L, z);
-        lua_call      (L, 3, 1);
-    }
 
     float &operator[](int i)       { return v[i]; }
     float  operator[](int i) const { return v[i]; }
@@ -222,45 +188,6 @@ struct vec4
     vec4() {}
     explicit vec4(const vec &p, float w = 0) : x(p.x), y(p.y), z(p.z), w(w) {}
     vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-
-    vec4(lua_State *L, int idx)
-    {
-        if (!lua_istable(L, idx))
-        {
-            x = y = z = w = 0.0f;
-            return;
-        }
-
-        lua_getfield(L, idx, "x");
-        x = lua_tonumber(L, -1);
-        lua_pop(L, 1);
-
-        lua_getfield(L, idx, "y");
-        y = lua_tonumber(L, -1);
-        lua_pop(L, 1);
-
-        lua_getfield(L, idx, "z");
-        z = lua_tonumber(L, -1);
-        lua_pop(L, 1);
-
-        lua_getfield(L, idx, "w");
-        w = lua_tonumber(L, -1);
-        lua_pop(L, 1);
-    }
-
-    void push(lua_State *L) const
-    {
-        lua_getglobal (L, "LAPI");
-        lua_getfield  (L, -1, "Math");
-        lua_getfield  (L, -1, "make_vec4");
-        lua_remove    (L, -2);
-        lua_remove    (L, -2);
-        lua_pushnumber(L, x);
-        lua_pushnumber(L, y);
-        lua_pushnumber(L, z);
-        lua_pushnumber(L, w);
-        lua_call      (L, 4, 1);
-    }
 
     float &operator[](int i)       { return v[i]; }
     float  operator[](int i) const { return v[i]; }
@@ -1150,41 +1077,6 @@ struct bvec
     bvec() {}
     bvec(uchar x, uchar y, uchar z) : x(x), y(y), z(z) {}
     bvec(const vec &v) : x((uchar)((v.x+1)*255/2)), y((uchar)((v.y+1)*255/2)), z((uchar)((v.z+1)*255/2)) {}
-
-    bvec(lua_State *L, int idx)
-    {
-        if (!lua_istable(L, idx))
-        {
-            x = y = z = 0.0f;
-            return;
-        }
-
-        lua_getfield(L, idx, "r");
-        x = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-
-        lua_getfield(L, idx, "g");
-        y = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-
-        lua_getfield(L, idx, "b");
-        z = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-    }
-
-    void push(lua_State *L) const
-    {
-        lua_createtable(L, 0, 3);
-
-        lua_pushnumber(L, r);
-        lua_setfield(L, -1, "r");
-
-        lua_pushnumber(L, g);
-        lua_setfield(L, -1, "g");
-
-        lua_pushnumber(L, b);
-        lua_setfield(L, -1, "b");
-    }
 
     uchar &operator[](int i)       { return v[i]; }
     uchar  operator[](int i) const { return v[i]; }

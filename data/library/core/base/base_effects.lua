@@ -120,12 +120,12 @@ DYNAMIC_LIGHT = {
         where number from 0 to 3 specifies which one of 4 blood variants
         to render.
 ]]
-function decal(decal_type, position, direction, radius, color, info)
+function decal(decal_type, pos, dir, radius, color, info)
     info      = info or 0
     local r, g, b = hextorgb(color or 0xFFFFFF)
 
-    CAPI.adddecal(decal_type, position, direction, radius,
-        { r = r, g = g, b = b }, info)
+    CAPI.adddecal(decal_type, pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, radius,
+        r, g, b, info)
 end
 
 --[[!
@@ -146,7 +146,7 @@ end
         specified as hex integer (0xRRGGBB).
 ]]
 function dynamic_light(
-    position, radius, color, fade,
+    pos, radius, color, fade,
     peak, flags, initial_radius, initial_color
 )
     local r,  g,  b  = hextorgb(color)
@@ -156,11 +156,11 @@ function dynamic_light(
     peak = peak or 0
 
     CAPI.adddynlight(
-        position, radius,
-        math.Vec3(r / 255, g / 255, b / 255),
+        pos.x, pos.y, pos.z, radius,
+        r / 255, g / 255, b / 255,
         fade * 1000, peak * 1000,
         flags, initial_radius,
-        math.Vec3(r1 / 255, g1 / 255, b1 / 255)
+        r1 / 255, g1 / 255, b1 / 255
     )
 end
 
@@ -180,7 +180,7 @@ end
         gravity - gravity pull on the particles.
 ]]
 function splash(
-    particle_type, num, fade, position,
+    particle_type, num, fade, pos,
     color, size, radius, gravity,
     regular_fade, flags, fast_splash, grow
 )
@@ -191,14 +191,14 @@ function splash(
         gravity = gravity or 2
 
         CAPI.particle_splash(
-            particle_type, num, fade * 1000, position,
+            particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
             color, size, radius, gravity
         )
     else
         msg.send(
             msg.ALL_CLIENTS, CAPI.particle_splash_toclients,
             particle_type, num, fade * 1000,
-            position.x, position.y, position.z
+            pos.x, pos.y, pos.z
         ) -- TODO: last 4 params
     end
 end
@@ -220,7 +220,7 @@ end
         delay - particle delay.
 ]]
 function regular_splash(
-    particle_type, num, fade, position,
+    particle_type, num, fade, pos,
     color, size, radius, gravity, delay
 )
     if CLIENT then
@@ -230,14 +230,14 @@ function regular_splash(
         gravity = gravity or 2
 
         CAPI.regular_particle_splash(
-            particle_type, num, fade * 1000, position,
+            particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
             color, size, radius, gravity, delay
         )
     else
         msg.send(
             msg.ALL_CLIENTS, CAPI.particle_regularsplash_toclients,
             particle_type, num, fade * 1000,
-            position.x, position.y, position.z
+            pos.x, pos.y, pos.z
         ) -- TODO: last 5 params
     end
 end
@@ -257,14 +257,14 @@ end
         num - number of particles.
 ]]
 function fireball(
-    particle_type, position, max_size,
+    particle_type, pos, max_size,
     fade, color, size, gravity, num
 )
     fade  = (fade ~= nil) and fade * 1000 or -1
     color = color or 0xFFFFFF
     size  = size  or 4.0
     CAPI.particle_fireball(
-        position, max_size, particle_type, fade,
+        pos.x, pos.y, pos.z, max_size, particle_type, fade,
         color, size, gravity, num
     )
 end
@@ -283,14 +283,14 @@ end
         owner - flare owner entity.
 ]]
 function flare(
-    particle_type, target_position, source_position, fade, color, size, owner
+    particle_type, tp, sp, fade, color, size, owner
 )
     fade  = fade and fade * 1000 or 0
     color = color or 0xFFFFFF
     size  = size  or 0.28
     local oid = owner and owner.uid or -1
     CAPI.particle_flare(
-        source_position, target_position, fade,
+        sp.x, sp.y, sp.z, tp.x, tp.y, tp.z, fade,
         particle_type, color, size, oid
     )
 end
@@ -309,14 +309,14 @@ end
         grow - integer value specifying particle grow factor (1 to 4).
 ]]
 function trail(
-    particle_type, fade, target_position, source_position, color, size, grow
+    particle_type, fade, tp, sp, color, size, grow
 )
     color   = color   or 0xFFFFFF
     size    = size    or 1.0
     grow    = grow    or 20
     CAPI.particle_trail(
-        particle_type, fade * 1000, source_position,
-        target_position, color, size, grow
+        particle_type, fade * 1000, sp.x, sp.y, sp.z,
+        tp.x, tp.y, tp.z, color, size, grow
     )
 end
 
@@ -337,7 +337,7 @@ end
         gravity - gravity pull on the particles.
 ]]
 function flame(
-    particle_type, position, radius, height,
+    particle_type, pos, radius, height,
     color, density, scale, speed, fade, gravity
 )
     density = density or 3
@@ -346,7 +346,7 @@ function flame(
     fade    = fade    and fade * 1000 or 600.0
     gravity = gravity or -15
     CAPI.particle_flame(
-        particle_type, position,
+        particle_type, pos.x, pos.y, pos.z,
         radius, height, color, density,
         scale, speed, fade, gravity
     )
@@ -383,12 +383,12 @@ end
         size - text size.
         gravity - gravity pull on the particles.
 ]]
-function text(position, text, fade, color, size, gravity)
+function text(pos, text, fade, color, size, gravity)
     fade  = fade  or 2.0
     color = color or 0xFFFFFF
     size  = size  or 2.0
     CAPI.particle_text(
-        position, text, PARTICLE.TEXT,
+        pos.x, pos.y, pos.z, text, PARTICLE.TEXT,
         fade * 1000, color, size, gravity
     )
 end

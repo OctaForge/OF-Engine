@@ -160,7 +160,7 @@ end
     lowest floor instead of highest floor.
 ]]
 math.floor_distance = function(pos, max_dist, radius, lowest)
-    local rt = CAPI.rayfloor(pos, max_dist)
+    local rt = CAPI.rayfloor(pos.x, pos.y, pos.z, max_dist)
 
     if not radius then
         return rt
@@ -178,10 +178,11 @@ math.floor_distance = function(pos, max_dist, radius, lowest)
 
     for x = 1, #tbl do
         for y = 1, #tbl do
-            rt = f(rt, CAPI.rayfloor(pos:add_new(math.Vec3(
+            local o = pos:add_new(math.Vec3(
                 tbl[x],
                 tbl[y], 0
-            )), max_dist))
+            ))
+            rt = f(rt, CAPI.rayfloor(o.x, o.y, o.z, max_dist))
         end
     end
 
@@ -192,7 +193,9 @@ end
     Returns true is the line between two given positions is clear
     (if there are no obstructions). Returns false otherwise.
 ]]
-math.is_los = CAPI.raylos
+math.is_los = function(o, d)
+    return CAPI.raylos(o.x, o.y, o.z, d.x, d.y, d.z)
+end
 
 --[[! Function: math.yaw_to
     Calculates the yaw from an origin to a target. Done on 2D data only.
@@ -265,14 +268,15 @@ math.is_inf = function(n)
 end
 
 --[[! Class: math.Vec3
-    A standard 3 component vector with x, y, z components.
+    A standard 3 component vector with x, y, z components. A function
+    "new_vec3" is externally available.
 
     (start code)
         a = math.Vec3(5, 10, 15)
         echo(a.x)
     (end)
 ]]
-math.Vec3 = table.Object:clone {
+local Vec3 = table.Object:clone {
     name = "Vec3",
 
     --[[! Constructor: __init
@@ -531,18 +535,23 @@ math.Vec3 = table.Object:clone {
         return (self.x == 0 and self.y == 0 and self.z == 0)
     end
 }
+math.Vec3 = Vec3
+external.new_vec3 = function(x, y, z)
+    return Vec3(x, y, z)
+end
 
 --[[! Class: math.Vec4
     A standard 4 component vector with x, y, z components.
     Inherits from <math.Vec3> and contains exactly the same
-    methods, with additions documented here.
+    methods, with additions documented here. A function
+    "new_vec4" is externally available.
 
     (start code)
         a = math.Vec4(5, 10, 15, 20)
         echo(a.x)
     (end)
 ]]
-math.Vec4 = math.Vec3:clone {
+local Vec4 = Vec3:clone {
     name = "Vec4",
 
     __init = function(self, x, y, z, w)
@@ -678,3 +687,7 @@ math.Vec4 = math.Vec3:clone {
         return (self.x == 0 and self.y == 0 and self.z == 0 and self.w == 0)
     end
 }
+math.Vec4 = Vec4
+external.new_vec4 = function(x, y, z, w)
+    return Vec4(x, y, z, w)
+end

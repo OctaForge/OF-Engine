@@ -4,12 +4,14 @@ int preload_sound(const char *name, int vol);
 namespace lapi_binds
 {
 #ifdef CLIENT
-    void _lua_playsoundname(const char *n, vec loc, lua::Object vol)
+    void _lua_playsoundname(const char *n, float x, float y, float z,
+        lua::Object vol)
     {
         if (!n) n = "";
-        if (loc.x || loc.y || loc.z)
+        if (x || y || z) {
+            vec loc(x, y, z);
             playsoundname(n, &loc, (vol.is_nil() ? 100 : vol.to<int>()));
-        else
+        } else
             playsoundname(n, NULL, (vol.is_nil() ? 100 : vol.to<int>()));
     }
 

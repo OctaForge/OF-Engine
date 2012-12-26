@@ -33,29 +33,32 @@ namespace lapi_binds
 
     /* Geometry utilities */
 
-    bool _lua_raylos(vec o, vec d)
+    bool _lua_raylos(float x, float y, float z, float dx, float dy, float dz)
     {
         vec target(0);
-        return raycubelos(o, d, target);
+        return raycubelos(vec(x, y, z), vec(dx, dy, dz), target);
     }
 
-    float _lua_raypos(vec o, vec ray, float r)
+    float _lua_raypos(float x, float y, float z, float rx, float ry,
+        float rz, float r)
     {
         vec hitpos(0);
-        return raycubepos(o, ray, hitpos, r, RAY_CLIPMAT | RAY_POLY);
+        return raycubepos(vec(x, y, z), vec(rx, ry, rz), hitpos, r,
+            RAY_CLIPMAT | RAY_POLY);
     }
 
-    float _lua_rayfloor(vec o, float r)
+    float _lua_rayfloor(float x, float y, float z, float r)
     {
         vec floor(0);
-        return rayfloor(o, floor, 0, r);
+        return rayfloor(vec(x, y, z), floor, 0, r);
     }
 
 #ifdef CLIENT
-    vec _lua_gettargetpos()
+    types::Tuple<float, float, float> _lua_gettargetpos()
     {
         TargetingControl::determineMouseTarget(true);
-        return TargetingControl::targetPosition;
+        vec o(TargetingControl::targetPosition);
+        return types::make_tuple(o.x, o.y, o.z);
     }
 
     lua::Table _lua_gettargetent()
@@ -75,7 +78,7 @@ namespace lapi_binds
 
     /* World */
 
-    bool _lua_iscolliding(vec o, float r, int uid)
+    bool _lua_iscolliding(float x, float y, float z, float r, int uid)
     {
         CLogicEntity *ignore = (
             (uid != -1) ? LogicSystem::getLogicEntity(uid) : NULL
@@ -85,7 +88,7 @@ namespace lapi_binds
 
         tester.reset();
         tester.type      = ENT_BOUNCE;
-        tester.o         = o;
+        tester.o         = vec(x, y, z);
         tester.radius    = tester.xradius = tester.yradius = r;
         tester.eyeheight = tester.aboveeye  = r;
 
@@ -115,9 +118,9 @@ namespace lapi_binds
         GRAVITY = g;
     }
 
-    int _lua_getmat(vec o)
+    int _lua_getmat(float x, float y, float z)
     {
-        return lookupmaterial(o);
+        return lookupmaterial(vec(x, y, z));
     }
 
     // TODO: REMOVE THESE
@@ -258,9 +261,11 @@ namespace lapi_binds
     void _lua_finish_dragging()
     {
         groupeditpure(
+            const vec& o = ent.o;
             lapi::state.get<lua::Function>("external", "entity_get")
                 .call<lua::Table>(LogicSystem::getUniqueId(&ent))
-                    ["position"] = ent.o;
+                    ["position"] = lapi::state.get<lua::Function>("external",
+                        "new_vec3").call<lua::Table>(o.x, o.y, o.z);
         );
     }
 

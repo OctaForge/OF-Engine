@@ -53,7 +53,7 @@ namespace lapi_binds
     void _lua_mdlalphadepth(bool   depth) { mdlalphadepth(depth); }
 
     void _lua_mdlbb(float rad, float h, float eh) { mdlbb(rad, h, eh); }
-    void _lua_mdlextendbb(vec extend) { mdlextendbb(extend); }
+    void _lua_mdlextendbb(float x, float y, float z) { mdlextendbb(vec(x, y, z)); }
 
     void _lua_mdlscale(int percent) { mdlscale(percent); }
     void _lua_mdlspec (int percent) { mdlspec (percent); }
@@ -99,7 +99,7 @@ namespace lapi_binds
     }
 
     void _lua_mdlshader (const char *shd) { mdlshader((char*)shd); }
-    void _lua_mdltrans  (vec           t) { mdltrans(t);           }
+    void _lua_mdltrans  (float x, float y, float z) { mdltrans(vec(x, y, z)); }
     void _lua_mdlyaw    (float       yaw) { mdlyaw(yaw);           }
     void _lua_mdlpitch  (float     pitch) { mdlpitch(pitch);       }
     void _lua_mdlshadow (bool          s) { mdlshadow(s);          }
@@ -115,7 +115,7 @@ namespace lapi_binds
         mdlellipsecollide(c);
     }
 
-    void _lua_rdvert(vec o, float       rad) { rdvert(o, rad);     }
+    void _lua_rdvert(float x, float y, float z, float rad) { rdvert(vec(x, y, z), rad); }
     void _lua_rdeye (int                  v) { rdeye (v);          }
     void _lua_rdtri (int v1, int v2, int v3) { rdtri (v1, v2, v3); }
 
@@ -226,7 +226,7 @@ namespace lapi_binds
 
     void _lua_rendermodel(
         lua::Table self, const char *mdl,
-        int anim, vec o,
+        int anim, float x, float y, float z,
         float yaw, float pitch,
         int flags, int basetime
     )
@@ -241,7 +241,7 @@ namespace lapi_binds
         else
             fp = getproxyfpsent(entity);
 
-        rendermodel(mdl, anim, o, yaw, pitch, flags, fp,
+        rendermodel(mdl, anim, vec(x, y, z), yaw, pitch, flags, fp,
             entity->attachments, basetime, 0, 1);
     }
 
@@ -255,7 +255,10 @@ namespace lapi_binds
         mdl->boundbox(center, radius);
 
         lua::Table ret(lapi::state.new_table(0, 2));
-        ret["center"] = center; ret["radius"] = radius;
+        ret["center"] = lapi::state.get<lua::Function>("external", "new_vec3")
+            .call<lua::Table>(center.x, center.y, center.z);
+        ret["radius"] = lapi::state.get<lua::Function>("external", "new_vec3")
+            .call<lua::Table>(radius.x, radius.y, radius.z);
         return ret;
     }
 
@@ -269,7 +272,10 @@ namespace lapi_binds
         mdl->collisionbox(center, radius);
 
         lua::Table ret(lapi::state.new_table(0, 2));
-        ret["center"] = center; ret["radius"] = radius;
+        ret["center"] = lapi::state.get<lua::Function>("external", "new_vec3")
+            .call<lua::Table>(center.x, center.y, center.z);
+        ret["radius"] = lapi::state.get<lua::Function>("external", "new_vec3")
+            .call<lua::Table>(radius.x, radius.y, radius.z);
         return ret;
     }
 
@@ -292,7 +298,12 @@ namespace lapi_binds
             BIH::tri& bt = tris[i];
 
             lua::Table t(lapi::state.new_table(0, 3));
-            t["a"] = bt.a; t["b"] = bt.b; t["c"] = bt.c;
+            t["a"] = lapi::state.get<lua::Function>("external", "new_vec3")
+                .call<lua::Table>(bt.a.x, bt.a.y, bt.a.z);
+            t["b"] = lapi::state.get<lua::Function>("external", "new_vec3")
+                .call<lua::Table>(bt.b.x, bt.b.y, bt.b.z);
+            t["c"] = lapi::state.get<lua::Function>("external", "new_vec3")
+                .call<lua::Table>(bt.c.x, bt.c.y, bt.c.z);
 
             ret[buf.format("%i", i).get_buf()] = t;
         }

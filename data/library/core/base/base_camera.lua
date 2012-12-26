@@ -35,7 +35,9 @@ module("camera", package.seeall)
         roll - The roll to force.
         fov - The fov to force.
 ]]
-force = CAPI.forcecam
+force = function(pos, yaw, pitch, roll, fov)
+    CAPI.forcecam(pos.x, pos.y, pos.z, yaw, pitch, roll, fov)
+end
 
 --[[!
     Function: force_position
@@ -46,7 +48,9 @@ force = CAPI.forcecam
         y - Y position.
         z - Z position.
 ]]
-force_position = CAPI.forcepos
+force_position = function(pos)
+    CAPI.forcepos(pos.x, pos.y, pos.z)
+end
 
 --[[!
     Function: force_yaw

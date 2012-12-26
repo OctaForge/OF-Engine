@@ -1709,9 +1709,9 @@ namespace MessageSystem
         if (uniqueId != -1)
         {
             CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
-            if (entity) click(button, down, vec(x, y, z), entity->lua_ref);
+            if (entity) click(button, down, x, y, z, entity->lua_ref);
         }
-        else click(button, down, vec(x, y, z));
+        else click(button, down, x, y, z);
     }
 #endif
 

@@ -114,9 +114,9 @@ namespace lapi_binds
             entity, self, "CAPI.getattachmentpos",
             return lapi::state.wrap<lua::Object>(lua::nil)
         )
-        return lapi::state.wrap<lua::Object>(
-            entity->getAttachmentPosition(attachment)
-        );
+        const vec& o = entity->getAttachmentPosition(attachment);
+        return lapi::state.wrap<lua::Object>(lapi::state.get<lua::Function>
+            ("external", "new_vec3").call<lua::Table>(o.x, o.y, o.z));
     }
 
     void _lua_setcanmove(lua::Table self, bool v)

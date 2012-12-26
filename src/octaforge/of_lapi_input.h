@@ -39,7 +39,7 @@ namespace lapi_binds
         if (!lapi::state.get<lua::Function>( \
             "LAPI", "Input", "Events", "Client", "click" \
         ).call<bool>( \
-            num, down, pos, \
+            num, down, pos.x, pos.y, pos.z, \
             ((tle && !tle->isNone()) ? tle->lua_ref : \
                 lapi::state.wrap<lua::Table>(lua::nil) \
             ), \

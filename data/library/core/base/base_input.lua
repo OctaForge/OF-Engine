@@ -388,7 +388,9 @@ mouse3click = CAPI.mouse3click
     Function: get_target_position
     Returns the position we're targeting to.
 ]]
-get_target_position = frame.cache_by_frame(CAPI.gettargetpos)
+get_target_position = frame.cache_by_frame(function()
+    return math.Vec3(CAPI.gettargetpos())
+end)
 
 --[[!
     Function: get_target_entity

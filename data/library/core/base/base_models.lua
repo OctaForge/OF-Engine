@@ -227,7 +227,10 @@ reload = CAPI.reloadmodel
         see the flags above. Use <math.bor> to join them.
         base_time - entity's start_time property.
 ]]
-render = CAPI.rendermodel
+render = function(ent, mdl, anim, pos, yaw, pitch, flags, basetime)
+    CAPI.rendermodel(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch,
+        flags, basetime)
+end
 
 --[[!
     Function: find_animations
@@ -345,7 +348,9 @@ all = {
         Accepts a <vec3> argument that is then added (<vec3.add>) to
         the calculated bounding box vector.
     ]]
-    extend_bounding_box = CAPI.extendbb,
+    extend_bounding_box = function(extend)
+        CAPI.mdlextendbb(extend.x, extend.y, extend.z)
+    end,
 
     --[[!
         Function: scale
@@ -444,7 +449,9 @@ all = {
         Translates the model's center by argument, which is a <vec3>
         with x, y, z represented in model units (may use floating point).
     ]]
-    translate = CAPI.mdltrans,
+    translate = function(t)
+        CAPI.mdltrans(t.x, t.y, t.z)
+    end,
 
     --[[!
         Function: yaw
@@ -575,7 +582,12 @@ md5 = {
             tr - optional translation (vec3).
             rot - optional rotation (vec3).
     ]]
-    tag = _G["md5"].tag,
+    tag = function(bone, tag, tr, rot)
+        local x, y, z, rx, ry, rz
+        if tr then x, y, z = tr.x, tr.y, tr.z end
+        if rot then rx, ry, rz = rot.x, rot.y, rot.z end
+        _G["md5"].tag(bone, tag, x, y, z, rx, ry, rz)
+    end,
 
     --[[!
         Function: pitch
@@ -633,7 +645,11 @@ md5 = {
             roll - mesh roll.
             tr - optional translation (<vec3>).
     ]]
-    adjust = _G["md5"].adjust,
+    adjust = function(bone, yaw, pitch, roll, tr)
+        local x, y, z
+        if tr then x, y, z = tr.x, tr.y, tr.z end
+        _G["md5"].adjust(bone, yaw, pitch, roll, x, y, z)
+    end,
 
     --[[!
         Function: skin
@@ -894,11 +910,20 @@ md5 = {
 iqm = {
     set_directory   = _G["iqm"].dir,
     load            = _G["iqm"].load,
-    tag             = _G["iqm"].tag,
+    tag             = function(bone, tag, tr, rot)
+        local x, y, z, rx, ry, rz
+        if tr then x, y, z = tr.x, tr.y, tr.z end
+        if rot then rx, ry, rz = rot.x, rot.y, rot.z end
+        _G["iqm"].tag(bone, tag, x, y, z, rx, ry, rz)
+    end,
     pitch           = _G["iqm"].pitch,
     pitch_target    = _G["iqm"].pitchtarget,
     pitch_correct   = _G["iqm"].pitchcorrect,
-    adjust          = _G["iqm"].adjust,
+    adjust          = function(bone, yaw, pitch, roll, tr)
+        local x, y, z
+        if tr then x, y, z = tr.x, tr.y, tr.z end
+        _G["iqm"].adjust(bone, yaw, pitch, roll, x, y, z)
+    end,
     skin            = _G["iqm"].skin,
     specularity     = _G["iqm"].spec,
     ambient         = _G["iqm"].ambient,
@@ -929,11 +954,20 @@ iqm = {
 smd = {
     set_directory   = _G["smd"].dir,
     load            = _G["smd"].load,
-    tag             = _G["smd"].tag,
+    tag             = function(bone, tag, tr, rot)
+        local x, y, z, rx, ry, rz
+        if tr then x, y, z = tr.x, tr.y, tr.z end
+        if rot then rx, ry, rz = rot.x, rot.y, rot.z end
+        _G["smd"].tag(bone, tag, x, y, z, rx, ry, rz)
+    end,
     pitch           = _G["smd"].pitch,
     pitch_target    = _G["smd"].pitchtarget,
     pitch_correct   = _G["smd"].pitchcorrect,
-    adjust          = _G["smd"].adjust,
+    adjust          = function(bone, yaw, pitch, roll, tr)
+        local x, y, z
+        if tr then x, y, z = tr.x, tr.y, tr.z end
+        _G["smd"].adjust(bone, yaw, pitch, roll, x, y, z)
+    end,
     skin            = _G["smd"].skin,
     specularity     = _G["smd"].spec,
     ambient         = _G["smd"].ambient,
@@ -1099,7 +1133,9 @@ ragdoll = {
         argument is a radius (a floating point value).
         The radius is optional.
     ]]
-    vertex = CAPI.rdvert,
+    vertex = function(o, rad)
+        CAPI.rdvert(o.x, o.y, o.z, rad)
+    end,
 
     --[[!
         Function: eye

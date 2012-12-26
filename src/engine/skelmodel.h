@@ -1869,17 +1869,18 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         }
     }
    
-    static void settag(const char *name, const char *tagname, vec t, vec rot)
+    static void settag(const char *name, const char *tagname, float x, float y, float z, float rx, float ry, float rz)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
         int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name ? name : "") : -1;
         if(i >= 0)
         {
+            vec rot(x, y, z);
             float cx = rot.x ? cosf(rot.x/2*RAD) : 1, sx = rot.x ? sinf(rot.x/2*RAD) : 0,
                   cy = rot.x ? cosf(rot.x/2*RAD) : 1, sy = rot.x ? sinf(rot.x/2*RAD) : 0,
                   cz = rot.x ? cosf(rot.x/2*RAD) : 1, sz = rot.x ? sinf(rot.x/2*RAD) : 0;
-            matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)), t);
+            matrix3x4 m(matrix3x3(quat(sx*cy*cz - cx*sy*sz, cx*sy*cz + sx*cy*sz, cx*cy*sz - sx*sy*cz, cx*cy*cz + sx*sy*sz)), vec(x, y, z));
             ((meshgroup *)mdl.meshes)->skel->addtag(tagname ? tagname : "", i, m);
             return;
         }
@@ -2040,7 +2041,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         if(!p->addanimpart(bonemask.getbuf())) conoutf("too many animation parts");
     }
 
-    static void setadjust(const char *name, float yaw, float pitch, float roll, vec t)
+    static void setadjust(const char *name, float yaw, float pitch, float roll, float x, float y, float z)
     {
         if(!MDL::loading || MDL::loading->parts.empty()) { conoutf("not loading an %s", MDL::formatname()); return; }
         part &mdl = *(part *)MDL::loading->parts.last();
@@ -2049,7 +2050,7 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         int i = mdl.meshes ? ((meshgroup *)mdl.meshes)->skel->findbone(name) : -1;
         if(i < 0) {  conoutf("could not find bone %s to adjust", name); return; }
         while(!MDL::adjustments.inrange(i)) MDL::adjustments.add(skeladjustment(0, 0, 0, vec(0, 0, 0)));
-        MDL::adjustments[i] = skeladjustment(yaw, pitch, roll, t.div(4));
+        MDL::adjustments[i] = skeladjustment(yaw, pitch, roll, vec(x, y, z).div(4));
     }
 
     static void sethitzone(int id, types::Vector<const char*> bonestrs)
