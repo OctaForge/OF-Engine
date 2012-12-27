@@ -221,7 +221,7 @@ function get_surface_normal(reference, surface, resolution)
                     distance * 3 + resolution * 3 + 3
                 )
             )
-            table.insert(points, point_direction:normalize():mul(temp))
+            points[#points + 1] = point_direction:normalize():mul(temp)
         end
 
         ret = points[2]:sub(points[1]):cross_product(points[3]:sub(points[1]))

@@ -124,7 +124,7 @@ end
 local map = function(vec, fun)
     local ret = {}
     for i = 1, #vec do
-        table.insert(ret, fun(vec[i]))
+        ret[#ret + 1] = fun(vec[i])
     end
     return ret
 end
@@ -219,7 +219,7 @@ local opconcat = function(op, ...)
     local buf  = {}
 
     for i = 1, #args do
-        table.insert(buf, tolua(args[i]))
+        buf[#buf + 1] = tolua(args[i])
     end
 
     return table.concat(buf, op)
@@ -264,12 +264,12 @@ local parse_block = function(buf, ...)
     local arg = { ... }
     for i = 1, #arg do
         if i == #arg then
-            table.insert(buf, "return " .. tolua(arg[i]))
+            buf[#buf + 1] = "return " .. tolua(arg[i])
             break
         end
-        table.insert(buf, tolua(arg[i]))
+        buf[#buf + 1] = tolua(arg[i])
     end
-    table.insert(buf, "end")
+    buf[#buf + 1] = "end"
     return table.concat(buf, " ")
 end
 
@@ -300,8 +300,8 @@ rawset(Env, "let", Op("let", function(vars, ...)
     local names  = {}
     local values = {}
     for i = 1, #vars do
-        table.insert(names , tostring(vars[i][1]))
-        table.insert(values, tolua(vars[i][2][1]))
+        names[#names + 1] = tostring(vars[i][1])
+        values[#values + 1] = tolua(vars[i][2][1])
     end
 
     local buf = { "(function(" .. table.concat(names, ", ") .. ")" }
@@ -324,19 +324,19 @@ rawset(Env, "cond", Op("cond", function(...)
         if i == #args then
             if tostring(args[i][1]) == "else" then
                 if #buf == 1 then
-                    table.insert(buf, "return " .. tolua(args[i][2][1]))
+                    buf[#buf + 1] = "return " .. tolua(args[i][2][1])
                 else
-                    table.insert(buf, "else return " .. tolua(args[i][2][1]))
-                    table.insert(buf, "end")
+                    buf[#buf + 1] = "else return " .. tolua(args[i][2][1])
+                    buf[#buf + 1] = "end"
                 end
                 break
             end
         end
-        table.insert(buf, (eif and "elseif " or "if ") .. tolua(args[i][1]) ..
-            " then return " .. tolua(args[i][2][1]))
+        buf[#buf + 1] = (eif and "elseif " or "if ") .. tolua(args[i][1]) ..
+            " then return " .. tolua(args[i][2][1])
 
         if i == #args and #buf > 1 then
-            table.insert(buf, "end")
+            buf[#buf + 1] = "end"
         end
 
         eif = true
@@ -433,7 +433,7 @@ parse = function(ps, level, lpline, vlevel, vline)
             next_char(ps)
 
             while ps.current and ps.current ~= c do
-                table.insert(buf, ps.current)
+                buf[#buf + 1] = ps.current
                 if c == "\n" then
                     next_line(ps)
                 else
@@ -472,7 +472,7 @@ parse = function(ps, level, lpline, vlevel, vline)
         else
             local buf = {}
             while ps.current and is_token(ps.current) do
-                table.insert(buf, ps.current)
+                buf[#buf + 1] = ps.current
                 next_char(ps)
             end
             buf = table.concat(buf)

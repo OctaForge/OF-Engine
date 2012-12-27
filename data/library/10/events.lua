@@ -112,7 +112,8 @@ action_parallel = actions.Action:clone {
     add_action = function(self, other_action)
         local action_system = actions.Action_System(self.actor)
         action_system:queue(other_action)
-        table.insert(self.action_systems, action_system)
+        local sys = self.action_systems
+        sys[#sys + 1] = action_system
     end
 }
 

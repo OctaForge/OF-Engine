@@ -114,10 +114,11 @@ rain = {
                         origin, wsize * 2
                     )
                     if floor_dist < 0 then floor_dist = wsize end
-                    table.insert(self.drops, {
+                    local drops = self.drops
+                    drops[#drops + 1] = {
                         position = origin,
                         final_z  = origin.z - floor_dist
-                    })
+                    }
                 end
             end
         }, self.add_drop_event)

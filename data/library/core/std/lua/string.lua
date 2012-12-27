@@ -43,11 +43,13 @@ getmetatable("").__mod = function(str, args)
     (end)
 ]]
 string.split = function(str, delim)
-    delim = delim and tostring(delim) or ","
+    delim = delim or ","
     local r = {}
-    tostring(str):gsub(("([^%s]+)"):format(delim),
-        function(t) r[#r + 1] = t end)
-    return r end
+    for ch in str:gmatch("([^" .. delim .. "]+)") do
+        r[#r + 1] = ch
+    end
+    return r
+end
 
 --[[! Function: string.del
     Deletes a substring in a string. The start argument specifies which
@@ -121,7 +123,7 @@ string.repp = function(str, pattern, istart, iend, delim)
     local bkw  = iend < istart and true or false
     for i = istart, iend, bkw and -1 or 1 do
         local s = str:gsub(pattern, tostring(i))
-        table.insert(ret, s) end
+        ret[#ret + 1] = s end
     return table.concat(ret, delim) end
 
 --[[! Function: string.reppn
@@ -134,5 +136,5 @@ string.reppn = function(str, pattern, is, n, delim)
     local ret = {}
     for i = is, is + n - 1 do
         local s = str:gsub(pattern, tostring(i))
-        table.insert(ret, s) end
+        ret[#ret + 1] = s end
     return table.concat(ret, delim) end

@@ -1,9 +1,4 @@
 return {
-    Math = {
-        make_vec3 = function(x, y, z)
-            return math.Vec3(x, y, z)
-        end
-    },
     Input = {
         Events = {
             Client = {

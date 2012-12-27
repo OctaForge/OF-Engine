@@ -137,7 +137,8 @@ function setup(plugins_add)
 
                         player.team = team
                         team = self.teams[team]
-                        table.insert(team.player_list, player)
+                        local lst = team.player_list
+                        lst[#lst + 1] = player
                         team:player_setup(player)
                         player:respawn()
 
@@ -190,9 +191,9 @@ function setup(plugins_add)
                         local data = {}
                         if not self.team_data then return data end
                         for team_name, team in pairs(self.team_data) do
-                            table.insert(data, { -1, " << " .. team_name .. " >> " .. team.score .. " points" })
+                            data[#data + 1] = { -1, " << " .. team_name .. " >> " .. team.score .. " points" }
                             for idx, player in pairs(team.player_list) do
-                                table.insert(data, { player.uid, player.character_name .. " -" })
+                                data[#data + 1] = { player.uid, player.character_name .. " -" }
                             end
                         end
                         return data
@@ -244,7 +245,8 @@ manager_plugins = {
             else
                 if type(kwargs.player) == "number" then kwargs.player = ents.get(kwargs.player) end
                 self:clear_hud_messages() -- XXX: only 1 for now
-                table.insert(self.hud_messages, kwargs)
+                local msgs = self.hud_messages
+                msgs[#msgs + 1] = kwargs
             end
         end,
 
@@ -457,7 +459,8 @@ manager_plugins = {
                     kwargs.abort           = false
                     kwargs.sleeping        = false
 
-                    table.insert(self.list, kwargs)
+                    local lst = self.list
+                    lst[#lst + 1] = kwargs
                     self.need_sort = true
 
                     return kwargs

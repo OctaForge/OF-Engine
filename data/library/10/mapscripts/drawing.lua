@@ -60,7 +60,8 @@ ents.register_class(plugins.bake(
                 else
                     mark = nil
                 end
-                table.insert(self.marks, mark)
+                local mrks = self.marks
+                mrks[#mrks + 1] = mark
             end,
 
             -- Called right after initialization on client

@@ -24,7 +24,7 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
             entities = table.map   (entities, function(pair) return pair[1] end)
             entities = table.filter(entities, function(i, entity) return not entity:is_a(ents.Player) end)
         end
-        table.insert(entities, ents.get_player())
+        entities[#entities + 1] = ents.get_player()
     end
 
     for i, entity in pairs(entities) do
@@ -176,7 +176,8 @@ manager = table.Object:clone {
     end,
 
     add = function(self, projectile)
-        table.insert(self.projectiles, projectile)
+        local projs = self.projectiles
+        projs[#projs + 1] = projectile
     end,
 
     tick = function(self, seconds)

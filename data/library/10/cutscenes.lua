@@ -469,7 +469,8 @@ ents.register_class(
                             local end_time = start_time
                                            + start_mark[1].total_time
 
-                            table.insert(self.subtitles, {
+                            local subs = self.subtitles
+                            subs[#subs + 1] = {
                                 start_t = start_time * entity.factor,
                                 end_t   = end_time   * entity.factor,
                                 text    = start_mark[1].text,
@@ -481,7 +482,7 @@ ents.register_class(
                                     start_mark[1].green,
                                     start_mark[1].blue
                                 )
-                            })
+                            }
                         end
                         while true do
                             local next_mark = ents.get_by_tag(
@@ -497,7 +498,8 @@ ents.register_class(
                                 local end_time = start_time
                                                + next_mark[1].total_time
 
-                                table.insert(self.subtitles, {
+                                local subs = self.subtitles
+                                subs[#subs + 1] = {
                                     start_t = start_time * entity.factor,
                                     end_t   = end_time   * entity.factor,
                                     text    = next_mark[1].text,
@@ -509,7 +511,7 @@ ents.register_class(
                                         next_mark[1].green,
                                         next_mark[1].blue
                                     )
-                                })
+                                }
                             end
                             i = i + 1
                         end
@@ -548,11 +550,12 @@ ents.register_class(
                             )
                             if   #start_mark ~= 1 then return nil end
                             local  prev_mark = start_mark
-                            table.insert(self.markers, {
+                            local mrkrs = self.markers
+                            mrkrs[#mrkrs + 1] = {
                                 position = start_mark[1].position:copy(),
                                 yaw      = start_mark[1].yaw,
                                 pitch    = start_mark[1].pitch
-                            })
+                            }
 
                             while true do
                                 local next_mark = ents.get_by_tag(
@@ -564,11 +567,11 @@ ents.register_class(
 
                                 prev_mark = next_mark
                                 local nm = next_mark[1]
-                                table.insert(self.markers, {
+                                mrkrs[#mrkrs + 1] = {
                                     position = nm.position:copy(),
                                     yaw      = nm.yaw,
                                     pitch    = nm.pitch
-                                })
+                                }
                                 if next_mark[1].next_marker == 1 then
                                     if entity.next_controller <= 0 then
                                         self.looped = true
@@ -579,11 +582,11 @@ ents.register_class(
                                             .. prev_mark[1].next_marker
                                     )
                                     local nm = next_mark[1]
-                                    table.insert(self.markers, {
+                                    mrkrs[#mrkrs + 1] = {
                                         position = nm.position:copy(),
                                         yaw      = nm.yaw,
                                         pitch    = nm.pitch
-                                    })
+                                    }
                                     break
                                 end
                             end

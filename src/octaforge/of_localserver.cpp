@@ -64,7 +64,7 @@ namespace local_server
                 ready = true;
                 ClientSystem::connect("127.0.0.1", 28787);
             }
-            else conoutf("Waiting for server to finish starting up .. (%i)", num_trials);
+            else conoutf("Waiting for server to finish starting up .. (%d)", num_trials);
 
             if (num_trials == 20)
                 logger::log(logger::ERROR, "Failed to start server. See " SERVER_LOGFILE " for more information.\n");

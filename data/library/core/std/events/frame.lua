@@ -96,7 +96,7 @@ return {
         frame comes and clearing up the queue.
     ]]
     queue_global_action = function(action)
-        table.insert(queued_actions, action)
+        queued_actions[#queued_actions + 1] = action
     end,
 
     handle_frame = handle_frame,

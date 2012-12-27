@@ -266,11 +266,12 @@ local Action_System_MT = {
         end,
 
         run = function(sys, seconds)
-            sys.actions = table.filter(sys.actions,
+            local acts = table.filter(sys.actions,
                 function(i, v) return not v.finished end)
+            sys.actions = acts
 
-            if #sys.actions > 0 then
-                local act = sys.actions[1]
+            if #acts > 0 then
+                local act = acts[1]
                 log(INFO, table.concat { "Executing ", act.name })
 
                 -- keep the removal for the next frame
@@ -279,10 +280,11 @@ local Action_System_MT = {
         end,
 
         queue = function(sys, act)
+            local acts = sys.actions
             if not act.allow_multiple then
                 local str = act.name
-                for i = 1, #sys do
-                    if str == sys[i].name then
+                for i = 1, #acts do
+                    if str == acts[i].name then
                         log(WARNING, table.concat { "Action of the type ", str,
                             " is already present in the system, multiplication",
                             " explicitly disabled for the action." })
@@ -291,13 +293,14 @@ local Action_System_MT = {
                 end
             end
 
-            table.insert(sys.actions, act)
+            acts[#acts + 1] = act
             act.actor = sys.parent
         end,
 
         clear = function(sys)
-            for i = 1, #sys.actions do
-                sys.actions[i]:cancel()
+            local acts = sys.actions
+            for i = 1, #acts do
+                acts[i]:cancel()
             end
         end
     }

@@ -16,6 +16,10 @@
 
 local ctable = createtable
 local ext = external
+local pairs, ipairs = pairs, ipairs
+local type, loadstring, setmetatable = type, loadstring, setmetatable
+local setfenv, assert, rawget, rawset = setfenv, assert, rawget, rawset
+local tostring = tostring
 
 --[[! Function: table.is_array
     Checks whether a given table is an array (that is, contains only a
@@ -63,8 +67,8 @@ end
 table.merge = function(ta, tb)
     local l1, l2 = #ta, #tb
     local r = ctable(l1 + l2)
-    for i = 1, l1 do table.insert(r, ta[i]) end
-    for i = 1, l2 do table.insert(r, tb[i]) end
+    for i = 1, l1 do r[#r + 1] = ta[i] end
+    for i = 1, l2 do r[#r + 1] = tb[i] end
     return r
 end
 
@@ -110,7 +114,7 @@ end
 ]]
 table.filter = function(t, f)
     local r = {}
-    for i = 1, #t do if f(i, t[i]) then table.insert(r, t[i]) end end
+    for i = 1, #t do if f(i, t[i]) then r[#r + 1] = t[i] end end
     return r
 end
 
@@ -152,7 +156,7 @@ end
 ]]
 table.keys = function(t)
     local r = ctable(#t)
-    for a, b in pairs(t) do table.insert(r, a) end
+    for a, b in pairs(t) do r[#r + 1] = a end
     return r
 end
 
@@ -161,7 +165,7 @@ end
 ]]
 table.values = function(t)
     local r = ctable(#t)
-    for a, b in pairs(t) do table.insert(r, b) end
+    for a, b in pairs(t) do r[#r + 1] = b end
     return r
 end
 
@@ -342,17 +346,17 @@ table.serialize = function(tbl, kwargs)
                 end
 
                 if assoc and pretty then
-                    table.insert(ret, "\n" .. (" "):rep(ind)
-                        .. table.concat(elem))
+                    ret[#ret + 1] = "\n" .. (" "):rep(ind)
+                        .. table.concat(elem)
                 else
-                    table.insert(ret, table.concat(elem))
+                    ret[#ret + 1] = table.concat(elem)
                 end
             end
         end
 
         if pretty then
             if assoc then
-                table.insert(ret, "\n" .. (" "):rep(ind - indent))
+                ret[#ret + 1] = "\n" .. (" "):rep(ind - indent)
                 return "{" .. table.concat(ret, ",") .. "}"
             -- special case - an array containing one table, don't add spaces
             elseif #tbl == 1 and type(tbl[1] == "table") then

@@ -82,12 +82,12 @@ function bake(_class, plugins, name)
 
         local callees = {}
         if old then
-            table.insert(callees, old)
+            callees[#callees + 1] = old
         end
         for d, plugin in pairs(plugins) do
             local possible = plugin[slot]
             if possible then
-                table.insert(callees, possible)
+                callees[#callees + 1] = possible
             end
         end
 
