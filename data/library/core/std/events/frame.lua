@@ -30,7 +30,7 @@ local queued_actions     = {}
 local handle_frame = function(seconds, lastmillis)
     local get_ents = ents.get_all
 
-    log(INFO, "frame.handle_frame: New frame")
+    #log(INFO, "frame.handle_frame: New frame")
     current_frame = current_frame + 1
 
     local queue = table.copy(queued_actions)
@@ -42,7 +42,7 @@ local handle_frame = function(seconds, lastmillis)
     current_frame_time = seconds
     last_millis        = lastmillis
 
-    log(INFO, "frame.handle_frame: Acting on entities")
+    #log(INFO, "frame.handle_frame: Acting on entities")
 
     for uid, entity in pairs(get_ents()) do
         local skip = false

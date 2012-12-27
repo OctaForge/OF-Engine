@@ -19,37 +19,37 @@
         "bitnot".
 ]]
 
---log(DEBUG, ":::: Strict mode.")
+--#log(DEBUG, ":::: Strict mode.")
 --require("std.lua.strict")
 
-log(DEBUG, ":::: Console Lisp.")
+#log(DEBUG, ":::: Console Lisp.")
 lisp = require("std.lua.lisp")
 
-log(DEBUG, ":::: Safe FFI.")
+#log(DEBUG, ":::: Safe FFI.")
 sffi = require("std.lua.ffi")
 
-log(DEBUG, ":::: Zlib compression.")
+#log(DEBUG, ":::: Zlib compression.")
 zlib = require("std.lua.zlib")
 
-log(DEBUG, ":::: Engine variables.")
+#log(DEBUG, ":::: Engine variables.")
 var = require("std.lua.var")
 
-log(DEBUG, ":::: Lua extensions: table")
+#log(DEBUG, ":::: Lua extensions: table")
 require("std.lua.table")
 
-log(DEBUG, ":::: Lua extensions: string")
+#log(DEBUG, ":::: Lua extensions: string")
 require("std.lua.string")
 
-log(DEBUG, ":::: Lua extensions: math")
+#log(DEBUG, ":::: Lua extensions: math")
 require("std.lua.math")
 
-log(DEBUG, ":::: Type conversions.")
+#log(DEBUG, ":::: Type conversions.")
 conv = require("std.lua.conv")
 
-log(DEBUG, ":::: Library.")
+#log(DEBUG, ":::: Library.")
 library = require("std.lua.library")
 
-log(DEBUG, ":::: Utilities.")
+#log(DEBUG, ":::: Utilities.")
 util = require("std.lua.util")
 
 -- Useful functionality exposed into globals

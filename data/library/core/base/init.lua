@@ -39,40 +39,40 @@
 -- see world metatable below
 local gravity
 
-log(DEBUG, ":: Engine interface.")
+#log(DEBUG, ":: Engine interface.")
 require("base.base_engine")
 
-log(DEBUG, ":: Geometry interface.")
+#log(DEBUG, ":: Geometry interface.")
 require("base.base_geometry")
 
-log(DEBUG, ":: Input.")
+#log(DEBUG, ":: Input.")
 require("base.base_input")
 
-log(DEBUG, ":: Console.")
+#log(DEBUG, ":: Console.")
 require("base.base_console")
 
-log(DEBUG, ":: Shaders.")
+#log(DEBUG, ":: Shaders.")
 require("base.base_shaders")
 
-log(DEBUG, ":: Models.")
+#log(DEBUG, ":: Models.")
 require("base.base_models")
 
-log(DEBUG, ":: Effects.")
+#log(DEBUG, ":: Effects.")
 require("base.base_effects")
 
-log(DEBUG, ":: Sound.")
+#log(DEBUG, ":: Sound.")
 require("base.base_sound")
 
-log(DEBUG, ":: Textures.")
+#log(DEBUG, ":: Textures.")
 require("base.base_textures")
 
-log(DEBUG, ":: VSlots.")
+#log(DEBUG, ":: VSlots.")
 require("base.base_vslots")
 
-log(DEBUG, ":: Editing.")
+#log(DEBUG, ":: Editing.")
 require("base.base_editing")
 
-log(DEBUG, ":: World interface.")
+#log(DEBUG, ":: World interface.")
 require("base.base_world")
 
 --[[!
@@ -119,5 +119,5 @@ setmetatable(world, {
 
 world.gravity = 200
 
-log(DEBUG, ":: Camera.")
+#log(DEBUG, ":: Camera.")
 require("base.base_camera")

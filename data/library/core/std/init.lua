@@ -13,24 +13,24 @@
         OctaForge standard library general loader.
 ]]
 
-log(DEBUG, ":: Lua extensions.")
+#log(DEBUG, ":: Lua extensions.")
 require("std.lua")
 
-log(DEBUG, ":: Network system.")
+#log(DEBUG, ":: Network system.")
 require("std.network")
 
-log(DEBUG, ":: Event system.")
+#log(DEBUG, ":: Event system.")
 require("std.events")
 
 if CLIENT then
 
-log(DEBUG, ":: GFX scripting.")
+#log(DEBUG, ":: GFX scripting.")
 require("std.gfx")
 
-log(DEBUG, ":: GUI system.")
+#log(DEBUG, ":: GUI system.")
 require("std.gui")
 
 end
 
-log(DEBUG, ":: Entity system.")
+#log(DEBUG, ":: Entity system.")
 require("std.entities")

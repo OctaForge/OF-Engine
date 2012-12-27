@@ -344,7 +344,7 @@ local Vec3 = table.Object:clone {
         if    len ~= 0 then
             self:mul(1 / len)
         else
-            log(ERROR, "Can't normalize a vector of zero length.")
+            #log(ERROR, "Can't normalize a vector of zero length.")
         end
         return self
     end,

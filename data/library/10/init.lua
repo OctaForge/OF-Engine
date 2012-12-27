@@ -17,18 +17,18 @@
     Section: Extension library 1.0 initialization
 ]]
 
-log(DEBUG, "Initializing library version %(1)s" % { library.current })
+#log(DEBUG, "Initializing library version %(1)s" % { library.current })
 
-log(DEBUG, ":: Plugin system.")
+#log(DEBUG, ":: Plugin system.")
 library.include("plugins")
 
-log(DEBUG, ":: Game manager.")
+#log(DEBUG, ":: Game manager.")
 library.include("game_manager")
 
-log(DEBUG, ":: Events.")
+#log(DEBUG, ":: Events.")
 library.include("events")
 
-log(DEBUG, ":: Health.")
+#log(DEBUG, ":: Health.")
 library.include("health")
 
 EV.uwambient = 1

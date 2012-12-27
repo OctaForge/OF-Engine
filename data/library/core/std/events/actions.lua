@@ -121,14 +121,14 @@ local Action = table.Object:clone {
         end
 
         if self.parallel_to == false then
-            log(INFO, "Executing action " .. self.name)
+            #log(INFO, "Executing action " .. self.name)
 
             local finished = self.run(self, seconds)
             if    finished then
                 self.priv_finish(self)
             end
 
-            log(INFO, "    finished: " .. tostring(finished))
+            #log(INFO, "    finished: " .. tostring(finished))
             return finished
         else
             if  self.parallel_to.finished then
@@ -272,7 +272,7 @@ local Action_System_MT = {
 
             if #acts > 0 then
                 local act = acts[1]
-                log(INFO, table.concat { "Executing ", act.name })
+                #log(INFO, table.concat { "Executing ", act.name })
 
                 -- keep the removal for the next frame
                 act:priv_run(seconds)
@@ -285,9 +285,10 @@ local Action_System_MT = {
                 local str = act.name
                 for i = 1, #acts do
                     if str == acts[i].name then
-                        log(WARNING, table.concat { "Action of the type ", str,
-                            " is already present in the system, multiplication",
-                            " explicitly disabled for the action." })
+                        #log(WARNING, table.concat { "Action of the type ",
+                        #    str, " is already present in the system, ",
+                        #    "multiplication explicitly disabled for the ",
+                        #    "action." })
                         return nil
                     end
                 end

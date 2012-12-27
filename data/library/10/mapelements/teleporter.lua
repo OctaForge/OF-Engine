@@ -19,7 +19,7 @@ plugin = {
         if self.destination >= 1 then
             local destinations = ents.get_by_tag("teledest_" .. self.destination)
             if #destinations == 0 then
-                log(ERROR, "No teleport destination found.")
+                #log(ERROR, "No teleport destination found.")
                 return nil
             end
 

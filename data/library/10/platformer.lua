@@ -82,7 +82,7 @@ plugin = {
                 if position then
                     self.position = position:lerp(self.position, 1 - (seconds * 5))
                     self.velocity = velocity
-                    log(WARNING, "Fixed platform position %(1)i" % { frame.get_time() })
+                    #log(WARNING, "Fixed platform position %(1)i" % { frame.get_time() })
                 end
             end
 
@@ -212,7 +212,7 @@ axis_switcher = ents.register_class(plugins.bake(ents.Area_Trigger, {
                 end
             end
 
-            log(ERROR, "did not find player axis to flip, %(1)s" % { player.platform_axis })
+            #log(ERROR, "did not find player axis to flip, %(1)s" % { player.platform_axis })
         end
     }
 }, "axis_switcher"))

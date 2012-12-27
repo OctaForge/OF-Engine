@@ -137,16 +137,18 @@ end
 external = {
 }
 
-log(DEBUG, "Initializing the new core library.")
+local dbg = EAPI.base_should_log(DEBUG)
+
+if dbg then log(DEBUG, "Initializing the new core library.") end
 require("std")
 
-log(DEBUG, "Initializing base.")
+if dbg then log(DEBUG, "Initializing base.") end
 require("base")
 
-log(DEBUG, "Initializing tgui.")
+if dbg then log(DEBUG, "Initializing tgui.") end
 --require("tgui")
 
-log(DEBUG, "Initializing LAPI.")
+if dbg then log(DEBUG, "Initializing LAPI.") end
 LAPI = require("lapi")
 
-log(DEBUG, "Core scripting initialization complete.")
+if dbg then log(DEBUG, "Core scripting initialization complete.") end

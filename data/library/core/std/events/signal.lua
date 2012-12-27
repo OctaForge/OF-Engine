@@ -45,7 +45,7 @@ return {
     ]]
     connect = function(self, name, callback, pos)
         if type(callback) ~= "function" then
-            log(ERROR, "Not connecting non-function callback: " .. name)
+            #log(ERROR, "Not connecting non-function callback: " .. name)
             return nil
         end
 

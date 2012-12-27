@@ -13,11 +13,11 @@
         OctaForge standard library loader (Event system).
 ]]
 
-log(DEBUG, ":::: Frame handling.")
+#log(DEBUG, ":::: Frame handling.")
 frame = require("std.events.frame")
 
-log(DEBUG, ":::: Signal system.")
+#log(DEBUG, ":::: Signal system.")
 signal = require("std.events.signal")
 
-log(DEBUG, ":::: Action system.")
+#log(DEBUG, ":::: Action system.")
 actions = require("std.events.actions")

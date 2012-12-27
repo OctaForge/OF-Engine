@@ -13,7 +13,7 @@
         OctaForge standard library loader (GUI system).
 ]]
 
-log(DEBUG, ":::: Core UI implementation.")
+#log(DEBUG, ":::: Core UI implementation.")
 
 local sets = {}
 

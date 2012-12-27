@@ -15,5 +15,5 @@
         Everything networking related.
 ]]
 
-log(DEBUG, ":::: Messages.")
+#log(DEBUG, ":::: Messages.")
 msg = require("std.network.msg")

@@ -55,11 +55,11 @@ local Physical_Entity = Entity:clone {
     end or nil,
 
     activate = SERVER and function(self, kwargs)
-        log(DEBUG, "Physical_Entity.activate")
+        #log(DEBUG, "Physical_Entity.activate")
         Entity.activate(self, kwargs)
 
         self.model_name = self.model_name
-        log(DEBUG, "Physical_Entity.activate complete")
+        #log(DEBUG, "Physical_Entity.activate complete")
     end or nil,
 
     --[[! Function: set_local_animation
@@ -586,7 +586,7 @@ local Static_Entity = Physical_Entity:clone {
     },
 
     init = function(self, uid, kwargs)
-        log(DEBUG, "Static_Entity.init")
+        #log(DEBUG, "Static_Entity.init")
 
         kwargs = kwargs or {}
         kwargs.persistent = true
@@ -603,13 +603,13 @@ local Static_Entity = Physical_Entity:clone {
         end
         self.radius = 0
 
-        log(DEBUG, "Static_Entity.init complete")
+        #log(DEBUG, "Static_Entity.init complete")
     end,
 
     activate = SERVER and function(self, kwargs)
         kwargs = kwargs or {}
 
-        log(DEBUG, "Static_Entity.activate")
+        #log(DEBUG, "Static_Entity.activate")
         Physical_Entity.activate(self, kwargs)
 
         if not kwargs._type then
@@ -625,12 +625,12 @@ local Static_Entity = Physical_Entity:clone {
         kwargs.attr4 = self.attr4 or 0
         kwargs.attr5 = self.attr5 or 0
 
-        log(DEBUG, "Static_Entity: extent setup")
+        #log(DEBUG, "Static_Entity: extent setup")
         CAPI.setupextent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z,
             kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4,
             kwargs.attr5)
 
-        log(DEBUG, "Static_Entity: flush")
+        #log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
 
         self.position = self.position
@@ -663,8 +663,8 @@ local Static_Entity = Physical_Entity:clone {
             return p.cn end) or { cn }
 
         local uid = self.uid
-        log(DEBUG, "Static_Entity.send_notification_full: "
-            .. cn .. ", " .. uid)
+        #log(DEBUG, "Static_Entity.send_notification_full: "
+        #    .. cn .. ", " .. uid)
 
         local scn, sname = self.cn, tostring(self)
         for i = 1, #cns do
@@ -678,7 +678,7 @@ local Static_Entity = Physical_Entity:clone {
                 tonumber(self.attr4), tonumber(self.attr5))
         end
 
-        log(DEBUG, "Static_Entity.send_notification_full: done")
+        #log(DEBUG, "Static_Entity.send_notification_full: done")
     end or nil,
 
     --[[! Function: get_center

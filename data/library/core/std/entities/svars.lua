@@ -87,7 +87,7 @@ State_Variable = table.Object:clone {
             for better performance (we don't always have to query).
     ]]
     __init = function(self, kwargs)
-        log(INFO, "State_Variable: init")
+        #log(INFO, "State_Variable: init")
 
         kwargs = kwargs or {}
 
@@ -114,8 +114,8 @@ State_Variable = table.Object:clone {
         the raw state variable on the entity by prefixing it with _SV_.
     ]]
     register = function(self, name, parent)
-        log(DEBUG, "State_Variable: register(" .. name
-            .. ", " .. tostring(parent) .. ")")
+        #log(DEBUG, "State_Variable: register(" .. name
+        #    .. ", " .. tostring(parent) .. ")")
 
         self.name = name
         parent["_SV_" .. name] = self
@@ -123,13 +123,13 @@ State_Variable = table.Object:clone {
         assert(self.getter)
         assert(self.setter)
 
-        log(DEBUG, "State_Variable: register: getter/setter")
+        #log(DEBUG, "State_Variable: register: getter/setter")
         parent:define_getter(name, self.getter, self)
         parent:define_setter(name, self.setter, self)
 
         local an = self.alt_name
         if an then
-            log(DEBUG, "State_Variable: register: alt getter/setter")
+            #log(DEBUG, "State_Variable: register: alt getter/setter")
             parent["_SV_" .. an] = self
             parent:define_getter(an, self.getter, self)
             parent:define_setter(an, self.setter, self)
@@ -149,15 +149,15 @@ State_Variable = table.Object:clone {
 
         if not sf then return nil end
 
-        log(DEBUG, "State_Variable: register: found a setter function")
+        #log(DEBUG, "State_Variable: register: found a setter function")
 
         local var = self
         local sn  = name .. "_changed"
         signal.connect(parent, sn, function(_, self, val)
             if CLIENT or not self.svar_change_queue then
-                log(INFO, "Calling setter function for " .. name)
+                #log(INFO, "Calling setter function for " .. name)
                 var.setter_fun(self, val)
-                log(INFO, "Setter called")
+                #log(INFO, "Setter called")
 
                 self.svar_values[name] = val
                 self.svar_value_timestamps[name] = frame.get_frame()
@@ -208,7 +208,7 @@ State_Variable = table.Object:clone {
         var:read_tests(self)
 
         local vn = var.name
-        log(INFO, "State_Variable: getter: " .. vn)
+        #log(INFO, "State_Variable: getter: " .. vn)
 
         local fr = frame.get_frame()
 
@@ -219,7 +219,7 @@ State_Variable = table.Object:clone {
             return self.svar_values[vn]
         end
 
-        log(INFO, "State_Variable: getter: getter function")
+        #log(INFO, "State_Variable: getter: getter function")
 
         local val = var.getter_fun(self)
 
@@ -426,7 +426,7 @@ Array_Surrogate = table.Object:clone {
         and "variable", assigned using the provided arguments.
     ]]
     __init = function(self, ent, var)
-        log(INFO, "Array_Surrogate: __init: " .. var.name)
+        #log(INFO, "Array_Surrogate: __init: " .. var.name)
         self.entity, self.variable, self.__len = ent, var, self.__len_fn
     end
 }
@@ -477,7 +477,7 @@ State_Array = State_Variable:clone {
         is given, it copies the table before setting it.
     ]]
     setter = function(self, val, var)
-        log(INFO, "State_Array: setter: " .. tostring(val))
+        #log(INFO, "State_Array: setter: " .. tostring(val))
         var:write_tests(self)
 
         self:set_sdata(var.name,
@@ -525,7 +525,7 @@ State_Array = State_Variable:clone {
     ]]
     get_raw = function(self, ent)
         local vn = self.name
-        log(INFO, "State_Array: get_raw: " .. vn)
+        #log(INFO, "State_Array: get_raw: " .. vn)
 
         if not self.getter_fun then
             return ent.svar_values[vn] or {}
@@ -539,7 +539,7 @@ State_Array = State_Variable:clone {
             return ent.svar_values[vn]
         end
 
-        log(INFO, "State_Array: get_raw: getter function")
+        #log(INFO, "State_Array: get_raw: getter function")
 
         local val = self.getter_fun(ent)
 
@@ -563,7 +563,7 @@ State_Array = State_Variable:clone {
         the surrogate.
     ]]
     get_item = function(self, ent, idx)
-        log(INFO, "State_Array: get_item: " .. idx)
+        #log(INFO, "State_Array: get_item: " .. idx)
         return self:get_raw(ent)[idx]
     end,
 
@@ -572,7 +572,7 @@ State_Array = State_Variable:clone {
         an update on all clients by setting the state data on the entity.
     ]]
     set_item = function(self, ent, idx, val)
-        log(INFO, "State_Array: set_item: " .. idx .. ", " .. tostring(val))
+        #log(INFO, "State_Array: set_item: " .. idx .. ", " .. tostring(val))
 
         local a = self:get_raw(ent)
         if type(val) == "string" then
@@ -799,15 +799,15 @@ State_Variable_Alias = State_Variable:clone {
         pointing to the target var.
     ]]
     register = function(self, name, parent)
-        log(DEBUG, "State_Variable_Alias: register(" .. name
-            .. ", " .. tostring(parent) .. ")")
+        #log(DEBUG, "State_Variable_Alias: register(" .. name
+        #    .. ", " .. tostring(parent) .. ")")
 
         self.name = name
     
         local tg = parent["_SV_" .. self.target_name]
         parent["_SV_" .. name] = tg
 
-        log(DEBUG, "State_Variable_Alias: register: getter/setter")
+        #log(DEBUG, "State_Variable_Alias: register: getter/setter")
         parent:define_getter(name, tg.getter, tg)
         parent:define_setter(name, tg.setter, tg)
     end

@@ -13,7 +13,7 @@
         Default extended GUI set for OctaForge.
 ]]
 
-log(DEBUG, ":::::: Default UI set.")
+#log(DEBUG, ":::::: Default UI set.")
 
 return {
     Window = require "std.gui.default.window"

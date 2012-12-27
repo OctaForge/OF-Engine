@@ -15,5 +15,5 @@
         Various gfx stuff useful inside scripting.
 ]]
 
-log(DEBUG, ":::: OpenGL bindings.")
+#log(DEBUG, ":::: OpenGL bindings.")
 gl = require("std.gfx.gl")
