@@ -71,6 +71,56 @@ DEBUG   = EAPI.BASE_LOG_DEBUG
 WARNING = EAPI.BASE_LOG_WARNING
 ERROR   = EAPI.BASE_LOG_ERROR
 
+local io_open, error = io.open, error
+table.insert(package.loaders, 2, function(modname)
+    local err, modpath = "", modname:gsub("%.", "/")
+    for path in package.path:gmatch("([^;]+)") do
+        local fname = path:gsub("%?", modpath)
+        local file = io_open(fname, "rb")
+        local prevlevel
+        if file then
+            local f, err = load(function()
+                local  line = file:read("*L")
+                if not line then
+                    file:close()
+                    return nil
+                end
+                local lvl, rst = line:match("^%s*#log%s*%(([A-Z]+),%s*(.+)$")
+                if lvl then
+                    prevlevel = _G[lvl]
+                    if EAPI.base_should_log(prevlevel) then
+                        local a, b = line:find("^%s*#")
+                        return line:sub(b + 1)
+                    else
+                        return "--" .. line
+                    end
+                elseif prevlevel then
+                    local a, b = line:find("^%s*#")
+                    if a then
+                        if EAPI.base_should_log(prevlevel) then
+                            return line:sub(b + 1)
+                        else
+                            return "--" .. line
+                        end
+                    else
+                        prevlevel = nil
+                        return line
+                    end
+                else
+                    return line
+                end
+            end, "=" .. fname)
+            if not f then
+                error("error loading module '" .. modname .. "' from file '"
+                    .. fname .. "':\n" .. err, 2)
+            end
+            return f
+        end
+        err = err .. "\n\tno file '" .. fname .. "'"
+    end
+    return err
+end)
+
 --[[! Function: echo
     Displays some text into both consoles (in-engine and terminal). Takes
     only the text, there is no logging level, no changes are made to the

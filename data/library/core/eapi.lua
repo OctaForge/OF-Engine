@@ -37,6 +37,7 @@ ffi.cdef [[
 
     void base_log (int level, const char *msg);
     void base_echo(const char *msg);
+    bool base_should_log(int level);
 
     void base_quit();
 ]]

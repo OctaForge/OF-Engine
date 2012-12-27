@@ -36,7 +36,11 @@ extern "C" {
     /* Core primitives */
 
     void base_log(int level, const char *msg) {
-        logger::log((logger::loglevel) level, "%s\n", msg);
+        logger::log((logger::loglevel)level, "%s\n", msg);
+    }
+
+    bool base_should_log(int level) {
+        return logger::should_log((logger::loglevel)level);
     }
 
     void base_echo(const char *msg) {
