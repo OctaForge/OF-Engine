@@ -64,10 +64,7 @@ return {
                     end
                 end
             }
-        },
-        get_local_bind = function(name)
-            return input.per_map_keys[name]
-        end
+        }
     },
     World = {
         Events = {

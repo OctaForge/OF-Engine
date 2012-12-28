@@ -143,13 +143,13 @@ action_input_capture_plugin = {
             self.old_client_click = _G["client_click"]
             _G["client_click"] = function(...) self.client_click(self, ...) end
         end
-        if self.per_map_keys then
-            self.old_per_map_keys = {}
-            for key, action in pairs(self.per_map_keys) do
-                self.old_per_map_keys[key] = input.get_bind(key, input.BIND_MAP)
-                input.bind_map_specific(key, action, self.action_key_self or self)
-            end
-        end
+        --if self.per_map_keys then
+        --    self.old_per_map_keys = {}
+        --    for key, action in pairs(self.per_map_keys) do
+        --        self.old_per_map_keys[key] = input.get_bind(key, input.BIND_MAP)
+        --        input.bind_map_specific(key, action, self.action_key_self or self)
+        --    end
+        --end
         if self.do_movement then
             self.old_do_movement = _G["do_movement"]
             _G["do_movement"] = function(...) self.do_movement(self, ...) end
@@ -168,11 +168,11 @@ action_input_capture_plugin = {
         if self.client_click then
             _G["client_click"] = self.old_client_click
         end
-        if self.per_map_keys then
-            for key, action in pairs(self.old_per_map_keys) do
-                input.bind_map_specific(key, action)
-            end
-        end
+        --if self.per_map_keys then
+        --    for key, action in pairs(self.old_per_map_keys) do
+        --        input.bind_map_specific(key, action)
+        --    end
+        --end
         if self.do_movement then
             _G["do_movement"] = self.old_do_movement
         end

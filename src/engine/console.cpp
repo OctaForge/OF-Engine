@@ -429,21 +429,6 @@ void execbind(keym &k, bool isdown)
             else if(player->state==CS_SPECTATOR) state = keym::ACTION_SPECTATOR;
         }
 
-        if (state == keym::ACTION_DEFAULT && !gui_mainmenu)
-        {
-            lua::Object o = lapi::state.get<lua::Function>(
-                "LAPI", "Input", "get_local_bind"
-            ).call<lua::Object>(k.name);
-
-            if (o.type() == lua::TYPE_FUNCTION)
-            {
-                keypressed = &k;
-                o.to<lua::Function>()();
-                keypressed = NULL;
-                k.pressed = isdown;
-                return;
-            }
-        }
         types::String& action = k.actions[state][0] ? k.actions[state] : k.actions[keym::ACTION_DEFAULT];
         keyaction = action;
         keypressed = &k;

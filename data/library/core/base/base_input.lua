@@ -113,13 +113,6 @@ BIND_EDIT    = 2
 BIND_MAP     = 3
 
 --[[!
-    Variable: per_map_keys
-    Storage of overriden binds. Gets re-set with Lua engine
-    restart, so applies per-map only.
-]]
-per_map_keys = {}
-
---[[!
     Function: bind
     Binds a key outside spec / edit mode. See <bind_spec> and
     <bind_edit> for specific bindings. There are also pre-defined
@@ -169,37 +162,6 @@ function bind_modifier(key, modifier)
             EV[%(1)q] = 0
         end)
     ]] % { modifier })
-end
-
---[[!
-    Function: bind_map_specific
-    Same as <bind>, except that bind is made only for single map
-    and it doesn't get persistently saved. Also, it has its own
-    <BIND_MAP>.
-
-    Parameters:
-        key - see <bind>.
-        action - see <bind>. Unlike <bind>, it is a function and
-        can take argument when data is provided.
-        data - a variable that is optionally passed to action.
-]]
-function bind_map_specific(key, action, data)
-    if data then
-        per_map_keys[key] = function() action(data) end
-    else
-        per_map_keys[key] = action
-    end
-end
-
---[[!
-    Function: unbind_map_specific
-    Removes a per-map binding from key, which was set by <bind_map_specific>.
-
-    Parameters:
-        key - key to remove binding from.
-]]
-function unbind_map_specific(key)
-    per_map_keys[key] = nil
 end
 
 --[[!
@@ -260,13 +222,7 @@ end
     Returns:
         The action.
 ]]
-function get_bind(key, bind_type)
-    if bind_type == BIND_MAP then
-        return per_map_keys[key]
-    else
-        return CAPI.getbind(key, bind_type)
-    end
-end
+get_bind = CAPI.getbind
 
 --[[!
     Function: search_binds

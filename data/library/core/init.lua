@@ -71,7 +71,7 @@ DEBUG   = EAPI.BASE_LOG_DEBUG
 WARNING = EAPI.BASE_LOG_WARNING
 ERROR   = EAPI.BASE_LOG_ERROR
 
-local io_open, error = io.open, error
+local io_open, load, error = io.open, load, error
 table.insert(package.loaders, 2, function(modname)
     local err, modpath = "", modname:gsub("%.", "/")
     for path in package.path:gmatch("([^;]+)") do
