@@ -3819,8 +3819,7 @@ local Resizer = Object:clone {
 local ext = external
 
 ext.cursor_reset = function()
-    local pl = ents.get_player()
-    if (pl and pl.editing) or #world.p_children == 0 then
+    if EV.editing ~= 0 or #world.p_children == 0 then
         cursor_x = 0.5
         cursor_y = 0.5
     end

@@ -252,10 +252,10 @@ else
 	CLIENT_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl-config --libs`
 	CLIENT_LDFLAGS += -lSDL_image -lSDL_mixer -lz -lGL -Wl,--export-dynamic
 	ifeq ($(TARGET_SYS),Linux)
-		CLIENT_LDD += -ldl -lrt
+		CLIENT_LDFLAGS += -ldl -lrt
 	endif
 	ifeq ($(TARGET_SYS),SunOS)
-		CLIENT_LDD += -lsocket -lnsl
+		CLIENT_LDFLAGS += -lsocket -lnsl
 	endif
 endif
 endif
@@ -357,10 +357,10 @@ else
 	SERVER_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl-config --libs`
 	SERVER_LDFLAGS += -lz -Wl,--export-dynamic
 	ifeq ($(TARGET_SYS),Linux)
-		SERVER_LDD += -ldl
+		SERVER_LDFLAGS += -ldl
 	endif
 	ifeq ($(TARGET_SYS),SunOS)
-		SERVER_LDD += -lsocket -lnsl
+		SERVER_LDFLAGS += -lsocket -lnsl
 	endif
 endif
 endif
