@@ -88,7 +88,7 @@ struct selinfo
 struct editinfo;
 extern editinfo *localedit;
 
-extern bool editmode;
+extern int editmode;
 
 extern bool packeditinfo(editinfo *e, int &inlen, uchar *&outbuf, int &outlen);
 extern bool unpackeditinfo(editinfo *&e, const uchar *inbuf, int inlen, int outlen);

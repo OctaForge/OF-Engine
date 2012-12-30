@@ -70,7 +70,7 @@ ivec cor, lastcor;
 ivec cur, lastcur;
 
 extern int entediting;
-bool editmode = false;
+VAR(editmode, 0, 0, 1);
 bool havesel = false;
 bool hmapsel = false;
 int horient  = 0;
