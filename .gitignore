@@ -10,3 +10,6 @@ out
 .directory
 .DS_Store
 *.orig
+src/build/
+src/platform_windows/
+bin_win*/LICENSE*
