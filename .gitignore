@@ -1,5 +1,8 @@
 *.o
 *.so
+*.dll
+*.a
+*.lib
 OF_Client*
 OF_Server*
 out

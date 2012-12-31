@@ -607,7 +607,7 @@ void rundedicatedserver()
     dedicatedserver = false;
 }
 
-#ifdef WIN32
+#if defined(WIN32) && defined(CLIENT)
 static char *parsecommandline(const char *src, vector<char *> &args)
 {
     char *buf = new char[strlen(src) + 1], *dst = buf;

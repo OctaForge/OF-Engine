@@ -241,7 +241,7 @@ ifeq ($(TARGET_SYS),Windows)
 	CLIENT_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
 	CLIENT_LDFLAGS += $(CS_WIN_LIB) -lSDL -lSDL_image -lSDL_mixer
 	CLIENT_LDFLAGS += -lzlib1 -lopengl32 -lws2_32 -lwinmm
-	CLIENT_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-dynamic
+	CLIENT_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-all-symbols
 else
 ifeq ($(TARGET_SYS),Darwin)
 	CLIENT_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
@@ -346,7 +346,7 @@ ifeq ($(TARGET_SYS),Windows)
 	SERVER_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
 	SERVER_LDFLAGS += $(CS_WIN_LIB) -lzlib1 -lopengl32 -lws2_32 -lwinmm
-	SERVER_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-dynamic
+	SERVER_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-all-symbols
 else
 ifeq ($(TARGET_SYS),Darwin)
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
@@ -667,8 +667,8 @@ ifneq ($(TARGET_SYS),Windows)
 	$(Q) touch $@
 else
 %/.stamp:
-	$(Q) md $(subst /,\,$(dir $@))
-	$(Q) type nul > $(subst /,\,$@)
+	$(Q) -md $(subst /,\,$(dir $@))
+	$(Q) -type nul > $(subst /,\,$@)
 endif
 
 .PRECIOUS: %/.stamp
