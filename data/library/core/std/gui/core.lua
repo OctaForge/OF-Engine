@@ -347,16 +347,6 @@ Object = table.Object:clone {
             end
         end
 
-        local ps = self.__proto.states
-        if ps then
-            for k, v in pairs(ps) do
-                if not states[k] then
-                    states[k] = v:clone()
-                    states[k].p_parent = self
-                end
-            end
-        end
-
         self.p_states = states
 
         -- and connect signals

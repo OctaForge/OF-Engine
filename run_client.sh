@@ -9,10 +9,9 @@ cd ${path_only}
 os=$(uname -s)
 arch=$(uname -m)
 
-PARAMS="-q${HOME}/.octaforge_client"
 PREFIX="./bin_unix"
 if [ -x ${PREFIX}/OF_Client_${os}-${arch} ]; then
-    ${PREFIX}/OF_Client_${os}-${arch} ${PARAMS} $@
+    ${PREFIX}/OF_Client_${os}-${arch} $@
 else
     echo "Binary for your OS (${os}) and/or architecture (${arch}) was not found."
     echo "You must compile one. If you'll compile, it would be good if you sent the binary to developers,"

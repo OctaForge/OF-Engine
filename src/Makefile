@@ -15,6 +15,10 @@ ifeq (,$(CXX))
 endif
 CXX_FLAGS = -O2 -fomit-frame-pointer
 
+ifeq (,$(AS))
+	AS = s
+endif
+
 CC_FLAGS_x86 = -march=i686
 CC_FLAGS_x64 =
 #CC_FLAGS_x86 = -march=native
@@ -82,6 +86,7 @@ HOST_CXX = $(CXX)
 
 TARGET_CC = $(CROSS)$(CC)
 TARGET_CXX = $(CROSS)$(CXX)
+TARGET_AS = $(CROSS)$(AS)
 TARGET_AR = $(CROSS)ar rcus
 TARGET_STRIP = $(CROSS)strip
 
@@ -183,7 +188,7 @@ LUAJIT_INC = $(LUAJIT_PATH)
 
 ifeq ($(TARGET_ARCH),x64)
 ifneq ($(TARGET_SYS),Windows)
-	TARGET_BINARCH = x86_64
+	TARGET_BINARCH = $(shell uname -m)
 else
 	TARGET_BINARCH = $(TARGET_ARCH)
 endif
@@ -661,7 +666,7 @@ default: all
 
 .SECONDEXPANSION:
 
-ifneq ($(TARGET_SYS),Windows)
+ifneq ($(HOST_SYS),Windows)
 %/.stamp:
 	$(Q) mkdir -p $(dir $@)
 	$(Q) touch $@
@@ -694,14 +699,14 @@ $(OBJDIR)/%.o: %.c $$(@D)/.stamp
 
 # any assembly file - target platform
 
-$(OBJDIR)/%.o: %.s $$(@D)/.stamp
-	$(E) $(PURPLE)[asm    ]$(RRED) $(subst $(OBJDIR)/,,$@).$(ENDCOL)
-	$(Q) $(TARGET_CC) $(CFLAGS) -c -o $@ $(subst .o,.s,$(subst $(OBJDIR)/,,$@))
+$(OBJDIR)/%.o: $(OBJDIR)/%.s $$(@D)/.stamp
+	$(E) $(PURPLE)[asm    ]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(TARGET_AS) $(AFLAGS) -o $@ $(subst .o,.s,$@)
 
 # LuaJIT host files (minilua, buildvm)
 
 $(LUAJIT_HOST_OBJB): %.o: $(LUAJIT_HOST_SRC) $$(@D)/.stamp
-	$(E) $(PURPLE)[hostcc ]$(RRED) $(subst $(OBJDIR)/,,$@).$(ENDCOL)
+	$(E) $(PURPLE)[hostcc ]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
 	$(Q) $(HOST_CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
 # ENet
@@ -898,7 +903,7 @@ depend:
 		$(subst .o,.c,$(LUAJIT_HOST_OBJ))
 
 	@for file in $(LUAJIT_ALL_HDRGEN); do \
-		test -s $(OBJDIR)/$$file || $(HOST_RM) $$file; \
+		test -s $(OBJDIR)/$$file || $(HOST_RM) $(OBJDIR)$$file; \
 		done
 
 # DO NOT DELETE

@@ -800,16 +800,35 @@ int main(int argc, char **argv)
 
     char *loglevel  = (char*)"WARNING";
     char *map_asset = NULL;
+    const char *dir = NULL;
     for(int i = 1; i < argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
             case 'q': 
             {
-                const char *dir = sethomedir(&argv[i][2]);
-                if(dir) logoutf("Using home directory: %s", dir);
+                dir = sethomedir(&argv[i][2]);
                 break;
             }
+        }
+    }
+    if (!dir) {
+        char *home = getenv("HOME");
+        if (home) {
+            defformatstring(defdir)("%s/.octaforge_client", home);
+            dir = sethomedir(defdir);
+        } else {
+            dir = sethomedir(".");
+        }
+    }
+    if (dir) {
+        logoutf("Using home directory: %s", dir);
+    }
+    for(int i = 1; i < argc; i++)
+    {
+        if(argv[i][0]=='-') switch(argv[i][1])
+        {
+            case 'q': break;
             case 'g': logoutf("Setting logging level", &argv[i][2]); loglevel = &argv[i][2]; break;
             case 'm': logoutf("Setting map", &argv[i][2]); map_asset = &argv[i][2]; break;
             default:

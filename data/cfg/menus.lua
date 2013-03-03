@@ -27,30 +27,7 @@ local main = world:append(gui.core.Rectangle {
 
         gui.core.Spacer {
             gui.core.H_Box {
-                gui.core.Button {
-                    states = {
-                        default = gui.core.Rectangle {
-                            min_w = 0.2, min_h = 0.05,
-                            r = 255, g = 255, b = 0,
-
-                            gui.core.Label { text = "Idle state" }
-                        },
-
-                        hovering = gui.core.Rectangle {
-                            min_w = 0.2, min_h = 0.05,
-                            r = 255, g = 0, b = 0,
-
-                            gui.core.Label { text = "Hover state" }
-                        },
-
-                        clicked = gui.core.Rectangle {
-                            min_w = 0.2, min_h = 0.05,
-                            r = 255, g = 0, b = 255,
-
-                            gui.core.Label { text = "Clicked state" }
-                        },
-                    },
-
+                gui.Button {
                     signals = {
                         click = function(self)
                             echo "you clicked a button."
@@ -58,9 +35,7 @@ local main = world:append(gui.core.Rectangle {
                         end
                     },
 
-                    init = function(btn)
-                        print "custom widget \"constructors\""
-                    end,
+                    label = "A button", pointer = "data/textures/ui/cursors/edit.png",
 
                     tooltip = gui.core.Rectangle {
                         min_w = 0.2, min_h = 0.05,
@@ -296,13 +271,16 @@ local main = world:append(gui.core.Rectangle {
 })
 
 world:append(gui.core.Conditional {
-    gui.core.Image {
-        file = "data/textures/hud/crosshair.png",
-        align_h = 0, align_v = 0
+    states = {
+        ["true"] = gui.core.Image {
+            file = "data/textures/hud/crosshair.png",
+            align_h = 0, align_v = 0
+        },
+        ["false"] = nil
     },
 
     condition = function()
-        local wh = signal.emit(_G, "cursor_exists") or
+        local wh = external.cursor_exists() or
             not CAPI.is_mouselooking()
 
         if not wh and not (EV.hidehud == 1 or EAPI.gui_mainmenu) then

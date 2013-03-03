@@ -109,7 +109,7 @@ table.insert(package.loaders, 2, function(modname)
                 else
                     return line
                 end
-            end, "=" .. fname)
+            end, "@" .. fname)
             if not f then
                 error("error loading module '" .. modname .. "' from file '"
                     .. fname .. "':\n" .. err, 2)

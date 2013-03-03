@@ -36,7 +36,6 @@ var.new("uiset", var.STRING, "default")
 
 setmetatable(gui, {
     __index = function(self, n)
-        print("index")
         -- try regular members first
         local v = rawget(self, n)
         if    v ~= nil then return v end
@@ -46,4 +45,3 @@ setmetatable(gui, {
         if v then return v[n] end
     end
 })
-print(gui.Window)

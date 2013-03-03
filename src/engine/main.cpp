@@ -22,6 +22,7 @@ void cleanup()
     extern void clear_console(); clear_console();
     extern void clear_mdls();    clear_mdls();
     extern void clear_sound();   clear_sound();
+    extern void cleanupshaders(); cleanupshaders(); // XXX: temporary
     closelogfile();
     SDL_Quit();
 }
@@ -1109,17 +1110,29 @@ int main(int argc, char **argv)
     initing = INIT_RESET;
 
     char *loglevel = (char*)"WARNING";
+    const char *dir = NULL;
     for(int i = 1; i<argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
         {
             case 'q': 
             {
-                const char *dir = sethomedir(&argv[i][2]);
-                if(dir) logoutf("Using home directory: %s", dir);
+                dir = sethomedir(&argv[i][2]);
                 break;
             }
         }
+    }
+    if (!dir) {
+        char *home = getenv("HOME");
+        if (home) {
+            defformatstring(defdir)("%s/.octaforge_client", home);
+            dir = sethomedir(defdir);
+        } else {
+            dir = sethomedir(".");
+        }
+    }
+    if (dir) {
+        logoutf("Using home directory: %s", dir);
     }
     for(int i = 1; i<argc; i++)
     {
