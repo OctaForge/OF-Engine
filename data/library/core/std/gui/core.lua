@@ -354,6 +354,17 @@ Object = table.Object:clone {
             end
         end
 
+        local dstates = rawget(self.__proto, "states")
+        if dstates then
+            for k, v in pairs(dstates) do
+                if not states[k] then
+                    local cl = v:deep_clone()
+                    states[k] = cl
+                    cl.p_parent = self
+                end
+            end
+        end
+
         self.p_states = states
 
         -- and connect signals
@@ -440,10 +451,13 @@ Object = table.Object:clone {
 
     deep_clone = function(self)
         local ch, rch = {}, self.children
+        local cl = self:clone { children = ch }
         for i = 1, #rch do
-            ch[i] = rch[i]:deep_clone()
+            local chcl = rch[i]:deep_clone()
+            chcl.p_parent = cl
+            ch[i] = chcl
         end
-        return self:clone { children = ch }
+        return cl
     end,
 
     choose_state = function(self) return nil end,
