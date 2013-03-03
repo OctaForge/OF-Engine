@@ -270,15 +270,14 @@ local main = world:append(gui.core.Rectangle {
     }
 })
 
-world:append(gui.core.Conditional {
-    states = {
-        ["true"] = gui.core.Image {
-            file = "data/textures/hud/crosshair.png",
-            align_h = 0, align_v = 0
-        },
-        ["false"] = nil
-    },
+gui.core.Conditional.states = {
+    ["true"] = gui.core.Image {
+        file = "data/textures/hud/crosshair.png",
+        align_h = 0, align_v = 0
+    }
+}
 
+world:append(gui.core.Conditional {
     condition = function()
         local wh = external.cursor_exists() or
             not CAPI.is_mouselooking()
