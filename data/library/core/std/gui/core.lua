@@ -438,6 +438,14 @@ Object = table.Object:clone {
         rawget(self.__proto, "instances")[self] = nil
     end,
 
+    deep_clone = function(self)
+        local ch, rch = {}, self.children
+        for i = 1, #rch do
+            ch[i] = rch[i]:deep_clone()
+        end
+        return self:clone { children = ch }
+    end,
+
     choose_state = function(self) return nil end,
 
     layout = function(self)
