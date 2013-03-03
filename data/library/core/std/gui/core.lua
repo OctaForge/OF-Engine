@@ -304,6 +304,13 @@ Object = table.Object:clone {
         kwargs        = kwargs or {}
         self.p_parent = nil
 
+        local instances = rawget(self.__proto, "instances")
+        if not instances then
+            instances = {}
+            rawset(self.__proto, "instances", instances)
+        end
+        instances[self] = self
+
         self.p_x = 0
         self.p_y = 0
         self.p_w = 0
@@ -428,6 +435,7 @@ Object = table.Object:clone {
         self.p_children = nil
 
         signal.emit(self, "destroy")
+        rawget(self.__proto, "instances")[self] = nil
     end,
 
     choose_state = function(self) return nil end,
