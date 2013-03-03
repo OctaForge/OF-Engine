@@ -815,7 +815,11 @@ int main(int argc, char **argv)
     if (!dir) {
         char *home = getenv("HOME");
         if (home) {
+#ifdef WIN32
+            defformatstring(defdir)("%s\My Games\OctaForge", home);
+#else
             defformatstring(defdir)("%s/.octaforge_client", home);
+#endif
             dir = sethomedir(defdir);
         } else {
             dir = sethomedir(".");
