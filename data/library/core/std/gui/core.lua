@@ -439,14 +439,20 @@ Object = table.Object:clone {
     clear = function(self)
         clear_focus(self)
 
-        for i = 1, #self.p_children do
-            local ch = self.p_children[i]
-            ch:clear()
+        local children = self.p_children
+        if children then
+            for i = 1, #children do
+                local ch = children[i]
+                ch:clear()
+            end
+            self.p_children = nil
         end
-        self.p_children = nil
 
         signal.emit(self, "destroy")
-        rawget(self.__proto, "instances")[self] = nil
+        local insts = rawget(self.__proto, "instances")
+        if insts then
+            insts[self] = nil
+        end
     end,
 
     deep_clone = function(self)
@@ -458,6 +464,41 @@ Object = table.Object:clone {
             ch[i] = chcl
         end
         return cl
+    end,
+
+    update_state = function(self, sname, sval)
+        local states = rawget(self, "states")
+        if not states then
+            states = {}
+            rawset(self, "states", states)
+        end
+
+        local oldstate = states[sname]
+        states[sname] = sval
+
+        local insts = rawget(self, "instances")
+        if insts then for v in pairs(insts) do
+            local sts = v.p_states
+            if sts then
+                local st = sts[sname]
+                -- update only on widgets actually using the default state
+                if st and st.__proto == oldstate then
+                    local nst = sval:deep_clone()
+                    nst.p_parent = v
+                    sts[sname] = nst
+                    st:clear()
+                end
+            end
+        end end
+
+        oldstate:clear()
+        needs_adjust = true
+    end,
+
+    update_states = function(self, states)
+        for k, v in pairs(states) do
+            self:update_state(k, v)
+        end
     end,
 
     choose_state = function(self) return nil end,

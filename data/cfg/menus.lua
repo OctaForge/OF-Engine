@@ -2,6 +2,42 @@ local world = gui.core.register_world(gui.core.World {
     pointer = "data/textures/ui/cursors/default.png", input = true
 }, 1)
 
+gui.core.Button.states = {
+    default = gui.core.Rectangle {
+        min_w = 0.2, min_h = 0.05, r = 255, g = 255, b = 0,
+        gui.core.Label { text = "Idle" }
+    },
+
+    hovering = gui.core.Rectangle {
+        min_w = 0.2, min_h = 0.05, r = 255, g = 0, b = 0,
+        gui.core.Label { text = "Hovering" }
+    },
+
+    clicked = gui.core.Rectangle {
+        min_w = 0.2, min_h = 0.05, r = 255, g = 0, b = 255,
+        gui.core.Label { text = "Clicked" }
+    }
+}
+
+_G["test_update_states"] = function()
+    gui.core.Button:update_states {
+        default = gui.core.Rectangle {
+            min_w = 0.2, min_h = 0.05, r = 64, g = 32, b = 192,
+            gui.core.Label { text = "Different idle" }
+        },
+    
+        hovering = gui.core.Rectangle {
+            min_w = 0.2, min_h = 0.05, r = 0, g = 50, b = 150,
+            gui.core.Label { text = "Different hovering" }
+        },
+    
+        clicked = gui.core.Rectangle {
+            min_w = 0.2, min_h = 0.05, r = 128, g = 192, b = 225,
+            gui.core.Label { text = "Different clicked" }
+        }
+    }
+end
+
 local main = world:append(gui.core.Rectangle {
     gui.core.V_Box {
         gui.core.Mover {
@@ -27,7 +63,7 @@ local main = world:append(gui.core.Rectangle {
 
         gui.core.Spacer {
             gui.core.H_Box {
-                gui.Button {
+                gui.core.Button {
                     signals = {
                         click = function(self)
                             echo "you clicked a button."
