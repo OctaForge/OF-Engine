@@ -1109,6 +1109,15 @@ int main(int argc, char **argv)
 
     initing = INIT_RESET;
 
+    /* make sure the path is correct */
+    if (!fileexists("data", "r")) {
+#ifdef WIN32
+        _chdir("..");
+#else
+        chdir("..");
+#endif
+    }
+
     char *loglevel = (char*)"WARNING";
     const char *dir = NULL;
     for(int i = 1; i<argc; i++)

@@ -798,6 +798,15 @@ int main(int argc, char **argv)
 
     setlogfile(NULL);
 
+    /* make sure the path is correct */
+    if (!fileexists("data", "r")) {
+#ifdef WIN32
+        _chdir("..");
+#else
+        chdir("..");
+#endif
+    }
+
     char *loglevel  = (char*)"WARNING";
     char *map_asset = NULL;
     const char *dir = NULL;
