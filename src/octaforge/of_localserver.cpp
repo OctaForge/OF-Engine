@@ -83,15 +83,21 @@ namespace local_server
         }
         conoutf("Starting server, please wait ..");
 
+#define STRVAL(x) #x
+#define ENQ(x) STRVAL(x)
         types::String buf = types::String().format(
             "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
-#ifdef WIN32
-            "run_server.bat",
+#if defined(WIN64)
+            "bin_win64\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
+#elif defined(WIN32)
+            "bin_win32\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
 #else
-            "exec ./run_server.sh",
+            "bin_unix/server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ,
 #endif
             logger::names[logger::current_level], map, homedir, SERVER_LOGFILE
         );
+#undef STRVAL
+#undef ENQ
 
 #ifdef WIN32
         popen_out = _popen(buf.get_buf(), "r");

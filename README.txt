@@ -6,10 +6,10 @@ This is OctaForge developer alpha 10 (0.1.9, 27 December 2011)
 In sync with Tesseract: 26b50e8f (flag icon fix)
 
 For installation, read INSTALL.
-To run it, launch run_client.sh on *nix
-and run_client.bat on Windows.
-run_client.command wraps execution
-from Finder on Mac OS X.
+To run it, launch bin_unix/client_YOUROS_YOURARCH on *nix
+and bin_winYOURARCH\client_win_YOURARCH.exe on Windows.
+You need to run them from the primary OF directory, not
+from the directory containing the binary.
 
 There is "empty" map bundled with the engine.
 It uses drawing application example by default.

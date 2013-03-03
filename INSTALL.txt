@@ -123,4 +123,4 @@ Mac OS X (Darwin)
    If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
    Add VERBOSE=1 at the end of the make command for verbose builds.
 
-   After everything goes OK, you should have binaries and you can launch (run_client.command file from Finder)
+   After everything goes OK, you should have binaries and you can launch.

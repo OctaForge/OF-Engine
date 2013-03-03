@@ -186,22 +186,35 @@ LUAJIT_INC = $(LUAJIT_PATH)
 
 # binary names
 
-ifeq ($(TARGET_ARCH),x64)
-ifneq ($(TARGET_SYS),Windows)
-	TARGET_BINARCH = $(shell uname -m)
+TARGET_BINARCH = $(TARGET_ARCH)
+ifeq ($(TARGET_SYS),Windows)
+	TARGET_BINOS = win
 else
-	TARGET_BINARCH = $(TARGET_ARCH)
+ifeq ($(TARGET_SYS),Linux)
+	TARGET_BINOS = linux
+else
+ifeq ($(TARGET_SYS),FreeBSD)
+	TARGET_BINOS = freebsd
+else
+ifeq ($(TARGET_SYS),Darwin)
+	TARGET_BINOS = darwin
+else
+ifeq ($(TARGET_SYS),SunOS)
+	TARGET_BINOS = solaris
+else
+	$(error Unsupported OS)
 endif
-else
-	TARGET_BINARCH = $(TARGET_ARCH)
+endif
+endif
+endif
 endif
 
 ifneq ($(TARGET_SYS),Windows)
-	CLIENT_BIN = OF_Client_$(TARGET_SYS)-$(TARGET_BINARCH)
-	SERVER_BIN = OF_Server_$(TARGET_SYS)-$(TARGET_BINARCH)
+	CLIENT_BIN = client_$(TARGET_BINOS)_$(TARGET_BINARCH)
+	SERVER_BIN = server_$(TARGET_BINOS)_$(TARGET_BINARCH)
 else
-	CLIENT_BIN = OF_Client_$(TARGET_SYS)-$(TARGET_BINARCH).exe
-	SERVER_BIN = OF_Server_$(TARGET_SYS)-$(TARGET_BINARCH).exe
+	CLIENT_BIN = client_$(TARGET_BINOS)_$(TARGET_BINARCH).exe
+	SERVER_BIN = server_$(TARGET_BINOS)_$(TARGET_BINARCH).exe
 endif
 
 # client/server includes
@@ -236,13 +249,17 @@ endif
 ####################
 
 CLIENT_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DCLIENT
+	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DCLIENT \
+	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
 CLIENT_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUAJIT_PATH) \
 	-lenet -lluajit
 
 ifeq ($(TARGET_SYS),Windows)
 	CLIENT_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
+ifeq ($(TARGET_ARCH),x64)
+	CLIENT_CXXFLAGS += -DWIN64
+endif
 	CLIENT_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
 	CLIENT_LDFLAGS += $(CS_WIN_LIB) -lSDL -lSDL_image -lSDL_mixer
 	CLIENT_LDFLAGS += -lzlib1 -lopengl32 -lws2_32 -lwinmm
@@ -342,13 +359,17 @@ CLIENT_OBJB = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 ####################
 
 SERVER_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DSERVER -DSTANDALONE
+	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DSERVER -DSTANDALONE \
+	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
 SERVER_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUAJIT_PATH) \
 	-lenet -lluajit
 
 ifeq ($(TARGET_SYS),Windows)
 	SERVER_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
+ifeq ($(TARGET_ARCH),x64)
+	SERVER_CXXFLAGS += -DWIN64
+endif
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
 	SERVER_LDFLAGS += $(CS_WIN_LIB) -lzlib1 -lopengl32 -lws2_32 -lwinmm
 	SERVER_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-all-symbols
