@@ -46,8 +46,6 @@ enum
 
 // network messages codes, c2s, c2c, s2c
 
-enum { PRIV_NONE = 0, PRIV_MASTER, PRIV_ADMIN };
-
 enum
 {
     N_CONNECT = 0, N_SERVINFO, N_WELCOME, N_INITCLIENT, N_POS, N_TEXT, N_SOUND, N_CDIS,
@@ -79,24 +77,12 @@ enum
 #define SAUERBRATEN_SERVINFO_PORT 28789
 #define PROTOCOL_VERSION 1001           // bump when protocol changes
 
-#define SGRAYS 20
-#define SGSPREAD 4
-#define RL_DAMRAD 40
-#define RL_SELFDAMDIV 2
-#define RL_DISTSCALE 1.5f
-
 struct fpsent : dynent
 {   
     int weight;                         // affects the effectiveness of hitpush
-    int clientnum, privilege, lastupdate, plag, ping;
+    int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int lastpain;
-    int lastaction, lastattackgun;
-    bool attacking;
-    int lasttaunt;
-    int lastpickup, lastpickupmillis, lastbase;
-    int superdamage;
-    int frags, deaths, totaldamage, totalshots;
     editinfo *edit;
     float deltayaw, deltapitch, newyaw, newpitch;
     int smoothmillis;
@@ -133,7 +119,7 @@ struct fpsent : dynent
 
     int uniqueId;
 
-    fpsent() : weight(100), clientnum(-1), privilege(PRIV_NONE), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), frags(0), deaths(0), totaldamage(0), totalshots(0), edit(NULL), smoothmillis(-1), ai(NULL)
+    fpsent() : weight(100), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), lastpain(0), edit(NULL), smoothmillis(-1), ai(NULL)
                                                                       , lastServerUpdate(0)
 #ifdef SERVER
                                                                       , serverControlled(false)
@@ -205,172 +191,44 @@ struct fpsent : dynent
 
 namespace game
 {
-    struct clientmode
-    {
-        virtual ~clientmode() {}
-
-        virtual void preload() {}
-        virtual void drawhud(fpsent *d, int w, int h) {}
-        virtual void rendergame() {}
-        virtual void respawned(fpsent *d) {}
-        virtual void setup() {}
-        virtual void checkitems(fpsent *d) {}
-        virtual int respawnwait(fpsent *d) { return 0; }
-        virtual void pickspawn(fpsent *d) { findplayerspawn(d); }
-        virtual void senditems(ucharbuf &p) {}
-        virtual const char *prefixnextmap() { return ""; }
-        virtual void removeplayer(fpsent *d) {}
-        virtual void gameover() {}
-        virtual bool hidefrags() { return false; }
-        virtual int getteamscore(const char *team) { return 0; }
-//        virtual void getteamscores(vector<teamscore> &scores) {}
-    };
-
-    extern clientmode *cmode;
-    extern void setclientmode();
-
     // fps
-    extern int gamemode, minremain;
+    extern int gamemode;
     extern bool intermission;
-    extern int maptime, maprealtime;
     extern fpsent *player1;
     extern vector<fpsent *> players;
-    extern int lastspawnattempt;
     extern int lasthit;
-    extern int respawnent;
     extern int following;
 
     extern bool clientoption(const char *arg);
     extern fpsent *getclient(int cn);
     extern fpsent *newclient(int cn);
     extern char *colorname(fpsent *d, char *name = NULL, const char *prefix = "");
-    extern fpsent *pointatplayer();
     extern fpsent *hudplayer();
     extern fpsent *followingplayer();
     extern void stopfollowing();
     extern void clientdisconnected(int cn, bool notify = true);
     extern void spawnplayer(fpsent *);
-    extern void deathstate(fpsent *d, bool restore = false);
-    extern void damaged(int damage, fpsent *d, fpsent *actor, bool local = true);
-    extern void killed(fpsent *d, fpsent *actor);
-    extern void timeupdate(int timeremain);
-    extern void msgsound(int n, fpsent *d = NULL);
-    extern bool usedminimap();
 
-    enum
-    {
-        HICON_BLUE_ARMOUR = 0,
-        HICON_GREEN_ARMOUR,
-        HICON_YELLOW_ARMOUR,
-
-        HICON_HEALTH,
-
-        HICON_FIST,
-        HICON_SG,
-        HICON_CG,
-        HICON_RL,
-        HICON_RIFLE,
-        HICON_GL,
-        HICON_PISTOL,
-
-        HICON_QUAD,
-
-        HICON_RED_FLAG,
-        HICON_BLUE_FLAG,
-        HICON_NEUTRAL_FLAG
-    };
-
-    extern void drawicon(int icon, int x, int y);
- 
     // client
     extern bool connected, remote, demoplayback, spectator;
 
     extern int parseplayer(const char *arg);
     extern void addmsg(int type, const char *fmt = NULL, ...);
-    extern void switchname(const char *name);
-    extern void switchteam(const char *name);
-    extern void switchplayermodel(int playermodel);
-    extern void sendmapinfo();
-    extern void stopdemo();
     extern void changemap(const char *name, int mode);
     extern void c2sinfo(bool force = false);
     extern void sendposition(fpsent *d, bool reliable = false);
     extern void sendmessages(fpsent *d);
 
-    // monster
-    struct monster;
-    extern vector<monster *> monsters;
-
-    extern void clearmonsters();
-    extern void preloadmonsters();
-    extern void updatemonsters(int curtime);
-    extern void rendermonsters();
-    extern void suicidemonster(monster *m);
-    extern void hitmonster(int damage, monster *m, fpsent *at, const vec &vel, int gun);
-    extern void monsterkilled();
-    extern void endsp(bool allkilled);
-    extern void spsummary(int accuracy);
-
-    // movable
-    struct movable;
-    extern vector<movable *> movables;
-
-    extern void clearmovables();
-    extern void updatemovables(int curtime);
-    extern void rendermovables();
-    extern void suicidemovable(movable *m);
-    extern void hitmovable(int damage, movable *m, fpsent *at, const vec &vel, int gun);
-
     // weapon
-    extern void shoot(fpsent *d, const vec &targ);
-    extern void shoteffects(int gun, const vec &from, const vec &to, fpsent *d, bool local);
-    extern void explode(bool local, fpsent *owner, const vec &v, dynent *safe, int dam, int gun);
-    extern void damageeffect(int damage, fpsent *d, bool thirdperson = true);
-    extern void superdamageeffect(const vec &vel, fpsent *d);
     extern bool intersect(dynent *d, const vec &from, const vec &to);
-    extern dynent *intersectclosest(const vec &from, const vec &to, fpsent *at);
-    extern void clearbouncers(); 
-    extern void updatebouncers(int curtime);
-    extern void removebouncers(fpsent *owner);
-    extern void renderbouncers();
-    extern void clearprojectiles();
-    extern void updateprojectiles(int curtime);
-    extern void removeprojectiles(fpsent *owner);
-    extern void renderprojectiles();
-    extern void preloadbouncers();
 
-    // scoreboard
-    extern void showscores(bool on);
-    extern void getbestplayers(vector<fpsent *> &best);
-    extern void getbestteams(vector<const char *> &best);
+    extern int playermodel;
 
-    // render
-    struct playermodelinfo
-    {
-        const char *ffa, *blueteam, *redteam, *hudguns,
-                   *vwep, *quad, *armour[3],
-                   *ffaicon, *blueicon, *redicon;
-        bool ragdoll;
-    };
-
-    extern int playermodel, teamskins, testteam;
-
-    extern void saveragdoll(fpsent *d);
-    extern void clearragdolls();
-    extern void moveragdolls();
-    extern const playermodelinfo &getplayermodelinfo(fpsent *d);
     extern void swayhudgun(int curtime);
-    extern vec hudgunorigin(int gun, const vec &from, const vec &to, fpsent *d);
 }
 
 namespace server
 {
-    extern const char *modename(int n, const char *unknown = "unknown"); 
-    extern const char *mastermodename(int n, const char *unknown = "unknown");
-    extern void startintermission();
-    extern void stopdemo();
-    extern void forcemap(const char *map, int mode);
-    extern void hashpassword(int cn, int sessionid, const char *pwd, char *result);
     extern int msgsizelookup(int msg);
     extern bool serveroption(const char *arg);
 

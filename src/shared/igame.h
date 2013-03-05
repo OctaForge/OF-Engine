@@ -42,9 +42,6 @@ namespace game
     extern void writegamedata(vector<char> &extras);
     extern void readgamedata(vector<char> &extras);
     extern int clipconsole(int w, int h);
-    extern const char *defaultcrosshair(int index);
-    extern int selectcrosshair(float &r, float &g, float &b);
-    extern void lighteffects(dynent *d, vec &color, vec &dir);
     extern void setupcamera();
     extern bool detachcamera();
     extern bool collidecamera();
