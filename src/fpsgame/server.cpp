@@ -54,7 +54,6 @@ namespace server
         bool        isAdmin; // Kripken: Whether we are admins of this map, and can edit it
 
         string name, team;
-        int privilege;
         bool spectator, connected, local, timesync, wantsmaster;
         int gameoffset, lastevent;
         gamestate state;
@@ -90,7 +89,6 @@ namespace server
             isAdmin = false; // Kripken
 
             name[0] = team[0] = 0;
-            privilege = PRIV_NONE;
             connected = spectator = local = wantsmaster = false;
             position.setsize(0);
             messages.setsize(0);

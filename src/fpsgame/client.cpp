@@ -70,7 +70,6 @@ namespace game
         connected = false;
         player1->clientnum = -1;
         player1->lifesequence = 0;
-        player1->privilege = PRIV_NONE;
         spectator = false;
 //        loopv(players) clientdisconnected(i, false); Kripken: When we disconnect, we should shut down anyhow...
         logger::log(logger::WARNING, "Not doing normal Sauer disconnecting of other clients\r\n");
@@ -107,8 +106,6 @@ namespace game
     {
         MessageSystem::send_EditModeC2S(on);
 //        addmsg(N_EDITMODE, "ri", on ? 1 : 0);
-//        if(player1->state==CS_DEAD) deathstate(player1, true); Kripken
-//        else if(player1->state==CS_EDITING && player1->editstate==CS_DEAD) sb.showscores(false); Kripken
 #ifdef CLIENT
         SETVFN(zoom, -1);
 #endif

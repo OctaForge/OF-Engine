@@ -35,7 +35,6 @@ namespace game
     VAR(minimaprightalign, 0, 1, 1); // do we want to align minimap right? if this is 1, then we do, if 0, then it's aligned to left.
 
     int gamemode = 0;
-    int maptime = 0, maprealtime = 0;
 
     int following = -1, followdir = 0;
 
@@ -90,11 +89,6 @@ namespace game
     {
         d->respawn();
         return d;
-    }
-
-    void respawnself()
-    {
-        spawnplayer(player1);
     }
 
     void stopfollowing()
@@ -311,7 +305,6 @@ namespace game
 
         // SERVER used to initialize turn_move, move, look_updown_move and strafe to 0 for NPCs here
 
-        if(!maptime) { maptime = lastmillis; maprealtime = totalmillis; return; }
         if(!curtime)
         {
 #ifdef CLIENT
@@ -401,7 +394,6 @@ namespace game
 
     void spawnplayer(fpsent *d)   // place at random spawn. also used by monsters!
     {
-//        findplayerspawn(d, respawnent>=0 ? respawnent : -1, 0); Kripken: We now do this manually
         spawnstate(d);
         #ifdef CLIENT
             d->state = spectator ? CS_SPECTATOR : (d==player1 && editmode ? CS_EDITING : CS_ALIVE);
@@ -481,7 +473,6 @@ namespace game
 //        removeweapons(d);
 //        removetrackedparticles(d);
 //        removetrackeddynlights(d);
-//        if(cmode) cmode->removeplayer(d);
 
         players.removeobj(d);
         DELETEP(clients[cn]);
@@ -522,7 +513,6 @@ namespace game
         spawnplayer(player1);
         SETVFN(zoom, -1);
 #endif
-        maptime = 0;
 //        if(*name) conoutf(CON_GAMEINFO, "\f2game mode is %s", fpsserver::modestr(gamemode));
 
         //if(identexists("mapstart")) execute("mapstart");
@@ -601,15 +591,6 @@ namespace game
         return (!gui_mainmenu && useminimap);
     }
 
-    bool usedminimap()
-    {
-        return useminimap;
-    }
-
-    void drawicon(float tx, float ty, int x, int y)
-    {
-    }
-
     float abovegameplayhud()
     {
         return 1650.0f/1800.0f;
@@ -624,16 +605,11 @@ namespace game
     }
 #endif
 
-    void lighteffects(dynent *e, vec &color, vec &dir)
-    {
-    }
-
     void particletrack(physent *owner, vec &o, vec &d)
     {
 #ifdef CLIENT
         if(owner->type!=ENT_PLAYER) return;
 //        fpsent *pl = (fpsent *)owner;
-//        if(pl->muzzle.x < 0 || pl->lastattackgun != pl->gunselect) return;
         float dist = o.dist(d);
         o = vec(0,0,0); //pl->muzzle;
         if(dist <= 0) d = o;
@@ -666,17 +642,6 @@ namespace game
     const char *savedservers() { return NULL; } //"servers.cfg"; }
 
     // Dummies
-
-    const char *defaultcrosshair(int index)
-    {
-        return "data/textures/hud/crosshair.png";
-    }
-
-    int selectcrosshair(float &r, float &g, float &b)
-    {
-        r = 1.0f; g = 1.0f; b = 1.0f;
-        return 0;
-    }
 
     void parseoptions(vector<const char *> &args)
     {
