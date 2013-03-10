@@ -298,7 +298,7 @@ extern int farplane;
 extern int hdr;
 extern bool hdrfloat;
 extern float ldrscale, ldrscaleb;
-extern bool envmapping;
+extern bool envmapping, modelpreviewing;
 extern int minimapping;
 extern const glmatrixf viewmatrix;
 extern glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix, invprojmatrix;
@@ -329,6 +329,12 @@ extern void setfogcolor(const vec &v);
 extern void zerofogcolor();
 extern void resetfogcolor();
 extern void renderavatar();
+
+namespace modelpreview
+{
+    extern void start(int x, int y, int w, int h, bool background = true, bool scissor = false);
+    extern void end();
+}
 
 struct timer;
 extern timer *begintimer(const char *name, bool gpu = true);
@@ -373,8 +379,9 @@ extern bool touchingface(const cube &c, int orient);
 extern bool flataxisface(const cube &c, int orient);
 extern bool collideface(const cube &c, int orient);
 extern int genclipplane(const cube &c, int i, vec *v, plane *clip);
-extern void genclipplanes(const cube &c, int x, int y, int z, int size, clipplanes &p);
+extern void genclipplanes(const cube &c, int x, int y, int z, int size, clipplanes &p, bool collide = true);
 extern bool visibleface(const cube &c, int orient, int x, int y, int z, int size, ushort mat = MAT_AIR, ushort nmat = MAT_AIR, ushort matmask = MATF_VOLUME);
+extern int classifyface(const cube &c, int orient, int x, int y, int z, int size);
 extern int visibletris(const cube &c, int orient, int x, int y, int z, int size, ushort nmat = MAT_ALPHA, ushort matmask = MAT_ALPHA);
 extern int visibleorient(const cube &c, int orient);
 extern void genfaceverts(const cube &c, int orient, ivec v[4]);
@@ -489,15 +496,18 @@ extern GLuint gdepthtex, gcolortex, gnormaltex, gglowtex, gdepthrb, gstencilrb;
 extern void cleanupgbuffer();
 extern void initgbuffer();
 extern void maskgbuffer(const char *mask);
+extern void preparegbuffer();
 extern void rendergbuffer();
 extern void shadegbuffer();
 extern void shademinimap(const vec &color = vec(0, 0, 0));
+extern void shademodelpreview(int x, int y, int w, int h, bool background = true, bool scissor = false);
 extern void rendertransparent();
 extern void renderao();
 extern void loadhdrshaders(bool luma = false);
 extern void processhdr(GLuint outfbo = 0, bool luma = false);
 extern void readhdr(int w, int h, GLenum format, GLenum type, void *dst, GLenum target = 0, GLuint tex = 0);
 extern void setupframe(int w, int h);
+extern void setupgbuffer(int w, int h);
 extern GLuint shouldscale();
 extern void doscale(int w, int h);
 extern bool debuglights();
@@ -686,8 +696,8 @@ extern void clientkeepalive();
 extern void keypress(int code, bool isdown, int cooked);
 extern int rendercommand(int x, int y, int w);
 extern int renderconsole(int w, int h, int abovehud);
-extern void conoutf(const char *s, ...);
-extern void conoutf(int type, const char *s, ...);
+extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
+extern void conoutf(int type, const char *s, ...) PRINTFARGS(2, 3);
 const char *getkeyname(int code);
 extern const char *addreleaseaction(const lua::Function& a);
 extern const char *addreleaseaction(const char *s);
@@ -722,7 +732,7 @@ enum
     INIT_LOAD,
     INIT_RESET
 };
-extern int initing;
+extern int initing, numcpus;
 
 enum
 {
@@ -785,7 +795,6 @@ extern void shadowmaskbatchedmodels(bool dynshadow = true);
 extern void rendermodelbatches();
 extern void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw = 0, float pitch = 0, int flags = MDL_CULL_VFC | MDL_CULL_DIST, int basetime = 0, float size = 1);
 extern void clearbatchedmapmodels();
-extern void preloadmodelshaders();
 extern int batcheddynamicmodels();
 extern int batcheddynamicmodelbounds(int mask, vec &bbmin, vec &bbmax);
 

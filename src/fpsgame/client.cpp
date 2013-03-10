@@ -204,7 +204,7 @@ namespace game
         // Kripken: ignore message sizes for non-sauer messages, i.e., ones we added
         if (type < INTENSITY_MSG_TYPE_MIN)
         {
-            if(msgsize && num!=msgsize) { defformatstring(s)("inconsistent msg size for %d (%d != %d)", type, num, msgsize); fatal(s); }
+            if(msgsize && num!=msgsize) { fatal("inconsistent msg size for %d (%d != %d)", type, num, msgsize); }
         }
         if(reliable) messagereliable = true;
         if(mcn != messagecn)

@@ -947,7 +947,7 @@ VARP(maxfps, 0, 200, 1000);
 
 void limitfps(int &millis, int curmillis)
 {
-    int limit = gui_mainmenu && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
+    int limit = (gui_mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
     if(!limit) return;
     static int fpserror = 0;
     int delay = 1000/limit - (millis-curmillis);
@@ -1088,6 +1088,8 @@ int getclockmillis()
     return max(millis, totalmillis);
 }
 
+VAR(numcpus, 1, 1, 16);
+
 int main(int argc, char **argv)
 {
     #ifdef WIN32
@@ -1159,7 +1161,7 @@ int main(int argc, char **argv)
                 if(dir) logoutf("Adding package directory: %s", dir);
                 break;
             }
-            case 'g': logoutf("Setting logging level", &argv[i][2]); loglevel = &argv[i][2]; break;
+            case 'g': logoutf("Setting logging level %s", &argv[i][2]); loglevel = &argv[i][2]; break;
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': scr_w = clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW); if(!findarg(argc, argv, "-h")) scr_h = -1; break;
             case 'h': scr_h = clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH); if(!findarg(argc, argv, "-w")) scr_w = -1; break;
@@ -1192,6 +1194,8 @@ int main(int argc, char **argv)
     tools::execcfg("init.lua", true);
 
     initing = NOT_INITING;
+
+    numcpus = clamp(guessnumcpus(), 1, 16);
 
     if(dedicated <= 1)
     {

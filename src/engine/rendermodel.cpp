@@ -305,16 +305,22 @@ vector<const char *> preloadmodels;
 
 void preloadmodel(const char *name)
 {
-    if(mdllookup.access(name)) return;
+    if(!name || !name[0] || mdllookup.access(name)) return;
     preloadmodels.add(newstring(name));
 }
 
-void flushpreloadedmodels()
+void flushpreloadedmodels(bool msg)
 {
     loopv(preloadmodels)
     {
         loadprogress = float(i+1)/preloadmodels.length();
-        loadmodel(preloadmodels[i], -1, true);
+        model *m = loadmodel(preloadmodels[i], -1, msg);
+        if(!m) { if(msg) conoutf(CON_WARN, "could not load model: %s", preloadmodels[i]); }
+        else
+        {
+            m->preloadmeshes();
+            m->preloadshaders();
+        }
     }
     preloadmodels.deletearrays();
     loadprogress = 0;
@@ -334,7 +340,7 @@ model *loadmodel(const char *name, int i, bool msg)
     if(mm) m = *mm;
     else
     {
-        if(loadingmodel) return NULL;
+        if(!name[0] || loadingmodel) return NULL;
         if(msg)
         {
             defformatstring(filename)("data/models/%s", name);
@@ -354,12 +360,6 @@ model *loadmodel(const char *name, int i, bool msg)
     }
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
-}
-
-void preloadmodelshaders()
-{
-    if(initing) return;
-    enumerate(mdllookup, model *, m, m->preloadshaders());
 }
 
 void clear_mdls()
@@ -944,6 +944,7 @@ void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelatt
     if(d->type==ENT_PLAYER) flags |= MDL_FULLBRIGHT;
     else flags |= MDL_CULL_DIST;
     if(d->state==CS_LAGGED) fade = min(fade, 0.3f);
+    if(modelpreviewing) flags &= ~(MDL_FULLBRIGHT | MDL_CULL_VFC | MDL_CULL_OCCLUDED | MDL_CULL_QUERY | MDL_CULL_DIST);
 
     // INTENSITY: If using the attack1 or 2 animations, then the start time (basetime) is determined by our action system
     // TODO: Other attacks as well

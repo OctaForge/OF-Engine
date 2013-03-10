@@ -164,7 +164,7 @@ void initsound()
     if(!sound || Mix_OpenAudio(soundfreq, MIX_DEFAULT_FORMAT, 2, soundbufferlen)<0)
     {
         nosound = true;
-        if(sound) conoutf(CON_ERROR, "sound init failed (SDL_mixer): %s", (size_t)Mix_GetError());
+        if(sound) conoutf(CON_ERROR, "sound init failed (SDL_mixer): %s", Mix_GetError());
         return;
     }
     Mix_AllocateChannels(soundchans);    
@@ -434,7 +434,7 @@ void updatesounds()
     }
 }
 
-VARP(maxsoundsatonce, 0, 5, 100);
+VARP(maxsoundsatonce, 0, 7, 100);
 
 VAR(dbgsound, 0, 0, 1);
 

@@ -85,7 +85,7 @@ namespace logger
 #ifdef CLIENT
         if (level == ERROR)
         {
-            conoutf(CON_ERROR, types::String().format(
+            conoutf(CON_ERROR, "%s", types::String().format(
                 "[[%s]] - %s", level_s, buf.get_buf()
             ).get_buf());
         }

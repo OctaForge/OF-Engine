@@ -15,6 +15,7 @@ GLuint aofbo[3] = { 0, 0, 0 }, aotex[3] = { 0, 0, 0 }, aonoisetex = 0;
 glmatrixf eyematrix, worldmatrix, linearworldmatrix;
 
 extern int bloomsize, bloomprec;
+extern int ati_pf_bug;
 
 void setupbloom(int w, int h)
 {
@@ -32,7 +33,7 @@ void setupbloom(int w, int h)
 
     loopi(5) if(!bloomfbo[i]) glGenFramebuffers_(1, &bloomfbo[i]);
 
-    bloomformat = bloomprec >= 3 && hasTF ? GL_RGB16F_ARB : (bloomprec >= 2 && hasPF ? GL_R11F_G11F_B10F_EXT : (bloomprec >= 1 ? GL_RGB10 : GL_RGB));
+    bloomformat = bloomprec >= 3 && hasTF ? GL_RGB16F_ARB : (bloomprec >= 2 && hasPF && !ati_pf_bug ? GL_R11F_G11F_B10F_EXT : (bloomprec >= 1 ? GL_RGB10 : GL_RGB));
     createtexture(bloomtex[0], max(gw/2, bloomw), max(gh/2, bloomh), NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE_ARB);
     createtexture(bloomtex[1], max(gw/4, bloomw), max(gh/4, bloomh), NULL, 3, 1, bloomformat, GL_TEXTURE_RECTANGLE_ARB);
     createtexture(bloomtex[2], bloomw, bloomh, NULL, 3, 1, GL_RGB, GL_TEXTURE_RECTANGLE_ARB);
@@ -316,7 +317,7 @@ void setupinferred(int w, int h)
 
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, infbo);
 
-    GLenum infmt = inferprec >= 3 && hasTF ? GL_RGB16F_ARB : (inferprec >= 2 && hasPF ? GL_R11F_G11F_B10F_EXT : (inferprec >= 1 ? GL_RGB10 : GL_RGB));
+    GLenum infmt = inferprec >= 3 && hasTF ? GL_RGB16F_ARB : (inferprec >= 2 && hasPF && !ati_pf_bug ? GL_R11F_G11F_B10F_EXT : (inferprec >= 1 ? GL_RGB10 : GL_RGB));
 
     loopi(2)
     {
@@ -529,7 +530,7 @@ void setupgbuffer(int w, int h)
 
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, hdrfbo);
 
-    hdrformat = hdr ? (hdrprec >= 3 && hasTF ? GL_RGB16F_ARB : (hdrprec >= 2 && hasPF ? GL_R11F_G11F_B10F_EXT : (hdrprec >= 1 ? GL_RGB10 : GL_RGB))) : GL_RGB;
+    hdrformat = hdr ? (hdrprec >= 3 && hasTF ? GL_RGB16F_ARB : (hdrprec >= 2 && hasPF && !ati_pf_bug ? GL_R11F_G11F_B10F_EXT : (hdrprec >= 1 ? GL_RGB10 : GL_RGB))) : GL_RGB;
     hdrfloat = floatformat(hdrformat);
     createtexture(hdrtex, gw, gh, NULL, 3, 1, hdrformat, GL_TEXTURE_RECTANGLE_ARB);
 
@@ -621,7 +622,7 @@ VARFP(hdrprec, 0, 2, 3, cleanupgbuffer());
 FVARFP(hdrgamma, 1e-3f, 2, 1e3f, initwarning("HDR setup", INIT_LOAD, CHANGE_SHADERS));
 FVARR(hdrbright, 1e-4f, 1.0f, 1e4f);
 FVAR(hdrsaturate, 1e-3f, 0.8f, 1e3f);
-FVARFP(gscale, 1e-3f, 1, 1, cleanupgbuffer());
+FVARFP(gscale, 0.25f, 1, 1, cleanupgbuffer());
 
 float ldrscale = 1.0f, ldrscaleb = 1.0f/255;
 
@@ -897,7 +898,7 @@ void setupradiancehints()
 
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, rsmfbo);
 
-    GLenum rsmformat = rsmprec >= 3 && hasTF ? GL_RGB16F_ARB : (rsmprec >= 2 && hasPF ? GL_R11F_G11F_B10F_EXT : (rsmprec >= 1 ? GL_RGB10 : GL_RGBA8));
+    GLenum rsmformat = rsmprec >= 3 && hasTF ? GL_RGB16F_ARB : (rsmprec >= 2 && hasPF && !ati_pf_bug ? GL_R11F_G11F_B10F_EXT : (rsmprec >= 1 ? GL_RGB10 : GL_RGBA8));
 
     createtexture(rsmdepthtex, rsmsize, rsmsize, NULL, 3, 0, GL_DEPTH_COMPONENT16_ARB, GL_TEXTURE_RECTANGLE_ARB);
     createtexture(rsmcolortex, rsmsize, rsmsize, NULL, 3, 0, rsmformat, GL_TEXTURE_RECTANGLE_ARB);
@@ -1762,7 +1763,7 @@ Shader *loaddeferredlightshader(const char *type = NULL)
 void loaddeferredlightshaders()
 {
     deferredlightshader = loaddeferredlightshader();
-    if(inferlights)
+    if(inferlights && ((gdepthstencil && hasDS) || gstencil))
     {
         inferredprelightshader = loaddeferredlightshader("i");
         inferredlightshader = useshaderbyname("inferredlight");
@@ -2876,8 +2877,6 @@ void radiancehints::renderslices()
             glEnd();
         }
     }
-
-    glClearColor(0, 0, 0, 0);
 }
 
 VAR(rhinoq, 0, 0, 1);
@@ -3456,11 +3455,8 @@ void rendertransparent()
 VAR(gdepthclear, 0, 1, 1);
 VAR(gcolorclear, 0, 1, 1);
 
-void rendergbuffer()
+void preparegbuffer()
 {
-    timer *gcputimer = begintimer("g-buffer", false);
-    timer *gtimer = begintimer("g-buffer");
-
     glBindFramebuffer_(GL_FRAMEBUFFER_EXT, gfbo);
     glViewport(0, 0, vieww, viewh);
 
@@ -3470,9 +3466,9 @@ void rendergbuffer()
         if(gdepthformat == 1) glClearColor(1, 1, 1, 1);
         else glClearColor(-farplane, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(0, 0, 0, 0);
         maskgbuffer("cng");
     }
+    if(gcolorclear) glClearColor(0, 0, 0, 0);
     glClear((minimapping < 2 ? GL_DEPTH_BUFFER_BIT : 0)|(gcolorclear ? GL_COLOR_BUFFER_BIT : 0)|(minimapping < 2 && ((gdepthstencil && hasDS) || gstencil) ? GL_STENCIL_BUFFER_BIT : 0));
     if(gdepthformat && gdepthclear) maskgbuffer("cngd");
 
@@ -3508,6 +3504,15 @@ void rendergbuffer()
     GLOBALPARAM(gdepthunpackparams, (-farplane, -farplane/255.0f, -farplane/(255.0f*255.0f)));
 
     GLERROR;
+}
+
+void rendergbuffer()
+{
+    timer *gcputimer = envmapping ? NULL : begintimer("g-buffer", false);
+    timer *gtimer = envmapping ? NULL : begintimer("g-buffer");
+
+    preparegbuffer();
+
     if(limitsky())
     {
         renderexplicitsky();
@@ -3518,7 +3523,8 @@ void rendergbuffer()
     resetmodelbatches();
     rendermapmodels();
     GLERROR;
-    if(minimapping)
+
+    if(minimapping) 
     {
         renderminimapmaterials();
     }
@@ -3554,6 +3560,68 @@ void shademinimap(const vec &color)
 
     renderlights();
     GLERROR;
+}
+
+void shademodelpreview(int x, int y, int w, int h, bool background, bool scissor)
+{
+    GLERROR;
+
+    GLuint outfbo = w > vieww || h > viewh ? scalefbo : 0;
+    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, outfbo);
+    glViewport(outfbo ? 0 : x, outfbo ? 0 : y, vieww, viewh);
+
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gcolortex);
+    glActiveTexture_(GL_TEXTURE1_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gnormaltex);
+    glActiveTexture_(GL_TEXTURE2_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gglowtex);
+    glActiveTexture_(GL_TEXTURE3_ARB);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gdepthtex);
+    glActiveTexture_(GL_TEXTURE0_ARB);
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadMatrixf(worldmatrix.v);
+    glMatrixMode(GL_MODELVIEW);
+
+    float lightscale = 2.0f*ldrscale;
+    GLOBALPARAM(lightscale, (0.1f*lightscale, 0.1f*lightscale, 0.1f*lightscale, lightscale));
+    GLOBALPARAM(sunlightdir, (vec(0, -1, 2).normalize()));
+    GLOBALPARAM(sunlightcolor, (0.6f*lightscale, 0.6f*lightscale, 0.6f*lightscale));
+
+    SETSHADER(modelpreview);
+
+    if(background || outfbo)
+    {
+        if(!outfbo && scissor) glEnable(GL_SCISSOR_TEST);
+        screenquad(vieww, viewh);
+        if(!outfbo && scissor) glDisable(GL_SCISSOR_TEST);
+
+        if(outfbo)
+        {
+           glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0); 
+           glViewport(x, y, w, h);
+           glBindTexture(GL_TEXTURE_RECTANGLE_ARB, scaletex);
+           SETSHADER(scale);
+        }
+    }
+    
+    if(!background)
+    {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+        if(scissor) glEnable(GL_SCISSOR_TEST);
+        screenquad(vieww, viewh);
+        if(scissor) glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_BLEND);
+    }
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+
+    GLERROR;
+    
+    glViewport(0, 0, screen->w, screen->h);
 }
  
 void shadegbuffer()
@@ -3614,7 +3682,7 @@ void setupframe(int w, int h)
     setupgbuffer(w, h);
     if(hdr && (bloomw < 0 || bloomh < 0)) setupbloom(gw, gh);
     if(ao && (aow < 0 || aoh < 0)) setupao(gw, gh);
-    if(inferlights && !infbo) setupinferred(gw, gh);
+    if(inferlights && ((gdepthstencil && hasDS) || gstencil) && !infbo) setupinferred(gw, gh);
     if(!shadowatlasfbo) setupshadowatlas();
     if(sunlight && csmshadowmap && gi && giscale && gidist && !rhfbo) setupradiancehints();
     if(!deferredlightshader) loaddeferredlightshaders();
