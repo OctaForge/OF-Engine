@@ -30,13 +30,34 @@ gdepthpackfrag = function()
             gl_FragData[3].rgb = packdepth;
         ]] end end
 
+gpackdepth = function(arg1, arg2)
+    return ([[
+        vec3 @(arg1) = @(arg2) * gdepthpackparams;
+        @(arg1) = vec3(@(arg1).x, fract(@(arg1).yz));
+        @(arg1).xy -= @(arg1).yz * (1.0/255.0);
+    ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2 })
+end
+
 gdepthunpackparams = [[
     uniform vec3 gdepthscale;
     uniform vec3 gdepthunpackparams;
 ]]
 
-gdepthunpack = function(arg1, arg2, arg3, arg4, arg5, arg6)
-    if EV.gdepthformat ~= 0 or arg6 then
+gdepthunpack = function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+    if arg7 then
+        if arg8 then
+            return ([[
+            vec3 @(arg8) = texture2DRect(@(arg2), @(arg3)).rgb;
+            float @(arg1) = dot(@(arg8), gdepthunpackparams); 
+            @(arg4)
+            ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3, arg4 = arg4, arg8 = arg8 })
+        else
+            return ([[
+            float @(arg1) = dot(texture2DRect(@(arg2), @(arg3)).rgb, gdepthunpackparams); 
+            @(arg4)
+            ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3, arg4 = arg4 })
+        end
+    elseif EV.gdepthformat ~= 0 or arg6 then
         return ((EV.gdepthformat > 1 or arg6) and [[
             float @(arg1) = texture2DRect(@(arg2), @(arg3)).r;
             @(arg4)
@@ -50,7 +71,9 @@ gdepthunpack = function(arg1, arg2, arg3, arg4, arg5, arg6)
         ]] or [[
             float @(arg1) = texture2DRect(@(arg2), @(arg3)).r;
             @(arg5)
-        ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3, arg5 = arg5 }) end end
+        ]]):eval_embedded(nil, { arg1 = arg1, arg2 = arg2, arg3 = arg3, arg5 = arg5 })
+    end
+end
 
 
 gdepthunpackproj = function(arg1, arg2, arg3, arg4, arg5, arg6)
@@ -2192,15 +2215,14 @@ CAPI.shader(0, "hdrreduce", [[
 ]])
 
 CAPI.shader(0, "hdrreduce2", [[
-    uniform vec2 reducestep;
     varying vec2 tap0, tap1, tap2, tap3;
     void main(void)
     {
         gl_Position = gl_Vertex;
-        tap0 = gl_MultiTexCoord0.xy + vec2(-1.0, -1.0)*reducestep;
-        tap1 = gl_MultiTexCoord0.xy + vec2( 1.0, -1.0)*reducestep;
-        tap2 = gl_MultiTexCoord0.xy + vec2( 1.0,  1.0)*reducestep;
-        tap3 = gl_MultiTexCoord0.xy + vec2(-1.0,  1.0)*reducestep;
+        tap0 = gl_MultiTexCoord0.xy + vec2(-1.0, -1.0);
+        tap1 = gl_MultiTexCoord0.xy + vec2( 1.0, -1.0);
+        tap2 = gl_MultiTexCoord0.xy + vec2( 1.0,  1.0);
+        tap3 = gl_MultiTexCoord0.xy + vec2(-1.0,  1.0);
     }
 ]], [[
     #extension GL_ARB_texture_rectangle : enable
@@ -2249,15 +2271,14 @@ CAPI.shader(0, "hdrluminance", [[
 ]]):eval_embedded(nil, { lumweights = lumweights }, _G))
 
 CAPI.shader(0, "hdrluminance2", [[
-    uniform vec2 reducestep;
     varying vec2 tap0, tap1, tap2, tap3;
     void main(void)
     {
         gl_Position = gl_Vertex;
-        tap0 = gl_MultiTexCoord0.xy + vec2(-1.0, -1.0)*reducestep;
-        tap1 = gl_MultiTexCoord0.xy + vec2( 1.0, -1.0)*reducestep;
-        tap2 = gl_MultiTexCoord0.xy + vec2( 1.0,  1.0)*reducestep;
-        tap3 = gl_MultiTexCoord0.xy + vec2(-1.0,  1.0)*reducestep;
+        tap0 = gl_MultiTexCoord0.xy + vec2(-1.0, -1.0);
+        tap1 = gl_MultiTexCoord0.xy + vec2( 1.0, -1.0);
+        tap2 = gl_MultiTexCoord0.xy + vec2( 1.0,  1.0);
+        tap3 = gl_MultiTexCoord0.xy + vec2(-1.0,  1.0);
     }
 ]], ([=[
     #extension GL_ARB_texture_rectangle : enable
@@ -2454,6 +2475,7 @@ aotapoffsets = {
 
 ambientobscurancevariantshader = function(arg1, arg2, arg3)
     local lineardepth = arg2:find("l") ~= 0
+    local packeddepth = arg2:find("p") ~= 0
     local maxaotaps   = arg3
     CAPI.shader(0, arg1, [[
         void main(void)
@@ -2462,19 +2484,21 @@ ambientobscurancevariantshader = function(arg1, arg2, arg3)
             gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
             gl_TexCoord[1].xy = gl_MultiTexCoord1.xy;
         }
-    ]], ([=[
+    ]], ([==[
         #extension GL_ARB_texture_rectangle : enable
         uniform sampler2DRect tex0, tex1;
         uniform sampler2D tex2;
         uniform vec3 tapparams;
         uniform vec2 contrastparams;
         uniform vec4 offsetscale;
+        uniform float prefilterdepth;
         @(lineardepth and [[
             #define depthtc gl_FragCoord.xy
         ]] or [[
             #define depthtc gl_TexCoord[0].xy
         ]])
         @(gdepthunpackparams)
+        uniform vec3 gdepthpackparams;
         void main(void)
         {
             @(gdepthunpack("depth", "tex0", "depthtc", [[
@@ -2483,7 +2507,7 @@ ambientobscurancevariantshader = function(arg1, arg2, arg3)
                 float w = depth*gdepthscale.y + gdepthscale.z;
                 depth = gdepthscale.x/w;
                 vec2 tapscale = tapparams.xy*w;
-            ]], lineardepth))
+            ]], lineardepth, (lineardepth and EV.aodepthformat == 0 or EV.gdepthformat == 1), "packdepth"))
             vec2 pos = depth*(depthtc*offsetscale.xy + offsetscale.zw);
             vec3 normal = texture2DRect(tex1, gl_TexCoord[0].xy).rgb*2.0 - 1.0;
             normal = (gl_ModelViewMatrix * vec4(normal, 0.0)).xyz;
@@ -2492,14 +2516,25 @@ ambientobscurancevariantshader = function(arg1, arg2, arg3)
             @(([[
                 vec2 offset$i = reflect(vec2(@(aotapoffsets[$i + 1])), noise);
                 offset$i = depthtc + tapscale * offset$i;
-                @(gdepthunpack("depth$i", "tex0", "offset$i.xy", "", "", lineardepth))
+                @(gdepthunpack("depth$i", "tex0", "offset$i.xy", "", "", lineardepth, lineardepth and EV.aodepthformat == 0))
                 vec3 v$i = vec3(depth$i*(offset$i.xy*offsetscale.xy + offsetscale.zw) - pos, depth$i - depth);
                 float dist2$i = dot(v$i, v$i);
                 obscure += step(dist2$i, tapparams.z) * max(0.0, dot(v$i, normal) + depth*1.0e-2) / (dist2$i + 1.0e-5);
             ]]):reppn("$i", 0, maxaotaps))
-            gl_FragColor.rg = vec2(pow(clamp(1.0 - contrastparams.x*obscure, 0.0, 1.0), contrastparams.y), depth);
+            obscure = pow(clamp(1.0 - contrastparams.x*obscure, 0.0, 1.0), contrastparams.y);
+            vec2 weights = step(fwidth(depth), prefilterdepth) * (2.0*fract((gl_FragCoord.xy - 0.5)*0.5) - 0.5);
+            obscure -= dFdx(obscure) * weights.x;
+            obscure -= dFdy(obscure) * weights.y;
+            @(packeddepth and (EV.aodepthformat ~= 0 and [[
+                gl_FragColor.rg = vec2(obscure, depth);
+            ]] or [[
+                @((not lineardepth and EV.gdepthformat ~= 1) and gpackdepth("packdepth", "depth") or nil)
+                gl_FragColor = vec4(packdepth, obscure);
+            ]]) or [[
+                gl_FragColor = vec4(obscure, 0.0, 0.0, 1.0);
+            ]])
         }
-    ]=]):eval_embedded(nil, { lineardepth = lineardepth, maxaotaps = maxaotaps }, _G)) end
+    ]==]):eval_embedded(nil, { lineardepth = lineardepth, packeddepth = packeddepth, maxaotaps = maxaotaps }, _G)) end
 
 ambientobscuranceshader = function(arg1, arg2)
     ambientobscurancevariantshader(("ambientobscurance%s%i"):format(arg1, arg2), arg1, arg2) end
@@ -2510,16 +2545,25 @@ CAPI.shader(0, "linearizedepth", [[
         gl_Position = gl_Vertex;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
     }
-]], ([[
+]], ([=[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     @(gdepthunpackparams)
+    uniform vec3 gdepthpackparams;
     void main(void)
     {
-        @(gdepthunpack("depth", "tex0", "gl_TexCoord[0].xy"))
-        gl_FragColor.r = depth;
+        @(EV.aodepthformat == 0 and (EV.gdepthformat == 1 and [[
+            gl_FragColor = texture2DRect(tex0, gl_TexCoord[0].xy);
+        ]] or [[
+            @(gdepthunpack("depth", "tex0", "gl_TexCoord[0].xy"))
+            @(gpackdepth("packdepth", "depth"))
+            gl_FragColor = vec4(packdepth, 1.0);
+        ]]) or [[
+            @(gdepthunpack("depth", "tex0", "gl_TexCoord[0].xy"))
+            gl_FragColor.r = depth;
+        ]])
     }
-]]):eval_embedded())
+]=]):eval_embedded())
 
 bilateralvariantshader = function(arg1, arg2, arg3, arg4)
     local reduced   = arg2:find("r") ~= nil
@@ -2548,56 +2592,73 @@ bilateralvariantshader = function(arg1, arg2, arg3, arg4)
         @(gdepthunpackparams)
         void main(void)
         {
-            @(linear and (packed and [[
-                vec2 vals = texture2DRect(tex0, gl_FragCoord.xy).rg;
-                #define depth vals.y
-                #define color vals.x
+            @(linear and (packed and (EV.aodepthformat ~= 0 and [[
+                    vec2 vals = texture2DRect(tex0, gl_FragCoord.xy).rg;
+                    #define color vals.x
+                    #define depth vals.y
             ]] or [[
-                vec2 tc = gl_FragCoord.xy;
-                float depth = texture2DRect(tex1, tc).r;
-                float color = texture2DRect(tex0, tc).r;
-            ]]) or (reduced and [[
-                @(gdepthunpack("depth", "tex1", "gl_TexCoord[0].xy"))
+                    vec4 vals = texture2DRect(tex0, gl_FragCoord.xy);
+                    #define color vals.a
+                    float depth = dot(vals.rgb, gdepthunpackparams);     
+            ]]) or [[
                 float color = texture2DRect(tex0, gl_FragCoord.xy).r;
+                @(EV.aodepthformat ~= 0 and
+                    "float depth = texture2DRect(tex1, gl_FragCoord.xy).r;"
+                    or
+                    "float depth = dot(texture2DRect(tex1, gl_FragCoord.xy).rgb, gdepthunpackparams);"
+                )
+            ]]) or (reduced and [[
+                float color = texture2DRect(tex0, gl_FragCoord.xy).r;
+                @(gdepthunpack("depth", "tex1", "gl_TexCoord[0].xy"))
             ]] or [[
-                vec2 tc = gl_FragCoord.xy;
-                @(gdepthunpack("depth", "tex1", "tc"))
-                float color = texture2DRect(tex0, tc).r;
+                float color = texture2DRect(tex0, gl_FragCoord.xy).r;
+                @(gdepthunpack("depth", "tex1", "gl_FragCoord.xy"))
             ]]))
             float weights = 1.0;
             @(([==[
                 @(
                     local curtap = $i - numtaps
                     if curtap >= 0 then curtap = curtap + 1 end
+                    local curtapoffset = curtap * 2
                     local ret = ([=[
-                        @(linear and (packed and [[
-                            vec2 vals$i = texture2DRect(tex0, gl_FragCoord.xy + tapoffset(@(("%.1f"):format($curtap)))).rg;
-                            #define depth$i vals$i.y
+                        @(linear and (packed and (EV.aodepthformat ~= 0 and [[
+                            vec2 vals$i = texture2DRect(tex0, gl_FragCoord.xy + tapoffset($curtapoffset)).rg;
                             #define color$i vals$i.x
+                            #define depth$i vals$i.y
                         ]] or [[
-                            vec2 tc$i = gl_FragCoord.xy + tapoffset(@(("%.1f"):format($curtap)));
-                            float depth$i = texture2DRect(tex1, tc$i).r;
+                            vec4 vals$i = texture2DRect(tex0, gl_FragCoord.xy + tapoffset($curtapoffset));
+                            #define color$i vals$i.a
+                            float depth$i = dot(vals$i.rgb, gdepthunpackparams);     
+                        ]]) or [[
+                            vec2 tc$i = gl_FragCoord.xy + tapoffset($curtapoffset);
                             float color$i = texture2DRect(tex0, tc$i).r;
+                            @(EV.aodepthformat ~= 0 and
+                                "float depth$i = texture2DRect(tex1, tc$i).r;"
+                                or
+                                "float depth$i = dot(texture2DRect(tex1, tc$i).rgb, gdepthunpackparams);"
+                            )
                         ]]) or (reduced and [[
-                            @(gdepthunpack("depth$i", "tex1", "gl_TexCoord[0].xy + viewoffset(@(("%.1f"):format($curtap)))"))
-                            float color$i = texture2DRect(tex0, gl_FragCoord.xy + tapoffset(@(("%.1f"):format($curtap)))).r;
+                            float color$i = texture2DRect(tex0, gl_FragCoord.xy + tapoffset($curtapoffset)).r;
+                            @(gdepthunpack("depth$i", "tex1", "gl_TexCoord[0].xy + viewoffset($curtapoffset)"))
                         ]] or [[
-                            vec2 tc$i = gl_FragCoord.xy + tapoffset(@(("%.1f"):format($curtap)));
-                            @(gdepthunpack("depth$i", "tex1", "tc$i"))
+                            vec2 tc$i = gl_FragCoord.xy + tapoffset($curtapoffset);
                             float color$i = texture2DRect(tex0, tc$i).r;
+                            @(gdepthunpack("depth$i", "tex1", "tc$i"))
                         ]]))
                         depth$i -= depth;
                         float weight$i = exp(@(("%.1f"):format(0 - $curtap * $curtap))*bilateralparams.x - depth$i*depth$i*bilateralparams.y); 
                         weights += weight$i;
                         color += weight$i * color$i;
-                    ]=]):gsub("$curtap", tostring(curtap))
+                    ]=]):gsub("$curtapoffset", tostring(curtapoffset)):gsub("$curtap", tostring(curtap))
                     return ret
                 )
             ]==]):reppn("$i", 0, 2 * numtaps))
-            @(packed and [[
+            @((packed and filterdir == "x") and (EV.aodepthformat ~= 0 and [[
                 gl_FragColor.rg = vec2(color / weights, depth);
             ]] or [[
-                gl_FragColor.rgb = vec3(color / weights);
+                gl_FragColor = vec4(vals.rgb, color / weights);
+            ]]) or [[
+                gl_FragColor = vec4(color / weights, 0.0, 0.0, 1.0);
             ]])
         }
     ]===]):eval_embedded(nil, { reduced = reduced, linear = linear, packed = packed, numtaps = numtaps, filterdir = filterdir }, _G)) end
@@ -3096,7 +3157,7 @@ CAPI.shader(0, "refractmask", [[
     #extension GL_ARB_texture_rectangle : enable
     uniform sampler2DRect tex0;
     @(gdepthunpackparams)
-    uniform vec4 gdepthpackparams;
+    uniform vec3 gdepthpackparams;
     varying float lineardepth;
     uniform float refractdepth;
     void main(void)
@@ -3106,9 +3167,7 @@ CAPI.shader(0, "refractmask", [[
             float depth = dot(packdepth, gdepthunpackparams);
         ]] or [[
             @(gdepthunpack("depth", "tex0", "gl_FragCoord.xy")) 
-            vec3 packdepth = depth * gdepthpackparams.xyz;
-            packdepth.yz = fract(packdepth.yz);
-            packdepth.xy -= packdepth.yz * (1.0/255.0);
+            @(gpackdepth("packdepth", "depth"))
         ]])
         gl_FragColor = vec4(packdepth, clamp(refractdepth*(lineardepth - depth), 0.0, 1.0));
     }
@@ -3200,9 +3259,11 @@ watershader = function(arg1)
                 rcolor = mix(rcolor, waterdeepcolor, clamp(deep * waterdeepfade, 0.0, 1.0));
             ]=])
 
+            vec3 reflectdir = -reflect(camvec, bump);
+            reflectdir.z = abs(reflectdir.z);
             @(arg1:find("reflect") ~= nil and [==[
-                vec3 reflectdir = reflect(camvec, bump);
-                vec3 edir = (gl_TextureMatrix[1] * vec4(-waterreflect.w*reflectdir, 0.0)).xyz;
+                reflectdir.z += 0.125;
+                vec3 edir = (gl_TextureMatrix[1] * vec4(waterreflect.w*reflectdir, 0.0)).xyz;
                 vec3 epos = esurface + edir;
                 @(([=[
                     @(gdepthunpackproj("edepth$i", "tex9", "epos", [[
@@ -3214,11 +3275,11 @@ watershader = function(arg1)
                 ]=]):reppn("$i", 0, 4))
                 vec2 etc = epos.xy/epos.z;
                 vec3 reflect = texture2DRect(tex8, etc).rgb * waterreflect.xyz;
-                float edgefade = clamp(4.0*(0.5 - max(abs(etc.x*viewsize.z - 0.5), abs(etc.y*viewsize.w - 0.5))), 0.0, 1.0);
+                float edgefade = clamp(4.0*(0.5 - max(abs(etc.x*viewsize.z - 0.5)*0.75 + 0.25/4.0, abs(etc.y*viewsize.w - 0.5))), 0.0, 1.0);
                 float fresnel = 0.25 + 0.75*pow(clamp(1.0 - dot(camvec, bump), 0.0, 1.0), 4.0);
-                rcolor = mix(rcolor, reflect, fresnel*edgefade*clamp(-8.0*reflectdir.z, 0.0, 1.0));
+                rcolor = mix(rcolor, reflect, fresnel*edgefade);
             ]==] or (arg1:find("env") ~= nil and [[
-                vec3 reflect = textureCube(tex4, -reflect(camvec, bump)).rgb*0.5;
+                vec3 reflect = textureCube(tex4, reflectdir).rgb*0.5;
                 float fresnel = 0.5*pow(clamp(1.0 - dot(camvec, bump), 0.0, 1.0), 4.0);
                 rcolor = mix(rcolor, reflect, fresnel);
             ]] or nil))

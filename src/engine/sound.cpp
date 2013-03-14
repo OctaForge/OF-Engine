@@ -305,13 +305,18 @@ void clear_sound()
     samples.clear();
 }
 
-void clearmapsounds()
+void stopmapsounds()
 {
     loopv(channels) if(channels[i].inuse && channels[i].ent)
     {
         Mix_HaltChannel(i);
         freechannel(i);
     }
+}
+
+void clearmapsounds()
+{
+    stopmapsounds();
     mapslots.setsize(0);
     mapsounds.setsize(0);
 }
@@ -410,7 +415,9 @@ void updatesounds()
 {
     updatemumble();
     if(nosound) return;
-    checkmapsounds();
+    if(minimized) stopsounds();
+    else if(gui_mainmenu) stopmapsounds();
+    else checkmapsounds();
     int dirty = 0;
     loopv(channels)
     {
@@ -458,7 +465,7 @@ static Mix_Chunk *loadwav(const char *name)
 
 int playsound(int n, const vec *loc, extentity *ent, int loops, int fade, int chanid, int radius, int expire, int vol) // SAUER ENHANCED - volume for playsound
 {
-    if(nosound || !soundvol) return -1;
+    if(nosound || !soundvol || minimized) return -1;
 
     vector<soundslot> &slots = ent ? mapslots : gameslots;
     vector<soundconfig> &sounds = ent ? mapsounds : gamesounds;
