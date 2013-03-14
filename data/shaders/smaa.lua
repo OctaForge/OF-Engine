@@ -80,7 +80,11 @@ smaadefs = ([[
     #define SMAA_SEARCHTEX_HEIGHT 33
 ]]):eval_embedded()
 
-CAPI.shader(0, "SMAALumaEdgeDetection" .. smaapreset, [[
+if smaaopts:find("t") ~= nil then smaadefs = smaadefs .. [[
+    #define SMAA_AREATEX_SUBSAMPLES 80
+]] end
+
+CAPI.shader(0, "SMAALumaEdgeDetection" .. smaapreset .. smaaopts, [[
     void main(void)
     {
         gl_Position = gl_Vertex;
@@ -142,7 +146,7 @@ CAPI.shader(0, "SMAALumaEdgeDetection" .. smaapreset, [[
     }
 ]]):eval_embedded())
 
-CAPI.shader(0, "SMAAColorEdgeDetection" .. smaapreset, [[
+CAPI.shader(0, "SMAAColorEdgeDetection" .. smaapreset .. smaaopts, [[
     void main(void)
     {
         gl_Position = gl_Vertex;
@@ -191,7 +195,7 @@ CAPI.shader(0, "SMAAColorEdgeDetection" .. smaapreset, [[
     }
 ]]):eval_embedded())
 
-CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset, ([[
+CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset .. smaaopts, ([[
     @(smaadefs)
     void main(void)
     {
@@ -206,6 +210,7 @@ CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset, ([[
     #extension GL_ARB_texture_rectangle : enable
     @(smaadefs)
     uniform sampler2DRect tex0, tex1, tex2;
+    uniform float subsamples;
 
     //-----------------------------------------------------------------------------
     // Diagonal Search Functions
@@ -253,6 +258,18 @@ CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset, ([[
         // Diagonal areas are on the second half of the texture:
         texcoord.x += 0.5*float(SMAA_AREATEX_WIDTH);
 
+        #ifdef SMAA_AREATEX_SUBSAMPLES
+        // Move to proper place, according to the subpixel offset:
+        texcoord.y += subsamples*float(SMAA_AREATEX_SUBSAMPLES);
+        #endif
+
+        return texture2DRect(tex1, texcoord).ra;
+    }
+
+    vec2 SMAAAreaDiagNoSub(vec2 dist, vec2 e) {
+        vec2 texcoord = float(SMAA_AREATEX_MAX_DISTANCE_DIAG) * e + dist;
+        texcoord = texcoord + 0.5;
+        texcoord.x += 0.5*float(SMAA_AREATEX_WIDTH);
         return texture2DRect(tex1, texcoord).ra;
     }
 
@@ -294,7 +311,7 @@ CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset, ([[
             vec2 e = 2.0 * c.xz + c.yw;
             e *= step(d.rg, vec2(float(SMAA_MAX_SEARCH_STEPS_DIAG) - 1.0));
 
-            weights += SMAAAreaDiag(d, e).gr;
+            weights += SMAAAreaDiagNoSub(d, e).gr;
         }
 
         return weights;
@@ -327,46 +344,45 @@ CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset, ([[
          * which edges are active from the four fetched ones.
          */
         vec2 e = texture2DRect(tex0, texcoord).rg;
-        float i;
-        for(i = -2.0; i > -2.0*float(SMAA_MAX_SEARCH_STEPS); i -= 2.0) {
+        for(int i = 1; i < SMAA_MAX_SEARCH_STEPS; i++) {
             if(e.g <= 0.8281 || e.r > 0.0) break; // Is there some edge not activated or a crossing edge that breaks the line?
-            e = texture2DRect(tex0, texcoord + vec2(i, 0.0)).rg;
+            texcoord.x -= 2.0;
+            e = texture2DRect(tex0, texcoord).rg;
         }
         // We correct the previous (-0.25, -0.125) offset we applied:
         // The searches are bias by 1, so adjust the coords accordingly:
         // Disambiguate the length added by the last step:
-        // Undo last step
-        return texcoord.x + i + (0.25 + 1.0 + 2.0) - SMAASearchLength(e, 0.0, 0.5);
+        return texcoord.x + (0.25 + 1.0) - SMAASearchLength(e, 0.0, 0.5);
     }
 
     float SMAASearchXRight(vec2 texcoord) {
         vec2 e = texture2DRect(tex0, texcoord).rg;
-        float i;
-        for(i = 2.0; i < 2.0*float(SMAA_MAX_SEARCH_STEPS); i += 2.0) {
+        for(int i = 1; i < SMAA_MAX_SEARCH_STEPS; i++) {
             if(e.g <= 0.8281 || e.r > 0.0) break; // Is there some edge not activated or a crossing edge that breaks the line?
-            e = texture2DRect(tex0, texcoord + vec2(i, 0.0)).rg;
+            texcoord.x += 2.0;
+            e = texture2DRect(tex0, texcoord).rg;
         }
-        return texcoord.x + i - (0.25 + 1.0 + 2.0) + SMAASearchLength(e, 0.5, 0.5);
+        return texcoord.x - (0.25 + 1.0) + SMAASearchLength(e, 0.5, 0.5);
     }
 
     float SMAASearchYUp(vec2 texcoord) {
         vec2 e = texture2DRect(tex0, texcoord).rg;
-        float i;
-        for(i = -2.0; i > -2.0*float(SMAA_MAX_SEARCH_STEPS); i -= 2.0) {
+        for(int i = 1; i < SMAA_MAX_SEARCH_STEPS; i++) {
             if(e.r <= 0.8281 || e.g > 0.0) break; // Is there some edge not activated or a crossing edge that breaks the line?
-            e = texture2DRect(tex0, texcoord + vec2(0.0, i)).rg;
+            texcoord.y -= 2.0;
+            e = texture2DRect(tex0, texcoord).rg;
         }
-        return texcoord.y + i + (0.25 + 1.0 + 2.0) - SMAASearchLength(e.gr, 0.0, 0.5);
+        return texcoord.y + (0.25 + 1.0) - SMAASearchLength(e.gr, 0.0, 0.5);
     }
 
     float SMAASearchYDown(vec2 texcoord) {
         vec2 e = texture2DRect(tex0, texcoord).rg;
-        float i;
-        for(i = 2.0; i < 2.0*float(SMAA_MAX_SEARCH_STEPS); i += 2.0) {
+        for(int i = 1; i < SMAA_MAX_SEARCH_STEPS; i++) {
             if(e.r <= 0.8281 || e.g > 0.0) break; // Is there some edge not activated or a crossing edge that breaks the line?
-            e = texture2DRect(tex0, texcoord + vec2(0.0, i)).rg;
+            texcoord.y += 2.0;
+            e = texture2DRect(tex0, texcoord).rg;
         }
-        return texcoord.y + i - (0.25 + 1.0 + 2.0) + SMAASearchLength(e.gr, 0.5, 0.5);
+        return texcoord.y - (0.25 + 1.0) + SMAASearchLength(e.gr, 0.5, 0.5);
     }
 
     /** 
@@ -379,6 +395,11 @@ CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset, ([[
 
         // We do a scale and bias for mapping to texel space:
         texcoord = texcoord + 0.5;
+
+        #ifdef SMAA_AREATEX_SUBSAMPLES
+        // Move to proper place, according to the subpixel offset:
+        texcoord.y += subsamples*float(SMAA_AREATEX_SUBSAMPLES);
+        #endif
 
         return texture2DRect(tex1, texcoord).ra;
     }
@@ -508,14 +529,13 @@ CAPI.shader(0, "SMAABlendingWeightCalculation" .. smaapreset, ([[
     }
 ]]):eval_embedded())
 
-CAPI.shader(0, "SMAANeighborhoodBlending" .. smaapreset, [[
+CAPI.shader(0, "SMAANeighborhoodBlending" .. smaapreset .. smaaopts, [[
     void main(void)
     {
         gl_Position = gl_Vertex;
         gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-
-        gl_TexCoord[1] = gl_MultiTexCoord0.xyxy + vec4(-1.0, 0.0, 0.0, -1.0);
-        gl_TexCoord[2] = gl_MultiTexCoord0.xyxy + vec4( 1.0, 0.0, 0.0,  1.0);
+        gl_TexCoord[1].xy = gl_MultiTexCoord0.xy + vec2(0.0, 1.0);
+        gl_TexCoord[2].xy = gl_MultiTexCoord0.xy + vec2(1.0, 0.0);
     }
 ]], ([[
     #extension GL_ARB_texture_rectangle : enable
@@ -527,29 +547,24 @@ CAPI.shader(0, "SMAANeighborhoodBlending" .. smaapreset, [[
         // Fetch the blending weights for current pixel:
         vec4 a;
         a.xz = texture2DRect(tex1, gl_TexCoord[0].xy).xz;
-        a.y = texture2DRect(tex1, gl_TexCoord[2].zw).g;
+        a.y = texture2DRect(tex1, gl_TexCoord[1].xy).g;
         a.w = texture2DRect(tex1, gl_TexCoord[2].xy).a;
 
-        // Is there any blending weight with a value greater than 0.0?
-        if (dot(a, vec4(1.0)) < 1e-5)
-            gl_FragColor.rgb = texture2DRect(tex0, gl_TexCoord[0].xy).rgb;
-        else {
-            // Up to 4 lines can be crossing a pixel (one through each edge). We
-            // favor blending by choosing the line with the maximum weight for each
-            // direction:
-            vec2 offset;
-            offset.x = a.a > a.b? a.a : -a.b; // left vs. right 
-            offset.y = a.g > a.r? a.g : -a.r; // top vs. bottom
+        // Up to 4 lines can be crossing a pixel (one through each edge). We
+        // favor blending by choosing the line with the maximum weight for each
+        // direction:
+        vec2 offset;
+        offset.x = a.a > a.b? a.a : -a.b; // left vs. right 
+        offset.y = a.g > a.r? a.g : -a.r; // top vs. bottom
 
-            // Then we go in the direction that has the maximum weight:
-            if (abs(offset.x) > abs(offset.y)) // horizontal vs. vertical
-                offset.y = 0.0;
-            else
-                offset.x = 0.0;
+        // Then we go in the direction that has the maximum weight:
+        if (abs(offset.x) > abs(offset.y)) // horizontal vs. vertical
+            offset.y = 0.0;
+        else
+            offset.x = 0.0;
 
-            // We exploit bilinear filtering to mix current pixel with the chosen
-            // neighbor:
-            gl_FragColor.rgb = texture2DRect(tex0, gl_TexCoord[0].xy + offset).rgb;
-        }
+        // We exploit bilinear filtering to mix current pixel with the chosen
+        // neighbor:
+        gl_FragColor = texture2DRect(tex0, gl_TexCoord[0].xy + offset);
     }
 ]]):eval_embedded())

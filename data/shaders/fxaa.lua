@@ -15,7 +15,13 @@
 -- THIS SOFTWARE, EVEN IF NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 -- DAMAGES.
 
-fxaadefs = (fxaapreset == 0 and [[
+fxaadefs = (fxaaopts:find("g") ~= nil) and [[
+    #define FXAA_LUMA(color) (color.g)
+]] or [[
+    #define FXAA_LUMA(color) (color.a)
+]]
+
+fxaadefs = fxaadefs .. (fxaapreset == 0 and [[
     #define FXAA_QUALITY_PRESET 10
     #define fxaaQualityEdgeThreshold 0.250
     #define fxaaQualityEdgeThresholdMin 0.0833
@@ -209,7 +215,7 @@ fxaadefs = fxaadefs .. [[
     #endif
 ]]
 
-CAPI.shader(0, "fxaa" .. fxaapreset, [[
+CAPI.shader(0, "fxaa" .. fxaapreset .. fxaaopts, [[
     void main(void)
     {
         gl_Position = gl_Vertex;
@@ -222,11 +228,11 @@ CAPI.shader(0, "fxaa" .. fxaapreset, [[
     {
         vec2 posM = gl_FragCoord.xy;
         vec4 rgbyM = texture2DRect(tex0, posM);
-        float lumaS = texture2DRect(tex0, posM + vec2( 0.0,  1.0)).a;
-        float lumaE = texture2DRect(tex0, posM + vec2( 1.0,  0.0)).a;
-        float lumaN = texture2DRect(tex0, posM + vec2( 0.0, -1.0)).a;
-        float lumaW = texture2DRect(tex0, posM + vec2(-1.0,  0.0)).a;
-        #define lumaM rgbyM.a
+        float lumaS = FXAA_LUMA(texture2DRect(tex0, posM + vec2( 0.0,  1.0)));
+        float lumaE = FXAA_LUMA(texture2DRect(tex0, posM + vec2( 1.0,  0.0)));
+        float lumaN = FXAA_LUMA(texture2DRect(tex0, posM + vec2( 0.0, -1.0)));
+        float lumaW = FXAA_LUMA(texture2DRect(tex0, posM + vec2(-1.0,  0.0)));
+        #define lumaM FXAA_LUMA(rgbyM)
 
         float maxSM = max(lumaS, lumaM);
         float minSM = min(lumaS, lumaM);
@@ -247,10 +253,10 @@ CAPI.shader(0, "fxaa" .. fxaapreset, [[
             return;
         }
 
-        float lumaNW = texture2DRect(tex0, posM + vec2(-1.0, -1.0)).a;
-        float lumaSE = texture2DRect(tex0, posM + vec2( 1.0,  1.0)).a;
-        float lumaNE = texture2DRect(tex0, posM + vec2( 1.0, -1.0)).a; 
-        float lumaSW = texture2DRect(tex0, posM + vec2(-1.0,  1.0)).a;
+        float lumaNW = FXAA_LUMA(texture2DRect(tex0, posM + vec2(-1.0, -1.0)));
+        float lumaSE = FXAA_LUMA(texture2DRect(tex0, posM + vec2( 1.0,  1.0)));
+        float lumaNE = FXAA_LUMA(texture2DRect(tex0, posM + vec2( 1.0, -1.0))); 
+        float lumaSW = FXAA_LUMA(texture2DRect(tex0, posM + vec2(-1.0,  1.0)));
 
         float lumaNS = lumaN + lumaS;
         float lumaWE = lumaW + lumaE;
@@ -300,9 +306,9 @@ CAPI.shader(0, "fxaa" .. fxaapreset, [[
         vec2 posN = posB - offNP * FXAA_QUALITY_P0;
         vec2 posP = posB + offNP * FXAA_QUALITY_P0;
         float subpixD = ((-2.0)*subpixC) + 3.0;
-        float lumaEndN = texture2DRect(tex0, posN).a;
+        float lumaEndN = FXAA_LUMA(texture2DRect(tex0, posN));
         float subpixE = subpixC * subpixC;
-        float lumaEndP = texture2DRect(tex0, posP).a;
+        float lumaEndP = FXAA_LUMA(texture2DRect(tex0, posP));
 
         if(!pairN) lumaNN = lumaSS;
         float gradientScaled = gradient * 1.0/4.0;
@@ -322,8 +328,8 @@ CAPI.shader(0, "fxaa" .. fxaapreset, [[
             #if (FXAA_QUALITY_PS > @($i + 2))
             if(doneNP) 
             {
-                if(!doneN) lumaEndN = texture2DRect(tex0, posN).a;
-                if(!doneP) lumaEndP = texture2DRect(tex0, posP).a;
+                if(!doneN) lumaEndN = FXAA_LUMA(texture2DRect(tex0, posN));
+                if(!doneP) lumaEndP = FXAA_LUMA(texture2DRect(tex0, posP));
                 if(!doneN) lumaEndN = lumaEndN - lumaNN * 0.5;
                 if(!doneP) lumaEndP = lumaEndP - lumaNN * 0.5;
                 doneN = abs(lumaEndN) >= gradientScaled;

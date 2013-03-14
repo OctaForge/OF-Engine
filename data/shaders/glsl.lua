@@ -340,6 +340,7 @@ worldshader = function(...)
             gl_FragData[1].rgb = normal*0.5+0.5;
             gl_FragData[1].a = 0.0;
             @((#arg < 4 or not arg[4] or arg[4] == "") and "gl_FragData[2].rgb = vec3(0.0);" or arg[4])
+            gl_FragData[2].a = 0.0;
 
             @(i == 2 and [[
                 vec3 rlight = texture2DRect(refractlight, gl_FragCoord.xy).rgb;
@@ -589,6 +590,7 @@ bumpvariantshader = function(...)
             ]=] or [[
                 gl_FragData[2].rgb = vec3(0.0);
             ]])
+            gl_FragData[2].a = 0.0;
 
             @(btopt.r and [=[
                 vec3 camvecwn = normalize(camvecw);
@@ -1149,6 +1151,7 @@ modelfragmentshader = function(...)
         @(mdlopt.n and "uniform sampler2D tex3;" or nil)
         @(mdlopt.d and "uniform sampler2D tex4;" or nil)
         @(gdepthinterp())
+        uniform float aamask;
         void main(void)
         {
             vec4 diffuse = texture2D(tex0, gl_TexCoord[0].xy);
@@ -1202,6 +1205,8 @@ modelfragmentshader = function(...)
                 gl_FragData[2].rgb = diffuse.rgb*fullbright.y;
                 gl_FragData[0].rgb *= fullbright.x-fullbright.y;
             ]])
+
+            gl_FragData[2].a = aamask;
 
             @(gdepthpackfrag())
         }
@@ -3286,7 +3291,7 @@ watershader = function(arg1)
 
             gl_FragData[0] = vec4(0.0, 0.0, 0.0, alpha);
             gl_FragData[1] = vec4(bump*0.5+0.5, waterspec*alpha);
-            gl_FragData[2].rgb = rcolor*alpha;
+            gl_FragData[2] = vec4(rcolor*alpha, 0.0);
             @(gdepthpackfrag())
         }
     ]===]):eval_embedded(nil, { arg1 = arg1 }, _G)) end
@@ -3384,7 +3389,7 @@ lazyshader(0, "lava", [[
         vec3 bumpw = world * bump;
         gl_FragData[0] = vec4(diffuse, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, lavaspec);
-        gl_FragData[2].rgb = diffuse*lavaglow;
+        gl_FragData[2] = vec4(diffuse*lavaglow, 0.0);
         @(gdepthpackfrag())
     }
 ]])
@@ -3433,7 +3438,7 @@ lazyshader(0, "waterfallenv", [[
 
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, waterfallspec*(1.0 - dot(diffuse, vec3(0.33))));
-        gl_FragData[2].rgb = mix(rcolor, waterfallcolor, diffuse) + env;
+        gl_FragData[2] = vec4(mix(rcolor, waterfallcolor, diffuse) + env, 0.0);
         @(gdepthpackfrag())
     }
 ]])
@@ -3472,7 +3477,7 @@ lazyshader(0, "waterfall", [[
 
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, waterfallspec*(1.0 - dot(diffuse, vec3(0.33))));
-        gl_FragData[2].rgb = mix(rcolor, waterfallcolor, diffuse);
+        gl_FragData[2] = vec4(mix(rcolor, waterfallcolor, diffuse), 0.0);
         @(gdepthpackfrag())
     }
 ]])
@@ -3521,7 +3526,7 @@ lazyshader(0, "glassenv", [[
   
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, glassspec);
-        gl_FragData[2].rgb = rcolor + env;
+        gl_FragData[2] = vec4(rcolor + env, 0.0);
         @(gdepthpackfrag())
     }
 ]])
@@ -3559,7 +3564,7 @@ lazyshader(0, "glass", [[
         
         gl_FragData[0] = vec4(0.0, 0.0, 0.0, 1.0);
         gl_FragData[1] = vec4(bumpw*0.5+0.5, glassspec);
-        gl_FragData[2].rgb = rcolor; 
+        gl_FragData[2] = vec4(rcolor, 0.0); 
         @(gdepthpackfrag())
     }
 ]])
@@ -3667,14 +3672,124 @@ CAPI.shader(0, "skyboxoverbright", [[
     }
 ]]):eval_embedded())
 
-smaashaders = function(arg1)
+lazyshader(0, "tqaamaskmovement", [[
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+    }
+]], [[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0;
+    void main(void)
+    {
+        float mask = texture2DRect(tex0, gl_TexCoord[0].xy + vec2(-1.0, -1.0)).a +
+                     texture2DRect(tex0, gl_TexCoord[0].xy + vec2( 1.0, -1.0)).a +
+                     texture2DRect(tex0, gl_TexCoord[0].xy + vec2(-1.0,  1.0)).a +
+                     texture2DRect(tex0, gl_TexCoord[0].xy + vec2( 1.0,  1.0)).a;
+        gl_FragColor = vec4(4.0*mask, 0.0, 0.0, 0.0);
+    }
+]])
+
+lazyshader(0, "tqaapackvelocity", [[
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+    }
+]], ([[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0;
+    @(gdepthunpackparams)
+    uniform vec2 maxvelocity;
+    void main(void)
+    {
+        @(gdepthunpack("depth", "tex0", "gl_TexCoord[0].xy",
+            "vec4 prevtc = gl_TextureMatrix[0] * vec4(depth*gl_TexCoord[0].xy, depth, 1.0);",
+            "vec4 prevtc = gl_TextureMatrix[0] * vec4(gl_TexCoord[0].xy, depth, 1.0);"
+        ))
+        prevtc.xy /= prevtc.w;
+        vec2 vel = prevtc.xy - gl_TexCoord[0].xy;
+        gl_FragColor.a = clamp(length(vel)*maxvelocity.y, 0.0, 1.0);
+    }
+]]):eval_embedded())
+
+lazyshader(0, "tqaaresolve", [[
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+    }
+]], ([[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0, tex1, tex2;
+    @(gdepthunpackparams)
+    uniform vec2 maxvelocity;
+    uniform vec4 quincunx;
+    void main(void)
+    {
+        @(gdepthunpack("depth", "tex2", "gl_TexCoord[0].xy",
+            "vec4 prevtc = gl_TextureMatrix[0] * vec4(depth*gl_TexCoord[0].xy, depth, 1.0);",
+            "vec4 prevtc = gl_TextureMatrix[0] * vec4(gl_TexCoord[0].xy, depth, 1.0);"
+        ))
+        prevtc.xy /= prevtc.w;
+        vec2 vel = prevtc.xy - gl_TexCoord[0].xy;
+
+        vec4 color = texture2DRect(tex0, gl_TexCoord[0].xy + quincunx.xy);
+        float vscale = color.a*maxvelocity.x*inversesqrt(dot(vel, vel) + 1e-6);
+        vec4 prevcolor = texture2DRect(tex1, gl_TexCoord[0].xy + quincunx.zw + vel*vscale);
+
+        float weight = 0.5 - 0.5*color.a;
+        weight *= clamp(1.0 - maxvelocity.x*abs(color.a - prevcolor.a), 0.0, 1.0);
+        gl_FragColor = mix(color, prevcolor, weight);
+    }
+]]):eval_embedded())
+
+lazyshader(0, "tqaaresolvemasked", [[
+    void main(void)
+    {
+        gl_Position = gl_Vertex;
+        gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+        gl_TexCoord[1].xy = gl_MultiTexCoord1.xy;
+    }
+]], ([[
+    #extension GL_ARB_texture_rectangle : enable
+    uniform sampler2DRect tex0, tex1, tex2, tex3, tex4;
+    @(gdepthunpackparams)
+    uniform vec2 maxvelocity;
+    uniform vec4 quincunx;
+    void main(void)
+    {
+        @(gdepthunpack("depth", "tex2", "gl_TexCoord[0].xy",
+            "vec4 prevtc = gl_TextureMatrix[0] * vec4(depth*gl_TexCoord[0].xy, depth, 1.0);",
+            "vec4 prevtc = gl_TextureMatrix[0] * vec4(gl_TexCoord[0].xy, depth, 1.0);"
+        ))
+        prevtc.xy /= prevtc.w;
+        vec2 vel = prevtc.xy - gl_TexCoord[0].xy;
+
+        vec4 color = texture2DRect(tex0, gl_TexCoord[0].xy + quincunx.xy);
+        float mask = texture2DRect(tex3, gl_TexCoord[1].xy + quincunx.xy*0.25).r;
+        float vscale = color.a*maxvelocity.x*inversesqrt(dot(vel, vel) + 1e-6);
+        vec4 prevcolor = texture2DRect(tex1, gl_TexCoord[0].xy + quincunx.zw + vel*vscale);
+        float prevmask = texture2DRect(tex4, gl_TexCoord[1].xy + (quincunx.zw + vel*vscale)*0.25).r; 
+
+        float weight = 0.5 - 0.5*color.a;
+        weight *= clamp(1.0 - maxvelocity.x*abs(color.a - prevcolor.a), 0.0, 1.0);
+        weight *= 1.0 - abs(mask - prevmask);
+        gl_FragColor = mix(color, prevcolor, weight);
+    }
+]]):eval_embedded())
+
+smaashaders = function(arg1, arg2)
     smaapreset = arg1
+    smaaopts = arg2
     require("shaders.smaa")
     package.loaded["shaders.smaa"] = nil
 end
 
-fxaashaders = function(arg1)
+fxaashaders = function(arg1, arg2)
     fxaapreset = arg1
+    fxaaopts = arg2
     require("shaders.fxaa")
     package.loaded["shaders.fxaa"] = nil
 end
