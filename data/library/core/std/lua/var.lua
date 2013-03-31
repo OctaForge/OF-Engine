@@ -18,25 +18,12 @@
 local reset = EAPI.var_reset
 
 local new = function(name, vtype, min, def, max, ...)
-    if not def then
-        if vtype == EAPI.VAR_I then
-            EAPI.var_new_i(name, min)
-        elseif vtype == EAPI.VAR_F then
-            EAPI.var_new_f(name, min)
-        elseif vtype == EAPI.VAR_S then
-            EAPI.var_new_s(name, min)
-        end
-    else
-        if vtype == EAPI.VAR_I then
-            EAPI.var_new_i_full(name, min, def, max,
-                ... and math.bor(...) or 0)
-        elseif vtype == EAPI.VAR_F then
-            EAPI.var_new_f_full(name, min, def, max,
-                ... and math.bor(...) or 0)
-        elseif vtype == EAPI.VAR_S then
-            EAPI.var_new_s_full(name, min,
-                def and math.bor(def, max, ...) or 0)
-        end
+    if vtype == EAPI.VAR_I then
+        EAPI.var_new_i(name, min, def, max, ... and math.bor(...) or 0)
+    elseif vtype == EAPI.VAR_F then
+        EAPI.var_new_f(name, min, def, max, ... and math.bor(...) or 0)
+    elseif vtype == EAPI.VAR_S then
+        EAPI.var_new_s(name, min, def and math.bor(def, max, ...) or 0)
     end
 end
 
@@ -100,7 +87,6 @@ end
 
 local get_type     = EAPI.var_get_type
 local exists       = EAPI.var_exists
-local is_alias     = EAPI.var_is_alias
 local is_hex       = EAPI.var_is_hex
 
 local persist_vars = function() print("hai") end
@@ -108,11 +94,6 @@ local persist_vars = function() print("hai") end
 local emits = function(name, v)
     return (type(v) == "boolean") and
         EAPI.var_emits_set(name, v) or EAPI.var_emits(name)
-end
-
-local changed = function(ch)
-    return (type(ch) == "boolean") and
-        EAPI.var_changed_set(ch) or EAPI.var_changed()
 end
 
 EV = setmetatable({
@@ -182,7 +163,5 @@ return {
     get_pretty   = get_pretty,
     exists       = exists,
     persist_vars = persist_vars,
-    is_alias     = is_alias,
-    emits        = emits,
-    changed      = changed
+    emits        = emits
 }

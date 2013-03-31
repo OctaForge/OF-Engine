@@ -24,6 +24,16 @@ struct PackNode
         available = min(w, h);
     }
 
+    bool resize(int nw, int nh)
+    {
+        if(w == nw && h == nw) return false;
+        discardchildren();
+        w = nw;
+        h = nh;
+        available = min(w, h);
+        return true;
+    }
+
     ~PackNode()
     {
         discardchildren();
@@ -91,4 +101,6 @@ extern bool calclight_canceled;
 extern volatile bool check_calclight_progress;
 
 extern void check_calclight_canceled();
+
+extern const vector<int> &checklightcache(int x, int y);
 

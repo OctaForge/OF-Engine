@@ -51,9 +51,6 @@ require("base.base_input")
 #log(DEBUG, ":: Console.")
 require("base.base_console")
 
-#log(DEBUG, ":: Shaders.")
-require("base.base_shaders")
-
 #log(DEBUG, ":: Models.")
 require("base.base_models")
 

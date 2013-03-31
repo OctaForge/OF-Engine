@@ -558,13 +558,11 @@ void savevslot(stream *f, VSlot &vs, int prev)
     if(vs.changed & (1<<VSLOT_ROTATION)) f->putlil<int>(vs.rotation);
     if(vs.changed & (1<<VSLOT_OFFSET))
     {
-        f->putlil<int>(vs.xoffset);
-        f->putlil<int>(vs.yoffset);
+        loopk(2) f->putlil<int>(vs.offset[k]);
     }
     if(vs.changed & (1<<VSLOT_SCROLL))
     {
-        f->putlil<float>(vs.scrollS);
-        f->putlil<float>(vs.scrollT);
+        loopk(2) f->putlil<float>(vs.scroll[k]);
     }
     if(vs.changed & (1<<VSLOT_LAYER)) f->putlil<int>(vs.layer);
     if(vs.changed & (1<<VSLOT_ALPHA))
@@ -637,13 +635,11 @@ void loadvslot(stream *f, VSlot &vs, int changed)
     if(vs.changed & (1<<VSLOT_ROTATION)) vs.rotation = f->getlil<int>();
     if(vs.changed & (1<<VSLOT_OFFSET))
     {
-        vs.xoffset = f->getlil<int>();
-        vs.yoffset = f->getlil<int>();
+        loopk(2) vs.offset[k] = f->getlil<int>();
     }
     if(vs.changed & (1<<VSLOT_SCROLL))
     {
-        vs.scrollS = f->getlil<float>();
-        vs.scrollT = f->getlil<float>();
+        loopk(2) vs.scroll[k] = f->getlil<float>();
     }
     if(vs.changed & (1<<VSLOT_LAYER)) vs.layer = f->getlil<int>();
     if(vs.changed & (1<<VSLOT_ALPHA))
@@ -716,55 +712,38 @@ bool save_world(const char *mname, bool nolms)
     hdr.blendmap = shouldsaveblendmap();
     hdr.numvars = 0;
     hdr.numvslots = numvslots;
-    for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
+    enumerate(idents, ident, id, 
     {
-        varsys::Variable *v = it->second;
-        if (
-            (v->flags & varsys::FLAG_OVERRIDE) != 0 &&
-            (v->flags & varsys::FLAG_READONLY) == 0 &&
-            (v->flags & varsys::FLAG_OVERRIDEN) != 0
-        ) hdr.numvars++;
-    }
+        if((id.type == ID_VAR || id.type == ID_FVAR || id.type == ID_SVAR) && id.flags&IDF_OVERRIDE && !(id.flags&IDF_READONLY) && id.flags&IDF_OVERRIDDEN) hdr.numvars++;
+    });
     lilswap(&hdr.version, 9);
     f->write(&hdr, sizeof(hdr));
    
-    for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
+    enumerate(idents, ident, id, 
     {
-        varsys::Variable *v = it->second;
-        if(
-            (v->flags & varsys::FLAG_OVERRIDE) == 0 ||
-            (v->flags & varsys::FLAG_READONLY) != 0 ||
-            (v->flags & varsys::FLAG_OVERRIDEN) == 0
-        ) continue;
-        f->putchar(v->type);
-        f->putlil<ushort>(  strlen(v->name));
-        f->write(v->name, strlen(v->name));
-        switch(v->type)
+        if((id.type!=ID_VAR && id.type!=ID_FVAR && id.type!=ID_SVAR) || !(id.flags&IDF_OVERRIDE) || id.flags&IDF_READONLY || !(id.flags&IDF_OVERRIDDEN)) continue;
+        f->putchar(id.type);
+        f->putlil<ushort>(strlen(id.name));
+        f->write(id.name, strlen(id.name));
+        switch(id.type)
         {
-            case varsys::TYPE_I:
-            {
-                int val = varsys::get_int(v);
-                if(dbgvars) conoutf(CON_DEBUG, "wrote var %s: %d", v->name, val);
-                f->putlil<int>(val);
+            case ID_VAR:
+                if(dbgvars) conoutf(CON_DEBUG, "wrote var %s: %d", id.name, *id.storage.i);
+                f->putlil<int>(*id.storage.i);
                 break;
-            }
-            case varsys::TYPE_F:
-            {
-                float val = varsys::get_float(v);
-                if(dbgvars) conoutf(CON_DEBUG, "wrote fvar %s: %f", v->name, val);
-                f->putlil<float>(val);
+
+            case ID_FVAR:
+                if(dbgvars) conoutf(CON_DEBUG, "wrote fvar %s: %f", id.name, *id.storage.f);
+                f->putlil<float>(*id.storage.f);
                 break;
-            }
-            case varsys::TYPE_S:
-            {
-                const char *val = varsys::get_string(v);
-                if(dbgvars) conoutf(CON_DEBUG, "wrote svar %s: %s", v->name, val);
-                f->putlil<ushort>(strlen(val));
-                f->write(val, strlen(val));
+
+            case ID_SVAR:
+                if(dbgvars) conoutf(CON_DEBUG, "wrote svar %s: %s", id.name, *id.storage.s);
+                f->putlil<ushort>(strlen(*id.storage.s));
+                f->write(*id.storage.s, strlen(*id.storage.s));
                 break;
-            }
         }
-    }
+    });
 
     if(dbgvars) conoutf(CON_DEBUG, "wrote %d vars", hdr.numvars);
 
@@ -844,28 +823,28 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     Texture *mapshot = textureload(picname, 3, true, false);
     renderbackground("loading...", mapshot, mname, game::getmapinfo());
 
-    SETVFN(mapversion, hdr.version);
+    setvar("mapversion", hdr.version, true, false);
 
     if(hdr.version <= 28)
     {
         lilswap(&chdr.lightprecision, 3);
-        if(chdr.lightprecision) SETVF(lightprecision, chdr.lightprecision);
-        if(chdr.lighterror) SETVF(lighterror, chdr.lighterror);
-        if(chdr.bumperror) SETVF(bumperror, chdr.bumperror);
-        SETVF(lightlod, chdr.lightlod);
-        if(chdr.ambient) SETVF(ambient, chdr.ambient);
-        SETVF(skylight, (int(chdr.skylight[0])<<16) | (int(chdr.skylight[1])<<8) | int(chdr.skylight[2]));
-        SETVF(watercolour, (int(chdr.watercolour[0])<<16) | (int(chdr.watercolour[1])<<8) | int(chdr.watercolour[2]));
-        SETVF(waterfallcolour, (int(chdr.waterfallcolour[0])<<16) | (int(chdr.waterfallcolour[1])<<8) | int(chdr.waterfallcolour[2]));
-        SETVF(lavacolour, (int(chdr.lavacolour[0])<<16) | (int(chdr.lavacolour[1])<<8) | int(chdr.lavacolour[2]));
-        SETVF(fullbright, 0);
-        if(chdr.lerpsubdivsize || chdr.lerpangle) SETVF(lerpangle, chdr.lerpangle);
+        if(chdr.lightprecision) setvar("lightprecision", chdr.lightprecision);
+        if(chdr.lighterror) setvar("lighterror", chdr.lighterror);
+        if(chdr.bumperror) setvar("bumperror", chdr.bumperror);
+        setvar("lightlod", chdr.lightlod);
+        if(chdr.ambient) setvar("ambient", chdr.ambient);
+        setvar("skylight", (int(chdr.skylight[0])<<16) | (int(chdr.skylight[1])<<8) | int(chdr.skylight[2]));
+        setvar("watercolour", (int(chdr.watercolour[0])<<16) | (int(chdr.watercolour[1])<<8) | int(chdr.watercolour[2]), true);
+        setvar("waterfallcolour", (int(chdr.waterfallcolour[0])<<16) | (int(chdr.waterfallcolour[1])<<8) | int(chdr.waterfallcolour[2]));
+        setvar("lavacolour", (int(chdr.lavacolour[0])<<16) | (int(chdr.lavacolour[1])<<8) | int(chdr.lavacolour[2]));
+        setvar("fullbright", 0, true);
+        if(chdr.lerpsubdivsize || chdr.lerpangle) setvar("lerpangle", chdr.lerpangle);
         if(chdr.lerpsubdivsize)
         {
-            SETVF(lerpsubdiv, chdr.lerpsubdiv);
-            SETVF(lerpsubdivsize, chdr.lerpsubdivsize);
+            setvar("lerpsubdiv", chdr.lerpsubdiv);
+            setvar("lerpsubdivsize", chdr.lerpsubdivsize);
         }
-        SETVF(maptitle, chdr.maptitle);
+        setsvar("maptitle", chdr.maptitle);
         hdr.blendmap = chdr.blendmap;
         hdr.numvars = 0; 
         hdr.numvslots = 0;
@@ -882,13 +861,13 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     freeocta(worldroot);
     worldroot = NULL;
 
-    SETVFN(mapsize, hdr.worldsize);
+    setvar("mapsize", hdr.worldsize, true, false);
     int worldscale = 0;
     while(1<<worldscale < hdr.worldsize) worldscale++;
-    SETVFN(mapscale, worldscale);
+    setvar("mapscale", worldscale, true, false);
 
     renderprogress(0, "loading vars...");
-
+ 
     loopi(hdr.numvars)
     {
         int type = f->getchar(), ilen = f->getlil<ushort>();
@@ -896,58 +875,50 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         f->read(name, min(ilen, MAXSTRLEN-1));
         name[min(ilen, MAXSTRLEN-1)] = '\0';
         if(ilen >= MAXSTRLEN) f->seek(ilen - (MAXSTRLEN-1), SEEK_CUR);
-        varsys::Variable *v = varsys::get(name);
-        lua::Function tostring(lapi::state.get<lua::Object>("tostring"));
-        lua::Function tonumber(lapi::state.get<lua::Object>("tonumber"));
-        const char *str = NULL;
-        string tmp;
-        switch (type)
+        ident *id = getident(name);
+        tagval val;
+        string str;
+        switch(type)
         {
-            case varsys::TYPE_I: str = tostring.call<const char*>(f->getlil<int>()); break;
-            case varsys::TYPE_F: str = tostring.call<const char*>(f->getlil<float>()); break;
-            case varsys::TYPE_S:
+            case ID_VAR: val.setint(f->getlil<int>()); break;
+            case ID_FVAR: val.setfloat(f->getlil<float>()); break;
+            case ID_SVAR:
             {
                 int slen = f->getlil<ushort>();
-                f->read(tmp, min(slen, MAXSTRLEN-1));
-                tmp[min(slen, MAXSTRLEN-1)] = '\0';
+                f->read(str, min(slen, MAXSTRLEN-1));
+                str[min(slen, MAXSTRLEN-1)] = '\0';
                 if(slen >= MAXSTRLEN) f->seek(slen - (MAXSTRLEN-1), SEEK_CUR);
-                str = tostring.call<const char*>(tmp);
+                val.setstr(str);
                 break;
             }
             default: continue;
         }
-        if (v && ((v->flags) & varsys::FLAG_OVERRIDE)) switch (v->type)
+        if(id && id->flags&IDF_OVERRIDE) switch(id->type)
         {
-            case varsys::TYPE_I:
+            case ID_VAR:
             {
-                int i = tonumber.call<int>(str);
-                varsys::Int_Variable *iv = (varsys::Int_Variable*)v;
-                if (iv->min_v <= iv->max_v && i >= iv->min_v && i <= iv->max_v)
+                int i = val.getint();
+                if(id->minval <= id->maxval && i >= id->minval && i <= id->maxval) 
                 {
-                    varsys::set((varsys::Variable*)iv, i, true, false);
+                    setvar(name, i);
                     if(dbgvars) conoutf(CON_DEBUG, "read var %s: %d", name, i);
                 }
                 break;
             }
- 
-            case varsys::TYPE_F:
+            case ID_FVAR:
             {
-                float f = tonumber.call<float>(str);
-                varsys::Float_Variable *fv = (varsys::Float_Variable*)v;
-                if (fv->min_v <= fv->max_v && f >= fv->min_v && f <= fv->max_v)
+                float f = val.getfloat();
+                if(id->minvalf <= id->maxvalf && f >= id->minvalf && f <= id->maxvalf) 
                 {
-                    varsys::set((varsys::Variable*)fv, f, true, false);
-                    if(dbgvars) conoutf(CON_DEBUG, "read var %s: %f", name, f);
+                    setfvar(name, f);
+                    if(dbgvars) conoutf(CON_DEBUG, "read fvar %s: %f", name, f);
                 }
                 break;
             }
-    
-            case varsys::TYPE_S:
-            {
-                varsys::set(v, str, true);
-                if(dbgvars) conoutf(CON_DEBUG, "read svar %s: %s", name, str);
+            case ID_SVAR:
+                setsvar(name, val.getstr());
+                if(dbgvars) conoutf(CON_DEBUG, "read svar %s: %s", name, val.getstr());
                 break;
-            }
         }
     }
     if(dbgvars) conoutf(CON_DEBUG, "read %d vars", hdr.numvars);
@@ -1104,13 +1075,13 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     lapi::state.get<lua::Function>("external", "gui_clear")();
 #endif
 
-    varsys::overridevars = true;
+    identflags |= IDF_OVERRIDDEN;
     if (lapi::state.state())
     {
         lapi::state.do_file("data/cfg/default_map_settings.lua");
         world::run_mapscript();
     }
-    varsys::overridevars = false;
+    identflags &= ~IDF_OVERRIDDEN;
    
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities
     renderprogress(0, "requesting entities...");
@@ -1174,28 +1145,27 @@ void writeobj(char *name)
     vector<vec2> texcoords;
     hashtable<vec, int> shareverts(1<<16);
     hashtable<vec2, int> sharetc(1<<16);
-    hashtable<int, vector<ivec> > mtls(1<<8);
+    hashtable<int, vector<ivec2> > mtls(1<<8);
     vector<int> usedmtl;
     vec bbmin(1e16f, 1e16f, 1e16f), bbmax(-1e16f, -1e16f, -1e16f);
     loopv(valist)
     {
         vtxarray &va = *valist[i];
-        ushort *edata = NULL;
-        uchar *vdata = NULL;
-        if(!readva(&va, edata, vdata)) continue;
-        int vtxsize = VTXSIZE;
+        if(!va.edata || !va.vdata) continue;
+        ushort *edata = va.edata + va.eoffset;
+        vertex *vdata = va.vdata;
         ushort *idx = edata;
         loopj(va.texs)
         {
             elementset &es = va.eslist[j];
             if(usedmtl.find(es.texture) < 0) usedmtl.add(es.texture);
-            vector<ivec> &keys = mtls[es.texture];
+            vector<ivec2> &keys = mtls[es.texture];
             loopk(es.length)
             {
-                int n = idx[k] - va.voffset;
-                const vec &pos = ((const vertex *)&vdata[n*vtxsize])->pos;
-                vec2 tc(((const vertex *)&vdata[n*vtxsize])->u, ((const vertex *)&vdata[n*vtxsize])->v);
-                ivec &key = keys.add();
+                const vertex &v = vdata[idx[k]];
+                const vec &pos = v.pos;
+                const vec2 &tc = v.tc;
+                ivec2 &key = keys.add();
                 key.x = shareverts.access(pos, verts.length());
                 if(key.x == verts.length()) 
                 {
@@ -1211,8 +1181,6 @@ void writeobj(char *name)
             }
             idx += es.length;
         }
-        delete[] edata;
-        delete[] vdata;
     }
 
     vec center(-(bbmax.x + bbmin.x)/2, -(bbmax.y + bbmin.y)/2, -bbmin.z);
@@ -1235,7 +1203,7 @@ void writeobj(char *name)
     usedmtl.sort();
     loopv(usedmtl)
     {
-        vector<ivec> &keys = mtls[usedmtl[i]];
+        vector<ivec2> &keys = mtls[usedmtl[i]];
         f->printf("g slot%d\n", usedmtl[i]);
         f->printf("usemtl slot%d\n\n", usedmtl[i]);
         for(int i = 0; i < keys.length(); i += 3)

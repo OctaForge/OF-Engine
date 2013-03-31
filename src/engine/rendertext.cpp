@@ -157,6 +157,8 @@ void draw_textf(const char *fstr, int left, int top, ...)
     draw_text(str, left, top);
 }
 
+const matrix3x4 *textmatrix = NULL;
+
 static float draw_char(Texture *&tex, int c, float x, float y, float scale)
 {
     font::charinfo &info = curfont->chars[c-curfont->charoffset];
@@ -176,10 +178,20 @@ static float draw_char(Texture *&tex, int c, float x, float y, float scale)
           tx2 = (info.x + info.w) / float(tex->xs),
           ty2 = (info.y + info.h) / float(tex->ys);
 
-    varray::attrib<float>(x1, y1); varray::attrib<float>(tx1, ty1);
-    varray::attrib<float>(x2, y1); varray::attrib<float>(tx2, ty1);
-    varray::attrib<float>(x2, y2); varray::attrib<float>(tx2, ty2);
-    varray::attrib<float>(x1, y2); varray::attrib<float>(tx1, ty2);
+    if(textmatrix)
+    {
+        varray::attrib(textmatrix->transform(vec2(x1, y1))); varray::attribf(tx1, ty1);
+        varray::attrib(textmatrix->transform(vec2(x2, y1))); varray::attribf(tx2, ty1);
+        varray::attrib(textmatrix->transform(vec2(x2, y2))); varray::attribf(tx2, ty2);
+        varray::attrib(textmatrix->transform(vec2(x1, y2))); varray::attribf(tx1, ty2);
+    }
+    else
+    {
+        varray::attribf(x1, y1); varray::attribf(tx1, ty1);
+        varray::attribf(x2, y1); varray::attribf(tx2, ty1);
+        varray::attribf(x2, y2); varray::attribf(tx2, ty2);
+        varray::attribf(x1, y2); varray::attribf(tx1, ty2);
+    }
 
     return scale*info.advance;
 }
@@ -209,7 +221,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '7': color = bvec(255, 255, 255); break;   // white
             // provided color: everything else
         }
-        glColor4ub(color.x, color.y, color.z, a);
+        varray::color(color, a);
     } 
 }
 
@@ -336,24 +348,26 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
     bool usecolor = true;
     if(a < 0) { usecolor = false; a = -a; }
     Texture *tex = curfont->texs[0];
+    Shader *oldshader = Shader::lastshader;
+    hudshader->setvariant(tex->bpp <= 2 && hasTRG ? 0 : -1, 0);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, tex->id);
-    glColor4ub(color.x, color.y, color.z, a);
-    varray::enable();
-    varray::defattrib(varray::ATTRIB_VERTEX, 2, GL_FLOAT);
-    varray::defattrib(varray::ATTRIB_TEXCOORD0, 2, GL_FLOAT);
+    varray::color(color, a);
+    varray::defvertex(textmatrix ? 3 : 2);
+    varray::deftexcoord0();
     varray::begin(GL_QUADS);
     TEXTSKELETON
     TEXTEND(cursor)
     xtraverts += varray::end();
     if(cursor >= 0 && (totalmillis/250)&1)
     {
-        glColor4ub(r, g, b, a);
+        varray::color(color, a);
         if(maxwidth != -1 && cx >= maxwidth) { cx = 0; cy += FONTH; }
         draw_char(tex, '_', left+cx, top+cy, scale);
         xtraverts += varray::end();
     }
     varray::disable();
+    if(oldshader == hudshader->detailshader) oldshader->bindprograms();
     #undef TEXTINDEX
     #undef TEXTWHITE
     #undef TEXTLINE

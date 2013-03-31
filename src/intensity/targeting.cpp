@@ -15,38 +15,6 @@
 #include "of_entities.h"
 
 #ifdef CLIENT
-void TargetingControl::setupOrientation()
-{
-    extern float curfov, aspect; // rendergl.cpp
-
-    vecfromyawpitch(camera1->yaw, 0,                   0, -1, camright);
-    vecfromyawpitch(camera1->yaw, camera1->pitch + 90, 1,  0, camup);
-
-    // Account for mouse position in the world position we are aiming at
-    auto t = lapi::state.get<lua::Function>("external", "cursor_get_position")
-        .call<float, float>();
-
-    float cx = types::get<0>(t);
-    float cy = types::get<1>(t);
-
-    float factor = tanf(RAD*curfov/2.0f); // Size of edge opposite the angle of fov/2, in the triangle for (half of) viewport,
-                                          // having unknown radius but known angle of fov/2 and close edge of 1.0
-
-    camdir.x = 0.0f; camdir.y = 1.0f; camdir.z = 0.0f; // Looking straight forward
-    camdir.x -= 2.0f * (cx - 0.5f) * factor;            // adjust for mouse position
-    camdir.z -= 2.0f * (cy - 0.5f) * factor / aspect;   // adjust for mouse position
-
-    camdir.normalize();
-
-    camdir.rotate_around_z(RAD*camera1->yaw);
-    camdir.rotate(-RAD*camera1->pitch, camright);
-
-    if(raycubepos(camera1->o, camdir, worldpos, 0, RAY_CLIPMAT|RAY_SKIPFIRST) == -1)
-        worldpos = vec(camdir).mul(2*worldsize).add(camera1->o); //otherwise 3dgui won't work when outside of map
-}
-#endif
-
-#ifdef CLIENT
 vec           TargetingControl::worldPosition;
 vec           TargetingControl::targetPosition;
 CLogicEntity *TargetingControl::targetLogicEntity = NULL;

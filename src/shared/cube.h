@@ -107,13 +107,15 @@ using algorithm::clamp;
 #include "tools.h"
 #include "geom.h"
 #include "ents.h"
+#include "command.h"
+#include "glexts.h"
+#include "varray.h"
 
 #include "iengine.h"
 #include "igame.h"
 
 #include "of_logger.h"
 #include "of_lapi.h"
-#include "of_vars.h"
 #include "engine_additions.h"
 
 #endif

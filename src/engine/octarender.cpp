@@ -34,8 +34,8 @@ void destroyvbo(GLuint vbo)
     vbi.uses--;
     if(!vbi.uses) 
     {
-        if(hasVBO) glDeleteBuffers_(1, &vbo);
-        else if(vbi.data) delete[] vbi.data;
+        glDeleteBuffers_(1, &vbo);
+        if(vbi.data) delete[] vbi.data;
         vbos.remove(vbo);
     }
 }
@@ -43,26 +43,16 @@ void destroyvbo(GLuint vbo)
 void genvbo(int type, void *buf, int len, vtxarray **vas, int numva)
 {
     GLuint vbo;
-    uchar *data = NULL;
-    if(hasVBO)
-    {
-        glGenBuffers_(1, &vbo);
-        GLenum target = type==VBO_VBUF ? GL_ARRAY_BUFFER_ARB : GL_ELEMENT_ARRAY_BUFFER_ARB;
-        glBindBuffer_(target, vbo);
-        glBufferData_(target, len, buf, GL_STATIC_DRAW_ARB);
-        glBindBuffer_(target, 0);
-    }
-    else
-    {
-        static GLuint nextvbo = 0;
-        if(!nextvbo) nextvbo++; // just in case it ever wraps around
-        vbo = nextvbo++;
-        data = new uchar[len];
-        memcpy(data, buf, len);
-    }
+    glGenBuffers_(1, &vbo);
+    GLenum target = type==VBO_VBUF ? GL_ARRAY_BUFFER : GL_ELEMENT_ARRAY_BUFFER;
+    glBindBuffer_(target, vbo);
+    glBufferData_(target, len, buf, GL_STATIC_DRAW);
+    glBindBuffer_(target, 0);
+
     vboinfo &vbi = vbos[vbo]; 
     vbi.uses = numva;
-    vbi.data = data;
+    vbi.data = new uchar[len];
+    memcpy(vbi.data, buf, len); 
  
     if(printvbo) conoutf(CON_DEBUG, "vbo %d: type %d, size %d, %d uses", vbo, type, len, numva);
 
@@ -73,43 +63,17 @@ void genvbo(int type, void *buf, int len, vtxarray **vas, int numva)
         {
             case VBO_VBUF: 
                 va->vbuf = vbo; 
-                if(!hasVBO) va->vdata = (vertex *)(data + (size_t)va->vdata);
+                va->vdata = (vertex *)vbi.data;
                 break;
             case VBO_EBUF: 
                 va->ebuf = vbo; 
-                if(!hasVBO) va->edata = (ushort *)(data + (size_t)va->edata);
+                va->edata = (ushort *)vbi.data;
                 break;
             case VBO_SKYBUF:
                 va->skybuf = vbo;
-                if(!hasVBO) va->skydata = (ushort *)(data + (size_t)va->skydata);
+                va->skydata = (ushort *)vbi.data;
                 break;
         }
-    }
-}
-
-bool readva(vtxarray *va, ushort *&edata, uchar *&vdata)
-{
-    if(!va->vbuf || !va->ebuf) return false;
-
-    edata = new ushort[3*va->tris];
-    vdata = new uchar[va->verts*VTXSIZE];
-
-    if(hasVBO)
-    {
-        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, va->ebuf);
-        glGetBufferSubData_(GL_ELEMENT_ARRAY_BUFFER_ARB, (size_t)va->edata, 3*va->tris*sizeof(ushort), edata);
-        glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-
-        glBindBuffer_(GL_ARRAY_BUFFER_ARB, va->vbuf);
-        glGetBufferSubData_(GL_ARRAY_BUFFER_ARB, va->voffset*VTXSIZE, va->verts*VTXSIZE, vdata);
-        glBindBuffer_(GL_ARRAY_BUFFER_ARB, 0);
-        return true;
-    }
-    else
-    {
-        memcpy(edata, va->edata, 3*va->tris*sizeof(ushort));
-        memcpy(vdata, (uchar *)va->vdata + va->voffset*VTXSIZE, va->verts*VTXSIZE);
-        return true;
     }
 }
 
@@ -132,6 +96,13 @@ void flushvbo(int type = -1)
 
 uchar *addvbo(vtxarray *va, int type, int numelems, int elemsize)
 {
+    switch(type)
+    {
+        case VBO_VBUF: va->voffset = vbosize[type]; break;
+        case VBO_EBUF: va->eoffset = vbosize[type]; break;
+        case VBO_SKYBUF: va->skyoffset = vbosize[type]; break;
+    }
+
     vbosize[type] += numelems;
 
     vector<uchar> &data = vbodata[type];
@@ -167,7 +138,7 @@ struct verthash
         for(int i = table[h]; i>=0; i = chain[i])
         {
             const vertex &c = verts[i];
-            if(c.pos==v.pos && c.u==v.u && c.v==v.v && c.norm==v.norm && c.tangent==v.tangent && c.bitangent==v.bitangent)
+            if(c.pos==v.pos && c.tc==v.tc && c.norm==v.norm && c.tangent==v.tangent && c.bitangent==v.bitangent)
                  return i; 
         }
         if(verts.length() >= (int)USHRT_MAX) return -1;
@@ -176,12 +147,11 @@ struct verthash
         return table[h] = verts.length()-1;
     }
 
-    int addvert(const vec &pos, float u = 0, float v = 0, const bvec &norm = bvec(128, 128, 128), const bvec &tangent = bvec(128, 128, 128), uchar bitangent = 128)
+    int addvert(const vec &pos, const vec2 &tc = vec2(0, 0), const bvec &norm = bvec(128, 128, 128), const bvec &tangent = bvec(128, 128, 128), uchar bitangent = 128)
     {
         vertex vtx;
         vtx.pos = pos;
-        vtx.u = u;
-        vtx.v = v;
+        vtx.tc = tc;
         vtx.norm = norm;
         vtx.reserved = 0;
         vtx.tangent = tangent;
@@ -302,11 +272,10 @@ struct vacollect : verthash
             f++; \
         } \
     } while(0)
-#define GENVERTSPOSNORMUV(type, ptr, body) GENVERTS(type, ptr, { f->pos = v.pos; f->norm = v.norm; f->norm.flip(); f->reserved = 0; f->u = v.u; f->v = v.v; body; })
 
     void genverts(void *buf)
     {
-        GENVERTS(vertex, buf, { *f = v; f->norm.flip(); });
+        GENVERTS(vertex, buf, { *f = v; f->norm.flip(); f->tangent.flip(); f->bitangent -= 128; });
     }
 
     void setupdata(vtxarray *va)
@@ -325,8 +294,7 @@ struct vacollect : verthash
                vbosize[VBO_SKYBUF] + skytris > (int)USHRT_MAX)
                 flushvbo();
 
-            va->voffset = vbosize[VBO_VBUF];
-            uchar *vdata = addvbo(va, VBO_VBUF, va->verts, VTXSIZE);
+            uchar *vdata = addvbo(va, VBO_VBUF, va->verts, sizeof(vertex));
             genverts(vdata);
             va->minvert += va->voffset;
             va->maxvert += va->voffset;
@@ -354,10 +322,10 @@ struct vacollect : verthash
 
         va->skybuf = 0;
         va->skydata = 0;
+        va->skyoffset = 0;
         va->sky = skyindices.length();
         if(va->sky)
         {
-            va->skydata += vbosize[VBO_SKYBUF];
             ushort *skydata = (ushort *)addvbo(va, VBO_SKYBUF, va->sky, sizeof(ushort));
             memcpy(skydata, skyindices.getbuf(), va->sky*sizeof(ushort));
             if(va->voffset) loopi(va->sky) skydata[i] += va->voffset;
@@ -375,10 +343,10 @@ struct vacollect : verthash
         va->refract = 0;
         va->ebuf = 0;
         va->edata = 0;
+        va->eoffset = 0;
         if(va->texs)
         {
             va->eslist = new elementset[va->texs];
-            va->edata += vbosize[VBO_EBUF];
             ushort *edata = (ushort *)addvbo(va, VBO_EBUF, worldtris, sizeof(ushort)), *curbuf = edata;
             loopv(texs)
             {
@@ -549,8 +517,7 @@ void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numv
                     vertex vt;
                     vt.pos = d.tovec().mul(t.offset/8.0f).add(o);
                     vt.reserved = 0;
-                    vt.u = v1.u + (v2.u-v1.u)*offset;
-                    vt.v = v1.v + (v2.v-v1.v)*offset;
+                    vt.tc.lerp(v1.tc, v2.tc, offset);
                     vt.norm.lerp(v1.norm, v2.norm, offset);
                     vt.tangent.lerp(v1.tangent, v2.tangent, offset);
                     vt.bitangent = v1.bitangent;
@@ -608,8 +575,8 @@ static inline void calctexgen(VSlot &vslot, int dim, vec4 &sgen, vec4 &tgen)
           xs = vslot.rotation>=2 && vslot.rotation<=4 ? -tex->xs : tex->xs,
           ys = (vslot.rotation>=1 && vslot.rotation<=2) || vslot.rotation==5 ? -tex->ys : tex->ys,
           sk = k/xs, tk = k/ys,
-          soff = -((vslot.rotation&5)==1 ? vslot.yoffset : vslot.xoffset)/xs,
-          toff = -((vslot.rotation&5)==1 ? vslot.xoffset : vslot.yoffset)/ys;
+          soff = -((vslot.rotation&5)==1 ? vslot.offset.y : vslot.offset.x)/xs,
+          toff = -((vslot.rotation&5)==1 ? vslot.offset.x : vslot.offset.y)/ys;
     static const int si[] = { 1, 0, 0 }, ti[] = { 2, 2, 1 };
     int sdim = si[dim], tdim = ti[dim];
     sgen = vec4(0, 0, 0, soff); 
@@ -687,8 +654,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
         vertex &v = verts[k];
         v.pos = pos[k];
         v.reserved = 0;
-        v.u = sgen.dot(v.pos);
-        v.v = tgen.dot(v.pos);
+        v.tc = vec2(sgen.dot(v.pos), tgen.dot(v.pos));
         if(vinfo && vinfo[k].norm)
         {
             vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][dim];
@@ -723,7 +689,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
         if(vslot.refractscale > 0) loopk(numverts) { vc.refractmin.min(pos[k]); vc.refractmax.max(pos[k]); }
     }
 
-    sortkey key(texture, vslot.scrollS || vslot.scrollT ? dim : 3, layer&LAYER_BOTTOM ? layer : LAYER_TOP, envmap, alpha ? (vslot.refractscale > 0 ? ALPHA_REFRACT : (vslot.alphaback ? ALPHA_BACK : ALPHA_FRONT)) : NO_ALPHA);
+    sortkey key(texture, vslot.scroll.iszero() ? 3 : dim, layer&LAYER_BOTTOM ? layer : LAYER_TOP, envmap, alpha ? (vslot.refractscale > 0 ? ALPHA_REFRACT : (vslot.alphaback ? ALPHA_BACK : ALPHA_FRONT)) : NO_ALPHA);
     addtris(key, orient, verts, index, numverts, convex, tj);
 
     if(grassy) 
@@ -1499,7 +1465,9 @@ void allchanged(bool load)
     entitiesinoctanodes();
     tjoints.setsize(0);
     if(filltjoints) findtjoints();
+#ifdef CLIENT
     octarender();
+#endif
     if(load) precachetextures();
     setupmaterials();
     clearshadowcache();
@@ -1507,6 +1475,7 @@ void allchanged(bool load)
 #ifdef CLIENT
     if(load) 
     {
+        genshadowmeshes();
         updateblendtextures();
         seedparticles();
         genenvmaps();

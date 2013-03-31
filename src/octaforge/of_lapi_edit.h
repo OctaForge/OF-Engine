@@ -159,8 +159,7 @@ namespace lapi_binds
         if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_OFFSET;
-        ds.xoffset = usevdelta ? x : max(x, 0);
-        ds.yoffset = usevdelta ? y : max(y, 0);
+        ds.offset = usevdelta ? ivec2(x, y) : ivec2(x, y).max(0);
         mpeditvslot(ds, allfaces, sel, true);  
     }
 
@@ -169,8 +168,7 @@ namespace lapi_binds
         if (noedit() || (nompedit && multiplayer())) return;
         VSlot ds;
         ds.changed = 1 << VSLOT_SCROLL;
-        ds.scrollS = s / 1000.0f;
-        ds.scrollT = t / 1000.0f;
+        ds.scroll = vec2(s/1000.0f, t/1000.0f);
         mpeditvslot(ds, allfaces, sel, true);  
     }
 

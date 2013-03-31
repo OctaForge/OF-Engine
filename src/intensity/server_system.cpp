@@ -51,7 +51,7 @@ int xtraverts = 0;
 
 bool hasVBO = false;
 
-Shader *defaultshader = NULL, *ldrnotextureshader = NULL;
+Shader *hudshader = NULL, *ldrnotextureshader = NULL;
 bool inbetweenframes = false;
 int explicitsky = 0;
 vtxarray *visibleva = NULL;
@@ -117,48 +117,46 @@ void resetqueries() { };
 void initenvmaps() { };
 int optimizematsurfs(materialsurface *matbuf, int matsurfs) { return 0; };
 
+glmatrix hudmatrix;
+
+void pushhudmatrix() {};
+void flushhudmatrix(bool flushparams) {};
+void pophudmatrix(bool flush, bool flushparams) {};
+
+
+#define VARRAY_INTERNAL
+#include "varray.h"
+
 #ifdef WINDOWS // needs stubs too, works for now
 #include "GL/gl.h"
 #else // stubs everywhere!
-void glBegin(GLenum mode) { };
-void glVertex3fv(const GLfloat *v) { };
-void glEnd() { };
-void glColor3f(GLfloat red , GLfloat green , GLfloat blue) { };
-void glColor3ub(GLubyte red, GLubyte green, GLubyte blue) { };
-void glLineWidth(GLfloat width) { };
-void glDepthFunc(GLenum func) { };
-void glEnable(GLenum cap) { };
-void glDisable(GLenum cap) { };
-void glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) { };
-void glBindTexture(GLenum target, GLuint texture) { };
-void glBlendFunc( GLenum sfactor, GLenum dfactor ) { };
-void glPushMatrix( void ) { };
-void glPopMatrix(          void) { };
-void glScalef( GLfloat x, GLfloat y, GLfloat z ) { };
-void glTexCoord2fv( const GLfloat *v ) { };
-void glVertex2f( GLfloat x, GLfloat y ) { };
+void glDepthFunc(GLenum func) {};
+void glEnable(GLenum cap) {};
+void glDisable(GLenum cap) {};
+void glBindTexture(GLenum target, GLuint texture) {};
+void glBlendFunc(GLenum sfactor, GLenum dfactor) {};
+void glDrawArrays(GLenum mode, GLint first, GLsizei count) {};
 #endif
 
-PFNGLDELETEBUFFERSARBPROC    glDeleteBuffers_    = NULL;
-PFNGLGENBUFFERSARBPROC       glGenBuffers_       = NULL;
-PFNGLBINDBUFFERARBPROC       glBindBuffer_ = NULL;
-PFNGLBUFFERDATAARBPROC       glBufferData_       = NULL;
-PFNGLGETBUFFERSUBDATAARBPROC glGetBufferSubData_ = NULL;
-
-#ifndef __APPLE__
-PFNGLUNIFORM1FVARBPROC                glUniform1fv_               = NULL;
-PFNGLUNIFORM2FVARBPROC                glUniform2fv_               = NULL;
-PFNGLUNIFORM3FVARBPROC                glUniform3fv_               = NULL;
-PFNGLUNIFORM4FVARBPROC                glUniform4fv_               = NULL;
-PFNGLUNIFORMMATRIX2FVARBPROC          glUniformMatrix2fv_         = NULL;
-PFNGLUNIFORMMATRIX3FVARBPROC          glUniformMatrix3fv_         = NULL;
-PFNGLUNIFORMMATRIX4FVARBPROC          glUniformMatrix4fv_         = NULL;
-#else
-void glUniform1fv(GLint location, GLsizei count, const GLfloat *value) {}
-void glUniform2fv(GLint location, GLsizei count, const GLfloat *value) {}
-void glUniform3fv(GLint location, GLsizei count, const GLfloat *value) {}
-void glUniform4fv(GLint location, GLsizei count, const GLfloat *value) {}
-void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {}
-void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {}
-void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {}
-#endif
+PFNGLDELETEBUFFERSARBPROC         glDeleteBuffers_            = NULL;
+PFNGLGENBUFFERSARBPROC            glGenBuffers_               = NULL;
+PFNGLBINDBUFFERARBPROC            glBindBuffer_               = NULL;
+PFNGLBUFFERDATAARBPROC            glBufferData_               = NULL;
+PFNGLVERTEXATTRIB3FPROC           glVertexAttrib3f_           = NULL;
+PFNGLVERTEXATTRIB4FPROC           glVertexAttrib4f_           = NULL;
+PFNGLVERTEXATTRIB4NUBPROC         glVertexAttrib4Nub_         = NULL;
+PFNGLUNIFORM1FVPROC               glUniform1fv_               = NULL;
+PFNGLUNIFORM2FVPROC               glUniform2fv_               = NULL;
+PFNGLUNIFORM3FVPROC               glUniform3fv_               = NULL;
+PFNGLUNIFORM4FVPROC               glUniform4fv_               = NULL;
+PFNGLUNIFORM1IVPROC               glUniform1iv_               = NULL;
+PFNGLUNIFORM2IVPROC               glUniform2iv_               = NULL;
+PFNGLUNIFORM3IVPROC               glUniform3iv_               = NULL;
+PFNGLUNIFORM4IVPROC               glUniform4iv_               = NULL;
+PFNGLUNIFORMMATRIX2FVPROC         glUniformMatrix2fv_         = NULL;
+PFNGLUNIFORMMATRIX3FVPROC         glUniformMatrix3fv_         = NULL;
+PFNGLUNIFORMMATRIX4FVPROC         glUniformMatrix4fv_         = NULL;
+PFNGLDRAWRANGEELEMENTSPROC        glDrawRangeElements_        = NULL;
+PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
+PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;

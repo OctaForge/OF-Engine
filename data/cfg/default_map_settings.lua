@@ -26,7 +26,7 @@ end
 
 texture.reset() -- let's start at texture slot 0
 
-shader.set("bumpworld") -- default world shader
+--shader.set("bumpworld") -- default world shader
 
 texture.add("0", "textures/core/defsky.png") -- fallback sky
 texture.add("0", "textures/core/256.png") -- fallback geometry

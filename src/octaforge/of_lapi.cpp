@@ -44,7 +44,6 @@ if (!name) \
 #include "of_lapi_model.h"
 #include "of_lapi_network.h"
 #include "of_lapi_parthud.h"
-#include "of_lapi_shaders.h"
 #include "of_lapi_sound.h"
 #include "of_lapi_tex.h"
 #include "of_lapi_world.h"
@@ -265,7 +264,6 @@ namespace lapi
         CAPI_REG(model);
         CAPI_REG(network);
         CAPI_REG(parthud);
-        CAPI_REG(shaders);
         CAPI_REG(sound);
         CAPI_REG(tex);
         CAPI_REG(world);

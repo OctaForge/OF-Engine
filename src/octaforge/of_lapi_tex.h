@@ -37,7 +37,7 @@ namespace lapi_binds
 
     void _lua_materialreset()
     {
-        if (!varsys::overridevars && !game::allowedittoggle()) return;
+        if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
         loopi((MATF_VOLUME|MATF_INDEX)+1) materialslots[i].reset();
     }
 
@@ -72,8 +72,7 @@ namespace lapi_binds
         if (slots.empty()) return;
         Slot& s = *slots.last();
 
-        s.variants->scrollS = ss / 1000.0f;
-        s.variants->scrollT = ts / 1000.0f;
+        s.variants->scroll = vec2(ss/1000.0f, ts/1000.0f);
         propagatevslot(s.variants, 1 << VSLOT_SCROLL);
     }
 
@@ -82,8 +81,7 @@ namespace lapi_binds
         if (slots.empty()) return;
         Slot& s = *slots.last();
 
-        s.variants->xoffset = max(x, 0);
-        s.variants->yoffset = max(y, 0);
+        s.variants->offset = ivec2(x, y).max(0);
         propagatevslot(s.variants, 1 << VSLOT_OFFSET);
     }
 
@@ -376,51 +374,53 @@ namespace lapi_binds
         if (!rgbonlyshader) rgbonlyshader = lookupshaderbyname("rgbonly");
         rgbonlyshader->set();
 
-        float tc[4][2] = { { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 } };
-        int xoff = vslot.xoffset, yoff = vslot.yoffset;
+        vec2 tc[4] = { vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1) };
+        int xoff = vslot.offset.x, yoff = vslot.offset.y;
         if (vslot.rotation)
         {
-            if ((vslot.rotation&5) == 1) { swap(xoff, yoff); loopk(4) swap(tc[k][0], tc[k][1]); }
-            if (vslot.rotation >= 2 && vslot.rotation <= 4) { xoff *= -1; loopk(4) tc[k][0] *= -1; }
-            if (vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k][1] *= -1; }
+            if ((vslot.rotation&5) == 1) { swap(xoff, yoff); loopk(4) swap(tc[k].x, tc[k].y); }
+            if (vslot.rotation >= 2 && vslot.rotation <= 4) { xoff *= -1; loopk(4) tc[k].x *= -1; }
+            if (vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k].y *= -1; }
         }
-        loopk(4) { tc[k][0] = tc[k][0]/xt - float(xoff)/tex->xs; tc[k][1] = tc[k][1]/yt - float(yoff)/tex->ys; }
-        if(slot.loaded) glColor3fv(vslot.colorscale.v);
+        loopk(4) { tc[k].x = tc[k].x/xt - float(xoff)/tex->xs; tc[k].y = tc[k].y/yt - float(yoff)/tex->ys; }
+        varray::color(slot.loaded ? vslot.colorscale : vec(1, 1, 1));
         glBindTexture(GL_TEXTURE_2D, tex->id);
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2fv(tc[0]); glVertex2f(sx,   sy);
-        glTexCoord2fv(tc[1]); glVertex2f(sx+w, sy);
-        glTexCoord2fv(tc[3]); glVertex2f(sx,   sy+h);
-        glTexCoord2fv(tc[2]); glVertex2f(sx+w, sy+h);
-        glEnd();
+        varray::defvertex(2);
+        varray::deftexcoord0();
+        varray::begin(GL_TRIANGLE_STRIP);
+        varray::attribf(sx,     sy);     varray::attrib(tc[0]);
+        varray::attribf(sx + w, sy);     varray::attrib(tc[1]);
+        varray::attribf(sx,     sy + h); varray::attrib(tc[3]);
+        varray::attribf(sx + w, sy + h); varray::attrib(tc[2]);
+        varray::end();
 
         if (glowtex)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glBindTexture(GL_TEXTURE_2D, glowtex->id);
-            glColor3fv(vslot.glowcolor.v);
-            glBegin(GL_TRIANGLE_STRIP);
-            glTexCoord2fv(tc[0]); glVertex2f(sx,   sy);
-            glTexCoord2fv(tc[1]); glVertex2f(sx+w, sy);
-            glTexCoord2fv(tc[3]); glVertex2f(sx,   sy+h);
-            glTexCoord2fv(tc[2]); glVertex2f(sx+w, sy+h);
-            glEnd();
+            varray::color(vslot.glowcolor);
+            varray::begin(GL_TRIANGLE_STRIP);
+            varray::attribf(sx,     sy);     varray::attrib(tc[0]);
+            varray::attribf(sx + w, sy);     varray::attrib(tc[1]);
+            varray::attribf(sx,     sy + h); varray::attrib(tc[3]);
+            varray::attribf(sx + w, sy + h); varray::attrib(tc[2]);
+            varray::end();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
         if (layertex)
         {
             glBindTexture(GL_TEXTURE_2D, layertex->id);
-            glColor3fv(layer->colorscale.v);
-            glBegin(GL_TRIANGLE_STRIP);
-            glTexCoord2fv(tc[0]); glVertex2f(sx+w/2, sy+h/2);
-            glTexCoord2fv(tc[1]); glVertex2f(sx+w,   sy+h/2);
-            glTexCoord2fv(tc[3]); glVertex2f(sx+w/2, sy+h);
-            glTexCoord2fv(tc[2]); glVertex2f(sx+w,   sy+h);
-            glEnd();
+            varray::color(layer->colorscale);
+            varray::begin(GL_TRIANGLE_STRIP);
+            varray::attribf(sx + w / 2, sy + h / 2); varray::attrib(tc[0]);
+            varray::attribf(sx + w,     sy + h / 2); varray::attrib(tc[1]);
+            varray::attribf(sx + w / 2, sy + h);     varray::attrib(tc[3]);
+            varray::attribf(sx + w,     sy + h);     varray::attrib(tc[2]);
+            varray::end();
         }
-        glColor3f(1, 1, 1);
 
-        defaultshader->set();
+        varray::color(vec(1, 1, 1));
+        hudshader->set();
     }
 
     void _lua_texture_draw_slot(

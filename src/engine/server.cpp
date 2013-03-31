@@ -60,24 +60,30 @@ void logoutf(const char *fmt, ...)
     va_end(args);
 }
 
-static void writelog(FILE *file, const char *fmt, va_list args)
+
+static void writelog(FILE *file, const char *buf)
 {
-    static char buf[LOGSTRLEN];
     static uchar ubuf[512];
-    vformatstring(buf, fmt, args, sizeof(buf));
     int len = strlen(buf), carry = 0;
     while(carry < len)
     {
-        int numu = encodeutf8(ubuf, sizeof(ubuf)-1, &((uchar *)buf)[carry], len - carry, &carry);
+        int numu = encodeutf8(ubuf, sizeof(ubuf)-1, &((const uchar *)buf)[carry], len - carry, &carry);
         if(carry >= len) ubuf[numu++] = '\n';
         fwrite(ubuf, 1, numu, file);
     }
 }
 
+static void writelogv(FILE *file, const char *fmt, va_list args)
+{
+    static char buf[LOGSTRLEN];
+    vformatstring(buf, fmt, args, sizeof(buf));
+    writelog(file, buf);
+}
+
 void logoutfv(const char *fmt, va_list args)
 {
     FILE *f = getlogfile();
-    if(f) writelog(f, fmt, args);
+    if(f) writelogv(f, fmt, args);
 }
 
 #ifdef STANDALONE
@@ -89,7 +95,7 @@ void fatal(const char *s, ...)
 
 void conoutfv(int type, const char *fmt, va_list args)
 {
-    printf("%s\n", types::String().vformat(fmt, args).get_buf());
+    logoutfv(fmt, args);
 }
 
 void conoutf(int type, const char *fmt, ...)
@@ -568,10 +574,10 @@ bool serveroption(char *opt)
 {
     switch(opt[1])
     {
-        case 'u': SETV(serveruprate, atoi(opt+2)); return true;
+        case 'u': setvar("serveruprate", atoi(opt+2)); return true;
         case 'c': maxclients = atoi(opt+2); return true;
-        case 'i': SETVF(serverip, opt+2); return true;
-        case 'j': SETVFN(serverport, atoi(opt+2)); return true; 
+        case 'i': setsvar("serverip", opt+2); return true;
+        case 'j': setvar("serverport", atoi(opt+2)); return true; 
         default: return false;
     }
 }
@@ -752,7 +758,6 @@ int main(int argc, char **argv)
     }
 
     logger::log(logger::WARNING, "Stopping main server.");
-    varsys::flush();
 
     return 0;
 }

@@ -65,12 +65,12 @@ extern "C" {
         return SDL_GL_GetProcAddress(proc);
     }
 
-    void base_shader_notexture_set() {
-        notextureshader->set();
+    void base_shader_hud_set() {
+        hudshader->set();
     }
 
-    void base_shader_default_set() {
-        defaultshader->set();
+    void base_shader_hudnotexture_set() {
+        hudnotextureshader->set();
     }
 
 #endif
@@ -94,351 +94,130 @@ extern "C" {
     /* Engine variables */
 
     void var_reset(const char *name) {
-        varsys::reset(varsys::get(name));
+        resetvar((char*)name);
     }
 
-    void var_new_i(const char *name, int value) {
-        if (!name) return;
-        printf("new!\n");
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) {
-            varsys::reg_int(name, value);
-        }
-        else if (ev->type != varsys::TYPE_I) {
-            logger::log(logger::ERROR,
-                "Creation of engine variable \"%s\" failed: already exists "
-                "and is of different type.\n", ev->name);
-        }
-        else if (ev->flags != varsys::FLAG_ALIAS) {
-            logger::log(logger::ERROR,
-                "Engine variable \"%s\" already exists and has different "
-                "flags.", ev->name);
-        }
-    }
-
-    void var_new_f(const char *name, float value) {
-        if (!name) return;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) {
-            varsys::reg_float(name, value);
-        }
-        else if (ev->type != varsys::TYPE_F) {
-            logger::log(logger::ERROR,
-                "Creation of engine variable \"%s\" failed: already exists "
-                "and is of different type.\n", ev->name);
-        }
-        else if (ev->flags != varsys::FLAG_ALIAS) {
-            logger::log(logger::ERROR,
-                "Engine variable \"%s\" already exists and has different "
-                "flags.", ev->name);
-        }
-    }
-
-    void var_new_s(const char *name, const char *value) {
-        if (!name ) return;
-        if (!value) value = "";
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) {
-            varsys::reg_string(name, value);
-        }
-        else if (ev->type != varsys::TYPE_S) {
-            logger::log(logger::ERROR,
-                "Creation of engine variable \"%s\" failed: already exists "
-                "and is of different type.\n", ev->name);
-        }
-        else if (ev->flags != varsys::FLAG_ALIAS) {
-            logger::log(logger::ERROR,
-                "Engine variable \"%s\" already exists and has different "
-                "flags.", ev->name);
-        }
-    }
-
-    void var_new_i_full(const char *name, int min, int def, int max,
+    void var_new_i(const char *name, int min, int def, int max,
         int flags) {
         if (!name) return;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) {
-            varsys::reg_int(name, flags, NULL, NULL, min, def, max);
-        }
-        else if (ev->type != varsys::TYPE_I) {
-            logger::log(logger::ERROR,
-                "Creation of engine variable \"%s\" failed: already exists "
-                "and is of different type.\n", ev->name);
-        }
-        else if (ev->flags != flags) {
-            logger::log(logger::ERROR,
-                "Engine variable \"%s\" already exists and has different "
-                "flags.", ev->name);
+        ident *id = getident(name);
+        if (!id) {
+            int *st = new int;
+            *st = variable(name, min, def, max, st, NULL, flags | IDF_ALLOC);
+        } else {
+            logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
     }
 
-    void var_new_f_full(const char *name, float min, float def, float max,
+    void var_new_f(const char *name, float min, float def, float max,
         int flags) {
         if (!name) return;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) {
-            varsys::reg_float(name, flags, NULL, NULL, min, def, max);
-        }
-        else if (ev->type != varsys::TYPE_F) {
-            logger::log(logger::ERROR,
-                "Creation of engine variable \"%s\" failed: already exists "
-                "and is of different type.\n", ev->name);
-        }
-        else if (ev->flags != flags) {
-            logger::log(logger::ERROR,
-                "Engine variable \"%s\" already exists and has different "
-                "flags.", ev->name);
+        ident *id = getident(name);
+        if (!id) {
+            float *st = new float;
+            *st = fvariable(name, min, def, max, st, NULL, flags | IDF_ALLOC);
+        } else {
+            logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
     }
 
-    void var_new_s_full(const char *name, const char *def, int flags) {
+    void var_new_s(const char *name, const char *def, int flags) {
         if (!name) return;
-        if (!def ) def = "";
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) {
-            varsys::reg_string(name, flags, NULL, NULL, def);
-        }
-        else if (ev->type != varsys::TYPE_S) {
-            logger::log(logger::ERROR,
-                "Creation of engine variable \"%s\" failed: already exists "
-                "and is of different type.\n", ev->name);
-        }
-        else if (ev->flags != flags) {
-            logger::log(logger::ERROR,
-                "Engine variable \"%s\" already exists and has different "
-                "flags.", ev->name);
+        ident *id = getident(name);
+        if (!id) {
+            char **st = new char*;
+            *st = svariable(name, def, st, NULL, flags | IDF_ALLOC);
+        } else {
+            logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
     }
 
     void var_set_i(const char *name, int value) {
-        if (!name) return;
-
-        varsys::Variable *ev = varsys::get(name);
-
-        if (!ev) {
-            logger::log(logger::ERROR,
-                "Engine variable %s does not exist.\n", name);
-            return;
-        }
-
-        if (ev->type != varsys::TYPE_I) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is not integral, cannot become %i.\n",
-                value);
-            return;
-        }
-
-        if ((ev->flags & varsys::FLAG_READONLY) != 0) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is read-only.\n", name);
-            return;
-        }
-
-        varsys::set(ev, value, true, true);
+        setvar(name, value);
     }
 
     void var_set_f(const char *name, float value) {
-        if (!name) return;
-
-        varsys::Variable *ev = varsys::get(name);
-
-        if (!ev) {
-            logger::log(logger::ERROR,
-                "Engine variable %s does not exist.\n", name);
-            return;
-        }
-
-        if (ev->type != varsys::TYPE_F) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is not a float, cannot become %f.\n",
-                value);
-            return;
-        }
-
-        if ((ev->flags & varsys::FLAG_READONLY) != 0) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is read-only.\n", name);
-            return;
-        }
-
-        varsys::set(ev, value, true, true);
+        setfvar(name, value);
     }
 
     void var_set_s(const char *name, const char *value) {
-        if (!name ) return;
-        if (!value) value = "";
-
-        varsys::Variable *ev = varsys::get(name);
-
-        if (!ev) {
-            logger::log(logger::ERROR,
-                "Engine variable %s does not exist.\n", name);
-            return;
-        }
-
-        if (ev->type != varsys::TYPE_S) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is not a string, cannot become %s.\n",
-                value);
-            return;
-        }
-
-        if ((ev->flags & varsys::FLAG_READONLY) != 0) {
-            logger::log(logger::ERROR,
-                "Engine variable %s is read-only.\n", name);
-            return;
-        }
-
-        varsys::set(ev, value, true);
+        setsvar(name, value);
     }
 
     int var_get_i(const char *name) {
-        if (!name) return 0;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_I) return 0;
-
-        return varsys::get_int(ev);
+        return getvar(name);
     }
 
     float var_get_f(const char *name) {
-        if (!name) return 0.0f;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_F) return 0.0f;
-
-        return varsys::get_float(ev);
+        return getfvar(name);
     }
 
     const char *var_get_s(const char *name) {
-        if (!name) return NULL;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_S) return NULL;
-
-        return varsys::get_string(ev);
+        return getsvar(name);
     }
 
     int var_get_min_i(const char *name) {
-        if (!name) return 0;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_I ||
-            (ev->flags & varsys::FLAG_ALIAS))
-                return 0;
-
-        return (((varsys::Int_Variable *)ev)->min_v);
+        return getvarmin(name);
     }
 
     float var_get_min_f(const char *name) {
-        if (!name) return 0.0f;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_F ||
-            (ev->flags & varsys::FLAG_ALIAS))
-                return 0.0f;
-
-        return (((varsys::Float_Variable *)ev)->min_v);
+        return getfvarmin(name);
     }
 
     int var_get_max_i(const char *name) {
-        if (!name) return 0;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_I ||
-            (ev->flags & varsys::FLAG_ALIAS))
-                return 0;
-
-        return (((varsys::Int_Variable *)ev)->max_v);
+        return getvarmax(name);
     }
 
     float var_get_max_f(const char *name) {
-        if (!name) return 0.0f;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_F ||
-            (ev->flags & varsys::FLAG_ALIAS))
-                return 0.0f;
-
-        return (((varsys::Float_Variable *)ev)->max_v);
+        return getfvarmax(name);
     }
 
     int var_get_def_i(const char *name) {
-        if (!name) return 0;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_I ||
-            (ev->flags & varsys::FLAG_ALIAS))
-                return 0;
-
-        return (((varsys::Int_Variable *)ev)->def_v);
+        ident *id = getident(name);
+        if (!id || id->type != ID_VAR) return 0;
+        return id->overrideval.i;
     }
 
     float var_get_def_f(const char *name) {
-        if (!name) return 0.0f;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_F ||
-            (ev->flags & varsys::FLAG_ALIAS))
-                return 0.0f;
-
-        return (((varsys::Float_Variable *)ev)->def_v);
+        ident *id = getident(name);
+        if (!id || id->type != ID_FVAR) return 0.0f;
+        return id->overrideval.f;
     }
 
     const char *var_get_def_s(const char *name) {
-        if (!name) return NULL;
-
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || ev->type != varsys::TYPE_S ||
-            (ev->flags & varsys::FLAG_ALIAS))
-                return NULL;
-
-        return (((varsys::String_Variable *)ev)->def_v);
+        ident *id = getident(name);
+        if (!id || id->type != ID_SVAR) return NULL;
+        return id->overrideval.s;
     }
 
     int var_get_type(const char *name) {
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev) return -1;
-        return ev->type;
+        ident *id = getident(name);
+        if (!id || id->type > ID_SVAR)
+            return -1;
+        return id->type;
     }
 
     bool var_exists(const char *name) {
-        return varsys::get(name) ? true : false;
-    }
-
-    bool var_is_alias(const char *name) {
-        varsys::Variable *ev = varsys::get(name);
-        return (!ev || !(ev->flags & varsys::FLAG_ALIAS)) ? false : true;
+        ident *id = getident(name);
+        return (!id || id->type > ID_SVAR)
+            ? false : true;
     }
 
     bool var_is_hex(const char *name) {
-        varsys::Variable *ev = varsys::get(name);
-        return (!ev || !(ev->flags & varsys::FLAG_HEX)) ? false : true;
+        ident *id = getident(name);
+        return (!id || !(id->flags&IDF_HEX)) ? false : true;
     }
 
     bool var_emits(const char *name) {
-        varsys::Variable *ev = varsys::get(name);
-        return (!ev || !(ev->emits)) ? false : true;
+        ident *id = getident(name);
+        return (!id || !(id->flags&IDF_SIGNAL)) ? false : true;
     }
 
     void var_emits_set(const char *name, bool v) {
-        varsys::Variable *ev = varsys::get(name);
-        if (!ev || (ev->flags & varsys::FLAG_ALIAS)) return;
-        ev->emits = v;
-    }
-
-    bool var_changed() {
-        return varsys::changed;
-    }
-
-    void var_changed_set(bool ch) {
-        varsys::changed = ch;
+        ident *id = getident(name);
+        if (!id) return;
+        if (v) id->flags |= IDF_SIGNAL;
+        else id->flags &= ~IDF_SIGNAL;
     }
 
     /* Input handling */
@@ -524,5 +303,77 @@ extern "C" {
     void texture_load_alpha_mask(Texture *tex) {
         loadalphamask(tex);
     }
+
+    /* hudmatrix */
+
+    void hudmatrix_push () { pushhudmatrix (); }
+    void hudmatrix_pop  () { pophudmatrix  (); }
+    void hudmatrix_flush() { flushhudmatrix(); }
+    void hudmatrix_reset() { resethudmatrix(); }
+
+    void hudmatrix_translate(float x, float y, float z) { hudmatrix.translate(vec(x, y, z)); }
+    void hudmatrix_scale(float x, float y, float z) { hudmatrix.scale(vec(x, y, z)); }
+    void hudmatrix_ortho(float l, float r, float b, float t, float zn, float zf) {
+        hudmatrix.ortho(l, r, b, t, zn, zf);
+    }
+
+    /* varray */
+
+    void varray_begin(GLenum mode) { varray::begin(mode); }
+    void varray_defattribs(const char *fmt) { varray::defattribs(fmt); }
+    void varray_defattrib(int type, int size, int format) { varray::defattrib(type, size, format); }
+
+    int varray_end() { return varray::end(); }
+    void varray_disable() { varray::disable(); }
+    void varray_cleanup() { varray::cleanup(); }
+
+    #define EAPI_VARRAY_DEFATTRIB(name) \
+        void varray_def##name(int size, int format) { varray::def##name(size, format); }
+
+    EAPI_VARRAY_DEFATTRIB(vertex)
+    EAPI_VARRAY_DEFATTRIB(color)
+    EAPI_VARRAY_DEFATTRIB(texcoord0)
+    EAPI_VARRAY_DEFATTRIB(texcoord1)
+    EAPI_VARRAY_DEFATTRIB(normal)
+    EAPI_VARRAY_DEFATTRIB(tangent)
+    EAPI_VARRAY_DEFATTRIB(boneweight)
+    EAPI_VARRAY_DEFATTRIB(boneindex)
+
+    #define EAPI_VARRAY_INITATTRIB(name) \
+        void varray_##name##1f(float x) { varray::name##f(x); } \
+        void varray_##name##2f(float x, float y) { varray::name##f(x, y); } \
+        void varray_##name##3f(float x, float y, float z) { varray::name##f(x, y, z); } \
+        void varray_##name##4f(float x, float y, float z, float w) { varray::name##f(x, y, z, w); }
+
+    EAPI_VARRAY_INITATTRIB(vertex)
+    EAPI_VARRAY_INITATTRIB(color)
+    EAPI_VARRAY_INITATTRIB(texcoord0)
+    EAPI_VARRAY_INITATTRIB(texcoord1)
+
+    #define EAPI_VARRAY_INITATTRIBN(name, suffix, type) \
+        void varray_##name##1##suffix(type x) { varray::name##suffix(x, 0xFF, 0xFF); } \
+        void varray_##name##2##suffix(type x, type y) { varray::name##suffix(x, y, 0xFF); } \
+        void varray_##name##3##suffix(type x, type y, type z) { varray::name##suffix(x, y, z); } \
+        void varray_##name##4##suffix(type x, type y, type z, type w) { varray::name##suffix(x, y, z, w); }
+
+    EAPI_VARRAY_INITATTRIBN(color, ub, uchar)
+
+    void varray_normal(float x, float y, float z) { varray::normal(x, y, z); }
+    void varray_tangent(float x, float y, float z, float w) { varray::tangent(x, y, z, w); }
+
+    #define EAPI_VARRAY_ATTRIB(suffix, type) \
+        void varray_attrib##1##suffix(type x) { varray::attrib##suffix(x); } \
+        void varray_attrib##2##suffix(type x, type y) { varray::attrib##suffix(x, y); } \
+        void varray_attrib##3##suffix(type x, type y, type z) { varray::attrib##suffix(x, y, z); } \
+        void varray_attrib##4##suffix(type x, type y, type z, type w) { varray::attrib##suffix(x, y, z, w); }
+
+    EAPI_VARRAY_ATTRIB(f, float)
+    EAPI_VARRAY_ATTRIB(d, double)
+    EAPI_VARRAY_ATTRIB(b, char)
+    EAPI_VARRAY_ATTRIB(ub, uchar)
+    EAPI_VARRAY_ATTRIB(s, short)
+    EAPI_VARRAY_ATTRIB(us, ushort)
+    EAPI_VARRAY_ATTRIB(i, int)
+    EAPI_VARRAY_ATTRIB(ui, uint)
 #endif
 }

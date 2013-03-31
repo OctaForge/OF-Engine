@@ -48,8 +48,8 @@ if CLIENT then ffi.cdef [[
 
     void *base_gl_get_proc_address(const char *proc);
 
-    void base_shader_notexture_set();
-    void base_shader_default_set  ();
+    void base_shader_hud_set();
+    void base_shader_hudnotexture_set();
 
     enum {
         BASE_CHANGE_GFX     = 1 << 0,
@@ -83,17 +83,13 @@ ffi.cdef [[
 
     void var_reset(const char *name);
 
-    void var_new_i(const char *name, int value);
-    void var_new_f(const char *name, float value);
-    void var_new_s(const char *name, const char *value);
-
-    void var_new_i_full(const char *name, int min, int def, int max,
+    void var_new_i(const char *name, int min, int def, int max,
         int flags);
 
-    void var_new_f_full(const char *name, float min, float def, float max,
+    void var_new_f(const char *name, float min, float def, float max,
         int flags);
 
-    void var_new_s_full(const char *name, const char *def, int flags);
+    void var_new_s(const char *name, const char *def, int flags);
 
     void var_set_i(const char *name, int value);
     void var_set_f(const char *name, float value);
@@ -116,7 +112,6 @@ ffi.cdef [[
     int var_get_type(const char *name);
 
     bool var_exists   (const char *name);
-    bool var_is_alias (const char *name);
     bool var_is_hex   (const char *name);
     bool var_emits    (const char *name);
     void var_emits_set(const char *name, bool v);
@@ -362,6 +357,94 @@ if CLIENT then ffi.cdef [[
     Texture *texture_load(const char *path);
     Texture *texture_get_notexture();
     void     texture_load_alpha_mask(Texture *tex);
+
+    /* hudmatrix */
+
+    void hudmatrix_push();
+    void hudmatrix_pop();
+    void hudmatrix_flush();
+    void hudmatrix_reset();
+
+    void hudmatrix_translate(float x, float y, float z);
+    void hudmatrix_scale(float x, float y, float z);
+    void hudmatrix_ortho(float l, float r, float b, float t, float zn, float zf);
+
+    /* varray */
+
+    void varray_begin(GLenum mode);
+    void varray_defattribs(const char *fmt);
+    void varray_defattrib(int type, int size, int format);
+
+    int varray_end();
+    void varray_disable();
+    void varray_cleanup();
+
+    void varray_defvertex(int size, int format);
+    void varray_defcolor(int size, int format);
+    void varray_deftexcoord0(int size, int format);
+    void varray_deftexcoord1(int size, int format);
+    void varray_defnormal(int size, int format);
+    void varray_deftangent(int size, int format);
+    void varray_defboneweight(int size, int format);
+    void varray_defboneindex(int size, int format);
+
+    void varray_vertex1f(float x);
+    void varray_vertex2f(float x, float y);
+    void varray_vertex3f(float x, float y, float z);
+    void varray_vertex4f(float x, float y, float z, float w);
+    void varray_color1f(float x);
+    void varray_color2f(float x, float y);
+    void varray_color3f(float x, float y, float z);
+    void varray_color4f(float x, float y, float z, float w);
+    void varray_texcoord01f(float x);
+    void varray_texcoord02f(float x, float y);
+    void varray_texcoord03f(float x, float y, float z);
+    void varray_texcoord04f(float x, float y, float z, float w);
+    void varray_texcoord11f(float x);
+    void varray_texcoord12f(float x, float y);
+    void varray_texcoord13f(float x, float y, float z);
+    void varray_texcoord14f(float x, float y, float z, float w);
+
+    void varray_color1ub(uchar x);
+    void varray_color2ub(uchar x, uchar y);
+    void varray_color3ub(uchar x, uchar y, uchar z);
+    void varray_color4ub(uchar x, uchar y, uchar z, uchar w);
+
+    void varray_normal(float x, float y, float z);
+    void varray_tangent(float x, float y, float z, float w);
+
+    void varray_attrib1f(float x);
+    void varray_attrib2f(float x, float y);
+    void varray_attrib3f(float x, float y, float z);
+    void varray_attrib4f(float x, float y, float z, float w);
+    void varray_attrib1d(double x);
+    void varray_attrib2d(double x, double y);
+    void varray_attrib3d(double x, double y, double z);
+    void varray_attrib4d(double x, double y, double z, double w);
+    void varray_attrib1b(char x);
+    void varray_attrib2b(char x, char y);
+    void varray_attrib3b(char x, char y, char z);
+    void varray_attrib4b(char x, char y, char z, char w);
+    void varray_attrib1ub(uchar x);
+    void varray_attrib2ub(uchar x, uchar y);
+    void varray_attrib3ub(uchar x, uchar y, uchar z);
+    void varray_attrib4ub(uchar x, uchar y, uchar z, uchar w);
+    void varray_attrib1s(short x);
+    void varray_attrib2s(short x, short y);
+    void varray_attrib3s(short x, short y, short z);
+    void varray_attrib4s(short x, short y, short z, short w);
+    void varray_attrib1us(ushort x);
+    void varray_attrib2us(ushort x, ushort y);
+    void varray_attrib3us(ushort x, ushort y, ushort z);
+    void varray_attrib4us(ushort x, ushort y, ushort z, ushort w);
+    void varray_attrib1i(int x);
+    void varray_attrib2i(int x, int y);
+    void varray_attrib3i(int x, int y, int z);
+    void varray_attrib4i(int x, int y, int z, int w);
+    void varray_attrib1ui(uint x);
+    void varray_attrib2ui(uint x, uint y);
+    void varray_attrib3ui(uint x, uint y, uint z);
+    void varray_attrib4ui(uint x, uint y, uint z, uint w);
 ]] end
 
 nullptr = ffi.cast("void*", nil)

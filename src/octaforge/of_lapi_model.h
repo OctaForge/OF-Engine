@@ -177,7 +177,7 @@ namespace lapi_binds
                 if (oldtp == -1 && thirdperson == 0)
                 {
                     oldtp = thirdperson;
-                    SETV(thirdperson, 1);
+                    thirdperson = 1;
                 }
             }
 
@@ -196,7 +196,7 @@ namespace lapi_binds
 
                 if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1)
                 {
-                    SETV(thirdperson, oldtp);
+                    thirdperson = oldtp;
                     oldtp = -1;
                 }
             }

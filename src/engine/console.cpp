@@ -31,7 +31,6 @@ void conoutfv(int type, const char *fmt, va_list args)
     types::String buf;
     buf.vformat(fmt, args);
     conline(type, buf);
-    filtertext(&buf[0], buf.get_buf());
     logoutf("%s", buf.get_buf());
 }
 
@@ -157,7 +156,7 @@ hashtable<int, keym> keyms(128);
 void keymap(int code, const char *key)
 {
     if (!key) { conoutf(CON_ERROR, "no key given"); return; }
-    if(varsys::overridevars) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
+    if(identflags&IDF_OVERRIDDEN) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
     keym &km = keyms[code];
     km.code = code;
     km.name = key;
@@ -204,7 +203,7 @@ types::String getbind(const char *key, int type)
 
 void bindkey(const char *key, const char *action, int state)
 {
-    if(varsys::overridevars) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
+    if(identflags&IDF_OVERRIDDEN) { conoutf(CON_ERROR, "cannot override %sbind \"%s\"", state == 1 ? "spec" : (state == 2 ? "edit" : ""), key); return; }
     keym *km = findbind(key);
     if(!km) { conoutf(CON_ERROR, "unknown key \"%s\"", key); return; }
     types::String& binding = km->actions[state];
@@ -332,18 +331,7 @@ struct hline
     {
         if (!action.is_empty())
         {
-            varsys::Variable *ev = varsys::get("commandbuf");
-            if (!ev)
-            {
-                varsys::reg_string("commandbuf", buf.get_buf());
-                ev = varsys::get("commandbuf");
-            }
-
-            if (ev->type != varsys::TYPE_S)
-                return;
-
-            varsys::set((varsys::Variable*)ev, buf.get_buf());
-
+            alias("commandbuf", buf.get_buf());
             types::Tuple<int, const char*> err = lapi::state.do_string(action);
             if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
         }
@@ -354,14 +342,7 @@ struct hline
                 types::Tuple<int, const char*> err = lapi::state.do_string(buf.get_buf() + 2);
                 if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
             } else {
-                lua::Function f = lapi::state.get<lua::Function>("lisp", "run_string");
-                f.push();
-                lua_pushstring (lapi::state.state(), buf.get_buf() + 1);
-                lua_pushboolean(lapi::state.state(), true);
-                if (lua_pcall  (lapi::state.state(), 2, 0, 0)) {
-                    logger::log(logger::ERROR, "%s\n", lua_tostring(lapi::state.state(), -1));
-                    lua_pop(lapi::state.state(), 1);
-                }
+                execute(buf.get_buf()+1);
             }
         }
         else game::toserver((char*)buf.get_buf());

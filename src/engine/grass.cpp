@@ -158,7 +158,7 @@ static void gengrassquads(grassgroup *&group, const grasswedge &w, const grasstr
             group = &grassgroups.add();
             group->tri = &g;
             group->tex = tex->id;
-            group->offset = grassverts.length();
+            group->offset = grassverts.length()/4;
             group->numquads = 0;
             if(lastgrassanim!=lastmillis) animategrass();
         }
@@ -244,19 +244,18 @@ void rendergrass()
 
     glDisable(GL_CULL_FACE);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, sizeof(grassvert), grassverts[0].pos.v);
-
-    glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(grassvert), grassverts[0].color);
-
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, sizeof(grassvert), &grassverts[0].u);
-
+    varray::vertexpointer(sizeof(grassvert), grassverts[0].pos.v);
+    varray::colorpointer(sizeof(grassvert), grassverts[0].color);
+    varray::texcoord0pointer(sizeof(grassvert), &grassverts[0].u);
+    varray::enablevertex();
+    varray::enablecolor();
+    varray::enabletexcoord0();
+    varray::enablequads();
+ 
     static Shader *grassshader = NULL;
     if(!grassshader) grassshader = lookupshaderbyname("grass");
     
-    GLOBALPARAM(grasstest, (grasstest));
+    GLOBALPARAMF(grasstest, (grasstest));
 
     int texid = -1, blend = -1;
     loopv(grassgroups)
@@ -273,22 +272,23 @@ void rendergrass()
         {
             if(g.tri->blend)
             {
-                glActiveTexture_(GL_TEXTURE1_ARB);
+                glActiveTexture_(GL_TEXTURE1);
                 bindblendtexture(ivec(g.tri->center));
-                glActiveTexture_(GL_TEXTURE0_ARB);
+                glActiveTexture_(GL_TEXTURE0);
                 grassshader->setvariant(0, 0);
             }
             else grassshader->set();
             blend = g.tri->blend;
         }
 
-        glDrawArrays(GL_QUADS, g.offset, 4*g.numquads);
+        varray::drawquads(g.offset, g.numquads);
         xtravertsva += 4*g.numquads;
     }
 
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    varray::disablequads();
+    varray::disablevertex();
+    varray::disablecolor();
+    varray::disabletexcoord0();
 
     glEnable(GL_CULL_FACE);
 }

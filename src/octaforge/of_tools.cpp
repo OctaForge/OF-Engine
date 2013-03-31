@@ -27,7 +27,7 @@
  *
  */
 
-#include "cube.h"
+#include "engine.h"
 #include "of_world.h"
 #include "of_tools.h"
 #include <sys/stat.h>
@@ -157,6 +157,11 @@ namespace tools
         return true;
     }
 
+    static inline bool sortidents(ident *x, ident *y)
+    {
+        return strcmp(x->name, y->name) < 0;
+    }
+
     void writecfg(const char *name)
     {
         stream *f = openutf8file(path(name && name[0] ? name : game::savedconfig(), true), "w");
@@ -169,81 +174,31 @@ namespace tools
         f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");
 
-        for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
-        {
-            varsys::Variable *v = it->second;
-            /* do not write scripted evars here! */
-            if (v->has_value) continue;
-            if ((v->flags & varsys::FLAG_PERSIST) != 0) switch (v->type)
-            {
-                case varsys::TYPE_I: f->printf("EV.%s = %d\n", v->name, varsys::get_int(v)); break;
-                case varsys::TYPE_F: f->printf("EV.%s = %f\n", v->name, varsys::get_float(v)); break;
-                case varsys::TYPE_S:
-                {
-                    const char *str = varsys::get_string(v);
-                    if (!str) continue;
-                    f->printf("EV.%s = \"", v->name);
-                    size_t len = strlen(str);
-                    for (size_t sz = 0; sz < len; ++sz)
-                    {
-                        switch (str[sz])
-                        {
-                            case '\n': f->write("^n", 2); break;
-                            case '\t': f->write("^t", 2); break;
-                            case '\f': f->write("^f", 2); break;
-                            case '"': f->write("^\"", 2); break;
-                            default: f->putchar(str[sz]); break;
-                        }
-                    }
-                    f->printf("\"\n");
-                    break;
-                }
+        vector<ident *> ids;
+        enumerate(idents, ident, id, ids.add(&id));
+        ids.sort(sortidents);
+        loopv(ids) {
+            ident &id = *ids[i];
+            if (id.flags&IDF_PERSIST) switch (id.type) {
+                case ID_VAR: f->printf("EV.%s = %d\n", escapeid(id), *id.storage.i); break;
+                case ID_FVAR: f->printf("EV.%s = %s\n", escapeid(id), floatstr(*id.storage.f)); break;
+                case ID_SVAR: f->printf("EV.%s = %s\n", escapeid(id), escapestring(*id.storage.s)); break;
             }
         }
         f->printf("\n");
-        f->printf("-- lua engine variables\n");
-
-        for (varsys::Variable_Map::cit it = varsys::variables->begin(); it != varsys::variables->end(); ++it)
-        {
-            varsys::Variable *v = it->second;
-            /* write only scripted evars */
-            if (!v->has_value) continue;
-            if ((v->flags & varsys::FLAG_PERSIST) != 0) switch (v->type)
-            {
-                case varsys::TYPE_I: {
-                    varsys::Int_Variable *iv = (varsys::Int_Variable*)v;
-                    f->printf("EAPI.var_new_i_full(\"%s\", %d, %d, %d, %d) EV.%s = %d\n",
-                        v->name, iv->min_v, iv->def_v, iv->max_v, v->flags, v->name, varsys::get_int(v));
-                    break;
-                }
-                case varsys::TYPE_F: {
-                    varsys::Float_Variable *fv = (varsys::Float_Variable*)v;
-                    f->printf("EAPI.var_new_f_full(\"%s\", %f, %f, %f, %d) EV.%s = %f\n",
-                        v->name, fv->min_v, fv->def_v, fv->max_v, v->flags, v->name, varsys::get_float(v));
-                    break;
-                }
-                case varsys::TYPE_S: {
-                    const char *str = varsys::get_string(v);
-                    if (!str) continue;
-                    f->printf("EAPI.var_new_s_full(\"%s\", \"%s\", %d) EV.%s = \"",
-                        v->name, ((varsys::String_Variable*)v)->def_v, v->flags, v->name);
-                    size_t len = strlen(str);
-                    for (size_t sz = 0; sz < len; ++sz)
-                    {
-                        switch (str[sz])
-                        {
-                            case '\n': f->write("^n", 2); break;
-                            case '\t': f->write("^t", 2); break;
-                            case '\f': f->write("^f", 2); break;
-                            case '"': f->write("^\"", 2); break;
-                            default: f->putchar(str[sz]); break;
-                        }
-                    }
-                    f->printf("\"\n");
-                    break;
-                }
+        /*f->printf("-- lua engine variables\n");
+        loopv(ids) {
+            ident &id = *ids[i];
+            if (id.type==ID_ALIAS && id.flags&IDF_PERSIST && !(id.flags&IDF_OVERRIDDEN)) switch (id.valtype) {
+                case VAL_STR:
+                    if(!id.val.s[0]) break;
+                    if(!validateblock(id.val.s)) { f->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
+                case VAL_FLOAT:
+                case VAL_INT: 
+                    f->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
             }
-        }
+        }*/
+
         f->printf("\n");
         f->printf("-- binds\n");
         writebinds(f);

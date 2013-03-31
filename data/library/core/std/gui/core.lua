@@ -261,21 +261,19 @@ local is_fully_clipped = function(x, y, w, h)
 end
 
 local quad = function(x, y, w, h, tx, ty, tw, th)
-    local glVertex2f, glTexCoord2f = gl.Vertex2f, gl.TexCoord2f
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    glTexCoord2f(tx,      ty)      glVertex2f(x,     y)
-    glTexCoord2f(tx + tw, ty)      glVertex2f(x + w, y)
-    glTexCoord2f(tx + tw, ty + th) glVertex2f(x + w, y + h)
-    glTexCoord2f(tx,      ty + th) glVertex2f(x,     y + h)
+    EAPI.varray_attrib2f(x,     y)     EAPI.varray_attrib2f(tx,      ty)
+    EAPI.varray_attrib2f(x + w, y)     EAPI.varray_attrib2f(tx + tw, ty)
+    EAPI.varray_attrib2f(x + w, y + h) EAPI.varray_attrib2f(tx + tw, ty + th)
+    EAPI.varray_attrib2f(x,     y + h) EAPI.varray_attrib2f(tx,      ty + th)
 end
 
 local quadtri = function(x, y, w, h, tx, ty, tw, th)
-    local glVertex2f, glTexCoord2f = gl.Vertex2f, gl.TexCoord2f
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    glTexCoord2f(tx,      ty)      glVertex2f(x,     y)
-    glTexCoord2f(tx + tw, ty)      glVertex2f(x + w, y)
-    glTexCoord2f(tx,      ty + th) glVertex2f(x,     y + h)
-    glTexCoord2f(tx + tw, ty + th) glVertex2f(x + w, y + h)
+    EAPI.varray_attrib2f(x,     y)     EAPI.varray_attrib2f(tx,      ty)
+    EAPI.varray_attrib2f(x + w, y)     EAPI.varray_attrib2f(tx + tw, ty)
+    EAPI.varray_attrib2f(x,     y + h) EAPI.varray_attrib2f(tx,      ty + th)
+    EAPI.varray_attrib2f(x + w, y + h) EAPI.varray_attrib2f(tx + tw, ty + th)
 end
 
 local Image
@@ -1771,11 +1769,11 @@ local Slider = Object:clone {
                 var.new(varn, EAPI.VAR_I, self.p_value)
             end
 
-            if not var.is_alias(varn) then
+--            if not var.is_alias(varn) then
                 local mn, mx = var.get_min(varn), var.get_max(varn)
                 self.p_min_value = clamp(self.p_min_value, mn, mx)
                 self.p_max_value = clamp(self.p_max_value, mn, mx)
-            end
+--            end
         end
 
         self.p_arrow_size = kwargs.arrow_size or 0
@@ -2086,22 +2084,20 @@ local Rectangle = Filler:clone {
         local w, h, solid = self.p_w, self.p_h, self.p_solid
 
         if not solid then gl.BlendFunc(gl.ZERO, gl.SRC_COLOR) end
-        EAPI.base_shader_notexture_set()
-        gl.Disable(gl.TEXTURE_2D)
-        gl.Color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
-        gl.Begin(gl.TRIANGLE_STRIP)
+        EAPI.base_shader_hudnotexture_set()
+        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        local glVertex2f = gl.Vertex2f
+        EAPI.varray_defvertex(2, gl.FLOAT)
+        EAPI.varray_begin(gl.TRIANGLE_STRIP)
 
-        glVertex2f(sx,     sy)
-        glVertex2f(sx + w, sy)
-        glVertex2f(sx,     sy + h)
-        glVertex2f(sx + w, sy + h)
+        EAPI.varray_attrib2f(sx,     sy)
+        EAPI.varray_attrib2f(sx + w, sy)
+        EAPI.varray_attrib2f(sx,     sy + h)
+        EAPI.varray_attrib2f(sx + w, sy + h)
 
-        gl.End()
-        gl.Color4f(1, 1, 1, 1)
-        gl.Enable(gl.TEXTURE_2D)
-        EAPI.base_shader_default_set()
+        EAPI.varray_end()
+        EAPI.varray_color4f(1, 1, 1, 1)
+        EAPI.base_shader_hud_set()
         if not solid then
             gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
@@ -2200,11 +2196,13 @@ Image = Filler:clone {
             gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gl.Color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        gl.Begin(gl.TRIANGLE_STRIP)
+        EAPI.varray_defvertex(2, gl.FLOAT)
+        EAPI.varray_deftexcoord0(2, gl.FLOAT)
+        EAPI.varray_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h)
-        gl.End()
+        EAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end,
@@ -2295,12 +2293,14 @@ local Cropped_Image = Image:clone {
             gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gl.Color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        gl.Begin(gl.TRIANGLE_STRIP)
+        EAPI.varray_defvertex(2, gl.FLOAT)
+        EAPI.varray_deftexcoord0(2, gl.FLOAT)
+        EAPI.varray_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h,
             self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
-        gl.End()
+        EAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2343,9 +2343,11 @@ local Stretched_Image = Image:clone {
             gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gl.Color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        gl.Begin(gl.QUADS)
+        EAPI.varray_defvertex(2, gl.FLOAT)
+        EAPI.varray_deftexcoord0(2, gl.FLOAT)
+        EAPI.varray_begin(gl.QUADS)
 
         local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.p_w, self.p_h
 
@@ -2390,7 +2392,7 @@ local Stretched_Image = Image:clone {
             if  ty >= 1 then break end
         end
 
-        gl.End()
+        EAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2454,11 +2456,12 @@ local Bordered_Image = Image:clone {
             gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gl.Color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        local tb, sb = self.p_tex_border, self.p_screen_border
+        EAPI.varray_defvertex(2, gl.FLOAT)
+        EAPI.varray_deftexcoord0(2, gl.FLOAT)
+        EAPI.varray_begin(gl.QUADS)
 
-        gl.Begin(gl.QUADS)
         local vy, ty = sy, 0
         for i = 1, 3 do
             local vh, th = 0, 0
@@ -2480,7 +2483,8 @@ local Bordered_Image = Image:clone {
             end
             vy, ty = vy + vh, ty + th
         end
-        gl.End()
+
+        EAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2525,7 +2529,7 @@ local Tiled_Image = Image:clone {
             gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        gl.Color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         local pw, ph, tw, th = self.p_w, self.p_h, self.p_tile_w, self.p_tile_h
 
@@ -2533,7 +2537,9 @@ local Tiled_Image = Image:clone {
         -- repeat with clamped textures
         if tex.clamp ~= 0 then
             local dx, dy = 0, 0
-            gl.Begin(gl.QUADS)
+            EAPI.varray_defvertex(2, gl.FLOAT)
+            EAPI.varray_deftexcoord0(2, gl.FLOAT)
+            EAPI.varray_begin(gl.QUADS)
             while dx < pw do
                 while dy < ph do
                     local dw, dh = min(tw, pw - dx), min(th, ph - dy)
@@ -2542,11 +2548,13 @@ local Tiled_Image = Image:clone {
                 end
                 dx, dy = dy + tw, 0
             end
-            gl.End()
+            EAPI.varray_end()
         else
-            gl.Begin(gl.TRIANGLE_STRIP)
+            EAPI.varray_defvertex(2, gl.FLOAT)
+            EAPI.varray_deftexcoord0(2, gl.FLOAT)
+            EAPI.varray_begin(gl.TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
-            gl.End()
+            EAPI.varray_end()
         end
 
         return Object.draw(self, sx, sy)
@@ -2607,17 +2615,18 @@ local Label = Object:clone {
     end,
 
     draw = function(self, sx, sy)
-        gl.PushMatrix()
+        EAPI.hudmatrix_push()
 
         local k = self:draw_scale()
-        gl.Scalef(k, k, 1)
+        EAPI.hudmatrix_scale(k, k, 1)
+        EAPI.hudmatrix_flush()
 
         local w = self.p_wrap
         EAPI.gui_draw_text(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
-        gl.Color4f(1, 1, 1, 1)
-        gl.PopMatrix()
+        EAPI.varray_color4f(1, 1, 1, 1)
+        EAPI.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end,
@@ -3529,11 +3538,12 @@ local Text_Editor = Object:clone {
     end,
 
     draw = function(self, sx, sy)
-        gl.PushMatrix()
+        EAPI.hudmatrix_push()
 
-        gl.Translatef(sx, sy, 0);
+        EAPI.hudmatrix_translate(sx, sy, 0)
         local s = self.scale / (EV.fonth * EV.uitextrows)
-        gl.Scalef(s, s, 1)
+        EAPI.hudmatrix_scale(s, s, 1)
+        EAPI.hudmatrix_flush()
 
         local x, y, color, hit = EV.fontw / 2, 0, 0xFFFFFF, is_focused(self)
 
@@ -3542,8 +3552,6 @@ local Text_Editor = Object:clone {
         local selection, sx, sy, ex, ey = self:region()
 
         self.scrolly = math.clamp(self.scrolly, 0, #self.lines - 1)
-
-        local glVertex2f = gl.Vertex2f
 
         if selection then
             -- convert from cursor coords into pixel coords
@@ -3586,34 +3594,33 @@ local Text_Editor = Object:clone {
                     pex = self.pixel_width
                 end
 
-                EAPI.base_shader_notexture_set()
-                gl.Disable(gl.TEXTURE_2D)
-                gl.Color3ub(0xA0, 0x80, 0x80)
-                gl.Begin(gl.QUADS)
+                EAPI.base_shader_hudnotexture_set()
+                EAPI.varray_color3ub(0xA0, 0x80, 0x80, 0xFF)
+                EAPI.varray_defvertex(2, gl.FLOAT)
+                EAPI.varray_begin(gl.QUADS)
                 if psy == pey then
-                    glVertex2f(x + psx, y + psy)
-                    glVertex2f(x + pex, y + psy)
-                    glVertex2f(x + pex, y + pey + EV.fonth)
-                    glVertex2f(x + psx, y + pey + EV.fonth)
+                    EAPI.varray_attrib2f(x + psx, y + psy)
+                    EAPI.varray_attrib2f(x + pex, y + psy)
+                    EAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
+                    EAPI.varray_attrib2f(x + psx, y + pey + EV.fonth)
                 else
-                    glVertex2f(x + psx,              y + psy)
-                    glVertex2f(x + psx,              y + psy + EV.fonth)
-                    glVertex2f(x + self.pixel_width, y + psy + EV.fonth)
-                    glVertex2f(x + self.pixel_width, y + psy)
+                    EAPI.varray_attrib2f(x + psx,              y + psy)
+                    EAPI.varray_attrib2f(x + psx,              y + psy + EV.fonth)
+                    EAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
+                    EAPI.varray_attrib2f(x + self.pixel_width, y + psy)
                     if (pey - psy) > EV.fonth then
-                        glVertex2f(x,                    y + psy + EV.fonth)
-                        glVertex2f(x + self.pixel_width, y + psy + EV.fonth)
-                        glVertex2f(x + self.pixel_width, y + pey)
-                        glVertex2f(x,                    y + pey)
+                        EAPI.varray_attrib2f(x,                    y + psy + EV.fonth)
+                        EAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
+                        EAPI.varray_attrib2f(x + self.pixel_width, y + pey)
+                        EAPI.varray_attrib2f(x,                    y + pey)
                     end
-                    glVertex2f(x,       y + pey)
-                    glVertex2f(x,       y + pey + EV.fonth)
-                    glVertex2f(x + pex, y + pey + EV.fonth)
-                    glVertex2f(x + pex, y + pey)
+                    EAPI.varray_attrib2f(x,       y + pey)
+                    EAPI.varray_attrib2f(x,       y + pey + EV.fonth)
+                    EAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
+                    EAPI.varray_attrib2f(x + pex, y + pey)
                 end
-                gl.End()
-                gl.Enable(gl.TEXTURE_2D)
-                EAPI.base_shader_default_set()
+                EAPI.varray_end()
+                EAPI.base_shader_hud_set()
             end
         end
 
@@ -3632,23 +3639,22 @@ local Text_Editor = Object:clone {
 
             -- line wrap indicator
             if self.line_wrap and height > EV.fonth then
-                EAPI.base_shader_notexture_set()
-                gl.Disable(gl.TEXTURE_2D)
-                gl.Color3ub(0x80, 0xA0, 0x80)
-                gl.Begin(gl.GL_TRIANGLE_STRIP)
-                glVertex2f(x,                  y + h + EV.fonth)
-                glVertex2f(x,                  y + h + height)
-                glVertex2f(x - EV.fontw / 2, y + h + EV.fonth)
-                glVertex2f(x - EV.fontw / 2, y + h + height)
-                gl.End()
-                gl.Enable(gl.TEXTURE_2D)
-                EAPI.base_shader_default_set()
+                EAPI.base_shader_hudnotexture_set()
+                EAPI.varray_color3ub(0x80, 0xA0, 0x80, 0xFF)
+                EAPI.varray_defvertex(2, gl.FLOAT)
+                EAPI.varray_begin(gl.GL_TRIANGLE_STRIP)
+                EAPI.varray_attrib2f(x,                y + h + EV.fonth)
+                EAPI.varray_attrib2f(x,                y + h + height)
+                EAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
+                EAPI.varray_attrib2f(x - EV.fontw / 2, y + h + height)
+                EAPI.varray_end()
+                EAPI.base_shader_hud_set()
             end
 
             h = h + height
         end
 
-        gl.PopMatrix()
+        EAPI.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end
@@ -3983,19 +3989,14 @@ ext.gl_render = function()
         local w = worlds[i]
 
         if #w.p_children ~= 0 then
+            EAPI.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
+            EAPI.hudmatrix_reset()
+            EAPI.base_shader_hud_set()
+
             gl.Enable(gl.BLEND)
             gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-            gl.MatrixMode(gl.PROJECTION)
 
-            gl.PushMatrix()
-            gl.LoadIdentity()
-            gl.Ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1);
-
-            gl.MatrixMode(gl.MODELVIEW)
-            gl.PushMatrix()
-            gl.LoadIdentity()
-
-            gl.Color3f(1, 1, 1)
+            EAPI.varray_color3f(1, 1, 1)
             w:draw()
 
             local tooltip = hovering and hovering.tooltip
@@ -4025,11 +4026,11 @@ ext.gl_render = function()
                 if     pointer then
                     local d    = w.p_w
                     local x, y = cursor_x * d - max((d - 1) / 2, 0), cursor_y
-    
+
                     if pointer.type == TYPE_IMAGE then
                         local tex, scrh = pointer.i_tex, EV.scr_h
                         local wh, hh    = tex.w / scrh / 2, tex.h / scrh / 2
-        
+
                         pointer:draw(x - wh, y - hh)
                     else
                         pointer:draw(x, y)
@@ -4037,13 +4038,8 @@ ext.gl_render = function()
                 end
             end
 
-            gl.MatrixMode(gl.PROJECTION)
-            gl.PopMatrix()
-
-            gl.MatrixMode(gl.MODELVIEW)
-            gl.PopMatrix()
-
-            gl.Enable(gl.BLEND)
+            gl.Disable(gl.BLEND)
+            EAPI.varray_disable()
         end
     end
 
@@ -4117,7 +4113,6 @@ ext.frame_start = function()
         world:layout()
         needs_adjust = false
     end
-    var.changed(false)
 
     was_hovering = hovering
     was_clicked  = clicked

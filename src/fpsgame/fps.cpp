@@ -511,7 +511,7 @@ namespace game
 
 #ifdef CLIENT
         spawnplayer(player1);
-        SETVFN(zoom, -1);
+        disablezoom();
 #endif
 //        if(*name) conoutf(CON_GAMEINFO, "\f2game mode is %s", fpsserver::modestr(gamemode));
 
@@ -598,10 +598,6 @@ namespace game
 
     void gameplayhud(int w, int h)
     {
-        // Draw the minimap when needed
-        if (useminimap) ClientSystem::drawMinimap(w, h);
-        // Draw the HUD for the game
-        ClientSystem::drawHUD(w, h);
     }
 #endif
 

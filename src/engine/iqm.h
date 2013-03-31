@@ -374,16 +374,17 @@ struct iqm : skelmodel, skelloader<iqm>
         defformatstring(cfgname)("data/models/%s/iqm.lua", loadname); // INTENSITY
 
         loading = this;
-        varsys::persistvars = false;
+        
+        identflags &= ~IDF_PERSIST;
         if (tools::execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // iqm without configuration, try default tris and skin 
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             if(!loaddefaultparts()) 
             {
                 loading = NULL;
@@ -392,7 +393,6 @@ struct iqm : skelmodel, skelloader<iqm>
             loading = NULL;
         }
         scale /= 4;
-        parts[0]->translate = translate;
         loopv(parts) 
         {
             skelpart *p = (skelpart *)parts[i];

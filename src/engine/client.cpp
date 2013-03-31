@@ -86,8 +86,8 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
 
     if(servername)
     {
-        if(strcmp(servername, connectname)) SETVF(connectname, servername);
-        if(serverport != connectport) SETVF(connectport, serverport);
+        if(strcmp(servername, connectname)) setsvar("connectname", servername);
+        if(serverport != connectport) setvar("connectport", serverport);
         conoutf("attempting to connect to %s:%d", servername, serverport);
         if(!resolverwait(servername, &address))
         {
@@ -97,8 +97,8 @@ void connectserv(const char *servername, int serverport, const char *serverpassw
     }
     else
     {
-        SETVF(connectname, "");
-        SETVF(connectport, 0);
+        setsvar("connectname", "");
+        setvar("connectport", 0);
         conoutf("attempting to connect over LAN");
         address.host = ENET_HOST_BROADCAST;
     }

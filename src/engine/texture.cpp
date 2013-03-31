@@ -454,6 +454,8 @@ void texagrad(ImageData &s, float x2, float y2, float x1, float y1)
 VAR(hwtexsize, 1, 0, 0);
 VAR(hwcubetexsize, 1, 0, 0);
 VAR(hwmaxaniso, 1, 0, 0);
+VAR(hwtexunits, 1, 0, 0);
+VAR(hwvtexunits, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
 VARFP(reducefilter, 0, 1, 1, initwarning("texture quality", INIT_LOAD));
 VARFP(texreduce, 0, 0, 12, initwarning("texture quality", INIT_LOAD));
@@ -467,7 +469,7 @@ extern int usetexcompress;
 
 void setuptexcompress()
 {
-    if(!hasTC || !usetexcompress) return;
+    if(!usetexcompress) return;
 
     GLenum hint = GL_DONT_CARE;
     switch(texcompressquality)
@@ -475,19 +477,21 @@ void setuptexcompress()
         case 1: hint = GL_NICEST; break;
         case 0: hint = GL_FASTEST; break;
     }
-    glHint(GL_TEXTURE_COMPRESSION_HINT_ARB, hint);
+    glHint(GL_TEXTURE_COMPRESSION_HINT, hint);
 }
 
 GLenum compressedformat(GLenum format, int w, int h, int force = 0)
 {
-    if(hasTC && usetexcompress && texcompress && force >= 0 && (force || max(w, h) >= texcompress)) switch(format)
+    if(usetexcompress && texcompress && force >= 0 && (force || max(w, h) >= texcompress)) switch(format)
     {
         case GL_RGB5:
         case GL_RGB8:
         case GL_LUMINANCE:
-        case GL_RGB: return usetexcompress > 1 ? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGB_ARB;
+        case GL_LUMINANCE8:
+        case GL_RGB: return usetexcompress > 1 ? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_COMPRESSED_RGB;
         case GL_LUMINANCE_ALPHA:
-        case GL_RGBA: return usetexcompress > 1 ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_ARB;
+        case GL_LUMINANCE8_ALPHA8:
+        case GL_RGBA: return usetexcompress > 1 ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA;
     }
     return format;
 }
@@ -496,8 +500,10 @@ int formatsize(GLenum format)
 {
     switch(format)
     {
+        case GL_RED:
         case GL_LUMINANCE:
         case GL_ALPHA: return 1;
+        case GL_RG:
         case GL_LUMINANCE_ALPHA: return 2;
         case GL_RGB: return 3;
         case GL_RGBA: return 4;
@@ -505,14 +511,13 @@ int formatsize(GLenum format)
     }
 }
 
-VARFP(hwmipmap, 0, 0, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(usenp2, 0, 0, 1, initwarning("texture quality", INIT_LOAD));
 
 void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int compress, int &tw, int &th)
 {
-    int hwlimit = target==GL_TEXTURE_CUBE_MAP_ARB ? hwcubetexsize : hwtexsize,
+    int hwlimit = target==GL_TEXTURE_CUBE_MAP ? hwcubetexsize : hwtexsize,
         sizelimit = mipmap && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
-    if(compress > 0 && (!hasTC || !usetexcompress))
+    if(compress > 0 && !usetexcompress)
     {
         w = max(w/compress, 1);
         h = max(h/compress, 1);
@@ -524,7 +529,7 @@ void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int
     }
     w = min(w, sizelimit);
     h = min(h, sizelimit);
-    if((!hasNP2 || !usenp2) && target!=GL_TEXTURE_RECTANGLE_ARB && (w&(w-1) || h&(h-1)))
+    if(!usenp2 && target!=GL_TEXTURE_RECTANGLE && (w&(w-1) || h&(h-1)))
     {
         tw = th = 1;
         while(tw < w) tw *= 2;
@@ -571,7 +576,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
         if(target==GL_TEXTURE_1D) glTexImage1D(target, level, internal, tw, 0, format, type, src);
         else glTexImage2D(target, level, internal, tw, th, 0, format, type, src);
         if(row > 0) glPixelStorei(GL_UNPACK_ROW_LENGTH, row = 0);
-        if(!mipmap || (hasGM && hwmipmap) || max(tw, th) <= 1) break;
+        if(!mipmap || max(tw, th) <= 1) break;
         int srcw = tw, srch = th;
         if(tw > 1) tw /= 2;
         if(th > 1) th /= 2;
@@ -583,7 +588,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
 
 void uploadcompressedtexture(GLenum target, GLenum subtarget, GLenum format, int w, int h, const uchar *data, int align, int blocksize, int levels, bool mipmap)
 {
-    int hwlimit = target==GL_TEXTURE_CUBE_MAP_ARB ? hwcubetexsize : hwtexsize,
+    int hwlimit = target==GL_TEXTURE_CUBE_MAP ? hwcubetexsize : hwtexsize,
         sizelimit = levels > 1 && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
     int level = 0;
     loopi(levels)
@@ -607,13 +612,13 @@ GLenum textarget(GLenum subtarget)
 {
     switch(subtarget)
     {
-        case GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB:
-        case GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB:
-        case GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB:
-        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB:
-        case GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB:
-        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB:
-            return GL_TEXTURE_CUBE_MAP_ARB;
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+        case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+        case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+            return GL_TEXTURE_CUBE_MAP;
     }
     return subtarget;
 }
@@ -622,10 +627,10 @@ GLenum uncompressedformat(GLenum format)
 {
     switch(format)
     {
-        case GL_COMPRESSED_RGB_ARB:
+        case GL_COMPRESSED_RGB:
         case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
             return GL_RGB;
-        case GL_COMPRESSED_RGBA_ARB:
+        case GL_COMPRESSED_RGBA:
         case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
@@ -639,7 +644,7 @@ void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLe
     glBindTexture(target, tnum);
     glTexParameteri(target, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     if(target!=GL_TEXTURE_1D) glTexParameteri(target, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    if(target==GL_TEXTURE_3D_EXT) glTexParameteri(target, GL_TEXTURE_WRAP_R, clamp&4 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+    if(target==GL_TEXTURE_3D) glTexParameteri(target, GL_TEXTURE_WRAP_R, clamp&4 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     if(target==GL_TEXTURE_2D && hasAF && min(aniso, hwmaxaniso) > 0 && filter > 1) glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, min(aniso, hwmaxaniso));
     glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter && bilinear ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(target, GL_TEXTURE_MIN_FILTER,
@@ -648,51 +653,65 @@ void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLe
                 (bilinear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR) :
                 (bilinear ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST)) :
             (filter && bilinear ? GL_LINEAR : GL_NEAREST));
-    if(hasGM && filter > 1 && pixels && hwmipmap && !uncompressedformat(format))
-        glTexParameteri(target, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 }
 
-static GLenum textype(GLenum component, GLenum &format)
+static GLenum textype(GLenum &component, GLenum &format)
 {
     GLenum type = GL_UNSIGNED_BYTE;
     switch(component)
     {
         case GL_R16F:
         case GL_R32F:
+            if(!format) format = GL_RED;
+            type = GL_FLOAT;
+            break;
+
         case GL_RG16F:
         case GL_RG32F:
-        case GL_FLOAT_RG16_NV:
-        case GL_FLOAT_R32_NV:
-        case GL_RGB16F_ARB:
-        case GL_RGB32F_ARB:
-        case GL_R11F_G11F_B10F_EXT:
+            if(!format) format = GL_RG;
+            type = GL_FLOAT;
+            break;
+ 
+        case GL_RGB16F:
+        case GL_RGB32F:
+        case GL_R11F_G11F_B10F:
             if(!format) format = GL_RGB;
             type = GL_FLOAT;
             break;
 
-        case GL_RGBA16F_ARB:
-        case GL_RGBA32F_ARB:
+        case GL_RGBA16F:
+        case GL_RGBA32F:
             if(!format) format = GL_RGBA;
             type = GL_FLOAT;
             break;
 
-        case GL_DEPTH_COMPONENT16_ARB:
-        case GL_DEPTH_COMPONENT24_ARB:
-        case GL_DEPTH_COMPONENT32_ARB:
+        case GL_DEPTH_COMPONENT16:
+        case GL_DEPTH_COMPONENT24:
+        case GL_DEPTH_COMPONENT32:
             if(!format) format = GL_DEPTH_COMPONENT;
             break;
 
-        case GL_DEPTH_STENCIL_EXT:
-        case GL_DEPTH24_STENCIL8_EXT:
-            if(!format) format = GL_DEPTH_STENCIL_EXT;
-            type = GL_UNSIGNED_INT_24_8_EXT;
+        case GL_DEPTH_STENCIL:
+        case GL_DEPTH24_STENCIL8:
+            if(!format) format = GL_DEPTH_STENCIL;
+            type = GL_UNSIGNED_INT_24_8;
+            break;
+
+        case GL_R8:
+        case GL_R16:
+            if(!format) format = GL_RED;
+            break;
+
+        case GL_RG8:
+        case GL_RG16:
+            if(!format) format = GL_RG;
             break;
 
         case GL_RGB5:
         case GL_RGB8:
         case GL_RGB16:
         case GL_RGB10:
-        case GL_COMPRESSED_RGB_ARB:
+        case GL_COMPRESSED_RGB:
         case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
             if(!format) format = GL_RGB;
             break;
@@ -700,7 +719,7 @@ static GLenum textype(GLenum component, GLenum &format)
         case GL_RGBA8:
         case GL_RGBA16:
         case GL_RGB10_A2:
-        case GL_COMPRESSED_RGBA_ARB:
+        case GL_COMPRESSED_RGBA:
         case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
@@ -759,8 +778,8 @@ static GLenum texformat(int bpp)
 {
     switch(bpp)
     {
-        case 1: return GL_LUMINANCE;
-        case 2: return GL_LUMINANCE_ALPHA;
+        case 1: return hasTRG ? GL_RED : GL_LUMINANCE;
+        case 2: return hasTRG ? GL_RG : GL_LUMINANCE_ALPHA;
         case 3: return GL_RGB;
         case 4: return GL_RGBA;
         default: return 0;
@@ -797,13 +816,11 @@ bool floatformat(GLenum format)
         case GL_R32F:
         case GL_RG16F:
         case GL_RG32F:
-        case GL_FLOAT_RG16_NV:
-        case GL_FLOAT_R32_NV:
-        case GL_RGB16F_ARB:
-        case GL_RGB32F_ARB:
-        case GL_R11F_G11F_B10F_EXT:
-        case GL_RGBA16F_ARB:
-        case GL_RGBA32F_ARB:
+        case GL_RGB16F:
+        case GL_RGB32F:
+        case GL_R11F_G11F_B10F:
+        case GL_RGBA16F:
+        case GL_RGBA32F:
             return true;
         default:
             return false;
@@ -1375,7 +1392,7 @@ VSlot dummyvslot(&dummyslot);
 /* OctaForge: Shared_Ptr */
 void texturereset(int n)
 {
-    if(!varsys::overridevars && !game::allowedittoggle()) return;
+    if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
     resetslotshader();
     int limit = clamp(n, 0, slots.length());
     for(int i = limit; i < slots.length(); i++) 
@@ -1526,14 +1543,10 @@ static void clampvslotoffset(VSlot &dst, Slot *slot = NULL)
         if(!slot->loaded) loadslot(*slot, false);
         int xs = slot->sts[0].t->xs, ys = slot->sts[0].t->ys;
         if((dst.rotation&5)==1) swap(xs, ys);
-        dst.xoffset %= xs; if(dst.xoffset < 0) dst.xoffset += xs;
-        dst.yoffset %= ys; if(dst.yoffset < 0) dst.yoffset += ys;
+        dst.offset.x %= xs; if(dst.offset.x < 0) dst.offset.x += xs;
+        dst.offset.y %= ys; if(dst.offset.y < 0) dst.offset.y += ys;
     }
-    else
-    {
-        dst.xoffset = max(dst.xoffset, 0);
-        dst.yoffset = max(dst.yoffset, 0);
-    }
+    else dst.offset.max(0);
 }
 
 void propagatevslot(VSlot &dst, const VSlot &src, int diff, bool edit = false)
@@ -1543,19 +1556,14 @@ void propagatevslot(VSlot &dst, const VSlot &src, int diff, bool edit = false)
     if(diff & (1<<VSLOT_ROTATION)) 
     {
         dst.rotation = src.rotation;
-        if(edit && (dst.xoffset || dst.yoffset)) clampvslotoffset(dst);
+        if(edit && !dst.offset.iszero()) clampvslotoffset(dst);
     }
     if(diff & (1<<VSLOT_OFFSET))
     {
-        dst.xoffset = src.xoffset;
-        dst.yoffset = src.yoffset;
+        dst.offset = src.offset;
         if(edit) clampvslotoffset(dst);
     }
-    if(diff & (1<<VSLOT_SCROLL))
-    {
-        dst.scrollS = src.scrollS;
-        dst.scrollT = src.scrollT;
-    }
+    if(diff & (1<<VSLOT_SCROLL)) dst.scroll = src.scroll;
     if(diff & (1<<VSLOT_LAYER)) dst.layer = src.layer;
     if(diff & (1<<VSLOT_ALPHA))
     {
@@ -1603,19 +1611,14 @@ static void mergevslot(VSlot &dst, const VSlot &src, int diff, Slot *slot = NULL
     if(diff & (1<<VSLOT_ROTATION)) 
     {
         dst.rotation = clamp(dst.rotation + src.rotation, 0, 5);
-        if(dst.xoffset || dst.yoffset) clampvslotoffset(dst, slot);
+        if(!dst.offset.iszero()) clampvslotoffset(dst, slot);
     }
     if(diff & (1<<VSLOT_OFFSET))
     {
-        dst.xoffset += src.xoffset;
-        dst.yoffset += src.yoffset;
+        dst.offset.add(src.offset);
         clampvslotoffset(dst, slot);
     }
-    if(diff & (1<<VSLOT_SCROLL))
-    {
-        dst.scrollS += src.scrollS;
-        dst.scrollT += src.scrollT;
-    }
+    if(diff & (1<<VSLOT_SCROLL)) dst.scroll.add(src.scroll);
     if(diff & (1<<VSLOT_LAYER)) dst.layer = src.layer;
     if(diff & (1<<VSLOT_ALPHA))
     {
@@ -1671,8 +1674,8 @@ static bool comparevslot(const VSlot &dst, const VSlot &src, int diff)
     }
     if(diff & (1<<VSLOT_SCALE) && dst.scale != src.scale) return false;
     if(diff & (1<<VSLOT_ROTATION) && dst.rotation != src.rotation) return false;
-    if(diff & (1<<VSLOT_OFFSET) && (dst.xoffset != src.xoffset || dst.yoffset != src.yoffset)) return false;
-    if(diff & (1<<VSLOT_SCROLL) && (dst.scrollS != src.scrollS || dst.scrollT != src.scrollT)) return false;
+    if(diff & (1<<VSLOT_OFFSET) && dst.offset != src.offset) return false;
+    if(diff & (1<<VSLOT_SCROLL) && dst.scroll != src.scroll) return false;
     if(diff & (1<<VSLOT_LAYER) && dst.layer != src.layer) return false;
     if(diff & (1<<VSLOT_ALPHA) && (dst.alphafront != src.alphafront || dst.alphaback != src.alphaback)) return false;
     if(diff & (1<<VSLOT_COLOR) && dst.colorscale != src.colorscale) return false;
@@ -1789,8 +1792,7 @@ void texture(const char *type, const char *name, int rot, int xoffset, int yoffs
         VSlot &vs = matslot >= 0 ? materialslots[matslot] : *emptyvslot(s);
         vs.reset();
         vs.rotation = clamp(rot, 0, 5);
-        vs.xoffset = max(xoffset, 0);
-        vs.yoffset = max(yoffset, 0);
+        vs.offset = ivec2(xoffset, yoffset).max(0);
         vs.scale = scale <= 0 ? 1 : scale;
         propagatevslot(&vs, (1<<VSLOT_NUM)-1);
     }
@@ -1892,7 +1894,8 @@ static void texcombine(Slot &s, int index, Slot::Tex &t, bool forceload = false)
     {
         case TEX_DIFFUSE:
         case TEX_NORMAL:
-            if(!ts.compressed) loopv(s.sts)
+            if(ts.compressed) break;
+            loopv(s.sts)
             {
                 Slot::Tex &a = s.sts[i];
                 if(a.combined!=index) continue;
@@ -1907,6 +1910,7 @@ static void texcombine(Slot &s, int index, Slot::Tex &t, bool forceload = false)
                 }
                 break; // only one combination
             }
+            if(ts.bpp < 3) forcergbimage(ts);
             break;
     }
     t.t = newtexture(NULL, key.getbuf(), ts, 0, true, true, true, compress);
@@ -2101,44 +2105,30 @@ void forcecubemapload(GLuint tex)
     extern int ati_cubemap_bug;
     if(!ati_cubemap_bug || !tex) return;
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+    SETSHADER(forcecubemap);
 
-    cubemapshader->set();
     GLenum depthtest = glIsEnabled(GL_DEPTH_TEST), blend = glIsEnabled(GL_BLEND);
     if(depthtest) glDisable(GL_DEPTH_TEST);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, tex);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
     if(!blend) glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBegin(GL_TRIANGLES);
-    loopi(3)
-    {
-        glColor4f(1, 1, 1, 0);
-        glTexCoord3f(0, 0, 1);
-        glVertex2f(0, 0);
-    }
-    glEnd();
+    varray::defvertex();
+    varray::begin(GL_TRIANGLES);
+    loopi(3) varray::attribf(0, 0, 0);
+    varray::end();
+    varray::disable();
     if(!blend) glDisable(GL_BLEND);
     if(depthtest) glEnable(GL_DEPTH_TEST);
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
 }
 
 cubemapside cubemapsides[6] =
 {
-    { GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, "lf", true,  true,  true  },
-    { GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, "rt", false, false, true  },
-    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, "ft", true,  false, false },
-    { GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, "bk", false, true,  false },
-    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, "dn", false, false, true  },
-    { GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, "up", false, false, true  },
+    { GL_TEXTURE_CUBE_MAP_NEGATIVE_X, "lf", true,  true,  true  },
+    { GL_TEXTURE_CUBE_MAP_POSITIVE_X, "rt", false, false, true  },
+    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "ft", true,  false, false },
+    { GL_TEXTURE_CUBE_MAP_POSITIVE_Y, "bk", false, true,  false },
+    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "dn", false, false, true  },
+    { GL_TEXTURE_CUBE_MAP_POSITIVE_Z, "up", false, false, true  },
 };
 
 VARFP(envmapsize, 4, 7, 10, setupmaterials());
@@ -2210,7 +2200,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
     t->clamp = 3;
     t->xs = t->ys = tsize;
     t->w = t->h = min(1<<envmapsize, tsize);
-    resizetexture(t->w, t->h, mipit, false, GL_TEXTURE_CUBE_MAP_ARB, compress, t->w, t->h);
+    resizetexture(t->w, t->h, mipit, false, GL_TEXTURE_CUBE_MAP, compress, t->w, t->h);
     GLenum component = format;
     if(!surface[0].compressed)
     {
@@ -2312,17 +2302,17 @@ GLuint genenvmap(const vec &o, int envmapsize, int blur)
         const cubemapside &side = cubemapsides[i];
         switch(side.target)
         {
-            case GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB: // lf
+            case GL_TEXTURE_CUBE_MAP_NEGATIVE_X: // lf
                 yaw = 90; pitch = 0; break;
-            case GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB: // rt
+            case GL_TEXTURE_CUBE_MAP_POSITIVE_X: // rt
                 yaw = 270; pitch = 0; break;
-            case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB: // ft
+            case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y: // ft
                 yaw = 180; pitch = 0; break;
-            case GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB: // bk
+            case GL_TEXTURE_CUBE_MAP_POSITIVE_Y: // bk
                 yaw = 0; pitch = 0; break;
-            case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB: // dn
+            case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: // dn
                 yaw = 270; pitch = -90; break;
-            case GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB: // up
+            case GL_TEXTURE_CUBE_MAP_POSITIVE_Z: // up
                 yaw = 270; pitch = 90; break;
         }
         drawcubemap(rendersize, o, yaw, pitch, side);
@@ -2341,7 +2331,7 @@ GLuint genenvmap(const vec &o, int envmapsize, int blur)
         }
         createtexture(tex, texsize, texsize, dst, 3, 2, GL_RGB5, side.target);
     }
-    glBindFramebuffer_(GL_FRAMEBUFFER_EXT, 0);
+    glBindFramebuffer_(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, vieww, viewh);
     delete[] pixels;
     clientkeepalive();
@@ -2422,7 +2412,7 @@ GLuint lookupenvmap(Slot &slot)
 
 GLuint lookupenvmap(ushort emid)
 {
-    if(emid==EMID_SKY || emid==EMID_CUSTOM || envmapping) return skyenvmap ? skyenvmap->id : 0;
+    if(emid==EMID_SKY || emid==EMID_CUSTOM || drawtex) return skyenvmap ? skyenvmap->id : 0;
     if(emid==EMID_NONE || !envmaps.inrange(emid-EMID_RESERVED)) return 0;
     GLuint tex = envmaps[emid-EMID_RESERVED].tex;
     return tex ? tex : (skyenvmap ? skyenvmap->id : 0);
@@ -2603,7 +2593,7 @@ void gendds(char *infile, char *outfile)
 {
     if(!hasS3TC || usetexcompress <= 1) { conoutf(CON_ERROR, "OpenGL driver does not support S3TC texture compression"); return; }
 
-    glHint(GL_TEXTURE_COMPRESSION_HINT_ARB, GL_NICEST);
+    glHint(GL_TEXTURE_COMPRESSION_HINT, GL_NICEST);
 
     defformatstring(cfile)("<compress>%s", infile);
     extern void reloadtex(char *name);
@@ -2617,7 +2607,7 @@ void gendds(char *infile, char *outfile)
 
     glBindTexture(GL_TEXTURE_2D, t->id);
     GLint compressed = 0, format = 0, width = 0, height = 0; 
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_ARB, &compressed);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED, &compressed);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
@@ -2653,7 +2643,7 @@ void gendds(char *infile, char *outfile)
     for(int lw = width, lh = height, level = 0;;)
     {
         GLint size = 0;
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, level++, GL_TEXTURE_COMPRESSED_IMAGE_SIZE_ARB, &size);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, level++, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &size);
         csize += size;
         if(max(lw, lh) <= 1) break;
         if(lw > 1) lw /= 2;
@@ -2676,7 +2666,7 @@ void gendds(char *infile, char *outfile)
     for(int lw = width, lh = height;;)
     {
         GLint size;
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, d.dwMipMapCount, GL_TEXTURE_COMPRESSED_IMAGE_SIZE_ARB, &size);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, d.dwMipMapCount, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &size);
         glGetCompressedTexImage_(GL_TEXTURE_2D, d.dwMipMapCount++, dst);
         dst += size;
         if(max(lw, lh) <= 1) break;

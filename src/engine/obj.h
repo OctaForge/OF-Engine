@@ -196,22 +196,21 @@ struct obj : vertmodel, vertloader<obj>
         defformatstring(cfgname)("data/models/%s/obj.lua", loadname); // INTENSITY
 
         loading = this;
-        varsys::persistvars = false;
+        identflags &= ~IDF_PERSIST;
         if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY configured obj, will call the obj* commands below
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // obj without configuration, try default tris and skin
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             loading = NULL;
             if(!loaddefaultparts()) return false;
         }
         scale /= 4;
         translate.y = -translate.y;
-        parts[0]->translate = translate;
         loopv(parts) parts[i]->meshes->shared++;
         return loaded = true;
     }

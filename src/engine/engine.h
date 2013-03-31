@@ -10,188 +10,6 @@
 #include "texture.h"
 #include "model.h"
 
-// GL_ARB_multitexture
-extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
-extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
-extern PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_;
-extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
-extern PFNGLMULTITEXCOORD4FARBPROC     glMultiTexCoord4f_;
-
-// GL_ARB_vertex_buffer_object
-extern PFNGLGENBUFFERSARBPROC       glGenBuffers_;
-extern PFNGLBINDBUFFERARBPROC       glBindBuffer_;
-extern PFNGLMAPBUFFERARBPROC        glMapBuffer_;
-extern PFNGLUNMAPBUFFERARBPROC      glUnmapBuffer_;
-extern PFNGLBUFFERDATAARBPROC       glBufferData_;
-extern PFNGLBUFFERSUBDATAARBPROC    glBufferSubData_;
-extern PFNGLDELETEBUFFERSARBPROC    glDeleteBuffers_;
-extern PFNGLGETBUFFERSUBDATAARBPROC glGetBufferSubData_;
-
-// GL_ARB_occlusion_query
-extern PFNGLGENQUERIESARBPROC        glGenQueries_;
-extern PFNGLDELETEQUERIESARBPROC     glDeleteQueries_;
-extern PFNGLBEGINQUERYARBPROC        glBeginQuery_;
-extern PFNGLENDQUERYARBPROC          glEndQuery_;
-extern PFNGLGETQUERYIVARBPROC        glGetQueryiv_;
-extern PFNGLGETQUERYOBJECTIVARBPROC  glGetQueryObjectiv_;
-extern PFNGLGETQUERYOBJECTUIVARBPROC glGetQueryObjectuiv_;
-
-// GL_EXT_timer_query
-#ifndef GL_EXT_timer_query
-#define GL_TIME_ELAPSED_EXT               0x88BF
-typedef llong GLint64EXT;
-typedef ullong GLuint64EXT;
-typedef void (APIENTRYP PFNGLGETQUERYOBJECTI64VEXTPROC) (GLuint id, GLenum pname, GLint64EXT *params);
-typedef void (APIENTRYP PFNGLGETQUERYOBJECTUI64VEXTPROC) (GLuint id, GLenum pname, GLuint64EXT *params);
-#endif
-extern PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v_;
-extern PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v_;
-
-// GL_EXT_framebuffer_object
-extern PFNGLBINDRENDERBUFFEREXTPROC        glBindRenderbuffer_;
-extern PFNGLDELETERENDERBUFFERSEXTPROC     glDeleteRenderbuffers_;
-extern PFNGLGENFRAMEBUFFERSEXTPROC         glGenRenderbuffers_;
-extern PFNGLRENDERBUFFERSTORAGEEXTPROC     glRenderbufferStorage_;
-extern PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC  glCheckFramebufferStatus_;
-extern PFNGLBINDFRAMEBUFFEREXTPROC         glBindFramebuffer_;
-extern PFNGLDELETEFRAMEBUFFERSEXTPROC      glDeleteFramebuffers_;
-extern PFNGLGENFRAMEBUFFERSEXTPROC         glGenFramebuffers_;
-extern PFNGLFRAMEBUFFERTEXTURE1DEXTPROC    glFramebufferTexture1D_;
-extern PFNGLFRAMEBUFFERTEXTURE2DEXTPROC    glFramebufferTexture2D_;
-extern PFNGLFRAMEBUFFERTEXTURE3DEXTPROC    glFramebufferTexture3D_;
-extern PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbuffer_;
-extern PFNGLGENERATEMIPMAPEXTPROC          glGenerateMipmap_;
-
-// GL_ARB_draw_buffers
-extern PFNGLDRAWBUFFERSARBPROC glDrawBuffers_;
-
-// GL_EXT_framebuffer_blit
-#ifndef GL_EXT_framebuffer_blit
-#define GL_READ_FRAMEBUFFER_EXT           0x8CA8
-#define GL_DRAW_FRAMEBUFFER_EXT           0x8CA9
-#define GL_DRAW_FRAMEBUFFER_BINDING_EXT   0x8CA6
-#define GL_READ_FRAMEBUFFER_BINDING_EXT   0x8CAA
-typedef void (APIENTRYP PFNGLBLITFRAMEBUFFEREXTPROC) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-#endif
-extern PFNGLBLITFRAMEBUFFEREXTPROC         glBlitFramebuffer_;
-
-// GL_EXT_draw_range_elements
-extern PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_;
-
-// GL_EXT_blend_minmax
-extern PFNGLBLENDEQUATIONEXTPROC glBlendEquation_;
-
-// GL_EXT_blend_color
-extern PFNGLBLENDCOLOREXTPROC glBlendColor_;
-
-// GL_EXT_multi_draw_arrays
-extern PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_;
-extern PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_;
-
-// GL_EXT_packed_depth_stencil
-#ifndef GL_DEPTH_STENCIL_EXT
-#define GL_DEPTH_STENCIL_EXT 0x84F9
-#endif
-#ifndef GL_DEPTH24_STENCIL8_EXT
-#define GL_DEPTH24_STENCIL8_EXT 0x88F0
-#endif
-#ifndef GL_UNSIGNED_INT_24_8_EXT
-#define GL_UNSIGNED_INT_24_8_EXT 0x84FA
-#endif
-
-// GL_EXT_packed_float
-#ifndef GL_R11F_G11F_B10F_EXT
-#define GL_R11F_G11F_B10F_EXT 0x8C3A
-#endif
-
-// GL_ARB_texture_compression
-extern PFNGLCOMPRESSEDTEXIMAGE3DARBPROC    glCompressedTexImage3D_;
-extern PFNGLCOMPRESSEDTEXIMAGE2DARBPROC    glCompressedTexImage2D_;
-extern PFNGLCOMPRESSEDTEXIMAGE1DARBPROC    glCompressedTexImage1D_;
-extern PFNGLCOMPRESSEDTEXSUBIMAGE3DARBPROC glCompressedTexSubImage3D_;
-extern PFNGLCOMPRESSEDTEXSUBIMAGE2DARBPROC glCompressedTexSubImage2D_;
-extern PFNGLCOMPRESSEDTEXSUBIMAGE1DARBPROC glCompressedTexSubImage1D_;
-extern PFNGLGETCOMPRESSEDTEXIMAGEARBPROC   glGetCompressedTexImage_;
-
-// GL_ARB_texture_rg
-#ifndef GL_ARB_texture_rg
-#define GL_RG                             0x8227
-#define GL_R8                             0x8229
-#define GL_R16                            0x822A
-#define GL_RG8                            0x822B
-#define GL_RG16                           0x822C
-#define GL_R16F                           0x822D
-#define GL_R32F                           0x822E
-#define GL_RG16F                          0x822F
-#define GL_RG32F                          0x8230
-#endif
-
-// GL_EXT_depth_bounds_test
-extern PFNGLDEPTHBOUNDSEXTPROC glDepthBounds_;
-
-// GL_ARB_color_buffer_float
-extern PFNGLCLAMPCOLORARBPROC glClampColor_;
-
-// GL_EXT_texture3D
-extern PFNGLTEXIMAGE3DEXTPROC        glTexImage3D_;
-extern PFNGLTEXSUBIMAGE3DEXTPROC     glTexSubImage3D_;
-extern PFNGLCOPYTEXSUBIMAGE3DEXTPROC glCopyTexSubImage3D_;
-
-// GL_ARB_debug_output
-#ifndef GL_ARB_debug_output
-#define GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB   0x8242
-#define GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH_ARB 0x8243
-#define GL_DEBUG_CALLBACK_FUNCTION_ARB    0x8244
-#define GL_DEBUG_CALLBACK_USER_PARAM_ARB  0x8245
-#define GL_DEBUG_SOURCE_API_ARB           0x8246
-#define GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB 0x8247
-#define GL_DEBUG_SOURCE_SHADER_COMPILER_ARB 0x8248
-#define GL_DEBUG_SOURCE_THIRD_PARTY_ARB   0x8249
-#define GL_DEBUG_SOURCE_APPLICATION_ARB   0x824A
-#define GL_DEBUG_SOURCE_OTHER_ARB         0x824B
-#define GL_DEBUG_TYPE_ERROR_ARB           0x824C
-#define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB 0x824D
-#define GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB 0x824E
-#define GL_DEBUG_TYPE_PORTABILITY_ARB     0x824F
-#define GL_DEBUG_TYPE_PERFORMANCE_ARB     0x8250
-#define GL_DEBUG_TYPE_OTHER_ARB           0x8251
-#define GL_MAX_DEBUG_MESSAGE_LENGTH_ARB   0x9143
-#define GL_MAX_DEBUG_LOGGED_MESSAGES_ARB  0x9144
-#define GL_DEBUG_LOGGED_MESSAGES_ARB      0x9145
-#define GL_DEBUG_SEVERITY_HIGH_ARB        0x9146
-#define GL_DEBUG_SEVERITY_MEDIUM_ARB      0x9147
-#define GL_DEBUG_SEVERITY_LOW_ARB         0x9148
-typedef void (APIENTRY *GLDEBUGPROCARB)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,GLvoid *userParam);
-typedef void (APIENTRYP PFNGLDEBUGMESSAGECONTROLARBPROC) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
-typedef void (APIENTRYP PFNGLDEBUGMESSAGEINSERTARBPROC) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
-typedef void (APIENTRYP PFNGLDEBUGMESSAGECALLBACKARBPROC) (GLDEBUGPROCARB callback, const GLvoid *userParam);
-typedef GLuint (APIENTRYP PFNGLGETDEBUGMESSAGELOGARBPROC) (GLuint count, GLsizei bufsize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
-#endif
-extern PFNGLDEBUGMESSAGECONTROLARBPROC glDebugMessageControl_;
-extern PFNGLDEBUGMESSAGEINSERTARBPROC glDebugMessageInsert_;
-extern PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallback_;
-extern PFNGLGETDEBUGMESSAGELOGARBPROC glGetDebugMessageLog_;
-
-extern void glerror(const char *file, int line, GLenum error);
-
-#define GLERROR do { GLenum error = glGetError(); if(error != GL_NO_ERROR) glerror(__FILE__, __LINE__, error); } while(0)
-
-// GL_ARB_map_buffer_range
-#ifndef GL_ARB_map_buffer_range
-#define GL_MAP_READ_BIT                   0x0001
-#define GL_MAP_WRITE_BIT                  0x0002
-#define GL_MAP_INVALIDATE_RANGE_BIT       0x0004
-#define GL_MAP_INVALIDATE_BUFFER_BIT      0x0008
-#define GL_MAP_FLUSH_EXPLICIT_BIT         0x0010
-#define GL_MAP_UNSYNCHRONIZED_BIT         0x0020
-typedef GLvoid* (APIENTRYP PFNGLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
-typedef void (APIENTRYP PFNGLFLUSHMAPPEDBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length);
-#endif
-extern PFNGLMAPBUFFERRANGEPROC         glMapBufferRange_;
-extern PFNGLFLUSHMAPPEDBUFFERRANGEPROC glFlushMappedBufferRange_;
-
-#include "varray.h"
-
 extern dynent *player;
 extern physent *camera1;                // special ent that acts as camera, same object as player1 in FPS mode
 
@@ -208,7 +26,6 @@ extern const uchar faceedgesidx[6][4];
 extern bool inbetweenframes, renderedframe;
 
 extern SDL_Surface *screen;
-extern int zpass, glowpass;
 
 extern vector<int> entgroup;
 
@@ -237,7 +54,7 @@ struct font
 extern font *curfont;
 
 // texture
-extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize;
+extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize, hwtexunits, hwvtexunits;
 
 extern Texture *textureload(const char *name, int clamp = 0, bool mipit = true, bool msg = true);
 extern int texalign(const void *data, int w, int bpp);
@@ -249,10 +66,11 @@ extern void drawcubemap(int size, const vec &o, float yaw, float pitch, const cu
 extern void loadshaders();
 extern void setuptexparameters(int tnum, const void *pixels, int clamp, int filter, GLenum format = GL_RGB, GLenum target = GL_TEXTURE_2D);
 extern void createtexture(int tnum, int w, int h, const void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_2D, int pw = 0, int ph = 0, int pitch = 0, bool resize = true, GLenum format = GL_FALSE);
-extern void create3dtexture(int tnum, int w, int h, int d, const void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_3D_EXT);
+extern void create3dtexture(int tnum, int w, int h, int d, const void *pixels, int clamp, int filter, GLenum component = GL_RGB, GLenum target = GL_TEXTURE_3D);
 extern void blurtexture(int n, int bpp, int w, int h, uchar *dst, const uchar *src, int margin = 0);
 extern void blurnormals(int n, int w, int h, bvec *dst, const bvec *src, int margin = 0);
 extern GLuint setuppostfx(int w, int h, GLuint outfbo = 0);
+extern void cleanuppostfx(bool fullclean = false);
 extern void renderpostfx(GLuint outfbo = 0);
 extern void initenvmaps();
 extern void genenvmaps();
@@ -286,9 +104,10 @@ static inline bool pvsoccluded(const ivec &bborigin, int size)
 }
 
 // rendergl
-extern bool hasVBO, hasDRE, hasOQ, hasTR, hasT3D, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasBE, hasBC, hasCM, hasNP2, hasTC, hasS3TC, hasFXT1, hasMT, hasAF, hasMDA, hasGLSL, hasGM, hasNVFB, hasSGIDT, hasSGISH, hasDT, hasSH, hasNVPCF, hasPBO, hasFBB, hasUBO, hasBUE, hasMBR, hasDB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT, hasDC, hasDBGO, hasGPU4, hasGPU5;
-extern int hasstencil;
+extern bool hasVAO, hasTR, hasTSW, hasFBO, hasAFBO, hasDS, hasTF, hasCBF, hasS3TC, hasFXT1, hasAF, hasFBB, hasFBMS, hasTMS, hasMSS, hasFBMSBS, hasNVFBMSC, hasNVTMS, hasUBO, hasMBR, hasDB, hasTG, hasT4, hasTQ, hasPF, hasTRG, hasDBT, hasDC, hasDBGO, hasGPU4, hasGPU5, hasEAL;
 extern int glversion, glslversion;
+
+enum { DRAWTEX_NONE = 0, DRAWTEX_ENVMAP, DRAWTEX_MINIMAP, DRAWTEX_MODELPREVIEW };
 
 extern int vieww, viewh;
 extern int fov;
@@ -298,17 +117,20 @@ extern int farplane;
 extern int hdr;
 extern bool hdrfloat;
 extern float ldrscale, ldrscaleb;
-extern bool envmapping, modelpreviewing;
-extern int minimapping;
-extern const glmatrixf viewmatrix;
-extern glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix, invprojmatrix;
+extern int drawtex;
+extern const glmatrix viewmatrix, invviewmatrix;
+extern glmatrix cammatrix, projmatrix, camprojmatrix, invcammatrix, invcamprojmatrix, invprojmatrix;
 extern int fog;
 extern bvec fogcolor;
 extern vec curfogcolor;
 extern int wireframe;
 
+extern void glerror(const char *file, int line, GLenum error);
+
+#define GLERROR do { GLenum error = glGetError(); if(error != GL_NO_ERROR) glerror(__FILE__, __LINE__, error); } while(0)
+
 extern void gl_checkextensions();
-extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
+extern void gl_init(int w, int h, int bpp);
 extern void cleangl();
 extern void gl_drawframe(int w, int h);
 extern void gl_drawmainmenu(int w, int h);
@@ -320,10 +142,15 @@ extern bool calcbbscissor(const ivec &bbmin, const ivec &bbmax, float &sx1, floa
 extern bool calcspotscissor(const vec &origin, float radius, const vec &dir, int spot, const vec &spotx, const vec &spoty, float &sx1, float &sy1, float &sx2, float &sy2, float &sz1, float &sz2);
 extern int pushscissor(float sx1, float sy1, float sx2, float sy2);
 extern void popscissor();
+extern void screenquad();
 extern void screenquad(float sw, float sh);
+extern void screenquadflipped(float sw, float sh);
 extern void screenquad(float sw, float sh, float sw2, float sh2);
+extern void screenquadoffset(float x, float y, float w, float h);
+extern void screenquadoffset(float x, float y, float w, float h, float x2, float y2, float w2, float h2);
+extern void hudquad(float x, float y, float w, float h, float tx = 0, float ty = 0, float tw = 1, float th = 1);
+extern void debugquad(float x, float y, float w, float h, float tx = 0, float ty = 0, float tw = 1, float th = 1);
 extern void recomputecamera();
-extern void findorientation();
 extern float calcfrustumboundsphere(float nearplane, float farplane,  const vec &pos, const vec &view, vec &center);
 extern void setfogcolor(const vec &v);
 extern void zerofogcolor();
@@ -437,16 +264,16 @@ static inline void masktiles(uint *tiles, float sx1, float sy1, float sx2, float
     for(int ty = ty1; ty < ty2; ty++) tiles[ty] |= ((1<<(tx2-tx1))-1)<<tx1;
 }
 
-enum { SM_NONE = 0, SM_REFLECT, SM_CUBEMAP, SM_TETRA, SM_CASCADE, SM_SPOT };
+enum { SM_NONE = 0, SM_REFLECT, SM_CUBEMAP, SM_CASCADE, SM_SPOT };
+
+enum { L_NOSHADOW = 1<<0, L_NODYNSHADOW = 1<<1 };
  
 extern int shadowmapping;
-
-extern int smtetra, smtetraclip;
-extern plane smtetraclipplane;
 
 extern vec shadoworigin, shadowdir;
 extern float shadowradius, shadowbias;
 extern int shadowside, shadowspot;
+extern glmatrix shadowmatrix;
 
 extern void resetlights();
 extern void collectlights();
@@ -457,20 +284,19 @@ extern void clearshadowcache();
 extern void findshadowvas();
 extern void findshadowmms();
 
+extern int calcshadowinfo(const extentity &e, vec &origin, float &radius, vec &spotloc, int &spotangle, float &bias);
 extern int dynamicshadowvabounds(int mask, vec &bbmin, vec &bbmax);
 extern void rendershadowmapworld();
 extern void batchshadowmapmodels();
 extern void rendershadowatlas();
-extern void renderrsmgeom();
+extern void renderrsmgeom(bool dyntex = false);
 extern void renderradiancehints();
 extern void clearradiancehintscache();
 
-extern int calcbbtetramask(const vec &bbmin, const vec &bbmax, const vec &lightpos, float lightradius, float bias);
 extern int calcbbsidemask(const vec &bbmin, const vec &bbmax, const vec &lightpos, float lightradius, float bias);
 extern int calcspheresidemask(const vec &p, float radius, float bias);
-extern int calcspheretetramask(const vec &p, float radius, float bias);
+extern int calctrisidemask(const vec &p1, const vec &p2, const vec &p3, float bias);
 extern int cullfrustumsides(const vec &lightpos, float lightradius, float size, float border);
-extern int cullfrustumtetra(const vec &lightpos, float lightradius, float size, float border);
 extern int calcbbcsmsplits(const ivec &bbmin, const ivec &bbmax);
 extern int calcspherecsmsplits(const vec &center, float radius);
 extern int calcbbrsmsplits(const ivec &bbmin, const ivec &bbmax);
@@ -488,23 +314,28 @@ static inline bool bbinsidespot(const vec &origin, const vec &dir, int spot, con
     return sphereinsidespot(dir, spot, center.sub(origin), radius.magnitude());
 }
 
-extern glmatrixf worldmatrix, screenmatrix;
+extern glmatrix worldmatrix, screenmatrix;
 
 extern int gw, gh, gdepthformat, gstencil, gdepthstencil;
 extern GLuint gdepthtex, gcolortex, gnormaltex, gglowtex, gdepthrb, gstencilrb;
+extern int msaasamples;
+extern GLuint msdepthtex, mscolortex, msnormaltex, msglowtex, msdepthrb, msstencilrb;
+extern vec2 msaapositions[16];
+enum { AA_UNUSED = 0, AA_RESERVED, AA_LUMA, AA_VELOCITY, AA_SPLIT, AA_SPLIT_LUMA, AA_SPLIT_VELOCITY };
 
 extern void cleanupgbuffer();
 extern void initgbuffer();
 extern void maskgbuffer(const char *mask);
-extern void preparegbuffer();
-extern void rendergbuffer();
+extern void bindgdepth();
+extern void preparegbuffer(bool depthclear = true);
+extern void rendergbuffer(bool depthclear = true);
 extern void shadegbuffer();
-extern void shademinimap(const vec &color = vec(0, 0, 0));
+extern void shademinimap(const vec &color = vec(-1, -1, -1));
 extern void shademodelpreview(int x, int y, int w, int h, bool background = true, bool scissor = false);
 extern void rendertransparent();
 extern void renderao();
-extern void loadhdrshaders(bool luma = false);
-extern void processhdr(GLuint outfbo = 0, bool luma = false);
+extern void loadhdrshaders(int aa = AA_UNUSED);
+extern void processhdr(GLuint outfbo = 0, int aa = AA_UNUSED);
 extern void readhdr(int w, int h, GLenum format, GLenum type, void *dst, GLenum target = 0, GLuint tex = 0);
 extern void setupframe(int w, int h);
 extern void setupgbuffer(int w, int h);
@@ -514,11 +345,15 @@ extern bool debuglights();
 extern void cleanuplights();
 
 // aa
+extern glmatrix nojittermatrix, aamaskmatrix;
 
 extern void setupaa(int w, int h);
-extern void jitteraa();
+extern void jitteraa(bool init = true);
 extern bool maskedaa();
-extern void doaa(GLuint outfbo, void (*resolve)(GLuint, bool));
+extern bool multisampledaa();
+extern void setaavelocityparams(GLenum tmu = GL_TEXTURE0);
+extern void setaamask(bool val);
+extern void doaa(GLuint outfbo, void (*resolve)(GLuint, int));
 extern bool debugaa();
 extern void cleanupaa();
 
@@ -549,7 +384,6 @@ extern void allchanged(bool load = false);
 extern void clearvas(cube *c);
 extern vtxarray *newva(int x, int y, int z, int size);
 extern void destroyva(vtxarray *va, bool reparent = true);
-extern bool readva(vtxarray *va, ushort *&edata, uchar *&vdata);
 extern void updatevabb(vtxarray *va, bool force = false);
 extern void updatevabbs(bool force = false);
 
@@ -582,13 +416,14 @@ extern void resetqueries();
 extern int getnumqueries();
 extern void drawbb(const ivec &bo, const ivec &br, const vec &camera = camera1->o);
 
-#define startquery(query) do { glBeginQuery_(GL_SAMPLES_PASSED_ARB, ((occludequery *)(query))->id); } while(0)
-#define endquery(query) \
-    do { \
-        glEndQuery_(GL_SAMPLES_PASSED_ARB); \
-        extern int ati_oq_bug; \
-        if(ati_oq_bug) glFlush(); \
-    } while(0)
+#define startquery(query) do { glBeginQuery_(GL_SAMPLES_PASSED, ((occludequery *)(query))->id); } while(0)
+#define endquery(query) do { glEndQuery_(GL_SAMPLES_PASSED); } while(0)
+
+struct shadowmesh;
+extern void clearshadowmeshes();
+extern void genshadowmeshes();
+extern shadowmesh *findshadowmesh(int idx, extentity &e);
+extern void rendershadowmesh(shadowmesh *m);
 
 // dynlight
 
@@ -694,6 +529,14 @@ extern void connectserv(const char *servername, int port, const char *serverpass
 extern void abortconnect();
 extern void clientkeepalive();
 
+// command
+extern hashset<ident> idents;
+extern int identflags;
+
+extern void clearoverrides();
+extern void checksleep(int millis);
+extern void clearsleep(bool clearoverrides = true);
+
 // console
 extern void keypress(int code, bool isdown, int cooked);
 extern int rendercommand(int x, int y, int w);
@@ -792,13 +635,15 @@ extern mapmodelinfo *getmminfo(int i);
 extern void resetmodelbatches();
 extern void startmodelquery(occludequery *query);
 extern void endmodelquery();
-extern void rendermodelbatches();
+extern void rendershadowmodelbatches(bool dynmodel = true);
 extern void shadowmaskbatchedmodels(bool dynshadow = true);
+extern void rendermapmodelbatches();
 extern void rendermodelbatches();
 extern void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw = 0, float pitch = 0, int flags = MDL_CULL_VFC | MDL_CULL_DIST, int basetime = 0, float size = 1);
 extern void clearbatchedmapmodels();
 extern int batcheddynamicmodels();
 extern int batcheddynamicmodelbounds(int mask, vec &bbmin, vec &bbmax);
+extern void cleanupmodels();
 
 // renderparticles
 extern void particleinit();
@@ -806,13 +651,13 @@ extern void clearparticles();
 extern void clearparticleemitters();
 extern void seedparticles();
 extern void updateparticles();
-extern void renderparticles(bool mainpass = false);
+extern void renderparticles();
 extern bool printparticles(extentity &e, char *buf);
 
 // decal
 extern void initdecals();
 extern void cleardecals();
-extern void renderdecals(bool mainpass = false);
+extern void renderdecals();
 
 // rendersky
 extern int skytexture, skyshadow, explicitsky;

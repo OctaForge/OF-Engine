@@ -1,184 +1,3 @@
-#ifndef GL_VERSION_2_1
-#define GL_VERSION_2_1 1
-#define GL_FLOAT_MAT2x3                   0x8B65
-#define GL_FLOAT_MAT2x4                   0x8B66
-#define GL_FLOAT_MAT3x2                   0x8B67
-#define GL_FLOAT_MAT3x4                   0x8B68
-#define GL_FLOAT_MAT4x2                   0x8B69
-#define GL_FLOAT_MAT4x3                   0x8B6A
-typedef void (APIENTRYP PFNGLUNIFORMMATRIX2X3FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNGLUNIFORMMATRIX3X2FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNGLUNIFORMMATRIX2X4FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNGLUNIFORMMATRIX4X2FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNGLUNIFORMMATRIX3X4FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNGLUNIFORMMATRIX4X3FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-#endif
-
-// OpenGL 2.0: GL_ARB_shading_language_100, GL_ARB_shader_objects, GL_ARB_fragment_shader, GL_ARB_vertex_shader
-#ifdef __APPLE__
-#define glCreateProgram_ glCreateProgram
-#define glDeleteProgram_ glDeleteProgram
-#define glUseProgram_ glUseProgram
-#define glCreateShader_ glCreateShader
-#define glDeleteShader_ glDeleteShader
-#define glShaderSource_ glShaderSource
-#define glCompileShader_ glCompileShader
-#define glGetShaderiv_ glGetShaderiv
-#define glGetProgramiv_ glGetProgramiv
-#define glAttachShader_ glAttachShader
-#define glGetProgramInfoLog_ glGetProgramInfoLog
-#define glGetShaderInfoLog_ glGetShaderInfoLog
-#define glLinkProgram_ glLinkProgram
-#define glGetUniformLocation_ glGetUniformLocation
-#define glUniform1f_ glUniform1f
-#define glUniform2f_ glUniform2f
-#define glUniform3f_ glUniform3f
-#define glUniform4f_ glUniform4f
-#define glUniform1fv_ glUniform1fv
-#define glUniform2fv_ glUniform2fv
-#define glUniform3fv_ glUniform3fv
-#define glUniform4fv_ glUniform4fv
-#define glUniform1i_ glUniform1i
-#define glUniformMatrix2fv_ glUniformMatrix2fv
-#define glUniformMatrix3fv_ glUniformMatrix3fv
-#define glUniformMatrix4fv_ glUniformMatrix4fv
-#define glBindAttribLocation_ glBindAttribLocation
-#define glGetActiveUniform_ glGetActiveUniform
-#define glEnableVertexAttribArray_ glEnableVertexAttribArray
-#define glDisableVertexAttribArray_ glDisableVertexAttribArray
-#define glVertexAttribPointer_ glVertexAttribPointer
-
-#define glUniformMatrix2x3fv_ glUniformMatrix2x3fv
-#define glUniformMatrix3x2fv_ glUniformMatrix3x2fv
-#define glUniformMatrix2x4fv_ glUniformMatrix2x4fv
-#define glUniformMatrix4x2fv_ glUniformMatrix4x2fv
-#define glUniformMatrix3x4fv_ glUniformMatrix3x4fv
-#define glUniformMatrix4x3fv_ glUniformMatrix4x3fv
-#else
-extern PFNGLCREATEPROGRAMPROC            glCreateProgram_;
-extern PFNGLDELETEPROGRAMPROC            glDeleteProgram_;
-extern PFNGLUSEPROGRAMPROC               glUseProgram_;
-extern PFNGLCREATESHADERPROC             glCreateShader_;
-extern PFNGLDELETESHADERPROC             glDeleteShader_;
-extern PFNGLSHADERSOURCEPROC             glShaderSource_;
-extern PFNGLCOMPILESHADERPROC            glCompileShader_;
-extern PFNGLGETSHADERIVPROC              glGetShaderiv_;
-extern PFNGLGETPROGRAMIVPROC             glGetProgramiv_;
-extern PFNGLATTACHSHADERPROC             glAttachShader_;
-extern PFNGLGETPROGRAMINFOLOGPROC        glGetProgramInfoLog_;
-extern PFNGLGETSHADERINFOLOGPROC         glGetShaderInfoLog_;
-extern PFNGLLINKPROGRAMPROC              glLinkProgram_;
-extern PFNGLGETUNIFORMLOCATIONPROC       glGetUniformLocation_;
-extern PFNGLUNIFORM1FPROC                glUniform1f_;
-extern PFNGLUNIFORM2FPROC                glUniform2f_;
-extern PFNGLUNIFORM3FPROC                glUniform3f_;
-extern PFNGLUNIFORM4FPROC                glUniform4f_;
-extern PFNGLUNIFORM1FVPROC               glUniform1fv_;
-extern PFNGLUNIFORM2FVPROC               glUniform2fv_;
-extern PFNGLUNIFORM3FVPROC               glUniform3fv_;
-extern PFNGLUNIFORM4FVPROC               glUniform4fv_;
-extern PFNGLUNIFORM1IPROC                glUniform1i_;
-extern PFNGLUNIFORMMATRIX2FVPROC         glUniformMatrix2fv_;
-extern PFNGLUNIFORMMATRIX3FVPROC         glUniformMatrix3fv_;
-extern PFNGLUNIFORMMATRIX4FVPROC         glUniformMatrix4fv_;
-extern PFNGLBINDATTRIBLOCATIONPROC       glBindAttribLocation_;
-extern PFNGLGETACTIVEUNIFORMPROC         glGetActiveUniform_;
-extern PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_;
-extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_;
-extern PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_;
-
-extern PFNGLUNIFORMMATRIX2X3FVPROC       glUniformMatrix2x3fv_;
-extern PFNGLUNIFORMMATRIX3X2FVPROC       glUniformMatrix3x2fv_;
-extern PFNGLUNIFORMMATRIX2X4FVPROC       glUniformMatrix2x4fv_;
-extern PFNGLUNIFORMMATRIX4X2FVPROC       glUniformMatrix4x2fv_;
-extern PFNGLUNIFORMMATRIX3X4FVPROC       glUniformMatrix3x4fv_;
-extern PFNGLUNIFORMMATRIX4X3FVPROC       glUniformMatrix4x3fv_;
-#endif
-
-#ifndef GL_ARB_uniform_buffer_object
-#define GL_ARB_uniform_buffer_object 1
-#define GL_UNIFORM_BUFFER                 0x8A11
-#define GL_UNIFORM_BUFFER_BINDING         0x8A28
-#define GL_UNIFORM_BUFFER_START           0x8A29
-#define GL_UNIFORM_BUFFER_SIZE            0x8A2A
-#define GL_MAX_VERTEX_UNIFORM_BLOCKS      0x8A2B
-#define GL_MAX_GEOMETRY_UNIFORM_BLOCKS    0x8A2C
-#define GL_MAX_FRAGMENT_UNIFORM_BLOCKS    0x8A2D
-#define GL_MAX_COMBINED_UNIFORM_BLOCKS    0x8A2E
-#define GL_MAX_UNIFORM_BUFFER_BINDINGS    0x8A2F
-#define GL_MAX_UNIFORM_BLOCK_SIZE         0x8A30
-#define GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS 0x8A31
-#define GL_MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS 0x8A32
-#define GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS 0x8A33
-#define GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT 0x8A34
-#define GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH 0x8A35
-#define GL_ACTIVE_UNIFORM_BLOCKS          0x8A36
-#define GL_UNIFORM_TYPE                   0x8A37
-#define GL_UNIFORM_SIZE                   0x8A38
-#define GL_UNIFORM_NAME_LENGTH            0x8A39
-#define GL_UNIFORM_BLOCK_INDEX            0x8A3A
-#define GL_UNIFORM_OFFSET                 0x8A3B
-#define GL_UNIFORM_ARRAY_STRIDE           0x8A3C
-#define GL_UNIFORM_MATRIX_STRIDE          0x8A3D
-#define GL_UNIFORM_IS_ROW_MAJOR           0x8A3E
-#define GL_UNIFORM_BLOCK_BINDING          0x8A3F
-#define GL_UNIFORM_BLOCK_DATA_SIZE        0x8A40
-#define GL_UNIFORM_BLOCK_NAME_LENGTH      0x8A41
-#define GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS  0x8A42
-#define GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES 0x8A43
-#define GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER 0x8A44
-#define GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER 0x8A45
-#define GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER 0x8A46
-#define GL_INVALID_INDEX                  0xFFFFFFFFu
-
-typedef void (APIENTRYP PFNGLGETUNIFORMINDICESPROC) (GLuint program, GLsizei uniformCount, const GLchar* *uniformNames, GLuint *uniformIndices);
-typedef void (APIENTRYP PFNGLGETACTIVEUNIFORMSIVPROC) (GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params);
-typedef GLuint (APIENTRYP PFNGLGETUNIFORMBLOCKINDEXPROC) (GLuint program, const GLchar *uniformBlockName);
-typedef void (APIENTRYP PFNGLGETACTIVEUNIFORMBLOCKIVPROC) (GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params);
-typedef void (APIENTRYP PFNGLUNIFORMBLOCKBINDINGPROC) (GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
-#endif
-
-#ifndef GL_INVALID_INDEX
-#define GL_INVALID_INDEX                  0xFFFFFFFFu
-#endif
-
-#ifndef GL_VERSION_3_0
-#define GL_VERSION_3_0 1
-typedef void (APIENTRYP PFNGLBINDBUFFERRANGEPROC) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-typedef void (APIENTRYP PFNGLBINDBUFFERBASEPROC) (GLenum target, GLuint index, GLuint buffer);
-#elif GL_GLEXT_VERSION < 43
-typedef void (APIENTRYP PFNGLBINDBUFFERRANGEPROC) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
-typedef void (APIENTRYP PFNGLBINDBUFFERBASEPROC) (GLenum target, GLuint index, GLuint buffer);
-#endif
-
-// GL_ARB_uniform_buffer_object
-extern PFNGLGETUNIFORMINDICESPROC       glGetUniformIndices_;
-extern PFNGLGETACTIVEUNIFORMSIVPROC     glGetActiveUniformsiv_;
-extern PFNGLGETUNIFORMBLOCKINDEXPROC    glGetUniformBlockIndex_;
-extern PFNGLGETACTIVEUNIFORMBLOCKIVPROC glGetActiveUniformBlockiv_;
-extern PFNGLUNIFORMBLOCKBINDINGPROC     glUniformBlockBinding_; 
-extern PFNGLBINDBUFFERBASEPROC          glBindBufferBase_;
-extern PFNGLBINDBUFFERRANGEPROC         glBindBufferRange_;
-
-#ifndef GL_EXT_bindable_uniform
-#define GL_EXT_bindable_uniform 1
-#define GL_MAX_VERTEX_BINDABLE_UNIFORMS_EXT 0x8DE2
-#define GL_MAX_FRAGMENT_BINDABLE_UNIFORMS_EXT 0x8DE3
-#define GL_MAX_GEOMETRY_BINDABLE_UNIFORMS_EXT 0x8DE4
-#define GL_MAX_BINDABLE_UNIFORM_SIZE_EXT  0x8DED
-#define GL_UNIFORM_BUFFER_EXT             0x8DEE
-#define GL_UNIFORM_BUFFER_BINDING_EXT     0x8DEF
-
-typedef void (APIENTRYP PFNGLUNIFORMBUFFEREXTPROC) (GLuint program, GLint location, GLuint buffer);
-typedef GLint (APIENTRYP PFNGLGETUNIFORMBUFFERSIZEEXTPROC) (GLuint program, GLint location);
-typedef GLintptr (APIENTRYP PFNGLGETUNIFORMOFFSETEXTPROC) (GLuint program, GLint location);
-#endif
-
-// GL_EXT_bindable_uniform
-extern PFNGLUNIFORMBUFFEREXTPROC        glUniformBuffer_;
-extern PFNGLGETUNIFORMBUFFERSIZEEXTPROC glGetUniformBufferSize_;
-extern PFNGLGETUNIFORMOFFSETEXTPROC     glGetUniformOffset_;
-
 extern int renderpath;
 
 enum { R_GLSLANG = 0 };
@@ -190,7 +9,8 @@ struct GlobalShaderParamState
     const char *name;
     union
     {
-        float val[32];
+        float fval[32];
+        int ival[32];
         uchar buf[32*sizeof(float)];
     };
     int version;
@@ -223,13 +43,21 @@ struct GlobalShaderParamUse : ShaderParamBinding
         if(version == param->version) return;
         switch(format)
         {
-            case GL_FLOAT:      glUniform1fv_(loc, size, param->val); break;
-            case GL_FLOAT_VEC2: glUniform2fv_(loc, size, param->val); break;
-            case GL_FLOAT_VEC3: glUniform3fv_(loc, size, param->val); break;
-            case GL_FLOAT_VEC4: glUniform4fv_(loc, size, param->val); break;
-            case GL_FLOAT_MAT2: glUniformMatrix2fv_(loc, 1, GL_TRUE, param->val); break;
-            case GL_FLOAT_MAT3: glUniformMatrix3fv_(loc, 1, GL_TRUE, param->val); break;
-            case GL_FLOAT_MAT4: glUniformMatrix4fv_(loc, 1, GL_FALSE, param->val); break;
+            case GL_BOOL:
+            case GL_FLOAT:      glUniform1fv_(loc, size, param->fval); break;
+            case GL_BOOL_VEC2:
+            case GL_FLOAT_VEC2: glUniform2fv_(loc, size, param->fval); break;
+            case GL_BOOL_VEC3:
+            case GL_FLOAT_VEC3: glUniform3fv_(loc, size, param->fval); break;
+            case GL_BOOL_VEC4:
+            case GL_FLOAT_VEC4: glUniform4fv_(loc, size, param->fval); break;
+            case GL_INT:        glUniform1iv_(loc, size, param->ival); break;
+            case GL_INT_VEC2:   glUniform2iv_(loc, size, param->ival); break;
+            case GL_INT_VEC3:   glUniform3iv_(loc, size, param->ival); break;
+            case GL_INT_VEC4:   glUniform4iv_(loc, size, param->ival); break;
+            case GL_FLOAT_MAT2: glUniformMatrix2fv_(loc, 1, GL_FALSE, param->fval); break;
+            case GL_FLOAT_MAT3: glUniformMatrix3fv_(loc, 1, GL_FALSE, param->fval); break;
+            case GL_FLOAT_MAT4: glUniformMatrix4fv_(loc, 1, GL_FALSE, param->fval); break;
         }
         version = param->version;
     }
@@ -298,12 +126,19 @@ struct AttribLoc
     AttribLoc(const char *name = NULL, int loc = -1) : name(name), loc(loc) {}
 };
 
+struct FragDataLoc
+{
+    const char *name;
+    int loc;
+    GLenum format;
+    FragDataLoc(const char *name = NULL, int loc = -1, GLenum format = GL_FALSE) : name(name), loc(loc), format(format) {}
+};
+
 struct Shader
 {
     static Shader *lastshader;
 
-    char *name, *vsstr, *psstr;
-    lua::Function defer;
+    char *name, *vsstr, *psstr, *defer;
     int type;
     GLuint program, vsobj, psobj;
     vector<SlotShaderParamState> defaultparams;
@@ -316,8 +151,9 @@ struct Shader
     Shader *reusevs, *reuseps;
     vector<UniformLoc> uniformlocs;
     vector<AttribLoc> attriblocs;
+    vector<FragDataLoc> fragdatalocs;
 
-    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(lua::Function()), type(SHADER_DEFAULT), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL)
+    Shader() : name(NULL), vsstr(NULL), psstr(NULL), defer(NULL), type(SHADER_DEFAULT), program(0), vsobj(0), psobj(0), detailshader(NULL), variantshader(NULL), altshader(NULL), standard(false), forced(false), used(false), native(true), reusevs(NULL), reuseps(NULL) 
     {
         loopi(MAXSHADERDETAIL) fastshader[i] = this;
     }
@@ -327,8 +163,7 @@ struct Shader
         DELETEA(name);
         DELETEA(vsstr);
         DELETEA(psstr);
-
-        if (!defer.is_nil()) defer.clear();
+        DELETEA(defer);
     }
 
     void fixdetailshader(bool force = true, bool recurse = true);
@@ -341,7 +176,7 @@ struct Shader
         if(!used) { allocparams(slot); used = true; }
         loopv(globalparams) globalparams[i].flush();
     }
-
+     
     bool hasoption(int row)
     {
         if(!detailshader || detailshader->variants[row].empty()) return false;
@@ -433,24 +268,38 @@ struct GlobalShaderParam
         return param;
     }
 
-    void set(float x = 0, float y = 0, float z = 0, float w = 0)
+    void setf(float x = 0, float y = 0, float z = 0, float w = 0)
     {
         GlobalShaderParamState *g = resolve();
-        g->val[0] = x;
-        g->val[1] = y;
-        g->val[2] = z;
-        g->val[3] = w;
+        g->fval[0] = x;
+        g->fval[1] = y;
+        g->fval[2] = z;
+        g->fval[3] = w;
     }
-    void set(const vec &v, float w = 0) { set(v.x, v.y, v.z, w); }
-    void set(const vec2 &v, float z = 0, float w = 0) { set(v.x, v.y, z, w); }
-    void set(const vec4 &v) { set(v.x, v.y, v.z, v.w); }
-    void set(const plane &p) { set(p.x, p.y, p.z, p.offset); }
-    void set(const matrix3x3 &m) { memcpy(resolve()->val, m.a.v, sizeof(m.a.v)); }
-    void set(const glmatrixf &m) { memcpy(resolve()->val, m.v, sizeof(m.v)); }
-    
-    template<class T>
-    void set(const T *v, int n = 1) { memcpy(resolve()->val, v, n*sizeof(T)); }
+    void set(const vec &v, float w = 0) { setf(v.x, v.y, v.z, w); }
+    void set(const vec2 &v, float z = 0, float w = 0) { setf(v.x, v.y, z, w); }
+    void set(const vec4 &v) { setf(v.x, v.y, v.z, v.w); }
+    void set(const plane &p) { setf(p.x, p.y, p.z, p.offset); }
+    void set(const matrix3x3 &m) { m.transpose(resolve()->fval); }
+    void set(const glmatrix2x2 &m) { memcpy(resolve()->fval, m.a.v, sizeof(m)); }
+    void set(const glmatrix3x3 &m) { memcpy(resolve()->fval, m.a.v, sizeof(m)); }
+    void set(const glmatrix &m) { memcpy(resolve()->fval, m.a.v, sizeof(m)); }
 
+    template<class T>
+    void setv(const T *v, int n = 1) { memcpy(resolve()->buf, v, n*sizeof(T)); }
+
+    void seti(int x = 0, int y = 0, int z = 0, int w = 0)
+    {
+        GlobalShaderParamState *g = resolve();
+        g->ival[0] = x;
+        g->ival[1] = y;
+        g->ival[2] = z;
+        g->ival[3] = w;
+    }
+    void set(const ivec &v, int w = 0) { seti(v.x, v.y, v.z, w); }
+    void set(const ivec2 &v, int z = 0, int w = 0) { seti(v.x, v.y, z, w); }
+    void set(const ivec4 &v) { seti(v.x, v.y, v.z, v.w); }
+ 
     template<class T>
     T *reserve(int n = 1) { return (T *)resolve()->buf; }
 };
@@ -475,7 +324,44 @@ struct LocalShaderParam
         return &s->localparams[s->localparamremap[loc]];
     }
 
-    void set(float x = 0, float y = 0, float z = 0, float w = 0)
+    void setf(float x = 0, float y = 0, float z = 0, float w = 0)
+    {
+        ShaderParamBinding *b = resolve();
+        if(b) switch(b->format)
+        {
+            case GL_BOOL:
+            case GL_FLOAT:      glUniform1f_(b->loc, x); break;
+            case GL_BOOL_VEC2:
+            case GL_FLOAT_VEC2: glUniform2f_(b->loc, x, y); break;
+            case GL_BOOL_VEC3:
+            case GL_FLOAT_VEC3: glUniform3f_(b->loc, x, y, z); break;
+            case GL_BOOL_VEC4:
+            case GL_FLOAT_VEC4: glUniform4f_(b->loc, x, y, z, w); break;
+            case GL_INT:        glUniform1i_(b->loc, int(x)); break;
+            case GL_INT_VEC2:   glUniform2i_(b->loc, int(x), int(y)); break;
+            case GL_INT_VEC3:   glUniform3i_(b->loc, int(x), int(y), int(z)); break;
+            case GL_INT_VEC4:   glUniform4i_(b->loc, int(x), int(y), int(z), int(w)); break;
+        }
+    }
+    void set(const vec &v, float w = 0) { setf(v.x, v.y, v.z, w); }
+    void set(const vec2 &v, float z = 0, float w = 0) { setf(v.x, v.y, z, w); }
+    void set(const vec4 &v) { setf(v.x, v.y, v.z, v.w); }
+    void set(const plane &p) { setf(p.x, p.y, p.z, p.offset); }
+    void setv(const float *f, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform1fv_(b->loc, n, f); }
+    void setv(const vec *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform3fv_(b->loc, n, v->v); }
+    void setv(const vec2 *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform2fv_(b->loc, n, v->v); }
+    void setv(const vec4 *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform4fv_(b->loc, n, v->v); }
+    void setv(const plane *p, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform4fv_(b->loc, n, p->v); }
+    void setv(const matrix3x3 *m, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniformMatrix3fv_(b->loc, n, GL_TRUE, m->a.v); }
+    void setv(const glmatrix2x2 *m, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniformMatrix2fv_(b->loc, n, GL_FALSE, m->a.v); }
+    void setv(const glmatrix3x3 *m, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniformMatrix3fv_(b->loc, n, GL_FALSE, m->a.v); }
+    void setv(const glmatrix *m, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniformMatrix4fv_(b->loc, n, GL_FALSE, m->a.v); }
+    void set(const matrix3x3 &m) { setv(&m); }
+    void set(const glmatrix2x2 &m) { setv(&m); }
+    void set(const glmatrix3x3 &m) { setv(&m); }
+    void set(const glmatrix &m) { setv(&m); }
+
+    void seti(int x = 0, int y = 0, int z = 0, int w = 0)
     {
         ShaderParamBinding *b = resolve();
         if(b) switch(b->format)
@@ -484,31 +370,45 @@ struct LocalShaderParam
             case GL_FLOAT_VEC2: glUniform2f_(b->loc, x, y); break;
             case GL_FLOAT_VEC3: glUniform3f_(b->loc, x, y, z); break;
             case GL_FLOAT_VEC4: glUniform4f_(b->loc, x, y, z, w); break;
+            case GL_BOOL:
+            case GL_INT:        glUniform1i_(b->loc, x); break;
+            case GL_BOOL_VEC2:
+            case GL_INT_VEC2:   glUniform2i_(b->loc, x, y); break;
+            case GL_BOOL_VEC3:
+            case GL_INT_VEC3:   glUniform3i_(b->loc, x, y, z); break;
+            case GL_BOOL_VEC4:
+            case GL_INT_VEC4:   glUniform4i_(b->loc, x, y, z, w); break;
         }
     }
-    void set(const vec &v, float w = 0) { set(v.x, v.y, v.z, w); }
-    void set(const vec2 &v, float z = 0, float w = 0) { set(v.x, v.y, z, w); }
-    void set(const vec4 &v) { set(v.x, v.y, v.z, v.w); }
-    void set(const plane &p) { set(p.x, p.y, p.z, p.offset); }
-    void set(const float *f, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform1fv_(b->loc, n, f); }
-    void set(const vec *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform3fv_(b->loc, n, v->v); }
-    void set(const vec2 *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform2fv_(b->loc, n, v->v); }
-    void set(const vec4 *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform4fv_(b->loc, n, v->v); }
-    void set(const plane *p, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform4fv_(b->loc, n, p->v); }
-    void set(const matrix3x3 *m, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniformMatrix3fv_(b->loc, n, GL_TRUE, m->a.v); }
-    void set(const glmatrixf *m, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniformMatrix4fv_(b->loc, n, GL_FALSE, m->v); }
-    void set(const matrix3x3 &m) { set(&m); }
-    void set(const glmatrixf &m) { set(&m); }
+    void set(const ivec &v, int w = 0) { seti(v.x, v.y, v.z, w); }
+    void set(const ivec2 &v, int z = 0, int w = 0) { seti(v.x, v.y, z, w); }
+    void set(const ivec4 &v) { seti(v.x, v.y, v.z, v.w); }
+    void setv(const int *i, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform1iv_(b->loc, n, i); }
+    void setv(const ivec *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform3iv_(b->loc, n, v->v); }
+    void setv(const ivec2 *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform2iv_(b->loc, n, v->v); }
+    void setv(const ivec4 *v, int n = 1) { ShaderParamBinding *b = resolve(); if(b) glUniform4iv_(b->loc, n, v->v); }
 };
 
-#define LOCALPARAM(name, vals) do { static LocalShaderParam param( #name ); param.set vals ; } while(0)
-#define GLOBALPARAM(name, vals) do { static GlobalShaderParam param( #name ); param.set vals ; } while(0) 
+#define LOCALPARAM(name, vals) do { static LocalShaderParam param( #name ); param.set(vals); } while(0)
+#define LOCALPARAMF(name, vals) do { static LocalShaderParam param( #name ); param.setf vals ; } while(0)
+#define LOCALPARAMI(name, vals) do { static LocalShaderParam param( #name ); param.seti vals ; } while(0)
+#define LOCALPARAMV(name, vals, num) do { static LocalShaderParam param( #name ); param.setv(vals, num); } while(0)
+#define GLOBALPARAM(name, vals) do { static GlobalShaderParam param( #name ); param.set(vals); } while(0) 
+#define GLOBALPARAMF(name, vals) do { static GlobalShaderParam param( #name ); param.setf vals ; } while(0) 
+#define GLOBALPARAMI(name, vals) do { static GlobalShaderParam param( #name ); param.seti vals ; } while(0) 
+#define GLOBALPARAMV(name, vals, num) do { static GlobalShaderParam param( #name ); param.setv(vals, num); } while(0) 
 
 #define SETSHADER(name) \
     do { \
         static Shader *name##shader = NULL; \
         if(!name##shader) name##shader = lookupshaderbyname(#name); \
         name##shader->set(); \
+    } while(0)
+#define SETVARIANT(name, col, row) \
+    do { \
+        static Shader *name##shader = NULL; \
+        if(!name##shader) name##shader = lookupshaderbyname(#name); \
+        name##shader->setvariant(col, row); \
     } while(0)
 
 struct ImageData
@@ -662,8 +562,9 @@ struct VSlot
     vector<SlotShaderParam> params;
     bool linked;
     float scale;
-    int rotation, xoffset, yoffset;
-    float scrollS, scrollT;
+    int rotation;
+    ivec2 offset;
+    vec2 scroll;
     int layer;
     float alphafront, alphaback;
     vec colorscale;
@@ -684,8 +585,9 @@ struct VSlot
         params.shrink(0);
         linked = false;
         scale = 1;
-        rotation = xoffset = yoffset = 0;
-        scrollS = scrollT = 0;
+        rotation = 0;
+        offset = ivec2(0, 0);
+        scroll = vec2(0, 0);
         layer = 0;
         alphafront = 0.5f;
         alphaback = 0;
@@ -764,7 +666,7 @@ inline void VSlot::addvariant(Slot *slot)
 
 inline bool VSlot::isdynamic() const
 {
-    return scrollS || scrollT || slot->shader->isdynamic();
+    return !scroll.iszero() || slot->shader->isdynamic();
 }
 
 struct MSlot : Slot, VSlot
@@ -793,7 +695,7 @@ struct cubemapside
 
 extern cubemapside cubemapsides[6];
 extern Texture *notexture;
-extern Shader *nullshader, *defaultshader, *rectshader, *cubemapshader, *notextureshader, *nocolorshader, *foggedshader, *foggednotextureshader, *ldrshader, *ldrnotextureshader, *stdworldshader, *rsmworldshader;
+extern Shader *nullshader, *hudshader, *hudnotextureshader, *nocolorshader, *foggedshader, *foggednotextureshader, *ldrshader, *ldrnotextureshader, *stdworldshader, *rsmworldshader;
 extern int maxvsuniforms, maxfsuniforms;
 
 extern Shader *lookupshaderbyname(const char *name);

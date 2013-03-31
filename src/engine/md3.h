@@ -204,22 +204,21 @@ struct md3 : vertmodel, vertloader<md3>
         defformatstring(cfgname)("data/models/%s/md3.lua", loadname); // OF
 
         loading = this;
-        varsys::persistvars = false;
+        identflags &= ~IDF_PERSIST;
         if(tools::execfile(cfgname, false) && parts.length()) // OF configured md3, will call the md3* commands below
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             loading = NULL;
             if(!loaddefaultparts()) return false;
         }
         scale /= 4;
         translate.y = -translate.y;
-        parts[0]->translate = translate;
         loopv(parts) parts[i]->meshes->shared++;
         return loaded = true;
     }

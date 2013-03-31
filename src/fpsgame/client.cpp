@@ -107,7 +107,7 @@ namespace game
         MessageSystem::send_EditModeC2S(on);
 //        addmsg(N_EDITMODE, "ri", on ? 1 : 0);
 #ifdef CLIENT
-        SETVFN(zoom, -1);
+        disablezoom();
 #endif
 
         #ifdef CLIENT

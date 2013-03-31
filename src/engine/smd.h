@@ -440,16 +440,16 @@ struct smd : skelmodel, skelloader<smd>
         defformatstring(cfgname)("data/models/%s/smd.lua", loadname); // INTENSITY
 
         loading = this;
-        varsys::persistvars = false;
+        identflags &= ~IDF_PERSIST;
         if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             loading = NULL;
             loopv(parts) if(!parts[i]->meshes) return false;
         }
         else // smd without configuration, try default tris and skin 
         {
-            varsys::persistvars = true;
+            identflags |= IDF_PERSIST;
             if(!loaddefaultparts()) 
             {
                 loading = NULL;
@@ -458,7 +458,6 @@ struct smd : skelmodel, skelloader<smd>
             loading = NULL;
         }
         scale /= 4;
-        parts[0]->translate = translate;
         loopv(parts) 
         {
             skelpart *p = (skelpart *)parts[i];

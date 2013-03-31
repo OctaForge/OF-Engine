@@ -22,7 +22,8 @@ enum
     DF_INVMOD     = 1<<2,
     DF_OVERBRIGHT = 1<<3,
     DF_ADD        = 1<<4,
-    DF_SATURATE   = 1<<5
+    DF_SATURATE   = 1<<5,
+    DF_GREY       = 1<<6
 };
 
 VARFP(maxdecaltris, 1, 1024, 16384, initdecals());
@@ -209,16 +210,16 @@ struct decalrenderer
         glDepthMask(GL_FALSE);
         glEnable(GL_BLEND);
 
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
+        varray::enablevertex();
+        varray::enabletexcoord0();
+        varray::enablecolor();
     }
 
     static void cleanuprenderstate()
     {
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisableClientState(GL_COLOR_ARRAY);
+        varray::disablevertex();
+        varray::disabletexcoord0();
+        varray::disablecolor();
 
         glDepthMask(GL_TRUE);
         glDisable(GL_BLEND);
@@ -234,7 +235,7 @@ struct decalrenderer
         if(flags&DF_OVERBRIGHT) 
         {
             glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR); 
-            SETSHADER(overbrightdecal);
+            SETVARIANT(overbrightdecal, flags&DF_GREY && hasTRG ? 0 : -1, 0);
         }
         else 
         {
@@ -242,18 +243,16 @@ struct decalrenderer
             else if(flags&DF_ADD) glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
             else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            if(flags&DF_SATURATE)
-            {
-                SETSHADER(saturatedecal);
-            }
-            else SETSHADER(decal);
+            SETVARIANT(decal, flags&DF_GREY && hasTRG ? 0 : -1, 0);
+            float colorscale = flags&DF_SATURATE ? 2 : 1; 
+            LOCALPARAMF(colorscale, (colorscale, colorscale, colorscale, 1));
         }
 
         glBindTexture(GL_TEXTURE_2D, tex->id);
 
-        glVertexPointer(3, GL_FLOAT, sizeof(decalvert), &verts->pos);
-        glTexCoordPointer(2, GL_FLOAT, sizeof(decalvert), &verts->u);
-        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(decalvert), &verts->color);
+        varray::vertexpointer(sizeof(decalvert), &verts->pos);
+        varray::texcoord0pointer(sizeof(decalvert), &verts->u);
+        varray::colorpointer(sizeof(decalvert), &verts->color);
 
         int count = endvert < startvert ? maxverts - startvert : endvert - startvert;
         glDrawArrays(GL_TRIANGLES, startvert, count);
@@ -558,9 +557,9 @@ struct decalrenderer
 
 decalrenderer decals[] =
 {
-    decalrenderer("<grey>data/textures/particles/scorch.png", DF_ROTATE, 500),
-    decalrenderer("<grey>data/textures/particles/blood.png", DF_RND4|DF_ROTATE|DF_INVMOD),
-    decalrenderer("<grey>data/textures/particles/bullet.png", DF_OVERBRIGHT)
+    decalrenderer("<grey>data/textures/particles/scorch.png", DF_GREY|DF_ROTATE, 500),
+    decalrenderer("<grey>data/textures/particles/blood.png", DF_GREY|DF_RND4|DF_ROTATE|DF_INVMOD),
+    decalrenderer("<grey>data/textures/particles/bullet.png", DF_GREY|DF_OVERBRIGHT)
 };
 
 void initdecals()
@@ -576,18 +575,15 @@ void cleardecals()
 
 VARNP(decals, showdecals, 0, 1, 1);
 
-void renderdecals(bool mainpass)
+void renderdecals()
 {
     bool rendered = false;
     loopi(sizeof(decals)/sizeof(decals[0]))
     {
         decalrenderer &d = decals[i];
-        if(mainpass)
-        {
-            d.clearfadeddecals();
-            d.fadeindecals();
-            d.fadeoutdecals();
-        }
+        d.clearfadeddecals();
+        d.fadeindecals();
+        d.fadeoutdecals();
         if(!showdecals || !d.hasdecals()) continue;
         if(!rendered)
         {

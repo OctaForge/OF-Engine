@@ -18,11 +18,9 @@ void cleanup()
     SDL_WM_GrabInput(SDL_GRAB_OFF);
     cleargamma();
     freeocta(worldroot);
-    varsys::clear();
     extern void clear_console(); clear_console();
     extern void clear_mdls();    clear_mdls();
     extern void clear_sound();   clear_sound();
-    extern void cleanupshaders(); cleanupshaders(); // XXX: temporary
     closelogfile();
     SDL_Quit();
 }
@@ -37,9 +35,6 @@ void quit()                     // normal exit
     localdisconnect();
     tools::writecfg();
     cleanup();
-
-    varsys::flush();
-
     exit(EXIT_SUCCESS);
 }
 
@@ -99,9 +94,6 @@ bool initwarning(const char *desc, int level, int type)
 VARF(scr_w, SCR_MINW, -1, SCR_MAXW, initwarning("screen resolution"));
 VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
 VARF(colorbits, 0, 0, 32, initwarning("color depth"));
-VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
-VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
-VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 
 void writeinitcfg()
@@ -114,9 +106,6 @@ void writeinitcfg()
     f->printf("EV.scr_w = %d\n", scr_w);
     f->printf("EV.scr_h = %d\n", scr_h);
     f->printf("EV.colorbits = %d\n", colorbits);
-    f->printf("EV.depthbits = %d\n", depthbits);
-    f->printf("EV.stencilbits = %d\n", stencilbits);
-    f->printf("EV.fsaa = %d\n", fsaa);
     f->printf("EV.vsync = %d\n", vsync);
     f->printf("EV.sound = %d\n", sound);
     f->printf("EV.soundchans = %d\n", soundchans);
@@ -146,6 +135,16 @@ void restorebackground()
     renderbackground(backgroundcaption[0] ? backgroundcaption : NULL, backgroundmapshot, backgroundmapname[0] ? backgroundmapname : NULL, backgroundmapinfo, true);
 }
 
+void bgquad(float x, float y, float w, float h, float tx = 0, float ty = 0, float tw = 1, float th = 1)
+{
+    varray::begin(GL_TRIANGLE_STRIP);
+    varray::attribf(x,   y);   varray::attribf(tx,      ty);
+    varray::attribf(x+w, y);   varray::attribf(tx + tw, ty);
+    varray::attribf(x,   y+h); varray::attribf(tx,      ty + th);
+    varray::attribf(x+w, y+h); varray::attribf(tx + tw, ty + th);
+    varray::end();
+}
+
 void renderbackground(const char *caption, Texture *mapshot, const char *mapname, const char *mapinfo, bool restore, bool force)
 {
     if(!inbetweenframes && !force) return;
@@ -155,14 +154,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     int w = screen->w, h = screen->h;
     getbackgroundres(w, h);
     gettextres(w, h);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, w, h, 0, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    defaultshader->set();
 
     static int lastupdate = -1, lastw = -1, lasth = -1;
     static float backgroundu = 0, backgroundv = 0;
@@ -196,58 +187,39 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
     loopi(restore ? 1 : 3)
     {
-        glColor3f(1, 1, 1);
+        hudmatrix.ortho(0, w, h, 0, -1, 1);
+        resethudmatrix();
+        hudshader->set();
+
+        varray::defvertex(2);
+        varray::deftexcoord0();
+
+        varray::colorf(1, 1, 1);
         settexture("data/textures/ui/background.png", 0);
         float bu = w*0.67f/256.0f + backgroundu, bv = h*0.67f/256.0f + backgroundv;
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0,  0);  glVertex2f(0, 0);
-        glTexCoord2f(bu, 0);  glVertex2f(w, 0);
-        glTexCoord2f(0,  bv); glVertex2f(0, h);
-        glTexCoord2f(bu, bv); glVertex2f(w, h);
-        glEnd();
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        bgquad(0, 0, w, h, 0, 0, bu, bv);
         glEnable(GL_BLEND);
 #if 0
         settexture("<premul>data/textures/ui/background_detail.png", 0);
         float du = w*0.8f/512.0f + detailu, dv = h*0.8f/512.0f + detailv;
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0,  0);  glVertex2f(0, 0);
-        glTexCoord2f(du, 0);  glVertex2f(w, 0);
-        glTexCoord2f(0,  dv); glVertex2f(0, h);
-        glTexCoord2f(du, dv); glVertex2f(w, h);
-        glEnd();
+        bgquad(0, 0, w, h, 0, 0, du, dv);
         settexture("<premul>data/textures/ui/background_decal.png", 3);
-        glBegin(GL_QUADS);
         loopj(numdecals)
         {
             float hsz = decals[j].size, hx = clamp(decals[j].x, hsz, w-hsz), hy = clamp(decals[j].y, hsz, h-hsz), side = decals[j].side;
-            glTexCoord2f(side,   0); glVertex2f(hx-hsz, hy-hsz);
-            glTexCoord2f(1-side, 0); glVertex2f(hx+hsz, hy-hsz);
-            glTexCoord2f(1-side, 1); glVertex2f(hx+hsz, hy+hsz);
-            glTexCoord2f(side,   1); glVertex2f(hx-hsz, hy+hsz);
+            bgquad(hx-hsz, hy-hsz, 2*hsz, 2*hsz, side, 0, 1-2*side, 1);
         }
-        glEnd();
 #endif
         float lh = 0.5f*min(w, h), lw = lh*2,
               lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
         settexture(/*(maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screen->w > 1280 || screen->h > 800) ? "<premul>data/logo_1024.png" :*/ "<premul>data/textures/ui/logo.png", 3);
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(lx,    ly);
-        glTexCoord2f(1, 0); glVertex2f(lx+lw, ly);
-        glTexCoord2f(0, 1); glVertex2f(lx,    ly+lh);
-        glTexCoord2f(1, 1); glVertex2f(lx+lw, ly+lh);
-        glEnd();
+        bgquad(lx, ly, lw, lh);
 
 #if 0
         float bh = 0.1f*min(w, h), bw = bh*2,
               bx = w - 1.1f*bw, by = h - 1.1f*bh;
         settexture("<premul>data/textures/ui/cube2badge.png", 3);
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(bx,    by);
-        glTexCoord2f(1, 0); glVertex2f(bx+bw, by);
-        glTexCoord2f(0, 1); glVertex2f(bx,    by+bh);
-        glTexCoord2f(1, 1); glVertex2f(bx+bw, by+bh);
-        glEnd();
+        bgquad(bx, by, bw, bh);
 #endif
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -256,11 +228,12 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
             int tw = text_width(caption);
             float tsz = 0.04f*min(w, h)/FONTH,
                   tx = 0.5f*(w - tw*tsz), ty = h - 0.075f*1.5f*min(w, h) - 1.25f*FONTH*tsz;
-            glPushMatrix();
-            glTranslatef(tx, ty, 0);
-            glScalef(tsz, tsz, 1);
+            pushhudmatrix();
+            hudmatrix.translate(tx, ty, 0);
+            hudmatrix.scale(tsz, tsz, 1);
+            flushhudmatrix();
             draw_text(caption, 0, 0);
-            glPopMatrix();
+            pophudmatrix();
         }
         if(mapshot || mapname)
         {
@@ -275,54 +248,50 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
             if(mapshot && mapshot!=notexture)
             {
                 glBindTexture(GL_TEXTURE_2D, mapshot->id);
-                glBegin(GL_TRIANGLE_STRIP);
-                glTexCoord2f(0, 0); glVertex2f(x,    y);
-                glTexCoord2f(1, 0); glVertex2f(x+sz, y);
-                glTexCoord2f(0, 1); glVertex2f(x,    y+sz);
-                glTexCoord2f(1, 1); glVertex2f(x+sz, y+sz);
-                glEnd();
+                bgquad(x, y, sz, sz);
             }
             else
             {
                 int qw, qh;
                 text_bounds("?", qw, qh);
                 float qsz = sz*0.5f/max(qw, qh);
-                glPushMatrix();
-                glTranslatef(x + 0.5f*(sz - qw*qsz), y + 0.5f*(sz - qh*qsz), 0);
-                glScalef(qsz, qsz, 1);
+                pushhudmatrix();
+                hudmatrix.translate(x + 0.5f*(sz - qw*qsz), y + 0.5f*(sz - qh*qsz), 0);
+                hudmatrix.scale(qsz, qsz, 1);
+                flushhudmatrix();
                 draw_text("?", 0, 0);
-                glPopMatrix();
+                pophudmatrix();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }        
             settexture("data/textures/ui/mapshot_frame.png", 3);
-            glBegin(GL_TRIANGLE_STRIP);
-            glTexCoord2f(0, 0); glVertex2f(x,    y);
-            glTexCoord2f(1, 0); glVertex2f(x+sz, y);
-            glTexCoord2f(0, 1); glVertex2f(x,    y+sz);
-            glTexCoord2f(1, 1); glVertex2f(x+sz, y+sz);
-            glEnd();
+            bgquad(x, y, sz, sz);
             if(mapname)
             {
                 int tw = text_width(mapname);
                 float tsz = sz/(8*FONTH),
                       tx = 0.9f*sz - tw*tsz, ty = 0.9f*sz - FONTH*tsz;
                 if(tx < 0.1f*sz) { tsz = 0.1f*sz/tw; tx = 0.1f; }
-                glPushMatrix();
-                glTranslatef(x+tx, y+ty, 0);
-                glScalef(tsz, tsz, 1);
+                pushhudmatrix();
+                hudmatrix.translate(x+tx, y+ty, 0);
+                hudmatrix.scale(tsz, tsz, 1);
+                flushhudmatrix();
                 draw_text(mapname, 0, 0);
-                glPopMatrix();
+                pophudmatrix();
             }
             if(mapinfo)
             {
-                glPushMatrix();
-                glTranslatef(x+sz+FONTH*msz, y, 0);
-                glScalef(msz, msz, 1);
+                pushhudmatrix();
+                hudmatrix.translate(x+sz+FONTH*msz, y, 0);
+                hudmatrix.scale(msz, msz, 1);
+                flushhudmatrix();
                 draw_text(mapinfo, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, -1, infowidth);
-                glPopMatrix();
+                pophudmatrix();
             }
         }
         glDisable(GL_BLEND);
+
+        varray::disable();
+
         if(!restore) swapbuffers();
     }
 
@@ -344,7 +313,7 @@ float loadprogress = 0;
 
 void renderprogress(float bar, const char *text, GLuint tex, bool background)   // also used during loading
 {
-    if(!inbetweenframes || envmapping) return;
+    if(!inbetweenframes || drawtex) return;
 
     clientkeepalive();      // make sure our connection doesn't time out while loading maps etc.
     
@@ -354,23 +323,20 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     interceptkey(SDLK_UNKNOWN); // keep the event queue awake to avoid 'beachball' cursor
     #endif
 
-    extern int sdl_backingstore_bug;
-    if(background || sdl_backingstore_bug > 0) restorebackground();
+    if(background) restorebackground();
 
     int w = screen->w, h = screen->h;
     getbackgroundres(w, h);
     gettextres(w, h);
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, w, h, 0, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+    hudmatrix.ortho(0, w, h, 0, -1, 1);
+    resethudmatrix();
+    hudshader->set();
 
-    defaultshader->set();
-    glColor3f(1, 1, 1);
+    varray::defvertex(2);
+    varray::deftexcoord0();
+
+    varray::colorf(1, 1, 1);
 
     float fh = 0.075f*min(w, h), fw = fh*10,
           fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw), 
@@ -382,12 +348,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // INTENSITY: ditto
 
     settexture("data/textures/ui/loading_frame.png", 3);
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(fu1, fv1); glVertex2f(fx,    fy);
-    glTexCoord2f(fu2, fv1); glVertex2f(fx+fw, fy);
-    glTexCoord2f(fu1, fv2); glVertex2f(fx,    fy+fh);
-    glTexCoord2f(fu2, fv2); glVertex2f(fx+fw, fy+fh);
-    glEnd();
+    bgquad(fx, fy, fw, fh, fu1, fv1, fu2-fu1, fv2-fv1);
 
     float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
           bx = fx + fw*17/511.0f, by = fy + fh*16/52.0f,
@@ -399,22 +360,9 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     if(bar > 0)
     {
         settexture("data/textures/ui/loading_bar.png", 3);
-        glBegin(GL_QUADS);
-        glTexCoord2f(su1, bv1); glVertex2f(bx,    by);
-        glTexCoord2f(su2, bv1); glVertex2f(bx+sw, by);
-        glTexCoord2f(su2, bv2); glVertex2f(bx+sw, by+bh);
-        glTexCoord2f(su1, bv2); glVertex2f(bx,    by+bh);
-
-        glTexCoord2f(su2, bv1); glVertex2f(bx+sw, by);
-        glTexCoord2f(eu1, bv1); glVertex2f(ex,    by);
-        glTexCoord2f(eu1, bv2); glVertex2f(ex,    by+bh);
-        glTexCoord2f(su2, bv2); glVertex2f(bx+sw, by+bh);
-
-        glTexCoord2f(eu1, bv1); glVertex2f(ex,    by);
-        glTexCoord2f(eu2, bv1); glVertex2f(ex+ew, by);
-        glTexCoord2f(eu2, bv2); glVertex2f(ex+ew, by+bh);
-        glTexCoord2f(eu1, bv2); glVertex2f(ex,    by+bh);
-        glEnd();
+        bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
+        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
+        bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
     }
     else if (bar < 0) // INTENSITY: Show side-to-side progress for negative values (-0 to -infinity)
     {
@@ -436,22 +384,9 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
               ex = bx+sw + max(mw*width, fw*7/511.0f);
 
         settexture("data/textures/ui/loading_bar.png", 3);
-        glBegin(GL_QUADS);
-        glTexCoord2f(su1, bv1); glVertex2f(bx,    by);
-        glTexCoord2f(su2, bv1); glVertex2f(bx+sw, by);
-        glTexCoord2f(su2, bv2); glVertex2f(bx+sw, by+bh);
-        glTexCoord2f(su1, bv2); glVertex2f(bx,    by+bh);
-
-        glTexCoord2f(su2, bv1); glVertex2f(bx+sw, by);
-        glTexCoord2f(eu1, bv1); glVertex2f(ex,    by);
-        glTexCoord2f(eu1, bv2); glVertex2f(ex,    by+bh);
-        glTexCoord2f(su2, bv2); glVertex2f(bx+sw, by+bh);
-
-        glTexCoord2f(eu1, bv1); glVertex2f(ex,    by);
-        glTexCoord2f(eu2, bv1); glVertex2f(ex+ew, by);
-        glTexCoord2f(eu2, bv2); glVertex2f(ex+ew, by+bh);
-        glTexCoord2f(eu1, bv2); glVertex2f(ex,    by+bh);
-        glEnd();
+        bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
+        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
+        bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
     } // INTENSITY: End side-to-side progress
 
 
@@ -460,11 +395,12 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
         int tw = text_width(text);
         float tsz = bh*0.8f/FONTH;
         if(tw*tsz > mw) tsz = mw/tw;
-        glPushMatrix();
-        glTranslatef(bx+sw, by + (bh - FONTH*tsz)/2, 0);
-        glScalef(tsz, tsz, 1);
+        pushhudmatrix();
+        hudmatrix.translate(bx+sw, by + (bh - FONTH*tsz)/2, 0);
+        hudmatrix.scale(tsz, tsz, 1);
+        flushhudmatrix();
         draw_text(text, 0, 0);
-        glPopMatrix();
+        pophudmatrix();
     }
 
     glDisable(GL_BLEND);
@@ -473,29 +409,17 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     {
         glBindTexture(GL_TEXTURE_2D, tex);
         float sz = 0.35f*min(w, h), x = 0.5f*(w-sz), y = 0.5f*min(w, h) - sz/15;
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(x,    y);
-        glTexCoord2f(1, 0); glVertex2f(x+sz, y);
-        glTexCoord2f(0, 1); glVertex2f(x,    y+sz);
-        glTexCoord2f(1, 1); glVertex2f(x+sz, y+sz);
-        glEnd();
+        bgquad(x, y, sz, sz);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         settexture("data/textures/ui/mapshot_frame.png", 3);
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(x,    y);
-        glTexCoord2f(1, 0); glVertex2f(x+sz, y);
-        glTexCoord2f(0, 1); glVertex2f(x,    y+sz);
-        glTexCoord2f(1, 1); glVertex2f(x+sz, y+sz);
-        glEnd();
+        bgquad(x, y, sz, sz);
         glDisable(GL_BLEND);
     }
 
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
+    varray::disable();
+
     swapbuffers();
 }
 
@@ -581,7 +505,7 @@ VAR(dbgmodes, 0, 0, 1);
 
 int desktopw = 0, desktoph = 0;
 
-void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
+void setupscreen(int &usedcolorbits)
 {
     int flags = SDL_RESIZABLE;
     #if defined(WIN32) || defined(__APPLE__)
@@ -646,57 +570,19 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
 #if SDL_VERSION_ATLEAST(1, 2, 11)
     if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
 #endif
-    static int configs[] =
-    {
-        0x7, /* try everything */
-        0x6, 0x5, 0x3, /* try disabling one at a time */
-        0x4, 0x2, 0x1, /* try disabling two at a time */
-        0 /* try disabling everything */
-    };
-    int config = 0;
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
-    if(!fsaa)
-    {
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-    }
-    loopi(sizeof(configs)/sizeof(configs[0]))
-    {
-        config = configs[i];
-        if(!depthbits && config&1) continue;
-        if(!stencilbits && config&2) continue;
-        if(fsaa<=0 && config&4) continue;
-        if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? depthbits : 0);
-        if(stencilbits)
-        {
-            hasstencil = config&2 ? stencilbits : 0;
-            SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, hasstencil);
-        }
-        else hasstencil = 0;
-        if(fsaa>0)
-        {
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&4 ? 1 : 0);
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&4 ? fsaa : 0);
-        }
-        screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|flags);
-        if(screen) break;
-    }
+    screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|flags);
     if(!screen) fatal("Unable to create OpenGL screen: %s", SDL_GetError());
     else
     {
         if(!hasbpp) conoutf(CON_WARN, "%d bit color buffer not supported - disabling", colorbits);
-        if(depthbits && (config&1)==0) conoutf(CON_WARN, "%d bit z-buffer not supported - disabling", depthbits);
-        if(stencilbits && (config&2)==0) conoutf(CON_WARN, "Stencil buffer not supported - disabling");
-        if(fsaa>0 && (config&4)==0) conoutf(CON_WARN, "%dx anti-aliasing not supported - disabling", fsaa);
     }
 
     scr_w = screen->w;
     scr_h = screen->h;
 
     usedcolorbits = hasbpp ? colorbits : 0;
-    useddepthbits = config&1 ? depthbits : 0;
-    usedfsaa = config&4 ? fsaa : 0;
 }
 
 void resetgl()
@@ -726,9 +612,9 @@ void resetgl()
     
     SDL_SetVideoMode(0, 0, 0, 0);
 
-    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
-    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
-    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
+    int usedcolorbits = 0;
+    setupscreen(usedcolorbits);
+    gl_init(scr_w, scr_h, usedcolorbits);
 
     extern void reloadfonts();
     extern void reloadtextures();
@@ -1165,12 +1051,12 @@ int main(int argc, char **argv)
             case 'd': dedicated = atoi(&argv[i][2]); if(dedicated<=0) dedicated = 2; break;
             case 'w': scr_w = clamp(atoi(&argv[i][2]), SCR_MINW, SCR_MAXW); if(!findarg(argc, argv, "-h")) scr_h = -1; break;
             case 'h': scr_h = clamp(atoi(&argv[i][2]), SCR_MINH, SCR_MAXH); if(!findarg(argc, argv, "-w")) scr_w = -1; break;
-            case 'z': depthbits = atoi(&argv[i][2]); break;
+            case 'z': /* compat, ignore */ break;
             case 'b': colorbits = atoi(&argv[i][2]); break;
-            case 'a': fsaa = atoi(&argv[i][2]); break;
+            case 'a': /* compat, ignore */ break;
             case 'v': vsync = atoi(&argv[i][2]); break;
             case 't': fullscreen = atoi(&argv[i][2]); break;
-            case 's': stencilbits = atoi(&argv[i][2]); break;
+            case 's': /* compat, ignore */ break;
             case 'f': /* compat, ignore */ break;
             case 'l': 
             {
@@ -1230,8 +1116,8 @@ int main(int argc, char **argv)
         desktopw = video->current_w;
         desktoph = video->current_h;
     }
-    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
-    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
+    int usedcolorbits = 0;
+    setupscreen(usedcolorbits);
 
     initlog("video: misc");
     SDL_WM_SetCaption("OctaForge", NULL); // INTENSITY
@@ -1240,7 +1126,7 @@ int main(int argc, char **argv)
 
     initlog("gl");
     gl_checkextensions();
-    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
+    gl_init(scr_w, scr_h, usedcolorbits);
     notexture = textureload("data/textures/core/notexture.png");
     if(!notexture) fatal("could not find core textures");
 
@@ -1293,7 +1179,7 @@ int main(int argc, char **argv)
             logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     }
     
-    varsys::persistvars = true;
+    identflags |= IDF_PERSIST;
     
     initing = INIT_LOAD;
     if(!tools::execcfg(game::savedconfig())) 
@@ -1307,7 +1193,7 @@ int main(int argc, char **argv)
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     initing = NOT_INITING;
 
-    varsys::persistvars = false;
+    identflags &= ~IDF_PERSIST;
 
     initing = INIT_GAME;
     game::loadconfigs();
@@ -1322,7 +1208,7 @@ int main(int argc, char **argv)
     particleinit();
     initdecals();
 
-    varsys::persistvars = true;
+    identflags |= IDF_PERSIST;
 
     initlog("init: mainloop");
 

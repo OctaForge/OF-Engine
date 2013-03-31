@@ -185,7 +185,7 @@ namespace lapi_binds
 #ifdef CLIENT
     void _lua_toggleconsole()
     {
-        SETV(fullconsole, fullconsole ^ 1);
+        fullconsole ^= 1;
     }
 
     void _lua_conskip(int sk)
