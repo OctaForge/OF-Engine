@@ -2981,6 +2981,24 @@ COMMANDN(clearsleep, clearsleep_, "i");
 #endif
 
 ICOMMAND(lua, "s", (char *str), {
-    auto err = lapi::state.do_string(str);
-    if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    if (luaL_loadstring(lapi::state.state(), str)) {
+        lua_error(lapi::state.state());
+    }
+    lua_call(lapi::state.state(), 0, 1);
+    if (lua_isnumber(lapi::state.state(), -1)) {
+        int a = lua_tointeger(lapi::state.state(), -1);
+        float b = lua_tonumber(lapi::state.state(), -1);
+        lua_pop(lapi::state.state(), 1);
+        if ((float)a == b) {
+            intret(a);
+        } else {
+            floatret(b);
+        }
+    } else if (lua_isstring(lapi::state.state(), -1)) {
+        const char *s = lua_tostring(lapi::state.state(), -1);
+        lua_pop(lapi::state.state(), 1);
+        result(s);
+    } else {
+        lua_pop(lapi::state.state(), 1);
+    }
 })
