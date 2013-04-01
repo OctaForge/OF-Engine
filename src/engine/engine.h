@@ -512,6 +512,7 @@ extern vector<const char *> gameargs;
 extern void initserver(bool listen, bool dedicated);
 extern void cleanupserver();
 extern void serverslice(bool dedicated, uint timeout);
+extern void updatetime();
 
 extern ENetSocket connectmaster();
 extern void localclienttoserver(int chan, ENetPacket *, int cn=-1); // INTENSITY: Added cn

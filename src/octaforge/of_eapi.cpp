@@ -15,10 +15,6 @@
 /* prototypes */
 
 #ifdef CLIENT
-void quit      ();
-void resetgl   ();
-void resetsound();
-
 void newfont(const char *name, const char *tex, int defaultw, int defaulth);
 void fontoffset(const char *c);
 void fontscale(int scale);
@@ -48,18 +44,6 @@ extern "C" {
     }
 
 #ifdef CLIENT
-
-    void base_quit() {
-        quit();
-    }
-
-    void base_reset_renderer() {
-        resetgl();
-    }
-
-    void base_reset_sound() {
-        resetsound();
-    }
 
     void *base_gl_get_proc_address(const char *proc) {
         return SDL_GL_GetProcAddress(proc);

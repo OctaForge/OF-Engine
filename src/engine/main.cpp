@@ -19,6 +19,7 @@ void cleanup()
     SDL_ShowCursor(SDL_TRUE);
     cleargamma();
     freeocta(worldroot);
+    extern void clear_command(); clear_command();
     extern void clear_console(); clear_console();
     extern void clear_mdls();    clear_mdls();
     extern void clear_sound();   clear_sound();
@@ -100,19 +101,22 @@ VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
 
 void writeinitcfg()
 {
-    stream *f = openutf8file("init.lua", "w");
+    stream *f = openutf8file("init.cfg", "w");
     if(!f) return;
-    f->printf("-- automatically written on exit, DO NOT MODIFY\n-- modify settings in game\n");
-    extern int fullscreen, sound, soundchans, soundfreq, soundbufferlen;
-    f->printf("EV.fullscreen = %d\n", fullscreen);
-    f->printf("EV.scr_w = %d\n", scr_w);
-    f->printf("EV.scr_h = %d\n", scr_h);
-    f->printf("EV.sound = %d\n", sound);
-    f->printf("EV.soundchans = %d\n", soundchans);
-    f->printf("EV.soundfreq = %d\n", soundfreq);
-    f->printf("EV.soundbufferlen = %d\n", soundbufferlen);
+    f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
+    extern int fullscreen;
+    f->printf("fullscreen %d\n", fullscreen);
+    f->printf("scr_w %d\n", scr_w);
+    f->printf("scr_h %d\n", scr_h);
+    extern int sound, soundchans, soundfreq, soundbufferlen;
+    f->printf("sound %d\n", sound);
+    f->printf("soundchans %d\n", soundchans);
+    f->printf("soundfreq %d\n", soundfreq);
+    f->printf("soundbufferlen %d\n", soundbufferlen);
     delete f;
 }
+
+COMMAND(quit, "");
 
 static void getbackgroundres(int &w, int &h)
 {
@@ -207,12 +211,12 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         loopj(numdecals)
         {
             float hsz = decals[j].size, hx = clamp(decals[j].x, hsz, w-hsz), hy = clamp(decals[j].y, hsz, h-hsz), side = decals[j].side;
-            bgquad(hx-hsz, hy-hsz, 2*hsz, 2*hsz, side, 0, 1-2*side, 1);
+            bgquad(hx-hsz, hy-hsz, 2*hsz, 2*hsz, side, 0, 1-2*side, 1); 
         }
 #endif
         float lh = 0.5f*min(w, h), lw = lh*2,
               lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-        settexture(/*(maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screen->w > 1280 || screen->h > 800) ? "<premul>data/logo_1024.png" :*/ "<premul>data/textures/ui/logo.png", 3);
+        settexture(/*(maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>data/logo_1024.png" :*/ "<premul>data/textures/ui/logo.png", 3);
         bgquad(lx, ly, lw, lh);
 
 #if 0
@@ -500,6 +504,8 @@ void screenres(int w, int h)
     }
 }
 
+ICOMMAND(screenres, "ii", (int *w, int *h), screenres(*w, *h));
+
 static int curgamma = 100;
 VARFP(gamma, 30, 100, 300,
 {
@@ -691,13 +697,15 @@ void resetgl()
     reloadfonts();
     inbetweenframes = true;
     renderbackground("initializing...");
-    restoregamma();
+	restoregamma();
     initgbuffer();
     reloadshaders();
     reloadtextures();
     initlights();
     allchanged(true);
 }
+
+COMMAND(resetgl, "");
 
 vector<SDL_Event> events;
 
@@ -1028,13 +1036,15 @@ void getfps(int &fps, int &bestdiff, int &worstdiff)
     worstdiff = fps-1000/worst;
 }
 
-types::Tuple<int, int, int> getfps_(bool raw)
+void getfps_(int *raw)
 {
-    int fps, bestdiff = 0, worstdiff = 0;
-    if(raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
+    int fps, bestdiff, worstdiff;
+    if(*raw) fps = 1000/fpshistory[(fpspos+MAXFPSHISTORY-1)%MAXFPSHISTORY];
     else getfps(fps, bestdiff, worstdiff);
-    return types::make_tuple(fps, bestdiff, worstdiff);
+    intret(fps);
 }
+
+COMMANDN(getfps, getfps_, "i");
 
 bool inbetweenframes = false, renderedframe = true;
 
@@ -1044,8 +1054,9 @@ static bool findarg(int argc, char **argv, const char *str)
     return false;
 }
 
-int clockrealbase = 0, clockvirtbase = 0; // INTENSITY: Removed 'static'
-void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
+int clockrealbase = 0;
+static int clockvirtbase = 0;
+static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
 
@@ -1065,12 +1076,11 @@ int main(int argc, char **argv)
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     #ifndef _DEBUG
     #ifndef __GNUC__
-    //__try { Currently broken thanks to syntensity stuff
+    __try {
     #endif
     #endif
     #endif
 
-    setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
     setlogfile(NULL);
 
     int dedicated = 0;
@@ -1118,6 +1128,7 @@ int main(int argc, char **argv)
     if (dir) {
         logoutf("Using home directory: %s", dir);
     }
+    execfile("init.cfg", false);
     for(int i = 1; i<argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
@@ -1160,7 +1171,6 @@ int main(int argc, char **argv)
     initlog("lua");
     lapi::init();
     if (!lapi::state.state()) fatal("cannot initialize lua script engine");
-    tools::execcfg("init.lua", true);
 
     initing = NOT_INITING;
 
@@ -1325,17 +1335,15 @@ int main(int argc, char **argv)
 
         lastmillis += curtime;
         totalmillis = millis;
-
-        logger::log(logger::INFO, "New frame: lastmillis: %d   curtime: %d\r\n", lastmillis, curtime); // INTENSITY
-
-        extern void updatetime();
         updatetime();
-
+ 
         checkinput();
         lapi::state.get<lua::Function>("external", "frame_start")();
         tryedit();
 
         if(lastmillis) game::updateworld();
+
+        checksleep(lastmillis);
 
         serverslice(false, 0);
 
@@ -1369,6 +1377,6 @@ int main(int argc, char **argv)
     return EXIT_FAILURE;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
-    //} __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; } Currently broken thanks to syntensity stuff
+    } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; }
     #endif
 }

@@ -1,5 +1,4 @@
 int preload_sound(const char *name, int vol);
-types::Tuple<int, int, int> getfps_(bool raw);
 types::String getwallclock();
 extern int conskip, miniconskip;
 void setconskip(int &skip, int filter, int n);
@@ -59,11 +58,6 @@ namespace lapi_binds
 #ifdef CLIENT
     bool _lua_glext(const char *ext) { return glext(ext); }
 
-    types::Tuple<int, int, int> _lua_getfps(bool  raw)
-    {
-        return getfps_(raw);
-    }
-
     types::String _lua_getwallclock()
     { 
         return getwallclock();
@@ -91,7 +85,6 @@ namespace lapi_binds
 #else
     LAPI_EMPTY(keymap)
     LAPI_EMPTY(glext)
-    LAPI_EMPTY(getfps)
     LAPI_EMPTY(getwallclock)
     LAPI_EMPTY(registersound)
     LAPI_EMPTY(screenshot)
@@ -249,7 +242,6 @@ namespace lapi_binds
         LAPI_REG(currtime);
         LAPI_REG(registersound);
         LAPI_REG(glext);
-        LAPI_REG(getfps);
         LAPI_REG(getwallclock);
         LAPI_REG(screenshot);
         LAPI_REG(movie);

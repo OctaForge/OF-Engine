@@ -43,9 +43,6 @@ ffi.cdef [[
 ]]
 
 if CLIENT then ffi.cdef [[
-    void base_reset_renderer();
-    void base_reset_sound   ();
-
     void *base_gl_get_proc_address(const char *proc);
 
     void base_shader_hud_set();
