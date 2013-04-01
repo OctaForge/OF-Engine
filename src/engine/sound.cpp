@@ -641,13 +641,6 @@ int playsoundname(const char *s, const vec *loc, int vol, int loops, int fade, i
 
 void resetsound()
 {
-    const SDL_version *v = Mix_Linked_Version();
-    if(SDL_VERSIONNUM(v->major, v->minor, v->patch) <= SDL_VERSIONNUM(1, 2, 8))
-    {
-        conoutf(CON_ERROR, "Sound reset not available in-game due to SDL_mixer-1.2.8 bug. Please restart for changes to take effect.");
-        return;
-    }
-
     lapi::state.get<lua::Function>("external", "changes_clear")((int)CHANGE_SOUND);
     if(!nosound) 
     {

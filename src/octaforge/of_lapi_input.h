@@ -119,9 +119,14 @@ namespace lapi_binds
         return (SDL_GetModState() != KMOD_NONE);
     }
 
-    bool _lua_enable_unicode(bool enable)
+    void _lua_start_text_input()
     {
-        return SDL_EnableUNICODE(enable);
+        SDL_StartTextInput();
+    }
+
+    void _lua_stop_text_input()
+    {
+        SDL_StopTextInput();
     }
 
     void _lua_keyrepeat(bool on)
@@ -144,7 +149,8 @@ namespace lapi_binds
     LAPI_EMPTY(set_targeted_entity)
     LAPI_EMPTY(is_mouselooking)
     LAPI_EMPTY(is_modifier_pressed)
-    LAPI_EMPTY(enable_unicode)
+    LAPI_EMPTY(start_text_input)
+    LAPI_EMPTY(stop_text_input)
     LAPI_EMPTY(keyrepeat)
 #endif
 
@@ -165,7 +171,8 @@ namespace lapi_binds
         LAPI_REG(set_targeted_entity);
         LAPI_REG(is_mouselooking);
         LAPI_REG(is_modifier_pressed);
-        LAPI_REG(enable_unicode);
+        LAPI_REG(start_text_input);
+        LAPI_REG(stop_text_input);
         LAPI_REG(keyrepeat);
     }
 }

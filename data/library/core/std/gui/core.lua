@@ -590,15 +590,15 @@ Object = table.Object:clone {
         end)
     end,
 
-    key = function(self, code, isdown, cooked)
+    key = function(self, code, isdown)
         return loop_children_r(self, function(o)
-            if o:key(code, isdown, cooked) then return true end
+            if o:key(code, isdown) then return true end
         end) or false
     end,
 
-    key_hover = function(self, code, isdown, cooked)
+    key_hover = function(self, code, isdown)
         local p = self.p_parent
-        if p then return p:key_hover(code, isdown, cooked) end
+        if p then return p:key_hover(code, isdown) end
         return false
     end,
 
@@ -1401,10 +1401,10 @@ local Scroller = Clipper:clone {
         return Object.click(self, cx + oh, cy + ov)
     end,
 
-    key_hover = function(self, code, isdown, cooked)
+    key_hover = function(self, code, isdown)
         local m4, m5 = EAPI.INPUT_KEY_MOUSE4, EAPI.INPUT_KEY_MOUSE5
         if code ~= m4 or code ~= m5 then
-            return Object.key_hover(self, code, isdown, cooked)
+            return Object.key_hover(self, code, isdown)
         end
 
         if not self.i_can_scroll or not isdown then
@@ -1506,10 +1506,10 @@ local Scrollbar = Object:clone {
 
     scroll_to = function(self, cx, cy) end,
 
-    key_hover = function(self, code, isdown, cooked)
+    key_hover = function(self, code, isdown)
         local m4, m5 = EAPI.INPUT_KEY_MOUSE4, EAPI.INPUT_KEY_MOUSE5
         if code ~= m4 or code ~= m5 then
-            return Object.key_hover(self, code, isdown, cooked)
+            return Object.key_hover(self, code, isdown)
         end
 
         if not not isdown then return false end
@@ -1813,7 +1813,7 @@ local Slider = Object:clone {
         if varn then update_var(varn, val) end
     end,
 
-    key_hover = function(self, code, isdown, cooked)
+    key_hover = function(self, code, isdown)
         if code == EAPI.INPUT_KEY_UP or code == EAPI.INPUT_KEY_LEFT then
             if isdown then self:do_step(-1) end
             return true
@@ -1828,7 +1828,7 @@ local Slider = Object:clone {
             return true
         end
 
-        return Object.key_hover(self, code, isdown, cooked)
+        return Object.key_hover(self, code, isdown)
     end,
 
     choose_direction = function(self, cx, cy)
@@ -2667,7 +2667,6 @@ local Text_Editor = Object:clone {
 
         self.lastaction = EAPI.totalmillis
         self.scale      = scale
-        self.keyfilter  = kwargs.key_filter
 
         self.i_offset_h = 0
         self.i_offset_v = 0
@@ -2992,7 +2991,11 @@ local Text_Editor = Object:clone {
         end
     end,
 
-    edit_key = function(self, code, cooked)
+    input = function(self, str)
+        for ch in str:gmatch(".") do self:insert(ch) end
+    end,
+
+    edit_key = function(self, code)
         local mod_keys
         if ffi.os == "OSX" then
             mod_keys = EAPI.INPUT_MOD_META
@@ -3179,22 +3182,18 @@ local Text_Editor = Object:clone {
                             if i == self.cy then self.cx = self.cx + 1 end
                         end
                     end
-                elseif cooked ~= 0 then
-                    self:insert(string.char(cooked))
                 end
                 self:scroll_on_screen()
             end),
 
             case({ EAPI.INPUT_KEY_A, EAPI.INPUT_KEY_X, EAPI.INPUT_KEY_C, EAPI.INPUT_KEY_V }, function()
-                if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 or cooked == 0 then
+                if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     return nil
                 end
-                self:insert(string.char(cooked))
                 self:scroll_on_screen()
             end),
 
             default(function()
-                self:insert(string.char(cooked))
                 self:scroll_on_screen()
             end))
 
@@ -3459,24 +3458,23 @@ local Text_Editor = Object:clone {
         return Object.clicked(self, cx, cy)
     end,
 
-    key_hover = function(self, code, isdown, cooked)
+    key_hover = function(self, code, isdown)
         if code == EAPI.INPUT_KEY_LEFT   or code == EAPI.INPUT_KEY_RIGHT or
            code == EAPI.INPUT_KEY_UP     or code == EAPI.INPUT_KEY_DOWN  or
            code == EAPI.INPUT_KEY_MOUSE4 or code == EAPI.INPUT_KEY_MOUSE5
         then
-            if isdown then self:edit_key(code, cooked) end
+            if isdown then self:edit_key(code) end
             return true
         end
-        return Object.key_hover(self, code, isdown, cooked)
+        return Object.key_hover(self, code, isdown)
     end,
 
-    key = function(self, code, isdown, cooked)
-        if Object.key(self, code, isdown, cooked) then return true end
+    key = function(self, code, isdown)
+        if Object.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
 
         if code == EAPI.INPUT_KEY_RETURN or code == EAPI.INPUT_KEY_KP_ENTER
         then
-            if cooked    == 0 then return true end
             if self.maxy == 1 then
                 set_focus(nil)
                 return true
@@ -3501,16 +3499,11 @@ local Text_Editor = Object:clone {
                          (code == EAPI.INPUT_KEY_V)
 
             if not (axcv and CAPI.is_modifier_pressed()) then
-                if cooked == 0 or code < 32 then return false end
-                if self.keyfilter and
-                    not self.keyfilter:find(string.char(cooked))
-                then
-                    return true
-                end
+                return false
             end
         end
 
-        if isdown then self:edit_key(code, cooked) end
+        if isdown then self:edit_key(code) end
         return true
     end,
 
@@ -3688,12 +3681,12 @@ local Field = Text_Editor:clone {
         if varn then update_var(varn, val) end
     end,
 
-    key_hover = function(self, code, isdown, cooked)
-               return self:key(code, isdown, cooked)
+    key_hover = function(self, code, isdown)
+               return self:key(code, isdown)
     end,
 
-    key = function(self, code, isdown, cooked)
-        if Object.key(self, code, isdown, cooked) then return true end
+    key = function(self, code, isdown)
+        if Object.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
 
         if code == EAPI.INPUT_KEY_ESCAPE then
@@ -3703,7 +3696,6 @@ local Field = Text_Editor:clone {
                code == EAPI.INPUT_KEY_RETURN   or
                code == EAPI.INPUT_KEY_TAB
         then
-            if cooked == 0 then return false end
             self:commit()
             set_focus(nil)
             return true
@@ -3715,14 +3707,11 @@ local Field = Text_Editor:clone {
                code == EAPI.INPUT_KEY_RIGHT
         then local pass
         else
-            if cooked == 0 or code < 32 then return false end
-            if self.keyfilter and
-                not self.keyfilter:find(string.char(cooked))
-            then return true end
+            return false
         end
 
         if isdown then
-            self:edit_key(code, cooked)
+            self:edit_key(code)
         end
         return true
     end,
@@ -3933,15 +3922,23 @@ ext.cursor_get_position = function()
     end
 end
 
-ext.input_keypress = function(code, isdown, cooked)
+ext.input_text = function(str)
+    if textediting then
+        textediting:input(str)
+        return true
+    end
+    return false
+end
+
+ext.input_keypress = function(code, isdown)
     if not cursor_exists() then return false end
 
     if code == EAPI.INPUT_KEY_MOUSE5 or code == EAPI.INPUT_KEY_MOUSE4 or
        code == EAPI.INPUT_KEY_LEFT   or code == EAPI.INPUT_KEY_RIGHT  or
        code == EAPI.INPUT_KEY_DOWN   or code == EAPI.INPUT_KEY_UP
     then
-        if (focused  and  focused:key_hover(code, isdown, cooked)) or
-           (hovering and hovering:key_hover(code, isdown, cooked))
+        if (focused  and  focused:key_hover(code, isdown)) or
+           (hovering and hovering:key_hover(code, isdown))
         then return true end
         return false
     elseif code == EAPI.INPUT_KEY_MOUSE1 then
@@ -3954,8 +3951,8 @@ ext.input_keypress = function(code, isdown, cooked)
         return true
     end
 
-    local  ret = world:key(code, isdown, cooked)
-    if     ret == nil and _ then return _(self, code, down, cooked) end
+    local  ret = world:key(code, isdown)
+    if     ret == nil and _ then return _(self, code, down) end
     return ret
 end
 
@@ -4166,7 +4163,11 @@ ext.frame_start = function()
     end
 
     if refreshrepeat ~= 0 or (textediting ~= nil) ~= wastextediting then
-        CAPI.enable_unicode(textediting ~= nil)
+        if textediting ~= nil then
+            CAPI.start_text_input()
+        else
+            CAPI.stop_text_input()
+        end
         local pl = ents.get_player()
         CAPI.keyrepeat(textediting ~= nil or (pl and pl.editing))
         refreshrepeat = 0
