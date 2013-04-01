@@ -89,7 +89,7 @@ static bool findzipdirectory(FILE *f, zipdirectoryheader &hdr)
         if(search >= buf) { src = search; break; }
     }        
 
-    if(!src || &buf[len] - src < ZIP_DIRECTORY_SIZE) return false;
+    if(&buf[len] - src < ZIP_DIRECTORY_SIZE) return false;
 
     hdr.signature = lilswap(*(uint *)src); src += 4;
     hdr.disknumber = lilswap(*(ushort *)src); src += 2;
@@ -98,7 +98,7 @@ static bool findzipdirectory(FILE *f, zipdirectoryheader &hdr)
     hdr.entries = lilswap(*(ushort *)src); src += 2;
     hdr.size = lilswap(*(uint *)src); src += 4;
     hdr.offset = lilswap(*(uint *)src); src += 4;
-    hdr.commentlength = lilswap(*(ushort *)src);
+    hdr.commentlength = lilswap(*(ushort *)src); src += 2;
 
     if(hdr.signature != ZIP_DIRECTORY_SIGNATURE || hdr.disknumber != hdr.directorydisk || hdr.diskentries != hdr.entries) return false;
 
@@ -183,7 +183,7 @@ static bool readlocalfileheader(FILE *f, ziplocalfileheader &h, uint offset)
     h.compressedsize = lilswap(*(uint *)src); src += 4;
     h.uncompressedsize = lilswap(*(uint *)src); src += 4;
     h.namelength = lilswap(*(ushort *)src); src += 2;
-    h.extralength = lilswap(*(ushort *)src);
+    h.extralength = lilswap(*(ushort *)src); src += 2;
     if(h.signature != ZIP_LOCAL_FILE_SIGNATURE) return false;
     // h.uncompressedsize or h.compressedsize may be zero - so don't validate
     return true;
@@ -208,7 +208,7 @@ static bool checkprefix(vector<zipfile> &files, const char *prefix, int prefixle
 
 static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mountdir, const char *stripdir)
 {
-    string packagesdir = "data/";
+    string packagesdir = "packages/";
     path(packagesdir);
     int striplen = stripdir ? (int)strlen(stripdir) : 0;
     if(!mountdir && !stripdir) loopv(files)
@@ -236,7 +236,7 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
                     stripdir = f.name;
                     striplen = ogzdir + 1 - f.name;
                 }
-                if(!mountdir) mountdir = "data/maps/";
+                if(!mountdir) mountdir = "packages/base/";
                 break;
             }
         }    
@@ -261,10 +261,6 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
 
 bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL)
 {
-    if (!name) { conoutf(CON_ERROR, "zip: no name given."); return false; }
-    if (mount && !mount[0]) mount = NULL;
-    if (strip && !strip[0]) strip = NULL;
-
     string pname;
     copystring(pname, name);
     path(pname);
@@ -565,3 +561,6 @@ int listzipfiles(const char *dir, const char *ext, vector<char *> &files)
     }
     return dirs;
 }
+
+ICOMMAND(addzip, "sss", (const char *name, const char *mount, const char *strip), addzip(name, mount[0] ? mount : NULL, strip[0] ? strip : NULL));
+ICOMMAND(removezip, "s", (const char *name), removezip(name));

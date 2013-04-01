@@ -1,14 +1,6 @@
 int preload_sound(const char *name, int vol);
 types::String getwallclock();
-void movie(char *name);
-namespace recorder {
-    bool isrecording();
-}
 bool glext(const char *ext);
-bool addzip(
-    const char *name, const char *mount = NULL, const char *strip = NULL
-);
-bool removezip(const char *name);
 
 extern string homedir;
 
@@ -115,16 +107,6 @@ namespace lapi_binds
         return ret;
     }
 
-    void _lua_addzip(const char *name, const char *mount, const char *strip)
-    {
-        addzip(name, mount, strip);
-    }
-
-    void _lua_removezip(const char *name)
-    {
-        removezip(name);
-    }
-
     const char *_lua_getserverlogfile()
     {
         return SERVER_LOGFILE;
@@ -152,8 +134,6 @@ namespace lapi_binds
         LAPI_REG(glext);
         LAPI_REG(getwallclock);
         LAPI_REG(readfile);
-        LAPI_REG(addzip);
-        LAPI_REG(removezip);
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);
         LAPI_REG(save_mouse_position);
