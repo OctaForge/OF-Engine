@@ -1,3 +1,5 @@
+extern int glversion;
+
 namespace varray
 {
 #ifndef VARRAY_INTERNAL
@@ -143,11 +145,13 @@ namespace varray
 
     extern int end();
     extern void disable();
-    extern void cleanup();
 
     extern void enablequads();
     extern void disablequads();
     extern void drawquads(int offset, int count);
+
+    extern void setup();
+    extern void cleanup();
 
 #else
     struct attribinfo
@@ -174,10 +178,16 @@ namespace varray
     static GLenum primtype = GL_TRIANGLES;
     static uchar *lastbuf = NULL;
     static bool changedattribs = false;
+
+    #define MAXQUADS (0x10000/4)
     static GLuint quadindexes = 0;
     static bool quadsenabled = false;
 
-    #define MAXQUADS (0x10000/4)
+    #define MAXVBOSIZE (4*1024*1024)
+    static GLuint vbo = 0;
+    static int vbooffset = MAXVBOSIZE;
+
+    static GLuint defaultvao = 0;
 
     void enablequads()
     {
@@ -313,6 +323,28 @@ namespace varray
     {
         if(data.empty()) return 0;
         uchar *buf = data.getbuf();
+        int start = 0;
+        if(glversion >= 300)
+        {
+            if(vbooffset + data.length() >= MAXVBOSIZE)
+            {
+                if(!vbo) glGenBuffers_(1, &vbo);
+                glBindBuffer_(GL_ARRAY_BUFFER, vbo);
+                glBufferData_(GL_ARRAY_BUFFER, MAXVBOSIZE, NULL, GL_STREAM_DRAW);
+                vbooffset = 0;
+            }
+            else if(!lastvertexsize) glBindBuffer_(GL_ARRAY_BUFFER, vbo);
+            glBufferSubData_(GL_ARRAY_BUFFER, vbooffset, data.length(), data.getbuf());    
+            buf = (uchar *)0 + vbooffset;
+            if(vertexsize == lastvertexsize && buf >= lastbuf)
+            {
+                start = int(buf - lastbuf)/vertexsize;
+                if(primtype == GL_QUADS && (start%4 || start + data.length()/vertexsize >= 4*MAXQUADS))
+                    start = 0;
+                else buf = lastbuf; 
+            }
+            vbooffset += data.length();
+        }
         bool forceattribs = numattribs != numlastattribs || vertexsize != lastvertexsize || buf != lastbuf;
         if(forceattribs || changedattribs)
         {
@@ -343,12 +375,11 @@ namespace varray
         if(primtype == GL_QUADS) 
         {
             if(!quadsenabled) enablequads();
-            drawquads(0, numvertexes/4);
+            drawquads(start/4, numvertexes/4);
         }
         else 
         {
-            if(quadsenabled) disablequads();
-            glDrawArrays(primtype, 0, numvertexes);
+            glDrawArrays(primtype, start, numvertexes);
         }
         data.setsize(0);
         return numvertexes;
@@ -361,11 +392,26 @@ namespace varray
         numlastattribs = lastattribmask = lastvertexsize = 0;
         lastbuf = NULL;
         if(quadsenabled) disablequads();
+        if(glversion >= 300) glBindBuffer_(GL_ARRAY_BUFFER, 0);
+    }
+
+    void setup()
+    {
+        if(glversion >= 300)
+        {
+            if(!defaultvao) glGenVertexArrays_(1, &defaultvao);
+            glBindVertexArray_(defaultvao);
+        }
     }
 
     void cleanup()
     {
         if(quadindexes) { glDeleteBuffers_(1, &quadindexes); quadindexes = 0; }
+
+        if(vbo) { glDeleteBuffers_(1, &vbo); vbo = 0; }
+        vbooffset = MAXVBOSIZE;
+
+        if(defaultvao) { glDeleteVertexArrays_(1, &defaultvao); defaultvao = 0; }
     }
 #endif
 }

@@ -15,7 +15,7 @@ void cleanup()
     recorder::stop();
     cleanupserver();
     SDL_SetRelativeMouseMode(SDL_FALSE);
-    SDL_ShowCursor(SDL_ENABLE);
+    SDL_ShowCursor(SDL_TRUE);
     cleargamma();
     freeocta(worldroot);
     extern void clear_console(); clear_console();
@@ -52,8 +52,8 @@ void fatal(const char *s, ...)    // failure exit
         {
             if(SDL_WasInit(SDL_INIT_VIDEO))
             {
-                SDL_ShowCursor(SDL_ENABLE);
                 SDL_SetRelativeMouseMode(SDL_FALSE);
+                SDL_ShowCursor(SDL_TRUE);
                 cleargamma();
             }
             #ifdef WIN32
@@ -421,20 +421,24 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     swapbuffers();
 }
 
+bool grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false, allowrepeat = false;
+
 void keyrepeat(bool on)
 {
-//    SDL_EnableKeyRepeat(on ? SDL_DEFAULT_REPEAT_DELAY : 0,
-//                             SDL_DEFAULT_REPEAT_INTERVAL);
+    allowrepeat = on;
 }
-
-bool grabinput = false, minimized = false, canrelativemouse = true, relativemouse = false;
 
 void inputgrab(bool on)
 {
     if(on)
     {
-        SDL_ShowCursor(SDL_DISABLE);
-        if(canrelativemouse)
+        SDL_ShowCursor(SDL_FALSE);
+        if(!(SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN))
+        {
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+            relativemouse = false;
+        }
+        else if(canrelativemouse)
         {
             if(SDL_SetRelativeMouseMode(SDL_TRUE) >= 0) relativemouse = true;
             else canrelativemouse = false;
@@ -442,7 +446,7 @@ void inputgrab(bool on)
     }
     else 
     {
-        SDL_ShowCursor(SDL_ENABLE);
+        SDL_ShowCursor(SDL_TRUE);
         if(relativemouse)
         {
             SDL_SetRelativeMouseMode(SDL_FALSE);
@@ -571,10 +575,25 @@ void setupscreen()
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
     screen = SDL_CreateWindow("OctaForge", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, scr_w, scr_h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | flags);
-    if(!screen) fatal("Failed to create OpenGL window: %s", SDL_GetError());
+    if(!screen) fatal("failed to create OpenGL window: %s", SDL_GetError());
     
-    glcontext = SDL_GL_CreateContext(screen);
-    if(!glcontext) fatal("failed to Create OpenGL context: %s", SDL_GetError());
+    static const struct { int major, minor; } coreversions[] = { { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 } };
+    loopi(sizeof(coreversions)/sizeof(coreversions[0]))
+    {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, coreversions[i].major);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, coreversions[i].minor);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        glcontext = SDL_GL_CreateContext(screen);
+        if(glcontext) break;
+    }
+    if(!glcontext)
+    {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, 0);
+        glcontext = SDL_GL_CreateContext(screen);
+        if(!glcontext) fatal("failed to create OpenGL context: %s", SDL_GetError());
+    }
 
     SDL_GetWindowSize(screen, &screenw, &screenh);
 
@@ -588,6 +607,7 @@ void resetgl()
 
     extern void cleanupva();
     extern void cleanupparticles();
+    extern void cleanupdecals();
     extern void cleanupsky();
     extern void cleanupmodels();
     extern void cleanuptextures();
@@ -598,6 +618,7 @@ void resetgl()
     recorder::cleanup();
     cleanupva();
     cleanupparticles();
+    cleanupdecals();
     cleanupsky();
     cleanupmodels();
     cleanuptextures();
@@ -607,6 +628,9 @@ void resetgl()
     cleanupgl();
     
     setupscreen();
+
+    inputgrab(grabinput);
+
     gl_init(scr_w, scr_h);
 
     extern void reloadfonts();
@@ -651,7 +675,6 @@ static bool filterevent(const SDL_Event &event)
     switch(event.type)
     {
         case SDL_MOUSEMOTION:
-            #ifndef WIN32
             if(grabinput && !relativemouse)
             {
                 if(event.motion.x == screenw / 2 && event.motion.y == screenh / 2) 
@@ -661,7 +684,6 @@ static bool filterevent(const SDL_Event &event)
                     return false;  // let mac users drag windows via the title bar
                 #endif
             }
-            #endif
             break;
     }
     return true;
@@ -764,7 +786,8 @@ void checkinput()
 
             case SDL_KEYDOWN:
             case SDL_KEYUP:
-                keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED);
+                if(allowrepeat || !event.key.repeat)
+                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED);
                 break;
 
             case SDL_WINDOWEVENT:
@@ -1088,7 +1111,7 @@ int main(int argc, char **argv)
 
     initing = NOT_INITING;
 
-    numcpus = clamp(guessnumcpus(), 1, 16);
+    numcpus = clamp(SDL_GetCPUCount(), 1, 16);
 
     if(dedicated <= 1)
     {
@@ -1118,7 +1141,8 @@ int main(int argc, char **argv)
 
     initlog("video: misc");
     keyrepeat(false);
-    SDL_ShowCursor(SDL_DISABLE);
+    SDL_ShowCursor(SDL_FALSE);
+    SDL_StopTextInput(); // workaround for spurious text-input events getting sent on first text input toggle?
 
     initlog("gl");
     gl_checkextensions();

@@ -547,7 +547,8 @@ void renderoutline()
         {
             glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
             glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->ebuf);
-            varray::vertexpointer(sizeof(vertex), ((vertex *)0)->pos.v);
+            const vertex *ptr = 0;
+            varray::vertexpointer(sizeof(vertex), ptr->pos.v);
         }
 
         if(va->texs && va->occluded < OCCLUDE_GEOM)
@@ -603,7 +604,8 @@ void renderblendbrush(GLuint tex, float x, float y, float w, float h)
         {
             glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
             glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->ebuf);
-            varray::vertexpointer(sizeof(vertex), ((vertex *)0)->pos.v);
+            const vertex *ptr = 0;
+            varray::vertexpointer(sizeof(vertex), ptr->pos.v);
         }
 
         drawvatris(va, 3*va->tris, 0);
@@ -924,7 +926,8 @@ void rendershadowmapworld()
         {
             glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
             glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->ebuf);
-            varray::vertexpointer(sizeof(vertex), ((vertex *)0)->pos.v);
+            const vertex *ptr = 0;
+            varray::vertexpointer(sizeof(vertex), ptr->pos.v);
         }
 
         if(!smnodraw) drawvatris(va, 3*va->tris, 0);
@@ -942,7 +945,8 @@ void rendershadowmapworld()
             {
                 glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
                 glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->skybuf);
-                varray::vertexpointer(sizeof(vertex), ((vertex *)0)->pos.v);
+                const vertex *ptr = 0;
+                varray::vertexpointer(sizeof(vertex), ptr->pos.v);
             }
 
             if(!smnodraw) drawvaskytris(va);
@@ -1534,6 +1538,7 @@ void cleanupva()
 {
     clearvas(worldroot);
     clearqueries();
+    cleanupgrass();
 }
 
 void setupgeom(renderstate &cur)
@@ -1720,7 +1725,8 @@ void renderrsmgeom(bool dyntex)
             {
                 glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
                 glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->skybuf);
-                varray::vertexpointer(sizeof(vertex), ((vertex *)0)->pos.v);
+                const vertex *ptr = 0;
+                varray::vertexpointer(sizeof(vertex), ptr->pos.v);
             }
 
             drawvaskytris(va);
@@ -1832,7 +1838,8 @@ void renderrefractmask()
         {
             glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
             glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->ebuf);
-            varray::vertexpointer(sizeof(vertex), ((vertex *)0)->pos.v);
+            const vertex *ptr = 0;
+            varray::vertexpointer(sizeof(vertex), ptr->pos.v);
         }
 
         drawvatris(va, 3*va->refracttris, 3*(va->tris + va->blendtris + va->alphabacktris + va->alphafronttris));
@@ -1898,7 +1905,8 @@ bool renderexplicitsky(bool outline)
             }
             glBindBuffer_(GL_ARRAY_BUFFER, va->vbuf);
             glBindBuffer_(GL_ELEMENT_ARRAY_BUFFER, va->skybuf);
-            varray::vertexpointer(sizeof(vertex), ((vertex *)0)->pos.v);
+            const vertex *ptr = 0;
+            varray::vertexpointer(sizeof(vertex), ptr->pos.v);
         }
         drawvaskytris(va);
         xtraverts += va->sky/3;

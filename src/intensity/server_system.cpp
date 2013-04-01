@@ -7,6 +7,7 @@ int gamespeed     = 0;
 int envmapradius  = 0;
 int showmat       = 0;
 int outline       = 0;
+int glversion     = 0;
 
 void serverkeepalive()
 {
@@ -142,6 +143,7 @@ PFNGLDELETEBUFFERSARBPROC         glDeleteBuffers_            = NULL;
 PFNGLGENBUFFERSARBPROC            glGenBuffers_               = NULL;
 PFNGLBINDBUFFERARBPROC            glBindBuffer_               = NULL;
 PFNGLBUFFERDATAARBPROC            glBufferData_               = NULL;
+PFNGLBUFFERSUBDATAPROC            glBufferSubData_            = NULL;
 PFNGLVERTEXATTRIB3FPROC           glVertexAttrib3f_           = NULL;
 PFNGLVERTEXATTRIB4FPROC           glVertexAttrib4f_           = NULL;
 PFNGLVERTEXATTRIB4NUBPROC         glVertexAttrib4Nub_         = NULL;
@@ -160,3 +162,6 @@ PFNGLDRAWRANGEELEMENTSPROC        glDrawRangeElements_        = NULL;
 PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
 PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
+PFNGLGENVERTEXARRAYSPROC          glGenVertexArrays_          = NULL;
+PFNGLDELETEVERTEXARRAYSPROC       glDeleteVertexArrays_       = NULL;
+PFNGLBINDVERTEXARRAYPROC          glBindVertexArray_          = NULL;

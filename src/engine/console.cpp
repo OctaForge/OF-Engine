@@ -232,18 +232,10 @@ void pasteconsole()
     if(!SDL_HasClipboardText()) return;
     char *cb = SDL_GetClipboardText();
     if(!cb) return;
-    int cbsize = strlen(cb);
+    int cblen = strlen(cb);
     size_t commandlen = strlen(commandbuf);
-    for(char *cbline = cb, *cbend; commandlen + 1 < sizeof(commandbuf) && cbline < &cb[cbsize]; cbline = cbend + 1)
-    {
-        cbend = (char *)memchr(cbline, '\0', &cb[cbsize] - cbline);
-        if(!cbend) cbend = &cb[cbsize];
-        int cblen = int(cbend-cbline), commandmax = int(sizeof(commandbuf)-1-commandlen); 
-        commandlen += decodeutf8((uchar *)&commandbuf[commandlen], commandmax, (const uchar *)cbline, cblen);
-        commandbuf[commandlen] = '\n';
-        if(commandlen + 1 < sizeof(commandbuf) && cbend < &cb[cbsize]) ++commandlen;
-        commandbuf[commandlen] = '\0';
-    }
+    int decoded = decodeutf8((uchar *)&commandbuf[commandlen], int(sizeof(commandbuf)-1-commandlen), (const uchar *)cb, cblen);
+    commandbuf[commandlen + decoded] = '\0';
     SDL_free(cb);
 }
 
@@ -379,15 +371,14 @@ void consoleinput(const char *str, int len)
     if(commandpos<0) 
     {
         memcpy(&commandbuf[cmdlen], str, len);
-        cmdlen += len;
     }
     else
     {
-        memmove(&commandbuf[commandpos+len], &commandbuf[commandpos], len - commandpos);
+        memmove(&commandbuf[commandpos+len], &commandbuf[commandpos], cmdlen - commandpos);
         memcpy(&commandbuf[commandpos], str, len);
         commandpos += len;
     }
-    commandbuf[cmdlen+1] = '\0';
+    commandbuf[cmdlen + len] = '\0';
 }
 
 void consolekey(int code, bool isdown)
