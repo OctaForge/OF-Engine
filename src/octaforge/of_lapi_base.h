@@ -65,20 +65,9 @@ namespace lapi_binds
         return getwallclock();
     }
 
-    void _lua_movie(const char *name)
-    {
-        movie((char*)name);
-    }
-    
-    bool _lua_isrecording()
-    {
-        return recorder::isrecording();
-    }
 #else
     LAPI_EMPTY(glext)
     LAPI_EMPTY(getwallclock)
-    LAPI_EMPTY(movie)
-    LAPI_EMPTY(isrecording)
 #endif
 
     types::String _lua_readfile(const char *path)
@@ -162,8 +151,6 @@ namespace lapi_binds
         LAPI_REG(cubescript);
         LAPI_REG(glext);
         LAPI_REG(getwallclock);
-        LAPI_REG(movie);
-        LAPI_REG(isrecording);
         LAPI_REG(readfile);
         LAPI_REG(addzip);
         LAPI_REG(removezip);
