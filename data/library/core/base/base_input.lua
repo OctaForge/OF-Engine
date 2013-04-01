@@ -247,16 +247,6 @@ search_binds = CAPI.searchbinds
 on_release = CAPI.onrelease
 
 --[[!
-    Function: map_key
-    Maps a key ID to name. See keymap.cfg.
-
-    Parameters:
-        id - The key id (number).
-        name - The name to map id to.
-]]
-map_key = CAPI.keymap
-
---[[!
     Function: turn_left
     Turns player left. Used for motion control with keyboard.
 ]]

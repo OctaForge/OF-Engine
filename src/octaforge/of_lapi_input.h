@@ -129,9 +129,14 @@ namespace lapi_binds
         SDL_StopTextInput();
     }
 
-    void _lua_keyrepeat(bool on)
+    void _lua_keyrepeat(bool on, int mask)
     {
-        keyrepeat(on);
+        keyrepeat(on, mask);
+    }
+
+    void _lua_textinput(bool on, int mask)
+    {
+        textinput(on, mask);
     }
 #else
     LAPI_EMPTY(mouse1click)
@@ -149,8 +154,7 @@ namespace lapi_binds
     LAPI_EMPTY(set_targeted_entity)
     LAPI_EMPTY(is_mouselooking)
     LAPI_EMPTY(is_modifier_pressed)
-    LAPI_EMPTY(start_text_input)
-    LAPI_EMPTY(stop_text_input)
+    LAPI_EMPTY(textinput)
     LAPI_EMPTY(keyrepeat)
 #endif
 
@@ -171,8 +175,7 @@ namespace lapi_binds
         LAPI_REG(set_targeted_entity);
         LAPI_REG(is_mouselooking);
         LAPI_REG(is_modifier_pressed);
-        LAPI_REG(start_text_input);
-        LAPI_REG(stop_text_input);
+        LAPI_REG(textinput);
         LAPI_REG(keyrepeat);
     }
 }

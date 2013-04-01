@@ -53,6 +53,8 @@ struct font
 #define MINRESH 480
 
 extern font *curfont;
+extern Shader *textshader;
+extern const matrix3x4 *textmatrix;
 
 // texture
 extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize, hwtexunits, hwvtexunits;
@@ -132,6 +134,7 @@ extern void glerror(const char *file, int line, GLenum error);
 
 extern void gl_checkextensions();
 extern void gl_init(int w, int h);
+extern void gl_resize(int w, int h);
 extern void cleangl();
 extern void gl_drawframe(int w, int h);
 extern void gl_drawmainmenu(int w, int h);
@@ -141,8 +144,6 @@ extern void disablepolygonoffset(GLenum type);
 extern bool calcspherescissor(const vec &center, float size, float &sx1, float &sy1, float &sx2, float &sy2, float &sz1, float &sz2);
 extern bool calcbbscissor(const ivec &bbmin, const ivec &bbmax, float &sx1, float &sy1, float &sx2, float &sy2);
 extern bool calcspotscissor(const vec &origin, float radius, const vec &dir, int spot, const vec &spotx, const vec &spoty, float &sx1, float &sy1, float &sx2, float &sy2, float &sz1, float &sz2);
-extern int pushscissor(float sx1, float sy1, float sx2, float sy2);
-extern void popscissor();
 extern void screenquad();
 extern void screenquad(float sw, float sh);
 extern void screenquadflipped(float sw, float sh);
@@ -539,8 +540,8 @@ extern void checksleep(int millis);
 extern void clearsleep(bool clearoverrides = true);
 
 // console
-extern void keypress(int code, bool isdown);
-extern void textinput(const char *str, int len);
+extern void processkey(int code, bool isdown);
+extern void processtextinput(const char *str, int len);
 extern int rendercommand(int x, int y, int w);
 extern int renderconsole(int w, int h, int abovehud);
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
@@ -602,6 +603,14 @@ extern void getframemillis(float &avg, float &best, float &worst);
 extern void getfps(int &fps, int &bestdiff, int &worstdiff);
 extern void swapbuffers();
 extern int getclockmillis();
+
+enum { KR_CONSOLE = 1<<0, KR_GUI = 1<<1, KR_EDITMODE = 1<<2 };
+
+extern void keyrepeat(bool on, int mask = ~0);
+
+enum { TI_CONSOLE = 1<<0, TI_GUI = 1<<1 };
+
+extern void textinput(bool on, int mask = ~0);
 
 // physics
 extern void mousemove(int dx, int dy);

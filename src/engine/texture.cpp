@@ -1769,7 +1769,7 @@ void texture(const char *type, const char *name, int rot, int xoffset, int yoffs
     if(slots.length()>=0x10000) return;
     static int lastmatslot = -1;
     int tnum = findslottex(type), matslot = findmaterial(type);
-    if(tnum<0) tnum = TEX_UNKNOWN;
+    if(tnum<0) tnum = matslot >= 0 ? TEX_DIFFUSE : TEX_UNKNOWN;
 
     if(tnum==TEX_DIFFUSE) lastmatslot = matslot;
     else if(lastmatslot>=0) matslot = lastmatslot;

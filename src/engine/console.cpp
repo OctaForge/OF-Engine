@@ -153,14 +153,16 @@ int renderconsole(int w, int h, int abovehud)                   // render buffer
 
 hashtable<int, keym> keyms(128);
 
-void keymap(int code, const char *key)
+void keymap(int *code, char *key)
 {
     if (!key) { conoutf(CON_ERROR, "no key given"); return; }
     if(identflags&IDF_OVERRIDDEN) { conoutf(CON_ERROR, "cannot override keymap %s", key); return; }
-    keym &km = keyms[code];
-    km.code = code;
+    keym &km = keyms[*code];
+    km.code = *code;
     km.name = key;
 }
+
+COMMAND(keymap, "is");
 
 keym *keypressed = NULL;
 types::String keyaction;
@@ -216,9 +218,8 @@ void bindkey(const char *key, const char *action, int state)
 void inputcommand(const char *init, const char *action = NULL, const char *prompt = NULL) // turns input to the command line on or off
 {
     commandmillis = init ? totalmillis : -1;
-    if(commandmillis >= 0) SDL_StartTextInput();
-    else SDL_StopTextInput();
-    if(!editmode) keyrepeat(commandmillis >= 0);
+    textinput(commandmillis >= 0, TI_CONSOLE);
+    keyrepeat(commandmillis >= 0, KR_CONSOLE);
     copystring(commandbuf, init ? init : "");
     commandpos = -1;
     commandaction.clear();
@@ -362,12 +363,13 @@ void execbind(keym &k, bool isdown)
     k.pressed = isdown;
 }
 
-void consoleinput(const char *str, int len)
+bool consoleinput(const char *str, int len)
 {
+    if(commandmillis < 0) return false;
+
 //    resetcomplete();
     int cmdlen = (int)strlen(commandbuf), cmdspace = int(sizeof(commandbuf)) - (cmdlen+1);
     len = min(len, cmdspace);
-    if(len <= 0) return;
     if(commandpos<0) 
     {
         memcpy(&commandbuf[cmdlen], str, len);
@@ -379,10 +381,14 @@ void consoleinput(const char *str, int len)
         commandpos += len;
     }
     commandbuf[cmdlen + len] = '\0';
+
+    return true;
 }
 
-void consolekey(int code, bool isdown)
+bool consolekey(int code, bool isdown)
 {
+    if(commandmillis < 0) return false;
+
     #ifdef __APPLE__
         #define MOD_KEYS (KMOD_LMETA|KMOD_RMETA) 
     #else
@@ -474,22 +480,21 @@ void consolekey(int code, bool isdown)
             inputcommand(NULL);
         }
     }
+
+    return true;
 }
 
-void textinput(const char *str, int len)
+void processtextinput(const char *str, int len)
 {
     lapi::state.get<lua::Function>("external", "input_text").push();
     lua_pushlstring(lapi::state.state(), str, len);
     lua_call(lapi::state.state(), 1, 1);
     bool b = lua_toboolean(lapi::state.state(), -1);
     lua_pop(lapi::state.state(), 1);
-    if(!b)
-    {
-        if(commandmillis >= 0) consoleinput(str, len);
-    }
+    if(!b) consoleinput(str, len);
 }
 
-void keypress(int code, bool isdown)
+void processkey(int code, bool isdown)
 {
     keym *haskey = keyms.access(code);
     if(haskey && haskey->pressed) {
@@ -499,8 +504,10 @@ void keypress(int code, bool isdown)
             .call<bool>(code, isdown);
 
         if (!b) { // gui mouse button intercept
-            if(commandmillis >= 0) consolekey(code, isdown);
-            else if(haskey) execbind(*haskey, isdown);
+            if(!consolekey(code, isdown))
+            {
+                if(haskey) execbind(*haskey, isdown);
+            }
         } else if (isdown) {
             GuiControl::menuKeyClickTrigger();
         }

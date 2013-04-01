@@ -1,4 +1,3 @@
-void keymap(int code, const char *key);
 int preload_sound(const char *name, int vol);
 types::Tuple<int, int, int> getfps_(bool raw);
 types::String getwallclock();
@@ -58,8 +57,7 @@ namespace lapi_binds
     int _lua_currtime() { return tools::currtime(); }
 
 #ifdef CLIENT
-    void _lua_keymap       (int key, const char *name) { keymap(key, name); }
-    bool _lua_glext        (const char           *ext) { return glext(ext); }
+    bool _lua_glext(const char *ext) { return glext(ext); }
 
     types::Tuple<int, int, int> _lua_getfps(bool  raw)
     {
@@ -249,7 +247,6 @@ namespace lapi_binds
     {
         LAPI_REG(say);
         LAPI_REG(currtime);
-        LAPI_REG(keymap);
         LAPI_REG(registersound);
         LAPI_REG(glext);
         LAPI_REG(getfps);

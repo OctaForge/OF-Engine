@@ -3699,15 +3699,6 @@ local Field = Text_Editor:clone {
             self:commit()
             set_focus(nil)
             return true
-        elseif code == EAPI.INPUT_KEY_HOME      or
-               code == EAPI.INPUT_KEY_END       or
-               code == EAPI.INPUT_KEY_DELETE    or
-               code == EAPI.INPUT_KEY_BACKSPACE or
-               code == EAPI.INPUT_KEY_LEFT      or
-               code == EAPI.INPUT_KEY_RIGHT
-        then local pass
-        else
-            return false
         end
 
         if isdown then
@@ -4163,13 +4154,9 @@ ext.frame_start = function()
     end
 
     if refreshrepeat ~= 0 or (textediting ~= nil) ~= wastextediting then
-        if textediting ~= nil then
-            CAPI.start_text_input()
-        else
-            CAPI.stop_text_input()
-        end
-        local pl = ents.get_player()
-        CAPI.keyrepeat(textediting ~= nil or (pl and pl.editing))
+        local c = textediting ~= nil
+        CAPI.textinput(c, blsh(1, 1)) -- TI_GUI
+        CAPI.keyrepeat(c, blsh(1, 1)) -- KR_GUI
         refreshrepeat = 0
     end
 

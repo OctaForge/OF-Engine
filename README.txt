@@ -1,15 +1,14 @@
 OctaForge
 ================
 
-This is OctaForge developer alpha 10 (0.1.9, 27 December 2011)
+This is OctaForge developer beta (0.2.0, April 2013)
 
-In sync with Tesseract: 26b50e8f (flag icon fix)
+In sync with Tesseract.
 
 For installation, read INSTALL.
 To run it, launch bin_unix/client_YOUROS_YOURARCH on *nix
-and bin_winYOURARCH\client_win_YOURARCH.exe on Windows.
-You need to run them from the primary OF directory, not
-from the directory containing the binary.
+and bin_winYOURARCH\client_win_YOURARCH.exe on Windows from
+either the main directory or the bin directory.
 
 There is "empty" map bundled with the engine.
 It uses drawing application example by default.

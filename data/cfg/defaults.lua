@@ -62,21 +62,21 @@ input.bind("F12", [[engine.screenshot()]])
 
 -- mouse
 
-input.bind("MOUSE1", [[input.mouse1click()]])
-input.bind("MOUSE2", [[input.mouse2click()]])
-input.bind("MOUSE3", [[input.mouse3click()]])
+input.bind("MOUSELEFT", [[input.mouse1click()]])
+input.bind("MOUSERIGHT", [[input.mouse2click()]])
+input.bind("MOUSEMIDDLE", [[input.mouse3click()]])
 
 -- universal scrollwheel + modifier commands:
 
-input.bind("MOUSE4", [[universaldelta(1)]]) -- also used for editing, see below
-input.bind("MOUSE5", [[universaldelta(-1)]])
+input.bind("MOUSEWHEELUP", [[universaldelta(1)]]) -- also used for editing, see below
+input.bind("MOUSEWHEELDOWN", [[universaldelta(-1)]])
 
 -- edit binds
 
 input.bind_edit("SPACE", [[edit.cancel_selection()]])
-input.bind_edit("MOUSE1", [[if EV.blendpaintmode ~= 0 then texture.paint_blend_map() else edit.drag() end]])
-input.bind_edit("MOUSE3", [[edit.select_corners()]])
-input.bind_edit("MOUSE2", [[
+input.bind_edit("MOUSELEFT", [[if EV.blendpaintmode ~= 0 then texture.paint_blend_map() else edit.drag() end]])
+input.bind_edit("MOUSEMIDDLE", [[edit.select_corners()]])
+input.bind_edit("MOUSERIGHT", [[
     if EV.has_mouse_target == 0 then
         if EV.blendpaintmode ~= 0 then
             texture.rotate_blend_brush()

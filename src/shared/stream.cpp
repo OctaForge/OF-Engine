@@ -293,9 +293,9 @@ bool fileexists(const char *path, const char *mode)
     bool exists = true;
     if(mode[0]=='w' || mode[0]=='a') path = parentdir(path);
 #ifdef WIN32
-    if(GetFileAttributes(path) == INVALID_FILE_ATTRIBUTES) exists = false;
+    if(GetFileAttributes(path[0] ? path : ".\\") == INVALID_FILE_ATTRIBUTES) exists = false;
 #else
-    if(access(path, R_OK | (mode[0]=='w' || mode[0]=='a' ? W_OK : 0)) == -1) exists = false;
+    if(access(path[0] ? path : ".", mode[0]=='w' || mode[0]=='a' ? W_OK : (mode[0]=='d' ? X_OK : R_OK)) == -1) exists = false;
 #endif
     return exists;
 }
@@ -394,7 +394,7 @@ const char *findfile(const char *filename, const char *mode)
             while(dir)
             {
                 *dir = '\0';
-                if(!fileexists(dirs, "r") && !createdir(dirs)) return s;
+                if(!fileexists(dirs, "d") && !createdir(dirs)) return s;
                 *dir = PATHDIV;
                 dir = strchr(dir+1, PATHDIV);
             }

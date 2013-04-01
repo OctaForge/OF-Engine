@@ -3,7 +3,7 @@
 #include "engine.h"
 #include "of_entities.h"
 
-Shader *particleshader = NULL, *particlenotextureshader = NULL, *particlesoftshader = NULL;
+Shader *particleshader = NULL, *particlenotextureshader = NULL, *particlesoftshader = NULL, *particletextshader = NULL;
 
 FVARP(particlebright, 0, 2, 100);
 VARP(particlesize, 20, 100, 500);
@@ -102,22 +102,23 @@ enum
     PT_LIGHTNING,
     PT_FLARE,
 
-    PT_MOD    = 1<<8,
-    PT_RND4   = 1<<9,
-    PT_LERP   = 1<<10, // use very sparingly - order of blending issues
-    PT_TRACK  = 1<<11,
-    PT_BRIGHT = 1<<12,
-    PT_SOFT   = 1<<13,
-    PT_HFLIP  = 1<<14,
-    PT_VFLIP  = 1<<15,
-    PT_ROT    = 1<<16,
-    PT_CULL   = 1<<17,
-    PT_FEW    = 1<<18,
-    PT_ICON   = 1<<19,
-    PT_NOTEX  = 1<<20,
-    PT_SHADER = 1<<21,
-    PT_GREY   = 1<<22,
-    PT_FLIP   = PT_HFLIP | PT_VFLIP | PT_ROT
+    PT_MOD       = 1<<8,
+    PT_RND4      = 1<<9,
+    PT_LERP      = 1<<10, // use very sparingly - order of blending issues
+    PT_TRACK     = 1<<11,
+    PT_BRIGHT    = 1<<12,
+    PT_SOFT      = 1<<13,
+    PT_HFLIP     = 1<<14,
+    PT_VFLIP     = 1<<15,
+    PT_ROT       = 1<<16,
+    PT_CULL      = 1<<17,
+    PT_FEW       = 1<<18,
+    PT_ICON      = 1<<19,
+    PT_NOTEX     = 1<<20,
+    PT_SHADER    = 1<<21,
+    PT_GREY      = 1<<22,
+    PT_GREYALPHA = 1<<23,
+    PT_FLIP      = PT_HFLIP | PT_VFLIP | PT_ROT
 };
 
 const char *partnames[] = { "part", "tape", "trail", "text", "textup", "meter", "metervs", "fireball", "lightning", "flare" };
@@ -371,7 +372,7 @@ listparticle *listrenderer::parempty = NULL;
 struct meterrenderer : listrenderer
 {
     meterrenderer(int type)
-        : listrenderer(type|PT_NOTEX)
+        : listrenderer(type|PT_NOTEX|PT_LERP)
     {}
 
     void startrender()
@@ -447,20 +448,22 @@ struct meterrenderer : listrenderer
         varray::end();
     }
 };
-static meterrenderer meters(PT_METER|PT_LERP), metervs(PT_METERVS|PT_LERP);
+static meterrenderer meters(PT_METER), metervs(PT_METERVS);
 
 struct textrenderer : listrenderer
 {
-    textrenderer(int type)
-        : listrenderer(type)
+    textrenderer(int type = 0)
+        : listrenderer(type|PT_TEXT|PT_LERP|PT_SHADER)
     {}
 
     void startrender()
     {
+        textshader = particletextshader;
     }
 
     void endrender()
     {
+        textshader = NULL;
     }
 
     void killpart(listparticle *p)
@@ -484,7 +487,7 @@ struct textrenderer : listrenderer
         textmatrix = NULL;
     } 
 };
-static textrenderer texts(PT_TEXT|PT_LERP);
+static textrenderer texts;
 
 template<int T>
 static inline void modifyblend(const vec &o, int &blend)
@@ -825,7 +828,7 @@ static partrenderer *parts[] =
 {
     new quadrenderer("<grey>data/textures/particles/blood.png", PT_GREY|PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD), // blood spats (note: rgb is inverted) 
     new trailrenderer("data/textures/particles/base.png", PT_TRAIL|PT_LERP),                            // water, entity
-    new quadrenderer("<grey>data/textures/particles/smoke.png", PT_GREY|PT_PART|PT_FLIP|PT_LERP),       // smoke
+    new quadrenderer("<grey>data/textures/particles/smoke.png", PT_GREYALPHA|PT_PART|PT_FLIP|PT_LERP),  // smoke
     new quadrenderer("<grey>data/textures/particles/steam.png", PT_GREY|PT_PART|PT_FLIP),               // steam
     new quadrenderer("<grey>data/textures/particles/flames.png", PT_GREY|PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT),   // flame on - no flipping please, they have orientation
     new quadrenderer("data/textures/particles/ball1.png", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball1
@@ -837,7 +840,7 @@ static partrenderer *parts[] =
     &bluefireballs,                                                                                // bluish explosion fireball
     new quadrenderer("data/textures/particles/spark.png", PT_PART|PT_FLIP|PT_BRIGHT),                    // sparks
     new quadrenderer("data/textures/particles/base.png",  PT_PART|PT_FLIP|PT_BRIGHT),                    // edit mode entities
-    new quadrenderer("<grey>data/textures/particles/snow.png", PT_GREY|PT_PART|PT_FLIP|PT_RND4, -1),    // colliding snow
+    new quadrenderer("data/textures/particles/snow.png", PT_PART|PT_FLIP|PT_RND4, -1),                  // colliding snow
     new quadrenderer("data/textures/particles/muzzleflash1.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
     new quadrenderer("data/textures/particles/muzzleflash2.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
     new quadrenderer("data/textures/particles/muzzleflash3.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
@@ -865,6 +868,7 @@ void particleinit()
     if(!particleshader) particleshader = lookupshaderbyname("particle");
     if(!particlenotextureshader) particlenotextureshader = lookupshaderbyname("particlenotexture");
     if(!particlesoftshader) particlesoftshader = lookupshaderbyname("particlesoft");
+    if(!particletextshader) particletextshader = lookupshaderbyname("particletext");
     loopi(sizeof(parts)/sizeof(parts[0])) parts[i]->init(parts[i]->type&PT_FEW ? min(fewparticles, maxparticles) : maxparticles);
 }
 
@@ -924,7 +928,7 @@ void renderparticles()
     
     bool rendered = false;
     uint lastflags = PT_LERP|PT_SHADER, flagmask = PT_LERP|PT_MOD|PT_BRIGHT|PT_NOTEX|PT_SOFT|PT_SHADER;
-    if(hasTRG) flagmask |= PT_GREY;
+    if(hasTRG) flagmask |= PT_GREY|PT_GREYALPHA;
    
     loopi(sizeof(parts)/sizeof(parts[0]))
     {
@@ -956,17 +960,17 @@ void renderparticles()
             }
             if(!(flags&PT_SHADER))
             {
-                if(changedbits&(PT_SOFT|PT_NOTEX|PT_SHADER|PT_GREY))
+                if(changedbits&(PT_SOFT|PT_NOTEX|PT_SHADER|PT_GREY|PT_GREYALPHA))
                 {
                     if(flags&PT_SOFT && softparticles)
                     {
-                        particlesoftshader->setvariant(flags&PT_GREY && hasTRG ? 0 : -1, 0);
+                        particlesoftshader->setvariant(hasTRG ? (flags&PT_GREY ? 0 : (flags&PT_GREYALPHA ? 1 : -1)) : -1, 0);
                         LOCALPARAMF(softparams, (-1.0f/softparticleblend, 0, 0));
                     }
                     else if(flags&PT_NOTEX) particlenotextureshader->set();
-                    else particleshader->setvariant(flags&PT_GREY && hasTRG ? 0 : -1, 0);
+                    else particleshader->setvariant(hasTRG ? (flags&PT_GREY ? 0 : (flags&PT_GREYALPHA ? 1 : -1)) : -1 ? 0 : -1, 0);
                 }
-                if(changedbits&(PT_BRIGHT|PT_SOFT|PT_NOTEX|PT_SHADER|PT_GREY))
+                if(changedbits&(PT_BRIGHT|PT_SOFT|PT_NOTEX|PT_SHADER|PT_GREY|PT_GREYALPHA))
                 {
                     float colorscale = ldrscale;
                     if(flags&PT_BRIGHT) colorscale *= particlebright;
