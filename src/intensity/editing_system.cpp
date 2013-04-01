@@ -299,3 +299,7 @@ CLogicEntity *getSelectedEntity()
 }
 
 }
+
+#ifdef CLIENT
+ICOMMAND(save_mouse_position, "", (), EditingSystem::saved_pos = TargetingControl::worldPosition);
+#endif

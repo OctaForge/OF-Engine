@@ -164,12 +164,12 @@ namespace tools
 
     void writecfg(const char *name)
     {
-        stream *f = openutf8file(path(name && name[0] ? name : game::savedconfig(), true), "w");
+        stream *f = openutf8file(path(name && name[0] ? name : "config.lua", true), "w");
         if(!f) return;
 
         f->printf("-- automatically written on exit, DO NOT MODIFY\n");
-        f->printf("-- delete this file to have %s overwrite these settings\n", game::defaultconfig());
-        f->printf("-- modify settings in game, or put settings in %s to override anything\n\n", game::autoexec());
+        f->printf("-- delete this file to have data/cfg/defaults.lua overwrite these settings\n");
+        f->printf("-- modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
         f->printf("-- configuration file version\n");
         f->printf("if OF_CFG_VERSION ~= %i then return nil end\n\n", OF_CFG_VERSION);
         f->printf("-- engine variables\n");

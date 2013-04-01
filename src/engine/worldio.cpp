@@ -15,14 +15,6 @@
 #include "of_tools.h"
 #endif
 
-void backup(char *name, char *backupname)
-{
-    string backupfile;
-    copystring(backupfile, findfile(backupname, "wb"));
-    remove(backupfile);
-    rename(findfile(name, "wb"), backupfile);
-}
-
 string ogzname, bakname, cfgname, picname;
 
 void cutogz(char *s)
@@ -70,6 +62,30 @@ void setmapfilenames(const char *fname, const char *cname = 0)
     path(bakname);
     path(cfgname);
     path(picname);
+}
+
+void mapcfgname()
+{
+    types::String mname(game::getclientmap());
+    if (mname.is_empty()) mname = "untitled";
+
+    string pakname, mapname, mcfgname;
+    getmapfilenames(mname.get_buf(), NULL, pakname, mapname, mcfgname);
+
+    defformatstring(cfgname)("data/%s/%s.lua", pakname, mcfgname);
+    path(cfgname);
+
+    result(cfgname);
+}
+
+COMMAND(mapcfgname, "");
+
+void backup(char *name, char *backupname)
+{   
+    string backupfile;
+    copystring(backupfile, findfile(backupname, "wb"));
+    remove(backupfile);
+    rename(findfile(name, "wb"), backupfile);
 }
 
 enum { OCTSAV_CHILDREN = 0, OCTSAV_EMPTY, OCTSAV_SOLID, OCTSAV_NORMAL, OCTSAV_LODCUBE };
@@ -1223,4 +1239,8 @@ void writeobj(char *name)
         f->printf("\n");
     } 
     delete f;
-}
+}  
+    
+COMMAND(writeobj, "s"); 
+
+ICOMMAND(export_entities, "s", (char *fn), world::export_ents(fn));

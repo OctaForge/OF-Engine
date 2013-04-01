@@ -1219,6 +1219,7 @@ int main(int argc, char **argv)
 
     initlog("console");
 
+    if(!execfile("data/cfg/stdlib.cfg", false)) fatal("cannot load cubescript stdlib");
     if(!execfile("data/cfg/font.cfg", false)) fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
 
@@ -1235,17 +1236,14 @@ int main(int argc, char **argv)
     initlog("cfg");
 
     execfile("data/cfg/keymap.cfg");
+    execfile("data/cfg/stdedit.cfg");
     execfile("data/cfg/sounds.cfg");
     types::Tuple<int, const char*> err;
     err = lapi::state.do_file("data/cfg/menus.lua" , lua::ERROR_TRACEBACK);
     if (types::get<0>(err))
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));
-    err = lapi::state.do_file("data/cfg/brush.lua",  lua::ERROR_EXIT_TRACEBACK);
-    if (types::get<0>(err))
-        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
-    err = lapi::state.do_file("mybrushes.lua", lua::ERROR_TRACEBACK);
-    if (types::get<0>(err))
-        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    execfile("data/cfg/brush.cfg");
+    execfile("mybrushes.cfg");
 
     if (game::savedservers())
     {
@@ -1259,15 +1257,14 @@ int main(int argc, char **argv)
     identflags |= IDF_PERSIST;
     
     initing = INIT_LOAD;
-    if(!tools::execcfg(game::savedconfig())) 
+    if(!tools::execcfg("config.lua")) 
     {
-        lapi::state.do_file(game::defaultconfig(), lua::ERROR_EXIT_TRACEBACK);
-        tools::writecfg(game::restoreconfig());
+        execfile("data/cfg/defaults.cfg");
+        lapi::state.do_file("data/cfg/defaults.lua", lua::ERROR_EXIT_TRACEBACK);
+        tools::writecfg("restore.lua");
     }
     lapi::state.do_file("data/cfg/config.lua", lua::ERROR_EXIT_TRACEBACK);
-    err = lapi::state.do_file(game::autoexec(), lua::ERROR_TRACEBACK);
-    if (types::get<0>(err))
-        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    execfile("autoexec.cfg");
     initing = NOT_INITING;
 
     identflags &= ~IDF_PERSIST;

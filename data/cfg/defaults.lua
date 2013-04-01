@@ -1,34 +1,6 @@
 -- these default settings get executed whenever "config.cfg" is not available
 -- do not modify anything below, instead change settings in game, or add to autoexec.cfg
 
-echo("OctaForge defaults")
-
-EV.invmouse = 0         -- 1 for flightsim mode
-EV.sensitivity = 3      -- similar number to quake
-EV.fov = 100            -- 90 is default in other games
-
-EV.musicvol = 60       -- set higher if you want (max 255)
-EV.soundvol = 255      -- sounds average volume is actually set per sound, average 100
-
-EV.gamma = 100          -- set to your liking, 100 = default
-
-EV.fullbrightmodels = 25 -- make player models a bit easier to see
-
-EV.sensitivity = 3      -- similar number to quake
-EV.fov = 100            -- 90 is default in other games
-
-EV.grassheight = 10
-
--- console
-
-EV.consize = 5            -- console is 5 lines
-EV.miniconsize = 5        -- mini-console is 5 lines
-EV.miniconwidth = 40      -- mini-console is 40% of screen width
-EV.fullconsize = 75       -- full console is 75% of screen height
-EV.miniconfilter = 0x300  -- display chat and team chat in mini-console
-EV.confilter = math.band(0x2FFF, math.bnot(EV.miniconfilter)) -- don't display other player frags or mini-console stuff in console
-EV.fullconfilter = 0xFFFF -- display all messages in full console
-
 -- WSAD
 
 input.bind("W", [[input.forward()]])
@@ -43,14 +15,12 @@ input.bind("RIGHT", [[input.turn_right()]])
 
 input.bind("SPACE", [[input.jump()]])
 
---input.bind("TAB", [[gui.show_scores()]])
-
 input.bind("T", [[console.prompt()]])
 input.bind("BACKQUOTE", [[console.prompt("/")]])
 input.bind("SLASH", [[console.prompt("/")]])
 
-input.bind("E", [[edit.toggle_mode()]])
-input.bind("F1", [[edit.toggle_mode()]])
+input.bind("E", [[CAPI.cubescript("edittoggle")]])
+input.bind("F1", [[CAPI.cubescript("edittoggle")]])
 
 input.bind("KP_MINUS", [[console.skip(5)]])
 input.bind("KP_PLUS", [[console.skip(-1000)]])

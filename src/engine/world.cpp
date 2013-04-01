@@ -385,15 +385,15 @@ void attachentities()
 // e         entity, currently edited ent
 // n         int,    index to currently edited ent
 #define addimplicit(f)  { if(entgroup.empty() && enthover>=0) { entadd(enthover); undonext = (enthover != oldhover); f; entgroup.drop(); } else f; }
-#define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &ent = *entities::get(n); f; } }
+#define entfocus(i, f)  { int n = efocus = (i); if(n>=0) { extentity &e = *entities::get(n); f; } }
 #define entedit(i, f) \
 { \
     entfocus(i, \
-    int oldtype = ent.type; \
+    int oldtype = e.type; \
     removeentity(n);  \
     f; \
-    if(oldtype!=ent.type) detachentity(ent); \
-    if(ent.type!=ET_EMPTY) { addentity(n); if(oldtype!=ent.type) attachentity(ent); }) \
+    if(oldtype!=e.type) detachentity(e); \
+    if(e.type!=ET_EMPTY) { addentity(n); if(oldtype!=e.type) attachentity(e); }) \
     clearshadowcache(); \
 }
 #define addgroup(exp)   { loopv(entities::storage) entfocus(i, if(exp) entadd(n)); }
@@ -417,8 +417,8 @@ undoblock *copyundoents(undoblock *u)
     loopi(u->numents)
         entadd(e[i].i);
     undoblock *c = newundoent();
-       loopi(u->numents) if(e[i].e.type==ET_EMPTY)
-        entgroup.removeobj(e[i].i);
+   	loopi(u->numents) if(e[i].e.type==ET_EMPTY)
+		entgroup.removeobj(e[i].i);
     return c;
 }
 
@@ -426,7 +426,7 @@ void pasteundoents(undoblock *u)
 {
     undoent *ue = u->ents();
     loopi(u->numents)
-        entedit(ue[i].i, (entity &)ent = ue[i].e);
+        entedit(ue[i].i, (entity &)e = ue[i].e);
 }
 
 void entflip()
@@ -434,21 +434,21 @@ void entflip()
     if(noentedit()) return;
     int d = dimension(sel.orient);
     float mid = sel.s[d]*sel.grid/2+sel.o[d];
-    groupeditundo(ent.o[d] -= (ent.o[d]-mid)*2);
+    groupeditundo(e.o[d] -= (e.o[d]-mid)*2);
 }
 
-void entrotate(int cw)
+void entrotate(int *cw)
 {
     if(noentedit()) return;
     int d = dimension(sel.orient);
-    int dd = (cw<0) == dimcoord(sel.orient) ? R[d] : C[d];
+    int dd = (*cw<0) == dimcoord(sel.orient) ? R[d] : C[d];
     float mid = sel.s[dd]*sel.grid/2+sel.o[dd];
     vec s(sel.o.v);
     groupeditundo(
-        ent.o[dd] -= (ent.o[dd]-mid)*2;
-        ent.o.sub(s);
-        swap(ent.o[R[d]], ent.o[C[d]]);
-        ent.o.add(s);
+        e.o[dd] -= (e.o[dd]-mid)*2;
+        e.o.sub(s);
+        swap(e.o[R[d]], e.o[C[d]]);
+        e.o.add(s);
     );
 }
 
@@ -493,21 +493,21 @@ void entdrag(const vec &ray)
         dc= dimcoord(entorient);
 
     entfocus(entgroup.last(),        
-        entselectionbox(ent, eo, es);
+        entselectionbox(e, eo, es);
 
-        editmoveplane(ent.o, ray, d, eo[d] + (dc ? es[d] : 0), handle, v, initentdragging);        
+        editmoveplane(e.o, ray, d, eo[d] + (dc ? es[d] : 0), handle, v, initentdragging);        
 
         ivec g(v);
         int z = g[d]&(~(sel.grid-1));
         g.add(sel.grid/2).mask(~(sel.grid-1));
         g[d] = z;
         
-        r = (entselsnap ? g[R[d]] : v[R[d]]) - ent.o[R[d]];
-        c = (entselsnap ? g[C[d]] : v[C[d]]) - ent.o[C[d]];       
+        r = (entselsnap ? g[R[d]] : v[R[d]]) - e.o[R[d]];
+        c = (entselsnap ? g[C[d]] : v[C[d]]) - e.o[C[d]];       
     );
 
     if(initentdragging) makeundoent();
-    groupeditpure(ent.o[R[d]] += r; ent.o[C[d]] += c);
+    groupeditpure(e.o[R[d]] += r; e.o[C[d]] += c);
     initentdragging = false;
 }
 
@@ -646,13 +646,13 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
 
     varray::colorub(0, 40, 0);
     loopv(entgroup) entfocus(entgroup[i],     
-        entselectionbox(ent, eo, es);
+        entselectionbox(e, eo, es);
         boxs3D(eo, es, 1);
     );
 
     if(enthover >= 0)
     {
-        entfocus(enthover, entselectionbox(ent, eo, es)); // also ensures enthover is back in focus
+        entfocus(enthover, entselectionbox(e, eo, es)); // also ensures enthover is back in focus
         boxs3D(eo, es, 1);
         if(entmoving && entmovingshadow==1)
         {
@@ -666,16 +666,15 @@ void renderentselection(const vec &o, const vec &ray, bool entmoving)
         boxs(entorient, eo, es);
     }
 
-    extern int showentradius;
     if(showentradius && (entgroup.length() || enthover >= 0))
     {
         glDepthFunc(GL_GREATER);
         varray::colorf(0.25f, 0.25f, 0.25f);
-        loopv(entgroup) entfocus(entgroup[i], renderentradius(ent, false));
-        if(enthover>=0) entfocus(enthover, renderentradius(ent, false));
+        loopv(entgroup) entfocus(entgroup[i], renderentradius(e, false));
+        if(enthover>=0) entfocus(enthover, renderentradius(e, false));
         glDepthFunc(GL_LESS);
-        loopv(entgroup) entfocus(entgroup[i], renderentradius(ent, true));
-        if(enthover>=0) entfocus(enthover, renderentradius(ent, true));
+        loopv(entgroup) entfocus(entgroup[i], renderentradius(e, true));
+        if(enthover>=0) entfocus(enthover, renderentradius(e, true));
         varray::disable();
     }
 }
@@ -714,17 +713,17 @@ VARF(entmoving, 0, 0, 2,
         initentdragging = true;
 );
 
-void entpush(int dir)
+void entpush(int *dir)
 {
     if(noentedit()) return;
     int d = dimension(entorient);
-    int s = dimcoord(entorient) ? -dir : dir;
+    int s = dimcoord(entorient) ? -*dir : *dir;
     if(entmoving) 
     {
-        groupeditpure(ent.o[d] += float(s*sel.grid)); // editdrag supplies the undo
+        groupeditpure(e.o[d] += float(s*sel.grid)); // editdrag supplies the undo
     }
     else 
-        groupedit(ent.o[d] += float(s*sel.grid));
+        groupedit(e.o[d] += float(s*sel.grid));
     if(entitysurf==1)
     {
         player->o[d] += float(s*sel.grid);
@@ -733,24 +732,28 @@ void entpush(int dir)
 }
 
 VAR(entautoviewdist, 0, 25, 100);
-void entautoview(int dir) 
+void entautoview(int *dir) 
 {
     if(!haveselent()) return;
     static int s = 0;
     vec v(player->o);
     v.sub(worldpos);
     v.normalize();
-    extern int entautoviewdist;
     v.mul(entautoviewdist);
-    int t = s + dir;
+    int t = s + *dir;
     s = abs(t) % entgroup.length();
     if(t<0 && s>0) s = entgroup.length() - s;
     entfocus(entgroup[s],
-        v.add(ent.o);
+        v.add(e.o);
         player->o = v;
         player->resetinterp();
     );
 }
+
+COMMAND(entautoview, "i");
+COMMAND(entflip, "");
+COMMAND(entrotate, "i");
+COMMAND(entpush, "i");
 
 void delent()
 {
@@ -758,7 +761,7 @@ void delent()
 
     loopv(entgroup) entfocus(
         entgroup[i],
-        MessageSystem::send_RequestLogicEntityRemoval(ent.uniqueId)
+        MessageSystem::send_RequestLogicEntityRemoval(e.uniqueId)
     );
 
     entcancel();
@@ -826,14 +829,16 @@ bool dropentity(entity &e, int drop = -1)
 void dropent()
 {
     if(noentedit()) return;
-    groupedit(dropentity(ent));
+    groupedit(dropentity(e));
 }
 
 void attachent()
 {
     if(noentedit()) return;
-    groupedit(attachentity(ent));
+    groupedit(attachentity(e));
 }
+
+COMMAND(attachent, "");
 
 extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3, int v4, int v5, int &idx)
 {
@@ -883,7 +888,7 @@ void newentity(int type, int a1, int a2, int a3, int a4, int a5)
     t->type = ET_EMPTY;
     enttoggle(idx);
     makeundoent();
-    entedit(idx, ent.type = type);
+    entedit(idx, e.type = type);
 }
 
 int entcopygrid;
@@ -895,7 +900,7 @@ void entcopy()
     entcopygrid = sel.grid;
     entcopybuf.shrink(0);
     loopv(entgroup) 
-        entfocus(entgroup[i], entcopybuf.add(ent).o.sub(sel.o.tovec()));
+        entfocus(entgroup[i], entcopybuf.add(e).o.sub(sel.o.tovec()));
 }
 
 void entpaste()
@@ -939,17 +944,22 @@ void entpaste()
 // INTENSITY   groupeditundo(e.type = entcopybuf[j++].type;);
 }
 
-void entset(char *what, int a1, int a2, int a3, int a4, int a5)
+COMMAND(delent, "");
+COMMAND(dropent, "");
+COMMAND(entcopy, "");
+COMMAND(entpaste, "");
+
+void entset(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
 {
     if(noentedit()) return;
     int type = findtype(what);
     if(type != ET_EMPTY)
-        groupedit(ent.type=type;
-                  ent.attr1=a1;
-                  ent.attr2=a2;
-                  ent.attr3=a3;
-                  ent.attr4=a4;
-                  ent.attr5=a5);
+        groupedit(e.type=type;
+                  e.attr1=*a1;
+                  e.attr2=*a2;
+                  e.attr3=*a3;
+                  e.attr4=*a4;
+                  e.attr5=*a5);
 }
 
 void printent(extentity &e, char *buf)
@@ -982,6 +992,15 @@ void nearestent()
     if(closest >= 0) entadd(closest);
 }    
 
+ICOMMAND(enthavesel,"",  (), addimplicit(intret(entgroup.length())));
+ICOMMAND(entselect, "e", (uint *body), if(!noentedit()) addgroup(e.type != ET_EMPTY && entgroup.find(n)<0 && executebool(body)));
+ICOMMAND(entloop,   "e", (uint *body), if(!noentedit()) addimplicit(groupeditloop(((void)e, execute(body)))));
+ICOMMAND(insel,     "",  (), entfocus(efocus, intret(pointinsel(sel, e.o))));
+ICOMMAND(entget,    "",  (), entfocus(efocus, string s; printent(e, s); result(s)));
+ICOMMAND(entindex,  "",  (), intret(efocus));
+COMMAND(entset, "siiiii");
+COMMAND(nearestent, "");
+
 const char *intensityCopiedClass = "", *intensityCopiedStateData = "";
 void intensityentcopy() // INTENSITY
 {
@@ -1013,6 +1032,54 @@ void intensitypasteent() // INTENSITY
 {
     EditingSystem::newent(intensityCopiedClass, intensityCopiedStateData);
 }
+
+COMMAND(intensityentcopy, "");
+COMMAND(intensitypasteent, "");
+
+void enttype(char *type, int *numargs)
+{
+    if(*numargs >= 1)
+    {
+        int typeidx = findtype(type);        
+        if(typeidx != ET_EMPTY) groupedit(e.type = typeidx);
+    }    
+    else entfocus(efocus,
+    {
+        result(entities::getname(e.type));
+    })
+}
+
+void entattr(int *attr, int *val, int *numargs)
+{
+    if(*numargs >= 2)
+    {
+        if(*attr >= 0 && *attr <= 4)
+            groupedit(
+                switch(*attr)
+                {
+                    case 0: e.attr1 = *val; break;
+                    case 1: e.attr2 = *val; break;
+                    case 2: e.attr3 = *val; break;
+                    case 3: e.attr4 = *val; break;
+                    case 4: e.attr5 = *val; break;
+                }
+            );        
+    }
+    else entfocus(efocus,
+    {
+        switch(*attr)
+        {
+            case 0: intret(e.attr1); break;
+            case 1: intret(e.attr2); break;
+            case 2: intret(e.attr3); break;
+            case 3: intret(e.attr4); break;
+            case 4: intret(e.attr5); break;
+        }
+    });
+}
+
+COMMAND(enttype, "sN");
+COMMAND(entattr, "iiN");
 
 int findentity(int type, int index, int attr1, int attr2)
 {
@@ -1220,6 +1287,28 @@ void shrinkmap()
 
 void newmap(int i) { bool force = !isconnected(); if(emptymap(i, force, NULL)) game::newmap(max(i, 0)); }
 void mapenlarge() { if(enlargemap(false)) game::newmap(-1); }
+COMMAND(newmap, "i");
+COMMAND(mapenlarge, "");
+COMMAND(shrinkmap, "");
+
+void mapname()
+{
+    result(game::getclientmap().get_buf());
+}
+
+COMMAND(mapname, "");
+
+void finish_dragging() {
+    groupeditpure(
+        const vec& o = e.o;
+        lapi::state.get<lua::Function>("external", "entity_get")
+            .call<lua::Table>(LogicSystem::getUniqueId(&e))
+                ["position"] = lapi::state.get<lua::Function>("external",
+                    "new_vec3").call<lua::Table>(o.x, o.y, o.z);
+    );
+}
+
+COMMAND(finish_dragging, "");
 
 void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, int attr4, int attr5, bool local)
 {

@@ -54,31 +54,6 @@ has_private_edit_mode = CAPI.hasprivedit
 test_physics = CAPI.phystest
 
 --[[!
-    Function: enlarge
-    Doubles the size of the map. See also <shrink>.
-]]
-enlarge = CAPI.mapenlarge
-
---[[!
-    Function: shrink
-    Shrinks the map into half of its original size. See also <enlarge>.
-]]
-shrink = CAPI.shrinkmap
-
---[[!
-    Function: get_map_name
-    Returns the current map name.
-]]
-get_map_name = CAPI.mapname
-
---[[!
-    Function: get_map_script_name
-    Returns relative path to the map script
-    (data/base/MYMAP/map.lua).
-]]
-get_map_script_name = CAPI.mapcfgname
-
---[[!
     Function: get_map_previw_name
     Returns relative path to the map preview image
     (data/base/MYMAP/preview.png).
@@ -200,15 +175,6 @@ save_map = CAPI.do_upload
     in the argument is relative to user's home directory.
 ]]
 export_entities = CAPI.export_entities
-
---[[!
-    Function: write_obj
-    Writes out current map as ARGUMENT.obj inside user's home
-    directory, so the engine could be potentially used as basic
-    modeller, but the obj files aren't well optimized and don't
-    store texture / lighting information.
-]]
-write_obj = CAPI.writeobj
 
 --[[!
     Structure: pvs
