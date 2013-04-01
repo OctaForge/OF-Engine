@@ -345,32 +345,14 @@ signal.connect(world, "get_main", function(_, self)
     return main
 end)
 
-input.bind("ESCAPE", [[
-    if not gui.hide("main") then
-        gui.show("main")
-    end
+CAPI.cubescript([[
+    bind ESCAPE [ lua [
+        if not gui.hide("main") then
+            gui.show("main")
+        end
+    ] ]
 ]])
-
 --[=[
-
--- HUD stuff
-
-function edithud()
-    if edit.num_selected_entities() ~= 0 then
-        return "%(1)s : %(2)s selected" % {
-            edit.get_entity(),
-            edit.num_selected_entities()
-        }
-    end
-end
-
--- core binds
-
-input.bind("ESCAPE", [[
-    if not gui.hide("main") then
-        gui.show("main")
-    end
-]])
 
 -- non-edit tabs
 

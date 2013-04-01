@@ -1,29 +1,16 @@
 int preload_sound(const char *name, int vol);
 types::String getwallclock();
-extern int conskip, miniconskip;
-void setconskip(int &skip, int filter, int n);
-extern vector<cline> conlines;
-void bindkey(const char *key, const char *action, int state);
-types::String getbind(const char *key, int type);
-lua::Table searchbinds(const char *action, int type);
-void inputcommand(
-    const char *init, const char *action = NULL, const char *prompt = NULL
-);
-void history_(int n);
-void screenshot(char *filename);
 void movie(char *name);
 namespace recorder {
     bool isrecording();
 }
 bool glext(const char *ext);
-void loadcrosshair_(const char *name, int *i);
 bool addzip(
     const char *name, const char *mount = NULL, const char *strip = NULL
 );
 bool removezip(const char *name);
 
 extern string homedir;
-extern int fullconsole, fullconfilter, confilter, miniconfilter;
 
 namespace EditingSystem
 {
@@ -88,17 +75,11 @@ namespace lapi_binds
         return recorder::isrecording();
     }
 #else
-    LAPI_EMPTY(keymap)
     LAPI_EMPTY(glext)
     LAPI_EMPTY(getwallclock)
     LAPI_EMPTY(movie)
     LAPI_EMPTY(isrecording)
 #endif
-
-    void _lua_writecfg(const char *name)
-    {
-        tools::writecfg(name);
-    }
 
     types::String _lua_readfile(const char *path)
     {
@@ -174,71 +155,6 @@ namespace lapi_binds
     LAPI_EMPTY(save_mouse_position)
 #endif
 
-    /* console */
-
-#ifdef CLIENT
-    void _lua_toggleconsole()
-    {
-        fullconsole ^= 1;
-    }
-
-    void _lua_conskip(int sk)
-    {
-        setconskip(conskip, (fullconsole ? fullconfilter : confilter), sk);
-    }
-
-    void _lua_miniconskip (int sk)
-    {
-        setconskip(miniconskip, miniconfilter, sk);
-    }
-
-    void _lua_clearconsole()
-    {
-        while (conlines.length()) conlines.pop();
-    }
-
-    void _lua_bind(const char *key, int state, const char *action)
-    {
-        bindkey(key ? key : "", action, state);
-    }
-
-    types::String _lua_getbind(const char *key, int type)
-    {
-        return getbind(key ? key : "", type);
-    }
-
-    lua::Table _lua_searchbinds(const char *action, int type)
-    {
-        return searchbinds(action, type);
-    }
-
-    void _lua_prompt(const char *init, const char *action, const char *prompt)
-    {
-        inputcommand(init ? init : "", action, prompt);
-    }
-
-    void _lua_history(int n)
-    {
-        history_(n);
-    }
-
-    const char *_lua_onrelease(lua::Function f)
-    {
-        return addreleaseaction(f);
-    }
-#else
-    LAPI_EMPTY(toggleconsole)
-    LAPI_EMPTY(conskip)
-    LAPI_EMPTY(miniconskip)
-    LAPI_EMPTY(clearconsole)
-    LAPI_EMPTY(bind)
-    LAPI_EMPTY(getbind)
-    LAPI_EMPTY(searchbinds)
-    LAPI_EMPTY(prompt)
-    LAPI_EMPTY(history)
-    LAPI_EMPTY(onrelease)
-#endif
-
     void reg_base(lua::Table& t)
     {
         LAPI_REG(say);
@@ -248,22 +164,11 @@ namespace lapi_binds
         LAPI_REG(getwallclock);
         LAPI_REG(movie);
         LAPI_REG(isrecording);
-        LAPI_REG(writecfg);
         LAPI_REG(readfile);
         LAPI_REG(addzip);
         LAPI_REG(removezip);
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);
         LAPI_REG(save_mouse_position);
-        LAPI_REG(toggleconsole);
-        LAPI_REG(conskip);
-        LAPI_REG(miniconskip);
-        LAPI_REG(clearconsole);
-        LAPI_REG(bind);
-        LAPI_REG(getbind);
-        LAPI_REG(searchbinds);
-        LAPI_REG(prompt);
-        LAPI_REG(history);
-        LAPI_REG(onrelease);
     }
 }

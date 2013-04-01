@@ -2433,7 +2433,37 @@ void gl_drawhud(int w, int h)
             {
                 abovehud -= FONTH;
                 draw_textf("cube %s%d%s", FONTH/2, abovehud, selchildcount<0 ? "1/" : "", abs(selchildcount), showmat && selchildmat > 0 ? getmaterialdesc(selchildmat, ": ") : "");
+
+                char *editinfo = executestr("edithud");
+                if(editinfo)
+                {
+                    if(editinfo[0])
+                    {
+                        int tw, th;
+                        text_bounds(editinfo, tw, th);
+                        th += FONTH-1; th -= th%FONTH;
+                        abovehud -= max(th, FONTH);
+                        draw_text(editinfo, FONTH/2, abovehud);
+                    }
+                    DELETEA(editinfo);
+                }
             }
+            else if(identexists("gamehud"))
+            {
+                char *gameinfo = executestr("gamehud");
+                if(gameinfo)
+                {
+                    if(gameinfo[0])
+                    {
+                        int tw, th;
+                        text_bounds(gameinfo, tw, th);
+                        th += FONTH-1; th -= th%FONTH;
+                        roffset += max(th, FONTH);    
+                        draw_text(gameinfo, conw-max(5*FONTH, 2*FONTH+tw), conh-FONTH/2-roffset);
+                    }
+                    DELETEA(gameinfo);
+                }
+            } 
 
             pophudmatrix();
         }

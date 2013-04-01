@@ -35,7 +35,7 @@ void quit()                     // normal exit
     abortconnect();
     disconnect();
     localdisconnect();
-    tools::writecfg();
+    writecfg();
     cleanup();
     exit(EXIT_SUCCESS);
 }
@@ -1244,26 +1244,16 @@ int main(int argc, char **argv)
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));
     execfile("data/cfg/brush.cfg");
     execfile("mybrushes.cfg");
-
-    if (game::savedservers())
-    {
-        err = lapi::state.do_file(
-            game::savedservers(), lua::ERROR_TRACEBACK
-        );
-        if (types::get<0>(err))
-            logger::log(logger::ERROR, "%s\n", types::get<1>(err));
-    }
+    if (game::savedservers()) execfile(game::savedservers(), false);
     
     identflags |= IDF_PERSIST;
     
     initing = INIT_LOAD;
-    if(!tools::execcfg("config.lua")) 
+    if(!execfile("config.cfg", false)) 
     {
         execfile("data/cfg/defaults.cfg");
-        lapi::state.do_file("data/cfg/defaults.lua", lua::ERROR_EXIT_TRACEBACK);
-        tools::writecfg("restore.lua");
+        writecfg("restore.cfg");
     }
-    lapi::state.do_file("data/cfg/config.lua", lua::ERROR_EXIT_TRACEBACK);
     execfile("autoexec.cfg");
     initing = NOT_INITING;
 
@@ -1293,12 +1283,7 @@ int main(int argc, char **argv)
         game::changemap(load);
     }
 
-    if (initscript)
-    {
-        err = lapi::state.do_file(initscript, lua::ERROR_TRACEBACK);
-        if (types::get<0>(err))
-            logger::log(logger::ERROR, "%s\n", types::get<1>(err));
-    }
+    if (initscript) execute(initscript);
 
     initmumble();
     resetfpshistory();

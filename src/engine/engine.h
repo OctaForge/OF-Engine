@@ -537,6 +537,8 @@ extern hashset<ident> idents;
 extern int identflags;
 
 extern void clearoverrides();
+extern void writecfg(const char *name = NULL);
+
 extern void checksleep(int millis);
 extern void clearsleep(bool clearoverrides = true);
 
@@ -547,31 +549,12 @@ extern int rendercommand(int x, int y, int w);
 extern int renderconsole(int w, int h, int abovehud);
 extern void conoutf(const char *s, ...) PRINTFARGS(1, 2);
 extern void conoutf(int type, const char *s, ...) PRINTFARGS(2, 3);
+extern void resetcomplete();
+extern void complete(char *s, const char *cmdprefix);
 const char *getkeyname(int code);
-extern const char *addreleaseaction(const lua::Function& a);
-extern const char *addreleaseaction(const char *s);
+extern const char *addreleaseaction(char *s);
 extern void writebinds(stream *f);
-
-struct cline { types::String line; int type, outtime; };
-
-struct keym
-{
-    enum
-    {
-        ACTION_DEFAULT = 0,
-        ACTION_SPECTATOR,
-        ACTION_EDITING,
-        NUMACTIONS
-    };
-    
-    int code;
-    types::String name;
-    types::String actions[NUMACTIONS];
-    bool pressed;
-
-    keym() : code(-1), name(types::String()), pressed(false) { loopi(NUMACTIONS) actions[i] = types::String(); }
-    ~keym() {}
-};
+extern void writecompletions(stream *f);
 
 // main
 enum

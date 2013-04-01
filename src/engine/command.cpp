@@ -2243,6 +2243,54 @@ bool validateblock(const char *s)
     return brakdepth == 0;
 }
 
+#ifdef CLIENT
+static inline bool sortidents(ident *x, ident *y)
+{
+    return strcmp(x->name, y->name) < 0;
+}
+
+void writecfg(const char *name)
+{
+    stream *f = openutf8file(path(name && name[0] ? name : "config.cfg", true), "w");
+    if(!f) return;
+    f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have data/cfg/defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+    vector<ident *> ids;
+    enumerate(idents, ident, id, ids.add(&id));
+    ids.sort(sortidents);
+    loopv(ids)
+    {
+        ident &id = *ids[i];
+        if(id.flags&IDF_PERSIST) switch(id.type)
+        {
+            case ID_VAR: f->printf("%s %d\n", escapeid(id), *id.storage.i); break;
+            case ID_FVAR: f->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
+            case ID_SVAR: f->printf("%s %s\n", escapeid(id), escapestring(*id.storage.s)); break;
+        }
+    }
+    f->printf("\n");
+    writebinds(f);
+    f->printf("\n");
+    loopv(ids)
+    {
+        ident &id = *ids[i];
+        if(id.type==ID_ALIAS && id.flags&IDF_PERSIST && !(id.flags&IDF_OVERRIDDEN)) switch(id.valtype)
+        {
+        case VAL_STR:
+            if(!id.val.s[0]) break;
+            if(!validateblock(id.val.s)) { f->printf("%s = %s\n", escapeid(id), escapestring(id.val.s)); break; }
+        case VAL_FLOAT:
+        case VAL_INT: 
+            f->printf("%s = [%s]\n", escapeid(id), id.getstr()); break;
+        }
+    }
+    f->printf("\n");
+    writecompletions(f);
+    delete f;
+}
+
+COMMAND(writecfg, "s");
+#endif
+
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
