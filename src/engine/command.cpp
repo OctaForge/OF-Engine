@@ -2980,52 +2980,7 @@ void clearsleep_(int *clearoverrides)
 COMMANDN(clearsleep, clearsleep_, "i");
 #endif
 
-ICOMMAND(lua, "V", (tagval *args, int numargs), {
-    const char *inex = args[0].getstr();
-    if (!inex) return;
-    lua_pushliteral(lapi::state.state(), "return (");
-    lua_pushstring (lapi::state.state(), inex);
-    lua_pushliteral(lapi::state.state(), ")");
-    lua_concat     (lapi::state.state(), 3);
-    const char *in = lua_tostring(lapi::state.state(), -1);
-    lua_pop(lapi::state.state(), 1);
-
-    if (luaL_loadstring(lapi::state.state(), in)) {
-        lua_error(lapi::state.state());
-        return;
-    }
-    lua_call(lapi::state.state(), 0, 1);
-    for (int i = 1; i < numargs; ++i) {
-        switch (args[i].type) {
-            case VAL_INT:
-                lua_pushinteger(lapi::state.state(), args[i].getint());
-                break;
-            case VAL_FLOAT:
-                lua_pushnumber(lapi::state.state(), args[i].getfloat());
-                break;
-            case VAL_STR:
-                lua_pushstring(lapi::state.state(), args[i].getstr());
-                break;
-            default:
-                lua_pushnil(lapi::state.state());
-                break;
-        }
-    }
-    lua_call(lapi::state.state(), numargs - 1, 1);
-    if (lua_isnumber(lapi::state.state(), -1)) {
-        float f = lua_tonumber(lapi::state.state(), -1);
-        int   i = lua_tointeger(lapi::state.state(), -1);
-        lua_pop(lapi::state.state(), 1);
-        if ((float)i == f) {
-            intret(i);
-        } else {
-            floatret(f);
-        }
-    } else if (lua_isstring(lapi::state.state(), -1)) {
-        const char *s = lua_tostring(lapi::state.state(), -1);
-        lua_pop(lapi::state.state(), 1);
-        result(s);
-    } else {
-        lua_pop(lapi::state.state(), 1);
-    }
+ICOMMAND(lua, "s", (char *str), {
+    auto err = lapi::state.do_string(str);
+    if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
 })
