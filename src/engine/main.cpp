@@ -1240,9 +1240,7 @@ int main(int argc, char **argv)
     initlog("cfg");
 
     execfile("data/cfg/keymap.cfg");
-    err = lapi::state.do_file("data/cfg/sounds.lua", lua::ERROR_EXIT_TRACEBACK);
-    if (types::get<0>(err))
-        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    execfile("data/cfg/sounds.cfg");
     err = lapi::state.do_file("data/cfg/menus.lua" , lua::ERROR_TRACEBACK);
     if (types::get<0>(err))
         logger::log(logger::ERROR, "%s\n", types::get<1>(err));

@@ -14,13 +14,9 @@ struct soundsample
     Mix_Chunk *chunk;
 
     soundsample() : name(NULL), chunk(NULL) {}
-    ~soundsample()
-    {
-        DELETEA(name);
+    ~soundsample() { DELETEA(name); }
 
-        if (chunk)
-            Mix_FreeChunk(chunk);
-    }
+    void cleanup() { if(chunk) { Mix_FreeChunk(chunk); chunk = NULL; } }
 };
 
 struct soundslot
@@ -52,7 +48,7 @@ struct soundchannel
     vec loc; 
     soundslot *slot;
     extentity *ent; 
-    int radius, volume, pan;
+    int radius, volume, pan, flags;
     bool dirty;
 
     soundchannel(int id) : id(id) { reset(); }
@@ -69,13 +65,14 @@ struct soundchannel
         radius = 0;
         volume = -1;
         pan = -1;
+        flags = 0;
         dirty = false;
     }
 };
 vector<soundchannel> channels;
 int maxchannels = 0;
 
-soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentity *ent = NULL, int radius = 0)
+soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentity *ent = NULL, int flags = 0, int radius = 0)
 {
     if(ent)
     {
@@ -89,6 +86,7 @@ soundchannel &newchannel(int n, soundslot *slot, const vec *loc = NULL, extentit
     if(loc) chan.loc = *loc;
     chan.slot = slot;
     chan.ent = ent;
+    chan.flags = 0;
     chan.radius = radius;
     return chan;
 }
@@ -167,7 +165,7 @@ void initsound()
         if(sound) conoutf(CON_ERROR, "sound init failed (SDL_mixer): %s", Mix_GetError());
         return;
     }
-    Mix_AllocateChannels(soundchans);    
+	Mix_AllocateChannels(soundchans);	
     Mix_ChannelFinished(freechannel);
     maxchannels = soundchans;
     nosound = false;
@@ -285,6 +283,9 @@ static int addsound(const char *name, int vol, int maxuses, vector<soundconfig> 
     return sounds.length()-1;
 }
 
+void registersound(char *name, int *vol) { intret(addsound(name, *vol, 0, gamesounds, gameslots)); }
+COMMAND(registersound, "si");
+
 void resetchannels()
 {
     loopv(channels) if(channels[i].inuse) freechannel(i);
@@ -296,6 +297,7 @@ void clear_sound()
     closemumble();
     if(nosound) return;
     stopmusic();
+    enumerate(samples, soundsample, s, s.cleanup());
     Mix_CloseAudio();
     resetchannels();
     gameslots.setsize(0);
@@ -644,7 +646,7 @@ void resetsound()
     lapi::state.get<lua::Function>("external", "changes_clear")((int)CHANGE_SOUND);
     if(!nosound) 
     {
-        enumerate(samples, soundsample, s, { Mix_FreeChunk(s.chunk); s.chunk = NULL; });
+        enumerate(samples, soundsample, s, s.cleanup());
         if(music)
         {
             Mix_HaltMusic();
@@ -676,6 +678,8 @@ void resetsound()
         DELETEA(musicdonecmd);
     }
 }
+
+COMMAND(resetsound, "");
 
 #ifdef WIN32
 

@@ -63,11 +63,6 @@ namespace lapi_binds
         return getwallclock();
     }
 
-    void _lua_registersound(const char *snd, int vol )
-    {
-        preload_sound(snd ? snd : "", vol);
-    }
-
     void _lua_screenshot(const char *name)
     {
         screenshot((char*)name);
@@ -86,7 +81,6 @@ namespace lapi_binds
     LAPI_EMPTY(keymap)
     LAPI_EMPTY(glext)
     LAPI_EMPTY(getwallclock)
-    LAPI_EMPTY(registersound)
     LAPI_EMPTY(screenshot)
     LAPI_EMPTY(movie)
     LAPI_EMPTY(isrecording)
@@ -240,7 +234,6 @@ namespace lapi_binds
     {
         LAPI_REG(say);
         LAPI_REG(currtime);
-        LAPI_REG(registersound);
         LAPI_REG(glext);
         LAPI_REG(getwallclock);
         LAPI_REG(screenshot);
