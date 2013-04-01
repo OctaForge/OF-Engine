@@ -12,7 +12,7 @@ int curfonttex = 0;
 VAR(fonth, 512, 0, 0);
 VAR(fontw, 512, 0, 0);
 
-void newfont(const char *name, const char *tex, int defaultw, int defaulth)
+void newfont(char *name, char *tex, int *defaultw, int *defaulth)
 {
     font *f = &fonts[name];
     if(!f->name) f->name = newstring(name);
@@ -20,31 +20,29 @@ void newfont(const char *name, const char *tex, int defaultw, int defaulth)
     f->texs.add(textureload(tex));
     f->chars.shrink(0);
     f->charoffset = '!';
-    f->defaultw = defaultw;
-    f->defaulth = defaulth;
+    f->defaultw = *defaultw;
+    f->defaulth = *defaulth;
     f->scale = f->defaulth;
 
     fontdef = f;
     fontdeftex = 0;
 }
 
-void fontoffset(const char *c)
+void fontoffset(char *c)
+{
+    if(!fontdef) return;
+    
+    fontdef->charoffset = c[0];
+}
+
+void fontscale(int *scale)
 {
     if(!fontdef) return;
 
-    uchar buf[2];
-    decodeutf8(buf, 2, (uchar*)c, 2);
-    fontdef->charoffset = buf[0];
+    fontdef->scale = *scale > 0 ? *scale : fontdef->defaulth; 
 }
 
-void fontscale(int scale)
-{
-    if(!fontdef) return;
-
-    fontdef->scale = scale > 0 ? scale : fontdef->defaulth; 
-}
-
-void fonttex(const char *s)
+void fonttex(char *s)
 {
     if(!fontdef) return;
 
@@ -54,30 +52,37 @@ void fonttex(const char *s)
     fontdef->texs.add(t);
 }
 
-void fontchar(int x, int y, int w, int h, int offsetx, int offsety, int advance)
+void fontchar(int *x, int *y, int *w, int *h, int *offsetx, int *offsety, int *advance)
 {
     if(!fontdef) return;
 
     font::charinfo &c = fontdef->chars.add();
-    c.x = x;
-    c.y = y;
-    c.w = w ? w : fontdef->defaultw;
-    c.h = h ? h : fontdef->defaulth;
-    c.offsetx = offsetx;
-    c.offsety = offsety;
-    c.advance = advance ? advance : c.offsetx + c.w;
+    c.x = *x;
+    c.y = *y;
+    c.w = *w ? *w : fontdef->defaultw;
+    c.h = *h ? *h : fontdef->defaulth;
+    c.offsetx = *offsetx;
+    c.offsety = *offsety;
+    c.advance = *advance ? *advance : c.offsetx + c.w;
     c.tex = fontdeftex;
 }
 
-void fontskip(int n)
+void fontskip(int *n)
 {
     if(!fontdef) return;
-    loopi(max(n, 1))
+    loopi(max(*n, 1))
     {
         font::charinfo &c = fontdef->chars.add();
         c.x = c.y = c.w = c.h = c.offsetx = c.offsety = c.advance = c.tex = 0;
     }
 }
+
+COMMANDN(font, newfont, "ssii");
+COMMAND(fontoffset, "s");
+COMMAND(fontscale, "i");
+COMMAND(fonttex, "s");
+COMMAND(fontchar, "iiiiiii");
+COMMAND(fontskip, "i");
 
 void fontalias(const char *dst, const char *src)
 {
@@ -96,12 +101,13 @@ void fontalias(const char *dst, const char *src)
     fontdeftex = d->texs.length()-1;
 }
 
+COMMAND(fontalias, "ss");
+
 bool setfont(const char *name)
 {
     font *f = fonts.access(name);
     if(!f) return false;
     curfont = f;
-    extern int fontw, fonth;
     fontw = FONTW;
     fonth = FONTH;
     return true;
@@ -118,7 +124,6 @@ bool popfont()
 {
     if(fontstack.empty()) return false;
     curfont = fontstack.pop();
-    extern int fontw, fonth;
     fontw = FONTW;
     fonth = FONTH;
     return true;
@@ -151,6 +156,20 @@ float text_widthf(const char *str)
 #define FONTTAB (4*FONTW)
 #define TEXTTAB(x) ((int((x)/FONTTAB)+1.0f)*FONTTAB)
 
+void tabify(const char *str, int *numtabs)
+{
+    int tw = max(*numtabs, 0)*FONTTAB-1, tabs = 0;
+    for(float w = text_widthf(str); w <= tw; w = TEXTTAB(w)) ++tabs;
+    int len = strlen(str);
+    char *tstr = newstring(len + tabs);
+    memcpy(tstr, str, len);
+    memset(&tstr[len], '\t', tabs);
+    tstr[len+tabs] = '\0';
+    stringret(tstr);
+}
+
+COMMAND(tabify, "si");
+    
 void draw_textf(const char *fstr, int left, int top, ...)
 {
     defvformatstring(str, top, fstr);

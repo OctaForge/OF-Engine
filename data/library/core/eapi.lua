@@ -304,16 +304,6 @@ if CLIENT then ffi.cdef [[
     void gui_draw_text(const char *str, int left, int top,
         int r, int g, int b, int a, int cur, int maxw);
 
-    /* Deprecated GUI stuff */
-
-    void gui_font(const char *name, const char *text, int dw, int dh);
-    void gui_font_offset(const char *c);
-    void gui_font_tex(const char *t);
-    void gui_font_scale(int s);
-    void gui_font_char(int x, int y, int w, int h, int ox, int oy, int adv);
-    void gui_font_skip(int n);
-    void gui_font_alias(const char *dst, const char *src);
-
     /* OpenGL types */
 
     typedef unsigned int GLenum;

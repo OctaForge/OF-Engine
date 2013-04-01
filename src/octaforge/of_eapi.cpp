@@ -14,18 +14,6 @@
 
 /* prototypes */
 
-#ifdef CLIENT
-void newfont(const char *name, const char *tex, int defaultw, int defaulth);
-void fontoffset(const char *c);
-void fontscale(int scale);
-void fonttex(const char *s);
-void fontchar(
-    int x, int y, int w, int h, int offsetx, int offsety, int advance
-);
-void fontskip(int n);
-void fontalias(const char *dst, const char *src);
-#endif
-
 bool gui_mainmenu = true;
 
 extern "C" {
@@ -242,36 +230,6 @@ extern "C" {
     void gui_draw_text(const char *str, int left, int top,
         int r, int g, int b, int a, int cur, int maxw) {
         draw_text(str, left, top, r, g, b, a, cur, maxw);
-    }
-
-    /* Deprecated GUI stuff */
-
-    void gui_font(const char *name, const char *text, int dw, int dh) {
-        newfont(name, text, dw, dh);
-    }
-
-    void gui_font_offset(const char *c) {
-        fontoffset(c);
-    }
-
-    void gui_font_tex(const char *t) {
-        fonttex(t);
-    }
-
-    void gui_font_scale(int s) {
-        fontscale(s);
-    }
-
-    void gui_font_char(int x, int y, int w, int h, int ox, int oy, int adv) {
-        fontchar(x, y, w, h, ox, oy, adv);
-    }
-
-    void gui_font_skip(int n) {
-        fontskip(n);
-    }
-
-    void gui_font_alias(const char *dst, const char *src) {
-        fontalias(dst, src);
     }
 
     /* Textures */
