@@ -55,6 +55,21 @@ namespace lapi_binds
 
     int _lua_currtime() { return tools::currtime(); }
 
+    lua::Object _lua_cubescript(const char *input) {
+        tagval v;
+        executeret(input, v);
+        switch (v.type) {
+            case VAL_INT:
+                return lapi::state.wrap<lua::Object>(v.getint());
+            case VAL_FLOAT:
+                return lapi::state.wrap<lua::Object>(v.getfloat());
+            case VAL_STR:
+                return lapi::state.wrap<lua::Object>(v.getstr());
+            default:
+                return lapi::state.wrap<lua::Object>(lua::nil);
+        }
+    }
+
 #ifdef CLIENT
     bool _lua_glext(const char *ext) { return glext(ext); }
 
@@ -228,6 +243,7 @@ namespace lapi_binds
     {
         LAPI_REG(say);
         LAPI_REG(currtime);
+        LAPI_REG(cubescript);
         LAPI_REG(glext);
         LAPI_REG(getwallclock);
         LAPI_REG(movie);
