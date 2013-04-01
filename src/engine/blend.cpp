@@ -687,6 +687,8 @@ void dumpblendtexs()
     }
 }
 
+COMMAND(dumpblendtexs, "");
+
 static void renderblendtexture(uchar &type, BlendMapNode &node, int bmx, int bmy, int bmsize, uchar *dst, int dsize, int dx, int dy, int dw, int dh)
 {
     if(type==BM_BRANCH)
@@ -910,11 +912,11 @@ void addblendbrush(const char *name, const char *imgname)
 
 }
 
-void nextblendbrush(int dir)
+void nextblendbrush(int *dir)
 {
-    curbrush += dir < 0 ? -1 : 1;
+    curbrush += *dir < 0 ? -1 : 1;
     if(brushes.empty()) curbrush = -1;
-    else if(!brushes.inrange(curbrush)) curbrush = dir < 0 ? brushes.length()-1 : 0;
+    else if(!brushes.inrange(curbrush)) curbrush = *dir < 0 ? brushes.length()-1 : 0;
 }
 
 void setblendbrush(const char *name)
@@ -922,15 +924,23 @@ void setblendbrush(const char *name)
     loopv(brushes) if(!strcmp(brushes[i]->name, name)) { curbrush = i; break; }
 }
 
-types::String getblendbrushname(int n)
+void getblendbrushname(int *n)
 {
-    return (brushes.inrange(n) ? brushes[n]->name : "");
+    result(brushes.inrange(*n) ? brushes[*n]->name : "");
 }
 
-int curblendbrush()
+void curblendbrush()
 {
-    return curbrush;
+    intret(curbrush);
 }
+
+COMMAND(clearblendbrushes, "");
+COMMAND(delblendbrush, "s");
+COMMAND(addblendbrush, "ss");
+COMMAND(nextblendbrush, "i");
+COMMAND(setblendbrush, "s");
+COMMAND(getblendbrushname, "i");
+COMMAND(curblendbrush, "");
 
 extern int nompedit;
 
@@ -950,14 +960,16 @@ bool canpaintblendmap(bool brush = true, bool sel = false, bool msg = true)
     return true;
 }
 
-void rotateblendbrush(int val)
+void rotateblendbrush(int *val)
 {
     if(!canpaintblendmap()) return;
     
-    int numrots = val < 0 ? 3 : clamp(val, 1, 5);
+    int numrots = *val < 0 ? 3 : clamp(*val, 1, 5);
     BlendBrush *brush = brushes[curbrush];
     brush->reorient(numrots>=2 && numrots<=4, numrots<=2 || numrots==5, (numrots&5)==1);
 }
+
+COMMAND(rotateblendbrush, "i");
 
 void paintblendmap(bool msg)
 {
@@ -994,6 +1006,15 @@ void trypaintblendmap()
     else lastpaintblendmap = totalmillis;
     paintblendmap(false);
 }
+
+ICOMMAND(paintblendmap, "D", (int *isdown),
+{
+    if(*isdown)
+    {
+        if(!paintingblendmap) { paintblendmap(true); paintingblendmap = totalmillis; }
+    }
+    else stoppaintblendmap();
+});
     
 void clearblendmapsel()
 {
@@ -1007,6 +1028,8 @@ void clearblendmapsel()
                   ivec((x2-x1)<<BM_SCALE, (y2-y1)<<BM_SCALE, worldsize));
 }
 
+COMMAND(clearblendmapsel, "");
+
 void invertblendmapsel()
 {
     if(noedit(false) || (nompedit && multiplayer())) return;
@@ -1019,6 +1042,8 @@ void invertblendmapsel()
                   ivec((x2-x1)<<BM_SCALE, (y2-y1)<<BM_SCALE, worldsize));
 }
 
+COMMAND(invertblendmapsel, "");
+
 void invertblendmap()
 {
     if(noedit(false) || (nompedit && multiplayer())) return;
@@ -1026,26 +1051,37 @@ void invertblendmap()
     previewblends(ivec(0, 0, 0), ivec(worldsize, worldsize, worldsize));
 }
 
+COMMAND(invertblendmap, "");
+
 void showblendmap()
 {
     if(noedit(true) || (nompedit && multiplayer())) return;
     previewblends(ivec(0, 0, 0), ivec(worldsize, worldsize, worldsize));
 }
 
-// TODO: expose
-void moveblendmapcmd(int dx, int dy) {
+COMMAND(showblendmap, "");
+COMMAND(optimizeblendmap, "");
+ICOMMAND(clearblendmap, "", (),
+{
     if(noedit(true) || (nompedit && multiplayer())) return;
-    if(dx%(BM_IMAGE_SIZE<<BM_SCALE) || dy%(BM_IMAGE_SIZE<<BM_SCALE)) 
+    resetblendmap();
+    showblendmap();
+});
+
+ICOMMAND(moveblendmap, "ii", (int *dx, int *dy),
+{
+    if(noedit(true) || (nompedit && multiplayer())) return;
+    if(*dx%(BM_IMAGE_SIZE<<BM_SCALE) || *dy%(BM_IMAGE_SIZE<<BM_SCALE)) 
     {
         conoutf(CON_ERROR, "blendmap movement must be in multiples of %d", BM_IMAGE_SIZE<<BM_SCALE);
         return;
     }
-    if(dx <= -worldsize || dx >= worldsize || dy <= -worldsize || dy >= worldsize)
+    if(*dx <= -worldsize || *dx >= worldsize || *dy <= -worldsize || *dy >= worldsize)
         resetblendmap();
     else
-        moveblendmap(dx>>BM_SCALE, dy>>BM_SCALE);
+        moveblendmap(*dx>>BM_SCALE, *dy>>BM_SCALE);
     showblendmap();
-}
+});
 
 void renderblendbrush()
 {

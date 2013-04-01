@@ -88,7 +88,7 @@ edit.new_height_brush("Noise 25x25 Brush", 12, 12, {
 edit.select_height_brush(3, true) -- 421
 
 -- Texture blending
-
+--[[
 texture.add_blend_brush("Circle, 8px, soft", "data/textures/brushes/circle_8_soft.png")
 texture.add_blend_brush("Circle, 8px, hard", "data/textures/brushes/circle_8_hard.png")
 texture.add_blend_brush("Circle, 8px, solid", "data/textures/brushes/circle_8_solid.png")
@@ -115,4 +115,4 @@ texture.add_blend_brush("Square, 64px, solid", "data/textures/brushes/square_64_
 texture.add_blend_brush("Gradient, 16px", "data/textures/brushes/gradient_16.png")
 texture.add_blend_brush("Gradient, 32px", "data/textures/brushes/gradient_32.png")
 texture.add_blend_brush("Gradient, 64px", "data/textures/brushes/gradient_64.png")
-texture.add_blend_brush("Gradient, 128px", "data/textures/brushes/gradient_128.png")
+texture.add_blend_brush("Gradient, 128px", "data/textures/brushes/gradient_128.png")]]

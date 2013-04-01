@@ -35,7 +35,6 @@ if (!name) \
 { logger::log(logger::DEBUG, "stub: CAPI."#name"\n"); }
 
 #include "of_lapi_base.h"
-#include "of_lapi_blend.h"
 #include "of_lapi_camera.h"
 #include "of_lapi_edit.h"
 #include "of_lapi_entity.h"
@@ -255,7 +254,6 @@ namespace lapi
 
         #define CAPI_REG(name) lapi_binds::reg_##name(api_all)
         CAPI_REG(base);
-        CAPI_REG(blend);
         CAPI_REG(camera);
         CAPI_REG(edit);
         CAPI_REG(entity);
