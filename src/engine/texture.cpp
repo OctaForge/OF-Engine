@@ -1383,50 +1383,55 @@ bool settexture(const char *name, int clamp)
 }
 
 vector<int> requested_slots;
-vector< types::Shared_Ptr<VSlot> > vslots;
-vector< types::Shared_Ptr< Slot> > slots;
+vector<VSlot *> vslots;
+vector<Slot *> slots;
 MSlot materialslots[(MATF_VOLUME|MATF_INDEX)+1];
 Slot dummyslot;
 VSlot dummyvslot(&dummyslot);
 
-/* OctaForge: Shared_Ptr */
-void texturereset(int n)
+void texturereset(int *n)
 {
     if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
     resetslotshader();
-    int limit = clamp(n, 0, slots.length());
+    int limit = clamp(*n, 0, slots.length());
     for(int i = limit; i < slots.length(); i++) 
     {
-        Slot *s = slots[i].get();
+        Slot *s = slots[i];
         for(VSlot *vs = s->variants; vs; vs = vs->next) vs->slot = &dummyslot;
-        //delete s;
+        delete s;
     }
     slots.setsize(limit);
 }
 
+COMMAND(texturereset, "i");
+
+void materialreset()
+{
+    if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
+    loopi((MATF_VOLUME|MATF_INDEX)+1) materialslots[i].reset();
+}
+
+COMMAND(materialreset, "");
+
 static int compactedvslots = 0, compactvslotsprogress = 0, clonedvslots = 0;
 static bool markingvslots = false;
 
-/* OctaForge: Shared_Ptr */
 void clearslots()
 {
     resetslotshader();
-    //slots.deletecontents();
-    //vslots.deletecontents();
-    slots.shrink(0);
-    vslots.shrink(0);
+    slots.deletecontents();
+    vslots.deletecontents();
     loopi((MATF_VOLUME|MATF_INDEX)+1) materialslots[i].reset();
     clonedvslots = 0;
 }
 
 static void assignvslot(VSlot &vs);
 
-/* OctaForge: Shared_Ptr */
 static inline void assignvslotlayer(VSlot &vs)
 {
     if(vs.layer && vslots.inrange(vs.layer))
     {
-        VSlot &layer = *(vslots[vs.layer].get());
+        VSlot &layer = *vslots[vs.layer];
         if(layer.index < 0) assignvslot(layer);
     }
 }
@@ -1437,18 +1442,16 @@ static void assignvslot(VSlot &vs)
     assignvslotlayer(vs);
 }
 
-/* OctaForge: Shared_Ptr */
 void compactvslot(int &index)
 {
     if(vslots.inrange(index))
     {
-        VSlot &vs = *(vslots[index].get());
+        VSlot &vs = *vslots[index];
         if(vs.index < 0) assignvslot(vs);
         if(!markingvslots) index = vs.index;
     }
 }
 
-/* OctaForge: Shared_Ptr */
 void compactvslots(cube *c, int n)
 {
     if((compactvslotsprogress++&0xFFF)==0) renderprogress(min(float(compactvslotsprogress)/allocnodes, 1.0f), markingvslots ? "marking slots..." : "compacting slots...");
@@ -1457,14 +1460,13 @@ void compactvslots(cube *c, int n)
         if(c[i].children) compactvslots(c[i].children);
         else loopj(6) if(vslots.inrange(c[i].texture[j]))
         {
-            VSlot &vs = *(vslots[c[i].texture[j]].get());
+            VSlot &vs = *vslots[c[i].texture[j]];
             if(vs.index < 0) assignvslot(vs);
             if(!markingvslots) c[i].texture[j] = vs.index;
         }
     }
 }
 
-/* OctaForge: Shared_Ptr */
 int compactvslots()
 {
     clonedvslots = 0;
@@ -1476,7 +1478,7 @@ int compactvslots()
     loopv(slots) assignvslotlayer(*slots[i]->variants);
     loopv(vslots)
     {
-        VSlot &vs = *(vslots[i].get());
+        VSlot &vs = *vslots[i];
         if(!vs.changed && vs.index < 0) { markingvslots = true; break; }
     }
     compactvslots(worldroot);
@@ -1484,7 +1486,7 @@ int compactvslots()
     compacteditvslots();
     loopv(vslots)
     {
-        VSlot *vs = vslots[i].get();
+        VSlot *vs = vslots[i];
         if(vs->changed) continue;
         while(vs->next)
         {
@@ -1500,13 +1502,13 @@ int compactvslots()
         int lastdiscard = 0;
         loopv(vslots)
         {
-            VSlot &vs = *(vslots[i].get());
+            VSlot &vs = *vslots[i];
             if(vs.changed || (vs.index < 0 && !vs.next)) vs.index = -1;
             else
             {
                 while(lastdiscard < i)
                 {
-                    VSlot &ds = *(vslots[lastdiscard++].get());
+                    VSlot &ds = *vslots[lastdiscard++];
                     if(!ds.changed && ds.index < 0) ds.index = compactedvslots++;
                 } 
                 vs.index = compactedvslots++;
@@ -1519,7 +1521,7 @@ int compactvslots()
     compactmruvslots();
     loopv(vslots)
     {
-        VSlot &vs = *(vslots[i].get());
+        VSlot &vs = *vslots[i];
         if(vs.index >= 0 && vs.layer && vslots.inrange(vs.layer)) vs.layer = vslots[vs.layer]->index;
     }
     loopv(vslots) 
@@ -1527,11 +1529,18 @@ int compactvslots()
         while(vslots[i]->index >= 0 && vslots[i]->index != i)     
             swap(vslots[i], vslots[vslots[i]->index]); 
     }
-    /* OctaForge: not needed */
-    /* for(int i = compactedvslots; i < vslots.length(); i++) delete vslots[i]; */
+    for(int i = compactedvslots; i < vslots.length(); i++) delete vslots[i];
     vslots.setsize(compactedvslots);
     return total;
 }
+
+ICOMMAND(compactvslots, "", (),
+{
+    extern int nompedit;
+    if(nompedit && multiplayer()) return;
+    compactvslots();
+    allchanged();
+});
 
 static Slot &loadslot(Slot &s, bool forceload);
 
@@ -1549,7 +1558,7 @@ static void clampvslotoffset(VSlot &dst, Slot *slot = NULL)
     else dst.offset.max(0);
 }
 
-void propagatevslot(VSlot &dst, const VSlot &src, int diff, bool edit = false)
+static void propagatevslot(VSlot &dst, const VSlot &src, int diff, bool edit = false)
 {
     if(diff & (1<<VSLOT_SHPARAM)) loopv(src.params) dst.params.add(src.params[i]);
     if(diff & (1<<VSLOT_SCALE)) dst.scale = src.scale;
@@ -1578,7 +1587,7 @@ void propagatevslot(VSlot &dst, const VSlot &src, int diff, bool edit = false)
     }
 }
 
-void propagatevslot(VSlot *root, int changed)
+static void propagatevslot(VSlot *root, int changed)
 {
     for(VSlot *vs = root->next; vs; vs = vs->next)
     {
@@ -1652,13 +1661,12 @@ static VSlot *reassignvslot(Slot &owner, VSlot *vs)
     return owner.variants;
 }
 
-/* OctaForge: Shared_Ptr */
 static VSlot *emptyvslot(Slot &owner)
 {
     int offset = 0;
     loopvrev(slots) if(slots[i]->variants) { offset = slots[i]->variants->index + 1; break; }
-    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) return reassignvslot(owner, vslots[i].get());
-    return vslots.add(new VSlot(&owner, vslots.length())).get();
+    for(int i = offset; i < vslots.length(); i++) if(!vslots[i]->changed) return reassignvslot(owner, vslots[i]);
+    return vslots.add(new VSlot(&owner, vslots.length()));
 }
 
 static bool comparevslot(const VSlot &dst, const VSlot &src, int diff)
@@ -1697,7 +1705,7 @@ VSlot *findvslot(Slot &slot, const VSlot &src, const VSlot &delta)
 
 static VSlot *clonevslot(const VSlot &src, const VSlot &delta)
 {
-    VSlot *dst = vslots.add(new VSlot(src.slot, vslots.length())).get();
+    VSlot *dst = vslots.add(new VSlot(src.slot, vslots.length()));
     dst->changed = src.changed | delta.changed;
     propagatevslot(*dst, src, ((1<<VSLOT_NUM)-1) & ~delta.changed);
     propagatevslot(*dst, delta, delta.changed, true);
@@ -1724,7 +1732,7 @@ VSlot *editvslot(const VSlot &src, const VSlot &delta)
     return clonevslot(src, delta);
 }
 
-void fixinsidefaces(cube *c, const ivec &o, int size, int tex)
+static void fixinsidefaces(cube *c, const ivec &o, int size, int tex)
 {
     loopi(8) 
     {
@@ -1734,6 +1742,14 @@ void fixinsidefaces(cube *c, const ivec &o, int size, int tex)
             c[i].texture[j] = tex;
     }
 }
+
+ICOMMAND(fixinsidefaces, "i", (int *tex),
+{
+    extern int nompedit;
+    if(noedit(true) || (nompedit && multiplayer())) return;
+    fixinsidefaces(worldroot, ivec(0, 0, 0), worldsize>>1, *tex && vslots.inrange(*tex) ? *tex : DEFAULT_GEOM);
+    allchanged();
+});
 
 const struct slottex
 {
@@ -1763,22 +1779,21 @@ int findslottex(const char *name)
     return -1;
 }
 
-/* OctaForge: Shared_Ptr */
-void texture(const char *type, const char *name, int rot, int xoffset, int yoffset, float scale, int forcedindex) // INTENSITY: forcedindex
+// OF: forcedindex
+void texture(char *type, char *name, int *rot, int *xoffset, int *yoffset, float *scale, int *forcedindex)
 {
     if(slots.length()>=0x10000) return;
     static int lastmatslot = -1;
     int tnum = findslottex(type), matslot = findmaterial(type);
     if(tnum<0) tnum = matslot >= 0 ? TEX_DIFFUSE : TEX_UNKNOWN;
-
     if(tnum==TEX_DIFFUSE) lastmatslot = matslot;
     else if(lastmatslot>=0) matslot = lastmatslot;
     else if(slots.empty()) return;
     
-    assert(forcedindex <= 0 || slots.inrange(forcedindex)); // INTENSITY
-    if (forcedindex > 0 && tnum==TEX_DIFFUSE) // INTENSITY: reset old slots we force the index of
-        slots[forcedindex]->reset();
-    Slot &s = matslot>=0 ? materialslots[matslot] : (forcedindex <= 0 ? *(tnum!=TEX_DIFFUSE ? slots.last() : slots.add(new Slot(slots.length()))) : *(slots[forcedindex].get())); // INTENSITY: Allow forced indexes
+    assert(*forcedindex <= 0 || slots.inrange(*forcedindex)); // OF
+    if (*forcedindex > 0 && tnum==TEX_DIFFUSE) // OF: reset old slots we force the index of
+        slots[*forcedindex]->reset();
+    Slot &s = matslot>=0 ? materialslots[matslot] : (*forcedindex <= 0 ? *(tnum!=TEX_DIFFUSE ? slots.last() : slots.add(new Slot(slots.length()))) : *slots[*forcedindex]); // OF: Allow forced indexes
 
     s.loaded = false;
     s.texmask |= 1<<tnum;
@@ -1794,12 +1809,100 @@ void texture(const char *type, const char *name, int rot, int xoffset, int yoffs
         setslotshader(s);
         VSlot &vs = matslot >= 0 ? materialslots[matslot] : *emptyvslot(s);
         vs.reset();
-        vs.rotation = clamp(rot, 0, 5);
-        vs.offset = ivec2(xoffset, yoffset).max(0);
-        vs.scale = scale <= 0 ? 1 : scale;
+        vs.rotation = clamp(*rot, 0, 5);
+        vs.offset = ivec2(*xoffset, *yoffset).max(0);
+        vs.scale = *scale <= 0 ? 1 : *scale;
         propagatevslot(&vs, (1<<VSLOT_NUM)-1);
     }
 }
+
+COMMAND(texture, "ssiiifi");
+
+void autograss(char *name)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    DELETEA(s.autograss);
+    s.autograss = name[0] ? newstring(makerelpath("packages", name)) : NULL;
+}
+COMMAND(autograss, "s");
+
+void texscroll(float *scrollS, float *scrollT)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->scroll = vec2(*scrollS/1000.0f, *scrollT/1000.0f);
+    propagatevslot(s.variants, 1<<VSLOT_SCROLL);
+}
+COMMAND(texscroll, "ff");
+
+void texoffset_(int *xoffset, int *yoffset)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->offset = ivec2(*xoffset, *yoffset).max(0);
+    propagatevslot(s.variants, 1<<VSLOT_OFFSET);
+}
+COMMANDN(texoffset, texoffset_, "ii");
+
+void texrotate_(int *rot)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->rotation = clamp(*rot, 0, 5);
+    propagatevslot(s.variants, 1<<VSLOT_ROTATION);
+}
+COMMANDN(texrotate, texrotate_, "i");
+
+void texscale(float *scale)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->scale = *scale <= 0 ? 1 : *scale;
+    propagatevslot(s.variants, 1<<VSLOT_SCALE);
+}
+COMMAND(texscale, "f");
+
+void texlayer(int *layer)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->layer = *layer < 0 ? max(slots.length()-1+*layer, 0) : *layer;
+    propagatevslot(s.variants, 1<<VSLOT_LAYER);
+}
+COMMAND(texlayer, "i");
+
+void texalpha(float *front, float *back)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->alphafront = clamp(*front, 0.0f, 1.0f);
+    s.variants->alphaback = clamp(*back, 0.0f, 1.0f);
+    propagatevslot(s.variants, 1<<VSLOT_ALPHA);
+}
+COMMAND(texalpha, "ff");
+
+void texcolor(float *r, float *g, float *b)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->colorscale = vec(clamp(*r, 0.0f, 1.0f), clamp(*g, 0.0f, 1.0f), clamp(*b, 0.0f, 1.0f));
+    propagatevslot(s.variants, 1<<VSLOT_COLOR);
+}
+COMMAND(texcolor, "fff");
+
+void texrefract(float *k, float *r, float *g, float *b)
+{
+    if(slots.empty()) return;
+    Slot &s = *slots.last();
+    s.variants->refractscale = clamp(*k, 0.0f, 1.0f);
+    if(s.variants->refractscale > 0 && (*r > 0 || *g > 0 || *b > 0))
+        s.variants->refractcolor = vec(clamp(*r, 0.0f, 1.0f), clamp(*g, 0.0f, 1.0f), clamp(*b, 0.0f, 1.0f));
+    else
+        s.variants->refractcolor = vec(1, 1, 1);
+    propagatevslot(s.variants, 1<<VSLOT_REFRACT);
+}
+COMMAND(texrefract, "ffff");
 
 static int findtextype(Slot &s, int type, int last = -1)
 {
@@ -1953,11 +2056,10 @@ MSlot &lookupmaterialslot(int index, bool load)
     return s;
 }
 
-/* OctaForge: background loading system */
-/* OctaForge: Shared_Ptr */
+// OF: background loading system
 Slot &lookupslot(int index, bool load)
 {
-    Slot &s = slots.inrange(index) ? *(slots[index].get()) : (slots.inrange(DEFAULT_GEOM) ? *(slots[DEFAULT_GEOM].get()) : dummyslot);
+    Slot &s = slots.inrange(index) ? *slots[index] : (slots.inrange(DEFAULT_GEOM) ? *slots[DEFAULT_GEOM] : dummyslot);
     if (load && !s.loaded)
     {
         if (slots.inrange(index))
@@ -1978,7 +2080,6 @@ void resetbgload()
     requested_slots.setsize(0);
 }
 
-/* OctaForge: Shared_Ptr */
 void dobgload(bool all)
 {
     while (requested_slots.length() > 0)
@@ -1987,17 +2088,16 @@ void dobgload(bool all)
         requested_slots.remove(0);
 
         assert(slots.inrange(slot));
-        Slot &s = *(slots[slot].get());
+        Slot &s = *slots[slot];
         loadslot(s, false); /* for materials, would be true */
 
         if (!all) break;
     }
 }
 
-/* OctaForge: Shared_Ptr */
 VSlot &lookupvslot(int index, bool load)
 {
-    VSlot &s = vslots.inrange(index) && vslots[index]->slot ? *(vslots[index].get()) : (slots.inrange(DEFAULT_GEOM) && slots[DEFAULT_GEOM]->variants ? *slots[DEFAULT_GEOM]->variants : dummyvslot);
+    VSlot &s = vslots.inrange(index) && vslots[index]->slot ? *vslots[index] : (slots.inrange(DEFAULT_GEOM) && slots[DEFAULT_GEOM]->variants ? *slots[DEFAULT_GEOM]->variants : dummyvslot);
     if(load && !s.linked)
     {
         if(!s.slot->loaded) loadslot(*s.slot, false);
@@ -2007,11 +2107,10 @@ VSlot &lookupvslot(int index, bool load)
     return s;
 }
 
-/* OctaForge: Shared_Ptr */
 void linkslotshaders()
 {
-    loopv(slots) if(slots[i]->loaded) linkslotshader(*(slots[i].get()));
-    loopv(vslots) if(vslots[i]->linked) linkvslotshader(*(vslots[i].get()));
+    loopv(slots) if(slots[i]->loaded) linkslotshader(*slots[i]);
+    loopv(vslots) if(vslots[i]->linked) linkvslotshader(*vslots[i]);
     loopi((MATF_VOLUME|MATF_INDEX)+1) if(materialslots[i].loaded) 
     {
         linkslotshader(materialslots[i]);
@@ -2480,6 +2579,8 @@ void reloadtex(char *name)
     }
 }
 
+COMMAND(reloadtex, "s");
+
 void reloadtextures()
 {
     int reloaded = 0;
@@ -2601,10 +2702,10 @@ void gendds(char *infile, char *outfile)
     defformatstring(cfile)("<compress>%s", infile);
     extern void reloadtex(char *name);
     Texture *t = textures.access(path(cfile));
-    bool preexisting = false; // INTENSITY: We clean up the texture, if it is not preexisting (usually the case)
-    if(t) { reloadtex(cfile); preexisting = true; } // INTENSITY
+    bool preexisting = false; // OF: We clean up the texture, if it is not preexisting (usually the case)
+    if(t) { reloadtex(cfile); preexisting = true; } // OF
     t = textureload(cfile);
-    // INTENSITY:
+    // OF
     #define CLEANUPDDSTEX { if (!preexisting) { t->type |= Texture::TRANSIENT; cleanuptexture(t); } }
     if(t==notexture) { conoutf(CON_ERROR, "failed loading %s", infile); CLEANUPDDSTEX; return; } // INTENSITY
 
@@ -2625,7 +2726,7 @@ void gendds(char *infile, char *outfile)
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: fourcc = FOURCC_DXT5; conoutf("compressed as DXT5"); break;
         default:
             conoutf(CON_ERROR, "failed compressing %s: unknown format: 0x%X", infile, format); break;
-            CLEANUPDDSTEX; // INTENSITY
+            CLEANUPDDSTEX; // OF
             return;
     }
 
@@ -2640,7 +2741,7 @@ void gendds(char *infile, char *outfile)
     }
     
     stream *f = openfile(path(outfile, true), "wb");
-    if(!f) { conoutf(CON_ERROR, "failed writing to %s", outfile); CLEANUPDDSTEX; return; } // INTENSITY
+    if(!f) { conoutf(CON_ERROR, "failed writing to %s", outfile); CLEANUPDDSTEX; return; } // OF
 
     int csize = 0;
     for(int lw = width, lh = height, level = 0;;)
@@ -2686,12 +2787,13 @@ void gendds(char *infile, char *outfile)
     
     delete[] data;
 
-    CLEANUPDDSTEX; // INTENSITY
+    CLEANUPDDSTEX; // OF
 
     conoutf("wrote DDS file %s", outfile);
 
     setuptexcompress();
 }
+COMMAND(gendds, "ss");
 
 void writepngchunk(stream *f, const char *type, uchar *data = NULL, uint len = 0)
 {
@@ -2959,7 +3061,7 @@ void screenshot(char *filename)
         const char *dir = findfile(buf, "w");
         if(!fileexists(dir, "w")) createdir(dir);
     }
-    if(filename)
+    if(filename[0])
     {
         concatstring(buf, filename);
         format = guessimageformat(buf, -1);
@@ -2980,3 +3082,59 @@ void screenshot(char *filename)
     glReadPixels(0, 0, screenw, screenh, GL_RGB, GL_UNSIGNED_BYTE, image.data);
     saveimage(path(buf), format, image, true);
 }
+
+COMMAND(screenshot, "s");
+
+void flipnormalmapy(char *destfile, char *normalfile) // jpg/png/tga-> tga
+{
+    ImageData ns;
+    if(!loadimage(normalfile, ns)) return;
+    ImageData d(ns.w, ns.h, 3);
+    readwritetex(d, ns,
+        dst[0] = src[0];
+        dst[1] = 255 - src[1];
+        dst[2] = src[2];
+    );
+    saveimage(destfile, guessimageformat(destfile, IMG_TGA), d);
+}
+
+void mergenormalmaps(char *heightfile, char *normalfile) // jpg/png/tga + tga -> tga
+{
+    ImageData hs, ns;
+    if(!loadimage(heightfile, hs) || !loadimage(normalfile, ns) || hs.w != ns.w || hs.h != ns.h) return;
+    ImageData d(ns.w, ns.h, 3);
+    read2writetex(d, hs, srch, ns, srcn,
+        *(bvec *)dst = bvec(((bvec *)srcn)->tovec().mul(2).add(((bvec *)srch)->tovec()).normalize());
+    );
+    saveimage(normalfile, guessimageformat(normalfile, IMG_TGA), d);
+}
+
+void normalizenormalmap(char *destfile, char *normalfile) // jpg/png/tga-> tga
+{
+    ImageData ns;
+    if(!loadimage(normalfile, ns)) return;
+    ImageData d(ns.w, ns.h, 3);
+    readwritetex(d, ns,
+        *(bvec *)dst = bvec(src[0], src[1], src[2]).normalize();
+    );
+    saveimage(destfile, guessimageformat(destfile, IMG_TGA), d);
+}
+
+void removealphachannel(char *destfile, char *rgbafile)
+{
+    ImageData ns;
+    if(!loadimage(rgbafile, ns)) return;
+    ImageData d(ns.w, ns.h, 3);
+    readwritetex(d, ns,
+        dst[0] = src[0];
+        dst[1] = src[1];
+        dst[2] = src[2];
+    );
+    saveimage(destfile, guessimageformat(destfile, IMG_TGA), d);
+}
+
+COMMAND(flipnormalmapy, "ss");
+COMMAND(mergenormalmaps, "ss");
+COMMAND(normalizenormalmap, "ss");
+COMMAND(removealphachannel, "ss");
+

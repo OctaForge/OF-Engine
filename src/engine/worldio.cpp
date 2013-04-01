@@ -581,7 +581,6 @@ void savevslot(stream *f, VSlot &vs, int prev)
     }
 }
 
-/* OctaForge: Shared_Ptr */
 void savevslots(stream *f, int numvslots)
 {
     if(vslots.empty()) return;
@@ -589,7 +588,7 @@ void savevslots(stream *f, int numvslots)
     memset(prev, -1, numvslots*sizeof(int));
     loopi(numvslots)
     {
-        VSlot *vs = vslots[i].get();
+        VSlot *vs = vslots[i];
         if(vs->changed) continue;
         for(;;)
         {
@@ -602,7 +601,7 @@ void savevslots(stream *f, int numvslots)
     int lastroot = 0;
     loopi(numvslots)
     {
-        VSlot &vs = *(vslots[i].get());
+        VSlot &vs = *vslots[i];
         if(!vs.changed) continue;
         if(lastroot < i) f->putlil<int>(-(i - lastroot));
         savevslot(f, vs, prev[i]);
@@ -673,11 +672,11 @@ void loadvslots(stream *f, int numvslots)
         else
         {
             prev[vslots.length()] = f->getlil<int>();
-            loadvslot(f, *(vslots.add(new VSlot(NULL, vslots.length())).get()), changed);    
+            loadvslot(f, *vslots.add(new VSlot(NULL, vslots.length())), changed);    
             numvslots--;
         }
     }
-    loopv(vslots) if(vslots.inrange(prev[i])) vslots[prev[i]]->next = vslots[i].get();
+    loopv(vslots) if(vslots.inrange(prev[i])) vslots[prev[i]]->next = vslots[i];
     delete[] prev;
 }
 
@@ -1076,11 +1075,8 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 #endif
 
     identflags |= IDF_OVERRIDDEN;
-    if (lapi::state.state())
-    {
-        lapi::state.do_file("data/cfg/default_map_settings.lua");
-        world::run_mapscript();
-    }
+    execfile("data/cfg/default_map_settings.cfg", false);
+    if (lapi::state.state()) world::run_mapscript();
     identflags &= ~IDF_OVERRIDDEN;
    
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities

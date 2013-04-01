@@ -1713,7 +1713,6 @@ void filltexlist()
     }
 }
 
-/* OctaForge: use Shared_Ptr */
 void compactmruvslots()
 {
     remappedvslots.setsize(0);
@@ -1721,7 +1720,7 @@ void compactmruvslots()
     {
         if(vslots.inrange(texmru[i]))
         {
-            VSlot &vs = *(vslots[texmru[i]]).get();
+            VSlot &vs = *vslots[texmru[i]];
             if(vs.index >= 0) 
             {
                 texmru[i] = vs.index;
@@ -1734,7 +1733,7 @@ void compactmruvslots()
     }
     if(vslots.inrange(lasttex))
     {
-        VSlot &vs = *(vslots[lasttex].get());
+        VSlot &vs = *vslots[lasttex];
         lasttex = vs.index >= 0 ? vs.index : 0;
     }
     else lasttex = 0;

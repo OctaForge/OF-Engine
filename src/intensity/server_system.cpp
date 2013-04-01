@@ -79,7 +79,7 @@ Shader *useshaderbyname(const char *name) { return NULL; };
 ushort closestenvmap(int orient, int x, int y, int z, int size) { return 0; };
 void loadalphamask(Texture *t) { };
 
-vector< types::Shared_Ptr<VSlot> > vslots;
+vector<VSlot *> vslots;
 
 Slot &lookupslot(int index, bool load)
 {
