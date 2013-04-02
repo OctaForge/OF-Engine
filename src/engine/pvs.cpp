@@ -1033,6 +1033,8 @@ void clearpvs()
     lockpvs_(false);
 }
 
+COMMAND(clearpvs, "");
+
 static void findwaterplanes()
 {
     extern vector<vtxarray *> valist;
@@ -1072,7 +1074,7 @@ static void findwaterplanes()
     if(waterfalls.length() > 0 && numwaterplanes < MAXWATERPVS) numwaterplanes++;
 }
 
-void testpvs(int vcsize)
+void testpvs(int *vcsize)
 {
     lockpvs_(false);
 
@@ -1091,7 +1093,7 @@ void testpvs(int vcsize)
     genpvs_canceled = false;
     check_genpvs_progress = false;
 
-    int size = vcsize>0 ? vcsize : 32;
+    int size = *vcsize>0 ? *vcsize : 32;
     for(int mask = 1; mask < size; mask <<= 1) size &= ~mask;
 
     ivec o = camera1->o;
@@ -1108,7 +1110,9 @@ void testpvs(int vcsize)
     loopi(numwaterplanes) waterplanes[i].height = oldwaterplanes[i];
 }
 
-void genpvs(int viewcellsize)
+COMMAND(testpvs, "i");
+
+void genpvs(int *viewcellsize)
 {
     if(worldsize > 1<<15)
     {
@@ -1132,7 +1136,7 @@ void genpvs(int viewcellsize)
     root.children = 0;
     genpvsnodes(worldroot);
 
-    totalviewcells = countviewcells(worldroot, ivec(0, 0, 0), worldsize>>1, viewcellsize>0 ? viewcellsize : 32);
+    totalviewcells = countviewcells(worldroot, ivec(0, 0, 0), worldsize>>1, *viewcellsize>0 ? *viewcellsize : 32);
     numviewcells = 0;
     genpvs_canceled = false;
     check_genpvs_progress = false;
@@ -1144,7 +1148,7 @@ void genpvs(int viewcellsize)
         timer = SDL_AddTimer(500, genpvs_timer, NULL);
     }
     viewcells = new viewcellnode;
-    genviewcells(*viewcells, worldroot, ivec(0, 0, 0), worldsize>>1, viewcellsize>0 ? viewcellsize : 32);
+    genviewcells(*viewcells, worldroot, ivec(0, 0, 0), worldsize>>1, *viewcellsize>0 ? *viewcellsize : 32);
     if(numthreads<=1)
     {
         SDL_RemoveTimer(timer);
@@ -1189,11 +1193,15 @@ void genpvs(int viewcellsize)
             pvs.length(), pvsbuf.length()/1024.0f, pvsbuf.length()/max(pvs.length(), 1), (end - start) / 1000.0f);
 }
 
+COMMAND(genpvs, "i");
+
 void pvsstats()
 {
     conoutf("%d unique view cells totaling %.1f kB and averaging %d B",          
         pvs.length(), pvsbuf.length()/1024.0f, pvsbuf.length()/max(pvs.length(), 1));
 }
+
+COMMAND(pvsstats, "");
 
 static inline bool pvsoccluded(uchar *buf, const ivec &co, int size, const ivec &bborigin, const ivec &bbsize)
 {

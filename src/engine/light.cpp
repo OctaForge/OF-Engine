@@ -617,6 +617,7 @@ void calclight()
             (end - start) / 1000.0f);
 }
 
+COMMAND(calclight, "");
 
 VARF(fullbright, 0, 0, 1, initlights());
 VARF(fullbrightlevel, 0, 128, 255, initlights());

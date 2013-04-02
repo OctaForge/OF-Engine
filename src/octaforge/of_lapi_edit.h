@@ -1,22 +1,3 @@
-extern vector<int> htextures;
-extern bool havesel;
-extern int orient, reptex;
-extern ivec cur;
-
-void resetlightmaps(bool fullclean);
-void calclight();
-void recalc();
-void printcube();
-void remip_();
-void phystest();
-void clearpvs();
-void testpvs(int vcsize);
-void genpvs(int viewcellsize);
-void pvsstats();
-void edittex(int i, bool save = true);
-
-extern selinfo sel;
-
 namespace EditingSystem
 {
     void newent(const char *cl, const char *sd);
@@ -120,34 +101,9 @@ namespace lapi_binds
     {
         return ClientSystem::editingAlone;
     }
-
-    void _lua_calclight()
-    {
-        calclight();
-    }
-
-    void _lua_recalc() { recalc(); }
-
-    void _lua_printcube() { printcube(); }
-    void _lua_remip    () { remip_   (); }
-    void _lua_phystest () { phystest (); }
-    void _lua_clearpvs () { clearpvs (); }
-    void _lua_pvsstats () { pvsstats (); }
-
-    void _lua_genpvs (int vcsize) { genpvs (vcsize); }
-    void _lua_testpvs(int vcsize) { testpvs(vcsize); }
 #else
     LAPI_EMPTY(requestprivedit)
     LAPI_EMPTY(hasprivedit)
-    LAPI_EMPTY(calclight)
-    LAPI_EMPTY(recalc)
-    LAPI_EMPTY(printcube)
-    LAPI_EMPTY(remip)
-    LAPI_EMPTY(phystest)
-    LAPI_EMPTY(clearpvs)
-    LAPI_EMPTY(pvsstats)
-    LAPI_EMPTY(genpvs)
-    LAPI_EMPTY(testpvs)
 #endif
 
     void reg_edit(lua::Table& t)
@@ -167,14 +123,5 @@ namespace lapi_binds
         LAPI_REG(spawnent);
         LAPI_REG(requestprivedit);
         LAPI_REG(hasprivedit);
-        LAPI_REG(calclight);
-        LAPI_REG(recalc);
-        LAPI_REG(printcube);
-        LAPI_REG(remip);
-        LAPI_REG(phystest);
-        LAPI_REG(clearpvs);
-        LAPI_REG(pvsstats);
-        LAPI_REG(genpvs);
-        LAPI_REG(testpvs);
     }
 }
