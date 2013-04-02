@@ -17,28 +17,16 @@ using namespace MessageSystem;
 // GUI stuff
 //=========================
 
-bool _isMouselooking = true; // Default like sauer
-
-bool GuiControl::isMouselooking()
-    { return _isMouselooking; };
-
-
-void GuiControl::toggleMouselook()
-{
-    if (_isMouselooking)
-        _isMouselooking = false;
-    else
-        _isMouselooking = true;
-
-    lapi::state.get<lua::Function>("external", "cursor_reset")();
-};
-
 void GuiControl::menuKeyClickTrigger()
 {
     playsound(S_MENUCLICK);
 }
 
 // Input
+
+VARF(mouselook, 0, 1, 1, {
+    lapi::state.get<lua::Function>("external", "cursor_reset")();
+})
 
 #define QUOT(arg) #arg
 

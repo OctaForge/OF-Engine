@@ -16,6 +16,7 @@
     #include "client_engine_additions.h"
     #include "of_localserver.h"
     extern int enthover;
+    extern int mouselook;
 #endif
 
 // Enable to let *server* do physics for players - useful for debugging. Must also be defined in fps.cpp!
@@ -592,7 +593,7 @@ assert(0);
     void adddynlights()
     {
         #ifdef CLIENT
-            if (GuiControl::isMouselooking()) return;
+            if (mouselook) return;
 
             if (!TargetingControl::targetLogicEntity
               || TargetingControl::targetLogicEntity->isNone()) return;

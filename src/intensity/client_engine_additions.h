@@ -8,10 +8,6 @@
 
 struct GuiControl
 {
-    //! When mouselooking, the mouse controls orientation as in an FPS
-    static void toggleMouselook();
-    static bool isMouselooking();
-
     //! Key clicks
     static void menuKeyClickTrigger();
 };

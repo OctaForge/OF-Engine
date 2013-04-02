@@ -16,11 +16,6 @@ namespace lapi_binds
         return (TargetingControl::targetLogicEntity != NULL);
     }
 
-    bool _lua_is_mouselooking()
-    {
-        return GuiControl::isMouselooking();
-    }
-
     bool _lua_is_modifier_pressed()
     {
         return (SDL_GetModState() != KMOD_NONE);
@@ -37,7 +32,6 @@ namespace lapi_binds
     }
 #else
     LAPI_EMPTY(set_targeted_entity)
-    LAPI_EMPTY(is_mouselooking)
     LAPI_EMPTY(is_modifier_pressed)
     LAPI_EMPTY(textinput)
     LAPI_EMPTY(keyrepeat)
@@ -46,7 +40,6 @@ namespace lapi_binds
     void reg_input(lua::Table& t)
     {
         LAPI_REG(set_targeted_entity);
-        LAPI_REG(is_mouselooking);
         LAPI_REG(is_modifier_pressed);
         LAPI_REG(textinput);
         LAPI_REG(keyrepeat);

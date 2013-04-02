@@ -12,16 +12,12 @@ namespace lapi_binds
         t["roll"    ] = camera1->roll;
         return t;
     }
-
-    void _lua_mouselook() { GuiControl::toggleMouselook(); }
 #else
     LAPI_EMPTY(getcam)
-    LAPI_EMPTY(mouselook)
 #endif
 
     void reg_camera(lua::Table& t)
     {
         LAPI_REG(getcam);
-        LAPI_REG(mouselook);
     }
 }

@@ -901,7 +901,7 @@ local World = Object:clone {
 
     focus_children = function(self)
         return loop_children(self, function(o)
-            if o.p_allow_focus or not CAPI.is_mouselooking() then
+            if o.p_allow_focus or EV.mouselook == 0 then
                 return true
             end
         end) or false
@@ -3876,7 +3876,7 @@ var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
 
 ext.cursor_move = function(dx, dy)
     if (#world.p_children == 0 or not world.focus_children(world)) and
-        CAPI.is_mouselooking()
+        EV.mouselook ~= 0
     then
         return false
     end
@@ -3906,7 +3906,7 @@ end
 ext.cursor_exists = cursor_exists
 
 ext.cursor_get_position = function()
-    if #world.p_children ~= 0 or not CAPI.is_mouselooking() then
+    if #world.p_children ~= 0 or EV.mouselook == 0 then
         return cursor_x, cursor_y
     else
         return 0.5, 0.5
@@ -4006,8 +4006,7 @@ ext.gl_render = function()
                 tooltip:draw(x, y)
             end
 
-            local wh = cursor_exists() or
-                not CAPI.is_mouselooking()
+            local wh = cursor_exists() or EV.mouselook == 0
 
             if wh then
                 local  pointer = hovering and hovering.pointer or w.p_pointer
