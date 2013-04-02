@@ -14,6 +14,7 @@
 
 #ifdef CLIENT
     #include "client_engine_additions.h"
+    #include "of_localserver.h"
     extern int enthover;
 #endif
 
@@ -540,6 +541,17 @@ assert(0);
           }
         }
     }
+
+#ifdef CLIENT
+    ICOMMAND(map, "s", (char *name), {
+        if (!name || !name[0])
+            local_server::stop();
+        else
+            local_server::run(name);
+    })
+
+    ICOMMAND(hasmap, "", (), intret(local_server::is_running()));
+#endif
 
     void changemap(const char *name, int mode)        // forced map change from the server // Kripken : TODO: Deprecated, Remove
     {

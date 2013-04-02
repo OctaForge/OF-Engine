@@ -98,17 +98,8 @@ namespace lapi_binds
     }
 
 #ifdef CLIENT
-    void _lua_map(const char *name)
-    {
-        if (!name || !name[0])
-            local_server::stop();
-        else
-            local_server::run(name);
-    }
-
     bool _lua_hasmap() { return local_server::is_running(); }
 #else
-    LAPI_EMPTY(map)
     LAPI_EMPTY(hasmap)
 #endif
 
@@ -172,7 +163,6 @@ namespace lapi_binds
         LAPI_REG(iscolliding);
         LAPI_REG(setgravity);
         LAPI_REG(getmat);
-        LAPI_REG(map);
         LAPI_REG(hasmap);
         LAPI_REG(get_map_preview_filename);
         LAPI_REG(get_all_map_names);
