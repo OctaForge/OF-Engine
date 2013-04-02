@@ -9,7 +9,6 @@
 #include "message_system.h"
 
 #include "editing_system.h"
-#include "client_engine_additions.h"
 #include "targeting.h"
 
 #include "client_system.h"

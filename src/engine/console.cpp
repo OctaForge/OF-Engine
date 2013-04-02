@@ -1,9 +1,7 @@
 // console.cpp: the console buffer, its display, and command line control
 
 #include "engine.h"
-
-#include "client_engine_additions.h" // INTENSITY
-#include "of_tools.h"
+#include "of_tools.h" // OF
 
 struct cline { char *line; int type, outtime; };
 vector<cline> conlines;
@@ -573,7 +571,7 @@ void processkey(int code, bool isdown)
                 if(haskey) execbind(*haskey, isdown);
             }
         } else if (isdown) {
-            GuiControl::menuKeyClickTrigger();
+            playsound(S_MENUCLICK);
         }
     }
 }

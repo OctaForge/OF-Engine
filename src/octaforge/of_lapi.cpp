@@ -6,7 +6,6 @@
 #include "of_tools.h"
 
 #ifdef CLIENT
-    #include "client_engine_additions.h"
     #include "client_system.h"
     #include "targeting.h"
 #endif

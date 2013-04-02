@@ -2,7 +2,6 @@
 
 #include "engine.h"
 
-#include "client_engine_additions.h" // INTENSITY
 #include "targeting.h" // INTENSITY
 #include "of_entities.h"
 

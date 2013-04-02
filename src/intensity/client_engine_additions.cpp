@@ -7,20 +7,10 @@
 #include "game.h"
 
 #include "client_system.h"
-#include "client_engine_additions.h"
 #include "targeting.h"
 #include "message_system.h"
 
 using namespace MessageSystem;
-
-//=========================
-// GUI stuff
-//=========================
-
-void GuiControl::menuKeyClickTrigger()
-{
-    playsound(S_MENUCLICK);
-}
 
 // Input
 

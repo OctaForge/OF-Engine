@@ -34,16 +34,6 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
-// hardcoded sounds, defined in sounds.cfg
-enum
-{
-    S_JUMP = 0, S_LAND, 
-    S_SPLASH1, S_SPLASH2,
-    S_BURN,
-    S_MENUCLICK,
-    S_UW
-};
-
 // network messages codes, c2s, c2c, s2c
 
 enum

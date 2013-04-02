@@ -8,9 +8,6 @@
 #include "game.h" // INTENSITY: for fpsent
 
 #include "targeting.h" // INTENSITY
-#ifdef CLIENT
-    #include "client_engine_additions.h" // INTENSITY
-#endif
 #include "of_entities.h"
 
 

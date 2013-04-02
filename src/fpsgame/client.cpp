@@ -13,7 +13,6 @@
 #include "targeting.h"
 
 #ifdef CLIENT
-    #include "client_engine_additions.h"
     #include "of_localserver.h"
     extern int enthover;
     extern int mouselook;
