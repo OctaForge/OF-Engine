@@ -48,9 +48,6 @@ require("base.base_geometry")
 #log(DEBUG, ":: Input.")
 require("base.base_input")
 
-#log(DEBUG, ":: Console.")
-require("base.base_console")
-
 #log(DEBUG, ":: Models.")
 require("base.base_models")
 
@@ -62,9 +59,6 @@ require("base.base_sound")
 
 #log(DEBUG, ":: Textures.")
 require("base.base_textures")
-
-#log(DEBUG, ":: VSlots.")
-require("base.base_vslots")
 
 #log(DEBUG, ":: Editing.")
 require("base.base_editing")

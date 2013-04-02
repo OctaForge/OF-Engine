@@ -68,60 +68,6 @@
 module("input", package.seeall)
 
 --[[!
-    Function: turn_left
-    Turns player left. Used for motion control with keyboard.
-]]
-turn_left = CAPI.turn_left
-
---[[!
-    Function: turn_right
-    Turns player right. Used for motion control with keyboard.
-]]
-turn_right = CAPI.turn_right
-
---[[!
-    Function: look_up
-    Makes player look up. Used for motion control with keyboard.
-]]
-look_down = CAPI.look_down
-
---[[!
-    Function: look_down
-    Makes player look down. Used for motion control with keyboard.
-]]
-look_up = CAPI.look_up
-
---[[!
-    Function: backward
-    Makes player go backward. Used for motion control with keyboard.
-]]
-backward = CAPI.backward
-
---[[!
-    Function: forward
-    Makes player go forward. Used for motion control with keyboard.
-]]
-forward = CAPI.forward
-
---[[!
-    Function: strafe_left
-    Makes player strafe left. Used for motion control with keyboard.
-]]
-strafe_left = CAPI.left
-
---[[!
-    Function: strafe_right
-    Makes player strafe right. Used for motion control with keyboard.
-]]
-strafe_right = CAPI.right
-
---[[!
-    Function: jump
-    Makes player jump. Used for motion control with keyboard.
-]]
-jump = CAPI.jump
-
---[[!
     Function: set_targeted_entity
     Sets currently targeted entity. Useful for i.e. entity properties GUI.
 
@@ -129,27 +75,6 @@ jump = CAPI.jump
         uid - unique ID of the entity to target.
 ]]
 set_targeted_entity = CAPI.set_targeted_entity
-
---[[!
-    Function: mouse1click
-    Triggers left click event. Used mainly by bindings. User can then define
-    their own functions that'll affect mouse clicking.
-]]
-mouse1click = CAPI.mouse1click
-
---[[!
-    Function: mouse2click
-    Triggers right click event. Used mainly by bindings. User can then define
-    their own functions that'll affect mouse clicking.
-]]
-mouse2click = CAPI.mouse2click
-
---[[!
-    Function: mouse3click
-    Triggers middle click event. Used mainly by bindings. User can then define
-    their own functions that'll affect mouse clicking.
-]]
-mouse3click = CAPI.mouse3click
 
 --[[!
     Function: get_target_position

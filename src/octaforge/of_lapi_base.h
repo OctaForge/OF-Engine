@@ -1,5 +1,4 @@
 int preload_sound(const char *name, int vol);
-types::String getwallclock();
 bool glext(const char *ext);
 
 extern string homedir;
@@ -51,15 +50,8 @@ namespace lapi_binds
 
 #ifdef CLIENT
     bool _lua_glext(const char *ext) { return glext(ext); }
-
-    types::String _lua_getwallclock()
-    { 
-        return getwallclock();
-    }
-
 #else
     LAPI_EMPTY(glext)
-    LAPI_EMPTY(getwallclock)
 #endif
 
     types::String _lua_readfile(const char *path)
@@ -132,7 +124,6 @@ namespace lapi_binds
         LAPI_REG(currtime);
         LAPI_REG(cubescript);
         LAPI_REG(glext);
-        LAPI_REG(getwallclock);
         LAPI_REG(readfile);
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);

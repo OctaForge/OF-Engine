@@ -138,17 +138,6 @@ function music_callback()
 end
 
 --[[!
-    Function: register
-    Registers a sound slot. Used for core hardcoded sounds (TODO:
-    get rid of any hardcoded sounds).
-
-    Parameters:
-        name - see <play>.
-        volume - see <play>.
-]]
-register = CAPI.registersound
-
---[[!
     Function: preload
     Preloads a sound about which we know it'll be used, so it
     doesn't have to be loaded later during gameplay.
