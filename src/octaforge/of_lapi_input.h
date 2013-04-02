@@ -1,9 +1,3 @@
-#ifdef CLIENT
-bool getkeydown();
-bool getkeyup();
-bool getmousedown();
-bool getmouseup();
-#endif
 namespace lapi_binds
 {
 #ifdef CLIENT

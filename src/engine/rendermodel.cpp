@@ -346,6 +346,8 @@ void mapmodelreset(int n)
 mapmodelinfo *getmminfo(int i) { return /*mapmodels.inrange(i) ? &mapmodels[i] :*/ NULL; } // INTENSITY
 const char *mapmodelname(int i) { return /*mapmodels.inrange(i) ? mapmodels[i].name :*/ NULL; } // INTENSITY
 
+COMMAND(mapmodelreset, "i");
+
 // model registry
 
 hashtable<const char *, model *> mdllookup;

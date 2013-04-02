@@ -1,5 +1,3 @@
-void mapmodelreset(int n);
-void mmodel(char *name);
 extern vector<mapmodelinfo> mapmodels;
 void clearmodel(char *name);
 
@@ -8,8 +6,6 @@ VARP(ragdoll, 0, 1, 1);
 namespace lapi_binds
 {
 #ifdef CLIENT
-    void _lua_mapmodelreset(int            n) { mapmodelreset(n);          }
-    void _lua_mapmodel     (const char *name) { mmodel((char*)name);       }
     int  _lua_nummapmodels (                ) { return mapmodels.length(); }
     void _lua_clearmodel   (const char *name) { clearmodel((char*)name);   }
 
@@ -197,8 +193,6 @@ namespace lapi_binds
         return ret;
     }
 #else
-    LAPI_EMPTY(mapmodelreset)
-    LAPI_EMPTY(mapmodel)
     LAPI_EMPTY(nummapmodels)
     LAPI_EMPTY(clearmodel)
     LAPI_EMPTY(preloadmodel)
@@ -212,8 +206,6 @@ namespace lapi_binds
 
     void reg_model(lua::Table& t)
     {
-        LAPI_REG(mapmodelreset);
-        LAPI_REG(mapmodel);
         LAPI_REG(nummapmodels);
         LAPI_REG(clearmodel);
         LAPI_REG(preloadmodel);
