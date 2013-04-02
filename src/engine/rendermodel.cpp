@@ -332,15 +332,16 @@ void mmodel(char *name)
     mmi.m = NULL;
 }
 
-void mapmodelreset(int n) 
+void mapmodelreset(int *n) 
 { 
     if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
-    mapmodels.shrink(clamp(n, 0, mapmodels.length())); 
+    mapmodels.shrink(clamp(*n, 0, mapmodels.length())); 
 }
 
 mapmodelinfo *getmminfo(int i) { return /*mapmodels.inrange(i) ? &mapmodels[i] :*/ NULL; } // INTENSITY
 const char *mapmodelname(int i) { return /*mapmodels.inrange(i) ? mapmodels[i].name :*/ NULL; } // INTENSITY
 
+COMMAND(mapmodelreset, "i");
 ICOMMAND(nummapmodels, "", (), { intret(mapmodels.length()); });
 
 // model registry
@@ -421,7 +422,7 @@ void cleanupmodels()
 
 void clearmodel(char *name)
 {
-    if (!name) return;
+    if (!name || !name[0]) return;
     model **m = mdllookup.access(name);
     if(!m) { conoutf("model %s is not loaded", name); return; }
     loopv(mapmodels) if(mapmodels[i].m==*m) mapmodels[i].m = NULL;
@@ -432,6 +433,28 @@ void clearmodel(char *name)
 }
 
 COMMAND(clearmodel, "s");
+
+void reloadmodel(char *name) {
+    if (!name || !name[0]) return;
+    model *old = loadmodel(name);
+    if (!old) return;
+
+    clearmodel((char*)name);
+    model *_new = loadmodel(name);
+
+    lua::Table ents = lapi::state.get<lua::Function>(
+        "external", "entities_get_all"
+    ).call<lua::Table>();
+
+    for (lua::Table::it it = ents.begin(); it != ents.end(); ++it)
+    {
+        CLogicEntity *ent = LogicSystem::getLogicEntity(
+            lua::Table(*it).get<int>("uid")
+        );
+        if (!ent) continue;
+        if (ent->theModel == old) ent->theModel = _new;
+    }
+}
 
 bool modeloccluded(const vec &center, float radius)
 {
