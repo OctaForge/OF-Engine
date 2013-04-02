@@ -802,10 +802,7 @@ void gl_checkextensions()
     }
 }
 
-bool glext(const char *ext)
-{
-    return (hasext(ext) ? true : false);
-}
+ICOMMAND(glext, "s", (char *ext), intret(hasext(ext) ? 1 : 0));
 
 struct timer
 {

@@ -3,7 +3,7 @@ namespace EditingSystem
     void newent(const char *cl, const char *sd);
 }
 
-extern int usevdelta, gridpower, nompedit, allfaces;
+extern int gridpower;
 
 namespace lapi_binds
 {
