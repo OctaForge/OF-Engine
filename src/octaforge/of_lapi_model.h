@@ -1,39 +1,8 @@
-extern vector<mapmodelinfo> mapmodels;
-void clearmodel(char *name);
-
 VARP(ragdoll, 0, 1, 1);
 
 namespace lapi_binds
 {
 #ifdef CLIENT
-    int  _lua_nummapmodels (                ) { return mapmodels.length(); }
-    void _lua_clearmodel   (const char *name) { clearmodel((char*)name);   }
-
-    void _lua_preloadmodel(const char *name) { preloadmodel(name); }
-
-    void _lua_reloadmodel(const char *name)
-    {
-        if (!name || !name[0]) return;
-        model *old = loadmodel(name);
-        if (!old) return;
-
-        clearmodel((char*)name);
-        model *_new = loadmodel(name);
-
-        lua::Table ents = lapi::state.get<lua::Function>(
-            "external", "entities_get_all"
-        ).call<lua::Table>();
-
-        for (lua::Table::it it = ents.begin(); it != ents.end(); ++it)
-        {
-            CLogicEntity *ent = LogicSystem::getLogicEntity(
-                lua::Table(*it).get<int>("uid")
-            );
-            if (!ent) continue;
-            if (ent->theModel == old) ent->theModel = _new;
-        }
-    }
-
     static int oldtp = -1;
 
     void preparerd(int& anim, CLogicEntity *self)
@@ -193,10 +162,6 @@ namespace lapi_binds
         return ret;
     }
 #else
-    LAPI_EMPTY(nummapmodels)
-    LAPI_EMPTY(clearmodel)
-    LAPI_EMPTY(preloadmodel)
-    LAPI_EMPTY(reloadmodel)
     LAPI_EMPTY(rendermodel)
     LAPI_EMPTY(scriptmdlbb)
     LAPI_EMPTY(scriptmdlcb)
@@ -206,10 +171,6 @@ namespace lapi_binds
 
     void reg_model(lua::Table& t)
     {
-        LAPI_REG(nummapmodels);
-        LAPI_REG(clearmodel);
-        LAPI_REG(preloadmodel);
-        LAPI_REG(reloadmodel);
         LAPI_REG(rendermodel);
         LAPI_REG(scriptmdlbb);
         LAPI_REG(scriptmdlcb);

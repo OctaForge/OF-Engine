@@ -332,11 +332,6 @@ void mmodel(char *name)
     mmi.m = NULL;
 }
 
-void mapmodelcompat(int rad, int h, int tex, char *name, char *shadow)
-{
-    mmodel(name);
-}
-
 void mapmodelreset(int n) 
 { 
     if(!(identflags&IDF_OVERRIDDEN) && !game::allowedittoggle()) return;
@@ -346,7 +341,7 @@ void mapmodelreset(int n)
 mapmodelinfo *getmminfo(int i) { return /*mapmodels.inrange(i) ? &mapmodels[i] :*/ NULL; } // INTENSITY
 const char *mapmodelname(int i) { return /*mapmodels.inrange(i) ? mapmodels[i].name :*/ NULL; } // INTENSITY
 
-COMMAND(mapmodelreset, "i");
+ICOMMAND(nummapmodels, "", (), { intret(mapmodels.length()); });
 
 // model registry
 
@@ -358,6 +353,8 @@ void preloadmodel(const char *name)
     if(!name || !name[0] || mdllookup.access(name)) return;
     preloadmodels.add(newstring(name));
 }
+
+COMMAND(preloadmodel, "s");
 
 void flushpreloadedmodels(bool msg)
 {
@@ -433,6 +430,8 @@ void clearmodel(char *name)
     delete *m;
     conoutf("cleared model %s", name);
 }
+
+COMMAND(clearmodel, "s");
 
 bool modeloccluded(const vec &center, float radius)
 {
