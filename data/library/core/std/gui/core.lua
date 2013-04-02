@@ -3588,7 +3588,7 @@ local Text_Editor = Object:clone {
                 end
 
                 EAPI.base_shader_hudnotexture_set()
-                EAPI.varray_color3ub(0xA0, 0x80, 0x80, 0xFF)
+                EAPI.varray_color3ub(0xA0, 0x80, 0x80)
                 EAPI.varray_defvertex(2, gl.FLOAT)
                 EAPI.varray_begin(gl.QUADS)
                 if psy == pey then
@@ -3633,7 +3633,7 @@ local Text_Editor = Object:clone {
             -- line wrap indicator
             if self.line_wrap and height > EV.fonth then
                 EAPI.base_shader_hudnotexture_set()
-                EAPI.varray_color3ub(0x80, 0xA0, 0x80, 0xFF)
+                EAPI.varray_color3ub(0x80, 0xA0, 0x80)
                 EAPI.varray_defvertex(2, gl.FLOAT)
                 EAPI.varray_begin(gl.GL_TRIANGLE_STRIP)
                 EAPI.varray_attrib2f(x,                y + h + EV.fonth)
