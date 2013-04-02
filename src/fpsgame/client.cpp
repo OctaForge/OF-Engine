@@ -230,6 +230,7 @@ namespace game
             addmsg(N_TEXT, "rcs", player1, text);
         }
     }
+    COMMANDN(say, toserver, "C");
 
     void sendposition(fpsent *d, bool reliable)
     {

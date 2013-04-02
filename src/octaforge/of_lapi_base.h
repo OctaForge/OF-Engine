@@ -10,25 +10,6 @@ namespace EditingSystem
 
 namespace lapi_binds
 {
-    /* Logger module */
-
-    void _lua_say(types::Vector<const char*> args)
-    {
-        switch (args.length())
-        {
-            case 0: game::toserver((char*)""     ); break;
-            case 1: game::toserver((char*)args[0]); break;
-            default:
-            {
-                types::String s;
-                for (size_t i = 0; i < args.length(); ++i)
-                    s += args[i];
-                game::toserver((char*)s.get_buf());
-                break;
-            }
-        }
-    }
-
     /* CAPI module */
 
     int _lua_currtime() { return tools::currtime(); }
@@ -120,7 +101,6 @@ namespace lapi_binds
 
     void reg_base(lua::Table& t)
     {
-        LAPI_REG(say);
         LAPI_REG(currtime);
         LAPI_REG(cubescript);
         LAPI_REG(glext);
