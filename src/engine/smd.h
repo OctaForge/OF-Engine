@@ -436,12 +436,12 @@ struct smd : skelmodel, skelloader<smd>
     bool load()
     {
         if(loaded) return true;
-        dir.format("data/models/%s", loadname);
-        defformatstring(cfgname)("data/models/%s/smd.lua", loadname); // INTENSITY
+        formatstring(dir)("data/models/%s", loadname);
+        defformatstring(cfgname)("data/models/%s/smd.cfg", loadname);
 
         loading = this;
         identflags &= ~IDF_PERSIST;
-        if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY: execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
+        if(execfile(cfgname, false) && parts.length()) // configured smd, will call the smd* commands below
         {
             identflags |= IDF_PERSIST;
             loading = NULL;
@@ -480,8 +480,5 @@ static inline bool htcmp(const smd::smdmeshgroup::smdvertkey &k, int index)
     return k.pos == v.pos && k.norm == v.norm && k.u == v.u && k.v == v.v && k.blend == v.blend;
 }
 
-lua::Table smdcommands()
-{
-    skelcommands<smd> cmds;
-    return cmds.module;
-}
+skelcommands<smd> smdcommands;
+

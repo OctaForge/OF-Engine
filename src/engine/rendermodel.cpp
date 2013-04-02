@@ -42,164 +42,205 @@ MODELTYPE(MDL_IQM, iqm);
 
 #define checkmdl if(!loadingmodel) { conoutf(CON_ERROR, "not loading a model"); return; }
 
-void mdlcullface(bool cullface)
+void mdlcullface(int *cullface)
 {
     checkmdl;
-    loadingmodel->setcullface(cullface);
+    loadingmodel->setcullface(*cullface!=0);
 }
 
-void mdlcollide(bool collide)
+COMMAND(mdlcullface, "i");
+
+void mdlcollide(int *collide)
 {
     checkmdl;
-    loadingmodel->collide = collide;
+    loadingmodel->collide = *collide!=0;
 }
 
-void mdlellipsecollide(bool collide)
+COMMAND(mdlcollide, "i");
+
+void mdlellipsecollide(int *collide)
 {
     checkmdl;
-    loadingmodel->ellipsecollide = collide;
+    loadingmodel->ellipsecollide = *collide!=0;
 }   
     
-void mdlspec(int percent)
+COMMAND(mdlellipsecollide, "i");
+
+void mdlspec(int *percent)
 {
     checkmdl;
     float spec = 1.0f; 
-    if(percent>0) spec = percent/100.0f;
-    else if(percent<0) spec = 0.0f;
+    if(*percent>0) spec = *percent/100.0f;
+    else if(*percent<0) spec = 0.0f;
     loadingmodel->setspec(spec);
 }
 
-void mdlambient(int percent)
+COMMAND(mdlspec, "i");
+
+void mdlambient(int *percent)
 {
     checkmdl;
     float ambient = 0.3f;
-    if(percent>0) ambient = percent/100.0f;
-    else if(percent<0) ambient = 0.0f;
+    if(*percent>0) ambient = *percent/100.0f;
+    else if(*percent<0) ambient = 0.0f;
     loadingmodel->setambient(ambient);
 }
 
-void mdlalphatest(float cutoff)
+COMMAND(mdlambient, "i");
+
+void mdlalphatest(float *cutoff)
 {   
     checkmdl;
-    loadingmodel->setalphatest(max(0.0f, min(1.0f, cutoff)));
+    loadingmodel->setalphatest(max(0.0f, min(1.0f, *cutoff)));
 }
 
-void mdlalphablend(bool blend)
+COMMAND(mdlalphatest, "f");
+
+void mdlalphablend(int *blend)
 {   
     checkmdl;
-    loadingmodel->setalphablend(blend);
+    loadingmodel->setalphablend(*blend!=0);
 }
 
-void mdlalphadepth(bool depth)
+COMMAND(mdlalphablend, "i");
+
+void mdlalphadepth(int *depth)
 {
     checkmdl;
-    loadingmodel->alphadepth = depth;
+    loadingmodel->alphadepth = *depth!=0;
 }
 
-void mdldepthoffset(bool offset)
+COMMAND(mdlalphadepth, "i");
+
+void mdldepthoffset(int *offset)
 {
     checkmdl;
-    loadingmodel->depthoffset = offset;
+    loadingmodel->depthoffset = *offset!=0;
 }
 
-void mdlglow(int percent, int delta, float pulse)
+COMMAND(mdldepthoffset, "i");
+
+void mdlglow(int *percent, int *delta, float *pulse)
 {
     checkmdl;
-    float glow = 3.0f, glowdelta = delta/100.0f, glowpulse = pulse > 0 ? pulse/1000.0f : 0;
-    if(percent>0) glow = percent/100.0f;
-    else if(percent<0) glow = 0.0f;
+    float glow = 3.0f, glowdelta = *delta/100.0f, glowpulse = *pulse > 0 ? *pulse/1000.0f : 0;
+    if(*percent>0) glow = *percent/100.0f;
+    else if(*percent<0) glow = 0.0f;
     glowdelta -= glow;
     loadingmodel->setglow(glow, glowdelta, glowpulse);
 }
 
-void mdlglare(float specglare, float glowglare)
+COMMAND(mdlglow, "iif");
+
+void mdlglare(float *specglare, float *glowglare)
 {
     checkmdl;
-    loadingmodel->setglare(specglare, glowglare);
+    loadingmodel->setglare(*specglare, *glowglare);
 }
 
-void mdlenvmap(float envmapmax, float envmapmin, char *envmap)
+COMMAND(mdlglare, "ff");
+
+void mdlenvmap(float *envmapmax, float *envmapmin, char *envmap)
 {
     checkmdl;
-    loadingmodel->setenvmap(envmapmin, envmapmax, envmap ? cubemapload(envmap) : NULL);
+    loadingmodel->setenvmap(*envmapmin, *envmapmax, envmap[0] ? cubemapload(envmap) : NULL);
 }
 
-void mdlfullbright(float fullbright)
+COMMAND(mdlenvmap, "ffs");
+
+void mdlfullbright(float *fullbright)
 {
     checkmdl;
-    loadingmodel->setfullbright(fullbright);
+    loadingmodel->setfullbright(*fullbright);
 }
+
+COMMAND(mdlfullbright, "f");
 
 void mdlshader(char *shader)
 {
-    if (!shader) return;
     checkmdl;
     loadingmodel->setshader(lookupshaderbyname(shader));
 }
 
-void mdlspin(float yaw, float pitch)
+COMMAND(mdlshader, "s");
+
+void mdlspin(float *yaw, float *pitch)
 {
     checkmdl;
-    loadingmodel->spinyaw = yaw;
-    loadingmodel->spinpitch = pitch;
+    loadingmodel->spinyaw = *yaw;
+    loadingmodel->spinpitch = *pitch;
 }
 
-void mdlscale(int percent)
+COMMAND(mdlspin, "ff");
+
+void mdlscale(int *percent)
 {
     checkmdl;
     float scale = 0.3f;
-    if(percent>0) scale = percent/100.0f;
-    else if(percent<0) scale = 0.0f;
+    if(*percent>0) scale = *percent/100.0f;
+    else if(*percent<0) scale = 0.0f;
     loadingmodel->scale = scale;
 }  
 
-void mdltrans(const vec& v)
+COMMAND(mdlscale, "i");
+
+void mdltrans(float *x, float *y, float *z)
 {
     checkmdl;
-    loadingmodel->translate = v;
+    loadingmodel->translate = vec(*x, *y, *z);
 } 
 
-void mdlyaw(float angle)
+COMMAND(mdltrans, "fff");
+
+void mdlyaw(float *angle)
 {
     checkmdl;
-    loadingmodel->offsetyaw = angle;
+    loadingmodel->offsetyaw = *angle;
 }
 
-void mdlpitch(float angle)
+COMMAND(mdlyaw, "f");
+
+void mdlpitch(float *angle)
 {
     checkmdl;
-    loadingmodel->offsetpitch = angle;
+    loadingmodel->offsetpitch = *angle;
 }
 
-void mdlshadow(bool shadow)
+COMMAND(mdlpitch, "f");
+
+void mdlshadow(int *shadow)
 {
     checkmdl;
-    loadingmodel->shadow = shadow;
+    loadingmodel->shadow = *shadow!=0;
 }
 
-void mdlbb(float rad, float h, float eyeheight)
+COMMAND(mdlshadow, "i");
+
+void mdlbb(float *rad, float *h, float *eyeheight)
 {
     checkmdl;
-    loadingmodel->collideradius = rad;
-    loadingmodel->collideheight = h;
-    loadingmodel->eyeheight = eyeheight; 
+    loadingmodel->collideradius = *rad;
+    loadingmodel->collideheight = *h;
+    loadingmodel->eyeheight = *eyeheight; 
 }
 
-void mdlextendbb(const vec& extend)
+COMMAND(mdlbb, "fff");
+
+void mdlextendbb(float *x, float *y, float *z)
 {
     checkmdl;
-    loadingmodel->bbextend = extend;
+    loadingmodel->bbextend = vec(*x, *y, *z);
 }
 
-const char *mdlname()
+COMMAND(mdlextendbb, "fff");
+
+void mdlname()
 {
-    if (!loadingmodel)
-    {
-        conoutf(CON_ERROR, "not loading a model");
-        return NULL;
-    }
-    return loadingmodel->name();
+    checkmdl;
+    result(loadingmodel->name());
 }
+
+COMMAND(mdlname, "");
 
 #define checkragdoll \
     if(!loadingmodel->skeletal()) { conoutf(CON_ERROR, "not loading a skeletal model"); return; } \
@@ -212,66 +253,73 @@ const char *mdlname()
     if(ragdoll->loaded) return;
     
 
-void rdvert(const vec& o, float radius)
+void rdvert(float *x, float *y, float *z, float *radius)
 {
     checkragdoll;
     ragdollskel::vert &v = ragdoll->verts.add();
-    v.pos = o;
-    v.radius = radius > 0 ? radius : 1;
+    v.pos = vec(*x, *y, *z);
+    v.radius = *radius > 0 ? *radius : 1;
 }
+COMMAND(rdvert, "ffff");
 
-void rdeye(int v)
+void rdeye(int *v)
 {
     checkragdoll;
-    ragdoll->eye = v;
+    ragdoll->eye = *v;
 }
+COMMAND(rdeye, "i");
 
-void rdtri(int v1, int v2, int v3)
+void rdtri(int *v1, int *v2, int *v3)
 {
     checkragdoll;
     ragdollskel::tri &t = ragdoll->tris.add();
-    t.vert[0] = v1;
-    t.vert[1] = v2;
-    t.vert[2] = v3;
+    t.vert[0] = *v1;
+    t.vert[1] = *v2;
+    t.vert[2] = *v3;
 }
+COMMAND(rdtri, "iii");
 
-void rdjoint(int n, int t, int v1, int v2, int v3)
+void rdjoint(int *n, int *t, int *v1, int *v2, int *v3)
 {
     checkragdoll;
-    if(n < 0 || n >= skel->numbones) return;
+    if(*n < 0 || *n >= skel->numbones) return;
     ragdollskel::joint &j = ragdoll->joints.add();
-    j.bone = n;
-    j.tri = t;
-    j.vert[0] = v1;
-    j.vert[1] = v2;
-    j.vert[2] = v3;
+    j.bone = *n;
+    j.tri = *t;
+    j.vert[0] = *v1;
+    j.vert[1] = *v2;
+    j.vert[2] = *v3;
 }
+COMMAND(rdjoint, "iibbb");
    
-void rdlimitdist(int v1, int v2, float mindist, float maxdist)
+void rdlimitdist(int *v1, int *v2, float *mindist, float *maxdist)
 {
     checkragdoll;
     ragdollskel::distlimit &d = ragdoll->distlimits.add();
-    d.vert[0] = v1;
-    d.vert[1] = v2;
-    d.mindist = mindist;
-    d.maxdist = max(maxdist, mindist);
+    d.vert[0] = *v1;
+    d.vert[1] = *v2;
+    d.mindist = *mindist;
+    d.maxdist = max(*maxdist, *mindist);
 }
+COMMAND(rdlimitdist, "iiff");
 
-void rdlimitrot(int t1, int t2, float maxangle, float qx, float qy, float qz, float qw)
+void rdlimitrot(int *t1, int *t2, float *maxangle, float *qx, float *qy, float *qz, float *qw)
 {
     checkragdoll;
     ragdollskel::rotlimit &r = ragdoll->rotlimits.add();
-    r.tri[0] = t1;
-    r.tri[1] = t2;
-    r.maxangle = maxangle * RAD;
-    r.middle = matrix3x3(quat(qx, qy, qz, qw));
+    r.tri[0] = *t1;
+    r.tri[1] = *t2;
+    r.maxangle = *maxangle * RAD;
+    r.middle = matrix3x3(quat(*qx, *qy, *qz, *qw));
 }
+COMMAND(rdlimitrot, "iifffff");
 
-void rdanimjoints(bool on)
+void rdanimjoints(int *on)
 {
     checkragdoll;
-    ragdoll->animjoints = on;
+    ragdoll->animjoints = *on!=0;
 }
+COMMAND(rdanimjoints, "i");
 
 // mapmodels
 
@@ -1030,9 +1078,10 @@ void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSI
     d->aboveeye  = radius.z*2*(1.0f-m->eyeheight);
 }
 
-// INTENSITY: States that we get the collision box size from the entity, not the model type
-void mdlperentitycollisionboxes(bool val)
+// OF
+void mdlentitycollisionbox(int *val)
 {
     checkmdl;
-    loadingmodel->perentitycollisionboxes = val;
+    loadingmodel->perentitycollisionboxes = (*val != 0);
 }
+COMMAND(mdlentitycollisionbox, "i");

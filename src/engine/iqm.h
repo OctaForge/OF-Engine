@@ -370,13 +370,12 @@ struct iqm : skelmodel, skelloader<iqm>
     bool load()
     {
         if(loaded) return true;
-        dir.format("data/models/%s", loadname);
-        defformatstring(cfgname)("data/models/%s/iqm.lua", loadname); // INTENSITY
+        formatstring(dir)("data/models/%s", loadname);
+        defformatstring(cfgname)("data/models/%s/iqm.cfg", loadname);
 
         loading = this;
-        
         identflags &= ~IDF_PERSIST;
-        if (tools::execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
+        if(execfile(cfgname, false) && parts.length()) // configured iqm, will call the iqm* commands below
         {
             identflags |= IDF_PERSIST;
             loading = NULL;
@@ -403,8 +402,5 @@ struct iqm : skelmodel, skelloader<iqm>
     }
 };
 
-lua::Table iqmcommands()
-{
-    skelcommands<iqm> cmds;
-    return cmds.module;
-}
+skelcommands<iqm> iqmcommands;
+

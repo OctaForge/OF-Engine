@@ -57,12 +57,6 @@ using namespace lua;
 
 extern string homedir;
 
-Table md3commands();
-Table md5commands();
-Table iqmcommands();
-Table smdcommands();
-Table objcommands();
-
 namespace lapi
 {
     State  state;
@@ -268,20 +262,6 @@ namespace lapi
         #undef CAPI_REG
 
         state.register_module("CAPI", api_all);
-#ifdef CLIENT
-        state.register_module("obj",  objcommands());
-        state.register_module("md3",  md3commands());
-        state.register_module("md5",  md5commands());
-        state.register_module("iqm",  iqmcommands());
-        state.register_module("smd",  smdcommands());
-#else
-        state.register_module("obj",  state.new_table());
-        state.register_module("md3",  state.new_table());
-        state.register_module("md5",  state.new_table());
-        state.register_module("iqm",  state.new_table());
-        state.register_module("smd",  state.new_table());
-#endif
-
         load_module("init");
     }
 

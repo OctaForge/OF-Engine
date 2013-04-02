@@ -3,40 +3,6 @@ void mmodel(char *name);
 extern vector<mapmodelinfo> mapmodels;
 void clearmodel(char *name);
 
-const char *mdlname();
-void mdlalphatest(float cutoff);
-void mdlalphablend(bool blend);
-void mdlalphadepth(bool depth);
-void mdldepthoffset(bool offset);
-void mdlcullface(bool cullface);
-void mdlcollide(bool collide);
-void mdlellipsecollide(bool collide);
-void mdlspec(int percent);
-void mdlambient(int percent);
-void mdlglow(int percent, int delta, float pulse);
-void mdlglare(float specglare, float glowglare);
-void mdlenvmap(float envmapmax, float envmapmin, char *envmap);
-void mdlfullbright(float fullbright);
-void mdlshader(char *shader);
-void mdlspin(float yaw, float pitch);
-void mdlscale(int percent);
-void mdltrans(const vec& v);
-void mdlyaw(float angle);
-void mdlpitch(float angle);
-void mdlshadow(bool shadow);
-void mdlbb(float rad, float h, float eyeheight);
-void mdlextendbb(const vec& extend);
-void mdlperentitycollisionboxes(bool val);
-void rdvert(const vec& o, float radius);
-void rdeye(int v);
-void rdtri(int v1, int v2, int v3);
-void rdjoint(int n, int t, int v1, int v2, int v3);
-void rdlimitdist(int v1, int v2, float mindist, float maxdist);
-void rdlimitrot(int t1, int t2, float maxangle, float qx, float qy, float qz, float qw);
-void rdanimjoints(bool on);
-
-void clearmodel(char *name);
-
 VARP(ragdoll, 0, 1, 1);
 
 namespace lapi_binds
@@ -46,97 +12,6 @@ namespace lapi_binds
     void _lua_mapmodel     (const char *name) { mmodel((char*)name);       }
     int  _lua_nummapmodels (                ) { return mapmodels.length(); }
     void _lua_clearmodel   (const char *name) { clearmodel((char*)name);   }
-
-    void _lua_mdlname      (            ) { mdlname();            }
-    void _lua_mdlalphatest (float cutoff) { mdlalphatest(cutoff); }
-    void _lua_mdlalphablend(bool   blend) { mdlalphablend(blend); }
-    void _lua_mdlalphadepth(bool   depth) { mdlalphadepth(depth); }
-
-    void _lua_mdlbb(float rad, float h, float eh) { mdlbb(rad, h, eh); }
-    void _lua_mdlextendbb(float x, float y, float z) { mdlextendbb(vec(x, y, z)); }
-
-    void _lua_mdlscale(int percent) { mdlscale(percent); }
-    void _lua_mdlspec (int percent) { mdlspec (percent); }
-
-    void _lua_mdlglow(int percent, int delta, float pulse)
-    {
-        mdlglow(percent, delta, pulse);
-    }
-
-    void _lua_mdlglare(float specg, float lowg)
-    {
-        mdlglare(specg, lowg);
-    }
-
-    void _lua_mdlambient(int percent)
-    {
-        mdlambient(percent);
-    }
-
-    void _lua_mdlcullface(bool cf)
-    {
-        mdlcullface(cf);
-    }
-
-    void _lua_mdldepthoffset(bool doff)
-    {
-        mdldepthoffset(doff);
-    }
-
-    void _lua_mdlfullbright(float fb)
-    {
-        mdlfullbright(fb);
-    }
-
-    void _lua_mdlspin(float yaw, float pitch)
-    {
-        mdlspin(yaw, pitch);
-    }
-
-    void _lua_mdlenvmap(float emax, float emin, const char *emap)
-    {
-        mdlenvmap(emax, emin, (char*)emap);
-    }
-
-    void _lua_mdlshader (const char *shd) { mdlshader((char*)shd); }
-    void _lua_mdltrans  (float x, float y, float z) { mdltrans(vec(x, y, z)); }
-    void _lua_mdlyaw    (float       yaw) { mdlyaw(yaw);           }
-    void _lua_mdlpitch  (float     pitch) { mdlpitch(pitch);       }
-    void _lua_mdlshadow (bool          s) { mdlshadow(s);          }
-    void _lua_mdlcollide(bool          c) { mdlcollide(c);         }
-
-    void _lua_mdlperentitycollisionboxes(bool p)
-    {
-        mdlperentitycollisionboxes(p);
-    }
-
-    void _lua_mdlellipsecollide(bool c)
-    {
-        mdlellipsecollide(c);
-    }
-
-    void _lua_rdvert(float x, float y, float z, float rad) { rdvert(vec(x, y, z), rad); }
-    void _lua_rdeye (int                  v) { rdeye (v);          }
-    void _lua_rdtri (int v1, int v2, int v3) { rdtri (v1, v2, v3); }
-
-    void _lua_rdjoint(int n, int t, int v1, int v2, int v3)
-    {
-        rdjoint(n, t, v1, v2, v3);
-    }
-
-    void _lua_rdlimitdist(int v1, int v2, float mind, float maxd)
-    {
-        rdlimitdist(v1, v2, mind, maxd);
-    }
-
-    void _lua_rdlimitrot(
-        int t1, int t2, float ma, float qx, float qy, float qz, float qw
-    )
-    {
-        rdlimitrot(t1, t2, ma, qx, qy, qz, qw);
-    }
-
-    void _lua_rdanimjoints(bool a) { rdanimjoints(a); }
 
     void _lua_preloadmodel(const char *name) { preloadmodel(name); }
 
@@ -326,37 +201,6 @@ namespace lapi_binds
     LAPI_EMPTY(mapmodel)
     LAPI_EMPTY(nummapmodels)
     LAPI_EMPTY(clearmodel)
-    LAPI_EMPTY(mdlname)
-    LAPI_EMPTY(mdlalphatest)
-    LAPI_EMPTY(mdlalphablend)
-    LAPI_EMPTY(mdlalphadepth)
-    LAPI_EMPTY(mdlbb)
-    LAPI_EMPTY(mdlextendbb)
-    LAPI_EMPTY(mdlscale)
-    LAPI_EMPTY(mdlspec)
-    LAPI_EMPTY(mdlglow)
-    LAPI_EMPTY(mdlglare)
-    LAPI_EMPTY(mdlambient)
-    LAPI_EMPTY(mdlcullface)
-    LAPI_EMPTY(mdldepthoffset)
-    LAPI_EMPTY(mdlfullbright)
-    LAPI_EMPTY(mdlspin)
-    LAPI_EMPTY(mdlenvmap)
-    LAPI_EMPTY(mdlshader)
-    LAPI_EMPTY(mdltrans)
-    LAPI_EMPTY(mdlyaw)
-    LAPI_EMPTY(mdlpitch)
-    LAPI_EMPTY(mdlshadow)
-    LAPI_EMPTY(mdlcollide)
-    LAPI_EMPTY(mdlperentitycollisionboxes)
-    LAPI_EMPTY(mdlellipsecollide)
-    LAPI_EMPTY(rdvert)
-    LAPI_EMPTY(rdeye)
-    LAPI_EMPTY(rdtri)
-    LAPI_EMPTY(rdjoint)
-    LAPI_EMPTY(rdlimitdist)
-    LAPI_EMPTY(rdlimitrot)
-    LAPI_EMPTY(rdanimjoints)
     LAPI_EMPTY(preloadmodel)
     LAPI_EMPTY(reloadmodel)
     LAPI_EMPTY(rendermodel)
@@ -372,37 +216,6 @@ namespace lapi_binds
         LAPI_REG(mapmodel);
         LAPI_REG(nummapmodels);
         LAPI_REG(clearmodel);
-        LAPI_REG(mdlname);
-        LAPI_REG(mdlalphatest);
-        LAPI_REG(mdlalphablend);
-        LAPI_REG(mdlalphadepth);
-        LAPI_REG(mdlbb);
-        LAPI_REG(mdlextendbb);
-        LAPI_REG(mdlscale);
-        LAPI_REG(mdlspec);
-        LAPI_REG(mdlglow);
-        LAPI_REG(mdlglare);
-        LAPI_REG(mdlambient);
-        LAPI_REG(mdlcullface);
-        LAPI_REG(mdldepthoffset);
-        LAPI_REG(mdlfullbright);
-        LAPI_REG(mdlspin);
-        LAPI_REG(mdlenvmap);
-        LAPI_REG(mdlshader);
-        LAPI_REG(mdltrans);
-        LAPI_REG(mdlyaw);
-        LAPI_REG(mdlpitch);
-        LAPI_REG(mdlshadow);
-        LAPI_REG(mdlcollide);
-        LAPI_REG(mdlperentitycollisionboxes);
-        LAPI_REG(mdlellipsecollide);
-        LAPI_REG(rdvert);
-        LAPI_REG(rdeye);
-        LAPI_REG(rdtri);
-        LAPI_REG(rdjoint);
-        LAPI_REG(rdlimitdist);
-        LAPI_REG(rdlimitrot);
-        LAPI_REG(rdanimjoints);
         LAPI_REG(preloadmodel);
         LAPI_REG(reloadmodel);
         LAPI_REG(rendermodel);

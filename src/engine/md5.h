@@ -111,7 +111,7 @@ struct md5 : skelmodel, skelloader<md5>
                         part *p = loading->parts.last();
                         p->initskins(notexture, notexture, group->meshes.length());
                         skin &s = p->skins.last();
-                        s.tex = textureload(makerelpath(dir.get_buf(), texname), 0, true, false);
+                        s.tex = textureload(makerelpath(dir, texname), 0, true, false);
                         delete[] texname;
                     }
                 }
@@ -421,12 +421,12 @@ struct md5 : skelmodel, skelloader<md5>
     bool load()
     {
         if(loaded) return true;
-        dir.format("data/models/%s", loadname);
-        defformatstring(cfgname)("data/models/%s/md5.lua", loadname); // INTENSITY
+        formatstring(dir)("data/models/%s", loadname);
+        defformatstring(cfgname)("data/models/%s/md5.cfg", loadname);
 
         loading = this;
         identflags &= ~IDF_PERSIST;
-        if(tools::execfile(cfgname, false) && parts.length()) // configured md5, will call the md5* commands below
+        if(execfile(cfgname, false) && parts.length()) // configured md5, will call the md5* commands below
         {
             identflags |= IDF_PERSIST;
             loading = NULL;
@@ -453,8 +453,5 @@ struct md5 : skelmodel, skelloader<md5>
     }
 };
 
-lua::Table md5commands()
-{
-    skelcommands<md5> cmds;
-    return cmds.module;
-}
+skelcommands<md5> md5commands;
+

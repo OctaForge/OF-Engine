@@ -136,7 +136,7 @@ struct md3 : vertmodel, vertloader<md3>
                 {
                     f->read(&tag, sizeof(md3tag));
                     lilswap(&tag.pos.x, 12);
-                    if(tag.name && tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
+                    if(tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
                     matrix3x4 &m = tags[i].transform;
                     tag.pos.y *= -1;
                     // undo the -y
@@ -200,12 +200,12 @@ struct md3 : vertmodel, vertloader<md3>
     bool load()
     {
         if(loaded) return true;
-        dir.format("data/models/%s", loadname);
-        defformatstring(cfgname)("data/models/%s/md3.lua", loadname); // OF
+        formatstring(dir)("data/models/%s", loadname);
+        defformatstring(cfgname)("data/models/%s/md3.cfg", loadname);
 
         loading = this;
         identflags &= ~IDF_PERSIST;
-        if(tools::execfile(cfgname, false) && parts.length()) // OF configured md3, will call the md3* commands below
+        if(execfile(cfgname, false) && parts.length()) // configured md3, will call the md3* commands below
         {
             identflags |= IDF_PERSIST;
             loading = NULL;
@@ -224,8 +224,5 @@ struct md3 : vertmodel, vertloader<md3>
     }
 };
 
-lua::Table md3commands()
-{
-    vertcommands<md3> cmds;
-    return cmds.module;
-}
+vertcommands<md3> md3commands;
+

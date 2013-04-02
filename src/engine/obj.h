@@ -192,12 +192,12 @@ struct obj : vertmodel, vertloader<obj>
     bool load()
     { 
         if(loaded) return true;
-        dir.format("data/models/%s", loadname);
-        defformatstring(cfgname)("data/models/%s/obj.lua", loadname); // INTENSITY
+        formatstring(dir)("data/models/%s", loadname);
+        defformatstring(cfgname)("data/models/%s/obj.cfg", loadname);
 
         loading = this;
         identflags &= ~IDF_PERSIST;
-        if(tools::execfile(cfgname, false) && parts.length()) // INTENSITY configured obj, will call the obj* commands below
+        if(execfile(cfgname, false) && parts.length()) // configured obj, will call the obj* commands below
         {
             identflags |= IDF_PERSIST;
             loading = NULL;
@@ -216,8 +216,5 @@ struct obj : vertmodel, vertloader<obj>
     }
 };
 
-lua::Table objcommands()
-{
-    vertcommands<obj> cmds;
-    return cmds.module;
-}
+vertcommands<obj> objcommands;
+
