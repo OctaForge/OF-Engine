@@ -328,9 +328,11 @@ if CLIENT then ffi.cdef [[
     void gl_shader_hud_set();
     void gl_shader_hudnotexture_set();
 
+    void gl_scissor_enable();
+    void gl_scissor_disable();
     void gl_scissor(int x, int y, int w, int h);
-    void gl_enable(uint cap);
-    void gl_disable(uint cap);
+    void gl_blend_enable();
+    void gl_blend_disable();
     void gl_blend_func(uint sf, uint df);
     void gl_bind_texture(Texture *tex);
     void gl_texture_param(uint pn, int pr);

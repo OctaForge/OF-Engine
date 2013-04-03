@@ -251,16 +251,24 @@ extern "C" {
         hudnotextureshader->set();
     }
 
+    void gl_scissor_enable() {
+        glEnable(GL_SCISSOR_TEST);
+    }
+
+    void gl_scissor_disable() {
+        glDisable(GL_SCISSOR_TEST);
+    }
+
     void gl_scissor(int x, int y, int w, int h) {
         glScissor(x, y, w, h);
     }
 
-    void gl_enable(uint cap) {
-        glEnable(cap);
+    void gl_blend_enable() {
+        glEnable(GL_BLEND);
     }
 
-    void gl_disable(uint cap) {
-        glDisable(cap);
+    void gl_blend_disable() {
+        glDisable(GL_BLEND);
     }
 
     void gl_blend_func(uint sf, uint df) {

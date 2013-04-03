@@ -234,7 +234,7 @@ local clip_stack = {}
 
 local clip_push = function(x, y, w, h)
     local l = #clip_stack
-    if    l == 0 then EAPI.gl_enable(gl.SCISSOR_TEST) end
+    if    l == 0 then EAPI.gl_scissor_enable() end
 
     local c = { x, y, x + w, y + h }
 
@@ -249,7 +249,7 @@ local clip_pop = function()
     table.remove(clip_stack)
 
     local l = #clip_stack
-    if    l == 0 then EAPI.gl_disable(gl.SCISSOR_TEST)
+    if    l == 0 then EAPI.gl_scissor_disable()
     else clip_area_scissor(clip_stack[l])
     end
 end
@@ -3981,7 +3981,7 @@ ext.gl_render = function()
             EAPI.hudmatrix_reset()
             EAPI.gl_shader_hud_set()
 
-            EAPI.gl_enable(gl.BLEND)
+            EAPI.gl_blend_enable()
             EAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
             EAPI.varray_color3f(1, 1, 1)
@@ -4025,7 +4025,7 @@ ext.gl_render = function()
                 end
             end
 
-            EAPI.gl_disable(gl.BLEND)
+            EAPI.gl_scissor_disable()
             EAPI.varray_disable()
         end
     end
