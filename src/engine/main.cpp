@@ -1217,8 +1217,6 @@ int main(int argc, char **argv)
     notexture = textureload("data/textures/core/notexture.png");
     if(!notexture) fatal("could not find core textures");
 
-    lapi::state.get<lua::Function>("external", "gl_init")();
-
     initlog("console");
 
     if(!execfile("data/cfg/stdlib.cfg", false)) fatal("cannot load cubescript stdlib");

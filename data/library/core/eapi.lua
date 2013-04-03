@@ -43,11 +43,6 @@ ffi.cdef [[
 ]]
 
 if CLIENT then ffi.cdef [[
-    void *base_gl_get_proc_address(const char *proc);
-
-    void base_shader_hud_set();
-    void base_shader_hudnotexture_set();
-
     enum {
         BASE_CHANGE_GFX     = 1 << 0,
         BASE_CHANGE_SOUND   = 1 << 1,
@@ -303,40 +298,13 @@ if CLIENT then ffi.cdef [[
     void gui_draw_text(const char *str, int left, int top,
         int r, int g, int b, int a, int cur, int maxw);
 
-    /* OpenGL types */
-
-    typedef unsigned int GLenum;
-    typedef unsigned char GLboolean;
-    typedef unsigned int GLbitfield;
-    typedef signed char GLbyte;
-    typedef short GLshort;
-    typedef int GLint;
-    typedef int GLsizei;
-    typedef unsigned char GLubyte;
-    typedef unsigned short GLushort;
-    typedef unsigned int GLuint;
-    typedef float GLfloat;
-    typedef float GLclampf;
-    typedef double GLdouble;
-    typedef double GLclampd;
-    typedef void GLvoid;
-    typedef long GLintptr;
-    typedef long GLsizeiptr;
-    typedef char GLchar;
-    typedef char GLcharARB;
-    typedef void *GLhandleARB;
-    typedef long GLintptrARB;
-    typedef long GLsizeiptrARB;
-    typedef unsigned short GLhalfARB;
-    typedef unsigned short GLhalf;
-
     /* Textures */
 
     typedef struct Texture {
         char *name;
         int type, w, h, xs, ys, bpp, clamp;
         bool mipmap, canreduce;
-        GLuint id;
+        uint id;
         uchar *alphamask;
     } Texture;
 
@@ -355,9 +323,21 @@ if CLIENT then ffi.cdef [[
     void hudmatrix_scale(float x, float y, float z);
     void hudmatrix_ortho(float l, float r, float b, float t, float zn, float zf);
 
+    /* gl */
+
+    void gl_shader_hud_set();
+    void gl_shader_hudnotexture_set();
+
+    void gl_scissor(int x, int y, int w, int h);
+    void gl_enable(uint cap);
+    void gl_disable(uint cap);
+    void gl_blend_func(uint sf, uint df);
+    void gl_bind_texture(uint tg, uint tex);
+    void gl_texture_param(uint tg, uint pn, int pr);
+
     /* varray */
 
-    void varray_begin(GLenum mode);
+    void varray_begin(uint mode);
     void varray_defattribs(const char *fmt);
     void varray_defattrib(int type, int size, int format);
 

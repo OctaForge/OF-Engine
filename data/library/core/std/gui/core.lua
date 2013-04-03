@@ -227,14 +227,14 @@ local clip_area_scissor = function(self)
         clamp(ceil ((self[3] + margin) / (1 + 2 * margin) * scr_w), 0, scr_w),
         clamp(ceil ( self[4] * scr_h), 0, scr_h)
 
-    gl.Scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
+    EAPI.gl_scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
 end
 
 local clip_stack = {}
 
 local clip_push = function(x, y, w, h)
     local l = #clip_stack
-    if    l == 0 then gl.Enable(gl.SCISSOR_TEST) end
+    if    l == 0 then EAPI.gl_enable(gl.SCISSOR_TEST) end
 
     local c = { x, y, x + w, y + h }
 
@@ -249,7 +249,7 @@ local clip_pop = function()
     table.remove(clip_stack)
 
     local l = #clip_stack
-    if    l == 0 then gl.Disable(gl.SCISSOR_TEST)
+    if    l == 0 then EAPI.gl_disable(gl.SCISSOR_TEST)
     else clip_area_scissor(clip_stack[l])
     end
 end
@@ -2083,8 +2083,8 @@ local Rectangle = Filler:clone {
     draw = function(self, sx, sy)
         local w, h, solid = self.p_w, self.p_h, self.p_solid
 
-        if not solid then gl.BlendFunc(gl.ZERO, gl.SRC_COLOR) end
-        EAPI.base_shader_hudnotexture_set()
+        if not solid then EAPI.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        EAPI.gl_shader_hudnotexture_set()
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         EAPI.varray_defvertex(2, gl.FLOAT)
@@ -2097,9 +2097,9 @@ local Rectangle = Filler:clone {
 
         EAPI.varray_end()
         EAPI.varray_color4f(1, 1, 1, 1)
-        EAPI.base_shader_hud_set()
+        EAPI.gl_shader_hud_set()
         if not solid then
-            gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            EAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
 
         return Filler.draw(self, sx, sy)
@@ -2187,13 +2187,13 @@ Image = Filler:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        gl.BindTexture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
 
         if minf and minf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2284,13 +2284,13 @@ local Cropped_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        gl.BindTexture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
 
         if minf and minf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2334,13 +2334,13 @@ local Stretched_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        gl.BindTexture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
 
         if minf and minf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2447,13 +2447,13 @@ local Bordered_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        gl.BindTexture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
 
         if minf and minf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2520,13 +2520,13 @@ local Tiled_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        gl.BindTexture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
 
         if minf and minf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -3587,7 +3587,7 @@ local Text_Editor = Object:clone {
                     pex = self.pixel_width
                 end
 
-                EAPI.base_shader_hudnotexture_set()
+                EAPI.gl_shader_hudnotexture_set()
                 EAPI.varray_color3ub(0xA0, 0x80, 0x80)
                 EAPI.varray_defvertex(2, gl.FLOAT)
                 EAPI.varray_begin(gl.QUADS)
@@ -3613,7 +3613,7 @@ local Text_Editor = Object:clone {
                     EAPI.varray_attrib2f(x + pex, y + pey)
                 end
                 EAPI.varray_end()
-                EAPI.base_shader_hud_set()
+                EAPI.gl_shader_hud_set()
             end
         end
 
@@ -3632,7 +3632,7 @@ local Text_Editor = Object:clone {
 
             -- line wrap indicator
             if self.line_wrap and height > EV.fonth then
-                EAPI.base_shader_hudnotexture_set()
+                EAPI.gl_shader_hudnotexture_set()
                 EAPI.varray_color3ub(0x80, 0xA0, 0x80)
                 EAPI.varray_defvertex(2, gl.FLOAT)
                 EAPI.varray_begin(gl.GL_TRIANGLE_STRIP)
@@ -3641,7 +3641,7 @@ local Text_Editor = Object:clone {
                 EAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
                 EAPI.varray_attrib2f(x - EV.fontw / 2, y + h + height)
                 EAPI.varray_end()
-                EAPI.base_shader_hud_set()
+                EAPI.gl_shader_hud_set()
             end
 
             h = h + height
@@ -3979,10 +3979,10 @@ ext.gl_render = function()
         if #w.p_children ~= 0 then
             EAPI.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
             EAPI.hudmatrix_reset()
-            EAPI.base_shader_hud_set()
+            EAPI.gl_shader_hud_set()
 
-            gl.Enable(gl.BLEND)
-            gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            EAPI.gl_enable(gl.BLEND)
+            EAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
             EAPI.varray_color3f(1, 1, 1)
             w:draw()
@@ -4025,7 +4025,7 @@ ext.gl_render = function()
                 end
             end
 
-            gl.Disable(gl.BLEND)
+            EAPI.gl_disable(gl.BLEND)
             EAPI.varray_disable()
         end
     end

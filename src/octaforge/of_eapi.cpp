@@ -29,22 +29,6 @@ extern "C" {
         conoutf("\f1%s", msg);
     }
 
-#ifdef CLIENT
-
-    void *base_gl_get_proc_address(const char *proc) {
-        return SDL_GL_GetProcAddress(proc);
-    }
-
-    void base_shader_hud_set() {
-        hudshader->set();
-    }
-
-    void base_shader_hudnotexture_set() {
-        hudnotextureshader->set();
-    }
-
-#endif
-
     /* zlib compression */
 
     ulong zlib_compress_bound(ulong src_len) {
@@ -257,9 +241,43 @@ extern "C" {
         hudmatrix.ortho(l, r, b, t, zn, zf);
     }
 
+    /* gl */
+
+    void gl_shader_hud_set() {
+        hudshader->set();
+    }
+
+    void gl_shader_hudnotexture_set() {
+        hudnotextureshader->set();
+    }
+
+    void gl_scissor(int x, int y, int w, int h) {
+        glScissor(x, y, w, h);
+    }
+
+    void gl_enable(uint cap) {
+        glEnable(cap);
+    }
+
+    void gl_disable(uint cap) {
+        glDisable(cap);
+    }
+
+    void gl_blend_func(uint sf, uint df) {
+        glBlendFunc(sf, df);
+    }
+
+    void gl_bind_texture(uint tg, uint tex) {
+        glBindTexture(tg, tex);
+    }
+
+    void gl_texture_param(uint tg, uint pn, int pr) {
+        glTexParameteri(tg, pn, pr);
+    }
+
     /* varray */
 
-    void varray_begin(GLenum mode) { varray::begin(mode); }
+    void varray_begin(uint mode) { varray::begin(mode); }
     void varray_defattribs(const char *fmt) { varray::defattribs(fmt); }
     void varray_defattrib(int type, int size, int format) { varray::defattrib(type, size, format); }
 
