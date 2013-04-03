@@ -2187,13 +2187,13 @@ Image = Filler:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2284,13 +2284,13 @@ local Cropped_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2334,13 +2334,13 @@ local Stretched_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2447,13 +2447,13 @@ local Bordered_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2520,13 +2520,13 @@ local Tiled_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(gl.TEXTURE_2D, tex.id)
+        EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)

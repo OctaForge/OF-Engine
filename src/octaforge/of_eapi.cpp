@@ -267,12 +267,12 @@ extern "C" {
         glBlendFunc(sf, df);
     }
 
-    void gl_bind_texture(uint tg, uint tex) {
-        glBindTexture(tg, tex);
+    void gl_bind_texture(Texture *tex) {
+        glBindTexture(GL_TEXTURE_2D, tex->id);
     }
 
-    void gl_texture_param(uint tg, uint pn, int pr) {
-        glTexParameteri(tg, pn, pr);
+    void gl_texture_param(uint pn, int pr) {
+        glTexParameteri(GL_TEXTURE_2D, pn, pr);
     }
 
     /* varray */

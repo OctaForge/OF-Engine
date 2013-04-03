@@ -332,8 +332,8 @@ if CLIENT then ffi.cdef [[
     void gl_enable(uint cap);
     void gl_disable(uint cap);
     void gl_blend_func(uint sf, uint df);
-    void gl_bind_texture(uint tg, uint tex);
-    void gl_texture_param(uint tg, uint pn, int pr);
+    void gl_bind_texture(Texture *tex);
+    void gl_texture_param(uint pn, int pr);
 
     /* varray */
 
