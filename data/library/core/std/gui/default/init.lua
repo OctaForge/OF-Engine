@@ -138,21 +138,21 @@ local Window = function(kwargs)
                     core.Spacer {
                         core.Image {
                             file = gip("btn_min.png"),
-                            min_filter = gl.NEAREST, mag_filter = gl.NEAREST
+                            min_filter = EAPI.GL_NEAREST, mag_filter = EAPI.GL_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002
                     },
                     core.Spacer {
                         core.Image {
                             file = gip("btn_max.png"),
-                            min_filter = gl.NEAREST, mag_filter = gl.NEAREST
+                            min_filter = EAPI.GL_NEAREST, mag_filter = EAPI.GL_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002
                     },
                     core.Spacer {
                         core.Image {
                             file = gip("btn_close.png"),
-                            min_filter = gl.NEAREST, mag_filter = gl.NEAREST
+                            min_filter = EAPI.GL_NEAREST, mag_filter = EAPI.GL_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002,
                     },
