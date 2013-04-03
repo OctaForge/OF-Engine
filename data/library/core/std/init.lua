@@ -24,9 +24,6 @@ require("std.events")
 
 if CLIENT then
 
-#log(DEBUG, ":: GFX scripting.")
-require("std.gfx")
-
 #log(DEBUG, ":: GUI system.")
 require("std.gui")
 

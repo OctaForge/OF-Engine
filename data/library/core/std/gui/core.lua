@@ -410,8 +410,8 @@ Object = table.Object:clone {
             if type(p) == "string" then
                 self.p_pointer = Image {
                     file = p,
-                    min_filter = gl.NEAREST,
-                    mag_filter = gl.NEAREST
+                    min_filter = EAPI.GL_NEAREST,
+                    mag_filter = EAPI.GL_NEAREST
                 }
             else
                 self.p_pointer = p
@@ -2083,12 +2083,12 @@ local Rectangle = Filler:clone {
     draw = function(self, sx, sy)
         local w, h, solid = self.p_w, self.p_h, self.p_solid
 
-        if not solid then EAPI.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        if not solid then EAPI.gl_blend_func(EAPI.GL_ZERO, EAPI.GL_SRC_COLOR) end
         EAPI.gl_shader_hudnotexture_set()
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2, gl.FLOAT)
-        EAPI.varray_begin(gl.TRIANGLE_STRIP)
+        EAPI.varray_defvertex(2)
+        EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
 
         EAPI.varray_attrib2f(sx,     sy)
         EAPI.varray_attrib2f(sx + w, sy)
@@ -2099,7 +2099,7 @@ local Rectangle = Filler:clone {
         EAPI.varray_color4f(1, 1, 1, 1)
         EAPI.gl_shader_hud_set()
         if not solid then
-            EAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            EAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
         end
 
         return Filler.draw(self, sx, sy)
@@ -2190,17 +2190,17 @@ Image = Filler:clone {
         EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2, gl.FLOAT)
-        EAPI.varray_deftexcoord0(2, gl.FLOAT)
-        EAPI.varray_begin(gl.TRIANGLE_STRIP)
+        EAPI.varray_defvertex(2)
+        EAPI.varray_deftexcoord0(2)
+        EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h)
         EAPI.varray_end()
 
@@ -2287,17 +2287,17 @@ local Cropped_Image = Image:clone {
         EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2, gl.FLOAT)
-        EAPI.varray_deftexcoord0(2, gl.FLOAT)
-        EAPI.varray_begin(gl.TRIANGLE_STRIP)
+        EAPI.varray_defvertex(2)
+        EAPI.varray_deftexcoord0(2)
+        EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h,
             self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
         EAPI.varray_end()
@@ -2337,17 +2337,17 @@ local Stretched_Image = Image:clone {
         EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2, gl.FLOAT)
-        EAPI.varray_deftexcoord0(2, gl.FLOAT)
-        EAPI.varray_begin(gl.QUADS)
+        EAPI.varray_defvertex(2)
+        EAPI.varray_deftexcoord0(2)
+        EAPI.varray_begin(EAPI.GL_QUADS)
 
         local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.p_w, self.p_h
 
@@ -2450,17 +2450,17 @@ local Bordered_Image = Image:clone {
         EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2, gl.FLOAT)
-        EAPI.varray_deftexcoord0(2, gl.FLOAT)
-        EAPI.varray_begin(gl.QUADS)
+        EAPI.varray_defvertex(2)
+        EAPI.varray_deftexcoord0(2)
+        EAPI.varray_begin(EAPI.GL_QUADS)
 
         local vy, ty = sy, 0
         for i = 1, 3 do
@@ -2523,10 +2523,10 @@ local Tiled_Image = Image:clone {
         EAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2537,9 +2537,9 @@ local Tiled_Image = Image:clone {
         -- repeat with clamped textures
         if tex.clamp ~= 0 then
             local dx, dy = 0, 0
-            EAPI.varray_defvertex(2, gl.FLOAT)
-            EAPI.varray_deftexcoord0(2, gl.FLOAT)
-            EAPI.varray_begin(gl.QUADS)
+            EAPI.varray_defvertex(2)
+            EAPI.varray_deftexcoord0(2)
+            EAPI.varray_begin(EAPI.GL_QUADS)
             while dx < pw do
                 while dy < ph do
                     local dw, dh = min(tw, pw - dx), min(th, ph - dy)
@@ -2550,9 +2550,9 @@ local Tiled_Image = Image:clone {
             end
             EAPI.varray_end()
         else
-            EAPI.varray_defvertex(2, gl.FLOAT)
-            EAPI.varray_deftexcoord0(2, gl.FLOAT)
-            EAPI.varray_begin(gl.TRIANGLE_STRIP)
+            EAPI.varray_defvertex(2)
+            EAPI.varray_deftexcoord0(2)
+            EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
             EAPI.varray_end()
         end
@@ -3589,8 +3589,8 @@ local Text_Editor = Object:clone {
 
                 EAPI.gl_shader_hudnotexture_set()
                 EAPI.varray_color3ub(0xA0, 0x80, 0x80)
-                EAPI.varray_defvertex(2, gl.FLOAT)
-                EAPI.varray_begin(gl.QUADS)
+                EAPI.varray_defvertex(2)
+                EAPI.varray_begin(EAPI.GL_QUADS)
                 if psy == pey then
                     EAPI.varray_attrib2f(x + psx, y + psy)
                     EAPI.varray_attrib2f(x + pex, y + psy)
@@ -3634,8 +3634,8 @@ local Text_Editor = Object:clone {
             if self.line_wrap and height > EV.fonth then
                 EAPI.gl_shader_hudnotexture_set()
                 EAPI.varray_color3ub(0x80, 0xA0, 0x80)
-                EAPI.varray_defvertex(2, gl.FLOAT)
-                EAPI.varray_begin(gl.GL_TRIANGLE_STRIP)
+                EAPI.varray_defvertex(2)
+                EAPI.varray_begin(EAPI.GL_GL_TRIANGLE_STRIP)
                 EAPI.varray_attrib2f(x,                y + h + EV.fonth)
                 EAPI.varray_attrib2f(x,                y + h + height)
                 EAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
@@ -3982,7 +3982,7 @@ ext.gl_render = function()
             EAPI.gl_shader_hud_set()
 
             EAPI.gl_blend_enable()
-            EAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            EAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
 
             EAPI.varray_color3f(1, 1, 1)
             w:draw()

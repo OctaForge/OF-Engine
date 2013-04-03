@@ -286,24 +286,16 @@ extern "C" {
     /* varray */
 
     void varray_begin(uint mode) { varray::begin(mode); }
-    void varray_defattribs(const char *fmt) { varray::defattribs(fmt); }
-    void varray_defattrib(int type, int size, int format) { varray::defattrib(type, size, format); }
-
     int varray_end() { return varray::end(); }
     void varray_disable() { varray::disable(); }
-    void varray_cleanup() { varray::cleanup(); }
 
     #define EAPI_VARRAY_DEFATTRIB(name) \
-        void varray_def##name(int size, int format) { varray::def##name(size, format); }
+        void varray_def##name(int size) { varray::def##name(size, GL_FLOAT); }
 
     EAPI_VARRAY_DEFATTRIB(vertex)
     EAPI_VARRAY_DEFATTRIB(color)
     EAPI_VARRAY_DEFATTRIB(texcoord0)
     EAPI_VARRAY_DEFATTRIB(texcoord1)
-    EAPI_VARRAY_DEFATTRIB(normal)
-    EAPI_VARRAY_DEFATTRIB(tangent)
-    EAPI_VARRAY_DEFATTRIB(boneweight)
-    EAPI_VARRAY_DEFATTRIB(boneindex)
 
     #define EAPI_VARRAY_INITATTRIB(name) \
         void varray_##name##1f(float x) { varray::name##f(x); } \
@@ -321,9 +313,6 @@ extern "C" {
         void varray_##name##4##suffix(type x, type y, type z, type w) { varray::name##suffix(x, y, z, w); }
 
     EAPI_VARRAY_INITATTRIBN(color, ub, uchar)
-
-    void varray_normal(float x, float y, float z) { varray::normal(x, y, z); }
-    void varray_tangent(float x, float y, float z, float w) { varray::tangent(x, y, z, w); }
 
     #define EAPI_VARRAY_ATTRIB(suffix, type) \
         void varray_attrib##1##suffix(type x) { varray::attrib##suffix(x); } \
