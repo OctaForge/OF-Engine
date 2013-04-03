@@ -318,7 +318,7 @@ world:append(gui.core.Conditional {
         local wh = external.cursor_exists() or
             EV.mouselook == 0
 
-        if not wh and not (EV.hidehud == 1 or EAPI.gui_mainmenu) then
+        if not wh and not (EV.hidehud ~= 0 or EV.mainmenu ~= 0) then
             return true
         end
 

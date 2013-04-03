@@ -418,7 +418,7 @@ void updatesounds()
     updatemumble();
     if(nosound) return;
     if(minimized) stopsounds();
-    else if(gui_mainmenu) stopmapsounds();
+    else if(mainmenu) stopmapsounds();
     else checkmapsounds();
     int dirty = 0;
     loopv(channels)

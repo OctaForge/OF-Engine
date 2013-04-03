@@ -400,7 +400,7 @@ void execbind(keym &k, bool isdown)
     if(isdown)
     {
         int state = keym::ACTION_DEFAULT;
-        if (!gui_mainmenu)
+        if (!mainmenu)
         {
             if(editmode) state = keym::ACTION_EDITING;
             else if(player->state==CS_SPECTATOR) state = keym::ACTION_SPECTATOR;

@@ -2345,7 +2345,7 @@ void gl_drawhud(int w, int h)
 
     glEnable(GL_BLEND);
 
-    if(!gui_mainmenu)
+    if(!mainmenu)
     {
         drawdamagescreen(w, h);
         drawdamagecompass(w, h);
@@ -2354,7 +2354,7 @@ void gl_drawhud(int w, int h)
     hudshader->set();
 
     int conw = int(w/conscale), conh = int(h/conscale), abovehud = conh - FONTH;
-    if(!hidehud && !gui_mainmenu)
+    if(!hidehud && !mainmenu)
     {
         if(!hidestats)
         {

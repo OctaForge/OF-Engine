@@ -451,7 +451,7 @@ void localdisconnect(bool cleanup, int cn) // INTENSITY: Added cn
 #ifdef CLIENT // INTENSITY: Added this
     if(!disconnected) return;
     game::gamedisconnect(cleanup);
-    gui_mainmenu = true;
+    mainmenu = 1;
 #endif
 }
 

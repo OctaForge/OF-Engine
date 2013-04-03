@@ -99,6 +99,8 @@ bool initwarning(const char *desc, int level, int type)
 VARF(scr_w, SCR_MINW, -1, SCR_MAXW, initwarning("screen resolution"));
 VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
 
+VAR(mainmenu, 1, 1, 0);
+
 void writeinitcfg()
 {
     stream *f = openutf8file("init.cfg", "w");
@@ -166,7 +168,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
     static int numdecals = 0;
     static struct decal { float x, y, size; int side; } decals[12];
 #endif
-    if((renderedframe && !gui_mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
+    if((renderedframe && !mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
     {
         lastupdate = lastmillis;
         lastw = w;
@@ -924,7 +926,7 @@ VARP(maxfps, 0, 200, 1000);
 
 void limitfps(int &millis, int curmillis)
 {
-    int limit = (gui_mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
+    int limit = (mainmenu || minimized) && menufps ? (maxfps ? min(maxfps, menufps) : menufps) : maxfps;
     if(!limit) return;
     static int fpserror = 0;
     int delay = 1000/limit - (millis-curmillis);
@@ -1333,11 +1335,11 @@ int main(int argc, char **argv)
 
         if(minimized) continue;
 
-        if(!gui_mainmenu && ClientSystem::scenarioStarted()) setupframe(screenw, screenh);
+        if(!mainmenu && ClientSystem::scenarioStarted()) setupframe(screenw, screenh);
 
         inbetweenframes = false;
 
-        if(gui_mainmenu) gl_drawmainmenu(screenw, screenh);
+        if(mainmenu) gl_drawmainmenu(screenw, screenh);
         else
         {
             // INTENSITY: If we have all the data we need from the server to run the game, then we can actually draw

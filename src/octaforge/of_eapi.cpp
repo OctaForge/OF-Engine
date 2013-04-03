@@ -14,8 +14,6 @@
 
 /* prototypes */
 
-bool gui_mainmenu = true;
-
 extern "C" {
     /* Core primitives */
 
@@ -202,8 +200,8 @@ extern "C" {
 
     /* GUI */
 
-    void gui_set_mainmenu(bool v) {
-        gui_mainmenu = v;
+    void gui_set_mainmenu(int v) {
+        mainmenu = v;
     }
 
     void gui_text_bounds(const char *str, int &w, int &h, int maxw) {
@@ -293,8 +291,6 @@ extern "C" {
     EAPI_VARRAY_INITATTRIB(texcoord1)
 
     #define EAPI_VARRAY_INITATTRIBN(name, suffix, type) \
-        void varray_##name##1##suffix(type x) { varray::name##suffix(x, 0xFF, 0xFF); } \
-        void varray_##name##2##suffix(type x, type y) { varray::name##suffix(x, y, 0xFF); } \
         void varray_##name##3##suffix(type x, type y, type z) { varray::name##suffix(x, y, z); } \
         void varray_##name##4##suffix(type x, type y, type z, type w) { varray::name##suffix(x, y, z, w); }
 

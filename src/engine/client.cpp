@@ -137,7 +137,7 @@ void disconnect(bool async, bool cleanup)
         conoutf("disconnected");
         game::gamedisconnect(cleanup);
 #ifdef CLIENT
-        gui_mainmenu = true;
+        mainmenu = 1;
 #endif
     }
     if(!connpeer && clienthost)

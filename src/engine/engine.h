@@ -662,7 +662,7 @@ extern bool limitsky();
 extern bool renderexplicitsky(bool outline = false);
 
 // menus
-extern bool gui_mainmenu;
+extern int mainmenu;
 
 // sound
 extern void clearmapsounds();

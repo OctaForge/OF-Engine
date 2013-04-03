@@ -489,7 +489,7 @@ void tryedit()
 {
 #ifdef CLIENT // CubeCreate
     extern int hidehud;
-    if(!editmode || hidehud || gui_mainmenu) return;
+    if(!editmode || hidehud || mainmenu) return;
     if(blendpaintmode) trypaintblendmap();
 #endif
 }

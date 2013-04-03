@@ -289,8 +289,7 @@ if CLIENT then ffi.cdef [[
 
     /* GUI */
 
-    bool gui_mainmenu;
-    void gui_set_mainmenu(bool v);
+    void gui_set_mainmenu(int v);
 
     void gui_text_bounds  (const char *str, int   &w, int   &h, int maxw);
     void gui_text_bounds_f(const char *str, float &w, float &h, int maxw);
@@ -392,8 +391,6 @@ if CLIENT then ffi.cdef [[
     void varray_texcoord13f(float x, float y, float z);
     void varray_texcoord14f(float x, float y, float z, float w);
 
-    void varray_color1ub(uchar x);
-    void varray_color2ub(uchar x, uchar y);
     void varray_color3ub(uchar x, uchar y, uchar z);
     void varray_color4ub(uchar x, uchar y, uchar z, uchar w);
 

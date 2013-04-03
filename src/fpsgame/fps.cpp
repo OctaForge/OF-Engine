@@ -588,7 +588,7 @@ namespace game
 
     bool needminimap() // you have to enable the minimap inside your map script.
     {
-        return (!gui_mainmenu && useminimap);
+        return (!mainmenu && useminimap);
     }
 
     float abovegameplayhud()

@@ -3948,8 +3948,8 @@ ext.input_keypress = function(code, isdown)
 end
 
 ext.gui_clear = function()
-    if  EAPI.gui_mainmenu and CAPI.isconnected() then
-        EAPI.gui_set_mainmenu(false)
+    if  EV.mainmenu ~= 0 and CAPI.isconnected() then
+        EAPI.gui_set_mainmenu(0)
 
         world:hide_children()
         worlds = { world }
@@ -4092,7 +4092,7 @@ end
 ext.frame_start = function()
     if not main then main = signal.emit(world, "get_main") end
 
-    if EAPI.gui_mainmenu and not CAPI.isconnected(true) and not main.p_visible then
+    if EV.mainmenu ~= 0 and not CAPI.isconnected(true) and not main.p_visible then
         main.visible = true
     end
 
