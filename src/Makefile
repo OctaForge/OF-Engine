@@ -233,11 +233,10 @@ ifeq ($(TARGET_SYS),Windows)
 endif
 
 ifeq ($(TARGET_SYS),Darwin)
-	CS_OSX_OBJ = platform_osx/macutils.o platform_osx/SDLMain.o
 	CS_OSX_INC = -I$(OSX_FRAMEWORKS)/SDL.framework/Headers
 	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL_image.framework/Headers
 	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL_mixer.framework/Headers
-	CS_OSX_LIB = -F$(OSX_FRAMEWORKS) -framework Cocoa -framework SDL \
+	CS_OSX_LIB = -F$(OSX_FRAMEWORKS) -framework SDL \
 		-framework SDL_image -framework SDL_mixer
 	CS_OSX_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(CS_OSX_INC)
 	CS_OSX_CFLAGS += -Wno-import
@@ -346,10 +345,6 @@ ifeq ($(TARGET_SYS),Windows)
 CLIENT_OBJ += $(OFTL_PATH)/src/filesystem/platform_win32.o
 else
 CLIENT_OBJ += $(OFTL_PATH)/src/filesystem/platform_posix.o
-endif
-
-ifeq ($(TARGET_SYS),Darwin)
-CLIENT_OBJ += $(CS_OSX_OBJ)
 endif
 
 CLIENT_OBJB = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
@@ -698,19 +693,6 @@ else
 endif
 
 .PRECIOUS: %/.stamp
-
-# macutils and SDLMain for Mac
-
-ifeq ($(TARGET_SYS), Darwin)
-$(OBJDIR)/client/platform_osx/macutils.o: platform_osx/macutils.mm \
-$$(@D)/.stamp
-	$(E) $(PURPLE)[objc   ]$(RRED) platform_osx/macutils.mm$(ENDCOL)
-	$(Q) $(TARGET_CXX) $(CS_OSX_CXXFLAGS) -c -o $@ platform_osx/macutils.mm
-
-$(OBJDIR)/client/platform_osx/SDLMain.o: platform_osx/SDLMain.m $$(@D)/.stamp
-	$(E) $(PURPLE)[objcxx ]$(RRED) platform_osx/SDLMain.m$(ENDCOL)
-	$(Q) $(TARGET_CC) $(CS_OSX_CFLAGS) -c -o $@ platform_osx/SDLMain.m
-endif
 
 # any C file - target platform
 
