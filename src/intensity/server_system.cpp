@@ -139,6 +139,7 @@ void glBlendFunc(GLenum sfactor, GLenum dfactor) {};
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {};
 #endif
 
+#ifndef __APPLE__
 PFNGLDELETEBUFFERSARBPROC         glDeleteBuffers_            = NULL;
 PFNGLGENBUFFERSARBPROC            glGenBuffers_               = NULL;
 PFNGLBINDBUFFERARBPROC            glBindBuffer_               = NULL;
@@ -162,6 +163,32 @@ PFNGLDRAWRANGEELEMENTSPROC        glDrawRangeElements_        = NULL;
 PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray_  = NULL;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray_ = NULL;
 PFNGLVERTEXATTRIBPOINTERPROC      glVertexAttribPointer_      = NULL;
+#else
+void glDeleteBuffers(GLsizei n, const GLuint *buffers) {};
+void glGenBuffers(GLsizei n, GLuint *buffers) {};
+void glBindBuffer(GLenum target, GLuint buffer) {};
+void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage) {};
+void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid *data) {};
+void glVertexAttrib3f(GLuint index, GLfloat v0, GLfloat v1, GLfloat v2) {};
+void glVertexAttrib4f(GLuint index, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) {};
+void glVertexAttrib4Nub(GLuint index, GLubyte v0, GLubyte v1, GLubyte v2, GLubyte v3) {};
+void glUniform1fv(GLint location, GLsizei count, const GLfloat *value) {};
+void glUniform2fv(GLint location, GLsizei count, const GLfloat *value) {};
+void glUniform3fv(GLint location, GLsizei count, const GLfloat *value) {};
+void glUniform4fv(GLint location, GLsizei count, const GLfloat *value) {};
+void glUniform1iv(GLint location, GLsizei count, const GLint *value) {};
+void glUniform2iv(GLint location, GLsizei count, const GLint *value) {};
+void glUniform3iv(GLint location, GLsizei count, const GLint *value) {};
+void glUniform4iv(GLint location, GLsizei count, const GLint *value) {};
+void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {};
+void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {};
+void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {};
+void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid *indicies) {};
+void glEnableVertexAttribArray(GLuint index) {}
+void glDisableVertexAttribArray(GLuint index) {}
+void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer) {};
+#endif
+
 PFNGLGENVERTEXARRAYSPROC          glGenVertexArrays_          = NULL;
 PFNGLDELETEVERTEXARRAYSPROC       glDeleteVertexArrays_       = NULL;
 PFNGLBINDVERTEXARRAYPROC          glBindVertexArray_          = NULL;
