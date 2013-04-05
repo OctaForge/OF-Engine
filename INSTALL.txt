@@ -45,17 +45,10 @@ with little modifications it should work everywhere.
 
 1. Open terminal window and get some dependencies to build.
 
-   .. code-block :: bash
-
-       $ sudo apt-get install build-essential libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev zlib1g-dev libcurl4-openssl-dev
-
-   If I list the dependencies (for other OSes), they are:
-
    1. build-essential - on Debian, metapackage installing GNU compiler set and a few other things.
       Basically basic things you need to build sources.
-   2. SDL dev package, SDL_image dev package, SDL_mixer dev package
+   2. SDL2 dev package, SDL2_image dev package, SDL2_mixer dev package
    3. Zlib dev libraries and headers
-   4. libcurl - pick whatever version you want
 
 2. Open a terminal, build OF:
 
@@ -108,12 +101,8 @@ Mac OS X (Darwin)
 
 1. You'll need to get some dependencies, first. (I assume you've got OF repository already downloaded)
     1. XCode SDK installed (from Mac OS X DVD or XCode developer DVD).
-    2. The needed SDL dmg files - http://www.libsdl.org/release/SDL-1.2.14.dmg , 
-       http://www.libsdl.org/projects/SDL_image/release/SDL_image-1.2.10.dmg , 
-       http://www.libsdl.org/projects/SDL_mixer/release/SDL_mixer-1.2.11.dmg
-       
-       Put the SDL.framework, SDL_mixer.framework and SDL_image.framework from the dmgs to /Library/Frameworks.
-
+    2. The needed SDL2 frameworks - put them in /Library/Frameworks
+        http://github.com/OctaForge/OF-mac
 2. Go to OF's src directory in the terminal and do
 
    .. code-block :: bash
