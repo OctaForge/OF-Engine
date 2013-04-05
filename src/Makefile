@@ -233,11 +233,11 @@ ifeq ($(TARGET_SYS),Windows)
 endif
 
 ifeq ($(TARGET_SYS),Darwin)
-	CS_OSX_INC = -I$(OSX_FRAMEWORKS)/SDL.framework/Headers
-	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL_image.framework/Headers
-	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL_mixer.framework/Headers
-	CS_OSX_LIB = -F$(OSX_FRAMEWORKS) -framework SDL \
-		-framework SDL_image -framework SDL_mixer
+	CS_OSX_INC = -I$(OSX_FRAMEWORKS)/SDL2.framework/Headers
+	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL2_image.framework/Headers
+	CS_OSX_INC += -I$(OSX_FRAMEWORKS)/SDL2_mixer.framework/Headers
+	CS_OSX_LIB = -F$(OSX_FRAMEWORKS) -framework SDL2 \
+		-framework SDL2_image -framework SDL2_mixer
 	CS_OSX_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(CS_OSX_INC)
 	CS_OSX_CFLAGS += -Wno-import
 	CS_OSX_CXXFLAGS = $(CS_OSX_CFLAGS) -fno-exceptions -fno-rtti
