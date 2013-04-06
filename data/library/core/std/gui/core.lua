@@ -15,6 +15,79 @@ local EV    = _G["EV"  ]
 
 local nullptr = _G["nullptr"]
 
+local gl = {
+    ALPHA = 0x1906,
+    ALWAYS = 0x0207,
+    BLUE = 0x1905,
+    CLAMP_TO_BORDER = 0x812D,
+    CLAMP_TO_EDGE = 0x812F,
+    COMPARE_REF_TO_TEXTURE = 0x884E,
+    CONSTANT_ALPHA = 0x8003,
+    CONSTANT_COLOR = 0x8001,
+    DST_ALPHA = 0x0304,
+    DST_COLOR = 0x0306,
+    EQUAL = 0x0202,
+    GEQUAL = 0x0206,
+    GREATER = 0x0204,
+    GREEN = 0x1904,
+    LEQUAL = 0x0203,
+    LESS = 0x0201,
+    LINEAR = 0x2601,
+    LINEAR_MIPMAP_LINEAR = 0x2703,
+    LINEAR_MIPMAP_NEAREST = 0x2701,
+    LINES = 0x0001,
+    LINE_LOOP = 0x0002,
+    LINE_STRIP = 0x0003,
+    MAX_TEXTURE_LOD_BIAS = 0x84FD,
+    MIRRORED_REPEAT = 0x8370,
+    NEAREST = 0x2600,
+    NEAREST_MIPMAP_LINEAR = 0x2702,
+    NEAREST_MIPMAP_NEAREST = 0x2700,
+    NEVER = 0x0200,
+    NONE = 0x0,
+    NOTEQUAL = 0x0205,
+    ONE = 0x1,
+    ONE_MINUS_CONSTANT_ALPHA = 0x8004,
+    ONE_MINUS_CONSTANT_COLOR = 0x8002,
+    ONE_MINUS_DST_ALPHA = 0x0305,
+    ONE_MINUS_DST_COLOR = 0x0307,
+    ONE_MINUS_SRC1_ALPHA = 0x88FB,
+    ONE_MINUS_SRC1_COLOR = 0x88FA,
+    ONE_MINUS_SRC_ALPHA = 0x0303,
+    ONE_MINUS_SRC_COLOR = 0x0301,
+    POINTS = 0x0000,
+    POLYGON = 0x0009,
+    QUADS = 0x0007,
+    QUAD_STRIP = 0x0008,
+    RED = 0x1903,
+    REPEAT = 0x2901,
+    SRC1_ALPHA = 0x8589,
+    SRC1_COLOR = 0x88F9,
+    SRC_ALPHA = 0x0302,
+    SRC_ALPHA_SATURATE = 0x0308,
+    SRC_COLOR = 0x0300,
+    TEXTURE_BASE_LEVEL = 0x813C,
+    TEXTURE_COMPARE_FUNC = 0x884D,
+    TEXTURE_COMPARE_MODE = 0x884C,
+    TEXTURE_LOD_BIAS = 0x8501,
+    TEXTURE_MAG_FILTER = 0x2800,
+    TEXTURE_MAX_LEVEL = 0x813D,
+    TEXTURE_MAX_LOD = 0x813B,
+    TEXTURE_MIN_FILTER = 0x2801,
+    TEXTURE_MIN_LOD = 0x813A,
+    TEXTURE_SWIZZLE_A = 0x8E45,
+    TEXTURE_SWIZZLE_B = 0x8E44,
+    TEXTURE_SWIZZLE_G = 0x8E43,
+    TEXTURE_SWIZZLE_R = 0x8E42,
+    TEXTURE_WRAP_R = 0x8072,
+    TEXTURE_WRAP_S = 0x2802,
+    TEXTURE_WRAP_T = 0x2803,
+    TRIANGLES = 0x0004,
+    TRIANGLE_FAN = 0x0006,
+    TRIANGLE_STRIP = 0x0005,
+    ZERO = 0x0
+}
+
 local update_var = function(varn, val)
     if not var.exists(varn) then
         return nil
@@ -410,8 +483,8 @@ Object = table.Object:clone {
             if type(p) == "string" then
                 self.p_pointer = Image {
                     file = p,
-                    min_filter = EAPI.GL_NEAREST,
-                    mag_filter = EAPI.GL_NEAREST
+                    min_filter = gl.NEAREST,
+                    mag_filter = gl.NEAREST
                 }
             else
                 self.p_pointer = p
@@ -2084,12 +2157,12 @@ local Rectangle = Filler:clone {
     draw = function(self, sx, sy)
         local w, h, solid = self.p_w, self.p_h, self.p_solid
 
-        if not solid then CAPI.gl_blend_func(EAPI.GL_ZERO, EAPI.GL_SRC_COLOR) end
+        if not solid then CAPI.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         CAPI.gl_shader_hudnotexture_set()
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         CAPI.varray_defvertex(2)
-        CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+        CAPI.varray_begin(gl.TRIANGLE_STRIP)
 
         CAPI.varray_attrib2f(sx,     sy)
         CAPI.varray_attrib2f(sx + w, sy)
@@ -2100,7 +2173,7 @@ local Rectangle = Filler:clone {
         CAPI.varray_color4f(1, 1, 1, 1)
         CAPI.gl_shader_hud_set()
         if not solid then
-            CAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
+            CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
 
         return Filler.draw(self, sx, sy)
@@ -2191,17 +2264,17 @@ Image = Filler:clone {
         CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         CAPI.varray_defvertex(2)
         CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+        CAPI.varray_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h)
         CAPI.varray_end()
 
@@ -2288,17 +2361,17 @@ local Cropped_Image = Image:clone {
         CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         CAPI.varray_defvertex(2)
         CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+        CAPI.varray_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h,
             self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
         CAPI.varray_end()
@@ -2338,17 +2411,17 @@ local Stretched_Image = Image:clone {
         CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         CAPI.varray_defvertex(2)
         CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(EAPI.GL_QUADS)
+        CAPI.varray_begin(gl.QUADS)
 
         local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.p_w, self.p_h
 
@@ -2451,17 +2524,17 @@ local Bordered_Image = Image:clone {
         CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         CAPI.varray_defvertex(2)
         CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(EAPI.GL_QUADS)
+        CAPI.varray_begin(gl.QUADS)
 
         local vy, ty = sy, 0
         for i = 1, 3 do
@@ -2524,10 +2597,10 @@ local Tiled_Image = Image:clone {
         CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2540,7 +2613,7 @@ local Tiled_Image = Image:clone {
             local dx, dy = 0, 0
             CAPI.varray_defvertex(2)
             CAPI.varray_deftexcoord0(2)
-            CAPI.varray_begin(EAPI.GL_QUADS)
+            CAPI.varray_begin(gl.QUADS)
             while dx < pw do
                 while dy < ph do
                     local dw, dh = min(tw, pw - dx), min(th, ph - dy)
@@ -2553,7 +2626,7 @@ local Tiled_Image = Image:clone {
         else
             CAPI.varray_defvertex(2)
             CAPI.varray_deftexcoord0(2)
-            CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+            CAPI.varray_begin(gl.TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
             CAPI.varray_end()
         end
@@ -3591,7 +3664,7 @@ local Text_Editor = Object:clone {
                 CAPI.gl_shader_hudnotexture_set()
                 CAPI.varray_color3ub(0xA0, 0x80, 0x80)
                 CAPI.varray_defvertex(2)
-                CAPI.varray_begin(EAPI.GL_QUADS)
+                CAPI.varray_begin(gl.QUADS)
                 if psy == pey then
                     CAPI.varray_attrib2f(x + psx, y + psy)
                     CAPI.varray_attrib2f(x + pex, y + psy)
@@ -3636,7 +3709,7 @@ local Text_Editor = Object:clone {
                 CAPI.gl_shader_hudnotexture_set()
                 CAPI.varray_color3ub(0x80, 0xA0, 0x80)
                 CAPI.varray_defvertex(2)
-                CAPI.varray_begin(EAPI.GL_GL_TRIANGLE_STRIP)
+                CAPI.varray_begin(gl.gl.TRIANGLE_STRIP)
                 CAPI.varray_attrib2f(x,                y + h + EV.fonth)
                 CAPI.varray_attrib2f(x,                y + h + height)
                 CAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
@@ -3983,7 +4056,7 @@ ext.gl_render = function()
             CAPI.gl_shader_hud_set()
 
             CAPI.gl_blend_enable()
-            CAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
+            CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
             CAPI.varray_color3f(1, 1, 1)
             w:draw()
@@ -4186,6 +4259,13 @@ return {
         if not n then return world end
         return worlds[n]
     end,
+
+    FILTER_LINEAR                 = gl.LINEAR,
+    FILTER_LINEAR_MIPMAP_LINEAR   = gl.LINEAR_MIPMAP_LINEAR,
+    FILTER_LINEAR_MIPMAP_NEAREST  = gl.LINEAR_MIPMAP_NEAREST,
+    FILTER_NEAREST                = gl.NEAREST,
+    FILTER_NEAREST_MIPMAP_LINEAR  = gl.NEAREST_MIPMAP_LINEAR,
+    FILTER_NEAREST_MIPMAP_NEAREST = gl.NEAREST_MIPMAP_NEAREST,
 
     Object = Object,
     World = World,

@@ -36,6 +36,8 @@ local M = {}
 local gip, gcp = get_image_path, get_cursor_path
 local core = gui.core
 
+local FILTER_NEAREST = core.FILTER_NEAREST
+
 local Button = function(kwargs)
     if not kwargs.label_only then
         return core.Button {
@@ -138,21 +140,21 @@ local Window = function(kwargs)
                     core.Spacer {
                         core.Image {
                             file = gip("btn_min.png"),
-                            min_filter = EAPI.GL_NEAREST, mag_filter = EAPI.GL_NEAREST
+                            min_filter = FILTER_NEAREST, mag_filter = FILTER_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002
                     },
                     core.Spacer {
                         core.Image {
                             file = gip("btn_max.png"),
-                            min_filter = EAPI.GL_NEAREST, mag_filter = EAPI.GL_NEAREST
+                            min_filter = FILTER_NEAREST, mag_filter = FILTER_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002
                     },
                     core.Spacer {
                         core.Image {
                             file = gip("btn_close.png"),
-                            min_filter = EAPI.GL_NEAREST, mag_filter = EAPI.GL_NEAREST
+                            min_filter = FILTER_NEAREST, mag_filter = FILTER_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002,
                     },
