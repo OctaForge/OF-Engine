@@ -89,6 +89,558 @@ local gl = {
     ZERO = 0x0
 }
 
+local scancode_to_keycode = function(x) return bor(x, blsh(1, 30)) end
+local char_to_byte = string.byte
+
+local scancode = {
+    UNKNOWN = 0,
+
+    A = 4,
+    B = 5,
+    C = 6,
+    D = 7,
+    E = 8,
+    F = 9,
+    G = 10,
+    H = 11,
+    I = 12,
+    J = 13,
+    K = 14,
+    L = 15,
+    M = 16,
+    N = 17,
+    O = 18,
+    P = 19,
+    Q = 20,
+    R = 21,
+    S = 22,
+    T = 23,
+    U = 24,
+    V = 25,
+    W = 26,
+    X = 27,
+    Y = 28,
+    Z = 29,
+
+    [1] = 30,
+    [2] = 31,
+    [3] = 32,
+    [4] = 33,
+    [5] = 34,
+    [6] = 35,
+    [7] = 36,
+    [8] = 37,
+    [9] = 38,
+    [0] = 39,
+
+    RETURN = 40,
+    ESCAPE = 41,
+    BACKSPACE = 42,
+    TAB = 43,
+    SPACE = 44,
+
+    MINUS = 45,
+    EQUALS = 46,
+    LEFTBRACKET = 47,
+    RIGHTBRACKET = 48,
+    BACKSLASH = 49,
+    NONUSHASH = 50,
+    SEMICOLON = 51,
+    APOSTROPHE = 52,
+    GRAVE = 53,
+    COMMA = 54,
+    PERIOD = 55,
+    SLASH = 56,
+    CAPSLOCK = 57,
+    F1 = 58,
+    F2 = 59,
+    F3 = 60,
+    F4 = 61,
+    F5 = 62,
+    F6 = 63,
+    F7 = 64,
+    F8 = 65,
+    F9 = 66,
+    F10 = 67,
+    F11 = 68,
+    F12 = 69,
+    PRINTSCREEN = 70,
+    SCROLLLOCK = 71,
+    PAUSE = 72,
+    INSERT = 73,
+    HOME = 74,
+    PAGEUP = 75,
+    DELETE = 76,
+    END = 77,
+    PAGEDOWN = 78,
+    RIGHT = 79,
+    LEFT = 80,
+    DOWN = 81,
+    UP = 82,
+
+    NUMLOCKCLEAR = 83,
+    KP_DIVIDE = 84,
+    KP_MULTIPLY = 85,
+    KP_MINUS = 86,
+    KP_PLUS = 87,
+    KP_ENTER = 88,
+    KP_1 = 89,
+    KP_2 = 90,
+    KP_3 = 91,
+    KP_4 = 92,
+    KP_5 = 93,
+    KP_6 = 94,
+    KP_7 = 95,
+    KP_8 = 96,
+    KP_9 = 97,
+    KP_0 = 98,
+    KP_PERIOD = 99,
+
+    NONUSBACKSLASH = 100,
+    APPLICATION = 101,
+    POWER = 102,
+    KP_EQUALS = 103,
+    F13 = 104,
+    F14 = 105,
+    F15 = 106,
+    F16 = 107,
+    F17 = 108,
+    F18 = 109,
+    F19 = 110,
+    F20 = 111,
+    F21 = 112,
+    F22 = 113,
+    F23 = 114,
+    F24 = 115,
+    EXECUTE = 116,
+    HELP = 117,
+    MENU = 118,
+    SELECT = 119,
+    STOP = 120,
+    AGAIN = 121,
+    UNDO = 122,
+    CUT = 123,
+    COPY = 124,
+    PASTE = 125,
+    FIND = 126,
+    MUTE = 127,
+    VOLUMEUP = 128,
+    VOLUMEDOWN = 129,
+    KP_COMMA = 133,
+    KP_EQUALSAS400 = 134,
+    INTERNATIONAL1 = 135,
+    INTERNATIONAL2 = 136,
+    INTERNATIONAL3 = 137,
+    INTERNATIONAL4 = 138,
+    INTERNATIONAL5 = 139,
+    INTERNATIONAL6 = 140,
+    INTERNATIONAL7 = 141,
+    INTERNATIONAL8 = 142,
+    INTERNATIONAL9 = 143,
+    LANG1 = 144,
+    LANG2 = 145,
+    LANG3 = 146,
+    LANG4 = 147,
+    LANG5 = 148,
+    LANG6 = 149,
+    LANG7 = 150,
+    LANG8 = 151,
+    LANG9 = 152,
+
+    ALTERASE = 153,
+    SYSREQ = 154,
+    CANCEL = 155,
+    CLEAR = 156,
+    PRIOR = 157,
+    RETURN2 = 158,
+    SEPARATOR = 159,
+    OUT = 160,
+    OPER = 161,
+    CLEARAGAIN = 162,
+    CRSEL = 163,
+    EXSEL = 164,
+
+    KP_00 = 176,
+    KP_000 = 177,
+    THOUSANDSSEPARATOR = 178,
+    DECIMALSEPARATOR = 179,
+    CURRENCYUNIT = 180,
+    CURRENCYSUBUNIT = 181,
+    KP_LEFTPAREN = 182,
+    KP_RIGHTPAREN = 183,
+    KP_LEFTBRACE = 184,
+    KP_RIGHTBRACE = 185,
+    KP_TAB = 186,
+    KP_BACKSPACE = 187,
+    KP_A = 188,
+    KP_B = 189,
+    KP_C = 190,
+    KP_D = 191,
+    KP_E = 192,
+    KP_F = 193,
+    KP_XOR = 194,
+    KP_POWER = 195,
+    KP_PERCENT = 196,
+    KP_LESS = 197,
+    KP_GREATER = 198,
+    KP_AMPERSAND = 199,
+    KP_DBLAMPERSAND = 200,
+    KP_VERTICALBAR = 201,
+    KP_DBLVERTICALBAR = 202,
+    KP_COLON = 203,
+    KP_HASH = 204,
+    KP_SPACE = 205,
+    KP_AT = 206,
+    KP_EXCLAM = 207,
+    KP_MEMSTORE = 208,
+    KP_MEMRECALL = 209,
+    KP_MEMCLEAR = 210,
+    KP_MEMADD = 211,
+    KP_MEMSUBTRACT = 212,
+    KP_MEMMULTIPLY = 213,
+    KP_MEMDIVIDE = 214,
+    KP_PLUSMINUS = 215,
+    KP_CLEAR = 216,
+    KP_CLEARENTRY = 217,
+    KP_BINARY = 218,
+    KP_OCTAL = 219,
+    KP_DECIMAL = 220,
+    KP_HEXADECIMAL = 221,
+
+    LCTRL = 224,
+    LSHIFT = 225,
+    LALT = 226,
+    LGUI = 227,
+    RCTRL = 228,
+    RSHIFT = 229,
+    RALT = 230,
+    RGUI = 231,
+
+    MODE = 257,
+
+    AUDIONEXT = 258,
+    AUDIOPREV = 259,
+    AUDIOSTOP = 260,
+    AUDIOPLAY = 261,
+    AUDIOMUTE = 262,
+    MEDIASELECT = 263,
+    WWW = 264,
+    MAIL = 265,
+    CALCULATOR = 266,
+    COMPUTER = 267,
+    AC_SEARCH = 268,
+    AC_HOME = 269,
+    AC_BACK = 270,
+    AC_FORWARD = 271,
+    AC_STOP = 272,
+    AC_REFRESH = 273,
+    AC_BOOKMARKS = 274,
+
+    BRIGHTNESSDOWN = 275,
+    BRIGHTNESSUP = 276,
+    DISPLAYSWITCH = 277,
+    KBDILLUMTOGGLE = 278,
+    KBDILLUMDOWN = 279,
+    KBDILLUMUP = 280,
+    EJECT = 281,
+    SLEEP = 282,
+
+    APP1 = 283,
+    APP2 = 284,
+}
+
+local key = {
+    MOUSE1 = -1,
+    MOUSE2 = -3,
+    MOUSE3 = -2,
+    MOUSE4 = -4,
+    MOUSE5 = -5,
+    MOUSE6 = -6,
+    MOUSE7 = -7,
+    MOUSE8 = -8,
+
+    UNKNOWN = 0,
+
+    RETURN = char_to_byte('\r'),
+    ESCAPE = char_to_byte('\033'),
+    BACKSPACE = char_to_byte('\b'),
+    TAB = char_to_byte('\t'),
+    SPACE = char_to_byte(' '),
+    EXCLAIM = char_to_byte('!'),
+    QUOTEDBL = char_to_byte('"'),
+    HASH = char_to_byte('#'),
+    PERCENT = char_to_byte('%'),
+    DOLLAR = char_to_byte('$'),
+    AMPERSAND = char_to_byte('&'),
+    QUOTE = char_to_byte("'"),
+    LEFTPAREN = char_to_byte('('),
+    RIGHTPAREN = char_to_byte(')'),
+    ASTERISK = char_to_byte('*'),
+    PLUS = char_to_byte('+'),
+    COMMA = char_to_byte(','),
+    MINUS = char_to_byte('-'),
+    PERIOD = char_to_byte('.'),
+    SLASH = char_to_byte('/'),
+    [0] = char_to_byte('0'),
+    [1] = char_to_byte('1'),
+    [2] = char_to_byte('2'),
+    [3] = char_to_byte('3'),
+    [4] = char_to_byte('4'),
+    [5] = char_to_byte('5'),
+    [6] = char_to_byte('6'),
+    [7] = char_to_byte('7'),
+    [8] = char_to_byte('8'),
+    [9] = char_to_byte('9'),
+    COLON = char_to_byte(':'),
+    SEMICOLON = char_to_byte(';'),
+    LESS = char_to_byte('<'),
+    EQUALS = char_to_byte('='),
+    GREATER = char_to_byte('>'),
+    QUESTION = char_to_byte('?'),
+    AT = char_to_byte('@'),
+    LEFTBRACKET = char_to_byte('['),
+    BACKSLASH = char_to_byte('\\'),
+    RIGHTBRACKET = char_to_byte(']'),
+    CARET = char_to_byte('^'),
+    UNDERSCORE = char_to_byte('_'),
+    BACKQUOTE = char_to_byte('`'),
+    A = char_to_byte('a'),
+    B = char_to_byte('b'),
+    C = char_to_byte('c'),
+    D = char_to_byte('d'),
+    E = char_to_byte('e'),
+    F = char_to_byte('f'),
+    G = char_to_byte('g'),
+    H = char_to_byte('h'),
+    I = char_to_byte('i'),
+    J = char_to_byte('j'),
+    K = char_to_byte('k'),
+    L = char_to_byte('l'),
+    M = char_to_byte('m'),
+    N = char_to_byte('n'),
+    O = char_to_byte('o'),
+    P = char_to_byte('p'),
+    Q = char_to_byte('q'),
+    R = char_to_byte('r'),
+    S = char_to_byte('s'),
+    T = char_to_byte('t'),
+    U = char_to_byte('u'),
+    V = char_to_byte('v'),
+    W = char_to_byte('w'),
+    X = char_to_byte('x'),
+    Y = char_to_byte('y'),
+    Z = char_to_byte('z'),
+
+    CAPSLOCK = scancode_to_keycode(scancode.CAPSLOCK),
+
+    F1 = scancode_to_keycode(scancode.F1),
+    F2 = scancode_to_keycode(scancode.F2),
+    F3 = scancode_to_keycode(scancode.F3),
+    F4 = scancode_to_keycode(scancode.F4),
+    F5 = scancode_to_keycode(scancode.F5),
+    F6 = scancode_to_keycode(scancode.F6),
+    F7 = scancode_to_keycode(scancode.F7),
+    F8 = scancode_to_keycode(scancode.F8),
+    F9 = scancode_to_keycode(scancode.F9),
+    F10 = scancode_to_keycode(scancode.F10),
+    F11 = scancode_to_keycode(scancode.F11),
+    F12 = scancode_to_keycode(scancode.F12),
+
+    PRINTSCREEN = scancode_to_keycode(scancode.PRINTSCREEN),
+    SCROLLLOCK = scancode_to_keycode(scancode.SCROLLLOCK),
+    PAUSE = scancode_to_keycode(scancode.PAUSE),
+    INSERT = scancode_to_keycode(scancode.INSERT),
+    HOME = scancode_to_keycode(scancode.HOME),
+    PAGEUP = scancode_to_keycode(scancode.PAGEUP),
+    DELETE = '\177',
+    END = scancode_to_keycode(scancode.END),
+    PAGEDOWN = scancode_to_keycode(scancode.PAGEDOWN),
+    RIGHT = scancode_to_keycode(scancode.RIGHT),
+    LEFT = scancode_to_keycode(scancode.LEFT),
+    DOWN = scancode_to_keycode(scancode.DOWN),
+    UP = scancode_to_keycode(scancode.UP),
+
+    NUMLOCKCLEAR = scancode_to_keycode(scancode.NUMLOCKCLEAR),
+    KP_DIVIDE = scancode_to_keycode(scancode.KP_DIVIDE),
+    KP_MULTIPLY = scancode_to_keycode(scancode.KP_MULTIPLY),
+    KP_MINUS = scancode_to_keycode(scancode.KP_MINUS),
+    KP_PLUS = scancode_to_keycode(scancode.KP_PLUS),
+    KP_ENTER = scancode_to_keycode(scancode.KP_ENTER),
+    KP_1 = scancode_to_keycode(scancode.KP_1),
+    KP_2 = scancode_to_keycode(scancode.KP_2),
+    KP_3 = scancode_to_keycode(scancode.KP_3),
+    KP_4 = scancode_to_keycode(scancode.KP_4),
+    KP_5 = scancode_to_keycode(scancode.KP_5),
+    KP_6 = scancode_to_keycode(scancode.KP_6),
+    KP_7 = scancode_to_keycode(scancode.KP_7),
+    KP_8 = scancode_to_keycode(scancode.KP_8),
+    KP_9 = scancode_to_keycode(scancode.KP_9),
+    KP_0 = scancode_to_keycode(scancode.KP_0),
+    KP_PERIOD = scancode_to_keycode(scancode.KP_PERIOD),
+
+    APPLICATION = scancode_to_keycode(scancode.APPLICATION),
+    POWER = scancode_to_keycode(scancode.POWER),
+    KP_EQUALS = scancode_to_keycode(scancode.KP_EQUALS),
+    F13 = scancode_to_keycode(scancode.F13),
+    F14 = scancode_to_keycode(scancode.F14),
+    F15 = scancode_to_keycode(scancode.F15),
+    F16 = scancode_to_keycode(scancode.F16),
+    F17 = scancode_to_keycode(scancode.F17),
+    F18 = scancode_to_keycode(scancode.F18),
+    F19 = scancode_to_keycode(scancode.F19),
+    F20 = scancode_to_keycode(scancode.F20),
+    F21 = scancode_to_keycode(scancode.F21),
+    F22 = scancode_to_keycode(scancode.F22),
+    F23 = scancode_to_keycode(scancode.F23),
+    F24 = scancode_to_keycode(scancode.F24),
+    EXECUTE = scancode_to_keycode(scancode.EXECUTE),
+    HELP = scancode_to_keycode(scancode.HELP),
+    MENU = scancode_to_keycode(scancode.MENU),
+    SELECT = scancode_to_keycode(scancode.SELECT),
+    STOP = scancode_to_keycode(scancode.STOP),
+    AGAIN = scancode_to_keycode(scancode.AGAIN),
+    UNDO = scancode_to_keycode(scancode.UNDO),
+    CUT = scancode_to_keycode(scancode.CUT),
+    COPY = scancode_to_keycode(scancode.COPY),
+    PASTE = scancode_to_keycode(scancode.PASTE),
+    FIND = scancode_to_keycode(scancode.FIND),
+    MUTE = scancode_to_keycode(scancode.MUTE),
+    VOLUMEUP = scancode_to_keycode(scancode.VOLUMEUP),
+    VOLUMEDOWN = scancode_to_keycode(scancode.VOLUMEDOWN),
+    KP_COMMA = scancode_to_keycode(scancode.KP_COMMA),
+    KP_EQUALSAS400 =
+        scancode_to_keycode(scancode.KP_EQUALSAS400),
+
+    ALTERASE = scancode_to_keycode(scancode.ALTERASE),
+    SYSREQ = scancode_to_keycode(scancode.SYSREQ),
+    CANCEL = scancode_to_keycode(scancode.CANCEL),
+    CLEAR = scancode_to_keycode(scancode.CLEAR),
+    PRIOR = scancode_to_keycode(scancode.PRIOR),
+    RETURN2 = scancode_to_keycode(scancode.RETURN2),
+    SEPARATOR = scancode_to_keycode(scancode.SEPARATOR),
+    OUT = scancode_to_keycode(scancode.OUT),
+    OPER = scancode_to_keycode(scancode.OPER),
+    CLEARAGAIN = scancode_to_keycode(scancode.CLEARAGAIN),
+    CRSEL = scancode_to_keycode(scancode.CRSEL),
+    EXSEL = scancode_to_keycode(scancode.EXSEL),
+
+    KP_00 = scancode_to_keycode(scancode.KP_00),
+    KP_000 = scancode_to_keycode(scancode.KP_000),
+    THOUSANDSSEPARATOR =
+        scancode_to_keycode(scancode.THOUSANDSSEPARATOR),
+    DECIMALSEPARATOR =
+        scancode_to_keycode(scancode.DECIMALSEPARATOR),
+    CURRENCYUNIT = scancode_to_keycode(scancode.CURRENCYUNIT),
+    CURRENCYSUBUNIT =
+        scancode_to_keycode(scancode.CURRENCYSUBUNIT),
+    KP_LEFTPAREN = scancode_to_keycode(scancode.KP_LEFTPAREN),
+    KP_RIGHTPAREN = scancode_to_keycode(scancode.KP_RIGHTPAREN),
+    KP_LEFTBRACE = scancode_to_keycode(scancode.KP_LEFTBRACE),
+    KP_RIGHTBRACE = scancode_to_keycode(scancode.KP_RIGHTBRACE),
+    KP_TAB = scancode_to_keycode(scancode.KP_TAB),
+    KP_BACKSPACE = scancode_to_keycode(scancode.KP_BACKSPACE),
+    KP_A = scancode_to_keycode(scancode.KP_A),
+    KP_B = scancode_to_keycode(scancode.KP_B),
+    KP_C = scancode_to_keycode(scancode.KP_C),
+    KP_D = scancode_to_keycode(scancode.KP_D),
+    KP_E = scancode_to_keycode(scancode.KP_E),
+    KP_F = scancode_to_keycode(scancode.KP_F),
+    KP_XOR = scancode_to_keycode(scancode.KP_XOR),
+    KP_POWER = scancode_to_keycode(scancode.KP_POWER),
+    KP_PERCENT = scancode_to_keycode(scancode.KP_PERCENT),
+    KP_LESS = scancode_to_keycode(scancode.KP_LESS),
+    KP_GREATER = scancode_to_keycode(scancode.KP_GREATER),
+    KP_AMPERSAND = scancode_to_keycode(scancode.KP_AMPERSAND),
+    KP_DBLAMPERSAND =
+        scancode_to_keycode(scancode.KP_DBLAMPERSAND),
+    KP_VERTICALBAR =
+        scancode_to_keycode(scancode.KP_VERTICALBAR),
+    KP_DBLVERTICALBAR =
+        scancode_to_keycode(scancode.KP_DBLVERTICALBAR),
+    KP_COLON = scancode_to_keycode(scancode.KP_COLON),
+    KP_HASH = scancode_to_keycode(scancode.KP_HASH),
+    KP_SPACE = scancode_to_keycode(scancode.KP_SPACE),
+    KP_AT = scancode_to_keycode(scancode.KP_AT),
+    KP_EXCLAM = scancode_to_keycode(scancode.KP_EXCLAM),
+    KP_MEMSTORE = scancode_to_keycode(scancode.KP_MEMSTORE),
+    KP_MEMRECALL = scancode_to_keycode(scancode.KP_MEMRECALL),
+    KP_MEMCLEAR = scancode_to_keycode(scancode.KP_MEMCLEAR),
+    KP_MEMADD = scancode_to_keycode(scancode.KP_MEMADD),
+    KP_MEMSUBTRACT =
+        scancode_to_keycode(scancode.KP_MEMSUBTRACT),
+    KP_MEMMULTIPLY =
+        scancode_to_keycode(scancode.KP_MEMMULTIPLY),
+    KP_MEMDIVIDE = scancode_to_keycode(scancode.KP_MEMDIVIDE),
+    KP_PLUSMINUS = scancode_to_keycode(scancode.KP_PLUSMINUS),
+    KP_CLEAR = scancode_to_keycode(scancode.KP_CLEAR),
+    KP_CLEARENTRY = scancode_to_keycode(scancode.KP_CLEARENTRY),
+    KP_BINARY = scancode_to_keycode(scancode.KP_BINARY),
+    KP_OCTAL = scancode_to_keycode(scancode.KP_OCTAL),
+    KP_DECIMAL = scancode_to_keycode(scancode.KP_DECIMAL),
+    KP_HEXADECIMAL =
+        scancode_to_keycode(scancode.KP_HEXADECIMAL),
+
+    LCTRL = scancode_to_keycode(scancode.LCTRL),
+    LSHIFT = scancode_to_keycode(scancode.LSHIFT),
+    LALT = scancode_to_keycode(scancode.LALT),
+    LGUI = scancode_to_keycode(scancode.LGUI),
+    RCTRL = scancode_to_keycode(scancode.RCTRL),
+    RSHIFT = scancode_to_keycode(scancode.RSHIFT),
+    RALT = scancode_to_keycode(scancode.RALT),
+    RGUI = scancode_to_keycode(scancode.RGUI),
+
+    MODE = scancode_to_keycode(scancode.MODE),
+
+    AUDIONEXT = scancode_to_keycode(scancode.AUDIONEXT),
+    AUDIOPREV = scancode_to_keycode(scancode.AUDIOPREV),
+    AUDIOSTOP = scancode_to_keycode(scancode.AUDIOSTOP),
+    AUDIOPLAY = scancode_to_keycode(scancode.AUDIOPLAY),
+    AUDIOMUTE = scancode_to_keycode(scancode.AUDIOMUTE),
+    MEDIASELECT = scancode_to_keycode(scancode.MEDIASELECT),
+    WWW = scancode_to_keycode(scancode.WWW),
+    MAIL = scancode_to_keycode(scancode.MAIL),
+    CALCULATOR = scancode_to_keycode(scancode.CALCULATOR),
+    COMPUTER = scancode_to_keycode(scancode.COMPUTER),
+    AC_SEARCH = scancode_to_keycode(scancode.AC_SEARCH),
+    AC_HOME = scancode_to_keycode(scancode.AC_HOME),
+    AC_BACK = scancode_to_keycode(scancode.AC_BACK),
+    AC_FORWARD = scancode_to_keycode(scancode.AC_FORWARD),
+    AC_STOP = scancode_to_keycode(scancode.AC_STOP),
+    AC_REFRESH = scancode_to_keycode(scancode.AC_REFRESH),
+    AC_BOOKMARKS = scancode_to_keycode(scancode.AC_BOOKMARKS),
+
+    BRIGHTNESSDOWN =
+        scancode_to_keycode(scancode.BRIGHTNESSDOWN),
+    BRIGHTNESSUP = scancode_to_keycode(scancode.BRIGHTNESSUP),
+    DISPLAYSWITCH = scancode_to_keycode(scancode.DISPLAYSWITCH),
+    KBDILLUMTOGGLE =
+        scancode_to_keycode(scancode.KBDILLUMTOGGLE),
+    KBDILLUMDOWN = scancode_to_keycode(scancode.KBDILLUMDOWN),
+    KBDILLUMUP = scancode_to_keycode(scancode.KBDILLUMUP),
+    EJECT = scancode_to_keycode(scancode.EJECT),
+    SLEEP = scancode_to_keycode(scancode.SLEEP)
+}
+
+local mod = {
+    NONE     = 0x0000,
+    LSHIFT   = 0x0001,
+    RSHIFT   = 0x0002,
+    LCTRL    = 0x0040,
+    RCTRL    = 0x0080,
+    LALT     = 0x0100,
+    RALT     = 0x0200,
+    LGUI     = 0x0400,
+    RGUI     = 0x0800,
+    NUM      = 0x1000,
+    CAPS     = 0x2000,
+    MODE     = 0x4000,
+    RESERVED = 0x8000,
+    SHIFT    = bor(0x0001, 0x0002),
+    CTRL     = bor(0x0040, 0x0080),
+    ALT      = bor(0x0100, 0x0200),
+    GUI      = bor(0x0400, 0x0800)
+}
+
 local update_var = function(varn, val)
     if not var.exists(varn) then
         return nil
@@ -1476,7 +2028,7 @@ local Scroller = Clipper:clone {
     end,
 
     key_hover = function(self, code, isdown)
-        local m4, m5 = EAPI.INPUT_KEY_MOUSE4, EAPI.INPUT_KEY_MOUSE5
+        local m4, m5 = key.MOUSE4, key.MOUSE5
         if code ~= m4 or code ~= m5 then
             return Object.key_hover(self, code, isdown)
         end
@@ -1581,7 +2133,7 @@ local Scrollbar = Object:clone {
     scroll_to = function(self, cx, cy) end,
 
     key_hover = function(self, code, isdown)
-        local m4, m5 = EAPI.INPUT_KEY_MOUSE4, EAPI.INPUT_KEY_MOUSE5
+        local m4, m5 = key.MOUSE4, key.MOUSE5
         if code ~= m4 or code ~= m5 then
             return Object.key_hover(self, code, isdown)
         end
@@ -1888,16 +2440,16 @@ local Slider = Object:clone {
     end,
 
     key_hover = function(self, code, isdown)
-        if code == EAPI.INPUT_KEY_UP or code == EAPI.INPUT_KEY_LEFT then
+        if code == key.UP or code == key.LEFT then
             if isdown then self:do_step(-1) end
             return true
-        elseif code == EAPI.INPUT_KEY_MOUSE4 then
+        elseif code == key.MOUSE4 then
             if isdown then self:do_step(-3) end
             return true
-        elseif code == EAPI.INPUT_KEY_DOWN or code == EAPI.INPUT_KEY_RIGHT then
+        elseif code == key.DOWN or code == key.RIGHT then
             if isdown then self:do_step(1) end
             return true
-        elseif code == EAPI.INPUT_KEY_MOUSE5 then
+        elseif code == key.MOUSE5 then
             if isdown then self:do_step(3) end
             return true
         end
@@ -3041,8 +3593,7 @@ local Text_Editor = Object:clone {
 
     movement_mark = function(self)
         self:scroll_on_screen()
-        if band(EAPI.input_get_modifier_state(),
-            EAPI.INPUT_MOD_SHIFT) ~= 0 then
+        if band(EAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
                 if not self:region() then self:mark(true) end
         else
             self:mark(false)
@@ -3073,13 +3624,13 @@ local Text_Editor = Object:clone {
     edit_key = function(self, code)
         local mod_keys
         if ffi.os == "OSX" then
-            mod_keys = EAPI.INPUT_MOD_META
+            mod_keys = mod.GUI
         else
-            mod_keys = EAPI.INPUT_MOD_CTRL
+            mod_keys = mod.CTRL
         end
 
         switch(code,
-            case(EAPI.INPUT_KEY_UP, function()
+            case(key.UP, function()
                 self:movement_mark()
                 if self.line_wrap then
                     local x, y = ffi.new "int[1]", ffi.new "int[1]"
@@ -3096,7 +3647,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_DOWN, function()
+            case(key.DOWN, function()
                 self:movement_mark()
                 if self.line_wrap then
                     local str = self:current_line()
@@ -3116,15 +3667,15 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_MOUSE4, function()
+            case(key.MOUSE4, function()
                 self.scrolly = self.scrolly - 3
             end),
 
-            case(EAPI.INPUT_KEY_MOUSE5, function()
+            case(key.MOUSE5, function()
                 self.scrolly = self.scrolly + 3
             end),
 
-            case(EAPI.INPUT_KEY_PAGEUP, function()
+            case(key.PAGEUP, function()
                 self:movement_mark()
                 if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 0
@@ -3134,7 +3685,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_PAGEDOWN, function()
+            case(key.PAGEDOWN, function()
                 self:movement_mark()
                 if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 1 / 0
@@ -3144,7 +3695,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_HOME, function()
+            case(key.HOME, function()
                 self:movement_mark()
                 self.cx = 0
                 if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
@@ -3153,7 +3704,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_END, function()
+            case(key.END, function()
                 self:movement_mark()
                 self.cx = 1 / 0
                 if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
@@ -3162,7 +3713,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_LEFT, function()
+            case(key.LEFT, function()
                 self:movement_mark()
                 if     self.cx > 0 then self.cx = self.cx - 1
                 elseif self.cy > 0 then
@@ -3172,7 +3723,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_RIGHT, function()
+            case(key.RIGHT, function()
                 self:movement_mark()
                 if self.cx < #self.lines[self.cy + 1] then
                     self.cx = self.cx + 1
@@ -3183,7 +3734,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_DELETE, function()
+            case(key.DELETE, function()
                 if not self:del() then
                     local current = self:current_line()
                     if self.cx < #current then
@@ -3199,7 +3750,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_BACKSPACE, function()
+            case(key.BACKSPACE, function()
                 if not self:del() then
                     local current = self:current_line()
                     if self.cx > 0 then
@@ -3217,12 +3768,12 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case({  EAPI.INPUT_KEY_LSHIFT, EAPI.INPUT_KEY_RSHIFT,
-                    EAPI.INPUT_KEY_LCTRL,  EAPI.INPUT_KEY_RCTRL,
-                    EAPI.INPUT_KEY_LMETA,  EAPI.INPUT_KEY_RMETA },
+            case({  key.LSHIFT, key.RSHIFT,
+                    key.LCTRL,  key.RCTRL,
+                    key.LGUI,   key.RGUI },
                 function() end),
 
-            case(EAPI.INPUT_KEY_RETURN, function()
+            case(key.RETURN, function()
                 -- maintain indentation
                 local str = self:current_line()
                 self:insert "\n"
@@ -3232,11 +3783,11 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case(EAPI.INPUT_KEY_TAB, function()
+            case(key.TAB, function()
                 local b, sx, sy, ex, ey = self:region()
                 if b then
                     for i = sy, ey do
-                        if band(EAPI.input_get_modifier_state(), EAPI.INPUT_MOD_SHIFT) ~= 0 then
+                        if band(EAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
                             local rem = 0
                             for j = 1, math.min(4, #self.lines[i + 1]) do
                                 if self.lines[i + 1]:sub(j, j) == " " then
@@ -3261,7 +3812,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end),
 
-            case({ EAPI.INPUT_KEY_A, EAPI.INPUT_KEY_X, EAPI.INPUT_KEY_C, EAPI.INPUT_KEY_V }, function()
+            case({ key.A, key.X, key.C, key.V }, function()
                 if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     return nil
                 end
@@ -3273,9 +3824,9 @@ local Text_Editor = Object:clone {
             end))
 
         if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
-            if code == EAPI.INPUT_KEY_A then
+            if code == key.A then
                 self:select_all()
-            elseif code == EAPI.INPUT_KEY_X or code == EAPI.INPUT_KEY_C then
+            elseif code == key.X or code == key.C then
                 clipboard = {}
 
                 local sx, sy, ex, ey = select(2, self:region())
@@ -3290,8 +3841,8 @@ local Text_Editor = Object:clone {
 
                 if #clipboard == 0 then clipboard = { "" } end
 
-                if code == EAPI.INPUT_KEY_X then self:del() end
-            elseif code == EAPI.INPUT_KEY_V then
+                if code == key.X then self:del() end
+            elseif code == key.V then
                 self:del()
 
                 if #clipboard == 1 or self.maxy == 1 then
@@ -3534,9 +4085,9 @@ local Text_Editor = Object:clone {
     end,
 
     key_hover = function(self, code, isdown)
-        if code == EAPI.INPUT_KEY_LEFT   or code == EAPI.INPUT_KEY_RIGHT or
-           code == EAPI.INPUT_KEY_UP     or code == EAPI.INPUT_KEY_DOWN  or
-           code == EAPI.INPUT_KEY_MOUSE4 or code == EAPI.INPUT_KEY_MOUSE5
+        if code == key.LEFT   or code == key.RIGHT or
+           code == key.UP     or code == key.DOWN  or
+           code == key.MOUSE4 or code == key.MOUSE5
         then
             if isdown then self:edit_key(code) end
             return true
@@ -3548,30 +4099,30 @@ local Text_Editor = Object:clone {
         if Object.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
 
-        if code == EAPI.INPUT_KEY_RETURN or code == EAPI.INPUT_KEY_KP_ENTER
+        if code == key.RETURN or code == key.KP_ENTER
         then
             if self.maxy == 1 then
                 set_focus(nil)
                 return true
             end
-        elseif code == EAPI.INPUT_KEY_HOME      or
-               code == EAPI.INPUT_KEY_END       or
-               code == EAPI.INPUT_KEY_PAGEUP    or
-               code == EAPI.INPUT_KEY_PAGEDOWN  or
-               code == EAPI.INPUT_KEY_DELETE    or
-               code == EAPI.INPUT_KEY_BACKSPACE or
-               code == EAPI.INPUT_KEY_LSHIFT    or
-               code == EAPI.INPUT_KEY_RSHIFT    or
-               code == EAPI.INPUT_KEY_LCTRL     or
-               code == EAPI.INPUT_KEY_RCTRL     or
-               code == EAPI.INPUT_KEY_LMETA     or
-               code == EAPI.INPUT_KEY_RMETA
+        elseif code == key.HOME      or
+               code == key.END       or
+               code == key.PAGEUP    or
+               code == key.PAGEDOWN  or
+               code == key.DELETE    or
+               code == key.BACKSPACE or
+               code == key.LSHIFT    or
+               code == key.RSHIFT    or
+               code == key.LCTRL     or
+               code == key.RCTRL     or
+               code == key.LGUI      or
+               code == key.RGUI
         then local pass
         else
-            local axcv = (code == EAPI.INPUT_KEY_A) or
-                         (code == EAPI.INPUT_KEY_X) or
-                         (code == EAPI.INPUT_KEY_C) or
-                         (code == EAPI.INPUT_KEY_V)
+            local axcv = (code == key.A) or
+                         (code == key.X) or
+                         (code == key.C) or
+                         (code == key.V)
 
             if not (axcv and CAPI.is_modifier_pressed()) then
                 return false
@@ -3764,12 +4315,12 @@ local Field = Text_Editor:clone {
         if Object.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
 
-        if code == EAPI.INPUT_KEY_ESCAPE then
+        if code == key.ESCAPE then
             set_focus(nil)
             return true
-        elseif code == EAPI.INPUT_KEY_KP_ENTER or
-               code == EAPI.INPUT_KEY_RETURN   or
-               code == EAPI.INPUT_KEY_TAB
+        elseif code == key.KP_ENTER or
+               code == key.RETURN   or
+               code == key.TAB
         then
             self:commit()
             set_focus(nil)
@@ -3999,15 +4550,15 @@ end
 ext.input_keypress = function(code, isdown)
     if not cursor_exists() then return false end
 
-    if code == EAPI.INPUT_KEY_MOUSE5 or code == EAPI.INPUT_KEY_MOUSE4 or
-       code == EAPI.INPUT_KEY_LEFT   or code == EAPI.INPUT_KEY_RIGHT  or
-       code == EAPI.INPUT_KEY_DOWN   or code == EAPI.INPUT_KEY_UP
+    if code == key.MOUSE5 or code == key.MOUSE4 or
+       code == key.LEFT   or code == key.RIGHT  or
+       code == key.DOWN   or code == key.UP
     then
         if (focused  and  focused:key_hover(code, isdown)) or
            (hovering and hovering:key_hover(code, isdown))
         then return true end
         return false
-    elseif code == EAPI.INPUT_KEY_MOUSE1 then
+    elseif code == key.MOUSE1 then
         if isdown then
             clicked = world:click(cursor_x * world.p_w, cursor_y * world.p_h)
             if clicked then clicked:clicked(click_x, click_y) end
