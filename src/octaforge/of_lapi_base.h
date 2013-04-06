@@ -149,6 +149,61 @@ namespace lapi_binds
     EAPI_VARRAY_ATTRIB(us, ushort)
     EAPI_VARRAY_ATTRIB(i, int)
     EAPI_VARRAY_ATTRIB(ui, uint)
+
+    /* hudmatrix */
+
+    void _lua_hudmatrix_push () { pushhudmatrix (); }
+    void _lua_hudmatrix_pop  () { pophudmatrix  (); }
+    void _lua_hudmatrix_flush() { flushhudmatrix(); }
+    void _lua_hudmatrix_reset() { resethudmatrix(); }
+
+    void _lua_hudmatrix_translate(float x, float y, float z) { hudmatrix.translate(vec(x, y, z)); }
+    void _lua_hudmatrix_scale(float x, float y, float z) { hudmatrix.scale(vec(x, y, z)); }
+    void _lua_hudmatrix_ortho(float l, float r, float b, float t, float zn, float zf) {
+        hudmatrix.ortho(l, r, b, t, zn, zf);
+    }
+
+    /* gl */
+
+    void _lua_gl_shader_hud_set() {
+        hudshader->set();
+    }
+
+    void _lua_gl_shader_hudnotexture_set() {
+        hudnotextureshader->set();
+    }
+
+    void _lua_gl_scissor_enable() {
+        glEnable(GL_SCISSOR_TEST);
+    }
+
+    void _lua_gl_scissor_disable() {
+        glDisable(GL_SCISSOR_TEST);
+    }
+
+    void _lua_gl_scissor(int x, int y, int w, int h) {
+        glScissor(x, y, w, h);
+    }
+
+    void _lua_gl_blend_enable() {
+        glEnable(GL_BLEND);
+    }
+
+    void _lua_gl_blend_disable() {
+        glDisable(GL_BLEND);
+    }
+
+    void _lua_gl_blend_func(uint sf, uint df) {
+        glBlendFunc(sf, df);
+    }
+
+    void _lua_gl_bind_texture(int tex) {
+        glBindTexture(GL_TEXTURE_2D, tex);
+    }
+
+    void _lua_gl_texture_param(uint pn, int pr) {
+        glTexParameteri(GL_TEXTURE_2D, pn, pr);
+    }
 #endif
 
     void reg_base(lua::Table& t)
@@ -169,12 +224,10 @@ namespace lapi_binds
         LAPI_REG(varray_begin);
         LAPI_REG(varray_end);
         LAPI_REG(varray_disable);
-        
         LAPI_REG(varray_defvertex);
         LAPI_REG(varray_defcolor);
         LAPI_REG(varray_deftexcoord0);
         LAPI_REG(varray_deftexcoord1);
-        
         LAPI_REG(varray_vertex1f);
         LAPI_REG(varray_vertex2f);
         LAPI_REG(varray_vertex3f);
@@ -191,10 +244,8 @@ namespace lapi_binds
         LAPI_REG(varray_texcoord12f);
         LAPI_REG(varray_texcoord13f);
         LAPI_REG(varray_texcoord14f);
-        
         LAPI_REG(varray_color3ub);
         LAPI_REG(varray_color4ub);
-        
         LAPI_REG(varray_attrib1f);
         LAPI_REG(varray_attrib2f);
         LAPI_REG(varray_attrib3f);
@@ -227,6 +278,23 @@ namespace lapi_binds
         LAPI_REG(varray_attrib2ui);
         LAPI_REG(varray_attrib3ui);
         LAPI_REG(varray_attrib4ui);
+        LAPI_REG(hudmatrix_push);
+        LAPI_REG(hudmatrix_pop);
+        LAPI_REG(hudmatrix_flush);
+        LAPI_REG(hudmatrix_reset);
+        LAPI_REG(hudmatrix_translate);
+        LAPI_REG(hudmatrix_scale);
+        LAPI_REG(hudmatrix_ortho);
+        LAPI_REG(gl_shader_hud_set);
+        LAPI_REG(gl_shader_hudnotexture_set);
+        LAPI_REG(gl_scissor_enable);
+        LAPI_REG(gl_scissor_disable);
+        LAPI_REG(gl_scissor);
+        LAPI_REG(gl_blend_enable);
+        LAPI_REG(gl_blend_disable);
+        LAPI_REG(gl_blend_func);
+        LAPI_REG(gl_bind_texture);
+        LAPI_REG(gl_texture_param);
 #endif
     }
 }

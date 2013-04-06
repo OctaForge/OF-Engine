@@ -274,17 +274,6 @@ if CLIENT then ffi.cdef [[
     Texture *texture_get_notexture();
     void     texture_load_alpha_mask(Texture *tex);
 
-    /* hudmatrix */
-
-    void hudmatrix_push();
-    void hudmatrix_pop();
-    void hudmatrix_flush();
-    void hudmatrix_reset();
-
-    void hudmatrix_translate(float x, float y, float z);
-    void hudmatrix_scale(float x, float y, float z);
-    void hudmatrix_ortho(float l, float r, float b, float t, float zn, float zf);
-
     /* gl */
 
     enum {
@@ -359,18 +348,6 @@ if CLIENT then ffi.cdef [[
         GL_TRIANGLE_STRIP = 0x0005,
         GL_ZERO = 0x0
     };
-
-    void gl_shader_hud_set();
-    void gl_shader_hudnotexture_set();
-
-    void gl_scissor_enable();
-    void gl_scissor_disable();
-    void gl_scissor(int x, int y, int w, int h);
-    void gl_blend_enable();
-    void gl_blend_disable();
-    void gl_blend_func(uint sf, uint df);
-    void gl_bind_texture(Texture *tex);
-    void gl_texture_param(uint pn, int pr);
 ]] end
 
 nullptr = ffi.cast("void*", nil)

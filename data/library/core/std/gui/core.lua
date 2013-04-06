@@ -227,14 +227,14 @@ local clip_area_scissor = function(self)
         clamp(ceil ((self[3] + margin) / (1 + 2 * margin) * scr_w), 0, scr_w),
         clamp(ceil ( self[4] * scr_h), 0, scr_h)
 
-    EAPI.gl_scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
+    CAPI.gl_scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
 end
 
 local clip_stack = {}
 
 local clip_push = function(x, y, w, h)
     local l = #clip_stack
-    if    l == 0 then EAPI.gl_scissor_enable() end
+    if    l == 0 then CAPI.gl_scissor_enable() end
 
     local c = { x, y, x + w, y + h }
 
@@ -249,7 +249,7 @@ local clip_pop = function()
     table.remove(clip_stack)
 
     local l = #clip_stack
-    if    l == 0 then EAPI.gl_scissor_disable()
+    if    l == 0 then CAPI.gl_scissor_disable()
     else clip_area_scissor(clip_stack[l])
     end
 end
@@ -2084,8 +2084,8 @@ local Rectangle = Filler:clone {
     draw = function(self, sx, sy)
         local w, h, solid = self.p_w, self.p_h, self.p_solid
 
-        if not solid then EAPI.gl_blend_func(EAPI.GL_ZERO, EAPI.GL_SRC_COLOR) end
-        EAPI.gl_shader_hudnotexture_set()
+        if not solid then CAPI.gl_blend_func(EAPI.GL_ZERO, EAPI.GL_SRC_COLOR) end
+        CAPI.gl_shader_hudnotexture_set()
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         CAPI.varray_defvertex(2)
@@ -2098,9 +2098,9 @@ local Rectangle = Filler:clone {
 
         CAPI.varray_end()
         CAPI.varray_color4f(1, 1, 1, 1)
-        EAPI.gl_shader_hud_set()
+        CAPI.gl_shader_hud_set()
         if not solid then
-            EAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
+            CAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
         end
 
         return Filler.draw(self, sx, sy)
@@ -2188,13 +2188,13 @@ Image = Filler:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(tex)
+        CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2285,13 +2285,13 @@ local Cropped_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(tex)
+        CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2335,13 +2335,13 @@ local Stretched_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(tex)
+        CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2448,13 +2448,13 @@ local Bordered_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(tex)
+        CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2521,13 +2521,13 @@ local Tiled_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        EAPI.gl_bind_texture(tex)
+        CAPI.gl_bind_texture(tex.id)
 
         if minf and minf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
+            CAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
         CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
@@ -2616,18 +2616,18 @@ local Label = Object:clone {
     end,
 
     draw = function(self, sx, sy)
-        EAPI.hudmatrix_push()
+        CAPI.hudmatrix_push()
 
         local k = self:draw_scale()
-        EAPI.hudmatrix_scale(k, k, 1)
-        EAPI.hudmatrix_flush()
+        CAPI.hudmatrix_scale(k, k, 1)
+        CAPI.hudmatrix_flush()
 
         local w = self.p_wrap
         EAPI.gui_draw_text(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
         CAPI.varray_color4f(1, 1, 1, 1)
-        EAPI.hudmatrix_pop()
+        CAPI.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end,
@@ -3532,12 +3532,12 @@ local Text_Editor = Object:clone {
     end,
 
     draw = function(self, sx, sy)
-        EAPI.hudmatrix_push()
+        CAPI.hudmatrix_push()
 
-        EAPI.hudmatrix_translate(sx, sy, 0)
+        CAPI.hudmatrix_translate(sx, sy, 0)
         local s = self.scale / (EV.fonth * EV.uitextrows)
-        EAPI.hudmatrix_scale(s, s, 1)
-        EAPI.hudmatrix_flush()
+        CAPI.hudmatrix_scale(s, s, 1)
+        CAPI.hudmatrix_flush()
 
         local x, y, color, hit = EV.fontw / 2, 0, 0xFFFFFF, is_focused(self)
 
@@ -3588,7 +3588,7 @@ local Text_Editor = Object:clone {
                     pex = self.pixel_width
                 end
 
-                EAPI.gl_shader_hudnotexture_set()
+                CAPI.gl_shader_hudnotexture_set()
                 CAPI.varray_color3ub(0xA0, 0x80, 0x80)
                 CAPI.varray_defvertex(2)
                 CAPI.varray_begin(EAPI.GL_QUADS)
@@ -3614,7 +3614,7 @@ local Text_Editor = Object:clone {
                     CAPI.varray_attrib2f(x + pex, y + pey)
                 end
                 CAPI.varray_end()
-                EAPI.gl_shader_hud_set()
+                CAPI.gl_shader_hud_set()
             end
         end
 
@@ -3633,7 +3633,7 @@ local Text_Editor = Object:clone {
 
             -- line wrap indicator
             if self.line_wrap and height > EV.fonth then
-                EAPI.gl_shader_hudnotexture_set()
+                CAPI.gl_shader_hudnotexture_set()
                 CAPI.varray_color3ub(0x80, 0xA0, 0x80)
                 CAPI.varray_defvertex(2)
                 CAPI.varray_begin(EAPI.GL_GL_TRIANGLE_STRIP)
@@ -3642,13 +3642,13 @@ local Text_Editor = Object:clone {
                 CAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
                 CAPI.varray_attrib2f(x - EV.fontw / 2, y + h + height)
                 CAPI.varray_end()
-                EAPI.gl_shader_hud_set()
+                CAPI.gl_shader_hud_set()
             end
 
             h = h + height
         end
 
-        EAPI.hudmatrix_pop()
+        CAPI.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end
@@ -3978,12 +3978,12 @@ ext.gl_render = function()
         local w = worlds[i]
 
         if #w.p_children ~= 0 then
-            EAPI.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
-            EAPI.hudmatrix_reset()
-            EAPI.gl_shader_hud_set()
+            CAPI.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
+            CAPI.hudmatrix_reset()
+            CAPI.gl_shader_hud_set()
 
-            EAPI.gl_blend_enable()
-            EAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
+            CAPI.gl_blend_enable()
+            CAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
 
             CAPI.varray_color3f(1, 1, 1)
             w:draw()
@@ -4026,7 +4026,7 @@ ext.gl_render = function()
                 end
             end
 
-            EAPI.gl_scissor_disable()
+            CAPI.gl_scissor_disable()
             CAPI.varray_disable()
         end
     end
