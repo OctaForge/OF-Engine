@@ -10,7 +10,8 @@ local clamp = math.clamp
 local floor = math.floor
 local ceil  = math.ceil
 local round = math.round
-local EAPI  = _G["EAPI"]
+local ffi   = require("ffi")
+local EAPI  = require("eapi")
 local EV    = _G["EV"  ]
 
 local nullptr = _G["nullptr"]

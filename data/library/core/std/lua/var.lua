@@ -52,7 +52,7 @@ local get = function(name)
         return nil
     end
 
-    return (t == VAR_S) and ffi.string(CAPI.var_get_s(name)) or
+    return (t == VAR_S) and CAPI.var_get_s(name) or
         CAPI["var_get_" .. (t == VAR_I and "i" or "f")](name)
 end
 
@@ -125,7 +125,7 @@ EV = setmetatable({
             return nil
         end
 
-        return (t == VAR_S) and ffi.string(CAPI.var_get_s(name)) or
+        return (t == VAR_S) and CAPI.var_get_s(name) or
             CAPI["var_get_" .. (t == VAR_I and "i" or "f")](name)
     end,
 

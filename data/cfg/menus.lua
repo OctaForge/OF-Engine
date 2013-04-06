@@ -604,7 +604,7 @@ tgui.push_tab("Export entities", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_save"
     end)
 end)
 
-tgui.push_action(tgui.BAR_VERTICAL, tgui.BAR_ALL, "icon_exit", function() EAPI.base_quit() end)
+tgui.push_action(tgui.BAR_VERTICAL, tgui.BAR_ALL, "icon_exit", function() cubescript "quit" end)
 
 -- show main menu tab
 gui.show("main")

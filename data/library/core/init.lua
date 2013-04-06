@@ -40,9 +40,6 @@ function trace (event, line)
     print("    " .. tostring(s.currentline))
 end
 
-ffi  = require("ffi")
-EAPI = require("eapi")
-
 --debug.sethook(trace, "c")
 
 INFO    = 0

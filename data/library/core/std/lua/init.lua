@@ -25,9 +25,6 @@
 #log(DEBUG, ":::: Console Lisp.")
 lisp = require("std.lua.lisp")
 
-#log(DEBUG, ":::: Safe FFI.")
-sffi = require("std.lua.ffi")
-
 #log(DEBUG, ":::: Lua extensions: table")
 require("std.lua.table")
 

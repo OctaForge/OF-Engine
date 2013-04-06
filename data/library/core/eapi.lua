@@ -1,19 +1,4 @@
---[[! File: library/core/eapi.lua
-
-    About: Author
-        q66 <quaker66@gmail.com>
-
-    About: Copyright
-        Copyright (c) 2012 OctaForge project
-
-    About: License
-        This file is licensed under MIT. See COPYING.txt for more information.
-
-    About: Purpose
-        The Lua part of the OctaForge EAPI (Engine API). Declares all the
-        symbols used by the scripting system from the engine. Accessible
-        as a global variable EAPI.
-]]
+local ffi = require("ffi")
 
 ffi.cdef [[
     typedef unsigned int uint;
