@@ -9,7 +9,17 @@ namespace EditingSystem
 
 namespace lapi_binds
 {
-    /* CAPI module */
+    void _lua_log(int level, const char *msg) {
+        logger::log((logger::loglevel)level, "%s\n", msg);
+    }
+
+    bool _lua_should_log(int level) {
+        return logger::should_log((logger::loglevel)level);
+    }
+
+    void _lua_echo(const char *msg) {
+        conoutf("\f1%s", msg);
+    }
 
     int _lua_currtime() { return tools::currtime(); }
 
@@ -94,6 +104,9 @@ namespace lapi_binds
 
     void reg_base(lua::Table& t)
     {
+        LAPI_REG(log);
+        LAPI_REG(should_log);
+        LAPI_REG(echo);
         LAPI_REG(currtime);
         LAPI_REG(cubescript);
         LAPI_REG(readfile);

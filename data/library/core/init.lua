@@ -45,7 +45,12 @@ EAPI = require("eapi")
 
 --debug.sethook(trace, "c")
 
-EAPI.base_log(EAPI.BASE_LOG_DEBUG, "Initializing logging.")
+INFO    = 0
+DEBUG   = 1
+WARNING = 2
+ERROR   = 3
+
+CAPI.log(DEBUG, "Initializing logging.")
 
 --[[! Function: log
     Logs some text into the console with a given level. By default, OF
@@ -61,15 +66,7 @@ EAPI.base_log(EAPI.BASE_LOG_DEBUG, "Initializing logging.")
         ERROR - Use for serious error messages, displayed always. Printed into
         the in-engine console too, unlike all others.
 ]]
-log = function(level, msg)
-    -- convenience
-    return EAPI.base_log(level, tostring(msg))
-end
-
-INFO    = EAPI.BASE_LOG_INFO
-DEBUG   = EAPI.BASE_LOG_DEBUG
-WARNING = EAPI.BASE_LOG_WARNING
-ERROR   = EAPI.BASE_LOG_ERROR
+log = CAPI.log
 
 local io_open, load, error = io.open, load, error
 table.insert(package.loaders, 2, function(modname)
@@ -88,7 +85,7 @@ table.insert(package.loaders, 2, function(modname)
                 local lvl, rst = line:match("^%s*#log%s*%(([A-Z]+),%s*(.+)$")
                 if lvl then
                     prevlevel = _G[lvl]
-                    if EAPI.base_should_log(prevlevel) then
+                    if CAPI.should_log(prevlevel) then
                         local a, b = line:find("^%s*#")
                         return line:sub(b + 1)
                     else
@@ -97,7 +94,7 @@ table.insert(package.loaders, 2, function(modname)
                 elseif prevlevel then
                     local a, b = line:find("^%s*#")
                     if a then
-                        if EAPI.base_should_log(prevlevel) then
+                        if CAPI.should_log(prevlevel) then
                             return line:sub(b + 1)
                         else
                             return "--" .. line
@@ -126,10 +123,7 @@ end)
     only the text, there is no logging level, no changes are made to the
     text. It's printed as it's given.
 ]]
-echo = function(msg)
-    -- convenience
-    return EAPI.base_echo(tostring(msg))
-end
+echo = CAPI.echo
 
 --[[! Variable: external
     Here all the external functions (the ones the engine calls) are stored.
@@ -137,7 +131,7 @@ end
 external = {
 }
 
-local dbg = EAPI.base_should_log(DEBUG)
+local dbg = CAPI.should_log(DEBUG)
 
 if dbg then log(DEBUG, "Initializing the new core library.") end
 require("std")

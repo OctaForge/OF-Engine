@@ -23,23 +23,6 @@ ffi.cdef [[
 
     int lastmillis;
     int totalmillis;
-
-    /* core primitives */
-
-    enum {
-        BASE_LOG_INFO = 0,
-        BASE_LOG_DEBUG,
-        BASE_LOG_WARNING,
-        BASE_LOG_ERROR,
-        BASE_LOG_INIT,
-        BASE_LOG_OFF
-    };
-
-    void base_log (int level, const char *msg);
-    void base_echo(const char *msg);
-    bool base_should_log(int level);
-
-    void base_quit();
 ]]
 
 if CLIENT then ffi.cdef [[
@@ -396,7 +379,7 @@ if CLIENT then ffi.cdef [[
         GL_TRIANGLE_FAN = 0x0006,
         GL_TRIANGLE_STRIP = 0x0005,
         GL_ZERO = 0x0
-    }
+    };
 
     void gl_shader_hud_set();
     void gl_shader_hudnotexture_set();
