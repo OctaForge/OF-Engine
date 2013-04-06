@@ -105,6 +105,133 @@ namespace lapi_binds
     LAPI_EMPTY(save_mouse_position)
 #endif
 
+    void _lua_var_reset(const char *name) {
+        resetvar((char*)name);
+    }
+
+    void _lua_var_new_i(const char *name, int min, int def, int max,
+        int flags) {
+        if (!name) return;
+        ident *id = getident(name);
+        if (!id) {
+            int *st = new int;
+            *st = variable(name, min, def, max, st, NULL, flags | IDF_ALLOC);
+        } else {
+            logger::log(logger::ERROR, "variable %s already exists\n", name);
+        }
+    }
+
+    void _lua_var_new_f(const char *name, float min, float def, float max,
+        int flags) {
+        if (!name) return;
+        ident *id = getident(name);
+        if (!id) {
+            float *st = new float;
+            *st = fvariable(name, min, def, max, st, NULL, flags | IDF_ALLOC);
+        } else {
+            logger::log(logger::ERROR, "variable %s already exists\n", name);
+        }
+    }
+
+    void _lua_var_new_s(const char *name, const char *def, int flags) {
+        if (!name) return;
+        ident *id = getident(name);
+        if (!id) {
+            char **st = new char*;
+            *st = svariable(name, def, st, NULL, flags | IDF_ALLOC);
+        } else {
+            logger::log(logger::ERROR, "variable %s already exists\n", name);
+        }
+    }
+
+    void _lua_var_set_i(const char *name, int value) {
+        setvar(name, value);
+    }
+
+    void _lua_var_set_f(const char *name, float value) {
+        setfvar(name, value);
+    }
+
+    void _lua_var_set_s(const char *name, const char *value) {
+        setsvar(name, value);
+    }
+
+    int _lua_var_get_i(const char *name) {
+        return getvar(name);
+    }
+
+    float _lua_var_get_f(const char *name) {
+        return getfvar(name);
+    }
+
+    const char *_lua_var_get_s(const char *name) {
+        return getsvar(name);
+    }
+
+    int _lua_var_get_min_i(const char *name) {
+        return getvarmin(name);
+    }
+
+    float _lua_var_get_min_f(const char *name) {
+        return getfvarmin(name);
+    }
+
+    int _lua_var_get_max_i(const char *name) {
+        return getvarmax(name);
+    }
+
+    float _lua_var_get_max_f(const char *name) {
+        return getfvarmax(name);
+    }
+
+    int _lua_var_get_def_i(const char *name) {
+        ident *id = getident(name);
+        if (!id || id->type != ID_VAR) return 0;
+        return id->overrideval.i;
+    }
+
+    float _lua_var_get_def_f(const char *name) {
+        ident *id = getident(name);
+        if (!id || id->type != ID_FVAR) return 0.0f;
+        return id->overrideval.f;
+    }
+
+    const char *_lua_var_get_def_s(const char *name) {
+        ident *id = getident(name);
+        if (!id || id->type != ID_SVAR) return NULL;
+        return id->overrideval.s;
+    }
+
+    int _lua_var_get_type(const char *name) {
+        ident *id = getident(name);
+        if (!id || id->type > ID_SVAR)
+            return -1;
+        return id->type;
+    }
+
+    bool _lua_var_exists(const char *name) {
+        ident *id = getident(name);
+        return (!id || id->type > ID_SVAR)
+            ? false : true;
+    }
+
+    bool _lua_var_is_hex(const char *name) {
+        ident *id = getident(name);
+        return (!id || !(id->flags&IDF_HEX)) ? false : true;
+    }
+
+    bool _lua_var_emits(const char *name) {
+        ident *id = getident(name);
+        return (!id || !(id->flags&IDF_SIGNAL)) ? false : true;
+    }
+
+    void _lua_var_emits_set(const char *name, bool v) {
+        ident *id = getident(name);
+        if (!id) return;
+        if (v) id->flags |= IDF_SIGNAL;
+        else id->flags &= ~IDF_SIGNAL;
+    }
+
 #ifdef CLIENT
     void _lua_varray_begin(uint mode) { varray::begin(mode); }
     int _lua_varray_end() { return varray::end(); }
@@ -219,6 +346,29 @@ namespace lapi_binds
         LAPI_REG(getserverlogfile);
         LAPI_REG(setup_library);
         LAPI_REG(save_mouse_position);
+
+        LAPI_REG(var_reset);
+        LAPI_REG(var_new_i);
+        LAPI_REG(var_new_f);
+        LAPI_REG(var_new_s);
+        LAPI_REG(var_set_i);
+        LAPI_REG(var_set_f);
+        LAPI_REG(var_set_s);
+        LAPI_REG(var_get_i);
+        LAPI_REG(var_get_f);
+        LAPI_REG(var_get_s);
+        LAPI_REG(var_get_min_i);
+        LAPI_REG(var_get_min_f);
+        LAPI_REG(var_get_max_i);
+        LAPI_REG(var_get_max_f);
+        LAPI_REG(var_get_def_i);
+        LAPI_REG(var_get_def_f);
+        LAPI_REG(var_get_def_s);
+        LAPI_REG(var_get_type);
+        LAPI_REG(var_exists);
+        LAPI_REG(var_is_hex);
+        LAPI_REG(var_emits);
+        LAPI_REG(var_emits_set);
 
 #ifdef CLIENT
         LAPI_REG(varray_begin);

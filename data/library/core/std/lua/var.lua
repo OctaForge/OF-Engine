@@ -15,127 +15,136 @@
         variable table as EV (global).
 ]]
 
-local reset = EAPI.var_reset
+local VAR_I = 0
+local VAR_F = 1
+local VAR_S = 2
+
+local VAR_PERSIST  = math.lsh(1, 0)
+local VAR_OVERRIDE = math.lsh(1, 1)
+local VAR_HEX      = math.lsh(1, 2)
+local VAR_READONLY = math.lsh(1, 3)
+
+local reset = CAPI.var_reset
 
 local new = function(name, vtype, min, def, max, ...)
-    if vtype == EAPI.VAR_I then
-        EAPI.var_new_i(name, min, def, max, ... and math.bor(...) or 0)
-    elseif vtype == EAPI.VAR_F then
-        EAPI.var_new_f(name, min, def, max, ... and math.bor(...) or 0)
-    elseif vtype == EAPI.VAR_S then
-        EAPI.var_new_s(name, min, def and math.bor(def, max, ...) or 0)
+    if vtype == VAR_I then
+        CAPI.var_new_i(name, min, def, max, ... and math.bor(...) or 0)
+    elseif vtype == VAR_F then
+        CAPI.var_new_f(name, min, def, max, ... and math.bor(...) or 0)
+    elseif vtype == VAR_S then
+        CAPI.var_new_s(name, min, def and math.bor(def, max, ...) or 0)
     end
 end
 
 local set = function(name, value)
-    local t =  EAPI.var_get_type(name)
+    local t =  CAPI.var_get_type(name)
     if    t == -1 then
         return nil
     end
 
-    EAPI["var_set_" .. (t == EAPI.VAR_I and
-        "i" or (t == EAPI.VAR_F and "f" or "s"))](name, value)
+    CAPI["var_set_" .. (t == VAR_I and
+        "i" or (t == VAR_F and "f" or "s"))](name, value)
 end
 
 local get = function(name)
-    local t =  EAPI.var_get_type(name)
+    local t =  CAPI.var_get_type(name)
     if    t == -1 then
         return nil
     end
 
-    return (t == EAPI.VAR_S) and ffi.string(EAPI.var_get_s(name)) or
-        EAPI["var_get_" .. (t == EAPI.VAR_I and "i" or "f")](name)
+    return (t == VAR_S) and ffi.string(CAPI.var_get_s(name)) or
+        CAPI["var_get_" .. (t == VAR_I and "i" or "f")](name)
 end
 
 local get_min = function(name)
-    local t =  EAPI.var_get_type(name)
-    if    t == -1 or t == EAPI.VAR_S then
+    local t =  CAPI.var_get_type(name)
+    if    t == -1 or t == VAR_S then
         return nil
     end
 
-    return EAPI["var_get_min_" .. (t == EAPI.VAR_I and
+    return CAPI["var_get_min_" .. (t == VAR_I and
         "i" or "f")](name)
 end
 
 local get_max = function(name)
-    local t =  EAPI.var_get_type(name)
-    if    t == -1 or t == EAPI.VAR_S then
+    local t =  CAPI.var_get_type(name)
+    if    t == -1 or t == VAR_S then
         return nil
     end
 
-    return EAPI["var_get_min_" .. (t == EAPI.VAR_I and
+    return CAPI["var_get_min_" .. (t == VAR_I and
         "i" or "f")](name)
 end
 
 local get_def = function(name)
-    local t =  EAPI.var_get_type(name)
+    local t =  CAPI.var_get_type(name)
     if    t == -1 then
         return nil
     end
 
-    return EAPI["var_get_min_" .. (t == EAPI.VAR_I and
-        "i" or (t == EAPI.VAR_S and "s" or "f"))](name)
+    return CAPI["var_get_min_" .. (t == VAR_I and
+        "i" or (t == VAR_S and "s" or "f"))](name)
 end
 
 local get_pretty = function(name)
     local val = get   (name)
-    if EAPI.var_is_hex(name) then
+    if CAPI.var_is_hex(name) then
         return ("0x%X (%d, %d, %d)"):format(val, hextorgb(val))
     end
     return tostring(val)
 end
 
-local get_type     = EAPI.var_get_type
-local exists       = EAPI.var_exists
-local is_hex       = EAPI.var_is_hex
+local get_type     = CAPI.var_get_type
+local exists       = CAPI.var_exists
+local is_hex       = CAPI.var_is_hex
 
 local persist_vars = function() print("hai") end
 
 local emits = function(name, v)
     return (type(v) == "boolean") and
-        EAPI.var_emits_set(name, v) or EAPI.var_emits(name)
+        CAPI.var_emits_set(name, v) or CAPI.var_emits(name)
 end
 
 EV = setmetatable({
     __connect = function(self, name)
         local  vn = name:match("(.+)_changed$")
         if not vn then return nil end
-        EAPI.var_emits_set(vn, true)
+        CAPI.var_emits_set(vn, true)
     end,
 
     __disconnect = function(self, name, id, len)
         if id and len ~= 0 then return nil end
         local  vn = name:match("(.+)_changed$")
         if not vn then return nil end
-        EAPI.var_emits_set(vn, false)
+        CAPI.var_emits_set(vn, false)
     end
 }, {
     __index = function(self, name)
-        local t =  EAPI.var_get_type(name)
+        local t =  CAPI.var_get_type(name)
         if    t == -1 then
             return nil
         end
 
-        return (t == EAPI.VAR_S) and ffi.string(EAPI.var_get_s(name)) or
-            EAPI["var_get_" .. (t == EAPI.VAR_I and "i" or "f")](name)
+        return (t == VAR_S) and ffi.string(CAPI.var_get_s(name)) or
+            CAPI["var_get_" .. (t == VAR_I and "i" or "f")](name)
     end,
 
     __newindex = function(self, name, value)
-        local t =  EAPI.var_get_type(name)
+        local t =  CAPI.var_get_type(name)
         if    t == -1 then
             return nil
         end
 
         local f
         local c
-        if t == EAPI.VAR_I then
-            f = EAPI.var_set_i
+        if t == VAR_I then
+            f = CAPI.var_set_i
             c = tonumber
-        elseif t == EAPI.VAR_F then
-            f = EAPI.var_set_f
+        elseif t == VAR_F then
+            f = CAPI.var_set_f
             c = tonumber
-        elseif t == EAPI.VAR_S then
-            f = EAPI.var_set_s
+        elseif t == VAR_S then
+            f = CAPI.var_set_s
             c = tostring
         end
 
@@ -144,13 +153,14 @@ EV = setmetatable({
 })
 
 return {
-    PERSIST  = EAPI.VAR_PERSIST,
-    OVERRIDE = EAPI.VAR_OVERRIDE,
-    HEX      = EAPI.VAR_HEX,
+    PERSIST  = VAR_PERSIST,
+    OVERRIDE = VAR_OVERRIDE,
+    HEX      = VAR_HEX,
+    READONLY = VAR_READONLY,
     
-    INT    = EAPI.VAR_I,
-    FLOAT  = EAPI.VAR_F,
-    STRING = EAPI.VAR_S,
+    INT    = VAR_I,
+    FLOAT  = VAR_F,
+    STRING = VAR_S,
 
     reset        = reset,
     new          = new,

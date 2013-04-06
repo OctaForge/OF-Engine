@@ -281,7 +281,7 @@ function show_entity_properties_tab()
 
                         -- pre-create an alias with initial value
                         local was_persisting = var.persist_vars(false)
-                        var.new(name, EAPI.VAR_S, pair[2], true)
+                        var.new(name, var.STRING, pair[2], true)
                         var.persist_vars(was_persisting)
 
                         -- a field for the value - XXX: long enough?

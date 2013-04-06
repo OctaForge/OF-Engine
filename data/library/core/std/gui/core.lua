@@ -1766,7 +1766,7 @@ local Slider = Object:clone {
             self.i_var = varn
 
             if not var.exists(varn) then
-                var.new(varn, EAPI.VAR_I, self.p_value)
+                var.new(varn, var.INT, self.p_value)
             end
 
 --            if not var.is_alias(varn) then
@@ -3667,7 +3667,7 @@ local Field = Text_Editor:clone {
             self.i_var = varn
 
             if not var.exists(varn) then
-                var.new(varn, EAPI.VAR_S, self.p_value)
+                var.new(varn, var.STRING, self.p_value)
             end
         end
 

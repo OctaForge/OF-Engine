@@ -28,9 +28,6 @@ lisp = require("std.lua.lisp")
 #log(DEBUG, ":::: Safe FFI.")
 sffi = require("std.lua.ffi")
 
-#log(DEBUG, ":::: Engine variables.")
-var = require("std.lua.var")
-
 #log(DEBUG, ":::: Lua extensions: table")
 require("std.lua.table")
 
@@ -39,6 +36,9 @@ require("std.lua.string")
 
 #log(DEBUG, ":::: Lua extensions: math")
 require("std.lua.math")
+
+#log(DEBUG, ":::: Engine variables.")
+var = require("std.lua.var")
 
 #log(DEBUG, ":::: Type conversions.")
 conv = require("std.lua.conv")

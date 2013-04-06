@@ -22,58 +22,6 @@ ffi.cdef [[
     typedef unsigned short ushort;
 ]]
 
-ffi.cdef [[
-    enum {
-        VAR_I =  0,
-        VAR_F =  1,
-        VAR_S =  2
-    };
-
-    enum {
-        VAR_PERSIST   = 1 << 0,
-        VAR_OVERRIDE  = 1 << 1,
-        VAR_HEX       = 1 << 2
-    };
-
-    void var_reset(const char *name);
-
-    void var_new_i(const char *name, int min, int def, int max,
-        int flags);
-
-    void var_new_f(const char *name, float min, float def, float max,
-        int flags);
-
-    void var_new_s(const char *name, const char *def, int flags);
-
-    void var_set_i(const char *name, int value);
-    void var_set_f(const char *name, float value);
-    void var_set_s(const char *name, const char *value);
-
-    int         var_get_i(const char *name);
-    float       var_get_f(const char *name);
-    const char *var_get_s(const char *name);
-
-    int   var_get_min_i(const char *name);
-    float var_get_min_f(const char *name);
-
-    int   var_get_max_i(const char *name);
-    float var_get_max_f(const char *name);
-
-    int         var_get_def_i(const char *name);
-    float       var_get_def_f(const char *name);
-    const char *var_get_def_s(const char *name);
-
-    int var_get_type(const char *name);
-
-    bool var_exists   (const char *name);
-    bool var_is_hex   (const char *name);
-    bool var_emits    (const char *name);
-    void var_emits_set(const char *name, bool v);
-
-    bool var_changed();
-    void var_changed_set(bool ch);
-]]
-
 if CLIENT then ffi.cdef [[
     /* Input handling */
 
