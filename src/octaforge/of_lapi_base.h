@@ -21,6 +21,9 @@ namespace lapi_binds
         conoutf("\f1%s", msg);
     }
 
+    int _lua_lastmillis() { return lastmillis; }
+    int _lua_totalmillis() { return totalmillis; }
+
     int _lua_currtime() { return tools::currtime(); }
 
     lua::Object _lua_cubescript(const char *input) {
@@ -107,6 +110,8 @@ namespace lapi_binds
         LAPI_REG(log);
         LAPI_REG(should_log);
         LAPI_REG(echo);
+        LAPI_REG(lastmillis);
+        LAPI_REG(totalmillis);
         LAPI_REG(currtime);
         LAPI_REG(cubescript);
         LAPI_REG(readfile);

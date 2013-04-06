@@ -1861,11 +1861,12 @@ local Slider = Object:clone {
     end,
 
     arrow_scroll = function(self)
-        if (self.i_last_step + self.p_step_time) > EAPI.totalmillis then
+        local tmillis = CAPI.totalmillis()
+        if (self.i_last_step + self.p_step_time) > tmillis then
             return nil
         end
 
-        self.i_last_step = EAPI.totalmillis
+        self.i_last_step = tmillis
         self.do_step(self, self.i_arrow_dir)
     end,
 
@@ -2665,7 +2666,7 @@ local Text_Editor = Object:clone {
         local height = kwargs.height or 1
         local scale  = kwargs.scale  or 1
 
-        self.lastaction = EAPI.totalmillis
+        self.lastaction = CAPI.totalmillis()
         self.scale      = scale
 
         self.i_offset_h = 0
@@ -4049,8 +4050,12 @@ ext.change_add = function(desc, ctype)
     LAPI.GUI.show_changes()
 end
 
+local CHANGE_GFX     = blsh(1, 0)
+local CHANGE_SOUND   = blsh(1, 1)
+local CHANGE_SHADERS = blsh(1, 2)
+
 ext.changes_clear = function(ctype)
-    ctype = ctype or bor(EAPI.BASE_CHANGE_GFX, EAPI.BASE_CHANGE_SOUND)
+    ctype = ctype or bor(CHANGE_GFX, CHANGE_SOUND)
 
     needsapply = table.filter(needsapply, function(i, v)
         if band(v.ctype, ctype) == 0 then
@@ -4072,15 +4077,15 @@ ext.changes_apply = function()
         changetypes = bor(changetypes, v.ctype)
     end
 
-    if band(changetypes, EAPI.BASE_CHANGE_GFX) ~= 0 then
+    if band(changetypes, CHANGE_GFX) ~= 0 then
         EAPI.base_reset_renderer()
     end
 
-    if band(changetypes, EAPI.BASE_CHANGE_SOUND) ~= 0 then
+    if band(changetypes, CHANGE_SOUND) ~= 0 then
         EAPI.base_reset_sound()
     end
 
-    if band(changetypes, EAPI.BASE_CHANGE_SHADERS) ~= 0 then
+    if band(changetypes, CHANGE_SHADERS) ~= 0 then
         CAPI.resetshaders()
     end
 end

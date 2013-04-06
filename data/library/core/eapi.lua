@@ -20,18 +20,7 @@ ffi.cdef [[
     typedef unsigned char uchar;
     typedef unsigned long ulong;
     typedef unsigned short ushort;
-
-    int lastmillis;
-    int totalmillis;
 ]]
-
-if CLIENT then ffi.cdef [[
-    enum {
-        BASE_CHANGE_GFX     = 1 << 0,
-        BASE_CHANGE_SOUND   = 1 << 1,
-        BASE_CHANGE_SHADERS = 1 << 2
-    };
-]] end
 
 ffi.cdef [[
     /* zlib compression */
