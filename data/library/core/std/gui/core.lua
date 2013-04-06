@@ -11,10 +11,7 @@ local floor = math.floor
 local ceil  = math.ceil
 local round = math.round
 local ffi   = require("ffi")
-local EAPI  = require("eapi")
 local EV    = _G["EV"  ]
-
-local nullptr = _G["nullptr"]
 
 local gl = {
     ALPHA = 0x1906,
@@ -2733,20 +2730,19 @@ local Rectangle = Filler:clone {
     end
 }
 
-local notexture = EAPI.texture_get_notexture()
-
 local check_alpha_mask = function(tex, x, y)
-    if tex.alphamask == nullptr then
-        EAPI.texture_load_alpha_mask(tex)
-        if tex.alphamask == nullptr then
+    if not tex:get_alphamask() then
+        CAPI.texture_load_alpha_mask(tex)
+        if not tex:get_alphamask() then
             return true
         end
     end
 
-    local tx, ty = clamp(floor(x * tex.xs), 0, tex.xs - 1),
-                   clamp(floor(y * tex.ys), 0, tex.ys - 1)
+    local xs, ys = tex:get_xs(), tex:get_ys()
+    local tx, ty = clamp(floor(x * xs), 0, xs - 1),
+                   clamp(floor(y * ys), 0, ys - 1)
 
-    local m = tex.alphamask[floor(ty * ((tex.xs + 7) / 8))]
+    local m = tex:get_alphamask(ty * ((xs + 7) / 8))
     if band(m, blsh(1, tx % 8)) ~= 0 then
         return true
     end
@@ -2760,11 +2756,11 @@ Image = Filler:clone {
 
     __init = function(self, kwargs)
         kwargs    = kwargs or {}
-        local tex = kwargs.file and EAPI.texture_load(kwargs.file)
+        local tex = kwargs.file and CAPI.texture_load(kwargs.file)
 
         local af = kwargs.alt_file
-        if  tex == notexture and af then
-            tex = EAPI.texture_load(af)
+        if CAPI.texture_is_notexture(tex) and af then
+            tex = CAPI.texture_load(af)
         end
 
         self.i_tex = tex
@@ -2780,7 +2776,7 @@ Image = Filler:clone {
     end,
 
     get_tex = function()
-        return ffi.string(self.i_tex.name)
+        return self.i_tex:get_name()
     end,
 
     get_tex_raw = function()
@@ -2788,9 +2784,9 @@ Image = Filler:clone {
     end,
 
     set_tex = function(file, alt)
-        local tex = EAPI.texture_load(file)
-        if    tex == notexture and alt then
-              tex = EAPI.texture_load(alt)
+        local tex = CAPI.texture_load(file)
+        if CAPI.texture_is_notexture(tex) and alt then
+              tex = CAPI.texture_load(alt)
         end
         self.i_tex   = tex
         needs_adjust = true
@@ -2806,7 +2802,7 @@ Image = Filler:clone {
         if    o then return o end
 
         local tex = self.i_tex
-        return (tex.bpp < 32 or check_alpha_mask(tex, cx / self.p_w,
+        return (tex:get_bpp() < 32 or check_alpha_mask(tex, cx / self.p_w,
                                                       cy / self.p_h)) and self
     end,
 
@@ -2814,7 +2810,7 @@ Image = Filler:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex.id)
+        CAPI.gl_bind_texture(tex:get_id())
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -2862,10 +2858,10 @@ Image = Filler:clone {
         if  min_w == 0 or min_h == 0 then
             local tex, scrh = self.i_tex, EV.scr_h
             if  min_w == 0 then
-                min_w = tex.w / scrh
+                min_w = tex:get_w() / scrh
             end
             if  min_h == 0 then
-                min_h = tex.h / scrh
+                min_h = tex:get_h() / scrh
             end
         end
 
@@ -2879,7 +2875,7 @@ local get_border_size = function(tex, size, vert)
         return size
     end
 
-    return abs(n) / (vert and tex.ys or tex.xs)
+    return abs(n) / (vert and tex:get_ys() or tex:get_xs())
 end
 
 local Cropped_Image = Image:clone {
@@ -2902,7 +2898,7 @@ local Cropped_Image = Image:clone {
         if    o then return o end
 
         local tex = self.i_tex
-        return (tex.bpp < 32 or check_alpha_mask(tex,
+        return (tex:get_bpp() < 32 or check_alpha_mask(tex,
             self.p_crop_x + cx / self.p_w * self.p_crop_w,
             self.p_crop_y + cy / self.p_h * self.p_crop_h)) and self
     end,
@@ -2911,7 +2907,7 @@ local Cropped_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex.id)
+        CAPI.gl_bind_texture(tex:get_id())
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -2939,7 +2935,7 @@ local Stretched_Image = Image:clone {
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
         if    o then return o end
-        if self.i_tex.bpp < 32 then return self end
+        if self.i_tex:get_bpp() < 32 then return self end
 
         local mx, my, mw, mh, pw, ph = 0, 0, self.p_min_w, self.p_min_h,
                                              self.p_w,     self.p_h
@@ -2961,7 +2957,7 @@ local Stretched_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex.id)
+        CAPI.gl_bind_texture(tex:get_id())
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -3052,7 +3048,7 @@ local Bordered_Image = Image:clone {
 
         local tex = self.i_tex
 
-        if tex.bpp < 32 then
+        if tex:get_bpp() < 32 then
             return self
         end
 
@@ -3074,7 +3070,7 @@ local Bordered_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex.id)
+        CAPI.gl_bind_texture(tex:get_id())
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -3135,7 +3131,7 @@ local Tiled_Image = Image:clone {
 
         local tex = self.i_tex
 
-        if tex.bpp < 32 then return self end
+        if tex:get_bpp() < 32 then return self end
 
         local tw, th = self.p_tile_w, self.p_tile_h
         local dx, dy = cx % tw, cy % th
@@ -3147,7 +3143,7 @@ local Tiled_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex.id)
+        CAPI.gl_bind_texture(tex:get_id())
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -3162,7 +3158,7 @@ local Tiled_Image = Image:clone {
 
         -- we cannot use the built in OpenGL texture
         -- repeat with clamped textures
-        if tex.clamp ~= 0 then
+        if tex:get_clamp() ~= 0 then
             local dx, dy = 0, 0
             CAPI.varray_defvertex(2)
             CAPI.varray_deftexcoord0(2)
@@ -4620,7 +4616,7 @@ ext.gl_render = function()
 
                     if pointer.type == TYPE_IMAGE then
                         local tex, scrh = pointer.i_tex, EV.scr_h
-                        local wh, hh    = tex.w / scrh / 2, tex.h / scrh / 2
+                        local wh, hh    = tex:get_w() / scrh / 2, tex:get_h() / scrh / 2
 
                         pointer:draw(x - wh, y - hh)
                     else

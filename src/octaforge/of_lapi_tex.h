@@ -178,6 +178,88 @@ namespace lapi_binds
         }
     }
 
+    Texture *checktex(lua_State *L) {
+      Texture **tex = (Texture**)luaL_checkudata(L, 1, "Texture");
+      luaL_argcheck(L, tex != NULL, 1, "'Texture' expected");
+      return *tex;
+    }
+
+    #define TEXPROP(field, func) \
+    static int texture_get_##field(lua_State *L) { \
+        Texture *tex = checktex(L); \
+        lua_push##func(L, tex->field); \
+        return 1; \
+    }
+
+    TEXPROP(name, string)
+    TEXPROP(type, integer)
+    TEXPROP(w, integer)
+    TEXPROP(h, integer)
+    TEXPROP(xs, integer)
+    TEXPROP(ys, integer)
+    TEXPROP(bpp, integer)
+    TEXPROP(clamp, integer)
+    TEXPROP(mipmap, boolean)
+    TEXPROP(canreduce, boolean)
+    TEXPROP(id, integer)
+    #undef TEXPROP
+
+    static int texture_get_alphamask(lua_State *L) {
+        Texture *tex = checktex(L);
+        if (lua_gettop(L) > 1) {
+            int idx = luaL_checkint(L, 2);
+            luaL_argcheck(L, idx < (tex->h * ((tex->w + 7) / 8)),
+                1, "index out of range");
+            lua_pushinteger(L, tex->alphamask[idx]);
+        } else {
+            lua_pushboolean(L, tex->alphamask != NULL);
+        }
+        return 1;
+    }
+
+    static void texture_setmeta(lua_State *L) {
+        if (luaL_newmetatable(L, "Texture")) {
+            lua_createtable(L, 0, 11);
+            #define TEXFIELD(field) \
+                lua_pushcfunction(L, texture_get_##field); \
+                lua_setfield(L, -2, "get_" #field);
+
+            TEXFIELD(name)
+            TEXFIELD(type)
+            TEXFIELD(w)
+            TEXFIELD(h)
+            TEXFIELD(xs)
+            TEXFIELD(ys)
+            TEXFIELD(bpp)
+            TEXFIELD(clamp)
+            TEXFIELD(mipmap)
+            TEXFIELD(canreduce)
+            TEXFIELD(id)
+            TEXFIELD(alphamask)
+            #undef TEXFIELD
+            lua_setfield(L, -2, "__index");
+        }
+        lua_setmetatable(L, -2);
+    }
+
+    int _lua_texture_load(lua_State *L) {
+        const char *path = luaL_checkstring(L, 1);
+        Texture **tex = (Texture**)lua_newuserdata(L, sizeof(void*));
+        texture_setmeta(L);
+        *tex = textureload(path, 3, true, false);
+        return 1;
+    }
+
+    int _lua_texture_is_notexture(lua_State *L) {
+        lua_pushboolean(L, checktex(L) == notexture);
+        return 1;
+    }
+
+    int _lua_texture_load_alpha_mask(lua_State *L) {
+        loadalphamask(checktex(L));
+        return 0;
+    }
+
 #else
     LAPI_EMPTY(parsepixels)
     LAPI_EMPTY(filltexlist)
@@ -195,5 +277,10 @@ namespace lapi_binds
         LAPI_REG(hastexslot);
         LAPI_REG(checkvslot);
         LAPI_REG(texture_draw_slot);
+#ifdef CLIENT
+        LAPI_REG(texture_load);
+        LAPI_REG(texture_is_notexture);
+        LAPI_REG(texture_load_alpha_mask);
+#endif
     }
 }
