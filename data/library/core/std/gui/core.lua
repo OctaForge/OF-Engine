@@ -262,18 +262,18 @@ end
 
 local quad = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    EAPI.varray_attrib2f(x,     y)     EAPI.varray_attrib2f(tx,      ty)
-    EAPI.varray_attrib2f(x + w, y)     EAPI.varray_attrib2f(tx + tw, ty)
-    EAPI.varray_attrib2f(x + w, y + h) EAPI.varray_attrib2f(tx + tw, ty + th)
-    EAPI.varray_attrib2f(x,     y + h) EAPI.varray_attrib2f(tx,      ty + th)
+    CAPI.varray_attrib2f(x,     y)     CAPI.varray_attrib2f(tx,      ty)
+    CAPI.varray_attrib2f(x + w, y)     CAPI.varray_attrib2f(tx + tw, ty)
+    CAPI.varray_attrib2f(x + w, y + h) CAPI.varray_attrib2f(tx + tw, ty + th)
+    CAPI.varray_attrib2f(x,     y + h) CAPI.varray_attrib2f(tx,      ty + th)
 end
 
 local quadtri = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    EAPI.varray_attrib2f(x,     y)     EAPI.varray_attrib2f(tx,      ty)
-    EAPI.varray_attrib2f(x + w, y)     EAPI.varray_attrib2f(tx + tw, ty)
-    EAPI.varray_attrib2f(x,     y + h) EAPI.varray_attrib2f(tx,      ty + th)
-    EAPI.varray_attrib2f(x + w, y + h) EAPI.varray_attrib2f(tx + tw, ty + th)
+    CAPI.varray_attrib2f(x,     y)     CAPI.varray_attrib2f(tx,      ty)
+    CAPI.varray_attrib2f(x + w, y)     CAPI.varray_attrib2f(tx + tw, ty)
+    CAPI.varray_attrib2f(x,     y + h) CAPI.varray_attrib2f(tx,      ty + th)
+    CAPI.varray_attrib2f(x + w, y + h) CAPI.varray_attrib2f(tx + tw, ty + th)
 end
 
 local Image
@@ -2086,18 +2086,18 @@ local Rectangle = Filler:clone {
 
         if not solid then EAPI.gl_blend_func(EAPI.GL_ZERO, EAPI.GL_SRC_COLOR) end
         EAPI.gl_shader_hudnotexture_set()
-        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2)
-        EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+        CAPI.varray_defvertex(2)
+        CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
 
-        EAPI.varray_attrib2f(sx,     sy)
-        EAPI.varray_attrib2f(sx + w, sy)
-        EAPI.varray_attrib2f(sx,     sy + h)
-        EAPI.varray_attrib2f(sx + w, sy + h)
+        CAPI.varray_attrib2f(sx,     sy)
+        CAPI.varray_attrib2f(sx + w, sy)
+        CAPI.varray_attrib2f(sx,     sy + h)
+        CAPI.varray_attrib2f(sx + w, sy + h)
 
-        EAPI.varray_end()
-        EAPI.varray_color4f(1, 1, 1, 1)
+        CAPI.varray_end()
+        CAPI.varray_color4f(1, 1, 1, 1)
         EAPI.gl_shader_hud_set()
         if not solid then
             EAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
@@ -2197,13 +2197,13 @@ Image = Filler:clone {
             EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
-        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2)
-        EAPI.varray_deftexcoord0(2)
-        EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+        CAPI.varray_defvertex(2)
+        CAPI.varray_deftexcoord0(2)
+        CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h)
-        EAPI.varray_end()
+        CAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end,
@@ -2294,14 +2294,14 @@ local Cropped_Image = Image:clone {
             EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
-        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2)
-        EAPI.varray_deftexcoord0(2)
-        EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+        CAPI.varray_defvertex(2)
+        CAPI.varray_deftexcoord0(2)
+        CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h,
             self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
-        EAPI.varray_end()
+        CAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2344,11 +2344,11 @@ local Stretched_Image = Image:clone {
             EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
-        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2)
-        EAPI.varray_deftexcoord0(2)
-        EAPI.varray_begin(EAPI.GL_QUADS)
+        CAPI.varray_defvertex(2)
+        CAPI.varray_deftexcoord0(2)
+        CAPI.varray_begin(EAPI.GL_QUADS)
 
         local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.p_w, self.p_h
 
@@ -2393,7 +2393,7 @@ local Stretched_Image = Image:clone {
             if  ty >= 1 then break end
         end
 
-        EAPI.varray_end()
+        CAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2457,11 +2457,11 @@ local Bordered_Image = Image:clone {
             EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
-        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        EAPI.varray_defvertex(2)
-        EAPI.varray_deftexcoord0(2)
-        EAPI.varray_begin(EAPI.GL_QUADS)
+        CAPI.varray_defvertex(2)
+        CAPI.varray_deftexcoord0(2)
+        CAPI.varray_begin(EAPI.GL_QUADS)
 
         local vy, ty = sy, 0
         for i = 1, 3 do
@@ -2485,7 +2485,7 @@ local Bordered_Image = Image:clone {
             vy, ty = vy + vh, ty + th
         end
 
-        EAPI.varray_end()
+        CAPI.varray_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2530,7 +2530,7 @@ local Tiled_Image = Image:clone {
             EAPI.gl_texture_param(EAPI.GL_TEXTURE_MAG_FILTER, magf)
         end
 
-        EAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         local pw, ph, tw, th = self.p_w, self.p_h, self.p_tile_w, self.p_tile_h
 
@@ -2538,9 +2538,9 @@ local Tiled_Image = Image:clone {
         -- repeat with clamped textures
         if tex.clamp ~= 0 then
             local dx, dy = 0, 0
-            EAPI.varray_defvertex(2)
-            EAPI.varray_deftexcoord0(2)
-            EAPI.varray_begin(EAPI.GL_QUADS)
+            CAPI.varray_defvertex(2)
+            CAPI.varray_deftexcoord0(2)
+            CAPI.varray_begin(EAPI.GL_QUADS)
             while dx < pw do
                 while dy < ph do
                     local dw, dh = min(tw, pw - dx), min(th, ph - dy)
@@ -2549,13 +2549,13 @@ local Tiled_Image = Image:clone {
                 end
                 dx, dy = dy + tw, 0
             end
-            EAPI.varray_end()
+            CAPI.varray_end()
         else
-            EAPI.varray_defvertex(2)
-            EAPI.varray_deftexcoord0(2)
-            EAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
+            CAPI.varray_defvertex(2)
+            CAPI.varray_deftexcoord0(2)
+            CAPI.varray_begin(EAPI.GL_TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
-            EAPI.varray_end()
+            CAPI.varray_end()
         end
 
         return Object.draw(self, sx, sy)
@@ -2626,7 +2626,7 @@ local Label = Object:clone {
         EAPI.gui_draw_text(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
-        EAPI.varray_color4f(1, 1, 1, 1)
+        CAPI.varray_color4f(1, 1, 1, 1)
         EAPI.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
@@ -3589,31 +3589,31 @@ local Text_Editor = Object:clone {
                 end
 
                 EAPI.gl_shader_hudnotexture_set()
-                EAPI.varray_color3ub(0xA0, 0x80, 0x80)
-                EAPI.varray_defvertex(2)
-                EAPI.varray_begin(EAPI.GL_QUADS)
+                CAPI.varray_color3ub(0xA0, 0x80, 0x80)
+                CAPI.varray_defvertex(2)
+                CAPI.varray_begin(EAPI.GL_QUADS)
                 if psy == pey then
-                    EAPI.varray_attrib2f(x + psx, y + psy)
-                    EAPI.varray_attrib2f(x + pex, y + psy)
-                    EAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
-                    EAPI.varray_attrib2f(x + psx, y + pey + EV.fonth)
+                    CAPI.varray_attrib2f(x + psx, y + psy)
+                    CAPI.varray_attrib2f(x + pex, y + psy)
+                    CAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
+                    CAPI.varray_attrib2f(x + psx, y + pey + EV.fonth)
                 else
-                    EAPI.varray_attrib2f(x + psx,              y + psy)
-                    EAPI.varray_attrib2f(x + psx,              y + psy + EV.fonth)
-                    EAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
-                    EAPI.varray_attrib2f(x + self.pixel_width, y + psy)
+                    CAPI.varray_attrib2f(x + psx,              y + psy)
+                    CAPI.varray_attrib2f(x + psx,              y + psy + EV.fonth)
+                    CAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
+                    CAPI.varray_attrib2f(x + self.pixel_width, y + psy)
                     if (pey - psy) > EV.fonth then
-                        EAPI.varray_attrib2f(x,                    y + psy + EV.fonth)
-                        EAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
-                        EAPI.varray_attrib2f(x + self.pixel_width, y + pey)
-                        EAPI.varray_attrib2f(x,                    y + pey)
+                        CAPI.varray_attrib2f(x,                    y + psy + EV.fonth)
+                        CAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
+                        CAPI.varray_attrib2f(x + self.pixel_width, y + pey)
+                        CAPI.varray_attrib2f(x,                    y + pey)
                     end
-                    EAPI.varray_attrib2f(x,       y + pey)
-                    EAPI.varray_attrib2f(x,       y + pey + EV.fonth)
-                    EAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
-                    EAPI.varray_attrib2f(x + pex, y + pey)
+                    CAPI.varray_attrib2f(x,       y + pey)
+                    CAPI.varray_attrib2f(x,       y + pey + EV.fonth)
+                    CAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
+                    CAPI.varray_attrib2f(x + pex, y + pey)
                 end
-                EAPI.varray_end()
+                CAPI.varray_end()
                 EAPI.gl_shader_hud_set()
             end
         end
@@ -3634,14 +3634,14 @@ local Text_Editor = Object:clone {
             -- line wrap indicator
             if self.line_wrap and height > EV.fonth then
                 EAPI.gl_shader_hudnotexture_set()
-                EAPI.varray_color3ub(0x80, 0xA0, 0x80)
-                EAPI.varray_defvertex(2)
-                EAPI.varray_begin(EAPI.GL_GL_TRIANGLE_STRIP)
-                EAPI.varray_attrib2f(x,                y + h + EV.fonth)
-                EAPI.varray_attrib2f(x,                y + h + height)
-                EAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
-                EAPI.varray_attrib2f(x - EV.fontw / 2, y + h + height)
-                EAPI.varray_end()
+                CAPI.varray_color3ub(0x80, 0xA0, 0x80)
+                CAPI.varray_defvertex(2)
+                CAPI.varray_begin(EAPI.GL_GL_TRIANGLE_STRIP)
+                CAPI.varray_attrib2f(x,                y + h + EV.fonth)
+                CAPI.varray_attrib2f(x,                y + h + height)
+                CAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
+                CAPI.varray_attrib2f(x - EV.fontw / 2, y + h + height)
+                CAPI.varray_end()
                 EAPI.gl_shader_hud_set()
             end
 
@@ -3985,7 +3985,7 @@ ext.gl_render = function()
             EAPI.gl_blend_enable()
             EAPI.gl_blend_func(EAPI.GL_SRC_ALPHA, EAPI.GL_ONE_MINUS_SRC_ALPHA)
 
-            EAPI.varray_color3f(1, 1, 1)
+            CAPI.varray_color3f(1, 1, 1)
             w:draw()
 
             local tooltip = hovering and hovering.tooltip
@@ -4027,7 +4027,7 @@ ext.gl_render = function()
             end
 
             EAPI.gl_scissor_disable()
-            EAPI.varray_disable()
+            CAPI.varray_disable()
         end
     end
 

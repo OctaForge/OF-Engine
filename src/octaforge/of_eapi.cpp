@@ -252,51 +252,5 @@ extern "C" {
     void gl_texture_param(uint pn, int pr) {
         glTexParameteri(GL_TEXTURE_2D, pn, pr);
     }
-
-    /* varray */
-
-    void varray_begin(uint mode) { varray::begin(mode); }
-    int varray_end() { return varray::end(); }
-    void varray_disable() { varray::disable(); }
-
-    #define EAPI_VARRAY_DEFATTRIB(name) \
-        void varray_def##name(int size) { varray::def##name(size, GL_FLOAT); }
-
-    EAPI_VARRAY_DEFATTRIB(vertex)
-    EAPI_VARRAY_DEFATTRIB(color)
-    EAPI_VARRAY_DEFATTRIB(texcoord0)
-    EAPI_VARRAY_DEFATTRIB(texcoord1)
-
-    #define EAPI_VARRAY_INITATTRIB(name) \
-        void varray_##name##1f(float x) { varray::name##f(x); } \
-        void varray_##name##2f(float x, float y) { varray::name##f(x, y); } \
-        void varray_##name##3f(float x, float y, float z) { varray::name##f(x, y, z); } \
-        void varray_##name##4f(float x, float y, float z, float w) { varray::name##f(x, y, z, w); }
-
-    EAPI_VARRAY_INITATTRIB(vertex)
-    EAPI_VARRAY_INITATTRIB(color)
-    EAPI_VARRAY_INITATTRIB(texcoord0)
-    EAPI_VARRAY_INITATTRIB(texcoord1)
-
-    #define EAPI_VARRAY_INITATTRIBN(name, suffix, type) \
-        void varray_##name##3##suffix(type x, type y, type z) { varray::name##suffix(x, y, z); } \
-        void varray_##name##4##suffix(type x, type y, type z, type w) { varray::name##suffix(x, y, z, w); }
-
-    EAPI_VARRAY_INITATTRIBN(color, ub, uchar)
-
-    #define EAPI_VARRAY_ATTRIB(suffix, type) \
-        void varray_attrib##1##suffix(type x) { varray::attrib##suffix(x); } \
-        void varray_attrib##2##suffix(type x, type y) { varray::attrib##suffix(x, y); } \
-        void varray_attrib##3##suffix(type x, type y, type z) { varray::attrib##suffix(x, y, z); } \
-        void varray_attrib##4##suffix(type x, type y, type z, type w) { varray::attrib##suffix(x, y, z, w); }
-
-    EAPI_VARRAY_ATTRIB(f, float)
-    EAPI_VARRAY_ATTRIB(d, double)
-    EAPI_VARRAY_ATTRIB(b, char)
-    EAPI_VARRAY_ATTRIB(ub, uchar)
-    EAPI_VARRAY_ATTRIB(s, short)
-    EAPI_VARRAY_ATTRIB(us, ushort)
-    EAPI_VARRAY_ATTRIB(i, int)
-    EAPI_VARRAY_ATTRIB(ui, uint)
 #endif
 }
