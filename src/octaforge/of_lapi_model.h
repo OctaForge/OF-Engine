@@ -68,7 +68,7 @@ namespace lapi_binds
         lua::Table self, const char *mdl,
         int anim, float x, float y, float z,
         float yaw, float pitch,
-        int flags, int basetime
+        int flags, int basetime, lua::Object trans
     )
     {
         LAPI_GET_ENT(entity, self, "CAPI.rendermodel", return)
@@ -81,8 +81,13 @@ namespace lapi_binds
         else
             fp = getproxyfpsent(entity);
 
+        float t = 1.0f;
+        if (trans.type() != lua::TYPE_NIL) {
+            t = trans.to<float>();
+        }
+
         rendermodel(mdl, anim, vec(x, y, z), yaw, pitch, flags, fp,
-            entity->attachments, basetime, 0, 1);
+            entity->attachments, basetime, 0, 1, t);
     }
 
     lua::Table _lua_scriptmdlbb(const char *name)

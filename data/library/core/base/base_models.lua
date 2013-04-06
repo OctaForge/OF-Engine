@@ -227,9 +227,9 @@ reload = CAPI.reloadmodel
         see the flags above. Use <math.bor> to join them.
         base_time - entity's start_time property.
 ]]
-render = function(ent, mdl, anim, pos, yaw, pitch, flags, basetime)
+render = function(ent, mdl, anim, pos, yaw, pitch, flags, basetime, trans)
     CAPI.rendermodel(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch,
-        flags, basetime)
+        flags, basetime, trans)
 end
 
 --[[!
