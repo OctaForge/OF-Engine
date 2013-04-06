@@ -28,9 +28,6 @@ lisp = require("std.lua.lisp")
 #log(DEBUG, ":::: Safe FFI.")
 sffi = require("std.lua.ffi")
 
-#log(DEBUG, ":::: Zlib compression.")
-zlib = require("std.lua.zlib")
-
 #log(DEBUG, ":::: Engine variables.")
 var = require("std.lua.var")
 

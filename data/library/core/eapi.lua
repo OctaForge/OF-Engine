@@ -23,16 +23,6 @@ ffi.cdef [[
 ]]
 
 ffi.cdef [[
-    /* zlib compression */
-
-    ulong zlib_compress_bound(ulong src_len);
-
-    int zlib_compress(uchar *dest, ulong *dest_len, const uchar *src,
-        ulong src_len, int level);
-
-    int zlib_uncompress(uchar *dest, ulong *dest_len, const uchar *src,
-        ulong src_len);
-
     enum {
         VAR_I =  0,
         VAR_F =  1,

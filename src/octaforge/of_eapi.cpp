@@ -15,22 +15,6 @@
 /* prototypes */
 
 extern "C" {
-    /* zlib compression */
-
-    ulong zlib_compress_bound(ulong src_len) {
-        return compressBound(src_len);
-    }
-
-    int zlib_compress(uchar *dest, ulong *dest_len, const uchar *src,
-        ulong src_len, int level) {
-        return compress2(dest, dest_len, src, src_len, level);
-    }
-
-    int zlib_uncompress(uchar *dest, ulong *dest_len, const uchar *src,
-        ulong src_len) {
-        return uncompress(dest, dest_len, src, src_len);
-    }
-
     /* Engine variables */
 
     void var_reset(const char *name) {
