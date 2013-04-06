@@ -15,46 +15,7 @@
 /* prototypes */
 
 extern "C" {
-    /* Input handling */
-
 #ifdef CLIENT
-
-    int input_get_modifier_state() {
-        return (int) SDL_GetModState();
-    }
-
-    /* GUI */
-
-    void gui_set_mainmenu(int v) {
-        mainmenu = v;
-    }
-
-    void gui_text_bounds(const char *str, int &w, int &h, int maxw) {
-        text_bounds(str, w, h, maxw);
-    }
-
-    void gui_text_bounds_f(const char *str, float &w, float &h, int maxw) {
-        text_boundsf(str, w, h, maxw);
-    }
-
-    void gui_text_pos(const char *str, int cur, int &cx, int &cy, int maxw) {
-        text_pos(str, cur, cx, cy, maxw);
-    }
-
-    void gui_text_pos_f(const char *str, int cur, float &cx, float &cy,
-        int maxw) {
-        text_posf(str, cur, cx, cy, maxw);
-    }
-
-    int gui_text_visible(const char *str, float hitx, float hity, int maxw) {
-        return text_visible(str, hitx, hity, maxw);
-    }
-
-    void gui_draw_text(const char *str, int left, int top,
-        int r, int g, int b, int a, int cur, int maxw) {
-        draw_text(str, left, top, r, g, b, a, cur, maxw);
-    }
-
     /* Textures */
 
     Texture *texture_load(const char *path) {

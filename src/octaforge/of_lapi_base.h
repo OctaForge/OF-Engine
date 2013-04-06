@@ -331,6 +331,51 @@ namespace lapi_binds
     void _lua_gl_texture_param(uint pn, int pr) {
         glTexParameteri(GL_TEXTURE_2D, pn, pr);
     }
+
+    /* input */
+
+    int _lua_input_get_modifier_state() {
+        return SDL_GetModState();
+    }
+
+    /* gui */
+
+    void _lua_gui_set_mainmenu(int v) {
+        mainmenu = v;
+    }
+
+    types::Tuple<int, int> _lua_gui_text_bounds(const char *str, int maxw) {
+        int w, h;
+        text_bounds(str, w, h, maxw);
+        return types::make_tuple(w, h);
+    }
+
+    types::Tuple<float, float> _lua_gui_text_bounds_f(const char *str, int maxw) {
+        float w, h;
+        text_boundsf(str, w, h, maxw);
+        return types::make_tuple(w, h);
+    }
+
+    types::Tuple<int, int> _lua_gui_text_pos(const char *str, int cur, int maxw) {
+        int cx, cy;
+        text_pos(str, cur, cx, cy, maxw);
+        return types::make_tuple(cx, cy);
+    }
+
+    types::Tuple<int, int> _lua_gui_text_pos_f(const char *str, int cur, int maxw) {
+        float cx, cy;
+        text_posf(str, cur, cx, cy, maxw);
+        return types::make_tuple(cx, cy);
+    }
+
+    int _lua_gui_text_visible(const char *str, float hitx, float hity, int maxw) {
+        return text_visible(str, hitx, hity, maxw);
+    }
+
+    void _lua_gui_draw_text(const char *str, int left, int top,
+        int r, int g, int b, int a, int cur, int maxw) {
+        draw_text(str, left, top, r, g, b, a, cur, maxw);
+    }
 #endif
 
     void reg_base(lua::Table& t)
@@ -445,6 +490,15 @@ namespace lapi_binds
         LAPI_REG(gl_blend_func);
         LAPI_REG(gl_bind_texture);
         LAPI_REG(gl_texture_param);
+
+        LAPI_REG(input_get_modifier_state);
+        LAPI_REG(gui_set_mainmenu);
+        LAPI_REG(gui_text_bounds);
+        LAPI_REG(gui_text_bounds_f);
+        LAPI_REG(gui_text_pos);
+        LAPI_REG(gui_text_pos_f);
+        LAPI_REG(gui_text_visible);
+        LAPI_REG(gui_draw_text);
 #endif
     }
 }

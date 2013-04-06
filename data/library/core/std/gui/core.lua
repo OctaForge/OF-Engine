@@ -3227,9 +3227,6 @@ local Label = Object:clone {
         self.p_b     = kwargs.b or 255
         self.p_a     = kwargs.a or 255
 
-        self.i_w = ffi.new("int[1]")
-        self.i_h = ffi.new("int[1]")
-
         return Object.__init(self, kwargs)
     end,
 
@@ -3249,7 +3246,7 @@ local Label = Object:clone {
         CAPI.hudmatrix_flush()
 
         local w = self.p_wrap
-        EAPI.gui_draw_text(self.p_text, sx / k, sy / k,
+        CAPI.gui_draw_text(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
         CAPI.varray_color4f(1, 1, 1, 1)
@@ -3263,16 +3260,16 @@ local Label = Object:clone {
 
         local k = self:draw_scale()
 
-        EAPI.gui_text_bounds(self.p_text, self.i_w, self.i_h,
+        local w, h = CAPI.gui_text_bounds(self.p_text,
             self.p_wrap <= 0 and -1 or self.p_wrap / k)
 
         if self.p_wrap <= 0 then
-            self.p_w = max(self.p_w, self.i_w[0] * k)
+            self.p_w = max(self.p_w, w * k)
         else
-            self.p_w = max(self.p_w, min(self.p_wrap, self.i_w[0] * k))
+            self.p_w = max(self.p_w, min(self.p_wrap, w * k))
         end
 
-        self.p_h = max(self.p_h, self.i_h[0] * k)
+        self.p_h = max(self.p_h, h * k)
     end
 }
 
@@ -3326,13 +3323,9 @@ local Text_Editor = Object:clone {
         -- must always contain at least one line
         self.lines = { kwargs.value or "" }
 
-        self._w = ffi.new("int[1]")
-        self._h = ffi.new("int[1]")
-
         if length < 0 and height <= 0 then
-            EAPI.gui_text_bounds(self.lines[1], self._w,
-                self._h, self.pixel_width)
-            self.pixel_height = self._h[0]
+            local w, h = CAPI.gui_text_bounds(self.lines[1], self.pixel_width)
+            self.pixel_height = h
         else
             self.pixel_height = EV.fonth * math.max(height, 1)
         end
@@ -3593,7 +3586,7 @@ local Text_Editor = Object:clone {
 
     movement_mark = function(self)
         self:scroll_on_screen()
-        if band(EAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+        if band(CAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
                 if not self:region() then self:mark(true) end
         else
             self:mark(false)
@@ -3605,10 +3598,8 @@ local Text_Editor = Object:clone {
         self.scrolly = math.clamp(self.scrolly, 0, self.cy)
         local h = 0
         for i = self.cy + 1, self.scrolly + 1, -1 do
-            local width, height = ffi.new "int[1]", ffi.new "int[1]"
-            EAPI.gui_text_bounds(self.lines[i], width, height,
+            local width, height = CAPI.gui_text_bounds(self.lines[i],
                 self.line_wrap and self.pixel_width or -1)
-            height = height[0]
             if h + height > self.pixel_height then
                 self.scrolly = i
                 break
@@ -3633,11 +3624,11 @@ local Text_Editor = Object:clone {
             case(key.UP, function()
                 self:movement_mark()
                 if self.line_wrap then
-                    local x, y = ffi.new "int[1]", ffi.new "int[1]"
                     local str = self:current_line()
-                    EAPI.gui_text_pos(str, self.cx + 1, x, y, self.pixel_width)
+                    local x, y = CAPI.gui_text_pos(str, self.cx + 1,
+                        self.pixel_width)
                     if y > 0 then
-                        self.cx = EAPI.gui_text_visible(str, x, y - FONTH,
+                        self.cx = CAPI.gui_text_visible(str, x, y - FONTH,
                             self.pixel_width)
                         self:scroll_on_screen()
                         return nil
@@ -3651,14 +3642,13 @@ local Text_Editor = Object:clone {
                 self:movement_mark()
                 if self.line_wrap then
                     local str = self:current_line()
-                    local x, y = ffi.new "int[1]", ffi.new "int[1]"
-                    local width, height = ffi.new "int[1]", ffi.new "int[1]"
-                    EAPI.gui_text_pos(str, self.cx, x, y, self.pixel_width)
-                    EAPI.gui_text_bounds(str, width, height, self.pixel_width)
-                    x, y, height = x[0], y[0], height[0]
+                    local x, y = CAPI.gui_text_pos(str, self.cx,
+                        self.pixel_width)
+                    local width, height = CAPI.gui_text_bounds(str,
+                        self.pixel_width)
                     y = y + EV.fonth
                     if y < height then
-                        self.cx = EAPI.gui_text_visible(str, x, y, self.pixel_width)
+                        self.cx = CAPI.gui_text_visible(str, x, y, self.pixel_width)
                         self:scroll_on_screen()
                         return nil
                     end
@@ -3677,7 +3667,7 @@ local Text_Editor = Object:clone {
 
             case(key.PAGEUP, function()
                 self:movement_mark()
-                if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 0
                 else
                     self.cy = self.cy - self.pixel_height / EV.fonth
@@ -3687,7 +3677,7 @@ local Text_Editor = Object:clone {
 
             case(key.PAGEDOWN, function()
                 self:movement_mark()
-                if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 1 / 0
                 else
                     self.cy = self.cy + self.pixel_height / EV.fonth
@@ -3698,7 +3688,7 @@ local Text_Editor = Object:clone {
             case(key.HOME, function()
                 self:movement_mark()
                 self.cx = 0
-                if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 0
                 end
                 self:scroll_on_screen()
@@ -3707,7 +3697,7 @@ local Text_Editor = Object:clone {
             case(key.END, function()
                 self:movement_mark()
                 self.cx = 1 / 0
-                if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 1 / 0
                 end
                 self:scroll_on_screen()
@@ -3787,7 +3777,7 @@ local Text_Editor = Object:clone {
                 local b, sx, sy, ex, ey = self:region()
                 if b then
                     for i = sy, ey do
-                        if band(EAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+                        if band(CAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
                             local rem = 0
                             for j = 1, math.min(4, #self.lines[i + 1]) do
                                 if self.lines[i + 1]:sub(j, j) == " " then
@@ -3813,7 +3803,7 @@ local Text_Editor = Object:clone {
             end),
 
             case({ key.A, key.X, key.C, key.V }, function()
-                if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
                     return nil
                 end
                 self:scroll_on_screen()
@@ -3823,7 +3813,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end))
 
-        if band(EAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+        if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
             if code == key.A then
                 self:select_all()
             elseif code == key.X or code == key.C then
@@ -3947,12 +3937,10 @@ local Text_Editor = Object:clone {
         local max_width = self.line_wrap and self.pixel_width or -1
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = ffi.new "int[1]", ffi.new "int[1]"
-            EAPI.gui_text_bounds(self.lines[i], width, height, max_width)
-            height = height[0]
+            local width, height = CAPI.gui_text_bounds(self.lines[i], max_width)
             if h + height > self.pixel_height then break end
             if hity >= h and hity <= h + height then
-                local x = EAPI.gui_text_visible(self.lines[i], hitx, hity - h, max_width)
+                local x = CAPI.gui_text_visible(self.lines[i], hitx, hity - h, max_width)
                 if dragged then
                     self.mx = x
                     self.my = i - 1
@@ -3971,9 +3959,7 @@ local Text_Editor = Object:clone {
         local slines = #self.lines
         local ph = self.pixel_height
         while slines > 0 and ph > 0 do
-            local width, height = ffi.new "int[1]", ffi.new "int[1]"
-            EAPI.gui_text_bounds(self.lines[slines], width, height, max_width)
-            height = height[0]
+            local width, height = CAPI.gui_text_bounds(self.lines[slines], max_width)
             if height > ph then break end
             ph = ph - height
             slines = slines - 1
@@ -4143,9 +4129,8 @@ local Text_Editor = Object:clone {
         end
 
         if self.line_wrap and self.maxy == 1 then
-            local r = EAPI.gui_text_bounds(self.lines[1],
-                self._w, self._h, self.pixel_width)
-            self.pixel_height = self._h[0]
+            local w, h = CAPI.gui_text_bounds(self.lines[1], self.pixel_width)
+            self.pixel_height = h
         end
 
         self.p_w = max(self.p_w, (self.pixel_width + EV.fontw) *
@@ -4174,17 +4159,12 @@ local Text_Editor = Object:clone {
 
         if selection then
             -- convert from cursor coords into pixel coords
-            local psx, psy, pex, pey = ffi.new "int[1]", ffi.new "int[1]",
-                                       ffi.new "int[1]", ffi.new "int[1]"
-            EAPI.gui_text_pos(self.lines[sy + 1], sx, psx, psy, max_width)
-            EAPI.gui_text_pos(self.lines[ey + 1], ex, pex, pey, max_width)
-            psx, psy, pex, pey = psx[0], psy[0], pex[0], pey[0]
+            local psx, psy = CAPI.gui_text_pos(self.lines[sy + 1], sx, max_width)
+            local pex, pey = CAPI.gui_text_pos(self.lines[ey + 1], ex, max_width)
             local maxy = #self.lines
             local h = 0
             for i = self.scrolly + 1, maxy do
-                local width, height = ffi.new "int[1]", ffi.new "int[1]"
-                EAPI.gui_text_bounds(self.lines[i], width, height, max_width)
-                width, height = width[0], height[0]
+                local width, height = CAPI.gui_text_bounds(self.lines[i], max_width)
                 if h + height > self.pixel_height then
                     maxy = i - 1
                     break
@@ -4245,14 +4225,12 @@ local Text_Editor = Object:clone {
 
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = ffi.new "int[1]", ffi.new "int[1]"
-            EAPI.gui_text_bounds(self.lines[i], width, height, max_width)
-            height = height[0]
+            local width, height = CAPI.gui_text_bounds(self.lines[i], max_width)
             if h + height > self.pixel_height then
                 break
             end
             local r, g, b = hextorgb(color)
-            EAPI.gui_draw_text(self.password and ("*"):rep(#self.lines[i])
+            CAPI.gui_draw_text(self.password and ("*"):rep(#self.lines[i])
                 or self.lines[i], x, y + h, r, g, b, 0xFF,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
@@ -4575,7 +4553,7 @@ end
 
 ext.gui_clear = function()
     if  EV.mainmenu ~= 0 and CAPI.isconnected() then
-        EAPI.gui_set_mainmenu(0)
+        CAPI.gui_set_mainmenu(0)
 
         world:hide_children()
         worlds = { world }
@@ -4703,15 +4681,15 @@ ext.changes_apply = function()
     end
 
     if band(changetypes, CHANGE_GFX) ~= 0 then
-        EAPI.base_reset_renderer()
+        cubescript "resetgl"
     end
 
     if band(changetypes, CHANGE_SOUND) ~= 0 then
-        EAPI.base_reset_sound()
+        cubescript "resetsound"
     end
 
     if band(changetypes, CHANGE_SHADERS) ~= 0 then
-        CAPI.resetshaders()
+        cubescript "resetshaders"
     end
 end
 
