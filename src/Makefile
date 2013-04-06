@@ -262,7 +262,7 @@ endif
 	CLIENT_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
 	CLIENT_LDFLAGS += $(CS_WIN_LIB) -lSDL2 -lSDL2_image -lSDL2_mixer
 	CLIENT_LDFLAGS += -lzlib1 -lopengl32 -lws2_32 -lwinmm
-	CLIENT_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-all-symbols
+	CLIENT_LDFLAGS += -static-libgcc -static-libstdc++
 else
 ifeq ($(TARGET_SYS),Darwin)
 	CLIENT_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
@@ -271,7 +271,7 @@ ifeq ($(TARGET_SYS),Darwin)
 else
 	CLIENT_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl2-config --cflags`
 	CLIENT_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl2-config --libs`
-	CLIENT_LDFLAGS += -lSDL2_image -lSDL2_mixer -lz -lGL -Wl,--export-dynamic
+	CLIENT_LDFLAGS += -lSDL2_image -lSDL2_mixer -lz -lGL
 	ifeq ($(TARGET_SYS),Linux)
 		CLIENT_LDFLAGS += -ldl -lrt
 	endif
@@ -366,7 +366,7 @@ ifeq ($(TARGET_ARCH),x64)
 endif
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_WIN_INC)
 	SERVER_LDFLAGS += $(CS_WIN_LIB) -lzlib1 -lopengl32 -lws2_32 -lwinmm
-	SERVER_LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--export-all-symbols
+	SERVER_LDFLAGS += -static-libgcc -static-libstdc++
 else
 ifeq ($(TARGET_SYS),Darwin)
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
@@ -375,7 +375,7 @@ ifeq ($(TARGET_SYS),Darwin)
 else
 	SERVER_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl2-config --cflags`
 	SERVER_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl2-config --libs`
-	SERVER_LDFLAGS += -lz -Wl,--export-dynamic
+	SERVER_LDFLAGS += -lz
 	ifeq ($(TARGET_SYS),Linux)
 		SERVER_LDFLAGS += -ldl
 	endif
