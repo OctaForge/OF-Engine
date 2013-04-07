@@ -466,47 +466,62 @@ namespace lapi_binds
 
     /* input */
 
-    int _lua_input_get_modifier_state() {
-        return SDL_GetModState();
+    int _lua_input_get_modifier_state(lua_State *L) {
+        lua_pushinteger(L, SDL_GetModState());
+        return 1;
     }
 
     /* gui */
 
-    void _lua_gui_set_mainmenu(int v) {
-        mainmenu = v;
+    int _lua_gui_set_mainmenu(lua_State *L) {
+        lua_pushinteger(L, mainmenu);
+        mainmenu = luaL_checkint(L, 1);
+        return 1;
     }
 
-    types::Tuple<int, int> _lua_gui_text_bounds(const char *str, int maxw) {
+    int _lua_gui_text_bounds(lua_State *L) {
         int w, h;
-        text_bounds(str, w, h, maxw);
-        return types::make_tuple(w, h);
+        text_bounds(luaL_checkstring(L, 1), w, h, luaL_checkint(L, 2));
+        lua_pushinteger(L, w); lua_pushinteger(L, h);
+        return 2;
     }
 
-    types::Tuple<float, float> _lua_gui_text_bounds_f(const char *str, int maxw) {
+    int _lua_gui_text_bounds_f(lua_State *L) {
         float w, h;
-        text_boundsf(str, w, h, maxw);
-        return types::make_tuple(w, h);
+        text_boundsf(luaL_checkstring(L, 1), w, h, luaL_checkint(L, 2));
+        lua_pushnumber(L, w); lua_pushnumber(L, h);
+        return 2;
     }
 
-    types::Tuple<int, int> _lua_gui_text_pos(const char *str, int cur, int maxw) {
+    int _lua_gui_text_pos(lua_State *L) {
         int cx, cy;
-        text_pos(str, cur, cx, cy, maxw);
-        return types::make_tuple(cx, cy);
+        text_pos(luaL_checkstring(L, 1), luaL_checkint(L, 2),
+            cx, cy, luaL_checkint(L, 3));
+        lua_pushinteger(L, cx); lua_pushinteger(L, cy);
+        return 2;
     }
 
-    types::Tuple<int, int> _lua_gui_text_pos_f(const char *str, int cur, int maxw) {
+    int _lua_gui_text_pos_f(lua_State *L) {
         float cx, cy;
-        text_posf(str, cur, cx, cy, maxw);
-        return types::make_tuple(cx, cy);
+        text_posf(luaL_checkstring(L, 1), luaL_checkint(L, 2),
+            cx, cy, luaL_checkint(L, 3));
+        lua_pushnumber(L, cx); lua_pushnumber(L, cy);
+        return 2;
     }
 
-    int _lua_gui_text_visible(const char *str, float hitx, float hity, int maxw) {
-        return text_visible(str, hitx, hity, maxw);
+    int _lua_gui_text_visible(lua_State *L) {
+        lua_pushinteger(L, text_visible(luaL_checkstring(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3),
+            luaL_checkint(L, 4)));
+        return 1;
     }
 
-    void _lua_gui_draw_text(const char *str, int left, int top,
-        int r, int g, int b, int a, int cur, int maxw) {
-        draw_text(str, left, top, r, g, b, a, cur, maxw);
+    int _lua_gui_draw_text(lua_State *L) {
+        draw_text(luaL_checkstring(L, 1), luaL_checkint(L, 2),
+            luaL_checkint(L, 3), luaL_checkint(L, 4), luaL_checkint(L, 5),
+            luaL_checkint(L, 6), luaL_checkint(L, 7), luaL_checkint(L, 8),
+            luaL_checkint(L, 9));
+        return 0;
     }
 #endif
 
