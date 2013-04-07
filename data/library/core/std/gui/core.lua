@@ -2810,7 +2810,7 @@ Image = Filler:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex:get_id())
+        CAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -2907,7 +2907,7 @@ local Cropped_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex:get_id())
+        CAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -2957,7 +2957,7 @@ local Stretched_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex:get_id())
+        CAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -3070,7 +3070,7 @@ local Bordered_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex:get_id())
+        CAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
@@ -3143,7 +3143,7 @@ local Tiled_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex:get_id())
+        CAPI.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
             CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)

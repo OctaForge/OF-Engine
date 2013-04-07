@@ -406,44 +406,62 @@ namespace lapi_binds
 
     /* gl */
 
-    void _lua_gl_shader_hud_set() {
+    int _lua_gl_shader_hud_set(lua_State *L) {
         hudshader->set();
+        return 0;
     }
 
-    void _lua_gl_shader_hudnotexture_set() {
+    int _lua_gl_shader_hudnotexture_set(lua_State *L) {
         hudnotextureshader->set();
+        return 0;
     }
 
-    void _lua_gl_scissor_enable() {
+    int _lua_gl_scissor_enable(lua_State *L) {
         glEnable(GL_SCISSOR_TEST);
+        return 0;
     }
 
-    void _lua_gl_scissor_disable() {
+    int _lua_gl_scissor_disable(lua_State *L) {
         glDisable(GL_SCISSOR_TEST);
+        return 0;
     }
 
-    void _lua_gl_scissor(int x, int y, int w, int h) {
-        glScissor(x, y, w, h);
+    int _lua_gl_scissor(lua_State *L) {
+        glScissor(luaL_checkint(L, 1), luaL_checkint(L, 2),
+                  luaL_checkint(L, 3), luaL_checkint(L, 4));
+        return 0;
     }
 
-    void _lua_gl_blend_enable() {
+    int _lua_gl_blend_enable(lua_State *L) {
         glEnable(GL_BLEND);
+        return 0;
     }
 
-    void _lua_gl_blend_disable() {
+    int _lua_gl_blend_disable(lua_State *L) {
         glDisable(GL_BLEND);
+        return 0;
     }
 
-    void _lua_gl_blend_func(uint sf, uint df) {
-        glBlendFunc(sf, df);
+    int _lua_gl_blend_func(lua_State *L) {
+        glBlendFunc((uint)luaL_checkint(L, 1), (uint)luaL_checkint(L, 2));
+        return 0;
     }
 
-    void _lua_gl_bind_texture(int tex) {
-        glBindTexture(GL_TEXTURE_2D, tex);
+    Texture *checktex(lua_State *L) {
+      Texture **tex = (Texture**)luaL_checkudata(L, 1, "Texture");
+      luaL_argcheck(L, tex != NULL, 1, "'Texture' expected");
+      return *tex;
     }
 
-    void _lua_gl_texture_param(uint pn, int pr) {
-        glTexParameteri(GL_TEXTURE_2D, pn, pr);
+    int _lua_gl_bind_texture(lua_State *L) {
+        glBindTexture(GL_TEXTURE_2D, checktex(L)->id);
+        return 0;
+    }
+
+    int _lua_gl_texture_param(lua_State *L) {
+        glTexParameteri(GL_TEXTURE_2D, (uint)luaL_checkint(L, 1),
+            luaL_checkint(L, 2));
+        return 0;
     }
 
     /* input */
@@ -1732,12 +1750,6 @@ namespace lapi_binds
                 }
             }
         }
-    }
-
-    Texture *checktex(lua_State *L) {
-      Texture **tex = (Texture**)luaL_checkudata(L, 1, "Texture");
-      luaL_argcheck(L, tex != NULL, 1, "'Texture' expected");
-      return *tex;
     }
 
     #define TEXPROP(field, func) \
