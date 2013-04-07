@@ -528,75 +528,103 @@ namespace lapi_binds
     /* camera */
 
 #ifdef CLIENT
-    lua::Table _lua_getcam()
-    {
-        lua::Table t = lapi::state.new_table(0, 4);
+    int _lua_getcamyaw(lua_State *L) {
+        lua_pushinteger(L, camera1->yaw);
+        return 1;
+    }
+    int _lua_getcampitch(lua_State *L) {
+        lua_pushinteger(L, camera1->pitch);
+        return 1;
+    }
+    int _lua_getcamroll(lua_State *L) {
+        lua_pushinteger(L, camera1->roll);
+        return 1;
+    }
+    int _lua_getcampos(lua_State *L) {
+        lua_getglobal(L, "external");
+        lua_getfield (L, -1, "new_vec3");
+        lua_remove   (L, -2);
+
         const vec& o = camera1->o;
-        t["position"] = lapi::state.get<lua::Function>("external", "new_vec3")
-            .call<lua::Table>(o.x, o.y, o.z);
-        t["yaw"     ] = camera1->yaw;
-        t["pitch"   ] = camera1->pitch;
-        t["roll"    ] = camera1->roll;
-        return t;
+        lua_pushnumber(L, o.x); 
+        lua_pushnumber(L, o.y);
+        lua_pushnumber(L, o.z);
+        lua_call(L, 3, 1);
+        return 1;
     }
 #else
-    LAPI_EMPTY(getcam)
+    LAPI_EMPTY(getcamyaw)
+    LAPI_EMPTY(getcampitch)
+    LAPI_EMPTY(getcamroll)
+    LAPI_EMPTY(getcampos)
 #endif
 
     /* edit */
 
-    int _lua_editing_getworldsize() { return getworldsize(); }
-    int _lua_editing_getgridsize () { return 1 << gridpower; }
-
-    void _lua_editing_erasegeometry() { EditingSystem::eraseGeometry(); }
-
-    void _lua_editing_createcube(int x, int y, int z, int gridsize)
-    {
-        EditingSystem::createCube(x, y, z, gridsize);
+    int _lua_editing_getworldsize(lua_State *L) {
+        lua_pushinteger(L, getworldsize());
+        return 1;
+    }
+    int _lua_editing_getgridsize (lua_State *L) {
+        lua_pushinteger(L, 1 << gridpower);
+        return 1;
     }
 
-    void _lua_editing_deletecube(int x, int y, int z, int gridsize)
-    {
-        EditingSystem::deleteCube(x, y, z, gridsize);
+    int _lua_editing_erasegeometry(lua_State *L) {
+        EditingSystem::eraseGeometry();
+        return 0;
     }
 
-    void _lua_editing_setcubetex(
-        int x, int y, int z, int gridsize, int face, int texture
-    )
-    {
-        EditingSystem::setCubeTexture(x, y, z, gridsize, face, texture);
+    int _lua_editing_createcube(lua_State *L) {
+        EditingSystem::createCube(luaL_checkint(L, 1), luaL_checkint(L, 2),
+                                  luaL_checkint(L, 3), luaL_checkint(L, 4));
+        return 0;
     }
 
-    void _lua_editing_setcubemat(
-        int x, int y, int z, int gridsize, int material
-    )
-    {
-        EditingSystem::setCubeMaterial(x, y, z, gridsize, material);
+    int _lua_editing_deletecube(lua_State *L) {
+        EditingSystem::deleteCube(luaL_checkint(L, 1), luaL_checkint(L, 2),
+                                  luaL_checkint(L, 3), luaL_checkint(L, 4));
+        return 0;
     }
 
-    void _lua_editing_setcubecolor(
-        int x, int y, int z, int gridsize, float r, float g, float b
-    )
-    {
-        EditingSystem::setCubeColor(x, y, z, gridsize, r, g, b);
+    int _lua_editing_setcubetex(lua_State *L) {
+        EditingSystem::setCubeTexture(luaL_checkint(L, 1), luaL_checkint(L, 2),
+                                      luaL_checkint(L, 3), luaL_checkint(L, 4),
+                                      luaL_checkint(L, 5), luaL_checkint(L, 6));
+        return 0;
     }
 
-    void _lua_editing_pushcubecorner(
-        int x, int y, int z, int gridsize, int face, int corner, int direction
-    )
-    {
-        EditingSystem::pushCubeCorner(
-            x, y, z, gridsize, face, corner, direction
-        );
+    int _lua_editing_setcubemat(lua_State *L) {
+        EditingSystem::setCubeMaterial(luaL_checkint(L, 1), luaL_checkint(L, 2),
+                                       luaL_checkint(L, 3), luaL_checkint(L, 4),
+                                       luaL_checkint(L, 5));
+        return 0;
     }
 
-    lua::Table _lua_editing_getselent()
-    {
+    int _lua_editing_setcubecolor(lua_State *L) {
+        EditingSystem::setCubeColor(luaL_checkint(L, 1), luaL_checkint(L, 2),
+                                    luaL_checkint(L, 3), luaL_checkint(L, 4),
+                                    luaL_checknumber(L, 5),
+                                    luaL_checknumber(L, 6),
+                                    luaL_checknumber(L, 7));
+        return 0;
+    }
+
+    int _lua_editing_pushcubecorner(lua_State *L) {
+        EditingSystem::pushCubeCorner(luaL_checkint(L, 1), luaL_checkint(L, 2),
+                                      luaL_checkint(L, 3), luaL_checkint(L, 4),
+                                      luaL_checkint(L, 5), luaL_checkint(L, 6),
+                                      luaL_checkint(L, 7));
+        return 0;
+    }
+
+    int _lua_editing_getselent(lua_State *L) {
         CLogicEntity *ret = EditingSystem::getSelectedEntity();
         if (ret && !ret->isNone() && !ret->lua_ref.is_nil())
-            return ret->lua_ref;
+            ret->lua_ref.push();
         else
-            return lapi::state.wrap<lua::Table>(lua::nil);
+            lua_pushnil(L);
+        return 1;
     }
 
 #ifdef SERVER
@@ -2123,7 +2151,10 @@ namespace lapi_binds
         LAPI_REG(gui_draw_text);
 #endif
         /* camera */
-        LAPI_REG(getcam);
+        LAPI_REG(getcamyaw);
+        LAPI_REG(getcampitch);
+        LAPI_REG(getcamroll);
+        LAPI_REG(getcampos);
 
         /* edit */
         LAPI_REG(editing_getworldsize);

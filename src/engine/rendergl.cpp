@@ -979,6 +979,15 @@ void gl_init(int w, int h)
 
 VAR(wireframe, 0, 0, 1);
 
+ICOMMAND(getcamyaw, "", (), floatret(camera1->yaw));
+ICOMMAND(getcampitch, "", (), floatret(camera1->pitch));
+ICOMMAND(getcamroll, "", (), floatret(camera1->roll));
+ICOMMAND(getcampos, "", (), 
+{
+    defformatstring(pos)("%s %s %s", floatstr(camera1->o.x), floatstr(camera1->o.y), floatstr(camera1->o.z));
+    result(pos);
+});
+
 vec worldpos, camdir, camright, camup;
 
 void setcammatrix()
@@ -1052,7 +1061,7 @@ void pophudmatrix(bool flush, bool flushparams)
         if(flush) flushhudmatrix(flushparams);
     }
 }
-
+ 
 int vieww = -1, viewh = -1;
 float curfov = 100, curavatarfov = 65, fovy, aspect;
 int farplane;
@@ -2346,7 +2355,7 @@ void gl_drawhud(int w, int h)
     debuglights();
 
     glEnable(GL_BLEND);
-
+    
     if(!mainmenu)
     {
         drawdamagescreen(w, h);
