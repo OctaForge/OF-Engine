@@ -34,17 +34,6 @@ if (!name) \
 { logger::log(logger::DEBUG, "stub: CAPI."#name"\n"); return 0; }
 
 #include "of_lapi_base.h"
-#include "of_lapi_camera.h"
-#include "of_lapi_edit.h"
-#include "of_lapi_entity.h"
-#include "of_lapi_input.h"
-#include "of_lapi_messages.h"
-#include "of_lapi_model.h"
-#include "of_lapi_network.h"
-#include "of_lapi_parthud.h"
-#include "of_lapi_sound.h"
-#include "of_lapi_tex.h"
-#include "of_lapi_world.h"
 
 #undef LAPI_EMPTY
 #undef LAPI_GET_ENT
@@ -244,22 +233,7 @@ namespace lapi
         state["OF_CFG_VERSION"] = OF_CFG_VERSION;
 
         lua::Table api_all = state.new_table();
-
-        #define CAPI_REG(name) lapi_binds::reg_##name(api_all)
-        CAPI_REG(base);
-        CAPI_REG(camera);
-        CAPI_REG(edit);
-        CAPI_REG(entity);
-        CAPI_REG(input);
-        CAPI_REG(messages);
-        CAPI_REG(model);
-        CAPI_REG(network);
-        CAPI_REG(parthud);
-        CAPI_REG(sound);
-        CAPI_REG(tex);
-        CAPI_REG(world);
-        #undef CAPI_REG
-
+        lapi_binds::reg_base(api_all);
         state.register_module("CAPI", api_all);
         load_module("init");
     }
