@@ -133,131 +133,160 @@ namespace lapi_binds
     LAPI_EMPTY(save_mouse_position)
 #endif
 
-    void _lua_var_reset(const char *name) {
-        resetvar((char*)name);
+    int _lua_var_reset(lua_State *L) {
+        resetvar((char*)luaL_checkstring(L, 1));
+        return 0;
     }
 
-    void _lua_var_new_i(const char *name, int min, int def, int max,
-        int flags) {
-        if (!name) return;
+    int _lua_var_new_i(lua_State *L) {
+        const char *name = luaL_checkstring(L, 1);
+        if (!name || !name[0]) return 0;
         ident *id = getident(name);
         if (!id) {
             int *st = new int;
-            *st = variable(name, min, def, max, st, NULL, flags | IDF_ALLOC);
+            *st = variable(name, luaL_checkint(L, 2),
+                luaL_checkint(L, 3), luaL_checkint(L, 4),
+                st, NULL, luaL_checkint(L, 5) | IDF_ALLOC);
         } else {
             logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
+        return 0;
     }
 
-    void _lua_var_new_f(const char *name, float min, float def, float max,
-        int flags) {
-        if (!name) return;
+    int _lua_var_new_f(lua_State *L) {
+        const char *name = luaL_checkstring(L, 1);
+        if (!name || !name[0]) return 0;
         ident *id = getident(name);
         if (!id) {
             float *st = new float;
-            *st = fvariable(name, min, def, max, st, NULL, flags | IDF_ALLOC);
+            *st = fvariable(name, luaL_checknumber(L, 2),
+                luaL_checknumber(L, 3), luaL_checknumber(L, 4),
+                st, NULL, luaL_checkint(L, 5) | IDF_ALLOC);
         } else {
             logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
+        return 0;
     }
 
-    void _lua_var_new_s(const char *name, const char *def, int flags) {
-        if (!name) return;
+    int _lua_var_new_s(lua_State *L) {
+        const char *name = luaL_checkstring(L, 1);
+        if (!name || !name[0]) return 0;
         ident *id = getident(name);
         if (!id) {
             char **st = new char*;
-            *st = svariable(name, def, st, NULL, flags | IDF_ALLOC);
+            *st = svariable(name, luaL_checkstring(L, 2), st, NULL,
+                luaL_checkint(L, 3) | IDF_ALLOC);
         } else {
             logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
+        return 0;
     }
 
-    void _lua_var_set_i(const char *name, int value) {
-        setvar(name, value);
+    int _lua_var_set_i(lua_State *L) {
+        setvar(luaL_checkstring(L, 1), luaL_checkint(L, 2));
+        return 0;
     }
 
-    void _lua_var_set_f(const char *name, float value) {
-        setfvar(name, value);
+    int _lua_var_set_f(lua_State *L) {
+        setfvar(luaL_checkstring(L, 1), luaL_checknumber(L, 2));
+        return 0;
     }
 
-    void _lua_var_set_s(const char *name, const char *value) {
-        setsvar(name, value);
+    int _lua_var_set_s(lua_State *L) {
+        setsvar(luaL_checkstring(L, 1), luaL_checkstring(L, 2));
+        return 0;
     }
 
-    int _lua_var_get_i(const char *name) {
-        return getvar(name);
+    int _lua_var_get_i(lua_State *L) {
+        lua_pushinteger(L, getvar(luaL_checkstring(L, 1)));
+        return 1;
     }
 
-    float _lua_var_get_f(const char *name) {
-        return getfvar(name);
+    int _lua_var_get_f(lua_State *L) {
+        lua_pushnumber(L, getfvar(luaL_checkstring(L, 1)));
+        return 1;
     }
 
-    const char *_lua_var_get_s(const char *name) {
-        return getsvar(name);
+    int _lua_var_get_s(lua_State *L) {
+        lua_pushstring(L, getsvar(luaL_checkstring(L, 1)));
+        return 1;
     }
 
-    int _lua_var_get_min_i(const char *name) {
-        return getvarmin(name);
+    int _lua_var_get_min_i(lua_State *L) {
+        lua_pushinteger(L, getvarmin(luaL_checkstring(L, 1)));
+        return 1;
     }
 
-    float _lua_var_get_min_f(const char *name) {
-        return getfvarmin(name);
+    int _lua_var_get_min_f(lua_State *L) {
+        lua_pushnumber(L, getfvarmin(luaL_checkstring(L, 1)));
+        return 1;
     }
 
-    int _lua_var_get_max_i(const char *name) {
-        return getvarmax(name);
+    int _lua_var_get_max_i(lua_State *L) {
+        lua_pushinteger(L, getvarmax(luaL_checkstring(L, 1)));
+        return 1;
     }
 
-    float _lua_var_get_max_f(const char *name) {
-        return getfvarmax(name);
+    int _lua_var_get_max_f(lua_State *L) {
+        lua_pushnumber(L, getfvarmax(luaL_checkstring(L, 1)));
+        return 1;
     }
 
-    int _lua_var_get_def_i(const char *name) {
-        ident *id = getident(name);
+    int _lua_var_get_def_i(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
         if (!id || id->type != ID_VAR) return 0;
-        return id->overrideval.i;
+        lua_pushinteger(L, id->overrideval.i);
+        return 1;
     }
 
-    float _lua_var_get_def_f(const char *name) {
-        ident *id = getident(name);
-        if (!id || id->type != ID_FVAR) return 0.0f;
-        return id->overrideval.f;
+    int _lua_var_get_def_f(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
+        if (!id || id->type != ID_FVAR) return 0;
+        lua_pushnumber(L, id->overrideval.f);
+        return 1;
     }
 
-    const char *_lua_var_get_def_s(const char *name) {
-        ident *id = getident(name);
-        if (!id || id->type != ID_SVAR) return NULL;
-        return id->overrideval.s;
+    int _lua_var_get_def_s(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
+        if (!id || id->type != ID_SVAR) return 0;
+        lua_pushstring(L, id->overrideval.s);
+        return 1;
     }
 
-    int _lua_var_get_type(const char *name) {
-        ident *id = getident(name);
-        if (!id || id->type > ID_SVAR)
-            return -1;
-        return id->type;
+    int _lua_var_get_type(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
+        if (!id || id->type > ID_SVAR) {
+            lua_pushinteger(L, -1);
+        } else {
+            lua_pushinteger(L, id->type);
+        }
+        return 1;
     }
 
-    bool _lua_var_exists(const char *name) {
-        ident *id = getident(name);
-        return (!id || id->type > ID_SVAR)
-            ? false : true;
+    int _lua_var_exists(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
+        lua_pushboolean(L, (!id || id->type > ID_SVAR) ? false : true);
+        return 1;
     }
 
-    bool _lua_var_is_hex(const char *name) {
-        ident *id = getident(name);
-        return (!id || !(id->flags&IDF_HEX)) ? false : true;
+    int _lua_var_is_hex(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
+        lua_pushboolean(L, (!id || !(id->flags&IDF_HEX)) ? false : true);
+        return 1;
     }
 
-    bool _lua_var_emits(const char *name) {
-        ident *id = getident(name);
-        return (!id || !(id->flags&IDF_SIGNAL)) ? false : true;
+    int _lua_var_emits(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
+        lua_pushboolean(L, (!id || !(id->flags&IDF_SIGNAL)) ? false : true);
+        return 1;
     }
 
-    void _lua_var_emits_set(const char *name, bool v) {
-        ident *id = getident(name);
-        if (!id) return;
-        if (v) id->flags |= IDF_SIGNAL;
+    int _lua_var_emits_set(lua_State *L) {
+        ident *id = getident(luaL_checkstring(L, 1));
+        if (!id) return 0;
+        if (lua_toboolean(L, 2)) id->flags |= IDF_SIGNAL;
         else id->flags &= ~IDF_SIGNAL;
+        return 0;
     }
 
 #ifdef CLIENT
