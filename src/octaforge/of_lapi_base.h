@@ -9,97 +9,92 @@ namespace EditingSystem
 
 namespace lapi_binds
 {
-    void _lua_log(int level, const char *msg) {
-        logger::log((logger::loglevel)level, "%s\n", msg);
+    int _lua_log(lua_State *L) {
+        logger::log((logger::loglevel)luaL_checkint(L, 1),
+            "%s\n", luaL_checkstring(L, 2));
+        return 0;
     }
 
-    bool _lua_should_log(int level) {
-        return logger::should_log((logger::loglevel)level);
+    int _lua_should_log(lua_State *L) {
+        lua_pushboolean(L, logger::should_log(
+            (logger::loglevel)luaL_checkint(L, 1)));
+        return 1;
     }
 
-    void _lua_echo(const char *msg) {
-        conoutf("\f1%s", msg);
+    int _lua_echo(lua_State *L) {
+        conoutf("\f1%s", luaL_checkstring(L, 1));
+        return 0;
     }
 
-    int _lua_lastmillis() { return lastmillis; }
-    int _lua_totalmillis() { return totalmillis; }
+    int _lua_lastmillis(lua_State *L) {
+        lua_pushinteger(L, lastmillis);
+        return 1;
+    }
 
-    int _lua_currtime() { return tools::currtime(); }
+    int _lua_totalmillis(lua_State *L) {
+        lua_pushinteger(L, totalmillis);
+        return 1;
+    }
 
-    lua::Object _lua_cubescript(const char *input) {
+    int _lua_currtime(lua_State *L) {
+        lua_pushinteger(L, tools::currtime());
+        return 1;
+    }
+
+    int _lua_cubescript(lua_State *L) {
         tagval v;
-        executeret(input, v);
+        executeret(luaL_checkstring(L, 1), v);
         switch (v.type) {
             case VAL_INT:
-                return lapi::state.wrap<lua::Object>(v.getint());
+                lua_pushinteger(L, v.getint());
             case VAL_FLOAT:
-                return lapi::state.wrap<lua::Object>(v.getfloat());
+                lua_pushnumber(L, v.getfloat());
             case VAL_STR:
-                return lapi::state.wrap<lua::Object>(v.getstr());
+                lua_pushstring(L, v.getstr());
             default:
-                return lapi::state.wrap<lua::Object>(lua::nil);
+                lua_pushnil(L);
         }
+        return 1;
     }
 
-    types::String _lua_readfile(const char *path)
-    {
-        /* TODO: more checks */
-        if (!path              ||
-            strstr(path, "..") ||
-            strchr(path, '~')  ||
-            path[0] == '/'     ||
-            path[0] == '\\'
-        ) return NULL;
+    int _lua_readfile(lua_State *L) {
+        const char *p = luaL_checkstring(L, 1);
+
+        if (!p || !p[0] || p[0] == '/' ||p[0] == '\\'
+        || strstr(p, "..") || strchr(p, '~')) {
+            return 0;
+        }
 
         char *loaded = NULL;
-
         types::String buf;
 
-        if (strlen(path) >= 2 &&
-            path[0] == '.'    && (
-                path[1] == '/' ||
-                path[1] == '\\'
-            )
-        )
-            buf = world::get_mapfile_path(path + 2);
-        else
-            buf.format("%sdata%c%s", homedir, filesystem::separator(), path);
-
-        if (!(loaded = loadfile(buf.get_buf(), NULL)))
-        {
-            buf.format("data%c%s", filesystem::separator(), path);
-            loaded = loadfile(buf.get_buf(), NULL);
+        if (strlen(p) >= 2 && p[0] == '.' && (p[1] == '/' || p[1] == '\\')) {
+            buf = world::get_mapfile_path(p + 2);
+        } else {
+            buf.format("data%c%s", PATHDIV, p);
         }
 
-        if (!loaded)
-        {
-            logger::log(
-                logger::ERROR,
-                "Could not read file %s (paths: %sdata, .%cdata)",
-                path, homedir, filesystem::separator()
-            );
-            return NULL;
+        if (!(loaded = loadfile(path(buf.get_buf(), true), NULL))) {
+            logger::log(logger::ERROR, "count not read \"%s\"", p);
+            return 0;
         }
-
-        types::String ret(loaded);
-        delete[] loaded;
-        return ret;
+        lua_pushstring(L, loaded);
+        return 1;
     }
 
-    const char *_lua_getserverlogfile()
-    {
-        return SERVER_LOGFILE;
+    int _lua_getserverlogfile(lua_State *L) {
+        lua_pushliteral(L, SERVER_LOGFILE);
+        return 1;
     }
 
-    bool _lua_setup_library(const char *name)
-    {
-        return lapi::load_library(name);
+    int _lua_setup_library(lua_State *L) {
+        lua_pushboolean(L, lapi::load_library(luaL_checkstring(L, 1)));
+        return 1;
     }
-
 #ifdef CLIENT
-    void _lua_save_mouse_position()
-    {
+    int _lua_save_mouse_position(lua_State *L) {
         EditingSystem::saved_pos = TargetingControl::worldPosition;
+        return 0;
     }
 #else
     LAPI_EMPTY(save_mouse_position)
