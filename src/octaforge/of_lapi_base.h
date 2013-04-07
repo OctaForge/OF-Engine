@@ -290,12 +290,12 @@ namespace lapi_binds
     }
 
 #ifdef CLIENT
-    void _lua_varray_begin(uint mode) { varray::begin(mode); }
-    int _lua_varray_end() { return varray::end(); }
-    void _lua_varray_disable() { varray::disable(); }
+    int _lua_varray_begin(lua_State *L) { varray::begin((uint)luaL_checkint(L, 1)); return 0; }
+    int _lua_varray_end(lua_State *L) { lua_pushinteger(L, varray::end()); return 1; }
+    int _lua_varray_disable(lua_State *L) { varray::disable(); return 0; }
 
     #define EAPI_VARRAY_DEFATTRIB(name) \
-        void _lua_varray_def##name(int size) { varray::def##name(size, GL_FLOAT); }
+        int _lua_varray_def##name(lua_State *L) { varray::def##name(luaL_checkint(L, 1), GL_FLOAT); return 0; }
 
     EAPI_VARRAY_DEFATTRIB(vertex)
     EAPI_VARRAY_DEFATTRIB(color)
@@ -303,48 +303,105 @@ namespace lapi_binds
     EAPI_VARRAY_DEFATTRIB(texcoord1)
 
     #define EAPI_VARRAY_INITATTRIB(name) \
-        void _lua_varray_##name##1f(float x) { varray::name##f(x); } \
-        void _lua_varray_##name##2f(float x, float y) { varray::name##f(x, y); } \
-        void _lua_varray_##name##3f(float x, float y, float z) { varray::name##f(x, y, z); } \
-        void _lua_varray_##name##4f(float x, float y, float z, float w) { varray::name##f(x, y, z, w); }
+        int _lua_varray_##name##1f(lua_State *L) { \
+            varray::name##f(luaL_checknumber(L, 1)); \
+            return 0; \
+        } \
+        int _lua_varray_##name##2f(lua_State *L) { \
+            varray::name##f(luaL_checknumber(L, 1), \
+                            luaL_checknumber(L, 2)); \
+            return 0; \
+        } \
+        int _lua_varray_##name##3f(lua_State *L) { \
+            varray::name##f(luaL_checknumber(L, 1), \
+                            luaL_checknumber(L, 2), \
+                            luaL_checknumber(L, 3)); \
+            return 0; \
+        } \
+        int _lua_varray_##name##4f(lua_State *L) { \
+            varray::name##f(luaL_checknumber(L, 1), \
+                            luaL_checknumber(L, 2), \
+                            luaL_checknumber(L, 3), \
+                            luaL_checknumber(L, 4)); \
+            return 0; \
+        }
 
     EAPI_VARRAY_INITATTRIB(vertex)
     EAPI_VARRAY_INITATTRIB(color)
     EAPI_VARRAY_INITATTRIB(texcoord0)
     EAPI_VARRAY_INITATTRIB(texcoord1)
 
-    #define EAPI_VARRAY_INITATTRIBN(name, suffix, type) \
-        void _lua_varray_##name##3##suffix(type x, type y, type z) { varray::name##suffix(x, y, z); } \
-        void _lua_varray_##name##4##suffix(type x, type y, type z, type w) { varray::name##suffix(x, y, z, w); }
+    int _lua_varray_color3ub(lua_State *L) {
+        varray::colorub((uchar)luaL_checkint(L, 1),
+                        (uchar)luaL_checkint(L, 2),
+                        (uchar)luaL_checkint(L, 3));
+        return 0;
+    }
+    int _lua_varray_color4ub(lua_State *L) {
+        varray::colorub((uchar)luaL_checkint(L, 1),
+                        (uchar)luaL_checkint(L, 2),
+                        (uchar)luaL_checkint(L, 3),
+                        (uchar)luaL_checkint(L, 4));
+        return 0;
+    }
 
-    EAPI_VARRAY_INITATTRIBN(color, ub, uchar)
+    #define EAPI_VARRAY_ATTRIB(suffix, type, cast) \
+        int _lua_varray_attrib##1##suffix(lua_State *L) { \
+            varray::attrib##suffix((cast)luaL_check##type(L, 1)); \
+            return 0; \
+        } \
+        int _lua_varray_attrib##2##suffix(lua_State *L) { \
+            varray::attrib##suffix((cast)luaL_check##type(L, 1), \
+                                   (cast)luaL_check##type(L, 2)); \
+            return 0; \
+        } \
+        int _lua_varray_attrib##3##suffix(lua_State *L) { \
+            varray::attrib##suffix((cast)luaL_check##type(L, 1), \
+                                   (cast)luaL_check##type(L, 2), \
+                                   (cast)luaL_check##type(L, 3)); \
+            return 0; \
+        } \
+        int _lua_varray_attrib##4##suffix(lua_State *L) { \
+            varray::attrib##suffix((cast)luaL_check##type(L, 1), \
+                                   (cast)luaL_check##type(L, 2), \
+                                   (cast)luaL_check##type(L, 3), \
+                                   (cast)luaL_check##type(L, 4)); \
+            return 0; \
+        }
 
-    #define EAPI_VARRAY_ATTRIB(suffix, type) \
-        void _lua_varray_attrib##1##suffix(type x) { varray::attrib##suffix(x); } \
-        void _lua_varray_attrib##2##suffix(type x, type y) { varray::attrib##suffix(x, y); } \
-        void _lua_varray_attrib##3##suffix(type x, type y, type z) { varray::attrib##suffix(x, y, z); } \
-        void _lua_varray_attrib##4##suffix(type x, type y, type z, type w) { varray::attrib##suffix(x, y, z, w); }
-
-    EAPI_VARRAY_ATTRIB(f, float)
-    EAPI_VARRAY_ATTRIB(d, double)
-    EAPI_VARRAY_ATTRIB(b, char)
-    EAPI_VARRAY_ATTRIB(ub, uchar)
-    EAPI_VARRAY_ATTRIB(s, short)
-    EAPI_VARRAY_ATTRIB(us, ushort)
-    EAPI_VARRAY_ATTRIB(i, int)
-    EAPI_VARRAY_ATTRIB(ui, uint)
+    EAPI_VARRAY_ATTRIB(f, number, float)
+    EAPI_VARRAY_ATTRIB(d, number, double)
+    EAPI_VARRAY_ATTRIB(b, int, char)
+    EAPI_VARRAY_ATTRIB(ub, int, uchar)
+    EAPI_VARRAY_ATTRIB(s, int, short)
+    EAPI_VARRAY_ATTRIB(us, int, ushort)
+    EAPI_VARRAY_ATTRIB(i, int, int)
+    EAPI_VARRAY_ATTRIB(ui, int, uint)
 
     /* hudmatrix */
 
-    void _lua_hudmatrix_push () { pushhudmatrix (); }
-    void _lua_hudmatrix_pop  () { pophudmatrix  (); }
-    void _lua_hudmatrix_flush() { flushhudmatrix(); }
-    void _lua_hudmatrix_reset() { resethudmatrix(); }
+    int _lua_hudmatrix_push (lua_State *L) { pushhudmatrix (); return 0; }
+    int _lua_hudmatrix_pop  (lua_State *L) { pophudmatrix  (); return 0; }
+    int _lua_hudmatrix_flush(lua_State *L) { flushhudmatrix(); return 0; }
+    int _lua_hudmatrix_reset(lua_State *L) { resethudmatrix(); return 0; }
 
-    void _lua_hudmatrix_translate(float x, float y, float z) { hudmatrix.translate(vec(x, y, z)); }
-    void _lua_hudmatrix_scale(float x, float y, float z) { hudmatrix.scale(vec(x, y, z)); }
-    void _lua_hudmatrix_ortho(float l, float r, float b, float t, float zn, float zf) {
-        hudmatrix.ortho(l, r, b, t, zn, zf);
+    int _lua_hudmatrix_translate(lua_State *L) {
+        hudmatrix.translate(vec(luaL_checknumber(L, 1),
+                                luaL_checknumber(L, 2),
+                                luaL_checknumber(L, 3)));
+        return 0;
+    }
+    int _lua_hudmatrix_scale(lua_State *L) {
+        hudmatrix.scale(vec(luaL_checknumber(L, 1),
+                            luaL_checknumber(L, 2),
+                            luaL_checknumber(L, 3)));
+        return 0;
+    }
+    int _lua_hudmatrix_ortho(lua_State *L) {
+        hudmatrix.ortho(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+                        luaL_checknumber(L, 3), luaL_checknumber(L, 4),
+                        luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+        return 0;
     }
 
     /* gl */
