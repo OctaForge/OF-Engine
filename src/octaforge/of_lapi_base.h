@@ -1025,28 +1025,29 @@ namespace lapi_binds
     /* input */
 
 #ifdef CLIENT
-    bool _lua_set_targeted_entity(int uid)
-    {
+    int _lua_set_targeted_entity(lua_State *L) {
         if (TargetingControl::targetLogicEntity)
             delete TargetingControl::targetLogicEntity;
 
-        TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(uid);
-        return (TargetingControl::targetLogicEntity != NULL);
+        TargetingControl::targetLogicEntity = LogicSystem::getLogicEntity(
+            luaL_checkinteger(L, 1));
+        lua_pushboolean(L, TargetingControl::targetLogicEntity != NULL);
+        return 1;
     }
 
-    bool _lua_is_modifier_pressed()
-    {
-        return (SDL_GetModState() != KMOD_NONE);
+    int _lua_is_modifier_pressed(lua_State *L) {
+        lua_pushboolean(L, SDL_GetModState() != KMOD_NONE);
+        return 1;
     }
 
-    void _lua_keyrepeat(bool on, int mask)
-    {
-        keyrepeat(on, mask);
+    int _lua_keyrepeat(lua_State *L) {
+        keyrepeat(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
+        return 0;
     }
 
-    void _lua_textinput(bool on, int mask)
-    {
-        textinput(on, mask);
+    int _lua_textinput(lua_State *L) {
+        textinput(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
+        return 0;
     }
 #else
     LAPI_EMPTY(set_targeted_entity)
