@@ -886,44 +886,45 @@ namespace lapi_binds
 
     /* Dynents */
 
-    #define DYNENT_ACCESSORS(n, t, an) \
-    lua::Object _lua_get##n(lua::Table self) \
-    { \
-        LAPI_GET_ENT( \
-            entity, self, "CAPI.get"#n, \
-            return lapi::state.wrap<lua::Object>(lua::nil) \
-        ) \
+    #define luaL_checkboolean lua_toboolean
+
+    #define DYNENT_ACCESSORS(n, t, tt, an) \
+    int _lua_get##n(lua_State *L) { \
+        LAPI_GET_ENTC(entity, "CAPI.get"#n, return 0) \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
-        return lapi::state.wrap<lua::Object>((t)d->an); \
+        lua_push##tt(L, d->an); \
+        return 1; \
     } \
-    void _lua_set##n(lua::Table self, t v) \
-    { \
-        LAPI_GET_ENT(entity, self, "CAPI.set"#n, return) \
+    int _lua_set##n(lua_State *L) { \
+        LAPI_GET_ENTC(entity, "CAPI.set"#n, return 0) \
+        t v = luaL_check##tt(L, 2); \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
         d->an = v; \
+        return 0; \
     }
 
-    DYNENT_ACCESSORS(maxspeed, float, maxspeed)
-    DYNENT_ACCESSORS(radius, float, radius)
-    DYNENT_ACCESSORS(eyeheight, float, eyeheight)
-    DYNENT_ACCESSORS(aboveeye, float, aboveeye)
-    DYNENT_ACCESSORS(yaw, float, yaw)
-    DYNENT_ACCESSORS(pitch, float, pitch)
-    DYNENT_ACCESSORS(move, int, move)
-    DYNENT_ACCESSORS(strafe, int, strafe)
-    DYNENT_ACCESSORS(yawing, int, turn_move)
-    DYNENT_ACCESSORS(pitching, int, look_updown_move)
-    DYNENT_ACCESSORS(jumping, bool, jumping)
-    DYNENT_ACCESSORS(blocked, bool, blocked)
+    DYNENT_ACCESSORS(maxspeed, float, number, maxspeed)
+    DYNENT_ACCESSORS(radius, float, number, radius)
+    DYNENT_ACCESSORS(eyeheight, float, number, eyeheight)
+    DYNENT_ACCESSORS(aboveeye, float, number, aboveeye)
+    DYNENT_ACCESSORS(yaw, float, number, yaw)
+    DYNENT_ACCESSORS(pitch, float, number, pitch)
+    DYNENT_ACCESSORS(move, int, integer, move)
+    DYNENT_ACCESSORS(strafe, int, integer, strafe)
+    DYNENT_ACCESSORS(yawing, int, integer, turn_move)
+    DYNENT_ACCESSORS(pitching, int, integer, look_updown_move)
+    DYNENT_ACCESSORS(jumping, bool, boolean, jumping)
+    DYNENT_ACCESSORS(blocked, bool, boolean, blocked)
     /* XXX should be unsigned */
-    DYNENT_ACCESSORS(mapdefinedposdata, int, mapDefinedPositionData)
-    DYNENT_ACCESSORS(clientstate, int, state)
-    DYNENT_ACCESSORS(physstate, int, physstate)
-    DYNENT_ACCESSORS(inwater, int, inwater)
-    DYNENT_ACCESSORS(timeinair, int, timeinair)
+    DYNENT_ACCESSORS(mapdefinedposdata, int, integer, mapDefinedPositionData)
+    DYNENT_ACCESSORS(clientstate, int, integer, state)
+    DYNENT_ACCESSORS(physstate, int, integer, physstate)
+    DYNENT_ACCESSORS(inwater, int, integer, inwater)
+    DYNENT_ACCESSORS(timeinair, int, integer, timeinair)
     #undef DYNENT_ACCESSORS
+    #undef luaL_checkinteger
 
     lua::Table _lua_getdynent0(lua::Table self)
     {
