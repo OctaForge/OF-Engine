@@ -1604,25 +1604,22 @@ namespace lapi_binds
     /* textures */
 
 #ifdef CLIENT
-    lua::Table _lua_parsepixels(const char *fn)
-    {
-        if (!fn) fn = "";
+    int _lua_parsepixels(lua_State *L) {
+        const char *fn = "";
+        if (!lua_isnoneornil(L, 1)) fn = luaL_checkstring(L, 1);
 
         ImageData d;
-        if (!loadimage(fn, d)) return lapi::state.wrap<lua::Table>(lua::nil);
+        if (!loadimage(fn, d)) return 0;
 
-        lua::Table ret = lapi::state.new_table(0, 3);
-        ret["w"] = d.w;
-        ret["h"] = d.h;
+        lua_createtable(L, 0, 3);
+        lua_pushinteger(L, d.w); lua_setfield(L, -2, "w");
+        lua_pushinteger(L, d.h); lua_setfield(L, -2, "h");
 
-        lua::Table    row = lapi::state.new_table(d.w);
-        ret["data"] = row;
-
+        lua_createtable(L,  d.w, 0);
         for (int x = 0; x < d.w; ++x)
         {
-            lua::Table   col = lapi::state.new_table(d.h);
-            row[x + 1] = col;
-
+            lua_pushinteger(L, x + 1);
+            lua_createtable(L,  d.h, 0);
             for (int y = 0; y < d.h; ++y)
             {
                 uchar *p = d.data + y * d.pitch + x * d.bpp;
@@ -1653,28 +1650,40 @@ namespace lapi_binds
                 uchar r, g, b;
                 SDL_GetRGB(ret, ((SDL_Surface*)d.owner)->format, &r, &g, &b);
 
-                lua::Table px = lapi::state.new_table(0, 3);
-                px["r"   ] = (uint)r;
-                px["g"   ] = (uint)g;
-                px["b"   ] = (uint)b;
-                col[y + 1] = px;
+                lua_pushinteger(L, y + 1);
+                lua_createtable(L, 0, 3);
+                lua_pushinteger(L, r); lua_setfield(L, -2, "r");
+                lua_pushinteger(L, g); lua_setfield(L, -2, "g");
+                lua_pushinteger(L, b); lua_setfield(L, -2, "b");
+                lua_settable   (L, -3);
             }
+            lua_settable(L, -3);
         }
-
-        return ret;
+        lua_setfield(L, -2, "data");
+        return 1;
     }
 
-    void _lua_filltexlist() { filltexlist        (); }
-    int  _lua_getnumslots() { return slots.length(); }
+    int _lua_filltexlist(lua_State *L) {
+        filltexlist();
+        return 0;
+    }
 
-    bool _lua_hastexslot(int slotnum) { return texmru.inrange(slotnum); }
-    bool _lua_checkvslot(int slotnum)
-    {
-        VSlot &vslot = lookupvslot(texmru[slotnum], false);
+    int _lua_getnumslots(lua_State *L) {
+        lua_pushinteger(L, slots.length());
+        return 1;
+    }
+
+    int _lua_hastexslot(lua_State *L) {
+        lua_pushboolean(L, texmru.inrange((int)luaL_checkinteger(L, 1)));
+        return 1;
+    }
+
+    int _lua_checkvslot(lua_State *L) {
+        VSlot &vslot = lookupvslot(texmru[luaL_checkinteger(L, 1)], false);
         if(vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail))
-            return true;
-
-        return false;
+            lua_pushboolean(L, true);
+        lua_pushboolean(L, false);
+        return 1;
     }
 
     VAR(thumbtime, 0, 25, 1000);
@@ -1756,10 +1765,10 @@ namespace lapi_binds
         hudshader->set();
     }
 
-    void _lua_texture_draw_slot(
-        int slotnum, float w, float h, float sx, float sy
-    )
-    {
+    int _lua_texture_draw_slot(lua_State *L) {
+        int slotnum = luaL_checkinteger(L, 1);
+        float w  = luaL_checknumber(L, 2), h  = luaL_checknumber(L, 3);
+        float sx = luaL_checknumber(L, 4), sy = luaL_checknumber(L, 5);
         if (texmru.inrange(slotnum))
         {
             VSlot &vslot = lookupvslot(texmru[slotnum], false);
@@ -1776,6 +1785,7 @@ namespace lapi_binds
                 }
             }
         }
+        return 0;
     }
 
     #define TEXPROP(field, func) \
