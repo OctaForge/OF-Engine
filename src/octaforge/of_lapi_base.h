@@ -799,31 +799,30 @@ namespace lapi_binds
     /* Extents */
 
     #define EXTENT_ACCESSORS(n) \
-    lua::Object _lua_get##n(lua::Table self) \
-    { \
-        LAPI_GET_ENT( \
-            entity, self, "CAPI.get"#n, \
-            return lapi::state.wrap<lua::Object>(lua::nil) \
-        ) \
+    int _lua_get##n(lua_State *L) { \
+        LAPI_GET_ENTC(entity, "CAPI.get"#n, return 0) \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
-        return lapi::state.wrap<lua::Object>(ext->n); \
+        lua_pushinteger(L, ext->n); \
+        return 1; \
     } \
-    void _lua_set##n(lua::Table self, int v) \
-    { \
-        LAPI_GET_ENT(entity, self, "CAPI.set"#n, return) \
+    int _lua_set##n(lua_State *L) { \
+        LAPI_GET_ENTC(entity, "CAPI.set"#n, return 0) \
+        int v = luaL_checkint(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
         if (!world::loading) removeentity(ext); \
         ext->n = v; \
         if (!world::loading) addentity(ext); \
+        return 0; \
     } \
-    void _lua_FAST_set##n(lua::Table self, int v) \
-    { \
-        LAPI_GET_ENT(entity, self, "CAPI.FAST_set"#n, return) \
+    int _lua_FAST_set##n(lua_State *L) { \
+        LAPI_GET_ENTC(entity, "CAPI.FAST_set"#n, return 0) \
+        int v = luaL_checkint(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
         ext->n = v; \
+        return 0; \
     }
 
     EXTENT_ACCESSORS(attr1)
@@ -834,56 +833,55 @@ namespace lapi_binds
     #undef EXTENT_ACCESSORS
 
     #define EXTENT_LE_ACCESSORS(n, an) \
-    lua::Object _lua_get##n(lua::Table self) \
-    { \
-        LAPI_GET_ENT( \
-            entity, self, "CAPI.get"#n, \
-            return lapi::state.wrap<lua::Object>(lua::nil) \
-        ) \
-        return lapi::state.wrap<lua::Object>(entity->an); \
+    int _lua_get##n(lua_State *L) { \
+        LAPI_GET_ENTC(entity, "CAPI.get"#n, return 0) \
+        lua_pushnumber(L, entity->an); \
+        return 1; \
     } \
-    void _lua_set##n(lua::Table self, float v) \
-    { \
-        LAPI_GET_ENT(entity, self, "CAPI.set"#n, return) \
+    int _lua_set##n(lua_State *L) { \
+        LAPI_GET_ENTC(entity, "CAPI.set"#n, return 0) \
+        float v = luaL_checknumber(L, 2); \
         logger::log(logger::DEBUG, "ACCESSOR: Setting %s to %f\n", #an, v); \
         assert(entity->staticEntity); \
         if (!world::loading) removeentity(entity->staticEntity); \
         entity->an = v; \
         if (!world::loading) addentity(entity->staticEntity); \
+        return 0; \
     }
 
     EXTENT_LE_ACCESSORS(collisionradw, collisionRadiusWidth)
     EXTENT_LE_ACCESSORS(collisionradh, collisionRadiusHeight)
     #undef EXTENT_LE_ACCESSORS
 
-    lua::Table _lua_getextent0(lua::Table self)
-    {
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getextent0", 
-            return lapi::state.wrap<lua::Table>(lua::nil)
-        )
+    int _lua_getextent0(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.getextent0", return 0)
         extentity *ext = entity->staticEntity;
         assert(ext);
-        logger::log(
-            logger::INFO, "CAPI.getextent0(\"%s\"): x: %f, y: %f, z: %f\n",
-            entity->getClass(), ext->o.x, ext->o.y, ext->o.z
-        );
-        lua::Table ret = lapi::state.new_table(3, 0);
-        ret[1] = ext->o.x; ret[2] = ext->o.y; ret[3] = ext->o.z;
-        return ret;
+        logger::log(logger::INFO,
+            "CAPI.getextent0(\"%s\"): x: %f, y: %f, z: %f\n",
+            entity->getClass(), ext->o.x, ext->o.y, ext->o.z);
+        lua_createtable(L, 3, 0);
+        lua_pushnumber(L, ext->o.x); lua_rawseti(L, -2, 1);
+        lua_pushnumber(L, ext->o.y); lua_rawseti(L, -2, 2);
+        lua_pushnumber(L, ext->o.z); lua_rawseti(L, -2, 3);
+        return 1;
     }
 
-    void _lua_setextent0(lua::Table self, lua::Table o)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setextent0", return)
+    int _lua_setextent0(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.setextent0", return 0)
+        luaL_checktype(L, 2, LUA_TTABLE);
         extentity *ext = entity->staticEntity;
         assert(ext);
 
         removeentity(ext);
-        ext->o.x = o.get<float>(1);
-        ext->o.y = o.get<float>(2);
-        ext->o.z = o.get<float>(3);
+        lua_pushinteger(L, 1); lua_gettable(L, -2);
+        ext->o.x = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 2); lua_gettable(L, -2);
+        ext->o.y = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 3); lua_gettable(L, -2);
+        ext->o.z = luaL_checknumber(L, -1); lua_pop(L, 1);
         addentity(ext);
+        return 0;
     }
 
     /* Dynents */
