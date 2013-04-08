@@ -926,30 +926,31 @@ namespace lapi_binds
     #undef DYNENT_ACCESSORS
     #undef luaL_checkboolean
 
-    lua::Table _lua_getdynent0(lua::Table self)
-    {
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getdynent0",
-            return lapi::state.wrap<lua::Table>(lua::nil)
-        )
+    int _lua_getdynent0(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.getdynent0", return 0)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
-        lua::Table ret = lapi::state.new_table(3, 0);
-        ret[1] = d->o.x; ret[2] = d->o.y; ret[3] = (
-            d->o.z - d->eyeheight/* - d->aboveeye*/
-        );
-        return ret;
+        lua_createtable(L, 3, 0);
+        lua_pushnumber(L, d->o.x); lua_rawseti(L, -2, 1);
+        lua_pushnumber(L, d->o.y); lua_rawseti(L, -2, 2);
+        lua_pushnumber(L, d->o.z - d->eyeheight/* - d->aboveeye*/);
+        lua_rawseti(L, -2, 3);
+        return 1;
     }
 
-    void _lua_setdynent0(lua::Table self, lua::Table o)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setdynent0", return)
+    int _lua_setdynent0(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.setdynent0", return 0)
+        luaL_checktype(L, 2, LUA_TTABLE);
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
 
-        d->o.x = o.get<float>(1);
-        d->o.y = o.get<float>(2);
-        d->o.z = o.get<float>(3) + d->eyeheight;/* + d->aboveeye; */
+        lua_pushinteger(L, 1); lua_gettable(L, -2);
+        d->o.x = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 2); lua_gettable(L, -2);
+        d->o.y = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 3); lua_gettable(L, -2);
+        d->o.z = luaL_checknumber(L, -1) + d->eyeheight;/* + d->aboveeye; */
+        lua_pop(L, 1);
 
         /* also set newpos, otherwise this change may get overwritten */
         d->newpos = d->o;
@@ -961,92 +962,64 @@ namespace lapi_binds
             logger::INFO, "(%i).setdynent0(%f, %f, %f)",
             d->uniqueId, d->o.x, d->o.y, d->o.z
         );
+        return 0;
     }
 
-    lua::Table _lua_getdynentvel(lua::Table self)
-    {
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getdynentvel",
-            return lapi::state.wrap<lua::Table>(lua::nil)
-        )
-        fpsent *d = (fpsent*)entity->dynamicEntity;
-        assert(d);
-        lua::Table ret = lapi::state.new_table(3, 0);
-        ret[1] = d->vel.x; ret[2] = d->vel.y; ret[3] = d->vel.z;
-        return ret;
-    }
+    #define DYNENTVEC(name) \
+        int _lua_getdynent##name(lua_State *L) { \
+            LAPI_GET_ENTC(entity, "CAPI.getdynent"#name, return 0) \
+            fpsent *d = (fpsent*)entity->dynamicEntity; \
+            assert(d); \
+            lua_createtable(L, 3, 0); \
+            lua_pushnumber(L, d->name.x); lua_rawseti(L, -2, 1); \
+            lua_pushnumber(L, d->name.y); lua_rawseti(L, -2, 2); \
+            lua_pushnumber(L, d->name.z); lua_rawseti(L, -2, 3); \
+            return 1; \
+        } \
+        int _lua_setdynent##name(lua_State *L) { \
+            LAPI_GET_ENTC(entity, "CAPI.setdynent"#name, return 0) \
+            fpsent *d = (fpsent*)entity->dynamicEntity; \
+            assert(d); \
+            lua_pushinteger(L, 1); lua_gettable(L, -2); \
+            d->name.x = luaL_checknumber(L, -1); lua_pop(L, 1); \
+            lua_pushinteger(L, 2); lua_gettable(L, -2); \
+            d->name.y = luaL_checknumber(L, -1); lua_pop(L, 1); \
+            lua_pushinteger(L, 3); lua_gettable(L, -2); \
+            d->name.z = luaL_checknumber(L, -1); lua_pop(L, 1); \
+            return 0; \
+        }
 
-    void _lua_setdynentvel(lua::Table self, lua::Table vel)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setdynent0", return)
-        fpsent *d = (fpsent*)entity->dynamicEntity;
-        assert(d);
-
-        d->vel.x = vel.get<float>(1);
-        d->vel.y = vel.get<float>(2);
-        d->vel.z = vel.get<float>(3);
-    }
-
-    lua::Table _lua_getdynentfalling(lua::Table self)
-    {
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getdynentfalling",
-            return lapi::state.wrap<lua::Table>(lua::nil)
-        )
-        fpsent *d = (fpsent*)entity->dynamicEntity;
-        assert(d);
-        lua::Table ret = lapi::state.new_table(3, 0);
-        ret[1] = d->falling.x; ret[2] = d->falling.y; ret[3] = d->falling.z;
-        return ret;
-    }
-
-    void _lua_setdynentfalling(lua::Table self, lua::Table fall)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setdynentfalling", return)
-        fpsent *d = (fpsent*)entity->dynamicEntity;
-        assert(d);
-
-        d->falling.x = fall.get<float>(1);
-        d->falling.y = fall.get<float>(2);
-        d->falling.z = fall.get<float>(3);
-    }
+    DYNENTVEC(vel)
+    DYNENTVEC(falling)
+    #undef DYNENTVEC
 
 #ifdef CLIENT
-    lua::Object _lua_get_target_entity_uid()
-    {
-        if (
-            TargetingControl::targetLogicEntity &&
-           !TargetingControl::targetLogicEntity->isNone()
-        ) return lapi::state.wrap<lua::Object>(
-            TargetingControl::targetLogicEntity->getUniqueId()
-        );
-
-        return lapi::state.wrap<lua::Object>(lua::nil);
+    int _lua_get_target_entity_uid(lua_State *L) {
+        if (TargetingControl::targetLogicEntity &&
+           !TargetingControl::targetLogicEntity->isNone()) {
+            lua_pushinteger(L, TargetingControl::targetLogicEntity->getUniqueId());
+            return 1;
+        }
+        return 0;
     }
 #else
     LAPI_EMPTY(get_target_entity_uid)
 #endif
 
-    lua::Object _lua_getplag(lua::Table self)
-    {
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getplag",
-            return lapi::state.wrap<lua::Object>(lua::nil)
-        )
+    int _lua_getplag(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.getplag", return 0)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
-        return lapi::state.wrap<lua::Object>(p->plag);
+        lua_pushinteger(L, p->plag);
+        return 1;
     }
 
-    lua::Object _lua_getping(lua::Table self)
-    {
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getping",
-            return lapi::state.wrap<lua::Object>(lua::nil)
-        )
+    int _lua_getping(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.getping", return 0)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
-        return lapi::state.wrap<lua::Object>(p->ping);
+        lua_pushinteger(L, p->ping);
+        return 1;
     }
 
     /* input */
