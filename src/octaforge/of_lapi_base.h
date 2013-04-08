@@ -1689,19 +1689,16 @@ namespace lapi_binds
     VAR(thumbtime, 0, 25, 1000);
     static int lastthumbnail = 0;
 
-    void drawslot(Slot &slot, VSlot &vslot, float w, float h, float sx, float sy)
-    {
+    void drawslot(Slot &slot, VSlot &vslot, float w, float h, float sx, float sy) {
         Texture *tex = notexture, *glowtex = NULL, *layertex = NULL;
         VSlot *layer = NULL;
-        if (slot.loaded)
-        {
+        if (slot.loaded) {
             tex = slot.sts[0].t;
             if(slot.texmask&(1<<TEX_GLOW)) {
                 loopv(slot.sts) if(slot.sts[i].type==TEX_GLOW)
                 { glowtex = slot.sts[i].t; break; }
             }
-            if (vslot.layer)
-            {
+            if (vslot.layer) {
                 layer = &lookupvslot(vslot.layer);
                 if(!layer->slot->sts.empty())
                     layertex = layer->slot->sts[0].t;
@@ -1718,8 +1715,7 @@ namespace lapi_binds
 
         vec2 tc[4] = { vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1) };
         int xoff = vslot.offset.x, yoff = vslot.offset.y;
-        if (vslot.rotation)
-        {
+        if (vslot.rotation) {
             if ((vslot.rotation&5) == 1) { swap(xoff, yoff); loopk(4) swap(tc[k].x, tc[k].y); }
             if (vslot.rotation >= 2 && vslot.rotation <= 4) { xoff *= -1; loopk(4) tc[k].x *= -1; }
             if (vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k].y *= -1; }
@@ -1736,8 +1732,7 @@ namespace lapi_binds
         varray::attribf(sx + w, sy + h); varray::attrib(tc[2]);
         varray::end();
 
-        if (glowtex)
-        {
+        if (glowtex) {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glBindTexture(GL_TEXTURE_2D, glowtex->id);
             varray::color(vslot.glowcolor);
@@ -1749,8 +1744,7 @@ namespace lapi_binds
             varray::end();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
-        if (layertex)
-        {
+        if (layertex) {
             glBindTexture(GL_TEXTURE_2D, layertex->id);
             varray::color(layer->colorscale);
             varray::begin(GL_TRIANGLE_STRIP);
@@ -1926,105 +1920,105 @@ namespace lapi_binds
 
     /* World */
 
-    bool _lua_iscolliding(float x, float y, float z, float r, int uid)
-    {
-        CLogicEntity *ignore = (
-            (uid != -1) ? LogicSystem::getLogicEntity(uid) : NULL
-        );
+    int _lua_iscolliding(lua_State *L) {
+        int uid = luaL_checkinteger(L, 5);
+        CLogicEntity *ignore = (uid != -1) ? LogicSystem::getLogicEntity(uid)
+            : NULL;
 
         physent tester;
 
         tester.reset();
-        tester.type      = ENT_BOUNCE;
-        tester.o         = vec(x, y, z);
+        tester.type = ENT_BOUNCE;
+        tester.o    = vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+                               luaL_checknumber(L, 3));
+        float r = luaL_checknumber(L, 4);
         tester.radius    = tester.xradius = tester.yradius = r;
         tester.eyeheight = tester.aboveeye  = r;
 
-        if (!collide(&tester, vec(0)))
-        {
-            if (
-                ignore && ignore->isDynamic() &&
+        if (!collide(&tester, vec(0))) {
+            if (ignore && ignore->isDynamic() &&
                 ignore->dynamicEntity == hitplayer
-            )
-            {
+            ) {
                 vec save = ignore->dynamicEntity->o;
                 avoidcollision(ignore->dynamicEntity, vec(1), &tester, 0.1f);
 
                 bool ret = !collide(&tester, vec(0));
                 ignore->dynamicEntity->o = save;
 
-                return ret;
+                lua_pushboolean(L, ret);
             }
-            else return true;
-        }
-
-        return false;
+            else lua_pushboolean(L, true);
+        } else lua_pushboolean(L, false);
+        return 1;
     }
 
-    void _lua_setgravity(float g)
-    {
-        GRAVITY = g;
+    int _lua_setgravity(lua_State *L) {
+        GRAVITY = luaL_checknumber(L, 1);
+        return 0;
     }
 
-    int _lua_getmat(float x, float y, float z)
-    {
-        return lookupmaterial(vec(x, y, z));
+    int _lua_getmat(lua_State *L) {
+        lua_pushinteger(L, lookupmaterial(vec(luaL_checknumber(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3))));
+        return 1;
     }
 
 #ifdef CLIENT
-    bool _lua_hasmap() { return local_server::is_running(); }
+    int _lua_hasmap(lua_State *L) {
+        lua_pushboolean(L, local_server::is_running());
+        return 1;
+    }
 #else
     LAPI_EMPTY(hasmap)
 #endif
 
-    types::String _lua_get_map_preview_filename(const char *name)
-    {
+    int _lua_get_map_preview_filename(lua_State *L) {
         types::String buf;
 
-        buf.format(
-            "data%cmaps%c%s%cpreview.png",
-            PATHDIV, PATHDIV, name, PATHDIV
-        );
-        if (fileexists(buf.get_buf(), "r"))
-            return buf;
+        buf.format("data%cmaps%c%s%cpreview.png",
+            PATHDIV, PATHDIV, luaL_checkstring(L, 1), PATHDIV);
+        if (fileexists(buf.get_buf(), "r")) {
+            lua_pushstring(L, buf.get_buf());
+            return 1;
+        }
 
         buf.format("%s%s", homedir, buf.get_buf());
-        if (fileexists(buf.get_buf(), "r"))
-            return buf;
+        if (fileexists(buf.get_buf(), "r")) {
+            lua_pushstring(L, buf.get_buf());
+            return 1;
+        }
 
-        return NULL;
+        return 0;
     }
 
-    types::Tuple<lua::Table, lua::Table> _lua_get_all_map_names()
-    {
-        lua::Table gret = lapi::state.new_table();
-        lua::Table uret = lapi::state.new_table();
-
+    int _lua_get_all_map_names(lua_State *L) {
+        lua_createtable(L, 0, 0);
         File_Info path = join_path("data", "maps");
         size_t       i = 1;
-
         for (File_Info::it it = path.begin(); it != path.end(); ++it)
         {
             if (it->type() == OFTL_FILE_DIR)
             {
-                gret[i] = it->filename();
+                lua_pushinteger(L, i);
+                lua_pushstring (L, it->filename().get_buf());
+                lua_settable   (L, -3);
                 ++i;
             }
         }
-
+        lua_createtable(L, 0, 0);
         path = join_path(homedir, "data", "maps");
         i    = 1;
-
         for (File_Info::it it = path.begin(); it != path.end(); ++it)
         {
             if (it->type() == OFTL_FILE_DIR)
             {
-                uret[i] = it->filename();
+                lua_pushinteger(L, i);
+                lua_pushstring (L, it->filename().get_buf());
+                lua_settable   (L, -3);
                 ++i;
             }
         }
-
-        return types::make_tuple(gret, uret);
+        return 2;
     }
 
     void reg_base(lua::Table& t)
