@@ -1303,73 +1303,75 @@ namespace lapi_binds
     /* network */
 
 #ifdef CLIENT
-    void _lua_connect(const char *addr, int port)
-    {
-        ClientSystem::connect(addr, port);
+    int _lua_connect(lua_State *L) {
+        ClientSystem::connect(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
+        return 0;
     }
 #else
     LAPI_EMPTY(connect)
 #endif
 
-    bool _lua_isconnected(bool attempt, bool local)
-    {
-        return isconnected(attempt, local);
+    int _lua_isconnected(lua_State *L) {
+        lua_pushboolean(L, isconnected(lua_toboolean(L, 1),
+            lua_toboolean(L, 2)));
+        return 1;
     }
 
-    bool _lua_haslocalclients()
-    {
-        return haslocalclients();
+    int _lua_haslocalclients(lua_State *L) {
+        lua_pushboolean(L, haslocalclients());
+        return 1;
     }
 
-    types::String _lua_connectedip()
-    {
+    int _lua_connectedip(lua_State *L) {
         const ENetAddress *addr = connectedpeer();
-
-        char hostname[128];
-        return (
-            (addr && enet_address_get_host_ip(
-                addr, hostname, sizeof(hostname)
-            ) >= 0) ? hostname : ""
-        );
+        char hn[128];
+        if (addr && enet_address_get_host_ip(addr, hn, sizeof(hn)) >= 0) {
+            lua_pushstring(L, hn);
+            return 1;
+        }
+        return 0;
     }
 
-    int _lua_connectedport()
-    {
+    int _lua_connectedport(lua_State *L) {
         const ENetAddress *addr = connectedpeer();
-        return (addr ? addr->port : -1);
+        lua_pushinteger(L, addr ? addr->port : -1);
+        return 1;
     }
 
-    void _lua_connectserv(const char *name, int port, const char *passwd)
-    {
-        connectserv(name, port, passwd);
+    int _lua_connectserv(lua_State *L) {
+        connectserv(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
+            luaL_optstring(L, 3, NULL));
+        return 0;
     }
 
-    void _lua_lanconnect(int port, const char *passwd)
-    {
-        connectserv(NULL, port, passwd);
+    int _lua_lanconnect(lua_State *L) {
+        connectserv(NULL, luaL_checkinteger(L, 1), luaL_optstring(L, 2, NULL));
+        return 0;
     }
 
-    void _lua_disconnect(bool local) { trydisconnect(local); }
+    int _lua_disconnect(lua_State *L) {
+        trydisconnect(lua_toboolean(L, 1));
+        return 0;
+    }
 
-    void _lua_localconnect()
-    {
+    int _lua_localconnect(lua_State *L) {
         if (!isconnected() && !haslocalclients()) localconnect();
+        return 0;
     }
 
-    void _lua_localdisconnect()
-    {
+    int _lua_localdisconnect(lua_State *L) {
         if (haslocalclients()) localdisconnect();
+        return 0;
     }
 
-    int _lua_getfollow()
-    {
+    int _lua_getfollow(lua_State *L) {
         fpsent *f = game::followingplayer();
-        return (f ? f->clientnum : -1);
+        lua_pushinteger(L, f ? f->clientnum : -1);
+        return 1;
     }
 
 #ifdef CLIENT
-    void _lua_do_upload()
-    {
+    int _lua_do_upload(lua_State *L) {
         renderprogress(0.1f, "compiling scripts ..");
 
         types::String fname(world::get_mapscript_filename());
@@ -1380,7 +1382,7 @@ namespace lapi_binds
             lapi::state.get<lua::Function>("LAPI", "GUI", "show_message")(
                 "Compilation failed", types::get<1>(err)
             );
-            return;
+            return 0;
         }
 
         renderprogress(0.3, "generating map ..");
@@ -1388,11 +1390,12 @@ namespace lapi_binds
 
         renderprogress(0.4, "exporting entities ..");
         world::export_ents("entities.lua");
+        return 0;
     }
 
-    void _lua_restart_map()
-    {
+    int _lua_restart_map(lua_State *L) {
         MessageSystem::send_RestartMap();
+        return 0;
     }
 #else
     LAPI_EMPTY(do_upload)
