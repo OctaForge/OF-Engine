@@ -1405,108 +1405,131 @@ namespace lapi_binds
     /* particles */
 
 #ifdef CLIENT
-    void _lua_adddecal(
-        int type, float px, float py, float pz, float sx, float sy, float sz,
-        float radius, int r, int g, int b, int info
-    )
-    {
-        adddecal(type, vec(px, py, pz), vec(sx, sy, sz), radius,
-            bvec((uchar)r, (uchar)g, (uchar)b), info);
+    int _lua_adddecal(lua_State *L) {
+        adddecal(luaL_checkinteger(L, 1),
+            vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
+                luaL_checknumber(L, 4)),
+            vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+                luaL_checknumber(L, 7)),
+            luaL_checknumber(L, 8),
+            bvec((uchar)luaL_checkinteger(L, 9),
+                 (uchar)luaL_checkinteger(L, 10),
+                 (uchar)luaL_checkinteger(L, 11)),
+            luaL_checkinteger(L, 12));
+        return 0;
     }
 
-    void _lua_particle_splash(int type, int num, int fade, float x, float y,
-        float z, int color, float size, int radius, int gravity)
-    {
-        if (type == PART_BLOOD && !blood) return;
-        particle_splash(type, num, fade, vec(x, y, z), color, size, radius,
-            gravity);
+    int _lua_particle_splash(lua_State *L) {
+        int type = luaL_checkinteger(L, 1);
+        if (type == PART_BLOOD && !blood) return 0;
+        particle_splash(type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
+            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                luaL_checknumber(L, 6)),
+            luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
+            luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
+        return 0;
     }
 
-    void _lua_regular_particle_splash(
-        int type, int num, int fade, float x, float y, float z, int color,
-        float size, int radius, int gravity, int delay
-    )
-    {
-        if (type == PART_BLOOD && !blood) return;
+    int _lua_regular_particle_splash(lua_State *L) {
+        int type = luaL_checkinteger(L, 1);
+        if (type == PART_BLOOD && !blood) return 0;
         regular_particle_splash(
-            type, num, fade, vec(x, y, z), color, size, radius, gravity, delay
-        );
+            type, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
+            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                luaL_checknumber(L, 6)),
+            luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
+            luaL_checkinteger(L, 9), luaL_checkinteger(L, 10),
+            luaL_checkinteger(L, 11));
+        return 0;
     }
 
-    void _lua_particle_fireball(
-        float x, float y, float z, float max, int type, int fade, int color,
-        float size
-    )
-    {
-        particle_fireball(vec(x, y, z), max, type, fade, color, size);
+    int _lua_particle_fireball(lua_State *L) {
+        particle_fireball(vec(luaL_checknumber(L, 1),
+            luaL_checknumber(L, 3), luaL_checknumber(L, 3)),
+            luaL_checknumber(L, 4), luaL_checkinteger(L, 5),
+            luaL_checkinteger(L, 6), luaL_checkinteger(L, 7),
+            luaL_checknumber(L, 8));
+        return 0;
     }
 
-    void _lua_particle_flare(
-        float sx, float sy, float sz, float tx, float ty, float tz, int fade,
-        int type, int color, float size, int uid
-    )
-    {
-        if (uid < 0)
-            particle_flare(vec(sx, sy, sz), vec(tx, ty, tz), fade, type,
-                color, size, NULL);
-        else
-        {
+    int _lua_particle_flare(lua_State *L) {
+        int uid = luaL_checkinteger(L, 11);
+        if (uid < 0) {
+            particle_flare(vec(luaL_checknumber(L, 1),
+                luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+                vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                    luaL_checknumber(L, 6)),
+                luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+                luaL_checkinteger(L, 9), luaL_checknumber(L, 10), NULL);
+        } else {
             CLogicEntity *o = LogicSystem::getLogicEntity(uid);
             assert(o->dynamicEntity);
 
-            particle_flare(vec(sx, sy, sz), vec(tx, ty, tz), fade, type,
-                color, size, (fpsent*)(o->dynamicEntity));
+            particle_flare(vec(luaL_checknumber(L, 1),
+                luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+                vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                    luaL_checknumber(L, 6)),
+                luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+                luaL_checkinteger(L, 9), luaL_checknumber(L, 10),
+                (fpsent*)(o->dynamicEntity));
         }
+        return 0;
     }
 
-    void _lua_particle_trail(
-        int type, int fade, float fx, float fy, float fz, float tx, float ty,
-        float tz, int color, float size, int gravity
-    )
-    {
-        particle_trail(type, fade, vec(fx, fy, fz), vec(tx, ty, tz), color,
-            size, gravity);
+    int _lua_particle_trail(lua_State *L) {
+        particle_trail(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+            vec(luaL_checknumber(L, 3), luaL_checknumber(L, 4),
+                luaL_checknumber(L, 5)),
+            vec(luaL_checknumber(L, 6), luaL_checknumber(L, 7),
+                luaL_checknumber(L, 8)), luaL_checkinteger(L, 9),
+            luaL_checknumber(L, 10), luaL_checkinteger(L, 11));
+        return 0;
     }
 
-    void _lua_particle_flame(
-        int type, float x, float y, float z, float radius, float height,
-        int color, int density, float scale, float speed, float fade,
-        int gravity
-    )
-    {
-        regular_particle_flame(
-            type, vec(x, y, z), radius, height, color,
-            density, scale, speed, fade, gravity
+    int _lua_particle_flame(lua_State *L) {
+        regular_particle_flame(luaL_checkinteger(L, 1),
+            vec(luaL_checknumber(L, 2), luaL_checknumber(L, 3),
+                luaL_checknumber(L, 4)),
+            luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+            luaL_checknumber(L, 9), luaL_checknumber(L, 10),
+            luaL_checknumber(L, 11), luaL_checkinteger(L, 12)
         );
+        return 0;
     }
 
-    void _lua_adddynlight(
-        float x, float y, float z, float rad, float cx, float cy, float cz,
-        int fade, int peak, int flags, float irad, float ix, float iy, float iz
-    )
-    {
-        queuedynlight(vec(x, y, z), rad, vec(cx, cy, cz), fade, peak, flags,
-            irad, vec(ix, iy, iz), NULL);
+    int _lua_adddynlight(lua_State *L) {
+        queuedynlight(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+            luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
+            vec(luaL_checknumber(L, 5), luaL_checknumber(L, 6),
+                luaL_checknumber(L, 7)),
+            luaL_checkinteger(L, 8), luaL_checkinteger(L, 9),
+            luaL_checkinteger(L, 10), luaL_checknumber(L, 11),
+            vec(luaL_checknumber(L, 12), luaL_checknumber(L, 13),
+                luaL_checknumber(L, 14)), NULL);
+        return 0;
     }
 
-    void _lua_particle_meter(float x, float y, float z, float val, int type,
-        int fade)
-    {
-        particle_meter(vec(x, y, z), val, type, fade);
+    int _lua_particle_meter(lua_State *L) {
+        particle_meter(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+            luaL_checknumber(L, 3)), luaL_checknumber(L, 4),
+            luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
+        return 0;
     }
 
-    void _lua_particle_text(
-        float x, float y, float z, const char *t, int type, int fade,
-        int color, float size, float gravity
-    )
-    {
-        particle_textcopy(vec(x, y, z), t, type, fade, color, size, gravity);
+    int _lua_particle_text(lua_State *L) {
+        particle_textcopy(vec(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+            luaL_checknumber(L, 3)), luaL_checkstring(L, 4),
+            luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
+            luaL_checkinteger(L, 7), luaL_checknumber(L, 8),
+            luaL_checknumber(L, 9));
+        return 0;
     }
 
-    void _lua_client_damage_effect(int roll, int n)
-    {
-        ((fpsent*)player)->damageroll(roll);
-        damageblend(n);
+    int _lua_client_damage_effect(lua_State *L) {
+        ((fpsent*)player)->damageroll(luaL_checkinteger(L, 1));
+        damageblend(luaL_checkinteger(L, 2));
+        return 0;
     }
 #else
     LAPI_EMPTY(adddecal)
