@@ -628,44 +628,50 @@ namespace lapi_binds
     }
 
 #ifdef SERVER
-    lua::Table _lua_npcadd(const char *cl)
-    {
+    int _lua_npcadd(lua_State *L) {
         int cn = localconnect();
 
         types::String buf(types::String().format("Bot.%i", cn));
         logger::log(logger::DEBUG, "New NPC with client number: %i\n", cn);
 
-        return server::createluaEntity(cn, cl ? cl : "", buf.get_buf());
+        const char *cl = luaL_checkstring(L, 1);
+        server::createluaEntity(cn, cl ? cl : "", buf.get_buf()).push();
+        return 1;
     }
 
-    void _lua_npcdel(lua::Table self)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.npcdel", return)
+    int _lua_npcdel(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.npcdel", return 0)
         fpsent *fp = (fpsent*)entity->dynamicEntity;
         localdisconnect(true, fp->clientnum);
+        return 0;
     }
 #else
-    void _lua_npcadd()
-    { logger::log(logger::ERROR, "CAPI.npcadd: server-only function.\n"); }
+    int _lua_npcadd(lua_State *L) {
+        logger::log(logger::ERROR, "CAPI.npcadd: server-only function.\n");
+        return 0;
+    }
 
-    void _lua_npcdel()
-    { logger::log(logger::ERROR, "CAPI.npcdel: server-only function.\n"); }
+    int _lua_npcdel(lua_State *L) {
+        logger::log(logger::ERROR, "CAPI.npcdel: server-only function.\n");
+        return 0;
+    }
 #endif
 
-    void _lua_spawnent(const char *cl)
-    {
+    int _lua_spawnent(lua_State *L) {
+        const char *cl = luaL_checkstring(L, 1);
         EditingSystem::newent(cl ? cl : "", "");
+        return 0;
     }
 
 #ifdef CLIENT
-    void _lua_requestprivedit()
-    {
+    int _lua_requestprivedit(lua_State *L) {
         MessageSystem::send_RequestPrivateEditMode();
+        return 0;
     }
 
-    bool _lua_hasprivedit()
-    {
-        return ClientSystem::editingAlone;
+    int _lua_hasprivedit(lua_State *L) {
+        lua_pushboolean(L, ClientSystem::editingAlone);
+        return 1;
     }
 #else
     LAPI_EMPTY(requestprivedit)
