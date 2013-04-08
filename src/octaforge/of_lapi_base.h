@@ -1548,48 +1548,51 @@ namespace lapi_binds
     /* sound */
 
 #ifdef CLIENT
-    void _lua_playsoundname(const char *n, float x, float y, float z,
-        lua::Object vol)
-    {
-        if (!n) n = "";
+    int _lua_playsoundname(lua_State *L) {
+        const char *n = "";
+        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
+        float x = luaL_checknumber(L, 2), y = luaL_checknumber(L, 3),
+              z = luaL_checknumber(L, 4);
+        int vol = luaL_optinteger (L, 5, 100);
         if (x || y || z) {
             vec loc(x, y, z);
-            playsoundname(n, &loc, (vol.is_nil() ? 100 : vol.to<int>()));
+            playsoundname(n, &loc, vol);
         } else
-            playsoundname(n, NULL, (vol.is_nil() ? 100 : vol.to<int>()));
+            playsoundname(n, NULL, vol);
+        return 0;
     }
 
-    void _lua_stopsoundname(const char *n, lua::Object vol)
-    {
-        stopsoundbyid(getsoundid(
-            n ? n : "", (vol.is_nil() ? 100 : vol.to<int>())
-        ));
+    int _lua_stopsoundname(lua_State *L) {
+        const char *n = "";
+        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
+        stopsoundbyid(getsoundid(n, luaL_optinteger(L, 2, 100)));
+        return 0;
     }
 
-    void _lua_music(const char *n)
-    {
-        startmusic(n ? n : "", "sound.music_callback()");
+    int _lua_music(lua_State *L) {
+        const char *n = "";
+        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
+        startmusic(n, "sound.music_callback()");
+        return 0;
     }
 
-    int _lua_preloadsound(const char *n, lua::Object vol)
-    {
+    int _lua_preloadsound(lua_State *L) {
+        const char *n = "";
+        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
         renderprogress(0, types::String().format(
             "preloadign sound '%s' ..", n
         ).get_buf());
-
-        return preload_sound(
-            n ? n : "", min((vol.is_nil() ? 100 : vol.to<int>()), 100)
-        );
+        return preload_sound(n, luaL_optinteger(L, 2, 100));
     }
 
-    void _lua_playsound(int n)
-    {
-        playsound(n);
+    int _lua_playsound(lua_State *L) {
+        playsound(luaL_optinteger(L, 1, 1));
+        return 0;
     }
 #else
-    void _lua_playsound(int n)
-    {
-        MessageSystem::send_SoundToClients(-1, n, -1);
+    int _lua_playsound(lua_State *L) {
+        MessageSystem::send_SoundToClients(-1, luaL_optinteger(L, 1, 1), -1);
+        return 0;
     }
 
     LAPI_EMPTY(playsoundname)
