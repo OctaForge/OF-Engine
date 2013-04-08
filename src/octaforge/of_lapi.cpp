@@ -31,7 +31,7 @@ if (!name) \
 }
 
 #define LAPI_GET_ENTC(name, _log, retexpr) \
-lua_getfield(L, -1, "uid"); \
+lua_getfield(L, 1, "uid"); \
 int uid = lua_tointeger(L, -1); \
 lua_pop(L, 1); \
 \

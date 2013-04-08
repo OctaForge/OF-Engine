@@ -716,49 +716,44 @@ namespace lapi_binds
 
     /* Entity attributes */
 
-    void _lua_setanim(lua::Table self, int anim)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setanim", return)
-        entity->setAnimation(anim);
+    int _lua_setanim(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.setanim", return 0)
+        entity->setAnimation(luaL_checkint(L, 2));
+        return 0;
     }
 
-    lua::Object _lua_getstarttime(lua::Table self)
-    {
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getstarttime",
-            return lapi::state.wrap<lua::Object>(lua::nil)
-        )
-        return lapi::state.wrap<lua::Object>(entity->getStartTime());
+    int _lua_getstarttime(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.getstarttime", return 0)
+        lua_pushinteger(L, entity->getStartTime());
+        return 1;
     }
 
-    void _lua_setmodelname(lua::Table self, const char *name)
-    {
-        if (!name) name = "";
-        LAPI_GET_ENT(entity, self, "CAPI.setmodelname", return)
-        logger::log(
-            logger::DEBUG, "CAPI.setmodelname(\"%s\", \"%s\")\n",
-            entity->getClass(), name
-        );
+    int _lua_setmodelname(lua_State *L) {
+        const char *name = "";
+        if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
+        LAPI_GET_ENTC(entity, "CAPI.setmodelname", return 0)
+        logger::log(logger::DEBUG, "CAPI.setmodelname(\"%s\", \"%s\")\n",
+            entity->getClass(), name);
         entity->setModel(name);
+        return 0;
     }
 
-    void _lua_setsoundname(lua::Table self, const char *name)
-    {
-        if (!name) name = "";
-        LAPI_GET_ENT(entity, self, "CAPI.setsoundname", return)
-        logger::log(
-            logger::DEBUG, "CAPI.setsoundname(\"%s\", \"%s\")\n",
-            entity->getClass(), name
-        );
+    int _lua_setsoundname(lua_State *L) {
+        const char *name = "";
+        if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
+        LAPI_GET_ENTC(entity, "CAPI.setsoundname", return 0)
+        logger::log(logger::DEBUG, "CAPI.setsoundname(\"%s\", \"%s\")\n",
+            entity->getClass(), name);
         entity->setSound(name);
+        return 0;
     }
 
-    void _lua_setsoundvol(lua::Table self, int vol)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setsoundvol", return)
+    int _lua_setsoundvol(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.setsoundvol", return 0)
+        int vol = luaL_checkint(L, 2);
         logger::log(logger::DEBUG, "CAPI.setsoundvol(%i)\n", vol);
 
-        if (!entity->sndname) return;
+        if (!entity->sndname) return 0;
 
         extentity *ext = entity->staticEntity;
         assert(ext);
@@ -768,34 +763,37 @@ namespace lapi_binds
         if (!world::loading) addentity(ext);
 
         entity->setSound(entity->sndname);
+        return 0;
     }
 
-    void _lua_setattachments(lua::Table self, lua::Table attachments)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setattachments", return)
-        entity->setAttachments(
-            lapi::state.get<lua::Function>(
-                "table", "concat"
-            ).call<const char*>(attachments, "|")
-        );
+    int _lua_setattachments(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.setattachments", return 0)
+        lua_getglobal(L, "table");
+        lua_getfield (L, -1, "concat");
+        lua_remove   (L, -2);
+        lua_pushvalue(L,  2);
+        lua_call     (L, 1, 1);
+        entity->setAttachments(lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return 0;
     }
 
-    lua::Object _lua_getattachmentpos(lua::Table self, const char *attachment)
-    {
-        if (!attachment) attachment = "";
-        LAPI_GET_ENT(
-            entity, self, "CAPI.getattachmentpos",
-            return lapi::state.wrap<lua::Object>(lua::nil)
-        )
+    int _lua_getattachmentpos(lua_State *L) {
+        const char *attachment = "";
+        if (!lua_isnoneornil(L, 2)) attachment = luaL_checkstring(L, 2);
+        LAPI_GET_ENTC(entity, "CAPI.getattachmentpos", return 0)
+        lua_getglobal(L, "external"); lua_getfield(L, -1, "new_vec3");
+        lua_remove   (L, -2);
         const vec& o = entity->getAttachmentPosition(attachment);
-        return lapi::state.wrap<lua::Object>(lapi::state.get<lua::Function>
-            ("external", "new_vec3").call<lua::Table>(o.x, o.y, o.z));
+        lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
+        lua_call(L, 3, 1);
+        return 1;
     }
 
-    void _lua_setcanmove(lua::Table self, bool v)
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.setcanmove", return)
-        entity->setCanMove(v);
+    int _lua_setcanmove(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.setcanmove", return 0)
+        entity->setCanMove(lua_toboolean(L, 2));
+        return 0;
     }
 
     /* Extents */
