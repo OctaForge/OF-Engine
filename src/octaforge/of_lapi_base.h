@@ -1058,93 +1058,103 @@ namespace lapi_binds
 
     /* messages */
 
-    void _lua_personal_servmsg(int cn, const char *title, const char *content)
-    {
-        send_PersonalServerMessage(
-            cn, title ? title : "", content ? content : ""
-        );
+    int _lua_personal_servmsg(lua_State *L) {
+        const char *title   = luaL_checkstring(L, 2);
+        const char *content = luaL_checkstring(L, 3);
+        send_PersonalServerMessage(luaL_checkinteger(L, 1),
+            title ? title : "", content ? content : "");
+        return 0;
     }
 
-    void _lua_particle_splash_toclients(
-        int cn, int type, int num, int fade, float x, float y, float z
-    )
-    {
-        send_ParticleSplashToClients(cn, type, num, fade, x, y, z);
+    int _lua_particle_splash_toclients(lua_State *L) {
+        send_ParticleSplashToClients(luaL_checkinteger(L, 1),
+            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
+            luaL_checkinteger(L, 4), luaL_checknumber(L, 5),
+            luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+        return 0;
     }
 
-    void _lua_particle_regularsplash_toclients(
-        int cn, int type, int num, int fade, float x, float y, float z
-    )
-    {
-        send_ParticleSplashRegularToClients(cn, type, num, fade, x, y, z);
+    int _lua_particle_regularsplash_toclients(lua_State *L) {
+        send_ParticleSplashRegularToClients(luaL_checkinteger(L, 1),
+            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3),
+            luaL_checkinteger(L, 4), luaL_checknumber(L, 5),
+            luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+        return 0;
     }
 
-    void _lua_sound_toclients_byname(
-        int cn, float x, float y, float z, const char *sn, int ocn
-    )
-    {
-        send_SoundToClientsByName(cn, x, y, z, sn ? sn : "", ocn);
+    int _lua_sound_toclients_byname(lua_State *L) {
+        const char *sn = luaL_checkstring(L, 5);
+        send_SoundToClientsByName(luaL_checkinteger(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3),
+            luaL_checknumber(L, 4), sn ? sn : "", luaL_checkinteger(L, 6));
+        return 0;
     }
 
-    void _lua_statedata_changerequest(int uid, int kpid, const char *val)
-    {
-        send_StateDataChangeRequest(uid, kpid, val ? val : "");
+    int _lua_statedata_changerequest(lua_State *L) {
+        const char *val = luaL_checkstring(L, 2);
+        send_StateDataChangeRequest(luaL_checkinteger(L, 1),
+            luaL_checkinteger(L, 2), val ? val : "");
+        return 0;
     }
 
-    void _lua_statedata_changerequest_unreliable(
-        int uid, int kpid, const char *val
-    )
-    {
-        send_UnreliableStateDataChangeRequest(uid, kpid, val ? val : "");
+    int _lua_statedata_changerequest_unreliable(lua_State *L) {
+        const char *val = luaL_checkstring(L, 3);
+        send_UnreliableStateDataChangeRequest(luaL_checkinteger(L, 1),
+            luaL_checkinteger(L, 2), val ? val : "");
+        return 0;
     }
 
-    void _lua_notify_numents(int cn, int num)
-    {
-        send_NotifyNumEntities(cn, num);
+    int _lua_notify_numents(lua_State *L) {
+        send_NotifyNumEntities(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
+        return 0;
     }
 
-    void _lua_le_notification_complete(
-        int cn, int ocn, int ouid, const char *oc, const char *sd
-    )
-    {
-        send_LogicEntityCompleteNotification(cn, ocn, ouid, oc, sd ? sd : "");
+    int _lua_le_notification_complete(lua_State *L) {
+        const char *oc = luaL_checkstring(L, 4);
+        const char *sd = luaL_checkstring(L, 5);
+        send_LogicEntityCompleteNotification(luaL_checkinteger(L, 1),
+            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), oc, sd ? sd : "");
+        return 0;
     }
 
-    void _lua_le_removal(int cn, int uid)
-    {
-        send_LogicEntityRemoval(cn, uid);
+    int _lua_le_removal(lua_State *L) {
+        send_LogicEntityRemoval(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
+        return 0;
     }
 
-    void _lua_statedata_update(
-        int cn, int uid, int kpid, const char *val, int ocn
-    )
-    {
-        send_StateDataUpdate(cn, uid, kpid, val ? val : "", ocn);
+    int _lua_statedata_update(lua_State *L) {
+        const char *val = luaL_checkstring(L, 4);
+        send_StateDataUpdate(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+            luaL_checkinteger(L, 3), val ? val : "" , luaL_checkinteger(L, 5));
+        return 0;
     }
 
-    void _lua_statedata_update_unreliable(
-        int cn, int uid, int kpid, const char *val, int ocn
-    )
-    {
-        send_UnreliableStateDataUpdate(cn, uid, kpid, val ? val : "", ocn);
+    int _lua_statedata_update_unreliable(lua_State *L) {
+        const char *val = luaL_checkstring(L, 4);
+        send_UnreliableStateDataUpdate(luaL_checkinteger(L, 1),
+            luaL_checkinteger(L, 2), luaL_checkinteger(L, 3), val ? val : "",
+            luaL_checkinteger(L, 5));
+        return 0;
     }
 
-    void _lua_do_click(int btn, int down, float x, float y, float z, int uid)
-    {
-        send_DoClick(btn, down, x, y, z, uid);
+    int _lua_do_click(lua_State *L) {
+        send_DoClick(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+            luaL_checknumber(L, 3), luaL_checknumber (L, 4),
+            luaL_checknumber(L, 5), luaL_checkinteger(L, 6));
+        return 0;
     }
 
-    void _lua_extent_notification_complete(
-        int cn, int ouid,
-        const char *oc, const char *sd,
-        float x, float y, float z,
-        int attr1, int attr2, int attr3, int attr4, int attr5
-    )
-    {
+    int _lua_extent_notification_complete(lua_State *L) {
+        const char *oc = luaL_checkstring(L, 3);
+        const char *sd = luaL_checkstring(L, 4);
         send_ExtentCompleteNotification(
-            cn, ouid, oc ? oc : "", sd ? sd : "",
-            x, y, z, attr1, attr2, attr3, attr4, attr5
-        );
+            luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+            oc ? oc : "", sd ? sd : "",
+            luaL_checknumber (L,  5), luaL_checknumber (L,  6),
+            luaL_checknumber (L,  7), luaL_checkinteger(L,  8),
+            luaL_checkinteger(L,  9), luaL_checkinteger(L, 10),
+            luaL_checkinteger(L, 11), luaL_checkinteger(L, 12));
+        return 0;
     }
 
     /* model */
