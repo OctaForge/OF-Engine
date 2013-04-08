@@ -680,40 +680,38 @@ namespace lapi_binds
 
     /* Entity management */
 
-    void _lua_unregister_entity(int uid)
-    {
-        LogicSystem::unregisterLogicEntityByUniqueId(uid);
+    int _lua_unregister_entity(lua_State *L) {
+        LogicSystem::unregisterLogicEntityByUniqueId(luaL_checkint(L, 1));
+        return 0;
     }
 
-    void _lua_setupextent(
-        lua::Table ent, int type,
-        float x, float y, float z,
-        int attr1, int attr2, int attr3, int attr4, int attr5
-    )
-    {
+    int _lua_setupextent(lua_State *L) {
         LogicSystem::setupExtent(
-            ent, type, x, y, z, attr1, attr2, attr3, attr4, attr5
-        );
+            lua::Table(L, 1), luaL_checkint(L, 2), luaL_checknumber(L, 3),
+            luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+            luaL_checkint(L, 6), luaL_checkint(L, 7), luaL_checkint(L, 8),
+            luaL_checkint(L, 9), luaL_checkint(L, 10));
+        return 0;
     }
 
-    void _lua_setupcharacter(lua::Table ent)
-    {
-        LogicSystem::setupCharacter(ent);
+    int _lua_setupcharacter(lua_State *L) {
+        LogicSystem::setupCharacter(lua::Table(L, 1));
+        return 0;
     }
 
-    void _lua_setupnonsauer(lua::Table ent)
-    {
-        LogicSystem::setupNonSauer(ent);
+    int _lua_setupnonsauer(lua_State *L) {
+        LogicSystem::setupNonSauer(lua::Table(L, 1));
+        return 0;
     }
 
-    void _lua_dismantleextent(lua::Table ent)
-    {
-        LogicSystem::dismantleExtent(ent);
+    int _lua_dismantleextent(lua_State *L) {
+        LogicSystem::dismantleExtent(lua::Table(L, 1));
+        return 0;
     }
 
-    void _lua_dismantlecharacter(lua::Table ent)
-    {
-        LogicSystem::dismantleCharacter(ent);
+    int _lua_dismantlecharacter(lua_State *L) {
+        LogicSystem::dismantleCharacter(lua::Table(L, 1));
+        return 0;
     }
 
     /* Entity attributes */
