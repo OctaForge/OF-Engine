@@ -1162,37 +1162,28 @@ namespace lapi_binds
 #ifdef CLIENT
     static int oldtp = -1;
 
-    void preparerd(int& anim, CLogicEntity *self)
-    {
-        if (anim&ANIM_RAGDOLL)
-        {
+    void preparerd(int& anim, CLogicEntity *self) {
+        if (anim&ANIM_RAGDOLL) {
             //if (!ragdoll || loadmodel(mdl);
             fpsent *fp = (fpsent*)self->dynamicEntity;
 
-            if (fp->clientnum == ClientSystem::playerNumber)
-            {
-                if (oldtp == -1 && thirdperson == 0)
-                {
+            if (fp->clientnum == ClientSystem::playerNumber) {
+                if (oldtp == -1 && thirdperson == 0) {
                     oldtp = thirdperson;
                     thirdperson = 1;
                 }
             }
 
-            if (fp->ragdoll || !ragdoll)
-            {
+            if (fp->ragdoll || !ragdoll) {
                 anim &= ~ANIM_RAGDOLL;
                 self->lua_ref.get<lua::Function>("set_local_animation")
                     (self->lua_ref, anim);
             }
-        }
-        else
-        {
-            if (self->dynamicEntity)
-            {
+        } else {
+            if (self->dynamicEntity) {
                 fpsent *fp = (fpsent*)self->dynamicEntity;
 
-                if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1)
-                {
+                if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1) {
                     thirdperson = oldtp;
                     oldtp = -1;
                 }
@@ -1200,15 +1191,12 @@ namespace lapi_binds
         }
     }
 
-    fpsent *getproxyfpsent(CLogicEntity *self)
-    {
+    fpsent *getproxyfpsent(CLogicEntity *self) {
         lua::Object h(self->lua_ref["rendering_hash_hint"]);
-        if (!h.is_nil())
-        {
+        if (!h.is_nil()) {
             static bool initialized = false;
             static fpsent *fpsentsfr[1024];
-            if (!initialized)
-            {
+            if (!initialized) {
                 for (int i = 0; i < 1024; i++) fpsentsfr[i] = new fpsent;
                 initialized = true;
             }
@@ -1217,19 +1205,13 @@ namespace lapi_binds
             rhashhint = rhashhint & 1023;
             assert(rhashhint >= 0 && rhashhint < 1024);
             return fpsentsfr[rhashhint];
-        }
-        else return NULL;
+        } else return NULL;
     }
 
-    void _lua_rendermodel(
-        lua::Table self, const char *mdl,
-        int anim, float x, float y, float z,
-        float yaw, float pitch,
-        int flags, int basetime, lua::Object trans
-    )
-    {
-        LAPI_GET_ENT(entity, self, "CAPI.rendermodel", return)
+    int _lua_rendermodel(lua_State *L) {
+        LAPI_GET_ENTC(entity, "CAPI.rendermodel", return 0)
 
+        int anim = luaL_checkinteger(L, 3);
         preparerd(anim, entity);
         fpsent *fp = NULL;
 
@@ -1238,90 +1220,77 @@ namespace lapi_binds
         else
             fp = getproxyfpsent(entity);
 
-        float t = 1.0f;
-        if (trans.type() != lua::TYPE_NIL) {
-            t = trans.to<float>();
+        rendermodel(luaL_checkstring(L, 2), anim, vec(luaL_checknumber(L, 4),
+            luaL_checknumber(L, 5), luaL_checknumber(L, 6)),
+            luaL_checknumber(L, 7), luaL_checknumber(L, 8),
+            luaL_checkinteger(L, 9), fp, entity->attachments,
+            luaL_checkinteger(L, 10), 0, 1, luaL_optnumber(L, 11, 1.0f));
+        return 0;
+    }
+
+    #define SMDLBOX(nm, func) \
+        int _lua_scriptmdl##nm(lua_State *L) { \
+            model *mdl = loadmodel(luaL_checkstring(L, 1)); \
+            if   (!mdl) return 0; \
+            vec center, radius; \
+            mdl->func(center, radius); \
+            lua_getglobal(L, "external"); \
+            lua_getfield  (L, -1, "new_vec3"); \
+            lua_pushnumber(L, center.x); lua_pushnumber(L, center.y); \
+            lua_pushnumber(L, center.z); lua_call(L, 3, 1); \
+            lua_getfield  (L, -2, "new_vec3"); \
+            lua_remove    (L, -3); \
+            lua_pushnumber(L, radius.x); lua_pushnumber(L, radius.y); \
+            lua_pushnumber(L, radius.z); lua_call(L, 3, 1); \
+            return 2; \
         }
 
-        rendermodel(mdl, anim, vec(x, y, z), yaw, pitch, flags, fp,
-            entity->attachments, basetime, 0, 1, t);
-    }
+    SMDLBOX(bb, boundbox)
+    SMDLBOX(cb, collisionbox)
 
-    lua::Table _lua_scriptmdlbb(const char *name)
-    {
-        model *mdl = loadmodel(name);
-        if   (!mdl)
-            return lapi::state.wrap<lua::Table>(lua::nil);
-
-        vec center, radius;
-        mdl->boundbox(center, radius);
-
-        lua::Table ret(lapi::state.new_table(0, 2));
-        ret["center"] = lapi::state.get<lua::Function>("external", "new_vec3")
-            .call<lua::Table>(center.x, center.y, center.z);
-        ret["radius"] = lapi::state.get<lua::Function>("external", "new_vec3")
-            .call<lua::Table>(radius.x, radius.y, radius.z);
-        return ret;
-    }
-
-    lua::Table _lua_scriptmdlcb(const char *name)
-    {
-        model *mdl = loadmodel(name);
-        if   (!mdl)
-            return lapi::state.wrap<lua::Table>(lua::nil);
-
-        vec center, radius;
-        mdl->collisionbox(center, radius);
-
-        lua::Table ret(lapi::state.new_table(0, 2));
-        ret["center"] = lapi::state.get<lua::Function>("external", "new_vec3")
-            .call<lua::Table>(center.x, center.y, center.z);
-        ret["radius"] = lapi::state.get<lua::Function>("external", "new_vec3")
-            .call<lua::Table>(radius.x, radius.y, radius.z);
-        return ret;
-    }
-
-    lua::Table _lua_mdlmesh(const char *name)
-    {
-        model *mdl = loadmodel(name);
-        if   (!mdl)
-            return lapi::state.wrap<lua::Table>(lua::nil);
+    int _lua_mdlmesh(lua_State *L) {
+        model *mdl = loadmodel(luaL_checkstring(L, 1));
+        if   (!mdl) return 0;
 
         vector<BIH::tri> tris2[2];
         mdl->gentris(tris2);
         vector<BIH::tri>& tris = tris2[0];
-        types::String buf;
 
-        lua::Table ret(lapi::state.new_table(0, 1));
-        ret["length"] = tris.length();
-
-        for (int i = 0; i < tris.length(); ++i)
-        {
+        lua_getglobal   (L, "external");
+        lua_createtable (L, tris.length(), 0);
+        for (int i = 0; i < tris.length(); ++i) {
             BIH::tri& bt = tris[i];
+            lua_pushinteger(L, i + 1); /* key   */
+            lua_createtable(L, 0, 3);  /* value */
 
-            lua::Table t(lapi::state.new_table(0, 3));
-            t["a"] = lapi::state.get<lua::Function>("external", "new_vec3")
-                .call<lua::Table>(bt.a.x, bt.a.y, bt.a.z);
-            t["b"] = lapi::state.get<lua::Function>("external", "new_vec3")
-                .call<lua::Table>(bt.b.x, bt.b.y, bt.b.z);
-            t["c"] = lapi::state.get<lua::Function>("external", "new_vec3")
-                .call<lua::Table>(bt.c.x, bt.c.y, bt.c.z);
+            #define TRIFIELD(n) \
+                lua_getfield  (L, -4, "new_vec3"); \
+                lua_pushnumber(L, bt.n.x); \
+                lua_pushnumber(L, bt.n.y); \
+                lua_pushnumber(L, bt.n.z); \
+                lua_call      (L, 3, 1); \
+                lua_setfield  (L, -2, #n); \
 
-            ret[buf.format("%i", i).get_buf()] = t;
+            TRIFIELD(a)
+            TRIFIELD(b)
+            TRIFIELD(c)
+            #undef TRIFIELD
+            lua_settable(L, -3);
         }
-
-        return ret;
+        lua_remove(L, -2);
+        return 1;
     }
 
-    lua::Table _lua_findanims(const char *pattern)
-    {
+    int _lua_findanims(lua_State *L) {
         vector<int> anims;
-        findanims(pattern, anims);
-
-        lua::Table ret(lapi::state.new_table());
-        for (int i = 0; i < anims.length(); ++i)
-            ret[i + 1] = anims[i];
-        return ret;
+        findanims(luaL_checkstring(L, 1), anims);
+        lua_createtable(L, anims.length(), 0);
+        for (int i = 0; i < anims.length(); ++i) {
+            lua_pushinteger(L, i + 1);
+            lua_pushinteger(L, anims[i]);
+            lua_settable   (L, -3);
+        }
+        return 1;
     }
 #else
     LAPI_EMPTY(rendermodel)
