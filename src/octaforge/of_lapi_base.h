@@ -1875,43 +1875,49 @@ namespace lapi_binds
 
     /* Geometry utilities */
 
-    bool _lua_raylos(float x, float y, float z, float dx, float dy, float dz)
-    {
+    int _lua_raylos(lua_State *L) {
         vec target(0);
-        return raycubelos(vec(x, y, z), vec(dx, dy, dz), target);
+        lua_pushboolean(L, raycubelos(vec(luaL_checknumber(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                luaL_checknumber(L, 6)), target));
+        return 1;
     }
 
-    float _lua_raypos(float x, float y, float z, float rx, float ry,
-        float rz, float r)
-    {
+    int _lua_raypos(lua_State *L) {
         vec hitpos(0);
-        return raycubepos(vec(x, y, z), vec(rx, ry, rz), hitpos, r,
-            RAY_CLIPMAT | RAY_POLY);
+        lua_pushnumber(L, raycubepos(vec(luaL_checknumber(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                luaL_checknumber(L, 6)), hitpos, luaL_checknumber(L, 7),
+            RAY_CLIPMAT | RAY_POLY));
+        return 1;
     }
 
-    float _lua_rayfloor(float x, float y, float z, float r)
-    {
+    int _lua_rayfloor(lua_State *L) {
         vec floor(0);
-        return rayfloor(vec(x, y, z), floor, 0, r);
+        lua_pushnumber(L, rayfloor(vec(luaL_checknumber(L, 1),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3)), floor, 0,
+                luaL_checknumber(L, 4)));
+        return 1;
     }
 
 #ifdef CLIENT
-    types::Tuple<float, float, float> _lua_gettargetpos()
-    {
+    int _lua_gettargetpos(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
         vec o(TargetingControl::targetPosition);
-        return types::make_tuple(o.x, o.y, o.z);
+        lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
+        return 3;
     }
 
-    lua::Table _lua_gettargetent()
-    {
+    int _lua_gettargetent(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
         CLogicEntity *target = TargetingControl::targetLogicEntity;
-
-        if (target && !target->isNone() && !target->lua_ref.is_nil())
-            return target->lua_ref;
-
-        return lapi::state.wrap<lua::Table>(lua::nil);
+        if (target && !target->isNone() && !target->lua_ref.is_nil()) {
+            target->lua_ref.push();
+            return 1;
+        }
+        return 0;
     }
 #else
     LAPI_EMPTY(gettargetpos)
