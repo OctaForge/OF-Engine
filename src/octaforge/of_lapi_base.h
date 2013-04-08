@@ -43,14 +43,14 @@ namespace lapi_binds
     using namespace filesystem;
 
     int _lua_log(lua_State *L) {
-        logger::log((logger::loglevel)luaL_checkint(L, 1),
+        logger::log((logger::loglevel)luaL_checkinteger(L, 1),
             "%s\n", luaL_checkstring(L, 2));
         return 0;
     }
 
     int _lua_should_log(lua_State *L) {
         lua_pushboolean(L, logger::should_log(
-            (logger::loglevel)luaL_checkint(L, 1)));
+            (logger::loglevel)luaL_checkinteger(L, 1)));
         return 1;
     }
 
@@ -144,9 +144,9 @@ namespace lapi_binds
         ident *id = getident(name);
         if (!id) {
             int *st = new int;
-            *st = variable(name, luaL_checkint(L, 2),
-                luaL_checkint(L, 3), luaL_checkint(L, 4),
-                st, NULL, luaL_checkint(L, 5) | IDF_ALLOC);
+            *st = variable(name, luaL_checkinteger(L, 2),
+                luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                st, NULL, luaL_checkinteger(L, 5) | IDF_ALLOC);
         } else {
             logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
@@ -161,7 +161,7 @@ namespace lapi_binds
             float *st = new float;
             *st = fvariable(name, luaL_checknumber(L, 2),
                 luaL_checknumber(L, 3), luaL_checknumber(L, 4),
-                st, NULL, luaL_checkint(L, 5) | IDF_ALLOC);
+                st, NULL, luaL_checkinteger(L, 5) | IDF_ALLOC);
         } else {
             logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
@@ -175,7 +175,7 @@ namespace lapi_binds
         if (!id) {
             char **st = new char*;
             *st = svariable(name, luaL_checkstring(L, 2), st, NULL,
-                luaL_checkint(L, 3) | IDF_ALLOC);
+                luaL_checkinteger(L, 3) | IDF_ALLOC);
         } else {
             logger::log(logger::ERROR, "variable %s already exists\n", name);
         }
@@ -183,7 +183,7 @@ namespace lapi_binds
     }
 
     int _lua_var_set_i(lua_State *L) {
-        setvar(luaL_checkstring(L, 1), luaL_checkint(L, 2));
+        setvar(luaL_checkstring(L, 1), luaL_checkinteger(L, 2));
         return 0;
     }
 
@@ -290,12 +290,12 @@ namespace lapi_binds
     }
 
 #ifdef CLIENT
-    int _lua_varray_begin(lua_State *L) { varray::begin((uint)luaL_checkint(L, 1)); return 0; }
+    int _lua_varray_begin(lua_State *L) { varray::begin((uint)luaL_checkinteger(L, 1)); return 0; }
     int _lua_varray_end(lua_State *L) { lua_pushinteger(L, varray::end()); return 1; }
     int _lua_varray_disable(lua_State *L) { varray::disable(); return 0; }
 
     #define EAPI_VARRAY_DEFATTRIB(name) \
-        int _lua_varray_def##name(lua_State *L) { varray::def##name(luaL_checkint(L, 1), GL_FLOAT); return 0; }
+        int _lua_varray_def##name(lua_State *L) { varray::def##name(luaL_checkinteger(L, 1), GL_FLOAT); return 0; }
 
     EAPI_VARRAY_DEFATTRIB(vertex)
     EAPI_VARRAY_DEFATTRIB(color)
@@ -332,16 +332,16 @@ namespace lapi_binds
     EAPI_VARRAY_INITATTRIB(texcoord1)
 
     int _lua_varray_color3ub(lua_State *L) {
-        varray::colorub((uchar)luaL_checkint(L, 1),
-                        (uchar)luaL_checkint(L, 2),
-                        (uchar)luaL_checkint(L, 3));
+        varray::colorub((uchar)luaL_checkinteger(L, 1),
+                        (uchar)luaL_checkinteger(L, 2),
+                        (uchar)luaL_checkinteger(L, 3));
         return 0;
     }
     int _lua_varray_color4ub(lua_State *L) {
-        varray::colorub((uchar)luaL_checkint(L, 1),
-                        (uchar)luaL_checkint(L, 2),
-                        (uchar)luaL_checkint(L, 3),
-                        (uchar)luaL_checkint(L, 4));
+        varray::colorub((uchar)luaL_checkinteger(L, 1),
+                        (uchar)luaL_checkinteger(L, 2),
+                        (uchar)luaL_checkinteger(L, 3),
+                        (uchar)luaL_checkinteger(L, 4));
         return 0;
     }
 
@@ -427,8 +427,8 @@ namespace lapi_binds
     }
 
     int _lua_gl_scissor(lua_State *L) {
-        glScissor(luaL_checkint(L, 1), luaL_checkint(L, 2),
-                  luaL_checkint(L, 3), luaL_checkint(L, 4));
+        glScissor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
         return 0;
     }
 
@@ -443,7 +443,7 @@ namespace lapi_binds
     }
 
     int _lua_gl_blend_func(lua_State *L) {
-        glBlendFunc((uint)luaL_checkint(L, 1), (uint)luaL_checkint(L, 2));
+        glBlendFunc((uint)luaL_checkinteger(L, 1), (uint)luaL_checkinteger(L, 2));
         return 0;
     }
 
@@ -459,8 +459,8 @@ namespace lapi_binds
     }
 
     int _lua_gl_texture_param(lua_State *L) {
-        glTexParameteri(GL_TEXTURE_2D, (uint)luaL_checkint(L, 1),
-            luaL_checkint(L, 2));
+        glTexParameteri(GL_TEXTURE_2D, (uint)luaL_checkinteger(L, 1),
+            luaL_checkinteger(L, 2));
         return 0;
     }
 
@@ -475,36 +475,36 @@ namespace lapi_binds
 
     int _lua_gui_set_mainmenu(lua_State *L) {
         lua_pushinteger(L, mainmenu);
-        mainmenu = luaL_checkint(L, 1);
+        mainmenu = luaL_checkinteger(L, 1);
         return 1;
     }
 
     int _lua_gui_text_bounds(lua_State *L) {
         int w, h;
-        text_bounds(luaL_checkstring(L, 1), w, h, luaL_checkint(L, 2));
+        text_bounds(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
         lua_pushinteger(L, w); lua_pushinteger(L, h);
         return 2;
     }
 
     int _lua_gui_text_bounds_f(lua_State *L) {
         float w, h;
-        text_boundsf(luaL_checkstring(L, 1), w, h, luaL_checkint(L, 2));
+        text_boundsf(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
         lua_pushnumber(L, w); lua_pushnumber(L, h);
         return 2;
     }
 
     int _lua_gui_text_pos(lua_State *L) {
         int cx, cy;
-        text_pos(luaL_checkstring(L, 1), luaL_checkint(L, 2),
-            cx, cy, luaL_checkint(L, 3));
+        text_pos(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
+            cx, cy, luaL_checkinteger(L, 3));
         lua_pushinteger(L, cx); lua_pushinteger(L, cy);
         return 2;
     }
 
     int _lua_gui_text_pos_f(lua_State *L) {
         float cx, cy;
-        text_posf(luaL_checkstring(L, 1), luaL_checkint(L, 2),
-            cx, cy, luaL_checkint(L, 3));
+        text_posf(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
+            cx, cy, luaL_checkinteger(L, 3));
         lua_pushnumber(L, cx); lua_pushnumber(L, cy);
         return 2;
     }
@@ -512,15 +512,15 @@ namespace lapi_binds
     int _lua_gui_text_visible(lua_State *L) {
         lua_pushinteger(L, text_visible(luaL_checkstring(L, 1),
             luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-            luaL_checkint(L, 4)));
+            luaL_checkinteger(L, 4)));
         return 1;
     }
 
     int _lua_gui_draw_text(lua_State *L) {
-        draw_text(luaL_checkstring(L, 1), luaL_checkint(L, 2),
-            luaL_checkint(L, 3), luaL_checkint(L, 4), luaL_checkint(L, 5),
-            luaL_checkint(L, 6), luaL_checkint(L, 7), luaL_checkint(L, 8),
-            luaL_checkint(L, 9));
+        draw_text(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
+            luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5),
+            luaL_checkinteger(L, 6), luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+            luaL_checkinteger(L, 9));
         return 0;
     }
 #endif
@@ -576,34 +576,34 @@ namespace lapi_binds
     }
 
     int _lua_editing_createcube(lua_State *L) {
-        EditingSystem::createCube(luaL_checkint(L, 1), luaL_checkint(L, 2),
-                                  luaL_checkint(L, 3), luaL_checkint(L, 4));
+        EditingSystem::createCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
         return 0;
     }
 
     int _lua_editing_deletecube(lua_State *L) {
-        EditingSystem::deleteCube(luaL_checkint(L, 1), luaL_checkint(L, 2),
-                                  luaL_checkint(L, 3), luaL_checkint(L, 4));
+        EditingSystem::deleteCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
         return 0;
     }
 
     int _lua_editing_setcubetex(lua_State *L) {
-        EditingSystem::setCubeTexture(luaL_checkint(L, 1), luaL_checkint(L, 2),
-                                      luaL_checkint(L, 3), luaL_checkint(L, 4),
-                                      luaL_checkint(L, 5), luaL_checkint(L, 6));
+        EditingSystem::setCubeTexture(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                      luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                                      luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
         return 0;
     }
 
     int _lua_editing_setcubemat(lua_State *L) {
-        EditingSystem::setCubeMaterial(luaL_checkint(L, 1), luaL_checkint(L, 2),
-                                       luaL_checkint(L, 3), luaL_checkint(L, 4),
-                                       luaL_checkint(L, 5));
+        EditingSystem::setCubeMaterial(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                       luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                                       luaL_checkinteger(L, 5));
         return 0;
     }
 
     int _lua_editing_setcubecolor(lua_State *L) {
-        EditingSystem::setCubeColor(luaL_checkint(L, 1), luaL_checkint(L, 2),
-                                    luaL_checkint(L, 3), luaL_checkint(L, 4),
+        EditingSystem::setCubeColor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                    luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
                                     luaL_checknumber(L, 5),
                                     luaL_checknumber(L, 6),
                                     luaL_checknumber(L, 7));
@@ -611,10 +611,10 @@ namespace lapi_binds
     }
 
     int _lua_editing_pushcubecorner(lua_State *L) {
-        EditingSystem::pushCubeCorner(luaL_checkint(L, 1), luaL_checkint(L, 2),
-                                      luaL_checkint(L, 3), luaL_checkint(L, 4),
-                                      luaL_checkint(L, 5), luaL_checkint(L, 6),
-                                      luaL_checkint(L, 7));
+        EditingSystem::pushCubeCorner(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                      luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                                      luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
+                                      luaL_checkinteger(L, 7));
         return 0;
     }
 
@@ -681,16 +681,16 @@ namespace lapi_binds
     /* Entity management */
 
     int _lua_unregister_entity(lua_State *L) {
-        LogicSystem::unregisterLogicEntityByUniqueId(luaL_checkint(L, 1));
+        LogicSystem::unregisterLogicEntityByUniqueId(luaL_checkinteger(L, 1));
         return 0;
     }
 
     int _lua_setupextent(lua_State *L) {
         LogicSystem::setupExtent(
-            lua::Table(L, 1), luaL_checkint(L, 2), luaL_checknumber(L, 3),
+            lua::Table(L, 1), luaL_checkinteger(L, 2), luaL_checknumber(L, 3),
             luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-            luaL_checkint(L, 6), luaL_checkint(L, 7), luaL_checkint(L, 8),
-            luaL_checkint(L, 9), luaL_checkint(L, 10));
+            luaL_checkinteger(L, 6), luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+            luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
         return 0;
     }
 
@@ -718,7 +718,7 @@ namespace lapi_binds
 
     int _lua_setanim(lua_State *L) {
         LAPI_GET_ENTC(entity, "CAPI.setanim", return 0)
-        entity->setAnimation(luaL_checkint(L, 2));
+        entity->setAnimation(luaL_checkinteger(L, 2));
         return 0;
     }
 
@@ -750,7 +750,7 @@ namespace lapi_binds
 
     int _lua_setsoundvol(lua_State *L) {
         LAPI_GET_ENTC(entity, "CAPI.setsoundvol", return 0)
-        int vol = luaL_checkint(L, 2);
+        int vol = luaL_checkinteger(L, 2);
         logger::log(logger::DEBUG, "CAPI.setsoundvol(%i)\n", vol);
 
         if (!entity->sndname) return 0;
@@ -808,7 +808,7 @@ namespace lapi_binds
     } \
     int _lua_set##n(lua_State *L) { \
         LAPI_GET_ENTC(entity, "CAPI.set"#n, return 0) \
-        int v = luaL_checkint(L, 2); \
+        int v = luaL_checkinteger(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
         if (!world::loading) removeentity(ext); \
@@ -818,7 +818,7 @@ namespace lapi_binds
     } \
     int _lua_FAST_set##n(lua_State *L) { \
         LAPI_GET_ENTC(entity, "CAPI.FAST_set"#n, return 0) \
-        int v = luaL_checkint(L, 2); \
+        int v = luaL_checkinteger(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
         ext->n = v; \
@@ -924,7 +924,7 @@ namespace lapi_binds
     DYNENT_ACCESSORS(inwater, int, integer, inwater)
     DYNENT_ACCESSORS(timeinair, int, integer, timeinair)
     #undef DYNENT_ACCESSORS
-    #undef luaL_checkinteger
+    #undef luaL_checkboolean
 
     lua::Table _lua_getdynent0(lua::Table self)
     {
@@ -1819,7 +1819,7 @@ namespace lapi_binds
     static int texture_get_alphamask(lua_State *L) {
         Texture *tex = checktex(L);
         if (lua_gettop(L) > 1) {
-            int idx = luaL_checkint(L, 2);
+            int idx = luaL_checkinteger(L, 2);
             luaL_argcheck(L, idx < (tex->h * ((tex->w + 7) / 8)),
                 1, "index out of range");
             lua_pushinteger(L, tex->alphamask[idx]);
