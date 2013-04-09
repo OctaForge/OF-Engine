@@ -88,7 +88,11 @@ namespace MessageSystem
         types::String content;
         getstring(content, p);
 
-        lapi::state.get<lua::Function>("LAPI", "GUI", "show_message")(title, content);
+        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "GUI");
+        lua_getfield (lapi::L, -1, "show_message"); lua_insert(lapi::L, -3); lua_pop(lapi::L, 2);
+        lua_pushlstring(lapi::L, title.get_buf(), title.length());
+        lua_pushlstring(lapi::L, content.get_buf(), content.length());
+        lua_call(lapi::L, 2, 0);
     }
 #endif
 
@@ -340,7 +344,11 @@ namespace MessageSystem
         types::String scenarioCode;
         getstring(scenarioCode, p);
 
-        lapi::state.get<lua::Function>("LAPI", "GUI", "show_message")("Server", "Map being prepared on the server, please wait ..");
+        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "GUI");
+        lua_getfield (lapi::L, -1, "show_message"); lua_insert(lapi::L, -3); lua_pop(lapi::L, 2);
+        lua_pushliteral(lapi::L, "Server");
+        lua_pushliteral(lapi::L, "Map being prepared on the server, please wait ..");
+        lua_call(lapi::L, 2, 0);
         ClientSystem::prepareForNewScenario(scenarioCode);
     }
 #endif
@@ -487,23 +495,42 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        if (lapi::state.get<lua::Function>("external", "entity_class_get").call<lua::Object>(_class).is_nil()) return;
+        lua_getglobal(lapi::L, "external");
+        lua_getfield(lapi::L, -1, "entity_class_get");
+        lua_pushlstring(lapi::L, _class.get_buf(), _class.length());
+        lua_call(lapi::L, 1, 1);
+        if (lua_isnil(lapi::L, -1)) {
+            lua_pop(lapi::L, 1);
+            return;
+        }
+        lua_pop(lapi::L, 1);
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.get_buf(), x, y, z, stateData.get_buf());
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        const char *sauerType = lapi::state.get<lua::Function>("external", "entity_class_sauer_type_get").call<const char*>(_class);
+        lua_getfield(lapi::L, -1, "entity_class_sauer_type_get");
+        lua_pushlstring(lapi::L, _class.get_buf(), _class.length());
+        lua_call(lapi::L, 1, 1);
+        const char *sauerType = lua_tostring(lapi::L, -1);
+        lua_pop(lapi::L, 1);
         logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
-        lua::Table t = lapi::state.new_table(0, 2);
-        lua::Table v = lapi::state.new_table(0, 3);
-        v["x"] = x; v["y"] = y; v["z"] = z;
-        t["position"  ] = v;
-        t["state_data"] = stateData;
-        int newUniqueId = lapi::state.get<lua::Function>(
-            "external", "entity_new"
-        ).call<lua::Table>(_class, t).get<int>("uid");
+        lua_getfield(lapi::L, -1, "entity_new");
+        lua_remove(lapi::L, -2);
+        lua_pushlstring(lapi::L, _class.get_buf(), _class.length()); // first arg
+        lua_createtable(lapi::L, 0, 2); // second arg
+        lua_createtable(lapi::L, 0, 3);
+        lua_pushnumber(lapi::L, x); lua_setfield(lapi::L, -2, "x");
+        lua_pushnumber(lapi::L, y); lua_setfield(lapi::L, -2, "y");
+        lua_pushnumber(lapi::L, z); lua_setfield(lapi::L, -2, "z");
+        lua_setfield(lapi::L, -2, "position");
+        lua_pushlstring(lapi::L, stateData.get_buf(), stateData.length());
+        lua_setfield(lapi::L, -2, "state_data");
+        lua_call(lapi::L, 2, 1);
+        lua_getfield(lapi::L, -1, "uid");
+        int newuid = lua_tointeger(lapi::L, -1);
+        lua_pop(lapi::L, 2);
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
-                                      newUniqueId, _class.get_buf(), x, y, z);
+                                      newuid, _class.get_buf(), x, y, z);
     }
 #endif
 
