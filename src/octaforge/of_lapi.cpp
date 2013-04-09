@@ -53,19 +53,15 @@ if (!name) \
 #undef LAPI_GET_ENT
 #undef LAPI_REG
 
-using namespace types;
-using namespace filesystem;
-using namespace lua;
-
 extern string homedir;
 
 namespace lapi
 {
-    State  state;
-    String mod_dir;
+    lua::State state;
+    types::String mod_dir;
     bool initialized;
 
-    void panic(const State& s, const char *msg)
+    void panic(const lua::State& s, const char *msg)
     {
         logger::log(logger::ERROR, "OF::Lua: %s\n", msg);
     }
@@ -176,9 +172,9 @@ namespace lapi
         lua_pushcfunction(state.state(), luaopen_bit);
         lua_call         (state.state(), 0, 0);
 
-        lua_State *L  = state.state();
-        Table loaded  = state.registry()["_LOADED"];
-        Table package = loaded["package"];
+        lua_State *L = state.state();
+        lua::Table loaded  = state.registry()["_LOADED"];
+        lua::Table package = loaded["package"];
 
         /* home directory paths */
         lua_pushfstring(
@@ -202,8 +198,8 @@ namespace lapi
         lua_pushliteral(L, ";./data/library/?/init.lua");
 
         lua_concat(L,  8);
-        Object str(L, -1);
-        lua_pop   (L,  1);
+        lua::Object str(L, -1);
+        lua_pop(L,  1);
         package["path"] = str;
 
         /* table allocation */
@@ -283,12 +279,14 @@ namespace lapi
     {
         if (!name || strstr(name, "..")) return false;
 
-        Table package = state.registry().get<Object>("_LOADED", "package");
+        lua::Table package = state.registry().get<lua::Object>("_LOADED",
+            "package");
 
-        String pattern = String().format(";./data/library/%s/?.lua", name);
-        Function  find = state.get<Object>("string", "find");
+        types::String pattern = types::String()
+            .format(";./data/library/%s/?.lua", name);
+        lua::Function find = state.get<lua::Object>("string", "find");
 
-        if (!find.call<Object>(package["path"], pattern).is_nil())
+        if (!find.call<lua::Object>(package["path"], pattern).is_nil())
             return true;
 
         lua_State *L  = state.state();
@@ -306,8 +304,8 @@ namespace lapi
         lua_pushfstring(L, ";./data/library/%s/?.lua", name);
 
         lua_concat(L,  3);
-        Object str(L, -1);
-        lua_pop   (L,  1);
+        lua::Object str(L, -1);
+        lua_pop(L,  1);
         package["path"] = str;
 
         return true;
