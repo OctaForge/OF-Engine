@@ -549,10 +549,10 @@ bool consolekey(int code, bool isdown)
 void processtextinput(const char *str, int len)
 {
     lapi::state.get<lua::Function>("external", "input_text").push();
-    lua_pushlstring(lapi::state.state(), str, len);
-    lua_call(lapi::state.state(), 1, 1);
-    bool b = lua_toboolean(lapi::state.state(), -1);
-    lua_pop(lapi::state.state(), 1);
+    lua_pushlstring(lapi::L, str, len);
+    lua_call(lapi::L, 1, 1);
+    bool b = lua_toboolean(lapi::L, -1);
+    lua_pop(lapi::L, 1);
     if(!b) consoleinput(str, len);
 }
 

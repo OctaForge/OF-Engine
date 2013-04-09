@@ -1813,21 +1813,20 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
 
     if (pl->o.z < 0)
     {
-        lua_State *L = lapi::state.state();
-        lua_getglobal(L, "LAPI"); lua_getfield(L, -1, "World"); lua_getfield(L, -1, "Events");
+        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "World"); lua_getfield(lapi::L, -1, "Events");
 #ifdef CLIENT
-        lua_getfield(L, -1, "Client");
+        lua_getfield(lapi::L, -1, "Client");
 #else
-        lua_getfield(L, -1, "Server");
+        lua_getfield(lapi::L, -1, "Server");
 #endif
-        lua_getfield(L, -1, "off_map");
-        if lua_isnil(L, -1) {
-             lua_pop(L,  6);
+        lua_getfield(lapi::L, -1, "off_map");
+        if lua_isnil(lapi::L, -1) {
+             lua_pop(lapi::L,  6);
              return true;
         }
-        lua_rawgeti(L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity((dynent*)pl)->lua_ref);
-        lua_call(L, 1, 0);
-        lua_pop(L, 5);
+        lua_rawgeti(lapi::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity((dynent*)pl)->lua_ref);
+        lua_call(lapi::L, 1, 0);
+        lua_pop(lapi::L, 5);
     }
     return true;
 }

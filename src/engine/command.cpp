@@ -28,46 +28,46 @@ void ident::changed() {
     if (fun) fun();
     if (!(flags&IDF_SIGNAL)) return;
     lapi::state.get<lua::Object>("signal", "emit").push();
-    lua_getglobal  (lapi::state.state(), "EV");
-    lua_pushstring (lapi::state.state(), name);
-    lua_pushliteral(lapi::state.state(), "_changed");
-    lua_concat     (lapi::state.state(), 2);
+    lua_getglobal  (lapi::L, "EV");
+    lua_pushstring (lapi::L, name);
+    lua_pushliteral(lapi::L, "_changed");
+    lua_concat     (lapi::L, 2);
     switch (type) {
         case ID_VAR:
-            lua_pushinteger(lapi::state.state(), *(storage.i));
-            lua_pushinteger(lapi::state.state(), minval);
-            lua_pushinteger(lapi::state.state(), overrideval.i);
-            lua_pushinteger(lapi::state.state(), maxval);
-            lua_call       (lapi::state.state(), 6, 0);
+            lua_pushinteger(lapi::L, *(storage.i));
+            lua_pushinteger(lapi::L, minval);
+            lua_pushinteger(lapi::L, overrideval.i);
+            lua_pushinteger(lapi::L, maxval);
+            lua_call       (lapi::L, 6, 0);
             break;
         case ID_FVAR:
-            lua_pushnumber(lapi::state.state(), *(storage.f));
-            lua_pushnumber(lapi::state.state(), minvalf);
-            lua_pushnumber(lapi::state.state(), overrideval.f);
-            lua_pushnumber(lapi::state.state(), maxvalf);
-            lua_call      (lapi::state.state(), 6, 0);
+            lua_pushnumber(lapi::L, *(storage.f));
+            lua_pushnumber(lapi::L, minvalf);
+            lua_pushnumber(lapi::L, overrideval.f);
+            lua_pushnumber(lapi::L, maxvalf);
+            lua_call      (lapi::L, 6, 0);
             break;
         case ID_SVAR:
-            lua_pushstring(lapi::state.state(), *(storage.s));
-            lua_pushstring(lapi::state.state(), overrideval.s);
-            lua_call      (lapi::state.state(), 4, 0);
+            lua_pushstring(lapi::L, *(storage.s));
+            lua_pushstring(lapi::L, overrideval.s);
+            lua_call      (lapi::L, 4, 0);
             break;
         case ID_ALIAS: switch (valtype) {
             case VAL_INT:
-                lua_pushinteger(lapi::state.state(), val.i);
-                lua_call       (lapi::state.state(), 3, 0);
+                lua_pushinteger(lapi::L, val.i);
+                lua_call       (lapi::L, 3, 0);
                 break;
             case VAL_FLOAT:
-                lua_pushnumber(lapi::state.state(), val.f);
-                lua_call      (lapi::state.state(), 3, 0);
+                lua_pushnumber(lapi::L, val.f);
+                lua_call      (lapi::L, 3, 0);
                 break;
             case VAL_STR:
-                lua_pushstring(lapi::state.state(), val.s);
-                lua_call      (lapi::state.state(), 3, 0);
+                lua_pushstring(lapi::L, val.s);
+                lua_call      (lapi::L, 3, 0);
                 break;
-            default: lua_call(lapi::state.state(), 2, 0); break;
+            default: lua_call(lapi::L, 2, 0); break;
         }
-        default: lua_call(lapi::state.state(), 2, 0); break;
+        default: lua_call(lapi::L, 2, 0); break;
     }
 }
 
@@ -3029,24 +3029,24 @@ COMMANDN(clearsleep, clearsleep_, "i");
 #endif
 
 ICOMMAND(lua, "s", (char *str), {
-    if (luaL_loadstring(lapi::state.state(), str)) {
-        lua_error(lapi::state.state());
+    if (luaL_loadstring(lapi::L, str)) {
+        lua_error(lapi::L);
     }
-    lua_call(lapi::state.state(), 0, 1);
-    if (lua_isnumber(lapi::state.state(), -1)) {
-        int a = lua_tointeger(lapi::state.state(), -1);
-        float b = lua_tonumber(lapi::state.state(), -1);
-        lua_pop(lapi::state.state(), 1);
+    lua_call(lapi::L, 0, 1);
+    if (lua_isnumber(lapi::L, -1)) {
+        int a = lua_tointeger(lapi::L, -1);
+        float b = lua_tonumber(lapi::L, -1);
+        lua_pop(lapi::L, 1);
         if ((float)a == b) {
             intret(a);
         } else {
             floatret(b);
         }
-    } else if (lua_isstring(lapi::state.state(), -1)) {
-        const char *s = lua_tostring(lapi::state.state(), -1);
-        lua_pop(lapi::state.state(), 1);
+    } else if (lua_isstring(lapi::L, -1)) {
+        const char *s = lua_tostring(lapi::L, -1);
+        lua_pop(lapi::L, 1);
         result(s);
     } else {
-        lua_pop(lapi::state.state(), 1);
+        lua_pop(lapi::L, 1);
     }
 })

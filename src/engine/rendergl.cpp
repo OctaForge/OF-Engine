@@ -1155,7 +1155,7 @@ void mousemove(int dx, int dy)
     cursens /= 33.0f*sensitivityscale;
 
     // INTENSITY: Let scripts customize mousemoving
-    if (lapi::state.state())
+    if (lapi::L)
     {
         lua::Table t = lapi::state.get<lua::Function>(
             "LAPI", "Input", "Events", "Client", "mouse_move"

@@ -1092,7 +1092,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     identflags |= IDF_OVERRIDDEN;
     execfile("data/cfg/default_map_settings.cfg", false);
-    if (lapi::state.state()) world::run_mapscript();
+    if (lapi::L) world::run_mapscript();
     identflags &= ~IDF_OVERRIDDEN;
    
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities

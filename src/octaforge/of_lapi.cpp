@@ -58,6 +58,7 @@ extern string homedir;
 namespace lapi
 {
     lua::State state;
+    lua_State *L = NULL;
     types::String mod_dir;
     bool initialized;
 
@@ -156,6 +157,7 @@ namespace lapi
         mod_dir = dir;
 
         state.set_panic_handler(&panic);
+        L = state.state();
 
         state.open_base   ();
         state.open_table  ();
@@ -166,13 +168,12 @@ namespace lapi
         state.open_os     ();
         state.open_io     ();
 
-        lua_pushcfunction(state.state(), luaopen_ffi);
-        lua_call         (state.state(), 0, 0);
+        lua_pushcfunction(L, luaopen_ffi);
+        lua_call         (L, 0, 0);
 
-        lua_pushcfunction(state.state(), luaopen_bit);
-        lua_call         (state.state(), 0, 0);
+        lua_pushcfunction(L, luaopen_bit);
+        lua_call         (L, 0, 0);
 
-        lua_State *L = state.state();
         lua::Table loaded  = state.registry()["_LOADED"];
         lua::Table package = loaded["package"];
 
@@ -288,8 +289,6 @@ namespace lapi
 
         if (!find.call<lua::Object>(package["path"], pattern).is_nil())
             return true;
-
-        lua_State *L  = state.state();
 
         /* original path */
         package["path"].push();

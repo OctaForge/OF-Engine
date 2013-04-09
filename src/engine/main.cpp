@@ -1172,7 +1172,7 @@ int main(int argc, char **argv)
 
     initlog("lua");
     lapi::init();
-    if (!lapi::state.state()) fatal("cannot initialize lua script engine");
+    if (!lapi::L) fatal("cannot initialize lua script engine");
 
     initing = NOT_INITING;
 

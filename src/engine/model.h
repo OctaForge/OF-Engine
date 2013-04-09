@@ -99,13 +99,12 @@ struct model
                         // This is necessary because these are values cached from lua, unlike normal
                         // Sauer C++ variables that are managed in C++. Here, the *true* values are in lua
         {
-            lua_State *L = lapi::state.state();
-            lua_rawgeti (L, LUA_REGISTRYINDEX, entity->lua_ref);
-            lua_getfield(L, -1, "collision_radius_width");
-            width = lua_tonumber(L, -1); lua_pop(L, 1);
-            lua_getfield(L, -1, "collision_radius_height");
-            height = lua_tonumber(L, -1); lua_pop(L, 1);
-            lua_pop(L, 1);
+            lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
+            lua_getfield(lapi::L, -1, "collision_radius_width");
+            width = lua_tonumber(lapi::L, -1); lua_pop(lapi::L, 1);
+            lua_getfield(lapi::L, -1, "collision_radius_height");
+            height = lua_tonumber(lapi::L, -1); lua_pop(lapi::L, 1);
+            lua_pop(lapi::L, 1);
         }
 
         center[0] = center[1] = 0;

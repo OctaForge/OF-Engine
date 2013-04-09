@@ -87,7 +87,7 @@ bool ClientSystem::scenarioStarted()
     // If not already started, test if indeed started
     if (_mapCompletelyReceived && !_scenarioStarted)
     {
-        if (lapi::state.state())
+        if (lapi::L)
             _scenarioStarted = lapi::state.get<lua::Function>("external", "scene_is_ready").call<bool>();
     }
 
@@ -115,10 +115,9 @@ void ClientSystem::frameTrigger(int curtime)
 
         /* turning */
         fpsent *fp = (fpsent*)player;
-        lua_State *L = lapi::state.state();
-        lua_rawgeti (L, LUA_REGISTRYINDEX, ClientSystem::playerLogicEntity->lua_ref);
-        lua_getfield(L, -1, "facing_speed");
-        float fs = lua_tonumber(L, -1); lua_pop(L, 2);
+        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ClientSystem::playerLogicEntity->lua_ref);
+        lua_getfield(lapi::L, -1, "facing_speed");
+        float fs = lua_tonumber(lapi::L, -1); lua_pop(lapi::L, 2);
 
         if (fp->turn_move || fabs(x - 0.5) > 0.45)
         {
@@ -177,10 +176,9 @@ bool ClientSystem::isAdmin()
     if (!loggedIn) return false;
     if (!playerLogicEntity) return false;
 
-    lua_State *L = lapi::state.state();
-    lua_rawgeti (L, LUA_REGISTRYINDEX, playerLogicEntity->lua_ref);
-    lua_getfield(L, -1, "can_edit");
-    bool b = lua_toboolean(L, -1); lua_pop(L, 2);
+    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, playerLogicEntity->lua_ref);
+    lua_getfield(lapi::L, -1, "can_edit");
+    bool b = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 2);
     return b;
 }
 

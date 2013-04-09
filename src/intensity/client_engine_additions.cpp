@@ -25,7 +25,7 @@ void mouse##num##click() { \
     bool down = (addreleaseaction(newstring(QUOT(mouse##num##click))) != 0); \
     logger::log(logger::INFO, "mouse click: %i (down: %i)\n", num, down); \
 \
-    if (!(lapi::state.state() && ClientSystem::scenarioStarted())) \
+    if (!(lapi::L && ClientSystem::scenarioStarted())) \
         return; \
 \
     TargetingControl::determineMouseTarget(true); \
@@ -42,22 +42,21 @@ void mouse##num##click() { \
     float x = types::get<0>(t); \
     float y = types::get<1>(t); \
 \
-    lua_State *L = lapi::state.state(); \
-    lua_getglobal(L, "LAPI"); lua_getfield(L, -1, "Input"); \
-    lua_getfield (L, -1, "Events"); lua_getfield(L, -1, "Client"); \
-    lua_getfield (L, -1, "click"); \
-    lua_pushinteger(L, num); lua_pushboolean (L, down); \
-    lua_pushnumber (L, pos.x); lua_pushnumber(L, pos.y); \
-    lua_pushnumber (L, pos.z); \
+    lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "Input"); \
+    lua_getfield (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Client"); \
+    lua_getfield (lapi::L, -1, "click"); \
+    lua_pushinteger(lapi::L, num); lua_pushboolean (lapi::L, down); \
+    lua_pushnumber (lapi::L, pos.x); lua_pushnumber(lapi::L, pos.y); \
+    lua_pushnumber (lapi::L, pos.z); \
     if (tle && !tle->isNone()) { \
-        lua_rawgeti(L, LUA_REGISTRYINDEX, tle->lua_ref); \
+        lua_rawgeti(lapi::L, LUA_REGISTRYINDEX, tle->lua_ref); \
     } else { \
-        lua_pushnil(L); \
+        lua_pushnil(lapi::L); \
     } \
-    lua_pushnumber(L, x); lua_pushnumber(L, y); \
-    lua_call(L, 8, 1); \
-    bool b = lua_toboolean(L, -1); \
-    lua_pop(L, 5); \
+    lua_pushnumber(lapi::L, x); lua_pushnumber(lapi::L, y); \
+    lua_call(lapi::L, 8, 1); \
+    bool b = lua_toboolean(lapi::L, -1); \
+    lua_pop(lapi::L, 5); \
     if (b) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
 } \
 COMMAND(mouse##num##click, "");
@@ -74,11 +73,10 @@ ICOMMAND(name, "", (), { \
     if (ClientSystem::scenarioStarted()) \
     { \
         CLogicEntity *e = ClientSystem::playerLogicEntity; \
-        lua_State *L = lapi::state.state(); \
-        lua_rawgeti (L, LUA_REGISTRYINDEX, e->lua_ref); \
-        lua_getfield(L, -1, "clear_actions"); \
-        lua_insert  (L, -2); \
-        lua_call    (L, 1, 0); \
+        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, e->lua_ref); \
+        lua_getfield(lapi::L, -1, "clear_actions"); \
+        lua_insert  (lapi::L, -2); \
+        lua_call    (lapi::L, 1, 0); \
 \
         s = (addreleaseaction(newstring(#name)) != 0); \
 \
@@ -103,11 +101,10 @@ ICOMMAND(jump, "", (), {
     if (ClientSystem::scenarioStarted())
     {
         CLogicEntity *e = ClientSystem::playerLogicEntity;
-        lua_State *L = lapi::state.state();
-        lua_rawgeti (L, LUA_REGISTRYINDEX, e->lua_ref);
-        lua_getfield(L, -1, "clear_actions");
-        lua_insert  (L, -2);
-        lua_call    (L, 1, 0);
+        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, e->lua_ref);
+        lua_getfield(lapi::L, -1, "clear_actions");
+        lua_insert  (lapi::L, -2);
+        lua_call    (lapi::L, 1, 0);
 
         bool down = (addreleaseaction(newstring("jump")) != 0);
 

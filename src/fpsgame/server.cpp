@@ -113,7 +113,7 @@ namespace server
         // Also do not do this if the uniqueId is negative - it means we are disconnecting this client *before* a lua
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
-        if (lapi::state.state() && !_ci->local && uniqueId >= 0)
+        if (lapi::L && !_ci->local && uniqueId >= 0)
             lapi::state.get<lua::Function>("external", "entity_remove")(uniqueId);
         
         delete (clientinfo *)ci;
@@ -526,7 +526,7 @@ namespace server
                 /* FIXME: hack attack - add filtering method into the string class */
                 filtertext(&text[0], text.get_buf());
 
-                if (!lapi::state.state())
+                if (!lapi::L)
                 {
                     QUEUE_INT(type);
                     QUEUE_STR(text);

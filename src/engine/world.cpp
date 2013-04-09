@@ -921,22 +921,21 @@ void entpaste()
         if (!entity) return;
 
         const char *_class = entity->getClass();
-        lua_State *L = lapi::state.state();
 
-        lua_rawgeti (L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_getfield(L, -1, "build_sdata");
-        lua_insert  (L, -2);
-        lua_call    (L,  1, 1);
+        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_getfield(lapi::L, -1, "build_sdata");
+        lua_insert  (lapi::L, -2);
+        lua_call    (lapi::L,  1, 1);
 
-        lua_pushfstring(L, "[%f|%f|%f]", o.x, o.y, o.z);
-        lua_setfield   (L, -2, "position");
+        lua_pushfstring(lapi::L, "[%f|%f|%f]", o.x, o.y, o.z);
+        lua_setfield   (lapi::L, -2, "position");
 
-        lua_getglobal(L, "external");
-        lua_getfield (L, -1, "table_serialize");
-        lua_remove   (L, -2); lua_insert(L, -2);
-        lua_call     (L,  1, 1);
-        const char *sd = luaL_optstring(L, -1, "{}");
-        lua_pop(L, 1);
+        lua_getglobal(lapi::L, "external");
+        lua_getfield (lapi::L, -1, "table_serialize");
+        lua_remove   (lapi::L, -2); lua_insert(lapi::L, -2);
+        lua_call     (lapi::L,  1, 1);
+        const char *sd = luaL_optstring(lapi::L, -1, "{}");
+        lua_pop(lapi::L, 1);
 
         EditingSystem::newent(_class, sd);
         // INTENSITY: end Create entity using new system
@@ -1020,22 +1019,20 @@ void intensityentcopy() // INTENSITY
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     intensityCopiedClass = entity->getClass();
 
-    lua_State *L = lapi::state.state();
+    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
+    lua_getfield(lapi::L, -1, "build_sdata");
+    lua_insert  (lapi::L, -2);
+    lua_call    (lapi::L,  1, 1);
 
-    lua_rawgeti (L, LUA_REGISTRYINDEX, entity->lua_ref);
-    lua_getfield(L, -1, "build_sdata");
-    lua_insert  (L, -2);
-    lua_call    (L,  1, 1);
+    lua_pushnil (lapi::L);
+    lua_setfield(lapi::L, -2, "position");
 
-    lua_pushnil (L);
-    lua_setfield(L, -2, "position");
-
-    lua_getglobal(L, "external");
-    lua_getfield (L, -1, "table_serialize");
-    lua_remove   (L, -2); lua_insert(L, -2);
-    lua_call     (L,  1, 1);
-    intensityCopiedStateData = luaL_optstring(L, -1, "{}");
-    lua_pop(L, 1);
+    lua_getglobal(lapi::L, "external");
+    lua_getfield (lapi::L, -1, "table_serialize");
+    lua_remove   (lapi::L, -2); lua_insert(lapi::L, -2);
+    lua_call     (lapi::L,  1, 1);
+    intensityCopiedStateData = luaL_optstring(lapi::L, -1, "{}");
+    lua_pop(lapi::L, 1);
 }
 
 void intensitypasteent() // INTENSITY

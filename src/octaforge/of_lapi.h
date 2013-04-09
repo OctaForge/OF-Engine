@@ -6,6 +6,7 @@
 namespace lapi
 {
     extern lua::State state;
+    extern lua_State *L;
 
     void init        (const char *dir = "data/library/core");
     void reset       ();

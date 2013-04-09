@@ -237,12 +237,11 @@ namespace game
 #ifdef CLIENT
         if (ClientSystem::playerLogicEntity)
         {
-            lua_State *L = lapi::state.state();
-            lua_rawgeti(L, LUA_REGISTRYINDEX,
+            lua_rawgeti(lapi::L, LUA_REGISTRYINDEX,
                 ClientSystem::playerLogicEntity->lua_ref);
-            lua_getfield(L, -1, "initialized");
-            bool b = lua_toboolean(L, -1);
-            lua_pop(L, 2);
+            lua_getfield(lapi::L, -1, "initialized");
+            bool b = lua_toboolean(lapi::L, -1);
+            lua_pop(lapi::L, 2);
             if (b)
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.\r\n",
@@ -323,7 +322,7 @@ namespace game
 #ifdef CLIENT
         bool runWorld = ClientSystem::scenarioStarted();
 #else
-        bool runWorld = (lapi::state.state() != NULL);
+        bool runWorld = (lapi::L != NULL);
 #endif
         //===================
         // Run physics

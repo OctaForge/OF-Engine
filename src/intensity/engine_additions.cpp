@@ -144,12 +144,11 @@ int CLogicEntity::getAnimationFrame()
 
 const char *CLogicEntity::getClass()
 {
-    lua_State *L = lapi::state.state();
-    lua_getglobal(L, "tostring");
-    lua_rawgeti  (L, LUA_REGISTRYINDEX, lua_ref);
-    lua_call     (L, 1, 1);
-    const char *cl = luaL_optstring(L, -1, "unknown");
-    lua_pop(L, 1);
+    lua_getglobal(lapi::L, "tostring");
+    lua_rawgeti  (lapi::L, LUA_REGISTRYINDEX, lua_ref);
+    lua_call     (lapi::L, 1, 1);
+    const char *cl = luaL_optstring(lapi::L, -1, "unknown");
+    lua_pop(lapi::L, 1);
     return cl;
 }
 
@@ -363,7 +362,7 @@ void LogicSystem::clear(bool restart_lua)
     logger::log(logger::DEBUG, "clear()ing LogicSystem\r\n");
     INDENT_LOG(logger::DEBUG);
 
-    if (lapi::state.state())
+    if (lapi::L)
     {
         lapi::state.get<lua::Function>("external", "entities_remove_all")();
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
@@ -389,12 +388,11 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(!logicEntities.access(uniqueId));
     logicEntities.access(uniqueId, newEntity);
 
-    lua_State *L = lapi::state.state();
-    lua_getglobal  (L, "external"); lua_getfield(L, -1, "entity_get");
-    lua_pushinteger(L, uniqueId);
-    lua_call       (L, 1, 1);
-    newEntity->lua_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-    lua_pop(L, 1);
+    lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "entity_get");
+    lua_pushinteger(lapi::L, uniqueId);
+    lua_call       (lapi::L, 1, 1);
+    newEntity->lua_ref = luaL_ref(lapi::L, LUA_REGISTRYINDEX);
+    lua_pop(lapi::L, 1);
     assert(newEntity->lua_ref != LUA_REFNIL);
 
     logger::log(logger::DEBUG, "C registerLogicEntity completes\r\n");
@@ -462,7 +460,7 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
         delete[] ptr->attachments[i].name;
     }
 
-    luaL_unref(lapi::state.state(), LUA_REGISTRYINDEX, ptr->lua_ref);
+    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ptr->lua_ref);
     delete ptr;
 }
 
@@ -471,7 +469,7 @@ void LogicSystem::manageActions(long millis)
     logger::log(logger::INFO, "manageActions: %d\r\n", millis);
     INDENT_LOG(logger::INFO);
 
-    if (lapi::state.state())
+    if (lapi::L)
         lapi::state.get<lua::Function>("external", "frame_handle")(
             double(millis) / 1000.0f, lastmillis
         );
