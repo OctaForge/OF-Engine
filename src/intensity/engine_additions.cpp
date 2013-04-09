@@ -144,10 +144,13 @@ int CLogicEntity::getAnimationFrame()
 
 const char *CLogicEntity::getClass()
 {
-    const char *cl = lapi::state.get<lua::Function>(
-        "tostring"
-    ).call<const char*>(lua_ref);
-    return cl ? cl : "unknown";
+    lua_State *L = lapi::state.state();
+    lua_getglobal(L, "tostring");
+    lua_rawgeti  (L, LUA_REGISTRYINDEX, lua_ref);
+    lua_call     (L, 1, 1);
+    const char *cl = luaL_optstring(L, -1, "unknown");
+    lua_pop(L, 1);
+    return cl;
 }
 
 model* CLogicEntity::getModel()
@@ -386,10 +389,13 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(!logicEntities.access(uniqueId));
     logicEntities.access(uniqueId, newEntity);
 
-    new (&(newEntity->lua_ref)) lua::Table(lapi::state.get<lua::Function>(
-        "external", "entity_get"
-    ).call<lua::Object>(uniqueId));
-    assert(!newEntity->lua_ref.is_nil());
+    lua_State *L = lapi::state.state();
+    lua_getglobal  (L, "external"); lua_getfield(L, -1, "entity_get");
+    lua_pushinteger(L, uniqueId);
+    lua_call       (L, 1, 1);
+    newEntity->lua_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    lua_pop(L, 1);
+    assert(newEntity->lua_ref != LUA_REFNIL);
 
     logger::log(logger::DEBUG, "C registerLogicEntity completes\r\n");
 }
@@ -456,7 +462,7 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
         delete[] ptr->attachments[i].name;
     }
 
-    if (!ptr->lua_ref.is_nil()) ptr->lua_ref.clear();
+    luaL_unref(lapi::state.state(), LUA_REGISTRYINDEX, ptr->lua_ref);
     delete ptr;
 }
 

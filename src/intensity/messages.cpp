@@ -601,6 +601,7 @@ namespace MessageSystem
             EditingSystem::madeChanges = true;
 
         logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)\r\n");
+        printf("VALUE: %s\n", value);
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1012, "riis", uniqueId, keyProtocolId, value);
@@ -977,7 +978,12 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.get_buf());
-        entity->lua_ref.get<lua::Function>("set_sdata_full").call<lua::Object>(entity->lua_ref, stateData);
+        lua_State *L = lapi::state.state();
+        lua_rawgeti (L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_getfield(L, -1, "set_sdata_full");
+        lua_insert  (L, -2);
+        lua_pushstring(L, stateData.get_buf());
+        lua_call(L, 2, 0);
         #ifdef CLIENT
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
@@ -1176,7 +1182,12 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData\r\n");
-        entity->lua_ref.get<lua::Function>("set_sdata_full").call<lua::Object>(entity->lua_ref, stateData);
+        lua_State *L = lapi::state.state();
+        lua_rawgeti (L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_getfield(L, -1, "set_sdata_full");
+        lua_insert  (L, -2);
+        lua_pushstring(L, stateData.get_buf());
+        lua_call(L, 2, 0);
         // Events post-reception
         world::trigger_received_entity();
     }
@@ -1705,13 +1716,29 @@ namespace MessageSystem
 
         if (world::scenario_code.is_empty()) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua::Function click(lapi::state.get<lua::Object>("LAPI", "Input", "Events", "Server", "click"));
-        if (uniqueId != -1)
-        {
+        lua_State *L = lapi::state.state();
+        lua_getglobal(L, "LAPI"); lua_getfield(L, -1, "Input");
+        lua_getfield (L, -1, "Events"); lua_getfield(L, -1, "Server");
+        lua_getfield (L, -1, "click");  lua_insert  (L, -5); lua_pop(L, 4);
+        if (uniqueId != -1) {
             CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
-            if (entity) click(button, down, x, y, z, entity->lua_ref);
+            if (entity) {
+                lua_pushinteger(L, button);
+                lua_pushboolean(L, down);
+                lua_pushnumber (L, x);
+                lua_pushnumber (L, y);
+                lua_pushnumber (L, z);
+                lua_rawgeti    (L, LUA_REGISTRYINDEX, entity->lua_ref);
+                lua_call       (L, 6, 0);
+            } else lua_pop(L, 1);
+        } else {
+            lua_pushinteger(L, button);
+            lua_pushboolean(L, down);
+            lua_pushnumber (L, x);
+            lua_pushnumber (L, y);
+            lua_pushnumber (L, z);
+            lua_call       (L, 5, 0);
         }
-        else click(button, down, x, y, z);
     }
 #endif
 

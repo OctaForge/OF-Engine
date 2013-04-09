@@ -23,7 +23,7 @@ struct CLogicEntity
     bool nonSauer; //!< Whether this is a Sauer (dynamic or static), or a non-Sauer (something non-Sauer related) entity
     int uniqueId; //!< Only used for nonSauer
 
-    lua::Table lua_ref; //!< this is lua reference number for this logic entity
+    int lua_ref; //!< this is lua reference number for this logic entity
 
     //! Used by entities that have their own collision box sizes, i.e., do not use the model's.
     float collisionRadiusWidth;

@@ -921,17 +921,22 @@ void entpaste()
         if (!entity) return;
 
         const char *_class = entity->getClass();
+        lua_State *L = lapi::state.state();
 
-        lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
-            "build_sdata").call<lua::Object>(entity->lua_ref);
+        lua_rawgeti (L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_getfield(L, -1, "build_sdata");
+        lua_insert  (L, -2);
+        lua_call    (L,  1, 1);
 
-        lapi::state.get<lua::Table>("__ccentcopy__TEMP")["position"]
-            = types::String().format("[%f|%f|%f]", o.x, o.y, o.z);
+        lua_pushfstring(L, "[%f|%f|%f]", o.x, o.y, o.z);
+        lua_setfield   (L, -2, "position");
 
-        const char *sd = lapi::state.get<lua::Function>(
-            "external", "table_serialize"
-        ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
-        if (!sd) sd = "{}";
+        lua_getglobal(L, "external");
+        lua_getfield (L, -1, "table_serialize");
+        lua_remove   (L, -2); lua_insert(L, -2);
+        lua_call     (L,  1, 1);
+        const char *sd = luaL_optstring(L, -1, "{}");
+        lua_pop(L, 1);
 
         EditingSystem::newent(_class, sd);
         // INTENSITY: end Create entity using new system
@@ -1015,17 +1020,22 @@ void intensityentcopy() // INTENSITY
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     intensityCopiedClass = entity->getClass();
 
-    lapi::state["__ccentcopy__TEMP"] = entity->lua_ref.get<lua::Function>(
-        "build_sdata").call<lua::Object>(entity->lua_ref);
+    lua_State *L = lapi::state.state();
 
-    lapi::state.get<lua::Table>("__ccentcopy__TEMP")["position"] = lua::nil;
+    lua_rawgeti (L, LUA_REGISTRYINDEX, entity->lua_ref);
+    lua_getfield(L, -1, "build_sdata");
+    lua_insert  (L, -2);
+    lua_call    (L,  1, 1);
 
-    intensityCopiedStateData = lapi::state.get<lua::Function>(
-        "external", "table_serialize"
-    ).call<const char*>(lapi::state["__ccentcopy__TEMP"]);
-    if (!intensityCopiedStateData) intensityCopiedStateData = "{}";
+    lua_pushnil (L);
+    lua_setfield(L, -2, "position");
 
-    lapi::state["__ccentcopy__TEMP"] = lua::nil;
+    lua_getglobal(L, "external");
+    lua_getfield (L, -1, "table_serialize");
+    lua_remove   (L, -2); lua_insert(L, -2);
+    lua_call     (L,  1, 1);
+    intensityCopiedStateData = luaL_optstring(L, -1, "{}");
+    lua_pop(L, 1);
 }
 
 void intensitypasteent() // INTENSITY

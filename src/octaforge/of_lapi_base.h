@@ -620,8 +620,8 @@ namespace lapi_binds
 
     int _lua_editing_getselent(lua_State *L) {
         CLogicEntity *ret = EditingSystem::getSelectedEntity();
-        if (ret && !ret->isNone() && !ret->lua_ref.is_nil())
-            ret->lua_ref.push();
+        if (ret && !ret->isNone() && ret->lua_ref != LUA_REFNIL)
+            lua_rawgeti(L, LUA_REGISTRYINDEX, ret->lua_ref);
         else
             lua_pushnil(L);
         return 1;
@@ -1091,16 +1091,16 @@ namespace lapi_binds
     }
 
     int _lua_statedata_changerequest(lua_State *L) {
-        const char *val = luaL_checkstring(L, 2);
+        const char *val = luaL_optstring(L, 3, "");
         send_StateDataChangeRequest(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), val ? val : "");
+            luaL_checkinteger(L, 2), val);
         return 0;
     }
 
     int _lua_statedata_changerequest_unreliable(lua_State *L) {
-        const char *val = luaL_checkstring(L, 3);
+        const char *val = luaL_optstring(L, 3, "");
         send_UnreliableStateDataChangeRequest(luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2), val ? val : "");
+            luaL_checkinteger(L, 2), val);
         return 0;
     }
 
@@ -1162,7 +1162,7 @@ namespace lapi_binds
 #ifdef CLIENT
     static int oldtp = -1;
 
-    void preparerd(int& anim, CLogicEntity *self) {
+    void preparerd(lua_State *L, int& anim, CLogicEntity *self) {
         if (anim&ANIM_RAGDOLL) {
             //if (!ragdoll || loadmodel(mdl);
             fpsent *fp = (fpsent*)self->dynamicEntity;
@@ -1176,8 +1176,11 @@ namespace lapi_binds
 
             if (fp->ragdoll || !ragdoll) {
                 anim &= ~ANIM_RAGDOLL;
-                self->lua_ref.get<lua::Function>("set_local_animation")
-                    (self->lua_ref, anim);
+                lua_rawgeti    (L, LUA_REGISTRYINDEX, self->lua_ref);
+                lua_getfield   (L, -1, "set_local_animation");
+                lua_insert     (L, -2);
+                lua_pushinteger(L, anim);
+                lua_call       (L,  2, 0);
             }
         } else {
             if (self->dynamicEntity) {
@@ -1191,9 +1194,11 @@ namespace lapi_binds
         }
     }
 
-    fpsent *getproxyfpsent(CLogicEntity *self) {
-        lua::Object h(self->lua_ref["rendering_hash_hint"]);
-        if (!h.is_nil()) {
+    fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
+        lua_rawgeti (L, LUA_REGISTRYINDEX, self->lua_ref);
+        lua_getfield(L, -1, "rendering_hash_hint");
+        lua_remove  (L, -2);
+        if (!lua_isnil(L, -1)) {
             static bool initialized = false;
             static fpsent *fpsentsfr[1024];
             if (!initialized) {
@@ -1201,24 +1206,28 @@ namespace lapi_binds
                 initialized = true;
             }
 
-            int rhashhint = h.to<int>();
+            int rhashhint = lua_tointeger(L, -1);
+            lua_pop(L, 1);
             rhashhint = rhashhint & 1023;
             assert(rhashhint >= 0 && rhashhint < 1024);
             return fpsentsfr[rhashhint];
-        } else return NULL;
+        } else {
+            lua_pop(L, 1);
+            return NULL;
+        }
     }
 
     int _lua_rendermodel(lua_State *L) {
         LAPI_GET_ENTC(entity, "CAPI.rendermodel", return 0)
 
         int anim = luaL_checkinteger(L, 3);
-        preparerd(anim, entity);
+        preparerd(L, anim, entity);
         fpsent *fp = NULL;
 
         if (entity->dynamicEntity)
             fp = (fpsent*)entity->dynamicEntity;
         else
-            fp = getproxyfpsent(entity);
+            fp = getproxyfpsent(L, entity);
 
         rendermodel(luaL_checkstring(L, 2), anim, vec(luaL_checknumber(L, 4),
             luaL_checknumber(L, 5), luaL_checknumber(L, 6)),
@@ -1907,8 +1916,8 @@ namespace lapi_binds
     int _lua_gettargetent(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
         CLogicEntity *target = TargetingControl::targetLogicEntity;
-        if (target && !target->isNone() && !target->lua_ref.is_nil()) {
-            target->lua_ref.push();
+        if (target && !target->isNone() && target->lua_ref != LUA_REFNIL) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, target->lua_ref);
             return 1;
         }
         return 0;

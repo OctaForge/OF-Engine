@@ -237,7 +237,13 @@ namespace game
 #ifdef CLIENT
         if (ClientSystem::playerLogicEntity)
         {
-            if (ClientSystem::playerLogicEntity->lua_ref["initialized"].to<bool>())
+            lua_State *L = lapi::state.state();
+            lua_rawgeti(L, LUA_REGISTRYINDEX,
+                ClientSystem::playerLogicEntity->lua_ref);
+            lua_getfield(L, -1, "initialized");
+            bool b = lua_toboolean(L, -1);
+            lua_pop(L, 2);
+            if (b)
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.\r\n",
                     player1->uniqueId, (void*)player1,

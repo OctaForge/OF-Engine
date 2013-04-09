@@ -42,15 +42,23 @@ void mouse##num##click() { \
     float x = types::get<0>(t); \
     float y = types::get<1>(t); \
 \
-    if (!lapi::state.get<lua::Function>( \
-        "LAPI", "Input", "Events", "Client", "click" \
-    ).call<bool>( \
-        num, down, pos.x, pos.y, pos.z, \
-        ((tle && !tle->isNone()) ? tle->lua_ref : \
-            lapi::state.wrap<lua::Table>(lua::nil) \
-        ), \
-        x, y \
-    )) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
+    lua_State *L = lapi::state.state(); \
+    lua_getglobal(L, "LAPI"); lua_getfield(L, -1, "Input"); \
+    lua_getfield (L, -1, "Events"); lua_getfield(L, -1, "Client"); \
+    lua_getfield (L, -1, "click"); \
+    lua_pushinteger(L, num); lua_pushboolean (L, down); \
+    lua_pushnumber (L, pos.x); lua_pushnumber(L, pos.y); \
+    lua_pushnumber (L, pos.z); \
+    if (tle && !tle->isNone()) { \
+        lua_rawgeti(L, LUA_REGISTRYINDEX, tle->lua_ref); \
+    } else { \
+        lua_pushnil(L); \
+    } \
+    lua_pushnumber(L, x); lua_pushnumber(L, y); \
+    lua_call(L, 8, 1); \
+    bool b = lua_toboolean(L, -1); \
+    lua_pop(L, 5); \
+    if (b) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
 } \
 COMMAND(mouse##num##click, "");
 
@@ -66,7 +74,11 @@ ICOMMAND(name, "", (), { \
     if (ClientSystem::scenarioStarted()) \
     { \
         CLogicEntity *e = ClientSystem::playerLogicEntity; \
-        e->lua_ref.get<lua::Function>("clear_actions")(e->lua_ref); \
+        lua_State *L = lapi::state.state(); \
+        lua_rawgeti (L, LUA_REGISTRYINDEX, e->lua_ref); \
+        lua_getfield(L, -1, "clear_actions"); \
+        lua_insert  (L, -2); \
+        lua_call    (L, 1, 0); \
 \
         s = (addreleaseaction(newstring(#name)) != 0); \
 \
@@ -91,7 +103,11 @@ ICOMMAND(jump, "", (), {
     if (ClientSystem::scenarioStarted())
     {
         CLogicEntity *e = ClientSystem::playerLogicEntity;
-        e->lua_ref.get<lua::Function>("clear_actions")(e->lua_ref);
+        lua_State *L = lapi::state.state();
+        lua_rawgeti (L, LUA_REGISTRYINDEX, e->lua_ref);
+        lua_getfield(L, -1, "clear_actions");
+        lua_insert  (L, -2);
+        lua_call    (L, 1, 0);
 
         bool down = (addreleaseaction(newstring("jump")) != 0);
 
