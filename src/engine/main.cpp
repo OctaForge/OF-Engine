@@ -83,8 +83,12 @@ bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level) 
     {
-        lapi::state.get<lua::Function>("external", "change_add")
-            (desc, type);
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "change_add");
+        lua_remove     (lapi::L, -2);
+        lua_pushstring (lapi::L, desc);
+        lua_pushinteger(lapi::L, type);
+        lua_call       (lapi::L, 2, 0);
         return true;
     }
     return false;
@@ -646,7 +650,11 @@ void setupscreen()
 
 void resetgl()
 {
-    lapi::state.get<lua::Function>("external", "changes_clear")((int)(CHANGE_GFX|CHANGE_SHADERS));
+    lua_getglobal  (lapi::L, "external");
+    lua_getfield   (lapi::L, -1, "changes_clear");
+    lua_remove     (lapi::L, -2);
+    lua_pushinteger(lapi::L, CHANGE_GFX|CHANGE_SHADERS);
+    lua_call       (lapi::L, 1, 0);
     renderbackground("resetting OpenGL");
 
     extern void cleanupva();
@@ -878,8 +886,16 @@ void checkinput()
                     int dx = event.motion.xrel, dy = event.motion.yrel;
                     checkmousemotion(dx, dy);
 
-                    bool b1 = lapi::state.get<lua::Function>("external", "cursor_move").call<bool>(dx, dy);
-                    bool b2 = lapi::state.get<lua::Function>("external", "cursor_exists").call<bool>();
+                    lua_getglobal  (lapi::L, "external");
+                    lua_getfield   (lapi::L, -1, "cursor_move");
+                    lua_pushinteger(lapi::L, dx);
+                    lua_pushinteger(lapi::L, dy);
+                    lua_call       (lapi::L, 2, 1);
+                    bool b1 = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 1);
+                    lua_getfield   (lapi::L, -1, "cursor_exists");
+                    lua_remove     (lapi::L, -2);
+                    lua_call       (lapi::L, 0, 1);
+                    bool b2 = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 1);
 
                     if(!b1 && !b2)
                         mousemove(dx, dy);
@@ -1238,10 +1254,9 @@ int main(int argc, char **argv)
     execfile("data/cfg/keymap.cfg");
     execfile("data/cfg/stdedit.cfg");
     execfile("data/cfg/sounds.cfg");
-    types::Tuple<int, const char*> err;
-    err = lapi::state.do_file("data/cfg/menus.lua" , lua::ERROR_TRACEBACK);
-    if (types::get<0>(err))
-        logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+    if (luaL_loadfile(lapi::L, "data/cfg/menus.lua") || lua_pcall(lapi::L, 0, 0, 0)) {
+        fatal("%s", lua_tostring(lapi::L, -1));
+    }
     execfile("data/cfg/brush.cfg");
     execfile("mybrushes.cfg");
     if (game::savedservers()) execfile(game::savedservers(), false);
@@ -1314,7 +1329,10 @@ int main(int argc, char **argv)
         updatetime();
  
         checkinput();
-        lapi::state.get<lua::Function>("external", "frame_start")();
+        lua_getglobal(lapi::L, "external");
+        lua_getfield (lapi::L, -1, "frame_start");
+        lua_remove   (lapi::L, -2);
+        lua_call     (lapi::L, 0, 0);
         tryedit();
 
         if(lastmillis) game::updateworld();
