@@ -331,10 +331,11 @@ struct hline
     void run()
     {
         if (flags&CF_EXECUTE && buf[0] == '/') {
-            types::Tuple<int, const char*> err;
             if (buf[1] == '/') {
-                types::Tuple<int, const char*> err = lapi::state.do_string(buf + 2);
-                if (types::get<0>(err)) logger::log(logger::ERROR, "%s\n", types::get<1>(err));
+                if (luaL_loadstring(lapi::L, buf + 2) || lua_pcall(lapi::L, 0, 0, 0)) {
+                    logger::log(logger::ERROR, "%s\n", lua_tostring(lapi::L, -1));
+                    lua_pop(lapi::L, 1);
+                }
             } else {
                 execute(buf+1);
             }

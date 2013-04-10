@@ -551,8 +551,7 @@ bool setuplistenserver(bool dedicated)
 
 void initserver(bool listen, bool dedicated)
 {
-    if (dedicated)
-        lapi::state.do_file("server-init.lua");
+    if (dedicated) execfile("server-init.cfg", false);
 
     if(listen) setuplistenserver(dedicated);
 
