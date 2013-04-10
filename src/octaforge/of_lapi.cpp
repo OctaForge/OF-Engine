@@ -47,14 +47,13 @@ extern string homedir;
 
 namespace lapi
 {
-    lua::State state;
     lua_State *L = NULL;
     types::String mod_dir;
     bool initialized;
 
-    void panic(const lua::State& s, const char *msg)
-    {
-        logger::log(logger::ERROR, "OF::Lua: %s\n", msg);
+    static int panic(lua_State *L) {
+        fatal("error in call to the Lua API (%s)", lua_tostring(L, -1));
+        return 0;
     }
 
     void setup_binds();
@@ -71,8 +70,8 @@ namespace lapi
 
         mod_dir = dir;
 
-        state.set_panic_handler(&panic);
-        L = state.state();
+        L = luaL_newstate();
+        lua_atpanic(L, panic);
 
         #define MODOPEN(name) \
             lua_pushcfunction(L, luaopen_##name); \
