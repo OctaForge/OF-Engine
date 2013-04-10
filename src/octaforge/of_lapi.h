@@ -1,8 +1,6 @@
 #ifndef OF_LAPI_H
 #define OF_LAPI_H
 
-#include "OFTL/lua.h"
-
 namespace lapi
 {
     extern lua_State *L;

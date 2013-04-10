@@ -42,13 +42,16 @@
 #include "OFTL/algorithm.h"
 #include "OFTL/functional.h"
 #include "OFTL/string.h"
-#include "OFTL/hashmap.h"
 #include "OFTL/map.h"
 #include "OFTL/vector.h"
 #include "OFTL/shared_ptr.h"
-#include "OFTL/random.h"
 #include "OFTL/filesystem.h"
-#include "OFTL/lua.h"
+
+extern "C" {
+    #include "lua.h"
+    #include "lualib.h"
+    #include "lauxlib.h"
+}
 
 using algorithm::min;
 using algorithm::max;
