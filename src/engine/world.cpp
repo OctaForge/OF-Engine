@@ -922,20 +922,20 @@ void entpaste()
 
         const char *_class = entity->getClass();
 
-        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_getfield(lapi::L, -1, "build_sdata");
-        lua_insert  (lapi::L, -2);
-        lua_call    (lapi::L,  1, 1);
+        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_getfield(lua::L, -1, "build_sdata");
+        lua_insert  (lua::L, -2);
+        lua_call    (lua::L,  1, 1);
 
-        lua_pushfstring(lapi::L, "[%f|%f|%f]", o.x, o.y, o.z);
-        lua_setfield   (lapi::L, -2, "position");
+        lua_pushfstring(lua::L, "[%f|%f|%f]", o.x, o.y, o.z);
+        lua_setfield   (lua::L, -2, "position");
 
-        lua_getglobal(lapi::L, "external");
-        lua_getfield (lapi::L, -1, "table_serialize");
-        lua_remove   (lapi::L, -2); lua_insert(lapi::L, -2);
-        lua_call     (lapi::L,  1, 1);
-        const char *sd = luaL_optstring(lapi::L, -1, "{}");
-        lua_pop(lapi::L, 1);
+        lua_getglobal(lua::L, "external");
+        lua_getfield (lua::L, -1, "table_serialize");
+        lua_remove   (lua::L, -2); lua_insert(lua::L, -2);
+        lua_call     (lua::L,  1, 1);
+        const char *sd = luaL_optstring(lua::L, -1, "{}");
+        lua_pop(lua::L, 1);
 
         EditingSystem::newent(_class, sd);
         // INTENSITY: end Create entity using new system
@@ -1019,20 +1019,20 @@ void intensityentcopy() // INTENSITY
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
     intensityCopiedClass = entity->getClass();
 
-    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
-    lua_getfield(lapi::L, -1, "build_sdata");
-    lua_insert  (lapi::L, -2);
-    lua_call    (lapi::L,  1, 1);
+    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+    lua_getfield(lua::L, -1, "build_sdata");
+    lua_insert  (lua::L, -2);
+    lua_call    (lua::L,  1, 1);
 
-    lua_pushnil (lapi::L);
-    lua_setfield(lapi::L, -2, "position");
+    lua_pushnil (lua::L);
+    lua_setfield(lua::L, -2, "position");
 
-    lua_getglobal(lapi::L, "external");
-    lua_getfield (lapi::L, -1, "table_serialize");
-    lua_remove   (lapi::L, -2); lua_insert(lapi::L, -2);
-    lua_call     (lapi::L,  1, 1);
-    intensityCopiedStateData = luaL_optstring(lapi::L, -1, "{}");
-    lua_pop(lapi::L, 1);
+    lua_getglobal(lua::L, "external");
+    lua_getfield (lua::L, -1, "table_serialize");
+    lua_remove   (lua::L, -2); lua_insert(lua::L, -2);
+    lua_call     (lua::L,  1, 1);
+    intensityCopiedStateData = luaL_optstring(lua::L, -1, "{}");
+    lua_pop(lua::L, 1);
 }
 
 void intensitypasteent() // INTENSITY
@@ -1202,10 +1202,10 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
 #ifdef CLIENT
-    lua_getglobal  (lapi::L, "external");
-    lua_getfield   (lapi::L, -1, "gui_clear");
-    lua_remove     (lapi::L, -2);
-    lua_call       (lapi::L, 0, 0);
+    lua_getglobal  (lua::L, "external");
+    lua_getfield   (lua::L, -1, "gui_clear");
+    lua_remove     (lua::L, -2);
+    lua_call       (lua::L, 0, 0);
 #endif
 
     if (usecfg)
@@ -1311,17 +1311,17 @@ COMMAND(mapname, "");
 void finish_dragging() {
     groupeditpure(
         const vec& o = e.o;
-        lua_getglobal  (lapi::L, "external");
-        lua_getfield   (lapi::L, -1, "entity_get");
-        lua_pushinteger(lapi::L, LogicSystem::getUniqueId(&e));
-        lua_call       (lapi::L, 1, 1);
-        lua_getfield   (lapi::L, -2, "new_vec3");
-        lua_pushnumber (lapi::L, o.x);
-        lua_pushnumber (lapi::L, o.y);
-        lua_pushnumber (lapi::L, o.z);
-        lua_call       (lapi::L, 3, 1);
-        lua_setfield   (lapi::L, -2, "position");
-        lua_pop        (lapi::L, 2);
+        lua_getglobal  (lua::L, "external");
+        lua_getfield   (lua::L, -1, "entity_get");
+        lua_pushinteger(lua::L, LogicSystem::getUniqueId(&e));
+        lua_call       (lua::L, 1, 1);
+        lua_getfield   (lua::L, -2, "new_vec3");
+        lua_pushnumber (lua::L, o.x);
+        lua_pushnumber (lua::L, o.y);
+        lua_pushnumber (lua::L, o.z);
+        lua_call       (lua::L, 3, 1);
+        lua_setfield   (lua::L, -2, "position");
+        lua_pop        (lua::L, 2);
     );
 }
 

@@ -296,11 +296,11 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         odc = dimcoord(orient);
 
     #ifdef CLIENT
-        lua_getglobal  (lapi::L, "external");
-        lua_getfield   (lapi::L, -1, "cursor_exists");
-        lua_remove     (lapi::L, -2);
-        lua_call       (lapi::L, 0, 1);
-        bool b = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 1);
+        lua_getglobal  (lua::L, "external");
+        lua_getfield   (lua::L, -1, "cursor_exists");
+        lua_remove     (lua::L, -2);
+        lua_call       (lua::L, 0, 1);
+        bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
         bool hidecursor = b || blendpaintmode;
     #else
         bool hidecursor = false;

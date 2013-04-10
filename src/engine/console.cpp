@@ -332,9 +332,9 @@ struct hline
     {
         if (flags&CF_EXECUTE && buf[0] == '/') {
             if (buf[1] == '/') {
-                if (luaL_loadstring(lapi::L, buf + 2) || lua_pcall(lapi::L, 0, 0, 0)) {
-                    logger::log(logger::ERROR, "%s\n", lua_tostring(lapi::L, -1));
-                    lua_pop(lapi::L, 1);
+                if (luaL_loadstring(lua::L, buf + 2) || lua_pcall(lua::L, 0, 0, 0)) {
+                    logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
+                    lua_pop(lua::L, 1);
                 }
             } else {
                 execute(buf+1);
@@ -549,13 +549,13 @@ bool consolekey(int code, bool isdown)
 
 void processtextinput(const char *str, int len)
 {
-    lua_getglobal  (lapi::L, "external");
-    lua_getfield   (lapi::L, -1, "input_text");
-    lua_remove     (lapi::L, -2);
-    lua_pushlstring(lapi::L, str, len);
-    lua_call(lapi::L, 1, 1);
-    bool b = lua_toboolean(lapi::L, -1);
-    lua_pop(lapi::L, 1);
+    lua_getglobal  (lua::L, "external");
+    lua_getfield   (lua::L, -1, "input_text");
+    lua_remove     (lua::L, -2);
+    lua_pushlstring(lua::L, str, len);
+    lua_call(lua::L, 1, 1);
+    bool b = lua_toboolean(lua::L, -1);
+    lua_pop(lua::L, 1);
     if(!b) consoleinput(str, len);
 }
 
@@ -565,13 +565,13 @@ void processkey(int code, bool isdown)
     if(haskey && haskey->pressed) {
         execbind(*haskey, isdown); // allow pressed keys to release
     } else {
-        lua_getglobal  (lapi::L, "external");
-        lua_getfield   (lapi::L, -1, "input_keypress");
-        lua_remove     (lapi::L, -2);
-        lua_pushinteger(lapi::L, code);
-        lua_pushboolean(lapi::L, isdown);
-        lua_call       (lapi::L, 2, 1);
-        bool b = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 1);
+        lua_getglobal  (lua::L, "external");
+        lua_getfield   (lua::L, -1, "input_keypress");
+        lua_remove     (lua::L, -2);
+        lua_pushinteger(lua::L, code);
+        lua_pushboolean(lua::L, isdown);
+        lua_call       (lua::L, 2, 1);
+        bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
 
         if (!b) { // gui mouse button intercept
             if(!consolekey(code, isdown))

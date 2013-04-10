@@ -120,17 +120,17 @@ float CLogicEntity::getRadius()
 
 void CLogicEntity::setOrigin(vec &newOrigin)
 {
-    lua_getglobal  (lapi::L, "external");
-    lua_getfield   (lapi::L, -1, "entity_get");
-    lua_pushinteger(lapi::L, getUniqueId());
-    lua_call       (lapi::L, 1, 1);
+    lua_getglobal  (lua::L, "external");
+    lua_getfield   (lua::L, -1, "entity_get");
+    lua_pushinteger(lua::L, getUniqueId());
+    lua_call       (lua::L, 1, 1);
 
-    lua_createtable(lapi::L, 3, 0);
-    lua_pushnumber (lapi::L, newOrigin.x); lua_rawseti(lapi::L, -2, 1);
-    lua_pushnumber (lapi::L, newOrigin.y); lua_rawseti(lapi::L, -2, 2);
-    lua_pushnumber (lapi::L, newOrigin.z); lua_rawseti(lapi::L, -2, 3);
-    lua_setfield   (lapi::L, -2, "position");
-    lua_pop        (lapi::L,  2);
+    lua_createtable(lua::L, 3, 0);
+    lua_pushnumber (lua::L, newOrigin.x); lua_rawseti(lua::L, -2, 1);
+    lua_pushnumber (lua::L, newOrigin.y); lua_rawseti(lua::L, -2, 2);
+    lua_pushnumber (lua::L, newOrigin.z); lua_rawseti(lua::L, -2, 3);
+    lua_setfield   (lua::L, -2, "position");
+    lua_pop        (lua::L,  2);
 }
 
 int CLogicEntity::getAnimation()
@@ -150,11 +150,11 @@ int CLogicEntity::getAnimationFrame()
 
 const char *CLogicEntity::getClass()
 {
-    lua_getglobal(lapi::L, "tostring");
-    lua_rawgeti  (lapi::L, LUA_REGISTRYINDEX, lua_ref);
-    lua_call     (lapi::L, 1, 1);
-    const char *cl = luaL_optstring(lapi::L, -1, "unknown");
-    lua_pop(lapi::L, 1);
+    lua_getglobal(lua::L, "tostring");
+    lua_rawgeti  (lua::L, LUA_REGISTRYINDEX, lua_ref);
+    lua_call     (lua::L, 1, 1);
+    const char *cl = luaL_optstring(lua::L, -1, "unknown");
+    lua_pop(lua::L, 1);
     return cl;
 }
 
@@ -368,14 +368,14 @@ void LogicSystem::clear(bool restart_lua)
     logger::log(logger::DEBUG, "clear()ing LogicSystem\r\n");
     INDENT_LOG(logger::DEBUG);
 
-    if (lapi::L)
+    if (lua::L)
     {
-        lua_getglobal(lapi::L, "external");
-        lua_getfield (lapi::L, -1, "entities_remove_all");
-        lua_call     (lapi::L,  0, 0); lua_pop(lapi::L, 1);
+        lua_getglobal(lua::L, "external");
+        lua_getfield (lua::L, -1, "entities_remove_all");
+        lua_call     (lua::L,  0, 0); lua_pop(lua::L, 1);
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
-        if (restart_lua) lapi::reset();
+        if (restart_lua) lua::reset();
     }
 
     LogicSystem::initialized = false;
@@ -383,7 +383,7 @@ void LogicSystem::clear(bool restart_lua)
 
 void LogicSystem::init()
 {
-    lapi::init();
+    lua::init();
     LogicSystem::initialized = true;
 }
 
@@ -396,11 +396,11 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(!logicEntities.access(uniqueId));
     logicEntities.access(uniqueId, newEntity);
 
-    lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "entity_get");
-    lua_pushinteger(lapi::L, uniqueId);
-    lua_call       (lapi::L, 1, 1);
-    newEntity->lua_ref = luaL_ref(lapi::L, LUA_REGISTRYINDEX);
-    lua_pop(lapi::L, 1);
+    lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "entity_get");
+    lua_pushinteger(lua::L, uniqueId);
+    lua_call       (lua::L, 1, 1);
+    newEntity->lua_ref = luaL_ref(lua::L, LUA_REGISTRYINDEX);
+    lua_pop(lua::L, 1);
     assert(newEntity->lua_ref != LUA_REFNIL);
 
     logger::log(logger::DEBUG, "C registerLogicEntity completes\r\n");
@@ -468,7 +468,7 @@ void LogicSystem::unregisterLogicEntityByUniqueId(int uniqueId)
         delete[] ptr->attachments[i].name;
     }
 
-    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ptr->lua_ref);
+    luaL_unref(lua::L, LUA_REGISTRYINDEX, ptr->lua_ref);
     delete ptr;
 }
 
@@ -477,12 +477,12 @@ void LogicSystem::manageActions(long millis)
     logger::log(logger::INFO, "manageActions: %d\r\n", millis);
     INDENT_LOG(logger::INFO);
 
-    if (lapi::L) {
-        lua_getglobal  (lapi::L, "external");
-        lua_getfield   (lapi::L, -1, "frame_handle");
-        lua_pushnumber (lapi::L, double(millis) / 1000.0f);
-        lua_pushinteger(lapi::L, lastmillis);
-        lua_call       (lapi::L,  2, 0); lua_pop(lapi::L, 1);
+    if (lua::L) {
+        lua_getglobal  (lua::L, "external");
+        lua_getfield   (lua::L, -1, "frame_handle");
+        lua_pushnumber (lua::L, double(millis) / 1000.0f);
+        lua_pushinteger(lua::L, lastmillis);
+        lua_call       (lua::L,  2, 0); lua_pop(lua::L, 1);
     }
 
     logger::log(logger::INFO, "manageActions complete\r\n");
@@ -552,10 +552,10 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
 
 void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5)
 {
-    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lapi::L, -1, "uid");
-    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
-    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lua::L, -1, "uid");
+    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
+    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
     logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d,%d\r\n", uid, type, x, y, z, attr1, attr2, attr3, attr4, attr5);
     INDENT_LOG(logger::DEBUG);
 
@@ -586,30 +586,30 @@ void LogicSystem::setupCharacter(int ref)
 //        assert(0); // until we figure this out
 //    #endif
 
-    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lapi::L, -1, "uid");
-    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 1);
+    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lua::L, -1, "uid");
+    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
 
     logger::log(logger::DEBUG, "setupCharacter: %d\r\n", uid);
     INDENT_LOG(logger::DEBUG);
 
     fpsent* fpsEntity;
 
-    lua_getfield(lapi::L, -1, "cn");
-    int cn = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 1);
+    lua_getfield(lua::L, -1, "cn");
+    int cn = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
     logger::log(logger::DEBUG, "(a) cn: %d\r\n", cn);
 
     #ifdef CLIENT
         logger::log(logger::DEBUG, "client numbers: %d, %d\r\n", ClientSystem::playerNumber, cn);
 
         if (uid == ClientSystem::uniqueId) {
-            lua_pushinteger(lapi::L, ClientSystem::playerNumber);
-            lua_setfield   (lapi::L, -2, "cn");
+            lua_pushinteger(lua::L, ClientSystem::playerNumber);
+            lua_setfield   (lua::L, -2, "cn");
         }
     #endif
 
-    lua_pop(lapi::L, 1); // pop the entity
-    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_pop(lua::L, 1); // pop the entity
+    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
 
     logger::log(logger::DEBUG, "(b) cn: %d\r\n", cn);
 
@@ -646,10 +646,10 @@ void LogicSystem::setupCharacter(int ref)
 
 void LogicSystem::setupNonSauer(int ref)
 {
-    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lapi::L, -1, "uid");
-    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
-    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lua::L, -1, "uid");
+    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
+    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
 
     logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uid);
     INDENT_LOG(logger::DEBUG);
@@ -659,10 +659,10 @@ void LogicSystem::setupNonSauer(int ref)
 
 void LogicSystem::dismantleExtent(int ref)
 {
-    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lapi::L, -1, "uid");
-    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
-    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lua::L, -1, "uid");
+    int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
+    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
 
     logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uid);
 
@@ -679,10 +679,10 @@ void LogicSystem::dismantleExtent(int ref)
 
 void LogicSystem::dismantleCharacter(int ref)
 {
-    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
-    lua_getfield(lapi::L, -1, "cn");
-    int cn = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
-    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lua::L, -1, "cn");
+    int cn = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
+    luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
 
     #ifdef CLIENT
     if (cn == ClientSystem::playerNumber)

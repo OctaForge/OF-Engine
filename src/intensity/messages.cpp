@@ -88,11 +88,11 @@ namespace MessageSystem
         types::String content;
         getstring(content, p);
 
-        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "GUI");
-        lua_getfield (lapi::L, -1, "show_message"); lua_insert(lapi::L, -3); lua_pop(lapi::L, 2);
-        lua_pushlstring(lapi::L, title.get_buf(), title.length());
-        lua_pushlstring(lapi::L, content.get_buf(), content.length());
-        lua_call(lapi::L, 2, 0);
+        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "GUI");
+        lua_getfield (lua::L, -1, "show_message"); lua_insert(lua::L, -3); lua_pop(lua::L, 2);
+        lua_pushlstring(lua::L, title.get_buf(), title.length());
+        lua_pushlstring(lua::L, content.get_buf(), content.length());
+        lua_call(lua::L, 2, 0);
     }
 #endif
 
@@ -229,7 +229,7 @@ namespace MessageSystem
 
                  // If logged in OK, this is the time to create a lua logic entity for the client. Also adds to internal FPSClient
         if (success) if (server::createluaEntity(clientNumber)) {
-            lua_pop(lapi::L, 1);
+            lua_pop(lua::L, 1);
         }
 
 
@@ -345,11 +345,11 @@ namespace MessageSystem
         types::String scenarioCode;
         getstring(scenarioCode, p);
 
-        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "GUI");
-        lua_getfield (lapi::L, -1, "show_message"); lua_insert(lapi::L, -3); lua_pop(lapi::L, 2);
-        lua_pushliteral(lapi::L, "Server");
-        lua_pushliteral(lapi::L, "Map being prepared on the server, please wait ..");
-        lua_call(lapi::L, 2, 0);
+        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "GUI");
+        lua_getfield (lua::L, -1, "show_message"); lua_insert(lua::L, -3); lua_pop(lua::L, 2);
+        lua_pushliteral(lua::L, "Server");
+        lua_pushliteral(lua::L, "Map being prepared on the server, please wait ..");
+        lua_call(lua::L, 2, 0);
         ClientSystem::prepareForNewScenario(scenarioCode);
     }
 #endif
@@ -496,40 +496,40 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        lua_getglobal(lapi::L, "external");
-        lua_getfield(lapi::L, -1, "entity_class_get");
-        lua_pushlstring(lapi::L, _class.get_buf(), _class.length());
-        lua_call(lapi::L, 1, 1);
-        if (lua_isnil(lapi::L, -1)) {
-            lua_pop(lapi::L, 1);
+        lua_getglobal(lua::L, "external");
+        lua_getfield(lua::L, -1, "entity_class_get");
+        lua_pushlstring(lua::L, _class.get_buf(), _class.length());
+        lua_call(lua::L, 1, 1);
+        if (lua_isnil(lua::L, -1)) {
+            lua_pop(lua::L, 1);
             return;
         }
-        lua_pop(lapi::L, 1);
+        lua_pop(lua::L, 1);
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.get_buf(), x, y, z, stateData.get_buf());
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua_getfield(lapi::L, -1, "entity_class_sauer_type_get");
-        lua_pushlstring(lapi::L, _class.get_buf(), _class.length());
-        lua_call(lapi::L, 1, 1);
-        const char *sauerType = lua_tostring(lapi::L, -1);
-        lua_pop(lapi::L, 1);
+        lua_getfield(lua::L, -1, "entity_class_sauer_type_get");
+        lua_pushlstring(lua::L, _class.get_buf(), _class.length());
+        lua_call(lua::L, 1, 1);
+        const char *sauerType = lua_tostring(lua::L, -1);
+        lua_pop(lua::L, 1);
         logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
-        lua_getfield(lapi::L, -1, "entity_new");
-        lua_remove(lapi::L, -2);
-        lua_pushlstring(lapi::L, _class.get_buf(), _class.length()); // first arg
-        lua_createtable(lapi::L, 0, 2); // second arg
-        lua_createtable(lapi::L, 0, 3);
-        lua_pushnumber(lapi::L, x); lua_setfield(lapi::L, -2, "x");
-        lua_pushnumber(lapi::L, y); lua_setfield(lapi::L, -2, "y");
-        lua_pushnumber(lapi::L, z); lua_setfield(lapi::L, -2, "z");
-        lua_setfield(lapi::L, -2, "position");
-        lua_pushlstring(lapi::L, stateData.get_buf(), stateData.length());
-        lua_setfield(lapi::L, -2, "state_data");
-        lua_call(lapi::L, 2, 1);
-        lua_getfield(lapi::L, -1, "uid");
-        int newuid = lua_tointeger(lapi::L, -1);
-        lua_pop(lapi::L, 2);
+        lua_getfield(lua::L, -1, "entity_new");
+        lua_remove(lua::L, -2);
+        lua_pushlstring(lua::L, _class.get_buf(), _class.length()); // first arg
+        lua_createtable(lua::L, 0, 2); // second arg
+        lua_createtable(lua::L, 0, 3);
+        lua_pushnumber(lua::L, x); lua_setfield(lua::L, -2, "x");
+        lua_pushnumber(lua::L, y); lua_setfield(lua::L, -2, "y");
+        lua_pushnumber(lua::L, z); lua_setfield(lua::L, -2, "z");
+        lua_setfield(lua::L, -2, "position");
+        lua_pushlstring(lua::L, stateData.get_buf(), stateData.length());
+        lua_setfield(lua::L, -2, "state_data");
+        lua_call(lua::L, 2, 1);
+        lua_getfield(lua::L, -1, "uid");
+        int newuid = lua_tointeger(lua::L, -1);
+        lua_pop(lua::L, 2);
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
                                       newuid, _class.get_buf(), x, y, z);
     }
@@ -609,12 +609,12 @@ namespace MessageSystem
                 if (!LogicSystem::initialized) \
                     return; \
                 \
-                lua_getglobal  (lapi::L, "external"); \
-                lua_getfield   (lapi::L, -1, "entity_set_sdata"); \
-                lua_pushinteger(lapi::L, uniqueId); \
-                lua_pushinteger(lapi::L, keyProtocolId); \
-                lua_pushstring (lapi::L, value.get_buf()); \
-                lua_call       (lapi::L, 3, 0); lua_pop(lapi::L, 1);
+                lua_getglobal  (lua::L, "external"); \
+                lua_getfield   (lua::L, -1, "entity_set_sdata"); \
+                lua_pushinteger(lua::L, uniqueId); \
+                lua_pushinteger(lua::L, keyProtocolId); \
+                lua_pushstring (lua::L, value.get_buf()); \
+                lua_call       (lua::L, 3, 0); lua_pop(lua::L, 1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -657,13 +657,13 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        lua_getglobal  (lapi::L, "external"); \
-        lua_getfield   (lapi::L, -1, "entity_set_sdata"); \
-        lua_pushinteger(lapi::L, uniqueId); \
-        lua_pushinteger(lapi::L, keyProtocolId); \
-        lua_pushstring (lapi::L, value.get_buf()); \
-        lua_pushinteger(lapi::L, actorUniqueId); \
-        lua_call       (lapi::L,  4, 0); lua_pop(lapi::L, 1);
+        lua_getglobal  (lua::L, "external"); \
+        lua_getfield   (lua::L, -1, "entity_set_sdata"); \
+        lua_pushinteger(lua::L, uniqueId); \
+        lua_pushinteger(lua::L, keyProtocolId); \
+        lua_pushstring (lua::L, value.get_buf()); \
+        lua_pushinteger(lua::L, actorUniqueId); \
+        lua_call       (lua::L,  4, 0); lua_pop(lua::L, 1);
         STATE_DATA_REQUEST
     }
 #endif
@@ -900,21 +900,21 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            lua_getglobal  (lapi::L, "external");
-            lua_getfield   (lapi::L, -1, "entities_send_all");
-            lua_pushinteger(lapi::L, sender);
-            lua_call       (lapi::L,  1, 0);
+            lua_getglobal  (lua::L, "external");
+            lua_getfield   (lua::L, -1, "entities_send_all");
+            lua_pushinteger(lua::L, sender);
+            lua_call       (lua::L,  1, 0);
 
             MessageSystem::send_AllActiveEntitiesSent(sender);
-            lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "World");
-            lua_getfield (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Server");
-            lua_getfield (lapi::L, -1, "player_login");
+            lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "World");
+            lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Server");
+            lua_getfield (lua::L, -1, "player_login");
 
-            lua_getfield   (lapi::L, -6, "entity_get"); // external
-            lua_pushinteger(lapi::L, server::getUniqueId(sender));
-            lua_call       (lapi::L, 1, 1); // entity_get
-            lua_call       (lapi::L, 1, 0); // player_login
-            lua_pop        (lapi::L, 5); // external, LAPI, World, Events, Server
+            lua_getfield   (lua::L, -6, "entity_get"); // external
+            lua_pushinteger(lua::L, server::getUniqueId(sender));
+            lua_call       (lua::L, 1, 1); // entity_get
+            lua_call       (lua::L, 1, 0); // player_login
+            lua_pop        (lua::L, 5); // external, LAPI, World, Events, Server
         #else // CLIENT
             // Send just enough info for the player's LE
             send_LogicEntityCompleteNotification( sender,
@@ -997,11 +997,11 @@ namespace MessageSystem
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            lua_getglobal  (lapi::L, "external");
-            lua_getfield   (lapi::L, -1, "entity_add");
-            lua_pushstring (lapi::L, otherClass.get_buf());
-            lua_pushinteger(lapi::L, otherUniqueId);
-            lua_createtable(lapi::L, 0, 0);
+            lua_getglobal  (lua::L, "external");
+            lua_getfield   (lua::L, -1, "entity_add");
+            lua_pushstring (lua::L, otherClass.get_buf());
+            lua_pushinteger(lua::L, otherUniqueId);
+            lua_createtable(lua::L, 0, 0);
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
             {
                 #ifdef CLIENT
@@ -1013,10 +1013,10 @@ namespace MessageSystem
                         assert(otherClientNumber == ClientSystem::playerNumber);
                     }
                 #endif
-                lua_pushinteger(lapi::L, otherClientNumber);
-                lua_setfield   (lapi::L, -2, "cn");
+                lua_pushinteger(lua::L, otherClientNumber);
+                lua_setfield   (lua::L, -2, "cn");
             }
-            lua_call(lapi::L, 3, 0); lua_pop(lapi::L, 1); // external
+            lua_call(lua::L, 3, 0); lua_pop(lua::L, 1); // external
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
@@ -1029,11 +1029,11 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.get_buf());
-        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_getfield(lapi::L, -1, "set_sdata_full");
-        lua_insert  (lapi::L, -2);
-        lua_pushstring(lapi::L, stateData.get_buf());
-        lua_call(lapi::L, 2, 0);
+        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_getfield(lua::L, -1, "set_sdata_full");
+        lua_insert  (lua::L, -2);
+        lua_pushstring(lua::L, stateData.get_buf());
+        lua_call(lua::L, 2, 0);
         #ifdef CLIENT
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
             if (otherUniqueId == ClientSystem::uniqueId)
@@ -1042,9 +1042,9 @@ namespace MessageSystem
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
-                lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "player_init");
-                lua_pushinteger(lapi::L, ClientSystem::uniqueId);
-                lua_call       (lapi::L, 1, 0); lua_pop(lapi::L, 1);
+                lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "player_init");
+                lua_pushinteger(lua::L, ClientSystem::uniqueId);
+                lua_call       (lua::L, 1, 0); lua_pop(lua::L, 1);
             }
         #endif
         // Events post-reception
@@ -1078,9 +1078,9 @@ namespace MessageSystem
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "entity_remove");
-        lua_pushinteger(lapi::L, uniqueId);
-        lua_call       (lapi::L, 1, 0); lua_pop(lapi::L, 1);
+        lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "entity_remove");
+        lua_pushinteger(lua::L, uniqueId);
+        lua_call       (lua::L, 1, 0); lua_pop(lua::L, 1);
     }
 #endif
 
@@ -1140,9 +1140,9 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "entity_remove");
-        lua_pushinteger(lapi::L, uniqueId);
-        lua_call       (lapi::L, 1, 0); lua_pop(lapi::L, 1);
+        lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "entity_remove");
+        lua_pushinteger(lua::L, uniqueId);
+        lua_call       (lua::L, 1, 0); lua_pop(lua::L, 1);
     }
 #endif
 
@@ -1223,27 +1223,27 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            lua_getglobal  (lapi::L, "external");
-            lua_getfield   (lapi::L, -1, "entity_class_sauer_type_get");
-            lua_pushlstring(lapi::L, otherClass.get_buf(), otherClass.length());
-            lua_call       (lapi::L, 1, 1);
-            const char *sauerType = lua_tostring(lapi::L, -1); lua_pop(lapi::L, 1);
+            lua_getglobal  (lua::L, "external");
+            lua_getfield   (lua::L, -1, "entity_class_sauer_type_get");
+            lua_pushlstring(lua::L, otherClass.get_buf(), otherClass.length());
+            lua_call       (lua::L, 1, 1);
+            const char *sauerType = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
 
-            lua_getfield   (lapi::L, -1, "entity_add"); lua_remove(lapi::L, -2);
-            lua_pushlstring(lapi::L, otherClass.get_buf(), otherClass.length());
-            lua_pushinteger(lapi::L, otherUniqueId);
-            lua_createtable(lapi::L, 0, 9);
-            lua_pushinteger(lapi::L, findtype((char*)sauerType));
-            lua_setfield   (lapi::L, -2, "_type");
-            lua_pushnumber (lapi::L, x); lua_setfield(lapi::L, -2, "x");
-            lua_pushnumber (lapi::L, y); lua_setfield(lapi::L, -2, "y");
-            lua_pushnumber (lapi::L, z); lua_setfield(lapi::L, -2, "z");
-            lua_pushinteger(lapi::L, attr1); lua_setfield(lapi::L, -2, "attr1");
-            lua_pushinteger(lapi::L, attr2); lua_setfield(lapi::L, -2, "attr2");
-            lua_pushinteger(lapi::L, attr3); lua_setfield(lapi::L, -2, "attr3");
-            lua_pushinteger(lapi::L, attr4); lua_setfield(lapi::L, -2, "attr4");
-            lua_pushinteger(lapi::L, attr5); lua_setfield(lapi::L, -2, "attr5");
-            lua_call(lapi::L, 3, 0);
+            lua_getfield   (lua::L, -1, "entity_add"); lua_remove(lua::L, -2);
+            lua_pushlstring(lua::L, otherClass.get_buf(), otherClass.length());
+            lua_pushinteger(lua::L, otherUniqueId);
+            lua_createtable(lua::L, 0, 9);
+            lua_pushinteger(lua::L, findtype((char*)sauerType));
+            lua_setfield   (lua::L, -2, "_type");
+            lua_pushnumber (lua::L, x); lua_setfield(lua::L, -2, "x");
+            lua_pushnumber (lua::L, y); lua_setfield(lua::L, -2, "y");
+            lua_pushnumber (lua::L, z); lua_setfield(lua::L, -2, "z");
+            lua_pushinteger(lua::L, attr1); lua_setfield(lua::L, -2, "attr1");
+            lua_pushinteger(lua::L, attr2); lua_setfield(lua::L, -2, "attr2");
+            lua_pushinteger(lua::L, attr3); lua_setfield(lua::L, -2, "attr3");
+            lua_pushinteger(lua::L, attr4); lua_setfield(lua::L, -2, "attr4");
+            lua_pushinteger(lua::L, attr5); lua_setfield(lua::L, -2, "attr5");
+            lua_call(lua::L, 3, 0);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else
@@ -1252,11 +1252,11 @@ namespace MessageSystem
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
         logger::log(logger::DEBUG, "Updating stateData\r\n");
-        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_getfield(lapi::L, -1, "set_sdata_full");
-        lua_insert  (lapi::L, -2);
-        lua_pushstring(lapi::L, stateData.get_buf());
-        lua_call(lapi::L, 2, 0);
+        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_getfield(lua::L, -1, "set_sdata_full");
+        lua_insert  (lua::L, -2);
+        lua_pushstring(lua::L, stateData.get_buf());
+        lua_call(lua::L, 2, 0);
         // Events post-reception
         world::trigger_received_entity();
     }
@@ -1785,27 +1785,27 @@ namespace MessageSystem
 
         if (world::scenario_code.is_empty()) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "Input");
-        lua_getfield (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Server");
-        lua_getfield (lapi::L, -1, "click");  lua_insert  (lapi::L, -5); lua_pop(lapi::L, 4);
+        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input");
+        lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Server");
+        lua_getfield (lua::L, -1, "click");  lua_insert  (lua::L, -5); lua_pop(lua::L, 4);
         if (uniqueId != -1) {
             CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
             if (entity) {
-                lua_pushinteger(lapi::L, button);
-                lua_pushboolean(lapi::L, down);
-                lua_pushnumber (lapi::L, x);
-                lua_pushnumber (lapi::L, y);
-                lua_pushnumber (lapi::L, z);
-                lua_rawgeti    (lapi::L, LUA_REGISTRYINDEX, entity->lua_ref);
-                lua_call       (lapi::L, 6, 0);
-            } else lua_pop(lapi::L, 1);
+                lua_pushinteger(lua::L, button);
+                lua_pushboolean(lua::L, down);
+                lua_pushnumber (lua::L, x);
+                lua_pushnumber (lua::L, y);
+                lua_pushnumber (lua::L, z);
+                lua_rawgeti    (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+                lua_call       (lua::L, 6, 0);
+            } else lua_pop(lua::L, 1);
         } else {
-            lua_pushinteger(lapi::L, button);
-            lua_pushboolean(lapi::L, down);
-            lua_pushnumber (lapi::L, x);
-            lua_pushnumber (lapi::L, y);
-            lua_pushnumber (lapi::L, z);
-            lua_call       (lapi::L, 5, 0);
+            lua_pushinteger(lua::L, button);
+            lua_pushboolean(lua::L, down);
+            lua_pushnumber (lua::L, x);
+            lua_pushnumber (lua::L, y);
+            lua_pushnumber (lua::L, z);
+            lua_call       (lua::L, 5, 0);
         }
     }
 #endif

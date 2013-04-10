@@ -118,7 +118,7 @@ using algorithm::clamp;
 #include "igame.h"
 
 #include "of_logger.h"
-#include "of_lapi.h"
+#include "of_lua.h"
 #include "engine_additions.h"
 
 #endif

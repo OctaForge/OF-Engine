@@ -221,19 +221,19 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            lua_getglobal  (lapi::L, "external");
-            lua_getfield   (lapi::L, -1, "entity_get");
-            lua_remove     (lapi::L, -2);
-            lua_pushinteger(lapi::L, d->uniqueId);
-            lua_call       (lapi::L, 1, 1);
+            lua_getglobal  (lua::L, "external");
+            lua_getfield   (lua::L, -1, "entity_get");
+            lua_remove     (lua::L, -2);
+            lua_pushinteger(lua::L, d->uniqueId);
+            lua_call       (lua::L, 1, 1);
 
-            lua_createtable(lapi::L, 3, 0);
-            lua_getfield(lapi::L, -2, "position");
-            lua_getfield(lapi::L, -1, "x"); lua_rawseti(lapi::L, -3, 1);
-            lua_getfield(lapi::L, -1, "y"); lua_rawseti(lapi::L, -3, 2);
-            lua_getfield(lapi::L, -1, "z"); lua_rawseti(lapi::L, -3, 3);
-            lua_pop     (lapi::L,  1);
-            lua_setfield(lapi::L, -2, "position");
+            lua_createtable(lua::L, 3, 0);
+            lua_getfield(lua::L, -2, "position");
+            lua_getfield(lua::L, -1, "x"); lua_rawseti(lua::L, -3, 1);
+            lua_getfield(lua::L, -1, "y"); lua_rawseti(lua::L, -3, 2);
+            lua_getfield(lua::L, -1, "z"); lua_rawseti(lua::L, -3, 3);
+            lua_pop     (lua::L,  1);
+            lua_setfield(lua::L, -2, "position");
 #endif
         }
     }
@@ -243,11 +243,11 @@ namespace game
 #ifdef CLIENT
         if (ClientSystem::playerLogicEntity)
         {
-            lua_rawgeti(lapi::L, LUA_REGISTRYINDEX,
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
                 ClientSystem::playerLogicEntity->lua_ref);
-            lua_getfield(lapi::L, -1, "initialized");
-            bool b = lua_toboolean(lapi::L, -1);
-            lua_pop(lapi::L, 2);
+            lua_getfield(lua::L, -1, "initialized");
+            bool b = lua_toboolean(lua::L, -1);
+            lua_pop(lua::L, 2);
             if (b)
             {
                 logger::log(logger::INFO, "Player %d (%p) is initialized, run moveplayer(): %f,%f,%f.\r\n",
@@ -328,7 +328,7 @@ namespace game
 #ifdef CLIENT
         bool runWorld = ClientSystem::scenarioStarted();
 #else
-        bool runWorld = (lapi::L != NULL);
+        bool runWorld = (lua::L != NULL);
 #endif
         //===================
         // Run physics
@@ -369,10 +369,10 @@ namespace game
 
             // If triggering collisions can be done by the lua library code, use that
 
-            lua_getglobal(lapi::L, "external");
-            lua_getfield (lapi::L, -1, "game_handle_triggers");
-            lua_remove   (lapi::L, -2);
-            lua_call     (lapi::L, 0, 0);
+            lua_getglobal(lua::L, "external");
+            lua_getfield (lua::L, -1, "game_handle_triggers");
+            lua_remove   (lua::L, -2);
+            lua_call     (lua::L, 0, 0);
         }
 
         //==============================================
@@ -575,12 +575,12 @@ namespace game
 
     const char *scriptname(fpsent *d)
     {
-        lua_getglobal  (lapi::L, "external");
-        lua_getfield   (lapi::L, -1, "entity_get");
-        lua_pushinteger(lapi::L, LogicSystem::getUniqueId(d));
-        lua_call       (lapi::L, 1, 1);
-        lua_getfield   (lapi::L, -1, "character_name");
-        const char *ret = lua_tostring(lapi::L, -1); lua_pop(lapi::L, 3);
+        lua_getglobal  (lua::L, "external");
+        lua_getfield   (lua::L, -1, "entity_get");
+        lua_pushinteger(lua::L, LogicSystem::getUniqueId(d));
+        lua_call       (lua::L, 1, 1);
+        lua_getfield   (lua::L, -1, "character_name");
+        const char *ret = lua_tostring(lua::L, -1); lua_pop(lua::L, 3);
         return ret;
     }
 

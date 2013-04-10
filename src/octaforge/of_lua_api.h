@@ -121,7 +121,7 @@ namespace lapi_binds
     }
 
     int _lua_setup_library(lua_State *L) {
-        lua_pushboolean(L, lapi::load_library(luaL_checkstring(L, 1)));
+        lua_pushboolean(L, lua::load_library(luaL_checkstring(L, 1)));
         return 1;
     }
 #ifdef CLIENT

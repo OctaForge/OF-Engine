@@ -27,48 +27,48 @@ ident::~ident() {
 void ident::changed() {
     if (fun) fun();
     if (!(flags&IDF_SIGNAL)) return;
-    lua_getglobal  (lapi::L, "signal"); lua_getfield(lapi::L, -1, "emit");
-    lua_remove     (lapi::L, -2);
-    lua_getglobal  (lapi::L, "EV");
-    lua_pushstring (lapi::L, name);
-    lua_pushliteral(lapi::L, "_changed");
-    lua_concat     (lapi::L, 2);
+    lua_getglobal  (lua::L, "signal"); lua_getfield(lua::L, -1, "emit");
+    lua_remove     (lua::L, -2);
+    lua_getglobal  (lua::L, "EV");
+    lua_pushstring (lua::L, name);
+    lua_pushliteral(lua::L, "_changed");
+    lua_concat     (lua::L, 2);
     switch (type) {
         case ID_VAR:
-            lua_pushinteger(lapi::L, *(storage.i));
-            lua_pushinteger(lapi::L, minval);
-            lua_pushinteger(lapi::L, overrideval.i);
-            lua_pushinteger(lapi::L, maxval);
-            lua_call       (lapi::L, 6, 0);
+            lua_pushinteger(lua::L, *(storage.i));
+            lua_pushinteger(lua::L, minval);
+            lua_pushinteger(lua::L, overrideval.i);
+            lua_pushinteger(lua::L, maxval);
+            lua_call       (lua::L, 6, 0);
             break;
         case ID_FVAR:
-            lua_pushnumber(lapi::L, *(storage.f));
-            lua_pushnumber(lapi::L, minvalf);
-            lua_pushnumber(lapi::L, overrideval.f);
-            lua_pushnumber(lapi::L, maxvalf);
-            lua_call      (lapi::L, 6, 0);
+            lua_pushnumber(lua::L, *(storage.f));
+            lua_pushnumber(lua::L, minvalf);
+            lua_pushnumber(lua::L, overrideval.f);
+            lua_pushnumber(lua::L, maxvalf);
+            lua_call      (lua::L, 6, 0);
             break;
         case ID_SVAR:
-            lua_pushstring(lapi::L, *(storage.s));
-            lua_pushstring(lapi::L, overrideval.s);
-            lua_call      (lapi::L, 4, 0);
+            lua_pushstring(lua::L, *(storage.s));
+            lua_pushstring(lua::L, overrideval.s);
+            lua_call      (lua::L, 4, 0);
             break;
         case ID_ALIAS: switch (valtype) {
             case VAL_INT:
-                lua_pushinteger(lapi::L, val.i);
-                lua_call       (lapi::L, 3, 0);
+                lua_pushinteger(lua::L, val.i);
+                lua_call       (lua::L, 3, 0);
                 break;
             case VAL_FLOAT:
-                lua_pushnumber(lapi::L, val.f);
-                lua_call      (lapi::L, 3, 0);
+                lua_pushnumber(lua::L, val.f);
+                lua_call      (lua::L, 3, 0);
                 break;
             case VAL_STR:
-                lua_pushstring(lapi::L, val.s);
-                lua_call      (lapi::L, 3, 0);
+                lua_pushstring(lua::L, val.s);
+                lua_call      (lua::L, 3, 0);
                 break;
-            default: lua_call(lapi::L, 2, 0); break;
+            default: lua_call(lua::L, 2, 0); break;
         }
-        default: lua_call(lapi::L, 2, 0); break;
+        default: lua_call(lua::L, 2, 0); break;
     }
 }
 
@@ -3030,24 +3030,24 @@ COMMANDN(clearsleep, clearsleep_, "i");
 #endif
 
 ICOMMAND(lua, "s", (char *str), {
-    if (luaL_loadstring(lapi::L, str)) {
-        lua_error(lapi::L);
+    if (luaL_loadstring(lua::L, str)) {
+        lua_error(lua::L);
     }
-    lua_call(lapi::L, 0, 1);
-    if (lua_isnumber(lapi::L, -1)) {
-        int a = lua_tointeger(lapi::L, -1);
-        float b = lua_tonumber(lapi::L, -1);
-        lua_pop(lapi::L, 1);
+    lua_call(lua::L, 0, 1);
+    if (lua_isnumber(lua::L, -1)) {
+        int a = lua_tointeger(lua::L, -1);
+        float b = lua_tonumber(lua::L, -1);
+        lua_pop(lua::L, 1);
         if ((float)a == b) {
             intret(a);
         } else {
             floatret(b);
         }
-    } else if (lua_isstring(lapi::L, -1)) {
-        const char *s = lua_tostring(lapi::L, -1);
-        lua_pop(lapi::L, 1);
+    } else if (lua_isstring(lua::L, -1)) {
+        const char *s = lua_tostring(lua::L, -1);
+        lua_pop(lua::L, 1);
         result(s);
     } else {
-        lua_pop(lapi::L, 1);
+        lua_pop(lua::L, 1);
     }
 })

@@ -1,7 +1,7 @@
 #ifndef OF_LAPI_H
 #define OF_LAPI_H
 
-namespace lapi
+namespace lua
 {
     extern lua_State *L;
     void init        (const char *dir = "data/library/core");

@@ -87,12 +87,12 @@ bool ClientSystem::scenarioStarted()
     // If not already started, test if indeed started
     if (_mapCompletelyReceived && !_scenarioStarted)
     {
-        if (lapi::L) {
-            lua_getglobal(lapi::L, "external");
-            lua_getfield (lapi::L, -1, "scene_is_ready");
-            lua_call     (lapi::L,  0, 1);
-            _scenarioStarted = lua_toboolean(lapi::L, -1);
-            lua_pop(lapi::L, 2);
+        if (lua::L) {
+            lua_getglobal(lua::L, "external");
+            lua_getfield (lua::L, -1, "scene_is_ready");
+            lua_call     (lua::L,  0, 1);
+            _scenarioStarted = lua_toboolean(lua::L, -1);
+            lua_pop(lua::L, 2);
         }
     }
 
@@ -104,30 +104,30 @@ void ClientSystem::frameTrigger(int curtime)
     if (scenarioStarted())
     {
         float delta = float(curtime)/1000.0f;
-        lua_getglobal(lapi::L, "external");
+        lua_getglobal(lua::L, "external");
 
         /* turn if mouse is at borders */
-        lua_getfield (lapi::L, -1, "cursor_get_position");
-        lua_call     (lapi::L,  0, 2);
+        lua_getfield (lua::L, -1, "cursor_get_position");
+        lua_call     (lua::L,  0, 2);
 
-        float x = lua_tonumber(lapi::L, -2);
-        float y = lua_tonumber(lapi::L, -1);
-        lua_pop(lapi::L, 2);
+        float x = lua_tonumber(lua::L, -2);
+        float y = lua_tonumber(lua::L, -1);
+        lua_pop(lua::L, 2);
 
-        lua_getfield (lapi::L, -1, "cursor_exists");
-        lua_call     (lapi::L,  0, 1);
+        lua_getfield (lua::L, -1, "cursor_exists");
+        lua_call     (lua::L,  0, 1);
 
-        bool b = lua_toboolean(lapi::L, -1);
-        lua_pop(lapi::L, 2); /* also pop external */
+        bool b = lua_toboolean(lua::L, -1);
+        lua_pop(lua::L, 2); /* also pop external */
 
         /* do not scroll with mouse */
         if (b) x = y = 0.5;
 
         /* turning */
         fpsent *fp = (fpsent*)player;
-        lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ClientSystem::playerLogicEntity->lua_ref);
-        lua_getfield(lapi::L, -1, "facing_speed");
-        float fs = lua_tonumber(lapi::L, -1); lua_pop(lapi::L, 2);
+        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ClientSystem::playerLogicEntity->lua_ref);
+        lua_getfield(lua::L, -1, "facing_speed");
+        float fs = lua_tonumber(lua::L, -1); lua_pop(lua::L, 2);
 
         if (fp->turn_move || fabs(x - 0.5) > 0.45)
         {
@@ -163,9 +163,9 @@ void ClientSystem::finishLoadWorld()
 
     ClientSystem::editingAlone = false; // Assume not in this mode
 
-    lua_getglobal(lapi::L, "external");
-    lua_getfield (lapi::L, -1, "gui_clear");
-    lua_call     (lapi::L,  0, 0); lua_pop(lapi::L, 1); // (see prepareForMap)
+    lua_getglobal(lua::L, "external");
+    lua_getfield (lua::L, -1, "gui_clear");
+    lua_call     (lua::L,  0, 0); lua_pop(lua::L, 1); // (see prepareForMap)
 }
 
 void ClientSystem::prepareForNewScenario(const types::String& sc)
@@ -188,9 +188,9 @@ bool ClientSystem::isAdmin()
     if (!loggedIn) return false;
     if (!playerLogicEntity) return false;
 
-    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, playerLogicEntity->lua_ref);
-    lua_getfield(lapi::L, -1, "can_edit");
-    bool b = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 2);
+    lua_rawgeti (lua::L, LUA_REGISTRYINDEX, playerLogicEntity->lua_ref);
+    lua_getfield(lua::L, -1, "can_edit");
+    bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 2);
     return b;
 }
 

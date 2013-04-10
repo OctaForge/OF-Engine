@@ -180,9 +180,9 @@ void musicdone()
     if(!musicdonecmd) return;
     char *cmd = musicdonecmd;
     musicdonecmd = NULL;
-    if (luaL_loadstring(lapi::L, cmd) || lua_pcall(lapi::L, 0, 0, 0)) {
-        logger::log(logger::ERROR, "%s\n", lua_tostring(lapi::L, -1));
-        lua_pop(lapi::L, 1);
+    if (luaL_loadstring(lua::L, cmd) || lua_pcall(lua::L, 0, 0, 0)) {
+        logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
+        lua_pop(lua::L, 1);
     }
     delete[] cmd;
 }
@@ -644,11 +644,11 @@ int playsoundname(const char *s, const vec *loc, int vol, int loops, int fade, i
 
 void resetsound()
 {
-    lua_getglobal  (lapi::L, "external");
-    lua_getfield   (lapi::L, -1, "changes_clear");
-    lua_remove     (lapi::L, -2);
-    lua_pushinteger(lapi::L, CHANGE_SOUND);
-    lua_call       (lapi::L, 1, 0);
+    lua_getglobal  (lua::L, "external");
+    lua_getfield   (lua::L, -1, "changes_clear");
+    lua_remove     (lua::L, -2);
+    lua_pushinteger(lua::L, CHANGE_SOUND);
+    lua_call       (lua::L, 1, 0);
     if(!nosound) 
     {
         enumerate(samples, soundsample, s, s.cleanup());

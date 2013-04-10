@@ -2,7 +2,7 @@
 #include "engine.h"
 #include "game.h"
 
-#include "of_lapi.h"
+#include "of_lua.h"
 #include "of_tools.h"
 
 #ifdef CLIENT
@@ -37,7 +37,7 @@ if (!name) \
 #define LAPI_EMPTY(name) int _lua_##name(lua_State *L) \
 { logger::log(logger::DEBUG, "stub: CAPI."#name"\n"); return 0; }
 
-#include "of_lapi_base.h"
+#include "of_lua_api.h"
 
 #undef LAPI_EMPTY
 #undef LAPI_GET_ENT
@@ -45,7 +45,7 @@ if (!name) \
 
 extern string homedir;
 
-namespace lapi
+namespace lua
 {
     lua_State *L = NULL;
     types::String mod_dir;

@@ -83,12 +83,12 @@ bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level) 
     {
-        lua_getglobal  (lapi::L, "external");
-        lua_getfield   (lapi::L, -1, "change_add");
-        lua_remove     (lapi::L, -2);
-        lua_pushstring (lapi::L, desc);
-        lua_pushinteger(lapi::L, type);
-        lua_call       (lapi::L, 2, 0);
+        lua_getglobal  (lua::L, "external");
+        lua_getfield   (lua::L, -1, "change_add");
+        lua_remove     (lua::L, -2);
+        lua_pushstring (lua::L, desc);
+        lua_pushinteger(lua::L, type);
+        lua_call       (lua::L, 2, 0);
         return true;
     }
     return false;
@@ -650,11 +650,11 @@ void setupscreen()
 
 void resetgl()
 {
-    lua_getglobal  (lapi::L, "external");
-    lua_getfield   (lapi::L, -1, "changes_clear");
-    lua_remove     (lapi::L, -2);
-    lua_pushinteger(lapi::L, CHANGE_GFX|CHANGE_SHADERS);
-    lua_call       (lapi::L, 1, 0);
+    lua_getglobal  (lua::L, "external");
+    lua_getfield   (lua::L, -1, "changes_clear");
+    lua_remove     (lua::L, -2);
+    lua_pushinteger(lua::L, CHANGE_GFX|CHANGE_SHADERS);
+    lua_call       (lua::L, 1, 0);
     renderbackground("resetting OpenGL");
 
     extern void cleanupva();
@@ -886,16 +886,16 @@ void checkinput()
                     int dx = event.motion.xrel, dy = event.motion.yrel;
                     checkmousemotion(dx, dy);
 
-                    lua_getglobal  (lapi::L, "external");
-                    lua_getfield   (lapi::L, -1, "cursor_move");
-                    lua_pushinteger(lapi::L, dx);
-                    lua_pushinteger(lapi::L, dy);
-                    lua_call       (lapi::L, 2, 1);
-                    bool b1 = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 1);
-                    lua_getfield   (lapi::L, -1, "cursor_exists");
-                    lua_remove     (lapi::L, -2);
-                    lua_call       (lapi::L, 0, 1);
-                    bool b2 = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 1);
+                    lua_getglobal  (lua::L, "external");
+                    lua_getfield   (lua::L, -1, "cursor_move");
+                    lua_pushinteger(lua::L, dx);
+                    lua_pushinteger(lua::L, dy);
+                    lua_call       (lua::L, 2, 1);
+                    bool b1 = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
+                    lua_getfield   (lua::L, -1, "cursor_exists");
+                    lua_remove     (lua::L, -2);
+                    lua_call       (lua::L, 0, 1);
+                    bool b2 = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
 
                     if(!b1 && !b2)
                         mousemove(dx, dy);
@@ -1187,8 +1187,8 @@ int main(int argc, char **argv)
     logger::setlevel(loglevel);
 
     initlog("lua");
-    lapi::init();
-    if (!lapi::L) fatal("cannot initialize lua script engine");
+    lua::init();
+    if (!lua::L) fatal("cannot initialize lua script engine");
 
     initing = NOT_INITING;
 
@@ -1327,10 +1327,10 @@ int main(int argc, char **argv)
         updatetime();
  
         checkinput();
-        lua_getglobal(lapi::L, "external");
-        lua_getfield (lapi::L, -1, "frame_start");
-        lua_remove   (lapi::L, -2);
-        lua_call     (lapi::L, 0, 0);
+        lua_getglobal(lua::L, "external");
+        lua_getfield (lua::L, -1, "frame_start");
+        lua_remove   (lua::L, -2);
+        lua_call     (lua::L, 0, 0);
         tryedit();
 
         if(lastmillis) game::updateworld();

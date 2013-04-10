@@ -1402,11 +1402,11 @@ void reloadshaders()
 
 void resetshaders()
 {
-    lua_getglobal  (lapi::L, "external");
-    lua_getfield   (lapi::L, -1, "changes_clear");
-    lua_remove     (lapi::L, -2);
-    lua_pushinteger(lapi::L, CHANGE_SHADERS);
-    lua_call       (lapi::L, 1, 0);
+    lua_getglobal  (lua::L, "external");
+    lua_getfield   (lua::L, -1, "changes_clear");
+    lua_remove     (lua::L, -2);
+    lua_pushinteger(lua::L, CHANGE_SHADERS);
+    lua_call       (lua::L, 1, 0);
 
     cleanuplights();
     cleanupmodels();

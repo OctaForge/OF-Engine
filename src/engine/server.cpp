@@ -738,7 +738,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    lapi::init();
+    lua::init();
     server_init();
 
     logger::log(logger::DEBUG, "Running first slice.\n");

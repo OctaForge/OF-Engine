@@ -113,12 +113,12 @@ namespace server
         // Also do not do this if the uniqueId is negative - it means we are disconnecting this client *before* a lua
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
-        if (lapi::L && !_ci->local && uniqueId >= 0) {
-            lua_getglobal  (lapi::L, "external");
-            lua_getfield   (lapi::L, -1, "entity_remove");
-            lua_remove     (lapi::L, -2);
-            lua_pushinteger(lapi::L, uniqueId);
-            lua_call       (lapi::L, 1, 0);
+        if (lua::L && !_ci->local && uniqueId >= 0) {
+            lua_getglobal  (lua::L, "external");
+            lua_getfield   (lua::L, -1, "entity_remove");
+            lua_remove     (lua::L, -2);
+            lua_pushinteger(lua::L, uniqueId);
+            lua_call       (lua::L, 1, 0);
         }
         
         delete (clientinfo *)ci;
@@ -531,22 +531,22 @@ namespace server
                 /* FIXME: hack attack - add filtering method into the string class */
                 filtertext(&text[0], text.get_buf());
 
-                if (!lapi::L)
+                if (!lua::L)
                 {
                     QUEUE_INT(type);
                     QUEUE_STR(text);
                     break;
                 }
 
-                lua_getglobal  (lapi::L, "LAPI");
-                lua_getfield   (lapi::L, -1, "World");
-                lua_getfield   (lapi::L, -1, "Events");
-                lua_getfield   (lapi::L, -1, "text_message");
-                lua_pushinteger(lapi::L, ci->uniqueId);
-                lua_pushstring (lapi::L, text.get_buf());
-                lua_call       (lapi::L, 2, 1);
-                bool b = lua_toboolean(lapi::L, -1);
-                lua_pop(lapi::L, 4);
+                lua_getglobal  (lua::L, "LAPI");
+                lua_getfield   (lua::L, -1, "World");
+                lua_getfield   (lua::L, -1, "Events");
+                lua_getfield   (lua::L, -1, "text_message");
+                lua_pushinteger(lua::L, ci->uniqueId);
+                lua_pushstring (lua::L, text.get_buf());
+                lua_call       (lua::L, 2, 1);
+                bool b = lua_toboolean(lua::L, -1);
+                lua_pop(lua::L, 4);
 
                 if (!b) {
                     QUEUE_INT(type);
@@ -685,13 +685,13 @@ namespace server
         ci->isAdmin = isAdmin;
 
         if (ci->isAdmin && ci->uniqueId >= 0) { // If an entity was already created, update it
-            lua_getglobal  (lapi::L, "external");
-            lua_getfield   (lapi::L, -1, "entity_get");
-            lua_pushinteger(lapi::L, ci->uniqueId);
-            lua_call       (lapi::L, 1, 1);
-            lua_pushboolean(lapi::L, true);
-            lua_setfield   (lapi::L, -2, "can_edit");
-            lua_pop        (lapi::L,  2);
+            lua_getglobal  (lua::L, "external");
+            lua_getfield   (lua::L, -1, "entity_get");
+            lua_pushinteger(lua::L, ci->uniqueId);
+            lua_call       (lua::L, 1, 1);
+            lua_pushboolean(lua::L, true);
+            lua_setfield   (lua::L, -2, "can_edit");
+            lua_pop        (lua::L,  2);
         }
     }
 
@@ -724,7 +724,7 @@ namespace server
                 logger::log(logger::DEBUG, "luaEntities creation: Adding %d\r\n", i);
 
                 if (createluaEntity(i)) {
-                    lua_pop(lapi::L, 1);
+                    lua_pop(lua::L, 1);
                 }
             }
             return false;
@@ -752,12 +752,12 @@ namespace server
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
 
-        lua_getglobal(lapi::L, "external");
+        lua_getglobal(lua::L, "external");
 
-        lua_getfield (lapi::L, -1, "entity_gen_uid");
-        lua_call     (lapi::L,  0, 1);
-        int uid = lua_tointeger(lapi::L, -1);
-        lua_pop(lapi::L, 1);
+        lua_getfield (lua::L, -1, "entity_gen_uid");
+        lua_call     (lua::L,  0, 1);
+        int uid = lua_tointeger(lua::L, -1);
+        lua_pop(lua::L, 1);
 
         // Notify of uid *before* creating the entity, so when the entity is created, player realizes it is them
         // and does initial connection correctly
@@ -766,35 +766,35 @@ namespace server
 
         ci->uniqueId = uid;
 
-        lua_getfield  (lapi::L, -1, "entity_new"); /* external */
-        lua_pushstring(lapi::L, _class);
+        lua_getfield  (lua::L, -1, "entity_new"); /* external */
+        lua_pushstring(lua::L, _class);
 
-        lua_createtable(lapi::L, 0, 1);
-        lua_pushinteger(lapi::L, cn);
-        lua_setfield   (lapi::L, -2, "cn");
+        lua_createtable(lua::L, 0, 1);
+        lua_pushinteger(lua::L, cn);
+        lua_setfield   (lua::L, -2, "cn");
 
-        lua_pushinteger(lapi::L, uid);
-        lua_pushboolean(lapi::L, true);
-        lua_call       (lapi::L, 4, 0);
+        lua_pushinteger(lua::L, uid);
+        lua_pushboolean(lua::L, true);
+        lua_call       (lua::L, 4, 0);
 
-        lua_getfield   (lapi::L, -1, "entity_get"); /* external */
-        lua_remove     (lapi::L, -2); /* remove external */
-        lua_pushinteger(lapi::L, uid);
-        lua_call       (lapi::L, 1, 1);
+        lua_getfield   (lua::L, -1, "entity_get"); /* external */
+        lua_remove     (lua::L, -2); /* remove external */
+        lua_pushinteger(lua::L, uid);
+        lua_call       (lua::L, 1, 1);
 
-        lua_getfield   (lapi::L, -1, "cn");
-        assert(lua_tointeger(lapi::L, -1) == cn);
-        lua_pop(lapi::L, 1);
+        lua_getfield   (lua::L, -1, "cn");
+        assert(lua_tointeger(lua::L, -1) == cn);
+        lua_pop(lua::L, 1);
 
         // Add admin status, if relevant
         if (ci->isAdmin) {
-            lua_pushboolean(lapi::L, true);
-            lua_setfield   (lapi::L, -2, "can_edit");
+            lua_pushboolean(lua::L, true);
+            lua_setfield   (lua::L, -2, "can_edit");
         }
 
         // Add nickname
-        lua_pushstring(lapi::L, uname);
-        lua_setfield  (lapi::L, -2, "character_name");
+        lua_pushstring(lua::L, uname);
+        lua_setfield  (lua::L, -2, "character_name");
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)

@@ -169,11 +169,11 @@ namespace tools
             }
             return false;
         }
-        if (luaL_loadstring(lapi::L, buf) || lua_pcall(lapi::L, 0, 0, 0)) {
+        if (luaL_loadstring(lua::L, buf) || lua_pcall(lua::L, 0, 0, 0)) {
             if (msg) {
-                logger::log(logger::ERROR, "%s\n", lua_tostring(lapi::L, -1));
+                logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
             }
-            lua_pop(lapi::L, 1);
+            lua_pop(lua::L, 1);
             delete[] buf;
             return false;
         }

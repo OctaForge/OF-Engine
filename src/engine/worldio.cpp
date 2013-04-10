@@ -1031,19 +1031,19 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
-                lua_getglobal  (lapi::L, "external");
-                lua_getfield   (lapi::L, -1, "entity_add_sauer");
-                lua_remove     (lapi::L, -2);
-                lua_pushinteger(lapi::L, e.type);
-                lua_pushnumber (lapi::L, e.o.x);
-                lua_pushnumber (lapi::L, e.o.y);
-                lua_pushnumber (lapi::L, e.o.z);
-                lua_pushinteger(lapi::L, e.attr1);
-                lua_pushinteger(lapi::L, e.attr2);
-                lua_pushinteger(lapi::L, e.attr3);
-                lua_pushinteger(lapi::L, e.attr4);
-                lua_pushinteger(lapi::L, e.attr5);
-                lua_call       (lapi::L, 9, 0);
+                lua_getglobal  (lua::L, "external");
+                lua_getfield   (lua::L, -1, "entity_add_sauer");
+                lua_remove     (lua::L, -2);
+                lua_pushinteger(lua::L, e.type);
+                lua_pushnumber (lua::L, e.o.x);
+                lua_pushnumber (lua::L, e.o.y);
+                lua_pushnumber (lua::L, e.o.z);
+                lua_pushinteger(lua::L, e.attr1);
+                lua_pushinteger(lua::L, e.attr2);
+                lua_pushinteger(lua::L, e.attr3);
+                lua_pushinteger(lua::L, e.attr4);
+                lua_pushinteger(lua::L, e.attr5);
+                lua_call       (lua::L, 9, 0);
                 break;
             default:
                 break;
@@ -1097,15 +1097,15 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     delete f;
 
 #ifdef CLIENT
-        lua_getglobal  (lapi::L, "external");
-        lua_getfield   (lapi::L, -1, "gui_clear");
-        lua_remove     (lapi::L, -2);
-        lua_call       (lapi::L, 0, 0);
+        lua_getglobal  (lua::L, "external");
+        lua_getfield   (lua::L, -1, "gui_clear");
+        lua_remove     (lua::L, -2);
+        lua_call       (lua::L, 0, 0);
 #endif
 
     identflags |= IDF_OVERRIDDEN;
     execfile("data/cfg/default_map_settings.cfg", false);
-    if (lapi::L) world::run_mapscript();
+    if (lua::L) world::run_mapscript();
     identflags &= ~IDF_OVERRIDDEN;
    
 #ifdef CLIENT // INTENSITY: Stop, finish loading later when we have all the entities
