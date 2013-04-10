@@ -1202,7 +1202,10 @@ bool emptymap(int scale, bool force, const char *mname, bool usecfg)    // main 
     if(worldsize > 0x1000) splitocta(worldroot, worldsize>>1);
 
 #ifdef CLIENT
-    lapi::state.get<lua::Function>("external", "gui_clear")();
+    lua_getglobal  (lapi::L, "external");
+    lua_getfield   (lapi::L, -1, "gui_clear");
+    lua_remove     (lapi::L, -2);
+    lua_call       (lapi::L, 0, 0);
 #endif
 
     if (usecfg)
@@ -1308,10 +1311,17 @@ COMMAND(mapname, "");
 void finish_dragging() {
     groupeditpure(
         const vec& o = e.o;
-        lapi::state.get<lua::Function>("external", "entity_get")
-            .call<lua::Table>(LogicSystem::getUniqueId(&e))
-                ["position"] = lapi::state.get<lua::Function>("external",
-                    "new_vec3").call<lua::Table>(o.x, o.y, o.z);
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "entity_get");
+        lua_pushinteger(lapi::L, LogicSystem::getUniqueId(&e));
+        lua_call       (lapi::L, 1, 1);
+        lua_getfield   (lapi::L, -2, "new_vec3");
+        lua_pushnumber (lapi::L, o.x);
+        lua_pushnumber (lapi::L, o.y);
+        lua_pushnumber (lapi::L, o.z);
+        lua_call       (lapi::L, 3, 1);
+        lua_setfield   (lapi::L, -2, "position");
+        lua_pop        (lapi::L, 2);
     );
 }
 

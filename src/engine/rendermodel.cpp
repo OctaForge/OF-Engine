@@ -426,17 +426,19 @@ void reloadmodel(char *name) {
     clearmodel((char*)name);
     model *_new = loadmodel(name);
 
-    lua::Table ents = lapi::state.get<lua::Function>(
-        "external", "entities_get_all"
-    ).call<lua::Table>();
+    lua_getglobal(lapi::L, "external");
+    lua_getfield (lapi::L, -1, "entities_get_all");
+    lua_remove(lapi::L, -2); lua_call(lapi::L, 0, 1);
 
-    for (lua::Table::it it = ents.begin(); it != ents.end(); ++it)
-    {
-        CLogicEntity *ent = LogicSystem::getLogicEntity(
-            lua::Table(*it).get<int>("uid")
-        );
-        if (!ent) continue;
-        if (ent->theModel == old) ent->theModel = _new;
+    lua_pushnil(lapi::L);
+    while (lua_next(lapi::L, -2)) {
+        lua_getfield(lapi::L, -1, "uid");
+        int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 1);
+        CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
+        if (ent && ent->theModel == old) {
+            ent->theModel = _new;
+        }
+        lua_pop(lapi::L, 1);
     }
 }
 

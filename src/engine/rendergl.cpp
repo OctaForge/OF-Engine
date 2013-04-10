@@ -1157,14 +1157,18 @@ void mousemove(int dx, int dy)
     // INTENSITY: Let scripts customize mousemoving
     if (lapi::L)
     {
-        lua::Table t = lapi::state.get<lua::Function>(
-            "LAPI", "Input", "Events", "Client", "mouse_move"
-        ).call<lua::Object>(
-            (dx * cursens),
-            (-dy * cursens * (invmouse ? -1 : 1))
-        );
-        camera1->yaw   += t["yaw"  ].to<double>();
-        camera1->pitch += t["pitch"].to<double>();
+        lua_getglobal (lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "Input");
+        lua_getfield  (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Client");
+        lua_getfield  (lapi::L, -1, "mouse_move");
+        lua_insert    (lapi::L, -5); lua_pop(lapi::L, 4);
+        lua_pushnumber(lapi::L, dx * cursens);
+        lua_pushnumber(lapi::L, -dy * cursens * (invmouse ? -1 : 1));
+        lua_call      (lapi::L, 2, 1);
+
+        lua_getfield(lapi::L, -1, "yaw");
+        camera1->yaw += lua_tonumber(lapi::L, -1); lua_pop(lapi::L, 1);
+        lua_getfield(lapi::L, -1, "pitch");
+        camera1->pitch += lua_tonumber(lapi::L, -1); lua_pop(lapi::L, 2);
 
         fixcamerarange();
         if(camera1!=player && !detachedcamera)
@@ -2190,7 +2194,8 @@ void gl_drawframe(int w, int h)
     renderpostfx(scalefbo);
     if(scalefbo) { vieww = w; viewh = h; doscale(vieww, viewh); }
 
-    lapi::state.get<lua::Function>("external", "gl_render")();
+    lua_getglobal(lapi::L, "external"); lua_getfield(lapi::L, -1, "gl_render");
+    lua_remove(lapi::L, -2); lua_call(lapi::L, 0, 0);
 
     gl_drawhud(vieww, viewh);
 }
@@ -2201,7 +2206,8 @@ void gl_drawmainmenu(int w, int h)
 
     renderbackground(NULL, NULL, NULL, NULL, true, true);
 
-    lapi::state.get<lua::Function>("external", "gl_render")();
+    lua_getglobal(lapi::L, "external"); lua_getfield(lapi::L, -1, "gl_render");
+    lua_remove(lapi::L, -2); lua_call(lapi::L, 0, 0);
 
     gl_drawhud(w, h);
 }
