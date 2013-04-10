@@ -228,8 +228,9 @@ namespace MessageSystem
         INDENT_LOG(logger::DEBUG);
 
                  // If logged in OK, this is the time to create a lua logic entity for the client. Also adds to internal FPSClient
-        if (success)
-            server::createluaEntity(clientNumber);
+        if (success) if (server::createluaEntity(clientNumber)) {
+            lua_pop(lapi::L, 1);
+        }
 
 
         int start, finish;
