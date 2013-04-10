@@ -641,7 +641,7 @@ namespace lapi_binds
     }
 
     int _lua_npcdel(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.npcdel", return 0)
+        LAPI_GET_ENT(entity, "CAPI.npcdel", return 0)
         fpsent *fp = (fpsent*)entity->dynamicEntity;
         localdisconnect(true, fp->clientnum);
         return 0;
@@ -723,13 +723,13 @@ namespace lapi_binds
     /* Entity attributes */
 
     int _lua_setanim(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.setanim", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setanim", return 0)
         entity->setAnimation(luaL_checkinteger(L, 2));
         return 0;
     }
 
     int _lua_getstarttime(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.getstarttime", return 0)
+        LAPI_GET_ENT(entity, "CAPI.getstarttime", return 0)
         lua_pushinteger(L, entity->getStartTime());
         return 1;
     }
@@ -737,7 +737,7 @@ namespace lapi_binds
     int _lua_setmodelname(lua_State *L) {
         const char *name = "";
         if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
-        LAPI_GET_ENTC(entity, "CAPI.setmodelname", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setmodelname", return 0)
         logger::log(logger::DEBUG, "CAPI.setmodelname(\"%s\", \"%s\")\n",
             entity->getClass(), name);
         entity->setModel(name);
@@ -747,7 +747,7 @@ namespace lapi_binds
     int _lua_setsoundname(lua_State *L) {
         const char *name = "";
         if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
-        LAPI_GET_ENTC(entity, "CAPI.setsoundname", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setsoundname", return 0)
         logger::log(logger::DEBUG, "CAPI.setsoundname(\"%s\", \"%s\")\n",
             entity->getClass(), name);
         entity->setSound(name);
@@ -755,7 +755,7 @@ namespace lapi_binds
     }
 
     int _lua_setsoundvol(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.setsoundvol", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setsoundvol", return 0)
         int vol = luaL_checkinteger(L, 2);
         logger::log(logger::DEBUG, "CAPI.setsoundvol(%i)\n", vol);
 
@@ -773,7 +773,7 @@ namespace lapi_binds
     }
 
     int _lua_setattachments(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.setattachments", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setattachments", return 0)
         lua_getglobal(L, "table");
         lua_getfield (L, -1, "concat");
         lua_remove   (L, -2);
@@ -787,7 +787,7 @@ namespace lapi_binds
     int _lua_getattachmentpos(lua_State *L) {
         const char *attachment = "";
         if (!lua_isnoneornil(L, 2)) attachment = luaL_checkstring(L, 2);
-        LAPI_GET_ENTC(entity, "CAPI.getattachmentpos", return 0)
+        LAPI_GET_ENT(entity, "CAPI.getattachmentpos", return 0)
         lua_getglobal(L, "external"); lua_getfield(L, -1, "new_vec3");
         lua_remove   (L, -2);
         const vec& o = entity->getAttachmentPosition(attachment);
@@ -797,7 +797,7 @@ namespace lapi_binds
     }
 
     int _lua_setcanmove(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.setcanmove", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setcanmove", return 0)
         entity->setCanMove(lua_toboolean(L, 2));
         return 0;
     }
@@ -806,14 +806,14 @@ namespace lapi_binds
 
     #define EXTENT_ACCESSORS(n) \
     int _lua_get##n(lua_State *L) { \
-        LAPI_GET_ENTC(entity, "CAPI.get"#n, return 0) \
+        LAPI_GET_ENT(entity, "CAPI.get"#n, return 0) \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
         lua_pushinteger(L, ext->n); \
         return 1; \
     } \
     int _lua_set##n(lua_State *L) { \
-        LAPI_GET_ENTC(entity, "CAPI.set"#n, return 0) \
+        LAPI_GET_ENT(entity, "CAPI.set"#n, return 0) \
         int v = luaL_checkinteger(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
@@ -823,7 +823,7 @@ namespace lapi_binds
         return 0; \
     } \
     int _lua_FAST_set##n(lua_State *L) { \
-        LAPI_GET_ENTC(entity, "CAPI.FAST_set"#n, return 0) \
+        LAPI_GET_ENT(entity, "CAPI.FAST_set"#n, return 0) \
         int v = luaL_checkinteger(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
@@ -840,12 +840,12 @@ namespace lapi_binds
 
     #define EXTENT_LE_ACCESSORS(n, an) \
     int _lua_get##n(lua_State *L) { \
-        LAPI_GET_ENTC(entity, "CAPI.get"#n, return 0) \
+        LAPI_GET_ENT(entity, "CAPI.get"#n, return 0) \
         lua_pushnumber(L, entity->an); \
         return 1; \
     } \
     int _lua_set##n(lua_State *L) { \
-        LAPI_GET_ENTC(entity, "CAPI.set"#n, return 0) \
+        LAPI_GET_ENT(entity, "CAPI.set"#n, return 0) \
         float v = luaL_checknumber(L, 2); \
         logger::log(logger::DEBUG, "ACCESSOR: Setting %s to %f\n", #an, v); \
         assert(entity->staticEntity); \
@@ -860,7 +860,7 @@ namespace lapi_binds
     #undef EXTENT_LE_ACCESSORS
 
     int _lua_getextent0(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.getextent0", return 0)
+        LAPI_GET_ENT(entity, "CAPI.getextent0", return 0)
         extentity *ext = entity->staticEntity;
         assert(ext);
         logger::log(logger::INFO,
@@ -874,7 +874,7 @@ namespace lapi_binds
     }
 
     int _lua_setextent0(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.setextent0", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setextent0", return 0)
         luaL_checktype(L, 2, LUA_TTABLE);
         extentity *ext = entity->staticEntity;
         assert(ext);
@@ -896,14 +896,14 @@ namespace lapi_binds
 
     #define DYNENT_ACCESSORS(n, t, tt, an) \
     int _lua_get##n(lua_State *L) { \
-        LAPI_GET_ENTC(entity, "CAPI.get"#n, return 0) \
+        LAPI_GET_ENT(entity, "CAPI.get"#n, return 0) \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
         lua_push##tt(L, d->an); \
         return 1; \
     } \
     int _lua_set##n(lua_State *L) { \
-        LAPI_GET_ENTC(entity, "CAPI.set"#n, return 0) \
+        LAPI_GET_ENT(entity, "CAPI.set"#n, return 0) \
         t v = luaL_check##tt(L, 2); \
         fpsent *d = (fpsent*)entity->dynamicEntity; \
         assert(d); \
@@ -933,7 +933,7 @@ namespace lapi_binds
     #undef luaL_checkboolean
 
     int _lua_getdynent0(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.getdynent0", return 0)
+        LAPI_GET_ENT(entity, "CAPI.getdynent0", return 0)
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
         lua_createtable(L, 3, 0);
@@ -945,7 +945,7 @@ namespace lapi_binds
     }
 
     int _lua_setdynent0(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.setdynent0", return 0)
+        LAPI_GET_ENT(entity, "CAPI.setdynent0", return 0)
         luaL_checktype(L, 2, LUA_TTABLE);
         fpsent *d = (fpsent*)entity->dynamicEntity;
         assert(d);
@@ -973,7 +973,7 @@ namespace lapi_binds
 
     #define DYNENTVEC(name) \
         int _lua_getdynent##name(lua_State *L) { \
-            LAPI_GET_ENTC(entity, "CAPI.getdynent"#name, return 0) \
+            LAPI_GET_ENT(entity, "CAPI.getdynent"#name, return 0) \
             fpsent *d = (fpsent*)entity->dynamicEntity; \
             assert(d); \
             lua_createtable(L, 3, 0); \
@@ -983,7 +983,7 @@ namespace lapi_binds
             return 1; \
         } \
         int _lua_setdynent##name(lua_State *L) { \
-            LAPI_GET_ENTC(entity, "CAPI.setdynent"#name, return 0) \
+            LAPI_GET_ENT(entity, "CAPI.setdynent"#name, return 0) \
             fpsent *d = (fpsent*)entity->dynamicEntity; \
             assert(d); \
             lua_pushinteger(L, 1); lua_gettable(L, -2); \
@@ -1013,7 +1013,7 @@ namespace lapi_binds
 #endif
 
     int _lua_getplag(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.getplag", return 0)
+        LAPI_GET_ENT(entity, "CAPI.getplag", return 0)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
         lua_pushinteger(L, p->plag);
@@ -1021,7 +1021,7 @@ namespace lapi_binds
     }
 
     int _lua_getping(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.getping", return 0)
+        LAPI_GET_ENT(entity, "CAPI.getping", return 0)
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
         lua_pushinteger(L, p->ping);
@@ -1224,7 +1224,7 @@ namespace lapi_binds
     }
 
     int _lua_rendermodel(lua_State *L) {
-        LAPI_GET_ENTC(entity, "CAPI.rendermodel", return 0)
+        LAPI_GET_ENT(entity, "CAPI.rendermodel", return 0)
 
         int anim = luaL_checkinteger(L, 3);
         preparerd(L, anim, entity);
@@ -2036,7 +2036,7 @@ namespace lapi_binds
         return 2;
     }
 
-    void reg_base(lua::Table& t)
+    void reg_base(lua_State *L)
     {
         LAPI_REG(log);
         LAPI_REG(should_log);

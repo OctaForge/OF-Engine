@@ -16,21 +16,11 @@
 #include "of_world.h"
 #include "of_localserver.h"
 
-#define LAPI_REG(name) t[#name] = &_lua_##name
+#define LAPI_REG(name) \
+lua_pushcfunction(L, _lua_##name); \
+lua_setfield(L, -2, #name);
 
-#define LAPI_GET_ENT(name, tname, _log, retexpr) \
-int uid = tname.get<int>("uid"); \
-\
-CLogicEntity *name = LogicSystem::getLogicEntity(uid); \
-if (!name) \
-{ \
-    logger::log( \
-        logger::ERROR, "Cannot find CLE for entity %i (%s).\n", uid, _log \
-    ); \
-    retexpr; \
-}
-
-#define LAPI_GET_ENTC(name, _log, retexpr) \
+#define LAPI_GET_ENT(name, _log, retexpr) \
 lua_getfield(L, 1, "uid"); \
 int uid = lua_tointeger(L, -1); \
 lua_pop(L, 1); \
@@ -244,7 +234,9 @@ namespace lapi
         state["OF_CFG_VERSION"] = OF_CFG_VERSION;
 
         lua::Table api_all = state.new_table();
-        lapi_binds::reg_base(api_all);
+        api_all.push();
+        lapi_binds::reg_base(L);
+        lua_pop(L, 1);
         state.register_module("CAPI", api_all);
         load_module("init");
     }
