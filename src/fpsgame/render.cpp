@@ -19,7 +19,11 @@ namespace game
             return;
         }
 
-        lapi::state.get<lua::Function>("external", "game_render")(isthirdperson());
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "game_render");
+        lua_remove     (lapi::L, -2);
+        lua_pushboolean(lapi::L, isthirdperson());
+        lua_call       (lapi::L, 1, 0);
     }
 
     int swaymillis = 0;
@@ -41,7 +45,10 @@ namespace game
 
     void renderavatar()
     {
-        lapi::state.get<lua::Function>("external", "game_render_hud")();
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "game_render_hud");
+        lua_remove     (lapi::L, -2);
+        lua_call       (lapi::L, 0, 0);
     }
 }
 

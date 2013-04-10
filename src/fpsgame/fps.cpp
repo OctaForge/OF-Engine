@@ -221,13 +221,19 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            lua::Table ent(lapi::state.get<lua::Object>("external", "entity_get").call<lua::Object>(d->uniqueId));
+            lua_getglobal  (lapi::L, "external");
+            lua_getfield   (lapi::L, -1, "entity_get");
+            lua_remove     (lapi::L, -2);
+            lua_pushinteger(lapi::L, d->uniqueId);
+            lua_call       (lapi::L, 1, 1);
 
-            lua::Table t = lapi::state.new_table(3);
-            t[1] = ent["position"]["x"];
-            t[2] = ent["position"]["y"];
-            t[3] = ent["position"]["z"];
-            ent[name] = t;
+            lua_createtable(lapi::L, 3, 0);
+            lua_getfield(lapi::L, -2, "position");
+            lua_getfield(lapi::L, -1, "x"); lua_rawseti(lapi::L, -3, 1);
+            lua_getfield(lapi::L, -1, "y"); lua_rawseti(lapi::L, -3, 2);
+            lua_getfield(lapi::L, -1, "z"); lua_rawseti(lapi::L, -3, 3);
+            lua_pop     (lapi::L,  1);
+            lua_setfield(lapi::L, -2, "position");
 #endif
         }
     }
@@ -363,7 +369,10 @@ namespace game
 
             // If triggering collisions can be done by the lua library code, use that
 
-            lapi::state.get<lua::Function>("external", "game_handle_triggers")();
+            lua_getglobal(lapi::L, "external");
+            lua_getfield (lapi::L, -1, "game_handle_triggers");
+            lua_remove   (lapi::L, -2);
+            lua_call     (lapi::L, 0, 0);
         }
 
         //==============================================
@@ -566,8 +575,12 @@ namespace game
 
     const char *scriptname(fpsent *d)
     {
-        const char *ret = lapi::state.get<lua::Function>("external", "entity_get"
-        ).call<lua::Table>(LogicSystem::getUniqueId(d)).get<const char*>("character_name");
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "entity_get");
+        lua_pushinteger(lapi::L, LogicSystem::getUniqueId(d));
+        lua_call       (lapi::L, 1, 1);
+        lua_getfield   (lapi::L, -1, "character_name");
+        const char *ret = lua_tostring(lapi::L, -1); lua_pop(lapi::L, 3);
         return ret;
     }
 
