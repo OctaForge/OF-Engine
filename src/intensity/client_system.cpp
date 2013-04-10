@@ -87,8 +87,13 @@ bool ClientSystem::scenarioStarted()
     // If not already started, test if indeed started
     if (_mapCompletelyReceived && !_scenarioStarted)
     {
-        if (lapi::L)
-            _scenarioStarted = lapi::state.get<lua::Function>("external", "scene_is_ready").call<bool>();
+        if (lapi::L) {
+            lua_getglobal(lapi::L, "external");
+            lua_getfield (lapi::L, -1, "scene_is_ready");
+            lua_call     (lapi::L,  0, 1);
+            _scenarioStarted = lua_toboolean(lapi::L, -1);
+            lua_pop(lapi::L, 2);
+        }
     }
 
     return _mapCompletelyReceived && _scenarioStarted;
@@ -99,16 +104,21 @@ void ClientSystem::frameTrigger(int curtime)
     if (scenarioStarted())
     {
         float delta = float(curtime)/1000.0f;
+        lua_getglobal(lapi::L, "external");
 
         /* turn if mouse is at borders */
-        auto t = lapi::state.get<lua::Function>("external",
-            "cursor_get_position").call<float, float>();
+        lua_getfield (lapi::L, -1, "cursor_get_position");
+        lua_call     (lapi::L,  0, 2);
 
-        float x = types::get<0>(t);
-        float y = types::get<1>(t);
+        float x = lua_tonumber(lapi::L, -2);
+        float y = lua_tonumber(lapi::L, -1);
+        lua_pop(lapi::L, 2);
 
-        bool b = lapi::state.get<lua::Function>("external",
-            "cursor_exists").call<bool>();
+        lua_getfield (lapi::L, -1, "cursor_exists");
+        lua_call     (lapi::L,  0, 1);
+
+        bool b = lua_toboolean(lapi::L, -1);
+        lua_pop(lapi::L, 2); /* also pop external */
 
         /* do not scroll with mouse */
         if (b) x = y = 0.5;
@@ -153,7 +163,9 @@ void ClientSystem::finishLoadWorld()
 
     ClientSystem::editingAlone = false; // Assume not in this mode
 
-    lapi::state.get<lua::Function>("external", "gui_clear")(); // (see prepareForMap)
+    lua_getglobal(lapi::L, "external");
+    lua_getfield (lapi::L, -1, "gui_clear");
+    lua_call     (lapi::L,  0, 0); lua_pop(lapi::L, 1); // (see prepareForMap)
 }
 
 void ClientSystem::prepareForNewScenario(const types::String& sc)

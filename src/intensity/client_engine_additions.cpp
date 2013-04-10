@@ -15,7 +15,9 @@ using namespace MessageSystem;
 // Input
 
 VARF(mouselook, 0, 1, 1, {
-    lapi::state.get<lua::Function>("external", "cursor_reset")();
+    lua_getglobal(lapi::L, "external");
+    lua_getfield (lapi::L, -1, "cursor_reset");
+    lua_call     (lapi::L,  0, 0); lua_pop(lapi::L, 1);
 })
 
 #define QUOT(arg) #arg
@@ -36,11 +38,13 @@ void mouse##num##click() { \
     int uid = -1; \
     if (tle && !tle->isNone()) uid = tle->getUniqueId(); \
 \
-    auto t = lapi::state.get<lua::Function>("external", "cursor_get_position") \
-        .call<float, float>(); \
+    lua_getglobal(lapi::L, "external"); \
+    lua_getfield (lapi::L, -1, "cursor_get_position"); \
+    lua_call     (lapi::L,  0, 2); \
 \
-    float x = types::get<0>(t); \
-    float y = types::get<1>(t); \
+    float x = lua_tonumber(lapi::L, -2); \
+    float y = lua_tonumber(lapi::L, -1); \
+    lua_pop(lapi::L, 3); \
 \
     lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "Input"); \
     lua_getfield (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Client"); \
@@ -80,9 +84,12 @@ ICOMMAND(name, "", (), { \
 \
         s = (addreleaseaction(newstring(#name)) != 0); \
 \
-        lapi::state.get<lua::Function>( \
-            "LAPI", "Input", "Events", "Client", #v \
-        )((s ? d : (os ? -(d) : 0)), s); \
+        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "Input"); \
+        lua_getfield (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Client"); \
+        lua_getfield (lapi::L, -1, #v); \
+        lua_pushinteger(lapi::L, s ? d : (os ? -(d) : 0)); \
+        lua_pushboolean(lapi::L, s); \
+        lua_call(lapi::L, 2, 0); lua_pop(lapi::L, 4); \
     } \
 });
 
@@ -108,8 +115,10 @@ ICOMMAND(jump, "", (), {
 
         bool down = (addreleaseaction(newstring("jump")) != 0);
 
-        lapi::state.get<lua::Function>(
-            "LAPI", "Input", "Events", "Client", "jump"
-        )(down);
+        lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "Input");
+        lua_getfield (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Client");
+        lua_getfield (lapi::L, -1, "jump");
+        lua_pushboolean(lapi::L, down);
+        lua_call(lapi::L, 1, 0); lua_pop(lapi::L, 4);
     }
 });
