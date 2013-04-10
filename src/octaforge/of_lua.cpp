@@ -16,9 +16,7 @@
 #include "of_world.h"
 #include "of_localserver.h"
 
-#define LAPI_REG(name) \
-lua_pushcfunction(L, _lua_##name); \
-lua_setfield(L, -2, #name);
+#define LAPI_REG(name) LUACOMMAND(name, _lua_##name)
 
 #define LAPI_GET_ENT(name, _log, retexpr) \
 lua_getfield(L, 1, "uid"); \
@@ -49,7 +47,6 @@ namespace lua
 {
     lua_State *L = NULL;
     types::String mod_dir;
-    bool initialized;
 
     static int panic(lua_State *L) {
         fatal("error in call to the Lua API (%s)", lua_tostring(L, -1));
@@ -63,11 +60,31 @@ namespace lua
         return 1;
     }
 
+    struct Reg {
+        const char *name;
+        lua_CFunction fun;
+    };
+    typedef vector<Reg> cfuns;
+    static cfuns *funs = NULL;
+
+    bool reg_fun(const char *name, lua_CFunction fun, bool onst) {
+        if (!L) {
+            if (!funs) {
+                funs = new cfuns;
+            }
+            funs->add((Reg){ name, fun });
+            return true;
+        }
+        if (!onst) lua_getglobal(L, "CAPI");
+        lua_pushcfunction(L, fun);
+        lua_setfield(L, -2, name);
+        if (!onst) lua_pop(L, 1);
+        return true;
+    }
+
     void init(const char *dir)
     {
-        if (initialized) return;
-            initialized  = true;
-
+        if (L) return;
         mod_dir = dir;
 
         L = luaL_newstate();
@@ -147,8 +164,14 @@ namespace lua
 #endif
         lua_pushinteger(L, OF_CFG_VERSION); lua_setglobal(L, "OF_CFG_VERSION");
 
-        lua_createtable(L, 0, 0);
-        lapi_binds::reg_base(L);
+        assert(funs);
+        lua_createtable(L, funs->length(), 0);
+        loopv(*funs) {
+            const Reg& reg = (*funs)[i];
+            reg_fun(reg.name, reg.fun, true);
+        }
+        delete funs;
+        funs = NULL;
         lua_getfield (L, LUA_REGISTRYINDEX, "_LOADED");
         lua_pushvalue(L, -2); lua_setfield (L, -2, "CAPI");
         lua_pop      (L,  1);
