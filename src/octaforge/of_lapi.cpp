@@ -140,65 +140,47 @@ namespace lapi
     void setup_binds()
     {
 #ifdef CLIENT
-        state["CLIENT"] = true;
-        state["SERVER"] = false;
+        lua_pushboolean(L,  true); lua_setglobal(L, "CLIENT");
+        lua_pushboolean(L, false); lua_setglobal(L, "SERVER");
 #else
-        state["CLIENT"] = false;
-        state["SERVER"] = true;
+        lua_pushboolean(L, false); lua_setglobal(L, "CLIENT");
+        lua_pushboolean(L,  true); lua_setglobal(L, "SERVER");
 #endif
-        state["OF_CFG_VERSION"] = OF_CFG_VERSION;
+        lua_pushinteger(L, OF_CFG_VERSION); lua_setglobal(L, "OF_CFG_VERSION");
 
-        lua::Table api_all = state.new_table();
-        api_all.push();
+        lua_createtable(L, 0, 0);
         lapi_binds::reg_base(L);
-        lua_pop(L, 1);
-        state.register_module("CAPI", api_all);
+        lua_getfield (L, LUA_REGISTRYINDEX, "_LOADED");
+        lua_pushvalue(L, -2); lua_setfield (L, -2, "CAPI");
+        lua_pop      (L,  1);
+        lua_setglobal(L, "CAPI");
         load_module("init");
     }
 
-    void reset()
-    {
-        /*for (
-            Table::pit it = state.globals().pbegin();
-            it != state.globals().pend();
-            ++it
-        )
-        {
-            const char *key = (*it).first.to<const char*>();
-            if (!key) continue;
-
-            if (state.get<Function>(
-                "LAPI", "Library", "is_unresettable"
-            ).call<bool>(key)) continue;
-
-            Type type = (*it).second.type();
-            Object o(state.registry().get<Object>("_LOADED", key));
-
-            if (strcmp(key, "_G") && type == TYPE_TABLE && o.is_nil())
-                state[key] = nil;
-        }
-
-        state.get<Function>("LAPI", "Library", "reset")();
-
-        load_module("init");*/
-    }
+    void reset() {}
 
     bool load_library(const char *name)
     {
         if (!name || strstr(name, "..")) return false;
 
-        lua::Table package = state.registry().get<lua::Object>("_LOADED",
-            "package");
+        lua_getglobal(L, "package");
 
         types::String pattern = types::String()
             .format(";./data/library/%s/?.lua", name);
-        lua::Function find = state.get<lua::Object>("string", "find");
 
-        if (!find.call<lua::Object>(package["path"], pattern).is_nil())
+        lua_getglobal  (L, "string"); lua_getfield(L, -1, "find");
+        lua_getfield   (L, -3, "path"); 
+        lua_pushlstring(L, pattern.get_buf(), pattern.length());
+        lua_call       (L, 2, 1);
+
+        if (!lua_isnil(L, -1)) {
+            lua_pop(L, 3);
             return true;
+        }
+        lua_pop(L, 2);
 
         /* original path */
-        package["path"].push();
+        lua_getfield(L, -1, "path");
 
         /* home directory path */
         lua_pushfstring(
@@ -209,10 +191,8 @@ namespace lapi
         /* root path */
         lua_pushfstring(L, ";./data/library/%s/?.lua", name);
 
-        lua_concat(L,  3);
-        lua::Object str(L, -1);
-        lua_pop(L,  1);
-        package["path"] = str;
+        lua_concat  (L,  3);
+        lua_setfield(L, -2, "path");
 
         return true;
     }
