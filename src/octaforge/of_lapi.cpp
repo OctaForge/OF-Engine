@@ -310,37 +310,3 @@ namespace lapi
         return true;
     }
 } /* end namespace lapi */
-
-namespace lua {
-    void push(lua_State *L, bool v) {
-        lua_pushboolean(L, v);
-    }
-
-    void push(lua_State *L, lua_CFunction v) {
-        lua_pushcfunction(L, v);
-    }
-
-    void push(lua_State *L, const char *v) {
-        lua_pushstring(L, v);
-    }
-
-    void push(lua_State *L, lua_Number v) {
-        lua_pushnumber(L, v);
-    }
-
-    void push(lua_State *L, lua_Integer n) {
-        lua_pushinteger(L, n);
-    }
-
-    void push(lua_State *L, lua_CFunction f, int n) {
-        lua_pushcclosure(L, f, n);
-    }
-
-    void push(lua_State *L, const char *s, size_t l) {
-        lua_pushlstring(L, s, l);
-    }
-
-    void push(lua_State *L) {
-        lua_pushnil(L);
-    }
-}
