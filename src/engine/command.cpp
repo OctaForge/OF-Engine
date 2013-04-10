@@ -27,7 +27,8 @@ ident::~ident() {
 void ident::changed() {
     if (fun) fun();
     if (!(flags&IDF_SIGNAL)) return;
-    lapi::state.get<lua::Object>("signal", "emit").push();
+    lua_getglobal  (lapi::L, "signal"); lua_getfield(lapi::L, -1, "emit");
+    lua_remove     (lapi::L, -2);
     lua_getglobal  (lapi::L, "EV");
     lua_pushstring (lapi::L, name);
     lua_pushliteral(lapi::L, "_changed");

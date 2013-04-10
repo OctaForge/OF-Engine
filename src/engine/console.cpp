@@ -548,7 +548,9 @@ bool consolekey(int code, bool isdown)
 
 void processtextinput(const char *str, int len)
 {
-    lapi::state.get<lua::Function>("external", "input_text").push();
+    lua_getglobal  (lapi::L, "external");
+    lua_getfield   (lapi::L, -1, "input_text");
+    lua_remove     (lapi::L, -2);
     lua_pushlstring(lapi::L, str, len);
     lua_call(lapi::L, 1, 1);
     bool b = lua_toboolean(lapi::L, -1);
@@ -562,8 +564,13 @@ void processkey(int code, bool isdown)
     if(haskey && haskey->pressed) {
         execbind(*haskey, isdown); // allow pressed keys to release
     } else {
-        bool b = lapi::state.get<lua::Function>("external", "input_keypress")
-            .call<bool>(code, isdown);
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "input_keypress");
+        lua_remove     (lapi::L, -2);
+        lua_pushinteger(lapi::L, code);
+        lua_pushboolean(lapi::L, isdown);
+        lua_call       (lapi::L, 2, 1);
+        bool b = lua_toboolean(lapi::L, -1); lua_pop(lapi::L, 1);
 
         if (!b) { // gui mouse button intercept
             if(!consolekey(code, isdown))

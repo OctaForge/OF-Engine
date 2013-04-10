@@ -1031,9 +1031,19 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
-                lapi::state.get<lua::Function>("external", "entity_add_sauer")(
-                    (int)e.type, e.o.x, e.o.y, e.o.z, e.attr1, e.attr2, e.attr3, e.attr4, e.attr5
-                );
+                lua_getglobal  (lapi::L, "external");
+                lua_getfield   (lapi::L, -1, "entity_add_sauer");
+                lua_remove     (lapi::L, -2);
+                lua_pushinteger(lapi::L, e.type);
+                lua_pushnumber (lapi::L, e.o.x);
+                lua_pushnumber (lapi::L, e.o.y);
+                lua_pushnumber (lapi::L, e.o.z);
+                lua_pushinteger(lapi::L, e.attr1);
+                lua_pushinteger(lapi::L, e.attr2);
+                lua_pushinteger(lapi::L, e.attr3);
+                lua_pushinteger(lapi::L, e.attr4);
+                lua_pushinteger(lapi::L, e.attr5);
+                lua_call       (lapi::L, 9, 0);
                 break;
             default:
                 break;
@@ -1087,7 +1097,10 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     delete f;
 
 #ifdef CLIENT
-    lapi::state.get<lua::Function>("external", "gui_clear")();
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "gui_clear");
+        lua_remove     (lapi::L, -2);
+        lua_call       (lapi::L, 0, 0);
 #endif
 
     identflags |= IDF_OVERRIDDEN;

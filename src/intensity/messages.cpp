@@ -628,7 +628,6 @@ namespace MessageSystem
             EditingSystem::madeChanges = true;
 
         logger::log(logger::DEBUG, "Sending a message of type StateDataChangeRequest (1012)\r\n");
-        printf("VALUE: %s\n", value);
         INDENT_LOG(logger::DEBUG);
 
         game::addmsg(1012, "riis", uniqueId, keyProtocolId, value);
