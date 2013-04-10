@@ -183,13 +183,13 @@ struct LogicSystem
     //! Done only in initial preparation of an entity - never afterwards
     static void          setUniqueId(physent* dynamicEntity, int uniqueId);
 
-    static void setupExtent(const lua::Table& ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5);
+    static void setupExtent(int ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5);
 
-    static void setupCharacter(const lua::Table& ref);
+    static void setupCharacter(int ref);
 
-    static void setupNonSauer(const lua::Table& ref);
+    static void setupNonSauer(int ref);
 
-    static void dismantleExtent(const lua::Table& ref);
-    static void dismantleCharacter(const lua::Table& ref);
+    static void dismantleExtent(int ref);
+    static void dismantleCharacter(int ref);
 };
 

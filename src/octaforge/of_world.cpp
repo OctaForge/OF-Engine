@@ -155,9 +155,11 @@ namespace world
             PATHDIV, fname
         );
 
-        const char *data = lapi::state.get<lua::Function>(
-            "external", "entities_save_all"
-        ).call<const char*>();
+        lua_getglobal(lapi::L, "external");
+        lua_getfield (lapi::L, -1, "entities_save_all");
+        lua_call     (lapi::L,  0, 1);
+        const char *data = lua_tostring(lapi::L, -1);
+        lua_pop(lapi::L, 2);
         if (fileexists(buf.get_buf(), "r"))
         {
             types::String buff = types::String().format(
@@ -195,6 +197,9 @@ namespace world
 
     void run_mapscript()
     {
-        lapi::state.do_file(get_mapscript_filename(), lua::ERROR_EXIT_TRACEBACK);
+        if (luaL_loadfile(lapi::L, get_mapscript_filename().get_buf())
+        || lua_pcall(lapi::L, 0, 0, 0)) {
+            fatal("%s", lua_tostring(lapi::L, -1));
+        }
     }
 } /* end namespace world */

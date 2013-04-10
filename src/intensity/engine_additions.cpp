@@ -539,10 +539,13 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
     ((fpsent*)dynamicEntity)->uniqueId = uniqueId;
 }
 
-void LogicSystem::setupExtent(const lua::Table& ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5)
+void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5)
 {
-    int uniqueId = ref.get<int>("uid");
-    logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d,%d\r\n", uniqueId, type, x, y, z, attr1, attr2, attr3, attr4, attr5);
+    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lapi::L, -1, "uid");
+    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
+    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
+    logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d,%d\r\n", uid, type, x, y, z, attr1, attr2, attr3, attr4, attr5);
     INDENT_LOG(logger::DEBUG);
 
     extentity *e = new extentity;
@@ -562,48 +565,57 @@ void LogicSystem::setupExtent(const lua::Table& ref, int type, float x, float y,
     addentity(e);
     attachentity(*e);
 
-    LogicSystem::setUniqueId(e, uniqueId);
+    LogicSystem::setUniqueId(e, uid);
     LogicSystem::registerLogicEntity(e);
 }
 
-void LogicSystem::setupCharacter(const lua::Table& ref)
+void LogicSystem::setupCharacter(int ref)
 {
 //    #ifdef CLIENT
 //        assert(0); // until we figure this out
 //    #endif
 
-    int uniqueId = ref.get<int>("uid");
+    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lapi::L, -1, "uid");
+    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 1);
 
-    logger::log(logger::DEBUG, "setupCharacter: %d\r\n", uniqueId);
+    logger::log(logger::DEBUG, "setupCharacter: %d\r\n", uid);
     INDENT_LOG(logger::DEBUG);
 
     fpsent* fpsEntity;
 
-    int clientNumber = ref.get<int>("cn");
-    logger::log(logger::DEBUG, "(a) cn: %d\r\n", clientNumber);
+    lua_getfield(lapi::L, -1, "cn");
+    int cn = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 1);
+    logger::log(logger::DEBUG, "(a) cn: %d\r\n", cn);
 
     #ifdef CLIENT
-        logger::log(logger::DEBUG, "client numbers: %d, %d\r\n", ClientSystem::playerNumber, clientNumber);
+        logger::log(logger::DEBUG, "client numbers: %d, %d\r\n", ClientSystem::playerNumber, cn);
 
-        if (uniqueId == ClientSystem::uniqueId) ref["cn"] = ClientSystem::playerNumber;
+        if (uid == ClientSystem::uniqueId) {
+            lua_pushinteger(lapi::L, ClientSystem::playerNumber);
+            lua_setfield   (lapi::L, -2, "cn");
+        }
     #endif
 
-    logger::log(logger::DEBUG, "(b) cn: %d\r\n", clientNumber);
+    lua_pop(lapi::L, 1); // pop the entity
+    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
 
-    assert(clientNumber >= 0);
+    logger::log(logger::DEBUG, "(b) cn: %d\r\n", cn);
+
+    assert(cn >= 0);
 
     #ifdef CLIENT
     // If this is the player. There should already have been created an fpsent for this client,
     // which we can fetch with the valid client #
-    logger::log(logger::DEBUG, "UIDS: in ClientSystem %d, and given to us%d\r\n", ClientSystem::uniqueId, uniqueId);
+    logger::log(logger::DEBUG, "UIDS: in ClientSystem %d, and given to us%d\r\n", ClientSystem::uniqueId, uid);
 
-    if (uniqueId == ClientSystem::uniqueId)
+    if (uid == ClientSystem::uniqueId)
     {
         logger::log(logger::DEBUG, "This is the player, use existing clientnumber for fpsent (should use player1?) \r\n");
 
-        fpsEntity = game::getclient(clientNumber);
+        fpsEntity = game::getclient(cn);
 
-        // Wipe clean the uniqueId set for the fpsent, so we can re-use it.
+        // Wipe clean the uid set for the fpsent, so we can re-use it.
         fpsEntity->uniqueId = -77;
     }
     else
@@ -612,32 +624,38 @@ void LogicSystem::setupCharacter(const lua::Table& ref)
         logger::log(logger::DEBUG, "This is a remote client or NPC, do a newClient for the fpsent\r\n");
 
         // This is another client, perhaps NPC. Connect this new client using newClient
-        fpsEntity = game::newclient(clientNumber);
+        fpsEntity = game::newclient(cn);
     }
 
     // Register with the C++ system.
 
-    LogicSystem::setUniqueId(fpsEntity, uniqueId);
+    LogicSystem::setUniqueId(fpsEntity, uid);
     LogicSystem::registerLogicEntity(fpsEntity);
 }
 
-void LogicSystem::setupNonSauer(const lua::Table& ref)
+void LogicSystem::setupNonSauer(int ref)
 {
-    int uniqueId = ref.get<int>("uid");
+    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lapi::L, -1, "uid");
+    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
+    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
 
-    logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uniqueId);
+    logger::log(logger::DEBUG, "setupNonSauer: %d\r\n", uid);
     INDENT_LOG(logger::DEBUG);
 
-    LogicSystem::registerLogicEntityNonSauer(uniqueId);
+    LogicSystem::registerLogicEntityNonSauer(uid);
 }
 
-void LogicSystem::dismantleExtent(const lua::Table& ref)
+void LogicSystem::dismantleExtent(int ref)
 {
-    int uniqueId = ref.get<int>("uid");
+    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lapi::L, -1, "uid");
+    int uid = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
+    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
 
-    logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uniqueId);
+    logger::log(logger::DEBUG, "Dismantle extent: %d\r\n", uid);
 
-    extentity* extent = getLogicEntity(uniqueId)->staticEntity;
+    extentity* extent = getLogicEntity(uid)->staticEntity;
 #ifdef CLIENT
     if (extent->type == ET_SOUND) stopmapsound(extent);
 #endif
@@ -648,30 +666,34 @@ void LogicSystem::dismantleExtent(const lua::Table& ref)
                                                      // in clearents() in the next load_world.
 }
 
-void LogicSystem::dismantleCharacter(const lua::Table& ref)
+void LogicSystem::dismantleCharacter(int ref)
 {
-    int clientNumber = ref.get<int>("cn");
+    lua_rawgeti (lapi::L, LUA_REGISTRYINDEX, ref);
+    lua_getfield(lapi::L, -1, "cn");
+    int cn = lua_tointeger(lapi::L, -1); lua_pop(lapi::L, 2);
+    luaL_unref(lapi::L, LUA_REGISTRYINDEX, ref);
+
     #ifdef CLIENT
-    if (clientNumber == ClientSystem::playerNumber)
-        logger::log(logger::DEBUG, "Not dismantling own client\r\n", clientNumber);
+    if (cn == ClientSystem::playerNumber)
+        logger::log(logger::DEBUG, "Not dismantling own client\r\n", cn);
     else
     #endif
     {
-        logger::log(logger::DEBUG, "Dismantling other client %d\r\n", clientNumber);
+        logger::log(logger::DEBUG, "Dismantling other client %d\r\n", cn);
 
 #ifdef SERVER
-        fpsent* fpsEntity = game::getclient(clientNumber);
+        fpsent* fpsEntity = game::getclient(cn);
         bool isNPC = fpsEntity->serverControlled;
 #endif
 
-        game::clientdisconnected(clientNumber);
+        game::clientdisconnected(cn);
 
 #ifdef SERVER
         if (isNPC)
         {
             /* The server connections of NPCs are removed when they are dismantled -
              * they must be re-created manually in the new scenario, unlike players */
-            localdisconnect(true, clientNumber);
+            localdisconnect(true, cn);
         }
 #endif
     }

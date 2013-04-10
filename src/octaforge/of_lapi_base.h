@@ -687,31 +687,36 @@ namespace lapi_binds
     }
 
     int _lua_setupextent(lua_State *L) {
+        lua_pushvalue(L, 1);
         LogicSystem::setupExtent(
-            lua::Table(L, 1), luaL_checkinteger(L, 2), luaL_checknumber(L, 3),
-            luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+            luaL_ref(L, LUA_REGISTRYINDEX), luaL_checkinteger(L, 2),
+            luaL_checknumber(L, 3), luaL_checknumber(L, 4), luaL_checknumber(L, 5),
             luaL_checkinteger(L, 6), luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
             luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
         return 0;
     }
 
     int _lua_setupcharacter(lua_State *L) {
-        LogicSystem::setupCharacter(lua::Table(L, 1));
+        lua_pushvalue(L, 1);
+        LogicSystem::setupCharacter(luaL_ref(L, LUA_REGISTRYINDEX));
         return 0;
     }
 
     int _lua_setupnonsauer(lua_State *L) {
-        LogicSystem::setupNonSauer(lua::Table(L, 1));
+        lua_pushvalue(L, 1);
+        LogicSystem::setupNonSauer(luaL_ref(L, LUA_REGISTRYINDEX));
         return 0;
     }
 
     int _lua_dismantleextent(lua_State *L) {
-        LogicSystem::dismantleExtent(lua::Table(L, 1));
+        lua_pushvalue(L, 1);
+        LogicSystem::dismantleExtent(luaL_ref(L, LUA_REGISTRYINDEX));
         return 0;
     }
 
     int _lua_dismantlecharacter(lua_State *L) {
-        LogicSystem::dismantleCharacter(lua::Table(L, 1));
+        lua_pushvalue(L, 1);
+        LogicSystem::dismantleCharacter(luaL_ref(L, LUA_REGISTRYINDEX));
         return 0;
     }
 
@@ -1385,14 +1390,14 @@ namespace lapi_binds
         renderprogress(0.1f, "compiling scripts ..");
 
         types::String fname(world::get_mapscript_filename());
-
-        auto err = lapi::state.load_file(fname);
-        if (types::get<0>(err))
+        if (luaL_loadfile(L, fname.get_buf()))
         {
-            lapi::state.get<lua::Function>("LAPI", "GUI", "show_message")(
-                "Compilation failed", types::get<1>(err)
-            );
-            return 0;
+            lua_getglobal  (L, "LAPI"); lua_getfield(L, -1, "GUI");
+            lua_getfield   (L, -1, "show_message");
+            lua_pushliteral(L, "Compilation failed");
+            lua_pushvalue  (L, -5);
+            lua_call       (L,  2, 0); lua_pop(L, 2);
+            return 1;
         }
 
         renderprogress(0.3, "generating map ..");
