@@ -120,11 +120,17 @@ float CLogicEntity::getRadius()
 
 void CLogicEntity::setOrigin(vec &newOrigin)
 {
-    lua::Table t = lapi::state.new_table(3);
-    t[0] = newOrigin.x; t[1] = newOrigin.y; t[2] = newOrigin.z;
-    lapi::state.get<lua::Function>(
-        "external", "entity_get"
-    ).call<lua::Table>(getUniqueId())["position"] = t;
+    lua_getglobal  (lapi::L, "external");
+    lua_getfield   (lapi::L, -1, "entity_get");
+    lua_pushinteger(lapi::L, getUniqueId());
+    lua_call       (lapi::L, 1, 1);
+
+    lua_createtable(lapi::L, 3, 0);
+    lua_pushnumber (lapi::L, newOrigin.x); lua_rawseti(lapi::L, -2, 1);
+    lua_pushnumber (lapi::L, newOrigin.y); lua_rawseti(lapi::L, -2, 2);
+    lua_pushnumber (lapi::L, newOrigin.z); lua_rawseti(lapi::L, -2, 3);
+    lua_setfield   (lapi::L, -2, "position");
+    lua_pop        (lapi::L,  2);
 }
 
 int CLogicEntity::getAnimation()
@@ -364,7 +370,9 @@ void LogicSystem::clear(bool restart_lua)
 
     if (lapi::L)
     {
-        lapi::state.get<lua::Function>("external", "entities_remove_all")();
+        lua_getglobal(lapi::L, "external");
+        lua_getfield (lapi::L, -1, "entities_remove_all");
+        lua_call     (lapi::L,  0, 0); lua_pop(lapi::L, 1);
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
 
         if (restart_lua) lapi::reset();
@@ -469,10 +477,13 @@ void LogicSystem::manageActions(long millis)
     logger::log(logger::INFO, "manageActions: %d\r\n", millis);
     INDENT_LOG(logger::INFO);
 
-    if (lapi::L)
-        lapi::state.get<lua::Function>("external", "frame_handle")(
-            double(millis) / 1000.0f, lastmillis
-        );
+    if (lapi::L) {
+        lua_getglobal  (lapi::L, "external");
+        lua_getfield   (lapi::L, -1, "frame_handle");
+        lua_pushnumber (lapi::L, double(millis) / 1000.0f);
+        lua_pushinteger(lapi::L, lastmillis);
+        lua_call       (lapi::L,  2, 0); lua_pop(lapi::L, 1);
+    }
 
     logger::log(logger::INFO, "manageActions complete\r\n");
 }
