@@ -2008,7 +2008,10 @@ namespace lapi_binds
 
     int _lua_get_all_map_names(lua_State *L) {
         lua_createtable(L, 0, 0);
-        File_Info path = join_path("data", "maps");
+
+        types::String  p = "data/maps";
+        normalize_path(p);
+        File_Info path(p);
         size_t       i = 1;
         for (File_Info::it it = path.begin(); it != path.end(); ++it)
         {
@@ -2020,8 +2023,13 @@ namespace lapi_binds
                 ++i;
             }
         }
+
         lua_createtable(L, 0, 0);
-        path = join_path(homedir, "data", "maps");
+
+        p = homedir;
+        p += "/data/maps";
+        normalize_path(p);
+        path = File_Info(p);
         i    = 1;
         for (File_Info::it it = path.begin(); it != path.end(); ++it)
         {

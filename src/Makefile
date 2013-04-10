@@ -248,7 +248,7 @@ endif
 ####################
 
 CLIENT_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DCLIENT \
+	-fsigned-char -fno-exceptions -fno-rtti -DOFTL_NOCXX11 -DCLIENT \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
 CLIENT_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUAJIT_PATH) \
@@ -353,8 +353,8 @@ CLIENT_OBJB = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 ####################
 
 SERVER_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
-	-fsigned-char -fno-exceptions -fno-rtti -std=c++0x -DSERVER -DSTANDALONE \
-	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
+	-fsigned-char -fno-exceptions -fno-rtti -DOFTL_NOCXX11 -DSERVER \
+	-DSTANDALONE -DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
 SERVER_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -L$(OBJDIR)/$(LUAJIT_PATH) \
 	-lenet -lluajit
