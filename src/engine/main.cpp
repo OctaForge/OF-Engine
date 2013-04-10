@@ -1254,9 +1254,7 @@ int main(int argc, char **argv)
     execfile("data/cfg/keymap.cfg");
     execfile("data/cfg/stdedit.cfg");
     execfile("data/cfg/sounds.cfg");
-    if (luaL_loadfile(lapi::L, "data/cfg/menus.lua") || lua_pcall(lapi::L, 0, 0, 0)) {
-        fatal("%s", lua_tostring(lapi::L, -1));
-    }
+    tools::execfile("data/cfg/menus.lua");
     execfile("data/cfg/brush.cfg");
     execfile("mybrushes.cfg");
     if (game::savedservers()) execfile(game::savedservers(), false);

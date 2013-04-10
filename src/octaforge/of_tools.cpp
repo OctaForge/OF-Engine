@@ -164,10 +164,19 @@ namespace tools
         char *buf = loadfile(path(s), NULL);
         if(!buf)
         {
-            if(msg) conoutf(CON_ERROR, "could not read \"%s\"", cfgfile);
+            if(msg) {
+                logger::log(logger::ERROR, "could not read \"%s\"", cfgfile);
+            }
             return false;
         }
-        lapi::state.do_string(buf);
+        if (luaL_loadstring(lapi::L, buf) || lua_pcall(lapi::L, 0, 0, 0)) {
+            if (msg) {
+                logger::log(logger::ERROR, "%s\n", lua_tostring(lapi::L, -1));
+            }
+            lua_pop(lapi::L, 1);
+            delete[] buf;
+            return false;
+        }
         delete[] buf;
         return true;
     }
