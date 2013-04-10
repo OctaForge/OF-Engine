@@ -997,7 +997,11 @@ namespace MessageSystem
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            lua::Table t = lapi::state.new_table();
+            lua_getglobal  (lapi::L, "external");
+            lua_getfield   (lapi::L, -1, "entity_add");
+            lua_pushstring (lapi::L, otherClass.get_buf());
+            lua_pushinteger(lapi::L, otherUniqueId);
+            lua_createtable(lapi::L, 0, 0);
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
             {
                 #ifdef CLIENT
@@ -1009,9 +1013,10 @@ namespace MessageSystem
                         assert(otherClientNumber == ClientSystem::playerNumber);
                     }
                 #endif
-                t["cn"] = otherClientNumber;
+                lua_pushinteger(lapi::L, otherClientNumber);
+                lua_setfield   (lapi::L, -2, "cn");
             }
-            lapi::state.get<lua::Function>("external", "entity_add")(otherClass, otherUniqueId, t);
+            lua_call(lapi::L, 3, 0); lua_pop(lapi::L, 1); // external
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
@@ -1037,7 +1042,9 @@ namespace MessageSystem
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
-                lapi::state.get<lua::Function>("external", "player_init")(ClientSystem::uniqueId);
+                lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "player_init");
+                lua_pushinteger(lapi::L, ClientSystem::uniqueId);
+                lua_call       (lapi::L, 1, 0); lua_pop(lapi::L, 1);
             }
         #endif
         // Events post-reception
@@ -1071,7 +1078,9 @@ namespace MessageSystem
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lapi::state.get<lua::Function>("external", "entity_remove")(uniqueId);
+        lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "entity_remove");
+        lua_pushinteger(lapi::L, uniqueId);
+        lua_call       (lapi::L, 1, 0); lua_pop(lapi::L, 1);
     }
 #endif
 
@@ -1131,7 +1140,9 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        lapi::state.get<lua::Function>("external", "entity_remove")(uniqueId);
+        lua_getglobal  (lapi::L, "external"); lua_getfield(lapi::L, -1, "entity_remove");
+        lua_pushinteger(lapi::L, uniqueId);
+        lua_call       (lapi::L, 1, 0); lua_pop(lapi::L, 1);
     }
 #endif
 
@@ -1212,13 +1223,27 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            const char *sauerType = lapi::state.get<lua::Function>("external", "entity_class_sauer_type_get").call<const char*>(otherClass);
+            lua_getglobal  (lapi::L, "external");
+            lua_getfield   (lapi::L, -1, "entity_class_sauer_type_get");
+            lua_pushlstring(lapi::L, otherClass.get_buf(), otherClass.length());
+            lua_call       (lapi::L, 1, 1);
+            const char *sauerType = lua_tostring(lapi::L, -1); lua_pop(lapi::L, 1);
 
-            lua::Table t = lapi::state.new_table(0, 8);
-            t["_type"] = findtype((char*)sauerType);
-            t["x"] = x; t["y"] = y; t["z"] = z;
-            t["attr1"] = attr1; t["attr2"] = attr2; t["attr3"] = attr3; t["attr4"] = attr4; t["attr5"] = attr5;
-            lapi::state.get<lua::Function>("external", "entity_add")(otherClass, otherUniqueId, t);
+            lua_getfield   (lapi::L, -1, "entity_add"); lua_remove(lapi::L, -2);
+            lua_pushlstring(lapi::L, otherClass.get_buf(), otherClass.length());
+            lua_pushinteger(lapi::L, otherUniqueId);
+            lua_createtable(lapi::L, 0, 9);
+            lua_pushinteger(lapi::L, findtype((char*)sauerType));
+            lua_setfield   (lapi::L, -2, "_type");
+            lua_pushnumber (lapi::L, x); lua_setfield(lapi::L, -2, "x");
+            lua_pushnumber (lapi::L, y); lua_setfield(lapi::L, -2, "y");
+            lua_pushnumber (lapi::L, z); lua_setfield(lapi::L, -2, "z");
+            lua_pushinteger(lapi::L, attr1); lua_setfield(lapi::L, -2, "attr1");
+            lua_pushinteger(lapi::L, attr2); lua_setfield(lapi::L, -2, "attr2");
+            lua_pushinteger(lapi::L, attr3); lua_setfield(lapi::L, -2, "attr3");
+            lua_pushinteger(lapi::L, attr4); lua_setfield(lapi::L, -2, "attr4");
+            lua_pushinteger(lapi::L, attr5); lua_setfield(lapi::L, -2, "attr5");
+            lua_call(lapi::L, 3, 0);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else
