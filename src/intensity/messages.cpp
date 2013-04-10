@@ -609,7 +609,12 @@ namespace MessageSystem
                 if (!LogicSystem::initialized) \
                     return; \
                 \
-                lapi::state.get<lua::Function>("external", "entity_set_sdata")(uniqueId, keyProtocolId, value);
+                lua_getglobal  (lapi::L, "external"); \
+                lua_getfield   (lapi::L, -1, "entity_set_sdata"); \
+                lua_pushinteger(lapi::L, uniqueId); \
+                lua_pushinteger(lapi::L, keyProtocolId); \
+                lua_pushstring (lapi::L, value.get_buf()); \
+                lua_call       (lapi::L, 3, 0); lua_pop(lapi::L, 1);
         #endif
         STATE_DATA_UPDATE
     }
@@ -652,7 +657,13 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        lapi::state.get<lua::Function>("external", "entity_set_sdata")(uniqueId, keyProtocolId, value, actorUniqueId);
+        lua_getglobal  (lapi::L, "external"); \
+        lua_getfield   (lapi::L, -1, "entity_set_sdata"); \
+        lua_pushinteger(lapi::L, uniqueId); \
+        lua_pushinteger(lapi::L, keyProtocolId); \
+        lua_pushstring (lapi::L, value.get_buf()); \
+        lua_pushinteger(lapi::L, actorUniqueId); \
+        lua_call       (lapi::L,  4, 0); lua_pop(lapi::L, 1);
         STATE_DATA_REQUEST
     }
 #endif
@@ -889,13 +900,21 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            lapi::state.get<lua::Function>("external", "entities_send_all")(sender);
+            lua_getglobal  (lapi::L, "external");
+            lua_getfield   (lapi::L, -1, "entities_send_all");
+            lua_pushinteger(lapi::L, sender);
+            lua_call       (lapi::L,  1, 0);
+
             MessageSystem::send_AllActiveEntitiesSent(sender);
-            lapi::state.get<lua::Function>("LAPI", "World", "Events", "Server", "player_login")(
-                lapi::state.get<lua::Function>(
-                    "external", "entity_get"
-                ).call<lua::Object>(server::getUniqueId(sender))
-            );
+            lua_getglobal(lapi::L, "LAPI"); lua_getfield(lapi::L, -1, "World");
+            lua_getfield (lapi::L, -1, "Events"); lua_getfield(lapi::L, -1, "Server");
+            lua_getfield (lapi::L, -1, "player_login");
+
+            lua_getfield   (lapi::L, -6, "entity_get"); // external
+            lua_pushinteger(lapi::L, server::getUniqueId(sender));
+            lua_call       (lapi::L, 1, 1); // entity_get
+            lua_call       (lapi::L, 1, 0); // player_login
+            lua_pop        (lapi::L, 5); // external, LAPI, World, Events, Server
         #else // CLIENT
             // Send just enough info for the player's LE
             send_LogicEntityCompleteNotification( sender,
