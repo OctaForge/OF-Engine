@@ -160,6 +160,18 @@ void getstring(types::String& text, ucharbuf &p, int len)
     text.format("%s", text.get_buf());
 }
 
+void getstring(char *text, ucharbuf &p, int len)
+{
+    char *t = text;
+    do
+    {
+        if(t>=&text[len]) { text[len-1] = 0; return; }
+        if(!p.remaining()) { *t = 0; return; }
+        *t = getint(p);
+    }
+    while(*t++);
+}
+
 void filtertext(char *dst, const char *src, bool whitespace, int len)
 {
     for(int c = uchar(*src); c; c = uchar(*++src))
