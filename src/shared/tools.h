@@ -1100,6 +1100,9 @@ static inline uchar uni2cube(int c)
 extern int decodeutf8(uchar *dst, int dstlen, const uchar *src, int srclen, int *carry = NULL);
 extern int encodeutf8(uchar *dstbuf, int dstlen, const uchar *srcbuf, int srclen, int *carry = NULL);
 
+/* OF: added filter, flags to listdir, listfiles + FTYPE_* and LIST_* */
+enum { FTYPE_FILE = 1<<0, FTYPE_DIR = 1<<1 };
+enum { LIST_ROOT = 1<<0, LIST_HOMEDIR = 1<<1, LIST_PACKAGE = 1<<2, LIST_ZIP = 1<<3 };
 extern char *makerelpath(const char *dir, const char *file, const char *prefix = NULL, const char *cmd = NULL);
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
@@ -1117,8 +1120,9 @@ extern stream *opentempfile(const char *filename, const char *mode);
 extern stream *opengzfile(const char *filename, const char *mode, stream *file = NULL, int level = Z_BEST_COMPRESSION);
 extern stream *openutf8file(const char *filename, const char *mode, stream *file = NULL);
 extern char *loadfile(const char *fn, int *size, bool utf8 = true);
-extern bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files);
-extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
+extern bool listdir(const char *dir, bool rel, const char *ext, vector<char *> &files, int filter = FTYPE_FILE|FTYPE_DIR);
+extern int listfiles(const char *dir, const char *ext, vector<char *> &files, int filter = FTYPE_FILE|FTYPE_DIR,
+    int flags = LIST_ROOT|LIST_HOMEDIR|LIST_PACKAGE|LIST_ZIP);
 extern int listzipfiles(const char *dir, const char *ext, vector<char *> &files);
 extern void seedMT(uint seed);
 extern uint randomMT();

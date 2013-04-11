@@ -412,7 +412,8 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
-bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &files)
+/* OF: added filter, flags to listdir, listfiles + FTYPE_* and LIST_* */
+bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &files, int filter)
 {
     int extsize = ext ? (int)strlen(ext)+1 : 0;
     #ifdef WIN32
@@ -422,6 +423,15 @@ bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &fil
     if(Find != INVALID_HANDLE_VALUE)
     {
         do {
+            defformatstring(fpath)("%s\\%s", pathname, FindFileData.cFileName);
+            WIN32_FILE_ATTRIBUTE_DATA attr;
+            GetFileAttributesEx(fpath, GetFileExInfoStandard, &attr);
+            bool isdir = (attr.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY);
+            if (isdir) {
+                if (!(filter&FTYPE_DIR)) continue;
+            } else {
+                if (!(filter&FTYPE_FILE)) continue;
+            }
             if(!ext) files.add(newstring(FindFileData.cFileName));
             else
             {
@@ -441,6 +451,15 @@ bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &fil
         struct dirent *de;
         while((de = readdir(d)) != NULL)
         {
+            defformatstring(fpath)("%s/%s", pathname, de->d_name);
+            struct stat info;
+            stat(fpath, &info);
+            bool isdir = S_ISDIR(info.st_mode);
+            if (isdir) {
+                if (!(filter&FTYPE_DIR)) continue;
+            } else {
+                if (!(filter&FTYPE_FILE)) continue;
+            }
             if(!ext) files.add(newstring(de->d_name));
             else
             {
@@ -456,31 +475,32 @@ bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &fil
     else return false;
 }
 
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
+int listfiles(const char *dir, const char *ext, vector<char *> &files, int filter, int flags)
 {
+    if (!flags) flags = LIST_ROOT|LIST_HOMEDIR|LIST_PACKAGE|LIST_ZIP;
     string dirname;
     copystring(dirname, dir);
     path(dirname);
     int dirlen = (int)strlen(dirname);
     while(dirlen > 1 && dirname[dirlen-1] == PATHDIV) dirname[--dirlen] = '\0';
     int dirs = 0;
-    if(listdir(dirname, true, ext, files)) dirs++;
+    if((flags&LIST_ROOT) && listdir(dirname, true, ext, files, filter)) dirs++;
     string s;
-    if(homedir[0])
+    if((flags&LIST_HOMEDIR) && homedir[0])
     {
         formatstring(s)("%s%s", homedir, dirname);
-        if(listdir(s, false, ext, files)) dirs++;
+        if(listdir(s, false, ext, files, filter)) dirs++;
     }
-    loopv(packagedirs)
+    if (flags&LIST_PACKAGE) loopv(packagedirs)
     {
         packagedir &pf = packagedirs[i];
         if(pf.filter && strncmp(dirname, pf.filter, dirlen == pf.filterlen-1 ? dirlen : pf.filterlen))
             continue;
         formatstring(s)("%s%s", pf.dir, dirname);
-        if(listdir(s, false, ext, files)) dirs++;
+        if(listdir(s, false, ext, files, filter)) dirs++;
     }
 #ifndef STANDALONE
-    dirs += listzipfiles(dirname, ext, files);
+    if (flags&LIST_ZIP) dirs += listzipfiles(dirname, ext, files);
 #endif
     return dirs;
 }

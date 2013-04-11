@@ -1990,40 +1990,34 @@ namespace lapi_binds
     }
 
     int _lua_get_all_map_names(lua_State *L) {
-        lua_createtable(L, 0, 0);
-
-        types::String  p = "data/maps";
-        normalize_path(p);
-        File_Info path(p);
-        size_t       i = 1;
-        for (File_Info::it it = path.begin(); it != path.end(); ++it)
-        {
-            if (it->type() == OFTL_FILE_DIR)
-            {
-                lua_pushinteger(L, i);
-                lua_pushstring (L, it->filename().get_buf());
-                lua_settable   (L, -3);
-                ++i;
-            }
-        }
+        vector<char*> dirs;
 
         lua_createtable(L, 0, 0);
-
-        p = homedir;
-        p += "/data/maps";
-        normalize_path(p);
-        path = File_Info(p);
-        i    = 1;
-        for (File_Info::it it = path.begin(); it != path.end(); ++it)
-        {
-            if (it->type() == OFTL_FILE_DIR)
-            {
-                lua_pushinteger(L, i);
-                lua_pushstring (L, it->filename().get_buf());
-                lua_settable   (L, -3);
-                ++i;
-            }
+        listfiles("data/maps", NULL, dirs, FTYPE_DIR, LIST_ROOT);
+        loopv(dirs) {
+            char *dir = dirs[i];
+            lua_pushstring(L, dir);
+            lua_rawseti(L, -2, i + 1);
+            delete[] dir;
         }
+
+        dirs.setsize(0);
+
+        lua_createtable(L, 0, 0);
+        listfiles("data/maps", NULL, dirs,
+            FTYPE_DIR, LIST_HOMEDIR|LIST_PACKAGE|LIST_ZIP);
+        loopv(dirs) {
+            char *dir = dirs[i];
+            /* redundancy check - we're taking multiple source directories,
+             * there is a high possibility of duplicate entries */
+            bool r = false;
+            loopj(i) if (!strcmp(dirs[j], dir)) { r = true; break; }
+            if (r) { delete[] dir; continue; }
+            lua_pushstring(L, dir);
+            lua_rawseti(L, -2, i + 1);
+            delete[] dir;
+        }
+
         return 2;
     }
 
