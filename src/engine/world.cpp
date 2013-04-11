@@ -1303,7 +1303,7 @@ COMMAND(shrinkmap, "");
 
 void mapname()
 {
-    result(game::getclientmap().get_buf());
+    result(game::getclientmap());
 }
 
 COMMAND(mapname, "");

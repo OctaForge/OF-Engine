@@ -66,11 +66,11 @@ void setmapfilenames(const char *fname, const char *cname = 0)
 
 void mapcfgname()
 {
-    types::String mname(game::getclientmap());
-    if (mname.is_empty()) mname = "untitled";
+    const char *mname = game::getclientmap();
+    if (!mname[0]) mname = "untitled";
 
     string pakname, mapname, mcfgname;
-    getmapfilenames(mname.get_buf(), NULL, pakname, mapname, mcfgname);
+    getmapfilenames(mname, NULL, pakname, mapname, mcfgname);
 
     defformatstring(cfgname)("data/%s/%s.lua", pakname, mcfgname);
     path(cfgname);
@@ -699,9 +699,8 @@ void loadvslots(stream *f, int numvslots)
 bool save_world(const char *mname, bool nolms)
 {
 #ifdef CLIENT
-    types::String map_name(mname);
-    if (map_name.is_empty()) map_name = game::getclientmap();
-    setmapfilenames(!map_name.is_empty() ? map_name.get_buf() : "untitled");
+    if (!mname || !mname[0]) mname = game::getclientmap();
+    setmapfilenames(mname[0] ? mname : "untitled");
     if(savebak) backup(ogzname, bakname);
     stream *f = opengzfile(ogzname, "wb");
     if(!f) { conoutf(CON_WARN, "could not write map to %s", ogzname); return false; }

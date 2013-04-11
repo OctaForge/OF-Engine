@@ -1042,16 +1042,44 @@ bool matchanim(const char *name, const char *pattern)
 void findanims(const char *pattern, vector<int> &anims)
 {
     loopi(sizeof(animnames)/sizeof(animnames[0])) if(matchanim(animnames[i], pattern)) anims.add(i);
-    types::String buf;
+    string num;
 
     // INTENSITY: Accept integer values as well, up to 128 of them
     loopi(ANIM_ALL+1)
     {
-        buf.format("%i", i);
-        if(matchanim(buf.get_buf(), pattern)) anims.add(i);
+        formatstring(num)("%d", i);
+        if(matchanim(num, pattern)) anims.add(i);
     }
     // INTENSITY: End Accept integer values as well
 }
+
+ICOMMAND(findanims, "s", (char *name),
+{
+    vector<int> anims;
+    findanims(name, anims);
+    vector<char> buf;
+    string num;
+    loopv(anims)
+    {
+        formatstring(num)("%d", anims[i]);
+        if(i > 0) buf.add(' ');
+        buf.put(num, strlen(num));
+    }
+    buf.add('\0');
+    result(buf.getbuf());
+});
+
+LUAICOMMAND(findanims, {
+    vector<int> anims;
+    findanims(luaL_checkstring(L, 1), anims);
+    lua_createtable(L, anims.length(), 0);
+    for (int i = 0; i < anims.length(); ++i) {
+        lua_pushinteger(L, i + 1);
+        lua_pushinteger(L, anims[i]);
+        lua_settable   (L, -3);
+    }
+    return 1;
+});
 
 void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks) // model skin sharing
 {

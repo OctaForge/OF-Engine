@@ -1295,24 +1295,11 @@ namespace lapi_binds
         lua_remove(L, -2);
         return 1;
     }
-
-    int _lua_findanims(lua_State *L) {
-        vector<int> anims;
-        findanims(luaL_checkstring(L, 1), anims);
-        lua_createtable(L, anims.length(), 0);
-        for (int i = 0; i < anims.length(); ++i) {
-            lua_pushinteger(L, i + 1);
-            lua_pushinteger(L, anims[i]);
-            lua_settable   (L, -3);
-        }
-        return 1;
-    }
 #else
     LAPI_EMPTY(rendermodel)
     LAPI_EMPTY(scriptmdlbb)
     LAPI_EMPTY(scriptmdlcb)
     LAPI_EMPTY(mdlmesh)
-    LAPI_EMPTY(findanims)
 #endif
 
     /* network */
@@ -1401,7 +1388,7 @@ namespace lapi_binds
         }
 
         renderprogress(0.3, "generating map ..");
-        save_world(game::getclientmap().get_buf());
+        save_world(game::getclientmap());
 
         renderprogress(0.4, "exporting entities ..");
         world::export_ents("entities.lua");
@@ -2293,7 +2280,6 @@ namespace lapi_binds
     LAPI_REG(scriptmdlbb);
     LAPI_REG(scriptmdlcb);
     LAPI_REG(mdlmesh);
-    LAPI_REG(findanims);
 
     /* network */
     LAPI_REG(connect);

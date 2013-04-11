@@ -681,7 +681,7 @@ void dumpblendtexs()
         BlendTexture &bt = blendtexs[i];
         if(!bt.size || !bt.valid) continue;
         ImageData temp(bt.size, bt.size, 1, blendtexs[i].data);
-        const char *map = game::getclientmap().get_buf(), *name = strrchr(map, '/');
+        const char *map = game::getclientmap(), *name = strrchr(map, '/');
         defformatstring(buf)("blendtex_%s_%d.png", name ? name+1 : map, i);
         savepng(buf, temp, true);
     }
