@@ -289,93 +289,93 @@ namespace lapi_binds
     }
 
 #ifdef CLIENT
-    int _lua_varray_begin(lua_State *L) { varray::begin((uint)luaL_checkinteger(L, 1)); return 0; }
-    int _lua_varray_end(lua_State *L) { lua_pushinteger(L, varray::end()); return 1; }
-    int _lua_varray_disable(lua_State *L) { varray::disable(); return 0; }
+    int _lua_gle_begin(lua_State *L) { gle::begin((uint)luaL_checkinteger(L, 1)); return 0; }
+    int _lua_gle_end(lua_State *L) { lua_pushinteger(L, gle::end()); return 1; }
+    int _lua_gle_disable(lua_State *L) { gle::disable(); return 0; }
 
-    #define EAPI_VARRAY_DEFATTRIB(name) \
-        int _lua_varray_def##name(lua_State *L) { varray::def##name(luaL_checkinteger(L, 1), GL_FLOAT); return 0; }
+    #define EAPI_GLE_DEFATTRIB(name) \
+        int _lua_gle_def##name(lua_State *L) { gle::def##name(luaL_checkinteger(L, 1), GL_FLOAT); return 0; }
 
-    EAPI_VARRAY_DEFATTRIB(vertex)
-    EAPI_VARRAY_DEFATTRIB(color)
-    EAPI_VARRAY_DEFATTRIB(texcoord0)
-    EAPI_VARRAY_DEFATTRIB(texcoord1)
+    EAPI_GLE_DEFATTRIB(vertex)
+    EAPI_GLE_DEFATTRIB(color)
+    EAPI_GLE_DEFATTRIB(texcoord0)
+    EAPI_GLE_DEFATTRIB(texcoord1)
 
-    #define EAPI_VARRAY_INITATTRIB(name) \
-        int _lua_varray_##name##1f(lua_State *L) { \
-            varray::name##f(luaL_checknumber(L, 1)); \
+    #define EAPI_GLE_INITATTRIB(name) \
+        int _lua_gle_##name##1f(lua_State *L) { \
+            gle::name##f(luaL_checknumber(L, 1)); \
             return 0; \
         } \
-        int _lua_varray_##name##2f(lua_State *L) { \
-            varray::name##f(luaL_checknumber(L, 1), \
+        int _lua_gle_##name##2f(lua_State *L) { \
+            gle::name##f(luaL_checknumber(L, 1), \
                             luaL_checknumber(L, 2)); \
             return 0; \
         } \
-        int _lua_varray_##name##3f(lua_State *L) { \
-            varray::name##f(luaL_checknumber(L, 1), \
+        int _lua_gle_##name##3f(lua_State *L) { \
+            gle::name##f(luaL_checknumber(L, 1), \
                             luaL_checknumber(L, 2), \
                             luaL_checknumber(L, 3)); \
             return 0; \
         } \
-        int _lua_varray_##name##4f(lua_State *L) { \
-            varray::name##f(luaL_checknumber(L, 1), \
+        int _lua_gle_##name##4f(lua_State *L) { \
+            gle::name##f(luaL_checknumber(L, 1), \
                             luaL_checknumber(L, 2), \
                             luaL_checknumber(L, 3), \
                             luaL_checknumber(L, 4)); \
             return 0; \
         }
 
-    EAPI_VARRAY_INITATTRIB(vertex)
-    EAPI_VARRAY_INITATTRIB(color)
-    EAPI_VARRAY_INITATTRIB(texcoord0)
-    EAPI_VARRAY_INITATTRIB(texcoord1)
+    EAPI_GLE_INITATTRIB(vertex)
+    EAPI_GLE_INITATTRIB(color)
+    EAPI_GLE_INITATTRIB(texcoord0)
+    EAPI_GLE_INITATTRIB(texcoord1)
 
-    int _lua_varray_color3ub(lua_State *L) {
-        varray::colorub((uchar)luaL_checkinteger(L, 1),
+    int _lua_gle_color3ub(lua_State *L) {
+        gle::colorub((uchar)luaL_checkinteger(L, 1),
                         (uchar)luaL_checkinteger(L, 2),
                         (uchar)luaL_checkinteger(L, 3));
         return 0;
     }
-    int _lua_varray_color4ub(lua_State *L) {
-        varray::colorub((uchar)luaL_checkinteger(L, 1),
+    int _lua_gle_color4ub(lua_State *L) {
+        gle::colorub((uchar)luaL_checkinteger(L, 1),
                         (uchar)luaL_checkinteger(L, 2),
                         (uchar)luaL_checkinteger(L, 3),
                         (uchar)luaL_checkinteger(L, 4));
         return 0;
     }
 
-    #define EAPI_VARRAY_ATTRIB(suffix, type, cast) \
-        int _lua_varray_attrib##1##suffix(lua_State *L) { \
-            varray::attrib##suffix((cast)luaL_check##type(L, 1)); \
+    #define EAPI_GLE_ATTRIB(suffix, type, cast) \
+        int _lua_gle_attrib##1##suffix(lua_State *L) { \
+            gle::attrib##suffix((cast)luaL_check##type(L, 1)); \
             return 0; \
         } \
-        int _lua_varray_attrib##2##suffix(lua_State *L) { \
-            varray::attrib##suffix((cast)luaL_check##type(L, 1), \
+        int _lua_gle_attrib##2##suffix(lua_State *L) { \
+            gle::attrib##suffix((cast)luaL_check##type(L, 1), \
                                    (cast)luaL_check##type(L, 2)); \
             return 0; \
         } \
-        int _lua_varray_attrib##3##suffix(lua_State *L) { \
-            varray::attrib##suffix((cast)luaL_check##type(L, 1), \
+        int _lua_gle_attrib##3##suffix(lua_State *L) { \
+            gle::attrib##suffix((cast)luaL_check##type(L, 1), \
                                    (cast)luaL_check##type(L, 2), \
                                    (cast)luaL_check##type(L, 3)); \
             return 0; \
         } \
-        int _lua_varray_attrib##4##suffix(lua_State *L) { \
-            varray::attrib##suffix((cast)luaL_check##type(L, 1), \
+        int _lua_gle_attrib##4##suffix(lua_State *L) { \
+            gle::attrib##suffix((cast)luaL_check##type(L, 1), \
                                    (cast)luaL_check##type(L, 2), \
                                    (cast)luaL_check##type(L, 3), \
                                    (cast)luaL_check##type(L, 4)); \
             return 0; \
         }
 
-    EAPI_VARRAY_ATTRIB(f, number, float)
-    EAPI_VARRAY_ATTRIB(d, number, double)
-    EAPI_VARRAY_ATTRIB(b, int, char)
-    EAPI_VARRAY_ATTRIB(ub, int, uchar)
-    EAPI_VARRAY_ATTRIB(s, int, short)
-    EAPI_VARRAY_ATTRIB(us, int, ushort)
-    EAPI_VARRAY_ATTRIB(i, int, int)
-    EAPI_VARRAY_ATTRIB(ui, int, uint)
+    EAPI_GLE_ATTRIB(f, number, float)
+    EAPI_GLE_ATTRIB(d, number, double)
+    EAPI_GLE_ATTRIB(b, int, char)
+    EAPI_GLE_ATTRIB(ub, int, uchar)
+    EAPI_GLE_ATTRIB(s, int, short)
+    EAPI_GLE_ATTRIB(us, int, ushort)
+    EAPI_GLE_ATTRIB(i, int, int)
+    EAPI_GLE_ATTRIB(ui, int, uint)
 
     /* hudmatrix */
 
@@ -1720,41 +1720,41 @@ namespace lapi_binds
             if (vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k].y *= -1; }
         }
         loopk(4) { tc[k].x = tc[k].x/xt - float(xoff)/tex->xs; tc[k].y = tc[k].y/yt - float(yoff)/tex->ys; }
-        varray::color(slot.loaded ? vslot.colorscale : vec(1, 1, 1));
+        gle::color(slot.loaded ? vslot.colorscale : vec(1, 1, 1));
         glBindTexture(GL_TEXTURE_2D, tex->id);
-        varray::defvertex(2);
-        varray::deftexcoord0();
-        varray::begin(GL_TRIANGLE_STRIP);
-        varray::attribf(sx,     sy);     varray::attrib(tc[0]);
-        varray::attribf(sx + w, sy);     varray::attrib(tc[1]);
-        varray::attribf(sx,     sy + h); varray::attrib(tc[3]);
-        varray::attribf(sx + w, sy + h); varray::attrib(tc[2]);
-        varray::end();
+        gle::defvertex(2);
+        gle::deftexcoord0();
+        gle::begin(GL_TRIANGLE_STRIP);
+        gle::attribf(sx,     sy);     gle::attrib(tc[0]);
+        gle::attribf(sx + w, sy);     gle::attrib(tc[1]);
+        gle::attribf(sx,     sy + h); gle::attrib(tc[3]);
+        gle::attribf(sx + w, sy + h); gle::attrib(tc[2]);
+        gle::end();
 
         if (glowtex) {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glBindTexture(GL_TEXTURE_2D, glowtex->id);
-            varray::color(vslot.glowcolor);
-            varray::begin(GL_TRIANGLE_STRIP);
-            varray::attribf(sx,     sy);     varray::attrib(tc[0]);
-            varray::attribf(sx + w, sy);     varray::attrib(tc[1]);
-            varray::attribf(sx,     sy + h); varray::attrib(tc[3]);
-            varray::attribf(sx + w, sy + h); varray::attrib(tc[2]);
-            varray::end();
+            gle::color(vslot.glowcolor);
+            gle::begin(GL_TRIANGLE_STRIP);
+            gle::attribf(sx,     sy);     gle::attrib(tc[0]);
+            gle::attribf(sx + w, sy);     gle::attrib(tc[1]);
+            gle::attribf(sx,     sy + h); gle::attrib(tc[3]);
+            gle::attribf(sx + w, sy + h); gle::attrib(tc[2]);
+            gle::end();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
         if (layertex) {
             glBindTexture(GL_TEXTURE_2D, layertex->id);
-            varray::color(layer->colorscale);
-            varray::begin(GL_TRIANGLE_STRIP);
-            varray::attribf(sx + w / 2, sy + h / 2); varray::attrib(tc[0]);
-            varray::attribf(sx + w,     sy + h / 2); varray::attrib(tc[1]);
-            varray::attribf(sx + w / 2, sy + h);     varray::attrib(tc[3]);
-            varray::attribf(sx + w,     sy + h);     varray::attrib(tc[2]);
-            varray::end();
+            gle::color(layer->colorscale);
+            gle::begin(GL_TRIANGLE_STRIP);
+            gle::attribf(sx + w / 2, sy + h / 2); gle::attrib(tc[0]);
+            gle::attribf(sx + w,     sy + h / 2); gle::attrib(tc[1]);
+            gle::attribf(sx + w / 2, sy + h);     gle::attrib(tc[3]);
+            gle::attribf(sx + w,     sy + h);     gle::attrib(tc[2]);
+            gle::end();
         }
 
-        varray::color(vec(1, 1, 1));
+        gle::color(vec(1, 1, 1));
         hudshader->set();
     }
 
@@ -2056,63 +2056,63 @@ namespace lapi_binds
     LAPI_REG(var_emits_set);
 
 #ifdef CLIENT
-    LAPI_REG(varray_begin);
-    LAPI_REG(varray_end);
-    LAPI_REG(varray_disable);
-    LAPI_REG(varray_defvertex);
-    LAPI_REG(varray_defcolor);
-    LAPI_REG(varray_deftexcoord0);
-    LAPI_REG(varray_deftexcoord1);
-    LAPI_REG(varray_vertex1f);
-    LAPI_REG(varray_vertex2f);
-    LAPI_REG(varray_vertex3f);
-    LAPI_REG(varray_vertex4f);
-    LAPI_REG(varray_color1f);
-    LAPI_REG(varray_color2f);
-    LAPI_REG(varray_color3f);
-    LAPI_REG(varray_color4f);
-    LAPI_REG(varray_texcoord01f);
-    LAPI_REG(varray_texcoord02f);
-    LAPI_REG(varray_texcoord03f);
-    LAPI_REG(varray_texcoord04f);
-    LAPI_REG(varray_texcoord11f);
-    LAPI_REG(varray_texcoord12f);
-    LAPI_REG(varray_texcoord13f);
-    LAPI_REG(varray_texcoord14f);
-    LAPI_REG(varray_color3ub);
-    LAPI_REG(varray_color4ub);
-    LAPI_REG(varray_attrib1f);
-    LAPI_REG(varray_attrib2f);
-    LAPI_REG(varray_attrib3f);
-    LAPI_REG(varray_attrib4f);
-    LAPI_REG(varray_attrib1d);
-    LAPI_REG(varray_attrib2d);
-    LAPI_REG(varray_attrib3d);
-    LAPI_REG(varray_attrib4d);
-    LAPI_REG(varray_attrib1b);
-    LAPI_REG(varray_attrib2b);
-    LAPI_REG(varray_attrib3b);
-    LAPI_REG(varray_attrib4b);
-    LAPI_REG(varray_attrib1ub);
-    LAPI_REG(varray_attrib2ub);
-    LAPI_REG(varray_attrib3ub);
-    LAPI_REG(varray_attrib4ub);
-    LAPI_REG(varray_attrib1s);
-    LAPI_REG(varray_attrib2s);
-    LAPI_REG(varray_attrib3s);
-    LAPI_REG(varray_attrib4s);
-    LAPI_REG(varray_attrib1us);
-    LAPI_REG(varray_attrib2us);
-    LAPI_REG(varray_attrib3us);
-    LAPI_REG(varray_attrib4us);
-    LAPI_REG(varray_attrib1i);
-    LAPI_REG(varray_attrib2i);
-    LAPI_REG(varray_attrib3i);
-    LAPI_REG(varray_attrib4i);
-    LAPI_REG(varray_attrib1ui);
-    LAPI_REG(varray_attrib2ui);
-    LAPI_REG(varray_attrib3ui);
-    LAPI_REG(varray_attrib4ui);
+    LAPI_REG(gle_begin);
+    LAPI_REG(gle_end);
+    LAPI_REG(gle_disable);
+    LAPI_REG(gle_defvertex);
+    LAPI_REG(gle_defcolor);
+    LAPI_REG(gle_deftexcoord0);
+    LAPI_REG(gle_deftexcoord1);
+    LAPI_REG(gle_vertex1f);
+    LAPI_REG(gle_vertex2f);
+    LAPI_REG(gle_vertex3f);
+    LAPI_REG(gle_vertex4f);
+    LAPI_REG(gle_color1f);
+    LAPI_REG(gle_color2f);
+    LAPI_REG(gle_color3f);
+    LAPI_REG(gle_color4f);
+    LAPI_REG(gle_texcoord01f);
+    LAPI_REG(gle_texcoord02f);
+    LAPI_REG(gle_texcoord03f);
+    LAPI_REG(gle_texcoord04f);
+    LAPI_REG(gle_texcoord11f);
+    LAPI_REG(gle_texcoord12f);
+    LAPI_REG(gle_texcoord13f);
+    LAPI_REG(gle_texcoord14f);
+    LAPI_REG(gle_color3ub);
+    LAPI_REG(gle_color4ub);
+    LAPI_REG(gle_attrib1f);
+    LAPI_REG(gle_attrib2f);
+    LAPI_REG(gle_attrib3f);
+    LAPI_REG(gle_attrib4f);
+    LAPI_REG(gle_attrib1d);
+    LAPI_REG(gle_attrib2d);
+    LAPI_REG(gle_attrib3d);
+    LAPI_REG(gle_attrib4d);
+    LAPI_REG(gle_attrib1b);
+    LAPI_REG(gle_attrib2b);
+    LAPI_REG(gle_attrib3b);
+    LAPI_REG(gle_attrib4b);
+    LAPI_REG(gle_attrib1ub);
+    LAPI_REG(gle_attrib2ub);
+    LAPI_REG(gle_attrib3ub);
+    LAPI_REG(gle_attrib4ub);
+    LAPI_REG(gle_attrib1s);
+    LAPI_REG(gle_attrib2s);
+    LAPI_REG(gle_attrib3s);
+    LAPI_REG(gle_attrib4s);
+    LAPI_REG(gle_attrib1us);
+    LAPI_REG(gle_attrib2us);
+    LAPI_REG(gle_attrib3us);
+    LAPI_REG(gle_attrib4us);
+    LAPI_REG(gle_attrib1i);
+    LAPI_REG(gle_attrib2i);
+    LAPI_REG(gle_attrib3i);
+    LAPI_REG(gle_attrib4i);
+    LAPI_REG(gle_attrib1ui);
+    LAPI_REG(gle_attrib2ui);
+    LAPI_REG(gle_attrib3ui);
+    LAPI_REG(gle_attrib4ui);
     LAPI_REG(hudmatrix_push);
     LAPI_REG(hudmatrix_pop);
     LAPI_REG(hudmatrix_flush);

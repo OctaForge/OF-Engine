@@ -885,18 +885,18 @@ end
 
 local quad = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    CAPI.varray_attrib2f(x,     y)     CAPI.varray_attrib2f(tx,      ty)
-    CAPI.varray_attrib2f(x + w, y)     CAPI.varray_attrib2f(tx + tw, ty)
-    CAPI.varray_attrib2f(x + w, y + h) CAPI.varray_attrib2f(tx + tw, ty + th)
-    CAPI.varray_attrib2f(x,     y + h) CAPI.varray_attrib2f(tx,      ty + th)
+    CAPI.gle_attrib2f(x,     y)     CAPI.gle_attrib2f(tx,      ty)
+    CAPI.gle_attrib2f(x + w, y)     CAPI.gle_attrib2f(tx + tw, ty)
+    CAPI.gle_attrib2f(x + w, y + h) CAPI.gle_attrib2f(tx + tw, ty + th)
+    CAPI.gle_attrib2f(x,     y + h) CAPI.gle_attrib2f(tx,      ty + th)
 end
 
 local quadtri = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    CAPI.varray_attrib2f(x,     y)     CAPI.varray_attrib2f(tx,      ty)
-    CAPI.varray_attrib2f(x + w, y)     CAPI.varray_attrib2f(tx + tw, ty)
-    CAPI.varray_attrib2f(x,     y + h) CAPI.varray_attrib2f(tx,      ty + th)
-    CAPI.varray_attrib2f(x + w, y + h) CAPI.varray_attrib2f(tx + tw, ty + th)
+    CAPI.gle_attrib2f(x,     y)     CAPI.gle_attrib2f(tx,      ty)
+    CAPI.gle_attrib2f(x + w, y)     CAPI.gle_attrib2f(tx + tw, ty)
+    CAPI.gle_attrib2f(x,     y + h) CAPI.gle_attrib2f(tx,      ty + th)
+    CAPI.gle_attrib2f(x + w, y + h) CAPI.gle_attrib2f(tx + tw, ty + th)
 end
 
 local Image
@@ -2709,18 +2709,18 @@ local Rectangle = Filler:clone {
 
         if not solid then CAPI.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         CAPI.gl_shader_hudnotexture_set()
-        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.varray_defvertex(2)
-        CAPI.varray_begin(gl.TRIANGLE_STRIP)
+        CAPI.gle_defvertex(2)
+        CAPI.gle_begin(gl.TRIANGLE_STRIP)
 
-        CAPI.varray_attrib2f(sx,     sy)
-        CAPI.varray_attrib2f(sx + w, sy)
-        CAPI.varray_attrib2f(sx,     sy + h)
-        CAPI.varray_attrib2f(sx + w, sy + h)
+        CAPI.gle_attrib2f(sx,     sy)
+        CAPI.gle_attrib2f(sx + w, sy)
+        CAPI.gle_attrib2f(sx,     sy + h)
+        CAPI.gle_attrib2f(sx + w, sy + h)
 
-        CAPI.varray_end()
-        CAPI.varray_color4f(1, 1, 1, 1)
+        CAPI.gle_end()
+        CAPI.gle_color4f(1, 1, 1, 1)
         CAPI.gl_shader_hud_set()
         if not solid then
             CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -2819,13 +2819,13 @@ Image = Filler:clone {
             CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.varray_defvertex(2)
-        CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(gl.TRIANGLE_STRIP)
+        CAPI.gle_defvertex(2)
+        CAPI.gle_deftexcoord0(2)
+        CAPI.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h)
-        CAPI.varray_end()
+        CAPI.gle_end()
 
         return Object.draw(self, sx, sy)
     end,
@@ -2916,14 +2916,14 @@ local Cropped_Image = Image:clone {
             CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.varray_defvertex(2)
-        CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(gl.TRIANGLE_STRIP)
+        CAPI.gle_defvertex(2)
+        CAPI.gle_deftexcoord0(2)
+        CAPI.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h,
             self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
-        CAPI.varray_end()
+        CAPI.gle_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2966,11 +2966,11 @@ local Stretched_Image = Image:clone {
             CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.varray_defvertex(2)
-        CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(gl.QUADS)
+        CAPI.gle_defvertex(2)
+        CAPI.gle_deftexcoord0(2)
+        CAPI.gle_begin(gl.QUADS)
 
         local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.p_w, self.p_h
 
@@ -3015,7 +3015,7 @@ local Stretched_Image = Image:clone {
             if  ty >= 1 then break end
         end
 
-        CAPI.varray_end()
+        CAPI.gle_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -3079,11 +3079,11 @@ local Bordered_Image = Image:clone {
             CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.varray_defvertex(2)
-        CAPI.varray_deftexcoord0(2)
-        CAPI.varray_begin(gl.QUADS)
+        CAPI.gle_defvertex(2)
+        CAPI.gle_deftexcoord0(2)
+        CAPI.gle_begin(gl.QUADS)
 
         local vy, ty = sy, 0
         for i = 1, 3 do
@@ -3107,7 +3107,7 @@ local Bordered_Image = Image:clone {
             vy, ty = vy + vh, ty + th
         end
 
-        CAPI.varray_end()
+        CAPI.gle_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -3152,7 +3152,7 @@ local Tiled_Image = Image:clone {
             CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.varray_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         local pw, ph, tw, th = self.p_w, self.p_h, self.p_tile_w, self.p_tile_h
 
@@ -3160,9 +3160,9 @@ local Tiled_Image = Image:clone {
         -- repeat with clamped textures
         if tex:get_clamp() ~= 0 then
             local dx, dy = 0, 0
-            CAPI.varray_defvertex(2)
-            CAPI.varray_deftexcoord0(2)
-            CAPI.varray_begin(gl.QUADS)
+            CAPI.gle_defvertex(2)
+            CAPI.gle_deftexcoord0(2)
+            CAPI.gle_begin(gl.QUADS)
             while dx < pw do
                 while dy < ph do
                     local dw, dh = min(tw, pw - dx), min(th, ph - dy)
@@ -3171,13 +3171,13 @@ local Tiled_Image = Image:clone {
                 end
                 dx, dy = dy + tw, 0
             end
-            CAPI.varray_end()
+            CAPI.gle_end()
         else
-            CAPI.varray_defvertex(2)
-            CAPI.varray_deftexcoord0(2)
-            CAPI.varray_begin(gl.TRIANGLE_STRIP)
+            CAPI.gle_defvertex(2)
+            CAPI.gle_deftexcoord0(2)
+            CAPI.gle_begin(gl.TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
-            CAPI.varray_end()
+            CAPI.gle_end()
         end
 
         return Object.draw(self, sx, sy)
@@ -3245,7 +3245,7 @@ local Label = Object:clone {
         CAPI.gui_draw_text(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
-        CAPI.varray_color4f(1, 1, 1, 1)
+        CAPI.gle_color4f(1, 1, 1, 1)
         CAPI.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
@@ -4190,31 +4190,31 @@ local Text_Editor = Object:clone {
                 end
 
                 CAPI.gl_shader_hudnotexture_set()
-                CAPI.varray_color3ub(0xA0, 0x80, 0x80)
-                CAPI.varray_defvertex(2)
-                CAPI.varray_begin(gl.QUADS)
+                CAPI.gle_color3ub(0xA0, 0x80, 0x80)
+                CAPI.gle_defvertex(2)
+                CAPI.gle_begin(gl.QUADS)
                 if psy == pey then
-                    CAPI.varray_attrib2f(x + psx, y + psy)
-                    CAPI.varray_attrib2f(x + pex, y + psy)
-                    CAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
-                    CAPI.varray_attrib2f(x + psx, y + pey + EV.fonth)
+                    CAPI.gle_attrib2f(x + psx, y + psy)
+                    CAPI.gle_attrib2f(x + pex, y + psy)
+                    CAPI.gle_attrib2f(x + pex, y + pey + EV.fonth)
+                    CAPI.gle_attrib2f(x + psx, y + pey + EV.fonth)
                 else
-                    CAPI.varray_attrib2f(x + psx,              y + psy)
-                    CAPI.varray_attrib2f(x + psx,              y + psy + EV.fonth)
-                    CAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
-                    CAPI.varray_attrib2f(x + self.pixel_width, y + psy)
+                    CAPI.gle_attrib2f(x + psx,              y + psy)
+                    CAPI.gle_attrib2f(x + psx,              y + psy + EV.fonth)
+                    CAPI.gle_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
+                    CAPI.gle_attrib2f(x + self.pixel_width, y + psy)
                     if (pey - psy) > EV.fonth then
-                        CAPI.varray_attrib2f(x,                    y + psy + EV.fonth)
-                        CAPI.varray_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
-                        CAPI.varray_attrib2f(x + self.pixel_width, y + pey)
-                        CAPI.varray_attrib2f(x,                    y + pey)
+                        CAPI.gle_attrib2f(x,                    y + psy + EV.fonth)
+                        CAPI.gle_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
+                        CAPI.gle_attrib2f(x + self.pixel_width, y + pey)
+                        CAPI.gle_attrib2f(x,                    y + pey)
                     end
-                    CAPI.varray_attrib2f(x,       y + pey)
-                    CAPI.varray_attrib2f(x,       y + pey + EV.fonth)
-                    CAPI.varray_attrib2f(x + pex, y + pey + EV.fonth)
-                    CAPI.varray_attrib2f(x + pex, y + pey)
+                    CAPI.gle_attrib2f(x,       y + pey)
+                    CAPI.gle_attrib2f(x,       y + pey + EV.fonth)
+                    CAPI.gle_attrib2f(x + pex, y + pey + EV.fonth)
+                    CAPI.gle_attrib2f(x + pex, y + pey)
                 end
-                CAPI.varray_end()
+                CAPI.gle_end()
                 CAPI.gl_shader_hud_set()
             end
         end
@@ -4233,14 +4233,14 @@ local Text_Editor = Object:clone {
             -- line wrap indicator
             if self.line_wrap and height > EV.fonth then
                 CAPI.gl_shader_hudnotexture_set()
-                CAPI.varray_color3ub(0x80, 0xA0, 0x80)
-                CAPI.varray_defvertex(2)
-                CAPI.varray_begin(gl.gl.TRIANGLE_STRIP)
-                CAPI.varray_attrib2f(x,                y + h + EV.fonth)
-                CAPI.varray_attrib2f(x,                y + h + height)
-                CAPI.varray_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
-                CAPI.varray_attrib2f(x - EV.fontw / 2, y + h + height)
-                CAPI.varray_end()
+                CAPI.gle_color3ub(0x80, 0xA0, 0x80)
+                CAPI.gle_defvertex(2)
+                CAPI.gle_begin(gl.gl.TRIANGLE_STRIP)
+                CAPI.gle_attrib2f(x,                y + h + EV.fonth)
+                CAPI.gle_attrib2f(x,                y + h + height)
+                CAPI.gle_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
+                CAPI.gle_attrib2f(x - EV.fontw / 2, y + h + height)
+                CAPI.gle_end()
                 CAPI.gl_shader_hud_set()
             end
 
@@ -4584,7 +4584,7 @@ ext.gl_render = function()
             CAPI.gl_blend_enable()
             CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-            CAPI.varray_color3f(1, 1, 1)
+            CAPI.gle_color3f(1, 1, 1)
             w:draw()
 
             local tooltip = hovering and hovering.tooltip
@@ -4626,7 +4626,7 @@ ext.gl_render = function()
             end
 
             CAPI.gl_scissor_disable()
-            CAPI.varray_disable()
+            CAPI.gle_disable()
         end
     end
 

@@ -89,7 +89,7 @@ extern "C" {
 #include "ents.h"
 #include "command.h"
 #include "glexts.h"
-#include "varray.h"
+#include "glemu.h"
 
 #include "iengine.h"
 #include "igame.h"

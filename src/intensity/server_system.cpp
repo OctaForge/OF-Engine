@@ -124,10 +124,6 @@ void pushhudmatrix() {};
 void flushhudmatrix(bool flushparams) {};
 void pophudmatrix(bool flush, bool flushparams) {};
 
-
-#define VARRAY_INTERNAL
-#include "varray.h"
-
 #ifdef WINDOWS // needs stubs too, works for now
 #include "GL/gl.h"
 #else // stubs everywhere!
