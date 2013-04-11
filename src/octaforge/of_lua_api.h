@@ -40,7 +40,6 @@ extern physent *hitplayer;
 namespace lapi_binds
 {
     using namespace MessageSystem;
-    using namespace filesystem;
 
     int _lua_log(lua_State *L) {
         logger::log((logger::loglevel)luaL_checkinteger(L, 1),

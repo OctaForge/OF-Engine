@@ -38,14 +38,10 @@
 
 #include "OFTL/new.h"
 #include "OFTL/utils.h"
-#include "OFTL/traits.h"
 #include "OFTL/algorithm.h"
 #include "OFTL/functional.h"
-#include "OFTL/string.h"
 #include "OFTL/map.h"
-#include "OFTL/vector.h"
 #include "OFTL/shared_ptr.h"
-#include "OFTL/filesystem.h"
 
 extern "C" {
     #include "lua.h"
