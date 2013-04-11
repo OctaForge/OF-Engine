@@ -46,7 +46,7 @@ extern string homedir;
 namespace lua
 {
     lua_State *L = NULL;
-    types::String mod_dir;
+    static string mod_dir = "";
 
     static int panic(lua_State *L) {
         fatal("error in call to the Lua API (%s)", lua_tostring(L, -1));
@@ -85,7 +85,7 @@ namespace lua
     void init(const char *dir)
     {
         if (L) return;
-        mod_dir = dir;
+        copystring(mod_dir, dir);
 
         L = luaL_newstate();
         lua_atpanic(L, panic);
@@ -138,17 +138,9 @@ namespace lua
 
     void load_module(const char *name)
     {
-        logger::log(
-            logger::DEBUG, "Loading OF Lua module: %s%c%s.lua.\n",
-            mod_dir.get_buf(), filesystem::separator(), name
-        );
-
-        types::String p(mod_dir);
-        p += filesystem::separator();
-        p += name;
-        p += ".lua";
-
-        if (luaL_loadfile(L, p.get_buf()) || lua_pcall(L, 0, 0, 0)) {
+        defformatstring(p)("%s%c%s.lua", mod_dir, PATHDIV, name);
+        logger::log(logger::DEBUG, "Loading OF Lua module: %s.\n", p);
+        if (luaL_loadfile(L, p) || lua_pcall(L, 0, 0, 0)) {
             fatal("%s", lua_tostring(L, -1));
         }
     }
@@ -187,12 +179,9 @@ namespace lua
 
         lua_getglobal(L, "package");
 
-        types::String pattern = types::String()
-            .format(";./data/library/%s/?.lua", name);
-
         lua_getglobal  (L, "string"); lua_getfield(L, -1, "find");
         lua_getfield   (L, -3, "path"); 
-        lua_pushlstring(L, pattern.get_buf(), pattern.length());
+        lua_pushfstring(L, ";./data/library/%s/?.lua", name);
         lua_call       (L, 2, 1);
 
         if (!lua_isnil(L, -1)) {
