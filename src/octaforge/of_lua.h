@@ -13,15 +13,17 @@ namespace lua
 #define LUACOMMAND(name, fun) \
     static bool __dummy_##name = lua::reg_fun(#name, fun);
 
-#define LUAICOMMAND(name, state, nrets, body) \
+#define LUAICOMMANDN(name, state, body) \
     template<int N> struct _lfn_##name; \
     template<> struct _lfn_##name<__LINE__> { \
         static bool init; static int fun(lua_State*); \
     }; \
-    bool _lfn_##name::init = lua::reg_fun(#name, _lfn_##name<__LINE__>::fun); \
-    int  _lfn_##name::fun(lua_State *state) { \
+    bool _lfn_##name<__LINE__>::init = lua::reg_fun(#name, \
+         _lfn_##name<__LINE__>::fun); \
+    int  _lfn_##name<__LINE__>::fun(lua_State *state) { \
         body; \
-        return nrets; \
     }
+
+#define LUAICOMMAND(name, body) LUAICOMMANDN(name, L, body)
 
 #endif

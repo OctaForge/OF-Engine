@@ -1054,6 +1054,15 @@ void getfps(int &fps, int &bestdiff, int &worstdiff)
     worstdiff = fps-1000/worst;
 }
 
+LUAICOMMAND(getfps, {
+    int fps[3];
+    getfps(fps[0], fps[1], fps[2]);
+    lua_pushinteger(L, fps[0]);
+    lua_pushinteger(L, fps[1]);
+    lua_pushinteger(L, fps[2]);
+    return 3;
+});
+
 void getfps_(int *raw)
 {
     int fps, bestdiff, worstdiff;

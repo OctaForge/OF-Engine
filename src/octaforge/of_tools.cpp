@@ -190,4 +190,24 @@ namespace tools
 #endif
     }
 
+    static time_t walltime = 0;
+    
+    LUAICOMMAND(strftime, {
+        if (!walltime) {
+            walltime = time(NULL) - totalmillis / 1000;
+            if (!walltime) {
+                walltime++;
+            }
+        }
+        time_t walloffset = walltime + totalmillis / 1000;
+        struct tm *localvals = localtime(&walloffset);
+        static string buf;
+        const char *fmt = luaL_checkstring(L, 1);
+        if (localvals && strftime(buf, sizeof(buf), fmt, localvals)) {
+            lua_pushstring(L, buf);
+            return 1;
+        }
+        return 0;
+    });
+
 } /* end namespace tools */
