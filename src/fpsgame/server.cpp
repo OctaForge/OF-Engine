@@ -458,7 +458,7 @@ namespace server
             assert(0); // We do file transfers completely differently
         }
         if(p.packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
-        types::String text;
+        char text[MAXTRANS];
         int cn = -1, type;
         clientinfo *ci = sender>=0 ? (clientinfo *)getinfo(sender) : NULL;
 
@@ -478,7 +478,7 @@ namespace server
         }
         #define QUEUE_INT(n) QUEUE_BUF(putint(ci->messages, n))
         #define QUEUE_UINT(n) QUEUE_BUF(putuint(ci->messages, n))
-        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text.get_buf(), ci->messages))
+        #define QUEUE_STR(text) QUEUE_BUF(sendstring(text, ci->messages))
         int curmsg;
         while((curmsg = p.length()) < p.maxlen)
         {
@@ -529,7 +529,7 @@ namespace server
             {
                 getstring(text, p);
                 /* FIXME: hack attack - add filtering method into the string class */
-                filtertext(&text[0], text.get_buf());
+                filtertext(text, text);
 
                 if (!lua::L)
                 {
@@ -543,7 +543,7 @@ namespace server
                 lua_getfield   (lua::L, -1, "Events");
                 lua_getfield   (lua::L, -1, "text_message");
                 lua_pushinteger(lua::L, ci->uniqueId);
-                lua_pushstring (lua::L, text.get_buf());
+                lua_pushstring (lua::L, text);
                 lua_call       (lua::L, 2, 1);
                 bool b = lua_toboolean(lua::L, -1);
                 lua_pop(lua::L, 4);

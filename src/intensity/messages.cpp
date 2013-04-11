@@ -83,15 +83,15 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PersonalServerMessage (1001)\r\n");
 
-        types::String title;
+        char title[MAXTRANS];
         getstring(title, p);
-        types::String content;
+        char content[MAXTRANS];
         getstring(content, p);
 
         lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "GUI");
         lua_getfield (lua::L, -1, "show_message"); lua_insert(lua::L, -3); lua_pop(lua::L, 2);
-        lua_pushlstring(lua::L, title.get_buf(), title.length());
-        lua_pushlstring(lua::L, content.get_buf(), content.length());
+        lua_pushstring(lua::L, title);
+        lua_pushstring(lua::L, content);
         lua_call(lua::L, 2, 0);
     }
 #endif
@@ -112,10 +112,10 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestServerMessageToAll (1002)\r\n");
 
-        types::String message;
+        char message[MAXTRANS];
         getstring(message, p);
 
-        send_PersonalServerMessage(-1, "Message from Client", message.get_buf());
+        send_PersonalServerMessage(-1, "Message from Client", message);
     }
 #endif
 
@@ -342,7 +342,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type PrepareForNewScenario (1006)\r\n");
 
-        types::String scenarioCode;
+        char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
         lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "GUI");
@@ -426,9 +426,9 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NotifyAboutCurrentScenario (1008)\r\n");
 
-        types::String mid;
+        char mid[MAXTRANS];
         getstring(mid, p);
-        types::String sc;
+        char sc[MAXTRANS];
         getstring(sc, p);
 
         ClientSystem::currScenarioCode = sc;
@@ -480,12 +480,12 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type NewEntityRequest (1010)\r\n");
 
-        types::String _class;
+        char _class[MAXTRANS];
         getstring(_class, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        types::String stateData;
+        char stateData[MAXTRANS];
         getstring(stateData, p);
 
         if (world::scenario_code.is_empty()) return;
@@ -498,7 +498,7 @@ namespace MessageSystem
         // Validate class
         lua_getglobal(lua::L, "external");
         lua_getfield(lua::L, -1, "entity_class_get");
-        lua_pushlstring(lua::L, _class.get_buf(), _class.length());
+        lua_pushstring(lua::L, _class);
         lua_call(lua::L, 1, 1);
         if (lua_isnil(lua::L, -1)) {
             lua_pop(lua::L, 1);
@@ -506,10 +506,10 @@ namespace MessageSystem
         }
         lua_pop(lua::L, 1);
         // Add entity
-        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class.get_buf(), x, y, z, stateData.get_buf());
+        logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         lua_getfield(lua::L, -1, "entity_class_sauer_type_get");
-        lua_pushlstring(lua::L, _class.get_buf(), _class.length());
+        lua_pushstring(lua::L, _class);
         lua_call(lua::L, 1, 1);
         const char *sauerType = lua_tostring(lua::L, -1);
         lua_pop(lua::L, 1);
@@ -517,21 +517,21 @@ namespace MessageSystem
         // Create
         lua_getfield(lua::L, -1, "entity_new");
         lua_remove(lua::L, -2);
-        lua_pushlstring(lua::L, _class.get_buf(), _class.length()); // first arg
+        lua_pushstring(lua::L, _class); // first arg
         lua_createtable(lua::L, 0, 2); // second arg
         lua_createtable(lua::L, 0, 3);
         lua_pushnumber(lua::L, x); lua_setfield(lua::L, -2, "x");
         lua_pushnumber(lua::L, y); lua_setfield(lua::L, -2, "y");
         lua_pushnumber(lua::L, z); lua_setfield(lua::L, -2, "z");
         lua_setfield(lua::L, -2, "position");
-        lua_pushlstring(lua::L, stateData.get_buf(), stateData.length());
+        lua_pushstring(lua::L, stateData);
         lua_setfield(lua::L, -2, "state_data");
         lua_call(lua::L, 2, 1);
         lua_getfield(lua::L, -1, "uid");
         int newuid = lua_tointeger(lua::L, -1);
         lua_pop(lua::L, 2);
         logger::log(logger::DEBUG, "Created Entity: %d - %s  (%f,%f,%f) \r\n",
-                                      newuid, _class.get_buf(), x, y, z);
+                                      newuid, _class, x, y, z);
     }
 #endif
 
@@ -589,7 +589,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::String value;
+        char value[MAXTRANS];
         getstring(value, p);
         int originalClientNumber = getint(p);
 
@@ -604,7 +604,7 @@ namespace MessageSystem
             #define STATE_DATA_UPDATE \
                 assert(originalClientNumber == -1 || ClientSystem::playerNumber != originalClientNumber); /* Can be -1, or else cannot be us */ \
                 \
-                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value.get_buf()); \
+                logger::log(logger::DEBUG, "StateDataUpdate: %d, %d, %s \r\n", uniqueId, keyProtocolId, value); \
                 \
                 if (!LogicSystem::initialized) \
                     return; \
@@ -613,7 +613,7 @@ namespace MessageSystem
                 lua_getfield   (lua::L, -1, "entity_set_sdata"); \
                 lua_pushinteger(lua::L, uniqueId); \
                 lua_pushinteger(lua::L, keyProtocolId); \
-                lua_pushstring (lua::L, value.get_buf()); \
+                lua_pushstring (lua::L, value); \
                 lua_call       (lua::L, 3, 0); lua_pop(lua::L, 1);
         #endif
         STATE_DATA_UPDATE
@@ -646,14 +646,14 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::String value;
+        char value[MAXTRANS];
         getstring(value, p);
 
         if (world::scenario_code.is_empty()) return;
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
-        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value.get_buf()); \
+        logger::log(logger::DEBUG, "client %d requests to change %d to value: %s\r\n", actorUniqueId, keyProtocolId, value); \
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
@@ -661,7 +661,7 @@ namespace MessageSystem
         lua_getfield   (lua::L, -1, "entity_set_sdata"); \
         lua_pushinteger(lua::L, uniqueId); \
         lua_pushinteger(lua::L, keyProtocolId); \
-        lua_pushstring (lua::L, value.get_buf()); \
+        lua_pushstring (lua::L, value); \
         lua_pushinteger(lua::L, actorUniqueId); \
         lua_call       (lua::L,  4, 0); lua_pop(lua::L, 1);
         STATE_DATA_REQUEST
@@ -722,7 +722,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::String value;
+        char value[MAXTRANS];
         getstring(value, p);
         int originalClientNumber = getint(p);
 
@@ -747,7 +747,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
         int keyProtocolId = getint(p);
-        types::String value;
+        char value[MAXTRANS];
         getstring(value, p);
 
         if (world::scenario_code.is_empty()) return;
@@ -885,17 +885,17 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ActiveEntitiesRequest (1017)\r\n");
 
-        types::String scenarioCode;
+        char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
         #ifdef SERVER
             if (world::scenario_code.is_empty()) return;
             // Mark the client as running the current scenario, if indeed doing so
-            server::setClientScenario(sender, scenarioCode.get_buf());
+            server::setClientScenario(sender, scenarioCode);
             if ( !server::isRunningCurrentScenario(sender) )
             {
                 logger::log(logger::WARNING, "Client %d requested active entities for an invalid scenario: %s\r\n",
-                    sender, scenarioCode.get_buf()
+                    sender, scenarioCode
                 );
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
@@ -980,9 +980,9 @@ namespace MessageSystem
 
         int otherClientNumber = getint(p);
         int otherUniqueId = getint(p);
-        types::String otherClass;
+        char otherClass[MAXTRANS];
         getstring(otherClass, p);
-        types::String stateData;
+        char stateData[MAXTRANS];
         getstring(stateData, p);
 
         #ifdef SERVER
@@ -991,7 +991,7 @@ namespace MessageSystem
         #endif
         if (!LogicSystem::initialized)
             return;
-        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass.get_buf());
+        logger::log(logger::DEBUG, "RECEIVING LE: %d,%d,%s\r\n", otherClientNumber, otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
@@ -999,7 +999,7 @@ namespace MessageSystem
         {
             lua_getglobal  (lua::L, "external");
             lua_getfield   (lua::L, -1, "entity_add");
-            lua_pushstring (lua::L, otherClass.get_buf());
+            lua_pushstring (lua::L, otherClass);
             lua_pushinteger(lua::L, otherUniqueId);
             lua_createtable(lua::L, 0, 0);
             if (otherClientNumber >= 0) // If this is another client, NPC, etc., then send the clientnumber, critical for setup
@@ -1020,7 +1020,7 @@ namespace MessageSystem
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
-                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass.get_buf());
+                logger::log(logger::ERROR, "Received a LogicEntityCompleteNotification for a LogicEntity that cannot be created: %d - %s. Ignoring\r\n", otherUniqueId, otherClass);
                 return;
             }
         } else
@@ -1028,11 +1028,11 @@ namespace MessageSystem
                                             otherUniqueId);
         // A logic entity now exists (either one did before, or we created one), we now update the stateData, if we
         // are remotely connected (TODO: make this not segfault for localconnect)
-        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData.get_buf());
+        logger::log(logger::DEBUG, "Updating stateData with: %s\r\n", stateData);
         lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
         lua_getfield(lua::L, -1, "set_sdata_full");
         lua_insert  (lua::L, -2);
-        lua_pushstring(lua::L, stateData.get_buf());
+        lua_pushstring(lua::L, stateData);
         lua_call(lua::L, 2, 0);
         #ifdef CLIENT
             // If this new entity is in fact the Player's entity, then we finally have the player's LE, and can link to it.
@@ -1200,9 +1200,9 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type ExtentCompleteNotification (1021)\r\n");
 
         int otherUniqueId = getint(p);
-        types::String otherClass;
+        char otherClass[MAXTRANS];
         getstring(otherClass, p);
-        types::String stateData;
+        char stateData[MAXTRANS];
         getstring(stateData, p);
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
@@ -1215,7 +1215,7 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d,%d\r\n", otherUniqueId, otherClass.get_buf(),
+        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d,%d\r\n", otherUniqueId, otherClass,
             x, y, z, attr1, attr2, attr3, attr4, attr5);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
@@ -1223,14 +1223,14 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            lua_getglobal  (lua::L, "external");
-            lua_getfield   (lua::L, -1, "entity_class_sauer_type_get");
-            lua_pushlstring(lua::L, otherClass.get_buf(), otherClass.length());
-            lua_call       (lua::L, 1, 1);
+            lua_getglobal (lua::L, "external");
+            lua_getfield  (lua::L, -1, "entity_class_sauer_type_get");
+            lua_pushstring(lua::L, otherClass);
+            lua_call      (lua::L, 1, 1);
             const char *sauerType = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
 
             lua_getfield   (lua::L, -1, "entity_add"); lua_remove(lua::L, -2);
-            lua_pushlstring(lua::L, otherClass.get_buf(), otherClass.length());
+            lua_pushstring (lua::L, otherClass);
             lua_pushinteger(lua::L, otherUniqueId);
             lua_createtable(lua::L, 0, 9);
             lua_pushinteger(lua::L, findtype((char*)sauerType));
@@ -1255,7 +1255,7 @@ namespace MessageSystem
         lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
         lua_getfield(lua::L, -1, "set_sdata_full");
         lua_insert  (lua::L, -2);
-        lua_pushstring(lua::L, stateData.get_buf());
+        lua_pushstring(lua::L, stateData);
         lua_call(lua::L, 2, 0);
         // Events post-reception
         world::trigger_received_entity();
@@ -1493,7 +1493,7 @@ namespace MessageSystem
     {
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type MapSoundToClients (1025)\r\n");
 
-        types::String soundName;
+        char soundName[MAXTRANS];
         getstring(soundName, p);
         int entityUniqueId = getint(p);
 
@@ -1504,7 +1504,7 @@ namespace MessageSystem
             stopmapsound(e);
             if(camera1->o.dist(e->o) < e->attr2)
             {
-                if(!e->visible) playmapsound(soundName.get_buf(), e, e->attr4, -1);
+                if(!e->visible) playmapsound(soundName, e, e->attr4, -1);
                 else if(e->visible) stopmapsound(e);
             }
         }
@@ -1568,16 +1568,16 @@ namespace MessageSystem
         float x = float(getint(p))/DMF;
         float y = float(getint(p))/DMF;
         float z = float(getint(p))/DMF;
-        types::String soundName;
+        char soundName[MAXTRANS];
         getstring(soundName, p);
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
         vec pos(x,y,z);
         if (pos.x || pos.y || pos.z)
-            playsoundname(soundName.get_buf(), &pos);
+            playsoundname(soundName, &pos);
         else
-            playsoundname(soundName.get_buf());
+            playsoundname(soundName);
     }
 #endif
 
@@ -1636,12 +1636,12 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type SoundStopToClientsByName (1027)\r\n");
 
         int volume = getint(p);
-        types::String soundName;
+        char soundName[MAXTRANS];
         getstring(soundName, p);
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
-        stopsoundbyid(getsoundid(soundName.get_buf(), volume));
+        stopsoundbyid(getsoundid(soundName, volume));
     }
 #endif
 
