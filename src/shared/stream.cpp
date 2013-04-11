@@ -426,8 +426,7 @@ bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &fil
             defformatstring(fpath)("%s\\%s", pathname, FindFileData.cFileName);
             WIN32_FILE_ATTRIBUTE_DATA attr;
             GetFileAttributesEx(fpath, GetFileExInfoStandard, &attr);
-            bool isdir = (attr.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY);
-            if (isdir) {
+            if (attr.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY) {
                 if (!(filter&FTYPE_DIR)) continue;
             } else {
                 if (!(filter&FTYPE_FILE)) continue;
@@ -454,8 +453,7 @@ bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &fil
             defformatstring(fpath)("%s/%s", pathname, de->d_name);
             struct stat info;
             stat(fpath, &info);
-            bool isdir = S_ISDIR(info.st_mode);
-            if (isdir) {
+            if (S_ISDIR(info.st_mode)) {
                 if (!(filter&FTYPE_DIR)) continue;
             } else {
                 if (!(filter&FTYPE_FILE)) continue;
