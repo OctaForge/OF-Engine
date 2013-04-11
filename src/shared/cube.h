@@ -26,8 +26,6 @@
 #include <assert.h>
 #include <time.h>
 
-#include "OFTL/map.h"
-
 extern "C" {
     #include "lua.h"
     #include "lualib.h"

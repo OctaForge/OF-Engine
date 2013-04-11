@@ -1,6 +1,3 @@
-[submodule "src/libraries/OFTL"]
-	path = src/libraries/OFTL
-	url = git://github.com/quaker66/OFTL.git
 [submodule "src/libraries/enet"]
 	path = src/libraries/enet
 	url = git://github.com/OctaForge/OF-enet.git

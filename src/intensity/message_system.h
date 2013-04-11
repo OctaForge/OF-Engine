@@ -47,7 +47,7 @@ struct MessageType
 
 struct MessageManager
 {
-    typedef types::Map<int, MessageType*> MessageMap;
+    typedef hashtable<int, MessageType*> MessageMap;
 
     //! The message types in our system
     static MessageMap &messageTypes;

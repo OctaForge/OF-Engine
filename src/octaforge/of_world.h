@@ -30,9 +30,6 @@
 #ifndef OF_WORLD_H
 #define OF_WORLD_H
 
-/* ofstdlib */
-#include "OFTL/string.h"
-
 namespace world
 {
     extern bool loading;
