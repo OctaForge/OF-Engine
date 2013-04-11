@@ -181,7 +181,7 @@ void ClientSystem::prepareForNewScenario(const char *sc)
     // another map with its Classes etc.
     LogicSystem::clear();
 
-    formatstring(currScenarioCode)("%s", sc);
+    copystring(currScenarioCode, sc);
 }
 
 bool ClientSystem::isAdmin()
