@@ -3,6 +3,17 @@
 #ifndef _TOOLS_H
 #define _TOOLS_H
 
+#ifdef NULL
+#undef NULL
+#endif
+#define NULL 0
+
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef signed long long int llong;
+typedef unsigned long long int ullong;
+
 #ifdef _DEBUG
 #define ASSERT(c) assert(c)
 #else
@@ -14,6 +25,58 @@
 #else
 #define RESTRICT
 #endif
+
+inline void *operator new(size_t size)
+{
+    void *p = malloc(size);
+    if(!p) abort();
+    return p;
+}
+inline void *operator new[](size_t size)
+{
+    void *p = malloc(size);
+    if(!p) abort();
+    return p;
+}
+inline void operator delete(void *p) { if(p) free(p); }
+inline void operator delete[](void *p) { if(p) free(p); }
+
+inline void *operator new(size_t, void *p) { return p; }
+inline void *operator new[](size_t, void *p) { return p; }
+inline void operator delete(void *, void *) {}
+inline void operator delete[](void *, void *) {}
+
+#ifdef swap
+#undef swap
+#endif
+template<class T>
+static inline void swap(T &a, T &b)
+{
+    T t = a;
+    a = b;
+    b = t;
+}
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+template<class T>
+static inline T max(T a, T b)
+{
+    return a > b ? a : b;
+}
+template<class T>
+static inline T min(T a, T b)
+{
+    return a < b ? a : b;
+}
+template<class T, class U>
+static inline T clamp(T a, U b, U c)
+{
+    return max(T(b), min(a, T(c)));
+}
 
 #define rnd(x) ((int)(randomMT()&0xFFFFFF)%(x))
 #define rndscale(x) (float((randomMT()&0xFFFFFF)*double(x)/double(0xFFFFFF)))
@@ -29,6 +92,9 @@
 #define loopjrev(m) looprev(j,m)
 #define loopkrev(m) looprev(k,m)
 #define looplrev(m) looprev(l,m)
+
+#define DELETEP(p) if(p) { delete   p; p = 0; }
+#define DELETEA(p) if(p) { delete[] p; p = 0; }
 
 #define PI  (3.1415927f)
 #define PI2 (2*PI)
@@ -53,6 +119,7 @@
 #endif
 
 #define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #define PATHDIV '\\'
 
 #else
@@ -98,9 +165,6 @@ struct stringformatter
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)
 #define loopvrev(v) for(int i = (v).length()-1; i>=0; i--)
 
-#define DELETEP(p) if(p) { delete   p; p = 0; }
-#define DELETEA(p) if(p) { delete[] p; p = 0; }
-
 template <class T>
 struct databuf
 {
@@ -116,7 +180,7 @@ struct databuf
 
     databuf() : buf(NULL), len(0), maxlen(0), flags(0) {}
 
-    template<class U> 
+    template<class U>
     databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {}
 
     const T &get()
@@ -205,7 +269,7 @@ struct packetbuf : ucharbuf
 
     void checkspace(int n)
     {
-        if(len + n > maxlen && packet && growth > 0) resize(max(len + n, maxlen + growth));    
+        if(len + n > maxlen && packet && growth > 0) resize(max(len + n, maxlen + growth));
     }
 
     ucharbuf subbuf(int sz)
@@ -225,7 +289,7 @@ struct packetbuf : ucharbuf
         checkspace(numvals);
         ucharbuf::put(vals, numvals);
     }
-    
+
     ENetPacket *finalize()
     {
         resize(len);
@@ -450,17 +514,17 @@ template <class T> struct vector
 
     void shrink(int i) { ASSERT(i<=ulen); if(isclass<T>::no) ulen = i; else while(ulen>i) drop(); }
     void setsize(int i) { ASSERT(i<=ulen); ulen = i; }
-    
+
     void deletecontents() { while(!empty()) delete   pop(); }
     void deletearrays() { while(!empty()) delete[] pop(); }
-    
+
     T *getbuf() { return buf; }
     const T *getbuf() const { return buf; }
     bool inbuf(const T *e) const { return e >= buf && e < &buf[ulen]; }
 
     template<class F>
-    void sort(F fun, int i = 0, int n = -1) 
-    { 
+    void sort(F fun, int i = 0, int n = -1)
+    {
         quicksort(&buf[i], n < 0 ? ulen-i : n, fun);
     }
 
@@ -541,7 +605,7 @@ template <class T> struct vector
         loopi(ulen) if(buf[i]==o) return i;
         return -1;
     }
-    
+
     void removeobj(const T &o)
     {
         loopi(ulen) if(buf[i]==o) remove(i--);
@@ -691,7 +755,7 @@ template<class T> struct hashset
         numelems++;
         return c;
     }
-     
+
     #define HTFIND(key, success, fail) \
         uint h = hthash(key)&(this->size-1); \
         for(chain *c = this->chains[h]; c; c = c->next) \
@@ -808,7 +872,7 @@ template<class K, class T> struct hashtable : hashset<hashtableentry<K, T> >
         c->elem.key = key;
         return c->elem;
     }
-    
+
     T *access(const K &key)
     {
         HTFIND(key, &c->elem.data, NULL);
@@ -851,7 +915,7 @@ struct unionfind
 
         ufval() : rank(0), next(-1) {}
     };
-    
+
     vector<ufval> ufvals;
 
     int find(int k)
@@ -860,13 +924,13 @@ struct unionfind
         while(ufvals[k].next>=0) k = ufvals[k].next;
         return k;
     }
-    
+
     int compressfind(int k)
     {
         if(ufvals[k].next<0) return k;
         return ufvals[k].next = compressfind(ufvals[k].next);
     }
-    
+
     void unite (int x, int y)
     {
         while(ufvals.length() <= max(x, y)) ufvals.add();
@@ -927,9 +991,9 @@ template <class T, int SIZE> struct queue
 {
     int head, tail, len;
     T data[SIZE];
-    
+
     queue() { clear(); }
-    
+
     void clear() { head = tail = len = 0; }
 
     int length() const { return len; }
@@ -942,7 +1006,7 @@ template <class T, int SIZE> struct queue
     T &adding(int offset) { return data[tail+offset >= SIZE ? tail+offset - SIZE : tail+offset]; }
     T &add()
     {
-        ASSERT(len < SIZE);    
+        ASSERT(len < SIZE);
         T &t = data[tail];
         tail = (tail + 1)%SIZE;
         len++;
@@ -1021,7 +1085,7 @@ struct stream
 #else
     typedef off_t offset;
 #endif
-    
+
     virtual ~stream() {}
     virtual void close() = 0;
     virtual bool end() = 0;

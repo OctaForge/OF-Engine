@@ -16,16 +16,6 @@
 #undef gamma
 #endif
 
-/* workaround for -std=c++0x */
-
-#ifdef WIN32
-#ifdef __GNUC__
-#ifdef __STRICT_ANSI__
-#undef __STRICT_ANSI__
-#endif
-#endif
-#endif
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,10 +26,6 @@
 #include <assert.h>
 #include <time.h>
 
-#include "OFTL/new.h"
-#include "OFTL/utils.h"
-#include "OFTL/algorithm.h"
-#include "OFTL/functional.h"
 #include "OFTL/map.h"
 #include "OFTL/shared_ptr.h"
 
@@ -48,11 +34,6 @@ extern "C" {
     #include "lualib.h"
     #include "lauxlib.h"
 }
-
-using algorithm::min;
-using algorithm::max;
-using algorithm::swap;
-using algorithm::clamp;
 
 #ifdef WIN32
   #define WIN32_LEAN_AND_MEAN
