@@ -77,21 +77,39 @@ namespace logger
         for (int i = 0; i < current_indent; i++)
             printf("    ");
 
-        va_list  ap;
+        char sbuf[512];
+        char *buf = sbuf;
+        va_list ap;
+#if defined(WIN32) && !defined(__GNUC__)
         va_start(ap, fmt);
-        types::String buf = types::String().vformat(fmt, ap);
+        size_t len = _vscprintf(fmt, ap);
+        if (len >= sizeof(sbuf)) {
+            buf = new char[len + 1];
+        }
+        _vsnprintf(buf, len + 1, fmt, ap);
         va_end(ap);
+#else
+        va_start(ap, fmt);
+        size_t len = vsnprintf(sbuf, sizeof(sbuf), fmt, ap);
+        va_end(ap);
+        if (len >= sizeof(sbuf)) {
+            buf = new char[len + 1];
+            va_start(ap, fmt);
+            vsnprintf(buf, len + 1, fmt, ap);
+            va_end(ap);
+        }
+#endif
 
 #ifdef CLIENT
-        if (level == ERROR)
-        {
-            conoutf(CON_ERROR, "%s", types::String().format(
-                "[[%s]] - %s", level_s, buf.get_buf()
-            ).get_buf());
+        if (level == ERROR) {
+            conoutf(CON_ERROR, "[[%s]] - %s", level_s, buf);
         }
         else
 #endif
-        printf("[[%s]] - %s", level_s, buf.get_buf());
+        printf("[[%s]] - %s", level_s, buf);
+        if (buf != sbuf) {
+            delete[] buf;
+        }
 
         fflush(stdout);
     }
