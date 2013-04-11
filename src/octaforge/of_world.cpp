@@ -47,29 +47,26 @@ namespace world
 {
     bool loading = false;
 
-    types::String curr_map_id;
-    types::String scenario_code;
+    string curr_map_id = "";
+    string scenario_code = "";
 
     static int num_expected_entities = 0;
     static int num_received_entities = 0;
 
-    void set_num_expected_entities(int num)
-    {
+    void set_num_expected_entities(int num) {
         num_expected_entities = num;
         num_received_entities = 0;
     }
 
-    void trigger_received_entity()
-    {
+    void trigger_received_entity() {
         num_received_entities++;
 
-        if (num_expected_entities > 0)
-        {
+        if (num_expected_entities > 0) {
             float val = clamp(float(num_received_entities) / float(num_expected_entities), 0.0f, 1.0f);
-            if (loading)
-                renderprogress(val, types::String().format(
-                    "received entity %i ...", num_received_entities
-                ).get_buf());
+            if (loading) {
+                defformatstring(buf)("received entity %d ...", num_received_entities);
+                renderprogress(val, buf);
+            }
         }
     }
 
@@ -80,52 +77,45 @@ namespace world
      * http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
      * 
      */
-    void generate_scenario_code()
-    {
-        scenario_code = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+    void generate_scenario_code() {
+        copystring(scenario_code, "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx");
 
         int r = 0;
-        types::String tmp;
+        string tmp;
 
-        char  *it = scenario_code.begin();
-        for (; it < scenario_code.end  (); it++)
-        {
+        for (char *it = scenario_code; *it; ++it) {
             if  (*it == '4' || *it == '-') continue;
 
             r = (int)floor(rndscale(1) * 16);
-            tmp.format("%x", (*it == 'x') ? r : ((r&0x3)|0x8));
+            formatstring(tmp)("%x", (*it == 'x') ? r : ((r&0x3)|0x8));
             *it = tmp[0];
         }
     }
 
 #ifdef SERVER
-    void send_curr_map(int cn)
-    {
-        if (scenario_code.is_empty()) return;
-        send_NotifyAboutCurrentScenario(
-            cn,
-            curr_map_id.get_buf(),
-            scenario_code.get_buf()
-        );
+    void send_curr_map(int cn) {
+        if (!scenario_code[0]) return;
+        send_NotifyAboutCurrentScenario(cn, curr_map_id, scenario_code);
     }
 #endif
 
-    bool set_map(const types::String& id)
-    {
+    bool set_map(const char *id) {
         generate_scenario_code();
 
 #ifdef SERVER
-        send_PrepareForNewScenario(-1, scenario_code.get_buf());
+        send_PrepareForNewScenario(-1, scenario_code);
         force_network_flush();
 #endif
 
-        curr_map_id = id;
+        copystring(curr_map_id, id);
 
-        types::String s = id.substr(0, id.length() - 7);
-        s += "/map";
+        string buf;
+        copystring(buf, id);
+        int len = strlen(id);
+        assert(len > 7);
+        memcpy(buf + len - 7, "/map", 5);
 
-        if (!load_world(s.get_buf()))
-        {
+        if (!load_world(buf)) {
             logger::log(logger::ERROR, "Failed to load world!\n");
             return false;
         }
@@ -141,63 +131,60 @@ namespace world
         return true;
     }
 
-    bool restart_map()
-    {
+    bool restart_map() {
         return set_map(curr_map_id);
     }
 
-    void export_ents(const char *fname)
-    {
-        types::String buf = types::String().format(
-            "%sdata%c%s%c%s",
-            homedir, PATHDIV,
-            curr_map_id.substr(0, curr_map_id.length() - 7).get_buf(),
-            PATHDIV, fname
-        );
+    void export_ents(const char *fname) {
+        string tmp;
+        copystring(tmp, curr_map_id);
+        tmp[strlen(curr_map_id) - 7] = '\0';
+
+        defformatstring(buf)("%sdata%c%s%c%s", homedir, PATHDIV, tmp,
+            PATHDIV, fname);
 
         lua_getglobal(lua::L, "external");
         lua_getfield (lua::L, -1, "entities_save_all");
         lua_call     (lua::L,  0, 1);
         const char *data = lua_tostring(lua::L, -1);
         lua_pop(lua::L, 2);
-        if (fileexists(buf.get_buf(), "r"))
-        {
-            types::String buff = types::String().format(
-                "%s-%i.bak", buf.get_buf(), (int)time(0)
-            );
-            tools::fcopy(buf.get_buf(), buff.get_buf());
+        if (fileexists(buf, "r")) {
+            defformatstring(buff)("%s-%d.bak", buf, (int)time(0));
+            tools::fcopy(buf, buff);
         }
 
-        FILE *f = fopen(buf.get_buf(), "w");
-        if  (!f)
-        {
-            logger::log(logger::ERROR, "Cannot open file %s for writing.\n", buf.get_buf());
+        FILE *f = fopen(buf, "w");
+        if  (!f) {
+            logger::log(logger::ERROR, "Cannot open file %s for writing.\n",
+                buf);
             return;
         }
         fputs(data, f);
         fclose(f);
     }
 
-    types::String get_mapfile_path(const char *rpath)
-    {
-        types::String aloc = curr_map_id.substr(0, curr_map_id.length() - 7);
+    static string mapfile_path = "";
+    const char *get_mapfile_path(const char *rpath) {
+        string aloc;
+        copystring(aloc, curr_map_id);
+        aloc[strlen(curr_map_id) - 7] = '\0';
 
-        types::String buf = types::String().format(
-            "data%c%s%c%s", PATHDIV, aloc.get_buf(), PATHDIV, rpath
-        );
-        types::String homebuf = types::String().format(
-            "%s%s", homedir, buf.get_buf()
-        );
-        if (fileexists(homebuf.get_buf(), "r")) return homebuf;
+        defformatstring(buf)("data%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
+        formatstring(mapfile_path)("%s%s", homedir, buf);
 
-        return buf;
+        if (fileexists(mapfile_path, "r")) {
+            return mapfile_path;
+        }
+        copystring(mapfile_path, buf);
+        return mapfile_path;
     }
 
-    types::String get_mapscript_filename() { return get_mapfile_path("map.lua"); }
+    const char *get_mapscript_filename() {
+        return get_mapfile_path("map.lua");
+    }
 
-    void run_mapscript()
-    {
-        if (luaL_loadfile(lua::L, get_mapscript_filename().get_buf())
+    void run_mapscript() {
+        if (luaL_loadfile(lua::L, get_mapscript_filename())
         || lua_pcall(lua::L, 0, 0, 0)) {
             fatal("%s", lua_tostring(lua::L, -1));
         }

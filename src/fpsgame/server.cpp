@@ -928,7 +928,7 @@ namespace server
     {
         clientinfo *ci = getinfo(cn);
         if (!ci) return;
-        ci->runningCurrentScenario = (world::scenario_code == sc);
+        ci->runningCurrentScenario = !strcmp(world::scenario_code, sc);
     }
 
     bool isRunningCurrentScenario(int clientNumber)

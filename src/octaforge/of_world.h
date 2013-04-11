@@ -37,13 +37,13 @@ namespace world
 {
     extern bool loading;
 
-    extern types::String curr_map_id;
-    extern types::String scenario_code;
+    extern string curr_map_id;
+    extern string scenario_code;
 
     void set_num_expected_entities(int num);
     void trigger_received_entity();
 
-    bool set_map(const types::String& id);
+    bool set_map(const char *id);
     bool restart_map();
 
 #ifdef SERVER
@@ -51,8 +51,8 @@ namespace world
 #endif
 
     void export_ents(const char *fname);
-    types::String get_mapfile_path(const char *rpath);
-    types::String get_mapscript_filename();
+    const char *get_mapfile_path(const char *rpath);
+    const char *get_mapscript_filename();
     void run_mapscript();
 } /* end namespace world */
 

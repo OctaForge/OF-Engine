@@ -136,7 +136,7 @@ namespace MessageSystem
 
 
         #ifdef SERVER
-            if (world::scenario_code.is_empty())
+            if (!world::scenario_code[0])
             {
                 send_PersonalServerMessage(
                     sender,
@@ -371,7 +371,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestCurrentScenario (1007)\r\n");
 
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         world::send_curr_map(sender);
     }
 #endif
@@ -453,7 +453,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RestartMap (1009)\r\n");
 
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
         {
             logger::log(logger::WARNING, "Non-admin tried to restart the map\r\n");
@@ -488,7 +488,7 @@ namespace MessageSystem
         char stateData[MAXTRANS];
         getstring(stateData, p);
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
         {
             logger::log(logger::WARNING, "Non-admin tried to add an entity\r\n");
@@ -649,7 +649,7 @@ namespace MessageSystem
         char value[MAXTRANS];
         getstring(value, p);
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         #define STATE_DATA_REQUEST \
         int actorUniqueId = server::getUniqueId(sender); \
         \
@@ -750,7 +750,7 @@ namespace MessageSystem
         char value[MAXTRANS];
         getstring(value, p);
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         STATE_DATA_REQUEST
     }
 #endif
@@ -889,7 +889,7 @@ namespace MessageSystem
         getstring(scenarioCode, p);
 
         #ifdef SERVER
-            if (world::scenario_code.is_empty()) return;
+            if (!world::scenario_code[0]) return;
             // Mark the client as running the current scenario, if indeed doing so
             server::setClientScenario(sender, scenarioCode);
             if ( !server::isRunningCurrentScenario(sender) )
@@ -1070,7 +1070,7 @@ namespace MessageSystem
 
         int uniqueId = getint(p);
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         if (!server::isAdmin(sender))
         {
             logger::log(logger::WARNING, "Non-admin tried to remove an entity\r\n");
@@ -1357,7 +1357,7 @@ namespace MessageSystem
 
         int soundId = getint(p);
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         dynent* otherEntity = game::getclient(sender);
         if (otherEntity)
@@ -1663,7 +1663,7 @@ namespace MessageSystem
 
         int mode = getint(p);
 
-        if (world::scenario_code.is_empty() || !server::isRunningCurrentScenario(sender) ) return;
+        if (!world::scenario_code[0] || !server::isRunningCurrentScenario(sender)) return;
         send_EditModeS2C(-1, sender, mode); // Relay
     }
 #endif
@@ -1756,7 +1756,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestMap (1030)\r\n");
 
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         world::send_curr_map(sender);
     }
 #endif
@@ -1783,7 +1783,7 @@ namespace MessageSystem
         float z = float(getint(p))/DMF;
         int uniqueId = getint(p);
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
         lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input");
         lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Server");
@@ -1956,7 +1956,7 @@ namespace MessageSystem
         logger::log(logger::DEBUG, "MessageSystem: Receiving a message of type RequestPrivateEditMode (1034)\r\n");
 
 
-        if (world::scenario_code.is_empty()) return;
+        if (!world::scenario_code[0]) return;
         send_NotifyPrivateEditMode(sender);
     }
 #endif

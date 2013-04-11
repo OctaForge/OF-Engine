@@ -75,14 +75,14 @@ namespace game
         stopfollowing();
     }
 
-    string clientmap = "";
+    static string clientmap = "";
     const char *getclientmap()
     {
-        types::String s = world::curr_map_id.substr(
-            0, world::curr_map_id.length() - 7
-        );
-        s += "/";
-        formatstring(clientmap)("%s/map", s.get_buf());
+        if (!world::curr_map_id[0]) return clientmap;
+        string buf;
+        copystring(buf, world::curr_map_id);
+        buf[strlen(world::curr_map_id) - 7] = '\0';
+        formatstring(clientmap)("%s/map", buf);
         return clientmap;
     }
 
