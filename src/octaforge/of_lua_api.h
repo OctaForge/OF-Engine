@@ -99,15 +99,15 @@ namespace lapi_binds
         }
 
         char *loaded = NULL;
-        types::String buf;
+        string buf;
 
         if (strlen(p) >= 2 && p[0] == '.' && (p[1] == '/' || p[1] == '\\')) {
-            buf = world::get_mapfile_path(p + 2);
+            copystring(buf, world::get_mapfile_path(p + 2));
         } else {
-            buf.format("data%c%s", PATHDIV, p);
+            formatstring(buf)("data%c%s", PATHDIV, p);
         }
 
-        if (!(loaded = loadfile(path(buf.get_buf(), true), NULL))) {
+        if (!(loaded = loadfile(path(buf, true), NULL))) {
             logger::log(logger::ERROR, "count not read \"%s\"", p);
             return 0;
         }
@@ -631,13 +631,13 @@ namespace lapi_binds
     int _lua_npcadd(lua_State *L) {
         int cn = localconnect();
 
-        types::String buf(types::String().format("Bot.%i", cn));
+        defformatstring(buf)("Bot.%d", cn);
         logger::log(logger::DEBUG, "New NPC with client number: %i\n", cn);
 
         const char *cl = luaL_checkstring(L, 1);
         /* returns true  == 1 when there is an entity on the stack
          * returns false == 0 when there is no entity on the stack */
-        return server::createluaEntity(cn, cl ? cl : "", buf.get_buf());
+        return server::createluaEntity(cn, cl ? cl : "", buf);
     }
 
     int _lua_npcdel(lua_State *L) {
@@ -1376,8 +1376,7 @@ namespace lapi_binds
     int _lua_do_upload(lua_State *L) {
         renderprogress(0.1f, "compiling scripts ..");
 
-        types::String fname(world::get_mapscript_filename());
-        if (luaL_loadfile(L, fname.get_buf()))
+        if (luaL_loadfile(L, world::get_mapscript_filename()))
         {
             lua_getglobal  (L, "LAPI"); lua_getfield(L, -1, "GUI");
             lua_getfield   (L, -1, "show_message");
@@ -1581,9 +1580,8 @@ namespace lapi_binds
     int _lua_preloadsound(lua_State *L) {
         const char *n = "";
         if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
-        renderprogress(0, types::String().format(
-            "preloadign sound '%s' ..", n
-        ).get_buf());
+        defformatstring(buf)("preloading sound '%s' ...", n);
+        renderprogress(0, buf);
         return preload_sound(n, luaL_optinteger(L, 2, 100));
     }
 
@@ -1975,18 +1973,16 @@ namespace lapi_binds
 #endif
 
     int _lua_get_map_preview_filename(lua_State *L) {
-        types::String buf;
-
-        buf.format("data%cmaps%c%s%cpreview.png",
-            PATHDIV, PATHDIV, luaL_checkstring(L, 1), PATHDIV);
-        if (fileexists(buf.get_buf(), "r")) {
-            lua_pushstring(L, buf.get_buf());
+        defformatstring(buf)("data%cmaps%c%s%cpreview.png", PATHDIV, PATHDIV,
+            luaL_checkstring(L, 1), PATHDIV);
+        if (fileexists(buf, "r")) {
+            lua_pushstring(L, buf);
             return 1;
         }
 
-        buf.format("%s%s", homedir, buf.get_buf());
-        if (fileexists(buf.get_buf(), "r")) {
-            lua_pushstring(L, buf.get_buf());
+        defformatstring(buff)("%s%s", homedir, buf);
+        if (fileexists(buff, "r")) {
+            lua_pushstring(L, buff);
             return 1;
         }
 
