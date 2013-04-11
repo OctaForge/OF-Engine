@@ -19,7 +19,8 @@ CLogicEntity  *ClientSystem::playerLogicEntity  = NULL;
 bool           ClientSystem::loggedIn           = false;
 bool           ClientSystem::editingAlone       = false;
 int            ClientSystem::uniqueId           = -1;
-types::String  ClientSystem::currScenarioCode   = "";
+/* the buffer is large enough to hold the uuid */
+string         ClientSystem::currScenarioCode   = "";
 
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
@@ -168,7 +169,7 @@ void ClientSystem::finishLoadWorld()
     lua_call     (lua::L,  0, 0); lua_pop(lua::L, 1); // (see prepareForMap)
 }
 
-void ClientSystem::prepareForNewScenario(const types::String& sc)
+void ClientSystem::prepareForNewScenario(const char *sc)
 {
     _mapCompletelyReceived = false; // We no longer have a map. This implies scenarioStarted will return false, thus
                                     // stopping sending of position updates, as well as rendering
@@ -180,7 +181,7 @@ void ClientSystem::prepareForNewScenario(const types::String& sc)
     // another map with its Classes etc.
     LogicSystem::clear();
 
-    currScenarioCode = sc;
+    formatstring(currScenarioCode)("%s", sc);
 }
 
 bool ClientSystem::isAdmin()

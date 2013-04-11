@@ -431,7 +431,7 @@ namespace MessageSystem
         char sc[MAXTRANS];
         getstring(sc, p);
 
-        ClientSystem::currScenarioCode = sc;
+        formatstring(ClientSystem::currScenarioCode)("%s", sc);
         world::set_map(mid);
     }
 #endif
