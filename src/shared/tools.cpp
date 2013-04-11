@@ -131,35 +131,6 @@ void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, packetbuf &p) { sendstring_(t, p); }
 void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 
-void getstring(types::String& text, ucharbuf &p) {
-    getstring(text, p, MAXTRANS);
-}
-
-void getstring(types::String& text, ucharbuf &p, int len)
-{
-    text.resize(len);
-
-    char *it = text.begin();
-    char *lt = text.begin() + text.capacity();
-    do
-    {
-        if (it > lt)
-        {
-            text[len - 1] = '\0';
-            return;
-        }
-        if (!p.remaining())
-        {
-            *it = '\0';
-            return;
-        } 
-        *it = getint(p);
-    } while (*it++);
-
-    /* length update - ugly hack, FIXME */
-    text.format("%s", text.get_buf());
-}
-
 void getstring(char *text, ucharbuf &p, int len)
 {
     char *t = text;
