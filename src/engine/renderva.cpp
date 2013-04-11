@@ -354,7 +354,7 @@ static inline bool insideoe(const octaentities *oe, const vec &v, int margin = 1
            v.x<=oe->bbmax.x+margin && v.y<=oe->bbmax.y+margin && v.z<=oe->bbmax.z+margin;
 }
 
-void findvisiblemms(vector< types::Shared_Ptr<extentity> > &ents)
+void findvisiblemms(vector<extentity*> &ents)
 {
     visiblemms = NULL;
     lastvisiblemms = &visiblemms;
@@ -421,7 +421,7 @@ static inline void rendermapmodel(extentity &e)
 
 void rendermapmodels()
 {
-    findvisiblemms(entities::storage);
+    findvisiblemms(entities::ents);
 
     static int skipoq = 0;
     bool doquery = oqfrags && oqmm;
@@ -2114,7 +2114,7 @@ void genshadowmeshes()
 
     renderprogress(0, "generating shadow meshes..");
 
-    loopv(entities::storage)
+    loopv(entities::ents)
     {
         extentity &e = *entities::get(i);
         if(e.type != ET_LIGHT) continue;

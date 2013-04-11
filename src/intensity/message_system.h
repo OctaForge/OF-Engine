@@ -47,10 +47,10 @@ struct MessageType
 
 struct MessageManager
 {
-    typedef types::Map<int, types::Shared_Ptr<MessageType> > MessageMap;
+    typedef types::Map<int, MessageType*> MessageMap;
 
     //! The message types in our system
-    static MessageMap messageTypes;
+    static MessageMap &messageTypes;
 
     // TODO: a quit() that deletes all the new()ed messagetypes
 

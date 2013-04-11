@@ -184,7 +184,7 @@ static int getentid(extentity *entity)
     while (entities::get(id) != entity)
     {
         id++;
-        assert(id < entities::storage.length());
+        assert(id < entities::ents.length());
     }
 
     return id;
@@ -192,7 +192,7 @@ static int getentid(extentity *entity)
 
 static inline bool modifyoctaent(int flags, int id)
 {
-    return entities::storage.inrange(id) && modifyoctaent(flags, id, *entities::get(id));
+    return entities::ents.inrange(id) && modifyoctaent(flags, id, *entities::get(id));
 }
 
 void addentity(int id)    { modifyoctaent(MODOE_ADD|MODOE_UPDATEBB, id); } // INTENSITY: Removed 'static' and 'inline'
@@ -205,7 +205,7 @@ void removeentity(extentity *entity) { removeentity(getentid(entity)); }
 void freeoctaentities(cube &c)
 {
     if(!c.ext) return;
-    if(entities::storage.length())
+    if(entities::ents.length())
     {
         while(c.ext->ents && !c.ext->ents->mapmodels.empty()) removeentity(c.ext->ents->mapmodels.pop());
         while(c.ext->ents && !c.ext->ents->other.empty())     removeentity(c.ext->ents->other.pop());
@@ -219,7 +219,7 @@ void freeoctaentities(cube &c)
 
 void entitiesinoctanodes()
 {
-    loopv(entities::storage) modifyoctaent(MODOE_ADD, i, *entities::get(i));
+    loopv(entities::ents) modifyoctaent(MODOE_ADD, i, *entities::get(i));
 }
 
 static inline void findents(octaentities &oe, int low, int high, bool notspawned, const vec &pos, const vec &radius, vector<int> &found)
@@ -360,7 +360,7 @@ void attachentity(extentity &e)
 
     int closest = -1;
     float closedist = 1e10f;
-    loopv(entities::storage)
+    loopv(entities::ents)
     {
         extentity *a = entities::get(i);
         if(a->attached || a->type != ET_LIGHT) continue;
@@ -378,7 +378,7 @@ void attachentity(extentity &e)
 
 void attachentities()
 {
-    loopv(entities::storage) attachentity(*entities::get(i));
+    loopv(entities::ents) attachentity(*entities::get(i));
 }
 
 // convenience macros implicitly define:
@@ -396,7 +396,7 @@ void attachentities()
     if(e.type!=ET_EMPTY) { addentity(n); if(oldtype!=e.type) attachentity(e); }) \
     clearshadowcache(); \
 }
-#define addgroup(exp)   { loopv(entities::storage) entfocus(i, if(exp) entadd(n)); }
+#define addgroup(exp)   { loopv(entities::ents) entfocus(i, if(exp) entadd(n)); }
 #define setgroup(exp)   { entcancel(); addgroup(exp); }
 #define groupeditloop(f){ entlooplevel++; int _ = efocus; loopv(entgroup) entedit(entgroup[i], f); efocus = _; entlooplevel--; }
 #define groupeditpure(f){ if(entlooplevel>0) { entedit(efocus, f); } else groupeditloop(f); }
@@ -405,8 +405,8 @@ void attachentities()
 
 vec getselpos()
 {
-    if(entgroup.length() && entities::storage.inrange(entgroup[0])) return entities::get(entgroup[0])->o;
-    if(entities::storage.inrange(enthover)) return entities::get(enthover)->o;
+    if(entgroup.length() && entities::ents.inrange(entgroup[0])) return entities::get(entgroup[0])->o;
+    if(entities::ents.inrange(enthover)) return entities::get(enthover)->o;
     return sel.o.tovec();
 }
 
@@ -845,10 +845,10 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
     if(local)
     {
         idx = -1;
-        loopv(entities::storage) if(entities::storage[i]->type == ET_EMPTY) { idx = i; break; }
-        if(idx < 0 && entities::storage.length() >= MAXENTS) { conoutf("too many entities"); return NULL; }
+        loopv(entities::ents) if(entities::ents[i]->type == ET_EMPTY) { idx = i; break; }
+        if(idx < 0 && entities::ents.length() >= MAXENTS) { conoutf("too many entities"); return NULL; }
     }
-    else while(entities::storage.length() < idx) entities::storage.add(new extentity)->type = ET_EMPTY;
+    else while(entities::ents.length() < idx) entities::ents.add(new extentity)->type = ET_EMPTY;
     extentity &e = *(new extentity);
     e.o = o;
     e.attr1 = v1;
@@ -874,8 +874,8 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
                     break;
         }
     }
-    if(entities::storage.inrange(idx)) entities::storage[idx] = &e;
-    else { idx = entities::storage.length(); entities::storage.add(&e); }
+    if(entities::ents.inrange(idx)) entities::ents[idx] = &e;
+    else { idx = entities::ents.length(); entities::ents.add(&e); }
     return &e;
 }
 
@@ -908,7 +908,7 @@ void entpaste()
     if(noentedit()) return;
     if(entcopybuf.length()==0) return;
     entcancel();
-//    int last = entities::storage.length()-1; // INTENSITY
+//    int last = entities::ents.length()-1; // INTENSITY
     float m = float(sel.grid)/float(entcopygrid);
     loopv(entcopybuf)
     {
@@ -941,7 +941,7 @@ void entpaste()
         // INTENSITY: end Create entity using new system
 
 // INTENSITY       extentity *e = newentity(true, o, ET_EMPTY, c.attr1, c.attr2, c.attr3, c.attr4, c.attr5);
-// INTENSITY       entities::storage.add(e);
+// INTENSITY       entities::ents.add(e);
 // INTENSITY       entadd(++last);
     }
 // INTENSITY   int j = 0;
@@ -982,7 +982,7 @@ void nearestent()
     if(noentedit()) return;
     int closest = -1;
     float closedist = 1e16f;
-    loopv(entities::storage)
+    loopv(entities::ents)
     {
         extentity &e = *entities::get(i);
         if(e.type == ET_EMPTY) continue;
@@ -1090,13 +1090,13 @@ COMMAND(entattr, "iiN");
 
 int findentity(int type, int index, int attr1, int attr2)
 {
-    for(int i = index; i<entities::storage.length(); i++) 
+    for(int i = index; i<entities::ents.length(); i++) 
     {
         extentity &e = *entities::get(i);
         if(e.type==type && (attr1<0 || e.attr1==attr1) && (attr2<0 || e.attr2==attr2))
             return i;
     }
-    loopj(min(index, entities::storage.length())) 
+    loopj(min(index, entities::ents.length())) 
     {
         extentity &e = *entities::get(j);
         if(e.type==type && (attr1<0 || e.attr1==attr1) && (attr2<0 || e.attr2==attr2))
@@ -1284,7 +1284,7 @@ void shrinkmap()
     worldsize /= 2;
 
     ivec offset(octant, 0, 0, 0, worldsize);
-    loopv(entities::storage) entities::get(i)->o.sub(offset.tovec());
+    loopv(entities::ents) entities::get(i)->o.sub(offset.tovec());
 
 #ifdef CLIENT
     shrinkblendmap(octant);
@@ -1330,7 +1330,7 @@ COMMAND(finish_dragging, "");
 void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, int attr4, int attr5, bool local)
 {
     if(i < 0 || i >= MAXENTS) return;
-    if(entities::storage.length()<=i)
+    if(entities::ents.length()<=i)
     {
         extentity *e = newentity(local, o, type, attr1, attr2, attr3, attr4, attr5, i);
         addentity(i);

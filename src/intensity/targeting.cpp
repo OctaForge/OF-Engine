@@ -65,7 +65,7 @@ void TargetingControl::intersectClosest(vec &from, vec &to, physent *targeter, f
 
     // Check if Sauer already found us hovering on an entity
     // Note that we will be -1 if no entity, or we might be too high, if enthover is outdated
-    if (entities::storage.inrange(enthover))
+    if (entities::ents.inrange(enthover))
     {
         dist = -7654; // TODO: Calculate
         entity = LogicSystem::getLogicEntity(*entities::get(enthover));

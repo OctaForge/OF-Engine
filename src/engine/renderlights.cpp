@@ -2698,9 +2698,9 @@ void viewlightscissor()
     loopv(entgroup)
     {
         int idx = entgroup[i];
-        if(entities::storage.inrange(idx) && entities::storage[idx]->type == ET_LIGHT)
+        if(entities::ents.inrange(idx) && entities::ents[idx]->type == ET_LIGHT)
         {
-            extentity &e = *entities::storage[idx];
+            extentity &e = *entities::ents[idx];
             loopvj(lights) if(lights[j].o == e.o)
             {
                 lightinfo &l = lights[j];
@@ -2740,7 +2740,7 @@ static inline bool calclightscissor(lightinfo &l)
 void collectlights()
 {
     // point lights processed here
-    if(!editmode || !fullbright) loopv(entities::storage)
+    if(!editmode || !fullbright) loopv(entities::ents)
     {
         extentity *e = entities::get(i);
         if(e->type != ET_LIGHT) continue;

@@ -293,7 +293,7 @@ void pushCubeCorner(int x, int y, int z, int gridsize, int face, int corner, int
 
 CLogicEntity *getSelectedEntity()
 {
-    if (!entities::storage.inrange(efocus)) return NULL;
+    if (!entities::ents.inrange(efocus)) return NULL;
     extentity& e = *(entities::get(efocus));
     return LogicSystem::getLogicEntity(e);
 }

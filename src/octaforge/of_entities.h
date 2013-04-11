@@ -32,7 +32,7 @@
 
 namespace entities
 {
-    extern vector< types::Shared_Ptr<extentity> > storage;
+    extern vector<extentity*> &ents;
 
     extentity *get(size_t idx);
     void     clear();

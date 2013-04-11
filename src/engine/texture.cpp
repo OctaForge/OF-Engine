@@ -2446,7 +2446,7 @@ void initenvmaps()
     clearenvmaps();
     extern char *skybox;
     skyenvmap = skybox[0] ? cubemapload(skybox, true, false, true) : NULL;
-    loopv(entities::storage)
+    loopv(entities::ents)
     {
         const extentity &ent = *entities::get(i);
         if(ent.type != ET_ENVMAP) continue;

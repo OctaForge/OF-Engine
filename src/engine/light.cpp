@@ -320,7 +320,7 @@ const vector<int> &checklightcache(int x, int y)
 
     lce.lights.setsize(0);
     int csize = 1<<lightcachesize, cx = x<<lightcachesize, cy = y<<lightcachesize;
-    loopv(entities::storage)
+    loopv(entities::ents)
     {
         const extentity &light = *entities::get(i);
         switch(light.type)

@@ -361,7 +361,7 @@ void checkmapsounds()
         stopsound(6, waterchan);
         waterchan = -1;
     } // SAUER ENHANCED end
-    loopv(entities::storage)
+    loopv(entities::ents)
     {
         extentity &e = *entities::get(i);
         if(e.type!=ET_SOUND) continue;

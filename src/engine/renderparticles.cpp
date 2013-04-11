@@ -80,7 +80,7 @@ void clearparticleemitters()
 void addparticleemitters()
 {
     emitters.shrink(0);
-    loopv(entities::storage)
+    loopv(entities::ents)
     {
         extentity &e = *entities::get(i);
         if(e.type != ET_PARTICLES) continue;
@@ -1472,7 +1472,7 @@ void updateparticles()
             }
             editid = e.uniqueId;
         }
-        loopv(entities::storage)
+        loopv(entities::ents)
         {
             extentity &e = *entities::get(i); // INTENSITY: Made extentity
             if(e.type==ET_EMPTY || editid==e.uniqueId) continue;

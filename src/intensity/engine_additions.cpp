@@ -560,7 +560,7 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
     INDENT_LOG(logger::DEBUG);
 
     extentity *e = new extentity;
-    entities::storage.add(e);
+    entities::ents.add(e);
 
     e->type  = type;
     e->o     = vec(x,y,z);

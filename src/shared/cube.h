@@ -27,7 +27,6 @@
 #include <time.h>
 
 #include "OFTL/map.h"
-#include "OFTL/shared_ptr.h"
 
 extern "C" {
     #include "lua.h"

@@ -28,6 +28,7 @@
  */
 
 #include "cube.h"
+#include "of_entities.h"
 
 namespace entities
 {
@@ -37,17 +38,29 @@ namespace entities
         "envmap", "particles",
         "sound", "spotlight"
     };
-    vector< types::Shared_Ptr<extentity> > storage;
+
+    struct Entity_Storage {
+        vector<extentity*> data;
+        Entity_Storage(): data() {}
+        ~Entity_Storage() {
+            for (int i = 0; i < data.length(); ++i) {
+                delete data[i];
+            }
+        }
+    };
+    static Entity_Storage storage;
+
+    vector<extentity*> &ents = storage.data;
 
     extentity *get(size_t idx)
     {
-        return storage[idx].get();
+        return ents[idx];
     }
 
     void clear()
     {
-        while (storage.length())
-            storage.pop();
+        while (ents.length())
+            delete ents.pop();
     }
 
     const char *getname(int idx)
