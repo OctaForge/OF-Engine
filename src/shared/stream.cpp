@@ -475,7 +475,6 @@ bool listdir(const char *dirname, bool rel, const char *ext, vector<char *> &fil
 
 int listfiles(const char *dir, const char *ext, vector<char *> &files, int filter, int flags)
 {
-    if (!flags) flags = LIST_ROOT|LIST_HOMEDIR|LIST_PACKAGE|LIST_ZIP;
     string dirname;
     copystring(dirname, dir);
     path(dirname);
