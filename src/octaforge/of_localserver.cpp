@@ -85,7 +85,12 @@ namespace local_server
 
 #define STRVAL(x) #x
 #define ENQ(x) STRVAL(x)
-        types::String buf = types::String().format(
+        char buf[1024]; /* should be perfectly enough here */
+#if defined(WIN32) && !defined(__GNUC__)
+        _snprintf(buf, sizeof(buf),
+#else
+        snprintf(buf, sizeof(buf),
+#endif
             "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
 #if defined(WIN64)
             "bin_win64\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
@@ -100,9 +105,9 @@ namespace local_server
 #undef ENQ
 
 #ifdef WIN32
-        popen_out = _popen(buf.get_buf(), "r");
+        popen_out = _popen(buf, "r");
 #else
-        popen_out =  popen(buf.get_buf(), "r");
+        popen_out =  popen(buf, "r");
 #endif
 
         started = true;
