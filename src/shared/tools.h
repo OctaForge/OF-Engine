@@ -347,16 +347,6 @@ static inline bool htcmp(const char *x, const char *y)
     return !strcmp(x, y);
 }
 
-static inline uint hthash(const types::String& key)
-{
-    return hthash(key.get_buf());
-}
-
-static inline bool htcmp(const types::String& x, const types::String& y)
-{
-    return (x == y);
-}
-
 static inline uint hthash(int key)
 {
     return key;
