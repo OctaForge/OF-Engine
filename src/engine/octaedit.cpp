@@ -543,7 +543,9 @@ void commitchanges(bool force)
     resetclipplanes();
     entitiesinoctanodes();
     inbetweenframes = false;
+#ifdef CLIENT
     octarender();
+#endif
     inbetweenframes = true;
     setupmaterials(oldlen);
     clearshadowcache();
