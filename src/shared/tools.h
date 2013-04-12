@@ -421,7 +421,7 @@ static inline bool htcmp(int x, int y)
     return x==y;
 }
 
-#ifndef STANDALONE
+#ifdef CLIENT
 static inline uint hthash(GLuint key)
 {
     return key;

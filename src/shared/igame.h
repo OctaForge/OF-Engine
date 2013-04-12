@@ -1,5 +1,12 @@
 // the interface the engine uses to run the gameplay module
 
+namespace entities
+{
+    extern const char *entname(int i);
+    extern void clearents();
+    extern vector<extentity *> &getents();
+}
+
 namespace game
 {
     extern void parseoptions(vector<const char *> &args);

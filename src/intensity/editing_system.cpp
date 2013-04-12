@@ -15,7 +15,6 @@
 #include "targeting.h"
 #include "client_system.h"
 #include "of_tools.h"
-#include "of_entities.h"
 
 // Kripken:
 // sel.corner: The face corner the mouse pointer is closest to.
@@ -293,8 +292,9 @@ void pushCubeCorner(int x, int y, int z, int gridsize, int face, int corner, int
 
 CLogicEntity *getSelectedEntity()
 {
-    if (!entities::ents.inrange(efocus)) return NULL;
-    extentity& e = *(entities::get(efocus));
+    const vector<extentity *> &ents = entities::getents();
+    if (!ents.inrange(efocus)) return NULL;
+    extentity& e = *ents[efocus];
     return LogicSystem::getLogicEntity(e);
 }
 

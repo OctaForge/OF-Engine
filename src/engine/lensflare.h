@@ -95,10 +95,11 @@ struct flarerenderer : partrenderer
 
         if(editmode || !flarelights) return;
 
+        const vector<extentity *> &ents = entities::getents();
         const vector<int> &lights = checklightcache(int(camera1->o.x), int(camera1->o.y));
         loopv(lights)
         {
-            entity &e = *entities::get(lights[i]);
+            entity &e = *ents[lights[i]];
             if(e.type != ET_LIGHT) continue;
             bool sun = (e.attr1==0);
             float radius = float(e.attr1);

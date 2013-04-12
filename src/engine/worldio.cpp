@@ -9,7 +9,6 @@
     #include "client_system.h"
 #endif
 #include "of_world.h"
-#include "of_entities.h"
 #ifdef SERVER
 #include "of_localserver.h"
 #include "of_tools.h"
@@ -1008,7 +1007,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         {
             if(e.type != ET_LIGHT && e.type != ET_SPOTLIGHT)
             {
-                conoutf(CON_WARN, "warning: ent outside of world: enttype[%s] index %d (%f, %f, %f)", entities::getname(e.type), i, e.o.x, e.o.y, e.o.z);
+                conoutf(CON_WARN, "warning: ent outside of world: enttype[%s] index %d (%f, %f, %f)", entities::entname(e.type), i, e.o.x, e.o.y, e.o.z);
             }
         }
         if(hdr.version <= 14 && e.type == ET_MAPMODEL)

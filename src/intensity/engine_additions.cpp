@@ -9,7 +9,6 @@
 #include "message_system.h"
 #include "client_system.h"
 #include "of_tools.h"
-#include "of_entities.h"
 
 // WorldSystem
 extern void removeentity(extentity* entity);
@@ -560,7 +559,7 @@ void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int 
     INDENT_LOG(logger::DEBUG);
 
     extentity *e = new extentity;
-    entities::ents.add(e);
+    entities::getents().add(e);
 
     e->type  = type;
     e->o     = vec(x,y,z);

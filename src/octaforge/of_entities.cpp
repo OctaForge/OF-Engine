@@ -28,7 +28,6 @@
  */
 
 #include "cube.h"
-#include "of_entities.h"
 
 namespace entities
 {
@@ -50,25 +49,19 @@ namespace entities
     };
     static Entity_Storage storage;
 
-    vector<extentity*> &ents = storage.data;
-
-    extentity *get(size_t idx)
-    {
-        return ents[idx];
+    vector<extentity*> &getents() {
+        return storage.data;
     }
 
-    void clear()
-    {
-        while (ents.length())
-            delete ents.pop();
+    void clearents() {
+        while (storage.data.length())
+            delete storage.data.pop();
     }
 
-    const char *getname(int idx)
-    {
+    const char *entname(int idx) {
         return (idx >= 0 && (size_t)idx
                 < (sizeof(entity_names)
                  / sizeof(entity_names[0])
                 )) ? entity_names[idx] : "";
     }
-
 } /* end namespace tools */

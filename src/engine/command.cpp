@@ -672,11 +672,7 @@ int clampvar(ident *id, int val, int minval, int maxval)
 void setvarchecked(ident *id, int val)
 {
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
-#ifndef STANDALONE
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
-#else
-    else
-#endif
     {
         OVERRIDEVAR(return, id->overrideval.i = *id->storage.i, , )
         if(val < id->minval || val > id->maxval) val = clampvar(id, val, id->minval, id->maxval);
@@ -697,11 +693,7 @@ float clampfvar(ident *id, float val, float minval, float maxval)
 void setfvarchecked(ident *id, float val)
 {
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
-#ifndef STANDALONE
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
-#else
-    else
-#endif
     {
         OVERRIDEVAR(return, id->overrideval.f = *id->storage.f, , );
         if(val < id->minvalf || val > id->maxvalf) val = clampfvar(id, val, id->minvalf, id->maxvalf);
@@ -713,11 +705,7 @@ void setfvarchecked(ident *id, float val)
 void setsvarchecked(ident *id, const char *val)
 {
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
-#ifndef STANDALONE
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
-#else
-    else
-#endif
     {
         OVERRIDEVAR(return, id->overrideval.s = *id->storage.s, delete[] id->overrideval.s, delete[] *id->storage.s);
         *id->storage.s = newstring(val);
@@ -1052,7 +1040,7 @@ static void compilelookup(vector<uint> &code, const char *&p, int ltype)
                         case 'r': compileident(code); numargs++; break;
                         case '$': compileident(code, id); numargs++; break;
                         case 'N': compileint(code, -1); numargs++; break;
-#ifndef STANDALONE
+#ifdef CLIENT
                         case 'D': comtype = CODE_COMD; numargs++; break;
 #endif
                         case 'C': comtype = CODE_COMC; numargs = 1; goto endfmt;
@@ -1391,7 +1379,7 @@ static void compilestatements(vector<uint> &code, const char *&p, int rettype, i
                     case 'r': if(more) more = compilearg(code, p, VAL_IDENT); if(!more) { if(rep) break; compileident(code); fakeargs++; } numargs++; break;
                     case '$': compileident(code, id); numargs++; break;
                     case 'N': compileint(code, numargs-fakeargs); numargs++; break;
-#ifndef STANDALONE
+#ifdef CLIENT
                     case 'D': comtype = CODE_COMD; numargs++; break;
 #endif
                     case 'C': comtype = CODE_COMC; if(more) while(numargs < MAXARGS && (more = compilearg(code, p, VAL_ANY))) numargs++; numargs = 1; goto endfmt;
@@ -1625,7 +1613,7 @@ static inline void callcommand(ident *id, tagval *args, int numargs, bool lookup
         case 'r': if(++i >= numargs) { if(rep) break; args[i].setident(dummyident); fakeargs++; } else forceident(args[i]); break;
         case '$': if(++i < numargs) freearg(args[i]); args[i].setident(id); break;
         case 'N': if(++i < numargs) freearg(args[i]); args[i].setint(lookup ? -1 : i-fakeargs); break;
-#ifndef STANDALONE
+#ifdef CLIENT
         case 'D': if(++i < numargs) freearg(args[i]); args[i].setint(addreleaseaction(conc(args, i, true, id->name)) ? 1 : 0); fakeargs++; break;
 #endif
         case 'C': { i = max(i+1, numargs); vector<char> buf; ((comfun1)id->fun)(conc(buf, args, i, true)); goto cleanup; }
@@ -1895,7 +1883,7 @@ static const uint *runcode(const uint *code, tagval &result)
            
             case CODE_COM|RET_NULL: case CODE_COM|RET_STR: case CODE_COM|RET_FLOAT: case CODE_COM|RET_INT:
                 id = identmap[op>>8];
-#ifndef STANDALONE
+#ifdef CLIENT
             callcom:
 #endif
                 forcenull(result);
@@ -1904,7 +1892,7 @@ static const uint *runcode(const uint *code, tagval &result)
                 freeargs(args, numargs, 0);
                 forcearg(result, op&CODE_RET_MASK);
                 continue;
-#ifndef STANDALONE
+#ifdef CLIENT
             case CODE_COMD|RET_NULL: case CODE_COMD|RET_STR: case CODE_COMD|RET_FLOAT: case CODE_COMD|RET_INT:
                 id = identmap[op>>8];
                 args[numargs].setint(addreleaseaction(conc(args, numargs, true, id->name)) ? 1 : 0);
@@ -2970,7 +2958,6 @@ char *strreplace(const char *s, const char *oldval, const char *newval)
 
 ICOMMAND(strreplace, "sss", (char *s, char *o, char *n), commandret->setstr(strreplace(s, o, n)));
 
-#ifndef STANDALONE
 ICOMMAND(getmillis, "i", (int *total), intret(*total ? totalmillis : lastmillis));
 
 struct sleepcmd
@@ -3027,7 +3014,6 @@ void clearsleep_(int *clearoverrides)
 }
 
 COMMANDN(clearsleep, clearsleep_, "i");
-#endif
 
 ICOMMAND(lua, "s", (char *str), {
     if (luaL_loadstring(lua::L, str)) {

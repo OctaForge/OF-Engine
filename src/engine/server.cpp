@@ -86,7 +86,7 @@ void logoutfv(const char *fmt, va_list args)
     if(f) writelogv(f, fmt, args);
 }
 
-#ifdef STANDALONE
+#ifdef SERVER
 void fatal(const char *s, ...)
 {
     printf("FATAL: %s\r\n", s);
@@ -217,11 +217,9 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
             break;
         }
 
-#ifndef STANDALONE
         case ST_LOCAL:
             localservertoclient(chan, packet);
             break;
-#endif
     }
 }
 
@@ -326,7 +324,7 @@ void sendserverinforeply(ucharbuf &p)
 int uprate = 0, maxclients = DEFAULTCLIENTS;
 const char *ip = "";
 
-#if defined(STANDALONE) || defined(SERVER) // INTENSITY: Added server
+#ifdef SERVER // INTENSITY: Added server
 int curtime = 0, lastmillis = 0, totalmillis = 0;
 #endif
 
@@ -515,14 +513,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 
 bool servererror(bool dedicated, const char *desc)
 {
-#ifndef STANDALONE
     if(!dedicated)
     {
         conoutf(CON_ERROR, "%s", desc);
         cleanupserver();
     }
     else
-#endif
         fatal("%s", desc);
     return false;
 }
@@ -560,9 +556,7 @@ void initserver(bool listen, bool dedicated)
     if(listen)
     {
         if(dedicated) rundedicatedserver(); // never returns
-#ifndef STANDALONE
         else conoutf("listen server started");
-#endif
     }
 }
 
@@ -630,6 +624,8 @@ void server_runslice()
     total_time = now;
 
     if(lastmillis) game::updateworld();
+
+    checksleep(lastmillis);
 
     static time_t shutdown_idle_last_update = 0;
     if (!shutdown_idle_last_update)

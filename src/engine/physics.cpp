@@ -8,8 +8,6 @@
 #include "game.h" // INTENSITY: for fpsent
 
 #include "targeting.h" // INTENSITY
-#include "of_entities.h"
-
 
 const int MAXCLIPPLANES = 1024;
 static clipplanes clipcache[MAXCLIPPLANES];
@@ -129,13 +127,15 @@ static float disttoent(octaentities *oc, octaentities *last, const vec &o, const
     int orient;
     float dist = 1e16f, f = 0.0f;
     if(oc == last) return dist;
+    const vector<extentity *> &ents = entities::getents();
+
     #define entintersect(mask, type, func) {\
         if((mode&(mask))==(mask)) \
         { \
             loopv(oc->type) \
                 if(!last || last->type.find(oc->type[i])<0) \
                 { \
-                    extentity &e = *entities::get(oc->type[i]); \
+                    extentity &e = *ents[oc->type[i]]; \
                     if(!e.inoctanode || &e==t) continue; \
                     func; \
                     if(f<dist && f>0) \
@@ -171,9 +171,10 @@ static float disttooutsideent(const vec &o, const vec &ray, float radius, int mo
     vec eo, es;
     int orient;
     float dist = 1e16f, f = 0.0f;
+    const vector<extentity *> &ents = entities::getents();
     loopv(outsideents)
     {
-        extentity &e = *entities::get(outsideents[i]);
+        extentity &e = *ents[outsideents[i]];
         if(!e.inoctanode || &e == t) continue;
         entselectionbox(e, eo, es);
         if(!rayrectintersect(eo, es, o, ray, f, orient)) continue;
@@ -192,9 +193,10 @@ static float shadowent(octaentities *oc, octaentities *last, const vec &o, const
 {
     float dist = 1e16f, f = 0.0f;
     if(oc == last) return dist;
+    const vector<extentity *> &ents = entities::getents();
     loopv(oc->mapmodels) if(!last || last->mapmodels.find(oc->mapmodels[i])<0)
     {
-        extentity &e = *entities::get(oc->mapmodels[i]);
+        extentity &e = *ents[oc->mapmodels[i]];
         if(!e.inoctanode || &e==t) continue;
         if(!mmintersect(e, o, ray, radius, mode, f)) continue;
         if(f>0 && f<dist) dist = f;
@@ -745,9 +747,10 @@ static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, con
 
 bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // collide with a mapmodel
 {
+    const vector<extentity *> &ents = entities::getents();
     loopv(oc.mapmodels)
     {
-        extentity &e = *entities::get(oc.mapmodels[i]);
+        extentity &e = *ents[oc.mapmodels[i]];
         if(e.flags&extentity::F_NOCOLLIDE) continue;
         CLogicEntity *entity = LogicSystem::getLogicEntity(e);
         model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
@@ -1476,7 +1479,7 @@ bool move(physent *d, vec &dir)
     return !collided;
 }
 
-bool bounce(physent *d, float secs, float elasticity, float waterfric)
+bool bounce(physent *d, float secs, float elasticity, float waterfric, float grav)
 {
     // make sure bouncers don't start inside geometry
     if(d->physstate!=PHYS_BOUNCE && !collide(d, vec(0, 0, 0), 0, false)) return true;
@@ -1484,10 +1487,10 @@ bool bounce(physent *d, float secs, float elasticity, float waterfric)
     bool water = isliquid(mat);
     if(water)
     {
-        d->vel.z -= GRAVITY/16*secs;
+        d->vel.z -= grav*GRAVITY/16*secs;
         d->vel.mul(max(1.0f - secs/waterfric, 0.0f));
     }
-    else d->vel.z -= GRAVITY*secs;
+    else d->vel.z -= grav*GRAVITY*secs;
     vec old(d->o);
     loopi(2)
     {
@@ -1898,7 +1901,7 @@ void moveplayer(physent *pl, int moveres, bool local)
 #endif
 }
 
-bool bounce(physent *d, float elasticity, float waterfric)
+bool bounce(physent *d, float elasticity, float waterfric, float grav)
 {
     if(physsteps <= 0)
     {
@@ -1910,10 +1913,10 @@ bool bounce(physent *d, float elasticity, float waterfric)
     bool hitplayer = false;
     loopi(physsteps-1)
     {
-        if(bounce(d, physframetime/1000.0f, elasticity, waterfric)) hitplayer = true;
+        if(bounce(d, physframetime/1000.0f, elasticity, waterfric, grav)) hitplayer = true;
     }
     d->deltapos = d->o;
-    if(bounce(d, physframetime/1000.0f, elasticity, waterfric)) hitplayer = true;
+    if(bounce(d, physframetime/1000.0f, elasticity, waterfric, grav)) hitplayer = true;
     d->newpos = d->o;
     d->deltapos.sub(d->newpos);
     interppos(d);
@@ -1976,7 +1979,6 @@ bool entinmap(dynent *d, bool avoidplayers)        // brute force but effective 
                 if(!avoidplayers) continue;
                 d->o = orig;
                 d->resetinterp();
-
                 return false;
             }
 

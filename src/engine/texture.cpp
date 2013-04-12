@@ -1,7 +1,6 @@
 // texture.cpp: texture slot management
 
 #include "engine.h"
-#include "of_entities.h"
 
 template<int S>
 static void halvetex(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
@@ -2446,9 +2445,10 @@ void initenvmaps()
     clearenvmaps();
     extern char *skybox;
     skyenvmap = skybox[0] ? cubemapload(skybox, true, false, true) : NULL;
-    loopv(entities::ents)
+    const vector<extentity *> &ents = entities::getents();
+    loopv(ents)
     {
-        const extentity &ent = *entities::get(i);
+        const extentity &ent = *ents[i];
         if(ent.type != ET_ENVMAP) continue;
         envmap &em = envmaps.add();
         em.radius = ent.attr1 ? clamp(int(ent.attr1), 0, 10000) : envmapradius;
@@ -2999,7 +2999,7 @@ enum
     IMG_PNG = 2,
     NUMIMG
 };
-
+ 
 VARP(screenshotformat, 0, IMG_PNG, NUMIMG-1);
 
 const char *imageexts[NUMIMG] = { ".bmp", ".tga", ".png" };

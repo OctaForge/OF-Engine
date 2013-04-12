@@ -1,5 +1,4 @@
 #include "engine.h"
-#include "of_entities.h"
 
 bvec ambientcolor(0x19, 0x19, 0x19);
 HVARFR(ambient, 1, 0x191919, 0xFFFFFF, 
@@ -288,7 +287,7 @@ void clearlightcache(int id)
 {
     if(id >= 0)
     {
-        const extentity &light = *entities::get(id);
+        const extentity &light = *entities::getents()[id];
         int radius = light.attr1;
         if(radius)
         {
@@ -320,9 +319,10 @@ const vector<int> &checklightcache(int x, int y)
 
     lce.lights.setsize(0);
     int csize = 1<<lightcachesize, cx = x<<lightcachesize, cy = y<<lightcachesize;
-    loopv(entities::ents)
+    const vector<extentity *> &ents = entities::getents();
+    loopv(ents)
     {
-        const extentity &light = *entities::get(i);
+        const extentity &light = *ents[i];
         switch(light.type)
         {
             case ET_LIGHT:
@@ -646,10 +646,11 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
     }
 
     color = dir = vec(0, 0, 0);
+    const vector<extentity *> &ents = entities::getents();
     const vector<int> &lights = checklightcache(int(target.x), int(target.y));
     loopv(lights)
     {
-        extentity &e = *entities::get(lights[i]);
+        extentity &e = *ents[lights[i]];
         if(e.type != ET_LIGHT)
             continue;
     
@@ -702,12 +703,13 @@ entity *brightestlight(const vec &target, const vec &dir)
 {
     if(sunlight && sunlightdir.dot(dir) > 0 && shadowray(target, sunlightdir, 1e16f, RAY_SHADOW | RAY_POLY) > 1e15f)    
         return &sunlightent;
+    const vector<extentity *> &ents = entities::getents();
     const vector<int> &lights = checklightcache(int(target.x), int(target.y));
     extentity *brightest = NULL;
     float bintensity = 0;
     loopv(lights)
     {
-        extentity &e = *entities::get(lights[i]);
+        extentity &e = *ents[lights[i]];
         if(e.type != ET_LIGHT || vec(e.o).sub(target).dot(dir)<0)
             continue;
 

@@ -1,7 +1,6 @@
 // renderva.cpp: handles the occlusion and rendering of vertex arrays
 
 #include "engine.h"
-#include "of_entities.h"
 
 static inline void drawtris(GLsizei numindices, const GLvoid *indices, ushort minvert, ushort maxvert)
 {
@@ -354,7 +353,7 @@ static inline bool insideoe(const octaentities *oe, const vec &v, int margin = 1
            v.x<=oe->bbmax.x+margin && v.y<=oe->bbmax.y+margin && v.z<=oe->bbmax.z+margin;
 }
 
-void findvisiblemms(vector<extentity*> &ents)
+void findvisiblemms(const vector<extentity *> &ents)
 {
     visiblemms = NULL;
     lastvisiblemms = &visiblemms;
@@ -377,7 +376,7 @@ void findvisiblemms(vector<extentity*> &ents)
             int visible = 0;
             loopv(oe->mapmodels)
             {
-                extentity &e = *entities::get(oe->mapmodels[i]);
+                extentity &e = *ents[oe->mapmodels[i]];
                 if(e.flags&extentity::F_NOVIS) continue;
                 e.visible = true;
                 ++visible;
@@ -421,7 +420,8 @@ static inline void rendermapmodel(extentity &e)
 
 void rendermapmodels()
 {
-    findvisiblemms(entities::ents);
+    const vector<extentity *> &ents = entities::getents();
+    findvisiblemms(ents);
 
     static int skipoq = 0;
     bool doquery = oqfrags && oqmm;
@@ -431,7 +431,7 @@ void rendermapmodels()
         bool rendered = false;
         loopv(oe->mapmodels)
         {
-            extentity &e = *entities::get(oe->mapmodels[i]);
+            extentity &e = *ents[oe->mapmodels[i]];
             if(!e.visible) continue;
             if(!rendered)
             {
@@ -998,15 +998,16 @@ void findshadowmms()
 void batchshadowmapmodels()
 {
     if(!shadowmms) return;
+    const vector<extentity *> &ents = entities::getents();
     for(octaentities *oe = shadowmms; oe; oe = oe->rnext) loopvk(oe->mapmodels)
     {
-        extentity &e = *entities::get(oe->mapmodels[k]);
+        extentity &e = *ents[oe->mapmodels[k]];
         if(e.flags&extentity::F_NOVIS) continue;
         e.visible = true;
     }
     for(octaentities *oe = shadowmms; oe; oe = oe->rnext) loopvj(oe->mapmodels)
     {
-        extentity &e = *entities::get(oe->mapmodels[j]);
+        extentity &e = *ents[oe->mapmodels[j]];
         if(!e.visible) continue;
         rendermapmodel(e);
         e.visible = false;
@@ -2114,9 +2115,10 @@ void genshadowmeshes()
 
     renderprogress(0, "generating shadow meshes..");
 
-    loopv(entities::ents)
+    vector<extentity *> &ents = entities::getents();
+    loopv(ents)
     {
-        extentity &e = *entities::get(i);
+        extentity &e = *ents[i];
         if(e.type != ET_LIGHT) continue;
         genshadowmesh(i, e);        
     }

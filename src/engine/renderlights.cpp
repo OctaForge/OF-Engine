@@ -1,5 +1,4 @@
 #include "engine.h"
-#include "of_entities.h"
 
 int gw = -1, gh = -1, bloomw = -1, bloomh = -1, lasthdraccum = 0;
 GLuint gfbo = 0, gdepthtex = 0, gcolortex = 0, gnormaltex = 0, gglowtex = 0, gdepthrb = 0, gstencilrb = 0;
@@ -2694,13 +2693,14 @@ VAR(debuglightscissor, 0, 0, 1);
 
 void viewlightscissor()
 {
+    vector<extentity *> &ents = entities::getents();
     gle::defvertex(2);
     loopv(entgroup)
     {
         int idx = entgroup[i];
-        if(entities::ents.inrange(idx) && entities::ents[idx]->type == ET_LIGHT)
+        if(ents.inrange(idx) && ents[idx]->type == ET_LIGHT)
         {
-            extentity &e = *entities::ents[idx];
+            extentity &e = *ents[idx];
             loopvj(lights) if(lights[j].o == e.o)
             {
                 lightinfo &l = lights[j];
@@ -2740,9 +2740,10 @@ static inline bool calclightscissor(lightinfo &l)
 void collectlights()
 {
     // point lights processed here
-    if(!editmode || !fullbright) loopv(entities::ents)
+    const vector<extentity *> &ents = entities::getents();
+    if(!editmode || !fullbright) loopv(ents)
     {
-        extentity *e = entities::get(i);
+        extentity *e = ents[i];
         if(e->type != ET_LIGHT) continue;
 
         if(e->attr1 > 0 && smviscull)
@@ -3328,13 +3329,14 @@ void rendershadowmaps()
         glEnable(GL_POLYGON_OFFSET_FILL);
     }
 
+    const vector<extentity *> &ents = entities::getents();
     loopv(shadowmaps)
     {
         shadowmapinfo &sm = shadowmaps[i];
         if(sm.light < 0) continue;
 
         lightinfo &l = lights[sm.light];
-        extentity *e = l.ent >= 0 ? entities::get(l.ent) : NULL;
+        extentity *e = l.ent >= 0 ? ents[l.ent] : NULL;
 
         int border, sidemask;
         if(l.spot)

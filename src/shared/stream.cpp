@@ -496,9 +496,7 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files, int filte
         formatstring(s)("%s%s", pf.dir, dirname);
         if(listdir(s, false, ext, files, filter)) dirs++;
     }
-#ifndef STANDALONE
     if (flags&LIST_ZIP) dirs += listzipfiles(dirname, ext, files);
-#endif
     return dirs;
 }
 
@@ -660,9 +658,7 @@ struct filestream : stream
     }
 };
 
-#ifndef STANDALONE
 VAR(dbggz, 0, 0, 1);
-#endif
 
 struct gzstream : stream
 {
@@ -793,7 +789,6 @@ struct gzstream : stream
     void finishreading()
     {
         if(!reading) return;
-#ifndef STANDALONE
         if(dbggz)
         {
             uint checkcrc = 0, checksize = 0;
@@ -804,7 +799,6 @@ struct gzstream : stream
             if(checksize != zfile.total_out)
                 conoutf(CON_DEBUG, "gzip size check failed: read %u, calculated %u", checksize, uint(zfile.total_out));
         }
-#endif
     }
 
     void stopreading()
@@ -1134,10 +1128,8 @@ stream *openrawfile(const char *filename, const char *mode)
 
 stream *openfile(const char *filename, const char *mode)
 {
-#ifndef STANDALONE
     stream *s = openzipfile(filename, mode);
     if(s) return s;
-#endif
     return openrawfile(filename, mode);
 }
 
