@@ -2249,7 +2249,7 @@ void writecfg(const char *name)
     loopv(ids)
     {
         ident &id = *ids[i];
-        if(id.flags&IDF_PERSIST) switch(id.type)
+        if((id.flags&IDF_PERSIST) && !(id.flags&IDF_ALLOC)) switch(id.type)
         {
             case ID_VAR: f->printf("%s %d\n", escapeid(id), *id.storage.i); break;
             case ID_FVAR: f->printf("%s %s\n", escapeid(id), floatstr(*id.storage.f)); break;
