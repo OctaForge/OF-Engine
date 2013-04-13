@@ -59,6 +59,25 @@ namespace lua
         return 1;
     }
 
+    static hashtable<const char*, int> externals;
+
+    static int register_external(lua_State *L) {
+        const char *name = luaL_checkstring(L, 1);
+        lua_pushvalue(L, 2);
+        externals.access(name, luaL_ref(L, LUA_REGISTRYINDEX));
+        return 0;
+    }
+
+    static int unregister_external(lua_State *L) {
+        lua_pushboolean(L, externals.remove(luaL_checkstring(L, 1)));
+        return 1;
+    }
+
+    void push_external(const char *name) {
+        int *elem = externals.access(name);
+        if  (elem) lua_rawgeti(L, LUA_REGISTRYINDEX, *elem);
+    }
+
     struct Reg {
         const char *name;
         lua_CFunction fun;
@@ -131,6 +150,10 @@ namespace lua
         lua_setfield(L, -2, "path"); lua_pop(L, 1);
 
         lua_pushcfunction(L, create_table); lua_setglobal(L, "createtable");
+        lua_pushcfunction(L,  register_external);
+        lua_setglobal    (L, "register_external");
+        lua_pushcfunction(L,  unregister_external);
+        lua_setglobal    (L, "unregister_external");
 
         setup_binds();
     }

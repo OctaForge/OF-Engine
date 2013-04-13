@@ -4,10 +4,11 @@
 namespace lua
 {
     extern lua_State *L;
-    bool reg_fun     (const char *name, lua_CFunction fun, bool onst = false);
-    void init        (const char *dir = "data/library/core");
-    void reset       ();
-    bool load_library(const char *name);
+    bool reg_fun      (const char *name, lua_CFunction fun, bool onst = false);
+    void init         (const char *dir = "data/library/core");
+    void reset        ();
+    bool load_library (const char *name);
+    void push_external(const char *name);
 }
 
 #define LUACOMMAND(name, fun) \
