@@ -61,6 +61,15 @@ namespace lua
 
     static hashtable<const char*, int> externals;
 
+    bool push_external(const char *name) {
+        int *elem = externals.access(name);
+        if  (elem) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, *elem);
+            return true;
+        }
+        return false;
+    }
+
     static int register_external(lua_State *L) {
         const char *name = luaL_checkstring(L, 1);
         lua_pushvalue(L, 2);
@@ -73,9 +82,9 @@ namespace lua
         return 1;
     }
 
-    void push_external(const char *name) {
-        int *elem = externals.access(name);
-        if  (elem) lua_rawgeti(L, LUA_REGISTRYINDEX, *elem);
+    static int get_external(lua_State *L) {
+        if (!push_external(luaL_checkstring(L, 1))) lua_pushnil(L);
+        return 1;
     }
 
     struct Reg {
@@ -154,6 +163,8 @@ namespace lua
         lua_setglobal    (L, "register_external");
         lua_pushcfunction(L,  unregister_external);
         lua_setglobal    (L, "unregister_external");
+        lua_pushcfunction(L,  get_external);
+        lua_setglobal    (L, "get_external");
 
         setup_binds();
     }

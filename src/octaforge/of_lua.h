@@ -8,7 +8,7 @@ namespace lua
     void init         (const char *dir = "data/library/core");
     void reset        ();
     bool load_library (const char *name);
-    void push_external(const char *name);
+    bool push_external(const char *name);
 }
 
 #define LUACOMMAND(name, fun) \
