@@ -289,44 +289,6 @@ namespace lapi_binds
     }
 
 #ifdef CLIENT
-    /* hudmatrix */
-
-    int _lua_hudmatrix_push (lua_State *L) { pushhudmatrix (); return 0; }
-    int _lua_hudmatrix_pop  (lua_State *L) { pophudmatrix  (); return 0; }
-    int _lua_hudmatrix_flush(lua_State *L) { flushhudmatrix(); return 0; }
-    int _lua_hudmatrix_reset(lua_State *L) { resethudmatrix(); return 0; }
-
-    int _lua_hudmatrix_translate(lua_State *L) {
-        hudmatrix.translate(vec(luaL_checknumber(L, 1),
-                                luaL_checknumber(L, 2),
-                                luaL_checknumber(L, 3)));
-        return 0;
-    }
-    int _lua_hudmatrix_scale(lua_State *L) {
-        hudmatrix.scale(vec(luaL_checknumber(L, 1),
-                            luaL_checknumber(L, 2),
-                            luaL_checknumber(L, 3)));
-        return 0;
-    }
-    int _lua_hudmatrix_ortho(lua_State *L) {
-        hudmatrix.ortho(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
-                        luaL_checknumber(L, 3), luaL_checknumber(L, 4),
-                        luaL_checknumber(L, 5), luaL_checknumber(L, 6));
-        return 0;
-    }
-
-    /* gl */
-
-    int _lua_shader_hud_set(lua_State *L) {
-        hudshader->set();
-        return 0;
-    }
-
-    int _lua_shader_hudnotexture_set(lua_State *L) {
-        hudnotextureshader->set();
-        return 0;
-    }
-
     /* input */
 
     int _lua_input_get_modifier_state(lua_State *L) {
@@ -1920,16 +1882,6 @@ namespace lapi_binds
     LAPI_REG(var_emits_set);
 
 #ifdef CLIENT
-    LAPI_REG(hudmatrix_push);
-    LAPI_REG(hudmatrix_pop);
-    LAPI_REG(hudmatrix_flush);
-    LAPI_REG(hudmatrix_reset);
-    LAPI_REG(hudmatrix_translate);
-    LAPI_REG(hudmatrix_scale);
-    LAPI_REG(hudmatrix_ortho);
-    LAPI_REG(shader_hud_set);
-    LAPI_REG(shader_hudnotexture_set);
-
     LAPI_REG(input_get_modifier_state);
     LAPI_REG(gui_set_mainmenu);
     LAPI_REG(gui_text_bounds);

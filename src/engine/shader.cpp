@@ -1460,3 +1460,14 @@ void setblurshader(int pass, int size, int radius, float *weights, float *offset
     LOCALPARAMV(offsets, scaledoffsets, 8);
 }
 
+/* OF: extra Lua APIs */
+
+LUAICOMMAND(shader_hud_set, {
+    hudshader->set();
+    return 0;
+});
+
+LUAICOMMAND(shader_hudnotexture_set, {
+    hudnotextureshader->set();
+    return 0;
+});

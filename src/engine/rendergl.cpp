@@ -2494,3 +2494,27 @@ LUAICOMMAND(gl_texture_param, {
         luaL_checkinteger(L, 2));
     return 0;
 });
+
+LUAICOMMAND(hudmatrix_push, { pushhudmatrix (); return 0; });
+LUAICOMMAND(hudmatrix_pop, { pophudmatrix  (); return 0; });
+LUAICOMMAND(hudmatrix_flush, { flushhudmatrix(); return 0; });
+LUAICOMMAND(hudmatrix_reset, { resethudmatrix(); return 0; });
+
+LUAICOMMAND(hudmatrix_translate, {
+    hudmatrix.translate(vec(luaL_checknumber(L, 1),
+                            luaL_checknumber(L, 2),
+                            luaL_checknumber(L, 3)));
+    return 0;
+});
+LUAICOMMAND(hudmatrix_scale, {
+    hudmatrix.scale(vec(luaL_checknumber(L, 1),
+                        luaL_checknumber(L, 2),
+                        luaL_checknumber(L, 3)));
+    return 0;
+});
+LUAICOMMAND(hudmatrix_ortho, {
+    hudmatrix.ortho(luaL_checknumber(L, 1), luaL_checknumber(L, 2),
+                    luaL_checknumber(L, 3), luaL_checknumber(L, 4),
+                    luaL_checknumber(L, 5), luaL_checknumber(L, 6));
+    return 0;
+});
