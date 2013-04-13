@@ -265,3 +265,94 @@ namespace gle
     }
 }
 
+/* OF: GL lua stuff */
+
+#ifdef CLIENT
+LUAICOMMAND(gle_begin, { gle::begin((uint)luaL_checkinteger(L, 1)); return 0; });
+LUAICOMMAND(gle_end, { lua_pushinteger(L, gle::end()); return 1; });
+LUAICOMMAND(gle_disable, { gle::disable(); return 0; });
+
+#define EAPI_GLE_DEFATTRIB(name) \
+    LUAICOMMAND(gle_def##name, { gle::def##name(luaL_checkinteger(L, 1), GL_FLOAT); return 0; });
+
+EAPI_GLE_DEFATTRIB(vertex)
+EAPI_GLE_DEFATTRIB(color)
+EAPI_GLE_DEFATTRIB(texcoord0)
+EAPI_GLE_DEFATTRIB(texcoord1)
+
+#define EAPI_GLE_INITATTRIB(name) \
+    LUAICOMMAND(gle_##name##1f, { \
+        gle::name##f(luaL_checknumber(L, 1)); \
+        return 0; \
+    }); \
+    LUAICOMMAND(gle_##name##2f, { \
+        gle::name##f(luaL_checknumber(L, 1), \
+                        luaL_checknumber(L, 2)); \
+        return 0; \
+    }); \
+    LUAICOMMAND(gle_##name##3f, { \
+        gle::name##f(luaL_checknumber(L, 1), \
+                        luaL_checknumber(L, 2), \
+                        luaL_checknumber(L, 3)); \
+        return 0; \
+    }); \
+    LUAICOMMAND(gle_##name##4f, { \
+        gle::name##f(luaL_checknumber(L, 1), \
+                        luaL_checknumber(L, 2), \
+                        luaL_checknumber(L, 3), \
+                        luaL_checknumber(L, 4)); \
+        return 0; \
+    });
+
+EAPI_GLE_INITATTRIB(vertex)
+EAPI_GLE_INITATTRIB(color)
+EAPI_GLE_INITATTRIB(texcoord0)
+EAPI_GLE_INITATTRIB(texcoord1)
+
+LUAICOMMAND(gle_color3ub, {
+    gle::colorub((uchar)luaL_checkinteger(L, 1),
+                    (uchar)luaL_checkinteger(L, 2),
+                    (uchar)luaL_checkinteger(L, 3));
+    return 0;
+});
+LUAICOMMAND(gle_color4ub, {
+    gle::colorub((uchar)luaL_checkinteger(L, 1),
+                    (uchar)luaL_checkinteger(L, 2),
+                    (uchar)luaL_checkinteger(L, 3),
+                    (uchar)luaL_checkinteger(L, 4));
+    return 0;
+});
+
+#define EAPI_GLE_ATTRIB(suffix, type, cast) \
+    LUAICOMMAND(gle_attrib##1##suffix, { \
+        gle::attrib##suffix((cast)luaL_check##type(L, 1)); \
+        return 0; \
+    }); \
+    LUAICOMMAND(gle_attrib##2##suffix, { \
+        gle::attrib##suffix((cast)luaL_check##type(L, 1), \
+                               (cast)luaL_check##type(L, 2)); \
+        return 0; \
+    }); \
+    LUAICOMMAND(gle_attrib##3##suffix, { \
+        gle::attrib##suffix((cast)luaL_check##type(L, 1), \
+                               (cast)luaL_check##type(L, 2), \
+                               (cast)luaL_check##type(L, 3)); \
+        return 0; \
+    }); \
+    LUAICOMMAND(gle_attrib##4##suffix, { \
+        gle::attrib##suffix((cast)luaL_check##type(L, 1), \
+                               (cast)luaL_check##type(L, 2), \
+                               (cast)luaL_check##type(L, 3), \
+                               (cast)luaL_check##type(L, 4)); \
+        return 0; \
+    });
+
+EAPI_GLE_ATTRIB(f, number, float)
+EAPI_GLE_ATTRIB(d, number, double)
+EAPI_GLE_ATTRIB(b, int, char)
+EAPI_GLE_ATTRIB(ub, int, uchar)
+EAPI_GLE_ATTRIB(s, int, short)
+EAPI_GLE_ATTRIB(us, int, ushort)
+EAPI_GLE_ATTRIB(i, int, int)
+EAPI_GLE_ATTRIB(ui, int, uint)
+#endif
