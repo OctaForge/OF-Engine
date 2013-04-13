@@ -442,7 +442,6 @@ extern bool checkchallenge(const char *answerstr, void *correct);
 
 // ui
 struct Texture;
-struct VSlot;
 
 // octa
 

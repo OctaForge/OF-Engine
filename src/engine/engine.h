@@ -60,6 +60,7 @@ extern const matrix3x4 *textmatrix;
 extern int hwtexsize, hwcubetexsize, hwmaxaniso, maxtexsize, hwtexunits, hwvtexunits;
 
 extern Texture *textureload(const char *name, int clamp = 0, bool mipit = true, bool msg = true);
+extern Texture *luachecktexture(lua_State *L, int idx);
 extern int texalign(const void *data, int w, int bpp);
 extern bool floatformat(GLenum format);
 extern void cleanuptexture(Texture *t);

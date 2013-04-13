@@ -1374,6 +1374,13 @@ Texture *textureload(const char *name, int clamp, bool mipit, bool msg)
     return notexture;
 }
 
+/* OF */
+Texture *luachecktexture(lua_State *L, int idx) {
+    Texture **tex = (Texture**)luaL_checkudata(L, idx, "Texture");
+    luaL_argcheck(L, tex != NULL, idx, "'Texture' expected");
+    return *tex;
+}
+
 bool settexture(const char *name, int clamp)
 {
     Texture *t = textureload(name, clamp, true, false);

@@ -2708,7 +2708,7 @@ local Rectangle = Filler:clone {
         local w, h, solid = self.p_w, self.p_h, self.p_solid
 
         if not solid then CAPI.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
-        CAPI.gl_shader_hudnotexture_set()
+        CAPI.shader_hudnotexture_set()
         CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         CAPI.gle_defvertex(2)
@@ -2721,7 +2721,7 @@ local Rectangle = Filler:clone {
 
         CAPI.gle_end()
         CAPI.gle_color4f(1, 1, 1, 1)
-        CAPI.gl_shader_hud_set()
+        CAPI.shader_hud_set()
         if not solid then
             CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
@@ -4189,7 +4189,7 @@ local Text_Editor = Object:clone {
                     pex = self.pixel_width
                 end
 
-                CAPI.gl_shader_hudnotexture_set()
+                CAPI.shader_hudnotexture_set()
                 CAPI.gle_color3ub(0xA0, 0x80, 0x80)
                 CAPI.gle_defvertex(2)
                 CAPI.gle_begin(gl.QUADS)
@@ -4215,7 +4215,7 @@ local Text_Editor = Object:clone {
                     CAPI.gle_attrib2f(x + pex, y + pey)
                 end
                 CAPI.gle_end()
-                CAPI.gl_shader_hud_set()
+                CAPI.shader_hud_set()
             end
         end
 
@@ -4232,7 +4232,7 @@ local Text_Editor = Object:clone {
 
             -- line wrap indicator
             if self.line_wrap and height > EV.fonth then
-                CAPI.gl_shader_hudnotexture_set()
+                CAPI.shader_hudnotexture_set()
                 CAPI.gle_color3ub(0x80, 0xA0, 0x80)
                 CAPI.gle_defvertex(2)
                 CAPI.gle_begin(gl.gl.TRIANGLE_STRIP)
@@ -4241,7 +4241,7 @@ local Text_Editor = Object:clone {
                 CAPI.gle_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
                 CAPI.gle_attrib2f(x - EV.fontw / 2, y + h + height)
                 CAPI.gle_end()
-                CAPI.gl_shader_hud_set()
+                CAPI.shader_hud_set()
             end
 
             h = h + height
@@ -4579,7 +4579,7 @@ ext.gl_render = function()
         if #w.p_children ~= 0 then
             CAPI.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
             CAPI.hudmatrix_reset()
-            CAPI.gl_shader_hud_set()
+            CAPI.shader_hud_set()
 
             CAPI.gl_blend_enable()
             CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)

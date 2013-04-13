@@ -2466,3 +2466,31 @@ void cleanupgl()
     gle::cleanup();
 }
 
+/* OF: extra Lua APIs */
+
+LUAICOMMAND(gl_scissor_enable,  { glEnable(GL_SCISSOR_TEST);  return 0; });
+LUAICOMMAND(gl_scissor_disable, { glDisable(GL_SCISSOR_TEST); return 0; });
+
+LUAICOMMAND(gl_scissor, {
+    glScissor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+              luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+    return 0;
+});
+
+LUAICOMMAND(gl_blend_enable,  { glEnable(GL_BLEND);  return 0; });
+LUAICOMMAND(gl_blend_disable, { glDisable(GL_BLEND); return 0; });
+
+LUAICOMMAND(gl_blend_func, {
+    glBlendFunc((uint)luaL_checkinteger(L, 1), (uint)luaL_checkinteger(L, 2));
+    return 0;
+});
+
+LUAICOMMAND(gl_bind_texture, {
+    glBindTexture(GL_TEXTURE_2D, luachecktexture(L, 1)->id); return 0;
+});
+
+LUAICOMMAND(gl_texture_param, {
+    glTexParameteri(GL_TEXTURE_2D, (uint)luaL_checkinteger(L, 1),
+        luaL_checkinteger(L, 2));
+    return 0;
+});

@@ -317,61 +317,13 @@ namespace lapi_binds
 
     /* gl */
 
-    int _lua_gl_shader_hud_set(lua_State *L) {
+    int _lua_shader_hud_set(lua_State *L) {
         hudshader->set();
         return 0;
     }
 
-    int _lua_gl_shader_hudnotexture_set(lua_State *L) {
+    int _lua_shader_hudnotexture_set(lua_State *L) {
         hudnotextureshader->set();
-        return 0;
-    }
-
-    int _lua_gl_scissor_enable(lua_State *L) {
-        glEnable(GL_SCISSOR_TEST);
-        return 0;
-    }
-
-    int _lua_gl_scissor_disable(lua_State *L) {
-        glDisable(GL_SCISSOR_TEST);
-        return 0;
-    }
-
-    int _lua_gl_scissor(lua_State *L) {
-        glScissor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
-        return 0;
-    }
-
-    int _lua_gl_blend_enable(lua_State *L) {
-        glEnable(GL_BLEND);
-        return 0;
-    }
-
-    int _lua_gl_blend_disable(lua_State *L) {
-        glDisable(GL_BLEND);
-        return 0;
-    }
-
-    int _lua_gl_blend_func(lua_State *L) {
-        glBlendFunc((uint)luaL_checkinteger(L, 1), (uint)luaL_checkinteger(L, 2));
-        return 0;
-    }
-
-    Texture *checktex(lua_State *L) {
-      Texture **tex = (Texture**)luaL_checkudata(L, 1, "Texture");
-      luaL_argcheck(L, tex != NULL, 1, "'Texture' expected");
-      return *tex;
-    }
-
-    int _lua_gl_bind_texture(lua_State *L) {
-        glBindTexture(GL_TEXTURE_2D, checktex(L)->id);
-        return 0;
-    }
-
-    int _lua_gl_texture_param(lua_State *L) {
-        glTexParameteri(GL_TEXTURE_2D, (uint)luaL_checkinteger(L, 1),
-            luaL_checkinteger(L, 2));
         return 0;
     }
 
@@ -1695,7 +1647,7 @@ namespace lapi_binds
 
     #define TEXPROP(field, func) \
     static int texture_get_##field(lua_State *L) { \
-        Texture *tex = checktex(L); \
+        Texture *tex = luachecktexture(L, 1); \
         lua_push##func(L, tex->field); \
         return 1; \
     }
@@ -1714,7 +1666,7 @@ namespace lapi_binds
     #undef TEXPROP
 
     static int texture_get_alphamask(lua_State *L) {
-        Texture *tex = checktex(L);
+        Texture *tex = luachecktexture(L, 1);
         if (lua_gettop(L) > 1) {
             int idx = luaL_checkinteger(L, 2);
             luaL_argcheck(L, idx < (tex->h * ((tex->w + 7) / 8)),
@@ -1760,12 +1712,12 @@ namespace lapi_binds
     }
 
     int _lua_texture_is_notexture(lua_State *L) {
-        lua_pushboolean(L, checktex(L) == notexture);
+        lua_pushboolean(L, luachecktexture(L, 1) == notexture);
         return 1;
     }
 
     int _lua_texture_load_alpha_mask(lua_State *L) {
-        loadalphamask(checktex(L));
+        loadalphamask(luachecktexture(L, 1));
         return 0;
     }
 
@@ -1975,16 +1927,8 @@ namespace lapi_binds
     LAPI_REG(hudmatrix_translate);
     LAPI_REG(hudmatrix_scale);
     LAPI_REG(hudmatrix_ortho);
-    LAPI_REG(gl_shader_hud_set);
-    LAPI_REG(gl_shader_hudnotexture_set);
-    LAPI_REG(gl_scissor_enable);
-    LAPI_REG(gl_scissor_disable);
-    LAPI_REG(gl_scissor);
-    LAPI_REG(gl_blend_enable);
-    LAPI_REG(gl_blend_disable);
-    LAPI_REG(gl_blend_func);
-    LAPI_REG(gl_bind_texture);
-    LAPI_REG(gl_texture_param);
+    LAPI_REG(shader_hud_set);
+    LAPI_REG(shader_hudnotexture_set);
 
     LAPI_REG(input_get_modifier_state);
     LAPI_REG(gui_set_mainmenu);
