@@ -3037,3 +3037,137 @@ ICOMMAND(lua, "s", (char *str), {
         lua_pop(lua::L, 1);
     }
 })
+
+/* OF Lua var API */
+
+LUAICOMMAND(var_reset, {
+    resetvar((char*)luaL_checkstring(L, 1));
+    return 0;
+});
+
+LUAICOMMAND(var_new, {
+    const char *name = luaL_checkstring(L, 1);
+    if (!name || !name[0]) {
+        lua_pushboolean(L, false); return 1;
+    } else if (getident(name)) {
+        logger::log(logger::ERROR, "variable %s already exists\n", name);
+        lua_pushboolean(L, false); return 1;
+    }
+    int type = luaL_checkinteger(L, 2);
+    switch (type) {
+        case ID_VAR: {
+            int *st = new int;
+            *st = variable(name, luaL_checkinteger(L, 3),
+                luaL_checkinteger(L, 4), luaL_checkinteger(L, 5),
+                st, NULL, luaL_optinteger(L, 6, 0) | IDF_ALLOC);
+        }
+        case ID_FVAR: {
+            float *st = new float;
+            *st = fvariable(name, luaL_checknumber(L, 3),
+                luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+                st, NULL, luaL_optinteger(L, 6, 0) | IDF_ALLOC);
+        }
+        case ID_SVAR: {
+            char **st = new char*;
+            *st = svariable(name, luaL_checkstring(L, 3), st, NULL,
+                luaL_optinteger(L, 4, 0) | IDF_ALLOC);
+        }
+        default: lua_pushboolean(L, false); return 1;
+    }
+    lua_pushboolean(L, true); return 1;
+});
+
+LUAICOMMAND(var_set, {
+    const char *name = luaL_checkstring(L, 1);
+    ident *id = getident(name);
+    if (!id) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
+    switch (id->type) {
+        case ID_VAR:  setvar(name, luaL_checkinteger(L, 2)); break;
+        case ID_FVAR: setfvar(name, luaL_checknumber(L, 2)); break;
+        case ID_SVAR: setsvar(name, luaL_checkstring(L, 2)); break;
+        default: lua_pushboolean(L, false); return 1;
+    }
+    lua_pushboolean(L, true);
+    return 1;
+});
+
+LUAICOMMAND(var_get, {
+    const char *name = luaL_checkstring(L, 1);
+    ident *id = getident(name);
+    if (!id) return 0;
+    switch (id->type) {
+        case ID_VAR: lua_pushinteger(L, getvar(name)); return 1;
+        case ID_FVAR: lua_pushnumber(L, getfvar(name)); return 1;
+        case ID_SVAR: lua_pushstring(L, getsvar(name)); return 1;
+        default: return 0;
+    }
+});
+
+LUAICOMMAND(var_get_min, {
+    const char *name = luaL_checkstring(L, 1);
+    ident *id = getident(name);
+    if (!id) return 0;
+    switch (id->type) {
+        case ID_VAR: lua_pushinteger(L, getvarmin(name)); return 1;
+        case ID_FVAR: lua_pushnumber(L, getfvarmin(name)); return 1;
+        default: return 0;
+    }
+});
+
+LUAICOMMAND(var_get_max, {
+    const char *name = luaL_checkstring(L, 1);
+    ident *id = getident(name);
+    if (!id) return 0;
+    switch (id->type) {
+        case ID_VAR: lua_pushinteger(L, getvarmax(name)); return 1;
+        case ID_FVAR: lua_pushnumber(L, getfvarmax(name)); return 1;
+        default: return 0;
+    }
+});
+
+LUAICOMMAND(var_get_def, {
+    ident *id = getident(luaL_checkstring(L, 1));
+    if (!id) return 0;
+    switch (id->type) {
+        case ID_VAR: lua_pushinteger(L, id->overrideval.i); return 1;
+        case ID_FVAR: lua_pushnumber(L, id->overrideval.f); return 1;
+        case ID_SVAR: lua_pushstring(L, id->overrideval.s); return 1;
+        default: return 0;
+    }
+});
+
+LUAICOMMAND(var_get_type, {
+    ident *id = getident(luaL_checkstring(L, 1));
+    if (!id || id->type > ID_SVAR) {
+        lua_pushinteger(L, -1);
+    } else {
+        lua_pushinteger(L, id->type);
+    }
+    return 1;
+});
+
+LUAICOMMAND(var_exists, {
+    ident *id = getident(luaL_checkstring(L, 1));
+    lua_pushboolean(L, (!id || id->type > ID_SVAR) ? false : true);
+    return 1;
+});
+
+LUAICOMMAND(var_is_hex, {
+    ident *id = getident(luaL_checkstring(L, 1));
+    lua_pushboolean(L, (!id || !(id->flags&IDF_HEX)) ? false : true);
+    return 1;
+});
+
+LUAICOMMAND(var_emits, {
+    ident *id = getident(luaL_checkstring(L, 1));
+    lua_pushboolean(L, (!id || !(id->flags&IDF_SIGNAL)) ? false : true);
+    if (!id) return 1;
+    if (lua_gettop(L) >= 2) {
+        if (lua_toboolean(L, 2)) id->flags |= IDF_SIGNAL;
+        else id->flags &= ~IDF_SIGNAL;
+    }
+    return 1;
+});
