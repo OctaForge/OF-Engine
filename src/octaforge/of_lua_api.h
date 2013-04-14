@@ -742,7 +742,7 @@ namespace lapi_binds
 
     int _lua_particle_fireball(lua_State *L) {
         particle_fireball(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 3), luaL_checknumber(L, 3)),
+            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
             luaL_checknumber(L, 4), luaL_checkinteger(L, 5),
             luaL_checkinteger(L, 6), luaL_checkinteger(L, 7),
             luaL_checknumber(L, 8));
