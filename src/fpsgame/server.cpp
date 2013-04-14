@@ -536,15 +536,12 @@ namespace server
                     break;
                 }
 
-                lua_getglobal  (lua::L, "LAPI");
-                lua_getfield   (lua::L, -1, "World");
-                lua_getfield   (lua::L, -1, "Events");
-                lua_getfield   (lua::L, -1, "text_message");
+                assert(lua::push_external("event_text_message"));
                 lua_pushinteger(lua::L, ci->uniqueId);
                 lua_pushstring (lua::L, text);
                 lua_call       (lua::L, 2, 1);
                 bool b = lua_toboolean(lua::L, -1);
-                lua_pop(lua::L, 4);
+                lua_pop(lua::L, 1);
 
                 if (!b) {
                     QUEUE_INT(type);

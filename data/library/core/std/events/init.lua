@@ -21,3 +21,6 @@ signal = require("std.events.signal")
 
 #log(DEBUG, ":::: Action system.")
 actions = require("std.events.actions")
+
+#log(DEBUG, ":::: World events.")
+require("std.events.world")

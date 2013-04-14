@@ -88,8 +88,7 @@ namespace MessageSystem
         char content[MAXTRANS];
         getstring(content, p);
 
-        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "GUI");
-        lua_getfield (lua::L, -1, "show_message"); lua_insert(lua::L, -3); lua_pop(lua::L, 2);
+        assert(lua::push_external("gui_show_message"));
         lua_pushstring(lua::L, title);
         lua_pushstring(lua::L, content);
         lua_call(lua::L, 2, 0);
@@ -345,8 +344,7 @@ namespace MessageSystem
         char scenarioCode[MAXTRANS];
         getstring(scenarioCode, p);
 
-        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "GUI");
-        lua_getfield (lua::L, -1, "show_message"); lua_insert(lua::L, -3); lua_pop(lua::L, 2);
+        assert(lua::push_external("gui_show_message"));
         lua_pushliteral(lua::L, "Server");
         lua_pushliteral(lua::L, "Map being prepared on the server, please wait ..");
         lua_call(lua::L, 2, 0);
@@ -897,20 +895,16 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            lua::push_external("entities_send_all");
+            assert(lua::push_external("entities_send_all"));
             lua_pushinteger(lua::L, sender);
             lua_call       (lua::L,  1, 0);
 
             MessageSystem::send_AllActiveEntitiesSent(sender);
-            lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "World");
-            lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Server");
-            lua_getfield (lua::L, -1, "player_login");
-
-            lua::push_external("entity_get");
+            assert(lua::push_external("event_player_login"));
+            assert(lua::push_external("entity_get"));
             lua_pushinteger(lua::L, server::getUniqueId(sender));
             lua_call       (lua::L, 1, 1); // entity_get
             lua_call       (lua::L, 1, 0); // player_login
-            lua_pop        (lua::L, 4); // LAPI, World, Events, Server
         #else // CLIENT
             // Send just enough info for the player's LE
             send_LogicEntityCompleteNotification( sender,

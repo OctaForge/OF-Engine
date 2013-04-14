@@ -1814,22 +1814,11 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     else if(pl->inwater && !water) game::physicstrigger(pl, local, 0, 1, pl->inwater);
     pl->inwater = water ? material&MATF_VOLUME : MAT_AIR;
 
-    if (pl->o.z < 0)
-    {
-        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "World"); lua_getfield(lua::L, -1, "Events");
-#ifdef CLIENT
-        lua_getfield(lua::L, -1, "Client");
-#else
-        lua_getfield(lua::L, -1, "Server");
-#endif
-        lua_getfield(lua::L, -1, "off_map");
-        if lua_isnil(lua::L, -1) {
-             lua_pop(lua::L,  6);
-             return true;
-        }
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity((dynent*)pl)->lua_ref);
+    if (pl->o.z < 0) {
+        assert(lua::push_external("event_off_map"));
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+            LogicSystem::getLogicEntity((dynent*)pl)->lua_ref);
         lua_call(lua::L, 1, 0);
-        lua_pop(lua::L, 5);
     }
     return true;
 }

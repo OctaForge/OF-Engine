@@ -1195,11 +1195,10 @@ namespace lapi_binds
 
         if (luaL_loadfile(L, world::get_mapscript_filename()))
         {
-            lua_getglobal  (L, "LAPI"); lua_getfield(L, -1, "GUI");
-            lua_getfield   (L, -1, "show_message");
+            assert(lua::push_external(L, "gui_show_message"));
             lua_pushliteral(L, "Compilation failed");
             lua_pushvalue  (L, -5);
-            lua_call       (L,  2, 0); lua_pop(L, 2);
+            lua_call       (L,  2, 0);
             return 1;
         }
 

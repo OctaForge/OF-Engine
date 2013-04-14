@@ -65,36 +65,5 @@ return {
                 end
             }
         }
-    },
-    World = {
-        Events = {
-            Client = {
-                off_map = function(ent)
-                    if not client_on_ent_offmap then
-                        return nil
-                    end
-
-                    return client_on_ent_offmap(ent)
-                end
-            },
-            Server = {
-                off_map = function(ent)
-                    if not on_ent_offmap then
-                        return nil
-                    end
-
-                    return on_ent_offmap(ent)
-                end,
-                player_login = function(ent)
-                end
-            },
-            text_message = function(uid, text)
-                if handle_textmsg then
-                    return handle_textmsg(uid, text)
-                end
-
-                return false
-            end
-        }
     }
 }
