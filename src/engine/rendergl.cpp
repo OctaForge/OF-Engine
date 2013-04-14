@@ -995,6 +995,9 @@ void setcammatrix()
     cammatrix.rotate_around_z(camera1->yaw*-RAD);
     cammatrix.translate(vec(camera1->o).neg());
 
+    /* OF */
+    TargetingControl::setupOrientation();
+/*
     cammatrix.transposedtransformnormal(vec(viewmatrix.b), camdir);
     cammatrix.transposedtransformnormal(vec(viewmatrix.a).neg(), camright);
     cammatrix.transposedtransformnormal(vec(viewmatrix.c), camup);
@@ -1004,6 +1007,7 @@ void setcammatrix()
         if(raycubepos(camera1->o, camdir, worldpos, 0, RAY_CLIPMAT|RAY_SKIPFIRST) == -1)
             worldpos = vec(camdir).mul(2*worldsize).add(camera1->o); //otherwise 3dgui won't work when outside of map
     }
+*/
 }
 
 void setcamprojmatrix(bool init = true, bool flush = false)
