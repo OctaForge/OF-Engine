@@ -122,6 +122,12 @@ end)
 ]]
 echo = CAPI.echo
 
+--[[! Function: cubescript
+    Executes the given cubescript string. Returns the return value of the
+    cubescript expression.
+]]
+cubescript = CAPI.cubescript
+
 local dbg = CAPI.should_log(DEBUG)
 
 if dbg then log(DEBUG, "Initializing the new core library.") end

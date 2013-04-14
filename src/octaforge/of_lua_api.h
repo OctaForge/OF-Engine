@@ -73,22 +73,6 @@ namespace lapi_binds
         return 1;
     }
 
-    int _lua_cubescript(lua_State *L) {
-        tagval v;
-        executeret(luaL_checkstring(L, 1), v);
-        switch (v.type) {
-            case VAL_INT:
-                lua_pushinteger(L, v.getint());
-            case VAL_FLOAT:
-                lua_pushnumber(L, v.getfloat());
-            case VAL_STR:
-                lua_pushstring(L, v.getstr());
-            default:
-                lua_pushnil(L);
-        }
-        return 1;
-    }
-
     int _lua_readfile(lua_State *L) {
         const char *p = luaL_checkstring(L, 1);
 
@@ -1339,7 +1323,6 @@ namespace lapi_binds
     LAPI_REG(lastmillis);
     LAPI_REG(totalmillis);
     LAPI_REG(currtime);
-    LAPI_REG(cubescript);
     LAPI_REG(readfile);
     LAPI_REG(getserverlogfile);
     LAPI_REG(setup_library);

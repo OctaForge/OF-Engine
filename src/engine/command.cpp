@@ -3038,6 +3038,22 @@ ICOMMAND(lua, "s", (char *str), {
     }
 })
 
+LUAICOMMAND(cubescript, {
+    tagval v;
+    executeret(luaL_checkstring(L, 1), v);
+    switch (v.type) {
+        case VAL_INT:
+            lua_pushinteger(L, v.getint());
+        case VAL_FLOAT:
+            lua_pushnumber(L, v.getfloat());
+        case VAL_STR:
+            lua_pushstring(L, v.getstr());
+        default:
+            lua_pushnil(L);
+    }
+    return 1;
+})
+
 /* OF Lua var API */
 
 LUAICOMMAND(var_reset, {

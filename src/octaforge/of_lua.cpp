@@ -184,7 +184,8 @@ namespace lua
         lua_concat  (L,  8);
         lua_setfield(L, -2, "path"); lua_pop(L, 1);
 
-        lua_pushcfunction(L, create_table); lua_setglobal(L, "createtable");
+        lua_pushcfunction(L, create_table);
+        lua_setglobal    (L, "createtable");
         lua_pushcfunction(L,  set_external);
         lua_setglobal    (L, "set_external");
         lua_pushcfunction(L,  unset_external);
