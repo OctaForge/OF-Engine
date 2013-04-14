@@ -14,27 +14,28 @@ using namespace MessageSystem;
 
 #define MIN_CAMERA_MOVE_ITERS 8
 
-VAR(cammovedist, 5, 10, 200); // Distance camera moves per iteration
-VAR(camdist, 0, 50, 200); // How much higher than the player to set the camera
+// Smoothing factor for the smooth camera. 0 means no smoothing
+FVAR(smoothcamera, 0, 0.2, 100.0);
+// 1 means the camera is 100% away from the closest obstacle (and therefore on the player).
+FVAR(thirdpersonavoid, 0, 0.33, 1);
+FVAR(thirdpersondistance, 0, 50, 200);
+FVAR(thirdpersonup, -50, 10, 50);
+FVAR(thirdpersonside, -25, 0, 25);
 
-int saved_camdist;
+int saved_tpdist;
 
 void prepare_character_view() {
     player->pitch  = 0;
     camera1->pitch = 0;
     camera1->yaw   = camera1->yaw;
 
-    saved_camdist = camdist;
-    camdist = MIN_CAMERA_MOVE_ITERS * 3;
+    saved_tpdist = thirdpersondistance;
+    thirdpersondistance = MIN_CAMERA_MOVE_ITERS * 3;
 }
 
 void stop_character_view() {
-    camdist = saved_camdist;
+    thirdpersondistance = saved_tpdist;
 }
-
-FVARP(cameraheight, 0, 10, 50); // How much higher than the player to set the camera
-FVAR(smoothcamera, 0, 0.2, 100.0); // Smoothing factor for the smooth camera. 0 means no smoothing
-FVARP(cameraavoid, 0, 0.33, 1); // 1 means the camera is 100% away from the closest obstacle (and therefore on the player).
 
 enum { FORCE_POS = 1<<0, FORCE_YAW = 1<<1, FORCE_PITCH = 1<<2, FORCE_ROLL = 1<<3 };
 
@@ -115,80 +116,86 @@ void position_camera(physent* camera1) {
     orient.rotate_around_y(camera1->roll*RAD);
     orient.rotate_around_x(camera1->pitch*-RAD);
     orient.rotate_around_z(camera1->yaw*-RAD);
-    vec dir = vec(orient.b).neg();/*, side = vec(orient.a).neg(), up = orient.c;*/
+    vec dir = vec(orient.b).neg(), side = vec(orient.a).neg(), up = orient.c;
 
     if(game::collidecamera()) {
-        vec camera_origin = camera1->o;
-        if (thirdperson) {
-            vec up(0, 0, 1);
-            movecamera(camera1, up, cameraheight, 1);
-            // Find distance to obstacle
-            movecamera(camera1, up, clamp(cameraheight
-                - camera1->o.dist(camera_origin), 0.0f, 1.0f), 0.1f);
+        if(thirdpersonup)
+        {
+            vec pos = camera1->o;
+            float dist = fabs(thirdpersonup);
+            if(thirdpersonup < 0) up.neg();
+            movecamera(camera1, up, dist, 1);
+            movecamera(camera1, up, clamp(dist - camera1->o.dist(pos), 0.0f, 1.0f), 0.1f);
         }
 
-        vec camera_origin2 = camera1->o;
-        movecamera(camera1, dir, camdist, 1);
-        // Find distance to obstacle
-        movecamera(camera1, dir, clamp(camdist
-            - camera1->o.dist(camera_origin2), 0.0f, 1.0f), 0.1f);
+        if(thirdpersonside)
+        {
+            vec pos = camera1->o;
+            float dist = fabs(thirdpersonside);
+            if(thirdpersonside < 0) side.neg();
+            movecamera(camera1, side, dist, 1);
+            movecamera(camera1, side, clamp(dist - camera1->o.dist(pos), 0.0f, 1.0f), 0.1f);
+        }
+
+        vec camorigin = camera1->o;
+        movecamera(camera1, dir, thirdpersondistance, 1);
+        movecamera(camera1, dir, clamp(thirdpersondistance
+            - camera1->o.dist(camorigin), 0.0f, 1.0f), 0.1f);
 
         if (smoothcamera) {
-            float intended_dist = camera1->o.dist(camera_origin2)*(1.0f-cameraavoid);
+            float intended_dist = camera1->o.dist(camorigin)*(1.0f-thirdpersonavoid);
             static float last_dist = 5;
-            float ACTUAL_DISTANCE_FACTOR = clamp(1.0f - (curtime/1000.0f)/smoothcamera, 0.0f, 1.0f);
-            float actual_dist = ACTUAL_DISTANCE_FACTOR*last_dist + (1-ACTUAL_DISTANCE_FACTOR)*intended_dist;
+            float distfactor = clamp(1.0f - (curtime/1000.0f)/smoothcamera, 0.0f, 1.0f);
+            float actual_dist = distfactor*last_dist + (1-distfactor)*intended_dist;
 
-            // Start again, move to current distance
-            camera1->o = camera_origin2;
+            camera1->o = camorigin;
             movecamera(camera1, dir, actual_dist, 1);
-            movecamera(camera1, dir, clamp(actual_dist - camera1->o.dist(camera_origin2), 0.0f, 1.0f), 0.1f);
+            movecamera(camera1, dir, clamp(actual_dist
+                - camera1->o.dist(camorigin), 0.0f, 1.0f), 0.1f);
             last_dist = actual_dist;
         }
     } else {
-        camera1->o.z += cameraheight;
-        camera1->o.add(vec(dir).mul(camdist));
+        if(thirdpersonup) camera1->o.add(vec(up).mul(thirdpersonup));
+        if(thirdpersonside) camera1->o.add(vec(side).mul(thirdpersonside));
+        camera1->o.add(vec(dir).mul(thirdpersondistance));
     }
 
     camera1->maxspeed = saved_camera_speed;
 
-    static fpsent actual_camera; // Need fpsent for new normalization functions
+    static fpsent acam; // Need fpsent for new normalization functions
     static vec last_playerpos;
 
-    vec temp(actual_camera.o);
-    temp.sub(camera1->o);
+    vec tmp(acam.o);
+    tmp.sub(camera1->o);
 
-    actual_camera.normalize_yaw(camera1->yaw);
-    actual_camera.normalize_pitch(camera1->pitch);
-
-    float yawdelta = camera1->yaw - actual_camera.yaw;
-    float pitchdelta = camera1->pitch - actual_camera.pitch;
+    acam.normalize_yaw(camera1->yaw);
+    acam.normalize_pitch(camera1->pitch);
 
     extern int mouselook;
-    if (smoothcamera && !mouselook && temp.magnitude() < 50*player->radius && fabs(yawdelta) < 30.0f && fabs(pitchdelta) < 30.0f) {
-        float ACTUAL_CAMERA_FACTOR = clamp(1.0f - (curtime/1000.0f)/smoothcamera, 0.0f, 1.0f);
+    if (smoothcamera && !mouselook && tmp.magnitude() < (50 * (player->radius))
+    && fabs(camera1->yaw   - acam.yaw)   < 30.0f
+    && fabs(camera1->pitch - acam.pitch) < 30.0f) {
+        float camfactor = clamp(1.0f - (curtime/1000.0f)/smoothcamera, 0.0f, 1.0f);
 
-        vec temp = player->o;
-        temp.sub(last_playerpos);
-        actual_camera.o.add(temp); // Prevent camera stutter
+        vec tmp = player->o;
+        tmp.sub(last_playerpos);
+        acam.o.add(tmp); // Prevent camera stutter
 
-        actual_camera.o.mul(ACTUAL_CAMERA_FACTOR);
-        temp = camera1->o;
-        temp.mul(1-ACTUAL_CAMERA_FACTOR);
-        actual_camera.o.add(temp);
+        acam.o.mul(camfactor);
+        tmp = camera1->o;
+        tmp.mul(1-camfactor);
+        acam.o.add(tmp);
 
-        actual_camera.yaw = ACTUAL_CAMERA_FACTOR*actual_camera.yaw + (1-ACTUAL_CAMERA_FACTOR)*camera1->yaw;
-        actual_camera.pitch = ACTUAL_CAMERA_FACTOR*actual_camera.pitch + (1-ACTUAL_CAMERA_FACTOR)*camera1->pitch;
+        acam.yaw = camfactor*acam.yaw + (1-camfactor)*camera1->yaw;
+        acam.pitch = camfactor*acam.pitch + (1-camfactor)*camera1->pitch;
 
-        camera1->o = actual_camera.o;
-        camera1->yaw = actual_camera.yaw;
-        camera1->pitch = actual_camera.pitch;
-
-//        camera1->o.z += player->aboveeye + player->eyeheight;
+        camera1->o = acam.o;
+        camera1->yaw = acam.yaw;
+        camera1->pitch = acam.pitch;
     } else {
-        actual_camera.o = camera1->o;
-        actual_camera.yaw = camera1->yaw;
-        actual_camera.pitch = camera1->pitch;
+        acam.o = camera1->o;
+        acam.yaw = camera1->yaw;
+        acam.pitch = camera1->pitch;
     }
 
     last_playerpos = player->o;
