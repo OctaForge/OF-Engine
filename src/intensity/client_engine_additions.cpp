@@ -52,6 +52,13 @@ void force_position(vec &pos) {
         thirdperson = 1;
     }
 }
+LUAICOMMAND(camera_force_position, {
+    vec pos(luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3));
+    force_position(pos);
+    return 0;
+});
 
 #define FORCE_PROP(name, flag) \
 void force_##name(float name) { \
@@ -61,7 +68,11 @@ void force_##name(float name) { \
         saved_thirdperson = thirdperson; \
         thirdperson = 1; \
     } \
-}
+} \
+LUAICOMMAND(camera_force_##name, { \
+    force_##name(luaL_checknumber(L, 1)); \
+    return 0; \
+});
 FORCE_PROP(yaw, FORCE_YAW)
 FORCE_PROP(pitch, FORCE_PITCH)
 FORCE_PROP(roll, FORCE_ROLL)
@@ -73,6 +84,10 @@ void force_fov(float fov) {
         thirdperson = 1;
     }
 }
+LUAICOMMAND(camera_force_fov, {
+    force_fov(luaL_checknumber(L, 1));
+    return 0;
+});
 
 void force_camera(vec &pos, float yaw, float pitch, float roll, float fov) {
     force_flags = 0;
@@ -82,6 +97,14 @@ void force_camera(vec &pos, float yaw, float pitch, float roll, float fov) {
     force_roll(roll);
     force_fov(fov);
 }
+LUAICOMMAND(camera_force, {
+    vec pos(luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2),
+        luaL_checknumber(L, 3));
+    force_camera(pos, luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+        luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+    return 0;
+});
 
 void position_camera(physent* camera1) {
     logger::log(logger::INFO, "position_camera\n");
