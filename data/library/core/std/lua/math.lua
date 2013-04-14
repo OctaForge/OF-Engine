@@ -536,9 +536,7 @@ local Vec3 = table.Object:clone {
     end
 }
 math.Vec3 = Vec3
-external.new_vec3 = function(x, y, z)
-    return Vec3(x, y, z)
-end
+set_external("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 
 --[[! Class: math.Vec4
     A standard 4 component vector with x, y, z components.
@@ -688,6 +686,4 @@ local Vec4 = Vec3:clone {
     end
 }
 math.Vec4 = Vec4
-external.new_vec4 = function(x, y, z, w)
-    return Vec4(x, y, z, w)
-end
+set_external("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)

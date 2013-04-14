@@ -122,12 +122,6 @@ end)
 ]]
 echo = CAPI.echo
 
---[[! Variable: external
-    Here all the external functions (the ones the engine calls) are stored.
-]]
-external = {
-}
-
 local dbg = CAPI.should_log(DEBUG)
 
 if dbg then log(DEBUG, "Initializing the new core library.") end

@@ -549,9 +549,7 @@ bool consolekey(int code, bool isdown)
 
 void processtextinput(const char *str, int len)
 {
-    lua_getglobal  (lua::L, "external");
-    lua_getfield   (lua::L, -1, "input_text");
-    lua_remove     (lua::L, -2);
+    lua::push_external("input_text");
     lua_pushlstring(lua::L, str, len);
     lua_call(lua::L, 1, 1);
     bool b = lua_toboolean(lua::L, -1);
@@ -565,9 +563,7 @@ void processkey(int code, bool isdown)
     if(haskey && haskey->pressed) {
         execbind(*haskey, isdown); // allow pressed keys to release
     } else {
-        lua_getglobal  (lua::L, "external");
-        lua_getfield   (lua::L, -1, "input_keypress");
-        lua_remove     (lua::L, -2);
+        lua::push_external("input_keypress");
         lua_pushinteger(lua::L, code);
         lua_pushboolean(lua::L, isdown);
         lua_call       (lua::L, 2, 1);

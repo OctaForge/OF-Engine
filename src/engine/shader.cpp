@@ -1402,9 +1402,7 @@ void reloadshaders()
 
 void resetshaders()
 {
-    lua_getglobal  (lua::L, "external");
-    lua_getfield   (lua::L, -1, "changes_clear");
-    lua_remove     (lua::L, -2);
+    lua::push_external("changes_clear");
     lua_pushinteger(lua::L, CHANGE_SHADERS);
     lua_call       (lua::L, 1, 0);
 

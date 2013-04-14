@@ -315,7 +315,7 @@ gui.core.Conditional.states = {
 
 world:append(gui.core.Conditional {
     condition = function()
-        local wh = external.cursor_exists() or
+        local wh = gui.core.cursor_exists() or
             EV.mouselook == 0
 
         if not wh and not (EV.hidehud ~= 0 or EV.mainmenu ~= 0) then

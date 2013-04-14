@@ -119,8 +119,7 @@ float CLogicEntity::getRadius()
 
 void CLogicEntity::setOrigin(vec &newOrigin)
 {
-    lua_getglobal  (lua::L, "external");
-    lua_getfield   (lua::L, -1, "entity_get");
+    lua::push_external("entity_get");
     lua_pushinteger(lua::L, getUniqueId());
     lua_call       (lua::L, 1, 1);
 
@@ -129,7 +128,7 @@ void CLogicEntity::setOrigin(vec &newOrigin)
     lua_pushnumber (lua::L, newOrigin.y); lua_rawseti(lua::L, -2, 2);
     lua_pushnumber (lua::L, newOrigin.z); lua_rawseti(lua::L, -2, 3);
     lua_setfield   (lua::L, -2, "position");
-    lua_pop        (lua::L,  2);
+    lua_pop        (lua::L,  1);
 }
 
 int CLogicEntity::getAnimation()
@@ -369,11 +368,8 @@ void LogicSystem::clear(bool restart_lua)
 
     if (lua::L)
     {
-        lua_getglobal(lua::L, "external");
-        lua_getfield (lua::L, -1, "entities_remove_all");
-        lua_call     (lua::L,  0, 0); lua_pop(lua::L, 1);
+        lua::push_external("entities_remove_all"); lua_call(lua::L, 0, 0);
         enumerate(logicEntities, CLogicEntity*, ent, assert(!ent));
-
         if (restart_lua) lua::reset();
     }
 
@@ -395,11 +391,10 @@ void LogicSystem::registerLogicEntity(CLogicEntity *newEntity)
     assert(!logicEntities.access(uniqueId));
     logicEntities.access(uniqueId, newEntity);
 
-    lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "entity_get");
+    lua::push_external("entity_get");
     lua_pushinteger(lua::L, uniqueId);
     lua_call       (lua::L, 1, 1);
     newEntity->lua_ref = luaL_ref(lua::L, LUA_REGISTRYINDEX);
-    lua_pop(lua::L, 1);
     assert(newEntity->lua_ref != LUA_REFNIL);
 
     logger::log(logger::DEBUG, "C registerLogicEntity completes\r\n");
@@ -477,11 +472,10 @@ void LogicSystem::manageActions(long millis)
     INDENT_LOG(logger::INFO);
 
     if (lua::L) {
-        lua_getglobal  (lua::L, "external");
-        lua_getfield   (lua::L, -1, "frame_handle");
+        lua::push_external("frame_handle");
         lua_pushnumber (lua::L, double(millis) / 1000.0f);
         lua_pushinteger(lua::L, lastmillis);
-        lua_call       (lua::L,  2, 0); lua_pop(lua::L, 1);
+        lua_call       (lua::L,  2, 0);
     }
 
     logger::log(logger::INFO, "manageActions complete\r\n");

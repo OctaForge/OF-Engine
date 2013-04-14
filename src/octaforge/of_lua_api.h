@@ -366,10 +366,7 @@ namespace lapi_binds
         return 1;
     }
     int _lua_getcampos(lua_State *L) {
-        lua_getglobal(L, "external");
-        lua_getfield (L, -1, "new_vec3");
-        lua_remove   (L, -2);
-
+        lua::push_external(L, "new_vec3");
         const vec& o = camera1->o;
         lua_pushnumber(L, o.x); 
         lua_pushnumber(L, o.y);
@@ -613,8 +610,7 @@ namespace lapi_binds
         const char *attachment = "";
         if (!lua_isnoneornil(L, 2)) attachment = luaL_checkstring(L, 2);
         LAPI_GET_ENT(entity, "CAPI.getattachmentpos", return 0)
-        lua_getglobal(L, "external"); lua_getfield(L, -1, "new_vec3");
-        lua_remove   (L, -2);
+        lua::push_external(L, "new_vec3");
         const vec& o = entity->getAttachmentPosition(attachment);
         lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
         lua_call(L, 3, 1);
@@ -1074,12 +1070,10 @@ namespace lapi_binds
             if   (!mdl) return 0; \
             vec center, radius; \
             mdl->func(center, radius); \
-            lua_getglobal(L, "external"); \
-            lua_getfield  (L, -1, "new_vec3"); \
+            lua::push_external(L, "new_vec3"); \
             lua_pushnumber(L, center.x); lua_pushnumber(L, center.y); \
             lua_pushnumber(L, center.z); lua_call(L, 3, 1); \
-            lua_getfield  (L, -2, "new_vec3"); \
-            lua_remove    (L, -3); \
+            lua::push_external(L, "new_vec3"); \
             lua_pushnumber(L, radius.x); lua_pushnumber(L, radius.y); \
             lua_pushnumber(L, radius.z); lua_call(L, 3, 1); \
             return 2; \
@@ -1096,7 +1090,6 @@ namespace lapi_binds
         mdl->gentris(tris2);
         vector<BIH::tri>& tris = tris2[0];
 
-        lua_getglobal   (L, "external");
         lua_createtable (L, tris.length(), 0);
         for (int i = 0; i < tris.length(); ++i) {
             BIH::tri& bt = tris[i];
@@ -1104,7 +1097,7 @@ namespace lapi_binds
             lua_createtable(L, 0, 3);  /* value */
 
             #define TRIFIELD(n) \
-                lua_getfield  (L, -4, "new_vec3"); \
+                lua::push_external(L, "new_vec3"); \
                 lua_pushnumber(L, bt.n.x); \
                 lua_pushnumber(L, bt.n.y); \
                 lua_pushnumber(L, bt.n.z); \
@@ -1117,7 +1110,6 @@ namespace lapi_binds
             #undef TRIFIELD
             lua_settable(L, -3);
         }
-        lua_remove(L, -2);
         return 1;
     }
 #else

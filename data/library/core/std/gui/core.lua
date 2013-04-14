@@ -4463,18 +4463,17 @@ local Resizer = Object:clone {
     end
 }
 
-local ext = external
-
-ext.cursor_reset = function()
+local cursor_reset = function()
     if EV.editing ~= 0 or #world.p_children == 0 then
         cursor_x = 0.5
         cursor_y = 0.5
     end
 end
+set_external("cursor_reset", cursor_reset)
 
 var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
 
-ext.cursor_move = function(dx, dy)
+local cursor_move = function(dx, dy)
     if (#world.p_children == 0 or not world.focus_children(world)) and
         EV.mouselook ~= 0
     then
@@ -4488,6 +4487,7 @@ ext.cursor_move = function(dx, dy)
 
     return true
 end
+set_external("cursor_move", cursor_move)
 
 local cursor_exists = function(targeting)
     if not world.focus_children(world) then
@@ -4503,25 +4503,26 @@ local cursor_exists = function(targeting)
 
     return false
 end
-ext.cursor_exists = cursor_exists
+set_external("cursor_exists", cursor_exists)
 
-ext.cursor_get_position = function()
+local cursor_get_position = function()
     if #world.p_children ~= 0 or EV.mouselook == 0 then
         return cursor_x, cursor_y
     else
         return 0.5, 0.5
     end
 end
+set_external("cursor_get_position", cursor_get_position)
 
-ext.input_text = function(str)
+set_external("input_text", function(str)
     if textediting then
         textediting:input(str)
         return true
     end
     return false
-end
+end)
 
-ext.input_keypress = function(code, isdown)
+set_external("input_keypress", function(code, isdown)
     if not cursor_exists() then return false end
 
     if code == key.MOUSE5 or code == key.MOUSE4 or
@@ -4545,19 +4546,16 @@ ext.input_keypress = function(code, isdown)
     local  ret = world:key(code, isdown)
     if     ret == nil and _ then return _(self, code, down) end
     return ret
-end
+end)
 
-ext.gui_clear = function()
+set_external("gui_clear", function()
     if  EV.mainmenu ~= 0 and CAPI.isconnected() then
         CAPI.gui_set_mainmenu(0)
 
         world:hide_children()
         worlds = { world }
     end
-
-    if not _ then return nil end
-    return _(self)
-end
+end)
 
 local register_world = function(w, pos)
     if pos then
@@ -4572,7 +4570,7 @@ end
 
 local main
 
-ext.gl_render = function()
+set_external("gl_render", function()
     for i = 1, #worlds do
         local w = worlds[i]
 
@@ -4629,16 +4627,13 @@ ext.gl_render = function()
             CAPI.gle_disable()
         end
     end
-
-    if not _ then return nil end
-    return _(self)
-end
+end)
 
 local needsapply = {}
 
 var.new("applydialog", var.INT, 0, 1, 1, var.PERSIST)
 
-ext.change_add = function(desc, ctype)
+set_external("change_add", function(desc, ctype)
     if EV["applydialog"] == 0 then return nil end
 
     for i, v in pairs(needsapply) do
@@ -4647,13 +4642,13 @@ ext.change_add = function(desc, ctype)
 
     needsapply[#needsapply + 1] = { ctype = ctype, desc = desc }
     LAPI.GUI.show_changes()
-end
+end)
 
 local CHANGE_GFX     = blsh(1, 0)
 local CHANGE_SOUND   = blsh(1, 1)
 local CHANGE_SHADERS = blsh(1, 2)
 
-ext.changes_clear = function(ctype)
+set_external("changes_clear", function(ctype)
     ctype = ctype or bor(CHANGE_GFX, CHANGE_SOUND)
 
     needsapply = table.filter(needsapply, function(i, v)
@@ -4668,9 +4663,9 @@ ext.changes_clear = function(ctype)
 
         return true
     end)
-end
+end)
 
-ext.changes_apply = function()
+set_external("changes_apply", function()
     local changetypes = 0
     for i, v in pairs(needsapply) do
         changetypes = bor(changetypes, v.ctype)
@@ -4687,13 +4682,13 @@ ext.changes_apply = function()
     if band(changetypes, CHANGE_SHADERS) ~= 0 then
         cubescript "resetshaders"
     end
-end
+end)
 
-ext.changes_get = function()
+set_external("changes_get", function()
     return table.map(needsapply, function(v) return v.desc end)
-end
+end)
 
-ext.frame_start = function()
+set_external("frame_start", function()
     if not main then main = signal.emit(world, "get_main") end
 
     if EV.mainmenu ~= 0 and not CAPI.isconnected(true) and not main.p_visible then
@@ -4768,7 +4763,7 @@ ext.frame_start = function()
 
     if not _ then return nil end
     return _(self)
-end
+end)
 
 local f = function(_, self, ...)
     needs_adjust = true
@@ -4785,6 +4780,11 @@ return {
         if not n then return world end
         return worlds[n]
     end,
+
+    cursor_reset = cursor_reset,
+    cursor_move = cursor_move,
+    cursor_exists = cursor_exists,
+    cursor_get_position = cursor_get_position,
 
     FILTER_LINEAR                 = gl.LINEAR,
     FILTER_LINEAR_MIPMAP_LINEAR   = gl.LINEAR_MIPMAP_LINEAR,

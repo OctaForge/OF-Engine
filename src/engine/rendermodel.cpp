@@ -426,10 +426,7 @@ void reloadmodel(char *name) {
     clearmodel((char*)name);
     model *_new = loadmodel(name);
 
-    lua_getglobal(lua::L, "external");
-    lua_getfield (lua::L, -1, "entities_get_all");
-    lua_remove(lua::L, -2); lua_call(lua::L, 0, 1);
-
+    lua::push_external("entities_get_all"); lua_call(lua::L, 0, 1);
     lua_pushnil(lua::L);
     while (lua_next(lua::L, -2)) {
         lua_getfield(lua::L, -1, "uid");

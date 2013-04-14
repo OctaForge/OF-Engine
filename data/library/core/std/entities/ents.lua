@@ -26,8 +26,6 @@ local pairs = pairs
 local assert = assert
 local tonumber, tostring = tonumber, tostring
 
-local ext = external
-
 local M = {}
 
 local Entity
@@ -182,7 +180,8 @@ local get_class = function(cn)
     end
     return t
 end
-M.get_class, ext.entity_class_get = get_class, get_class
+M.get_class = get_class
+set_external("entity_class_get", get_class)
 
 --[[! Function: get_class_sauer_type
     Given an entity class name, this function returns the sauer type
@@ -196,8 +195,8 @@ local get_class_sauer_type = function(cn)
         return t.sauer_type
     end
 end
-M.get_class_sauer_type, ext.entity_class_sauer_type_get
-    = get_class_sauer_type, get_class_sauer_type
+M.get_class_sauer_type = get_class_sauer_type
+set_external("entity_class_sauer_type_get", get_class_sauer_type)
 
 --[[! Function: get_all_classes
     Returns <class_storage>. Use with care.
@@ -219,7 +218,7 @@ M.get = function(uid)
         #log(DEBUG, "ents.get: no such entity (" .. uid .. ")")
     end
 end
-ext.entity_get = M.get
+set_external("entity_get", M.get)
 
 --[[! Function: get_all
     Returns the whole storage. Use with care. External as "entities_get_all".
@@ -227,7 +226,7 @@ ext.entity_get = M.get
 M.get_all = function()
     return storage
 end
-ext.entities_get_all = M.get_all
+set_external("entities_get_all", M.get_all)
 
 --[[! Function: get_all_by_tag
     Returns an array of entities with a common tag.
@@ -359,7 +358,8 @@ local add = function(cn, uid, kwargs, new)
     r:activate(kwargs)
     #log(DEBUG, "ents.add: activated")
 end
-M.add, ext.entity_add = add, add
+M.add = add
+set_external("entity_add", add)
 
 --[[! Function: add_sauer
     Appends a request to add a Sauer entity to the sauer storage queue.
@@ -372,7 +372,8 @@ local add_sauer = function(et, x, y, z, attr1, attr2, attr3, attr4, attr5)
         et, Vec3(x, y, z), attr1, attr2, attr3, attr4, attr5
     }
 end
-M.add_sauer, ext.entity_add_sauer = add_sauer, add_sauer
+M.add_sauer = add_sauer
+set_external("entity_add_sauer", add_sauer)
 
 --[[! Function: remove
     Removes an entity of the given uid. First emits pre_deactivate signal
@@ -408,7 +409,7 @@ M.remove = function(uid)
         end
     end
 end
-ext.entity_remove = M.remove
+set_external("entity_remove", M.remove)
 
 --[[! Function: remove_all
     Removes all entities from both storages. It's equivalent to looping
@@ -424,7 +425,7 @@ M.remove_all = function()
     storage_by_class = {}
     highest_uid = 1
 end
-ext.entities_remove_all = M.remove_all
+set_external("entities_remove_all", M.remove_all)
 
 --[[! Function: load
     Serverside. Reads a file called "entities.lua" in the map directory,
@@ -599,7 +600,7 @@ M.save = function()
     #log(DEBUG, "ents.save: done")
     return "{\n" .. concat(r, ",\n") .. "\n}\n"
 end
-ext.entities_save_all = M.save
+set_external("entities_save_all", M.save)
 
 --[[! Class: Entity
     The base entity class. Every other entity class inherits from this.
@@ -1175,7 +1176,8 @@ local render = CLIENT and function(tp)
         end
     end
 end or nil
-M.render, ext.game_render = render, render
+M.render = render
+set_external("game_render", render)
 
 -- DEPRECATED
 local handle_triggers = frame.cache_by_delay(function(_)
@@ -1193,7 +1195,8 @@ local handle_triggers = frame.cache_by_delay(function(_)
         end
     end
 end, 0.1)
-M.handle_triggers, ext.game_handle_triggers = handle_triggers, handle_triggers
+M.handle_triggers = handle_triggers
+set_external("game_handle_triggers", handle_triggers)
 
 --[[! Function: render_hud
     Renders the player HUD model if needed. External as game_render_hud.
@@ -1208,7 +1211,8 @@ local render_hud = CLIENT and function()
         player:render(true, true)
     end
 end or nil
-M.render_hud, ext.game_render_hud = render_hud, render_hud
+M.render_hud = render_hud
+set_external("game_render_hud", render_hud)
 
 --[[! Function: init_player
     Assigns the player entity using the given uid. External as player_init,
@@ -1222,7 +1226,8 @@ local init_player = CLIENT and function(uid)
     assert(player_entity)
     player_entity.controlled_here = true
 end or nil
-M.init_player, ext.player_init = init_player, init_player
+M.init_player = init_player
+set_external("player_init", init_player)
 
 --[[! Function: set_sdata
     Given an unique id, a key (in protocol ID format) and a value, this
@@ -1243,7 +1248,7 @@ M.set_sdata = function(uid, kpid, value, auid)
         ent:set_sdata(key, value, auid)
     end
 end
-ext.entity_set_sdata = M.set_sdata
+set_external("entity_set_sdata", M.set_sdata)
 
 --[[ Function: scene_is_ready
     On the client, used to check if the current scene is ready and we can
@@ -1269,7 +1274,7 @@ M.scene_is_ready = CLIENT and function()
     #log(INFO, "...yes!")
     return true
 end or nil
-ext.scene_is_ready = M.scene_is_ready
+set_external("scene_is_ready", M.scene_is_ready)
 
 --[[! Function: gen_uid
     Generates a new entity unique ID. It's larger than the previous largest
@@ -1279,7 +1284,8 @@ local gen_uid = SERVER and function()
     #log(DEBUG, "Generating an UID, last highest UID: " .. highest_uid)
     return highest_uid + 1
 end or nil
-M.gen_uid, ext.entity_gen_uid = gen_uid, gen_uid
+M.gen_uid = gen_uid
+set_external("entity_gen_uid", gen_uid)
 
 --[[! Function: new
     Creates a new entity on the server. Takes the entity class, kwargs
@@ -1291,7 +1297,7 @@ M.new = SERVER and function(cl, kwargs, fuid)
     #log(DEBUG, "New entity: " .. fuid)
     return add(cl, fuid, kwargs, true)
 end or nil
-ext.entity_new = M.new
+set_external("entity_new", M.new)
 
 --[[! Function: send
     Notifies a client of the number of entities on the server and then
@@ -1310,6 +1316,6 @@ M.send = SERVER and function(cn)
         storage[uids[i]]:send_notification_full(cn)
     end
 end or nil
-ext.entities_send_all = M.send
+set_external("entities_send_all", M.send)
 
 return M

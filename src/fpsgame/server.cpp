@@ -114,9 +114,7 @@ namespace server
         // entity is actually created for them (this can happen in the rare case of a network error causing a disconnect
         // between ENet connection and completing the login process).
         if (lua::L && !_ci->local && uniqueId >= 0) {
-            lua_getglobal  (lua::L, "external");
-            lua_getfield   (lua::L, -1, "entity_remove");
-            lua_remove     (lua::L, -2);
+            lua::push_external("entity_remove");
             lua_pushinteger(lua::L, uniqueId);
             lua_call       (lua::L, 1, 0);
         }
@@ -685,13 +683,12 @@ namespace server
         ci->isAdmin = isAdmin;
 
         if (ci->isAdmin && ci->uniqueId >= 0) { // If an entity was already created, update it
-            lua_getglobal  (lua::L, "external");
-            lua_getfield   (lua::L, -1, "entity_get");
+            lua::push_external("entity_get");
             lua_pushinteger(lua::L, ci->uniqueId);
             lua_call       (lua::L, 1, 1);
             lua_pushboolean(lua::L, true);
             lua_setfield   (lua::L, -2, "can_edit");
-            lua_pop        (lua::L,  2);
+            lua_pop        (lua::L,  1);
         }
     }
 
@@ -752,10 +749,8 @@ namespace server
 
         logger::log(logger::DEBUG, "Creating player entity: %s, %d", _class, cn);
 
-        lua_getglobal(lua::L, "external");
-
-        lua_getfield (lua::L, -1, "entity_gen_uid");
-        lua_call     (lua::L,  0, 1);
+        lua::push_external("entity_gen_uid");
+        lua_call(lua::L, 0, 1);
         int uid = lua_tointeger(lua::L, -1);
         lua_pop(lua::L, 1);
 
@@ -766,7 +761,7 @@ namespace server
 
         ci->uniqueId = uid;
 
-        lua_getfield  (lua::L, -1, "entity_new"); /* external */
+        lua::push_external("entity_new");
         lua_pushstring(lua::L, _class);
 
         lua_createtable(lua::L, 0, 1);
@@ -777,8 +772,7 @@ namespace server
         lua_pushboolean(lua::L, true);
         lua_call       (lua::L, 4, 0);
 
-        lua_getfield   (lua::L, -1, "entity_get"); /* external */
-        lua_remove     (lua::L, -2); /* remove external */
+        lua::push_external("entity_get");
         lua_pushinteger(lua::L, uid);
         lua_call       (lua::L, 1, 1);
 

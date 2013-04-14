@@ -83,9 +83,7 @@ bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level) 
     {
-        lua_getglobal  (lua::L, "external");
-        lua_getfield   (lua::L, -1, "change_add");
-        lua_remove     (lua::L, -2);
+        lua::push_external("change_add");
         lua_pushstring (lua::L, desc);
         lua_pushinteger(lua::L, type);
         lua_call       (lua::L, 2, 0);
@@ -650,9 +648,7 @@ void setupscreen()
 
 void resetgl()
 {
-    lua_getglobal  (lua::L, "external");
-    lua_getfield   (lua::L, -1, "changes_clear");
-    lua_remove     (lua::L, -2);
+    lua::push_external("changes_clear");
     lua_pushinteger(lua::L, CHANGE_GFX|CHANGE_SHADERS);
     lua_call       (lua::L, 1, 0);
     renderbackground("resetting OpenGL");
@@ -886,14 +882,12 @@ void checkinput()
                     int dx = event.motion.xrel, dy = event.motion.yrel;
                     checkmousemotion(dx, dy);
 
-                    lua_getglobal  (lua::L, "external");
-                    lua_getfield   (lua::L, -1, "cursor_move");
+                    lua::push_external("cursor_move");
                     lua_pushinteger(lua::L, dx);
                     lua_pushinteger(lua::L, dy);
                     lua_call       (lua::L, 2, 1);
                     bool b1 = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
-                    lua_getfield   (lua::L, -1, "cursor_exists");
-                    lua_remove     (lua::L, -2);
+                    lua::push_external("cursor_exists");
                     lua_call       (lua::L, 0, 1);
                     bool b2 = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
 
@@ -1336,10 +1330,8 @@ int main(int argc, char **argv)
         updatetime();
  
         checkinput();
-        lua_getglobal(lua::L, "external");
-        lua_getfield (lua::L, -1, "frame_start");
-        lua_remove   (lua::L, -2);
-        lua_call     (lua::L, 0, 0);
+        lua::push_external("frame_start");
+        lua_call(lua::L, 0, 0);
         tryedit();
 
         if(lastmillis) game::updateworld();

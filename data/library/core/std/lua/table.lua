@@ -15,7 +15,6 @@
 ]]
 
 local ctable = createtable
-local ext = external
 local pairs, ipairs = pairs, ipairs
 local type, loadstring, setmetatable = type, loadstring, setmetatable
 local setfenv, assert, rawget, rawset = setfenv, assert, rawget, rawset
@@ -381,7 +380,7 @@ table.serialize = function(tbl, kwargs)
 
     return enc(tbl, nil, indent)
 end
-ext.table_serialize = table.serialize
+set_external("table_serialize", table.serialize)
 
 --[[! Function: table.deserialize
     Takes a previously serialized table and converts it back to the original.
@@ -400,7 +399,7 @@ table.deserialize = function(str)
 
     return ret
 end
-ext.table_deserialize = table.deserialize
+set_external("table_deserialize", table.deserialize)
 
 ------------------
 -- Object system -

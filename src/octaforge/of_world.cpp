@@ -143,11 +143,10 @@ namespace world
         defformatstring(buf)("%sdata%c%s%c%s", homedir, PATHDIV, tmp,
             PATHDIV, fname);
 
-        lua_getglobal(lua::L, "external");
-        lua_getfield (lua::L, -1, "entities_save_all");
-        lua_call     (lua::L,  0, 1);
+        lua::push_external("entities_save_all");
+        lua_call(lua::L, 0, 1);
         const char *data = lua_tostring(lua::L, -1);
-        lua_pop(lua::L, 2);
+        lua_pop(lua::L, 1);
         if (fileexists(buf, "r")) {
             defformatstring(buff)("%s-%d.bak", buf, (int)time(0));
             tools::fcopy(buf, buff);

@@ -187,29 +187,26 @@ action_input_capture_plugin = {
 
 action_input_capture = actions.Action:clone(action_input_capture_plugin)
 
-local ext = external
-
 action_render_capture_plugin = {
     start = function(self, ...)
         self.__proto.__proto.start(self, ...)
 
         if  self.render then
-            self.render_old = ext.game_render
-            ext.game_render = self.render
+            self.render_old = set_external("game_render", self.render)
         end
         if  self.render_hud_model then
-            self.render_hud_old = ext.game_render_hud
-            ext.game_render_hud = self.render_hud_model
+            self.render_hud_old = set_external("game_render_hud",
+                self.render_hud_model)
         end
     end,
 
     finish = function(self, ...)
         if self.render then
-            ext.game_render = self.render_old
+            set_external("game_render", self.render_old)
             self.render_old = nil
         end
         if self.render_hud_model then
-            ext.game_render_hud = self.render_hud_old
+            set_external("game_render_hud", self.render_hud_old)
             self.render_hud_old = nil
         end
 

@@ -496,8 +496,7 @@ namespace MessageSystem
             return;
         }
         // Validate class
-        lua_getglobal(lua::L, "external");
-        lua_getfield(lua::L, -1, "entity_class_get");
+        lua::push_external("entity_class_get");
         lua_pushstring(lua::L, _class);
         lua_call(lua::L, 1, 1);
         if (lua_isnil(lua::L, -1)) {
@@ -609,12 +608,11 @@ namespace MessageSystem
                 if (!LogicSystem::initialized) \
                     return; \
                 \
-                lua_getglobal  (lua::L, "external"); \
-                lua_getfield   (lua::L, -1, "entity_set_sdata"); \
+                lua::push_external("entity_set_sdata"); \
                 lua_pushinteger(lua::L, uniqueId); \
                 lua_pushinteger(lua::L, keyProtocolId); \
                 lua_pushstring (lua::L, value); \
-                lua_call       (lua::L, 3, 0); lua_pop(lua::L, 1);
+                lua_call       (lua::L, 3, 0);
         #endif
         STATE_DATA_UPDATE
     }
@@ -657,13 +655,12 @@ namespace MessageSystem
         \
         if ( !server::isRunningCurrentScenario(sender) ) return; /* Silently ignore info from previous scenario */ \
         \
-        lua_getglobal  (lua::L, "external"); \
-        lua_getfield   (lua::L, -1, "entity_set_sdata"); \
+        lua::push_external("entity_set_sdata"); \
         lua_pushinteger(lua::L, uniqueId); \
         lua_pushinteger(lua::L, keyProtocolId); \
         lua_pushstring (lua::L, value); \
         lua_pushinteger(lua::L, actorUniqueId); \
-        lua_call       (lua::L,  4, 0); lua_pop(lua::L, 1);
+        lua_call       (lua::L,  4, 0);
         STATE_DATA_REQUEST
     }
 #endif
@@ -900,8 +897,7 @@ namespace MessageSystem
                 send_PersonalServerMessage(sender, "Invalid scenario", "An error occured in synchronizing scenarios");
                 return;
             }
-            lua_getglobal  (lua::L, "external");
-            lua_getfield   (lua::L, -1, "entities_send_all");
+            lua::push_external("entities_send_all");
             lua_pushinteger(lua::L, sender);
             lua_call       (lua::L,  1, 0);
 
@@ -910,11 +906,11 @@ namespace MessageSystem
             lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Server");
             lua_getfield (lua::L, -1, "player_login");
 
-            lua_getfield   (lua::L, -6, "entity_get"); // external
+            lua::push_external("entity_get");
             lua_pushinteger(lua::L, server::getUniqueId(sender));
             lua_call       (lua::L, 1, 1); // entity_get
             lua_call       (lua::L, 1, 0); // player_login
-            lua_pop        (lua::L, 5); // external, LAPI, World, Events, Server
+            lua_pop        (lua::L, 4); // LAPI, World, Events, Server
         #else // CLIENT
             // Send just enough info for the player's LE
             send_LogicEntityCompleteNotification( sender,
@@ -997,8 +993,7 @@ namespace MessageSystem
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
         if (entity == NULL)
         {
-            lua_getglobal  (lua::L, "external");
-            lua_getfield   (lua::L, -1, "entity_add");
+            lua::push_external("entity_add");
             lua_pushstring (lua::L, otherClass);
             lua_pushinteger(lua::L, otherUniqueId);
             lua_createtable(lua::L, 0, 0);
@@ -1016,7 +1011,7 @@ namespace MessageSystem
                 lua_pushinteger(lua::L, otherClientNumber);
                 lua_setfield   (lua::L, -2, "cn");
             }
-            lua_call(lua::L, 3, 0); lua_pop(lua::L, 1); // external
+            lua_call(lua::L, 3, 0);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             if (!entity)
             {
@@ -1042,9 +1037,9 @@ namespace MessageSystem
                 // Note in C++
                 ClientSystem::playerLogicEntity = LogicSystem::getLogicEntity(ClientSystem::uniqueId);
                 // Note in lua
-                lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "player_init");
+                lua::push_external("player_init");
                 lua_pushinteger(lua::L, ClientSystem::uniqueId);
-                lua_call       (lua::L, 1, 0); lua_pop(lua::L, 1);
+                lua_call       (lua::L, 1, 0);
             }
         #endif
         // Events post-reception
@@ -1078,9 +1073,9 @@ namespace MessageSystem
             return;
         }
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "entity_remove");
+        lua::push_external("entity_remove");
         lua_pushinteger(lua::L, uniqueId);
-        lua_call       (lua::L, 1, 0); lua_pop(lua::L, 1);
+        lua_call       (lua::L, 1, 0);
     }
 #endif
 
@@ -1140,9 +1135,9 @@ namespace MessageSystem
 
         if (!LogicSystem::initialized)
             return;
-        lua_getglobal  (lua::L, "external"); lua_getfield(lua::L, -1, "entity_remove");
+        lua::push_external("entity_remove");
         lua_pushinteger(lua::L, uniqueId);
-        lua_call       (lua::L, 1, 0); lua_pop(lua::L, 1);
+        lua_call       (lua::L, 1, 0);
     }
 #endif
 
@@ -1223,13 +1218,12 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            lua_getglobal (lua::L, "external");
-            lua_getfield  (lua::L, -1, "entity_class_sauer_type_get");
+            lua::push_external("entity_class_sauer_type_get");
             lua_pushstring(lua::L, otherClass);
             lua_call      (lua::L, 1, 1);
             const char *sauerType = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
 
-            lua_getfield   (lua::L, -1, "entity_add"); lua_remove(lua::L, -2);
+            lua::push_external("entity_add");
             lua_pushstring (lua::L, otherClass);
             lua_pushinteger(lua::L, otherUniqueId);
             lua_createtable(lua::L, 0, 9);

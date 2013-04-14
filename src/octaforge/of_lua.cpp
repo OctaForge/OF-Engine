@@ -48,7 +48,9 @@ namespace lua
     static string mod_dir = "";
 
     static int panic(lua_State *L) {
-        fatal("error in call to the Lua API (%s)", lua_tostring(L, -1));
+        lua_pushfstring(L, "error in call to the Lua API (%s)",
+            lua_tostring(L, -1));
+        fatal(lua_tostring(L, -1));
         return 0;
     }
 
@@ -61,24 +63,48 @@ namespace lua
 
     static hashtable<const char*, int> externals;
 
-    bool push_external(const char *name) {
-        int *elem = externals.access(name);
-        if  (elem) {
-            lua_rawgeti(L, LUA_REGISTRYINDEX, *elem);
+    bool push_external(lua_State *L, const char *name) {
+        int *ref = externals.access(name);
+        if  (ref) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, *ref);
             return true;
         }
         return false;
     }
 
-    static int register_external(lua_State *L) {
-        const char *name = luaL_checkstring(L, 1);
-        lua_pushvalue(L, 2);
-        externals.access(name, luaL_ref(L, LUA_REGISTRYINDEX));
-        return 0;
+    bool push_external(const char *name) {
+        return push_external(L, name);
     }
 
-    static int unregister_external(lua_State *L) {
-        lua_pushboolean(L, externals.remove(luaL_checkstring(L, 1)));
+    static int set_external(lua_State *L) {
+        const char *name = luaL_checkstring(L, 1);
+        int *ref = externals.access(name);
+        if  (ref) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, *ref);
+            luaL_unref (L, LUA_REGISTRYINDEX, *ref);
+        } else {
+            lua_pushnil(L);
+        }
+        /* let's pin the name so the garbage collector doesn't free it */
+        lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, name);
+        /* and now we can ref */
+        lua_pushvalue(L, 2);
+        externals.access(name, luaL_ref(L, LUA_REGISTRYINDEX));
+        return 1;
+    }
+
+    static int unset_external(lua_State *L) {
+        const char *name = luaL_checkstring(L, 1);
+        int *ref = externals.access(name);
+        if (!ref) {
+            lua_pushboolean(L, false);
+            return 1;
+        }
+        /* unpin the name */
+        lua_pushnil(L); lua_setfield(L, LUA_REGISTRYINDEX, name);
+        /* and unref */
+        luaL_unref(L, LUA_REGISTRYINDEX, *ref);
+        lua_pushboolean(L, externals.remove(name));
         return 1;
     }
 
@@ -159,10 +185,10 @@ namespace lua
         lua_setfield(L, -2, "path"); lua_pop(L, 1);
 
         lua_pushcfunction(L, create_table); lua_setglobal(L, "createtable");
-        lua_pushcfunction(L,  register_external);
-        lua_setglobal    (L, "register_external");
-        lua_pushcfunction(L,  unregister_external);
-        lua_setglobal    (L, "unregister_external");
+        lua_pushcfunction(L,  set_external);
+        lua_setglobal    (L, "set_external");
+        lua_pushcfunction(L,  unset_external);
+        lua_setglobal    (L, "unset_external");
         lua_pushcfunction(L,  get_external);
         lua_setglobal    (L, "get_external");
 

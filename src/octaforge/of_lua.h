@@ -9,6 +9,7 @@ namespace lua
     void reset        ();
     bool load_library (const char *name);
     bool push_external(const char *name);
+    bool push_external(lua_State *L, const char *name);
 }
 
 #define LUACOMMAND(name, fun) \

@@ -89,11 +89,9 @@ bool ClientSystem::scenarioStarted()
     if (_mapCompletelyReceived && !_scenarioStarted)
     {
         if (lua::L) {
-            lua_getglobal(lua::L, "external");
-            lua_getfield (lua::L, -1, "scene_is_ready");
-            lua_call     (lua::L,  0, 1);
+            lua::push_external("scene_is_ready"); lua_call(lua::L,  0, 1);
             _scenarioStarted = lua_toboolean(lua::L, -1);
-            lua_pop(lua::L, 2);
+            lua_pop(lua::L, 1);
         }
     }
 
@@ -105,21 +103,20 @@ void ClientSystem::frameTrigger(int curtime)
     if (scenarioStarted())
     {
         float delta = float(curtime)/1000.0f;
-        lua_getglobal(lua::L, "external");
 
         /* turn if mouse is at borders */
-        lua_getfield (lua::L, -1, "cursor_get_position");
-        lua_call     (lua::L,  0, 2);
+        lua::push_external("cursor_get_position");
+        lua_call(lua::L, 0, 2);
 
         float x = lua_tonumber(lua::L, -2);
         float y = lua_tonumber(lua::L, -1);
         lua_pop(lua::L, 2);
 
-        lua_getfield (lua::L, -1, "cursor_exists");
-        lua_call     (lua::L,  0, 1);
+        lua::push_external("cursor_exists");
+        lua_call(lua::L, 0, 1);
 
         bool b = lua_toboolean(lua::L, -1);
-        lua_pop(lua::L, 2); /* also pop external */
+        lua_pop(lua::L, 1);
 
         /* do not scroll with mouse */
         if (b) x = y = 0.5;
@@ -164,9 +161,7 @@ void ClientSystem::finishLoadWorld()
 
     ClientSystem::editingAlone = false; // Assume not in this mode
 
-    lua_getglobal(lua::L, "external");
-    lua_getfield (lua::L, -1, "gui_clear");
-    lua_call     (lua::L,  0, 0); lua_pop(lua::L, 1); // (see prepareForMap)
+    lua::push_external("gui_clear"); lua_call(lua::L, 0, 0); // (see prepareForMap)
 }
 
 void ClientSystem::prepareForNewScenario(const char *sc)

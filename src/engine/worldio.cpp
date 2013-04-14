@@ -1029,9 +1029,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
-                lua_getglobal  (lua::L, "external");
-                lua_getfield   (lua::L, -1, "entity_add_sauer");
-                lua_remove     (lua::L, -2);
+                lua::push_external("entity_add_sauer");
                 lua_pushinteger(lua::L, e.type);
                 lua_pushnumber (lua::L, e.o.x);
                 lua_pushnumber (lua::L, e.o.y);
@@ -1095,10 +1093,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
     delete f;
 
 #ifdef CLIENT
-        lua_getglobal  (lua::L, "external");
-        lua_getfield   (lua::L, -1, "gui_clear");
-        lua_remove     (lua::L, -2);
-        lua_call       (lua::L, 0, 0);
+        lua::push_external("gui_clear"); lua_call(lua::L, 0, 0);
 #endif
 
     identflags |= IDF_OVERRIDDEN;

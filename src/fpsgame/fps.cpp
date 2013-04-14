@@ -222,9 +222,7 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
-            lua_getglobal  (lua::L, "external");
-            lua_getfield   (lua::L, -1, "entity_get");
-            lua_remove     (lua::L, -2);
+            lua::push_external("entity_get");
             lua_pushinteger(lua::L, d->uniqueId);
             lua_call       (lua::L, 1, 1);
 
@@ -370,10 +368,7 @@ namespace game
 
             // If triggering collisions can be done by the lua library code, use that
 
-            lua_getglobal(lua::L, "external");
-            lua_getfield (lua::L, -1, "game_handle_triggers");
-            lua_remove   (lua::L, -2);
-            lua_call     (lua::L, 0, 0);
+            lua::push_external("game_handle_triggers"); lua_call(lua::L, 0, 0);
         }
 
         //==============================================
@@ -576,12 +571,11 @@ namespace game
 
     const char *scriptname(fpsent *d)
     {
-        lua_getglobal  (lua::L, "external");
-        lua_getfield   (lua::L, -1, "entity_get");
+        lua::push_external("entity_get");
         lua_pushinteger(lua::L, LogicSystem::getUniqueId(d));
         lua_call       (lua::L, 1, 1);
         lua_getfield   (lua::L, -1, "character_name");
-        const char *ret = lua_tostring(lua::L, -1); lua_pop(lua::L, 3);
+        const char *ret = lua_tostring(lua::L, -1); lua_pop(lua::L, 2);
         return ret;
     }
 

@@ -15,9 +15,7 @@ using namespace MessageSystem;
 // Input
 
 VARF(mouselook, 0, 1, 1, {
-    lua_getglobal(lua::L, "external");
-    lua_getfield (lua::L, -1, "cursor_reset");
-    lua_call     (lua::L,  0, 0); lua_pop(lua::L, 1);
+    lua::push_external("cursor_reset"); lua_call(lua::L,  0, 0);
 })
 
 #define QUOT(arg) #arg
@@ -38,13 +36,12 @@ void mouse##num##click() { \
     int uid = -1; \
     if (tle && !tle->isNone()) uid = tle->getUniqueId(); \
 \
-    lua_getglobal(lua::L, "external"); \
-    lua_getfield (lua::L, -1, "cursor_get_position"); \
-    lua_call     (lua::L,  0, 2); \
+    lua::push_external("cursor_get_position"); \
+    lua_call(lua::L, 0, 2); \
 \
     float x = lua_tonumber(lua::L, -2); \
     float y = lua_tonumber(lua::L, -1); \
-    lua_pop(lua::L, 3); \
+    lua_pop(lua::L, 2); \
 \
     lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input"); \
     lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Client"); \

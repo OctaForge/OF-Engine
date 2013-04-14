@@ -19,9 +19,7 @@ namespace game
             return;
         }
 
-        lua_getglobal  (lua::L, "external");
-        lua_getfield   (lua::L, -1, "game_render");
-        lua_remove     (lua::L, -2);
+        lua::push_external("game_render");
         lua_pushboolean(lua::L, isthirdperson());
         lua_call       (lua::L, 1, 0);
     }
@@ -45,10 +43,7 @@ namespace game
 
     void renderavatar()
     {
-        lua_getglobal  (lua::L, "external");
-        lua_getfield   (lua::L, -1, "game_render_hud");
-        lua_remove     (lua::L, -2);
-        lua_call       (lua::L, 0, 0);
+        lua::push_external("game_render_hud"); lua_call(lua::L, 0, 0);
     }
 }
 
