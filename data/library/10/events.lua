@@ -152,16 +152,19 @@ action_input_capture_plugin = {
         --    end
         --end
         if self.do_movement then
-            self.old_do_movement = _G["do_movement"]
-            _G["do_movement"] = function(...) self.do_movement(self, ...) end
+            self.old_do_movement = set_external("input_move", function(...)
+                self.do_movement(self, ...)
+            end)
         end
         if self.do_mousemove then
-            self.old_do_mousemove = _G["do_mousemove"]
-            _G["do_mousemove"] = function(...) return self.do_mousemove(self, ...) end 
+            self.old_do_mousemove = set_external("input_mouse_move", function(...)
+                return self.do_mousemove(self, ...)
+            end) 
         end
         if self.do_jump then
-            self.old_do_jump = _G["do_jump"]
-            _G["do_jump"] = function(...) self.do_jump(self, ...) end
+            self.old_do_jump = set_external("input_jump", function(...)
+                self.do_jump(self, ...)
+            end)
         end
     end,
 
@@ -176,13 +179,13 @@ action_input_capture_plugin = {
         --    end
         --end
         if self.do_movement then
-            _G["do_movement"] = self.old_do_movement
+            set_external("input_move", self.old_do_movement)
         end
         if self.do_mousemove then
-            _G["do_mousemove"] = self.old_do_mousemove
+            set_external("input_mouse_move", self.old_do_mousemove)
         end
         if self.do_jump then
-            _G["do_jump"] = self.old_do_jump
+            set_external("input_jump", self.old_do_jump)
         end
     end
 }

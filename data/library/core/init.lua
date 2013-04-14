@@ -133,7 +133,4 @@ require("base")
 if dbg then log(DEBUG, "Initializing tgui.") end
 --require("tgui")
 
-if dbg then log(DEBUG, "Initializing LAPI.") end
-LAPI = require("lapi")
-
 if dbg then log(DEBUG, "Core scripting initialization complete.") end

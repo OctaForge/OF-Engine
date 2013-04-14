@@ -174,7 +174,9 @@ function do_strafe(strafe, down)
 end
 
 function do_mousemove(yaw, pitch)
-    return (ents.get_player().editing and { yaw = yaw, pitch = pitch } or {})
+    if ents.get_player().editing then
+        return yaw, pitch
+    end
 end
 
 axis_switcher = ents.register_class(plugins.bake(ents.Area_Trigger, {

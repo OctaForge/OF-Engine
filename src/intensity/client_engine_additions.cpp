@@ -79,12 +79,10 @@ ICOMMAND(name, "", (), { \
 \
         s = (addreleaseaction(newstring(#name)) != 0); \
 \
-        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input"); \
-        lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Client"); \
-        lua_getfield (lua::L, -1, #v); \
+        lua::push_external("input_" #v); \
         lua_pushinteger(lua::L, s ? d : (os ? -(d) : 0)); \
         lua_pushboolean(lua::L, s); \
-        lua_call(lua::L, 2, 0); lua_pop(lua::L, 4); \
+        lua_call(lua::L, 2, 0); \
     } \
 });
 
@@ -110,10 +108,8 @@ ICOMMAND(jump, "", (), {
 
         bool down = (addreleaseaction(newstring("jump")) != 0);
 
-        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input");
-        lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Client");
-        lua_getfield (lua::L, -1, "jump");
+        lua::push_external("input_jump");
         lua_pushboolean(lua::L, down);
-        lua_call(lua::L, 1, 0); lua_pop(lua::L, 4);
+        lua_call(lua::L, 1, 0);
     }
 });
