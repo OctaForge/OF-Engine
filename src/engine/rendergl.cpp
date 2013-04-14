@@ -1115,9 +1115,9 @@ VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
  
 VAR(thirdperson, 0, 0, 2);
-FVAR(thirdpersondistance, 0, 20, 100);
+/*FVAR(thirdpersondistance, 0, 20, 100);
 FVAR(thirdpersonup, -25, 0, 25);
-FVAR(thirdpersonside, -25, 0, 25);
+FVAR(thirdpersonside, -25, 0, 25);*/
 physent *camera1 = NULL;
 bool detachedcamera = false;
 bool isthirdperson() { return player!=camera1 || detachedcamera; }
@@ -1172,6 +1172,9 @@ void mousemove(int dx, int dy)
     }
 }
 
+/* OF */
+void position_camera(physent* camera1);
+
 void recomputecamera()
 {
     game::setupcamera();
@@ -1198,7 +1201,7 @@ void recomputecamera()
         camera1->collidetype = COLLIDE_AABB;
         camera1->move = -1;
         camera1->eyeheight = camera1->aboveeye = camera1->radius = camera1->xradius = camera1->yradius = 2;
-        
+/*
         matrix3x3 orient;
         orient.identity();
         orient.rotate_around_y(camera1->roll*RAD);
@@ -1233,6 +1236,8 @@ void recomputecamera()
             if(thirdpersonup) camera1->o.add(vec(up).mul(thirdpersonup));
             if(thirdpersonside) camera1->o.add(vec(side).mul(thirdpersonside));
         }
+*/
+        position_camera(camera1);
     }
 
     setviewcell(camera1->o);
