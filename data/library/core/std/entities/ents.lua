@@ -962,7 +962,7 @@ Entity = table.Object:clone {
 
         if not self.sauer_type then
             #log(DEBUG, "Entity.activate: non-sauer entity: " .. tostring(self))
-            CAPI.setupnonsauer(self)
+            CAPI.setup_nonsauer(self)
             if SERVER then
                 self:flush_queued_svar_changes()
             end

@@ -28,6 +28,14 @@
  */
 
 #include "cube.h"
+#include "engine.h"
+#include "game.h"
+
+#include "targeting.h"
+#include "of_world.h"
+
+void removeentity(extentity* entity);
+void addentity(extentity* entity);
 
 namespace entities
 {
@@ -64,4 +72,366 @@ namespace entities
                  / sizeof(entity_names[0])
                 )) ? entity_names[idx] : "";
     }
-} /* end namespace tools */
+
+    /* OF Lua entity API */
+
+    #define LUA_GET_ENT(name, _log, retexpr) \
+    lua_getfield(L, 1, "uid"); \
+    int uid = lua_tointeger(L, -1); \
+    lua_pop(L, 1); \
+    \
+    CLogicEntity *name = LogicSystem::getLogicEntity(uid); \
+    if (!name) \
+    { \
+        logger::log( \
+            logger::ERROR, "Cannot find CLE for entity %i (%s).\n", uid, _log \
+        ); \
+        retexpr; \
+    }
+
+    LUAICOMMAND(unregister_entity, {
+        LogicSystem::unregisterLogicEntityByUniqueId(luaL_checkinteger(L, 1));
+        return 0;
+    });
+
+    LUAICOMMAND(setup_extent, {
+        lua_pushvalue(L, 1);
+        LogicSystem::setupExtent(
+            luaL_ref(L, LUA_REGISTRYINDEX), luaL_checkinteger(L, 2),
+            luaL_checknumber(L, 3), luaL_checknumber(L, 4),
+            luaL_checknumber(L, 5), luaL_checkinteger(L, 6),
+            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+            luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
+        return 0;
+    });
+
+    LUAICOMMAND(setup_character, {
+        lua_pushvalue(L, 1);
+        LogicSystem::setupCharacter(luaL_ref(L, LUA_REGISTRYINDEX));
+        return 0;
+    });
+
+    LUAICOMMAND(setup_nonsauer, {
+        lua_pushvalue(L, 1);
+        LogicSystem::setupNonSauer(luaL_ref(L, LUA_REGISTRYINDEX));
+        return 0;
+    });
+
+    LUAICOMMAND(destroy_extent, {
+        lua_pushvalue(L, 1);
+        LogicSystem::dismantleExtent(luaL_ref(L, LUA_REGISTRYINDEX));
+        return 0;
+    });
+
+    LUAICOMMAND(destroy_character, {
+        lua_pushvalue(L, 1);
+        LogicSystem::dismantleCharacter(luaL_ref(L, LUA_REGISTRYINDEX));
+        return 0;
+    });
+
+    /* Entity attributes */
+
+    LUAICOMMAND(set_animation, {
+        LUA_GET_ENT(entity, "CAPI.setanim", return 0)
+        entity->setAnimation(luaL_checkinteger(L, 2));
+        return 0;
+    });
+
+    LUAICOMMAND(get_start_time, {
+        LUA_GET_ENT(entity, "CAPI.getstarttime", return 0)
+        lua_pushinteger(L, entity->getStartTime());
+        return 1;
+    });
+
+    LUAICOMMAND(set_model_name, {
+        const char *name = "";
+        if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
+        LUA_GET_ENT(entity, "CAPI.setmodelname", return 0)
+        logger::log(logger::DEBUG, "CAPI.setmodelname(\"%s\", \"%s\")\n",
+            entity->getClass(), name);
+        entity->setModel(name);
+        return 0;
+    });
+
+    LUAICOMMAND(set_sound_name, {
+        const char *name = "";
+        if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
+        LUA_GET_ENT(entity, "CAPI.setsoundname", return 0)
+        logger::log(logger::DEBUG, "CAPI.setsoundname(\"%s\", \"%s\")\n",
+            entity->getClass(), name);
+        entity->setSound(name);
+        return 0;
+    });
+
+    LUAICOMMAND(set_sound_volume, {
+        LUA_GET_ENT(entity, "CAPI.setsoundvol", return 0)
+        int vol = luaL_checkinteger(L, 2);
+        logger::log(logger::DEBUG, "CAPI.setsoundvol(%i)\n", vol);
+
+        if (!entity->sndname) return 0;
+
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+
+        if (!world::loading) removeentity(ext);
+        ext->attr4 = vol;
+        if (!world::loading) addentity(ext);
+
+        entity->setSound(entity->sndname);
+        return 0;
+    });
+
+    LUAICOMMAND(set_attachments, {
+        LUA_GET_ENT(entity, "CAPI.setattachments", return 0)
+        lua_getglobal(L, "table");
+        lua_getfield (L, -1, "concat");
+        lua_remove   (L, -2);
+        lua_pushvalue(L,  2);
+        lua_call     (L, 1, 1);
+        entity->setAttachments(lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return 0;
+    });
+
+    LUAICOMMAND(get_attachment_position, {
+        const char *attachment = "";
+        if (!lua_isnoneornil(L, 2)) attachment = luaL_checkstring(L, 2);
+        LUA_GET_ENT(entity, "CAPI.getattachmentpos", return 0)
+        lua::push_external(L, "new_vec3");
+        const vec& o = entity->getAttachmentPosition(attachment);
+        lua_pushnumber(L, o.x); lua_pushnumber(L, o.y); lua_pushnumber(L, o.z);
+        lua_call(L, 3, 1);
+        return 1;
+    });
+
+    LUAICOMMAND(set_can_move, {
+        LUA_GET_ENT(entity, "CAPI.setcanmove", return 0)
+        entity->setCanMove(lua_toboolean(L, 2));
+        return 0;
+    });
+
+    /* Extents */
+
+    #define EXTENT_ACCESSORS(n) \
+    LUAICOMMAND(get_##n, { \
+        LUA_GET_ENT(entity, "CAPI.get"#n, return 0) \
+        extentity *ext = entity->staticEntity; \
+        assert(ext); \
+        lua_pushinteger(L, ext->n); \
+        return 1; \
+    }); \
+    LUAICOMMAND(set_##n, { \
+        LUA_GET_ENT(entity, "CAPI.set"#n, return 0) \
+        int v = luaL_checkinteger(L, 2); \
+        extentity *ext = entity->staticEntity; \
+        assert(ext); \
+        if (!world::loading) removeentity(ext); \
+        ext->n = v; \
+        if (!world::loading) addentity(ext); \
+        return 0; \
+    }); \
+    LUAICOMMAND(FAST_set_##n, { \
+        LUA_GET_ENT(entity, "CAPI.FAST_set"#n, return 0) \
+        int v = luaL_checkinteger(L, 2); \
+        extentity *ext = entity->staticEntity; \
+        assert(ext); \
+        ext->n = v; \
+        return 0; \
+    });
+
+    EXTENT_ACCESSORS(attr1)
+    EXTENT_ACCESSORS(attr2)
+    EXTENT_ACCESSORS(attr3)
+    EXTENT_ACCESSORS(attr4)
+    EXTENT_ACCESSORS(attr5)
+    #undef EXTENT_ACCESSORS
+
+    #define EXTENT_LE_ACCESSORS(n, an) \
+    LUAICOMMAND(get_##n, { \
+        LUA_GET_ENT(entity, "CAPI.get"#n, return 0) \
+        lua_pushnumber(L, entity->an); \
+        return 1; \
+    }); \
+    LUAICOMMAND(set_##n, { \
+        LUA_GET_ENT(entity, "CAPI.set"#n, return 0) \
+        float v = luaL_checknumber(L, 2); \
+        logger::log(logger::DEBUG, "ACCESSOR: Setting %s to %f\n", #an, v); \
+        assert(entity->staticEntity); \
+        if (!world::loading) removeentity(entity->staticEntity); \
+        entity->an = v; \
+        if (!world::loading) addentity(entity->staticEntity); \
+        return 0; \
+    });
+
+    EXTENT_LE_ACCESSORS(collision_radius_w, collisionRadiusWidth)
+    EXTENT_LE_ACCESSORS(collision_radius_h, collisionRadiusHeight)
+    #undef EXTENT_LE_ACCESSORS
+
+    LUAICOMMAND(get_extent_position, {
+        LUA_GET_ENT(entity, "CAPI.getextent0", return 0)
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+        logger::log(logger::INFO,
+            "CAPI.getextent0(\"%s\"): x: %f, y: %f, z: %f\n",
+            entity->getClass(), ext->o.x, ext->o.y, ext->o.z);
+        lua_createtable(L, 3, 0);
+        lua_pushnumber(L, ext->o.x); lua_rawseti(L, -2, 1);
+        lua_pushnumber(L, ext->o.y); lua_rawseti(L, -2, 2);
+        lua_pushnumber(L, ext->o.z); lua_rawseti(L, -2, 3);
+        return 1;
+    });
+
+    LUAICOMMAND(set_extent_position, {
+        LUA_GET_ENT(entity, "CAPI.setextent0", return 0)
+        luaL_checktype(L, 2, LUA_TTABLE);
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+
+        removeentity(ext);
+        lua_pushinteger(L, 1); lua_gettable(L, -2);
+        ext->o.x = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 2); lua_gettable(L, -2);
+        ext->o.y = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 3); lua_gettable(L, -2);
+        ext->o.z = luaL_checknumber(L, -1); lua_pop(L, 1);
+        addentity(ext);
+        return 0;
+    });
+
+    /* Dynents */
+
+    #define luaL_checkboolean lua_toboolean
+
+    #define DYNENT_ACCESSORS(n, t, tt, an) \
+    LUAICOMMAND(get_##n, { \
+        LUA_GET_ENT(entity, "CAPI.get"#n, return 0) \
+        fpsent *d = (fpsent*)entity->dynamicEntity; \
+        assert(d); \
+        lua_push##tt(L, d->an); \
+        return 1; \
+    }); \
+    LUAICOMMAND(set_##n, { \
+        LUA_GET_ENT(entity, "CAPI.set"#n, return 0) \
+        t v = luaL_check##tt(L, 2); \
+        fpsent *d = (fpsent*)entity->dynamicEntity; \
+        assert(d); \
+        d->an = v; \
+        return 0; \
+    });
+
+    DYNENT_ACCESSORS(maxspeed, float, number, maxspeed)
+    DYNENT_ACCESSORS(radius, float, number, radius)
+    DYNENT_ACCESSORS(eyeheight, float, number, eyeheight)
+    DYNENT_ACCESSORS(aboveeye, float, number, aboveeye)
+    DYNENT_ACCESSORS(yaw, float, number, yaw)
+    DYNENT_ACCESSORS(pitch, float, number, pitch)
+    DYNENT_ACCESSORS(move, int, integer, move)
+    DYNENT_ACCESSORS(strafe, int, integer, strafe)
+    DYNENT_ACCESSORS(yawing, int, integer, turn_move)
+    DYNENT_ACCESSORS(pitching, int, integer, look_updown_move)
+    DYNENT_ACCESSORS(jumping, bool, boolean, jumping)
+    DYNENT_ACCESSORS(blocked, bool, boolean, blocked)
+    /* XXX should be unsigned */
+    DYNENT_ACCESSORS(mapdefinedposdata, int, integer, mapDefinedPositionData)
+    DYNENT_ACCESSORS(clientstate, int, integer, state)
+    DYNENT_ACCESSORS(physstate, int, integer, physstate)
+    DYNENT_ACCESSORS(inwater, int, integer, inwater)
+    DYNENT_ACCESSORS(timeinair, int, integer, timeinair)
+    #undef DYNENT_ACCESSORS
+    #undef luaL_checkboolean
+
+    LUAICOMMAND(get_dynent_position, {
+        LUA_GET_ENT(entity, "CAPI.getdynent0", return 0)
+        fpsent *d = (fpsent*)entity->dynamicEntity;
+        assert(d);
+        lua_createtable(L, 3, 0);
+        lua_pushnumber(L, d->o.x); lua_rawseti(L, -2, 1);
+        lua_pushnumber(L, d->o.y); lua_rawseti(L, -2, 2);
+        lua_pushnumber(L, d->o.z - d->eyeheight/* - d->aboveeye*/);
+        lua_rawseti(L, -2, 3);
+        return 1;
+    });
+
+    LUAICOMMAND(set_dynent_position, {
+        LUA_GET_ENT(entity, "CAPI.setdynent0", return 0)
+        luaL_checktype(L, 2, LUA_TTABLE);
+        fpsent *d = (fpsent*)entity->dynamicEntity;
+        assert(d);
+
+        lua_pushinteger(L, 1); lua_gettable(L, -2);
+        d->o.x = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 2); lua_gettable(L, -2);
+        d->o.y = luaL_checknumber(L, -1); lua_pop(L, 1);
+        lua_pushinteger(L, 3); lua_gettable(L, -2);
+        d->o.z = luaL_checknumber(L, -1) + d->eyeheight;/* + d->aboveeye; */
+        lua_pop(L, 1);
+
+        /* also set newpos, otherwise this change may get overwritten */
+        d->newpos = d->o;
+
+        /* no need to interpolate to the last position - just jump */
+        d->resetinterp();
+
+        logger::log(
+            logger::INFO, "(%i).setdynent0(%f, %f, %f)",
+            d->uniqueId, d->o.x, d->o.y, d->o.z
+        );
+        return 0;
+    });
+
+    #define DYNENTVEC(name, prop) \
+        LUAICOMMAND(get_dynent_##name, { \
+            LUA_GET_ENT(entity, "CAPI.getdynent"#name, return 0) \
+            fpsent *d = (fpsent*)entity->dynamicEntity; \
+            assert(d); \
+            lua_createtable(L, 3, 0); \
+            lua_pushnumber(L, d->prop.x); lua_rawseti(L, -2, 1); \
+            lua_pushnumber(L, d->prop.y); lua_rawseti(L, -2, 2); \
+            lua_pushnumber(L, d->prop.z); lua_rawseti(L, -2, 3); \
+            return 1; \
+        }); \
+        LUAICOMMAND(set_dynent_##name, { \
+            LUA_GET_ENT(entity, "CAPI.setdynent"#name, return 0) \
+            fpsent *d = (fpsent*)entity->dynamicEntity; \
+            assert(d); \
+            lua_pushinteger(L, 1); lua_gettable(L, -2); \
+            d->prop.x = luaL_checknumber(L, -1); lua_pop(L, 1); \
+            lua_pushinteger(L, 2); lua_gettable(L, -2); \
+            d->prop.y = luaL_checknumber(L, -1); lua_pop(L, 1); \
+            lua_pushinteger(L, 3); lua_gettable(L, -2); \
+            d->prop.z = luaL_checknumber(L, -1); lua_pop(L, 1); \
+            return 0; \
+        });
+
+    DYNENTVEC(velocity, vel)
+    DYNENTVEC(falling, falling)
+    #undef DYNENTVEC
+
+#ifdef CLIENT
+    LUAICOMMAND(get_target_entity_uid, {
+        if (TargetingControl::targetLogicEntity &&
+           !TargetingControl::targetLogicEntity->isNone()) {
+            lua_pushinteger(L, TargetingControl::targetLogicEntity->
+                getUniqueId());
+            return 1;
+        }
+        return 0;
+    });
+#endif
+
+    LUAICOMMAND(get_plag, {
+        LUA_GET_ENT(entity, "CAPI.getplag", return 0)
+        fpsent *p = (fpsent*)entity->dynamicEntity;
+        assert(p);
+        lua_pushinteger(L, p->plag);
+        return 1;
+    });
+
+    LUAICOMMAND(get_ping, {
+        LUA_GET_ENT(entity, "CAPI.getping", return 0)
+        fpsent *p = (fpsent*)entity->dynamicEntity;
+        assert(p);
+        lua_pushinteger(L, p->ping);
+        return 1;
+    });
+} /* end namespace entities */
