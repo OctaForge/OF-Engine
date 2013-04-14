@@ -1082,6 +1082,14 @@ void disablezoom()
 
 void computezoom()
 {
+    /* OF */
+    extern float forced_camera_fov;
+    if (forced_camera_fov > 0) {
+        curfov = forced_camera_fov;
+        forced_camera_fov = -1;
+        return;
+    }
+
     if(!zoom) { curfov = fov; curavatarfov = avatarfov; return; }
     if(zoom < 0 && curfov >= fov) { zoom = 0; curfov = fov; curavatarfov = avatarfov; return; } // don't zoom-out if not zoomed-in
     int zoomvel = zoom > 0 ? zoominvel : zoomoutvel,
@@ -1193,7 +1201,8 @@ void recomputecamera()
         if(detachedcamera && shoulddetach) camera1->o = player->o;
         else
         {
-            *camera1 = *player;
+            /* OF */
+            /*if (!is_character_viewing())*/ *camera1 = *player;
             detachedcamera = shoulddetach;
         }
         camera1->reset();
