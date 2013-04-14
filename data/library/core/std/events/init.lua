@@ -24,3 +24,6 @@ actions = require("std.events.actions")
 
 #log(DEBUG, ":::: World events.")
 require("std.events.world")
+
+#log(DEBUG, ":::: Input events.")
+require("std.events.input")

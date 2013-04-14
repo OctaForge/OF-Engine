@@ -68,15 +68,15 @@ action_base = events.action_container:clone {
     name = "action_base",
 
     --[[!
-        Function: client_click
+        Function: click
         This happens on client on click. By default,
         it cancels the action, if it's cancellable.
     ]]
-    client_click = function(self)
+    click = CLIENT and function(self)
         if self.cancellable then
             self:cancel()
         end
-    end,
+    end or nil,
 
     --[[!
         Function: start

@@ -965,7 +965,7 @@ namespace lapi_binds
     }
 
     int _lua_do_click(lua_State *L) {
-        send_DoClick(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+        send_DoClick(luaL_checkinteger(L, 1), lua_toboolean(L, 2),
             luaL_checknumber(L, 3), luaL_checknumber (L, 4),
             luaL_checknumber(L, 5), luaL_checkinteger(L, 6));
         return 0;

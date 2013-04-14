@@ -139,9 +139,10 @@ action_input_capture_plugin = {
     name = "action_input_capture",
 
     start = function(self)
-        if self.client_click then
-            self.old_client_click = _G["client_click"]
-            _G["client_click"] = function(...) self.client_click(self, ...) end
+        if self.click then
+            self.old_click = set_external("input_click_client", function(...)
+                return self:click(...)
+            end)
         end
         --if self.per_map_keys then
         --    self.old_per_map_keys = {}
@@ -165,8 +166,9 @@ action_input_capture_plugin = {
     end,
 
     finish = function(self)
-        if self.client_click then
-            _G["client_click"] = self.old_client_click
+        if self.click then
+            set_external("input_click_client", self.old_click)
+            self.old_click = nil
         end
         --if self.per_map_keys then
         --    for key, action in pairs(self.old_per_map_keys) do

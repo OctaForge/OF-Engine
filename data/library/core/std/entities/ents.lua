@@ -1147,9 +1147,6 @@ Entity = table.Object:clone {
 
         self.svar_change_queue_complete = true
     end or nil,
-
-    client_click = function(self, button, down, position, x, y) end,
-    click = function(self, button, down, position) end,
 }
 
 M.Entity = Entity

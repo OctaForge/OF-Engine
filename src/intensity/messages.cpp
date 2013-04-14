@@ -1772,28 +1772,22 @@ namespace MessageSystem
         int uniqueId = getint(p);
 
         if (!world::scenario_code[0]) return;
-        if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input");
-        lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Server");
-        lua_getfield (lua::L, -1, "click");  lua_insert  (lua::L, -5); lua_pop(lua::L, 4);
-        if (uniqueId != -1) {
-            CLogicEntity *entity = LogicSystem::getLogicEntity(uniqueId);
-            if (entity) {
-                lua_pushinteger(lua::L, button);
-                lua_pushboolean(lua::L, down);
-                lua_pushnumber (lua::L, x);
-                lua_pushnumber (lua::L, y);
-                lua_pushnumber (lua::L, z);
-                lua_rawgeti    (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-                lua_call       (lua::L, 6, 0);
-            } else lua_pop(lua::L, 1);
+        if (!server::isRunningCurrentScenario(sender)) return; // Silently ignore info from previous scenario
+
+        CLogicEntity *entity = NULL;
+        if (uniqueId != -1) entity = LogicSystem::getLogicEntity(uniqueId);
+
+        assert(lua::push_external("input_click_server"));
+        lua_pushinteger(lua::L, button);
+        lua_pushboolean(lua::L, down);
+        lua_pushnumber (lua::L, x);
+        lua_pushnumber (lua::L, y);
+        lua_pushnumber (lua::L, z);
+        if (entity) {
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+            lua_call(lua::L, 6, 0);
         } else {
-            lua_pushinteger(lua::L, button);
-            lua_pushboolean(lua::L, down);
-            lua_pushnumber (lua::L, x);
-            lua_pushnumber (lua::L, y);
-            lua_pushnumber (lua::L, z);
-            lua_call       (lua::L, 5, 0);
+            lua_call(lua::L, 5, 0);
         }
     }
 #endif

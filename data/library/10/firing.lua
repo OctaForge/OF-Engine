@@ -14,17 +14,17 @@ function register_gun(gun, comment, hud)
     return index
 end
 
-function client_click(button, down, position, entity)
+function click(button, down, x, y, z, entity)
     local player = ents.get_player()
 
     if button == 1 then
         if down then
             if player.can_move then
-                player:start_shooting(position)
+                player:start_shooting(x, y, z)
             end
         else
             -- TODO: autostop shooting when can_move changes to false (connect to signal)
-            player:stop_shooting(position)
+            player:stop_shooting(x, y, z)
         end
     elseif button == 3 and down then
         cycle_gun_index(player, player.gun_indexes:to_array())
@@ -217,11 +217,11 @@ plugins = {
             end
         end or nil,
 
-        start_shooting = function(self, position)
+        start_shooting = function(self, x, y, z)
             self.now_firing = true
         end,
 
-        stop_shooting = function(self, position)
+        stop_shooting = function(self, x, y, z)
             local gun = guns[self.current_gun_index]
 
             if gun.repeating then

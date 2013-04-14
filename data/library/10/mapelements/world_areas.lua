@@ -40,7 +40,9 @@ action = actions.Action:clone {
 
 action_input_capture = actions.Action:clone {
     start = function(self)
-        self.client_click = function(self, ...) return self.actor.client_click(self.actor, ...) end
+        self.click = CLIENT and function(self, ...)
+            return self.actor.click(self.actor, ...)
+        end or nil
 
         self.per_map_keys  = self.actor.per_map_keys
         self.self.action_key_self = self.actor

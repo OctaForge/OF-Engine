@@ -139,24 +139,25 @@ player_rocket_launcher = firing.register_gun(
 -- When left mouse button is clicked, set pressing to down, and disable stop_batch.
 -- When middle mouse button is clicked, change to next color.
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
-function client_click(btn, down, pos, ent, x, y)
-    if  ent and ent.client_click then
-        ent:client_click(btn, down, pos, x, y)
-    end
+if CLIENT then
+    set_external("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
+        if ent and ent.click then
+            return ent:click(btn, down, x, y, z, cx, cy)
+        end
 
-    -- in shoot mode, shoot instead of drawing
-    if EV.shoot_mode == 1 then
-        return firing.client_click(btn, down, pos, ent, x, y)
-    end
-
-    if btn == 1 then
-        ents.get_player().pressing   = down
-        ents.get_player().stop_batch = false
-    elseif btn == 2 and down then
-        ents.get_player():reset_mark()
-    elseif btn == 3 and down then
-        ents.get_player():next_color()
-    end
+        if EV.shoot_mode == 1 then
+            return firing.click(btn, down, x, y, z, ent, cx, cy)
+        end
+    
+        if btn == 1 then
+            ents.get_player().pressing   = down
+            ents.get_player().stop_batch = false
+        elseif btn == 2 and down then
+            ents.get_player():reset_mark()
+        elseif btn == 3 and down then
+            ents.get_player():next_color()
+        end
+    end)
 end
 
 -- enable for platformer game

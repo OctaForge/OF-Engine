@@ -159,7 +159,7 @@ function dynamic_light(
         pos.x, pos.y, pos.z, radius,
         r / 255, g / 255, b / 255,
         fade * 1000, peak * 1000,
-        flags, initial_radius,
+        flags or 0, initial_radius or 0,
         r1 / 255, g1 / 255, b1 / 255
     )
 end

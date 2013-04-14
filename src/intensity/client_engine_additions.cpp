@@ -43,22 +43,20 @@ void mouse##num##click() { \
     float y = lua_tonumber(lua::L, -1); \
     lua_pop(lua::L, 2); \
 \
-    lua_getglobal(lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input"); \
-    lua_getfield (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Client"); \
-    lua_getfield (lua::L, -1, "click"); \
-    lua_pushinteger(lua::L, num); lua_pushboolean (lua::L, down); \
-    lua_pushnumber (lua::L, pos.x); lua_pushnumber(lua::L, pos.y); \
+    assert(lua::push_external("input_click")); \
+    lua_pushinteger(lua::L, num); \
+    lua_pushboolean(lua::L, down); \
+    lua_pushnumber (lua::L, pos.x); \
+    lua_pushnumber (lua::L, pos.y); \
     lua_pushnumber (lua::L, pos.z); \
     if (tle && !tle->isNone()) { \
         lua_rawgeti(lua::L, LUA_REGISTRYINDEX, tle->lua_ref); \
     } else { \
         lua_pushnil(lua::L); \
     } \
-    lua_pushnumber(lua::L, x); lua_pushnumber(lua::L, y); \
-    lua_call(lua::L, 8, 1); \
-    bool b = lua_toboolean(lua::L, -1); \
-    lua_pop(lua::L, 5); \
-    if (b) send_DoClick(num, (int)down, pos.x, pos.y, pos.z, uid); \
+    lua_pushnumber (lua::L, x); \
+    lua_pushnumber (lua::L, y); \
+    lua_call       (lua::L, 8, 0); \
 } \
 COMMAND(mouse##num##click, "");
 

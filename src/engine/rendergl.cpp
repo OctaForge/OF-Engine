@@ -1150,22 +1150,19 @@ void mousemove(int dx, int dy)
     if(curaccel && curtime && (dx || dy)) cursens += curaccel * sqrtf(dx*dx + dy*dy)/curtime;
     cursens /= 33.0f*sensitivityscale;
 
-    // INTENSITY: Let scripts customize mousemoving
-    if (lua::L)
-    {
-        lua_getglobal (lua::L, "LAPI"); lua_getfield(lua::L, -1, "Input");
-        lua_getfield  (lua::L, -1, "Events"); lua_getfield(lua::L, -1, "Client");
-        lua_getfield  (lua::L, -1, "mouse_move");
-        lua_insert    (lua::L, -5); lua_pop(lua::L, 4);
-        lua_pushnumber(lua::L, dx * cursens);
-        lua_pushnumber(lua::L, -dy * cursens * (invmouse ? -1 : 1));
-        lua_call      (lua::L, 2, 1);
-
-        lua_getfield(lua::L, -1, "yaw");
-        camera1->yaw += lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
-        lua_getfield(lua::L, -1, "pitch");
-        camera1->pitch += lua_tonumber(lua::L, -1); lua_pop(lua::L, 2);
-
+    // OF: Let scripts customize mousemoving
+    if (lua::L) {
+        if (lua::push_external("input_mouse_move")) {
+            lua_pushnumber(lua::L, dx * cursens);
+            lua_pushnumber(lua::L, -dy * cursens * (invmouse ? -1 : 1));
+            lua_call(lua::L, 2, 2);
+            camera1->yaw   += lua_tonumber(lua::L, -2);
+            camera1->pitch += lua_tonumber(lua::L, -1);
+            lua_pop(lua::L, 2);
+        } else {
+            camera1->yaw   += (dx * cursens);
+            camera1->pitch += (-dy * cursens * (invmouse ? -1 : 1));
+        }
         fixcamerarange();
         if(camera1!=player && !detachedcamera)
         {
