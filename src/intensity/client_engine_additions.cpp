@@ -36,18 +36,15 @@ FVARP(cameraheight, 0, 10, 50); // How much higher than the player to set the ca
 FVAR(smoothcamera, 0, 0.2, 100.0); // Smoothing factor for the smooth camera. 0 means no smoothing
 FVARP(cameraavoid, 0, 0.33, 1); // 1 means the camera is 100% away from the closest obstacle (and therefore on the player).
 
+enum { FORCE_POS = 1<<0, FORCE_YAW = 1<<1, FORCE_PITCH = 1<<2, FORCE_ROLL = 1<<3 };
+
 physent forced_camera;
-bool use_forced_camera = false;
+int force_flags = 0;
 float forced_camera_fov = -1;
 int saved_thirdperson = -1;
 
-bool use_forced_position = false;
-bool use_forced_yaw = false;
-bool use_forced_pitch = false;
-bool use_forced_roll = false;
-
 void force_position(vec &pos) {
-    use_forced_position = true;
+    force_flags |= FORCE_POS;
     forced_camera.o = pos;
     if (!thirdperson && saved_thirdperson == -1) {
         saved_thirdperson = thirdperson;
@@ -55,18 +52,18 @@ void force_position(vec &pos) {
     }
 }
 
-#define FORCE_PROP(name) \
+#define FORCE_PROP(name, flag) \
 void force_##name(float name) { \
-    use_forced_##name = true; \
+    force_flags |= flag; \
     forced_camera.name = name; \
     if (!thirdperson && saved_thirdperson == -1) { \
         saved_thirdperson = thirdperson; \
         thirdperson = 1; \
     } \
 }
-FORCE_PROP(yaw)
-FORCE_PROP(pitch)
-FORCE_PROP(roll)
+FORCE_PROP(yaw, FORCE_YAW)
+FORCE_PROP(pitch, FORCE_PITCH)
+FORCE_PROP(roll, FORCE_ROLL)
 
 void force_fov(float fov) {
     forced_camera_fov = fov;
@@ -77,7 +74,7 @@ void force_fov(float fov) {
 }
 
 void force_camera(vec &pos, float yaw, float pitch, float roll, float fov) {
-    use_forced_camera = true;
+    force_flags = 0;
     force_position(pos);
     force_yaw(yaw);
     force_pitch(pitch);
@@ -89,24 +86,20 @@ void position_camera(physent* camera1) {
     logger::log(logger::INFO, "position_camera\n");
     INDENT_LOG(logger::INFO);
 
-    if (use_forced_camera || use_forced_position || use_forced_yaw || use_forced_pitch || use_forced_roll) {
-        if (use_forced_position) {
-            camera1->o = forced_camera.o; use_forced_position = false;
+    if (force_flags) {
+        if (force_flags&FORCE_POS) {
+            camera1->o = forced_camera.o; force_flags &= ~FORCE_POS;
         }
-        if (use_forced_yaw) {
-            camera1->yaw = forced_camera.yaw; use_forced_yaw = false;
+        if (force_flags&FORCE_YAW) {
+            camera1->yaw = forced_camera.yaw; force_flags &= ~FORCE_YAW;
         }
-        if (use_forced_pitch) {
-            camera1->pitch = forced_camera.pitch; use_forced_pitch = false;
+        if (force_flags&FORCE_PITCH) {
+            camera1->pitch = forced_camera.pitch; force_flags &= ~FORCE_PITCH;
         }
-        if (use_forced_roll) {
-            camera1->roll = forced_camera.roll; use_forced_roll = false;
+        if (force_flags&FORCE_ROLL) {
+            camera1->roll = forced_camera.roll; force_flags &= ~FORCE_ROLL;
         }
-
-        if (use_forced_camera) {
-            use_forced_camera = false; // for next time
-            return;
-        }
+        return; /* next time */
     }
 
     if (saved_thirdperson != -1) {
