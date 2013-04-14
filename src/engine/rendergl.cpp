@@ -2028,7 +2028,6 @@ namespace modelpreview
         farplane = 1024;
         vieww = min(gw, w);
         viewh = min(gh, h);
-        aspect = 
         ldrscale = 1;
         ldrscaleb = ldrscale/255;
 
