@@ -153,19 +153,6 @@ struct fpsent : dynent
         turn_move = look_updown_move = 0;
     }
 
-    // Kripken: Normalizations missing from the engine
-    void normalize_pitch(float angle)
-    {
-        while(pitch<angle-180.0f) pitch += 360.0f;
-        while(pitch>angle+180.0f) pitch -= 360.0f;
-    }
-
-    void normalize_roll(float angle)
-    {
-        while(roll<angle-180.0f) roll += 360.0f;
-        while(roll>angle+180.0f) roll -= 360.0f;
-    }
-
     float getheight() // Kripken: Added this
     {
         return aboveeye + eyeheight;

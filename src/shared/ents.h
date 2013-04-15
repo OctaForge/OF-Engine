@@ -93,6 +93,25 @@ struct physent                                  // base entity type, can be affe
 
     vec feetpos(float offset = 0) const { return vec(o).add(vec(0, 0, offset - eyeheight)); }
     vec headpos(float offset = 0) const { return vec(o).add(vec(0, 0, offset)); }
+
+    /* OF: normalization functions */
+    void normalize_yaw(float angle)
+    {
+        while(yaw<angle-180.0f) yaw += 360.0f;
+        while(yaw>angle+180.0f) yaw -= 360.0f;
+    }
+
+    void normalize_pitch(float angle)
+    {
+        while(pitch<angle-180.0f) pitch += 360.0f;
+        while(pitch>angle+180.0f) pitch -= 360.0f;
+    }
+
+    void normalize_roll(float angle)
+    {
+        while(roll<angle-180.0f) roll += 360.0f;
+        while(roll>angle+180.0f) roll -= 360.0f;
+    }
 };
 
 enum
@@ -208,12 +227,6 @@ struct dynent : physent                         // animated characters, or chara
     }
 
     vec abovehead() { return vec(o).add(vec(0, 0, aboveeye+4)); }
-
-    void normalize_yaw(float angle)
-    {
-        while(yaw<angle-180.0f) yaw += 360.0f;
-        while(yaw>angle+180.0f) yaw -= 360.0f;
-    }
 };
 
 
