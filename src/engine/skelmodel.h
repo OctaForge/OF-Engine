@@ -527,6 +527,8 @@ struct skelmodel : animmodel
     {
         int bone, target, parent;
         float pitchmin, pitchmax, pitchscale, pitchangle, pitchtotal;
+
+        pitchcorrect() : parent(-1), pitchangle(0), pitchtotal(0) {}
     };
 
     struct skeleton
@@ -1962,11 +1964,9 @@ template<class MDL> struct skelcommands : modelcommands<MDL, struct MDL::skelmes
         pitchcorrect c;
         c.bone = bone;
         c.target = target;
-        c.parent = 0;
         c.pitchmin = *pitchmin;
         c.pitchmax = *pitchmax;
         c.pitchscale = *scale;
-        c.pitchtotal = c.pitchangle = 0.0f;
         int pos = skel->pitchcorrects.length();
         loopv(skel->pitchcorrects) if(bone <= skel->pitchcorrects[i].bone) { pos = i; break; break; }
         skel->pitchcorrects.insert(pos, c); 
