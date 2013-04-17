@@ -228,7 +228,7 @@ reload = CAPI.reloadmodel
         base_time - entity's start_time property.
 ]]
 render = function(ent, mdl, anim, pos, yaw, pitch, flags, basetime, trans)
-    CAPI.rendermodel(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch,
+    CAPI.model_render(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch,
         flags, basetime, trans)
 end
 
@@ -269,13 +269,13 @@ end
 
     If the model can't be loaded, nil gets returned.
 ]]
-get_bounding_box = CAPI.scriptmdlbb
+get_bounding_box = CAPI.model_get_boundbox
 
 --[[!
     Function: get_collision_box
     See <get_bounding_box>.
 ]]
-get_collision_box = CAPI.scriptmdlcb
+get_collision_box = CAPI.model_get_collisionbox
 
 --[[!
     Function: get_model_info
@@ -295,4 +295,4 @@ get_collision_box = CAPI.scriptmdlcb
             }
         (end)
 ]]
-get_model_info = CAPI.mdlmesh
+get_model_info = CAPI.model_get_mesh

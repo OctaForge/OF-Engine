@@ -16,28 +16,12 @@
 #include "of_localserver.h"
 
 #define LAPI_REG(name) LUACOMMAND(name, _lua_##name)
-
-#define LAPI_GET_ENT(name, _log, retexpr) \
-lua_getfield(L, 1, "uid"); \
-int uid = lua_tointeger(L, -1); \
-lua_pop(L, 1); \
-\
-CLogicEntity *name = LogicSystem::getLogicEntity(uid); \
-if (!name) \
-{ \
-    logger::log( \
-        logger::ERROR, "Cannot find CLE for entity %i (%s).\n", uid, _log \
-    ); \
-    retexpr; \
-}
-
 #define LAPI_EMPTY(name) int _lua_##name(lua_State *L) \
 { logger::log(logger::DEBUG, "stub: CAPI."#name"\n"); return 0; }
 
 #include "of_lua_api.h"
 
 #undef LAPI_EMPTY
-#undef LAPI_GET_ENT
 #undef LAPI_REG
 
 extern string homedir;

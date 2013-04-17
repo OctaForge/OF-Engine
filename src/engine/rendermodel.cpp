@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "game.h" // OF
 
 VARP(oqdynent, 0, 1, 1);
 VARP(animationinterpolationtime, 0, 150, 1000);
@@ -11,6 +12,7 @@ model *loadingmodel = NULL;
 #include "skelmodel.h"
 #include "hitzone.h"
 
+#include "client_system.h"
 #include "of_tools.h"
 
 static model *(__cdecl *modeltypes[NUMMODELTYPES])(const char *);
@@ -1178,3 +1180,130 @@ void mdlentitycollisionbox(int *val)
     loadingmodel->perentitycollisionboxes = (*val != 0);
 }
 COMMAND(mdlentitycollisionbox, "i");
+
+VARP(ragdoll, 0, 1, 1);
+
+static int oldtp = -1;
+
+void preparerd(lua_State *L, int& anim, CLogicEntity *self) {
+    if (anim&ANIM_RAGDOLL) {
+        //if (!ragdoll || loadmodel(mdl);
+        fpsent *fp = (fpsent*)self->dynamicEntity;
+
+        if (fp->clientnum == ClientSystem::playerNumber) {
+            if (oldtp == -1 && thirdperson == 0) {
+                oldtp = thirdperson;
+                thirdperson = 1;
+            }
+        }
+
+        if (fp->ragdoll || !ragdoll) {
+            anim &= ~ANIM_RAGDOLL;
+            lua_rawgeti    (L, LUA_REGISTRYINDEX, self->lua_ref);
+            lua_getfield   (L, -1, "set_local_animation");
+            lua_insert     (L, -2);
+            lua_pushinteger(L, anim);
+            lua_call       (L,  2, 0);
+        }
+    } else {
+        if (self->dynamicEntity) {
+            fpsent *fp = (fpsent*)self->dynamicEntity;
+
+            if (fp->clientnum == ClientSystem::playerNumber && oldtp != -1) {
+                thirdperson = oldtp;
+                oldtp = -1;
+            }
+        }
+    }
+}
+
+fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
+    lua_rawgeti (L, LUA_REGISTRYINDEX, self->lua_ref);
+    lua_getfield(L, -1, "rendering_hash_hint");
+    lua_remove  (L, -2);
+    if (!lua_isnil(L, -1)) {
+        static bool initialized = false;
+        static fpsent *fpsentsfr[1024];
+        if (!initialized) {
+            for (int i = 0; i < 1024; i++) fpsentsfr[i] = new fpsent;
+            initialized = true;
+        }
+
+        int rhashhint = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        rhashhint = rhashhint & 1023;
+        assert(rhashhint >= 0 && rhashhint < 1024);
+        return fpsentsfr[rhashhint];
+    } else {
+        lua_pop(L, 1);
+        return NULL;
+    }
+}
+
+LUAICOMMAND(model_render, {
+    LUA_GET_ENT(entity, "CAPI.rendermodel", return 0)
+
+    int anim = luaL_checkinteger(L, 3);
+    preparerd(L, anim, entity);
+    fpsent *fp = NULL;
+
+    if (entity->dynamicEntity)
+        fp = (fpsent*)entity->dynamicEntity;
+    else
+        fp = getproxyfpsent(L, entity);
+
+    rendermodel(luaL_checkstring(L, 2), anim, vec(luaL_checknumber(L, 4),
+        luaL_checknumber(L, 5), luaL_checknumber(L, 6)),
+        luaL_checknumber(L, 7), luaL_checknumber(L, 8),
+        luaL_checkinteger(L, 9), fp, entity->attachments,
+        luaL_checkinteger(L, 10), 0, 1, luaL_optnumber(L, 11, 1.0f));
+    return 0;
+});
+
+#define SMDLBOX(nm) LUAICOMMAND(model_get_##nm, { \
+    model *mdl = loadmodel(luaL_checkstring(L, 1)); \
+    if   (!mdl) return 0; \
+    vec center; \
+    vec radius; \
+    mdl->nm(center, radius); \
+    lua::push_external(L, "new_vec3"); \
+    lua_pushnumber(L, center.x); lua_pushnumber(L, center.y); \
+    lua_pushnumber(L, center.z); lua_call(L, 3, 1); \
+    lua::push_external(L, "new_vec3"); \
+    lua_pushnumber(L, radius.x); lua_pushnumber(L, radius.y); \
+    lua_pushnumber(L, radius.z); lua_call(L, 3, 1); \
+    return 2; \
+});
+
+SMDLBOX(boundbox)
+SMDLBOX(collisionbox)
+
+#define TRIFIELD(n) \
+    lua::push_external(L, "new_vec3"); \
+    lua_pushnumber(L, bt.n.x); \
+    lua_pushnumber(L, bt.n.y); \
+    lua_pushnumber(L, bt.n.z); \
+    lua_call      (L, 3, 1); \
+    lua_setfield  (L, -2, #n);
+
+LUAICOMMAND(model_get_mesh, {
+    model *mdl = loadmodel(luaL_checkstring(L, 1));
+    if   (!mdl) return 0;
+
+    vector<BIH::tri> tris2[2];
+    mdl->gentris(tris2);
+    vector<BIH::tri>& tris = tris2[0];
+
+    lua_createtable (L, tris.length(), 0);
+    for (int i = 0; i < tris.length(); ++i) {
+        BIH::tri& bt = tris[i];
+        lua_pushinteger(L, i + 1); /* key   */
+        lua_createtable(L, 0, 3);  /* value */
+
+        TRIFIELD(a)
+        TRIFIELD(b)
+        TRIFIELD(c)
+        lua_settable(L, -3);
+    }
+    return 1;
+});
