@@ -40,7 +40,7 @@ enum
 
 enum { ID_VAR, ID_FVAR, ID_SVAR, ID_COMMAND, ID_ALIAS, ID_LOCAL };
 
-enum { IDF_PERSIST = 1<<0, IDF_OVERRIDE = 1<<1, IDF_HEX = 1<<2, IDF_READONLY = 1<<3, IDF_OVERRIDDEN = 1<<4, IDF_UNKNOWN = 1<<5, IDF_ARG = 1<<6, IDF_ALLOC = 1<<7, IDF_FREE = 1<<8, IDF_SIGNAL = 1<<9 };
+enum { IDF_PERSIST = 1<<0, IDF_OVERRIDE = 1<<1, IDF_HEX = 1<<2, IDF_READONLY = 1<<3, IDF_OVERRIDDEN = 1<<4, IDF_UNKNOWN = 1<<5, IDF_ARG = 1<<6, IDF_ALLOC = 1<<7, IDF_SIGNAL = 1<<8 };
 
 struct ident;
 
@@ -156,9 +156,6 @@ struct ident
     ident(int t, const char *n, const char *args, uint argmask, void *f = NULL, int flags = 0)
         : type(t), name(n), args(args), argmask(argmask), fun((identfun)f), flags(flags) 
     {}
-
-    /* OF: command.cpp */
-    ~ident();
 
     /* OF: command.cpp */
     void changed();

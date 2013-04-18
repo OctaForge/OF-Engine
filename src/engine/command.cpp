@@ -13,17 +13,6 @@ static const int MAXARGS = 25;
 
 VARN(numargs, _numargs, MAXARGS, 0, 0);
 
-ident::~ident() {
-    /* stop, hammertime! */
-    if (!(flags&IDF_FREE)) return;
-    switch (type) {
-        case ID_VAR:  delete storage.i; break;
-        case ID_FVAR: delete storage.f; break;
-        case ID_SVAR: delete storage.s; break;
-        default: break;
-    }
-}
-
 void ident::changed() {
     if (fun) fun();
     if (!(flags&IDF_SIGNAL)) return;
@@ -196,13 +185,21 @@ struct nullval : tagval
 } nullval;
 tagval noret = nullval, *commandret = &noret;
 
-void clear_command()
-{
-    enumerate(idents, ident, i, 
-    {
-        if(i.type==ID_ALIAS) 
-        { 
-            DELETEA(i.name);    
+/* OF: modified */
+void clear_command() {
+    enumerate(idents, ident, i, {
+        if (i.flags&IDF_ALLOC) {
+            /* unpin the name */
+            lua_pushnil(lua::L);
+            lua_setfield(lua::L, LUA_REGISTRYINDEX, i.name);
+            switch (i.type) {
+                case ID_VAR:  delete i.storage.i; break;
+                case ID_FVAR: delete i.storage.f; break;
+                case ID_SVAR: delete i.storage.s; break;
+                default: break;
+            }
+        } else if (i.type == ID_ALIAS) {
+            DELETEA(i.name);
             i.forcenull();
             DELETEA(i.code);
         }
@@ -259,9 +256,6 @@ static inline ident *addident(const ident &id)
     }
     ident &def = idents.access(id.name, id);
     def.index = identmap.length();
-    if (id.flags&IDF_ALLOC) {
-        def.flags |= IDF_FREE;
-    }
     return identmap.add(&def);
 }
 
