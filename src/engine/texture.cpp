@@ -3145,3 +3145,139 @@ COMMAND(mergenormalmaps, "ss");
 COMMAND(normalizenormalmap, "ss");
 COMMAND(removealphachannel, "ss");
 
+/* OF */
+
+LUAICOMMAND(texture_get_data, {
+    const char *fn = "";
+    if (!lua_isnoneornil(L, 1)) fn = luaL_checkstring(L, 1);
+
+    ImageData d;
+    if (!loadimage(fn, d)) return 0;
+
+    lua_createtable(L, 0, 3);
+    lua_pushinteger(L, d.w); lua_setfield(L, -2, "w");
+    lua_pushinteger(L, d.h); lua_setfield(L, -2, "h");
+
+    lua_createtable(L,  d.w, 0);
+    for (int x = 0; x < d.w; ++x)
+    {
+        lua_pushinteger(L, x + 1);
+        lua_createtable(L,  d.h, 0);
+        for (int y = 0; y < d.h; ++y)
+        {
+            uchar *p = d.data + y * d.pitch + x * d.bpp;
+
+            Uint32 ret;
+            switch (d.bpp)
+            {
+                case 1:
+                    ret = *p;
+                    break;
+                case 2:
+                    ret = *(Uint16*)p;
+                    break;
+                case 3:
+                    if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+                        ret = (p[0] << 16 | p[1] << 8 | p[2]);
+                    else
+                        ret = (p[0] | p[1] << 8 | p[2] << 16);
+                    break;
+                case 4:
+                    ret = *(Uint32*)p;
+                    break;
+                default:
+                    ret = 0;
+                    break;
+            }
+
+            uchar r; uchar g; uchar b;
+            SDL_GetRGB(ret, ((SDL_Surface*)d.owner)->format, &r, &g, &b);
+
+            lua_pushinteger(L, y + 1);
+            lua_createtable(L, 0, 3);
+            lua_pushinteger(L, r); lua_setfield(L, -2, "r");
+            lua_pushinteger(L, g); lua_setfield(L, -2, "g");
+            lua_pushinteger(L, b); lua_setfield(L, -2, "b");
+            lua_settable   (L, -3);
+        }
+        lua_settable(L, -3);
+    }
+    lua_setfield(L, -2, "data");
+    return 1;
+});
+
+#define TEXPROP(field, func) \
+static int texture_get_##field(lua_State *L) { \
+    Texture *tex = luachecktexture(L, 1); \
+    lua_push##func(L, tex->field); \
+    return 1; \
+}
+
+TEXPROP(name, string)
+TEXPROP(type, integer)
+TEXPROP(w, integer)
+TEXPROP(h, integer)
+TEXPROP(xs, integer)
+TEXPROP(ys, integer)
+TEXPROP(bpp, integer)
+TEXPROP(clamp, integer)
+TEXPROP(mipmap, boolean)
+TEXPROP(canreduce, boolean)
+TEXPROP(id, integer)
+#undef TEXPROP
+
+static int texture_get_alphamask(lua_State *L) {
+    Texture *tex = luachecktexture(L, 1);
+    if (lua_gettop(L) > 1) {
+        int idx = luaL_checkinteger(L, 2);
+        luaL_argcheck(L, idx < (tex->h * ((tex->w + 7) / 8)),
+            1, "index out of range");
+        lua_pushinteger(L, tex->alphamask[idx]);
+    } else {
+        lua_pushboolean(L, tex->alphamask != NULL);
+    }
+    return 1;
+}
+
+static void texture_setmeta(lua_State *L) {
+    if (luaL_newmetatable(L, "Texture")) {
+        lua_createtable(L, 0, 11);
+        #define TEXFIELD(field) \
+            lua_pushcfunction(L, texture_get_##field); \
+            lua_setfield(L, -2, "get_" #field);
+
+        TEXFIELD(name)
+        TEXFIELD(type)
+        TEXFIELD(w)
+        TEXFIELD(h)
+        TEXFIELD(xs)
+        TEXFIELD(ys)
+        TEXFIELD(bpp)
+        TEXFIELD(clamp)
+        TEXFIELD(mipmap)
+        TEXFIELD(canreduce)
+        TEXFIELD(id)
+        TEXFIELD(alphamask)
+        #undef TEXFIELD
+        lua_setfield(L, -2, "__index");
+    }
+    lua_setmetatable(L, -2);
+}
+
+LUAICOMMAND(texture_load, {
+    const char *path = luaL_checkstring(L, 1);
+    Texture **tex = (Texture**)lua_newuserdata(L, sizeof(void*));
+    texture_setmeta(L);
+    *tex = textureload(path, 3, true, false);
+    return 1;
+});
+
+LUAICOMMAND(texture_is_notexture, {
+    lua_pushboolean(L, luachecktexture(L, 1) == notexture);
+    return 1;
+});
+
+LUAICOMMAND(texture_load_alpha_mask, {
+    loadalphamask(luachecktexture(L, 1));
+    return 0;
+});

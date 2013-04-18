@@ -3196,8 +3196,8 @@ local Slot_Viewer = Filler:clone {
 
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
-        if    o or not CAPI.hastexslot(self.p_slot) then return o end
-        return CAPI.checkvslot(self.p_slot) and self
+        if    o or not CAPI.slot_exists(self.p_slot) then return o end
+        return CAPI.slot_check_vslot(self.p_slot) and self
     end,
 
     draw = function(self, sx, sy)
