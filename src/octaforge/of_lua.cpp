@@ -34,7 +34,7 @@ namespace lua
     static int panic(lua_State *L) {
         lua_pushfstring(L, "error in call to the Lua API (%s)",
             lua_tostring(L, -1));
-        fatal(lua_tostring(L, -1));
+        fatal("%s", lua_tostring(L, -1));
         return 0;
     }
 
