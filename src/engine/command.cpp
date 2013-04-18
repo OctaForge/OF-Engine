@@ -14,7 +14,7 @@ static const int MAXARGS = 25;
 VARN(numargs, _numargs, MAXARGS, 0, 0);
 
 ident::~ident() {
-    /* OF: we need to clean up allocated vars */
+    /* stop, hammertime! */
     if (!(flags&IDF_FREE)) return;
     switch (type) {
         case ID_VAR:  delete storage.i; break;
@@ -259,7 +259,9 @@ static inline ident *addident(const ident &id)
     }
     ident &def = idents.access(id.name, id);
     def.index = identmap.length();
-    if (id.flags&IDF_ALLOC) def.flags |= IDF_FREE;
+    if (id.flags&IDF_ALLOC) {
+        def.flags |= IDF_FREE;
+    }
     return identmap.add(&def);
 }
 
@@ -3090,6 +3092,11 @@ LUAICOMMAND(var_new, {
         }
         default: lua_pushboolean(L, false); return 1;
     }
+
+    /* can't touch this */
+    lua_pushvalue(L, 1);
+    lua_setfield(L, LUA_REGISTRYINDEX, name);
+
     lua_pushboolean(L, true); return 1;
 });
 
