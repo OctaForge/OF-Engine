@@ -3154,9 +3154,8 @@ LUAICOMMAND(texture_get_data, {
     ImageData d;
     if (!loadimage(fn, d)) return 0;
 
-    lua_createtable(L, 0, 3);
-    lua_pushinteger(L, d.w); lua_setfield(L, -2, "w");
-    lua_pushinteger(L, d.h); lua_setfield(L, -2, "h");
+    lua_pushinteger(L, d.w);
+    lua_pushinteger(L, d.h);
 
     lua_createtable(L,  d.w, 0);
     for (int x = 0; x < d.w; ++x)
@@ -3202,8 +3201,7 @@ LUAICOMMAND(texture_get_data, {
         }
         lua_settable(L, -3);
     }
-    lua_setfield(L, -2, "data");
-    return 1;
+    return 3;
 });
 
 #define TEXPROP(field, func) \
