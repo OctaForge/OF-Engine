@@ -173,37 +173,6 @@ namespace lapi_binds
     }
 #endif
 
-    /* camera */
-
-#ifdef CLIENT
-    int _lua_getcamyaw(lua_State *L) {
-        lua_pushinteger(L, camera1->yaw);
-        return 1;
-    }
-    int _lua_getcampitch(lua_State *L) {
-        lua_pushinteger(L, camera1->pitch);
-        return 1;
-    }
-    int _lua_getcamroll(lua_State *L) {
-        lua_pushinteger(L, camera1->roll);
-        return 1;
-    }
-    int _lua_getcampos(lua_State *L) {
-        lua::push_external(L, "new_vec3");
-        const vec& o = camera1->o;
-        lua_pushnumber(L, o.x); 
-        lua_pushnumber(L, o.y);
-        lua_pushnumber(L, o.z);
-        lua_call(L, 3, 1);
-        return 1;
-    }
-#else
-    LAPI_EMPTY(getcamyaw)
-    LAPI_EMPTY(getcampitch)
-    LAPI_EMPTY(getcamroll)
-    LAPI_EMPTY(getcampos)
-#endif
-
     /* edit */
 
     int _lua_editing_getworldsize(lua_State *L) {
@@ -1198,11 +1167,6 @@ namespace lapi_binds
     LAPI_REG(gui_text_visible);
     LAPI_REG(gui_draw_text);
 #endif
-    /* camera */
-    LAPI_REG(getcamyaw);
-    LAPI_REG(getcampitch);
-    LAPI_REG(getcamroll);
-    LAPI_REG(getcampos);
 
     /* edit */
     LAPI_REG(editing_getworldsize);

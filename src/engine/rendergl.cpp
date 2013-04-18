@@ -984,6 +984,42 @@ ICOMMAND(getcampos, "", (),
     result(pos);
 });
 
+/* OF */
+
+LUAICOMMAND(camera_get_yaw, {
+    lua_pushinteger(L, camera1->yaw);
+    return 1;
+});
+LUAICOMMAND(camera_get_pitch, {
+    lua_pushinteger(L, camera1->pitch);
+    return 1;
+});
+LUAICOMMAND(camera_get_roll, {
+    lua_pushinteger(L, camera1->roll);
+    return 1;
+});
+LUAICOMMAND(camera_get_position, {
+    lua::push_external(L, "new_vec3");
+    const vec& o = camera1->o;
+    lua_pushnumber(L, o.x); 
+    lua_pushnumber(L, o.y);
+    lua_pushnumber(L, o.z);
+    lua_call(L, 3, 1);
+    return 1;
+});
+LUAICOMMAND(camera_get, {
+    lua::push_external(L, "new_vec3");
+    const vec& o = camera1->o;
+    lua_pushnumber(L, o.x); 
+    lua_pushnumber(L, o.y);
+    lua_pushnumber(L, o.z);
+    lua_call(L, 3, 1);
+    lua_pushinteger(L, camera1->yaw);
+    lua_pushinteger(L, camera1->pitch);
+    lua_pushinteger(L, camera1->roll);
+    return 4;
+})
+
 vec worldpos, camdir, camright, camup;
 
 void setcammatrix()
