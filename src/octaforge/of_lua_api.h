@@ -107,16 +107,6 @@ namespace lapi_binds
     LAPI_EMPTY(save_mouse_position)
 #endif
 
-#ifdef CLIENT
-    /* gui */
-
-    int _lua_gui_set_mainmenu(lua_State *L) {
-        lua_pushinteger(L, mainmenu);
-        mainmenu = luaL_checkinteger(L, 1);
-        return 1;
-    }
-#endif
-
     /* edit */
 
 #ifdef SERVER
@@ -721,10 +711,6 @@ namespace lapi_binds
     LAPI_REG(getserverlogfile);
     LAPI_REG(setup_library);
     LAPI_REG(save_mouse_position);
-
-#ifdef CLIENT
-    LAPI_REG(gui_set_mainmenu);
-#endif
 
     /* edit */
     LAPI_REG(npcadd);

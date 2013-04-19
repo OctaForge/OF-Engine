@@ -4550,7 +4550,7 @@ end)
 
 set_external("gui_clear", function()
     if  EV.mainmenu ~= 0 and CAPI.isconnected() then
-        CAPI.gui_set_mainmenu(0)
+        EV.mainmenu  = 0
 
         world:hide_children()
         worlds = { world }
