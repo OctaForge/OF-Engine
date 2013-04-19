@@ -11,7 +11,7 @@ local floor = math.floor
 local ceil  = math.ceil
 local round = math.round
 local ffi   = require("ffi")
-local EV    = _G["EV"  ]
+local EV    = _G["EV"]
 
 local gl = {
     ALPHA = 0x1906,
@@ -4106,7 +4106,7 @@ local Text_Editor = Object:clone {
                          (code == key.C) or
                          (code == key.V)
 
-            if not (axcv and CAPI.is_modifier_pressed()) then
+            if not (axcv and CAPI.input_get_modifier_state() ~= mod.NONE) then
                 return false
             end
         end

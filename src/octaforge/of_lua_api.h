@@ -306,11 +306,6 @@ namespace lapi_binds
         return 1;
     }
 
-    int _lua_is_modifier_pressed(lua_State *L) {
-        lua_pushboolean(L, SDL_GetModState() != KMOD_NONE);
-        return 1;
-    }
-
     int _lua_keyrepeat(lua_State *L) {
         keyrepeat(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
         return 0;
@@ -322,7 +317,6 @@ namespace lapi_binds
     }
 #else
     LAPI_EMPTY(set_targeted_entity)
-    LAPI_EMPTY(is_modifier_pressed)
     LAPI_EMPTY(textinput)
     LAPI_EMPTY(keyrepeat)
 #endif
@@ -921,7 +915,6 @@ namespace lapi_binds
 
     /* input */
     LAPI_REG(set_targeted_entity);
-    LAPI_REG(is_modifier_pressed);
     LAPI_REG(textinput);
     LAPI_REG(keyrepeat);
 
