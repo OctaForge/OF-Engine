@@ -119,51 +119,6 @@ namespace lapi_binds
         mainmenu = luaL_checkinteger(L, 1);
         return 1;
     }
-
-    int _lua_gui_text_bounds(lua_State *L) {
-        int w, h;
-        text_bounds(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
-        lua_pushinteger(L, w); lua_pushinteger(L, h);
-        return 2;
-    }
-
-    int _lua_gui_text_bounds_f(lua_State *L) {
-        float w, h;
-        text_boundsf(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
-        lua_pushnumber(L, w); lua_pushnumber(L, h);
-        return 2;
-    }
-
-    int _lua_gui_text_pos(lua_State *L) {
-        int cx, cy;
-        text_pos(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
-            cx, cy, luaL_checkinteger(L, 3));
-        lua_pushinteger(L, cx); lua_pushinteger(L, cy);
-        return 2;
-    }
-
-    int _lua_gui_text_pos_f(lua_State *L) {
-        float cx, cy;
-        text_posf(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
-            cx, cy, luaL_checkinteger(L, 3));
-        lua_pushnumber(L, cx); lua_pushnumber(L, cy);
-        return 2;
-    }
-
-    int _lua_gui_text_visible(lua_State *L) {
-        lua_pushinteger(L, text_visible(luaL_checkstring(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3),
-            luaL_checkinteger(L, 4)));
-        return 1;
-    }
-
-    int _lua_gui_draw_text(lua_State *L) {
-        draw_text(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
-            luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5),
-            luaL_checkinteger(L, 6), luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-            luaL_checkinteger(L, 9));
-        return 0;
-    }
 #endif
 
     /* edit */
@@ -868,12 +823,6 @@ namespace lapi_binds
 
 #ifdef CLIENT
     LAPI_REG(gui_set_mainmenu);
-    LAPI_REG(gui_text_bounds);
-    LAPI_REG(gui_text_bounds_f);
-    LAPI_REG(gui_text_pos);
-    LAPI_REG(gui_text_pos_f);
-    LAPI_REG(gui_text_visible);
-    LAPI_REG(gui_draw_text);
 #endif
 
     /* edit */

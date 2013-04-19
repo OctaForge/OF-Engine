@@ -404,3 +404,49 @@ void reloadfonts()
     );
 }
 
+/* OF */
+
+LUAICOMMAND(text_get_bounds, {
+    int w; int h;
+    text_bounds(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
+    lua_pushinteger(L, w); lua_pushinteger(L, h);
+    return 2;
+});
+
+LUAICOMMAND(text_get_boundsf, {
+    float w; float h;
+    text_boundsf(luaL_checkstring(L, 1), w, h, luaL_checkinteger(L, 2));
+    lua_pushnumber(L, w); lua_pushnumber(L, h);
+    return 2;
+});
+
+LUAICOMMAND(text_get_position, {
+    int cx; int cy;
+    text_pos(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
+        cx, cy, luaL_checkinteger(L, 3));
+    lua_pushinteger(L, cx); lua_pushinteger(L, cy);
+    return 2;
+});
+
+LUAICOMMAND(text_get_positionf, {
+    float cx; float cy;
+    text_posf(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
+        cx, cy, luaL_checkinteger(L, 3));
+    lua_pushnumber(L, cx); lua_pushnumber(L, cy);
+    return 2;
+});
+
+LUAICOMMAND(text_is_visible, {
+    lua_pushinteger(L, text_visible(luaL_checkstring(L, 1),
+        luaL_checknumber(L, 2), luaL_checknumber(L, 3),
+        luaL_checkinteger(L, 4)));
+    return 1;
+});
+
+LUAICOMMAND(text_draw, {
+    draw_text(luaL_checkstring(L, 1), luaL_checkinteger(L, 2),
+        luaL_checkinteger(L, 3), luaL_checkinteger(L, 4), luaL_checkinteger(L, 5),
+        luaL_checkinteger(L, 6), luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
+        luaL_checkinteger(L, 9));
+    return 0;
+});

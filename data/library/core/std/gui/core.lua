@@ -3242,7 +3242,7 @@ local Label = Object:clone {
         CAPI.hudmatrix_flush()
 
         local w = self.p_wrap
-        CAPI.gui_draw_text(self.p_text, sx / k, sy / k,
+        CAPI.text_draw(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
         CAPI.gle_color4f(1, 1, 1, 1)
@@ -3256,7 +3256,7 @@ local Label = Object:clone {
 
         local k = self:draw_scale()
 
-        local w, h = CAPI.gui_text_bounds(self.p_text,
+        local w, h = CAPI.text_get_bounds(self.p_text,
             self.p_wrap <= 0 and -1 or self.p_wrap / k)
 
         if self.p_wrap <= 0 then
@@ -3320,7 +3320,7 @@ local Text_Editor = Object:clone {
         self.lines = { kwargs.value or "" }
 
         if length < 0 and height <= 0 then
-            local w, h = CAPI.gui_text_bounds(self.lines[1], self.pixel_width)
+            local w, h = CAPI.text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         else
             self.pixel_height = EV.fonth * math.max(height, 1)
@@ -3594,7 +3594,7 @@ local Text_Editor = Object:clone {
         self.scrolly = math.clamp(self.scrolly, 0, self.cy)
         local h = 0
         for i = self.cy + 1, self.scrolly + 1, -1 do
-            local width, height = CAPI.gui_text_bounds(self.lines[i],
+            local width, height = CAPI.text_get_bounds(self.lines[i],
                 self.line_wrap and self.pixel_width or -1)
             if h + height > self.pixel_height then
                 self.scrolly = i
@@ -3621,10 +3621,10 @@ local Text_Editor = Object:clone {
                 self:movement_mark()
                 if self.line_wrap then
                     local str = self:current_line()
-                    local x, y = CAPI.gui_text_pos(str, self.cx + 1,
+                    local x, y = CAPI.text_get_position(str, self.cx + 1,
                         self.pixel_width)
                     if y > 0 then
-                        self.cx = CAPI.gui_text_visible(str, x, y - FONTH,
+                        self.cx = CAPI.text_is_visible(str, x, y - FONTH,
                             self.pixel_width)
                         self:scroll_on_screen()
                         return nil
@@ -3638,13 +3638,13 @@ local Text_Editor = Object:clone {
                 self:movement_mark()
                 if self.line_wrap then
                     local str = self:current_line()
-                    local x, y = CAPI.gui_text_pos(str, self.cx,
+                    local x, y = CAPI.text_get_position(str, self.cx,
                         self.pixel_width)
-                    local width, height = CAPI.gui_text_bounds(str,
+                    local width, height = CAPI.text_get_bounds(str,
                         self.pixel_width)
                     y = y + EV.fonth
                     if y < height then
-                        self.cx = CAPI.gui_text_visible(str, x, y, self.pixel_width)
+                        self.cx = CAPI.text_is_visible(str, x, y, self.pixel_width)
                         self:scroll_on_screen()
                         return nil
                     end
@@ -3933,10 +3933,10 @@ local Text_Editor = Object:clone {
         local max_width = self.line_wrap and self.pixel_width or -1
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = CAPI.gui_text_bounds(self.lines[i], max_width)
+            local width, height = CAPI.text_get_bounds(self.lines[i], max_width)
             if h + height > self.pixel_height then break end
             if hity >= h and hity <= h + height then
-                local x = CAPI.gui_text_visible(self.lines[i], hitx, hity - h, max_width)
+                local x = CAPI.text_is_visible(self.lines[i], hitx, hity - h, max_width)
                 if dragged then
                     self.mx = x
                     self.my = i - 1
@@ -3955,7 +3955,7 @@ local Text_Editor = Object:clone {
         local slines = #self.lines
         local ph = self.pixel_height
         while slines > 0 and ph > 0 do
-            local width, height = CAPI.gui_text_bounds(self.lines[slines], max_width)
+            local width, height = CAPI.text_get_bounds(self.lines[slines], max_width)
             if height > ph then break end
             ph = ph - height
             slines = slines - 1
@@ -4125,7 +4125,7 @@ local Text_Editor = Object:clone {
         end
 
         if self.line_wrap and self.maxy == 1 then
-            local w, h = CAPI.gui_text_bounds(self.lines[1], self.pixel_width)
+            local w, h = CAPI.text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         end
 
@@ -4155,12 +4155,12 @@ local Text_Editor = Object:clone {
 
         if selection then
             -- convert from cursor coords into pixel coords
-            local psx, psy = CAPI.gui_text_pos(self.lines[sy + 1], sx, max_width)
-            local pex, pey = CAPI.gui_text_pos(self.lines[ey + 1], ex, max_width)
+            local psx, psy = CAPI.text_get_position(self.lines[sy + 1], sx, max_width)
+            local pex, pey = CAPI.text_get_position(self.lines[ey + 1], ex, max_width)
             local maxy = #self.lines
             local h = 0
             for i = self.scrolly + 1, maxy do
-                local width, height = CAPI.gui_text_bounds(self.lines[i], max_width)
+                local width, height = CAPI.text_get_bounds(self.lines[i], max_width)
                 if h + height > self.pixel_height then
                     maxy = i - 1
                     break
@@ -4221,12 +4221,12 @@ local Text_Editor = Object:clone {
 
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = CAPI.gui_text_bounds(self.lines[i], max_width)
+            local width, height = CAPI.text_get_bounds(self.lines[i], max_width)
             if h + height > self.pixel_height then
                 break
             end
             local r, g, b = hextorgb(color)
-            CAPI.gui_draw_text(self.password and ("*"):rep(#self.lines[i])
+            CAPI.text_draw(self.password and ("*"):rep(#self.lines[i])
                 or self.lines[i], x, y + h, r, g, b, 0xFF,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
