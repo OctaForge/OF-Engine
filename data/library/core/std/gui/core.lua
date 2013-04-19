@@ -4753,8 +4753,8 @@ set_external("frame_start", function()
 
     if refreshrepeat ~= 0 or (textediting ~= nil) ~= wastextediting then
         local c = textediting ~= nil
-        CAPI.textinput(c, blsh(1, 1)) -- TI_GUI
-        CAPI.keyrepeat(c, blsh(1, 1)) -- KR_GUI
+        CAPI.input_textinput(c, blsh(1, 1)) -- TI_GUI
+        CAPI.input_keyrepeat(c, blsh(1, 1)) -- KR_GUI
         refreshrepeat = 0
     end
 

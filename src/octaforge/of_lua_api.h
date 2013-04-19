@@ -112,13 +112,6 @@ namespace lapi_binds
 #endif
 
 #ifdef CLIENT
-    /* input */
-
-    int _lua_input_get_modifier_state(lua_State *L) {
-        lua_pushinteger(L, SDL_GetModState());
-        return 1;
-    }
-
     /* gui */
 
     int _lua_gui_set_mainmenu(lua_State *L) {
@@ -305,20 +298,8 @@ namespace lapi_binds
         lua_pushboolean(L, TargetingControl::targetLogicEntity != NULL);
         return 1;
     }
-
-    int _lua_keyrepeat(lua_State *L) {
-        keyrepeat(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
-        return 0;
-    }
-
-    int _lua_textinput(lua_State *L) {
-        textinput(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
-        return 0;
-    }
 #else
     LAPI_EMPTY(set_targeted_entity)
-    LAPI_EMPTY(textinput)
-    LAPI_EMPTY(keyrepeat)
 #endif
 
     /* messages */
@@ -886,7 +867,6 @@ namespace lapi_binds
     LAPI_REG(save_mouse_position);
 
 #ifdef CLIENT
-    LAPI_REG(input_get_modifier_state);
     LAPI_REG(gui_set_mainmenu);
     LAPI_REG(gui_text_bounds);
     LAPI_REG(gui_text_bounds_f);
@@ -915,8 +895,6 @@ namespace lapi_binds
 
     /* input */
     LAPI_REG(set_targeted_entity);
-    LAPI_REG(textinput);
-    LAPI_REG(keyrepeat);
 
     /* messages */
     LAPI_REG(personal_servmsg);

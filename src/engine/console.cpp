@@ -900,3 +900,18 @@ ICOMMAND(jump, "", (), {
         lua_call(lua::L, 1, 0);
     }
 });
+
+LUAICOMMAND(input_get_modifier_state, {
+    lua_pushinteger(L, SDL_GetModState());
+    return 1;
+});
+
+LUAICOMMAND(input_keyrepeat, {
+    keyrepeat(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
+    return 0;
+});
+
+LUAICOMMAND(input_textinput, {
+    textinput(lua_toboolean(L, 1), luaL_checkinteger(L, 2));
+    return 0;
+});
