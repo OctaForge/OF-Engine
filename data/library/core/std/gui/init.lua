@@ -41,7 +41,7 @@ setmetatable(gui, {
         if    v ~= nil then return v end
 
         -- try a set otherwise
-        v = sets[EV.uiset]
+        v = sets[_V.uiset]
         if v then return v[n] end
     end
 })

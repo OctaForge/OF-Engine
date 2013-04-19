@@ -11,7 +11,7 @@ local floor = math.floor
 local ceil  = math.ceil
 local round = math.round
 local ffi   = require("ffi")
-local EV    = _G["EV"]
+local _V    = _G["_V"]
 
 local gl = {
     ALPHA = 0x1906,
@@ -648,7 +648,7 @@ local update_var = function(varn, val)
         return nil
     end
 
-    EV[varn] = (t == 2) and tostring(val) or tonumber(val)
+    _V[varn] = (t == 2) and tostring(val) or tonumber(val)
 end
 
 local needs_adjust = true
@@ -840,7 +840,7 @@ local clip_area_is_fully_clipped = function(self, x, y, w, h)
 end
 
 local clip_area_scissor = function(self)
-    local scr_w, scr_h = EV.scr_w, EV.scr_h
+    local scr_w, scr_h = _V.scr_w, _V.scr_h
 
     local margin = max((scr_w / scr_h - 1) / 2, 0)
 
@@ -850,14 +850,14 @@ local clip_area_scissor = function(self)
         clamp(ceil ((self[3] + margin) / (1 + 2 * margin) * scr_w), 0, scr_w),
         clamp(ceil ( self[4] * scr_h), 0, scr_h)
 
-    CAPI.gl_scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
+    _C.gl_scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
 end
 
 local clip_stack = {}
 
 local clip_push = function(x, y, w, h)
     local l = #clip_stack
-    if    l == 0 then CAPI.gl_scissor_enable() end
+    if    l == 0 then _C.gl_scissor_enable() end
 
     local c = { x, y, x + w, y + h }
 
@@ -872,7 +872,7 @@ local clip_pop = function()
     table.remove(clip_stack)
 
     local l = #clip_stack
-    if    l == 0 then CAPI.gl_scissor_disable()
+    if    l == 0 then _C.gl_scissor_disable()
     else clip_area_scissor(clip_stack[l])
     end
 end
@@ -885,18 +885,18 @@ end
 
 local quad = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    CAPI.gle_attrib2f(x,     y)     CAPI.gle_attrib2f(tx,      ty)
-    CAPI.gle_attrib2f(x + w, y)     CAPI.gle_attrib2f(tx + tw, ty)
-    CAPI.gle_attrib2f(x + w, y + h) CAPI.gle_attrib2f(tx + tw, ty + th)
-    CAPI.gle_attrib2f(x,     y + h) CAPI.gle_attrib2f(tx,      ty + th)
+    _C.gle_attrib2f(x,     y)     _C.gle_attrib2f(tx,      ty)
+    _C.gle_attrib2f(x + w, y)     _C.gle_attrib2f(tx + tw, ty)
+    _C.gle_attrib2f(x + w, y + h) _C.gle_attrib2f(tx + tw, ty + th)
+    _C.gle_attrib2f(x,     y + h) _C.gle_attrib2f(tx,      ty + th)
 end
 
 local quadtri = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
-    CAPI.gle_attrib2f(x,     y)     CAPI.gle_attrib2f(tx,      ty)
-    CAPI.gle_attrib2f(x + w, y)     CAPI.gle_attrib2f(tx + tw, ty)
-    CAPI.gle_attrib2f(x,     y + h) CAPI.gle_attrib2f(tx,      ty + th)
-    CAPI.gle_attrib2f(x + w, y + h) CAPI.gle_attrib2f(tx + tw, ty + th)
+    _C.gle_attrib2f(x,     y)     _C.gle_attrib2f(tx,      ty)
+    _C.gle_attrib2f(x + w, y)     _C.gle_attrib2f(tx + tw, ty)
+    _C.gle_attrib2f(x,     y + h) _C.gle_attrib2f(tx,      ty + th)
+    _C.gle_attrib2f(x + w, y + h) _C.gle_attrib2f(tx + tw, ty + th)
 end
 
 local Image
@@ -1524,7 +1524,7 @@ local World = Object:clone {
 
     focus_children = function(self)
         return loop_children(self, function(o)
-            if o.p_allow_focus or EV.mouselook == 0 then
+            if o.p_allow_focus or _V.mouselook == 0 then
                 return true
             end
         end) or false
@@ -1533,7 +1533,7 @@ local World = Object:clone {
     layout = function(self)
         Object.layout(self)
 
-        local       margin = max((EV.scr_w / EV.scr_h - 1) / 2, 0)
+        local       margin = max((_V.scr_w / _V.scr_h - 1) / 2, 0)
         self.p_x = -margin
         self.p_y = 0
         self.p_w = 2 * margin + 1
@@ -2484,7 +2484,7 @@ local Slider = Object:clone {
     end,
 
     arrow_scroll = function(self)
-        local tmillis = CAPI.totalmillis()
+        local tmillis = _C.totalmillis()
         if (self.i_last_step + self.p_step_time) > tmillis then
             return nil
         end
@@ -2707,23 +2707,23 @@ local Rectangle = Filler:clone {
     draw = function(self, sx, sy)
         local w, h, solid = self.p_w, self.p_h, self.p_solid
 
-        if not solid then CAPI.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
-        CAPI.shader_hudnotexture_set()
-        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        if not solid then _C.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
+        _C.shader_hudnotexture_set()
+        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.gle_defvertex(2)
-        CAPI.gle_begin(gl.TRIANGLE_STRIP)
+        _C.gle_defvertex(2)
+        _C.gle_begin(gl.TRIANGLE_STRIP)
 
-        CAPI.gle_attrib2f(sx,     sy)
-        CAPI.gle_attrib2f(sx + w, sy)
-        CAPI.gle_attrib2f(sx,     sy + h)
-        CAPI.gle_attrib2f(sx + w, sy + h)
+        _C.gle_attrib2f(sx,     sy)
+        _C.gle_attrib2f(sx + w, sy)
+        _C.gle_attrib2f(sx,     sy + h)
+        _C.gle_attrib2f(sx + w, sy + h)
 
-        CAPI.gle_end()
-        CAPI.gle_color4f(1, 1, 1, 1)
-        CAPI.shader_hud_set()
+        _C.gle_end()
+        _C.gle_color4f(1, 1, 1, 1)
+        _C.shader_hud_set()
         if not solid then
-            CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            _C.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
         end
 
         return Filler.draw(self, sx, sy)
@@ -2732,7 +2732,7 @@ local Rectangle = Filler:clone {
 
 local check_alpha_mask = function(tex, x, y)
     if not tex:get_alphamask() then
-        CAPI.texture_load_alpha_mask(tex)
+        _C.texture_load_alpha_mask(tex)
         if not tex:get_alphamask() then
             return true
         end
@@ -2756,11 +2756,11 @@ Image = Filler:clone {
 
     __init = function(self, kwargs)
         kwargs    = kwargs or {}
-        local tex = kwargs.file and CAPI.texture_load(kwargs.file)
+        local tex = kwargs.file and _C.texture_load(kwargs.file)
 
         local af = kwargs.alt_file
-        if CAPI.texture_is_notexture(tex) and af then
-            tex = CAPI.texture_load(af)
+        if _C.texture_is_notexture(tex) and af then
+            tex = _C.texture_load(af)
         end
 
         self.i_tex = tex
@@ -2784,9 +2784,9 @@ Image = Filler:clone {
     end,
 
     set_tex = function(file, alt)
-        local tex = CAPI.texture_load(file)
-        if CAPI.texture_is_notexture(tex) and alt then
-              tex = CAPI.texture_load(alt)
+        local tex = _C.texture_load(file)
+        if _C.texture_is_notexture(tex) and alt then
+              tex = _C.texture_load(alt)
         end
         self.i_tex   = tex
         needs_adjust = true
@@ -2810,22 +2810,22 @@ Image = Filler:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex)
+        _C.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.gle_defvertex(2)
-        CAPI.gle_deftexcoord0(2)
-        CAPI.gle_begin(gl.TRIANGLE_STRIP)
+        _C.gle_defvertex(2)
+        _C.gle_deftexcoord0(2)
+        _C.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h)
-        CAPI.gle_end()
+        _C.gle_end()
 
         return Object.draw(self, sx, sy)
     end,
@@ -2837,11 +2837,11 @@ Image = Filler:clone {
         local min_h = self.p_min_h
 
         if min_w and min_w < 0 then
-            min_w = abs(min_w) / EV.scr_h
+            min_w = abs(min_w) / _V.scr_h
         end
 
         if min_h and min_h < 0 then
-            min_h = abs(min_h) / EV.scr_h
+            min_h = abs(min_h) / _V.scr_h
         end
 
         if  min_w == -1 then
@@ -2856,7 +2856,7 @@ Image = Filler:clone {
         end
 
         if  min_w == 0 or min_h == 0 then
-            local tex, scrh = self.i_tex, EV.scr_h
+            local tex, scrh = self.i_tex, _V.scr_h
             if  min_w == 0 then
                 min_w = tex:get_w() / scrh
             end
@@ -2907,23 +2907,23 @@ local Cropped_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex)
+        _C.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.gle_defvertex(2)
-        CAPI.gle_deftexcoord0(2)
-        CAPI.gle_begin(gl.TRIANGLE_STRIP)
+        _C.gle_defvertex(2)
+        _C.gle_deftexcoord0(2)
+        _C.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.p_w, self.p_h,
             self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
-        CAPI.gle_end()
+        _C.gle_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -2957,20 +2957,20 @@ local Stretched_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex)
+        _C.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.gle_defvertex(2)
-        CAPI.gle_deftexcoord0(2)
-        CAPI.gle_begin(gl.QUADS)
+        _C.gle_defvertex(2)
+        _C.gle_deftexcoord0(2)
+        _C.gle_begin(gl.QUADS)
 
         local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.p_w, self.p_h
 
@@ -3015,7 +3015,7 @@ local Stretched_Image = Image:clone {
             if  ty >= 1 then break end
         end
 
-        CAPI.gle_end()
+        _C.gle_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -3070,20 +3070,20 @@ local Bordered_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex)
+        _C.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        CAPI.gle_defvertex(2)
-        CAPI.gle_deftexcoord0(2)
-        CAPI.gle_begin(gl.QUADS)
+        _C.gle_defvertex(2)
+        _C.gle_deftexcoord0(2)
+        _C.gle_begin(gl.QUADS)
 
         local vy, ty = sy, 0
         for i = 1, 3 do
@@ -3107,7 +3107,7 @@ local Bordered_Image = Image:clone {
             vy, ty = vy + vh, ty + th
         end
 
-        CAPI.gle_end()
+        _C.gle_end()
 
         return Object.draw(self, sx, sy)
     end
@@ -3143,16 +3143,16 @@ local Tiled_Image = Image:clone {
         local minf, magf, tex = self.p_min_filter,
                                 self.p_mag_filter, self.i_tex
 
-        CAPI.gl_bind_texture(tex)
+        _C.gl_bind_texture(tex)
 
         if minf and minf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
+            _C.gl_texture_param(gl.TEXTURE_MIN_FILTER, minf)
         end
         if magf and magf ~= 0 then
-            CAPI.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
+            _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        CAPI.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
         local pw, ph, tw, th = self.p_w, self.p_h, self.p_tile_w, self.p_tile_h
 
@@ -3160,9 +3160,9 @@ local Tiled_Image = Image:clone {
         -- repeat with clamped textures
         if tex:get_clamp() ~= 0 then
             local dx, dy = 0, 0
-            CAPI.gle_defvertex(2)
-            CAPI.gle_deftexcoord0(2)
-            CAPI.gle_begin(gl.QUADS)
+            _C.gle_defvertex(2)
+            _C.gle_deftexcoord0(2)
+            _C.gle_begin(gl.QUADS)
             while dx < pw do
                 while dy < ph do
                     local dw, dh = min(tw, pw - dx), min(th, ph - dy)
@@ -3171,13 +3171,13 @@ local Tiled_Image = Image:clone {
                 end
                 dx, dy = dy + tw, 0
             end
-            CAPI.gle_end()
+            _C.gle_end()
         else
-            CAPI.gle_defvertex(2)
-            CAPI.gle_deftexcoord0(2)
-            CAPI.gle_begin(gl.TRIANGLE_STRIP)
+            _C.gle_defvertex(2)
+            _C.gle_deftexcoord0(2)
+            _C.gle_begin(gl.TRIANGLE_STRIP)
             quadtri(sx, sy, pw, ph, 0, 0, pw / tw, ph / th)
-            CAPI.gle_end()
+            _C.gle_end()
         end
 
         return Object.draw(self, sx, sy)
@@ -3196,12 +3196,12 @@ local Slot_Viewer = Filler:clone {
 
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
-        if    o or not CAPI.slot_exists(self.p_slot) then return o end
-        return CAPI.slot_check_vslot(self.p_slot) and self
+        if    o or not _C.slot_exists(self.p_slot) then return o end
+        return _C.slot_check_vslot(self.p_slot) and self
     end,
 
     draw = function(self, sx, sy)
-        CAPI.texture_draw_slot(self.p_slot, self.p_w, self.p_h, sx, sy)
+        _C.texture_draw_slot(self.p_slot, self.p_w, self.p_h, sx, sy)
         return Object.draw(self, sx, sy)
     end
 }
@@ -3231,22 +3231,22 @@ local Label = Object:clone {
     end,
 
     draw_scale = function(self)
-        return self.p_scale / (EV["fonth"] * EV["uitextrows"])
+        return self.p_scale / (_V["fonth"] * _V["uitextrows"])
     end,
 
     draw = function(self, sx, sy)
-        CAPI.hudmatrix_push()
+        _C.hudmatrix_push()
 
         local k = self:draw_scale()
-        CAPI.hudmatrix_scale(k, k, 1)
-        CAPI.hudmatrix_flush()
+        _C.hudmatrix_scale(k, k, 1)
+        _C.hudmatrix_flush()
 
         local w = self.p_wrap
-        CAPI.text_draw(self.p_text, sx / k, sy / k,
+        _C.text_draw(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
-        CAPI.gle_color4f(1, 1, 1, 1)
-        CAPI.hudmatrix_pop()
+        _C.gle_color4f(1, 1, 1, 1)
+        _C.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end,
@@ -3256,7 +3256,7 @@ local Label = Object:clone {
 
         local k = self:draw_scale()
 
-        local w, h = CAPI.text_get_bounds(self.p_text,
+        local w, h = _C.text_get_bounds(self.p_text,
             self.p_wrap <= 0 and -1 or self.p_wrap / k)
 
         if self.p_wrap <= 0 then
@@ -3285,7 +3285,7 @@ local Text_Editor = Object:clone {
         local height = kwargs.height or 1
         local scale  = kwargs.scale  or 1
 
-        self.lastaction = CAPI.totalmillis()
+        self.lastaction = _C.totalmillis()
         self.scale      = scale
 
         self.i_offset_h = 0
@@ -3310,7 +3310,7 @@ local Text_Editor = Object:clone {
 
         self.line_wrap = length < 0
         -- required for up/down/hit/draw/bounds
-        self.pixel_width  = math.abs(length) * EV.fontw
+        self.pixel_width  = math.abs(length) * _V.fontw
         -- -1 for variable size, i.e. from bounds
         self.pixel_height = -1
 
@@ -3320,10 +3320,10 @@ local Text_Editor = Object:clone {
         self.lines = { kwargs.value or "" }
 
         if length < 0 and height <= 0 then
-            local w, h = CAPI.text_get_bounds(self.lines[1], self.pixel_width)
+            local w, h = _C.text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         else
-            self.pixel_height = EV.fonth * math.max(height, 1)
+            self.pixel_height = _V.fonth * math.max(height, 1)
         end
 
         return Object.__init(self, kwargs)
@@ -3582,7 +3582,7 @@ local Text_Editor = Object:clone {
 
     movement_mark = function(self)
         self:scroll_on_screen()
-        if band(CAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+        if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
                 if not self:region() then self:mark(true) end
         else
             self:mark(false)
@@ -3594,7 +3594,7 @@ local Text_Editor = Object:clone {
         self.scrolly = math.clamp(self.scrolly, 0, self.cy)
         local h = 0
         for i = self.cy + 1, self.scrolly + 1, -1 do
-            local width, height = CAPI.text_get_bounds(self.lines[i],
+            local width, height = _C.text_get_bounds(self.lines[i],
                 self.line_wrap and self.pixel_width or -1)
             if h + height > self.pixel_height then
                 self.scrolly = i
@@ -3621,10 +3621,10 @@ local Text_Editor = Object:clone {
                 self:movement_mark()
                 if self.line_wrap then
                     local str = self:current_line()
-                    local x, y = CAPI.text_get_position(str, self.cx + 1,
+                    local x, y = _C.text_get_position(str, self.cx + 1,
                         self.pixel_width)
                     if y > 0 then
-                        self.cx = CAPI.text_is_visible(str, x, y - FONTH,
+                        self.cx = _C.text_is_visible(str, x, y - FONTH,
                             self.pixel_width)
                         self:scroll_on_screen()
                         return nil
@@ -3638,13 +3638,13 @@ local Text_Editor = Object:clone {
                 self:movement_mark()
                 if self.line_wrap then
                     local str = self:current_line()
-                    local x, y = CAPI.text_get_position(str, self.cx,
+                    local x, y = _C.text_get_position(str, self.cx,
                         self.pixel_width)
-                    local width, height = CAPI.text_get_bounds(str,
+                    local width, height = _C.text_get_bounds(str,
                         self.pixel_width)
-                    y = y + EV.fonth
+                    y = y + _V.fonth
                     if y < height then
-                        self.cx = CAPI.text_is_visible(str, x, y, self.pixel_width)
+                        self.cx = _C.text_is_visible(str, x, y, self.pixel_width)
                         self:scroll_on_screen()
                         return nil
                     end
@@ -3663,20 +3663,20 @@ local Text_Editor = Object:clone {
 
             case(key.PAGEUP, function()
                 self:movement_mark()
-                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 0
                 else
-                    self.cy = self.cy - self.pixel_height / EV.fonth
+                    self.cy = self.cy - self.pixel_height / _V.fonth
                 end
                 self:scroll_on_screen()
             end),
 
             case(key.PAGEDOWN, function()
                 self:movement_mark()
-                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 1 / 0
                 else
-                    self.cy = self.cy + self.pixel_height / EV.fonth
+                    self.cy = self.cy + self.pixel_height / _V.fonth
                 end
                 self:scroll_on_screen()
             end),
@@ -3684,7 +3684,7 @@ local Text_Editor = Object:clone {
             case(key.HOME, function()
                 self:movement_mark()
                 self.cx = 0
-                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 0
                 end
                 self:scroll_on_screen()
@@ -3693,7 +3693,7 @@ local Text_Editor = Object:clone {
             case(key.END, function()
                 self:movement_mark()
                 self.cx = 1 / 0
-                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
                     self.cy = 1 / 0
                 end
                 self:scroll_on_screen()
@@ -3773,7 +3773,7 @@ local Text_Editor = Object:clone {
                 local b, sx, sy, ex, ey = self:region()
                 if b then
                     for i = sy, ey do
-                        if band(CAPI.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+                        if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
                             local rem = 0
                             for j = 1, math.min(4, #self.lines[i + 1]) do
                                 if self.lines[i + 1]:sub(j, j) == " " then
@@ -3799,7 +3799,7 @@ local Text_Editor = Object:clone {
             end),
 
             case({ key.A, key.X, key.C, key.V }, function()
-                if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
                     return nil
                 end
                 self:scroll_on_screen()
@@ -3809,7 +3809,7 @@ local Text_Editor = Object:clone {
                 self:scroll_on_screen()
             end))
 
-        if band(CAPI.input_get_modifier_state(), mod_keys) ~= 0 then
+        if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
             if code == key.A then
                 self:select_all()
             elseif code == key.X or code == key.C then
@@ -3933,10 +3933,10 @@ local Text_Editor = Object:clone {
         local max_width = self.line_wrap and self.pixel_width or -1
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = CAPI.text_get_bounds(self.lines[i], max_width)
+            local width, height = _C.text_get_bounds(self.lines[i], max_width)
             if h + height > self.pixel_height then break end
             if hity >= h and hity <= h + height then
-                local x = CAPI.text_is_visible(self.lines[i], hitx, hity - h, max_width)
+                local x = _C.text_is_visible(self.lines[i], hitx, hity - h, max_width)
                 if dragged then
                     self.mx = x
                     self.my = i - 1
@@ -3955,7 +3955,7 @@ local Text_Editor = Object:clone {
         local slines = #self.lines
         local ph = self.pixel_height
         while slines > 0 and ph > 0 do
-            local width, height = CAPI.text_get_bounds(self.lines[slines], max_width)
+            local width, height = _C.text_get_bounds(self.lines[slines], max_width)
             if height > ph then break end
             ph = ph - height
             slines = slines - 1
@@ -4042,14 +4042,14 @@ local Text_Editor = Object:clone {
         if is_clicked(self) and is_focused(self) then
             local dragged = (
                 max(abs(cx - self.i_offset_h), abs(cy - self.i_offset_v)) >
-                    (EV["fontw"] / 4) * self.scale /
-                        (EV["fonth"] * EV.uitextrows)
+                    (_V["fontw"] / 4) * self.scale /
+                        (_V["fonth"] * _V.uitextrows)
             )
             self:hit(
-                floor(cx * (EV["fonth"] * EV.uitextrows) /
-                    self.scale - EV["fontw"] / 2
+                floor(cx * (_V["fonth"] * _V.uitextrows) /
+                    self.scale - _V["fontw"] / 2
                 ),
-                floor(cy * (EV["fonth"] * EV.uitextrows) /
+                floor(cy * (_V["fonth"] * _V.uitextrows) /
                     self.scale
                 ),
                 dragged
@@ -4106,7 +4106,7 @@ local Text_Editor = Object:clone {
                          (code == key.C) or
                          (code == key.V)
 
-            if not (axcv and CAPI.input_get_modifier_state() ~= mod.NONE) then
+            if not (axcv and _C.input_get_modifier_state() ~= mod.NONE) then
                 return false
             end
         end
@@ -4125,27 +4125,27 @@ local Text_Editor = Object:clone {
         end
 
         if self.line_wrap and self.maxy == 1 then
-            local w, h = CAPI.text_get_bounds(self.lines[1], self.pixel_width)
+            local w, h = _C.text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         end
 
-        self.p_w = max(self.p_w, (self.pixel_width + EV.fontw) *
-            self.scale / (EV.fonth * EV.uitextrows))
+        self.p_w = max(self.p_w, (self.pixel_width + _V.fontw) *
+            self.scale / (_V.fonth * _V.uitextrows))
 
         self.p_h = max(self.p_h, self.pixel_height *
-            self.scale / (EV.fonth * EV.uitextrows)
+            self.scale / (_V.fonth * _V.uitextrows)
         )
     end,
 
     draw = function(self, sx, sy)
-        CAPI.hudmatrix_push()
+        _C.hudmatrix_push()
 
-        CAPI.hudmatrix_translate(sx, sy, 0)
-        local s = self.scale / (EV.fonth * EV.uitextrows)
-        CAPI.hudmatrix_scale(s, s, 1)
-        CAPI.hudmatrix_flush()
+        _C.hudmatrix_translate(sx, sy, 0)
+        local s = self.scale / (_V.fonth * _V.uitextrows)
+        _C.hudmatrix_scale(s, s, 1)
+        _C.hudmatrix_flush()
 
-        local x, y, color, hit = EV.fontw / 2, 0, 0xFFFFFF, is_focused(self)
+        local x, y, color, hit = _V.fontw / 2, 0, 0xFFFFFF, is_focused(self)
 
         local max_width = self.line_wrap and self.pixel_width or -1
 
@@ -4155,12 +4155,12 @@ local Text_Editor = Object:clone {
 
         if selection then
             -- convert from cursor coords into pixel coords
-            local psx, psy = CAPI.text_get_position(self.lines[sy + 1], sx, max_width)
-            local pex, pey = CAPI.text_get_position(self.lines[ey + 1], ex, max_width)
+            local psx, psy = _C.text_get_position(self.lines[sy + 1], sx, max_width)
+            local pex, pey = _C.text_get_position(self.lines[ey + 1], ex, max_width)
             local maxy = #self.lines
             local h = 0
             for i = self.scrolly + 1, maxy do
-                local width, height = CAPI.text_get_bounds(self.lines[i], max_width)
+                local width, height = _C.text_get_bounds(self.lines[i], max_width)
                 if h + height > self.pixel_height then
                     maxy = i - 1
                     break
@@ -4185,69 +4185,69 @@ local Text_Editor = Object:clone {
                 end
                 if  ey > maxy then
                     ey = maxy
-                    pey = self.pixel_height - EV.fonth
+                    pey = self.pixel_height - _V.fonth
                     pex = self.pixel_width
                 end
 
-                CAPI.shader_hudnotexture_set()
-                CAPI.gle_color3ub(0xA0, 0x80, 0x80)
-                CAPI.gle_defvertex(2)
-                CAPI.gle_begin(gl.QUADS)
+                _C.shader_hudnotexture_set()
+                _C.gle_color3ub(0xA0, 0x80, 0x80)
+                _C.gle_defvertex(2)
+                _C.gle_begin(gl.QUADS)
                 if psy == pey then
-                    CAPI.gle_attrib2f(x + psx, y + psy)
-                    CAPI.gle_attrib2f(x + pex, y + psy)
-                    CAPI.gle_attrib2f(x + pex, y + pey + EV.fonth)
-                    CAPI.gle_attrib2f(x + psx, y + pey + EV.fonth)
+                    _C.gle_attrib2f(x + psx, y + psy)
+                    _C.gle_attrib2f(x + pex, y + psy)
+                    _C.gle_attrib2f(x + pex, y + pey + _V.fonth)
+                    _C.gle_attrib2f(x + psx, y + pey + _V.fonth)
                 else
-                    CAPI.gle_attrib2f(x + psx,              y + psy)
-                    CAPI.gle_attrib2f(x + psx,              y + psy + EV.fonth)
-                    CAPI.gle_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
-                    CAPI.gle_attrib2f(x + self.pixel_width, y + psy)
-                    if (pey - psy) > EV.fonth then
-                        CAPI.gle_attrib2f(x,                    y + psy + EV.fonth)
-                        CAPI.gle_attrib2f(x + self.pixel_width, y + psy + EV.fonth)
-                        CAPI.gle_attrib2f(x + self.pixel_width, y + pey)
-                        CAPI.gle_attrib2f(x,                    y + pey)
+                    _C.gle_attrib2f(x + psx,              y + psy)
+                    _C.gle_attrib2f(x + psx,              y + psy + _V.fonth)
+                    _C.gle_attrib2f(x + self.pixel_width, y + psy + _V.fonth)
+                    _C.gle_attrib2f(x + self.pixel_width, y + psy)
+                    if (pey - psy) > _V.fonth then
+                        _C.gle_attrib2f(x,                    y + psy + _V.fonth)
+                        _C.gle_attrib2f(x + self.pixel_width, y + psy + _V.fonth)
+                        _C.gle_attrib2f(x + self.pixel_width, y + pey)
+                        _C.gle_attrib2f(x,                    y + pey)
                     end
-                    CAPI.gle_attrib2f(x,       y + pey)
-                    CAPI.gle_attrib2f(x,       y + pey + EV.fonth)
-                    CAPI.gle_attrib2f(x + pex, y + pey + EV.fonth)
-                    CAPI.gle_attrib2f(x + pex, y + pey)
+                    _C.gle_attrib2f(x,       y + pey)
+                    _C.gle_attrib2f(x,       y + pey + _V.fonth)
+                    _C.gle_attrib2f(x + pex, y + pey + _V.fonth)
+                    _C.gle_attrib2f(x + pex, y + pey)
                 end
-                CAPI.gle_end()
-                CAPI.shader_hud_set()
+                _C.gle_end()
+                _C.shader_hud_set()
             end
         end
 
         local h = 0
         for i = self.scrolly + 1, #self.lines do
-            local width, height = CAPI.text_get_bounds(self.lines[i], max_width)
+            local width, height = _C.text_get_bounds(self.lines[i], max_width)
             if h + height > self.pixel_height then
                 break
             end
             local r, g, b = hextorgb(color)
-            CAPI.text_draw(self.password and ("*"):rep(#self.lines[i])
+            _C.text_draw(self.password and ("*"):rep(#self.lines[i])
                 or self.lines[i], x, y + h, r, g, b, 0xFF,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
             -- line wrap indicator
-            if self.line_wrap and height > EV.fonth then
-                CAPI.shader_hudnotexture_set()
-                CAPI.gle_color3ub(0x80, 0xA0, 0x80)
-                CAPI.gle_defvertex(2)
-                CAPI.gle_begin(gl.gl.TRIANGLE_STRIP)
-                CAPI.gle_attrib2f(x,                y + h + EV.fonth)
-                CAPI.gle_attrib2f(x,                y + h + height)
-                CAPI.gle_attrib2f(x - EV.fontw / 2, y + h + EV.fonth)
-                CAPI.gle_attrib2f(x - EV.fontw / 2, y + h + height)
-                CAPI.gle_end()
-                CAPI.shader_hud_set()
+            if self.line_wrap and height > _V.fonth then
+                _C.shader_hudnotexture_set()
+                _C.gle_color3ub(0x80, 0xA0, 0x80)
+                _C.gle_defvertex(2)
+                _C.gle_begin(gl.gl.TRIANGLE_STRIP)
+                _C.gle_attrib2f(x,                y + h + _V.fonth)
+                _C.gle_attrib2f(x,                y + h + height)
+                _C.gle_attrib2f(x - _V.fontw / 2, y + h + _V.fonth)
+                _C.gle_attrib2f(x - _V.fontw / 2, y + h + height)
+                _C.gle_end()
+                _C.shader_hud_set()
             end
 
             h = h + height
         end
 
-        CAPI.hudmatrix_pop()
+        _C.hudmatrix_pop()
 
         return Object.draw(self, sx, sy)
     end
@@ -4464,7 +4464,7 @@ local Resizer = Object:clone {
 }
 
 local cursor_reset = function()
-    if EV.editing ~= 0 or #world.p_children == 0 then
+    if _V.editing ~= 0 or #world.p_children == 0 then
         cursor_x = 0.5
         cursor_y = 0.5
     end
@@ -4475,14 +4475,14 @@ var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
 
 local cursor_move = function(dx, dy)
     if (#world.p_children == 0 or not world.focus_children(world)) and
-        EV.mouselook ~= 0
+        _V.mouselook ~= 0
     then
         return false
     end
 
-    local scale = 500 / EV.cursorsensitivity
+    local scale = 500 / _V.cursorsensitivity
 
-    cursor_x = clamp(cursor_x + dx * (EV.scr_h / (EV.scr_w * scale)), 0, 1)
+    cursor_x = clamp(cursor_x + dx * (_V.scr_h / (_V.scr_w * scale)), 0, 1)
     cursor_y = clamp(cursor_y + dy / scale, 0, 1)
 
     return true
@@ -4506,7 +4506,7 @@ end
 set_external("cursor_exists", cursor_exists)
 
 local cursor_get_position = function()
-    if #world.p_children ~= 0 or EV.mouselook == 0 then
+    if #world.p_children ~= 0 or _V.mouselook == 0 then
         return cursor_x, cursor_y
     else
         return 0.5, 0.5
@@ -4549,8 +4549,8 @@ set_external("input_keypress", function(code, isdown)
 end)
 
 set_external("gui_clear", function()
-    if  EV.mainmenu ~= 0 and CAPI.isconnected() then
-        EV.mainmenu  = 0
+    if  _V.mainmenu ~= 0 and _C.isconnected() then
+        var.set("mainmenu", 0, true, false) -- no clamping, readonly var
 
         world:hide_children()
         worlds = { world }
@@ -4575,14 +4575,14 @@ set_external("gl_render", function()
         local w = worlds[i]
 
         if #w.p_children ~= 0 then
-            CAPI.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
-            CAPI.hudmatrix_reset()
-            CAPI.shader_hud_set()
+            _C.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
+            _C.hudmatrix_reset()
+            _C.shader_hud_set()
 
-            CAPI.gl_blend_enable()
-            CAPI.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            _C.gl_blend_enable()
+            _C.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-            CAPI.gle_color3f(1, 1, 1)
+            _C.gle_color3f(1, 1, 1)
             w:draw()
 
             local tooltip = hovering and hovering.tooltip
@@ -4604,7 +4604,7 @@ set_external("gl_render", function()
                 tooltip:draw(x, y)
             end
 
-            local wh = cursor_exists() or EV.mouselook == 0
+            local wh = cursor_exists() or _V.mouselook == 0
 
             if wh then
                 local  pointer = hovering and hovering.pointer or w.p_pointer
@@ -4613,7 +4613,7 @@ set_external("gl_render", function()
                     local x, y = cursor_x * d - max((d - 1) / 2, 0), cursor_y
 
                     if pointer.type == TYPE_IMAGE then
-                        local tex, scrh = pointer.i_tex, EV.scr_h
+                        local tex, scrh = pointer.i_tex, _V.scr_h
                         local wh, hh    = tex:get_w() / scrh / 2, tex:get_h() / scrh / 2
 
                         pointer:draw(x - wh, y - hh)
@@ -4623,8 +4623,8 @@ set_external("gl_render", function()
                 end
             end
 
-            CAPI.gl_scissor_disable()
-            CAPI.gle_disable()
+            _C.gl_scissor_disable()
+            _C.gle_disable()
         end
     end
 end)
@@ -4634,7 +4634,7 @@ local needsapply = {}
 var.new("applydialog", var.INT, 0, 1, 1, var.PERSIST)
 
 set_external("change_add", function(desc, ctype)
-    if EV["applydialog"] == 0 then return nil end
+    if _V["applydialog"] == 0 then return nil end
 
     for i, v in pairs(needsapply) do
         if v.desc == desc then return nil end
@@ -4691,7 +4691,7 @@ end)
 set_external("frame_start", function()
     if not main then main = signal.emit(world, "get_main") end
 
-    if EV.mainmenu ~= 0 and not CAPI.isconnected(true) and not main.p_visible then
+    if _V.mainmenu ~= 0 and not _C.isconnected(true) and not main.p_visible then
         main.visible = true
     end
 
@@ -4753,8 +4753,8 @@ set_external("frame_start", function()
 
     if refreshrepeat ~= 0 or (textediting ~= nil) ~= wastextediting then
         local c = textediting ~= nil
-        CAPI.input_textinput(c, blsh(1, 1)) -- TI_GUI
-        CAPI.input_keyrepeat(c, blsh(1, 1)) -- KR_GUI
+        _C.input_textinput(c, blsh(1, 1)) -- TI_GUI
+        _C.input_keyrepeat(c, blsh(1, 1)) -- KR_GUI
         refreshrepeat = 0
     end
 
@@ -4770,9 +4770,9 @@ local f = function(_, self, ...)
     if _ then _(self, ...) end
 end
 
-signal.connect(EV, "scr_w_changed", f)
-signal.connect(EV, "scr_h_changed", f)
-signal.connect(EV, "uitextrows_changed", f)
+signal.connect(_V, "scr_w_changed", f)
+signal.connect(_V, "scr_h_changed", f)
+signal.connect(_V, "uitextrows_changed", f)
 
 return {
     register_world = register_world,

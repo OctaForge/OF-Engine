@@ -253,7 +253,7 @@ end
     Gets an array of players (all of the currently set player class).
 ]]
 local get_players = function()
-    return storage_by_class[EV.player_class] or {}
+    return storage_by_class[_V.player_class] or {}
 end
 M.get_players = get_players
 
@@ -444,7 +444,7 @@ M.load = function()
     if not SERVER then return nil end
 
     #log(DEBUG, "ents.load: reading")
-    local el = CAPI.readfile("./entities.lua")
+    local el = _C.readfile("./entities.lua")
 
     local entities = {}
     if not el then
@@ -457,7 +457,7 @@ M.load = function()
         #log(DEBUG, "ents.load: loading sauer entities")
         #log(DEBUG, "    reading import.lua for imported models and sounds")
 
-        local il, im, is = CAPI.readfile("./import.lua"), {}, {}
+        local il, im, is = _C.readfile("./import.lua"), {}, {}
         if il then
             local it = deserialize(il)
             local itm, its = it.models, it.sounds
@@ -561,13 +561,13 @@ M.load = function()
         #log(DEBUG, "    " .. uid .. ", " .. cn)
 
         -- backwards compatibility
-        if EV.mapversion <= 30 and sd.attr1 then
+        if _V.mapversion <= 30 and sd.attr1 then
             if  cn ~= "Light" and cn ~= "flickering_light"
             and cn ~= "Particle_Effect" and cn ~= "Envmap" then
                 sd.attr1 = (sd.attr1 + 180) % 360
             end
         end
-        if EV.mapversion <= 31 and sd.attr1 then
+        if _V.mapversion <= 31 and sd.attr1 then
             if  cn ~= "Light" and cn ~= "flickering_light"
             and cn ~= "Particle_Effect" and cn ~= "Envmap"
             and cn ~= "World_Marker" then
@@ -726,12 +726,12 @@ Entity = table.Object:clone {
     ]]
     deactivate = function(self)
         self:clear_actions()
-        CAPI.unregister_entity(self.uid)
+        _C.unregister_entity(self.uid)
 
         self.deactivated = true
 
         if SERVER then
-            msg.send(msg.ALL_CLIENTS, CAPI.le_removal, self.uid)
+            msg.send(msg.ALL_CLIENTS, _C.le_removal, self.uid)
         end
     end,
 
@@ -962,7 +962,7 @@ Entity = table.Object:clone {
 
         if not self.sauer_type then
             #log(DEBUG, "Entity.activate: non-sauer entity: " .. tostring(self))
-            CAPI.setup_nonsauer(self)
+            _C.setup_nonsauer(self)
             if SERVER then
                 self:flush_queued_svar_changes()
             end
@@ -1020,8 +1020,8 @@ Entity = table.Object:clone {
         if not nfh and not csfh then
             #log(DEBUG, "    sending server request/notification.")
             -- TODO: supress sending of the same val, at least for some SVs
-            msg.send(var.reliable and CAPI.statedata_changerequest
-                or CAPI.statedata_changerequest_unreliable,
+            msg.send(var.reliable and _C.statedata_changerequest
+                or _C.statedata_changerequest_unreliable,
                 self.uid, names_to_ids[tostring(self)][var.name],
                 var:to_wire(val))
         end
@@ -1075,8 +1075,8 @@ Entity = table.Object:clone {
             end
 
             local args = {
-                nil, var.reliable and CAPI.statedata_update
-                    or CAPI.statedata_update_unreliable,
+                nil, var.reliable and _C.statedata_update
+                    or _C.statedata_update_unreliable,
                 self.uid,
                 names_to_ids[tostring(self)][key],
                 var:to_wire(val),
@@ -1112,7 +1112,7 @@ Entity = table.Object:clone {
         local scn, sname = self.cn, tostring(self)
         for i = 1, #cns do
             local n = cns[i]
-            msg.send(n, CAPI.le_notification_complete,
+            msg.send(n, _C.le_notification_complete,
                 scn and scn or acn, uid, sname, self:build_sdata(
                     { target_cn = n, compressed = true }))
         end
@@ -1307,7 +1307,7 @@ M.send = SERVER and function(cn)
     sort(uids)
 
     local n = #uids
-    msg.send(cn, CAPI.notify_numents, n)
+    msg.send(cn, _C.notify_numents, n)
 
     for i = 1, n do
         storage[uids[i]]:send_notification_full(cn)

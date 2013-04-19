@@ -12,7 +12,7 @@
     About: Purpose
         Provides high level engine variables handling, such as creation,
         access and setting. Further accessible as "var" and the engine
-        variable table as EV (global).
+        variable table as _V (global).
 ]]
 
 local VAR_I = 0
@@ -26,32 +26,32 @@ local VAR_READONLY = math.lsh(1, 3)
 
 local get_pretty = function(name)
     local val = get   (name)
-    if CAPI.var_is_hex(name) then
+    if _C.var_is_hex(name) then
         return ("0x%X (%d, %d, %d)"):format(val, hextorgb(val))
     end
     return tostring(val)
 end
 
-EV = setmetatable({
+_V = setmetatable({
     __connect = function(self, name)
         local  vn = name:match("(.+)_changed$")
         if not vn then return nil end
-        CAPI.var_emits(vn, true)
+        _C.var_emits(vn, true)
     end,
 
     __disconnect = function(self, name, id, len)
         if id and len ~= 0 then return nil end
         local  vn = name:match("(.+)_changed$")
         if not vn then return nil end
-        CAPI.var_emits(vn, false)
+        _C.var_emits(vn, false)
     end
 }, {
     __index = function(self, name)
-        return CAPI.var_get(name)
+        return _C.var_get(name)
     end,
 
     __newindex = function(self, name, value)
-        CAPI.var_set(name, value)
+        _C.var_set(name, value)
     end
 })
 
@@ -65,16 +65,16 @@ return {
     FLOAT  = VAR_F,
     STRING = VAR_S,
 
-    reset        = CAPI.var_reset,
-    new          = CAPI.var_new,
-    set          = CAPI.var_set,
-    get          = CAPI.var_get,
-    get_min      = CAPI.var_get_min,
-    get_max      = CAPI.var_get_max,
-    get_def      = CAPI.var_get_def,
-    get_type     = CAPI.var_get_type,
+    reset        = _C.var_reset,
+    new          = _C.var_new,
+    set          = _C.var_set,
+    get          = _C.var_get,
+    get_min      = _C.var_get_min,
+    get_max      = _C.var_get_max,
+    get_def      = _C.var_get_def,
+    get_type     = _C.var_get_type,
     get_pretty   = get_pretty,
-    is_hex       = CAPI.var_is_hex,
-    exists       = CAPI.var_exists,
-    emits        = CAPI.var_emits
+    is_hex       = _C.var_is_hex,
+    exists       = _C.var_exists,
+    emits        = _C.var_emits
 }

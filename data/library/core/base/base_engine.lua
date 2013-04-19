@@ -37,10 +37,10 @@ module("engine", package.seeall)
     Returns:
         true if found, false otherwise.
 ]]
-glext = CAPI.glext
+glext = _C.glext
 
 --[[!
     Function: get_server_log_file
     Returns the name of OctaForge server log file.
 ]]
-get_server_log_file = CAPI.getserverlogfile
+get_server_log_file = _C.getserverlogfile

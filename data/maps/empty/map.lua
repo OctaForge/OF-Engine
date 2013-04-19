@@ -23,7 +23,7 @@ library.include("guns.rocket_launcher")
 library.include("weather_effects")
 
 -- default skybox
-EV.skybox = "textures/sky/remus/sky01"
+_V.skybox = "textures/sky/remus/sky01"
 
 -- use drawing mode on empty map
 library.include("mapscripts.drawing")

@@ -81,7 +81,7 @@ rain = {
         self.drops = {}
 
         -- world size
-        local wsize = EV.mapsize
+        local wsize = _V.mapsize
 
         -- the game manager singleton
         local singleton = game_manager.get_singleton()

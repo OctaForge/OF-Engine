@@ -1241,7 +1241,7 @@ fpsent *getproxyfpsent(lua_State *L, CLogicEntity *self) {
 }
 
 LUAICOMMAND(model_render, {
-    LUA_GET_ENT(entity, "CAPI.rendermodel", return 0)
+    LUA_GET_ENT(entity, "_C.rendermodel", return 0)
 
     int anim = luaL_checkinteger(L, 3);
     preparerd(L, anim, entity);

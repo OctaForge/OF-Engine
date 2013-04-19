@@ -17,7 +17,7 @@
 
 #define LAPI_REG(name) LUACOMMAND(name, _lua_##name)
 #define LAPI_EMPTY(name) int _lua_##name(lua_State *L) \
-{ logger::log(logger::DEBUG, "stub: CAPI."#name"\n"); return 0; }
+{ logger::log(logger::DEBUG, "stub: _C."#name"\n"); return 0; }
 
 #include "of_lua_api.h"
 
@@ -112,7 +112,7 @@ namespace lua
             funs->add((Reg){ name, fun });
             return true;
         }
-        if (!onst) lua_getglobal(L, "CAPI");
+        if (!onst) lua_getglobal(L, "_C");
         lua_pushcfunction(L, fun);
         lua_setfield(L, -2, name);
         if (!onst) lua_pop(L, 1);
@@ -209,9 +209,9 @@ namespace lua
         delete funs;
         funs = NULL;
         lua_getfield (L, LUA_REGISTRYINDEX, "_LOADED");
-        lua_pushvalue(L, -2); lua_setfield (L, -2, "CAPI");
+        lua_pushvalue(L, -2); lua_setfield (L, -2, "_C");
         lua_pop      (L,  1);
-        lua_setglobal(L, "CAPI");
+        lua_setglobal(L, "_C");
         load_module("init");
     }
 

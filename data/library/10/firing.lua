@@ -262,7 +262,7 @@ function gun:do_shot(shooter, target_position, target_entity)
 end
 
 function gun:get_origin(shooter)
-    return CAPI.get_attachment_position(shooter, self.origin_tag)
+    return _C.get_attachment_position(shooter, self.origin_tag)
 end
 
 function gun:do_recoil(shooter, magnitude)

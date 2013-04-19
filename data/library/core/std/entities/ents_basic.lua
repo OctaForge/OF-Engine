@@ -39,11 +39,11 @@ local Physical_Entity = Entity:clone {
 
     properties = {
         animation = svars.State_Integer {
-            setter = "CAPI.set_animation", client_set = true
+            setter = "_C.set_animation", client_set = true
         },
-        start_time  = svars.State_Integer { getter = "CAPI.get_start_time"   },
-        model_name  = svars.State_String  { setter = "CAPI.set_model_name"   },
-        attachments = svars.State_Array   { setter = "CAPI.set_attachments" } 
+        start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
+        model_name  = svars.State_String  { setter = "_C.set_model_name"   },
+        attachments = svars.State_Array   { setter = "_C.set_attachments" } 
     },
 
     init = SERVER and function(self, uid, kwargs)
@@ -68,7 +68,7 @@ local Physical_Entity = Entity:clone {
         don't need the changes to reflect elsewhere).
     ]]
     set_local_animation = function(self, anim)
-        CAPI.set_animation(self, anim)
+        _C.set_animation(self, anim)
         self.svar_values["animation"] = anim
     end,
 
@@ -76,7 +76,7 @@ local Physical_Entity = Entity:clone {
         Sets the model name property locally, without notifying the other side.
     ]]
     set_local_model_name = function(self, mname)
-        CAPI.set_model_name(self, mname)
+        _C.set_model_name(self, mname)
         self.svar_values["model_name"] = mname
     end,
 
@@ -212,81 +212,81 @@ local Character = Physical_Entity:clone {
         facing_speed   = svars.State_Integer(),
 
         movement_speed = svars.State_Float {
-            getter = "CAPI.get_maxspeed", setter = "CAPI.set_maxspeed"
+            getter = "_C.get_maxspeed", setter = "_C.set_maxspeed"
         },
         yaw = svars.State_Float {
-            getter = "CAPI.get_yaw", setter = "CAPI.set_yaw",
+            getter = "_C.get_yaw", setter = "_C.set_yaw",
             custom_sync = true
         },
         pitch = svars.State_Float {
-            getter = "CAPI.get_pitch", setter = "CAPI.set_pitch",
+            getter = "_C.get_pitch", setter = "_C.set_pitch",
             custom_sync = true
         },
         move = svars.State_Integer {
-            getter = "CAPI.get_move", setter = "CAPI.set_move",
+            getter = "_C.get_move", setter = "_C.set_move",
             custom_sync = true
         },
         strafe = svars.State_Integer {
-            getter = "CAPI.get_strafe", setter = "CAPI.set_strafe",
+            getter = "_C.get_strafe", setter = "_C.set_strafe",
             custom_sync = true
         },
         yawing = svars.State_Integer {
-            getter = "CAPI.get_yawing", setter = "CAPI.set_yawing",
+            getter = "_C.get_yawing", setter = "_C.set_yawing",
             custom_sync = true
         },
         pitching = svars.State_Integer {
-            getter = "CAPI.get_pitching", setter = "CAPI.set_pitching",
+            getter = "_C.get_pitching", setter = "_C.set_pitching",
             custom_sync = true
         },
         position = svars.State_Vec3 {
-            getter = "CAPI.get_dynent_position",
-            setter = "CAPI.set_dynent_position",
+            getter = "_C.get_dynent_position",
+            setter = "_C.set_dynent_position",
             custom_sync = true
         },
         velocity = svars.State_Vec3 {
-            getter = "CAPI.get_dynent_velocity",
-            setter = "CAPI.set_dynent_velocity",
+            getter = "_C.get_dynent_velocity",
+            setter = "_C.set_dynent_velocity",
             custom_sync = true
         },
         falling = svars.State_Vec3 {
-            getter = "CAPI.get_dynent_falling",
-            setter = "CAPI.set_dynent_falling",
+            getter = "_C.get_dynent_falling",
+            setter = "_C.set_dynent_falling",
             custom_sync = true
         },
         radius = svars.State_Float {
-            getter = "CAPI.get_radius", setter = "CAPI.set_radius"
+            getter = "_C.get_radius", setter = "_C.set_radius"
         },
         above_eye = svars.State_Float {
-            getter = "CAPI.get_aboveeye", setter = "CAPI.set_aboveeye"
+            getter = "_C.get_aboveeye", setter = "_C.set_aboveeye"
         },
         eye_height = svars.State_Float {
-            getter = "CAPI.get_eyeheight", setter = "CAPI.set_eyeheight"
+            getter = "_C.get_eyeheight", setter = "_C.set_eyeheight"
         },
         blocked = svars.State_Boolean {
-            getter = "CAPI.get_blocked", setter = "CAPI.set_blocked"
+            getter = "_C.get_blocked", setter = "_C.set_blocked"
         },
         can_move = svars.State_Boolean {
-            setter = "CAPI.set_can_move", client_set = true
+            setter = "_C.set_can_move", client_set = true
         },
         map_defined_position_data = svars.State_Integer {
-            getter = "CAPI.get_mapdefinedposdata",
-            setter = "CAPI.set_mapdefinedposdata",
+            getter = "_C.get_mapdefinedposdata",
+            setter = "_C.set_mapdefinedposdata",
             custom_sync = true
         },
         client_state = svars.State_Integer {
-            getter = "CAPI.get_clientstate", setter = "CAPI.set_clientstate",
+            getter = "_C.get_clientstate", setter = "_C.set_clientstate",
             custom_sync = true
         },
         physical_state = svars.State_Integer {
-            getter = "CAPI.get_physstate", setter = "CAPI.set_physstate",
+            getter = "_C.get_physstate", setter = "_C.set_physstate",
             custom_sync = true
         },
         in_water = svars.State_Integer {
-            getter = "CAPI.get_inwater", setter = "CAPI.set_inwater",
+            getter = "_C.get_inwater", setter = "_C.set_inwater",
             custom_sync = true
         },
         time_in_air = svars.State_Integer {
-            getter = "CAPI.get_timeinair", setter = "CAPI.set_timeinair",
+            getter = "_C.get_timeinair", setter = "_C.set_timeinair",
             custom_sync = true
         }
     },
@@ -295,11 +295,11 @@ local Character = Physical_Entity:clone {
         A handler called when the character is about to jump.
     ]]
     jump = function(self)
-        CAPI.set_jumping(self, true)
+        _C.set_jumping(self, true)
     end,
 
-    get_plag = CAPI.get_plag,
-    get_ping = CAPI.get_ping,
+    get_plag = _C.get_plag,
+    get_ping = _C.get_ping,
     get_editing = function(self) return self.client_state == 4 end,
     get_lagged = function(self) return self.client_state == 3 end,
 
@@ -326,7 +326,7 @@ local Character = Physical_Entity:clone {
     activate = SERVER and function(self, kwargs)
         self.cn = kwargs and kwargs.cn or -1
         assert(self.cn >= 0)
-        CAPI.setup_character(self)
+        _C.setup_character(self)
 
         Physical_Entity.activate(self, kwargs)
 
@@ -335,13 +335,13 @@ local Character = Physical_Entity:clone {
         Physical_Entity.activate(self, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
-        CAPI.setup_character(self)
+        _C.setup_character(self)
 
         self.render_args_timestamp = -1
     end,
 
     deactivate = function(self)
-        CAPI.destroy_character(self)
+        _C.destroy_character(self)
         Physical_Entity.deactivate(self)
     end,
 
@@ -569,23 +569,23 @@ local Static_Entity = Physical_Entity:clone {
     properties = {
         radius = svars.State_Float(),
         position = svars.State_Vec3 {
-            getter = "CAPI.get_extent_position",
-            setter = "CAPI.set_extent_position"
+            getter = "_C.get_extent_position",
+            setter = "_C.set_extent_position"
         },
         attr1 = svars.State_Integer {
-            getter = "CAPI.get_attr1", setter = "CAPI.set_attr1"
+            getter = "_C.get_attr1", setter = "_C.set_attr1"
         },
         attr2 = svars.State_Integer {
-            getter = "CAPI.get_attr2", setter = "CAPI.set_attr2"
+            getter = "_C.get_attr2", setter = "_C.set_attr2"
         },
         attr3 = svars.State_Integer {
-            getter = "CAPI.get_attr3", setter = "CAPI.set_attr3"
+            getter = "_C.get_attr3", setter = "_C.set_attr3"
         },
         attr4 = svars.State_Integer {
-            getter = "CAPI.get_attr4", setter = "CAPI.set_attr4"
+            getter = "_C.get_attr4", setter = "_C.set_attr4"
         },
         attr5 = svars.State_Integer {
-            getter = "CAPI.get_attr5", setter = "CAPI.set_attr5"
+            getter = "_C.get_attr5", setter = "_C.set_attr5"
         }
     },
 
@@ -630,7 +630,7 @@ local Static_Entity = Physical_Entity:clone {
         kwargs.attr5 = self.attr5 or 0
 
         #log(DEBUG, "Static_Entity: extent setup")
-        CAPI.setup_extent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z,
+        _C.setup_extent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z,
             kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4,
             kwargs.attr5)
 
@@ -648,14 +648,14 @@ local Static_Entity = Physical_Entity:clone {
             kwargs.attr4, kwargs.attr5 = 0, 0
         end
 
-        CAPI.setup_extent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z,
+        _C.setup_extent(self, kwargs._type, kwargs.x, kwargs.y, kwargs.z,
             kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4,
             kwargs.attr5)
         return Physical_Entity.activate(self, kwargs)
     end,
 
     deactivate = function(self)
-        CAPI.destroy_extent(self)
+        _C.destroy_extent(self)
         return Physical_Entity.deactivate(self)
     end,
 
@@ -673,7 +673,7 @@ local Static_Entity = Physical_Entity:clone {
         local scn, sname = self.cn, tostring(self)
         for i = 1, #cns do
             local n = cns[i]
-            msg.send(n, CAPI.extent_notification_complete,
+            msg.send(n, _C.extent_notification_complete,
                 uid, sname, self:build_sdata({
                     target_cn = n, compressed = true }),
                 tonumber(self.position.x), tonumber(self.position.y),
@@ -716,23 +716,23 @@ local Light = Static_Entity:clone {
 
     properties = {
         attr1 = svars.State_Integer({
-            getter = "CAPI.get_attr1", setter = "CAPI.set_attr1",
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "radius", alt_name = "radius"
         }),
         attr2 = svars.State_Integer({
-            getter = "CAPI.get_attr2", setter = "CAPI.set_attr2",
+            getter = "_C.get_attr2", setter = "_C.set_attr2",
             gui_name = "red", alt_name = "red"
         }),
         attr3 = svars.State_Integer({
-            getter = "CAPI.get_attr3", setter = "CAPI.set_attr3",
+            getter = "_C.get_attr3", setter = "_C.set_attr3",
             gui_name = "green", alt_name = "green"
         }),
         attr4 = svars.State_Integer({
-            getter = "CAPI.get_attr4", setter = "CAPI.set_attr4",
+            getter = "_C.get_attr4", setter = "_C.set_attr4",
             gui_name = "blue", alt_name = "blue"
         }),
         attr5 = svars.State_Integer({
-            getter = "CAPI.get_attr5", setter = "CAPI.set_attr5",
+            getter = "_C.get_attr5", setter = "_C.set_attr5",
             gui_name = "shadow", alt_name = "shadow"
         })
     },
@@ -760,7 +760,7 @@ local Spot_Light = Static_Entity:clone {
 
     properties = {
         attr1 = svars.State_Integer {
-            getter = "CAPI.get_attr1", setter = "CAPI.set_attr1",
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "radius", alt_name = "radius"
         }
     },
@@ -787,7 +787,7 @@ local Envmap = Static_Entity:clone {
 
     properties = {
         attr1 = svars.State_Integer {
-            getter = "CAPI.get_attr1", setter = "CAPI.set_attr1",
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "radius", alt_name = "radius"
         }
     },
@@ -820,19 +820,19 @@ local Sound = Static_Entity:clone {
 
     properties = {
         attr2 = svars.State_Integer {
-            getter = "CAPI.get_attr2", setter = "CAPI.set_attr2",
+            getter = "_C.get_attr2", setter = "_C.set_attr2",
             gui_name = "radius", alt_name = "radius"
         },
         attr3 = svars.State_Integer {
-            getter = "CAPI.get_attr3", setter = "CAPI.set_attr3",
+            getter = "_C.get_attr3", setter = "_C.set_attr3",
             gui_name = "size", alt_name = "size"
         },
         attr4 = svars.State_Integer {
-            getter = "CAPI.get_attr4", setter = "CAPI.set_sound_volume",
+            getter = "_C.get_attr4", setter = "_C.set_sound_volume",
             gui_name = "volume", alt_name = "volume"
         },
         sound_name = svars.State_String {
-            setter = "CAPI.set_sound_name"
+            setter = "_C.set_sound_name"
         }
     },
 
@@ -940,19 +940,19 @@ local Particle_Effect = Static_Entity:clone {
 
     properties = {
         attr1 = svars.State_Integer {
-            getter = "CAPI.get_attr1", setter = "CAPI.set_attr1",
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "particle_type", alt_name = "particle_type"
         },
         attr2 = svars.State_Integer {
-            getter = "CAPI.get_attr2", setter = "CAPI.set_attr2",
+            getter = "_C.get_attr2", setter = "_C.set_attr2",
             gui_name = "value1", alt_name = "value1"
         },
         attr3 = svars.State_Integer {
-            getter = "CAPI.get_attr3", setter = "CAPI.set_attr3",
+            getter = "_C.get_attr3", setter = "_C.set_attr3",
             gui_name = "value2", alt_name = "value2"
         },
         attr4 = svars.State_Integer {
-            getter = "CAPI.get_attr4", setter = "CAPI.set_attr4",
+            getter = "_C.get_attr4", setter = "_C.set_attr4",
             gui_name = "value3", alt_name = "value3"
         }
     },
@@ -982,14 +982,14 @@ local Mapmodel = Static_Entity:clone {
 
     properties = {
         attr1 = svars.State_Integer {
-            getter = "CAPI.get_attr1", setter = "CAPI.set_attr1",
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "yaw", alt_name = "yaw"
         },
         collision_radius_width = svars.State_Float {
-            getter = "CAPI.get_collision_radius_w", setter = "CAPI.set_collision_radius_w"
+            getter = "_C.get_collision_radius_w", setter = "_C.set_collision_radius_w"
         },
         collision_radius_height = svars.State_Float {
-            getter = "CAPI.get_collision_radius_h", setter = "CAPI.set_collision_radius_h"
+            getter = "_C.get_collision_radius_h", setter = "_C.set_collision_radius_h"
         }
     },
 
@@ -1049,7 +1049,7 @@ local World_Marker = Static_Entity:clone {
 
     properties = {
         attr1 = svars.State_Integer {
-            getter = "CAPI.get_attr1", setter = "CAPI.set_attr1",
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "yaw", alt_name = "yaw"
         }
     },

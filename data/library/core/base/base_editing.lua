@@ -43,7 +43,7 @@ module("edit", package.seeall)
     See Also:
         <delete_npc>
 ]]
-add_npc = CAPI.npcadd
+add_npc = _C.npcadd
 
 --[[!
     Function: delete_npc
@@ -52,7 +52,7 @@ add_npc = CAPI.npcadd
 
     Again, this is a server command.
 ]]
-delete_npc = CAPI.npcdel
+delete_npc = _C.npcdel
 
 --[[!
     Function: new_entity
@@ -62,7 +62,7 @@ delete_npc = CAPI.npcdel
     Parameters:
         class - the entity class name.
 ]]
-new_entity = CAPI.spawnent
+new_entity = _C.spawnent
 
 --[[!
     Function: get_material
@@ -72,7 +72,7 @@ new_entity = CAPI.spawnent
     <MATERIAL_CLIP>.
 ]]
 get_material = function(o)
-    return CAPI.getmat(o.x, o.y, o.z)
+    return _C.getmat(o.x, o.y, o.z)
 end
 
 --[[!
@@ -85,7 +85,7 @@ procedural = {
         Function: erase_geometry
         Clears out all map geometry.
     ]]
-    erase_geometry = CAPI.edit_erase_geometry,
+    erase_geometry = _C.edit_erase_geometry,
 
     --[[!
         Function: create_cube
@@ -108,14 +108,14 @@ procedural = {
             z - the z position of the cube.
             gridsize - see <world.get_grid_size>.
     ]]
-    create_cube = CAPI.edit_create_cube,
+    create_cube = _C.edit_create_cube,
 
     --[[!
         Function: delete_cube
         Parameters and rules are the same as for <create_cube>,
         but it actually deletes cubes instead of creating.
     ]]
-    delete_cube = CAPI.edit_delete_cube,
+    delete_cube = _C.edit_delete_cube,
 
     --[[!
         Function: set_cube_texture
@@ -135,7 +135,7 @@ procedural = {
             4 - bottom side of the cube
             5 - top side of the cube
     ]]
-    set_cube_texture = CAPI.edit_set_cube_texture,
+    set_cube_texture = _C.edit_set_cube_texture,
 
     --[[!
         Function: set_cube_material
@@ -143,8 +143,8 @@ procedural = {
         argument is the material index, see <edit.get_material>.
         See also <set_cube_texture>.
     ]]
-    set_cube_material = CAPI.edit_set_cube_material,
-    set_cube_color = CAPI.edit_set_cube_color,
+    set_cube_material = _C.edit_set_cube_material,
+    set_cube_color = _C.edit_set_cube_color,
 
     --[[!
         Function: push_cube_corner
@@ -157,5 +157,5 @@ procedural = {
         bottom-left and 3 is bottom-right when facing them directly
         (that is, when we see the texture in right orientation).
     ]]
-    push_cube_corner = CAPI.edit_push_cube_corner
+    push_cube_corner = _C.edit_push_cube_corner
 }

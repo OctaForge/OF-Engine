@@ -190,7 +190,7 @@ NOBATCH = math.lsh(1, 7)
     path relative to the data/models directory (i.e. "foo/bar"
     means "data/models/foo/bar").
 ]]
-clear = CAPI.clearmodel
+clear = _C.clearmodel
 
 --[[!
     Function: preload
@@ -199,14 +199,14 @@ clear = CAPI.clearmodel
     relative to the data/models directory (i.e. "foo/bar" means
     "data/models/foo/bar").
 ]]
-preload = CAPI.preloadmodel
+preload = _C.preloadmodel
 
 --[[!
     Function: reload
     See <clear>. The argument is the same, this basically clears
     and loads again.
 ]]
-reload = CAPI.reloadmodel
+reload = _C.reloadmodel
 
 --[[!
     Function: render
@@ -228,7 +228,7 @@ reload = CAPI.reloadmodel
         base_time - entity's start_time property.
 ]]
 render = function(ent, mdl, anim, pos, yaw, pitch, flags, basetime, trans)
-    CAPI.model_render(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch,
+    _C.model_render(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch,
         flags, basetime, trans)
 end
 
@@ -238,7 +238,7 @@ end
     in the same format as in <render>) and returns them as an array
     of numbers (see <actions>, the ANIM_* variables).
 ]]
-find_animations = CAPI.findanims
+find_animations = _C.findanims
 
 --[[!
     Function: attachment
@@ -269,13 +269,13 @@ end
 
     If the model can't be loaded, nil gets returned.
 ]]
-get_bounding_box = CAPI.model_get_boundbox
+get_bounding_box = _C.model_get_boundbox
 
 --[[!
     Function: get_collision_box
     See <get_bounding_box>.
 ]]
-get_collision_box = CAPI.model_get_collisionbox
+get_collision_box = _C.model_get_collisionbox
 
 --[[!
     Function: get_model_info
@@ -295,4 +295,4 @@ get_collision_box = CAPI.model_get_collisionbox
             }
         (end)
 ]]
-get_model_info = CAPI.model_get_mesh
+get_model_info = _C.model_get_mesh

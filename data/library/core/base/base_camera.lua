@@ -36,7 +36,7 @@ module("camera", package.seeall)
         fov - The fov to force.
 ]]
 force = function(pos, yaw, pitch, roll, fov)
-    CAPI.forcecam(pos.x, pos.y, pos.z, yaw, pitch, roll, fov)
+    _C.forcecam(pos.x, pos.y, pos.z, yaw, pitch, roll, fov)
 end
 
 --[[!
@@ -49,7 +49,7 @@ end
         z - Z position.
 ]]
 force_position = function(pos)
-    CAPI.forcepos(pos.x, pos.y, pos.z)
+    _C.forcepos(pos.x, pos.y, pos.z)
 end
 
 --[[!
@@ -59,7 +59,7 @@ end
     Parameters:
         yaw - The yaw to force.
 ]]
-force_yaw = CAPI.forceyaw
+force_yaw = _C.forceyaw
 
 --[[!
     Function: force_pitch
@@ -68,7 +68,7 @@ force_yaw = CAPI.forceyaw
     Parameters:
         pitch - The pitch to force.
 ]]
-force_pitch = CAPI.forcepitch
+force_pitch = _C.forcepitch
 
 --[[!
     Function: force_roll
@@ -77,7 +77,7 @@ force_pitch = CAPI.forcepitch
     Parameters:
         roll - The roll to force.
 ]]
-force_roll = CAPI.forceroll
+force_roll = _C.forceroll
 
 --[[!
     Function: force_fov
@@ -86,14 +86,14 @@ force_roll = CAPI.forceroll
     Parameters:
         fov - The fov to force.
 ]]
-force_fov = CAPI.forcefov
+force_fov = _C.forcefov
 
 --[[!
     Function: reset
     Resets the camera. This cancels all forced
     values and goes back to fully dynamic camera.
 ]]
-reset = CAPI.resetcam
+reset = _C.resetcam
 
 --[[!
     Function: get
@@ -108,25 +108,25 @@ reset = CAPI.resetcam
         pitch - in degrees
         roll - in degrees
 ]]
-get = CAPI.getcam
+get = _C.getcam
 
 --[[!
     Function: zoom_in
     Zooms the camera in in thirdperson mode.
 ]]
-zoom_in = CAPI.caminc
+zoom_in = _C.caminc
 
 --[[!
     Function: zoom_out
     Zooms the camera out in thirdperson mode.
 ]]
-zoom_out = CAPI.camdec
+zoom_out = _C.camdec
 
 --[[!
     Function: mouselook
     Toggles mouse looking.
 ]]
-mouselook = CAPI.mouselook
+mouselook = _C.mouselook
 
 --[[!
     Functions: center_on_entity
@@ -140,4 +140,4 @@ mouselook = CAPI.mouselook
     Parameters:
         N - the increment factor.
 ]]
-center_on_entity = CAPI.entautoview
+center_on_entity = _C.entautoview

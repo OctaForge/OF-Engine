@@ -63,7 +63,7 @@ local Action = table.Object:clone {
 
         self.begun      = false
         self.finished   = false
-        self.start_time = CAPI.currtime()
+        self.start_time = _C.currtime()
 
         self.seconds_left = (self.seconds_left) or
             kwargs.seconds_left or 0

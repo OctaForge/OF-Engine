@@ -78,7 +78,7 @@ end)
 ]]
 set_ext("input_click", function(btn, down, x, y, z, ent, cx, cy)
     if not get_ext("input_click_client")(btn, down, x, y, z, ent, cx, cy) then
-        msg.send(CAPI.do_click, btn, down, x, y, z, ent and ent.uid or -1)
+        msg.send(_C.do_click, btn, down, x, y, z, ent and ent.uid or -1)
     end
 end)
 

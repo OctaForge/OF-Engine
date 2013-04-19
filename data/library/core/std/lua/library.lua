@@ -35,7 +35,7 @@ end
     require() on the library, which is mostly irrelevant.
 ]]
 M.use = function(name)
-    if not CAPI.setup_library(name) then
+    if not _C.setup_library(name) then
         M.current = nil
         return nil
     end

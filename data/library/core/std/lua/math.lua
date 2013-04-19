@@ -160,7 +160,7 @@ end
     lowest floor instead of highest floor.
 ]]
 math.floor_distance = function(pos, max_dist, radius, lowest)
-    local rt = CAPI.ray_floor(pos.x, pos.y, pos.z, max_dist)
+    local rt = _C.ray_floor(pos.x, pos.y, pos.z, max_dist)
 
     if not radius then
         return rt
@@ -182,7 +182,7 @@ math.floor_distance = function(pos, max_dist, radius, lowest)
                 tbl[x],
                 tbl[y], 0
             ))
-            rt = f(rt, CAPI.ray_floor(o.x, o.y, o.z, max_dist))
+            rt = f(rt, _C.ray_floor(o.x, o.y, o.z, max_dist))
         end
     end
 
@@ -194,7 +194,7 @@ end
     (if there are no obstructions). Returns false otherwise.
 ]]
 math.is_los = function(o, d)
-    return CAPI.ray_los(o.x, o.y, o.z, d.x, d.y, d.z)
+    return _C.ray_los(o.x, o.y, o.z, d.x, d.y, d.z)
 end
 
 --[[! Function: math.yaw_to

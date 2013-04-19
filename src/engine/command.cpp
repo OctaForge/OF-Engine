@@ -18,7 +18,7 @@ void ident::changed() {
     if (!(flags&IDF_SIGNAL)) return;
     lua_getglobal  (lua::L, "signal"); lua_getfield(lua::L, -1, "emit");
     lua_remove     (lua::L, -2);
-    lua_getglobal  (lua::L, "EV");
+    lua_getglobal  (lua::L, "_V");
     lua_pushstring (lua::L, name);
     lua_pushliteral(lua::L, "_changed");
     lua_concat     (lua::L, 2);
@@ -3101,10 +3101,25 @@ LUAICOMMAND(var_set, {
         lua_pushboolean(L, false);
         return 1;
     }
+    int nargs = lua_gettop(L);
     switch (id->type) {
-        case ID_VAR:  setvar(name, luaL_checkinteger(L, 2)); break;
-        case ID_FVAR: setfvar(name, luaL_checknumber(L, 2)); break;
-        case ID_SVAR: setsvar(name, luaL_checkstring(L, 2)); break;
+        case ID_VAR: {
+            setvar(name, luaL_checkinteger(L, 2),
+                (nargs >= 3) ? lua_toboolean(L, 3) : true,
+                (nargs >= 4) ? lua_toboolean(L, 4) : true);
+            break;
+        }
+        case ID_FVAR: {
+            setfvar(name, luaL_checknumber(L, 2),
+                (nargs >= 3) ? lua_toboolean(L, 3) : true,
+                (nargs >= 4) ? lua_toboolean(L, 4) : true);
+            break;
+        }
+        case ID_SVAR: {
+            setsvar(name, luaL_checkstring(L, 2),
+                (nargs >= 3) ? lua_toboolean(L, 3) : true);
+            break;
+        }
         default: lua_pushboolean(L, false); return 1;
     }
     lua_pushboolean(L, true);

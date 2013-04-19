@@ -124,7 +124,7 @@ function decal(decal_type, pos, dir, radius, color, info)
     info      = info or 0
     local r, g, b = hextorgb(color or 0xFFFFFF)
 
-    CAPI.adddecal(decal_type, pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, radius,
+    _C.adddecal(decal_type, pos.x, pos.y, pos.z, dir.x, dir.y, dir.z, radius,
         r, g, b, info)
 end
 
@@ -155,7 +155,7 @@ function dynamic_light(
     fade = fade or 0
     peak = peak or 0
 
-    CAPI.adddynlight(
+    _C.adddynlight(
         pos.x, pos.y, pos.z, radius,
         r / 255, g / 255, b / 255,
         fade * 1000, peak * 1000,
@@ -190,13 +190,13 @@ function splash(
         radius  = radius  or 150
         gravity = gravity or 2
 
-        CAPI.particle_splash(
+        _C.particle_splash(
             particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
             color, size, radius, gravity
         )
     else
         msg.send(
-            msg.ALL_CLIENTS, CAPI.particle_splash_toclients,
+            msg.ALL_CLIENTS, _C.particle_splash_toclients,
             particle_type, num, fade * 1000,
             pos.x, pos.y, pos.z
         ) -- TODO: last 4 params
@@ -229,13 +229,13 @@ function regular_splash(
         radius  = radius  or 150
         gravity = gravity or 2
 
-        CAPI.regular_particle_splash(
+        _C.regular_particle_splash(
             particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
             color, size, radius, gravity, delay
         )
     else
         msg.send(
-            msg.ALL_CLIENTS, CAPI.particle_regularsplash_toclients,
+            msg.ALL_CLIENTS, _C.particle_regularsplash_toclients,
             particle_type, num, fade * 1000,
             pos.x, pos.y, pos.z
         ) -- TODO: last 5 params
@@ -263,7 +263,7 @@ function fireball(
     fade  = (fade ~= nil) and fade * 1000 or -1
     color = color or 0xFFFFFF
     size  = size  or 4.0
-    CAPI.particle_fireball(
+    _C.particle_fireball(
         pos.x, pos.y, pos.z, max_size, particle_type, fade,
         color, size, gravity, num
     )
@@ -289,7 +289,7 @@ function flare(
     color = color or 0xFFFFFF
     size  = size  or 0.28
     local oid = owner and owner.uid or -1
-    CAPI.particle_flare(
+    _C.particle_flare(
         sp.x, sp.y, sp.z, tp.x, tp.y, tp.z, fade,
         particle_type, color, size, oid
     )
@@ -314,7 +314,7 @@ function trail(
     color   = color   or 0xFFFFFF
     size    = size    or 1.0
     grow    = grow    or 20
-    CAPI.particle_trail(
+    _C.particle_trail(
         particle_type, fade * 1000, sp.x, sp.y, sp.z,
         tp.x, tp.y, tp.z, color, size, grow
     )
@@ -345,7 +345,7 @@ function flame(
     speed   = speed   or 200.0
     fade    = fade    and fade * 1000 or 600.0
     gravity = gravity or -15
-    CAPI.particle_flame(
+    _C.particle_flame(
         particle_type, pos.x, pos.y, pos.z,
         radius, height, color, density,
         scale, speed, fade, gravity
@@ -387,7 +387,7 @@ function text(pos, text, fade, color, size, gravity)
     fade  = fade  or 2.0
     color = color or 0xFFFFFF
     size  = size  or 2.0
-    CAPI.particle_text(
+    _C.particle_text(
         pos.x, pos.y, pos.z, text, PARTICLE.TEXT,
         fade * 1000, color, size, gravity
     )
@@ -403,6 +403,6 @@ end
 ]]
 function client_damage(amount, color)
     if not SERVER then
-        CAPI.client_damage_effect(amount, color)
+        _C.client_damage_effect(amount, color)
     end
 end

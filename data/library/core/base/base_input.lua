@@ -74,21 +74,21 @@ module("input", package.seeall)
     Parameters:
         uid - unique ID of the entity to target.
 ]]
-set_targeted_entity = CAPI.set_targeted_entity
+set_targeted_entity = _C.set_targeted_entity
 
 --[[!
     Function: get_target_position
     Returns the position we're targeting to.
 ]]
 get_target_position = frame.cache_by_frame(function()
-    return math.Vec3(CAPI.gettargetpos())
+    return math.Vec3(_C.gettargetpos())
 end)
 
 --[[!
     Function: get_target_entity
     Returns the entity we're targeting to.
 ]]
-get_target_entity = frame.cache_by_frame(CAPI.gettargetent)
+get_target_entity = frame.cache_by_frame(_C.gettargetent)
 
 --[[!
     Function: save_mouse_position
@@ -96,4 +96,4 @@ get_target_entity = frame.cache_by_frame(CAPI.gettargetent)
     used when editing, i.e. when inserting entity to know
     where to insert it.
 ]]
-save_mouse_position = CAPI.save_mouse_position
+save_mouse_position = _C.save_mouse_position

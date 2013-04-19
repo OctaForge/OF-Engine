@@ -90,7 +90,7 @@ setmetatable(world, {
 
     --[[!
         Function: __newindex
-        If we're setting gravity, set it via CAPI.
+        If we're setting gravity, set it via _C.
         Set "world" member otherwise.
 
         Parameters:
@@ -100,7 +100,7 @@ setmetatable(world, {
     ]]
     __newindex = function(self, n, v)
         if n == "gravity" then
-            CAPI.setgravity(v)
+            _C.setgravity(v)
             gravity = v
         else
             rawset(self, n, v)

@@ -47,7 +47,7 @@ DEBUG   = 1
 WARNING = 2
 ERROR   = 3
 
-CAPI.log(DEBUG, "Initializing logging.")
+_C.log(DEBUG, "Initializing logging.")
 
 --[[! Function: log
     Logs some text into the console with a given level. By default, OF
@@ -63,7 +63,7 @@ CAPI.log(DEBUG, "Initializing logging.")
         ERROR - Use for serious error messages, displayed always. Printed into
         the in-engine console too, unlike all others.
 ]]
-log = CAPI.log
+log = _C.log
 
 local io_open, load, error = io.open, load, error
 table.insert(package.loaders, 2, function(modname)
@@ -82,7 +82,7 @@ table.insert(package.loaders, 2, function(modname)
                 local lvl, rst = line:match("^%s*#log%s*%(([A-Z]+),%s*(.+)$")
                 if lvl then
                     prevlevel = _G[lvl]
-                    if CAPI.should_log(prevlevel) then
+                    if _C.should_log(prevlevel) then
                         local a, b = line:find("^%s*#")
                         return line:sub(b + 1)
                     else
@@ -91,7 +91,7 @@ table.insert(package.loaders, 2, function(modname)
                 elseif prevlevel then
                     local a, b = line:find("^%s*#")
                     if a then
-                        if CAPI.should_log(prevlevel) then
+                        if _C.should_log(prevlevel) then
                             return line:sub(b + 1)
                         else
                             return "--" .. line
@@ -120,15 +120,15 @@ end)
     only the text, there is no logging level, no changes are made to the
     text. It's printed as it's given.
 ]]
-echo = CAPI.echo
+echo = _C.echo
 
 --[[! Function: cubescript
     Executes the given cubescript string. Returns the return value of the
     cubescript expression.
 ]]
-cubescript = CAPI.cubescript
+cubescript = _C.cubescript
 
-local dbg = CAPI.should_log(DEBUG)
+local dbg = _C.should_log(DEBUG)
 
 if dbg then log(DEBUG, "Initializing the new core library.") end
 require("std")

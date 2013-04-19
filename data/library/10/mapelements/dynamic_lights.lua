@@ -19,7 +19,7 @@ dynamic_light = ents.register_class(plugins.bake(ents.World_Marker, {{
 
     dynamic_light_show = function(self, seconds)
         local pos = self.position
-        CAPI.adddynlight(
+        _C.adddynlight(
             pos.x, pos.y, pos.z, self.radius,
             self.red / 255, self.green / 255, self.blue / 255,
             0, 0, 0, 0, 0, 0, 0
@@ -56,7 +56,7 @@ ents.register_class(plugins.bake(dynamic_light, {{
             self.delay = math.max(math.random() * self.max_delay, self.min_delay) * 2
             if math.random() < self.probability then
                 local pos = self.position
-                CAPI.adddynlight(
+                _C.adddynlight(
                     pos.x, pos.y, pos.z, self.radius,
                     self.red / 255, self.green / 255, self.blue / 255,
                     self.delay * 1000, 0, math.lsh(1, 2), 0, 0, 0, 0

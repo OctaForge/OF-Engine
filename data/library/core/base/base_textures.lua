@@ -27,11 +27,11 @@ module("texture", package.seeall)
     Fills the internal list with slot indexes. Required
     for <get_slots_number> to work.
 ]]
-fill_slot_list = CAPI.slot_fill_texlist
+fill_slot_list = _C.slot_fill_texlist
 
 --[[!
     Function: get_slots_number
     Returns the number of the texture slots
     defined in the map.
 ]]
-get_slots_number = CAPI.slot_get_count
+get_slots_number = _C.slot_get_count

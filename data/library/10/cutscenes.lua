@@ -95,13 +95,13 @@ action_base = events.action_container:clone {
         self.old_crosshair = _G["crosshair"]
         _G["crosshair"]    = ""
 
-        self.old_show_hud_text  = CAPI.showhudtext
-        self.old_show_hud_rect  = CAPI.showhudrect
-        self.old_show_hud_image = CAPI.showhudimage
+        self.old_show_hud_text  = _C.showhudtext
+        self.old_show_hud_rect  = _C.showhudrect
+        self.old_show_hud_image = _C.showhudimage
 
-        CAPI.showhudtext  = function() end
-        CAPI.showhudrect  = function() end
-        CAPI.showhudimage = function() end
+        _C.showhudtext  = function() end
+        _C.showhudrect  = function() end
+        _C.showhudimage = function() end
 
         self.old_seconds_left = self.seconds_left
 
@@ -142,9 +142,9 @@ action_base = events.action_container:clone {
 
         _G["crosshair"] = self.old_crosshair
 
-        CAPI.showhudtext  = self.old_show_hud_text
-        CAPI.showhudrect  = self.old_show_hud_rect
-        CAPI.showhudimage = self.old_show_hud_image
+        _C.showhudtext  = self.old_show_hud_text
+        _C.showhudrect  = self.old_show_hud_rect
+        _C.showhudimage = self.old_show_hud_image
 
         events.action_input_capture_plugin.finish(self)
     end,
@@ -1000,8 +1000,8 @@ ents.register_class(
                     self.old_show_hud_image(
                         self.background_image,
                         0.5, 0.5,
-                        math.max((EV.scr_w / EV.scr_h), 1),
-                        math.min((EV.scr_w / EV.scr_h), 1)
+                        math.max((_V.scr_w / _V.scr_h), 1),
+                        math.min((_V.scr_w / _V.scr_h), 1)
                     )
                 end
                 return action_base.run(self, seconds)
@@ -1015,8 +1015,8 @@ ents.register_class(
                             self.subtitle_background,
                             0.5,
                             0.9,
-                            (factors.x * 800) / EV.scr_w,
-                            (factors.y * 128) / EV.scr_h
+                            (factors.x * 800) / _V.scr_w,
+                            (factors.y * 128) / _V.scr_h
                         )
                     end
                 end

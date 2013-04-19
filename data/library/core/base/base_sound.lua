@@ -43,7 +43,7 @@ function play(name, pos, volume, cn)
 
     if CLIENT then
         -- clientside behavior
-        CAPI.playsoundname(name, pos.x, pos.y, pos.z, volume)
+        _C.playsoundname(name, pos.x, pos.y, pos.z, volume)
     else
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names
@@ -60,7 +60,7 @@ function play(name, pos, volume, cn)
 
         cn = cn or msg.ALL_CLIENTS
         msg.send(
-            cn, CAPI.sound_toclients_byname,
+            cn, _C.sound_toclients_byname,
             pos.x, pos.y, pos.z,
             name, -1
         )
@@ -82,7 +82,7 @@ end
 ]]
 function stop(name, volume, cn)
     if CLIENT then
-        CAPI.stopsoundname(name, volume)
+        _C.stopsoundname(name, volume)
     else
         -- warn when using non-compressed names
         if #name > 2 then
@@ -96,7 +96,7 @@ function stop(name, volume, cn)
             #)
         end
         cn = cn or msg.ALL_CLIENTS
-        msg.send(cn, CAPI.soundstop_toclients_byname, volume, name, -1)
+        msg.send(cn, _C.soundstop_toclients_byname, volume, name, -1)
     end
 end
 
@@ -109,7 +109,7 @@ end
     Parameters:
         name - path to the music, see <play>.
 ]]
-play_music = CAPI.music
+play_music = _C.music
 
 --[[!
     Function: set_music_post_handler
@@ -147,4 +147,4 @@ end
 
     For arguments, see <register>.
 ]]
-preload = CAPI.preloadsound
+preload = _C.preloadsound

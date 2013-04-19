@@ -67,7 +67,7 @@ local main = world:append(gui.core.Rectangle {
                     signals = {
                         click = function(self)
                             echo "you clicked a button."
-                            self:find_sibling_by_tag("field").text = EV.abcdef
+                            self:find_sibling_by_tag("field").text = _V.abcdef
                         end
                     },
 
@@ -316,9 +316,9 @@ gui.core.Conditional.states = {
 world:append(gui.core.Conditional {
     condition = function()
         local wh = gui.core.cursor_exists() or
-            EV.mouselook == 0
+            _V.mouselook == 0
 
-        if not wh and not (EV.hidehud ~= 0 or EV.mainmenu ~= 0) then
+        if not wh and not (_V.hidehud ~= 0 or _V.mainmenu ~= 0) then
             return true
         end
 
@@ -345,7 +345,7 @@ signal.connect(world, "get_main", function(_, self)
     return main
 end)
 
-CAPI.cubescript([[
+_C.cubescript([[
     bind ESCAPE [ lua [
         if not gui.hide("main") then
             gui.show("main")
@@ -539,12 +539,12 @@ tgui.push_tab("Screen resolution", tgui.BAR_VERTICAL, tgui.BAR_NORMAL, "icon_res
                 gui.label("Custom")
 
                 local was_persisting = var.persist_vars(false)
-                var.new("custom_w", var.STRING, tostring(EV.scr_w))
-                var.new("custom_h", var.STRING, tostring(EV.scr_h))
+                var.new("custom_w", var.STRING, tostring(_V.scr_w))
+                var.new("custom_h", var.STRING, tostring(_V.scr_h))
                 var.persist_vars(was_persisting)
                 gui.hlist(0, function()
-                    tgui.field("custom_w", 4, function() EV.scr_w = tonumber(EV.custom_w) end)
-                    tgui.field("custom_h", 4, function() EV.scr_h = tonumber(EV.custom_h) end)
+                    tgui.field("custom_w", 4, function() _V.scr_w = tonumber(_V.custom_w) end)
+                    tgui.field("custom_h", 4, function() _V.scr_h = tonumber(_V.custom_h) end)
                 end)
             end)
         end)

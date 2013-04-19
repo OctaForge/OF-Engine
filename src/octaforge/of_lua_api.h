@@ -123,19 +123,19 @@ namespace lapi_binds
     }
 
     int _lua_npcdel(lua_State *L) {
-        LUA_GET_ENT(entity, "CAPI.npcdel", return 0)
+        LUA_GET_ENT(entity, "_C.npcdel", return 0)
         fpsent *fp = (fpsent*)entity->dynamicEntity;
         localdisconnect(true, fp->clientnum);
         return 0;
     }
 #else
     int _lua_npcadd(lua_State *L) {
-        logger::log(logger::ERROR, "CAPI.npcadd: server-only function.\n");
+        logger::log(logger::ERROR, "_C.npcadd: server-only function.\n");
         return 0;
     }
 
     int _lua_npcdel(lua_State *L) {
-        logger::log(logger::ERROR, "CAPI.npcdel: server-only function.\n");
+        logger::log(logger::ERROR, "_C.npcdel: server-only function.\n");
         return 0;
     }
 #endif

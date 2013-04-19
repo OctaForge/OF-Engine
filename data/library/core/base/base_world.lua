@@ -27,20 +27,20 @@ module("world", package.seeall)
     Requests private edit mode on the server. Useful when playing
     in multiplayer. On local server, player always has this.
 ]]
-request_private_edit_mode = CAPI.requestprivedit
+request_private_edit_mode = _C.requestprivedit
 
 --[[!
     Function: has_private_edit_mode
     Returns true if player is in private edit mode, false otherwise.
 ]]
-has_private_edit_mode = CAPI.hasprivedit
+has_private_edit_mode = _C.hasprivedit
 
 --[[!
     Function: get_map_previw_name
     Returns relative path to the map preview image
     (data/base/MYMAP/preview.png).
 ]]
-get_map_preview_name = CAPI.get_map_preview_filename
+get_map_preview_name = _C.get_map_preview_filename
 
 --[[!
     Function: get_all_map_names
@@ -49,16 +49,16 @@ get_map_preview_name = CAPI.get_map_preview_filename
     root directory), second array represents local
     maps (in user's home directory).
 ]]
-get_all_map_names = CAPI.get_all_map_names
+get_all_map_names = _C.get_all_map_names
 
 --[[!
     Function: restart_map
     Restarts current map.
 ]]
-restart_map = CAPI.restart_map
+restart_map = _C.restart_map
 
 --[[!
     Function: save_map
     Saves current map file and entities.
 ]]
-save_map = CAPI.do_upload
+save_map = _C.do_upload
