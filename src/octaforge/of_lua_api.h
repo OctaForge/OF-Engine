@@ -25,10 +25,6 @@ VARP(blood, 0, 1, 1);
 bool startmusic(const char *name, const char *cmd);
 int preload_sound(const char *name, int vol);
 
-#ifdef CLIENT
-void filltexlist();
-#endif
-
 extern float GRAVITY;
 extern physent *hitplayer;
 
@@ -656,35 +652,6 @@ namespace lapi_binds
     LAPI_EMPTY(preloadsound)
 #endif
 
-    /* Geometry utilities */
-
-    int _lua_raylos(lua_State *L) {
-        vec target(0);
-        lua_pushboolean(L, raycubelos(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                luaL_checknumber(L, 6)), target));
-        return 1;
-    }
-
-    int _lua_raypos(lua_State *L) {
-        vec hitpos(0);
-        lua_pushnumber(L, raycubepos(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
-            vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-                luaL_checknumber(L, 6)), hitpos, luaL_checknumber(L, 7),
-            RAY_CLIPMAT | RAY_POLY));
-        return 1;
-    }
-
-    int _lua_rayfloor(lua_State *L) {
-        vec floor(0);
-        lua_pushnumber(L, rayfloor(vec(luaL_checknumber(L, 1),
-            luaL_checknumber(L, 2), luaL_checknumber(L, 3)), floor, 0,
-                luaL_checknumber(L, 4)));
-        return 1;
-    }
-
 #ifdef CLIENT
     int _lua_gettargetpos(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
@@ -896,9 +863,6 @@ namespace lapi_binds
     LAPI_REG(playsound);
 
     /* world */
-    LAPI_REG(raylos);
-    LAPI_REG(raypos);
-    LAPI_REG(rayfloor);
     LAPI_REG(gettargetpos);
     LAPI_REG(gettargetent);
     LAPI_REG(iscolliding);

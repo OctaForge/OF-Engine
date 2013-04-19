@@ -1982,3 +1982,32 @@ bool entinmap(dynent *d, bool avoidplayers)        // brute force but effective 
     return false;
 }
 
+/* OF */
+
+LUAICOMMAND(ray_los, {
+    vec target(0);
+    lua_pushboolean(L, raycubelos(vec(luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+            luaL_checknumber(L, 6)), target));
+    return 1;
+});
+
+LUAICOMMAND(ray_pos, {
+    vec hitpos(0);
+    lua_pushnumber(L, raycubepos(vec(luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2), luaL_checknumber(L, 3)),
+        vec(luaL_checknumber(L, 4), luaL_checknumber(L, 5),
+            luaL_checknumber(L, 6)), hitpos, luaL_checknumber(L, 7),
+        RAY_CLIPMAT | RAY_POLY));
+    return 1;
+});
+
+LUAICOMMAND(ray_floor, {
+    vec floor(0);
+    lua_pushnumber(L, rayfloor(vec(luaL_checknumber(L, 1),
+        luaL_checknumber(L, 2), luaL_checknumber(L, 3)), floor, 0,
+            luaL_checknumber(L, 4)));
+    return 1;
+});
+

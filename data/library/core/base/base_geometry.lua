@@ -39,7 +39,7 @@ function get_ray_collision_distance(o, r)
     if    rm == 0 then
         return -1
     end
-    return CAPI.raypos(o.x, o.y, o.z, r.x / rm, r.y / rm, r.z / rm, rm)
+    return CAPI.ray_pos(o.x, o.y, o.z, r.x / rm, r.y / rm, r.z / rm, rm)
 end
 
 --[[!
