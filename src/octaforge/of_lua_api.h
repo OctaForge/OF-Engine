@@ -119,15 +119,6 @@ namespace lapi_binds
 
     /* edit */
 
-    int _lua_editing_getworldsize(lua_State *L) {
-        lua_pushinteger(L, getworldsize());
-        return 1;
-    }
-    int _lua_editing_getgridsize (lua_State *L) {
-        lua_pushinteger(L, 1 << gridpower);
-        return 1;
-    }
-
     int _lua_editing_erasegeometry(lua_State *L) {
         EditingSystem::eraseGeometry();
         return 0;
@@ -793,8 +784,6 @@ namespace lapi_binds
 #endif
 
     /* edit */
-    LAPI_REG(editing_getworldsize);
-    LAPI_REG(editing_getgridsize);
     LAPI_REG(editing_erasegeometry);
     LAPI_REG(editing_createcube);
     LAPI_REG(editing_deletecube);
