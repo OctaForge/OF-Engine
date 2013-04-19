@@ -32,6 +32,7 @@
 #include "game.h"
 
 #include "targeting.h"
+#include "editing_system.h"
 #include "of_world.h"
 
 void removeentity(extentity* entity);
@@ -418,6 +419,15 @@ namespace entities
         fpsent *p = (fpsent*)entity->dynamicEntity;
         assert(p);
         lua_pushinteger(L, p->ping);
+        return 1;
+    });
+
+    LUAICOMMAND(get_selected_entity, {
+        CLogicEntity *ret = EditingSystem::getSelectedEntity();
+        if (ret && !ret->isNone() && ret->lua_ref != LUA_REFNIL)
+            lua_rawgeti(L, LUA_REGISTRYINDEX, ret->lua_ref);
+        else
+            lua_pushnil(L);
         return 1;
     });
 } /* end namespace entities */

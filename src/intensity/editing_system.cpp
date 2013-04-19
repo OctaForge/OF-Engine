@@ -303,3 +303,51 @@ CLogicEntity *getSelectedEntity()
 #ifdef CLIENT
 ICOMMAND(save_mouse_position, "", (), EditingSystem::saved_pos = TargetingControl::worldPosition);
 #endif
+
+LUAICOMMAND(edit_erase_geometry, {
+    EditingSystem::eraseGeometry();
+    return 0;
+});
+
+LUAICOMMAND(edit_create_cube, {
+    EditingSystem::createCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                              luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+    return 0;
+});
+
+LUAICOMMAND(edit_delete_cube, {
+    EditingSystem::deleteCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                              luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
+    return 0;
+});
+
+LUAICOMMAND(edit_set_cube_texture, {
+    EditingSystem::setCubeTexture(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                                  luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
+    return 0;
+});
+
+LUAICOMMAND(edit_set_cube_material, {
+    EditingSystem::setCubeMaterial(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                   luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                                   luaL_checkinteger(L, 5));
+    return 0;
+});
+
+LUAICOMMAND(edit_set_cube_color, {
+    EditingSystem::setCubeColor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                                luaL_checknumber(L, 5),
+                                luaL_checknumber(L, 6),
+                                luaL_checknumber(L, 7));
+    return 0;
+});
+
+LUAICOMMAND(edit_push_cube_corner, {
+    EditingSystem::pushCubeCorner(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
+                                  luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
+                                  luaL_checkinteger(L, 7));
+    return 0;
+});

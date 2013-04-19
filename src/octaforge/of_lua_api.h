@@ -119,63 +119,6 @@ namespace lapi_binds
 
     /* edit */
 
-    int _lua_editing_erasegeometry(lua_State *L) {
-        EditingSystem::eraseGeometry();
-        return 0;
-    }
-
-    int _lua_editing_createcube(lua_State *L) {
-        EditingSystem::createCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
-        return 0;
-    }
-
-    int _lua_editing_deletecube(lua_State *L) {
-        EditingSystem::deleteCube(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                  luaL_checkinteger(L, 3), luaL_checkinteger(L, 4));
-        return 0;
-    }
-
-    int _lua_editing_setcubetex(lua_State *L) {
-        EditingSystem::setCubeTexture(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                      luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                      luaL_checkinteger(L, 5), luaL_checkinteger(L, 6));
-        return 0;
-    }
-
-    int _lua_editing_setcubemat(lua_State *L) {
-        EditingSystem::setCubeMaterial(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                       luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                       luaL_checkinteger(L, 5));
-        return 0;
-    }
-
-    int _lua_editing_setcubecolor(lua_State *L) {
-        EditingSystem::setCubeColor(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                    luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                    luaL_checknumber(L, 5),
-                                    luaL_checknumber(L, 6),
-                                    luaL_checknumber(L, 7));
-        return 0;
-    }
-
-    int _lua_editing_pushcubecorner(lua_State *L) {
-        EditingSystem::pushCubeCorner(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-                                      luaL_checkinteger(L, 3), luaL_checkinteger(L, 4),
-                                      luaL_checkinteger(L, 5), luaL_checkinteger(L, 6),
-                                      luaL_checkinteger(L, 7));
-        return 0;
-    }
-
-    int _lua_editing_getselent(lua_State *L) {
-        CLogicEntity *ret = EditingSystem::getSelectedEntity();
-        if (ret && !ret->isNone() && ret->lua_ref != LUA_REFNIL)
-            lua_rawgeti(L, LUA_REGISTRYINDEX, ret->lua_ref);
-        else
-            lua_pushnil(L);
-        return 1;
-    }
-
 #ifdef SERVER
     int _lua_npcadd(lua_State *L) {
         int cn = localconnect();
@@ -784,14 +727,6 @@ namespace lapi_binds
 #endif
 
     /* edit */
-    LAPI_REG(editing_erasegeometry);
-    LAPI_REG(editing_createcube);
-    LAPI_REG(editing_deletecube);
-    LAPI_REG(editing_setcubetex);
-    LAPI_REG(editing_setcubemat);
-    LAPI_REG(editing_setcubecolor);
-    LAPI_REG(editing_pushcubecorner);
-    LAPI_REG(editing_getselent);
     LAPI_REG(npcadd);
     LAPI_REG(npcdel);
     LAPI_REG(spawnent);

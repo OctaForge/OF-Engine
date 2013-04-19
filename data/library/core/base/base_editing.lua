@@ -85,7 +85,7 @@ procedural = {
         Function: erase_geometry
         Clears out all map geometry.
     ]]
-    erase_geometry = CAPI.editing_erasegeometry,
+    erase_geometry = CAPI.edit_erase_geometry,
 
     --[[!
         Function: create_cube
@@ -108,14 +108,14 @@ procedural = {
             z - the z position of the cube.
             gridsize - see <world.get_grid_size>.
     ]]
-    create_cube = CAPI.editing_createcube,
+    create_cube = CAPI.edit_create_cube,
 
     --[[!
         Function: delete_cube
         Parameters and rules are the same as for <create_cube>,
         but it actually deletes cubes instead of creating.
     ]]
-    delete_cube = CAPI.editing_deletecube,
+    delete_cube = CAPI.edit_delete_cube,
 
     --[[!
         Function: set_cube_texture
@@ -135,7 +135,7 @@ procedural = {
             4 - bottom side of the cube
             5 - top side of the cube
     ]]
-    set_cube_texture = CAPI.editing_setcubetex,
+    set_cube_texture = CAPI.edit_set_cube_texture,
 
     --[[!
         Function: set_cube_material
@@ -143,7 +143,8 @@ procedural = {
         argument is the material index, see <edit.get_material>.
         See also <set_cube_texture>.
     ]]
-    set_cube_material = CAPI.editing_setcubemat,
+    set_cube_material = CAPI.edit_set_cube_material,
+    set_cube_color = CAPI.edit_set_cube_color,
 
     --[[!
         Function: push_cube_corner
@@ -156,5 +157,5 @@ procedural = {
         bottom-left and 3 is bottom-right when facing them directly
         (that is, when we see the texture in right orientation).
     ]]
-    push_cube_corner = CAPI.editing_pushcubecorner
+    push_cube_corner = CAPI.edit_push_cube_corner
 }
