@@ -60,7 +60,6 @@ extern "C"
 #endif
 
 void writebinds(stream *f);
-extern string homedir;
 extern int clockrealbase;
 
 namespace tools

@@ -1164,6 +1164,9 @@ static inline uchar uni2cube(int c)
 extern int decodeutf8(uchar *dst, int dstlen, const uchar *src, int srclen, int *carry = NULL);
 extern int encodeutf8(uchar *dstbuf, int dstlen, const uchar *srcbuf, int srclen, int *carry = NULL);
 
+/* OF */
+extern char *homedir;
+
 /* OF: added filter, flags to listdir, listfiles + FTYPE_* and LIST_* */
 enum { FTYPE_FILE = 1<<0, FTYPE_DIR = 1<<1 };
 enum { LIST_ROOT = 1<<0, LIST_HOMEDIR = 1<<1, LIST_PACKAGE = 1<<2, LIST_ZIP = 1<<3 };

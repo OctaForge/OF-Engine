@@ -41,8 +41,6 @@ namespace MessageSystem
 }
 using namespace MessageSystem;
 
-extern string homedir;
-
 namespace world
 {
     bool loading = false;

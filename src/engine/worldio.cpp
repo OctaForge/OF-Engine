@@ -1141,7 +1141,6 @@ bool finish_load_world() // INTENSITY: Second half, after all entities received
 
     printf("\r\n\r\n[[MAP LOADING]] - Success.\r\n"); // INTENSITY
 #ifdef SERVER
-    extern string homedir;
     defformatstring(path)("%s%s", homedir, SERVER_READYFILE);
     tools::fempty(path);
 #endif

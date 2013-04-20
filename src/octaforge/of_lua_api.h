@@ -1,20 +1,13 @@
-int preload_sound(const char *name, int vol);
-
-extern string homedir;
-
 namespace EditingSystem
 {
     extern vec saved_pos;
     void newent(const char *cl, const char *sd);
 }
 
-extern int gridpower;
-
 void trydisconnect(bool local);
 
 namespace game
 {
-    void toserver(char *text);
     fpsent *followingplayer();
 }
 

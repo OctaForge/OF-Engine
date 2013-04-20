@@ -32,8 +32,6 @@
 #include "of_localserver.h"
 #include "client_system.h"
 
-extern string homedir;
-
 void trydisconnect(bool local);
 
 namespace local_server

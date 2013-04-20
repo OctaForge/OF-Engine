@@ -195,7 +195,8 @@ done:
 #include <dirent.h>
 #endif
 
-string homedir = "";
+/* OF */
+_SVAR(homedir, homedir, "", IDF_READONLY);
 struct packagedir
 {
     char *dir, *filter;
@@ -353,7 +354,11 @@ const char *sethomedir(const char *dir)
     string pdir;
     copystring(pdir, dir);
     if(!subhomedir(pdir, sizeof(pdir), dir) || !fixpackagedir(pdir)) return NULL;
-    copystring(homedir, pdir);
+    /* OF */
+    ident *id = getident("homedir");
+    assert(id);
+    delete[]  *id->storage.s;
+    homedir = *id->storage.s = newstring(pdir);
     return homedir;
 }
 

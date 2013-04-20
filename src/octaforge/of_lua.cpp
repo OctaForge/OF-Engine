@@ -24,8 +24,6 @@
 #undef LAPI_EMPTY
 #undef LAPI_REG
 
-extern string homedir;
-
 namespace lua
 {
     lua_State *L = NULL;
