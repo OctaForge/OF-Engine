@@ -37,13 +37,14 @@ module("sound", package.seeall)
         <msg.ALL_CLIENTS>.
 ]]
 function play(name, pos, volume, cn)
+    if not name then return nil end
     -- defaults, we don't default volume since 0 is represented as
     -- 100 by the C API in this case
     pos = pos or math.Vec3(0, 0, 0)
 
     if CLIENT then
         -- clientside behavior
-        _C.playsoundname(name, pos.x, pos.y, pos.z, volume)
+        _C.sound_play(name, pos.x, pos.y, pos.z, volume)
     else
         -- TODO: don't send if client is too far to hear
         -- warn when using non-compressed names
@@ -82,7 +83,7 @@ end
 ]]
 function stop(name, volume, cn)
     if CLIENT then
-        _C.stopsoundname(name, volume)
+        _C.sound_stop(name, volume)
     else
         -- warn when using non-compressed names
         if #name > 2 then
@@ -101,43 +102,6 @@ function stop(name, volume, cn)
 end
 
 --[[!
-    Function: play_music
-    Plays music. Filename rules apply in the same way as for <play>.
-    When the music ends, <music_callback> is called. See
-    <set_music_handler>.
-
-    Parameters:
-        name - path to the music, see <play>.
-]]
-play_music = _C.music
-
---[[!
-    Function: set_music_post_handler
-    Sets music post handler function. It's a function that takes
-    no arguments and is called after music played by <play_music>
-    ends. It can for example trigger playing of next music file.
-    It's executed from C++ via <music_callback>.
-
-    Parameters:
-        fun - the handler function.
-]]
-function set_music_post_handler(fun)
-    music_post_handler = fun
-end
-
---[[!
-    Function: music_callback
-    This function gets called from C++ and it executes the handler
-    set by <set_music_post_handler> if there is any. It gets called
-    after music played by <play_music> ends.
-]]
-function music_callback()
-    if  music_post_handler then
-        music_post_handler()
-    end
-end
-
---[[!
     Function: preload
     Preloads a sound about which we know it'll be used, so it
     doesn't have to be loaded later during gameplay.
@@ -147,4 +111,4 @@ end
 
     For arguments, see <register>.
 ]]
-preload = _C.preloadsound
+preload = _C.sound_preload

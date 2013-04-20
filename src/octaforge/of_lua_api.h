@@ -22,9 +22,6 @@ namespace game
 VARP(blood, 0, 1, 1);
 #endif
 
-bool startmusic(const char *name, const char *cmd);
-int preload_sound(const char *name, int vol);
-
 extern float GRAVITY;
 extern physent *hitplayer;
 
@@ -208,6 +205,12 @@ namespace lapi_binds
         send_SoundToClientsByName(luaL_checkinteger(L, 1),
             luaL_checknumber(L, 2), luaL_checknumber(L, 3),
             luaL_checknumber(L, 4), sn ? sn : "", luaL_checkinteger(L, 6));
+        return 0;
+    }
+
+    int _lua_sound_toclients(lua_State *L) {
+        send_SoundToClients(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
+            luaL_checkinteger(L, 3));
         return 0;
     }
 
@@ -521,61 +524,6 @@ namespace lapi_binds
     LAPI_EMPTY(client_damage_effect)
 #endif
 
-    /* sound */
-
-#ifdef CLIENT
-    int _lua_playsoundname(lua_State *L) {
-        const char *n = "";
-        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
-        float x = luaL_checknumber(L, 2), y = luaL_checknumber(L, 3),
-              z = luaL_checknumber(L, 4);
-        int vol = luaL_optinteger (L, 5, 100);
-        if (x || y || z) {
-            vec loc(x, y, z);
-            playsoundname(n, &loc, vol);
-        } else
-            playsoundname(n, NULL, vol);
-        return 0;
-    }
-
-    int _lua_stopsoundname(lua_State *L) {
-        const char *n = "";
-        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
-        stopsoundbyid(getsoundid(n, luaL_optinteger(L, 2, 100)));
-        return 0;
-    }
-
-    int _lua_music(lua_State *L) {
-        const char *n = "";
-        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
-        startmusic(n, "sound.music_callback()");
-        return 0;
-    }
-
-    int _lua_preloadsound(lua_State *L) {
-        const char *n = "";
-        if (!lua_isnoneornil(L, 1)) n = luaL_checkstring(L, 1);
-        defformatstring(buf)("preloading sound '%s' ...", n);
-        renderprogress(0, buf);
-        return preload_sound(n, luaL_optinteger(L, 2, 100));
-    }
-
-    int _lua_playsound(lua_State *L) {
-        playsound(luaL_optinteger(L, 1, 1));
-        return 0;
-    }
-#else
-    int _lua_playsound(lua_State *L) {
-        MessageSystem::send_SoundToClients(-1, luaL_optinteger(L, 1, 1), -1);
-        return 0;
-    }
-
-    LAPI_EMPTY(playsoundname)
-    LAPI_EMPTY(stopsoundname)
-    LAPI_EMPTY(music)
-    LAPI_EMPTY(preloadsound)
-#endif
-
 #ifdef CLIENT
     int _lua_gettargetpos(lua_State *L) {
         TargetingControl::determineMouseTarget(true);
@@ -727,6 +675,7 @@ namespace lapi_binds
     LAPI_REG(particle_splash_toclients);
     LAPI_REG(particle_regularsplash_toclients);
     LAPI_REG(sound_toclients_byname);
+    LAPI_REG(sound_toclients);
     LAPI_REG(statedata_changerequest);
     LAPI_REG(statedata_changerequest_unreliable);
     LAPI_REG(notify_numents);
@@ -764,13 +713,6 @@ namespace lapi_binds
     LAPI_REG(particle_meter);
     LAPI_REG(particle_text);
     LAPI_REG(client_damage_effect);
-
-    /* sound */
-    LAPI_REG(playsoundname);
-    LAPI_REG(stopsoundname);
-    LAPI_REG(music);
-    LAPI_REG(preloadsound);
-    LAPI_REG(playsound);
 
     /* world */
     LAPI_REG(gettargetpos);

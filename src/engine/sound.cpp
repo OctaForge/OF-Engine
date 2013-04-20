@@ -179,10 +179,7 @@ void musicdone()
     if(!musicdonecmd) return;
     char *cmd = musicdonecmd;
     musicdonecmd = NULL;
-    if (luaL_loadstring(lua::L, cmd) || lua_pcall(lua::L, 0, 0, 0)) {
-        logger::log(logger::ERROR, "%s\n", lua_tostring(lua::L, -1));
-        lua_pop(lua::L, 1);
-    }
+    execute(cmd);
     delete[] cmd;
 }
 
@@ -204,9 +201,9 @@ Mix_Music *loadmusic(const char *name)
     return music;
 }
  
-bool startmusic(const char *name, const char *cmd)
+void startmusic(char *name, char *cmd)
 {
-    if(nosound) return false;
+    if(nosound) return;
     stopmusic();
     if(soundvol && musicvol && *name)
     {
@@ -220,16 +217,17 @@ bool startmusic(const char *name, const char *cmd)
             if(cmd[0]) musicdonecmd = newstring(cmd);
             Mix_PlayMusic(music, cmd[0] ? 0 : -1);
             Mix_VolumeMusic((musicvol*MAXVOL)/255);
-            return true;
+            intret(1);
         }
         else
         {
             conoutf(CON_ERROR, "could not play music: %s", file);
-            return false;
+            intret(0); 
         }
     }
-    return false;
 }
+
+COMMANDN(music, startmusic, "ss");
 
 static hashtable<const char *, soundsample> samples;
 static vector<soundslot> gameslots, mapslots;
@@ -790,4 +788,38 @@ void updatemumble()
     mumbleinfo->top = mumblevec(vec(RAD*player->yaw, RAD*(player->pitch+90)));
 #endif
 }
+
+/* OF */
+
+LUAICOMMAND(sound_play, {
+    if (lua_isnumber(L, 1)) {
+        playsound(luaL_checkinteger(L, 1));
+    } else {
+        float x = luaL_checknumber(L, 2); float y = luaL_checknumber(L, 3);
+        float z = luaL_checknumber(L, 4);
+        if (x || y || z) {
+            vec loc(x, y, z);
+            playsoundname(luaL_checkstring(L, 1), &loc,
+                luaL_optinteger(L, 5, 100));
+        } else {
+            playsoundname(luaL_checkstring(L, 1), NULL,
+                luaL_optinteger(L, 5, 100));
+        }
+    }
+    return 0;
+});
+
+LUAICOMMAND(sound_stop, {
+    stopsoundbyid(getsoundid(luaL_checkstring(L, 1),
+        luaL_optinteger(L, 2, 100)));
+    return 0;
+});
+
+LUAICOMMAND(sound_preload, {
+    const char *n = luaL_checkstring(L, 1);
+    defformatstring(buf)("preloading sound '%s' ...", n);
+    renderprogress(0, buf);
+    lua_pushinteger(L, preload_sound(n, luaL_optinteger(L, 2, 100)));
+    return 1;
+});
 
