@@ -16,6 +16,7 @@
 ]]
 
 local M = {}
+local ffi = require "ffi"
 
 --[[! Variable: current
     Stores a list of loaded libraries (name strings). Empty by default.
@@ -35,9 +36,19 @@ end
     require() on the library, which is mostly irrelevant.
 ]]
 M.use = function(name)
-    if not _C.setup_library(name) then
+    if not name or name:find("..", 1, true) then
         M.current = nil
         return nil
+    end
+
+    local pdiv = "/"
+    if ffi.os == "Windows" then pdiv = "\\" end
+
+    local ptrn  = ";./data/library/" .. name .. "/?.lua"
+    local ppath = package.path
+    if not ppath:find(ptrn, 1, true) then
+        package.path = ("%s;%sdata%slibrary%s%s%s?.lua%s"):format(ppath,
+            _V.homedir, pdiv, pdiv, name, pdiv, ptrn)
     end
 
     M.current = name

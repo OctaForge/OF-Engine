@@ -83,11 +83,6 @@ namespace lapi_binds
         lua_pushliteral(L, SERVER_LOGFILE);
         return 1;
     }
-
-    int _lua_setup_library(lua_State *L) {
-        lua_pushboolean(L, lua::load_library(luaL_checkstring(L, 1)));
-        return 1;
-    }
 #ifdef CLIENT
     int _lua_save_mouse_position(lua_State *L) {
         EditingSystem::saved_pos = TargetingControl::worldPosition;
@@ -650,7 +645,6 @@ namespace lapi_binds
     LAPI_REG(currtime);
     LAPI_REG(readfile);
     LAPI_REG(getserverlogfile);
-    LAPI_REG(setup_library);
     LAPI_REG(save_mouse_position);
 
     /* edit */

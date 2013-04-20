@@ -214,39 +214,4 @@ namespace lua
     }
 
     void reset() {}
-
-    bool load_library(const char *name)
-    {
-        if (!name || strstr(name, "..")) return false;
-
-        lua_getglobal(L, "package");
-
-        lua_getglobal  (L, "string"); lua_getfield(L, -1, "find");
-        lua_getfield   (L, -3, "path"); 
-        lua_pushfstring(L, ";./data/library/%s/?.lua", name);
-        lua_call       (L, 2, 1);
-
-        if (!lua_isnil(L, -1)) {
-            lua_pop(L, 3);
-            return true;
-        }
-        lua_pop(L, 2);
-
-        /* original path */
-        lua_getfield(L, -1, "path");
-
-        /* home directory path */
-        lua_pushfstring(
-            L, ";%sdata%clibrary%c%s%c?.lua",
-            homedir, PATHDIV, PATHDIV, name, PATHDIV
-        );
-
-        /* root path */
-        lua_pushfstring(L, ";./data/library/%s/?.lua", name);
-
-        lua_concat  (L,  3);
-        lua_setfield(L, -2, "path");
-
-        return true;
-    }
 } /* end namespace lapi */

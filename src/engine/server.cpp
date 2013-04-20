@@ -89,8 +89,9 @@ void logoutfv(const char *fmt, va_list args)
 #ifdef SERVER
 void fatal(const char *s, ...)
 {
-    printf("FATAL: %s\r\n", s);
-    exit(-1);
+    defvformatstring(msg,s,s);
+    logoutf("%s", msg);
+    exit(EXIT_FAILURE);
 };
 
 void conoutfv(int type, const char *fmt, va_list args)
