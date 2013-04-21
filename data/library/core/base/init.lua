@@ -39,9 +39,6 @@
 -- see world metatable below
 local gravity
 
-#log(DEBUG, ":: Engine interface.")
-require("base.base_engine")
-
 #log(DEBUG, ":: Geometry interface.")
 require("base.base_geometry")
 

@@ -34,8 +34,9 @@
 
 void trydisconnect(bool local);
 
-namespace local_server
-{
+_SVAR(server_log_file, server_log_file, "out_server.log", IDF_READONLY);
+
+namespace local_server {
     /* private prototypes */
     bool is_ready();
 
@@ -48,34 +49,35 @@ namespace local_server
     /* get this into use at some point to make this server runner better. */
     FILE *popen_out = NULL;
 
-    bool is_running()
-    {
+    bool is_running() {
         return ready;
     }
 
-    void try_connect()
-    {
-        if (!ready && started && num_trials <= 20 && lastmillis - last_connect_trial >= 1000)
-        {
-            if (is_ready())
-            {
+    void try_connect() {
+        if (!ready && started && num_trials <= 20
+        && lastmillis - last_connect_trial >= 1000) {
+            if (is_ready()) {
                 ready = true;
                 ClientSystem::connect("127.0.0.1", 28787);
             }
-            else conoutf("Waiting for server to finish starting up .. (%d)", num_trials);
+            else {
+                conoutf("Waiting for server to finish starting up .. (%d)",
+                    num_trials);
+            }
 
-            if (num_trials == 20)
-                logger::log(logger::ERROR, "Failed to start server. See " SERVER_LOGFILE " for more information.\n");
+            if (num_trials == 20) {
+                logger::log(logger::ERROR,
+                    "Failed to start server. See %s for more information.\n",
+                    server_log_file);
+            }
 
             num_trials++;
             last_connect_trial = lastmillis;
         }
     }
 
-    void run(const char *map)
-    {
-        if (started)
-        {
+    void run(const char *map) {
+        if (started) {
             conoutf("Stopping old server instance ..");
             stop();
         }
@@ -89,7 +91,8 @@ namespace local_server
 #else
         snprintf(buf, sizeof(buf),
 #endif
-            "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty >\"%s%s\" 2>&1",
+            "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty "
+            ">\"%s%s\" 2>&1",
 #if defined(WIN64)
             "bin_win64\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
 #elif defined(WIN32)
@@ -97,8 +100,8 @@ namespace local_server
 #else
             "bin_unix/server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ,
 #endif
-            logger::names[logger::current_level], map, homedir, SERVER_LOGFILE
-        );
+            logger::names[logger::current_level], map, homedir,
+            server_log_file);
 #undef STRVAL
 #undef ENQ
 
@@ -111,8 +114,7 @@ namespace local_server
         started = true;
     }
 
-    void stop()
-    {
+    void stop() {
         if (!started) return;
 
         trydisconnect(false);
@@ -126,11 +128,9 @@ namespace local_server
         ready = started = false;
     }
 
-    bool is_ready()
-    {
+    bool is_ready() {
         defformatstring(path)("%s%s", homedir, SERVER_READYFILE);
-        if (fileexists(path, "r"))
-        {
+        if (fileexists(path, "r")) {
             tools::fdel(path);
             return true;
         }
