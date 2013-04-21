@@ -13,27 +13,6 @@
     About: Purpose
         This file takes care of properly loading all modules of OctaForge
         base library.
-
-        It loads:
-        - Library system
-        - Engine interface
-        - Utility library
-        - Geometry library
-        - Console interface
-        - Shader interface
-        - Model interface
-        - Action system
-        - Message system
-        - Entity storage
-        - Entity class system
-        - Entity system
-        - Effect system
-        - Sound system
-        - Animatable entities
-        - Character
-        - Static entities
-        - Texture interface
-        - World interface
 ]]
 
 -- see world metatable below
@@ -47,9 +26,6 @@ require("base.base_models")
 
 #log(DEBUG, ":: Effects.")
 require("base.base_effects")
-
-#log(DEBUG, ":: Sound.")
-require("base.base_sound")
 
 #log(DEBUG, ":: Editing.")
 require("base.base_editing")

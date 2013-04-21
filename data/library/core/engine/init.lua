@@ -18,3 +18,6 @@ input = require("engine.input")
 
 #log(DEBUG, ":::: Camera.")
 camera = require("engine.camera")
+
+#log(DEBUG, ":::: Sound.")
+sound = require("engine.sound")
