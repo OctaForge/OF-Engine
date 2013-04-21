@@ -553,7 +553,7 @@ end)
 
 local about_id = tgui.push_tab("About", tgui.BAR_HORIZONTAL, tgui.BAR_NORMAL, "icon_about", function()
     gui.vlist(0, function()
-        gui.label("Copyright 2011 OctaForge developers.", 1, 0, 0, 1, 0)
+        gui.label("Copyright 2013 OctaForge developers.", 1, 0, 0, 1, 0)
         gui.label("Released under MIT license.", 1, 0, 1, 0, 0)
         gui.label("Uses Cube 2 engine. Cube 2:", 1, 0, 1, 1, 1, function() gui.align(-1, 0) end)
         gui.label("  - Wouter van Oortmerssen (aardappel)", 1, 0, 1, 1, 1, function() gui.align(-1, 0) end)
