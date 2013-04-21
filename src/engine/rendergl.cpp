@@ -1120,10 +1120,11 @@ void disablezoom()
     zoommillis = totalmillis;
 }
 
+static float forced_camera_fov = -1;
+
 void computezoom()
 {
     /* OF */
-    extern float forced_camera_fov;
     if (forced_camera_fov > 0) {
         curfov = forced_camera_fov;
         forced_camera_fov = -1;
@@ -1247,10 +1248,9 @@ void stop_character_view() {
 
 enum { FORCE_POS = 1<<0, FORCE_YAW = 1<<1, FORCE_PITCH = 1<<2, FORCE_ROLL = 1<<3 };
 
-physent forced_camera;
-int force_flags = 0;
-float forced_camera_fov = -1;
-int saved_thirdperson = -1;
+static physent forced_camera;
+static int force_flags = 0;
+static int saved_thirdperson = -1;
 
 void force_position(vec &pos) {
     force_flags |= FORCE_POS;
@@ -1286,6 +1286,7 @@ FORCE_PROP(pitch, FORCE_PITCH)
 FORCE_PROP(roll, FORCE_ROLL)
 
 void force_fov(float fov) {
+    if (fov == -1) return;
     forced_camera_fov = fov;
     if (!thirdperson && saved_thirdperson == -1) {
         saved_thirdperson = thirdperson;
@@ -1310,7 +1311,7 @@ LUAICOMMAND(camera_force, {
         luaL_checknumber(L, 2),
         luaL_checknumber(L, 3));
     force_camera(pos, luaL_checknumber(L, 4), luaL_checknumber(L, 5),
-        luaL_checknumber(L, 6), luaL_checknumber(L, 7));
+        luaL_checknumber(L, 6), luaL_optnumber(L, 7, -1));
     return 0;
 });
 

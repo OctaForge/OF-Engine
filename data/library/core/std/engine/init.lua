@@ -15,3 +15,6 @@
 
 #log(DEBUG, ":::: Input.")
 input = require("std.engine.input")
+
+#log(DEBUG, ":::: Camera.")
+camera = require("std.engine.camera")

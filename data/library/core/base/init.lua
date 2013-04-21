@@ -100,6 +100,3 @@ setmetatable(world, {
 })
 
 world.gravity = 200
-
-#log(DEBUG, ":: Camera.")
-require("base.base_camera")

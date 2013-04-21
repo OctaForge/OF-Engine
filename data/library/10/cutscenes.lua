@@ -241,7 +241,8 @@ action_smooth = actions.Action:clone {
         self.timer = self.timer + math.min(seconds, 1 / 25)
 
         self:set_markers()
-        camera.force(self.position, self.yaw, self.pitch, 0)
+        local p = self.position
+        camera.force(p.x, p.y, p.z, self.yaw, self.pitch, 0)
 
         actions.Action.run(self, seconds)
 
