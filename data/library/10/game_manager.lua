@@ -395,7 +395,7 @@ manager_plugins = {
 
         activate = function(self)
             if not SERVER then return nil end
-            self.balancer_timer = events.repeating_timer(1.0)
+            self.balancer_timer = extraevents.repeating_timer(1.0)
         end,
 
         run = SERVER and function(self, seconds)

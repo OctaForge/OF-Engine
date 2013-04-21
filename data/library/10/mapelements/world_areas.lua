@@ -51,8 +51,8 @@ action_input_capture = actions.Action:clone {
         self.do_mousemove = function(self, ...) return self.actor.do_mousemove(self.actor, ...) end
         self.do_jump      = function(self, ...) return self.actor.do_jump     (self.actor, ...) end
 
-        events.action_input_capture_plugin.start(self)
+        extraevents.action_input_capture_plugin.start(self)
     end,
 
-    finish = events.action_input_capture_plugin.finish
+    finish = extraevents.action_input_capture_plugin.finish
 }

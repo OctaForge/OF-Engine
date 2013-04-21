@@ -64,7 +64,7 @@ end
 
     This class inherits from <action_container>.
 ]]
-action_base = events.action_container:clone {
+action_base = extraevents.action_container:clone {
     name = "action_base",
 
     --[[!
@@ -85,7 +85,7 @@ action_base = events.action_container:clone {
         hides a crosshair, any sort of HUD and ends.
     ]]
     start = function(self)
-        events.action_container.start(self)
+        extraevents.action_container.start(self)
 
         self.actor.can_move = false
 
@@ -105,7 +105,7 @@ action_base = events.action_container:clone {
 
         self.old_seconds_left = self.seconds_left
 
-        events.action_input_capture_plugin.start(self)
+        extraevents.action_input_capture_plugin.start(self)
     end,
 
     --[[!
@@ -126,7 +126,7 @@ action_base = events.action_container:clone {
             )
         end
 
-        return events.action_container.run(self, seconds)
+        return extraevents.action_container.run(self, seconds)
             or ents.get_player().editing
     end,
 
@@ -136,7 +136,7 @@ action_base = events.action_container:clone {
         up by <start>.
     ]]
    finish = function(self)
-        events.action_container.finish(self)
+        extraevents.action_container.finish(self)
 
         self.actor.can_move = true
 
@@ -146,7 +146,7 @@ action_base = events.action_container:clone {
         _C.showhudrect  = self.old_show_hud_rect
         _C.showhudimage = self.old_show_hud_image
 
-        events.action_input_capture_plugin.finish(self)
+        extraevents.action_input_capture_plugin.finish(self)
     end,
 
     --[[!

@@ -35,7 +35,7 @@ game_manager.setup({
     game_manager.manager_plugins.messages,
     game_manager.manager_plugins.event_list,
     projectiles.plugin,
-    events.actions_parallel_plugin
+    extraevents.actions_parallel_plugin
 })
 get_scoreboard_text = game_manager.get_scoreboard_text
 

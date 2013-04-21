@@ -72,7 +72,7 @@ projectile = table.Object:clone {
 
         self.target_entity = target_entity
 
-        self.physics_frame_timer = events.repeating_timer(self.physics_frame_size, true)
+        self.physics_frame_timer = extraevents.repeating_timer(self.physics_frame_size, true)
 
         if owner then
             self.yaw = owner.yaw

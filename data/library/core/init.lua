@@ -130,13 +130,32 @@ cubescript = _C.cubescript
 
 local dbg = _C.should_log(DEBUG)
 
-if dbg then log(DEBUG, "Initializing the new core library.") end
-require("std")
+if dbg then log(DEBUG, "Initializing the core library.") end
 
-if dbg then log(DEBUG, "Initializing base.") end
+if dbg then log(DEBUG, ":: Lua extensions.") end
+require("lua")
+
+if dbg then log(DEBUG, ":: Network system.") end
+require("network")
+
+if dbg then log(DEBUG, ":: Event system.") end
+require("events")
+
+if CLIENT then
+if dbg then log(DEBUG, ":: GUI system.") end
+require("gui")
+end
+
+if dbg then log(DEBUG, ":: Entity system.") end
+require("entities")
+
+if dbg then log(DEBUG, ":: Engine system.") end
+require("engine")
+
+if dbg then log(DEBUG, "Initializing base (deprecated).") end
 require("base")
 
-if dbg then log(DEBUG, "Initializing tgui.") end
+if dbg then log(DEBUG, "Initializing tgui (deprecated).") end
 --require("tgui")
 
 if dbg then log(DEBUG, "Core scripting initialization complete.") end

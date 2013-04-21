@@ -75,7 +75,7 @@ rocket = projectiles.projectile:clone {
     end
 }
 
-action_rocket_fire = events.action_parallel:clone {
+action_rocket_fire = extraevents.action_parallel:clone {
     name = "action_rocket_fire",
     can_multiply_queue = false
 }
@@ -99,7 +99,7 @@ rocket_launcher = projectiles.gun:clone {
 
         action_adder(action_performer, action_rocket_fire({
             firing.action_shoot1({ seconds_left = 1 }),
-            events.action_delayed(function()
+            extraevents.action_delayed(function()
                 if not health.is_valid_target(shooter) then
                     return nil
                 end

@@ -105,12 +105,12 @@ chaingun.plugin = {
 
                 if not self.chaingun_firing and value then
                     self.chaingun_firing_timer
-                        = events.repeating_timer(chaingun.firing_rate)
+                        = extraevents.repeating_timer(chaingun.firing_rate)
                     self.chaingun_firing_timer:prime()
 
                     if self.controlled_here then
                         self.chaingun_protocol_timer
-                            = events.repeating_timer(chaingun.protocol_rate)
+                            = extraevents.repeating_timer(chaingun.protocol_rate)
                     end
                 end
 

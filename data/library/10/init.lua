@@ -25,8 +25,8 @@ library.include("plugins")
 #log(DEBUG, ":: Game manager.")
 library.include("game_manager")
 
-#log(DEBUG, ":: Events.")
-library.include("events")
+#log(DEBUG, ":: Extra events.")
+library.include("extraevents")
 
 #log(DEBUG, ":: Health.")
 library.include("health")
