@@ -1,7 +1,6 @@
 namespace EditingSystem
 {
     extern vec saved_pos;
-    void newent(const char *cl, const char *sd);
 }
 
 void trydisconnect(bool local);
@@ -79,15 +78,6 @@ namespace lapi_binds
         return 1;
     }
 
-#ifdef CLIENT
-    int _lua_save_mouse_position(lua_State *L) {
-        EditingSystem::saved_pos = TargetingControl::worldPosition;
-        return 0;
-    }
-#else
-    LAPI_EMPTY(save_mouse_position)
-#endif
-
     /* edit */
 
 #ifdef SERVER
@@ -120,12 +110,6 @@ namespace lapi_binds
         return 0;
     }
 #endif
-
-    int _lua_spawnent(lua_State *L) {
-        const char *cl = luaL_checkstring(L, 1);
-        EditingSystem::newent(cl ? cl : "", "");
-        return 0;
-    }
 
 #ifdef CLIENT
     int _lua_requestprivedit(lua_State *L) {
@@ -258,10 +242,10 @@ namespace lapi_binds
         send_ExtentCompleteNotification(
             luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
             oc ? oc : "", sd ? sd : "",
-            luaL_checknumber (L,  5), luaL_checknumber (L,  6),
-            luaL_checknumber (L,  7), luaL_checkinteger(L,  8),
-            luaL_checkinteger(L,  9), luaL_checkinteger(L, 10),
-            luaL_checkinteger(L, 11), luaL_checkinteger(L, 12));
+            luaL_checknumber (L,  5), luaL_checknumber(L,  6),
+            luaL_checknumber (L,  7),  luaL_optinteger(L,  8, 0),
+            luaL_optinteger(L,  9, 0), luaL_optinteger(L, 10, 0),
+            luaL_optinteger(L, 11, 0), luaL_optinteger(L, 12, 0));
         return 0;
     }
 
@@ -640,12 +624,10 @@ namespace lapi_binds
     LAPI_REG(totalmillis);
     LAPI_REG(currtime);
     LAPI_REG(readfile);
-    LAPI_REG(save_mouse_position);
 
     /* edit */
     LAPI_REG(npcadd);
     LAPI_REG(npcdel);
-    LAPI_REG(spawnent);
     LAPI_REG(requestprivedit);
     LAPI_REG(hasprivedit);
 

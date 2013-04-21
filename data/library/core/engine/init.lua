@@ -21,3 +21,6 @@ camera = require("engine.camera")
 
 #log(DEBUG, ":::: Sound.")
 sound = require("engine.sound")
+
+#log(DEBUG, ":::: Editing.")
+edit = require("engine.edit")

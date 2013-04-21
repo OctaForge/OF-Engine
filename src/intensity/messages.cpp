@@ -505,15 +505,14 @@ namespace MessageSystem
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua_getfield(lua::L, -1, "entity_class_sauer_type_get");
+        lua::push_external("entity_class_sauer_type_get");
         lua_pushstring(lua::L, _class);
         lua_call(lua::L, 1, 1);
         const char *sauerType = lua_tostring(lua::L, -1);
         lua_pop(lua::L, 1);
         logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
-        lua_getfield(lua::L, -1, "entity_new");
-        lua_remove(lua::L, -2);
+        lua::push_external("entity_new");
         lua_pushstring(lua::L, _class); // first arg
         lua_createtable(lua::L, 0, 2); // second arg
         lua_createtable(lua::L, 0, 3);

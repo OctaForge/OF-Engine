@@ -74,6 +74,10 @@ namespace EditingSystem
             assert(0); // Where?
         #endif
     }
+    COMMAND(newent, "ss");
+    LUAICOMMAND(new_entity, {
+        newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, "")); return 0;
+    });
 
 //----------------
 
@@ -302,6 +306,10 @@ CLogicEntity *getSelectedEntity()
 
 #ifdef CLIENT
 ICOMMAND(save_mouse_position, "", (), EditingSystem::saved_pos = TargetingControl::worldPosition);
+LUAICOMMAND(save_mouse_position, {
+    EditingSystem::saved_pos = TargetingControl::worldPosition;
+    return 0;
+});
 #endif
 
 LUAICOMMAND(edit_erase_geometry, {

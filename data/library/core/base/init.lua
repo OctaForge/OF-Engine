@@ -27,9 +27,6 @@ require("base.base_models")
 #log(DEBUG, ":: Effects.")
 require("base.base_effects")
 
-#log(DEBUG, ":: Editing.")
-require("base.base_editing")
-
 #log(DEBUG, ":: World interface.")
 require("base.base_world")
 

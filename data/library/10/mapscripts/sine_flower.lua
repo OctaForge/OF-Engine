@@ -31,7 +31,7 @@ function myplayer:run(sec)
         self.position.z = math.sin(math.rad(self.angle) * 10) * 2 + 650
 
         -- Create cube on current position. Use minimal size
-        edit.procedural.create_cube(self.position.x, self.position.y, self.position.z, 1)
+        edit.create_cube(self.position.x, self.position.y, self.position.z, 1)
     else
         -- If we're over 20, just return from the function after running parent.
         return nil

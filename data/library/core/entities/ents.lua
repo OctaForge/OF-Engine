@@ -357,6 +357,7 @@ local add = function(cn, uid, kwargs, new)
     #log(DEBUG, "ents.add: activate")
     r:activate(kwargs)
     #log(DEBUG, "ents.add: activated")
+    return r
 end
 M.add = add
 set_external("entity_add", add)
