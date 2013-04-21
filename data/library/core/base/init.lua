@@ -54,9 +54,6 @@ require("base.base_effects")
 #log(DEBUG, ":: Sound.")
 require("base.base_sound")
 
-#log(DEBUG, ":: Textures.")
-require("base.base_textures")
-
 #log(DEBUG, ":: Editing.")
 require("base.base_editing")
 

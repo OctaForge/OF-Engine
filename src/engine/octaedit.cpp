@@ -2289,6 +2289,12 @@ LUAICOMMAND(slot_fill_texlist, {
     return 0;
 });
 
+LUAICOMMAND(slot_set, {
+    int n = luaL_checkinteger(L, 1);
+    if (!noedit() && texmru.inrange(n)) edittex(texmru[n]);
+    return 0;
+});
+
 LUAICOMMAND(slot_get_count, {
     lua_pushinteger(L, slots.length());
     return 1;

@@ -566,15 +566,15 @@ end)
 -- edit tabs
 
 tgui.push_tab("Textures", tgui.BAR_HORIZONTAL, tgui.BAR_EDIT, "icon_texgui", function()
-    texture.fill_slot_list()
+    _C.slot_fill_texlist()
     gui.fill(1, 0.7, function()
         tgui.scrollbox(1, 0.7, function()
             gui.table(9, 0.01, function()
                 gui.align(-1, -1)
-                for i = 1, texture.get_slots_number() do
+                for i = 1, _C.slot_get_count() do
                     gui.button(
                         function()
-                            texture.set_slot(i - 1)
+                            _C.slot_set(i - 1)
                         end, function()
                             gui.slot_viewer(i - 1, 0.095, 0.095)
                             gui.slot_viewer(i - 1, 0.095, 0.095, function()
