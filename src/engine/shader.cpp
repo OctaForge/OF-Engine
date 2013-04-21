@@ -1465,6 +1465,13 @@ LUAICOMMAND(shader_hud_set, {
     return 0;
 });
 
+LUAICOMMAND(shader_hud_set_variant, {
+    Texture *tex = luachecktexture(L, 1);
+    hudshader->setvariant(hasTRG ? (tex->bpp==1 ? 0 : (tex->bpp==2 ? 1 : -1))
+        : -1, 0);
+    return 0;
+});
+
 LUAICOMMAND(shader_hudnotexture_set, {
     hudnotextureshader->set();
     return 0;

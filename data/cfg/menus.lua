@@ -333,14 +333,14 @@ world:append(gui.core.Conditional {
         visible_changed = function(self, v) self.p_visible = true end
     }
 })
---[[
+
 world:append(gui.Window {
     title = "O hai!",
     gui.core.Label {
         text = "asdadasdadasdasd"
     }
 })
-]]
+
 signal.connect(world, "get_main", function(_, self)
     return main
 end)
