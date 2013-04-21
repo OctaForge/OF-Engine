@@ -26,8 +26,10 @@ if CLIENT then
 
 #log(DEBUG, ":: GUI system.")
 require("std.gui")
-
 end
 
 #log(DEBUG, ":: Entity system.")
 require("std.entities")
+
+#log(DEBUG, ":: Engine system.")
+require("std.engine")

@@ -42,9 +42,6 @@ local gravity
 #log(DEBUG, ":: Geometry interface.")
 require("base.base_geometry")
 
-#log(DEBUG, ":: Input.")
-require("base.base_input")
-
 #log(DEBUG, ":: Models.")
 require("base.base_models")
 
