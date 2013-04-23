@@ -60,7 +60,9 @@ M.render_flags = {
     Registers an animation of the given name. Returns the animation number
     that you can then use. Currently up to 127 animations can be registered.
     If an animation of the same name already exists, it just returns its
-    number.
+    number. It also returns a second boolean value that is true when the
+    animation was actually newly registered and false when it just re-returned
+    an already existing animation.
 ]]
 M.register_anim = reganim
 

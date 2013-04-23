@@ -481,7 +481,8 @@ LUAICOMMAND(model_register_anim, {
     int *a = animmap.access(s);
     if (a) {
         lua_pushinteger(L, *a);
-        return 1;
+        lua_pushboolean(L, false);
+        return 2;
     }
     else if (lua_anims.length() > ANIM_ALL) return 0;
     /* pin it */
@@ -490,7 +491,8 @@ LUAICOMMAND(model_register_anim, {
     animmap.access(s, n);
     lua_anims.add(n);
     lua_pushinteger(L, n);
-    return 1;
+    lua_pushboolean(L, true);
+    return 2;
 });
 
 LUAICOMMAND(model_get_anim, {
