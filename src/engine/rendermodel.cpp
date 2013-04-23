@@ -1102,58 +1102,6 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&mas
     tryload(masks, NULL, NULL, "masks");
 }
 
-// convenient function that covers the usual anims for players/monsters/npcs
-
-VAR(animoverride, -1, 0, NUMANIMS-1);
-VAR(testanims, 0, 0, 1);
-VAR(testpitch, -90, 0, 90);
-
-void renderclient(dynent *d, const char *mdlname, CLogicEntity *entity, modelattach *attachments, int hold, int attack, int attackdelay, int lastaction, int lastpain, float scale, bool ragdoll, float trans)
-{
-    int anim = hold ? hold : ANIM_IDLE|ANIM_LOOP;
-    float yaw = testanims && d==player ? 0 : d->yaw+90,
-          pitch = testpitch && d==player ? testpitch : d->pitch;
-    vec o = d->feetpos();
-    int basetime = 0;
-    if(animoverride) anim = (animoverride<0 ? ANIM_ALL : animoverride)|ANIM_LOOP;
-
-    else if(d->state==CS_EDITING || d->state==CS_SPECTATOR) anim = ANIM_EDIT|ANIM_LOOP;
-    else if(d->state==CS_LAGGED)                            anim = ANIM_LAG|ANIM_LOOP;
-    else
-    {
-////////////////////        if (attack != ANIM_IDLE) // INTENSITY: TODO: Reconsider this
-        anim = attack;
-        basetime = lastaction; 
-
-        if(d->inwater && d->physstate<=PHYS_FALL) anim |= (((game::allowmove(d) && (d->move || d->strafe)) || d->vel.z+d->falling.z>0 ? ANIM_SWIM : ANIM_SINK)|ANIM_LOOP)<<ANIM_SECONDARY;
-        else if(d->timeinair>100) anim |= (ANIM_JUMP|ANIM_END)<<ANIM_SECONDARY;
-        else if(game::allowmove(d) && (d->move || d->strafe)) 
-        {
-            if(d->move>0) anim |= (ANIM_FORWARD|ANIM_LOOP)<<ANIM_SECONDARY;
-            else if(d->strafe) anim |= ((d->strafe>0 ? ANIM_LEFT : ANIM_RIGHT)|ANIM_LOOP)<<ANIM_SECONDARY;
-            else if(d->move<0) anim |= (ANIM_BACKWARD|ANIM_LOOP)<<ANIM_SECONDARY;
-        }
-        
-        if((anim&ANIM_INDEX)==ANIM_IDLE && (anim>>ANIM_SECONDARY)&ANIM_INDEX) anim >>= ANIM_SECONDARY;
-    }
-    if(d->ragdoll && (!ragdoll || (anim&ANIM_INDEX)!=ANIM_DYING)) DELETEP(d->ragdoll);
-    if(!((anim>>ANIM_SECONDARY)&ANIM_INDEX)) anim |= (ANIM_IDLE|ANIM_LOOP)<<ANIM_SECONDARY;
-    int flags = 0;
-    if(d!=player && !(anim&ANIM_RAGDOLL)) flags |= MDL_CULL_VFC | MDL_CULL_OCCLUDED | MDL_CULL_QUERY;
-    if(d->type==ENT_PLAYER) flags |= MDL_FULLBRIGHT;
-    else flags |= MDL_CULL_DIST;
-    if(drawtex == DRAWTEX_MODELPREVIEW) flags &= ~(MDL_FULLBRIGHT | MDL_CULL_VFC | MDL_CULL_OCCLUDED | MDL_CULL_QUERY | MDL_CULL_DIST);
-
-    // INTENSITY: If using the attack1 or 2 animations, then the start time (basetime) is determined by our action system
-    // TODO: Other attacks as well
-    // XXX Note: The basetime appears to be ignored if you do ANIM_LOOP
-    if (anim&ANIM_ATTACK1 || anim&ANIM_ATTACK2)
-        basetime = entity->getStartTime();
-
-    if(d->state == CS_LAGGED) trans = min(trans, 0.3f);
-    rendermodel(mdlname, anim, o, yaw, pitch, flags, d, attachments, basetime, 0, scale, trans);
-}
-
 void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSITY: Added entity
 {
     model *m = loadmodel(mdl); 
