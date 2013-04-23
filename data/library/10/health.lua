@@ -1,5 +1,6 @@
 module("health", package.seeall)
 
+local DYING = model.register_anim("dying")
 local PAIN = model.register_anim("pain")
 
 action_pain = ents.Local_Animation_Action:clone {
@@ -98,7 +99,7 @@ plugin = {
         if self.health > 0 then
             return self.__proto.__proto.decide_animation(self, ...)
         else
-            return math.bor(model.anims.DYING, model.anims.RAGDOLL)
+            return math.bor(DYING, model.anims.RAGDOLL)
         end
     end,
 
@@ -106,7 +107,7 @@ plugin = {
         local ret = self.__proto.__proto.get_animation(self, ...)
 
         -- clean up if not dead
-        if self.health > 0 and (ret == model.anims.DYING or ret == math.bor(model.anims.DYING, model.anims.RAGDOLL)) then
+        if self.health > 0 and (ret == DYING or ret == math.bor(DYING, model.anims.RAGDOLL)) then
             self:set_local_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
             ret = self.animation
         end

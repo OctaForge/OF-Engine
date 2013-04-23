@@ -15,7 +15,7 @@
 
 local M = {}
 
-local reganim = _C.model_register_anim
+local ran = _C.model_register_anim
 
 --[[! Variable: anims
     An enumeration of all basic (pre-defined) animations available in the
@@ -26,11 +26,10 @@ local reganim = _C.model_register_anim
     that you won't find much use for and a special anim type RAGDOLL.
 ]]
 M.anims = {
-    DEAD = reganim "dead", DYING = reganim "dying", IDLE = reganim "idle",
-    FORWARD = reganim "forward", BACKWARD = reganim "backward",
-    LEFT = reganim "left", RIGHT = reganim "right", JUMP = reganim "jump",
-    SINK = reganim "sink", SWIM = reganim "swim", EDIT = reganim "edit",
-    LAG = reganim "lag", MAPMODEL = reganim "mapmodel",
+    IDLE = ran "idle", FORWARD = ran "forward", BACKWARD = ran "backward",
+    LEFT = ran "left", RIGHT = ran "right", JUMP = ran "jump",
+    SINK = ran "sink", SWIM = ran "swim", EDIT = ran "edit",
+    LAG = ran "lag", MAPMODEL = ran "mapmodel",
 
     INDEX = 0x7F,
     LOOP = math.lsh(1, 7),
@@ -64,7 +63,7 @@ M.render_flags = {
     animation was actually newly registered and false when it just re-returned
     an already existing animation.
 ]]
-M.register_anim = reganim
+M.register_anim = ran
 
 --[[! Function: get_anim
     Returns the animation number for the given animation name. If no such
