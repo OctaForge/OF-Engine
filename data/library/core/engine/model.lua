@@ -19,8 +19,8 @@ local ran = _C.model_register_anim
 
 --[[! Variable: anims
     An enumeration of all basic (pre-defined) animations available in the
-    engine. Possible values are DEAD, DYING, IDLE, FORWARD, BACKWARD, LEFT,
-    RIGHT, JUMP, SINK, SWIM, EDIT, LAG, MAPMODEL.
+    engine. Possible values are IDLE, FORWARD, BACKWARD, LEFT, RIGHT, JUMP,
+    SINK, SWIM, EDIT, LAG, MAPMODEL.
 
     Then there are modifiers, INDEX, LOOP, START, END, REVERSE, SECONDARY
     that you won't find much use for and a special anim type RAGDOLL.

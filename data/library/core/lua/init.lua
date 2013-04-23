@@ -22,9 +22,6 @@
 --#log(DEBUG, ":::: Strict mode.")
 --require("lua.strict")
 
-#log(DEBUG, ":::: Console Lisp.")
-lisp = require("lua.lisp")
-
 #log(DEBUG, ":::: Lua extensions: table")
 require("lua.table")
 
