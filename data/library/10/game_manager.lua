@@ -223,6 +223,9 @@ function get_scoreboard_text()
     return get_singleton():get_scoreboard_text()
 end
 
+local WIN  = model.register_anim("win")
+local LOSE = model.register_anim("lose")
+
 manager_plugins = {
     messages = {
         properties = {
@@ -348,13 +351,13 @@ manager_plugins = {
                     local sound
                     if not tie then
                         if self.steams[player.team].score == max_score then
-                            player.animation = math.bor(model.anims.WIN, model.anims.LOOP)
+                            player.animation = math.bor(WIN, model.anims.LOOP)
                             msg.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
                                 sound.play(self.win_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         else
-                            player.animation = math.bor(model.anims.LOSE, model.anims.LOOP)
+                            player.animation = math.bor(LOSE, model.anims.LOOP)
                             msg.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
                                 sound.play(self.lose_sound, math.Vec3(0, 0, 0), player.cn)

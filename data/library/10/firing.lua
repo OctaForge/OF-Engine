@@ -277,10 +277,14 @@ function gun:do_recoil(shooter, magnitude)
     end
 end
 
+local ATTACK1 = model.register_anim("attack1")
+local ATTACK2 = model.register_anim("attack2")
+local ATTACK3 = model.register_anim("attack3")
+
 action_shoot1 = ents.Local_Animation_Action:clone {
     name = "action_shoot"
 }
-action_shoot1.local_animation   = model.anims.ATTACK1
+action_shoot1.local_animation = ATTACK1
 action_shoot1.cancellable = false
 
 -- convenience
@@ -289,20 +293,20 @@ action_shoot = action_shoot1
 action_shoot2 = ents.Local_Animation_Action:clone {
     name = "action_shoot"
 }
-action_shoot2.local_animation   = model.anims.ATTACK2
+action_shoot2.local_animation = ATTACK2
 action_shoot2.cancellable = false
 
 action_shoot3 = ents.Local_Animation_Action:clone {
     name = "action_shoot"
 }
-action_shoot3.local_animation   = model.anims.ATTACK3
+action_shoot3.local_animation = ATTACK3
 action_shoot3.cancellable = false
 
 action_shoot2_repeating = ents.Local_Animation_Action:clone {
     name = "action_shoot"
 }
 action_shoot2_repeating.local_animation = math.bor(
-    model.anims.ATTACK2,
+    ATTACK2,
     model.anims.LOOP
 )
 action_shoot2_repeating.cancellable = false

@@ -1,9 +1,11 @@
 module("health", package.seeall)
 
+local PAIN = model.register_anim("pain")
+
 action_pain = ents.Local_Animation_Action:clone {
     name = "action_pain",
     seconds_left       = 0.6,
-    local_animation    = model.anims.PAIN,
+    local_animation    = PAIN,
     can_multiply_queue = false
 }
 

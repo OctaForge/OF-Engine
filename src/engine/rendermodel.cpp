@@ -6,6 +6,9 @@ VARP(animationinterpolationtime, 0, 150, 1000);
 
 model *loadingmodel = NULL;
 
+/* OF */
+extern vector<int> lua_anims;
+
 #include "ragdoll.h"
 #include "animmodel.h"
 #include "vertmodel.h"
@@ -1013,44 +1016,8 @@ void abovemodel(vec &o, const char *mdl)
     o.z += m->above();
 }
 
-bool matchanim(const char *name, const char *pattern)
-{
-    for(;; pattern++)
-    {
-        const char *s = name;
-        char c;
-        for(;; pattern++)
-        {
-            c = *pattern;
-            if(!c || c=='|') break;
-            else if(c=='*') 
-            {
-                if(!*s || iscubespace(*s)) break;
-                do s++; while(*s && !iscubespace(*s));
-            }
-            else if(c!=*s) break;
-            else s++;
-        }
-        if(!*s && (!c || c=='|')) return true;
-        pattern = strchr(pattern, '|');
-        if(!pattern) break;
-    }
-    return false;
-}
-
-void findanims(const char *pattern, vector<int> &anims)
-{
-    loopi(sizeof(animnames)/sizeof(animnames[0])) if(matchanim(animnames[i], pattern)) anims.add(i);
-    string num;
-
-    // INTENSITY: Accept integer values as well, up to 128 of them
-    loopi(ANIM_ALL+1)
-    {
-        formatstring(num)("%d", i);
-        if(matchanim(num, pattern)) anims.add(i);
-    }
-    // INTENSITY: End Accept integer values as well
-}
+/* OF */
+extern void findanims(const char *pattern, vector<int> &anims);
 
 ICOMMAND(findanims, "s", (char *name),
 {

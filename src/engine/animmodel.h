@@ -669,12 +669,13 @@ struct animmodel : model
                 animspec *spec = NULL;
                 if(anims[animpart])
                 {
+                    int nanims = lua_anims.length();
                     vector<animspec> &primary = anims[animpart][anim&ANIM_INDEX];
-                    if(&primary < &anims[animpart][NUMANIMS] && primary.length()) spec = &primary[uint(varseed + basetime)%primary.length()];
+                    if(&primary < &anims[animpart][nanims] && primary.length()) spec = &primary[uint(varseed + basetime)%primary.length()];
                     if((anim>>ANIM_SECONDARY)&(ANIM_INDEX|ANIM_DIR))
                     {
                         vector<animspec> &secondary = anims[animpart][(anim>>ANIM_SECONDARY)&ANIM_INDEX];
-                        if(&secondary < &anims[animpart][NUMANIMS] && secondary.length())
+                        if(&secondary < &anims[animpart][nanims] && secondary.length())
                         {
                             animspec &spec2 = secondary[uint(varseed + basetime2)%secondary.length()];
                             if(!spec || spec2.priority > spec->priority)

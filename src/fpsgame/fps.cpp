@@ -351,11 +351,11 @@ namespace game
                 #ifdef CLIENT
                     // Ragdolls
                     int anim = entity->getAnimation();
-                    if (fpsEntity->ragdoll && !(anim&ANIM_DYING))
+                    if (fpsEntity->ragdoll && !(anim&ANIM_RAGDOLL))
                     {
                         cleanragdoll(fpsEntity);
                     }
-                    if (fpsEntity->ragdoll && (anim&ANIM_DYING))
+                    if (fpsEntity->ragdoll && (anim&ANIM_RAGDOLL))
                     {
                         moveragdoll(fpsEntity);
                     }

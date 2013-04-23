@@ -15,24 +15,22 @@
 
 local M = {}
 
+local reganim = _C.model_register_anim
+
 --[[! Variable: anims
-    An enumeration of all animations available in the engine. Possible values
-    are DEAD, DYING, IDLE, FORWARD, BACKWARD, LEFT, RIGHT, HOLD1-7, ATTACK1-7,
-    PAIN, JUMP, SINK, SWIM, EDIT, LAG, TAUNT, WIN, LOSE, GUN_IDLE, GUN_SHOOT,
-    VWEP_IDLE, VWEP_SHOOT, SHIELD, POWERUP, MAPMODEL, TRIGGER.
+    An enumeration of all basic (pre-defined) animations available in the
+    engine. Possible values are DEAD, DYING, IDLE, FORWARD, BACKWARD, LEFT,
+    RIGHT, JUMP, SINK, SWIM, EDIT, LAG, MAPMODEL.
 
     Then there are modifiers, INDEX, LOOP, START, END, REVERSE, SECONDARY
     that you won't find much use for and a special anim type RAGDOLL.
 ]]
 M.anims = {
-    DEAD = 0, DYING = 1, IDLE = 2, FORWARD = 3, BACKWARD = 4, LEFT = 5,
-    RIGHT = 6, HOLD1 = 7, HOLD2 = 8, HOLD3 = 9, HOLD4 = 10, HOLD5 = 11,
-    HOLD6 = 12, HOLD7 = 13, ATTACK1 = 14, ATTACK2 = 15, ATTACK3 = 16,
-    ATTACK4 = 17, ATTACK5 = 18, ATTACK6 = 19, ATTACK7 = 20,
-    PAIN = 21, JUMP = 22, SINK = 23, SWIM = 24, EDIT = 25, LAG = 26,
-    TAUNT = 27, WIN = 28, LOSE = 29, GUN_IDLE = 30, GUN_SHOOT = 31,
-    VWEP_IDLE = 32, VWEP_SHOOT = 33, SHIELD = 34, POWERUP = 35,
-    MAPMODEL = 36, TRIGGER = 37,
+    DEAD = reganim "dead", DYING = reganim "dying", IDLE = reganim "idle",
+    FORWARD = reganim "forward", BACKWARD = reganim "backward",
+    LEFT = reganim "left", RIGHT = reganim "right", JUMP = reganim "jump",
+    SINK = reganim "sink", SWIM = reganim "swim", EDIT = reganim "edit",
+    LAG = reganim "lag", MAPMODEL = reganim "mapmodel",
 
     INDEX = 0x7F,
     LOOP = math.lsh(1, 7),
@@ -57,6 +55,28 @@ M.render_flags = {
     FULLBRIGHT = math.lsh(1, 4), NORENDER = math.lsh(1, 5),
     MAPMODEL = math.lsh(1, 6), NOBATCH = math.lsh(1, 7)
 }
+
+--[[! Function: register_anim
+    Registers an animation of the given name. Returns the animation number
+    that you can then use. Currently up to 127 animations can be registered.
+    If an animation of the same name already exists, it just returns its
+    number.
+]]
+M.register_anim = reganim
+
+--[[! Function: get_anim
+    Returns the animation number for the given animation name. If no such
+    animation exists, returns nil.
+]]
+M.get_anim = _C.model_get_anim
+
+--[[! Function: find_anims
+    Finds animations whose names match the given pattern. It's a regular
+    Lua pattern. It also accepts integers (as in animation numbers). It
+    returns an array of all animation numbers that match the input. The
+    result is sorted.
+]]
+local find_anims = _C.model_find_anims
 
 --[[! Function: clear
     Clears a model with a name given by the argument (which is relative
@@ -87,12 +107,6 @@ M.render = function(ent, mdl, anim, pos, yaw, pitch, flags, basetime, trans)
     mrender(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, flags,
         basetime, trans)
 end
-
---[[! Function: find_animations
-    Finds all animations of the model given by the argument and returns
-    them as an array of anims from the enum (see anims).
-]]
-M.find_animations = _C.findanims
 
 --[[! Function: get_bounding_box
     Returns the bounding box of the given model as two vec3, center and

@@ -114,35 +114,6 @@ struct physent                                  // base entity type, can be affe
     }
 };
 
-enum
-{
-    ANIM_DEAD = 0, ANIM_DYING, ANIM_IDLE,
-    ANIM_FORWARD, ANIM_BACKWARD, ANIM_LEFT, ANIM_RIGHT,
-    ANIM_HOLD1, ANIM_HOLD2, ANIM_HOLD3, ANIM_HOLD4, ANIM_HOLD5, ANIM_HOLD6, ANIM_HOLD7,
-    ANIM_ATTACK1, ANIM_ATTACK2, ANIM_ATTACK3, ANIM_ATTACK4, ANIM_ATTACK5, ANIM_ATTACK6, ANIM_ATTACK7,
-    ANIM_PAIN,
-    ANIM_JUMP, ANIM_SINK, ANIM_SWIM,
-    ANIM_EDIT, ANIM_LAG, ANIM_TAUNT, ANIM_WIN, ANIM_LOSE,
-    ANIM_GUN_IDLE, ANIM_GUN_SHOOT,
-    ANIM_VWEP_IDLE, ANIM_VWEP_SHOOT, ANIM_SHIELD, ANIM_POWERUP,
-    ANIM_MAPMODEL, ANIM_TRIGGER,
-    NUMANIMS
-};
-
-static const char * const animnames[] =
-{
-       "dead", "dying", "idle", 
-       "forward", "backward", "left", "right", 
-       "hold1", "hold2", "hold3", "hold4", "hold5", "hold6", "hold7", // INTENSITY: No spaces, so can be validated as non-spaced
-       "attack1", "attack2", "attack3", "attack4", "attack5", "attack6", "attack7", // INTENSITY: No spaces, so can be validated as non-spaced
-       "pain", 
-       "jump", "sink", "swim", 
-       "edit", "lag", "taunt", "win", "lose", 
-       "gunidle", "gunshoot", // INTENSITY: No spaces, so can be validated as non-spaced
-       "vwepidle", "vwepshoot", "shield", "powerup", // INTENSITY: No spaces, so can be validated as non-spaced
-       "mapmodel", "trigger"
-};
-
 #define ANIM_ALL         0x7F
 #define ANIM_INDEX       0x7F
 #define ANIM_LOOP        (1<<7)

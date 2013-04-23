@@ -13,11 +13,13 @@
         OctaForge standard library loader (Engine system).
 ]]
 
+if CLIENT then
 #log(DEBUG, ":::: Input.")
 input = require("engine.input")
 
 #log(DEBUG, ":::: Camera.")
 camera = require("engine.camera")
+end
 
 #log(DEBUG, ":::: Sound.")
 sound = require("engine.sound")

@@ -431,3 +431,85 @@ namespace entities
         return 1;
     });
 } /* end namespace entities */
+
+/* extra model API */
+
+vector<int> lua_anims;
+static hashtable<const char*, int> animmap;
+
+bool matchanim(const char *name, const char *pattern)
+{
+    for(;; pattern++)
+    {
+        const char *s = name;
+        char c;
+        for(;; pattern++)
+        {
+            c = *pattern;
+            if(!c || c=='|') break;
+            else if(c=='*') 
+            {
+                if(!*s || iscubespace(*s)) break;
+                do s++; while(*s && !iscubespace(*s));
+            }
+            else if(c!=*s) break;
+            else s++;
+        }
+        if(!*s && (!c || c=='|')) return true;
+        pattern = strchr(pattern, '|');
+        if(!pattern) break;
+    }
+    return false;
+}
+
+void findanims(const char *pattern, vector<int> &anims)
+{
+    enumeratekt(animmap, const char*, s, int, v, {
+        if (matchanim(s, pattern)) anims.add(v);
+    });
+    string num;
+    loopi(ANIM_ALL + 1) {
+        formatstring(num)("%d", i);
+        if (matchanim(num, pattern)) anims.add(i);
+    }
+    anims.sort();
+}
+
+LUAICOMMAND(model_register_anim, {
+    /* don't let it overflow */
+    const char *s = luaL_checkstring(L, 1);
+    int *a = animmap.access(s);
+    if (a) {
+        lua_pushinteger(L, *a);
+        return 1;
+    }
+    else if (lua_anims.length() > ANIM_ALL) return 0;
+    /* pin it */
+    lua_pushvalue(L, 1); lua_setfield(L, LUA_REGISTRYINDEX, s);
+    int n = lua_anims.length();
+    animmap.access(s, n);
+    lua_anims.add(n);
+    lua_pushinteger(L, n);
+    return 1;
+});
+
+LUAICOMMAND(model_get_anim, {
+    const char *s = luaL_checkstring(L, 1);
+    int *a = animmap.access(s);
+    if (!a) return 0;
+    lua_pushinteger(L, *a);
+    return 1;
+});
+
+void clearanims() {
+    lua_anims.setsize(0);
+    loopi(animmap.size) {
+        for (hashtable<const char*, int>::chain *c = animmap.chains[i]; c;) {
+            const char *s = c->elem.key;
+            c = c->next;
+            lua_pushnil(lua::L); lua_setfield(lua::L, LUA_REGISTRYINDEX, s);
+        }
+    }
+    animmap.clear();
+}
+LUAICOMMAND(model_clear_anims, { clearanims(); return 0; });
