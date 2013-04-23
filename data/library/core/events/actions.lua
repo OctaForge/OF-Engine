@@ -40,7 +40,7 @@ local Action = table.Object:clone {
             action ends. By default it's 0.
 
             animation - If specified, the action will change the actor's
-            animation during its execution. One of the ANIM_ constants.
+            animation during its execution. One of the model.anims constants.
 
             allow_multiple - A boolean value specifying whether multiple
             actions of the same type can be present in one action system.

@@ -288,12 +288,12 @@ debris = projectile:clone {
         if not self.debris_model then return nil end
 
         local o     = self.position
-        local flags = math.bor(model.CULL_VFC, model.CULL_DIST)
+        local flags = math.bor(model.render_flags.CULL_VFC, model.render_flags.CULL_DIST)
         
         model.render(
             game_manager.get_singleton(),
             self.debris_model,
-            model.ANIM_IDLE,
+            model.anims.IDLE,
             o, 0, 0, flags, 0
         )
     end,

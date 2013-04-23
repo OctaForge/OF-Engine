@@ -1307,3 +1307,7 @@ LUAICOMMAND(model_get_mesh, {
     }
     return 1;
 });
+
+LUAICOMMAND(model_preload, { preloadmodel(luaL_checkstring(L, 1)); return 0; });
+LUAICOMMAND(model_reload, { reloadmodel((char*)luaL_checkstring(L, 1)); return 0; });
+LUAICOMMAND(model_clear, { clearmodel((char*)luaL_checkstring(L, 1)); return 0; });

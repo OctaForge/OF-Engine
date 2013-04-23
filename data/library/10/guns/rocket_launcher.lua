@@ -26,10 +26,10 @@ rocket = projectiles.projectile:clone {
     render = function(self)
         local o     = self.position
         local flags = math.bor(
-            model.CULL_VFC,
-            model.CULL_OCCLUDED,
-            model.FULLBRIGHT,
-            model.CULL_DIST
+            model.render_flags.CULL_VFC,
+            model.render_flags.CULL_OCCLUDED,
+            model.render_flags.FULLBRIGHT,
+            model.render_flags.CULL_DIST
         )
         local yaw_pitch = self.velocity:to_yaw_pitch()
         local yaw       = yaw_pitch.yaw - 90
@@ -38,7 +38,7 @@ rocket = projectiles.projectile:clone {
         local args      = {
             self.owner,
             "guns/rocket",
-            math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
+            math.bor(model.anims.IDLE, model.anims.LOOP),
             o,
             yaw,
             pitch,

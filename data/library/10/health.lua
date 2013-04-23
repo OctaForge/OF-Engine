@@ -3,7 +3,7 @@ module("health", package.seeall)
 action_pain = ents.Local_Animation_Action:clone {
     name = "action_pain",
     seconds_left       = 0.6,
-    local_animation    = model.ANIM_PAIN,
+    local_animation    = model.anims.PAIN,
     can_multiply_queue = false
 }
 
@@ -47,7 +47,7 @@ plugin = {
                     if  self.default_model_name then
                         self.model_name  = ""
                     end
-                    self.animation   = math.bor(model.ANIM_IDLE, model.ANIM_LOOP)
+                    self.animation   = math.bor(model.anims.IDLE, model.anims.LOOP)
                     self.spawn_stage = 3
                 end
                 return "cancel_sdata_update"
@@ -96,7 +96,7 @@ plugin = {
         if self.health > 0 then
             return self.__proto.__proto.decide_animation(self, ...)
         else
-            return math.bor(model.ANIM_DYING, model.ANIM_RAGDOLL)
+            return math.bor(model.anims.DYING, model.anims.RAGDOLL)
         end
     end,
 
@@ -104,8 +104,8 @@ plugin = {
         local ret = self.__proto.__proto.get_animation(self, ...)
 
         -- clean up if not dead
-        if self.health > 0 and (ret == model.ANIM_DYING or ret == math.bor(model.ANIM_DYING, model.ANIM_RAGDOLL)) then
-            self:set_local_animation(math.bor(model.ANIM_IDLE, model.ANIM_LOOP))
+        if self.health > 0 and (ret == model.anims.DYING or ret == math.bor(model.anims.DYING, model.anims.RAGDOLL)) then
+            self:set_local_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
             ret = self.animation
         end
 

@@ -51,7 +51,7 @@ local Physical_Entity = Entity:clone {
 
         self.model_name  = ""
         self.attachments = {}
-        self.animation   = bor(model.ANIM_IDLE, model.ANIM_LOOP)
+        self.animation   = bor(model.anims.IDLE, model.anims.LOOP)
     end or nil,
 
     activate = SERVER and function(self, kwargs)
@@ -407,9 +407,11 @@ local Character = Physical_Entity:clone {
         Clientside.
     ]]
     get_render_flags = CLIENT and function(self, hudpass, needhud)
-        local flags = model.FULLBRIGHT
+        local flags = model.render_flags.FULLBRIGHT
         if self ~= M.get_player() then
-            flags = bor(model.CULL_VFC, model.CULL_OCCLUDED, model.CULL_QUERY)
+            flags = bor(model.render_flags.CULL_VFC,
+                model.render_flags.CULL_OCCLUDED,
+                model.render_flags.CULL_QUERY)
         end
         return flags
     end or nil,
@@ -429,46 +431,46 @@ local Character = Physical_Entity:clone {
 
         -- editing or spectator
         if state == 4 or state == 5 then
-            anim = bor(model.ANIM_EDIT, model.ANIM_LOOP)
+            anim = bor(model.anims.EDIT, model.anims.LOOP)
         -- lagged
         elseif state == 3 then
-            anim = bor(model.ANIM_LAG, model.ANIM_LOOP)
+            anim = bor(model.anims.LAG, model.anims.LOOP)
         else
             -- in water and floating or falling
             if inwater ~= 0 and pstate <= 1 then
                 anim = bor(anim, lsh(
                     bor(((move or strafe) or ((vel.z + falling.z) > 0))
-                        and model.ANIM_SWIM or model.ANIM_SINK,
-                    model.ANIM_LOOP),
-                    model.ANIM_SECONDARY))
+                        and model.anims.SWIM or model.anims.SINK,
+                    model.anims.LOOP),
+                    model.anims.SECONDARY))
             -- jumping animation
             elseif tinair > 250 then
-                anim = bor(anim, lsh(bor(model.ANIM_JUMP, model.ANIM_END),
-                    model.ANIM_SECONDARY))
+                anim = bor(anim, lsh(bor(model.anims.JUMP, model.anims.END),
+                    model.anims.SECONDARY))
             -- moving or strafing
             elseif move ~= 0 or strafe ~= 0 then
                 if move > 0 then
-                    anim = bor(anim, lsh(bor(model.ANIM_FORWARD,
-                        model.ANIM_LOOP), model.ANIM_SECONDARY))
+                    anim = bor(anim, lsh(bor(model.anims.FORWARD,
+                        model.anims.LOOP), model.anims.SECONDARY))
                 elseif strafe ~= 0 then
-                    anim = bor(anim, lsh(bor((strafe > 0 and model.ANIM_LEFT
-                        or model.ANIM_RIGHT), model.ANIM_LOOP),
-                        model.ANIM_SECONDARY))
+                    anim = bor(anim, lsh(bor((strafe > 0 and model.anims.LEFT
+                        or model.anims.RIGHT), model.anims.LOOP),
+                        model.anims.SECONDARY))
                 elseif move < 0 then
-                    anim = bor(anim, lsh(bor(model.ANIM_BACKWARD,
-                        model.ANIM_LOOP), model.ANIM_SECONDARY))
+                    anim = bor(anim, lsh(bor(model.anims.BACKWARD,
+                        model.anims.LOOP), model.anims.SECONDARY))
                 end
             end
 
-            if band(anim, model.ANIM_INDEX) == model.ANIM_IDLE and
-            band(rsh(anim, model.ANIM_SECONDARY), model.ANIM_INDEX) ~= 0 then
-                anim = rsh(anim, model.ANIM_SECONDARY)
+            if band(anim, model.anims.INDEX) == model.anims.IDLE and
+            band(rsh(anim, model.anims.SECONDARY), model.anims.INDEX) ~= 0 then
+                anim = rsh(anim, model.anims.SECONDARY)
             end
         end
 
-        if band(rsh(anim, model.ANIM_SECONDARY), model.ANIM_INDEX) == 0 then
-            anim = bor(anim, lsh(bor(model.ANIM_IDLE, model.ANIM_LOOP),
-                model.ANIM_SECONDARY))
+        if band(rsh(anim, model.anims.SECONDARY), model.anims.INDEX) == 0 then
+            anim = bor(anim, lsh(bor(model.anims.IDLE, model.anims.LOOP),
+                model.anims.SECONDARY))
         end
         return anim
     end or nil,

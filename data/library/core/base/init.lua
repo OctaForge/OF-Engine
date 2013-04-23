@@ -21,9 +21,6 @@ local gravity
 #log(DEBUG, ":: Geometry interface.")
 require("base.base_geometry")
 
-#log(DEBUG, ":: Models.")
-require("base.base_models")
-
 #log(DEBUG, ":: Effects.")
 require("base.base_effects")
 

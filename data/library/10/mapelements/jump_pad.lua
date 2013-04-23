@@ -53,8 +53,8 @@ plugin = {
 
         local o = self.position
         local flags = math.bor(
-            model.CULL_VFC, model.OCCLUDED, model.CULL_QUERY,
-            model.FULLBRIGHT, model.CULL_DIST
+            model.render_flags.CULL_VFC, model.render_flags.OCCLUDED, model.render_flags.CULL_QUERY,
+            model.render_flags.FULLBRIGHT, model.render_flags.CULL_DIST
         )
         local yaw
         if self.pad_rotate then
@@ -63,7 +63,7 @@ plugin = {
 
         model.render(
             self, self.pad_model,
-            math.bor(model.ANIM_IDLE, model.ANIM_LOOP),
+            math.bor(model.anims.IDLE, model.anims.LOOP),
             o, yaw and yaw or self.yaw, self.pad_pitch,
             flags, 0
         )
