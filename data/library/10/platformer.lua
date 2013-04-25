@@ -172,7 +172,7 @@ function do_strafe(strafe, down)
 end
 
 function do_mousemove(yaw, pitch)
-    if ents.get_player().editing then
+    if _V.editing ~= 0 then
         return yaw, pitch
     end
 end
