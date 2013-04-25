@@ -39,7 +39,7 @@ plugin = {
         pain_sound  = svars.State_String()
     },
 
-    on_spawn_stage = function(_, self, stage, auid)
+    on_spawn_stage = function(self, stage, auid)
         if stage == 1 then -- client ack
             if CLIENT then
                 self.spawn_stage = 2
@@ -53,7 +53,7 @@ plugin = {
                     self.animation   = math.bor(model.anims.IDLE, model.anims.LOOP)
                     self.spawn_stage = 3
                 end
-                return "cancel_sdata_update"
+                self:cancel_sdata_update()
             end
         elseif stage == 3 then -- client repositions etc.
             if CLIENT and self == ents.get_player() then
@@ -74,7 +74,7 @@ plugin = {
                 end
 
                 self.spawn_stage = 0
-                return "cancel_sdata_update"
+                self:cancel_sdata_update()
             end
         end
     end,
@@ -148,7 +148,7 @@ plugin = {
         end
     end or nil,
 
-    on_health = function(_, self, health, server_origin)
+    on_health = function(self, health, server_origin)
         if self.old_health and health < self.old_health then
             local diff = self.old_health - health
 
@@ -207,7 +207,7 @@ function is_valid_target(entity)
 end
 
 deadly_area_trigger_plugin = {
-    client_on_collision = function(_, self, entity)
+    client_on_collision = function(self, entity)
         if entity ~= ents.get_player() then return nil end
 
         if is_valid_target(entity) then

@@ -1062,9 +1062,11 @@ Entity = table.Object:clone {
             val = var:from_wire(val)
         end
 
-        local ret = emit(self, key .. "_changed", val, actor_uid)
-            == "cancel_sdata_update"
-        if ret then return nil end
+        emit(self, key .. "_changed", val, actor_uid)
+        if self.sdata_update_cancel then
+            self.sdata_update_cancel = nil
+            return nil
+        end
 
         self.svar_values[key] = val
         #log(INFO, "Entity.set_sdata: new sdata: " .. tostring(val))
@@ -1094,6 +1096,14 @@ Entity = table.Object:clone {
                 end
             end
         end
+    end,
+
+    --[[! Function: cancel_sdata_update
+        Cancels a state data update (on the server). Useful when called
+        from FOO_changed signal slots.
+    ]]
+    cancel_sdata_update = function(self)
+        self.sdata_update_cancel = true
     end,
 
     --[[! Function: send_notification_full

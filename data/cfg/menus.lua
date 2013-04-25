@@ -341,9 +341,7 @@ world:append(gui.Window {
     }
 })
 
-signal.connect(world, "get_main", function(_, self)
-    return main
-end)
+world:set_main(main)
 
 _C.cubescript([[
     bind ESCAPE [ lua [

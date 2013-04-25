@@ -89,7 +89,7 @@ plugins = {
             signal.connect(self,"firing_info_changed", self.on_firing_info)
         end,
 
-        on_firing_info = function(_, self, info)
+        on_firing_info = function(self, info)
             -- do not shoot if just killed (even though can_move = false didn't arrive yet)
             if not health.is_valid_target(self) then return nil end
 
@@ -137,7 +137,7 @@ plugins = {
             if SERVER then
                 signal.connect(self,
                     "gun_indexes_changed",
-                    function(_, self, indexes)
+                    function(self, indexes)
                         if #indexes > 0 then
                             self.current_gun_index = indexes[1] -- sets initial value
                         end
@@ -150,7 +150,7 @@ plugins = {
 
                 signal.connect(self,
                     "current_gun_index_changed",
-                    function(_, self)
+                    function(self)
                         if self.gun_switch_sound ~= "" then
                             sound.play(self.gun_switch_sound, self.position:copy())
                         end

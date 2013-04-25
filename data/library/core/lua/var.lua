@@ -39,11 +39,12 @@ _V = setmetatable({
         _C.var_emits(vn, true)
     end,
 
-    __disconnect = function(self, name, id, len)
-        if id and len ~= 0 then return nil end
-        local  vn = name:match("(.+)_changed$")
-        if not vn then return nil end
-        _C.var_emits(vn, false)
+    __disconnect = function(self, name, id, scount)
+        if scount == 0 then
+            local  vn = name:match("(.+)_changed$")
+            if not vn then return nil end
+            _C.var_emits(vn, false)
+        end
     end
 }, {
     __index = function(self, name)

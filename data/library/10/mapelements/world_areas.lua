@@ -5,7 +5,7 @@ active = nil
 plugin = {
     per_frame = true,
 
-    client_on_collision = function(_, self, entity)
+    client_on_collision = function(self, entity)
         if entity ~= ents.get_player() then return nil end
 
         -- cannot have more than one active

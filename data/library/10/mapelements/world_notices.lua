@@ -29,7 +29,7 @@ world_notice = ents.register_class(plugins.bake(ents.Area_Trigger, {{
     run = CLIENT and function(self, seconds)
     end or nil,
 
-    client_on_collision = function(_, self, entity)
+    client_on_collision = function(self, entity)
         if entity ~= ents.get_player() then return nil end
 
         if not self.notice_action then

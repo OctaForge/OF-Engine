@@ -15,7 +15,7 @@ plugin = {
         signal.connect(self, "collision", self.client_on_collision)
     end or nil,
 
-    client_on_collision = function(_, self, collider)
+    client_on_collision = function(self, collider)
         if self.destination >= 1 then
             local destinations = ents.get_by_tag("teledest_" .. self.destination)
             if #destinations == 0 then

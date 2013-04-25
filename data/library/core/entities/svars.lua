@@ -153,7 +153,7 @@ State_Variable = table.Object:clone {
 
         local var = self
         local sn  = name .. "_changed"
-        signal.connect(parent, sn, function(_, self, val)
+        signal.connect(parent, sn, function(self, val)
             if CLIENT or not self.svar_change_queue then
                 #log(INFO, "Calling setter function for " .. name)
                 var.setter_fun(self, val)

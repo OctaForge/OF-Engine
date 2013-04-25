@@ -32,7 +32,7 @@ plugin = {
         end
     end or nil,
 
-    client_on_collision = function(_, self, collider)
+    client_on_collision = function(self, collider)
         -- each player handles themselves
         if collider ~= ents.get_player() then return nil end
 

@@ -100,7 +100,7 @@ chaingun.plugin = {
 
         signal.connect(self,
             "chaingun_firing_update_changed",
-            function(_, self, value)
+            function(self, value)
                 value = value and health.is_valid_target(self)
 
                 if not self.chaingun_firing and value then

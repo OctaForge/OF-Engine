@@ -14,129 +14,112 @@
         Available as "signal".
 ]]
 
+local type = type
+local rawget, rawset = rawget, rawset
+local clamp = clamp
+local tfind = table.find
+
 return {
     --[[! Function: connect
-        Connects a signal to a table. The callback has to be a function.
+        Connects a signal to a slot inside a table. The callback has to be a
+        function.
 
-        You can later use <emit> to call the connected function, passing
-        arguments to it.
+        You can later use <emit> to call the connected slot(s), passing
+        arguments to it (them).
 
-        This function returns the position of the signal inside signal
-        queue for the given name (by default it's appended to the end,
-        optional fourth argument can specify position into which to insert).
-        It also returns the callback after being wrapped.
+        This function returns the id for the slot. You can later use this id
+        to disconnect the slot. It also returns the number of currently
+        connected slots.
 
-        Signals can return values (any number they want). They take at least
-        two arguments, first being a reference to the next signal in the
-        queue, second being the table. Only the first signal in the queue
-        is called on emit, so if you want to call the whole sequence, make
-        sure to use the argument. The system doesn't do it automatically.
-        Of course, any further arguments after the two are passed from
-        <emit>.
+        Slots take at least one argument, the table they're connected to.
+        They're called in the order they were conected. Any further arguments
+        passed to <emit> are also passed to any connected slot.
 
         (start code)
             Foo = {}
-            signal.connect(Foo, "blah", function(_, self, a, b, c)
+            signal.connect(Foo, "blah", function(self, a, b, c)
                 echo(a)
                 echo(b)
-                echo(c) end)
+                echo(c)
+            end)
             signal.emit(Foo, "blah", 5, 10, 15)
         (end)
     ]]
-    connect = function(self, name, callback, pos)
+    connect = function(self, name, callback)
         if type(callback) ~= "function" then
             #log(ERROR, "Not connecting non-function callback: " .. name)
             return nil
         end
+        local clistn = "_sig_conn_" .. name
 
-        local  connections = rawget(self, "_sig_connections")
-        if not connections then
-               connections = {}
-               rawset(self, "_sig_connections", connections)
+        local  clist = rawget(self, clistn)
+        if not clist then
+               clist = { slotcount = 0 }
+               rawset(self, clistn, clist)
         end
 
-        local  conn = connections[name]
-        if not conn then
-               conn = {}
-               connections[name] = conn
-        end
+        local id = #clist + 1
+        clist[id] = callback
 
-        local id = #conn + 1
-        pos = clamp(pos or id, 1, id)
-
-        local fun = function(...)
-            return callback(conn[pos + 1], ...)
-        end
-        if pos == id then
-            conn [id] = fun
-        else
-            table.insert(conn, pos, fun)
-        end
+        clist.slotcount = clist.slotcount + 1
 
         local cb = rawget(self, "__connect")
-        if    cb then cb (self, name, callback, pos) end
+        if    cb then cb (self, name, callback) end
 
-        return id, fun
+        return id, clist.slotcount
     end,
 
     --[[! Function: disconnect
-        Disconnects a signal previously connected with <connect>. You have to
-        provide the name and the number of the signal in the queue. If you
-        don't know the number, you can provide the callback itself (as
-        returned by <connect>, not the raw form).
-        If the number (or callback) is not provided, all signals of the
-        given name are disconnected. If the name is not given either,
-        all signals are disconnected from the table.
-
-        If id is provided, this function returns the number of signals
-        connected to name after this disconnect. Otherwise nil.
+        Disconnects a slot. You have to provide the signal name and the slot
+        id. If you don't know the id, you can provide the slot itself.
+        If the id is not provided, it disconnects all slots associated with
+        the given signal. Returns the number of connected slots after the
+        disconnect (or nil if nothing could be disconnected).
     ]]
     disconnect = function(self, name, id)
-        local connections = rawget(self, "_sig_connections")
-        local cb          = rawget(self, "__disconnect")
-        if    connections then
+        local clistn = "_sig_conn_" .. name
+        local clist  = rawget(self, clistn)
+        local cb     = rawget(self, "__disconnect")
+        if clist then
             if not id then
-                connections[name] = nil
+                rawset(self, clistn, nil)
                 if cb then cb(self, name) end
-                return nil
+                return 0
             end
-            local conn = connections[name]
-            if    conn and type(id) ~= "number" then
-                id = table.find(conn, id)
+            if type(id) ~= "number" then
+                id = tfind(clist, id)
             end
-            if conn and #conn >= id then
-                table.remove(conn, id)
-                local len = #conn
-                if cb then cb(self, name, id, len) end
-                return len
+            if id and id <= #clist then
+                local scnt = clist.slotcount - 1
+                clist.slotcount = scnt
+                rawset(clist, id, false)
+                if cb then cb(self, name, id, scnt) end
+                return scnt
             end
         end
-        rawset(self, "_sig_connections", nil)
-        if cb then cb(self) end
     end,
 
     --[[! Function: emit
-        Emits a previously connected signal of a given name. You can
-        provide arguments to pass to the callback after "next" and "self".
-
-        Only the first signal in the queue is called, so make sure to use
-        "next" when required in order to call further signals in the
-        sequence.
-
-        This function returns values returned by the called signal.
-
-        See <connect> if you want an example.
+        Emits a signal, calling all the slots associated with it in the
+        order of connection, passing all extra arguments to it (besides
+        the "self" argument). Returns the number of called slots.
     ]]
     emit = function(self, name, ...)
-        local  connections = rawget(self, "_sig_connections")
-        if not connections then return nil end
+        local clistn = "_sig_conn_" .. name
+        local clist  = rawget(self, clistn)
+        if not clist then
+            return 0
+        end
 
-        local  handlers = connections[name]
-        if not handlers then return nil end
+        local ncalled = 0
+        for i = 1, #clist do
+            local cb = clist[i]
+            if cb then
+                ncalled = ncalled + 1
+                cb(self, ...)
+            end
+        end
 
-        local  cb = handlers[1]
-        if not cb then return nil end
-
-        return cb(self, ...)
+        return ncalled
     end
 }

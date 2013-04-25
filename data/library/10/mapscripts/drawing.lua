@@ -54,7 +54,7 @@ ents.register_class(plugins.bake(
 
             -- This is called when new mark is created. It adds a point into a storage.
             -- vec4's are used, first three elements for position, fourth for color.
-            on_new_mark = function(_, self, mark)
+            on_new_mark = function(self, mark)
                 if #mark == 3 then
                     mark = math.Vec4(mark[1], mark[2], mark[3], self.color)
                 else

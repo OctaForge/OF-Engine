@@ -608,13 +608,13 @@ ents.register_class(
             if not CLIENT then return nil end
             signal.connect(self,
                 "tags_changed",
-                function(_, self)
+                function(self)
                     self.m_tag = self.tags:to_array()[1]
                 end
             )
             signal.connect(self,
                 "next_controller_changed",
-                function(_, self)
+                function(self)
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -706,7 +706,7 @@ ents.register_class(
             if not CLIENT then return nil end
             signal.connect(self,
                 "tags_changed",
-                function(_, self)
+                function(self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
@@ -718,7 +718,7 @@ ents.register_class(
             )
             signal.connect(self,
                 "next_marker_changed",
-                function(_, self)
+                function(self)
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -838,7 +838,7 @@ ents.register_class(
             if not CLIENT then return nil end
             signal.connect(self,
                 "tags_changed",
-                function(_, self)
+                function(self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
@@ -850,7 +850,7 @@ ents.register_class(
             )
             signal.connect(self,
                 "parent_id_changed",
-                function(_, self)
+                function(self)
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -940,7 +940,7 @@ ents.register_class(
             if not CLIENT then return nil end
             signal.connect(self,
                 "tags_changed",
-                function(_, self)
+                function(self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
@@ -1053,7 +1053,7 @@ ents.register_class(
             if not CLIENT then return nil end
             signal.connect(self,
                 "tags_changed",
-                function(_, self)
+                function(self)
                     self.m_tag = self.tags:to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do

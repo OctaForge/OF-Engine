@@ -991,9 +991,7 @@ Object = table.Object:clone {
         -- and connect signals
         if kwargs.signals then
             for k, v in pairs(kwargs.signals) do
-                signal.connect(self, k, function(_, ...)
-                    return v(...)
-                end)
+                signal.connect(self, k, v)
             end
         end
 
@@ -1546,6 +1544,14 @@ local World = Object:clone {
               p:layout()
               p:adjust_children()
         end
+    end,
+
+    set_main = function(self, m)
+        self.i_main = m
+    end,
+
+    get_main = function(self)
+        return self.i_main
     end
 }
 
@@ -4548,9 +4554,7 @@ set_external("input_keypress", function(code, isdown)
         return true
     end
 
-    local  ret = world:key(code, isdown)
-    if     ret == nil and _ then return _(self, code, down) end
-    return ret
+    return world:key(code, isdown)
 end)
 
 set_external("gui_clear", function()
@@ -4694,7 +4698,7 @@ set_external("changes_get", function()
 end)
 
 set_external("frame_start", function()
-    if not main then main = signal.emit(world, "get_main") end
+    if not main then main = world:get_main() end
 
     if _V.mainmenu ~= 0 and not _C.isconnected(true) and not main.p_visible then
         main.visible = true
@@ -4765,14 +4769,10 @@ set_external("frame_start", function()
 
     prev_cx = cursor_x
     prev_cy = cursor_y
-
-    if not _ then return nil end
-    return _(self)
 end)
 
-local f = function(_, self, ...)
+local f = function()
     needs_adjust = true
-    if _ then _(self, ...) end
 end
 
 signal.connect(_V, "scr_w_changed", f)

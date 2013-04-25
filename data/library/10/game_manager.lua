@@ -12,12 +12,12 @@ player_plugin = {
     activate = function(self)
         if SERVER then
             get_singleton():pick_team(self)
-            signal.connect(self,"pre_deactivate", function(_, self)
+            signal.connect(self,"pre_deactivate", function(self)
                 get_singleton():leave_team(self)
             end)
             self:respawn()
         else
-            signal.connect(self,"client_respawn", function(_, self)
+            signal.connect(self,"client_respawn", function(self)
                 get_singleton():place_player(self)
             end)
         end
@@ -43,7 +43,7 @@ function setup(plugins_add)
                             self.teams = {}
                             self.victory_sound = ""
                         else
-                            signal.connect(self,"team_data_changed", function(_, self, value)
+                            signal.connect(self,"team_data_changed", function(self, value)
                                 if self.team_data and value and ents.get_player() then
                                     local player_team = ents.get_player().team
                                     if value[player_team].score > self.team_data[player_team].score and
@@ -259,7 +259,7 @@ manager_plugins = {
 
         activate = function(self)
             if not CLIENT then return nil end
-            signal.connect(self,"server_message_changed", function(_, self, kwargs)
+            signal.connect(self,"server_message_changed", function(self, kwargs)
                 self:add_hud_message(kwargs)
             end)
             self.rendering_hash_hint = 0 -- used for rendering entities without fpsents
@@ -288,7 +288,7 @@ manager_plugins = {
 
         activate = function(self)
             if not SERVER then return nil end
-            signal.connect(self,"start_game", function(_, self)
+            signal.connect(self,"start_game", function(self)
                 self.time_left = self.max_time
             end)
         end,
@@ -308,7 +308,7 @@ manager_plugins = {
 
         activate = function(self)
             if not SERVER then return nil end
-            signal.connect(self,"team_data_modified", function(_, self)
+            signal.connect(self,"team_data_modified", function(self)
                 if not self.game_running then return nil end
 
                 for k, team in pairs(self.teams) do
@@ -331,7 +331,7 @@ manager_plugins = {
 
         activate = function(self)
             if not SERVER then return nil end
-            signal.connect(self,"end_game", function(_, self)
+            signal.connect(self,"end_game", function(self)
                 -- decide winner
                 local max_score
                 local min_score

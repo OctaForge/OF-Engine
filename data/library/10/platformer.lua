@@ -49,7 +49,7 @@ plugin = {
         self.platform_fov = 50
         self:set_platform_direction(1)
 
-        signal.connect(self, "client_respawn", function(_, self)
+        signal.connect(self, "client_respawn", function(self)
             self.platform_axis        = "+x"
             self.platform_position    = self.position.y
             self.platform_camera_axis = "+y"
