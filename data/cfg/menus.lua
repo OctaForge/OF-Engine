@@ -77,28 +77,6 @@ world:new_gui("main", function(win)
     end)
 end)
 
-gui.core.Conditional.states = {
-    ["true"] = gui.core.Image {
-        file = "data/textures/hud/crosshair.png",
-        align_h = 0, align_v = 0
-    }
-}
-
-world:append(gui.core.Conditional {
-    condition = function()
-        local wh = gui.core.cursor_exists() or
-            _V.mouselook == 0
-
-        if not wh and not (_V.hidehud ~= 0 or _V.mainmenu ~= 0) then
-            return true
-        end
-
-        return false
-    end,
-
-    allow_focus = false
-})
-
 world:new_gui("test", function(win)
     win.floating = true
     win:append(gui.Window {

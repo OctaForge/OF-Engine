@@ -2534,6 +2534,52 @@ void drawdamagescreen(int w, int h)
 VAR(hidestats, 0, 0, 1);
 VAR(hidehud, 0, 0, 1);
 
+VARP(crosshairsize, 0, 15, 50);
+VARP(cursorsize, 0, 30, 50);
+
+void drawcrosshair(int w, int h)
+{
+    lua::push_external("cursor_exists");
+    lua_call(lua::L, 0, 1);
+    bool windowhit = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
+    if(!windowhit && (hidehud || mainmenu)) return; //(hidehud || player->state==CS_SPECTATOR || player->state==CS_DEAD)) return;
+
+    float r = 1, g = 1, b = 1, cx = 0.5f, cy = 0.5f, chsize;
+    Texture *crosshair = NULL;
+    if(windowhit)
+    {
+        static Texture *cursor = NULL;
+        if(!cursor) cursor = textureload("data/textures/ui/guicursor.png", 3, true);
+        crosshair = cursor;
+        chsize = cursorsize*w/900.0f;
+        lua::push_external("cursor_get_position");
+        lua_call(lua::L, 0, 2);
+
+        cx = lua_tonumber(lua::L, -2);
+        cy = lua_tonumber(lua::L, -1);
+        lua_pop(lua::L, 2);
+    }
+    else
+    { 
+        string cr = "data/textures/hud/crosshair.png";
+        if (lua::push_external("gui_get_crosshair")) {
+            lua_call(lua::L, 0, 1);
+            formatstring(cr)("data/textures/hud/%s", lua_tostring(lua::L, -1));
+            lua_pop(lua::L, 1);
+        }
+        crosshair = textureload(cr);
+        chsize = crosshairsize*w/900.0f;
+    }
+    if(crosshair->type&Texture::ALPHA) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    else glBlendFunc(GL_ONE, GL_ONE);
+    gle::colorf(r, g, b);
+    float x = cx*w - (windowhit ? 0 : chsize/2.0f);
+    float y = cy*h - (windowhit ? 0 : chsize/2.0f);
+    glBindTexture(GL_TEXTURE_2D, crosshair->id);
+
+    hudquad(x, y, chsize, chsize);
+}
+
 VARP(showfps, 0, 1, 1);
 VARP(showfpsrange, 0, 0, 1);
 VAR(showeditstats, 0, 0, 1);
@@ -2671,6 +2717,8 @@ void gl_drawhud(int w, int h)
     extern int fullconsole;
     if(!hidehud || fullconsole) renderconsole(conw, conh, abovehud - FONTH/2);
     pophudmatrix();
+
+    drawcrosshair(w, h);
 
     gle::disable();
 

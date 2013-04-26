@@ -990,21 +990,7 @@ Object = table.Object:clone {
             end
         end
 
-        -- pointer? works for some widgets only
-        local p = kwargs.pointer
-        if p then
-            if type(p) == "string" then
-                self.p_pointer = Image {
-                    file = p,
-                    min_filter = gl.NEAREST,
-                    mag_filter = gl.NEAREST
-                }
-            else
-                self.p_pointer = p
-            end
-        end
-
-        -- tooltip? works for some widgets only too
+        -- tooltip? widget specific
         local t = kwargs.tooltip
         if t then
             self.p_tooltip = t
@@ -1449,12 +1435,6 @@ local World = Object:clone {
         self.p_h = 1
 
         self.adjust_children(self)
-
-        local p = self.p_pointer
-        if    p then
-              p:layout()
-              p:adjust_children()
-        end
     end,
 
     build_gui = function(self, name, fun, noinput)
@@ -4558,25 +4538,6 @@ set_external("gl_render", function()
                 tooltip:draw(x, y)
             end
 
-            local wh = cursor_exists() or _V.mouselook == 0
-
-            if wh then
-                local  pointer = hovering and hovering.pointer or w.p_pointer
-                if     pointer then
-                    local d    = w.p_w
-                    local x, y = cursor_x * d - max((d - 1) / 2, 0), cursor_y
-
-                    if pointer.type == TYPE_IMAGE then
-                        local tex, scrh = pointer.i_tex, _V.scr_h
-                        local wh, hh    = tex:get_w() / scrh / 2, tex:get_h() / scrh / 2
-
-                        pointer:draw(x - wh, y - hh)
-                    else
-                        pointer:draw(x, y)
-                    end
-                end
-            end
-
             _C.gl_scissor_disable()
             _C.gle_disable()
         end
@@ -4682,12 +4643,6 @@ set_external("frame_start", function()
     end
 
     if hovering then
-        local pointer = hovering.pointer
-        if    pointer then
-              pointer:layout()
-              pointer:adjust_children()
-        end
-    
         local tooltip = hovering.tooltip
         if    tooltip then
               tooltip:layout()
