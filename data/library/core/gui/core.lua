@@ -749,7 +749,7 @@ local TYPE_RESIZER            = 24
 local TYPE_TAG                = 25
 local TYPE_WINDOW             = 26
 
-local loop_children = function(self, fun, hidden)
+local loop_children = function(self, fun)
     local ch = self.p_children
     local st = self.p_states
 
@@ -770,23 +770,19 @@ local loop_children = function(self, fun, hidden)
 
     for i = 1, #ch do
         local o = ch[i]
-        if o.p_visible or hidden then
-            local r = fun(o)
-            if    r ~= nil then return r end
-        end
+        local r = fun(o)
+        if    r ~= nil then return r end
     end
 end
 
-local loop_children_r = function(self, fun, hidden)
+local loop_children_r = function(self, fun)
     local ch = self.p_children
     local st = self.p_states
 
     for i = #ch, 1, -1 do
         local o = ch[i]
-        if o.p_visible or hidden then
-            local r = fun(ch[i])
-            if    r ~= nil then return r end
-        end
+        local r = fun(ch[i])
+        if    r ~= nil then return r end
     end
 
     if st then
@@ -805,7 +801,7 @@ local loop_children_r = function(self, fun, hidden)
     end
 end
 
-local loop_in_children = function(self, cx, cy, fun, hidden)
+local loop_in_children = function(self, cx, cy, fun)
     return loop_children(self, function(o)
         local ox = cx - o.p_x
         local oy = cy - o.p_y
@@ -814,10 +810,10 @@ local loop_in_children = function(self, cx, cy, fun, hidden)
             local r = fun(o, ox, oy)
             if    r ~= nil then return r end
         end
-    end, hidden)
+    end)
 end
 
-local loop_in_children_r = function(self, cx, cy, fun, hidden)
+local loop_in_children_r = function(self, cx, cy, fun)
     return loop_children_r(self, function(o)
         local ox = cx - o.p_x
         local oy = cy - o.p_y
@@ -826,7 +822,7 @@ local loop_in_children_r = function(self, cx, cy, fun, hidden)
             local r = fun(o, ox, oy)
             if    r ~= nil then return r end
         end
-    end, hidden)
+    end)
 end
 
 local clip_area_intersect = function(self, c)
@@ -941,10 +937,7 @@ Object = table.Object:clone {
 
         self.i_adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
         self.p_children = { unpack(kwargs) }
-
-        -- in case some widget set visible to false beforehand
-        self.p_visible = kwargs.visible ~= false and true or false
-        self.__len     = Object.__len
+        self.__len      = Object.__len
 
         -- alignment and clamping
         local align_h = kwargs.align_h or 0
@@ -1251,7 +1244,7 @@ Object = table.Object:clone {
             (not name or name == o.p_obj_name) then
                 return o
             end
-        end, true)
+        end)
         if o then return o end
         if recurse then
             o = loop_children(self, function(o)
@@ -1259,7 +1252,7 @@ Object = table.Object:clone {
                     local found = o:find_child(otype, name)
                     if    found ~= nil then return found end
                 end
-            end, true)
+            end)
         end
         return o
     end,
@@ -1309,22 +1302,6 @@ Object = table.Object:clone {
         self.p_children = {}
         needs_adjust = true
         signal.emit(self, "children_destroy")
-    end,
-
-    hide_children = function(self)
-        local ch = self.p_children
-        for i = 1, #ch do
-            ch[i].visible = false
-        end
-        signal.emit(self, "children_hidden")
-    end,
-
-    show_children = function(self)
-        local ch = self.p_children
-        for i = 1, #ch do
-            ch[i].visible = true
-        end
-        signal.emit(self, "children_visible")
     end,
 
     align = function(self, h, v)
@@ -1482,7 +1459,6 @@ local World = Object:clone {
 
     build_gui = function(self, name, fun, noinput)
         local old = self:find_child(TYPE_WINDOW, name, false)
-        print("OLD", old)
         if old then self:remove(old) end
 
         local win = noinput and Overlay { name = name }
@@ -4532,7 +4508,7 @@ set_external("gui_clear", function()
     if  _V.mainmenu ~= 0 and _C.isconnected() then
         var.set("mainmenu", 0, true, false) -- no clamping, readonly var
 
-        world:hide_children()
+        world:destroy_children()
         worlds = { world }
     end
 end)

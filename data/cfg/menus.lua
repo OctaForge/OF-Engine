@@ -44,7 +44,7 @@ world:new_gui("main", function(win)
         r:align(0, 0)
         r:append(gui.core.V_Box(), function(b)
             b:clamp(1, 1, 1, 1)
-            b:append(gui.core.Mover { tags = { "mover" }}, function(mover)
+            b:append(gui.core.Mover(), function(mover)
                 mover:clamp(1, 1, 1, 1)
                 mover:append(gui.core.Rectangle { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, function(r)
                     r:clamp(1, 1, 1, 1)
@@ -68,7 +68,7 @@ world:new_gui("main", function(win)
                         end)
                     end)
                     b:append(gui.core.Spacer { pad_h = 0.005 }, function(s)
-                        s:append(gui.core.Label { tags = { "field" } })
+                        s:append(gui.core.Label { text = "foo" })
                     end)
                 end)
             end)
@@ -96,13 +96,7 @@ world:append(gui.core.Conditional {
         return false
     end,
 
-    tags = { "crosshair" }, allow_focus = false,
-
-    -- ensure "visible" is always true, we handle visibility ourselves
-    -- using the conditional
-    signals = {
-        visible_changed = function(self, v) self.p_visible = true end
-    }
+    allow_focus = false
 })
 
 world:new_gui("test", function(win)
