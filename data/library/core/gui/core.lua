@@ -1295,16 +1295,28 @@ Object = table.Object:clone {
         self.p_parent:remove(self)
     end,
 
+    destroy_children = function(self)
+        local ch = self.p_children
+        for i = 1, #ch do
+            ch[i]:clear()
+        end
+        self.p_children = {}
+        needs_adjust = true
+        signal.emit(self, "children_destroy")
+    end,
+
     hide_children = function(self)
-        for i = 1, #self.p_children do
-            self.p_children[i].visible = false
+        local ch = self.p_children
+        for i = 1, #ch do
+            ch[i].visible = false
         end
         signal.emit(self, "children_hidden")
     end,
 
     show_children = function(self)
-        for i = 1, #self.p_children do
-            self.p_children[i].visible = true
+        local ch = self.p_children
+        for i = 1, #ch do
+            ch[i].visible = true
         end
         signal.emit(self, "children_visible")
     end,
@@ -1390,27 +1402,6 @@ Object = table.Object:clone {
         states[state] = obj
         obj.p_parent = self
         return obj
-    end,
-
-    replace = function(self, tag, obj)
-        if type(tag) == "string" then
-            local o = self:find_child_by_tag(tag)
-            if o then o:replace(obj) end
-            return nil
-        end
-
-        local ch = self.parent.children
-        local idx
-        for i = 1, #ch do
-            if ch[i] == self then
-                idx = i
-            end
-        end
-        if idx then
-            ch[idx]:clear()
-            ch[idx] = tag
-            needs_adjust = true
-        end
     end
 }
 
@@ -1520,6 +1511,17 @@ local World = Object:clone {
         local old = self:find_child(TYPE_WINDOW, name, false)
         if old then self:remove(old) end
         return old ~= nil
+    end,
+
+    replace_gui = function(self, wname, tname, obj, fun)
+        local win = self:find_child(TYPE_WINDOW, wname, false)
+        if not win then return false end
+        local tag = self:find_child(TYPE_TAG, tname)
+        if not tag then return false end
+        tag:destroy_children()
+        tag:append(obj)
+        if fun then fun(obj) end
+        return true
     end
 }
 
