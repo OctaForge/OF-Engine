@@ -746,6 +746,8 @@ local TYPE_LABEL              = 21
 local TYPE_TEXT_EDITOR        = 22
 local TYPE_MOVER              = 23
 local TYPE_RESIZER            = 24
+local TYPE_TAG                = 25
+local TYPE_WINDOW             = 26
 
 local loop_children = function(self, fun, hidden)
     local ch = self.p_children
@@ -995,36 +997,6 @@ Object = table.Object:clone {
             end
         end
 
-        local tgs = {}
-
-        local t = kwargs.tags
-        if t then for i = 1, #t do
-            local v = t[i]
-            tgs  [v] = v
-        end end
-
-        self.tags = setmetatable({
-            add = function(t, tag)
-                tgs[tag] = tag
-            end,
-
-            del = function(t, tag)
-                tgs[tag] = nil
-            end,
-
-            get = function(t, tag)
-                return tgs[tag]
-            end
-        }, {
-            __index    = tgs,
-            __newindex = function() end,
-            __len      = function()
-                local  i = 0
-                for k, v in pairs(tgs) do i = i + 1 end
-                return i
-            end
-        })
-
         -- pointer? works for some widgets only
         local p = kwargs.pointer
         if p then
@@ -1270,53 +1242,28 @@ Object = table.Object:clone {
         signal.emit(self, "click", cx / self.p_w, cy / self.p_w)
     end,
 
-    find_child_by_type = function(self, otype, tag, recurse, exclude)
-        recurse = recurse == nil and true or recurse
+    takes_input = function(self) return true end,
+
+    find_child = function(self, otype, name, recurse, exclude)
+        recurse = (recurse == nil) and true or recurse
         return loop_children(self, function(o)
             if o ~= exclude and o.type == otype then
                 return o
             end
         end, true) or (recurse and loop_children(self, function(o)
             if o ~= exclude then
-                local found = Object.find_child_by_type(o, otype, tag)
+                local found = o:find_child(otype, name)
                 if    found ~= nil then return found end
             end
         end, true))
     end,
 
-    find_child_by_tag = function(self, tag, recurse, exclude)
-        recurse = recurse == nil and true or recurse
-        return loop_children(self, function(o)
-            if o ~= exclude and (not tag or o.tags[tag]) then
-                return o
-            end
-        end, true) or (recurse and loop_children(self, function(o)
-            if o ~= exclude then
-                local found = Object.find_child_by_tag(o, tag)
-                if    found ~= nil then return found end
-            end
-        end, true))
-    end,
-
-    find_sibling_by_type = function(self, otype)
+    find_sibling = function(self, otype, name)
         local prev = self
         local cur  = self.p_parent
 
         while cur do
-            local o = Object.find_child_by_type(cur, otype, true, prev)
-            if    o then return o end
-
-            prev = cur
-            cur  = cur.p_parent
-        end
-    end,
-
-    find_sibling_by_tag = function(self, tag)
-        local prev = self
-        local cur  = self.p_parent
-
-        while cur do
-            local o = Object.find_child_by_tag(cur, tag, true, prev)
+            local o = cur:find_child(otype, name, true, prev)
             if    o then return o end
 
             prev = cur
@@ -1467,6 +1414,30 @@ Object = table.Object:clone {
     end
 }
 
+local Named_Object = Object:clone {
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.p_obj_name = kwargs.name
+        return Object.__init(self, kwargs)
+    end
+}
+
+local Tag = Named_Object:clone {
+    type = TYPE_TAG
+}
+
+local Window = Named_Object:clone {
+    type = TYPE_WINDOW
+}
+
+local Overlay = Window:clone {
+    takes_input = function(self) return false end,
+
+    target = function() end,
+    hover  = function() end,
+    click  = function() end
+}
+
 local World = Object:clone {
     name = "World",
     type = TYPE_WORLD,
@@ -1475,8 +1446,15 @@ local World = Object:clone {
         kwargs = kwargs or {}
 
         self.p_input = kwargs.input == true and true or false
+        self.p_guis = {}
 
         return Object.__init(self, kwargs)
+    end,
+
+    takes_input = function(self)
+        return loop_children_r(self, function(o)
+            if o:takes_input() then return true end
+        end) or false
     end,
 
     focus_children = function(self)
@@ -1511,6 +1489,37 @@ local World = Object:clone {
 
     get_main = function(self)
         return self.i_main
+    end,
+
+    build_gui = function(self, name, fun, noinput)
+        local old = self:find_child(TYPE_WINDOW, name, false)
+        if old then self:remove(old) end
+
+        local win = noinput and Overlay { name = name }
+            or Window { name = name }
+        win.p_parent = self
+
+        local children = self.p_children
+        children[#children + 1] = win
+
+        if fun then fun(win) end
+        return win
+    end,
+
+    new_gui = function(self, name, fun, noinput)
+        self.p_guis[name] = function()
+            self:build_gui(name, fun, noinput)
+        end
+    end,
+
+    show_gui = function(self, name)
+        self.p_guis[name]()
+    end,
+
+    hide_gui = function(self, name)
+        local old = self:find_child(TYPE_WINDOW, name, false)
+        if old then self:remove(old) end
+        return old ~= nil
     end
 }
 
@@ -1999,7 +2008,7 @@ local Scroller = Clipper:clone {
             return false
         end
 
-        local  sb = Object.find_sibling_by_type(self, TYPE_SCROLLBAR)
+        local  sb = self:find_sibling(TYPE_SCROLLBAR)
         if not sb then return false end
 
         local adjust = (code == m4 and -0.2 or 0.2) * sb.p_arrow_speed
@@ -2102,7 +2111,7 @@ local Scrollbar = Object:clone {
 
         if not not isdown then return false end
 
-        local  sc = Object.find_sibling_by_type(self, TYPE_SCROLLER)
+        local  sc = self:find_sibling(TYPE_SCROLLER)
         if not sc or not sc.i_can_scroll then return false end
 
         local adjust = (code == m4 and -0.2 or 0.2) * self.p_arrow_speed
@@ -2136,8 +2145,7 @@ local Scrollbar = Object:clone {
                 self:arrow_scroll()
             end
         else
-            local button = Object.find_child_by_type(self,
-                TYPE_SCROLL_BUTTON, false)
+            local button = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
             if button and is_clicked(button) then
                 self.i_arrow_dir = 0
                 button:hovering(cx - button.p_x, cy - button.p_y)
@@ -2211,7 +2219,7 @@ H_Scrollbar = Scrollbar:clone {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = Object.find_sibling_by_type(self, TYPE_SCROLLER)
+        local  scroll = self:find_sibling(TYPE_SCROLLER)
         if not scroll then return nil end
 
         scroll:scroll_h(self.i_arrow_dir * self.p_arrow_speed *
@@ -2219,10 +2227,10 @@ H_Scrollbar = Scrollbar:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = Object.find_sibling_by_type(self, TYPE_SCROLLER)
+        local  scroll = self:find_sibling(TYPE_SCROLLER)
         if not scroll then return nil end
 
-        local  btn = Object.find_child_by_type(self, TYPE_SCROLL_BUTTON, false)
+        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2236,10 +2244,10 @@ H_Scrollbar = Scrollbar:clone {
     end,
 
     adjust_children = function(self)
-        local  scroll = Object.find_sibling_by_type(self, TYPE_SCROLLER)
+        local  scroll = self:find_sibling(TYPE_SCROLLER)
         if not scroll then return nil end
 
-        local  btn = Object.find_child_by_type(self, TYPE_SCROLL_BUTTON, false)
+        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2285,7 +2293,7 @@ V_Scrollbar = Scrollbar:clone {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = Object.find_sibling_by_type(self, TYPE_SCROLLER)
+        local  scroll = self:find_sibling(TYPE_SCROLLER)
         if not scroll then return nil end
 
         scroll:scroll_v(self.i_arrow_dir * self.p_arrow_speed *
@@ -2293,10 +2301,10 @@ V_Scrollbar = Scrollbar:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = Object.find_sibling_by_type(self, TYPE_SCROLLER)
+        local  scroll = self:find_sibling(TYPE_SCROLLER)
         if not scroll then return nil end
 
-        local  btn = Object.find_child_by_type(self, TYPE_SCROLL_BUTTON, false)
+        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2311,10 +2319,10 @@ V_Scrollbar = Scrollbar:clone {
     end,
 
     adjust_children = function(self)
-        local  scroll = Object.find_sibling_by_type(self, TYPE_SCROLLER)
+        local  scroll = self:find_sibling(TYPE_SCROLLER)
         if not scroll then return nil end
 
-        local  btn = Object.find_child_by_type(self, TYPE_SCROLL_BUTTON, false)
+        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2464,8 +2472,7 @@ local Slider = Object:clone {
                 self:arrow_scroll()
             end
         else
-            local button = Object.find_child_by_type(self,
-                TYPE_SLIDER_BUTTON, false)
+            local button = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
 
             if button and is_clicked(button) then
                 self.i_arrow_dir = 0
@@ -2553,7 +2560,7 @@ local H_Slider = Slider:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = Object.find_child_by_type(self, TYPE_SLIDER_BUTTON, false)
+        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2566,7 +2573,7 @@ local H_Slider = Slider:clone {
     end,
 
     adjust_children = function(self)
-        local  btn = Object.find_child_by_type(self, TYPE_SLIDER_BUTTON, false)
+        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
@@ -2612,7 +2619,7 @@ local V_Slider = Slider:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = Object.find_child_by_type(self, TYPE_SLIDER_BUTTON, false)
+        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2626,7 +2633,7 @@ local V_Slider = Slider:clone {
     end,
 
     adjust_children = function(self)
-        local  btn = Object.find_child_by_type(self, TYPE_SLIDER_BUTTON, false)
+        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size

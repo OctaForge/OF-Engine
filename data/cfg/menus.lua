@@ -72,7 +72,7 @@ a = 128, floating = true }, function(r)
             end)
         end)
     end)
-    r:find_child_by_tag("mover"):link(r)
+    --r:find_child_by_tag("mover"):link(r)
 end)
 
 gui.core.Conditional.states = {
