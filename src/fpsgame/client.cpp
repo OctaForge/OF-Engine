@@ -15,7 +15,7 @@
 #ifdef CLIENT
     #include "of_localserver.h"
     extern int enthover;
-    extern int mouselook;
+    extern int freecursor, freeeditcursor;
 #endif
 
 // Enable to let *server* do physics for players - useful for debugging. Must also be defined in fps.cpp!
@@ -593,7 +593,7 @@ assert(0);
     void adddynlights()
     {
         #ifdef CLIENT
-            if (mouselook) return;
+            if (editmode ? freeeditcursor >= 2 : freecursor >= 2) return;
 
             if (!TargetingControl::targetLogicEntity
               || TargetingControl::targetLogicEntity->isNone()) return;

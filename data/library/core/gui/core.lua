@@ -1420,14 +1420,6 @@ local World = Object:clone {
         end) or false
     end,
 
-    focus_children = function(self)
-        return loop_children(self, function(o)
-            if o.p_allow_focus or _V.mouselook == 0 then
-                return true
-            end
-        end) or false
-    end,
-
     layout = function(self)
         Object.layout(self)
 
@@ -4424,40 +4416,43 @@ set_external("cursor_reset", cursor_reset)
 
 var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
 
+local cursor_mode = function()
+    return _V.editing == 0 and _V.freecursor or _V.freeeditcursor
+end
+
 local cursor_move = function(dx, dy)
-    if (#world.p_children == 0 or not world.focus_children(world)) and
-        _V.mouselook ~= 0
-    then
-        return false
+    local cmode = cursor_mode()
+    if cmode == 2 or (world:takes_input() and cmode >= 1) then
+        local scale = 500 / _V.cursorsensitivity
+        cursor_x = clamp(cursor_x + dx * (_V.scr_h / (_V.scr_w * scale)), 0, 1)
+        cursor_y = clamp(cursor_y + dy / scale, 0, 1)
+        if cmode == 2 then
+            if cursor_x ~= 1 and cursor_x ~= 0 then dx = 0 end
+            if cursor_y ~= 1 and cursor_y ~= 0 then dy = 0 end
+            return false
+        end
+        return true
     end
-
-    local scale = 500 / _V.cursorsensitivity
-
-    cursor_x = clamp(cursor_x + dx * (_V.scr_h / (_V.scr_w * scale)), 0, 1)
-    cursor_y = clamp(cursor_y + dy / scale, 0, 1)
-
-    return true
+    return false
 end
 set_external("cursor_move", cursor_move)
 
-local cursor_exists = function(targeting)
-    if not world.focus_children(world) then
-        return false
-    end
-
-    if #world.p_children ~= 0 then
-        if not targeting then return true, true end
-        if world and world.target(world, cursor_x * world.p_w, cursor_y * world.p_h) then
+local cursor_exists = function(draw)
+    if _V.mainmenu ~= 0 then return true end
+    local cmode = cursor_mode()
+    if cmode == 2 or (world:takes_input() and cmode >= 1) then
+        if draw then return true end
+        if world:target(cursor_x * world.p_w, cursor_y * world.p_h) then
             return true
         end
     end
-
     return false
 end
 set_external("cursor_exists", cursor_exists)
 
 local cursor_get_position = function()
-    if #world.p_children ~= 0 or _V.mouselook == 0 then
+    local cmode = cursor_mode()
+    if cmode == 2 or (world:takes_input() and cmode >= 1) then
         return cursor_x, cursor_y
     else
         return 0.5, 0.5
@@ -4629,7 +4624,7 @@ set_external("frame_start", function()
     was_hovering = hovering
     was_clicked  = clicked
 
-    if cursor_exists() then
+    if cursor_exists(true) then
         local w, h = world.p_w, world.p_h
 
         hovering = world.hover(world, cursor_x * w, cursor_y * h)

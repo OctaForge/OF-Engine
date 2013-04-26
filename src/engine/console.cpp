@@ -801,9 +801,8 @@ void writecompletions(stream *f)
 
 /* OF: input code */
 
-VARF(mouselook, 0, 1, 1, {
-    lua::push_external("cursor_reset"); lua_call(lua::L,  0, 0);
-})
+VARP(freecursor, 0, 1, 2);
+VARP(freeeditcursor, 0, 1, 2);
 
 #define QUOT(arg) #arg
 

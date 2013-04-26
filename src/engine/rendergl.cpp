@@ -1403,8 +1403,9 @@ void position_camera(physent* camera1) {
     acam.normalize_yaw(camera1->yaw);
     acam.normalize_pitch(camera1->pitch);
 
-    extern int mouselook;
-    if (smoothcamera && !mouselook && tmp.magnitude() < (50 * (player->radius))
+    extern int freecursor, freeeditcursor;
+    if (smoothcamera && (editmode ? freeeditcursor >= 2 : freecursor >= 2)
+    && tmp.magnitude() < (50 * (player->radius))
     && fabs(camera1->yaw   - acam.yaw)   < 30.0f
     && fabs(camera1->pitch - acam.pitch) < 30.0f) {
         float camfactor = clamp(1.0f - (curtime/1000.0f)/smoothcamera, 0.0f, 1.0f);
@@ -2540,7 +2541,8 @@ VARP(cursorsize, 0, 30, 50);
 void drawcrosshair(int w, int h)
 {
     lua::push_external("cursor_exists");
-    lua_call(lua::L, 0, 1);
+    lua_pushboolean(lua::L, true);
+    lua_call(lua::L, 1, 1);
     bool windowhit = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
     if(!windowhit && (hidehud || mainmenu)) return; //(hidehud || player->state==CS_SPECTATOR || player->state==CS_DEAD)) return;
 
