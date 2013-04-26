@@ -38,41 +38,43 @@ _G["test_update_states"] = function()
     }
 end
 
-local main = world:append(gui.core.Rectangle { r = 96, g = 96, b = 255,
-a = 128, floating = true }, function(r)
-    r:align(0, 0)
-    r:append(gui.core.V_Box(), function(b)
-        b:clamp(1, 1, 1, 1)
-        b:append(gui.core.Mover { tags = { "mover" }}, function(mover)
-            mover:clamp(1, 1, 1, 1)
-            mover:append(gui.core.Rectangle { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, function(r)
-                r:clamp(1, 1, 1, 1)
-                r:append(gui.core.Label { text = "Window title" }, function(l)
-                    l:align(0, 0)
-                end)
-            end)
-        end)
-        b:append(gui.core.Label { text = "This is some transparent text", a = 100 })
-        b:append(gui.core.Label { text = "Different text", r = 255, g = 0, b = 0 })
-
-        b:append(gui.core.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
-            s:append(gui.core.H_Box(), function(b)
-                b:append(gui.core.Button { label = "A button" }, function(b)
-                    b.tooltip = gui.core.Rectangle {
-                        min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
-                    }
-                    b.tooltip:append(gui.core.Label { text = "A tooltip" })
-                    signal.connect(b, "click", function()
-                        echo "you clicked a button"
+world:new_gui("main", function(win)
+    win:append(gui.core.Rectangle { r = 96, g = 96, b = 255,
+    a = 128, floating = true }, function(r)
+        r:align(0, 0)
+        r:append(gui.core.V_Box(), function(b)
+            b:clamp(1, 1, 1, 1)
+            b:append(gui.core.Mover { tags = { "mover" }}, function(mover)
+                mover:clamp(1, 1, 1, 1)
+                mover:append(gui.core.Rectangle { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, function(r)
+                    r:clamp(1, 1, 1, 1)
+                    r:append(gui.core.Label { text = "Window title" }, function(l)
+                        l:align(0, 0)
                     end)
                 end)
-                b:append(gui.core.Spacer { pad_h = 0.005 }, function(s)
-                    s:append(gui.core.Label { tags = { "field" } })
+            end)
+            b:append(gui.core.Label { text = "This is some transparent text", a = 100 })
+            b:append(gui.core.Label { text = "Different text", r = 255, g = 0, b = 0 })
+    
+            b:append(gui.core.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
+                s:append(gui.core.H_Box(), function(b)
+                    b:append(gui.core.Button { label = "A button" }, function(b)
+                        b.tooltip = gui.core.Rectangle {
+                            min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
+                        }
+                        b.tooltip:append(gui.core.Label { text = "A tooltip" })
+                        signal.connect(b, "click", function()
+                            echo "you clicked a button"
+                        end)
+                    end)
+                    b:append(gui.core.Spacer { pad_h = 0.005 }, function(s)
+                        s:append(gui.core.Label { tags = { "field" } })
+                    end)
                 end)
             end)
         end)
+        --r:find_child_by_tag("mover"):link(r)
     end)
-    --r:find_child_by_tag("mover"):link(r)
 end)
 
 gui.core.Conditional.states = {
@@ -103,14 +105,15 @@ world:append(gui.core.Conditional {
     }
 })
 
-world:append(gui.Window {
-    title = "O hai!",
-    gui.core.Label {
-        text = "asdadasdadasdasd"
-    }
-})
-
-world:set_main(main)
+world:new_gui("test", function(win)
+    win.floating = true
+    win:append(gui.Window {
+        title = "O hai!",
+        gui.core.Label {
+            text = "asdadasdadasdasd"
+        }
+    })
+end)
 
 _C.cubescript([[
     bind ESCAPE [ lua [

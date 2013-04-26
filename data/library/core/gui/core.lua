@@ -1246,16 +1246,22 @@ Object = table.Object:clone {
 
     find_child = function(self, otype, name, recurse, exclude)
         recurse = (recurse == nil) and true or recurse
-        return loop_children(self, function(o)
-            if o ~= exclude and o.type == otype then
+        local o = loop_children(self, function(o)
+            if o ~= exclude and o.type == otype and
+            (not name or name == o.p_obj_name) then
                 return o
             end
-        end, true) or (recurse and loop_children(self, function(o)
-            if o ~= exclude then
-                local found = o:find_child(otype, name)
-                if    found ~= nil then return found end
-            end
-        end, true))
+        end, true)
+        if o then return o end
+        if recurse then
+            o = loop_children(self, function(o)
+                if o ~= exclude then
+                    local found = o:find_child(otype, name)
+                    if    found ~= nil then return found end
+                end
+            end, true)
+        end
+        return o
     end,
 
     find_sibling = function(self, otype, name)
@@ -1474,16 +1480,9 @@ local World = Object:clone {
         end
     end,
 
-    set_main = function(self, m)
-        self.i_main = m
-    end,
-
-    get_main = function(self)
-        return self.i_main
-    end,
-
     build_gui = function(self, name, fun, noinput)
         local old = self:find_child(TYPE_WINDOW, name, false)
+        print("OLD", old)
         if old then self:remove(old) end
 
         local win = noinput and Overlay { name = name }
@@ -1505,6 +1504,10 @@ local World = Object:clone {
 
     show_gui = function(self, name)
         self.p_guis[name]()
+    end,
+
+    get_gui = function(self, name)
+        return self.p_guis[name]
     end,
 
     hide_gui = function(self, name)
@@ -4545,8 +4548,6 @@ local register_world = function(w, pos)
     return w
 end
 
-local main
-
 set_external("gl_render", function()
     for i = 1, #worlds do
         local w = worlds[i]
@@ -4665,11 +4666,13 @@ set_external("changes_get", function()
     return table.map(needsapply, function(v) return v.desc end)
 end)
 
-set_external("frame_start", function()
-    if not main then main = world:get_main() end
+local mshown = false
 
-    if _V.mainmenu ~= 0 and not _C.isconnected(true) and not main.p_visible then
-        main.visible = true
+set_external("frame_start", function()
+    local main = world:get_gui("main")
+    if main and not mshown and _V.mainmenu ~= 0 and not _C.isconnected(true) then
+        main()
+        mshown = true
     end
 
     if needs_adjust then
