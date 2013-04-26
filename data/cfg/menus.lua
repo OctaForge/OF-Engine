@@ -38,273 +38,42 @@ _G["test_update_states"] = function()
     }
 end
 
-local main = world:append(gui.core.Rectangle {
-    gui.core.V_Box {
-        gui.core.Mover {
-            gui.core.Rectangle {
-                r = 255, g = 0, b = 0, a = 200,
-                clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
+local main = world:append(gui.core.Rectangle { r = 96, g = 96, b = 255,
+a = 128, floating = true }, function(r)
+    r:align(0, 0)
+    r:append(gui.core.V_Box(), function(b)
+        b:clamp(1, 1, 1, 1)
+        b:append(gui.core.Mover { tags = { "mover" }}, function(mover)
+            mover:clamp(1, 1, 1, 1)
+            mover:append(gui.core.Rectangle { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, function(r)
+                r:clamp(1, 1, 1, 1)
+                r:append(gui.core.Label { text = "Window title" }, function(l)
+                    l:align(0, 0)
+                end)
+            end)
+        end)
+        b:append(gui.core.Label { text = "This is some transparent text", a = 100 })
+        b:append(gui.core.Label { text = "Different text", r = 255, g = 0, b = 0 })
 
-                min_h = 0.03,
-
-                gui.core.Label {
-                    text = "Window title",
-                    align_h = 0, align_v = 0
-                }
-            },
-
-            clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-
-            tags = { "mover" }
-        },
-
-        gui.core.Label  { text = "This is some transparent text", a = 100 },
-        gui.core.Label  { text = "Different text", r = 255, g = 0, b = 0 },
-
-        gui.core.Spacer {
-            gui.core.H_Box {
-                gui.core.Button {
-                    signals = {
-                        click = function(self)
-                            echo "you clicked a button."
-                            self:find_sibling_by_tag("field").text = _V.abcdef
-                        end
-                    },
-
-                    label = "A button", pointer = "data/textures/ui/cursors/edit.png",
-
-                    tooltip = gui.core.Rectangle {
-                        min_w = 0.2, min_h = 0.05,
-                        r = 128, g = 128, b = 128, a = 128,
-                        gui.core.Label { text = "A tooltip" }
+        b:append(gui.core.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
+            s:append(gui.core.H_Box(), function(b)
+                b:append(gui.core.Button { label = "A button" }, function(b)
+                    b.tooltip = gui.core.Rectangle {
+                        min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
                     }
-                },
-
-                gui.core.Spacer {
-                    gui.core.Label { tags = { "field" } },
-
-                    pad_h = 0.005
-                }
-            },
-
-            pad_h = 0.005,
-            pad_v = 0.005
-        },
-
-        gui.core.Spacer {
-            gui.core.Rectangle {
-                gui.core.Field {
-                    var = "abcdef", value = "example value",
-                    length = 50,
-                    pointer = "data/textures/ui/cursors/edit.png"
-                },
-                r = 255, g = 192, b = 128, a = 192
-            },
-
-            pad_h = 0.005,
-            pad_v = 0.005
-        },
-
-        gui.core.Spacer {
-            gui.core.Rectangle {
-                clip_children = true,
-                r = 0, g = 255, b = 0, a = 200,
-
-                min_w = 0.9, min_h = 0.5,
-
-                gui.core.Rectangle {
-                    r = 255, g = 0, b = 0, a = 160,
-                    align_h = 0, align_v = 0,
-                    min_w = 0.5, min_h = 0.4,
-                    floating = true,
-                    clip_children = true,
-
-                    gui.core.Mover {
-                        gui.core.Rectangle {
-                            r = 255, g = 255, b = 0, a = 200,
-                            clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-                            align_v = -1,
-
-                            min_h = 0.03,
-
-                            gui.core.Label {
-                                text = "Nested window title",
-                                align_h = 0, align_v = 0
-                            }
-                        },
-
-                        clamp_l = 1, clamp_r = 1, clamp_b = 0, clamp_t = 0,
-                        align_v = -1,
-
-                        tags = { "mdimov" }
-                    },
-
-                    gui.core.Rectangle {
-                        clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-                        r = 255, g = 255, b = 255, a = 0,
-
-                        gui.core.Rectangle {
-                            r = 255, g = 128, b = 128, a = 160,
-                            align_h = 0, align_v = 0,
-                            min_w = 0.4, min_h = 0.1,
-                            floating = true,
-
-                            gui.core.Mover {
-                                gui.core.Rectangle {
-                                    r = 255, g = 255, b = 0, a = 200,
-                                    clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-                                    align_v = -1,
-
-                                    min_h = 0.03,
-
-                                    gui.core.Label {
-                                        text = "Yo dawg, i herd u liekd windows",
-                                        align_h = 0, align_v = 0
-                                    }
-                                },
-
-                                clamp_l = 1, clamp_r = 1, clamp_b = 0, clamp_t = 0,
-                                align_v = -1,
-
-                                tags = { "mdimovn1" }
-                            },
-
-                            init = function(rect)
-                                rect:find_child_by_tag("mdimovn1"):link(rect)
-                            end
-                        },
-                    },
-
-                    init = function(rect)
-                        rect:find_child_by_tag("mdimov"):link(rect)
-                    end
-                },
-
-                gui.core.Rectangle {
-                    r = 0, g = 0, b = 255, a = 192,
-                    align_h = 0, align_v = 0,
-                    min_w = 0.5, min_h = 0.3,
-                    floating = true,
-                    clip_children = true,
-
-                    gui.core.Mover {
-                        gui.core.Rectangle {
-                            r = 255, g = 255, b = 0, a = 200,
-                            clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-                            align_v = -1,
-
-                            min_h = 0.03,
-
-                            gui.core.Label {
-                                text = "Another nested window",
-                                align_h = 0, align_v = 0
-                            }
-                        },
-
-                        clamp_l = 1, clamp_r = 1, clamp_b = 0, clamp_t = 0,
-                        align_v = -1,
-
-                        tags = { "mdimov2" }
-                    },
-
-                    gui.core.Rectangle {
-                        clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-                        r = 255, g = 255, b = 255, a = 0,
-
-                        gui.core.Rectangle {
-                            r = 255, g = 128, b = 128, a = 160,
-                            align_h = 0, align_v = 0,
-                            min_w = 0.4, min_h = 0.1,
-                            floating = true,
-
-                            gui.core.V_Box {
-                                gui.core.Mover {
-                                    gui.core.Rectangle {
-                                        r = 255, g = 255, b = 0, a = 200,
-                                        clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-                                        align_v = -1,
-
-                                        min_h = 0.03,
-
-                                        gui.core.Label {
-                                            text = "so i put a window in ur window",
-                                            align_h = 0, align_v = 0
-                                        }
-                                    },
-
-                                    clamp_l = 1, clamp_r = 1, clamp_b = 0, clamp_t = 0,
-                                    align_v = -1,
-
-                                    tags = { "mdimovn2" }
-                                },
-
-                                gui.core.Label { text = "so u can use windows while u use windows" },
-
-                                clamp_l = 1, clamp_r = 1, clamp_b = 0, clamp_t = 1, align_v = -1
-                            },
-
-                            init = function(rect)
-                                rect:find_child_by_tag("mdimovn2"):link(rect)
-                            end
-                        },
-                    },
-
-                    init = function(rect)
-                        rect:find_child_by_tag("mdimov2"):link(rect)
-                    end
-                },
-
-                clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1
-            },
-
-            pad_h = 0.01,
-            pad_v = 0.01,
-            clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1
-        },
-
-        gui.core.Resizer {
-            gui.core.Rectangle {
-                r = 255, g = 0, b = 0, a = 200,
-                clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-
-                min_h = 0.005,
-            },
-
-            clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1,
-
-            tags = { "resizer" },
-            pointer = "data/textures/ui/cursors/updown.png"
-        },
-
-        clamp_l = 1, clamp_r = 1, clamp_b = 1, clamp_t = 1
-    },
-
-    r = 96, g = 96, b = 255, a = 128,
-
-    align_h = 0,
-    align_v = 0,
-
-    floating = true,
-
-    init = function(win)
-        win:find_child_by_tag("mover"  ):link(win)
-        win:find_child_by_tag("resizer"):link(win)
-    end,
-
-    signals = {
-        visible_changed = function(self, v)
-            if v == false then
-                print "window hidden"
-            else
-                print "window shown"
-            end
-        end,
-
-        destroy = function()
-            print "DESTROY"
-        end
-    }
-})
+                    b.tooltip:append(gui.core.Label { text = "A tooltip" })
+                    signal.connect(b, "click", function()
+                        echo "you clicked a button"
+                    end)
+                end)
+                b:append(gui.core.Spacer { pad_h = 0.005 }, function(s)
+                    s:append(gui.core.Label { tags = { "field" } })
+                end)
+            end)
+        end)
+    end)
+    r:find_child_by_tag("mover"):link(r)
+end)
 
 gui.core.Conditional.states = {
     ["true"] = gui.core.Image {

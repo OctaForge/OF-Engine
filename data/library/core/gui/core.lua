@@ -1414,76 +1414,35 @@ Object = table.Object:clone {
                band(a, CLAMP_BOTTOM), band(a, CLAMP_TOP)
     end,
 
-    insert = function(self, pos, ...)
-        local args = { ... }
-        local len  = #args
-
-        local children
-        if type(args[len] == "function") then
-            children = table.remove(args)
-            len = len - 1
-        end
-
-        -- we want to prepend in correct order
-        for i = len, 1, -1 do
-            local o  = args[i]
-            o.p_parent = self
-            table.insert(self.p_children, pos, o)
-        end
-
-        if children then
-            children(unpack(args))
-        end
-
-        return unpack(args)
+    insert = function(self, pos, obj, fun)
+        table.insert(self.p_children, pos, obj)
+        obj.p_parent = self
+        if fun then fun(obj) end
+        return obj
     end,
 
-    append = function(self, ...)
-        local args = { ... }
-        local len  = #args
-
-        local children
-        if type(args[len]) == "function" then
-            children = table.remove(args)
-            len = len - 1
-        end
-
-        for i = 1, len do
-            local o  = args[i]
-            o.p_parent = self
-            local t = self.p_children
-            t[#t + 1] = o
-        end
-
-        if children then
-            children(unpack(args))
-        end
-
-        return unpack(args)
+    append = function(self, obj, fun)
+        local children = self.p_children
+        children[#children + 1] = obj
+        obj.p_parent = self
+        if fun then fun(obj) end
+        return obj
     end,
 
-    prepend = function(self, ...)
-        local args = { ... }
-        local len  = #args
+    prepend = function(self, obj, fun)
+        table.insert(self.p_children, 1, obj)
+        obj.p_parent = self
+        if fun then fun(obj) end
+        return obj
+    end,
 
-        local children
-        if type(args[len] == "function") then
-            children = table.remove(args)
-            len = len - 1
-        end
-
-        -- we want to prepend in correct order
-        for i = len, 1, -1 do
-            local o  = args[i]
-            o.p_parent = self
-            table.insert(self.p_children, 1, o)
-        end
-
-        if children then
-            children(unpack(args))
-        end
-
-        return unpack(args)
+    set_state = function(self, state, obj)
+        local states = self.p_states
+        local ostate = states[state]
+        if ostate then ostate:clear() end
+        states[state] = obj
+        obj.p_parent = self
+        return obj
     end,
 
     replace = function(self, tag, obj)
