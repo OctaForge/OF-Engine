@@ -1398,6 +1398,8 @@ local Overlay = Window:clone {
     click  = function() end
 }
 
+local main_visible = false
+
 local World = Object:clone {
     name = "World",
     type = TYPE_WORLD,
@@ -1407,6 +1409,7 @@ local World = Object:clone {
 
         self.p_input = kwargs.input == true and true or false
         self.p_guis = {}
+        self.p_guis_visible = {}
 
         return Object.__init(self, kwargs)
     end,
@@ -1453,13 +1456,18 @@ local World = Object:clone {
     end,
 
     new_gui = function(self, name, fun, noinput)
+        self.p_guis_visible[name] = false
         self.p_guis[name] = function()
             self:build_gui(name, fun, noinput)
+            self.p_guis_visible[name] = true
         end
     end,
 
     show_gui = function(self, name)
-        self.p_guis[name]()
+        local  g = self.p_guis[name]
+        if not g then return false end
+        g()
+        return true
     end,
 
     get_gui = function(self, name)
@@ -1469,6 +1477,7 @@ local World = Object:clone {
     hide_gui = function(self, name)
         local old = self:find_child(TYPE_WINDOW, name, false)
         if old then self:remove(old) end
+        self.p_guis_visible[name] = false
         return old ~= nil
     end,
 
@@ -1481,6 +1490,10 @@ local World = Object:clone {
         tag:append(obj)
         if fun then fun(obj) end
         return true
+    end,
+
+    gui_visible = function(self, name)
+        return self.p_guis_visible[name]
     end
 }
 
@@ -4603,13 +4616,9 @@ set_external("changes_get", function()
     return table.map(needsapply, function(v) return v.desc end)
 end)
 
-local mshown = false
-
 set_external("frame_start", function()
-    local main = world:get_gui("main")
-    if main and not mshown and _V.mainmenu ~= 0 and not _C.isconnected(true) then
-        main()
-        mshown = true
+    if not world:gui_visible("main") and _V.mainmenu ~= 0 and not _C.isconnected(true) then
+        world:show_gui("main")
     end
 
     if needs_adjust then
