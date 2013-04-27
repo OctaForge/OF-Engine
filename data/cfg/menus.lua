@@ -1,6 +1,4 @@
-local world = gui.core.register_world(gui.core.World {
-    pointer = "data/textures/ui/cursors/default.png", input = true
-}, 1)
+local world = gui.core.get_world()
 
 gui.core.Button.states = {
     default = gui.core.Rectangle {

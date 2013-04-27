@@ -651,11 +651,8 @@ local update_var = function(varn, val)
     update_later[#update_later + 1] = { varn, val }
 end
 
--- this is the "primary" world - accessed often, so avoid indexing
--- worlds[1] equals world
-local world  = nil
-local worlds = {}
-
+-- initialized after World is created
+local world    = nil
 local clicked  = nil
 local hovering = nil
 local focused  = nil
@@ -1408,14 +1405,10 @@ local World = Object:clone {
     name = "World",
     type = wtype.WORLD,
 
-    __init = function(self, kwargs)
-        kwargs = kwargs or {}
-
-        self.p_input = kwargs.input == true and true or false
+    __init = function(self)
         self.p_guis = {}
         self.p_guis_visible = {}
-
-        return Object.__init(self, kwargs)
+        return Object.__init(self)
     end,
 
     takes_input = function(self)
@@ -1498,6 +1491,8 @@ local World = Object:clone {
     end
 }
 M.World = World
+
+world = World()
 
 local H_Box = Object:clone {
     name = "H_Box",
@@ -4541,61 +4536,44 @@ end)
 set_external("gui_clear", function()
     if  _V.mainmenu ~= 0 and _C.isconnected() then
         var.set("mainmenu", 0, true, false) -- no clamping, readonly var
-
         world:destroy_children()
-        worlds = { world }
     end
 end)
 
-local register_world = function(w, pos)
-    if pos then
-        worlds[math.min(pos, #worlds + 1)] = w
-        world = w
-    else
-        worlds[#worlds + 1] = w
-    end
-
-    return w
-end
-M.register_world = register_world
-
 set_external("gl_render", function()
-    for i = 1, #worlds do
-        local w = worlds[i]
+    local w = world
+    if #w.p_children ~= 0 then
+        _C.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
+        _C.hudmatrix_reset()
+        _C.shader_hud_set()
 
-        if #w.p_children ~= 0 then
-            _C.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
-            _C.hudmatrix_reset()
-            _C.shader_hud_set()
+        _C.gl_blend_enable()
+        _C.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-            _C.gl_blend_enable()
-            _C.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+        _C.gle_color3f(1, 1, 1)
+        w:draw()
 
-            _C.gle_color3f(1, 1, 1)
-            w:draw()
+        local tooltip = hovering and hovering.tooltip
+        if    tooltip then
+            local margin = max((w.p_w - 1) / 2, 0)
+            local left, right = -margin, 1 + 2 * margin
+            local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
 
-            local tooltip = hovering and hovering.tooltip
-            if    tooltip then
-                local margin = max((w.p_w - 1) / 2, 0)
-                local left, right = -margin, 1 + 2 * margin
-                local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
-
-                local tw, th = tooltip.p_w, tooltip.p_h
-                if (x + tw * 0.95) > (right - margin) then
-                    x = x - tw + 0.02
-                    if x <= -margin then x = -margin + 0.02 end
-                end
-                if (y + th * 0.95) > 1 then
-                    y = y - th + 0.02
-                    if y < 0 then y = 0 end
-                end
-
-                tooltip:draw(x, y)
+            local tw, th = tooltip.p_w, tooltip.p_h
+            if (x + tw * 0.95) > (right - margin) then
+                x = x - tw + 0.02
+                if x <= -margin then x = -margin + 0.02 end
+            end
+            if (y + th * 0.95) > 1 then
+                y = y - th + 0.02
+                if y < 0 then y = 0 end
             end
 
-            _C.gl_scissor_disable()
-            _C.gle_disable()
+            tooltip:draw(x, y)
         end
+
+        _C.gl_scissor_disable()
+        _C.gle_disable()
     end
 end)
 
@@ -4727,9 +4705,8 @@ set_external("frame_start", function()
     prev_cy = cursor_y
 end)
 
-M.get_world = function(n)
-    if not n then return world end
-    return worlds[n]
+M.get_world = function()
+    return world
 end
 
 M.FILTER_LINEAR                 = gl.LINEAR
