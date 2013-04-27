@@ -13,6 +13,8 @@ local round = math.round
 local ffi   = require("ffi")
 local _V    = _G["_V"]
 
+local M = {}
+
 local gl = {
     ALPHA = 0x1906,
     ALWAYS = 0x0207,
@@ -617,6 +619,7 @@ local key = {
     EJECT = scancode_to_keycode(scancode.EJECT),
     SLEEP = scancode_to_keycode(scancode.SLEEP)
 }
+M.key = key
 
 local mod = {
     NONE     = 0x0000,
@@ -637,6 +640,7 @@ local mod = {
     ALT      = bor(0x0100, 0x0200),
     GUI      = bor(0x0400, 0x0800)
 }
+M.mod = mod
 
 local update_var = function(varn, val)
     if not var.exists(varn) then
@@ -679,24 +683,29 @@ local prev_cy = 0.5
 local is_clicked = function(o)
     return (o == clicked)
 end
+M.is_clicked = is_clicked
 
 local is_hovering = function(o)
     return (o == hovering)
 end
+M.is_hovering = is_hovering
 
 local is_focused = function(o)
     return (o == focused)
 end
+M.is_focused = is_focused
 
 local set_focus = function(o)
     focused = o
 end
+M.set_focus = set_focus
 
 local clear_focus = function(o)
     if o == clicked  then clicked  = nil end
     if o == hovering then hovering = nil end
     if o == focused  then focused  = nil end
 end
+M.clear_focus = clear_focus
 
 local ALIGN_MASK    = 0xF
 
@@ -722,32 +731,35 @@ local CLAMP_TOP     = 0x80
 
 local NO_ADJUST     = bor(ALIGN_HNONE, ALIGN_VNONE)
 
-local TYPE_OBJECT             = 1
-local TYPE_WORLD              = 2
-local TYPE_BOX                = 3
-local TYPE_TABLE              = 4
-local TYPE_SPACER             = 5
-local TYPE_FILLER             = 6
-local TYPE_OFFSETTER          = 7
-local TYPE_CLIPPER            = 8
-local TYPE_CONDITIONAL        = 9
-local TYPE_BUTTON             = 10
-local TYPE_CONDITIONAL_BUTTON = 11
-local TYPE_TOGGLE             = 12
-local TYPE_SCROLLER           = 13
-local TYPE_SCROLLBAR          = 14
-local TYPE_SCROLL_BUTTON      = 15
-local TYPE_SLIDER             = 16
-local TYPE_SLIDER_BUTTON      = 17
-local TYPE_RECTANGLE          = 18
-local TYPE_IMAGE              = 19
-local TYPE_SLOT_VIEWER        = 20
-local TYPE_LABEL              = 21
-local TYPE_TEXT_EDITOR        = 22
-local TYPE_MOVER              = 23
-local TYPE_RESIZER            = 24
-local TYPE_TAG                = 25
-local TYPE_WINDOW             = 26
+local wtype = {
+    OBJECT             = 1,
+    WORLD              = 2,
+    BOX                = 3,
+    TABLE              = 4,
+    SPACER             = 5,
+    FILLER             = 6,
+    OFFSETTER          = 7,
+    CLIPPER            = 8,
+    CONDITIONAL        = 9,
+    BUTTON             = 10,
+    CONDITIONAL_BUTTON = 11,
+    TOGGLE             = 12,
+    SCROLLER           = 13,
+    SCROLLBAR          = 14,
+    SCROLL_BUTTON      = 15,
+    SLIDER             = 16,
+    SLIDER_BUTTON      = 17,
+    RECTANGLE          = 18,
+    IMAGE              = 19,
+    SLOT_VIEWER        = 20,
+    LABEL              = 21,
+    TEXT_EDITOR        = 22,
+    MOVER              = 23,
+    RESIZER            = 24,
+    TAG                = 25,
+    WINDOW             = 26
+}
+M.wtype = wtype
 
 local loop_children = function(self, fun)
     local ch = self.p_children
@@ -774,6 +786,7 @@ local loop_children = function(self, fun)
         if    r ~= nil then return r end
     end
 end
+M.loop_children = loop_children
 
 local loop_children_r = function(self, fun)
     local ch = self.p_children
@@ -800,6 +813,7 @@ local loop_children_r = function(self, fun)
         end
     end
 end
+M.loop_children_r = loop_children_r
 
 local loop_in_children = function(self, cx, cy, fun)
     return loop_children(self, function(o)
@@ -812,6 +826,7 @@ local loop_in_children = function(self, cx, cy, fun)
         end
     end)
 end
+M.loop_in_children = loop_in_children
 
 local loop_in_children_r = function(self, cx, cy, fun)
     return loop_children_r(self, function(o)
@@ -824,6 +839,7 @@ local loop_in_children_r = function(self, cx, cy, fun)
         end
     end)
 end
+M.loop_in_children_r = loop_in_children_r
 
 local clip_area_intersect = function(self, c)
     self[1] = max(self[1], c[1])
@@ -831,11 +847,13 @@ local clip_area_intersect = function(self, c)
     self[3] = max(self[1], min(self[3], c[3]))
     self[4] = max(self[2], min(self[4], c[4]))
 end
+M.clip_area_intersect = clip_area_intersect
 
 local clip_area_is_fully_clipped = function(self, x, y, w, h)
     return self[1] == self[3] or self[2] == self[4] or x >= self[3] or
            y >= self[4] or (x + w) <= self[1] or (y + h) <= self[2]
 end
+M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
 
 local clip_area_scissor = function(self)
     local scr_w, scr_h = _V.scr_w, _V.scr_h
@@ -850,6 +868,7 @@ local clip_area_scissor = function(self)
 
     _C.gl_scissor(sx1, scr_h - sy2, sx2 - sx1, sy2 - sy1)
 end
+M.clip_area_scissor = clip_area_scissor
 
 local clip_stack = {}
 
@@ -865,6 +884,7 @@ local clip_push = function(x, y, w, h)
     if l >= 2 then clip_area_intersect(c, clip_stack[l - 1]) end
     clip_area_scissor(c)
 end
+M.clip_push = clip_push
 
 local clip_pop = function()
     table.remove(clip_stack)
@@ -874,12 +894,14 @@ local clip_pop = function()
     else clip_area_scissor(clip_stack[l])
     end
 end
+M.clip_pop = clip_pop
 
 local is_fully_clipped = function(x, y, w, h)
     local l = #clip_stack
     if    l == 0 then return false end
     return clip_area_is_fully_clipped(clip_stack[l], x, y, w, h)
 end
+M.is_fully_clipped = is_fully_clipped
 
 local quad = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
@@ -888,6 +910,7 @@ local quad = function(x, y, w, h, tx, ty, tw, th)
     _C.gle_attrib2f(x + w, y + h) _C.gle_attrib2f(tx + tw, ty + th)
     _C.gle_attrib2f(x,     y + h) _C.gle_attrib2f(tx,      ty + th)
 end
+M.draw_quad = quad
 
 local quadtri = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
@@ -896,13 +919,14 @@ local quadtri = function(x, y, w, h, tx, ty, tw, th)
     _C.gle_attrib2f(x,     y + h) _C.gle_attrib2f(tx,      ty + th)
     _C.gle_attrib2f(x + w, y + h) _C.gle_attrib2f(tx + tw, ty + th)
 end
+M.draw_quadtri = quadtri
 
 local Image
 
 local Object
 Object = table.Object:clone {
     name = "Object",
-    type = TYPE_OBJECT,
+    type = wtype.OBJECT,
 
     __get = function(self, n)
         n = "p_" .. n
@@ -1373,6 +1397,7 @@ Object = table.Object:clone {
         return obj
     end
 }
+M.Object = Object
 
 local Named_Object = Object:clone {
     __init = function(self, kwargs)
@@ -1381,14 +1406,17 @@ local Named_Object = Object:clone {
         return Object.__init(self, kwargs)
     end
 }
+M.Named_Object = Named_Object
 
 local Tag = Named_Object:clone {
-    type = TYPE_TAG
+    type = wtype.TAG
 }
+M.Tag = Tag
 
 local Window = Named_Object:clone {
-    type = TYPE_WINDOW
+    type = wtype.WINDOW
 }
+M.Window = Window
 
 local Overlay = Window:clone {
     takes_input = function(self) return false end,
@@ -1397,12 +1425,13 @@ local Overlay = Window:clone {
     hover  = function() end,
     click  = function() end
 }
+M.Overlay = Overlay
 
 local main_visible = false
 
 local World = Object:clone {
     name = "World",
-    type = TYPE_WORLD,
+    type = wtype.WORLD,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1423,7 +1452,10 @@ local World = Object:clone {
     layout = function(self)
         Object.layout(self)
 
-        local       margin = max((_V.scr_w / _V.scr_h - 1) / 2, 0)
+        local sw, sh = _V.scr_w, _V.scr_h
+        self.p_size  = sh
+
+        local margin = max((sw/sh - 1) / 2, 0)
         self.p_x = -margin
         self.p_y = 0
         self.p_w = 2 * margin + 1
@@ -1433,7 +1465,7 @@ local World = Object:clone {
     end,
 
     build_gui = function(self, name, fun, noinput)
-        local old = self:find_child(TYPE_WINDOW, name, false)
+        local old = self:find_child(wtype.WINDOW, name, false)
         if old then self:remove(old) end
 
         local win = noinput and Overlay { name = name }
@@ -1467,16 +1499,16 @@ local World = Object:clone {
     end,
 
     hide_gui = function(self, name)
-        local old = self:find_child(TYPE_WINDOW, name, false)
+        local old = self:find_child(wtype.WINDOW, name, false)
         if old then self:remove(old) end
         self.p_guis_visible[name] = false
         return old ~= nil
     end,
 
     replace_gui = function(self, wname, tname, obj, fun)
-        local win = self:find_child(TYPE_WINDOW, wname, false)
+        local win = self:find_child(wtype.WINDOW, wname, false)
         if not win then return false end
-        local tag = self:find_child(TYPE_TAG, tname)
+        local tag = self:find_child(wtype.TAG, tname)
         if not tag then return false end
         tag:destroy_children()
         tag:append(obj)
@@ -1488,10 +1520,11 @@ local World = Object:clone {
         return self.p_guis_visible[name]
     end
 }
+M.World = World
 
 local H_Box = Object:clone {
     name = "H_Box",
-    type = TYPE_BOX,
+    type = wtype.BOX,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1528,10 +1561,11 @@ local H_Box = Object:clone {
         end)
     end
 }
+M.H_Box = H_Box
 
 local V_Box = Object:clone {
     name = "V_Box",
-    type = TYPE_BOX,
+    type = wtype.BOX,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1569,10 +1603,11 @@ local V_Box = Object:clone {
         end)
     end
 }
+M.V_Box = V_Box
 
 local Table = Object:clone {
     name = "Table",
-    type = TYPE_TABLE,
+    type = wtype.TABLE,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1683,10 +1718,11 @@ local Table = Object:clone {
         end)
     end
 }
+M.Table = Table
 
 local Spacer = Object:clone {
     name = "Spacer",
-    type = TYPE_SPACER,
+    type = wtype.SPACER,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1719,10 +1755,11 @@ local Spacer = Object:clone {
             self.p_h - 2 * pv)
     end
 }
+M.Spacer = Spacer
 
 local Filler = Object:clone {
     name = "Filler",
-    type = TYPE_FILLER,
+    type = wtype.FILLER,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1755,6 +1792,10 @@ local Filler = Object:clone {
         self.p_h = max(self.p_h, min_h)
     end,
 
+    target = function(self, cx, cy)
+        return Object.target(self, cx, cy) or self
+    end,
+
     draw = function(self, sx, sy)
         if self.p_clip_children then
             clip_push(sx, sy, self.p_w, self.p_h)
@@ -1765,6 +1806,7 @@ local Filler = Object:clone {
         end
     end
 }
+M.Filler = Filler
 
 local Offsetter = Object:clone {
     name = "Offsetter",
@@ -1797,10 +1839,11 @@ local Offsetter = Object:clone {
         Object.adjust_children_to(self, oh, ov, self.p_w - oh, self.p_h - ov)
     end
 }
+M.Offsetter = Offsetter
 
 local Clipper = Object:clone {
     name = "Clipper",
-    type = TYPE_CLIPPER,
+    type = wtype.CLIPPER,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1841,10 +1884,11 @@ local Clipper = Object:clone {
         end
     end
 }
+M.Clipper = Clipper
 
 local Conditional = Object:clone {
     name = "Conditional",
-    type = TYPE_CONDITIONAL,
+    type = wtype.CONDITIONAL,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1856,10 +1900,11 @@ local Conditional = Object:clone {
         return (self.p_condition and self:p_condition()) and "true" or "false"
     end
 }
+M.Conditional = Conditional
 
 local Button = Object:clone {
     name = "Button",
-    type = TYPE_BUTTON,
+    type = wtype.BUTTON,
 
     choose_state = function(self)
         return is_clicked(self) and "clicked" or
@@ -1874,10 +1919,11 @@ local Button = Object:clone {
         return self:target(cx, cy) and self
     end
 }
+M.Button = Button
 
 local Conditional_Button = Button:clone {
     name = "Conditional_Button",
-    type = TYPE_CONDITIONAL_BUTTON,
+    type = wtype.CONDITIONAL_BUTTON,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1897,10 +1943,11 @@ local Conditional_Button = Button:clone {
         end
     end
 }
+M.Conditional_Button = Conditional_Button
 
 local Toggle = Button:clone {
     name = "Toggle",
-    type = TYPE_TOGGLE,
+    type = wtype.TOGGLE,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1915,15 +1962,16 @@ local Toggle = Button:clone {
             (h and "default_hovering" or "default"))
     end,
 }
+M.Toggle = Toggle
 
 local H_Scrollbar
 local V_Scrollbar
 
 local Scroller = Clipper:clone {
     name = "Scroller",
-    type = TYPE_SCROLLER,
+    type = wtype.SCROLLER,
 
-    __init = function (self, kwargs)
+    __init = function(self, kwargs)
         kwargs = kwargs or {}
 
         self.i_offset_h = 0
@@ -1931,6 +1979,12 @@ local Scroller = Clipper:clone {
         self.i_can_scroll = 0
 
         return Clipper.__init(self, kwargs)
+    end,
+
+    layout = function(self)
+        Clipper.layout(self)
+        self.i_offset_h = min(self.i_offset_h, self:get_h_limit())
+        self.i_offset_v = min(self.i_offset_v, self:get_v_limit())
     end,
 
     target = function(self, cx, cy)
@@ -1952,7 +2006,7 @@ local Scroller = Clipper:clone {
         end
 
         self.i_can_scroll = true
-        return Object.hover(self, cx + oh, cy + ov)
+        return Object.hover(self, cx + oh, cy + ov) or self
     end,
 
     click = function(self, cx, cy)
@@ -1960,7 +2014,6 @@ local Scroller = Clipper:clone {
             self.i_virt_w, self.i_virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
-
         return Object.click(self, cx + oh, cy + ov)
     end,
 
@@ -1974,7 +2027,7 @@ local Scroller = Clipper:clone {
             return false
         end
 
-        local  sb = self:find_sibling(TYPE_SCROLLBAR)
+        local  sb = self:find_sibling(wtype.SCROLLBAR)
         if not sb then return false end
 
         local adjust = (code == m4 and -0.2 or 0.2) * sb.p_arrow_speed
@@ -2039,10 +2092,11 @@ local Scroller = Clipper:clone {
         self:set_v_scroll(self.i_offset_v + vs)
     end
 }
+M.Scroller = Scroller
 
 local Scrollbar = Object:clone {
     name = "Scrollbar",
-    type = TYPE_SCROLLBAR,
+    type = wtype.SCROLLBAR,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -2058,13 +2112,12 @@ local Scrollbar = Object:clone {
     end,
 
     hover = function(self, cx, cy)
-        return Object.hover(self, cx, cy) or
-                     (self:target(cx, cy) and self)
+        return Object.hover(self, cx, cy) or self
     end,
 
     click = function(self, cx, cy)
         return Object.click(self, cx, cy) or
-                     (self:target(cx, cy) and self)
+                     (self:target(cx, cy) and self or nil)
     end,
 
     scroll_to = function(self, cx, cy) end,
@@ -2077,7 +2130,7 @@ local Scrollbar = Object:clone {
 
         if not not isdown then return false end
 
-        local  sc = self:find_sibling(TYPE_SCROLLER)
+        local  sc = self:find_sibling(wtype.SCROLLER)
         if not sc or not sc.i_can_scroll then return false end
 
         local adjust = (code == m4 and -0.2 or 0.2) * self.p_arrow_speed
@@ -2111,7 +2164,7 @@ local Scrollbar = Object:clone {
                 self:arrow_scroll()
             end
         else
-            local button = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
+            local button = self:find_child(wtype.SCROLL_BUTTON, nil, false)
             if button and is_clicked(button) then
                 self.i_arrow_dir = 0
                 button:hovering(cx - button.p_x, cy - button.p_y)
@@ -2123,10 +2176,11 @@ local Scrollbar = Object:clone {
 
     move_button = function(self, o, fromx, fromy, tox, toy) end
 }
+M.Scrollbar = Scrollbar
 
 local Scroll_Button = Object:clone {
     name = "Scroll_Button",
-    type = TYPE_SCROLL_BUTTON,
+    type = wtype.SCROLL_BUTTON,
 
     __init = function(self, kwargs)
         self.i_offset_h = 0
@@ -2141,16 +2195,16 @@ local Scroll_Button = Object:clone {
     end,
 
     hover = function(self, cx, cy)
-        return self:target(cx, cy) and self
+        return self:target(cx, cy) and self or nil
     end,
 
     click = function(self, cx, cy)
-        return self:target(cx, cy) and self
+        return self:target(cx, cy) and self or nil
     end,
 
     hovering = function(self, cx, cy)
         local p = self.p_parent
-        if is_clicked(self) and p and p.type == TYPE_SCROLLBAR then
+        if is_clicked(self) and p and p.type == wtype.SCROLLBAR then
             p:move_button(self, self.i_offset_h, self.i_offset_v, cx, cy)
         end
     end,
@@ -2162,6 +2216,7 @@ local Scroll_Button = Object:clone {
         return Object.clicked(self, cx, cy)
     end
 }
+M.Scroll_Button = Scroll_Button
 
 H_Scrollbar = Scrollbar:clone {
     name = "H_Scrollbar",
@@ -2185,7 +2240,7 @@ H_Scrollbar = Scrollbar:clone {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = self:find_sibling(TYPE_SCROLLER)
+        local  scroll = self:find_sibling(wtype.SCROLLER)
         if not scroll then return nil end
 
         scroll:scroll_h(self.i_arrow_dir * self.p_arrow_speed *
@@ -2193,10 +2248,10 @@ H_Scrollbar = Scrollbar:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self:find_sibling(TYPE_SCROLLER)
+        local  scroll = self:find_sibling(wtype.SCROLLER)
         if not scroll then return nil end
 
-        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2210,10 +2265,10 @@ H_Scrollbar = Scrollbar:clone {
     end,
 
     adjust_children = function(self)
-        local  scroll = self:find_sibling(TYPE_SCROLLER)
+        local  scroll = self:find_sibling(wtype.SCROLLER)
         if not scroll then return nil end
 
-        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2236,6 +2291,7 @@ H_Scrollbar = Scrollbar:clone {
         self:scroll_to(o.p_x + tox - fromx, o.p_y + toy)
     end
 }
+M.H_Scrollbar = H_Scrollbar
 
 V_Scrollbar = Scrollbar:clone {
     name = "V_Scrollbar",
@@ -2259,7 +2315,7 @@ V_Scrollbar = Scrollbar:clone {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = self:find_sibling(TYPE_SCROLLER)
+        local  scroll = self:find_sibling(wtype.SCROLLER)
         if not scroll then return nil end
 
         scroll:scroll_v(self.i_arrow_dir * self.p_arrow_speed *
@@ -2267,10 +2323,10 @@ V_Scrollbar = Scrollbar:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self:find_sibling(TYPE_SCROLLER)
+        local  scroll = self:find_sibling(wtype.SCROLLER)
         if not scroll then return nil end
 
-        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2285,10 +2341,10 @@ V_Scrollbar = Scrollbar:clone {
     end,
 
     adjust_children = function(self)
-        local  scroll = self:find_sibling(TYPE_SCROLLER)
+        local  scroll = self:find_sibling(wtype.SCROLLER)
         if not scroll then return nil end
 
-        local  btn = self:find_child(TYPE_SCROLL_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SCROLL_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2312,10 +2368,11 @@ V_Scrollbar = Scrollbar:clone {
         self:scroll_to(o.p_x + tox, o.p_y + toy - fromy)
     end
 }
+M.V_Scrollbar = V_Scrollbar
 
 local Slider = Object:clone {
     name = "Slider",
-    type = TYPE_SLIDER,
+    type = wtype.SLIDER,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -2438,7 +2495,7 @@ local Slider = Object:clone {
                 self:arrow_scroll()
             end
         else
-            local button = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
+            local button = self:find_child(wtype.SLIDER_BUTTON, nil, false)
 
             if button and is_clicked(button) then
                 self.i_arrow_dir = 0
@@ -2451,10 +2508,11 @@ local Slider = Object:clone {
 
     move_button = function(self, o, fromx, fromy, tox, toy) end
 }
+M.Slider = Slider
 
 local Slider_Button = Object:clone {
     name = "Slider_Button",
-    type = TYPE_SLIDER_BUTTON,
+    type = wtype.SLIDER_BUTTON,
 
     __init = function(self, kwargs)
         self.i_offset_h = 0
@@ -2479,7 +2537,7 @@ local Slider_Button = Object:clone {
     hovering = function(self, cx, cy)
         local p = self.p_parent
 
-        if is_clicked(self) and p and p.type == TYPE_SLIDER then
+        if is_clicked(self) and p and p.type == wtype.SLIDER then
             p:move_button(self, self.i_offset_h, self.i_offset_v, cx, cy)
         end
     end,
@@ -2503,6 +2561,7 @@ local Slider_Button = Object:clone {
         end
     end
 }
+M.Slider_Button = Slider_Button
 
 local H_Slider = Slider:clone {
     name = "H_Slider",
@@ -2526,7 +2585,7 @@ local H_Slider = Slider:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2539,7 +2598,7 @@ local H_Slider = Slider:clone {
     end,
 
     adjust_children = function(self)
-        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
@@ -2562,6 +2621,7 @@ local H_Slider = Slider:clone {
         self:scroll_to(o.p_x + o.p_w / 2 + tox - fromx, o.p_y + toy)
     end
 }
+M.H_Slider = H_Slider
 
 local V_Slider = Slider:clone {
     name = "V_Slider",
@@ -2585,7 +2645,7 @@ local V_Slider = Slider:clone {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local as = self.p_arrow_size
@@ -2599,7 +2659,7 @@ local V_Slider = Slider:clone {
     end,
 
     adjust_children = function(self)
-        local  btn = self:find_child(TYPE_SLIDER_BUTTON, nil, false)
+        local  btn = self:find_child(wtype.SLIDER_BUTTON, nil, false)
         if not btn then return nil end
 
         local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
@@ -2622,10 +2682,11 @@ local V_Slider = Slider:clone {
         self.scroll_to(self, o.p_x + o.p_h / 2 + tox, o.p_y + toy - fromy)
     end
 }
+M.V_Slider = V_Slider
 
 local Rectangle = Filler:clone {
     name = "Rectangle",
-    type = TYPE_RECTANGLE,
+    type = wtype.RECTANGLE,
 
     __init = function(self, kwargs)
         kwargs       = kwargs or {}
@@ -2667,6 +2728,7 @@ local Rectangle = Filler:clone {
         return Filler.draw(self, sx, sy)
     end
 }
+M.Rectangle = Rectangle
 
 local check_alpha_mask = function(tex, x, y)
     if not tex:get_alphamask() then
@@ -2687,10 +2749,11 @@ local check_alpha_mask = function(tex, x, y)
 
     return false
 end
+M.check_alpha_mask = check_alpha_mask
 
 Image = Filler:clone {
     name = "Image",
-    type = TYPE_IMAGE,
+    type = wtype.IMAGE,
 
     __init = function(self, kwargs)
         kwargs    = kwargs or {}
@@ -2808,6 +2871,7 @@ Image = Filler:clone {
         self.p_h = max(self.p_h, min_h)
     end
 }
+M.Image = Image
 
 local get_border_size = function(tex, size, vert)
     if size >= 0 then
@@ -2816,6 +2880,7 @@ local get_border_size = function(tex, size, vert)
 
     return abs(n) / (vert and tex:get_ys() or tex:get_xs())
 end
+M.get_border_size = get_border_size
 
 local Cropped_Image = Image:clone {
     name = "Cropped_Image",
@@ -2868,6 +2933,7 @@ local Cropped_Image = Image:clone {
         return Object.draw(self, sx, sy)
     end
 }
+M.Cropped_Image = Cropped_Image
 
 local Stretched_Image = Image:clone {
     name = "Stretched_Image",
@@ -2961,6 +3027,7 @@ local Stretched_Image = Image:clone {
         return Object.draw(self, sx, sy)
     end
 }
+M.Stretched_Image = Stretched_Image
 
 local Bordered_Image = Image:clone {
     name = "Bordered_Image",
@@ -3054,6 +3121,7 @@ local Bordered_Image = Image:clone {
         return Object.draw(self, sx, sy)
     end
 }
+M.Bordered_Image = Bordered_Image
 
 local Tiled_Image = Image:clone {
     name = "Tiled_Image",
@@ -3126,6 +3194,7 @@ local Tiled_Image = Image:clone {
         return Object.draw(self, sx, sy)
     end
 }
+M.Tiled_Image = Tiled_Image
 
 local Slot_Viewer = Filler:clone {
     name = "Slot_Viewer",
@@ -3148,6 +3217,7 @@ local Slot_Viewer = Filler:clone {
         return Object.draw(self, sx, sy)
     end
 }
+M.Slot_Viewer = Slot_Viewer
 
 -- default size of text in terms of rows per screenful
 var.new("uitextrows", var.INT, 1, 40, 200, var.PERSIST)
@@ -3211,6 +3281,7 @@ local Label = Object:clone {
         self.p_h = max(self.p_h, h * k)
     end
 }
+M.Label = Label
 
 local textediting   = nil
 local refreshrepeat = 0
@@ -3219,7 +3290,7 @@ local clipboard = {}
 
 local Text_Editor = Object:clone {
     name = "Text_Editor",
-    type = TYPE_TEXT_EDITOR,
+    type = wtype.TEXT_EDITOR,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -4195,6 +4266,7 @@ local Text_Editor = Object:clone {
         return Object.draw(self, sx, sy)
     end
 }
+M.Text_Editor = Text_Editor
 
 local Field = Text_Editor:clone {
     name = "Field",
@@ -4255,10 +4327,11 @@ local Field = Text_Editor:clone {
         if self.lines[1] ~= str then self:edit_clear(str) end
     end
 }
+M.Field = Field
 
 local Mover = Object:clone {
     name = "Mover",
-    type = TYPE_MOVER,
+    type = wtype.MOVER,
 
     link = function(self, win)
         self.win = win
@@ -4325,10 +4398,11 @@ local Mover = Object:clone {
         end
     end
 }
+M.Mover = Mover
 
 local Resizer = Object:clone {
     name = "Resizer",
-    type = TYPE_RESIZER,
+    type = wtype.RESIZER,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -4405,6 +4479,7 @@ local Resizer = Object:clone {
         end
     end
 }
+M.Resizer = Resizer
 
 local cursor_reset = function()
     if _V.editing ~= 0 or #world.p_children == 0 then
@@ -4412,6 +4487,7 @@ local cursor_reset = function()
         cursor_y = 0.5
     end
 end
+M.cursor_reset = cursor_reset
 set_external("cursor_reset", cursor_reset)
 
 var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
@@ -4435,6 +4511,7 @@ local cursor_move = function(dx, dy)
     end
     return false
 end
+M.cursor_move = cursor_move
 set_external("cursor_move", cursor_move)
 
 local cursor_exists = function(draw)
@@ -4448,6 +4525,7 @@ local cursor_exists = function(draw)
     end
     return false
 end
+M.cursor_exists = cursor_exists
 set_external("cursor_exists", cursor_exists)
 
 local cursor_get_position = function()
@@ -4458,6 +4536,7 @@ local cursor_get_position = function()
         return 0.5, 0.5
     end
 end
+M.cursor_get_position = cursor_get_position
 set_external("cursor_get_position", cursor_get_position)
 
 set_external("input_text", function(str)
@@ -4511,6 +4590,7 @@ local register_world = function(w, pos)
 
     return w
 end
+M.register_world = register_world
 
 set_external("gl_render", function()
     for i = 1, #worlds do
@@ -4660,7 +4740,7 @@ set_external("frame_start", function()
         textediting:commit()
     end
 
-    if not focused or focused.type ~= TYPE_TEXT_EDITOR then
+    if not focused or focused.type ~= wtype.TEXT_EDITOR then
         textediting = nil
     else
         textediting = focused
@@ -4685,57 +4765,16 @@ signal.connect(_V, "scr_w_changed", f)
 signal.connect(_V, "scr_h_changed", f)
 signal.connect(_V, "uitextrows_changed", f)
 
-return {
-    register_world = register_world,
-    get_world = function(n)
-        if not n then return world end
-        return worlds[n]
-    end,
+M.get_world = function(n)
+    if not n then return world end
+    return worlds[n]
+end
 
-    cursor_reset = cursor_reset,
-    cursor_move = cursor_move,
-    cursor_exists = cursor_exists,
-    cursor_get_position = cursor_get_position,
+M.FILTER_LINEAR                 = gl.LINEAR
+M.FILTER_LINEAR_MIPMAP_LINEAR   = gl.LINEAR_MIPMAP_LINEAR
+M.FILTER_LINEAR_MIPMAP_NEAREST  = gl.LINEAR_MIPMAP_NEAREST
+M.FILTER_NEAREST                = gl.NEAREST
+M.FILTER_NEAREST_MIPMAP_LINEAR  = gl.NEAREST_MIPMAP_LINEAR
+M.FILTER_NEAREST_MIPMAP_NEAREST = gl.NEAREST_MIPMAP_NEAREST
 
-    FILTER_LINEAR                 = gl.LINEAR,
-    FILTER_LINEAR_MIPMAP_LINEAR   = gl.LINEAR_MIPMAP_LINEAR,
-    FILTER_LINEAR_MIPMAP_NEAREST  = gl.LINEAR_MIPMAP_NEAREST,
-    FILTER_NEAREST                = gl.NEAREST,
-    FILTER_NEAREST_MIPMAP_LINEAR  = gl.NEAREST_MIPMAP_LINEAR,
-    FILTER_NEAREST_MIPMAP_NEAREST = gl.NEAREST_MIPMAP_NEAREST,
-
-    Object = Object,
-    World = World,
-    H_Box = H_Box,
-    V_Box = V_Box,
-    Table = Table,
-    Spacer = Spacer,
-    Filler = Filler,
-    Offsetter = Offsetter,
-    Clipper = Clipper,
-    Conditional = Conditional,
-    Button = Button,
-    Conditional_Button = Conditional_Button,
-    Toggle = Toggle,
-    Scroller = Scroller,
-    Scrollbar = Scrollbar,
-    Scroll_Button = Scroll_Button,
-    H_Scrollbar = H_Scrollbar,
-    V_Scrollbar = V_Scrollbar,
-    Slider = Slider,
-    Slider_Button = Slider_Button,
-    H_Slider = H_Slider,
-    V_Slider = V_Slider,
-    Rectangle = Rectangle,
-    Image = Image,
-    Cropped_Image = Cropped_Image,
-    Stretched_Image = Stretched_Image,
-    Bordered_Image = Bordered_Image,
-    Tiled_Image = Tiled_Image,
-    Slot_Viewer = Slot_Viewer,
-    Label = Label,
-    Text_Editor = Text_Editor,
-    Field = Field,
-    Mover = Mover,
-    Resizer = Resizer
-}
+return M
