@@ -2817,11 +2817,7 @@ Image = Filler:clone {
         end
 
         if  min_w == -1 then
-            local w = self.parent
-            while w.parent do
-                  w = w.parent
-            end
-            min_w = w.p_w
+            min_w = world.p_w
         end
         if  min_h == -1 then
             min_h = 1
