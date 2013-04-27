@@ -1454,6 +1454,8 @@ local World = Object:clone {
 
         local sw, sh = _V.scr_w, _V.scr_h
         self.p_size  = sh
+        local faspect = _V.aspect
+        if faspect ~= 0 then sw = ceil(sh * faspect) end
 
         local margin = max((sw/sh - 1) / 2, 0)
         self.p_x = -margin
@@ -4764,6 +4766,7 @@ end
 signal.connect(_V, "scr_w_changed", f)
 signal.connect(_V, "scr_h_changed", f)
 signal.connect(_V, "uitextrows_changed", f)
+signal.connect(_V, "aspect_changed", f)
 
 M.get_world = function(n)
     if not n then return world end

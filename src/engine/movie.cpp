@@ -1113,7 +1113,7 @@ namespace recorder
     void drawhud()
     {
         int w = screenw, h = screenh;
-
+        if(forceaspect) w = int(ceil(h*forceaspect));
         gettextres(w, h);
 
         hudmatrix.ortho(0, w, h, 0, -1, 1);

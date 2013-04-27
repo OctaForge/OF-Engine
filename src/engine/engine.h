@@ -115,7 +115,7 @@ enum { DRAWTEX_NONE = 0, DRAWTEX_ENVMAP, DRAWTEX_MINIMAP, DRAWTEX_MODELPREVIEW }
 
 extern int vieww, viewh;
 extern int fov;
-extern float curfov, fovy, aspect;
+extern float curfov, fovy, aspect, forceaspect;
 extern float nearplane;
 extern int farplane;
 extern int hdr;

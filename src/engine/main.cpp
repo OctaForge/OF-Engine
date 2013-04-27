@@ -161,6 +161,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
  
     int w = screenw, h = screenh;
     getbackgroundres(w, h);
+    if(forceaspect) w = int(ceil(h*forceaspect));
     gettextres(w, h);
 
     static int lastupdate = -1, lastw = -1, lasth = -1;
@@ -334,6 +335,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     if(background) restorebackground();
 
     int w = screenw, h = screenh;
+    if(forceaspect) w = int(ceil(h*forceaspect));
     getbackgroundres(w, h);
     gettextres(w, h);
 
