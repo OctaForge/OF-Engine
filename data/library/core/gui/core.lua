@@ -4505,11 +4505,11 @@ local cursor_move = function(dx, dy)
         if cmode == 2 then
             if cursor_x ~= 1 and cursor_x ~= 0 then dx = 0 end
             if cursor_y ~= 1 and cursor_y ~= 0 then dy = 0 end
-            return false
+            return false, dx, dy
         end
-        return true
+        return true, dx, dy
     end
-    return false
+    return false, dx, dy
 end
 M.cursor_move = cursor_move
 set_external("cursor_move", cursor_move)

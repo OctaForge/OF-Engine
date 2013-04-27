@@ -885,14 +885,17 @@ void checkinput()
                     lua::push_external("cursor_move");
                     lua_pushinteger(lua::L, dx);
                     lua_pushinteger(lua::L, dy);
-                    lua_call       (lua::L, 2, 1);
-                    bool b1 = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
-                    lua::push_external("cursor_exists");
-                    lua_call       (lua::L, 0, 1);
-                    bool b2 = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
-
-                    if(!b1 && !b2)
-                        mousemove(dx, dy);
+                    lua_call(lua::L, 2, 3);
+                    bool b = lua_toboolean(lua::L, -3);
+                    dx = lua_tointeger(lua::L, -2);
+                    dy = lua_tointeger(lua::L, -1);
+                    lua_pop(lua::L, 3);
+                    if (!b) {
+                        lua::push_external("cursor_exists");
+                        lua_call(lua::L, 0, 1);
+                        b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
+                        if (!b) mousemove(dx, dy);
+                    }
                     mousemoved = true;
                 }
                 break;
