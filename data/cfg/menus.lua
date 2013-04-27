@@ -38,6 +38,8 @@ _G["test_update_states"] = function()
     }
 end
 
+local i = 0
+
 world:new_gui("main", function(win)
     win:append(gui.core.Rectangle { r = 96, g = 96, b = 255,
     a = 128, floating = true }, function(r)
@@ -55,7 +57,13 @@ world:new_gui("main", function(win)
             end)
             b:append(gui.core.Label { text = "This is some transparent text", a = 100 })
             b:append(gui.core.Label { text = "Different text", r = 255, g = 0, b = 0 })
-    
+            b:append(gui.core.Eval_Label {
+                func = function()
+                    i = i + 1
+                    return i
+                end
+            })
+
             b:append(gui.core.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
                 s:append(gui.core.H_Box(), function(b)
                     b:append(gui.core.Button { label = "A button" }, function(b)
@@ -80,7 +88,8 @@ end)
 world:new_gui("test", function(win)
     win.floating = true
     win:append(gui.Window {
-        title = "O hai!",
+        title  = "O hai!",
+        window = win,
         gui.core.Label {
             text = "asdadasdadasdasd"
         }

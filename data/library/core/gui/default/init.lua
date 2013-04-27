@@ -115,8 +115,7 @@ local Window = function(kwargs)
 
     local t = core.Table {
         columns = 3,
-        padding = 0,
-        floating = true
+        padding = 0
     }
 
     if title then
@@ -162,7 +161,7 @@ local Window = function(kwargs)
                     align_h = 1
                 }
             }
-        }):link(t)
+        }):link(kwargs.window)
 
         t:append(core.Image {
             file = gip("corner_top_right.png"), pointer = gcp("tr_bl.png"),

@@ -655,8 +655,6 @@ local update_var = function(varn, val)
     _V[varn] = (t == 2) and tostring(val) or tonumber(val)
 end
 
-local needs_adjust = true
-
 -- this is the "primary" world - accessed often, so avoid indexing
 -- worlds[1] equals world
 local world  = nil
@@ -665,9 +663,6 @@ local worlds = {}
 local clicked  = nil
 local hovering = nil
 local focused  = nil
-
-local was_clicked  = nil
-local was_hovering = nil
 
 local hover_x = 0
 local hover_y = 0
@@ -753,11 +748,13 @@ local wtype = {
     IMAGE              = 19,
     SLOT_VIEWER        = 20,
     LABEL              = 21,
-    TEXT_EDITOR        = 22,
-    MOVER              = 23,
-    RESIZER            = 24,
-    TAG                = 25,
-    WINDOW             = 26
+    EVAL_LABEL         = 22,
+    TEXT_EDITOR        = 23,
+    FIELD              = 24,
+    MOVER              = 25,
+    RESIZER            = 26,
+    TAG                = 27,
+    WINDOW             = 28
 }
 M.wtype = wtype
 
@@ -770,7 +767,6 @@ local loop_children = function(self, fun)
 
         if s ~= self.i_current_state then
             self.i_current_state = s
-            needs_adjust = true
         end
 
         local w = st[s]
@@ -803,7 +799,6 @@ local loop_children_r = function(self, fun)
 
         if s ~= self.i_current_state then
             self.i_current_state = s
-            needs_adjust = true
         end
 
         local w = st[s]
@@ -938,7 +933,6 @@ Object = table.Object:clone {
         if  rawget(self, pn) ~= nil then
             rawset(self, pn, v)
             signal.emit(self, n .. "_changed", v)
-            needs_adjust = true
             return true
         end
     end,
@@ -1086,7 +1080,6 @@ Object = table.Object:clone {
         end end
 
         oldstate:clear()
-        needs_adjust = true
     end,
 
     update_states = function(self, states)
@@ -1165,15 +1158,6 @@ Object = table.Object:clone {
 
             self.p_x = fx
             self.p_y = fy
-
-            local fw = self.p_fw
-            local fh = self.p_fh
-
-            if not fw then self.p_fw, fw = w, w end
-            if not fh then self.p_fh, fh = h, h end
-
-            self.p_w = fw
-            self.p_h = fh
         end
 
         self:adjust_children()
@@ -1284,7 +1268,6 @@ Object = table.Object:clone {
         for i = 1, #self.p_children do
             if o == self.p_children[i] then
                 table.remove(self.p_children, i):clear()
-                needs_adjust = true
                 return true
             end
         end
@@ -1296,7 +1279,6 @@ Object = table.Object:clone {
             return false
         end
         table.remove(self.p_children, n):clear()
-        needs_adjust = true
         return true
     end,
 
@@ -1310,7 +1292,6 @@ Object = table.Object:clone {
             ch[i]:clear()
         end
         self.p_children = {}
-        needs_adjust = true
         signal.emit(self, "children_destroy")
     end,
 
@@ -1321,9 +1302,7 @@ Object = table.Object:clone {
         self.i_adjust = bor(
             band(self.i_adjust, bnot(ALIGN_MASK)),
             blsh(clamp(h, -1, 1) + 2, ALIGN_HSHIFT),
-            blsh(clamp(v, -1, 1) + 2, ALIGN_VSHIFT)
-        )
-        needs_adjust = true
+            blsh(clamp(v, -1, 1) + 2, ALIGN_VSHIFT))
     end,
 
     clamp = function(self, l, r, b, t)
@@ -1337,9 +1316,7 @@ Object = table.Object:clone {
             l ~= 0 and CLAMP_LEFT   or 0,
             r ~= 0 and CLAMP_RIGHT  or 0,
             b ~= 0 and CLAMP_BOTTOM or 0,
-            t ~= 0 and CLAMP_TOP    or 0
-        )
-        needs_adjust = true
+            t ~= 0 and CLAMP_TOP    or 0)
     end,
 
     get_alignment = function(self)
@@ -1400,6 +1377,7 @@ Object = table.Object:clone {
 M.Object = Object
 
 local Named_Object = Object:clone {
+    type = wtype.NAMED_OBJECT,
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.p_obj_name = kwargs.name
@@ -1812,7 +1790,7 @@ M.Filler = Filler
 
 local Offsetter = Object:clone {
     name = "Offsetter",
-    type = TPYPE_OFFSETTER,
+    type = wtype.OFFSETTER,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -2791,13 +2769,11 @@ Image = Filler:clone {
         if _C.texture_is_notexture(tex) and alt then
               tex = _C.texture_load(alt)
         end
-        self.i_tex   = tex
-        needs_adjust = true
+        self.i_tex = tex
     end,
 
     set_tex_raw = function(tex)
-        self.i_tex   = tex
-        needs_adjust = true
+        self.i_tex = tex
     end,
 
     target = function(self, cx, cy)
@@ -3200,6 +3176,7 @@ M.Tiled_Image = Tiled_Image
 
 local Slot_Viewer = Filler:clone {
     name = "Slot_Viewer",
+    type = wtype.SLOT_VIEWER,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -3226,6 +3203,7 @@ var.new("uitextrows", var.INT, 1, 40, 200, var.PERSIST)
 
 local Label = Object:clone {
     name = "Label",
+    type = wtype.LABEL,
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -3284,6 +3262,76 @@ local Label = Object:clone {
     end
 }
 M.Label = Label
+
+local Eval_Label = Object:clone {
+    name = "Eval_Label",
+    type = wtype.EVAL_LABEL,
+
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+
+        self.p_cmd   = kwargs.func  or nil
+        self.p_scale = kwargs.scale or  1
+        self.p_wrap  = kwargs.wrap  or -1
+        self.p_r     = kwargs.r or 255
+        self.p_g     = kwargs.g or 255
+        self.p_b     = kwargs.b or 255
+        self.p_a     = kwargs.a or 255
+        self.i_val   = ""
+
+        return Object.__init(self, kwargs)
+    end,
+
+    target = function(self, cx, cy)
+        return Object.target(self, cx, cy) or self
+    end,
+
+    draw_scale = function(self)
+        return self.p_scale / (_V["fonth"] * _V["uitextrows"])
+    end,
+
+    draw = function(self, sx, sy)
+        local  cmd = self.p_cmd
+        if not cmd then return Object.draw(self, sx, sy) end
+        local  val = cmd()
+
+        local k = self:draw_scale()
+        _C.hudmatrix_push()
+        _C.hudmatrix_scale(k, k, 1)
+        _C.hudmatrix_flush()
+
+        local w = self.p_wrap
+        _C.text_draw(val or "", sx / k, sy / k,
+            self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
+
+        _C.gle_color4f(1, 1, 1, 1)
+        _C.hudmatrix_pop()
+
+        return Object.draw(self, sx, sy)
+    end,
+
+    layout = function(self)
+        Object.layout(self)
+
+        local  cmd = self.p_cmd
+        if not cmd then return nil end
+        local val = cmd()
+
+        local k = self:draw_scale()
+
+        local w, h = _C.text_get_bounds(val or "",
+            self.p_wrap <= 0 and -1 or self.p_wrap / k)
+
+        if self.p_wrap <= 0 then
+            self.p_w = max(self.p_w, w * k)
+        else
+            self.p_w = max(self.p_w, min(self.p_wrap, w * k))
+        end
+
+        self.p_h = max(self.p_h, h * k)
+    end
+}
+M.Eval_Label = Eval_Label
 
 local textediting   = nil
 local refreshrepeat = 0
@@ -4272,6 +4320,7 @@ M.Text_Editor = Text_Editor
 
 local Field = Text_Editor:clone {
     name = "Field",
+    type = wtype.FIELD,
 
     __init = function(self, kwargs)
         kwargs   = kwargs or {}
@@ -4401,87 +4450,6 @@ local Mover = Object:clone {
     end
 }
 M.Mover = Mover
-
-local Resizer = Object:clone {
-    name = "Resizer",
-    type = wtype.RESIZER,
-
-    __init = function(self, kwargs)
-        kwargs = kwargs or {}
-
-        self.p_horizontal = kwargs.horizontal ~= false and true or false
-        self.p_vertical   = kwargs.vertical   ~= false and true or false
-
-        return Object.__init(self, kwargs)
-    end,
-
-    link = function(self, win)
-        self.win = win
-    end,
-
-    hover = function(self, cx, cy)
-        return self:target(cx, cy) and self
-    end,
-
-    click = function(self, cx, cy)
-        local w = self.win
-        local u = w.p_parent
-        local c = u.p_children
-        local n = table.find(c, w)
-        local l = #c
-
-        if n ~= l then
-            local o = c[l]
-            c[l] = w
-            c[n] = o
-        end
-
-        return self:target(cx, cy) and self
-    end,
-
-    can_resize = function(self)
-        local wp = self.win.p_parent
-
-        if not wp.p_parent then
-            return true
-        end
-
-        local rx, ry, p = self.p_x, self.p_y, wp
-        while p do
-            rx = rx + p.p_x
-            ry = ry + p.p_y
-            local  pp = p.p_parent
-            if not pp then break end
-            p    = pp
-        end
-
-        local w = p.p_w
-
-        local cx = cursor_x * w - (w - 1) / 2
-        local cy = cursor_y
-
-        if cx < rx or cy < ry or cx > (rx + wp.p_w) or cy > (ry + wp.p_h) then
-            clicked = nil
-            return false
-        end
-
-        return true
-    end,
-
-    pressing = function(self, cx, cy)
-        local w = self.win
-        if w and w.p_floating and is_clicked(self) and self:can_resize() then
-            if self.p_horizontal then
-                w.p_fw, w.p_w = w.p_fw + cx, w.p_w + cx
-            end
-            if self.p_vertical then
-                w.p_fh, w.p_h = w.p_fh + cy, w.p_h + cy
-            end
-            needs_adjust = true
-        end
-    end
-}
-M.Resizer = Resizer
 
 local cursor_reset = function()
     if _V.editing ~= 0 or #world.p_children == 0 then
@@ -4698,15 +4666,7 @@ set_external("frame_start", function()
         world:show_gui("main")
     end
 
-    if needs_adjust then
-        world:layout()
-        needs_adjust = false
-    end
-
-    was_hovering = hovering
-    was_clicked  = clicked
-
-    if cursor_exists(true) then
+    if cursor_exists() then
         local w, h = world.p_w, world.p_h
 
         hovering = world.hover(world, cursor_x * w, cursor_y * h)
@@ -4724,9 +4684,7 @@ set_external("frame_start", function()
         clicked  = nil
     end
 
-    if was_hovering ~= hovering or was_clicked ~= clicked then
-        world:layout(world)
-    end
+    world:layout()
 
     if hovering then
         local tooltip = hovering.tooltip
@@ -4758,15 +4716,6 @@ set_external("frame_start", function()
     prev_cx = cursor_x
     prev_cy = cursor_y
 end)
-
-local f = function()
-    needs_adjust = true
-end
-
-signal.connect(_V, "scr_w_changed", f)
-signal.connect(_V, "scr_h_changed", f)
-signal.connect(_V, "uitextrows_changed", f)
-signal.connect(_V, "aspect_changed", f)
 
 M.get_world = function(n)
     if not n then return world end
