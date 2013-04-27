@@ -593,7 +593,7 @@ assert(0);
     void adddynlights()
     {
         #ifdef CLIENT
-            if (editmode ? freeeditcursor >= 2 : freecursor >= 2) return;
+            if (freeeditcursor < 2) return;
 
             if (!TargetingControl::targetLogicEntity
               || TargetingControl::targetLogicEntity->isNone()) return;

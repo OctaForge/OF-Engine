@@ -642,17 +642,13 @@ local mod = {
 }
 M.mod = mod
 
+local update_later = {}
+
 local update_var = function(varn, val)
     if not var.exists(varn) then
         return nil
     end
-
-    local t = var.get_type(varn)
-    if    t == -1 then
-        return nil
-    end
-
-    _V[varn] = (t == 2) and tostring(val) or tonumber(val)
+    update_later[#update_later + 1] = { varn, val }
 end
 
 -- this is the "primary" world - accessed often, so avoid indexing
@@ -1226,7 +1222,8 @@ Object = table.Object:clone {
     end,
 
     clicked = function(self, cx, cy)
-        signal.emit(self, "click", cx / self.p_w, cy / self.p_w)
+        update_later[#update_later + 1] = { self, "click",
+            cx / self.p_w, cy / self.p_w }
     end,
 
     takes_input = function(self) return true end,
@@ -4645,15 +4642,15 @@ set_external("changes_apply", function()
     end
 
     if band(changetypes, CHANGE_GFX) ~= 0 then
-        cubescript "resetgl"
+        update_later[#update_later + 1] = { cubescript, "resetgl" }
     end
 
     if band(changetypes, CHANGE_SOUND) ~= 0 then
-        cubescript "resetsound"
+        update_later[#update_later + 1] = { cubescript, "resetsound" }
     end
 
     if band(changetypes, CHANGE_SHADERS) ~= 0 then
-        cubescript "resetshaders"
+        update_later[#update_later + 1] = { cubescript, "resetshaders" }
     end
 end)
 
@@ -4662,6 +4659,19 @@ set_external("changes_get", function()
 end)
 
 set_external("frame_start", function()
+    for i = 1, #update_later do
+        local ul = update_later[i]
+        local first = ul[1]
+        local t = type(first)
+        if t == "string" then
+            _V[first] = ul[2]
+        elseif t == "function" then
+            first(unpack(ul, 2))
+        else
+            signal.emit(first, ul[2], unpack(ul, 3))
+        end
+    end
+    update_later = {}
     if not world:gui_visible("main") and _V.mainmenu ~= 0 and not _C.isconnected(true) then
         world:show_gui("main")
     end
