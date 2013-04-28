@@ -9,6 +9,10 @@
 #include "message_system.h"
 #include "of_world.h"
 
+#ifdef WIN32
+#include <direct.h>
+#endif
+
 namespace server
 {
     extern bool shutdown_if_empty;
@@ -692,7 +696,7 @@ int main(int argc, char **argv)
         char *home = getenv("HOME");
         if (home) {
 #ifdef WIN32
-            defformatstring(defdir)("%s\My Games\OctaForge", home);
+            defformatstring(defdir)("%s\\My Games\\OctaForge", home);
 #else
             defformatstring(defdir)("%s/.octaforge_client", home);
 #endif
