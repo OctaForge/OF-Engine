@@ -4074,10 +4074,8 @@ local Text_Editor = Object:clone {
         _C.hudmatrix_scale(s, s, 1)
         _C.hudmatrix_flush()
 
-        local x, y, color, hit = _V.fontw / 2, 0, 0xFFFFFF, is_focused(self)
-
+        local x, y, hit = _V.fontw / 2, 0, is_focused(self)
         local max_width = self.line_wrap and self.pixel_width or -1
-
         local selection, sx, sy, ex, ey = self:region()
 
         self.scrolly = math.clamp(self.scrolly, 0, #self.lines - 1)
@@ -4154,9 +4152,8 @@ local Text_Editor = Object:clone {
             if h + height > self.pixel_height then
                 break
             end
-            local r, g, b = hextorgb(color)
             _C.text_draw(self.password and ("*"):rep(#self.lines[i])
-                or self.lines[i], x, y + h, r, g, b, 0xFF,
+                or self.lines[i], x, y + h, 255, 255, 255, 255,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
             -- line wrap indicator
@@ -4172,7 +4169,6 @@ local Text_Editor = Object:clone {
                 _C.gle_end()
                 _C.shader_hud_set()
             end
-
             h = h + height
         end
 
