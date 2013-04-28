@@ -1995,12 +1995,9 @@ local Scroller = Clipper:clone {
             return Object.key_hover(self, code, isdown)
         end
 
-        if not self.i_can_scroll or not isdown then
-            return false
-        end
-
         local  sb = self:find_sibling(wtype.SCROLLBAR)
-        if not sb then return false end
+        if not sb or not self.i_can_scroll then return false end
+        if not isdown then return true end
 
         local adjust = (code == m4 and -0.2 or 0.2) * sb.p_arrow_speed
         if sb.__proto == V_Scrollbar then
@@ -2100,10 +2097,9 @@ local Scrollbar = Object:clone {
             return Object.key_hover(self, code, isdown)
         end
 
-        if not not isdown then return false end
-
         local  sc = self:find_sibling(wtype.SCROLLER)
         if not sc or not sc.i_can_scroll then return false end
+        if not isdown then return true end
 
         local adjust = (code == m4 and -0.2 or 0.2) * self.p_arrow_speed
         if self.__proto == V_Scrollbar then
@@ -4336,7 +4332,7 @@ local Field = Text_Editor:clone {
     end,
 
     key_hover = function(self, code, isdown)
-               return self:key(code, isdown)
+        return self:key(code, isdown) or Object.key_hover(self, code, isdown)
     end,
 
     key = function(self, code, isdown)
@@ -4593,7 +4589,7 @@ local CHANGE_SOUND   = blsh(1, 1)
 local CHANGE_SHADERS = blsh(1, 2)
 
 set_external("changes_clear", function(ctype)
-    ctype = ctype or bor(CHANGE_GFX, CHANGE_SOUND)
+    ctype = ctype or bor(CHANGE_GFX, CHANGE_SOUND, CHANGE_SHADERS)
 
     needsapply = table.filter(needsapply, function(i, v)
         if band(v.ctype, ctype) == 0 then
