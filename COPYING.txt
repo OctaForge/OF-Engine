@@ -28,25 +28,26 @@ OctaForge is brought to you by:
 - Bart 'bartbes' van Strien
 - Keyvan 'keyvan' Fatehi
 - T7g
+- David 'dkreuter' Kreuter
 
-OctaForge is based on CubeCreate/Syntensity project, Syntensity contributors were:
+OctaForge is based on Syntensity, Syntensity contributors were:
 
   * Alon 'kripken' Zakai - kripken@syntensity.com
   * quaker66 - quaker66@gmail.com
 
-CubeCreate contributors are/were:
-
-  * William 'BiosElement' Chambers - bioselement@gmail.com
-  * quaker66 - quaker66@gmail.com
-
 The codebase also contains code originating from Cube 2/Sauerbraten, see
 their license under src/readme_source.txt, and other open source projects
-may be bundled under thirdparty directories, with included license info.
+may be bundled under src/libraries, with included license info.
+
+OctaForge uses the Tesseract rendering engine by Lee 'eihrul' Salzman,
+see src/readme_tesseract.txt.
+
+Additionally, some code is taken from (or is inspired by) the Lamiae
+RPG engine by Kevin 'Hirato Kirata' Meyer, mostly in the UI part (zlib
+licensed).
 
 The Tesseract renderer is in use (created by Lee "eihrul" Salzman), see
 src/readme_tesseract.txt.
 
-Special thanks to Lee "eihrul" Salzman for the help with the Cube 2 / Tesseract
+Special thanks to Lee "eihrul" Salzman for the help with the Cube 2/Tesseract
 codebase and moral support.
-
-In addition, code has been ported from SauerEnhanced. Thanks to Q009 (SauerEnhanced author).
