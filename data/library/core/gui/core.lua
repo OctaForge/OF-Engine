@@ -3636,247 +3636,222 @@ local Text_Editor = Object:clone {
             mod_keys = mod.CTRL
         end
 
-        switch(code,
-            case(key.UP, function()
-                self:movement_mark()
-                if self.line_wrap then
-                    local str = self:current_line()
-                    local x, y = _C.text_get_position(str, self.cx + 1,
-                        self.pixel_width)
-                    if y > 0 then
-                        self.cx = _C.text_is_visible(str, x, y - FONTH,
-                            self.pixel_width)
-                        self:scroll_on_screen()
-                        return nil
-                    end
-                end
-                self.cy = self.cy - 1
-                self:scroll_on_screen()
-            end),
-
-            case(key.DOWN, function()
-                self:movement_mark()
-                if self.line_wrap then
-                    local str = self:current_line()
-                    local x, y = _C.text_get_position(str, self.cx,
-                        self.pixel_width)
-                    local width, height = _C.text_get_bounds(str,
-                        self.pixel_width)
-                    y = y + _V.fonth
-                    if y < height then
-                        self.cx = _C.text_is_visible(str, x, y, self.pixel_width)
-                        self:scroll_on_screen()
-                        return nil
-                    end
-                end
-                self.cy = self.cy + 1
-                self:scroll_on_screen()
-            end),
-
-            case(key.MOUSE4, function()
-                self.scrolly = self.scrolly - 3
-            end),
-
-            case(key.MOUSE5, function()
-                self.scrolly = self.scrolly + 3
-            end),
-
-            case(key.PAGEUP, function()
-                self:movement_mark()
-                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
-                    self.cy = 0
-                else
-                    self.cy = self.cy - self.pixel_height / _V.fonth
-                end
-                self:scroll_on_screen()
-            end),
-
-            case(key.PAGEDOWN, function()
-                self:movement_mark()
-                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
-                    self.cy = 1 / 0
-                else
-                    self.cy = self.cy + self.pixel_height / _V.fonth
-                end
-                self:scroll_on_screen()
-            end),
-
-            case(key.HOME, function()
-                self:movement_mark()
-                self.cx = 0
-                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
-                    self.cy = 0
-                end
-                self:scroll_on_screen()
-            end),
-
-            case(key.END, function()
-                self:movement_mark()
-                self.cx = 1 / 0
-                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
-                    self.cy = 1 / 0
-                end
-                self:scroll_on_screen()
-            end),
-
-            case(key.LEFT, function()
-                self:movement_mark()
-                if     self.cx > 0 then self.cx = self.cx - 1
-                elseif self.cy > 0 then
-                    self.cx = 1 / 0
-                    self.cy = self.cy - 1
-                end
-                self:scroll_on_screen()
-            end),
-
-            case(key.RIGHT, function()
-                self:movement_mark()
-                if self.cx < #self.lines[self.cy + 1] then
-                    self.cx = self.cx + 1
-                elseif self.cy < #self.lines - 1 then
-                    self.cx = 0
-                    self.cy = self.cy + 1
-                end
-                self:scroll_on_screen()
-            end),
-
-            case(key.DELETE, function()
-                if not self:del() then
-                    local current = self:current_line()
-                    if self.cx < #current then
-                        current = current:del(self.cx + 1, 1)
-                    elseif self.cy < #self.lines - 1 then
-                        -- combine with next line
-                        current = table.concat {
-                            current, self.lines[self.cy + 2] }
-                        self:remove_lines(self.cy + 2, 1)
-                    end
-                    self.lines[self.cy + 1] = current
-                end
-                self:scroll_on_screen()
-            end),
-
-            case(key.BACKSPACE, function()
-                if not self:del() then
-                    local current = self:current_line()
-                    if self.cx > 0 then
-                        self.cx = self.cx - 1
-                        self.lines[self.cy + 1] = current:del(self.cx + 1, 1)
-                    elseif self.cy > 0 then
-                        -- combine with previous line
-                        self.cx = #self.lines[self.cy]
-                        self.lines[self.cy] = table.concat {
-                            self.lines[self.cy], current }
-                        self:remove_lines(self.cy + 1, 1)
-                        self.cy = self.cy - 1
-                    end
-                end
-                self:scroll_on_screen()
-            end),
-
-            case({  key.LSHIFT, key.RSHIFT,
-                    key.LCTRL,  key.RCTRL,
-                    key.LGUI,   key.RGUI },
-                function() end),
-
-            case(key.RETURN, function()
-                -- maintain indentation
+        if code == key.UP then
+            self:movement_mark()
+            if self.line_wrap then
                 local str = self:current_line()
-                self:insert "\n"
-                for c in str:gmatch "." do if c == " " or c == "\t" then
-                    self:insert(c) else break
-                end end
-                self:scroll_on_screen()
-            end),
-
-            case(key.TAB, function()
-                local b, sx, sy, ex, ey = self:region()
-                if b then
-                    for i = sy, ey do
-                        if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
-                            local rem = 0
-                            for j = 1, math.min(4, #self.lines[i + 1]) do
-                                if self.lines[i + 1]:sub(j, j) == " " then
-                                    rem = rem + 1
-                                else
-                                    if self.lines[i + 1]:sub(j, j) == "\t" and j == 0 then
-                                        rem = rem + 1
-                                    end
-                                    break
-                                end
-                            end
-                            self.lines[i + 1] = self.lines[i + 1]:del(1, rem)
-                            if i == self.my then self.mx = self.mx - (rem > self.mx and self.mx or rem) end
-                            if i == self.cy then self.cx = self.cx -  rem end
-                        else
-                            self.lines[i + 1] = "\t" .. self.lines[i + 1]
-                            if i == self.my then self.mx = self.mx + 1 end
-                            if i == self.cy then self.cx = self.cx + 1 end
-                        end
-                    end
-                end
-                self:scroll_on_screen()
-            end),
-
-            case({ key.A, key.X, key.C, key.V }, function()
-                if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+                local x, y = _C.text_get_position(str, self.cx + 1,
+                    self.pixel_width)
+                if y > 0 then
+                    self.cx = _C.text_is_visible(str, x, y - FONTH,
+                        self.pixel_width)
+                    self:scroll_on_screen()
                     return nil
                 end
-                self:scroll_on_screen()
-            end),
+            end
+            self.cy = self.cy - 1
+            self:scroll_on_screen()
+        elseif code == key.DOWN then
+            self:movement_mark()
+            if self.line_wrap then
+                local str = self:current_line()
+                local x, y = _C.text_get_position(str, self.cx,
+                    self.pixel_width)
+                local width, height = _C.text_get_bounds(str,
+                    self.pixel_width)
+                y = y + _V.fonth
+                if y < height then
+                    self.cx = _C.text_is_visible(str, x, y, self.pixel_width)
+                    self:scroll_on_screen()
+                    return nil
+                end
+            end
+            self.cy = self.cy + 1
+            self:scroll_on_screen()
+        elseif code == key.MOUSE4 then
+            self.scrolly = self.scrolly - 3
+        elseif code == key.MOUSE5 then
+            self.scrolly = self.scrolly + 3
+        elseif code == key.PAGEUP then
+            self:movement_mark()
+            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+                self.cy = 0
+            else
+                self.cy = self.cy - self.pixel_height / _V.fonth
+            end
+            self:scroll_on_screen()
+        elseif code == key.PAGEDOWN then
+            self:movement_mark()
+            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+                self.cy = 1 / 0
+            else
+                self.cy = self.cy + self.pixel_height / _V.fonth
+            end
+            self:scroll_on_screen()
+        elseif code == key.HOME then
+            self:movement_mark()
+            self.cx = 0
+            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+                self.cy = 0
+            end
+            self:scroll_on_screen()
+        elseif code == key.END then
+            self:movement_mark()
+            self.cx = 1 / 0
+            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+                self.cy = 1 / 0
+            end
+            self:scroll_on_screen()
+        elseif code == key.LEFT then
+            self:movement_mark()
+            if     self.cx > 0 then self.cx = self.cx - 1
+            elseif self.cy > 0 then
+                self.cx = 1 / 0
+                self.cy = self.cy - 1
+            end
+            self:scroll_on_screen()
+        elseif code == key.RIGHT then
+            self:movement_mark()
+            if self.cx < #self.lines[self.cy + 1] then
+                self.cx = self.cx + 1
+            elseif self.cy < #self.lines - 1 then
+                self.cx = 0
+                self.cy = self.cy + 1
+            end
+            self:scroll_on_screen()
+        elseif code == key.DELETE then
+            if not self:del() then
+                local current = self:current_line()
+                if self.cx < #current then
+                    self.lines[self.cy + 1] = current:del(self.cx + 1, 1)
+                elseif self.cy < #self.lines - 1 then
+                    -- combine with next line
+                    self.lines[self.cy + 1] = table.concat {
+                        current, self.lines[self.cy + 2] }
+                    self:remove_lines(self.cy + 2, 1)
+                end
+            end
+            self:scroll_on_screen()
+        elseif code == key.BACKSPACE then
+            if not self:del() then
+                local current = self:current_line()
+                if self.cx > 0 then
+                    self.lines[self.cy + 1] = current:del(self.cx, 1)
+                    self.cx = self.cx - 1
+                elseif self.cy > 0 then
+                    -- combine with previous line
+                    self.cx = #self.lines[self.cy]
+                    self.lines[self.cy] = table.concat {
+                        self.lines[self.cy], current }
+                    self:remove_lines(self.cy + 1, 1)
+                    self.cy = self.cy - 1
+                end
+            end
+            self:scroll_on_screen()
+        elseif code == key.RETURN then
+            -- maintain indentation
+            local str = self:current_line()
+            self:insert("\n")
+            for c in str:gmatch "." do if c == " " or c == "\t" then
+                self:insert(c) else break
+            end end
+            self:scroll_on_screen()
+        elseif code == key.TAB then
+            local b, sx, sy, ex, ey = self:region()
+            if b then
+                for i = sy, ey do
+                    if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+                        local rem = 0
+                        for j = 1, math.min(4, #self.lines[i + 1]) do
+                            if self.lines[i + 1]:sub(j, j) == " " then
+                                rem = rem + 1
+                            else
+                                if self.lines[i + 1]:sub(j, j) == "\t"
+                                and j == 0 then
+                                    rem = rem + 1
+                                end
+                                break
+                            end
+                        end
+                        self.lines[i + 1] = self.lines[i + 1]:del(1, rem)
+                        if i == self.my then self.mx = self.mx
+                            - (rem > self.mx and self.mx or rem) end
+                        if i == self.cy then self.cx = self.cx -  rem end
+                    else
+                        self.lines[i + 1] = "\t" .. self.lines[i + 1]
+                        if i == self.my then self.mx = self.mx + 1 end
+                        if i == self.cy then self.cx = self.cx + 1 end
+                    end
+                end
+            elseif band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+                if self.cx > 0 then
+                    local cy = self.cy
+                    local lines = self.lines
+                    if lines[cy + 1]:sub(1, 1) == "\t" then
+                        lines[cy + 1] = lines[cy + 1]:sub(2)
+                        self.cx = self.cx - 1
+                    else
+                        for j = 1, math.min(4, #lines[cy + 1]) do
+                            if lines[cy + 1]:sub(1, 1) == " " then
+                                lines[cy + 1] = lines[cy + 1]:sub(2)
+                                self.cx = self.cx - 1
+                            end
+                        end
+                    end
+                end
+            else
+                self:insert("\t")
+            end
+            self:scroll_on_screen()
+        elseif code == key.A then
+            if band(_C.input_get_modifier_state(), mod_keys) == 0 then
+                return nil
+            end
+            self:select_all()
+            self:scroll_on_screen()
+        elseif code == key.C or code == key.X then
+            clipboard = {}
+            local sx, sy, ex, ey = select(2, self:region())
+            for i = 1, 1 + ey - sy do
+                local y = sy + i
+                local line = self.lines[y]
+                if y - 1 == sy then line = line:sub(sx + 1) end
+                clipboard[#clipboard + 1] = line
+            end
+            if #clipboard == 0 then clipboard = { "" } end
+            if code == key.X then self:del() end
+            self:scroll_on_screen()
+        elseif code == key.V then
+            self:del()
+            if #clipboard == 1 or self.maxy == 1 then
+                local current = self:current_line()
+                local str  = clipboard[1]
+                local slen = #str
 
-            default(function()
-                self:scroll_on_screen()
-            end))
-
-        if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
-            if code == key.A then
-                self:select_all()
-            elseif code == key.X or code == key.C then
-                clipboard = {}
-
-                local sx, sy, ex, ey = select(2, self:region())
-
-                for i = 1, 1 + ey - sy do
-                    local y = sy + i
-                    local line = self.lines[y]
-
-                    if y - 1 == sy then line = line:sub(sx + 1) end
-                    clipboard[#clipboard + 1] = line
+                local maxx = self.maxx
+                if maxx >= 0 and (slen + self.cx) > maxx then
+                    slen = maxx - self.cx
                 end
 
-                if #clipboard == 0 then clipboard = { "" } end
-
-                if code == key.X then self:del() end
-            elseif code == key.V then
-                self:del()
-
-                if #clipboard == 1 or self.maxy == 1 then
-                    local current = self:current_line()
-                    local str  = clipboard[1]
-                    local slen = #str
-
-                    if self.maxx >= 0 and slen + self.cx > self.maxx then
-                        slen = self.maxx - self.cx
+                if slen > 0 then
+                    local len = #current
+                    if maxx >= 0 and (slen + self.cx + len) > maxx then
+                        len = math.max(0, maxx - (self.cx + slen))
                     end
 
-                    if slen > 0 then
-                        local len = #current
-                        if self.maxx >= 0 and slen + self.cx + len > self.maxx then
-                            len = math.max(0, self.maxx - (self.cx + slen))
-                        end
+                    current = current:insert(self.cx + 1, slen)
+                    self.cx = self.cx + slen
+                end
 
-                        current = current:insert(self.cx + 1, slen)
-                        self.cx = self.cx + slen
-                    end
-
-                    self.lines[self.cy + 1] = current
-                else for i = 1, #clipboard do
+                self.lines[self.cy + 1] = current
+            else
+                for i = 1, #clipboard do
                     if i == 1 then
                         self.cy = self.cy + 1
                         local newline = self.lines[self.cy]:sub(self.cx + 1)
-                        self.lines[self.cy] = self.lines[self.cy]:sub(
-                            1, self.cx):insert(self.cy + 1, newline)
+                        self.lines[self.cy] = self.lines[self.cy]:sub(1,
+                            self.cx) .. clipboard[i]
+                        self.lines[self.cy + 1] = newline
                     elseif i >= #clipboard then
                         self.cx = #clipboard[i]
                         self.lines[self.cy + 1] = table.concat {
@@ -3885,8 +3860,10 @@ local Text_Editor = Object:clone {
                         self.cy = self.cy + 1
                         table.insert(self.lines, self.cy, clipboard[i])
                     end
-                end end
+                end
             end
+            self:scroll_on_screen()
+        else
             self:scroll_on_screen()
         end
     end,
