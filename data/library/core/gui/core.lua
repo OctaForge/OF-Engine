@@ -3503,16 +3503,17 @@ local Text_Editor = Object:clone {
         local sx, sy, ex, ey = select(2, self:region())
 
         for i = 1, 1 + ey - sy do
-            local y = sy + i
-            local line = self.lines[y]
-
-            if y - 1 == sy then line = line:sub(sx + 1) end
-
+            local y = sy + i - 1
+            local line = self.lines[y + 1]
+            local len  = #line
+            if y == sy then line = line:sub(sx + 1) end
             buf[#buf + 1] = line
             buf[#buf + 1] = "\n"
         end
 
-        return table.concat(buf)
+        if #buf > 0 then
+            return table.concat(buf)
+        end
     end,
 
     remove_lines = function(self, start, count)
@@ -3923,65 +3924,16 @@ local Text_Editor = Object:clone {
     end,
 
     copy = function(self)
-        local cb = {}
-        local sx, sy, ex, ey = select(2, self:region())
-        for i = 1, 1 + ey - sy do
-            local y, line = sy + i, self.lines[y]
-            if y - 1 == sy then
-                line = line:sub(sx + 1)
-            end
-            cb[#cb + 1] = line
-        end
-        if #cb > 0 then
-            _C.clipboard_set_text(table.concat(cb, "\n"))
-        end
+        local str = self:selection_to_string()
+        if str then _C.clipboard_set_text(str) end
     end,
 
     paste = function(self)
-        if not _C.clipboard_has_text() then
-            return false
-        end
-        self:del()
+        if not _C.clipboard_has_text() then return false end
+        if self.mx > 0 then self:del() end
         local  str = _C.clipboard_get_text()
         if not str then return false end
-
-        -- have \r in the delimiter set too (windows)
-        local cb = str:split("\r\n")
-        if #cb == 1 or self.maxy == 1 then
-            local current = self:current_line()
-            local str  = cb[1]
-            local slen = #str
-
-            local maxx = self.maxx
-            if maxx >= 0 and (slen + self.cx) > maxx then
-                slen = maxx - self.cx
-            end
-            if slen > 0 then
-                local len = #current
-                if maxx >= 0 and (slen + self.cx + len) > maxx then
-                    len = math.max(0, maxx - (self.cx + slen))
-                end
-                current = current:insert(self.cx + 1, slen)
-                self.cx = self.cx + slen
-            end
-            self.lines[self.cy + 1] = current
-        else
-            for i = 1, #cb do
-                if i == 1 then
-                    self.cy = self.cy + 1
-                    local newline = self.lines[self.cy]:sub(self.cx + 1)
-                    self.lines[self.cy] = self.lines[self.cy]:sub(1,self.cx)
-                        .. cb[i]
-                    self.lines[self.cy + 1] = newline
-                elseif i >= #cb then
-                    self.cx = #cb[i]
-                    self.lines[self.cy + 1] =  cb[i] .. self.lines[self.cy + 1]
-                elseif self.maxy < 0 or #self.lines < self.maxy then
-                    self.cy = self.cy + 1
-                    table.insert(self.lines, self.cy, cb[i])
-                end
-            end
-        end
+        self:insert(str)
         return true
     end,
 
