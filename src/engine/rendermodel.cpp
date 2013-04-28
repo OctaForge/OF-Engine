@@ -1241,9 +1241,9 @@ LUAICOMMAND(model_preview_start, {
 
 LUAICOMMAND(model_preview, {
     const char *mdl = luaL_checkstring(L, 1);
+    int anim = luaL_checkinteger(L, 2);
     model *m = loadmodel(mdl);
     if (m) {
-        int anim = luaL_checkinteger(L, 2);
         vec center; vec radius;
         m->boundbox(center, radius);
         float dist = 2.0f * max(max(radius.x, radius.y), 1.1f * radius.z);
