@@ -3810,58 +3810,17 @@ local Text_Editor = Object:clone {
             self:select_all()
             self:scroll_on_screen()
         elseif code == key.C or code == key.X then
-            clipboard = {}
-            local sx, sy, ex, ey = select(2, self:region())
-            for i = 1, 1 + ey - sy do
-                local y = sy + i
-                local line = self.lines[y]
-                if y - 1 == sy then line = line:sub(sx + 1) end
-                clipboard[#clipboard + 1] = line
+            if band(_C.input_get_modifier_state(), mod_keys) == 0 then
+                return nil
             end
-            if #clipboard == 0 then clipboard = { "" } end
+            self:copy()
             if code == key.X then self:del() end
             self:scroll_on_screen()
         elseif code == key.V then
-            self:del()
-            if #clipboard == 1 or self.maxy == 1 then
-                local current = self:current_line()
-                local str  = clipboard[1]
-                local slen = #str
-
-                local maxx = self.maxx
-                if maxx >= 0 and (slen + self.cx) > maxx then
-                    slen = maxx - self.cx
-                end
-
-                if slen > 0 then
-                    local len = #current
-                    if maxx >= 0 and (slen + self.cx + len) > maxx then
-                        len = math.max(0, maxx - (self.cx + slen))
-                    end
-
-                    current = current:insert(self.cx + 1, slen)
-                    self.cx = self.cx + slen
-                end
-
-                self.lines[self.cy + 1] = current
-            else
-                for i = 1, #clipboard do
-                    if i == 1 then
-                        self.cy = self.cy + 1
-                        local newline = self.lines[self.cy]:sub(self.cx + 1)
-                        self.lines[self.cy] = self.lines[self.cy]:sub(1,
-                            self.cx) .. clipboard[i]
-                        self.lines[self.cy + 1] = newline
-                    elseif i >= #clipboard then
-                        self.cx = #clipboard[i]
-                        self.lines[self.cy + 1] = table.concat {
-                            clipboard[i], self.lines[self.cy + 1] }
-                    elseif self.maxy < 0 or #self.lines < self.maxy then
-                        self.cy = self.cy + 1
-                        table.insert(self.lines, self.cy, clipboard[i])
-                    end
-                end
+            if band(_C.input_get_modifier_state(), mod_keys) == 0 then
+                return nil
             end
+            self:paste()
             self:scroll_on_screen()
         else
             self:scroll_on_screen()
@@ -3933,13 +3892,12 @@ local Text_Editor = Object:clone {
             local width, height = _C.text_get_bounds(self.lines[i], max_width)
             if h + height > self.pixel_height then break end
             if hity >= h and hity <= h + height then
-                local x = _C.text_is_visible(self.lines[i], hitx, hity - h, max_width)
+                local x = _C.text_is_visible(self.lines[i], hitx, hity - h,
+                    max_width)
                 if dragged then
-                    self.mx = x
-                    self.my = i - 1
+                    self.mx, self.my = x, i - 1
                 else
-                    self.cx = x
-                    self.cy = i - 1
+                    self.cx, self.cy = x, i - 1
                 end
                 break
             end
@@ -3952,7 +3910,8 @@ local Text_Editor = Object:clone {
         local slines = #self.lines
         local ph = self.pixel_height
         while slines > 0 and ph > 0 do
-            local width, height = _C.text_get_bounds(self.lines[slines], max_width)
+            local width, height = _C.text_get_bounds(self.lines[slines],
+                max_width)
             if height > ph then break end
             ph = ph - height
             slines = slines - 1
@@ -3967,58 +3926,55 @@ local Text_Editor = Object:clone {
 
     copy = function(self)
         clipboard = {}
-
         local sx, sy, ex, ey = select(2, self:region())
-
         for i = 1, 1 + ey - sy do
-            local y = sy + i
-            local line = self.lines[y]
-
-            if y - 1 == sy then line = line:sub(sx + 1) end
+            local y, line = sy + i, self.lines[y]
+            if y - 1 == sy then
+                line = line:sub(sx + 1)
+            end
             clipboard[#clipboard + 1] = line
         end
-
         if #clipboard == 0 then clipboard = { "" } end
     end,
 
     paste = function(self)
         self:del()
-
         if #clipboard == 1 or self.maxy == 1 then
             local current = self:current_line()
             local str  = clipboard[1]
             local slen = #str
 
-            if self.maxx >= 0 and slen + self.cx > self.maxx then
-                slen = self.maxx - self.cx
+            local maxx = self.maxx
+            if maxx >= 0 and (slen + self.cx) > maxx then
+                slen = maxx - self.cx
             end
-
             if slen > 0 then
                 local len = #current
-                if self.maxx >= 0 and slen + self.cx + len > self.maxx then
-                    len = math.max(0, self.maxx - (self.cx + slen))
+                if maxx >= 0 and (slen + self.cx + len) > maxx then
+                    len = math.max(0, maxx - (self.cx + slen))
                 end
-
                 current = current:insert(self.cx + 1, slen)
                 self.cx = self.cx + slen
             end
-
             self.lines[self.cy + 1] = current
-        else for i = 1, #clipboard do
-            if i == 1 then
-                self.cy = self.cy + 1
-                local newline = self.lines[self.cy]:sub(self.cx + 1)
-                self.lines[self.cy] = self.lines[self.cy]:sub(
-                    1, self.cx):insert(self.cy + 1, newline)
-            elseif i >= #clipboard then
-                self.cx = #clipboard[i]
-                self.lines[self.cy + 1] = table.concat {
-                    clipboard[i], self.lines[self.cy + 1] }
-            elseif self.maxy < 0 or #self.lines < self.maxy then
-                self.cy = self.cy + 1
-                table.insert(self.lines, self.cy, clipboard[i])
+        else
+            for i = 1, #clipboard do
+                if i == 1 then
+                    self.cy = self.cy + 1
+                    local newline = self.lines[self.cy]:sub(self.cx + 1)
+                    self.lines[self.cy] = self.lines[self.cy]:sub(1,self.cx)
+                        .. clipboard[i]
+                    self.lines[self.cy + 1] = newline
+                elseif i >= #clipboard then
+                    self.cx = #clipboard[i]
+                    self.lines[self.cy + 1] =  clipboard[i]
+                        .. self.lines[self.cy + 1]
+                elseif self.maxy < 0 or #self.lines < self.maxy then
+                    self.cy = self.cy + 1
+                    table.insert(self.lines, self.cy, clipboard[i])
+                end
             end
-        end end
+        end
     end,
 
     target = function(self, cx, cy)
