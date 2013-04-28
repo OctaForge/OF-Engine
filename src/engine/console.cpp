@@ -290,6 +290,33 @@ void pasteconsole()
     SDL_free(cb);
 }
 
+LUAICOMMAND(clipboard_has_text, {
+    lua_pushboolean(L, SDL_HasClipboardText());
+    return 1;
+});
+
+LUAICOMMAND(clipboard_get_text, {
+    char *cb = SDL_GetClipboardText();
+    if  (!cb) {
+        lua_pushnil(L);
+        lua_pushstring(L, SDL_GetError());
+        return 2;
+    }
+    lua_pushstring(L, cb);
+    SDL_free(cb);
+    return 1;
+})
+
+LUAICOMMAND(clipboard_set_text, {
+    if (!SDL_SetClipboardText(luaL_checkstring(L, 1))) {
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    lua_pushboolean(L, false);
+    lua_pushstring(L, SDL_GetError());
+    return 2;
+})
+
 struct hline
 {
     char *buf, *action, *prompt;

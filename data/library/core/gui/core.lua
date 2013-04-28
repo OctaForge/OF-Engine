@@ -3370,8 +3370,6 @@ M.Eval_Label = Eval_Label
 local textediting   = nil
 local refreshrepeat = 0
 
-local clipboard = {}
-
 local Text_Editor = Object:clone {
     name = "Text_Editor",
     type = wtype.TEXT_EDITOR,
@@ -3925,23 +3923,33 @@ local Text_Editor = Object:clone {
     end,
 
     copy = function(self)
-        clipboard = {}
+        local cb = {}
         local sx, sy, ex, ey = select(2, self:region())
         for i = 1, 1 + ey - sy do
             local y, line = sy + i, self.lines[y]
             if y - 1 == sy then
                 line = line:sub(sx + 1)
             end
-            clipboard[#clipboard + 1] = line
+            cb[#cb + 1] = line
         end
-        if #clipboard == 0 then clipboard = { "" } end
+        if #cb > 0 then
+            _C.clipboard_set_text(table.concat(cb, "\n"))
+        end
     end,
 
     paste = function(self)
+        if not _C.clipboard_has_text() then
+            return false
+        end
         self:del()
-        if #clipboard == 1 or self.maxy == 1 then
+        local  str = _C.clipboard_get_text()
+        if not str then return false end
+
+        -- have \r in the delimiter set too (windows)
+        local cb = str:split("\r\n")
+        if #cb == 1 or self.maxy == 1 then
             local current = self:current_line()
-            local str  = clipboard[1]
+            local str  = cb[1]
             local slen = #str
 
             local maxx = self.maxx
@@ -3958,23 +3966,23 @@ local Text_Editor = Object:clone {
             end
             self.lines[self.cy + 1] = current
         else
-            for i = 1, #clipboard do
+            for i = 1, #cb do
                 if i == 1 then
                     self.cy = self.cy + 1
                     local newline = self.lines[self.cy]:sub(self.cx + 1)
                     self.lines[self.cy] = self.lines[self.cy]:sub(1,self.cx)
-                        .. clipboard[i]
+                        .. cb[i]
                     self.lines[self.cy + 1] = newline
-                elseif i >= #clipboard then
-                    self.cx = #clipboard[i]
-                    self.lines[self.cy + 1] =  clipboard[i]
-                        .. self.lines[self.cy + 1]
+                elseif i >= #cb then
+                    self.cx = #cb[i]
+                    self.lines[self.cy + 1] =  cb[i] .. self.lines[self.cy + 1]
                 elseif self.maxy < 0 or #self.lines < self.maxy then
                     self.cy = self.cy + 1
-                    table.insert(self.lines, self.cy, clipboard[i])
+                    table.insert(self.lines, self.cy, cb[i])
                 end
             end
         end
+        return true
     end,
 
     target = function(self, cx, cy)
@@ -4082,12 +4090,15 @@ local Text_Editor = Object:clone {
 
         if selection then
             -- convert from cursor coords into pixel coords
-            local psx, psy = _C.text_get_position(self.lines[sy + 1], sx, max_width)
-            local pex, pey = _C.text_get_position(self.lines[ey + 1], ex, max_width)
+            local psx, psy = _C.text_get_position(self.lines[sy + 1], sx,
+                max_width)
+            local pex, pey = _C.text_get_position(self.lines[ey + 1], ex,
+                max_width)
             local maxy = #self.lines
             local h = 0
             for i = self.scrolly + 1, maxy do
-                local width, height = _C.text_get_bounds(self.lines[i], max_width)
+                local width, height = _C.text_get_bounds(self.lines[i],
+                    max_width)
                 if h + height > self.pixel_height then
                     maxy = i - 1
                     break
