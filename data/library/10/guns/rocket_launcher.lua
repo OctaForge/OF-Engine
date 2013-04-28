@@ -39,11 +39,7 @@ rocket = projectiles.projectile:clone {
             self.owner,
             "guns/rocket",
             math.bor(model.anims.IDLE, model.anims.LOOP),
-            o,
-            yaw,
-            pitch,
-            flags,
-            0
+            o, yaw, pitch, 0, flags, 0
         }
         model.render(unpack(args))
     end,

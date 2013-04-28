@@ -149,6 +149,7 @@ M.Local_Animation_Action = actions.Action:clone {
         Defaults to 50.
         yaw [<svars.State_Float>] - the current character yaw in degrees.
         pitch [<svars.State_Float>] - the current character pitch in degrees.
+        roll [<svars.State_Float>] - the current character roll in degrees.
         move [<svars.State_Integer>] - -1 when moving backwards, 0 when not
         moving, 1 when forward.
         strafe [<svars.State_Integer>] - -1 when strafing left, 0 when not
@@ -220,6 +221,10 @@ local Character = Physical_Entity:clone {
         },
         pitch = svars.State_Float {
             getter = "_C.get_pitch", setter = "_C.set_pitch",
+            custom_sync = true
+        },
+        roll = svars.State_Float {
+            getter = "_C.get_roll", setter = "_C.set_roll",
             custom_sync = true
         },
         move = svars.State_Integer {
@@ -369,7 +374,7 @@ local Character = Physical_Entity:clone {
             local mdn = (hudpass and needhud) and self.hud_model_name
                 or self.model_name
 
-            local yaw, pitch = self.yaw + 90, self.pitch
+            local yaw, pitch, roll = self.yaw + 90, self.pitch, self.roll
             local o = self.position:copy()
 
             if hudpass and needhud and self.hud_model_offset then
@@ -388,12 +393,12 @@ local Character = Physical_Entity:clone {
             local flags = self:get_render_flags(hudpass, needhud)
 
             if not ra then
-                ra = { self, "", true, true, true, true, true, true }
+                ra = { self, "", true, true, true, true, true, true, true }
                 self.render_args = ra
             end
 
-            ra[2], ra[3], ra[4], ra[5], ra[6], ra[7], ra[8] =
-                mdn, anim, o, yaw, pitch, flags, bt
+            ra[2], ra[3], ra[4], ra[5], ra[6], ra[7], ra[8], ra[9] =
+                mdn, anim, o, yaw, pitch, roll, flags, bt
             self.render_args_timestamp = fr
         end
         if (ra and ra[2] ~= "") then model.render(unpack(ra)) end

@@ -15,6 +15,7 @@ plugin = {
                 local o        = self.position:copy()
                 local yaw      = self:get_multipart_yaw()
                 local pitch    = self:get_multipart_pitch()
+                local roll     = self:get_multipart_roll()
                 local flags    = self:get_multipart_flags()
                 local basetime = 0
 
@@ -48,5 +49,9 @@ plugin = {
 
     get_multipart_pitch = function(self)
         return self.pitch
+    end,
+
+    get_multipart_roll = function(self)
+        return self.roll
     end
 }

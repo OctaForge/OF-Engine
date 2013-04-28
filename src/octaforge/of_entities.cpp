@@ -312,6 +312,7 @@ namespace entities
     DYNENT_ACCESSORS(aboveeye, float, number, aboveeye)
     DYNENT_ACCESSORS(yaw, float, number, yaw)
     DYNENT_ACCESSORS(pitch, float, number, pitch)
+    DYNENT_ACCESSORS(roll, float, number, roll)
     DYNENT_ACCESSORS(move, int, integer, move)
     DYNENT_ACCESSORS(strafe, int, integer, strafe)
     DYNENT_ACCESSORS(yawing, int, integer, turn_move)

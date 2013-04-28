@@ -2,7 +2,7 @@ enum { MDL_MD3 = 0, MDL_MD5, MDL_OBJ, MDL_SMD, MDL_IQM, NUMMODELTYPES };
 
 struct model
 {
-    float spinyaw, spinpitch, offsetyaw, offsetpitch;
+    float spinyaw, spinpitch, spinroll, offsetyaw, offsetpitch, offsetroll;
     bool collide, ellipsecollide, shadow, depthoffset;
     float scale;
     vec translate;
@@ -13,13 +13,13 @@ struct model
 
     bool perentitycollisionboxes; // INTENSITY: Get the collision box from the entiy, not the model type
 
-    model() : spinyaw(0), spinpitch(0), offsetyaw(0), offsetpitch(0), collide(true), ellipsecollide(false), shadow(true), depthoffset(false), scale(1.0f), translate(0, 0, 0), bih(0), bbcenter(0, 0, 0), bbradius(-1, -1, -1), bbextend(0, 0, 0), eyeheight(0.9f), collideradius(0), collideheight(0), batch(-1)
+    model() : spinyaw(0), spinpitch(0), spinroll(0), offsetyaw(0), offsetpitch(0), offsetroll(0), collide(true), ellipsecollide(false), shadow(true), depthoffset(false), scale(1.0f), translate(0, 0, 0), bih(0), bbcenter(0, 0, 0), bbradius(-1, -1, -1), bbextend(0, 0, 0), eyeheight(0.9f), collideradius(0), collideheight(0), batch(-1)
           , perentitycollisionboxes(false)
         {}
     virtual ~model() { DELETEP(bih); }
     virtual void calcbb(vec &center, vec &radius) = 0;
-    virtual int intersect(int anim, int basetime, int basetime2, const vec &pos, float yaw, float pitch, dynent *d, modelattach *a, float size, const vec &o, const vec &ray, float &dist, int mode) = 0;
-    virtual void render(int anim, int basetime, int basetime2, const vec &o, float yaw, float pitch, dynent *d, modelattach *a = NULL, float size = 1, float trans = 1) = 0;
+    virtual int intersect(int anim, int basetime, int basetime2, const vec &pos, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, const vec &o, const vec &ray, float &dist, int mode) = 0;
+    virtual void render(int anim, int basetime, int basetime2, const vec &o, float yaw, float pitch, float roll, dynent *d, modelattach *a = NULL, float size = 1, float trans = 1) = 0;
     virtual bool load() = 0;
     virtual const char *name() const = 0;
     virtual int type() const = 0;

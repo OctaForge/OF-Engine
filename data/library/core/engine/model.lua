@@ -101,12 +101,12 @@ local mrender = _C.model_render
 --[[! Function: render
     Renders a model. Takes the entity which owns the model, the model name
     (relative to data/models), animation (see above), position (vec3), yaw,
-    pitch, flags (see render_flags), basetime (start_time) and trans (which
-    is model transparency that ranges from 0 to 1 and defaults to 1).
+    pitch, roll, flags (see render_flags), basetime (start_time) and trans
+    (which is model transparency that ranges from 0 to 1 and defaults to 1).
 ]]
-M.render = function(ent, mdl, anim, pos, yaw, pitch, flags, basetime, trans)
-    mrender(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, flags,
-        basetime, trans)
+M.render = function(ent, mdl, anim, pos, yaw, pitch, roll, flags, btime, trans)
+    mrender(ent, mdl, anim, pos.x, pos.y, pos.z, yaw, pitch, roll, flags,
+        btime, trans)
 end
 
 --[[! Function: get_bounding_box

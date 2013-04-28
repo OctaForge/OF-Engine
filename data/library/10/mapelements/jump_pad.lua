@@ -6,6 +6,7 @@ plugin = {
         pad_model  = svars.State_String(),
         pad_rotate = svars.State_Boolean(),
         pad_pitch  = svars.State_Integer(),
+        pad_roll   = svars.State_Integer(),
         pad_sound  = svars.State_String()
     },
 
@@ -16,6 +17,7 @@ plugin = {
         self.pad_model     = ""
         self.pad_rotate    = false
         self.pad_pitch     = 90
+        self.pad_roll      = 0
         self.pad_sound     = ""
         self.collision_radius_width  = 3
         self.collision_radius_height = 0.5
@@ -64,7 +66,7 @@ plugin = {
         model.render(
             self, self.pad_model,
             math.bor(model.anims.IDLE, model.anims.LOOP),
-            o, yaw and yaw or self.yaw, self.pad_pitch,
+            o, yaw and yaw or self.yaw, self.pad_pitch, self.pad_roll,
             flags, 0
         )
     end

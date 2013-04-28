@@ -77,6 +77,7 @@ projectile = table.Object:clone {
         if owner then
             self.yaw = owner.yaw
             self.pitch = owner.pitch
+            self.roll = owner.roll
         end
 
         self.collide_fun = geometry.is_colliding
@@ -294,7 +295,7 @@ debris = projectile:clone {
             game_manager.get_singleton(),
             self.debris_model,
             model.anims.IDLE,
-            o, 0, 0, flags, 0
+            o, 0, 0, 0, flags, 0
         )
     end,
 
