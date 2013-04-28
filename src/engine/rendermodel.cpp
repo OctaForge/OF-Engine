@@ -1226,3 +1226,51 @@ LUAICOMMAND(model_get_mesh, {
 LUAICOMMAND(model_preload, { preloadmodel(luaL_checkstring(L, 1)); return 0; });
 LUAICOMMAND(model_reload, { reloadmodel((char*)luaL_checkstring(L, 1)); return 0; });
 LUAICOMMAND(model_clear, { clearmodel((char*)luaL_checkstring(L, 1)); return 0; });
+
+LUAICOMMAND(model_preview_start, {
+    int  x = luaL_checkinteger(L, 1);
+    int  y = luaL_checkinteger(L, 2);
+    int dx = luaL_checkinteger(L, 3);
+    int dy = luaL_checkinteger(L, 4);
+    bool scissor = lua_toboolean(L, 5);
+
+    gle::disable();
+    modelpreview::start(x, y, dx, dy, false, scissor);
+    return 0;
+});
+
+LUAICOMMAND(model_preview, {
+    const char *mdl = luaL_checkstring(L, 1);
+    model *m = loadmodel(mdl);
+    if (m) {
+        int anim = luaL_checkinteger(L, 2);
+        vec center; vec radius;
+        m->boundbox(center, radius);
+        float dist = 2.0f * max(max(radius.x, radius.y), 1.1f * radius.z);
+        float yaw = fmod(totalmillis / 10000.f * 360.f, 360.f);
+        vec o(-center.x, dist - center.y, -0.1f * dist - center.z);
+
+        vector<modelattach> attach;
+        int len = lua_objlen(L, 3);
+        if (len) {
+            attach.reserve(len);
+            for (int i = 1; i <= len; ++i) {
+                lua_rawgeti(L,  3, i); /* attachments[i] */
+                lua_rawgeti(L, -1, 1); /* attachments[i][1] */
+                lua_rawgeti(L, -2, 2); /* attachments[i][2] */
+                attach.add(modelattach(lua_tostring(L, -2),
+                    lua_tostring(L, -1)));
+                lua_pop(L, 3);
+            }
+            attach.add(modelattach());
+        }
+        dynent ent;
+        rendermodel(mdl, anim, o, yaw, 0, 0, &ent, attach.getbuf(), 0, 0, 1);
+    }
+    return 0;
+});
+
+LUAICOMMAND(model_preview_end, {
+    modelpreview::end();
+    return 0;
+});

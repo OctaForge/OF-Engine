@@ -740,14 +740,15 @@ local wtype = {
     RECTANGLE          = 18,
     IMAGE              = 19,
     SLOT_VIEWER        = 20,
-    LABEL              = 21,
-    EVAL_LABEL         = 22,
-    TEXT_EDITOR        = 23,
-    FIELD              = 24,
-    MOVER              = 25,
-    RESIZER            = 26,
-    TAG                = 27,
-    WINDOW             = 28
+    MODEL_VIEWER       = 21,
+    LABEL              = 22,
+    EVAL_LABEL         = 23,
+    TEXT_EDITOR        = 24,
+    FIELD              = 25,
+    MOVER              = 26,
+    RESIZER            = 27,
+    TAG                = 28,
+    WINDOW             = 29
 }
 M.wtype = wtype
 
@@ -1430,6 +1431,7 @@ local World = Object:clone {
         self.p_y = 0
         self.p_w = 2 * margin + 1
         self.p_h = 1
+        self.p_margin = margin
 
         self.adjust_children(self)
     end,
@@ -3181,6 +3183,54 @@ local Slot_Viewer = Filler:clone {
     end
 }
 M.Slot_Viewer = Slot_Viewer
+
+local Model_Viewer = Filler:clone {
+    name = "Model_Viewer",
+    type = wtype.MODEL_VIEWER,
+
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.p_model = kwargs.model
+
+        local a = kwargs.anim
+        local aprim = bor(band(a, model.anims.INDEX), model.anims.LOOP)
+        local asec  = band(brsh(a, 8), model.anims.INDEX)
+        if asec ~= 0 then asec = bor(asec, model.anims.LOOP) end
+
+        self.p_anim = bor(aprim, blsh(asec, model.anims.SECONDARY))
+        self.p_attachments = kwargs.attachments or {}
+
+        return Filler.__init(self, kwargs)
+    end,
+
+    draw = function(self, sx, sy)
+        _C.gl_blend_disable()
+        local csl = #clip_stack > 0
+        if csl then _C.gl_scissor_disable() end
+
+        local screenw, ww, ws = _V.scr_w, world.p_w, world.p_size
+        local w, h = self.p_w, self.p_h
+
+        local x = floor((sx + world.p_margin) * screenw / ww)
+        local dx = ceil(w * screenw / ww)
+        local y  = ceil((1 - (h + sy)) * ws)
+        local dy = ceil(h * ws)
+
+        _C.gle_disable()
+        _C.model_preview_start(x, y, dx, dy, csl)
+        _C.model_preview(self.p_model, self.p_anim, self.p_attachments)
+        if csl then clip_area_scissor(clip_stack[#clip_stack]) end
+        _C.model_preview_end()
+
+        _C.shader_hud_set()
+        _C.gle_defvertex(2)
+        _C.gle_deftexcoord0(2)
+        _C.gl_blend_enable()
+        if csl then _C.gl_scissor_enable() end
+        return Object.draw(self, sx, sy)
+    end
+}
+M.Model_Viewer = Model_Viewer
 
 -- default size of text in terms of rows per screenful
 var.new("uitextrows", var.INT, 1, 40, 200, var.PERSIST)
