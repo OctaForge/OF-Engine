@@ -3571,83 +3571,43 @@ local Text_Editor = Object:clone {
     end,
 
     insert = function(self, ch)
+        if #ch > 1 then
+            for c in ch:gmatch(".") do
+                self:insert(c)
+            end
+            return nil
+        end
+
         self:del()
         local current = self:current_line()
 
         if ch == "\n" then
-            if self.maxy == -1 or self.cy < self.maxy - 1 then
+            if self.maxy == -1 or self.cy < (self.maxy - 1) then
                 local newline = current:sub(self.cx + 1)
-                current = current:sub(1, self.cx)
+                self.lines[self.cy + 1] = current:sub(1, self.cx)
                 self.cy = math.min(#self.lines, self.cy + 1)
                 table.insert(self.lines, self.cy + 1, newline)
             else
                 current = current:sub(1, self.cx)
+                self.lines[self.cy + 1] = current
             end
             self.cx = 0
         else
             local len = #current
             if self.maxx >= 0 and len > self.maxx - 1 then
-                len = self.maxx - 1 end
+                len = self.maxx - 1
+            end
             if self.cx <= len then
+                self.lines[self.cy + 1] = current:insert(self.cx, ch)
                 self.cx = self.cx + 1
-                if #ch > 1 then
-                    current = current:insert(self.cx, ch:sub(1, 1))
-                    self.lines[self.cy + 1] = current
-                    self:insert(ch:sub(2))
-                else
-                    current = current:insert(self.cx, ch)
-                    self.lines[self.cy + 1] = current
-                end
             end
         end
-    end,
-
-    insert_all_from = function(self, b)
-        if self == b then return nil end
-
-        self:del()
-
-        if #b.lines == 1 or self.maxy == 1 then
-            local current = self:current_line()
-            local str  = b.lines[1]
-            local slen = #str
-
-            if self.maxx >= 0 and slen + self.cx > self.maxx then
-                slen = self.maxx - self.cx
-            end
-
-            if slen > 0 then
-                local len = #current
-                if self.maxx >= 0 and slen + self.cx + len > self.maxx then
-                    len = math.max(0, self.maxx - (self.cx + slen))
-                end
-
-                current = current:insert(self.cx + 1, slen)
-                self.cx = self.cx + slen
-            end
-
-            self.lines[self.cy + 1] = current
-        else for i = 1, #b.lines do
-            if i == 1 then
-                self.cy = self.cy + 1
-                local newline = self.lines[self.cy]:sub(self.cx + 1)
-                self.lines[self.cy] = self.lines[self.cy]:sub(
-                    1, self.cx):insert(self.cy + 1, newline)
-            elseif i >= #b.lines then
-                self.cx = #b.lines[i]
-                self.lines[self.cy + 1] = table.concat {
-                    b.lines[i], self.lines[self.cy + 1] }
-            elseif self.maxy < 0 or #self.lines < self.maxy then
-                self.cy = self.cy + 1
-                table.insert(self.lines, self.cy, b.lines[i])
-            end
-        end end
     end,
 
     movement_mark = function(self)
         self:scroll_on_screen()
         if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
-                if not self:region() then self:mark(true) end
+            if not self:region() then self:mark(true) end
         else
             self:mark(false)
         end
@@ -3666,10 +3626,6 @@ local Text_Editor = Object:clone {
             end
             h = h + height
         end
-    end,
-
-    input = function(self, str)
-        for ch in str:gmatch(".") do self:insert(ch) end
     end,
 
     edit_key = function(self, code)
@@ -4488,13 +4444,13 @@ set_external("input_text", function(str)
     if not textediting then return false end
     local filter = textediting.p_keyfilter
     if not filter then
-        textediting:input(str)
+        textediting:insert(str)
     else
         local buf = {}
         for ch in str:gmatch(".") do
             if filter:find(ch) then buf[#buf + 1] = ch end
         end
-        textediting:input(table.concat(buf))
+        textediting:insert(table.concat(buf))
     end
     return true
 end)
