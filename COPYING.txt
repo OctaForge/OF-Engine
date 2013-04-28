@@ -46,8 +46,5 @@ Additionally, some code is taken from (or is inspired by) the Lamiae
 RPG engine by Kevin 'Hirato Kirata' Meyer, mostly in the UI part (zlib
 licensed).
 
-The Tesseract renderer is in use (created by Lee "eihrul" Salzman), see
-src/readme_tesseract.txt.
-
 Special thanks to Lee "eihrul" Salzman for the help with the Cube 2/Tesseract
 codebase and moral support.
