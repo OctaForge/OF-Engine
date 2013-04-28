@@ -3383,26 +3383,22 @@ local Text_Editor = Object:clone {
         local height = kwargs.height or 1
         local scale  = kwargs.scale  or 1
 
-        self.lastaction = _C.totalmillis()
-        self.scale      = scale
+        self.p_keyfilter  = kwargs.key_filter
+        self.p_init_value = kwargs.value
+        self.scale = kwargs.scale or 1
 
-        self.i_offset_h = 0
-        self.i_offset_v = 0
-
-        self.name     = kwargs.name
+        self.i_offset_h, self.i_offset_v = 0, 0
         self.filename = nil
 
         -- cursor position - ensured to be valid after a region() or
         -- currentline()
-        self.cx = 0
-        self.cy = 0
+        self.cx, self.cy = 0, 0
         -- selection mark, mx = -1 if following cursor - avoid direct access,
         -- instead use region()
-        self.mx = -1
-        self.my = -1
+        self.mx, self.my = -1, -1
         -- maxy = -1 if unlimited lines, 1 if single line editor
-        self.maxx = length <  0 and -1 or length
-        self.maxy = height <= 0 and  1 or -1
+        self.maxx, self.maxy = (length < 0 and -1 or length),
+            (height <= 0 and 1 or -1)
 
         self.scrolly = 0 -- vertical scroll offset
 
@@ -3412,7 +3408,7 @@ local Text_Editor = Object:clone {
         -- -1 for variable size, i.e. from bounds
         self.pixel_height = -1
 
-        self.password = kwargs.is_password or false
+        self.password = kwargs.password or false
 
         -- must always contain at least one line
         self.lines = { kwargs.value or "" }
@@ -3431,18 +3427,13 @@ local Text_Editor = Object:clone {
         if self == textediting then
             textediting = nil
         end
-
         refreshrepeat = refreshrepeat + 1
-
         return Object:clear()
     end,
 
     edit_clear = function(self, init)
-        self.cx = 0
-        self.cy = 0
-
-        self:mark(false)
-
+        self.cx, self.cy = 0, 0
+        self:mark()
         if init == false then
             self.lines = {}
         else
@@ -3456,10 +3447,8 @@ local Text_Editor = Object:clone {
     end,
 
     select_all = function(self)
-        self.cx = 0
-        self.cy = 0
-        self.mx = 1 / 0
-        self.my = 1 / 0
+        self.cx, self.cy = 0, 0
+        self.mx, self.my = 1 / 0, 1 / 0
     end,
 
     -- constrain results to within buffer - s = start, e = end, return true if
@@ -3483,8 +3472,8 @@ local Text_Editor = Object:clone {
         end
         sx, sy = (mx >= 0) and mx or cx, (mx >= 0) and my or cy -- XXX
         ex, ey = cx, cy
-        if     sy >  ey             then sy, ey, sx, ex = ey, sy, ex, sx
-        elseif sy == ey and sx > ex then sx, ex         = ex, sx end
+        if sy >  ey then sy, ey, sx, ex = ey, sy, ex, sx
+        elseif sy == ey and sx > ex then sx, ex = ex, sx end
 
         self.cx, self.cy, self.mx, self.my = cx, cy, mx, my
 
@@ -3505,25 +3494,6 @@ local Text_Editor = Object:clone {
         elseif self.cx > len then self.cx = len end
 
         return self.lines[self.cy + 1]
-    end,
-
-    copy_selection_to = function(self, b)
-        if self == b then return nil end
-
-        b:clear(false)
-        local sx, sy, ex, ey = select(2, self:region())
-
-        for i = 1, 1 + ey - sy do
-            if b.maxy ~= -1 and #b.lines >= b.maxy then break end
-
-            local y = sy + i
-            local line = self.lines[y]
-
-            if y - 1 == sy then line = line:sub(sx + 1) end
-            b.lines[#b.lines + 1] = line
-        end
-
-        if #b.lines == 0 then b.lines = { "" } end
     end,
 
     to_string = function(self)
@@ -3558,15 +3528,14 @@ local Text_Editor = Object:clone {
     del = function(self)
         local b, sx, sy, ex, ey = self:region()
         if not b then
-            self:mark(false)
+            self:mark()
             return false
         end
 
         if sy == ey then
             if sx == 0 and ex == #self.lines[ey + 1] then
                 self:remove_lines(sy + 1, 1)
-            else self.lines[sy + 1]:del(
-                sx + 1, ex - sx)
+            else self.lines[sy + 1]:del(sx + 1, ex - sx)
             end
         else
             if ey > sy + 1 then
@@ -3583,16 +3552,13 @@ local Text_Editor = Object:clone {
             if sx == 0 then
                 self:remove_lines(sy + 1, 1)
             else
-                self.lines[sy + 1]:del(sx + 1,
-                    #self.lines[sy] - sx)
+                self.lines[sy + 1]:del(sx + 1, #self.lines[sy] - sx)
             end
         end
 
         if #self.lines == 0 then self.lines = { "" } end
-        self:mark(false)
-
-        self.cx = sx
-        self.cy = sy
+        self:mark()
+        self.cx, self.cy = sx, sy
 
         local current = self:current_line()
         if self.cx > #current and self.cy < #self.lines - 1 then
@@ -4138,20 +4104,15 @@ local Text_Editor = Object:clone {
 
     hovering = function(self, cx, cy)
         if is_clicked(self) and is_focused(self) then
-            local dragged = (
-                max(abs(cx - self.i_offset_h), abs(cy - self.i_offset_v)) >
-                    (_V["fontw"] / 4) * self.scale /
-                        (_V["fonth"] * _V.uitextrows)
-            )
-            self:hit(
-                floor(cx * (_V["fonth"] * _V.uitextrows) /
-                    self.scale - _V["fontw"] / 2
-                ),
-                floor(cy * (_V["fonth"] * _V.uitextrows) /
-                    self.scale
-                ),
-                dragged
-            )
+            local dx = abs(cx - self.i_offset_h)
+            local dy = abs(cy - self.i_offset_v)
+            local fw, fh = _V["fontw"], _V["fonth"]
+            local th = fh * _V.uitextrows
+            local sc = self.scale
+            local dragged = max(dx, dy) > (fh / 8) * sc / th
+
+            self:hit(floor(cx * th / sc - fw / 2),
+                floor(cy * th / sc), dragged)
         end
     end,
 
@@ -4179,41 +4140,22 @@ local Text_Editor = Object:clone {
         if Object.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
 
-        if code == key.RETURN or code == key.KP_ENTER
-        then
-            if self.maxy == 1 then
-                set_focus(nil)
-                return true
-            end
-        elseif code == key.HOME      or
-               code == key.END       or
-               code == key.PAGEUP    or
-               code == key.PAGEDOWN  or
-               code == key.DELETE    or
-               code == key.BACKSPACE or
-               code == key.LSHIFT    or
-               code == key.RSHIFT    or
-               code == key.LCTRL     or
-               code == key.RCTRL     or
-               code == key.LGUI      or
-               code == key.RGUI
-        then local pass
-        else
-            local axcv = (code == key.A) or
-                         (code == key.X) or
-                         (code == key.C) or
-                         (code == key.V)
-
-            if not (axcv and _C.input_get_modifier_state() ~= mod.NONE) then
-                return false
-            end
+        if code == key.ESCAPE or ((code == key.RETURN
+        or code == key.KP_ENTER or code == key.TAB) and self.maxy == 1) then
+            set_focus(nil)
+            return true
         end
 
         if isdown then self:edit_key(code) end
         return true
     end,
 
-    reset_value = function(self) end,
+    reset_value = function(self)
+        local ival = self.p_init_value
+        if ival and ival ~= self.lines[1] then
+            self:edit_clear(ival)
+        end
+    end,
 
     layout = function(self)
         Object.layout(self)
@@ -4357,10 +4299,9 @@ local Field = Text_Editor:clone {
     type = wtype.FIELD,
 
     __init = function(self, kwargs)
-        kwargs   = kwargs or {}
+        kwargs = kwargs or {}
 
         self.p_value = kwargs.value or ""
-
         if kwargs.var then
             local varn = kwargs.var
             self.i_var = varn
@@ -4375,7 +4316,7 @@ local Field = Text_Editor:clone {
 
     commit = function(self)
         local val = self.lines[1]
-        self.value = val
+        self.value = val -- trigger changed signal
 
         local varn = self.i_var
         if varn then update_var(varn, val) end
@@ -4544,11 +4485,18 @@ M.cursor_get_position = cursor_get_position
 set_external("cursor_get_position", cursor_get_position)
 
 set_external("input_text", function(str)
-    if textediting then
+    if not textediting then return false end
+    local filter = textediting.p_keyfilter
+    if not filter then
         textediting:input(str)
-        return true
+    else
+        local buf = {}
+        for ch in str:gmatch(".") do
+            if filter:find(ch) then buf[#buf + 1] = ch end
+        end
+        textediting:input(table.concat(buf))
     end
-    return false
+    return true
 end)
 
 set_external("input_keypress", function(code, isdown)
