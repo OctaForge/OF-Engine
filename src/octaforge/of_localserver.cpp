@@ -94,9 +94,9 @@ namespace local_server {
             "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty "
             ">\"%s%s\" 2>&1",
 #if defined(WIN64)
-            "bin_win64\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
+            "bin_win64\\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
 #elif defined(WIN32)
-            "bin_win32\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
+            "bin_win32\\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
 #else
             "bin_unix/server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ,
 #endif
