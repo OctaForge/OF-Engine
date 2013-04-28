@@ -1118,7 +1118,7 @@ int main(int argc, char **argv)
 
     /* make sure the path is correct */
     if (!fileexists("data", "r")) {
-#ifdef WIN32
+#if defined(WIN32) && !defined(__GNUC__)
         _chdir("..");
 #else
         chdir("..");
@@ -1142,7 +1142,7 @@ int main(int argc, char **argv)
         char *home = getenv("HOME");
         if (home) {
 #ifdef WIN32
-            defformatstring(defdir)("%s\My Games\OctaForge", home);
+            defformatstring(defdir)("%s\\My Games\\OctaForge", home);
 #else
             defformatstring(defdir)("%s/.octaforge_client", home);
 #endif
