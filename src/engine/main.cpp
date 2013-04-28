@@ -8,6 +8,10 @@
 #include "of_localserver.h"
 #include "of_tools.h"
 
+#ifdef WIN32
+#include <direct.h>
+#endif
+
 extern void cleargamma();
 
 void cleanup()
@@ -1118,7 +1122,7 @@ int main(int argc, char **argv)
 
     /* make sure the path is correct */
     if (!fileexists("data", "r")) {
-#if defined(WIN32) && !defined(__GNUC__)
+#ifdef WIN32
         _chdir("..");
 #else
         chdir("..");
