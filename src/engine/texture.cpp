@@ -3068,8 +3068,19 @@ void screenshot(char *filename)
     }
     else
     {
-        defformatstring(name)("screenshot_%d", totalmillis);
-        concatstring(buf, name);
+        string sstime;
+        time_t t = time(NULL);
+        size_t len = strftime(sstime, sizeof(sstime), "%Y-%m-%d_%H.%M.%S", localtime(&t));
+        sstime[min(len, sizeof(sstime)-1)] = '\0';
+        concatstring(buf, sstime);
+
+        const char *map = game::getclientmap();
+        if(map && map[0])
+        {
+            concatstring(buf, "_");
+            concatstring(buf, map);
+        }
+        for(char *s = buf; *s; s++) if(iscubespace(*s)) *s = '-'; 
     }
     if(format < 0)
     {

@@ -838,11 +838,10 @@ namespace server
     }
 
     const char *servername() { return "sauerbratenserver"; }
-    int serverinfoport(int servport) { return SAUERBRATEN_SERVINFO_PORT; }
     int laninfoport() { return -1; }
     int serverport(int infoport)
     {
-        return SAUERBRATEN_SERVER_PORT;
+        return TESSERACT_SERVER_PORT;
     }
 
     bool servercompatible(char *name, char *sdec, char *map, int ping, const vector<int> &attr, int np)

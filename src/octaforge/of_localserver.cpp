@@ -28,6 +28,7 @@
  */
 
 #include "cube.h"
+#include "game.h"
 #include "of_tools.h"
 #include "of_localserver.h"
 #include "client_system.h"
@@ -58,7 +59,7 @@ namespace local_server {
         && lastmillis - last_connect_trial >= 1000) {
             if (is_ready()) {
                 ready = true;
-                ClientSystem::connect("127.0.0.1", 28787);
+                ClientSystem::connect("127.0.0.1", TESSERACT_SERVER_PORT);
             }
             else {
                 conoutf("Waiting for server to finish starting up .. (%d)",

@@ -63,9 +63,8 @@ enum
     N_SERVCMD, NUMSV
 };
 
-#define SAUERBRATEN_SERVER_PORT 28787
-#define SAUERBRATEN_SERVINFO_PORT 28789
-#define PROTOCOL_VERSION 1001           // bump when protocol changes
+#define TESSERACT_SERVER_PORT 42000
+#define PROTOCOL_VERSION 1 // bump when protocol changes
 
 struct fpsent : dynent
 {   

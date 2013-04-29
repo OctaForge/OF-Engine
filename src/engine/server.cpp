@@ -135,7 +135,7 @@ vector<client *> clients;
 
 ENetHost *serverhost = NULL;
 int laststatus = 0; 
-ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
+ENetSocket lansock = ENET_SOCKET_NULL;
 
 int localclients = 0, nonlocalclients = 0;
 
@@ -189,9 +189,8 @@ void cleanupserver()
     if(serverhost) enet_host_destroy(serverhost);
     serverhost = NULL;
 
-    if(pongsock != ENET_SOCKET_NULL) enet_socket_destroy(pongsock);
     if(lansock != ENET_SOCKET_NULL) enet_socket_destroy(lansock);
-    pongsock = lansock = ENET_SOCKET_NULL;
+    lansock = ENET_SOCKET_NULL;
 }
 
 void process(ENetPacket *packet, int sender, int chan);
@@ -314,14 +313,21 @@ void localclienttoserver(int chan, ENetPacket *packet, int cn) // INTENSITY: Add
     if(c) process(packet, c->num, chan);
 }
 
-static ENetAddress pongaddr;
+static ENetAddress serverinfoaddress;
 
 void sendserverinforeply(ucharbuf &p)
 {
     ENetBuffer buf;
     buf.data = p.buf;
     buf.dataLength = p.length();
-    enet_socket_send(pongsock, &pongaddr, &buf, 1);
+    enet_socket_send(serverhost->socket, &serverinfoaddress, &buf, 1);
+}
+
+static int serverinfointercept(ENetHost *host, ENetEvent *event)
+{
+    if(host->receivedDataLength < 2 || host->receivedData[0] != 0xFF || host->receivedData[1] != 0xFF) return 0;
+    serverinfoaddress = host->receivedAddress;
+    return 1;
 }
 
 #define DEFAULTCLIENTS 6
@@ -546,7 +552,7 @@ bool setuplistenserver(bool dedicated)
         return false;
     }
     loopi(maxclients) serverhost->peers[i].data = NULL;
-    address.port = server::serverinfoport(serverport > 0 ? serverport : -1);
+    serverhost->intercept = serverinfointercept;
     return true;
 }
 
