@@ -3190,7 +3190,8 @@ local Text_Editor = Object:clone {
             self:select_all()
             self:scroll_on_screen()
         elseif code == key.C or code == key.X then
-            if band(_C.input_get_modifier_state(), mod_keys) == 0 then
+            if band(_C.input_get_modifier_state(), mod_keys) == 0
+            or not self:region() then
                 return nil
             end
             self:copy()
@@ -3305,13 +3306,14 @@ local Text_Editor = Object:clone {
     end,
 
     copy = function(self)
+        if not self:region() then return nil end
         local str = self:selection_to_string()
         if str then _C.clipboard_set_text(str) end
     end,
 
     paste = function(self)
         if not _C.clipboard_has_text() then return false end
-        if self.mx > 0 then self:del() end
+        if self:region() then self:del() end
         local  str = _C.clipboard_get_text()
         if not str then return false end
         self:insert(str)
@@ -3433,7 +3435,7 @@ local Text_Editor = Object:clone {
                 local width, height = _C.text_get_bounds(self.lines[i],
                     max_width)
                 if h + height > self.pixel_height then
-                    maxy = i - 1
+                    maxy = i
                     break
                 end
                 if i == sy + 1 then
