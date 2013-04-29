@@ -557,27 +557,9 @@ M.load = function()
     #log(DEBUG, "ents.load: loading all entities")
     for i = 1, #entities do
         local e = entities[i]
-        local uid, cn, sd = e[1], e[2], e[3]
-
+        local uid, cn = e[1], e[2]
         #log(DEBUG, "    " .. uid .. ", " .. cn)
-
-        -- backwards compatibility
-        if _V.mapversion <= 30 and sd.attr1 then
-            if  cn ~= "Light" and cn ~= "flickering_light"
-            and cn ~= "Particle_Effect" and cn ~= "Envmap" then
-                sd.attr1 = (sd.attr1 + 180) % 360
-            end
-        end
-        if _V.mapversion <= 31 and sd.attr1 then
-            if  cn ~= "Light" and cn ~= "flickering_light"
-            and cn ~= "Particle_Effect" and cn ~= "Envmap"
-            and cn ~= "World_Marker" then
-                local yaw = (floor(sd.attr1) % 360 + 360) % 360 + 7
-                sd.attr1 = yaw - (yaw % 15)
-            end
-        end
-
-        add(cn, uid, { sdata = serialize(sd) })
+        add(cn, uid, { sdata = serialize(e[3]) })
     end
     #log(DEBUG, "ents.load: done")
 end
