@@ -39,8 +39,8 @@ end
 local i = 0
 
 world:new_gui("main", function(win)
-    win:append(gui.core.Rectangle { r = 96, g = 96, b = 255,
-    a = 128, floating = true }, function(r)
+    win.floating = true
+    win:append(gui.core.Rectangle { r = 96, g = 96, b = 255, a = 128 }, function(r)
         r:align(0, 0)
         r:append(gui.core.V_Box(), function(b)
             b:clamp(1, 1, 1, 1)
@@ -79,15 +79,13 @@ world:new_gui("main", function(win)
                 end)
             end)
         end)
-        --r:find_child_by_tag("mover"):link(r)
     end)
 end)
 
 world:new_gui("test", function(win)
     win.floating = true
     win:append(gui.Window {
-        title  = "O hai!",
-        window = win,
+        title = "O hai!",
         gui.core.Label {
             text = "asdadasdadasdasd"
         }

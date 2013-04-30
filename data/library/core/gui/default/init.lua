@@ -161,7 +161,7 @@ local Window = function(kwargs)
                     align_h = 1
                 }
             }
-        }):link(kwargs.window)
+        })
 
         t:append(core.Image {
             file = gip("corner_top_right.png"), pointer = gcp("tr_bl.png"),
@@ -179,7 +179,7 @@ local Window = function(kwargs)
         })
         img:append(core.Mover {
             clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
-        }):link(t)
+        })
 
         t:append(core.Image {
             file = gip("corner_top_right_small.png"),
