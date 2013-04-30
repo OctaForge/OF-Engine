@@ -126,8 +126,7 @@ local loop_children = function(self, fun)
     end
 
     for i = 1, #ch do
-        local o = ch[i]
-        local r = fun(o)
+        local r = fun(ch[i])
         if    r ~= nil then return r end
     end
 end
@@ -138,7 +137,6 @@ local loop_children_r = function(self, fun)
     local st = self.p_states
 
     for i = #ch, 1, -1 do
-        local o = ch[i]
         local r = fun(ch[i])
         if    r ~= nil then return r end
     end
@@ -757,6 +755,19 @@ M.Overlay = Overlay
 
 local main_visible = false
 
+local get_window = function(o)
+    local  w = o.i_win
+    if not w then
+        w = o.p_parent
+        while w and w.type ~= Window.type do
+            w = w.p_parent
+        end
+        o.i_win = w
+    end
+    return w
+end
+M.get_window = get_window
+
 local World = Object:clone {
     name = "World",
     type = new_widget_type(),
@@ -771,6 +782,40 @@ local World = Object:clone {
         return loop_children_r(self, function(o)
             if o:takes_input() then return true end
         end) or false
+    end,
+
+    hover = function(self, cx, cy)
+        local ch = self.p_children
+        for i = #ch, 1, -1 do
+            local o = ch[i]
+            local ox = cx - o.p_x
+            local oy = cy - o.p_y
+            if ox >= 0 and ox < o.p_w and oy >= 0 and oy < o.p_h then
+                local c  = o:hover(ox, oy)
+                if    c == o then
+                    hover_x = ox
+                    hover_y = oy
+                end
+                return c
+            end
+        end
+    end,
+
+    click = function(self, cx, cy)
+        local ch = self.p_children
+        for i = #ch, 1, -1 do
+            local o = ch[i]
+            local ox = cx - o.p_x
+            local oy = cy - o.p_y
+            if ox >= 0 and ox < o.p_w and oy >= 0 and oy < o.p_h then
+                local c  = o:click(ox, oy)
+                if    c == o then
+                    click_x = ox
+                    click_y = oy
+                end
+                return c
+            end
+        end
     end,
 
     layout = function(self)
@@ -3572,20 +3617,8 @@ local Mover = Object:clone {
         return self:target(cx, cy) and self
     end,
 
-    get_win = function(self)
-        local  w = self.i_win
-        if not w then
-            w = self.p_parent
-            while w and w.type ~= Window.type do
-                w = w.p_parent
-            end
-            self.i_win = w
-        end
-        return w
-    end,
-
     click = function(self, cx, cy)
-        local  w = self:get_win()
+        local  w = get_window(self)
         if not w then
             return self:target(cx, cy) and self
         end
@@ -3630,7 +3663,7 @@ local Mover = Object:clone {
     end,
 
     pressing = function(self, cx, cy)
-        local  w = self:get_win()
+        local  w = get_window(self)
         if not w then
             return Object.pressing(self, cx, cy)
         end
