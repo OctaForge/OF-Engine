@@ -19,6 +19,7 @@ local sets = {}
 
 gui = {
     core = require "gui.core",
+    widgets = require "gui.core_widgets",
 
     get_sets = function() return sets end,
     get_set  = function(name)
