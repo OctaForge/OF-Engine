@@ -37,6 +37,10 @@ M.mod = mod
 
 local update_later = {}
 
+--[[! Function: update_var
+    Schedules an engine variable update for the next frame. Takes the
+    variable name and the value to set.
+]]
 local update_var = function(varn, val)
     if not var.exists(varn) then
         return nil
@@ -62,26 +66,45 @@ local cursor_y = 0.5
 local prev_cx = 0.5
 local prev_cy = 0.5
 
+--[[! Function: is_clicked
+    Given an object this function returns true if that object is clicked
+    and false if not.
+]]
 local is_clicked = function(o)
     return (o == clicked)
 end
 M.is_clicked = is_clicked
 
+--[[! Function: is_hovering
+    Given an object this function returns true if that object is being
+    hovered on and false otherwise.
+]]
 local is_hovering = function(o)
     return (o == hovering)
 end
 M.is_hovering = is_hovering
 
+--[[! Function: is_clicked
+    Given an object this function returns true if that object is focused
+    and false if not.
+]]
 local is_focused = function(o)
     return (o == focused)
 end
 M.is_focused = is_focused
 
+--[[! Function: set_focus
+    Gives the given GUI object focus.
+]]
 local set_focus = function(o)
     focused = o
 end
 M.set_focus = set_focus
 
+--[[! Function: clear_focus
+    Given an object, this function clears all focus from it (that is,
+    clicked, hovering, focused).
+]]
 local clear_focus = function(o)
     if o == clicked  then clicked  = nil end
     if o == hovering then hovering = nil end
@@ -117,6 +140,15 @@ local wtypes_by_name = {}
 local wtypes_by_type = {}
 
 local lastwtype = 0
+
+--[[! Function: register_class
+    Registers a widget class. Takes the widget class name, its base (if
+    not given, Object), its body (empty if not given, otherwise regular
+    object body like with clone operation) and optionally a forced type
+    (by default assigns the object a new type available under the "type"
+    field, using this you can override it and make it set a specific
+    value). Returns the widget class.
+]]
 local register_class = function(name, base, obj, ftype)
     if not ftype then
         lastwtype = lastwtype + 1
@@ -133,6 +165,10 @@ local register_class = function(name, base, obj, ftype)
 end
 M.register_class = register_class
 
+--[[! Function: get_class
+    Given either a name or type, this function returns the widget class
+    with that name or type.
+]]
 local get_class = function(n)
     if type(n) == "string" then
         return wtypes_by_name[n]
@@ -142,6 +178,12 @@ local get_class = function(n)
 end
 M.get_class = get_class
 
+--[[! Function: loop_children
+    Loops widget children, executing the function given in the second
+    argument with the child passed to it. If the widget has states,
+    it first acts on the current state and then on the actual children
+    from 1 to N.
+]]
 local loop_children = function(self, fun)
     local ch = self.p_children
     local st = self.p_states
@@ -167,6 +209,12 @@ local loop_children = function(self, fun)
 end
 M.loop_children = loop_children
 
+--[[! Function: loop_children_r
+    Loops widget children in reverse order, executing the function
+    given in the second argument with the child passed to it. First
+    goes over all children in reverse order and then if the widget
+    has states, it acts on the current state.
+]]
 local loop_children_r = function(self, fun)
     local ch = self.p_children
     local st = self.p_states
@@ -192,6 +240,12 @@ local loop_children_r = function(self, fun)
 end
 M.loop_children_r = loop_children_r
 
+--[[! Function: loop_in_children
+    Similar to above, but takes 4 arguments. The first argument is a widget,
+    the other two arguments are x and y position and the last argument
+    is the function. The function is executed only for those children
+    that cover the given x, y coords.
+]]
 local loop_in_children = function(self, cx, cy, fun)
     return loop_children(self, function(o)
         local ox = cx - o.p_x
@@ -205,6 +259,9 @@ local loop_in_children = function(self, cx, cy, fun)
 end
 M.loop_in_children = loop_in_children
 
+--[[! Function: loop_in_children
+    See above. Reverse order.
+]]
 local loop_in_children_r = function(self, cx, cy, fun)
     return loop_children_r(self, function(o)
         local ox = cx - o.p_x
@@ -220,6 +277,10 @@ M.loop_in_children_r = loop_in_children_r
 
 local clip_stack = {}
 
+--[[! Function: clip_area_intersect
+    Intersects the given clip area with another one. Writes into the
+    first one.
+]]
 local clip_area_intersect = function(self, c)
     self[1] = max(self[1], c[1])
     self[2] = max(self[2], c[2])
@@ -228,12 +289,20 @@ local clip_area_intersect = function(self, c)
 end
 M.clip_area_intersect = clip_area_intersect
 
+--[[! Function: clip_area_is_fully_clipped
+    Given a clip area and x, y, w, h, checks if the clip area is fully
+    clipped by those dimensions.
+]]
 local clip_area_is_fully_clipped = function(self, x, y, w, h)
     return self[1] == self[3] or self[2] == self[4] or x >= self[3] or
            y >= self[4] or (x + w) <= self[1] or (y + h) <= self[2]
 end
 M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
 
+--[[! Function: clip_area_scissors
+    Scissors an area given a clip area. If nothing is given, the area
+    last in the clip stack is used.
+]]
 local clip_area_scissor = function(self)
     self = self or clip_stack[#clip_stack]
     local scr_w, scr_h = _V.scr_w, _V.scr_h
@@ -250,6 +319,9 @@ local clip_area_scissor = function(self)
 end
 M.clip_area_scissor = clip_area_scissor
 
+--[[! Function: clip_push
+    Pushes a clip area into the clip stack and scissors.
+]]
 local clip_push = function(x, y, w, h)
     local l = #clip_stack
     if    l == 0 then _C.gl_scissor_enable() end
@@ -264,6 +336,10 @@ local clip_push = function(x, y, w, h)
 end
 M.clip_push = clip_push
 
+--[[! Function: clip_pop
+    Pops a clip area out of the clip stack and scissors (assuming there
+    is anything left on the clip stack).
+]]
 local clip_pop = function()
     table.remove(clip_stack)
 
@@ -274,6 +350,10 @@ local clip_pop = function()
 end
 M.clip_pop = clip_pop
 
+--[[! Function: is_fully_clipped
+    See <clip_area_is_fully_clipped>. Works on the last clip area on the
+    clip stack.
+]]
 local is_fully_clipped = function(x, y, w, h)
     local l = #clip_stack
     if    l == 0 then return false end
@@ -281,6 +361,10 @@ local is_fully_clipped = function(x, y, w, h)
 end
 M.is_fully_clipped = is_fully_clipped
 
+--[[! Function: draw_quad
+    An utility function for drawing quads, takes x, y, w, h and optionally
+    tx, ty, tw, th (defaulting to 0, 0, 1, 1).
+]]
 local quad = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
     _C.gle_attrib2f(x,     y)     _C.gle_attrib2f(tx,      ty)
@@ -290,6 +374,10 @@ local quad = function(x, y, w, h, tx, ty, tw, th)
 end
 M.draw_quad = quad
 
+--[[! Function: draw_quadtri
+    An utility function for drawing quads, takes x, y, w, h and optionally
+    tx, ty, tw, th (defaulting to 0, 0, 1, 1). Used with triangle strip.
+]]
 local quadtri = function(x, y, w, h, tx, ty, tw, th)
     tx, ty, tw, th = tx or 0, ty or 0, tw or 1, th or 1
     _C.gle_attrib2f(x,     y)     _C.gle_attrib2f(tx,      ty)
@@ -767,7 +855,6 @@ Object = register_class("Object", table.Object, {
         return w
     end
 })
-M.Object = Object
 
 local Named_Object = register_class("Named_Object", Object, {
     __init = function(self, kwargs)
@@ -776,13 +863,11 @@ local Named_Object = register_class("Named_Object", Object, {
         return Object.__init(self, kwargs)
     end
 })
-M.Named_Object = Named_Object
 
 local Tag = register_class("Tag", Named_Object)
 M.Tag = Tag
 
 Window = register_class("Window", Named_Object)
-M.Window = Window
 
 local Overlay = register_class("Overlay", Window, {
     takes_input = function(self) return false end,
@@ -791,7 +876,6 @@ local Overlay = register_class("Overlay", Window, {
     hover  = function() end,
     click  = function() end
 }, Window.type)
-M.Overlay = Overlay
 
 local main_visible = false
 
@@ -916,7 +1000,6 @@ local World = register_class("World", Object, {
         return self.p_guis_visible[name]
     end
 })
-M.World = World
 
 world = World()
 

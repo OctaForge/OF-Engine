@@ -12,6 +12,7 @@
     About: Purpose
         A basic widget set for the GUI. Doesn't include the very core of the
         whole system (Object, Named_Object, Tag, Window, Overlay, World).
+        Forwards Tag.
 ]]
 
 local base = require("gui.core")
@@ -38,13 +39,15 @@ local clip_area_scissor = base.clip_area_scissor
 local quad, quadtri = base.draw_quad, base.draw_quadtri
 
 -- base widgets
-local Object = base.Object
+local Object = base.get_class("Object")
 
 -- editor support
 local get_textediting, set_textediting
     = base.get_textediting, base.set_textediting
 
-local M = {}
+local M = {
+    Tag = base.Tag
+}
 
 M.H_Box = register_class("H_Box", Object, {
     __init = function(self, kwargs)
