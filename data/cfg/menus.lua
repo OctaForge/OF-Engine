@@ -18,7 +18,7 @@ gui.widgets.Button.states = {
 }
 
 _G["test_update_states"] = function()
-    gui.widgets.Button:update_states {
+    gui.widgets.Button:update_class_states {
         default = gui.widgets.Rectangle {
             min_w = 0.2, min_h = 0.05, r = 64, g = 32, b = 192,
             gui.widgets.Label { text = "Different idle" }

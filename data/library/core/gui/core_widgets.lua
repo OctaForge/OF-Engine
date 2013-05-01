@@ -263,7 +263,7 @@ M.Spacer = register_class("Spacer", Object, {
 
     adjust_children = function(self)
         local ph, pv = self.p_pad_h, self.p_pad_v
-        Object.adjust_children_to(self, ph, pv, self.p_w - 2 * ph,
+        Object.adjust_children(self, ph, pv, self.p_w - 2 * ph,
             self.p_h - 2 * pv)
     end
 })
@@ -341,7 +341,7 @@ M.Offsetter = register_class("Offsetter", Object, {
 
     adjust_children = function(self)
         local oh, ov = self.p_offset_h, self.p_offset_v
-        Object.adjust_children_to(self, oh, ov, self.p_w - oh, self.p_h - ov)
+        Object.adjust_children(self, oh, ov, self.p_w - oh, self.p_h - ov)
     end
 })
 
@@ -369,7 +369,7 @@ local Clipper = register_class("Clipper", Object, {
     end,
 
     adjust_children = function(self)
-        Object.adjust_children_to(self, 0, 0, self.i_virt_w, self.i_virt_h)
+        Object.adjust_children(self, 0, 0, self.i_virt_w, self.i_virt_h)
     end,
 
     draw = function(self, sx, sy)

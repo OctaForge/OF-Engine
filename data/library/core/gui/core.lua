@@ -290,8 +290,8 @@ end
 M.clip_area_intersect = clip_area_intersect
 
 --[[! Function: clip_area_is_fully_clipped
-    Given a clip area and x, y, w, h, checks if the clip area is fully
-    clipped by those dimensions.
+    Given a clip area and x, y, w, h, checks if the area specified by
+    the coordinates is fully clipped by the clip area.
 ]]
 local clip_area_is_fully_clipped = function(self, x, y, w, h)
     return self[1] == self[3] or self[2] == self[4] or x >= self[3] or
@@ -388,6 +388,34 @@ end
 M.draw_quadtri = quadtri
 
 local Object, Window
+
+--[[! Struct: Object
+    The basic widget class every other derives from. Provides everything
+    needed for a working widget class, but doesn't do anything by itself.
+
+    Members prefixed with p_ are properties and can be accessed without
+    the _p (e.g. foo.bar accesses foo.p_bar). Setting properties results
+    in the propertyname_changed signal being emitted on the object.
+
+    Basic properties are x, y, w, h, adjust (clamping and alignment),
+    children (an array of objects), floating (whether the object is freely
+    movable), parent (the parent object), states, tooltip (an object).
+
+    Several properties can be initialized via kwargs (align_h, align_v,
+    clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip
+    and init, which is a function called at the end of the constructor
+    if it exists). Array members of kwargs are children.
+
+    Widgets can have states - they're named references to objects and
+    are widget type specific. For example a button could have states
+    "default" and "clicked", each being a reference to different
+    appareance of a button depending on its state.
+
+    Each widget class also contains an "instances" table storing a set
+    of all instances of the widget class.
+
+    The length operator on a widget returns the number of children.
+]]
 Object = register_class("Object", table.Object, {
     __get = function(self, n)
         n = "p_" .. n
@@ -403,6 +431,11 @@ Object = register_class("Object", table.Object, {
         end
     end,
 
+    --[[! Constructor: __init
+        Builds a widget instance from scratch. The optional kwargs
+        table contains properties that should be set on the resulting
+        widget.
+    ]]
     __init = function(self, kwargs)
         kwargs        = kwargs or {}
         self.p_parent = nil
@@ -431,8 +464,7 @@ Object = register_class("Object", table.Object, {
         local clamp_b = kwargs.clamp_b or 0
         local clamp_t = kwargs.clamp_t or 0
 
-        self.p_floating    = kwargs.floating or false
-        self.p_allow_focus = kwargs.allow_focus == nil and true or false
+        self.p_floating = kwargs.floating or false
 
         self:align(align_h, align_v)
         self:clamp(clamp_l, clamp_r, clamp_b, clamp_t)
@@ -490,6 +522,11 @@ Object = register_class("Object", table.Object, {
         return #self.p_children
     end,
 
+    --[[! Function: clear
+        Clears a widget including its children recursively. Calls the
+        "destroy" signal. Removes itself from its widget class' instances
+        set.
+    ]]
     clear = function(self)
         clear_focus(self)
 
@@ -509,6 +546,12 @@ Object = register_class("Object", table.Object, {
         end
     end,
 
+    --[[! Function: deep_clone
+        Creates a deep clone of the widget, that is, where each child
+        is again a clone of the original child, down the tree. Useful
+        for default widget class states, where we need to clone
+        these per-instance.
+    ]]
     deep_clone = function(self)
         local ch, rch = {}, self.children
         local cl = self:clone { children = ch }
@@ -520,7 +563,17 @@ Object = register_class("Object", table.Object, {
         return cl
     end,
 
-    update_state = function(self, sname, sval)
+    --[[! Function: update_class_state
+        Call on the widget class. Takes the state name and the state
+        object and updates it on the class and on every instance of
+        the class. Destroys the old state of that name (if any) on the
+        class and on every instance. If the instance already uses a different
+        state (custom), it's left alone.
+
+        Using this you can update the look of all widgets of certain type
+        with ease.
+    ]]
+    update_class_state = function(self, sname, sval)
         local states = rawget(self, "states")
         if not states then
             states = {}
@@ -548,14 +601,26 @@ Object = register_class("Object", table.Object, {
         oldstate:clear()
     end,
 
-    update_states = function(self, states)
+    --[[! Function: update_class_states
+        Given an associative array of states, it calls <update_class_state>
+        for each.
+    ]]
+    update_class_states = function(self, states)
         for k, v in pairs(states) do
-            self:update_state(k, v)
+            self:update_class_state(k, v)
         end
     end,
 
+    --[[! Function: choose_state
+        Returns the state that should be currently used. By default
+        returns nil.
+    ]]
     choose_state = function(self) return nil end,
 
+    --[[! Function: layout
+        Takes care of widget positioning and sizing. By default calls
+        recursively.
+    ]]
     layout = function(self)
         self.p_w = 0
         self.p_h = 0
@@ -569,14 +634,21 @@ Object = register_class("Object", table.Object, {
         end)
     end,
 
-    adjust_children_to = function(self, px, py, pw, ph)
+    --[[! Function: adjust_children
+        Adjusts layout of children widgets. Takes additional optional
+        parameters px (0), py (0), pw (self.p_w), ph (self.p_h). Basically
+        calls <adjust_layout> on each child with those parameters.
+    ]]
+    adjust_children = function(self, px, py, pw, ph)
+        px, py, pw, ph = px or 0, py or 0, pw or self.p_w, ph or self.p_h
         loop_children(self, function(o) o:adjust_layout(px, py, pw, ph) end)
     end,
 
-    adjust_children = function(self)
-        Object.adjust_children_to(self, 0, 0, self.p_w, self.p_h)
-    end,
-
+    --[[! Function: adjust_layout
+        Layout adjustment hook for self. Adjusts x, y, w, h of the widget
+        according to its alignment and clamping. When everything is done,
+        calls <adjust_children> with no parameters.
+    ]]
     adjust_layout = function(self, px, py, pw, ph)
         local x, y, w, h, a = self.p_x, self.p_y,
             self.p_w, self.p_h, self.i_adjust
@@ -629,6 +701,13 @@ Object = register_class("Object", table.Object, {
         self:adjust_children()
     end,
 
+    --[[! Function: target
+        Given the cursor coordinates, this function should return the
+        targeted widget. Returns nil if there is nothing or nothing
+        targetable. By default this just loops the children in reverse
+        order, calls target on each and returns the result of the first
+        target call that actually returns something.
+    ]]
     target = function(self, cx, cy)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c = o:target(ox, oy)
@@ -636,18 +715,36 @@ Object = register_class("Object", table.Object, {
         end)
     end,
 
+    --[[! Function: key
+        Called on keypress. Takes the keycode (see <key>) and a boolean
+        value that is true when the key is down and false when it's up.
+        By default it doesn't define any behavior so it just loops children
+        in reverse order and returns true if any key calls on the children
+        return true or false if they don't.
+    ]]
     key = function(self, code, isdown)
         return loop_children_r(self, function(o)
             if o:key(code, isdown) then return true end
         end) or false
     end,
 
+    --[[! Function: key_hover
+        Similar to above. Occurs on mouse scroll events and on arrow
+        key presses on the focused or hovering widget. Those keys do not
+        react otherwise.
+    ]]
     key_hover = function(self, code, isdown)
         local p = self.p_parent
         if p then return p:key_hover(code, isdown) end
         return false
     end,
 
+    --[[! Function: draw
+        Called in the drawing phase, taking x (left side) and y (upper
+        side) coordinates as arguments (or nothing, in that case they
+        default to p_x and p_y). By default just loops all the children
+        and draws on these (assuming they're not fully clipped).
+    ]]
     draw = function(self, sx, sy)
         sx = sx or self.p_x
         sy = sy or self.p_y
@@ -729,6 +826,15 @@ Object = register_class("Object", table.Object, {
             prev = cur
             cur  = cur.p_parent
         end
+    end,
+
+    replace = function(self, tname, obj, fun)
+        local tag = self:find_child(Tag.type, tname)
+        if not tag then return false end
+        tag:destroy_children()
+        tag:append(obj)
+        if fun then fun(obj) end
+        return true
     end,
 
     remove = function(self, o)
@@ -941,7 +1047,7 @@ local World = register_class("World", Object, {
         self.p_h = 1
         self.p_margin = margin
 
-        self.adjust_children(self)
+        self:adjust_children()
     end,
 
     build_gui = function(self, name, fun, noinput)
@@ -988,12 +1094,7 @@ local World = register_class("World", Object, {
     replace_gui = function(self, wname, tname, obj, fun)
         local win = self:find_child(Window.type, wname, false)
         if not win then return false end
-        local tag = self:find_child(Tag.type, tname)
-        if not tag then return false end
-        tag:destroy_children()
-        tag:append(obj)
-        if fun then fun(obj) end
-        return true
+        return win:replace(tname, obj, fun)
     end,
 
     gui_visible = function(self, name)
