@@ -394,7 +394,7 @@ local Object, Window
     needed for a working widget class, but doesn't do anything by itself.
 
     Members prefixed with p_ are properties and can be accessed without
-    the _p (e.g. foo.bar accesses foo.p_bar). Setting properties results
+    the p_ (e.g. foo.bar accesses foo.p_bar). Setting properties results
     in the propertyname_changed signal being emitted on the object.
 
     Basic properties are x, y, w, h, adjust (clamping and alignment),
@@ -760,6 +760,15 @@ Object = register_class("Object", table.Object, {
         end)
     end,
 
+    --[[! Function: hover
+        Given the cursor coordinates, this function returns the widget
+        currently hovered on. By default it just loops children in
+        reverse order using <loop_in_children> and calls hover recursively
+        on each (and returns the one that first returns a non-nil value).
+        If the hover call returns itself, it means we're hovering on the
+        widget the method was called on and the current hover coords
+        are set up appropriately.
+    ]]
     hover = function(self, cx, cy)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o:hover(ox, oy)
@@ -771,12 +780,26 @@ Object = register_class("Object", table.Object, {
         end)
     end,
 
+    --[[! Function: hovering
+        Called each frame on the widget that's being hovered on (assuming
+        it exists). It takes the coordinates we're hovering on. By default
+        does nothing, but it can be overloaded.
+    ]]
     hovering = function(self, cx, cy)
     end,
 
+    --[[! Function: pressing
+        Called on the widget when something is clicked. The arguments
+        passed on it are cursor coord deltas compared to the last frame
+        (on full width/height scale dependent on the aspect ratio, not
+        from 0 to 1).
+    ]]
     pressing = function(self, cx, cy)
     end,
 
+    --[[! Function: click
+        See <hover>. It's identical, only for the click event.
+    ]]
     click = function(self, cx, cy)
         return loop_in_children_r(self, cx, cy, function(o, ox, oy)
             local c  = o:click(ox, oy)
@@ -788,13 +811,30 @@ Object = register_class("Object", table.Object, {
         end)
     end,
 
+    --[[! Function: clicked
+        Called once on the widget that was clicked. By default schedules
+        the "click" signal on that widget for emission. Takes the click
+        coords as arguments and passes them later to the signal.
+    ]]
     clicked = function(self, cx, cy)
         update_later[#update_later + 1] = { self, "click",
             cx / self.p_w, cy / self.p_w }
     end,
 
+    --[[! Function: takes_input
+        Returns true if the widget is capable of taking any sort of keyboard
+        or mouse input. By default always returns true, but different widget
+        classes can overload it (for example overlays).
+    ]]
     takes_input = function(self) return true end,
 
+    --[[! Function: find_child
+        Given a widget type it filds a child widget of that type and returns
+        it. Additional optional arguments can be given - the widget name
+        (assuming the widget is named), a boolean option specifying whether
+        the search is recursive (it always is by default) and a reference
+        to a widget that is excluded.
+    ]]
     find_child = function(self, otype, name, recurse, exclude)
         recurse = (recurse == nil) and true or recurse
         local o = loop_children(self, function(o)
