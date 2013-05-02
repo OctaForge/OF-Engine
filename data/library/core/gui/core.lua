@@ -822,9 +822,10 @@ Object = register_class("Object", table.Object, {
     end,
 
     --[[! Function: takes_input
-        Returns true if the widget is capable of taking any sort of keyboard
-        or mouse input. By default always returns true, but different widget
-        classes can overload it (for example overlays).
+        Returns true if the widget takes input in regular cursor mode. That
+        is the default behavior. However, that is not always convenient as
+        sometimes you want on-screen widgets that take input in free cursor
+        mode only.
     ]]
     takes_input = function(self) return true end,
 
@@ -957,6 +958,10 @@ Object = register_class("Object", table.Object, {
             t and CLAMP_TOP    or 0)
     end,
 
+    --[[! Function: get_alignment
+        Returns the horizontal and vertical alignment of the widget in
+        the same format as <align> arguments.
+    ]]
     get_alignment = function(self)
         local a   = self.i_adjust
         local adj = band(a, ALIGN_HMASK)
@@ -970,6 +975,9 @@ Object = register_class("Object", table.Object, {
         return hal, val
     end,
 
+    --[[! Function: get_clamping
+        Returns the left, right, bottom, top clamping as either true or false.
+    ]]
     get_clamping = function(self)
         local a   = self.i_adjust
         local adj = band(a, CLAMP_MASK)
@@ -981,6 +989,11 @@ Object = register_class("Object", table.Object, {
                band(a, CLAMP_BOTTOM) ~= 0, band(a, CLAMP_TOP) ~= 0
     end,
 
+    --[[! Function: insert
+        Given a position in the children list, an object and optionally a
+        function, this inserts the given object in the position and calls
+        the function with the object as an argument.
+    ]]
     insert = function(self, pos, obj, fun)
         table.insert(self.p_children, pos, obj)
         obj.p_parent = self
@@ -988,6 +1001,11 @@ Object = register_class("Object", table.Object, {
         return obj
     end,
 
+    --[[! Function: append
+        Given an object and optionally a function, this inserts the given
+        object in the end of the child list and calls the function with the
+        object as an argument.
+    ]]
     append = function(self, obj, fun)
         local children = self.p_children
         children[#children + 1] = obj
@@ -996,6 +1014,11 @@ Object = register_class("Object", table.Object, {
         return obj
     end,
 
+    --[[! Function: prepend
+        Given an object and optionally a function, this inserts the given
+        object in the beginning of the child list and calls the function
+        with the object as an argument.
+    ]]
     prepend = function(self, obj, fun)
         table.insert(self.p_children, 1, obj)
         obj.p_parent = self
@@ -1003,7 +1026,14 @@ Object = register_class("Object", table.Object, {
         return obj
     end,
 
-    set_state = function(self, state, obj)
+    --[[! Function: update_state
+        Given the state name an an object, this sets the state of that name
+        for the individual object (unlike <update_class_state>). That is
+        useful when you need widgets with custom appearance but you don't
+        want all widgets to have it. This function destroys the old state
+        if any.
+    ]]
+    update_state = function(self, state, obj)
         local states = self.p_states
         local ostate = states[state]
         if ostate then ostate:clear() end
@@ -1012,9 +1042,19 @@ Object = register_class("Object", table.Object, {
         return obj
     end,
 
+    --[[! Function: is_field
+        Returns true if this widget is a textual field, by default false.
+    ]]
     is_field = function() return false end,
 
+    --[[! Function: get_window
+        Gets the window this widget belongs to. Windows return themselves.
+        Overlays are windows too.
+    ]]
     get_window = function(self)
+        if self.type == Window.type then
+            return self
+        end
         local  w = self.i_win
         if not w then
             w = self.p_parent
@@ -1027,6 +1067,10 @@ Object = register_class("Object", table.Object, {
     end
 })
 
+--[[! Struct: Named_Object
+    Named objects are regular objects thave have a name under the property
+    obj_name. The name can be passed via constructor kwargs as "name".
+]]
 local Named_Object = register_class("Named_Object", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1035,11 +1079,29 @@ local Named_Object = register_class("Named_Object", Object, {
     end
 })
 
+--[[! Struct: Tag
+    Tags are special named objects. They can contain more objects. They're
+    particularly useful when looking up certain part of a GUI structure or
+    replacing something inside without having to iterate through and finding
+    it manually.
+]]
 local Tag = register_class("Tag", Named_Object)
 M.Tag = Tag
 
+--[[! Struct: Window
+    This is a regular window. It's nothing more than a special case of named
+    object. You can derive custom window types from this (see <Overlay>) but
+    you have to make sure the widget type stays the same (pass Window.type
+    as the last argument to <register_class>).
+]]
 Window = register_class("Window", Named_Object)
+M.Window = Window
 
+--[[! Struct: Overlay
+    Overlays are windows that take no input. There is no difference
+    otherwise. This overloads takes_input (returns false), target
+    (returns nil), hover (returns nil) and click (returns nil).
+]]
 local Overlay = register_class("Overlay", Window, {
     takes_input = function(self) return false end,
 
@@ -1047,22 +1109,55 @@ local Overlay = register_class("Overlay", Window, {
     hover  = function() end,
     click  = function() end
 }, Window.type)
+M.Overlay = Overlay
 
-local main_visible = false
+--[[! Struct: Space
+    Spaces are windows that take input only in free cursor mode, making
+    them effectively usable for on-screen widgets. Overloads takes_input,
+    but nothing else.
+]]
+local Space = register_class("Space", Window, {
+    takes_input = function(self) return false end
+}, Window.type)
+M.Space = Space
 
+--[[! Struct: World
+    A world is a structure that derives from <Object> and holds windows.
+    It defines the base for calculating dimensions of child widgets as
+    well as input hooks. It also provides some window management functions.
+    By default the system creates one default world that holds all the
+    primary windows. In the future it will be possible to create new
+    worlds for different purposes (e.g. in-game GUI on a surface) but
+    that is not supported at this point.
+
+    It adds a property to Object, margin. It specifies the left/right margin
+    compared to the height. For example if the aspect ratio is 16:10, then
+    the world width is 1.6 and height is 1 and thus margin is 0.3
+    ((1.6 - 1) / 2). If the width is actually lower than the height,
+    the margin is 0.
+]]
 local World = register_class("World", Object, {
     __init = function(self)
-        self.p_guis = {}
-        self.p_guis_visible = {}
+        self.i_windows = {}
         return Object.__init(self)
     end,
 
+    --[[! Function: takes_input
+        This custom overload loops children (in reverse order) and calls
+        takes_input on each. If any of them returns true, this also returns
+        true, otherwise it returns false.
+    ]]
     takes_input = function(self)
         return loop_children_r(self, function(o)
             if o:takes_input() then return true end
         end) or false
     end,
 
+    --[[! Function: hover
+        Without this overload, hover events would propagate into windows
+        even if they're covered by other windows, which is not really a
+        desirable behavior.
+    ]]
     hover = function(self, cx, cy)
         local ch = self.p_children
         for i = #ch, 1, -1 do
@@ -1080,6 +1175,9 @@ local World = register_class("World", Object, {
         end
     end,
 
+    --[[! Function: click
+        See above, but for click events.
+    ]]
     click = function(self, cx, cy)
         local ch = self.p_children
         for i = #ch, 1, -1 do
@@ -1097,6 +1195,11 @@ local World = register_class("World", Object, {
         end
     end,
 
+    --[[! Function: layout
+        First calls layout on <Object>, then calculates x, y, w, h of the
+        world. Takes forced aspect (via the forceaspect engine variable)
+        into consideration. Then adjusts children.
+    ]]
     layout = function(self)
         Object.layout(self)
 
@@ -1115,12 +1218,22 @@ local World = register_class("World", Object, {
         self:adjust_children()
     end,
 
-    build_gui = function(self, name, fun, noinput)
+    --[[! Function: build_window
+        Builds a window. Takes the window name and optionally a function
+        that's called with the newly created window as an argument. There
+        are two other optional arguments, noinput and onscreen. When the
+        former of these is true, the resulting window takes no input (it's
+        an <Overlay>) and when the latter is true, the window only takes
+        input in free cursor mode (it's a <Space>). In the default state
+        a regular window is created.
+    ]]
+    build_window = function(self, name, fun, noinput, onscreen)
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
 
-        local win = noinput and Overlay { name = name }
-            or Window { name = name }
+        local kwargs = { name = name }
+        local win = noinput and Overlay(kwargs) or
+            (onscreen and Space(kwargs) or Window(kwargs))
         win.p_parent = self
 
         local children = self.p_children
@@ -1130,40 +1243,85 @@ local World = register_class("World", Object, {
         return win
     end,
 
-    new_gui = function(self, name, fun, noinput)
-        self.p_guis_visible[name] = false
-        self.p_guis[name] = function()
-            self:build_gui(name, fun, noinput)
-            self.p_guis_visible[name] = true
+    --[[! Function: new_window
+        Creates a window, but doesn't show it. At the time of creation
+        the actual window structure is not built, it merely creates a
+        callback that builds the window (using <build_window>). Takes
+        the same arguments as <build_window>.
+
+        If there already was a window of that name, it returns the old build
+        hook. You can call it with no arguments to show the window. If you
+        pass true as the sole argument, it returns whether the window is
+        currently visible. If you pass false to it, it marks the window
+        as invisible/destroyed (without actually hiding anything, unlike
+        <hide_window> which destroys it AND marks it). Don't actually rely
+        on this, it's only intended for the internals.
+    ]]
+    new_window = function(self, name, fun, noinput, onscreen)
+        local old = self.i_windows[name]
+        local visible = false
+        self.i_windows[name] = function(vis)
+            if vis == true then
+                return visible
+            elseif vis == false then
+                visible = false
+                return nil
+            end
+            self:build_window(name, fun, noinput, onscreen)
+            visible = true
         end
+        return old
     end,
 
-    show_gui = function(self, name)
-        local  g = self.p_guis[name]
+    --[[! Function: show_window
+        Triggers a window build. The window has to exist, if it doesn't,
+        this just returns true. Otherwise builds the window and returns
+        true.
+    ]]
+    show_window = function(self, name)
+        local  g = self.i_windows[name]
         if not g then return false end
         g()
         return true
     end,
 
-    get_gui = function(self, name)
-        return self.p_guis[name]
+    --[[! Function: get_window
+        Returns the window build hook (the same one <show_window> calls).
+    ]]
+    get_window = function(self, name)
+        return self.i_windows[name]
     end,
 
-    hide_gui = function(self, name)
+    --[[! Function: hide_window
+        Hides a window - that is, destroys it. It can be re-built anytime
+        later. Returns true if it actually destroyed anything, false otherwise.
+        It works by finding the window first and then calling self:remove(old).
+    ]]
+    hide_window = function(self, name)
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
-        self.p_guis_visible[name] = false
+        self.i_windows[name](false) -- set visible to false
         return old ~= nil
     end,
 
-    replace_gui = function(self, wname, tname, obj, fun)
+    --[[! Function: replace_in_window
+        Given a window name, a tag name, an object and a function, this
+        finds a window of that name (if it doesn't exist it returns false)
+        in the children and then returns win:replace(tname, obj, fun). It's
+        merely a little wrapper for convenience.
+    ]]
+    replace_in_window = function(self, wname, tname, obj, fun)
         local win = self:find_child(Window.type, wname, false)
         if not win then return false end
         return win:replace(tname, obj, fun)
     end,
 
-    gui_visible = function(self, name)
-        return self.p_guis_visible[name]
+    --[[! Function: window_visible
+        Given a window name, returns true if that window is currently shown
+        and false otherwise.
+    ]]
+    window_visible = function(self, name)
+        return self.i_windows[name](true)
     end
 })
 
@@ -1371,8 +1529,8 @@ set_external("frame_start", function()
         end
     end
     update_later = {}
-    if not world:gui_visible("main") and _V.mainmenu ~= 0 and not _C.isconnected(true) then
-        world:show_gui("main")
+    if _V.mainmenu ~= 0 and not world:window_visible("main") and not _C.isconnected(true) then
+        world:show_window("main")
     end
 
     if cursor_exists() then

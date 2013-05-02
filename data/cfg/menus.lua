@@ -38,7 +38,7 @@ end
 
 local i = 0
 
-world:new_gui("main", function(win)
+world:new_window("main", function(win)
     win.floating = true
     win:append(gui.widgets.Rectangle { r = 96, g = 96, b = 255, a = 128 }, function(r)
         r:align(0, 0)
@@ -82,7 +82,7 @@ world:new_gui("main", function(win)
     end)
 end)
 
-world:new_gui("test", function(win)
+world:new_window("test", function(win)
     win.floating = true
     win:append(gui.Window {
         title = "O hai!",
