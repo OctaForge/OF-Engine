@@ -46,7 +46,7 @@ local Button = function(kwargs)
             pointer = kwargs.pointer,
             states = {
                 default = widgets.Filler {
-                    clamp_l = 1, clamp_r = 1, clamp_t = 0, clamp_b = 0,
+                    clamp_l = true, clamp_r = true,
                     widgets.H_Box {
                         widgets.Stretched_Image {
                             file = gip("corner_top_left.png"),
@@ -55,7 +55,7 @@ local Button = function(kwargs)
                         widgets.Stretched_Image {
                             file = gip("edge.png"),
                             min_w = 0.15, min_h = 0.03,
-                            clamp_l = 1, clamp_r = 1, clamp_t = 0, clamp_b = 0
+                            clamp_l = true, clamp_r = true,
                         },
                         widgets.Stretched_Image {
                             file = gip("corner_top_right.png"),
@@ -65,7 +65,7 @@ local Button = function(kwargs)
                     widgets.Label { text = kwargs.label }
                 },
                 hovering = widgets.Filler {
-                    clamp_l = 1, clamp_r = 1, clamp_t = 0, clamp_b = 0,
+                    clamp_l = true, clamp_r = true,
                     widgets.H_Box {
                         widgets.Stretched_Image {
                             file = gip("corner_top_left.png"),
@@ -74,7 +74,7 @@ local Button = function(kwargs)
                         widgets.Stretched_Image {
                             file = gip("edge.png"),
                             min_w = 0.15, min_h = 0.03,
-                            clamp_l = 1, clamp_r = 1, clamp_t = 0, clamp_b = 0
+                            clamp_l = true, clamp_r = true,
                         },
                         widgets.Stretched_Image {
                             file = gip("corner_top_right.png"),
@@ -84,7 +84,7 @@ local Button = function(kwargs)
                     widgets.Label { text = kwargs.label }
                 },
                 clicked = widgets.Filler {
-                    clamp_l = 1, clamp_r = 1, clamp_t = 0, clamp_b = 0,
+                    clamp_l = true, clamp_r = true,
                     widgets.H_Box {
                         widgets.Stretched_Image {
                             file = gip("corner_top_left.png"),
@@ -93,7 +93,7 @@ local Button = function(kwargs)
                         widgets.Stretched_Image {
                             file = gip("edge.png"),
                             min_w = 0.15, min_h = 0.03,
-                            clamp_l = 1, clamp_r = 1, clamp_t = 0, clamp_b = 0
+                            clamp_l = true, clamp_r = true,
                         },
                         widgets.Stretched_Image {
                             file = gip("corner_top_right.png"),
@@ -126,13 +126,14 @@ local Window = function(kwargs)
 
         local img = t:append(widgets.Image {
             file = gip("edge.png"),
-            clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+            clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
         })
         img:append(widgets.Mover {
-            clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1,
+            clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true,
 
             widgets.Rectangle {
-                clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1, a = 0,
+                clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true,
+                a = 0,
 
                 widgets.Label { text = title, align_h = -1 },
                 widgets.H_Box {
@@ -175,10 +176,10 @@ local Window = function(kwargs)
 
         local img = t:append(widgets.Image {
             file = gip("edge.png"),
-            clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+            clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
         })
         img:append(widgets.Mover {
-            clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+            clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
         })
 
         t:append(widgets.Image {
@@ -189,7 +190,7 @@ local Window = function(kwargs)
 
     t:append(widgets.Image {
         file = gip("edge.png"), pointer = gcp("leftright.png"),
-        clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+        clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
     t:append(widgets.Image {
         file = gip("edge.png"),
@@ -200,35 +201,35 @@ local Window = function(kwargs)
             widgets.Image { file = gip("corner_in_top_left.png") },
             widgets.Image {
                 file = gip("edge_in.png"),
-                clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+                clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
             widgets.Image { file = gip("corner_in_top_right.png") },
 
             widgets.Image {
                 file = gip("edge_in.png"),
-                clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+                clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
             widgets.Image {
                 file = gip("edge_in.png"), unpack(kwargs)
             },
             widgets.Image {
                 file = gip("edge_in.png"),
-                clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+                clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
 
             widgets.Image { file = gip("corner_in_bottom_left.png") },
             widgets.Image {
                 file = gip("edge_in.png"),
-                clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+                clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
             widgets.Image { file = gip("corner_in_bottom_right.png") }
         },
 
-        clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+        clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
     t:append(widgets.Image {
         file = gip("edge.png"), pointer = gcp("leftright.png"),
-        clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+        clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
 
     t:append(widgets.Image {
@@ -237,7 +238,7 @@ local Window = function(kwargs)
     })
     t:append(widgets.Image {
         file = gip("edge.png"), pointer = gcp("updown.png"),
-        clamp_l = 1, clamp_r = 1, clamp_t = 1, clamp_b = 1
+        clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
     t:append(widgets.Image {
         file = gip("corner_bottom_right.png"), pointer = gcp("tl_br.png"),

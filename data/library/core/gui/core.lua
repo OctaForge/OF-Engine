@@ -459,10 +459,10 @@ Object = register_class("Object", table.Object, {
         -- alignment and clamping
         local align_h = kwargs.align_h or 0
         local align_v = kwargs.align_v or 0
-        local clamp_l = kwargs.clamp_l or 0
-        local clamp_r = kwargs.clamp_r or 0
-        local clamp_b = kwargs.clamp_b or 0
-        local clamp_t = kwargs.clamp_t or 0
+        local clamp_l = kwargs.clamp_l or false
+        local clamp_r = kwargs.clamp_r or false
+        local clamp_b = kwargs.clamp_b or false
+        local clamp_t = kwargs.clamp_t or false
 
         self.p_floating = kwargs.floating or false
 
@@ -855,6 +855,12 @@ Object = register_class("Object", table.Object, {
         return o
     end,
 
+    --[[! Function: find_sibling
+        Finds a sibling of a widget. A sibling is basically defined as any
+        child of the parent widget that isn't self (searched recursively),
+        then any child of the parent widget of that parent widget and so on.
+        Takes type and name.
+    ]]
     find_sibling = function(self, otype, name)
         local prev = self
         local cur  = self.p_parent
@@ -868,6 +874,12 @@ Object = register_class("Object", table.Object, {
         end
     end,
 
+    --[[! Function: replace
+        Given a tag name, finds a tag of that name in the children, destroys
+        all children of that tag and appends the given object to the tag.
+        Optionally calls a function given as the last argument with the
+        object being the sole argument of it.
+    ]]
     replace = function(self, tname, obj, fun)
         local tag = self:find_child(Tag.type, tname)
         if not tag then return false end
@@ -877,7 +889,19 @@ Object = register_class("Object", table.Object, {
         return true
     end,
 
+    --[[! Function: remove
+        Removes the given object from the widget's children. Alternatively,
+        the argument can be the index of the child in the list. Returns true
+        on success and false on failure.
+    ]]
     remove = function(self, o)
+        if type(o) == "number" then
+            if #self.p_children < n then
+                return false
+            end
+            table.remove(self.p_children, n):clear()
+            return true
+        end
         for i = 1, #self.p_children do
             if o == self.p_children[i] then
                 table.remove(self.p_children, i):clear()
@@ -887,18 +911,17 @@ Object = register_class("Object", table.Object, {
         return false
     end,
 
-    remove_nth = function(self, n)
-        if #self.p_children < n then
-            return false
-        end
-        table.remove(self.p_children, n):clear()
-        return true
-    end,
-
+    --[[! Function: destroy
+        Removes itself from its parent.
+    ]]
     destroy = function(self)
         self.p_parent:remove(self)
     end,
 
+    --[[! Function: destroy_children
+        Destroys all the children using regular <clear>. Emits a signal
+        "children_destroy" afterwards.
+    ]]
     destroy_children = function(self)
         local ch = self.p_children
         for i = 1, #ch do
@@ -908,28 +931,30 @@ Object = register_class("Object", table.Object, {
         signal.emit(self, "children_destroy")
     end,
 
+    --[[! Function: align
+        Aligns the widget given the horizontal alignment and the vertical
+        alignment. Those can be -1 (top, left), 0 (center) and 1 (bottom,
+        right).
+    ]]
     align = function(self, h, v)
         assert_param(h, "number", 2)
         assert_param(v, "number", 3)
 
-        self.i_adjust = bor(
-            band(self.i_adjust, bnot(ALIGN_MASK)),
+        self.i_adjust = bor(band(self.i_adjust, bnot(ALIGN_MASK)),
             blsh(clamp(h, -1, 1) + 2, ALIGN_HSHIFT),
             blsh(clamp(v, -1, 1) + 2, ALIGN_VSHIFT))
     end,
 
+    --[[! Function: clamp
+        Sets the widget clamping, given the left, right, bottom and top
+        clamping. The values can be either true or false.
+    ]]
     clamp = function(self, l, r, b, t)
-        assert_param(l, "number", 2)
-        assert_param(r, "number", 3)
-        assert_param(b, "number", 4)
-        assert_param(t, "number", 5)
-
-        self.i_adjust = bor(
-            band(self.i_adjust, bnot(CLAMP_MASK)),
-            l ~= 0 and CLAMP_LEFT   or 0,
-            r ~= 0 and CLAMP_RIGHT  or 0,
-            b ~= 0 and CLAMP_BOTTOM or 0,
-            t ~= 0 and CLAMP_TOP    or 0)
+        self.i_adjust = bor(band(self.i_adjust, bnot(CLAMP_MASK)),
+            l and CLAMP_LEFT   or 0,
+            r and CLAMP_RIGHT  or 0,
+            b and CLAMP_BOTTOM or 0,
+            t and CLAMP_TOP    or 0)
     end,
 
     get_alignment = function(self)
@@ -952,8 +977,8 @@ Object = register_class("Object", table.Object, {
             return 0, 0, 0, 0
         end
 
-        return band(a, CLAMP_LEFT  ), band(a, CLAMP_RIGHT),
-               band(a, CLAMP_BOTTOM), band(a, CLAMP_TOP)
+        return band(a, CLAMP_LEFT  ) ~= 0, band(a, CLAMP_RIGHT) ~= 0,
+               band(a, CLAMP_BOTTOM) ~= 0, band(a, CLAMP_TOP) ~= 0
     end,
 
     insert = function(self, pos, obj, fun)
