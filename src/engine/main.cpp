@@ -1339,7 +1339,7 @@ int main(int argc, char **argv)
         updatetime();
  
         checkinput();
-        lua::push_external("frame_start");
+        lua::push_external("gui_update");
         lua_call(lua::L, 0, 0);
         tryedit();
 

@@ -438,7 +438,7 @@ Object = register_class("Object", table.Object, {
     ]]
     __init = function(self, kwargs)
         kwargs        = kwargs or {}
-        self.p_parent = nil
+        self.p_parent = false
 
         local instances = rawget(self.__proto, "instances")
         if not instances then
@@ -447,10 +447,8 @@ Object = register_class("Object", table.Object, {
         end
         instances[self] = self
 
-        self.p_x = 0
-        self.p_y = 0
-        self.p_w = 0
-        self.p_h = 0
+        self.p_x, self.p_y, self.p_w, self.p_h = 0, 0, 0, 0
+        self.p_fx, self.p_fy = false, false
 
         self.i_adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
         self.p_children = { unpack(kwargs) }
@@ -507,10 +505,7 @@ Object = register_class("Object", table.Object, {
         end
 
         -- tooltip? widget specific
-        local t = kwargs.tooltip
-        if t then
-            self.p_tooltip = t
-        end
+        self.p_tooltip = kwargs.tooltip or false
 
         -- and init
         if  kwargs.init then
@@ -1139,6 +1134,7 @@ M.Space = Space
 local World = register_class("World", Object, {
     __init = function(self)
         self.i_windows = {}
+        self.p_size, self.p_margin = 0, 0
         return Object.__init(self)
     end,
 
@@ -1327,22 +1323,17 @@ local World = register_class("World", Object, {
 
 world = World()
 
-local cursor_reset = function()
-    if _V.editing ~= 0 or #world.p_children == 0 then
-        cursor_x = 0.5
-        cursor_y = 0.5
-    end
-end
-M.cursor_reset = cursor_reset
-set_external("cursor_reset", cursor_reset)
-
+--[[! Variable: cursorsensitivity
+    An engine variable specifying the mouse cursor sensitivity. Ranges from
+    0.001 to 1000 and defaults to 1.
+]]
 var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
 
 local cursor_mode = function()
     return _V.editing == 0 and _V.freecursor or _V.freeeditcursor
 end
 
-local cursor_move = function(dx, dy)
+set_external("cursor_move", function(dx, dy)
     local cmode = cursor_mode()
     if cmode == 2 or (world:takes_input() and cmode >= 1) then
         local scale = 500 / _V.cursorsensitivity
@@ -1356,9 +1347,7 @@ local cursor_move = function(dx, dy)
         return true, dx, dy
     end
     return false, dx, dy
-end
-M.cursor_move = cursor_move
-set_external("cursor_move", cursor_move)
+end)
 
 local cursor_exists = function(draw)
     if _V.mainmenu ~= 0 then return true end
@@ -1371,19 +1360,16 @@ local cursor_exists = function(draw)
     end
     return false
 end
-M.cursor_exists = cursor_exists
 set_external("cursor_exists", cursor_exists)
 
-local cursor_get_position = function()
+set_external("cursor_get_position", function()
     local cmode = cursor_mode()
     if cmode == 2 or (world:takes_input() and cmode >= 1) then
         return cursor_x, cursor_y
     else
         return 0.5, 0.5
     end
-end
-M.cursor_get_position = cursor_get_position
-set_external("cursor_get_position", cursor_get_position)
+end)
 
 set_external("input_keypress", function(code, isdown)
     if not cursor_exists() then return false end
@@ -1416,7 +1402,59 @@ set_external("gui_clear", function()
     end
 end)
 
-set_external("gl_render", function()
+local text_handler
+M.set_text_handler = function(f) text_handler = f end
+
+set_external("gui_update", function()
+    for i = 1, #update_later do
+        local ul = update_later[i]
+        local first = ul[1]
+        local t = type(first)
+        if t == "string" then
+            _V[first] = ul[2]
+        elseif t == "function" then
+            first(unpack(ul, 2))
+        else
+            signal.emit(first, ul[2], unpack(ul, 3))
+        end
+    end
+    update_later = {}
+    if _V.mainmenu ~= 0 and not world:window_visible("main") and
+    not _C.isconnected(true) then
+        world:show_window("main")
+    end
+
+    if cursor_exists() then
+        local w, h = world.p_w, world.p_h
+
+        hovering = world.hover(world, cursor_x * w, cursor_y * h)
+        if  hovering then
+            hovering.hovering(hovering, hover_x, hover_y)
+        end
+
+        -- hacky
+        if  clicked then
+            clicked:pressing((cursor_x - prev_cx) * w, (cursor_y - prev_cy))
+        end
+    else
+        hovering, clicked = nil, nil
+    end
+
+    world:layout()
+
+    if hovering then
+        local tooltip = hovering.p_tooltip
+        if    tooltip then
+              tooltip:layout()
+              tooltip:adjust_children()
+        end
+    end
+
+    if text_handler then text_handler() end
+    prev_cx, prev_cy = cursor_x, cursor_y
+end)
+
+set_external("gui_render", function()
     local w = world
     if #w.p_children ~= 0 then
         _C.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
@@ -1429,9 +1467,9 @@ set_external("gl_render", function()
         _C.gle_color3f(1, 1, 1)
         w:draw()
 
-        local tooltip = hovering and hovering.tooltip
+        local tooltip = hovering and hovering.p_tooltip
         if    tooltip then
-            local margin = max((w.p_w - 1) / 2, 0)
+            local margin = w.p_margin
             local left, right = -margin, 1 + 2 * margin
             local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
 
@@ -1455,6 +1493,10 @@ end)
 
 local needsapply = {}
 
+--[[! Variable: applydialog
+    An engine variable that controls whether the "apply" dialog will show
+    on changes that need restart of some engine subsystem. Defaults to 1.
+]]
 var.new("applydialog", var.INT, 0, 1, 1, var.PERSIST)
 
 set_external("change_add", function(desc, ctype)
@@ -1512,61 +1554,9 @@ set_external("changes_get", function()
     return table.map(needsapply, function(v) return v.desc end)
 end)
 
-local text_handler
-M.set_text_handler = function(f) text_handler = f end
-
-set_external("frame_start", function()
-    for i = 1, #update_later do
-        local ul = update_later[i]
-        local first = ul[1]
-        local t = type(first)
-        if t == "string" then
-            _V[first] = ul[2]
-        elseif t == "function" then
-            first(unpack(ul, 2))
-        else
-            signal.emit(first, ul[2], unpack(ul, 3))
-        end
-    end
-    update_later = {}
-    if _V.mainmenu ~= 0 and not world:window_visible("main") and not _C.isconnected(true) then
-        world:show_window("main")
-    end
-
-    if cursor_exists() then
-        local w, h = world.p_w, world.p_h
-
-        hovering = world.hover(world, cursor_x * w, cursor_y * h)
-        if  hovering then
-            hovering.hovering(hovering, hover_x, hover_y)
-        end
-
-        -- hacky
-        if clicked then clicked:pressing(
-            (cursor_x - prev_cx) * w,
-            (cursor_y - prev_cy)
-        ) end
-    else
-        hovering = nil
-        clicked  = nil
-    end
-
-    world:layout()
-
-    if hovering then
-        local tooltip = hovering.tooltip
-        if    tooltip then
-              tooltip:layout()
-              tooltip:adjust_children()
-        end
-    end
-
-    if text_handler then text_handler() end
-
-    prev_cx = cursor_x
-    prev_cy = cursor_y
-end)
-
+--[[! Function: get_world
+    Gets the default GUI world object.
+]]
 M.get_world = function()
     return world
 end

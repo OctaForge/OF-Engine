@@ -2419,7 +2419,7 @@ void gl_drawframe(int w, int h)
     renderpostfx(scalefbo);
     if(scalefbo) { vieww = w; viewh = h; doscale(vieww, viewh); }
 
-    lua::push_external("gl_render"); lua_call(lua::L, 0, 0);
+    lua::push_external("gui_render"); lua_call(lua::L, 0, 0);
 
     gl_drawhud(vieww, viewh);
 }
@@ -2430,7 +2430,7 @@ void gl_drawmainmenu(int w, int h)
 
     renderbackground(NULL, NULL, NULL, NULL, true, true);
 
-    lua::push_external("gl_render"); lua_call(lua::L, 0, 0);
+    lua::push_external("gui_render"); lua_call(lua::L, 0, 0);
 
     gl_drawhud(w, h);
 }
