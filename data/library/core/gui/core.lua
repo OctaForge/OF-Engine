@@ -48,55 +48,35 @@ end
 M.update_var = update_var
 
 -- initialized after World is created
-local world    = nil
-local clicked  = nil
-local hovering = nil
-local focused  = nil
-
-local hover_x = 0
-local hover_y = 0
-local click_x = 0
-local click_y = 0
-
-local cursor_x = 0.5
-local cursor_y = 0.5
-
-local prev_cx = 0.5
-local prev_cy = 0.5
+local world, clicked, hovering, focused
+local hover_x, hover_y, click_x, click_y = 0, 0, 0, 0
+local cursor_x, cursor_y, prev_cx, prev_cy = 0.5, 0.5, 0.5, 0.5
 
 --[[! Function: is_clicked
     Given an object this function returns true if that object is clicked
     and false if not.
 ]]
-local is_clicked = function(o)
-    return (o == clicked)
-end
+local is_clicked = function(o) return (o == clicked) end
 M.is_clicked = is_clicked
 
 --[[! Function: is_hovering
     Given an object this function returns true if that object is being
     hovered on and false otherwise.
 ]]
-local is_hovering = function(o)
-    return (o == hovering)
-end
+local is_hovering = function(o) return (o == hovering) end
 M.is_hovering = is_hovering
 
 --[[! Function: is_clicked
     Given an object this function returns true if that object is focused
     and false if not.
 ]]
-local is_focused = function(o)
-    return (o == focused)
-end
+local is_focused = function(o) return (o == focused) end
 M.is_focused = is_focused
 
 --[[! Function: set_focus
     Gives the given GUI object focus.
 ]]
-local set_focus = function(o)
-    focused = o
-end
+local set_focus = function(o) focused = o end
 M.set_focus = set_focus
 
 --[[! Function: clear_focus
