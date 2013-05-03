@@ -15,6 +15,22 @@
         Forwards Tag.
 ]]
 
+local ffi = require("ffi")
+
+local band  = math.band
+local bor   = math.bor
+local bnot  = math.bnot
+local blsh  = math.lsh
+local brsh  = math.rsh
+local max   = math.max
+local min   = math.min
+local clamp = math.clamp
+local floor = math.floor
+local ceil  = math.ceil
+local round = math.round
+local _V    = _G["_V"]
+local _C    = _G["_C"]
+
 local base = require("gui.core")
 local world = base.get_world()
 
@@ -1915,7 +1931,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
         self.line_wrap = length < 0
         -- required for up/down/hit/draw/bounds
-        self.pixel_width  = math.abs(length) * _V.fontw
+        self.pixel_width  = abs(length) * _V.fontw
         -- -1 for variable size, i.e. from bounds
         self.pixel_height = -1
 
@@ -1928,7 +1944,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             local w, h = _C.text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         else
-            self.pixel_height = _V.fonth * math.max(height, 1)
+            self.pixel_height = _V.fonth * max(height, 1)
         end
 
         return Object.__init(self, kwargs)
@@ -2097,7 +2113,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             if self.maxy == -1 or self.cy < (self.maxy - 1) then
                 local newline = current:sub(self.cx + 1)
                 self.lines[self.cy + 1] = current:sub(1, self.cx)
-                self.cy = math.min(#self.lines, self.cy + 1)
+                self.cy = min(#self.lines, self.cy + 1)
                 table.insert(self.lines, self.cy + 1, newline)
             else
                 current = current:sub(1, self.cx)
@@ -2127,7 +2143,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
     scroll_on_screen = function(self)
         self:region()
-        self.scrolly = math.clamp(self.scrolly, 0, self.cy)
+        self.scrolly = clamp(self.scrolly, 0, self.cy)
         local h = 0
         for i = self.cy + 1, self.scrolly + 1, -1 do
             local width, height = _C.text_get_bounds(self.lines[i],
@@ -2274,7 +2290,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                 for i = sy, ey do
                     if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
                         local rem = 0
-                        for j = 1, math.min(4, #self.lines[i + 1]) do
+                        for j = 1, min(4, #self.lines[i + 1]) do
                             if self.lines[i + 1]:sub(j, j) == " " then
                                 rem = rem + 1
                             else
@@ -2303,7 +2319,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                         lines[cy + 1] = lines[cy + 1]:sub(2)
                         self.cx = self.cx - 1
                     else
-                        for j = 1, math.min(4, #lines[cy + 1]) do
+                        for j = 1, min(4, #lines[cy + 1]) do
                             if lines[cy + 1]:sub(1, 1) == " " then
                                 lines[cy + 1] = lines[cy + 1]:sub(2)
                                 self.cx = self.cx - 1
@@ -2553,7 +2569,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         local max_width = self.line_wrap and self.pixel_width or -1
         local selection, sx, sy, ex, ey = self:region()
 
-        self.scrolly = math.clamp(self.scrolly, 0, #self.lines - 1)
+        self.scrolly = clamp(self.scrolly, 0, #self.lines - 1)
 
         if selection then
             -- convert from cursor coords into pixel coords

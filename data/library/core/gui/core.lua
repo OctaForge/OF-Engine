@@ -3,15 +3,13 @@ local band  = math.band
 local bor   = math.bor
 local bnot  = math.bnot
 local blsh  = math.lsh
-local brsh  = math.rsh
 local max   = math.max
 local min   = math.min
 local clamp = math.clamp
 local floor = math.floor
 local ceil  = math.ceil
-local round = math.round
-local ffi   = require("ffi")
 local _V    = _G["_V"]
+local _C    = _G["_C"]
 
 local M = {}
 
