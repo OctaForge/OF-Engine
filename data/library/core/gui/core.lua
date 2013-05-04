@@ -829,6 +829,28 @@ Object = register_class("Object", table.Object, {
         return o
     end,
 
+    --[[! Function: find_children
+        See above. Returns all the possible matches.
+    ]]
+    find_children = function(self, otype, name, recurse, exclude, ret)
+        local ch = ret or {}
+        recurse = (recurse == nil) and true or recurse
+        loop_children(self, function(o)
+            if o ~= exclude and o.type == otype and
+            (not name or name == o.p_obj_name) then
+                ch[#ch + 1] = o
+            end
+        end)
+        if recurse then
+            loop_children(self, function(o)
+                if o ~= exclude then
+                    o:find_child(otype, name, true, nil, ch)
+                end
+            end)
+        end
+        return ch
+    end,
+
     --[[! Function: find_sibling
         Finds a sibling of a widget. A sibling is basically defined as any
         child of the parent widget that isn't self (searched recursively),
@@ -846,6 +868,22 @@ Object = register_class("Object", table.Object, {
             prev = cur
             cur  = cur.p_parent
         end
+    end,
+
+    --[[! Function: find_siblings
+        See above. Returns all the possible matches.
+    ]]
+    find_siblings = function(self, otype, name)
+        local ch   = {}
+        local prev = self
+        local cur  = self.p_parent
+
+        while cur do
+            cur:find_children(otype, name, true, prev, ch)
+            prev = cur
+            cur  = cur.p_parent
+        end
+        return ch
     end,
 
     --[[! Function: replace

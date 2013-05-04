@@ -553,6 +553,10 @@ local V_Scrollbar
 
 local Scroller, Scrollbar, Scroll_Button
 
+--[[! Struct: Scroller
+    Derived from Clipper. Provides a scrollable area without scrollbars.
+    Scrollbars are separate widgets and are siblings of scrollers.
+]]
 Scroller = register_class("Scroller", Clipper, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -562,6 +566,12 @@ Scroller = register_class("Scroller", Clipper, {
         self.i_can_scroll = 0
 
         return Clipper.__init(self, kwargs)
+    end,
+
+    clear = function(self)
+        self:bind_h_scrollbar()
+        self:bind_v_scrollbar()
+        return Clipper.clear(self)
     end,
 
     layout = function(self)
@@ -606,12 +616,12 @@ Scroller = register_class("Scroller", Clipper, {
             return Object.key_hover(self, code, isdown)
         end
 
-        local  sb = self:find_sibling(Scrollbar.type)
+        local  sb = self.i_v_scrollbar or self.i_h_scrollbar
         if not sb or not self.i_can_scroll then return false end
         if not isdown then return true end
 
         local adjust = (code == m4 and -0.2 or 0.2) * sb.p_arrow_speed
-        if sb.__proto == V_Scrollbar then
+        if self.i_v_scrollbar then
             self:scroll_v(adjust)
         else
             self:scroll_h(adjust)
@@ -630,6 +640,28 @@ Scroller = register_class("Scroller", Clipper, {
         else
             return Object.draw(self, sx, sy)
         end
+    end,
+
+    bind_h_scrollbar = function(self, sb)
+        if not sb then
+            sb = self.i_h_scrollbar
+            if not sb then return nil end
+            sb.i_scroller, self.i_h_scrollbar = nil, nil
+            return sb
+        end
+        self.i_h_scrollbar = sb
+        sb.i_scroller = self
+    end,
+
+    bind_v_scrollbar = function(self, sb)
+        if not sb then
+            sb = self.i_v_scrollbar
+            if not sb then return nil end
+            sb.i_scroller, self.i_v_scrollbar = nil, nil
+            return sb
+        end
+        self.i_v_scrollbar = sb
+        sb.i_scroller = self
     end,
 
     get_h_limit = function(self)
@@ -684,6 +716,13 @@ Scrollbar = register_class("Scrollbar", Object, {
         return Object.__init(self, kwargs)
     end,
 
+    clear = function(self)
+        self:bind_scroller()
+        return Object.clear(self)
+    end,
+
+    bind_scroller = function(self) end,
+
     choose_direction = function(self, cx, cy)
         return 0
     end,
@@ -705,7 +744,7 @@ Scrollbar = register_class("Scrollbar", Object, {
             return Object.key_hover(self, code, isdown)
         end
 
-        local  sc = self:find_sibling(Scroller.type)
+        local  sc = self.i_scroller
         if not sc or not sc.i_can_scroll then return false end
         if not isdown then return true end
 
@@ -795,6 +834,17 @@ local ALIGN_HMASK = 0x3
 local ALIGN_VMASK = 0xC
 
 H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
+    bind_scroller = function(self, sc)
+        if not sc then
+            sc = self.i_scroller
+            if not sc then return nil end
+            sc.i_h_scrollbar = nil
+            return sc
+        end
+        self.i_scroller = sc
+        sc.i_h_scrollbar = self
+    end,
+
     choose_state = function(self)
         local ad = self.i_arrow_dir
 
@@ -814,7 +864,7 @@ H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = self:find_sibling(Scroller.type)
+        local  scroll = self.i_scroller
         if not scroll then return nil end
 
         scroll:scroll_h(self.i_arrow_dir * self.p_arrow_speed *
@@ -822,7 +872,7 @@ H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self:find_sibling(Scroller.type)
+        local  scroll = self.i_scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
@@ -839,7 +889,7 @@ H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     end,
 
     adjust_children = function(self)
-        local  scroll = self:find_sibling(Scroller.type)
+        local  scroll = self.i_scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
@@ -868,6 +918,17 @@ H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 M.H_Scrollbar = H_Scrollbar
 
 V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
+    bind_scroller = function(self, sc)
+        if not sc then
+            sc = self.i_scroller
+            if not sc then return nil end
+            sc.i_v_scrollbar = nil
+            return sc
+        end
+        self.i_scroller = sc
+        sc.i_v_scrollbar = self
+    end,
+
     choose_state = function(self)
         local ad = self.i_arrow_dir
 
@@ -887,7 +948,7 @@ V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = self:find_sibling(Scroller.type)
+        local  scroll = self.i_scroller
         if not scroll then return nil end
 
         scroll:scroll_v(self.i_arrow_dir * self.p_arrow_speed *
@@ -895,7 +956,7 @@ V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self:find_sibling(Scroller.type)
+        local  scroll = self.i_scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
@@ -913,7 +974,7 @@ V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     end,
 
     adjust_children = function(self)
-        local  scroll = self:find_sibling(Scroller.type)
+        local  scroll = self.i_scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
