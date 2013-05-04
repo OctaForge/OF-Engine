@@ -38,21 +38,6 @@ namespace lapi_binds
         return 0;
     }
 
-    int _lua_lastmillis(lua_State *L) {
-        lua_pushinteger(L, lastmillis);
-        return 1;
-    }
-
-    int _lua_totalmillis(lua_State *L) {
-        lua_pushinteger(L, totalmillis);
-        return 1;
-    }
-
-    int _lua_currtime(lua_State *L) {
-        lua_pushinteger(L, tools::currtime());
-        return 1;
-    }
-
     int _lua_readfile(lua_State *L) {
         const char *p = luaL_checkstring(L, 1);
 
@@ -620,9 +605,6 @@ namespace lapi_binds
     LAPI_REG(log);
     LAPI_REG(should_log);
     LAPI_REG(echo);
-    LAPI_REG(lastmillis);
-    LAPI_REG(totalmillis);
-    LAPI_REG(currtime);
     LAPI_REG(readfile);
 
     /* edit */

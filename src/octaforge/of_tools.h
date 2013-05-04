@@ -43,8 +43,6 @@ namespace tools
     bool  fempty(const char *file);
 
     bool  execfile(const char *cfgfile, bool msg = true);
-
-    int   currtime();
 } /* end namespace tools */
 
 #endif

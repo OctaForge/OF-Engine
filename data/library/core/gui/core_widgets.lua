@@ -1112,7 +1112,7 @@ local Slider = register_class("Slider", Object, {
     end,
 
     arrow_scroll = function(self)
-        local tmillis = _C.totalmillis()
+        local tmillis = _C.get_millis(true)
         if (self.i_last_step + self.p_step_time) > tmillis then
             return nil
         end

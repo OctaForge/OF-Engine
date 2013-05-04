@@ -2956,60 +2956,129 @@ ICOMMAND(strreplace, "sss", (char *s, char *o, char *n), commandret->setstr(strr
 
 ICOMMAND(getmillis, "i", (int *total), intret(*total ? totalmillis : lastmillis));
 
-struct sleepcmd
-{
-    int delay, millis, flags;
-    char *command;
+/* OF: lua sleep functions, var API and other things */
+
+LUAICOMMAND(get_millis, {
+    lua_pushinteger(L, lua_toboolean(L, 1) ? totalmillis : lastmillis);
+    return 1;
+});
+
+LUAICOMMAND(get_current_time, {
+#ifdef SERVER
+    lua_pushinteger(L, enet_time_get());
+#else
+    extern int clockrealbase;
+    lua_pushinteger(L, SDL_GetTicks() - clockrealbase);
+#endif
+    return 1;
+});
+
+static time_t walltime = 0;
+LUAICOMMAND(strftime, {
+    if (!walltime) {
+        walltime = time(NULL) - totalmillis / 1000;
+        if (!walltime) {
+            walltime++;
+        }
+    }
+    time_t walloffset = walltime + totalmillis / 1000;
+    struct tm *localvals = localtime(&walloffset);
+    static string buf;
+    const char *fmt = luaL_checkstring(L, 1);
+    if (localvals && strftime(buf, sizeof(buf), fmt, localvals)) {
+        lua_pushstring(L, buf);
+        return 1;
+    }
+    return 0;
+});
+
+enum { SLEEP_CS = 0, SLEEP_LUA = 1 };
+
+struct sleepcmd {
+    int kind, delay, millis, flags;
+    union { int i; char *s; } cmd;
 };
 vector<sleepcmd> sleepcmds;
 
-void addsleep(int *msec, char *cmd)
-{
+ICOMMAND(sleep, "is", (int *msec, char *cmd), {
     sleepcmd &s = sleepcmds.add();
+    s.kind = SLEEP_CS;
     s.delay = max(*msec, 1);
     s.millis = lastmillis;
-    s.command = newstring(cmd);
+    s.cmd.s = newstring(cmd);
     s.flags = identflags;
-}
+});
 
-COMMANDN(sleep, addsleep, "is");
+LUAICOMMAND(sleep, {
+    int msec = luaL_checkinteger(L, 1);
+    luaL_checktype(L, 2, LUA_TFUNCTION);
+    lua_pushvalue (L, 2);
+    sleepcmd &s = sleepcmds.add();
+    s.kind = SLEEP_LUA;
+    s.delay = max(msec, 1);
+    s.millis = lastmillis;
+    s.cmd.i = luaL_ref(L, LUA_REGISTRYINDEX);
+    s.flags = identflags;
+    return 0;
+});
 
-void checksleep(int millis)
-{
-    loopv(sleepcmds)
-    {
+void checksleep(int millis) {
+    loopv(sleepcmds) {
         sleepcmd &s = sleepcmds[i];
-        if(millis - s.millis >= s.delay)
-        {
-            char *cmd = s.command; // execute might create more sleep commands
-            s.command = NULL;
-            int oldflags = identflags;
-            identflags = s.flags;
-            execute(cmd);
+        if (millis - s.millis >= s.delay) {
+            int oldflags = identflags; identflags = s.flags;
+            if (s.kind == SLEEP_CS) {
+                /* execute might create more sleep commands */
+                char *cmd = s.cmd.s; s.cmd.s = NULL;
+                execute(cmd); delete[] cmd;
+                if (sleepcmds.inrange(i) && !(sleepcmds[i].cmd.s)) {
+                    sleepcmds.remove(i--);
+                }
+            } else {
+                int ref = s.cmd.i; s.cmd.i = LUA_REFNIL;
+                /* get twice, pop out and call with itself as an argument */
+                lua_rawgeti  (lua::L, LUA_REGISTRYINDEX, ref);
+                luaL_unref   (lua::L, LUA_REGISTRYINDEX, ref);
+                lua_pushvalue(lua::L, -1); lua_call(lua::L, 1, 0);
+                if (sleepcmds.inrange(i) && sleepcmds[i].cmd.i == LUA_REFNIL) {
+                    sleepcmds.remove(i--);
+                }
+            }
             identflags = oldflags;
-            delete[] cmd;
-            if(sleepcmds.inrange(i) && !sleepcmds[i].command) sleepcmds.remove(i--);
         }
     }
 }
 
-void clearsleep(bool clearoverrides)
-{
+void clearsleep(bool clearoverrides) {
     int len = 0;
-    loopv(sleepcmds) if(sleepcmds[i].command)
-    {
-        if(clearoverrides && !(sleepcmds[i].flags&IDF_OVERRIDDEN)) sleepcmds[len++] = sleepcmds[i];
-        else delete[] sleepcmds[i].command;
+    loopv(sleepcmds) {
+        sleepcmd &s = sleepcmds[i];
+        if (s.kind == SLEEP_CS && s.cmd.s) {
+            if (clearoverrides && !(s.flags&IDF_OVERRIDDEN)) {
+                sleepcmds[len++] = s;
+            } else {
+                delete[] s.cmd.s;
+            }
+        } else if (s.kind == SLEEP_LUA && s.cmd.i != LUA_REFNIL) {
+            if (clearoverrides && !(s.flags&IDF_OVERRIDDEN)) {
+                sleepcmds[len++] = s;
+            } else {
+                luaL_unref(lua::L, LUA_REGISTRYINDEX, s.cmd.i);
+            }
+        }
     }
     sleepcmds.shrink(len);
 }
 
-void clearsleep_(int *clearoverrides)
-{
+void clearsleep_(int *clearoverrides) {
     clearsleep(*clearoverrides!=0 || identflags&IDF_OVERRIDDEN);
 }
-
 COMMANDN(clearsleep, clearsleep_, "i");
+
+LUAICOMMAND(sleep_clear, {
+    clearsleep(lua_toboolean(L, 1) || identflags&IDF_OVERRIDDEN);
+    return 0;
+});
 
 ICOMMAND(lua, "s", (char *str), {
     if (luaL_loadstring(lua::L, str)) {
@@ -3049,8 +3118,6 @@ LUAICOMMAND(cubescript, {
     }
     return 1;
 })
-
-/* OF Lua var API */
 
 LUAICOMMAND(var_reset, {
     resetvar((char*)luaL_checkstring(L, 1));
