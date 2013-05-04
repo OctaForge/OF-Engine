@@ -1307,6 +1307,14 @@ M.V_Slider = register_class("V_Slider", Slider, {
     end
 }, Slider.type)
 
+--[[! Struct: Rectangle
+    Derived from <Filler>. Represents a regular rectangle. Has properties
+    r (red, 0-255), g (green, 0-255), b (blue, 0-255), a (alpha, 0-255)
+    and solid, which is a boolean value specifying whether the rectangle
+    is solid - that is, if it's just a regular color fill or whether it
+    modulates the color of the thing underneath. The color/alpha values
+    defautl to 255, solid defaults to true.
+]]
 M.Rectangle = register_class("Rectangle", Filler, {
     __init = function(self, kwargs)
         kwargs       = kwargs or {}
@@ -1319,6 +1327,9 @@ M.Rectangle = register_class("Rectangle", Filler, {
         return Filler.__init(self, kwargs)
     end,
 
+    --[[! Function: target
+        Rectangles are targetable.
+    ]]
     target = function(self, cx, cy)
         return Object.target(self, cx, cy) or self
     end,
@@ -1369,6 +1380,17 @@ local check_alpha_mask = function(tex, x, y)
     return false
 end
 
+--[[! Struct: Image
+    Derived from Filler. Represents a basic image with basic stretching.
+    Has two kwargs properties - file (the filename), alt_file (alternative
+    filename assuming file fails) - those are not saved in the object and
+    six other properties - min_filter, mag_filter (see GL_TEXTURE_MIN_FILTER
+    and GL_TEXTURE_MAG_FILTER as well as the filters later in this module),
+    r, g, b, a (see <Rectangle>).
+
+    Images are basically containers for texture objects. Texture objects
+    are low-level and documented elsewhere.
+]]
 local Image = register_class("Image", Filler, {
     __init = function(self, kwargs)
         kwargs    = kwargs or {}
@@ -1391,15 +1413,25 @@ local Image = register_class("Image", Filler, {
         return Filler.__init(self, kwargs)
     end,
 
-    get_tex = function()
+    --[[! Function: get_tex
+        Returns the loaded texture filename.
+    ]]
+    get_tex = function(self)
         return self.i_tex:get_name()
     end,
 
-    get_tex_raw = function()
+    --[[! Function: get_tex_raw
+        Returns the loaded texture object.
+    ]]
+    get_tex_raw = function(self)
         return self.i_tex
     end,
 
-    set_tex = function(file, alt)
+    --[[! Function: set_tex
+        Given the filename and an alternative filename, this reloads the
+        texture this holds.
+    ]]
+    set_tex = function(self, file, alt)
         local tex = _C.texture_load(file)
         if _C.texture_is_notexture(tex) and alt then
               tex = _C.texture_load(alt)
@@ -1407,10 +1439,17 @@ local Image = register_class("Image", Filler, {
         self.i_tex = tex
     end,
 
-    set_tex_raw = function(tex)
+    --[[! Function: set_tex_raw
+        Raw texture object setter.
+    ]]
+    set_tex_raw = function(self, tex)
         self.i_tex = tex
     end,
 
+    --[[! Function: target
+        Images are normally targetable (they're not only where they're
+        completely transparent).
+    ]]
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
         if    o then return o end
@@ -1490,6 +1529,13 @@ local get_border_size = function(tex, size, vert)
     return abs(n) / (vert and tex:get_ys() or tex:get_xs())
 end
 
+--[[! Struct: Cropped_Image
+    Deriving from <Image>, this represents a cropped image. It has four
+    additional properties, crop_x (the x crop position, defaults to 0),
+    crop_y, crop_w (the crop width, defaults to 1), crop_h. With these
+    default settings it does not crop. Negative values represent the
+    sizes in pixels.
+]]
 M.Cropped_Image = register_class("Cropped_Image", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1540,6 +1586,11 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
     end
 })
 
+--[[! Struct: Stretched_Image
+    Derives from <Image> and represents a stretched image type. Regular
+    images stretch as well, but this uses better quality (and more expensive)
+    computations instead of basic stretching.
+]]
 M.Stretched_Image = register_class("Stretched_Image", Image, {
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
@@ -1631,6 +1682,15 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
     end
 })
 
+--[[! Struct: Bordered_Image
+    Derives from <Image>. Turns the provided image into a border or a frame.
+    There are two properties, screen_border - this one determines the border
+    size and tex_border - this one determines a texture offset from which
+    to create the borders. Use a <Spacer> with screen_border as padding to
+    offset the children away from the border. Without any children, this
+    renders only the corners. Negative tex_border represents the value in
+    pixels.
+]]
 M.Bordered_Image = register_class("Bordered_Image", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1722,12 +1782,16 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
     end
 })
 
+--[[! Struct: Tiled_Image
+    Derived from Image. Represents a tiled image with the tile_w and tile_h
+    properties specifying the tile width and height (they both default to 1).
+]]
 local Tiled_Image = register_class("Tiled_Image", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        self.p_tile_w = kwargs.tile_w or 0
-        self.p_tile_h = kwargs.tile_h or 0
+        self.p_tile_w = kwargs.tile_w or 1
+        self.p_tile_h = kwargs.tile_h or 1
 
         return Image.__init(self, kwargs)
     end,
@@ -1792,6 +1856,11 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
     end
 })
 
+--[[! Struct: Slot_Viewer
+    Derived from <Filler>. Represents a texture slot thumbnail, for example
+    in a texture selector. Has one property, slot, which is the texture slot
+    id.
+]]
 M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1800,10 +1869,13 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
         return Filler.__init(self, kwargs)
     end,
 
+    --[[! Function: target
+        Slot viewers are targetable assuming the slot exists.
+    ]]
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
         if    o or not _C.slot_exists(self.p_slot) then return o end
-        return _C.slot_check_vslot(self.p_slot) and self
+        return _C.slot_check_vslot(self.p_slot) and self or nil
     end,
 
     draw = function(self, sx, sy)
@@ -1812,6 +1884,15 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     end
 })
 
+--[[! Struct: Model_Viewer
+    Derived from <Filler>. Represents a 3D model preview. Has several
+    properties, the most important being model, which is the model path
+    (identical to mapmodel paths). Another property is anim, which is
+    a model animation represented as an integer (see the model and
+    animation API) - you only provide a primary and a optionally a
+    secondary animation, the widget takes care of looping. The third
+    property is attachments. It's an array of tag-attachment pairs.
+]]
 M.Model_Viewer = register_class("Model_Viewer", Filler, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1856,9 +1937,19 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
     end
 })
 
--- default size of text in terms of rows per screenful
+--[[! Variable: uitextrows
+    Specifies how many rows of text of scale 1 can fit on the screen. Defaults
+    to 40. You can change this to tweak the font scale and thus the whole UI
+    scale.
+]]
 var.new("uitextrows", var.INT, 1, 40, 200, var.PERSIST)
 
+--[[! Struct: Label
+    A regular label. Has several properties - text (the label, a string),
+    scale (the scale, defaults to 1, which is the base scale), wrap (text
+    wrapping, defaults to -1 - not wrapped, otherwis a size), r, g, b, a
+    (see <Rectangle> for these).
+]]
 M.Label = register_class("Label", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1874,6 +1965,9 @@ M.Label = register_class("Label", Object, {
         return Object.__init(self, kwargs)
     end,
 
+    --[[! Function: target
+        Labels are always targetable.
+    ]]
     target = function(self, cx, cy)
         return Object.target(self, cx, cy) or self
     end,
@@ -1917,22 +2011,28 @@ M.Label = register_class("Label", Object, {
     end
 })
 
+--[[! Struct: Eval_Label
+    See <Label>. Instead of the property "text", there is "func", which is
+    a callable value that returns the text to display.
+]]
 M.Eval_Label = register_class("Eval_Label", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        self.p_cmd   = kwargs.func  or nil
+        self.p_func  = kwargs.func  or nil
         self.p_scale = kwargs.scale or  1
         self.p_wrap  = kwargs.wrap  or -1
         self.p_r     = kwargs.r or 255
         self.p_g     = kwargs.g or 255
         self.p_b     = kwargs.b or 255
         self.p_a     = kwargs.a or 255
-        self.i_val   = ""
 
         return Object.__init(self, kwargs)
     end,
 
+    --[[! Function: target
+        Labels are always targetable.
+    ]]
     target = function(self, cx, cy)
         return Object.target(self, cx, cy) or self
     end,
@@ -1942,7 +2042,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     end,
 
     draw = function(self, sx, sy)
-        local  cmd = self.p_cmd
+        local  cmd = self.p_func
         if not cmd then return Object.draw(self, sx, sy) end
         local  val = cmd()
 
@@ -1964,7 +2064,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     layout = function(self)
         Object.layout(self)
 
-        local  cmd = self.p_cmd
+        local  cmd = self.p_func
         if not cmd then return nil end
         local val = cmd()
 
@@ -1983,6 +2083,15 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     end
 })
 
+--[[! Struct: Mover
+    An object using which you can move windows. The window must have the
+    floating property set to true or it won't move. It doesn't have any
+    appearance or states, those are defined by its children.
+
+    If you have multiple movable windows, the mover will take care of
+    moving the current window to the top. That means you don't have to care
+    about re-stacking them.
+]]
 M.Mover = register_class("Mover", Object, {
     hover = function(self, cx, cy)
         return self:target(cx, cy) and self
