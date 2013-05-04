@@ -72,6 +72,14 @@ local M = {
     Space = base.Space
 }
 
+--[[! Variable: orient
+    Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.
+]]
+local orient = {
+    HORIZONTAL = 0, VERTICAL = 1
+}
+M.orient = orient
+
 --[[! Struct: H_Box
     A horizontal box. Boxes are containers that hold multiple widgets that
     do not cover each other. It has one extra property, padding, specifying
@@ -548,16 +556,11 @@ M.Toggle = register_class("Toggle", Button, {
     end,
 })
 
-local H_Scrollbar
-local V_Scrollbar
-
-local Scroller, Scrollbar, Scroll_Button
-
 --[[! Struct: Scroller
     Derived from Clipper. Provides a scrollable area without scrollbars.
     Scrollbars are separate widgets and are siblings of scrollers.
 ]]
-Scroller = register_class("Scroller", Clipper, {
+M.Scroller = register_class("Scroller", Clipper, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
@@ -568,6 +571,10 @@ Scroller = register_class("Scroller", Clipper, {
         return Clipper.__init(self, kwargs)
     end,
 
+    --[[! Function: clear
+        In addition to the regular clear it takes care of unlinking
+        the scrollbars.
+    ]]
     clear = function(self)
         self:bind_h_scrollbar()
         self:bind_v_scrollbar()
@@ -585,7 +592,6 @@ Scroller = register_class("Scroller", Clipper, {
             self.i_virt_w, self.i_virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
-
         return Object.target(self, cx + oh, cy + ov)
     end,
 
@@ -610,6 +616,11 @@ Scroller = register_class("Scroller", Clipper, {
         return Object.click(self, cx + oh, cy + ov)
     end,
 
+    --[[! Function: key_hover
+        A mouse scroll wheel handler. It scrolls in the direction of its
+        scrollbar. If both are present, vertical takes precedence. If none
+        is present, scrolling won't work.
+    ]]
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSE4, key.MOUSE5
         if code ~= m4 or code ~= m5 then
@@ -642,6 +653,11 @@ Scroller = register_class("Scroller", Clipper, {
         end
     end,
 
+    --[[! Function: bind_h_scrollbar
+        Binds a horizontal scrollbar object to the scroller. It sets up both
+        sides appropriately. You can do this from the scrollbar side as well.
+        Calling with nil unlinks the scrollbar and returns it.
+    ]]
     bind_h_scrollbar = function(self, sb)
         if not sb then
             sb = self.i_h_scrollbar
@@ -653,6 +669,11 @@ Scroller = register_class("Scroller", Clipper, {
         sb.i_scroller = self
     end,
 
+    --[[! Function: bind_v_scrollbar
+        Binds a vertical scrollbar object to the scroller. It sets up both
+        sides appropriately. You can do this from the scrollbar side as well.
+        Calling with nil unlinks the scrollbar and returns it.
+    ]]
     bind_v_scrollbar = function(self, sb)
         if not sb then
             sb = self.i_v_scrollbar
@@ -664,49 +685,95 @@ Scroller = register_class("Scroller", Clipper, {
         sb.i_scroller = self
     end,
 
+    --[[! Function: get_h_limit
+        Returns the horizontal offset limit, that is, the actual width of
+        the contents minus the clipper width.
+    ]]
     get_h_limit = function(self)
         return max(self.i_virt_w - self.p_w, 0)
     end,
 
+    --[[! Function: get_v_limit
+        See above.
+    ]]
     get_v_limit = function(self)
         return max(self.i_virt_h - self.p_h, 0)
     end,
 
+    --[[! Function: get_h_offset
+        Returns the horizontal offset, that is, the portion of the actual
+        size of the contents the scroller offsets by. It's computed as
+        actual_offset / max(size_of_container, size_of_contents).
+    ]]
     get_h_offset = function(self)
         return self.i_offset_h / max(self.i_virt_w, self.p_w)
     end,
 
+    --[[! Function: get_v_offset
+        See above.
+    ]]
     get_v_offset = function(self)
         return self.i_offset_v / max(self.i_virt_h, self.p_h)
     end,
 
+    --[[! Function: get_h_scale
+        Returns the horizontal scale, that is,
+        size_of_container / max(size_of_container, size_of_contents).
+    ]]
     get_h_scale = function(self)
         return self.p_w / max(self.i_virt_w, self.p_w)
     end,
 
+    --[[! Function: get_v_scale
+        See above.
+    ]]
     get_v_scale = function(self)
         return self.p_h / max(self.i_virt_h, self.p_h)
     end,
 
+    --[[! Function: set_h_scroll
+        Sets the horizontal scroll offset. Takes the "real" offset, that is,
+        actual_offset as <get_h_offset> describes it (offset 1 would be the
+        full screen height).
+    ]]
     set_h_scroll = function(self, hs)
         self.i_offset_h = clamp(hs, 0, self:get_h_limit())
     end,
 
+    --[[! Function: set_v_scroll
+        See above.
+    ]]
     set_v_scroll = function(self, vs)
         self.i_offset_v = clamp(vs, 0, self:get_v_limit())
     end,
 
+    --[[! Function: scroll_h
+        Like <set_h_scroll>, but works with deltas (adds the given value
+        to the actual offset).
+    ]]
     scroll_h = function(self, hs)
         self:set_h_scroll(self.i_offset_h + hs)
     end,
 
+    --[[! Function: scroll_v
+        See above.
+    ]]
     scroll_v = function(self, vs)
         self:set_v_scroll(self.i_offset_v + vs)
     end
 })
-M.Scroller = Scroller
 
-Scrollbar = register_class("Scrollbar", Object, {
+local Scroll_Button
+
+--[[! Struct: Scrollbar
+    A base scrollbar widget class. This one is not of much use. Has two
+    properties, arrow_size (determines the length of the arrow part of
+    the scrollbar) and arrow_speed (mouse scroll is by 0.2 * arrow_speed,
+    arrow scroll is by frame_time * arrow_speed), both of which default to 0.
+]]
+local Scrollbar = register_class("Scrollbar", Object, {
+    orient = -1,
+
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.p_arrow_size  = kwargs.arrow_size  or 0
@@ -716,21 +783,38 @@ Scrollbar = register_class("Scrollbar", Object, {
         return Object.__init(self, kwargs)
     end,
 
+    --[[! Function: clear
+        In addition to the regular clear it takes care of unlinking
+        the scroller.
+    ]]
     clear = function(self)
         self:bind_scroller()
         return Object.clear(self)
     end,
 
-    bind_scroller = function(self) end,
+    --[[! Function: bind_scroller
+        This one does nothing, it's further overloaded in horizontal and
+        vertical variants. It takes care of linking a scroller to itself
+        as well as linking this scrollbar to the scroller. Calling with
+        nil unlinks the scroller and returns it.
+    ]]
+    bind_scroller = function(self, sc) end,
 
     choose_direction = function(self, cx, cy)
         return 0
     end,
 
+    --[[! Function: hover
+        Scrollbars can be hovered on.
+    ]]
     hover = function(self, cx, cy)
         return Object.hover(self, cx, cy) or self
     end,
 
+    --[[! Function: hover
+        Scrollbars can be clicked on assuming none of the children want
+        to be clicked on.
+    ]]
     click = function(self, cx, cy)
         return Object.click(self, cx, cy) or
                      (self:target(cx, cy) and self or nil)
@@ -738,6 +822,10 @@ Scrollbar = register_class("Scrollbar", Object, {
 
     scroll_to = function(self, cx, cy) end,
 
+    --[[! Function: key_hover
+        Mouse scrolling on a scrollbar results in the scroller being scrolled
+        by 0.2 in the right direction depending on the scrollbar type.
+    ]]
     key_hover = function(self, code, isdown)
         local m4, m5 = key.MOUSE4, key.MOUSE5
         if code ~= m4 or code ~= m5 then
@@ -749,7 +837,7 @@ Scrollbar = register_class("Scrollbar", Object, {
         if not isdown then return true end
 
         local adjust = (code == m4 and -0.2 or 0.2) * self.p_arrow_speed
-        if self.__proto == V_Scrollbar then
+        if self.orient == 1 then
             sc:scroll_v(adjust)
         else
             sc:scroll_h(adjust)
@@ -758,6 +846,10 @@ Scrollbar = register_class("Scrollbar", Object, {
         return true
     end,
 
+    --[[! Function: clicked
+        Clicking inside the scrollbar area but outside the arrow area jumps
+        in the scroller.
+    ]]
     clicked = function(self, cx, cy)
         local id = self:choose_direction(cx, cy)
         self.i_arrow_dir = id
@@ -773,6 +865,10 @@ Scrollbar = register_class("Scrollbar", Object, {
 
     arrow_scroll = function(self) end,
 
+    --[[! Function: hovering
+        When the arrow area is pressed, the scroller will keep scrolling
+        in the appropriate direction. Also controls the scroll button.
+    ]]
     hovering = function(self, cx, cy)
         if is_clicked(self) then
             if self.i_arrow_dir ~= 0 then
@@ -793,6 +889,13 @@ Scrollbar = register_class("Scrollbar", Object, {
 })
 M.Scrollbar = Scrollbar
 
+--[[! Struct: Scroll_Button
+    A scroll button you can put inside a scrollbar and drag. The scrollbar
+    will adjust the button width (in case of horizontal scrollbar) and height
+    (in case of vertical scrollbar) depending on the scroller contents.
+
+    A scroll button has three states, "default", "hovering" and "clicked".
+]]
 Scroll_Button = register_class("Scroll_Button", Object, {
     __init = function(self, kwargs)
         self.i_offset_h = 0
@@ -833,7 +936,16 @@ M.Scroll_Button = Scroll_Button
 local ALIGN_HMASK = 0x3
 local ALIGN_VMASK = 0xC
 
-H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
+--[[! Struct: H_Scrollbar
+    A specialization of <Scrollbar>. Has the "orient" member set to
+    the HORIZONTAL field of <orient>. Overloads some of the Scrollbar
+    methods specifically for horizontal scrolling.
+
+    Has five states - "default", "(up|down)_hovering", "(up|down)_clicked".
+]]
+M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
+    orient = orient.HORIZONTAL,
+
     bind_scroller = function(self, sc)
         if not sc then
             sc = self.i_scroller
@@ -915,9 +1027,14 @@ H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         self:scroll_to(o.p_x + tox - fromx, o.p_y + toy)
     end
 }, Scrollbar.type)
-M.H_Scrollbar = H_Scrollbar
 
-V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
+--[[! Struct: V_Scrollbar
+    See <H_Scrollbar> above. Has different states, "default",
+    "(left|right)_hovering" and "(left|right)_clicked".
+]]
+M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
+    orient = orient.VERTICAL,
+
     bind_scroller = function(self, sc)
         if not sc then
             sc = self.i_scroller
@@ -1001,7 +1118,6 @@ V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         self:scroll_to(o.p_x + tox, o.p_y + toy - fromy)
     end
 }, Scrollbar.type)
-M.V_Scrollbar = V_Scrollbar
 
 local Slider_Button
 
