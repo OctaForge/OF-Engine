@@ -12,7 +12,11 @@
     About: Purpose
         A basic widget set for the GUI. Doesn't include the very core of the
         whole system (Object, Named_Object, Tag, Window, Overlay, World).
-        Forwards Tag.
+        Forwards Tag, Window, Overlay, Space.
+
+        This doesn't document every single overloaded method on every object.
+        Only the ones with a special meaning are documented. There is no reason
+        for everything to be documented as it has no actual use.
 ]]
 
 local ffi = require("ffi")
@@ -62,9 +66,18 @@ local get_textediting, set_textediting
     = base.get_textediting, base.set_textediting
 
 local M = {
-    Tag = base.Tag
+    Tag = base.Tag,
+    Window = base.Window,
+    Overlay = base.Overlay,
+    Space = base.Space
 }
 
+--[[! Struct: H_Box
+    A horizontal box. Boxes are containers that hold multiple widgets that
+    do not cover each other. It has one extra property, padding, specifying
+    the padding between the items (the actual width is width of items
+    extended by (nitems-1)*padding).
+]]
 M.H_Box = register_class("H_Box", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -102,6 +115,9 @@ M.H_Box = register_class("H_Box", Object, {
     end
 })
 
+--[[! Struct: V_Box
+    See <H_Box>. This is a vertical variant.
+]]
 M.V_Box = register_class("V_Box", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -140,6 +156,13 @@ M.V_Box = register_class("V_Box", Object, {
     end
 }, M.H_Box.type)
 
+--[[! Struct: Table
+    A table is a grid of elements. It has two properties, columns (specifies
+    the number of columns the table will have at max) and again padding (which
+    has the same meaning as in boxes). As you append, the children will
+    automatically position themselves according to the max number of
+    columns.
+]]
 M.Table = register_class("Table", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -251,6 +274,10 @@ M.Table = register_class("Table", Object, {
     end
 })
 
+--[[! Struct: Spacer
+    A spacer will give an object a horizontal padding (pad_h) and a vertical
+    padding (pad_v). There is no other meaning to it.
+]]
 M.Spacer = register_class("Spacer", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -284,6 +311,16 @@ M.Spacer = register_class("Spacer", Object, {
     end
 })
 
+--[[! Struct: Filler
+    A filler will fill at least min_w space horizontally and min_h space
+    vertically. If the min_w property is -1, the filler will take all
+    the available space (depending on aspect ratio), if min_h is -1,
+    it'll take the full height (1). It's invisible.
+
+    There is also the clip_children boolean property defaulting to false.
+    When true, it'll clip children inside - that's useful for, say, embedded
+    floating windows.
+]]
 local Filler = register_class("Filler", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -316,6 +353,10 @@ local Filler = register_class("Filler", Object, {
         self.p_h = max(self.p_h, min_h)
     end,
 
+    --[[! Function: target
+        Makes sure the filler can take input. Makes it useful for, say, button
+        surfaces (when they should be invisible).
+    ]]
     target = function(self, cx, cy)
         return Object.target(self, cx, cy) or self
     end,
@@ -332,6 +373,9 @@ local Filler = register_class("Filler", Object, {
 })
 M.Filler = Filler
 
+--[[! Struct: Offsetter
+    Offsets an object by offset_h and offset_v properties.
+]]
 M.Offsetter = register_class("Offsetter", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -361,6 +405,9 @@ M.Offsetter = register_class("Offsetter", Object, {
     end
 })
 
+--[[! Struct: Clipper
+    Clips the children inside of it by clip_w and clip_h.
+]]
 local Clipper = register_class("Clipper", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -403,6 +450,12 @@ local Clipper = register_class("Clipper", Object, {
 })
 M.Clipper = Clipper
 
+--[[! Struct: Conditional
+    Conditional has two states, "true" and "false". It has a property,
+    "condition", which is a function. If that function exists and returns
+    a value that can be evaluated as true, the "true" state is set, otherwise
+    the "false" state is set.
+]]
 M.Conditional = register_class("Conditional", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -415,22 +468,42 @@ M.Conditional = register_class("Conditional", Object, {
     end
 })
 
+--[[! Struct: Button
+    A button has three states, "default", "hovering" and "clicked". On click
+    it emits the "click" signal on itself (which is handled by <Object>, the
+    button itself doesn't do anything).
+]]
 local Button = register_class("Button", Object, {
     choose_state = function(self)
         return is_clicked(self) and "clicked" or
             (is_hovering(self) and "hovering" or "default")
     end,
 
+    --[[! Function: hover
+        Buttons can take be hovered on. Assuming self:target(cx, cy) returns
+        anything, this returns itself. That means if a child can be targeted,
+        the hovered widget will be the button itself.
+    ]]
     hover = function(self, cx, cy)
         return self:target(cx, cy) and self
     end,
 
+    --[[! Function: click
+        See <hover>.
+    ]]
     click = function(self, cx, cy)
         return self:target(cx, cy) and self
     end
 })
 M.Button = Button
 
+--[[! Struct: Conditional_Button
+    Derived from Button. It's similar, but provides more states - more
+    specifically "false", "true", "hovering", "clicked". There is the
+    "condition" property which works identically as in <Conditional>.
+    If the condition is not met, the "false" state is used, otherwise
+    one of the other three is used as in <Button>.
+]]
 M.Conditional_Button = register_class("Conditional_Button", Button, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -440,10 +513,13 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
 
     choose_state = function(self)
         return ((self.p_condition and self:p_condition()) and
-            (is_clicked(self) and "true_clicked" or
-                (is_hovering(self) and "true_hovering" or "true")) or "false")
+            (is_clicked(self) and "clicked" or
+                (is_hovering(self) and "hovering" or "true")) or "false")
     end,
 
+    --[[! Function: clicked
+        Makes sure the signal is sent only if the condition is met.
+    ]]
     clicked = function(self, cx, cy)
         if self.p_condition and self:p_condition() then
             Object.clicked(self, cx, cy)
@@ -451,6 +527,12 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
     end
 })
 
+--[[! Struct: Toggle
+    Derived from Button. Toggles between two states depending on the
+    "condition" property (if the condition returns something that evaluates
+    to true, either the "toggled" or "toggled_hovering" state is used,
+    otherwise "default" or "default_hovering" is used).
+]]
 M.Toggle = register_class("Toggle", Button, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}

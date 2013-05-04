@@ -214,4 +214,4 @@ namespace lua
     }
 
     void reset() {}
-} /* end namespace lapi */
+} /* end namespace lua */
