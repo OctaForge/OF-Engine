@@ -3273,10 +3273,9 @@ static void texture_setmeta(lua_State *L) {
 }
 
 LUAICOMMAND(texture_load, {
-    const char *path = luaL_checkstring(L, 1);
-    Texture **tex = (Texture**)lua_newuserdata(L, sizeof(void*));
+    *((Texture**)lua_newuserdata(L, sizeof(void*)))
+        = textureload(luaL_checkstring(L, 1), 3, true, false);
     texture_setmeta(L);
-    *tex = textureload(path, 3, true, false);
     return 1;
 });
 
@@ -3285,7 +3284,134 @@ LUAICOMMAND(texture_is_notexture, {
     return 1;
 });
 
+LUAICOMMAND(texture_get_notexture, {
+    *((Texture**)lua_newuserdata(L, sizeof(void*))) = notexture;
+    texture_setmeta(L);
+    return 1;
+});
+
 LUAICOMMAND(texture_load_alpha_mask, {
     loadalphamask(luachecktexture(L, 1));
     return 0;
 });
+
+VAR(thumbtime, 0, 25, 1000);
+static int lastthumbnail = 0;
+
+static void drawslot(Slot &slot, VSlot &vslot, float w, float h, float sx, float sy) {
+    Texture *tex = notexture, *glowtex = NULL, *layertex = NULL;
+    VSlot *layer = NULL;
+    if (slot.loaded) {
+        tex = slot.sts[0].t;
+        if (slot.texmask&(1<<TEX_GLOW)) {
+            loopv(slot.sts) if(slot.sts[i].type==TEX_GLOW)
+            { glowtex = slot.sts[i].t; break; }
+        }
+        if (vslot.layer) {
+            layer = &lookupvslot(vslot.layer);
+            if(!layer->slot->sts.empty())
+                layertex = layer->slot->sts[0].t;
+        }
+    }
+    else if(slot.thumbnail) tex = slot.thumbnail;
+    float xt, yt;
+    xt = min(1.0f, tex->xs/(float)tex->ys),
+    yt = min(1.0f, tex->ys/(float)tex->xs);
+
+    vec2 tc[4] = { vec2(0, 0), vec2(1, 0), vec2(0, 1), vec2(1, 1) };
+    int xoff = vslot.offset.x, yoff = vslot.offset.y;
+    if (vslot.rotation) {
+        if ((vslot.rotation&5) == 1) { swap(xoff, yoff); loopk(4) swap(tc[k][0], tc[k][1]); }
+        if (vslot.rotation >= 2 && vslot.rotation <= 4) { xoff *= -1; loopk(4) tc[k][0] *= -1; }
+        if (vslot.rotation <= 2 || vslot.rotation == 5) { yoff *= -1; loopk(4) tc[k][1] *= -1; }
+    }
+    loopk(4) { tc[k][0] = tc[k][0]/xt - float(xoff)/tex->xs; tc[k][1] = tc[k][1]/yt - float(yoff)/tex->ys; }
+
+    if (slot.loaded) SETSHADER(hudrgb);
+    else hudshader->setvariant(hasTRG ? (tex->bpp==1 ? 0 : (tex->bpp==2 ? 1 : -1)) : -1, 0);
+
+    glBindTexture(GL_TEXTURE_2D, tex->id);
+
+    if (slot.loaded) gle::color(vslot.colorscale);
+    else gle::colorf(1, 1, 1);
+    gle::begin(GL_TRIANGLE_STRIP);
+    gle::attribf(sx  , sy  ); gle::attrib(tc[0]);
+    gle::attribf(sx+w, sy  ); gle::attrib(tc[1]);
+    gle::attribf(sx  , sy+h); gle::attrib(tc[2]);
+    gle::attribf(sx+w, sy+h); gle::attrib(tc[3]);
+    gle::end();
+
+    if (glowtex) {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glBindTexture(GL_TEXTURE_2D, glowtex->id);
+        gle::color(vslot.glowcolor);
+        gle::begin(GL_TRIANGLE_STRIP);
+        gle::attribf(sx  , sy  ); gle::attrib(tc[0]);
+        gle::attribf(sx+w, sy  ); gle::attrib(tc[1]);
+        gle::attribf(sx  , sy+h); gle::attrib(tc[2]);
+        gle::attribf(sx+w, sy+h); gle::attrib(tc[3]);
+        gle::end();
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    if (layertex) {
+        glBindTexture(GL_TEXTURE_2D, layertex->id);
+        gle::color(layer->colorscale);
+        gle::begin(GL_TRIANGLE_STRIP);
+        gle::attribf(sx  , sy  ); gle::attrib(tc[0]);
+        gle::attribf(sx+w, sy  ); gle::attrib(tc[1]);
+        gle::attribf(sx  , sy+h); gle::attrib(tc[2]);
+        gle::attribf(sx+w, sy+h); gle::attrib(tc[3]);
+        gle::end();
+    }
+    gle::colorf(1, 1, 1);
+}
+
+LUAICOMMAND(texture_draw_slot, {
+    int slotnum = luaL_checkinteger(L, 1);
+    float w  = luaL_checknumber(L, 2); float h  = luaL_checknumber(L, 3);
+    float sx = luaL_checknumber(L, 4); float sy = luaL_checknumber(L, 5);
+    if (texmru.inrange(slotnum))
+    {
+        VSlot &vslot = lookupvslot(texmru[slotnum], false);
+        Slot &slot = *vslot.slot;
+        if (slot.sts.length())
+        {
+            if(slot.loaded || slot.thumbnail)
+                drawslot(slot, vslot, w, h, sx, sy);
+
+            else if (totalmillis-lastthumbnail >= thumbtime)
+            {
+                loadthumbnail(slot);
+                lastthumbnail = totalmillis;
+            }
+        }
+    }
+    return 0;
+});
+
+LUAICOMMAND(thumbnail_load, {
+    const char *p = luaL_checkstring(L, 1);
+    bool force = lua_toboolean(L, 2);
+
+    string tname;
+    copystring(tname, p);
+    Texture *t = textures.access(path(tname));
+    if (t) goto finalize;
+
+    copystring(tname, makerelpath(NULL, p, "<thumbnail>", NULL));
+    t = textures.access(path(tname));
+    if (t) goto finalize;
+
+    if (force || (totalmillis - lastthumbnail) >= thumbtime)
+        t = textureload(p, 3, true, false);
+
+    if (!t || t == notexture) {
+        return 0;
+    }
+finalize:
+    lastthumbnail = totalmillis;
+    *((Texture**)lua_newuserdata(L, sizeof(void*))) = t;
+    texture_setmeta(L);
+    return 1;
+})

@@ -1856,10 +1856,63 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
     end
 })
 
+--[[! Struct: Thumbnail
+    Derived from Image. Represents a thumbnail. You can't supply an alt
+    image via kwargs, you can supply the other stuff. A thumbnail's default
+    texture is notexture and the delay between loads of different
+    thumbnails is defined using the "thumbtime" engine variable which
+    defaults to 25 milliseconds. If the thumbnail is requested (by
+    targeting it), it loads immediately.
+]]
+M.Thumbnail = register_class("Thumbnail", Image, {
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        self.i_file = kwargs.file
+        self.i_tex  = _C.texture_get_notexture()
+
+        self.p_min_filter = kwargs.min_filter
+        self.p_mag_filter = kwargs.mag_filter
+
+        self.p_r = kwargs.r or 255
+        self.p_g = kwargs.g or 255
+        self.p_b = kwargs.b or 255
+        self.p_a = kwargs.a or 255
+
+        return Filler.__init(self, kwargs)
+    end,
+
+    load = function(self, force)
+        if self.i_loaded then return nil end
+        local tex = _C.thumbnail_load(self.i_file, force)
+        if tex then
+            self.i_loaded = true
+            self.i_tex = tex
+        end
+    end,
+
+    --[[! Function: target
+        Unlike the regular target in <Image>, this force-loads the thumbnail
+        texture and then targets.
+    ]]
+    target = function(self, cx, cy)
+        self:load(true)
+        return Image.target(self, cx, cy)
+    end,
+
+    --[[! Function: draw
+        Before drawing, this tries to load the thumbnail, but without forcing
+        it like <target>.
+    ]]
+    draw = function(self, sx, sy)
+        self:load()
+        return Image.target(self, sx, sy)
+    end
+})
+
 --[[! Struct: Slot_Viewer
     Derived from <Filler>. Represents a texture slot thumbnail, for example
     in a texture selector. Has one property, slot, which is the texture slot
-    id.
+    id. Regular thumbnail rules and delays are followed like in <Thumbnail>.
 ]]
 M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     __init = function(self, kwargs)
