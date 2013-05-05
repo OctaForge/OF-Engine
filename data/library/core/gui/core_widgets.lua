@@ -2354,9 +2354,9 @@ M.Label = register_class("Label", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        self.p_text  = kwargs.text  or ""
-        self.p_scale = kwargs.scale or  1
-        self.wrap    = kwargs.wrap  or -1
+        self.text  = kwargs.text  or ""
+        self.scale = kwargs.scale or  1
+        self.wrap  = kwargs.wrap  or -1
         self.r     = kwargs.r or 255
         self.g     = kwargs.g or 255
         self.b     = kwargs.b or 255
@@ -2373,7 +2373,7 @@ M.Label = register_class("Label", Object, {
     end,
 
     draw_scale = function(self)
-        return self.p_scale / (_V["fonth"] * _V["uitextrows"])
+        return self.scale / (_V["fonth"] * _V["uitextrows"])
     end,
 
     draw = function(self, sx, sy)
@@ -2384,7 +2384,7 @@ M.Label = register_class("Label", Object, {
         _C.hudmatrix_flush()
 
         local w = self.wrap
-        _C.text_draw(self.p_text, sx / k, sy / k,
+        _C.text_draw(self.text, sx / k, sy / k,
             self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
 
         _C.gle_color4f(1, 1, 1, 1)
@@ -2398,7 +2398,7 @@ M.Label = register_class("Label", Object, {
 
         local k = self:draw_scale()
 
-        local w, h = _C.text_get_bounds(self.p_text,
+        local w, h = _C.text_get_bounds(self.text,
             self.wrap <= 0 and -1 or self.wrap / k)
 
         if self.wrap <= 0 then
@@ -2409,6 +2409,15 @@ M.Label = register_class("Label", Object, {
 
         self.h = max(self.h, h * k)
     end,
+
+    --[[! Function: set_text ]]
+    set_text = gen_setter "text",
+
+    --[[! Function: set_scale ]]
+    set_scale = gen_setter "scale",
+
+    --[[! Function: set_wrap ]]
+    set_wrap = gen_setter "wrap",
 
     --[[! Function: set_r ]]
     set_r = gen_setter "r",
@@ -2431,8 +2440,8 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        self.p_func  = kwargs.func  or nil
-        self.p_scale = kwargs.scale or  1
+        self.func  = kwargs.func  or nil
+        self.scale = kwargs.scale or  1
         self.wrap  = kwargs.wrap  or -1
         self.r     = kwargs.r or 255
         self.g     = kwargs.g or 255
@@ -2450,11 +2459,11 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     end,
 
     draw_scale = function(self)
-        return self.p_scale / (_V["fonth"] * _V["uitextrows"])
+        return self.scale / (_V["fonth"] * _V["uitextrows"])
     end,
 
     draw = function(self, sx, sy)
-        local  cmd = self.p_func
+        local  cmd = self.func
         if not cmd then return Object.draw(self, sx, sy) end
         local  val = cmd()
 
@@ -2476,7 +2485,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     layout = function(self)
         Object.layout(self)
 
-        local  cmd = self.p_func
+        local  cmd = self.func
         if not cmd then return nil end
         local val = cmd()
 
@@ -2493,6 +2502,15 @@ M.Eval_Label = register_class("Eval_Label", Object, {
 
         self.h = max(self.h, h * k)
     end,
+
+    --[[! Function: set_func ]]
+    set_func = gen_setter "func",
+
+    --[[! Function: set_scale ]]
+    set_scale = gen_setter "scale",
+
+    --[[! Function: set_wrap ]]
+    set_wrap = gen_setter "wrap",
 
     --[[! Function: set_r ]]
     set_r = gen_setter "r",
