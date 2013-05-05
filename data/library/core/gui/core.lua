@@ -1375,13 +1375,8 @@ set_external("cursor_move", function(dx, dy)
 end)
 
 local cursor_exists = function(draw)
-    if _V.mainmenu ~= 0 then return true end
-    local cmode = cursor_mode()
-    if cmode == 2 or (world:takes_input() and cmode >= 1) then
-        if draw then return true end
-        if world:target(cursor_x * world.w, cursor_y * world.h) then
-            return true
-        end
+    if (draw and cursor_mode() == 2) or world:takes_input() then
+        return true
     end
     return false
 end
