@@ -1201,25 +1201,25 @@ local Slider_Button
 local Slider = register_class("Slider", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_min_value = kwargs.min_value or 0
-        self.p_max_value = kwargs.max_value or 0
-        self.p_value     = kwargs.value     or 0
+        self.min_value = kwargs.min_value or 0
+        self.max_value = kwargs.max_value or 0
+        self.value     = kwargs.value     or 0
 
         if kwargs.var then
             local varn = kwargs.var
             self.var = varn
 
             if not var.exists(varn) then
-                var.new(varn, var.INT, self.p_value)
+                var.new(varn, var.INT, self.value)
             end
             local mn, mx = var.get_min(varn), var.get_max(varn)
-            self.p_min_value = clamp(self.p_min_value, mn, mx)
-            self.p_max_value = clamp(self.p_max_value, mn, mx)
+            self.min_value = clamp(self.min_value, mn, mx)
+            self.max_value = clamp(self.max_value, mn, mx)
         end
 
         self.arrow_size = kwargs.arrow_size or 0
-        self.p_step_size  = kwargs.step_size  or 1
-        self.p_step_time  = kwargs.step_time  or 1000
+        self.step_size  = kwargs.step_size  or 1
+        self.step_time  = kwargs.step_time  or 1000
 
         self.last_step = 0
         self.arrow_dir = 0
@@ -1231,10 +1231,10 @@ local Slider = register_class("Slider", Object, {
         Jumps by n steps on the slider.
     ]]
     do_step = function(self, n)
-        local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
+        local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
         local maxstep = abs(mx - mn) / ss
-        local curstep = (self.p_value - min(mn, mx)) / ss
+        local curstep = (self.value - min(mn, mx)) / ss
         local newstep = clamp(curstep + n, 0, maxstep)
 
         local val = min(mx, mn) + newstep * ss
@@ -1248,7 +1248,7 @@ local Slider = register_class("Slider", Object, {
         Sets the nth step.
     ]]
     set_step = function(self, n)
-        local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
+        local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
         local steps   = abs(mx - mn) / ss
         local newstep = clamp(n, 0, steps)
@@ -1326,7 +1326,7 @@ local Slider = register_class("Slider", Object, {
 
     arrow_scroll = function(self)
         local tmillis = _C.get_millis(true)
-        if (self.last_step + self.p_step_time) > tmillis then
+        if (self.last_step + self.step_time) > tmillis then
             return nil
         end
 
@@ -1355,7 +1355,22 @@ local Slider = register_class("Slider", Object, {
         end
     end,
 
-    move_button = function(self, o, fromx, fromy, tox, toy) end
+    move_button = function(self, o, fromx, fromy, tox, toy) end,
+
+    --[[! Function: set_min_value ]]
+    set_min_value = gen_setter "min_value",
+
+    --[[! Function: set_max_value ]]
+    set_max_value = gen_setter "max_value",
+
+    --[[! Function: set_value ]]
+    set_value = gen_setter "value",
+
+    --[[! Function: set_step_size ]]
+    set_step_size = gen_setter "step_size",
+
+    --[[! Function: set_step_time ]]
+    set_step_time = gen_setter "step_time"
 })
 M.Slider = Slider
 
@@ -1453,8 +1468,8 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
         local sw, bw = self.w, btn.w
 
-        self.set_step(self, round((abs(self.p_max_value - self.p_min_value) /
-            self.p_step_size) * clamp((cx - as - bw / 2) /
+        self.set_step(self, round((abs(self.max_value - self.min_value) /
+            self.step_size) * clamp((cx - as - bw / 2) /
                 (sw - 2 * as - bw), 0.1, 1)))
     end,
 
@@ -1462,10 +1477,10 @@ M.H_Slider = register_class("H_Slider", Slider, {
         local  btn = self:find_child(Slider_Button.type, nil, false)
         if not btn then return nil end
 
-        local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
+        local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
-        local steps   = abs(mx - mn) / self.p_step_size
-        local curstep = (self.p_value - min(mx, mn)) / ss
+        local steps   = abs(mx - mn) / self.step_size
+        local curstep = (self.value - min(mx, mn)) / ss
 
         local as = self.arrow_size
 
@@ -1513,10 +1528,10 @@ M.V_Slider = register_class("V_Slider", Slider, {
         local as = self.arrow_size
 
         local sh, bh = self.h, btn.h
-        local mn, mx = self.p_min_value, self.p_max_value
+        local mn, mx = self.min_value, self.max_value
 
         self.set_step(self, round(((max(mx, mn) - min(mx, mn)) /
-            self.p_step_size) * clamp((cy - as - bh / 2) /
+            self.step_size) * clamp((cy - as - bh / 2) /
                 (sh - 2 * as - bh), 0.1, 1)))
     end,
 
@@ -1524,10 +1539,10 @@ M.V_Slider = register_class("V_Slider", Slider, {
         local  btn = self:find_child(Slider_Button.type, nil, false)
         if not btn then return nil end
 
-        local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
+        local mn, mx, ss = self.min_value, self.max_value, self.step_size
 
         local steps   = (max(mx, mn) - min(mx, mn)) / ss + 1
-        local curstep = (self.p_value - min(mx, mn)) / ss
+        local curstep = (self.value - min(mx, mn)) / ss
 
         local as = self.arrow_size
 
@@ -3236,13 +3251,13 @@ M.Field = register_class("Field", Text_Editor, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        self.p_value = kwargs.value or ""
+        self.value = kwargs.value or ""
         if kwargs.var then
             local varn = kwargs.var
             self.var = varn
 
             if not var.exists(varn) then
-                var.new(varn, var.STRING, self.p_value)
+                var.new(varn, var.STRING, self.value)
             end
         end
 
@@ -3299,7 +3314,7 @@ M.Field = register_class("Field", Text_Editor, {
         any sort of unsaved changes.
     ]]
     reset_value = function(self)
-        local str = self.p_value
+        local str = self.value
         if self.lines[1] ~= str then self:edit_clear(str) end
     end
 })
