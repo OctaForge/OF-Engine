@@ -429,7 +429,6 @@ Object = register_class("Object", table.Object, {
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
         self.adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
-        self.children = { unpack(kwargs) }
         self.__len    = Object.__len
 
         -- alignment and clamping
@@ -445,10 +444,26 @@ Object = register_class("Object", table.Object, {
         self:align(align_h, align_v)
         self:clamp(clamp_l, clamp_r, clamp_b, clamp_t)
 
-        -- append any required children
+        -- children
+        local ch = {}
+
+        -- default children
+        local dchildren = rawget(self.__proto, "children")
+        if dchildren then
+            for i, v in ipairs(dchildren) do
+                v = v:deep_clone()
+                ch[#ch + 1] = v
+                v.parent = self
+            end
+        end
+
+        -- custom children
         for i, v in ipairs(kwargs) do
+            ch[#ch + 1] = v
             v.parent = self
         end
+
+        self.children = ch
 
         -- states
         self.current_state = nil
