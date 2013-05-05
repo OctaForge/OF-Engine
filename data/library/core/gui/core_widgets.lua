@@ -122,9 +122,7 @@ M.H_Box = register_class("H_Box", Object, {
         end)
     end,
 
-    --[[! Function: set_padding
-        Sets the padding to val and emits the padding_changed signal on self.
-    ]]
+    --[[! Function: set_padding ]]
     set_padding = function(self, val)
         self.padding = val
         signal.emit(self, "padding_changed", val)
@@ -171,9 +169,7 @@ M.V_Box = register_class("V_Box", Object, {
         end)
     end,
 
-    --[[! Function: set_padding
-        Sets the padding to val and emits the padding_changed signal on self.
-    ]]
+    --[[! Function: set_padding ]]
     set_padding = function(self, val)
         self.padding = val
         signal.emit(self, "padding_changed", val)
@@ -297,18 +293,13 @@ M.Table = register_class("Table", Object, {
         end)
     end,
 
-    --[[! Function: set_padding
-        Sets the padding to val and emits the padding_changed signal on self.
-    ]]
+    --[[! Function: set_padding ]]
     set_padding = function(self, val)
         self.padding = val
         signal.emit(self, "padding_changed", val)
     end,
 
-    --[[! Function: set_columns
-        Sets the number of columns to val and emits the columns_changed
-        signal on self.
-    ]]
+    --[[! Function: set_columns ]]
     set_padding = function(self, val)
         self.padding = val
         signal.emit(self, "padding_changed", val)
@@ -351,19 +342,13 @@ M.Spacer = register_class("Spacer", Object, {
             self.h - 2 * pv)
     end,
 
-    --[[! Function: set_pad_h
-        Sets the horizontal padding to val and emits the pad_h_changed signal
-        on self.
-    ]]
+    --[[! Function: set_pad_h ]]
     set_pad_h = function(self, val)
         self.pad_h = val
         signal.emit(self, "pad_h_changed", val)
     end,
 
-    --[[! Function: set_pad_v
-        Sets the vertical padding to val and emits the pad_v_changed signal
-        on self.
-    ]]
+    --[[! Function: set_pad_v ]]
     set_pad_v = function(self, val)
         self.pad_v = val
         signal.emit(self, "pad_v_changed", val)
@@ -435,28 +420,19 @@ local Filler = register_class("Filler", Object, {
         end
     end,
 
-    --[[! Function: set_min_w
-        Sets the minimal width to val and emits the min_w_changed signal
-        on self.
-    ]]
+    --[[! Function: set_min_w ]]
     set_min_w = function(self, val)
         self.min_w = val
         signal.emit(self, "min_w_changed", val)
     end,
 
-    --[[! Function: set_min_h
-        Sets the minimal height to val and emits the min_h_changed signal
-        on self.
-    ]]
+    --[[! Function: set_min_h ]]
     set_min_h = function(self, val)
         self.min_h = val
         signal.emit(self, "min_h_changed", val)
     end,
 
-    --[[! Function: set_clip_children
-        Sets clip_children to val and emits the clip_children_changed signal
-        on self.
-    ]]
+    --[[! Function: set_clip_children ]]
     set_clip_children = function(self, val)
         self.clip_children = val
         signal.emit(self, "clip_children_changed", val)

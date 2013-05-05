@@ -376,7 +376,11 @@ local Object, Window
     movable), parent (the parent object), states, tooltip (an object).
 
     Properties are not made for direct setting from the outside environment.
-    Those properties that are meant to be set have a setter method.
+    Those properties that are meant to be set have a setter method called
+    set_PROPNAME. Unless documented otherwise, those functions emit the
+    PROPNAME_changed signal with the given value passed to emit. Some
+    properties that you don't set and are set from the internals also
+    emit signals so you can handle extra events. That is typically documented.
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip
@@ -997,18 +1001,13 @@ Object = register_class("Object", table.Object, {
                band(a, CLAMP_BOTTOM) ~= 0, band(a, CLAMP_TOP) ~= 0
     end,
 
-    --[[! Function: set_floating
-        Sets the floating property to val and emits the floating_changed
-        signal on self.
-    ]]
+    --[[! Function: set_floating ]]
     set_floating = function(self, val)
         self.floating = val
         signal.emit(self, "floating_changed", val)
     end,
 
-    --[[! Function: set_tooltip
-        Sets the tooltip to val and emits the tooltip_changed signal on self.
-    ]]
+    --[[! Function: set_tooltip ]]
     set_tooltip = function(self, val)
         self.tooltip = val
         signal.emit(self, "tooltip_changed", val)
@@ -1103,9 +1102,7 @@ local Named_Object = register_class("Named_Object", Object, {
         return Object.__init(self, kwargs)
     end,
 
-    --[[! Function: set_name
-        Sets the name to val and emits the name_changed signal on self.
-    ]]
+    --[[! Function: set_name ]]
     set_name = function(self, val)
         self.name = val
         signal.emit(self, "name_changed", val)
