@@ -923,7 +923,7 @@ Scroll_Button = register_class("Scroll_Button", Object, {
     end,
 
     hovering = function(self, cx, cy)
-        local p = self.p_parent
+        local p = self.parent
         if is_clicked(self) and p and p.type == Scrollbar.type then
             p:move_button(self, self.i_offset_h, self.i_offset_v, cx, cy)
         end
@@ -1331,7 +1331,7 @@ Slider_Button = register_class("Slider_Button", Object, {
     end,
 
     hovering = function(self, cx, cy)
-        local p = self.p_parent
+        local p = self.parent
 
         if is_clicked(self) and p and p.type == Slider.type then
             p:move_button(self, self.i_offset_h, self.i_offset_v, cx, cy)
@@ -2337,7 +2337,7 @@ M.Mover = register_class("Mover", Object, {
         if not w then
             return self:target(cx, cy) and self
         end
-        local c = w.p_parent.p_children
+        local c = w.parent.p_children
         local n = table.find(c, w)
         local l = #c
         if n ~= l then c[l], c[n] = w, c[l] end
@@ -2345,10 +2345,10 @@ M.Mover = register_class("Mover", Object, {
     end,
 
     can_move = function(self, cx, cy)
-        local wp = self.i_win.p_parent
+        local wp = self.i_win.parent
 
         -- no parent means world; we don't need checking for non-mdi windows
-        if not wp.p_parent then
+        if not wp.parent then
             return true
         end
 
@@ -2356,7 +2356,7 @@ M.Mover = register_class("Mover", Object, {
         while p do
             rx = rx + p.p_x
             ry = ry + p.p_y
-            local  pp = p.p_parent
+            local  pp = p.parent
             if not pp then break end
             p    = pp
         end
@@ -2389,6 +2389,12 @@ M.Mover = register_class("Mover", Object, {
     end
 })
 
+--[[! Struct: Text_Editor
+    Implements a text editor widget. It's a basic editor that supports
+    scrolling of text and some extra features like key filter, password
+    and so on. It supports copy-paste that interacts with native system
+    clipboard. It doesn't have any states.
+]]
 local Text_Editor = register_class("Text_Editor", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}

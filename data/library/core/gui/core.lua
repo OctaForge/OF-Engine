@@ -415,8 +415,7 @@ Object = register_class("Object", table.Object, {
         widget.
     ]]
     __init = function(self, kwargs)
-        kwargs        = kwargs or {}
-        self.p_parent = false
+        kwargs = kwargs or {}
 
         local instances = rawget(self.__proto, "instances")
         if not instances then
@@ -447,7 +446,7 @@ Object = register_class("Object", table.Object, {
 
         -- append any required children
         for i, v in ipairs(kwargs) do
-            v.p_parent = self
+            v.parent = self
         end
 
         -- states
@@ -458,7 +457,7 @@ Object = register_class("Object", table.Object, {
         if ks then
             for k, v in pairs(ks) do
                 states[k] = v
-                states[k].p_parent = self
+                states[k].parent = self
             end
         end
 
@@ -468,7 +467,7 @@ Object = register_class("Object", table.Object, {
                 if not states[k] then
                     local cl = v:deep_clone()
                     states[k] = cl
-                    cl.p_parent = self
+                    cl.parent = self
                 end
             end
         end
@@ -530,7 +529,7 @@ Object = register_class("Object", table.Object, {
         local cl = self:clone { children = ch }
         for i = 1, #rch do
             local chcl = rch[i]:deep_clone()
-            chcl.p_parent = cl
+            chcl.parent = cl
             ch[i] = chcl
         end
         return cl
@@ -564,7 +563,7 @@ Object = register_class("Object", table.Object, {
                 -- update only on widgets actually using the default state
                 if st and st.__proto == oldstate then
                     local nst = sval:deep_clone()
-                    nst.p_parent = v
+                    nst.parent = v
                     sts[sname] = nst
                     st:clear()
                 end
@@ -707,7 +706,7 @@ Object = register_class("Object", table.Object, {
         react otherwise.
     ]]
     key_hover = function(self, code, isdown)
-        local p = self.p_parent
+        local p = self.parent
         if p then return p:key_hover(code, isdown) end
         return false
     end,
@@ -859,14 +858,14 @@ Object = register_class("Object", table.Object, {
     ]]
     find_sibling = function(self, otype, name)
         local prev = self
-        local cur  = self.p_parent
+        local cur  = self.parent
 
         while cur do
             local o = cur:find_child(otype, name, true, prev)
             if    o then return o end
 
             prev = cur
-            cur  = cur.p_parent
+            cur  = cur.parent
         end
     end,
 
@@ -876,12 +875,12 @@ Object = register_class("Object", table.Object, {
     find_siblings = function(self, otype, name)
         local ch   = {}
         local prev = self
-        local cur  = self.p_parent
+        local cur  = self.parent
 
         while cur do
             cur:find_children(otype, name, true, prev, ch)
             prev = cur
-            cur  = cur.p_parent
+            cur  = cur.parent
         end
         return ch
     end,
@@ -927,7 +926,7 @@ Object = register_class("Object", table.Object, {
         Removes itself from its parent.
     ]]
     destroy = function(self)
-        self.p_parent:remove(self)
+        self.parent:remove(self)
     end,
 
     --[[! Function: destroy_children
@@ -1007,7 +1006,7 @@ Object = register_class("Object", table.Object, {
     ]]
     insert = function(self, pos, obj, fun)
         table.insert(self.p_children, pos, obj)
-        obj.p_parent = self
+        obj.parent = self
         if fun then fun(obj) end
         return obj
     end,
@@ -1020,7 +1019,7 @@ Object = register_class("Object", table.Object, {
     append = function(self, obj, fun)
         local children = self.p_children
         children[#children + 1] = obj
-        obj.p_parent = self
+        obj.parent = self
         if fun then fun(obj) end
         return obj
     end,
@@ -1032,7 +1031,7 @@ Object = register_class("Object", table.Object, {
     ]]
     prepend = function(self, obj, fun)
         table.insert(self.p_children, 1, obj)
-        obj.p_parent = self
+        obj.parent = self
         if fun then fun(obj) end
         return obj
     end,
@@ -1049,7 +1048,7 @@ Object = register_class("Object", table.Object, {
         local ostate = states[state]
         if ostate then ostate:clear() end
         states[state] = obj
-        obj.p_parent = self
+        obj.parent = self
         return obj
     end,
 
@@ -1068,9 +1067,9 @@ Object = register_class("Object", table.Object, {
         end
         local  w = self.i_win
         if not w then
-            w = self.p_parent
+            w = self.parent
             while w and w.type ~= Window.type do
-                w = w.p_parent
+                w = w.parent
             end
             self.i_win = w
         end
@@ -1246,7 +1245,7 @@ local World = register_class("World", Object, {
         local kwargs = { name = name }
         local win = noinput and Overlay(kwargs) or
             (onscreen and Space(kwargs) or Window(kwargs))
-        win.p_parent = self
+        win.parent = self
 
         local children = self.p_children
         children[#children + 1] = win
