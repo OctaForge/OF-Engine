@@ -39,7 +39,7 @@ end
 local i = 0
 
 world:new_window("main", function(win)
-    win.floating = true
+    win:set_floating(true)
     win:append(gui.widgets.Rectangle { r = 96, g = 96, b = 255, a = 128 }, function(r)
         r:align(0, 0)
         r:append(gui.widgets.V_Box(), function(b)
@@ -65,9 +65,9 @@ world:new_window("main", function(win)
             b:append(gui.widgets.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
                 s:append(gui.widgets.H_Box(), function(b)
                     b:append(gui.widgets.Button { label = "A button" }, function(b)
-                        b.tooltip = gui.widgets.Rectangle {
+                        b:set_tooltip(gui.widgets.Rectangle {
                             min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
-                        }
+                        })
                         b.tooltip:append(gui.widgets.Label { text = "A tooltip" })
                         signal.connect(b, "click", function()
                             echo "you clicked a button"
@@ -83,7 +83,7 @@ world:new_window("main", function(win)
 end)
 
 world:new_window("test", function(win)
-    win.floating = true
+    win:set_floating(true)
     win:append(gui.Window {
         title = "O hai!",
         gui.widgets.Label {
