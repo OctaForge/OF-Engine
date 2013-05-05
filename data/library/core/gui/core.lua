@@ -163,8 +163,8 @@ M.get_class = get_class
     from 1 to N.
 ]]
 local loop_children = function(self, fun)
-    local ch = self.p_children
-    local st = self.p_states
+    local ch = self.children
+    local st = self.states
 
     if st then
         local s = self:choose_state()
@@ -194,8 +194,8 @@ M.loop_children = loop_children
     has states, it acts on the current state.
 ]]
 local loop_children_r = function(self, fun)
-    local ch = self.p_children
-    local st = self.p_states
+    local ch = self.children
+    local st = self.states
 
     for i = #ch, 1, -1 do
         local r = fun(ch[i])
@@ -428,7 +428,7 @@ Object = register_class("Object", table.Object, {
         self.p_fx, self.p_fy = false, false
 
         self.adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
-        self.p_children = { unpack(kwargs) }
+        self.children = { unpack(kwargs) }
         self.__len      = Object.__len
 
         -- alignment and clamping
@@ -472,7 +472,7 @@ Object = register_class("Object", table.Object, {
             end
         end
 
-        self.p_states = states
+        self.states = states
 
         -- and connect signals
         if kwargs.signals then
@@ -491,7 +491,7 @@ Object = register_class("Object", table.Object, {
     end,
 
     __len = function(self)
-        return #self.p_children
+        return #self.children
     end,
 
     --[[! Function: clear
@@ -502,13 +502,13 @@ Object = register_class("Object", table.Object, {
     clear = function(self)
         clear_focus(self)
 
-        local children = self.p_children
+        local children = self.children
         if children then
             for i = 1, #children do
                 local ch = children[i]
                 ch:clear()
             end
-            self.p_children = nil
+            self.children = nil
         end
 
         signal.emit(self, "destroy")
@@ -557,7 +557,7 @@ Object = register_class("Object", table.Object, {
 
         local insts = rawget(self, "instances")
         if insts then for v in pairs(insts) do
-            local sts = v.p_states
+            local sts = v.states
             if sts then
                 local st = sts[sname]
                 -- update only on widgets actually using the default state
@@ -907,15 +907,15 @@ Object = register_class("Object", table.Object, {
     ]]
     remove = function(self, o)
         if type(o) == "number" then
-            if #self.p_children < n then
+            if #self.children < n then
                 return false
             end
-            table.remove(self.p_children, n):clear()
+            table.remove(self.children, n):clear()
             return true
         end
-        for i = 1, #self.p_children do
-            if o == self.p_children[i] then
-                table.remove(self.p_children, i):clear()
+        for i = 1, #self.children do
+            if o == self.children[i] then
+                table.remove(self.children, i):clear()
                 return true
             end
         end
@@ -934,11 +934,11 @@ Object = register_class("Object", table.Object, {
         "children_destroy" afterwards.
     ]]
     destroy_children = function(self)
-        local ch = self.p_children
+        local ch = self.children
         for i = 1, #ch do
             ch[i]:clear()
         end
-        self.p_children = {}
+        self.children = {}
         signal.emit(self, "children_destroy")
     end,
 
@@ -1005,7 +1005,7 @@ Object = register_class("Object", table.Object, {
         the function with the object as an argument.
     ]]
     insert = function(self, pos, obj, fun)
-        table.insert(self.p_children, pos, obj)
+        table.insert(self.children, pos, obj)
         obj.parent = self
         if fun then fun(obj) end
         return obj
@@ -1017,7 +1017,7 @@ Object = register_class("Object", table.Object, {
         object as an argument.
     ]]
     append = function(self, obj, fun)
-        local children = self.p_children
+        local children = self.children
         children[#children + 1] = obj
         obj.parent = self
         if fun then fun(obj) end
@@ -1030,7 +1030,7 @@ Object = register_class("Object", table.Object, {
         with the object as an argument.
     ]]
     prepend = function(self, obj, fun)
-        table.insert(self.p_children, 1, obj)
+        table.insert(self.children, 1, obj)
         obj.parent = self
         if fun then fun(obj) end
         return obj
@@ -1044,7 +1044,7 @@ Object = register_class("Object", table.Object, {
         if any.
     ]]
     update_state = function(self, state, obj)
-        local states = self.p_states
+        local states = self.states
         local ostate = states[state]
         if ostate then ostate:clear() end
         states[state] = obj
@@ -1170,7 +1170,7 @@ local World = register_class("World", Object, {
         desirable behavior.
     ]]
     hover = function(self, cx, cy)
-        local ch = self.p_children
+        local ch = self.children
         for i = #ch, 1, -1 do
             local o = ch[i]
             local ox = cx - o.x
@@ -1190,7 +1190,7 @@ local World = register_class("World", Object, {
         See above, but for click events.
     ]]
     click = function(self, cx, cy)
-        local ch = self.p_children
+        local ch = self.children
         for i = #ch, 1, -1 do
             local o = ch[i]
             local ox = cx - o.x
@@ -1247,7 +1247,7 @@ local World = register_class("World", Object, {
             (onscreen and Space(kwargs) or Window(kwargs))
         win.parent = self
 
-        local children = self.p_children
+        local children = self.children
         children[#children + 1] = win
 
         if fun then fun(win) end
@@ -1471,7 +1471,7 @@ end)
 
 set_external("gui_render", function()
     local w = world
-    if #w.p_children ~= 0 then
+    if #w.children ~= 0 then
         _C.hudmatrix_ortho(w.x, w.x + w.w, w.y + w.h, w.y, -1, 1)
         _C.hudmatrix_reset()
         _C.shader_hud_set()

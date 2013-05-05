@@ -104,11 +104,11 @@ M.H_Box = register_class("H_Box", Object, {
             self.w = self.w + o.w
             self.h = max(self.h, o.y + o.h)
         end)
-        self.w = self.w + self.p_padding * max(#self.p_children - 1, 0)
+        self.w = self.w + self.p_padding * max(#self.children - 1, 0)
     end,
 
     adjust_children = function(self)
-        if #self.p_children == 0 then
+        if #self.children == 0 then
             return nil
         end
 
@@ -145,11 +145,11 @@ M.V_Box = register_class("V_Box", Object, {
             self.h = self.h + o.h
             self.w = max(self.w, o.x + o.w)
         end)
-        self.h = self.h + self.p_padding * max(#self.p_children - 1, 0)
+        self.h = self.h + self.p_padding * max(#self.children - 1, 0)
     end,
 
     adjust_children = function(self)
-        if #self.p_children == 0 then
+        if #self.children == 0 then
             return nil
         end
 
@@ -240,7 +240,7 @@ M.Table = register_class("Table", Object, {
     end,
 
     adjust_children = function(self)
-        if #self.p_children == 0 then
+        if #self.children == 0 then
             return nil
         end
         
@@ -2337,7 +2337,7 @@ M.Mover = register_class("Mover", Object, {
         if not w then
             return self:target(cx, cy) and self
         end
-        local c = w.parent.p_children
+        local c = w.parent.children
         local n = table.find(c, w)
         local l = #c
         if n ~= l then c[l], c[n] = w, c[l] end
