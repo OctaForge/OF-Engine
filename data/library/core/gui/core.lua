@@ -10,6 +10,7 @@ local floor = math.floor
 local ceil  = math.ceil
 local _V    = _G["_V"]
 local _C    = _G["_C"]
+local emit  = signal.emit
 
 local M = {}
 
@@ -365,6 +366,15 @@ local quadtri = function(x, y, w, h, tx, ty, tw, th)
 end
 M.draw_quadtri = quadtri
 
+local gen_setter = function(name)
+    local sname = name .. "_changed"
+    return function(self, val)
+        self[name] = val
+        emit(self, sname, val)
+    end
+end
+M.gen_setter = gen_setter
+
 local Object, Window
 
 --[[! Struct: Object
@@ -513,7 +523,7 @@ Object = register_class("Object", table.Object, {
             self.children = nil
         end
 
-        signal.emit(self, "destroy")
+        emit(self, "destroy")
         local insts = rawget(self.__proto, "instances")
         if insts then
             insts[self] = nil
@@ -941,7 +951,7 @@ Object = register_class("Object", table.Object, {
             ch[i]:clear()
         end
         self.children = {}
-        signal.emit(self, "children_destroy")
+        emit(self, "children_destroy")
     end,
 
     --[[! Function: align
@@ -1002,16 +1012,10 @@ Object = register_class("Object", table.Object, {
     end,
 
     --[[! Function: set_floating ]]
-    set_floating = function(self, val)
-        self.floating = val
-        signal.emit(self, "floating_changed", val)
-    end,
+    set_floating = gen_setter "floating",
 
     --[[! Function: set_tooltip ]]
-    set_tooltip = function(self, val)
-        self.tooltip = val
-        signal.emit(self, "tooltip_changed", val)
-    end,
+    set_tooltip = gen_setter "tooltip",
 
     --[[! Function: insert
         Given a position in the children list, an object and optionally a
@@ -1102,11 +1106,8 @@ local Named_Object = register_class("Named_Object", Object, {
         return Object.__init(self, kwargs)
     end,
 
-    --[[! Function: set_name ]]
-    set_name = function(self, val)
-        self.name = val
-        signal.emit(self, "name_changed", val)
-    end
+    --[[! Function: set_obj_name ]]
+    set_obj_name = gen_setter "obj_name"
 })
 
 --[[! Struct: Tag
@@ -1450,7 +1451,7 @@ set_external("gui_update", function()
         elseif t == "function" then
             first(unpack(ul, 2))
         else
-            signal.emit(first, ul[2], unpack(ul, 3))
+            emit(first, ul[2], unpack(ul, 3))
         end
     end
     update_later = {}

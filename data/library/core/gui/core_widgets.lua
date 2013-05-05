@@ -61,6 +61,9 @@ local quad, quadtri = base.draw_quad, base.draw_quadtri
 -- base widgets
 local Object = base.get_class("Object")
 
+-- setters
+local gen_setter = base.gen_setter
+
 -- editor support
 local get_textediting, set_textediting
     = base.get_textediting, base.set_textediting
@@ -123,10 +126,7 @@ M.H_Box = register_class("H_Box", Object, {
     end,
 
     --[[! Function: set_padding ]]
-    set_padding = function(self, val)
-        self.padding = val
-        signal.emit(self, "padding_changed", val)
-    end
+    set_padding = gen_setter "padding"
 })
 
 --[[! Struct: V_Box
@@ -170,10 +170,7 @@ M.V_Box = register_class("V_Box", Object, {
     end,
 
     --[[! Function: set_padding ]]
-    set_padding = function(self, val)
-        self.padding = val
-        signal.emit(self, "padding_changed", val)
-    end
+    set_padding = gen_setter "padding"
 }, M.H_Box.type)
 
 --[[! Struct: Table
@@ -294,16 +291,10 @@ M.Table = register_class("Table", Object, {
     end,
 
     --[[! Function: set_padding ]]
-    set_padding = function(self, val)
-        self.padding = val
-        signal.emit(self, "padding_changed", val)
-    end,
+    set_padding = gen_setter "padding",
 
     --[[! Function: set_columns ]]
-    set_padding = function(self, val)
-        self.padding = val
-        signal.emit(self, "padding_changed", val)
-    end
+    set_columns = gen_setter "columns"
 })
 
 --[[! Struct: Spacer
@@ -343,16 +334,10 @@ M.Spacer = register_class("Spacer", Object, {
     end,
 
     --[[! Function: set_pad_h ]]
-    set_pad_h = function(self, val)
-        self.pad_h = val
-        signal.emit(self, "pad_h_changed", val)
-    end,
+    set_pad_h = gen_setter "pad_h",
 
     --[[! Function: set_pad_v ]]
-    set_pad_v = function(self, val)
-        self.pad_v = val
-        signal.emit(self, "pad_v_changed", val)
-    end
+    set_pad_v = gen_setter "pad_v"
 })
 
 --[[! Struct: Filler
@@ -421,22 +406,13 @@ local Filler = register_class("Filler", Object, {
     end,
 
     --[[! Function: set_min_w ]]
-    set_min_w = function(self, val)
-        self.min_w = val
-        signal.emit(self, "min_w_changed", val)
-    end,
+    set_min_w = gen_setter "min_w",
 
     --[[! Function: set_min_h ]]
-    set_min_h = function(self, val)
-        self.min_h = val
-        signal.emit(self, "min_h_changed", val)
-    end,
+    set_min_h = gen_setter "min_h",
 
     --[[! Function: set_clip_children ]]
-    set_clip_children = function(self, val)
-        self.clip_children = val
-        signal.emit(self, "clip_children_changed", val)
-    end
+    set_clip_children = gen_setter "clip_children"
 })
 M.Filler = Filler
 
@@ -472,16 +448,10 @@ M.Offsetter = register_class("Offsetter", Object, {
     end,
 
     --[[! Function: set_offset_h ]]
-    set_offset_h = function(self, val)
-        self.offset_h = val
-        signal.emit(self, "offset_h_changed", val)
-    end,
+    set_offset_h = gen_setter "offset_h",
 
     --[[! Function: set_offset_v ]]
-    set_offset_v = function(self, val)
-        self.offset_v = val
-        signal.emit(self, "offset_v_changed", val)
-    end
+    set_offset_v = gen_setter "offset_v"
 })
 
 --[[! Struct: Clipper
@@ -528,16 +498,10 @@ local Clipper = register_class("Clipper", Object, {
     end,
 
     --[[! Function: set_clip_w ]]
-    set_clip_w = function(self, val)
-        self.clip_w = val
-        signal.emit(self, "clip_w_changed", val)
-    end,
+    set_clip_w = gen_setter "clip_w",
 
     --[[! Function: set_clip_h ]]
-    set_clip_h = function(self, val)
-        self.clip_h = val
-        signal.emit(self, "clip_h_changed", val)
-    end
+    set_clip_h = gen_setter "clip_h"
 })
 M.Clipper = Clipper
 
@@ -559,10 +523,7 @@ M.Conditional = register_class("Conditional", Object, {
     end,
 
     --[[! Function: set_condition ]]
-    set_condition = function(self, val)
-        self.condition = val
-        signal.emit(self, "condition_changed", val)
-    end
+    set_condition = gen_setter "condition"
 })
 
 --[[! Struct: Button
@@ -624,10 +585,7 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
     end,
 
     --[[! Function: set_condition ]]
-    set_condition = function(self, val)
-        self.condition = val
-        signal.emit(self, "condition_changed", val)
-    end
+    set_condition = gen_setter "condition"
 })
 
 --[[! Struct: Toggle
@@ -651,10 +609,7 @@ M.Toggle = register_class("Toggle", Button, {
     end,
 
     --[[! Function: set_condition ]]
-    set_condition = function(self, val)
-        self.condition = val
-        signal.emit(self, "condition_changed", val)
-    end
+    set_condition = gen_setter "condition"
 })
 
 --[[! Struct: Scroller
