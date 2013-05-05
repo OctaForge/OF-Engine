@@ -1681,8 +1681,8 @@ local Image = register_class("Image", Filler, {
         end
 
         self.texture = tex
-        self.p_min_filter = kwargs.min_filter
-        self.p_mag_filter = kwargs.mag_filter
+        self.min_filter = kwargs.min_filter
+        self.mag_filter = kwargs.mag_filter
 
         self.r = kwargs.r or 255
         self.g = kwargs.g or 255
@@ -1699,13 +1699,6 @@ local Image = register_class("Image", Filler, {
         return self.texture:get_name()
     end,
 
-    --[[! Function: get_tex_raw
-        Returns the loaded texture object.
-    ]]
-    get_tex_raw = function(self)
-        return self.texture
-    end,
-
     --[[! Function: set_tex
         Given the filename and an alternative filename, this reloads the
         texture this holds.
@@ -1715,13 +1708,6 @@ local Image = register_class("Image", Filler, {
         if _C.texture_is_notexture(tex) and alt then
               tex = _C.texture_load(alt)
         end
-        self.texture = tex
-    end,
-
-    --[[! Function: set_tex_raw
-        Raw texture object setter.
-    ]]
-    set_tex_raw = function(self, tex)
         self.texture = tex
     end,
 
@@ -1739,8 +1725,8 @@ local Image = register_class("Image", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.texture
+        local minf, magf, tex = self.min_filter,
+                                self.mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -1797,6 +1783,12 @@ local Image = register_class("Image", Filler, {
         self.h = max(self.h, min_h)
     end,
 
+    --[[! Function: set_min_filter ]]
+    set_min_filter = gen_setter "min_filter",
+
+    --[[! Function: set_mag_filter ]]
+    set_min_filter = gen_setter "mag_filter",
+
     --[[! Function: set_r ]]
     set_r = gen_setter "r",
 
@@ -1833,10 +1825,10 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         Image.__init(self, kwargs)
         local tex = self.texture
 
-        self.p_crop_x = get_border_size(tex, kwargs.crop_x or 0, false)
-        self.p_crop_y = get_border_size(tex, kwargs.crop_y or 0, true)
-        self.p_crop_w = get_border_size(tex, kwargs.crop_w or 1, false)
-        self.p_crop_h = get_border_size(tex, kwargs.crop_h or 1, true)
+        self.crop_x = get_border_size(tex, kwargs.crop_x or 0, false)
+        self.crop_y = get_border_size(tex, kwargs.crop_y or 0, true)
+        self.crop_w = get_border_size(tex, kwargs.crop_w or 1, false)
+        self.crop_h = get_border_size(tex, kwargs.crop_h or 1, true)
     end,
 
     target = function(self, cx, cy)
@@ -1845,13 +1837,13 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
 
         local tex = self.texture
         return (tex:get_bpp() < 32 or check_alpha_mask(tex,
-            self.p_crop_x + cx / self.w * self.p_crop_w,
-            self.p_crop_y + cy / self.h * self.p_crop_h)) and self
+            self.crop_x + cx / self.w * self.crop_w,
+            self.crop_y + cy / self.h * self.crop_h)) and self
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.texture
+        local minf, magf, tex = self.min_filter,
+                                self.mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -1869,10 +1861,38 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         _C.gle_deftexcoord0(2)
         _C.gle_begin(gl.TRIANGLE_STRIP)
         quadtri(sx, sy, self.w, self.h,
-            self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
+            self.crop_x, self.crop_y, self.crop_w, self.crop_h)
         _C.gle_end()
 
         return Object.draw(self, sx, sy)
+    end,
+
+    --[[! Function: set_crop_x ]]
+    set_crop_x = function(self, cx)
+        cx = get_border_size(self.texture, cx, false)
+        self.crop_x = cx
+        emit(self, "crop_x_changed", cx)
+    end,
+
+    --[[! Function: set_crop_y ]]
+    set_crop_y = function(self, cy)
+        cy = get_border_size(self.texture, cy, true)
+        self.crop_y = cy
+        emit(self, "crop_y_changed", cy)
+    end,
+
+    --[[! Function: set_crop_w ]]
+    set_crop_w = function(self, cw)
+        cw = get_border_size(self.texture, cw, false)
+        self.crop_w = cw
+        emit(self, "crop_w_changed", cx)
+    end,
+
+    --[[! Function: set_crop_w ]]
+    set_crop_h = function(self, ch)
+        ch = get_border_size(self.texture, ch, true)
+        self.crop_h = ch
+        emit(self, "crop_h_changed", ch)
     end
 })
 
@@ -1904,8 +1924,8 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.texture
+        local minf, magf, tex = self.min_filter,
+                                self.mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -2025,8 +2045,8 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.texture
+        local minf, magf, tex = self.min_filter,
+                                self.mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -2101,8 +2121,8 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
     end,
 
     draw = function(self, sx, sy)
-        local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.texture
+        local minf, magf, tex = self.min_filter,
+                                self.mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -2160,8 +2180,8 @@ M.Thumbnail = register_class("Thumbnail", Image, {
         self.file = kwargs.file
         self.texture  = _C.texture_get_notexture()
 
-        self.p_min_filter = kwargs.min_filter
-        self.p_mag_filter = kwargs.mag_filter
+        self.min_filter = kwargs.min_filter
+        self.mag_filter = kwargs.mag_filter
 
         self.r = kwargs.r or 255
         self.g = kwargs.g or 255
