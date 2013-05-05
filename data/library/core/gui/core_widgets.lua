@@ -89,7 +89,7 @@ M.orient = orient
 M.H_Box = register_class("H_Box", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_padding = kwargs.padding or 0
+        self.padding = kwargs.padding or 0
         return Object.__init(self, kwargs)
     end,
 
@@ -104,7 +104,7 @@ M.H_Box = register_class("H_Box", Object, {
             self.w = self.w + o.w
             self.h = max(self.h, o.y + o.h)
         end)
-        self.w = self.w + self.p_padding * max(#self.children - 1, 0)
+        self.w = self.w + self.padding * max(#self.children - 1, 0)
     end,
 
     adjust_children = function(self)
@@ -118,8 +118,16 @@ M.H_Box = register_class("H_Box", Object, {
             offset = offset + o.w
 
             o:adjust_layout(o.x, 0, o.w, self.h)
-            offset = offset + self.p_padding
+            offset = offset + self.padding
         end)
+    end,
+
+    --[[! Function: set_padding
+        Sets the padding to val and emits the padding_changed signal on self.
+    ]]
+    set_padding = function(self, val)
+        self.padding = val
+        signal.emit(self, "padding_changed", val)
     end
 })
 
@@ -129,7 +137,7 @@ M.H_Box = register_class("H_Box", Object, {
 M.V_Box = register_class("V_Box", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_padding = kwargs.padding or 0
+        self.padding = kwargs.padding or 0
         return Object.__init(self, kwargs)
     end,
 
@@ -145,7 +153,7 @@ M.V_Box = register_class("V_Box", Object, {
             self.h = self.h + o.h
             self.w = max(self.w, o.x + o.w)
         end)
-        self.h = self.h + self.p_padding * max(#self.children - 1, 0)
+        self.h = self.h + self.padding * max(#self.children - 1, 0)
     end,
 
     adjust_children = function(self)
@@ -159,8 +167,16 @@ M.V_Box = register_class("V_Box", Object, {
             offset = offset + o.h
 
             o:adjust_layout(0, o.y, self.w, o.h)
-            offset = offset + self.p_padding
+            offset = offset + self.padding
         end)
+    end,
+
+    --[[! Function: set_padding
+        Sets the padding to val and emits the padding_changed signal on self.
+    ]]
+    set_padding = function(self, val)
+        self.padding = val
+        signal.emit(self, "padding_changed", val)
     end
 }, M.H_Box.type)
 
@@ -174,8 +190,8 @@ M.V_Box = register_class("V_Box", Object, {
 M.Table = register_class("Table", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_columns = kwargs.columns or 0
-        self.p_padding = kwargs.padding or 0
+        self.columns = kwargs.columns or 0
+        self.padding = kwargs.padding or 0
 
         return Object.__init(self, kwargs)
     end,
@@ -185,7 +201,7 @@ M.Table = register_class("Table", Object, {
         self.widths, self.heights = widths, heights
 
         local column, row = 1, 1
-        local columns, padding = self.p_columns, self.p_padding
+        local columns, padding = self.columns, self.padding
 
         loop_children(self, function(o)
             o:layout()
@@ -245,7 +261,7 @@ M.Table = register_class("Table", Object, {
         end
         
         local widths, heights = self.widths, self.heights
-        local columns = self.p_columns
+        local columns = self.columns
 
         local cspace = self.w
         local rspace = self.h
@@ -279,6 +295,23 @@ M.Table = register_class("Table", Object, {
                 row = row + 1
             end
         end)
+    end,
+
+    --[[! Function: set_padding
+        Sets the padding to val and emits the padding_changed signal on self.
+    ]]
+    set_padding = function(self, val)
+        self.padding = val
+        signal.emit(self, "padding_changed", val)
+    end,
+
+    --[[! Function: set_columns
+        Sets the number of columns to val and emits the columns_changed
+        signal on self.
+    ]]
+    set_padding = function(self, val)
+        self.padding = val
+        signal.emit(self, "padding_changed", val)
     end
 })
 
@@ -289,8 +322,8 @@ M.Table = register_class("Table", Object, {
 M.Spacer = register_class("Spacer", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_pad_h = kwargs.pad_h or 0
-        self.p_pad_v = kwargs.pad_v or 0
+        self.pad_h = kwargs.pad_h or 0
+        self.pad_v = kwargs.pad_v or 0
 
         return Object.__init(self, kwargs)
     end,
@@ -313,9 +346,27 @@ M.Spacer = register_class("Spacer", Object, {
     end,
 
     adjust_children = function(self)
-        local ph, pv = self.p_pad_h, self.p_pad_v
+        local ph, pv = self.pad_h, self.pad_v
         Object.adjust_children(self, ph, pv, self.w - 2 * ph,
             self.h - 2 * pv)
+    end,
+
+    --[[! Function: set_pad_h
+        Sets the horizontal padding to val and emits the pad_h_changed signal
+        on self.
+    ]]
+    set_pad_h = function(self, val)
+        self.pad_h = val
+        signal.emit(self, "pad_h_changed", val)
+    end,
+
+    --[[! Function: set_pad_v
+        Sets the vertical padding to val and emits the pad_v_changed signal
+        on self.
+    ]]
+    set_pad_v = function(self, val)
+        self.pad_v = val
+        signal.emit(self, "pad_v_changed", val)
     end
 })
 
@@ -334,10 +385,10 @@ M.Spacer = register_class("Spacer", Object, {
 local Filler = register_class("Filler", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_min_w = kwargs.min_w or 0
-        self.p_min_h = kwargs.min_h or 0
+        self.min_w = kwargs.min_w or 0
+        self.min_h = kwargs.min_h or 0
 
-        self.p_clip_children = kwargs.clip_children or false
+        self.clip_children = kwargs.clip_children or false
 
         return Object.__init(self, kwargs)
     end,
@@ -345,8 +396,8 @@ local Filler = register_class("Filler", Object, {
     layout = function(self)
         Object.layout(self)
 
-        local min_w = self.p_min_w
-        local min_h = self.p_min_h
+        local min_w = self.min_w
+        local min_h = self.min_h
 
         if  min_w < 0 then
             min_w = abs(min_w) / _V.scr_h
@@ -375,13 +426,40 @@ local Filler = register_class("Filler", Object, {
     end,
 
     draw = function(self, sx, sy)
-        if self.p_clip_children then
+        if self.clip_children then
             clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx, sy)
             clip_pop()
         else
             return Object.draw(self, sx, sy)
         end
+    end,
+
+    --[[! Function: set_min_w
+        Sets the minimal width to val and emits the min_w_changed signal
+        on self.
+    ]]
+    set_min_w = function(self, val)
+        self.min_w = val
+        signal.emit(self, "min_w_changed", val)
+    end,
+
+    --[[! Function: set_min_h
+        Sets the minimal height to val and emits the min_h_changed signal
+        on self.
+    ]]
+    set_min_h = function(self, val)
+        self.min_h = val
+        signal.emit(self, "min_h_changed", val)
+    end,
+
+    --[[! Function: set_clip_children
+        Sets clip_children to val and emits the clip_children_changed signal
+        on self.
+    ]]
+    set_clip_children = function(self, val)
+        self.clip_children = val
+        signal.emit(self, "clip_children_changed", val)
     end
 })
 M.Filler = Filler
@@ -1670,8 +1748,8 @@ local Image = register_class("Image", Filler, {
     layout = function(self)
         Object.layout(self)
 
-        local min_w = self.p_min_w
-        local min_h = self.p_min_h
+        local min_w = self.min_w
+        local min_h = self.min_h
 
         if  min_w < 0 then
             min_w = abs(min_w) / _V.scr_h
@@ -1779,7 +1857,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         if    o then return o end
         if self.texture:get_bpp() < 32 then return self end
 
-        local mx, my, mw, mh, pw, ph = 0, 0, self.p_min_w, self.p_min_h,
+        local mx, my, mw, mh, pw, ph = 0, 0, self.min_w, self.min_h,
                                              self.w,     self.h
 
         if     pw <= mw          then mx = cx / pw
@@ -1815,7 +1893,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         _C.gle_deftexcoord0(2)
         _C.gle_begin(gl.QUADS)
 
-        local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.w, self.h
+        local mw, mh, pw, ph = self.min_w, self.min_h, self.w, self.h
 
         local splitw = (mw ~= 0 and min(mw, pw) or pw) / 2
         local splith = (mh ~= 0 and min(mh, ph) or ph) / 2
