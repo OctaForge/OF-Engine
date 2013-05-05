@@ -1580,11 +1580,11 @@ M.V_Slider = register_class("V_Slider", Slider, {
 M.Rectangle = register_class("Rectangle", Filler, {
     __init = function(self, kwargs)
         kwargs       = kwargs or {}
-        self.p_solid = kwargs.solid == false and false or true
-        self.p_r     = kwargs.r or 255
-        self.p_g     = kwargs.g or 255
-        self.p_b     = kwargs.b or 255
-        self.p_a     = kwargs.a or 255
+        self.solid = kwargs.solid == false and false or true
+        self.r     = kwargs.r or 255
+        self.g     = kwargs.g or 255
+        self.b     = kwargs.b or 255
+        self.a     = kwargs.a or 255
 
         return Filler.__init(self, kwargs)
     end,
@@ -1597,11 +1597,11 @@ M.Rectangle = register_class("Rectangle", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local w, h, solid = self.w, self.h, self.p_solid
+        local w, h, solid = self.w, self.h, self.solid
 
         if not solid then _C.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         _C.shader_hudnotexture_set()
-        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.r, self.g, self.b, self.a)
 
         _C.gle_defvertex(2)
         _C.gle_begin(gl.TRIANGLE_STRIP)
@@ -1619,7 +1619,22 @@ M.Rectangle = register_class("Rectangle", Filler, {
         end
 
         return Filler.draw(self, sx, sy)
-    end
+    end,
+
+    --[[! Function: set_solid ]]
+    set_solid = gen_setter "solid",
+
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
 })
 
 local check_alpha_mask = function(tex, x, y)
@@ -1669,10 +1684,10 @@ local Image = register_class("Image", Filler, {
         self.p_min_filter = kwargs.min_filter
         self.p_mag_filter = kwargs.mag_filter
 
-        self.p_r     = kwargs.r or 255
-        self.p_g     = kwargs.g or 255
-        self.p_b     = kwargs.b or 255
-        self.p_a     = kwargs.a or 255
+        self.r = kwargs.r or 255
+        self.g = kwargs.g or 255
+        self.b = kwargs.b or 255
+        self.a = kwargs.a or 255
 
         return Filler.__init(self, kwargs)
     end,
@@ -1737,7 +1752,7 @@ local Image = register_class("Image", Filler, {
             _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.r, self.g, self.b, self.a)
 
         _C.gle_defvertex(2)
         _C.gle_deftexcoord0(2)
@@ -1780,7 +1795,19 @@ local Image = register_class("Image", Filler, {
 
         self.w = max(self.w, min_w)
         self.h = max(self.h, min_h)
-    end
+    end,
+
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
 })
 M.Image = Image
 
@@ -1836,7 +1863,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
             _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.r, self.g, self.b, self.a)
 
         _C.gle_defvertex(2)
         _C.gle_deftexcoord0(2)
@@ -1890,7 +1917,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
             _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.r, self.g, self.b, self.a)
 
         _C.gle_defvertex(2)
         _C.gle_deftexcoord0(2)
@@ -2011,7 +2038,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
             _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.r, self.g, self.b, self.a)
 
         _C.gle_defvertex(2)
         _C.gle_deftexcoord0(2)
@@ -2087,7 +2114,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
             _C.gl_texture_param(gl.TEXTURE_MAG_FILTER, magf)
         end
 
-        _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
+        _C.gle_color4ub(self.r, self.g, self.b, self.a)
 
         local pw, ph, tw, th = self.w, self.h, self.p_tile_w, self.p_tile_h
 
@@ -2136,10 +2163,10 @@ M.Thumbnail = register_class("Thumbnail", Image, {
         self.p_min_filter = kwargs.min_filter
         self.p_mag_filter = kwargs.mag_filter
 
-        self.p_r = kwargs.r or 255
-        self.p_g = kwargs.g or 255
-        self.p_b = kwargs.b or 255
-        self.p_a = kwargs.a or 255
+        self.r = kwargs.r or 255
+        self.g = kwargs.g or 255
+        self.b = kwargs.b or 255
+        self.a = kwargs.a or 255
 
         return Filler.__init(self, kwargs)
     end,
@@ -2169,7 +2196,19 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     draw = function(self, sx, sy)
         self:load()
         return Image.target(self, sx, sy)
-    end
+    end,
+
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
 })
 
 --[[! Struct: Slot_Viewer
@@ -2273,10 +2312,10 @@ M.Label = register_class("Label", Object, {
         self.p_text  = kwargs.text  or ""
         self.p_scale = kwargs.scale or  1
         self.wrap    = kwargs.wrap  or -1
-        self.p_r     = kwargs.r or 255
-        self.p_g     = kwargs.g or 255
-        self.p_b     = kwargs.b or 255
-        self.p_a     = kwargs.a or 255
+        self.r     = kwargs.r or 255
+        self.g     = kwargs.g or 255
+        self.b     = kwargs.b or 255
+        self.a     = kwargs.a or 255
 
         return Object.__init(self, kwargs)
     end,
@@ -2301,7 +2340,7 @@ M.Label = register_class("Label", Object, {
 
         local w = self.wrap
         _C.text_draw(self.p_text, sx / k, sy / k,
-            self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
+            self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
 
         _C.gle_color4f(1, 1, 1, 1)
         _C.hudmatrix_pop()
@@ -2324,7 +2363,19 @@ M.Label = register_class("Label", Object, {
         end
 
         self.h = max(self.h, h * k)
-    end
+    end,
+
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
 })
 
 --[[! Struct: Eval_Label
@@ -2338,10 +2389,10 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         self.p_func  = kwargs.func  or nil
         self.p_scale = kwargs.scale or  1
         self.wrap  = kwargs.wrap  or -1
-        self.p_r     = kwargs.r or 255
-        self.p_g     = kwargs.g or 255
-        self.p_b     = kwargs.b or 255
-        self.p_a     = kwargs.a or 255
+        self.r     = kwargs.r or 255
+        self.g     = kwargs.g or 255
+        self.b     = kwargs.b or 255
+        self.a     = kwargs.a or 255
 
         return Object.__init(self, kwargs)
     end,
@@ -2369,7 +2420,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
 
         local w = self.wrap
         _C.text_draw(val or "", sx / k, sy / k,
-            self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
+            self.r, self.g, self.b, self.a, -1, w <= 0 and -1 or w / k)
 
         _C.gle_color4f(1, 1, 1, 1)
         _C.hudmatrix_pop()
@@ -2396,7 +2447,19 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         end
 
         self.h = max(self.h, h * k)
-    end
+    end,
+
+    --[[! Function: set_r ]]
+    set_r = gen_setter "r",
+
+    --[[! Function: set_g ]]
+    set_g = gen_setter "g",
+
+    --[[! Function: set_b ]]
+    set_b = gen_setter "b",
+
+    --[[! Function: set_a ]]
+    set_a = gen_setter "a"
 })
 
 --[[! Struct: Mover
