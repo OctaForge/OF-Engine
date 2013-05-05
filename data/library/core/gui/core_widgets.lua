@@ -94,17 +94,17 @@ M.H_Box = register_class("H_Box", Object, {
     end,
 
     layout = function(self)
-        self.p_w, self.p_h = 0, 0
+        self.w, self.h = 0, 0
 
         loop_children(self, function(o)
-            o.p_x = self.p_w
+            o.p_x = self.w
             o.p_y = 0
             o:layout()
 
-            self.p_w = self.p_w + o.p_w
-            self.p_h = max(self.p_h, o.p_y + o.p_h)
+            self.w = self.w + o.w
+            self.h = max(self.h, o.p_y + o.h)
         end)
-        self.p_w = self.p_w + self.p_padding * max(#self.p_children - 1, 0)
+        self.w = self.w + self.p_padding * max(#self.p_children - 1, 0)
     end,
 
     adjust_children = function(self)
@@ -115,9 +115,9 @@ M.H_Box = register_class("H_Box", Object, {
         local offset = 0
         loop_children(self, function(o)
             o.p_x = offset
-            offset = offset + o.p_w
+            offset = offset + o.w
 
-            o:adjust_layout(o.p_x, 0, o.p_w, self.p_h)
+            o:adjust_layout(o.p_x, 0, o.w, self.h)
             offset = offset + self.p_padding
         end)
     end
@@ -134,18 +134,18 @@ M.V_Box = register_class("V_Box", Object, {
     end,
 
     layout = function(self)
-        self.p_w = 0
-        self.p_h = 0
+        self.w = 0
+        self.h = 0
 
         loop_children(self, function(o)
             o.p_x = 0
-            o.p_y = self.p_h
+            o.p_y = self.h
             o:layout()
 
-            self.p_h = self.p_h + o.p_h
-            self.p_w = max(self.p_w, o.p_x + o.p_w)
+            self.h = self.h + o.h
+            self.w = max(self.w, o.p_x + o.w)
         end)
-        self.p_h = self.p_h + self.p_padding * max(#self.p_children - 1, 0)
+        self.h = self.h + self.p_padding * max(#self.p_children - 1, 0)
     end,
 
     adjust_children = function(self)
@@ -156,9 +156,9 @@ M.V_Box = register_class("V_Box", Object, {
         local offset = 0
         loop_children(self, function(o)
             o.p_y = offset
-            offset = offset + o.p_h
+            offset = offset + o.h
 
-            o:adjust_layout(0, o.p_y, self.p_w, o.p_h)
+            o:adjust_layout(0, o.p_y, self.w, o.h)
             offset = offset + self.p_padding
         end)
     end
@@ -191,15 +191,15 @@ M.Table = register_class("Table", Object, {
             o:layout()
 
             if #widths < column then
-                widths[#widths + 1] = o.p_w
-            elseif o.p_w > widths[column] then
-                widths[column] = o.p_w
+                widths[#widths + 1] = o.w
+            elseif o.w > widths[column] then
+                widths[column] = o.w
             end
 
             if #heights < row then
-                heights[#heights + 1] = o.p_h
-            elseif o.p_h > heights[row] then
-                heights[row] = o.p_h
+                heights[#heights + 1] = o.h
+            elseif o.h > heights[row] then
+                heights[row] = o.h
             end
 
             column = (column % columns) + 1
@@ -235,8 +235,8 @@ M.Table = register_class("Table", Object, {
             p_h = p_h + heights[row]
         end
 
-        self.p_w = p_w + padding * max(#widths  - 1, 0)
-        self.p_h = p_h + padding * max(#heights - 1, 0)
+        self.w = p_w + padding * max(#widths  - 1, 0)
+        self.h = p_h + padding * max(#heights - 1, 0)
     end,
 
     adjust_children = function(self)
@@ -247,8 +247,8 @@ M.Table = register_class("Table", Object, {
         local widths, heights = self.widths, self.heights
         local columns = self.p_columns
 
-        local cspace = self.p_w
-        local rspace = self.p_h
+        local cspace = self.w
+        local rspace = self.h
 
         for i = 1, #widths do
             cspace = cspace - widths[i]
@@ -304,18 +304,18 @@ M.Spacer = register_class("Spacer", Object, {
             o.p_y = pv
             o:layout()
 
-            w = max(w, o.p_x + o.p_w)
-            h = max(h, o.p_y + o.p_h)
+            w = max(w, o.p_x + o.w)
+            h = max(h, o.p_y + o.h)
         end)
 
-        self.p_w = w + ph
-        self.p_h = h + pv
+        self.w = w + ph
+        self.h = h + pv
     end,
 
     adjust_children = function(self)
         local ph, pv = self.p_pad_h, self.p_pad_v
-        Object.adjust_children(self, ph, pv, self.p_w - 2 * ph,
-            self.p_h - 2 * pv)
+        Object.adjust_children(self, ph, pv, self.w - 2 * ph,
+            self.h - 2 * pv)
     end
 })
 
@@ -356,14 +356,14 @@ local Filler = register_class("Filler", Object, {
         end
 
         if  min_w == -1 then
-            min_w = world.p_w
+            min_w = world.w
         end
         if  min_h == -1 then
             min_h = 1
         end
 
-        self.p_w = max(self.p_w, min_w)
-        self.p_h = max(self.p_h, min_h)
+        self.w = max(self.w, min_w)
+        self.h = max(self.h, min_h)
     end,
 
     --[[! Function: target
@@ -376,7 +376,7 @@ local Filler = register_class("Filler", Object, {
 
     draw = function(self, sx, sy)
         if self.p_clip_children then
-            clip_push(sx, sy, self.p_w, self.p_h)
+            clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx, sy)
             clip_pop()
         else
@@ -408,13 +408,13 @@ M.Offsetter = register_class("Offsetter", Object, {
             o.p_y = o.p_y + ov
         end)
 
-        self.p_w = self.p_w + oh
-        self.p_h = self.p_h + ov
+        self.w = self.w + oh
+        self.h = self.h + ov
     end,
 
     adjust_children = function(self)
         local oh, ov = self.p_offset_h, self.p_offset_v
-        Object.adjust_children(self, oh, ov, self.p_w - oh, self.p_h - ov)
+        Object.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
     end
 })
 
@@ -435,13 +435,13 @@ local Clipper = register_class("Clipper", Object, {
     layout = function(self)
         Object.layout(self)
     
-        self.i_virt_w = self.p_w
-        self.i_virt_h = self.p_h
+        self.i_virt_w = self.w
+        self.i_virt_h = self.h
 
         local cw, ch = self.p_clip_w, self.p_clip_h
 
-        if cw ~= 0 then self.p_w = min(self.p_w, cw) end
-        if ch ~= 0 then self.p_h = min(self.p_h, ch) end
+        if cw ~= 0 then self.w = min(self.w, cw) end
+        if ch ~= 0 then self.h = min(self.h, ch) end
     end,
 
     adjust_children = function(self)
@@ -453,7 +453,7 @@ local Clipper = register_class("Clipper", Object, {
 
         if (cw ~= 0 and self.i_virt_w > cw) or (ch ~= 0 and self.i_virt_h > ch)
         then
-            clip_push(sx, sy, self.p_w, self.p_h)
+            clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx, sy)
             clip_pop()
         else
@@ -650,7 +650,7 @@ M.Scroller = register_class("Scroller", Clipper, {
         if (self.p_clip_w ~= 0 and self.i_virt_w > self.p_clip_w) or
            (self.p_clip_h ~= 0 and self.i_virt_h > self.p_clip_h)
         then
-            clip_push(sx, sy, self.p_w, self.p_h)
+            clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx - self.i_offset_h, sy - self.i_offset_v)
             clip_pop()
         else
@@ -695,14 +695,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         the contents minus the clipper width.
     ]]
     get_h_limit = function(self)
-        return max(self.i_virt_w - self.p_w, 0)
+        return max(self.i_virt_w - self.w, 0)
     end,
 
     --[[! Function: get_v_limit
         See above.
     ]]
     get_v_limit = function(self)
-        return max(self.i_virt_h - self.p_h, 0)
+        return max(self.i_virt_h - self.h, 0)
     end,
 
     --[[! Function: get_h_offset
@@ -711,14 +711,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         actual_offset / max(size_of_container, size_of_contents).
     ]]
     get_h_offset = function(self)
-        return self.i_offset_h / max(self.i_virt_w, self.p_w)
+        return self.i_offset_h / max(self.i_virt_w, self.w)
     end,
 
     --[[! Function: get_v_offset
         See above.
     ]]
     get_v_offset = function(self)
-        return self.i_offset_v / max(self.i_virt_h, self.p_h)
+        return self.i_offset_v / max(self.i_virt_h, self.h)
     end,
 
     --[[! Function: get_h_scale
@@ -726,14 +726,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         size_of_container / max(size_of_container, size_of_contents).
     ]]
     get_h_scale = function(self)
-        return self.p_w / max(self.i_virt_w, self.p_w)
+        return self.w / max(self.i_virt_w, self.w)
     end,
 
     --[[! Function: get_v_scale
         See above.
     ]]
     get_v_scale = function(self)
-        return self.p_h / max(self.i_virt_h, self.p_h)
+        return self.h / max(self.i_virt_h, self.h)
     end,
 
     --[[! Function: set_h_scroll
@@ -978,7 +978,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
     choose_direction = function(self, cx, cy)
         local as = self.p_arrow_size
-        return (cx < as) and -1 or (cx >= (self.p_w - as) and 1 or 0)
+        return (cx < as) and -1 or (cx >= (self.w - as) and 1 or 0)
     end,
 
     arrow_scroll = function(self)
@@ -998,7 +998,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
         local as = self.p_arrow_size
 
-        local bscale = (max(self.p_w - 2 * as, 0) - btn.p_w) /
+        local bscale = (max(self.w - 2 * as, 0) - btn.w) /
             (1 - scroll:get_h_scale())
 
         local offset = (bscale > 0.001) and (cx - as) / bscale or 0
@@ -1015,13 +1015,13 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
         local as = self.p_arrow_size
 
-        local sw, btnw = self.p_w, btn.p_w
+        local sw, btnw = self.w, btn.w
 
         local bw = max(sw - 2 * as, 0) * scroll:get_h_scale()
-        btn.p_w  = max(btnw, bw)
+        btn.w  = max(btnw, bw)
 
         local bscale = (scroll:get_h_scale() < 1) and
-            (max(sw - 2 * as, 0) - btn.p_w) / (1 - scroll:get_h_scale()) or 1
+            (max(sw - 2 * as, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
 
         btn.p_x = as + scroll:get_h_offset() * bscale
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_HMASK))
@@ -1067,7 +1067,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
     choose_direction = function(self, cx, cy)
         local as = self.p_arrow_size
-        return (cy < as) and -1 or (cy >= (self.p_h - as) and 1 or 0)
+        return (cy < as) and -1 or (cy >= (self.h - as) and 1 or 0)
     end,
 
     arrow_scroll = function(self)
@@ -1087,7 +1087,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
         local as = self.p_arrow_size
 
-        local bscale = (max(self.p_h - 2 * as, 0) - btn.p_h) /
+        local bscale = (max(self.h - 2 * as, 0) - btn.h) /
             (1 - scroll:get_v_scale())
 
         local offset = (bscale > 0.001) and
@@ -1105,14 +1105,14 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
         local as = self.p_arrow_size
 
-        local sh, btnh = self.p_h, btn.p_h
+        local sh, btnh = self.h, btn.h
 
         local bh = max(sh - 2 * as, 0) * scroll:get_v_scale()
 
-        btn.p_h = max(btnh, bh)
+        btn.h = max(btnh, bh)
 
         local bscale = (scroll:get_v_scale() < 1) and
-            (max(sh - 2 * as, 0) - btn.p_h) / (1 - scroll:get_v_scale()) or 1
+            (max(sh - 2 * as, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
 
         btn.p_y = as + scroll:get_v_offset() * bscale
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_VMASK))
@@ -1346,14 +1346,14 @@ Slider_Button = register_class("Slider_Button", Object, {
     end,
 
     layout = function(self)
-        local lastw = self.p_w
-        local lasth = self.p_h
+        local lastw = self.w
+        local lasth = self.h
 
         Object.layout(self)
 
         if is_clicked(self) then
-            self.p_w = lastw
-            self.p_h = lasth
+            self.w = lastw
+            self.h = lasth
         end
     end
 })
@@ -1385,7 +1385,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
     choose_direction = function(self, cx, cy)
         local as = self.p_arrow_size
-        return cx < as and -1 or (cx >= (self.p_w - as) and 1 or 0)
+        return cx < as and -1 or (cx >= (self.w - as) and 1 or 0)
     end,
 
     scroll_to = function(self, cx, cy)
@@ -1394,7 +1394,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
         local as = self.p_arrow_size
 
-        local sw, bw = self.p_w, btn.p_w
+        local sw, bw = self.w, btn.w
 
         self.set_step(self, round((abs(self.p_max_value - self.p_min_value) /
             self.p_step_size) * clamp((cx - as - bw / 2) /
@@ -1412,17 +1412,17 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
         local as = self.p_arrow_size
 
-        local width = max(self.p_w - 2 * as, 0)
+        local width = max(self.w - 2 * as, 0)
 
-        btn.p_w = max(btn.p_w, width / steps)
-        btn.p_x = as + (width - btn.p_w) * curstep / steps
+        btn.w = max(btn.w, width / steps)
+        btn.p_x = as + (width - btn.w) * curstep / steps
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_HMASK))
 
         Object.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
-        self:scroll_to(o.p_x + o.p_w / 2 + tox - fromx, o.p_y + toy)
+        self:scroll_to(o.p_x + o.w / 2 + tox - fromx, o.p_y + toy)
     end
 }, Slider.type)
 
@@ -1446,7 +1446,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
     choose_direction = function(self, cx, cy)
         local as = self.p_arrow_size
-        return cy < as and -1 or (cy >= (self.p_h - as) and 1 or 0)
+        return cy < as and -1 or (cy >= (self.h - as) and 1 or 0)
     end,
 
     scroll_to = function(self, cx, cy)
@@ -1455,7 +1455,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
         local as = self.p_arrow_size
 
-        local sh, bh = self.p_h, btn.p_h
+        local sh, bh = self.h, btn.h
         local mn, mx = self.p_min_value, self.p_max_value
 
         self.set_step(self, round(((max(mx, mn) - min(mx, mn)) /
@@ -1474,17 +1474,17 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
         local as = self.p_arrow_size
 
-        local height = max(self.p_h - 2 * as, 0)
+        local height = max(self.h - 2 * as, 0)
 
-        btn.p_h = max(btn.p_h, height / steps)
-        btn.p_y = as + (height - btn.p_h) * curstep / steps
+        btn.h = max(btn.h, height / steps)
+        btn.p_y = as + (height - btn.h) * curstep / steps
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_VMASK))
 
         Object.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
-        self.scroll_to(self, o.p_x + o.p_h / 2 + tox, o.p_y + toy - fromy)
+        self.scroll_to(self, o.p_x + o.h / 2 + tox, o.p_y + toy - fromy)
     end
 }, Slider.type)
 
@@ -1516,7 +1516,7 @@ M.Rectangle = register_class("Rectangle", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        local w, h, solid = self.p_w, self.p_h, self.p_solid
+        local w, h, solid = self.w, self.h, self.p_solid
 
         if not solid then _C.gl_blend_func(gl.ZERO, gl.SRC_COLOR) end
         _C.shader_hudnotexture_set()
@@ -1638,8 +1638,8 @@ local Image = register_class("Image", Filler, {
         if    o then return o end
 
         local tex = self.i_tex
-        return (tex:get_bpp() < 32 or check_alpha_mask(tex, cx / self.p_w,
-                                                      cy / self.p_h)) and self
+        return (tex:get_bpp() < 32 or check_alpha_mask(tex, cx / self.w,
+                                                      cy / self.h)) and self
     end,
 
     draw = function(self, sx, sy)
@@ -1661,7 +1661,7 @@ local Image = register_class("Image", Filler, {
         _C.gle_defvertex(2)
         _C.gle_deftexcoord0(2)
         _C.gle_begin(gl.TRIANGLE_STRIP)
-        quadtri(sx, sy, self.p_w, self.p_h)
+        quadtri(sx, sy, self.w, self.h)
         _C.gle_end()
 
         return Object.draw(self, sx, sy)
@@ -1681,7 +1681,7 @@ local Image = register_class("Image", Filler, {
         end
 
         if  min_w == -1 then
-            min_w = world.p_w
+            min_w = world.w
         end
         if  min_h == -1 then
             min_h = 1
@@ -1697,8 +1697,8 @@ local Image = register_class("Image", Filler, {
             end
         end
 
-        self.p_w = max(self.p_w, min_w)
-        self.p_h = max(self.p_h, min_h)
+        self.w = max(self.w, min_w)
+        self.h = max(self.h, min_h)
     end
 })
 M.Image = Image
@@ -1737,8 +1737,8 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
 
         local tex = self.i_tex
         return (tex:get_bpp() < 32 or check_alpha_mask(tex,
-            self.p_crop_x + cx / self.p_w * self.p_crop_w,
-            self.p_crop_y + cy / self.p_h * self.p_crop_h)) and self
+            self.p_crop_x + cx / self.w * self.p_crop_w,
+            self.p_crop_y + cy / self.h * self.p_crop_h)) and self
     end,
 
     draw = function(self, sx, sy)
@@ -1760,7 +1760,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         _C.gle_defvertex(2)
         _C.gle_deftexcoord0(2)
         _C.gle_begin(gl.TRIANGLE_STRIP)
-        quadtri(sx, sy, self.p_w, self.p_h,
+        quadtri(sx, sy, self.w, self.h,
             self.p_crop_x, self.p_crop_y, self.p_crop_w, self.p_crop_h)
         _C.gle_end()
 
@@ -1780,7 +1780,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         if self.i_tex:get_bpp() < 32 then return self end
 
         local mx, my, mw, mh, pw, ph = 0, 0, self.p_min_w, self.p_min_h,
-                                             self.p_w,     self.p_h
+                                             self.w,     self.h
 
         if     pw <= mw          then mx = cx / pw
         elseif cx <  mw / 2      then mx = cx / mw
@@ -1815,7 +1815,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         _C.gle_deftexcoord0(2)
         _C.gle_begin(gl.QUADS)
 
-        local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.p_w, self.p_h
+        local mw, mh, pw, ph = self.p_min_w, self.p_min_h, self.w, self.h
 
         local splitw = (mw ~= 0 and min(mw, pw) or pw) / 2
         local splith = (mh ~= 0 and min(mh, ph) or ph) / 2
@@ -1888,8 +1888,8 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         Object.layout(self)
 
         local sb = self.p_screen_border
-        self.p_w = max(self.p_w, 2 * sb)
-        self.p_h = max(self.p_h, 2 * sb)
+        self.w = max(self.w, 2 * sb)
+        self.h = max(self.h, 2 * sb)
     end,
 
     target = function(self, cx, cy)
@@ -1903,7 +1903,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         end
 
         local mx, my, tb, sb = 0, 0, self.p_tex_border, self.p_screen_border
-        local pw, ph = self.p_w, self.p_h
+        local pw, ph = self.w, self.h
 
         if     cx <  sb      then mx = cx / sb * tb
         elseif cx >= pw - sb then mx = 1 - tb + (cx - (pw - sb)) / sb * tb
@@ -1940,7 +1940,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         for i = 1, 3 do
             local vh, th = 0, 0
             if i == 2 then
-                vh, th = self.p_h - 2 * sb, 1 - 2 * tb
+                vh, th = self.h - 2 * sb, 1 - 2 * tb
             else
                 vh, th = sb, tb
             end
@@ -1948,7 +1948,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
             for j = 1, 3 do
                 local vw, tw = 0, 0
                 if j == 2 then
-                    vw, tw = self.p_w - 2 * sb, 1 - 2 * tb
+                    vw, tw = self.w - 2 * sb, 1 - 2 * tb
                 else
                     vw, tw = sb, tb
                 end
@@ -2008,7 +2008,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 
         _C.gle_color4ub(self.p_r, self.p_g, self.p_b, self.p_a)
 
-        local pw, ph, tw, th = self.p_w, self.p_h, self.p_tile_w, self.p_tile_h
+        local pw, ph, tw, th = self.w, self.h, self.p_tile_w, self.p_tile_h
 
         -- we cannot use the built in OpenGL texture
         -- repeat with clamped textures
@@ -2114,7 +2114,7 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     end,
 
     draw = function(self, sx, sy)
-        _C.texture_draw_slot(self.p_slot, self.p_w, self.p_h, sx, sy)
+        _C.texture_draw_slot(self.p_slot, self.w, self.h, sx, sy)
         return Object.draw(self, sx, sy)
     end
 })
@@ -2149,8 +2149,8 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local csl = #clip_stack > 0
         if csl then _C.gl_scissor_disable() end
 
-        local screenw, ww, ws = _V.scr_w, world.p_w, world.p_size
-        local w, h = self.p_w, self.p_h
+        local screenw, ww, ws = _V.scr_w, world.w, world.p_size
+        local w, h = self.w, self.h
 
         local x = floor((sx + world.p_margin) * screenw / ww)
         local dx = ceil(w * screenw / ww)
@@ -2191,7 +2191,7 @@ M.Label = register_class("Label", Object, {
 
         self.p_text  = kwargs.text  or ""
         self.p_scale = kwargs.scale or  1
-        self.p_wrap  = kwargs.wrap  or -1
+        self.wrap  = kwargs.wrap  or -1
         self.p_r     = kwargs.r or 255
         self.p_g     = kwargs.g or 255
         self.p_b     = kwargs.b or 255
@@ -2218,7 +2218,7 @@ M.Label = register_class("Label", Object, {
         _C.hudmatrix_scale(k, k, 1)
         _C.hudmatrix_flush()
 
-        local w = self.p_wrap
+        local w = self.wrap
         _C.text_draw(self.p_text, sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
@@ -2234,15 +2234,15 @@ M.Label = register_class("Label", Object, {
         local k = self:draw_scale()
 
         local w, h = _C.text_get_bounds(self.p_text,
-            self.p_wrap <= 0 and -1 or self.p_wrap / k)
+            self.wrap <= 0 and -1 or self.wrap / k)
 
-        if self.p_wrap <= 0 then
-            self.p_w = max(self.p_w, w * k)
+        if self.wrap <= 0 then
+            self.w = max(self.w, w * k)
         else
-            self.p_w = max(self.p_w, min(self.p_wrap, w * k))
+            self.w = max(self.w, min(self.wrap, w * k))
         end
 
-        self.p_h = max(self.p_h, h * k)
+        self.h = max(self.h, h * k)
     end
 })
 
@@ -2256,7 +2256,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
 
         self.p_func  = kwargs.func  or nil
         self.p_scale = kwargs.scale or  1
-        self.p_wrap  = kwargs.wrap  or -1
+        self.wrap  = kwargs.wrap  or -1
         self.p_r     = kwargs.r or 255
         self.p_g     = kwargs.g or 255
         self.p_b     = kwargs.b or 255
@@ -2286,7 +2286,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         _C.hudmatrix_scale(k, k, 1)
         _C.hudmatrix_flush()
 
-        local w = self.p_wrap
+        local w = self.wrap
         _C.text_draw(val or "", sx / k, sy / k,
             self.p_r, self.p_g, self.p_b, self.p_a, -1, w <= 0 and -1 or w / k)
 
@@ -2306,15 +2306,15 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         local k = self:draw_scale()
 
         local w, h = _C.text_get_bounds(val or "",
-            self.p_wrap <= 0 and -1 or self.p_wrap / k)
+            self.wrap <= 0 and -1 or self.wrap / k)
 
-        if self.p_wrap <= 0 then
-            self.p_w = max(self.p_w, w * k)
+        if self.wrap <= 0 then
+            self.w = max(self.w, w * k)
         else
-            self.p_w = max(self.p_w, min(self.p_wrap, w * k))
+            self.w = max(self.w, min(self.wrap, w * k))
         end
 
-        self.p_h = max(self.p_h, h * k)
+        self.h = max(self.h, h * k)
     end
 })
 
@@ -2362,13 +2362,13 @@ M.Mover = register_class("Mover", Object, {
         end
 
         -- world has no parents :( but here we can re-use it
-        local w = p.p_w
+        local w = p.w
         -- transform x position of the cursor (which ranges from 0 to 1)
         -- into proper UI positions (that are dependent on screen width)
         --local cx = cursor_x * w - (w - 1) / 2
         --local cy = cursor_y
 
-        if cx < rx or cy < ry or cx > (rx + wp.p_w) or cy > (ry + wp.p_h) then
+        if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) then
             -- avoid bugs; stop moving when cursor is outside
             clear_focus(self)
             return false
@@ -3042,10 +3042,10 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self.pixel_height = h
         end
 
-        self.p_w = max(self.p_w, (self.pixel_width + _V.fontw) *
+        self.w = max(self.w, (self.pixel_width + _V.fontw) *
             self.scale / (_V.fonth * _V.uitextrows))
 
-        self.p_h = max(self.p_h, self.pixel_height *
+        self.h = max(self.h, self.pixel_height *
             self.scale / (_V.fonth * _V.uitextrows)
         )
     end,

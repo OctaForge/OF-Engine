@@ -226,10 +226,10 @@ M.loop_children_r = loop_children_r
 ]]
 local loop_in_children = function(self, cx, cy, fun)
     return loop_children(self, function(o)
-        local ox = cx - o.p_x
-        local oy = cy - o.p_y
+        local ox = cx - o.x
+        local oy = cy - o.y
 
-        if ox >= 0 and ox < o.p_w and oy >= 0 and oy < o.p_h then
+        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
             local r = fun(o, ox, oy)
             if    r ~= nil then return r end
         end
@@ -242,10 +242,10 @@ M.loop_in_children = loop_in_children
 ]]
 local loop_in_children_r = function(self, cx, cy, fun)
     return loop_children_r(self, function(o)
-        local ox = cx - o.p_x
-        local oy = cy - o.p_y
+        local ox = cx - o.x
+        local oy = cy - o.y
 
-        if ox >= 0 and ox < o.p_w and oy >= 0 and oy < o.p_h then
+        if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
             local r = fun(o, ox, oy)
             if    r ~= nil then return r end
         end
@@ -424,7 +424,7 @@ Object = register_class("Object", table.Object, {
         end
         instances[self] = self
 
-        self.p_x, self.p_y, self.p_w, self.p_h = 0, 0, 0, 0
+        self.x, self.y, self.w, self.h = 0, 0, 0, 0
         self.p_fx, self.p_fy = false, false
 
         self.i_adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
@@ -594,25 +594,25 @@ Object = register_class("Object", table.Object, {
         recursively.
     ]]
     layout = function(self)
-        self.p_w = 0
-        self.p_h = 0
+        self.w = 0
+        self.h = 0
 
         loop_children(self, function(o)
-            o.p_x = 0
-            o.p_y = 0
+            o.x = 0
+            o.y = 0
             o:layout()
-            self.p_w = max(self.p_w, o.p_x + o.p_w)
-            self.p_h = max(self.p_h, o.p_y + o.p_h)
+            self.w = max(self.w, o.x + o.w)
+            self.h = max(self.h, o.y + o.h)
         end)
     end,
 
     --[[! Function: adjust_children
         Adjusts layout of children widgets. Takes additional optional
-        parameters px (0), py (0), pw (self.p_w), ph (self.p_h). Basically
+        parameters px (0), py (0), pw (self.w), ph (self.h). Basically
         calls <adjust_layout> on each child with those parameters.
     ]]
     adjust_children = function(self, px, py, pw, ph)
-        px, py, pw, ph = px or 0, py or 0, pw or self.p_w, ph or self.p_h
+        px, py, pw, ph = px or 0, py or 0, pw or self.w, ph or self.h
         loop_children(self, function(o) o:adjust_layout(px, py, pw, ph) end)
     end,
 
@@ -622,8 +622,8 @@ Object = register_class("Object", table.Object, {
         calls <adjust_children> with no parameters.
     ]]
     adjust_layout = function(self, px, py, pw, ph)
-        local x, y, w, h, a = self.p_x, self.p_y,
-            self.p_w, self.p_h, self.i_adjust
+        local x, y, w, h, a = self.x, self.y,
+            self.w, self.h, self.i_adjust
 
         local adj = band(a, ALIGN_HMASK)
 
@@ -657,7 +657,7 @@ Object = register_class("Object", table.Object, {
             end
         end
 
-        self.p_x, self.p_y, self.p_w, self.p_h = x, y, w, h
+        self.x, self.y, self.w, self.h = x, y, w, h
 
         if self.p_floating then
             local fx = self.p_fx
@@ -666,8 +666,8 @@ Object = register_class("Object", table.Object, {
             if not fx then self.p_fx, fx = x, x end
             if not fy then self.p_fy, fy = y, y end
 
-            self.p_x = fx
-            self.p_y = fy
+            self.x = fx
+            self.y = fy
         end
 
         self:adjust_children()
@@ -718,14 +718,14 @@ Object = register_class("Object", table.Object, {
         and draws on these (assuming they're not fully clipped).
     ]]
     draw = function(self, sx, sy)
-        sx = sx or self.p_x
-        sy = sy or self.p_y
+        sx = sx or self.x
+        sy = sy or self.y
 
         loop_children(self, function(o)
-            local ox = o.p_x
-            local oy = o.p_y
-            local ow = o.p_w
-            local oh = o.p_h
+            local ox = o.x
+            local oy = o.y
+            local ow = o.w
+            local oh = o.h
             if not is_fully_clipped(sx + ox, sy + oy, ow, oh) then
                 o:draw(sx + ox, sy + oy)
             end
@@ -790,7 +790,7 @@ Object = register_class("Object", table.Object, {
     ]]
     clicked = function(self, cx, cy)
         update_later[#update_later + 1] = { self, "click",
-            cx / self.p_w, cy / self.p_w }
+            cx / self.w, cy / self.w }
     end,
 
     --[[! Function: takes_input
@@ -1173,9 +1173,9 @@ local World = register_class("World", Object, {
         local ch = self.p_children
         for i = #ch, 1, -1 do
             local o = ch[i]
-            local ox = cx - o.p_x
-            local oy = cy - o.p_y
-            if ox >= 0 and ox < o.p_w and oy >= 0 and oy < o.p_h then
+            local ox = cx - o.x
+            local oy = cy - o.y
+            if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
                 local c  = o:hover(ox, oy)
                 if    c == o then
                     hover_x = ox
@@ -1193,9 +1193,9 @@ local World = register_class("World", Object, {
         local ch = self.p_children
         for i = #ch, 1, -1 do
             local o = ch[i]
-            local ox = cx - o.p_x
-            local oy = cy - o.p_y
-            if ox >= 0 and ox < o.p_w and oy >= 0 and oy < o.p_h then
+            local ox = cx - o.x
+            local oy = cy - o.y
+            if ox >= 0 and ox < o.w and oy >= 0 and oy < o.h then
                 local c  = o:click(ox, oy)
                 if    c == o then
                     click_x = ox
@@ -1220,10 +1220,10 @@ local World = register_class("World", Object, {
         if faspect ~= 0 then sw = ceil(sh * faspect) end
 
         local margin = max((sw/sh - 1) / 2, 0)
-        self.p_x = -margin
-        self.p_y = 0
-        self.p_w = 2 * margin + 1
-        self.p_h = 1
+        self.x = -margin
+        self.y = 0
+        self.w = 2 * margin + 1
+        self.h = 1
         self.p_margin = margin
 
         self:adjust_children()
@@ -1369,7 +1369,7 @@ local cursor_exists = function(draw)
     local cmode = cursor_mode()
     if cmode == 2 or (world:takes_input() and cmode >= 1) then
         if draw then return true end
-        if world:target(cursor_x * world.p_w, cursor_y * world.p_h) then
+        if world:target(cursor_x * world.w, cursor_y * world.h) then
             return true
         end
     end
@@ -1399,7 +1399,7 @@ set_external("input_keypress", function(code, isdown)
         return false
     elseif code == key.MOUSE1 then
         if isdown then
-            clicked = world:click(cursor_x * world.p_w, cursor_y * world.p_h)
+            clicked = world:click(cursor_x * world.w, cursor_y * world.h)
             if clicked then clicked:clicked(click_x, click_y) end
         else
             clicked = nil
@@ -1440,7 +1440,7 @@ set_external("gui_update", function()
     end
 
     if cursor_exists() then
-        local w, h = world.p_w, world.p_h
+        local w, h = world.w, world.h
 
         hovering = world.hover(world, cursor_x * w, cursor_y * h)
         if  hovering then
@@ -1472,7 +1472,7 @@ end)
 set_external("gui_render", function()
     local w = world
     if #w.p_children ~= 0 then
-        _C.hudmatrix_ortho(w.p_x, w.p_x + w.p_w, w.p_y + w.p_h, w.p_y, -1, 1)
+        _C.hudmatrix_ortho(w.x, w.x + w.w, w.y + w.h, w.y, -1, 1)
         _C.hudmatrix_reset()
         _C.shader_hud_set()
 
@@ -1488,7 +1488,7 @@ set_external("gui_render", function()
             local left, right = -margin, 1 + 2 * margin
             local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
 
-            local tw, th = tooltip.p_w, tooltip.p_h
+            local tw, th = tooltip.w, tooltip.h
             if (x + tw * 0.95) > (right - margin) then
                 x = x - tw + 0.02
                 if x <= -margin then x = -margin + 0.02 end
