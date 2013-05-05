@@ -34,6 +34,7 @@ local ceil  = math.ceil
 local round = math.round
 local _V    = _G["_V"]
 local _C    = _G["_C"]
+local emit  = signal.emit
 
 local base = require("gui.core")
 local world = base.get_world()
@@ -790,10 +791,12 @@ M.Scroller = register_class("Scroller", Clipper, {
     --[[! Function: set_h_scroll
         Sets the horizontal scroll offset. Takes the "real" offset, that is,
         actual_offset as <get_h_offset> describes it (offset 1 would be the
-        full screen height).
+        full screen height). Emits the h_scroll_changed signal on self with
+        self:get_h_offset() as a parameter.
     ]]
     set_h_scroll = function(self, hs)
         self.offset_h = clamp(hs, 0, self:get_h_limit())
+        emit(self, "h_scroll_changed", self:get_h_offset())
     end,
 
     --[[! Function: set_v_scroll
@@ -801,6 +804,7 @@ M.Scroller = register_class("Scroller", Clipper, {
     ]]
     set_v_scroll = function(self, vs)
         self.offset_v = clamp(vs, 0, self:get_v_limit())
+        emit(self, "v_scroll_changed", self:get_v_offset())
     end,
 
     --[[! Function: scroll_h
@@ -1192,6 +1196,9 @@ local Slider_Button
     defaults to 1), step_time (the time to perform a step during
     arrow scroll).
 
+    Changes of "value" performed internally emit the "value_changed" signal
+    with the new value as an argument.
+
     Via kwargs field "var" you can set the engine variable the slider
     will be bound to. It's not a property, and it'll auto-create the
     variable if it doesn't exist. You don't have to bind the slider
@@ -1239,6 +1246,7 @@ local Slider = register_class("Slider", Object, {
 
         local val = min(mx, mn) + newstep * ss
         self.value = val
+        emit(self, "value_changed", val)
 
         local varn = self.var
         if varn then base.update_var(varn, val) end
@@ -1255,6 +1263,7 @@ local Slider = register_class("Slider", Object, {
 
         local val = min(mx, mn) + newstep * ss
         self.value = val
+        emit(self, "value_changed", val)
 
         local varn = self.var
         if varn then base.update_var(varn, val) end
