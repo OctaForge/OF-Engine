@@ -3162,6 +3162,13 @@ local Text_Editor = register_class("Text_Editor", Object, {
 })
 M.Text_Editor = Text_Editor
 
+--[[! Struct: Field
+    Represents a field, a specialization of <Text_Editor>. It has the same
+    properties with one added, "value". It represents the current value in
+    the field. You can also provide "var" via kwargs which is the name of
+    the engine variable this field will write into, but it's not a property.
+    If the variable doesn't exist the field will auto-create it.
+]]
 M.Field = register_class("Field", Text_Editor, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -3187,10 +3194,21 @@ M.Field = register_class("Field", Text_Editor, {
         if varn then update_var(varn, val) end
     end,
 
+    --[[! Function: key_hover
+        Here it just tries to call <key>. If that returns false, it just
+        returns Object.key_hover(self, code, isdown).
+    ]]
     key_hover = function(self, code, isdown)
         return self:key(code, isdown) or Object.key_hover(self, code, isdown)
     end,
 
+    --[[! Function: key
+        An input key handler. If a key call on Object returns true, it just
+        returns that. If the widget is not focused, it returns false. Otherwise
+        it tries to handle the escape key (unsets focus), the enter and tab
+        keys (those update the value) and then it tries <Text_Editor.key>.
+        Returns true in any case unless it returns false in the beginning.
+    ]]
     key = function(self, code, isdown)
         if Object.key(self, code, isdown) then return true end
         if not is_focused(self) then return false end
@@ -3213,6 +3231,10 @@ M.Field = register_class("Field", Text_Editor, {
         return true
     end,
 
+    --[[! Function: reset_value
+        Resets the field value to the last saved value, effectively canceling
+        any sort of unsaved changes.
+    ]]
     reset_value = function(self)
         local str = self.p_value
         if self.lines[1] ~= str then self:edit_clear(str) end
@@ -3258,11 +3280,34 @@ base.set_text_handler(function()
     end
 end)
 
-M.FILTER_LINEAR                 = gl.LINEAR
-M.FILTER_LINEAR_MIPMAP_LINEAR   = gl.LINEAR_MIPMAP_LINEAR
-M.FILTER_LINEAR_MIPMAP_NEAREST  = gl.LINEAR_MIPMAP_NEAREST
-M.FILTER_NEAREST                = gl.NEAREST
-M.FILTER_NEAREST_MIPMAP_LINEAR  = gl.NEAREST_MIPMAP_LINEAR
+--[[! Variable: FILTER_LINEAR
+    A texture fitler equivalent to GL_LINEAR.
+]]
+M.FILTER_LINEAR = gl.LINEAR
+
+--[[! Variable: FILTER_LINEAR_MIPMAP_LINAER
+    A texture fitler equivalent to GL_LINEAR_MIPMAP_LINEAR.
+]]
+M.FILTER_LINEAR_MIPMAP_LINEAR = gl.LINEAR_MIPMAP_LINEAR
+
+--[[! Variable: FILTER_LINEAR_MIPMAP_NEAREST
+    A texture fitler equivalent to GL_LINEAR_MIPMAP_NEAREST.
+]]
+M.FILTER_LINEAR_MIPMAP_NEAREST = gl.LINEAR_MIPMAP_NEAREST
+
+--[[! Variable: FILTER_NEAREST
+    A texture fitler equivalent to GL_NEAREST.
+]]
+M.FILTER_NEAREST = gl.NEAREST
+
+--[[! Variable: FILTER_NEAREST_MIPMAP_LINEAR
+    A texture fitler equivalent to GL_NEAREST_MIPMAP_LINEAR.
+]]
+M.FILTER_NEAREST_MIPMAP_LINEAR = gl.NEAREST_MIPMAP_LINEAR
+
+--[[! Variable: FILTER_NEAREST_MIPMAP_NEAREST
+    A texture fitler equivalent to GL_NEAREST_MIPMAP_NEAREST.
+]]
 M.FILTER_NEAREST_MIPMAP_NEAREST = gl.NEAREST_MIPMAP_NEAREST
 
 return M
