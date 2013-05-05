@@ -687,7 +687,7 @@ M.Scroller = register_class("Scroller", Clipper, {
         if not sb or not self.can_scroll then return false end
         if not isdown then return true end
 
-        local adjust = (code == m4 and -0.2 or 0.2) * sb.p_arrow_speed
+        local adjust = (code == m4 and -0.2 or 0.2) * sb.arrow_speed
         if self.v_scrollbar then
             self:scroll_v(adjust)
         else
@@ -832,8 +832,8 @@ local Scrollbar = register_class("Scrollbar", Object, {
 
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_arrow_size  = kwargs.arrow_size  or 0
-        self.p_arrow_speed = kwargs.arrow_speed or 0
+        self.arrow_size  = kwargs.arrow_size  or 0
+        self.arrow_speed = kwargs.arrow_speed or 0
         self.arrow_dir   = 0
 
         return Object.__init(self, kwargs)
@@ -892,7 +892,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
         if not sc or not sc.can_scroll then return false end
         if not isdown then return true end
 
-        local adjust = (code == m4 and -0.2 or 0.2) * self.p_arrow_speed
+        local adjust = (code == m4 and -0.2 or 0.2) * self.arrow_speed
         if self.orient == 1 then
             sc:scroll_v(adjust)
         else
@@ -941,7 +941,13 @@ local Scrollbar = register_class("Scrollbar", Object, {
         end
     end,
 
-    move_button = function(self, o, fromx, fromy, tox, toy) end
+    move_button = function(self, o, fromx, fromy, tox, toy) end,
+
+    --[[! Function: set_arrow_size ]]
+    set_arrow_size = gen_setter "arrow_size",
+
+    --[[! Function: set_arrow_speed ]]
+    set_arrow_speed = gen_setter "arrow_speed"
 })
 M.Scrollbar = Scrollbar
 
@@ -1028,7 +1034,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.p_arrow_size
+        local as = self.arrow_size
         return (cx < as) and -1 or (cx >= (self.w - as) and 1 or 0)
     end,
 
@@ -1036,7 +1042,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         local  scroll = self.scroller
         if not scroll then return nil end
 
-        scroll:scroll_h(self.arrow_dir * self.p_arrow_speed *
+        scroll:scroll_h(self.arrow_dir * self.arrow_speed *
             frame.get_frame_time())
     end,
 
@@ -1047,7 +1053,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         local  btn = self:find_child(Scroll_Button.type, nil, false)
         if not btn then return nil end
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local bscale = (max(self.w - 2 * as, 0) - btn.w) /
             (1 - scroll:get_h_scale())
@@ -1064,7 +1070,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         local  btn = self:find_child(Scroll_Button.type, nil, false)
         if not btn then return nil end
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local sw, btnw = self.w, btn.w
 
@@ -1117,7 +1123,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.p_arrow_size
+        local as = self.arrow_size
         return (cy < as) and -1 or (cy >= (self.h - as) and 1 or 0)
     end,
 
@@ -1125,7 +1131,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local  scroll = self.scroller
         if not scroll then return nil end
 
-        scroll:scroll_v(self.arrow_dir * self.p_arrow_speed *
+        scroll:scroll_v(self.arrow_dir * self.arrow_speed *
             frame.get_frame_time())
     end,
 
@@ -1136,7 +1142,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local  btn = self:find_child(Scroll_Button.type, nil, false)
         if not btn then return nil end
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local bscale = (max(self.h - 2 * as, 0) - btn.h) /
             (1 - scroll:get_v_scale())
@@ -1154,7 +1160,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local  btn = self:find_child(Scroll_Button.type, nil, false)
         if not btn then return nil end
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local sh, btnh = self.h, btn.h
 
@@ -1211,7 +1217,7 @@ local Slider = register_class("Slider", Object, {
             self.p_max_value = clamp(self.p_max_value, mn, mx)
         end
 
-        self.p_arrow_size = kwargs.arrow_size or 0
+        self.arrow_size = kwargs.arrow_size or 0
         self.p_step_size  = kwargs.step_size  or 1
         self.p_step_time  = kwargs.step_time  or 1000
 
@@ -1435,7 +1441,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.p_arrow_size
+        local as = self.arrow_size
         return cx < as and -1 or (cx >= (self.w - as) and 1 or 0)
     end,
 
@@ -1443,7 +1449,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
         local  btn = self:find_child(Slider_Button.type, nil, false)
         if not btn then return nil end
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local sw, bw = self.w, btn.w
 
@@ -1461,7 +1467,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
         local steps   = abs(mx - mn) / self.p_step_size
         local curstep = (self.p_value - min(mx, mn)) / ss
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local width = max(self.w - 2 * as, 0)
 
@@ -1496,7 +1502,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
     end,
 
     choose_direction = function(self, cx, cy)
-        local as = self.p_arrow_size
+        local as = self.arrow_size
         return cy < as and -1 or (cy >= (self.h - as) and 1 or 0)
     end,
 
@@ -1504,7 +1510,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
         local  btn = self:find_child(Slider_Button.type, nil, false)
         if not btn then return nil end
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local sh, bh = self.h, btn.h
         local mn, mx = self.p_min_value, self.p_max_value
@@ -1523,7 +1529,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
         local steps   = (max(mx, mn) - min(mx, mn)) / ss + 1
         local curstep = (self.p_value - min(mx, mn)) / ss
 
-        local as = self.p_arrow_size
+        local as = self.arrow_size
 
         local height = max(self.h - 2 * as, 0)
 
