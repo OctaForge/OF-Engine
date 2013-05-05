@@ -2107,8 +2107,8 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        self.p_tile_w = kwargs.tile_w or 1
-        self.p_tile_h = kwargs.tile_h or 1
+        self.tile_w = kwargs.tile_w or 1
+        self.tile_h = kwargs.tile_h or 1
 
         return Image.__init(self, kwargs)
     end,
@@ -2121,7 +2121,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 
         if tex:get_bpp() < 32 then return self end
 
-        local tw, th = self.p_tile_w, self.p_tile_h
+        local tw, th = self.tile_w, self.tile_h
         local dx, dy = cx % tw, cy % th
 
         return check_alpha_mask(tex, dx / tw, dy / th) and self
@@ -2143,7 +2143,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 
         _C.gle_color4ub(self.r, self.g, self.b, self.a)
 
-        local pw, ph, tw, th = self.w, self.h, self.p_tile_w, self.p_tile_h
+        local pw, ph, tw, th = self.w, self.h, self.tile_w, self.tile_h
 
         -- we cannot use the built in OpenGL texture
         -- repeat with clamped textures
@@ -2170,7 +2170,13 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         end
 
         return Object.draw(self, sx, sy)
-    end
+    end,
+
+    --[[! Function: set_tile_w ]]
+    set_tile_w = gen_setter "tile_w",
+
+    --[[! Function: set_tile_h ]]
+    set_tile_h = gen_setter "tile_h"
 })
 
 --[[! Struct: Thumbnail
@@ -2246,7 +2252,7 @@ M.Thumbnail = register_class("Thumbnail", Image, {
 M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_slot = kwargs.slot or 0
+        self.slot = kwargs.slot or 0
 
         return Filler.__init(self, kwargs)
     end,
@@ -2256,14 +2262,17 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
     ]]
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
-        if    o or not _C.slot_exists(self.p_slot) then return o end
-        return _C.slot_check_vslot(self.p_slot) and self or nil
+        if    o or not _C.slot_exists(self.slot) then return o end
+        return _C.slot_check_vslot(self.slot) and self or nil
     end,
 
     draw = function(self, sx, sy)
-        _C.texture_draw_slot(self.p_slot, self.w, self.h, sx, sy)
+        _C.texture_draw_slot(self.slot, self.w, self.h, sx, sy)
         return Object.draw(self, sx, sy)
-    end
+    end,
+
+    --[[! Function: set_slot ]]
+    set_slot = gen_setter "slot"
 })
 
 --[[! Struct: Model_Viewer
@@ -2278,15 +2287,15 @@ M.Slot_Viewer = register_class("Slot_Viewer", Filler, {
 M.Model_Viewer = register_class("Model_Viewer", Filler, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_model = kwargs.model
+        self.model = kwargs.model
 
         local a = kwargs.anim
         local aprim = bor(band(a, model.anims.INDEX), model.anims.LOOP)
         local asec  = band(brsh(a, 8), model.anims.INDEX)
         if asec ~= 0 then asec = bor(asec, model.anims.LOOP) end
 
-        self.p_anim = bor(aprim, blsh(asec, model.anims.SECONDARY))
-        self.p_attachments = kwargs.attachments or {}
+        self.anim = bor(aprim, blsh(asec, model.anims.SECONDARY))
+        self.attachments = kwargs.attachments or {}
 
         return Filler.__init(self, kwargs)
     end,
@@ -2296,17 +2305,17 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local csl = #clip_stack > 0
         if csl then _C.gl_scissor_disable() end
 
-        local screenw, ww, ws = _V.scr_w, world.w, world.p_size
+        local screenw, ww, ws = _V.scr_w, world.w, world.size
         local w, h = self.w, self.h
 
-        local x = floor((sx + world.p_margin) * screenw / ww)
+        local x = floor((sx + world.margin) * screenw / ww)
         local dx = ceil(w * screenw / ww)
         local y  = ceil((1 - (h + sy)) * ws)
         local dy = ceil(h * ws)
 
         _C.gle_disable()
         _C.model_preview_start(x, y, dx, dy, csl)
-        _C.model_preview(self.p_model, self.p_anim, self.p_attachments)
+        _C.model_preview(self.model, self.anim, self.attachments)
         if csl then clip_area_scissor() end
         _C.model_preview_end()
 
@@ -2316,7 +2325,16 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         _C.gl_blend_enable()
         if csl then _C.gl_scissor_enable() end
         return Object.draw(self, sx, sy)
-    end
+    end,
+
+    --[[! Function: set_model ]]
+    set_model = gen_setter "model",
+
+    --[[! Function: set_anim ]]
+    set_anim = gen_setter "anim",
+
+    --[[! Function: set_attachments ]]
+    set_attachments = gen_setter "attachments"
 })
 
 --[[! Variable: uitextrows
