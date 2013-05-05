@@ -437,7 +437,7 @@ Object = register_class("Object", table.Object, {
         local clamp_b = kwargs.clamp_b or false
         local clamp_t = kwargs.clamp_t or false
 
-        self.p_floating = kwargs.floating or false
+        self.floating = kwargs.floating or false
 
         self:align(align_h, align_v)
         self:clamp(clamp_l, clamp_r, clamp_b, clamp_t)
@@ -480,7 +480,7 @@ Object = register_class("Object", table.Object, {
         end
 
         -- tooltip? widget specific
-        self.p_tooltip = kwargs.tooltip or false
+        self.tooltip = kwargs.tooltip or false
 
         -- and init
         if  kwargs.init then
@@ -657,7 +657,7 @@ Object = register_class("Object", table.Object, {
 
         self.x, self.y, self.w, self.h = x, y, w, h
 
-        if self.p_floating then
+        if self.floating then
             local fx = self.fx
             local fy = self.fy
 
@@ -810,7 +810,7 @@ Object = register_class("Object", table.Object, {
         recurse = (recurse == nil) and true or recurse
         local o = loop_children(self, function(o)
             if o ~= exclude and o.type == otype and
-            (not name or name == o.p_obj_name) then
+            (not name or name == o.obj_name) then
                 return o
             end
         end)
@@ -834,7 +834,7 @@ Object = register_class("Object", table.Object, {
         recurse = (recurse == nil) and true or recurse
         loop_children(self, function(o)
             if o ~= exclude and o.type == otype and
-            (not name or name == o.p_obj_name) then
+            (not name or name == o.obj_name) then
                 ch[#ch + 1] = o
             end
         end)
@@ -997,6 +997,23 @@ Object = register_class("Object", table.Object, {
                band(a, CLAMP_BOTTOM) ~= 0, band(a, CLAMP_TOP) ~= 0
     end,
 
+    --[[! Function: set_floating
+        Sets the floating property to val and emits the floating_changed
+        signal on self.
+    ]]
+    set_floating = function(self, val)
+        self.floating = val
+        signal.emit(self, "floating_changed", val)
+    end,
+
+    --[[! Function: set_tooltip
+        Sets the tooltip to val and emits the tooltip_changed signal on self.
+    ]]
+    set_tooltip = function(self, val)
+        self.tooltip = val
+        signal.emit(self, "tooltip_changed", val)
+    end,
+
     --[[! Function: insert
         Given a position in the children list, an object and optionally a
         function, this inserts the given object in the position and calls
@@ -1082,8 +1099,16 @@ Object = register_class("Object", table.Object, {
 local Named_Object = register_class("Named_Object", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_obj_name = kwargs.name
+        self.obj_name = kwargs.name
         return Object.__init(self, kwargs)
+    end,
+
+    --[[! Function: set_name
+        Sets the name to val and emits the name_changed signal on self.
+    ]]
+    set_name = function(self, val)
+        self.name = val
+        signal.emit(self, "name_changed", val)
     end
 })
 
@@ -1147,7 +1172,7 @@ M.Space = Space
 local World = register_class("World", Object, {
     __init = function(self)
         self.windowdows = {}
-        self.p_size, self.p_margin = 0, 0
+        self.size, self.margin = 0, 0
         return Object.__init(self)
     end,
 
@@ -1213,7 +1238,7 @@ local World = register_class("World", Object, {
         Object.layout(self)
 
         local sw, sh = _V.scr_w, _V.scr_h
-        self.p_size  = sh
+        self.size = sh
         local faspect = _V.aspect
         if faspect ~= 0 then sw = ceil(sh * faspect) end
 
@@ -1222,7 +1247,7 @@ local World = register_class("World", Object, {
         self.y = 0
         self.w = 2 * margin + 1
         self.h = 1
-        self.p_margin = margin
+        self.margin = margin
 
         self:adjust_children()
     end,
@@ -1456,7 +1481,7 @@ set_external("gui_update", function()
     world:layout()
 
     if hovering then
-        local tooltip = hovering.p_tooltip
+        local tooltip = hovering.tooltip
         if    tooltip then
               tooltip:layout()
               tooltip:adjust_children()
@@ -1480,9 +1505,9 @@ set_external("gui_render", function()
         _C.gle_color3f(1, 1, 1)
         w:draw()
 
-        local tooltip = hovering and hovering.p_tooltip
+        local tooltip = hovering and hovering.tooltip
         if    tooltip then
-            local margin = w.p_margin
+            local margin = w.margin
             local left, right = -margin, 1 + 2 * margin
             local x, y = left + cursor_x * right + 0.01, cursor_y + 0.01
 

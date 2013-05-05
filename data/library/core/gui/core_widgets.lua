@@ -2382,7 +2382,7 @@ M.Mover = register_class("Mover", Object, {
         if not w then
             return Object.pressing(self, cx, cy)
         end
-        if w and w.p_floating and is_clicked(self) and self:can_move() then
+        if w and w.floating and is_clicked(self) and self:can_move() then
             w.fx, w.x = w.fx + cx, w.x + cx
             w.fy, w.y = w.fy + cy, w.y + cy
         end
