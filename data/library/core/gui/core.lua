@@ -12,6 +12,9 @@ local _V    = _G["_V"]
 local _C    = _G["_C"]
 local emit  = signal.emit
 
+local tremove = table.remove
+local tinsert = table.insert
+
 local M = {}
 
 local consts = require("gui.constants")
@@ -320,7 +323,7 @@ M.clip_push = clip_push
     is anything left on the clip stack).
 ]]
 local clip_pop = function()
-    table.remove(clip_stack)
+    tremove(clip_stack)
 
     local l = #clip_stack
     if    l == 0 then _C.gl_scissor_disable()
@@ -908,12 +911,12 @@ Object = register_class("Object", table.Object, {
             if #self.children < n then
                 return false
             end
-            table.remove(self.children, n):clear()
+            tremove(self.children, n):clear()
             return true
         end
         for i = 1, #self.children do
             if o == self.children[i] then
-                table.remove(self.children, i):clear()
+                tremove(self.children, i):clear()
                 return true
             end
         end
@@ -1009,7 +1012,7 @@ Object = register_class("Object", table.Object, {
         the function with the object as an argument.
     ]]
     insert = function(self, pos, obj, fun)
-        table.insert(self.children, pos, obj)
+        tinsert(self.children, pos, obj)
         obj.parent = self
         if fun then fun(obj) end
         return obj
@@ -1034,7 +1037,7 @@ Object = register_class("Object", table.Object, {
         with the object as an argument.
     ]]
     prepend = function(self, obj, fun)
-        table.insert(self.children, 1, obj)
+        tinsert(self.children, 1, obj)
         obj.parent = self
         if fun then fun(obj) end
         return obj
@@ -1155,7 +1158,7 @@ M.Space = Space
 ]]
 local World = register_class("World", Object, {
     __init = function(self)
-        self.windowdows = {}
+        self.windows = {}
         self.size, self.margin = 0, 0
         return Object.__init(self)
     end,
@@ -1276,9 +1279,9 @@ local World = register_class("World", Object, {
         on this, it's only intended for the internals.
     ]]
     new_window = function(self, name, fun, noinput, onscreen)
-        local old = self.windowdows[name]
+        local old = self.windows[name]
         local visible = false
-        self.windowdows[name] = function(vis)
+        self.windows[name] = function(vis)
             if vis == true then
                 return visible
             elseif vis == false then
@@ -1297,7 +1300,7 @@ local World = register_class("World", Object, {
         true.
     ]]
     show_window = function(self, name)
-        local  g = self.windowdows[name]
+        local  g = self.windows[name]
         if not g then return false end
         g()
         return true
@@ -1307,7 +1310,7 @@ local World = register_class("World", Object, {
         Returns the window build hook (the same one <show_window> calls).
     ]]
     get_window = function(self, name)
-        return self.windowdows[name]
+        return self.windows[name]
     end,
 
     --[[! Function: hide_window
@@ -1318,7 +1321,7 @@ local World = register_class("World", Object, {
     hide_window = function(self, name)
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
-        self.windowdows[name](false) -- set visible to false
+        self.windows[name](false) -- set visible to false
         return old ~= nil
     end,
 
@@ -1339,7 +1342,7 @@ local World = register_class("World", Object, {
         and false otherwise.
     ]]
     window_visible = function(self, name)
-        return self.windowdows[name](true)
+        return self.windows[name](true)
     end
 })
 
@@ -1529,7 +1532,8 @@ set_external("change_add", function(desc, ctype)
     end
 
     needsapply[#needsapply + 1] = { ctype = ctype, desc = desc }
-    LAPI.GUI.show_changes()
+    local win = world:get_window("changes")
+    if win then win() end
 end)
 
 local CHANGE_GFX     = blsh(1, 0)

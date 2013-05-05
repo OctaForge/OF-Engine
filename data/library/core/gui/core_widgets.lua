@@ -1676,11 +1676,11 @@ local Image = register_class("Image", Filler, {
         local tex = kwargs.file and _C.texture_load(kwargs.file)
 
         local af = kwargs.alt_file
-        if _C.texture_is_notexture(tex) and af then
+        if (not tex or _C.texture_is_notexture(tex)) and af then
             tex = _C.texture_load(af)
         end
 
-        self.texture = tex
+        self.texture = tex or _C.texture_get_notexture()
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
 
@@ -2191,7 +2191,8 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.file = kwargs.file
-        self.texture  = _C.texture_get_notexture()
+        self.texture = kwargs.fallback and _C.texture_load(kwargs.fallback)
+            or _C.texture_get_notexture()
 
         self.min_filter = kwargs.min_filter
         self.mag_filter = kwargs.mag_filter
@@ -2241,7 +2242,16 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     set_b = gen_setter "b",
 
     --[[! Function: set_a ]]
-    set_a = gen_setter "a"
+    set_a = gen_setter "a",
+
+    --[[! Function: set_fallback
+        Loads the fallback texture. If the thumbnail is already loaded,
+        doesn't do anything.
+    ]]
+    set_fallback = function(self, fallback)
+        if self.loaded then return nil end
+        if fallback then self.texture = _C.texture_load(fallback) end
+    end
 })
 
 --[[! Struct: Slot_Viewer

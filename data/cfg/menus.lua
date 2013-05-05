@@ -92,13 +92,10 @@ world:new_window("test", function(win)
     })
 end)
 
-_C.cubescript([[
-    bind ESCAPE [ lua [
-        if not gui.hide("main") then
-            gui.show("main")
-        end
-    ] ]
-]])
+_C.cubescript([[ bind ESCAPE [ lua [
+    local world = gui.core.get_world()
+    if not world:hide_window("main") then world:show_window("main") end
+] ] ]])
 --[=[
 
 -- non-edit tabs
