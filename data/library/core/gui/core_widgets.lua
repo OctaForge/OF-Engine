@@ -97,12 +97,12 @@ M.H_Box = register_class("H_Box", Object, {
         self.w, self.h = 0, 0
 
         loop_children(self, function(o)
-            o.p_x = self.w
-            o.p_y = 0
+            o.x = self.w
+            o.y = 0
             o:layout()
 
             self.w = self.w + o.w
-            self.h = max(self.h, o.p_y + o.h)
+            self.h = max(self.h, o.y + o.h)
         end)
         self.w = self.w + self.p_padding * max(#self.p_children - 1, 0)
     end,
@@ -114,10 +114,10 @@ M.H_Box = register_class("H_Box", Object, {
 
         local offset = 0
         loop_children(self, function(o)
-            o.p_x = offset
+            o.x = offset
             offset = offset + o.w
 
-            o:adjust_layout(o.p_x, 0, o.w, self.h)
+            o:adjust_layout(o.x, 0, o.w, self.h)
             offset = offset + self.p_padding
         end)
     end
@@ -138,12 +138,12 @@ M.V_Box = register_class("V_Box", Object, {
         self.h = 0
 
         loop_children(self, function(o)
-            o.p_x = 0
-            o.p_y = self.h
+            o.x = 0
+            o.y = self.h
             o:layout()
 
             self.h = self.h + o.h
-            self.w = max(self.w, o.p_x + o.w)
+            self.w = max(self.w, o.x + o.w)
         end)
         self.h = self.h + self.p_padding * max(#self.p_children - 1, 0)
     end,
@@ -155,10 +155,10 @@ M.V_Box = register_class("V_Box", Object, {
 
         local offset = 0
         loop_children(self, function(o)
-            o.p_y = offset
+            o.y = offset
             offset = offset + o.h
 
-            o:adjust_layout(0, o.p_y, self.w, o.h)
+            o:adjust_layout(0, o.y, self.w, o.h)
             offset = offset + self.p_padding
         end)
     end
@@ -214,8 +214,8 @@ M.Table = register_class("Table", Object, {
         local offset = 0
 
         loop_children(self, function(o)
-            o.p_x = offset
-            o.p_y = p_h
+            o.x = offset
+            o.y = p_h
 
             local wc, hr = widths[column], heights[row]
             o:adjust_layout(offset, p_h, wc, hr)
@@ -264,8 +264,8 @@ M.Table = register_class("Table", Object, {
         local offsetx, offsety = 0, 0
 
         loop_children(self, function(o)
-            o.p_x = offsetx
-            o.p_y = offsety
+            o.x = offsetx
+            o.y = offsety
 
             local wc, hr = widths[column], heights[row]
             o.adjust_layout(o, offsetx, offsety, wc, hr)
@@ -300,12 +300,12 @@ M.Spacer = register_class("Spacer", Object, {
         local w , h  = ph, pv
 
         loop_children(self, function(o)
-            o.p_x = ph
-            o.p_y = pv
+            o.x = ph
+            o.y = pv
             o:layout()
 
-            w = max(w, o.p_x + o.w)
-            h = max(h, o.p_y + o.h)
+            w = max(w, o.x + o.w)
+            h = max(h, o.y + o.h)
         end)
 
         self.w = w + ph
@@ -404,8 +404,8 @@ M.Offsetter = register_class("Offsetter", Object, {
         local oh, ov = self.p_offset_h, self.p_offset_v
 
         loop_children(self, function(o)
-            o.p_x = o.p_x + oh
-            o.p_y = o.p_y + ov
+            o.x = o.x + oh
+            o.y = o.y + ov
         end)
 
         self.w = self.w + oh
@@ -883,7 +883,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
             local button = self:find_child(Scroll_Button.type, nil, false)
             if button and is_clicked(button) then
                 self.i_arrow_dir = 0
-                button:hovering(cx - button.p_x, cy - button.p_y)
+                button:hovering(cx - button.x, cy - button.y)
             else
                 self.i_arrow_dir = self:choose_direction(cx, cy)
             end
@@ -1023,14 +1023,14 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         local bscale = (scroll:get_h_scale() < 1) and
             (max(sw - 2 * as, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
 
-        btn.p_x = as + scroll:get_h_offset() * bscale
+        btn.x = as + scroll:get_h_offset() * bscale
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_HMASK))
 
         Object.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
-        self:scroll_to(o.p_x + tox - fromx, o.p_y + toy)
+        self:scroll_to(o.x + tox - fromx, o.y + toy)
     end
 }, Scrollbar.type)
 
@@ -1114,14 +1114,14 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local bscale = (scroll:get_v_scale() < 1) and
             (max(sh - 2 * as, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
 
-        btn.p_y = as + scroll:get_v_offset() * bscale
+        btn.y = as + scroll:get_v_offset() * bscale
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_VMASK))
 
         Object.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
-        self:scroll_to(o.p_x + tox, o.p_y + toy - fromy)
+        self:scroll_to(o.x + tox, o.y + toy - fromy)
     end
 }, Scrollbar.type)
 
@@ -1291,7 +1291,7 @@ local Slider = register_class("Slider", Object, {
 
             if button and is_clicked(button) then
                 self.i_arrow_dir = 0
-                button.hovering(button, cx - button.p_x, cy - button.p_y)
+                button.hovering(button, cx - button.x, cy - button.y)
             else
                 self.i_arrow_dir = self:choose_direction(cx, cy)
             end
@@ -1415,14 +1415,14 @@ M.H_Slider = register_class("H_Slider", Slider, {
         local width = max(self.w - 2 * as, 0)
 
         btn.w = max(btn.w, width / steps)
-        btn.p_x = as + (width - btn.w) * curstep / steps
+        btn.x = as + (width - btn.w) * curstep / steps
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_HMASK))
 
         Object.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
-        self:scroll_to(o.p_x + o.w / 2 + tox - fromx, o.p_y + toy)
+        self:scroll_to(o.x + o.w / 2 + tox - fromx, o.y + toy)
     end
 }, Slider.type)
 
@@ -1477,14 +1477,14 @@ M.V_Slider = register_class("V_Slider", Slider, {
         local height = max(self.h - 2 * as, 0)
 
         btn.h = max(btn.h, height / steps)
-        btn.p_y = as + (height - btn.h) * curstep / steps
+        btn.y = as + (height - btn.h) * curstep / steps
         btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_VMASK))
 
         Object.adjust_children(self)
     end,
 
     move_button = function(self, o, fromx, fromy, tox, toy)
-        self.scroll_to(self, o.p_x + o.h / 2 + tox, o.p_y + toy - fromy)
+        self.scroll_to(self, o.x + o.h / 2 + tox, o.y + toy - fromy)
     end
 }, Slider.type)
 
@@ -2191,7 +2191,7 @@ M.Label = register_class("Label", Object, {
 
         self.p_text  = kwargs.text  or ""
         self.p_scale = kwargs.scale or  1
-        self.wrap  = kwargs.wrap  or -1
+        self.wrap    = kwargs.wrap  or -1
         self.p_r     = kwargs.r or 255
         self.p_g     = kwargs.g or 255
         self.p_b     = kwargs.b or 255
@@ -2352,10 +2352,10 @@ M.Mover = register_class("Mover", Object, {
             return true
         end
 
-        local rx, ry, p = self.p_x, self.p_y, wp
+        local rx, ry, p = self.x, self.y, wp
         while p do
-            rx = rx + p.p_x
-            ry = ry + p.p_y
+            rx = rx + p.x
+            ry = ry + p.y
             local  pp = p.parent
             if not pp then break end
             p    = pp
@@ -2383,8 +2383,8 @@ M.Mover = register_class("Mover", Object, {
             return Object.pressing(self, cx, cy)
         end
         if w and w.p_floating and is_clicked(self) and self:can_move() then
-            w.p_fx, w.p_x = w.p_fx + cx, w.p_x + cx
-            w.p_fy, w.p_y = w.p_fy + cy, w.p_y + cy
+            w.p_fx, w.x = w.p_fx + cx, w.x + cx
+            w.p_fy, w.y = w.p_fy + cy, w.y + cy
         end
     end
 })
