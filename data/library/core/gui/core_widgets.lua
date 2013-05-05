@@ -2004,18 +2004,15 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
 M.Bordered_Image = register_class("Bordered_Image", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-
         Image.__init(self, kwargs)
-
-        self.p_tex_border    = get_border_size(self.texture,
-                                               kwargs.tex_border or 0)
-        self.p_screen_border = kwargs.screen_border or 0
+        self.tex_border = get_border_size(self.texture, kwargs.tex_border or 0)
+        self.screen_border = kwargs.screen_border or 0
     end,
 
     layout = function(self)
         Object.layout(self)
 
-        local sb = self.p_screen_border
+        local sb = self.screen_border
         self.w = max(self.w, 2 * sb)
         self.h = max(self.h, 2 * sb)
     end,
@@ -2030,7 +2027,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
             return self
         end
 
-        local mx, my, tb, sb = 0, 0, self.p_tex_border, self.p_screen_border
+        local mx, my, tb, sb = 0, 0, self.tex_border, self.screen_border
         local pw, ph = self.w, self.h
 
         if     cx <  sb      then mx = cx / sb * tb
@@ -2089,7 +2086,17 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         _C.gle_end()
 
         return Object.draw(self, sx, sy)
-    end
+    end,
+
+    --[[! Function: set_tex_border ]]
+    set_tex_border = function(self, tb)
+        tb = get_border_size(self.texture, tb)
+        self.tex_border = tb
+        emit(self, "tex_border_changed", tb)
+    end,
+
+    --[[! Function: set_screen_border ]]
+    set_screen_border = gen_setter "screen_border"
 })
 
 --[[! Struct: Tiled_Image
