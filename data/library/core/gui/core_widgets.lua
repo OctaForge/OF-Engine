@@ -941,7 +941,8 @@ local ALIGN_VMASK = 0xC
     the HORIZONTAL field of <orient>. Overloads some of the Scrollbar
     methods specifically for horizontal scrolling.
 
-    Has five states - "default", "(up|down)_hovering", "(up|down)_clicked".
+    Has five states - "default", "(left|right)_hovering",
+    "(left|right)_clicked".
 ]]
 M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     orient = orient.HORIZONTAL,
@@ -961,11 +962,11 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
         local ad = self.i_arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "up_clicked" or
-                (is_hovering(self) and "up_hovering" or "default")
+            return is_clicked(self) and "left_clicked" or
+                (is_hovering(self) and "left_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "down_clicked" or
-                (is_hovering(self) and "down_hovering" or "default")
+            return is_clicked(self) and "right_clicked" or
+                (is_hovering(self) and "right_hovering" or "default")
         end
         return "default"
     end,
@@ -1030,7 +1031,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
 --[[! Struct: V_Scrollbar
     See <H_Scrollbar> above. Has different states, "default",
-    "(left|right)_hovering" and "(left|right)_clicked".
+    "(up|down)_hovering" and "(up|down)_clicked".
 ]]
 M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     orient = orient.VERTICAL,
@@ -1050,11 +1051,11 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local ad = self.i_arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "left_clicked" or
-                (is_hovering(self) and "left_hovering" or "default")
+            return is_clicked(self) and "up_clicked" or
+                (is_hovering(self) and "up_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "right_clicked" or
-                (is_hovering(self) and "right_hovering" or "default")
+            return is_clicked(self) and "down_clicked" or
+                (is_hovering(self) and "down_hovering" or "default")
         end
         return "default"
     end,
@@ -1121,6 +1122,20 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
 local Slider_Button
 
+--[[! Struct: Slider
+    Implements a base class for either horizontal or vertical slider. Has
+    several properties - min_value (the minimal slider value), max_value,
+    value (the current one), arrow_size (sliders can arrow-scroll like
+    scrollbars), step_size (determines the size of one slider step,
+    defaults to 1), step_time (the time to perform a step during
+    arrow scroll).
+
+    Via kwargs field "var" you can set the engine variable the slider
+    will be bound to. It's not a property, and it'll auto-create the
+    variable if it doesn't exist. You don't have to bind the slider
+    at all though. If you do, the min and max values will be bound
+    to the variable.
+]]
 local Slider = register_class("Slider", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
@@ -1135,12 +1150,9 @@ local Slider = register_class("Slider", Object, {
             if not var.exists(varn) then
                 var.new(varn, var.INT, self.p_value)
             end
-
---            if not var.is_alias(varn) then
-                local mn, mx = var.get_min(varn), var.get_max(varn)
-                self.p_min_value = clamp(self.p_min_value, mn, mx)
-                self.p_max_value = clamp(self.p_max_value, mn, mx)
---            end
+            local mn, mx = var.get_min(varn), var.get_max(varn)
+            self.p_min_value = clamp(self.p_min_value, mn, mx)
+            self.p_max_value = clamp(self.p_max_value, mn, mx)
         end
 
         self.p_arrow_size = kwargs.arrow_size or 0
@@ -1153,6 +1165,9 @@ local Slider = register_class("Slider", Object, {
         return Object.__init(self, kwargs)
     end,
 
+    --[[! Function: do_step
+        Jumps by n steps on the slider.
+    ]]
     do_step = function(self, n)
         local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
 
@@ -1167,6 +1182,9 @@ local Slider = register_class("Slider", Object, {
         if varn then base.update_var(varn, val) end
     end,
 
+    --[[! Function: set_step
+        Sets the nth step.
+    ]]
     set_step = function(self, n)
         local mn, mx, ss = self.p_min_value, self.p_max_value, self.p_step_size
 
@@ -1180,6 +1198,11 @@ local Slider = register_class("Slider", Object, {
         if varn then base.update_var(varn, val) end
     end,
 
+    --[[! Function: key_hover
+        You can change the slider value using the up, left keys (goes back
+        by one step), down, right keys (goes forward by one step) and mouse
+        scroll (goes forward/back by 3 steps).
+    ]]
     key_hover = function(self, code, isdown)
         if code == key.UP or code == key.LEFT then
             if isdown then self:do_step(-1) end
@@ -1202,11 +1225,19 @@ local Slider = register_class("Slider", Object, {
         return 0
     end,
 
+    --[[! Function: hover
+        The slider can be hovered on unless some of its children want the
+        hover instead.
+    ]]
     hover = function(self, cx, cy)
         return Object.hover(self, cx, cy) or
                      (self:target(cx, cy) and self)
     end,
 
+    --[[! Function: hover
+        The slider can be clicked on unless some of its children want the
+        click instead.
+    ]]
     click = function(self, cx, cy)
         return Object.click(self, cx, cy) or
                      (self:target(cx, cy) and self)
@@ -1214,6 +1245,10 @@ local Slider = register_class("Slider", Object, {
 
     scroll_to = function(self, cx, cy) end,
 
+    --[[! Function: clicked
+        Clicking inside the slider area but outside the arrow area jumps
+        in the slider.
+    ]]
     clicked = function(self, cx, cy)
         local ad = self.choose_direction(self, cx, cy)
         self.i_arrow_dir = ad
@@ -1237,6 +1272,10 @@ local Slider = register_class("Slider", Object, {
         self.do_step(self, self.i_arrow_dir)
     end,
 
+    --[[! Function: hovering
+        When the arrow area is pressed, the slider will keep going
+        in the appropriate direction. Also controls the slider button.
+    ]]
     hovering = function(self, cx, cy)
         if is_clicked(self) then
             if self.i_arrow_dir ~= 0 then
@@ -1258,6 +1297,13 @@ local Slider = register_class("Slider", Object, {
 })
 M.Slider = Slider
 
+--[[! Struct: Slider_Button
+    A slider button you can put inside a slider and drag. The slider
+    will adjust the button width (in case of horizontal slider) and height
+    (in case of vertical slider) depending on the slider size and values.
+
+    A slider button has three states, "default", "hovering" and "clicked".
+]]
 Slider_Button = register_class("Slider_Button", Object, {
     __init = function(self, kwargs)
         self.i_offset_h = 0
@@ -1308,16 +1354,26 @@ Slider_Button = register_class("Slider_Button", Object, {
 })
 M.Slider_Button = Slider_Button
 
+--[[! Struct: H_Slider
+    A specialization of <Slider>. Has the "orient" member set to
+    the HORIZONTAL field of <orient>. Overloads some of the Slider
+    methods specifically for horizontal direction.
+
+    Has five states - "default", "(left|right)_hovering",
+    "(left|right)_clicked".
+]]
 M.H_Slider = register_class("H_Slider", Slider, {
+    orient = orient.HORIZONTAL,
+
     choose_state = function(self)
         local ad = self.i_arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "up_clicked" or
-                (is_hovering(self) and "up_hovering" or "default")
+            return is_clicked(self) and "left_clicked" or
+                (is_hovering(self) and "left_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "down_clicked" or
-                (is_hovering(self) and "down_hovering" or "default")
+            return is_clicked(self) and "right_clicked" or
+                (is_hovering(self) and "right_hovering" or "default")
         end
         return "default"
     end,
@@ -1365,16 +1421,20 @@ M.H_Slider = register_class("H_Slider", Slider, {
     end
 }, Slider.type)
 
+--[[! Struct: V_Slider
+    See <H_Slider> above. Has different states, "default", "(up|down)_hovering"
+    and "(up|down)_clicked".
+]]
 M.V_Slider = register_class("V_Slider", Slider, {
     choose_state = function(self)
         local ad = self.i_arrow_dir
 
         if ad == -1 then
-            return is_clicked(self) and "left_clicked" or
-                (is_hovering(self) and "left_hovering" or "default")
+            return is_clicked(self) and "up_clicked" or
+                (is_hovering(self) and "up_hovering" or "default")
         elseif ad == 1 then
-            return is_clicked(self) and "right_clicked" or
-                (is_hovering(self) and "right_hovering" or "default")
+            return is_clicked(self) and "down_clicked" or
+                (is_hovering(self) and "down_hovering" or "default")
         end
         return "default"
     end,
