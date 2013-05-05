@@ -567,6 +567,7 @@ Object = register_class("Object", table.Object, {
                     nst.parent = v
                     sts[sname] = nst
                     st:clear()
+                    v:state_changed(sname, nst)
                 end
             end
         end end
@@ -582,6 +583,42 @@ Object = register_class("Object", table.Object, {
         for k, v in pairs(states) do
             self:update_class_state(k, v)
         end
+    end,
+
+    --[[! Function: update_state
+        Given the state name an an object, this sets the state of that name
+        for the individual object (unlike <update_class_state>). That is
+        useful when you need widgets with custom appearance but you don't
+        want all widgets to have it. This function destroys the old state
+        if any.
+    ]]
+    update_state = function(self, state, obj)
+        local states = self.states
+        local ostate = states[state]
+        if ostate then ostate:clear() end
+        states[state] = obj
+        obj.parent = self
+        self:state_changed(state, obj)
+        return obj
+    end,
+
+    --[[! Function: update_states
+        Given an associative array of states, it calls <update_state>
+        for each.
+    ]]
+    update_class_states = function(self, states)
+        for k, v in pairs(states) do
+            self:update_state(k, v)
+        end
+    end,
+
+    --[[! Function: state_changed
+        Called with the state name and the state object everytime
+        <update_state> or <update_class_state> updates an object's state.
+        Useful for widget class and instance specific things such as updating
+        labels on buttons. By default does nothing.
+    ]]
+    state_changed = function(self, sname, obj)
     end,
 
     --[[! Function: choose_state
@@ -1040,22 +1077,6 @@ Object = register_class("Object", table.Object, {
         tinsert(self.children, 1, obj)
         obj.parent = self
         if fun then fun(obj) end
-        return obj
-    end,
-
-    --[[! Function: update_state
-        Given the state name an an object, this sets the state of that name
-        for the individual object (unlike <update_class_state>). That is
-        useful when you need widgets with custom appearance but you don't
-        want all widgets to have it. This function destroys the old state
-        if any.
-    ]]
-    update_state = function(self, state, obj)
-        local states = self.states
-        local ostate = states[state]
-        if ostate then ostate:clear() end
-        states[state] = obj
-        obj.parent = self
         return obj
     end,
 
