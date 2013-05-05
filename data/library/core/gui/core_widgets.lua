@@ -325,6 +325,8 @@ M.Spacer = register_class("Spacer", Object, {
     the available space (depending on aspect ratio), if min_h is -1,
     it'll take the full height (1). It's invisible.
 
+    Negative min_w and min_h values are in pixels.
+
     There is also the clip_children boolean property defaulting to false.
     When true, it'll clip children inside - that's useful for, say, embedded
     floating windows.
@@ -346,12 +348,15 @@ local Filler = register_class("Filler", Object, {
         local min_w = self.p_min_w
         local min_h = self.p_min_h
 
+        if  min_w < 0 then
+            min_w = abs(min_w) / _V.scr_h
+        end
+        if  min_h < 0 then
+            min_h = abs(min_h) / _V.scr_h
+        end
+
         if  min_w == -1 then
-            local w = self.p_parent
-            while w.p_parent do
-                  w = w.p_parent
-            end
-            min_w = w.p_w
+            min_w = world.p_w
         end
         if  min_h == -1 then
             min_h = 1
@@ -1564,6 +1569,8 @@ end
     and GL_TEXTURE_MAG_FILTER as well as the filters later in this module),
     r, g, b, a (see <Rectangle>).
 
+    Negative min_w and min_h values are in pixels.
+
     Images are basically containers for texture objects. Texture objects
     are low-level and documented elsewhere.
 ]]
@@ -1666,11 +1673,10 @@ local Image = register_class("Image", Filler, {
         local min_w = self.p_min_w
         local min_h = self.p_min_h
 
-        if min_w and min_w < 0 then
+        if  min_w < 0 then
             min_w = abs(min_w) / _V.scr_h
         end
-
-        if min_h and min_h < 0 then
+        if  min_h < 0 then
             min_h = abs(min_h) / _V.scr_h
         end
 
