@@ -2383,8 +2383,8 @@ M.Mover = register_class("Mover", Object, {
             return Object.pressing(self, cx, cy)
         end
         if w and w.p_floating and is_clicked(self) and self:can_move() then
-            w.p_fx, w.x = w.p_fx + cx, w.x + cx
-            w.p_fy, w.y = w.p_fy + cy, w.y + cy
+            w.fx, w.x = w.fx + cx, w.x + cx
+            w.fy, w.y = w.fy + cy, w.y + cy
         end
     end
 })

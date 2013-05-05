@@ -371,13 +371,12 @@ local Object, Window
     The basic widget class every other derives from. Provides everything
     needed for a working widget class, but doesn't do anything by itself.
 
-    Members prefixed with p_ are properties and can be accessed without
-    the p_ (e.g. foo.bar accesses foo.p_bar). Setting properties results
-    in the propertyname_changed signal being emitted on the object.
-
     Basic properties are x, y, w, h, adjust (clamping and alignment),
     children (an array of objects), floating (whether the object is freely
     movable), parent (the parent object), states, tooltip (an object).
+
+    Properties are not made for direct setting from the outside environment.
+    Those properties that are meant to be set have a setter method.
 
     Several properties can be initialized via kwargs (align_h, align_v,
     clamp_l, clamp_r, clamp_b, clamp_t, floating, states, signals, tooltip
@@ -425,11 +424,10 @@ Object = register_class("Object", table.Object, {
         instances[self] = self
 
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
-        self.p_fx, self.p_fy = false, false
 
         self.adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
         self.children = { unpack(kwargs) }
-        self.__len      = Object.__len
+        self.__len    = Object.__len
 
         -- alignment and clamping
         local align_h = kwargs.align_h or 0
@@ -660,11 +658,11 @@ Object = register_class("Object", table.Object, {
         self.x, self.y, self.w, self.h = x, y, w, h
 
         if self.p_floating then
-            local fx = self.p_fx
-            local fy = self.p_fy
+            local fx = self.fx
+            local fy = self.fy
 
-            if not fx then self.p_fx, fx = x, x end
-            if not fy then self.p_fy, fy = y, y end
+            if not fx then self.fx, fx = x, x end
+            if not fy then self.fy, fy = y, y end
 
             self.x = fx
             self.y = fy
