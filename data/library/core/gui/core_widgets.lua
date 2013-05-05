@@ -2610,8 +2610,8 @@ local Text_Editor = register_class("Text_Editor", Object, {
         local height = kwargs.height or 1
         local scale  = kwargs.scale  or 1
 
-        self.p_keyfilter  = kwargs.key_filter
-        self.p_init_value = kwargs.value
+        self.keyfilter  = kwargs.key_filter
+        self.init_value = kwargs.value
         self.scale = kwargs.scale or 1
 
         self.offset_h, self.offset_v = 0, 0
@@ -3231,7 +3231,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
     end,
 
     reset_value = function(self)
-        local ival = self.p_init_value
+        local ival = self.init_value
         if ival and ival ~= self.lines[1] then
             self:edit_clear(ival)
         end
@@ -3401,7 +3401,9 @@ M.Field = register_class("Field", Text_Editor, {
 
     commit = function(self)
         local val = self.lines[1]
-        self.value = val -- trigger changed signal
+        self.value = val
+        -- trigger changed signal
+        emit(self, "value_changed", val)
 
         local varn = self.var
         if varn then update_var(varn, val) end
@@ -3451,7 +3453,10 @@ M.Field = register_class("Field", Text_Editor, {
     reset_value = function(self)
         local str = self.value
         if self.lines[1] ~= str then self:edit_clear(str) end
-    end
+    end,
+
+    --[[! Function: set_value ]]
+    set_value = gen_setter "value"
 })
 
 local textediting   = nil
@@ -3459,7 +3464,7 @@ local refreshrepeat = 0
 
 set_external("input_text", function(str)
     if not textediting then return false end
-    local filter = textediting.p_keyfilter
+    local filter = textediting.keyfilter
     if not filter then
         textediting:insert(str)
     else

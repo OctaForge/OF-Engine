@@ -408,20 +408,6 @@ local Object, Window
     The length operator on a widget returns the number of children.
 ]]
 Object = register_class("Object", table.Object, {
-    __get = function(self, n)
-        n = "p_" .. n
-        return rawget(self, n)
-    end,
-
-    __set = function(self, n, v)
-        local pn = "p_" .. n
-        if  rawget(self, pn) ~= nil then
-            rawset(self, pn, v)
-            signal.emit(self, n .. "_changed", v)
-            return true
-        end
-    end,
-
     --[[! Constructor: __init
         Builds a widget instance from scratch. The optional kwargs
         table contains properties that should be set on the resulting
