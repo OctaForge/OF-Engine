@@ -169,8 +169,8 @@ local loop_children = function(self, fun)
     if st then
         local s = self:choose_state()
 
-        if s ~= self.i_current_state then
-            self.i_current_state = s
+        if s ~= self.current_state then
+            self.current_state = s
         end
 
         local w = st[s]
@@ -205,8 +205,8 @@ local loop_children_r = function(self, fun)
     if st then
         local s = self:choose_state()
 
-        if s ~= self.i_current_state then
-            self.i_current_state = s
+        if s ~= self.current_state then
+            self.current_state = s
         end
 
         local w = st[s]
@@ -427,7 +427,7 @@ Object = register_class("Object", table.Object, {
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
         self.p_fx, self.p_fy = false, false
 
-        self.i_adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
+        self.adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
         self.p_children = { unpack(kwargs) }
         self.__len      = Object.__len
 
@@ -450,7 +450,7 @@ Object = register_class("Object", table.Object, {
         end
 
         -- states
-        self.i_current_state = nil
+        self.current_state = nil
         local states = {}
 
         local ks = kwargs.states
@@ -623,7 +623,7 @@ Object = register_class("Object", table.Object, {
     ]]
     adjust_layout = function(self, px, py, pw, ph)
         local x, y, w, h, a = self.x, self.y,
-            self.w, self.h, self.i_adjust
+            self.w, self.h, self.adjust
 
         local adj = band(a, ALIGN_HMASK)
 
@@ -951,7 +951,7 @@ Object = register_class("Object", table.Object, {
         assert_param(h, "number", 2)
         assert_param(v, "number", 3)
 
-        self.i_adjust = bor(band(self.i_adjust, bnot(ALIGN_MASK)),
+        self.adjust = bor(band(self.adjust, bnot(ALIGN_MASK)),
             blsh(clamp(h, -1, 1) + 2, ALIGN_HSHIFT),
             blsh(clamp(v, -1, 1) + 2, ALIGN_VSHIFT))
     end,
@@ -961,7 +961,7 @@ Object = register_class("Object", table.Object, {
         clamping. The values can be either true or false.
     ]]
     clamp = function(self, l, r, b, t)
-        self.i_adjust = bor(band(self.i_adjust, bnot(CLAMP_MASK)),
+        self.adjust = bor(band(self.adjust, bnot(CLAMP_MASK)),
             l and CLAMP_LEFT   or 0,
             r and CLAMP_RIGHT  or 0,
             b and CLAMP_BOTTOM or 0,
@@ -973,7 +973,7 @@ Object = register_class("Object", table.Object, {
         the same format as <align> arguments.
     ]]
     get_alignment = function(self)
-        local a   = self.i_adjust
+        local a   = self.adjust
         local adj = band(a, ALIGN_HMASK)
         local hal = (adj == ALIGN_LEFT) and -1 or
             (adj == ALIGN_HCENTER and 0 or 1)
@@ -989,7 +989,7 @@ Object = register_class("Object", table.Object, {
         Returns the left, right, bottom, top clamping as either true or false.
     ]]
     get_clamping = function(self)
-        local a   = self.i_adjust
+        local a   = self.adjust
         local adj = band(a, CLAMP_MASK)
         if    adj == 0 then
             return 0, 0, 0, 0
@@ -1065,13 +1065,13 @@ Object = register_class("Object", table.Object, {
         if self.type == Window.type then
             return self
         end
-        local  w = self.i_win
+        local  w = self.window
         if not w then
             w = self.parent
             while w and w.type ~= Window.type do
                 w = w.parent
             end
-            self.i_win = w
+            self.window = w
         end
         return w
     end
@@ -1148,7 +1148,7 @@ M.Space = Space
 ]]
 local World = register_class("World", Object, {
     __init = function(self)
-        self.i_windows = {}
+        self.windowdows = {}
         self.p_size, self.p_margin = 0, 0
         return Object.__init(self)
     end,
@@ -1269,9 +1269,9 @@ local World = register_class("World", Object, {
         on this, it's only intended for the internals.
     ]]
     new_window = function(self, name, fun, noinput, onscreen)
-        local old = self.i_windows[name]
+        local old = self.windowdows[name]
         local visible = false
-        self.i_windows[name] = function(vis)
+        self.windowdows[name] = function(vis)
             if vis == true then
                 return visible
             elseif vis == false then
@@ -1290,7 +1290,7 @@ local World = register_class("World", Object, {
         true.
     ]]
     show_window = function(self, name)
-        local  g = self.i_windows[name]
+        local  g = self.windowdows[name]
         if not g then return false end
         g()
         return true
@@ -1300,7 +1300,7 @@ local World = register_class("World", Object, {
         Returns the window build hook (the same one <show_window> calls).
     ]]
     get_window = function(self, name)
-        return self.i_windows[name]
+        return self.windowdows[name]
     end,
 
     --[[! Function: hide_window
@@ -1311,7 +1311,7 @@ local World = register_class("World", Object, {
     hide_window = function(self, name)
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
-        self.i_windows[name](false) -- set visible to false
+        self.windowdows[name](false) -- set visible to false
         return old ~= nil
     end,
 
@@ -1332,7 +1332,7 @@ local World = register_class("World", Object, {
         and false otherwise.
     ]]
     window_visible = function(self, name)
-        return self.i_windows[name](true)
+        return self.windowdows[name](true)
     end
 })
 

@@ -426,8 +426,8 @@ local Clipper = register_class("Clipper", Object, {
         kwargs = kwargs or {}
         self.p_clip_w = kwargs.clip_w or 0
         self.p_clip_h = kwargs.clip_h or 0
-        self.i_virt_w = 0
-        self.i_virt_h = 0
+        self.virt_w = 0
+        self.virt_h = 0
 
         return Object.__init(self, kwargs)
     end,
@@ -435,8 +435,8 @@ local Clipper = register_class("Clipper", Object, {
     layout = function(self)
         Object.layout(self)
     
-        self.i_virt_w = self.w
-        self.i_virt_h = self.h
+        self.virt_w = self.w
+        self.virt_h = self.h
 
         local cw, ch = self.p_clip_w, self.p_clip_h
 
@@ -445,13 +445,13 @@ local Clipper = register_class("Clipper", Object, {
     end,
 
     adjust_children = function(self)
-        Object.adjust_children(self, 0, 0, self.i_virt_w, self.i_virt_h)
+        Object.adjust_children(self, 0, 0, self.virt_w, self.virt_h)
     end,
 
     draw = function(self, sx, sy)
         local cw, ch = self.p_clip_w, self.p_clip_h
 
-        if (cw ~= 0 and self.i_virt_w > cw) or (ch ~= 0 and self.i_virt_h > ch)
+        if (cw ~= 0 and self.virt_w > cw) or (ch ~= 0 and self.virt_h > ch)
         then
             clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx, sy)
@@ -569,9 +569,9 @@ M.Scroller = register_class("Scroller", Clipper, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
 
-        self.i_offset_h = 0
-        self.i_offset_v = 0
-        self.i_can_scroll = 0
+        self.offset_h = 0
+        self.offset_v = 0
+        self.can_scroll = 0
 
         return Clipper.__init(self, kwargs)
     end,
@@ -588,34 +588,34 @@ M.Scroller = register_class("Scroller", Clipper, {
 
     layout = function(self)
         Clipper.layout(self)
-        self.i_offset_h = min(self.i_offset_h, self:get_h_limit())
-        self.i_offset_v = min(self.i_offset_v, self:get_v_limit())
+        self.offset_h = min(self.offset_h, self:get_h_limit())
+        self.offset_v = min(self.offset_v, self:get_v_limit())
     end,
 
     target = function(self, cx, cy)
-        local oh, ov, vw, vh = self.i_offset_h, self.i_offset_v,
-            self.i_virt_w, self.i_virt_h
+        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+            self.virt_w, self.virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
         return Object.target(self, cx + oh, cy + ov)
     end,
 
     hover = function(self, cx, cy)
-        local oh, ov, vw, vh = self.i_offset_h, self.i_offset_v,
-            self.i_virt_w, self.i_virt_h
+        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+            self.virt_w, self.virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then
-            self.i_can_scroll = false
+            self.can_scroll = false
             return nil
         end
 
-        self.i_can_scroll = true
+        self.can_scroll = true
         return Object.hover(self, cx + oh, cy + ov) or self
     end,
 
     click = function(self, cx, cy)
-        local oh, ov, vw, vh = self.i_offset_h, self.i_offset_v,
-            self.i_virt_w, self.i_virt_h
+        local oh, ov, vw, vh = self.offset_h, self.offset_v,
+            self.virt_w, self.virt_h
 
         if ((cx + oh) >= vw) or ((cy + ov) >= vh) then return nil end
         return Object.click(self, cx + oh, cy + ov)
@@ -632,12 +632,12 @@ M.Scroller = register_class("Scroller", Clipper, {
             return Object.key_hover(self, code, isdown)
         end
 
-        local  sb = self.i_v_scrollbar or self.i_h_scrollbar
-        if not sb or not self.i_can_scroll then return false end
+        local  sb = self.v_scrollbar or self.h_scrollbar
+        if not sb or not self.can_scroll then return false end
         if not isdown then return true end
 
         local adjust = (code == m4 and -0.2 or 0.2) * sb.p_arrow_speed
-        if self.i_v_scrollbar then
+        if self.v_scrollbar then
             self:scroll_v(adjust)
         else
             self:scroll_h(adjust)
@@ -647,11 +647,11 @@ M.Scroller = register_class("Scroller", Clipper, {
     end,
 
     draw = function(self, sx, sy)
-        if (self.p_clip_w ~= 0 and self.i_virt_w > self.p_clip_w) or
-           (self.p_clip_h ~= 0 and self.i_virt_h > self.p_clip_h)
+        if (self.p_clip_w ~= 0 and self.virt_w > self.p_clip_w) or
+           (self.p_clip_h ~= 0 and self.virt_h > self.p_clip_h)
         then
             clip_push(sx, sy, self.w, self.h)
-            Object.draw(self, sx - self.i_offset_h, sy - self.i_offset_v)
+            Object.draw(self, sx - self.offset_h, sy - self.offset_v)
             clip_pop()
         else
             return Object.draw(self, sx, sy)
@@ -665,13 +665,13 @@ M.Scroller = register_class("Scroller", Clipper, {
     ]]
     bind_h_scrollbar = function(self, sb)
         if not sb then
-            sb = self.i_h_scrollbar
+            sb = self.h_scrollbar
             if not sb then return nil end
-            sb.i_scroller, self.i_h_scrollbar = nil, nil
+            sb.scroller, self.h_scrollbar = nil, nil
             return sb
         end
-        self.i_h_scrollbar = sb
-        sb.i_scroller = self
+        self.h_scrollbar = sb
+        sb.scroller = self
     end,
 
     --[[! Function: bind_v_scrollbar
@@ -681,13 +681,13 @@ M.Scroller = register_class("Scroller", Clipper, {
     ]]
     bind_v_scrollbar = function(self, sb)
         if not sb then
-            sb = self.i_v_scrollbar
+            sb = self.v_scrollbar
             if not sb then return nil end
-            sb.i_scroller, self.i_v_scrollbar = nil, nil
+            sb.scroller, self.v_scrollbar = nil, nil
             return sb
         end
-        self.i_v_scrollbar = sb
-        sb.i_scroller = self
+        self.v_scrollbar = sb
+        sb.scroller = self
     end,
 
     --[[! Function: get_h_limit
@@ -695,14 +695,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         the contents minus the clipper width.
     ]]
     get_h_limit = function(self)
-        return max(self.i_virt_w - self.w, 0)
+        return max(self.virt_w - self.w, 0)
     end,
 
     --[[! Function: get_v_limit
         See above.
     ]]
     get_v_limit = function(self)
-        return max(self.i_virt_h - self.h, 0)
+        return max(self.virt_h - self.h, 0)
     end,
 
     --[[! Function: get_h_offset
@@ -711,14 +711,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         actual_offset / max(size_of_container, size_of_contents).
     ]]
     get_h_offset = function(self)
-        return self.i_offset_h / max(self.i_virt_w, self.w)
+        return self.offset_h / max(self.virt_w, self.w)
     end,
 
     --[[! Function: get_v_offset
         See above.
     ]]
     get_v_offset = function(self)
-        return self.i_offset_v / max(self.i_virt_h, self.h)
+        return self.offset_v / max(self.virt_h, self.h)
     end,
 
     --[[! Function: get_h_scale
@@ -726,14 +726,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         size_of_container / max(size_of_container, size_of_contents).
     ]]
     get_h_scale = function(self)
-        return self.w / max(self.i_virt_w, self.w)
+        return self.w / max(self.virt_w, self.w)
     end,
 
     --[[! Function: get_v_scale
         See above.
     ]]
     get_v_scale = function(self)
-        return self.h / max(self.i_virt_h, self.h)
+        return self.h / max(self.virt_h, self.h)
     end,
 
     --[[! Function: set_h_scroll
@@ -742,14 +742,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         full screen height).
     ]]
     set_h_scroll = function(self, hs)
-        self.i_offset_h = clamp(hs, 0, self:get_h_limit())
+        self.offset_h = clamp(hs, 0, self:get_h_limit())
     end,
 
     --[[! Function: set_v_scroll
         See above.
     ]]
     set_v_scroll = function(self, vs)
-        self.i_offset_v = clamp(vs, 0, self:get_v_limit())
+        self.offset_v = clamp(vs, 0, self:get_v_limit())
     end,
 
     --[[! Function: scroll_h
@@ -757,14 +757,14 @@ M.Scroller = register_class("Scroller", Clipper, {
         to the actual offset).
     ]]
     scroll_h = function(self, hs)
-        self:set_h_scroll(self.i_offset_h + hs)
+        self:set_h_scroll(self.offset_h + hs)
     end,
 
     --[[! Function: scroll_v
         See above.
     ]]
     scroll_v = function(self, vs)
-        self:set_v_scroll(self.i_offset_v + vs)
+        self:set_v_scroll(self.offset_v + vs)
     end
 })
 
@@ -783,7 +783,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
         kwargs = kwargs or {}
         self.p_arrow_size  = kwargs.arrow_size  or 0
         self.p_arrow_speed = kwargs.arrow_speed or 0
-        self.i_arrow_dir   = 0
+        self.arrow_dir   = 0
 
         return Object.__init(self, kwargs)
     end,
@@ -837,8 +837,8 @@ local Scrollbar = register_class("Scrollbar", Object, {
             return Object.key_hover(self, code, isdown)
         end
 
-        local  sc = self.i_scroller
-        if not sc or not sc.i_can_scroll then return false end
+        local  sc = self.scroller
+        if not sc or not sc.can_scroll then return false end
         if not isdown then return true end
 
         local adjust = (code == m4 and -0.2 or 0.2) * self.p_arrow_speed
@@ -857,7 +857,7 @@ local Scrollbar = register_class("Scrollbar", Object, {
     ]]
     clicked = function(self, cx, cy)
         local id = self:choose_direction(cx, cy)
-        self.i_arrow_dir = id
+        self.arrow_dir = id
 
         if id == 0 then
             self:scroll_to(cx, cy)
@@ -876,16 +876,16 @@ local Scrollbar = register_class("Scrollbar", Object, {
     ]]
     hovering = function(self, cx, cy)
         if is_clicked(self) then
-            if self.i_arrow_dir ~= 0 then
+            if self.arrow_dir ~= 0 then
                 self:arrow_scroll()
             end
         else
             local button = self:find_child(Scroll_Button.type, nil, false)
             if button and is_clicked(button) then
-                self.i_arrow_dir = 0
+                self.arrow_dir = 0
                 button:hovering(cx - button.x, cy - button.y)
             else
-                self.i_arrow_dir = self:choose_direction(cx, cy)
+                self.arrow_dir = self:choose_direction(cx, cy)
             end
         end
     end,
@@ -903,8 +903,8 @@ M.Scrollbar = Scrollbar
 ]]
 Scroll_Button = register_class("Scroll_Button", Object, {
     __init = function(self, kwargs)
-        self.i_offset_h = 0
-        self.i_offset_v = 0
+        self.offset_h = 0
+        self.offset_v = 0
 
         return Object.__init(self, kwargs)
     end,
@@ -925,13 +925,13 @@ Scroll_Button = register_class("Scroll_Button", Object, {
     hovering = function(self, cx, cy)
         local p = self.parent
         if is_clicked(self) and p and p.type == Scrollbar.type then
-            p:move_button(self, self.i_offset_h, self.i_offset_v, cx, cy)
+            p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
     end,
 
     clicked = function(self, cx, cy)
-        self.i_offset_h = cx
-        self.i_offset_v = cy
+        self.offset_h = cx
+        self.offset_v = cy
 
         return Object.clicked(self, cx, cy)
     end
@@ -954,17 +954,17 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
     bind_scroller = function(self, sc)
         if not sc then
-            sc = self.i_scroller
+            sc = self.scroller
             if not sc then return nil end
-            sc.i_h_scrollbar = nil
+            sc.h_scrollbar = nil
             return sc
         end
-        self.i_scroller = sc
-        sc.i_h_scrollbar = self
+        self.scroller = sc
+        sc.h_scrollbar = self
     end,
 
     choose_state = function(self)
-        local ad = self.i_arrow_dir
+        local ad = self.arrow_dir
 
         if ad == -1 then
             return is_clicked(self) and "left_clicked" or
@@ -982,15 +982,15 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = self.i_scroller
+        local  scroll = self.scroller
         if not scroll then return nil end
 
-        scroll:scroll_h(self.i_arrow_dir * self.p_arrow_speed *
+        scroll:scroll_h(self.arrow_dir * self.p_arrow_speed *
             frame.get_frame_time())
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self.i_scroller
+        local  scroll = self.scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
@@ -1003,11 +1003,11 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
 
         local offset = (bscale > 0.001) and (cx - as) / bscale or 0
 
-        scroll.set_h_scroll(scroll, offset * scroll.i_virt_w)
+        scroll.set_h_scroll(scroll, offset * scroll.virt_w)
     end,
 
     adjust_children = function(self)
-        local  scroll = self.i_scroller
+        local  scroll = self.scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
@@ -1024,7 +1024,7 @@ M.H_Scrollbar = register_class("H_Scrollbar", Scrollbar, {
             (max(sw - 2 * as, 0) - btn.w) / (1 - scroll:get_h_scale()) or 1
 
         btn.x = as + scroll:get_h_offset() * bscale
-        btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_HMASK))
+        btn.adjust = band(btn.adjust, bnot(ALIGN_HMASK))
 
         Object.adjust_children(self)
     end,
@@ -1043,17 +1043,17 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
 
     bind_scroller = function(self, sc)
         if not sc then
-            sc = self.i_scroller
+            sc = self.scroller
             if not sc then return nil end
-            sc.i_v_scrollbar = nil
+            sc.v_scrollbar = nil
             return sc
         end
-        self.i_scroller = sc
-        sc.i_v_scrollbar = self
+        self.scroller = sc
+        sc.v_scrollbar = self
     end,
 
     choose_state = function(self)
-        local ad = self.i_arrow_dir
+        local ad = self.arrow_dir
 
         if ad == -1 then
             return is_clicked(self) and "up_clicked" or
@@ -1071,15 +1071,15 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
     end,
 
     arrow_scroll = function(self)
-        local  scroll = self.i_scroller
+        local  scroll = self.scroller
         if not scroll then return nil end
 
-        scroll:scroll_v(self.i_arrow_dir * self.p_arrow_speed *
+        scroll:scroll_v(self.arrow_dir * self.p_arrow_speed *
             frame.get_frame_time())
     end,
 
     scroll_to = function(self, cx, cy)
-        local  scroll = self.i_scroller
+        local  scroll = self.scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
@@ -1093,11 +1093,11 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
         local offset = (bscale > 0.001) and
             (cy - as) / bscale or 0
 
-        scroll:set_v_scroll(offset * scroll.i_virt_h)
+        scroll:set_v_scroll(offset * scroll.virt_h)
     end,
 
     adjust_children = function(self)
-        local  scroll = self.i_scroller
+        local  scroll = self.scroller
         if not scroll then return nil end
 
         local  btn = self:find_child(Scroll_Button.type, nil, false)
@@ -1115,7 +1115,7 @@ M.V_Scrollbar = register_class("V_Scrollbar", Scrollbar, {
             (max(sh - 2 * as, 0) - btn.h) / (1 - scroll:get_v_scale()) or 1
 
         btn.y = as + scroll:get_v_offset() * bscale
-        btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_VMASK))
+        btn.adjust = band(btn.adjust, bnot(ALIGN_VMASK))
 
         Object.adjust_children(self)
     end,
@@ -1150,7 +1150,7 @@ local Slider = register_class("Slider", Object, {
 
         if kwargs.var then
             local varn = kwargs.var
-            self.i_var = varn
+            self.var = varn
 
             if not var.exists(varn) then
                 var.new(varn, var.INT, self.p_value)
@@ -1164,8 +1164,8 @@ local Slider = register_class("Slider", Object, {
         self.p_step_size  = kwargs.step_size  or 1
         self.p_step_time  = kwargs.step_time  or 1000
 
-        self.i_last_step = 0
-        self.i_arrow_dir = 0
+        self.last_step = 0
+        self.arrow_dir = 0
 
         return Object.__init(self, kwargs)
     end,
@@ -1183,7 +1183,7 @@ local Slider = register_class("Slider", Object, {
         local val = min(mx, mn) + newstep * ss
         self.value = val
 
-        local varn = self.i_var
+        local varn = self.var
         if varn then base.update_var(varn, val) end
     end,
 
@@ -1199,7 +1199,7 @@ local Slider = register_class("Slider", Object, {
         local val = min(mx, mn) + newstep * ss
         self.value = val
 
-        local varn = self.i_var
+        local varn = self.var
         if varn then base.update_var(varn, val) end
     end,
 
@@ -1256,7 +1256,7 @@ local Slider = register_class("Slider", Object, {
     ]]
     clicked = function(self, cx, cy)
         local ad = self.choose_direction(self, cx, cy)
-        self.i_arrow_dir = ad
+        self.arrow_dir = ad
 
         if ad == 0 then
             self:scroll_to(cx, cy)
@@ -1269,12 +1269,12 @@ local Slider = register_class("Slider", Object, {
 
     arrow_scroll = function(self)
         local tmillis = _C.get_millis(true)
-        if (self.i_last_step + self.p_step_time) > tmillis then
+        if (self.last_step + self.p_step_time) > tmillis then
             return nil
         end
 
-        self.i_last_step = tmillis
-        self.do_step(self, self.i_arrow_dir)
+        self.last_step = tmillis
+        self.do_step(self, self.arrow_dir)
     end,
 
     --[[! Function: hovering
@@ -1283,17 +1283,17 @@ local Slider = register_class("Slider", Object, {
     ]]
     hovering = function(self, cx, cy)
         if is_clicked(self) then
-            if self.i_arrow_dir ~= 0 then
+            if self.arrow_dir ~= 0 then
                 self:arrow_scroll()
             end
         else
             local button = self:find_child(Slider_Button.type, nil, false)
 
             if button and is_clicked(button) then
-                self.i_arrow_dir = 0
+                self.arrow_dir = 0
                 button.hovering(button, cx - button.x, cy - button.y)
             else
-                self.i_arrow_dir = self:choose_direction(cx, cy)
+                self.arrow_dir = self:choose_direction(cx, cy)
             end
         end
     end,
@@ -1311,8 +1311,8 @@ M.Slider = Slider
 ]]
 Slider_Button = register_class("Slider_Button", Object, {
     __init = function(self, kwargs)
-        self.i_offset_h = 0
-        self.i_offset_v = 0
+        self.offset_h = 0
+        self.offset_v = 0
 
         return Object.__init(self, kwargs)
     end,
@@ -1334,13 +1334,13 @@ Slider_Button = register_class("Slider_Button", Object, {
         local p = self.parent
 
         if is_clicked(self) and p and p.type == Slider.type then
-            p:move_button(self, self.i_offset_h, self.i_offset_v, cx, cy)
+            p:move_button(self, self.offset_h, self.offset_v, cx, cy)
         end
     end,
 
     clicked = function(self, cx, cy)
-        self.i_offset_h = cx
-        self.i_offset_v = cy
+        self.offset_h = cx
+        self.offset_v = cy
 
         return Object.clicked(self, cx, cy)
     end,
@@ -1371,7 +1371,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
     orient = orient.HORIZONTAL,
 
     choose_state = function(self)
-        local ad = self.i_arrow_dir
+        local ad = self.arrow_dir
 
         if ad == -1 then
             return is_clicked(self) and "left_clicked" or
@@ -1416,7 +1416,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 
         btn.w = max(btn.w, width / steps)
         btn.x = as + (width - btn.w) * curstep / steps
-        btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_HMASK))
+        btn.adjust = band(btn.adjust, bnot(ALIGN_HMASK))
 
         Object.adjust_children(self)
     end,
@@ -1432,7 +1432,7 @@ M.H_Slider = register_class("H_Slider", Slider, {
 ]]
 M.V_Slider = register_class("V_Slider", Slider, {
     choose_state = function(self)
-        local ad = self.i_arrow_dir
+        local ad = self.arrow_dir
 
         if ad == -1 then
             return is_clicked(self) and "up_clicked" or
@@ -1478,7 +1478,7 @@ M.V_Slider = register_class("V_Slider", Slider, {
 
         btn.h = max(btn.h, height / steps)
         btn.y = as + (height - btn.h) * curstep / steps
-        btn.i_adjust = band(btn.i_adjust, bnot(ALIGN_VMASK))
+        btn.adjust = band(btn.adjust, bnot(ALIGN_VMASK))
 
         Object.adjust_children(self)
     end,
@@ -1584,7 +1584,7 @@ local Image = register_class("Image", Filler, {
             tex = _C.texture_load(af)
         end
 
-        self.i_tex = tex
+        self.texture = tex
         self.p_min_filter = kwargs.min_filter
         self.p_mag_filter = kwargs.mag_filter
 
@@ -1600,14 +1600,14 @@ local Image = register_class("Image", Filler, {
         Returns the loaded texture filename.
     ]]
     get_tex = function(self)
-        return self.i_tex:get_name()
+        return self.texture:get_name()
     end,
 
     --[[! Function: get_tex_raw
         Returns the loaded texture object.
     ]]
     get_tex_raw = function(self)
-        return self.i_tex
+        return self.texture
     end,
 
     --[[! Function: set_tex
@@ -1619,14 +1619,14 @@ local Image = register_class("Image", Filler, {
         if _C.texture_is_notexture(tex) and alt then
               tex = _C.texture_load(alt)
         end
-        self.i_tex = tex
+        self.texture = tex
     end,
 
     --[[! Function: set_tex_raw
         Raw texture object setter.
     ]]
     set_tex_raw = function(self, tex)
-        self.i_tex = tex
+        self.texture = tex
     end,
 
     --[[! Function: target
@@ -1637,14 +1637,14 @@ local Image = register_class("Image", Filler, {
         local o = Object.target(self, cx, cy)
         if    o then return o end
 
-        local tex = self.i_tex
+        local tex = self.texture
         return (tex:get_bpp() < 32 or check_alpha_mask(tex, cx / self.w,
                                                       cy / self.h)) and self
     end,
 
     draw = function(self, sx, sy)
         local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.i_tex
+                                self.p_mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -1688,7 +1688,7 @@ local Image = register_class("Image", Filler, {
         end
 
         if  min_w == 0 or min_h == 0 then
-            local tex, scrh = self.i_tex, _V.scr_h
+            local tex, scrh = self.texture, _V.scr_h
             if  min_w == 0 then
                 min_w = tex:get_w() / scrh
             end
@@ -1723,7 +1723,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         kwargs = kwargs or {}
 
         Image.__init(self, kwargs)
-        local tex = self.i_tex
+        local tex = self.texture
 
         self.p_crop_x = get_border_size(tex, kwargs.crop_x or 0, false)
         self.p_crop_y = get_border_size(tex, kwargs.crop_y or 0, true)
@@ -1735,7 +1735,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
         local o = Object.target(self, cx, cy)
         if    o then return o end
 
-        local tex = self.i_tex
+        local tex = self.texture
         return (tex:get_bpp() < 32 or check_alpha_mask(tex,
             self.p_crop_x + cx / self.w * self.p_crop_w,
             self.p_crop_y + cy / self.h * self.p_crop_h)) and self
@@ -1743,7 +1743,7 @@ M.Cropped_Image = register_class("Cropped_Image", Image, {
 
     draw = function(self, sx, sy)
         local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.i_tex
+                                self.p_mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -1777,7 +1777,7 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
     target = function(self, cx, cy)
         local o = Object.target(self, cx, cy)
         if    o then return o end
-        if self.i_tex:get_bpp() < 32 then return self end
+        if self.texture:get_bpp() < 32 then return self end
 
         local mx, my, mw, mh, pw, ph = 0, 0, self.p_min_w, self.p_min_h,
                                              self.w,     self.h
@@ -1792,12 +1792,12 @@ M.Stretched_Image = register_class("Stretched_Image", Image, {
         elseif cy >= ph - mh / 2 then my = 1 - (ph - cy) / mh
         else   my = 0.5 end
 
-        return check_alpha_mask(self.i_tex, mx, my) and self
+        return check_alpha_mask(self.texture, mx, my) and self
     end,
 
     draw = function(self, sx, sy)
         local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.i_tex
+                                self.p_mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -1879,7 +1879,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
 
         Image.__init(self, kwargs)
 
-        self.p_tex_border    = get_border_size(self.i_tex,
+        self.p_tex_border    = get_border_size(self.texture,
                                                kwargs.tex_border or 0)
         self.p_screen_border = kwargs.screen_border or 0
     end,
@@ -1896,7 +1896,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
         local o = Object.target(self, cx, cy)
         if    o then return o end
 
-        local tex = self.i_tex
+        local tex = self.texture
 
         if tex:get_bpp() < 32 then
             return self
@@ -1918,7 +1918,7 @@ M.Bordered_Image = register_class("Bordered_Image", Image, {
 
     draw = function(self, sx, sy)
         local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.i_tex
+                                self.p_mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -1982,7 +1982,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
         local o = Object.target(self, cx, cy)
         if    o then return o end
 
-        local tex = self.i_tex
+        local tex = self.texture
 
         if tex:get_bpp() < 32 then return self end
 
@@ -1994,7 +1994,7 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 
     draw = function(self, sx, sy)
         local minf, magf, tex = self.p_min_filter,
-                                self.p_mag_filter, self.i_tex
+                                self.p_mag_filter, self.texture
 
         _C.shader_hud_set_variant(tex)
         _C.gl_bind_texture(tex)
@@ -2049,8 +2049,8 @@ local Tiled_Image = register_class("Tiled_Image", Image, {
 M.Thumbnail = register_class("Thumbnail", Image, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.i_file = kwargs.file
-        self.i_tex  = _C.texture_get_notexture()
+        self.file = kwargs.file
+        self.texture  = _C.texture_get_notexture()
 
         self.p_min_filter = kwargs.min_filter
         self.p_mag_filter = kwargs.mag_filter
@@ -2064,11 +2064,11 @@ M.Thumbnail = register_class("Thumbnail", Image, {
     end,
 
     load = function(self, force)
-        if self.i_loaded then return nil end
-        local tex = _C.thumbnail_load(self.i_file, force)
+        if self.loaded then return nil end
+        local tex = _C.thumbnail_load(self.file, force)
         if tex then
-            self.i_loaded = true
-            self.i_tex = tex
+            self.loaded = true
+            self.texture = tex
         end
     end,
 
@@ -2345,7 +2345,7 @@ M.Mover = register_class("Mover", Object, {
     end,
 
     can_move = function(self, cx, cy)
-        local wp = self.i_win.parent
+        local wp = self.window.parent
 
         -- no parent means world; we don't need checking for non-mdi windows
         if not wp.parent then
@@ -2407,7 +2407,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
         self.p_init_value = kwargs.value
         self.scale = kwargs.scale or 1
 
-        self.i_offset_h, self.i_offset_v = 0, 0
+        self.offset_h, self.offset_v = 0, 0
         self.filename = nil
 
         -- cursor position - ensured to be valid after a region() or
@@ -2977,8 +2977,8 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
     hovering = function(self, cx, cy)
         if is_clicked(self) and is_focused(self) then
-            local dx = abs(cx - self.i_offset_h)
-            local dy = abs(cy - self.i_offset_v)
+            local dx = abs(cx - self.offset_h)
+            local dy = abs(cy - self.offset_v)
             local fw, fh = _V["fontw"], _V["fonth"]
             local th = fh * _V.uitextrows
             local sc = self.scale
@@ -2992,8 +2992,8 @@ local Text_Editor = register_class("Text_Editor", Object, {
     clicked = function(self, cx, cy)
         set_focus(self)
         self:mark()
-        self.i_offset_h = cx
-        self.i_offset_v = cy
+        self.offset_h = cx
+        self.offset_v = cy
 
         return Object.clicked(self, cx, cy)
     end,
@@ -3182,7 +3182,7 @@ M.Field = register_class("Field", Text_Editor, {
         self.p_value = kwargs.value or ""
         if kwargs.var then
             local varn = kwargs.var
-            self.i_var = varn
+            self.var = varn
 
             if not var.exists(varn) then
                 var.new(varn, var.STRING, self.p_value)
@@ -3196,7 +3196,7 @@ M.Field = register_class("Field", Text_Editor, {
         local val = self.lines[1]
         self.value = val -- trigger changed signal
 
-        local varn = self.i_var
+        local varn = self.var
         if varn then update_var(varn, val) end
     end,
 
