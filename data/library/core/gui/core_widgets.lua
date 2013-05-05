@@ -446,8 +446,8 @@ M.Filler = Filler
 M.Offsetter = register_class("Offsetter", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_offset_h = kwargs.offset_h or 0
-        self.p_offset_v = kwargs.offset_v or 0
+        self.offset_h = kwargs.offset_h or 0
+        self.offset_v = kwargs.offset_v or 0
 
         return Object.__init(self, kwargs)
     end,
@@ -455,7 +455,7 @@ M.Offsetter = register_class("Offsetter", Object, {
     layout = function(self)
         Object.layout(self)
 
-        local oh, ov = self.p_offset_h, self.p_offset_v
+        local oh, ov = self.offset_h, self.offset_v
 
         loop_children(self, function(o)
             o.x = o.x + oh
@@ -467,8 +467,20 @@ M.Offsetter = register_class("Offsetter", Object, {
     end,
 
     adjust_children = function(self)
-        local oh, ov = self.p_offset_h, self.p_offset_v
+        local oh, ov = self.offset_h, self.offset_v
         Object.adjust_children(self, oh, ov, self.w - oh, self.h - ov)
+    end,
+
+    --[[! Function: set_offset_h ]]
+    set_offset_h = function(self, val)
+        self.offset_h = val
+        signal.emit(self, "offset_h_changed", val)
+    end,
+
+    --[[! Function: set_offset_v ]]
+    set_offset_v = function(self, val)
+        self.offset_v = val
+        signal.emit(self, "offset_v_changed", val)
     end
 })
 
@@ -478,8 +490,8 @@ M.Offsetter = register_class("Offsetter", Object, {
 local Clipper = register_class("Clipper", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_clip_w = kwargs.clip_w or 0
-        self.p_clip_h = kwargs.clip_h or 0
+        self.clip_w = kwargs.clip_w or 0
+        self.clip_h = kwargs.clip_h or 0
         self.virt_w = 0
         self.virt_h = 0
 
@@ -492,7 +504,7 @@ local Clipper = register_class("Clipper", Object, {
         self.virt_w = self.w
         self.virt_h = self.h
 
-        local cw, ch = self.p_clip_w, self.p_clip_h
+        local cw, ch = self.clip_w, self.clip_h
 
         if cw ~= 0 then self.w = min(self.w, cw) end
         if ch ~= 0 then self.h = min(self.h, ch) end
@@ -503,7 +515,7 @@ local Clipper = register_class("Clipper", Object, {
     end,
 
     draw = function(self, sx, sy)
-        local cw, ch = self.p_clip_w, self.p_clip_h
+        local cw, ch = self.clip_w, self.clip_h
 
         if (cw ~= 0 and self.virt_w > cw) or (ch ~= 0 and self.virt_h > ch)
         then
@@ -513,6 +525,18 @@ local Clipper = register_class("Clipper", Object, {
         else
             return Object.draw(self, sx, sy)
         end
+    end,
+
+    --[[! Function: set_clip_w ]]
+    set_clip_w = function(self, val)
+        self.clip_w = val
+        signal.emit(self, "clip_w_changed", val)
+    end,
+
+    --[[! Function: set_clip_h ]]
+    set_clip_h = function(self, val)
+        self.clip_h = val
+        signal.emit(self, "clip_h_changed", val)
     end
 })
 M.Clipper = Clipper
@@ -526,12 +550,18 @@ M.Clipper = Clipper
 M.Conditional = register_class("Conditional", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_condition = kwargs.condition
+        self.condition = kwargs.condition
         return Object.__init(self, kwargs)
     end,
 
     choose_state = function(self)
-        return (self.p_condition and self:p_condition()) and "true" or "false"
+        return (self.condition and self:p_condition()) and "true" or "false"
+    end,
+
+    --[[! Function: set_condition ]]
+    set_condition = function(self, val)
+        self.condition = val
+        signal.emit(self, "condition_changed", val)
     end
 })
 
@@ -574,12 +604,12 @@ M.Button = Button
 M.Conditional_Button = register_class("Conditional_Button", Button, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_condition = kwargs.condition
+        self.condition = kwargs.condition
         return Button.__init(self, kwargs)
     end,
 
     choose_state = function(self)
-        return ((self.p_condition and self:p_condition()) and
+        return ((self.condition and self:p_condition()) and
             (is_clicked(self) and "clicked" or
                 (is_hovering(self) and "hovering" or "true")) or "false")
     end,
@@ -588,9 +618,15 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
         Makes sure the signal is sent only if the condition is met.
     ]]
     clicked = function(self, cx, cy)
-        if self.p_condition and self:p_condition() then
+        if self.condition and self:p_condition() then
             Object.clicked(self, cx, cy)
         end
+    end,
+
+    --[[! Function: set_condition ]]
+    set_condition = function(self, val)
+        self.condition = val
+        signal.emit(self, "condition_changed", val)
     end
 })
 
@@ -603,16 +639,22 @@ M.Conditional_Button = register_class("Conditional_Button", Button, {
 M.Toggle = register_class("Toggle", Button, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
-        self.p_condition = kwargs.condition
+        self.condition = kwargs.condition
         return Button.__init(self, kwargs)
     end,
 
     choose_state = function(self)
         local h = is_hovering(self)
-        return (self.p_condition and self:p_condition() and
+        return (self.condition and self:p_condition() and
             (h and "toggled_hovering" or "toggled") or
             (h and "default_hovering" or "default"))
     end,
+
+    --[[! Function: set_condition ]]
+    set_condition = function(self, val)
+        self.condition = val
+        signal.emit(self, "condition_changed", val)
+    end
 })
 
 --[[! Struct: Scroller
@@ -701,8 +743,8 @@ M.Scroller = register_class("Scroller", Clipper, {
     end,
 
     draw = function(self, sx, sy)
-        if (self.p_clip_w ~= 0 and self.virt_w > self.p_clip_w) or
-           (self.p_clip_h ~= 0 and self.virt_h > self.p_clip_h)
+        if (self.clip_w ~= 0 and self.virt_w > self.clip_w) or
+           (self.clip_h ~= 0 and self.virt_h > self.clip_h)
         then
             clip_push(sx, sy, self.w, self.h)
             Object.draw(self, sx - self.offset_h, sy - self.offset_v)
