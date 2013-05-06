@@ -1411,10 +1411,8 @@ set_external("cursor_move", function(dx, dy)
 end)
 
 local cursor_exists = function(draw)
-    if (draw and cursor_mode() == 2) or world:takes_input() then
-        return true
-    end
-    return false
+    if draw and cursor_mode() == 2 then return true end
+    return world:takes_input()
 end
 set_external("cursor_exists", cursor_exists)
 
