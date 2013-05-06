@@ -10,3 +10,4 @@
 - 26 August 2011 - 0.1.8 Alpha 9
 - 22 December 2011 - 0.1.9 Alpha 10
 - 27 December 2011 - 0.1.9 Alpha 10 update
+- 06 May 2013 - 0.2.0 beta 1
