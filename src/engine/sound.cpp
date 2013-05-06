@@ -343,21 +343,8 @@ void stopmapsound(extentity *e)
     }
 }
 
-int waterchan = -1; // SAUER ENHANCED - underwater ambient channel
-
-VARR(uwambient, 0, 0, 1);
-
 void checkmapsounds()
 {
-    if(lookupmaterial(camera1->o)==MAT_WATER && uwambient) // SAUER ENHANCED start - underwater sound
-    {
-        if(waterchan==-1) waterchan = playsound(6, NULL, NULL, -1, 0, 0, waterchan);
-    }
-    else
-    {
-        stopsound(6, waterchan);
-        waterchan = -1;
-    } // SAUER ENHANCED end
     const vector<extentity *> &ents = entities::getents();
     loopv(ents)
     {
@@ -366,8 +353,7 @@ void checkmapsounds()
         if(camera1->o.dist(e.o) < e.attr2)
         {
             // INTENSITY: use LogicEntity system to get the sound file; don't register sounds in mapscript.
-            if(!e.visible && lookupmaterial(camera1->o)!=MAT_WATER) playmapsound(LogicSystem::getLogicEntity(e)->getSound(), &e, e.attr4, -1);
-            else if(lookupmaterial(camera1->o)==MAT_WATER) stopmapsound(&e); // SAUER ENHANCED - underwater ambient
+            if(!e.visible) playmapsound(LogicSystem::getLogicEntity(e)->getSound(), &e, e.attr4, -1);
         }
         else if(e.visible) stopmapsound(&e);
     }
@@ -565,7 +551,7 @@ int playsound(int n, const vec *loc, extentity *ent, int loops, int fade, int ch
         Mix_HaltChannel(chanid);
         freechannel(chanid);
     }
-    soundchannel &chan = newchannel(chanid, &slot, loc, ent, radius);
+    soundchannel &chan = newchannel(chanid, &slot, loc, ent, 0, radius);
     updatechannel(chan);
     int playing = -1;
     if(fade) 
