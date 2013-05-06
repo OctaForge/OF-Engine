@@ -378,6 +378,14 @@ local gen_setter = function(name)
 end
 M.gen_setter = gen_setter
 
+--[[! Variable: orient
+    Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.
+]]
+local orient = {
+    HORIZONTAL = 0, VERTICAL = 1
+}
+M.orient = orient
+
 local Object, Window
 
 --[[! Struct: Object
