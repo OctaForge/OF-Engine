@@ -155,7 +155,4 @@ require("engine")
 if dbg then log(DEBUG, "Initializing base (deprecated).") end
 require("base")
 
-if dbg then log(DEBUG, "Initializing tgui (deprecated).") end
---require("tgui")
-
 if dbg then log(DEBUG, "Core scripting initialization complete.") end
