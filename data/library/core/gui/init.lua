@@ -25,3 +25,5 @@ require("gui.core_sliders")
 require("gui.core_buttons")
 require("gui.core_editors")
 require("gui.core_misc")
+
+require("gui.default")

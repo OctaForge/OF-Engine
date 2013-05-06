@@ -1517,10 +1517,13 @@ local text_handler
 M.set_text_handler = function(f) text_handler = f end
 
 set_external("gui_update", function()
-    for i = 1, #update_later do
+    local i = 1
+    while true do
+        if i > #update_later then break end
         local ul = update_later[i]
         local first = ul[1]
         local t = type(first)
+        print("type", t, first, ul[2])
         if t == "string" then
             _V[first] = ul[2]
         elseif t == "function" then
@@ -1528,6 +1531,7 @@ set_external("gui_update", function()
         else
             emit(first, ul[2], unpack(ul, 3))
         end
+        i = i + 1
     end
     update_later = {}
 
@@ -1635,7 +1639,7 @@ local CHANGE_GFX     = blsh(1, 0)
 local CHANGE_SOUND   = blsh(1, 1)
 local CHANGE_SHADERS = blsh(1, 2)
 
-set_external("changes_clear", function(ctype)
+local changes_clear = function(ctype)
     ctype = ctype or bor(CHANGE_GFX, CHANGE_SOUND, CHANGE_SHADERS)
 
     needsapply = table.filter(needsapply, function(i, v)
@@ -1650,9 +1654,11 @@ set_external("changes_clear", function(ctype)
 
         return true
     end)
-end)
+end
+set_external("changes_clear", changes_clear)
+M.changes_clear = changes_clear
 
-set_external("changes_apply", function()
+M.changes_apply = function()
     local changetypes = 0
     for i, v in pairs(needsapply) do
         changetypes = bor(changetypes, v.ctype)
@@ -1669,11 +1675,11 @@ set_external("changes_apply", function()
     if band(changetypes, CHANGE_SHADERS) ~= 0 then
         update_later[#update_later + 1] = { cubescript, "resetshaders" }
     end
-end)
+end
 
-set_external("changes_get", function()
+M.changes_get = function()
     return table.map(needsapply, function(v) return v.desc end)
-end)
+end
 
 --[[! Function: get_world
     Gets the default GUI world object.
