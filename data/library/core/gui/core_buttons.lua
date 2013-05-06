@@ -16,9 +16,6 @@
 local M = gui
 local world = M.get_world()
 
--- consts
-local gl, key = M.gl, M.key
-
 -- input event management
 local is_clicked, is_hovering = M.is_clicked, M.is_hovering
 

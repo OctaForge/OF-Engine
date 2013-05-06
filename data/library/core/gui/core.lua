@@ -1,3 +1,21 @@
+--[[! File: library/core/gui/core.lua
+
+    About: Author
+        q66 <quaker66@gmail.com>
+
+    About: Copyright
+        Copyright (c) 2013 OctaForge project
+
+    About: License
+        This file is licensed under MIT. See COPYING.txt for more information.
+
+    About: Purpose
+        A basic widget set. This module in particular implements the core
+        of the whole system. All modules are documented, but not all methods
+        in each widgets are documented - only those of a significant meaning
+        to the user are (as the other ones have no use for the user).
+]]
+
 -- external locals
 local band  = math.band
 local bor   = math.bor

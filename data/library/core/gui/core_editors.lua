@@ -10,13 +10,7 @@
         This file is licensed under MIT. See COPYING.txt for more information.
 
     About: Purpose
-        A basic widget set for the GUI. Doesn't include the very core of the
-        whole system (Object, Named_Object, Tag, Window, Overlay, World).
-        Forwards Tag, Window, Overlay, Space.
-
-        This doesn't document every single overloaded method on every object.
-        Only the ones with a special meaning are documented. There is no reason
-        for everything to be documented as it has no actual use.
+        Text editor and fields.
 ]]
 
 local ffi = require("ffi")
@@ -38,8 +32,7 @@ local world = M.get_world()
 local gl, key = M.gl, M.key
 
 -- input event management
-local is_clicked, is_hovering, is_focused, clear_focus = M.is_clicked,
-    M.is_hovering, M.is_focused, M.clear_focus
+local is_clicked, is_focused = M.is_clicked, M.is_focused
 
 -- widget types
 local register_class = M.register_class
@@ -53,98 +46,6 @@ local gen_setter = M.gen_setter
 -- editor support
 local get_textediting, set_textediting
     = M.get_textediting, M.set_textediting
-
---[[! Struct: Conditional
-    Conditional has two states, "true" and "false". It has a property,
-    "condition", which is a function. If that function exists and returns
-    a value that can be evaluated as true, the "true" state is set, otherwise
-    the "false" state is set.
-]]
-M.Conditional = register_class("Conditional", Object, {
-    __init = function(self, kwargs)
-        kwargs = kwargs or {}
-        self.condition = kwargs.condition
-        return Object.__init(self, kwargs)
-    end,
-
-    choose_state = function(self)
-        return (self.condition and self:p_condition()) and "true" or "false"
-    end,
-
-    --[[! Function: set_condition ]]
-    set_condition = gen_setter "condition"
-})
-
---[[! Struct: Mover
-    An object using which you can move windows. The window must have the
-    floating property set to true or it won't move. It doesn't have any
-    appearance or states, those are defined by its children.
-
-    If you have multiple movable windows, the mover will take care of
-    moving the current window to the top. That means you don't have to care
-    about re-stacking them.
-]]
-M.Mover = register_class("Mover", Object, {
-    hover = function(self, cx, cy)
-        return self:target(cx, cy) and self
-    end,
-
-    click = function(self, cx, cy)
-        local  w = self:get_window()
-        if not w then
-            return self:target(cx, cy) and self
-        end
-        local c = w.parent.children
-        local n = table.find(c, w)
-        local l = #c
-        if n ~= l then c[l], c[n] = w, c[l] end
-        return self:target(cx, cy) and self
-    end,
-
-    can_move = function(self, cx, cy)
-        local wp = self.window.parent
-
-        -- no parent means world; we don't need checking for non-mdi windows
-        if not wp.parent then
-            return true
-        end
-
-        local rx, ry, p = self.x, self.y, wp
-        while p do
-            rx = rx + p.x
-            ry = ry + p.y
-            local  pp = p.parent
-            if not pp then break end
-            p    = pp
-        end
-
-        -- world has no parents :( but here we can re-use it
-        local w = p.w
-        -- transform x position of the cursor (which ranges from 0 to 1)
-        -- into proper UI positions (that are dependent on screen width)
-        --local cx = cursor_x * w - (w - 1) / 2
-        --local cy = cursor_y
-
-        if cx < rx or cy < ry or cx > (rx + wp.w) or cy > (ry + wp.h) then
-            -- avoid bugs; stop moving when cursor is outside
-            clear_focus(self)
-            return false
-        end
-
-        return true
-    end,
-
-    pressing = function(self, cx, cy)
-        local  w = self:get_window()
-        if not w then
-            return Object.pressing(self, cx, cy)
-        end
-        if w and w.floating and is_clicked(self) and self:can_move() then
-            w.fx, w.x = w.fx + cx, w.x + cx
-            w.fy, w.y = w.fy + cy, w.y + cy
-        end
-    end
-})
 
 --[[! Struct: Text_Editor
     Implements a text editor widget. It's a basic editor that supports
