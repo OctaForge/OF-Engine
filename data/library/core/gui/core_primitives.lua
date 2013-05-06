@@ -36,9 +36,6 @@ local gl = M.gl
 -- widget types
 local register_class = M.register_class
 
--- children iteration
-local loop_children, loop_children_r = M.loop_children, M.loop_children_r
-
 -- scissoring
 local clip_area_scissor = M.clip_area_scissor
 local clip_push, clip_pop = M.clip_push, M.clip_pop
