@@ -1149,14 +1149,34 @@ M.Tag = Tag
     object. You can derive custom window types from this (see <Overlay>) but
     you have to make sure the widget type stays the same (pass Window.type
     as the last argument to <register_class>).
+
+    This also overloads grabs_input, returning the input_grab property which
+    can be set via kwargs or later via set_input_grab. It defaults to true,
+    which means it always grabs input, no matter what. If it's false, the
+    window lets either the other widgets or the engine control the input
+    and you can click, hover etc. in it only in free cursor mode (useful
+    for windows that are always shown in say, editing mode).
 ]]
-Window = register_class("Window", Named_Object)
+Window = register_class("Window", Named_Object, {
+    __init = function(self, kwargs)
+        kwargs = kwargs or {}
+        local ig = kwargs.input_grab
+        self.input_grab = ig == nil and true or ig
+        return Named_Object.__init(self, kwargs)
+    end,
+
+    grabs_input = function(self) return self.input_grab end,
+
+    --[[! Function: set_input_grab ]]
+    set_input_grab = gen_setter "input_grab"
+})
 M.Window = Window
 
 --[[! Struct: Overlay
-    Overlays are windows that take no input. There is no difference
-    otherwise. This overloads grabs_input (returns false), target
-    (returns nil), hover (returns nil) and click (returns nil).
+    Overlays are windows that take no input under no circumstances.
+    There is no difference otherwise. This overloads grabs_input
+    (returns false), target (returns nil), hover (returns nil) and
+    click (returns nil).
 ]]
 local Overlay = register_class("Overlay", Window, {
     grabs_input = function(self) return false end,
@@ -1166,16 +1186,6 @@ local Overlay = register_class("Overlay", Window, {
     click  = function() end
 }, Window.type)
 M.Overlay = Overlay
-
---[[! Struct: Space
-    Spaces are windows that take input only in free cursor mode, making
-    them effectively usable for on-screen widgets. Overloads grabs_input,
-    but nothing else.
-]]
-local Space = register_class("Space", Window, {
-    grabs_input = function(self) return false end
-}, Window.type)
-M.Space = Space
 
 --[[! Struct: World
     A world is a structure that derives from <Object> and holds windows.

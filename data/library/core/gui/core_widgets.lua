@@ -72,8 +72,7 @@ local get_textediting, set_textediting
 local M = {
     Tag = base.Tag,
     Window = base.Window,
-    Overlay = base.Overlay,
-    Space = base.Space
+    Overlay = base.Overlay
 }
 
 --[[! Variable: orient
