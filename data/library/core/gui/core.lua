@@ -14,6 +14,7 @@
         of the whole system. All modules are documented, but not all methods
         in each widgets are documented - only those of a significant meaning
         to the user are (as the other ones have no use for the user).
+        It also manages the HUD.
 ]]
 
 -- external locals
@@ -1203,6 +1204,12 @@ M.Window = Window
     There is no difference otherwise. This overloads grabs_input
     (returns false), target (returns nil), hover (returns nil) and
     click (returns nil).
+
+    There is one default overlay - the HUD. You can retrieve it using
+    <get_hud>. Its layout is managed separately, it takes world's
+    dimensions. You can freely append into it. It gets cleared
+    everytime you leave the map and it doesn't display when
+    mainmenu is active.
 ]]
 local Overlay = register_class("Overlay", Window, {
     grabs_input = function(self) return false end,
@@ -1410,6 +1417,20 @@ local World = register_class("World", Object, {
 
 world = World()
 
+local hud = Overlay { name = "hud" }
+hud.layout = function(self)
+    Object.layout(self)
+    self.x, self.y, self.w, self.h = world.x, world.y, world.w, world.h
+    self:adjust_children()
+end
+
+--[[! Function: get_hud
+    Returns the HUD overlay.
+]]
+M.get_hud = function()
+    return hud
+end
+
 --[[! Variable: cursorsensitivity
     An engine variable specifying the mouse cursor sensitivity. Ranges from
     0.001 to 1000 and defaults to 1.
@@ -1479,10 +1500,16 @@ set_external("input_keypress", function(code, isdown)
     return world:key(code, isdown)
 end)
 
+local draw_hud = false
+
 set_external("gui_clear", function()
     if  _V.mainmenu ~= 0 and _C.isconnected() then
         var.set("mainmenu", 0, true, false) -- no clamping, readonly var
         world:destroy_children()
+        if draw_hud then
+            hud:destroy_children()
+            draw_hud = false
+        end
     end
 end)
 
@@ -1503,10 +1530,15 @@ set_external("gui_update", function()
         end
     end
     update_later = {}
-    if _V.mainmenu ~= 0 and not world:window_visible("main") and
+
+    local mm = _V.mainmenu
+
+    if mm ~= 0 and not world:window_visible("main") and
     not _C.isconnected(true) then
         world:show_window("main")
     end
+
+    if not draw_hud and mm == 0 then draw_hud = true end
 
     if cursor_exists() then
         local w, h = world.w, world.h
@@ -1525,6 +1557,7 @@ set_external("gui_update", function()
     end
 
     world:layout()
+    if draw_hud then hud:layout() end
 
     if hovering then
         local tooltip = hovering.tooltip
@@ -1540,7 +1573,7 @@ end)
 
 set_external("gui_render", function()
     local w = world
-    if #w.children ~= 0 then
+    if #w.children ~= 0 or draw_hud then
         _C.hudmatrix_ortho(w.x, w.x + w.w, w.y + w.h, w.y, -1, 1)
         _C.hudmatrix_reset()
         _C.shader_hud_set()
@@ -1549,6 +1582,9 @@ set_external("gui_render", function()
         _C.gl_blend_func(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
         _C.gle_color3f(1, 1, 1)
+
+        if draw_hud then hud:draw() end
+
         w:draw()
 
         local tooltip = hovering and hovering.tooltip

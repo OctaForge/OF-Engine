@@ -36,6 +36,10 @@ _G["test_update_states"] = function()
     }
 end
 
+_G["append_hud"] = function()
+    gui.get_hud():append(gui.Rectangle { r = 255, b = 0, g = 0, min_w = 0.3, min_h = 0.4 }, function(r) r:align(-1, 0) end)
+end
+
 local i = 0
 
 world:new_window("main", gui.Window, function(win)
