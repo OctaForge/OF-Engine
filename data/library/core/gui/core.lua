@@ -846,13 +846,13 @@ Object = register_class("Object", table.Object, {
             cx / self.w, cy / self.w }
     end,
 
-    --[[! Function: takes_input
+    --[[! Function: grabs_input
         Returns true if the widget takes input in regular cursor mode. That
         is the default behavior. However, that is not always convenient as
         sometimes you want on-screen widgets that take input in free cursor
         mode only.
     ]]
-    takes_input = function(self) return true end,
+    grabs_input = function(self) return true end,
 
     --[[! Function: find_child
         Given a widget type it filds a child widget of that type and returns
@@ -1155,11 +1155,11 @@ M.Window = Window
 
 --[[! Struct: Overlay
     Overlays are windows that take no input. There is no difference
-    otherwise. This overloads takes_input (returns false), target
+    otherwise. This overloads grabs_input (returns false), target
     (returns nil), hover (returns nil) and click (returns nil).
 ]]
 local Overlay = register_class("Overlay", Window, {
-    takes_input = function(self) return false end,
+    grabs_input = function(self) return false end,
 
     target = function() end,
     hover  = function() end,
@@ -1169,11 +1169,11 @@ M.Overlay = Overlay
 
 --[[! Struct: Space
     Spaces are windows that take input only in free cursor mode, making
-    them effectively usable for on-screen widgets. Overloads takes_input,
+    them effectively usable for on-screen widgets. Overloads grabs_input,
     but nothing else.
 ]]
 local Space = register_class("Space", Window, {
-    takes_input = function(self) return false end
+    grabs_input = function(self) return false end
 }, Window.type)
 M.Space = Space
 
@@ -1199,14 +1199,14 @@ local World = register_class("World", Object, {
         return Object.__init(self)
     end,
 
-    --[[! Function: takes_input
+    --[[! Function: grabs_input
         This custom overload loops children (in reverse order) and calls
-        takes_input on each. If any of them returns true, this also returns
+        grabs_input on each. If any of them returns true, this also returns
         true, otherwise it returns false.
     ]]
-    takes_input = function(self)
+    grabs_input = function(self)
         return loop_children_r(self, function(o)
-            if o:takes_input() then return true end
+            if o:grabs_input() then return true end
         end) or false
     end,
 
@@ -1396,7 +1396,7 @@ end
 
 set_external("cursor_move", function(dx, dy)
     local cmode = cursor_mode()
-    if cmode == 2 or (world:takes_input() and cmode >= 1) then
+    if cmode == 2 or (world:grabs_input() and cmode >= 1) then
         local scale = 500 / _V.cursorsensitivity
         cursor_x = clamp(cursor_x + dx * (_V.scr_h / (_V.scr_w * scale)), 0, 1)
         cursor_y = clamp(cursor_y + dy / scale, 0, 1)
@@ -1413,7 +1413,7 @@ end)
 local cursor_exists = function(draw)
     if draw and cursor_mode() == 2 then return true end
     local w = world
-    if w:takes_input() or w:target(cursor_x * w.w, cursor_y * w.h) then
+    if w:grabs_input() or w:target(cursor_x * w.w, cursor_y * w.h) then
         return true
     end
     return false
@@ -1422,7 +1422,7 @@ set_external("cursor_exists", cursor_exists)
 
 set_external("cursor_get_position", function()
     local cmode = cursor_mode()
-    if cmode == 2 or (world:takes_input() and cmode >= 1) then
+    if cmode == 2 or (world:grabs_input() and cmode >= 1) then
         return cursor_x, cursor_y
     else
         return 0.5, 0.5
