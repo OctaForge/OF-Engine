@@ -2307,9 +2307,10 @@ LUAICOMMAND(slot_exists, {
 
 LUAICOMMAND(slot_check_vslot, {
     VSlot &vslot = lookupvslot(texmru[luaL_checkinteger(L, 1)], false);
-    if(vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail))
+    if (vslot.slot->sts.length() && (vslot.slot->loaded || vslot.slot->thumbnail))
         lua_pushboolean(L, true);
-    lua_pushboolean(L, false);
+    else
+        lua_pushboolean(L, false);
     return 1;
 });
 #endif

@@ -54,3 +54,39 @@ world:new_window("changes", gui.Window, function(win)
         end)
     end)
 end)
+
+world:new_window("textures", gui.Window, function(win)
+    _C.slot_fill_texlist()
+    win:append(gui.Rectangle { r = 0, g = 0, b = 0, a = 192,
+    min_w = 0.3, min_h = 0.2 }, function(r)
+        r:clamp(true, true, true, true)
+        win:append(gui.V_Box { padding = 0.01 }, function(box)
+            box:append(gui.Label { text = "Textures" })
+            box:append(gui.Table { columns = 9, padding = 0.01 }, function(t)
+                for i = 1, _C.slot_get_count() do
+                    t:append(gui.Button(), function(btn)
+                        btn:update_state("default",
+                            btn:update_state("hovering",
+                                btn:update_state("clicked", gui.Slot_Viewer {
+                                    slot = i - 1, min_w = 0.095,
+                                    min_h = 0.095 })))
+                        signal.connect(btn, "click", function()
+                            _C.slot_set(i - 1)
+                        end)
+                    end)
+                end
+            end)
+            box:append(gui.Button(), function(btn)
+                btn:update_state("default",
+                    btn:update_state("hovering",
+                        btn:update_state("clicked", gui.Rectangle {
+                            r = 64, g = 64, b = 64,
+                            min_w = 0.2, min_h = 0.05,
+                            gui.Label { text = "Close" } })))
+                signal.connect(btn, "click", function()
+                    world:hide_window("textures")
+                end)
+            end)
+        end)
+    end)
+end)

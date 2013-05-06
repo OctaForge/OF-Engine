@@ -1523,7 +1523,6 @@ set_external("gui_update", function()
         local ul = update_later[i]
         local first = ul[1]
         local t = type(first)
-        print("type", t, first, ul[2])
         if t == "string" then
             _V[first] = ul[2]
         elseif t == "function" then
