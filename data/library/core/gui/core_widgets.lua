@@ -37,42 +37,36 @@ local _C    = _G["_C"]
 local emit  = signal.emit
 
 local M = gui
-local base = M.core
-local world = base.get_world()
+local world = M.get_world()
 
 -- consts
-local gl, key = base.gl, base.key
+local gl, key = M.gl, M.key
 
 -- input event management
-local is_clicked, is_hovering, is_focused, clear_focus = base.is_clicked,
-    base.is_hovering, base.is_focused, base.clear_focus
+local is_clicked, is_hovering, is_focused, clear_focus = M.is_clicked,
+    M.is_hovering, M.is_focused, M.clear_focus
 
 -- widget types
-local register_class = base.register_class
+local register_class = M.register_class
 
 -- children iteration
-local loop_children, loop_children_r
-    = base.loop_children, base.loop_children_r
+local loop_children, loop_children_r = M.loop_children, M.loop_children_r
 
 -- scissoring
-local clip_area_scissor = base.clip_area_scissor
+local clip_area_scissor = M.clip_area_scissor
 
 -- primitive drawing
-local quad, quadtri = base.draw_quad, base.draw_quadtri
+local quad, quadtri = M.draw_quad, M.draw_quadtri
 
 -- base widgets
-local Object = base.get_class("Object")
+local Object = M.get_class("Object")
 
 -- setters
-local gen_setter = base.gen_setter
+local gen_setter = M.gen_setter
 
 -- editor support
 local get_textediting, set_textediting
-    = base.get_textediting, base.set_textediting
-
-M.Tag = base.Tag
-M.Window = base.Window
-M.Overlay = base.Overlay
+    = M.get_textediting, M.set_textediting
 
 --[[! Variable: orient
     Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.
@@ -1247,7 +1241,7 @@ local Slider = register_class("Slider", Object, {
         emit(self, "value_changed", val)
 
         local varn = self.var
-        if varn then base.update_var(varn, val) end
+        if varn then M.update_var(varn, val) end
     end,
 
     --[[! Function: set_step
@@ -1264,7 +1258,7 @@ local Slider = register_class("Slider", Object, {
         emit(self, "value_changed", val)
 
         local varn = self.var
-        if varn then base.update_var(varn, val) end
+        if varn then M.update_var(varn, val) end
     end,
 
     --[[! Function: key_hover
@@ -3485,7 +3479,7 @@ set_external("input_text", function(str)
     return true
 end)
 
-base.set_text_handler(function()
+M.set_text_handler(function()
     local wastextediting = (textediting ~= nil)
 
     if textediting and not is_focused(textediting) then

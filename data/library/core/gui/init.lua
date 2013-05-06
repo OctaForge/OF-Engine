@@ -15,7 +15,6 @@
 
 #log(DEBUG, ":::: Core UI implementation.")
 
-gui = {
-    core = require "gui.core"
-}
+gui = {}
+require("gui.core")
 require("gui.core_widgets")

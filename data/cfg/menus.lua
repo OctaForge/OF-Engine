@@ -1,4 +1,4 @@
-local world = gui.core.get_world()
+local world = gui.get_world()
 
 gui.Button.states = {
     default = gui.Rectangle {
@@ -83,7 +83,7 @@ world:new_window("main", gui.Window, function(win)
 end)
 
 _C.cubescript([[ bind ESCAPE [ lua [
-    local world = gui.core.get_world()
+    local world = gui.get_world()
     if not world:hide_window("main") then world:show_window("main") end
 ] ] ]])
 --[=[
