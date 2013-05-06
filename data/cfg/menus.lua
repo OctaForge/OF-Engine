@@ -1,80 +1,80 @@
 local world = gui.core.get_world()
 
-gui.widgets.Button.states = {
-    default = gui.widgets.Rectangle {
+gui.Button.states = {
+    default = gui.Rectangle {
         min_w = 0.2, min_h = 0.05, r = 255, g = 255, b = 0,
-        gui.widgets.Label { text = "Idle" }
+        gui.Label { text = "Idle" }
     },
 
-    hovering = gui.widgets.Rectangle {
+    hovering = gui.Rectangle {
         min_w = 0.2, min_h = 0.05, r = 255, g = 0, b = 0,
-        gui.widgets.Label { text = "Hovering" }
+        gui.Label { text = "Hovering" }
     },
 
-    clicked = gui.widgets.Rectangle {
+    clicked = gui.Rectangle {
         min_w = 0.2, min_h = 0.05, r = 255, g = 0, b = 255,
-        gui.widgets.Label { text = "Clicked" }
+        gui.Label { text = "Clicked" }
     }
 }
 
 _G["test_update_states"] = function()
-    gui.widgets.Button:update_class_states {
-        default = gui.widgets.Rectangle {
+    gui.Button:update_class_states {
+        default = gui.Rectangle {
             min_w = 0.2, min_h = 0.05, r = 64, g = 32, b = 192,
-            gui.widgets.Label { text = "Different idle" }
+            gui.Label { text = "Different idle" }
         },
     
-        hovering = gui.widgets.Rectangle {
+        hovering = gui.Rectangle {
             min_w = 0.2, min_h = 0.05, r = 0, g = 50, b = 150,
-            gui.widgets.Label { text = "Different hovering" }
+            gui.Label { text = "Different hovering" }
         },
     
-        clicked = gui.widgets.Rectangle {
+        clicked = gui.Rectangle {
             min_w = 0.2, min_h = 0.05, r = 128, g = 192, b = 225,
-            gui.widgets.Label { text = "Different clicked" }
+            gui.Label { text = "Different clicked" }
         }
     }
 end
 
 local i = 0
 
-world:new_window("main", gui.widgets.Window, function(win)
+world:new_window("main", gui.Window, function(win)
     win:set_floating(true)
-    win:append(gui.widgets.Rectangle { r = 96, g = 96, b = 255, a = 128 }, function(r)
+    win:append(gui.Rectangle { r = 96, g = 96, b = 255, a = 128 }, function(r)
         r:align(0, 0)
-        r:append(gui.widgets.V_Box(), function(b)
+        r:append(gui.V_Box(), function(b)
             b:clamp(true, true, true, true)
-            b:append(gui.widgets.Mover(), function(mover)
+            b:append(gui.Mover(), function(mover)
                 mover:clamp(true, true, true, true)
-                mover:append(gui.widgets.Rectangle { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, function(r)
+                mover:append(gui.Rectangle { r = 255, g = 0, b = 0, a = 200, min_h = 0.03 }, function(r)
                     r:clamp(true, true, true, true)
-                    r:append(gui.widgets.Label { text = "Window title" }, function(l)
+                    r:append(gui.Label { text = "Window title" }, function(l)
                         l:align(0, 0)
                     end)
                 end)
             end)
-            b:append(gui.widgets.Label { text = "This is some transparent text", a = 100 })
-            b:append(gui.widgets.Label { text = "Different text", r = 255, g = 0, b = 0 })
-            b:append(gui.widgets.Eval_Label {
+            b:append(gui.Label { text = "This is some transparent text", a = 100 })
+            b:append(gui.Label { text = "Different text", r = 255, g = 0, b = 0 })
+            b:append(gui.Eval_Label {
                 func = function()
                     i = i + 1
                     return i
                 end
             })
 
-            b:append(gui.widgets.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
-                s:append(gui.widgets.H_Box(), function(b)
-                    b:append(gui.widgets.Button { label = "A button" }, function(b)
-                        b:set_tooltip(gui.widgets.Rectangle {
+            b:append(gui.Spacer { pad_h = 0.005, pad_v = 0.005 }, function(s)
+                s:append(gui.H_Box(), function(b)
+                    b:append(gui.Button { label = "A button" }, function(b)
+                        b:set_tooltip(gui.Rectangle {
                             min_w = 0.2, min_h = 0.05, r = 128, g = 128, b = 128, a = 128
                         })
-                        b.tooltip:append(gui.widgets.Label { text = "A tooltip" })
+                        b.tooltip:append(gui.Label { text = "A tooltip" })
                         signal.connect(b, "click", function()
                             echo "you clicked a button"
                         end)
                     end)
-                    b:append(gui.widgets.Spacer { pad_h = 0.005 }, function(s)
-                        s:append(gui.widgets.Label { text = "foo" })
+                    b:append(gui.Spacer { pad_h = 0.005 }, function(s)
+                        s:append(gui.Label { text = "foo" })
                     end)
                 end)
             end)
@@ -82,11 +82,11 @@ world:new_window("main", gui.widgets.Window, function(win)
     end)
 end)
 
-world:new_window("test", gui.widgets.Window, function(win)
+world:new_window("test", gui.Window, function(win)
     win:set_floating(true)
-    win:append(gui.Window {
+    win:append(gui.Test_Window {
         title = "O hai!",
-        gui.widgets.Label {
+        gui.Label {
             text = "asdadasdadasdasd"
         }
     })

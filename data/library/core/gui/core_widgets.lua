@@ -36,7 +36,8 @@ local _V    = _G["_V"]
 local _C    = _G["_C"]
 local emit  = signal.emit
 
-local base = require("gui.core")
+local M = gui
+local base = M.core
 local world = base.get_world()
 
 -- consts
@@ -69,11 +70,9 @@ local gen_setter = base.gen_setter
 local get_textediting, set_textediting
     = base.get_textediting, base.set_textediting
 
-local M = {
-    Tag = base.Tag,
-    Window = base.Window,
-    Overlay = base.Overlay
-}
+M.Tag = base.Tag
+M.Window = base.Window
+M.Overlay = base.Overlay
 
 --[[! Variable: orient
     Defines the possible orientations on widgets - HORIZONTAL and VERTICAL.

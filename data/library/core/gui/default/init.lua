@@ -34,125 +34,54 @@ end
 local M = {}
 
 local gip, gcp = get_image_path, get_cursor_path
-local widgets = gui.widgets
 
-local FILTER_NEAREST = widgets.FILTER_NEAREST
-
-local Button = function(kwargs)
-    if not kwargs.label_only then
-        return widgets.Button {
-            signals = kwargs.signals,
-            tooltip = kwargs.tooltip,
-            pointer = kwargs.pointer,
-            states = {
-                default = widgets.Filler {
-                    clamp_l = true, clamp_r = true,
-                    widgets.H_Box {
-                        widgets.Stretched_Image {
-                            file = gip("corner_top_left.png"),
-                            min_w = 0.01, min_h = 0.03
-                        },
-                        widgets.Stretched_Image {
-                            file = gip("edge.png"),
-                            min_w = 0.15, min_h = 0.03,
-                            clamp_l = true, clamp_r = true,
-                        },
-                        widgets.Stretched_Image {
-                            file = gip("corner_top_right.png"),
-                            min_w = 0.01, min_h = 0.03
-                        }
-                    },
-                    widgets.Label { text = kwargs.label }
-                },
-                hovering = widgets.Filler {
-                    clamp_l = true, clamp_r = true,
-                    widgets.H_Box {
-                        widgets.Stretched_Image {
-                            file = gip("corner_top_left.png"),
-                            min_w = 0.01, min_h = 0.03
-                        },
-                        widgets.Stretched_Image {
-                            file = gip("edge.png"),
-                            min_w = 0.15, min_h = 0.03,
-                            clamp_l = true, clamp_r = true,
-                        },
-                        widgets.Stretched_Image {
-                            file = gip("corner_top_right.png"),
-                            min_w = 0.01, min_h = 0.03
-                        }
-                    },
-                    widgets.Label { text = kwargs.label }
-                },
-                clicked = widgets.Filler {
-                    clamp_l = true, clamp_r = true,
-                    widgets.H_Box {
-                        widgets.Stretched_Image {
-                            file = gip("corner_top_left.png"),
-                            min_w = 0.01, min_h = 0.03
-                        },
-                        widgets.Stretched_Image {
-                            file = gip("edge.png"),
-                            min_w = 0.15, min_h = 0.03,
-                            clamp_l = true, clamp_r = true,
-                        },
-                        widgets.Stretched_Image {
-                            file = gip("corner_top_right.png"),
-                            min_w = 0.01, min_h = 0.03
-                        }
-                    },
-                    widgets.Label { text = kwargs.label }
-                }
-            },
-        }
-    end
-end
-M.Button = Button
+local FILTER_NEAREST = gui.FILTER_NEAREST
 
 local Window = function(kwargs)
     kwargs = kwargs or {}
 
     local title = kwargs.title
 
-    local t = widgets.Table {
+    local t = gui.Table {
         columns = 3,
         padding = 0
     }
 
     if title then
-        t:append(widgets.Image {
+        t:append(gui.Image {
             file = gip("corner_top_left.png"), pointer = gcp("tl_br.png"),
             min_w = -6, min_h = -30
         })
 
-        local img = t:append(widgets.Image {
+        local img = t:append(gui.Image {
             file = gip("edge.png"),
             clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
         })
-        img:append(widgets.Mover {
+        img:append(gui.Mover {
             clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true,
 
-            widgets.Rectangle {
+            gui.Rectangle {
                 clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true,
                 a = 0,
 
-                widgets.Label { text = title, align_h = -1 },
-                widgets.H_Box {
-                    widgets.Spacer {
-                        widgets.Image {
+                gui.Label { text = title, align_h = -1 },
+                gui.H_Box {
+                    gui.Spacer {
+                        gui.Image {
                             file = gip("btn_min.png"),
                             min_filter = FILTER_NEAREST, mag_filter = FILTER_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002
                     },
-                    widgets.Spacer {
-                        widgets.Image {
+                    gui.Spacer {
+                        gui.Image {
                             file = gip("btn_max.png"),
                             min_filter = FILTER_NEAREST, mag_filter = FILTER_NEAREST
                         },
                         pad_h = 0.002, pad_v = 0.002
                     },
-                    widgets.Spacer {
-                        widgets.Image {
+                    gui.Spacer {
+                        gui.Image {
                             file = gip("btn_close.png"),
                             min_filter = FILTER_NEAREST, mag_filter = FILTER_NEAREST
                         },
@@ -164,89 +93,89 @@ local Window = function(kwargs)
             }
         })
 
-        t:append(widgets.Image {
+        t:append(gui.Image {
             file = gip("corner_top_right.png"), pointer = gcp("tr_bl.png"),
             min_w = -6, min_h = -30
         })
     else
-        t:append(widgets.Image {
+        t:append(gui.Image {
             file = gip("corner_top_left_small.png"),
             pointer = gcp("tl_br.png"), min_w = -6, min_h = -6
         })
 
-        local img = t:append(widgets.Image {
+        local img = t:append(gui.Image {
             file = gip("edge.png"),
             clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
         })
-        img:append(widgets.Mover {
+        img:append(gui.Mover {
             clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
         })
 
-        t:append(widgets.Image {
+        t:append(gui.Image {
             file = gip("corner_top_right_small.png"),
             pointer = gcp("tr_bl.png"), min_w = "6p", min_h = "6p"
         })
     end
 
-    t:append(widgets.Image {
+    t:append(gui.Image {
         file = gip("edge.png"), pointer = gcp("leftright.png"),
         clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
-    t:append(widgets.Image {
+    t:append(gui.Image {
         file = gip("edge.png"),
 
-        widgets.Table {
+        gui.Table {
             columns = 3, padding = 0,
 
-            widgets.Image { file = gip("corner_in_top_left.png") },
-            widgets.Image {
+            gui.Image { file = gip("corner_in_top_left.png") },
+            gui.Image {
                 file = gip("edge_in.png"),
                 clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
-            widgets.Image { file = gip("corner_in_top_right.png") },
+            gui.Image { file = gip("corner_in_top_right.png") },
 
-            widgets.Image {
+            gui.Image {
                 file = gip("edge_in.png"),
                 clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
-            widgets.Image {
+            gui.Image {
                 file = gip("edge_in.png"), unpack(kwargs)
             },
-            widgets.Image {
+            gui.Image {
                 file = gip("edge_in.png"),
                 clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
 
-            widgets.Image { file = gip("corner_in_bottom_left.png") },
-            widgets.Image {
+            gui.Image { file = gip("corner_in_bottom_left.png") },
+            gui.Image {
                 file = gip("edge_in.png"),
                 clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
             },
-            widgets.Image { file = gip("corner_in_bottom_right.png") }
+            gui.Image { file = gip("corner_in_bottom_right.png") }
         },
 
         clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
-    t:append(widgets.Image {
+    t:append(gui.Image {
         file = gip("edge.png"), pointer = gcp("leftright.png"),
         clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
 
-    t:append(widgets.Image {
+    t:append(gui.Image {
         file = gip("corner_bottom_left.png"), pointer = gcp("tr_bl.png"),
         min_w = -6, min_h = -6
     })
-    t:append(widgets.Image {
+    t:append(gui.Image {
         file = gip("edge.png"), pointer = gcp("updown.png"),
         clamp_l = true, clamp_r = true, clamp_t = true, clamp_b = true
     })
-    t:append(widgets.Image {
+    t:append(gui.Image {
         file = gip("corner_bottom_right.png"), pointer = gcp("tl_br.png"),
         min_w = -6, min_h = -6
     })
 
     return t
 end
-M.Window = Window
+M.Test_Window = Window
 
 return M
