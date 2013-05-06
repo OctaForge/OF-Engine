@@ -19,4 +19,5 @@ gui = {}
 require("gui.core")
 require("gui.core_containers")
 require("gui.core_spacers")
+require("gui.core_primitives")
 require("gui.core_widgets")
