@@ -82,16 +82,6 @@ world:new_window("main", gui.Window, function(win)
     end)
 end)
 
-world:new_window("test", gui.Window, function(win)
-    win:set_floating(true)
-    win:append(gui.Test_Window {
-        title = "O hai!",
-        gui.Label {
-            text = "asdadasdadasdasd"
-        }
-    })
-end)
-
 _C.cubescript([[ bind ESCAPE [ lua [
     local world = gui.core.get_world()
     if not world:hide_window("main") then world:show_window("main") end

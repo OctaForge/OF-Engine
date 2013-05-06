@@ -15,35 +15,7 @@
 
 #log(DEBUG, ":::: Core UI implementation.")
 
-local sets = {}
-
 gui = {
-    core = require "gui.core",
-
-    get_sets = function() return sets end,
-    get_set  = function(name)
-        return themes[name]
-    end,
-
-    register_set   = function(name, set)
-        sets[name] = set
-    end
+    core = require "gui.core"
 }
-
 require("gui.core_widgets")
-
-sets["default"] = require "gui.default"
-
-var.new("uiset", var.STRING, "default")
-
-setmetatable(gui, {
-    __index = function(self, n)
-        -- try regular members first
-        local v = rawget(self, n)
-        if    v ~= nil then return v end
-
-        -- try a set otherwise
-        v = sets[_V.uiset]
-        if v then return v[n] end
-    end
-})
