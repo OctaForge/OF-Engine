@@ -1573,7 +1573,7 @@ end)
 
 set_external("gui_render", function()
     local w = world
-    if #w.children ~= 0 or draw_hud then
+    if draw_hud or #w.children ~= 0 then
         _C.hudmatrix_ortho(w.x, w.x + w.w, w.y + w.h, w.y, -1, 1)
         _C.hudmatrix_reset()
         _C.shader_hud_set()
