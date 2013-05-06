@@ -321,13 +321,12 @@ void clearmapsounds()
     mapsounds.setsize(0);
 }
 
-// INTENSITY: playmapsound, to play file directly but still adding it into mapsounds and assigning entity to channel, prototype inside iengine.h in shared.
-int playmapsound(const char *s, extentity *ent, int vol, int loops)
-{ 
-    if(!vol) vol = 100;
+/* OF */
+int playmapsound(const char *s, extentity *ent, int vol, int loops) {
+    if (!vol) vol = 100;
     int id = findsound(s, vol, mapsounds, mapslots);
     if(id < 0) id = addsound(s, vol, 0, mapsounds, mapslots);
-    return playsound(id, NULL, ent, loops, 0, -1, 0, -1, vol);
+    return playsound(id, NULL, ent, SND_MAP, loops, 0, -1, 0, -1);
 }
 
 void stopmapsound(extentity *e)
@@ -450,12 +449,54 @@ static Mix_Chunk *loadwav(const char *name)
     return c;
 }
 
-int playsound(int n, const vec *loc, extentity *ent, int loops, int fade, int chanid, int radius, int expire, int vol) // SAUER ENHANCED - volume for playsound
+static bool loadsoundslot(soundslot &slot, bool msg = false)
+{
+    if(slot.sample->chunk) return true;
+    if(!slot.sample->name[0]) return false;
+
+    static const char * const exts[] = { "", ".wav", ".ogg" };
+    string filename;
+    loopi(sizeof(exts)/sizeof(exts[0]))
+    {
+        formatstring(filename)("data/sounds/%s%s", slot.sample->name, exts[i]);
+        if(msg && !i) renderprogress(0, filename);
+        path(filename);
+        slot.sample->chunk = loadwav(filename);
+        if(slot.sample->chunk) return true;
+    }
+
+    conoutf(CON_ERROR, "failed to load sample: data/sounds/%s", slot.sample->name); 
+    return false;
+}
+
+static inline void preloadsound(vector<soundconfig> &sounds, vector<soundslot> &slots, int n)
+{
+    if(!sounds.inrange(n)) return;
+    soundconfig &config = sounds[n];
+    loopk(config.numslots) loadsoundslot(slots[config.slots+k], true);
+}
+
+void preloadsound(int n)
+{
+    preloadsound(gamesounds, gameslots, n);
+}
+
+/* OF */
+int preloadmapsound(const char *name, int vol)
+{
+    int id = findsound(name, vol, mapsounds, mapslots);
+    if (id < 0) id = addsound(name, vol, 0, mapsounds, mapslots);
+    if (!mapsounds.inrange(id)) { conoutf(CON_WARN, "cannot preload sound: %s", name); return -1; }
+    preloadsound(mapsounds, mapslots, id);
+    return id;
+}
+
+int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int fade, int chanid, int radius, int expire)
 {
     if(nosound || !soundvol || minimized) return -1;
 
-    vector<soundslot> &slots = ent ? mapslots : gameslots;
-    vector<soundconfig> &sounds = ent ? mapsounds : gamesounds;
+    vector<soundslot> &slots = ent || flags&SND_MAP ? mapslots : gameslots;
+    vector<soundconfig> &sounds = ent || flags&SND_MAP ? mapsounds : gamesounds;
     if(!sounds.inrange(n)) { conoutf(CON_WARN, "unregistered sound: %d", n); return -1; }
     soundconfig &config = sounds[n];
 
@@ -501,42 +542,9 @@ int playsound(int n, const vec *loc, extentity *ent, int loops, int fade, int ch
     }
     if(fade < 0) return -1;
 
-// INTENSITY: Make this a macro, so it can be reused in preload_sound
-#define LOAD_SLOT(config, slots) \
-    soundslot &slot = slots[config.chooseslot()]; \
-    if(!slot.sample->chunk) \
-    { \
-        if(!slot.sample->name[0]) return -1; \
- \
-        const char *exts[] = { "", ".wav", ".ogg" }; \
-        string buf; \
-        loopi(sizeof(exts)/sizeof(exts[0])) \
-        { \
-            formatstring(buf)("data/sounds/%s%s", slot.sample->name, exts[i]); \
-            path(buf); \
-            slot.sample->chunk = loadwav(buf); \
-            if(slot.sample->chunk) break; \
-        } \
- \
-        if(!slot.sample->chunk) { conoutf(CON_ERROR, "failed to load sample: %s", buf); return -1; } \
-    } \
+    soundslot &slot = slots[config.chooseslot()];
+    if(!slot.sample->chunk && !loadsoundslot(slot)) return -1;
 
-    LOAD_SLOT(config, slots) // INTENSITY
-
-    if(vol) slot.volume = vol;
-
-    if(channels.inrange(chanid))
-    {
-        soundchannel &chan = channels[chanid];
-        if(chan.inuse && chan.slot == &slot) 
-        {
-            if(loc) chan.loc = *loc;
-            else if(chan.hasloc()) chan.clearloc();
-            return chanid;
-        }
-    }
-    if(fade < 0) return -1;
-           
     if(dbgsound) conoutf("sound: %s", slot.sample->name);
  
     chanid = -1;
@@ -551,7 +559,7 @@ int playsound(int n, const vec *loc, extentity *ent, int loops, int fade, int ch
         Mix_HaltChannel(chanid);
         freechannel(chanid);
     }
-    soundchannel &chan = newchannel(chanid, &slot, loc, ent, 0, radius);
+    soundchannel &chan = newchannel(chanid, &slot, loc, ent, flags, radius);
     updatechannel(chan);
     int playing = -1;
     if(fade) 
@@ -564,37 +572,6 @@ int playsound(int n, const vec *loc, extentity *ent, int loops, int fade, int ch
     else freechannel(chanid);
     SDL_UnlockAudio();
     return playing;
-}
-
-int preload_sound(const char *name, int vol) // INTENSITY: Actually preload sounds, for responsiveness
-{
-    int id = findsound(name, vol, gamesounds, gameslots);
-    if(id < 0) id = addsound(name, vol, 0, gamesounds, gameslots);
-    if(!gamesounds.inrange(id)) { conoutf(CON_WARN, "cannot preload sound: %s", name); return -1; }
-    soundconfig &config = gamesounds[id];
-    LOAD_SLOT(config, gameslots);
-    return id;
-}
-
-// INTENSITY: getsoundid, to get ID of sound of certain file and volume
-int getsoundid(const char *s, int vol)
-{
-    if(!vol) vol = 100;
-    return findsound(s, vol, gamesounds, gameslots);
-}
-
-// INTENSITY: stopsoundbyid, to stop some gamesound by ID
-void stopsoundbyid(int id)
-{
-    loopv(channels)
-    {
-        soundchannel &chan = channels[i];
-        if(chan.inuse && chan.id == id)
-        {
-            Mix_HaltChannel(i);
-            freechannel(i);
-        }
-    }
 }
 
 void stopsounds()
@@ -618,13 +595,15 @@ bool stopsound(int n, int chanid, int fade)
     return true;
 }
 
-int playsoundname(const char *s, const vec *loc, int vol, int loops, int fade, int chanid, int radius, int expire) 
+int playsoundname(const char *s, const vec *loc, int vol, int flags, int loops, int fade, int chanid, int radius, int expire) 
 { 
     if(!vol) vol = 100;
     int id = findsound(s, vol, gamesounds, gameslots);
     if(id < 0) id = addsound(s, vol, 0, gamesounds, gameslots);
-    return playsound(id, loc, NULL, loops, fade, chanid, radius, expire);
+    return playsound(id, loc, NULL, flags, loops, fade, chanid, radius, expire);
 }
+
+ICOMMAND(playsound, "i", (int *n), playsound(*n));
 
 void resetsound()
 {
@@ -777,6 +756,21 @@ void updatemumble()
 
 /* OF */
 
+int get_sound_id(const char *s, int vol) {
+    if (!vol) vol = 100;
+    return findsound(s, vol, gamesounds, gameslots);
+}
+
+void stop_sound_by_id(int id) {
+    loopv(channels) {
+        soundchannel &chan = channels[i];
+        if (chan.inuse && chan.id == id) {
+            Mix_HaltChannel(i);
+            freechannel(i);
+        }
+    }
+}
+
 LUAICOMMAND(sound_play, {
     if (lua_isnumber(L, 1)) {
         playsound(luaL_checkinteger(L, 1));
@@ -796,16 +790,16 @@ LUAICOMMAND(sound_play, {
 });
 
 LUAICOMMAND(sound_stop, {
-    stopsoundbyid(getsoundid(luaL_checkstring(L, 1),
+    stop_sound_by_id(get_sound_id(luaL_checkstring(L, 1),
         luaL_optinteger(L, 2, 100)));
     return 0;
 });
 
-LUAICOMMAND(sound_preload, {
+LUAICOMMAND(sound_preload_map, {
     const char *n = luaL_checkstring(L, 1);
     defformatstring(buf)("preloading sound '%s' ...", n);
     renderprogress(0, buf);
-    lua_pushinteger(L, preload_sound(n, luaL_optinteger(L, 2, 100)));
+    lua_pushinteger(L, preloadmapsound(n, luaL_optinteger(L, 2, 100)));
     return 1;
 });
 

@@ -82,9 +82,9 @@ return {
         msg.send(cn, sound_stop, volume, name, -1)
     end,
 
-    --[[! Function: preload
-        Preloads a sound so that it doesn't have to be loaded on the fly
+    --[[! Function: preload_map
+        Preloads a map sound so that it doesn't have to be loaded on the fly
         later. That leads to better performance.
     ]]
-    preload = _C.sound_preload
+    preload_map = _C.sound_preload_map
 }

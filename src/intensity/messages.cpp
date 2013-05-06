@@ -1628,7 +1628,7 @@ namespace MessageSystem
         int originalClientNumber = getint(p);
 
         assert(ClientSystem::playerNumber != originalClientNumber);
-        stopsoundbyid(getsoundid(soundName, volume));
+        stop_sound_by_id(get_sound_id(soundName, volume));
     }
 #endif
 

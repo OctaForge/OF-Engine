@@ -351,16 +351,20 @@ extern bool entinmap(dynent *d, bool avoidplayers = false);
 extern void findplayerspawn(dynent *d, int forceent = -1, int tag = 0);
 
 // sound
-extern int playsound(int n, const vec *loc = NULL, extentity *ent = NULL, int loops = 0, int fade = 0, int chanid = -1, int radius = 0, int expire = -1, int vol = 0);
-extern int playsoundname(const char *s, const vec *loc = NULL, int vol = 0, int loops = 0, int fade = 0, int chanid = -1, int radius = 0, int expire = -1);
-// INTENSITY: playmapsound, to play file directly but still adding it into mapsounds and assigning entity to channel
+enum
+{
+    SND_MAP = 1<<0
+};
+
+/* OF: modified */
+extern int playsound(int n, const vec *loc = NULL, extentity *ent = NULL, int flags = 0, int loops = 0, int fade = 0, int chanid = -1, int radius = 0, int expire = -1);
+extern int playsoundname(const char *s, const vec *loc = NULL, int vol = 0, int flags = 0, int loops = 0, int fade = 0, int chanid = -1, int radius = 0, int expire = -1);
 extern int playmapsound(const char *s, extentity *ent = NULL, int vol = 0, int loops = 0);
-// INTENSITY: export stopmapsound, so it is useable from V8 script engine
 extern void stopmapsound(extentity *e);
-// INTENSITY: export getsoundbyid, so it is useable from V8 script engine
-extern int getsoundid(const char *s, int vol = 0);
-// INTENSITY: export stopsoundbyid
-extern void stopsoundbyid(int id);
+extern int get_sound_id(const char *s, int vol = 0);
+extern void stop_sound_by_id(int id);
+extern void preloadsound(int n);
+extern int preloadmapsound(const char *name, int vol);
 extern bool stopsound(int n, int chanid, int fade = 0);
 extern void stopsounds();
 extern void initsound();
