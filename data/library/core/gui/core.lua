@@ -1276,26 +1276,16 @@ local World = register_class("World", Object, {
     end,
 
     --[[! Function: build_window
-        Builds a window. Takes the window name and optionally a function
-        that's called with the newly created window as an argument. There
-        are two other optional arguments, noinput and onscreen. When the
-        former of these is true, the resulting window takes no input (it's
-        an <Overlay>) and when the latter is true, the window only takes
-        input in free cursor mode (it's a <Space>). In the default state
-        a regular window is created.
+        Builds a window. Takes the window name, its widget class and optionally
+        a function that's called with the newly created window as an argument.
     ]]
-    build_window = function(self, name, fun, noinput, onscreen)
+    build_window = function(self, name, win, fun)
         local old = self:find_child(Window.type, name, false)
         if old then self:remove(old) end
-
-        local kwargs = { name = name }
-        local win = noinput and Overlay(kwargs) or
-            (onscreen and Space(kwargs) or Window(kwargs))
+        win = win { name = name }
         win.parent = self
-
         local children = self.children
         children[#children + 1] = win
-
         if fun then fun(win) end
         return win
     end,
@@ -1314,7 +1304,7 @@ local World = register_class("World", Object, {
         <hide_window> which destroys it AND marks it). Don't actually rely
         on this, it's only intended for the internals.
     ]]
-    new_window = function(self, name, fun, noinput, onscreen)
+    new_window = function(self, name, win, fun)
         local old = self.windows[name]
         local visible = false
         self.windows[name] = function(vis)
@@ -1324,7 +1314,7 @@ local World = register_class("World", Object, {
                 visible = false
                 return nil
             end
-            self:build_window(name, fun, noinput, onscreen)
+            self:build_window(name, win, fun)
             visible = true
         end
         return old
