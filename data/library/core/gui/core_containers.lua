@@ -13,15 +13,14 @@
         Features container widgets for the OF GUI.
 ]]
 
+local max = math.max
+local min = math.min
+
 local M = gui
 local world = M.get_world()
 
 -- consts
 local gl, key = M.gl, M.key
-
--- input event management
-local is_clicked, is_hovering, is_focused, clear_focus = M.is_clicked,
-    M.is_hovering, M.is_focused, M.clear_focus
 
 -- widget types
 local register_class = M.register_class
@@ -255,7 +254,7 @@ M.Table = register_class("Table", Object, {
 --[[! Struct: Clipper
     Clips the children inside of it by clip_w and clip_h.
 ]]
-local Clipper = register_class("Clipper", Object, {
+M.Clipper = register_class("Clipper", Object, {
     __init = function(self, kwargs)
         kwargs = kwargs or {}
         self.clip_w = kwargs.clip_w or 0
@@ -301,4 +300,3 @@ local Clipper = register_class("Clipper", Object, {
     --[[! Function: set_clip_h ]]
     set_clip_h = gen_setter "clip_h"
 })
-M.Clipper = Clipper
