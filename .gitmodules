@@ -1,3 +1,0 @@
-[submodule "src/libraries/enet"]
-	path = src/libraries/enet
-	url = git://github.com/OctaForge/OF-enet.git
