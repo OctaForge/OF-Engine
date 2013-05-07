@@ -1,17 +1,21 @@
 Compiling OctaForge
 ********************
 
-Officially supported platforms for OctaForge (those which include/will include binaries) are currently Linux, FreeBSD, Windows and Mac OS X.
+Officially supported platforms for OctaForge (those which include/will include
+binaries) are currently Linux, FreeBSD, Windows and Mac OS X.
 
-It should work without problems also on Solaris and other UNIX-like or UNIX systems.
+It should work without problems also on Solaris and other UNIX-like or UNIX
+systems.
 
-For different platforms, compilation instructions might differ a bit, so separate OSes will be explained separately.
+For different platforms, compilation instructions might differ a bit, so
+separate OSes will be explained separately.
 
 For all OSes
 ============
 
 1. In all cases, you need to get source code. 
-   You can use either release tarball or Git source versioning system to get source code.
+   You can use either release tarball or Git source versioning system to get
+   source code.
    (Git will get you most recent source)
 
    To get source from Git, use:
@@ -20,21 +24,10 @@ For all OSes
 
        $ git clone git://github.com/OctaForge/OF-Engine.git
 
-    To fetch the required dependencies from additional repositories,
-    use the submodules and do the following:
-
-    .. code-block :: bash
-
-       $ git submodule init
-       $ git submodule update
-
    It assumes you have Git installed. (http://git-scm.com).
-   If you're using Windows, you can use TortoiseGit GUI to make download easier.
-   On Mac, you can get packages for example here http://code.google.com/p/git-osx-installer/
-
-   Note that if you use a tarball from git, it won't include required .git directory, so you won't be able
-   to fetch the submodules. Because of that, get an archive from octaforge.org, that already contains the
-   required submodules.
+   If you're using Windows, you can use TortoiseGit GUI or any other GUI client
+   to make download easier. On Mac, you can get packages for example here
+   http://code.google.com/p/git-osx-installer/
 
 Linux, BSD, Solaris and other UNIX-like or UNIX systems (excluding Darwin)
 ==========================================================================
@@ -45,10 +38,16 @@ with little modifications it should work everywhere.
 
 1. Open terminal window and get some dependencies to build.
 
-   1. build-essential - on Debian, metapackage installing GNU compiler set and a few other things.
-      Basically basic things you need to build sources.
+   1. build-essential - on Debian, metapackage installing GNU compiler set and
+      a few other things. Basically basic things you need to build sources.
    2. SDL2 dev package, SDL2_image dev package, SDL2_mixer dev package
    3. Zlib dev libraries and headers
+   4. LuaJIT 2.0 or higher
+
+   If you have a custom build of LuaJIT (static), you can put the lib as
+   libluajit.a into src/platform_{linux,freebsd,osx,solaris}/lib and the
+   header files into src/platform_*/include and then set LUAJIT_LOCAL in
+   the feature section of the Makefile to 1 or pass it to make.
 
 2. Open a terminal, build OF:
 
@@ -66,19 +65,21 @@ with little modifications it should work everywhere.
 Windows
 =======
 
-On Windows, fetch the repository https://github.com/OctaForge/OF-Windows and place
-the platform_windows directory into src and contents of bin_win32/64 to bin_win32/64.
+On Windows, fetch the repository https://github.com/OctaForge/OF-Windows and
+place the platform_windows directory into src and contents of bin_win32/64
+to bin_win32/64.
 
 Then just proceed with the compilation.
 
-OF supports both Win32 and Win64 binaries. By default, Win32 binaries are compiled.
-If you want to compile Win64 binaries, append another WIN64=1 parameter to mingw32-make.
+OF supports both Win32 and Win64 binaries. The variant is deduced from the
+target compiler.
 
 So the steps are:
 
-1. Install latest MinGW distribution whichever way you want. You need just the core (C/C++ support).
-   You can install it wherever you want, but make sure to change steps of this guide accordingly after that.
-   Note that you need MinGW64 to build 64bit binaries.
+1. Install latest MinGW distribution whichever way you want. You need just the
+   core (C/C++ support). You can install it wherever you want, but make sure to
+   change steps of this guide accordingly after that. Note that you need
+   MinGW64 to build 64bit binaries.
 
 2. Append this into your PATH environment variable. (modify path if needed)
 
@@ -93,23 +94,27 @@ So the steps are:
        $ mingw32-make install
 
    If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
-   Add VERBOSE=1 at the end of the make command for verbose builds. Add WIN64=1
-   for 64bit builds.
+   Add VERBOSE=1 at the end of the make command for verbose builds.
 
 Mac OS X (Darwin)
 =================
 
-1. You'll need to get some dependencies, first. (I assume you've got OF repository already downloaded)
-    1. XCode SDK installed (from Mac OS X DVD or XCode developer DVD).
-    2. The needed SDL2 frameworks - put them in /Library/Frameworks
-        http://github.com/OctaForge/OF-mac
+1. You'll need to get some dependencies, first. (I assume you've got OF
+   repository already downloaded)
+
+   1. XCode SDK installed (from Mac OS X DVD or XCode developer DVD).
+   2. The needed SDL2 frameworks - put them in src/platform_osx/Frameworks
+      http://github.com/OctaForge/OF-mac
+   3. LuaJIT 2.0 or higher - look at the Linux/BSD/... section, the same
+      notes apply (the dir is platform_osx here).
+
 2. Go to OF's src directory in the terminal and do
 
    .. code-block :: bash
 
        $ make install
 
-   If you have a multicore processor, you can use -jNUMCORES+1 as make argument.
-   Add VERBOSE=1 at the end of the make command for verbose builds.
+   If you have a multicore processor, you can use -jNUMCORES+1 as make
+   argument. Add VERBOSE=1 at the end of the make command for verbose builds.
 
    After everything goes OK, you should have binaries and you can launch.

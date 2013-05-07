@@ -10,10 +10,6 @@ CC_FLAGS = -O2 -fomit-frame-pointer
 CXX ?= c++
 CXX_FLAGS = -O2 -fomit-frame-pointer
 
-ifeq (,$(AS))
-	AS = s
-endif
-
 CC_FLAGS_x86 = -march=i686
 CC_FLAGS_x64 =
 #CC_FLAGS_x86 = -march=native
@@ -39,23 +35,23 @@ CXX_WARN = $(CC_WARN)
 #####################################
 
 # which directory object files will be written to
-OBJDIR = build
+OBJDIR ?= build
 
 # Mac OS X framework path
 OSX_FRAMEWORKS = platform_osx/Frameworks
 
 # C++ compiler flags for OF client
-CLIENT_XCXXFLAGS =
+CLIENT_XCXXFLAGS ?=
 
 # C++ compiler flags for OF server
-SERVER_XCXXFLAGS =
+SERVER_XCXXFLAGS ?=
 
 # C compiler flags for ENet
-ENET_XCFLAGS =
+ENET_XCFLAGS ?=
 
 # set to a value if you want the engine to link against
 # local (typically static) LuaJIT in platform_YOUROS
-LUAJIT_LOCAL =
+LUAJIT_LOCAL ?=
 
 # LuaJIT pkg-config/pkgconf paths
 LUAJIT_PKGCONF_PATH += :/usr/local/lib/pkgconfig:/usr/local/libdata/pkgconfig
