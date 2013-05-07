@@ -181,7 +181,7 @@ ENET_INC = $(ENET_PATH)/include
 TARGET_BINARCH = $(TARGET_ARCH)
 ifeq ($(TARGET_SYS),Windows)
 	TARGET_BINOS = win
-	TARGET_XINC += -Iplatform_windows
+	TARGET_XINC += -Iplatform_windows/include
 	ifeq (x64,$(TARGET_ARCH))
 		TARGET_XLIB += -Lplatform_windows/lib64
 	else
@@ -190,7 +190,7 @@ ifeq ($(TARGET_SYS),Windows)
 else
 ifeq ($(TARGET_SYS),Linux)
 	TARGET_BINOS = linux
-	TARGET_XINC += -Iplatform_linux
+	TARGET_XINC += -Iplatform_linux/include
 	ifeq (x64,$(TARGET_ARCH))
 		TARGET_XLIB += -Lplatform_linux/lib64
 	else
@@ -199,7 +199,7 @@ ifeq ($(TARGET_SYS),Linux)
 else
 ifeq ($(TARGET_SYS),FreeBSD)
 	TARGET_BINOS = freebsd
-	TARGET_XINC += -Iplatform_freebsd
+	TARGET_XINC += -Iplatform_freebsd/include
 	ifeq (x64,$(TARGET_ARCH))
 		TARGET_XLIB += -Lplatform_freebsd/lib64
 	else
@@ -208,7 +208,7 @@ ifeq ($(TARGET_SYS),FreeBSD)
 else
 ifeq ($(TARGET_SYS),Darwin)
 	TARGET_BINOS = darwin
-	TARGET_XINC += -Iplatform_osx
+	TARGET_XINC += -Iplatform_osx/include
 	ifeq (x64,$(TARGET_ARCH))
 		TARGET_XLIB += -Lplatform_osx/lib64
 	else
@@ -217,7 +217,7 @@ ifeq ($(TARGET_SYS),Darwin)
 else
 ifeq ($(TARGET_SYS),SunOS)
 	TARGET_BINOS = solaris
-	TARGET_XINC += -Iplatform_solaris
+	TARGET_XINC += -Iplatform_solaris/include
 	ifeq (x64,$(TARGET_ARCH))
 		TARGET_XLIB += -Lplatform_solaris/lib64
 	else
