@@ -846,9 +846,6 @@ void mouse##num##click() { \
 \
     CLogicEntity *tle = TargetingControl::targetLogicEntity; \
 \
-    int uid = -1; \
-    if (tle && !tle->isNone()) uid = tle->getUniqueId(); \
-\
     lua::push_external("cursor_get_position"); \
     lua_call(lua::L, 0, 2); \
 \
