@@ -494,7 +494,7 @@ endif
 
 # ENet
 
-$(ENET_OBJB): CFLAGS = $(ENET_CFLAGS)
+$(ENET_OBJB): CFLAGS += $(ENET_CFLAGS)
 $(OBJDIR)/%.o: %.c $$(@D)/.stamp
 	$(E) $(PURPLE)[cc     ]$(RBLUE)[enet  ]$(RRED) \
 	$(subst $(OBJDIR)/,,$@)$(ENDCOL)
@@ -505,26 +505,26 @@ $(OBJDIR)/%.o: %.c $$(@D)/.stamp
 $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
 	$(E) $(PURPLE)[cc     ]$(RGREEN)[client]$(RRED) \
 	$(subst $(OBJDIR)/client/,,$@)$(ENDCOL)
-	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -c -o $@ \
+	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
 client: $(ENET_OBJB) $(CLIENT_OBJB)
 	$(E) $(GREEN)[ld     ]$(RGREEN) $(CLIENT_BIN)$(ENDCOL)
-	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -o $(CLIENT_BIN) \
-	$(ENET_OBJB) $(CLIENT_OBJB) $(CLIENT_LDFLAGS)
+	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -o $(CLIENT_BIN) \
+	$(ENET_OBJB) $(CLIENT_OBJB) $(CLIENT_LDFLAGS) $(LDFLAGS)
 
 # OctaForge - server
 
 $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
 	$(E) $(PURPLE)[cc     ]$(RCYAN)[server]$(RRED) \
 	$(subst $(OBJDIR)/server/,,$@)$(ENDCOL)
-	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -c -o $@ \
+	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
 server: $(ENET_OBJB) $(SERVER_OBJB)
 	$(E) $(GREEN)[ld     ]$(RCYAN) $(SERVER_BIN)$(ENDCOL)
-	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -o $(SERVER_BIN) \
-	$(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS)
+	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -o $(SERVER_BIN) \
+	$(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS) $(LDFLAGS)
 
 $(OBJDIR)/cube2font.o: shared/cube2font.c
 	$(E) $(PURPLE)[cc     ]$(RRED) cube2font.o$(ENDCOL)
