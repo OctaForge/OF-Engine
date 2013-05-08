@@ -494,11 +494,11 @@ endif
 
 # ENet
 
-$(ENET_OBJB): CFLAGS += $(ENET_CFLAGS)
 $(OBJDIR)/%.o: %.c $$(@D)/.stamp
 	$(E) $(PURPLE)[cc     ]$(RBLUE)[enet  ]$(RRED) \
 	$(subst $(OBJDIR)/,,$@)$(ENDCOL)
-	$(Q) $(TARGET_CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
+	$(Q) $(TARGET_CC) $(CFLAGS) $(ENET_CFLAGS) -c -o $@ \
+	$(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
 # OctaForge - client
 
