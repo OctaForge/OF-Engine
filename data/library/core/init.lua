@@ -15,6 +15,10 @@
         the core library only.
 ]]
 
+-- lua 5.2 feature test
+assert(#setmetatable({}, { __len = function() return 1337 end }) == 1337,
+    "a version of LuaJIT with 5.2 features on is required")
+
 --[[! Function: trace
     Not in use. Traces what Lua does and logs it into the console. Very
     verbose. Use only when absolutely required. Uncomment the sethook
