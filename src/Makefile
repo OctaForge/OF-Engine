@@ -65,10 +65,6 @@ LUAJIT_PKGCONF_PATH += :/usr/lib/pkgconfig:/usr/libdata/pkgconfig
 # Do not change here if you don't know what you are doing #
 ###########################################################
 
-# paths
-
-ENET_PATH = enet
-
 # Variables
 
 HOST_CC = $(CC)
@@ -76,8 +72,6 @@ HOST_CXX = $(CXX)
 
 TARGET_CC = $(CROSS)$(CC)
 TARGET_CXX = $(CROSS)$(CXX)
-TARGET_AS = $(CROSS)$(AS)
-TARGET_AR = $(CROSS)ar rcus
 TARGET_STRIP = $(CROSS)strip
 
 ifeq (,$(VERBOSE))
@@ -133,7 +127,6 @@ ifeq (Darwin,$(TARGET_SYS))
 		export MACOSX_DEPLOYMENT_TARGET=10.6
 	endif
 	TARGET_STRIP += -x
-	TARGET_AR+= 2>/dev/null
 endif
 endif
 
@@ -171,10 +164,6 @@ else
 	BIN_PATH = ..\bin_win32
 endif
 endif
-
-# includes
-
-ENET_INC = $(ENET_PATH)/include
 
 # binary names
 
@@ -261,7 +250,7 @@ endif
 
 CS_INC = -Ishared -Iengine -Ifpsgame
 CS_INC += -Iintensity -Ioctaforge
-CS_INC += -I$(ENET_INC) $(TARGET_XINC) $(LUAJIT_INC)
+CS_INC += -Ienet/include $(TARGET_XINC) $(LUAJIT_INC)
 
 ifeq ($(TARGET_SYS),Darwin)
 	CS_OSX_INC = -I$(OSX_FRAMEWORKS)/SDL2.framework/Headers
@@ -282,7 +271,7 @@ CLIENT_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
 	-fsigned-char -fno-exceptions -fno-rtti -DCLIENT \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
-CLIENT_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -lenet $(TARGET_XLIB) $(LUAJIT_LIB)
+CLIENT_LDFLAGS = $(TARGET_XLIB) $(LUAJIT_LIB)
 
 ifeq ($(TARGET_SYS),Windows)
 	CLIENT_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
@@ -380,7 +369,7 @@ SERVER_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
 	-fsigned-char -fno-exceptions -fno-rtti -DSERVER \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
-SERVER_LDFLAGS = -L$(OBJDIR)/$(ENET_PATH) -lenet $(TARGET_XLIB) $(LUAJIT_LIB)
+SERVER_LDFLAGS = $(TARGET_XLIB) $(LUAJIT_LIB)
 
 ifeq ($(TARGET_SYS),Windows)
 	SERVER_CXXFLAGS += -DWIN32 -DWINDOWS -DNO_STDIO_REDIRECT
@@ -446,21 +435,19 @@ SERVER_OBJB = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
 ########
 
 ENET_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(ENET_XCFLAGS) \
-	-I$(ENET_INC) -DHAS_SOCKLEN_T=1 -Wno-error
+	-Ienet/include -DHAS_SOCKLEN_T=1 -Wno-error
 
 ENET_OBJ = \
-	$(ENET_PATH)/callbacks.o \
-	$(ENET_PATH)/host.o \
-	$(ENET_PATH)/list.o \
-	$(ENET_PATH)/packet.o \
-	$(ENET_PATH)/peer.o \
-	$(ENET_PATH)/protocol.o \
-	$(ENET_PATH)/unix.o \
-	$(ENET_PATH)/win32.o
+	enet/callbacks.o \
+	enet/host.o \
+	enet/list.o \
+	enet/packet.o \
+	enet/peer.o \
+	enet/protocol.o \
+	enet/unix.o \
+	enet/win32.o
 
 ENET_OBJB = $(addprefix $(OBJDIR)/, $(ENET_OBJ))
-
-ENET_LIB = $(ENET_PATH)/libenet.a
 
 #################
 # Build targets #
@@ -492,9 +479,6 @@ $(OBJDIR)/%.o: %.c $$(@D)/.stamp
 # ENet
 
 $(ENET_OBJB): CFLAGS = $(ENET_CFLAGS)
-enet: $(ENET_OBJB)
-	$(E) $(CYAN)[ar     ]$(RRED) $(ENET_LIB)$(ENDCOL)
-	$(Q) $(TARGET_AR) $(OBJDIR)/$(ENET_LIB) $(ENET_OBJB)
 
 # OctaForge - client
 
@@ -504,10 +488,10 @@ $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
-client: enet $(CLIENT_OBJB)
+client: $(ENET_OBJB) $(CLIENT_OBJB)
 	$(E) $(GREEN)[ld     ]$(RGREEN) $(CLIENT_BIN)$(ENDCOL)
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) -o $(CLIENT_BIN) \
-	$(CLIENT_OBJB) $(CLIENT_LDFLAGS)
+	$(ENET_OBJB) $(CLIENT_OBJB) $(CLIENT_LDFLAGS)
 
 # OctaForge - server
 
@@ -517,10 +501,10 @@ $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
-server: enet $(SERVER_OBJB)
+server: $(ENET_OBJB) $(SERVER_OBJB)
 	$(E) $(GREEN)[ld     ]$(RCYAN) $(SERVER_BIN)$(ENDCOL)
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) -o $(SERVER_BIN) \
-	$(SERVER_OBJB) $(SERVER_LDFLAGS)
+	$(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS)
 
 $(OBJDIR)/cube2font.o: shared/cube2font.c
 	$(E) $(PURPLE)[cc     ]$(RRED) cube2font.o$(ENDCOL)
@@ -593,7 +577,7 @@ depend:
 		$(subst .o,.cpp,$(SERVER_OBJ))
 
 	makedepend -a -Y -w 65536 \
-		-I$(ENET_INC) \
+		-Ienet/include \
 		-p$$\(OBJDIR\)/ \
 		$(subst .o,.c,$(ENET_OBJ))
 
