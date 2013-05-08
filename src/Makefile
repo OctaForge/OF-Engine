@@ -452,7 +452,13 @@ SERVER_OBJB = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
 ########
 
 ENET_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(ENET_XCFLAGS) \
-	-Ienet/include -DHAS_SOCKLEN_T=1 -Wno-error
+	-Ienet/include -Wno-error
+
+# feature availability detection
+
+ifneq (Windows,$(TARGET_SYS))
+	ENET_CFLAGS += $(shell ./check_enet.sh $(TARGET_CC) $(CFLAGS))
+endif
 
 ENET_OBJ = \
 	enet/callbacks.o \
