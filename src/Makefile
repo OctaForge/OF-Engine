@@ -125,14 +125,9 @@ endif
 # extra OS stuff
 
 TARGET_SYS ?= $(HOST_SYS)
-ifeq (Windows,$(TARGET_SYS))
-	TARGET_STRIP += --strip-unneeded
-else
 ifeq (Darwin,$(TARGET_SYS))
-	ifeq (,$(MACOSX_DEPLOYMENT_TARGET))
-		export MACOSX_DEPLOYMENT_TARGET=10.6
-	endif
-	TARGET_STRIP += -x
+ifeq (,$(MACOSX_DEPLOYMENT_TARGET))
+	export MACOSX_DEPLOYMENT_TARGET=10.6
 endif
 endif
 
