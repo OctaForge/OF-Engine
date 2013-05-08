@@ -107,7 +107,7 @@ endif
 
 # arch detection
 
-TARGET_TESTARCH = $(shell $(TARGET_CC) -E shared/arch_detection.h -dM)
+TARGET_TESTARCH := $(shell $(TARGET_CC) -E shared/arch_detection.h -dM)
 ifneq (,$(findstring OF_TARGET_X64,$(TARGET_TESTARCH)))
 	TARGET_ARCH = x64
 	CC_FLAGS += $(CC_FLAGS_x64)
@@ -280,7 +280,7 @@ endif
 # OctaForge client #
 ####################
 
-CLIENT_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
+CLIENT_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(CLIENT_XCXXFLAGS) \
 	-fsigned-char -fno-exceptions -fno-rtti -DCLIENT \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
@@ -380,7 +380,7 @@ CLIENT_OBJB = $(addprefix $(OBJDIR)/client/, $(CLIENT_OBJ))
 # OctaForge server #
 ####################
 
-SERVER_CXXFLAGS = $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
+SERVER_CXXFLAGS := $(CXX_FLAGS) $(CXX_DEBUG) $(CXX_WARN) $(SERVER_XCXXFLAGS) \
 	-fsigned-char -fno-exceptions -fno-rtti -DSERVER \
 	-DBINARY_ARCH=$(TARGET_BINARCH) -DBINARY_OS=$(TARGET_BINOS)
 
@@ -451,7 +451,7 @@ SERVER_OBJB = $(addprefix $(OBJDIR)/server/, $(SERVER_OBJ))
 # ENet #
 ########
 
-ENET_CFLAGS = $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(ENET_XCFLAGS) \
+ENET_CFLAGS := $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) $(ENET_XCFLAGS) \
 	-Ienet/include -Wno-error
 
 # feature availability detection

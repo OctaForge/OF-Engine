@@ -21,19 +21,19 @@ int main() { TEST_TYPE test; return 0; }
 EOF
 
 CHECK_FUNC() {
-    $CC check_func.c -DTEST_FUN=$1 -o check_func 2>/dev/null
+    $CC $CFLAGS check_func.c -DTEST_FUN=$1 -o check_func 2>/dev/null
     if [ $? -eq 0 ]; then echo -n " $2"; rm check_func; fi
 }
 CHECK_MEMBER() {
     echo -e "$1" > check_member.h
-    $CC check_member.c -DTEST_STRUCT=$2 -DTEST_FIELD=$3 \
+    $CC $CFLAGS check_member.c -DTEST_STRUCT=$2 -DTEST_FIELD=$3 \
         -o check_member 2>/dev/null
     if [ $? -eq 0 ]; then echo -n " $4"; rm check_member; fi
     rm check_member.h
 }
 CHECK_TYPE() {
     echo -e "$1" > check_type.h
-    $CC check_type.c -DTEST_TYPE=$2 -o check_type 2>/dev/null
+    $CC $CFLAGS check_type.c -DTEST_TYPE=$2 -o check_type 2>/dev/null
     if [ $? -eq 0 ]; then echo -n " $3"; rm check_type; fi
     rm check_type.h
 }
