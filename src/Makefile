@@ -82,9 +82,6 @@ endif
 # OS detection
 
 ifneq (,$(findstring Windows,$(OS)))
-	HOST_SYS = Windows
-	HOST_FLAV = windows
-else
 	HOST_TESTSYS = $(shell uname -s 2>&1)
 	ifneq (,$(findstring MINGW,$(HOST_TESTSYS)))
 		HOST_SYS = Windows
@@ -98,11 +95,14 @@ else
 		HOST_SYS = Windows
 		HOST_FLAV = cygwin
 	else
-		HOST_SYS = $(HOST_TESTSYS)
-		HOST_FLAV = $(HOST_SYS)
+		HOST_SYS = Windows
+		HOST_FLAV = windows
 	endif
 	endif
 	endif
+else
+	HOST_SYS = $(shell uname -s)
+	HOST_FLAV = $(HOST_SYS)
 endif
 
 # arch detection
