@@ -67,9 +67,6 @@ LUAJIT_PKGCONF_PATH += :/usr/lib/pkgconfig:/usr/libdata/pkgconfig
 
 # Variables
 
-HOST_CC = $(CC)
-HOST_CXX = $(CXX)
-
 TARGET_CC = $(CROSS)$(CC)
 TARGET_CXX = $(CROSS)$(CXX)
 TARGET_STRIP = $(CROSS)strip
@@ -84,18 +81,27 @@ endif
 
 # OS detection
 
-ifeq (Windows,$(findstring Windows,$(OS))$(MSYSTEM)$(TERM))
+ifneq (,$(findstring Windows,$(OS)))
 	HOST_SYS = Windows
-	HOST_RM = del
+	HOST_FLAV = windows
 else
-	HOST_SYS = $(shell uname -s)
-	ifneq (,$(findstring MINGW,$(HOST_SYS)))
+	HOST_TESTSYS = $(shell uname -s 2>&1)
+	ifneq (,$(findstring MINGW,$(HOST_TESTSYS)))
 		HOST_SYS = Windows
-		HOST_MSYS = mingw
+		HOST_FLAV = msys
+	else
+	ifneq (,$(findstring MSYS,$(HOST_TESTSYS)))
+		HOST_SYS = Windows
+		HOST_FLAV = msys
+	else
+	ifneq (,$(findstring CYGWIN,$(HOST_TESTSYS)))
+		HOST_SYS = Windows
+		HOST_FLAV = cygwin
+	else
+		HOST_SYS = $(HOST_TESTSYS)
+		HOST_FLAV = $(HOST_SYS)
 	endif
-	ifneq (,$(findstring CYGWIN,$(HOST_SYS)))
-		HOST_SYS = Windows
-		HOST_MSYS = cygwin
+	endif
 	endif
 endif
 
@@ -127,41 +133,6 @@ ifeq (Darwin,$(TARGET_SYS))
 		export MACOSX_DEPLOYMENT_TARGET=10.6
 	endif
 	TARGET_STRIP += -x
-endif
-endif
-
-# do not strip on debug
-
-ifneq (,$(CC_DEBUG))
-	TARGET_STRIP = @:
-endif
-
-# colored output on non-windows
-
-ifneq ($(HOST_SYS),Windows)
-	ifeq (,$(NOCOLOR))
-		RED    = -e "\033[1;31m
-		GREEN  = -e "\033[1;32m
-		BLUE   = -e "\033[1;34m
-		PURPLE = -e "\033[1;35m
-		CYAN   = -e "\033[1;36m
-		RRED   = \033[1;31m
-		RGREEN = \033[1;32m
-		RBLUE  = \033[1;34m
-		RCYAN  = \033[1;36m
-		ENDCOL = \033[m"
-	endif
-endif
-
-# binary install paths
-
-ifneq ($(TARGET_SYS),Windows)
-	BIN_PATH = ../bin_unix
-else
-ifeq ($(TARGET_ARCH),x64)
-	BIN_PATH = ..\bin_win64
-else
-	BIN_PATH = ..\bin_win32
 endif
 endif
 
@@ -226,6 +197,53 @@ ifneq ($(TARGET_SYS),Windows)
 else
 	CLIENT_BIN = client_$(TARGET_BINOS)_$(TARGET_BINARCH).exe
 	SERVER_BIN = server_$(TARGET_BINOS)_$(TARGET_BINARCH).exe
+endif
+
+# do not strip on debug
+
+ifneq (,$(CC_DEBUG))
+	TARGET_STRIP = @:
+endif
+
+# colored output on non-windows
+
+ifneq ($(HOST_SYS),Windows)
+	ifeq (,$(NOCOLOR))
+		RED    = -e "\033[1;31m
+		GREEN  = -e "\033[1;32m
+		BLUE   = -e "\033[1;34m
+		PURPLE = -e "\033[1;35m
+		CYAN   = -e "\033[1;36m
+		RRED   = \033[1;31m
+		RGREEN = \033[1;32m
+		RBLUE  = \033[1;34m
+		RCYAN  = \033[1;36m
+		ENDCOL = \033[m"
+	endif
+endif
+
+# binary install paths
+
+ifneq ($(HOST_FLAV),windows)
+	ifeq ($(TARGET_SYS),Windows)
+		ifeq ($(TARGET_ARCH),x64)
+			BIN_PATH = ../bin_win64
+		else
+			BIN_PATH = ../bin_win32
+		endif
+	else
+		BIN_PATH = ../bin_unix
+	endif
+else
+	ifeq ($(TARGET_SYS),Windows)
+		ifeq ($(TARGET_ARCH),x64)
+			BIN_PATH = ..\bin_win64
+		else
+			BIN_PATH = ..\bin_win32
+		endif
+	else
+		BIN_PATH = ..\bin_unix
+	endif
 endif
 
 # LuaJIT detection
@@ -462,7 +480,7 @@ default: all
 
 .SECONDEXPANSION:
 
-ifneq ($(HOST_SYS),Windows)
+ifneq ($(HOST_FLAV),windows)
 %/.stamp:
 	$(Q) mkdir -p $(dir $@)
 	$(Q) touch $@
@@ -474,15 +492,13 @@ endif
 
 .PRECIOUS: %/.stamp
 
-# any C file - target platform
-
-$(OBJDIR)/%.o: %.c $$(@D)/.stamp
-	$(E) $(PURPLE)[cc     ]$(RRED) $(subst $(OBJDIR)/,,$@)$(ENDCOL)
-	$(Q) $(TARGET_CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
-
 # ENet
 
 $(ENET_OBJB): CFLAGS = $(ENET_CFLAGS)
+$(OBJDIR)/%.o: %.c $$(@D)/.stamp
+	$(E) $(PURPLE)[cc     ]$(RBLUE)[enet  ]$(RRED) \
+	$(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(Q) $(TARGET_CC) $(CFLAGS) -c -o $@ $(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
 # OctaForge - client
 
@@ -523,7 +539,7 @@ cube2font: $(OBJDIR)/cube2font.o
 # general targets
 all: client server
 
-ifneq ($(FLAV), Windows)
+ifneq ($(HOST_FLAV),windows)
 clean:
 	$(E) $(CYAN)[clean  ]$(RRED) $(OBJDIR) $(RGREEN)$(CLIENT_BIN) \
 	$(RCYAN)$(SERVER_BIN)$(ENDCOL)
@@ -536,7 +552,7 @@ clean:
 endif
 
 install: client server
-ifneq ($(FLAV), Windows)
+ifneq ($(HOST_FLAV),windows)
 	$(E) $(GREEN)[install]$(RBLUE) $(CLIENT_BIN) $(RGREEN)-> \
 	$(RRED)$(BIN_PATH)$(ENDCOL)
 	$(Q) cp -f $(CLIENT_BIN) $(BIN_PATH)
