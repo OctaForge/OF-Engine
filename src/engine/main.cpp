@@ -1143,17 +1143,11 @@ int main(int argc, char **argv)
         }
     }
     if (!dir) {
-        char *home = getenv("HOME");
-        if (home) {
 #ifdef WIN32
-            defformatstring(defdir)("%s\\My Games\\OctaForge", home);
+        dir = sethomedir("$HOME\\My Games\\OctaForge");
 #else
-            defformatstring(defdir)("%s/.octaforge_client", home);
+        dir = sethomedir("$HOME/.octaforge_client");
 #endif
-            dir = sethomedir(defdir);
-        } else {
-            dir = sethomedir(".");
-        }
     }
     if (dir) {
         logoutf("Using home directory: %s", dir);
