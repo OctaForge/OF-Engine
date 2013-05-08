@@ -286,7 +286,9 @@ else
 ifeq ($(TARGET_SYS),Darwin)
 	CLIENT_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
 	CLIENT_LDFLAGS += $(CS_OSX_LIB) -framework OpenGL -lz
+ifeq ($(TARGET_ARCH),x64)
 	CLIENT_LDFLAGS += -pagezero_size 10000 -image_base 100000000
+endif
 else
 	CLIENT_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl2-config --cflags`
 	CLIENT_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl2-config --libs`
@@ -383,7 +385,9 @@ else
 ifeq ($(TARGET_SYS),Darwin)
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
 	SERVER_LDFLAGS += $(CS_OSX_LIB) -lz
+ifeq ($(TARGET_ARCH),x64)
 	SERVER_LDFLAGS += -pagezero_size 10000 -image_base 100000000
+endif
 else
 	SERVER_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl2-config --cflags`
 	SERVER_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl2-config --libs`
