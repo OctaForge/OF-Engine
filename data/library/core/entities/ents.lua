@@ -782,7 +782,7 @@ Entity = table.Object:clone {
         #log(DEBUG, "Entity: setup_svars")
         -- table of properties
         local pt = {}
-    
+
         local base = self.__proto
         while base do
             local props = base.properties

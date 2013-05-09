@@ -304,8 +304,7 @@ ifeq ($(TARGET_ARCH),x64)
 endif
 else
 	CLIENT_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl2-config --cflags`
-	CLIENT_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl2-config --libs`
-	CLIENT_LDFLAGS += -lSDL2_image -lSDL2_mixer -lz -lGL
+	CLIENT_LDFLAGS += `sdl2-config --libs` -lSDL2_image -lSDL2_mixer -lz -lGL
 	ifeq ($(TARGET_SYS),Linux)
 		CLIENT_LDFLAGS += -ldl -lrt
 	endif
@@ -397,13 +396,12 @@ endif
 else
 ifeq ($(TARGET_SYS),Darwin)
 	SERVER_CXXFLAGS += $(CS_INC) $(CS_OSX_INC)
-	SERVER_LDFLAGS += $(CS_OSX_LIB) -lz
+	SERVER_LDFLAGS += -lz
 ifeq ($(TARGET_ARCH),x64)
 	SERVER_LDFLAGS += -pagezero_size 10000 -image_base 100000000
 endif
 else
 	SERVER_CXXFLAGS += $(CS_INC) -I/usr/X11R6/include `sdl2-config --cflags`
-	SERVER_LDFLAGS += -L/usr/X11R6/lib -lX11 `sdl2-config --libs`
 	SERVER_LDFLAGS += -lz
 	ifeq ($(TARGET_SYS),Linux)
 		SERVER_LDFLAGS += -ldl
