@@ -240,6 +240,7 @@ M.get_by_tag = function(tag)
             l = l + 1
         end
     end
+    return r
 end
 
 --[[! Function: get_by_class
