@@ -1,13 +1,11 @@
 add_definitions(-DSERVER)
 add_definitions(-DBINARY_ARCH=${OF_TARGET_ARCH} -DBINARY_OS=${OF_PLATFORM_BIN})
 
-if(WIN32)
+if(OF_TARGET_WINDOWS)
     set(EXTRA_LIBS ${EXTRA_LIBS} opengl32 ws2_32 winmm)
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+elseif(OF_TARGET_LINUX)
     set(EXTRA_LIBS ${EXTRA_LIBS} dl)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+elseif(OF_TARGET_SOLARIS)
     set(EXTRA_LIBS ${EXTRA_LIBS} socket nsl)
 endif()
 

@@ -1,19 +1,19 @@
 add_definitions(-DCLIENT)
 add_definitions(-DBINARY_ARCH=${OF_TARGET_ARCH} -DBINARY_OS=${OF_PLATFORM_BIN})
 
-if(NOT DEFINED WIN32 AND NOT DEFINED APPLE)
+if(NOT OF_TARGET_WINDOWS AND NOT OF_TARGET_OSX)
     set(EXTRA_LIBS ${EXTRA_LIBS} SDL2 SDL2_image SDL2_mixer -pthread)
-elseif(APPLE)
+elseif(OF_TARGET_OSX)
     set(EXTRA_LIBS ${EXTRA_LIBS} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY}
         ${SDL2_MIXER_LIBRARY})
-elseif(WIN32)
+elseif(OF_TARGET_WINDOWS)
     set(EXTRA_LIBS ${EXTRA_LIBS} SDL2 SDL_image SDL2_mixer opengl32
         ws2_32 winmm)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(OF_TARGET_LINUX)
     set(EXTRA_LIBS ${EXTRA_LIBS} dl rt)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+elseif(OF_TARGET_SOLARIS)
     set(EXTRA_LIBS ${EXTRA_LIBS} socket nsl)
 endif()
 
