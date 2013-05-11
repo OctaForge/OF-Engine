@@ -1008,7 +1008,7 @@ ents.register_class(
             end,
 
             show_subtitle_background = function(self)
-                if GLOBAL_GAME_HUD then
+                --[[if GLOBAL_GAME_HUD then
                     local factors = GLOBAL_GAME_HUD:calc_factors()
                     if self.subtitle_background ~= "" then
                         self.old_show_hud_image(
@@ -1019,7 +1019,7 @@ ents.register_class(
                             (factors.y * 128) / _V.scr_h
                         )
                     end
-                end
+                end]]
             end
         }
     }}, "cutscene_base_action")

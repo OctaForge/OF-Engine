@@ -186,11 +186,11 @@ plugins = {
                             self:stop_shooting(gun)
                         end
 
-                        if not GLOBAL_GAME_HUD then
+                        --if not GLOBAL_GAME_HUD then
                             if gun.hud then
                                 --gui.hud_image(gun.hud, 0.80, 0.88, 0.05, 0.05)
                             end
-                        else
+                        --[[else
                             local params = GLOBAL_GAME_HUD:get_firing_params(gun)
                             --gui.hud_image(
                             --    params.gun.icon,
@@ -211,7 +211,7 @@ plugins = {
                                 --    params.ammo2.w, params.ammo2.h
                                 --)
                             end
-                        end
+                        end]]
                     end
                 end
             end

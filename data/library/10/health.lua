@@ -118,7 +118,7 @@ plugin = {
     run = CLIENT and function(self)
         if self ~= ents.get_player() then return nil end
 
-        if not GLOBAL_GAME_HUD then
+        --if not GLOBAL_GAME_HUD then
             local health = self.health
             if health then
                 local color
@@ -131,7 +131,7 @@ plugin = {
                 end
                 --gui.hud_label(tostring(health), 0.94, 0.88, 0.5, color)
             end
-        else
+        --[[else
             local raw    = math.floor((34 * self.health) / self.max_health)
             local whole  = math.floor(raw  / 2)
             local half   = raw > whole * 2
@@ -145,7 +145,7 @@ plugin = {
              --   ),
              --   params.x, params.y, params.w, params.h
             --)
-        end
+        end]]
     end or nil,
 
     on_health = function(self, health, server_origin)

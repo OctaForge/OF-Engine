@@ -1570,7 +1570,7 @@ set_external("gui_update", function()
         end
     end
 
-    if text_handler then text_handler() end
+    if text_handler then text_handler(focused) end
     prev_cx, prev_cy = cursor_x, cursor_y
 end)
 

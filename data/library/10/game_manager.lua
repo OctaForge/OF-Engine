@@ -212,6 +212,7 @@ function setup(plugins_add)
     end
 end
 
+local singleton
 function get_singleton()
     if not singleton then
         singleton = ents.get_by_class("game_manager")[1]

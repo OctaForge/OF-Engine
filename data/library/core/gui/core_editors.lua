@@ -928,7 +928,7 @@ set_external("input_text", function(str)
     return true
 end)
 
-M.set_text_handler(function()
+M.set_text_handler(function(focused)
     local wastextediting = (textediting ~= nil)
 
     if textediting and not is_focused(textediting) then

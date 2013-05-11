@@ -488,9 +488,11 @@ table.Object = {
 
     is_a = function(self, base)
         if self == base then return true end
-        local pt, is = self.__proto, pt == base
+        local pt = self.__proto
+        local is = (pt == base)
         while not is and pt do
-            pt, is = pt.__proto, pt == base
+            pt = pt.__proto
+            is = (pt == base)
         end
         return is
     end,

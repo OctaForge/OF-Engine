@@ -19,8 +19,8 @@
         "bitnot".
 ]]
 
---#log(DEBUG, ":::: Strict mode.")
---require("lua.strict")
+#log(DEBUG, ":::: Strict mode.")
+require("lua.strict")
 
 #log(DEBUG, ":::: Lua extensions: table")
 require("lua.table")
