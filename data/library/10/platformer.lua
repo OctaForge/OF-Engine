@@ -89,8 +89,7 @@ plugin = {
             local platform_axis = vec3_from_axis(self.platform_axis)
             self.platform_yaw   = math.normalize_angle(
                 platform_axis:mul(self:get_platform_direction()):to_yaw_pitch().yaw,
-                self.yaw
-            ) + 90
+                self.yaw)
             self.yaw = math.magnet(
                 math.lerp(
                     self.yaw,

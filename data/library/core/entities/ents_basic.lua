@@ -374,7 +374,7 @@ local Character = Physical_Entity:clone {
             local mdn = (hudpass and needhud) and self.hud_model_name
                 or self.model_name
 
-            local yaw, pitch, roll = self.yaw + 90, self.pitch, self.roll
+            local yaw, pitch, roll = self.yaw, self.pitch, self.roll
             local o = self.position:copy()
 
             if hudpass and needhud and self.hud_model_offset then
