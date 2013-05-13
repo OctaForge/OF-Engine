@@ -1967,7 +1967,7 @@ static const uint *runcode(const uint *code, tagval &result)
                     _numargs = newargs; \
                     int oldflags = identflags; \
                     identflags |= id->flags&IDF_OVERRIDDEN; \
-                    if(trusted && identflags&IDF_SAFE) identflags &= ~IDF_SAFE; /* OF */ \
+                    if(trusted) identflags &= ~IDF_SAFE; /* OF */ \
                     identlink aliaslink = { id, aliasstack, (1<<newargs)-1, argstack }; \
                     aliasstack = &aliaslink; \
                     if(!id->code) id->code = compilecode(id->getstr()); \
