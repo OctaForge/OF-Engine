@@ -535,7 +535,6 @@ extern void clientkeepalive();
 
 // command
 extern hashset<ident> idents;
-extern int identflags;
 
 extern void clearoverrides();
 extern void writecfg(const char *name = NULL);

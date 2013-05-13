@@ -40,7 +40,11 @@ enum
 
 enum { ID_VAR, ID_FVAR, ID_SVAR, ID_COMMAND, ID_ALIAS, ID_LOCAL };
 
-enum { IDF_PERSIST = 1<<0, IDF_OVERRIDE = 1<<1, IDF_HEX = 1<<2, IDF_READONLY = 1<<3, IDF_OVERRIDDEN = 1<<4, IDF_UNKNOWN = 1<<5, IDF_ARG = 1<<6, IDF_ALLOC = 1<<7, IDF_SIGNAL = 1<<8 };
+/* OF: IDF_ALLOC, IDF_SIGNAL, IDF_SAFE, IDF_TRUSTED */
+enum { IDF_PERSIST  = 1<<0, IDF_OVERRIDE   = 1<<1, IDF_HEX     = 1<<2,
+       IDF_READONLY = 1<<3, IDF_OVERRIDDEN = 1<<4, IDF_UNKNOWN = 1<<5,
+       IDF_ARG      = 1<<6, IDF_ALLOC      = 1<<7, IDF_SIGNAL  = 1<<8,
+       IDF_SAFE     = 1<<9, IDF_TRUSTED    = 1<<10 };
 
 struct ident;
 
@@ -92,6 +96,8 @@ union identvalptr
 
 typedef void (__cdecl *identfun)();
 
+extern int identflags;
+
 struct ident
 {
     int type;           // one of ID_* above
@@ -137,21 +143,22 @@ struct ident
         : type(t), name(n), fun((identfun)f), flags(flags)
     { storage.s = s; }
     // ID_ALIAS
+    // OF: safe, trusted
     ident(int t, const char *n, char *a, int flags)
         : type(t), name(n), valtype(VAL_STR), code(NULL), stack(NULL), flags(flags) 
-    { val.s = a; }
+    { val.s = a; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, int a, int flags)
         : type(t), name(n), valtype(VAL_INT), code(NULL), stack(NULL), flags(flags)           
-    { val.i = a; }
+    { val.i = a; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, float a, int flags)
         : type(t), name(n), valtype(VAL_FLOAT), code(NULL), stack(NULL), flags(flags)           
-    { val.f = a; }
+    { val.f = a; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, int flags)
         : type(t), name(n), valtype(VAL_NULL), code(NULL), stack(NULL), flags(flags)
-    {}
+    { flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     ident(int t, const char *n, const tagval &v, int flags)
         : type(t), name(n), valtype(v.type), code(NULL), stack(NULL), flags(flags)
-    { val = v; }
+    { val = v; flags |= identflags&(IDF_SAFE|IDF_TRUSTED); }
     // ID_COMMAND
     ident(int t, const char *n, const char *args, uint argmask, void *f = NULL, int flags = 0)
         : type(t), name(n), args(args), argmask(argmask), fun((identfun)f), flags(flags) 
@@ -261,9 +268,13 @@ inline void ident::getval(tagval &v) const
 }
 
 // nasty macros for registering script functions, abuses globals to avoid excessive infrastructure
+// OF: unsafe variants
 #define KEYWORD(name, type) static bool __dummy_##name = addkeyword(type, #name)
-#define COMMANDN(name, fun, nargs) static bool __dummy_##fun = addcommand(#name, (identfun)fun, nargs)
+#define _COMMANDN(name, fun, nargs, flags) static bool __dummy_##fun = addcommand(#name, (identfun)fun, nargs, flags)
+#define COMMANDN(name, fun, nargs) _COMMANDN(name, fun, nargs, IDF_SAFE)
+#define COMMANDNU(name, fun, nargs) _COMMANDN(name, fun, nargs, 0)
 #define COMMAND(name, nargs) COMMANDN(name, name, nargs)
+#define COMMANDU(name, nargs) COMMANDNU(name, name, nargs)
 
 #define _VAR(name, global, min, cur, max, persist)  int global = variable(#name, min, cur, max, &global, NULL, persist)
 #define VARN(name, global, min, cur, max) _VAR(name, global, min, cur, max, 0)
@@ -318,11 +329,11 @@ inline void ident::getval(tagval &v) const
 #define SVARFR(name, cur, body) _SVARF(name, name, cur, body, IDF_OVERRIDE)
 
 // anonymous inline commands, uses nasty template trick with line numbers to keep names unique
-#define ICOMMANDNS(name, cmdname, nargs, proto, b) template<int N> struct cmdname; template<> struct cmdname<__LINE__> { static bool init; static void run proto; }; bool cmdname<__LINE__>::init = addcommand(name, (identfun)cmdname<__LINE__>::run, nargs); void cmdname<__LINE__>::run proto \
+// OF: unsafe variants
+#define _ICOMMANDNS(name, cmdname, nargs, proto, flags, b) template<int N> struct cmdname; template<> struct cmdname<__LINE__> { static bool init; static void run proto; }; bool cmdname<__LINE__>::init = addcommand(name, (identfun)cmdname<__LINE__>::run, nargs, flags); void cmdname<__LINE__>::run proto \
     { b; }
-#define ICOMMANDN(name, cmdname, nargs, proto, b) ICOMMANDNS(#name, cmdname, nargs, proto, b)
+#define ICOMMANDN(name, cmdname, nargs, proto, b) _ICOMMANDNS(#name, cmdname, nargs, proto, IDF_SAFE, b)
+#define ICOMMANDNU(name, cmdname, nargs, proto, b) _ICOMMANDNS(#name, cmdname, nargs, proto, 0, b)
 #define ICOMMANDNAME(name) _icmd_##name
 #define ICOMMAND(name, nargs, proto, b) ICOMMANDN(name, ICOMMANDNAME(name), nargs, proto, b)
-#define ICOMMANDSNAME _icmds_
-#define ICOMMANDS(name, nargs, proto, b) ICOMMANDNS(name, ICOMMANDSNAME, nargs, proto, b)
- 
+#define ICOMMANDU(name, nargs, proto, b) ICOMMANDNU(name, ICOMMANDNAME(name), nargs, proto, b)

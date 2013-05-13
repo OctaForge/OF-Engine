@@ -10,7 +10,7 @@ VARR(mapversion, 1, MAPVERSION, 0);
 VARNR(mapscale, worldscale, 1, 0, 0);
 VARNR(mapsize, worldsize, 1, 0, 0);
 SVARR(maptitle, "Untitled Map by Unknown");
-SVAR (player_class, "player"); /* OF: overridable pcclass */
+SVARR(player_class, "player"); /* OF: overridable pcclass */
 VAR(octaentsize, 0, 128, 1024);
 VAR(entselradius, 0, 2, 10);
 

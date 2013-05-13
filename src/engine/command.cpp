@@ -576,6 +576,7 @@ char *svariable(const char *name, const char *cur, char **storage, identfun fun,
 void setvar(const char *name, int i, bool dofunc, bool doclamp)
 {
     GETVAR(id, name, );
+    if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE)) return;
     OVERRIDEVAR(return, id->overrideval.i = *id->storage.i, , )
     if(doclamp) *id->storage.i = clamp(i, id->minval, id->maxval);
     else *id->storage.i = i;
@@ -584,6 +585,7 @@ void setvar(const char *name, int i, bool dofunc, bool doclamp)
 void setfvar(const char *name, float f, bool dofunc, bool doclamp)
 {
     _GETVAR(id, ID_FVAR, name, );
+    if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE)) return;
     OVERRIDEVAR(return, id->overrideval.f = *id->storage.f, , );
     if(doclamp) *id->storage.f = clamp(f, id->minvalf, id->maxvalf);
     else *id->storage.f = f;
@@ -592,6 +594,7 @@ void setfvar(const char *name, float f, bool dofunc, bool doclamp)
 void setsvar(const char *name, const char *str, bool dofunc)
 {
     _GETVAR(id, ID_SVAR, name, );
+    if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE)) return;
     OVERRIDEVAR(return, id->overrideval.s = *id->storage.s, delete[] id->overrideval.s, delete[] *id->storage.s);
     *id->storage.s = newstring(str);
     if(dofunc) id->changed();
@@ -665,9 +668,12 @@ int clampvar(ident *id, int val, int minval, int maxval)
     return val;
 }
 
+/* OF: safety check */
 void setvarchecked(ident *id, int val)
 {
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
+    else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
+        debugcode("cannot override variable %s in a safe context", id->name);
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
     {
         OVERRIDEVAR(return, id->overrideval.i = *id->storage.i, , )
@@ -686,9 +692,12 @@ float clampfvar(ident *id, float val, float minval, float maxval)
     return val;
 }
 
+/* OF: safety check */
 void setfvarchecked(ident *id, float val)
 {
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
+    else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
+        debugcode("cannot override variable %s in a safe context", id->name);
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
     {
         OVERRIDEVAR(return, id->overrideval.f = *id->storage.f, , );
@@ -698,9 +707,12 @@ void setfvarchecked(ident *id, float val)
     }
 }
 
+/* OF: safety check */
 void setsvarchecked(ident *id, const char *val)
 {
     if(id->flags&IDF_READONLY) debugcode("variable %s is read-only", id->name);
+    else if(identflags&IDF_SAFE && !(id->flags&IDF_OVERRIDE))
+        debugcode("cannot override variable %s in a safe context", id->name);
     else if(!(id->flags&IDF_OVERRIDE) || identflags&IDF_OVERRIDDEN || game::allowedittoggle())
     {
         OVERRIDEVAR(return, id->overrideval.s = *id->storage.s, delete[] id->overrideval.s, delete[] *id->storage.s);
@@ -709,7 +721,8 @@ void setsvarchecked(ident *id, const char *val)
     }
 }
 
-bool addcommand(const char *name, identfun fun, const char *args)
+/* OF: flags */
+bool addcommand(const char *name, identfun fun, const char *args, int flags)
 {
     uint argmask = 0;
     int numargs = 0;
@@ -723,7 +736,7 @@ bool addcommand(const char *name, identfun fun, const char *args)
         default: fatal("builtin %s declared with illegal type: %s", name, args); break;
     }
     if(limit && numargs > 8) fatal("builtin %s declared with too many args: %d", name, numargs);
-    addident(ident(ID_COMMAND, name, args, argmask, (void *)fun));
+    addident(ident(ID_COMMAND, name, args, argmask, (void *)fun, flags));
     return false;
 }
 
@@ -1945,7 +1958,8 @@ static const uint *runcode(const uint *code, tagval &result)
                 continue;
 
             case CODE_CALL|RET_NULL: case CODE_CALL|RET_STR: case CODE_CALL|RET_FLOAT: case CODE_CALL|RET_INT:
-                #define CALLALIAS(offset) { \
+                /* OF: trusted */
+                #define CALLALIAS(offset, trusted) { \
                     identstack argstack[MAXARGS]; \
                     for(int i = 0; i < numargs-offset; i++) \
                         pusharg(*identmap[i], args[i+offset], argstack[i]); \
@@ -1953,6 +1967,7 @@ static const uint *runcode(const uint *code, tagval &result)
                     _numargs = newargs; \
                     int oldflags = identflags; \
                     identflags |= id->flags&IDF_OVERRIDDEN; \
+                    if(trusted && identflags&IDF_SAFE) identflags &= ~IDF_SAFE; /* OF */ \
                     identlink aliaslink = { id, aliasstack, (1<<newargs)-1, argstack }; \
                     aliasstack = &aliaslink; \
                     if(!id->code) id->code = compilecode(id->getstr()); \
@@ -1978,13 +1993,19 @@ static const uint *runcode(const uint *code, tagval &result)
                     debugcode("unknown command: %s", id->name);
                     goto forceresult;
                 }
-                CALLALIAS(0);
+                /* OF */
+                if (identflags&IDF_SAFE && !(id->flags&IDF_SAFE || id->flags&IDF_TRUSTED))
+                {
+                    debugcode("unsafe call in a safe context: %s", id->name);
+                    goto forceresult;
+                }
+                CALLALIAS(0, id->flags&IDF_TRUSTED);
                 continue;
             case CODE_CALLARG|RET_NULL: case CODE_CALLARG|RET_STR: case CODE_CALLARG|RET_FLOAT: case CODE_CALLARG|RET_INT:
                 forcenull(result);
                 id = identmap[op>>8];
                 if(!(aliasstack->usedargs&(1<<id->index))) goto forceresult;
-                CALLALIAS(0);
+                CALLALIAS(0, false); /* OF */
                 continue;
 
             case CODE_CALLU|RET_NULL: case CODE_CALLU|RET_STR: case CODE_CALLU|RET_FLOAT: case CODE_CALLU|RET_INT:
@@ -1997,7 +2018,14 @@ static const uint *runcode(const uint *code, tagval &result)
                     debugcode("unknown command: %s", args[0].s);
                     forcenull(result);
                     goto forceresult;
-                } 
+                }
+                /* OF */
+                if (id->type > 2 && identflags&IDF_SAFE && !(id->flags&IDF_SAFE || id->flags&IDF_TRUSTED))
+                {
+                    debugcode("unsafe call in a safe context: %s", id->name);
+                    forcenull(result);
+                    goto forceresult;
+                }
                 forcenull(result);
                 switch(id->type)
                 {
@@ -2039,7 +2067,7 @@ static const uint *runcode(const uint *code, tagval &result)
                         if(id->index < MAXARGS && !(aliasstack->usedargs&(1<<id->index))) goto forceresult;
                         if(id->valtype==VAL_NULL) goto noid;
                         freearg(args[0]);
-                        CALLALIAS(1);
+                        CALLALIAS(1, id->flags&IDF_TRUSTED);
                         continue;
                     default:
                         goto forceresult;
@@ -2957,6 +2985,13 @@ ICOMMAND(strreplace, "sss", (char *s, char *o, char *n), commandret->setstr(strr
 ICOMMAND(getmillis, "i", (int *total), intret(*total ? totalmillis : lastmillis));
 
 /* OF: lua sleep functions, var API and other things */
+
+ICOMMAND(trusted, "e", (uint *body), {
+    int flags = identflags;
+    identflags |= IDF_TRUSTED;
+    executeret(body, *commandret);
+    identflags = flags;
+})
 
 LUAICOMMAND(get_millis, {
     lua_pushinteger(L, lua_toboolean(L, 1) ? totalmillis : lastmillis);
