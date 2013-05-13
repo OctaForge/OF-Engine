@@ -1958,8 +1958,7 @@ static const uint *runcode(const uint *code, tagval &result)
                 continue;
 
             case CODE_CALL|RET_NULL: case CODE_CALL|RET_STR: case CODE_CALL|RET_FLOAT: case CODE_CALL|RET_INT:
-                /* OF: trusted */
-                #define CALLALIAS(offset, trusted) { \
+                #define CALLALIAS(offset) { \
                     identstack argstack[MAXARGS]; \
                     for(int i = 0; i < numargs-offset; i++) \
                         pusharg(*identmap[i], args[i+offset], argstack[i]); \
@@ -1967,7 +1966,9 @@ static const uint *runcode(const uint *code, tagval &result)
                     _numargs = newargs; \
                     int oldflags = identflags; \
                     identflags |= id->flags&IDF_OVERRIDDEN; \
-                    if(trusted) identflags &= ~IDF_SAFE; /* OF */ \
+                    /* OF */ \
+                    if(id->flags&IDF_TRUSTED) identflags &= ~IDF_SAFE; \
+                    else if(id->flags&IDF_SAFE) identflags |= IDF_SAFE; \
                     identlink aliaslink = { id, aliasstack, (1<<newargs)-1, argstack }; \
                     aliasstack = &aliaslink; \
                     if(!id->code) id->code = compilecode(id->getstr()); \
@@ -1999,13 +2000,13 @@ static const uint *runcode(const uint *code, tagval &result)
                     debugcode("unsafe call in a safe context: %s", id->name);
                     goto forceresult;
                 }
-                CALLALIAS(0, id->flags&IDF_TRUSTED);
+                CALLALIAS(0);
                 continue;
             case CODE_CALLARG|RET_NULL: case CODE_CALLARG|RET_STR: case CODE_CALLARG|RET_FLOAT: case CODE_CALLARG|RET_INT:
                 forcenull(result);
                 id = identmap[op>>8];
                 if(!(aliasstack->usedargs&(1<<id->index))) goto forceresult;
-                CALLALIAS(0, false); /* OF */
+                CALLALIAS(0); /* OF */
                 continue;
 
             case CODE_CALLU|RET_NULL: case CODE_CALLU|RET_STR: case CODE_CALLU|RET_FLOAT: case CODE_CALLU|RET_INT:
@@ -2067,7 +2068,7 @@ static const uint *runcode(const uint *code, tagval &result)
                         if(id->index < MAXARGS && !(aliasstack->usedargs&(1<<id->index))) goto forceresult;
                         if(id->valtype==VAL_NULL) goto noid;
                         freearg(args[0]);
-                        CALLALIAS(1, id->flags&IDF_TRUSTED);
+                        CALLALIAS(1);
                         continue;
                     default:
                         goto forceresult;

@@ -1,6 +1,14 @@
 -- OctaForge empty map
 -- author: q66 <quaker66@gmail.com>
 
+cubescript [[
+    foo = [
+        echo "hello"
+        entselradius 3
+    ]
+    foo
+]]
+
 -- Use library version "10"
 library.use("10")
 
