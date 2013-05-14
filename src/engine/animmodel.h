@@ -1054,11 +1054,11 @@ struct animmodel : model
     {
         if(!loaded) return -1;
 
-        yaw += offsetyaw + spinyaw*lastmillis/1000.0f;
-        pitch += offsetpitch + spinpitch*lastmillis/1000.0f;
-        roll += offsetroll + spinroll*lastmillis/1000.0f;
+        yaw += spinyaw*lastmillis/1000.0f;
+        pitch += spinpitch*lastmillis/1000.0f;
+        roll += spinroll*lastmillis/1000.0f;
 
-        vec axis(0, -1, 0), forward(1, 0, 0);
+        vec axis(1, 0, 0), forward(0, 1, 0);
 
         matrixpos = 0;
         matrixstack[0].identity();
@@ -1068,7 +1068,10 @@ struct animmodel : model
             matrixstack[0].rotate_around_z(yaw*RAD);
             matrixstack[0].transformnormal(vec(axis), axis);
             matrixstack[0].transformnormal(vec(forward), forward);
-            if(roll) matrixstack[0].rotate(-roll*RAD, vec(1, 0, 0).rotate_around_y(-pitch*RAD));
+            if(roll) matrixstack[0].rotate(-roll*RAD, vec(0, 1, 0).rotate_around_y(pitch*RAD));
+            if(offsetyaw) matrixstack[0].rotate_around_z(offsetyaw*RAD);
+            if(offsetpitch) matrixstack[0].rotate_around_x(offsetpitch*RAD);
+            if(offsetroll) matrixstack[0].rotate_around_y(-offsetroll*RAD);
         }
         else 
         {
@@ -1173,11 +1176,11 @@ struct animmodel : model
     {
         if(!loaded) return;
 
-        yaw += offsetyaw + spinyaw*lastmillis/1000.0f;
-        pitch += offsetpitch + spinpitch*lastmillis/1000.0f;
-        roll += offsetroll + spinroll*lastmillis/1000.0f;
+        yaw += spinyaw*lastmillis/1000.0f;
+        pitch += spinpitch*lastmillis/1000.0f;
+        roll += spinroll*lastmillis/1000.0f;
 
-        vec axis(0, -1, 0), forward(1, 0, 0);
+        vec axis(1, 0, 0), forward(0, 1, 0);
 
         matrixpos = 0;
         matrixstack[0].identity();
@@ -1187,7 +1190,10 @@ struct animmodel : model
             matrixstack[0].rotate_around_z(yaw*RAD);
             matrixstack[0].transformnormal(vec(axis), axis);
             matrixstack[0].transformnormal(vec(forward), forward);
-            if(roll) matrixstack[0].rotate(-roll*RAD, vec(1, 0, 0).rotate_around_y(-pitch*RAD));
+            if(roll) matrixstack[0].rotate(-roll*RAD, vec(0, 1, 0).rotate_around_y(pitch*RAD));
+            if(offsetyaw) matrixstack[0].rotate_around_z(offsetyaw*RAD);
+            if(offsetpitch) matrixstack[0].rotate_around_x(offsetpitch*RAD);
+            if(offsetroll) matrixstack[0].rotate_around_y(-offsetroll*RAD);
         }
         else
         {
@@ -1254,8 +1260,8 @@ struct animmodel : model
     {
         m.identity();
         if(offsetyaw) m.rotate_around_z(offsetyaw*RAD);
-        if(offsetpitch) m.rotate_around_y(-offsetpitch*RAD);
-        if(offsetroll) m.rotate_around_x(-offsetroll*RAD);
+        if(offsetpitch) m.rotate_around_x(offsetpitch*RAD);
+        if(offsetroll) m.rotate_around_y(-offsetroll*RAD);
         m.translate(translate, scale);
     }
 

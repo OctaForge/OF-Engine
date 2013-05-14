@@ -724,10 +724,9 @@ void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll)
         if(roll < 0) roll = 360 + roll%360;
         else if(roll >= 360) roll %= 360;
         const vec2 &rot = sincos360[roll];
-        vec2 oldcenter(center.y, center.z), oldradius(radius.y, radius.z);
-        center.y = oldcenter.x*rot.x + oldcenter.y*rot.y;
-        center.z = oldcenter.y*rot.x - oldcenter.x*rot.y;
-        radius.y = fabs(oldradius.x*rot.x) + fabs(oldradius.y*rot.y);
+        center.rotate_around_y(rot.x, -rot.y);
+        vec2 oldradius(radius.x, radius.z);
+        radius.x = fabs(oldradius.x*rot.x) + fabs(oldradius.y*rot.y);
         radius.z = fabs(oldradius.y*rot.x) + fabs(oldradius.x*rot.y);
     }
     if(pitch)
@@ -735,10 +734,9 @@ void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll)
         if(pitch < 0) pitch = 360 + pitch%360;
         else if(pitch >= 360) pitch %= 360;
         const vec2 &rot = sincos360[pitch];
-        vec2 oldcenter(center.x, center.z), oldradius(radius.x, radius.z);
-        center.x = oldcenter.x*rot.x - oldcenter.y*rot.y;
-        center.z = oldcenter.y*rot.x + oldcenter.x*rot.y;
-        radius.x = fabs(oldradius.x*rot.x) + fabs(oldradius.y*rot.y);
+        center.rotate_around_x(rot.x, rot.y);
+        vec2 oldradius(radius.y, radius.z);
+        radius.y = fabs(oldradius.x*rot.x) + fabs(oldradius.y*rot.y);
         radius.z = fabs(oldradius.y*rot.x) + fabs(oldradius.x*rot.y);
     }
     if(yaw)
@@ -746,9 +744,8 @@ void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll)
         if(yaw < 0) yaw = 360 + yaw%360;
         else if(yaw >= 360) yaw %= 360;
         const vec2 &rot = sincos360[yaw];
-        vec2 oldcenter(center), oldradius(radius);
-        center.x = oldcenter.x*rot.x - oldcenter.y*rot.y;
-        center.y = oldcenter.y*rot.x + oldcenter.x*rot.y;
+        center.rotate_around_z(rot.x, rot.y);
+        vec2 oldradius(radius);
         radius.x = fabs(oldradius.x*rot.x) + fabs(oldradius.y*rot.y);
         radius.y = fabs(oldradius.y*rot.x) + fabs(oldradius.x*rot.y);
     }
@@ -783,7 +780,7 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
         vec center, radius;
         m->collisionbox(center, radius);
         if(e.attr4 > 0) { float scale = e.attr4/100.f; center.mul(scale); radius.mul(scale); }
-        float yaw = e.attr1, pitch = e.attr2, roll = e.attr3; // OF
+        int yaw = e.attr1, pitch = e.attr2, roll = e.attr3; // OF
         switch(d->collidetype)
         {
             case COLLIDE_ELLIPSE:
@@ -805,7 +802,7 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
                 break;
             case COLLIDE_AABB:
             default:
-                rotatebb(center, radius, e.attr1, e.attr2, e.attr3); // OF
+                rotatebb(center, radius, yaw, pitch, roll); // OF
                 if(!rectcollide(d, dir, center.add(e.o), radius.x, radius.y, radius.z, radius.z)) return false;
                 break;
         }
