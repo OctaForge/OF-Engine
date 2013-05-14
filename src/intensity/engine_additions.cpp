@@ -68,7 +68,7 @@ vec CLogicEntity::getOrigin()
                     assert(ptr);
                     m->collisionbox(bbcenter, bbradius, ptr);
                     if (staticEntity->attr4 > 0) { float scale = staticEntity->attr4/100.0f; bbcenter.mul(scale); bbradius.mul(scale); }
-                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2));
+                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2), int(staticEnty->attr3));
                     bbcenter.add(staticEntity->o);
                     return bbcenter;
                 } else {
@@ -102,7 +102,7 @@ float CLogicEntity::getRadius()
                     assert(ptr);
                     m->collisionbox(bbcenter, bbradius, ptr);
                     if (staticEntity->attr4 > 0) { float scale = staticEntity->attr4/100.0f; bbcenter.mul(scale); bbradius.mul(scale); }
-                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2));
+                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2), int(staticEntity->attr3));
                     bbcenter.add(staticEntity->o);
                     return bbradius.x + bbradius.y;
                 } else {
