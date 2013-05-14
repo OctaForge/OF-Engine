@@ -1066,9 +1066,9 @@ struct animmodel : model
         {
             matrixstack[0].settranslation(pos);
             matrixstack[0].rotate_around_z(yaw*RAD);
-            matrixstack[0].rotate_around_x(-roll*RAD);
             matrixstack[0].transformnormal(vec(axis), axis);
             matrixstack[0].transformnormal(vec(forward), forward);
+            matrixstack[0].rotate(-roll*RAD, vec(1, 0, 0).rotate_around_y(-pitch*RAD));
         }
         else 
         {
@@ -1185,9 +1185,9 @@ struct animmodel : model
         {
             matrixstack[0].settranslation(o);
             matrixstack[0].rotate_around_z(yaw*RAD);
-            matrixstack[0].rotate_around_x(-roll*RAD);
             matrixstack[0].transformnormal(vec(axis), axis);
             matrixstack[0].transformnormal(vec(forward), forward);
+            matrixstack[0].rotate(-roll*RAD, vec(1, 0, 0).rotate_around_y(-pitch*RAD));
         }
         else
         {
