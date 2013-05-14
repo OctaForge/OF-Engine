@@ -415,7 +415,7 @@ static inline void rendermapmodel(extentity &e)
     int anim     = entity->getAnimation(); // ANIM_MAPMODEL|ANIM_LOOP
     int basetime = entity->getStartTime();
 
-    rendermapmodel(entity, anim, e.o, e.attr1, e.attr2, e.attr3, MDL_CULL_VFC | MDL_CULL_DIST, basetime); // OF
+    rendermapmodel(entity, anim, e.o, e.attr1, e.attr2, e.attr3, MDL_CULL_VFC | MDL_CULL_DIST, basetime, e.attr4 > 0 ? e.attr4/100.0f : 1.0f); // OF
 }
 
 void rendermapmodels()
