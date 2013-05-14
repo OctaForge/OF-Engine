@@ -524,15 +524,11 @@ M.load = function()
                         = "0", "-1", "0", "0"
                     ent.pad_model, ent.pad_rotate, ent.pad_pitch, ent.pad_sound
                         = "", "false", "0", ""
-                    ent.collision_radius_width, ent.collision_radius_height
-                        = "5", "1"
                     ent.model_name, ent.jump_velocity
                         = "areatrigger", ("[%f|%f|%f]"):format(
                             attr3 * 10, attr2 * 10, attr1 * 12.5)
                 elseif et == 19 then
                     ent.attr1, ent.attr3, ent.attr4 = "0", "0", "0"
-                    ent.collision_radius_width, ent.collision_radius_height
-                        = "5", "5"
                     ent.destination, ent.sound_name = tostring(attr1), ""
                     if attr2 < 0 then
                         ent.model_name = "areatrigger"
@@ -1171,19 +1167,6 @@ set_external("game_render", render)
 
 -- DEPRECATED
 local handle_triggers = frame.cache_by_delay(function(_)
-    local ents = storage_by_class["area_trigger"] or {}
-    local pls  = get_players()
-    for i = 1, #pls do
-        local player = pls[i]
-        if not player.editing then
-            for i = 1, #ents do
-                local ent = ents[i]
-                if geometry.is_player_colliding_entity(player, ent) then
-                    emit(ent, "collision", player)
-                end
-            end
-        end
-    end
 end, 0.1)
 M.handle_triggers = handle_triggers
 set_external("game_handle_triggers", handle_triggers)

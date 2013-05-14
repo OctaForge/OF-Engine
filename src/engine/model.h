@@ -11,11 +11,7 @@ struct model
     float eyeheight, collideradius, collideheight;
     int batch;
 
-    bool perentitycollisionboxes; // INTENSITY: Get the collision box from the entiy, not the model type
-
-    model() : spinyaw(0), spinpitch(0), spinroll(0), offsetyaw(0), offsetpitch(0), offsetroll(0), collide(true), ellipsecollide(false), shadow(true), depthoffset(false), scale(1.0f), translate(0, 0, 0), bih(0), bbcenter(0, 0, 0), bbradius(-1, -1, -1), bbextend(0, 0, 0), eyeheight(0.9f), collideradius(0), collideheight(0), batch(-1)
-          , perentitycollisionboxes(false)
-        {}
+    model() : spinyaw(0), spinpitch(0), spinroll(0), offsetyaw(0), offsetpitch(0), offsetroll(0), collide(true), ellipsecollide(false), shadow(true), depthoffset(false), scale(1.0f), translate(0, 0, 0), bih(0), bbcenter(0, 0, 0), bbradius(-1, -1, -1), bbextend(0, 0, 0), eyeheight(0.9f), collideradius(0), collideheight(0), batch(-1) {}
     virtual ~model() { DELETEP(bih); }
     virtual void calcbb(vec &center, vec &radius) = 0;
     virtual int intersect(int anim, int basetime, int basetime2, const vec &pos, float yaw, float pitch, float roll, dynent *d, modelattach *a, float size, const vec &o, const vec &ray, float &dist, int mode) = 0;
@@ -47,19 +43,15 @@ struct model
     virtual void startrender() {}
     virtual void endrender() {}
 
-    void boundbox(vec &center, vec &radius, CLogicEntity* entity=0) // INTENSITY: Added entity
+    void boundbox(vec &center, vec &radius)
     {
-        if (perentitycollisionboxes && entity) { perentitybox(center, radius, entity); return; } // INTENSITY
-
         if(bbradius.x < 0) calcbb(bbcenter, bbradius);
         center = bbcenter;
         radius = vec(bbradius).add(bbextend);
     }
 
-    void collisionbox(vec &center, vec &radius, CLogicEntity* entity=0) // INTENSITY: Added entity
+    void collisionbox(vec &center, vec &radius)
     {
-        if (perentitycollisionboxes && entity) { perentitybox(center, radius, entity); return; } // INTENSITY
-
         boundbox(center, radius);
         if(collideradius)
         {
@@ -84,32 +76,6 @@ struct model
         vec center, radius;
         boundbox(center, radius);
         return center.z+radius.z;
-    }
-
-    // INTENSITY: New function. A collision/bounding box that uses per-entity info
-    void perentitybox(vec &center, vec &radius, CLogicEntity* entity=0)
-    {
-        assert(entity); // We should never be called without the parameter. It has a defaultvalue
-                        // just in order to not need to change sauer code in irrelevant places
-
-        float width = entity->collisionRadiusWidth;
-        float height = entity->collisionRadiusHeight;
-
-        if (width < 0) // If never loaded, load once from Lua now. This occurs once per instance.
-                        // This is necessary because these are values cached from lua, unlike normal
-                        // Sauer C++ variables that are managed in C++. Here, the *true* values are in lua
-        {
-            lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-            lua_getfield(lua::L, -1, "collision_radius_width");
-            width = lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
-            lua_getfield(lua::L, -1, "collision_radius_height");
-            height = lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
-            lua_pop(lua::L, 1);
-        }
-
-        center[0] = center[1] = 0;
-        radius[0] = radius[1] = width;
-        center[2] = radius[2] = height;
     }
 };
 

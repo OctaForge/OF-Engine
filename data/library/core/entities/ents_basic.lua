@@ -980,10 +980,6 @@ M.Particle_Effect = Particle_Effect
         attr2 - the model pitch, alias "pitch".
         attr3 - the model roll, alias "roll".
         attr4 - the model scale, alias "scale".
-        collision_radius_width - a custom bounding box
-        width for models with per-entity collision boxes.
-        Used with e.g. area trigger to specify trigger bounds.
-        collision_radius_height - see above.
 ]]
 local Mapmodel = Static_Entity:clone {
     name = "Mapmodel",
@@ -1006,34 +1002,12 @@ local Mapmodel = Static_Entity:clone {
         attr4 = svars.State_Integer {
             getter = "_C.get_attr4", setter = "_C.set_attr4",
             gui_name = "scale", alt_name = "scale"
-        },
-        collision_radius_width = svars.State_Float {
-            getter = "_C.get_collision_radius_w", setter = "_C.set_collision_radius_w"
-        },
-        collision_radius_height = svars.State_Float {
-            getter = "_C.get_collision_radius_h", setter = "_C.set_collision_radius_h"
         }
     },
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
         self.yaw, self.pitch, self.roll = 0, 0, 0
-        self.collision_radius_width = 0
-        self.collision_radius_height = 0
-    end,
-
-    --[[! Function: get_center
-        A variant of <Static_Entity.get_center> that assumes
-        collision_radius_height.
-    ]]
-    get_center = function(self)
-        local crh = self.collision_radius_height
-        if crh ~= 0 then
-            local r = self.position:copy()
-            r.z = r.z + crh
-        else
-            return Static_Entity.get_center(self)
-        end
     end
 }
 M.Mapmodel = Mapmodel
@@ -1049,8 +1023,6 @@ local Area_Trigger = Mapmodel:clone {
 
     init = function(self, uid, kwargs)
         Mapmodel.init(self, uid, kwargs)
-        self.collision_radius_width = 10
-        self.collision_radius_height = 10
         self.model_name = "areatrigger"
     end
 }

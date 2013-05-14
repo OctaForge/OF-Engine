@@ -1076,7 +1076,7 @@ void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSI
     model *m = loadmodel(mdl); 
     if(!m) return;
     vec center, radius;
-    m->collisionbox(center, radius, entity); // INTENSITY: Added entity
+    m->collisionbox(center, radius);
     if(!m->ellipsecollide)
     {
         d->collidetype = COLLIDE_OBB;
@@ -1089,14 +1089,6 @@ void setbbfrommodel(dynent *d, const char *mdl, CLogicEntity *entity) // INTENSI
     d->eyeheight = (center.z-radius.z) + radius.z*2*m->eyeheight;
     d->aboveeye  = radius.z*2*(1.0f-m->eyeheight);
 }
-
-// OF
-void mdlentitycollisionbox(int *val)
-{
-    checkmdl;
-    loadingmodel->perentitycollisionboxes = (*val != 0);
-}
-COMMAND(mdlentitycollisionbox, "i");
 
 VARP(ragdoll, 0, 1, 1);
 

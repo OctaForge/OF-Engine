@@ -781,7 +781,7 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
         model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
         if(!m || !m->collide) continue;
         vec center, radius;
-        m->collisionbox(center, radius, entity); // INTENSITY: entity
+        m->collisionbox(center, radius);
         if(e.attr4 > 0) { float scale = e.attr4/100.f; center.mul(scale); radius.mul(scale); }
         float yaw = e.attr1, pitch = e.attr2, roll = e.attr3; // OF
         switch(d->collidetype)

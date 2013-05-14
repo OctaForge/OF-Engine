@@ -106,12 +106,7 @@ function get_ray_collision_entities(origin, target, ignore)
     for k, entity in pairs(entities) do
         if entity ~= ignore then
             local entity_dir = entity.center:sub_new(origin)
-            local entity_rad = entity.radius
-                           and entity.radius
-                            or math.max(
-                                entity.collision_radius_width,
-                                entity.collision_radius_height
-                            )
+            local entity_rad = entity.radius and entity.radius or 0
             local alpha = direction:dot_product(entity_dir) / dist2
             local collision_position
                 = origin:add_new(direction:mul_new(alpha))
@@ -155,12 +150,7 @@ function is_colliding_entities(position, radius, ignore)
     local entities = get_collidable_entities()
     for i, entity in pairs(entities) do
         if entity ~= ignore and not entity.deactivated then
-            local   entity_radius = entity.radius
-                and entity.radius
-                or math.max(
-                    entity.collision_radius_width,
-                    entity.collision_radius_height
-                )
+            local   entity_radius = entity.radius and entity.radius or 0
             if position:is_close_to(
                 entity.position, radius + entity_radius
             ) then
@@ -339,66 +329,4 @@ function bounce(thing, elasticity, friction, seconds)
     thing.velocity = movement:mul(1 / seconds)
 
     return true
-end
-
---[[!
-    Function: is_player_colliding_entity
-    Given a player entity and an other entity, the function returns
-    true if they collide and false if they don't.
-]]
-function is_player_colliding_entity(player, entity)
-    if  entity.collision_radius_width
-    and entity.collision_radius_width ~= 0 then
-        -- z
-        if player.position.z
-        >= entity.position.z + 2 * entity.collision_radius_height or
-           player.position.z + player.eye_height + player.above_eye
-        <= entity.position.z then
-            return false
-        end
-
-        -- x
-        if player.position.x - player.radius
-        >= entity.position.x + entity.collision_radius_width or
-           player.position.x + player.radius
-        <= entity.position.x - entity.collision_radius_width then
-            return false
-        end
-
-        -- y
-        if player.position.y - player.radius
-        >= entity.position.y + entity.collision_radius_width or
-           player.position.y + player.radius
-        <= entity.position.y - entity.collision_radius_width then
-            return false
-        end
-
-        return true
-    else
-        -- z
-        if player.position.z
-        >= entity.position.z + entity.eye_height + entity.above_eye or
-           player.position.z + player.eye_height + player.above_eye
-        <= entity.position.z then
-            return false
-        end
-
-        -- x
-        if player.position.x - player.radius
-        >= entity.position.x + entity.radius or
-           player.position.x + player.radius
-        <= entity.position.x - entity.radius then
-            return false
-        end
-
-        -- y
-        if player.position.y - player.radius
-        >= entity.position.y + entity.radius or
-           player.position.y + player.radius
-        <= entity.position.y - entity.radius then
-            return false
-        end
-
-        return true
-    end
 end

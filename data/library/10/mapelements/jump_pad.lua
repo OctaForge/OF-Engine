@@ -19,8 +19,6 @@ plugin = {
         self.pad_pitch     = 90
         self.pad_roll      = 0
         self.pad_sound     = ""
-        self.collision_radius_width  = 3
-        self.collision_radius_height = 0.5
     end,
 
     activate = CLIENT and function(self)
