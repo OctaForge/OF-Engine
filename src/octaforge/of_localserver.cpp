@@ -84,8 +84,6 @@ namespace local_server {
         }
         conoutf("Starting server, please wait ..");
 
-#define STRVAL(x) #x
-#define ENQ(x) STRVAL(x)
         char buf[1024]; /* should be perfectly enough here */
 #if defined(WIN32) && !defined(__GNUC__)
         _snprintf(buf, sizeof(buf),
@@ -95,16 +93,14 @@ namespace local_server {
             "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty "
             ">\"%s%s\" 2>&1",
 #if defined(WIN64)
-            "bin_win64\\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
+            "bin_win64\\server_" BINARY_OS_STR "_" BINARY_ARCH_STR ".exe",
 #elif defined(WIN32)
-            "bin_win32\\server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ".exe",
+            "bin_win32\\server_" BINARY_OS_STR "_" BINARY_ARCH_STR ".exe",
 #else
-            "bin_unix/server_" ENQ(BINARY_OS) "_" ENQ(BINARY_ARCH) ,
+            "bin_unix/server_" BINARY_OS_STR "_" BINARY_ARCH_STR,
 #endif
             logger::names[logger::current_level], map, homedir,
             server_log_file);
-#undef STRVAL
-#undef ENQ
 
 #ifdef WIN32
         popen_out = _popen(buf, "r");
