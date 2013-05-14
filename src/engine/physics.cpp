@@ -717,8 +717,19 @@ bool plcollide(physent *d, const vec &dir)    // collide with player or monster
     return true;
 }
 
-void rotatebb(vec &center, vec &radius, int yaw, int pitch)
+void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll)
 {
+    if(roll)
+    {
+        if(roll < 0) roll = 360 + roll%360;
+        else if(roll >= 360) roll %= 360;
+        const vec2 &rot = sincos360[roll];
+        vec2 oldcenter(center.y, center.z), oldradius(radius.y, radius.z);
+        center.y = oldcenter.x*rot.x + oldcenter.y*rot.y;
+        center.z = oldcenter.y*rot.x - oldcenter.x*rot.y;
+        radius.y = fabs(oldradius.x*rot.x) + fabs(oldradius.y*rot.y);
+        radius.z = fabs(oldradius.y*rot.x) + fabs(oldradius.x*rot.y);
+    }
     if(pitch)
     {
         if(pitch < 0) pitch = 360 + pitch%360;
@@ -744,10 +755,10 @@ void rotatebb(vec &center, vec &radius, int yaw, int pitch)
 }
 
 template<class E, class M>
-static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, const vec &center, const vec &radius, float yaw, float pitch)
+static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, const vec &center, const vec &radius, float yaw, float pitch, float roll)
 {
     E entvol(d);
-    M mdlvol(e.o, center, radius, yaw, pitch);
+    M mdlvol(e.o, center, radius, yaw, pitch, roll);
     vec cp;
     if(mpr::collide(entvol, mdlvol, NULL, NULL, &cp))
     {
@@ -772,11 +783,11 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
         vec center, radius;
         m->collisionbox(center, radius, entity); // INTENSITY: entity
         if(e.attr4 > 0) { float scale = e.attr4/100.f; center.mul(scale); radius.mul(scale); }
-        float yaw = e.attr1, pitch = e.attr2; // OF
+        float yaw = e.attr1, pitch = e.attr2, roll = e.attr3; // OF
         switch(d->collidetype)
         {
             case COLLIDE_ELLIPSE:
-                if(pitch) rotatebb(center, radius, 0, pitch);
+                if(pitch || roll) rotatebb(center, radius, 0, pitch, roll);
                 if(m->ellipsecollide)
                 {
                     //if(!mmcollide<mpr::EntCylinder, mpr::ModelEllipse>(d, dir, e, center, radius, yaw, pitch)) return false;
@@ -788,13 +799,13 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
             case COLLIDE_OBB:
                 if(m->ellipsecollide)
                 {
-                    if(!mmcollide<mpr::EntOBB, mpr::ModelEllipse>(d, dir, e, center, radius, yaw, pitch)) return false;
+                    if(!mmcollide<mpr::EntOBB, mpr::ModelEllipse>(d, dir, e, center, radius, yaw, pitch, roll)) return false;
                 }
-                else if(!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, center, radius, yaw, pitch)) return false;
+                else if(!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, center, radius, yaw, pitch, roll)) return false;
                 break;
             case COLLIDE_AABB:
             default:
-                rotatebb(center, radius, e.attr1, e.attr2); // OF
+                rotatebb(center, radius, e.attr1, e.attr2, e.attr3); // OF
                 if(!rectcollide(d, dir, center.add(e.o), radius.x, radius.y, radius.z, radius.z)) return false;
                 break;
         }

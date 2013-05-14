@@ -274,7 +274,7 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
     if(scale > 0) mo.mul(100.0f/scale);
     float v = mo.dot(mray), inside = m->bih->radius - mo.squaredlen();
     if((inside < 0 && v > 0) || inside + v*v < 0) return false;
-    int yaw = e.attr1, pitch = e.attr2; // OF
+    int yaw = e.attr1, pitch = e.attr2, roll = e.attr3; // OF
     if(yaw != 0) 
     {
         if(yaw < 0) yaw = 360 + yaw%360;
@@ -290,6 +290,14 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
         const vec2 &rot = sincos360[pitch];
         mo.rotate_around_y(rot.x, rot.y);
         mray.rotate_around_y(rot.x, rot.y);
+    }
+    if(roll != 0)
+    {
+        if(roll < 0) roll = 360 + roll%360;
+        else if(roll >= 360) roll %= 360;
+        const vec2 &rot = sincos360[roll];
+        mo.rotate_around_x(rot.x, rot.y);
+        mray.rotate_around_x(rot.x, rot.y);
     }
     if(m->bih->traverse(mo, mray, maxdist ? maxdist : 1e16f, dist, mode))
     {

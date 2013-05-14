@@ -600,7 +600,7 @@ extern void textinput(bool on, int mask = ~0);
 extern void mousemove(int dx, int dy);
 extern bool pointincube(const clipplanes &p, const vec &v);
 extern bool overlapsdynent(const vec &o, float radius);
-extern void rotatebb(vec &center, vec &radius, int yaw, int pitch);
+extern void rotatebb(vec &center, vec &radius, int yaw, int pitch, int roll = 0);
 extern float shadowray(const vec &o, const vec &ray, float radius, int mode, extentity *t = NULL);
 struct ShadowRayCache;
 extern ShadowRayCache *newshadowraycache();
