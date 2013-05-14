@@ -428,30 +428,21 @@ void clearmodel(char *name)
     (*m)->cleanup();
     delete *m;
     conoutf("cleared model %s", name);
-}
 
-COMMAND(clearmodel, "s");
-
-void reloadmodel(char *name) {
-    if (!name || !name[0]) return;
-    model *old = loadmodel(name);
-    if (!old) return;
-
-    clearmodel((char*)name);
     model *_new = loadmodel(name);
-
     lua::push_external("entities_get_all"); lua_call(lua::L, 0, 1);
     lua_pushnil(lua::L);
     while (lua_next(lua::L, -2)) {
         lua_getfield(lua::L, -1, "uid");
         int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 1);
         CLogicEntity *ent = LogicSystem::getLogicEntity(uid);
-        if (ent && ent->theModel == old) {
+        if (ent && ent->theModel == *m) {
             ent->theModel = _new;
         }
         lua_pop(lua::L, 1);
     }
 }
+COMMAND(clearmodel, "s");
 
 bool modeloccluded(const vec &center, float radius)
 {
@@ -1236,7 +1227,6 @@ LUAICOMMAND(model_get_mesh, {
 });
 
 LUAICOMMAND(model_preload, { preloadmodel(luaL_checkstring(L, 1)); return 0; });
-LUAICOMMAND(model_reload, { reloadmodel((char*)luaL_checkstring(L, 1)); return 0; });
 LUAICOMMAND(model_clear, { clearmodel((char*)luaL_checkstring(L, 1)); return 0; });
 
 LUAICOMMAND(model_preview_start, {

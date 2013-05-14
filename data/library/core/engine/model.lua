@@ -81,7 +81,7 @@ local find_anims = _C.model_find_anims
 
 --[[! Function: clear
     Clears a model with a name given by the argument (which is relative
-    to data/models).
+    to data/models) and reloads.
 ]]
 M.clear = _C.model_clear
 
@@ -90,11 +90,6 @@ M.clear = _C.model_clear
     again relative to data/models.
 ]]
 M.preload = _C.model_preload
-
---[[! Function: reload
-    Reloads the given model. Basically clears and loads again.
-]]
-M.reload = _C.model_reload
 
 local mrender = _C.model_render
 
