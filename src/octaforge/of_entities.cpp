@@ -233,27 +233,6 @@ namespace entities
     EXTENT_ACCESSORS(attr5)
     #undef EXTENT_ACCESSORS
 
-    #define EXTENT_LE_ACCESSORS(n, an) \
-    LUAICOMMAND(get_##n, { \
-        LUA_GET_ENT(entity, "_C.get"#n, return 0) \
-        lua_pushnumber(L, entity->an); \
-        return 1; \
-    }); \
-    LUAICOMMAND(set_##n, { \
-        LUA_GET_ENT(entity, "_C.set"#n, return 0) \
-        float v = luaL_checknumber(L, 2); \
-        logger::log(logger::DEBUG, "ACCESSOR: Setting %s to %f\n", #an, v); \
-        assert(entity->staticEntity); \
-        if (!world::loading) removeentity(entity->staticEntity); \
-        entity->an = v; \
-        if (!world::loading) addentity(entity->staticEntity); \
-        return 0; \
-    });
-
-    EXTENT_LE_ACCESSORS(collision_radius_w, collisionRadiusWidth)
-    EXTENT_LE_ACCESSORS(collision_radius_h, collisionRadiusHeight)
-    #undef EXTENT_LE_ACCESSORS
-
     LUAICOMMAND(get_extent_position, {
         LUA_GET_ENT(entity, "_C.getextent0", return 0)
         extentity *ext = entity->staticEntity;

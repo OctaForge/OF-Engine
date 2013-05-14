@@ -25,12 +25,6 @@ struct CLogicEntity
 
     int lua_ref; //!< this is lua reference number for this logic entity
 
-    //! Used by entities that have their own collision box sizes, i.e., do not use the model's.
-    float collisionRadiusWidth;
-
-    //! Used by entities that have their own collision box sizes, i.e., do not use the model's.
-    float collisionRadiusHeight;
-
     //! The model (mesh) for this entity
     model* theModel;
 
@@ -56,18 +50,17 @@ struct CLogicEntity
 //    int currAnimationFrame; //!< Saved from sauer's rendering system, used so we know which bounding box to use, for per-frame models
 //    int                    lastBIHFrame;       // So we know if we need a new BIH or not, when frames change BUGGY, TODO: Implement fix
 
-    CLogicEntity()                           : dynamicEntity(NULL),           staticEntity(NULL),          nonSauer(false), uniqueId(-8),
-        collisionRadiusWidth(-1), collisionRadiusHeight(-1), theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+    CLogicEntity(): dynamicEntity(NULL), staticEntity(NULL), nonSauer(false), uniqueId(-8),
+        theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
         { attachments[0].tag = attachments[0].name = NULL; };
-    CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL),          nonSauer(false), uniqueId(-8),
-        collisionRadiusWidth(-1), collisionRadiusHeight(-1), theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+    CLogicEntity(physent*    _dynamicEntity) : dynamicEntity(_dynamicEntity), staticEntity(NULL), nonSauer(false), uniqueId(-8),
+        theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
         { attachments[0].tag = attachments[0].name = NULL; };
-    CLogicEntity(extentity* _staticEntity)  : dynamicEntity(NULL),           staticEntity(_staticEntity), nonSauer(false), uniqueId(-8),
-        collisionRadiusWidth(-1), collisionRadiusHeight(-1), theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+    CLogicEntity(extentity* _staticEntity): dynamicEntity(NULL), staticEntity(_staticEntity), nonSauer(false), uniqueId(-8),
+        theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
         { attachments[0].tag = attachments[0].name = NULL; };
-    CLogicEntity(int _uniqueId)             : dynamicEntity(NULL),           staticEntity(NULL),          nonSauer(true),
-        uniqueId(_uniqueId),
-        collisionRadiusWidth(-1), collisionRadiusHeight(-1), theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
+    CLogicEntity(int _uniqueId): dynamicEntity(NULL), staticEntity(NULL), nonSauer(true),
+        uniqueId(_uniqueId), theModel(NULL), animation(0), startTime(0), lastActualRenderMillis(0)
         { attachments[0].tag = attachments[0].name = NULL; }; // This is a non-Sauer LE
 
     //! Returns the unique ID for this entity
