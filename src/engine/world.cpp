@@ -28,7 +28,13 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
             {
                 vec center, radius;
                 m->boundbox(center, radius, entity); // INTENSITY: entity
-                rotatebb(center, radius, e.attr1);
+                if(e.attr4 > 0)
+                {
+                    float scale = e.attr4/100.0f;
+                    center.mul(scale);
+                    radius.mul(scale);
+                }
+                rotatebb(center, radius, e.attr1, e.attr2); // OF
                 o = e.o;
                 o.add(center);
                 r = radius;
@@ -464,7 +470,8 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     if(e.type == ET_MAPMODEL && (m = entity->getModel())) // INTENSITY
     {
         m->collisionbox(eo, es, entity); // INTENSITY
-        rotatebb(eo, es, e.attr1);
+        if(e.attr4 > 0) { float scale = e.attr4/100.0f; eo.mul(scale); es.mul(scale); }
+        rotatebb(eo, es, e.attr1, e.attr2); // OF
         eo.add(e.o);
     }   
     else
@@ -793,7 +800,8 @@ bool dropentity(entity &e, int drop = -1)
         {
             vec center;
             m->boundbox(center, radius, entity); // INTENSITY: entity
-            rotatebb(center, radius, e.attr1);
+            if(e.attr4 > 0) { float scale = e.attr4/100.0f; center.mul(scale); radius.mul(scale); }
+            rotatebb(center, radius, e.attr1, e.attr2); // OF
             radius.x += fabs(center.x);
             radius.y += fabs(center.y);
         }

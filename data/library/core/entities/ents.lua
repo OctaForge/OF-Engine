@@ -502,11 +502,10 @@ M.load = function()
                 local ent = entities[#entities][3]
 
                 if et == 2 then
-                    if #im > attr2 then
-                        ent.model_name, ent.attr2 = im[attr2 + 1], "-1"
-                    else
-                        ent.model_name = "@REPLACE@"
-                    end
+                    ent.model_name = (#im <= attr2) and
+                        ("@REPLACE_" .. attr2 .. "@") or im[attr2 + 1]
+                    ent.attr2 = ent.attr3
+                    ent.attr3 = "0"
                 elseif et == 6 then
                     if #is > attr1 then
                         local snd = is[attr1 + 1]
@@ -849,7 +848,7 @@ Entity = table.Object:clone {
                 if val ~= nil then
                     local wval = var:to_wire(val)
                     #log(DEBUG, "    adding " .. name .. ": " .. wval)
-                    local key = (not comp) and vname
+                    local key = (not comp) and name
                         or tonumber(names_to_ids[sn][name])
                     r[key] = wval
                     #log(DEBUG, "    currently " .. serialize(r))

@@ -977,6 +977,9 @@ M.Particle_Effect = Particle_Effect
 
     Properties:
         attr1 - the model yaw, alias "yaw".
+        attr2 - the model pitch, alias "pitch".
+        attr3 - the model roll, alias "roll".
+        attr4 - the model scale, alias "scale".
         collision_radius_width - a custom bounding box
         width for models with per-entity collision boxes.
         Used with e.g. area trigger to specify trigger bounds.
@@ -992,6 +995,18 @@ local Mapmodel = Static_Entity:clone {
             getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "yaw", alt_name = "yaw"
         },
+        attr2 = svars.State_Integer {
+            getter = "_C.get_attr2", setter = "_C.set_attr2",
+            gui_name = "pitch", alt_name = "pitch"
+        },
+        attr3 = svars.State_Integer {
+            getter = "_C.get_attr3", setter = "_C.set_attr3",
+            gui_name = "roll", alt_name = "roll"
+        },
+        attr4 = svars.State_Integer {
+            getter = "_C.get_attr4", setter = "_C.set_attr4",
+            gui_name = "scale", alt_name = "scale"
+        },
         collision_radius_width = svars.State_Float {
             getter = "_C.get_collision_radius_w", setter = "_C.set_collision_radius_w"
         },
@@ -1002,7 +1017,7 @@ local Mapmodel = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self.yaw, self.attr2 = 0, -1
+        self.yaw, self.pitch, self.roll = 0, 0, 0
         self.collision_radius_width = 0
         self.collision_radius_height = 0
     end,

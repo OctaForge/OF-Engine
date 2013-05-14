@@ -67,7 +67,8 @@ vec CLogicEntity::getOrigin()
                     CLogicEntity *ptr = LogicSystem::getLogicEntity(getUniqueId());
                     assert(ptr);
                     m->collisionbox(bbcenter, bbradius, ptr);
-                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1));
+                    if (staticEntity->attr4 > 0) { float scale = staticEntity->attr4/100.0f; bbcenter.mul(scale); bbradius.mul(scale); }
+                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2));
                     bbcenter.add(staticEntity->o);
                     return bbcenter;
                 } else {
@@ -100,7 +101,8 @@ float CLogicEntity::getRadius()
                     CLogicEntity *ptr = LogicSystem::getLogicEntity(getUniqueId());
                     assert(ptr);
                     m->collisionbox(bbcenter, bbradius, ptr);
-                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1));
+                    if (staticEntity->attr4 > 0) { float scale = staticEntity->attr4/100.0f; bbcenter.mul(scale); bbradius.mul(scale); }
+                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2));
                     bbcenter.add(staticEntity->o);
                     return bbradius.x + bbradius.y;
                 } else {
@@ -162,15 +164,6 @@ model* CLogicEntity::getModel()
     // This is important as this is called before setupExtent.
     if ((!this) || (!staticEntity && !dynamicEntity))
         return NULL;
-
-    // Fallback to sauer mapmodel system, if not overidden (-1 or less in attr2 if so)
-    if (staticEntity && staticEntity->type == ET_MAPMODEL && staticEntity->attr2 >= 0)
-    {
-        // If no such model, leave the current model, from modelName
-        model* possible = loadmodel(NULL, staticEntity->attr2);
-        if (possible && possible != theModel)
-            theModel = possible;
-    }
 
     return theModel;
 #else
