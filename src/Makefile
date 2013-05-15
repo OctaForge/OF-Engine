@@ -244,7 +244,7 @@ endif
 
 # client/server includes
 
-CS_INC = -Ishared -Iengine -Ifpsgame
+CS_INC = -I. -Ishared -Iengine -Ifpsgame
 CS_INC += -Iintensity -Ioctaforge
 CS_INC += -Ienet/include $(TARGET_XINC) $(LUAJIT_INC)
 
@@ -516,6 +516,21 @@ cube2font: $(OBJDIR)/cube2font.o
 	$(E) " LD cube2font"
 	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o cube2font \
 	$(OBJDIR)/cube2font.o `freetype-config --libs` -lz
+
+# amalgamated build
+# warning: requires lots of virtual memory (and takes long to compile).
+
+amalg_client:
+	$(MAKE) client CLIENT_OBJ=shared/client_amalg.o
+
+amalg_server:
+	$(MAKE) server SERVER_OBJ=shared/server_amalg.o
+
+install_amalg:
+	$(MAKE) install CLIENT_OBJ=shared/client_amalg.o \
+		SERVER_OBJ=shared/server_amalg.o
+
+amalg: amalg_client amalg_server
 
 # general targets
 all: client server

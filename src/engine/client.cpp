@@ -233,7 +233,7 @@ void gets2c()           // get updates from the server
         case ENET_EVENT_TYPE_DISCONNECT:
 //            LogicSystem::init(); // INTENSITY: Not sure about this...?
 
-            extern const char *disc_reasons[];
+            extern const char *disc_reasons[10]; /* because gcc 4.2 is retarded */
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
             {

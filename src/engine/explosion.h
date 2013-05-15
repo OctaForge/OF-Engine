@@ -7,18 +7,18 @@ static vec *hemiverts = NULL;
 static int heminumverts = 0, heminumindices = 0;
 static GLuint hemivbuf = 0, hemiebuf = 0;
 
-static void subdivide(int depth, int face);
+static void subdivide_e(int depth, int face); // OF
 
-static void genface(int depth, int i1, int i2, int i3)
+static void genface_e(int depth, int i1, int i2, int i3) // OF
 {
     int face = heminumindices; heminumindices += 3;
     hemiindices[face]   = i1;
     hemiindices[face+1] = i2;
     hemiindices[face+2] = i3;
-    subdivide(depth, face);
+    subdivide_e(depth, face);
 }
 
-static void subdivide(int depth, int face)
+static void subdivide_e(int depth, int face)
 {
     if(depth-- <= 0) return;
     int idx[6];
@@ -30,8 +30,8 @@ static void subdivide(int depth, int face)
         idx[3+i] = vert;
         hemiindices[face+i] = vert;
     }
-    subdivide(depth, face);
-    loopi(3) genface(depth, idx[i], idx[3+i], idx[3+(i+2)%3]);
+    subdivide_e(depth, face);
+    loopi(3) genface_e(depth, idx[i], idx[3+i], idx[3+(i+2)%3]);
 }
 
 //subdiv version wobble much more nicely than a lat/longitude version
@@ -43,7 +43,7 @@ static void inithemisphere(int hres, int depth)
     hemiindices = new GLushort[tris*3];
     hemiverts[heminumverts++] = vec(0.0f, 0.0f, 1.0f); //build initial 'hres' sided pyramid
     loopi(hres) hemiverts[heminumverts++] = vec(sincos360[(360*i)/hres], 0.0f);
-    loopi(hres) genface(depth, 0, i+1, 1+(i+1)%hres);
+    loopi(hres) genface_e(depth, 0, i+1, 1+(i+1)%hres);
 
     if(!hemivbuf) glGenBuffers_(1, &hemivbuf);
     glBindBuffer_(GL_ARRAY_BUFFER, hemivbuf);

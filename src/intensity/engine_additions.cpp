@@ -14,8 +14,6 @@
 extern void removeentity(extentity* entity);
 extern void addentity(extentity* entity);
 
-bool dropentity(entity &e, int drop = -1);
-
 //=========================
 // Logic Entities
 //=========================

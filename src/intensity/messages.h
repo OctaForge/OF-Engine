@@ -1,3 +1,5 @@
+#ifndef __MESSAGES_H__
+#define __MESSAGES_H__
 
 
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
@@ -485,3 +487,4 @@ struct NotifyPrivateEditMode : MessageType
 
 void send_NotifyPrivateEditMode(int clientNumber);
 
+#endif

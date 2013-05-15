@@ -3,7 +3,7 @@
 #include "engine.h"
 
 template<int S>
-static void halvetex(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
+static void halvetexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
 {
     for (uchar *yend = &src[sh*stride]; src < yend;)
     {
@@ -15,7 +15,7 @@ static void halvetex(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
 }
 
 template<int S>
-static void shifttex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
+static void shifttexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
 {
     uint wfrac = sw/dw, hfrac = sh/dh, wshift = 0, hshift = 0;
     while(dw<<wshift < sw) wshift++;
@@ -39,7 +39,7 @@ static void shifttex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint
 }
 
 template<int S>
-static void scaletex(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
+static void scaletexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst, uint dw, uint dh)
 {
     uint wfrac = (sw<<12)/dw, hfrac = (sh<<12)/dh, darea = dw*dh, sarea = sw*sh;
     int over, under;
@@ -93,30 +93,30 @@ static void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uint pitch, uch
     {
         switch(bpp)
         {
-            case 1: halvetex<1>(src, sw, sh, pitch, dst); return;
-            case 2: halvetex<2>(src, sw, sh, pitch, dst); return;
-            case 3: halvetex<3>(src, sw, sh, pitch, dst); return;
-            case 4: halvetex<4>(src, sw, sh, pitch, dst); return;
+            case 1: halvetexture<1>(src, sw, sh, pitch, dst); return;
+            case 2: halvetexture<2>(src, sw, sh, pitch, dst); return;
+            case 3: halvetexture<3>(src, sw, sh, pitch, dst); return;
+            case 4: halvetexture<4>(src, sw, sh, pitch, dst); return;
         }
     }
     else if(sw < dw || sh < dh || sw&(sw-1) || sh&(sh-1))
     {
         switch(bpp)
         {
-            case 1: scaletex<1>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 2: scaletex<2>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 3: scaletex<3>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 4: scaletex<4>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 1: scaletexture<1>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 2: scaletexture<2>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 3: scaletexture<3>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 4: scaletexture<4>(src, sw, sh, pitch, dst, dw, dh); return;
         }
     }
     else
     {
         switch(bpp)
         {
-            case 1: shifttex<1>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 2: shifttex<2>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 3: shifttex<3>(src, sw, sh, pitch, dst, dw, dh); return;
-            case 4: shifttex<4>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 1: shifttexture<1>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 2: shifttexture<2>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 3: shifttexture<3>(src, sw, sh, pitch, dst, dw, dh); return;
+            case 4: shifttexture<4>(src, sw, sh, pitch, dst, dw, dh); return;
         }
     }
 }

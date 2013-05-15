@@ -1,3 +1,5 @@
+#ifndef __CLIENT_SYSTEM_H__
+#define __CLIENT_SYSTEM_H__
 
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
@@ -61,3 +63,4 @@ struct ClientSystem
     static bool isAdmin();
 };
 
+#endif

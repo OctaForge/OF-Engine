@@ -23,16 +23,6 @@
 namespace game
 {
     VAR(useminimap, 0, 0, 1); // do we want the minimap? Set from JS.
-    VARP(minminimapzoom, 0, 384, 10000); // minimal and maximal scale of minimap, some sort of "zoom"
-    VARP(maxminimapzoom, 1, 1024, 10000);
-    VAR(forceminminimapzoom, -1, -1, 10000); // these are not stored in cfg or across maps and are made for map-specific forcing.
-    VAR(forcemaxminimapzoom, -1, -1, 10000);
-    FVAR(minimapradius, 0.0f, 0.3f, 10.0f); // minimap size, relative to screen height (1.0 = full height), max is 10.0f (maybe someone will find usage?)
-    FVAR(minimapxpos, -10000.0f, 0.1f, 10000.0f); // minimap x position relative from right edge of screen (1.0 = one minimap size from right edge)
-    FVAR(minimapypos, -10000.0f, 0.1f, 10000.0f); // like above, but from top edge.
-    FVAR(minimaprotation, 0.0f, 0.0f, 360.0f); // rotation of minimap
-    VAR(minimapsides, 3, 10, 1000); // number of minimap sides. No need to make it bigger than 1000, 1000 is really smooth circle at very big sizes.
-    VAR(minimaprightalign, 0, 1, 1); // do we want to align minimap right? if this is 1, then we do, if 0, then it's aligned to left.
 
     int gamemode = 0;
 

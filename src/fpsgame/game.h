@@ -1,6 +1,8 @@
-
 // Copyright 2010 Alon Zakai ('kripken'). All rights reserved.
 // This file is part of Syntensity/the Intensity Engine, an open source project. See COPYING.txt for licensing.
+
+#ifndef __GAME_H__
+#define __GAME_H__
 
 // Windows
 #undef PLATFORM
@@ -227,3 +229,4 @@ namespace server
     extern bool isRunningCurrentScenario(int clientNumber);
 }
 
+#endif

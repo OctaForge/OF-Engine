@@ -25,17 +25,6 @@ string         ClientSystem::currScenarioCode   = "";
 bool _scenarioStarted = false;
 bool _mapCompletelyReceived = false;
 
-namespace game
-{
-    extern int minimapradius;
-    extern int minimaprightalign;
-    extern int forceminminimapzoom, forcemaxminimapzoom;
-    extern int minimapsides;
-    extern int minminimapzoom, maxminimapzoom;
-    extern float minimapxpos, minimapypos, minimaprotation;
-}
-
-
 void ClientSystem::connect(const char *host, int port)
 {
     editingAlone = false;

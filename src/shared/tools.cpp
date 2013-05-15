@@ -160,3 +160,7 @@ void filtertext(char *dst, const char *src, bool whitespace, int len)
     }
     *dst = '\0';
 }
+
+#undef N
+#undef M
+#undef K
