@@ -71,18 +71,10 @@ TARGET_CC = $(CROSS)$(CC)
 TARGET_CXX = $(CROSS)$(CXX)
 TARGET_STRIP = $(CROSS)strip
 
-ifeq (,$(VERBOSE))
-	Q = @
-	E = @echo
-else
-	Q =
-	E = @:
-endif
-
 # OS detection
 
 ifneq (,$(findstring Windows,$(OS)))
-	HOST_TESTSYS = $(shell uname -s 2>&1)
+	HOST_TESTSYS := $(shell uname -s 2>&1)
 	ifneq (,$(findstring MINGW,$(HOST_TESTSYS)))
 		HOST_SYS = Windows
 		HOST_FLAV = msys
@@ -101,8 +93,20 @@ ifneq (,$(findstring Windows,$(OS)))
 	endif
 	endif
 else
-	HOST_SYS = $(shell uname -s)
+	HOST_SYS := $(shell uname -s)
 	HOST_FLAV = $(HOST_SYS)
+endif
+
+ifeq (,$(VERBOSE))
+	Q = @
+	ifeq (Windows,$(HOST_SYS))
+		E = @echo
+	else
+		E = @printf
+	endif
+else
+	Q =
+	E = @:
 endif
 
 # arch detection
@@ -204,16 +208,16 @@ endif
 
 ifneq ($(HOST_SYS),Windows)
 	ifeq (,$(NOCOLOR))
-		RED    = -e "\033[1;31m
-		GREEN  = -e "\033[1;32m
-		BLUE   = -e "\033[1;34m
-		PURPLE = -e "\033[1;35m
-		CYAN   = -e "\033[1;36m
+		RED    = "\033[1;31m
+		GREEN  = "\033[1;32m
+		BLUE   = "\033[1;34m
+		PURPLE = "\033[1;35m
+		CYAN   = "\033[1;36m
 		RRED   = \033[1;31m
 		RGREEN = \033[1;32m
 		RBLUE  = \033[1;34m
 		RCYAN  = \033[1;36m
-		ENDCOL = \033[m"
+		ENDCOL = \033[m\n"
 	endif
 endif
 
@@ -245,9 +249,9 @@ endif
 
 ifneq ($(TARGET_SYS),Windows)
 	ifeq (,$(LUAJIT_LOCAL))
-		LUAJIT_INC = $(shell PKG_CONFIG_PATH="$(LUAJIT_PKGCONF_PATH)" \
+		LUAJIT_INC := $(shell PKG_CONFIG_PATH="$(LUAJIT_PKGCONF_PATH)" \
 			pkg-config --silence-errors --cflags luajit)
-		LUAJIT_LIB = $(shell PKG_CONFIG_PATH="$(LUAJIT_PKGCONF_PATH)" \
+		LUAJIT_LIB := $(shell PKG_CONFIG_PATH="$(LUAJIT_PKGCONF_PATH)" \
 			pkg-config --silence-errors --libs luajit)
 		ifeq (,$(LUAJIT_LIB))
 			LUAJIT_LIB = -lluajit
