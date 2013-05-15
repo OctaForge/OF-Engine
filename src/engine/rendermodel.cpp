@@ -885,6 +885,8 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     m->boundbox(center, bbradius);
     float radius = bbradius.magnitude();
     center.mul(size);
+    if(roll) center.rotate_around_y(-roll*RAD);
+    if(pitch && m->pitched()) center.rotate_around_x(pitch*RAD);
     center.rotate_around_z(yaw*RAD);
     center.add(o);
     radius *= size;
@@ -934,6 +936,8 @@ void rendermodel(const char *mdl, int anim, const vec &o, float yaw, float pitch
     else
     {
         center.mul(size);
+        if(roll) center.rotate_around_y(-roll*RAD);
+        if(pitch && m->pitched()) center.rotate_around_x(pitch*RAD);
         center.rotate_around_z(yaw*RAD);
         center.add(o);
     }

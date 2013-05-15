@@ -1054,22 +1054,24 @@ struct animmodel : model
     {
         if(!loaded) return -1;
 
-        yaw += spinyaw*lastmillis/1000.0f;
-        pitch += spinpitch*lastmillis/1000.0f;
-        roll += spinroll*lastmillis/1000.0f;
-
         vec axis(1, 0, 0), forward(0, 1, 0);
 
         matrixpos = 0;
         matrixstack[0].identity();
         if(!d || !d->ragdoll || anim&ANIM_RAGDOLL)
         {
+            float secs = lastmillis/1000.0f;
+            yaw += spinyaw*secs;
+            pitch += spinpitch*secs;
+            roll += spinroll*secs;
+
             matrixstack[0].settranslation(pos);
             matrixstack[0].rotate_around_z(yaw*RAD);
-            if(roll && !parts[0]->pitchscale) matrixstack[0].rotate_around_y(-roll*RAD);
+            bool usepitch = pitched();
+            if(roll && !usepitch) matrixstack[0].rotate_around_y(-roll*RAD);
             matrixstack[0].transformnormal(vec(axis), axis);
             matrixstack[0].transformnormal(vec(forward), forward);
-            if(roll && parts[0]->pitchscale) matrixstack[0].rotate_around_y(-roll*RAD);
+            if(roll && usepitch) matrixstack[0].rotate_around_y(-roll*RAD);
             if(offsetyaw) matrixstack[0].rotate_around_z(offsetyaw*RAD);
             if(offsetpitch) matrixstack[0].rotate_around_x(offsetpitch*RAD);
             if(offsetroll) matrixstack[0].rotate_around_y(-offsetroll*RAD);
@@ -1177,22 +1179,24 @@ struct animmodel : model
     {
         if(!loaded) return;
 
-        yaw += spinyaw*lastmillis/1000.0f;
-        pitch += spinpitch*lastmillis/1000.0f;
-        roll += spinroll*lastmillis/1000.0f;
-
         vec axis(1, 0, 0), forward(0, 1, 0);
 
         matrixpos = 0;
         matrixstack[0].identity();
         if(!d || !d->ragdoll || anim&ANIM_RAGDOLL)
         {
+            float secs = lastmillis/1000.0f;
+            yaw += spinyaw*secs;
+            pitch += spinpitch*secs;
+            roll += spinroll*secs;
+
             matrixstack[0].settranslation(o);
             matrixstack[0].rotate_around_z(yaw*RAD);
-            if(roll && !parts[0]->pitchscale) matrixstack[0].rotate_around_y(-roll*RAD);
+            bool usepitch = pitched();
+            if(roll && !usepitch) matrixstack[0].rotate_around_y(-roll*RAD);
             matrixstack[0].transformnormal(vec(axis), axis);
             matrixstack[0].transformnormal(vec(forward), forward);
-            if(roll && parts[0]->pitchscale) matrixstack[0].rotate_around_y(-roll*RAD);
+            if(roll && usepitch) matrixstack[0].rotate_around_y(-roll*RAD);
             if(offsetyaw) matrixstack[0].rotate_around_z(offsetyaw*RAD);
             if(offsetpitch) matrixstack[0].rotate_around_x(offsetpitch*RAD);
             if(offsetroll) matrixstack[0].rotate_around_y(-offsetroll*RAD);
@@ -1325,6 +1329,11 @@ struct animmodel : model
         if(spinyaw || spinpitch || spinroll) return true;
         loopv(parts) if(parts[i]->animated()) return true;
         return false;
+    }
+
+    bool pitched() const
+    {
+        return parts[0]->pitchscale != 0;
     }
  
     virtual bool loaddefaultparts()
