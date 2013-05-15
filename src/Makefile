@@ -71,6 +71,14 @@ TARGET_CC = $(CROSS)$(CC)
 TARGET_CXX = $(CROSS)$(CXX)
 TARGET_STRIP = $(CROSS)strip
 
+ifeq (,$(VERBOSE))
+	Q = @
+	E = @echo
+else
+	Q =
+	E = @:
+endif
+
 # OS detection
 
 ifneq (,$(findstring Windows,$(OS)))
@@ -95,18 +103,6 @@ ifneq (,$(findstring Windows,$(OS)))
 else
 	HOST_SYS := $(shell uname -s)
 	HOST_FLAV = $(HOST_SYS)
-endif
-
-ifeq (,$(VERBOSE))
-	Q = @
-	ifeq (Windows,$(HOST_SYS))
-		E = @echo
-	else
-		E = @printf
-	endif
-else
-	Q =
-	E = @:
 endif
 
 # arch detection
@@ -202,23 +198,6 @@ endif
 
 ifneq (,$(CC_DEBUG))
 	TARGET_STRIP = @:
-endif
-
-# colored output on non-windows
-
-ifneq ($(HOST_SYS),Windows)
-	ifeq (,$(NOCOLOR))
-		RED    = "\033[1;31m
-		GREEN  = "\033[1;32m
-		BLUE   = "\033[1;34m
-		PURPLE = "\033[1;35m
-		CYAN   = "\033[1;36m
-		RRED   = \033[1;31m
-		RGREEN = \033[1;32m
-		RBLUE  = \033[1;34m
-		RCYAN  = \033[1;36m
-		ENDCOL = \033[m\n"
-	endif
 endif
 
 # binary install paths
@@ -500,83 +479,72 @@ endif
 # ENet
 
 $(OBJDIR)/%.o: %.c $$(@D)/.stamp
-	$(E) $(PURPLE)[cc     ]$(RBLUE)[enet  ]$(RRED) \
-	$(subst $(OBJDIR)/,,$@)$(ENDCOL)
+	$(E) " CC (enet)   $(subst $(OBJDIR)/,,$@)"
 	$(Q) $(TARGET_CC) $(CFLAGS) $(ENET_CFLAGS) -c -o $@ \
 	$(subst .o,.c,$(subst $(OBJDIR)/,,$@))
 
 # OctaForge - client
 
 $(OBJDIR)/client/%.o: %.cpp $$(@D)/.stamp
-	$(E) $(PURPLE)[cc     ]$(RGREEN)[client]$(RRED) \
-	$(subst $(OBJDIR)/client/,,$@)$(ENDCOL)
+	$(E) " CC (client) $(subst $(OBJDIR)/client/,,$@)"
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/client/,,$@))
 
 client: $(ENET_OBJB) $(CLIENT_OBJB)
-	$(E) $(GREEN)[ld     ]$(RGREEN) $(CLIENT_BIN)$(ENDCOL)
+	$(E) " LD (client) $(CLIENT_BIN)"
 	$(Q) $(TARGET_CXX) $(CLIENT_CXXFLAGS) $(CXXFLAGS) -o $(CLIENT_BIN) \
 	$(ENET_OBJB) $(CLIENT_OBJB) $(CLIENT_LDFLAGS) $(LDFLAGS)
 
 # OctaForge - server
 
 $(OBJDIR)/server/%.o: %.cpp $$(@D)/.stamp
-	$(E) $(PURPLE)[cc     ]$(RCYAN)[server]$(RRED) \
-	$(subst $(OBJDIR)/server/,,$@)$(ENDCOL)
+	$(E) " CC (server) $(subst $(OBJDIR)/server/,,$@)"
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -c -o $@ \
 	$(subst .o,.cpp,$(subst $(OBJDIR)/server/,,$@))
 
 server: $(ENET_OBJB) $(SERVER_OBJB)
-	$(E) $(GREEN)[ld     ]$(RCYAN) $(SERVER_BIN)$(ENDCOL)
+	$(E) " LD (server) $(SERVER_BIN)"
 	$(Q) $(TARGET_CXX) $(SERVER_CXXFLAGS) $(CXXFLAGS) -o $(SERVER_BIN) \
 	$(ENET_OBJB) $(SERVER_OBJB) $(SERVER_LDFLAGS) $(LDFLAGS)
 
 $(OBJDIR)/cube2font.o: shared/cube2font.c
-	$(E) $(PURPLE)[cc     ]$(RRED) cube2font.o$(ENDCOL)
+	$(E) " CC cube2font.o"
 	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) \
 	-c -o $@ $< `freetype-config --cflags`
 
 cube2font: $(OBJDIR)/cube2font.o
-	$(E) $(GREEN)[ld     ]$(RRED) cube2font$(ENDCOL)
+	$(E) " LD cube2font"
 	$(TARGET_CC) $(CC_FLAGS) $(CC_DEBUG) $(CC_WARN) -o cube2font \
 	$(OBJDIR)/cube2font.o `freetype-config --libs` -lz
 
 # general targets
 all: client server
 
-ifneq ($(HOST_FLAV),windows)
 clean:
-	$(E) $(CYAN)[clean  ]$(RRED) $(OBJDIR) $(RGREEN)$(CLIENT_BIN) \
-	$(RCYAN)$(SERVER_BIN)$(ENDCOL)
+	$(E) " CLEAN ($(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN))"
+ifneq ($(HOST_FLAV),windows)
 	$(Q) -rm -rf $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
 else
-clean:
-	$(E) [clean  ] $(OBJDIR) $(CLIENT_BIN) $(SERVER_BIN)
 	$(Q) -rmdir //s //f //q $(OBJDIR)
 	$(Q) -del //s //f //q $(CLIENT_BIN) $(SERVER_BIN)
 endif
 
 install: client server
+	$(E) " INSTALL ($(CLIENT_BIN) -> $(BIN_PATH))"
 ifneq ($(HOST_FLAV),windows)
-	$(E) $(GREEN)[install]$(RBLUE) $(CLIENT_BIN) $(RGREEN)-> \
-	$(RRED)$(BIN_PATH)$(ENDCOL)
 	$(Q) cp -f $(CLIENT_BIN) $(BIN_PATH)
-	$(E) $(GREEN)[install]$(RBLUE) $(SERVER_BIN) $(RGREEN)-> \
-	$(RRED)$(BIN_PATH)$(ENDCOL)
+else
+	$(Q) copy $(CLIENT_BIN) $(BIN_PATH)
+endif
+	$(E) " INSTALL ($(SERVER_BIN) -> $(BIN_PATH))"
+ifneq ($(HOST_FLAV),windows)
 	$(Q) cp -f $(SERVER_BIN) $(BIN_PATH)
+else
+	$(Q) copy $(SERVER_BIN) $(BIN_PATH)
+endif
 ifeq (,$(NOSTRIP))
 	$(Q) $(TARGET_STRIP) $(BIN_PATH)/$(CLIENT_BIN)
 	$(Q) $(TARGET_STRIP) $(BIN_PATH)/$(SERVER_BIN)
-endif
-else
-	$(E) [install] $(CLIENT_BIN) -> $(BIN_PATH)
-	$(Q) copy $(CLIENT_BIN) $(BIN_PATH)
-	$(E) [install] $(SERVER_BIN) -> $(BIN_PATH)
-	$(Q) copy $(SERVER_BIN) $(BIN_PATH)
-ifeq (,$(NOSTRIP))
-	$(Q) $(TARGET_STRIP) $(BIN_PATH)\$(CLIENT_BIN)
-	$(Q) $(TARGET_STRIP) $(BIN_PATH)\$(SERVER_BIN)
-endif
 endif
 
 # dependency generator
