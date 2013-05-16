@@ -1165,12 +1165,6 @@ end or nil
 M.render = render
 set_external("game_render", render)
 
--- DEPRECATED
-local handle_triggers = frame.cache_by_delay(function(_)
-end, 0.1)
-M.handle_triggers = handle_triggers
-set_external("game_handle_triggers", handle_triggers)
-
 --[[! Function: render_hud
     Renders the player HUD model if needed. External as game_render_hud.
     Clientside only.

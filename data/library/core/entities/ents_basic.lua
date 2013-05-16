@@ -974,7 +974,9 @@ M.Particle_Effect = Particle_Effect
 
 --[[! Class: Mapmodel
     A model in the world. Its sauer type is "mapmodel". All properties
-    default to 0.
+    default to 0. On mapmodels and all entity types derived from mapmodels,
+    the engine emits the "collision" signal with the collider entity passed
+    as an argument when collided.
 
     Properties:
         attr1 - the model yaw, alias "yaw".

@@ -351,23 +351,6 @@ namespace game
                     }
                 #endif
             }
-
-            //============================================
-            // Additional physics: Collisions
-            //============================================
-
-            // If triggering collisions can be done by the lua library code, use that
-
-            lua::push_external("game_handle_triggers"); lua_call(lua::L, 0, 0);
-        }
-
-        //==============================================
-        // Manage actions
-        // Done after physics, so can override physics
-        //==============================================
-
-        if (runWorld)
-        {
             LogicSystem::manageActions(curtime);
         }
 
