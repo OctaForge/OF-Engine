@@ -20,6 +20,7 @@ local Entity = M.Entity
 
 local band, bor, lsh, rsh = math.band, math.bor, math.lsh, math.rsh
 local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
+local emit = signal.emit
 
 --[[! Class: Physical_Entity
     Represents a base for every entity that has some kind of physical
@@ -1011,6 +1012,15 @@ local Mapmodel = Static_Entity:clone {
     end
 }
 M.Mapmodel = Mapmodel
+
+--[[! Function: physics_collide_mapmodel
+    An external called when a client collides with a mapmodel. Takes the
+    collider entity (the client) and the mapmodel. By default emits the
+    "collision" signal on the mapmodel, passing the collider to it.
+]]
+set_external("physics_collide_mapmodel", function(collider, entity)
+    emit(entity, "collision", collider)
+end)
 
 --[[! Class: Area_Trigger
     A variant of <Mapmodel> that emits a "collision" signal on itself
