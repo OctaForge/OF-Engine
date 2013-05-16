@@ -144,7 +144,7 @@ void findnormal(const vec &pos, int smooth, const vec &surface, vec &v)
 VARR(lerpsubdiv, 0, 2, 4);
 VARR(lerpsubdivsize, 4, 4, 128);
 
-static uint normalprogress = 0; // OF
+static uint normalprogress = 0;
 
 void show_addnormals_progress()
 {

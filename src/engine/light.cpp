@@ -355,7 +355,7 @@ const vector<int> &checklightcache(int x, int y)
     return lce.lights;
 }
 
-static uint lightprogress = 0; // OF
+static uint lightprogress = 0;
 
 bool calclight_canceled = false;
 volatile bool check_calclight_progress = false;

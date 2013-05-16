@@ -40,6 +40,10 @@ uint randomMT()
     return y;
 }
 
+#undef N
+#undef M
+#undef K
+
 ///////////////////////// network ///////////////////////
 
 // all network traffic is in 32bit ints, which are then compressed using the following simple scheme (assumes that most values are small).
@@ -59,7 +63,7 @@ int getint(ucharbuf &p)
 {
     int c = (char)p.get();
     if(c==-128) { int n = p.get(); n |= char(p.get())<<8; return n; }
-    else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; return n|(p.get()<<24); } 
+    else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; return n|(p.get()<<24); }
     else return c;
 }
 
@@ -80,11 +84,11 @@ static inline void putuint_(T &p, int n)
         p.put(0x80 | (n & 0x7F));
         p.put(n >> 7);
     }
-    else 
-    { 
-        p.put(0x80 | (n & 0x7F)); 
+    else
+    {
+        p.put(0x80 | (n & 0x7F));
         p.put(0x80 | ((n >> 7) & 0x7F));
-        p.put(n >> 14); 
+        p.put(n >> 14);
     }
 }
 void putuint(ucharbuf &p, int n) { putuint_(p, n); }
@@ -161,6 +165,3 @@ void filtertext(char *dst, const char *src, bool whitespace, int len)
     *dst = '\0';
 }
 
-#undef N
-#undef M
-#undef K
