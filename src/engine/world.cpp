@@ -14,8 +14,6 @@ SVARR(player_class, "player"); /* OF: overridable pcclass */
 VAR(octaentsize, 0, 128, 1024);
 VAR(entselradius, 0, 2, 10);
 
-vec get_area_size(int uid);
-
 bool getentboundingbox(extentity &e, ivec &o, ivec &r)
 {
     switch(e.type)
@@ -48,9 +46,14 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
         }
         case ET_OBSTACLE: /* OF */
         {
-            vec center = vec(0, 0, 0), radius = get_area_size(e.uniqueId);
-            rotatebb(center, radius, e.attr1, 0);
             o = e.o;
+            if (!e.attr2 || !e.attr3 || !e.attr4) {
+                o.sub(entselradius);
+                r.x = r.y = r.z = entselradius*2;
+                break;
+            }
+            vec center = vec(0, 0, 0), radius = vec(e.attr2, e.attr3, e.attr4);
+            rotatebb(center, radius, e.attr1, 0);
             o.add(center);
             r = radius;
             r.add(1);
@@ -494,10 +497,10 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
         rotatebb(eo, es, e.attr1, e.attr2, e.attr3); // OF
         eo.add(e.o);
     }
-    else if(e.type == ET_OBSTACLE) /* OF */
+    else if(e.type == ET_OBSTACLE && e.attr2 && e.attr3 && e.attr4) /* OF */
     {
         eo = vec(0, 0, 0);
-        es = get_area_size(_e->uniqueId);
+        es = vec(e.attr2, e.attr3, e.attr4);
         rotatebb(eo, es, e.attr1, 0);
         eo.add(e.o);
     }

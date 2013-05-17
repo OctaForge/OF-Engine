@@ -1069,9 +1069,9 @@ M.World_Marker = World_Marker
 
 --[[! Class: Obstacle
     An entity class that emits a "collision" signal on itself when a client
-    (player, NPC...) collides with it. It has its own yaw, dimensions and a
-    property specifying whether the obstacle is solid (if it isn't, it can be
-    used as an area trigger or whatever, the signal works in both cases).
+    (player, NPC...) collides with it. It has its own yaw (attr1), dimensions
+    (attr2 alias a, attr3 alias b, attr4 alias c) and the solid property
+    (attr5) which makes the obstacle solid when it isn't 0.
 ]]
 local Obstacle = Static_Entity:clone {
     name = "Obstacle",
@@ -1082,18 +1082,24 @@ local Obstacle = Static_Entity:clone {
         attr1 = svars.State_Integer {
             getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "yaw", alt_name = "yaw"
+        },
+        attr2 = svars.State_Integer {
+            getter = "_C.get_attr2", setter = "_C.set_attr2",
+            gui_name = "a", alt_name = "a"
+        },
+        attr3 = svars.State_Integer {
+            getter = "_C.get_attr3", setter = "_C.set_attr3",
+            gui_name = "b", alt_name = "b"
+        },
+        attr4 = svars.State_Integer {
+            getter = "_C.get_attr4", setter = "_C.set_attr4",
+            gui_name = "c", alt_name = "c"
+        },
+        attr5 = svars.State_Integer {
+            getter = "_C.get_attr5", setter = "_C.set_attr5",
+            gui_name = "solid", alt_name = "solid"
         }
-    },
-
-    activate = function(self, kwargs)
-        World_Marker.activate(self, kwargs)
-        _C.physics_area_add(self)
-    end,
-
-    deactivate = function(self)
-        _C.physics_area_remove(self)
-        return World_Marker.deactivate(self)
-    end
+    }
 }
 M.Obstacle = Obstacle
 

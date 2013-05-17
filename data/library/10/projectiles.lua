@@ -227,7 +227,7 @@ plugin = {
             return nil
         end
 
-        if not hudpass then
+        if not hud_pass then
             self.projectile_manager:render()
         end
     end

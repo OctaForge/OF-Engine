@@ -712,10 +712,14 @@ bool plcollide(physent *d, const vec &dir)    // collide with player or monster
             }
             hitplayer = o;
             /* OF */
-            lua::push_external("physics_collide_client");
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
-            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(o)->lua_ref);
-            lua_call(lua::L, 2, 0);
+            CLogicEntity *dl = LogicSystem::getLogicEntity(d);
+            CLogicEntity *ol = LogicSystem::getLogicEntity(o);
+            if (dl && ol) {
+                lua::push_external("physics_collide_client");
+                lua_rawgeti(lua::L, LUA_REGISTRYINDEX, dl->lua_ref);
+                lua_rawgeti(lua::L, LUA_REGISTRYINDEX, ol->lua_ref);
+                lua_call(lua::L, 2, 0);
+            }
             return false;
         }
     }
@@ -774,37 +778,11 @@ static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, con
 
 /* area collisions: OF */
 
-struct collisionarea {
-    vec size;
-    bool solid;
-};
-static hashtable<int, collisionarea> areas;
-
-vec get_area_size(int uid) {
-    collisionarea *a = areas.access(uid);
-    if (!a) return vec(0, 0, 0);
-    return a->size;
-}
-
-LUAICOMMAND(physics_area_add, {
-    LUA_GET_ENT(ent, "_C.physics_area_add", return 0);
-    collisionarea a;
-    a.size = vec(10, 10, 10);
-    a.solid = true;
-    areas.access(ent->staticEntity->uniqueId, a);
-    return 0;
-});
-
-LUAICOMMAND(physics_area_remove, {
-    LUA_GET_ENT(ent, "_C.physics_area_remove", return 0);
-    areas.remove(ent->uniqueId);
-    return 0;
-});
-
-bool areacollide(physent *d, const vec &dir, extentity &e) {
-    collisionarea &a = areas[e.uniqueId];
+bool areacollide(physent *d, const vec &dir, CLogicEntity *el) {
+    extentity &e = *el->staticEntity;
     vec center = vec(0, 0, 0);
-    vec radius = a.size;
+    vec radius = vec(e.attr2, e.attr3, e.attr4);
+    bool solid = (e.attr5 != 0);
     switch (d->collidetype) {
         case COLLIDE_ELLIPSE:
             if (!ellipserectcollide(d, dir, e.o, center, e.attr1,
@@ -822,14 +800,17 @@ bool areacollide(physent *d, const vec &dir, extentity &e) {
             break;
     }
     /* inside the area */
-    if (!a.solid && inside) goto collision;
+    if (!solid && inside) goto collision;
     return true;
 collision:
-    lua::push_external("physics_collide_area");
-    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
-    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(e)->lua_ref);
-    lua_call(lua::L, 2, 0);
-    return !a.solid;
+    CLogicEntity *dl = LogicSystem::getLogicEntity(d);
+    if (dl) {
+        lua::push_external("physics_collide_area");
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, dl->lua_ref);
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
+        lua_call(lua::L, 2, 0);
+    }
+    return !solid;
 }
 
 bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // collide with a mapmodel
@@ -838,13 +819,14 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
     loopv(oc.mapmodels)
     {
         extentity &e = *ents[oc.mapmodels[i]];
+        if(e.flags&extentity::F_NOCOLLIDE) continue;
+        CLogicEntity *el = LogicSystem::getLogicEntity(e);
+        if (!el) continue;
         if (e.type == ET_OBSTACLE) { /* OF */
-            if (!areacollide(d, dir, e)) return false;
+            if (!areacollide(d, dir, el)) return false;
             continue;
         }
-        if(e.flags&extentity::F_NOCOLLIDE) continue;
-        CLogicEntity *entity = LogicSystem::getLogicEntity(e);
-        model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
+        model *m = el->getModel(); //loadmodel(NULL, e.attr2);
         if(!m || !m->collide) continue;
         vec center, radius;
         m->collisionbox(center, radius);
@@ -878,10 +860,13 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
         /* OF - collision handling; "return false" replaced with gotos above */
         continue;
 collision:
-        lua::push_external("physics_collide_mapmodel");
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
-        lua_call(lua::L, 2, 0);
+        CLogicEntity *dl = LogicSystem::getLogicEntity(d);
+        if (dl) {
+            lua::push_external("physics_collide_mapmodel");
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, dl->lua_ref);
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
+            lua_call(lua::L, 2, 0);
+        }
         return false;
     }
     return true;
