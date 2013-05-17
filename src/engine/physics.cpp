@@ -711,6 +711,11 @@ bool plcollide(physent *d, const vec &dir)    // collide with player or monster
                     break;
             }
             hitplayer = o;
+            /* OF */
+            lua::push_external("physics_collide_client");
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(o)->lua_ref);
+            lua_call(lua::L, 2, 0);
             return false;
         }
     }

@@ -512,6 +512,17 @@ local Character = Physical_Entity:clone {
 }
 M.Character = Character
 
+--[[! Function: physics_collide_client
+    An external called when two clients collide. Takes both entities. By
+    default emits the "collision" signal on both clients, passing the other
+    one as an argument. The client we're testing collisions against gets
+    the first emit.
+]]
+set_external("physics_collide_mapmodel", function(cl1, cl2)
+    emit(cl1, "collision", cl2)
+    emit(cl2, "collision", cl1)
+end)
+
 --[[! Class: Player
     The default entity class for player. Inherits from <Character>. Adds
     two new properties.
@@ -1018,10 +1029,12 @@ M.Mapmodel = Mapmodel
 --[[! Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
     collider entity (the client) and the mapmodel entity. By default emits
-    the "collision" signal on the mapmodel, passing the collider to it.
+    the "collision" signal on both entities, passing the other one as an
+    argument. The mapmodel takes precedence.
 ]]
 set_external("physics_collide_mapmodel", function(collider, entity)
     emit(entity, "collision", collider)
+    emit(collider, "collision", entity)
 end)
 
 --[[! Class: World_Marker
@@ -1084,11 +1097,13 @@ M.Obstacle = Obstacle
 
 --[[! Function: physics_collide_area
     An external called when a client collides with an area. Takes the
-    collider entity (the client) and the area entity. By default emits the
-    "collision" signal on the area, passing the collider to it.
+    collider entity (the client) and the area entity.  By default emits
+    the "collision" signal on both entities, passing the other one as an
+    argument. The obstacle takes precedence.
 ]]
 set_external("physics_collide_area", function(collider, entity)
     emit(entity, "collision", collider)
+    emit(collider, "collision", entity)
 end)
 
 ents.register_class(Light)
