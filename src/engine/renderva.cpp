@@ -377,7 +377,7 @@ void findvisiblemms(const vector<extentity *> &ents)
             loopv(oe->mapmodels)
             {
                 extentity &e = *ents[oe->mapmodels[i]];
-                if(e.flags&extentity::F_NOVIS) continue;
+                if(e.flags&extentity::F_NOVIS || e.type == ET_OBSTACLE) continue; /* OF */
                 e.visible = true;
                 ++visible;
             }
