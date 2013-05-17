@@ -1017,28 +1017,12 @@ M.Mapmodel = Mapmodel
 
 --[[! Function: physics_collide_mapmodel
     An external called when a client collides with a mapmodel. Takes the
-    collider entity (the client) and the mapmodel. By default emits the
-    "collision" signal on the mapmodel, passing the collider to it.
+    collider entity (the client) and the mapmodel entity. By default emits
+    the "collision" signal on the mapmodel, passing the collider to it.
 ]]
 set_external("physics_collide_mapmodel", function(collider, entity)
     emit(entity, "collision", collider)
 end)
-
---[[! Class: Area_Trigger
-    A variant of <Mapmodel> that emits a "collision" signal on itself
-    when a client (player, NPC...) collide with it. Its default model
-    is "areatrigger" and collision radius width/height are both 10.
-    Likely deprecated (to be replaced with a better system).
-]]
-local Area_Trigger = Mapmodel:clone {
-    name = "Area_Trigger",
-
-    init = function(self, uid, kwargs)
-        Mapmodel.init(self, uid, kwargs)
-        self.model_name = "areatrigger"
-    end
-}
-M.Area_Trigger = Area_Trigger
 
 --[[! Class: World_Marker
     A generic marker with a wide variety of uses. Can be used as a base
@@ -1069,11 +1053,49 @@ local World_Marker = Static_Entity:clone {
 }
 M.World_Marker = World_Marker
 
+--[[! Class: Obstacle
+    A variant of <World_Marker> that emits a "collision" signal on itself
+    when a client (player, NPC...) collides with it. Like a regular marker,
+    it has its own yaw, but it also has dimensions and a property specifying
+    whether the obstacle is solid (if it isn't, it can be used as an area
+    trigger or whatever, the signal works in both cases).
+]]
+local Obstacle = World_Marker:clone {
+    name = "Obstacle",
+
+    properties = {
+        attr1 = svars.State_Integer {
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
+            gui_name = "yaw", alt_name = "yaw"
+        }
+    },
+
+    activate = function(self, kwargs)
+        World_Marker.activate(self, kwargs)
+        _C.physics_area_add(self)
+    end,
+
+    deactivate = function(self)
+        _C.physics_area_remove(self)
+        return World_Marker.deactivate(self)
+    end
+}
+M.Obstacle = Obstacle
+
+--[[! Function: physics_collide_area
+    An external called when a client collides with an area. Takes the
+    collider entity (the client) and the area entity. By default emits the
+    "collision" signal on the area, passing the collider to it.
+]]
+set_external("physics_collide_area", function(collider, entity)
+    emit(entity, "collision", collider)
+end)
+
 ents.register_class(Light)
 ents.register_class(Spot_Light)
 ents.register_class(Envmap)
 ents.register_class(Sound)
 ents.register_class(Particle_Effect)
 ents.register_class(Mapmodel)
-ents.register_class(Area_Trigger)
 ents.register_class(World_Marker)
+ents.register_class(Obstacle)

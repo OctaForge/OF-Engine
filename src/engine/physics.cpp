@@ -767,6 +767,74 @@ static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, con
     return true;
 }
 
+/* area collisions: OF */
+
+struct collisionarea {
+    extentity *e;
+    vec size;
+    int yaw;
+    bool solid;
+};
+static hashtable<int, collisionarea> areas;
+
+vec *get_area_size(int uid) {
+    collisionarea *a = areas.access(uid);
+    if (!a) return NULL;
+    return &a->size;
+}
+
+LUAICOMMAND(physics_area_add, {
+    LUA_GET_ENT(ent, "_C.physics_area_add", return 0);
+    collisionarea a;
+    extentity *e = ent->staticEntity;
+    a.e = e;
+    a.size = vec(10, 10, 10);
+    a.yaw = 0;
+    a.solid = false;
+    areas.access(e->uniqueId, a);
+    return 0;
+});
+
+LUAICOMMAND(physics_area_remove, {
+    LUA_GET_ENT(ent, "_C.physics_area_remove", return 0);
+    areas.remove(ent->uniqueId);
+    return 0;
+});
+
+bool areacollide(physent *d, const vec &dir) {
+    enumerate(areas, collisionarea, a, {
+        extentity &e = *a.e;
+        vec center = vec(0, 0, 0);
+        vec radius = a.size;
+        switch (d->collidetype) {
+            case COLLIDE_ELLIPSE:
+                if (!ellipserectcollide(d, dir, e.o, center, a.yaw,
+                    radius.x, radius.y, radius.z, radius.z)) goto collision;
+                break;
+            case COLLIDE_OBB:
+                if (!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, center,
+                    radius, a.yaw, 0, 0)) goto collision;
+                break;
+            case COLLIDE_AABB:
+            default:
+                rotatebb(center, radius, a.yaw, 0);
+                if (!rectcollide(d, dir, center.add(e.o), radius.x, radius.y,
+                    radius.z, radius.z)) goto collision;
+                break;
+        }
+        /* inside the area */
+        if (!a.solid && inside) goto collision;
+        continue;
+collision:
+        lua::push_external("physics_collide_area");
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(e)->lua_ref);
+        lua_call(lua::L, 2, 0);
+        return !a.solid;
+    });
+    return true;
+}
+
 bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // collide with a mapmodel
 {
     const vector<extentity *> &ents = entities::getents();
@@ -815,7 +883,7 @@ collision:
         lua_call(lua::L, 2, 0);
         return false;
     }
-    return true;
+    return areacollide(d, dir); /* OF */
 }
 
 template<class E>

@@ -176,7 +176,7 @@ function do_mousemove(yaw, pitch)
     end
 end
 
-axis_switcher = ents.register_class(plugins.bake(ents.Area_Trigger, {
+axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
     world_areas.plugin,
     {
         properties = {

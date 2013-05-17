@@ -1,6 +1,6 @@
 module("world_notices", package.seeall)
 
-world_notice = ents.register_class(plugins.bake(ents.Area_Trigger, {{
+world_notice = ents.register_class(plugins.bake(ents.Obstacle, {{
     per_frame = true,
 
     properties = {

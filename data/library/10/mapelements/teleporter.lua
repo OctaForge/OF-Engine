@@ -36,7 +36,7 @@ plugin = {
 }
 
 ents.register_class(plugins.bake(
-    ents.Area_Trigger,
+    ents.Obstacle,
     { plugin },
     "teleporter"
 ))

@@ -461,6 +461,7 @@ void entrotate(int *cw)
     );
 }
 
+vec *get_area_size(int uid);
 void entselectionbox(const entity &e, vec &eo, vec &es) 
 {
     extentity* _e = (extentity*)&e; // INTENSITY
@@ -473,10 +474,11 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
         if(e.attr4 > 0) { float scale = e.attr4/100.0f; eo.mul(scale); es.mul(scale); }
         rotatebb(eo, es, e.attr1, e.attr2, e.attr3); // OF
         eo.add(e.o);
-    }   
+    }
     else
     {
-        es = vec(entselradius);
+        vec *size = get_area_size(_e->uniqueId); /* OF */
+        es = size ? *size : vec(entselradius);
         eo = e.o;
     }    
     eo.sub(es);
