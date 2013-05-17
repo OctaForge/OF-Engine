@@ -41,10 +41,8 @@ void addentity(extentity* entity);
 namespace entities
 {
     const char *entity_names[] = {
-        "none", "light",
-        "mapmodel", "playerstart",
-        "envmap", "particles",
-        "sound", "spotlight"
+        "none", "light", "mapmodel", "playerstart", "envmap", "particles",
+        "sound", "spotlight", "obstacle"
     };
 
     struct Entity_Storage {

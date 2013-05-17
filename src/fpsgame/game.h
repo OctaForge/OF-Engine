@@ -33,6 +33,7 @@ enum                            // static entity types
     PARTICLES = ET_PARTICLES,
     MAPSOUND = ET_SOUND,
     SPOTLIGHT = ET_SPOTLIGHT,
+    OBSTACLE = ET_OBSTACLE,
     MAXENTTYPES
 };
 

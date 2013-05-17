@@ -1464,6 +1464,9 @@ void updateparticles()
                 case ET_MAPMODEL:
                     newparticle(e.o, e.o, 1, PART_EDIT_MAPMODEL, 0xFF4B19, editpartsize);
                     break;
+                case ET_OBSTACLE:
+                    newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFF4B19, editpartsize);
+                    break;
                 case ET_PARTICLES:
                     newparticle(e.o, e.o, 1, PART_EDIT_PARTICLES, 0xFF4B19, editpartsize);
                     break;
@@ -1499,6 +1502,9 @@ void updateparticles()
                     break;
                 case ET_MAPMODEL:
                     newparticle(e.o, e.o, 1, PART_EDIT_MAPMODEL, 0xFFFFFF, editpartsize);
+                    break;
+                case ET_OBSTACLE:
+                    newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFFFFFF, editpartsize);
                     break;
                 case ET_PARTICLES:
                     newparticle(e.o, e.o, 1, PART_EDIT_PARTICLES, 0xFFFFFF, editpartsize);

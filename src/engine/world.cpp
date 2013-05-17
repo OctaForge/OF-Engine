@@ -14,6 +14,8 @@ SVARR(player_class, "player"); /* OF: overridable pcclass */
 VAR(octaentsize, 0, 128, 1024);
 VAR(entselradius, 0, 2, 10);
 
+vec get_area_size(int uid);
+
 bool getentboundingbox(extentity &e, ivec &o, ivec &r)
 {
     switch(e.type)
@@ -43,6 +45,18 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
                 r.mul(2);
                 break;
             }
+        }
+        case ET_OBSTACLE: /* OF */
+        {
+            vec center = vec(0, 0, 0), radius = get_area_size(e.uniqueId);
+            rotatebb(center, radius, e.attr1, 0);
+            o = e.o;
+            o.add(center);
+            r = radius;
+            r.add(1);
+            o.sub(r);
+            r.mul(2);
+            break;
         }
         // invisible mapmodels use entselradius
         default:
@@ -74,6 +88,9 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
             octaentities &oe = *c[i].ext->ents;
             switch(e.type)
             {
+                case ET_OBSTACLE: /* OF */
+                    oe.mapmodels.add(id);
+                    break;
                 case ET_MAPMODEL:
                     if(LogicSystem::getLogicEntity(e)->getModel()) //loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
                     {
@@ -102,6 +119,9 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
             octaentities &oe = *c[i].ext->ents;
             switch(e.type)
             {
+                case ET_OBSTACLE: /* OF */
+                    oe.mapmodels.removeobj(id);
+                    break;
                 case ET_MAPMODEL:
                     if(LogicSystem::getLogicEntity(e)->getModel()) // loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
                     {
@@ -461,7 +481,6 @@ void entrotate(int *cw)
     );
 }
 
-vec *get_area_size(int uid);
 void entselectionbox(const entity &e, vec &eo, vec &es) 
 {
     extentity* _e = (extentity*)&e; // INTENSITY
@@ -475,10 +494,16 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
         rotatebb(eo, es, e.attr1, e.attr2, e.attr3); // OF
         eo.add(e.o);
     }
+    else if(e.type == ET_OBSTACLE) /* OF */
+    {
+        eo = vec(0, 0, 0);
+        es = get_area_size(_e->uniqueId);
+        rotatebb(eo, es, e.attr1, 0);
+        eo.add(e.o);
+    }
     else
     {
-        vec *size = get_area_size(_e->uniqueId); /* OF */
-        es = size ? *size : vec(entselradius);
+        es = vec(entselradius);
         eo = e.o;
     }    
     eo.sub(es);
@@ -638,6 +663,7 @@ void renderentradius(extentity &e, bool color)
         }
 
         case ET_MAPMODEL:
+        case ET_OBSTACLE:
         case ET_PLAYERSTART:
         {
             if(color) gle::colorf(0, 1, 1);
@@ -879,6 +905,7 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
         switch(type)
         {
                 case ET_MAPMODEL:
+                case ET_OBSTACLE: /* OF */
                 case ET_PLAYERSTART:
                     e.attr5 = e.attr4;
                     e.attr4 = e.attr3;

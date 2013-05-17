@@ -553,7 +553,8 @@ ents.register_class(Player)
 
 local st_to_idx = {
     ["none"] = 0, ["light"] = 1, ["mapmodel"] = 2, ["playerstart"] = 3,
-    ["envmap"] = 4, ["particles"] = 5, ["sound"] = 6, ["spotlight"] = 7
+    ["envmap"] = 4, ["particles"] = 5, ["sound"] = 6, ["spotlight"] = 7,
+    ["obstacle"] = 8
 }
 
 --[[! Class: Static_Entity
@@ -1067,14 +1068,15 @@ local World_Marker = Static_Entity:clone {
 M.World_Marker = World_Marker
 
 --[[! Class: Obstacle
-    A variant of <World_Marker> that emits a "collision" signal on itself
-    when a client (player, NPC...) collides with it. Like a regular marker,
-    it has its own yaw, but it also has dimensions and a property specifying
-    whether the obstacle is solid (if it isn't, it can be used as an area
-    trigger or whatever, the signal works in both cases).
+    An entity class that emits a "collision" signal on itself when a client
+    (player, NPC...) collides with it. It has its own yaw, dimensions and a
+    property specifying whether the obstacle is solid (if it isn't, it can be
+    used as an area trigger or whatever, the signal works in both cases).
 ]]
-local Obstacle = World_Marker:clone {
+local Obstacle = Static_Entity:clone {
     name = "Obstacle",
+
+    sauer_type = "obstacle",
 
     properties = {
         attr1 = svars.State_Integer {

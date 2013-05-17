@@ -103,9 +103,9 @@ float CLogicEntity::getRadius()
                     logger::log(logger::WARNING, "Invalid mapmodel model, cannot find radius\r\n");
                     return 8;
                 }
-
-            } else
+            } else if (staticEntity->type == ET_OBSTACLE) {
                 return 8;
+            } else return 8;
         }
     };
 

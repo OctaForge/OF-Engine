@@ -775,28 +775,23 @@ static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, con
 /* area collisions: OF */
 
 struct collisionarea {
-    extentity *e;
     vec size;
-    int yaw;
     bool solid;
 };
 static hashtable<int, collisionarea> areas;
 
-vec *get_area_size(int uid) {
+vec get_area_size(int uid) {
     collisionarea *a = areas.access(uid);
-    if (!a) return NULL;
-    return &a->size;
+    if (!a) return vec(0, 0, 0);
+    return a->size;
 }
 
 LUAICOMMAND(physics_area_add, {
     LUA_GET_ENT(ent, "_C.physics_area_add", return 0);
     collisionarea a;
-    extentity *e = ent->staticEntity;
-    a.e = e;
     a.size = vec(10, 10, 10);
-    a.yaw = 0;
-    a.solid = false;
-    areas.access(e->uniqueId, a);
+    a.solid = true;
+    areas.access(ent->staticEntity->uniqueId, a);
     return 0;
 });
 
@@ -806,38 +801,35 @@ LUAICOMMAND(physics_area_remove, {
     return 0;
 });
 
-bool areacollide(physent *d, const vec &dir) {
-    enumerate(areas, collisionarea, a, {
-        extentity &e = *a.e;
-        vec center = vec(0, 0, 0);
-        vec radius = a.size;
-        switch (d->collidetype) {
-            case COLLIDE_ELLIPSE:
-                if (!ellipserectcollide(d, dir, e.o, center, a.yaw,
-                    radius.x, radius.y, radius.z, radius.z)) goto collision;
-                break;
-            case COLLIDE_OBB:
-                if (!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, center,
-                    radius, a.yaw, 0, 0)) goto collision;
-                break;
-            case COLLIDE_AABB:
-            default:
-                rotatebb(center, radius, a.yaw, 0);
-                if (!rectcollide(d, dir, center.add(e.o), radius.x, radius.y,
-                    radius.z, radius.z)) goto collision;
-                break;
-        }
-        /* inside the area */
-        if (!a.solid && inside) goto collision;
-        continue;
-collision:
-        lua::push_external("physics_collide_area");
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(e)->lua_ref);
-        lua_call(lua::L, 2, 0);
-        return !a.solid;
-    });
+bool areacollide(physent *d, const vec &dir, extentity &e) {
+    collisionarea &a = areas[e.uniqueId];
+    vec center = vec(0, 0, 0);
+    vec radius = a.size;
+    switch (d->collidetype) {
+        case COLLIDE_ELLIPSE:
+            if (!ellipserectcollide(d, dir, e.o, center, e.attr1,
+                radius.x, radius.y, radius.z, radius.z)) goto collision;
+            break;
+        case COLLIDE_OBB:
+            if (!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, center,
+                radius, e.attr1, 0, 0)) goto collision;
+            break;
+        case COLLIDE_AABB:
+        default:
+            rotatebb(center, radius, e.attr1, 0);
+            if (!rectcollide(d, dir, center.add(e.o), radius.x, radius.y,
+                radius.z, radius.z)) goto collision;
+            break;
+    }
+    /* inside the area */
+    if (!a.solid && inside) goto collision;
     return true;
+collision:
+    lua::push_external("physics_collide_area");
+    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
+    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(e)->lua_ref);
+    lua_call(lua::L, 2, 0);
+    return !a.solid;
 }
 
 bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // collide with a mapmodel
@@ -846,6 +838,10 @@ bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // co
     loopv(oc.mapmodels)
     {
         extentity &e = *ents[oc.mapmodels[i]];
+        if (e.type == ET_OBSTACLE) { /* OF */
+            if (!areacollide(d, dir, e)) return false;
+            continue;
+        }
         if(e.flags&extentity::F_NOCOLLIDE) continue;
         CLogicEntity *entity = LogicSystem::getLogicEntity(e);
         model *m = entity->getModel(); //loadmodel(NULL, e.attr2);
@@ -888,7 +884,7 @@ collision:
         lua_call(lua::L, 2, 0);
         return false;
     }
-    return areacollide(d, dir); /* OF */
+    return true;
 }
 
 template<class E>
@@ -1709,7 +1705,8 @@ float dropheight(entity &e)
     switch(e.type)
     {
         case ET_PARTICLES:
-        case ET_MAPMODEL: return 0.0f;
+        case ET_MAPMODEL:
+        case ET_OBSTACLE: return 0.0f; /* OF */
         default: return 4.0f;
     }
 }
