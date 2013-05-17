@@ -98,13 +98,17 @@ float CLogicEntity::getRadius()
                     if (staticEntity->attr4 > 0) { float scale = staticEntity->attr4/100.0f; bbcenter.mul(scale); bbradius.mul(scale); }
                     rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2), int(staticEntity->attr3));
                     bbcenter.add(staticEntity->o);
-                    return bbradius.x + bbradius.y;
+                    return vec2(bbradius.x, bbradius.y).magnitude();
                 } else {
                     logger::log(logger::WARNING, "Invalid mapmodel model, cannot find radius\r\n");
                     return 8;
                 }
             } else if (staticEntity->type == ET_OBSTACLE) {
-                return 8;
+                vec center = vec(0, 0, 0), radius = vec(staticEntity->attr2,
+                    staticEntity->attr3, staticEntity->attr4);
+                rotatebb(center, radius, staticEntity->attr1, 0);
+                center.add(staticEntity->o);
+                return vec2(radius.x, radius.y).magnitude();
             } else return 8;
         }
     };

@@ -780,27 +780,25 @@ static inline bool mmcollide(physent *d, const vec &dir, const extentity &e, con
 
 bool areacollide(physent *d, const vec &dir, CLogicEntity *el) {
     extentity &e = *el->staticEntity;
-    vec center = vec(0, 0, 0);
-    vec radius = vec(e.attr2, e.attr3, e.attr4);
-    bool solid = (e.attr5 != 0);
     switch (d->collidetype) {
         case COLLIDE_ELLIPSE:
-            if (!ellipserectcollide(d, dir, e.o, center, e.attr1,
-                radius.x, radius.y, radius.z, radius.z)) goto collision;
+            if (!ellipserectcollide(d, dir, e.o, vec(0, 0, 0), e.attr1,
+                e.attr2, e.attr3, e.attr4, e.attr4)) goto collision;
             break;
         case COLLIDE_OBB:
-            if (!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, center,
-                radius, e.attr1, 0, 0)) goto collision;
+            if (!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, vec(0, 0, 0),
+                vec(e.attr2, e.attr3, e.attr4), e.attr1, 0, 0)) goto collision;
             break;
         case COLLIDE_AABB:
         default:
+            vec center = vec(0, 0, 0), radius = vec(e.attr2, e.attr3, e.attr4);
             rotatebb(center, radius, e.attr1, 0);
             if (!rectcollide(d, dir, center.add(e.o), radius.x, radius.y,
                 radius.z, radius.z)) goto collision;
             break;
     }
     /* inside the area */
-    if (!solid && inside) goto collision;
+    if (!e.attr5 && inside) goto collision;
     return true;
 collision:
     CLogicEntity *dl = LogicSystem::getLogicEntity(d);
@@ -810,7 +808,7 @@ collision:
         lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
         lua_call(lua::L, 2, 0);
     }
-    return !solid;
+    return e.attr5 != 0;
 }
 
 bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // collide with a mapmodel

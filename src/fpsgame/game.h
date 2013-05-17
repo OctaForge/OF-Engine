@@ -23,20 +23,6 @@ enum
 #define DNF 100.0f              // for normalized vectors
 #define DVELF 1.0f              // for playerspeed based velocity vectors
 
-enum                            // static entity types
-{
-    NOTUSED = ET_EMPTY,         // entity slot not in use in map
-    LIGHT = ET_LIGHT,           // lightsource, attr1 = radius, attr2 = intensity
-    MAPMODEL = ET_MAPMODEL,     // attr1 = angle, attr2 = idx
-    PLAYERSTART,                // attr1 = angle, attr2 = team
-    ENVMAP = ET_ENVMAP,         // attr1 = radius
-    PARTICLES = ET_PARTICLES,
-    MAPSOUND = ET_SOUND,
-    SPOTLIGHT = ET_SPOTLIGHT,
-    OBSTACLE = ET_OBSTACLE,
-    MAXENTTYPES
-};
-
 // network messages codes, c2s, c2c, s2c
 
 enum
