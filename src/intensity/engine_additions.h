@@ -69,15 +69,6 @@ struct CLogicEntity
     //! Returns the type, i.e., dynamic (player, NPC - physent/fpsent), or static (mapmodel). In the future, also lights, etc.
     int   getType();
 
-    //! The location of the entity in the world
-    vec   getOrigin();
-
-    //! The radius of the entity. *Not* the bounding box. This is the radius used for visual purposes, e.g., when marked by mouseover
-    float getRadius();
-
-    //! Deprecated until we get it to work
-    void  setOrigin(vec &newOrigin);
-
     bool  isNone()    { return getType() == LE_NONE;    };
     bool  isDynamic() { return getType() == LE_DYNAMIC; };
     bool  isStatic()  { return getType() == LE_STATIC;  };

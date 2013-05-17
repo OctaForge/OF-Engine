@@ -1420,7 +1420,7 @@ namespace MessageSystem
             CLogicEntity *entity = LogicSystem::getLogicEntity( player );
             if (entity)
             {
-                vec where = entity->getOrigin();
+                vec where = entity->staticEntity->o;
                 playsound(soundId, &where);
             } // If no entity - but there should be, there is a player - do not play at all.
         }

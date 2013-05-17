@@ -592,33 +592,6 @@ assert(0);
 
     void adddynlights()
     {
-        #ifdef CLIENT
-            if (freeeditcursor < 2) return;
-
-            if (!TargetingControl::targetLogicEntity
-              || TargetingControl::targetLogicEntity->isNone()) return;
-
-            vec color;
-            switch (TargetingControl::targetLogicEntity->getType())
-            {
-                case CLogicEntity::LE_DYNAMIC:
-                    color = vec(0.25f, 1.0f, 0.25f);
-                    break;
-                case CLogicEntity::LE_STATIC:
-                    color = vec(0.25f, 0.25f, 1.0f);
-                    break;
-                default:
-                    return;
-            }
-
-            vec position = TargetingControl::targetLogicEntity->getOrigin();
-            float radius = TargetingControl::targetLogicEntity->getRadius();
-
-            adddynlight(position, radius * 2, color);
-
-            //vec floornorm;
-            //float floordist = rayfloor(position, floornorm);
-        #endif
     }
 
     void edittrigger(const selinfo &sel, int op, int arg1, int arg2, int arg3)

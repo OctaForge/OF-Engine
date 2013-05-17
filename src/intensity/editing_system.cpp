@@ -64,7 +64,7 @@ namespace EditingSystem
             vec fp = saved_pos;
 
             fp.mul(    FAR_PLACING_FACTOR);
-            vec cp = ClientSystem::playerLogicEntity->getOrigin();
+            vec cp = ClientSystem::playerLogicEntity->dynamicEntity->o;
             cp.mul(1 - FAR_PLACING_FACTOR);
             cp.add(fp);
 

@@ -48,89 +48,6 @@ int CLogicEntity::getType()
 
 extern vector<mapmodelinfo> mapmodels; // KLUDGE
 
-vec CLogicEntity::getOrigin()
-{
-    switch (getType())
-    {
-        case LE_DYNAMIC:
-            return dynamicEntity->o;
-        case LE_STATIC:
-        {
-            if (staticEntity->type == ET_MAPMODEL)
-            {
-                vec bbcenter, bbradius;
-                model *m = theModel;
-                if (m)
-                {
-                    m->collisionbox(bbcenter, bbradius);
-                    if (staticEntity->attr4 > 0) { float scale = staticEntity->attr4/100.0f; bbcenter.mul(scale); bbradius.mul(scale); }
-                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2), int(staticEntity->attr3));
-                    bbcenter.add(staticEntity->o);
-                    return bbcenter;
-                } else {
-                    logger::log(logger::WARNING, "Invalid mapmodel model\r\n");
-                    return staticEntity->o;
-                }
-            } else
-                return staticEntity->o;
-        }
-    };
-
-    assert(0 && "getting the origin of a NONE or non-Sauer LogicEntity!");
-    return vec(0,0,0);
-}
-
-float CLogicEntity::getRadius()
-{
-    switch (getType())
-    {
-        case LE_DYNAMIC:
-            return 10;
-        case LE_STATIC:
-        {
-            if (staticEntity->type == ET_MAPMODEL)
-            {
-                vec bbcenter, bbradius;
-                model *m = theModel;
-                if (m)
-                {
-                    m->collisionbox(bbcenter, bbradius);
-                    if (staticEntity->attr4 > 0) { float scale = staticEntity->attr4/100.0f; bbcenter.mul(scale); bbradius.mul(scale); }
-                    rotatebb(bbcenter, bbradius, int(staticEntity->attr1), int(staticEntity->attr2), int(staticEntity->attr3));
-                    bbcenter.add(staticEntity->o);
-                    return vec2(bbradius.x, bbradius.y).magnitude();
-                } else {
-                    logger::log(logger::WARNING, "Invalid mapmodel model, cannot find radius\r\n");
-                    return 8;
-                }
-            } else if (staticEntity->type == ET_OBSTACLE) {
-                vec center = vec(0, 0, 0), radius = vec(staticEntity->attr2,
-                    staticEntity->attr3, staticEntity->attr4);
-                rotatebb(center, radius, staticEntity->attr1, 0);
-                center.add(staticEntity->o);
-                return vec2(radius.x, radius.y).magnitude();
-            } else return 8;
-        }
-    };
-
-    assert(0 && "getting the radius of a NONE or non-Sauer LogicEntity!");
-    return -1;
-}
-
-void CLogicEntity::setOrigin(vec &newOrigin)
-{
-    lua::push_external("entity_get");
-    lua_pushinteger(lua::L, getUniqueId());
-    lua_call       (lua::L, 1, 1);
-
-    lua_createtable(lua::L, 3, 0);
-    lua_pushnumber (lua::L, newOrigin.x); lua_rawseti(lua::L, -2, 1);
-    lua_pushnumber (lua::L, newOrigin.y); lua_rawseti(lua::L, -2, 2);
-    lua_pushnumber (lua::L, newOrigin.z); lua_rawseti(lua::L, -2, 3);
-    lua_setfield   (lua::L, -2, "position");
-    lua_pop        (lua::L,  1);
-}
-
 int CLogicEntity::getAnimation()
 {
     return animation;
@@ -335,7 +252,7 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
         }
     }
     static vec missing; // Returned if no such tag, or no recent attachment position info. Note: Only one of these, static!
-    missing = getOrigin();
+    if (getType() == LE_DYNAMIC) missing = dynamicEntity->o; else missing = staticEntity->o;
     return missing;
 }
 
