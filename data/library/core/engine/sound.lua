@@ -25,10 +25,9 @@ local vec3 = math.Vec3
 
 return {
     --[[! Function: play
-        Plays a sound. If called on the client, accepts either an integer
-        (in which case it plays soundslot N) or the sound name, a position
-        (which is a vec3 and defaults to 0, 0, 0) and volume (which is a
-        number defaulting to 100).
+        Plays a sound. If called on the client, accepts the sound name, a
+        position (which is a vec3 and defaults to 0, 0, 0) and volume (which
+        is a number defaulting to 100).
 
         On the server it can also take a client number specifying the client
         it'll send the sound message to (which defaults to -1, all clients),
@@ -40,24 +39,20 @@ return {
         pos = pos or vec3(0, 0, 0)
         play(name, pos.x, pos.y, pos.z, volume)
     end or function(name, pos, volume, cn)
-        if type(name) == "number" then
-            -- cn is pos here (second arg)
-            send(pos or msg.ALL_CLIENTS, sound_toclients, name, -1)
-        elseif name then
-            pos = pos or vec3(0, 0, 0)
-            if #name > 2 then
-                #log(WARNING,
-                #    string.format(
-                #        "Sending a sound '%s' to clients using"
-                #        .. " full string name. This should be done rarely,"
-                #        .. " for bandwidth reasons.",
-                #        name
-                #    )
-                #)
-            end
-            send(cn or msg.ALL_CLIENTS, sound_toclients_byname,
-                pos.x, pos.y, pos.z, name, -1)
+        if not name then return nil end
+        pos = pos or vec3(0, 0, 0)
+        if #name > 2 then
+            #log(WARNING,
+            #    string.format(
+            #        "Sending a sound '%s' to clients using"
+            #        .. " full string name. This should be done rarely,"
+            #        .. " for bandwidth reasons.",
+            #        name
+            #    )
+            #)
         end
+        send(cn or msg.ALL_CLIENTS, sound_toclients_byname,
+            pos.x, pos.y, pos.z, name, -1)
     end,
 
     --[[! Function: stop
@@ -86,5 +81,11 @@ return {
         Preloads a map sound so that it doesn't have to be loaded on the fly
         later. That leads to better performance.
     ]]
-    preload_map = _C.sound_preload_map
+    preload_map = _C.sound_preload_map,
+
+    --[[! Function: preload_game
+        Preloads a game sound so that it doesn't have to be loaded on the fly
+        later. That leads to better performance.
+    ]]
+    preload_game = _C.sound_preload_game
 }

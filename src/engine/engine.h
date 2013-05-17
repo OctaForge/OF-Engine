@@ -677,16 +677,6 @@ extern void initmumble();
 extern void closemumble();
 extern void updatemumble();
 
-// hardcoded sounds, defined in sounds.cfg
-enum
-{
-    S_JUMP = 0, S_LAND, 
-    S_SPLASH1, S_SPLASH2,
-    S_BURN,
-    S_MENUCLICK,
-    S_UW
-};
-
 // grass
 extern void generategrass();
 extern void rendergrass();

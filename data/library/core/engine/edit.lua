@@ -23,27 +23,42 @@ M.MATERIAL_AIR = 0
 --[[! Variable: MATERIAL_WATER
     Represents the "water" material.
 ]]
-M.MATERIAL_WATER = 1
+M.MATERIAL_WATER = math.lsh(1, 2)
 
 --[[! Variable: MATERIAL_LAVA
     Represents the "lava" material.
 ]]
-M.MATERIAL_LAVA = 2
+M.MATERIAL_LAVA = math.lsh(2, 2)
 
 --[[! Variable: MATERIAL_GLASS
     Represents the "glass" material.
 ]]
-M.MATERIAL_GLASS = 3
+M.MATERIAL_GLASS = math.lsh(3, 2)
 
 --[[! Variable: MATERIAL_NOCLIP
     Represents the "noclip" material.
 ]]
-M.MATERIAL_NOCLIP = math.lsh(2, 3)
+M.MATERIAL_NOCLIP = math.lsh(1, 5)
 
 --[[! Variable: MATERIAL_CLIP
     Represents the "clip" material.
 ]]
-M.MATERIAL_CLIP = math.lsh(2, 3)
+M.MATERIAL_CLIP = math.lsh(2, 5)
+
+--[[! Variable: MATERIAL_GAMECLIP
+    Represents the "gameclip" material.
+]]
+M.MATERIAL_GAMECLIP = math.lsh(3, 5)
+
+--[[! Variable: MATERIAL_DEATH
+    Represents the "death" material.
+]]
+M.MATERIAL_DEATH = math.lsh(1, 8)
+
+--[[! Variable: MATERIAL_ALPHA
+    Represents the "alpha" material.
+]]
+M.MATERIAL_ALPHA = math.lsh(4, 8)
 
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered

@@ -1899,11 +1899,17 @@ bool moveplayer(physent *pl, int moveres, bool local, int curtime)
     else if(pl->inwater && !water) game::physicstrigger(pl, local, 0, 1, pl->inwater);
     pl->inwater = water ? material&MATF_VOLUME : MAT_AIR;
 
-    if (pl->o.z < 0) {
-        assert(lua::push_external("event_off_map"));
-        lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
-            LogicSystem::getLogicEntity((dynent*)pl)->lua_ref);
-        lua_call(lua::L, 1, 0);
+    if (material&MAT_DEATH) {
+        if (lua::push_external("physics_in_deadly")) {
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(pl)->lua_ref);
+            lua_pushinteger(lua::L, material&MATF_VOLUME);
+            lua_call(lua::L, 2, 0);
+        }
+    } else if (pl->o.z < 0) {
+        if (lua::push_external("physics_off_map")) {
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(pl)->lua_ref);
+            lua_call(lua::L, 1, 0);
+        }
     }
     return true;
 }

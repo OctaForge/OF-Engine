@@ -1260,7 +1260,6 @@ int main(int argc, char **argv)
 
     execfile("data/cfg/keymap.cfg");
     execfile("data/cfg/stdedit.cfg");
-    execfile("data/cfg/sounds.cfg");
     tools::execfile("data/cfg/menus.lua");
     execfile("data/cfg/brush.cfg");
     execfile("mybrushes.cfg");

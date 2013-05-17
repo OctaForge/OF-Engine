@@ -603,8 +603,6 @@ void processkey(int code, bool isdown)
             {
                 if(haskey) execbind(*haskey, isdown);
             }
-        } else if (isdown) {
-            playsound(S_MENUCLICK);
         }
     }
 }

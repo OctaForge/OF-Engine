@@ -281,9 +281,6 @@ static int addsound(const char *name, int vol, int maxuses, vector<soundconfig> 
     return sounds.length()-1;
 }
 
-void registersound(char *name, int *vol) { intret(addsound(name, *vol, 0, gamesounds, gameslots)); }
-COMMAND(registersound, "si");
-
 void resetchannels()
 {
     loopv(channels) if(channels[i].inuse) freechannel(i);
@@ -482,14 +479,18 @@ void preloadsound(int n)
 }
 
 /* OF */
-int preloadmapsound(const char *name, int vol)
-{
-    int id = findsound(name, vol, mapsounds, mapslots);
-    if (id < 0) id = addsound(name, vol, 0, mapsounds, mapslots);
-    if (!mapsounds.inrange(id)) { conoutf(CON_WARN, "cannot preload sound: %s", name); return -1; }
-    preloadsound(mapsounds, mapslots, id);
-    return id;
-}
+#define PRELOADFUN(type) \
+    int preload##type##sound(const char *name, int vol) \
+    { \
+        int id = findsound(name, vol, type##sounds, type##slots); \
+        if (id < 0) id = addsound(name, vol, 0, type##sounds, type##slots); \
+        if (!type##sounds.inrange(id)) { conoutf(CON_WARN, "cannot preload sound: %s", name); return -1; } \
+        preloadsound(type##sounds, type##slots, id); \
+        return id; \
+    }
+
+PRELOADFUN(map)
+PRELOADFUN(game)
 
 int playsound(int n, const vec *loc, extentity *ent, int flags, int loops, int fade, int chanid, int radius, int expire)
 {
@@ -800,6 +801,14 @@ LUAICOMMAND(sound_preload_map, {
     defformatstring(buf)("preloading sound '%s' ...", n);
     renderprogress(0, buf);
     lua_pushinteger(L, preloadmapsound(n, luaL_optinteger(L, 2, 100)));
+    return 1;
+});
+
+LUAICOMMAND(sound_preload_game, {
+    const char *n = luaL_checkstring(L, 1);
+    defformatstring(buf)("preloading sound '%s' ...", n);
+    renderprogress(0, buf);
+    lua_pushinteger(L, preloadgamesound(n, luaL_optinteger(L, 2, 100)));
     return 1;
 });
 

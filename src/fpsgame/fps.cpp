@@ -505,28 +505,16 @@ namespace game
 #endif
     }
 
-    void playsoundc(int n, fpsent *d = NULL)
-    { 
-#ifdef CLIENT
-        if(!d || d==player1)
-        {
-            MessageSystem::send_SoundToServer(n);
-//            addmsg(N_SOUND, "i", n); 
-
-            playsound(n); 
-        }
-        else playsound(n, &d->o);
-#endif
-    }
-
     void physicstrigger(physent *d, bool local, int floorlevel, int waterlevel, int material)
     {
-#ifdef CLIENT
-        if     (waterlevel>0) { if(material!=MAT_LAVA) playsound(S_SPLASH1, d==player1 ? NULL : &d->o); }
-        else if(waterlevel<0) playsound(material==MAT_LAVA ? S_BURN : S_SPLASH2, d==player1 ? NULL : &d->o);
-        if     (floorlevel>0) { if(d==player1 || d->type!=ENT_PLAYER) playsoundc(S_JUMP, (fpsent *)d); }
-        else if(floorlevel<0) { if(d==player1 || d->type!=ENT_PLAYER) playsoundc(S_LAND, (fpsent *)d); }
-#endif
+        if (lua::push_external("physics_state_change")) {
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, LogicSystem::getLogicEntity(d)->lua_ref);
+            lua_pushboolean(lua::L, local);
+            lua_pushinteger(lua::L, floorlevel);
+            lua_pushinteger(lua::L, waterlevel);
+            lua_pushinteger(lua::L, material);
+            lua_call(lua::L, 5, 0);
+        }
     }
 
     int numdynents()
