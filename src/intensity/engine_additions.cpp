@@ -252,7 +252,25 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
         }
     }
     static vec missing; // Returned if no such tag, or no recent attachment position info. Note: Only one of these, static!
-    if (getType() == LE_DYNAMIC) missing = dynamicEntity->o; else missing = staticEntity->o;
+    if (getType() == LE_DYNAMIC) {
+        missing = dynamicEntity->o;
+    } else {
+        if (staticEntity->type == ET_MAPMODEL) {
+            vec center, radius;
+            if (theModel) {
+                theModel->collisionbox(center, radius);
+                if (staticEntity->attr4 > 0) {
+                    float scale = staticEntity->attr4 / 100.0f;
+                    center.mul(scale); radius.mul(scale);
+                }
+                rotatebb(center, radius, staticEntity->attr1, staticEntity->attr2, staticEntity->attr3);
+                center.add(staticEntity->o);
+                missing = center;
+            } else missing = staticEntity->o;
+        } else {
+            missing = staticEntity->o;
+        }
+    }
     return missing;
 }
 
