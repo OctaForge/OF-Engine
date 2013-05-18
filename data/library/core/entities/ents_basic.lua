@@ -302,10 +302,7 @@ local Character = Physical_Entity:clone {
             custom_sync = true
         },
 
-        jumping_trigger = svars.State_Boolean(),
-        landing_trigger = svars.State_Boolean(),
-        aboveliquid_trigger = svars.State_Integer(),
-        underliquid_trigger = svars.State_Integer(),
+        physics_trigger = svars.State_Integer(),
 
         jumping_sound = svars.State_String(),
         landing_sound = svars.State_String()
@@ -337,12 +334,9 @@ local Character = Physical_Entity:clone {
         self.radius         = 3.0
         self.can_move       = true
 
-        self.jumping_sound  = "gk/jump2.ogg"
-        self.landing_sound  = "olpc/AdamKeshen/kik.wav"
-        self.jumping_trigger = false
-        self.landing_trigger = false
-        self.aboveliquid_trigger = 0
-        self.underliquid_trigger = 0
+        self.physics_trigger = 0
+        self.jumping_sound   = "gk/jump2.ogg"
+        self.landing_sound   = "olpc/AdamKeshen/kik.wav"
 
         self:define_getter("plag", self.get_plag)
         self:define_getter("ping", self.get_ping)
@@ -366,33 +360,36 @@ local Character = Physical_Entity:clone {
 
         self.render_args_timestamp = -1
 
-        connect(self, "jumping_trigger_changed", function(self, val)
-            if not val then return nil end
-            self.jumping_trigger = false
-            sound.play(self.jumping_sound, (self ~= ents.get_player())
-                and self.position or nil)
-        end)
-        connect(self, "landing_trigger_changed", function(self, val)
-            if not val then return nil end
-            self.landing_trigger = false
-            sound.play(self.landing_sound, (self ~= ents.get_player())
-                and self.position or nil)
-        end)
-        connect(self, "aboveliquid_trigger_changed", function(self, val)
+        -- stuff extra info into unused material fields to save space
+        -- see world.lua
+        local clipf, flagf = edit.MATERIALF_CLIP, edit.MATERIALF_FLAGS
+        local clip, noclip = edit.MATERIAL_CLIP, edit.MATERIAL_NOCLIP
+        local death, alpha = edit.MATERIAL_DEATH, edit.MATERIAL_ALPHA
+        local volumef, lava = edit.MATERIALF_VOLUME, edit.MATERIAL_LAVA
+        connect(self, "physics_trigger_changed", function(self, val)
             if val == 0 then return nil end
-            self.aboveliquid_trigger = 0
-            if val ~= edit.MATERIAL_LAVA then
-                sound.play("yo_frankie/amb_waterdrip_2.wav",
-                    (self ~= ents.get_player()) and self.position or nil)
+            self.physics_trigger = 0
+
+            local pos = (self ~= ents.get_player()) and self.position or nil
+
+            local cf = band(val, clipf)
+            if cf == noclip then
+                local mat = band(val, volumef)
+                if mat ~= lava then
+                    sound.play("yo_frankie/amb_waterdrip_2.wav", pos)
+                end
+            elseif cf == clip then
+                local mat = band(val, volumef)
+                sound.play(mat == lava and "yo_frankie/DeathFlash.wav"
+                    or "yo_frankie/watersplash2.wav", pos)
             end
-        end)
-        connect(self, "underliquid_trigger_changed", function(self, val)
-            if val == 0 then return nil end
-            self.underliquid_trigger = 0
-            sound.play(val == edit.MATERIAL_LAVA
-                and "yo_frankie/DeathFlash.wav"
-                or "yo_frankie/watersplash2.wav",
-                (self ~= ents.get_player()) and self.position or nil)
+
+            local ff = band(val, flagf)
+            if ff == death then
+                sound.play(self.jumping_sound, pos)
+            elseif ff == alpha then
+                sound.play(self.landing_sound, pos)
+            end
         end)
     end,
 

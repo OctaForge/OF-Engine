@@ -60,6 +60,30 @@ M.MATERIAL_DEATH = math.lsh(1, 8)
 ]]
 M.MATERIAL_ALPHA = math.lsh(4, 8)
 
+--[[! Variable: MATERIAL_INDEX_SHIFT ]]
+M.MATERIAL_INDEX_SHIFT = 0
+
+--[[! Variable: MATERIAL_VOLUME_SHIFT ]]
+M.MATERIAL_VOLUME_SHIFT = 2
+
+--[[! Variable: MATERIAL_CLIP_SHIFT ]]
+M.MATERIAL_CLIP_SHIFT = 5
+
+--[[! Variable: MATERIAL_FLAG_SHIFT ]]
+M.MATERIAL_FLAG_SHIFT = 8
+
+--[[! Variable: MATERIALF_INDEX ]]
+M.MATERIALF_INDEX = math.lsh(3, 0)
+
+--[[! Variable: MATERIALF_VOLUME ]]
+M.MATERIALF_VOLUME = math.lsh(7, 2)
+
+--[[! Variable: MATERIALF_CLIP ]]
+M.MATERIALF_CLIP = math.lsh(7, 5)
+
+--[[! Variable: MATERIALF_FLAGS ]]
+M.MATERIALF_FLAGS = math.lsh(255, 8)
+
 --[[! Function: add_npc
     Adds a bot into the world onto the starting position. Bots are considered
     clients. You can define their AI via their entity class. This is purely

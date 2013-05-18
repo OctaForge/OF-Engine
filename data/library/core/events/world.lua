@@ -37,23 +37,28 @@ set_external("physics_in_deadly", function(ent, mat) end)
     out of/into water, it's water material id). For material ids, see the
     <edit> module.
 
-    By default this activates trigger state vars on the client
+    By default this activates physics trigger state var on the client
     (see <Character>).
 ]]
 set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
     if not CLIENT then return nil end
-    
-    local pos = (ent ~= ents.get_player()) and ent.position or nil
+
+    local flags = mat
+
+    -- abuse unused fields to stuff extra info inside - clip flags for
+    -- liquid level and flags for floor level - "mat" here is always a
+    -- liquid (no clip, alpha or whatever).
     if llevel > 0 then
-        ent.aboveliquid_trigger = mat
+        flags = math.bor(flags, edit.MATERIAL_NOCLIP)
     elseif llevel < 0 then
-        ent.underliquid_trigger = mat
+        flags = math.bor(flags, edit.MATERIAL_CLIP)
     end
     if flevel > 0 then
-        ent.jumping_trigger = true
+        flags = math.bor(flags, edit.MATERIAL_DEATH)
     elseif flevel < 0 then
-        ent.landing_trigger = true
+        flags = math.bor(flags, edit.MATERIAL_ALPHA)
     end
+    if flags ~= mat then ent.physics_trigger = flags end
 end)
 
 --[[! Function: event_text_message
