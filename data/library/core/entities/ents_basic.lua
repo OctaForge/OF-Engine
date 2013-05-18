@@ -20,7 +20,7 @@ local Entity = M.Entity
 
 local band, bor, lsh, rsh = math.band, math.bor, math.lsh, math.rsh
 local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
-local emit = signal.emit
+local connect, emit = signal.connect, signal.emit
 
 --[[! Class: Physical_Entity
     Represents a base for every entity that has some kind of physical
@@ -159,6 +159,10 @@ M.Local_Animation_Action = actions.Action:clone {
         0 when not at all.
         pitching [<svars.State_Integer>] - -1 when looking down, 1 when up,
         0 when not.
+        jumping [<svars.State_Boolean>] - true when the character has jumped,
+        false otherwise.
+        landing [<svars.State_Boolean>] - true when the character has landed,
+        false otherwise.
         position [<svars.State_Vec3>] - the current position. Defaults to
         { 512, 512, 550 }.
         velocity [<svars.State_Vec3>] - the current velocity.
@@ -244,6 +248,11 @@ local Character = Physical_Entity:clone {
             getter = "_C.get_pitching", setter = "_C.set_pitching",
             custom_sync = true
         },
+        jumping = svars.State_Boolean {
+            getter = "_C.get_jumping", setter = "_C.set_jumping",
+            custom_sync = true
+        },
+        landing = svars.State_Boolean(),
         position = svars.State_Vec3 {
             getter = "_C.get_dynent_position",
             setter = "_C.set_dynent_position",
@@ -301,7 +310,7 @@ local Character = Physical_Entity:clone {
         A handler called when the character is about to jump.
     ]]
     jump = function(self)
-        _C.set_jumping(self, true)
+        self.jumping = true
     end,
 
     get_plag = _C.get_plag,
@@ -322,6 +331,7 @@ local Character = Physical_Entity:clone {
         self.position       = { 512, 512, 550 }
         self.radius         = 3.0
         self.can_move       = true
+        self.landing        = false
 
         self:define_getter("plag", self.get_plag)
         self:define_getter("ping", self.get_ping)
@@ -518,7 +528,7 @@ M.Character = Character
     one as an argument. The client we're testing collisions against gets
     the first emit.
 ]]
-set_external("physics_collide_mapmodel", function(cl1, cl2)
+set_external("physics_collide_client", function(cl1, cl2)
     emit(cl1, "collision", cl2)
     emit(cl2, "collision", cl1)
 end)
@@ -530,13 +540,17 @@ end)
     Properties:
         can_edit [false] - if player can edit, it's true (private edit mode).
         hud_model_name [""] - the first person model to use for the player.
+        jumping_sound ["gk/jump2.ogg"] - the default jumping sound.
+        landing_sound ["olpc/AdamKeshen/kik.wav"] - the default landing sound.
 ]]
 local Player = Character:clone {
     name = "Player",
 
     properties = {
         can_edit = svars.State_Boolean(),
-        hud_model_name = svars.State_String()
+        hud_model_name = svars.State_String(),
+        jumping_sound = svars.State_String(),
+        landing_sound = svars.State_String()
     },
 
     init = SERVER and function(self, uid, kwargs)
@@ -544,6 +558,23 @@ local Player = Character:clone {
 
         self.can_edit       = false
         self.hud_model_name = ""
+        self.jumping_sound  = "gk/jump2.ogg"
+        self.landing_sound  = "olpc/AdamKeshen/kik.wav"
+    end or nil,
+
+    activate = CLIENT and function(self, kwargs)
+        Character.activate(self, kwargs)
+        connect(self, "jumping_changed", function(self, val)
+            if not val then return nil end
+            sound.play(self.jumping_sound, (self ~= ents.get_player())
+                and self.position or nil)
+        end)
+        connect(self, "landing_changed", function(self, val)
+            if not val then return nil end
+            self.landing = false
+            sound.play(self.landing_sound, (self ~= ents.get_player())
+                and self.position or nil)
+        end)
     end or nil
 }
 M.Player = Player
