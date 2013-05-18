@@ -127,6 +127,17 @@ M.Local_Animation_Action = actions.Action:clone {
     end
 }
 
+-- physics state flags
+local MASK_MAT = 0x3
+local FLAG_WATER = lsh(1, 0)
+local FLAG_LAVA  = lsh(2, 0)
+local MASK_LIQUID = 0xC
+local FLAG_ABOVELIQUID = lsh(1, 2)
+local FLAG_BELOWLIQUID = lsh(2, 2)
+local MASK_GROUND = 0x30
+local FLAG_ABOVEGROUND = lsh(1, 4)
+local FLAG_BELOWGROUND = lsh(2, 4)
+
 --[[! Class: Character
     Represents the base class for any character (NPC, player etc.). Players
     use the <Player> entity class that inherits from this one.
@@ -360,34 +371,28 @@ local Character = Physical_Entity:clone {
 
         self.render_args_timestamp = -1
 
-        -- stuff extra info into unused material fields to save space
-        -- see world.lua
-        local clipf, flagf = edit.MATERIALF_CLIP, edit.MATERIALF_FLAGS
-        local clip, noclip = edit.MATERIAL_CLIP, edit.MATERIAL_NOCLIP
-        local death, alpha = edit.MATERIAL_DEATH, edit.MATERIAL_ALPHA
-        local volumef, lava = edit.MATERIALF_VOLUME, edit.MATERIAL_LAVA
+        -- see world.lua for field meanings
         connect(self, "physics_trigger_changed", function(self, val)
             if val == 0 then return nil end
             self.physics_trigger = 0
 
             local pos = (self ~= ents.get_player()) and self.position or nil
 
-            local cf = band(val, clipf)
-            if cf == noclip then
-                local mat = band(val, volumef)
-                if mat ~= lava then
+            local lst = band(val, MASK_LIQUID)
+            if lst == FLAG_ABOVELIQUID then
+                if band(val, MASK_MAT) ~= FLAG_LAVA then
                     sound.play("yo_frankie/amb_waterdrip_2.wav", pos)
                 end
-            elseif cf == clip then
-                local mat = band(val, volumef)
-                sound.play(mat == lava and "yo_frankie/DeathFlash.wav"
+            elseif lst == FLAG_BELOWLIQUID then
+                sound.play(band(val, MASK_MAT) == FLAG_LAVA
+                    and "yo_frankie/DeathFlash.wav"
                     or "yo_frankie/watersplash2.wav", pos)
             end
 
-            local ff = band(val, flagf)
-            if ff == death then
+            local gst = band(val, MASK_GROUND)
+            if gst == FLAG_ABOVEGROUND then
                 sound.play(self.jumping_sound, pos)
-            elseif ff == alpha then
+            elseif gst == FLAG_BELOWGROUND then
                 sound.play(self.landing_sound, pos)
             end
         end)
