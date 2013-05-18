@@ -37,22 +37,22 @@ set_external("physics_in_deadly", function(ent, mat) end)
     out of/into water, it's water material id). For material ids, see the
     <edit> module.
 
-    By default this plays water, lava, jumping and landing sounds on the
-    client.
+    By default this activates trigger state vars on the client
+    (see <Character>).
 ]]
 set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
     if not CLIENT then return nil end
+    
     local pos = (ent ~= ents.get_player()) and ent.position or nil
     if llevel > 0 then
-        if mat ~= edit.MATERIAL_LAVA then
-            sound.play("yo_frankie/amb_waterdrip_2.wav", pos)
-        end
+        ent.aboveliquid_trigger = mat
     elseif llevel < 0 then
-        sound.play(mat == edit.MATERIAL_LAVA and "yo_frankie/DeathFlash.wav"
-            or "yo_frankie/watersplash2.wav", pos)
+        ent.underliquid_trigger = mat
     end
-    if flevel < 0 then
-        ent.landing = true
+    if flevel > 0 then
+        ent.jumping_trigger = true
+    elseif flevel < 0 then
+        ent.landing_trigger = true
     end
 end)
 

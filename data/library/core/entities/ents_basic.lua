@@ -161,8 +161,6 @@ M.Local_Animation_Action = actions.Action:clone {
         0 when not.
         jumping [<svars.State_Boolean>] - true when the character has jumped,
         false otherwise.
-        landing [<svars.State_Boolean>] - true when the character has landed,
-        false otherwise.
         position [<svars.State_Vec3>] - the current position. Defaults to
         { 512, 512, 550 }.
         velocity [<svars.State_Vec3>] - the current velocity.
@@ -181,8 +179,8 @@ M.Local_Animation_Action = actions.Action:clone {
         data specific to the current map, see fpsent (TODO: make unsigned).
         client_state [<svars.State_Integer>] - see <State>.
         physical_state [<svars.State_Integer>] - see <Physical_State>.
-        in_water [<svars.State_Integer>] - 1 when the character is underwater,
-        TODO: make boolean.
+        in_liquid [<svars.State_Integer>] - either 0 (in the air) or the
+        liquid material id (water, lava).
         time_in_air [<svars.State_Integer>] - time in milliseconds spent in
         the air (TODO: unsigned).
 ]]
@@ -252,7 +250,6 @@ local Character = Physical_Entity:clone {
             getter = "_C.get_jumping", setter = "_C.set_jumping",
             custom_sync = true
         },
-        landing = svars.State_Boolean(),
         position = svars.State_Vec3 {
             getter = "_C.get_dynent_position",
             setter = "_C.set_dynent_position",
@@ -296,14 +293,22 @@ local Character = Physical_Entity:clone {
             getter = "_C.get_physstate", setter = "_C.set_physstate",
             custom_sync = true
         },
-        in_water = svars.State_Integer {
+        in_liquid = svars.State_Integer {
             getter = "_C.get_inwater", setter = "_C.set_inwater",
             custom_sync = true
         },
         time_in_air = svars.State_Integer {
             getter = "_C.get_timeinair", setter = "_C.set_timeinair",
             custom_sync = true
-        }
+        },
+
+        jumping_trigger = svars.State_Boolean(),
+        landing_trigger = svars.State_Boolean(),
+        aboveliquid_trigger = svars.State_Integer(),
+        underliquid_trigger = svars.State_Integer(),
+
+        jumping_sound = svars.State_String(),
+        landing_sound = svars.State_String()
     },
 
     --[[! Function: jump
@@ -331,7 +336,13 @@ local Character = Physical_Entity:clone {
         self.position       = { 512, 512, 550 }
         self.radius         = 3.0
         self.can_move       = true
-        self.landing        = false
+
+        self.jumping_sound  = "gk/jump2.ogg"
+        self.landing_sound  = "olpc/AdamKeshen/kik.wav"
+        self.jumping_trigger = false
+        self.landing_trigger = false
+        self.aboveliquid_trigger = 0
+        self.underliquid_trigger = 0
 
         self:define_getter("plag", self.get_plag)
         self:define_getter("ping", self.get_ping)
@@ -354,6 +365,35 @@ local Character = Physical_Entity:clone {
         _C.setup_character(self)
 
         self.render_args_timestamp = -1
+
+        connect(self, "jumping_trigger_changed", function(self, val)
+            if not val then return nil end
+            self.jumping_trigger = false
+            sound.play(self.jumping_sound, (self ~= ents.get_player())
+                and self.position or nil)
+        end)
+        connect(self, "landing_trigger_changed", function(self, val)
+            if not val then return nil end
+            self.landing_trigger = false
+            sound.play(self.landing_sound, (self ~= ents.get_player())
+                and self.position or nil)
+        end)
+        connect(self, "aboveliquid_trigger_changed", function(self, val)
+            if val == 0 then return nil end
+            self.aboveliquid_trigger = 0
+            if val ~= edit.MATERIAL_LAVA then
+                sound.play("yo_frankie/amb_waterdrip_2.wav",
+                    (self ~= ents.get_player()) and self.position or nil)
+            end
+        end)
+        connect(self, "underliquid_trigger_changed", function(self, val)
+            if val == 0 then return nil end
+            self.underliquid_trigger = 0
+            sound.play(val == edit.MATERIAL_LAVA
+                and "yo_frankie/DeathFlash.wav"
+                or "yo_frankie/watersplash2.wav",
+                (self ~= ents.get_player()) and self.position or nil)
+        end)
     end,
 
     deactivate = function(self)
@@ -393,7 +433,7 @@ local Character = Physical_Entity:clone {
             end
 
             local pstate = self.physical_state
-            local bt, iw = self.start_time, self.in_water
+            local bt, iw = self.start_time, self.in_liquid
             local mv, sf = self.move, self.strafe
 
             local vel, fall = self.velocity:copy(), self.falling:copy()
@@ -438,7 +478,7 @@ local Character = Physical_Entity:clone {
         strafing, swimming etc into account.
 
         Passed arguments are client_state, physical_state, move, strafe,
-        velocity, falling, in_water and time_in_air (same as the state
+        velocity, falling, in_liquid and time_in_air (same as the state
         variables).
     ]]
     decide_animation = CLIENT and function(self, state, pstate, move, strafe,
@@ -540,17 +580,13 @@ end)
     Properties:
         can_edit [false] - if player can edit, it's true (private edit mode).
         hud_model_name [""] - the first person model to use for the player.
-        jumping_sound ["gk/jump2.ogg"] - the default jumping sound.
-        landing_sound ["olpc/AdamKeshen/kik.wav"] - the default landing sound.
 ]]
 local Player = Character:clone {
     name = "Player",
 
     properties = {
         can_edit = svars.State_Boolean(),
-        hud_model_name = svars.State_String(),
-        jumping_sound = svars.State_String(),
-        landing_sound = svars.State_String()
+        hud_model_name = svars.State_String()
     },
 
     init = SERVER and function(self, uid, kwargs)
@@ -558,23 +594,6 @@ local Player = Character:clone {
 
         self.can_edit       = false
         self.hud_model_name = ""
-        self.jumping_sound  = "gk/jump2.ogg"
-        self.landing_sound  = "olpc/AdamKeshen/kik.wav"
-    end or nil,
-
-    activate = CLIENT and function(self, kwargs)
-        Character.activate(self, kwargs)
-        connect(self, "jumping_changed", function(self, val)
-            if not val then return nil end
-            sound.play(self.jumping_sound, (self ~= ents.get_player())
-                and self.position or nil)
-        end)
-        connect(self, "landing_changed", function(self, val)
-            if not val then return nil end
-            self.landing = false
-            sound.play(self.landing_sound, (self ~= ents.get_player())
-                and self.position or nil)
-        end)
     end or nil
 }
 M.Player = Player
