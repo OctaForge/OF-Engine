@@ -797,8 +797,13 @@ bool areacollide(physent *d, const vec &dir, CLogicEntity *el) {
                 radius.z, radius.z)) goto collision;
             break;
     }
-    /* inside the area */
-    if (!e.attr5 && inside) goto collision;
+    /* internal collision handling for non-solid areas */
+    if (!e.attr5 && inside) {
+        /* gotta reset - glitch when having one non-solid area inside another
+         * would call the handler for both even when colliding with just one */
+        inside = false;
+        goto collision;
+    }
     return true;
 collision:
     CLogicEntity *dl = LogicSystem::getLogicEntity(d);
@@ -808,7 +813,7 @@ collision:
         lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
         lua_call(lua::L, 2, 0);
     }
-    return e.attr5 != 0;
+    return !e.attr5;
 }
 
 bool mmcollide(physent *d, const vec &dir, octaentities &oc)               // collide with a mapmodel

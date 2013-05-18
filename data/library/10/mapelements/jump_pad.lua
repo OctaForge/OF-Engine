@@ -38,7 +38,7 @@ plugin = {
 
         -- do not trigger many times each jump
         if self.player_delay > 0 then return nil end
-           self.player_delay = 0.5
+           self.player_delay = 0.1
 
         -- throw collider up
         collider.velocity = self.jump_velocity:to_array()
