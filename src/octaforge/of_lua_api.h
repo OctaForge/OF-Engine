@@ -587,13 +587,14 @@ namespace lapi_binds
         lua_createtable(L, 0, 0);
         listfiles("data/maps", NULL, dirs,
             FTYPE_DIR, LIST_HOMEDIR|LIST_PACKAGE|LIST_ZIP);
-        loopv(dirs) {
+        loopvrev(dirs) {
             char *dir = dirs[i];
-            /* redundancy check - we're taking multiple source directories,
-             * there is a high possibility of duplicate entries */
             bool r = false;
             loopj(i) if (!strcmp(dirs[j], dir)) { r = true; break; }
-            if (r) { delete[] dir; continue; }
+            if (r) delete[] dirs.removeunordered(i);
+        }
+        loopv(dirs) {
+            char *dir = dirs[i];
             lua_pushstring(L, dir);
             lua_rawseti(L, -2, i + 1);
             delete[] dir;
