@@ -1,13 +1,27 @@
-- 24 April 2011 - 0.1 Alpha
-- 03 May 2011 - 0.1.1 Alpha 2
-- 08 May 2011 - 0.1.2 Alpha 3
-- 15 May 2011 - 0.1.3 Alpha 4
-- 18 May 2011 - 0.1.3.1 Alpha 4-2
-- 22 May 2011 - 0.1.4 Alpha 5
-- 29 May 2011 - 0.1.5 Alpha 6
-- 05 June 2011 - 0.1.6 Alpha 7
-- 20 June 2011 - 0.1.7 Alpha 8
-- 26 August 2011 - 0.1.8 Alpha 9
-- 22 December 2011 - 0.1.9 Alpha 10
-- 27 December 2011 - 0.1.9 Alpha 10 update
-- 06 May 2013 - 0.2.0 beta 1
+2013-05-20 - 0.2.1 beta 2
+
+    * LuaJIT removed from the main makefile (build your own e.g. from OctaForge
+      organization repository)
+    * ENet cflags checker script
+    * Revamped Make build system
+    * Support for amalgamated builds
+    * Forced check for 5.2 capabilities in LuaJIT
+    * Initial support for CMake based builds
+    * Bug fixes (entity tag handling, clearmodel...)
+    * Complete Tesseract sync (breaks model yaw and other things)
+    * Support for arbitrary roll, pitch and scale on mapmodels (contributed
+      by Lee Salzman)
+    * Lua strict mode enabled by default
+    * Cubescript safe context
+    * Removed the per-entity collision box stuff
+    * Removed the deprecated triggering collision handler
+    * Introduced signal based collision handlers for client-client and
+      mapmodel-client
+    * Initial support for obstacles - solid/non-solid invisible areas that
+      trigger collision handlers (useful for area based triggering, temporary
+      path blocking and other purposes)
+    * Removed hardcoded sounds, removed id-based sound playing (not needed)
+    * More physics handling externals - client-off-map, deadly materials,
+      client state change (floor state, liquid state...)
+
+2013-05-06 - 0.2.0 beta 1

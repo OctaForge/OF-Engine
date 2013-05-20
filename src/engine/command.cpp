@@ -3310,3 +3310,6 @@ LUAICOMMAND(var_emits, {
     }
     return 1;
 });
+
+#undef ICOMMANDNAME
+#define ICOMMANDNAME(name) _icmd_##name

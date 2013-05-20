@@ -1,5 +1,7 @@
 add_definitions(-DSERVER)
 add_definitions(-DBINARY_ARCH=${OF_TARGET_ARCH} -DBINARY_OS=${OF_PLATFORM_BIN})
+add_definitions(-DBINARY_ARCH_STR=\"${OF_TARGET_ARCH}\")
+add_definitions(-DBINARY_OS_STR=\"${OF_PLATFORM_BIN}\")
 
 if(OF_TARGET_WINDOWS)
     set(EXTRA_LIBS ${EXTRA_LIBS} opengl32 ws2_32 winmm)
@@ -9,36 +11,40 @@ elseif(OF_TARGET_SOLARIS)
     set(EXTRA_LIBS ${EXTRA_LIBS} socket nsl)
 endif()
 
-set(SERVER_SOURCES
-    ../octaforge/of_tools
-    ../intensity/editing_system
-    ../shared/tools
-    ../engine/command
-    ../engine/server
-    ../fpsgame/fps
-    ../fpsgame/server
-    ../fpsgame/client
-    ../intensity/message_system
-    ../intensity/server_system
-    ../intensity/messages
-    ../engine/world
-    ../engine/worldio
-    ../intensity/engine_additions
-    ../engine/octa
-    ../engine/physics
-    ../engine/bih
-    ../shared/geom
-    ../shared/glemu
-    ../engine/client
-    ../engine/octaedit
-    ../intensity/network_system
-    ../engine/octarender
-    ../shared/stream
-    ../shared/zip
-    ../octaforge/of_lua
-    ../octaforge/of_world
-    ../octaforge/of_logger
-    ../octaforge/of_entities)
+if(OF_BUILD_AMALG)
+    set(SERVER_SOURCES ../shared/server_amalg)
+else()
+    set(SERVER_SOURCES
+        ../octaforge/of_tools
+        ../intensity/editing_system
+        ../shared/tools
+        ../engine/command
+        ../engine/server
+        ../fpsgame/fps
+        ../fpsgame/server
+        ../fpsgame/client
+        ../intensity/message_system
+        ../intensity/server_system
+        ../intensity/messages
+        ../engine/world
+        ../engine/worldio
+        ../intensity/engine_additions
+        ../engine/octa
+        ../engine/physics
+        ../engine/bih
+        ../shared/geom
+        ../shared/glemu
+        ../engine/client
+        ../engine/octaedit
+        ../intensity/network_system
+        ../engine/octarender
+        ../shared/stream
+        ../shared/zip
+        ../octaforge/of_lua
+        ../octaforge/of_world
+        ../octaforge/of_logger
+        ../octaforge/of_entities)
+endif()
 
 set(SERVER_LIBS enet ${OPENGL_LIBRARIES} ${ZLIB_LIBRARIES} ${EXTRA_LIBS})
 

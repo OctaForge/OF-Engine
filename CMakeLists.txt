@@ -9,6 +9,7 @@ project(OctaForge)
 
 option(OF_LUAJIT_LOCAL "LuaJIT is stored locally in platform_OS" OFF)
 option(OF_SDL2_LOCAL "SDL2 is stored locally in platform_OS" OFF)
+option(OF_BUILD_AMALG "Build an amalgamated variant" OFF)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(OF_TARGET_ARCH "x64")

@@ -119,3 +119,17 @@ Mac OS X (Darwin)
    argument. Add VERBOSE=1 at the end of the make command for verbose builds.
 
    After everything goes OK, you should have binaries and you can launch.
+
+CMake
+=====
+
+Alternatively, OF can be built using CMake. This is still largely experimental,
+but it should cover all platforms and more compilers (such as MS Visual C++).
+Options typically enabled via command line switches are available as CMake
+options. The installation target works as usual.
+
+Additional notes
+================
+
+Both CMake and Make based builds support amalgamated mode (instead of compiling
+each file separately, they're all concatenated together and compiled at once).
