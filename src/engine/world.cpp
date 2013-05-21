@@ -575,6 +575,19 @@ void renderentsphere(const extentity &e, float radius)
     loopk(3) renderentring(e, radius, k);
 }
 
+/* OF */
+void render_arrow(const vec& pos, const vec& dir) {
+    vec target = vec(dir).mul(4.0f).add(pos), arrowbase = vec(dir).add(pos);
+    vec spoke;
+    spoke.orthogonal(dir);
+    spoke.normalize();
+
+    gle::begin(GL_TRIANGLE_FAN);
+    gle::attrib(target);
+    loopi(5) gle::attrib(vec(spoke).rotate(2*M_PI*i/4.0f, dir).add(arrowbase));
+    gle::end();
+}
+
 void renderentattachment(const extentity &e)
 {
     if(!e.attached) return;
@@ -583,6 +596,16 @@ void renderentattachment(const extentity &e)
     gle::attrib(e.o);
     gle::attrib(e.attached->o);
     gle::end();
+    /* OF */
+    if (e.attached_next && e.attached_next == e.attached) {
+        vec dir = vec(e.attached_next->o).sub(e.o).normalize();
+        render_arrow(vec(e.o).lerp(e.attached_next->o, 0.25f), dir);
+        render_arrow(vec(e.o).lerp(e.attached_next->o, 0.75f), dir);
+    } else if (&e == e.attached->attached_next) {
+        vec dir = vec(e.o).sub(e.attached->o).normalize();
+        render_arrow(vec(e.attached->o).lerp(e.o, 0.25f), dir);
+        render_arrow(vec(e.attached->o).lerp(e.o, 0.75f), dir);
+    }
 }
 
 void renderentarrow(const extentity &e, const vec &dir, float radius)

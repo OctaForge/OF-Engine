@@ -343,6 +343,18 @@ State_String = State_Variable:clone {
 }
 M.State_String = State_String
 
+--[[! Class: State_Entity
+    Specialization of <State_Variable> for entity references. Overrides
+    to_ and from_ wire appropriately, to_wire converts uid to a string,
+    from_wire converts returns an entity of the given uid.
+]]
+M.State_Entity = State_Variable:clone {
+    name = "State_Entity",
+
+    to_wire   = function(self, val) return tostring(val.uid) end,
+    from_wire = function(self, val) return ents.get(tonumber(val)) end
+}
+
 local ctable = createtable
 
 --[[! Class: Array_Surrogate

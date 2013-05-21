@@ -24,11 +24,11 @@ struct extentity : entity                       // part of the entity that doesn
     };
 
     uchar spawned, inoctanode, visible, flags;  // the only dynamic state of a map entity
-    extentity *attached;
+    extentity *attached, *attached_next; /* OF: attached_next */
 
     int uniqueId; // Kripken: Added this
 
-    extentity() : visible(false), flags(0), attached(NULL), uniqueId(-1) {}
+    extentity() : visible(false), flags(0), attached(NULL), attached_next(NULL), uniqueId(-1) {}
 };
 
 #define MAXENTS 10000
