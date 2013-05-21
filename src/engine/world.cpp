@@ -676,7 +676,12 @@ void renderentradius(extentity &e, bool color)
             break;
         }
 
-        default: break;
+        default:
+            if (e.attached) {
+                if (color) gle::colorf(0, 1, 1);
+                renderentattachment(e);
+            }
+            break;
     }
 }
 

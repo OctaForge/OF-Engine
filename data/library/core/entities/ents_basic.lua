@@ -626,6 +626,7 @@ local st_to_idx = {
     Properties:
         radius [<svars.State_Float>] - the entity bounding box radius.
         position [<svars.State_Vec3>] - the entity position.
+        attached [<svars.State_Integer>] - uid of the attached entity.
         attr1 [<svars.State_Integer>] - the first "sauer" entity attribute.
         attr2 [<svars.State_Integer>] - the second "sauer" entity attribute.
         attr3 [<svars.State_Integer>] - the third "sauer" entity attribute.
@@ -643,6 +644,10 @@ local Static_Entity = Physical_Entity:clone {
         position = svars.State_Vec3 {
             getter = "_C.get_extent_position",
             setter = "_C.set_extent_position"
+        },
+        attached = svars.State_Integer {
+            getter = "_C.get_extent_attached",
+            setter = "_C.set_extent_attached"
         },
         attr1 = svars.State_Integer {
             getter = "_C.get_attr1", setter = "_C.set_attr1"

@@ -262,6 +262,31 @@ namespace entities
         return 0;
     });
 
+    LUAICOMMAND(get_extent_attached, {
+        LUA_GET_ENT(entity, "_C.get_extent_attached", return 0)
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+        lua_pushinteger(L, ext->attached ? ext->attached->uniqueId : -1);
+        return 1;
+    })
+
+    LUAICOMMAND(set_extent_attached, {
+        LUA_GET_ENT(entity, "_C.set_extent_attached", return 0)
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+        CLogicEntity *l = LogicSystem::getLogicEntity(luaL_checkinteger(L, 2));
+        extentity *ae = l ? l->staticEntity : NULL;
+        if (!world::loading) {
+            removeentity(ext); if (ae) removeentity(ae);
+        }
+        ext->attached = ae;
+        if (ae) ae->attached = ext;
+        if (!world::loading) {
+            addentity(ext); if (ae) addentity(ae);
+        }
+        return 0;
+    })
+
     /* Dynents */
 
     #define luaL_checkboolean lua_toboolean
