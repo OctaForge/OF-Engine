@@ -588,23 +588,19 @@ void render_arrow(const vec& pos, const vec& dir) {
     gle::end();
 }
 
-void renderentattachment(const extentity &e)
+void renderentattachment(const extentity &e, extentity *ea)
 {
-    if(!e.attached) return;
+    if (!ea && !e.attached) return; /* OF */
     gle::defvertex();
     gle::begin(GL_LINES);
     gle::attrib(e.o);
-    gle::attrib(e.attached->o);
+    gle::attrib(ea ? ea->o : e.attached->o);
     gle::end();
     /* OF */
-    if (e.attached_next && e.attached_next == e.attached) {
-        vec dir = vec(e.attached_next->o).sub(e.o).normalize();
-        render_arrow(vec(e.o).lerp(e.attached_next->o, 0.25f), dir);
-        render_arrow(vec(e.o).lerp(e.attached_next->o, 0.75f), dir);
-    } else if (&e == e.attached->attached_next) {
-        vec dir = vec(e.o).sub(e.attached->o).normalize();
-        render_arrow(vec(e.attached->o).lerp(e.o, 0.25f), dir);
-        render_arrow(vec(e.attached->o).lerp(e.o, 0.75f), dir);
+    if (ea) {
+        vec dir = vec(ea->o).sub(e.o).normalize();
+        render_arrow(vec(e.o).lerp(ea->o, 0.25f), dir);
+        render_arrow(vec(e.o).lerp(ea->o, 0.75f), dir);
     }
 }
 
@@ -660,7 +656,7 @@ void renderentradius(extentity &e, bool color)
         case ET_LIGHT:
             if(color) gle::colorf(e.attr2/255.0f, e.attr3/255.0f, e.attr4/255.0f);
             renderentsphere(e, e.attr1);
-            break;
+            goto attach; /* OF */
 
         case ET_SPOTLIGHT:
             if(e.attached)
@@ -673,21 +669,22 @@ void renderentradius(extentity &e, bool color)
                 renderentattachment(e);
                 renderentcone(*e.attached, dir, radius, angle); 
             }
-            break;
+            goto attach; /* OF */
 
         case ET_SOUND:
             if(color) gle::colorf(0, 1, 1);
             renderentsphere(e, e.attr2);
-            break;
+            goto attach; /* OF */
 
         case ET_ENVMAP:
         {
             extern int envmapradius;
             if(color) gle::colorf(0, 1, 1);
             renderentsphere(e, e.attr1 ? max(0, min(10000, int(e.attr1))) : envmapradius);
-            break;
+            goto attach; /* OF */
         }
 
+        /* OF */
         case ET_MAPMODEL:
         case ET_OBSTACLE:
         case ET_MARKER:
@@ -696,14 +693,35 @@ void renderentradius(extentity &e, bool color)
             vec dir;
             vecfromyawpitch(e.attr1, e.attr2, 1, 0, dir);
             renderentarrow(e, dir, 4);
-            break;
+            goto attach;
         }
 
+        /* OF */
         default:
-            if (e.attached) {
-                if (color) gle::colorf(0, 1, 1);
-                renderentattachment(e);
+        attach:
+            CLogicEntity *el = LogicSystem::getLogicEntity(e);
+            if (!el) break;
+
+            lua::push_external("entity_get_attached");
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
+            lua_call(lua::L, 1, 2);
+            if (lua_isnil(lua::L, -2)) { lua_pop(lua::L, 2); break; }
+
+            CLogicEntity *a1 = NULL, *a2 = NULL;
+
+            lua_getfield(lua::L, -2, "uid");
+            a1 = LogicSystem::getLogicEntity(lua_tointeger(lua::L, -1));
+            lua_pop(lua::L, 1);
+
+            if (!a1 || !a1->staticEntity) break;
+            if (!lua_isnil(lua::L, -1)) {
+                lua_getfield(lua::L, -1, "uid");
+                a2 = LogicSystem::getLogicEntity(lua_tointeger(lua::L, -1));
+                lua_pop(lua::L, 1);
             }
+
+            if (color) gle::colorf(0, 1, 1);
+            renderentattachment(*a1->staticEntity, a2 ? a2->staticEntity : NULL);
             break;
     }
 }

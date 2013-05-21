@@ -262,65 +262,6 @@ namespace entities
         return 0;
     });
 
-    LUAICOMMAND(get_extent_attached, {
-        LUA_GET_ENT(entity, "_C.get_extent_attached", return 0)
-        extentity *ext = entity->staticEntity;
-        assert(ext);
-        if (!ext->attached) return 0;
-        CLogicEntity *e = LogicSystem::getLogicEntity(*ext->attached);
-        if (!e) return 0;
-        lua_rawgeti(L, LUA_REGISTRYINDEX, e->lua_ref);
-        return 1;
-    })
-
-    LUAICOMMAND(get_extent_attached_next, {
-        LUA_GET_ENT(entity, "_C.get_extent_attached_next", return 0)
-        extentity *ext = entity->staticEntity;
-        assert(ext);
-        if (!ext->attached_next) return 0;
-        CLogicEntity *e = LogicSystem::getLogicEntity(*ext->attached_next);
-        if (!e) return 0;
-        lua_rawgeti(L, LUA_REGISTRYINDEX, e->lua_ref);
-        return 1;
-    })
-
-    LUAICOMMAND(set_extent_attached, {
-        LUA_GET_ENT(entity, "_C.set_extent_attached", return 0)
-        extentity *ext = entity->staticEntity;
-        assert(ext);
-
-        lua_getfield(L, 2, "uid");
-        int auid = lua_tointeger(L, -1); lua_pop(L, 1);
-        CLogicEntity *aent = LogicSystem::getLogicEntity(auid);
-        extentity *ae = aent ? aent->staticEntity : NULL;
-
-        if (!world::loading) {
-            removeentity(ext); if (ae) removeentity(ae);
-        }
-        ext->attached = ae;
-        if (ae) ae->attached = ext;
-        if (!world::loading) {
-            addentity(ext); if (ae) addentity(ae);
-        }
-        return 0;
-    })
-
-    LUAICOMMAND(set_extent_attached_next, {
-        LUA_GET_ENT(entity, "_C.set_extent_attached_next", return 0)
-        extentity *ext = entity->staticEntity;
-        assert(ext);
-
-        lua_getfield(L, 2, "uid");
-        int auid = lua_tointeger(L, -1); lua_pop(L, 1);
-        CLogicEntity *aent = LogicSystem::getLogicEntity(auid);
-        extentity *ae = aent ? aent->staticEntity : NULL;
-
-        if (!world::loading) removeentity(ext);
-        ext->attached_next = ae;
-        if (!world::loading) addentity(ext);
-        return 0;
-    })
-
     /* Dynents */
 
     #define luaL_checkboolean lua_toboolean

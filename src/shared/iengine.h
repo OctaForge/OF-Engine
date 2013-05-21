@@ -199,7 +199,7 @@ extern int getworldsize();
 extern int getmapversion();
 extern void renderentcone(const extentity &e, const vec &dir, float radius, float angle);
 extern void renderentarrow(const extentity &e, const vec &dir, float radius);
-extern void renderentattachment(const extentity &e);
+extern void renderentattachment(const extentity &e, extentity *ea = NULL); /* OF */
 extern void renderentsphere(const extentity &e, float radius);
 extern void renderentring(const extentity &e, float radius, int axis = 0);
 

@@ -1136,9 +1136,42 @@ Entity = table.Object:clone {
 
         self.svar_change_queue_complete = true
     end or nil,
+
+    --[[! Function: get_attached_next
+        Returns the next attached entity. This implementation doesn't do
+        anything though - you need to overload it for your entity type
+        accordingly. The core entity system doesn't manage attachments
+        at all.
+    ]]
+    get_attached_next = function(self)
+    end,
+
+    --[[! Function: get_attached_prev
+        Returns the previous attached entity. Like <get_attached_next>,
+        you need to overload this.
+    ]]
+    get_attached_prev = function(self)
+    end
 }
 
 M.Entity = Entity
+
+--[[! Function: entity_get_attached
+    An external. Calls get_attached_next on the given entity first, if that
+    returns a valid value then it returns the given entity and the attached
+    entity. Otherwise calls get_attached_prev and if that returns, it returns
+    the result and the entity. If that also fails, returns nil.
+]]
+set_external("entity_get_attached", function(ent)
+    local ea = ent:get_attached_next()
+    if ea then
+        return ent, ea
+    end
+    ea = ent:get_attached_prev()
+    if ea then
+        return ea, ent
+    end
+end)
 
 --[[! Function: render
     Main render hook. External as game_render. Calls individual render
