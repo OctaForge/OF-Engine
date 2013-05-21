@@ -604,7 +604,7 @@ ents.register_class(Character)
 ents.register_class(Player)
 
 local st_to_idx = {
-    ["none"] = 0, ["light"] = 1, ["mapmodel"] = 2, ["playerstart"] = 3,
+    ["none"] = 0, ["light"] = 1, ["mapmodel"] = 2, ["marker"] = 3,
     ["envmap"] = 4, ["particles"] = 5, ["sound"] = 6, ["spotlight"] = 7,
     ["obstacle"] = 8
 }
@@ -618,7 +618,7 @@ local st_to_idx = {
     Static entities are persistent by default, so they set the "persistent"
     inherited property to true. They also have the "sauer_type" member,
     which determines the "physical" type of the entity as in Cube 2,
-    it can be "none", "light", "mapmodel", "playerstart", "envmap",
+    it can be "none", "light", "mapmodel", "marker", "envmap",
     "particles", "sound" and "spotlight". The default here is "none".
 
     This entity class is never registered, the inherited ones are.
@@ -1093,7 +1093,7 @@ end)
 --[[! Class: World_Marker
     A generic marker with a wide variety of uses. Can be used as a base
     for various position markers (e.g. playerstarts). Its sauer type is
-    "playerstart". It has one property, attr1 alias yaw.
+    "marker". It has one property, attr1 alias yaw.
 
     An example of world marker usage is a cutscene system. Different marker
     types inherited from this one can represent different nodes.
@@ -1101,7 +1101,7 @@ end)
 local World_Marker = Static_Entity:clone {
     name = "World_Marker",
 
-    sauer_type = "playerstart",
+    sauer_type = "marker",
 
     properties = {
         attr1 = svars.State_Integer {

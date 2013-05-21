@@ -667,7 +667,7 @@ void renderentradius(extentity &e, bool color)
 
         case ET_MAPMODEL:
         case ET_OBSTACLE:
-        case ET_PLAYERSTART:
+        case ET_MARKER:
         {
             if(color) gle::colorf(0, 1, 1);
             vec dir;
@@ -909,7 +909,7 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
         {
                 case ET_MAPMODEL:
                 case ET_OBSTACLE: /* OF */
-                case ET_PLAYERSTART:
+                case ET_MARKER:
                     e.attr5 = e.attr4;
                     e.attr4 = e.attr3;
                     e.attr3 = e.attr2;
@@ -1145,44 +1145,6 @@ int findentity(int type, int index, int attr1, int attr2)
             return j;
     }
     return -1;
-}
-
-int spawncycle = -1;
-
-void findplayerspawn(dynent *d, int forceent, int tag)   // place at random spawn. also used by monsters!
-{
-    int pick = forceent;
-    if(pick<0)
-    {
-        int r = rnd(10)+1;
-        loopi(r) spawncycle = findentity(ET_PLAYERSTART, spawncycle+1, -1, tag);
-        pick = spawncycle;
-    }
-    if(pick!=-1)
-    {
-        d->pitch = 0;
-        d->roll = 0;
-        for(int attempt = pick;;)
-        {
-            d->o = entities::getents()[attempt]->o;
-            d->yaw = entities::getents()[attempt]->attr1;
-            if(entinmap(d, true)) break;
-            attempt = findentity(ET_PLAYERSTART, attempt+1, -1, tag);
-            if(attempt<0 || attempt==pick)
-            {
-                d->o = entities::getents()[attempt]->o;
-                d->yaw = entities::getents()[attempt]->attr1;
-                entinmap(d);
-                break;
-            }    
-        }
-    }
-    else
-    {
-        d->o.x = d->o.y = d->o.z = 0.5f*worldsize;
-        d->o.z += 1;
-        entinmap(d);
-    }
 }
 
 void splitocta(cube *c, int size)

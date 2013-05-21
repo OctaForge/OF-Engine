@@ -41,7 +41,7 @@ void addentity(extentity* entity);
 namespace entities
 {
     const char *entity_names[] = {
-        "none", "light", "mapmodel", "playerstart", "envmap", "particles",
+        "none", "light", "mapmodel", "marker", "envmap", "particles",
         "sound", "spotlight", "obstacle"
     };
 

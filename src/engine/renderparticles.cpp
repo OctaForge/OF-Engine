@@ -1458,7 +1458,7 @@ void updateparticles()
                 case ET_SOUND:
                     newparticle(e.o, e.o, 1, PART_EDIT_SOUND, 0xFF4B19, editpartsize);
                     break;
-                case ET_PLAYERSTART:
+                case ET_MARKER:
                     newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFF4B19, editpartsize);
                     break;
                 case ET_MAPMODEL:
@@ -1497,7 +1497,7 @@ void updateparticles()
                 case ET_SOUND:
                     newparticle(e.o, e.o, 1, PART_EDIT_SOUND, 0xFFFFFF, editpartsize);
                     break;
-                case ET_PLAYERSTART:
+                case ET_MARKER:
                     newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFFFFFF, editpartsize);
                     break;
                 case ET_MAPMODEL:
