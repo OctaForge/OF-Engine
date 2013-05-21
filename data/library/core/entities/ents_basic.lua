@@ -1093,7 +1093,7 @@ end)
 --[[! Class: World_Marker
     A generic marker with a wide variety of uses. Can be used as a base
     for various position markers (e.g. playerstarts). Its sauer type is
-    "marker". It has one property, attr1 alias yaw.
+    "marker". It has two properties, attr1 alias yaw, attr2 alias pitch.
 
     An example of world marker usage is a cutscene system. Different marker
     types inherited from this one can represent different nodes.
@@ -1107,6 +1107,10 @@ local World_Marker = Static_Entity:clone {
         attr1 = svars.State_Integer {
             getter = "_C.get_attr1", setter = "_C.set_attr1",
             gui_name = "yaw", alt_name = "yaw"
+        },
+        attr2 = svars.State_Integer {
+            getter = "_C.get_attr2", setter = "_C.set_attr2",
+            gui_name = "pitch", alt_name = "pitch"
         }
     },
 
@@ -1114,7 +1118,7 @@ local World_Marker = Static_Entity:clone {
         Places an entity on this marker's position.
     ]]
     place_entity = function(self, ent)
-        ent.position, ent.yaw = self.position, self.yaw
+        ent.position, ent.yaw, ent.pitch = self.position, self.yaw, self.pitch
     end
 }
 M.World_Marker = World_Marker

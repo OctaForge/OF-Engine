@@ -671,7 +671,7 @@ void renderentradius(extentity &e, bool color)
         {
             if(color) gle::colorf(0, 1, 1);
             vec dir;
-            vecfromyawpitch(e.attr1, 0, 1, 0, dir);
+            vecfromyawpitch(e.attr1, e.attr2, 1, 0, dir);
             renderentarrow(e, dir, 4);
             break;
         }
