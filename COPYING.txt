@@ -1,4 +1,4 @@
-Copyright (c) 2011 OctaForge developers
+Copyright (c) 2011-2013 OctaForge developers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,7 @@ OctaForge is based on Syntensity, Syntensity contributors were:
   * quaker66 - quaker66@gmail.com
 
 The codebase also contains code originating from Cube 2/Sauerbraten, see
-their license under src/readme_source.txt, and other open source projects
-may be bundled under src/libraries, with included license info.
+their license under src/readme_sauerbraten.txt.
 
 OctaForge uses the Tesseract rendering engine by Lee 'eihrul' Salzman,
 see src/readme_tesseract.txt.
