@@ -1192,21 +1192,27 @@ bool canloadsurface(const char *name)
     return true;
 }
 
+/* OF: extension checking */
 SDL_Surface *loadsurface(const char *name)
 {
+    /* lossless first and bmp is last */
+    const char *exts[] = { "", ".png", ".tga", ".jpg", ".bmp" };
     SDL_Surface *s = NULL;
-    stream *z = openzipfile(name, "rb");
-    if(z)
-    {
-        SDL_RWops *rw = z->rwops();
-        if(rw) 
-        {
-            s = IMG_Load_RW(rw, 0);
-            SDL_FreeRW(rw);
+    string buf;
+    loopi(sizeof(exts) / sizeof(char*)) {
+        formatstring(buf)("%s%s", name, exts[i]);
+        stream *z = openzipfile(buf, "rb");
+        if (z) {
+            SDL_RWops *rw = z->rwops();
+            if (rw) {
+                s = IMG_Load_RW(rw, 0);
+                SDL_FreeRW(rw);
+            }
+            delete z;
         }
-        delete z;
+        if (!s) s = IMG_Load(findfile(buf, "rb"));
+        if ( s) break;
     }
-    if(!s) s = IMG_Load(findfile(name, "rb"));
     return fixsurfaceformat(s);
 }
    
@@ -1822,7 +1828,7 @@ void autograss(char *name)
     if(slots.empty()) return;
     Slot &s = *slots.last();
     DELETEA(s.autograss);
-    s.autograss = name[0] ? newstring(makerelpath("packages", name)) : NULL;
+    s.autograss = name[0] ? newstring(makerelpath("data", name)) : NULL;
 }
 COMMAND(autograss, "s");
 
@@ -2355,20 +2361,16 @@ Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient)
     Texture *t = NULL;
     if(!strchr(pname, '*'))
     {
-        defformatstring(jpgname)("%s_*.jpg", pname);
-        t = cubemaploadwildcard(NULL, jpgname, mipit, false, transient);
-        if(!t)
-        {
-            defformatstring(pngname)("%s_*.png", pname);
-            t = cubemaploadwildcard(NULL, pngname, mipit, false, transient);
-            if(!t && msg) conoutf(CON_ERROR, "could not load envmap %s", name);
-        }
+        /* OF */
+        defformatstring(fname)("%s_*", pname);
+        t = cubemaploadwildcard(NULL, fname, mipit, false, transient);
+        if (!t && msg) conoutf(CON_ERROR, "could not load envmap %s", name);
     }
     else t = cubemaploadwildcard(NULL, pname, mipit, msg, transient);
     return t;
 }
 
-VAR(envmapradius, 0, 128, 10000);
+VARR(envmapradius, 0, 128, 10000);
 
 struct envmap
 {
