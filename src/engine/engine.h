@@ -361,7 +361,6 @@ extern bool debugaa();
 extern void cleanupaa();
 
 // ents
-extern char *entname(entity &e);
 extern bool haveselent();
 extern undoblock *copyundoents(undoblock *u);
 extern void pasteundoents(undoblock *u);

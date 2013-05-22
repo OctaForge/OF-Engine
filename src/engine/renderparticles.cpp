@@ -847,16 +847,7 @@ static partrenderer *parts[] =
     &texts,                                                                                        // text
     &meters,                                                                                       // meter
     &metervs,                                                                                      // meter vs.
-    &flares,                                                                                        // lens flares
-    // here come editparticles, must be ALWAYS last.
-    new quadrenderer("data/textures/icons/edit_light.png", PT_PART),
-    new quadrenderer("data/textures/icons/edit_spotlight.png", PT_PART),
-    new quadrenderer("data/textures/icons/edit_envmap.png", PT_PART),
-    new quadrenderer("data/textures/icons/edit_sound.png", PT_PART),
-    new quadrenderer("data/textures/icons/edit_marker.png", PT_PART),
-    new quadrenderer("data/textures/icons/edit_mapmodel.png", PT_PART),
-    new quadrenderer("data/textures/icons/edit_particles.png", PT_PART),
-    new quadrenderer("data/textures/icons/edit_generic.png", PT_PART)
+    &flares                                                                                        // lens flares - must be done last
 };
 
 VARFP(maxparticles, 10, 4000, 10000, particleinit());
@@ -1388,8 +1379,6 @@ void seedparticles()
     }
 }
 
-FVARFP(editpartsize, 0.0f, 2.0f, 100.0f, particleinit());
-
 void updateparticles()
 {
     if(regenemitters) addparticleemitters();
@@ -1436,83 +1425,21 @@ void updateparticles()
     {
         const vector<extentity *> &ents = entities::getents();
         string buf;
-        int editid = -1;
         // note: order matters in this case as particles of the same type are drawn in the reverse order that they are added
         loopv(entgroup)
         {
-            extentity &e = *ents[entgroup[i]]; // INTENSITY: Made extentity
+            extentity &e = *ents[entgroup[i]];
             if (!LogicSystem::getLogicEntity(e)) continue;
-            formatstring(buf)("@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf, PART_TEXT, 1, 0xFF4B19, editpartsize); // INTENSITY: Use class
-            switch (e.type)
-            {
-                case ET_LIGHT:
-                    newparticle(e.o, e.o, 1, PART_EDIT_LIGHT, 0xFF4B19, editpartsize);
-                    break;
-                case ET_SPOTLIGHT:
-                    newparticle(e.o, e.o, 1, PART_EDIT_SPOTLIGHT, 0xFF4B19, editpartsize);
-                    break;
-                case ET_ENVMAP:
-                    newparticle(e.o, e.o, 1, PART_EDIT_ENVMAP, 0xFF4B19, editpartsize);
-                    break;
-                case ET_SOUND:
-                    newparticle(e.o, e.o, 1, PART_EDIT_SOUND, 0xFF4B19, editpartsize);
-                    break;
-                case ET_MARKER:
-                    newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFF4B19, editpartsize);
-                    break;
-                case ET_MAPMODEL:
-                    newparticle(e.o, e.o, 1, PART_EDIT_MAPMODEL, 0xFF4B19, editpartsize);
-                    break;
-                case ET_OBSTACLE:
-                    newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFF4B19, editpartsize);
-                    break;
-                case ET_PARTICLES:
-                    newparticle(e.o, e.o, 1, PART_EDIT_PARTICLES, 0xFF4B19, editpartsize);
-                    break;
-                default:
-                    newparticle(e.o, e.o, 1, PART_EDIT_GENERIC, 0xFF4B19, editpartsize);
-                    break;
-            }
-            editid = e.uniqueId;
+            formatstring(buf)("%s", LogicSystem::getLogicEntity(e)->getClass());
+            particle_textcopy(e.o, buf, PART_TEXT, 1, 0xFF4B19, 2.0f);
         }
         loopv(ents)
         {
-            extentity &e = *ents[i]; // INTENSITY: Made extentity
-            if(e.type==ET_EMPTY || editid==e.uniqueId) continue;
+            extentity &e = *ents[i];
             if (!LogicSystem::getLogicEntity(e)) continue;
-            formatstring(buf)("@%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(vec(e.o.x, e.o.y, e.o.z + int(editpartsize) * 2), buf, PART_TEXT, 1, 0x1EC850, editpartsize); // INTENSITY: Use class
-            switch (e.type)
-            {
-                case ET_LIGHT:
-                    newparticle(e.o, e.o, 1, PART_EDIT_LIGHT, (e.attr2 || e.attr3 || e.attr4) ? (e.attr2<<16)+(e.attr3<<8)+e.attr4 : 0xFFFFFF, editpartsize);
-                    break;
-                case ET_SPOTLIGHT:
-                    newparticle(e.o, e.o, 1, PART_EDIT_SPOTLIGHT, 0xFFFFFF, editpartsize);
-                    break;
-                case ET_ENVMAP:
-                    newparticle(e.o, e.o, 1, PART_EDIT_ENVMAP, 0xFFFFFF, editpartsize);
-                    break;
-                case ET_SOUND:
-                    newparticle(e.o, e.o, 1, PART_EDIT_SOUND, 0xFFFFFF, editpartsize);
-                    break;
-                case ET_MARKER:
-                    newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFFFFFF, editpartsize);
-                    break;
-                case ET_MAPMODEL:
-                    newparticle(e.o, e.o, 1, PART_EDIT_MAPMODEL, 0xFFFFFF, editpartsize);
-                    break;
-                case ET_OBSTACLE:
-                    newparticle(e.o, e.o, 1, PART_EDIT_MARKER, 0xFFFFFF, editpartsize);
-                    break;
-                case ET_PARTICLES:
-                    newparticle(e.o, e.o, 1, PART_EDIT_PARTICLES, 0xFFFFFF, editpartsize);
-                    break;
-                default:
-                    newparticle(e.o, e.o, 1, PART_EDIT_GENERIC, 0xFFFFFF, editpartsize);
-                    break;
-            }
+            formatstring(buf)("%s", LogicSystem::getLogicEntity(e)->getClass());
+            particle_textcopy(e.o, buf, PART_TEXT, 1, 0x1EC850, 2.0f);
+            regular_particle_splash(PART_EDIT, 2, 40, e.o, 0x3232FF, 0.32f*particlesize/100.0f);
         }
     }
 }

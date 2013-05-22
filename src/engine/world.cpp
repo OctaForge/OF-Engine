@@ -298,13 +298,6 @@ void findents(int low, int high, bool notspawned, const vec &pos, const vec &rad
     if(c->children && 1<<scale >= octaentsize) findents(c->children, ivec(bo).mask(~((2<<scale)-1)), 1<<scale, bo, br, low, high, notspawned, pos, invradius, found);
 }
 
-char *entname(entity &e)
-{
-    static string fullentname;
-    copystring(fullentname, entities::entname(e.type));
-    return fullentname;
-}
-
 extern selinfo sel;
 extern bool havesel;
 int entlooplevel = 0;
