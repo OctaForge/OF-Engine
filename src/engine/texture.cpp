@@ -1195,8 +1195,8 @@ bool canloadsurface(const char *name)
 /* OF: extension checking */
 SDL_Surface *loadsurface(const char *name)
 {
-    /* lossless first and bmp is last */
-    const char *exts[] = { "", ".png", ".tga", ".jpg", ".bmp" };
+    /* use explicit extension for the other formats */
+    const char *exts[] = { "", ".png", ".jpg" };
     SDL_Surface *s = NULL;
     string buf;
     loopi(sizeof(exts) / sizeof(char*)) {

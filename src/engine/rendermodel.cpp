@@ -1055,17 +1055,12 @@ LUAICOMMAND(findanims, {
 
 void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&masks) // model skin sharing
 {
+/* OF */
 #define ifnoload(tex, path) if((tex = textureload(path, 0, true, false))==notexture)
 #define tryload(tex, prefix, cmd, name) \
-    ifnoload(tex, makerelpath(mdir, name ".jpg", prefix, cmd)) \
+    ifnoload(tex, makerelpath(mdir, name "", prefix, cmd)) \
     { \
-        ifnoload(tex, makerelpath(mdir, name ".png", prefix, cmd)) \
-        { \
-            ifnoload(tex, makerelpath(maltdir, name ".jpg", prefix, cmd)) \
-            { \
-                ifnoload(tex, makerelpath(maltdir, name ".png", prefix, cmd)) return; \
-            } \
-        } \
+        ifnoload(tex, makerelpath(maltdir, name "", prefix, cmd)) return; \
     }
    
     defformatstring(mdir)("data/models/%s", dir);
