@@ -826,24 +826,24 @@ struct softquadrenderer : quadrenderer
 
 static partrenderer *parts[] = 
 {
-    new quadrenderer("<grey>data/textures/particles/blood.png", PT_GREY|PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD), // blood spats (note: rgb is inverted) 
-    new trailrenderer("data/textures/particles/base.png", PT_TRAIL|PT_LERP),                            // water, entity
-    new quadrenderer("<grey>data/textures/particles/smoke.png", PT_GREYALPHA|PT_PART|PT_FLIP|PT_LERP),  // smoke
-    new quadrenderer("<grey>data/textures/particles/steam.png", PT_GREY|PT_PART|PT_FLIP),               // steam
-    new quadrenderer("<grey>data/textures/particles/flames.png", PT_GREY|PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT),   // flame on - no flipping please, they have orientation
-    new quadrenderer("data/textures/particles/ball1.png", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball1
-    new quadrenderer("data/textures/particles/ball2.png", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball2
-    new quadrenderer("data/textures/particles/ball3.png", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball3
-    new taperenderer("data/textures/particles/flare.png", PT_TAPE|PT_BRIGHT),                            // streak
+    new quadrenderer("<grey>data/textures/particles/blood", PT_GREY|PT_PART|PT_FLIP|PT_MOD|PT_RND4, DECAL_BLOOD), // blood spats (note: rgb is inverted) 
+    new trailrenderer("data/textures/particles/base", PT_TRAIL|PT_LERP),                            // water, entity
+    new quadrenderer("<grey>data/textures/particles/smoke", PT_GREYALPHA|PT_PART|PT_FLIP|PT_LERP),  // smoke
+    new quadrenderer("<grey>data/textures/particles/steam", PT_GREY|PT_PART|PT_FLIP),               // steam
+    new quadrenderer("<grey>data/textures/particles/flames", PT_GREY|PT_PART|PT_HFLIP|PT_RND4|PT_BRIGHT),   // flame on - no flipping please, they have orientation
+    new quadrenderer("data/textures/particles/ball1", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball1
+    new quadrenderer("data/textures/particles/ball2", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball2
+    new quadrenderer("data/textures/particles/ball3", PT_PART|PT_FEW|PT_BRIGHT),                     // fireball3
+    new taperenderer("data/textures/particles/flare", PT_TAPE|PT_BRIGHT),                            // streak
     &lightnings,                                                                                   // lightning
     &fireballs,                                                                                    // explosion fireball
     &bluefireballs,                                                                                // bluish explosion fireball
-    new quadrenderer("data/textures/particles/spark.png", PT_PART|PT_FLIP|PT_BRIGHT),                    // sparks
-    new quadrenderer("data/textures/particles/base.png",  PT_PART|PT_FLIP|PT_BRIGHT),                    // edit mode entities
-    new quadrenderer("data/textures/particles/snow.png", PT_PART|PT_FLIP|PT_RND4, -1),                  // colliding snow
-    new quadrenderer("data/textures/particles/muzzleflash1.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
-    new quadrenderer("data/textures/particles/muzzleflash2.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
-    new quadrenderer("data/textures/particles/muzzleflash3.png", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/spark", PT_PART|PT_FLIP|PT_BRIGHT),                    // sparks
+    new quadrenderer("data/textures/particles/base",  PT_PART|PT_FLIP|PT_BRIGHT),                    // edit mode entities
+    new quadrenderer("data/textures/particles/snow", PT_PART|PT_FLIP|PT_RND4, -1),                  // colliding snow
+    new quadrenderer("data/textures/particles/muzzleflash1", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/muzzleflash2", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
+    new quadrenderer("data/textures/particles/muzzleflash3", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
     &texts,                                                                                        // text
     &meters,                                                                                       // meter
     &metervs,                                                                                      // meter vs.
