@@ -1173,6 +1173,13 @@ set_external("entity_get_attached", function(ent)
     end
 end)
 
+--[[! Function: entity_get_name
+    An external that returns the entity name.
+]]
+set_external("entity_get_name", function(ent)
+    return ent.name
+end)
+
 --[[! Function: render
     Main render hook. External as game_render. Calls individual render
     method on each entity (if defined). Clientside only.

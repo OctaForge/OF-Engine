@@ -635,6 +635,11 @@ local st_to_idx = {
 local Static_Entity = Physical_Entity:clone {
     name = "Static_Entity",
 
+    --[[! Variable: edit_icon
+        The icon that'll be displayed in edit mode.
+    ]]
+    edit_icon = "data/textures/icons/edit_generic",
+
     per_frame = false,
     sauer_type = "none",
 
@@ -765,9 +770,25 @@ local Static_Entity = Physical_Entity:clone {
         local r = self.position:copy()
         r.z = r.z + self.radius
         return r
+    end,
+
+    --[[! Function: get_edit_color
+        Returns the color of the entity icon in edit mode. If an invalid
+        value is returned, it defaults to 0xFFFFFF (white). This is useful
+        for e.g. light entity that is colored.
+    ]]
+    get_edit_color = function(self)
+        return 0xFFFFFF
     end
 }
 M.Static_Entity = Static_Entity
+
+--[[! Function: entity_get_edit_info
+    An external. Returns ent.edit_icon, ent:get_edit_color().
+]]
+set_external("entity_get_edit_info", function(ent)
+    return ent.edit_icon, ent:get_edit_color()
+end)
 
 --[[! Class: Light
     A regular point light. It has the sauer type "light" and five properties.
@@ -783,6 +804,8 @@ M.Static_Entity = Static_Entity
 ]]
 local Light = Static_Entity:clone {
     name = "Light",
+
+    edit_icon = "data/textures/icons/edit_light",
 
     sauer_type = "light",
 
@@ -813,6 +836,10 @@ local Light = Static_Entity:clone {
         Static_Entity.init(self, uid, kwargs)
         self.red, self.green, self.blue = 128, 128, 128
         self.radius, self.shadow = 100, 0
+    end,
+
+    get_edit_color = function(self)
+        return bor(self.blue, lsh(self.green, 8), lsh(self.red, 16))
     end
 }
 M.Light = Light
@@ -827,6 +854,8 @@ M.Light = Light
 ]]
 local Spot_Light = Static_Entity:clone {
     name = "Spot_Light",
+
+    edit_icon = "data/textures/icons/edit_spotlight",
 
     sauer_type = "spotlight",
 
@@ -854,6 +883,8 @@ M.Spot_Light = Spot_Light
 ]]
 local Envmap = Static_Entity:clone {
     name = "Envmap",
+
+    edit_icon = "data/textures/icons/edit_envmap",
 
     sauer_type = "envmap",
 
@@ -887,6 +918,8 @@ M.Envmap = Envmap
 ]]
 local Sound = Static_Entity:clone {
     name = "Sound",
+
+    edit_icon = "data/textures/icons/edit_sound",
 
     sauer_type = "sound",
 
@@ -1008,6 +1041,8 @@ M.Sound = Sound
 local Particle_Effect = Static_Entity:clone {
     name = "Particle_Effect",
 
+    edit_icon = "data/textures/icons/edit_particles",
+
     sauer_type = "particles",
 
     properties = {
@@ -1050,6 +1085,8 @@ M.Particle_Effect = Particle_Effect
 ]]
 local Mapmodel = Static_Entity:clone {
     name = "Mapmodel",
+
+    edit_icon = "data/textures/icons/edit_mapmodel",
 
     sauer_type = "mapmodel",
 
@@ -1100,6 +1137,8 @@ end)
 ]]
 local World_Marker = Static_Entity:clone {
     name = "World_Marker",
+
+    edit_icon = "data/textures/icons/edit_marker",
 
     sauer_type = "marker",
 

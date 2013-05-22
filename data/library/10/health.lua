@@ -161,9 +161,9 @@ plugin = {
                     if not server_origin or health > 0 then
                         self:queue_action(action_pain())
                     end
-                    if self == ents.get_player() and self.old_health ~= health then
-                        effects.client_damage(diff, diff)
-                    end
+                    --if self == ents.get_player() and self.old_health ~= health then
+                    --    effects.client_damage(diff, diff)
+                    --end
                 end
             else
                 if health <= 0 then
@@ -179,7 +179,7 @@ plugin = {
         pos.z = pos.z + self.eye_height - 4
         effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
         effects.decal(effects.DECAL.BLOOD, self.position, math.Vec3(0, 0, 1), 7, self.blood_color)
-        if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
+        --if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
     end,
 
     suffer_damage = function(self, source)

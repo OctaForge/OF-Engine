@@ -260,9 +260,6 @@ extern void disablezoom();
 
 extern vec calcavatarpos(const vec &pos, float dist);
 
-extern void damageblend(int n);
-extern void damagecompass(int n, const vec &loc);
-
 extern vec minimapcenter, minimapradius, minimapscale;
 extern void bindminimap();
 
@@ -288,16 +285,7 @@ enum
     PART_MUZZLE_FLASH1, PART_MUZZLE_FLASH2, PART_MUZZLE_FLASH3,
     PART_TEXT,
     PART_METER, PART_METER_VS,
-    PART_LENS_FLARE,
-    // here come editmode particle images, they must ALWAYS be the last
-    PART_EDIT_LIGHT,
-    PART_EDIT_SPOTLIGHT,
-    PART_EDIT_ENVMAP,
-    PART_EDIT_SOUND,
-    PART_EDIT_MARKER,
-    PART_EDIT_MAPMODEL,
-    PART_EDIT_PARTICLES,
-    PART_EDIT_GENERIC
+    PART_LENS_FLARE
 };
 
 extern bool canaddparticles();

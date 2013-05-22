@@ -392,17 +392,3 @@ function text(pos, text, fade, color, size, gravity)
         fade * 1000, color, size, gravity
     )
 end
-
---[[!
-    Function: client_damage
-    Shows client damage effect.
-
-    Parameters:
-        amount - amount of damage made.
-        color - damage color as hex integer (0xRRGGBB).
-]]
-function client_damage(amount, color)
-    if not SERVER then
-        _C.client_damage_effect(amount, color)
-    end
-end

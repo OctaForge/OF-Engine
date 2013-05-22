@@ -134,6 +134,7 @@ struct particle
     {
         const char *text;         // will call delete[] on this only if it starts with an @
         float val;
+        Texture *tex; /* OF */
         physent *owner;
         struct
         {
@@ -489,6 +490,47 @@ struct textrenderer : listrenderer
 };
 static textrenderer texts;
 
+/* OF */
+struct iconrenderer: listrenderer {
+    Texture *prevtex;
+
+    iconrenderer(int type = 0): listrenderer(type|PT_LERP), prevtex(NULL) {}
+
+    void startrender() {
+        prevtex = NULL;
+        gle::defvertex();
+        gle::deftexcoord0();
+    }
+
+    void endrender() {
+        gle::disable();
+    }
+
+    void renderpart(listparticle *p, const vec &o, const vec &d, int blend, int ts) {
+        Texture *tex = p->tex;
+        if (!tex) return;
+
+        if (tex != prevtex) {
+            glBindTexture(GL_TEXTURE_2D, tex->id);
+            prevtex = tex;
+        }
+        matrix3x4 m(vec4(camright.x, -camup.x, -camdir.x, o.x),
+                    vec4(camright.y, -camup.y, -camdir.y, o.y),
+                    vec4(camright.z, -camup.z, -camdir.z, o.z));
+        m.scale(p->size);
+        m.translate(-0.5f, -0.5f, 0);
+
+        gle::color(p->color, blend);
+        gle::begin(GL_TRIANGLE_STRIP);
+        gle::attrib(m.transform(vec2(0, 0))); gle::attribf(0, 0);
+        gle::attrib(m.transform(vec2(1, 0))); gle::attribf(1, 0);
+        gle::attrib(m.transform(vec2(0, 1))); gle::attribf(0, 1);
+        gle::attrib(m.transform(vec2(1, 1))); gle::attribf(1, 1);
+        gle::end();
+    }
+};
+static iconrenderer icons;
+
 template<int T>
 static inline void modifyblend(const vec &o, int &blend)
 {
@@ -839,7 +881,7 @@ static partrenderer *parts[] =
     &fireballs,                                                                                    // explosion fireball
     &bluefireballs,                                                                                // bluish explosion fireball
     new quadrenderer("data/textures/particles/spark", PT_PART|PT_FLIP|PT_BRIGHT),                    // sparks
-    new quadrenderer("data/textures/particles/base",  PT_PART|PT_FLIP|PT_BRIGHT),                    // edit mode entities
+    &icons,                                                                                          // edit mode entities
     new quadrenderer("data/textures/particles/snow", PT_PART|PT_FLIP|PT_RND4, -1),                  // colliding snow
     new quadrenderer("data/textures/particles/muzzleflash1", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
     new quadrenderer("data/textures/particles/muzzleflash2", PT_PART|PT_FEW|PT_FLIP|PT_BRIGHT|PT_TRACK), // muzzle flash
@@ -1379,6 +1421,8 @@ void seedparticles()
     }
 }
 
+FVARFP(editpartsize, 0.0f, 4.0f, 100.0f, particleinit());
+
 void updateparticles()
 {
     if(regenemitters) addparticleemitters();
@@ -1424,22 +1468,39 @@ void updateparticles()
     if(editmode) // show sparkly thingies for map entities in edit mode
     {
         const vector<extentity *> &ents = entities::getents();
-        string buf;
         // note: order matters in this case as particles of the same type are drawn in the reverse order that they are added
         loopv(entgroup)
         {
             extentity &e = *ents[entgroup[i]];
-            if (!LogicSystem::getLogicEntity(e)) continue;
-            formatstring(buf)("%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(e.o, buf, PART_TEXT, 1, 0xFF4B19, 2.0f);
+            CLogicEntity *le = LogicSystem::getLogicEntity(e);
+            if (!le) continue;
+            lua::push_external("entity_get_name");
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
+            lua_call(lua::L, 1, 1);
+            particle_textcopy(e.o, lua_tostring(lua::L, -1), PART_TEXT, 1, 0xFF4B19, 2.0f);
+            lua_pop(lua::L, 1);
         }
         loopv(ents)
         {
             extentity &e = *ents[i];
-            if (!LogicSystem::getLogicEntity(e)) continue;
-            formatstring(buf)("%s", LogicSystem::getLogicEntity(e)->getClass());
-            particle_textcopy(e.o, buf, PART_TEXT, 1, 0x1EC850, 2.0f);
-            regular_particle_splash(PART_EDIT, 2, 40, e.o, 0x3232FF, 0.32f*particlesize/100.0f);
+            CLogicEntity *le = LogicSystem::getLogicEntity(e);
+            if (!le) continue;
+            lua::push_external("entity_get_edit_info");
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
+
+            lua::push_external("entity_get_name");
+            lua_pushvalue(lua::L, -2);
+            lua_call(lua::L, 1, 1);
+            const char *name = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
+
+            lua_call(lua::L, 1, 2);
+            int color = lua_tointeger(lua::L, -1);
+            const char *icon = lua_tostring(lua::L, -2);
+            lua_pop(lua::L, 2);
+
+            particle_textcopy(e.o, name, PART_TEXT, 1, 0x1EC850, 2.0f);
+            particle *part = newparticle(e.o, vec(0, 0, 0), 0, PART_EDIT, color, editpartsize);
+            part->tex = textureload(icon);
         }
     }
 }

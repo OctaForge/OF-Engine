@@ -457,12 +457,6 @@ namespace lapi_binds
             luaL_checknumber(L, 9));
         return 0;
     }
-
-    int _lua_client_damage_effect(lua_State *L) {
-        ((fpsent*)player)->damageroll(luaL_checkinteger(L, 1));
-        damageblend(luaL_checkinteger(L, 2));
-        return 0;
-    }
 #else
     LAPI_EMPTY(adddecal)
     LAPI_EMPTY(particle_splash)
@@ -474,7 +468,6 @@ namespace lapi_binds
     LAPI_EMPTY(adddynlight)
     LAPI_EMPTY(particle_meter)
     LAPI_EMPTY(particle_text)
-    LAPI_EMPTY(client_damage_effect)
 #endif
 
 #ifdef CLIENT
@@ -659,7 +652,6 @@ namespace lapi_binds
     LAPI_REG(adddynlight);
     LAPI_REG(particle_meter);
     LAPI_REG(particle_text);
-    LAPI_REG(client_damage_effect);
 
     /* world */
     LAPI_REG(gettargetpos);
