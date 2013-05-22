@@ -208,16 +208,16 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         gle::deftexcoord0();
 
         gle::colorf(1, 1, 1);
-        settexture("data/textures/ui/background.png", 0);
+        settexture("data/textures/ui/background", 0);
         float bu = w*0.67f/256.0f + backgroundu, bv = h*0.67f/256.0f + backgroundv;
         bgquad(0, 0, w, h, 0, 0, bu, bv);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 #if 0
-        settexture("<premul>data/textures/ui/background_detail.png", 0);
+        settexture("<premul>data/textures/ui/background_detail", 0);
         float du = w*0.8f/512.0f + detailu, dv = h*0.8f/512.0f + detailv;
         bgquad(0, 0, w, h, 0, 0, du, dv);
-        settexture("<premul>data/textures/ui/background_decal.png", 3);
+        settexture("<premul>data/textures/ui/background_decal", 3);
         loopj(numdecals)
         {
             float hsz = decals[j].size, hx = clamp(decals[j].x, hsz, w-hsz), hy = clamp(decals[j].y, hsz, h-hsz), side = decals[j].side;
@@ -226,13 +226,13 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 #endif
         float lh = 0.5f*min(w, h), lw = lh*2,
               lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-        settexture(/*(maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>data/logo_1024.png" :*/ "<premul>data/textures/ui/logo.png", 3);
+        settexture(/*(maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>data/logo_1024" :*/ "<premul>data/textures/ui/logo", 3);
         bgquad(lx, ly, lw, lh);
 
 #if 0
         float bh = 0.1f*min(w, h), bw = bh*2,
               bx = w - 1.1f*bw, by = h - 1.1f*bh;
-        settexture("<premul>data/textures/ui/cube2badge.png", 3);
+        settexture("<premul>data/textures/ui/cube2badge", 3);
         bgquad(bx, by, bw, bh);
 #endif
 
@@ -277,7 +277,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
                 pophudmatrix();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }        
-            settexture("data/textures/ui/mapshot_frame.png", 3);
+            settexture("data/textures/ui/mapshot_frame", 3);
             bgquad(x, y, sz, sz);
             if(mapname)
             {
@@ -362,7 +362,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
     glEnable(GL_BLEND); // INTENSITY: Moved to here, to cover loading_frame as well
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // INTENSITY: ditto
 
-    settexture("data/textures/ui/loading_frame.png", 3);
+    settexture("data/textures/ui/loading_frame", 3);
     bgquad(fx, fy, fw, fh, fu1, fv1, fu2-fu1, fv2-fv1);
 
     float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
@@ -374,7 +374,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
           ex = bx+sw + max(mw*bar, fw*7/511.0f);
     if(bar > 0)
     {
-        settexture("data/textures/ui/loading_bar.png", 3);
+        settexture("data/textures/ui/loading_bar", 3);
         bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
         bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
         bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
@@ -398,7 +398,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
               mw = bw - sw - ew,
               ex = bx+sw + max(mw*width, fw*7/511.0f);
 
-        settexture("data/textures/ui/loading_bar.png", 3);
+        settexture("data/textures/ui/loading_bar", 3);
         bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
         bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
         bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
@@ -428,7 +428,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        settexture("data/textures/ui/mapshot_frame.png", 3);
+        settexture("data/textures/ui/mapshot_frame", 3);
         bgquad(x, y, sz, sz);
         glDisable(GL_BLEND);
     }
@@ -693,20 +693,20 @@ void resetgl()
     extern void reloadshaders();
     inbetweenframes = false;
     if(!reloadtexture(*notexture) ||
-       !reloadtexture("<premul>data/textures/ui/logo.png") ||
-       !reloadtexture("<premul>data/textures/ui/logo_1024.png") ||
+       !reloadtexture("<premul>data/textures/ui/logo") ||
+       !reloadtexture("<premul>data/textures/ui/logo_1024") ||
 #if 0
-       !reloadtexture("<premul>data/textures/ui/cube2badge.png") ||
+       !reloadtexture("<premul>data/textures/ui/cube2badge") ||
 #endif
-       !reloadtexture("data/textures/ui/background.png") ||
+       !reloadtexture("data/textures/ui/background") ||
 #if 0
-       !reloadtexture("<premul>data/textures/ui/background_detail.png") ||
-       !reloadtexture("<premul>data/textures/ui/background_decal.png") ||
+       !reloadtexture("<premul>data/textures/ui/background_detail") ||
+       !reloadtexture("<premul>data/textures/ui/background_decal") ||
 #endif
-       !reloadtexture("data/textures/ui/mapshot_frame.png") ||
-       !reloadtexture("data/textures/ui/loading_frame.png") ||
-       !reloadtexture("data/textures/ui/loading_bar.png"))
-        fatal("failed to reload core texture");
+       !reloadtexture("data/textures/ui/mapshot_frame") ||
+       !reloadtexture("data/textures/ui/loading_frame") ||
+       !reloadtexture("data/textures/ui/loading_bar"))
+        fatal("failed to reload core textures");
     reloadfonts();
     inbetweenframes = true;
     renderbackground("initializing...");
@@ -1237,7 +1237,7 @@ int main(int argc, char **argv)
     initlog("gl");
     gl_checkextensions();
     gl_init(scr_w, scr_h);
-    notexture = textureload("data/textures/core/notexture.png");
+    notexture = textureload("data/textures/core/notexture");
     if(!notexture) fatal("could not find core textures");
 
     initlog("console");

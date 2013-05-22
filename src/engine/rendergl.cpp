@@ -2521,7 +2521,8 @@ void drawdamagescreen(int w, int h)
     hudshader->set();
 
     static Texture *damagetex = NULL;
-    if(!damagetex) damagetex = textureload("data/textures/hud/damage.png", 3);
+    /* OF */
+    if(!damagetex) damagetex = textureload("data/textures/hud/damage", 3);
 
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, damagetex->id);
@@ -2552,7 +2553,7 @@ void drawcrosshair(int w, int h)
     if(windowhit)
     {
         static Texture *cursor = NULL;
-        if(!cursor) cursor = textureload("data/textures/ui/guicursor.png", 3, true);
+        if(!cursor) cursor = textureload("data/textures/ui/guicursor", 3, true);
         crosshair = cursor;
         chsize = cursorsize*w/900.0f;
         lua::push_external("cursor_get_position");
@@ -2564,7 +2565,7 @@ void drawcrosshair(int w, int h)
     }
     else
     { 
-        string cr = "data/textures/hud/crosshair.png";
+        string cr = "data/textures/hud/crosshair";
         if (lua::push_external("gui_get_crosshair")) {
             lua_call(lua::L, 0, 1);
             formatstring(cr)("data/textures/hud/%s", lua_tostring(lua::L, -1));
