@@ -199,10 +199,8 @@ local FLAG_BELOWGROUND = lsh(2, 4)
 local Character = Physical_Entity:clone {
     name = "Character",
 
-    --[[! Variable: sauer_type
-        Dynamic entities correspond to fpsent.
-    ]]
-    sauer_type = "fpsent",
+    -- so that it isn't nonsauer
+    sauer_type = -1,
 
     --[[! Variable: State
         Defines the "client states". 0 is ALIVE, 1 is DEAD, 2 is SPAWNING,
@@ -604,12 +602,6 @@ M.Player = Player
 ents.register_class(Character)
 ents.register_class(Player)
 
-local st_to_idx = {
-    ["none"] = 0, ["light"] = 1, ["mapmodel"] = 2, ["marker"] = 3,
-    ["envmap"] = 4, ["particles"] = 5, ["sound"] = 6, ["spotlight"] = 7,
-    ["obstacle"] = 8
-}
-
 --[[! Class: Static_Entity
     A base for any static entity. Inherits from <Physical_Entity>. Unlike
     dynamic entities (such as <Character>), static entities usually don't
@@ -617,10 +609,7 @@ local st_to_idx = {
     per_frame member to true (false by default for efficiency).
 
     Static entities are persistent by default, so they set the "persistent"
-    inherited property to true. They also have the "sauer_type" member,
-    which determines the "physical" type of the entity as in Cube 2,
-    it can be "none", "light", "mapmodel", "marker", "envmap",
-    "particles", "sound" and "spotlight". The default here is "none".
+    inherited property to true.
 
     This entity class is never registered, the inherited ones are.
 
@@ -642,7 +631,7 @@ local Static_Entity = Physical_Entity:clone {
     edit_icon = "data/textures/icons/edit_generic",
 
     per_frame = false,
-    sauer_type = "none",
+    sauer_type = 0,
 
     properties = {
         radius = svars.State_Float(),
@@ -704,7 +693,7 @@ local Static_Entity = Physical_Entity:clone {
         kwargs.attr5 = self.attr5 or 0
 
         #log(DEBUG, "Static_Entity: extent setup")
-        _C.setup_extent(self, st_to_idx[self.sauer_type], kwargs.x, kwargs.y,
+        _C.setup_extent(self, self.sauer_type, kwargs.x, kwargs.y,
             kwargs.z, kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4,
             kwargs.attr5)
 
@@ -726,7 +715,7 @@ local Static_Entity = Physical_Entity:clone {
             attr1, attr2, attr3, attr4, attr5 = 0, 0, 0, 0, 0
         end
 
-        _C.setup_extent(self, st_to_idx[self.sauer_type], x, y, z, attr1,
+        _C.setup_extent(self, self.sauer_type, x, y, z, attr1,
             attr2, attr3, attr4, attr5)
         return Physical_Entity.activate(self, kwargs)
     end,
@@ -832,7 +821,7 @@ local Light = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_light",
 
-    sauer_type = "light",
+    sauer_type = 1,
 
     properties = {
         attr1 = svars.State_Integer({
@@ -887,7 +876,7 @@ local Spot_Light = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_spotlight",
 
-    sauer_type = "spotlight",
+    sauer_type = 7,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -926,7 +915,7 @@ local Envmap = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_envmap",
 
-    sauer_type = "envmap",
+    sauer_type = 4,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -965,7 +954,7 @@ local Sound = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_sound",
 
-    sauer_type = "sound",
+    sauer_type = 6,
 
     properties = {
         attr2 = svars.State_Integer {
@@ -1092,7 +1081,7 @@ local Particle_Effect = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_particles",
 
-    sauer_type = "particles",
+    sauer_type = 5,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -1156,7 +1145,7 @@ local Mapmodel = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_mapmodel",
 
-    sauer_type = "mapmodel",
+    sauer_type = 2,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -1213,7 +1202,7 @@ local World_Marker = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_marker",
 
-    sauer_type = "marker",
+    sauer_type = 3,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -1248,7 +1237,7 @@ M.World_Marker = World_Marker
 local Obstacle = Static_Entity:clone {
     name = "Obstacle",
 
-    sauer_type = "obstacle",
+    sauer_type = 8,
 
     properties = {
         attr1 = svars.State_Integer {

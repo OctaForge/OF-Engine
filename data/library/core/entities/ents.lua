@@ -183,21 +183,6 @@ end
 M.get_class = get_class
 set_external("entity_class_get", get_class)
 
---[[! Function: get_class_sauer_type
-    Given an entity class name, this function returns the sauer type
-    assigned to the class. External as "entity_class_sauer_type_get".
-]]
-local get_class_sauer_type = function(cn)
-    local  t = class_storage[cn]
-    if not t then
-        #log(ERROR, "ents.get_class: invalid class " .. cn)
-    else
-        return t.sauer_type
-    end
-end
-M.get_class_sauer_type = get_class_sauer_type
-set_external("entity_class_sauer_type_get", get_class_sauer_type)
-
 --[[! Function: get_all_classes
     Returns <class_storage>. Use with care.
 ]]
@@ -940,7 +925,7 @@ Entity = table.Object:clone {
         end
 
         if not self.sauer_type then
-            #log(DEBUG, "Entity.activate: non-sauer entity: " .. tostring(self))
+            #log(DEBUG, "Entity.activate: non-sauer entity: "..tostring(self))
             _C.setup_nonsauer(self)
             if SERVER then
                 self:flush_queued_svar_changes()
