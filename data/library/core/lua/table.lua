@@ -447,22 +447,20 @@ table.Object = {
 
         -- getters
         if self.__get then
-            r.__index = function (obj, n)
-                local v = rawget(obj, n)
-                if v ~= nil then return v end
-                v = self.__get(obj, n)
-                if v ~= nil then return v end
-                return self[n]
+            local par = self
+            r.__index = function (self, n)
+                local v = par[n]
+                if v == nil then return par.__get(self, n) end
+                return v
             end
         end
 
         -- setters
         if self.__set then
-            r.__newindex = function  (obj, n, v)
-                local  r = self.__set(obj, n, v)
-                if not r then
-                    rawset(obj, n, v)
-                end
+            local par = self
+            r.__newindex = function  (self, n, v)
+                local  r = par.__set(self, n, v)
+                if not r then rawset(self, n, v) end
             end
         end
 
@@ -501,36 +499,3 @@ table.Object = {
         return ("Object: %s"):format(self.name or "unnamed")
     end
 }
-
-local getmt = getmetatable
-
-local Object = table.Object
-
---[[! Function: table.clone_ffi
-    Wraps a FFI structure in an object, then returns a clone of it.
-]]
-table.clone_ffi = function(self, tbl)
-    local tmp = {
-        __index = function(fakeself, n)
-            if n == "__inherit_meta" or n == "__inst_tostring"
-            or n == "__proto" then
-                return nil
-            end
-            return self[n]
-        end,
-        __newindex = function(fakeself, n, v)
-            self[n] = v
-        end,
-        __call = Object.__call,
-        clone = Object.clone,
-        is_a = Object.is_a,
-        __tostring = Object.__tostring
-    }
-    setmetatable(tmp, tmp)
-    local ffimt = getmt(self)
-    if ffimt then for i = 1, #Meta do
-        local n = Meta[i]
-        if ffimt[n] then tmp[n] = function(...) return ffimt[n](...) end end
-    end end
-    return tmp:clone(tbl)
-end

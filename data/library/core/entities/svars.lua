@@ -347,6 +347,7 @@ State_String = State_Variable:clone {
 M.State_String = State_String
 
 local ctable = createtable
+local setmetatable = setmetatable
 
 --[[! Class: Array_Surrogate
     Represents a "surrogate" for an array. Behaves like a regular
@@ -356,9 +357,22 @@ local ctable = createtable
     You can manipulate this like a regular array (check its length,
     index it, assign indexes) but many of the functions from the
     table library likely won't work.
+
+    Note that surrogates are not regular objects created using the
+    prototypal system. They're manually managed with metatables and
+    you should never have to instantiate them yourself.
 ]]
-Array_Surrogate = table.Object:clone {
+Array_Surrogate = {
     name = "Array_Surrogate",
+
+    --[[! Constructor: new
+        Constructs the array surrogate. Defines its members "entity"
+        and "variable", assigned using the provided arguments.
+    ]]
+    new = function(self, ent, var)
+        #log(INFO, "Array_Surrogate: new: " .. var.name)
+        return setmetatable({ entity = ent, variable = var }, self)
+    end,
 
     --[[! Function: __tostring
         Makes surrogate objects return their names on tostring.
@@ -367,47 +381,43 @@ Array_Surrogate = table.Object:clone {
         return self.name
     end,
 
-    --[[! Function: __get
+    --[[! Function: __index
         Called each time you index an array surrogate. It checks
         the validity of the given index by converting it to a number
-        and flooring it. If the given index is not an integer, this
-        has no effect. Otherwise returns the corresponding state variable
-        element.
+        and flooring it. On invalid indexes, it simply fallbacks to
+        regular indexing.
     ]]
-    __get = function(self, n)
-        n = tonumber(n)
-        if not n then return nil end
+    __index = function(self, name)
+        local n = tonumber(name)
+        if not n then return Array_Surrogate[name] or rawget(self, name) end
         local i = floor(n)
-        if i ~= n then return nil end
+        if i ~= n then return Array_Surrogate[name] or rawget(self, name) end
 
         local v = rawget(self, "variable")
         return v:get_item(rawget(self, "entity"), i)
     end,
 
-    --[[! Function: __set
+    --[[! Function: __newindex
         Called each time you set an index on an array surrogate. It checks
         the validity of the given index by converting it to a number and
-        flooring it. If the given index is not an integer, this has no
-        effect. Otherwise sets the corresponding element using the state
-        variable.
+        flooring it. If the given index is not an integer, this fallbacks
+        to regular setting. Otherwise sets the corresponding element using
+        the state variable.
     ]]
-    __set = function(self, n, val)
-        n = tonumber(n)
-        if not n then return nil end
+    __newindex = function(self, name, val)
+        local n = tonumber(name)
+        if not n then return rawset(self, name, val) end
         local i = floor(n)
-        if i ~= n then return nil end
+        if i ~= n then return rawset(self, name, val) end
 
         local v = rawget(self, "variable")
         v:set_item(rawget(self, "entity"), i, val)
-        return true
     end,
 
-    --[[! Function: __len_fn
+    --[[! Function: __len
         Returns the length of the "array" represented by the state variable.
-        Set as a value of the __len metamethod on surrogate instances.
-        The prefix _fn is used to prevent its effects on the prototype.
     ]]
-    __len_fn = function(self)
+    __len = function(self)
         local v = rawget(self, "variable")
         return v:get_length(rawget(self, "entity"))
     end,
@@ -422,15 +432,6 @@ Array_Surrogate = table.Object:clone {
             r[#r + 1] = self[i]
         end
         return r
-    end,
-
-    --[[! Constructor: __init
-        Constructs the array surrogate. Defines its members "entity"
-        and "variable", assigned using the provided arguments.
-    ]]
-    __init = function(self, ent, var)
-        #log(INFO, "Array_Surrogate: __init: " .. var.name)
-        self.entity, self.variable, self.__len = ent, var, self.__len_fn
     end
 }
 M.Array_Surrogate = Array_Surrogate
@@ -470,7 +471,7 @@ State_Array = State_Variable:clone {
         if not var:get_raw(self) then return nil end
 
         local n = "__as_" .. var.name
-        if not self[n] then self[n] = var.surrogate(self, var) end
+        if not self[n] then self[n] = var.surrogate:new(self, var) end
         return self[n]
     end,
 
@@ -616,14 +617,23 @@ State_Array_Float = State_Array:clone {
 M.State_Array_Float = State_Array_Float
 
 local Vec3 = math.Vec3
+local vec3_index = math.__Vec3_mt.__index
 
 --[[! Class: Vec3_Surrogate
     See <Array_Surrogate>. The only difference is that instead of emulating
-    an array, it emulates <math.Vec3>. It clones it (as an ffi struct) and
-    injects it with its own methods.
+    an array, it emulates <math.Vec3>.
 ]]
-Vec3_Surrogate = table.clone_ffi(Vec3, {
+Vec3_Surrogate = {
     name = "Vec3_Surrogate",
+
+    --[[! Constructor: new
+        Constructs the vec3 surrogate. Defines its members "entity"
+        and "variable", assigned using the provided arguments.
+    ]]
+    new = function(self, ent, var)
+        #log(INFO, "Vec3_Surrogate: new: " .. var.name)
+        return setmetatable({ entity = ent, variable = var }, self)
+    end,
 
     --[[! Function: __tostring
         Makes surrogate objects return their names on tostring.
@@ -632,12 +642,11 @@ Vec3_Surrogate = table.clone_ffi(Vec3, {
         return self.name
     end,
 
-    --[[! Function: __get
+    --[[! Function: __index
         Called each time you index a vec3 surrogate. Works similarly to
-        <Array_Surrogate.__get>. Valid indexes are x, y, z, 1, 2, 3.
-        Otherwise, the getter has no effect.
+        <Array_Surrogate.__index>. Valid indexes are x, y, z, 1, 2, 3.
     ]]
-    __get = function(self, n)
+    __index = function(self, n)
         if n == "x" or n == 1 then
             local v = rawget(self, "variable")
             return v:get_item(rawget(self, "entity"), 1)
@@ -648,56 +657,82 @@ Vec3_Surrogate = table.clone_ffi(Vec3, {
             local v = rawget(self, "variable")
             return v:get_item(rawget(self, "entity"), 3)
         end
+        return Vec3_Surrogate[n] or rawget(self, n)
     end,
 
-    --[[! Function: __set
+    --[[! Function: __newindex
         Called each time you set an index on a vec3 surrogate. Works similarly
         to <Array_Surrogate.__set>. Valid indexes are x, y, z, 1, 2, 3.
-        Otherwise, the setter has no effect.
     ]]
-    __set = function(self, n, val)
+    __newindex = function(self, n, val)
         if n == "x" or n == 1 then
             local v = rawget(self, "variable")
             v:set_item(rawget(self, "entity"), 1, val)
-            return true
         elseif n == "y" or n == 2 then
             local v = rawget(self, "variable")
             v:set_item(rawget(self, "entity"), 2, val)
-            return true
         elseif n == "z" or n == 3 then
             local v = rawget(self, "variable")
             v:set_item(rawget(self, "entity"), 3, val)
-            return true
+        else
+            rawset(self, n, val)
         end
     end,
 
-    --[[! Function: __len_fn
-        See <Array_Surrogate.__len_fn>. In this case always returns 3.
+    --[[! Function: __len
+        See <Array_Surrogate.__len>. In this case always returns 3.
     ]]
-    __len_fn = function(self)
+    __len = function(self)
         return 3
     end,
 
-    --[[! Constructor: __init
-        Uses the constructor of <Array_Surrogate>.
-    ]]
-    __init = Array_Surrogate.__init,
-
     copy = function(self)
         return Vec3(self.x, self.y, self.z)
-    end
-})
+    end,
+
+    length = vec3_index.length,
+    normalize = vec3_index.normalize,
+    cap = vec3_index.cap,
+    sub_new = vec3_index.sub_new,
+    add_new = vec3_index.add_new,
+    mul_new = vec3_index.mul_new,
+    sub = vec3_index.sub,
+    add = vec3_index.add,
+    mul = vec3_index.mul,
+    to_array = vec3_index.to_array,
+    from_yaw_pitch = vec3_index.from_yaw_pitch,
+    to_yaw_pitch = vec3_index.to_yaw_pitch,
+    is_close_to = vec3_index.is_close_to,
+    dot_product = vec3_index.dot_product,
+    cross_product = vec3_index.cross_product,
+    project_along_surface = vec3_index.project_along_surface,
+    lerp = vec3_index.lerp,
+    is_zero = vec3_index.is_zero,
+
+    __sub = vec3_index.sub_new,
+    __add = vec3_index.add_new,
+    __mul = vec3_index.mul_new
+}
 M.Vec3_Surrogate = Vec3_Surrogate
 
 local Vec4 = math.Vec4
+local vec4_index = math.__Vec4_mt.__index
 
 --[[! Class: Vec4_Surrogate
     See <Array_Surrogate>. The only difference is that instead of emulating
-    an array, it emulates <math.Vec4>. It clones it and injects it with its
-    own methods.
+    an array, it emulates <math.Vec4>.
 ]]
-Vec4_Surrogate = table.clone_ffi(Vec4, {
+Vec4_Surrogate = {
     name = "Vec4_Surrogate",
+
+    --[[! Constructor: new
+        Constructs the vec4 surrogate. Defines its members "entity"
+        and "variable", assigned using the provided arguments.
+    ]]
+    new = function(self, ent, var)
+        #log(INFO, "Vec4_Surrogate: new: " .. var.name)
+        return setmetatable({ entity = ent, variable = var }, self)
+    end,
 
     --[[! Function: __tostring
         Makes surrogate objects return their names on tostring.
@@ -706,12 +741,11 @@ Vec4_Surrogate = table.clone_ffi(Vec4, {
         return self.name
     end,
 
-    --[[! Function: __get
+    --[[! Function: __index
         Called each time you index a vec4 surrogate. Works similarly to
-        <Array_Surrogate.__get>. Valid indexes are x, y, z, w, 1, 2, 3, 4.
-        Otherwise, the getter has no effect.
+        <Vec3_Surrogate.__index>. Valid indexes are x, y, z, w, 1, 2, 3, 4.
     ]]
-    __get = function(self, n)
+    __index = function(self, n)
         if n == "x" or n == 1 then
             local v = rawget(self, "variable")
             return v:get_item(rawget(self, "entity"), 1)
@@ -725,49 +759,66 @@ Vec4_Surrogate = table.clone_ffi(Vec4, {
             local v = rawget(self, "variable")
             return v:get_item(rawget(self, "entity"), 4)
         end
+        return Vec4_Surrogate[n] or rawget(self, n)
     end,
 
-    --[[! Function: __set
-        Called each time you set an index on a vec4 surrogate. Works similarly
-        to <Array_Surrogate.__set>. Valid indexes are x, y, z, w, 1, 2, 3, 4.
-        Otherwise, the setter has no effect.
+    --[[! Function: __newindex
+        Called each time you set an index on a vec3 surrogate. Works similarly
+        to <Vec3_Surrogate.__set>. Valid indexes are x, y, z, w, 1, 2, 3, 4.
     ]]
-    __set = function(self, n, val)
+    __newindex = function(self, n, val)
         if n == "x" or n == 1 then
             local v = rawget(self, "variable")
             v:set_item(rawget(self, "entity"), 1, val)
-            return true
         elseif n == "y" or n == 2 then
             local v = rawget(self, "variable")
             v:set_item(rawget(self, "entity"), 2, val)
-            return true
         elseif n == "z" or n == 3 then
             local v = rawget(self, "variable")
             v:set_item(rawget(self, "entity"), 3, val)
-            return true
         elseif n == "w" or n == 4 then
             local v = rawget(self, "variable")
             v:set_item(rawget(self, "entity"), 4, val)
-            return true
+        else
+            rawset(self, n, val)
         end
     end,
 
-    --[[! Function: __len_fn
-        See <Array_Surrogate.__len_fn>. In this case always returns 4.
+    --[[! Function: __len
+        See <Array_Surrogate.__len>. In this case always returns 4.
     ]]
     __len_fn = function(self)
         return 4
     end,
 
-    --[[! Constructor: __init
-        Uses the constructor of <Array_Surrogate>.
-    ]]
-    __init = Array_Surrogate.__init,
-
     copy = function(self)
         return Vec4(self.x, self.y, self.z, self.w)
-    end
-})
+    end,
+
+    length = vec4_index.length,
+    normalize = vec4_index.normalize,
+    cap = vec4_index.cap,
+    sub_new = vec4_index.sub_new,
+    add_new = vec4_index.add_new,
+    mul_new = vec4_index.mul_new,
+    sub = vec4_index.sub,
+    add = vec4_index.add,
+    mul = vec4_index.mul,
+    to_array = vec4_index.to_array,
+    from_yaw_pitch = vec4_index.from_yaw_pitch,
+    to_yaw_pitch = vec4_index.to_yaw_pitch,
+    to_yaw_pitch_roll = vec4_index.to_yaw_pitch_roll,
+    is_close_to = vec4_index.is_close_to,
+    dot_product = vec4_index.dot_product,
+    cross_product = vec4_index.cross_product,
+    project_along_surface = vec4_index.project_along_surface,
+    lerp = vec4_index.lerp,
+    is_zero = vec4_index.is_zero,
+
+    __sub = vec4_index.sub_new,
+    __add = vec4_index.add_new,
+    __mul = vec4_index.mul_new
+}
 M.Vec4_Surrogate = Vec4_Surrogate
 
 --[[! Class: State_Vec3

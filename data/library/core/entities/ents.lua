@@ -1151,6 +1151,27 @@ Entity = table.Object:clone {
         end
     end,
 
+    --[[! Function: get_gui_attrs
+        Like <get_gui_attr>, but returns all available attributes as an
+        array of key-value pairs. The second argument (defaults to true)
+        specifies whether to sort the result by attribute name.
+    ]]
+    get_gui_attrs = function(self, sortattrs)
+        if sortattrs == nil then sortattrs = true end
+        local r = {}
+        for k, var in pairs(self) do
+            if is_svar(var) and var.has_history then
+                local name = var.name
+                local val = self[name]
+                if val ~= nil then
+                    r[#r + 1] = { var.gui_name or name, var:to_wire(val) }
+                end
+            end
+        end
+        if sortattrs then sort(r, function(a, b) return a[1] < b[1] end) end
+        return r
+    end,
+
     --[[! Function: set_gui_attr
         Given a GUI property name and a value in a wire format, this sets
         the property on the entity.
