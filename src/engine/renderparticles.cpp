@@ -511,9 +511,12 @@ struct iconrenderer: listrenderer {
         if (!tex) return;
 
         if (tex != prevtex) {
-            particleshader->setvariant(hasTRG ? (tex->bpp==1 ? 0 :
-                (tex->bpp==2 ? 1 : -1)) : -1, 0);
-            LOCALPARAMF(colorscale, (ldrscale, ldrscale, ldrscale, 1));
+            if(!prevtex || tex->bpp != prevtex->bpp)
+            {
+                particleshader->setvariant(hasTRG ? (tex->bpp==1 ? 0 :
+                    (tex->bpp==2 ? 1 : -1)) : -1, 0);
+                LOCALPARAMF(colorscale, (ldrscale, ldrscale, ldrscale, 1));
+            }
             glBindTexture(GL_TEXTURE_2D, tex->id);
             prevtex = tex;
         }
