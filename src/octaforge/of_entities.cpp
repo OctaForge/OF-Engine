@@ -408,6 +408,16 @@ namespace entities
             lua_pushnil(L);
         return 1;
     });
+
+    LUAICOMMAND(get_attached_entity, {
+        LUA_GET_ENT(entity, "_C.get_attached_entity", return 0)
+        extentity *e = entity->staticEntity;
+        if (!e || !e->attached) return 0;
+        CLogicEntity *ae = LogicSystem::getLogicEntity(*e->attached);
+        if (!ae) return 0;
+        lua_rawgeti(L, LUA_REGISTRYINDEX, ae->lua_ref);
+        return 1;
+    });
 } /* end namespace entities */
 
 /* extra model API */

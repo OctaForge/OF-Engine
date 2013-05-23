@@ -779,6 +779,15 @@ local Static_Entity = Physical_Entity:clone {
     ]]
     get_edit_color = function(self)
         return 0xFFFFFF
+    end,
+
+    --[[! Function: get_attached_entity
+        Returns the currently attached entity. Useful mainly for spotlights.
+        This refers to the "internally attached" entity that the core engine
+        works with.
+    ]]
+    get_attached_entity = function(self)
+        return _C.get_attached_entity(self)
     end
 }
 M.Static_Entity = Static_Entity
@@ -869,6 +878,12 @@ local Spot_Light = Static_Entity:clone {
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
         self.radius = 90
+    end,
+
+    get_edit_color = function(self)
+        local ent = self:get_attached_entity()
+        if not ent then return 0xFFFFFF end
+        return bor(ent.blue, lsh(ent.green, 8), lsh(ent.red, 16))
     end
 }
 M.Spot_Light = Spot_Light

@@ -511,8 +511,7 @@ struct iconrenderer: listrenderer {
         if (!tex) return;
 
         if (tex != prevtex) {
-            if(!prevtex || tex->bpp != prevtex->bpp)
-            {
+            if (!prevtex || tex->bpp != prevtex->bpp) {
                 particleshader->setvariant(hasTRG ? (tex->bpp==1 ? 0 :
                     (tex->bpp==2 ? 1 : -1)) : -1, 0);
                 LOCALPARAMF(colorscale, (ldrscale, ldrscale, ldrscale, 1));
