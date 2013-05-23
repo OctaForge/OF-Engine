@@ -650,7 +650,6 @@ extern void clearparticleemitters();
 extern void seedparticles();
 extern void updateparticles();
 extern void renderparticles();
-extern bool printparticles(extentity &e, char *buf);
 
 // decal
 extern void initdecals();

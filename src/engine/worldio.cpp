@@ -739,7 +739,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         {
             if(e.type != ET_LIGHT && e.type != ET_SPOTLIGHT)
             {
-                conoutf(CON_WARN, "warning: ent outside of world: enttype[%s] index %d (%f, %f, %f)", entities::entname(e.type), i, e.o.x, e.o.y, e.o.z);
+                conoutf(CON_WARN, "warning: ent outside of world: enttype[%d] index %d (%f, %f, %f)", e.type, i, e.o.x, e.o.y, e.o.z);
             }
         }
 

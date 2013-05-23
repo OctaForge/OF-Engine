@@ -2,7 +2,6 @@
 
 namespace entities
 {
-    extern const char *entname(int i);
     extern void clearents();
     extern vector<extentity *> &getents();
 }

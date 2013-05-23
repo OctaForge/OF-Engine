@@ -40,7 +40,6 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)
     fflush(stdout);
 }
 
-bool printparticles(extentity &e, char *buf) { return true; };
 void clearparticleemitters() { };
 
 vec worldpos;

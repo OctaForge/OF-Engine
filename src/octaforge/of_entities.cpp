@@ -40,11 +40,6 @@ void addentity(extentity* entity);
 
 namespace entities
 {
-    const char *entity_names[] = {
-        "none", "light", "mapmodel", "marker", "envmap", "particles",
-        "sound", "spotlight", "obstacle"
-    };
-
     struct Entity_Storage {
         vector<extentity*> data;
         Entity_Storage(): data() {}
@@ -63,13 +58,6 @@ namespace entities
     void clearents() {
         while (storage.data.length())
             delete storage.data.pop();
-    }
-
-    const char *entname(int idx) {
-        return (idx >= 0 && (size_t)idx
-                < (sizeof(entity_names)
-                 / sizeof(entity_names[0])
-                )) ? entity_names[idx] : "";
     }
 
     /* OF Lua entity API */

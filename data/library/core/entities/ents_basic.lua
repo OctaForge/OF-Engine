@@ -21,6 +21,7 @@ local Entity = M.Entity
 local band, bor, lsh, rsh = math.band, math.bor, math.lsh, math.rsh
 local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
 local connect, emit = signal.connect, signal.emit
+local format = string.format
 
 --[[! Class: Physical_Entity
     Represents a base for every entity that has some kind of physical
@@ -780,6 +781,14 @@ local Static_Entity = Physical_Entity:clone {
         return 0xFFFFFF
     end,
 
+    --[[! Function: get_edit_info
+        Returns any piece of information displayed in in the edit HUD in
+        addition to the entity name. Overload for different entity types.
+    ]]
+    get_edit_info = function(self)
+        return nil
+    end,
+
     --[[! Function: get_attached_entity
         Returns the currently attached entity. Useful mainly for spotlights.
         This refers to the "internally attached" entity that the core engine
@@ -794,8 +803,16 @@ M.Static_Entity = Static_Entity
 --[[! Function: entity_get_edit_info
     An external. Returns ent.edit_icon, ent:get_edit_color().
 ]]
-set_external("entity_get_edit_info", function(ent)
+set_external("entity_get_edit_icon_info", function(ent)
     return ent.edit_icon, ent:get_edit_color()
+end)
+
+--[[! Function: entity_get_edit_info
+    An external. Returns the entity name and the return value of
+    <Static_Entity.get_edit_info>.
+]]
+set_external("entity_get_edit_info", function(ent)
+    return ent.name, ent:get_edit_info()
 end)
 
 --[[! Class: Light
@@ -848,6 +865,11 @@ local Light = Static_Entity:clone {
 
     get_edit_color = function(self)
         return bor(self.blue, lsh(self.green, 8), lsh(self.red, 16))
+    end,
+
+    get_edit_info = function(self)
+        return format("r: %d, g: %d, b: %d, radius: %d", self.red, self.green,
+            self.blue, self.radius)
     end
 }
 M.Light = Light
@@ -883,6 +905,10 @@ local Spot_Light = Static_Entity:clone {
         local ent = self:get_attached_entity()
         if not ent then return 0xFFFFFF end
         return bor(ent.blue, lsh(ent.green, 8), lsh(ent.red, 16))
+    end,
+
+    get_edit_info = function(self)
+        return format("radius: %d", self.radius)
     end
 }
 M.Spot_Light = Spot_Light
@@ -912,6 +938,10 @@ local Envmap = Static_Entity:clone {
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
         self.radius = 128
+    end,
+
+    get_edit_info = function(self)
+        return format("radius: %d", self.radius)
     end
 }
 M.Envmap = Envmap
@@ -960,6 +990,11 @@ local Sound = Static_Entity:clone {
         self.attr1, self.radius, self.size  = -1, 100, 0
         if not self.volume then self.volume = 100 end
         self.sound_name = ""
+    end,
+
+    get_edit_info = function(self)
+        return format('radius: %d, size: %d, volume: %d\nname: "%s"',
+            self.radius, self.size, self.volume, self.sound_name)
     end
 }
 M.Sound = Sound
@@ -1066,21 +1101,40 @@ local Particle_Effect = Static_Entity:clone {
         },
         attr2 = svars.State_Integer {
             getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "value1", alt_name = "value1"
+            gui_name = "a", alt_name = "a"
         },
         attr3 = svars.State_Integer {
             getter = "_C.get_attr3", setter = "_C.set_attr3",
-            gui_name = "value2", alt_name = "value2"
+            gui_name = "b", alt_name = "b"
         },
         attr4 = svars.State_Integer {
             getter = "_C.get_attr4", setter = "_C.set_attr4",
-            gui_name = "value3", alt_name = "value3"
+            gui_name = "c", alt_name = "c"
+        },
+        attr5 = svars.State_Integer {
+            getter = "_C.get_attr5", setter = "_C.set_attr5",
+            gui_name = "d", alt_name = "d"
         }
     },
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self.particle_type, self.value1, self.value2, self.value3 = 0, 0, 0, 0
+        self.particle_type, self.a, self.b, self.c, self.d = 0, 0, 0, 0, 0
+    end,
+
+    get_edit_info = function(self)
+        local pt = self.particle_type
+        if pt == 0 or pt == 4 or pt == 7 or pt == 8 or pt == 9 or pt == 10
+        or pt == 11 or pt == 12 or pt == 13 then
+            return format("pt: %d, a: %d b: %d c: 0x%.3X d: %d", pt, self.a,
+                self.b, self.c, self.d)
+        elseif pt == 3 then
+            return format("pt: %d, a: %d b: 0x%.3X c: %d d: %d", pt, self.a,
+                self.b, self.c, self.d)
+        elseif pt == 5 or pt == 6 then
+            return format("pt: %d, a: %d b: 0x%.6X c: 0x%.3X d: %d", pt,
+                self.a, self.b, self.c, self.d)
+        end
     end
 }
 M.Particle_Effect = Particle_Effect
@@ -1126,6 +1180,11 @@ local Mapmodel = Static_Entity:clone {
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
         self.yaw, self.pitch, self.roll = 0, 0, 0
+    end,
+
+    get_edit_info = function(self)
+        return format('yaw: %d, pitch: %d, roll: %d, scale: %d\nname: "%s"',
+            self.yaw, self.pitch, self.roll, self.scale, self.model_name)
     end
 }
 M.Mapmodel = Mapmodel
@@ -1172,6 +1231,10 @@ local World_Marker = Static_Entity:clone {
     ]]
     place_entity = function(self, ent)
         ent.position, ent.yaw, ent.pitch = self.position, self.yaw, self.pitch
+    end,
+
+    get_edit_info = function(self)
+        return format("yaw: %d, pitch: %d", self.yaw, self.pitch)
     end
 }
 M.World_Marker = World_Marker
@@ -1208,7 +1271,12 @@ local Obstacle = Static_Entity:clone {
             getter = "_C.get_attr5", setter = "_C.set_attr5",
             gui_name = "solid", alt_name = "solid"
         }
-    }
+    },
+
+    get_edit_info = function(self)
+        return format("yaw: %d, a: %d, b: %d, c: %d, solid: %d", self.yaw,
+            self.a, self.b, self.c, self.solid)
+    end
 }
 M.Obstacle = Obstacle
 

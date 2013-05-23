@@ -1027,15 +1027,16 @@ COMMAND(dropent, "");
 COMMAND(entcopy, "");
 COMMAND(entpaste, "");
 
-void printent(extentity &e, char *buf)
-{
-    switch(e.type)
-    {
-        case ET_PARTICLES:
-            if(printparticles(e, buf)) return; 
-            break;
-    }
-    formatstring(buf)("%s %d %d %d %d %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
+/* OF */
+void printent(extentity &e, char *buf) {
+    lua::push_external("entity_get_edit_info");
+    lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+        LogicSystem::getLogicEntity(e)->lua_ref);
+    lua_call(lua::L, 1, 2);
+    const char *info = lua_tostring(lua::L, -1);
+    const char *name = lua_tostring(lua::L, -2); lua_pop(lua::L, 2);
+    if (!info || !info[0]) formatstring(buf)("%s", name);
+    else formatstring(buf)("%s (%s)", name, info);
 }
 
 void nearestent()

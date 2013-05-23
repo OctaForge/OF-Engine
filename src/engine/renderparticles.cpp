@@ -1391,23 +1391,6 @@ static void makeparticles(entity &e)
     }
 }
 
-bool printparticles(extentity &e, char *buf)
-{
-    switch(e.attr1)
-    {
-        case 0: case 4: case 7: case 8: case 9: case 10: case 11: case 12: case 13: 
-            formatstring(buf)("%s %d %d %d 0x%.3hX %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
-            return true;
-        case 3:
-            formatstring(buf)("%s %d %d 0x%.3hX %d %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
-            return true;
-        case 5: case 6:
-            formatstring(buf)("%s %d %d 0x%.3hX 0x%.3hX %d", entities::entname(e.type), e.attr1, e.attr2, e.attr3, e.attr4, e.attr5);
-            return true; 
-    }
-    return false;
-}
-
 void seedparticles()
 {
     renderprogress(0, "seeding particles");
@@ -1490,7 +1473,7 @@ void updateparticles()
             extentity &e = *ents[i];
             CLogicEntity *le = LogicSystem::getLogicEntity(e);
             if (!le) continue;
-            lua::push_external("entity_get_edit_info");
+            lua::push_external("entity_get_edit_icon_info");
             lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
 
             lua::push_external("entity_get_name");
