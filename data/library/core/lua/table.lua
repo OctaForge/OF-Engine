@@ -29,6 +29,13 @@ local tostring = tostring
 ]]
 table.is_array = function(tbl)
     local i = #tbl
+    -- check for holes
+    for j = 1, i do
+        if tbl[j] == nil then
+            i = j - 1
+            break
+        end
+    end
     for _ in pairs(tbl) do
         i = i - 1
         if i < 0 then

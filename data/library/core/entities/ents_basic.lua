@@ -1237,7 +1237,7 @@ local Marker = Static_Entity:clone {
         ent.position = self.position
     end
 }
-M.Oriented_Marker = Oriented_Marker
+M.Marker = Marker
 
 --[[! Class: Obstacle
     An entity class that emits a "collision" signal on itself when a client

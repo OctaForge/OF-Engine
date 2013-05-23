@@ -1,6 +1,6 @@
 module("dynamic_lights", package.seeall)
 
-dynamic_light = ents.register_class(plugins.bake(ents.Oriented_Marker, {{
+dynamic_light = ents.register_class(plugins.bake(ents.Marker, {{
     properties = {
         attr1 = svars.State_Integer { gui_name = "radius", alt_name = "radius" },
         attr2 = svars.State_Integer { gui_name = "red",    alt_name = "red"    },
