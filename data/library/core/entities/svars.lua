@@ -612,12 +612,14 @@ State_Array_Float = State_Array:clone {
 }
 M.State_Array_Float = State_Array_Float
 
+local Vec3 = math.Vec3
+
 --[[! Class: Vec3_Surrogate
     See <Array_Surrogate>. The only difference is that instead of emulating
-    an array, it emulates <math.Vec3>. It clones it and injects it with its
-    own methods.
+    an array, it emulates <math.Vec3>. It clones it (as an ffi struct) and
+    injects it with its own methods.
 ]]
-Vec3_Surrogate = math.Vec3:clone {
+Vec3_Surrogate = table.clone_ffi(Vec3, {
     name = "Vec3_Surrogate",
 
     --[[! Function: __tostring
@@ -676,16 +678,22 @@ Vec3_Surrogate = math.Vec3:clone {
     --[[! Constructor: __init
         Uses the constructor of <Array_Surrogate>.
     ]]
-    __init = Array_Surrogate.__init
-}
+    __init = Array_Surrogate.__init,
+
+    copy = function(self)
+        return Vec3(self.x, self.y, self.z)
+    end
+})
 M.Vec3_Surrogate = Vec3_Surrogate
+
+local Vec4 = math.Vec4
 
 --[[! Class: Vec4_Surrogate
     See <Array_Surrogate>. The only difference is that instead of emulating
     an array, it emulates <math.Vec4>. It clones it and injects it with its
     own methods.
 ]]
-Vec4_Surrogate = math.Vec4:clone {
+Vec4_Surrogate = table.clone_ffi(Vec4, {
     name = "Vec4_Surrogate",
 
     --[[! Function: __tostring
@@ -751,8 +759,12 @@ Vec4_Surrogate = math.Vec4:clone {
     --[[! Constructor: __init
         Uses the constructor of <Array_Surrogate>.
     ]]
-    __init = Array_Surrogate.__init
-}
+    __init = Array_Surrogate.__init,
+
+    copy = function(self)
+        return Vec4(self.x, self.y, self.z, self.w)
+    end
+})
 M.Vec4_Surrogate = Vec4_Surrogate
 
 --[[! Class: State_Vec3

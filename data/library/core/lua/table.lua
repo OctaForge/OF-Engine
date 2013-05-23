@@ -501,3 +501,36 @@ table.Object = {
         return ("Object: %s"):format(self.name or "unnamed")
     end
 }
+
+local getmt = getmetatable
+
+local Object = table.Object
+
+--[[! Function: table.clone_ffi
+    Wraps a FFI structure in an object, then returns a clone of it.
+]]
+table.clone_ffi = function(self, tbl)
+    local tmp = {
+        __index = function(fakeself, n)
+            if n == "__inherit_meta" or n == "__inst_tostring"
+            or n == "__proto" then
+                return nil
+            end
+            return self[n]
+        end,
+        __newindex = function(fakeself, n, v)
+            self[n] = v
+        end,
+        __call = Object.__call,
+        clone = Object.clone,
+        is_a = Object.is_a,
+        __tostring = Object.__tostring
+    }
+    setmetatable(tmp, tmp)
+    local ffimt = getmt(self)
+    if ffimt then for i = 1, #Meta do
+        local n = Meta[i]
+        if ffimt[n] then tmp[n] = function(...) return ffimt[n](...) end end
+    end end
+    return tmp:clone(tbl)
+end

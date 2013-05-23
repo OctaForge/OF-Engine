@@ -267,280 +267,274 @@ math.is_inf = function(n)
     return (n == 1/0)
 end
 
---[[! Class: math.Vec3
+local ffi = require("ffi")
+
+ffi.cdef [[
+    typedef struct { float x, y, z;    } vec3_t;
+    typedef struct { float x, y, z, w; } vec4_t;
+    void *memcpy(void *dest, const void *src, size_t n);
+]]
+
+local new, sizeof = ffi.new, ffi.sizeof
+local type = type
+local getmt = getmetatable
+local format = string.format
+local sqrt, abs = math.sqrt, math.abs
+local sin, cos, rad = math.sin, math.cos, math.rad
+local deg, asin, atan2 = math.deg, math.asin, math.atan2
+
+local vec3_mt
+--[[! Struct: math.Vec3
     A standard 3 component vector with x, y, z components. A function
-    "new_vec3" is externally available.
+    "new_vec3" is externally available. Internally it's a FFI struct.
 
     (start code)
         a = math.Vec3(5, 10, 15)
         echo(a.x)
     (end)
 ]]
-local Vec3 = table.Object:clone {
-    name = "Vec3",
-
-    --[[! Constructor: __init
-        Constructs the vector. Besides self, there can be either one more
-        argument, which then has to be either another vector or associative
-        array with x, y, z keys or an array with length 3, or 3 more arguments,
-        which then are the x, y, z components themselves.
+local Vec3
+vec3_mt = {
+    --[[! Constructor: __call
+        You can construct a vec3 either by passing another vec3, a table
+        convertible to vec3 (an array of 3 elements or an associative array
+        with x, y, z) or the components directly.
     ]]
-    __init = function(self, x, y, z)
-        if type(x) == "table" then
-            if (x.is_a and x:is_a(math.Vec3)) or (x.x and x.y and x.z) then
-                self.x = tonumber(x.x)
-                self.y = tonumber(x.y)
-                self.z = tonumber(x.z)
-            elseif #x == 3 then
-                self.x = tonumber(x[1])
-                self.y = tonumber(x[2])
-                self.z = tonumber(x[3])
+    __call = function(x, y, z)
+        if getmt(x) == vec3_mt then
+            local ret = ffi.new "vec3_t"
+            C.memcpy(ret, x, sizeof "vec3_t")
+            return ret
+        elseif type(x) == "table" then
+            if x.x then
+                return ffi.new("vec3_t", x.x, x.y, x.z)
             else
-                self.x = 0
-                self.y = 0
-                self.z = 0
+                return ffi.new("vec3_t", x[1], x[2], x[3])
             end
         else
-            self.x = x or 0
-            self.y = y or 0
-            self.z = z or 0
+            return ffi.new("vec3_t", x, y, z)
         end
-
-        self.__add = self.add_new
-        self.__sub = self.sub_new
-        self.__mul = self.mul_new
-        self.__len = self.length
     end,
 
-    --[[! Function: __inst_tostring
-        Causes tostring(some_vec) result in "Vec3 <x, y, z>".
+    --[[! Function: __tostring
+        Returns a string in format "Vec3 <x, y, z>".
     ]]
-    __inst_tostring = function(self)
-        return string.format(
-            "%s <%s, %s, %s>",
-             self.name,
-             tostring(self.x),
-             tostring(self.y),
-             tostring(self.z)
-        )
+    __tostring = function(self)
+        return format("Vec3 <%f, %f, %f>", self.x, self.y, self.z)
     end,
 
-    --[[! Function: length
-        Returns the vector length (aka sqrt(x*x + y*y + z*z)).
-    ]]
-    length = function(self)
-        return math.sqrt(
-            self.x * self.x +
-            self.y * self.y +
-            self.z * self.z
-        )
-    end,
+    __index = {
+        --[[! Function: length
+            Returns the vector length, equals "#vec".
+        ]]
+        length = function(self)
+            return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        end,
 
-    --[[! Function: normalize
-        Normalizes the vector. It must not be zero length.
-    ]]
-    normalize = function(self)
-        local len  = self:length()
-        if    len ~= 0 then
-            self:mul(1 / len)
-        else
-            #log(ERROR, "Can't normalize a vector of zero length.")
+        --[[! Function: normalize
+            Normalizes the vector. It must not be zero length.
+        ]]
+        normalize = function(self)
+            local len  = self:length()
+            if    len ~= 0 then
+                self:mul(1 / len)
+            else
+                log(ERROR, "Can't normalize a vector of zero length.")
+            end
+            return self
+        end,
+
+        --[[! Function: cap
+            Caps the vector length.
+        ]]
+        cap = function(self, max_len)
+            local len = self:length()
+            if len > max_len then
+                self:mul(max_len / len)
+            end
+            return self
+        end,
+
+        --[[! Function: sub_new
+            Returns a new vector that equals "this - other".
+        ]]
+        sub_new = function(self, v)
+            return Vec3(self.x - v.x,
+                        self.y - v.y,
+                        self.z - v.z)
+        end,
+
+        --[[! Function: add_new
+            Returns a new vector that equals "this + other".
+        ]]
+        add_new = function(self, v)
+            return Vec3(self.x + v.x,
+                        self.y + v.y,
+                        self.z + v.z)
+        end,
+
+        --[[! Function: mul_new
+            Returns a new vector that equals "this * other".
+        ]]
+        mul_new = function(self, v)
+            return Vec3(self.x * v,
+                        self.y * v,
+                        self.z * v)
+        end,
+
+        --[[! Function: sub
+            Subtracts a given vector from this one.
+        ]]
+        sub = function(self, v)
+            self.x = self.x - v.x
+            self.y = self.y - v.y
+            self.z = self.z - v.z
+            return self
+        end,
+
+        --[[! Function: add
+            Adds a given vector to this one.
+        ]]
+        add = function(self, v)
+            self.x = self.x + v.x
+            self.y = self.y + v.y
+            self.z = self.z + v.z
+            return self
+        end,
+
+        --[[! Function: mul
+            Multiplies this with a given vector.
+        ]]
+        mul = function(self, v)
+            self.x = self.x * v
+            self.y = self.y * v
+            self.z = self.z * v
+            return self
+        end,
+
+        --[[! Function: copy
+            Returns a copy of this vector.
+        ]]
+        copy = function(self)
+            return Vec3(self)
+        end,
+
+        --[[! Function: to_array
+            Returns an array of components of this vector.
+        ]]
+        to_array = function(self)
+            return { self.x, self.y, self.z }
+        end,
+
+        --[[! Function: from_yaw_pitch
+            Initializes the vector using given yaw and pitch.
+        ]]
+        from_yaw_pitch = function(self, yaw, pitch)
+            self.x = -(sin(rad(yaw)))
+            self.y =  (cos(rad(yaw)))
+
+            if pitch ~= 0 then
+                self.x = self.x * cos(rad(pitch))
+                self.y = self.y * cos(rad(pitch))
+                self.z = sin(rad(pitch))
+            else
+                self.z = 0
+            end
+
+            return self
+        end,
+
+        --[[! Function: to_yaw_pitch
+            Calculates yaw and pitch from the vector's components.
+        ]]
+        to_yaw_pitch = function(self)
+            local mag = self:length()
+            if mag < 0.001 then
+                return { yaw = 0, pitch = 0 }
+            end
+            return {
+                yaw = deg(-(atan2(self.x, self.y))),
+                pitch = deg(asin(self.z / mag))
+            }
+        end,
+
+        --[[! Function: is_close_to
+            Optimized way to check if two positions are close. Faster than
+            "a:sub(b):length() <= dist". Avoids the sqrt and may save some
+            of the multiplications.
+        ]]
+        is_close_to = function(self, v, dist)
+            dist = dist * dist
+            local temp, sum
+
+            -- note order: we expect z to be less
+            -- important, as most maps are 'flat'
+            temp = self.x - v.x
+            sum = temp * temp
+            if sum > dist then return false end
+
+            temp = self.y - v.y
+            sum = sum + temp * temp
+            if sum > dist then return false end
+
+            temp = self.z - v.z
+            sum = sum + temp * temp
+            return (sum <= dist)
+        end,
+
+        --[[! Function: dot_product
+            Calculates a dot product of this and some other vector.
+        ]]
+        dot_product = function(self, v)
+            return self.x * v.x + self.y * v.y + self.z * v.z
+        end,
+
+        --[[! Function: cross_product
+            Calculates a cross product of this and some other vector.
+        ]]
+        cross_product = function(self, v)
+            return Vec3((self.y * v.z) - (self.z * v.y),
+                        (self.z * v.x) - (self.x * v.z),
+                        (self.x * v.y) - (self.y * v.x))
+        end,
+
+        --[[! Function: project_along_surface
+            Projects the vector along a surface defined by a normal.
+            Returns this, the modified vector.
+        ]]
+        project_along_surface = function(self, surf)
+            return self:sub(surf:mul_new(self:dot_product(surf)))
+        end,
+
+        --[[! Function: lerp
+            Performs a linear interpolation between the two
+            vectors, given a weight. Returns the new vector.
+            Does not modify the original.
+        ]]
+        lerp = function(self, other, weight)
+            return self:add_new(other:sub_new(self):mul(weight))
+        end,
+
+        --[[! Function: is_zero
+            Returns true if each component is 0, false otherwise.
+        ]]
+        is_zero = function(self)
+            return (self.x == 0 and self.y == 0 and self.z == 0)
         end
-        return self
-    end,
-
-    --[[! Function: cap
-        Caps the vector length.
-    ]]
-    cap = function(self, max_len)
-        local len = self:length()
-        if len > max_len then
-            self:mul(max_len / len)
-        end
-        return self
-    end,
-
-    --[[! Function: sub_new
-        Returns a new vector that equals "this - other".
-    ]]
-    sub_new = function(self, v)
-        return math.Vec3(
-            self.x - v.x,
-            self.y - v.y,
-            self.z - v.z
-        )
-    end,
-
-    --[[! Function: add_new
-        Returns a new vector that equals "this + other".
-    ]]
-    add_new = function(self, v)
-        return math.Vec3(
-            self.x + v.x,
-            self.y + v.y,
-            self.z + v.z
-        )
-    end,
-
-    --[[! Function: mul_new
-        Returns a new vector that equals "this * other".
-    ]]
-    mul_new = function(self, v)
-        return math.Vec3(
-            self.x * v,
-            self.y * v,
-            self.z * v
-        )
-    end,
-
-    --[[! Function: sub
-        Subtracts a given vector from this one.
-    ]]
-    sub = function(self, v)
-        self.x = self.x - v.x
-        self.y = self.y - v.y
-        self.z = self.z - v.z
-        return self
-    end,
-
-    --[[! Function: add
-        Adds a given vector to this one.
-    ]]
-    add = function(self, v)
-        self.x = self.x + v.x
-        self.y = self.y + v.y
-        self.z = self.z + v.z
-        return self
-    end,
-
-    --[[! Function: mul
-        Multiplies this with a given vector.
-    ]]
-    mul = function(self, v)
-        self.x = self.x * v
-        self.y = self.y * v
-        self.z = self.z * v
-        return self
-    end,
-
-    --[[! Function: copy
-        Returns a copy of this vector.
-    ]]
-    copy = function(self)
-        return math.Vec3(self.x, self.y, self.z)
-    end,
-
-    --[[! Function: to_array
-        Returns an array of components of this vector.
-    ]]
-    to_array = function(self)
-        return { self.x, self.y, self.z }
-    end,
-
-    --[[! Function: from_yaw_pitch
-        Initializes the vector using given yaw and pitch.
-    ]]
-    from_yaw_pitch = function(self, yaw, pitch)
-        self.x = -(math.sin(math.rad(yaw)))
-        self.y =  (math.cos(math.rad(yaw)))
-
-        if pitch ~= 0 then
-            self.x = self.x * math.cos(math.rad(pitch))
-            self.y = self.y * math.cos(math.rad(pitch))
-            self.z = math.sin(math.rad(pitch))
-        else
-            self.z = 0
-        end
-
-        return self
-    end,
-
-    --[[! Function: to_yaw_pitch
-        Calculates yaw and pitch from the vector's components.
-    ]]
-    to_yaw_pitch = function(self)
-        local mag = self:length()
-        if mag < 0.001 then
-            return { yaw = 0, pitch = 0 }
-        end
-        return {
-            yaw = math.deg(-(math.atan2(self.x, self.y))),
-            pitch = math.deg(math.asin(self.z / mag))
-        }
-    end,
-
-    --[[! Function: is_close_to
-        Optimized way to check if two positions are close. Faster than
-        "a:sub(b):length() <= dist". Avoids the sqrt and may save some
-        of the multiplications.
-    ]]
-    is_close_to = function(self, v, dist)
-        dist = dist * dist
-        local temp, sum
-
-        -- note order: we expect z to be less
-        -- important, as most maps are 'flat'
-        temp = self.x - v.x
-        sum = temp * temp
-        if sum > dist then return false end
-
-        temp = self.y - v.y
-        sum = sum + temp * temp
-        if sum > dist then return false end
-
-        temp = self.z - v.z
-        sum = sum + temp * temp
-        return (sum <= dist)
-    end,
-
-    --[[! Function: dot_product
-        Calculates a dot product of this and some other vector.
-    ]]
-    dot_product = function(self, v)
-        return self.x * v.x + self.y * v.y + self.z * v.z
-    end,
-
-    --[[! Function: cross_product
-        Calculates a cross product of this and some other vector.
-    ]]
-    cross_product = function(self, v)
-        return math.Vec3(
-            (self.y * v.z) - (self.z * v.y),
-            (self.z * v.x) - (self.x * v.z),
-            (self.x * v.y) - (self.y * v.x)
-        )
-    end,
-
-    --[[! Function: project_along_surface
-        Projects the vector along a surface defined by a normal.
-        Returns this, the modified vector.
-    ]]
-    project_along_surface = function(self, surf)
-        return self:sub(surf:mul_new(self:dot_product(surf)))
-    end,
-
-    --[[! Function: lerp
-        Performs a linear interpolation between the two
-        vectors, given a weight. Returns the new vector.
-        Does not modify the original.
-    ]]
-    lerp = function(self, other, weight)
-        return self:add_new(other:sub_new(self):mul(weight))
-    end,
-
-    --[[! Function: is_zero
-        Returns true if each component is 0, false otherwise.
-    ]]
-    is_zero = function(self)
-        return (self.x == 0 and self.y == 0 and self.z == 0)
-    end
+    }
 }
+vec3_mt.__add = vec3_mt.__index.add_new
+vec3_mt.__sub = vec3_mt.__index.sub_new
+vec3_mt.__mul = vec3_mt.__index.mul_new
+vec3_mt.__len = vec3_mt.__index.length
+Vec3 = ffi.metatype("vec3_t", vec3_mt)
 math.Vec3 = Vec3
 set_external("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
 
---[[! Class: math.Vec4
+local vec4_mt
+--[[! Struct: math.Vec4
     A standard 4 component vector with x, y, z components.
-    Inherits from <math.Vec3> and contains exactly the same
+    Similar to <math.Vec3> and contains exactly the same
     methods, with additions documented here. A function
     "new_vec4" is externally available.
 
@@ -549,141 +543,158 @@ set_external("new_vec3", function(x, y, z) return Vec3(x, y, z) end)
         echo(a.x)
     (end)
 ]]
-local Vec4 = Vec3:clone {
-    name = "Vec4",
-
-    __init = function(self, x, y, z, w)
-        if type(x) == "table" then
-            if (x.is_a and x:is_a(math.Vec4)) or
-               (x.x and x.y and x.z and x.w)
-            then
-                self.x = tonumber(x.x)
-                self.y = tonumber(x.y)
-                self.z = tonumber(x.z)
-                self.w = tonumber(x.w)
-            elseif #x == 4 then
-                self.x = tonumber(x[1])
-                self.y = tonumber(x[2])
-                self.z = tonumber(x[3])
-                self.w = tonumber(x[4])
+local Vec4
+vec4_mt = {
+    __call = function(x, y, z, w)
+        if getmt(x) == vec3_mt then
+            local ret = ffi.new "vec4_t"
+            C.memcpy(ret, x, sizeof "vec4_t")
+            return ret
+        elseif type(x) == "table" then
+            if x.x then
+                return ffi.new("vec4_t", x.x, x.y, x.z, x.w)
             else
-                self.x = 0
-                self.y = 0
-                self.z = 0
-                self.w = 0
+                return ffi.new("vec4_t", x[1], x[2], x[3], x[4])
             end
         else
-            self.x = x or 0
-            self.y = y or 0
-            self.z = z or 0
-            self.w = w or 0
+            return ffi.new("vec4_t", x, y, z, w)
         end
-
-        self.__add = self.add_new
-        self.__sub = self.sub_new
-        self.__mul = self.mul_new
-        self.__len = self.length
     end,
 
-    __inst_tostring = function(self)
-        return string.format(
-            "%s <%s, %s, %s, %s>",
-             self.name,
-             tostring(self.x),
-             tostring(self.y),
-             tostring(self.z),
-             tostring(self.w)
-        )
+    __tostring = function(self)
+        return format("Vec4 <%f, %f, %f, %f>", self.x, self.y, self.z, self.w)
     end,
 
-    length = function(self)
-        return math.sqrt(
-            self.x * self.x +
-            self.y * self.y +
-            self.z * self.z +
-            self.w * self.w
-        )
-    end,
+    __index = {
+        length = function(self)
+            return sqrt(self.x * self.x + self.y * self.y
+                      + self.z * self.z + self.w * self.w)
+        end,
 
-    sub_new = function(self, v)
-        return math.Vec4(
-            self.x - v.x,
-            self.y - v.y,
-            self.z - v.z,
-            self.w - v.w
-        )
-    end,
+        normalize = vec3_mt.__index.normalize,
+        cap = vec3_mt.__index.cap,
 
-    add_new = function(self, v)
-        return math.Vec4(
-            self.x + v.x,
-            self.y + v.y,
-            self.z + v.z,
-            self.w + v.w
-        )
-    end,
+        sub_new = function(self, v)
+            return Vec4(self.x - v.x,
+                        self.y - v.y,
+                        self.z - v.z,
+                        self.w - v.w)
+        end,
 
-    mul_new = function(self, v)
-        return math.Vec4(
-            self.x * v,
-            self.y * v,
-            self.z * v,
-            self.w * v
-        )
-    end,
+        add_new = function(self, v)
+            return Vec4(self.x + v.x,
+                        self.y + v.y,
+                        self.z + v.z,
+                        self.w + v.w)
+        end,
 
-    sub = function(self, v)
-        self.x = self.x - v.x
-        self.y = self.y - v.y
-        self.z = self.z - v.z
-        self.w = self.w - v.w
-        return self
-    end,
+        mul_new = function(self, v)
+            return Vec4(self.x * v,
+                        self.y * v,
+                        self.z * v,
+                        self.w * v)
+        end,
 
-    add = function(self, v)
-        self.x = self.x + v.x
-        self.y = self.y + v.y
-        self.z = self.z + v.z
-        self.w = self.w + v.w
-        return self
-    end,
+        sub = function(self, v)
+            self.x = self.x - v.x
+            self.y = self.y - v.y
+            self.z = self.z - v.z
+            self.w = self.w - v.w
+            return self
+        end,
 
-    mul = function(self, v)
-        self.x = self.x * v
-        self.y = self.y * v
-        self.z = self.z * v
-        self.w = self.w * v
-        return self
-    end,
+        add = function(self, v)
+            self.x = self.x + v.x
+            self.y = self.y + v.y
+            self.z = self.z + v.z
+            self.w = self.w + v.w
+            return self
+        end,
 
-    copy = function(self)
-        return math.Vec4(self.x, self.y, self.z, self.w)
-    end,
+        mul = function(self, v)
+            self.x = self.x * v
+            self.y = self.y * v
+            self.z = self.z * v
+            self.w = self.w * v
+            return self
+        end,
 
-    to_array = function(self)
-        return { self.x, self.y, self.z, self.w }
-    end,
+        copy = function(self)
+            return Vec4(self)
+        end,
 
-    --[[! Function: to_yaw_pitch_roll
-        Calculates yaw, pitch and roll from the vector's components.
-    ]]
-    to_yaw_pitch_roll = function(self)
-        if math.abs(self.z) < 0.99 then
-            local r = self:to_yaw_pitch()
-            r.roll = math.deg(self.w)
-            return r
-        else
+        to_array = function(self)
+            return { self.x, self.y, self.z, self.w }
+        end,
+
+        from_yaw_pitch = function(self, yaw, pitch)
+            self.x = -(sin(rad(yaw)))
+            self.y =  (cos(rad(yaw)))
+
+            if pitch ~= 0 then
+                self.x = self.x * cos(rad(pitch))
+                self.y = self.y * cos(rad(pitch))
+                self.z = sin(rad(pitch))
+            else
+                self.z = 0
+            end
+
+            return self
+        end,
+
+        to_yaw_pitch = function(self)
+            local mag = self:length()
+            if mag < 0.001 then
+                return { yaw = 0, pitch = 0 }
+            end
             return {
-                yaw = math.deg(self.w) * (self.z < 0 and 1 or -1),
-                pitch = self.z > 0 and -90 or 90,
-                roll = 0
+                yaw = deg(-(atan2(self.x, self.y))),
+                pitch = deg(asin(self.z / mag))
             }
-        end
-    end,
+        end,
 
-    is_zero = function(self)
-        return (self.x == 0 and self.y == 0 and self.z == 0 and self.w == 0)
-    end
+        is_close_to = vec3_mt.__index.is_close_to,
+
+        dot_product = function(self, v)
+            return self.x * v.x + self.y * v.y + self.z * v.z + self.w * v.w
+        end,
+
+        cross_product = function(self, v)
+            return Vec4((self.y * v.z) - (self.z * v.y),
+                        (self.z * v.x) - (self.x * v.z),
+                        (self.x * v.y) - (self.y * v.x), 0)
+        end,
+
+        project_along_surface = vec3_mt.__index.project_along_surface,
+        lerp = vec3_mt.__index.lerp,
+
+        --[[! Function: to_yaw_pitch_roll
+            Calculates yaw, pitch and roll from the vector's components.
+        ]]
+        to_yaw_pitch_roll = function(self)
+            if abs(self.z) < 0.99 then
+                local r = self:to_yaw_pitch()
+                r.roll = deg(self.w)
+                return r
+            else
+                return {
+                    yaw = deg(self.w) * (self.z < 0 and 1 or -1),
+                    pitch = self.z > 0 and -90 or 90,
+                    roll = 0
+                }
+            end
+        end,
+
+        is_zero = function(self)
+            return (self.x == 0 and self.y == 0
+                and self.z == 0 and self.w == 0)
+        end
+    }
 }
+vec4_mt.__add = vec4_mt.__index.add_new
+vec4_mt.__sub = vec4_mt.__index.sub_new
+vec4_mt.__mul = vec4_mt.__index.mul_new
+vec4_mt.__len = vec4_mt.__index.length
+Vec4 = ffi.metatype("vec4_t", vec4_mt)
 math.Vec4 = Vec4
 set_external("new_vec4", function(x, y, z, w) return Vec4(x, y, z, w) end)
