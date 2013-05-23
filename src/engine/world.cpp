@@ -680,7 +680,7 @@ void renderentradius(extentity &e, bool color)
         /* OF */
         case ET_MAPMODEL:
         case ET_OBSTACLE:
-        case ET_MARKER:
+        case ET_ORIENTED_MARKER:
         {
             if(color) gle::colorf(0, 1, 1);
             vec dir;
@@ -941,7 +941,7 @@ extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3,
         {
                 case ET_MAPMODEL:
                 case ET_OBSTACLE: /* OF */
-                case ET_MARKER:
+                case ET_ORIENTED_MARKER:
                     e.attr5 = e.attr4;
                     e.attr4 = e.attr3;
                     e.attr3 = e.attr2;

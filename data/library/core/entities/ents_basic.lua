@@ -614,7 +614,6 @@ ents.register_class(Player)
     This entity class is never registered, the inherited ones are.
 
     Properties:
-        radius [<svars.State_Float>] - the entity bounding box radius.
         position [<svars.State_Vec3>] - the entity position.
         attr1 [<svars.State_Integer>] - the first "sauer" entity attribute.
         attr2 [<svars.State_Integer>] - the second "sauer" entity attribute.
@@ -634,7 +633,6 @@ local Static_Entity = Physical_Entity:clone {
     sauer_type = 0,
 
     properties = {
-        radius = svars.State_Float(),
         position = svars.State_Vec3 {
             getter = "_C.get_extent_position",
             setter = "_C.set_extent_position"
@@ -672,7 +670,6 @@ local Static_Entity = Physical_Entity:clone {
                 tonumber(kwargs.position.z)
             }
         end
-        self.radius = 0
 
         #log(DEBUG, "Static_Entity.init complete")
     end,
@@ -752,13 +749,11 @@ local Static_Entity = Physical_Entity:clone {
     end or nil,
 
     --[[! Function: get_center
-        See <Character.get_center>. In this case, it's self.radius above
-        bottom.
+        See <Character.get_center>. By default this is the entity position.
+        May be overloaded for other entity types.
     ]]
     get_center = function(self)
-        local r = self.position:copy()
-        r.z = r.z + self.radius
-        return r
+        return self.position:copy()
     end,
 
     --[[! Function: get_edit_color
@@ -805,9 +800,8 @@ set_external("entity_get_edit_info", function(ent)
 end)
 
 --[[! Class: Light
-    A regular point light. It has the sauer type "light" and five properties.
-    In the extension library there are special light entity types that are
-    e.g. triggered, flickering and so on.
+    A regular point light. In the extension library there are special light
+    entity types that are e.g. triggered, flickering and so on.
 
     Properties:
         attr1 - light radius. (0 to N, alias "radius", default 100)
@@ -869,7 +863,6 @@ M.Light = Light
     (90 is a full hemisphere, 0 is a line).
 
     Properties such as color are inherited from the attached light entity.
-    Its sauer type is "spotlight".
 ]]
 local Spot_Light = Static_Entity:clone {
     name = "Spot_Light",
@@ -908,7 +901,7 @@ M.Spot_Light = Spot_Light
     instead of using skybox and reflect geometry that way (statically).
 
     It has one property, radius, which specifies the distance it'll still
-    have effect in. Its sauer type is "envmap".
+    have effect in.
 ]]
 local Envmap = Static_Entity:clone {
     name = "Envmap",
@@ -937,7 +930,6 @@ M.Envmap = Envmap
 
 --[[! Class: Sound
     An ambient sound in the world. Repeats the given sound at entity position.
-    Its sauer type is "sound".
 
     Properties:
         attr2 - the sound radius (alias "radius", default 100)
@@ -989,8 +981,8 @@ local Sound = Static_Entity:clone {
 M.Sound = Sound
 
 --[[! Class: Particle_Effect
-    A particle effect entity class. Its sauer type is "particles". It has
-    four properties. They all default to 0.
+    A particle effect entity class. It has four properties. They all default
+    to 0.
 
     Properties:
         attr1 - the type of the particle effect (alias "particle_effect").
@@ -1129,10 +1121,9 @@ local Particle_Effect = Static_Entity:clone {
 M.Particle_Effect = Particle_Effect
 
 --[[! Class: Mapmodel
-    A model in the world. Its sauer type is "mapmodel". All properties
-    default to 0. On mapmodels and all entity types derived from mapmodels,
-    the engine emits the "collision" signal with the collider entity passed
-    as an argument when collided.
+    A model in the world. All properties default to 0. On mapmodels and all
+    entity types derived from mapmodels, the engine emits the "collision"
+    signal with the collider entity passed as an argument when collided.
 
     Properties:
         attr1 - the model yaw, alias "yaw".
@@ -1189,16 +1180,16 @@ set_external("physics_collide_mapmodel", function(collider, entity)
     emit(collider, "collision", entity)
 end)
 
---[[! Class: World_Marker
-    A generic marker with a wide variety of uses. Can be used as a base
-    for various position markers (e.g. playerstarts). Its sauer type is
-    "marker". It has two properties, attr1 alias yaw, attr2 alias pitch.
+--[[! Class: Oriented_Marker
+    A generic (oriented) marker with a wide variety of uses. Can be used as
+    a base for various position markers (e.g. playerstarts). It has two
+    properties, attr1 alias yaw, attr2 alias pitch.
 
     An example of world marker usage is a cutscene system. Different marker
     types inherited from this one can represent different nodes.
 ]]
-local World_Marker = Static_Entity:clone {
-    name = "World_Marker",
+local Oriented_Marker = Static_Entity:clone {
+    name = "Oriented_Marker",
 
     edit_icon = "data/textures/icons/edit_marker",
 
@@ -1226,7 +1217,27 @@ local World_Marker = Static_Entity:clone {
         return format("yaw: %d, pitch: %d", self.yaw, self.pitch)
     end
 }
-M.World_Marker = World_Marker
+M.Oriented_Marker = Oriented_Marker
+
+--[[! Class: Marker
+    A generic marker without orientation. It doesn't have any default
+    additional properties.
+]]
+local Marker = Static_Entity:clone {
+    name = "Marker",
+
+    edit_icon = "data/textures/icons/edit_marker",
+
+    sauer_type = 8,
+
+    --[[! Function: place_entity
+        Places an entity on this marker's position.
+    ]]
+    place_entity = function(self, ent)
+        ent.position = self.position
+    end
+}
+M.Oriented_Marker = Oriented_Marker
 
 --[[! Class: Obstacle
     An entity class that emits a "collision" signal on itself when a client
@@ -1237,7 +1248,7 @@ M.World_Marker = World_Marker
 local Obstacle = Static_Entity:clone {
     name = "Obstacle",
 
-    sauer_type = 8,
+    sauer_type = 9,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -1286,5 +1297,5 @@ ents.register_class(Envmap)
 ents.register_class(Sound)
 ents.register_class(Particle_Effect)
 ents.register_class(Mapmodel)
-ents.register_class(World_Marker)
+ents.register_class(Oriented_Marker)
 ents.register_class(Obstacle)

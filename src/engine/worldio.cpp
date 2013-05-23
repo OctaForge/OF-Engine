@@ -751,7 +751,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
             case ET_PARTICLES:
             case ET_MAPMODEL:
             case ET_SOUND:
-            case ET_MARKER:
+            case ET_ORIENTED_MARKER:
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */

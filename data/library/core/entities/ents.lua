@@ -456,8 +456,9 @@ M.load = function()
         huid = huid + 1
 
         local sn = {
-            [1] = "Light"     , [2] = "Mapmodel"       , [3] = "World_Marker",
-            [4] = "Envmap"    , [5] = "Particle_Effect", [6] = "Sound",
+            [1] = "Light",           [2] = "Mapmodel",
+            [3] = "Oriented_Marker", [4] = "Envmap",
+            [5] = "Particle_Effect", [6] = "Sound",
             [7] = "Spot_Light",
 
             [19] = "teleporter", [20] = "World_Marker", [23] = "jump_pad"
