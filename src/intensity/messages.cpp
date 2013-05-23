@@ -19,8 +19,6 @@
 #include "of_world.h"
 #include "of_tools.h"
 
-int findtype(char *what);
-
 /* Abuse generation from template for now */
 void force_network_flush();
 namespace server
@@ -505,12 +503,6 @@ namespace MessageSystem
         // Add entity
         logger::log(logger::DEBUG, "Creating new entity, %s   %f,%f,%f   %s\r\n", _class, x, y, z, stateData);
         if ( !server::isRunningCurrentScenario(sender) ) return; // Silently ignore info from previous scenario
-        lua::push_external("entity_class_sauer_type_get");
-        lua_pushstring(lua::L, _class);
-        lua_call(lua::L, 1, 1);
-        const char *sauerType = lua_tostring(lua::L, -1);
-        lua_pop(lua::L, 1);
-        logger::log(logger::DEBUG, "Sauer type: %s\r\n", sauerType);
         // Create
         lua::push_external("entity_new");
         lua_pushstring(lua::L, _class); // first arg
@@ -1211,17 +1203,10 @@ namespace MessageSystem
         if (entity == NULL)
         {
             logger::log(logger::DEBUG, "Creating new active LogicEntity\r\n");
-            lua::push_external("entity_class_sauer_type_get");
-            lua_pushstring(lua::L, otherClass);
-            lua_call      (lua::L, 1, 1);
-            const char *sauerType = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
-
             lua::push_external("entity_add");
             lua_pushstring (lua::L, otherClass);
             lua_pushinteger(lua::L, otherUniqueId);
-            lua_createtable(lua::L, 0, 9);
-            lua_pushinteger(lua::L, findtype((char*)sauerType));
-            lua_setfield   (lua::L, -2, "_type");
+            lua_createtable(lua::L, 0, 8);
             lua_pushnumber (lua::L, x); lua_setfield(lua::L, -2, "x");
             lua_pushnumber (lua::L, y); lua_setfield(lua::L, -2, "y");
             lua_pushnumber (lua::L, z); lua_setfield(lua::L, -2, "z");

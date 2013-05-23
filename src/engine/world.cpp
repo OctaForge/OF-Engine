@@ -847,13 +847,6 @@ void delent()
     entcancel();
 }
 
-int findtype(char *what)
-{
-    for(int i = 0; *entities::entname(i); i++) if(strcmp(what, entities::entname(i))==0) return i;
-    conoutf(CON_ERROR, "unknown entity type \"%s\"", what);
-    return ET_EMPTY;
-}
-
 VAR(entdrop, 0, 2, 3);
 
 bool dropentity(entity &e, int drop = -1)
@@ -1034,19 +1027,6 @@ COMMAND(dropent, "");
 COMMAND(entcopy, "");
 COMMAND(entpaste, "");
 
-void entset(char *what, int *a1, int *a2, int *a3, int *a4, int *a5)
-{
-    if(noentedit()) return;
-    int type = findtype(what);
-    if(type != ET_EMPTY)
-        groupedit(e.type=type;
-                  e.attr1=*a1;
-                  e.attr2=*a2;
-                  e.attr3=*a3;
-                  e.attr4=*a4;
-                  e.attr5=*a5);
-}
-
 void printent(extentity &e, char *buf)
 {
     switch(e.type)
@@ -1084,7 +1064,6 @@ ICOMMAND(entloop,   "e", (uint *body), if(!noentedit()) addimplicit(groupeditloo
 ICOMMAND(insel,     "",  (), entfocus(efocus, intret(pointinsel(sel, e.o))));
 ICOMMAND(entget,    "",  (), entfocus(efocus, string s; printent(e, s); result(s)));
 ICOMMAND(entindex,  "",  (), intret(efocus));
-COMMAND(entset, "siiiii");
 COMMAND(nearestent, "");
 
 const char *intensityCopiedClass = "", *intensityCopiedStateData = "";
@@ -1123,50 +1102,49 @@ void intensitypasteent() // INTENSITY
 COMMAND(intensityentcopy, "");
 COMMAND(intensitypasteent, "");
 
-void enttype(char *type, int *numargs)
-{
-    if(*numargs >= 1)
-    {
-        int typeidx = findtype(type);        
-        if(typeidx != ET_EMPTY) groupedit(e.type = typeidx);
-    }    
-    else entfocus(efocus,
-    {
-        result(entities::entname(e.type));
+/* OF */
+void enttype(char *type, int *numargs) {
+    if (*numargs >= 1) {
+        groupedit(
+            vec pos(e.o);
+            MessageSystem::send_RequestLogicEntityRemoval(e.uniqueId);
+            MessageSystem::send_NewEntityRequest(type, pos.x, pos.y, pos.z,
+                "{}");
+        );
+    } else entfocus(efocus, {
+        lua::push_external("entity_get_name");
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+            LogicSystem::getLogicEntity(e)->lua_ref);
+        lua_call(lua::L, 1, 1);
+        const char *str = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
+        result(str);
     })
 }
 
-void entattr(int *attr, int *val, int *numargs)
-{
-    if(*numargs >= 2)
-    {
-        if(*attr >= 0 && *attr <= 4)
-            groupedit(
-                switch(*attr)
-                {
-                    case 0: e.attr1 = *val; break;
-                    case 1: e.attr2 = *val; break;
-                    case 2: e.attr3 = *val; break;
-                    case 3: e.attr4 = *val; break;
-                    case 4: e.attr5 = *val; break;
-                }
-            );        
-    }
-    else entfocus(efocus,
-    {
-        switch(*attr)
-        {
-            case 0: intret(e.attr1); break;
-            case 1: intret(e.attr2); break;
-            case 2: intret(e.attr3); break;
-            case 3: intret(e.attr4); break;
-            case 4: intret(e.attr5); break;
-        }
+/* OF */
+void entattr(char *attr, char *val, int *numargs) {
+    if (*numargs >= 2) {
+        groupedit(
+            lua::push_external("entity_set_gui_attr");
+            lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+                LogicSystem::getLogicEntity(e)->lua_ref);
+            lua_pushstring(lua::L, attr);
+            lua_pushstring(lua::L, val);
+            lua_call(lua::L, 3, 0);
+        );
+    } else entfocus(efocus, {
+        lua::push_external("entity_get_gui_attr");
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
+            LogicSystem::getLogicEntity(e)->lua_ref);
+        lua_pushstring(lua::L, attr);
+        lua_call(lua::L, 2, 1);
+        const char *str = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
+        result(str);
     });
 }
 
 COMMAND(enttype, "sN");
-COMMAND(entattr, "iiN");
+COMMAND(entattr, "ssN");
 
 int findentity(int type, int index, int attr1, int attr2)
 {

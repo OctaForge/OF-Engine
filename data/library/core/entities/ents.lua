@@ -1151,10 +1151,49 @@ Entity = table.Object:clone {
         you need to overload this.
     ]]
     get_attached_prev = function(self)
+    end,
+
+    --[[! Function: get_gui_attr
+        Given a GUI property name (gui_name or name if not defined in the
+        svar), this returns the property value in a wire (string) format.
+    ]]
+    get_gui_attr = function(self, prop)
+        local var = self["_SV_GUI_" .. prop]
+        if not var or not var.has_history then return nil end
+        local val = self[var.name]
+        if val ~= nil then
+            return var:to_wire(val)
+        end
+    end,
+
+    --[[! Function: set_gui_attr
+        Given a GUI property name and a value in a wire format, this sets
+        the property on the entity.
+    ]]
+    set_gui_attr = function(self, prop, val)
+        local var = self["_SV_GUI_" .. prop]
+        if not var or not var.has_history then return nil end
+        self[var.name] = var:from_wire(val)
     end
 }
 
 M.Entity = Entity
+
+--[[! Function: get_gui_attr
+    See <Entity.get_gui_attr>. Externally accessible as entity_get_gui_attr.
+]]
+M.get_gui_attr = function(ent, prop)
+    return ent:get_gui_attr(prop)
+end
+set_external("entity_get_gui_attr", M.get_gui_attr)
+
+--[[! Function: set_gui_attr
+    See <Entity.set_gui_attr>. Externally accessible as entity_set_gui_attr.
+]]
+M.set_gui_attr = function(ent, prop, val)
+    ent:set_gui_attr(prop, val)
+end
+set_external("entity_set_gui_attr", M.set_gui_attr)
 
 --[[! Function: entity_get_attached
     An external. Calls get_attached_next on the given entity first, if that

@@ -112,6 +112,8 @@ State_Variable = table.Object:clone {
         getters and setters on the entity for the given name and also
         for alt_name if set in constructor kwargs. You can still access
         the raw state variable on the entity by prefixing it with _SV_.
+        You can access the variable by gui_name by prefixing it with
+        _SV_GUI_ (if gui_name is not defined, regular name is used).
     ]]
     register = function(self, name, parent)
         #log(DEBUG, "State_Variable: register(" .. name
@@ -134,6 +136,7 @@ State_Variable = table.Object:clone {
             parent:define_getter(an, self.getter, self)
             parent:define_setter(an, self.setter, self)
         end
+        parent["_SV_GUI_" .. (self.gui_name or name)] = self
 
         local gf, sf = self.getter_fun, self.setter_fun
 
