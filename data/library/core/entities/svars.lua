@@ -432,6 +432,13 @@ Array_Surrogate = {
             r[#r + 1] = self[i]
         end
         return r
+    end,
+
+    --[[! Function: append
+        Appends an element. For convenience only (foo:get_array():append(...)).
+    ]]
+    append = function(self, v)
+        self[#self + 1] = v
     end
 }
 M.Array_Surrogate = Array_Surrogate

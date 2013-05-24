@@ -51,16 +51,16 @@ local Physical_Entity = Entity:clone {
     init = SERVER and function(self, uid, kwargs)
         Entity.init(self, uid, kwargs)
 
-        self.model_name  = ""
-        self.attachments = {}
-        self.animation   = bor(model.anims.IDLE, model.anims.LOOP)
+        self:set_model_name("")
+        self:set_attachments({})
+        self:set_animation(bor(model.anims.IDLE, model.anims.LOOP))
     end or nil,
 
     activate = SERVER and function(self, kwargs)
         #log(DEBUG, "Physical_Entity.activate")
         Entity.activate(self, kwargs)
 
-        self.model_name = self.model_name
+        self:set_model_name(self:get_model_name())
         #log(DEBUG, "Physical_Entity.activate complete")
     end or nil,
 
@@ -113,7 +113,7 @@ M.Local_Animation_Action = actions.Action:clone {
     ]]
     start = function(self)
         local ac = self.actor
-        self.old_animation = ac.animation
+        self.old_animation = ac:get_animation()
         ac:set_local_animation(self.local_animation)
     end,
 
@@ -122,7 +122,7 @@ M.Local_Animation_Action = actions.Action:clone {
     ]]
     finish = function(self)
         local ac = self.actor
-        if ac.animation == self.local_animation then
+        if ac:get_animation() == self.local_animation then
             ac:set_local_animation(self.old_animation)
         end
     end
@@ -373,9 +373,10 @@ local Character = Physical_Entity:clone {
         -- see world.lua for field meanings
         connect(self, "physics_trigger_changed", function(self, val)
             if val == 0 then return nil end
-            self.physics_trigger = 0
+            self:set_physics_trigger(0)
 
-            local pos = (self ~= ents.get_player()) and self.position or nil
+            local pos = (self ~= ents.get_player()) and self:get_position()
+                or nil
 
             local lst = band(val, MASK_LIQUID)
             if lst == FLAG_ABOVELIQUID then
@@ -390,9 +391,9 @@ local Character = Physical_Entity:clone {
 
             local gst = band(val, MASK_GROUND)
             if gst == FLAG_ABOVEGROUND then
-                sound.play(self.jumping_sound, pos)
+                sound.play(self:get_jumping_sound(), pos)
             elseif gst == FLAG_BELOWGROUND then
-                sound.play(self.landing_sound, pos)
+                sound.play(self:get_landing_sound(), pos)
             end
         end)
     end,
@@ -434,7 +435,7 @@ local Character = Physical_Entity:clone {
             end
 
             local pstate = self.physical_state
-            local bt, iw = self.start_time, self.in_liquid
+            local bt, iw = self.start_time, self:get_in_liquid()
             local mv, sf = self.move, self.strafe
 
             local vel, fall = self.velocity:copy(), self.falling:copy()
@@ -530,14 +531,6 @@ local Character = Physical_Entity:clone {
                 model.anims.SECONDARY))
         end
         return anim
-    end or nil,
-
-    --[[! Function: get_animation
-        Gets the character's current "action" animation. By default just
-        returns self.animation. Override as needed. Client only.
-    ]]
-    get_animation = CLIENT and function(self)
-        return self.animation
     end or nil,
 
     --[[! Function: get_center

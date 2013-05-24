@@ -31,8 +31,8 @@ ents.register_class(plugins.bake(
 
             -- player gun indexes and current gun
             init = function(self)
-                self.gun_indexes = { player_chaingun, player_rocket_launcher }
-                self.current_gun_index = player_chaingun
+                self:set_gun_indexes({ player_chaingun, player_rocket_launcher })
+                self:set_current_gun_index(player_chaingun)
             end,
 
             -- Switches color in entity

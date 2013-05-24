@@ -1132,8 +1132,8 @@ Entity = table.Object:clone {
     --[[! Function: get_attached_next
         Returns the next attached entity. This implementation doesn't do
         anything though - you need to overload it for your entity type
-        accordingly. The core entity system doesn't manage attachments
-        at all.
+        accordingly. The core entity system doesn't manage attached
+        entities at all.
     ]]
     get_attached_next = function(self)
     end,

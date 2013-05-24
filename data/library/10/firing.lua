@@ -27,16 +27,16 @@ function click(button, down, x, y, z, entity)
             player:stop_shooting(x, y, z)
         end
     elseif button == 3 and down then
-        cycle_gun_index(player, player.gun_indexes:to_array())
+        cycle_gun_index(player, player:get_gun_indexes():to_array())
     end
 end
 
 function cycle_gun_index(entity, indexes)
-    local curr = entity.current_gun_index + 1
+    local curr = entity:get_current_gun_index() + 1
     if    curr > #indexes then
           curr = 1
     end
-    entity.current_gun_index = curr
+    entity:set_current_gun_index(curr)
 end
 
 function find_target(shooter, visual_origin, targeting_origin, fallback_target, range, scatter)
@@ -124,13 +124,13 @@ plugins = {
         init = function(self)
             for k, gun in pairs(guns) do
                 local tag = "*" .. gun.origin_tag
-                if gun.origin_tag and not table.find(self.attachments:to_array(), tag) then
-                    self.attachments[#self.attachments + 1] = tag
+                if gun.origin_tag and not table.find(self:get_attachments():to_array(), tag) then
+                    self.attachments:append(tag)
                 end
             end
 
-            self.gun_indexes = {}
-            self.gun_switch_sound = ""
+            self:set_gun_indexes({})
+            self:set_gun_switch_sound("")
         end,
 
         activate = function(self)
@@ -139,7 +139,7 @@ plugins = {
                     "gun_indexes_changed",
                     function(self, indexes)
                         if #indexes > 0 then
-                            self.current_gun_index = indexes[1] -- sets initial value
+                            self:set_current_gun_index(indexes[1]) -- sets initial value
                         end
                     end
                 )
@@ -151,8 +151,8 @@ plugins = {
                 signal.connect(self,
                     "current_gun_index_changed",
                     function(self)
-                        if self.gun_switch_sound ~= "" then
-                            sound.play(self.gun_switch_sound, self.position:copy())
+                        if self:get_gun_switch_sound() ~= "" then
+                            sound.play(self:get_gun_switch_sound(), self.position:copy())
                         end
                     end
                 )
@@ -164,11 +164,11 @@ plugins = {
 
             self.gun_delay = math.max(self.gun_delay - seconds, 0)
 
-            local gun = guns[self.current_gun_index]
+            local gun = guns[self:get_current_gun_index()]
             if gun then
                 if self.now_firing and self.gun_delay == 0 then
-                    if  self.gun_ammos[self.current_gun_index]
-                    and self.gun_ammos[self.current_gun_index] <= 0 then
+                    if  self.gun_ammos[self:get_current_gun_index()]
+                    and self.gun_ammos[self:get_current_gun_index()] <= 0 then
                         self:queue_action(action_out_of_ammo())
                         self:stop_shooting(gun)
                     else
@@ -177,9 +177,9 @@ plugins = {
                             input.get_target_position(),
                             input.get_target_entity()
                         )
-                        if  self.gun_ammos[self.current_gun_index]
-                        and self.gun_ammos[self.current_gun_index] ~= 0 then
-                            self.gun_ammos[self.current_gun_index] = -1
+                        if  self.gun_ammos[self:get_current_gun_index()]
+                        and self.gun_ammos[self:get_current_gun_index()] ~= 0 then
+                            self.gun_ammos[self:get_current_gun_index()] = -1
                         end
                         self.gun_delay = self.gun_delay + gun.delay
                         if not gun.repeating then
@@ -222,7 +222,7 @@ plugins = {
         end,
 
         stop_shooting = function(self, x, y, z)
-            local gun = guns[self.current_gun_index]
+            local gun = guns[self:get_current_gun_index()]
 
             if gun.repeating then
                 self.gun_delay = 0

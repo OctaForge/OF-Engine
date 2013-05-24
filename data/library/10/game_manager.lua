@@ -199,7 +199,8 @@ function setup(plugins_add)
                         return data
                     end,
 
-                    set_local_animation = function(self) end -- just so it can fake being animated by actions
+                    set_local_animation = function(self) end, -- just so it can fake being animated by actions
+                    get_animation = function(self) end
                 }},
                 plugins_add
             ),
@@ -352,20 +353,20 @@ manager_plugins = {
                     local sound
                     if not tie then
                         if self.steams[player.team].score == max_score then
-                            player.animation = math.bor(WIN, model.anims.LOOP)
+                            player:set_animation(math.bor(WIN, model.anims.LOOP))
                             msg.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
                                 sound.play(self.win_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         else
-                            player.animation = math.bor(LOSE, model.anims.LOOP)
+                            player:set_animation(math.bor(LOSE, model.anims.LOOP))
                             msg.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
                                 sound.play(self.lose_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
-                        player.animation = math.bor(model.anims.IDLE, model.anims.LOOP)
+                        player:set_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
                         msg.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
                             sound.play(self.tie_sound, math.Vec3(0, 0, 0), player.cn)

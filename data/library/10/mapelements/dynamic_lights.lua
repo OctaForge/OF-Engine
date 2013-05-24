@@ -11,17 +11,17 @@ dynamic_light = ents.register_class(plugins.bake(ents.Marker, {{
     per_frame = true,
 
     init = function(self)
-        self.radius = 100
-        self.red    = 128
-        self.green  = 128
-        self.blue   = 128
+        self:set_radius(100)
+        self:set_red(128)
+        self:set_green(128)
+        self:set_blue(128)
     end,
 
     dynamic_light_show = function(self, seconds)
-        local pos = self.position
+        local pos = self:get_position()
         _C.adddynlight(
-            pos.x, pos.y, pos.z, self.radius,
-            self.red / 255, self.green / 255, self.blue / 255,
+            pos.x, pos.y, pos.z, self:get_radius(),
+            self:get_red() / 255, self:get_green() / 255, self:get_blue() / 255,
             0, 0, 0, 0, 0, 0, 0
         )
     end,
@@ -39,9 +39,9 @@ ents.register_class(plugins.bake(dynamic_light, {{
     },
 
     init = function(self)
-        self.probability = 0.5
-        self.min_delay   = 0.1
-        self.max_delay   = 0.3
+        self:set_probability(0.5)
+        self:set_min_delay(0.1)
+        self:set_max_delay(0.3)
     end,
 
     activate = function(self)
@@ -53,12 +53,13 @@ ents.register_class(plugins.bake(dynamic_light, {{
     dynamic_light_show = function(self, seconds)
         self.delay = self.delay - seconds
         if  self.delay <= 0 then
-            self.delay = math.max(math.random() * self.max_delay, self.min_delay) * 2
-            if math.random() < self.probability then
-                local pos = self.position
+            self.delay = math.max(math.random() * self:get_max_delay(), self:get_min_delay()) * 2
+            if math.random() < self:get_probability() then
+                local pos = self:get_position()
                 _C.adddynlight(
                     pos.x, pos.y, pos.z, self.radius,
-                    self.red / 255, self.green / 255, self.blue / 255,
+                    self:get_red() / 255, self:get_green() / 255,
+                    self:get_blue() / 255,
                     self.delay * 1000, 0, math.lsh(1, 2), 0, 0, 0, 0
                 )
             end

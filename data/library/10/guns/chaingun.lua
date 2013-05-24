@@ -17,11 +17,11 @@ chaingun = firing.gun:clone {
     pellet_cache_timestamp = -1,
 
     do_shot = function(self, shooter, target_position, target_entity)
-        shooter.chaingun_firing_update = true
+        shooter:set_chaingun_firing_update(true)
     end,
 
     stop_shooting = function(self, shooter)
-        shooter.chaingun_firing_update = false
+        shooter:set_chaingun_firing_update(false)
     end,
 
     do_real_shot = function(self, shooter)
@@ -146,9 +146,9 @@ chaingun.plugin = {
             end
 
             if self.chaingun_firing_timer:tick(seconds) then
-                local gun = firing.guns[self.current_gun_index]
+                local gun = firing.guns[self:get_current_gun_index()]
                 if    gun:is_a(chaingun) then
-                    firing.guns[self.current_gun_index]:do_real_shot(self)
+                    firing.guns[self:get_current_gun_index()]:do_real_shot(self)
                 else
                     #log(ERROR, "chaingun firing error")
                     self.chaingun_firing = false
@@ -157,7 +157,7 @@ chaingun.plugin = {
 
             if self.controlled_here then
                 if self.chaingun_protocol_timer:tick(seconds) then
-                    self.chaingun_firing_update = true
+                    self:set_chaingun_firing_update(true)
                 end
             else
                 self.chaingun_firing_expiration

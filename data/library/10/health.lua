@@ -50,7 +50,7 @@ plugin = {
                     if  self.default_model_name then
                         self.model_name  = ""
                     end
-                    self.animation   = math.bor(model.anims.IDLE, model.anims.LOOP)
+                    self:set_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
                     self.spawn_stage = 3
                 end
                 self:cancel_sdata_update()
@@ -109,7 +109,7 @@ plugin = {
         -- clean up if not dead
         if self.health > 0 and (ret == DYING or ret == math.bor(DYING, model.anims.RAGDOLL)) then
             self:set_local_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
-            ret = self.animation
+            ret = self:get_animation()
         end
 
         return ret
