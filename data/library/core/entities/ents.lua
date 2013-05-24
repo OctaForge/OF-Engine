@@ -633,6 +633,9 @@ Entity = table.Object:clone {
         self.getters[n] = function()
             return f(self, d)
         end
+        self["get_" .. n] = function(self)
+            return f(self, d)
+        end
     end,
 
     --[[! Function: define_setter
@@ -641,6 +644,9 @@ Entity = table.Object:clone {
     ]]
     define_setter = function(self, n, f, d)
         self.setters[n] = function(v)
+            return f(self, v, d)
+        end
+        self["set_" .. n] = function(self, v)
             return f(self, v, d)
         end
     end,

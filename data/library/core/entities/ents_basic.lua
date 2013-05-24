@@ -333,20 +333,20 @@ local Character = Physical_Entity:clone {
     init = SERVER and function(self, uid, kwargs)
         Physical_Entity.init(self, uid, kwargs)
 
-        self.character_name = "none"
-        self.cn             = kwargs and kwargs.cn or -1
-        self.model_name     = "player"
-        self.eye_height     = 14.0
-        self.above_eye      = 1.0
-        self.movement_speed = 50.0
-        self.facing_speed   = 120
-        self.position       = { 512, 512, 550 }
-        self.radius         = 3.0
-        self.can_move       = true
+        self.cn = kwargs and kwargs.cn or -1
+        self:set_character_name("none")
+        self:set_model_name("player")
+        self:set_eye_height(14.0)
+        self:set_above_eye(1.0)
+        self:set_movement_speed(50.0)
+        self:set_facing_speed(120)
+        self:set_position({ 512, 512, 550 })
+        self:set_radius(3.0)
+        self:set_can_move(true)
 
-        self.physics_trigger = 0
-        self.jumping_sound   = "gk/jump2.ogg"
-        self.landing_sound   = "olpc/AdamKeshen/kik.wav"
+        self:set_physics_trigger(0)
+        self:set_jumping_sound("gk/jump2.ogg")
+        self:set_landing_sound("olpc/AdamKeshen/kik.wav")
 
         self:define_getter("plag", self.get_plag)
         self:define_getter("ping", self.get_ping)
@@ -697,9 +697,12 @@ local Static_Entity = Physical_Entity:clone {
         #log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
 
-        self.position = self.position
-        self.attr1, self.attr2, self.attr3 = self.attr1, self.attr2, self.attr3
-        self.attr4, self.attr5 = self.attr4, self.attr5
+        self:set_position(self:get_position())
+        self:set_attr1(self:get_attr1())
+        self:set_attr2(self:get_attr2())
+        self:set_attr3(self:get_attr3())
+        self:set_attr4(self:get_attr4())
+        self:set_attr5(self:get_attr5())
     end or function(self, kwargs)
         local x, y, z, attr1, attr2, attr3, attr4, attr5
         if kwargs then
@@ -736,13 +739,14 @@ local Static_Entity = Physical_Entity:clone {
         local scn, sname = self.cn, tostring(self)
         for i = 1, #cns do
             local n = cns[i]
+            local pos = self:get_position()
             msg.send(n, _C.extent_notification_complete,
                 uid, sname, self:build_sdata({
                     target_cn = n, compressed = true }),
-                tonumber(self.position.x), tonumber(self.position.y),
-                tonumber(self.position.z), tonumber(self.attr1),
-                tonumber(self.attr2), tonumber(self.attr3),
-                tonumber(self.attr4), tonumber(self.attr5))
+                tonumber(pos.x), tonumber(pos.y), tonumber(pos.z),
+                tonumber(self:get_attr1()), tonumber(self:get_attr2()),
+                tonumber(self:get_attr3()), tonumber(self:get_attr4()),
+                tonumber(self:get_attr5()))
         end
 
         #log(DEBUG, "Static_Entity.send_notification_full: done")
@@ -968,9 +972,13 @@ local Sound = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self.attr1, self.radius, self.size  = -1, 100, 0
-        if not self.volume then self.volume = 100 end
-        self.sound_name = ""
+        self:set_attr1(-1)
+        self:set_radius(100)
+        self:set_size(0)
+        if not self:get_volume() then
+            self:set_volume(100)
+        end
+        self:set_sound_name("")
     end,
 
     get_edit_info = function(self)
