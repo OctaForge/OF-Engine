@@ -152,7 +152,7 @@ plugins = {
                     "current_gun_index_changed",
                     function(self)
                         if self:get_gun_switch_sound() ~= "" then
-                            sound.play(self:get_gun_switch_sound(), self.position:copy())
+                            sound.play(self:get_gun_switch_sound(), self:get_position():copy())
                         end
                     end
                 )
@@ -273,7 +273,7 @@ function gun:do_recoil(shooter, magnitude)
             shooter:get_yaw(), shooter:get_pitch()
         ):normalize(1)
          :mul(-magnitude)
-        shooter.velocity:add(dir)
+        shooter:get_velocity():add(dir)
     end
 end
 

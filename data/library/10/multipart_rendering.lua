@@ -12,7 +12,7 @@ plugin = {
 
             if self.render_args_timestamp ~= frame.get_frame() then
                 local anim     = self:get_multipart_animation()
-                local o        = self.position:copy()
+                local o        = self:get_position():copy()
                 local yaw      = self:get_multipart_yaw()
                 local pitch    = self:get_multipart_pitch()
                 local roll     = self:get_multipart_roll()

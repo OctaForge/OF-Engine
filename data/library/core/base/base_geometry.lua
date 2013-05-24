@@ -152,7 +152,7 @@ function is_colliding_entities(position, radius, ignore)
         if entity ~= ignore and not entity.deactivated then
             local   entity_radius = entity.radius and entity.radius or 0
             if position:is_close_to(
-                entity.position, radius + entity_radius
+                entity:get_position(), radius + entity_radius
             ) then
                 return true
             end
@@ -271,23 +271,23 @@ function bounce(thing, elasticity, friction, seconds)
         -- we failed to bounce, just go in the reverse direction
         -- from the last ok spot - better than something more embarassing
         if  thing.last_safe and thing.last_safe[2] then
-            thing.position = thing.last_safe[2].position
-            thing.velocity = thing.last_safe[2].velocity
+            thing:set_position(thing.last_safe[2]:get_position())
+            thing:set_velocity(thing.last_safe[2]:get_velocity())
         elseif thing.last_safe then
-            thing.position = thing.last_safe[1].position
-            thing.velocity = thing.last_safe[1].velocity
+            thing:set_position(thing.last_safe[1]:get_position())
+            thing:set_velocity(thing.last_safe[1]:get_velocity())
         end
-        thing.velocity:mul(-1)
+        thing:get_velocity():mul(-1)
         return true
     end
 
     elasticity = elasticity or 0.9
 
-    if seconds == 0 or thing.velocity:length() == 0 then
+    if seconds == 0 or thing:get_velocity():length() == 0 then
         return true
     end
 
-    if is_colliding(thing.position, thing.radius, thing.ignore) then
+    if is_colliding(thing:get_position(), thing:get_radius(), thing.ignore) then
         return fallback()
     end
 
@@ -295,15 +295,15 @@ function bounce(thing, elasticity, friction, seconds)
     -- applied. [2] is two back, so it was safe even WITH constraints
     -- applied to it
     things.last_safe = {{
-        position = thing.position:copy(),
-        velocity = thing.position:copy()
+        position = thing:get_position():copy(),
+        velocity = thing:get_velocity():copy()
     }, thing.last_safe and thing.last_safe[1] or nil }
 
-    local old_position = self.position:copy()
-    local movement     = thing.velocity:mul_new(seconds)
-    thing.position:add(movement)
+    local old_position = thing:get_position():copy()
+    local movement     = thing:get_velocity():mul_new(seconds)
+    thing:get_position():add(movement)
 
-    if not is_colliding(thing.position, thing.radius, thing.ignore) then
+    if not is_colliding(thing_get_position(), thing:get_radius(), thing.ignore) then
         return true
     end
 
@@ -322,11 +322,11 @@ function bounce(thing, elasticity, friction, seconds)
 
     movement = get_reflected_ray(movement, normal, elasticity, friction)
 
-    thing.position = old_position:add(movement)
-    if is_colliding(self.position, self.radius, self.ignore) then
+    thing:set_position(old_position:add(movement))
+    if is_colliding(thing:get_position(), thing:get_radius(), thing.ignore) then
         return fallback()
     end
-    thing.velocity = movement:mul(1 / seconds)
+    thing:set_velocity(movement:mul(1 / seconds))
 
     return true
 end

@@ -125,7 +125,7 @@ chaingun.plugin = {
 
     run = CLIENT and function(self, seconds)
         if self.chaingun_firing then
-            effects.dynamic_light(self.position, 30, 0xFFEECC)
+            effects.dynamic_light(self:get_position(), 30, 0xFFEECC)
 
             if self.chaingun_target then
                 effects.dynamic_light(self.chaingun_target, 15, 0xFFEECC)

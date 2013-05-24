@@ -41,7 +41,7 @@ plugin = {
            self.player_delay = 0.1
 
         -- throw collider up
-        collider.velocity = self:get_jump_velocity():to_array()
+        collider:set_velocity(self:get_jump_velocity():to_array())
 
         if self:get_pad_sound() ~= "" then
             sound.play(self:get_pad_sound())
@@ -51,7 +51,7 @@ plugin = {
     render = function(self)
         if self:get_pad_model() == "" then return nil end
 
-        local o = self.position
+        local o = self:get_position()
         local flags = math.bor(
             model.render_flags.CULL_VFC, model.render_flags.OCCLUDED, model.render_flags.CULL_QUERY,
             model.render_flags.FULLBRIGHT, model.render_flags.CULL_DIST

@@ -439,7 +439,8 @@ local Character = Physical_Entity:clone {
             local bt, iw = self:get_start_time(), self:get_in_liquid()
             local mv, sf = self:get_move(), self:get_strafe()
 
-            local vel, fall = self.velocity:copy(), self.falling:copy()
+            local vel, fall = self:get_velocity():copy(),
+                self:get_falling():copy()
             local tia = self.time_in_air
 
             local anim = self:decide_animation(state, pstate, mv, sf, vel,
@@ -541,7 +542,7 @@ local Character = Physical_Entity:clone {
         non-standard. By default it's 0.75 * eye_height above feet.
     ]]
     get_center = function(self)
-        local r = self.position:copy()
+        local r = self:get_position():copy()
         r.z = r.z + self.eye_height * 0.75
         return r
     end,
@@ -656,13 +657,13 @@ local Static_Entity = Physical_Entity:clone {
 
         Physical_Entity.init(self, uid, kwargs)
         if not kwargs.position then
-            self.position = { 511, 512, 513 }
+            self:set_position({ 511, 512, 513 })
         else
-            self.position = {
+            self:set_position({
                 tonumber(kwargs.position.x),
                 tonumber(kwargs.position.y),
                 tonumber(kwargs.position.z)
-            }
+            })
         end
 
         #log(DEBUG, "Static_Entity.init complete")
@@ -674,14 +675,15 @@ local Static_Entity = Physical_Entity:clone {
         #log(DEBUG, "Static_Entity.activate")
         Physical_Entity.activate(self, kwargs)
 
-        kwargs.x = self.position.x or 512
-        kwargs.y = self.position.y or 512
-        kwargs.z = self.position.z or 512
-        kwargs.attr1 = self.attr1 or 0
-        kwargs.attr2 = self.attr2 or 0
-        kwargs.attr3 = self.attr3 or 0
-        kwargs.attr4 = self.attr4 or 0
-        kwargs.attr5 = self.attr5 or 0
+        local pos = self:get_position()
+        kwargs.x = pos.x or 512
+        kwargs.y = pos.y or 512
+        kwargs.z = pos.z or 512
+        kwargs.attr1 = self:get_attr1() or 0
+        kwargs.attr2 = self:get_attr2() or 0
+        kwargs.attr3 = self:get_attr3() or 0
+        kwargs.attr4 = self:get_attr4() or 0
+        kwargs.attr5 = self:get_attr5() or 0
 
         #log(DEBUG, "Static_Entity: extent setup")
         _C.setup_extent(self, self.sauer_type, kwargs.x, kwargs.y,
@@ -751,7 +753,7 @@ local Static_Entity = Physical_Entity:clone {
         May be overloaded for other entity types.
     ]]
     get_center = function(self)
-        return self.position:copy()
+        return self:get_position():copy()
     end,
 
     --[[! Function: get_edit_color
@@ -1235,7 +1237,7 @@ local Marker = Static_Entity:clone {
         Places an entity on this marker's position.
     ]]
     place_entity = function(self, ent)
-        ent.position = self.position
+        ent:set_position(self:get_position())
     end
 }
 M.Marker = Marker

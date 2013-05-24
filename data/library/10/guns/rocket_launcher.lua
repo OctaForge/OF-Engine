@@ -121,7 +121,7 @@ rocket_launcher = projectiles.gun:clone {
 
                 if shooter.radius > 0 then
                     #log(DEBUG, "adjusting rocket origin")
-                    local shooter_position = shooter.position:copy()
+                    local shooter_position = shooter:get_position():copy()
                     shooter_position.z = current_origin_position.z
                     local dir = shooter_position:sub_new(
                         current_origin_position

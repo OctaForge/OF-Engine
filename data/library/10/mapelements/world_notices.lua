@@ -13,12 +13,12 @@ world_notice = ents.register_class(plugins.bake(ents.Obstacle, {{
     },
 
     init = function(self)
-        self.text  = "World notice text"
-        self.color = 0xFFFFFF
-        self.size  = 0.5
-        self.sound = ""
-        self.x     = 0.5
-        self.y     = 0.88
+        self:set_text("World notice text")
+        self:set_color(0xFFFFFF)
+        self:set_size(0.5)
+        self:set_sound("")
+        self:set_x(0.5)
+        self:set_y(0.88)
     end,
 
     activate = CLIENT and function(self)
@@ -58,7 +58,7 @@ notice_action = actions.Action:clone {
 
         if self:should_continue() then
             if self.curr_time and self.sound and self.sound ~= "" then
-                sound.play(self.notice_sound, ents.get_player().position:copy())
+                sound.play(self.sound, ents.get_player():get_position():copy())
             end
 
             self.current_time = self.current_time + seconds * 3
@@ -84,12 +84,12 @@ world_notice_action = notice_action:clone {
     start = function(self)
         notice_action.start(self)
 
-        self.text  = self.actor.text
-        self.color = self.actor.color
-        self.size  = self.actor.size
-        self.sound = self.actor.sound
-        self.x     = self.actor.x
-        self.y     = self.actor.y
+        self.text  = self.actor:get_text()
+        self.color = self.actor:get_color()
+        self.size  = self.actor:get_size()
+        self.sound = self.actor:get_sound()
+        self.x     = self.actor:get_x()
+        self.y     = self.actor:get_y()
     end,
 
     should_continue = function(self)

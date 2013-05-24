@@ -13,7 +13,7 @@ function myplayer:activate(kwargs)
     -- Initialize a counter
     self.n = 1
     -- Move the player a bit more to the open space
-    self.position.y = self.position.y + 100
+    self:get_position().y = self:get_position().y + 100
 end
 
 -- Called every frame on client after initialization
@@ -23,14 +23,14 @@ function myplayer:run(sec)
     -- Loop 1000 times
     if self.n <= 1000 then
         -- Calculate X position. Move everything a bit.
-        self.position.x = self.n + 50
+        self:get_position().x = self.n + 50
         -- Calculate Z position (vertical) - create a nice sine graph
-        self.position.z = math.sin(math.rad(self.n) * 3) * 100 + 700
+        self:get_position().z = math.sin(math.rad(self.n) * 3) * 100 + 700
 
         -- Create cubes for X axis
-        edit.create_cube(self.position.x, self.position.y, self.position.z, 1)
+        edit.create_cube(self:get_position().x, self:get_position().y, self:get_position().z, 1)
         -- Create cubes of the graph
-        edit.create_cube(self.position.x, self.position.y, 700, 1)
+        edit.create_cube(self:get_position().x, self:get_position().y, 700, 1)
         -- Increment the counter
         self.n = self.n + 1
     end

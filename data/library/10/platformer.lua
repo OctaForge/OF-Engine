@@ -80,8 +80,8 @@ plugin = {
                 end
 
                 if position then
-                    self.position = position:lerp(self.position, 1 - (seconds * 5))
-                    self.velocity = velocity
+                    self:set_position(position:lerp(self:get_position(), 1 - (seconds * 5)))
+                    self:set_velocity(velocity)
                     #log(WARNING, "Fixed platform position %(1)i" % { frame.get_time() })
                 end
             end
@@ -204,7 +204,7 @@ axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
                     )
                     player:set_platform_direction(1)
                     player:set_platform_axis(axis)
-                    player:set_platform_position((axis[1] == "x") and self.position.y or self.position.x)
+                    player:set_platform_position((axis[1] == "x") and self:get_position().y or self:get_position().x)
                     player:set_platform_camera_axis(self:get_platform_camera_axises()[i])
                     player.platform_camera_smoothing = 1.0
                     return nil

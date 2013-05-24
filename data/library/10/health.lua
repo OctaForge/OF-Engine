@@ -155,7 +155,7 @@ plugin = {
             if CLIENT then
                 if diff >= 5 then
                     if self.pain_sound ~= "" then
-                        sound.play(self.pain_sound, self.position)
+                        sound.play(self:get_pain_sound(), self:get_position())
                     end
                     self:visual_pain_effect(health)
                     if not server_origin or health > 0 then
@@ -175,10 +175,10 @@ plugin = {
     end,
 
     visual_pain_effect = function(self, health)
-        local pos = self.position:copy()
+        local pos = self:get_position():copy()
         pos.z = pos.z + self.eye_height - 4
         effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self:get_blood_color(), 2.96)
-        effects.decal(effects.DECAL.BLOOD, self.position, math.Vec3(0, 0, 1), 7, self:get_blood_color())
+        effects.decal(effects.DECAL.BLOOD, self:get_position(), math.Vec3(0, 0, 1), 7, self:get_blood_color())
         --if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
     end,
 

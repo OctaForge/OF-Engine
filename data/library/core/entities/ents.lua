@@ -276,7 +276,7 @@ M.get_by_distance = function(pos, kwargs)
 
     local cl, tg, sr = kwargs.class, kwargs.tag, kwargs.sort
     local fn = kwargs.pos_fun or function(e)
-        return e.position:copy()
+        return e:get_position():copy()
     end
 
     if type(cl) == "table" then cl = tostring(cl) end

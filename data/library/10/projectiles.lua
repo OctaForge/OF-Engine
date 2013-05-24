@@ -36,9 +36,9 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
               bump = bump - (bump % 5)
 
         if not custom_damage_fun then
-            if entity.velocity then
-                entity.velocity:add(
-                    entity.position:sub_new(
+            if entity:get_velocity() then
+                entity:get_velocity():add(
+                    entity:get_position():sub_new(
                         position
                     ):add(
                         velocity:copy():normalize():mul(4)

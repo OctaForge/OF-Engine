@@ -49,7 +49,7 @@ function show_distance(tag, origin, color)
 
     effects.flare(
         effects.PARTICLE.STREAK,
-        origin.position, entity.position,
+        origin:get_position(), entity:get_position(),
         0, color, 0.2
     )
 end
@@ -302,9 +302,9 @@ action_smooth = actions.Action:clone {
             current_index + 2, 1, #self.markers
         )]
 
-        self.position = last_marker.position:mul_new(alpha):add(
-              curr_marker.position:mul_new(1 - alpha - beta)
-        ):add(next_marker.position:mul_new(beta))
+        self.position = last_marker:get_position():mul_new(alpha):add(
+              curr_marker:get_position():mul_new(1 - alpha - beta)
+        ):add(next_marker:get_position():mul_new(beta))
 
         self.yaw   = math.normalize_angle(
                         last_marker:get_yaw(), curr_marker:get_yaw()
@@ -755,11 +755,11 @@ ents.register_class(
 
             local direction = math.Vec3():from_yaw_pitch(self:get_yaw(), self:get_pitch())
             local target    = geometry.get_ray_collision_world(
-                self.position:copy(), direction, 10
+                self:get_position():copy(), direction, 10
             )
             effects.flare(
                 effects.PARTICLE.STREAK,
-                self.position, target,
+                self:get_position(), target,
                 0, 0x22BBFF, 0.3
             )
         end or nil

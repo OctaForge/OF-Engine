@@ -179,7 +179,7 @@ function setup(plugins_add)
                             end
                         end
                         #log(WARNING, "player start not found (\"%(1)s\"), placing player elsewhere .." % { start_tag })
-                        player.position = { 512, 512, 571 }
+                        player:set_position({ 512, 512, 571 })
                     end,
 
                     adjust_score = function(self, team_name, diff)
