@@ -87,10 +87,10 @@ action_base = extraevents.action_container:clone {
     start = function(self)
         extraevents.action_container.start(self)
 
-        self.actor.can_move = false
+        self.actor:set_can_move(false)
 
-        self.original_yaw   = self.actor.yaw
-        self.original_pitch = self.actor.pitch
+        self.original_yaw   = self.actor:get_yaw()
+        self.original_pitch = self.actor:get_pitch()
 
         self.old_crosshair = _G["crosshair"]
         _G["crosshair"]    = ""
@@ -117,8 +117,8 @@ action_base = extraevents.action_container:clone {
         It also shows subtitles and manages the timing.
     ]]
     run = function(self, seconds)
-        self.actor.yaw   = self.original_yaw
-        self.actor.pitch = self.original_pitch
+        self.actor:set_yaw(self.original_yaw)
+        self.actor:set_pitch(self.original_pitch)
 
         if self.subtitles then
             self.show_subtitles(
@@ -138,7 +138,7 @@ action_base = extraevents.action_container:clone {
    finish = function(self)
         extraevents.action_container.finish(self)
 
-        self.actor.can_move = true
+        self.actor:set_can_move(true)
 
         _G["crosshair"] = self.old_crosshair
 
@@ -307,20 +307,20 @@ action_smooth = actions.Action:clone {
         ):add(next_marker.position:mul_new(beta))
 
         self.yaw   = math.normalize_angle(
-                        last_marker.yaw, curr_marker.yaw
+                        last_marker:get_yaw(), curr_marker:get_yaw()
                      ) * alpha
                    + math.normalize_angle(
-                        next_marker.yaw, curr_marker.yaw
+                        next_marker:get_yaw(), curr_marker:get_yaw()
                      ) * beta
-                   + curr_marker.yaw * (1 - alpha - beta)
+                   + curr_marker:get_yaw() * (1 - alpha - beta)
 
         self.pitch = math.normalize_angle(
-                        last_marker.pitch, curr_marker.pitch
+                        last_marker:get_pitch(), curr_marker:get_pitch()
                      ) * alpha
                    + math.normalize_angle(
-                        next_marker.pitch, curr_marker.pitch
+                        next_marker:get_pitch(), curr_marker:get_pitch()
                      ) * beta
-                   + curr_marker.pitch * (1 - alpha - beta)
+                   + curr_marker:get_pitch() * (1 - alpha - beta)
     end
 }
 
@@ -450,7 +450,7 @@ ents.register_class(
                     start = function(self)
                         base_action.start(self)
 
-                        self.cancellable = entity.cancellable
+                        self.cancellable = entity:get_cancellable()
 
                         if entity.cancel then self:cancel() end
 
@@ -463,9 +463,9 @@ ents.register_class(
                         if   #start_mark ~= 1 then return nil end
                         if    start_mark[1].parent_id > 0 then
                             local start_time = start_mark[1].start_time
-                                            + (entity.seconds_per_marker
+                                            + (entity:get_seconds_per_marker()
                                                 * (start_mark[1].parent_id - 1)
-                                            ) + entity.delay_before
+                                            ) + entity:get_delay_before()
 
                             local end_time = start_time
                                            + start_mark[1].total_time
@@ -492,9 +492,9 @@ ents.register_class(
                             if   #next_mark ~= 1 then break end
                             if    next_mark[1].parent_id > 0 then
                                 local start_time = next_mark[1].start_time
-                                            + (entity.seconds_per_marker
+                                            + (entity:get_seconds_per_marker()
                                                 * (next_mark[1].parent_id - 1)
-                                            ) + entity.delay_before
+                                            ) + entity:get_delay_before()
 
                                 local end_time = start_time
                                                + next_mark[1].total_time
@@ -531,20 +531,20 @@ ents.register_class(
                         end
 
                         local next_control = ents.get_by_tag(
-                            "ctl_" .. entity.next_controller
+                            "ctl_" .. entity:get_next_controller()
                         )
                         if   #next_control == 1 then
                               next_control[1].started = true
-                              next_control[1].cancel = entity.cancel_siblings
+                              next_control[1].cancel = entity:get_cancel_siblings()
                         end
                     end
                 })({
                     (action_smooth:clone {
                         init_markers = function(self)
                             self.markers            = {}
-                            self.seconds_per_marker = entity.seconds_per_marker
-                            self.delay_before       = entity.delay_before
-                            self.delay_after        = entity.delay_after
+                            self.seconds_per_marker = entity:get_seconds_per_marker()
+                            self.delay_before       = entity:get_delay_before()
+                            self.delay_after        = entity:get_delay_after()
 
                             local start_mark = ents.get_by_tag(
                                 entity.m_tag .. "_mrk_1"
@@ -553,40 +553,40 @@ ents.register_class(
                             local  prev_mark = start_mark
                             local mrkrs = self.markers
                             mrkrs[#mrkrs + 1] = {
-                                position = start_mark[1].position:copy(),
-                                yaw      = start_mark[1].yaw,
-                                pitch    = start_mark[1].pitch
+                                position = start_mark[1]:get_position():copy(),
+                                yaw      = start_mark[1]:get_yaw(),
+                                pitch    = start_mark[1]:get_pitch()
                             }
 
                             while true do
                                 local next_mark = ents.get_by_tag(
                                     entity.m_tag
                                         .. "_mrk_"
-                                        .. prev_mark[1].next_marker
+                                        .. prev_mark[1]:get_next_marker()
                                 )
                                 if   #next_mark ~= 1 then break end
 
                                 prev_mark = next_mark
                                 local nm = next_mark[1]
                                 mrkrs[#mrkrs + 1] = {
-                                    position = nm.position:copy(),
-                                    yaw      = nm.yaw,
-                                    pitch    = nm.pitch
+                                    position = nm:get_position():copy(),
+                                    yaw      = nm:get_yaw(),
+                                    pitch    = nm:get_pitch()
                                 }
-                                if next_mark[1].next_marker == 1 then
-                                    if entity.next_controller <= 0 then
+                                if next_mark[1]:get_next_marker() == 1 then
+                                    if entity:get_next_controller() <= 0 then
                                         self.looped = true
                                     end
                                     next_mark = ents.get_by_tag(
                                         entity.m_tag
                                             .. "_mrk_"
-                                            .. prev_mark[1].next_marker
+                                            .. prev_mark[1]:get_next_marker()
                                     )
                                     local nm = next_mark[1]
                                     mrkrs[#mrkrs + 1] = {
-                                        position = nm.position:copy(),
-                                        yaw      = nm.yaw,
-                                        pitch    = nm.pitch
+                                        position = nm:get_position():copy(),
+                                        yaw      = nm:get_yaw(),
+                                        pitch    = nm:get_pitch()
                                     }
                                     break
                                 end
@@ -630,12 +630,12 @@ ents.register_class(
             Called serverside on entity creation. Sets up defaults.
         ]]
         init = function(self)
-            self.cancellable        = false
-            self.cancel_siblings    = true
-            self.seconds_per_marker = 4
-            self.delay_before       = 0
-            self.delay_after        = 0
-            self.next_controller    = -1
+            self:set_cancellable(false)
+            self:set_cancel_siblings(true)
+            self:set_seconds_per_marker(4)
+            self:set_delay_before(0)
+            self:set_delay_after(0)
+            self:set_next_controller(-1)
         end,
 
         --[[!
@@ -654,9 +654,9 @@ ents.register_class(
             self.lock = (not self.started and self.lock) and false or self.lock
 
             if _V.editing ~= 0 then
-                if self.next_controller >= 1 then
+                if self:get_next_controller() >= 1 then
                     show_distance(
-                        "ctl_" .. self.next_controller, self, 0xFFED22
+                        "ctl_" .. self:get_next_controller(), self, 0xFFED22
                     )
                 end
             end
@@ -682,8 +682,7 @@ ents.register_class(
         per_frame = true,
 
         properties = {
-            next_marker = svars.State_Integer(),
-            pitch       = svars.State_Float()
+            next_marker = svars.State_Integer()
         },
 
         --[[!
@@ -691,8 +690,7 @@ ents.register_class(
             Called serverside on entity creation. Sets up defaults.
         ]]
         init = function(self)
-            self.next_marker = 0
-            self.pitch       = 0
+            self:set_next_marker(0)
         end,
 
         --[[!
@@ -744,9 +742,9 @@ ents.register_class(
             local arr = string.split(self.m_tag, "_")
             if #arr ~= 4 then return nil end
 
-            if self.next_marker > 0 and tonumber(arr[2]) > 0 then
+            if self:get_next_marker() > 0 and tonumber(arr[2]) > 0 then
                 show_distance(
-                    "ctl_" .. arr[2] .. "_mrk_" .. self.next_marker,
+                    "ctl_" .. arr[2] .. "_mrk_" .. self:get_next_marker(),
                     self, 0x22BBFF
                 )
             end
@@ -755,7 +753,7 @@ ents.register_class(
                 show_distance("ctl_" .. arr[2], self, 0x22FF27)
             end
 
-            local direction = math.Vec3():from_yaw_pitch(self.yaw, self.pitch)
+            local direction = math.Vec3():from_yaw_pitch(self:get_yaw(), self:get_pitch())
             local target    = geometry.get_ray_collision_world(
                 self.position:copy(), direction, 10
             )
@@ -925,8 +923,8 @@ ents.register_class(
             Called serverside on entity creation. Sets up defaults.
         ]]
         init = function(self)
-            self.background_image    = ""
-            self.subtitle_background = ""
+            self:set_background_image("")
+            self:set_subtitle_background("")
         end,
 
         --[[!
@@ -959,10 +957,10 @@ ents.register_class(
             always up to date with those of entity.
         ]]
         run = CLIENT and function(self, seconds)
-            if self.action.background_image    ~= self.background_image then
-               self.action.background_image     = self.background_image end
-            if self.action.subtitle_background ~= self.subtitle_background then
-               self.action.subtitle_background  = self.subtitle_background end
+            if self.action.background_image ~= self:get_background_image() then
+               self.action.background_image  = self:get_background_image() end
+            if self.action.subtitle_background ~= self:get_subtitle_background() then
+               self.action.subtitle_background  = self:get_subtitle_background() end
 
             if _V.editing == 0 then return nil end
 

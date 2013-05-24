@@ -1266,7 +1266,7 @@ local render_hud = CLIENT and function()
     local  player = player_entity
     if not player then return nil end
 
-    if player.hud_model_name and not player.editing then
+    if player.get_hud_model_name and not player.editing then
         player:render(true, true)
     end
 end or nil

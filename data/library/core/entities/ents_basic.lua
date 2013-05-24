@@ -424,11 +424,12 @@ local Character = Physical_Entity:clone {
             local state = self.client_state
             -- spawning or spectator
             if state == 5 or state == 2 then return nil end
-            local mdn = (hudpass and needhud) and self.hud_model_name
+            local mdn = (hudpass and needhud) and self:get_hud_model_name()
                 or self.model_name
 
-            local yaw, pitch, roll = self.yaw, self.pitch, self.roll
-            local o = self.position:copy()
+            local yaw, pitch, roll = self:get_yaw(), self:get_pitch(),
+                self:get_roll()
+            local o = self:get_position():copy()
 
             if hudpass and needhud and self.hud_model_offset then
                 o:add(self.hud_model_offset)
@@ -586,8 +587,8 @@ local Player = Character:clone {
     init = SERVER and function(self, uid, kwargs)
         Character.init(self, uid, kwargs)
 
-        self.can_edit       = false
-        self.hud_model_name = ""
+        self:set_can_edit(false)
+        self:set_hud_model_name("")
     end or nil
 }
 M.Player = Player
@@ -976,7 +977,8 @@ local Sound = Static_Entity:clone {
 
     get_edit_info = function(self)
         return format('radius: %d, size: %d, volume: %d\nname: "%s"',
-            self.radius, self.size, self.volume, self.sound_name)
+            self:get_radius(), self:get_size(), self:get_volume(),
+            self:get_sound_name())
     end
 }
 M.Sound = Sound
@@ -1158,14 +1160,10 @@ local Mapmodel = Static_Entity:clone {
         }
     },
 
-    init = function(self, uid, kwargs)
-        Static_Entity.init(self, uid, kwargs)
-        self.yaw, self.pitch, self.roll = 0, 0, 0
-    end,
-
     get_edit_info = function(self)
         return format('yaw: %d, pitch: %d, roll: %d, scale: %d\nname: "%s"',
-            self.yaw, self.pitch, self.roll, self.scale, self.model_name)
+            self:get_yaw(), self:get_pitch(), self:get_roll(),
+            self:get_scale(), self:get_model_name())
     end
 }
 M.Mapmodel = Mapmodel
@@ -1211,11 +1209,13 @@ local Oriented_Marker = Static_Entity:clone {
         Places an entity on this marker's position.
     ]]
     place_entity = function(self, ent)
-        ent.position, ent.yaw, ent.pitch = self.position, self.yaw, self.pitch
+        ent:set_position(self:get_position())
+        ent:set_yaw(self:get_yaw())
+        ent:set_pitch(self:get_pitch())
     end,
 
     get_edit_info = function(self)
-        return format("yaw: %d, pitch: %d", self.yaw, self.pitch)
+        return format("yaw: %d, pitch: %d", self:get_yaw(), self:get_pitch())
     end
 }
 M.Oriented_Marker = Oriented_Marker
@@ -1275,8 +1275,8 @@ local Obstacle = Static_Entity:clone {
     },
 
     get_edit_info = function(self)
-        return format("yaw: %d, a: %d, b: %d, c: %d, solid: %d", self.yaw,
-            self.a, self.b, self.c, self.solid)
+        return format("yaw: %d, a: %d, b: %d, c: %d, solid: %d",
+            self:get_yaw(), self.a, self.b, self.c, self.solid)
     end
 }
 M.Obstacle = Obstacle

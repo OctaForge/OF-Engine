@@ -20,7 +20,7 @@ action_death = actions.Action:clone {
         signal.emit(self.actor, "fragged")
         -- this won't clear us, as we cannot be cancelled
         self.actor:clear_actions()
-        self.actor.can_move = false
+        self.actor:set_can_move(false)
     end,
 
     finish = function(self)
@@ -64,13 +64,13 @@ plugin = {
             if SERVER then
                 -- do this first
                 self.health     = self.max_health
-                self.can_move   = true
+                self:set_can_move(true)
 
                 if  self.default_model_name then
                     self.model_name = self.default_model_name
                 end
                 if  self.default_hud_model_name then
-                    self.hud_model_name = self.default_hud_model_name
+                    self:set_hud_model_name(self.default_hud_model_name)
                 end
 
                 self.spawn_stage = 0
@@ -87,7 +87,7 @@ plugin = {
         self.max_health  = 100
         self.health      = self.max_health
         self.pain_sound  = ""
-        self.blood_color = 0x60FFFF
+        self:set_blood_color(0x60FFFF)
     end,
 
     activate = function(self)
@@ -177,8 +177,8 @@ plugin = {
     visual_pain_effect = function(self, health)
         local pos = self.position:copy()
         pos.z = pos.z + self.eye_height - 4
-        effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self.blood_color, 2.96)
-        effects.decal(effects.DECAL.BLOOD, self.position, math.Vec3(0, 0, 1), 7, self.blood_color)
+        effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self:get_blood_color(), 2.96)
+        effects.decal(effects.DECAL.BLOOD, self.position, math.Vec3(0, 0, 1), 7, self:get_blood_color())
         --if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
     end,
 

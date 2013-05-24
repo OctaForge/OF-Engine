@@ -193,7 +193,7 @@ function setup(plugins_add)
                         for team_name, team in pairs(self.team_data) do
                             data[#data + 1] = { -1, " << " .. team_name .. " >> " .. team.score .. " points" }
                             for idx, player in pairs(team.player_list) do
-                                data[#data + 1] = { player.uid, player.character_name .. " -" }
+                                data[#data + 1] = { player.uid, player:get_character_name() .. " -" }
                             end
                         end
                         return data
@@ -348,7 +348,7 @@ manager_plugins = {
 
                 local players = self:get_players()
                 for k, player in pairs(players) do
-                    player.can_move = false
+                    player:set_can_move(false)
                     local msg
                     local sound
                     if not tie then
@@ -386,7 +386,7 @@ manager_plugins = {
                     -- unfreeze players
                     local players = self:get_players()
                     for k, player in pairs(players) do
-                        player.can_move = true
+                        player:set_can_move(true)
                     end
 
                     self:start_game()

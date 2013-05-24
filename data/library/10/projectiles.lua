@@ -75,9 +75,9 @@ projectile = table.Object:clone {
         self.physics_frame_timer = extraevents.repeating_timer(self.physics_frame_size, true)
 
         if owner then
-            self.yaw = owner.yaw
-            self.pitch = owner.pitch
-            self.roll = owner.roll
+            self.yaw = owner:get_yaw()
+            self.pitch = owner:get_pitch()
+            self.roll = owner:get_roll()
         end
 
         self.collide_fun = geometry.is_colliding

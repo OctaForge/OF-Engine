@@ -44,14 +44,14 @@ plugin = {
     end,
 
     get_multipart_yaw = function(self)
-        return self.yaw
+        return self:get_yaw()
     end,
 
     get_multipart_pitch = function(self)
-        return self.pitch
+        return self:get_pitch()
     end,
 
     get_multipart_roll = function(self)
-        return self.roll
+        return self:get_roll()
     end
 }

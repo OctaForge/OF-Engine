@@ -19,7 +19,7 @@ function click(button, down, x, y, z, entity)
 
     if button == 1 then
         if down then
-            if player.can_move then
+            if player:get_can_move() then
                 player:start_shooting(x, y, z)
             end
         else
@@ -41,7 +41,7 @@ end
 
 function find_target(shooter, visual_origin, targeting_origin, fallback_target, range, scatter)
     -- targeting from the camera - where the player aimed the mouse
-    local direction = math.Vec3():from_yaw_pitch(shooter.yaw, shooter.pitch)
+    local direction = math.Vec3():from_yaw_pitch(shooter:get_yaw(), shooter:get_pitch())
     if math.is_nan(direction.x) then return { target = fallback_target } end
     if scatter then direction:add(math.norm_vec3():mul(scatter)):normalize() end
 
@@ -268,9 +268,9 @@ end
 function gun:do_recoil(shooter, magnitude)
     if CLIENT and shooter ~= ents.get_player() then return nil end
 
-    if shooter.can_move then
+    if shooter:get_can_move() then
         local dir = math.Vec3():from_yaw_pitch(
-            shooter.yaw, shooter.pitch
+            shooter:get_yaw(), shooter:get_pitch()
         ):normalize(1)
          :mul(-magnitude)
         shooter.velocity:add(dir)

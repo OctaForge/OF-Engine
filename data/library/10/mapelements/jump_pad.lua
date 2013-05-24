@@ -64,7 +64,7 @@ plugin = {
         model.render(
             self, self.pad_model,
             math.bor(model.anims.IDLE, model.anims.LOOP),
-            o, yaw and yaw or self.yaw, self.pad_pitch, self.pad_roll,
+            o, yaw and yaw or self:get_yaw(), self.pad_pitch, self.pad_roll,
             flags, 0
         )
     end

@@ -50,9 +50,9 @@ plugin = {
         self:set_platform_direction(1)
 
         signal.connect(self, "client_respawn", function(self)
-            self.platform_axis        = "+x"
-            self.platform_position    = self.position.y
-            self.platform_camera_axis = "+y"
+            self:set_platform_axis("+x")
+            self:set_platform_position(self:get_position().y)
+            self:set_platform_camera_axis("+y")
             self.platform_move        = 0
         end)
     end,
@@ -60,19 +60,19 @@ plugin = {
     run = CLIENT and function(self, seconds)
         if self == ents.get_player() and not self.editing then
             if self.spawn_stage == 0 then
-                local position = self.position:copy()
-                local velocity = self.velocity:copy()
+                local position = self:get_position():copy()
+                local velocity = self:get_velocity():copy()
 
-                if self.platform_axis[2] == "x" then
-                    if math.abs(position.y - self.platform_position) > 0.5 then
-                        position.y = self.platform_position
+                if self:get_platform_axis()[2] == "x" then
+                    if math.abs(position.y - self:get_platform_position()) > 0.5 then
+                        position.y = self:get_platform_position()
                         velocity.y = 0
                     else
                         position = nil
                     end
                 else
-                    if math.abs(position.x - self.platform_position) > 0.5 then
-                        position.x = self.platform_position
+                    if math.abs(position.x - self:get_platform_position()) > 0.5 then
+                        position.x = self:get_platform_position()
                         velocity.x = 0
                     else
                         position = nil
@@ -86,21 +86,21 @@ plugin = {
                 end
             end
 
-            local platform_axis = vec3_from_axis(self.platform_axis)
+            local platform_axis = vec3_from_axis(self:get_platform_axis())
             self.platform_yaw   = math.normalize_angle(
                 platform_axis:mul(self:get_platform_direction()):to_yaw_pitch().yaw,
-                self.yaw)
-            self.yaw = math.magnet(
+                self:get_yaw())
+            self:set_yaw(math.magnet(
                 math.lerp(
-                    self.yaw,
+                    self:get_yaw(),
                     self.platform_yaw,
                     seconds * 15
                 ),
                 self.platform_yaw,
                 45
-            )
-            self.pitch = 0
-            self.move  = (self.platform_move == 1 and (math.abs(self.platform_yaw - self.yaw) < 1)) and 1 or 0
+            ))
+            self:set_pitch(0)
+            self:set_move((self.platform_move == 1 and (math.abs(self.platform_yaw - self:get_yaw()) < 1)) and 1 or 0)
 
             if GLOBAL_CAMERA_DISTANCE then
                 self.platform_camera_distance = math.lerp(
@@ -116,7 +116,7 @@ plugin = {
             self.last_camera_position = camera_position:copy()
             camera_position:add(self.center)
             camera_position.z = camera_position.z + (self.radius * self.platform_camera_distance * 0.04)
-            camera_position:add(vec3_from_axis(self.platform_camera_axis):mul(self.platform_camera_distance))
+            camera_position:add(vec3_from_axis(self:get_platform_camera_axis()):mul(self.platform_camera_distance))
 
             if self.platform_camera_smoothing > 0 then
                 camera_position = self.last_camera_smooth_position:lerp(
@@ -132,7 +132,7 @@ plugin = {
             camera_position.z = camera_position.z + (self.radius * self.platform_camera_distance * 0.02)
             camera.force(
                 camera_position.x, camera_position.y, camera_position.z,
-                orientation.yaw, orientation.pitch, 0, self.platform_fov)
+                orientation:get_yaw(), orientation:get_pitch(), 0, self.platform_fov)
         end
     end or nil
 }
@@ -158,9 +158,9 @@ function do_strafe(strafe, down)
     end
     if not health.is_valid_target(player) then return nil end
 
-    if vec3_from_axis(player.platform_camera_axis)
+    if vec3_from_axis(player:get_platform_camera_axis())
         :cross_product(
-            vec3_from_axis(player.platform_axis)
+            vec3_from_axis(player:get_platform_axis())
         ).z < 0
     then
         strafe = -strafe
@@ -185,8 +185,8 @@ axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
         },
 
         init = function(self)
-            self.platform_axises = { "+x", "+y" }
-            self.platform_camera_axises = { "+y", "-x" }
+            self:set_platform_axises({ "+x", "+y" })
+            self:set_platform_camera_axises({ "+y", "-x" })
         end,
 
         do_movement = function(self, move, down)
@@ -196,22 +196,22 @@ axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
         flip_axes = function(self, up)
             local player = ents.get_player()
 
-            for i, axis in pairs(self.platform_axises:to_array()) do
-                if player.platform_axis[2] ~= axis[2] then
+            for i, axis in pairs(self:get_platform_axises():to_array()) do
+                if player:get_platform_axis()[2] ~= axis[2] then
                     axis = ((up < 0) and
-                        player.platform_camera_axis or
-                        flip_axis(player.platform_camera_axis)
+                        player:get_platform_camera_axis() or
+                        flip_axis(player:get_platform_camera_axis())
                     )
                     player:set_platform_direction(1)
-                    player.platform_axis = axis
-                    player.platform_position = (axis[1] == "x") and self.position.y or self.position.x
-                    player.platform_camera_axis = self.platform_camera_axises[i]
+                    player:set_platform_axis(axis)
+                    player:set_platform_position((axis[1] == "x") and self.position.y or self.position.x)
+                    player:set_platform_camera_axis(self:get_platform_camera_axises()[i])
                     player.platform_camera_smoothing = 1.0
                     return nil
                 end
             end
 
-            #log(ERROR, "did not find player axis to flip, %(1)s" % { player.platform_axis })
+            #log(ERROR, "did not find player axis to flip, %(1)s" % { player:get_platform_axis() })
         end
     }
 }, "axis_switcher"))
