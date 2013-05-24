@@ -13,12 +13,12 @@ plugin = {
     per_frame = true,
 
     init = function(self)
-        self.jump_velocity = { 0, 0, 500 } -- default
-        self.pad_model     = ""
-        self.pad_rotate    = false
-        self.pad_pitch     = 90
-        self.pad_roll      = 0
-        self.pad_sound     = ""
+        self:set_jump_velocity({ 0, 0, 500 }) -- default
+        self:set_pad_model("")
+        self:set_pad_rotate(false)
+        self:set_pad_pitch(90)
+        self:set_pad_roll(0)
+        self:set_pad_sound("")
     end,
 
     activate = CLIENT and function(self)
@@ -41,15 +41,15 @@ plugin = {
            self.player_delay = 0.1
 
         -- throw collider up
-        collider.velocity = self.jump_velocity:to_array()
+        collider.velocity = self:get_jump_velocity():to_array()
 
-        if self.pad_sound ~= "" then
-            sound.play(self.pad_sound)
+        if self:get_pad_sound() ~= "" then
+            sound.play(self:get_pad_sound())
         end
     end,
 
     render = function(self)
-        if self.pad_model == "" then return nil end
+        if self:get_pad_model() == "" then return nil end
 
         local o = self.position
         local flags = math.bor(
@@ -57,15 +57,15 @@ plugin = {
             model.render_flags.FULLBRIGHT, model.render_flags.CULL_DIST
         )
         local yaw
-        if self.pad_rotate then
+        if self:get_pad_rotate() then
             yaw = -(frame.get_time() * 120) % 360
         end
 
         model.render(
-            self, self.pad_model,
+            self, self:get_pad_model(),
             math.bor(model.anims.IDLE, model.anims.LOOP),
-            o, yaw and yaw or self:get_yaw(), self.pad_pitch, self.pad_roll,
-            flags, 0
+            o, yaw and yaw or self:get_yaw(), self:get_pad_pitch(),
+            self:get_pad_roll(), flags, 0
         )
     end
 }

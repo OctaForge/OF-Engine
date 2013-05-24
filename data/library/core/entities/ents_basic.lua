@@ -435,9 +435,9 @@ local Character = Physical_Entity:clone {
                 o:add(self.hud_model_offset)
             end
 
-            local pstate = self.physical_state
-            local bt, iw = self.start_time, self:get_in_liquid()
-            local mv, sf = self.move, self.strafe
+            local pstate = self:get_physical_state()
+            local bt, iw = self:get_start_time(), self:get_in_liquid()
+            local mv, sf = self:get_move(), self:get_strafe()
 
             local vel, fall = self.velocity:copy(), self.falling:copy()
             local tia = self.time_in_air

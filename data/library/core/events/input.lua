@@ -32,7 +32,7 @@ if CLIENT then
     it sets the "yawing" property on the player to "dir".
 ]]
 set_external("input_yaw", function(dir, down)
-    ents.get_player().yawing = dir
+    ents.get_player():set_yawing(dir)
 end)
 
 --[[! Function: input_pitch
@@ -40,7 +40,7 @@ end)
     it sets the "pitching" property on the player to "dir".
 ]]
 set_external("input_pitch", function(dir, down)
-    ents.get_player().pitching = dir
+    ents.get_player():set_pitching(dir)
 end)
 
 --[[! Function: input_move
@@ -48,7 +48,7 @@ end)
     it sets the "move" property on the player to "dir".
 ]]
 set_external("input_move", function(dir, down)
-    ents.get_player().move = dir
+    ents.get_player():set_move(dir)
 end)
 
 --[[! Function: input_strafe
@@ -56,7 +56,7 @@ end)
     it sets the "strafe" property on the player to "dir".
 ]]
 set_external("input_strafe", function(dir, down)
-    ents.get_player().strafe = dir
+    ents.get_player():set_strafe(dir)
 end)
 
 --[[! Function: input_jump

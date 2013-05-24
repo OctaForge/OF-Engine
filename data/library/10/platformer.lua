@@ -36,7 +36,7 @@ plugin = {
     end,
 
     init = function(self)
-        self.movement_speed = 75
+        self:set_movement_speed(75)
     end,
 
     activate = function(self)
@@ -140,7 +140,7 @@ plugin = {
 function do_movement(move, down)
     local player = ents.get_player()
     if player.editing then
-        player.move = move
+        player:set_move(move)
     end
     if health.is_valid_target(player) then
         if do_jump then
@@ -154,7 +154,7 @@ end
 function do_strafe(strafe, down)
     local player = ents.get_player()
     if player.editing then
-        player.strafe = strafe
+        player:set_strafe(strafe)
     end
     if not health.is_valid_target(player) then return nil end
 
