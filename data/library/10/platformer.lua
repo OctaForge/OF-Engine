@@ -115,7 +115,7 @@ plugin = {
             camera_position = self.last_camera_position:lerp(camera_position, seconds * 0.5)
             self.last_camera_position = camera_position:copy()
             camera_position:add(self.center)
-            camera_position.z = camera_position.z + (self.radius * self.platform_camera_distance * 0.04)
+            camera_position.z = camera_position.z + (self:get_radius() * self.platform_camera_distance * 0.04)
             camera_position:add(vec3_from_axis(self:get_platform_camera_axis()):mul(self.platform_camera_distance))
 
             if self.platform_camera_smoothing > 0 then
@@ -129,7 +129,7 @@ plugin = {
         
             local direction = self.center:sub_new(camera_position)
             orientation = direction:to_yaw_pitch()
-            camera_position.z = camera_position.z + (self.radius * self.platform_camera_distance * 0.02)
+            camera_position.z = camera_position.z + (self:get_radius() * self.platform_camera_distance * 0.02)
             camera.force(
                 camera_position.x, camera_position.y, camera_position.z,
                 orientation:get_yaw(), orientation:get_pitch(), 0, self.platform_fov)

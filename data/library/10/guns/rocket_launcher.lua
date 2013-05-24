@@ -119,7 +119,7 @@ rocket_launcher = projectiles.gun:clone {
                     current_origin_position, 20, 0xFF775F, 0.8, 0.1, 0, 10
                 )
 
-                if shooter.radius > 0 then
+                if shooter:get_radius() > 0 then
                     #log(DEBUG, "adjusting rocket origin")
                     local shooter_position = shooter:get_position():copy()
                     shooter_position.z = current_origin_position.z
@@ -129,10 +129,10 @@ rocket_launcher = projectiles.gun:clone {
                     local dist = dir:length()
                         + self.projectile_class.radius
 
-                    if dist > shooter.radius then
+                    if dist > shooter:get_radius() then
                         current_origin_position:add(
                             dir:normalize():mul(
-                                dist - shooter.radius
+                                dist - shooter:get_radius()
                                      + self.projectile_class.shooter_safety
                             )
                         )

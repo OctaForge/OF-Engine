@@ -406,7 +406,7 @@ local Character = Physical_Entity:clone {
     --[[! Function: render
         Clientside and run per frame. It renders the character model. Decides
         all the parameters, including animation etc., but not every frame -
-        they're cached by self.rendering_args_timestamp (they're only
+        they're cached by self.render_args_timestamp (they're only
         recomputed when this timestamp changes).
 
         When rendering HUD (determined by the paramters hudpass, which
@@ -842,17 +842,21 @@ local Light = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self.red, self.green, self.blue = 128, 128, 128
-        self.radius, self.shadow = 100, 0
+        self:set_red(128)
+        self:set_green(128)
+        self:set_blue(128)
+        self:set_radius(100)
+        self:set_shadow(0)
     end,
 
     get_edit_color = function(self)
-        return bor(self.blue, lsh(self.green, 8), lsh(self.red, 16))
+        return bor(self:get_blue(), lsh(self:get_green(), 8),
+            lsh(self:get_red(), 16))
     end,
 
     get_edit_info = function(self)
-        return format("r: %d, g: %d, b: %d, radius: %d", self.red, self.green,
-            self.blue, self.radius)
+        return format("r: %d, g: %d, b: %d, radius: %d", self:get_red(),
+            self:get_green(), self:get_blue(), self:get_radius())
     end
 }
 M.Light = Light
@@ -880,17 +884,18 @@ local Spot_Light = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self.radius = 90
+        self:set_radius(90)
     end,
 
     get_edit_color = function(self)
         local ent = self:get_attached_entity()
         if not ent then return 0xFFFFFF end
-        return bor(ent.blue, lsh(ent.green, 8), lsh(ent.red, 16))
+        return bor(ent:get_blue(), lsh(ent:get_green(), 8),
+            lsh(ent:get_red(), 16))
     end,
 
     get_edit_info = function(self)
-        return format("radius: %d", self.radius)
+        return format("radius: %d", self:get_radius())
     end
 }
 M.Spot_Light = Spot_Light
@@ -919,11 +924,11 @@ local Envmap = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self.radius = 128
+        self:set_radius(128)
     end,
 
     get_edit_info = function(self)
-        return format("radius: %d", self.radius)
+        return format("radius: %d", self:get_radius())
     end
 }
 M.Envmap = Envmap
@@ -1105,21 +1110,25 @@ local Particle_Effect = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self.particle_type, self.a, self.b, self.c, self.d = 0, 0, 0, 0, 0
+        self:set_particle_type(0)
+        self:set_a(0)
+        self:set_b(0)
+        self:set_c(0)
+        self:set_d(0)
     end,
 
     get_edit_info = function(self)
-        local pt = self.particle_type
+        local pt = self:get_particle_type()
         if pt == 0 or pt == 4 or pt == 7 or pt == 8 or pt == 9 or pt == 10
         or pt == 11 or pt == 12 or pt == 13 then
-            return format("pt: %d, a: %d b: %d c: 0x%.3X d: %d", pt, self.a,
-                self.b, self.c, self.d)
+            return format("pt: %d, a: %d b: %d c: 0x%.3X d: %d", pt,
+                self:get_a(), self:get_b(), self:get_c(), self:get_d())
         elseif pt == 3 then
-            return format("pt: %d, a: %d b: 0x%.3X c: %d d: %d", pt, self.a,
-                self.b, self.c, self.d)
+            return format("pt: %d, a: %d b: 0x%.3X c: %d d: %d", pt,
+                self:get_a(), self:get_b(), self:get_c(), self:get_d())
         elseif pt == 5 or pt == 6 then
             return format("pt: %d, a: %d b: 0x%.6X c: 0x%.3X d: %d", pt,
-                self.a, self.b, self.c, self.d)
+                self:get_a(), self:get_b(), self:get_c(), self:get_d())
         end
     end
 }
@@ -1278,7 +1287,8 @@ local Obstacle = Static_Entity:clone {
 
     get_edit_info = function(self)
         return format("yaw: %d, a: %d, b: %d, c: %d, solid: %d",
-            self:get_yaw(), self.a, self.b, self.c, self.solid)
+            self:get_yaw(), self:get_a(), self:get_b(), self:get_c(),
+            self:get_solid())
     end
 }
 M.Obstacle = Obstacle

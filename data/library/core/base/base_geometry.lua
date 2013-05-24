@@ -106,7 +106,7 @@ function get_ray_collision_entities(origin, target, ignore)
     for k, entity in pairs(entities) do
         if entity ~= ignore then
             local entity_dir = entity.center:sub_new(origin)
-            local entity_rad = entity.radius and entity.radius or 0
+            local entity_rad = entity.get_radius and entity:get_radius() or 0
             local alpha = direction:dot_product(entity_dir) / dist2
             local collision_position
                 = origin:add_new(direction:mul_new(alpha))
@@ -150,7 +150,7 @@ function is_colliding_entities(position, radius, ignore)
     local entities = get_collidable_entities()
     for i, entity in pairs(entities) do
         if entity ~= ignore and not entity.deactivated then
-            local   entity_radius = entity.radius and entity.radius or 0
+            local   entity_radius = entity:get_radius() and entity:get_radius() or 0
             if position:is_close_to(
                 entity:get_position(), radius + entity_radius
             ) then
@@ -311,7 +311,7 @@ function bounce(thing, elasticity, friction, seconds)
     local direction = movement:copy():normalize()
     local surface_dist = get_ray_collision_distance(
         old_position, direction:mul_new(
-            3 * movement:length() + 3 * thing.radius + 1.5
+            3 * movement:length() + 3 * thing:get_radius() + 1.5
         )
     )
     if surface_dist < 0 then return fallback() end

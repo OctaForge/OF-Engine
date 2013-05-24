@@ -57,7 +57,7 @@ ents.register_class(plugins.bake(dynamic_light, {{
             if math.random() < self:get_probability() then
                 local pos = self:get_position()
                 _C.adddynlight(
-                    pos.x, pos.y, pos.z, self.radius,
+                    pos.x, pos.y, pos.z, self:get_radius(),
                     self:get_red() / 255, self:get_green() / 255,
                     self:get_blue() / 255,
                     self.delay * 1000, 0, math.lsh(1, 2), 0, 0, 0, 0
