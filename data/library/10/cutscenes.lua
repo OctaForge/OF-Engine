@@ -416,7 +416,7 @@ ents.register_class(
             self:before_start()
 
             if not self.m_tag then
-                self.m_tag = self.tags:to_array()[1]
+                self.m_tag = self:get_tags():to_array()[1]
             end
 
             local entity = self
@@ -609,7 +609,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self.tags:to_array()[1]
+                    self.m_tag = self:get_tags():to_array()[1]
                 end
             )
             signal.connect(self,
@@ -704,7 +704,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self.tags:to_array()[1]
+                    self.m_tag = self:get_tags():to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -734,7 +734,7 @@ ents.register_class(
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self.tags:to_array()[1]
+                self.m_tag = self:get_tags():to_array()[1]
                 if not self.m_tag then
                     return nil
                 end
@@ -836,7 +836,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self.tags:to_array()[1]
+                    self.m_tag = self:get_tags():to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -866,7 +866,7 @@ ents.register_class(
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self.tags:to_array()[1]
+                self.m_tag = self:get_tags():to_array()[1]
                 if not self.m_tag then
                     return nil
                 end
@@ -938,7 +938,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self.tags:to_array()[1]
+                    self.m_tag = self:get_tags():to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -965,7 +965,7 @@ ents.register_class(
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self.tags:to_array()[1]
+                self.m_tag = self:get_tags():to_array()[1]
                 if not self.m_tag then
                     return nil
                 end
@@ -1051,7 +1051,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self.tags:to_array()[1]
+                    self.m_tag = self:get_tags():to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -1070,7 +1070,7 @@ ents.register_class(
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self.tags:to_array()[1]
+                self.m_tag = self:get_tags():to_array()[1]
                 if not self.m_tag then
                     return nil
                 end

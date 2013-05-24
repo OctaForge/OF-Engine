@@ -736,8 +736,7 @@ Entity = table.Object:clone {
     ]]
     add_tag = function(self, tag)
         if not self:has_tag(tag) then
-            local tags = self.tags
-            tags[#tags + 1] = tag
+            self:get_tags():append(tag)
         end
     end,
 
@@ -748,9 +747,9 @@ Entity = table.Object:clone {
         #log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
         if not self:has_tag(tag) then return nil end
-        self.tags = filter(self.tags:to_array(), function(i, t)
+        self:set_tags(filter(self:get_tags():to_array(), function(i, t)
             return t ~= tag
-        end)
+        end))
     end,
 
     --[[! Function: has_tag
@@ -759,7 +758,7 @@ Entity = table.Object:clone {
     ]]
     has_tag = function(self, tag)
         #log(DEBUG, "Entity: has_tag (" .. tag .. ")")
-        return find(self.tags:to_array(), tag) ~= nil
+        return find(self:get_tags():to_array(), tag) ~= nil
     end,
 
     --[[! Function: setup_svars

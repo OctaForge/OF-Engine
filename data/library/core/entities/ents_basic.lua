@@ -424,8 +424,8 @@ local Character = Physical_Entity:clone {
             local state = self:get_client_state()
             -- spawning or spectator
             if state == 5 or state == 2 then return nil end
-            local mdn = (hudpass and needhud) and self:get_hud_model_name()
-                or self.model_name
+            local mdn = (hudpass and needhud and self.get_hud_model_name)
+                and self:get_hud_model_name() or self:get_model_name()
 
             local yaw, pitch, roll = self:get_yaw(), self:get_pitch(),
                 self:get_roll()

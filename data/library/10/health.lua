@@ -48,7 +48,7 @@ plugin = {
             if SERVER then
                 if auid == self.uid then
                     if  self.default_model_name then
-                        self.model_name  = ""
+                        self:set_model_name("")
                     end
                     self:set_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
                     self:set_spawn_stage(3)
@@ -67,7 +67,7 @@ plugin = {
                 self:set_can_move(true)
 
                 if  self.default_model_name then
-                    self.model_name = self.default_model_name
+                    self:set_model_name(self.default_model_name)
                 end
                 if  self.default_hud_model_name then
                     self:set_hud_model_name(self.default_hud_model_name)
