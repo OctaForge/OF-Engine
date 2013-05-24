@@ -461,10 +461,10 @@ ents.register_class(
                             entity.m_tag .. "_sub_1"
                         )
                         if   #start_mark ~= 1 then return nil end
-                        if    start_mark[1].parent_id > 0 then
-                            local start_time = start_mark[1].start_time
+                        if    start_mark[1]:get_parent_id() > 0 then
+                            local start_time = start_mark[1]:get_start_time()
                                             + (entity:get_seconds_per_marker()
-                                                * (start_mark[1].parent_id - 1)
+                                                * (start_mark[1]:get_parent_id() - 1)
                                             ) + entity:get_delay_before()
 
                             local end_time = start_time
@@ -490,10 +490,10 @@ ents.register_class(
                                 entity.m_tag .. "_sub_" .. i
                             )
                             if   #next_mark ~= 1 then break end
-                            if    next_mark[1].parent_id > 0 then
-                                local start_time = next_mark[1].start_time
+                            if    next_mark[1]:get_parent_id() > 0 then
+                                local start_time = next_mark[1]:get_start_time()
                                             + (entity:get_seconds_per_marker()
-                                                * (next_mark[1].parent_id - 1)
+                                                * (next_mark[1]:get_parent_id() - 1)
                                             ) + entity:get_delay_before()
 
                                 local end_time = start_time
@@ -813,8 +813,8 @@ ents.register_class(
             Called serverside on entity creation. Sets up defaults.
         ]]
         init = function(self)
-            self.parent_id  = 0
-            self.start_time = 0
+            self:set_parent_id(0)
+            self:set_start_time(0)
             self:set_total_time(0)
             self:set_text("")
             self:set_x_pos(0.5)
@@ -874,9 +874,9 @@ ents.register_class(
             local arr = string.split(self.m_tag, "_")
             if #arr ~= 4 then return nil end
 
-            if self.parent_id > 0 and tonumber(arr[2]) > 0 then
+            if self:get_parent_id() > 0 and tonumber(arr[2]) > 0 then
                 show_distance(
-                    "ctl_" .. arr[2] .. "_mrk_" .. self.parent_id,
+                    "ctl_" .. arr[2] .. "_mrk_" .. self:get_parent_id(),
                     self, 0xFF22C3
                 )
             end

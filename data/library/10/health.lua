@@ -63,7 +63,7 @@ plugin = {
         elseif stage == 4 then -- server appears player and sets in motion
             if SERVER then
                 -- do this first
-                self.health     = self.max_health
+                self:set_health(self:get_max_health())
                 self:set_can_move(true)
 
                 if  self.default_model_name then
@@ -84,9 +84,9 @@ plugin = {
     end,
 
     init = function(self)
-        self.max_health  = 100
-        self.health      = self.max_health
-        self.pain_sound  = ""
+        self:set_max_health(100)
+        self:set_health(100)
+        self:set_pain_sound("")
         self:set_blood_color(0x60FFFF)
     end,
 
@@ -96,7 +96,7 @@ plugin = {
     end,
 
     decide_animation = function(self, ...)
-        if self.health > 0 then
+        if self:get_health() > 0 then
             return self.__proto.__proto.decide_animation(self, ...)
         else
             return math.bor(DYING, model.anims.RAGDOLL)
@@ -107,7 +107,7 @@ plugin = {
         local ret = self.__proto.__proto.get_animation(self, ...)
 
         -- clean up if not dead
-        if self.health > 0 and (ret == DYING or ret == math.bor(DYING, model.anims.RAGDOLL)) then
+        if self:get_health() > 0 and (ret == DYING or ret == math.bor(DYING, model.anims.RAGDOLL)) then
             self:set_local_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
             ret = self:get_animation()
         end
@@ -119,7 +119,7 @@ plugin = {
         if self ~= ents.get_player() then return nil end
 
         --if not GLOBAL_GAME_HUD then
-            local health = self.health
+            local health = self:get_health()
             if health then
                 local color
                 if health > 75 then
@@ -132,7 +132,7 @@ plugin = {
                 --gui.hud_label(tostring(health), 0.94, 0.88, 0.5, color)
             end
         --[[else
-            local raw    = math.floor((34 * self.health) / self.max_health)
+            local raw    = math.floor((34 * self:get_health()) / self:get_max_health())
             local whole  = math.floor(raw  / 2)
             local half   = raw > whole * 2
             local params = GLOBAL_GAME_HUD:get_health_params()
@@ -154,7 +154,7 @@ plugin = {
 
             if CLIENT then
                 if diff >= 5 then
-                    if self.pain_sound ~= "" then
+                    if self:get_pain_sound() ~= "" then
                         sound.play(self:get_pain_sound(), self:get_position())
                     end
                     self:visual_pain_effect(health)
@@ -184,22 +184,23 @@ plugin = {
 
     suffer_damage = function(self, source)
         local damage = (type(source.damage) == "number") and source.damage or source
-        if  self.health > 0 and damage and damage ~= 0 then
-            self.health = math.max(0, self.health - damage)
+        if  self:get_health() > 0 and damage and damage ~= 0 then
+            self:set_health(math.max(0, self:get_health() - damage))
         end
     end
 }
 
 function die_if_off_map(entity)
     if  entity == ents.get_player() and is_valid_target(entity) then
-        entity.health = 0 -- kill instantly
+        entity:set_health(0) -- kill instantly
     end
 end
 
 function is_valid_target(entity)
     return (entity and not entity.deactivated
-                   and entity.health
-                   and entity.health > 0
+                   and entity.get_health
+                   and entity:get_health()
+                   and entity:get_health() > 0
                    and not entity.editing
                    and (not entity.get_spawn_stage or
                         not entity:get_spawn_stage() or
@@ -213,7 +214,7 @@ deadly_area_trigger_plugin = {
         if entity ~= ents.get_player() then return nil end
 
         if is_valid_target(entity) then
-            entity.health = 0
+            entity:set_health(0)
         end
     end,
     activate = CLIENT and function(self)

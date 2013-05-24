@@ -555,7 +555,7 @@ M.save = function()
     #log(DEBUG, "ents.save: saving")
 
     for uid, entity in pairs(storage) do
-        if entity.persistent then
+        if entity:get_persistent() then
             local en = tostring(entity)
             #log(DEBUG, "    " .. uid .. ", " .. en)
             r[#r + 1] = serialize({ uid, en, entity:build_sdata() })
@@ -909,8 +909,8 @@ Entity = table.Object:clone {
         self.uid = uid
         self:entity_setup()
 
-        self.tags = {}
-        self.persistent = kwargs and kwargs.persistent or false
+        self:set_tags({})
+        self:set_persistent(kwargs and kwargs.persistent or false)
     end or nil,
 
     --[[! Function: activate

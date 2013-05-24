@@ -48,7 +48,7 @@ ents.register_class(plugins.bake(
 
             -- Creates a "dummy" mark to stop current line
             reset_mark = function(self)
-                self.new_mark   = { -1, -1, -1 }
+                self:set_new_mark({ -1, -1, -1 })
                 self.stop_batch = true
             end,
 
@@ -118,7 +118,7 @@ ents.register_class(plugins.bake(
                     local toplyr = self:get_position():sub_new(newpos)
                     newpos:add(toplyr:normalize():mul(1.0)) -- bring a little out of the scenery
                     if newbatch or not self.marks[#self.marks - 1]:is_close_to(newpos, 5.0) then
-                        self.new_mark = newpos:to_array()
+                        self:set_new_mark(newpos:to_array())
                     end
                 end
             end or nil
