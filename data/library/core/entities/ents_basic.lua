@@ -322,13 +322,13 @@ local Character = Physical_Entity:clone {
         A handler called when the character is about to jump.
     ]]
     jump = function(self)
-        self.jumping = true
+        self:set_jumping(true)
     end,
 
     get_plag = _C.get_plag,
     get_ping = _C.get_ping,
-    get_editing = function(self) return self.client_state == 4 end,
-    get_lagged = function(self) return self.client_state == 3 end,
+    get_editing = function(self) return self:get_client_state() == 4 end,
+    get_lagged = function(self) return self:get_client_state() == 3 end,
 
     init = SERVER and function(self, uid, kwargs)
         Physical_Entity.init(self, uid, kwargs)
@@ -421,7 +421,7 @@ local Character = Physical_Entity:clone {
         local ra = self.render_args
         local fr = frame.get_frame()
         if self.render_args_timestamp ~= fr then
-            local state = self.client_state
+            local state = self:get_client_state()
             -- spawning or spectator
             if state == 5 or state == 2 then return nil end
             local mdn = (hudpass and needhud) and self:get_hud_model_name()
@@ -441,7 +441,7 @@ local Character = Physical_Entity:clone {
 
             local vel, fall = self:get_velocity():copy(),
                 self:get_falling():copy()
-            local tia = self.time_in_air
+            local tia = self:get_time_in_air()
 
             local anim = self:decide_animation(state, pstate, mv, sf, vel,
                 fall, iw, tia)
@@ -543,7 +543,7 @@ local Character = Physical_Entity:clone {
     ]]
     get_center = function(self)
         local r = self:get_position():copy()
-        r.z = r.z + self.eye_height * 0.75
+        r.z = r.z + self:get_eye_height() * 0.75
         return r
     end,
 

@@ -468,20 +468,20 @@ ents.register_class(
                                             ) + entity:get_delay_before()
 
                             local end_time = start_time
-                                           + start_mark[1].total_time
+                                           + start_mark[1]:get_total_time()
 
                             local subs = self.subtitles
                             subs[#subs + 1] = {
                                 start_t = start_time * entity.factor,
                                 end_t   = end_time   * entity.factor,
-                                text    = start_mark[1].text,
-                                x       = start_mark[1].x_pos,
-                                y       = start_mark[1].y_pos,
-                                size    = start_mark[1].size,
+                                text    = start_mark[1]:get_text(),
+                                x       = start_mark[1]:get_x_pos(),
+                                y       = start_mark[1]:get_y_pos(),
+                                size    = start_mark[1]:get_size(),
                                 color   = rgbtohex(
-                                    start_mark[1].red,
-                                    start_mark[1].green,
-                                    start_mark[1].blue
+                                    start_mark[1]:get_red(),
+                                    start_mark[1]:get_green(),
+                                    start_mark[1]:get_blue()
                                 )
                             }
                         end
@@ -497,20 +497,20 @@ ents.register_class(
                                             ) + entity:get_delay_before()
 
                                 local end_time = start_time
-                                               + next_mark[1].total_time
+                                               + next_mark[1]:get_total_time()
 
                                 local subs = self.subtitles
                                 subs[#subs + 1] = {
                                     start_t = start_time * entity.factor,
                                     end_t   = end_time   * entity.factor,
-                                    text    = next_mark[1].text,
-                                    x       = next_mark[1].x_pos,
-                                    y       = next_mark[1].y_pos,
-                                    size    = next_mark[1].size,
+                                    text    = next_mark[1]:get_text(),
+                                    x       = next_mark[1]:get_x_pos(),
+                                    y       = next_mark[1]:get_y_pos(),
+                                    size    = next_mark[1]:get_size(),
                                     color   = rgbtohex(
-                                        next_mark[1].red,
-                                        next_mark[1].green,
-                                        next_mark[1].blue
+                                        next_mark[1]:get_red(),
+                                        next_mark[1]:get_green(),
+                                        next_mark[1]:get_blue()
                                     )
                                 }
                             end
@@ -815,14 +815,14 @@ ents.register_class(
         init = function(self)
             self.parent_id  = 0
             self.start_time = 0
-            self.total_time = 0
-            self.text       = ""
-            self.x_pos      = 0.5
-            self.y_pos      = 0.92
-            self.size       = 0.5
-            self.red        = 255
-            self.green      = 255
-            self.blue       = 255
+            self:set_total_time(0)
+            self:set_text("")
+            self:set_x_pos(0.5)
+            self:set_y_pos(0.92)
+            self:set_size(0.5)
+            self:set_red(255)
+            self:set_green(255)
+            self:set_blue(255)
         end,
 
         --[[!

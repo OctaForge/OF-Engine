@@ -42,7 +42,7 @@ plugin = {
     on_spawn_stage = function(self, stage, auid)
         if stage == 1 then -- client ack
             if CLIENT then
-                self.spawn_stage = 2
+                self:set_spawn_stage(2)
             end
         elseif stage == 2 then -- server vanishes player
             if SERVER then
@@ -51,14 +51,14 @@ plugin = {
                         self.model_name  = ""
                     end
                     self:set_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
-                    self.spawn_stage = 3
+                    self:set_spawn_stage(3)
                 end
                 self:cancel_sdata_update()
             end
         elseif stage == 3 then -- client repositions etc.
             if CLIENT and self == ents.get_player() then
                 signal.emit(self,"client_respawn")
-                self.spawn_stage = 4
+                self:set_spawn_stage(4)
             end
         elseif stage == 4 then -- server appears player and sets in motion
             if SERVER then
@@ -73,14 +73,14 @@ plugin = {
                     self:set_hud_model_name(self.default_hud_model_name)
                 end
 
-                self.spawn_stage = 0
+                self:set_spawn_stage(0)
                 self:cancel_sdata_update()
             end
         end
     end,
 
     respawn = function(self)
-        self.spawn_stage = 1
+        self:set_spawn_stage(1)
     end,
 
     init = function(self)
@@ -176,7 +176,7 @@ plugin = {
 
     visual_pain_effect = function(self, health)
         local pos = self:get_position():copy()
-        pos.z = pos.z + self.eye_height - 4
+        pos.z = pos.z + self:get_eye_height() - 4
         effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self:get_blood_color(), 2.96)
         effects.decal(effects.DECAL.BLOOD, self:get_position(), math.Vec3(0, 0, 1), 7, self:get_blood_color())
         --if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
@@ -201,7 +201,9 @@ function is_valid_target(entity)
                    and entity.health
                    and entity.health > 0
                    and not entity.editing
-                   and (not entity.spawn_stage or entity.spawn_stage == 0)
+                   and (not entity.get_spawn_stage or
+                        not entity:get_spawn_stage() or
+                        entity:get_spawn_stage() == 0)
                    and not entity.lagged
     )
 end

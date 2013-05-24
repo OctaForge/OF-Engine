@@ -252,13 +252,13 @@ function gun:do_shot(shooter, target_position, target_entity)
         end
     end
 
-    shooter.firing_info = {
+    shooter:set_firing_info({
         self.gun_index,
         target_position.x,
         target_position.y,
         target_position.z,
         target_entity and target_entity.uid or -1
-    }
+    })
 end
 
 function gun:get_origin(shooter)

@@ -59,7 +59,7 @@ plugin = {
 
     run = CLIENT and function(self, seconds)
         if self == ents.get_player() and not self.editing then
-            if self.spawn_stage == 0 then
+            if (self.get_spawn_stage and entity:get_spawn_stage()) == 0 then
                 local position = self:get_position():copy()
                 local velocity = self:get_velocity():copy()
 
