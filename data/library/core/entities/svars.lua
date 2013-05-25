@@ -42,6 +42,15 @@ M.is_svar_alias = function(v)
     return (type(v) == "table" and v.is_a) and v:is_a(State_Variable_Alias)
 end
 
+local define_accessors = function(cl, n, gf, sf, d)
+    cl["get_" .. n] = function(self)
+        return gf(self, d)
+    end
+    cl["set_" .. n] = function(self, v)
+        return sf(self, v, d)
+    end
+end
+
 --[[! Class: State_Variable
     Provides a base object for a state variable. Specialized svar types
     clone this and define their own methods.
@@ -108,35 +117,33 @@ State_Variable = table.Object:clone {
     end,
 
     --[[! Function: register
-        Registers the state variable, given an entity. It'll create
-        getters and setters on the entity for the given name and also
-        for alt_name if set in constructor kwargs. You can still access
-        the raw state variable on the entity by prefixing it with _SV_.
-        You can access the variable by gui_name by prefixing it with
+        Registers the state variable, given an entity class. It'll create
+        getter and setter methods on the entity class for the given name
+        and also for alt_name if set in constructor kwargs. You can access
+        the raw state variable on the entity class by prefixing it with
+        _SV. You can access the variable by gui_name by prefixing it with
         _SV_GUI_ (if gui_name is not defined, regular name is used).
     ]]
-    register = function(self, name, parent)
+    register = function(self, name, cl)
         #log(DEBUG, "State_Variable: register(" .. name
-        #    .. ", " .. tostring(parent) .. ")")
+        #    .. ", " .. tostring(cl) .. ")")
 
         self.name = name
-        parent["_SV_" .. name] = self
+        cl["_SV_" .. name] = self
 
         assert(self.getter)
         assert(self.setter)
 
         #log(DEBUG, "State_Variable: register: getter/setter")
-        parent:define_getter(name, self.getter, self)
-        parent:define_setter(name, self.setter, self)
+        define_accessors(cl, name, self.getter, self.setter, self)
 
         local an = self.alt_name
         if an then
             #log(DEBUG, "State_Variable: register: alt getter/setter")
-            parent["_SV_" .. an] = self
-            parent:define_getter(an, self.getter, self)
-            parent:define_setter(an, self.setter, self)
+            cl["_SV_" .. an] = self
+            define_accessors(cl, an, self.getter, self.setter, self)
         end
-        parent["_SV_GUI_" .. (self.gui_name or name)] = self
+        cl["_SV_GUI_" .. (self.gui_name or name)] = self
 
         local gf, sf = self.getter_fun, self.setter_fun
 
@@ -147,27 +154,7 @@ State_Variable = table.Object:clone {
 
         if type(sf) == "string" then
             self.setter_fun = loadstring("return " .. sf)()
-            sf = self.setter_fun
         end
-
-        if not sf then return nil end
-
-        #log(DEBUG, "State_Variable: register: found a setter function")
-
-        local var = self
-        local sn  = name .. "_changed"
-        signal.connect(parent, sn, function(self, val)
-            if CLIENT or not self.svar_change_queue then
-                #log(INFO, "Calling setter function for " .. name)
-                var.setter_fun(self, val)
-                #log(INFO, "Setter called")
-
-                self.svar_values[name] = val
-                self.svar_value_timestamps[name] = frame.get_frame()
-            else
-                self:queue_svar_change(name, val)
-            end
-        end)
     end,
 
     --[[! Function: read_tests
@@ -871,18 +858,16 @@ State_Variable_Alias = State_Variable:clone {
         getter and setter. It also creates the _SV_ prefixed raw accessor
         pointing to the target var.
     ]]
-    register = function(self, name, parent)
+    register = function(self, name, cl)
         #log(DEBUG, "State_Variable_Alias: register(" .. name
-        #    .. ", " .. tostring(parent) .. ")")
+        #    .. ", " .. tostring(cl) .. ")")
 
         self.name = name
-    
-        local tg = parent["_SV_" .. self.target_name]
-        parent["_SV_" .. name] = tg
+        local tg = cl["_SV_" .. self.target_name]
+        cl["_SV_" .. name] = tg
 
         #log(DEBUG, "State_Variable_Alias: register: getter/setter")
-        parent:define_getter(name, tg.getter, tg)
-        parent:define_setter(name, tg.setter, tg)
+        define_accessors(cl, name, self.getter, self.setter, self)
     end
 }
 M.State_Variable_Alias = State_Variable_Alias

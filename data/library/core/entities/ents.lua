@@ -166,6 +166,15 @@ M.register_class = function(cl)
     #    .. concat(sv_names, ", ") .. " }")
 
     gen_network_data(cn, sv_names)
+
+    #log(DEBUG, "ents.register_class: registering state variables")
+    for i = 1, #sv_names do
+        local name = sv_names[i]
+        local var  = pt[name]
+        #log(DEBUG, "    " .. name .. " (" .. tostring(var) .. ")")
+        var:register(name, cl)
+    end
+
     return cl
 end
 
@@ -615,36 +624,6 @@ Entity = table.Object:clone {
         return self.name
     end,
 
-    --[[! Function: __init
-        The default constructor. Creates the required tables for the
-        getter/setter system to work.
-    ]]
-    __init = function(self)
-        self.getters, self.setters = {}, {}
-    end,
-
-    --[[! Function: define_getter
-        Defines a getter for the entity class. Used by the svar system.
-        Takes the getter name, a function (which takes the "self" being
-        the entity and "data") and optional "data" argument specifying
-        any additional data pased to the getter.
-    ]]
-    define_getter = function(self, n, f, d)
-        self["get_" .. n] = function(self)
-            return f(self, d)
-        end
-    end,
-
-    --[[! Function: define_setter
-        See <define_getter>. The order of arguments passed to the setter
-        callback is self, value, data.
-    ]]
-    define_setter = function(self, n, f, d)
-        self["set_" .. n] = function(self, v)
-            return f(self, v, d)
-        end
-    end,
-
     --[[! Function: setup
         Performs the entity setup. Creates the action system, caching tables,
         de-deactivates the entity, triggers svar setup and locks.
@@ -660,7 +639,6 @@ Entity = table.Object:clone {
         -- no longer deactivated
         self.deactivated = false
 
-        self:setup_svars()
         -- lock
         self.setup_complete = true
     end,
@@ -736,48 +714,6 @@ Entity = table.Object:clone {
         return find(self:get_tags():to_array(), tag) ~= nil
     end,
 
-    --[[! Function: setup_svars
-        Sets up the entity state variables, registering each for the entity
-        in the right order. Child svars override parent svars.
-    ]]
-    setup_svars = function(self)
-        #log(DEBUG, "Entity: setup_svars")
-        -- table of properties
-        local pt = {}
-
-        local base = self.__proto
-        while base do
-            local props = base.properties
-            if props then
-                for n, v in pairs(props) do
-                    if not pt[n] and svars.is_svar(v) then
-                        pt[n] = v
-                    end
-                end
-            end
-            if base == Entity then break end
-            base = base.__proto
-        end
-
-        local sv_names = keys(pt)
-        sort(sv_names, function(n, m)
-            if is_svar_alias(pt[n]) and not is_svar_alias(pt[m]) then
-                return false
-            end
-            if not is_svar_alias(pt[n]) and is_svar_alias(pt[m]) then
-                return true
-            end
-            return n < m
-        end)
-
-        for i = 1, #sv_names do
-            local name = sv_names[i]
-            local var  = pt[name]
-            #log(DEBUG, "    " .. name .. " (" .. tostring(var) .. ")")
-            var:register(name, self)
-        end
-    end,
-
     --[[! Function: build_sdata
         Builds sdata (state data, property mappings) from the properties the
         entity has.
@@ -802,7 +738,7 @@ Entity = table.Object:clone {
         #log(DEBUG, "Entity.build_sdata: " .. tcn .. ", " .. tostring(comp))
 
         local r, sn = {}, tostring(self)
-        for k, var in pairs(self) do
+        for k, var in pairs(self.__proto) do
             if is_svar(var) and var.has_history
             and not (tcn >= 0 and not var:should_send(self, tcn)) then
                 local name = var.name
@@ -924,6 +860,28 @@ Entity = table.Object:clone {
         end
     end,
 
+    --[[! Function: sdata_changed
+        Triggered automatically right before the _changed signal. Takes
+        the state variable, its name and the value to set. It first checks
+        if there is a setter function for the given svar and does nothing
+        if there isn't. Triggers a setter call on the client or on the
+        server when there is no change queue and queues a change otherwise.
+    ]]
+    sdata_changed = function(self, var, name, val)
+        local sfun = var.setter_fun
+        if not sfun then return nil end
+        if CLIENT or not self.svar_change_queue then
+            #log(INFO, "Calling setter function for " .. name)
+            sfun(self, val)
+            #log(INFO, "Setter called")
+
+            self.svar_values[name] = val
+            self.svar_value_timestamps[name] = frame.get_frame()
+        else
+            self:queue_svar_change(name, val)
+        end
+    end,
+
     --[[! Function: set_sdata
         The entity state data setter. Has different variants for the client
         and the server.
@@ -936,9 +894,10 @@ Entity = table.Object:clone {
             sends a request/notification to the server.
 
             Otherwise (or if the property is client_set) it does a local
-            update. The local update triggers the _changed signal (before
-            the setting). The new value is passed to the signal during the
-            emit along with a boolean equaling to actor_uid ~= -1.
+            update. The local update first calls <sdata_changed> and then
+            triggers the _changed signal (before the setting). The new
+            value is passed to the signal during the emit along with a
+            boolean equaling to actor_uid ~= -1.
 
         Server:
             Takes 5 arguments (self, key, vactor, actor_uid, iop). The
@@ -947,7 +906,8 @@ Entity = table.Object:clone {
             value and if it's true, it makes this an internal server
             operation; that always forces the value to convert from
             wire format (otherwise converts only when setting on a
-            specific client number).
+            specific client number). The signal and <sdata_changed>
+            are triggered in the same manner.
     ]]
     set_sdata = CLIENT and function(self, key, val, actor_uid)
         #log(DEBUG, "Entity.set_sdata: " .. key .. " = " .. serialize(val)
@@ -980,6 +940,7 @@ Entity = table.Object:clone {
             end
             -- TODO: avoid assertions
             assert(var:validate(val))
+            self:sdata_changed(var, key, val)
             emit(self, key .. "_changed", val, nfh)
             self.svar_values[key] = val
         end
@@ -1006,6 +967,7 @@ Entity = table.Object:clone {
             val = var:from_wire(val)
         end
 
+        self:sdata_changed(var, key, val)
         emit(self, key .. "_changed", val, actor_uid)
         if self.sdata_update_cancel then
             self.sdata_update_cancel = nil
