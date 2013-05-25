@@ -1335,13 +1335,14 @@ void finish_dragging() {
         lua::push_external("entity_get");
         lua_pushinteger(lua::L, LogicSystem::getUniqueId(&e));
         lua_call       (lua::L, 1, 1);
+        lua_getfield   (lua::L, -1, "set_position");
+        lua_insert     (lua::L, -2);
         lua::push_external("new_vec3");
         lua_pushnumber (lua::L, o.x);
         lua_pushnumber (lua::L, o.y);
         lua_pushnumber (lua::L, o.z);
         lua_call       (lua::L, 3, 1);
-        lua_setfield   (lua::L, -2, "position");
-        lua_pop        (lua::L, 1);
+        lua_call       (lua::L, 2, 0);
     );
 }
 

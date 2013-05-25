@@ -53,8 +53,9 @@ plugin = {
 
         local o = self:get_position()
         local flags = math.bor(
-            model.render_flags.CULL_VFC, model.render_flags.OCCLUDED, model.render_flags.CULL_QUERY,
-            model.render_flags.FULLBRIGHT, model.render_flags.CULL_DIST
+            model.render_flags.CULL_VFC, model.render_flags.CULL_OCCLUDED,
+            model.render_flags.CULL_QUERY, model.render_flags.FULLBRIGHT,
+            model.render_flags.CULL_DIST
         )
         local yaw
         if self:get_pad_rotate() then

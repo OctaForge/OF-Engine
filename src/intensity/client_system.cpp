@@ -113,8 +113,10 @@ void ClientSystem::frameTrigger(int curtime)
         /* turning */
         fpsent *fp = (fpsent*)player;
         lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ClientSystem::playerLogicEntity->lua_ref);
-        lua_getfield(lua::L, -1, "facing_speed");
-        float fs = lua_tonumber(lua::L, -1); lua_pop(lua::L, 2);
+        lua_getfield(lua::L, -1, "get_facing_speed");
+        lua_insert  (lua::L, -2);
+        lua_call    (lua::L,  1, 1);
+        float fs = lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
 
         if (fp->turn_move || fabs(x - 0.5) > 0.45)
         {
@@ -174,8 +176,10 @@ bool ClientSystem::isAdmin()
     if (!playerLogicEntity) return false;
 
     lua_rawgeti (lua::L, LUA_REGISTRYINDEX, playerLogicEntity->lua_ref);
-    lua_getfield(lua::L, -1, "can_edit");
-    bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 2);
+    lua_getfield(lua::L, -1, "get_can_edit");
+    lua_insert  (lua::L, -2);
+    lua_call    (lua::L,  1, 1);
+    bool b = lua_toboolean(lua::L, -1); lua_pop(lua::L, 1);
     return b;
 }
 

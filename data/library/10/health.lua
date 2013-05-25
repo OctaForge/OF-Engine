@@ -201,11 +201,11 @@ function is_valid_target(entity)
                    and entity.get_health
                    and entity:get_health()
                    and entity:get_health() > 0
-                   and not entity.editing
+                   and not entity:get_editing()
                    and (not entity.get_spawn_stage or
                         not entity:get_spawn_stage() or
                         entity:get_spawn_stage() == 0)
-                   and not entity.lagged
+                   and not entity:get_lagged()
     )
 end
 

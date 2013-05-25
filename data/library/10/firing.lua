@@ -125,7 +125,7 @@ plugins = {
             for k, gun in pairs(guns) do
                 local tag = "*" .. gun.origin_tag
                 if gun.origin_tag and not table.find(self:get_attachments():to_array(), tag) then
-                    self.attachments:append(tag)
+                    self:get_attachments():append(tag)
                 end
             end
 

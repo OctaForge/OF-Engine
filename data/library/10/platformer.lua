@@ -58,7 +58,7 @@ plugin = {
     end,
 
     run = CLIENT and function(self, seconds)
-        if self == ents.get_player() and not self.editing then
+        if self == ents.get_player() and not self:get_editing() then
             if (self.get_spawn_stage and entity:get_spawn_stage()) == 0 then
                 local position = self:get_position():copy()
                 local velocity = self:get_velocity():copy()
@@ -114,7 +114,7 @@ plugin = {
             if not self.last_camera_position then self.last_camera_position = camera_position end
             camera_position = self.last_camera_position:lerp(camera_position, seconds * 0.5)
             self.last_camera_position = camera_position:copy()
-            camera_position:add(self.center)
+            camera_position:add(self:get_center())
             camera_position.z = camera_position.z + (self:get_radius() * self.platform_camera_distance * 0.04)
             camera_position:add(vec3_from_axis(self:get_platform_camera_axis()):mul(self.platform_camera_distance))
 
@@ -127,7 +127,7 @@ plugin = {
             end
             self.last_camera_smooth_position = camera_position:copy()
         
-            local direction = self.center:sub_new(camera_position)
+            local direction = self:get_center():sub_new(camera_position)
             orientation = direction:to_yaw_pitch()
             camera_position.z = camera_position.z + (self:get_radius() * self.platform_camera_distance * 0.02)
             camera.force(
@@ -139,7 +139,7 @@ plugin = {
 
 function do_movement(move, down)
     local player = ents.get_player()
-    if player.editing then
+    if player:get_editing() then
         player:set_move(move)
     end
     if health.is_valid_target(player) then
@@ -153,7 +153,7 @@ end
 
 function do_strafe(strafe, down)
     local player = ents.get_player()
-    if player.editing then
+    if player:get_editing() then
         player:set_strafe(strafe)
     end
     if not health.is_valid_target(player) then return nil end

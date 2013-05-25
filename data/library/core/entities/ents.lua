@@ -630,9 +630,6 @@ Entity = table.Object:clone {
         any additional data pased to the getter.
     ]]
     define_getter = function(self, n, f, d)
-        self.getters[n] = function()
-            return f(self, d)
-        end
         self["get_" .. n] = function(self)
             return f(self, d)
         end
@@ -643,31 +640,9 @@ Entity = table.Object:clone {
         callback is self, value, data.
     ]]
     define_setter = function(self, n, f, d)
-        self.setters[n] = function(v)
-            return f(self, v, d)
-        end
         self["set_" .. n] = function(self, v)
             return f(self, v, d)
         end
-    end,
-
-    --[[! Function: __get
-        The primary getter method used to handle user-defined getters.
-    ]]
-    __get = function(self, n)
-        local  g = rawget(self, "getters")[n]
-        if not g then return nil end
-        return g()
-    end,
-
-    --[[! Function: __set
-        The primary setter method used to handle user-defined setters.
-    ]]
-    __set = function(self, n, v)
-        local  s = rawget(self, "setters")[n]
-        if not s then return nil end
-        s(v)
-        return true
     end,
 
     --[[! Function: setup
@@ -831,7 +806,7 @@ Entity = table.Object:clone {
             if is_svar(var) and var.has_history
             and not (tcn >= 0 and not var:should_send(self, tcn)) then
                 local name = var.name
-                local val = self[name]
+                local val = self["get_" .. name](self)
                 if val ~= nil then
                     local wval = var:to_wire(val)
                     #log(DEBUG, "    adding " .. name .. ": " .. wval)
@@ -1122,7 +1097,7 @@ Entity = table.Object:clone {
             #log(DEBUG, "Entity: flushing queued svar change: "
             #    .. k .. " == " .. tostring(v) .. " (real: "
             #        .. tostring(rv) .. ")")
-            self[k] = rv
+            self["set_" .. k](self, rv)
         end
 
         self.svar_change_queue_complete = true
@@ -1151,7 +1126,7 @@ Entity = table.Object:clone {
     get_gui_attr = function(self, prop)
         local var = self["_SV_GUI_" .. prop]
         if not var or not var.has_history then return nil end
-        local val = self[var.name]
+        local val = self["get_" .. var.name](self)
         if val ~= nil then
             return var:to_wire(val)
         end
@@ -1168,7 +1143,7 @@ Entity = table.Object:clone {
         for k, var in pairs(self) do
             if is_svar(var) and var.has_history then
                 local name = var.name
-                local val = self[name]
+                local val = self["get_" .. name](self)
                 if val ~= nil then
                     r[#r + 1] = { var.gui_name or name, var:to_wire(val) }
                 end
@@ -1185,7 +1160,7 @@ Entity = table.Object:clone {
     set_gui_attr = function(self, prop, val)
         local var = self["_SV_GUI_" .. prop]
         if not var or not var.has_history then return nil end
-        self[var.name] = var:from_wire(val)
+        self["set_" .. var.name](self, var:from_wire(val))
     end
 }
 
@@ -1265,7 +1240,7 @@ local render_hud = CLIENT and function()
     local  player = player_entity
     if not player then return nil end
 
-    if player.get_hud_model_name and not player.editing then
+    if player.get_hud_model_name and not player:get_editing() then
         player:render(true, true)
     end
 end or nil

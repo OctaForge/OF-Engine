@@ -105,13 +105,13 @@ function get_ray_collision_entities(origin, target, ignore)
 
     for k, entity in pairs(entities) do
         if entity ~= ignore then
-            local entity_dir = entity.center:sub_new(origin)
+            local entity_dir = entity:get_center():sub_new(origin)
             local entity_rad = entity.get_radius and entity:get_radius() or 0
             local alpha = direction:dot_product(entity_dir) / dist2
             local collision_position
                 = origin:add_new(direction:mul_new(alpha))
             local distance
-                = entity.center:sub_new(collision_position):length()
+                = entity:get_center():sub_new(collision_position):length()
             -- XXX alpha check ignores radius
             if alpha < 0 or alpha > 1 or distance > entity_rad then
                 return nil

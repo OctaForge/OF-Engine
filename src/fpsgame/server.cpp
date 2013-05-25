@@ -683,9 +683,10 @@ namespace server
             lua::push_external("entity_get");
             lua_pushinteger(lua::L, ci->uniqueId);
             lua_call       (lua::L, 1, 1);
+            lua_getfield   (lua::L, -1, "set_can_edit");
+            lua_insert     (lua::L, -2);
             lua_pushboolean(lua::L, true);
-            lua_setfield   (lua::L, -2, "can_edit");
-            lua_pop        (lua::L,  1);
+            lua_call       (lua::L, 2, 0);
         }
     }
 
@@ -779,13 +780,17 @@ namespace server
 
         // Add admin status, if relevant
         if (ci->isAdmin) {
+            lua_getfield   (lua::L, -1, "set_can_edit");
+            lua_pushvalue  (lua::L, -2);
             lua_pushboolean(lua::L, true);
-            lua_setfield   (lua::L, -2, "can_edit");
+            lua_call       (lua::L, 2, 0);
         }
 
         // Add nickname
+        lua_getfield  (lua::L, -1, "set_character_name");
+        lua_pushvalue (lua::L, -2);
         lua_pushstring(lua::L, uname);
-        lua_setfield  (lua::L, -2, "character_name");
+        lua_call      (lua::L, 2, 0);
 
         // For NPCs/Bots, mark them as such and prepare them, exactly as the players do on the client for themselves
         if (ci->local)

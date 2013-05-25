@@ -214,15 +214,20 @@ namespace game
             // Enable this to let server drive client movement
             lua::push_external("entity_get");
             lua_pushinteger(lua::L, d->uniqueId);
-            lua_call       (lua::L, 1, 1);
+            lua_call       (lua::L, 1, 1);               /* stack: entity */
+            lua_getfield   (lua::L, -1, "set_position"); /* entity, set_position */
+            lua_insert     (lua::L, -2);                 /* set_position, entity */
+            lua_getfield   (lua::L, -1, "get_position"); /* set_pos, ent, get_position */
+            lua_pushvalue  (lua::L, -2);                 /* set_pos, ent, get_pos, ent */
+            lua_call       (lua::L, 1, 1);               /* set_pos, ent, pos */
 
-            lua_createtable(lua::L, 3, 0);
-            lua_getfield(lua::L, -2, "position");
+            lua_createtable(lua::L, 3, 0);               /* set_pos, ent, pos, tbl */
+            lua_insert     (lua::L, -2);                 /* set_pos, ent, tbl, pos */
             lua_getfield(lua::L, -1, "x"); lua_rawseti(lua::L, -3, 1);
             lua_getfield(lua::L, -1, "y"); lua_rawseti(lua::L, -3, 2);
             lua_getfield(lua::L, -1, "z"); lua_rawseti(lua::L, -3, 3);
-            lua_pop     (lua::L,  1);
-            lua_setfield(lua::L, -2, "position");
+            lua_pop     (lua::L,  1);                    /* set_pos, ent, tbl */
+            lua_call    (lua::L,  2, 0);                 /* empty stack */
 #endif
         }
     }
@@ -535,8 +540,10 @@ namespace game
         lua::push_external("entity_get");
         lua_pushinteger(lua::L, LogicSystem::getUniqueId(d));
         lua_call       (lua::L, 1, 1);
-        lua_getfield   (lua::L, -1, "character_name");
-        const char *ret = lua_tostring(lua::L, -1); lua_pop(lua::L, 2);
+        lua_getfield   (lua::L, -1, "get_character_name");
+        lua_insert     (lua::L, -2);
+        lua_call       (lua::L,  1, 1);
+        const char *ret = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
         return ret;
     }
 

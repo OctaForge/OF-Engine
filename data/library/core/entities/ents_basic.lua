@@ -82,15 +82,6 @@ local Physical_Entity = Entity:clone {
         self.svar_values["model_name"] = mname
     end,
 
-    --[[! Function: setup
-        In addition to regular setup, registers the center property
-        (using <get_center> as a getter).
-    ]]
-    setup = function(self)
-        Entity.setup(self)
-        self:define_getter("center", self.get_center)
-    end,
-
     --[[! Function: get_center
         See <Character.get_center>. This does nothing, serving simply
         as a getter registration placeholder.
@@ -347,11 +338,6 @@ local Character = Physical_Entity:clone {
         self:set_physics_trigger(0)
         self:set_jumping_sound("gk/jump2.ogg")
         self:set_landing_sound("olpc/AdamKeshen/kik.wav")
-
-        self:define_getter("plag", self.get_plag)
-        self:define_getter("ping", self.get_ping)
-        self:define_getter("editing", self.get_editing)
-        self:define_getter("lagged", self.get_lagged)
     end or nil,
 
     activate = SERVER and function(self, kwargs)
