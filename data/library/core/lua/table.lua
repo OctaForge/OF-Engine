@@ -452,25 +452,6 @@ table.Object = {
             end
         end
 
-        -- getters
-        if self.__get then
-            local par = self
-            r.__index = function (self, n)
-                local v = par[n]
-                if v == nil then return par.__get(self, n) end
-                return v
-            end
-        end
-
-        -- setters
-        if self.__set then
-            local par = self
-            r.__newindex = function  (self, n, v)
-                local  r = par.__set(self, n, v)
-                if not r then rawset(self, n, v) end
-            end
-        end
-
         return r
     end,
 

@@ -656,7 +656,7 @@ Vec3_Surrogate = {
 
     --[[! Function: __newindex
         Called each time you set an index on a vec3 surrogate. Works similarly
-        to <Array_Surrogate.__set>. Valid indexes are x, y, z, 1, 2, 3.
+        to <Array_Surrogate.__newindex>. Valid indexes are x, y, z, 1, 2, 3.
     ]]
     __newindex = function(self, n, val)
         if n == "x" or n == 1 then
@@ -758,7 +758,8 @@ Vec4_Surrogate = {
 
     --[[! Function: __newindex
         Called each time you set an index on a vec3 surrogate. Works similarly
-        to <Vec3_Surrogate.__set>. Valid indexes are x, y, z, w, 1, 2, 3, 4.
+        to <Vec3_Surrogate.__newindex>. Valid indexes are x, y, z, w,
+        1, 2, 3, 4.
     ]]
     __newindex = function(self, n, val)
         if n == "x" or n == 1 then
