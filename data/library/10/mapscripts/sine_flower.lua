@@ -24,14 +24,14 @@ function myplayer:run(sec)
     -- Make bigger for bigger circles
     if self.circle_rad <= 60 then
         -- The X position. Cosine calculation
-        self:get_position().x = (math.cos(math.rad(self.angle)) * self.circle_rad) + 150
+        self:get_attr("position").x = (math.cos(math.rad(self.angle)) * self.circle_rad) + 150
         -- The Y position. Sine calculation
-        self:get_position().y = (math.sin(math.rad(self.angle)) * self.circle_rad) + 150
+        self:get_attr("position").y = (math.sin(math.rad(self.angle)) * self.circle_rad) + 150
         -- Height. Basically makes a sine curve so the player goes up and down with the right period
-        self:get_position().z = math.sin(math.rad(self.angle) * 10) * 2 + 650
+        self:get_attr("position").z = math.sin(math.rad(self.angle) * 10) * 2 + 650
 
         -- Create cube on current position. Use minimal size
-        edit.create_cube(self:get_position().x, self:get_position().y, self:get_position().z, 1)
+        edit.create_cube(self:get_attr("position").x, self:get_attr("position").y, self:get_attr("position").z, 1)
     else
         -- If we're over 20, just return from the function after running parent.
         return nil

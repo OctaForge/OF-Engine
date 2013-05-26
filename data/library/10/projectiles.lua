@@ -36,9 +36,9 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
               bump = bump - (bump % 5)
 
         if not custom_damage_fun then
-            if entity:get_velocity() then
-                entity:get_velocity():add(
-                    entity:get_position():sub_new(
+            if entity:get_attr("velocity") then
+                entity:get_attr("velocity"):add(
+                    entity:get_attr("position"):sub_new(
                         position
                     ):add(
                         velocity:copy():normalize():mul(4)
@@ -75,9 +75,9 @@ projectile = table.Object:clone {
         self.physics_frame_timer = extraevents.repeating_timer(self.physics_frame_size, true)
 
         if owner then
-            self.yaw = owner:get_yaw()
-            self.pitch = owner:get_pitch()
-            self.roll = owner:get_roll()
+            self.yaw = owner:get_attr("yaw")
+            self.pitch = owner:get_attr("pitch")
+            self.roll = owner:get_attr("roll")
         end
 
         self.collide_fun = geometry.is_colliding

@@ -19,7 +19,7 @@ function click(button, down, x, y, z, entity)
 
     if button == 1 then
         if down then
-            if player:get_can_move() then
+            if player:get_attr("can_move") then
                 player:start_shooting(x, y, z)
             end
         else
@@ -27,12 +27,12 @@ function click(button, down, x, y, z, entity)
             player:stop_shooting(x, y, z)
         end
     elseif button == 3 and down then
-        cycle_gun_index(player, player:get_gun_indexes():to_array())
+        cycle_gun_index(player, player:get_attr("gun_indexes"):to_array())
     end
 end
 
 function cycle_gun_index(entity, indexes)
-    local curr = entity:get_current_gun_index() + 1
+    local curr = entity:get_attr("current_gun_index") + 1
     if    curr > #indexes then
           curr = 1
     end
@@ -41,7 +41,7 @@ end
 
 function find_target(shooter, visual_origin, targeting_origin, fallback_target, range, scatter)
     -- targeting from the camera - where the player aimed the mouse
-    local direction = math.Vec3():from_yaw_pitch(shooter:get_yaw(), shooter:get_pitch())
+    local direction = math.Vec3():from_yaw_pitch(shooter:get_attr("yaw"), shooter:get_attr("pitch"))
     if math.is_nan(direction.x) then return { target = fallback_target } end
     if scatter then direction:add(math.norm_vec3():mul(scatter)):normalize() end
 
@@ -124,8 +124,8 @@ plugins = {
         init = function(self)
             for k, gun in pairs(guns) do
                 local tag = "*" .. gun.origin_tag
-                if gun.origin_tag and not table.find(self:get_attachments():to_array(), tag) then
-                    self:get_attachments():append(tag)
+                if gun.origin_tag and not table.find(self:get_attr("attachments"):to_array(), tag) then
+                    self:get_attr("attachments"):append(tag)
                 end
             end
 
@@ -151,8 +151,8 @@ plugins = {
                 signal.connect(self,
                     "current_gun_index_changed",
                     function(self)
-                        if self:get_gun_switch_sound() ~= "" then
-                            sound.play(self:get_gun_switch_sound(), self:get_position():copy())
+                        if self:get_attr("gun_switch_sound") ~= "" then
+                            sound.play(self:get_attr("gun_switch_sound"), self:get_attr("position"):copy())
                         end
                     end
                 )
@@ -164,11 +164,11 @@ plugins = {
 
             self.gun_delay = math.max(self.gun_delay - seconds, 0)
 
-            local gun = guns[self:get_current_gun_index()]
+            local gun = guns[self:get_attr("current_gun_index")]
             if gun then
                 if self.now_firing and self.gun_delay == 0 then
-                    if  self.gun_ammos[self:get_current_gun_index()]
-                    and self.gun_ammos[self:get_current_gun_index()] <= 0 then
+                    if  self.gun_ammos[self:get_attr("current_gun_index")]
+                    and self.gun_ammos[self:get_attr("current_gun_index")] <= 0 then
                         self:queue_action(action_out_of_ammo())
                         self:stop_shooting(gun)
                     else
@@ -177,9 +177,9 @@ plugins = {
                             input.get_target_position(),
                             input.get_target_entity()
                         )
-                        if  self.gun_ammos[self:get_current_gun_index()]
-                        and self.gun_ammos[self:get_current_gun_index()] ~= 0 then
-                            self.gun_ammos[self:get_current_gun_index()] = -1
+                        if  self.gun_ammos[self:get_attr("current_gun_index")]
+                        and self.gun_ammos[self:get_attr("current_gun_index")] ~= 0 then
+                            self.gun_ammos[self:get_attr("current_gun_index")] = -1
                         end
                         self.gun_delay = self.gun_delay + gun.delay
                         if not gun.repeating then
@@ -222,7 +222,7 @@ plugins = {
         end,
 
         stop_shooting = function(self, x, y, z)
-            local gun = guns[self:get_current_gun_index()]
+            local gun = guns[self:get_attr("current_gun_index")]
 
             if gun.repeating then
                 self.gun_delay = 0
@@ -268,12 +268,12 @@ end
 function gun:do_recoil(shooter, magnitude)
     if CLIENT and shooter ~= ents.get_player() then return nil end
 
-    if shooter:get_can_move() then
+    if shooter:get_attr("can_move") then
         local dir = math.Vec3():from_yaw_pitch(
-            shooter:get_yaw(), shooter:get_pitch()
+            shooter:get_attr("yaw"), shooter:get_attr("pitch")
         ):normalize(1)
          :mul(-magnitude)
-        shooter:get_velocity():add(dir)
+        shooter:get_attr("velocity"):add(dir)
     end
 end
 

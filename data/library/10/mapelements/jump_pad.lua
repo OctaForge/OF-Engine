@@ -41,32 +41,32 @@ plugin = {
            self.player_delay = 0.1
 
         -- throw collider up
-        collider:set_velocity(self:get_jump_velocity():to_array())
+        collider:set_velocity(self:get_attr("jump_velocity"):to_array())
 
-        if self:get_pad_sound() ~= "" then
-            sound.play(self:get_pad_sound())
+        if self:get_attr("pad_sound") ~= "" then
+            sound.play(self:get_attr("pad_sound"))
         end
     end,
 
     render = function(self)
-        if self:get_pad_model() == "" then return nil end
+        if self:get_attr("pad_model") == "" then return nil end
 
-        local o = self:get_position()
+        local o = self:get_attr("position")
         local flags = math.bor(
             model.render_flags.CULL_VFC, model.render_flags.CULL_OCCLUDED,
             model.render_flags.CULL_QUERY, model.render_flags.FULLBRIGHT,
             model.render_flags.CULL_DIST
         )
         local yaw
-        if self:get_pad_rotate() then
+        if self:get_attr("pad_rotate") then
             yaw = -(frame.get_time() * 120) % 360
         end
 
         model.render(
-            self, self:get_pad_model(),
+            self, self:get_attr("pad_model"),
             math.bor(model.anims.IDLE, model.anims.LOOP),
-            o, yaw and yaw or self:get_yaw(), self:get_pad_pitch(),
-            self:get_pad_roll(), flags, 0
+            o, yaw and yaw or self:get_attr("yaw"), self:get_attr("pad_pitch"),
+            self:get_attr("pad_roll"), flags, 0
         )
     end
 }

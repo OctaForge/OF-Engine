@@ -44,9 +44,9 @@ function setup(plugins_add)
                             self.victory_sound = ""
                         else
                             signal.connect(self,"team_data_changed", function(self, value)
-                                if self:get_team_data() and value and ents.get_player() then
-                                    local player_team = ents.get_player():get_team()
-                                    if value[player_team].score > self:get_team_data()[player_team].score and
+                                if self:get_attr("team_data") and value and ents.get_player() then
+                                    local player_team = ents.get_player():get_attr("team")
+                                    if value[player_team].score > self:get_attr("team_data")[player_team].score and
                                        self.victory_sound ~= "" then sound.play(self.victory_sound)
                                     end
                                 end
@@ -131,7 +131,7 @@ function setup(plugins_add)
                     end,
 
                     set_player_team = function(self, player, team, sync)
-                        if player:get_team() then
+                        if player:get_attr("team") then
                             self:leave_team(player, sync)
                         end
 
@@ -150,10 +150,10 @@ function setup(plugins_add)
                     leave_team = function(self, player, sync)
                         sync = sync or true
 
-                        if player:get_team() == "" then
+                        if player:get_attr("team") == "" then
                             return nil
                         end
-                        local  player_team = self.teams[player:get_team()]
+                        local  player_team = self.teams[player:get_attr("team")]
                         if not player_team then
                             return nil
                         end
@@ -169,7 +169,7 @@ function setup(plugins_add)
                     end,
 
                     place_player = function(self, player)
-                        local start_tag = "start_" .. player:get_team()
+                        local start_tag = "start_" .. player:get_attr("team")
                         local possibles = ents.get_by_tag(start_tag)
                         if possibles and #possibles > 0 then
                             local start = possibles[math.random(1, #possibles)]
@@ -189,11 +189,11 @@ function setup(plugins_add)
 
                     get_scoreboard_text = function(self)
                         local data = {}
-                        if not self:get_team_data() then return data end
-                        for team_name, team in pairs(self:get_team_data()) do
+                        if not self:get_attr("team_data") then return data end
+                        for team_name, team in pairs(self:get_attr("team_data")) do
                             data[#data + 1] = { -1, " << " .. team_name .. " >> " .. team.score .. " points" }
                             for idx, player in pairs(team.player_list) do
-                                data[#data + 1] = { player.uid, player:get_character_name() .. " -" }
+                                data[#data + 1] = { player.uid, player:get_attr("character_name") .. " -" }
                             end
                         end
                         return data
@@ -352,7 +352,7 @@ manager_plugins = {
                     local msg
                     local sound
                     if not tie then
-                        if self.steams[player:get_team()].score == max_score then
+                        if self.steams[player:get_attr("team")].score == max_score then
                             player:set_animation(math.bor(WIN, model.anims.LOOP))
                             msg.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then

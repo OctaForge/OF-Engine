@@ -125,7 +125,7 @@ chaingun.plugin = {
 
     run = CLIENT and function(self, seconds)
         if self.chaingun_firing then
-            effects.dynamic_light(self:get_position(), 30, 0xFFEECC)
+            effects.dynamic_light(self:get_attr("position"), 30, 0xFFEECC)
 
             if self.chaingun_target then
                 effects.dynamic_light(self.chaingun_target, 15, 0xFFEECC)
@@ -146,9 +146,9 @@ chaingun.plugin = {
             end
 
             if self.chaingun_firing_timer:tick(seconds) then
-                local gun = firing.guns[self:get_current_gun_index()]
+                local gun = firing.guns[self:get_attr("current_gun_index")]
                 if    gun:is_a(chaingun) then
-                    firing.guns[self:get_current_gun_index()]:do_real_shot(self)
+                    firing.guns[self:get_attr("current_gun_index")]:do_real_shot(self)
                 else
                     #log(ERROR, "chaingun firing error")
                     self.chaingun_firing = false

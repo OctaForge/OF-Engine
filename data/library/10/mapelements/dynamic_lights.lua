@@ -18,10 +18,10 @@ dynamic_light = ents.register_class(plugins.bake(ents.Marker, {{
     end,
 
     dynamic_light_show = function(self, seconds)
-        local pos = self:get_position()
+        local pos = self:get_attr("position")
         _C.adddynlight(
-            pos.x, pos.y, pos.z, self:get_radius(),
-            self:get_red() / 255, self:get_green() / 255, self:get_blue() / 255,
+            pos.x, pos.y, pos.z, self:get_attr("radius"),
+            self:get_attr("red") / 255, self:get_attr("green") / 255, self:get_attr("blue") / 255,
             0, 0, 0, 0, 0, 0, 0
         )
     end,
@@ -53,13 +53,13 @@ ents.register_class(plugins.bake(dynamic_light, {{
     dynamic_light_show = function(self, seconds)
         self.delay = self.delay - seconds
         if  self.delay <= 0 then
-            self.delay = math.max(math.random() * self:get_max_delay(), self:get_min_delay()) * 2
-            if math.random() < self:get_probability() then
-                local pos = self:get_position()
+            self.delay = math.max(math.random() * self:get_attr("max_delay"), self:get_attr("min_delay")) * 2
+            if math.random() < self:get_attr("probability") then
+                local pos = self:get_attr("position")
                 _C.adddynlight(
-                    pos.x, pos.y, pos.z, self:get_radius(),
-                    self:get_red() / 255, self:get_green() / 255,
-                    self:get_blue() / 255,
+                    pos.x, pos.y, pos.z, self:get_attr("radius"),
+                    self:get_attr("red") / 255, self:get_attr("green") / 255,
+                    self:get_attr("blue") / 255,
                     self.delay * 1000, 0, math.lsh(1, 2), 0, 0, 0, 0
                 )
             end

@@ -285,7 +285,7 @@ M.get_by_distance = function(pos, kwargs)
 
     local cl, tg, sr = kwargs.class, kwargs.tag, kwargs.sort
     local fn = kwargs.pos_fun or function(e)
-        return e:get_position():copy()
+        return e:get_attr("position"):copy()
     end
 
     if type(cl) == "table" then cl = tostring(cl) end
@@ -564,7 +564,7 @@ M.save = function()
     #log(DEBUG, "ents.save: saving")
 
     for uid, entity in pairs(storage) do
-        if entity:get_persistent() then
+        if entity:get_attr("persistent") then
             local en = tostring(entity)
             #log(DEBUG, "    " .. uid .. ", " .. en)
             r[#r + 1] = serialize({ uid, en, entity:build_sdata() })
@@ -689,7 +689,7 @@ Entity = table.Object:clone {
     ]]
     add_tag = function(self, tag)
         if not self:has_tag(tag) then
-            self:get_tags():append(tag)
+            self:get_attr("tags"):append(tag)
         end
     end,
 
@@ -700,7 +700,7 @@ Entity = table.Object:clone {
         #log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
         if not self:has_tag(tag) then return nil end
-        self:set_tags(filter(self:get_tags():to_array(), function(i, t)
+        self:set_tags(filter(self:get_attr("tags"):to_array(), function(i, t)
             return t ~= tag
         end))
     end,
@@ -711,7 +711,7 @@ Entity = table.Object:clone {
     ]]
     has_tag = function(self, tag)
         #log(DEBUG, "Entity: has_tag (" .. tag .. ")")
-        return find(self:get_tags():to_array(), tag) ~= nil
+        return find(self:get_attr("tags"):to_array(), tag) ~= nil
     end,
 
     --[[! Function: build_sdata

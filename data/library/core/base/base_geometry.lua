@@ -106,7 +106,7 @@ function get_ray_collision_entities(origin, target, ignore)
     for k, entity in pairs(entities) do
         if entity ~= ignore then
             local entity_dir = entity:get_center():sub_new(origin)
-            local entity_rad = entity.get_radius and entity:get_radius() or 0
+            local entity_rad = entity.get_radius and entity:get_attr("radius") or 0
             local alpha = direction:dot_product(entity_dir) / dist2
             local collision_position
                 = origin:add_new(direction:mul_new(alpha))
@@ -150,9 +150,9 @@ function is_colliding_entities(position, radius, ignore)
     local entities = get_collidable_entities()
     for i, entity in pairs(entities) do
         if entity ~= ignore and not entity.deactivated then
-            local   entity_radius = entity:get_radius() and entity:get_radius() or 0
+            local   entity_radius = entity:get_attr("radius") and entity:get_attr("radius") or 0
             if position:is_close_to(
-                entity:get_position(), radius + entity_radius
+                entity:get_attr("position"), radius + entity_radius
             ) then
                 return true
             end
@@ -271,23 +271,23 @@ function bounce(thing, elasticity, friction, seconds)
         -- we failed to bounce, just go in the reverse direction
         -- from the last ok spot - better than something more embarassing
         if  thing.last_safe and thing.last_safe[2] then
-            thing:set_position(thing.last_safe[2]:get_position())
-            thing:set_velocity(thing.last_safe[2]:get_velocity())
+            thing:set_position(thing.last_safe[2]:get_attr("position"))
+            thing:set_velocity(thing.last_safe[2]:get_attr("velocity"))
         elseif thing.last_safe then
-            thing:set_position(thing.last_safe[1]:get_position())
-            thing:set_velocity(thing.last_safe[1]:get_velocity())
+            thing:set_position(thing.last_safe[1]:get_attr("position"))
+            thing:set_velocity(thing.last_safe[1]:get_attr("velocity"))
         end
-        thing:get_velocity():mul(-1)
+        thing:get_attr("velocity"):mul(-1)
         return true
     end
 
     elasticity = elasticity or 0.9
 
-    if seconds == 0 or thing:get_velocity():length() == 0 then
+    if seconds == 0 or thing:get_attr("velocity"):length() == 0 then
         return true
     end
 
-    if is_colliding(thing:get_position(), thing:get_radius(), thing.ignore) then
+    if is_colliding(thing:get_attr("position"), thing:get_attr("radius"), thing.ignore) then
         return fallback()
     end
 
@@ -295,15 +295,15 @@ function bounce(thing, elasticity, friction, seconds)
     -- applied. [2] is two back, so it was safe even WITH constraints
     -- applied to it
     things.last_safe = {{
-        position = thing:get_position():copy(),
-        velocity = thing:get_velocity():copy()
+        position = thing:get_attr("position"):copy(),
+        velocity = thing:get_attr("velocity"):copy()
     }, thing.last_safe and thing.last_safe[1] or nil }
 
-    local old_position = thing:get_position():copy()
-    local movement     = thing:get_velocity():mul_new(seconds)
-    thing:get_position():add(movement)
+    local old_position = thing:get_attr("position"):copy()
+    local movement     = thing:get_attr("velocity"):mul_new(seconds)
+    thing:get_attr("position"):add(movement)
 
-    if not is_colliding(thing_get_position(), thing:get_radius(), thing.ignore) then
+    if not is_colliding(thing_get_position(), thing:get_attr("radius"), thing.ignore) then
         return true
     end
 
@@ -311,7 +311,7 @@ function bounce(thing, elasticity, friction, seconds)
     local direction = movement:copy():normalize()
     local surface_dist = get_ray_collision_distance(
         old_position, direction:mul_new(
-            3 * movement:length() + 3 * thing:get_radius() + 1.5
+            3 * movement:length() + 3 * thing:get_attr("radius") + 1.5
         )
     )
     if surface_dist < 0 then return fallback() end
@@ -323,7 +323,7 @@ function bounce(thing, elasticity, friction, seconds)
     movement = get_reflected_ray(movement, normal, elasticity, friction)
 
     thing:set_position(old_position:add(movement))
-    if is_colliding(thing:get_position(), thing:get_radius(), thing.ignore) then
+    if is_colliding(thing:get_attr("position"), thing:get_attr("radius"), thing.ignore) then
         return fallback()
     end
     thing:set_velocity(movement:mul(1 / seconds))

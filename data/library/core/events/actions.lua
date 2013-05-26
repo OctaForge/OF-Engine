@@ -113,8 +113,8 @@ local Action = table.Object:clone {
             self.priv_start(self)
 
             if self.animation ~= false then
-                self.last_animation = self.actor:get_animation()
-                if  self.actor:get_animation() ~= self.animation then
+                self.last_animation = self.actor:get_attr("animation")
+                if  self.actor:get_attr("animation") ~= self.animation then
                     self.actor:set_animation(self.animation)
                 end
             end
@@ -173,7 +173,7 @@ local Action = table.Object:clone {
         self.finished = true
 
         if self.animation and self.last_animation ~= nil then
-            if  self.actor:get_animation() ~= self.last_animation then
+            if  self.actor:get_attr("animation") ~= self.last_animation then
                 self.actor:set_animation(self.last_animation)
             end
         end

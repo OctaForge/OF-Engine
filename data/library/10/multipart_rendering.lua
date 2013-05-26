@@ -12,7 +12,7 @@ plugin = {
 
             if self.render_args_timestamp ~= frame.get_frame() then
                 local anim     = self:get_multipart_animation()
-                local o        = self:get_position():copy()
+                local o        = self:get_attr("position"):copy()
                 local yaw      = self:get_multipart_yaw()
                 local pitch    = self:get_multipart_pitch()
                 local roll     = self:get_multipart_roll()
@@ -44,14 +44,14 @@ plugin = {
     end,
 
     get_multipart_yaw = function(self)
-        return self:get_yaw()
+        return self:get_attr("yaw")
     end,
 
     get_multipart_pitch = function(self)
-        return self:get_pitch()
+        return self:get_attr("pitch")
     end,
 
     get_multipart_roll = function(self)
-        return self:get_roll()
+        return self:get_attr("roll")
     end
 }

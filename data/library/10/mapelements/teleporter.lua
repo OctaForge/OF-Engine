@@ -16,20 +16,20 @@ plugin = {
     end or nil,
 
     client_on_collision = function(self, collider)
-        if self:get_destination() >= 1 then
-            local destinations = ents.get_by_tag("teledest_" .. self:get_destination())
+        if self:get_attr("destination") >= 1 then
+            local destinations = ents.get_by_tag("teledest_" .. self:get_attr("destination"))
             if #destinations == 0 then
                 #log(ERROR, "No teleport destination found.")
                 return nil
             end
 
             local destnum = math.random(1, #destinations)
-            collider:set_position(destinations[destnum]:get_position():to_array())
-            collider:set_yaw(destinations[destnum]:get_yaw())
+            collider:set_position(destinations[destnum]:get_attr("position"):to_array())
+            collider:set_yaw(destinations[destnum]:get_attr("yaw"))
             collider:set_velocity({ 0, 0, 0 })
 
-            if self:get_sound_name() ~= "" then
-                sound.play(self:get_sound_name())
+            if self:get_attr("sound_name") ~= "" then
+                sound.play(self:get_attr("sound_name"))
             end
         end
     end,

@@ -58,7 +58,7 @@ notice_action = actions.Action:clone {
 
         if self:should_continue() then
             if self.curr_time and self.sound and self.sound ~= "" then
-                sound.play(self.sound, ents.get_player():get_position():copy())
+                sound.play(self.sound, ents.get_player():get_attr("position"):copy())
             end
 
             self.current_time = self.current_time + seconds * 3
@@ -84,12 +84,12 @@ world_notice_action = notice_action:clone {
     start = function(self)
         notice_action.start(self)
 
-        self.text  = self.actor:get_text()
-        self.color = self.actor:get_color()
-        self.size  = self.actor:get_size()
-        self.sound = self.actor:get_sound()
-        self.x     = self.actor:get_x()
-        self.y     = self.actor:get_y()
+        self.text  = self.actor:get_attr("text")
+        self.color = self.actor:get_attr("color")
+        self.size  = self.actor:get_attr("size")
+        self.sound = self.actor:get_attr("sound")
+        self.x     = self.actor:get_attr("x")
+        self.y     = self.actor:get_attr("y")
     end,
 
     should_continue = function(self)

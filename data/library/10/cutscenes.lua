@@ -49,7 +49,7 @@ function show_distance(tag, origin, color)
 
     effects.flare(
         effects.PARTICLE.STREAK,
-        origin:get_position(), entity:get_position(),
+        origin:get_attr("position"), entity:get_attr("position"),
         0, color, 0.2
     )
 end
@@ -89,8 +89,8 @@ action_base = extraevents.action_container:clone {
 
         self.actor:set_can_move(false)
 
-        self.original_yaw   = self.actor:get_yaw()
-        self.original_pitch = self.actor:get_pitch()
+        self.original_yaw   = self.actor:get_attr("yaw")
+        self.original_pitch = self.actor:get_attr("pitch")
 
         self.old_crosshair = _G["crosshair"]
         _G["crosshair"]    = ""
@@ -302,25 +302,25 @@ action_smooth = actions.Action:clone {
             current_index + 2, 1, #self.markers
         )]
 
-        self.position = last_marker:get_position():mul_new(alpha):add(
-              curr_marker:get_position():mul_new(1 - alpha - beta)
-        ):add(next_marker:get_position():mul_new(beta))
+        self.position = last_marker:get_attr("position"):mul_new(alpha):add(
+              curr_marker:get_attr("position"):mul_new(1 - alpha - beta)
+        ):add(next_marker:get_attr("position"):mul_new(beta))
 
         self.yaw   = math.normalize_angle(
-                        last_marker:get_yaw(), curr_marker:get_yaw()
+                        last_marker:get_attr("yaw"), curr_marker:get_attr("yaw")
                      ) * alpha
                    + math.normalize_angle(
-                        next_marker:get_yaw(), curr_marker:get_yaw()
+                        next_marker:get_attr("yaw"), curr_marker:get_attr("yaw")
                      ) * beta
-                   + curr_marker:get_yaw() * (1 - alpha - beta)
+                   + curr_marker:get_attr("yaw") * (1 - alpha - beta)
 
         self.pitch = math.normalize_angle(
-                        last_marker:get_pitch(), curr_marker:get_pitch()
+                        last_marker:get_attr("pitch"), curr_marker:get_attr("pitch")
                      ) * alpha
                    + math.normalize_angle(
-                        next_marker:get_pitch(), curr_marker:get_pitch()
+                        next_marker:get_attr("pitch"), curr_marker:get_attr("pitch")
                      ) * beta
-                   + curr_marker:get_pitch() * (1 - alpha - beta)
+                   + curr_marker:get_attr("pitch") * (1 - alpha - beta)
     end
 }
 
@@ -416,7 +416,7 @@ ents.register_class(
             self:before_start()
 
             if not self.m_tag then
-                self.m_tag = self:get_tags():to_array()[1]
+                self.m_tag = self:get_attr("tags"):to_array()[1]
             end
 
             local entity = self
@@ -450,7 +450,7 @@ ents.register_class(
                     start = function(self)
                         base_action.start(self)
 
-                        self.cancellable = entity:get_cancellable()
+                        self.cancellable = entity:get_attr("cancellable")
 
                         if entity.cancel then self:cancel() end
 
@@ -461,27 +461,27 @@ ents.register_class(
                             entity.m_tag .. "_sub_1"
                         )
                         if   #start_mark ~= 1 then return nil end
-                        if    start_mark[1]:get_parent_id() > 0 then
-                            local start_time = start_mark[1]:get_start_time()
-                                            + (entity:get_seconds_per_marker()
-                                                * (start_mark[1]:get_parent_id() - 1)
-                                            ) + entity:get_delay_before()
+                        if    start_mark[1]:get_attr("parent_id") > 0 then
+                            local start_time = start_mark[1]:get_attr("start_time")
+                                            + (entity:get_attr("seconds_per_marker")
+                                                * (start_mark[1]:get_attr("parent_id") - 1)
+                                            ) + entity:get_attr("delay_before")
 
                             local end_time = start_time
-                                           + start_mark[1]:get_total_time()
+                                           + start_mark[1]:get_attr("total_time")
 
                             local subs = self.subtitles
                             subs[#subs + 1] = {
                                 start_t = start_time * entity.factor,
                                 end_t   = end_time   * entity.factor,
-                                text    = start_mark[1]:get_text(),
-                                x       = start_mark[1]:get_x_pos(),
-                                y       = start_mark[1]:get_y_pos(),
-                                size    = start_mark[1]:get_size(),
+                                text    = start_mark[1]:get_attr("text"),
+                                x       = start_mark[1]:get_attr("x_pos"),
+                                y       = start_mark[1]:get_attr("y_pos"),
+                                size    = start_mark[1]:get_attr("size"),
                                 color   = rgbtohex(
-                                    start_mark[1]:get_red(),
-                                    start_mark[1]:get_green(),
-                                    start_mark[1]:get_blue()
+                                    start_mark[1]:get_attr("red"),
+                                    start_mark[1]:get_attr("green"),
+                                    start_mark[1]:get_attr("blue")
                                 )
                             }
                         end
@@ -490,27 +490,27 @@ ents.register_class(
                                 entity.m_tag .. "_sub_" .. i
                             )
                             if   #next_mark ~= 1 then break end
-                            if    next_mark[1]:get_parent_id() > 0 then
-                                local start_time = next_mark[1]:get_start_time()
-                                            + (entity:get_seconds_per_marker()
-                                                * (next_mark[1]:get_parent_id() - 1)
-                                            ) + entity:get_delay_before()
+                            if    next_mark[1]:get_attr("parent_id") > 0 then
+                                local start_time = next_mark[1]:get_attr("start_time")
+                                            + (entity:get_attr("seconds_per_marker")
+                                                * (next_mark[1]:get_attr("parent_id") - 1)
+                                            ) + entity:get_attr("delay_before")
 
                                 local end_time = start_time
-                                               + next_mark[1]:get_total_time()
+                                               + next_mark[1]:get_attr("total_time")
 
                                 local subs = self.subtitles
                                 subs[#subs + 1] = {
                                     start_t = start_time * entity.factor,
                                     end_t   = end_time   * entity.factor,
-                                    text    = next_mark[1]:get_text(),
-                                    x       = next_mark[1]:get_x_pos(),
-                                    y       = next_mark[1]:get_y_pos(),
-                                    size    = next_mark[1]:get_size(),
+                                    text    = next_mark[1]:get_attr("text"),
+                                    x       = next_mark[1]:get_attr("x_pos"),
+                                    y       = next_mark[1]:get_attr("y_pos"),
+                                    size    = next_mark[1]:get_attr("size"),
                                     color   = rgbtohex(
-                                        next_mark[1]:get_red(),
-                                        next_mark[1]:get_green(),
-                                        next_mark[1]:get_blue()
+                                        next_mark[1]:get_attr("red"),
+                                        next_mark[1]:get_attr("green"),
+                                        next_mark[1]:get_attr("blue")
                                     )
                                 }
                             end
@@ -531,20 +531,20 @@ ents.register_class(
                         end
 
                         local next_control = ents.get_by_tag(
-                            "ctl_" .. entity:get_next_controller()
+                            "ctl_" .. entity:get_attr("next_controller")
                         )
                         if   #next_control == 1 then
                               next_control[1].started = true
-                              next_control[1].cancel = entity:get_cancel_siblings()
+                              next_control[1].cancel = entity:get_attr("cancel_siblings")
                         end
                     end
                 })({
                     (action_smooth:clone {
                         init_markers = function(self)
                             self.markers            = {}
-                            self.seconds_per_marker = entity:get_seconds_per_marker()
-                            self.delay_before       = entity:get_delay_before()
-                            self.delay_after        = entity:get_delay_after()
+                            self.seconds_per_marker = entity:get_attr("seconds_per_marker")
+                            self.delay_before       = entity:get_attr("delay_before")
+                            self.delay_after        = entity:get_attr("delay_after")
 
                             local start_mark = ents.get_by_tag(
                                 entity.m_tag .. "_mrk_1"
@@ -553,40 +553,40 @@ ents.register_class(
                             local  prev_mark = start_mark
                             local mrkrs = self.markers
                             mrkrs[#mrkrs + 1] = {
-                                position = start_mark[1]:get_position():copy(),
-                                yaw      = start_mark[1]:get_yaw(),
-                                pitch    = start_mark[1]:get_pitch()
+                                position = start_mark[1]:get_attr("position"):copy(),
+                                yaw      = start_mark[1]:get_attr("yaw"),
+                                pitch    = start_mark[1]:get_attr("pitch")
                             }
 
                             while true do
                                 local next_mark = ents.get_by_tag(
                                     entity.m_tag
                                         .. "_mrk_"
-                                        .. prev_mark[1]:get_next_marker()
+                                        .. prev_mark[1]:get_attr("next_marker")
                                 )
                                 if   #next_mark ~= 1 then break end
 
                                 prev_mark = next_mark
                                 local nm = next_mark[1]
                                 mrkrs[#mrkrs + 1] = {
-                                    position = nm:get_position():copy(),
-                                    yaw      = nm:get_yaw(),
-                                    pitch    = nm:get_pitch()
+                                    position = nm:get_attr("position"):copy(),
+                                    yaw      = nm:get_attr("yaw"),
+                                    pitch    = nm:get_attr("pitch")
                                 }
-                                if next_mark[1]:get_next_marker() == 1 then
-                                    if entity:get_next_controller() <= 0 then
+                                if next_mark[1]:get_attr("next_marker") == 1 then
+                                    if entity:get_attr("next_controller") <= 0 then
                                         self.looped = true
                                     end
                                     next_mark = ents.get_by_tag(
                                         entity.m_tag
                                             .. "_mrk_"
-                                            .. prev_mark[1]:get_next_marker()
+                                            .. prev_mark[1]:get_attr("next_marker")
                                     )
                                     local nm = next_mark[1]
                                     mrkrs[#mrkrs + 1] = {
-                                        position = nm:get_position():copy(),
-                                        yaw      = nm:get_yaw(),
-                                        pitch    = nm:get_pitch()
+                                        position = nm:get_attr("position"):copy(),
+                                        yaw      = nm:get_attr("yaw"),
+                                        pitch    = nm:get_attr("pitch")
                                     }
                                     break
                                 end
@@ -609,7 +609,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self:get_tags():to_array()[1]
+                    self.m_tag = self:get_attr("tags"):to_array()[1]
                 end
             )
             signal.connect(self,
@@ -654,9 +654,9 @@ ents.register_class(
             self.lock = (not self.started and self.lock) and false or self.lock
 
             if _V.editing ~= 0 then
-                if self:get_next_controller() >= 1 then
+                if self:get_attr("next_controller") >= 1 then
                     show_distance(
-                        "ctl_" .. self:get_next_controller(), self, 0xFFED22
+                        "ctl_" .. self:get_attr("next_controller"), self, 0xFFED22
                     )
                 end
             end
@@ -704,7 +704,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self:get_tags():to_array()[1]
+                    self.m_tag = self:get_attr("tags"):to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -734,7 +734,7 @@ ents.register_class(
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self:get_tags():to_array()[1]
+                self.m_tag = self:get_attr("tags"):to_array()[1]
                 if not self.m_tag then
                     return nil
                 end
@@ -742,9 +742,9 @@ ents.register_class(
             local arr = string.split(self.m_tag, "_")
             if #arr ~= 4 then return nil end
 
-            if self:get_next_marker() > 0 and tonumber(arr[2]) > 0 then
+            if self:get_attr("next_marker") > 0 and tonumber(arr[2]) > 0 then
                 show_distance(
-                    "ctl_" .. arr[2] .. "_mrk_" .. self:get_next_marker(),
+                    "ctl_" .. arr[2] .. "_mrk_" .. self:get_attr("next_marker"),
                     self, 0x22BBFF
                 )
             end
@@ -753,13 +753,13 @@ ents.register_class(
                 show_distance("ctl_" .. arr[2], self, 0x22FF27)
             end
 
-            local direction = math.Vec3():from_yaw_pitch(self:get_yaw(), self:get_pitch())
+            local direction = math.Vec3():from_yaw_pitch(self:get_attr("yaw"), self:get_attr("pitch"))
             local target    = geometry.get_ray_collision_world(
-                self:get_position():copy(), direction, 10
+                self:get_attr("position"):copy(), direction, 10
             )
             effects.flare(
                 effects.PARTICLE.STREAK,
-                self:get_position(), target,
+                self:get_attr("position"), target,
                 0, 0x22BBFF, 0.3
             )
         end or nil
@@ -836,7 +836,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self:get_tags():to_array()[1]
+                    self.m_tag = self:get_attr("tags"):to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -866,7 +866,7 @@ ents.register_class(
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self:get_tags():to_array()[1]
+                self.m_tag = self:get_attr("tags"):to_array()[1]
                 if not self.m_tag then
                     return nil
                 end
@@ -874,9 +874,9 @@ ents.register_class(
             local arr = string.split(self.m_tag, "_")
             if #arr ~= 4 then return nil end
 
-            if self:get_parent_id() > 0 and tonumber(arr[2]) > 0 then
+            if self:get_attr("parent_id") > 0 and tonumber(arr[2]) > 0 then
                 show_distance(
-                    "ctl_" .. arr[2] .. "_mrk_" .. self:get_parent_id(),
+                    "ctl_" .. arr[2] .. "_mrk_" .. self:get_attr("parent_id"),
                     self, 0xFF22C3
                 )
             end
@@ -938,7 +938,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self:get_tags():to_array()[1]
+                    self.m_tag = self:get_attr("tags"):to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -959,13 +959,13 @@ ents.register_class(
         run = CLIENT and function(self, seconds)
             if self.action.background_image ~= self:get_background_image() then
                self.action.background_image  = self:get_background_image() end
-            if self.action.subtitle_background ~= self:get_subtitle_background() then
-               self.action.subtitle_background  = self:get_subtitle_background() end
+            if self.action.subtitle_background ~= self:get_attr("subtitle_background") then
+               self.action.subtitle_background  = self:get_attr("subtitle_background") end
 
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self:get_tags():to_array()[1]
+                self.m_tag = self:get_attr("tags"):to_array()[1]
                 if not self.m_tag then
                     return nil
                 end
@@ -1051,7 +1051,7 @@ ents.register_class(
             signal.connect(self,
                 "tags_changed",
                 function(self)
-                    self.m_tag = self:get_tags():to_array()[1]
+                    self.m_tag = self:get_attr("tags"):to_array()[1]
                     -- flush the cache
                     for k, v in pairs(self) do
                         if string.sub(k, 1, 9) == "__CACHED_" then
@@ -1070,7 +1070,7 @@ ents.register_class(
             if _V.editing == 0 then return nil end
 
             if not self.m_tag then
-                self.m_tag = self:get_tags():to_array()[1]
+                self.m_tag = self:get_attr("tags"):to_array()[1]
                 if not self.m_tag then
                     return nil
                 end

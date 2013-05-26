@@ -63,7 +63,7 @@ plugin = {
         elseif stage == 4 then -- server appears player and sets in motion
             if SERVER then
                 -- do this first
-                self:set_health(self:get_max_health())
+                self:set_health(self:get_attr("max_health"))
                 self:set_can_move(true)
 
                 if  self.default_model_name then
@@ -96,7 +96,7 @@ plugin = {
     end,
 
     decide_animation = function(self, ...)
-        if self:get_health() > 0 then
+        if self:get_attr("health") > 0 then
             return self.__proto.__proto.decide_animation(self, ...)
         else
             return math.bor(DYING, model.anims.RAGDOLL)
@@ -107,9 +107,9 @@ plugin = {
         local ret = self.__proto.__proto.get_animation(self, ...)
 
         -- clean up if not dead
-        if self:get_health() > 0 and (ret == DYING or ret == math.bor(DYING, model.anims.RAGDOLL)) then
+        if self:get_attr("health") > 0 and (ret == DYING or ret == math.bor(DYING, model.anims.RAGDOLL)) then
             self:set_local_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
-            ret = self:get_animation()
+            ret = self:get_attr("animation")
         end
 
         return ret
@@ -119,7 +119,7 @@ plugin = {
         if self ~= ents.get_player() then return nil end
 
         --if not GLOBAL_GAME_HUD then
-            local health = self:get_health()
+            local health = self:get_attr("health")
             if health then
                 local color
                 if health > 75 then
@@ -132,7 +132,7 @@ plugin = {
                 --gui.hud_label(tostring(health), 0.94, 0.88, 0.5, color)
             end
         --[[else
-            local raw    = math.floor((34 * self:get_health()) / self:get_max_health())
+            local raw    = math.floor((34 * self:get_attr("health")) / self:get_attr("max_health"))
             local whole  = math.floor(raw  / 2)
             local half   = raw > whole * 2
             local params = GLOBAL_GAME_HUD:get_health_params()
@@ -154,8 +154,8 @@ plugin = {
 
             if CLIENT then
                 if diff >= 5 then
-                    if self:get_pain_sound() ~= "" then
-                        sound.play(self:get_pain_sound(), self:get_position())
+                    if self:get_attr("pain_sound") ~= "" then
+                        sound.play(self:get_attr("pain_sound"), self:get_attr("position"))
                     end
                     self:visual_pain_effect(health)
                     if not server_origin or health > 0 then
@@ -175,17 +175,17 @@ plugin = {
     end,
 
     visual_pain_effect = function(self, health)
-        local pos = self:get_position():copy()
-        pos.z = pos.z + self:get_eye_height() - 4
-        effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self:get_blood_color(), 2.96)
-        effects.decal(effects.DECAL.BLOOD, self:get_position(), math.Vec3(0, 0, 1), 7, self:get_blood_color())
+        local pos = self:get_attr("position"):copy()
+        pos.z = pos.z + self:get_attr("eye_height") - 4
+        effects.splash(effects.PARTICLE.BLOOD, tointeger((self.old_health - health) / 3), 1000, pos, self:get_attr("blood_color"), 2.96)
+        effects.decal(effects.DECAL.BLOOD, self:get_attr("position"), math.Vec3(0, 0, 1), 7, self:get_attr("blood_color"))
         --if self == ents.get_player() then effects.client_damage(0, self.old_health - health) end
     end,
 
     suffer_damage = function(self, source)
         local damage = (type(source.damage) == "number") and source.damage or source
-        if  self:get_health() > 0 and damage and damage ~= 0 then
-            self:set_health(math.max(0, self:get_health() - damage))
+        if  self:get_attr("health") > 0 and damage and damage ~= 0 then
+            self:set_health(math.max(0, self:get_attr("health") - damage))
         end
     end
 }
@@ -199,12 +199,12 @@ end
 function is_valid_target(entity)
     return (entity and not entity.deactivated
                    and entity.get_health
-                   and entity:get_health()
-                   and entity:get_health() > 0
+                   and entity:get_attr("health")
+                   and entity:get_attr("health") > 0
                    and not entity:get_editing()
                    and (not entity.get_spawn_stage or
-                        not entity:get_spawn_stage() or
-                        entity:get_spawn_stage() == 0)
+                        not entity:get_attr("spawn_stage") or
+                        entity:get_attr("spawn_stage") == 0)
                    and not entity:get_lagged()
     )
 end
