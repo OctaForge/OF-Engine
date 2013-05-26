@@ -742,7 +742,7 @@ Entity = table.Object:clone {
             if is_svar(var) and var.has_history
             and not (tcn >= 0 and not var:should_send(self, tcn)) then
                 local name = var.name
-                local val = self["get_" .. name](self)
+                local val = self:get_attr(name)
                 if val ~= nil then
                     local wval = var:to_wire(val)
                     #log(DEBUG, "    adding " .. name .. ": " .. wval)
@@ -1059,7 +1059,7 @@ Entity = table.Object:clone {
             #log(DEBUG, "Entity: flushing queued svar change: "
             #    .. k .. " == " .. tostring(v) .. " (real: "
             #        .. tostring(rv) .. ")")
-            self["set_" .. k](self, rv)
+            self:set_attr(k, rv)
         end
 
         self.svar_change_queue_complete = true
@@ -1105,7 +1105,7 @@ Entity = table.Object:clone {
         for k, var in pairs(self) do
             if is_svar(var) and var.has_history then
                 local name = var.name
-                local val = self["get_" .. name](self)
+                local val = self:get_attr(name)
                 if val ~= nil then
                     r[#r + 1] = { var.gui_name or name, var:to_wire(val) }
                 end
@@ -1156,9 +1156,37 @@ set_external("entity_get_gui_attr", M.get_gui_attr)
     See <Entity.set_gui_attr>. Externally accessible as entity_set_gui_attr.
 ]]
 M.set_gui_attr = function(ent, prop, val)
-    ent:set_gui_attr(prop, val)
+    return ent:set_gui_attr(prop, val)
 end
 set_external("entity_set_gui_attr", M.set_gui_attr)
+
+--[[! Function: get_attr
+    See <Entity.get_attr>. Externally accessible as entity_get_attr. An
+    external called entity_get_attr_uid works with uid instead of an entity.
+]]
+M.get_attr = function(ent, prop)
+    return ent:get_attr(prop)
+end
+set_external("entity_get_attr", M.get_attr)
+set_external("entity_get_attr_uid", function(uid, prop)
+    local ent = storage[uid]
+    if not ent then return nil end
+    return ent:get_attr(prop)
+end)
+
+--[[! Function: set_attr
+    See <Entity.set_attr>. Externally accessible as entity_set_attr. An
+    external called entity_set_attr_uid works with uid instead of an entity.
+]]
+M.set_attr = function(ent, prop, val)
+    return ent:set_attr(prop, val)
+end
+set_external("entity_set_attr", M.set_attr)
+set_external("entity_set_attr_uid", function(uid, prop, val)
+    local ent = storage[uid]
+    if not ent then return nil end
+    return ent:set_attr(prop, val)
+end)
 
 --[[! Function: entity_get_attached
     An external. Calls get_attached_next on the given entity first, if that

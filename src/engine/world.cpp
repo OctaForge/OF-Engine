@@ -1332,17 +1332,15 @@ COMMAND(mapname, "");
 void finish_dragging() {
     groupeditpure(
         const vec& o = e.o;
-        lua::push_external("entity_get");
+        lua::push_external("entity_set_attr_uid");
         lua_pushinteger(lua::L, LogicSystem::getUniqueId(&e));
-        lua_call       (lua::L, 1, 1);
-        lua_getfield   (lua::L, -1, "set_position");
-        lua_insert     (lua::L, -2);
+        lua_pushliteral(lua::L, "position");
         lua::push_external("new_vec3");
         lua_pushnumber (lua::L, o.x);
         lua_pushnumber (lua::L, o.y);
         lua_pushnumber (lua::L, o.z);
         lua_call       (lua::L, 3, 1);
-        lua_call       (lua::L, 2, 0);
+        lua_call       (lua::L, 3, 0);
     );
 }
 

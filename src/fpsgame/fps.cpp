@@ -212,22 +212,16 @@ namespace game
 
 #if (SERVER_DRIVEN_PLAYERS == 1)
             // Enable this to let server drive client movement
+            lua::push_external("entity_set_attr");
             lua::push_external("entity_get");
             lua_pushinteger(lua::L, d->uniqueId);
-            lua_call       (lua::L, 1, 1);               /* stack: entity */
-            lua_getfield   (lua::L, -1, "set_position"); /* entity, set_position */
-            lua_insert     (lua::L, -2);                 /* set_position, entity */
-            lua_getfield   (lua::L, -1, "get_position"); /* set_pos, ent, get_position */
-            lua_pushvalue  (lua::L, -2);                 /* set_pos, ent, get_pos, ent */
-            lua_call       (lua::L, 1, 1);               /* set_pos, ent, pos */
-
-            lua_createtable(lua::L, 3, 0);               /* set_pos, ent, pos, tbl */
-            lua_insert     (lua::L, -2);                 /* set_pos, ent, tbl, pos */
-            lua_getfield(lua::L, -1, "x"); lua_rawseti(lua::L, -3, 1);
-            lua_getfield(lua::L, -1, "y"); lua_rawseti(lua::L, -3, 2);
-            lua_getfield(lua::L, -1, "z"); lua_rawseti(lua::L, -3, 3);
-            lua_pop     (lua::L,  1);                    /* set_pos, ent, tbl */
-            lua_call    (lua::L,  2, 0);                 /* empty stack */
+            lua_call       (lua::L, 1, 1);
+            lua_pushliteral(lua::L, "position");
+            lua::push_external("entity_get_attr");
+            lua_pushvalue  (lua::L, -3);
+            lua_pushliteral(lua::L, "position");
+            lua_call       (lua::L, 2, 1);
+            lua_call       (lua::L,  3, 0);
 #endif
         }
     }
@@ -537,12 +531,10 @@ namespace game
 
     const char *scriptname(fpsent *d)
     {
-        lua::push_external("entity_get");
+        lua::push_external("entity_get_attr_uid");
         lua_pushinteger(lua::L, LogicSystem::getUniqueId(d));
-        lua_call       (lua::L, 1, 1);
-        lua_getfield   (lua::L, -1, "get_character_name");
-        lua_insert     (lua::L, -2);
-        lua_call       (lua::L,  1, 1);
+        lua_pushliteral(lua::L, "character_name");
+        lua_call       (lua::L,  2, 1);
         const char *ret = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
         return ret;
     }
