@@ -150,7 +150,8 @@ function is_colliding_entities(position, radius, ignore)
     local entities = get_collidable_entities()
     for i, entity in pairs(entities) do
         if entity ~= ignore and not entity.deactivated then
-            local   entity_radius = entity:get_attr("radius") and entity:get_attr("radius") or 0
+            local entity_radius = entity:get_attr("radius")
+                and entity:get_attr("radius") or 0
             if position:is_close_to(
                 entity:get_attr("position"), radius + entity_radius
             ) then
@@ -287,7 +288,8 @@ function bounce(thing, elasticity, friction, seconds)
         return true
     end
 
-    if is_colliding(thing:get_attr("position"), thing:get_attr("radius"), thing.ignore) then
+    if is_colliding(thing:get_attr("position"), thing:get_attr("radius"),
+    thing.ignore) then
         return fallback()
     end
 
@@ -303,7 +305,8 @@ function bounce(thing, elasticity, friction, seconds)
     local movement     = thing:get_attr("velocity"):mul_new(seconds)
     thing:get_attr("position"):add(movement)
 
-    if not is_colliding(thing_get_position(), thing:get_attr("radius"), thing.ignore) then
+    if not is_colliding(thing_get_position(), thing:get_attr("radius"),
+    thing.ignore) then
         return true
     end
 
@@ -323,7 +326,8 @@ function bounce(thing, elasticity, friction, seconds)
     movement = get_reflected_ray(movement, normal, elasticity, friction)
 
     thing:set_attr("position", old_position:add(movement))
-    if is_colliding(thing:get_attr("position"), thing:get_attr("radius"), thing.ignore) then
+    if is_colliding(thing:get_attr("position"), thing:get_attr("radius"),
+    thing.ignore) then
         return fallback()
     end
     thing:set_attr("velocity", movement:mul(1 / seconds))

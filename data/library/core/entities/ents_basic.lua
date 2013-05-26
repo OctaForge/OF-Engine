@@ -361,8 +361,8 @@ local Character = Physical_Entity:clone {
             if val == 0 then return nil end
             self:set_attr("physics_trigger", 0)
 
-            local pos = (self ~= ents.get_player()) and self:get_attr("position")
-                or nil
+            local pos = (self ~= ents.get_player())
+                and self:get_attr("position") or nil
 
             local lst = band(val, MASK_LIQUID)
             if lst == FLAG_ABOVELIQUID then
@@ -414,7 +414,8 @@ local Character = Physical_Entity:clone {
                 and self:get_attr("hud_model_name")
                 or  self:get_attr("model_name")
 
-            local yaw, pitch, roll = self:get_attr("yaw"), self:get_attr("pitch"),
+            local yaw, pitch, roll = self:get_attr("yaw"),
+                self:get_attr("pitch"),
                 self:get_attr("roll")
             local o = self:get_attr("position"):copy()
 
@@ -423,7 +424,8 @@ local Character = Physical_Entity:clone {
             end
 
             local pstate = self:get_attr("physical_state")
-            local bt, iw = self:get_attr("start_time"), self:get_attr("in_liquid")
+            local bt, iw = self:get_attr("start_time"),
+                self:get_attr("in_liquid")
             local mv, sf = self:get_attr("move"), self:get_attr("strafe")
 
             local vel, fall = self:get_attr("velocity"):copy(),
@@ -727,8 +729,10 @@ local Static_Entity = Physical_Entity:clone {
                 uid, sname, self:build_sdata({
                     target_cn = n, compressed = true }),
                 tonumber(pos.x), tonumber(pos.y), tonumber(pos.z),
-                tonumber(self:get_attr("attr1")), tonumber(self:get_attr("attr2")),
-                tonumber(self:get_attr("attr3")), tonumber(self:get_attr("attr4")),
+                tonumber(self:get_attr("attr1")),
+                tonumber(self:get_attr("attr2")),
+                tonumber(self:get_attr("attr3")),
+                tonumber(self:get_attr("attr4")),
                 tonumber(self:get_attr("attr5")))
         end
 
@@ -842,8 +846,9 @@ local Light = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("r: %d, g: %d, b: %d, radius: %d", self:get_attr("red"),
-            self:get_attr("green"), self:get_attr("blue"), self:get_attr("radius"))
+        return format("r: %d, g: %d, b: %d, radius: %d",
+            self:get_attr("red"), self:get_attr("green"),
+            self:get_attr("blue"), self:get_attr("radius"))
     end
 }
 M.Light = Light
@@ -1160,8 +1165,9 @@ local Mapmodel = Static_Entity:clone {
 
     get_edit_info = function(self)
         return format('yaw: %d, pitch: %d, roll: %d, scale: %d\nname: "%s"',
-            self:get_attr("yaw"), self:get_attr("pitch"), self:get_attr("roll"),
-            self:get_scale(), self:get_attr("model_name"))
+            self:get_attr("yaw"), self:get_attr("pitch"),
+            self:get_attr("roll"), self:get_scale(),
+            self:get_attr("model_name"))
     end
 }
 M.Mapmodel = Mapmodel
@@ -1213,7 +1219,8 @@ local Oriented_Marker = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("yaw: %d, pitch: %d", self:get_attr("yaw"), self:get_attr("pitch"))
+        return format("yaw: %d, pitch: %d", self:get_attr("yaw"),
+            self:get_attr("pitch"))
     end
 }
 M.Oriented_Marker = Oriented_Marker

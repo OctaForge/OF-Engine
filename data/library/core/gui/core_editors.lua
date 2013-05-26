@@ -776,10 +776,11 @@ local Text_Editor = register_class("Text_Editor", Object, {
                     _C.gle_attrib2f(x + self.pixel_width, y + psy + _V.fonth)
                     _C.gle_attrib2f(x + self.pixel_width, y + psy)
                     if (pey - psy) > _V.fonth then
-                        _C.gle_attrib2f(x,                    y + psy + _V.fonth)
-                        _C.gle_attrib2f(x + self.pixel_width, y + psy + _V.fonth)
+                        _C.gle_attrib2f(x, y + psy + _V.fonth)
+                        _C.gle_attrib2f(x + self.pixel_width,
+                                        y + psy + _V.fonth)
                         _C.gle_attrib2f(x + self.pixel_width, y + pey)
-                        _C.gle_attrib2f(x,                    y + pey)
+                        _C.gle_attrib2f(x, y + pey)
                     end
                     _C.gle_attrib2f(x,       y + pey)
                     _C.gle_attrib2f(x,       y + pey + _V.fonth)

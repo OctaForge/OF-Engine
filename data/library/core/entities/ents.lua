@@ -700,9 +700,10 @@ Entity = table.Object:clone {
         #log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
         if not self:has_tag(tag) then return nil end
-        self:set_attr("tags", filter(self:get_attr("tags"):to_array(), function(i, t)
-            return t ~= tag
-        end))
+        self:set_attr("tags", filter(self:get_attr("tags"):to_array(),
+            function(i, t)
+                return t ~= tag
+            end))
     end,
 
     --[[! Function: has_tag
