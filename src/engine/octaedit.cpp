@@ -289,6 +289,8 @@ extern float rayent(const vec &o, const vec &ray, float radius, int mode, int si
 VAR(gridlookup, 0, 0, 1);
 VAR(passthroughcube, 0, 1, 1);
 
+VARP(showselgrid, 0, 1, 1); /* lamiae */
+
 void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so can edit in thirdperson
 {
     int d   = dimension(sel.orient),
@@ -480,6 +482,17 @@ void rendereditcursor() // INTENSITY: Replaced all player->o with camera1->o, so
         else 
             gle::colorub(0,0,120);
         boxs3D(sel.o.tovec(), sel.s.tovec(), sel.grid);
+
+        /* lamiae */
+        if (showselgrid)
+        {
+            vec a, b;
+            gle::colorub(40, 40, 80);
+            //note that vector b is multiplied by g (aka, sel.grid) inside the function, so undo that here
+            (a=sel.o.tovec()).x=0; (b=sel.s.tovec()).x=worldsize/sel.grid; boxs3D(a, b, sel.grid);
+            (a=sel.o.tovec()).y=0; (b=sel.s.tovec()).y=worldsize/sel.grid; boxs3D(a, b, sel.grid);
+            (a=sel.o.tovec()).z=0; (b=sel.s.tovec()).z=worldsize/sel.grid; boxs3D(a, b, sel.grid);
+        }
     }
    
     disablepolygonoffset(GL_POLYGON_OFFSET_LINE);
