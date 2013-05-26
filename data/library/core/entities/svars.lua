@@ -43,10 +43,10 @@ M.is_svar_alias = function(v)
 end
 
 local define_accessors = function(cl, n, gf, sf, d)
-    cl["get_" .. n] = function(self)
+    cl["__get_" .. n] = function(self)
         return gf(self, d)
     end
-    cl["set_" .. n] = function(self, v)
+    cl["__set_" .. n] = function(self, v)
         return sf(self, v, d)
     end
 end

@@ -1088,7 +1088,7 @@ Entity = table.Object:clone {
     get_gui_attr = function(self, prop)
         local var = self["_SV_GUI_" .. prop]
         if not var or not var.has_history then return nil end
-        local val = self["get_" .. var.name](self)
+        local val = self:get_attr(var.name)
         if val ~= nil then
             return var:to_wire(val)
         end
@@ -1122,7 +1122,23 @@ Entity = table.Object:clone {
     set_gui_attr = function(self, prop, val)
         local var = self["_SV_GUI_" .. prop]
         if not var or not var.has_history then return nil end
-        self["set_" .. var.name](self, var:from_wire(val))
+        self:set_attr(var.name, var:from_wire(val))
+    end,
+
+    --[[! Function: get_attr
+        Returns the entity property of the given name.
+    ]]
+    get_attr = function(self, prop)
+        local fun = self["__get_" .. prop]
+        return fun and fun(self) or nil
+    end,
+
+    --[[! Function: set_attr
+        Sets the entity property of the given name to the given value.
+    ]]
+    set_attr = function(self, prop, val)
+        local fun = self["__set_" .. prop]
+        return fun and fun(self, val) or nil
     end
 }
 
