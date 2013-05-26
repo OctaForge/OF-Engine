@@ -700,7 +700,7 @@ Entity = table.Object:clone {
         #log(DEBUG, "Entity: remove_tag (" .. tag .. ")")
 
         if not self:has_tag(tag) then return nil end
-        self:set_tags(filter(self:get_attr("tags"):to_array(), function(i, t)
+        self:set_attr("tags", filter(self:get_attr("tags"):to_array(), function(i, t)
             return t ~= tag
         end))
     end,
@@ -819,8 +819,8 @@ Entity = table.Object:clone {
         self.uid = uid
         self:entity_setup()
 
-        self:set_tags({})
-        self:set_persistent(kwargs and kwargs.persistent or false)
+        self:set_attr("tags", {})
+        self:set_attr("persistent", kwargs and kwargs.persistent or false)
     end or nil,
 
     --[[! Function: activate
@@ -1218,7 +1218,7 @@ local render_hud = CLIENT and function()
     local  player = player_entity
     if not player then return nil end
 
-    if player.get_hud_model_name and not player:get_editing() then
+    if player:get_attr("hud_model_name") and not player:get_editing() then
         player:render(true, true)
     end
 end or nil

@@ -13,12 +13,12 @@ world_notice = ents.register_class(plugins.bake(ents.Obstacle, {{
     },
 
     init = function(self)
-        self:set_text("World notice text")
-        self:set_color(0xFFFFFF)
-        self:set_size(0.5)
-        self:set_sound("")
-        self:set_x(0.5)
-        self:set_y(0.88)
+        self:set_attr("text", "World notice text")
+        self:set_attr("color", 0xFFFFFF)
+        self:set_attr("size", 0.5)
+        self:set_attr("sound", "")
+        self:set_attr("x", 0.5)
+        self:set_attr("y", 0.88)
     end,
 
     activate = CLIENT and function(self)

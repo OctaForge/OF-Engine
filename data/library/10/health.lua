@@ -20,7 +20,7 @@ action_death = actions.Action:clone {
         signal.emit(self.actor, "fragged")
         -- this won't clear us, as we cannot be cancelled
         self.actor:clear_actions()
-        self.actor:set_can_move(false)
+        self.actor:set_attr("can_move", false)
     end,
 
     finish = function(self)
@@ -42,52 +42,52 @@ plugin = {
     on_spawn_stage = function(self, stage, auid)
         if stage == 1 then -- client ack
             if CLIENT then
-                self:set_spawn_stage(2)
+                self:set_attr("spawn_stage", 2)
             end
         elseif stage == 2 then -- server vanishes player
             if SERVER then
                 if auid == self.uid then
                     if  self.default_model_name then
-                        self:set_model_name("")
+                        self:set_attr("model_name", "")
                     end
-                    self:set_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
-                    self:set_spawn_stage(3)
+                    self:set_attr("animation", math.bor(model.anims.IDLE, model.anims.LOOP))
+                    self:set_attr("spawn_stage", 3)
                 end
                 self:cancel_sdata_update()
             end
         elseif stage == 3 then -- client repositions etc.
             if CLIENT and self == ents.get_player() then
                 signal.emit(self,"client_respawn")
-                self:set_spawn_stage(4)
+                self:set_attr("spawn_stage", 4)
             end
         elseif stage == 4 then -- server appears player and sets in motion
             if SERVER then
                 -- do this first
-                self:set_health(self:get_attr("max_health"))
-                self:set_can_move(true)
+                self:set_attr("health", self:get_attr("max_health"))
+                self:set_attr("can_move", true)
 
                 if  self.default_model_name then
-                    self:set_model_name(self.default_model_name)
+                    self:set_attr("model_name", self.default_model_name)
                 end
                 if  self.default_hud_model_name then
-                    self:set_hud_model_name(self.default_hud_model_name)
+                    self:set_attr("hud_model_name", self.default_hud_model_name)
                 end
 
-                self:set_spawn_stage(0)
+                self:set_attr("spawn_stage", 0)
                 self:cancel_sdata_update()
             end
         end
     end,
 
     respawn = function(self)
-        self:set_spawn_stage(1)
+        self:set_attr("spawn_stage", 1)
     end,
 
     init = function(self)
-        self:set_max_health(100)
-        self:set_health(100)
-        self:set_pain_sound("")
-        self:set_blood_color(0x60FFFF)
+        self:set_attr("max_health", 100)
+        self:set_attr("health", 100)
+        self:set_attr("pain_sound", "")
+        self:set_attr("blood_color", 0x60FFFF)
     end,
 
     activate = function(self)
@@ -185,26 +185,24 @@ plugin = {
     suffer_damage = function(self, source)
         local damage = (type(source.damage) == "number") and source.damage or source
         if  self:get_attr("health") > 0 and damage and damage ~= 0 then
-            self:set_health(math.max(0, self:get_attr("health") - damage))
+            self:set_attr("health", math.max(0, self:get_attr("health") - damage))
         end
     end
 }
 
 function die_if_off_map(entity)
     if  entity == ents.get_player() and is_valid_target(entity) then
-        entity:set_health(0) -- kill instantly
+        entity:set_attr("health", 0) -- kill instantly
     end
 end
 
 function is_valid_target(entity)
     return (entity and not entity.deactivated
-                   and entity.get_health
                    and entity:get_attr("health")
                    and entity:get_attr("health") > 0
                    and not entity:get_editing()
-                   and (not entity.get_spawn_stage or
-                        not entity:get_attr("spawn_stage") or
-                        entity:get_attr("spawn_stage") == 0)
+                   and (not entity:get_attr("spawn_stage") or
+                            entity:get_attr("spawn_stage") == 0)
                    and not entity:get_lagged()
     )
 end
@@ -214,7 +212,7 @@ deadly_area_trigger_plugin = {
         if entity ~= ents.get_player() then return nil end
 
         if is_valid_target(entity) then
-            entity:set_health(0)
+            entity:set_attr("health", 0)
         end
     end,
     activate = CLIENT and function(self)

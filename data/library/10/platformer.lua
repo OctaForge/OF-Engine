@@ -36,7 +36,7 @@ plugin = {
     end,
 
     init = function(self)
-        self:set_movement_speed(75)
+        self:set_attr("movement_speed", 75)
     end,
 
     activate = function(self)
@@ -50,16 +50,16 @@ plugin = {
         self:set_platform_direction(1)
 
         signal.connect(self, "client_respawn", function(self)
-            self:set_platform_axis("+x")
-            self:set_platform_position(self:get_attr("position").y)
-            self:set_platform_camera_axis("+y")
+            self:set_attr("platform_axis", "+x")
+            self:set_attr("platform_position", self:get_attr("position").y)
+            self:set_attr("platform_camera_axis", "+y")
             self.platform_move        = 0
         end)
     end,
 
     run = CLIENT and function(self, seconds)
         if self == ents.get_player() and not self:get_editing() then
-            if (self.get_spawn_stage and entity:get_attr("spawn_stage")) == 0 then
+            if entity:get_attr("spawn_stage") == 0 then
                 local position = self:get_attr("position"):copy()
                 local velocity = self:get_attr("velocity"):copy()
 
@@ -80,8 +80,8 @@ plugin = {
                 end
 
                 if position then
-                    self:set_position(position:lerp(self:get_attr("position"), 1 - (seconds * 5)))
-                    self:set_velocity(velocity)
+                    self:set_attr("position", position:lerp(self:get_attr("position"), 1 - (seconds * 5)))
+                    self:set_attr("velocity", velocity)
                     #log(WARNING, "Fixed platform position %(1)i" % { frame.get_time() })
                 end
             end
@@ -90,7 +90,7 @@ plugin = {
             self.platform_yaw   = math.normalize_angle(
                 platform_axis:mul(self:get_platform_direction()):to_yaw_pitch().yaw,
                 self:get_attr("yaw"))
-            self:set_yaw(math.magnet(
+            self:set_attr("yaw", math.magnet(
                 math.lerp(
                     self:get_attr("yaw"),
                     self.platform_yaw,
@@ -99,8 +99,8 @@ plugin = {
                 self.platform_yaw,
                 45
             ))
-            self:set_pitch(0)
-            self:set_move((self.platform_move == 1 and (math.abs(self.platform_yaw - self:get_attr("yaw")) < 1)) and 1 or 0)
+            self:set_attr("pitch", 0)
+            self:set_attr("move", (self.platform_move == 1 and (math.abs(self.platform_yaw - self:get_attr("yaw")) < 1)) and 1 or 0)
 
             if GLOBAL_CAMERA_DISTANCE then
                 self.platform_camera_distance = math.lerp(
@@ -140,7 +140,7 @@ plugin = {
 function do_movement(move, down)
     local player = ents.get_player()
     if player:get_editing() then
-        player:set_move(move)
+        player:set_attr("move", move)
     end
     if health.is_valid_target(player) then
         if do_jump then
@@ -154,7 +154,7 @@ end
 function do_strafe(strafe, down)
     local player = ents.get_player()
     if player:get_editing() then
-        player:set_strafe(strafe)
+        player:set_attr("strafe", strafe)
     end
     if not health.is_valid_target(player) then return nil end
 
@@ -185,8 +185,8 @@ axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
         },
 
         init = function(self)
-            self:set_platform_axises({ "+x", "+y" })
-            self:set_platform_camera_axises({ "+y", "-x" })
+            self:set_attr("platform_axises", { "+x", "+y" })
+            self:set_attr("platform_camera_axises", { "+y", "-x" })
         end,
 
         do_movement = function(self, move, down)
@@ -203,9 +203,9 @@ axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
                         flip_axis(player:get_attr("platform_camera_axis"))
                     )
                     player:set_platform_direction(1)
-                    player:set_platform_axis(axis)
-                    player:set_platform_position((axis[1] == "x") and self:get_attr("position").y or self:get_attr("position").x)
-                    player:set_platform_camera_axis(self:get_attr("platform_camera_axises")[i])
+                    player:set_attr("platform_axis", axis)
+                    player:set_attr("platform_position", (axis[1] == "x") and self:get_attr("position").y or self:get_attr("position").x)
+                    player:set_attr("platform_camera_axis", self:get_attr("platform_camera_axises")[i])
                     player.platform_camera_smoothing = 1.0
                     return nil
                 end

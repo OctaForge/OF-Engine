@@ -70,7 +70,7 @@ set_external("physics_state_change", function(ent, loc, flevel, llevel, mat)
     elseif flevel < 0 then
         flags = bor(flags, FLAG_BELOWGROUND)
     end
-    if flags ~= 0 then ent:set_physics_trigger(flags) end
+    if flags ~= 0 then ent:set_attr("physics_trigger", flags) end
 end)
 
 --[[! Function: event_text_message

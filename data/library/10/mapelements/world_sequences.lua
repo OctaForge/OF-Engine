@@ -9,9 +9,9 @@ plugins = {
         },
 
         init = function(self)
-            self:set_sequence_id("")
-            self:set_sequence_num(1)
-            self:set_sequence_is_mandatory(false)
+            self:set_attr("sequence_id", "")
+            self:set_attr("sequence_num", 1)
+            self:set_attr("sequence_is_mandatory", false)
         end,
 
         client_on_collision = function(self, collider)

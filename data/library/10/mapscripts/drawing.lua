@@ -31,8 +31,8 @@ ents.register_class(plugins.bake(
 
             -- player gun indexes and current gun
             init = function(self)
-                self:set_gun_indexes({ player_chaingun, player_rocket_launcher })
-                self:set_current_gun_index(player_chaingun)
+                self:set_attr("gun_indexes", { player_chaingun, player_rocket_launcher })
+                self:set_attr("current_gun_index", player_chaingun)
             end,
 
             -- Switches color in entity
@@ -48,7 +48,7 @@ ents.register_class(plugins.bake(
 
             -- Creates a "dummy" mark to stop current line
             reset_mark = function(self)
-                self:set_new_mark({ -1, -1, -1 })
+                self:set_attr("new_mark", { -1, -1, -1 })
                 self.stop_batch = true
             end,
 
@@ -118,7 +118,7 @@ ents.register_class(plugins.bake(
                     local toplyr = self:get_attr("position"):sub_new(newpos)
                     newpos:add(toplyr:normalize():mul(1.0)) -- bring a little out of the scenery
                     if newbatch or not self.marks[#self.marks - 1]:is_close_to(newpos, 5.0) then
-                        self:set_new_mark(newpos:to_array())
+                        self:set_attr("new_mark", newpos:to_array())
                     end
                 end
             end or nil

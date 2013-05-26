@@ -51,16 +51,16 @@ local Physical_Entity = Entity:clone {
     init = SERVER and function(self, uid, kwargs)
         Entity.init(self, uid, kwargs)
 
-        self:set_model_name("")
-        self:set_attachments({})
-        self:set_animation(bor(model.anims.IDLE, model.anims.LOOP))
+        self:set_attr("model_name", "")
+        self:set_attr("attachments", {})
+        self:set_attr("animation", bor(model.anims.IDLE, model.anims.LOOP))
     end or nil,
 
     activate = SERVER and function(self, kwargs)
         #log(DEBUG, "Physical_Entity.activate")
         Entity.activate(self, kwargs)
 
-        self:set_model_name(self:get_attr("model_name"))
+        self:set_attr("model_name", self:get_attr("model_name"))
         #log(DEBUG, "Physical_Entity.activate complete")
     end or nil,
 
@@ -313,7 +313,7 @@ local Character = Physical_Entity:clone {
         A handler called when the character is about to jump.
     ]]
     jump = function(self)
-        self:set_jumping(true)
+        self:set_attr("jumping", true)
     end,
 
     get_plag = _C.get_plag,
@@ -325,19 +325,19 @@ local Character = Physical_Entity:clone {
         Physical_Entity.init(self, uid, kwargs)
 
         self.cn = kwargs and kwargs.cn or -1
-        self:set_character_name("none")
-        self:set_model_name("player")
-        self:set_eye_height(14.0)
-        self:set_above_eye(1.0)
-        self:set_movement_speed(50.0)
-        self:set_facing_speed(120)
-        self:set_position({ 512, 512, 550 })
-        self:set_radius(3.0)
-        self:set_can_move(true)
+        self:set_attr("character_name", "none")
+        self:set_attr("model_name", "player")
+        self:set_attr("eye_height", 14.0)
+        self:set_attr("above_eye", 1.0)
+        self:set_attr("movement_speed", 50.0)
+        self:set_attr("facing_speed", 120)
+        self:set_attr("position", { 512, 512, 550 })
+        self:set_attr("radius", 3.0)
+        self:set_attr("can_move", true)
 
-        self:set_physics_trigger(0)
-        self:set_jumping_sound("gk/jump2.ogg")
-        self:set_landing_sound("olpc/AdamKeshen/kik.wav")
+        self:set_attr("physics_trigger", 0)
+        self:set_attr("jumping_sound", "gk/jump2.ogg")
+        self:set_attr("landing_sound", "olpc/AdamKeshen/kik.wav")
     end or nil,
 
     activate = SERVER and function(self, kwargs)
@@ -359,7 +359,7 @@ local Character = Physical_Entity:clone {
         -- see world.lua for field meanings
         connect(self, "physics_trigger_changed", function(self, val)
             if val == 0 then return nil end
-            self:set_physics_trigger(0)
+            self:set_attr("physics_trigger", 0)
 
             local pos = (self ~= ents.get_player()) and self:get_attr("position")
                 or nil
@@ -410,8 +410,9 @@ local Character = Physical_Entity:clone {
             local state = self:get_attr("client_state")
             -- spawning or spectator
             if state == 5 or state == 2 then return nil end
-            local mdn = (hudpass and needhud and self.get_hud_model_name)
-                and self:get_attr("hud_model_name") or self:get_attr("model_name")
+            local mdn = (hudpass and needhud)
+                and self:get_attr("hud_model_name")
+                or  self:get_attr("model_name")
 
             local yaw, pitch, roll = self:get_attr("yaw"), self:get_attr("pitch"),
                 self:get_attr("roll")
@@ -574,8 +575,8 @@ local Player = Character:clone {
     init = SERVER and function(self, uid, kwargs)
         Character.init(self, uid, kwargs)
 
-        self:set_can_edit(false)
-        self:set_hud_model_name("")
+        self:set_attr("can_edit", false)
+        self:set_attr("hud_model_name", "")
     end or nil
 }
 M.Player = Player
@@ -643,9 +644,9 @@ local Static_Entity = Physical_Entity:clone {
 
         Physical_Entity.init(self, uid, kwargs)
         if not kwargs.position then
-            self:set_position({ 511, 512, 513 })
+            self:set_attr("position", { 511, 512, 513 })
         else
-            self:set_position({
+            self:set_attr("position", {
                 tonumber(kwargs.position.x),
                 tonumber(kwargs.position.y),
                 tonumber(kwargs.position.z)
@@ -679,12 +680,12 @@ local Static_Entity = Physical_Entity:clone {
         #log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
 
-        self:set_position(self:get_attr("position"))
-        self:set_attr1(self:get_attr("attr1"))
-        self:set_attr2(self:get_attr("attr2"))
-        self:set_attr3(self:get_attr("attr3"))
-        self:set_attr4(self:get_attr("attr4"))
-        self:set_attr5(self:get_attr("attr5"))
+        self:set_attr("position", self:get_attr("position"))
+        self:set_attr("attr1", self:get_attr("attr1"))
+        self:set_attr("attr2", self:get_attr("attr2"))
+        self:set_attr("attr3", self:get_attr("attr3"))
+        self:set_attr("attr4", self:get_attr("attr4"))
+        self:set_attr("attr5", self:get_attr("attr5"))
     end or function(self, kwargs)
         local x, y, z, attr1, attr2, attr3, attr4, attr5
         if kwargs then
@@ -828,10 +829,10 @@ local Light = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self:set_red(128)
-        self:set_green(128)
-        self:set_blue(128)
-        self:set_radius(100)
+        self:set_attr("red", 128)
+        self:set_attr("green", 128)
+        self:set_attr("blue", 128)
+        self:set_attr("radius", 100)
         self:set_shadow(0)
     end,
 
@@ -870,7 +871,7 @@ local Spot_Light = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self:set_radius(90)
+        self:set_attr("radius", 90)
     end,
 
     get_edit_color = function(self)
@@ -910,7 +911,7 @@ local Envmap = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self:set_radius(128)
+        self:set_attr("radius", 128)
     end,
 
     get_edit_info = function(self)
@@ -959,13 +960,13 @@ local Sound = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self:set_attr1(-1)
-        self:set_radius(100)
-        self:set_size(0)
+        self:set_attr("attr1", -1)
+        self:set_attr("radius", 100)
+        self:set_attr("size", 0)
         if not self:get_volume() then
             self:set_volume(100)
         end
-        self:set_sound_name("")
+        self:set_attr("sound_name", "")
     end,
 
     get_edit_info = function(self)
@@ -1206,9 +1207,9 @@ local Oriented_Marker = Static_Entity:clone {
         Places an entity on this marker's position.
     ]]
     place_entity = function(self, ent)
-        ent:set_position(self:get_attr("position"))
-        ent:set_yaw(self:get_attr("yaw"))
-        ent:set_pitch(self:get_attr("pitch"))
+        ent:set_attr("position", self:get_attr("position"))
+        ent:set_attr("yaw", self:get_attr("yaw"))
+        ent:set_attr("pitch", self:get_attr("pitch"))
     end,
 
     get_edit_info = function(self)
@@ -1232,7 +1233,7 @@ local Marker = Static_Entity:clone {
         Places an entity on this marker's position.
     ]]
     place_entity = function(self, ent)
-        ent:set_position(self:get_attr("position"))
+        ent:set_attr("position", self:get_attr("position"))
     end
 }
 M.Marker = Marker

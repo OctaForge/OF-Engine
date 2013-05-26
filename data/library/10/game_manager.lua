@@ -6,7 +6,7 @@ player_plugin = {
     },
 
     init = function(self)
-        self:set_team("") -- empty until set
+        self:set_attr("team", "") -- empty until set
     end,
 
     activate = function(self)
@@ -113,7 +113,7 @@ function setup(plugins_add)
                     sync_team_data = function(self)
                         -- we are called during deactivation process, as players leave
                         if not self.deactivated then
-                            self:set_team_data(self.teams)
+                            self:set_attr("team_data", self.teams)
                         end
                         signal.emit(self,"team_data_modified")
                     end,
@@ -135,7 +135,7 @@ function setup(plugins_add)
                             self:leave_team(player, sync)
                         end
 
-                        player:set_team(team)
+                        player:set_attr("team", team)
                         team = self.teams[team]
                         local lst = team.player_list
                         lst[#lst + 1] = player
@@ -179,7 +179,7 @@ function setup(plugins_add)
                             end
                         end
                         #log(WARNING, "player start not found (\"%(1)s\"), placing player elsewhere .." % { start_tag })
-                        player:set_position({ 512, 512, 571 })
+                        player:set_attr("position", { 512, 512, 571 })
                     end,
 
                     adjust_score = function(self, team_name, diff)
@@ -199,8 +199,7 @@ function setup(plugins_add)
                         return data
                     end,
 
-                    set_local_animation = function(self) end, -- just so it can fake being animated by actions
-                    get_animation = function(self) end
+                    set_local_animation = function(self) end -- just so it can fake being animated by actions
                 }},
                 plugins_add
             ),
@@ -246,7 +245,7 @@ manager_plugins = {
 
             if SERVER then
                 kwargs.player = kwargs.player and kwargs.player.uid or -1
-                self:set_server_message(kwargs)
+                self:set_attr("server_message", kwargs)
             else
                 if type(kwargs.player) == "number" then kwargs.player = ents.get(kwargs.player) end
                 self:clear_hud_messages() -- XXX: only 1 for now
@@ -348,25 +347,25 @@ manager_plugins = {
 
                 local players = self:get_players()
                 for k, player in pairs(players) do
-                    player:set_can_move(false)
+                    player:set_attr("can_move", false)
                     local msg
                     local sound
                     if not tie then
                         if self.steams[player:get_attr("team")].score == max_score then
-                            player:set_animation(math.bor(WIN, model.anims.LOOP))
+                            player:set_attr("animation", math.bor(WIN, model.anims.LOOP))
                             msg.show_client_message(player, self.finish_title, self.win_message)
                             if self.win_sound ~= "" then
                                 sound.play(self.win_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         else
-                            player:set_animation(math.bor(LOSE, model.anims.LOOP))
+                            player:set_attr("animation", math.bor(LOSE, model.anims.LOOP))
                             msg.show_client_message(player, self.finish_title, self.lose_message)
                             if self.lose_sound ~= "" then
                                 sound.play(self.lose_sound, math.Vec3(0, 0, 0), player.cn)
                             end
                         end
                     else
-                        player:set_animation(math.bor(model.anims.IDLE, model.anims.LOOP))
+                        player:set_attr("animation", math.bor(model.anims.IDLE, model.anims.LOOP))
                         msg.show_client_message(player, self.finish_title, self.tie_message)
                         if self.tie_sound ~= "" then
                             sound.play(self.tie_sound, math.Vec3(0, 0, 0), player.cn)
@@ -386,7 +385,7 @@ manager_plugins = {
                     -- unfreeze players
                     local players = self:get_players()
                     for k, player in pairs(players) do
-                        player:set_can_move(true)
+                        player:set_attr("can_move", true)
                     end
 
                     self:start_game()

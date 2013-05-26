@@ -87,7 +87,7 @@ action_base = extraevents.action_container:clone {
     start = function(self)
         extraevents.action_container.start(self)
 
-        self.actor:set_can_move(false)
+        self.actor:set_attr("can_move", false)
 
         self.original_yaw   = self.actor:get_attr("yaw")
         self.original_pitch = self.actor:get_attr("pitch")
@@ -117,8 +117,8 @@ action_base = extraevents.action_container:clone {
         It also shows subtitles and manages the timing.
     ]]
     run = function(self, seconds)
-        self.actor:set_yaw(self.original_yaw)
-        self.actor:set_pitch(self.original_pitch)
+        self.actor:set_attr("yaw", self.original_yaw)
+        self.actor:set_attr("pitch", self.original_pitch)
 
         if self.subtitles then
             self.show_subtitles(
@@ -138,7 +138,7 @@ action_base = extraevents.action_container:clone {
    finish = function(self)
         extraevents.action_container.finish(self)
 
-        self.actor:set_can_move(true)
+        self.actor:set_attr("can_move", true)
 
         _G["crosshair"] = self.old_crosshair
 
@@ -630,12 +630,12 @@ ents.register_class(
             Called serverside on entity creation. Sets up defaults.
         ]]
         init = function(self)
-            self:set_cancellable(false)
-            self:set_cancel_siblings(true)
-            self:set_seconds_per_marker(4)
-            self:set_delay_before(0)
-            self:set_delay_after(0)
-            self:set_next_controller(-1)
+            self:set_attr("cancellable", false)
+            self:set_attr("cancel_siblings", true)
+            self:set_attr("seconds_per_marker", 4)
+            self:set_attr("delay_before", 0)
+            self:set_attr("delay_after", 0)
+            self:set_attr("next_controller", -1)
         end,
 
         --[[!
@@ -690,7 +690,7 @@ ents.register_class(
             Called serverside on entity creation. Sets up defaults.
         ]]
         init = function(self)
-            self:set_next_marker(0)
+            self:set_attr("next_marker", 0)
         end,
 
         --[[!
@@ -813,16 +813,16 @@ ents.register_class(
             Called serverside on entity creation. Sets up defaults.
         ]]
         init = function(self)
-            self:set_parent_id(0)
-            self:set_start_time(0)
-            self:set_total_time(0)
-            self:set_text("")
-            self:set_x_pos(0.5)
-            self:set_y_pos(0.92)
-            self:set_size(0.5)
-            self:set_red(255)
-            self:set_green(255)
-            self:set_blue(255)
+            self:set_attr("parent_id", 0)
+            self:set_attr("start_time", 0)
+            self:set_attr("total_time", 0)
+            self:set_attr("text", "")
+            self:set_attr("x_pos", 0.5)
+            self:set_attr("y_pos", 0.92)
+            self:set_attr("size", 0.5)
+            self:set_attr("red", 255)
+            self:set_attr("green", 255)
+            self:set_attr("blue", 255)
         end,
 
         --[[!
@@ -924,7 +924,7 @@ ents.register_class(
         ]]
         init = function(self)
             self:set_background_image("")
-            self:set_subtitle_background("")
+            self:set_attr("subtitle_background", "")
         end,
 
         --[[!

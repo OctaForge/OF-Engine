@@ -11,10 +11,10 @@ dynamic_light = ents.register_class(plugins.bake(ents.Marker, {{
     per_frame = true,
 
     init = function(self)
-        self:set_radius(100)
-        self:set_red(128)
-        self:set_green(128)
-        self:set_blue(128)
+        self:set_attr("radius", 100)
+        self:set_attr("red", 128)
+        self:set_attr("green", 128)
+        self:set_attr("blue", 128)
     end,
 
     dynamic_light_show = function(self, seconds)
@@ -39,9 +39,9 @@ ents.register_class(plugins.bake(dynamic_light, {{
     },
 
     init = function(self)
-        self:set_probability(0.5)
-        self:set_min_delay(0.1)
-        self:set_max_delay(0.3)
+        self:set_attr("probability", 0.5)
+        self:set_attr("min_delay", 0.1)
+        self:set_attr("max_delay", 0.3)
     end,
 
     activate = function(self)

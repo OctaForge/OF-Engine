@@ -7,8 +7,8 @@ plugin = {
     },
 
     init = function(self)
-        self:set_destination(0)
-        self:set_sound_name("")
+        self:set_attr("destination", 0)
+        self:set_attr("sound_name", "")
     end,
 
     activate = CLIENT and function(self)
@@ -24,9 +24,9 @@ plugin = {
             end
 
             local destnum = math.random(1, #destinations)
-            collider:set_position(destinations[destnum]:get_attr("position"):to_array())
-            collider:set_yaw(destinations[destnum]:get_attr("yaw"))
-            collider:set_velocity({ 0, 0, 0 })
+            collider:set_attr("position", destinations[destnum]:get_attr("position"):to_array())
+            collider:set_attr("yaw", destinations[destnum]:get_attr("yaw"))
+            collider:set_attr("velocity", { 0, 0, 0 })
 
             if self:get_attr("sound_name") ~= "" then
                 sound.play(self:get_attr("sound_name"))

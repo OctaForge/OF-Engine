@@ -36,7 +36,7 @@ function cycle_gun_index(entity, indexes)
     if    curr > #indexes then
           curr = 1
     end
-    entity:set_current_gun_index(curr)
+    entity:set_attr("current_gun_index", curr)
 end
 
 function find_target(shooter, visual_origin, targeting_origin, fallback_target, range, scatter)
@@ -129,8 +129,8 @@ plugins = {
                 end
             end
 
-            self:set_gun_indexes({})
-            self:set_gun_switch_sound("")
+            self:set_attr("gun_indexes", {})
+            self:set_attr("gun_switch_sound", "")
         end,
 
         activate = function(self)
@@ -139,7 +139,7 @@ plugins = {
                     "gun_indexes_changed",
                     function(self, indexes)
                         if #indexes > 0 then
-                            self:set_current_gun_index(indexes[1]) -- sets initial value
+                            self:set_attr("current_gun_index", indexes[1]) -- sets initial value
                         end
                     end
                 )
@@ -252,7 +252,7 @@ function gun:do_shot(shooter, target_position, target_entity)
         end
     end
 
-    shooter:set_firing_info({
+    shooter:set_attr("firing_info", {
         self.gun_index,
         target_position.x,
         target_position.y,

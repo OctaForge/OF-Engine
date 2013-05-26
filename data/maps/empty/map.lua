@@ -45,7 +45,7 @@ entity_classes.register(plugins.bake(
         health.plugin,
         {
             init = function(self)
-                self:set_model_name("player")
+                self:set_attr("model_name", "player")
             end
         }
     }, "bot_player"

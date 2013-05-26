@@ -13,12 +13,12 @@ plugin = {
     per_frame = true,
 
     init = function(self)
-        self:set_jump_velocity({ 0, 0, 500 }) -- default
-        self:set_pad_model("")
-        self:set_pad_rotate(false)
-        self:set_pad_pitch(90)
-        self:set_pad_roll(0)
-        self:set_pad_sound("")
+        self:set_attr("jump_velocity", { 0, 0, 500 }) -- default
+        self:set_attr("pad_model", "")
+        self:set_attr("pad_rotate", false)
+        self:set_attr("pad_pitch", 90)
+        self:set_attr("pad_roll", 0)
+        self:set_attr("pad_sound", "")
     end,
 
     activate = CLIENT and function(self)
@@ -41,7 +41,7 @@ plugin = {
            self.player_delay = 0.1
 
         -- throw collider up
-        collider:set_velocity(self:get_attr("jump_velocity"):to_array())
+        collider:set_attr("velocity", self:get_attr("jump_velocity"):to_array())
 
         if self:get_attr("pad_sound") ~= "" then
             sound.play(self:get_attr("pad_sound"))

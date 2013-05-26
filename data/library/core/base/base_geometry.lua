@@ -106,7 +106,7 @@ function get_ray_collision_entities(origin, target, ignore)
     for k, entity in pairs(entities) do
         if entity ~= ignore then
             local entity_dir = entity:get_center():sub_new(origin)
-            local entity_rad = entity.get_radius and entity:get_attr("radius") or 0
+            local entity_rad = entity:get_attr("radius") or 0
             local alpha = direction:dot_product(entity_dir) / dist2
             local collision_position
                 = origin:add_new(direction:mul_new(alpha))
@@ -271,11 +271,11 @@ function bounce(thing, elasticity, friction, seconds)
         -- we failed to bounce, just go in the reverse direction
         -- from the last ok spot - better than something more embarassing
         if  thing.last_safe and thing.last_safe[2] then
-            thing:set_position(thing.last_safe[2]:get_attr("position"))
-            thing:set_velocity(thing.last_safe[2]:get_attr("velocity"))
+            thing:set_attr("position", thing.last_safe[2]:get_attr("position"))
+            thing:set_attr("velocity", thing.last_safe[2]:get_attr("velocity"))
         elseif thing.last_safe then
-            thing:set_position(thing.last_safe[1]:get_attr("position"))
-            thing:set_velocity(thing.last_safe[1]:get_attr("velocity"))
+            thing:set_attr("position", thing.last_safe[1]:get_attr("position"))
+            thing:set_attr("velocity", thing.last_safe[1]:get_attr("velocity"))
         end
         thing:get_attr("velocity"):mul(-1)
         return true
@@ -322,11 +322,11 @@ function bounce(thing, elasticity, friction, seconds)
 
     movement = get_reflected_ray(movement, normal, elasticity, friction)
 
-    thing:set_position(old_position:add(movement))
+    thing:set_attr("position", old_position:add(movement))
     if is_colliding(thing:get_attr("position"), thing:get_attr("radius"), thing.ignore) then
         return fallback()
     end
-    thing:set_velocity(movement:mul(1 / seconds))
+    thing:set_attr("velocity", movement:mul(1 / seconds))
 
     return true
 end
