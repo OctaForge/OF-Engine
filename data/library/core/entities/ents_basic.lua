@@ -1046,16 +1046,16 @@ local Sound = Static_Entity:clone {
         self:set_attr("attr1", -1)
         self:set_attr("radius", 100)
         self:set_attr("size", 0)
-        if not self:get_volume() then
-            self:set_volume(100)
+        if not self:get_attr("volume") then
+            self:set_attr("volume", 100)
         end
         self:set_attr("sound_name", "")
     end,
 
     get_edit_info = function(self)
         return format('radius: %d, size: %d, volume: %d\nname: "%s"',
-            self:get_attr("radius"), self:get_attr("size"), self:get_volume(),
-            self:get_attr("sound_name"))
+            self:get_attr("radius"), self:get_attr("size"),
+            self:get_attr("volume"), self:get_attr("sound_name"))
     end
 }
 M.Sound = Sound
@@ -1180,25 +1180,28 @@ local Particle_Effect = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self:set_particle_type(0)
-        self:set_a(0)
-        self:set_b(0)
-        self:set_c(0)
-        self:set_d(0)
+        self:set_attr("particle_type", 0)
+        self:set_attr("a", 0)
+        self:set_attr("b", 0)
+        self:set_attr("c", 0)
+        self:set_attr("d", 0)
     end,
 
     get_edit_info = function(self)
-        local pt = self:get_particle_type()
+        local pt = self:get_attr("particle_type")
         if pt == 0 or pt == 4 or pt == 7 or pt == 8 or pt == 9 or pt == 10
         or pt == 11 or pt == 12 or pt == 13 then
             return format("pt: %d, a: %d b: %d c: 0x%.3X d: %d", pt,
-                self:get_a(), self:get_b(), self:get_c(), self:get_d())
+                self:get_attr("a"), self:get_attr("b"), self:get_attr("c"),
+                self:get_attr("d"))
         elseif pt == 3 then
             return format("pt: %d, a: %d b: 0x%.3X c: %d d: %d", pt,
-                self:get_a(), self:get_b(), self:get_c(), self:get_d())
+                self:get_attr("a"), self:get_attr("b"), self:get_attr("c"),
+                self:get_attr("d"))
         elseif pt == 5 or pt == 6 then
             return format("pt: %d, a: %d b: 0x%.6X c: 0x%.3X d: %d", pt,
-                self:get_a(), self:get_b(), self:get_c(), self:get_d())
+                self:get_attr("a"), self:get_attr("b"), self:get_attr("c"),
+                self:get_attr("d"))
         end
     end,
 
@@ -1311,8 +1314,8 @@ local Obstacle = Static_Entity:clone {
 
     get_edit_info = function(self)
         return format("yaw: %d, a: %d, b: %d, c: %d, solid: %d",
-            self:get_attr("yaw"), self:get_a(), self:get_b(), self:get_c(),
-            self:get_solid())
+            self:get_attr("yaw"), self:get_attr("a"), self:get_attr("b"),
+            self:get_attr("c"), self:get_solid())
     end,
 
     --[[! Function: get_edit_drop_height
