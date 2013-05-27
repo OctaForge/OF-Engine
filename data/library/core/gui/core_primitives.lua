@@ -955,11 +955,10 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     end,
 
     draw = function(self, sx, sy)
-        local  cmd = self.func
-        if not cmd then return Object.draw(self, sx, sy) end
-        local  val = cmd()
+        local  val = self.val_saved
+        if not val then return Object.draw(self, sx, sy) end
 
-        local k = self:draw_scale()
+        local k = self.scale_saved
         _C.hudmatrix_push()
         _C.hudmatrix_scale(k, k, 1)
         _C.hudmatrix_flush()
@@ -980,8 +979,10 @@ M.Eval_Label = register_class("Eval_Label", Object, {
         local  cmd = self.func
         if not cmd then return nil end
         local val = cmd()
+        self.val_saved = val
 
         local k = self:draw_scale()
+        self.scale_saved = k
 
         local w, h = _C.text_get_bounds(val or "",
             self.wrap <= 0 and -1 or self.wrap / k)
