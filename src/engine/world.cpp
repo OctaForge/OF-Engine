@@ -996,7 +996,10 @@ void entpaste()
         CLogicEntity *entity = LogicSystem::getLogicEntity(c);
         if (!entity) return;
 
-        const char *_class = entity->getClass();
+        lua::push_external("entity_get_class_name");
+        lua_rawgeti(lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+        lua_call(lua::L, 1, 1);
+        const char *cn = lua_tostring(lua::L, -1); lua_pop(lua::L, -1);
 
         lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
         lua_getfield(lua::L, -1, "build_sdata");
@@ -1011,7 +1014,7 @@ void entpaste()
         const char *sd = luaL_optstring(lua::L, -1, "{}");
         lua_pop(lua::L, 1);
 
-        EditingSystem::newent(_class, sd);
+        EditingSystem::newent(cn, sd);
         // INTENSITY: end Create entity using new system
 
 // INTENSITY       extentity *e = newentity(true, o, ET_EMPTY, c.attr1, c.attr2, c.attr3, c.attr4, c.attr5);
@@ -1067,19 +1070,22 @@ ICOMMAND(entget,    "",  (), entfocus(efocus, string s; printent(e, s); result(s
 ICOMMAND(entindex,  "",  (), intret(efocus));
 COMMAND(nearestent, "");
 
-const char *intensityCopiedClass = "", *intensityCopiedStateData = "";
+static string copied_class = {'\0'};
+static char copied_sdata[4096] = {'\0'};
+
 void intensityentcopy() // INTENSITY
 {
-    if (efocus < 0)
-    {
-        intensityCopiedClass = "";
-        intensityCopiedStateData = "";
-        return;
+    if (efocus < 0) {
+        copied_class[0] = copied_sdata[0] = '\0'; return;
     }
 
     extentity& e = *(entities::getents()[efocus]);
     CLogicEntity *entity = LogicSystem::getLogicEntity(e);
-    intensityCopiedClass = entity->getClass();
+
+    lua::push_external("entity_get_class_name");
+    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
+    lua_call(lua::L, 1, 1);
+    copystring(copied_class, lua_tostring(lua::L, -1)); lua_pop(lua::L, -1);
 
     lua_rawgeti (lua::L, LUA_REGISTRYINDEX, entity->lua_ref);
     lua_getfield(lua::L, -1, "build_sdata");
@@ -1091,13 +1097,13 @@ void intensityentcopy() // INTENSITY
 
     lua::push_external("table_serialize"); lua_insert(lua::L, -2);
     lua_call(lua::L,  1, 1);
-    intensityCopiedStateData = luaL_optstring(lua::L, -1, "{}");
+    copystring(copied_sdata, luaL_optstring(lua::L, -1, "{}"), sizeof(copied_sdata));
     lua_pop(lua::L, 1);
 }
 
 void intensitypasteent() // INTENSITY
 {
-    EditingSystem::newent(intensityCopiedClass, intensityCopiedStateData);
+    EditingSystem::newent(copied_class, copied_sdata);
 }
 
 COMMAND(intensityentcopy, "");
@@ -1113,7 +1119,7 @@ void enttype(char *type, int *numargs) {
                 "{}");
         );
     } else entfocus(efocus, {
-        lua::push_external("entity_get_name");
+        lua::push_external("entity_get_class_name");
         lua_rawgeti(lua::L, LUA_REGISTRYINDEX,
             LogicSystem::getLogicEntity(e)->lua_ref);
         lua_call(lua::L, 1, 1);

@@ -83,9 +83,6 @@ struct CLogicEntity
     //! calculation of per-frame models, which is also needed on the server
     int getAnimationFrame();
 
-    //! Gets the lua class name of a logic entity (e.g., Mapmodel, Player, Door)
-    const char *getClass();
-
     //! Returns the model used to render this entity
     model* getModel();
 

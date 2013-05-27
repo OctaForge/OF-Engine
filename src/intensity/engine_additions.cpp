@@ -63,16 +63,6 @@ int CLogicEntity::getAnimationFrame()
     return 0; /* DEPRECATED for now */
 }
 
-const char *CLogicEntity::getClass()
-{
-    lua_getglobal(lua::L, "tostring");
-    lua_rawgeti  (lua::L, LUA_REGISTRYINDEX, lua_ref);
-    lua_call     (lua::L, 1, 1);
-    const char *cl = luaL_optstring(lua::L, -1, "unknown");
-    lua_pop(lua::L, 1);
-    return cl;
-}
-
 model* CLogicEntity::getModel()
 {
 #ifdef CLIENT

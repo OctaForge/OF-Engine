@@ -1206,10 +1206,10 @@ set_external("entity_get_attached", function(ent)
     end
 end)
 
---[[! Function: entity_get_name
-    An external that returns the entity name.
+--[[! Function: entity_get_class_name
+    An external that returns the name of the class of the given entity.
 ]]
-set_external("entity_get_name", function(ent)
+set_external("entity_get_class_name", function(ent)
     return ent.name
 end)
 

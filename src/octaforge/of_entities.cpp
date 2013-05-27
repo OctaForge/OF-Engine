@@ -120,8 +120,8 @@ namespace entities
         const char *name = "";
         if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
         LUA_GET_ENT(entity, "_C.setmodelname", return 0)
-        logger::log(logger::DEBUG, "_C.setmodelname(\"%s\", \"%s\")\n",
-            entity->getClass(), name);
+        logger::log(logger::DEBUG, "_C.setmodelname(%d, \"%s\")\n",
+            entity->getUniqueId(), name);
         entity->setModel(name);
         return 0;
     });
@@ -130,8 +130,8 @@ namespace entities
         const char *name = "";
         if (!lua_isnoneornil(L, 2)) name = luaL_checkstring(L, 2);
         LUA_GET_ENT(entity, "_C.setsoundname", return 0)
-        logger::log(logger::DEBUG, "_C.setsoundname(\"%s\", \"%s\")\n",
-            entity->getClass(), name);
+        logger::log(logger::DEBUG, "_C.setsoundname(%d, \"%s\")\n",
+            entity->getUniqueId(), name);
         entity->setSound(name);
         return 0;
     });
@@ -224,8 +224,8 @@ namespace entities
         extentity *ext = entity->staticEntity;
         assert(ext);
         logger::log(logger::INFO,
-            "_C.getextent0(\"%s\"): x: %f, y: %f, z: %f\n",
-            entity->getClass(), ext->o.x, ext->o.y, ext->o.z);
+            "_C.getextent0(%d): x: %f, y: %f, z: %f\n",
+            entity->getUniqueId(), ext->o.x, ext->o.y, ext->o.z);
         lua_createtable(L, 3, 0);
         lua_pushnumber(L, ext->o.x); lua_rawseti(L, -2, 1);
         lua_pushnumber(L, ext->o.y); lua_rawseti(L, -2, 2);

@@ -1462,7 +1462,7 @@ void updateparticles()
             extentity &e = *ents[entgroup[i]];
             CLogicEntity *le = LogicSystem::getLogicEntity(e);
             if (!le) continue;
-            lua::push_external("entity_get_name");
+            lua::push_external("entity_get_class_name");
             lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
             lua_call(lua::L, 1, 1);
             particle_textcopy(e.o, lua_tostring(lua::L, -1), PART_TEXT, 1, 0xFF4B19, 2.0f);
@@ -1476,7 +1476,7 @@ void updateparticles()
             lua::push_external("entity_get_edit_icon_info");
             lua_rawgeti(lua::L, LUA_REGISTRYINDEX, le->lua_ref);
 
-            lua::push_external("entity_get_name");
+            lua::push_external("entity_get_class_name");
             lua_pushvalue(lua::L, -2);
             lua_call(lua::L, 1, 1);
             const char *name = lua_tostring(lua::L, -1); lua_pop(lua::L, 1);
