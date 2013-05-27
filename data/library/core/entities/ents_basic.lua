@@ -790,6 +790,68 @@ set_external("entity_get_edit_info", function(ent)
     return ent.name, ent:get_edit_info()
 end)
 
+--[[! Class: Marker
+    A generic marker without orientation. It doesn't have any default
+    additional properties.
+]]
+local Marker = Static_Entity:clone {
+    name = "Marker",
+
+    edit_icon = "data/textures/icons/edit_marker",
+
+    sauer_type = 1,
+
+    --[[! Function: place_entity
+        Places an entity on this marker's position.
+    ]]
+    place_entity = function(self, ent)
+        ent:set_attr("position", self:get_attr("position"))
+    end
+}
+M.Marker = Marker
+
+--[[! Class: Oriented_Marker
+    A generic (oriented) marker with a wide variety of uses. Can be used as
+    a base for various position markers (e.g. playerstarts). It has two
+    properties, attr1 alias yaw, attr2 alias pitch.
+
+    An example of world marker usage is a cutscene system. Different marker
+    types inherited from this one can represent different nodes.
+]]
+local Oriented_Marker = Static_Entity:clone {
+    name = "Oriented_Marker",
+
+    edit_icon = "data/textures/icons/edit_marker",
+
+    sauer_type = 2,
+
+    properties = {
+        attr1 = svars.State_Integer {
+            getter = "_C.get_attr1", setter = "_C.set_attr1",
+            gui_name = "yaw", alt_name = "yaw"
+        },
+        attr2 = svars.State_Integer {
+            getter = "_C.get_attr2", setter = "_C.set_attr2",
+            gui_name = "pitch", alt_name = "pitch"
+        }
+    },
+
+    --[[! Function: place_entity
+        Places an entity on this marker's position.
+    ]]
+    place_entity = function(self, ent)
+        ent:set_attr("position", self:get_attr("position"))
+        ent:set_attr("yaw", self:get_attr("yaw"))
+        ent:set_attr("pitch", self:get_attr("pitch"))
+    end,
+
+    get_edit_info = function(self)
+        return format("yaw: %d, pitch: %d", self:get_attr("yaw"),
+            self:get_attr("pitch"))
+    end
+}
+M.Oriented_Marker = Oriented_Marker
+
 --[[! Class: Light
     A regular point light. In the extension library there are special light
     entity types that are e.g. triggered, flickering and so on.
@@ -806,7 +868,7 @@ local Light = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_light",
 
-    sauer_type = 1,
+    sauer_type = 3,
 
     properties = {
         attr1 = svars.State_Integer({
@@ -865,7 +927,7 @@ local Spot_Light = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_spotlight",
 
-    sauer_type = 7,
+    sauer_type = 4,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -905,7 +967,7 @@ local Envmap = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_envmap",
 
-    sauer_type = 4,
+    sauer_type = 5,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -1075,7 +1137,7 @@ local Particle_Effect = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_particles",
 
-    sauer_type = 5,
+    sauer_type = 7,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -1142,7 +1204,7 @@ local Mapmodel = Static_Entity:clone {
 
     edit_icon = "data/textures/icons/edit_mapmodel",
 
-    sauer_type = 2,
+    sauer_type = 8,
 
     properties = {
         attr1 = svars.State_Integer {
@@ -1182,68 +1244,6 @@ set_external("physics_collide_mapmodel", function(collider, entity)
     emit(entity, "collision", collider)
     emit(collider, "collision", entity)
 end)
-
---[[! Class: Oriented_Marker
-    A generic (oriented) marker with a wide variety of uses. Can be used as
-    a base for various position markers (e.g. playerstarts). It has two
-    properties, attr1 alias yaw, attr2 alias pitch.
-
-    An example of world marker usage is a cutscene system. Different marker
-    types inherited from this one can represent different nodes.
-]]
-local Oriented_Marker = Static_Entity:clone {
-    name = "Oriented_Marker",
-
-    edit_icon = "data/textures/icons/edit_marker",
-
-    sauer_type = 3,
-
-    properties = {
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "yaw", alt_name = "yaw"
-        },
-        attr2 = svars.State_Integer {
-            getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "pitch", alt_name = "pitch"
-        }
-    },
-
-    --[[! Function: place_entity
-        Places an entity on this marker's position.
-    ]]
-    place_entity = function(self, ent)
-        ent:set_attr("position", self:get_attr("position"))
-        ent:set_attr("yaw", self:get_attr("yaw"))
-        ent:set_attr("pitch", self:get_attr("pitch"))
-    end,
-
-    get_edit_info = function(self)
-        return format("yaw: %d, pitch: %d", self:get_attr("yaw"),
-            self:get_attr("pitch"))
-    end
-}
-M.Oriented_Marker = Oriented_Marker
-
---[[! Class: Marker
-    A generic marker without orientation. It doesn't have any default
-    additional properties.
-]]
-local Marker = Static_Entity:clone {
-    name = "Marker",
-
-    edit_icon = "data/textures/icons/edit_marker",
-
-    sauer_type = 8,
-
-    --[[! Function: place_entity
-        Places an entity on this marker's position.
-    ]]
-    place_entity = function(self, ent)
-        ent:set_attr("position", self:get_attr("position"))
-    end
-}
-M.Marker = Marker
 
 --[[! Class: Obstacle
     An entity class that emits a "collision" signal on itself when a client
@@ -1298,11 +1298,12 @@ set_external("physics_collide_area", function(collider, entity)
     emit(collider, "collision", entity)
 end)
 
+ents.register_class(Marker)
+ents.register_class(Oriented_Marker)
 ents.register_class(Light)
 ents.register_class(Spot_Light)
 ents.register_class(Envmap)
 ents.register_class(Sound)
 ents.register_class(Particle_Effect)
 ents.register_class(Mapmodel)
-ents.register_class(Oriented_Marker)
 ents.register_class(Obstacle)

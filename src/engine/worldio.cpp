@@ -737,7 +737,8 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         }
         if(!insideworld(e.o))
         {
-            if(e.type != ET_LIGHT && e.type != ET_SPOTLIGHT)
+            /* LIGHT and SPOTLIGHT */
+            if(e.type != 1 && e.type != 7)
             {
                 conoutf(CON_WARN, "warning: ent outside of world: enttype[%d] index %d (%f, %f, %f)", e.type, i, e.o.x, e.o.y, e.o.z);
             }
@@ -745,13 +746,13 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
         switch (e.type) // check if to write the entity
         {
-            case ET_LIGHT:
-            case ET_SPOTLIGHT:
-            case ET_ENVMAP:
-            case ET_PARTICLES:
-            case ET_MAPMODEL:
-            case ET_SOUND:
-            case ET_ORIENTED_MARKER:
+            case 1: /* LIGHT */
+            case 2: /* MAPMODEL */
+            case 3: /* PLAYERSTART */
+            case 4: /* ENVMAP */
+            case 5: /* PARTICLES */
+            case 6: /* SOUND */
+            case 7: /* SPOTLIGHT */
             case 19: /* TELEPORT */
             case 20: /* TELEDEST */
             case 23: /* JUMPPAD */
