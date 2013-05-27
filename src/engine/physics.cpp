@@ -1688,15 +1688,15 @@ bool droptofloor(vec &o, float radius, float height)
     return false;
 }
 
-float dropheight(entity &e)
-{
-    switch(e.type)
-    {
-        case ET_PARTICLES:
-        case ET_MAPMODEL:
-        case ET_OBSTACLE: return 0.0f; /* OF */
-        default: return 4.0f;
-    }
+/* OF */
+float dropheight(entity &e) {
+    CLogicEntity *ent = LogicSystem::getLogicEntity((extentity&)e);
+    if (!ent) return 4.0f;
+    lua::push_external("entity_get_edit_drop_height");
+    lua_rawgeti(lua::L, LUA_REGISTRYINDEX, ent->lua_ref);
+    lua_call(lua::L, 1, 1);
+    float  ret = lua_tonumber(lua::L, -1); lua_pop(lua::L, 1);
+    return ret;
 }
 
 void dropenttofloor(entity *e)

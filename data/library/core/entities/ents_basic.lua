@@ -771,6 +771,15 @@ local Static_Entity = Physical_Entity:clone {
     ]]
     get_attached_entity = function(self)
         return _C.get_attached_entity(self)
+    end,
+
+    --[[! Function: get_edit_drop_height
+        Returns the height above the floor to use when dropping the entity
+        to the floor. By default returns 4, may be useful to overload (for
+        say, mapmodels).
+    ]]
+    get_edit_drop_height = function(self)
+        return 4
     end
 }
 M.Static_Entity = Static_Entity
@@ -788,6 +797,13 @@ end)
 ]]
 set_external("entity_get_edit_info", function(ent)
     return ent.name, ent:get_edit_info()
+end)
+
+--[[! Function: entity_get_edit_drop_height
+    An external, see <Entity.get_edit_drop_height>.
+]]
+set_external("entity_get_edit_drop_height", function(ent)
+    return ent:get_edit_drop_height()
 end)
 
 --[[! Class: Marker
@@ -1184,6 +1200,13 @@ local Particle_Effect = Static_Entity:clone {
             return format("pt: %d, a: %d b: 0x%.6X c: 0x%.3X d: %d", pt,
                 self:get_a(), self:get_b(), self:get_c(), self:get_d())
         end
+    end,
+
+    --[[! Function: get_edit_drop_height
+        Returns 0.
+    ]]
+    get_edit_drop_height = function(self)
+        return 0
     end
 }
 M.Particle_Effect = Particle_Effect
@@ -1230,6 +1253,13 @@ local Mapmodel = Static_Entity:clone {
             self:get_attr("yaw"), self:get_attr("pitch"),
             self:get_attr("roll"), self:get_scale(),
             self:get_attr("model_name"))
+    end,
+
+    --[[! Function: get_edit_drop_height
+        Returns 0.
+    ]]
+    get_edit_drop_height = function(self)
+        return 0
     end
 }
 M.Mapmodel = Mapmodel
@@ -1283,6 +1313,13 @@ local Obstacle = Static_Entity:clone {
         return format("yaw: %d, a: %d, b: %d, c: %d, solid: %d",
             self:get_attr("yaw"), self:get_a(), self:get_b(), self:get_c(),
             self:get_solid())
+    end,
+
+    --[[! Function: get_edit_drop_height
+        Returns 0.
+    ]]
+    get_edit_drop_height = function(self)
+        return 0
     end
 }
 M.Obstacle = Obstacle
