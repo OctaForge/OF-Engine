@@ -18,10 +18,12 @@ local M = ents
 
 local Entity = M.Entity
 
-local band, bor, lsh, rsh = math.band, math.bor, math.lsh, math.rsh
+local band, bor, bnot, lsh, rsh = math.band, math.bor, math.bnot, math.lsh, 
+    math.rsh
 local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
 local connect, emit = signal.connect, signal.emit
 local format = string.format
+local abs = math.abs
 
 --[[! Class: Physical_Entity
     Represents a base for every entity that has some kind of physical
@@ -162,6 +164,8 @@ local FLAG_BELOWGROUND = lsh(2, 4)
         0 when not at all.
         pitching [<svars.State_Integer>] - -1 when looking down, 1 when up,
         0 when not.
+        crouching [<svars.State_Integer>] - -1 when crouching down, 1 when up,
+        0 when not.
         jumping [<svars.State_Boolean>] - true when the character has jumped,
         false otherwise.
         position [<svars.State_Vec3>] - the current position. Defaults to
@@ -247,6 +251,10 @@ local Character = Physical_Entity:clone {
             getter = "_C.get_pitching", setter = "_C.set_pitching",
             custom_sync = true
         },
+        crouching = svars.State_Integer {
+            getter = "_C.get_crouching", setter = "_C.set_crouching",
+            custom_sync = true
+        },
         jumping = svars.State_Boolean {
             getter = "_C.get_jumping", setter = "_C.set_jumping",
             custom_sync = true
@@ -310,10 +318,25 @@ local Character = Physical_Entity:clone {
     },
 
     --[[! Function: jump
-        A handler called when the character is about to jump.
+        A handler called when the character is about to jump. It takes the
+        "down" parameter as an argument. By default sets "jumping" to "down".
     ]]
-    jump = function(self)
-        self:set_attr("jumping", true)
+    jump = function(self, down)
+        self:set_attr("jumping", down)
+    end,
+
+    --[[! Function: crouch
+        A handler called when the character is about to crouch. It takes the
+        "down" parameter as an argument. By default checks if "down" is true
+        and if it is, sets "crouching" to -1, otherwise sets "crouching" to
+        abs(crouching).
+    ]]
+    crouch = function(self, down)
+        if down then
+            self:set_attr("crouching", -1)
+        else
+            self:set_attr("crouching", abs(self:get_attr("crouching")))
+        end
     end,
 
     get_plag = _C.get_plag,
@@ -432,7 +455,9 @@ local Character = Physical_Entity:clone {
                 self:get_attr("falling"):copy()
             local tia = self:get_attr("time_in_air")
 
-            local anim = self:decide_animation(state, pstate, mv, sf, vel,
+            local cr = self:get_attr("crouching")
+
+            local anim = self:decide_animation(state, pstate, mv, sf, cr, vel,
                 fall, iw, tia)
             local flags = self:get_render_flags(hudpass, needhud)
 
@@ -471,11 +496,11 @@ local Character = Physical_Entity:clone {
         strafing, swimming etc into account.
 
         Passed arguments are client_state, physical_state, move, strafe,
-        velocity, falling, in_liquid and time_in_air (same as the state
-        variables).
+        crouching, velocity, falling, in_liquid and time_in_air (same as the
+        state variables).
     ]]
     decide_animation = CLIENT and function(self, state, pstate, move, strafe,
-    vel, falling, inwater, tinair)
+    crouching, vel, falling, inwater, tinair)
         local anim = self:get_attr("animation")
 
         -- editing or spectator
@@ -508,6 +533,39 @@ local Character = Physical_Entity:clone {
                 elseif move < 0 then
                     anim = bor(anim, lsh(bor(model.anims.BACKWARD,
                         model.anims.LOOP), model.anims.SECONDARY))
+                end
+            end
+
+            if crouching ~= 0 then
+                local v = band(rsh(anim, model.anims.SECONDARY),
+                    model.anims.INDEX)
+                if v == model.anims.IDLE then
+                    anim = band(anim, bnot(lsh(model.anims.INDEX,
+                        model.anims.SECONDARY)))
+                    anim = bor(anim, lsh(model.anims.CROUCH,
+                        model.anims.SECONDARY))
+                elseif v == model.anims.JUMP then
+                    anim = band(anim, bnot(lsh(model.anims.INDEX,
+                        model.anims.SECONDARY)))
+                    anim = bor(anim, lsh(model.anims.CROUCH_JUMP,
+                        model.anims.SECONDARY))
+                elseif v == model.anims.SWIM then
+                    anim = band(anim, bnot(lsh(model.anims.INDEX,
+                        model.anims.SECONDARY)))
+                    anim = bor(anim, lsh(model.anims.CROUCH_SWIM,
+                        model.anims.SECONDARY))
+                elseif v == model.anims.SINK then
+                    anim = band(anim, bnot(lsh(model.anims.INDEX,
+                        model.anims.SECONDARY)))
+                    anim = bor(anim, lsh(model.anims.CROUCH_SINK,
+                        model.anims.SECONDARY))
+                elseif v == 0 then
+                    anim = bor(anim, lsh(bor(model.anims.CROUCH,
+                        model.anims.LOOP), model.anims.SECONDARY))
+                elseif v == model.anims.FORWARD or v == model.anims.BACKWARD
+                or v == model.anims.LEFT or v == model.anims.RIGHT then
+                    anim = anim + lsh((model.anims.CROUCH_FORWARD
+                        - model.anims.FORWARD), model.anims.SECONDARY)
                 end
             end
 

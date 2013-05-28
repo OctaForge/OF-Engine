@@ -65,6 +65,8 @@ void QuantizedInfo::generateFrom(fpsent *d)
     misc |= ((d->strafe + 1) << 6);
 
     mapDefinedPositionData = d->mapDefinedPositionData;
+
+    crouching = d->crouching < 0;
 }
 
 void QuantizedInfo::generateFrom(ucharbuf& p)
@@ -72,7 +74,7 @@ void QuantizedInfo::generateFrom(ucharbuf& p)
     clientNumber = getint(p);// printf("START GET: %d\r\n", clientNumber);
 
     // Indicates which fields are in fact present (the has[X] stuff)
-    unsigned char indicator = p.get();// printf("GET: %u\r\n", indicator); 
+    unsigned int indicator = getuint(p);// printf("GET: %u\r\n", indicator); 
 ////////////////////////////////////printf("generateFrom: %d (%d,%d,%d,%d,%d,%d,%d,%d)\r\n", indicator, hasPosition, hasYaw, hasPitch, hasRoll, hasVelocity, hasFallingXY, hasFallingZ, hasMisc);
     hasPosition = (indicator & 1) != 0;
     hasYaw = (indicator & 2) != 0;
@@ -81,7 +83,8 @@ void QuantizedInfo::generateFrom(ucharbuf& p)
     hasVelocity = (indicator & 16) != 0; 
     hasFalling = (indicator & 32) != 0;
     hasMisc = (indicator & 64) != 0;
-    hasMapDefinedPositionData = (indicator & 128) != 0;
+    crouching = (indicator & 128) != 0;
+    hasMapDefinedPositionData = (indicator & 256) != 0;
 
     if (hasPosition)
     {
@@ -186,6 +189,8 @@ void QuantizedInfo::applyToEntity(fpsent *d)
         d->strafe = ((misc >> 6) & 3) - 1;
     }
 
+    d->crouching = crouching ? -1 : abs(d->crouching);
+
     if (hasMapDefinedPositionData)
     {
         d->mapDefinedPositionData = mapDefinedPositionData;
@@ -246,7 +251,7 @@ void QuantizedInfo::applyToBuffer(ucharbuf& q)
 
     putint(q, clientNumber);// printf("START PUT: %d\r\n", clientNumber);
 
-    unsigned char indicator = 0; // Indicates which fields are in fact present (the has[X] stuff)
+    unsigned int indicator = 0; // Indicates which fields are in fact present (the has[X] stuff)
     indicator |= hasPosition;
     indicator |= (hasYaw << 1);
     indicator |= (hasPitch << 2);
@@ -254,9 +259,10 @@ void QuantizedInfo::applyToBuffer(ucharbuf& q)
     indicator |= (hasVelocity << 4);
     indicator |= (hasFalling << 5);
     indicator |= (hasMisc << 6);
-    indicator |= (hasMapDefinedPositionData << 7);
+    indicator |= (crouching << 7);
+    indicator |= (hasMapDefinedPositionData << 8);
 ///////////////////////////////printf("applyToBuffer: %d (%d,%d,%d,%d,%d,%d,%d,%d)\r\n", indicator, hasPosition, hasYaw, hasPitch, hasRoll, hasVelocity, hasFallingXY, hasFallingZ, hasMisc);
-    q.put(indicator);// printf("PUT: %u\r\n", indicator);
+    putuint(q, indicator);// printf("PUT: %u\r\n", indicator);
 
     if (hasPosition)
     {

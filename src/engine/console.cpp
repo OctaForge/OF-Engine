@@ -922,6 +922,23 @@ ICOMMAND(jump, "", (), {
     }
 });
 
+ICOMMAND(crouch, "", (), {
+    if (ClientSystem::scenarioStarted())
+    {
+        CLogicEntity *e = ClientSystem::playerLogicEntity;
+        lua_rawgeti (lua::L, LUA_REGISTRYINDEX, e->lua_ref);
+        lua_getfield(lua::L, -1, "clear_actions");
+        lua_insert  (lua::L, -2);
+        lua_call    (lua::L, 1, 0);
+
+        bool down = (addreleaseaction(newstring("crouch")) != 0);
+
+        lua::push_external("input_crouch");
+        lua_pushboolean(lua::L, down);
+        lua_call(lua::L, 1, 0);
+    }
+});
+
 LUAICOMMAND(input_get_modifier_state, {
     lua_pushinteger(L, SDL_GetModState());
     return 1;

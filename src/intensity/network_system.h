@@ -51,11 +51,13 @@ namespace NetworkSystem
             bool hasMisc; // Bit 7 - represents physicsState (3 bits), lifeSequence (1 bit), move (2 bits), strafe (2 bits)
             unsigned char misc;
 
+            bool crouching; // stuff this to indicator for now
+
             bool hasMapDefinedPositionData; // Bit 8 - see class fpsent
             unsigned int mapDefinedPositionData;
 
             QuantizedInfo() : hasPosition(true), hasYaw(true), hasPitch(true), hasRoll(true),
-                              hasVelocity(true), hasFalling(true), hasMisc(true),
+                              hasVelocity(true), hasFalling(true), hasMisc(true), crouching(true),
                               hasMapDefinedPositionData(true)
                 { };
 

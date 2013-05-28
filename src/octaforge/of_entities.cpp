@@ -281,6 +281,7 @@ namespace entities
     DYNENT_ACCESSORS(move, int, integer, move)
     DYNENT_ACCESSORS(strafe, int, integer, strafe)
     DYNENT_ACCESSORS(yawing, int, integer, turn_move)
+    DYNENT_ACCESSORS(crouching, int, integer, crouching);
     DYNENT_ACCESSORS(pitching, int, integer, look_updown_move)
     DYNENT_ACCESSORS(jumping, bool, boolean, jumping)
     DYNENT_ACCESSORS(blocked, bool, boolean, blocked)

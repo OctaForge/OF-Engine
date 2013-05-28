@@ -19,17 +19,23 @@ local ran = _C.model_register_anim
 
 --[[! Variable: anims
     An enumeration of all basic (pre-defined) animations available in the
-    engine. Possible values are IDLE, FORWARD, BACKWARD, LEFT, RIGHT, JUMP,
-    SINK, SWIM, EDIT, LAG, MAPMODEL.
+    engine. Possible values are IDLE, FORWARD, BACKWARD, LEFT, RIGHT, CROUCH,
+    CROUCH_FORAWRD, CROUCH_BACKWARD, CROUCH_LEFT, CROUCH_RIGHT, JUMP, SINK,
+    SWIM, EDIT, LAG, MAPMODEL.
 
     Then there are modifiers, INDEX, LOOP, START, END, REVERSE, SECONDARY
     that you won't find much use for and a special anim type RAGDOLL.
 ]]
 M.anims = {
     IDLE = ran "idle", FORWARD = ran "forward", BACKWARD = ran "backward",
-    LEFT = ran "left", RIGHT = ran "right", JUMP = ran "jump",
-    SINK = ran "sink", SWIM = ran "swim", EDIT = ran "edit",
-    LAG = ran "lag", MAPMODEL = ran "mapmodel",
+    LEFT = ran "left", RIGHT = ran "right", CROUCH = ran "crouch",
+    CROUCH_FORWARD = ran "crouch_forward",
+    CROUCH_BACKWARD = ran "crouch_backward",
+    CROUCH_LEFT = ran "crouch_left", CROUCH_RIGHT = ran "crouch_right",
+    JUMP = ran "jump", SINK = ran "sink", SWIM = ran "swim",
+    CROUCH_JUMP = ran "crouch_jump", CROUCH_SINK = ran "crouch_sink",
+    CROUCH_SWIM = ran "crouch_swim", EDIT = ran "edit", LAG = ran "lag",
+    MAPMODEL = ran "mapmodel",
 
     INDEX = 0x7F,
     LOOP = math.lsh(1, 7),

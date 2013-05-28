@@ -56,7 +56,7 @@ struct physent                                  // base entity type, can be affe
 
     int inwater;
     bool jumping;
-    char move, strafe;
+    char move, strafe, crouching;
 
     uchar physstate;                            // one of PHYS_* above
     uchar state, editstate;                     // one of CS_* above
@@ -85,7 +85,7 @@ struct physent                                  // base entity type, can be affe
     {
         inwater = 0;
         timeinair = 0;
-        strafe = move = 0;
+        strafe = move = crouching = 0;
         physstate = PHYS_FALL;
         vel = falling = vec(0, 0, 0);
         floor = vec(0, 0, 1);
@@ -186,7 +186,7 @@ struct dynent : physent                         // animated characters, or chara
     virtual void stopmoving() // OF: virtual
     {
         k_left = k_right = k_up = k_down = jumping = false;
-        move = strafe = 0;
+        move = strafe = crouching = 0;
     }
         
     virtual void reset() // OF: virtual

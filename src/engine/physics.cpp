@@ -1568,6 +1568,47 @@ bool move(physent *d, vec &dir)
     return !collided;
 }
 
+void crouchplayer(physent *pl, int moveres, bool local, float speed, float minheight, float maxheight)
+{
+    if(!curtime) return;
+    speed = (maxheight - minheight) * (curtime / speed);
+    if(pl->crouching < 0)
+    {
+        if(pl->eyeheight > minheight)
+        {
+            float diff = min(pl->eyeheight - minheight, speed);
+            pl->eyeheight -= diff;
+            if(pl->physstate > PHYS_FALL)
+            {
+                pl->o.z -= diff;
+                pl->newpos.z -= diff;
+            }
+        }
+    }
+    else if(pl->eyeheight < maxheight)
+    {
+        float diff = min(maxheight - pl->eyeheight, speed), step = diff/moveres;
+        pl->eyeheight += diff;
+        if(pl->physstate > PHYS_FALL)
+        {
+            pl->o.z += diff;
+            pl->newpos.z += diff;
+        }
+        pl->crouching = 0;
+        loopi(moveres)
+        {
+            if(collide(pl, vec(0, 0, pl->physstate <= PHYS_FALL ? -1 : 1), 0, true)) break;
+            pl->crouching = 1;
+            pl->eyeheight -= step;
+            if(pl->physstate > PHYS_FALL)
+            {
+                pl->o.z -= step;
+                pl->newpos.z -= step;
+            }
+        }
+    }
+}
+
 bool bounce(physent *d, float secs, float elasticity, float waterfric, float grav)
 {
     // make sure bouncers don't start inside geometry
@@ -1800,7 +1841,7 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
         {
             if(pl==player) d.mul(floatspeed/100.0f);
         }
-        else if(!water && game::allowmove(pl)) d.mul((pl->move && !pl->strafe ? 1.3f : 1.0f) * (pl->physstate < PHYS_SLOPE ? 1.3f : 1.0f));
+        else if(pl->physstate >= PHYS_SLOPE && pl->crouching) d.mul(0.4f);
     }
     float fric = water && !floating ? 20.0f : (pl->physstate >= PHYS_SLOPE || floating ? 6.0f : 30.0f);
     pl->vel.lerp(d, pl->vel, pow(1 - 1/fric, curtime/20.0f));

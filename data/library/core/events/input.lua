@@ -61,10 +61,19 @@ end)
 
 --[[! Function: input_jump
     An external triggered when the player jumps. Override as needed. By default
-    calls the method "jump" on the player when "down" is true.
+    calls the method "jump" on the player, passing "down" as an argument.
 ]]
 set_external("input_jump", function(down)
-    if down then ents.get_player():jump() end
+    ents.get_player():jump(down)
+end)
+
+--[[! Function: input_crouch
+    An external triggered when the player crouches. Override as needed.
+    By default calls the method "crouch" on the player, passing "down"
+    as an argument.
+]]
+set_external("input_crouch", function(down)
+    ents.get_player():crouch(down)
 end)
 
 --[[! Function: input_click
