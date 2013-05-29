@@ -17,7 +17,7 @@
     Section: Extension library 1.0 initialization
 ]]
 
-#log(DEBUG, "Initializing library version %(1)s" % { library.current })
+#log(DEBUG, "Initializing library version " .. library.current)
 
 #log(DEBUG, ":: Plugin system.")
 library.include("plugins")

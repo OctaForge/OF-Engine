@@ -178,7 +178,7 @@ function setup(plugins_add)
                                 return nil
                             end
                         end
-                        #log(WARNING, "player start not found (\"%(1)s\"), placing player elsewhere .." % { start_tag })
+                        #log(WARNING, ("player start not found (\"%s\"), placing player elsewhere .."):format(start_tag))
                         player:set_attr("position", { 512, 512, 571 })
                     end,
 

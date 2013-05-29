@@ -82,7 +82,7 @@ plugin = {
                 if position then
                     self:set_attr("position", position:lerp(self:get_attr("position"), 1 - (seconds * 5)))
                     self:set_attr("velocity", velocity)
-                    #log(WARNING, "Fixed platform position %(1)i" % { frame.get_time() })
+                    #log(WARNING, "Fixed platform position " .. frame.get_time())
                 end
             end
 
@@ -211,7 +211,7 @@ axis_switcher = ents.register_class(plugins.bake(ents.Obstacle, {
                 end
             end
 
-            #log(ERROR, "did not find player axis to flip, %(1)s" % { player:get_attr("platform_axis") })
+            #log(ERROR, "did not find player axis to flip, " .. player:get_attr("platform_axis"))
         end
     }
 }, "axis_switcher"))

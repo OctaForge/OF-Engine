@@ -16,33 +16,25 @@
 
 local ctable = createtable
 local pairs, ipairs = pairs, ipairs
-local type, loadstring, setmetatable = type, loadstring, setmetatable
-local setfenv, assert, rawget, rawset = setfenv, assert, rawget, rawset
+local type, setmetatable = type, setmetatable
+local rawget, rawset = rawget, rawset
 local tostring = tostring
+local tconc = table.concat
+local pcall = pcall
 
 --[[! Function: table.is_array
     Checks whether a given table is an array (that is, contains only a
     consecutive sequence of values with indexes from 1 to #table). If
     there is any non-array element found, returns false. Otherwise
-    returns true (and in both cases returns the amount of array
-    elements as a second return value).
+    returns true.
 ]]
-table.is_array = function(tbl)
-    local i = #tbl
-    -- check for holes
-    for j = 1, i do
-        if tbl[j] == nil then
-            i = j - 1
-            break
-        end
+table.is_array = function(t)
+    local i = 0
+    while t[i + 1] do i = i + 1 end
+    for _ in pairs(t) do
+        i = i - 1 if i < 0 then return false end
     end
-    for _ in pairs(tbl) do
-        i = i - 1
-        if i < 0 then
-            return false, #tbl
-        end
-    end
-    return i == 0, #tbl
+    return i == 0
 end
 
 local is_array = table.is_array
@@ -216,195 +208,237 @@ table.foldl = function(t, fun, z)
     return z
 end
 
+local escape_string = string.escape
+
 --[[! Function: table.serialize
     Serializes a given table, returning a string containing a literal
-    representation of the table. By default it tries to be compact so
-    it avoids whitespace and newlines. Arrays vs associative arrays
-    are distinguished.
+    representation of the table. It tries to be compact so it avoids
+    whitespace and newlines. Arrays and associative arrays are serialized
+    differently (for compact output).
 
     Besides tables this can also serialize other Lua values. It serializes
     them in the same way as values inside a table, returning their literal
     representation (if serializable, otherwise just their tostring).
 
-    The second argument is optional. It's a table containing additional
-    parameters for the serialization.
+    Circular tables can't be serialized (the function errors on them).
 
-    If the table contains member "pretty" with boolean value "true", the
-    serializer attempts to format it for readability. While the "ugly" one
-    is good for things like network transfers, the latter represents a human
-    readable format.
-
-    If pretty-printing, you can specify also "indent", an integral value
-    specifying indentation. Defaults to 4 spaces.
-
-    In the pretty formatting mode arrays are put on a single line with a space
-    after commas and before/after beginning/ending brace. One exception happens
-    when the array only contains one another table, then no spaces are used.
-    Associative arrays put each element on a separate line appropriately
-    indented, the beginning/ending braces are both on their own line.
-
-    In associative arrays, only numbers and strings are allowed as keys.
-    The serializer is also smart enough to detect recursion (both simple
-    and mutual to any level) and avoid stack overflows.
-
-    The table can contain one other thing, "simplifier". It's a function
-    that takes a key/index and a value and returns true if it should be
-    simplified and false if it shouldn't. If it should be simplified,
-    it also has to return a second value specifying what it should
-    simplify to. If it does not, it means the value should be
-    omitted from the serialized table.
-
-    There is one case where the serializer simplifies by default, objects
-    having a numerical member "uid". Those are treated as entities and they
-    serialize directly to the uid.
+    In associative arrays, only numbers, strings and booleans are allowed
+    as keys. The serializer is also smart enough to detect recursion (both
+    simple and mutual to any level) and avoid stack overflows.
 
     Values that cannot be serialized are passed through tostring.
 
     This function is externally available as "table_serialize".
 ]]
-table.serialize = function(tbl, kwargs)
-    local pretty, indent, simplifier
-    if kwargs then
-        pretty     = kwargs.pretty or false
-        indent     = kwargs.indent or 4
-        simplifier = kwargs.simplifier
-    else
-        pretty = false
-        indent = 4
-    end
-
-    local enc
-    enc = function(tbl, tables, ind)
-        local assoc, narr = is_array(tbl)
-        local ret         = ctable(narr)
-        tables = tables  or {}
-
-        -- we want to know whether it's an associative array,
-        -- not a regular array
-        assoc = not assoc
-
-        for k, v in (assoc and pairs or ipairs)(tbl) do
-            local skip = false
-
-            local tk = type(k)
-
-            -- do not even attempt, useless and will fuck up
-            if tk == "string" and k:sub(1, 2) == "__" then
-                skip = true
-            end
-
-            if simplifier and not skip then
-                local simplify, value = simplifier(k, v)
-                if simplify then
-                    if value == nil then
-                        skip = true
-                    else
-                        v = value
-                    end
-                end
-            end
-
-            if not skip then
-                local elem
-
-                local t = type(v)
-
-                -- simplify entities to their uids
-                if t == "table" and type(v.uid) == "number" then
-                    v = v.uid
-                    t = "number"
-                end
-
-                if assoc then
-                    assert(tk == "string" or tk == "number", 
-                        "only string and number keys allowed for serialization"
-                    )
-
-                    if tk == "string" then
-                        if not loadstring(k .. "=nil") then
-                            elem = { "[\"", k, "\"]",
-                                pretty and " = " or "=", true }
-                        else
-                            elem = { k, pretty and " = " or "=", true }
-                        end
-                    else
-                        elem = { "[", tostring(k), "]",
-                            pretty and " = " or "=", true }
-                    end
-                else
-                    elem = { true }
-                end
-
-                if t == "table" then
-                    -- the table references itself, infinite recursion
-                    -- do not permit such behavior
-                    if v == tbl or tables[v] then
-                        elem[#elem] = "\"" .. tostring(v) .. "\""
-                    else
-                        tables[v] = true
-                        elem[#elem] =
-                            enc(v, tables, assoc and ind + indent or ind)
-                    end
-                elseif t == "number" or t == "boolean" then
-                    elem[#elem] = tostring(v)
-                else
-                    elem[#elem] = "\"" .. tostring(v) .. "\""
-                end
-
-                if assoc and pretty then
-                    ret[#ret + 1] = "\n" .. (" "):rep(ind)
-                        .. table.concat(elem)
-                else
-                    ret[#ret + 1] = table.concat(elem)
-                end
-            end
-        end
-
-        if pretty then
-            if assoc then
-                ret[#ret + 1] = "\n" .. (" "):rep(ind - indent)
-                return "{" .. table.concat(ret, ",") .. "}"
-            -- special case - an array containing one table, don't add spaces
-            elseif #tbl == 1 and type(tbl[1] == "table") then
-                return "{" .. table.concat(ret, ", ") .. "}"
-            end
-
-            return "{ " .. table.concat(ret, ", ") .. " }"
-        end
-
-        return "{" .. table.concat(ret, ",") .. "}"
-    end
-
-    local t = type(tbl)
-
-    if t ~= "table" then
-        if t == "number" then
-            return tostring(tbl)
+local function serialize(t, tables)
+    tables = tables or {}
+    local is_arr = is_array(t)
+    local ret = {}
+    for k, v in (is_arr and ipairs or pairs)(t) do
+        local e
+        if is_arr then e = { true }
         else
-            return "\"" .. tostring(tbl) .. "\""
+            local tk = type(k)
+            if tk == "string" then
+                e = (k:match("[a-zA-Z_][a-zA-Z0-9_]*") == k)
+                    and { k, "=", true } or { '["', k, '"]=', true }
+            elseif tk == "number" or tk == "boolean" then
+                e = { "[", tostring(k), "]=", true }
+            else
+                return nil, ("invalid key type: " .. tk)
+            end
+        end
+        local tv = type(v)
+        if tv == "table" then
+            if v == t or tables[v] then
+                return nil, "circular tables detected during serialization"
+            else
+                tables[v] = true
+                local r, err = serialize(v, tables)
+                if not r then return nil, err end
+                e[#e] = r
+            end
+        elseif tv == "number" or tv == "boolean" then e[#e] = tostring(v)
+        elseif tv == "string" then e[#e] = escape_string(v)
+        else return nil, ("invalid value type: " .. tv) end
+        ret[#ret + 1] = tconc(e)
+    end
+    return "{" .. tconc(ret, ",") .. "}"
+end
+table.serialize = serialize
+set_external("table_serialize", serialize)
+
+local lex_get = function(ls)
+    while true do
+        local c = ls.curr
+        if not c then break end
+        ls.tname, ls.tval = nil, nil
+        if c == "\n" or c == "\r" then
+            local prev = c
+            c = ls.rdr()
+            if (c == "\n" or c == "\r") and c ~= prev then
+                c = ls.rdr()
+            end
+            ls.curr = c
+            ls.linenum = ls.linenum + 1
+        elseif c == " " or c == "\t" or c == "\f" or c == "\v" then
+            ls.curr = ls.rdr()
+        elseif c == "." or c:byte() >= 48 and c:byte() <= 57 then
+            local buf = { ls.curr }
+            ls.curr = ls.rdr()
+            while ls.curr and ls.curr:match("[epxEPX0-9.+-]") do
+                buf[#buf + 1] = ls.curr
+                ls.curr = ls.rdr()
+            end
+            local str = tconc(buf)
+            local num = tonumber(str)
+            if not num then error(("%d: malformed number near '%s'")
+                :format(ls.linenum, str), 0) end
+            ls.tname, ls.tval = "<number>", num
+            return "<number>"
+        elseif c == '"' or c == "'" then
+            local d = ls.curr
+            ls.curr = ls.rdr()
+            local buf = {}
+            while ls.curr ~= d do
+                local c = ls.curr
+                if c == nil then
+                    error(("%d: unfinished string near '<eos>'")
+                        :format(ls.linenum), 0)
+                elseif c == "\n" or c == "\r" then
+                    error(("%d: unfinished string near '<string>'")
+                        :format(ls.linenum), 0)
+                -- not complete escape sequence handling: handles only these
+                -- that are or can be in the serialized output
+                elseif c == "\\" then
+                    c = ls.rdr()
+                    if c == "a" then
+                        buf[#buf + 1] = "\a" ls.curr = ls.rdr()
+                    elseif c == "b" then
+                        buf[#buf + 1] = "\b" ls.curr = ls.rdr()
+                    elseif c == "f" then
+                        buf[#buf + 1] = "\f" ls.curr = ls.rdr()
+                    elseif c == "n" then
+                        buf[#buf + 1] = "\n" ls.curr = ls.rdr()
+                    elseif c == "r" then
+                        buf[#buf + 1] = "\r" ls.curr = ls.rdr()
+                    elseif c == "t" then
+                        buf[#buf + 1] = "\t" ls.curr = ls.rdr()
+                    elseif c == "v" then
+                        buf[#buf + 1] = "\v" ls.curr = ls.rdr()
+                    elseif c == "\\" or c == '"' or c == "'" then
+                        buf[#buf + 1] = c
+                        ls.curr = ls.rdr()
+                    elseif not c then
+                        error(("%d: unfinished string near '<eos>'")
+                            :format(ls.linenum), 0)
+                    else
+                        if not c:match("%d") then
+                            error(("%d: invalid escape sequence")
+                                :format(ls.linenum), 0)
+                        end
+                        local dbuf = { c }
+                        c = ls.rdr()
+                        if c:match("%d") then
+                            dbuf[2] = c
+                            c = ls.rdr()
+                            if c:match("%d") then
+                                dbuf[3] = c
+                                c = ls.rdr()
+                            end
+                        end
+                        ls.curr = c
+                        buf[#buf + 1] = tconc(dbuf):char()
+                    end
+                else
+                    buf[#buf + 1] = c
+                    ls.curr = ls.rdr()
+                end
+            end
+            ls.curr = ls.rdr() -- skip delim
+            ls.tname, ls.tval = "<string>", tconc(buf)
+            return "<string>"
+        elseif c:match("[a-zA-Z_]") then
+            local buf = { c }
+            ls.curr = ls.rdr()
+            while ls.curr and ls.curr:match("[a-zA-Z0-9_]") do
+                buf[#buf + 1] = ls.curr
+                ls.curr = ls.rdr()
+            end
+            local str = tconc(buf)
+            if str == "true" or str == "false" or str == "nil" then
+                ls.tname, ls.tval = str, nil
+                return str
+            else
+                ls.tname, ls.tval = "<name>", str
+                return "<name>"
+            end
+        else
+            ls.curr = ls.rdr()
+            ls.tname, ls.tval = c, nil
+            return c
         end
     end
-
-    return enc(tbl, nil, indent)
 end
-set_external("table_serialize", table.serialize)
+
+local function assert_tok(ls, tok, ...)
+    if not tok then return nil end
+    if ls.tname ~= tok then
+        error(("%d: unexpected symbol near '%s'"):format(ls.linenum,
+            ls.tname), 0)
+    end
+    lex_get(ls)
+    assert_tok(ls, ...)
+end
+
+local function parse(ls)
+    local tok = ls.tname
+    if tok == "<string>" or tok == "<number>" then
+        local v = ls.tval
+        lex_get(ls)
+        return v
+    elseif tok == "true"  then lex_get(ls) return true
+    elseif tok == "false" then lex_get(ls) return false
+    elseif tok == "nil"   then lex_get(ls) return nil
+    else
+        assert_tok(ls, "{")
+        local tbl = {}
+        repeat
+            if ls.tname == "<name>" then
+                local key = ls.tval
+                lex_get(ls)
+                assert_tok(ls, "=")
+                tbl[key] = parse(ls)
+            elseif ls.tname == "[" then
+                lex_get(ls)
+                local key = parse(ls)
+                assert_tok(ls, "]", "=")
+                tbl[key] = parse(ls)
+            else
+                tbl[#tbl + 1] = parse(ls)
+            end
+        until (ls.tname ~= "," and ls.tname ~= ";") or not lex_get(ls)
+        assert_tok(ls, "}")
+        return tbl
+    end
+end
 
 --[[! Function: table.deserialize
     Takes a previously serialized table and converts it back to the original.
-    This actually evaluates Lua code, but prevents anything malicious by
-    working in an empty environment. Returns the table (unless an error
-    happens). Different given literal values will work as well (for
-    example, deserializing a string "\"foo\"" will result in value
-    "foo"). External as "table_deserialize".
+    Uses a simple tokenizer and a recursive descent parser to build the result,
+    so it's safe (doesn't evaluate anything). The input can also be a callable
+    value that return the next character each call.
+    External as "table_deserialize". This returns the deserialized value on
+    success and nil + the error message on failure.
 ]]
-table.deserialize = function(str)
-    assert(type(str) == "string", "the input value must be a string")
-
-    -- loadstring with empty environment - prevent malicious code
-    local  status, ret = pcall(setfenv(loadstring("return " .. str), {}))
-    assert(status, ret)
-
-    return ret
+table.deserialize = function(s)
+    local stream = (type(s) == "string") and s:gmatch(".") or s
+    local ls = { curr = stream(), rdr = stream, linenum = 1 }
+    local r, v = pcall(lex_get, ls)
+    if not r then return nil, v end
+    r, v = pcall(parse, ls)
+    if not r then return nil, v end
+    return v
 end
 set_external("table_deserialize", table.deserialize)
 

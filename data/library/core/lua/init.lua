@@ -22,11 +22,11 @@
 #log(DEBUG, ":::: Strict mode.")
 require("lua.strict")
 
-#log(DEBUG, ":::: Lua extensions: table")
-require("lua.table")
-
 #log(DEBUG, ":::: Lua extensions: string")
 require("lua.string")
+
+#log(DEBUG, ":::: Lua extensions: table")
+require("lua.table")
 
 #log(DEBUG, ":::: Lua extensions: math")
 require("lua.math")
