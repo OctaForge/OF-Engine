@@ -210,60 +210,171 @@ end
 
 local escape_string = string.escape
 
+local function serialize_fn(v, stream, kwargs, simp, tables, indent)
+    if simp then
+        v = simp(v)
+    end
+    local tv = type(v)
+    if tv == "string" then
+        stream(escape_string(v))
+    elseif tv == "number" or tv == "boolean" then
+        stream(tostring(v))
+    elseif tv == "table" then
+        local mline   = kwargs.multiline
+        local indstr  = kwargs.indent
+        local asstr   = kwargs.assign or "="
+        local sepstr  = kwargs.table_sep or ","
+        local isepstr = kwargs.item_sep
+        local endsep  = kwargs.end_sep
+        local optk    = kwargs.optimize_keys
+        local arr = is_array(v)
+        local nline   = arr and kwargs.narr_line or kwargs.nrec_line or 0
+        if tables[v] then
+            stream() -- let the stream know about an error
+            return false,
+                "circular table reference detected during serialization"
+        end
+        tables[v] = true
+        stream("{")
+        if mline then stream("\n") end
+        local first = true
+        local n = 0
+        local simp = kwargs.simplifier
+        for k, v in (arr and ipairs or pairs)(v) do
+            if first then first = false
+            else
+                stream(sepstr)
+                if mline then
+                    if n == 0 then
+                        stream("\n")
+                    elseif isepstr then
+                        stream(isepstr)
+                    end
+                end
+            end
+            if mline and indstr and n == 0 then
+                for i = 1, indent do stream(indstr) end
+            end
+            if arr then
+                local ret, err = serialize_fn(v, stream, kwargs, simp, tables,
+                    indent + 1)
+                if not ret then return ret, err end
+            else
+                if optk and type(k) == "string"
+                and k:match("^[%a_][%w_]*$") then
+                    stream(k)
+                else
+                    stream("[")
+                    local ret, err = serialize_fn(k, stream, kwargs, simp,
+                        tables, indent + 1)
+                    if not ret then return ret, err end
+                    stream("]")
+                end
+                stream(asstr)
+                local ret, err = serialize_fn(v, stream, kwargs, simp, tables,
+                    indent + 1)
+                if not ret then return ret, err end
+            end
+            n = (n + 1) % nline
+        end
+        if not first then
+            if endsep then stream(sepstr) end
+            if mline then stream("\n") end
+        end
+        if mline and indstr then
+            for i = 2, indent do stream(indstr) end
+        end
+        stream("}")
+    else
+        stream()
+        return false, ("invalid value type: " .. tv)
+    end
+    return true
+end
+
+local defkw = {
+    multiline = false, indent = nil, assign = "=", table_sep = ",",
+    end_sep = false, optimize_keys = true
+}
+
+local defkwp = {
+    multiline = true, indent = "    ", assign = " = ", table_sep = ",",
+    item_sep = " ", narr_line = 4, nrec_line = 2, end_sep = false,
+    optimize_keys = true
+}
+
 --[[! Function: table.serialize
     Serializes a given table, returning a string containing a literal
-    representation of the table. It tries to be compact so it avoids
-    whitespace and newlines. Arrays and associative arrays are serialized
-    differently (for compact output).
+    representation of the table. It tries to be compact by default so it
+    avoids whitespace and newlines. Arrays and associative arrays are
+    serialized differently (for compact output).
 
     Besides tables this can also serialize other Lua values. It serializes
     them in the same way as values inside a table, returning their literal
-    representation (if serializable, otherwise just their tostring).
+    representation (if serializable, otherwise just their tostring). The
+    serializer allows strings, numbers, booleans and tables.
 
-    Circular tables can't be serialized (the function errors on them).
+    Circular tables can't be serialized. The function normally returns either
+    the string output or nil + an error message (which can signalize either
+    circular references or invalid types).
 
-    In associative arrays, only numbers, strings and booleans are allowed
-    as keys. The serializer is also smart enough to detect recursion (both
-    simple and mutual to any level) and avoid stack overflows.
+    The function allows you to pass in a "kwargs" table as the second argument.
+    It's a table of options. Those can be multiline (boolean, false by default,
+    pretty much pretty-printing), indent (string, nil by default, specifies
+    how an indent level looks), assign (string, "=" by default, specifies how
+    an assignment between a key and a value looks), table_sep (table separator,
+    by default ",", can also be ";" for tables, separates items in all cases),
+    item_sep (item separator, string, nil by default, comes after table_sep
+    but only if it isn't followed by a newline), narr_line (number, 0 by
+    default, how many array elements to fit on a line), nrec_line (same,
+    just for key-value pairs), end_sep (boolean, false by default, makes
+    the serializer put table_sep after every item including the last one),
+    optimize_keys (boolean, true by default, optimizes string keys like
+    that it doesn't use string literals for keys that can be expressed
+    as Lua names).
 
-    Values that cannot be serialized are passed through tostring.
+    If kwargs is nil or false, the values above are used. If kwargs is a
+    boolean value true, pretty-printing defaults are used (multiline is
+    true, indent is 4 spaces, assign is " = ", table_sep is ",", item_sep
+    is one space, narr_line is 4, nrec_line is 2, end_sep is false,
+    optimize_keys is true).
+
+    A third argument, "stream" can be passed. As a table is serialized
+    by pieces, "stream" is called each time a new piece is saved. It's
+    useful for example for file I/O. When a custom stream is supplied,
+    the function doesn't return a string, instead it returns true
+    or false depending on whether it succeeded and the error message
+    if any.
+
+    And finally there is the fourth argument, "simplifier". It's a
+    function that takes a value and "simplifies" it (returns another
+    value it should be replaced by). By default nothing is simplified
+    of course.
 
     This function is externally available as "table_serialize".
 ]]
-local function serialize(t, tables)
-    tables = tables or {}
-    local is_arr = is_array(t)
-    local ret = {}
-    for k, v in (is_arr and ipairs or pairs)(t) do
-        local e
-        if is_arr then e = { true }
-        else
-            local tk = type(k)
-            if tk == "string" then
-                e = (k:match("[a-zA-Z_][a-zA-Z0-9_]*") == k)
-                    and { k, "=", true } or { '["', k, '"]=', true }
-            elseif tk == "number" or tk == "boolean" then
-                e = { "[", tostring(k), "]=", true }
-            else
-                return nil, ("invalid key type: " .. tk)
-            end
+local serialize = function(val, kwargs, stream, simplifier)
+    if kwargs == true then
+        kwargs = defkwp
+    elseif not kwargs then
+        kwargs = defkw
+    else
+        if  kwargs.optimize_keys == nil then
+            kwargs.optimize_keys = true
         end
-        local tv = type(v)
-        if tv == "table" then
-            if v == t or tables[v] then
-                return nil, "circular tables detected during serialization"
-            else
-                tables[v] = true
-                local r, err = serialize(v, tables)
-                if not r then return nil, err end
-                e[#e] = r
-            end
-        elseif tv == "number" or tv == "boolean" then e[#e] = tostring(v)
-        elseif tv == "string" then e[#e] = escape_string(v)
-        else return nil, ("invalid value type: " .. tv) end
-        ret[#ret + 1] = tconc(e)
     end
-    return "{" .. tconc(ret, ",") .. "}"
+    if stream then
+        return serialize_fn(val, stream, kwargs, simplifier, {}, 1)
+    else
+        local t = {}
+        local ret, err = serialize_fn(val, function(out)
+            t[#t + 1] = out end, kwargs, simplifier, {}, 1)
+        if not ret then
+            return nil, err
+        else
+            return tconc(t)
+        end
+    end
 end
 table.serialize = serialize
 set_external("table_serialize", serialize)
@@ -358,10 +469,10 @@ local lex_get = function(ls)
             ls.curr = ls.rdr() -- skip delim
             ls.tname, ls.tval = "<string>", tconc(buf)
             return "<string>"
-        elseif c:match("[a-zA-Z_]") then
+        elseif c:match("[%a_]") then
             local buf = { c }
             ls.curr = ls.rdr()
-            while ls.curr and ls.curr:match("[a-zA-Z0-9_]") do
+            while ls.curr and ls.curr:match("[%w_]") do
                 buf[#buf + 1] = ls.curr
                 ls.curr = ls.rdr()
             end
