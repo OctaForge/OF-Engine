@@ -575,7 +575,7 @@ local sift_down = function(tbl, l, s, e, fun)
 end
 
 local heapsort = function(tbl, l, r, fun)
-    local start = floor(l + (r - l) / 2)
+    local start = floor((l + r) / 2)
     while start >= l do
         sift_down(tbl, l, start, r, fun)
         start = start - 1
@@ -624,7 +624,7 @@ local function introloop(tbl, l, r, depth, fun)
 end
 
 local introsort = function(tbl, l, r, fun)
-    return introloop(tbl, l, r, 2 * floor(log(r - l) / log(2)), fun)
+    return introloop(tbl, l, r, 2 * floor(log(r - l + 1) / log(2)), fun)
 end
 
 local defaultcmp = function(a, b) return a < b end
