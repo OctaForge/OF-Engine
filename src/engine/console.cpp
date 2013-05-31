@@ -939,10 +939,23 @@ ICOMMAND(crouch, "", (), {
     }
 });
 
-LUAICOMMAND(input_get_modifier_state, {
-    lua_pushinteger(L, SDL_GetModState());
+LUAICOMMAND(input_is_modifier_pressed, {
+    int nargs = lua_gettop(L);
+    int keys = 0;
+    for (int i = 1; i <= nargs; ++i) {
+        keys |= lua_tointeger(L, i);
+    }
+    lua_pushboolean(L, SDL_GetModState() & keys);
     return 1;
 });
+
+ICOMMAND(is_mod_pressed, "V", (tagval *args, int nargs), {
+    int keys = 0;
+    for (int i = 0; i < nargs; ++i) {
+        keys |= args[i].getint();
+    }
+    intret((SDL_GetModState() & keys) != 0);
+})
 
 LUAICOMMAND(input_keyrepeat, {
     keyrepeat(lua_toboolean(L, 1), luaL_checkinteger(L, 2));

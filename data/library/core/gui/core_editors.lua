@@ -285,7 +285,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
     movement_mark = function(self)
         self:scroll_on_screen()
-        if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+        if _C.input_is_modifier_pressed(mod.SHIFT) then
             if not self:region() then self:mark(true) end
         else
             self:mark(false)
@@ -353,7 +353,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self.scrolly = self.scrolly + 3
         elseif code == key.PAGEUP then
             self:movement_mark()
-            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+            if _C.input_is_modifier_pressed(mod_keys) then
                 self.cy = 0
             else
                 self.cy = self.cy - self.pixel_height / _V.fonth
@@ -361,7 +361,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self:scroll_on_screen()
         elseif code == key.PAGEDOWN then
             self:movement_mark()
-            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+            if _C.input_is_modifier_pressed(mod_keys) then
                 self.cy = 1 / 0
             else
                 self.cy = self.cy + self.pixel_height / _V.fonth
@@ -370,14 +370,14 @@ local Text_Editor = register_class("Text_Editor", Object, {
         elseif code == key.HOME then
             self:movement_mark()
             self.cx = 0
-            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+            if _C.input_is_modifier_pressed(mod_keys) then
                 self.cy = 0
             end
             self:scroll_on_screen()
         elseif code == key.END then
             self:movement_mark()
             self.cx = 1 / 0
-            if band(_C.input_get_modifier_state(), mod_keys) ~= 0 then
+            if _C.input_is_modifier_pressed(mod_keys) then
                 self.cy = 1 / 0
             end
             self:scroll_on_screen()
@@ -439,7 +439,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             local b, sx, sy, ex, ey = self:region()
             if b then
                 for i = sy, ey do
-                    if band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+                    if _C.input_is_modifier_pressed(mod.SHIFT) then
                         local rem = 0
                         for j = 1, min(4, #self.lines[i + 1]) do
                             if self.lines[i + 1]:sub(j, j) == " " then
@@ -462,7 +462,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                         if i == self.cy then self.cx = self.cx + 1 end
                     end
                 end
-            elseif band(_C.input_get_modifier_state(), mod.SHIFT) ~= 0 then
+            elseif _C.input_is_modifier_pressed(mod.SHIFT) then
                 if self.cx > 0 then
                     local cy = self.cy
                     local lines = self.lines
@@ -483,13 +483,13 @@ local Text_Editor = register_class("Text_Editor", Object, {
             end
             self:scroll_on_screen()
         elseif code == key.A then
-            if band(_C.input_get_modifier_state(), mod_keys) == 0 then
+            if not _C.input_is_modifier_pressed(mod_keys) then
                 return nil
             end
             self:select_all()
             self:scroll_on_screen()
         elseif code == key.C or code == key.X then
-            if band(_C.input_get_modifier_state(), mod_keys) == 0
+            if not _C.input_is_modifier_pressed(mod_keys)
             or not self:region() then
                 return nil
             end
@@ -497,7 +497,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             if code == key.X then self:del() end
             self:scroll_on_screen()
         elseif code == key.V then
-            if band(_C.input_get_modifier_state(), mod_keys) == 0 then
+            if not _C.input_is_modifier_pressed(mod_keys) then
                 return nil
             end
             self:paste()
