@@ -2755,6 +2755,9 @@ void collectlights()
             if(pvsoccludedsphere(e->o, e->attr1)) continue;
         }
 
+        /* OF */
+        if(e->attr5 < 0) continue;
+
         lightinfo &l = lights.add();
         l.ent = i;
         l.shadowmap = -1;

@@ -926,6 +926,16 @@ local Oriented_Marker = Static_Entity:clone {
 }
 M.Oriented_Marker = Oriented_Marker
 
+local lightflags = setmetatable({
+    [0] = "dynamic shadow (0)",
+    [1] = "no shadow (1)",
+    [2] = "static shadow (2)"
+}, {
+    __index = function(self, i)
+        if i < 0 then return "light off (< 0)" else return "unknown (> 2)" end
+    end
+})
+
 --[[! Class: Light
     A regular point light. In the extension library there are special light
     entity types that are e.g. triggered, flickering and so on.
@@ -935,7 +945,8 @@ M.Oriented_Marker = Oriented_Marker
         attr2 - red value (0 to 255, alias "red", default 128)
         attr3 - green value (0 to 255, alias "green", default 128)
         attr4 - blue value (0 to 255, alias "blue", default 128)
-        attr5 - shadow, 0 dynamic, 1 noshadow, 2 static (default 0)
+        attr5 - flags, -1 turns off the light, 0 gives it a dynamic shadow,
+        1 disables the shadow, 2 makes the shadow static (default 0)
 ]]
 local Light = Static_Entity:clone {
     name = "Light",
@@ -963,7 +974,7 @@ local Light = Static_Entity:clone {
         }),
         attr5 = svars.State_Integer({
             getter = "_C.get_attr5", setter = "_C.set_attr5",
-            gui_name = "shadow", alt_name = "shadow"
+            gui_name = "flags", alt_name = "flags"
         })
     },
 
@@ -973,7 +984,7 @@ local Light = Static_Entity:clone {
         self:set_attr("green", 128)
         self:set_attr("blue", 128)
         self:set_attr("radius", 100)
-        self:set_shadow(0)
+        self:set_attr("flags", 0)
     end,
 
     get_edit_color = function(self)
@@ -982,9 +993,10 @@ local Light = Static_Entity:clone {
     end,
 
     get_edit_info = function(self)
-        return format("r: %d, g: %d, b: %d, radius: %d",
+        return format("r: %d, g: %d, b: %d, radius: %d, flags: %s",
             self:get_attr("red"), self:get_attr("green"),
-            self:get_attr("blue"), self:get_attr("radius"))
+            self:get_attr("blue"), self:get_attr("radius"),
+            lightflags[self:get_attr("flags")])
     end
 }
 M.Light = Light
