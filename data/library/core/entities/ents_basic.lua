@@ -942,9 +942,11 @@ local lightflags = setmetatable({
 
     Properties:
         attr1 - light radius. (0 to N, alias "radius", default 100)
-        attr2 - red value (0 to 255, alias "red", default 128)
-        attr3 - green value (0 to 255, alias "green", default 128)
-        attr4 - blue value (0 to 255, alias "blue", default 128)
+        attr2 - red value (can be any range, even negative - typical values
+        are 0 to 255, negative values make a negative light, alias "red",
+        default 128)
+        attr3 - green value (alias "green", default 128)
+        attr4 - blue value (alias "blue", default 128)
         attr5 - flags, -1 turns off the light, 0 gives it a dynamic shadow,
         1 disables the shadow, 2 makes the shadow static (default 0)
 ]]
