@@ -55,10 +55,6 @@ enum
 #define TESSERACT_SERVER_PORT 42000
 #define PROTOCOL_VERSION 1 // bump when protocol changes
 
-#define CROUCHTIME 150
-#define CROUCHMAXHEIGHT 14
-#define CROUCHMINHEIGHT 10
-
 struct fpsent : dynent
 {   
     int weight;                         // affects the effectiveness of hitpush

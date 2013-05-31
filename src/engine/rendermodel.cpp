@@ -657,7 +657,7 @@ void rendershadowmodelbatches(bool dynmodel)
     loopv(batches)
     {
         modelbatch &b = batches[i];
-        if(b.batched < 0 || (!dynmodel && (!(b.flags&MDL_MAPMODEL) || b.m->animated()))) continue;
+        if(b.batched < 0 || !b.m->shadow || (!dynmodel && (!(b.flags&MDL_MAPMODEL) || b.m->animated()))) continue;
         bool rendered = false;
         for(int j = b.batched; j >= 0;)
         {
@@ -894,6 +894,7 @@ void rendermapmodel(CLogicEntity *e, int anim, const vec &o, float yaw, float pi
     int visible = 0;
     if(shadowmapping) 
     {
+        if(!m->shadow) return;
         visible = shadowmaskmodel(center, radius);
         if(!visible) return;
     }

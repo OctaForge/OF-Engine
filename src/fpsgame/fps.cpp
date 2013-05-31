@@ -199,7 +199,7 @@ namespace game
 
             if(d->state==CS_ALIVE || d->state==CS_EDITING)
             {
-                crouchplayer(d, 10, false, CROUCHTIME, CROUCHMINHEIGHT, CROUCHMAXHEIGHT);
+                crouchplayer(d, 10, false);
 #if (SERVER_DRIVEN_PLAYERS == 0)
                 if(smoothmove && d->smoothmillis>0) predictplayer(d, true); // Disable to force server to always move clients
                 else moveplayer(d, 1, false);
@@ -253,7 +253,7 @@ namespace game
                 }
 
 //                if(player1->ragdoll && !(player1->anim&ANIM_RAGDOLL)) cleanragdoll(player1); XXX Needed? See below
-                crouchplayer(player1, 10, true, CROUCHTIME, CROUCHMINHEIGHT, CROUCHMAXHEIGHT);
+                crouchplayer(player1, 10, true);
 #if (SERVER_DRIVEN_PLAYERS == 0)
                 moveplayer(player1, 10, true); // Disable this to stop play from moving by client command
 #endif

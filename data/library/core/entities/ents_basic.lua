@@ -178,6 +178,8 @@ local FLAG_BELOWGROUND = lsh(2, 4)
         its eyes. Defaults to 1.0.
         eye_height [<svars.State_Float>] - the distance from the ground to
         the eye position. Defaults to 14.0.
+        max_height [<svars.State_Float>] - the maximum distance from the
+        ground to the eye position. Defaults to 14.0. Used when crouching.
         blocked [<svars.State_Boolean>] - true when the character is currently
         blocked from moving. Floor is not considered an obstacle.
         can_move [<svars.State_Boolean>] - when false, the character can't
@@ -283,6 +285,9 @@ local Character = Physical_Entity:clone {
         eye_height = svars.State_Float {
             getter = "_C.get_eyeheight", setter = "_C.set_eyeheight"
         },
+        max_height = svars.State_Float {
+            getter = "_C.get_maxheight", setter = "_C.set_maxheight"
+        },
         blocked = svars.State_Boolean {
             getter = "_C.get_blocked", setter = "_C.set_blocked"
         },
@@ -351,6 +356,7 @@ local Character = Physical_Entity:clone {
         self:set_attr("character_name", "none")
         self:set_attr("model_name", "player")
         self:set_attr("eye_height", 14.0)
+        self:set_attr("max_height", 14.0)
         self:set_attr("above_eye", 1.0)
         self:set_attr("movement_speed", 50.0)
         self:set_attr("facing_speed", 120)
