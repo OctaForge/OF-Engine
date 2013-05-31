@@ -272,9 +272,12 @@ namespace entities
     });
 
     DYNENT_ACCESSORS(maxspeed, float, number, maxspeed)
+    DYNENT_ACCESSORS(crouchtime, int, integer, crouchtime)
     DYNENT_ACCESSORS(radius, float, number, radius)
     DYNENT_ACCESSORS(eyeheight, float, number, eyeheight)
     DYNENT_ACCESSORS(maxheight, float, number, maxheight)
+    DYNENT_ACCESSORS(crouchheight, float, number, crouchheight)
+    DYNENT_ACCESSORS(jumpvel, float, number, jumpvel)
     DYNENT_ACCESSORS(aboveeye, float, number, aboveeye)
     DYNENT_ACCESSORS(yaw, float, number, yaw)
     DYNENT_ACCESSORS(pitch, float, number, pitch)

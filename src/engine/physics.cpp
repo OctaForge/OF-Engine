@@ -468,7 +468,6 @@ const float STAIRHEIGHT = 4.1f;
 const float FLOORZ = 0.867f;
 const float SLOPEZ = 0.5f;
 const float WALLZ = 0.2f;
-#define JUMPVEL (1.25f*(100+pl->maxspeed)/2) /* INTENSITY: Scale with maxspeed, so that maxspeed = 100 gives the old value here */
 float GRAVITY; // INTENSITY: Removed 'const' (and 'external') and the value itself
 
 bool ellipserectcollide(physent *d, const vec &dir, const vec &o, const vec &center, float yaw, float xr, float yr, float hi, float lo)
@@ -1571,7 +1570,8 @@ bool move(physent *d, vec &dir)
 void crouchplayer(physent *pl, int moveres, bool local)
 {
     if(!curtime) return;
-    float minheight = pl->maxheight * CROUCHHEIGHT, speed = (pl->maxheight - minheight) * curtime / float(CROUCHTIME);
+    /* OF */
+    float minheight = pl->maxheight * pl->crouchheight, speed = (pl->maxheight - minheight) * curtime / float(pl->crouchtime);
     if(pl->crouching < 0)
     {
         if(pl->eyeheight > minheight)
@@ -1798,7 +1798,8 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
         if(pl->jumping)
         {
             pl->jumping = false;
-            pl->vel.z = max(pl->vel.z, JUMPVEL);
+            /* OF: jumpvel */
+            pl->vel.z = max(pl->vel.z, pl->jumpvel);
         }
     }
     else if(pl->physstate >= PHYS_SLOPE || water)
@@ -1808,7 +1809,8 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
         {
             pl->jumping = false;
 
-            pl->vel.z = max(pl->vel.z, JUMPVEL); // physics impulse upwards
+            /* OF: jumpvel */
+            pl->vel.z = max(pl->vel.z, pl->jumpvel); // physics impulse upwards
             if(water) { pl->vel.x /= 8.0f; pl->vel.y /= 8.0f; } // dampen velocity change even harder, gives correct water feel
 
             game::physicstrigger(pl, local, 1, 0);

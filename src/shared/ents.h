@@ -43,17 +43,15 @@ enum { ENT_PLAYER = 0, ENT_CAMERA, ENT_BOUNCE };
 
 enum { COLLIDE_AABB = 0, COLLIDE_OBB, COLLIDE_ELLIPSE };
 
-#define CROUCHTIME 150 
-#define CROUCHHEIGHT 0.75f
-
 struct physent                                  // base entity type, can be affected by physics
 {
     vec o, vel, falling;                        // origin, velocity
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;
     float maxspeed;                             // cubes per second, 100 for player
-    int timeinair;
-    float radius, eyeheight, maxheight, aboveeye; // bounding box size
+    /* OF: crouchtime, crouchheight, jumpvel */
+    int timeinair, crouchtime;
+    float radius, eyeheight, maxheight, crouchheight, jumpvel, aboveeye; // bounding box size
     float xradius, yradius, zmargin;
     vec floor;                                  // the normal of floor the dynent is on
 
@@ -70,8 +68,8 @@ struct physent                                  // base entity type, can be affe
     physent *onplayer;
     int lastmove, lastmoveattempt;
 
-    physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(0), pitch(0), roll(0), maxspeed(100), 
-               radius(4.1f), eyeheight(14), maxheight(14), aboveeye(1), xradius(4.1f), yradius(4.1f), zmargin(0),
+    physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(0), pitch(0), roll(0), maxspeed(100), crouchtime(150),
+               radius(4.1f), eyeheight(14), maxheight(14), crouchheight(0.75f), jumpvel(125.0f), aboveeye(1), xradius(4.1f), yradius(4.1f), zmargin(0),
                state(CS_ALIVE), editstate(CS_ALIVE), type(ENT_PLAYER),
                collidetype(COLLIDE_ELLIPSE),
                blocked(false), moving(true),
