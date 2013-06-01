@@ -1611,6 +1611,7 @@ void crouchplayer(physent *pl, int moveres, bool local)
 
 bool bounce(physent *d, float secs, float elasticity, float waterfric, float grav)
 {
+    #define GRAVITY (d->gravity >= 0 ? d->gravity : GRAVITY) /* OF */
     // make sure bouncers don't start inside geometry
     if(d->physstate!=PHYS_BOUNCE && !collide(d, vec(0, 0, 0), 0, false)) return true;
     int mat = lookupmaterial(vec(d->o.x, d->o.y, d->o.z + (d->aboveeye - d->eyeheight)/2));
@@ -1650,6 +1651,7 @@ bool bounce(physent *d, float secs, float elasticity, float waterfric, float gra
         d->physstate = PHYS_BOUNCE;
     }
     return hitplayer!=0;
+    #undef GRAVITY /* OF */
 }
 
 void avoidcollision(physent *d, const vec &dir, physent *obstacle, float space)
@@ -1855,6 +1857,7 @@ void modifyvelocity(physent *pl, bool local, bool water, bool floating, int curt
 
 void modifygravity(physent *pl, bool water, int curtime)
 {
+    #define GRAVITY (pl->gravity >= 0 ? pl->gravity : GRAVITY) /* OF */
     float secs = curtime/1000.0f;
     vec g(0, 0, 0);
     if(pl->physstate == PHYS_FALL) g.z -= GRAVITY*secs;
@@ -1878,6 +1881,7 @@ void modifygravity(physent *pl, bool water, int curtime)
 //              c = water ? 1.0f : clamp((pl->floor.z - SLOPEZ)/(FLOORZ-SLOPEZ), 0.0f, 1.0f);
 //        pl->falling.mul(1 - c/fpsfric);
     }
+    #undef GRAVITY /* OF */
 }
 
 // main physics routine, moves a player/monster for a curtime step

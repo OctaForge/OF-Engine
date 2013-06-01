@@ -186,6 +186,9 @@ local FLAG_BELOWGROUND = lsh(2, 4)
         to crouch, adjust to change the speed.
         jump_velocity [<svars.State_Float>] - the vertical velocity to apply
         when jumping, defaults to 125.
+        gravity [<svars.State_Float>] - a custom character gravity to override
+        the global defaults. By default it's -1, which means the character
+        will use the global gravity.
         blocked [<svars.State_Boolean>] - true when the character is currently
         blocked from moving. Floor is not considered an obstacle.
         can_move [<svars.State_Boolean>] - when false, the character can't
@@ -303,6 +306,9 @@ local Character = Physical_Entity:clone {
         jump_velocity = svars.State_Float {
             getter = "_C.get_jumpvel", setter = "_C.set_jumpvel"
         },
+        gravity = svars.State_Float {
+            getter = "_C.get_gravity", setter = "_C.set_gravity"
+        },
         blocked = svars.State_Boolean {
             getter = "_C.get_blocked", setter = "_C.set_blocked"
         },
@@ -375,6 +381,7 @@ local Character = Physical_Entity:clone {
         self:set_attr("crouch_height", 0.75)
         self:set_attr("crouch_time", 150)
         self:set_attr("jump_velocity", 125)
+        self:set_attr("gravity", -1)
         self:set_attr("above_eye", 1.0)
         self:set_attr("movement_speed", 50.0)
         self:set_attr("facing_speed", 120)

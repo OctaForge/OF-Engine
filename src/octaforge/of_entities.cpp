@@ -278,6 +278,7 @@ namespace entities
     DYNENT_ACCESSORS(maxheight, float, number, maxheight)
     DYNENT_ACCESSORS(crouchheight, float, number, crouchheight)
     DYNENT_ACCESSORS(jumpvel, float, number, jumpvel)
+    DYNENT_ACCESSORS(gravity, float, number, gravity)
     DYNENT_ACCESSORS(aboveeye, float, number, aboveeye)
     DYNENT_ACCESSORS(yaw, float, number, yaw)
     DYNENT_ACCESSORS(pitch, float, number, pitch)

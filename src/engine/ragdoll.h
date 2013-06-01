@@ -446,6 +446,7 @@ VAR(ragdollwaterexpireoffset, 0, 3000, 30000);
 void ragdolldata::move(dynent *pl, float ts)
 {
     extern float GRAVITY; // INTENSITY: Removed 'const'
+    #define GRAVITY (pl->gravity >= 0 ? pl->gravity : GRAVITY) /* OF */
     if(collidemillis && lastmillis > collidemillis) return;
 
     int material = lookupmaterial(vec(center.x, center.y, center.z + radius/2));
@@ -501,6 +502,7 @@ void ragdolldata::move(dynent *pl, float ts)
     constrain();
     calctris();
     calcboundsphere();
+    #undef GRAVITY /* OF */
 }    
 
 FVAR(ragdolleyesmooth, 0, 0.5f, 1);

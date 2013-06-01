@@ -49,9 +49,9 @@ struct physent                                  // base entity type, can be affe
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;
     float maxspeed;                             // cubes per second, 100 for player
-    /* OF: crouchtime, crouchheight, jumpvel */
-    int timeinair, crouchtime;
-    float radius, eyeheight, maxheight, crouchheight, jumpvel, aboveeye; // bounding box size
+    int timeinair, crouchtime;                  // OF: crouchtime
+    float radius, eyeheight, maxheight, aboveeye; // bounding box size
+    float crouchheight, jumpvel, gravity;        // OF: crouchheight, jumpvel, gravity
     float xradius, yradius, zmargin;
     vec floor;                                  // the normal of floor the dynent is on
 
@@ -69,7 +69,7 @@ struct physent                                  // base entity type, can be affe
     int lastmove, lastmoveattempt;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(0), pitch(0), roll(0), maxspeed(100), crouchtime(150),
-               radius(4.1f), eyeheight(14), maxheight(14), crouchheight(0.75f), jumpvel(125.0f), aboveeye(1), xradius(4.1f), yradius(4.1f), zmargin(0),
+               radius(4.1f), eyeheight(14), maxheight(14), aboveeye(1), crouchheight(0.75f), jumpvel(125.0f), gravity(-1.0f), xradius(4.1f), yradius(4.1f), zmargin(0),
                state(CS_ALIVE), editstate(CS_ALIVE), type(ENT_PLAYER),
                collidetype(COLLIDE_ELLIPSE),
                blocked(false), moving(true),
