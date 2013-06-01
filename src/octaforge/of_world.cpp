@@ -183,10 +183,13 @@ namespace world
     void run_mapscript() {
         int oldflags = identflags;
         identflags |= IDF_SAFE;
-        if (luaL_loadfile(lua::L, get_mapscript_filename())
-        || lua_pcall(lua::L, 0, 0, 0)) {
+        if (luaL_loadfile(lua::L, get_mapscript_filename()))
             fatal("%s", lua_tostring(lua::L, -1));
-        }
+        lua::push_external("mapscript_gen_env");
+        lua_call(lua::L, 0, 1);
+        lua_setfenv(lua::L, -2);
+        if (lua_pcall(lua::L, 0, 0, 0))
+            fatal("%s", lua_tostring(lua::L, -1));
         identflags = oldflags;
     }
 } /* end namespace world */

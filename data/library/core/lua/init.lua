@@ -43,6 +43,9 @@ library = require("lua.library")
 #log(DEBUG, ":::: Utilities.")
 util = require("lua.util")
 
+#log(DEBUG, ":::: Environment support.")
+env = require("lua.env")
+
 -- Useful functionality exposed into globals
 
 max   = math.max
