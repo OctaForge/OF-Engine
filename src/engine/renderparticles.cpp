@@ -1328,11 +1328,11 @@ static void makeparticles(entity &e)
             else
             {
                 int mat = MAT_WATER + clamp(-e.attr3, 0, 3);
-                const bvec &wfcol = getwaterfallcolor(mat);
+                const bvec &wfcol = getwaterfallcolorv(mat);
                 color = (int(wfcol[0])<<16) | (int(wfcol[1])<<8) | int(wfcol[2]);
                 if(!color)
                 {
-                    const bvec &wcol = getwatercolor(mat);
+                    const bvec &wcol = getwatercolorv(mat);
                     color = (int(wcol[0])<<16) | (int(wcol[1])<<8) | int(wcol[2]);
                 }
             }

@@ -100,8 +100,8 @@ void renderwaterfog(int mat, float surface)
 
     if((mat&MATF_VOLUME) == MAT_WATER)
     {
-        const bvec &deepcolor = getwaterdeepcolor(mat);
-        const bvec &deepfadecolor = getwaterdeepfadecolor(mat);
+        const bvec &deepcolor = getwaterdeepcolorv(mat);
+        const bvec &deepfadecolor = getwaterdeepfadecolorv(mat);
         int deep = getwaterdeep(mat);
         GLOBALPARAMF(waterdeepcolor, (deepcolor.x*ldrscaleb, deepcolor.y*ldrscaleb, deepcolor.z*ldrscaleb));
         ivec deepfade = ivec(deepfadecolor.x, deepfadecolor.y, deepfadecolor.z).mul(deep);
@@ -348,38 +348,38 @@ void renderlava(const materialsurface &m, Texture *tex, float scale)
 }
 
 #define WATERVARS(name) \
-    bvec name##color(0x01, 0x21, 0x2C), name##deepcolor(0x01, 0x0A, 0x10), name##deepfadecolor(0x60, 0xBF, 0xFF), name##refractcolor(0xFF, 0xFF, 0xFF), name##fallcolor(0, 0, 0), name##fallrefractcolor(0xFF, 0xFF, 0xFF); \
-    HVARFR(name##colour, 0, 0x01212C, 0xFFFFFF, \
+    bvec name##colorv(0x01, 0x21, 0x2C), name##deepcolorv(0x01, 0x0A, 0x10), name##deepfadecolorv(0x60, 0xBF, 0xFF), name##refractcolorv(0xFF, 0xFF, 0xFF), name##fallcolorv(0, 0, 0), name##fallrefractcolorv(0xFF, 0xFF, 0xFF); \
+    HVARFR(name##color, 0, 0x01212C, 0xFFFFFF, \
     { \
-        if(!name##colour) name##colour = 0x01212C; \
-        name##color = bvec((name##colour>>16)&0xFF, (name##colour>>8)&0xFF, name##colour&0xFF); \
+        if(!name##color) name##color = 0x01212C; \
+        name##colorv = bvec((name##color>>16)&0xFF, (name##color>>8)&0xFF, name##color&0xFF); \
     }); \
-    HVARFR(name##deepcolour, 0, 0x010A10, 0xFFFFFF, \
+    HVARFR(name##deepcolor, 0, 0x010A10, 0xFFFFFF, \
     { \
-        if(!name##deepcolour) name##deepcolour = 0x010A10; \
-        name##deepcolor = bvec((name##deepcolour>>16)&0xFF, (name##deepcolour>>8)&0xFF, name##deepcolour&0xFF); \
+        if(!name##deepcolor) name##deepcolor = 0x010A10; \
+        name##deepcolorv = bvec((name##deepcolor>>16)&0xFF, (name##deepcolor>>8)&0xFF, name##deepcolor&0xFF); \
     }); \
     HVARFR(name##deepfade, 0, 0x60BFFF, 0xFFFFFF, \
     { \
         if(!name##deepfade) name##deepfade = 0x60BFFF; \
-        name##deepfadecolor = bvec((name##deepfade>>16)&0xFF, (name##deepfade>>8)&0xFF, name##deepfade&0xFF); \
+        name##deepfadecolorv = bvec((name##deepfade>>16)&0xFF, (name##deepfade>>8)&0xFF, name##deepfade&0xFF); \
     }); \
-    HVARFR(name##refractcolour, 0, 0xFFFFFF, 0xFFFFFF, \
+    HVARFR(name##refractcolor, 0, 0xFFFFFF, 0xFFFFFF, \
     { \
-        if(!name##refractcolour) name##refractcolour = 0xFFFFFF; \
-        name##refractcolor = bvec((name##refractcolour>>16)&0xFF, (name##refractcolour>>8)&0xFF, name##refractcolour&0xFF); \
+        if(!name##refractcolor) name##refractcolor = 0xFFFFFF; \
+        name##refractcolorv = bvec((name##refractcolor>>16)&0xFF, (name##refractcolor>>8)&0xFF, name##refractcolor&0xFF); \
     }); \
     VARR(name##fog, 0, 30, 10000); \
     VARR(name##deep, 0, 50, 10000); \
     VARR(name##spec, 0, 150, 200); \
     FVARR(name##refract, 0, 0.1f, 1e3f); \
-    HVARFR(name##fallcolour, 0, 0, 0xFFFFFF, \
+    HVARFR(name##fallcolor, 0, 0, 0xFFFFFF, \
     { \
-        name##fallcolor = bvec((name##fallcolour>>16)&0xFF, (name##fallcolour>>8)&0xFF, name##fallcolour&0xFF); \
+        name##fallcolorv = bvec((name##fallcolor>>16)&0xFF, (name##fallcolor>>8)&0xFF, name##fallcolor&0xFF); \
     }); \
-    HVARFR(name##fallrefractcolour, 0, 0, 0xFFFFFF, \
+    HVARFR(name##fallrefractcolor, 0, 0, 0xFFFFFF, \
     { \
-        name##fallrefractcolor = bvec((name##fallrefractcolour>>16)&0xFF, (name##fallrefractcolour>>8)&0xFF, name##fallrefractcolour&0xFF); \
+        name##fallrefractcolorv = bvec((name##fallrefractcolor>>16)&0xFF, (name##fallrefractcolor>>8)&0xFF, name##fallrefractcolor&0xFF); \
     }); \
     VARR(name##fallspec, 0, 150, 200); \
     FVARR(name##fallrefract, 0, 0.1f, 1e3f);
@@ -389,18 +389,18 @@ WATERVARS(water2)
 WATERVARS(water3)
 WATERVARS(water4)
 
-GETMATIDXVAR(water, colour, int)
-GETMATIDXVAR(water, color, const bvec &)
-GETMATIDXVAR(water, deepcolour, int)
-GETMATIDXVAR(water, deepcolor, const bvec &)
+GETMATIDXVAR(water, color, int)
+GETMATIDXVAR(water, colorv, const bvec &)
+GETMATIDXVAR(water, deepcolor, int)
+GETMATIDXVAR(water, deepcolorv, const bvec &)
 GETMATIDXVAR(water, deepfade, int)
-GETMATIDXVAR(water, deepfadecolor, const bvec &)
-GETMATIDXVAR(water, refractcolour, int)
-GETMATIDXVAR(water, refractcolor, const bvec &)
-GETMATIDXVAR(water, fallcolour, int)
-GETMATIDXVAR(water, fallcolor, const bvec &)
-GETMATIDXVAR(water, fallrefractcolour, int)
-GETMATIDXVAR(water, fallrefractcolor, const bvec &)
+GETMATIDXVAR(water, deepfadecolorv, const bvec &)
+GETMATIDXVAR(water, refractcolor, int)
+GETMATIDXVAR(water, refractcolorv, const bvec &)
+GETMATIDXVAR(water, fallcolor, int)
+GETMATIDXVAR(water, fallcolorv, const bvec &)
+GETMATIDXVAR(water, fallrefractcolor, int)
+GETMATIDXVAR(water, fallrefractcolorv, const bvec &)
 GETMATIDXVAR(water, fog, int)
 GETMATIDXVAR(water, deep, int)
 GETMATIDXVAR(water, spec, int)
@@ -409,11 +409,11 @@ GETMATIDXVAR(water, fallspec, int)
 GETMATIDXVAR(water, fallrefract, float)
 
 #define LAVAVARS(name) \
-    bvec name##color(0xFF, 0x40, 0x00); \
-    HVARFR(name##colour, 0, 0xFF4000, 0xFFFFFF, \
+    bvec name##colorv(0xFF, 0x40, 0x00); \
+    HVARFR(name##color, 0, 0xFF4000, 0xFFFFFF, \
     { \
-        if(!name##colour) name##colour = 0xFF4000; \
-        name##color = bvec((name##colour>>16)&0xFF, (name##colour>>8)&0xFF, name##colour&0xFF); \
+        if(!name##color) name##color = 0xFF4000; \
+        name##colorv = bvec((name##color>>16)&0xFF, (name##color>>8)&0xFF, name##color&0xFF); \
     }); \
     VARR(name##fog, 0, 50, 10000); \
     FVARR(name##glowmin, 0, 0.25f, 2); \
@@ -425,8 +425,8 @@ LAVAVARS(lava2)
 LAVAVARS(lava3)
 LAVAVARS(lava4)
 
-GETMATIDXVAR(lava, colour, int)
-GETMATIDXVAR(lava, color, const bvec &)
+GETMATIDXVAR(lava, color, int)
+GETMATIDXVAR(lava, colorv, const bvec &)
 GETMATIDXVAR(lava, fog, int)
 GETMATIDXVAR(lava, glowmin, float)
 GETMATIDXVAR(lava, glowmax, float)
@@ -592,9 +592,9 @@ void renderwaterfalls()
         wfxscale = TEX_SCALE/(tex->xs*wslot.scale);
         wfyscale = TEX_SCALE/(tex->ys*wslot.scale);
   
-        bvec color = getwaterfallcolor(k), refractcolor = getwaterfallrefractcolor(k);
-        if(color.iszero()) color = getwatercolor(k);
-        if(refractcolor.iszero()) refractcolor = getwaterrefractcolor(k);
+        bvec color = getwaterfallcolorv(k), refractcolor = getwaterfallrefractcolorv(k);
+        if(color.iszero()) color = getwatercolorv(k);
+        if(refractcolor.iszero()) refractcolor = getwaterrefractcolorv(k);
         float colorscale = (0.5f/255), refractscale = colorscale/ldrscale;
         float refract = getwaterfallrefract(k);
         int spec = getwaterfallspec(k);
@@ -647,10 +647,10 @@ void renderwater()
         glActiveTexture_(GL_TEXTURE0);
 
         float colorscale = 0.5f/255, refractscale = colorscale/ldrscale, reflectscale = 0.5f/ldrscale;
-        const bvec &color = getwatercolor(k);
-        const bvec &deepcolor = getwaterdeepcolor(k);
-        const bvec &deepfadecolor = getwaterdeepfadecolor(k);
-        const bvec &refractcolor = getwaterrefractcolor(k);
+        const bvec &color = getwatercolorv(k);
+        const bvec &deepcolor = getwaterdeepcolorv(k);
+        const bvec &deepfadecolor = getwaterdeepfadecolorv(k);
+        const bvec &refractcolor = getwaterrefractcolorv(k);
         int fog = getwaterfog(k), deep = getwaterdeep(k), spec = getwaterspec(k);
         float refract = getwaterrefract(k);
         GLOBALPARAMF(watercolor, (color.x*colorscale, color.y*colorscale, color.z*colorscale));

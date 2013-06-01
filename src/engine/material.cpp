@@ -681,11 +681,11 @@ extern const vec matnormals[6] =
 };
 
 #define GLASSVARS(name) \
-    bvec name##color(0xB0, 0xD8, 0xFF); \
-    HVARFR(name##colour, 0, 0xB0D8FF, 0xFFFFFF, \
+    bvec name##colorv(0xB0, 0xD8, 0xFF); \
+    HVARFR(name##color, 0, 0xB0D8FF, 0xFFFFFF, \
     { \
-        if(!name##colour) name##colour = 0xB0D8FF; \
-        name##color = bvec((name##colour>>16)&0xFF, (name##colour>>8)&0xFF, name##colour&0xFF); \
+        if(!name##color) name##color = 0xB0D8FF; \
+        name##colorv = bvec((name##color>>16)&0xFF, (name##color>>8)&0xFF, name##color&0xFF); \
     }); \
     FVARR(name##refract, 0, 0.1f, 1e3f); \
     VARR(name##spec, 0, 150, 200);
@@ -695,8 +695,8 @@ GLASSVARS(glass2)
 GLASSVARS(glass3)
 GLASSVARS(glass4)
 
-GETMATIDXVAR(glass, colour, int)
-GETMATIDXVAR(glass, color, const bvec &)
+GETMATIDXVAR(glass, color, int)
+GETMATIDXVAR(glass, colorv, const bvec &)
 GETMATIDXVAR(glass, refract, float)
 GETMATIDXVAR(glass, spec, int)
 
@@ -720,7 +720,7 @@ void renderglass()
         glActiveTexture_(GL_TEXTURE0);
 
         float refractscale = (0.5f/255)/ldrscale;
-        const bvec &col = getglasscolor(k);
+        const bvec &col = getglasscolorv(k);
         float refract = getglassrefract(k);
         int spec = getglassspec(k);
         GLOBALPARAMF(glassrefract, (col.x*refractscale, col.y*refractscale, col.z*refractscale, refract*viewh));

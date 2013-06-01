@@ -522,7 +522,7 @@ bool bboccluded(const ivec &bo, const ivec &br)
 }
 
 VAR(outline, 0, 1, 1);
-HVARP(outlinecolour, 0, 0, 0xFFFFFF);
+HVARP(outlinecolor, 0, 0, 0xFFFFFF);
 VAR(dtoutline, 0, 1, 1);
 
 void renderoutline()
@@ -532,7 +532,7 @@ void renderoutline()
     gle::enablevertex();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    gle::color(vec::hexcolor(outlinecolour));
+    gle::color(vec::hexcolor(outlinecolor));
 
     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
 
@@ -1878,7 +1878,7 @@ void renderalphageom(int side)
     cleanupgeom(cur);
 }
 
-HVARP(explicitskycolour, 0, 0x800080, 0xFFFFFF);
+HVARP(explicitskycolor, 0, 0x800080, 0xFFFFFF);
 
 bool renderexplicitsky(bool outline)
 {
@@ -1893,7 +1893,7 @@ bool renderexplicitsky(bool outline)
                 if(outline)
                 {
                     ldrnotextureshader->set();
-                    gle::color(vec::hexcolor(explicitskycolour));
+                    gle::color(vec::hexcolor(explicitskycolor));
                     glDepthMask(GL_FALSE);
                     enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
