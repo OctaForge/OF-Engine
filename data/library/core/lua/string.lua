@@ -78,3 +78,8 @@ string.escape = function(s)
     local sd = (ndq > nsq) and "'" or '"'
     return sd .. s:gsub("[\\"..sd..str_escp.."]", str_escapes) .. sd
 end
+
+--[[! Variable: string.dump
+    This function is disabled in OctaForge.
+]]
+string.dump = nil
