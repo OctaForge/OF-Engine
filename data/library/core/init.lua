@@ -73,53 +73,53 @@ _C.log(DEBUG, "Initializing logging.")
 log = _C.log
 
 local io_open, load, error = io.open, load, error
-table.insert(package.loaders, 2, function(modname)
-    local err, modpath = "", modname:gsub("%.", "/")
-    for path in package.path:gmatch("([^;]+)") do
-        local fname = path:gsub("%?", modpath)
-        local file = io_open(fname, "rb")
-        local prevlevel
-        if file then
-            local f, err = load(function()
-                local  line = file:read("*L")
-                if not line then
-                    file:close()
-                    return nil
-                end
-                local lvl, rst = line:match("^%s*#log%s*%(([A-Z]+),%s*(.+)$")
-                if lvl then
-                    prevlevel = _G[lvl]
-                    if _C.should_log(prevlevel) then
-                        local a, b = line:find("^%s*#")
-                        return line:sub(b + 1)
-                    else
-                        return "--" .. line
-                    end
-                elseif prevlevel then
-                    local a, b = line:find("^%s*#")
-                    if a then
-                        if _C.should_log(prevlevel) then
-                            return line:sub(b + 1)
-                        else
-                            return "--" .. line
-                        end
-                    else
-                        prevlevel = nil
-                        return line
-                    end
-                else
-                    return line
-                end
-            end, "@" .. fname)
-            if not f then
-                error("error loading module '" .. modname .. "' from file '"
-                    .. fname .. "':\n" .. err, 2)
-            end
-            return f
+local pp_loader = function(fname, modname)
+    local prevlevel
+    local file = io_open(fname, "rb")
+    local f, err = load(function()
+        local  line = file:read("*L")
+        if not line then
+            file:close()
+            return nil
         end
-        err = err .. "\n\tno file '" .. fname .. "'"
+        local lvl, rst = line:match("^%s*#log%s*%(([A-Z]+),%s*(.+)$")
+        if lvl then
+            prevlevel = _G[lvl]
+            if _C.should_log(prevlevel) then
+                local a, b = line:find("^%s*#")
+                return line:sub(b + 1)
+            else
+                return "--" .. line
+            end
+        elseif prevlevel then
+            local a, b = line:find("^%s*#")
+            if a then
+                if _C.should_log(prevlevel) then
+                    return line:sub(b + 1)
+                else
+                    return "--" .. line
+                end
+            else
+                prevlevel = nil
+                return line
+            end
+        else
+            return line
+        end
+    end, "@" .. fname)
+    if not f then
+        error("error loading module '" .. modname .. "' from file '"
+            .. fname .. "':\n" .. err, 2)
     end
-    return err
+    return f
+end
+_G["pp_loader"] = pp_loader
+
+local spath = package.searchpath
+table.insert(package.loaders, 2, function(modname)
+    local  v, err = spath(modname, package.path)
+    if not v then return err end
+    return pp_loader(v, modname)
 end)
 
 --[[! Function: echo
