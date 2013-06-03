@@ -1,3 +1,44 @@
+2013-06-03 - 0.2.2 beta 3
+
+    * Reorganized entity structure inside the engine
+    * Oriented markers now have pitch
+    * Generic entity attaching system with visualization in the world
+    * Automatic texture extension detection (for jpg, png)
+    * Icon particle type and use that for entities in edit mode
+    * Reworked editmode entity icons - they're now truly per-entity-type
+      as in scripted entity type, they can also be colorized per-entity-type
+    * Reworked some editing commands to use named attributes (e.g. entattr),
+      this breaks some stdedit code that is still to be changed
+    * Optimized scripted vec3/vec4 using native FFI structures instead of
+      tables
+    * New entity editing HUD displaying relevant properties instead of 5
+      numbers
+    * Removal of sauer types from the API (not relevant anymore)
+    * World_Marker is now Oriented_Marker with yaw and pitch
+    * Fixed dynamic and flickering light types (temporary)
+    * Removed the getter/setter system from objects, instead methods get_attr
+      and set_attr are used (more explicit and faster)
+    * State variables are registered on per-class basis rather than per-entity,
+      that means each state var is registered just once rather than N times
+      (for N entities).
+    * Selection grid helpers ported from Lamiae
+    * GUI eval labels only execute the command once
+    * Players can crouch now
+    * Removed obsolete string utils
+    * New table serializer and deserializer with more options, better safety
+      and better performance
+    * Replaced table.sort with a custom written introsort implementation
+      (3x faster than the original)
+    * Light entities can now be turned off by setting flags to -1
+    * Pressed modifier check function for cubescript
+    * Crouch height, time, jump velocity and gravity can now be adjusted
+      per player (gravity has a global fallback)
+    * All engine vars that had "colour" inside them had it replaced with
+      "color" for consistency (watercolour -> watercolor)
+    * Disabled string.dump
+    * Initial support for per-mapscript environments - when finished, you'll
+      be able to restart maps without problems
+
 2013-05-20 - 0.2.1 beta 2
 
     * LuaJIT removed from the main makefile (build your own e.g. from OctaForge
