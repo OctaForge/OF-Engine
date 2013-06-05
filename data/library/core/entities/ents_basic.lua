@@ -1357,7 +1357,7 @@ local Mapmodel = Static_Entity:clone {
     get_edit_info = function(self)
         return format('yaw: %d, pitch: %d, roll: %d, scale: %d\nname: "%s"',
             self:get_attr("yaw"), self:get_attr("pitch"),
-            self:get_attr("roll"), self:get_scale(),
+            self:get_attr("roll"), self:get_attr("scale"),
             self:get_attr("model_name"))
     end,
 
