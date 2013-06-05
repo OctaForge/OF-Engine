@@ -28,13 +28,13 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
             {
                 vec center, radius;
                 m->boundbox(center, radius);
-                if(e.attr4 > 0)
+                if(e.attr[3] > 0)
                 {
-                    float scale = e.attr4/100.0f;
+                    float scale = e.attr[3]/100.0f;
                     center.mul(scale);
                     radius.mul(scale);
                 }
-                rotatebb(center, radius, e.attr1, e.attr2, e.attr3); // OF
+                rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]); // OF
                 o = e.o;
                 o.add(center);
                 r = radius;
@@ -47,13 +47,13 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
         case ET_OBSTACLE: /* OF */
         {
             o = e.o;
-            if (!e.attr2 || !e.attr3 || !e.attr4) {
+            if (!e.attr[1] || !e.attr[2] || !e.attr[3]) {
                 o.sub(entselradius);
                 r.x = r.y = r.z = entselradius*2;
                 break;
             }
-            vec center = vec(0, 0, 0), radius = vec(e.attr2, e.attr3, e.attr4);
-            rotatebb(center, radius, e.attr1, 0);
+            vec center = vec(0, 0, 0), radius = vec(e.attr[1], e.attr[2], e.attr[3]);
+            rotatebb(center, radius, e.attr[0], 0);
             o.add(center);
             r = radius;
             r.add(1);
@@ -95,7 +95,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     oe.mapmodels.add(id);
                     break;
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(e)->getModel()) //loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
+                    if(LogicSystem::getLogicEntity(e)->getModel()) //loadmodel(NULL, entities::getents()[id]->attr[1])) // INTENSITY: Get model from our system
                     {
                         if(va)
                         {
@@ -126,7 +126,7 @@ void modifyoctaentity(int flags, int id, extentity &e, cube *c, const ivec &cor,
                     oe.mapmodels.removeobj(id);
                     break;
                 case ET_MAPMODEL:
-                    if(LogicSystem::getLogicEntity(e)->getModel()) // loadmodel(NULL, entities::getents()[id]->attr2)) // INTENSITY: Get model from our system
+                    if(LogicSystem::getLogicEntity(e)->getModel()) // loadmodel(NULL, entities::getents()[id]->attr[1])) // INTENSITY: Get model from our system
                     {
                         oe.mapmodels.removeobj(id);
                         if(va)
@@ -350,6 +350,7 @@ undoblock *newundoent()
     loopv(entgroup)
     {
         e->i = entgroup[i];
+        e->e.attr.disown(); //points to random values; this causes problems
         e->e = *entities::getents()[entgroup[i]];
         e++;
     }
@@ -486,15 +487,15 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
     if(e.type == ET_MAPMODEL && (m = entity->getModel())) // INTENSITY
     {
         m->collisionbox(eo, es);
-        if(e.attr4 > 0) { float scale = e.attr4/100.0f; eo.mul(scale); es.mul(scale); }
-        rotatebb(eo, es, e.attr1, e.attr2, e.attr3); // OF
+        if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; eo.mul(scale); es.mul(scale); }
+        rotatebb(eo, es, e.attr[0], e.attr[1], e.attr[2]); // OF
         eo.add(e.o);
     }
-    else if(e.type == ET_OBSTACLE && e.attr2 && e.attr3 && e.attr4) /* OF */
+    else if(e.type == ET_OBSTACLE && e.attr[1] && e.attr[2] && e.attr[3]) /* OF */
     {
         eo = vec(0, 0, 0);
-        es = vec(e.attr2, e.attr3, e.attr4);
-        rotatebb(eo, es, e.attr1, 0);
+        es = vec(e.attr[1], e.attr[2], e.attr[3]);
+        rotatebb(eo, es, e.attr[0], 0);
         eo.add(e.o);
     }
     else
@@ -647,18 +648,18 @@ void renderentradius(extentity &e, bool color)
     switch(e.type)
     {
         case ET_LIGHT:
-            if(color) gle::colorf(e.attr2/255.0f, e.attr3/255.0f, e.attr4/255.0f);
-            renderentsphere(e, e.attr1);
+            if(color) gle::colorf(e.attr[1]/255.0f, e.attr[2]/255.0f, e.attr[3]/255.0f);
+            renderentsphere(e, e.attr[0]);
             goto attach; /* OF */
 
         case ET_SPOTLIGHT:
             if(e.attached)
             {
                 if(color) gle::colorf(0, 1, 1);
-                float radius = e.attached->attr1;
+                float radius = e.attached->attr[0];
                 if(!radius) radius = 2*e.o.dist(e.attached->o);
                 vec dir = vec(e.o).sub(e.attached->o).normalize();
-                float angle = clamp(int(e.attr1), 1, 89);
+                float angle = clamp(int(e.attr[0]), 1, 89);
                 renderentattachment(e);
                 renderentcone(*e.attached, dir, radius, angle); 
             }
@@ -666,14 +667,14 @@ void renderentradius(extentity &e, bool color)
 
         case ET_SOUND:
             if(color) gle::colorf(0, 1, 1);
-            renderentsphere(e, e.attr2);
+            renderentsphere(e, e.attr[1]);
             goto attach; /* OF */
 
         case ET_ENVMAP:
         {
             extern int envmapradius;
             if(color) gle::colorf(0, 1, 1);
-            renderentsphere(e, e.attr1 ? max(0, min(10000, int(e.attr1))) : envmapradius);
+            renderentsphere(e, e.attr[0] ? max(0, min(10000, int(e.attr[0]))) : envmapradius);
             goto attach; /* OF */
         }
 
@@ -684,7 +685,7 @@ void renderentradius(extentity &e, bool color)
         {
             if(color) gle::colorf(0, 1, 1);
             vec dir;
-            vecfromyawpitch(e.attr1, e.attr2, 1, 0, dir);
+            vecfromyawpitch(e.attr[0], e.attr[1], 1, 0, dir);
             renderentarrow(e, dir, 4);
             goto attach;
         }
@@ -863,8 +864,8 @@ bool dropentity(entity &e, int drop = -1)
         {
             vec center;
             m->boundbox(center, radius);
-            if(e.attr4 > 0) { float scale = e.attr4/100.0f; center.mul(scale); radius.mul(scale); }
-            rotatebb(center, radius, e.attr1, e.attr2, e.attr3); // OF
+            if(e.attr[3] > 0) { float scale = e.attr[3]/100.0f; center.mul(scale); radius.mul(scale); }
+            rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]); // OF
             radius.x += fabs(center.x);
             radius.y += fabs(center.y);
         }
@@ -1101,13 +1102,13 @@ int findentity(int type, int index, int attr1, int attr2)
     for(int i = index; i<ents.length(); i++) 
     {
         extentity &e = *ents[i];
-        if(e.type==type && (attr1<0 || e.attr1==attr1) && (attr2<0 || e.attr2==attr2))
+        if(e.type==type && (attr1<0 || e.attr[0]==attr1) && (attr2<0 || e.attr[1]==attr2))
             return i;
     }
     loopj(min(index, ents.length())) 
     {
         extentity &e = *ents[j];
-        if(e.type==type && (attr1<0 || e.attr1==attr1) && (attr2<0 || e.attr2==attr2))
+        if(e.type==type && (attr1<0 || e.attr[0]==attr1) && (attr2<0 || e.attr[1]==attr2))
             return j;
     }
     return -1;

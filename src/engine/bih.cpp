@@ -270,11 +270,11 @@ bool mmintersect(const extentity &e, const vec &o, const vec &ray, float maxdist
     else if((mode&RAY_ENTS)!=RAY_ENTS && (!m->collide || e.flags&extentity::F_NOCOLLIDE)) return false;
     if(!m->bih && !m->setBIH()) return false;
     vec mo = vec(o).sub(e.o), mray(ray);
-    int scale = e.attr4;
+    int scale = e.attr[3];
     if(scale > 0) mo.mul(100.0f/scale);
     float v = mo.dot(mray), inside = m->bih->radius - mo.squaredlen();
     if((inside < 0 && v > 0) || inside + v*v < 0) return false;
-    int yaw = e.attr1, pitch = e.attr2, roll = e.attr3; // OF
+    int yaw = e.attr[0], pitch = e.attr[1], roll = e.attr[2]; // OF
     if(yaw != 0) 
     {
         const vec2 &rot = sincosmod360(-yaw);

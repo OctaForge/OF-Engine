@@ -2461,9 +2461,9 @@ void initenvmaps()
         const extentity &ent = *ents[i];
         if(ent.type != ET_ENVMAP) continue;
         envmap &em = envmaps.add();
-        em.radius = ent.attr1 ? clamp(int(ent.attr1), 0, 10000) : envmapradius;
-        em.size = ent.attr2 ? clamp(int(ent.attr2), 4, 9) : 0;
-        em.blur = ent.attr3 ? clamp(int(ent.attr3), 1, 2) : 0; 
+        em.radius = ent.attr[0] ? clamp(int(ent.attr[0]), 0, 10000) : envmapradius;
+        em.size = ent.attr[1] ? clamp(int(ent.attr[1]), 4, 9) : 0;
+        em.blur = ent.attr[2] ? clamp(int(ent.attr[2]), 1, 2) : 0; 
         em.o = ent.o;
         em.tex = 0;
     }

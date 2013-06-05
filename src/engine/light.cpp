@@ -45,10 +45,11 @@ void setupsunlight()
 {
     memset(&sunlightent, 0, sizeof(sunlightent));
     sunlightent.type = ET_LIGHT;
-    sunlightent.attr1 = 0;
-    sunlightent.attr2 = int(sunlightcolor.x*sunlightscale);
-    sunlightent.attr3 = int(sunlightcolor.y*sunlightscale);
-    sunlightent.attr4 = int(sunlightcolor.z*sunlightscale);
+    sunlightent.attr.add(0);
+    sunlightent.attr.add(int(sunlightcolor.x*sunlightscale));
+    sunlightent.attr.add(int(sunlightcolor.y*sunlightscale));
+    sunlightent.attr.add(int(sunlightcolor.z*sunlightscale));
+    sunlightent.attr.add(0);
     float dist = min(min(sunlightdir.x ? 1/fabs(sunlightdir.x) : 1e16f, sunlightdir.y ? 1/fabs(sunlightdir.y) : 1e16f), sunlightdir.z ? 1/fabs(sunlightdir.z) : 1e16f);
     sunlightent.o = vec(sunlightdir).mul(dist*worldsize).add(vec(worldsize/2, worldsize/2, worldsize/2)); 
     clearradiancehintscache();
@@ -297,7 +298,7 @@ void clearlightcache(int id)
     if(id >= 0)
     {
         const extentity &light = *entities::getents()[id];
-        int radius = light.attr1;
+        int radius = light.attr[0];
         if(radius)
         {
             for(int x = int(max(light.o.x-radius, 0.0f))>>lightcachesize, ex = int(min(light.o.x+radius, worldsize-1.0f))>>lightcachesize; x <= ex; x++)
@@ -336,7 +337,7 @@ const vector<int> &checklightcache(int x, int y)
         {
             case ET_LIGHT:
             {
-                int radius = light.attr1;
+                int radius = light.attr[0];
                 if(radius > 0)
                 {
                     if(light.o.x + radius < cx || light.o.x - radius > cx + csize ||
@@ -670,7 +671,7 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
         vec ray(target);
         ray.sub(e.o);
         float mag = ray.magnitude();
-        if(e.attr1 && mag >= float(e.attr1))
+        if(e.attr[0] && mag >= float(e.attr[0]))
             continue;
     
         if(mag < 1e-4f) ray = vec(0, 0, -1);
@@ -682,12 +683,12 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
         }
 
         float intensity = 1;
-        if(e.attr1)
-            intensity -= mag / float(e.attr1);
+        if(e.attr[0])
+            intensity -= mag / float(e.attr[0]);
         if(e.attached && e.attached->type==ET_SPOTLIGHT)
         {
             vec spot = vec(e.attached->o).sub(e.o).normalize();
-            float maxatten = sincos360[clamp(int(e.attached->attr1), 1, 89)].x, spotatten = (ray.dot(spot) - maxatten) / (1 - maxatten);
+            float maxatten = sincos360[clamp(int(e.attached->attr[0]), 1, 89)].x, spotatten = (ray.dot(spot) - maxatten) / (1 - maxatten);
             if(spotatten <= 0) continue;
             intensity *= spotatten;
         }
@@ -697,7 +698,7 @@ void lightreaching(const vec &target, vec &color, vec &dir, bool fast, extentity
         //    conoutf(CON_DEBUG, "%d - %f %f", i, intensity, mag);
         //}
  
-        vec lightcol = vec(e.attr2, e.attr3, e.attr4).mul(1.0f/255);
+        vec lightcol = vec(e.attr[1], e.attr[2], e.attr[3]).mul(1.0f/255);
         color.add(vec(lightcol).mul(intensity));
         dir.add(vec(ray).mul(-intensity*lightcol.x*lightcol.y*lightcol.z));
     }
@@ -729,19 +730,19 @@ entity *brightestlight(const vec &target, const vec &dir)
         vec ray(target);
         ray.sub(e.o);
         float mag = ray.magnitude();
-        if(e.attr1 && mag >= float(e.attr1))
+        if(e.attr[0] && mag >= float(e.attr[0]))
              continue;
 
         ray.div(mag);
         if(shadowray(e.o, ray, mag, RAY_SHADOW | RAY_POLY) < mag)
             continue;
         float intensity = 1;
-        if(e.attr1)
-            intensity -= mag / float(e.attr1);
+        if(e.attr[0])
+            intensity -= mag / float(e.attr[0]);
         if(e.attached && e.attached->type==ET_SPOTLIGHT)
         {
             vec spot = vec(e.attached->o).sub(e.o).normalize();
-            float maxatten = sincos360[clamp(int(e.attached->attr1), 1, 89)].x, spotatten = (ray.dot(spot) - maxatten) / (1 - maxatten);
+            float maxatten = sincos360[clamp(int(e.attached->attr[0]), 1, 89)].x, spotatten = (ray.dot(spot) - maxatten) / (1 - maxatten);
             if(spotatten <= 0) continue;
             intensity *= spotatten;
         }

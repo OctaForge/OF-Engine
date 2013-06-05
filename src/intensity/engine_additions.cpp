@@ -213,9 +213,9 @@ void CLogicEntity::setSound(const char *snd)
 
 #ifdef CLIENT
     stopmapsound(staticEntity);
-    if(camera1->o.dist(staticEntity->o) < staticEntity->attr2)
+    if(camera1->o.dist(staticEntity->o) < staticEntity->attr[1])
       {
-        if(!staticEntity->visible) playmapsound(sndname, staticEntity, staticEntity->attr4, -1);
+        if(!staticEntity->visible) playmapsound(sndname, staticEntity, staticEntity->attr[3], -1);
         else if(staticEntity->visible) stopmapsound(staticEntity);
       }
 #else
@@ -249,11 +249,11 @@ vec& CLogicEntity::getAttachmentPosition(const char *tag)
             vec center, radius;
             if (theModel) {
                 theModel->collisionbox(center, radius);
-                if (staticEntity->attr4 > 0) {
-                    float scale = staticEntity->attr4 / 100.0f;
+                if (staticEntity->attr[3] > 0) {
+                    float scale = staticEntity->attr[3] / 100.0f;
                     center.mul(scale); radius.mul(scale);
                 }
-                rotatebb(center, radius, staticEntity->attr1, staticEntity->attr2, staticEntity->attr3);
+                rotatebb(center, radius, staticEntity->attr[0], staticEntity->attr[1], staticEntity->attr[2]);
                 center.add(staticEntity->o);
                 missing = center;
             } else missing = staticEntity->o;
@@ -343,7 +343,7 @@ CLogicEntity *LogicSystem::registerLogicEntity(extentity* entity)
 
     CLogicEntity *newEntity = new CLogicEntity(entity);
 
-//    logger::log(logger::DEBUG, "adding entity %d : %d,%d,%d,%d\r\n", entity->type, entity->attr1, entity->attr2, entity->attr3, entity->attr4);
+//    logger::log(logger::DEBUG, "adding entity %d : %d,%d,%d,%d\r\n", entity->type, entity->attr[0], entity->attr[1], entity->attr[2], entity->attr[3]);
 
     registerLogicEntity(newEntity);
 
@@ -471,9 +471,13 @@ void LogicSystem::setupExtent(int ref, int type)
     extentity *e = new extentity;
     entities::getents().add(e);
 
-    e->type  = type;
-    e->o     = vec(0, 0, 0);
-    e->attr1 = e->attr2 = e->attr3 = e->attr4 = e->attr5 = 0;
+    e->type = type;
+    e->o = vec(0, 0, 0);
+    e->attr.add(0);
+    e->attr.add(0);
+    e->attr.add(0);
+    e->attr.add(0);
+    e->attr.add(0);
     e->inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
 
     extern void addentity(extentity* entity);

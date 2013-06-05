@@ -720,15 +720,14 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 
     loopi(min(hdr.numents, MAXENTS))
     {
-//        extentity &e = *(new extentity);
-//        ents.add(&e);
-        extentity e; // INTENSITY: Do *NOT* actually load entities from .ogz files - we use our own system.
-                     // But, read the data from the file so we can move on (might be a sauer .ogz)
-                     // So 'e' here is just a dummy
+        extentity e;
+        e.o.x = f->getlil<float>();
+        e.o.y = f->getlil<float>();
+        e.o.z = f->getlil<float>();
+        loopj(5) e.attr.add(f->getlil<short>());
+        e.type = f->getchar();
+        f->getchar();
 
-        f->read(&e, sizeof(entity));
-        lilswap(&e.o.x, 3);
-        lilswap(&e.attr1, 5);
         e.spawned = false;
         e.inoctanode = false;
         if (!samegame)
@@ -761,11 +760,11 @@ bool load_world(const char *mname, const char *cname)        // still supports a
                 lua_pushnumber (lua::L, e.o.x);
                 lua_pushnumber (lua::L, e.o.y);
                 lua_pushnumber (lua::L, e.o.z);
-                lua_pushinteger(lua::L, e.attr1);
-                lua_pushinteger(lua::L, e.attr2);
-                lua_pushinteger(lua::L, e.attr3);
-                lua_pushinteger(lua::L, e.attr4);
-                lua_pushinteger(lua::L, e.attr5);
+                lua_pushinteger(lua::L, e.attr[0]);
+                lua_pushinteger(lua::L, e.attr[1]);
+                lua_pushinteger(lua::L, e.attr[2]);
+                lua_pushinteger(lua::L, e.attr[3]);
+                lua_pushinteger(lua::L, e.attr[4]);
                 lua_call       (lua::L, 9, 0);
                 break;
             default:

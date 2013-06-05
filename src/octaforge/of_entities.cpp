@@ -143,7 +143,7 @@ namespace entities
         assert(ext);
 
         if (!world::loading) removeentity(ext);
-        ext->attr4 = vol;
+        ext->attr[3] = vol;
         if (!world::loading) addentity(ext);
 
         entity->setSound(entity->sndname);
@@ -181,38 +181,38 @@ namespace entities
 
     /* Extents */
 
-    #define EXTENT_ACCESSORS(n) \
+    #define EXTENT_ACCESSORS(n, i) \
     LUAICOMMAND(get_##n, { \
-        LUA_GET_ENT(entity, "_C.get"#n, return 0) \
+        LUA_GET_ENT(entity, "_C.get_"#n, return 0) \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
-        lua_pushinteger(L, ext->n); \
+        lua_pushinteger(L, ext->attr[i]); \
         return 1; \
     }); \
     LUAICOMMAND(set_##n, { \
-        LUA_GET_ENT(entity, "_C.set"#n, return 0) \
+        LUA_GET_ENT(entity, "_C.set_"#n, return 0) \
         int v = luaL_checkinteger(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
         if (!world::loading) removeentity(ext); \
-        ext->n = v; \
+        ext->attr[i] = v; \
         if (!world::loading) addentity(ext); \
         return 0; \
     }); \
     LUAICOMMAND(FAST_set_##n, { \
-        LUA_GET_ENT(entity, "_C.FAST_set"#n, return 0) \
+        LUA_GET_ENT(entity, "_C.FAST_set_"#n, return 0) \
         int v = luaL_checkinteger(L, 2); \
         extentity *ext = entity->staticEntity; \
         assert(ext); \
-        ext->n = v; \
+        ext->attr[i] = v; \
         return 0; \
     });
 
-    EXTENT_ACCESSORS(attr1)
-    EXTENT_ACCESSORS(attr2)
-    EXTENT_ACCESSORS(attr3)
-    EXTENT_ACCESSORS(attr4)
-    EXTENT_ACCESSORS(attr5)
+    EXTENT_ACCESSORS(attr1, 0)
+    EXTENT_ACCESSORS(attr2, 1)
+    EXTENT_ACCESSORS(attr3, 2)
+    EXTENT_ACCESSORS(attr4, 3)
+    EXTENT_ACCESSORS(attr5, 4)
     #undef EXTENT_ACCESSORS
 
     LUAICOMMAND(get_extent_position, {

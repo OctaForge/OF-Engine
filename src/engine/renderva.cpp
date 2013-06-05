@@ -415,7 +415,7 @@ static inline void rendermapmodel(extentity &e)
     int anim     = entity->getAnimation(); // ANIM_MAPMODEL|ANIM_LOOP
     int basetime = entity->getStartTime();
 
-    rendermapmodel(entity, anim, e.o, e.attr1, e.attr2, e.attr3, MDL_CULL_VFC | MDL_CULL_DIST, basetime, e.attr4 > 0 ? e.attr4/100.0f : 1.0f); // OF
+    rendermapmodel(entity, anim, e.o, e.attr[0], e.attr[1], e.attr[2], MDL_CULL_VFC | MDL_CULL_DIST, basetime, e.attr[3] > 0 ? e.attr[3]/100.0f : 1.0f); // OF
 }
 
 void rendermapmodels()
@@ -2131,7 +2131,7 @@ shadowmesh *findshadowmesh(int idx, extentity &e)
     switch(m->type)
     {
         case SM_SPOT: 
-            if(!e.attached || e.attached->type != ET_SPOTLIGHT || m->spotloc != e.attached->o || m->spotangle < clamp(int(e.attached->attr1), 1, 89))
+            if(!e.attached || e.attached->type != ET_SPOTLIGHT || m->spotloc != e.attached->o || m->spotangle < clamp(int(e.attached->attr[0]), 1, 89))
                 return NULL;
             break;
     } 

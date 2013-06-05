@@ -2749,26 +2749,26 @@ void collectlights()
         extentity *e = ents[i];
         if(e->type != ET_LIGHT) continue;
 
-        if(e->attr1 > 0 && smviscull)
+        if(e->attr[0] > 0 && smviscull)
         {
-            if(isfoggedsphere(e->attr1, e->o)) continue;
-            if(pvsoccludedsphere(e->o, e->attr1)) continue;
+            if(isfoggedsphere(e->attr[0], e->o)) continue;
+            if(pvsoccludedsphere(e->o, e->attr[0])) continue;
         }
 
         /* OF */
-        if(e->attr5 < 0) continue;
+        if(e->attr[4] < 0) continue;
 
         lightinfo &l = lights.add();
         l.ent = i;
         l.shadowmap = -1;
-        l.flags = e->attr5;
+        l.flags = e->attr[4];
         l.query = NULL;
         l.o = e->o;
-        l.color = vec(e->attr2, e->attr3, e->attr4);
-        l.radius = e->attr1 > 0 ? e->attr1 : 2*worldsize;
+        l.color = vec(e->attr[1], e->attr[2], e->attr[3]);
+        l.radius = e->attr[0] > 0 ? e->attr[0] : 2*worldsize;
         if(e->attached && e->attached->type == ET_SPOTLIGHT)
         {
-            l.calcspot(vec(e->attached->o).sub(e->o).normalize(), clamp(int(e->attached->attr1), 1, 89));
+            l.calcspot(vec(e->attached->o).sub(e->o).normalize(), clamp(int(e->attached->attr[0]), 1, 89));
         }
         else
         {
@@ -3295,10 +3295,10 @@ void rendercsmshadowmaps()
 
 int calcshadowinfo(const extentity &e, vec &origin, float &radius, vec &spotloc, int &spotangle, float &bias)
 {
-    if(e.attr5&L_NOSHADOW || (e.attr1 > 0 && e.attr1 <= smminradius)) return SM_NONE;
+    if(e.attr[4]&L_NOSHADOW || (e.attr[0] > 0 && e.attr[0] <= smminradius)) return SM_NONE;
 
     origin = e.o;
-    radius = e.attr1 > 0 ? e.attr1 : 2*worldsize;
+    radius = e.attr[0] > 0 ? e.attr[0] : 2*worldsize;
     int type, w, border;
     float lod;
     if(e.attached && e.attached->type == ET_SPOTLIGHT)
@@ -3308,7 +3308,7 @@ int calcshadowinfo(const extentity &e, vec &origin, float &radius, vec &spotloc,
         border = 0;
         lod = smspotprec;
         spotloc = e.attached->o;
-        spotangle = clamp(int(e.attached->attr1), 1, 89);
+        spotangle = clamp(int(e.attached->attr[0]), 1, 89);
     }
     else
     {

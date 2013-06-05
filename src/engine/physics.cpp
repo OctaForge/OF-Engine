@@ -861,23 +861,23 @@ bool areacollide(physent *d, const vec &dir, CLogicEntity *el) {
     extentity &e = *el->staticEntity;
     switch (d->collidetype) {
         case COLLIDE_ELLIPSE:
-            if (!ellipserectcollide(d, dir, e.o, vec(0, 0, 0), e.attr1,
-                e.attr2, e.attr3, e.attr4, e.attr4)) goto collision;
+            if (!ellipserectcollide(d, dir, e.o, vec(0, 0, 0), e.attr[0],
+                e.attr[1], e.attr[2], e.attr[3], e.attr[3])) goto collision;
             break;
         case COLLIDE_OBB:
             if (!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, vec(0, 0, 0),
-                vec(e.attr2, e.attr3, e.attr4), e.attr1, 0, 0)) goto collision;
+                vec(e.attr[1], e.attr[2], e.attr[3]), e.attr[0], 0, 0)) goto collision;
             break;
         case COLLIDE_AABB:
         default:
-            vec center = vec(0, 0, 0), radius = vec(e.attr2, e.attr3, e.attr4);
-            rotatebb(center, radius, e.attr1, 0);
+            vec center = vec(0, 0, 0), radius = vec(e.attr[1], e.attr[2], e.attr[3]);
+            rotatebb(center, radius, e.attr[0], 0);
             if (!rectcollide(d, dir, center.add(e.o), radius.x, radius.y,
                 radius.z, radius.z)) goto collision;
             break;
     }
     /* internal collision handling for non-solid areas */
-    if (!e.attr5 && inside) {
+    if (!e.attr[4] && inside) {
         /* gotta reset - glitch when having one non-solid area inside another
          * would call the handler for both even when colliding with just one */
         inside = false;
@@ -892,7 +892,7 @@ collision:
         lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
         lua_call(lua::L, 2, 0);
     }
-    return !e.attr5;
+    return !e.attr[4];
 }
 
 bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // collide with a mapmodel
@@ -908,12 +908,12 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
             if (!areacollide(d, dir, el)) return false;
             continue;
         }
-        model *m = el->getModel(); //loadmodel(NULL, e.attr2);
+        model *m = el->getModel(); //loadmodel(NULL, e.attr[1]);
         if(!m || !m->collide) continue;
         vec center, radius;
         m->collisionbox(center, radius);
-        if(e.attr4 > 0) { float scale = e.attr4/100.f; center.mul(scale); radius.mul(scale); }
-        int yaw = e.attr1, pitch = e.attr2, roll = e.attr3; // OF
+        if(e.attr[3] > 0) { float scale = e.attr[3]/100.f; center.mul(scale); radius.mul(scale); }
+        int yaw = e.attr[0], pitch = e.attr[1], roll = e.attr[2]; // OF
         switch(d->collidetype)
         {
             case COLLIDE_ELLIPSE:

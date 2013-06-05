@@ -1456,9 +1456,9 @@ namespace MessageSystem
         {
             extentity *e = entity->staticEntity;
             stopmapsound(e);
-            if(camera1->o.dist(e->o) < e->attr2)
+            if(camera1->o.dist(e->o) < e->attr[1])
             {
-                if(!e->visible) playmapsound(soundName, e, e->attr4, -1);
+                if(!e->visible) playmapsound(soundName, e, e->attr[3], -1);
                 else if(e->visible) stopmapsound(e);
             }
         }
