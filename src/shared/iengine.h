@@ -193,7 +193,6 @@ extern bool emptymap(int factor, bool force, const char *mname = "", bool usecfg
 extern bool enlargemap(bool force);
 extern int findentity(int type, int index = 0, int attr1 = -1, int attr2 = -1);
 extern void findents(int low, int high, bool notspawned, const vec &pos, const vec &radius, vector<int> &found);
-extern void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, int attr4, int attr5, bool local);
 extern vec getselpos();
 extern int getworldsize();
 extern int getmapversion();

@@ -914,59 +914,6 @@ void attachent()
 
 COMMAND(attachent, "");
 
-extentity *newentity(bool local, const vec &o, int type, int v1, int v2, int v3, int v4, int v5, int &idx)
-{
-    vector<extentity *> &ents = entities::getents();
-    if(local)
-    {
-        idx = -1;
-        loopv(ents) if(ents[i]->type == ET_EMPTY) { idx = i; break; }
-        if(idx < 0 && ents.length() >= MAXENTS) { conoutf("too many entities"); return NULL; }
-    }
-    else while(ents.length() < idx) ents.add(new extentity)->type = ET_EMPTY;
-    extentity &e = *(new extentity);
-    e.o = o;
-    e.attr1 = v1;
-    e.attr2 = v2;
-    e.attr3 = v3;
-    e.attr4 = v4;
-    e.attr5 = v5;
-    e.type = type;
-    e.reserved = 0;
-    e.spawned = false;
-    e.inoctanode = false;
-    if(local)
-    {
-        switch(type)
-        {
-                case ET_MAPMODEL:
-                case ET_OBSTACLE: /* OF */
-                case ET_ORIENTED_MARKER:
-                    e.attr5 = e.attr4;
-                    e.attr4 = e.attr3;
-                    e.attr3 = e.attr2;
-                    e.attr2 = e.attr1;
-                    e.attr1 = (int)camera1->yaw;
-                    break;
-        }
-    }
-    if(ents.inrange(idx)) ents[idx] = &e;
-    else { idx = ents.length(); ents.add(&e); }
-    return &e;
-}
-
-void newentity(int type, int a1, int a2, int a3, int a4, int a5)
-{
-    int idx;
-    extentity *t = newentity(true, player->o, type, a1, a2, a3, a4, a5, idx);
-    if(!t) return;
-    dropentity(*t);
-    t->type = ET_EMPTY;
-    enttoggle(idx);
-    makeundoent();
-    entedit(idx, e.type = type);
-}
-
 int entcopygrid;
 vector<extentity> entcopybuf; // INTENSITY: extentity, for uniqueID
 
@@ -1015,11 +962,6 @@ void entpaste()
         lua_pop(lua::L, 1);
 
         EditingSystem::newent(cn, sd);
-        // INTENSITY: end Create entity using new system
-
-// INTENSITY       extentity *e = newentity(true, o, ET_EMPTY, c.attr1, c.attr2, c.attr3, c.attr4, c.attr5);
-// INTENSITY       entities::getents().add(e);
-// INTENSITY       entadd(++last);
     }
 // INTENSITY   int j = 0;
 // INTENSITY   groupeditundo(e.type = entcopybuf[j++].type;);
@@ -1351,32 +1293,6 @@ void finish_dragging() {
 }
 
 COMMAND(finish_dragging, "");
-
-void mpeditent(int i, const vec &o, int type, int attr1, int attr2, int attr3, int attr4, int attr5, bool local)
-{
-    if(i < 0 || i >= MAXENTS) return;
-    vector<extentity *> &ents = entities::getents();
-    if(ents.length()<=i)
-    {
-        extentity *e = newentity(local, o, type, attr1, attr2, attr3, attr4, attr5, i);
-        if(!e) return;
-        addentity(i);
-        attachentity(*e);
-    }
-    else
-    {
-        extentity &e = *ents[i];
-        removeentity(i);
-        int oldtype = e.type;
-        if(oldtype!=type) detachentity(e);
-        e.type = type;
-        e.o = o;
-        e.attr1 = attr1; e.attr2 = attr2; e.attr3 = attr3; e.attr4 = attr4; e.attr5 = attr5;
-        addentity(i);
-        if(oldtype!=type) attachentity(e);
-    }
-    clearshadowcache();
-}
 
 int getworldsize() { return worldsize; }
 int getmapversion() { return mapversion; }
