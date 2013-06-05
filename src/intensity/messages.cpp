@@ -1129,7 +1129,7 @@ namespace MessageSystem
 
 // ExtentCompleteNotification
 
-    void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5)
+    void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData)
     {
         int exclude = -1; // Set this to clientNumber to not send to
 
@@ -1168,7 +1168,7 @@ namespace MessageSystem
                 #ifdef SERVER
                     logger::log(logger::DEBUG, "Sending to %d (%d) ((%d))\r\n", clientNumber, testUniqueId, serverControlled);
                 #endif
-                sendf(clientNumber, MAIN_CHANNEL, "riissiiiiiiii", 1021, otherUniqueId, otherClass, stateData, int(x*DMF), int(y*DMF), int(z*DMF), attr1, attr2, attr3, attr4, attr5);
+                sendf(clientNumber, MAIN_CHANNEL, "riiss", 1021, otherUniqueId, otherClass, stateData);
 
             }
         }
@@ -1184,19 +1184,10 @@ namespace MessageSystem
         getstring(otherClass, p);
         char stateData[MAXTRANS];
         getstring(stateData, p);
-        float x = float(getint(p))/DMF;
-        float y = float(getint(p))/DMF;
-        float z = float(getint(p))/DMF;
-        int attr1 = getint(p);
-        int attr2 = getint(p);
-        int attr3 = getint(p);
-        int attr4 = getint(p);
-        int attr5 = getint(p);
 
         if (!LogicSystem::initialized)
             return;
-        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s - %f,%f,%f  %d,%d,%d,%d\r\n", otherUniqueId, otherClass,
-            x, y, z, attr1, attr2, attr3, attr4, attr5);
+        logger::log(logger::DEBUG, "RECEIVING Extent: %d,%s\n", otherUniqueId, otherClass);
         INDENT_LOG(logger::DEBUG);
         // If a logic entity does not yet exist, create one
         CLogicEntity *entity = LogicSystem::getLogicEntity(otherUniqueId);
@@ -1206,16 +1197,7 @@ namespace MessageSystem
             lua::push_external("entity_add");
             lua_pushstring (lua::L, otherClass);
             lua_pushinteger(lua::L, otherUniqueId);
-            lua_createtable(lua::L, 0, 8);
-            lua_pushnumber (lua::L, x); lua_setfield(lua::L, -2, "x");
-            lua_pushnumber (lua::L, y); lua_setfield(lua::L, -2, "y");
-            lua_pushnumber (lua::L, z); lua_setfield(lua::L, -2, "z");
-            lua_pushinteger(lua::L, attr1); lua_setfield(lua::L, -2, "attr1");
-            lua_pushinteger(lua::L, attr2); lua_setfield(lua::L, -2, "attr2");
-            lua_pushinteger(lua::L, attr3); lua_setfield(lua::L, -2, "attr3");
-            lua_pushinteger(lua::L, attr4); lua_setfield(lua::L, -2, "attr4");
-            lua_pushinteger(lua::L, attr5); lua_setfield(lua::L, -2, "attr5");
-            lua_call(lua::L, 3, 0);
+            lua_call(lua::L, 2, 0);
             entity = LogicSystem::getLogicEntity(otherUniqueId);
             assert(entity != NULL);
         } else

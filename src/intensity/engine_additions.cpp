@@ -459,26 +459,21 @@ void LogicSystem::setUniqueId(physent* dynamicEntity, int uniqueId)
     ((fpsent*)dynamicEntity)->uniqueId = uniqueId;
 }
 
-void LogicSystem::setupExtent(int ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5)
+void LogicSystem::setupExtent(int ref, int type)
 {
     lua_rawgeti (lua::L, LUA_REGISTRYINDEX, ref);
     lua_getfield(lua::L, -1, "uid");
     int uid = lua_tointeger(lua::L, -1); lua_pop(lua::L, 2);
     luaL_unref(lua::L, LUA_REGISTRYINDEX, ref);
-    logger::log(logger::DEBUG, "setupExtent: %d,  %d : %f,%f,%f : %d,%d,%d,%d,%d\r\n", uid, type, x, y, z, attr1, attr2, attr3, attr4, attr5);
+    logger::log(logger::DEBUG, "setupExtent: %d, %d\n", uid, type);
     INDENT_LOG(logger::DEBUG);
 
     extentity *e = new extentity;
     entities::getents().add(e);
 
     e->type  = type;
-    e->o     = vec(x,y,z);
-    e->attr1 = attr1;
-    e->attr2 = attr2;
-    e->attr3 = attr3;
-    e->attr4 = attr4;
-    e->attr5 = attr5;
-
+    e->o     = vec(0, 0, 0);
+    e->attr1 = e->attr2 = e->attr3 = e->attr4 = e->attr5 = 0;
     e->inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
 
     extern void addentity(extentity* entity);

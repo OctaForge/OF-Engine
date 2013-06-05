@@ -753,20 +753,8 @@ local Static_Entity = Physical_Entity:clone {
         #log(DEBUG, "Static_Entity.activate")
         Physical_Entity.activate(self, kwargs)
 
-        local pos = self:get_attr("position")
-        kwargs.x = pos.x or 512
-        kwargs.y = pos.y or 512
-        kwargs.z = pos.z or 512
-        kwargs.attr1 = self:get_attr("attr1") or 0
-        kwargs.attr2 = self:get_attr("attr2") or 0
-        kwargs.attr3 = self:get_attr("attr3") or 0
-        kwargs.attr4 = self:get_attr("attr4") or 0
-        kwargs.attr5 = self:get_attr("attr5") or 0
-
         #log(DEBUG, "Static_Entity: extent setup")
-        _C.setup_extent(self, self.sauer_type, kwargs.x, kwargs.y,
-            kwargs.z, kwargs.attr1, kwargs.attr2, kwargs.attr3, kwargs.attr4,
-            kwargs.attr5)
+        _C.setup_extent(self, self.sauer_type)
 
         #log(DEBUG, "Static_Entity: flush")
         self:flush_queued_svar_changes()
@@ -778,19 +766,7 @@ local Static_Entity = Physical_Entity:clone {
         self:set_attr("attr4", self:get_attr("attr4"))
         self:set_attr("attr5", self:get_attr("attr5"))
     end or function(self, kwargs)
-        local x, y, z, attr1, attr2, attr3, attr4, attr5
-        if kwargs then
-            x, y, z = kwargs.x or 512, kwargs.y or 512, kwargs.z or 512
-            attr1, attr2 = kwargs.attr1 or 0, kwargs.attr2 or 0
-            attr3, attr4 = kwargs.attr3 or 0, kwargs.attr4 or 0
-            attr5 = kwargs.attr5 or 0
-        else
-            x, y, z = 512, 512, 512
-            attr1, attr2, attr3, attr4, attr5 = 0, 0, 0, 0, 0
-        end
-
-        _C.setup_extent(self, self.sauer_type, x, y, z, attr1,
-            attr2, attr3, attr4, attr5)
+        _C.setup_extent(self, self.sauer_type)
         return Physical_Entity.activate(self, kwargs)
     end,
 
@@ -813,16 +789,8 @@ local Static_Entity = Physical_Entity:clone {
         local scn, sname = self.cn, tostring(self)
         for i = 1, #cns do
             local n = cns[i]
-            local pos = self:get_attr("position")
-            msg.send(n, _C.extent_notification_complete,
-                uid, sname, self:build_sdata({
-                    target_cn = n, compressed = true }),
-                tonumber(pos.x), tonumber(pos.y), tonumber(pos.z),
-                tonumber(self:get_attr("attr1")),
-                tonumber(self:get_attr("attr2")),
-                tonumber(self:get_attr("attr3")),
-                tonumber(self:get_attr("attr4")),
-                tonumber(self:get_attr("attr5")))
+            msg.send(n, _C.extent_notification_complete, uid, sname,
+                self:build_sdata({ target_cn = n, compressed = true }))
         end
 
         #log(DEBUG, "Static_Entity.send_notification_full: done")

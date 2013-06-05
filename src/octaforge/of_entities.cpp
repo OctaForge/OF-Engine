@@ -69,12 +69,8 @@ namespace entities
 
     LUAICOMMAND(setup_extent, {
         lua_pushvalue(L, 1);
-        LogicSystem::setupExtent(
-            luaL_ref(L, LUA_REGISTRYINDEX), luaL_checkinteger(L, 2),
-            luaL_checknumber(L, 3), luaL_checknumber(L, 4),
-            luaL_checknumber(L, 5), luaL_checkinteger(L, 6),
-            luaL_checkinteger(L, 7), luaL_checkinteger(L, 8),
-            luaL_checkinteger(L, 9), luaL_checkinteger(L, 10));
+        LogicSystem::setupExtent(luaL_ref(L, LUA_REGISTRYINDEX),
+            luaL_checkinteger(L, 2));
         return 0;
     });
 

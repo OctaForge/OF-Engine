@@ -164,7 +164,7 @@ struct LogicSystem
     //! Done only in initial preparation of an entity - never afterwards
     static void          setUniqueId(physent* dynamicEntity, int uniqueId);
 
-    static void setupExtent(int ref, int type, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5);
+    static void setupExtent(int ref, int type);
 
     static void setupCharacter(int ref);
 

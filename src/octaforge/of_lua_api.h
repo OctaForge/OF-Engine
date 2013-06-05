@@ -226,11 +226,7 @@ namespace lapi_binds
         const char *sd = luaL_checkstring(L, 4);
         send_ExtentCompleteNotification(
             luaL_checkinteger(L, 1), luaL_checkinteger(L, 2),
-            oc ? oc : "", sd ? sd : "",
-            luaL_checknumber (L,  5), luaL_checknumber(L,  6),
-            luaL_checknumber (L,  7),  luaL_optinteger(L,  8, 0),
-            luaL_optinteger(L,  9, 0), luaL_optinteger(L, 10, 0),
-            luaL_optinteger(L, 11, 0), luaL_optinteger(L, 12, 0));
+            oc ? oc : "", sd ? sd : "");
         return 0;
     }
 

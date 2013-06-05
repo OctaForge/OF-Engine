@@ -291,7 +291,7 @@ struct ExtentCompleteNotification : MessageType
 #endif
 };
 
-void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData, float x, float y, float z, int attr1, int attr2, int attr3, int attr4, int attr5);
+void send_ExtentCompleteNotification(int clientNumber, int otherUniqueId, const char* otherClass, const char* stateData);
 
 
 // InitS2C
