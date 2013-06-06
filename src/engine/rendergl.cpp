@@ -2437,7 +2437,7 @@ VAR(hidestats, 0, 0, 1);
 VAR(hidehud, 0, 0, 1);
 
 VARP(crosshairsize, 0, 15, 50);
-VARP(cursorsize, 0, 30, 50);
+VARP(cursorsize, 0, 20, 50);
 
 void drawcrosshair(int w, int h)
 {
@@ -2452,7 +2452,7 @@ void drawcrosshair(int w, int h)
     if(windowhit)
     {
         static Texture *cursor = NULL;
-        if(!cursor) cursor = textureload("data/textures/ui/guicursor", 3, true);
+        if(!cursor) cursor = textureload("media/interface/guicursor", 3, true);
         crosshair = cursor;
         chsize = cursorsize*w/900.0f;
         lua::push_external("cursor_get_position");
@@ -2464,10 +2464,10 @@ void drawcrosshair(int w, int h)
     }
     else
     { 
-        string cr = "data/textures/hud/crosshair";
+        string cr = "media/interface/hud/crosshair";
         if (lua::push_external("gui_get_crosshair")) {
             lua_call(lua::L, 0, 1);
-            formatstring(cr)("data/textures/hud/%s", lua_tostring(lua::L, -1));
+            formatstring(cr)("media/interface/hud/%s", lua_tostring(lua::L, -1));
             lua_pop(lua::L, 1);
         }
         crosshair = textureload(cr);

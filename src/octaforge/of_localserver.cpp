@@ -90,7 +90,7 @@ namespace local_server {
 #else
         snprintf(buf, sizeof(buf),
 #endif
-            "%s -g%s -mmaps/%s.tar.gz -shutdown-if-idle -shutdown-if-empty "
+            "%s -g%s -mmap/%s.tar.gz -shutdown-if-idle -shutdown-if-empty "
             ">\"%s%s\" 2>&1",
 #if defined(WIN64)
             "bin_win64\\server_" BINARY_OS_STR "_" BINARY_ARCH_STR ".exe",

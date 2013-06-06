@@ -458,7 +458,7 @@ VAR(hwvtexunits, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
 VARFP(reducefilter, 0, 1, 1, initwarning("texture quality", INIT_LOAD));
 VARFP(texreduce, 0, 0, 12, initwarning("texture quality", INIT_LOAD));
-VARFP(texcompress, 0, 1<<10, 1<<12, initwarning("texture quality", INIT_LOAD));
+VARFP(texcompress, 0, 1536, 1<<12, initwarning("texture quality", INIT_LOAD));
 VARFP(texcompressquality, -1, -1, 1, setuptexcompress());
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
@@ -1243,13 +1243,13 @@ static bool texturedata(ImageData &d, const char *tname, Slot::Tex *tex = NULL, 
         {
             cmds = tex->name;
             file = strrchr(tex->name, '>');
-            if(!file) { if(msg) conoutf(CON_ERROR, "could not load texture data/%s", tex->name); return false; }
+            if(!file) { if(msg) conoutf(CON_ERROR, "could not load texture media/%s", tex->name); return false; }
             file++;
         }
         else file = tex->name;
         
         static string pname;
-        formatstring(pname)("data/%s", file);
+        formatstring(pname)("media/texture/%s", file);
         file = path(pname);
     }
     else if(tname[0]=='<') 
@@ -1828,7 +1828,7 @@ void autograss(char *name)
     if(slots.empty()) return;
     Slot &s = *slots.last();
     DELETEA(s.autograss);
-    s.autograss = name[0] ? newstring(makerelpath("data", name)) : NULL;
+    s.autograss = name[0] ? newstring(makerelpath("media/texture", name)) : NULL;
 }
 COMMAND(autograss, "s");
 
@@ -1981,7 +1981,7 @@ static void addname(vector<char> &key, Slot &slot, Slot::Tex &t, bool combined =
 {
     if(combined) key.add('&');
     if(prefix) { while(*prefix) key.add(*prefix++); }
-    defformatstring(tname)("data/%s", t.name);
+    defformatstring(tname)("media/texture/%s", t.name);
     for(const char *s = path(tname); *s; key.add(*s++));
 }
 
@@ -2356,7 +2356,7 @@ Texture *cubemaploadwildcard(Texture *t, const char *name, bool mipit, bool msg,
 Texture *cubemapload(const char *name, bool mipit, bool msg, bool transient)
 {
     string pname;
-    copystring(pname, makerelpath("data", name));
+    copystring(pname, makerelpath("media/skybox", name));
     path(pname);
     Texture *t = NULL;
     if(!strchr(pname, '*'))
@@ -3057,7 +3057,7 @@ bool loadimage(const char *filename, ImageData &image)
     return true;
 }
 
-SVARP(screenshotdir, "");
+SVARP(screenshotdir, "screenshot");
 
 void screenshot(char *filename)
 {

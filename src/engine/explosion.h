@@ -367,5 +367,5 @@ struct fireballrenderer : listrenderer
         drawexplosion(inside, p->color.r*ldrscaleb, p->color.g*ldrscaleb, p->color.b*ldrscaleb, blend/255.0f);
     }
 };
-static fireballrenderer fireballs("data/textures/particles/explosion"), bluefireballs("data/textures/particles/plasma");
+static fireballrenderer fireballs("media/particle/explosion"), bluefireballs("media/particle/plasma");
 

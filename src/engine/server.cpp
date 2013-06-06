@@ -558,7 +558,7 @@ bool setuplistenserver(bool dedicated)
 
 void initserver(bool listen, bool dedicated)
 {
-    if (dedicated) execfile("server-init.cfg", false);
+    if (dedicated) execfile("config/server-init.cfg", false);
 
     if(listen) setuplistenserver(dedicated);
 
@@ -676,7 +676,7 @@ int main(int argc, char **argv)
     setlogfile(NULL);
 
     /* make sure the path is correct */
-    if (!fileexists("data", "r")) {
+    if (!fileexists("config", "r")) {
 #ifdef WIN32
         _chdir("..");
 #else

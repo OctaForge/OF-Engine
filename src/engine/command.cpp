@@ -2283,9 +2283,9 @@ static inline bool sortidents(ident *x, ident *y)
 
 void writecfg(const char *name)
 {
-    stream *f = openutf8file(path(name && name[0] ? name : "config.cfg", true), "w");
+    stream *f = openutf8file(path(name && name[0] ? name : "config/config.cfg", true), "w");
     if(!f) return;
-    f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have data/cfg/defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+    f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have config/defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     vector<ident *> ids;
     enumerate(idents, ident, id, ids.add(&id));
     ids.sort(sortidents);
@@ -2326,12 +2326,12 @@ COMMAND(writecfg, "s");
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
-static string retbuf[3];
+static string retbuf[4];
 static int retidx = 0;
 
 const char *intstr(int v)
 {
-    retidx = (retidx + 1)%3;
+    retidx = (retidx + 1)%4;
     formatstring(retbuf[retidx])("%d", v);
     return retbuf[retidx];
 }
@@ -2343,7 +2343,7 @@ void intret(int v)
 
 const char *floatstr(float v)
 {
-    retidx = (retidx + 1)%3;
+    retidx = (retidx + 1)%4;
     formatstring(retbuf[retidx])(v==int(v) ? "%.1f" : "%.7g", v);
     return retbuf[retidx];
 }

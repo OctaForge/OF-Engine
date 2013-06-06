@@ -768,9 +768,10 @@ static bool fuzzycolliderect(physent *d, const vec &dir, float cutoff, const vec
     loopi(6)
     {
         vec w;
-        float dist = 0.0f;
+        float dist;
         switch(i)
         {
+            default:
             case 0: w = vec(mdlvol.orient.a).neg(); dist = -radius.x; break;
             case 1: w = mdlvol.orient.a; dist = -radius.x; break;
             case 2: w = vec(mdlvol.orient.b).neg(); dist = -radius.y; break;
@@ -815,9 +816,10 @@ static bool fuzzycollideellipse(physent *d, const vec &dir, float cutoff, const 
     loopi(3)
     {
         vec w;
-        float dist = 0.0f;
+        float dist;
         switch(i)
         {
+            default:
             case 0: w = mdlvol.orient.c; dist = -radius.z; break;
             case 1: w = vec(mdlvol.orient.c).neg(); dist = -radius.z; break;
             case 2: 

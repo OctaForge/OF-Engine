@@ -138,7 +138,7 @@ namespace world
         copystring(tmp, curr_map_id);
         tmp[strlen(curr_map_id) - 7] = '\0';
 
-        defformatstring(buf)("%sdata%c%s%c%s", homedir, PATHDIV, tmp,
+        defformatstring(buf)("%smedia%c%s%c%s", homedir, PATHDIV, tmp,
             PATHDIV, fname);
 
         lua::push_external("entities_save_all");
@@ -166,7 +166,7 @@ namespace world
         copystring(aloc, curr_map_id);
         aloc[strlen(curr_map_id) - 7] = '\0';
 
-        defformatstring(buf)("data%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
+        defformatstring(buf)("media%c%s%c%s", PATHDIV, aloc, PATHDIV, rpath);
         formatstring(mapfile_path)("%s%s", homedir, buf);
 
         if (fileexists(mapfile_path, "r")) {

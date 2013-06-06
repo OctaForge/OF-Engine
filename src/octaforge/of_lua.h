@@ -5,7 +5,7 @@ namespace lua
 {
     extern lua_State *L;
     bool reg_fun      (const char *name, lua_CFunction fun, bool onst = false);
-    void init         (const char *dir = "data/library/core");
+    void init         (const char *dir = "media/lua/core");
     void reset        ();
     bool push_external(const char *name);
     bool push_external(lua_State *L, const char *name);

@@ -389,7 +389,7 @@ model *loadmodel(const char *name, int i, bool msg)
         if(!name[0] || loadingmodel) return NULL;
         if(msg)
         {
-            defformatstring(filename)("data/models/%s", name);
+            defformatstring(filename)("media/model/%s", name);
             renderprogress(loadprogress, filename);
         }
         loopi(NUMMODELTYPES)
@@ -1064,8 +1064,8 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, Texture *&mas
         ifnoload(tex, makerelpath(maltdir, name "", prefix, cmd)) return; \
     }
    
-    defformatstring(mdir)("data/models/%s", dir);
-    defformatstring(maltdir)("data/models/%s", altdir);
+    defformatstring(mdir)("media/model/%s", dir);
+    defformatstring(maltdir)("media/model/%s", altdir);
     masks = notexture;
     tryload(skin, NULL, NULL, "skin");
     tryload(masks, NULL, NULL, "masks");

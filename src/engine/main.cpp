@@ -109,7 +109,7 @@ VAR(mainmenu, 1, 1, 0);
 
 void writeinitcfg()
 {
-    stream *f = openutf8file("init.cfg", "w");
+    stream *f = openutf8file("config/init.cfg", "w");
     if(!f) return;
     f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
     extern int fullscreen;
@@ -208,33 +208,21 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
         gle::deftexcoord0();
 
         gle::colorf(1, 1, 1);
-        settexture("data/textures/ui/background", 0);
+        settexture("media/interface/background", 0);
         float bu = w*0.67f/256.0f + backgroundu, bv = h*0.67f/256.0f + backgroundv;
         bgquad(0, 0, w, h, 0, 0, bu, bv);
         glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 #if 0
-        settexture("<premul>data/textures/ui/background_detail", 0);
-        float du = w*0.8f/512.0f + detailu, dv = h*0.8f/512.0f + detailv;
-        bgquad(0, 0, w, h, 0, 0, du, dv);
-        settexture("<premul>data/textures/ui/background_decal", 3);
-        loopj(numdecals)
-        {
-            float hsz = decals[j].size, hx = clamp(decals[j].x, hsz, w-hsz), hy = clamp(decals[j].y, hsz, h-hsz), side = decals[j].side;
-            bgquad(hx-hsz, hy-hsz, 2*hsz, 2*hsz, side, 0, 1-2*side, 1); 
-        }
+        settexture("media/interface/shadow.png", 3);
+        bgquad(0, 0, w, h);
+
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 #endif
         float lh = 0.5f*min(w, h), lw = lh*2,
               lx = 0.5f*(w - lw), ly = 0.5f*(h*0.5f - lh);
-        settexture(/*(maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>data/logo_1024" :*/ "<premul>data/textures/ui/logo", 3);
+        settexture((maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize) >= 1024 && (screenw > 1280 || screenh > 800) ? "<premul>media/interface/logo_1024" : "<premul>media/interface/logo", 3);
         bgquad(lx, ly, lw, lh);
-
-#if 0
-        float bh = 0.1f*min(w, h), bw = bh*2,
-              bx = w - 1.1f*bw, by = h - 1.1f*bh;
-        settexture("<premul>data/textures/ui/cube2badge", 3);
-        bgquad(bx, by, bw, bh);
-#endif
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         if(caption)
@@ -277,7 +265,7 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
                 pophudmatrix();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }        
-            settexture("data/textures/ui/mapshot_frame", 3);
+            settexture("media/interface/mapshot_frame", 3);
             bgquad(x, y, sz, sz);
             if(mapname)
             {
@@ -353,16 +341,16 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
     gle::colorf(1, 1, 1);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     float fh = 0.075f*min(w, h), fw = fh*10,
           fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw), 
           fy = renderedframe ? fh/4 : h - fh*1.5f,
           fu1 = 0/512.0f, fu2 = 511/512.0f,
           fv1 = 0/64.0f, fv2 = 52/64.0f;
 
-    glEnable(GL_BLEND); // INTENSITY: Moved to here, to cover loading_frame as well
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // INTENSITY: ditto
-
-    settexture("data/textures/ui/loading_frame", 3);
+    settexture("media/interface/loading_frame", 3);
     bgquad(fx, fy, fw, fh, fu1, fv1, fu2-fu1, fv2-fv1);
 
     float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
@@ -374,7 +362,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
           ex = bx+sw + max(mw*bar, fw*7/511.0f);
     if(bar > 0)
     {
-        settexture("data/textures/ui/loading_bar", 3);
+        settexture("media/interface/loading_bar", 3);
         bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
         bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
         bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
@@ -398,7 +386,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
               mw = bw - sw - ew,
               ex = bx+sw + max(mw*width, fw*7/511.0f);
 
-        settexture("data/textures/ui/loading_bar", 3);
+        settexture("media/interface/loading_bar", 3);
         bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
         bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
         bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
@@ -428,7 +416,7 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        settexture("data/textures/ui/mapshot_frame", 3);
+        settexture("media/interface/mapshot_frame", 3);
         bgquad(x, y, sz, sz);
         glDisable(GL_BLEND);
     }
@@ -693,19 +681,13 @@ void resetgl()
     extern void reloadshaders();
     inbetweenframes = false;
     if(!reloadtexture(*notexture) ||
-       !reloadtexture("<premul>data/textures/ui/logo") ||
-       !reloadtexture("<premul>data/textures/ui/logo_1024") ||
-#if 0
-       !reloadtexture("<premul>data/textures/ui/cube2badge") ||
-#endif
-       !reloadtexture("data/textures/ui/background") ||
-#if 0
-       !reloadtexture("<premul>data/textures/ui/background_detail") ||
-       !reloadtexture("<premul>data/textures/ui/background_decal") ||
-#endif
-       !reloadtexture("data/textures/ui/mapshot_frame") ||
-       !reloadtexture("data/textures/ui/loading_frame") ||
-       !reloadtexture("data/textures/ui/loading_bar"))
+       !reloadtexture("<premul>media/interface/logo") ||
+       !reloadtexture("<premul>media/interface/logo_1024") ||
+       !reloadtexture("media/interface/background") ||
+       !reloadtexture("media/interface/shadow") ||
+       !reloadtexture("media/interface/mapshot_frame") ||
+       !reloadtexture("media/interface/loading_frame") ||
+       !reloadtexture("media/interface/loading_bar"))
         fatal("failed to reload core textures");
     reloadfonts();
     inbetweenframes = true;
@@ -1122,7 +1104,7 @@ int main(int argc, char **argv)
     initing = INIT_RESET;
 
     /* make sure the path is correct */
-    if (!fileexists("data", "r")) {
+    if (!fileexists("config", "r")) {
 #ifdef WIN32
         _chdir("..");
 #else
@@ -1153,7 +1135,7 @@ int main(int argc, char **argv)
     if (dir) {
         logoutf("Using home directory: %s", dir);
     }
-    execfile("init.cfg", false);
+    execfile("config/init.cfg", false);
     for(int i = 1; i<argc; i++)
     {
         if(argv[i][0]=='-') switch(argv[i][1])
@@ -1179,7 +1161,7 @@ int main(int argc, char **argv)
             case 'f': /* compat, ignore */ break;
             case 'l': 
             {
-                char pkgdir[] = "data/"; 
+                char pkgdir[] = "media/"; 
                 load = strstr(path(&argv[i][2]), path(pkgdir)); 
                 if(load) load += sizeof(pkgdir)-1; 
                 else load = &argv[i][2]; 
@@ -1237,13 +1219,13 @@ int main(int argc, char **argv)
     initlog("gl");
     gl_checkextensions();
     gl_init(scr_w, scr_h);
-    notexture = textureload("data/textures/core/notexture");
+    notexture = textureload("media/texture/notexture");
     if(!notexture) fatal("could not find core textures");
 
     initlog("console");
 
-    if(!execfile("data/cfg/stdlib.cfg", false)) fatal("cannot load cubescript stdlib");
-    if(!execfile("data/cfg/font.cfg", false)) fatal("cannot find font definitions");
+    if(!execfile("config/stdlib.cfg", false)) fatal("cannot load cubescript stdlib");
+    if(!execfile("config/font.cfg", false)) fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
 
     inbetweenframes = true;
@@ -1258,22 +1240,22 @@ int main(int argc, char **argv)
 
     initlog("cfg");
 
-    execfile("data/cfg/keymap.cfg");
-    execfile("data/cfg/stdedit.cfg");
-    tools::execfile("data/cfg/menus.lua");
-    execfile("data/cfg/brush.cfg");
+    execfile("config/keymap.cfg");
+    execfile("config/stdedit.cfg");
+    tools::execfile("config/menus.lua");
+    execfile("config/brush.cfg");
     execfile("mybrushes.cfg");
     if (game::savedservers()) execfile(game::savedservers(), false);
     
     identflags |= IDF_PERSIST;
     
     initing = INIT_LOAD;
-    if(!execfile("config.cfg", false)) 
+    if(!execfile("config/config.cfg", false)) 
     {
-        execfile("data/cfg/defaults.cfg");
-        writecfg("restore.cfg");
+        execfile("config/defaults.cfg");
+        writecfg("config/restore.cfg");
     }
-    execfile("autoexec.cfg");
+    execfile("config/autoexec.cfg");
     initing = NOT_INITING;
 
     identflags &= ~IDF_PERSIST;

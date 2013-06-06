@@ -207,7 +207,7 @@ void startmusic(char *name, char *cmd)
     stopmusic();
     if(soundvol && musicvol && *name)
     {
-        defformatstring(file)("data/%s", name);
+        defformatstring(file)("media/%s", name);
         path(file);
         if(loadmusic(file))
         {
@@ -455,14 +455,14 @@ static bool loadsoundslot(soundslot &slot, bool msg = false)
     string filename;
     loopi(sizeof(exts)/sizeof(exts[0]))
     {
-        formatstring(filename)("data/sounds/%s%s", slot.sample->name, exts[i]);
+        formatstring(filename)("media/sound/%s%s", slot.sample->name, exts[i]);
         if(msg && !i) renderprogress(0, filename);
         path(filename);
         slot.sample->chunk = loadwav(filename);
         if(slot.sample->chunk) return true;
     }
 
-    conoutf(CON_ERROR, "failed to load sample: data/sounds/%s", slot.sample->name); 
+    conoutf(CON_ERROR, "failed to load sample: media/sound/%s", slot.sample->name); 
     return false;
 }
 

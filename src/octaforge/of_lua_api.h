@@ -52,7 +52,7 @@ namespace lapi_binds
         if (strlen(p) >= 2 && p[0] == '.' && (p[1] == '/' || p[1] == '\\')) {
             copystring(buf, world::get_mapfile_path(p + 2));
         } else {
-            formatstring(buf)("data%c%s", PATHDIV, p);
+            formatstring(buf)("media%c%s", PATHDIV, p);
         }
 
         if (!(loaded = loadfile(path(buf, true), NULL))) {
@@ -543,7 +543,7 @@ namespace lapi_binds
 #endif
 
     int _lua_get_map_preview_filename(lua_State *L) {
-        defformatstring(buf)("data%cmaps%c%s%cpreview.png", PATHDIV, PATHDIV,
+        defformatstring(buf)("media%cmap%c%s%cpreview.png", PATHDIV, PATHDIV,
             luaL_checkstring(L, 1), PATHDIV);
         if (fileexists(buf, "r")) {
             lua_pushstring(L, buf);
@@ -563,7 +563,7 @@ namespace lapi_binds
         vector<char*> dirs;
 
         lua_createtable(L, 0, 0);
-        listfiles("data/maps", NULL, dirs, FTYPE_DIR, LIST_ROOT);
+        listfiles("media/map", NULL, dirs, FTYPE_DIR, LIST_ROOT);
         loopv(dirs) {
             char *dir = dirs[i];
             lua_pushstring(L, dir);
@@ -574,7 +574,7 @@ namespace lapi_binds
         dirs.setsize(0);
 
         lua_createtable(L, 0, 0);
-        listfiles("data/maps", NULL, dirs,
+        listfiles("media/map", NULL, dirs,
             FTYPE_DIR, LIST_HOMEDIR|LIST_PACKAGE|LIST_ZIP);
         loopvrev(dirs) {
             char *dir = dirs[i];

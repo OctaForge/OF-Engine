@@ -36,11 +36,11 @@ void getmapfilenames(const char *fname, const char *cname, char *pakname, char *
     }
     else
     {
-        copystring(pakname, "maps");
+        copystring(pakname, "map");
         copystring(cfgname, name);
     }
     if(strpbrk(fname, "/\\")) copystring(mapname, fname);
-    else formatstring(mapname)("maps/%s", fname);
+    else formatstring(mapname)("map/%s", fname);
     cutogz(mapname);
 }
 
@@ -51,11 +51,11 @@ void setmapfilenames(const char *fname, const char *cname = 0)
     string pakname, mapname, mcfgname;
     getmapfilenames(fname, cname, pakname, mapname, mcfgname);
 
-    formatstring(ogzname)("data/%s.ogz", mapname);
-    if(savebak==1) formatstring(bakname)("data/%s.BAK", mapname);
-    else formatstring(bakname)("data/%s_%d.BAK", mapname, totalmillis);
-    formatstring(cfgname)("data/%s/%s.cfg", pakname, mcfgname);
-    formatstring(picname)("data/%s", mapname);
+    formatstring(ogzname)("media/%s.ogz", mapname);
+    if(savebak==1) formatstring(bakname)("media/%s.BAK", mapname);
+    else formatstring(bakname)("media/%s_%d.BAK", mapname, totalmillis);
+    formatstring(cfgname)("media/%s/%s.cfg", pakname, mcfgname);
+    formatstring(picname)("media/%s", mapname);
 
     path(ogzname);
     path(bakname);
@@ -71,7 +71,7 @@ void mapcfgname()
     string pakname, mapname, mcfgname;
     getmapfilenames(mname, NULL, pakname, mapname, mcfgname);
 
-    defformatstring(cfgname)("data/%s/%s.lua", pakname, mcfgname);
+    defformatstring(cfgname)("media/%s/%s.lua", pakname, mcfgname);
     path(cfgname);
 
     result(cfgname);
@@ -819,7 +819,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
 #endif
 
     identflags |= IDF_OVERRIDDEN;
-    execfile("data/cfg/default_map_settings.cfg", false);
+    execfile("config/default_map_settings.cfg", false);
     if (lua::L) world::run_mapscript();
     identflags &= ~IDF_OVERRIDDEN;
    
@@ -962,7 +962,7 @@ void writeobj(char *name)
     {
         VSlot &vslot = lookupvslot(usedmtl[i], false);
         f->printf("newmtl slot%d\n", usedmtl[i]);
-        f->printf("map_Kd %s\n", vslot.slot->sts.empty() ? notexture->name : path(makerelpath("data", vslot.slot->sts[0].name)));
+        f->printf("map_Kd %s\n", vslot.slot->sts.empty() ? notexture->name : path(makerelpath("media", vslot.slot->sts[0].name)));
         f->printf("\n");
     } 
     delete f;

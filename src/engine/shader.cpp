@@ -21,7 +21,7 @@ VAR(dbgshader, 0, 1, 2);
 void loadshaders()
 {
     standardshader = true;
-    execfile("data/shaders/glsl.cfg");
+    execfile("config/glsl.cfg");
     standardshader = false;
 
     nullshader = lookupshaderbyname("null");
