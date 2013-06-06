@@ -102,40 +102,40 @@ void draw_envbox(int w, float z1clip = 0.0f, float z2clip = 1.0f, int faces = 0x
     gle::deftexcoord0();
 
     if(faces&0x01)
-        draw_envbox_face(0.0f, v2,  -w, -w, z2,
-                         1.0f, v2,  -w,  w, z2,
-                         1.0f, v1,  -w,  w, z1,
-                         0.0f, v1,  -w, -w, z1, sky[0] ? sky[0]->id : notexture->id);
+        draw_envbox_face(1.0f, v2,  -w, -w, z2,
+                         0.0f, v2,  -w,  w, z2,
+                         0.0f, v1,  -w,  w, z1,
+                         1.0f, v1,  -w, -w, z1, sky[0] ? sky[0]->id : notexture->id);
 
     if(faces&0x02)
-        draw_envbox_face(1.0f, v1, w, -w, z1,
-                         0.0f, v1, w,  w, z1,
-                         0.0f, v2, w,  w, z2,
-                         1.0f, v2, w, -w, z2, sky[1] ? sky[1]->id : notexture->id);
+        draw_envbox_face(0.0f, v1, w, -w, z1,
+                         1.0f, v1, w,  w, z1,
+                         1.0f, v2, w,  w, z2,
+                         0.0f, v2, w, -w, z2, sky[1] ? sky[1]->id : notexture->id);
 
     if(faces&0x04)
-        draw_envbox_face(1.0f, v1, -w, -w, z1,
-                         0.0f, v1,  w, -w, z1,
-                         0.0f, v2,  w, -w, z2,
-                         1.0f, v2, -w, -w, z2, sky[2] ? sky[2]->id : notexture->id);
+        draw_envbox_face(0.0f, v1, -w, -w, z1,
+                         1.0f, v1,  w, -w, z1,
+                         1.0f, v2,  w, -w, z2,
+                         0.0f, v2, -w, -w, z2, sky[2] ? sky[2]->id : notexture->id);
 
     if(faces&0x08)
-        draw_envbox_face(1.0f, v1,  w,  w, z1,
-                         0.0f, v1, -w,  w, z1,
-                         0.0f, v2, -w,  w, z2,
-                         1.0f, v2,  w,  w, z2, sky[3] ? sky[3]->id : notexture->id);
+        draw_envbox_face(0.0f, v1,  w,  w, z1,
+                         1.0f, v1, -w,  w, z1,
+                         1.0f, v2, -w,  w, z2,
+                         0.0f, v2,  w,  w, z2, sky[3] ? sky[3]->id : notexture->id);
 
     if(z1clip <= 0 && faces&0x10)
-        draw_envbox_face(0.0f, 1.0f, -w,  w,  -w,
-                         0.0f, 0.0f,  w,  w,  -w,
-                         1.0f, 0.0f,  w, -w,  -w,
-                         1.0f, 1.0f, -w, -w,  -w, sky[4] ? sky[4]->id : notexture->id);
+        draw_envbox_face(1.0f, 1.0f, -w,  w,  -w,
+                         1.0f, 0.0f,  w,  w,  -w,
+                         0.0f, 0.0f,  w, -w,  -w,
+                         0.0f, 1.0f, -w, -w,  -w, sky[4] ? sky[4]->id : notexture->id);
 
     if(z2clip >= 1 && faces&0x20)
-        draw_envbox_face(0.0f, 1.0f,  w,  w, w,
-                         0.0f, 0.0f, -w,  w, w,
-                         1.0f, 0.0f, -w, -w, w,
-                         1.0f, 1.0f,  w, -w, w, sky[5] ? sky[5]->id : notexture->id);
+        draw_envbox_face(1.0f, 1.0f,  w,  w, w,
+                         1.0f, 0.0f, -w,  w, w,
+                         0.0f, 0.0f, -w, -w, w,
+                         0.0f, 1.0f,  w, -w, w, sky[5] ? sky[5]->id : notexture->id);
 
     gle::disable();
 }
@@ -154,7 +154,7 @@ void draw_env_overlay(int w, Texture *overlay = NULL, float tx = 0, float ty = 0
         vec p(1, 1, 0);
         p.rotate_around_z((-2.0f*M_PI*i)/cloudsubdiv);
         gle::attribf(p.x*psz, p.y*psz, z); 
-            gle::attribf(tx + p.x*tsz, ty + p.y*tsz);
+            gle::attribf(tx - p.x*tsz, ty + p.y*tsz);
     }
     xtraverts += gle::end();
     float tsz2 = 0.5f/cloudscale;
@@ -167,10 +167,10 @@ void draw_env_overlay(int w, Texture *overlay = NULL, float tx = 0, float ty = 0
         vec p(1, 1, 0);
         p.rotate_around_z((-2.0f*M_PI*i)/cloudsubdiv);
         gle::attribf(p.x*psz, p.y*psz, z);
-            gle::attribf(tx + p.x*tsz, ty + p.y*tsz);
+            gle::attribf(tx - p.x*tsz, ty + p.y*tsz);
             gle::attribf(color.r, color.g, color.b, cloudalpha);
         gle::attribf(p.x*w, p.y*w, z);
-            gle::attribf(tx + p.x*tsz2, ty + p.y*tsz2);
+            gle::attribf(tx - p.x*tsz2, ty + p.y*tsz2);
             gle::attribf(color.r, color.g, color.b, 0);
     }
     xtraverts += gle::end();

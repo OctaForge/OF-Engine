@@ -2241,12 +2241,12 @@ void forcecubemapload(GLuint tex)
 
 cubemapside cubemapsides[6] =
 {
-    { GL_TEXTURE_CUBE_MAP_NEGATIVE_X, "lf", true,  true,  true  },
-    { GL_TEXTURE_CUBE_MAP_POSITIVE_X, "rt", false, false, true  },
-    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "ft", true,  false, false },
-    { GL_TEXTURE_CUBE_MAP_POSITIVE_Y, "bk", false, true,  false },
-    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "dn", false, false, true  },
-    { GL_TEXTURE_CUBE_MAP_POSITIVE_Z, "up", false, false, true  },
+    { GL_TEXTURE_CUBE_MAP_NEGATIVE_X, "lf", false, true,  true  },
+    { GL_TEXTURE_CUBE_MAP_POSITIVE_X, "rt", true,  false, true  },
+    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "bk", false, false, false },
+    { GL_TEXTURE_CUBE_MAP_POSITIVE_Y, "ft", true,  true,  false },
+    { GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "dn", true,  false, true  },
+    { GL_TEXTURE_CUBE_MAP_POSITIVE_Z, "up", true,  false, true  },
 };
 
 VARFP(envmapsize, 4, 7, 10, setupmaterials());

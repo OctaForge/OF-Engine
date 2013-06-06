@@ -170,11 +170,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
     static int lastupdate = -1, lastw = -1, lasth = -1;
     static float backgroundu = 0, backgroundv = 0;
-#if 0
-    static float detailu = 0, detailv = 0;
-    static int numdecals = 0;
-    static struct decal { float x, y, size; int side; } decals[12];
-#endif
     if((renderedframe && !mainmenu && lastupdate != lastmillis) || lastw != w || lasth != h)
     {
         lastupdate = lastmillis;
@@ -183,18 +178,6 @@ void renderbackground(const char *caption, Texture *mapshot, const char *mapname
 
         backgroundu = rndscale(1);
         backgroundv = rndscale(1);
-#if 0
-        detailu = rndscale(1);
-        detailv = rndscale(1);
-        numdecals = sizeof(decals)/sizeof(decals[0]);
-        numdecals = numdecals/3 + rnd((numdecals*2)/3 + 1);
-        float maxsize = min(w, h)/16.0f;
-        loopi(numdecals)
-        {
-            decal d = { rndscale(w), rndscale(h), maxsize/2 + rndscale(maxsize/2), rnd(2) };
-            decals[i] = d;
-        }
-#endif
     }
     else if(lastupdate != lastmillis) lastupdate = lastmillis;
 
@@ -341,31 +324,27 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
 
     gle::colorf(1, 1, 1);
 
+    float fh = 0.075f*min(w, h), fw = fh*10,
+          fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw), 
+          fy = renderedframe ? fh/4 : h - fh*1.5f;
+    settexture("media/interface/loading_frame", 3);
+    bgquad(fx, fy, fw, fh);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    float fh = 0.075f*min(w, h), fw = fh*10,
-          fx = renderedframe ? w - fw - fh/4 : 0.5f*(w - fw), 
-          fy = renderedframe ? fh/4 : h - fh*1.5f,
-          fu1 = 0/512.0f, fu2 = 511/512.0f,
-          fv1 = 0/64.0f, fv2 = 52/64.0f;
-
-    settexture("media/interface/loading_frame", 3);
-    bgquad(fx, fy, fw, fh, fu1, fv1, fu2-fu1, fv2-fv1);
-
-    float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
-          bx = fx + fw*17/511.0f, by = fy + fh*16/52.0f,
-          bv1 = 0/32.0f, bv2 = 20/32.0f,
-          su1 = 0/32.0f, su2 = 7/32.0f, sw = fw*7/511.0f,
-          eu1 = 23/32.0f, eu2 = 30/32.0f, ew = fw*7/511.0f,
+    float bw = fw*(512 - 2*8)/512.0f, bh = fh*20/32.0f,
+          bx = fx + fw*8/512.0f, by = fy + fh*6/32.0f,
+          su1 = 0/32.0f, su2 = 8/32.0f, sw = fw*8/512.0f,
+          eu1 = 24/32.0f, eu2 = 32/32.0f, ew = fw*8/512.0f,
           mw = bw - sw - ew,
-          ex = bx+sw + max(mw*bar, fw*7/511.0f);
+          ex = bx+sw + max(mw*bar, fw*8/512.0f);
     if(bar > 0)
     {
         settexture("media/interface/loading_bar", 3);
-        bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
-        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
-        bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
+        bgquad(bx, by, sw, bh, su1, 0, su2-su1, 1);
+        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, 0, eu1-su2, 1);
+        bgquad(ex, by, ew, bh, eu1, 0, eu2-eu1, 1);
     }
     else if (bar < 0) // INTENSITY: Show side-to-side progress for negative values (-0 to -infinity)
     {
@@ -378,25 +357,23 @@ void renderprogress(float bar, const char *text, GLuint tex, bool background)   
         else
             start = 2*(1-bar)*(1-width);
 
-        float bw = fw*(511 - 2*17)/511.0f, bh = fh*20/52.0f,
-              bx = fx + fw*17/511.0f + mw*start, by = fy + fh*16/52.0f,
-              bv1 = 0/32.0f, bv2 = 20/32.0f,
-              su1 = 0/32.0f, su2 = 7/32.0f, sw = fw*7/511.0f,
-              eu1 = 23/32.0f, eu2 = 30/32.0f, ew = fw*7/511.0f,
+        float bw = fw*(512 - 2*8)/512.0f, bh = fh*20/32.0f,
+              bx = fx + fw*8/512.0f + mw*start, by = fy + fh*6/32.0f,
+              su1 = 0/32.0f, su2 = 8/32.0f, sw = fw*8/512.0f,
+              eu1 = 24/32.0f, eu2 = 32/32.0f, ew = fw*8/512.0f,
               mw = bw - sw - ew,
-              ex = bx+sw + max(mw*width, fw*7/511.0f);
+              ex = bx+sw + max(mw*width, fw*8/512.0f);
 
         settexture("media/interface/loading_bar", 3);
-        bgquad(bx, by, sw, bh, su1, bv1, su2-su1, bv2-bv1);
-        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, bv1, eu1-su2, bv2-bv1);
-        bgquad(ex, by, ew, bh, eu1, bv1, eu2-eu1, bv2-bv1);
+        bgquad(bx, by, sw, bh, su1, 0, su2-su1, 1);
+        bgquad(bx+sw, by, ex-(bx+sw), bh, su2, 0, eu1-su2, 1);
+        bgquad(ex, by, ew, bh, eu1, 0, eu2-eu1, 1);
     } // INTENSITY: End side-to-side progress
-
 
     if(text)
     {
         int tw = text_width(text);
-        float tsz = bh*0.8f/FONTH;
+        float tsz = bh*0.5f/FONTH;
         if(tw*tsz > mw) tsz = mw/tw;
         pushhudmatrix();
         hudmatrix.translate(bx+sw, by + (bh - FONTH*tsz)/2, 0);
@@ -692,7 +669,7 @@ void resetgl()
     reloadfonts();
     inbetweenframes = true;
     renderbackground("initializing...");
-	restoregamma();
+    restoregamma();
     initgbuffer();
     reloadshaders();
     reloadtextures();

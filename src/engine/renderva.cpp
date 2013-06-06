@@ -1032,9 +1032,9 @@ struct renderstate
     Slot *slot, *texgenslot;
     VSlot *vslot, *texgenvslot;
     vec2 texgenscroll;
-    int texgendim, texgenmillis;
+    int texgenorient, texgenmillis;
 
-    renderstate() : colormask(true), depthmask(true), alphaing(0), vbuf(0), vattribs(false), vquery(false), colorscale(1, 1, 1), alphascale(0), refractscale(0), refractcolor(1, 1, 1), blendx(-1), blendy(-1), slot(NULL), texgenslot(NULL), vslot(NULL), texgenvslot(NULL), texgenscroll(0, 0), texgendim(-1), texgenmillis(lastmillis)
+    renderstate() : colormask(true), depthmask(true), alphaing(0), vbuf(0), vattribs(false), vquery(false), colorscale(1, 1, 1), alphascale(0), refractscale(0), refractcolor(1, 1, 1), blendx(-1), blendy(-1), slot(NULL), texgenslot(NULL), vslot(NULL), texgenvslot(NULL), texgenscroll(0, 0), texgenorient(-1), texgenmillis(lastmillis)
     {
         loopk(4) color[k] = 1;
         loopk(7) textures[k] = 0;
@@ -1123,8 +1123,8 @@ struct geombatch
         if(es.texture > b.es.texture) return 1;
         if(es.envmap < b.es.envmap) return -1;
         if(es.envmap > b.es.envmap) return 1;
-        if(es.dim < b.es.dim) return -1;
-        if(es.dim > b.es.dim) return 1;
+        if(es.orient < b.es.orient) return -1;
+        if(es.orient > b.es.orient) return 1;
         return 0;
     }
 };
@@ -1336,7 +1336,7 @@ static void changeslottmus(renderstate &cur, int pass, Slot &slot, VSlot &vslot)
     cur.vslot = &vslot;
 }
 
-static void changetexgen(renderstate &cur, int dim, Slot &slot, VSlot &vslot)
+static void changetexgen(renderstate &cur, int orient, Slot &slot, VSlot &vslot)
 {
     if(cur.texgenslot != &slot || cur.texgenvslot != &vslot)
     {
@@ -1356,17 +1356,17 @@ static void changetexgen(renderstate &cur, int dim, Slot &slot, VSlot &vslot)
             if(cur.texgenscroll != scroll)
             {
                 cur.texgenscroll = scroll;
-                cur.texgendim = -1;
+                cur.texgenorient = -1;
             }
         }
         cur.texgenslot = &slot;
         cur.texgenvslot = &vslot;
     }
 
-    if(cur.texgendim == dim) return;
+    if(cur.texgenorient == orient) return;
     GLOBALPARAM(texgenscroll, cur.texgenscroll);
 
-    cur.texgendim = dim;
+    cur.texgenorient = orient;
 }
 
 static inline void changeshader(renderstate &cur, int pass, geombatch &b)
@@ -1435,9 +1435,9 @@ static void renderbatches(renderstate &cur, int pass)
         if(cur.vslot != &b.vslot) 
         {
             changeslottmus(cur, pass, *b.vslot.slot, b.vslot);
-            if(cur.texgendim != b.es.dim || (cur.texgendim <= 2 && cur.texgenvslot != &b.vslot)) changetexgen(cur, b.es.dim, *b.vslot.slot, b.vslot);
+            if(cur.texgenorient != b.es.orient || (cur.texgenorient < 7 && cur.texgenvslot != &b.vslot)) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
         }
-        else if(cur.texgendim != b.es.dim) changetexgen(cur, b.es.dim, *b.vslot.slot, b.vslot);
+        else if(cur.texgenorient != b.es.orient) changetexgen(cur, b.es.orient, *b.vslot.slot, b.vslot);
         if(pass == RENDERPASS_GBUFFER || pass == RENDERPASS_RSM) changebatchtmus(cur, pass, b);
 
         renderbatch(cur, pass, b);
@@ -1618,7 +1618,7 @@ void rendergeom()
         glFlush();
 
         if(!multipassing) { multipassing = true; glDepthFunc(GL_LEQUAL); }
-        cur.texgendim = -1;
+        cur.texgenorient = -1;
 
         for(vtxarray *va = visibleva; va; va = va->next) if(va->texs && va->occluded < OCCLUDE_GEOM)
         {
@@ -1668,7 +1668,7 @@ void rendergeom()
         maskgbuffer("cng");
 
         GLOBALPARAMF(blendlayer, (0.0f));
-        cur.texgendim = -1;
+        cur.texgenorient = -1;
         for(vtxarray *va = visibleva; va; va = va->next) if(va->blends && va->occluded < OCCLUDE_GEOM && va->curvfc != VFC_FOGGED)
         {
             renderva(cur, va, RENDERPASS_GBUFFER_BLEND);
@@ -1761,7 +1761,7 @@ void renderrsmgeom(bool dyntex)
         glBlendFunc(GL_ONE, GL_ONE);
 
         GLOBALPARAMF(blendlayer, (0.0f));
-        cur.texgendim = -1;
+        cur.texgenorient = -1;
         for(vtxarray *va = shadowva; va; va = va->rnext) if(va->blends)
         {
             renderva(cur, va, RENDERPASS_RSM_BLEND);

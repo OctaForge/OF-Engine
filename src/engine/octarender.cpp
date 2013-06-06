@@ -171,14 +171,14 @@ enum
 struct sortkey
 {
      ushort tex, envmap;
-     uchar dim, layer, alpha;
+     uchar orient, layer, alpha;
 
      sortkey() {}
-     sortkey(ushort tex, uchar dim, uchar layer = LAYER_TOP, ushort envmap = EMID_NONE, uchar alpha = NO_ALPHA)
-      : tex(tex), envmap(envmap), dim(dim), layer(layer), alpha(alpha)
+     sortkey(ushort tex, uchar orient, uchar layer = LAYER_TOP, ushort envmap = EMID_NONE, uchar alpha = NO_ALPHA)
+      : tex(tex), envmap(envmap), orient(orient), layer(layer), alpha(alpha)
      {}
 
-     bool operator==(const sortkey &o) const { return tex==o.tex && envmap==o.envmap && dim==o.dim && layer==o.layer && alpha==o.alpha; }
+     bool operator==(const sortkey &o) const { return tex==o.tex && envmap==o.envmap && orient==o.orient && layer==o.layer && alpha==o.alpha; }
 };
 
 struct sortval
@@ -249,8 +249,8 @@ struct vacollect : verthash
         {
             if(x.envmap < y.envmap) return true;
             if(x.envmap > y.envmap) return false;
-            if(x.dim < y.dim) return true;
-            if(x.dim > y.dim) return false;
+            if(x.orient < y.orient) return true;
+            if(x.orient > y.orient) return false;
             return false;
         }
         VSlot &xs = lookupvslot(x.tex, false), &ys = lookupvslot(y.tex, false);
@@ -354,7 +354,7 @@ struct vacollect : verthash
                 const sortval &t = indices[k];
                 elementset &e = va->eslist[i];
                 e.texture = k.tex;
-                e.dim = k.dim;
+                e.orient = k.orient;
                 e.layer = k.layer;
                 e.envmap = k.envmap;
                 ushort *startbuf = curbuf;
@@ -432,24 +432,24 @@ void reduceslope(ivec &n)
     while(!((n.x|n.y|n.z)&1)) n.shr(1);
 }
 
-// [rotation][dimension]
-extern const vec orientation_tangent [6][3] =
+// [rotation][orient]
+extern const vec orientation_tangent [6][6] =
 {
-    { vec(0,  1,  0), vec( 1, 0,  0), vec( 1,  0, 0) },
-    { vec(0,  0, -1), vec( 0, 0, -1), vec( 0,  1, 0) },
-    { vec(0, -1,  0), vec(-1, 0,  0), vec(-1,  0, 0) },
-    { vec(0,  0,  1), vec( 0, 0,  1), vec( 0, -1, 0) },
-    { vec(0, -1,  0), vec(-1, 0,  0), vec(-1,  0, 0) },
-    { vec(0,  1,  0), vec( 1, 0,  0), vec( 1,  0, 0) },
+    { vec( 0,  1,  0), vec( 0, -1,  0), vec(-1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0) },
+    { vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0, -1,  0), vec( 0,  1,  0) },
+    { vec( 0, -1,  0), vec( 0,  1,  0), vec( 1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0) },
+    { vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  1,  0), vec( 0, -1,  0) },
+    { vec( 0, -1,  0), vec( 0,  1,  0), vec( 1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0) },
+    { vec( 0,  1,  0), vec( 0, -1,  0), vec(-1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0) }
 };
-extern const vec orientation_binormal[6][3] =
+extern const vec orientation_binormal[6][6] =
 {
-    { vec(0,  0, -1), vec( 0, 0, -1), vec( 0,  1, 0) },
-    { vec(0, -1,  0), vec(-1, 0,  0), vec(-1,  0, 0) },
-    { vec(0,  0,  1), vec( 0, 0,  1), vec( 0, -1, 0) },
-    { vec(0,  1,  0), vec( 1, 0,  0), vec( 1,  0, 0) },
-    { vec(0,  0, -1), vec( 0, 0, -1), vec( 0,  1, 0) },
-    { vec(0,  0,  1), vec( 0, 0,  1), vec( 0, -1, 0) },
+    { vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0, -1,  0), vec( 0,  1,  0) },
+    { vec( 0, -1,  0), vec( 0,  1,  0), vec( 1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0), vec(-1,  0,  0) },
+    { vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  1,  0), vec( 0, -1,  0) },
+    { vec( 0,  1,  0), vec( 0, -1,  0), vec(-1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0), vec( 1,  0,  0) },
+    { vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0,  0, -1), vec( 0, -1,  0), vec( 0,  1,  0) },
+    { vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  0,  1), vec( 0,  1,  0), vec( 0, -1,  0) }
 };
 
 void addtris(const sortkey &key, int orient, vertex *verts, int *index, int numverts, int convex, int tj)
@@ -568,7 +568,7 @@ void addgrasstri(int face, vertex *verts, int numv, ushort texture, int layer)
     g.blend = layer == LAYER_BLEND ? ((int(g.center.x)>>12)+1) | (((int(g.center.y)>>12)+1)<<8) : 0;
 }
 
-static inline void calctexgen(VSlot &vslot, int dim, vec4 &sgen, vec4 &tgen)
+static inline void calctexgen(VSlot &vslot, int orient, vec4 &sgen, vec4 &tgen)
 {
     Texture *tex = vslot.slot->sts.empty() ? notexture : vslot.slot->sts[0].t;
     float k = TEX_SCALE/vslot.scale,
@@ -577,19 +577,25 @@ static inline void calctexgen(VSlot &vslot, int dim, vec4 &sgen, vec4 &tgen)
           sk = k/xs, tk = k/ys,
           soff = -((vslot.rotation&5)==1 ? vslot.offset.y : vslot.offset.x)/xs,
           toff = -((vslot.rotation&5)==1 ? vslot.offset.x : vslot.offset.y)/ys;
-    static const int si[] = { 1, 0, 0 }, ti[] = { 2, 2, 1 };
-    int sdim = si[dim], tdim = ti[dim];
     sgen = vec4(0, 0, 0, soff); 
     tgen = vec4(0, 0, 0, toff);
-    if((vslot.rotation&5)==1)
+    if((vslot.rotation&5)==1) switch(orient)
     {
-        sgen[tdim] = (dim <= 1 ? -sk : sk);
-        tgen[sdim] = tk;
+        case 0: sgen.z = -sk; tgen.y = tk;  break;
+        case 1: sgen.z = -sk; tgen.y = -tk; break;
+        case 2: sgen.z = -sk; tgen.x = -tk; break;
+        case 3: sgen.z = -sk; tgen.x = tk;  break;
+        case 4: sgen.y = -sk; tgen.x = tk;  break;
+        case 5: sgen.y = sk;  tgen.x = tk;  break;
     }
-    else
+    else switch(orient)
     {
-        sgen[sdim] = sk;
-        tgen[tdim] = (dim <= 1 ? -tk : tk);
+        case 0: sgen.y = sk;  tgen.z = -tk; break;
+        case 1: sgen.y = -sk; tgen.z = -tk; break;
+        case 2: sgen.x = -sk; tgen.z = -tk; break;
+        case 3: sgen.x = sk;  tgen.z = -tk; break;
+        case 4: sgen.x = sk;  tgen.y = -tk; break;
+        case 5: sgen.x = sk;  tgen.y = tk;  break;
     }
 }
 
@@ -642,10 +648,8 @@ void guessnormals(const vec *pos, int numverts, vec *normals)
 
 void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, ushort texture, vertinfo *vinfo, int numverts, int tj = -1, ushort envmap = EMID_NONE, int grassy = 0, bool alpha = false, int layer = LAYER_TOP)
 {
-    int dim = dimension(orient);
-
     vec4 sgen, tgen;
-    calctexgen(vslot, dim, sgen, tgen);
+    calctexgen(vslot, orient, sgen, tgen);
     vertex verts[MAXFACEVERTS];
     int index[MAXFACEVERTS];
     vec normals[MAXFACEVERTS];
@@ -657,21 +661,21 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
         v.tc = vec2(sgen.dot(v.pos), tgen.dot(v.pos));
         if(vinfo && vinfo[k].norm)
         {
-            vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][dim];
+            vec n = decodenormal(vinfo[k].norm), t = orientation_tangent[vslot.rotation][orient];
             t.sub(vec(n).mul(n.dot(t))).normalize();
             v.norm = bvec(n);
             v.tangent = bvec(t);
-            v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][dim]) < 0 ? 0 : 255;
+            v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][orient]) < 0 ? 0 : 255;
         }
         else if(texture != DEFAULT_SKY)
         {
             if(!k) guessnormals(pos, numverts, normals);
             const vec &n = normals[k];
-            vec t = orientation_tangent[vslot.rotation][dim];
+            vec t = orientation_tangent[vslot.rotation][orient];
             t.sub(vec(n).mul(n.dot(t))).normalize();
             v.norm = bvec(n);
             v.tangent = bvec(t);
-            v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][dim]) < 0 ? 0 : 255;
+            v.bitangent = vec().cross(n, t).dot(orientation_binormal[vslot.rotation][orient]) < 0 ? 0 : 255;
         }
         else
         {
@@ -689,7 +693,7 @@ void addcubeverts(VSlot &vslot, int orient, int size, vec *pos, int convex, usho
         if(vslot.refractscale > 0) loopk(numverts) { vc.refractmin.min(pos[k]); vc.refractmax.max(pos[k]); }
     }
 
-    sortkey key(texture, vslot.scroll.iszero() ? 3 : dim, layer&LAYER_BOTTOM ? layer : LAYER_TOP, envmap, alpha ? (vslot.refractscale > 0 ? ALPHA_REFRACT : (vslot.alphaback ? ALPHA_BACK : ALPHA_FRONT)) : NO_ALPHA);
+    sortkey key(texture, vslot.scroll.iszero() ? 7 : orient, layer&LAYER_BOTTOM ? layer : LAYER_TOP, envmap, alpha ? (vslot.refractscale > 0 ? ALPHA_REFRACT : (vslot.alphaback ? ALPHA_BACK : ALPHA_FRONT)) : NO_ALPHA);
     addtris(key, orient, verts, index, numverts, convex, tj);
 
     if(grassy) 
