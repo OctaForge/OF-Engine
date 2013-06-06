@@ -275,9 +275,8 @@ ffi.cdef [[
     void *memcpy(void *dest, const void *src, size_t n);
 ]]
 
-local new, sizeof = ffi.new, ffi.sizeof
+local new, sizeof, istype, C = ffi.new, ffi.sizeof, ffi.istype, ffi.C
 local type = type
-local getmt = getmetatable
 local format = string.format
 local sqrt, abs = math.sqrt, math.abs
 local sin, cos, rad = math.sin, math.cos, math.rad
@@ -295,24 +294,24 @@ local vec3_mt
 ]]
 local Vec3
 vec3_mt = {
-    --[[! Constructor: __call
+    --[[! Constructor: __new
         You can construct a vec3 either by passing another vec3, a table
         convertible to vec3 (an array of 3 elements or an associative array
         with x, y, z) or the components directly.
     ]]
-    __call = function(x, y, z)
-        if getmt(x) == vec3_mt then
-            local ret = ffi.new "vec3_t"
-            C.memcpy(ret, x, sizeof "vec3_t")
+    __new = function(ct, x, y, z)
+        if istype(ct, x) then
+            local ret = ffi.new(ct)
+            C.memcpy(ret, x, sizeof(ct))
             return ret
         elseif type(x) == "table" then
             if x.x then
-                return ffi.new("vec3_t", x.x, x.y, x.z)
+                return ffi.new(ct, x.x or 0, x.y or 0, x.z or 0)
             else
-                return ffi.new("vec3_t", x[1], x[2], x[3])
+                return ffi.new(ct, x[1] or 0, x[2] or 0, x[3] or 0)
             end
         else
-            return ffi.new("vec3_t", x, y, z)
+            return ffi.new(ct, x or 0, y or 0, z or 0)
         end
     end,
 
@@ -546,19 +545,22 @@ local vec4_mt
 ]]
 local Vec4
 vec4_mt = {
-    __call = function(x, y, z, w)
-        if getmt(x) == vec3_mt then
-            local ret = ffi.new "vec4_t"
-            C.memcpy(ret, x, sizeof "vec4_t")
+    __new = function(ct, x, y, z, w)
+        if istype(ct, x) then
+            local ret = ffi.new(ct)
+            C.memcpy(ret, x, sizeof(ct))
             return ret
+        elseif istype("vec3_t", x) then
+            local ret = ffi.new(ct)
+            C.memcpy(ret, x, sizeof "vec3_t")
         elseif type(x) == "table" then
             if x.x then
-                return ffi.new("vec4_t", x.x, x.y, x.z, x.w)
+                return ffi.new(ct, x.x or 0, x.y or 0, x.z or 0, x.w or 0)
             else
-                return ffi.new("vec4_t", x[1], x[2], x[3], x[4])
+                return ffi.new(ct, x[1] or 0, x[2] or 0, x[3] or 0, x[4] or 0)
             end
         else
-            return ffi.new("vec4_t", x, y, z, w)
+            return ffi.new(ct, x or 0, y or 0, z or 0, w or 0)
         end
     end,
 
