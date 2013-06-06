@@ -301,17 +301,17 @@ vec3_mt = {
     ]]
     __new = function(ct, x, y, z)
         if istype(ct, x) then
-            local ret = ffi.new(ct)
+            local ret = new(ct)
             C.memcpy(ret, x, sizeof(ct))
             return ret
         elseif type(x) == "table" then
             if x.x then
-                return ffi.new(ct, x.x or 0, x.y or 0, x.z or 0)
+                return new(ct, x.x or 0, x.y or 0, x.z or 0)
             else
-                return ffi.new(ct, x[1] or 0, x[2] or 0, x[3] or 0)
+                return new(ct, x[1] or 0, x[2] or 0, x[3] or 0)
             end
         else
-            return ffi.new(ct, x or 0, y or 0, z or 0)
+            return new(ct, x or 0, y or 0, z or 0)
         end
     end,
 
@@ -547,20 +547,20 @@ local Vec4
 vec4_mt = {
     __new = function(ct, x, y, z, w)
         if istype(ct, x) then
-            local ret = ffi.new(ct)
+            local ret = new(ct)
             C.memcpy(ret, x, sizeof(ct))
             return ret
         elseif istype("vec3_t", x) then
-            local ret = ffi.new(ct)
+            local ret = new(ct)
             C.memcpy(ret, x, sizeof "vec3_t")
         elseif type(x) == "table" then
             if x.x then
-                return ffi.new(ct, x.x or 0, x.y or 0, x.z or 0, x.w or 0)
+                return new(ct, x.x or 0, x.y or 0, x.z or 0, x.w or 0)
             else
-                return ffi.new(ct, x[1] or 0, x[2] or 0, x[3] or 0, x[4] or 0)
+                return new(ct, x[1] or 0, x[2] or 0, x[3] or 0, x[4] or 0)
             end
         else
-            return ffi.new(ct, x or 0, y or 0, z or 0, w or 0)
+            return new(ct, x or 0, y or 0, z or 0, w or 0)
         end
     end,
 
