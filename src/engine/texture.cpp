@@ -1,6 +1,7 @@
 // texture.cpp: texture slot management
 
 #include "engine.h"
+#include "of_world.h"
 
 template<int S>
 static void halvetexture(uchar *src, uint sw, uint sh, uint stride, uchar *dst)
@@ -464,7 +465,7 @@ VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
 /* OF */
-VARFR(texdefscale, 1, 16, 64, initwarning("texture scale", INIT_LOAD));
+VARFR(texdefscale, 1, 16, 64, if (!world::loading) initwarning("texture scale", INIT_LOAD));
 
 extern int usetexcompress;
 
