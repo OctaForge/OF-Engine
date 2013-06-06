@@ -60,7 +60,6 @@ local str_escapes = setmetatable({
 }, {
     __index = function(self, c) return ("\\%03d"):format(c:byte()) end
 })
-local str_escp = (_VERSION == "Lua 5.2") and "\0\001-\031" or "%z\001-\031"
 
 --[[! Function: string.escape
     Escapes a string. Works similarly to the Lua %q format but it tries
@@ -76,7 +75,7 @@ string.escape = function(s)
     for c in s:gmatch("'") do nsq = nsq + 1 end
     for c in s:gmatch('"') do ndq = ndq + 1 end
     local sd = (ndq > nsq) and "'" or '"'
-    return sd .. s:gsub("[\\"..sd..str_escp.."]", str_escapes) .. sd
+    return sd .. s:gsub("[\\"..sd.."%z\001-\031]", str_escapes) .. sd
 end
 
 --[[! Variable: string.dump

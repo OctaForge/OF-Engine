@@ -42,8 +42,7 @@ with little modifications it should work everywhere.
       a few other things. Basically basic things you need to build sources.
    2. SDL2 dev package, SDL2_image dev package, SDL2_mixer dev package
    3. Zlib dev libraries and headers
-   4. LuaJIT 2.0 or higher with 5.2 features enabled (OctaForge/OF-luajit
-   does by default)
+   4. LuaJIT 2.0 or higher
 
    If you have a custom build of LuaJIT (static), you can put the lib as
    libluajit.a into src/platform_{linux,freebsd,osx,solaris}/lib and the
@@ -106,8 +105,7 @@ Mac OS X (Darwin)
    1. XCode SDK installed (from Mac OS X DVD or XCode developer DVD).
    2. The needed SDL2 frameworks - put them in src/platform_osx/Frameworks
       http://github.com/OctaForge/OF-mac
-   3. LuaJIT 2.0 or higher with 5.2 features enabled - look at the *nix
-      section, the same notes apply (the dir is platform_osx here).
+   3. LuaJIT 2.0 or higher
 
 2. Go to OF's src directory in the terminal and do
 
