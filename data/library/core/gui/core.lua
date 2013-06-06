@@ -434,8 +434,6 @@ local Object, Window
 
     Each widget class also contains an "instances" table storing a set
     of all instances of the widget class.
-
-    The length operator on a widget returns the number of children.
 ]]
 Object = register_class("Object", table.Object, {
     --[[! Constructor: __init
@@ -455,8 +453,7 @@ Object = register_class("Object", table.Object, {
 
         self.x, self.y, self.w, self.h = 0, 0, 0, 0
 
-        self.adjust   = bor(ALIGN_HCENTER, ALIGN_VCENTER)
-        self.__len    = Object.__len
+        self.adjust = bor(ALIGN_HCENTER, ALIGN_VCENTER)
 
         -- alignment and clamping
         local align_h = kwargs.align_h or 0
@@ -531,10 +528,6 @@ Object = register_class("Object", table.Object, {
         if  kwargs.init then
             kwargs.init(self)
         end
-    end,
-
-    __len = function(self)
-        return #self.children
     end,
 
     --[[! Function: clear

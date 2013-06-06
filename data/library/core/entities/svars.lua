@@ -334,7 +334,8 @@ State_String = State_Variable:clone {
 M.State_String = State_String
 
 local ctable = createtable
-local setmetatable = setmetatable
+local getmt, setmt = getmetatable, setmetatable
+local newproxy = newproxy
 
 --[[! Class: Array_Surrogate
     Represents a "surrogate" for an array. Behaves like a regular
@@ -347,7 +348,9 @@ local setmetatable = setmetatable
 
     Note that surrogates are not regular objects created using the
     prototypal system. They're manually managed with metatables and
-    you should never have to instantiate them yourself.
+    proxies in order to gain features such as __len under Lua 5.1 and
+    you have to instantiate them yourself (well, you mostly don't, as
+    the entity does it for you).
 ]]
 Array_Surrogate = {
     name = "Array_Surrogate",
@@ -358,7 +361,15 @@ Array_Surrogate = {
     ]]
     new = function(self, ent, var)
         #log(INFO, "Array_Surrogate: new: " .. var.name)
-        return setmetatable({ entity = ent, variable = var }, self)
+        local rawt = { entity = ent, variable = var }
+        rawt.rawt = rawt -- yay! cycles!
+        local ret = newproxy(true)
+        local mt  = getmt(ret)
+        mt.__tostring = self.__tostring
+        mt.__index    = setmt(rawt, self)
+        mt.__newindex = self.__newindex
+        mt.__len      = self.__len
+        return ret
     end,
 
     --[[! Function: __tostring
@@ -376,12 +387,16 @@ Array_Surrogate = {
     ]]
     __index = function(self, name)
         local n = tonumber(name)
-        if not n then return Array_Surrogate[name] or rawget(self, name) end
+        if not n then
+            return Array_Surrogate[name] or rawget(self.rawt, name)
+        end
         local i = floor(n)
-        if i ~= n then return Array_Surrogate[name] or rawget(self, name) end
+        if i ~= n then
+            return Array_Surrogate[name] or rawget(self.rawt, name)
+        end
 
-        local v = rawget(self, "variable")
-        return v:get_item(rawget(self, "entity"), i)
+        local v = self.variable
+        return v:get_item(self.entity, i)
     end,
 
     --[[! Function: __newindex
@@ -393,20 +408,20 @@ Array_Surrogate = {
     ]]
     __newindex = function(self, name, val)
         local n = tonumber(name)
-        if not n then return rawset(self, name, val) end
+        if not n then return rawset(self.rawt, name, val) end
         local i = floor(n)
-        if i ~= n then return rawset(self, name, val) end
+        if i ~= n then return rawset(self.rawt, name, val) end
 
-        local v = rawget(self, "variable")
-        v:set_item(rawget(self, "entity"), i, val)
+        local v = self.variable
+        v:set_item(self.entity, i, val)
     end,
 
     --[[! Function: __len
         Returns the length of the "array" represented by the state variable.
     ]]
     __len = function(self)
-        local v = rawget(self, "variable")
-        return v:get_length(rawget(self, "entity"))
+        local v = self.variable
+        return v:get_length(self.entity)
     end,
 
     --[[! Function: to_array
@@ -626,7 +641,15 @@ Vec3_Surrogate = {
     ]]
     new = function(self, ent, var)
         #log(INFO, "Vec3_Surrogate: new: " .. var.name)
-        return setmetatable({ entity = ent, variable = var }, self)
+        local rawt = { entity = ent, variable = var }
+        rawt.rawt = rawt
+        local ret = newproxy(true)
+        local mt  = getmt(ret)
+        mt.__tostring = self.__tostring
+        mt.__index    = setmt(rawt, self)
+        mt.__newindex = self.__newindex
+        mt.__len      = self.__len
+        return ret
     end,
 
     --[[! Function: __tostring
@@ -642,16 +665,16 @@ Vec3_Surrogate = {
     ]]
     __index = function(self, n)
         if n == "x" or n == 1 then
-            local v = rawget(self, "variable")
-            return v:get_item(rawget(self, "entity"), 1)
+            local v = self.variable
+            return v:get_item(self.entity, 1)
         elseif n == "y" or n == 2 then
-            local v = rawget(self, "variable")
-            return v:get_item(rawget(self, "entity"), 2)
+            local v = self.variable
+            return v:get_item(self.entity, 2)
         elseif n == "z" or n == 3 then
-            local v = rawget(self, "variable")
-            return v:get_item(rawget(self, "entity"), 3)
+            local v = self.variable
+            return v:get_item(self.entity, 3)
         end
-        return Vec3_Surrogate[n] or rawget(self, n)
+        return Vec3_Surrogate[n] or rawget(self.rawt, n)
     end,
 
     --[[! Function: __newindex
@@ -660,16 +683,16 @@ Vec3_Surrogate = {
     ]]
     __newindex = function(self, n, val)
         if n == "x" or n == 1 then
-            local v = rawget(self, "variable")
-            v:set_item(rawget(self, "entity"), 1, val)
+            local v = self.variable
+            v:set_item(self.entity, 1, val)
         elseif n == "y" or n == 2 then
-            local v = rawget(self, "variable")
-            v:set_item(rawget(self, "entity"), 2, val)
+            local v = self.variable
+            v:set_item(self.entity, 2, val)
         elseif n == "z" or n == 3 then
-            local v = rawget(self, "variable")
-            v:set_item(rawget(self, "entity"), 3, val)
+            local v = self.variable
+            v:set_item(self.entity, 3, val)
         else
-            rawset(self, n, val)
+            rawset(self.rawt, n, val)
         end
     end,
 
@@ -725,7 +748,15 @@ Vec4_Surrogate = {
     ]]
     new = function(self, ent, var)
         #log(INFO, "Vec4_Surrogate: new: " .. var.name)
-        return setmetatable({ entity = ent, variable = var }, self)
+        local rawt = { entity = ent, variable = var }
+        rawt.rawt = rawt
+        local ret = newproxy(true)
+        local mt  = getmt(ret)
+        mt.__tostring = self.__tostring
+        mt.__index    = setmt(rawt, self)
+        mt.__newindex = self.__newindex
+        mt.__len      = self.__len
+        return ret
     end,
 
     --[[! Function: __tostring
@@ -741,19 +772,19 @@ Vec4_Surrogate = {
     ]]
     __index = function(self, n)
         if n == "x" or n == 1 then
-            local v = rawget(self, "variable")
-            return v:get_item(rawget(self, "entity"), 1)
+            local v = self.variable
+            return v:get_item(self.entity, 1)
         elseif n == "y" or n == 2 then
-            local v = rawget(self, "variable")
-            return v:get_item(rawget(self, "entity"), 2)
+            local v = self.variable
+            return v:get_item(self.entity, 2)
         elseif n == "z" or n == 3 then
-            local v = rawget(self, "variable")
-            return v:get_item(rawget(self, "entity"), 3)
+            local v = self.variable
+            return v:get_item(self.entity, 3)
         elseif n == "w" or n == 4 then
-            local v = rawget(self, "variable")
-            return v:get_item(rawget(self, "entity"), 4)
+            local v = self.variable
+            return v:get_item(self.entity, 4)
         end
-        return Vec4_Surrogate[n] or rawget(self, n)
+        return Vec4_Surrogate[n] or rawget(self.rawt, n)
     end,
 
     --[[! Function: __newindex
@@ -763,26 +794,26 @@ Vec4_Surrogate = {
     ]]
     __newindex = function(self, n, val)
         if n == "x" or n == 1 then
-            local v = rawget(self, "variable")
-            v:set_item(rawget(self, "entity"), 1, val)
+            local v = self.variable
+            v:set_item(self.entity, 1, val)
         elseif n == "y" or n == 2 then
-            local v = rawget(self, "variable")
-            v:set_item(rawget(self, "entity"), 2, val)
+            local v = self.variable
+            v:set_item(self.entity, 2, val)
         elseif n == "z" or n == 3 then
-            local v = rawget(self, "variable")
-            v:set_item(rawget(self, "entity"), 3, val)
+            local v = self.variable
+            v:set_item(self.entity, 3, val)
         elseif n == "w" or n == 4 then
-            local v = rawget(self, "variable")
-            v:set_item(rawget(self, "entity"), 4, val)
+            local v = self.variable
+            v:set_item(self.entity, 4, val)
         else
-            rawset(self, n, val)
+            rawset(self.rawt, n, val)
         end
     end,
 
     --[[! Function: __len
         See <Array_Surrogate.__len>. In this case always returns 4.
     ]]
-    __len_fn = function(self)
+    __len = function(self)
         return 4
     end,
 

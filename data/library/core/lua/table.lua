@@ -670,8 +670,7 @@ local Meta = {
     "__tostring",
     "__gc",
     "__mode",
-    "__metatable",
-    "__len"
+    "__metatable"
 }
 
 table.Object = {
