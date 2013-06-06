@@ -463,6 +463,8 @@ VARFP(texcompressquality, -1, -1, 1, setuptexcompress());
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(aniso, 0, 0, 16, initwarning("texture filtering", INIT_LOAD));
+/* OF */
+VARFR(texdefscale, 1, 16, 64, initwarning("texture scale", INIT_LOAD));
 
 extern int usetexcompress;
 

@@ -8,6 +8,7 @@ int envmapradius  = 0;
 int showmat       = 0;
 int outline       = 0;
 int glversion     = 0;
+int texdefscale   = 0;
 
 void serverkeepalive()
 {

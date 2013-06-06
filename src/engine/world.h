@@ -31,7 +31,9 @@ enum
     MATSURF_EDIT_ONLY
 };
 
-#define TEX_SCALE 16.0f
+/* OF */
+extern int texdefscale;
+#define TEX_SCALE texdefscale
 
 struct vertex { vec pos; bvec norm; uchar reserved; vec2 tc; bvec tangent; uchar bitangent; };
  
