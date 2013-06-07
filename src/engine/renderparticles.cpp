@@ -1168,12 +1168,6 @@ static inline vec offsetvec(vec o, int dir, int dist)
     return v;
 }
 
-//converts a 16bit color to 24bit
-static inline int colorfromattr(int attr) 
-{
-    return (((attr&0xF)<<4) | ((attr&0xF0)<<8) | ((attr&0xF00)<<12)) + 0x0F0F0F;
-}
-
 /* Experiments in shapes...
  * dir: (where dir%3 is similar to offsetvec with 0=up)
  * 0..2 circle
@@ -1314,7 +1308,7 @@ static void makeparticles(entity &e)
             //regularsplash(PART_SMOKE, 0x897661, 50, 1, 200,  vec(e.o.x, e.o.y, e.o.z+3.0f), 2.4f, -20, 3);
             float radius = e.attr[1] ? float(e.attr[1])/100.0f : 1.5f,
                   height = e.attr[2] ? float(e.attr[2])/100.0f : radius/3;
-            regularflame(PART_FLAME, e.o, radius, height, e.attr[3] ? colorfromattr(e.attr[3]) : 0x903020, 3, 2.0f);
+            regularflame(PART_FLAME, e.o, radius, height, e.attr[3] ? e.attr[3] : 0x903020, 3, 2.0f);
             regularflame(PART_SMOKE, vec(e.o.x, e.o.y, e.o.z + 4.0f*min(radius, height)), radius, height, 0x303020, 1, 4.0f, 100.0f, 2000.0f, -20);
             break;
         }
@@ -1324,7 +1318,7 @@ static void makeparticles(entity &e)
         case 2: //water fountain - <dir>
         {
             int color;
-            if(e.attr[2] > 0) color = colorfromattr(e.attr[2]);
+            if(e.attr[2] > 0) color = e.attr[2];
             else
             {
                 int mat = MAT_WATER + clamp(-e.attr[2], 0, 3);
@@ -1340,7 +1334,7 @@ static void makeparticles(entity &e)
             break;
         }
         case 3: //fire ball - <size> <rgb>
-            newparticle(e.o, vec(0, 0, 1), 1, PART_EXPLOSION, colorfromattr(e.attr[2]), 4.0f)->val = 1+e.attr[1];
+            newparticle(e.o, vec(0, 0, 1), 1, PART_EXPLOSION, e.attr[2], 4.0f)->val = 1+e.attr[1];
             break;
         case 4:  //tape - <dir> <length> <rgb>
         case 7:  //lightning 
@@ -1354,15 +1348,15 @@ static void makeparticles(entity &e)
             int type = typemap[e.attr[0]-4];
             float size = sizemap[e.attr[0]-4];
             int gravity = gravmap[e.attr[0]-4];
-            if(e.attr[1] >= 256) regularshape(type, max(1+e.attr[2], 1), colorfromattr(e.attr[3]), e.attr[1]-256, 5, e.attr[4] > 0 ? min(int(e.attr[4]), 10000) : 200, e.o, size, gravity);
-            else newparticle(e.o, offsetvec(e.o, e.attr[1], max(1+e.attr[2], 0)), 1, type, colorfromattr(e.attr[3]), size, gravity);
+            if(e.attr[1] >= 256) regularshape(type, max(1+e.attr[2], 1), e.attr[3], e.attr[1]-256, 5, e.attr[4] > 0 ? min(int(e.attr[4]), 10000) : 200, e.o, size, gravity);
+            else newparticle(e.o, offsetvec(e.o, e.attr[1], max(1+e.attr[2], 0)), 1, type, e.attr[3], size, gravity);
             break;
         }
         case 5: //meter, metervs - <percent> <rgb> <rgb2>
         case 6:
         {
-            particle *p = newparticle(e.o, vec(0, 0, 1), 1, e.attr[0]==5 ? PART_METER : PART_METER_VS, colorfromattr(e.attr[2]), 2.0f);
-            int color2 = colorfromattr(e.attr[3]);
+            particle *p = newparticle(e.o, vec(0, 0, 1), 1, e.attr[0]==5 ? PART_METER : PART_METER_VS, e.attr[2], 2.0f);
+            int color2 = e.attr[3];
             p->color2[0] = color2>>16;
             p->color2[1] = (color2>>8)&0xFF;
             p->color2[2] = color2&0xFF;
@@ -1370,10 +1364,10 @@ static void makeparticles(entity &e)
             break;
         }
         case 11: // flame <radius> <height> <rgb> - radius=100, height=100 is the classic size
-            regularflame(PART_FLAME, e.o, float(e.attr[1])/100.0f, float(e.attr[2])/100.0f, colorfromattr(e.attr[3]), 3, 2.0f);
+            regularflame(PART_FLAME, e.o, float(e.attr[1])/100.0f, float(e.attr[2])/100.0f, e.attr[3], 3, 2.0f);
             break;
         case 12: // smoke plume <radius> <height> <rgb>
-            regularflame(PART_SMOKE, e.o, float(e.attr[1])/100.0f, float(e.attr[2])/100.0f, colorfromattr(e.attr[3]), 1, 4.0f, 100.0f, 2000.0f, -20);
+            regularflame(PART_SMOKE, e.o, float(e.attr[1])/100.0f, float(e.attr[2])/100.0f, e.attr[3], 1, 4.0f, 100.0f, 2000.0f, -20);
             break;
         case 32: //lens flares - plain/sparkle/sun/sparklesun <red> <green> <blue>
         case 33:
