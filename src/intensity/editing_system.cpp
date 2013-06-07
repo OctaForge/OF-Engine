@@ -58,11 +58,9 @@ namespace EditingSystem
 
     bool madeChanges = false;
 
-    void newent(const char *cl, const char *sd)
+    void newent(const char *cl, const char *sd, vec fp)
     {
         #ifdef CLIENT
-            vec fp = saved_pos;
-
             fp.mul(    FAR_PLACING_FACTOR);
             vec cp = ClientSystem::playerLogicEntity->dynamicEntity->o;
             cp.mul(1 - FAR_PLACING_FACTOR);
@@ -74,10 +72,23 @@ namespace EditingSystem
             assert(0); // Where?
         #endif
     }
-    COMMAND(newent, "ss");
+    void newent(const char *cl, const char *sd) {
+        newent(cl, sd, saved_pos);
+    }
+    #ifdef CLIENT
+    ICOMMAND(newent, "ss", (char *cl, char *sd),
+        newent(cl, sd, TargetingControl::worldPosition));
     LUAICOMMAND(new_entity, {
-        newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, "")); return 0;
+        vec pos = saved_pos;
+        if (!lua_isnoneornil(L, 3)) {
+            pos.x = luaL_optnumber(L, 3, 0);
+            pos.y = luaL_optnumber(L, 4, 0);
+            pos.z = luaL_optnumber(L, 5, 0);
+        }
+        newent(luaL_checkstring(L, 1), luaL_optstring(L, 2, ""), pos);
+        return 0;
     });
+    #endif
 
 //----------------
 
