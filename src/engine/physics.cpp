@@ -859,27 +859,35 @@ static bool fuzzycollideellipse(physent *d, const vec &dir, float cutoff, const 
 
 /* area collisions: OF */
 
-bool areacollide(physent *d, const vec &dir, CLogicEntity *el) {
+
+bool areacollide(physent *d, const vec &dir, float cutoff, CLogicEntity *el) {
     extentity &e = *el->staticEntity;
+    int yaw = e.attr[0], pitch = e.attr[1], roll = e.attr[2];
+    int a = e.attr[3], b = e.attr[4], c = e.attr[5];
     switch (d->collidetype) {
         case COLLIDE_ELLIPSE:
-            if (!ellipserectcollide(d, dir, e.o, vec(0, 0, 0), e.attr[0],
-                e.attr[1], e.attr[2], e.attr[3], e.attr[3])) goto collision;
+            if (pitch || roll) {
+                if (!fuzzycolliderect<mpr::EntCapsule>(d, dir, cutoff, e.o,
+                    vec(0, 0, 0), vec(a, b, c), yaw, pitch, roll))
+                        goto collision;
+            }
+            else if (!ellipserectcollide(d, dir, e.o, vec(0, 0, 0), yaw,
+                a, b, c, c)) goto collision;
             break;
         case COLLIDE_OBB:
             if (!mmcollide<mpr::EntOBB, mpr::ModelOBB>(d, dir, e, vec(0, 0, 0),
-                vec(e.attr[1], e.attr[2], e.attr[3]), e.attr[0], 0, 0)) goto collision;
+                vec(a, b, c), yaw, pitch, roll)) goto collision;
             break;
         case COLLIDE_AABB:
         default:
-            vec center = vec(0, 0, 0), radius = vec(e.attr[1], e.attr[2], e.attr[3]);
-            rotatebb(center, radius, e.attr[0], 0);
+            vec center = vec(0, 0, 0), radius = vec(a, b, c);
+            rotatebb(center, radius, yaw, pitch, roll);
             if (!rectcollide(d, dir, center.add(e.o), radius.x, radius.y,
                 radius.z, radius.z)) goto collision;
             break;
     }
     /* internal collision handling for non-solid areas */
-    if (!e.attr[4] && inside) {
+    if (!e.attr[6] && inside) {
         /* gotta reset - glitch when having one non-solid area inside another
          * would call the handler for both even when colliding with just one */
         inside = false;
@@ -894,7 +902,7 @@ collision:
         lua_rawgeti(lua::L, LUA_REGISTRYINDEX, el->lua_ref);
         lua_call(lua::L, 2, 0);
     }
-    return !e.attr[4];
+    return !e.attr[6];
 }
 
 bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // collide with a mapmodel
@@ -907,7 +915,7 @@ bool mmcollide(physent *d, const vec &dir, float cutoff, octaentities &oc) // co
         CLogicEntity *el = LogicSystem::getLogicEntity(e);
         if (!el) continue;
         if (e.type == ET_OBSTACLE) { /* OF */
-            if (!areacollide(d, dir, el)) return false;
+            if (!areacollide(d, dir, cutoff, el)) return false;
             continue;
         }
         model *m = el->getModel(); //loadmodel(NULL, e.attr[1]);

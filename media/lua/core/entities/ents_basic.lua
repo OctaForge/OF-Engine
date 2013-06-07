@@ -675,6 +675,18 @@ M.Player = Player
 ents.register_class(Character)
 ents.register_class(Player)
 
+local c_get_attr = _C.get_attr
+local c_set_attr = _C.set_attr
+
+local gen_attr = function(i, name)
+    i = i - 1
+    return svars.State_Integer {
+        getter = function(ent)      return c_get_attr(ent, i)      end,
+        setter = function(ent, val) return c_set_attr(ent, i, val) end,
+        gui_name = name, alt_name = name
+    }
+end
+
 --[[! Class: Static_Entity
     A base for any static entity. Inherits from <Physical_Entity>. Unlike
     dynamic entities (such as <Character>), static entities usually don't
@@ -704,26 +716,12 @@ local Static_Entity = Physical_Entity:clone {
 
     per_frame = false,
     sauer_type = 0,
+    attr_num   = 0,
 
     properties = {
         position = svars.State_Vec3 {
             getter = "_C.get_extent_position",
             setter = "_C.set_extent_position"
-        },
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1"
-        },
-        attr2 = svars.State_Integer {
-            getter = "_C.get_attr2", setter = "_C.set_attr2"
-        },
-        attr3 = svars.State_Integer {
-            getter = "_C.get_attr3", setter = "_C.set_attr3"
-        },
-        attr4 = svars.State_Integer {
-            getter = "_C.get_attr4", setter = "_C.set_attr4"
-        },
-        attr5 = svars.State_Integer {
-            getter = "_C.get_attr5", setter = "_C.set_attr5"
         }
     },
 
@@ -760,11 +758,10 @@ local Static_Entity = Physical_Entity:clone {
         self:flush_queued_svar_changes()
 
         self:set_attr("position", self:get_attr("position"))
-        self:set_attr("attr1", self:get_attr("attr1"))
-        self:set_attr("attr2", self:get_attr("attr2"))
-        self:set_attr("attr3", self:get_attr("attr3"))
-        self:set_attr("attr4", self:get_attr("attr4"))
-        self:set_attr("attr5", self:get_attr("attr5"))
+        for i = 1, self.attr_num do
+            local an = "attr" .. i
+            self:set_attr(an, self:get_attr(an))
+        end
     end or function(self, kwargs)
         _C.setup_extent(self, self.sauer_type)
         return Physical_Entity.activate(self, kwargs)
@@ -897,16 +894,11 @@ local Oriented_Marker = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_marker",
 
     sauer_type = 2,
+    attr_num   = 2,
 
     properties = {
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "yaw", alt_name = "yaw"
-        },
-        attr2 = svars.State_Integer {
-            getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "pitch", alt_name = "pitch"
-        }
+        attr1 = gen_attr(1, "yaw"),
+        attr2 = gen_attr(2, "pitch")
     },
 
     --[[! Function: place_entity
@@ -955,28 +947,14 @@ local Light = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_light",
 
     sauer_type = 3,
+    attr_num   = 5,
 
     properties = {
-        attr1 = svars.State_Integer({
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "radius", alt_name = "radius"
-        }),
-        attr2 = svars.State_Integer({
-            getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "red", alt_name = "red"
-        }),
-        attr3 = svars.State_Integer({
-            getter = "_C.get_attr3", setter = "_C.set_attr3",
-            gui_name = "green", alt_name = "green"
-        }),
-        attr4 = svars.State_Integer({
-            getter = "_C.get_attr4", setter = "_C.set_attr4",
-            gui_name = "blue", alt_name = "blue"
-        }),
-        attr5 = svars.State_Integer({
-            getter = "_C.get_attr5", setter = "_C.set_attr5",
-            gui_name = "flags", alt_name = "flags"
-        })
+        attr1 = gen_attr(1, "radius"),
+        attr2 = gen_attr(2, "red"),
+        attr3 = gen_attr(3, "green"),
+        attr4 = gen_attr(4, "blue"),
+        attr5 = gen_attr(5, "flags")
     },
 
     init = function(self, uid, kwargs)
@@ -1015,12 +993,10 @@ local Spot_Light = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_spotlight",
 
     sauer_type = 4,
+    attr_num   = 1,
 
     properties = {
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "radius", alt_name = "radius"
-        }
+        attr1 = gen_attr(1, "radius")
     },
 
     init = function(self, uid, kwargs)
@@ -1055,12 +1031,10 @@ local Envmap = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_envmap",
 
     sauer_type = 5,
+    attr_num   = 1,
 
     properties = {
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "radius", alt_name = "radius"
-        }
+        attr1 = gen_attr(1, "radius")
     },
 
     init = function(self, uid, kwargs)
@@ -1093,20 +1067,16 @@ local Sound = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_sound",
 
     sauer_type = 6,
+    attr_num   = 4,
 
     properties = {
-        attr2 = svars.State_Integer {
-            getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "radius", alt_name = "radius"
+        attr1 = svars.State_Integer {
+            getter = function(ent)      return c_get_attr(ent, 0)      end,
+            setter = function(ent, val) return c_set_attr(ent, 0, val) end
         },
-        attr3 = svars.State_Integer {
-            getter = "_C.get_attr3", setter = "_C.set_attr3",
-            gui_name = "size", alt_name = "size"
-        },
-        attr4 = svars.State_Integer {
-            getter = "_C.get_attr4", setter = "_C.set_sound_volume",
-            gui_name = "volume", alt_name = "volume"
-        },
+        attr2 = gen_attr(2, "radius"),
+        attr3 = gen_attr(3, "size"),
+        attr4 = gen_attr(4, "volume"),
         sound_name = svars.State_String {
             setter = "_C.set_sound_name"
         }
@@ -1225,28 +1195,14 @@ local Particle_Effect = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_particles",
 
     sauer_type = 7,
+    attr_num   = 5,
 
     properties = {
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "particle_type", alt_name = "particle_type"
-        },
-        attr2 = svars.State_Integer {
-            getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "a", alt_name = "a"
-        },
-        attr3 = svars.State_Integer {
-            getter = "_C.get_attr3", setter = "_C.set_attr3",
-            gui_name = "b", alt_name = "b"
-        },
-        attr4 = svars.State_Integer {
-            getter = "_C.get_attr4", setter = "_C.set_attr4",
-            gui_name = "c", alt_name = "c"
-        },
-        attr5 = svars.State_Integer {
-            getter = "_C.get_attr5", setter = "_C.set_attr5",
-            gui_name = "d", alt_name = "d"
-        }
+        attr1 = gen_attr(1, "particle_type"),
+        attr2 = gen_attr(2, "a"),
+        attr3 = gen_attr(3, "b"),
+        attr4 = gen_attr(4, "c"),
+        attr5 = gen_attr(5, "d")
     },
 
     init = function(self, uid, kwargs)
@@ -1302,24 +1258,13 @@ local Mapmodel = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_mapmodel",
 
     sauer_type = 8,
+    attr_num   = 4,
 
     properties = {
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "yaw", alt_name = "yaw"
-        },
-        attr2 = svars.State_Integer {
-            getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "pitch", alt_name = "pitch"
-        },
-        attr3 = svars.State_Integer {
-            getter = "_C.get_attr3", setter = "_C.set_attr3",
-            gui_name = "roll", alt_name = "roll"
-        },
-        attr4 = svars.State_Integer {
-            getter = "_C.get_attr4", setter = "_C.set_attr4",
-            gui_name = "scale", alt_name = "scale"
-        }
+        attr1 = gen_attr(1, "yaw"),
+        attr2 = gen_attr(2, "pitch"),
+        attr3 = gen_attr(3, "roll"),
+        attr4 = gen_attr(4, "scale")
     },
 
     get_edit_info = function(self)
@@ -1359,34 +1304,35 @@ local Obstacle = Static_Entity:clone {
     name = "Obstacle",
 
     sauer_type = 9,
+    attr_num   = 7,
 
     properties = {
-        attr1 = svars.State_Integer {
-            getter = "_C.get_attr1", setter = "_C.set_attr1",
-            gui_name = "yaw", alt_name = "yaw"
-        },
-        attr2 = svars.State_Integer {
-            getter = "_C.get_attr2", setter = "_C.set_attr2",
-            gui_name = "a", alt_name = "a"
-        },
-        attr3 = svars.State_Integer {
-            getter = "_C.get_attr3", setter = "_C.set_attr3",
-            gui_name = "b", alt_name = "b"
-        },
-        attr4 = svars.State_Integer {
-            getter = "_C.get_attr4", setter = "_C.set_attr4",
-            gui_name = "c", alt_name = "c"
-        },
-        attr5 = svars.State_Integer {
-            getter = "_C.get_attr5", setter = "_C.set_attr5",
-            gui_name = "solid", alt_name = "solid"
-        }
+        attr1 = gen_attr(1, "yaw"),
+        attr2 = gen_attr(2, "pitch"),
+        attr3 = gen_attr(3, "roll"),
+        attr4 = gen_attr(4, "a"),
+        attr5 = gen_attr(5, "b"),
+        attr6 = gen_attr(6, "c"),
+        attr7 = gen_attr(7, "solid")
     },
 
+    init = function(self, uid, kwargs)
+        Static_Entity.init(self, uid, kwargs)
+        self:set_attr("yaw", 0)
+        self:set_attr("pitch", 0)
+        self:set_attr("roll", 0)
+        self:set_attr("a", 10)
+        self:set_attr("b", 10)
+        self:set_attr("c", 10)
+        self:set_attr("solid", 1)
+    end,
+
     get_edit_info = function(self)
-        return format("yaw: %d, a: %d, b: %d, c: %d, solid: %d",
-            self:get_attr("yaw"), self:get_attr("a"), self:get_attr("b"),
-            self:get_attr("c"), self:get_solid())
+        return format("yaw: %d, pitch: %d, roll: %d, "
+            .. "a: %d, b: %d, c: %d, solid: %d",
+            self:get_attr("yaw"),  self:get_attr("pitch"),
+            self:get_attr("roll"), self:get_attr("a"),
+            self:get_attr("b"),    self:get_attr("c"), self:get_attr("solid"))
     end,
 
     --[[! Function: get_edit_drop_height

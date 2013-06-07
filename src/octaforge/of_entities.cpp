@@ -181,39 +181,33 @@ namespace entities
 
     /* Extents */
 
-    #define EXTENT_ACCESSORS(n, i) \
-    LUAICOMMAND(get_##n, { \
-        LUA_GET_ENT(entity, "_C.get_"#n, return 0) \
-        extentity *ext = entity->staticEntity; \
-        assert(ext); \
-        lua_pushinteger(L, ext->attr[i]); \
-        return 1; \
-    }); \
-    LUAICOMMAND(set_##n, { \
-        LUA_GET_ENT(entity, "_C.set_"#n, return 0) \
-        int v = luaL_checkinteger(L, 2); \
-        extentity *ext = entity->staticEntity; \
-        assert(ext); \
-        if (!world::loading) removeentity(ext); \
-        ext->attr[i] = v; \
-        if (!world::loading) addentity(ext); \
-        return 0; \
-    }); \
-    LUAICOMMAND(FAST_set_##n, { \
-        LUA_GET_ENT(entity, "_C.FAST_set_"#n, return 0) \
-        int v = luaL_checkinteger(L, 2); \
-        extentity *ext = entity->staticEntity; \
-        assert(ext); \
-        ext->attr[i] = v; \
-        return 0; \
+    LUAICOMMAND(get_attr, {
+        LUA_GET_ENT(entity, "_C.get_attr", return 0)
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+        lua_pushinteger(L, ext->attr[luaL_checkinteger(L, 2)]);
+        return 1;
     });
-
-    EXTENT_ACCESSORS(attr1, 0)
-    EXTENT_ACCESSORS(attr2, 1)
-    EXTENT_ACCESSORS(attr3, 2)
-    EXTENT_ACCESSORS(attr4, 3)
-    EXTENT_ACCESSORS(attr5, 4)
-    #undef EXTENT_ACCESSORS
+    LUAICOMMAND(set_attr, {
+        LUA_GET_ENT(entity, "_C.set_attr", return 0)
+        int i = luaL_checkinteger(L, 2);
+        int v = luaL_checkinteger(L, 3);
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+        if (!world::loading) removeentity(ext);
+        ext->attr[i] = v;
+        if (!world::loading) addentity(ext);
+        return 0;
+    });
+    LUAICOMMAND(FAST_set_attr, {
+        LUA_GET_ENT(entity, "_C.FAST_set_attr", return 0)
+        int i = luaL_checkinteger(L, 2);
+        int v = luaL_checkinteger(L, 2);
+        extentity *ext = entity->staticEntity;
+        assert(ext);
+        ext->attr[i] = v;
+        return 0;
+    });
 
     LUAICOMMAND(get_extent_position, {
         LUA_GET_ENT(entity, "_C.getextent0", return 0)

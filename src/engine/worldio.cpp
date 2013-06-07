@@ -726,6 +726,7 @@ bool load_world(const char *mname, const char *cname)        // still supports a
         e.o.z = f->getlil<float>();
         loopj(5) e.attr.add(f->getlil<short>());
         e.type = f->getchar();
+        while (e.attr.length() < getattrnum(e.type)) e.attr.add(0);
         f->getchar();
 
         e.spawned = false;

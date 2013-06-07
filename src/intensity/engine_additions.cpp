@@ -473,11 +473,8 @@ void LogicSystem::setupExtent(int ref, int type)
 
     e->type = type;
     e->o = vec(0, 0, 0);
-    e->attr.add(0);
-    e->attr.add(0);
-    e->attr.add(0);
-    e->attr.add(0);
-    e->attr.add(0);
+    int numattrs = getattrnum(type);
+    for (int i = 0; i < numattrs; ++i) e->attr.add(0);
     e->inoctanode = false; // This is not set by the constructor in sauer, but by those calling "new extentity", so we also do that here
 
     extern void addentity(extentity* entity);

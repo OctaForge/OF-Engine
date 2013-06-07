@@ -45,11 +45,12 @@ void setupsunlight()
 {
     memset(&sunlightent, 0, sizeof(sunlightent));
     sunlightent.type = ET_LIGHT;
-    sunlightent.attr.add(0);
-    sunlightent.attr.add(int(sunlightcolor.x*sunlightscale));
-    sunlightent.attr.add(int(sunlightcolor.y*sunlightscale));
-    sunlightent.attr.add(int(sunlightcolor.z*sunlightscale));
-    sunlightent.attr.add(0);
+    sunlightent.attr.growbuf(getattrnum(ET_LIGHT));
+    sunlightent.attr[0] = 0;
+    sunlightent.attr[1] = int(sunlightcolor.x*sunlightscale);
+    sunlightent.attr[2] = int(sunlightcolor.y*sunlightscale);
+    sunlightent.attr[3] = int(sunlightcolor.z*sunlightscale);
+    sunlightent.attr[4] = 0;
     float dist = min(min(sunlightdir.x ? 1/fabs(sunlightdir.x) : 1e16f, sunlightdir.y ? 1/fabs(sunlightdir.y) : 1e16f), sunlightdir.z ? 1/fabs(sunlightdir.z) : 1e16f);
     sunlightent.o = vec(sunlightdir).mul(dist*worldsize).add(vec(worldsize/2, worldsize/2, worldsize/2)); 
     clearradiancehintscache();

@@ -47,13 +47,14 @@ bool getentboundingbox(extentity &e, ivec &o, ivec &r)
         case ET_OBSTACLE: /* OF */
         {
             o = e.o;
-            if (!e.attr[1] || !e.attr[2] || !e.attr[3]) {
+            int a = e.attr[3], b = e.attr[4], c = e.attr[5];
+            if (!a || !b || !c) {
                 o.sub(entselradius);
                 r.x = r.y = r.z = entselradius*2;
                 break;
             }
-            vec center = vec(0, 0, 0), radius = vec(e.attr[1], e.attr[2], e.attr[3]);
-            rotatebb(center, radius, e.attr[0], 0);
+            vec center = vec(0, 0, 0), radius = vec(a, b, c);
+            rotatebb(center, radius, e.attr[0], e.attr[1], e.attr[2]);
             o.add(center);
             r = radius;
             r.add(1);
@@ -491,11 +492,11 @@ void entselectionbox(const entity &e, vec &eo, vec &es)
         rotatebb(eo, es, e.attr[0], e.attr[1], e.attr[2]); // OF
         eo.add(e.o);
     }
-    else if(e.type == ET_OBSTACLE && e.attr[1] && e.attr[2] && e.attr[3]) /* OF */
+    else if(e.type == ET_OBSTACLE && e.attr[3] && e.attr[4] && e.attr[5]) /* OF */
     {
         eo = vec(0, 0, 0);
-        es = vec(e.attr[1], e.attr[2], e.attr[3]);
-        rotatebb(eo, es, e.attr[0], 0);
+        es = vec(e.attr[3], e.attr[4], e.attr[5]);
+        rotatebb(eo, es, e.attr[0], e.attr[1], e.attr[2]);
         eo.add(e.o);
     }
     else
@@ -914,6 +915,25 @@ void attachent()
 }
 
 COMMAND(attachent, "");
+
+/* OF */
+static const int attrnums[] = {
+    0, /* ET_EMPTY */
+    0, /* ET_MARKER */
+    2, /* ET_ORIENTED_MARKER */
+    5, /* ET_LIGHT */
+    1, /* ET_SPOTLIGHT */
+    1, /* ET_ENVMAP */
+    4, /* ET_SOUND */
+    5, /* ET_PARTICLES */
+    4, /* ET_MAPMODEL */
+    7  /* ET_OBSTACLE */
+};
+
+int getattrnum(int type) {
+    return attrnums[(type >= 0 &&
+        (size_t)type < (sizeof(attrnums) / sizeof(int))) ? type : 0];
+}
 
 int entcopygrid;
 vector<extentity> entcopybuf; // INTENSITY: extentity, for uniqueID
