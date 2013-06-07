@@ -507,13 +507,18 @@ M.load = function()
                     if #is > attr1 then
                         local snd = is[attr1 + 1]
                         ent.sound_name = snd[1]
+                        ent.attr1, ent.attr2 = ent.attr2, ent.attr3
                         if #snd > 1 then
-                            ent.volume = snd[2]
+                            ent.attr3 = snd[2]
+                        else
+                            ent.attr3 = ent.attr4
                         end
-                        ent.attr1 = "-1"
                     else
+                        ent.attr1, ent.attr2, ent.attr3
+                            = ent.attr2, ent.attr3, ent.attr4
                         ent.sound_name = "@REPLACE@"
                     end
+                    ent.attr4, ent.attr5 = nil, nil
                 elseif et == 3 then
                     ent.tags = "[start_]"
                 elseif et == 23 then

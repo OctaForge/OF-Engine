@@ -346,10 +346,10 @@ void checkmapsounds()
     {
         extentity &e = *ents[i];
         if(e.type!=ET_SOUND) continue;
-        if(camera1->o.dist(e.o) < e.attr[1])
+        if(camera1->o.dist(e.o) < e.attr[0])
         {
             // INTENSITY: use LogicEntity system to get the sound file; don't register sounds in mapscript.
-            if(!e.visible) playmapsound(LogicSystem::getLogicEntity(e)->getSound(), &e, e.attr[3], -1);
+            if(!e.visible) playmapsound(LogicSystem::getLogicEntity(e)->getSound(), &e, e.attr[2], -1);
         }
         else if(e.visible) stopmapsound(&e);
     }
@@ -370,11 +370,11 @@ bool updatechannel(soundchannel &chan)
         int rad = maxsoundradius;
         if(chan.ent)
         {
-            rad = chan.ent->attr[1];
-            if(chan.ent->attr[2])
+            rad = chan.ent->attr[0];
+            if(chan.ent->attr[1])
             {
-                rad -= chan.ent->attr[2];
-                dist -= chan.ent->attr[2];
+                rad -= chan.ent->attr[1];
+                dist -= chan.ent->attr[1];
             }
         }
         else if(chan.radius > 0) rad = maxsoundradius ? min(maxsoundradius, chan.radius) : chan.radius;

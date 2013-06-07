@@ -924,7 +924,7 @@ static const int attrnums[] = {
     5, /* ET_LIGHT */
     1, /* ET_SPOTLIGHT */
     1, /* ET_ENVMAP */
-    4, /* ET_SOUND */
+    3, /* ET_SOUND */
     5, /* ET_PARTICLES */
     4, /* ET_MAPMODEL */
     7  /* ET_OBSTACLE */

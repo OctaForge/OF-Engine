@@ -1052,12 +1052,12 @@ M.Envmap = Envmap
     An ambient sound in the world. Repeats the given sound at entity position.
 
     Properties:
-        attr2 - the sound radius (alias "radius", default 100)
-        attr3 - the sound size, if this is 0, the sound is a point source,
+        attr1 - the sound radius (alias "radius", default 100)
+        attr2 - the sound size, if this is 0, the sound is a point source,
         otherwise the sound volume will always be max until the distance
         specified by this property and then it'll start fading off
         (alias "size", default 0).
-        attr4 - the sound volume, from 0 to 100 (alias "volume", default 100).
+        attr3 - the sound volume, from 0 to 100 (alias "volume", default 100).
         sound_name [<svars.State_String>] - the  path to the sound in
         media/sound (default "").
 ]]
@@ -1067,16 +1067,12 @@ local Sound = Static_Entity:clone {
     edit_icon = "media/interface/icon/edit_sound",
 
     sauer_type = 6,
-    attr_num   = 4,
+    attr_num   = 3,
 
     properties = {
-        attr1 = svars.State_Integer {
-            getter = function(ent)      return c_get_attr(ent, 0)      end,
-            setter = function(ent, val) return c_set_attr(ent, 0, val) end
-        },
-        attr2 = gen_attr(2, "radius"),
-        attr3 = gen_attr(3, "size"),
-        attr4 = gen_attr(4, "volume"),
+        attr1 = gen_attr(2, "radius"),
+        attr2 = gen_attr(3, "size"),
+        attr3 = gen_attr(4, "volume"),
         sound_name = svars.State_String {
             setter = "_C.set_sound_name"
         }
@@ -1084,7 +1080,6 @@ local Sound = Static_Entity:clone {
 
     init = function(self, uid, kwargs)
         Static_Entity.init(self, uid, kwargs)
-        self:set_attr("attr1", -1)
         self:set_attr("radius", 100)
         self:set_attr("size", 0)
         if not self:get_attr("volume") then
