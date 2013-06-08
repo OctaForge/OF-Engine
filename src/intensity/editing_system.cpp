@@ -77,7 +77,7 @@ namespace EditingSystem
     }
     #ifdef CLIENT
     ICOMMAND(newent, "ss", (char *cl, char *sd),
-        newent(cl, sd, TargetingControl::worldPosition));
+        newent(cl, sd, worldpos));
     LUAICOMMAND(new_entity, {
         vec pos = saved_pos;
         if (!lua_isnoneornil(L, 3)) {
@@ -316,9 +316,9 @@ CLogicEntity *getSelectedEntity()
 }
 
 #ifdef CLIENT
-ICOMMAND(save_mouse_position, "", (), EditingSystem::saved_pos = TargetingControl::worldPosition);
+ICOMMAND(save_mouse_position, "", (), EditingSystem::saved_pos = worldpos);
 LUAICOMMAND(save_mouse_position, {
-    EditingSystem::saved_pos = TargetingControl::worldPosition;
+    EditingSystem::saved_pos = worldpos;
     return 0;
 });
 #endif

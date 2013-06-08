@@ -44,7 +44,6 @@ void TargetingControl::setupOrientation()
     }
 }
 
-vec           TargetingControl::worldPosition;
 vec           TargetingControl::targetPosition;
 CLogicEntity *TargetingControl::targetLogicEntity = NULL;
 
@@ -139,15 +138,13 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 {
     targetLogicEntity = NULL;
 
-    TargetingControl::worldPosition = worldpos;
-
     if (logger::should_log(logger::INFO))
-        particle_splash(0, 50, 100, TargetingControl::worldPosition); // Kripken: Show some sparkles where the mouse points - for debug
+        particle_splash(0, 50, 100, worldpos); // Kripken: Show some sparkles where the mouse points - for debug
 
     if (!editmode && !forceEntityCheck)
     {
         TargetingControl::targetLogicEntity = NULL;
-        TargetingControl::targetPosition = TargetingControl::worldPosition;
+        TargetingControl::targetPosition = worldpos;
         has_mouse_target = 0;
     } else {
         static long lastEntityCheck = -1; // Use this to not run an actual entity check more than 1/frame
@@ -191,7 +188,7 @@ void TargetingControl::determineMouseTarget(bool forceEntityCheck)
 
                 TargetingControl::targetPosition = temp;
             } else
-                TargetingControl::targetPosition = TargetingControl::worldPosition;
+                TargetingControl::targetPosition = worldpos;
 
             lastEntityCheck = lastmillis;
         }

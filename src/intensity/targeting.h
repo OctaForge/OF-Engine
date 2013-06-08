@@ -11,9 +11,6 @@ struct TargetingControl
 #ifdef CLIENT
     static void setupOrientation();
 
-    //! Contains the latest and current information about what world geometry (cube) the mouse cursor is hovering over
-    static vec           worldPosition;       // Position in cube geometry
-
     //! Contains the position where the mouse cursor is aiming. Equal to worldposition in general, unless hovering
     //! on an entity
     static vec targetPosition;
