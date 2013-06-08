@@ -19,13 +19,13 @@
 local gravity
 
 #log(DEBUG, ":: Geometry interface.")
-require("base.base_geometry")
+require("core.base.base_geometry")
 
 #log(DEBUG, ":: Effects.")
-require("base.base_effects")
+require("core.base.base_effects")
 
 #log(DEBUG, ":: World interface.")
-require("base.base_world")
+require("core.base.base_world")
 
 --[[!
     Class: world

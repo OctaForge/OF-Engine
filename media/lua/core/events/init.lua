@@ -14,16 +14,16 @@
 ]]
 
 #log(DEBUG, ":::: Frame handling.")
-frame = require("events.frame")
+frame = require("core.events.frame")
 
 #log(DEBUG, ":::: Signal system.")
-signal = require("events.signal")
+signal = require("core.events.signal")
 
 #log(DEBUG, ":::: Action system.")
-actions = require("events.actions")
+actions = require("core.events.actions")
 
 #log(DEBUG, ":::: World events.")
-require("events.world")
+require("core.events.world")
 
 #log(DEBUG, ":::: Input events.")
-require("events.input")
+require("core.events.input")

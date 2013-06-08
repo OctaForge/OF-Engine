@@ -36,7 +36,7 @@ local tinsert = table.insert
 
 local M = gui
 
-local consts = require("gui.constants")
+local consts = require("core.gui.constants")
 
 --[[! Variable: gl
     Forwarded from the "constants" module.

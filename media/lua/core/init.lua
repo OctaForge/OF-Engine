@@ -136,26 +136,26 @@ local dbg = _C.should_log(DEBUG)
 if dbg then log(DEBUG, "Initializing the core library.") end
 
 if dbg then log(DEBUG, ":: Lua extensions.") end
-require("lua")
+require("core.lua")
 
 if dbg then log(DEBUG, ":: Network system.") end
-require("network")
+require("core.network")
 
 if dbg then log(DEBUG, ":: Event system.") end
-require("events")
+require("core.events")
 
 if CLIENT then
 if dbg then log(DEBUG, ":: GUI system.") end
-require("gui")
+require("core.gui")
 end
 
 if dbg then log(DEBUG, ":: Entity system.") end
-require("entities")
+require("core.entities")
 
 if dbg then log(DEBUG, ":: Engine system.") end
-require("engine")
+require("core.engine")
 
 if dbg then log(DEBUG, "Initializing base (deprecated).") end
-require("base")
+require("core.base")
 
 if dbg then log(DEBUG, "Core scripting initialization complete.") end

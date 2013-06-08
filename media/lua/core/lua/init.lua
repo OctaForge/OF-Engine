@@ -20,31 +20,31 @@
 ]]
 
 #log(DEBUG, ":::: Strict mode.")
-require("lua.strict")
+require("core.lua.strict")
 
 #log(DEBUG, ":::: Lua extensions: string")
-require("lua.string")
+require("core.lua.string")
 
 #log(DEBUG, ":::: Lua extensions: table")
-require("lua.table")
+require("core.lua.table")
 
 #log(DEBUG, ":::: Lua extensions: math")
-require("lua.math")
+require("core.lua.math")
 
 #log(DEBUG, ":::: Engine variables.")
-var = require("lua.var")
+var = require("core.lua.var")
 
 #log(DEBUG, ":::: Type conversions.")
-conv = require("lua.conv")
+conv = require("core.lua.conv")
 
 #log(DEBUG, ":::: Library.")
-library = require("lua.library")
+library = require("core.lua.library")
 
 #log(DEBUG, ":::: Utilities.")
-util = require("lua.util")
+util = require("core.lua.util")
 
 #log(DEBUG, ":::: Environment support.")
-env = require("lua.env")
+env = require("core.lua.env")
 
 -- Useful functionality exposed into globals
 

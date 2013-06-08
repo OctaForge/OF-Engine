@@ -159,11 +159,12 @@ namespace lua
         /* root paths */
         lua_pushliteral(L, ";./media/lua/core/?.lua");
         lua_pushliteral(L, ";./media/lua/core/?/init.lua");
+        lua_pushliteral(L, ";./media/lua/?.lua");
+        lua_pushliteral(L, ";./media/lua/?/init.lua");
         lua_pushliteral(L, ";./media/?/init.lua");
         lua_pushliteral(L, ";./media/?.lua");
-        lua_pushliteral(L, ";./media/lua/?/init.lua");
 
-        lua_concat  (L,  8);
+        lua_concat  (L,  9);
         lua_setfield(L, -2, "path"); lua_pop(L, 1);
 
         lua_pushcfunction(L, create_table);

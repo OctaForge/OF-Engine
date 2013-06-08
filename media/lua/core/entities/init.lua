@@ -14,10 +14,10 @@
 ]]
 
 #log(DEBUG, ":::: State variables.")
-svars = require("entities.svars")
+svars = require("core.entities.svars")
 
 #log(DEBUG, ":::: Entities.")
-ents = require("entities.ents")
+ents = require("core.entities.ents")
 
 #log(DEBUG, ":::: Entities: basic set.")
-require("entities.ents_basic")
+require("core.entities.ents_basic")

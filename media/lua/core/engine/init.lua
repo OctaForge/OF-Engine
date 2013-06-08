@@ -15,17 +15,17 @@
 
 if CLIENT then
 #log(DEBUG, ":::: Input.")
-input = require("engine.input")
+input = require("core.engine.input")
 
 #log(DEBUG, ":::: Camera.")
-camera = require("engine.camera")
+camera = require("core.engine.camera")
 end
 
 #log(DEBUG, ":::: Sound.")
-sound = require("engine.sound")
+sound = require("core.engine.sound")
 
 #log(DEBUG, ":::: Models.")
-model = require("engine.model")
+model = require("core.engine.model")
 
 #log(DEBUG, ":::: Editing.")
-edit = require("engine.edit")
+edit = require("core.engine.edit")
