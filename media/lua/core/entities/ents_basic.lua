@@ -470,7 +470,7 @@ local Character = Physical_Entity:clone {
         which determines whether we're in first person mode), the member
         hud_model_offset (vec3) is used to offset the HUD model (if available).
     ]]
-    render = CLIENT and function(self, hudpass, needhud)
+    render = (not SERVER) and function(self, hudpass, needhud)
         if not self.initialized then return nil end
         if not hudpass and needhud then return nil end
 
@@ -527,7 +527,7 @@ local Character = Physical_Entity:clone {
         and needhud (whether we're in first person mode). Called from <render>.
         Clientside.
     ]]
-    get_render_flags = CLIENT and function(self, hudpass, needhud)
+    get_render_flags = (not SERVER) and function(self, hudpass, needhud)
         local flags = model.render_flags.FULLBRIGHT
         if self ~= ents.get_player() then
             flags = bor(model.render_flags.CULL_VFC,
@@ -546,8 +546,8 @@ local Character = Physical_Entity:clone {
         crouching, velocity, falling, in_liquid and time_in_air (same as the
         state variables).
     ]]
-    decide_animation = CLIENT and function(self, state, pstate, move, strafe,
-    crouching, vel, falling, inwater, tinair)
+    decide_animation = (not SERVER) and function(self, state, pstate, move,
+    strafe, crouching, vel, falling, inwater, tinair)
         local anim = self:get_attr("animation")
 
         -- editing or spectator

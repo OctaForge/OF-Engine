@@ -79,7 +79,7 @@ action_base = extraevents.action_container:clone {
         This happens on client on click. By default,
         it cancels the action, if it's cancellable.
     ]]
-    click = CLIENT and function(self)
+    click = (not SERVER) and function(self)
         if self.cancellable then
             self:cancel()
         end
@@ -604,7 +604,7 @@ ents.register_class(
             connections remains up to date.
         ]]
         activate = function(self)
-            if not CLIENT then return nil end
+            if SERVER then return nil end
             signal.connect(self,
                 "tags_changed",
                 function(self)
@@ -645,7 +645,7 @@ ents.register_class(
 
             In edit mode, it takes care of visual connection representation.
         ]]
-        run = CLIENT and function(self, seconds)
+        run = (not SERVER) and function(self, seconds)
             if self.started and var.get("editing") == 0 and not self.lock then
                 self:start()
                 self.lock = true
@@ -699,7 +699,7 @@ ents.register_class(
             connections remains up to date.
         ]]
         activate = function(self)
-            if not CLIENT then return nil end
+            if SERVER then return nil end
             signal.connect(self,
                 "tags_changed",
                 function(self)
@@ -729,7 +729,7 @@ ents.register_class(
             Function: run
             In edit mode, this takes care of proper visual representation.
         ]]
-        run = CLIENT and function(self, seconds)
+        run = (not SERVER) and function(self, seconds)
             if var.get("editing") == 0 then return nil end
 
             if not self.m_tag then
@@ -831,7 +831,7 @@ ents.register_class(
             connections remains up to date.
         ]]
         activate = function(self)
-            if not CLIENT then return nil end
+            if SERVER then return nil end
             signal.connect(self,
                 "tags_changed",
                 function(self)
@@ -861,7 +861,7 @@ ents.register_class(
             Function: run
             In edit mode, this takes care of proper visual representation.
         ]]
-        run = CLIENT and function(self, seconds)
+        run = (not SERVER) and function(self, seconds)
             if var.get("editing") == 0 then return nil end
 
             if not self.m_tag then
@@ -933,7 +933,7 @@ ents.register_class(
             connections remains up to date.
         ]]
         activate = function(self)
-            if not CLIENT then return nil end
+            if SERVER then return nil end
             signal.connect(self,
                 "tags_changed",
                 function(self)
@@ -955,7 +955,7 @@ ents.register_class(
             subtitle_background attributes inside the <action> will be
             always up to date with those of entity.
         ]]
-        run = CLIENT and function(self, seconds)
+        run = (not SERVER) and function(self, seconds)
             if self.action.background_image ~= self:get_background_image() then
                self.action.background_image  = self:get_background_image() end
             if self.action.subtitle_background ~= self:get_attr("subtitle_background") then
@@ -1046,7 +1046,7 @@ ents.register_class(
             connections remains up to date.
         ]]
         activate = function(self)
-            if not CLIENT then return nil end
+            if SERVER then return nil end
             signal.connect(self,
                 "tags_changed",
                 function(self)
@@ -1065,7 +1065,7 @@ ents.register_class(
             Function: run
             In edit mode, this takes care of proper visual representation.
         ]]
-        run = CLIENT and function(self, seconds)
+        run = (not SERVER) and function(self, seconds)
             if var.get("editing") == 0 then return nil end
 
             if not self.m_tag then

@@ -10,7 +10,7 @@ local var = require("core.lua.var")
 myplayer = ents.Player:clone { name = "myplayer" }
 
 -- Called right after initialization on client
-if CLIENT then
+if not SERVER then
 function myplayer:activate(kwargs)
     -- Call the parent
     ents.Player.activate(self, kwargs)

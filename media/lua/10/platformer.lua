@@ -48,7 +48,7 @@ plugin = {
     end,
 
     activate = function(self)
-        if not CLIENT then return nil end
+        if SERVER then return nil end
         self.platform_camera_distance  = 150
         self.platform_camera_smoothing = 0
         self.last_camera_position        = nil
@@ -65,7 +65,7 @@ plugin = {
         end)
     end,
 
-    run = CLIENT and function(self, seconds)
+    run = (not SERVER) and function(self, seconds)
         if self == ents.get_player() and not self:get_editing() then
             if entity:get_attr("spawn_stage") == 0 then
                 local position = self:get_attr("position"):copy()

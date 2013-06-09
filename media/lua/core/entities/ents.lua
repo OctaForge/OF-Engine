@@ -266,7 +266,7 @@ M.get_players = get_players
 --[[! Function: get_player
     Gets the current player, clientside only.
 ]]
-M.get_player = CLIENT and function()
+M.get_player = (not SERVER) and function()
     return player_entity
 end or nil
 
@@ -340,7 +340,7 @@ local add = function(cn, uid, kwargs, new)
     local cl = type(cn) == "table" and cn or class_storage[cn]
 
     local r = cl()
-    if CLIENT or not new then
+    if not (SERVER and new) then
         r.uid = uid
     else
         r:init(uid, kwargs)
@@ -887,7 +887,7 @@ Entity = table.Object:clone {
     sdata_changed = function(self, var, name, val)
         local sfun = var.setter_fun
         if not sfun then return nil end
-        if CLIENT or not self.svar_change_queue then
+        if not (SERVER and self.svar_change_queue) then
             #log(INFO, "Calling setter function for " .. name)
             sfun(self, val)
             #log(INFO, "Setter called")
@@ -926,7 +926,7 @@ Entity = table.Object:clone {
             specific client number). The signal and <sdata_changed>
             are triggered in the same manner.
     ]]
-    set_sdata = CLIENT and function(self, key, val, actor_uid)
+    set_sdata = (not SERVER) and function(self, key, val, actor_uid)
         #log(DEBUG, "Entity.set_sdata: " .. key .. " = " .. serialize(val)
         #    .. " for " .. self.uid)
 
@@ -1233,7 +1233,7 @@ end)
     Main render hook. External as game_render. Calls individual render
     method on each entity (if defined). Clientside only.
 ]]
-local render = CLIENT and function(tp)
+local render = (not SERVER) and function(tp)
     #log(INFO, "game_render")
     local  player = player_entity
     if not player then return nil end
@@ -1258,7 +1258,7 @@ set_external("game_render", render)
     Renders the player HUD model if needed. External as game_render_hud.
     Clientside only.
 ]]
-local render_hud = CLIENT and function()
+local render_hud = (not SERVER) and function()
     #log(INFO, "game_render_hud")
     local  player = player_entity
     if not player then return nil end
@@ -1274,7 +1274,7 @@ set_external("game_render_hud", render_hud)
     Assigns the player entity using the given uid. External as player_init,
     clientside.
 ]]
-local init_player = CLIENT and function(uid)
+local init_player = (not SERVER) and function(uid)
     assert(uid)
     #log(DEBUG, "Initializing player with uid " .. uid)
 
@@ -1311,7 +1311,7 @@ set_external("entity_set_sdata", M.set_sdata)
     actually start (checks whether the player exists and whether all the
     entities are initialized). External as scene_is_ready.
 !]]
-M.scene_is_ready = CLIENT and function()
+M.scene_is_ready = (not SERVER) and function()
     #log(INFO, "Scene ready?")
 
     if player_entity == nil then

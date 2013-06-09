@@ -183,12 +183,11 @@ namespace lua
     void setup_binds()
     {
 #ifndef SERVER
-        lua_pushboolean(L,  true); lua_setglobal(L, "CLIENT");
-        lua_pushboolean(L, false); lua_setglobal(L, "SERVER");
+        lua_pushboolean(L, false);
 #else
-        lua_pushboolean(L, false); lua_setglobal(L, "CLIENT");
-        lua_pushboolean(L,  true); lua_setglobal(L, "SERVER");
+        lua_pushboolean(L, true);
 #endif
+        lua_setglobal(L, "SERVER");
 
         assert(funs);
         lua_newuserdata(L, 0);                 /* _C */

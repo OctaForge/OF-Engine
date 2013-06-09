@@ -267,14 +267,14 @@ manager_plugins = {
         end,
 
         activate = function(self)
-            if not CLIENT then return nil end
+            if SERVER then return nil end
             signal.connect(self,"server_message_changed", function(self, kwargs)
                 self:add_hud_message(kwargs)
             end)
             self.rendering_hash_hint = 0 -- used for rendering entities without fpsents
         end,
 
-        run = CLIENT and function(self, seconds)
+        run = (not SERVER) and function(self, seconds)
             self.hud_messages = table.filter(self.hud_messages, function(i, msg)
                 if msg.player and msg.player ~= 0 and msg.player ~= ents.get_player() then return false end
 

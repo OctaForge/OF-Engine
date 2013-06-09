@@ -107,7 +107,7 @@ plugins = {
             local target_ent = ents.get(info[5])
             local gun = guns[gun_index]
 
-            if CLIENT then
+            if not SERVER then
                 if gun.handle_client_effect then
                     gun:handle_client_effect(self, gun:get_origin(self), target_pos, target_ent)
                 end
@@ -167,7 +167,7 @@ plugins = {
             end
         end,
 
-        run = CLIENT and function(self, seconds)
+        run = (not SERVER) and function(self, seconds)
             if self ~= ents.get_player() then return nil end
 
             self.gun_delay = math.max(self.gun_delay - seconds, 0)
@@ -274,7 +274,7 @@ function gun:get_origin(shooter)
 end
 
 function gun:do_recoil(shooter, magnitude)
-    if CLIENT and shooter ~= ents.get_player() then return nil end
+    if not SERVER and shooter ~= ents.get_player() then return nil end
 
     if shooter:get_attr("can_move") then
         local dir = math.Vec3():from_yaw_pitch(

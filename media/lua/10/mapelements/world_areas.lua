@@ -18,7 +18,7 @@ plugin = {
         active = self
         self:queue_action(action_input_capture())
     end,
-    activate = CLIENT and function(self)
+    activate = (not SERVER) and function(self)
         signal.connect(self, "collision", self.client_on_collision)
     end or nil
 }
@@ -44,7 +44,7 @@ action = actions.Action:clone {
 
 action_input_capture = actions.Action:clone {
     start = function(self)
-        self.click = CLIENT and function(self, ...)
+        self.click = (not SERVER) and function(self, ...)
             return self.actor.click(self.actor, ...)
         end or nil
 

@@ -28,12 +28,12 @@ plugin = {
         self:set_attr("pad_sound", "")
     end,
 
-    activate = CLIENT and function(self)
+    activate = (not SERVER) and function(self)
         self.player_delay = -1
         signal.connect(self, "collision", self.client_on_collision)
     end or nil,
 
-    run = CLIENT and function(self, seconds)
+    run = (not SERVER) and function(self, seconds)
         if  self.player_delay > 0 then
             self.player_delay = self.player_delay - seconds
         end

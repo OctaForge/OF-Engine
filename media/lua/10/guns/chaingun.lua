@@ -100,7 +100,7 @@ chaingun.plugin = {
     },
 
     activate = function(self)
-        if not CLIENT then return nil end
+        if SERVER then return nil end
         self.chaingun_firing = false
 
         signal.connect(self,
@@ -128,7 +128,7 @@ chaingun.plugin = {
         )
     end,
 
-    run = CLIENT and function(self, seconds)
+    run = (not SERVER) and function(self, seconds)
         if self.chaingun_firing then
             effects.dynamic_light(self:get_attr("position"), 30, 0xFFEECC)
 

@@ -36,7 +36,7 @@ return {
         otherwise the arguments are the same. The volume is ignored on
         the server for now (TODO).
     ]]
-    play = CLIENT and function(name, pos, volume)
+    play = (not SERVER) and function(name, pos, volume)
         if not name then return nil end
         pos = pos or vec3(0, 0, 0)
         play(name, pos.x, pos.y, pos.z, volume)
@@ -62,7 +62,7 @@ return {
         and its volume (which defaults to 100). On the server it can also
         take the client number which has the same meaning as above.
     ]]
-    stop = CLIENT and _C.sound_stop or function(name, volume, cn)
+    stop = (not SERVER) and _C.sound_stop or function(name, volume, cn)
         if not name then return nil end
         -- warn when using non-compressed names
         if #name > 2 then

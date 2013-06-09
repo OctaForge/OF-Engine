@@ -51,7 +51,7 @@ plugins = {
     },
     player = {
         activate = function(self)
-            if CLIENT then self.world_sequences = {} end
+            if not SERVER then self.world_sequences = {} end
         end,
 
         reset_world_sequence = function(self, sequence_id)

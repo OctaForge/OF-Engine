@@ -205,7 +205,7 @@ State_Variable = table.Object:clone {
         local fr = frame.get_frame()
 
         if not var.getter_fun
-            or (not CLIENT and self.svar_change_queue)
+            or (SERVER and self.svar_change_queue)
             or self.svar_value_timestamps[vn] == fr
         then
             return self.svar_values[vn]
@@ -215,7 +215,7 @@ State_Variable = table.Object:clone {
 
         local val = var.getter_fun(self)
 
-        if CLIENT or self.svar_change_queue_complete then
+        if not SERVER or self.svar_change_queue_complete then
             self.svar_values[vn] = val
             self.svar_value_timestamps[vn] = fr
         end
@@ -548,7 +548,7 @@ State_Array = State_Variable:clone {
 
         local fr = frame.get_frame()
 
-        if (not CLIENT and ent.svar_change_queue)
+        if (SERVER and ent.svar_change_queue)
             or ent.svar_value_timestamps[vn] == fr
         then
             return ent.svar_values[vn]
@@ -558,7 +558,7 @@ State_Array = State_Variable:clone {
 
         local val = self.getter_fun(ent)
 
-        if CLIENT or ent.svar_change_queue_complete then
+        if not SERVER or ent.svar_change_queue_complete then
             ent.svar_values[vn] = val
             ent.svar_value_timestamps[vn] = fr
         end

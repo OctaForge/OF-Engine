@@ -186,7 +186,13 @@ function splash(
     color, size, radius, gravity,
     regular_fade, flags, fast_splash, grow
 )
-    if CLIENT then
+    if SERVER then
+        msg.send(
+            msg.ALL_CLIENTS, _C.particle_splash_toclients,
+            particle_type, num, fade * 1000,
+            pos.x, pos.y, pos.z
+        ) -- TODO: last 4 params
+    else
         color   = color   or 0xFFFFFF
         size    = size    or 1.0
         radius  = radius  or 150
@@ -196,12 +202,6 @@ function splash(
             particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
             color, size, radius, gravity
         )
-    else
-        msg.send(
-            msg.ALL_CLIENTS, _C.particle_splash_toclients,
-            particle_type, num, fade * 1000,
-            pos.x, pos.y, pos.z
-        ) -- TODO: last 4 params
     end
 end
 
@@ -225,7 +225,13 @@ function regular_splash(
     particle_type, num, fade, pos,
     color, size, radius, gravity, delay
 )
-    if CLIENT then
+    if SERVER then
+        msg.send(
+            msg.ALL_CLIENTS, _C.particle_regularsplash_toclients,
+            particle_type, num, fade * 1000,
+            pos.x, pos.y, pos.z
+        ) -- TODO: last 5 params
+    else
         color   = color   or 0xFFFFFF
         size    = size    or 1.0
         radius  = radius  or 150
@@ -235,12 +241,6 @@ function regular_splash(
             particle_type, num, fade * 1000, pos.x, pos.y, pos.z,
             color, size, radius, gravity, delay
         )
-    else
-        msg.send(
-            msg.ALL_CLIENTS, _C.particle_regularsplash_toclients,
-            particle_type, num, fade * 1000,
-            pos.x, pos.y, pos.z
-        ) -- TODO: last 5 params
     end
 end
 

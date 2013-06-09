@@ -48,7 +48,7 @@ plugin = {
 
     on_spawn_stage = function(self, stage, auid)
         if stage == 1 then -- client ack
-            if CLIENT then
+            if not SERVER then
                 self:set_attr("spawn_stage", 2)
             end
         elseif stage == 2 then -- server vanishes player
@@ -63,7 +63,7 @@ plugin = {
                 self:cancel_sdata_update()
             end
         elseif stage == 3 then -- client repositions etc.
-            if CLIENT and self == ents.get_player() then
+            if not SERVER and self == ents.get_player() then
                 signal.emit(self,"client_respawn")
                 self:set_attr("spawn_stage", 4)
             end
@@ -122,7 +122,7 @@ plugin = {
         return ret
     end,
 
-    run = CLIENT and function(self)
+    run = (not SERVER) and function(self)
         if self ~= ents.get_player() then return nil end
 
         --if not GLOBAL_GAME_HUD then
@@ -159,7 +159,11 @@ plugin = {
         if self.old_health and health < self.old_health then
             local diff = self.old_health - health
 
-            if CLIENT then
+            if SERVER then
+                if health <= 0 then
+                    self:queue_action(action_death())
+                end
+            else
                 if diff >= 5 then
                     if self:get_attr("pain_sound") ~= "" then
                         sound.play(self:get_attr("pain_sound"), self:get_attr("position"))
@@ -171,10 +175,6 @@ plugin = {
                     --if self == ents.get_player() and self.old_health ~= health then
                     --    effects.client_damage(diff, diff)
                     --end
-                end
-            else
-                if health <= 0 then
-                    self:queue_action(action_death())
                 end
             end
         end
@@ -222,7 +222,7 @@ deadly_area_trigger_plugin = {
             entity:set_attr("health", 0)
         end
     end,
-    activate = CLIENT and function(self)
+    activate = (not SERVER) and function(self)
         signal.connect(self, "collision", self.client_on_collision)
     end or nil
 }

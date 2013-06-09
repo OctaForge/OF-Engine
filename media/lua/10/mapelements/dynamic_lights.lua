@@ -29,7 +29,7 @@ dynamic_light = ents.register_class(plugins.bake(ents.Marker, {{
         )
     end,
 
-    run = CLIENT and function(self, seconds)
+    run = (not SERVER) and function(self, seconds)
         self:dynamic_light_show(seconds)
     end or nil
 }}, "dynamic_light"))
@@ -48,7 +48,7 @@ ents.register_class(plugins.bake(dynamic_light, {{
     end,
 
     activate = function(self)
-        if CLIENT then
+        if not SERVER then
             self.delay = 0
         end
     end,

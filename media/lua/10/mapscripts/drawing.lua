@@ -71,7 +71,7 @@ ents.register_class(plugins.bake(
             end,
 
             -- Called right after initialization on client
-            activate = CLIENT and function(self, kwargs)
+            activate = (not SERVER) and function(self, kwargs)
                 -- Mark storage
                 self.marks    = {}
 
@@ -92,7 +92,7 @@ ents.register_class(plugins.bake(
             end or nil,
 
             -- Called every frame on client after initialization
-            run = CLIENT and function(self, sec)
+            run = (not SERVER) and function(self, sec)
                 -- Draw all marks.
                 local last = nil
 
@@ -145,7 +145,7 @@ player_rocket_launcher = firing.register_gun(
 -- When left mouse button is clicked, set pressing to down, and disable stop_batch.
 -- When middle mouse button is clicked, change to next color.
 -- When right mouse button is clicked, stop drawing current batch and go to new one.
-if CLIENT then
+if not SERVER then
     _C.external_set("input_click_client", function(btn, down, x, y, z, ent, cx, cy)
         if ent and ent.click then
             return ent:click(btn, down, x, y, z, cx, cy)

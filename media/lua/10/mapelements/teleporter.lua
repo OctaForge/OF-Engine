@@ -16,7 +16,7 @@ plugin = {
         self:set_attr("sound_name", "")
     end,
 
-    activate = CLIENT and function(self)
+    activate = (not SERVER) and function(self)
         signal.connect(self, "collision", self.client_on_collision)
     end or nil,
 

@@ -28,12 +28,12 @@ world_notice = ents.register_class(plugins.bake(ents.Obstacle, {{
         self:set_attr("y", 0.88)
     end,
 
-    activate = CLIENT and function(self)
+    activate = (not SERVER) and function(self)
         self.colliding_time = -1
         signal.connect(self, "collision", self.client_on_collision)
     end or nil,
 
-    run = CLIENT and function(self, seconds)
+    run = (not SERVER) and function(self, seconds)
     end or nil,
 
     client_on_collision = function(self, entity)

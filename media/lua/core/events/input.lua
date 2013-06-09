@@ -30,7 +30,7 @@ local input_mouse_move
 
 local get_ext, set_ext = _C.external_get, _C.external_set
 
-if CLIENT then
+if not SERVER then
 --[[! Function: input_yaw
     An external triggered on yaw change. Override as needed. By default
     it sets the "yawing" property on the player to "dir".

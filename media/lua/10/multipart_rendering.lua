@@ -5,7 +5,7 @@ module("multipart_rendering", package.seeall)
 
 plugin = {
     activate = function(self)
-        if not CLIENT then return nil end
+        if SERVER then return nil end
         self.render_args_timestamp = -2
 
         self.render = function(...)

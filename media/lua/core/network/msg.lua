@@ -33,10 +33,10 @@ M.ALL_CLIENTS = -1
     argument as the rest of call arguments. Using <ALL_CLIENTS>
     as the client number, you can send the message to all clients.
 ]]
-M.send = CLIENT and function(mf, ...)
-    mf(...)
-end or function(cn, mf, ...)
+M.send = SERVER and function(cn, mf, ...)
     mf(cn, ...)
+end or function(mf, ...)
+    mf(...)
 end
 
 --[[! Function: show_client_message

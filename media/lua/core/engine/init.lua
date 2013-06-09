@@ -13,7 +13,7 @@
         OctaForge standard library loader (Engine system).
 ]]
 
-if CLIENT then
+if not SERVER then
 #log(DEBUG, ":::: Input.")
 require("core.engine.input")
 

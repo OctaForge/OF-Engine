@@ -16,12 +16,12 @@ function do_blast_wave(position, power, velocity, custom_damage_fun, owner)
 
     local entities
     if serverside then
-        if CLIENT then
-            entities = { ents.get_player() }
-        else
+        if SERVER then
             entities = ents.get_by_distance(position, { max_distance = max_dist })
             entities = table.map   (entities, function(pair) return pair[1] end)
             entities = table.filter(entities, function(i, entity) return not entity:is_a(ents.Player) end)
+        else
+            entities = { ents.get_player() }
         end
     else
         entities = {}
@@ -146,7 +146,7 @@ projectile = table.Object:clone {
     end,
 
     on_explode = function(self)
-        if CLIENT then
+        if not SERVER then
             local radius = self.visual_radius or self.radius
             -- TODO: proper explosion effect
             --effects.splash(effects.PARTICLE.SMOKE, 5, 2.5, self.position, 0x222222, 12, 50, 500, nil, 1, false, 3)
@@ -225,7 +225,7 @@ plugin = {
         end
 
         self.projectile_manager:tick(seconds)
-        if CLIENT then self.projectile_manager:render() end
+        if not SERVER then self.projectile_manager:render() end
     end,
 
     render = function(self, hud_pass, need_hud)
