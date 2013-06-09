@@ -214,6 +214,9 @@ namespace lua
         lua_pop      (L,  1);
         lua_setglobal(L, "_C");
         load_module("init");
+        lua_getglobal(L, "require");
+        lua_pushliteral(L, "gui");
+        lua_call(L, 1, 0);
     }
 
     void reset() {}

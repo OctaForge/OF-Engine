@@ -1,4 +1,4 @@
---[[! File: lua/core/gui/core_widgets.lua
+--[[! File: lua/gui/core_widgets.lua
 
     About: Author
         q66 <quaker66@gmail.com>
@@ -31,7 +31,7 @@ local _V    = _G["_V"]
 local _C    = _G["_C"]
 local emit  = signal.emit
 
-local M = require("core.gui.core")
+local M = require("gui.core")
 local world = M.get_world()
 
 -- consts

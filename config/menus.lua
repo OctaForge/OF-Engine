@@ -1,5 +1,5 @@
 local signal = require("core.events.signal")
-local gui = require("core.gui.core")
+local gui = require("gui.core")
 
 local world = gui.get_world()
 
@@ -90,6 +90,6 @@ world:new_window("main", gui.Window, function(win)
 end)
 
 _C.cubescript([[ bind ESCAPE [ lua [
-    local world = gui.get_world()
+    local world = require("gui.core").get_world()
     if not world:hide_window("main") then world:show_window("main") end
 ] ] ]])

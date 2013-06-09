@@ -144,11 +144,6 @@ require("core.network")
 if dbg then log(DEBUG, ":: Event system.") end
 require("core.events")
 
-if CLIENT then
-if dbg then log(DEBUG, ":: GUI system.") end
-require("core.gui")
-end
-
 if dbg then log(DEBUG, ":: Entity system.") end
 require("core.entities")
 
