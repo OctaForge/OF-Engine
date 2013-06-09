@@ -17,13 +17,14 @@ local var = require("core.lua.var")
 local signal = require("core.events.signal")
 local ffi = require("ffi")
 
+local var_get = var.get
+
 local band  = math.band
 local blsh  = math.lsh
 local max   = math.max
 local min   = math.min
 local clamp = math.clamp
 local floor = math.floor
-local _V    = _G["_V"]
 local _C    = _G["_C"]
 local emit  = signal.emit
 
@@ -84,7 +85,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
 
         self.line_wrap = length < 0
         -- required for up/down/hit/draw/bounds
-        self.pixel_width  = abs(length) * _V.fontw
+        self.pixel_width  = abs(length) * var_get("fontw")
         -- -1 for variable size, i.e. from bounds
         self.pixel_height = -1
 
@@ -97,7 +98,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             local w, h = _C.text_get_bounds(self.lines[1], self.pixel_width)
             self.pixel_height = h
         else
-            self.pixel_height = _V.fonth * max(height, 1)
+            self.pixel_height = var_get("fonth") * max(height, 1)
         end
 
         return Object.__init(self, kwargs)
@@ -340,7 +341,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                     self.pixel_width)
                 local width, height = _C.text_get_bounds(str,
                     self.pixel_width)
-                y = y + _V.fonth
+                y = y + var_get("fonth")
                 if y < height then
                     self.cx = _C.text_is_visible(str, x, y, self.pixel_width)
                     self:scroll_on_screen()
@@ -358,7 +359,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             if _C.input_is_modifier_pressed(mod_keys) then
                 self.cy = 0
             else
-                self.cy = self.cy - self.pixel_height / _V.fonth
+                self.cy = self.cy - self.pixel_height / var_get("fonth")
             end
             self:scroll_on_screen()
         elseif code == key.PAGEDOWN then
@@ -366,7 +367,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             if _C.input_is_modifier_pressed(mod_keys) then
                 self.cy = 1 / 0
             else
-                self.cy = self.cy + self.pixel_height / _V.fonth
+                self.cy = self.cy + self.pixel_height / var_get("fonth")
             end
             self:scroll_on_screen()
         elseif code == key.HOME then
@@ -639,8 +640,8 @@ local Text_Editor = register_class("Text_Editor", Object, {
         if is_clicked(self) and is_focused(self) then
             local dx = abs(cx - self.offset_h)
             local dy = abs(cy - self.offset_v)
-            local fw, fh = _V["fontw"], _V["fonth"]
-            local th = fh * _V.uitextrows
+            local fw, fh = var_get("fontw"), var_get("fonth")
+            local th = fh * var_get("uitextrows")
             local sc = self.scale
             local dragged = max(dx, dy) > (fh / 8) * sc / th
 
@@ -702,11 +703,11 @@ local Text_Editor = register_class("Text_Editor", Object, {
             self.pixel_height = h
         end
 
-        self.w = max(self.w, (self.pixel_width + _V.fontw) *
-            self.scale / (_V.fonth * _V.uitextrows))
+        self.w = max(self.w, (self.pixel_width + var_get("fontw")) *
+            self.scale / (var_get("fonth") * var_get("uitextrows")))
 
         self.h = max(self.h, self.pixel_height *
-            self.scale / (_V.fonth * _V.uitextrows)
+            self.scale / (var_get("fonth") * var_get("uitextrows"))
         )
     end,
 
@@ -714,11 +715,11 @@ local Text_Editor = register_class("Text_Editor", Object, {
         _C.hudmatrix_push()
 
         _C.hudmatrix_translate(sx, sy, 0)
-        local s = self.scale / (_V.fonth * _V.uitextrows)
+        local s = self.scale / (var_get("fonth") * var_get("uitextrows"))
         _C.hudmatrix_scale(s, s, 1)
         _C.hudmatrix_flush()
 
-        local x, y, hit = _V.fontw / 2, 0, is_focused(self)
+        local x, y, hit = var_get("fontw") / 2, 0, is_focused(self)
         local max_width = self.line_wrap and self.pixel_width or -1
         local selection, sx, sy, ex, ey = self:region()
 
@@ -751,6 +752,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
             maxy = maxy - 1
 
             if ey >= self.scrolly and sy <= maxy then
+                local fonth = var_get("fonth")
                 -- crop top/bottom within window
                 if  sy < self.scrolly then
                     sy = self.scrolly
@@ -759,7 +761,7 @@ local Text_Editor = register_class("Text_Editor", Object, {
                 end
                 if  ey > maxy then
                     ey = maxy
-                    pey = self.pixel_height - _V.fonth
+                    pey = self.pixel_height - fonth
                     pex = self.pixel_width
                 end
 
@@ -770,23 +772,23 @@ local Text_Editor = register_class("Text_Editor", Object, {
                 if psy == pey then
                     _C.gle_attrib2f(x + psx, y + psy)
                     _C.gle_attrib2f(x + pex, y + psy)
-                    _C.gle_attrib2f(x + pex, y + pey + _V.fonth)
-                    _C.gle_attrib2f(x + psx, y + pey + _V.fonth)
+                    _C.gle_attrib2f(x + pex, y + pey + fonth)
+                    _C.gle_attrib2f(x + psx, y + pey + fonth)
                 else
                     _C.gle_attrib2f(x + psx,              y + psy)
-                    _C.gle_attrib2f(x + psx,              y + psy + _V.fonth)
-                    _C.gle_attrib2f(x + self.pixel_width, y + psy + _V.fonth)
+                    _C.gle_attrib2f(x + psx,              y + psy + fonth)
+                    _C.gle_attrib2f(x + self.pixel_width, y + psy + fonth)
                     _C.gle_attrib2f(x + self.pixel_width, y + psy)
-                    if (pey - psy) > _V.fonth then
-                        _C.gle_attrib2f(x, y + psy + _V.fonth)
+                    if (pey - psy) > fonth then
+                        _C.gle_attrib2f(x, y + psy + fonth)
                         _C.gle_attrib2f(x + self.pixel_width,
-                                        y + psy + _V.fonth)
+                                        y + psy + fonth)
                         _C.gle_attrib2f(x + self.pixel_width, y + pey)
                         _C.gle_attrib2f(x, y + pey)
                     end
                     _C.gle_attrib2f(x,       y + pey)
-                    _C.gle_attrib2f(x,       y + pey + _V.fonth)
-                    _C.gle_attrib2f(x + pex, y + pey + _V.fonth)
+                    _C.gle_attrib2f(x,       y + pey + fonth)
+                    _C.gle_attrib2f(x + pex, y + pey + fonth)
                     _C.gle_attrib2f(x + pex, y + pey)
                 end
                 _C.gle_end()
@@ -804,16 +806,18 @@ local Text_Editor = register_class("Text_Editor", Object, {
                 or self.lines[i], x, y + h, 255, 255, 255, 255,
                 (hit and (self.cy == i - 1)) and self.cx or -1, max_width)
 
+            local fonth = var_get("fonth")
             -- line wrap indicator
-            if self.line_wrap and height > _V.fonth then
+            if self.line_wrap and height > fonth then
+                local fontw = var_get("fontw")
                 _C.shader_hudnotexture_set()
                 _C.gle_color3ub(0x80, 0xA0, 0x80)
                 _C.gle_defvertex(2)
                 _C.gle_begin(gl.gl.TRIANGLE_STRIP)
-                _C.gle_attrib2f(x,                y + h + _V.fonth)
+                _C.gle_attrib2f(x,                y + h + fonth)
                 _C.gle_attrib2f(x,                y + h + height)
-                _C.gle_attrib2f(x - _V.fontw / 2, y + h + _V.fonth)
-                _C.gle_attrib2f(x - _V.fontw / 2, y + h + height)
+                _C.gle_attrib2f(x - fontw / 2, y + h + fonth)
+                _C.gle_attrib2f(x - fontw / 2, y + h + height)
                 _C.gle_end()
                 _C.shader_hud_set()
             end

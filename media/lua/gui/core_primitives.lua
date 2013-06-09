@@ -17,6 +17,8 @@ local model = require("core.engine.model")
 local var = require("core.lua.var")
 local signal = require("core.events.signal")
 
+local var_get = var.get
+
 local band  = math.band
 local bor   = math.bor
 local bnot  = math.bnot
@@ -27,7 +29,6 @@ local min   = math.min
 local clamp = math.clamp
 local floor = math.floor
 local ceil  = math.ceil
-local _V    = _G["_V"]
 local _C    = _G["_C"]
 local emit  = signal.emit
 
@@ -242,10 +243,10 @@ local Image = register_class("Image", Filler, {
         local min_h = self.min_h
 
         if  min_w < 0 then
-            min_w = abs(min_w) / _V.scr_h
+            min_w = abs(min_w) / var_get("scr_h")
         end
         if  min_h < 0 then
-            min_h = abs(min_h) / _V.scr_h
+            min_h = abs(min_h) / var_get("scr_h")
         end
 
         if  min_w == -1 then
@@ -256,7 +257,7 @@ local Image = register_class("Image", Filler, {
         end
 
         if  min_w == 0 or min_h == 0 then
-            local tex, scrh = self.texture, _V.scr_h
+            local tex, scrh = self.texture, var_get("scr_h")
             if  min_w == 0 then
                 min_w = tex:get_w() / scrh
             end
@@ -801,7 +802,7 @@ M.Model_Viewer = register_class("Model_Viewer", Filler, {
         local csl = #clip_stack > 0
         if csl then _C.gl_scissor_disable() end
 
-        local screenw, ww, ws = _V.scr_w, world.w, world.size
+        local screenw, ww, ws = var_get("scr_w"), world.w, world.size
         local w, h = self.w, self.h
 
         local x = floor((sx + world.margin) * screenw / ww)
@@ -869,7 +870,7 @@ M.Label = register_class("Label", Object, {
     end,
 
     draw_scale = function(self)
-        return self.scale / (_V["fonth"] * _V["uitextrows"])
+        return self.scale / (var_get("fonth") * var_get("uitextrows"))
     end,
 
     draw = function(self, sx, sy)
@@ -955,7 +956,7 @@ M.Eval_Label = register_class("Eval_Label", Object, {
     end,
 
     draw_scale = function(self)
-        return self.scale / (_V["fonth"] * _V["uitextrows"])
+        return self.scale / (var_get("fonth") * var_get("uitextrows"))
     end,
 
     draw = function(self, sx, sy)

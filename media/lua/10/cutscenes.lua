@@ -19,6 +19,7 @@ local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
+local var = require("core.lua.var")
 
 --[[!
     Package: cutscenes
@@ -133,7 +134,7 @@ action_base = extraevents.action_container:clone {
         end
 
         return extraevents.action_container.run(self, seconds)
-            or _V.editing ~= 0
+            or var.get("editing") ~= 0
     end,
 
     --[[!
@@ -653,13 +654,13 @@ ents.register_class(
             In edit mode, it takes care of visual connection representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if self.started and _V.editing == 0 and not self.lock then
+            if self.started and var.get("editing") == 0 and not self.lock then
                 self:start()
                 self.lock = true
             end
             self.lock = (not self.started and self.lock) and false or self.lock
 
-            if _V.editing ~= 0 then
+            if var.get("editing") ~= 0 then
                 if self:get_attr("next_controller") >= 1 then
                     show_distance(
                         "ctl_" .. self:get_attr("next_controller"), self, 0xFFED22
@@ -737,7 +738,7 @@ ents.register_class(
             In edit mode, this takes care of proper visual representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if _V.editing == 0 then return nil end
+            if var.get("editing") == 0 then return nil end
 
             if not self.m_tag then
                 self.m_tag = self:get_attr("tags"):to_array()[1]
@@ -869,7 +870,7 @@ ents.register_class(
             In edit mode, this takes care of proper visual representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if _V.editing == 0 then return nil end
+            if var.get("editing") == 0 then return nil end
 
             if not self.m_tag then
                 self.m_tag = self:get_attr("tags"):to_array()[1]
@@ -968,7 +969,7 @@ ents.register_class(
             if self.action.subtitle_background ~= self:get_attr("subtitle_background") then
                self.action.subtitle_background  = self:get_attr("subtitle_background") end
 
-            if _V.editing == 0 then return nil end
+            if var.get("editing") == 0 then return nil end
 
             if not self.m_tag then
                 self.m_tag = self:get_attr("tags"):to_array()[1]
@@ -1004,8 +1005,8 @@ ents.register_class(
                     self.old_show_hud_image(
                         self.background_image,
                         0.5, 0.5,
-                        math.max((_V.scr_w / _V.scr_h), 1),
-                        math.min((_V.scr_w / _V.scr_h), 1)
+                        math.max(var.get("scr_w") / var.get("scr_h"), 1),
+                        math.min(var.get("scr_w") / var.get("scr_h"), 1)
                     )
                 end
                 return action_base.run(self, seconds)
@@ -1019,8 +1020,8 @@ ents.register_class(
                             self.subtitle_background,
                             0.5,
                             0.9,
-                            (factors.x * 800) / _V.scr_w,
-                            (factors.y * 128) / _V.scr_h
+                            (factors.x * 800) / var.get("scr_w"),
+                            (factors.y * 128) / var.get("scr_h")
                         )
                     end
                 end]]
@@ -1073,7 +1074,7 @@ ents.register_class(
             In edit mode, this takes care of proper visual representation.
         ]]
         run = CLIENT and function(self, seconds)
-            if _V.editing == 0 then return nil end
+            if var.get("editing") == 0 then return nil end
 
             if not self.m_tag then
                 self.m_tag = self:get_attr("tags"):to_array()[1]

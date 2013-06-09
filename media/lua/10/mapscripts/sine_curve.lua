@@ -4,6 +4,7 @@
 
 local edit = require("core.engine.edit")
 local ents = require("core.entities.ents")
+local var = require("core.lua.var")
 
 -- Create a custom player class
 myplayer = ents.Player:clone { name = "myplayer" }
@@ -44,7 +45,7 @@ end
 ents.register_class(myplayer)
 
 -- Notify the engine that we're overriding player by setting engine variable
-_V.player_class = "myplayer"
+var.set("player_class", "myplayer")
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0

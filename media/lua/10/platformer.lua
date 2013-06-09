@@ -4,6 +4,7 @@ local signal = require("core.events.signal")
 local library = require("core.lua.library")
 local svars = require("core.entities.svars")
 local ents = require("core.entities.ents")
+local var = require("core.lua.var")
 
 library.include("mapelements.world_areas")
 
@@ -178,7 +179,7 @@ function do_strafe(strafe, down)
 end
 
 function do_mousemove(yaw, pitch)
-    if _V.editing ~= 0 then
+    if var.get("editing") ~= 0 then
         return yaw, pitch
     end
 end

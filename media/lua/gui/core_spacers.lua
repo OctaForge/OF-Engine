@@ -16,7 +16,8 @@
 
 local max = math.max
 local min = math.min
-local _V  = _G["_V"]
+local var = require("core.lua.var")
+local var_get = var.get
 
 local M = require("gui.core")
 local world = M.get_world()
@@ -109,10 +110,10 @@ M.Filler = register_class("Filler", Object, {
         local min_h = self.min_h
 
         if  min_w < 0 then
-            min_w = abs(min_w) / _V.scr_h
+            min_w = abs(min_w) / var_get("scr_h")
         end
         if  min_h < 0 then
-            min_h = abs(min_h) / _V.scr_h
+            min_h = abs(min_h) / var_get("scr_h")
         end
 
         if  min_w == -1 then

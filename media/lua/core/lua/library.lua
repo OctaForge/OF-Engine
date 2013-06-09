@@ -15,6 +15,8 @@
         and get the current library string.
 ]]
 
+local var = require("core.lua.var")
+
 local M = {}
 local ffi = require "ffi"
 
@@ -48,7 +50,7 @@ M.use = function(name)
     local ppath = package.path
     if not ppath:find(ptrn, 1, true) then
         package.path = ("%s;%smedia%slua%s%s%s?.lua%s"):format(ppath,
-            _V.homedir, pdiv, pdiv, name, pdiv, ptrn)
+            var.get("homedir"), pdiv, pdiv, name, pdiv, ptrn)
     end
 
     M.current = name

@@ -21,6 +21,7 @@ local frame = require("core.events.frame")
 local actions = require("core.events.actions")
 local signal = require("core.events.signal")
 local svars = require("core.entities.svars")
+local var = require("core.lua.var")
 
 local filter, filter_map, map, sort, keys, concat, find, serialize, deserialize
     = table.filter, table.filter_map, table.map, table.sort, table.keys,
@@ -250,11 +251,13 @@ M.get_by_class = function(cl)
     return storage_by_class[tostring(cl)] or {}
 end
 
+local vg = var.get
+
 --[[! Function: get_players
     Gets an array of players (all of the currently set player class).
 ]]
 local get_players = function()
-    return storage_by_class[_V.player_class] or {}
+    return storage_by_class[vg("player_class")] or {}
 end
 M.get_players = get_players
 

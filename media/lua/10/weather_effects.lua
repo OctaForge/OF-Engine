@@ -16,6 +16,7 @@
 
 local frame = require("core.events.frame")
 local ents = require("core.entities.ents")
+local var = require("core.lua.var")
 
 --[[!
     Package: weather_effects
@@ -84,7 +85,7 @@ rain = {
         self.drops = {}
 
         -- world size
-        local wsize = _V.mapsize
+        local wsize = var.get("mapsize")
 
         -- the game manager singleton
         local singleton = game_manager.get_singleton()

@@ -15,7 +15,7 @@ local ents = require("core.entities.ents")
 -- you can then toggle shooting and drawing from the console using this.
 -- because it's persistent, your last state (drawing / shooting) will
 -- be saved and applied the next run.
-if not _V.shoot_mode then
+if not var.get("shoot_mode") then
     var.new("shoot_mode", var.INT, 0, 0, 1, var.PERSIST)
 end
 
@@ -151,7 +151,7 @@ if CLIENT then
             return ent:click(btn, down, x, y, z, cx, cy)
         end
 
-        if _V.shoot_mode == 1 then
+        if var.get("shoot_mode") == 1 then
             return firing.click(btn, down, x, y, z, ent, cx, cy)
         end
     
@@ -172,7 +172,7 @@ end
 -- do_mousemove = platformer.do_mousemove
 
 -- Notify the engine that we're overriding player by setting engine variable
-_V.player_class = "game_player"
+var.set("player_class", "game_player")
 
 -- This way you can disable gravity, not needed, default value is 200
 -- world.gravity = 0

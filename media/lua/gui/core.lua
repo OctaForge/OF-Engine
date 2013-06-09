@@ -20,6 +20,8 @@
 local var = require("core.lua.var")
 local signal = require("core.events.signal")
 
+local var_get, var_set = var.get, var.set
+
 -- external locals
 local band  = math.band
 local bor   = math.bor
@@ -30,7 +32,6 @@ local min   = math.min
 local clamp = math.clamp
 local floor = math.floor
 local ceil  = math.ceil
-local _V    = _G["_V"]
 local _C    = _G["_C"]
 local emit  = signal.emit
 
@@ -309,7 +310,7 @@ M.clip_area_is_fully_clipped = clip_area_is_fully_clipped
 ]]
 local clip_area_scissor = function(self)
     self = self or clip_stack[#clip_stack]
-    local scr_w, scr_h = _V.scr_w, _V.scr_h
+    local scr_w, scr_h = var_get("scr_w"), var_get("scr_h")
 
     local margin = max((scr_w / scr_h - 1) / 2, 0)
 
@@ -1296,9 +1297,9 @@ local World = register_class("World", Object, {
     layout = function(self)
         Object.layout(self)
 
-        local sw, sh = _V.scr_w, _V.scr_h
+        local sw, sh = var_get("scr_w"), var_get("scr_h")
         self.size = sh
-        local faspect = _V.aspect
+        local faspect = var_get("aspect")
         if faspect ~= 0 then sw = ceil(sh * faspect) end
 
         local margin = max((sw/sh - 1) / 2, 0)
@@ -1431,14 +1432,16 @@ end
 var.new("cursorsensitivity", var.FLOAT, 0.001, 1, 1000)
 
 local cursor_mode = function()
-    return _V.editing == 0 and _V.freecursor or _V.freeeditcursor
+    return var_get("editing") == 0 and var_get("freecursor")
+        or var_get("freeeditcursor")
 end
 
 set_external("cursor_move", function(dx, dy)
     local cmode = cursor_mode()
     if cmode == 2 or (world:grabs_input() and cmode >= 1) then
-        local scale = 500 / _V.cursorsensitivity
-        cursor_x = clamp(cursor_x + dx * (_V.scr_h / (_V.scr_w * scale)), 0, 1)
+        local scale = 500 / var_get("cursorsensitivity")
+        cursor_x = clamp(cursor_x + dx * (var_get("scr_h")
+            / (var_get("scr_w") * scale)), 0, 1)
         cursor_y = clamp(cursor_y + dy / scale, 0, 1)
         if cmode == 2 then
             if cursor_x ~= 1 and cursor_x ~= 0 then dx = 0 end
@@ -1496,8 +1499,8 @@ end)
 local draw_hud = false
 
 set_external("gui_clear", function()
-    if  _V.mainmenu ~= 0 and _C.isconnected() then
-        var.set("mainmenu", 0, true, false) -- no clamping, readonly var
+    if  var_get("mainmenu") ~= 0 and _C.isconnected() then
+        var_set("mainmenu", 0, true, false) -- no clamping, readonly var
         world:destroy_children()
         if draw_hud then
             hud:destroy_children()
@@ -1527,7 +1530,7 @@ set_external("gui_update", function()
     end
     update_later = {}
 
-    local mm = _V.mainmenu
+    local mm = var_get("mainmenu")
 
     if mm ~= 0 and not world:window_visible("main") and
     not _C.isconnected(true) then

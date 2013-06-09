@@ -17,8 +17,9 @@ void ident::changed() {
     if (fun) fun();
     if (!(flags&IDF_SIGNAL)) return;
     lua::push_external("signal_emit");
-    lua::push_external("vars_get");
-    lua_call(lua::L, 0, 1);
+    lua_getglobal(lua::L, "require");
+    lua_pushliteral(lua::L, "core.lua.var");
+    lua_call(lua::L, 1, 1);
     lua_pushstring (lua::L, name);
     lua_pushliteral(lua::L, "_changed");
     lua_concat     (lua::L, 2);
