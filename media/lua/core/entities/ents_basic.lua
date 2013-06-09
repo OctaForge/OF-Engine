@@ -31,6 +31,9 @@ local assert, unpack, tonumber, tostring = assert, unpack, tonumber, tostring
 local connect, emit = signal.connect, signal.emit
 local format = string.format
 local abs = math.abs
+local tconc = table.concat
+
+local set_attachments = _C.set_attachments
 
 --[[! Class: Physical_Entity
     Represents a base for every entity that has some kind of physical
@@ -54,7 +57,11 @@ local Physical_Entity = Entity:clone {
         },
         start_time  = svars.State_Integer { getter = "_C.get_start_time"   },
         model_name  = svars.State_String  { setter = "_C.set_model_name"   },
-        attachments = svars.State_Array   { setter = "_C.set_attachments" } 
+        attachments = svars.State_Array   {
+            setter = function(self, val)
+                return set_attachments(self, tconc(val))
+            end
+        } 
     },
 
     init = SERVER and function(self, uid, kwargs)

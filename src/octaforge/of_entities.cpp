@@ -152,13 +152,7 @@ namespace entities
 
     LUAICOMMAND(set_attachments, {
         LUA_GET_ENT(entity, "_C.setattachments", return 0)
-        lua_getglobal(L, "table");
-        lua_getfield (L, -1, "concat");
-        lua_remove   (L, -2);
-        lua_pushvalue(L,  2);
-        lua_call     (L, 1, 1);
-        entity->setAttachments(lua_tostring(L, -1));
-        lua_pop(L, 1);
+        entity->setAttachments(lua_tostring(L, 2));
         return 0;
     });
 
