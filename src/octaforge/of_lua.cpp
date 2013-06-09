@@ -102,18 +102,11 @@ namespace lua
     typedef vector<Reg> cfuns;
     static cfuns *funs = NULL;
 
-    bool reg_fun(const char *name, lua_CFunction fun, bool onst) {
-        if (!L) {
-            if (!funs) {
-                funs = new cfuns;
-            }
-            funs->add((Reg){ name, fun });
-            return true;
+    bool reg_fun(const char *name, lua_CFunction fun) {
+        if (!funs) {
+            funs = new cfuns;
         }
-        if (!onst) lua_getglobal(L, "_C");
-        lua_pushcfunction(L, fun);
-        lua_setfield(L, -2, name);
-        if (!onst) lua_pop(L, 1);
+        funs->add((Reg){ name, fun });
         return true;
     }
 
@@ -214,7 +207,8 @@ namespace lua
         lua_createtable(L, numfields, 0);      /* _C, C_mt, C_tbl */
         for (int i = 0; i < numfields; ++i) {
             const Reg& reg = (*funs)[i];
-            reg_fun(reg.name, reg.fun, true);
+            lua_pushcfunction(L, reg.fun);
+            lua_setfield(L, -2, reg.name);
         }
         delete funs;
         funs = NULL;
