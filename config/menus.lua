@@ -1,4 +1,5 @@
 local signal = require("core.events.signal")
+local gui = require("core.gui.core")
 
 local world = gui.get_world()
 

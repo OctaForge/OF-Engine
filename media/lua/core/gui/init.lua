@@ -15,7 +15,6 @@
 
 #log(DEBUG, ":::: Core UI implementation.")
 
-gui = {}
 require("core.gui.core")
 require("core.gui.core_containers")
 require("core.gui.core_spacers")

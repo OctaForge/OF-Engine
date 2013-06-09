@@ -16,7 +16,7 @@
 local max = math.max
 local min = math.min
 
-local M = gui
+local M = require("core.gui.core")
 local world = M.get_world()
 
 -- consts

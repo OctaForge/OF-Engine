@@ -37,7 +37,7 @@ local emit  = signal.emit
 local tremove = table.remove
 local tinsert = table.insert
 
-local M = gui
+local M = {}
 
 local consts = require("core.gui.constants")
 

@@ -18,7 +18,7 @@ local max = math.max
 local min = math.min
 local _V  = _G["_V"]
 
-local M = gui
+local M = require("core.gui.core")
 local world = M.get_world()
 
 -- widget types

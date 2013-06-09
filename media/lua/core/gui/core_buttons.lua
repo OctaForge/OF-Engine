@@ -13,7 +13,7 @@
         All kinds of button widgets.
 ]]
 
-local M = gui
+local M = require("core.gui.core")
 local world = M.get_world()
 
 -- input event management

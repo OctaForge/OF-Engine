@@ -25,7 +25,7 @@ local round = math.round
 local _C    = _G["_C"]
 local emit  = signal.emit
 
-local M = gui
+local M = require("core.gui.core")
 local world = M.get_world()
 
 -- consts
