@@ -16,4 +16,4 @@
 ]]
 
 #log(DEBUG, ":::: Messages.")
-msg = require("core.network.msg")
+require("core.network.msg")

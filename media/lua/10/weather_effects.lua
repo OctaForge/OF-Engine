@@ -14,6 +14,8 @@
         Weather effects for OctaForge. Currently features rain.
 ]]
 
+local frame = require("core.events.frame")
+
 --[[!
     Package: weather_effects
     This module is meant to provide various weather effects like rain,

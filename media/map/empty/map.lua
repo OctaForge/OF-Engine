@@ -1,6 +1,8 @@
 -- OctaForge empty map
 -- author: q66 <quaker66@gmail.com>
 
+local library = require("core.lua.library")
+
 -- Use library version "10"
 library.use("10")
 

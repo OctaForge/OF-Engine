@@ -1,4 +1,5 @@
 local model = require("core.engine.model")
+local frame = require("core.events.frame")
 
 module("multipart_rendering", package.seeall)
 

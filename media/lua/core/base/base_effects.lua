@@ -15,6 +15,8 @@
         DEPRECATED for OF API v2 (Stays in v1).
 ]]
 
+local msg = require("core.network.msg")
+
 --[[!
     Package: effects
     This module contains effect interface,

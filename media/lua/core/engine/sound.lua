@@ -13,6 +13,8 @@
         Sound related functions.
 ]]
 
+local msg = require("core.network.msg")
+
 local type = type
 local send = msg.send
 

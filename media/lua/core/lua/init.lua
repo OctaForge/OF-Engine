@@ -32,19 +32,19 @@ require("core.lua.table")
 require("core.lua.math")
 
 #log(DEBUG, ":::: Engine variables.")
-var = require("core.lua.var")
+require("core.lua.var")
 
 #log(DEBUG, ":::: Type conversions.")
-conv = require("core.lua.conv")
+require("core.lua.conv")
 
 #log(DEBUG, ":::: Library.")
-library = require("core.lua.library")
+require("core.lua.library")
 
 #log(DEBUG, ":::: Utilities.")
-util = require("core.lua.util")
+require("core.lua.util")
 
 #log(DEBUG, ":::: Environment support.")
-env = require("core.lua.env")
+require("core.lua.env")
 
 -- Useful functionality exposed into globals
 
@@ -64,10 +64,3 @@ bitxor = math.bxor
 bitand = math.band
 
 bitnot = math.bnot
-
-match   = util.match
-switch  = util.switch
-case    = util.case
-default = util.default
-
-assert_param = util.assert_param

@@ -1,4 +1,5 @@
 local sound = require("core.engine.sound")
+local frame = require("core.events.frame")
 
 module("world_notices", package.seeall)
 

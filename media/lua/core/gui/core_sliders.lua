@@ -13,6 +13,8 @@
         Sliders for the OF GUI.
 ]]
 
+local var = require("core.lua.var")
+
 local band  = math.band
 local bnot  = math.bnot
 local max   = math.max

@@ -17,6 +17,8 @@
         various types and new svar types are easily implementable.
 ]]
 
+local frame = require("core.events.frame")
+
 local tostring, tointeger, tonumber, toboolean, abs, round, floor, rawget
     = tostring, tointeger, tonumber, toboolean, math.abs, math.round,
       math.floor, rawget

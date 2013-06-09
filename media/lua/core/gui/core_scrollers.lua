@@ -13,6 +13,8 @@
         Widgets related to scrolling - scrollers, scrollbars and so on.
 ]]
 
+local frame = require("core.events.frame")
+
 local band  = math.band
 local bnot  = math.bnot
 local blsh  = math.lsh

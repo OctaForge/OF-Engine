@@ -1,5 +1,7 @@
 local sound = require("core.engine.sound")
 local model = require("core.engine.model")
+local msg = require("core.network.msg")
+local frame = require("core.events.frame")
 
 module("game_manager", package.seeall)
 

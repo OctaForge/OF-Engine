@@ -1,3 +1,5 @@
+local library = require("core.lua.library")
+
 library.include("firing")
 
 module("chaingun", package.seeall)

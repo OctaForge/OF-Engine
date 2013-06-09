@@ -13,6 +13,7 @@
         Text editor and fields.
 ]]
 
+local var = require("core.lua.var")
 local ffi = require("ffi")
 
 local band  = math.band

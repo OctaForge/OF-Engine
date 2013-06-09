@@ -5,6 +5,9 @@
 -- built on OF API v1
 -- author: q66 <quaker66@gmail.com>
 
+local input = require("core.engine.input")
+local var = require("core.lua.var")
+
 -- set up "shoot mode" variable aloas, which will be persistent.
 -- you can then toggle shooting and drawing from the console using this.
 -- because it's persistent, your last state (drawing / shooting) will
@@ -12,8 +15,6 @@
 if not _V.shoot_mode then
     var.new("shoot_mode", var.INT, 0, 0, 1, var.PERSIST)
 end
-
-local input = require("core.engine.input")
 
 -- Register our custom player entity class into storage
 ents.register_class(plugins.bake(

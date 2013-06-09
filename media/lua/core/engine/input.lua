@@ -13,6 +13,8 @@
         Several input-related functions in the "input" module.
 ]]
 
+local frame = require("core.events.frame")
+
 local vec3 = math.Vec3
 
 return {

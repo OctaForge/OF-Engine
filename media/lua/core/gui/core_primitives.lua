@@ -14,6 +14,7 @@
 ]]
 
 local model = require("core.engine.model")
+local var = require("core.lua.var")
 
 local band  = math.band
 local bor   = math.bor

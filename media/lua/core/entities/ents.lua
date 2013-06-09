@@ -16,6 +16,9 @@
         entity types have their own modules.
 ]]
 
+local msg = require("core.network.msg")
+local frame = require("core.events.frame")
+
 local filter, filter_map, map, sort, keys, concat, find, serialize, deserialize
     = table.filter, table.filter_map, table.map, table.sort, table.keys,
       table.concat, table.find, table.serialize, table.deserialize

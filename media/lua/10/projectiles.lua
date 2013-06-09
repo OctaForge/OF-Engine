@@ -1,6 +1,7 @@
 local sound = require("core.engine.sound")
 local model = require("core.engine.model")
 local edit = require("core.engine.edit")
+local library = require("core.lua.library")
 
 library.include("firing")
 

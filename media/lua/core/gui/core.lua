@@ -17,6 +17,8 @@
         It also manages the HUD.
 ]]
 
+local var = require("core.lua.var")
+
 -- external locals
 local band  = math.band
 local bor   = math.bor
@@ -1021,9 +1023,6 @@ Object = register_class("Object", table.Object, {
         right).
     ]]
     align = function(self, h, v)
-        assert_param(h, "number", 2)
-        assert_param(v, "number", 3)
-
         self.adjust = bor(band(self.adjust, bnot(ALIGN_MASK)),
             blsh(clamp(h, -1, 1) + 2, ALIGN_HSHIFT),
             blsh(clamp(v, -1, 1) + 2, ALIGN_VSHIFT))

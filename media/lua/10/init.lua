@@ -17,6 +17,8 @@
     Section: Extension library 1.0 initialization
 ]]
 
+local library = require("core.lua.library")
+
 #log(DEBUG, "Initializing library version " .. library.current)
 
 #log(DEBUG, ":: Plugin system.")
@@ -30,5 +32,3 @@ library.include("extraevents")
 
 #log(DEBUG, ":: Health.")
 library.include("health")
-
-_V.uwambient = 1

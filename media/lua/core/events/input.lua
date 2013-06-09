@@ -13,6 +13,8 @@
         Registers several input events.
 ]]
 
+local msg = require("core.network.msg")
+
 local emit = signal.emit
 
 --[[! Function: input_mouse_move

@@ -1,5 +1,6 @@
 local sound = require("core.engine.sound")
 local model = require("core.engine.model")
+local frame = require("core.events.frame")
 
 module("jump_pad", package.seeall)
 

@@ -1,6 +1,8 @@
-library.include("mapelements.world_areas")
-
 local camera = require("core.engine.camera")
+local frame = require("core.events.frame")
+local library = require("core.lua.library")
+
+library.include("mapelements.world_areas")
 
 module("platformer", package.seeall)
 
