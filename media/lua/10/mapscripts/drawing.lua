@@ -13,6 +13,8 @@ if not _V.shoot_mode then
     var.new("shoot_mode", var.INT, 0, 0, 1, var.PERSIST)
 end
 
+local input = require("core.engine.input")
+
 -- Register our custom player entity class into storage
 ents.register_class(plugins.bake(
     ents.Player, {

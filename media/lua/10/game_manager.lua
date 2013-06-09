@@ -1,3 +1,6 @@
+local sound = require("core.engine.sound")
+local model = require("core.engine.model")
+
 module("game_manager", package.seeall)
 
 player_plugin = {

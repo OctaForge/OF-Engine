@@ -2,6 +2,8 @@
 -- built on OF API v1
 -- author: q66 <quaker66@gmail.com>
 
+local edit = require("core.engine.edit")
+
 -- Create a custom player class
 myplayer = ents.Player:clone { name = "myplayer" }
 

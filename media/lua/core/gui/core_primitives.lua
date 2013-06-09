@@ -13,6 +13,8 @@
         Primitive widgets - rectangles, images, labels...
 ]]
 
+local model = require("core.engine.model")
+
 local band  = math.band
 local bor   = math.bor
 local bnot  = math.bnot

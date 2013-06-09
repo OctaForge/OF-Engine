@@ -13,6 +13,8 @@
         Registers several world events. Override these as you wish.
 ]]
 
+local edit = require("core.engine.edit")
+
 local emit = signal.emit
 
 --[[! Function: physics_off_map

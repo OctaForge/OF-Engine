@@ -1,5 +1,7 @@
 library.include("mapelements.world_areas")
 
+local camera = require("core.engine.camera")
+
 module("platformer", package.seeall)
 
 function vec3_from_axis(axis)

@@ -1,3 +1,7 @@
+local input = require("core.engine.input")
+local sound = require("core.engine.sound")
+local model = require("core.engine.model")
+
 module("firing", package.seeall)
 
 guns = {}

@@ -1,3 +1,5 @@
+local model = require("core.engine.model")
+
 module("multipart_rendering", package.seeall)
 
 plugin = {

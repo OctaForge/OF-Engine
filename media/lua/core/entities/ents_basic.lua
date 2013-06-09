@@ -14,6 +14,9 @@
         Implements a basic entity set. Injects directly into the "ents" module.
 ]]
 
+local sound = require("core.engine.sound")
+local model = require("core.engine.model")
+
 local M = ents
 
 local Entity = M.Entity

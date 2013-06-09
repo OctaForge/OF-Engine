@@ -1,3 +1,5 @@
+local sound = require("core.engine.sound")
+
 module("world_notices", package.seeall)
 
 world_notice = ents.register_class(plugins.bake(ents.Obstacle, {{

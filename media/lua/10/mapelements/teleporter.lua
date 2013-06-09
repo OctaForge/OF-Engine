@@ -1,3 +1,5 @@
+local sound = require("core.engine.sound")
+
 module("teleporter", package.seeall)
 
 plugin = {

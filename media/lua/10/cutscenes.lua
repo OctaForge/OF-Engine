@@ -14,6 +14,8 @@
         Fully realtime-designed cutscene system for OctaForge.
 ]]
 
+local camera = require("core.engine.camera")
+
 --[[!
     Package: cutscenes
     A cutscene system for OctaForge. This one is fully scripted (no C++ code

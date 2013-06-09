@@ -1,3 +1,7 @@
+local sound = require("core.engine.sound")
+local model = require("core.engine.model")
+local edit = require("core.engine.edit")
+
 library.include("firing")
 
 module("projectiles", package.seeall)
