@@ -102,13 +102,7 @@ action_base = extraevents.action_container:clone {
         self.old_crosshair = _G["crosshair"]
         _G["crosshair"]    = ""
 
-        self.old_show_hud_text  = _C.showhudtext
-        self.old_show_hud_rect  = _C.showhudrect
-        self.old_show_hud_image = _C.showhudimage
-
-        _C.showhudtext  = function() end
-        _C.showhudrect  = function() end
-        _C.showhudimage = function() end
+        -- XXX: disable HUD
 
         self.old_seconds_left = self.seconds_left
 
@@ -149,9 +143,7 @@ action_base = extraevents.action_container:clone {
 
         _G["crosshair"] = self.old_crosshair
 
-        _C.showhudtext  = self.old_show_hud_text
-        _C.showhudrect  = self.old_show_hud_rect
-        _C.showhudimage = self.old_show_hud_image
+        -- XXX: enable HUD
 
         extraevents.action_input_capture_plugin.finish(self)
     end,

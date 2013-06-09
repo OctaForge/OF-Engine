@@ -190,6 +190,12 @@ namespace lua
         }
     }
 
+    static int capi_tostring(lua_State *L) {
+        lua_pushfstring(L, "C API: %d entries",
+                lua_tointeger(L, lua_upvalueindex(1)));
+        return 1;
+    }
+
     void setup_binds()
     {
 #ifdef CLIENT
@@ -202,13 +208,23 @@ namespace lua
         lua_pushinteger(L, OF_CFG_VERSION); lua_setglobal(L, "OF_CFG_VERSION");
 
         assert(funs);
-        lua_createtable(L, funs->length(), 0);
-        loopv(*funs) {
+        lua_newuserdata(L, 0);                 /* _C */
+        lua_createtable(L, 0, 2);              /* _C, C_mt */
+        int numfields = funs->length();
+        lua_createtable(L, numfields, 0);      /* _C, C_mt, C_tbl */
+        for (int i = 0; i < numfields; ++i) {
             const Reg& reg = (*funs)[i];
             reg_fun(reg.name, reg.fun, true);
         }
         delete funs;
         funs = NULL;
+        lua_setfield(L, -2, "__index");        /* _C, C_mt */
+        lua_pushinteger(L, numfields);         /* _C, C_mt, C_num */
+        lua_pushcclosure(L, capi_tostring, 1); /* _C, C_mt, C_tostring */
+        lua_setfield(L, -2, "__tostring");     /* _C, C_mt */
+        lua_pushboolean(L, 0);                 /* _C, C_mt, C_metatable */
+        lua_setfield(L, -2, "__metatable");    /* _C, C_mt */
+        lua_setmetatable(L, -2);               /* _C */
         lua_getfield (L, LUA_REGISTRYINDEX, "_LOADED");
         lua_pushvalue(L, -2); lua_setfield (L, -2, "_C");
         lua_pop      (L,  1);
